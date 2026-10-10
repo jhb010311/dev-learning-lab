@@ -20,3 +20,4 @@ tools/strip_dc.js
 tools/add_onboarding.js
 tools/infra_parts.js
 verify/out/
+tools/AUTHORING_ENV.md

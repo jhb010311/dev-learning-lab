@@ -100,3 +100,38 @@ node tools/check_lesson.js <id>
 - "검사 통과"가 나와야 합니다. "주의"는 고치거나, 고치지 않는 이유를 보고에 적습니다.
 - 대조 스크립트의 `일치 n / n`도 확인합니다.
 - 끝나면 실습마다 다음을 보고합니다: id, 맡은 목차 항목 이름, 만든 파일, 설정 조합 수와 대조 결과(일치 n / n), 검증 수준, 실행으로 확인하지 못한 것, 모형을 실제에 맞게 고친 일, 남은 걱정거리.
+
+## 9. 스프링, JPA, MySQL, 네트워크 실습의 대조 환경
+
+새로 내려받는 것은 없습니다. **이 PC에 이미 있는 것만** 씁니다. 필요한 라이브러리가 없으면 내려받지 말고, 그 부분은 실행으로 확인하지 못했다고 assume과 보고에 적고 검증 수준을 `part`나 `doc`으로 합니다.
+
+### 스프링과 JPA
+
+- 라이브러리(읽기만 합니다): `E:/dev/java-interview-lab/verify/spring/libs/*`. 스프링 부트 4.1.1, 스프링 프레임워크 7.0.9, 스프링 시큐리티 7.1.1(web, config), 스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, HikariCP, H2, MySQL 드라이버, Jackson 3, 내장 톰캣 11, AspectJ weaver, Resilience4j 2.4.0, kafka-clients. **없는 것**: Bean Validation(hibernate-validator), 액추에이터, JUnit과 spring-test, Querydsl, 스프링 클라우드.
+- Probe는 `verify/spring/src/<Name>Probe.java`, 출력은 `verify/spring/<name>_probe.out.txt`, 대조 스크립트는 `verify/spring/cmp_<id>.js`(`require('../model_rows.js')`)에 둡니다. 컴파일 결과는 `verify/out/<id>/`.
+- 컴파일과 실행(Git Bash): `"$J/javac" -encoding UTF-8 -parameters -cp "E:/dev/java-interview-lab/verify/spring/libs/*" -d verify/out/<id> verify/spring/src/<Name>Probe.java` 그리고 `"$J/java" -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -cp "E:/dev/java-interview-lab/verify/spring/libs/*;verify/out/<id>" <Name>Probe verify/spring/<name>_probe.out.txt`. 출력은 표준 출력의 로그와 섞이지 않게 **파일로 직접 쓰는 것**이 안전합니다(본보기들이 그렇게 합니다).
+- 본보기(읽어 보세요): `verify/spring/src/TxProbe.java`(스프링 컨텍스트만), `NPlusOneProbe.java`와 `PcProbe.java`(Hibernate + H2, 나간 SQL을 StatementInspector로 잡음), `MvcProbe.java`와 `SecurityProbe.java`(스프링 부트 서버를 띄우고 HTTP 요청), `DiProbe.java`(SpringApplication으로 기동 성공/실패), `ConfigProbe.java`(조합마다 자바 프로세스를 새로 띄움), 대조 스크립트 `cmp_tx.js`, `cmp_nplus1.js`.
+- 이미 겪은 함정:
+  - Probe는 기본 패키지에 두므로 `@SpringBootApplication`을 쓰면 클래스패스 전체를 스캔해 실패합니다. `@SpringBootConfiguration` + `@EnableAutoConfiguration`을 쓰고 컴포넌트 스캔은 하지 않습니다.
+  - 설정 클래스 **안에** 둔 `@Component`/`@RestController`/`@ControllerAdvice` 클래스는 자동으로 빈이 됩니다(@Bean으로 또 등록하면 중복). 켜고 끌 빈은 설정 클래스 밖의 최상위 클래스로 두고 `@ConditionalOnProperty`가 붙은 @Bean으로 등록합니다.
+  - 서버는 `--server.port=0`으로 띄우고 `ctx.getEnvironment().getProperty("local.server.port")`로 포트를 읽습니다. 로그는 `--logging.level.root=OFF`.
+  - 클래스패스에 스프링 시큐리티가 있어 웹 서버를 띄우면 모든 요청이 막힙니다. 시큐리티가 주제가 아니면 `SecurityFilterChain` 빈으로 모두 허용하세요(`MvcProbe.java` 참고).
+  - 오류 응답은 `/error`로 한 번 더 넘어갑니다(필터, 인터셉터, DispatcherServlet이 두 번 돕니다). 횟수를 셀 때는 `request.getDispatcherType() == DispatcherType.REQUEST`인 것만 셉니다.
+  - Hibernate 엔티티를 Probe의 중첩 클래스로 만들 때는 `@Entity(name = "...")`로 이름을 명시합니다. H2 DB 이름은 실습 id를 넣어 겹치지 않게 합니다(`jdbc:h2:mem:<id>...`).
+  - Hibernate가 내보내는 SQL의 수와 모양은 버전에 따라 다릅니다. 화면에는 "Hibernate 7.4.5 기준"임을 assume에 밝히고, SQL 문장을 글자 그대로 단정하지 말고 "몇 번, 어느 테이블"을 결과로 삼으세요.
+
+### MySQL
+
+- 시험용 컨테이너 `lab-mysql`(MySQL 8.4)이 `127.0.0.1:3307`에 떠 있습니다. 계정은 기존 Probe(`verify/spring/src/IsoProbe.java`)에 있는 시험용 값을 그대로 씁니다. **컨테이너를 멈추거나 다시 만들지 않습니다.** 다른 사람도 같이 쓰고 있으므로 실습마다 `lab_<id>`라는 데이터베이스를 따로 만들어 그 안에서만 작업합니다(`create database if not exists lab_<id>`).
+- Probe는 자바(JDBC, 위의 libs에 드라이버가 있음)로 쓰거나, `docker exec lab-mysql mysql -uroot -p<시험용 값> lab_<id> -N -e "..."`를 Node에서 호출해도 됩니다. 두 세션이 필요한 실습은 자바에서 커넥션 두 개를 엽니다(`IsoProbe.java`, `GapProbe.java` 참고).
+- 이미 겪은 함정:
+  - 행을 지워도 한동안 "삭제 표시만 된 레코드"가 남아 락 목록에 섞입니다. 조합마다 테이블을 새로 만드세요.
+  - `performance_schema.data_lock_waits`는 대기 "관계"의 수입니다. 기다리는 세션 수는 `count(distinct requesting_engine_transaction_id)`.
+  - 행이 몇 개뿐인 테이블에서는 옵티마이저가 인덱스 전체를 훑는 계획을 고릅니다. 실행 계획이나 락 범위를 보이는 실습은 행을 충분히 넣고(`analyze table`) `EXPLAIN` 결과를 함께 기록하세요.
+  - 실행 계획의 rows, cost 같은 추정값은 통계에 따라 달라집니다. 화면의 결과는 type, key, Extra처럼 안정적인 것으로 삼고, 수치는 "이 PC에서 본 값"이라고 밝히세요.
+
+### 네트워크와 그 밖
+
+- Node.js 24가 있습니다(`net`, `dgram`, `http`, `http2`, `dns`, `tls`, `zlib`, `crypto`). `curl`, `openssl`, `git`도 있습니다. 로컬 주소(127.0.0.1)에 시험 서버를 띄워 확인하고, 끝나면 반드시 닫습니다. 외부 사이트에 의존하는 대조는 피하세요(결과가 바뀝니다). DNS처럼 외부가 꼭 필요한 것은 "이 PC에서 본 예"로만 쓰고 결과 표의 값으로 단정하지 않습니다.
+- Probe는 `verify/net/<id>_probe.js`, 출력은 `verify/net/<id>_probe.out.txt`, 대조는 `verify/net/cmp_<id>.js`(`require('../model_rows.js')`)에 둡니다. 보안 실습 가운데 스프링을 쓰는 것은 스프링 쪽 규칙을 따릅니다.
+- 표준(RFC)이나 공식 문서가 근거인 내용은 문서 번호와 절을 assume에 적습니다. 실행으로 확인한 부분과 문서만 따른 부분을 구분해 적으세요.
