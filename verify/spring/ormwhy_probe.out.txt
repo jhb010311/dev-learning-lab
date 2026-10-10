@@ -1,0 +1,13 @@
+# hibernate 7.4.5.Final
+same|jdbc|false => 1|find1:select orders; find2:select orders|false|-
+same|jdbc|true => 1|find1:select orders; find2:|true|-
+same|jpa|false => 0|find1:select orders; find2:|true|-
+same|jpa|true => 0|find1:select orders; find2:|true|-
+nav|jdbc|false => 1|find:select orders; name:|NullPointerException|-
+nav|jdbc|true => 2|find:select orders,select member; name:|김철수|-
+nav|jpa|false => 0|find:select orders; name:select member|김철수|-
+nav|jpa|true => 0|find:select orders; name:select member|김철수|-
+field|jdbc|false => 2|save:insert member; read:select member|null|null
+field|jdbc|true => 2|save:insert member; read:select member|VIP|VIP
+field|jpa|false => 0|persist:; commit:insert member; read:select member|VIP|VIP
+field|jpa|true => 0|persist:; commit:insert member; read:select member|VIP|VIP

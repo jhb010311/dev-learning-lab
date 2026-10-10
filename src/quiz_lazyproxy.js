@@ -1,0 +1,23 @@
+// "프록시와 지연 로딩" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'lazyproxy', q: 'em.getReference(Member.class, 1L)을 부른 순간(영속성 컨텍스트는 비어 있음) 일어나는 일은 무엇입니까?',
+    a: ['SQL 없이 식별자만 가진 프록시 객체가 만들어진다', 'SELECT가 나가고 진짜 Member 객체가 만들어진다', 'SELECT가 나가고 그 결과를 담은 프록시가 만들어진다', '회원이 DB에 없으면 그 자리에서 예외가 난다'],
+    why: 'getReference는 DB를 조회하지 않고 식별자만 담은 프록시를 돌려줍니다. 조회는 식별자가 아닌 값을 처음 읽을 때 나갑니다. DB에 없는 식별자였다는 것도 그때에야 드러납니다.',
+    sim: { c: { how: 'ref', use: 'id' }, col: 1, has: '0번' } },
+  { lv: 1, id: 'lazyproxy', q: '초기화되지 않은 프록시 m에 m.getId()를 부르면 조회 SQL이 나갑니까?',
+    a: ['나가지 않는다. 프록시가 식별자를 이미 갖고 있다', '나간다. 어떤 게터든 처음 부르면 초기화된다', '나간다. 식별자가 맞는지 DB에서 확인해야 한다', '나가지 않는다. 대신 null을 돌려준다'],
+    why: '프록시는 만들어질 때부터 식별자를 갖고 있으므로 getId()로는 초기화되지 않습니다. 이름처럼 식별자가 아닌 값을 읽을 때 비로소 SELECT가 나갑니다.',
+    sim: { c: { how: 'lazy', use: 'id' }, col: 1, has: '0번' } },
+  { lv: 2, id: 'lazyproxy', q: '지연 로딩으로 받은 회원 m에 대해 m.getClass() == Member.class가 false인 이유는 무엇입니까?',
+    a: ['m은 Member를 상속해 만든 프록시 클래스의 객체이기 때문이다', 'm이 아직 초기화되지 않아 클래스가 정해지지 않았기 때문이다', '지연 로딩된 객체는 Object 타입으로 들어오기 때문이다', '== 는 클래스를 비교할 수 없고 equals를 써야 하기 때문이다'],
+    why: 'Hibernate는 엔티티 클래스를 상속한 프록시 클래스를 만들어 그 객체를 돌려줍니다. 프록시의 클래스는 Member의 자식 클래스이므로 getClass() 비교는 false이고 instanceof Member는 true입니다. 초기화된 뒤에도 프록시의 클래스는 바뀌지 않습니다.',
+    sim: { c: { how: 'lazy', use: 'cls' }, col: 2, has: 'false' } },
+  { lv: 3, id: 'lazyproxy', q: '서비스 메서드(트랜잭션)에서 em.find로 주문을 조회해 돌려주고, 트랜잭션과 영속성 컨텍스트가 끝난 뒤에 order.getMember().getName()을 불렀습니다. member는 LAZY이고 그 전에 회원을 건드린 적이 없습니다. 어떻게 됩니까?',
+    a: ['LazyInitializationException이 난다', '그때 SELECT가 나가서 이름을 돌려준다', 'SQL 없이 null을 돌려준다', 'NullPointerException이 난다'],
+    why: 'member 자리에는 초기화되지 않은 프록시가 들어 있습니다. 이름을 읽으려면 DB를 조회해야 하는데 영속성 컨텍스트가 닫혀 조회할 수 없으므로 LazyInitializationException이 납니다. 필요한 값은 트랜잭션 안에서 미리 읽거나 fetch join으로 함께 가져옵니다.',
+    sim: { c: { how: 'lazy', use: 'closed' }, col: 2, has: 'LazyInitializationException' } },
+  { lv: 3, id: 'lazyproxy', q: '같은 영속성 컨텍스트에서 em.getReference(Member.class, 1L)을 먼저 부르고, 이어서 em.find(Member.class, 1L)을 불렀습니다. em.find가 돌려준 객체는 무엇입니까?',
+    a: ['앞에서 만든 프록시 (데이터가 채워진 상태)', '프록시와는 별개인 새 Member 객체', '아직 초기화되지 않은 새 프록시', 'null (이미 프록시가 있으므로)'],
+    why: '한 영속성 컨텍스트 안에서 같은 식별자는 같은 객체여야 합니다. 그래서 em.find는 SELECT로 데이터를 읽어 오되, 돌려주는 것은 먼저 만들어진 프록시입니다. em.find의 결과라고 해서 getClass()가 Member라고 단정할 수 없습니다.',
+    sim: { c: { how: 'reffind', use: 'cls' }, col: 0, has: '프록시' } },
+]);

@@ -84,18 +84,20 @@ if (require.main === module) {
   curri.forEach(c => { if (!c.id || !c.name || !c.desc || !c.groups.length) throw new Error('curriculum: 분야 형식 오류 ' + c.id); if (ids.has(c.id) || ['home', 'study', 'quiz', 'all'].includes(c.id)) throw new Error('curriculum: 분야 id가 실습 id나 주소 이름과 겹침 ' + c.id);
     c.groups.forEach(g => { if (!g.name || !g.items.length) throw new Error('curriculum: 빈 묶음 ' + c.id + ' / ' + g.name); g.items.forEach(it => { if (it.id) { if (!ids.has(it.id)) throw new Error('curriculum: 없는 실습 ' + it.id); placed.add(it.id); } else { if (!it.t) throw new Error('curriculum: 이름 없는 항목 ' + c.id + ' / ' + g.name); todo++; } }); }); });
   const lost = list.filter(l => !placed.has(l.id)).map(l => l.id);
-  if (lost.length) throw new Error('curriculum: 어느 분야에도 없는 실습: ' + lost.join(', '));
+  // 미리보기(tools/preview.js)에서는 아직 목차에 넣지 않은 실습이 있어도 된다
+  if (lost.length && !process.env.LAB_OUT_DIR) throw new Error('curriculum: 어느 분야에도 없는 실습: ' + lost.join(', '));
   console.log('목차', curri.map(c => c.name + ' ' + new Set(c.groups.flatMap(g => g.items.filter(it => it.id).map(it => it.id))).size + (c.groups.flatMap(g => g.items).filter(it => !it.id).length ? '(+준비 중 ' + c.groups.flatMap(g => g.items).filter(it => !it.id).length + ')' : '')).join(', '), '| 준비 중 합계', todo);
   const js = (files.map(f => fs.readFileSync(path.join(dir, 'lessons', f), 'utf8')).join('\n') + '\n' + tracksSrc + '\n' + quizSrc + '\n' + glossSrc + '\n' + verSrc + '\n' + curSrc).replace(/<(?=!--|\/?script)/gi, '\\x3c');
   let html = fs.readFileSync(path.join(dir, 'framework.html'), 'utf8');
   html = html.replace('/*__EXPLAIN__*/{}', () => JSON.stringify(explain).replace(/</g, '\\u003c')).replace('/*__TERMS__*/[]', () => JSON.stringify(terms).replace(/</g, '\\u003c')).replace('/*__LESSONS__*/', () => js);
   // 합친 스크립트가 문법상 유효한지 확인
   html.split('<script>').slice(1).forEach(s => new Function(s.split('</script>')[0]));
-  fs.mkdirSync(path.join(__dirname, 'dist'), { recursive: true }); fs.mkdirSync(path.join(__dirname, 'docs'), { recursive: true });
-  fs.writeFileSync(path.join(__dirname, 'dist', 'fragment.html'), html);
+  const preview = process.env.LAB_OUT_DIR;
+  if (!preview) { fs.mkdirSync(path.join(__dirname, 'dist'), { recursive: true }); fs.mkdirSync(path.join(__dirname, 'docs'), { recursive: true });
+  fs.writeFileSync(path.join(__dirname, 'dist', 'fragment.html'), html); }
   const name = site.name || '개발 학습 실습실', desc = site.desc || '';
   const esc = x => String(x).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
   const head = '<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<meta name="description" content="' + esc(desc) + '">\n<meta property="og:title" content="' + esc(name) + '">\n<meta property="og:description" content="' + esc(desc) + '">\n<meta property="og:type" content="website">\n<style>html, body { margin: 0; }</style>\n';
-  fs.writeFileSync(path.join(__dirname, 'docs', 'index.html'), head + html.replace('</style>', '</style>\n</head>\n<body>') + '\n</body>\n</html>\n');
+  fs.writeFileSync(preview ? path.join(preview, 'index.html') : path.join(__dirname, 'docs', 'index.html'), head + html.replace('</style>', '</style>\n</head>\n<body>') + '\n</body>\n</html>\n');
   console.log('docs/index.html', (html.length / 1024).toFixed(0) + 'KB', '| 개념', list.length + '개:', list.map(l => l.nav).join(', '));
 }

@@ -1,0 +1,14 @@
+# spring boot 4.1.1 | spring 7.0.9
+singleton|inject => ok|1|1|1,1|1,1|Cart|same
+singleton|provider => ok|1|1|1,1|1,1|ObjectProvider|same
+singleton|proxy => ok|1|1|1,1|1,1|CartProxy|same
+prototype|inject => ok|1|1|1,1|1,1|Cart|diff
+prototype|provider => ok|0|4|1,2|3,4|ObjectProvider|diff
+prototype|proxy => ok|0|4|1,2|3,4|CartProxy|same
+request|inject => fail:UnsatisfiedDependencyException>UnsatisfiedDependencyException>ScopeNotActiveException>IllegalStateException|0
+request|provider => ok|0|2|1,1|2,2|ObjectProvider|ScopeNotActiveException
+request|proxy => ok|0|2|1,1|2,2|CartProxy|same
+# extra 프로토타입을 주입받는 싱글톤 빈이 둘 => ok|기동 직후 Cart 2개|두 빈이 받은 객체가 다르다
+# extra 프로토타입 + 프록시에서 add 뒤 size => ok|요청 1의 응답(size, size) 0,0|만들어진 Cart 4개
+# extra @RequestScope를 그대로 주입 => ok|1,1|2,2|CartProxy|만들어진 Cart 2개
+# extra request 스코프 빈의 @PreDestroy => ok|요청 1 뒤 소멸 1개|요청 2 뒤 소멸 2개|만들어진 Cart 2개

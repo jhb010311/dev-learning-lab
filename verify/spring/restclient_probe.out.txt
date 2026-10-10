@@ -1,0 +1,25 @@
+# spring boot 4.1.1 | spring framework 7.0.9 | java 21.0.12.1 | Windows 11 | connect=200ms read=300ms slow=1000ms | no-answer host=192.0.2.1
+ok|false|false => returned=paid|ex=-|exact=-|status=200|cause=-|ms=2|served=1
+ok|false|true => returned=paid|ex=-|exact=-|status=200|cause=-|ms=2|served=1
+ok|true|false => returned=paid|ex=-|exact=-|status=200|cause=-|ms=2|served=1
+ok|true|true => returned=paid|ex=-|exact=-|status=200|cause=-|ms=1|served=1
+slow|false|false => returned=paid|ex=-|exact=-|status=200|cause=-|ms=1007|served=1
+slow|false|true => returned=-|ex=ResourceAccessException|exact=ResourceAccessException|status=-|cause=SocketTimeoutException(Read timed out)|ms=309|served=1
+slow|true|false => returned=paid|ex=-|exact=-|status=200|cause=-|ms=1014|served=1
+slow|true|true => returned=-|ex=ResourceAccessException|exact=ResourceAccessException|status=-|cause=SocketTimeoutException(Read timed out)|ms=310|served=1
+noanswer|false|false => returned=-|ex=ResourceAccessException|exact=ResourceAccessException|status=-|cause=ConnectException(Connection timed out: connect)|ms=21057|served=0
+noanswer|false|true => returned=-|ex=ResourceAccessException|exact=ResourceAccessException|status=-|cause=ConnectException(Connection timed out: connect)|ms=21044|served=0
+noanswer|true|false => returned=-|ex=ResourceAccessException|exact=ResourceAccessException|status=-|cause=SocketTimeoutException(Connect timed out)|ms=201|served=0
+noanswer|true|true => returned=-|ex=ResourceAccessException|exact=ResourceAccessException|status=-|cause=SocketTimeoutException(Connect timed out)|ms=201|served=0
+refused|false|false => returned=-|ex=ResourceAccessException|exact=ResourceAccessException|status=-|cause=ConnectException(Connection refused: connect)|ms=0|served=0
+refused|false|true => returned=-|ex=ResourceAccessException|exact=ResourceAccessException|status=-|cause=ConnectException(Connection refused: connect)|ms=0|served=0
+refused|true|false => returned=-|ex=ResourceAccessException|exact=ResourceAccessException|status=-|cause=ConnectException(Connection refused: getsockopt)|ms=0|served=0
+refused|true|true => returned=-|ex=ResourceAccessException|exact=ResourceAccessException|status=-|cause=ConnectException(Connection refused: getsockopt)|ms=0|served=0
+e404|false|false => returned=-|ex=HttpClientErrorException|exact=HttpClientErrorException$NotFound|status=404|cause=-|ms=8|served=1
+e404|false|true => returned=-|ex=HttpClientErrorException|exact=HttpClientErrorException$NotFound|status=404|cause=-|ms=2|served=1
+e404|true|false => returned=-|ex=HttpClientErrorException|exact=HttpClientErrorException$NotFound|status=404|cause=-|ms=2|served=1
+e404|true|true => returned=-|ex=HttpClientErrorException|exact=HttpClientErrorException$NotFound|status=404|cause=-|ms=2|served=1
+e500|false|false => returned=-|ex=HttpServerErrorException|exact=HttpServerErrorException$InternalServerError|status=500|cause=-|ms=2|served=1
+e500|false|true => returned=-|ex=HttpServerErrorException|exact=HttpServerErrorException$InternalServerError|status=500|cause=-|ms=1|served=1
+e500|true|false => returned=-|ex=HttpServerErrorException|exact=HttpServerErrorException$InternalServerError|status=500|cause=-|ms=2|served=1
+e500|true|true => returned=-|ex=HttpServerErrorException|exact=HttpServerErrorException$InternalServerError|status=500|cause=-|ms=2|served=1

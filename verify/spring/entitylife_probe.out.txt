@@ -1,0 +1,22 @@
+# hibernate 7.4.5.Final
+new|after => new: set: contains: commit:|false|1=김철수
+new|before => new: set: contains: commit:|false|1=김철수
+persist|after => new: persist: set: contains: commit:insert,update|true|1=김철수;2=이수진
+persist|before => new: set: persist: contains: commit:insert|true|1=김철수;2=이수진
+find|after => find:select set: contains: commit:update|true|1=김영수
+find|before => find:select set: contains: commit:update|true|1=김영수
+detach|after => find:select detach: set: contains: commit:|false|1=김철수
+detach|before => find:select set: detach: contains: commit:|false|1=김철수
+clear|after => find:select clear: set: contains: commit:|false|1=김철수
+clear|before => find:select set: clear: contains: commit:|false|1=김철수
+close|after => find:select commit: close: set: contains:|IllegalStateException|1=김철수
+close|before => find:select set: commit:update close: contains:|IllegalStateException|1=김영수
+remove|after => find:select remove: set: contains: commit:delete|false|
+remove|before => find:select remove: set: contains: commit:delete|false|
+extra|flush-then-detach => find:select set: flush:update detach: commit:|1=김영수
+extra|flush-then-clear => find:select set: flush:update clear: commit:|1=김영수
+extra|detach-then-find => find:select detach: find:select|same=false
+extra|clear-then-find => find:select clear: find:select|same=false
+extra|remove-then-persist => find:select remove: persist: contains: commit:|true|1=김철수
+extra|persist-then-set-insert-values => inserted=2,이영희|1=김철수;2=이수진
+extra|object-after-remove => name=김철수|

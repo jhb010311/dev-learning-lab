@@ -1,0 +1,21 @@
+// "스프링 컨테이너와 빈" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'ioc', q: '스프링에서 "빈(Bean)"이란 무엇입니까?',
+    a: ['스프링 컨테이너가 만들어서 관리하고, 필요한 곳에 넣어 주는 객체', '클래스 안에서 new로 직접 만들어 필드에 넣어 둔 객체', '@Component가 붙어 있는 클래스의 소스 파일 그 자체', '인터페이스를 구현한 클래스를 통틀어 부르는 스프링의 용어'],
+    why: '빈은 컨테이너가 만들고 관리하는 객체입니다. @Component를 붙이거나 @Bean 메서드로 등록해야 컨테이너가 알게 되며, 클래스가 소스에 있다는 것만으로는 빈이 되지 않습니다.' },
+  { lv: 1, id: 'ioc', q: '@Component와 @Bean은 어디에 붙입니까?',
+    a: ['@Component는 빈으로 등록할 클래스에, @Bean은 설정 클래스 안의 메서드에 붙인다', '@Component는 설정 클래스 안의 메서드에, @Bean은 빈으로 등록할 클래스에 붙인다', '둘 다 주입받는 쪽의 생성자 파라미터에 붙이며 뜻은 같다', '@Component는 인터페이스에, @Bean은 그 인터페이스의 구현 클래스에 붙인다'],
+    why: '@Component는 클래스에 붙이며 컨테이너가 그 클래스의 생성자를 호출해 객체를 만듭니다. @Bean은 @Configuration 클래스의 메서드에 붙이며, 컨테이너가 그 메서드를 호출해 돌려받은 객체를 빈으로 등록합니다.' },
+  { lv: 2, id: 'ioc', q: 'OrderService가 필드에서 new FixedDiscountPolicy()로 객체를 직접 만드는 코드의 문제는 무엇입니까?',
+    a: ['어떤 구현을 쓸지가 OrderService에 적혀 있어, 구현을 바꿀 때마다 OrderService를 고쳐야 한다', 'new로 만든 객체는 메서드를 호출할 때마다 새로 만들어져 속도가 크게 느려진다', '인터페이스 타입의 필드에는 new로 만든 객체를 넣을 수 없어 컴파일 오류가 난다', 'new로 만든 객체는 가비지 컬렉션의 대상이 되지 않아 메모리가 계속 늘어난다'],
+    why: 'new 뒤에 구현 클래스 이름을 적으면 그 클래스에 묶입니다. 컨테이너가 넣어 주도록 하면 OrderService는 인터페이스만 알면 되고, 구현을 바꿀 때 등록하는 쪽만 고치면 됩니다.',
+    sim: { c: { how: 'new', reg: 'one', use: 'fixed' }, col: 3, has: 'OrderService' } },
+  { lv: 3, id: 'ioc', q: 'DiscountPolicy의 구현 클래스 두 개에 모두 @Component를 붙였고, OrderService는 생성자에서 DiscountPolicy discountPolicy 하나를 받습니다. 다른 표시는 없습니다. 애플리케이션을 띄우면 어떻게 됩니까?',
+    a: ['NoUniqueBeanDefinitionException이 나며 기동이 실패한다', '클래스 이름의 알파벳 순서로 앞선 구현이 주입된다', '나중에 등록된 구현이 앞의 것을 덮어쓰고 주입된다', '기동은 되고, 주문을 처음 처리할 때 예외가 난다'],
+    why: '컨테이너는 타입으로 빈을 찾는데, 같은 타입의 빈이 둘이면 임의로 고르지 않고 예외를 던집니다. 싱글톤 빈은 기동할 때 만들어지므로 이 실패는 기동 시점에 드러납니다.',
+    sim: { c: { how: 'comp', reg: 'two', use: 'rate' }, col: 0, has: 'NoUniqueBeanDefinitionException' } },
+  { lv: 3, id: 'ioc', q: '두 구현을 모두 빈으로 등록하고 RateDiscountPolicy에 @Primary를 붙여 쓰고 있습니다. 구현을 FixedDiscountPolicy로 바꾸려면 무엇을 고칩니까?',
+    a: ['@Primary를 FixedDiscountPolicy 쪽으로 옮긴다. OrderService는 고치지 않는다', 'OrderService의 생성자 파라미터 타입을 FixedDiscountPolicy로 바꾼다', 'OrderService의 필드에서 new FixedDiscountPolicy()로 직접 만든다', 'RateDiscountPolicy 클래스의 이름을 FixedDiscountPolicy로 바꾼다'],
+    why: '@Primary는 등록하는 쪽에 붙이는 표시이므로 표시만 옮기면 컨테이너가 다른 빈을 고릅니다. 주입받는 OrderService는 DiscountPolicy 타입만 알고 있어 고칠 것이 없습니다.',
+    sim: { c: { how: 'comp', reg: 'primary', use: 'rate' }, col: 3, has: 'FixedDiscountPolicy, RateDiscountPolicy' } },
+]);

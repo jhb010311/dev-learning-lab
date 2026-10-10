@@ -1,0 +1,22 @@
+// "영속성 전이와 고아 객체" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'cascade', q: '@OneToMany에 cascade = CascadeType.PERSIST를 적으면 무엇이 달라집니까?',
+    a: ['부모를 persist하면 자식에게도 persist가 전달된다', '자식을 조회할 때마다 부모도 항상 함께 조회된다', '부모와 자식 사이의 외래 키가 자동으로 만들어진다', '컬렉션에서 뺀 자식이 DB에서도 자동으로 지워진다'],
+    why: '영속성 전이는 부모에게 한 작업을 자식에게도 똑같이 해 주는 기능입니다. PERSIST는 저장만 전달합니다. 연관관계를 맺거나 외래 키를 만드는 기능이 아니고, 컬렉션에서 뺀 자식을 지우는 것은 orphanRemoval이 하는 일입니다.' },
+  { lv: 1, id: 'cascade', q: 'mappedBy가 붙은 댓글 목록에 새 댓글 둘을 담고, cascade 설정 없이 게시글만 persist한 뒤 커밋했습니다. Hibernate 7.4.5에서 실행한 결과는 무엇입니까?',
+    a: ['예외 없이 게시글만 저장되고 댓글은 저장되지 않는다', '게시글과 댓글 둘이 모두 저장된다', '커밋할 때 예외가 나고 아무것도 저장되지 않는다', '게시글은 저장되지 않고 댓글 둘만 저장된다'],
+    why: 'cascade에 PERSIST가 없으면 persist가 댓글에게 전달되지 않습니다. mappedBy가 붙은 목록은 외래 키를 관리하지 않으므로 저장되지 않은 객체가 들어 있어도 예외가 나지 않습니다. 그래서 댓글이 빠진 것을 놓치기 쉽습니다.',
+    sim: { c: { act: 'persist', cas: 'none', orphan: false }, col: 3, has: '댓글 0개' } },
+  { lv: 2, id: 'cascade', q: 'cascade = CascadeType.ALL만 적고 orphanRemoval은 켜지 않았습니다. 게시글의 댓글 목록에서 댓글 하나를 빼고 커밋하면 DELETE가 나가지 않습니다. 왜 그렇습니까?',
+    a: ['REMOVE는 부모를 remove할 때만 전달되기 때문이다', 'CascadeType.ALL에는 REMOVE가 들어 있지 않기 때문이다', '목록을 고친 뒤에 em.flush를 직접 부르지 않았기 때문이다', '지연 로딩인 목록은 고쳐도 변경 감지가 되지 않기 때문이다'],
+    why: 'cascade는 부모에게 한 작업을 자식에게 전달할 뿐입니다. 목록에서 자식을 빼는 것은 부모에게 remove를 한 것이 아니므로 전달할 작업이 없습니다. 목록에서 빠진 자식을 지우게 하려면 orphanRemoval = true가 필요합니다.',
+    sim: { c: { act: 'orphan', cas: 'ALL', orphan: false }, col: 1, has: '없음' } },
+  { lv: 3, id: 'cascade', q: 'DB에 게시글 하나와 그 게시글을 가리키는 댓글 둘이 있습니다. cascade와 orphanRemoval을 모두 적지 않은 채 em.remove(post)를 하고 커밋하면 어떻게 됩니까?',
+    a: ['게시글 DELETE가 외래 키 제약에 걸려 예외가 나고 롤백된다', '게시글만 지워지고 댓글 둘은 그대로 남는다', '댓글 둘이 먼저 지워지고 게시글이 지워진다', 'em.remove를 부르는 순간 예외가 나고 SQL은 나가지 않는다'],
+    why: 'cascade에 REMOVE가 없으므로 Hibernate는 게시글 DELETE만 보냅니다. DB에는 그 게시글을 가리키는 댓글이 남아 있어서 외래 키 제약 위반으로 거절되고, ConstraintViolationException과 함께 트랜잭션이 롤백됩니다. 예외는 remove를 부를 때가 아니라 커밋할 때 납니다.',
+    sim: { c: { act: 'remove', cas: 'none', orphan: false }, col: 2, has: 'ConstraintViolationException' } },
+  { lv: 3, id: 'cascade', q: 'cascade는 적지 않고 orphanRemoval = true만 켰습니다. em.remove(post)를 하고 커밋하면 DELETE는 몇 번 나갑니까? (댓글은 둘입니다)',
+    a: ['3번 (댓글 둘과 게시글)', '1번 (게시글만, 그리고 실패)', '1번 (댓글을 한꺼번에 지우는 SQL)', '2번 (댓글 둘만)'],
+    why: 'orphanRemoval = true는 부모가 없는 자식을 지운다는 뜻이므로 부모가 지워질 때도 자식을 지웁니다. Hibernate는 댓글 목록을 읽어 온 뒤 댓글을 하나씩 DELETE하고 마지막에 게시글을 DELETE합니다.',
+    sim: { c: { act: 'remove', cas: 'none', orphan: true }, col: 1, has: 'DELETE 3번' } },
+]);

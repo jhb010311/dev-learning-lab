@@ -1,0 +1,15 @@
+# hibernate 7.4.5.Final
+entity|false|false => selects=1|columns=6|tables=member|later=|managed=4|updatesBeforeCommit=0|updates=0|db=김철수|sql=select m1_0.id,m1_0.age,m1_0.city,m1_0.email,m1_0.name,m1_0.team_id from member m1_0
+entity|false|true => selects=1|columns=6|tables=member|later=|managed=4|updatesBeforeCommit=0|updates=1|db=김영수|sql=select m1_0.id,m1_0.age,m1_0.city,m1_0.email,m1_0.name,m1_0.team_id from member m1_0
+entity|true|false => selects=3|columns=6|tables=member|later=team,team|managed=6|updatesBeforeCommit=0|updates=0|db=김철수|sql=select m1_0.id,m1_0.age,m1_0.city,m1_0.email,m1_0.name,m1_0.team_id from member m1_0
+entity|true|true => selects=3|columns=6|tables=member|later=team,team|managed=6|updatesBeforeCommit=0|updates=1|db=김영수|sql=select m1_0.id,m1_0.age,m1_0.city,m1_0.email,m1_0.name,m1_0.team_id from member m1_0
+fetch|false|false => selects=1|columns=8|tables=member+team|later=|managed=6|updatesBeforeCommit=0|updates=0|db=김철수|sql=select m1_0.id,m1_0.age,m1_0.city,m1_0.email,m1_0.name,t1_0.id,t1_0.name,t1_0.region from member m1_0 join team t1_0 on t1_0.id=m1_0.team_id
+fetch|false|true => selects=1|columns=8|tables=member+team|later=|managed=6|updatesBeforeCommit=0|updates=1|db=김영수|sql=select m1_0.id,m1_0.age,m1_0.city,m1_0.email,m1_0.name,t1_0.id,t1_0.name,t1_0.region from member m1_0 join team t1_0 on t1_0.id=m1_0.team_id
+fetch|true|false => selects=1|columns=8|tables=member+team|later=|managed=6|updatesBeforeCommit=0|updates=0|db=김철수|sql=select m1_0.id,m1_0.age,m1_0.city,m1_0.email,m1_0.name,t1_0.id,t1_0.name,t1_0.region from member m1_0 join team t1_0 on t1_0.id=m1_0.team_id
+fetch|true|true => selects=1|columns=8|tables=member+team|later=|managed=6|updatesBeforeCommit=0|updates=1|db=김영수|sql=select m1_0.id,m1_0.age,m1_0.city,m1_0.email,m1_0.name,t1_0.id,t1_0.name,t1_0.region from member m1_0 join team t1_0 on t1_0.id=m1_0.team_id
+dto|false|false => selects=1|columns=2|tables=member|later=|managed=0|updatesBeforeCommit=0|updates=0|db=김철수|sql=select m1_0.name,m1_0.age from member m1_0
+dto|false|true => selects=1|columns=2|tables=member|later=|managed=0|updatesBeforeCommit=0|updates=0|db=김철수|sql=select m1_0.name,m1_0.age from member m1_0
+dto|true|false => selects=1|columns=3|tables=member+team|later=|managed=0|updatesBeforeCommit=0|updates=0|db=김철수|sql=select m1_0.name,m1_0.age,t1_0.name from member m1_0 join team t1_0 on t1_0.id=m1_0.team_id
+dto|true|true => selects=1|columns=3|tables=member+team|later=|managed=0|updatesBeforeCommit=0|updates=0|db=김철수|sql=select m1_0.name,m1_0.age,t1_0.name from member m1_0 join team t1_0 on t1_0.id=m1_0.team_id
+extra|unqualifiedTyped => OK rows=4
+extra|unqualifiedUntyped => ERR IllegalArgumentException/SemanticException: Could not resolve class 'MemberDto' named for instantiation [select new MemberDto(m.name, m.age) from Member m]

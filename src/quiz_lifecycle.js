@@ -1,0 +1,22 @@
+// "빈 생명주기 콜백" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'lifecycle', q: '스프링 컨테이너가 싱글톤 빈 하나를 다루는 순서로 맞는 것은 무엇입니까?',
+    a: ['생성자 호출 → 의존성 주입 → 초기화 콜백 → 사용 → 소멸 콜백', '의존성 주입 → 생성자 호출 → 초기화 콜백 → 사용 → 소멸 콜백', '초기화 콜백 → 생성자 호출 → 의존성 주입 → 사용 → 소멸 콜백', '생성자 호출 → 초기화 콜백 → 의존성 주입 → 사용 → 소멸 콜백'],
+    why: '객체가 있어야 필드를 채울 수 있으므로 생성자가 먼저이고, 초기화 콜백은 의존성 주입이 끝난 뒤에 불립니다. 소멸 콜백은 컨테이너가 닫힐 때 불립니다.' },
+  { lv: 1, id: 'lifecycle', q: '@PostConstruct가 붙은 메서드는 언제 불립니까?',
+    a: ['객체가 만들어지고 의존성 주입이 끝난 직후', '생성자가 실행되기 바로 전', '빈의 메서드가 처음 호출될 때', '컨테이너가 닫히기 바로 전'],
+    why: '@PostConstruct는 초기화 콜백입니다. 컨테이너가 객체를 만들고 의존성을 모두 넣은 다음에 부르므로, 이 메서드 안에서는 주입받은 객체를 쓸 수 있습니다.',
+    sim: { c: { inj: 'field', cb: 'anno', scope: 'singleton' }, col: 2, has: '@PostConstruct' } },
+  { lv: 2, id: 'lifecycle', q: '@Autowired를 필드에 붙여 주입받는 빈에서, 생성자 안에서 그 필드의 메서드를 호출하면 NullPointerException이 나는 이유는 무엇입니까?',
+    a: ['컨테이너가 생성자로 객체를 먼저 만들고, 그 뒤에 필드를 채우기 때문이다', '필드 주입은 그 필드를 처음 읽는 순간에 이루어지기 때문이다', '생성자 안에서는 private 필드에 접근할 수 없기 때문이다', '@Autowired 필드는 초기화 콜백이 끝난 뒤에 채워지기 때문이다'],
+    why: '필드에 값을 넣으려면 객체가 먼저 있어야 합니다. 그래서 생성자가 실행되는 동안에는 주입받을 필드가 아직 null입니다. 준비 작업을 초기화 콜백으로 옮기거나 생성자 주입으로 바꿉니다.',
+    sim: { c: { inj: 'field', cb: 'ctor', scope: 'singleton' }, col: 0, has: 'NullPointerException' } },
+  { lv: 3, id: 'lifecycle', q: '한 빈에 @PostConstruct 메서드, InitializingBean의 afterPropertiesSet(), @Bean의 initMethod로 지정한 init()이 모두 있습니다. 어떤 순서로 불립니까?',
+    a: ['@PostConstruct → afterPropertiesSet() → init()', 'afterPropertiesSet() → @PostConstruct → init()', 'init() → afterPropertiesSet() → @PostConstruct', '@PostConstruct → init() → afterPropertiesSet()'],
+    why: '애너테이션으로 표시한 메서드가 가장 먼저, 그다음이 인터페이스의 메서드, 마지막이 @Bean에 이름으로 지정한 메서드입니다. 소멸 콜백도 @PreDestroy → destroy() → destroyMethod의 같은 순서입니다.',
+    sim: { c: { inj: 'field', cb: 'all', scope: 'singleton' }, col: 2, has: '@PostConstruct → afterPropertiesSet() → init()' } },
+  { lv: 3, id: 'lifecycle', q: '프로토타입 스코프의 빈에 @PostConstruct와 @PreDestroy 메서드를 두었습니다. 빈을 한 번 꺼내 쓴 뒤 컨테이너를 닫으면 두 메서드는 어떻게 됩니까?',
+    a: ['@PostConstruct는 불리고 @PreDestroy는 불리지 않는다', '@PostConstruct와 @PreDestroy가 모두 불린다', '@PostConstruct와 @PreDestroy가 모두 불리지 않는다', '@PostConstruct는 불리지 않고 @PreDestroy만 불린다'],
+    why: '컨테이너는 프로토타입 빈을 만들고 초기화까지만 한 뒤 건네주고, 그 뒤로는 관리하지 않습니다. 그래서 컨테이너가 닫혀도 소멸 콜백이 불리지 않습니다. 정리가 필요하면 꺼내 쓴 쪽에서 직접 해야 합니다.',
+    sim: { c: { inj: 'field', cb: 'anno', scope: 'prototype' }, col: 3, has: '불리지 않음' } },
+]);

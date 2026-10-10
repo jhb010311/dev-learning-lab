@@ -16,7 +16,7 @@ Lab.register({
   ],
   code: function (c) {
     if (c.proto === 'udp') return '// UDP: 연결 없이 바로 보낸다\nDatagramSocket socket = new DatagramSocket();\nfor (byte[] part : parts) {\n    socket.send(new DatagramPacket(part, part.length, address, 9000));\n}   // 도착했는지 알 수 없다';
-    return '// TCP: 연결을 맺은 뒤 보낸다\nSocket socket = new Socket("shop.com", 443);   // 여기서 3-way handshake\nOutputStream out = socket.getOutputStream();\nout.write(data);                               // 운영체제가 조각내어 보내고\n                                               // 확인, 재전송, 순서 맞추기를 처리\nsocket.close();                                // 연결 종료';
+    return '// TCP: 연결을 맺은 뒤 보낸다\nSocket socket = new Socket("shop.example", 443);   // 여기서 3-way handshake\nOutputStream out = socket.getOutputStream();\nout.write(data);                               // 운영체제가 조각내어 보내고\n                                               // 확인, 재전송, 순서 맞추기를 처리\nsocket.close();                                // 연결 종료';
   },
   label: function (c) { return c.proto.toUpperCase() + ' · ' + { none: '유실 없음', syn: 'SYN 유실', data: '데이터 조각 유실' }[c.loss]; },
   columns: ['받은 쪽에 도착한 데이터', '재전송', '연결을 맺는 왕복'],

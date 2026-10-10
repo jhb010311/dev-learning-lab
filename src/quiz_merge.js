@@ -1,0 +1,23 @@
+// "준영속과 병합" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'merge', q: 'Member r = em.merge(m); 을 실행한 뒤에 영속 상태인 객체는 어느 것입니까?',
+    a: ['merge가 돌려준 r만 영속이고, 넘긴 m은 준영속 그대로다', '넘긴 m이 영속이 되고, r은 m의 복사본일 뿐이다', 'm과 r이 같은 객체가 되어 둘 다 영속이다', 'm과 r 모두 커밋하기 전까지는 준영속이다'],
+    why: 'merge는 넘긴 객체를 영속으로 바꾸지 않습니다. 같은 id의 영속 엔티티를 찾아(없으면 조회해) 값을 덮어쓰고 그 엔티티를 돌려줍니다. 그래서 merge 뒤의 작업은 돌려받은 객체로 해야 합니다.',
+    sim: { c: { src: 'loaded', how: 'merge', after: 'none' }, col: 0, has: 'false' } },
+  { lv: 2, id: 'merge', q: '회원 수정 화면에서 id와 name만 받아 new Member()에 채운 뒤 em.merge에 넘겼습니다. DB에 있던 city 값이 NULL이 된 이유는 무엇입니까?',
+    a: ['merge가 넘긴 객체의 모든 필드로 덮어써서 city의 null도 반영됐기 때문이다', 'merge가 기존 행을 DELETE한 뒤 새로 INSERT하기 때문이다', 'new로 만든 객체는 merge할 때 name만 반영되도록 정해져 있기 때문이다', 'merge가 SELECT를 하지 않아 기존 city 값을 알 수 없었기 때문이다'],
+    why: 'merge는 바뀐 필드만 골라 옮기지 않고 넘긴 객체의 모든 필드 값을 영속 엔티티에 덮어씁니다. 채우지 않은 필드는 null이므로 그 null이 그대로 저장됩니다. merge는 SELECT로 기존 값을 읽어 오지만, 읽은 값 위에 넘긴 값을 전부 덮어씁니다.',
+    sim: { c: { src: 'form', how: 'merge', after: 'none' }, col: 3, has: 'NULL' } },
+  { lv: 2, id: 'merge', q: '일부 필드만 고칠 때 merge보다 "다시 조회해서 바꿀 값만 넣는" 변경 감지 방식이 안전하다고 하는 이유는 무엇입니까?',
+    a: ['손대지 않은 필드는 조회한 값 그대로 남기 때문이다', 'SELECT를 보내지 않아 SQL이 하나 줄기 때문이다', 'UPDATE 문에 바뀐 컬럼 하나만 들어가기 때문이다', '트랜잭션 없이도 DB에 반영되기 때문이다'],
+    why: '변경 감지 방식은 영속 엔티티에 바꿀 값만 넣으므로 나머지 필드는 처음 읽은 값을 유지합니다. 나가는 SQL 수는 merge와 같고(SELECT 한 번, UPDATE 한 번), Hibernate의 기본 UPDATE 문에는 두 방식 모두 전체 컬럼이 들어갑니다. 차이는 실려 가는 값입니다.',
+    sim: { c: { src: 'form', how: 'dirty', after: 'none' }, col: 3, has: '서울' } },
+  { lv: 3, id: 'merge', q: '조회해 둔 준영속 객체 m의 이름을 바꾸고 Member r = em.merge(m); 을 부른 다음, m.setCity("부산")을 하고 커밋했습니다. DB의 city는 어떻게 됩니까? (처음 값은 서울)',
+    a: ['서울 그대로다', '부산으로 바뀐다', 'NULL이 된다', '커밋할 때 예외가 난다'],
+    why: 'merge에 넘긴 m은 merge 뒤에도 준영속입니다. m의 city를 바꿔도 지켜보는 영속성 컨텍스트가 없습니다. 부산으로 저장하려면 영속 상태인 r에서 r.setCity("부산")을 해야 합니다.',
+    sim: { c: { src: 'loaded', how: 'merge', after: 'arg' }, col: 3, has: '서울' } },
+  { lv: 3, id: 'merge', q: '준영속 객체의 이름을 바꾼 뒤 새 트랜잭션에서 em.merge(m)을 한 번 부르고 커밋했습니다. 그 트랜잭션에서 DB로 나가는 SQL은 무엇입니까?',
+    a: ['SELECT 한 번과 UPDATE 한 번', 'UPDATE 한 번', 'DELETE 한 번과 INSERT 한 번', 'SELECT 두 번과 UPDATE 한 번'],
+    why: 'merge는 먼저 넘긴 객체의 id로 영속 엔티티를 얻어야 하므로, 영속성 컨텍스트에 없으면 SELECT를 보냅니다. 값을 덮어쓴 뒤 커밋할 때 달라진 것이 있으면 UPDATE가 나갑니다.',
+    sim: { c: { src: 'form', how: 'merge', after: 'none' }, col: 2, has: 'SELECT 1번, UPDATE 1번' } },
+]);

@@ -1,0 +1,22 @@
+// "엔티티의 생명주기" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'entitylife', q: '값을 바꾸기만 해도 커밋할 때 UPDATE가 나가는 것은 엔티티가 어느 상태일 때입니까?',
+    a: ['영속성 컨텍스트가 관리하고 있는 영속 상태', 'new로 막 만든 비영속 상태', 'em.detach로 떼어 낸 준영속 상태', 'id 값을 가지고 있는 모든 상태'],
+    why: '변경 감지는 영속성 컨텍스트가 기억해 둔 값과 지금 값을 비교하는 일입니다. 영속성 컨텍스트가 관리하는 엔티티, 곧 영속 상태인 엔티티에만 일어납니다. 비영속과 준영속 객체는 값을 바꿔도 지켜보는 쪽이 없습니다.' },
+  { lv: 1, id: 'entitylife', q: '조회한 엔티티 m에 em.remove(m)을 불렀습니다. 그 줄에서 DB에는 어떤 일이 일어납니까?',
+    a: ['아무 SQL도 나가지 않고, DELETE는 커밋할 때 나간다', '그 줄에서 DELETE가 바로 나가 행이 지워진다', '그 줄에서 SELECT로 행이 있는지 다시 확인한다', '자바 객체 m이 메모리에서 바로 사라진다'],
+    why: 'remove는 엔티티를 지울 대상으로 표시할 뿐이고, DELETE는 flush가 일어나는 커밋 때 나갑니다. 자바 객체 m은 행이 지워진 뒤에도 메모리에 남아 있습니다.',
+    sim: { c: { st: 'remove', when: 'after' }, col: 2, has: '커밋할 때' } },
+  { lv: 2, id: 'entitylife', q: '조회한 엔티티의 이름을 바꾼 다음 em.clear()를 부르고 커밋했더니 UPDATE가 나가지 않았습니다. 이유는 무엇입니까?',
+    a: ['UPDATE를 보내기 전에 엔티티가 관리 대상에서 빠졌기 때문이다', 'em.clear()가 이미 나간 UPDATE를 DB에서 되돌리기 때문이다', 'em.clear() 뒤에는 트랜잭션이 자동으로 롤백되기 때문이다', '영속 상태에서는 setter로 바꾼 값이 원래 반영되지 않기 때문이다'],
+    why: 'setName을 부른 줄에서는 메모리의 값만 바뀌고 UPDATE는 커밋 때의 flush로 미뤄집니다. 그 전에 em.clear()로 영속성 컨텍스트를 비우면 엔티티가 준영속이 되어 비교 대상에서 빠집니다. clear 앞에서 em.flush()를 부르면 UPDATE가 먼저 나가므로 반영됩니다.',
+    sim: { c: { st: 'clear', when: 'before' }, col: 3, has: '김철수' } },
+  { lv: 3, id: 'entitylife', q: '회원 객체를 new로 만들고 em.persist(m)을 부른 뒤에 m.setName으로 이름을 바꾸고 커밋했습니다. id는 코드에서 직접 넣었습니다. DB로 나가는 SQL은 무엇입니까?',
+    a: ['INSERT 한 번과 UPDATE 한 번', '바뀐 이름이 들어간 INSERT 한 번', 'INSERT 한 번이고 바뀐 이름은 버려진다', 'SELECT 한 번과 INSERT 한 번'],
+    why: 'persist로 영속 상태가 된 뒤에 바꾼 값은 변경 감지의 대상입니다. 커밋할 때 persist한 때의 값으로 INSERT가 나가고, 달라진 이름이 UPDATE로 한 번 더 나갑니다. 값을 다 채운 뒤에 persist하면 INSERT 한 번으로 끝납니다.',
+    sim: { c: { st: 'persist', when: 'after' }, col: 1, has: 'INSERT 1번, UPDATE 1번' } },
+  { lv: 3, id: 'entitylife', q: '서비스 메서드(@Transactional)가 돌려준 회원 엔티티의 이름을 컨트롤러에서 setName으로 바꿨습니다. 트랜잭션이 끝나면서 EntityManager도 닫혔다면 어떻게 됩니까?',
+    a: ['객체의 값은 바뀌지만 DB에는 반영되지 않고 예외도 나지 않는다', '준영속 객체를 고쳤다는 예외가 setName에서 난다', '요청이 끝날 때 JPA가 알아서 UPDATE를 보낸다', '객체의 값도 바뀌지 않고 원래 이름이 유지된다'],
+    why: 'em이 닫히면 그 안에 있던 엔티티는 준영속이 됩니다. 준영속 객체는 평범한 자바 객체와 같아서 값은 바뀌지만, 지켜보는 영속성 컨텍스트가 없으므로 UPDATE가 나가지 않습니다. 예외가 없어서 놓치기 쉽습니다.',
+    sim: { c: { st: 'close', when: 'after' }, col: 3, has: '김철수' } },
+]);

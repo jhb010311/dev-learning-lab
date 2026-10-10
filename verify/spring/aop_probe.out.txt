@@ -1,0 +1,76 @@
+# spring 7.0.9 | aspectjweaver-1.9.25.1.jar | java 21.0.12.1
+cls|order|ok|none => Log @Around 앞 > Log @Before > order 본문 > Log @AfterReturning > Log @After > Log @Around 뒤|"주문 완료"|proxy=true
+cls|order|ok|log1 => Log @Around 앞 > Log @Before > Time 시작 > order 본문 > Time 끝 > Log @AfterReturning > Log @After > Log @Around 뒤|"주문 완료"|proxy=true
+cls|order|ok|time1 => Time 시작 > Log @Around 앞 > Log @Before > order 본문 > Log @AfterReturning > Log @After > Log @Around 뒤 > Time 끝|"주문 완료"|proxy=true
+cls|order|ex|none => Log @Around 앞 > Log @Before > order 본문 > Log @AfterThrowing > Log @After|IllegalStateException|proxy=true
+cls|order|ex|log1 => Log @Around 앞 > Log @Before > Time 시작 > order 본문 > Time 끝 > Log @AfterThrowing > Log @After|IllegalStateException|proxy=true
+cls|order|ex|time1 => Time 시작 > Log @Around 앞 > Log @Before > order 본문 > Log @AfterThrowing > Log @After > Time 끝|IllegalStateException|proxy=true
+cls|cancel|ok|none => Log @Around 앞 > Log @Before > cancel 본문 > Log @AfterReturning > Log @After > Log @Around 뒤|"취소 완료"|proxy=true
+cls|cancel|ok|log1 => Log @Around 앞 > Log @Before > Time 시작 > cancel 본문 > Time 끝 > Log @AfterReturning > Log @After > Log @Around 뒤|"취소 완료"|proxy=true
+cls|cancel|ok|time1 => Time 시작 > Log @Around 앞 > Log @Before > cancel 본문 > Log @AfterReturning > Log @After > Log @Around 뒤 > Time 끝|"취소 완료"|proxy=true
+cls|cancel|ex|none => Log @Around 앞 > Log @Before > cancel 본문 > Log @AfterThrowing > Log @After|IllegalStateException|proxy=true
+cls|cancel|ex|log1 => Log @Around 앞 > Log @Before > Time 시작 > cancel 본문 > Time 끝 > Log @AfterThrowing > Log @After|IllegalStateException|proxy=true
+cls|cancel|ex|time1 => Time 시작 > Log @Around 앞 > Log @Before > cancel 본문 > Log @AfterThrowing > Log @After > Time 끝|IllegalStateException|proxy=true
+cls|join|ok|none => join 본문|"가입 완료"|proxy=false
+cls|join|ok|log1 => join 본문|"가입 완료"|proxy=false
+cls|join|ok|time1 => join 본문|"가입 완료"|proxy=false
+cls|join|ex|none => join 본문|IllegalStateException|proxy=false
+cls|join|ex|log1 => join 본문|IllegalStateException|proxy=false
+cls|join|ex|time1 => join 본문|IllegalStateException|proxy=false
+arg|order|ok|none => Log @Around 앞 > Log @Before > order 본문 > Log @AfterReturning > Log @After > Log @Around 뒤|"주문 완료"|proxy=true
+arg|order|ok|log1 => Log @Around 앞 > Log @Before > Time 시작 > order 본문 > Time 끝 > Log @AfterReturning > Log @After > Log @Around 뒤|"주문 완료"|proxy=true
+arg|order|ok|time1 => Time 시작 > Log @Around 앞 > Log @Before > order 본문 > Log @AfterReturning > Log @After > Log @Around 뒤 > Time 끝|"주문 완료"|proxy=true
+arg|order|ex|none => Log @Around 앞 > Log @Before > order 본문 > Log @AfterThrowing > Log @After|IllegalStateException|proxy=true
+arg|order|ex|log1 => Log @Around 앞 > Log @Before > Time 시작 > order 본문 > Time 끝 > Log @AfterThrowing > Log @After|IllegalStateException|proxy=true
+arg|order|ex|time1 => Time 시작 > Log @Around 앞 > Log @Before > order 본문 > Log @AfterThrowing > Log @After > Time 끝|IllegalStateException|proxy=true
+arg|cancel|ok|none => cancel 본문|"취소 완료"|proxy=true
+arg|cancel|ok|log1 => cancel 본문|"취소 완료"|proxy=true
+arg|cancel|ok|time1 => cancel 본문|"취소 완료"|proxy=true
+arg|cancel|ex|none => cancel 본문|IllegalStateException|proxy=true
+arg|cancel|ex|log1 => cancel 본문|IllegalStateException|proxy=true
+arg|cancel|ex|time1 => cancel 본문|IllegalStateException|proxy=true
+arg|join|ok|none => Log @Around 앞 > Log @Before > join 본문 > Log @AfterReturning > Log @After > Log @Around 뒤|"가입 완료"|proxy=true
+arg|join|ok|log1 => Log @Around 앞 > Log @Before > Time 시작 > join 본문 > Time 끝 > Log @AfterReturning > Log @After > Log @Around 뒤|"가입 완료"|proxy=true
+arg|join|ok|time1 => Time 시작 > Log @Around 앞 > Log @Before > join 본문 > Log @AfterReturning > Log @After > Log @Around 뒤 > Time 끝|"가입 완료"|proxy=true
+arg|join|ex|none => Log @Around 앞 > Log @Before > join 본문 > Log @AfterThrowing > Log @After|IllegalStateException|proxy=true
+arg|join|ex|log1 => Log @Around 앞 > Log @Before > Time 시작 > join 본문 > Time 끝 > Log @AfterThrowing > Log @After|IllegalStateException|proxy=true
+arg|join|ex|time1 => Time 시작 > Log @Around 앞 > Log @Before > join 본문 > Log @AfterThrowing > Log @After > Time 끝|IllegalStateException|proxy=true
+noarg|order|ok|none => order 본문|"주문 완료"|proxy=false
+noarg|order|ok|log1 => order 본문|"주문 완료"|proxy=false
+noarg|order|ok|time1 => order 본문|"주문 완료"|proxy=false
+noarg|order|ex|none => order 본문|IllegalStateException|proxy=false
+noarg|order|ex|log1 => order 본문|IllegalStateException|proxy=false
+noarg|order|ex|time1 => order 본문|IllegalStateException|proxy=false
+noarg|cancel|ok|none => cancel 본문|"취소 완료"|proxy=false
+noarg|cancel|ok|log1 => cancel 본문|"취소 완료"|proxy=false
+noarg|cancel|ok|time1 => cancel 본문|"취소 완료"|proxy=false
+noarg|cancel|ex|none => cancel 본문|IllegalStateException|proxy=false
+noarg|cancel|ex|log1 => cancel 본문|IllegalStateException|proxy=false
+noarg|cancel|ex|time1 => cancel 본문|IllegalStateException|proxy=false
+noarg|join|ok|none => join 본문|"가입 완료"|proxy=false
+noarg|join|ok|log1 => join 본문|"가입 완료"|proxy=false
+noarg|join|ok|time1 => join 본문|"가입 완료"|proxy=false
+noarg|join|ex|none => join 본문|IllegalStateException|proxy=false
+noarg|join|ex|log1 => join 본문|IllegalStateException|proxy=false
+noarg|join|ex|time1 => join 본문|IllegalStateException|proxy=false
+ann|order|ok|none => order 본문|"주문 완료"|proxy=true
+ann|order|ok|log1 => order 본문|"주문 완료"|proxy=true
+ann|order|ok|time1 => order 본문|"주문 완료"|proxy=true
+ann|order|ex|none => order 본문|IllegalStateException|proxy=true
+ann|order|ex|log1 => order 본문|IllegalStateException|proxy=true
+ann|order|ex|time1 => order 본문|IllegalStateException|proxy=true
+ann|cancel|ok|none => Log @Around 앞 > Log @Before > cancel 본문 > Log @AfterReturning > Log @After > Log @Around 뒤|"취소 완료"|proxy=true
+ann|cancel|ok|log1 => Log @Around 앞 > Log @Before > Time 시작 > cancel 본문 > Time 끝 > Log @AfterReturning > Log @After > Log @Around 뒤|"취소 완료"|proxy=true
+ann|cancel|ok|time1 => Time 시작 > Log @Around 앞 > Log @Before > cancel 본문 > Log @AfterReturning > Log @After > Log @Around 뒤 > Time 끝|"취소 완료"|proxy=true
+ann|cancel|ex|none => Log @Around 앞 > Log @Before > cancel 본문 > Log @AfterThrowing > Log @After|IllegalStateException|proxy=true
+ann|cancel|ex|log1 => Log @Around 앞 > Log @Before > Time 시작 > cancel 본문 > Time 끝 > Log @AfterThrowing > Log @After|IllegalStateException|proxy=true
+ann|cancel|ex|time1 => Time 시작 > Log @Around 앞 > Log @Before > cancel 본문 > Log @AfterThrowing > Log @After > Time 끝|IllegalStateException|proxy=true
+ann|join|ok|none => Log @Around 앞 > Log @Before > join 본문 > Log @AfterReturning > Log @After > Log @Around 뒤|"가입 완료"|proxy=true
+ann|join|ok|log1 => Log @Around 앞 > Log @Before > Time 시작 > join 본문 > Time 끝 > Log @AfterReturning > Log @After > Log @Around 뒤|"가입 완료"|proxy=true
+ann|join|ok|time1 => Time 시작 > Log @Around 앞 > Log @Before > join 본문 > Log @AfterReturning > Log @After > Log @Around 뒤 > Time 끝|"가입 완료"|proxy=true
+ann|join|ex|none => Log @Around 앞 > Log @Before > join 본문 > Log @AfterThrowing > Log @After|IllegalStateException|proxy=true
+ann|join|ex|log1 => Log @Around 앞 > Log @Before > Time 시작 > join 본문 > Time 끝 > Log @AfterThrowing > Log @After|IllegalStateException|proxy=true
+ann|join|ex|time1 => Time 시작 > Log @Around 앞 > Log @Before > join 본문 > Log @AfterThrowing > Log @After > Time 끝|IllegalStateException|proxy=true
+# 어드바이스 메서드를 적는 순서를 거꾸로 해도 결과가 같은 조합: 72 / 72
+# @Around에서 proceed()를 부르지 않으면: Log @Around 앞 > Log @Around 뒤|"가로챈 값"
+# 포인트컷 메서드의 이름을 target()으로 지으면: order 본문|"주문 완료"|proxy=false

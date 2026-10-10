@@ -1,0 +1,27 @@
+# spring boot 4.1.1 | spring framework 7.0.9
+obj|ok => 200|ctrl=true|type=application/json|location=-|read=JacksonJsonHttpMessageConverter|wrote=JacksonJsonHttpMessageConverter|view=-|ex=-|body={"id":1,"item":"book","qty":2}
+obj|xml => 406|ctrl=true|type=-|location=-|read=JacksonJsonHttpMessageConverter|wrote=-|view=-|ex=HttpMediaTypeNotAcceptableException|body=
+obj|text => 415|ctrl=false|type=application/json|location=-|read=-|wrote=-|view=-|ex=HttpMediaTypeNotSupportedException|body={"timestamp":"2026-10-10T11:06:49.815Z","status":415,"error"
+obj|broken => 400|ctrl=false|type=application/json|location=-|read=-|wrote=-|view=-|ex=HttpMessageNotReadableException|body={"timestamp":"2026-10-10T11:06:49.824Z","status":400,"error"
+entity|ok => 201|ctrl=true|type=application/json|location=/orders/1|read=JacksonJsonHttpMessageConverter|wrote=JacksonJsonHttpMessageConverter|view=-|ex=-|body={"id":1,"item":"book","qty":2}
+entity|xml => 406|ctrl=true|type=-|location=/orders/1|read=JacksonJsonHttpMessageConverter|wrote=-|view=-|ex=HttpMediaTypeNotAcceptableException|body=
+entity|text => 415|ctrl=false|type=application/json|location=-|read=-|wrote=-|view=-|ex=HttpMediaTypeNotSupportedException|body={"timestamp":"2026-10-10T11:06:49.838Z","status":415,"error"
+entity|broken => 400|ctrl=false|type=application/json|location=-|read=-|wrote=-|view=-|ex=HttpMessageNotReadableException|body={"timestamp":"2026-10-10T11:06:49.842Z","status":400,"error"
+str|ok => 200|ctrl=true|type=application/json|location=-|read=JacksonJsonHttpMessageConverter|wrote=StringHttpMessageConverter|view=-|ex=-|body=orders/done
+str|xml => 200|ctrl=true|type=application/xml;charset=UTF-8|location=-|read=JacksonJsonHttpMessageConverter|wrote=StringHttpMessageConverter|view=-|ex=-|body=orders/done
+str|text => 415|ctrl=false|type=application/json|location=-|read=-|wrote=-|view=-|ex=HttpMediaTypeNotSupportedException|body={"timestamp":"2026-10-10T11:06:49.852Z","status":415,"error"
+str|broken => 400|ctrl=false|type=application/json|location=-|read=-|wrote=-|view=-|ex=HttpMessageNotReadableException|body={"timestamp":"2026-10-10T11:06:49.855Z","status":400,"error"
+view|ok => 200|ctrl=true|type=text/html;charset=UTF-8|location=-|read=JacksonJsonHttpMessageConverter|wrote=-|view=orders/done|ex=-|body=<h1>order done</h1>
+view|xml => 200|ctrl=true|type=text/html;charset=UTF-8|location=-|read=JacksonJsonHttpMessageConverter|wrote=-|view=orders/done|ex=-|body=<h1>order done</h1>
+view|text => 415|ctrl=false|type=application/json|location=-|read=-|wrote=-|view=-|ex=HttpMediaTypeNotSupportedException|body={"timestamp":"2026-10-10T11:06:49.870Z","status":415,"error"
+view|broken => 400|ctrl=false|type=application/json|location=-|read=-|wrote=-|view=-|ex=HttpMessageNotReadableException|body={"timestamp":"2026-10-10T11:06:49.873Z","status":400,"error"
+# extra obj|noaccept => 200|ctrl=true|type=application/json|location=-|read=JacksonJsonHttpMessageConverter|wrote=JacksonJsonHttpMessageConverter|view=-|ex=-|body={"id":1,"item":"book","qty":2}
+# extra str|noaccept => 200|ctrl=true|type=text/plain;charset=UTF-8|location=-|read=JacksonJsonHttpMessageConverter|wrote=StringHttpMessageConverter|view=-|ex=-|body=orders/done
+# extra view|html => 200|ctrl=true|type=text/html;charset=UTF-8|location=-|read=JacksonJsonHttpMessageConverter|wrote=-|view=orders/done|ex=-|body=<h1>order done</h1>
+# extra obj|noct => 415|ctrl=false|type=application/json|location=-|read=-|wrote=-|view=-|ex=HttpMediaTypeNotSupportedException|body={"timestamp":"2026-10-10T11:06:49.884Z","status":415,"error"
+# extra noview|ok => 404|ctrl=true|type=application/json|location=-|read=JacksonJsonHttpMessageConverter|wrote=-|view=-|ex=-|body={"timestamp":"2026-10-10T11:06:49.896Z","status":404,"error"
+# extra noview|html => 404|ctrl=true|type=text/html;charset=UTF-8|location=-|read=JacksonJsonHttpMessageConverter|wrote=-|view=-|ex=-|body=<html><body><h1>Whitelabel Error Page</h1><p>This applicatio
+# extra ctlbody|ok => 200|ctrl=true|type=application/json|location=-|read=JacksonJsonHttpMessageConverter|wrote=StringHttpMessageConverter|view=-|ex=-|body=orders/done
+# extra ctlentity|ok => 201|ctrl=true|type=application/json|location=/orders/1|read=JacksonJsonHttpMessageConverter|wrote=JacksonJsonHttpMessageConverter|view=-|ex=-|body={"id":1,"item":"book","qty":2}
+# extra produces|ok => 200|ctrl=true|type=application/json|location=-|read=JacksonJsonHttpMessageConverter|wrote=JacksonJsonHttpMessageConverter|view=-|ex=-|body={"id":1,"item":"book","qty":2}
+# extra produces|xml => 406|ctrl=false|type=-|location=-|read=-|wrote=-|view=-|ex=HttpMediaTypeNotAcceptableException|body=

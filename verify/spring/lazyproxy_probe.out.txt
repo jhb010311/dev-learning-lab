@@ -1,0 +1,28 @@
+# hibernate 7.4.5.Final
+ref|id => proxy=true|same=-|selAtGet=0|initAtGet=false|selAtUse=0|initAfter=false|result=1|ex=none|orderSel=0
+ref|name => proxy=true|same=-|selAtGet=0|initAtGet=false|selAtUse=1|initAfter=true|result=김철수|ex=none|orderSel=0
+ref|cls => proxy=true|same=-|selAtGet=0|initAtGet=false|selAtUse=0|initAfter=false|result=false,true|ex=none|orderSel=0
+ref|closed => proxy=true|same=-|selAtGet=0|initAtGet=false|selAtUse=0|initAfter=false|result=-|ex=LazyInitializationException|orderSel=0
+lazy|id => proxy=true|same=-|selAtGet=0|initAtGet=false|selAtUse=0|initAfter=false|result=1|ex=none|orderSel=1
+lazy|name => proxy=true|same=-|selAtGet=0|initAtGet=false|selAtUse=1|initAfter=true|result=김철수|ex=none|orderSel=1
+lazy|cls => proxy=true|same=-|selAtGet=0|initAtGet=false|selAtUse=0|initAfter=false|result=false,true|ex=none|orderSel=1
+lazy|closed => proxy=true|same=-|selAtGet=0|initAtGet=false|selAtUse=0|initAfter=false|result=-|ex=LazyInitializationException|orderSel=1
+find|id => proxy=false|same=-|selAtGet=1|initAtGet=true|selAtUse=0|initAfter=true|result=1|ex=none|orderSel=0
+find|name => proxy=false|same=-|selAtGet=1|initAtGet=true|selAtUse=0|initAfter=true|result=김철수|ex=none|orderSel=0
+find|cls => proxy=false|same=-|selAtGet=1|initAtGet=true|selAtUse=0|initAfter=true|result=true,true|ex=none|orderSel=0
+find|closed => proxy=false|same=-|selAtGet=1|initAtGet=true|selAtUse=0|initAfter=true|result=김철수|ex=none|orderSel=0
+findref|id => proxy=false|same=true|selAtGet=1|initAtGet=true|selAtUse=0|initAfter=true|result=1|ex=none|orderSel=0
+findref|name => proxy=false|same=true|selAtGet=1|initAtGet=true|selAtUse=0|initAfter=true|result=김철수|ex=none|orderSel=0
+findref|cls => proxy=false|same=true|selAtGet=1|initAtGet=true|selAtUse=0|initAfter=true|result=true,true|ex=none|orderSel=0
+findref|closed => proxy=false|same=true|selAtGet=1|initAtGet=true|selAtUse=0|initAfter=true|result=김철수|ex=none|orderSel=0
+reffind|id => proxy=true|same=true|selAtGet=1|initAtGet=true|selAtUse=0|initAfter=true|result=1|ex=none|orderSel=0
+reffind|name => proxy=true|same=true|selAtGet=1|initAtGet=true|selAtUse=0|initAfter=true|result=김철수|ex=none|orderSel=0
+reffind|cls => proxy=true|same=true|selAtGet=1|initAtGet=true|selAtUse=0|initAfter=true|result=false,true|ex=none|orderSel=0
+reffind|closed => proxy=true|same=true|selAtGet=1|initAtGet=true|selAtUse=0|initAfter=true|result=김철수|ex=none|orderSel=0
+# extra className=Member$HibernateProxy hasTail=false
+# extra superclassIsMember=true
+# extra directFieldOnProxy=null sql=0 initialized=false
+# extra Hibernate.getClassLazy=Member sql=0 initialized=false
+# extra Hibernate.unproxy class=Member sql=1 sameAsProxy=false
+# extra getReference(없는 id) atGet sql=0 getName ex=ObjectNotFoundException sql=1
+# extra closed then getId=1 ex=none

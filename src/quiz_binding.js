@@ -1,0 +1,22 @@
+// "요청 매핑과 파라미터 바인딩" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'binding', q: '컨트롤러 메서드가 @RequestParam int qty로 값을 받습니다. 요청이 GET /orders처럼 qty 없이 오면 어떻게 됩니까?',
+    a: ['컨트롤러를 실행하지 않고 400으로 응답한다', 'qty에 0을 넣고 컨트롤러를 실행한다', 'qty에 null을 넣고 컨트롤러를 실행한다', '맞는 주소가 없다고 보고 404로 응답한다'],
+    why: '@RequestParam은 값이 반드시 있어야 하는 것이 기본입니다. 값이 없으면 스프링이 컨트롤러를 부르기 전에 400으로 거절합니다. 없어도 되는 값이라면 required = false나 defaultValue를 줍니다.',
+    sim: { c: { how: 'param', req: 'none' }, col: 0, has: '400' } },
+  { lv: 1, id: 'binding', q: '@PathVariable은 요청의 어느 자리에서 값을 꺼냅니까?',
+    a: ['주소 경로에서 {이름}으로 표시해 둔 자리', '주소에서 ? 뒤에 오는 쿼리 스트링', 'JSON 형식으로 보낸 요청 본문', '요청과 함께 온 Content-Type 헤더'],
+    why: '@GetMapping("/orders/{qty}")처럼 경로에 {이름} 자리를 만들어 두면, 요청 경로에서 그 자리에 해당하는 칸이 @PathVariable 파라미터로 들어옵니다. 쿼리 스트링은 @RequestParam이, JSON 본문은 @RequestBody가 꺼냅니다.' },
+  { lv: 2, id: 'binding', q: '@RequestParam(defaultValue = "1") int qty로 받는데 요청이 GET /orders?qty=abc로 왔습니다. 400이 되는 이유는 무엇입니까?',
+    a: ['defaultValue는 값이 없을 때만 쓰이고, 숫자로 바꿀 수 없는 값을 대신해 주지는 않기 때문이다', 'defaultValue를 주면 required가 true로 바뀌어 값 검사가 엄격해지기 때문이다', 'defaultValue에 적은 "1"이 글자라서 int 파라미터에 넣을 수 없기 때문이다', '쿼리 스트링의 값은 @RequestParam이 아니라 @PathVariable로 받아야 하기 때문이다'],
+    why: '값이 있으면 스프링은 그 값을 파라미터의 타입으로 바꾸려 합니다. "abc"는 int로 바꿀 수 없으므로 400입니다. defaultValue와 required = false는 값이 아예 없는 경우에만 관여합니다.',
+    sim: { c: { how: 'def', req: 'qabc' }, col: 3, has: '숫자로 바꿀 수 없음' } },
+  { lv: 2, id: 'binding', q: '폼 형식(application/x-www-form-urlencoded)의 본문으로 보낸 qty=3을 @RequestParam int qty로 받을 수 있는 이유는 무엇입니까?',
+    a: ['폼 형식의 본문은 쿼리 스트링과 함께 요청 파라미터로 다뤄지기 때문이다', '@RequestParam이 본문의 형식과 관계없이 본문 전체를 읽기 때문이다', '스프링이 폼 본문을 JSON으로 바꾼 뒤 메시지 컨버터로 읽기 때문이다', 'POST 요청에서는 본문이 자동으로 주소 경로에 붙어 전달되기 때문이다'],
+    why: '서블릿 컨테이너는 쿼리 스트링과 폼 형식 본문을 합쳐 요청 파라미터로 제공합니다. @RequestParam은 그 요청 파라미터에서 값을 찾습니다. JSON 본문은 요청 파라미터에 들어가지 않습니다.',
+    sim: { c: { how: 'param', req: 'f3' }, col: 2, has: '3' } },
+  { lv: 3, id: 'binding', q: '화면에서 POST /orders에 JSON 본문 {"qty": 3}을 보냅니다. 컨트롤러는 @ModelAttribute OrderForm form으로 받고, OrderForm에는 int qty 필드와 setter가 있습니다. 결과는 어떻게 됩니까?',
+    a: ['200으로 응답하지만 form의 qty는 0이다', '200으로 응답하고 form의 qty는 3이다', '필수 값이 없다는 400으로 응답한다', '읽을 수 없는 형식이라는 415로 응답한다'],
+    why: '@ModelAttribute는 요청 파라미터(쿼리 스트링과 폼 본문)만 보고 JSON 본문은 읽지 않습니다. 넣을 값이 없으면 setter를 부르지 않을 뿐 오류로 보지 않으므로, qty는 int의 기본값 0으로 남은 채 컨트롤러가 실행됩니다. JSON 본문은 @RequestBody로 받아야 합니다.',
+    sim: { c: { how: 'model', req: 'j3' }, col: 2, has: '0' } },
+]);

@@ -1,0 +1,63 @@
+# spring boot 4.1.1 | spring framework 7.0.9
+param|q3 => 200|ctrl=true|got=3|ex=-
+param|qabc => 400|ctrl=false|got=-|ex=MethodArgumentTypeMismatchException
+param|none => 400|ctrl=false|got=-|ex=MissingServletRequestParameterException
+param|p3 => 404|ctrl=false|got=-|ex=NoResourceFoundException
+param|pabc => 404|ctrl=false|got=-|ex=NoResourceFoundException
+param|f3 => 200|ctrl=true|got=3|ex=-
+param|j3 => 400|ctrl=false|got=-|ex=MissingServletRequestParameterException
+param|jabc => 400|ctrl=false|got=-|ex=MissingServletRequestParameterException
+opt|q3 => 200|ctrl=true|got=3|ex=-
+opt|qabc => 400|ctrl=false|got=-|ex=MethodArgumentTypeMismatchException
+opt|none => 200|ctrl=true|got=null|ex=-
+opt|p3 => 404|ctrl=false|got=-|ex=NoResourceFoundException
+opt|pabc => 404|ctrl=false|got=-|ex=NoResourceFoundException
+opt|f3 => 200|ctrl=true|got=3|ex=-
+opt|j3 => 200|ctrl=true|got=null|ex=-
+opt|jabc => 200|ctrl=true|got=null|ex=-
+def|q3 => 200|ctrl=true|got=3|ex=-
+def|qabc => 400|ctrl=false|got=-|ex=MethodArgumentTypeMismatchException
+def|none => 200|ctrl=true|got=1|ex=-
+def|p3 => 404|ctrl=false|got=-|ex=NoResourceFoundException
+def|pabc => 404|ctrl=false|got=-|ex=NoResourceFoundException
+def|f3 => 200|ctrl=true|got=3|ex=-
+def|j3 => 200|ctrl=true|got=1|ex=-
+def|jabc => 200|ctrl=true|got=1|ex=-
+path|q3 => 404|ctrl=false|got=-|ex=NoResourceFoundException
+path|qabc => 404|ctrl=false|got=-|ex=NoResourceFoundException
+path|none => 404|ctrl=false|got=-|ex=NoResourceFoundException
+path|p3 => 200|ctrl=true|got=3|ex=-
+path|pabc => 400|ctrl=false|got=-|ex=MethodArgumentTypeMismatchException
+path|f3 => 404|ctrl=false|got=-|ex=NoResourceFoundException
+path|j3 => 404|ctrl=false|got=-|ex=NoResourceFoundException
+path|jabc => 404|ctrl=false|got=-|ex=NoResourceFoundException
+model|q3 => 200|ctrl=true|got=3|ex=-
+model|qabc => 400|ctrl=false|got=-|ex=MethodArgumentNotValidException
+model|none => 200|ctrl=true|got=0|ex=-
+model|p3 => 404|ctrl=false|got=-|ex=NoResourceFoundException
+model|pabc => 404|ctrl=false|got=-|ex=NoResourceFoundException
+model|f3 => 200|ctrl=true|got=3|ex=-
+model|j3 => 200|ctrl=true|got=0|ex=-
+model|jabc => 200|ctrl=true|got=0|ex=-
+body|q3 => 400|ctrl=false|got=-|ex=HttpMessageNotReadableException
+body|qabc => 400|ctrl=false|got=-|ex=HttpMessageNotReadableException
+body|none => 400|ctrl=false|got=-|ex=HttpMessageNotReadableException
+body|p3 => 404|ctrl=false|got=-|ex=NoResourceFoundException
+body|pabc => 404|ctrl=false|got=-|ex=NoResourceFoundException
+body|f3 => 415|ctrl=false|got=-|ex=HttpMediaTypeNotSupportedException
+body|j3 => 200|ctrl=true|got=3|ex=-
+body|jabc => 400|ctrl=false|got=-|ex=HttpMessageNotReadableException
+# extra param|qempty => 400|ctrl=false|got=-|ex=MethodArgumentTypeMismatchException
+# extra param|jempty => 400|ctrl=false|got=-|ex=MissingServletRequestParameterException
+# extra opt|qempty => 200|ctrl=true|got=null|ex=-
+# extra opt|jempty => 200|ctrl=true|got=null|ex=-
+# extra def|qempty => 200|ctrl=true|got=1|ex=-
+# extra def|jempty => 200|ctrl=true|got=1|ex=-
+# extra path|qempty => 404|ctrl=false|got=-|ex=NoResourceFoundException
+# extra path|jempty => 404|ctrl=false|got=-|ex=NoResourceFoundException
+# extra model|qempty => 400|ctrl=false|got=-|ex=MethodArgumentNotValidException
+# extra model|jempty => 200|ctrl=true|got=0|ex=-
+# extra body|qempty => 400|ctrl=false|got=-|ex=HttpMessageNotReadableException
+# extra body|jempty => 200|ctrl=true|got=0|ex=-
+# extra optint|none => 500|ctrl=false|got=-|ex=IllegalStateException
+# extra modelbr|qabc => 200|ctrl=true|got=0,hasErrors=true|ex=-

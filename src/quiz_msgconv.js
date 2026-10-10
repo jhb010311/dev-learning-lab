@@ -1,0 +1,23 @@
+// "REST API와 메시지 컨버터" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'msgconv', q: '@RestController의 메서드가 돌려준 자바 객체를 JSON 글자로 바꿔 응답 본문에 쓰는 것은 무엇입니까?',
+    a: ['메시지 컨버터 (HttpMessageConverter)', '뷰 리졸버 (ViewResolver)', '핸들러 매핑 (HandlerMapping)', '서블릿 필터 (Filter)'],
+    why: '@RestController(@ResponseBody)가 돌려준 값은 메시지 컨버터가 응답 본문으로 바꿉니다. JSON은 Jackson을 쓰는 컨버터가 맡습니다. 뷰 리졸버는 @Controller가 돌려준 화면 이름으로 화면을 찾을 때 쓰입니다.',
+    sim: { c: { kind: 'obj', req: 'ok' }, col: 3, has: 'JSON 컨버터' } },
+  { lv: 1, id: 'msgconv', q: '@Controller가 붙은 클래스의 메서드가 @ResponseBody 없이 문자열 "orders/done"을 돌려주면 스프링은 이것을 어떻게 다룹니까?',
+    a: ['그 이름의 화면(뷰)을 찾아 그린다', '그 글자를 그대로 응답 본문에 쓴다', '그 글자를 JSON 문자열로 바꿔 쓴다', '그 주소로 다시 요청하라고 응답한다'],
+    why: '@Controller의 메서드가 돌려준 문자열은 화면 이름으로 해석되어 ViewResolver가 화면을 찾습니다. 글자 그대로 본문에 쓰려면 @ResponseBody를 붙이거나 @RestController를 씁니다.',
+    sim: { c: { kind: 'view', req: 'ok' }, col: 3, has: '뷰' } },
+  { lv: 2, id: 'msgconv', q: '본문에 올바른 JSON을 담아 보냈는데 415 Unsupported Media Type이 돌아왔습니다. 가장 먼저 확인할 것은 무엇입니까?',
+    a: ['요청의 Content-Type 헤더가 application/json인지', '요청의 Accept 헤더가 application/json인지', '본문의 JSON에 닫는 중괄호가 빠졌는지', '컨트롤러의 메서드가 예외를 던지는지'],
+    why: '415는 서버가 요청 본문의 형식을 읽지 못한다는 뜻이고, 스프링은 본문 내용이 아니라 Content-Type 헤더를 보고 읽을 컨버터를 고릅니다. Accept가 맞지 않으면 406, JSON 문법이 틀리면 400입니다.',
+    sim: { c: { kind: 'obj', req: 'text' }, col: 0, has: '415' } },
+  { lv: 2, id: 'msgconv', q: '객체를 그냥 돌려주는 대신 ResponseEntity로 감싸서 돌려주는 까닭은 무엇입니까?',
+    a: ['상태 코드와 응답 헤더를 컨트롤러가 직접 정하기 위해서', '객체를 JSON으로 바꾸는 속도를 높이기 위해서', '메시지 컨버터를 거치지 않고 응답하기 위해서', '@RestController 없이도 JSON을 돌려주기 위해서'],
+    why: '객체만 돌려주면 상태 코드는 200이 됩니다. ResponseEntity에는 상태 코드와 헤더, 본문을 함께 담을 수 있어서 201과 Location 헤더처럼 상황에 맞는 응답을 만들 수 있습니다. 본문은 똑같이 메시지 컨버터가 바꿉니다.',
+    sim: { c: { kind: 'entity', req: 'ok' }, col: 0, has: '201' } },
+  { lv: 3, id: 'msgconv', q: '주문을 만드는 POST /orders에 Accept: application/xml로 요청했더니 406이 돌아왔습니다. 서버는 XML을 만들지 못하고, 메서드에 produces는 적혀 있지 않습니다. 주문은 어떻게 됐습니까?',
+    a: ['컨트롤러가 이미 실행됐으므로 주문은 만들어졌다', '컨트롤러가 실행되지 않았으므로 주문은 없다', '스프링이 트랜잭션을 되돌려 주문이 취소됐다', '주문은 만들어졌고 응답 본문만 JSON으로 왔다'],
+    why: '응답 형식은 컨트롤러가 값을 돌려준 뒤에 고릅니다. 그래서 406은 컨트롤러가 실행된 뒤에 정해지고, 주문을 만드는 코드는 이미 끝난 상태입니다. 요청 본문을 읽다가 정해지는 415나 400과 다른 점입니다.',
+    sim: { c: { kind: 'obj', req: 'xml' }, col: 1, has: '실행됨' } },
+]);

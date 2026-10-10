@@ -1,0 +1,21 @@
+# spring 7.0.9 | h2 2.4.240 | java 21.0.12.1
+# DuplicateKeyException은 DataIntegrityViolationException의 하위 클래스: true | EmptyResultDataAccessException은 IncorrectResultSizeDataAccessException의 하위 클래스: true | DataAccessException은 RuntimeException의 하위 클래스: true
+plain|one => "lee"|예외 없음|반납됨|active=0|rows=3
+plain|zero => null|예외 없음|반납됨|active=0|rows=3
+plain|two => "kim"|예외 없음|반납됨|active=0|rows=3
+plain|dup => SQLException (SQLState 23505)|체크 예외|반납 안 됨|active=1|rows=3|class=org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException|errorCode=23505
+plain|nul => SQLException (SQLState 23502)|체크 예외|반납 안 됨|active=1|rows=3|class=org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException|errorCode=23502
+plain|bad => SQLException (SQLState 42S22)|체크 예외|반납 안 됨|active=1|rows=3|class=org.h2.jdbc.JdbcSQLSyntaxErrorException|errorCode=42122
+twr|one => "lee"|예외 없음|반납됨|active=0|rows=3
+twr|zero => null|예외 없음|반납됨|active=0|rows=3
+twr|two => "kim"|예외 없음|반납됨|active=0|rows=3
+twr|dup => SQLException (SQLState 23505)|체크 예외|반납됨|active=0|rows=3|class=org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException|errorCode=23505
+twr|nul => SQLException (SQLState 23502)|체크 예외|반납됨|active=0|rows=3|class=org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException|errorCode=23502
+twr|bad => SQLException (SQLState 42S22)|체크 예외|반납됨|active=0|rows=3|class=org.h2.jdbc.JdbcSQLSyntaxErrorException|errorCode=42122
+tmpl|one => "lee"|예외 없음|반납됨|active=0|rows=3
+tmpl|zero => EmptyResultDataAccessException|언체크 예외|반납됨|active=0|rows=3|cause=null|message=Incorrect result size: expected 1, actual 0
+tmpl|two => IncorrectResultSizeDataAccessException|언체크 예외|반납됨|active=0|rows=3|cause=null|message=Incorrect result size: expected 1, actual 2
+tmpl|dup => DuplicateKeyException|언체크 예외|반납됨|active=0|rows=3|cause=SQLException (SQLState 23505)|message=PreparedStatementCallback; SQL [insert into member(id, name, city) values (?, ?, ?)]; Unique index or primary key violation: "PUBLIC.CONSTRAINT_8 PRIMARY KEY ON PUBLIC.MEMBER(ID) ( /* key:1 */ CAST(1 AS BIGINT), 'kim', U&'\\c11c\\c6b8')"; SQL statement: insert into member(id, name, city) values (?, ?, ?) [23505-240]
+tmpl|nul => DataIntegrityViolationException|언체크 예외|반납됨|active=0|rows=3|cause=SQLException (SQLState 23502)|message=PreparedStatementCallback; SQL [insert into member(id, name, city) values (?, ?, ?)]; NULL not allowed for column "NAME"; SQL statement: insert into member(id, name, city) values (?, ?, ?) [23502-240]
+tmpl|bad => BadSqlGrammarException|언체크 예외|반납됨|active=0|rows=3|cause=SQLException (SQLState 42S22)|message=PreparedStatementCallback; bad SQL grammar [select nmae from member where city = ? order by id]
+# JdbcTemplate의 기본 예외 변환기: SQLExceptionSubclassTranslator | 변환기가 불린 순간 쓰는 중인 커넥션 수: 0 | 던져진 예외: DuplicateKeyException

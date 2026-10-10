@@ -29,17 +29,17 @@ Lab.register({
     var ev = [], sum = [], box = [], res, harm, where = '-';
     function push(s, k) { ev.push({ s: s, k: k, snap: { box: box.slice() } }); }
     if (c.atk === 'sqli') {
-      box.push(['공격자가 로그인 폼에 넣은 값', "이메일: admin@shop.com\n비밀번호: ' OR '1'='1"]);
+      box.push(['공격자가 로그인 폼에 넣은 값', "이메일: admin@shop.example\n비밀번호: ' OR '1'='1"]);
       push("공격자가 비밀번호 칸에 ' OR '1'='1 을 입력합니다. 작은따옴표로 문자열을 일찍 닫고 그 뒤에 SQL 조건을 덧붙이려는 의도입니다.", '');
       if (c.d1 === 'none') {
-        box.push(['서버가 만든 SQL', "SELECT * FROM member\n WHERE email = 'admin@shop.com'\n   AND password = '' OR '1'='1'"]);
+        box.push(['서버가 만든 SQL', "SELECT * FROM member\n WHERE email = 'admin@shop.example'\n   AND password = '' OR '1'='1'"]);
         push("서버가 입력을 SQL 문자열에 그대로 이어 붙였습니다. 입력의 작은따옴표가 SQL의 문자열을 닫아 버리고, 뒤의 OR '1'='1' 이 SQL 문법의 일부가 됐습니다.", 'bad');
         box.push(['DB의 실행 결과', "조건이 항상 참 → 회원 행이 반환됨\n→ 비밀번호를 몰라도 로그인 성공"]);
         push("'1'='1'은 언제나 참이므로 WHERE 조건 전체가 참이 됩니다. 회원 행이 조회되어 서버는 로그인에 성공했다고 판단합니다.", 'bad');
         res = '성공'; harm = '비밀번호 없이 로그인 (데이터 조회·삭제도 가능)';
         sum.push('입력값이 "값"이 아니라 "SQL 문법"으로 해석된 것이 원인입니다. 같은 방법으로 다른 테이블을 조회하거나 데이터를 지우는 SQL도 끼워 넣을 수 있습니다.');
       } else {
-        box.push(['서버가 DB에 보낸 것', "SQL 틀: SELECT * FROM member WHERE email = ? AND password = ?\n값 1: admin@shop.com\n값 2: ' OR '1'='1"]);
+        box.push(['서버가 DB에 보낸 것', "SQL 틀: SELECT * FROM member WHERE email = ? AND password = ?\n값 1: admin@shop.example\n값 2: ' OR '1'='1"]);
         push('서버는 SQL의 틀과 값을 따로 보냅니다. DB는 틀을 먼저 해석해 구조를 확정한 뒤, 값을 자리 표시자에 넣습니다. 값 안에 무엇이 들어 있든 SQL 문법으로 해석되지 않습니다.', 'good');
         box.push(['DB의 실행 결과', "password 컬럼이 문자열 ' OR '1'='1 과 같은 행을 찾음\n→ 0건 → 로그인 실패"]);
         push("DB는 비밀번호가 글자 그대로 ' OR '1'='1 인 회원을 찾습니다. 그런 회원은 없으므로 로그인에 실패합니다.", 'good');
@@ -64,13 +64,13 @@ Lab.register({
       }
     }
     if (c.atk === 'csrf') {
-      box.push(['피해자의 상태', 'bank.com에 로그인돼 있음 (브라우저에 세션 쿠키 보관' + (c.d3 === 'none' ? ', 쿠키 속성 SameSite=None' : c.d3 === 'samesite' ? ', 쿠키 속성 SameSite=Lax' : '') + ')']);
+      box.push(['피해자의 상태', 'bank.example에 로그인돼 있음 (브라우저에 세션 쿠키 보관' + (c.d3 === 'none' ? ', 쿠키 속성 SameSite=None' : c.d3 === 'samesite' ? ', 쿠키 속성 SameSite=Lax' : '') + ')']);
       push('피해자는 은행 사이트에 로그인한 채로 다른 탭에서 공격자가 만든 사이트를 엽니다.', '');
-      box.push(['공격자 사이트에 숨겨진 폼', '<form action="https://bank.com/transfer" method="post">\n  <input name="to" value="공격자 계좌">\n  <input name="amount" value="1000000">\n</form>\n<script>document.forms[0].submit()</script>']);
+      box.push(['공격자 사이트에 숨겨진 폼', '<form action="https://bank.example/transfer" method="post">\n  <input name="to" value="공격자 계좌">\n  <input name="amount" value="1000000">\n</form>\n<script>document.forms[0].submit()</script>']);
       push('그 페이지에는 은행의 이체 주소로 보내는 폼이 숨어 있고, 열자마자 자동으로 제출됩니다. 요청을 보내는 것은 공격자가 아니라 피해자의 브라우저입니다.', '');
-      if (c.d3 === 'samesite') { box.push(['bank.com이 받은 요청', 'POST /transfer\n(세션 쿠키 없음)\n→ 로그인되지 않은 요청으로 처리 → 거절']); push('세션 쿠키에 SameSite=Lax가 설정돼 있습니다. 브라우저는 다른 사이트에서 시작된 POST 요청에는 이 쿠키를 붙이지 않습니다. 은행 서버는 로그인하지 않은 요청으로 보고 거절합니다.', 'good'); res = '실패'; harm = '없음'; where = 'SameSite 쿠키'; sum.push('SameSite=Lax는 다른 사이트에서 보낸 POST에 쿠키가 붙지 않게 합니다. 요즘 브라우저는 SameSite를 지정하지 않은 쿠키도 Lax처럼 다루지만(발급 직후 2분가량은 예외로 붙습니다), 명시해 두는 것이 안전합니다. 다른 도메인의 화면에 끼워 넣는 서비스처럼 SameSite=None이 꼭 필요한 경우에는 CSRF 토큰이 필수입니다.'); }
-      else if (c.d3 === 'token') { box.push(['bank.com이 받은 요청', 'POST /transfer\nCookie: 세션 ID (자동으로 붙음)\n_csrf 토큰: 없음\n→ 403 거절']); push('브라우저가 세션 쿠키를 붙여 보냈지만, 은행 서버는 폼에 심어 둔 CSRF 토큰도 함께 요구합니다. 공격자는 그 토큰 값을 알 수 없으므로 요청에 넣지 못했습니다. 서버가 403으로 거절합니다.', 'good'); res = '실패'; harm = '없음'; where = 'CSRF 토큰 검증'; sum.push('CSRF 토큰은 "이 요청이 우리 사이트의 화면에서 시작됐는가"를 확인합니다. 쿠키는 브라우저가 자동으로 붙이지만 토큰은 그렇지 않다는 점을 이용합니다.'); }
-      else { box.push(['bank.com이 받은 요청', 'POST /transfer\nCookie: 세션 ID (브라우저가 자동으로 붙임)\nto=공격자 계좌, amount=1000000\n→ 정상 요청으로 판단 → 이체 실행']); push('이 세션 쿠키는 다른 사이트에서 보낸 요청에도 붙도록(SameSite=None) 설정돼 있습니다. 브라우저는 bank.com으로 가는 요청에 세션 쿠키를 자동으로 붙입니다. 은행 서버 입장에서는 로그인한 사용자가 보낸 정상적인 이체 요청과 구별할 수 없습니다. 이체가 실행됩니다.', 'bad'); res = '성공'; harm = '피해자 계좌에서 이체 실행'; sum.push('CSRF는 쿠키가 요청에 자동으로 붙는다는 점을 악용합니다. 공격자는 쿠키 값을 훔치지 않고도, 피해자의 브라우저가 대신 요청을 보내게 만듭니다.'); }
+      if (c.d3 === 'samesite') { box.push(['bank.example이 받은 요청', 'POST /transfer\n(세션 쿠키 없음)\n→ 로그인되지 않은 요청으로 처리 → 거절']); push('세션 쿠키에 SameSite=Lax가 설정돼 있습니다. 브라우저는 다른 사이트에서 시작된 POST 요청에는 이 쿠키를 붙이지 않습니다. 은행 서버는 로그인하지 않은 요청으로 보고 거절합니다.', 'good'); res = '실패'; harm = '없음'; where = 'SameSite 쿠키'; sum.push('SameSite=Lax는 다른 사이트에서 보낸 POST에 쿠키가 붙지 않게 합니다. 요즘 브라우저는 SameSite를 지정하지 않은 쿠키도 Lax처럼 다루지만(발급 직후 2분가량은 예외로 붙습니다), 명시해 두는 것이 안전합니다. 다른 도메인의 화면에 끼워 넣는 서비스처럼 SameSite=None이 꼭 필요한 경우에는 CSRF 토큰이 필수입니다.'); }
+      else if (c.d3 === 'token') { box.push(['bank.example이 받은 요청', 'POST /transfer\nCookie: 세션 ID (자동으로 붙음)\n_csrf 토큰: 없음\n→ 403 거절']); push('브라우저가 세션 쿠키를 붙여 보냈지만, 은행 서버는 폼에 심어 둔 CSRF 토큰도 함께 요구합니다. 공격자는 그 토큰 값을 알 수 없으므로 요청에 넣지 못했습니다. 서버가 403으로 거절합니다.', 'good'); res = '실패'; harm = '없음'; where = 'CSRF 토큰 검증'; sum.push('CSRF 토큰은 "이 요청이 우리 사이트의 화면에서 시작됐는가"를 확인합니다. 쿠키는 브라우저가 자동으로 붙이지만 토큰은 그렇지 않다는 점을 이용합니다.'); }
+      else { box.push(['bank.example이 받은 요청', 'POST /transfer\nCookie: 세션 ID (브라우저가 자동으로 붙임)\nto=공격자 계좌, amount=1000000\n→ 정상 요청으로 판단 → 이체 실행']); push('이 세션 쿠키는 다른 사이트에서 보낸 요청에도 붙도록(SameSite=None) 설정돼 있습니다. 브라우저는 bank.example으로 가는 요청에 세션 쿠키를 자동으로 붙입니다. 은행 서버 입장에서는 로그인한 사용자가 보낸 정상적인 이체 요청과 구별할 수 없습니다. 이체가 실행됩니다.', 'bad'); res = '성공'; harm = '피해자 계좌에서 이체 실행'; sum.push('CSRF는 쿠키가 요청에 자동으로 붙는다는 점을 악용합니다. 공격자는 쿠키 값을 훔치지 않고도, 피해자의 브라우저가 대신 요청을 보내게 만듭니다.'); }
       if (c.d3 !== 'none') sum.push('인증 정보를 쿠키가 아니라 Authorization 헤더로 보내는 API(JWT 등)는 브라우저가 자동으로 붙여 주지 않으므로 CSRF의 대상이 되기 어렵습니다. 그래서 그런 API 서버에서는 CSRF 보호를 끄기도 합니다.');
     }
     sum.unshift('공격 결과: ' + res + '. 피해: ' + harm + '.');

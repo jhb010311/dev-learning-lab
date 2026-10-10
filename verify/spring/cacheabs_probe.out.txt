@@ -1,0 +1,41 @@
+# spring 7.0.9 | java 21.0.12.1 | ConcurrentMapCacheManager
+none|ext|yes|false => 1번|"키보드"|1=키보드|first="키보드"|renameCount=0|proxy=true
+none|ext|yes|true => 1번|"키보드"|1=키보드|first="키보드"|renameCount=0|proxy=true
+none|ext|no|false => 1번|null|1=null|first=null|renameCount=0|proxy=true
+none|ext|no|true => 2번|null|비어 있음|first=null|renameCount=0|proxy=true
+none|self|yes|false => 2번|"키보드"|비어 있음|first="키보드"|renameCount=0|proxy=true
+none|self|yes|true => 2번|"키보드"|비어 있음|first="키보드"|renameCount=0|proxy=true
+none|self|no|false => 2번|null|비어 있음|first=null|renameCount=0|proxy=true
+none|self|no|true => 2번|null|비어 있음|first=null|renameCount=0|proxy=true
+other|ext|yes|false => 2번|"마우스"|1=키보드, 2=마우스|first="키보드"|renameCount=0|proxy=true
+other|ext|yes|true => 2번|"마우스"|1=키보드, 2=마우스|first="키보드"|renameCount=0|proxy=true
+other|ext|no|false => 2번|"마우스"|1=null, 2=마우스|first=null|renameCount=0|proxy=true
+other|ext|no|true => 2번|"마우스"|2=마우스|first=null|renameCount=0|proxy=true
+other|self|yes|false => 2번|"마우스"|비어 있음|first="키보드"|renameCount=0|proxy=true
+other|self|yes|true => 2번|"마우스"|비어 있음|first="키보드"|renameCount=0|proxy=true
+other|self|no|false => 2번|"마우스"|비어 있음|first=null|renameCount=0|proxy=true
+other|self|no|true => 2번|"마우스"|비어 있음|first=null|renameCount=0|proxy=true
+evict|ext|yes|false => 2번|"키보드"|1=키보드|first="키보드"|renameCount=0|proxy=true
+evict|ext|yes|true => 2번|"키보드"|1=키보드|first="키보드"|renameCount=0|proxy=true
+evict|ext|no|false => 2번|null|1=null|first=null|renameCount=0|proxy=true
+evict|ext|no|true => 2번|null|비어 있음|first=null|renameCount=0|proxy=true
+evict|self|yes|false => 2번|"키보드"|비어 있음|first="키보드"|renameCount=0|proxy=true
+evict|self|yes|true => 2번|"키보드"|비어 있음|first="키보드"|renameCount=0|proxy=true
+evict|self|no|false => 2번|null|비어 있음|first=null|renameCount=0|proxy=true
+evict|self|no|true => 2번|null|비어 있음|first=null|renameCount=0|proxy=true
+put|ext|yes|false => 1번|"새 키보드"|1=새 키보드|first="키보드"|renameCount=1|proxy=true
+put|ext|yes|true => 1번|"새 키보드"|1=새 키보드|first="키보드"|renameCount=1|proxy=true
+put|ext|no|false => 1번|"새 키보드"|1=새 키보드|first=null|renameCount=1|proxy=true
+put|ext|no|true => 1번|"새 키보드"|1=새 키보드|first=null|renameCount=1|proxy=true
+put|self|yes|false => 2번|"새 키보드"|1=새 키보드|first="키보드"|renameCount=1|proxy=true
+put|self|yes|true => 2번|"새 키보드"|1=새 키보드|first="키보드"|renameCount=1|proxy=true
+put|self|no|false => 2번|"새 키보드"|1=새 키보드|first=null|renameCount=1|proxy=true
+put|self|no|true => 2번|"새 키보드"|1=새 키보드|first=null|renameCount=1|proxy=true
+plain|ext|yes|false => 1번|"키보드"|1=키보드|first="키보드"|renameCount=0|proxy=true
+plain|ext|yes|true => 1번|"키보드"|1=키보드|first="키보드"|renameCount=0|proxy=true
+plain|ext|no|false => 1번|null|1=null|first=null|renameCount=0|proxy=true
+plain|ext|no|true => 2번|"새 키보드"|1=새 키보드|first=null|renameCount=0|proxy=true
+plain|self|yes|false => 2번|"새 키보드"|비어 있음|first="키보드"|renameCount=0|proxy=true
+plain|self|yes|true => 2번|"새 키보드"|비어 있음|first="키보드"|renameCount=0|proxy=true
+plain|self|no|false => 2번|"새 키보드"|비어 있음|first=null|renameCount=0|proxy=true
+plain|self|no|true => 2번|"새 키보드"|비어 있음|first=null|renameCount=0|proxy=true

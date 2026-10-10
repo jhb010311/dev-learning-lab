@@ -1,0 +1,43 @@
+# hibernate 7.4.5.Final
+JOINED|1|save => tables=book(author,id);item(id,name,price)|fk=book.id>item|sqlBeforeCommit=0|sql=insert:item=1,insert:book=1|shape=none|found=-|db=book[김저자,1];item[1,자바책,20000]
+JOINED|1|findc => tables=book(author,id);item(id,name,price)|fk=book.id>item|sqlBeforeCommit=-|sql=select=1|shape=read=book+item,join=1,innerJoin=1,union=0,dtypeInWhere=false|found=Book|db=book[김저자,1];item[1,자바책,20000]
+JOINED|1|findp => tables=book(author,id);item(id,name,price)|fk=book.id>item|sqlBeforeCommit=-|sql=select=1|shape=read=item+book,join=1,innerJoin=0,union=0,dtypeInWhere=false|found=Book|db=book[김저자,1];item[1,자바책,20000]
+JOINED|2|save => tables=album(artist,id);book(author,id);item(id,name,price)|fk=album.id>item,book.id>item|sqlBeforeCommit=0|sql=insert:item=1,insert:book=1|shape=none|found=-|db=album[];book[김저자,1];item[1,자바책,20000]
+JOINED|2|findc => tables=album(artist,id);book(author,id);item(id,name,price)|fk=album.id>item,book.id>item|sqlBeforeCommit=-|sql=select=1|shape=read=book+item,join=1,innerJoin=1,union=0,dtypeInWhere=false|found=Book|db=album[];book[김저자,1];item[1,자바책,20000]
+JOINED|2|findp => tables=album(artist,id);book(author,id);item(id,name,price)|fk=album.id>item,book.id>item|sqlBeforeCommit=-|sql=select=1|shape=read=item+album+book,join=2,innerJoin=0,union=0,dtypeInWhere=false|found=Book|db=album[];book[김저자,1];item[1,자바책,20000]
+JOINED|3|save => tables=album(artist,id);book(author,id);item(id,name,price);movie(actor,id)|fk=album.id>item,book.id>item,movie.id>item|sqlBeforeCommit=0|sql=insert:item=1,insert:book=1|shape=none|found=-|db=album[];book[김저자,1];item[1,자바책,20000];movie[]
+JOINED|3|findc => tables=album(artist,id);book(author,id);item(id,name,price);movie(actor,id)|fk=album.id>item,book.id>item,movie.id>item|sqlBeforeCommit=-|sql=select=1|shape=read=book+item,join=1,innerJoin=1,union=0,dtypeInWhere=false|found=Book|db=album[];book[김저자,1];item[1,자바책,20000];movie[]
+JOINED|3|findp => tables=album(artist,id);book(author,id);item(id,name,price);movie(actor,id)|fk=album.id>item,book.id>item,movie.id>item|sqlBeforeCommit=-|sql=select=1|shape=read=item+album+book+movie,join=3,innerJoin=0,union=0,dtypeInWhere=false|found=Book|db=album[];book[김저자,1];item[1,자바책,20000];movie[]
+SINGLE_TABLE|1|save => tables=item(author,dtype,id,name,price)|fk=none|sqlBeforeCommit=0|sql=insert:item=1|shape=none|found=-|db=item[김저자,Book,1,자바책,20000]
+SINGLE_TABLE|1|findc => tables=item(author,dtype,id,name,price)|fk=none|sqlBeforeCommit=-|sql=select=1|shape=read=item,join=0,innerJoin=0,union=0,dtypeInWhere=true|found=Book|db=item[김저자,Book,1,자바책,20000]
+SINGLE_TABLE|1|findp => tables=item(author,dtype,id,name,price)|fk=none|sqlBeforeCommit=-|sql=select=1|shape=read=item,join=0,innerJoin=0,union=0,dtypeInWhere=false|found=Book|db=item[김저자,Book,1,자바책,20000]
+SINGLE_TABLE|2|save => tables=item(artist,author,dtype,id,name,price)|fk=none|sqlBeforeCommit=0|sql=insert:item=1|shape=none|found=-|db=item[null,김저자,Book,1,자바책,20000]
+SINGLE_TABLE|2|findc => tables=item(artist,author,dtype,id,name,price)|fk=none|sqlBeforeCommit=-|sql=select=1|shape=read=item,join=0,innerJoin=0,union=0,dtypeInWhere=true|found=Book|db=item[null,김저자,Book,1,자바책,20000]
+SINGLE_TABLE|2|findp => tables=item(artist,author,dtype,id,name,price)|fk=none|sqlBeforeCommit=-|sql=select=1|shape=read=item,join=0,innerJoin=0,union=0,dtypeInWhere=false|found=Book|db=item[null,김저자,Book,1,자바책,20000]
+SINGLE_TABLE|3|save => tables=item(actor,artist,author,dtype,id,name,price)|fk=none|sqlBeforeCommit=0|sql=insert:item=1|shape=none|found=-|db=item[null,null,김저자,Book,1,자바책,20000]
+SINGLE_TABLE|3|findc => tables=item(actor,artist,author,dtype,id,name,price)|fk=none|sqlBeforeCommit=-|sql=select=1|shape=read=item,join=0,innerJoin=0,union=0,dtypeInWhere=true|found=Book|db=item[null,null,김저자,Book,1,자바책,20000]
+SINGLE_TABLE|3|findp => tables=item(actor,artist,author,dtype,id,name,price)|fk=none|sqlBeforeCommit=-|sql=select=1|shape=read=item,join=0,innerJoin=0,union=0,dtypeInWhere=false|found=Book|db=item[null,null,김저자,Book,1,자바책,20000]
+TABLE_PER_CLASS|1|save => tables=book(author,id,name,price)|fk=none|sqlBeforeCommit=0|sql=insert:book=1|shape=none|found=-|db=book[김저자,1,자바책,20000]
+TABLE_PER_CLASS|1|findc => tables=book(author,id,name,price)|fk=none|sqlBeforeCommit=-|sql=select=1|shape=read=book,join=0,innerJoin=0,union=0,dtypeInWhere=false|found=Book|db=book[김저자,1,자바책,20000]
+TABLE_PER_CLASS|1|findp => tables=book(author,id,name,price)|fk=none|sqlBeforeCommit=-|sql=select=1|shape=read=book,join=0,innerJoin=0,union=0,dtypeInWhere=false|found=Book|db=book[김저자,1,자바책,20000]
+TABLE_PER_CLASS|2|save => tables=album(artist,id,name,price);book(author,id,name,price)|fk=none|sqlBeforeCommit=0|sql=insert:book=1|shape=none|found=-|db=album[];book[김저자,1,자바책,20000]
+TABLE_PER_CLASS|2|findc => tables=album(artist,id,name,price);book(author,id,name,price)|fk=none|sqlBeforeCommit=-|sql=select=1|shape=read=book,join=0,innerJoin=0,union=0,dtypeInWhere=false|found=Book|db=album[];book[김저자,1,자바책,20000]
+TABLE_PER_CLASS|2|findp => tables=album(artist,id,name,price);book(author,id,name,price)|fk=none|sqlBeforeCommit=-|sql=select=1|shape=read=book+album,join=0,innerJoin=0,union=1,dtypeInWhere=false|found=Book|db=album[];book[김저자,1,자바책,20000]
+TABLE_PER_CLASS|3|save => tables=album(artist,id,name,price);book(author,id,name,price);movie(actor,id,name,price)|fk=none|sqlBeforeCommit=0|sql=insert:book=1|shape=none|found=-|db=album[];book[김저자,1,자바책,20000];movie[]
+TABLE_PER_CLASS|3|findc => tables=album(artist,id,name,price);book(author,id,name,price);movie(actor,id,name,price)|fk=none|sqlBeforeCommit=-|sql=select=1|shape=read=book,join=0,innerJoin=0,union=0,dtypeInWhere=false|found=Book|db=album[];book[김저자,1,자바책,20000];movie[]
+TABLE_PER_CLASS|3|findp => tables=album(artist,id,name,price);book(author,id,name,price);movie(actor,id,name,price)|fk=none|sqlBeforeCommit=-|sql=select=1|shape=read=book+album+movie,join=0,innerJoin=0,union=2,dtypeInWhere=false|found=Book|db=album[];book[김저자,1,자바책,20000];movie[]
+# 아래는 자식 클래스 3개일 때 실제로 나간 SQL 문장(소문자로 바꾼 것)
+# sql JOINED|save: insert into item (name,price,id) values (?,?,?)
+# sql JOINED|save: insert into book (author,id) values (?,?)
+# sql JOINED|findc: select b1_0.id,b1_1.name,b1_1.price,b1_0.author from book b1_0 join item b1_1 on b1_0.id=b1_1.id where b1_0.id=?
+# sql JOINED|findp: select i1_0.id,case when i1_2.id is not null then 1 when i1_1.id is not null then 2 when i1_3.id is not null then 3 end,i1_0.name,i1_0.price,i1_1.artist,i1_2.author,i1_3.actor from item i1_0 left join album i1_1 on i1_0.id=i1_1.id left join book i1_2 on i1_0.id=i1_2.id left join movie i1_3 on i1_0.id=i1_3.id where i1_0.id=?
+# sql SINGLE_TABLE|save: insert into item (name,price,author,dtype,id) values (?,?,?,'book',?)
+# sql SINGLE_TABLE|findc: select b1_0.id,b1_0.name,b1_0.price,b1_0.author from item b1_0 where b1_0.dtype='book' and b1_0.id=?
+# sql SINGLE_TABLE|findp: select i1_0.id,i1_0.dtype,i1_0.name,i1_0.price,i1_0.artist,i1_0.author,i1_0.actor from item i1_0 where i1_0.id=?
+# sql TABLE_PER_CLASS|save: insert into book (name,price,author,id) values (?,?,?,?)
+# sql TABLE_PER_CLASS|findc: select b1_0.id,b1_0.name,b1_0.price,b1_0.author from book b1_0 where b1_0.id=?
+# sql TABLE_PER_CLASS|findp: select i1_0.id,i1_0.clazz_,i1_0.name,i1_0.price,i1_0.artist,i1_0.author,i1_0.actor from (select price, id, author, name, null as artist, null as actor, 1 as clazz_ from book union all select price, id, null as author, name, artist, null as actor, 2 as clazz_ from album union all select price, id, null as author, name, null as artist, actor, 3 as clazz_ from movie) i1_0 where i1_0.id=?
+# JOINED|2 all tables => album:base table,book:base table,hte_album:global temporary,hte_book:global temporary,hte_item:global temporary,ht_item:global temporary,item:base table
+# @Inheritance 없음 => tables=item(author,dtype,id,name,price)
+# JOINED + @DiscriminatorColumn => tables=book(author,id);item(dtype,id,name,price)
+# TABLE_PER_CLASS + IDENTITY => MappingException:Cannot use identity column key generation with <union-subclass> mapping for: InheritMapProbe$TI$Item

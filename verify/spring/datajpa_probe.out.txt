@@ -1,0 +1,22 @@
+# spring boot 4.1.1 | spring data jpa 4.1.1 | hibernate 7.4.5.Final
+extra|impl => jdkProxy=true|target=SimpleJpaRepository
+name|findByName => boot=성공|rows=2|order=|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 where m1_0.name=? [김철수]
+name|findByNameAndAgeGreaterThan => boot=성공|rows=1|order=|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 where m1_0.name=? and m1_0.age>? [김철수, 20]
+name|findByNameContainingOrderByAgeDesc => boot=성공|rows=3|order=35 30 17|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 where m1_0.name like ? escape '\' order by m1_0.age desc [%철%]
+name|countByAgeGreaterThan => boot=성공|rows=5|order=|sql=select count(m1_0.id) from member m1_0 where m1_0.age>? [20]
+page|page|0 => boot=성공|content=3|total=7|totalPages=3|hasNext=true|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 order by m1_0.id offset ? rows fetch first ? rows only [0, 3] ;; select count(m1_0.id) from member m1_0 []
+page|page|1 => boot=성공|content=3|total=7|totalPages=3|hasNext=true|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 order by m1_0.id offset ? rows fetch first ? rows only [3, 3] ;; select count(m1_0.id) from member m1_0 []
+page|page|2 => boot=성공|content=1|total=7|totalPages=3|hasNext=false|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 order by m1_0.id offset ? rows fetch first ? rows only [6, 3]
+page|page|3 => boot=성공|content=0|total=7|totalPages=3|hasNext=false|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 order by m1_0.id offset ? rows fetch first ? rows only [9, 3] ;; select count(m1_0.id) from member m1_0 []
+page|slice|0 => boot=성공|content=3|total=|totalPages=|hasNext=true|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 order by m1_0.id fetch first ? rows only [4]
+page|slice|1 => boot=성공|content=3|total=|totalPages=|hasNext=true|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 order by m1_0.id offset ? rows fetch first ? rows only [3, 4]
+page|slice|2 => boot=성공|content=1|total=|totalPages=|hasNext=false|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 order by m1_0.id offset ? rows fetch first ? rows only [6, 4]
+page|slice|3 => boot=성공|content=0|total=|totalPages=|hasNext=false|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 order by m1_0.id offset ? rows fetch first ? rows only [9, 4]
+save|new => boot=성공|ret=same:true,id:8|db=8|sql=insert into member (age,name,id) values (?,?,default) [20, 박새로]
+save|change => boot=성공|ret=same:false|db=김영수|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 where m1_0.id=? [1] ;; update member set age=?,name=? where id=? [30, 김영수, 1]
+save|same => boot=성공|ret=same:false|db=김철수|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 where m1_0.id=? [1]
+save|gone => boot=성공|ret=예외:ObjectOptimisticLockingFailureException/StaleObjectStateException/msg=Row was already updated or deleted by another transaction for entity [datajpa.Member with id '999']|db=7|sql=select m1_0.id,m1_0.age,m1_0.name from member m1_0 where m1_0.id=? [999] ;; select m1_0.id,m1_0.age,m1_0.name from member m1_0 where m1_0.id=? [999]
+save|assigned => boot=성공|ret=same:false|db=2|sql=select c1_0.code,c1_0.title from coupon c1_0 where c1_0.code=? [SUMMER] ;; insert into coupon (title,code) values (?,?) [여름 할인, SUMMER]
+extra|persistable => ret=same:true|db=1|sql=insert into pass (title,code) values (?,?) [일일권, DAY1]
+name|findByNickname => boot=실패|error=PropertyReferenceException|msg=No property 'nickname' found for type 'Member'|sql=
+name|findByAgeGreaterThen => boot=실패|error=PropertyReferenceException|msg=No property 'greaterThen' found for type 'int'; Traversed path: Member.age|sql=

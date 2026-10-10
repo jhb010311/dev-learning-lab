@@ -1,0 +1,24 @@
+# hibernate 7.4.5.Final
+form|merge|none => new: set: merge:select commit:update|false|false|true|1=김영수,null
+form|merge|arg => new: set: merge:select setArg: commit:update|false|false|true|1=김영수,null
+form|merge|ret => new: set: merge:select setRet: commit:update|false|false|true|1=김영수,부산
+form|none|none => new: set: commit:|false|-|-|1=김철수,서울
+form|none|arg => new: set: commit:|false|-|-|1=김철수,서울
+form|none|ret => new: set: commit:|false|-|-|1=김철수,서울
+form|dirty|none => new: set: find:select copy: commit:update|false|false|true|1=김영수,서울
+form|dirty|arg => new: set: find:select copy: commit:update|false|false|true|1=김영수,서울
+form|dirty|ret => new: set: find:select copy: commit:update|false|false|true|1=김영수,서울
+loaded|merge|none => find1:select close1: set: merge:select commit:update|false|false|true|1=김영수,서울
+loaded|merge|arg => find1:select close1: set: merge:select setArg: commit:update|false|false|true|1=김영수,서울
+loaded|merge|ret => find1:select close1: set: merge:select setRet: commit:update|false|false|true|1=김영수,부산
+loaded|none|none => find1:select close1: set: commit:|false|-|-|1=김철수,서울
+loaded|none|arg => find1:select close1: set: commit:|false|-|-|1=김철수,서울
+loaded|none|ret => find1:select close1: set: commit:|false|-|-|1=김철수,서울
+loaded|dirty|none => find1:select close1: set: find:select copy: commit:update|false|false|true|1=김영수,서울
+loaded|dirty|arg => find1:select close1: set: find:select copy: commit:update|false|false|true|1=김영수,서울
+loaded|dirty|ret => find1:select close1: set: find:select copy: commit:update|false|false|true|1=김영수,서울
+extra|merge-new-id => new: merge:select commit:insert|1=김철수,서울;9=새회원,null
+extra|merge-unchanged => find1:select close1: merge:select commit:|1=김철수,서울
+extra|merge-already-managed => new: find:select merge: commit:update|sameAsFound=true|1=김영수,null
+extra|merge-stale => find1:select close1: merge:select commit:update|1=김영수,서울
+extra|persist-detached => new: persist:|ConstraintViolationException|sql=insert|1=김철수,서울

@@ -13,14 +13,14 @@ Lab.register({
     { t: '인가 코드를 가로채 다시 쓰면', d: '코드는 한 번만, 그리고 클라이언트 비밀값과 함께만 쓸 수 있습니다.', v: { sc: 'reuse' } },
   ],
   code: function () {
-    return '# application.yml (스프링 시큐리티 OAuth2 클라이언트)\nspring.security.oauth2.client.registration.kakao:\n  client-id: abc123                     # 공개돼도 되는 값\n  client-secret: ********               # 서버만 아는 값\n  authorization-grant-type: authorization_code\n  redirect-uri: https://shop.com/login/oauth2/code/kakao\n  scope: profile_nickname, account_email\n\n// 아래 과정은 스프링 시큐리티가 대신 처리한다';
+    return '# application.yml (스프링 시큐리티 OAuth2 클라이언트)\nspring.security.oauth2.client.registration.kakao:\n  client-id: abc123                     # 공개돼도 되는 값\n  client-secret: ********               # 서버만 아는 값\n  authorization-grant-type: authorization_code\n  redirect-uri: https://shop.example/login/oauth2/code/kakao\n  scope: profile_nickname, account_email\n\n// 아래 과정은 스프링 시큐리티가 대신 처리한다';
   },
   label: function (c) { return { ok: '정상 로그인', deny: '사용자가 동의 취소', state: 'state 불일치', reuse: '인가 코드 재사용 시도' }[c.sc]; },
   columns: ['결과', '우리 서비스가 받은 것', '사용자 비밀번호를 본 곳'],
   simulate: function (c) {
     var ev = [], rows = [], sum = [], res, got = '없음';
     function step(from, to, via, what, s, k) { rows.push({ cells: [from + ' → ' + to, via, { v: what, cls: k === 'bad' ? 'bad' : k === 'good' ? 'good' : '' }] }); ev.push({ s: s, k: k, snap: { rows: rows.slice() } }); }
-    step('사용자', '우리 서비스', '브라우저', '"카카오로 로그인" 클릭', '사용자가 우리 서비스(shop.com)에서 "카카오로 로그인" 버튼을 누릅니다.', '');
+    step('사용자', '우리 서비스', '브라우저', '"카카오로 로그인" 클릭', '사용자가 우리 서비스(shop.example)에서 "카카오로 로그인" 버튼을 누릅니다.', '');
     step('우리 서비스', '카카오 인가 서버', '브라우저 리다이렉트', 'client_id, redirect_uri, scope, state=x9f2', '우리 서비스가 브라우저를 카카오의 인가 주소로 보냅니다. 누가 요청하는지(client_id), 끝나면 돌아올 주소(redirect_uri), 원하는 정보의 범위(scope), 그리고 이 요청을 식별할 임의의 값(state)을 함께 붙입니다. state는 세션에 기억해 둡니다.', '');
     if (c.sc === 'deny') {
       step('사용자', '카카오 인가 서버', '브라우저', '로그인 후 동의 화면에서 "취소"', '사용자가 카카오에 로그인한 뒤, 정보 제공 동의 화면에서 취소를 누릅니다.', '');

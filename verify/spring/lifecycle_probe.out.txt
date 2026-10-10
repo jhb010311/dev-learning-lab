@@ -1,0 +1,23 @@
+# spring boot 4.1.1 | spring 7.0.9
+ctor|ctor|singleton => ok|ctor:set>STARTED>USE>CLOSING|1000|
+ctor|ctor|prototype => ok|STARTED>ctor:set>USE>CLOSING|1000|
+ctor|anno|singleton => ok|ctor:set>PostConstruct:set>STARTED>USE>CLOSING>PreDestroy:set|1000|
+ctor|anno|prototype => ok|STARTED>ctor:set>PostConstruct:set>USE>CLOSING|1000|
+ctor|iface|singleton => ok|ctor:set>afterPropertiesSet:set>STARTED>USE>CLOSING>destroy:set|1000|
+ctor|iface|prototype => ok|STARTED>ctor:set>afterPropertiesSet:set>USE>CLOSING|1000|
+ctor|method|singleton => ok|ctor:set>init:set>STARTED>USE>CLOSING>close:set|1000|
+ctor|method|prototype => ok|STARTED>ctor:set>init:set>USE>CLOSING|1000|
+ctor|all|singleton => ok|ctor:set>PostConstruct:set>afterPropertiesSet:set>init:set>STARTED>USE>CLOSING>PreDestroy:set>destroy:set>close:set|1000|
+ctor|all|prototype => ok|STARTED>ctor:set>PostConstruct:set>afterPropertiesSet:set>init:set>USE>CLOSING|1000|
+field|ctor|singleton => startfail:NullPointerException|ctor:null|-|BeanCreationException>BeanInstantiationException>NullPointerException
+field|ctor|prototype => getfail:NullPointerException|STARTED>ctor:null>CLOSING|-|BeanCreationException>BeanInstantiationException>NullPointerException
+field|anno|singleton => ok|ctor:null>PostConstruct:set>STARTED>USE>CLOSING>PreDestroy:set|1000|
+field|anno|prototype => ok|STARTED>ctor:null>PostConstruct:set>USE>CLOSING|1000|
+field|iface|singleton => ok|ctor:null>afterPropertiesSet:set>STARTED>USE>CLOSING>destroy:set|1000|
+field|iface|prototype => ok|STARTED>ctor:null>afterPropertiesSet:set>USE>CLOSING|1000|
+field|method|singleton => ok|ctor:null>init:set>STARTED>USE>CLOSING>close:set|1000|
+field|method|prototype => ok|STARTED>ctor:null>init:set>USE>CLOSING|1000|
+field|all|singleton => ok|ctor:null>PostConstruct:set>afterPropertiesSet:set>init:set>STARTED>USE>CLOSING>PreDestroy:set>destroy:set>close:set|1000|
+field|all|prototype => ok|STARTED>ctor:null>PostConstruct:set>afterPropertiesSet:set>init:set>USE>CLOSING|1000|
+# extra @Bean에 destroyMethod를 적지 않음 (싱글톤) => ok|ctor:null>init:set>STARTED>USE>CLOSING>close:set|1000|
+# extra @Bean에 destroyMethod를 적지 않음 (프로토타입) => ok|STARTED>ctor:null>init:set>USE>CLOSING|1000|

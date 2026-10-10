@@ -1,0 +1,21 @@
+// "AOP: 어드바이스와 포인트컷" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'aop', q: '메서드가 끝난 뒤에 실행되는 어드바이스 가운데, 메서드가 정상적으로 끝났을 때와 예외를 던졌을 때 모두 실행되는 것은 무엇입니까?',
+    a: ['@After', '@AfterReturning', '@AfterThrowing', '@AfterReturning과 @AfterThrowing 둘 다'],
+    why: '@After는 자바의 finally처럼 메서드가 어떻게 끝났든 실행됩니다. @AfterReturning은 정상적으로 값을 돌려줬을 때만, @AfterThrowing은 예외가 나갔을 때만 실행됩니다.' },
+  { lv: 1, id: 'aop', q: '포인트컷 execution(* shop.OrderService.cancel())은 public String cancel(Long id) 메서드를 고릅니까?',
+    a: ['고르지 않는다. 괄호 안이 비어 있으면 매개변수가 없는 메서드만 고른다', '고른다. 괄호 안이 비어 있으면 매개변수를 따지지 않는다', '고른다. 메서드 이름이 같으면 매개변수는 보지 않는다', '고르지 않는다. 반환 타입을 *로 쓰면 void 메서드만 고른다'],
+    why: '괄호 안을 비운 ()는 "매개변수 없음"이라는 뜻입니다. 매개변수가 몇 개든 고르려면 (..)라고 써야 합니다. 식이 아무것도 고르지 못해도 오류는 나지 않고 어드바이스가 실행되지 않을 뿐입니다.',
+    sim: { c: { pc: 'noarg', m: 'cancel', out: 'ok', second: 'none' }, col: 0, has: '고르지 않음' } },
+  { lv: 2, id: 'aop', q: '@Around 어드바이스에서 pjp.proceed() 아래에 로그를 찍는 줄을 적었습니다. 대상 메서드가 예외를 던지면 그 줄이 실행되지 않는 이유는 무엇입니까?',
+    a: ['pjp.proceed()가 그 예외를 그대로 던지므로 그 아래 줄에 닿지 못하기 때문이다', '스프링이 예외가 나면 @Around 어드바이스 전체를 건너뛰기 때문이다', '@AfterThrowing이 예외를 대신 처리해 @Around를 끝내 버리기 때문이다', '@Around의 뒷부분은 @After가 없을 때만 실행되기 때문이다'],
+    why: '@Around 어드바이스는 평범한 메서드이고 pjp.proceed()는 그 안의 메서드 호출입니다. 호출이 예외를 던지면 그 아래 줄은 실행되지 않고 예외가 밖으로 나갑니다. 예외에도 실행하려면 try-finally로 감쌉니다.' },
+  { lv: 3, id: 'aop', q: '한 애스펙트에 다섯 가지 어드바이스가 모두 있고, 대상 메서드가 예외를 던집니다. @Around는 try-finally 없이 pjp.proceed() 앞뒤에 로그를 찍습니다. 메서드 본문 다음에 찍히는 로그는 무엇입니까?',
+    a: ['@AfterThrowing, 그다음 @After', '@After, 그다음 @AfterThrowing, 그다음 @Around 뒤', '@AfterThrowing, 그다음 @After, 그다음 @Around 뒤', '@AfterThrowing 하나뿐'],
+    why: '예외가 나면 @AfterThrowing이 실행되고 그다음 @After가 실행됩니다. @AfterReturning은 실행되지 않고, @Around에서 pjp.proceed() 아래에 적은 줄도 예외 때문에 실행되지 않습니다.',
+    sim: { c: { pc: 'cls', m: 'order', out: 'ex', second: 'none' }, col: 1, has: 'order 본문 → Log @AfterThrowing → Log @After' } },
+  { lv: 3, id: 'aop', q: 'LogAspect에 @Order(1), TimeAspect에 @Order(2)를 붙였고 둘 다 같은 메서드에 걸립니다. 가장 먼저 실행되는 것과 가장 나중에 실행되는 것은 각각 어느 애스펙트의 코드입니까?',
+    a: ['둘 다 LogAspect의 코드', '둘 다 TimeAspect의 코드', '처음은 LogAspect, 마지막은 TimeAspect의 코드', '처음은 TimeAspect, 마지막은 LogAspect의 코드'],
+    why: '@Order의 숫자가 작은 애스펙트가 바깥쪽에서 감쌉니다. 바깥쪽 애스펙트는 들어갈 때 가장 먼저, 나올 때 가장 나중에 실행되므로 처음과 마지막이 모두 LogAspect의 코드입니다.',
+    sim: { c: { pc: 'cls', m: 'order', out: 'ok', second: 'log1' }, col: 1, has: 'Log @Around 앞 → Log @Before → Time 시작' } },
+]);

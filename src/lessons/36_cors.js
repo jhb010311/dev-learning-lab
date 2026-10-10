@@ -4,10 +4,10 @@ Lab.register({
   intro: '브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 "이 출처는 허용한다"고 알려 줘야 풀립니다. 요청 종류와 서버 설정을 바꿔 가며 사전 요청(preflight)이 언제 나가는지, 요청이 서버에 닿기는 하는지 확인하세요.',
   terms: ['CORS와 동일 출처 정책', 'Preflight 요청', 'HTTP 메서드', '쿠키'], ranks: ['websec', 'http', 'network'],
   controls: [
-    { id: 'api', label: 'API 서버의 주소 (페이지는 https://shop.com)', type: 'select', value: 'cross', options: [['same', 'https://shop.com/api (같은 출처)'], ['cross', 'https://api.shop.com (다른 출처)']] },
+    { id: 'api', label: 'API 서버의 주소 (페이지는 https://shop.example)', type: 'select', value: 'cross', options: [['same', 'https://shop.example/api (같은 출처)'], ['cross', 'https://api.shop.example (다른 출처)']] },
     { id: 'req', label: '스크립트가 보내는 요청', type: 'select', value: 'json', options: [['simple', 'GET, 추가 헤더 없음'], ['json', 'POST, Content-Type: application/json'], ['auth', 'GET, Authorization 헤더 포함'], ['del', 'DELETE']] },
     { id: 'cred', label: '쿠키를 함께 보낸다 (credentials: include)', type: 'check', value: false, show: function (c) { return c.api === 'cross'; } },
-    { id: 'srv', label: '서버의 CORS 설정', type: 'select', value: 'none', options: [['none', '설정 없음'], ['star', '모든 출처 허용 (*)'], ['exact', 'https://shop.com만 허용 + 쿠키 허용']], show: function (c) { return c.api === 'cross'; } },
+    { id: 'srv', label: '서버의 CORS 설정', type: 'select', value: 'none', options: [['none', '설정 없음'], ['star', '모든 출처 허용 (*)'], ['exact', 'https://shop.example만 허용 + 쿠키 허용']], show: function (c) { return c.api === 'cross'; } },
   ],
   presets: [
     { t: '처음 설정으로', d: '다른 출처에 JSON을 POST. 서버 설정이 없어 사전 요청에서 막힙니다.', v: { api: 'cross', req: 'json', cred: false, srv: 'none' } },
@@ -17,14 +17,14 @@ Lab.register({
     { t: '같은 출처라면', d: 'CORS 검사 자체가 없습니다.', v: { api: 'same', req: 'json', cred: false, srv: 'none' } },
   ],
   code: function (c) {
-    var url = c.api === 'same' ? '/api/orders' : 'https://api.shop.com/orders', opt = [];
+    var url = c.api === 'same' ? '/api/orders' : 'https://api.shop.example/orders', opt = [];
     if (c.req === 'json') opt.push("method: 'POST'", "headers: { 'Content-Type': 'application/json' }", 'body: JSON.stringify(order)');
     if (c.req === 'auth') opt.push("headers: { Authorization: 'Bearer ' + token }");
     if (c.req === 'del') opt.push("method: 'DELETE'");
     if (c.api === 'cross' && c.cred) opt.push("credentials: 'include'");
-    var js = '// https://shop.com 페이지의 스크립트\nfetch(\'' + url + '\'' + (opt.length ? ', {\n    ' + opt.join(',\n    ') + '\n}' : '') + ');';
+    var js = '// https://shop.example 페이지의 스크립트\nfetch(\'' + url + '\'' + (opt.length ? ', {\n    ' + opt.join(',\n    ') + '\n}' : '') + ');';
     if (c.api === 'same') return js;
-    var srv = c.srv === 'none' ? '// 서버: CORS 설정 없음' : '// 서버 (스프링)\n@Bean\nCorsConfigurationSource corsConfigurationSource() {\n    var cfg = new CorsConfiguration();\n    cfg.' + (c.srv === 'star' ? 'addAllowedOrigin("*");' : 'addAllowedOrigin("https://shop.com");\n    cfg.setAllowCredentials(true);') + '\n    cfg.addAllowedMethod("*");\n    cfg.addAllowedHeader("*");\n    ...\n}';
+    var srv = c.srv === 'none' ? '// 서버: CORS 설정 없음' : '// 서버 (스프링)\n@Bean\nCorsConfigurationSource corsConfigurationSource() {\n    var cfg = new CorsConfiguration();\n    cfg.' + (c.srv === 'star' ? 'addAllowedOrigin("*");' : 'addAllowedOrigin("https://shop.example");\n    cfg.setAllowCredentials(true);') + '\n    cfg.addAllowedMethod("*");\n    cfg.addAllowedHeader("*");\n    ...\n}';
     return js + '\n\n' + srv;
   },
   label: function (c) { return (c.api === 'same' ? '같은 출처' : '다른 출처') + ' · ' + { simple: '단순 GET', json: 'JSON POST', auth: 'Authorization 헤더', del: 'DELETE' }[c.req] + (c.api === 'cross' ? (c.cred ? ' · 쿠키 포함' : '') + ' · 서버 ' + { none: '설정 없음', star: '* 허용', exact: '출처 지정' }[c.srv] : ''); },
@@ -39,16 +39,16 @@ Lab.register({
     function push(s, k) { ev.push({ s: s, k: k, snap: { rows: rows.slice() } }); }
     function row(who, what, res, cls) { rows.push({ cells: [who, what, { v: res, cls: cls }] }); }
     if (c.api === 'same') {
-      row('브라우저', M + ' /api/orders', '보냄', ''); push('페이지(https://shop.com)와 API의 출처가 같습니다. 출처는 프로토콜, 호스트, 포트의 조합입니다. 같은 출처끼리는 아무 제한이 없으므로 그대로 요청을 보냅니다.', '');
+      row('브라우저', M + ' /api/orders', '보냄', ''); push('페이지(https://shop.example)와 API의 출처가 같습니다. 출처는 프로토콜, 호스트, 포트의 조합입니다. 같은 출처끼리는 아무 제한이 없으므로 그대로 요청을 보냅니다.', '');
       row('서버', '요청 처리', '200 OK', 'good'); row('브라우저', '응답을 스크립트에 전달', '전달함', 'good'); push('서버가 응답하고 스크립트가 결과를 받습니다. CORS 헤더는 필요 없습니다.', 'good');
       sum.push('같은 출처에서는 CORS가 관여하지 않습니다. 프론트와 API를 같은 도메인 아래에 두거나(리버스 프록시) 개발 서버의 프록시 기능을 쓰면 CORS 문제가 생기지 않는 이유입니다.');
       return { events: ev, summary: sum, row: ['없음', '예', '예', '-'] };
     }
-    push('페이지의 출처는 https://shop.com, API의 출처는 https://api.shop.com입니다. 호스트가 달라서 다른 출처입니다. 브라우저가 이 요청을 그냥 보내도 되는 종류인지 먼저 판단합니다.', '');
+    push('페이지의 출처는 https://shop.example, API의 출처는 https://api.shop.example입니다. 호스트가 달라서 다른 출처입니다. 브라우저가 이 요청을 그냥 보내도 되는 종류인지 먼저 판단합니다.', '');
     if (j.pre) {
       var reason = c.req === 'json' ? 'Content-Type이 application/json이기 때문' : c.req === 'auth' ? 'Authorization 헤더가 붙었기 때문' : 'DELETE 메서드이기 때문';
       row('브라우저', 'OPTIONS /orders (사전 요청)', '보냄', 'hot'); push('단순 요청이 아닙니다(' + reason + '). 브라우저가 본 요청을 보내기 전에 OPTIONS 메서드로 "이런 요청을 보내도 되느냐"고 먼저 묻습니다. 스크립트가 시킨 것이 아니라 브라우저가 스스로 보내는 요청입니다.', '');
-      if (j.ok) { row('서버', '사전 요청에 응답', 'Access-Control-Allow-Origin: ' + (c.srv === 'star' ? '*' : 'https://shop.com') + ' 외 허용 헤더', 'good'); push('서버가 허용하는 출처, 메서드, 헤더를 응답 헤더에 담아 돌려줍니다. 브라우저가 확인하고 본 요청을 보내도 된다고 판단합니다.', 'good'); }
+      if (j.ok) { row('서버', '사전 요청에 응답', 'Access-Control-Allow-Origin: ' + (c.srv === 'star' ? '*' : 'https://shop.example') + ' 외 허용 헤더', 'good'); push('서버가 허용하는 출처, 메서드, 헤더를 응답 헤더에 담아 돌려줍니다. 브라우저가 확인하고 본 요청을 보내도 된다고 판단합니다.', 'good'); }
       else { row('서버', '사전 요청에 응답', c.srv === 'none' ? '허용 헤더 없음' : 'Access-Control-Allow-Origin: *', 'bad'); row('브라우저', M + ' /orders (본 요청)', '보내지 않음', 'bad'); push('서버의 응답이 조건에 맞지 않습니다(' + j.why + '). 브라우저는 본 요청을 아예 보내지 않고, 스크립트에는 네트워크 오류로 알립니다. 서버의 주문 처리 코드는 실행되지 않았습니다.', 'bad'); }
     } else push('GET이고 특별한 헤더가 없는 단순 요청입니다. 사전 요청 없이 바로 보냅니다.', '');
     if (j.reached) {

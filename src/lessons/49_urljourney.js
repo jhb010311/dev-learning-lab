@@ -16,16 +16,16 @@ Lab.register({
     { t: '정적 파일을 CDN에서', d: '사용자와 가까운 서버가 응답합니다.', v: { what: 'static', dns: true, conn: true, cdn: true } },
   ],
   code: function (c) {
-    return '# nginx (리버스 프록시)\nserver {\n    listen 443 ssl;\n    server_name shop.com;\n\n    location /static/ {                  # 정적 파일은 직접 응답\n        root /var/www;\n    }\n    location / {                         # 나머지는 애플리케이션 서버로 전달\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header X-Forwarded-For $remote_addr;\n    }\n}';
+    return '# nginx (리버스 프록시)\nserver {\n    listen 443 ssl;\n    server_name shop.example;\n\n    location /static/ {                  # 정적 파일은 직접 응답\n        root /var/www;\n    }\n    location / {                         # 나머지는 애플리케이션 서버로 전달\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header X-Forwarded-For $remote_addr;\n    }\n}';
   },
   label: function (c) { return (c.what === 'api' ? '동적 페이지' : '정적 파일' + (c.cdn ? ' (CDN)' : '')) + ' · DNS 캐시 ' + (c.dns ? '있음' : '없음') + ' · 연결 재사용 ' + (c.conn ? '함' : '안 함'); },
   columns: ['전체 시간', '거친 단계', '건너뛴 단계', '응답을 만든 곳'],
   simulate: function (c) {
     var ev = [], rows = [], total = 0, skipped = 0, sum = [], cdn = c.what === 'static' && c.cdn, rtt = cdn ? 5 : 30, maker;
     function step(name, ms, s, k, skip) { if (skip) skipped++; else total += ms; rows.push({ cls: skip ? 'gone' : '', cells: [name, skip ? '건너뜀' : ms + 'ms', { v: skip ? '-' : total + 'ms', cls: k === 'good' ? 'good' : '' }] }); ev.push({ s: s, k: k, snap: { rows: rows.slice(), total: total } }); }
-    step('주소 해석', 0, '브라우저가 주소 https://shop.com' + (c.what === 'api' ? '/orders' : '/static/logo.png') + ' 를 프로토콜(https), 호스트(shop.com), 경로로 나눕니다. https이므로 443번 포트로 접속할 것입니다.', '');
+    step('주소 해석', 0, '브라우저가 주소 https://shop.example' + (c.what === 'api' ? '/orders' : '/static/logo.png') + ' 를 프로토콜(https), 호스트(shop.example), 경로로 나눕니다. https이므로 443번 포트로 접속할 것입니다.', '');
     if (c.dns) step('DNS 조회', 0, '도메인의 IP 주소가 브라우저나 운영체제의 캐시에 남아 있습니다. DNS 서버에 묻지 않습니다.', 'good', true);
-    else step('DNS 조회', 40, 'shop.com의 IP 주소를 모릅니다. DNS 서버에 물어 IP 주소를 받아 옵니다' + (cdn ? '. CDN을 쓰는 도메인이라 사용자와 가까운 CDN 서버의 주소가 돌아옵니다.' : '.') + ' 결과는 정해진 시간(TTL) 동안 캐시에 보관됩니다.', '');
+    else step('DNS 조회', 40, 'shop.example의 IP 주소를 모릅니다. DNS 서버에 물어 IP 주소를 받아 옵니다' + (cdn ? '. CDN을 쓰는 도메인이라 사용자와 가까운 CDN 서버의 주소가 돌아옵니다.' : '.') + ' 결과는 정해진 시간(TTL) 동안 캐시에 보관됩니다.', '');
     if (c.conn) { step('TCP 연결', 0, '이 서버와 맺어 둔 연결이 아직 살아 있습니다(keep-alive). 새로 연결하지 않고 그대로 씁니다.', 'good', true); step('TLS 핸드셰이크', 0, '기존 연결은 이미 암호화돼 있습니다. 핸드셰이크도 다시 하지 않습니다.', 'good', true); }
     else { step('TCP 연결', rtt, '그 IP의 443번 포트로 TCP 연결을 맺습니다(3-way handshake). 서버까지 한 번 왕복하는 시간이 듭니다.', ''); step('TLS 핸드셰이크', rtt, 'TLS 핸드셰이크로 서버의 인증서를 확인하고 암호화 키를 합의합니다. 한 번 더 왕복합니다.', ''); }
     step('HTTP 요청 전송', rtt, '암호화된 연결 위로 HTTP 요청을 보냅니다. 요청 줄, 헤더(Host, 쿠키, User-Agent 등)가 서버로 갑니다.', '');
