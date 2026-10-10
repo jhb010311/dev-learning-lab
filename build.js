@@ -96,7 +96,7 @@ if (require.main === module) {
     else if (!e.t || !e.d || !e.w || !e.w.length) throw new Error(at + ': t, d, w가 필요');
     if (e.only && e.not) throw new Error(at + ': only와 not을 함께 쓸 수 없음');
     (e.only || e.not || []).forEach(id => { if (!ids.has(id)) throw new Error(at + ': 없는 실습 ' + id); });
-    const ws = (e.w || []).slice(); if (e.kb) { ws.push(e.kb); const bare = e.kb.replace(/\(.*?\)/g, '').trim(); if (bare !== e.kb) ws.push(bare); }
+    const ws = (e.w || []).slice(); if (e.kb && !e.noname) { ws.push(e.kb); const bare = e.kb.replace(/\(.*?\)/g, '').trim(); if (bare !== e.kb) ws.push(bare); }
     [...new Set(ws)].forEach(w => (aliasMap[w] = aliasMap[w] || []).push(e));
   });
   const applies = (e, ctx) => e.only ? !!ctx && e.only.includes(ctx) : e.not ? !ctx || !e.not.includes(ctx) : true;

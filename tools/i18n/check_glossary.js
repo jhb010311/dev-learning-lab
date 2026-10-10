@@ -23,7 +23,7 @@ else ko.forEach((k, i) => {
 // 겹침: 틀(framework.html)은 영어에서 대소문자를 가리지 않고 찾는다
 const ids = fs.readdirSync(path.join(root, 'src', 'lessons')).map(f => (/^  id: '([^']+)', nav:/m.exec(fs.readFileSync(path.join(root, 'src', 'lessons', f), 'utf8')) || [])[1]).filter(Boolean);
 const applies = (e, ctx) => e.only ? !!ctx && e.only.includes(ctx) : e.not ? !ctx || !e.not.includes(ctx) : true;
-const exprs = e => { const n = e.kb || e.t || '', bare = n.replace(/\(.*?\)/g, '').trim(); return [...new Set([n, bare].concat(e.w || []).filter(Boolean).map(x => x.toLowerCase()))]; };
+const exprs = e => { const n = e.kb && !e.noname ? e.kb : '', bare = n.replace(/\(.*?\)/g, '').trim(); return [...new Set([n, bare].concat(e.w || []).filter(Boolean).map(x => x.toLowerCase()))]; };
 const by = Object.create(null); en.forEach((e, i) => exprs(e).forEach(w => (by[w] = by[w] || []).push(i)));
 Object.keys(by).forEach(w => { const list = by[w]; if (list.length < 2) return; const ctx = [''].concat(ids).find(c => new Set(list.filter(i => applies(en[i], c)).map(i => en[i].kb || en[i].t)).size > 1); if (ctx !== undefined) errs.push('"' + w + '"가 ' + (ctx || '(실습 밖)') + '에서 여러 항목에 걸림: ' + [...new Set(list.map(i => en[i].kb || en[i].t))].join(' / ')); });
 if (process.argv.includes('--list')) en.forEach(e => console.log((e.kb || e.t) + '  ⇐  ' + (e.w || []).join(' | ') + (e.only ? '   [only ' + e.only.join(',') + ']' : e.not ? '   [not ' + e.not.join(',') + ']' : '')));

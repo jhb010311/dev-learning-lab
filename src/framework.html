@@ -908,7 +908,7 @@ var Lab = (function () {
     var by = {};
     entries.forEach(function (e, idx) {
       var ws = (e.w || []).slice();
-      if (e.kb) { ws.push(e.kb); var bare = e.kb.replace(/\(.*?\)/g, '').trim(); if (bare !== e.kb) ws.push(bare); }
+      if (e.kb && !e.noname) { ws.push(e.kb); var bare = e.kb.replace(/\(.*?\)/g, '').trim(); if (bare !== e.kb) ws.push(bare); }
       ws.forEach(function (w) { var k0 = LANG === 'en' ? w.charAt(0).toLowerCase() : w.charAt(0); (by[k0] = by[k0] || []).push({ w: w, i: idx, lw: w.toLowerCase() }); });
     });
     Object.keys(by).forEach(function (k) { by[k].sort(function (a, b) { return b.w.length - a.w.length; }); });
@@ -940,9 +940,9 @@ var Lab = (function () {
       if (cands) for (var k = 0; k < cands.length; k++) {
         var c = cands[k], e = ix.entries[c.i], seg = text.substr(i, c.w.length);
         // 영어의 대문자 약어(CAS, GC 등)는 글자 그대로만 찾는다. 그러지 않으면 CAS가 "cases"의 앞부분에 걸린다.
-        var ac = en && c.w === c.w.toUpperCase() && /[A-Z]/.test(c.w);
+        var ac = en && (e.cs || (c.w === c.w.toUpperCase() && /[A-Z]/.test(c.w)));
         if (!(en && !ac ? seg.toLowerCase() === c.lw : seg === c.w) || !glScope(e, ctx)) continue;
-        if (en) { var pl = (ac ? /^(s)(?![A-Za-z0-9])/ : /^(es|s)(?![A-Za-z0-9])/).exec(text.substr(i + seg.length, 3)); if (pl && glAlnum(seg.charAt(seg.length - 1))) seg += pl[1]; }
+        if (en) { var pl = (ac && !e.cs ? /^(s)(?![A-Za-z0-9])/ : /^(es|s)(?![A-Za-z0-9])/).exec(text.substr(i + seg.length, 3)); if (pl && glAlnum(seg.charAt(seg.length - 1))) seg += pl[1]; }
         if (glEdge(text, i, seg, e)) { hit = c; got = seg; break; }
       }
       if (!hit) { buf += text.charAt(i); i++; continue; }
