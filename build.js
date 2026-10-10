@@ -51,7 +51,9 @@ if (require.main === module) {
     files = files.filter((x, i) => !skipEn.has(list[i].id)); list = list.filter(l => !skipEn.has(l.id)); }
   const enReady = x => !EN || !skipEn.has(x.replace(/^(quiz|verify)_/, '').replace(/\.js$/, ''));
   // 영어판의 글에는 한글이 남아 있으면 안 된다 (목차 파일의 책 이름과 언어 바꾸기 글자는 예외라서 따로 본다)
-  if (EN) { const bad = []; const scan = (d, re) => ls(d).filter(x => re.test(x)).forEach(x => fs.readFileSync(path.join(d, x), 'utf8').split('\n').forEach((l, i) => { if (HAN.test(l)) bad.push(x + ':' + (i + 1) + ' ' + l.trim().slice(0, 70)); }));
+  // 영어판에도 남아야 하는 한글 데이터(src/en/hangul_ok.js)는 이 검사에서 뺀다
+  const okhList = EN && fs.existsSync(path.join(dir, 'hangul_ok.js')) ? Object.values(require(path.join(dir, 'hangul_ok.js'))).flat().sort((a, b) => b.length - a.length) : [], okh = s => okhList.reduce((a, w) => a.split(w).join(''), s);
+  if (EN) { const bad = []; const scan = (d, re) => ls(d).filter(x => re.test(x)).forEach(x => fs.readFileSync(path.join(d, x), 'utf8').split('\n').forEach((l, i) => { if (HAN.test(okh(l))) bad.push(x + ':' + (i + 1) + ' ' + l.trim().slice(0, 70)); }));
     scan(path.join(dir, 'lessons'), /\.js$/); scan(dir, /^(quiz|verify|glossary).*\.js$/); scan(kbDir, /^kb.*\.js$/);
     if (bad.length) throw new Error('영어판 글에 한글이 ' + bad.length + '줄 남음:\n  ' + bad.slice(0, 30).join('\n  ')); }
   const explain = {};

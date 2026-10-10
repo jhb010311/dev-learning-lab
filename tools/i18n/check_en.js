@@ -12,6 +12,9 @@ const fs = require('fs'), path = require('path'), cp = require('child_process');
 const root = path.join(__dirname, '..', '..'), id = process.argv[2];
 if (!id) { console.log('사용: node tools/i18n/check_en.js <실습 id>'); process.exit(1); }
 const HAN = /[가-힣]/, errs = [], warns = [], MAPS = require('./maps.js');
+// 영어판에도 남아야 하는 한글 데이터(src/en/hangul_ok.js)는 한글 검사에서 뺀다
+const OKH = (() => { try { return require(path.join(root, 'src', 'en', 'hangul_ok.js'))[id] || []; } catch (e) { return []; } })();
+const HANEN = s => HAN.test(OKH.reduce((a, w) => a.split(w).join(''), String(s)));
 const err = m => { if (errs.length < 60) errs.push(m); else if (errs.length === 60) errs.push('… (오류가 더 있음)'); };
 const koDir = path.join(root, 'src', 'lessons'), enDir = path.join(root, 'src', 'en', 'lessons');
 const file = fs.readdirSync(koDir).find(f => new RegExp("^  id: '" + id + "', nav:", 'm').test(fs.readFileSync(path.join(koDir, f), 'utf8')));
@@ -36,14 +39,14 @@ else {
   });
   if (boneDiff > 8) warns.push('코드의 뼈대가 달라 보이는 줄이 모두 ' + boneDiff + '개');
 }
-el.forEach((l, i) => { if (HAN.test(l)) err('영어 파일에 한글이 남음 (' + (i + 1) + '줄): ' + l.trim().slice(0, 70)); });
+el.forEach((l, i) => { if (HANEN(l)) err('영어 파일에 한글이 남음 (' + (i + 1) + '줄): ' + l.trim().slice(0, 70)); });
 
 // 뼈대 비교: 숫자·참거짓은 같아야 하고, 한글이 없던 글자는 그대로, 한글이던 글자는 한글 없는 글자여야 한다
 function same(a, b, at) {
   if (typeof a === 'function' || typeof b === 'function') return;
   if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
     if (typeof a !== typeof b) return err(at + ': 종류가 다름 ' + JSON.stringify(a) + ' / ' + JSON.stringify(b));
-    if (typeof a === 'string') { if (HAN.test(a)) { if (!b || HAN.test(b)) err(at + ': 옮기지 않은 글자 ' + JSON.stringify(b)); } else if (a !== b) err(at + ': 한글이 없던 글자가 바뀜 ' + JSON.stringify(a) + ' → ' + JSON.stringify(b)); return; }
+    if (typeof a === 'string') { if (HAN.test(a)) { if (!b || HANEN(b)) err(at + ': 옮기지 않은 글자 ' + JSON.stringify(b)); } else if (a !== b) err(at + ': 한글이 없던 글자가 바뀜 ' + JSON.stringify(a) + ' → ' + JSON.stringify(b)); return; }
     if (a !== b && !(a !== a && b !== b)) err(at + ': 값이 다름 ' + a + ' / ' + b); return;
   }
   if (Array.isArray(a) !== Array.isArray(b)) return err(at + ': 배열 여부가 다름');
@@ -57,8 +60,8 @@ function same(a, b, at) {
 if (ko.id !== en.id || ko.mode !== en.mode) err('id, mode는 원본과 같아야 함');
 if (en.cat !== MAPS.CAT[ko.cat]) err('cat은 ' + JSON.stringify(MAPS.CAT[ko.cat]) + ' 이어야 함 (tools/i18n/maps.js)');
 if (en.presets[0] && en.presets[0].t !== MAPS.FIRST_PRESET) err('첫 예시의 이름은 ' + JSON.stringify(MAPS.FIRST_PRESET) + ' 이어야 함');
-en.presets.forEach(p => { if (!p.t || !p.d || HAN.test(p.t + p.d)) err('예시의 이름이나 설명에 한글이 남음: ' + p.t); });
-['title', 'nav', 'intro', 'assume'].forEach(k => { if (!en[k] || HAN.test(en[k])) err(k + '가 없거나 한글이 남음'); });
+en.presets.forEach(p => { if (!p.t || !p.d || HANEN(p.t + p.d)) err('예시의 이름이나 설명에 한글이 남음: ' + p.t); });
+['title', 'nav', 'intro', 'assume'].forEach(k => { if (!en[k] || HANEN(en[k])) err(k + '가 없거나 한글이 남음'); });
 same(ko.controls.map(c => ({ id: c.id, type: c.type, value: c.value, min: c.min, max: c.max, step: c.step, opts: (c.options || []).map(o => o[0]) })), en.controls.map(c => ({ id: c.id, type: c.type, value: c.value, min: c.min, max: c.max, step: c.step, opts: (c.options || []).map(o => o[0]) })), 'controls');
 same(ko.presets.map(p => p.v), en.presets.map(p => p.v), 'presets.v');
 if (ko.columns.length !== en.columns.length) err('columns의 수가 다름');
@@ -94,11 +97,11 @@ if (!errs.length) for (const c of combos(ko)) {
   same(a.sim, b.sim, 'sim');
   if (a.calls.join() !== b.calls.join()) err('render가 부르는 그리기 도구의 순서가 다름');
   // 상자의 id가 한글 데이터(상품 이름 등)로 만들어지는 실습이 있다. 그런 id는 영어판에서 달라질 수밖에 없으므로, 한글이 없는 글자이기만 하면 같은 것으로 본다.
-  const norm = (sc, ref) => JSON.stringify(sc.map((items, i) => items.map((it, j) => { const r = ref[i] && ref[i][j]; return { k: it.k, cls: it.cls, id: r && HAN.test(r.id) && !HAN.test(it.id) ? '§' : HAN.test(it.id) ? '§' : it.id }; })));
+  const norm = (sc, ref) => JSON.stringify(sc.map((items, i) => items.map((it, j) => { const r = ref[i] && ref[i][j]; return { k: it.k, cls: it.cls, id: r && HAN.test(r.id) && !HANEN(it.id) ? '§' : HAN.test(it.id) ? '§' : it.id }; })));
   if (norm(a.scenes, a.scenes) !== norm(b.scenes, a.scenes)) sceneDiff++;
   const ac = a.code.split('\n'), bc = b.code.split('\n');
   if (ac.length !== bc.length) err('code의 줄 수가 다름'); else ac.forEach((l, i) => { if (!HAN.test(l) && l !== bc[i]) err('code에서 한글이 없던 줄이 바뀜: ' + bc[i].trim().slice(0, 60)); });
-  [b.code, b.label].concat(b.sim.summary, b.sim.row.map(String), b.sim.events.map(e => e.s)).forEach(x => { if (HAN.test(x)) err('결과에 한글이 남음: ' + String(x).slice(0, 60)); });
+  [b.code, b.label].concat(b.sim.summary, b.sim.row.map(String), b.sim.events.map(e => e.s)).forEach(x => { if (HANEN(x)) err('결과에 한글이 남음: ' + String(x).slice(0, 60)); });
   if (errs.length > before) { errs.splice(before, 0, '── 설정 ' + at + ' 에서:'); break; }
   ran++;
 }
@@ -114,7 +117,7 @@ else ko.terms.forEach((t, i) => { if (!tb[t]) warns.push('용어 대조표에 �
 const myKb = path.join(root, 'kb', 'kb_' + id + '.js'), myKbEn = path.join(kbEnDir, 'kb_' + id + '.js');
 if (fs.existsSync(myKb)) {
   if (!fs.existsSync(myKbEn)) err('영어 설명집 파일이 없음: kb/en/kb_' + id + '.js');
-  else { const a = require(myKb), b = require(myKbEn); if (a.length !== b.length) err('kb_' + id + '.js의 용어 수가 다름'); else a.forEach((r, i) => { if (b[i].length !== 3 || b[i].some(x => !x || HAN.test(x))) err('kb/en/kb_' + id + '.js ' + (i + 1) + '번째: 형식 오류이거나 한글이 남음'); if (b[i][0] !== MAPS.KBCAT[r[0]]) err('kb/en/kb_' + id + '.js ' + (i + 1) + '번째 분류는 ' + JSON.stringify(MAPS.KBCAT[r[0]]) + ' 이어야 함'); if (tb[r[1]] && tb[r[1]] !== b[i][1]) err('kb/en/kb_' + id + '.js ' + (i + 1) + '번째 용어 이름은 대조표의 ' + JSON.stringify(tb[r[1]]) + ' 이어야 함'); if (b[i][2] && b[i][2].length < 120) warns.push('설명이 너무 짧음: ' + b[i][1]); }); }
+  else { const a = require(myKb), b = require(myKbEn); if (a.length !== b.length) err('kb_' + id + '.js의 용어 수가 다름'); else a.forEach((r, i) => { if (b[i].length !== 3 || b[i].some(x => !x || HANEN(x))) err('kb/en/kb_' + id + '.js ' + (i + 1) + '번째: 형식 오류이거나 한글이 남음'); if (b[i][0] !== MAPS.KBCAT[r[0]]) err('kb/en/kb_' + id + '.js ' + (i + 1) + '번째 분류는 ' + JSON.stringify(MAPS.KBCAT[r[0]]) + ' 이어야 함'); if (tb[r[1]] && tb[r[1]] !== b[i][1]) err('kb/en/kb_' + id + '.js ' + (i + 1) + '번째 용어 이름은 대조표의 ' + JSON.stringify(tb[r[1]]) + ' 이어야 함'); if (b[i][2] && b[i][2].length < 120) warns.push('설명이 너무 짧음: ' + b[i][1]); }); }
 }
 
 // 5. 문제
@@ -122,7 +125,7 @@ const koQ = []; fs.readdirSync(path.join(root, 'src')).filter(f => /^quiz.*\.js$
 const qf = path.join(root, 'src', 'en', 'quiz_' + id + '.js');
 if (!fs.existsSync(qf)) err('영어 문제 파일이 없음: src/en/quiz_' + id + '.js');
 else { const enQ = []; try { new Function('Lab', read(qf))({ quiz: q => enQ.push(...q) }); } catch (e) { err('영어 문제 파일 오류: ' + e.message); }
-  if (HAN.test(read(qf))) err('영어 문제 파일에 한글이 남음');
+  if (HANEN(read(qf))) err('영어 문제 파일에 한글이 남음');
   if (enQ.length !== koQ.length) err('문제 수가 다름: 한국어 ' + koQ.length + '개, 영어 ' + enQ.length + '개');
   else enQ.forEach((q, i) => { const k = koQ[i], at = '문제 ' + (i + 1);
     if (q.id !== id || q.lv !== k.lv) err(at + ': id나 lv가 원본과 다름');
@@ -136,7 +139,7 @@ const koV = {}; fs.readdirSync(path.join(root, 'src')).filter(f => /^verify.*\.j
 const vf = path.join(root, 'src', 'en', 'verify_' + id + '.js');
 if (!fs.existsSync(vf)) err('영어 검증 수준 파일이 없음: src/en/verify_' + id + '.js');
 else { let v = {}; try { new Function('Lab', read(vf))({ verify: o => { v = o; } }); } catch (e) { err('영어 검증 수준 파일 오류: ' + e.message); }
-  if (!v[id] || v[id][0] !== koV[id][0] || !v[id][1] || HAN.test(v[id][1])) err('verify_' + id + '.js: 수준은 원본과 같은 ' + koV[id][0] + ' 이어야 하고 설명에 한글이 없어야 함'); }
+  if (!v[id] || v[id][0] !== koV[id][0] || !v[id][1] || HANEN(v[id][1])) err('verify_' + id + '.js: 수준은 원본과 같은 ' + koV[id][0] + ' 이어야 하고 설명에 한글이 없어야 함'); }
 
 // 7. 영어 실습의 조합 실행과 그림 검사
 let out = ''; try { out = cp.execFileSync(process.execPath, [path.join(root, 'test.js'), id], { env: Object.assign({}, process.env, { LAB_LANG: 'en', LAB_ONLY_FILE: file }), encoding: 'utf8' }); } catch (e) { out = (e.stdout || '') + (e.stderr || ''); err('test.js 실패'); }

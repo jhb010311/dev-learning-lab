@@ -1,0 +1,22 @@
+// Quiz questions for the scope lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'scope', q: 'When no scope is specified for a bean, how many objects of that bean does the container create?',
+    a: ['Only one in the container, and everything shares it', 'A separate one for each place where it is injected', 'One each time an HTTP request comes in', 'One each time a method is called'],
+    why: 'A bean with no scope specified is a singleton. The container creates one object at startup and injects the same object everywhere the bean is needed.',
+    sim: { c: { scope: 'singleton', get: 'inject' }, col: 2, has: '1' } },
+  { lv: 1, id: 'scope', q: 'When is a new object of a prototype-scoped bean created?',
+    a: ['Each time the container is asked for that bean', 'Each time a new HTTP request comes in', 'Each time a method of that bean is called', 'Once, when the application starts'],
+    why: 'A prototype bean gets a new object each time the bean is requested from the container. Injecting it into another bean counts as such a request, and so does retrieving it with getBean or with getObject() of an ObjectProvider. It has nothing to do with HTTP requests.' },
+  { lv: 2, id: 'scope', q: 'OrderService, a singleton bean, has the prototype bean Cart injected through its constructor and keeps it in a field. Why is there only one Cart object even after several requests are handled?',
+    a: ['Because injection happens only once, when OrderService is created, and the field keeps holding the object received then', 'Because Spring changes the scope of a bean that is injected into a singleton bean to singleton when it registers it', 'Because the container puts the object of a prototype bean into a cache once it is created and reuses it', 'Because constructor injection does not support the prototype scope, so the setting is ignored'],
+    why: 'Prototype means a new object each time the container is asked, but the constructor of a singleton bean is called only once, so the container is asked only once. The scope of Cart has not changed, and if another bean has Cart injected, that bean receives yet another object.',
+    sim: { c: { scope: 'prototype', get: 'inject' }, col: 2, has: '1' } },
+  { lv: 3, id: 'scope', q: 'Cart is annotated only with @Scope("request"), and OrderService, a singleton bean, has Cart injected directly through its constructor. What happens when you start the application?',
+    a: ['Startup fails, because no request is being handled at startup and the Cart cannot be created', 'Startup succeeds, the Cart of the first request is injected, and every later request uses that object', 'Startup succeeds, and the field of OrderService changes to a new Cart each time a request comes in', 'Startup succeeds, the Cart field stays null, and the first call throws an exception'],
+    why: 'Singleton beans are created at startup, but a request-scoped bean can be created only while a request is being handled. A ScopeNotActiveException is thrown and startup fails. The fix is to retrieve the bean with ObjectProvider or to use a proxy (@RequestScope).',
+    sim: { c: { scope: 'request', get: 'inject' }, col: 0, has: 'Startup failed' } },
+  { lv: 3, id: 'scope', q: 'A service that has an ObjectProvider for the prototype bean Cart injected calls getObject() twice within one HTTP request. After two requests are handled, how many Cart objects have been created in total?',
+    a: ['4', '2', '1', '8'],
+    why: 'Each call to getObject() asks the container for the bean, so a new object is created each time. Two calls in each of two requests make 4. To get one object per request, use the request scope.',
+    sim: { c: { scope: 'prototype', get: 'provider' }, col: 2, has: '4' } },
+]);

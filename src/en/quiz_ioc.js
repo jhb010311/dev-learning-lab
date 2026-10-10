@@ -1,0 +1,21 @@
+// Quiz questions for the ioc lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'ioc', q: 'What is a "bean" in Spring?',
+    a: ['An object that the Spring container creates and manages and injects wherever it is needed', 'An object that a class creates directly with new and keeps in a field', 'The source file itself of a class that is annotated with @Component', 'A Spring term for all classes that implement an interface'],
+    why: 'A bean is an object that the container creates and manages. The container knows about a class only when you put @Component on it or register it with a @Bean method, and a class does not become a bean just because it exists in the source.' },
+  { lv: 1, id: 'ioc', q: 'Where do you put @Component and @Bean?',
+    a: ['@Component goes on a class to register as a bean, and @Bean goes on a method inside a configuration class', '@Component goes on a method inside a configuration class, and @Bean goes on a class to register as a bean', 'Both go on a constructor parameter at the injection point, and they mean the same thing', '@Component goes on an interface, and @Bean goes on a class that implements that interface'],
+    why: '@Component goes on a class, and the container creates the object by calling the constructor of that class. @Bean goes on a method of a @Configuration class, and the container calls that method and registers the returned object as a bean.' },
+  { lv: 2, id: 'ioc', q: 'OrderService creates the object directly in a field with new FixedDiscountPolicy(). What is the problem with this code?',
+    a: ['The choice of implementation is written in OrderService, so OrderService must be edited every time the implementation changes', 'An object created with new is created again on every method call, which makes the code much slower', 'A field of an interface type cannot hold an object created with new, so there is a compile-time error', 'An object created with new is not subject to garbage collection, so memory use keeps growing'],
+    why: 'Naming an implementation class after new ties the code to that class. If the container injects the object instead, OrderService only needs to know the interface, and only the registering side has to change when the implementation changes.',
+    sim: { c: { how: 'new', reg: 'one', use: 'fixed' }, col: 3, has: 'OrderService' } },
+  { lv: 3, id: 'ioc', q: 'Both implementation classes of DiscountPolicy are annotated with @Component, and OrderService takes a single DiscountPolicy discountPolicy in its constructor. Nothing else marks which one to use. What happens when you start the application?',
+    a: ['A NoUniqueBeanDefinitionException is thrown and startup fails', 'The implementation whose class name comes first in alphabetical order is injected', 'The implementation that was registered later overwrites the earlier one and is injected', 'Startup succeeds, and an exception is thrown when the first order is handled'],
+    why: 'The container looks up beans by type, and when there are two beans of the same type, it throws an exception instead of picking one arbitrarily. Singleton beans are created at startup, so this failure shows up at startup.',
+    sim: { c: { how: 'comp', reg: 'two', use: 'rate' }, col: 0, has: 'NoUniqueBeanDefinitionException' } },
+  { lv: 3, id: 'ioc', q: 'Both implementations are registered as beans, and @Primary is on RateDiscountPolicy, which is the one in use. What do you edit to change the implementation to FixedDiscountPolicy?',
+    a: ['Move @Primary to FixedDiscountPolicy. OrderService is not edited', 'Change the type of the constructor parameter of OrderService to FixedDiscountPolicy', 'Create the object directly in a field of OrderService with new FixedDiscountPolicy()', 'Rename the RateDiscountPolicy class to FixedDiscountPolicy'],
+    why: '@Primary is a mark that goes on the registering side, so moving the mark is enough to make the container choose the other bean. OrderService, which receives the injection, knows only the type DiscountPolicy, so there is nothing to edit in it.',
+    sim: { c: { how: 'comp', reg: 'primary', use: 'rate' }, col: 3, has: 'FixedDiscountPolicy, RateDiscountPolicy' } },
+]);

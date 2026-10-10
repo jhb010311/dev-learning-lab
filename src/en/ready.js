@@ -9,4 +9,7 @@ module.exports = [
   'strategy', 'eqhash', 'strbuild', 'datetime', 'optional', 'exflow', 'chkex', 'generic',
   'setmap', 'sqh', 'cme', 'sorting', 'enumtype', 'annot', 'list', 'hashmap',
   'lambda', 'stream', 'collect', 'parstream', 'process', 'thread', 'race', 'deadlock', 'threadpool', 'ctx', 'parallel', 'blocking',
+  'gc', 'jit', 'classload', 'iobuf', 'serial',
+  // Spring
+  'ioc', 'di', 'singleton', 'scope',
 ];

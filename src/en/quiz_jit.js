@@ -1,0 +1,5 @@
+// Quiz questions for the jit lab. The first entry of a is the correct answer.
+Lab.quiz([
+  { lv: 1, id: 'jit', q: 'What does the JIT compiler do?', a: ['It compiles frequently executed bytecode to machine code while the program is running, which makes the program faster', 'It compiles Java source code to bytecode', 'It removes unused objects from memory', 'It reads class files into memory'], why: 'It is javac that turns source code into bytecode. The JIT compiler compiles the parts that are used often to machine code at run time.' },
+  { lv: 3, id: 'jit', q: 'Only the first requests that arrive right after a deployment are especially slow, and they get faster after a little while. What is the most likely cause?', a: ['The application is not warmed up yet: class loading and JIT compilation have not finished', 'There is a memory leak', 'A deadlock has occurred', 'A database index is missing'], why: 'At first the code runs in interpreted mode, and it is compiled to machine code only after it has run often. Requests are sometimes sent in advance, before the server takes traffic.' },
+]);
