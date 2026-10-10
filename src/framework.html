@@ -126,6 +126,8 @@ button, input, select { font: inherit; color: inherit; }
 /* 처음 화면과 분야 목록 */
 .brand { font-size: 1.25rem; font-weight: 700; color: var(--ink); text-decoration: none; }
 .brand:hover, .brand:focus-visible { color: var(--accent); outline: none; }
+.langsw { font-size: .9rem; color: var(--muted); }
+.notice { max-width: 70ch; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; }
 .home, .catview { display: flex; flex-direction: column; gap: 28px; }
 .catview { gap: 16px; }
 .hero { display: flex; flex-direction: column; gap: 10px; padding-block: 12px 4px; }
@@ -340,7 +342,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 <div class="wrap" id="wrap">
   <header class="top">
     <div class="toprow"><a class="brand" href="#home" id="brand">개발 학습 실습실</a>
-      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div></div>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><a class="langsw" id="langsw" hidden></a></div>
   </header>
 
   <main class="home" id="homeview"></main>
@@ -435,6 +437,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 <script>
 var Lab = (function () {
   var $ = function (id) { return document.getElementById(id); };
+  var LANG = 'ko'; // 영어판을 만들 때는 build.js가 이 값을 바꾼다
   var lessons = [], cur = null, sim = null, clock = 0, timer = null, hist = {}, tracks = [], seen = {}, running = false, paused = false, hold = 0, predOn = false, ask = null, isStale = false, verify = {}, logOpen = false, assumeOpen = false, codeOpen = true, curri = [], curCat = null, view = 'home', SITE = { name: '개발 학습 실습실', feedback: '' };
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -568,7 +571,7 @@ var Lab = (function () {
     v.appendChild(d);
   }
   // 전제는 결과 바로 아래에 첫 문장만 먼저 보이고, 누르면 모두 보인다
-  function firstSentence(s) { var depth = 0; for (var i = 1; i < s.length - 1; i++) { var ch = s.charAt(i); if (ch === '(') depth++; else if (ch === ')') depth = Math.max(0, depth - 1); else if (ch === '.' && !depth && s.charAt(i + 1) === ' ' && '다요)'.indexOf(s.charAt(i - 1)) >= 0) return s.slice(0, i + 1); } return s; }
+  function firstSentence(s) { var depth = 0; for (var i = 1; i < s.length - 1; i++) { var ch = s.charAt(i); if (ch === '(') depth++; else if (ch === ')') depth = Math.max(0, depth - 1); else if (ch === '.' && !depth && s.charAt(i + 1) === ' ' && (LANG === 'en' ? /[A-Z@]/.test(s.charAt(i + 2)) : '다요)'.indexOf(s.charAt(i - 1)) >= 0)) return s.slice(0, i + 1); } return s; }
   function drawAssume() { var one = firstSentence(cur.assume), b = $('assume-more'); glossInto($('assume'), '이 모형의 전제: ' + (assumeOpen ? cur.assume : one), cur.id); b.hidden = one === cur.assume; b.textContent = assumeOpen ? '줄이기' : '전제 모두 보기'; b.setAttribute('aria-expanded', String(assumeOpen)); }
   // 검증 수준 표시: 제목 아래에 수준과 근거 한 줄, 전체 목록에는 점으로
   var VER = { run: '실행으로 대조', part: '일부만 실행으로 확인', doc: '문서·표준 대조', model: '개념 모형' };
@@ -623,6 +626,7 @@ var Lab = (function () {
     } else if (byId(p[0])) { setView('lab'); if (!cur || cur.id !== p[0]) open(p[0]); else drawPath(); title = cur.nav + ' · ' + SITE.name; }
     else { setView('home'); drawHome('home'); }
     document.title = title; window.scrollTo(0, 0);
+    if (SITE.other) { var sw = $('langsw'); sw.hidden = false; sw.textContent = SITE.other[0]; sw.href = SITE.other[1] + (location.hash || ''); }
   }
   function crumbs(box, parts) {
     var d = el('div', 'crumbs');
@@ -639,6 +643,7 @@ var Lab = (function () {
       var hero = el('div', 'hero'); hero.appendChild(el('h1', null, SITE.name));
       hero.appendChild(el('p', 'lead', '개념을 글로만 읽지 않고, 설정을 바꾸고 실행을 눌러 그 개념이 어떻게 움직이는지 직접 확인하는 곳입니다. 무료이고 가입이 없습니다.'));
       hero.appendChild(el('p', 'muted', '여기의 실습은 실제 서버를 돌리는 것이 아니라 개념의 규칙을 옮긴 모형입니다. 그래서 실습마다 무엇과 대조해 확인했는지를 제목 아래에 적어 두었습니다.'));
+      if (SITE.notice) hero.appendChild(el('p', 'notice', SITE.notice));
       var last = ''; try { last = localStorage.getItem('lab-last') || ''; } catch (e) {}
       last = last.split('|')[0];
       if (byId(last)) { var cb = el('button', 'btn', '지난번에 보던 실습 이어서 하기: ' + byId(last).nav); cb.type = 'button'; cb.addEventListener('click', function () { nav(last); }); var rr = el('div', 'runrow'); rr.appendChild(cb); hero.appendChild(rr); }
@@ -904,7 +909,7 @@ var Lab = (function () {
     entries.forEach(function (e, idx) {
       var ws = (e.w || []).slice();
       if (e.kb) { ws.push(e.kb); var bare = e.kb.replace(/\(.*?\)/g, '').trim(); if (bare !== e.kb) ws.push(bare); }
-      ws.forEach(function (w) { (by[w.charAt(0)] = by[w.charAt(0)] || []).push({ w: w, i: idx }); });
+      ws.forEach(function (w) { var k0 = LANG === 'en' ? w.charAt(0).toLowerCase() : w.charAt(0); (by[k0] = by[k0] || []).push({ w: w, i: idx, lw: w.toLowerCase() }); });
     });
     Object.keys(by).forEach(function (k) { by[k].sort(function (a, b) { return b.w.length - a.w.length; }); });
     return { by: by, entries: entries, names: names };
@@ -918,6 +923,7 @@ var Lab = (function () {
     if (glHangul(first) && glHangul(prev)) return false;
     if (glAlnum(first) && glAlnum(prev)) return false;
     if (glAlnum(last) && glAlnum(next)) return false;
+    if (LANG === 'en' && (prev === '-' || (next === '-' && glAlnum(text.charAt(at + w.length + 1))))) return false;
     if (e.nx && next && e.nx.indexOf(next) >= 0) return false;
     if (w.length === 1 && glHangul(first)) {
       var particle = '은는이가을를의에과와'.indexOf(next) >= 0 && next !== '';
@@ -930,15 +936,17 @@ var Lab = (function () {
   function glFind(ix, text, ctx, seen, skip) {
     var out = [], buf = '', i = 0, n = text.length;
     while (i < n) {
-      var cands = ix.by[text.charAt(i)], hit = null;
+      var en = LANG === 'en', cands = ix.by[en ? text.charAt(i).toLowerCase() : text.charAt(i)], hit = null, got = '';
       if (cands) for (var k = 0; k < cands.length; k++) {
-        var c = cands[k], e = ix.entries[c.i];
-        if (text.substr(i, c.w.length) === c.w && glScope(e, ctx) && glEdge(text, i, c.w, e)) { hit = c; break; }
+        var c = cands[k], e = ix.entries[c.i], seg = text.substr(i, c.w.length);
+        if (!(en ? seg.toLowerCase() === c.lw : seg === c.w) || !glScope(e, ctx)) continue;
+        if (en) { var pl = /^(es|s)(?![A-Za-z0-9])/.exec(text.substr(i + seg.length, 3)); if (pl && glAlnum(seg.charAt(seg.length - 1))) seg += pl[1]; }
+        if (glEdge(text, i, seg, e)) { hit = c; got = seg; break; }
       }
       if (!hit) { buf += text.charAt(i); i++; continue; }
       var key = ix.entries[hit.i].kb || ix.entries[hit.i].t;
-      if (seen[key] || key === skip) buf += hit.w; else { if (buf) { out.push(buf); buf = ''; } out.push({ t: hit.w, i: hit.i }); seen[key] = 1; }
-      i += hit.w.length;
+      if (seen[key] || key === skip) buf += got; else { if (buf) { out.push(buf); buf = ''; } out.push({ t: got, i: hit.i }); seen[key] = 1; }
+      i += got.length;
     }
     if (buf) out.push(buf);
     return out;
@@ -994,6 +1002,12 @@ var Lab = (function () {
   function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   // 설명문 안에 든 용어 이름을 가린다 (이름을 낱말로 나눠 두 글자 이상인 것만)
   function maskTerm(name, text) {
+    if (LANG === 'en') {
+      var ws = name.replace(/[()]/g, ' ').split(/[\s,\/]+/).filter(function (t) { return t.length >= 3 && !/^(and|the|for|not|with|versus)$/i.test(t); });
+      ws.sort(function (a, b) { return b.length - a.length; });
+      ws.forEach(function (t) { text = text.replace(new RegExp('(?<![A-Za-z0-9])' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:es|s)?(?![A-Za-z0-9])', 'gi'), '____'); });
+      return text.replace(/____(\s*____)+/g, '____');
+    }
     var toks = name.replace(/[()]/g, ' ').split(/[\s,·\/]+/).map(function (t) { return t.replace(/(와|과)$/, ''); }).filter(function (t) { return t.length >= 2; });
     toks.sort(function (a, b) { return b.length - a.length; });
     toks.forEach(function (t) { text = text.split(t).join('○○'); });

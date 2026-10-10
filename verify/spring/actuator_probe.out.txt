@@ -1,0 +1,151 @@
+# spring boot 4.1.1 | spring framework 7.0.9
+# 등록된 구성 요소(show-details=never, readiness에 pay=false): livenessState,pay,readinessState
+UP|health|never|false => 200|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"UP"}
+UP|liveness|never|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UP|readiness|never|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+DOWN|health|never|false => 503|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"DOWN"}
+DOWN|liveness|never|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+DOWN|readiness|never|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+OUT_OF_SERVICE|health|never|false => 503|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"OUT_OF_SERVICE"}
+OUT_OF_SERVICE|liveness|never|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+OUT_OF_SERVICE|readiness|never|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+UNKNOWN|health|never|false => 200|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"UP"}
+UNKNOWN|liveness|never|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UNKNOWN|readiness|never|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+# extra 로그인한 요청, show-details=never, readiness에 pay=false, pay=DOWN, /actuator/health => 503|body={"groups":["liveness","readiness"],"status":"DOWN"}
+# extra 로그인한 요청, show-details=never, readiness에 pay=false, pay=DOWN, /actuator/health/liveness => 200|body={"status":"UP"}
+# extra 로그인한 요청, show-details=never, readiness에 pay=false, pay=DOWN, /actuator/health/readiness => 200|body={"status":"UP"}
+# extra show-details=never, readiness에 pay=false, pay=DOWN, /actuator/health/pay => 404|body=
+# 등록된 구성 요소(show-details=never, readiness에 pay=true): livenessState,pay,readinessState
+UP|health|never|true => 200|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"UP"}
+UP|liveness|never|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UP|readiness|never|true => 200|members=pay,readinessState|payCalled=true|body={"status":"UP"}
+DOWN|health|never|true => 503|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"DOWN"}
+DOWN|liveness|never|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+DOWN|readiness|never|true => 503|members=pay,readinessState|payCalled=true|body={"status":"DOWN"}
+OUT_OF_SERVICE|health|never|true => 503|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"OUT_OF_SERVICE"}
+OUT_OF_SERVICE|liveness|never|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+OUT_OF_SERVICE|readiness|never|true => 503|members=pay,readinessState|payCalled=true|body={"status":"OUT_OF_SERVICE"}
+UNKNOWN|health|never|true => 200|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"UP"}
+UNKNOWN|liveness|never|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UNKNOWN|readiness|never|true => 200|members=pay,readinessState|payCalled=true|body={"status":"UP"}
+# extra 로그인한 요청, show-details=never, readiness에 pay=true, pay=DOWN, /actuator/health => 503|body={"groups":["liveness","readiness"],"status":"DOWN"}
+# extra 로그인한 요청, show-details=never, readiness에 pay=true, pay=DOWN, /actuator/health/liveness => 200|body={"status":"UP"}
+# extra 로그인한 요청, show-details=never, readiness에 pay=true, pay=DOWN, /actuator/health/readiness => 503|body={"status":"DOWN"}
+# extra show-details=never, readiness에 pay=true, pay=DOWN, /actuator/health/pay => 404|body=
+# 등록된 구성 요소(show-details=when-authorized, readiness에 pay=false): livenessState,pay,readinessState
+UP|health|auth_anon|false => 200|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"UP"}
+UP|liveness|auth_anon|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UP|readiness|auth_anon|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+DOWN|health|auth_anon|false => 503|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"DOWN"}
+DOWN|liveness|auth_anon|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+DOWN|readiness|auth_anon|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+OUT_OF_SERVICE|health|auth_anon|false => 503|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"OUT_OF_SERVICE"}
+OUT_OF_SERVICE|liveness|auth_anon|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+OUT_OF_SERVICE|readiness|auth_anon|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+UNKNOWN|health|auth_anon|false => 200|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"UP"}
+UNKNOWN|liveness|auth_anon|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UNKNOWN|readiness|auth_anon|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+UP|health|auth_user|false => 200|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"UP"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"UP"}
+UP|liveness|auth_user|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UP|readiness|auth_user|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+DOWN|health|auth_user|false => 503|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"DOWN"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"DOWN"}
+DOWN|liveness|auth_user|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+DOWN|readiness|auth_user|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+OUT_OF_SERVICE|health|auth_user|false => 503|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"OUT_OF_SERVICE"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"OUT_OF_SERVICE"}
+OUT_OF_SERVICE|liveness|auth_user|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+OUT_OF_SERVICE|readiness|auth_user|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+UNKNOWN|health|auth_user|false => 200|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"UNKNOWN"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"UP"}
+UNKNOWN|liveness|auth_user|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UNKNOWN|readiness|auth_user|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+# extra show-details=when-authorized, readiness에 pay=false, pay=DOWN, /actuator/health/pay => 404|body=
+# 등록된 구성 요소(show-details=when-authorized, readiness에 pay=true): livenessState,pay,readinessState
+UP|health|auth_anon|true => 200|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"UP"}
+UP|liveness|auth_anon|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UP|readiness|auth_anon|true => 200|members=pay,readinessState|payCalled=true|body={"status":"UP"}
+DOWN|health|auth_anon|true => 503|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"DOWN"}
+DOWN|liveness|auth_anon|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+DOWN|readiness|auth_anon|true => 503|members=pay,readinessState|payCalled=true|body={"status":"DOWN"}
+OUT_OF_SERVICE|health|auth_anon|true => 503|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"OUT_OF_SERVICE"}
+OUT_OF_SERVICE|liveness|auth_anon|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+OUT_OF_SERVICE|readiness|auth_anon|true => 503|members=pay,readinessState|payCalled=true|body={"status":"OUT_OF_SERVICE"}
+UNKNOWN|health|auth_anon|true => 200|members=livenessState,pay,readinessState|payCalled=true|body={"groups":["liveness","readiness"],"status":"UP"}
+UNKNOWN|liveness|auth_anon|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UNKNOWN|readiness|auth_anon|true => 200|members=pay,readinessState|payCalled=true|body={"status":"UP"}
+UP|health|auth_user|true => 200|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"UP"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"UP"}
+UP|liveness|auth_user|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UP|readiness|auth_user|true => 200|members=pay,readinessState|payCalled=true|body={"components":{"pay":{"details":{"target":"pay.example"},"status":"UP"},"readinessState":{"status":"UP"}},"status":"UP"}
+DOWN|health|auth_user|true => 503|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"DOWN"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"DOWN"}
+DOWN|liveness|auth_user|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+DOWN|readiness|auth_user|true => 503|members=pay,readinessState|payCalled=true|body={"components":{"pay":{"details":{"target":"pay.example"},"status":"DOWN"},"readinessState":{"status":"UP"}},"status":"DOWN"}
+OUT_OF_SERVICE|health|auth_user|true => 503|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"OUT_OF_SERVICE"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"OUT_OF_SERVICE"}
+OUT_OF_SERVICE|liveness|auth_user|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+OUT_OF_SERVICE|readiness|auth_user|true => 503|members=pay,readinessState|payCalled=true|body={"components":{"pay":{"details":{"target":"pay.example"},"status":"OUT_OF_SERVICE"},"readinessState":{"status":"UP"}},"status":"OUT_OF_SERVICE"}
+UNKNOWN|health|auth_user|true => 200|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"UNKNOWN"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"UP"}
+UNKNOWN|liveness|auth_user|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UNKNOWN|readiness|auth_user|true => 200|members=pay,readinessState|payCalled=true|body={"components":{"pay":{"details":{"target":"pay.example"},"status":"UNKNOWN"},"readinessState":{"status":"UP"}},"status":"UP"}
+# extra show-details=when-authorized, readiness에 pay=true, pay=DOWN, /actuator/health/pay => 404|body=
+# 등록된 구성 요소(show-details=always, readiness에 pay=false): livenessState,pay,readinessState
+UP|health|always|false => 200|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"UP"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"UP"}
+UP|liveness|always|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UP|readiness|always|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+DOWN|health|always|false => 503|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"DOWN"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"DOWN"}
+DOWN|liveness|always|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+DOWN|readiness|always|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+OUT_OF_SERVICE|health|always|false => 503|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"OUT_OF_SERVICE"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"OUT_OF_SERVICE"}
+OUT_OF_SERVICE|liveness|always|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+OUT_OF_SERVICE|readiness|always|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+UNKNOWN|health|always|false => 200|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"UNKNOWN"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"UP"}
+UNKNOWN|liveness|always|false => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UNKNOWN|readiness|always|false => 200|members=readinessState|payCalled=false|body={"status":"UP"}
+# extra 로그인한 요청, show-details=always, readiness에 pay=false, pay=DOWN, /actuator/health => 503|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"DOWN"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"DOWN"}
+# extra 로그인한 요청, show-details=always, readiness에 pay=false, pay=DOWN, /actuator/health/liveness => 200|body={"status":"UP"}
+# extra 로그인한 요청, show-details=always, readiness에 pay=false, pay=DOWN, /actuator/health/readiness => 200|body={"status":"UP"}
+# extra show-details=always, readiness에 pay=false, pay=DOWN, /actuator/health/pay => 503|body={"details":{"target":"pay.example"},"status":"DOWN"}
+# 등록된 구성 요소(show-details=always, readiness에 pay=true): livenessState,pay,readinessState
+UP|health|always|true => 200|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"UP"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"UP"}
+UP|liveness|always|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UP|readiness|always|true => 200|members=pay,readinessState|payCalled=true|body={"components":{"pay":{"details":{"target":"pay.example"},"status":"UP"},"readinessState":{"status":"UP"}},"status":"UP"}
+DOWN|health|always|true => 503|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"DOWN"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"DOWN"}
+DOWN|liveness|always|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+DOWN|readiness|always|true => 503|members=pay,readinessState|payCalled=true|body={"components":{"pay":{"details":{"target":"pay.example"},"status":"DOWN"},"readinessState":{"status":"UP"}},"status":"DOWN"}
+OUT_OF_SERVICE|health|always|true => 503|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"OUT_OF_SERVICE"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"OUT_OF_SERVICE"}
+OUT_OF_SERVICE|liveness|always|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+OUT_OF_SERVICE|readiness|always|true => 503|members=pay,readinessState|payCalled=true|body={"components":{"pay":{"details":{"target":"pay.example"},"status":"OUT_OF_SERVICE"},"readinessState":{"status":"UP"}},"status":"OUT_OF_SERVICE"}
+UNKNOWN|health|always|true => 200|members=livenessState,pay,readinessState|payCalled=true|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"UNKNOWN"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"UP"}
+UNKNOWN|liveness|always|true => 200|members=livenessState|payCalled=false|body={"status":"UP"}
+UNKNOWN|readiness|always|true => 200|members=pay,readinessState|payCalled=true|body={"components":{"pay":{"details":{"target":"pay.example"},"status":"UNKNOWN"},"readinessState":{"status":"UP"}},"status":"UP"}
+# extra 로그인한 요청, show-details=always, readiness에 pay=true, pay=DOWN, /actuator/health => 503|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"DOWN"},"readinessState":{"status":"UP"}},"groups":["liveness","readiness"],"status":"DOWN"}
+# extra 로그인한 요청, show-details=always, readiness에 pay=true, pay=DOWN, /actuator/health/liveness => 200|body={"status":"UP"}
+# extra 로그인한 요청, show-details=always, readiness에 pay=true, pay=DOWN, /actuator/health/readiness => 503|body={"components":{"pay":{"details":{"target":"pay.example"},"status":"DOWN"},"readinessState":{"status":"UP"}},"status":"DOWN"}
+# extra show-details=always, readiness에 pay=true, pay=DOWN, /actuator/health/pay => 503|body={"details":{"target":"pay.example"},"status":"DOWN"}
+# extra 설정 없음: /actuator => 200|links=health,health-path,self
+# extra 설정 없음: 등록된 구성 요소=db,diskSpace,livenessState,ping,readinessState,ssl|liveness=livenessState|readiness=readinessState
+# extra 설정 없음: /actuator/health=200 /actuator/health/liveness=200 /actuator/health/readiness=200 /actuator/env=404 /actuator/beans=404 /actuator/info=404 /actuator/shutdown=404
+# extra 설정 없음: /actuator/health body={"groups":["liveness","readiness"],"status":"UP"}
+# extra 설정 없음: exposure.include=null (환경에 값이 없으면 null, 기본값은 라이브러리 안에 있다)
+# extra exposure.include=*: links=beans,conditions,configprops,configprops-prefix,env,env-toMatch,health,health-path,info,loggers,loggers-name,mappings,metrics,metrics-requiredMetricName,sbom,sbom-id,scheduledtasks,self,threaddump
+# extra exposure.include=*: /actuator/health=200 /actuator/env=200 /actuator/beans=200 /actuator/shutdown=404 (shutdown은 GET으로만 물어봄. 주소가 있으면 405, 없으면 404)
+# extra exposure.include=* + endpoint.env.access=none: /actuator/env=404 /actuator/beans=200
+# extra exposure.include=env: /actuator/health=404 /actuator/env=200|links=env,env-toMatch,self
+# extra endpoint.shutdown.access=unrestricted, 노출은 기본값: /actuator/shutdown=404 (GET)
+# extra endpoint.shutdown.access=unrestricted + exposure.include=health,shutdown: /actuator/shutdown=405 (GET. POST는 보내지 않음)
+# extra probes.enabled=false: 등록된 구성 요소=pay|/actuator/health=503 /actuator/health/liveness=404 /actuator/health/readiness=404|body={"components":{"pay":{"details":{"target":"pay.example"},"status":"DOWN"}},"status":"DOWN"}
+# extra liveness.include=livenessState,pay, pay=DOWN: /actuator/health/liveness => 503|body={"components":{"livenessState":{"status":"UP"},"pay":{"details":{"target":"pay.example"},"status":"DOWN"}},"status":"DOWN"}
+# extra 우선순위: 등록된 구성 요소=pay,stock, status.order=null (환경에 값이 없으면 null)
+# extra 우선순위 pay=UP, stock=UP => 200|body={"status":"UP"}
+# extra 우선순위 pay=UP, stock=DOWN => 503|body={"status":"DOWN"}
+# extra 우선순위 pay=UP, stock=OUT_OF_SERVICE => 503|body={"status":"OUT_OF_SERVICE"}
+# extra 우선순위 pay=UP, stock=UNKNOWN => 200|body={"status":"UP"}
+# extra 우선순위 pay=DOWN, stock=UP => 503|body={"status":"DOWN"}
+# extra 우선순위 pay=DOWN, stock=DOWN => 503|body={"status":"DOWN"}
+# extra 우선순위 pay=DOWN, stock=OUT_OF_SERVICE => 503|body={"status":"DOWN"}
+# extra 우선순위 pay=DOWN, stock=UNKNOWN => 503|body={"status":"DOWN"}
+# extra 우선순위 pay=OUT_OF_SERVICE, stock=UP => 503|body={"status":"OUT_OF_SERVICE"}
+# extra 우선순위 pay=OUT_OF_SERVICE, stock=DOWN => 503|body={"status":"DOWN"}
+# extra 우선순위 pay=OUT_OF_SERVICE, stock=OUT_OF_SERVICE => 503|body={"status":"OUT_OF_SERVICE"}
+# extra 우선순위 pay=OUT_OF_SERVICE, stock=UNKNOWN => 503|body={"status":"OUT_OF_SERVICE"}
+# extra 우선순위 pay=UNKNOWN, stock=UP => 200|body={"status":"UP"}
+# extra 우선순위 pay=UNKNOWN, stock=DOWN => 503|body={"status":"DOWN"}
+# extra 우선순위 pay=UNKNOWN, stock=OUT_OF_SERVICE => 503|body={"status":"OUT_OF_SERVICE"}
+# extra 우선순위 pay=UNKNOWN, stock=UNKNOWN => 200|body={"status":"UNKNOWN"}

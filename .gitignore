@@ -22,3 +22,6 @@ tools/infra_parts.js
 verify/out/
 tools/AUTHORING_ENV.md
 tools/patch_preview.js
+
+# 영어판 준비용 일회용 스크립트
+tools/i18n/patch_*.js

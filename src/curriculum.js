@@ -92,12 +92,12 @@ Lab.curriculum([
       { name: '웹 MVC', items: [
         { id: 'servlet' }, { id: 'mvc' },
         { id: 'binding' },
-        { t: '검증', d: '입력값 검증과 오류 응답' },
+        { id: 'validation' },
         { id: 'msgconv' },
       ] },
       { name: '스프링 부트', items: [
         { id: 'autoconf' }, { id: 'config' },
-        { t: '액추에이터와 헬스 체크', d: '애플리케이션의 상태를 밖에서 들여다보기' },
+        { id: 'actuator' },
       ] },
       { name: '그 밖의 기능', items: [
         { t: '테스트', d: '단위 테스트와 스프링 컨텍스트를 띄우는 테스트' },

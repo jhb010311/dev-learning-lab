@@ -1,0 +1,87 @@
+# spring boot 4.1.1 | spring framework 7.0.9 | hibernate validator 9.1.3.Final | locale ko_KR
+plain|notnull|none => 200|seen=false|viol=-|ctrl=true|ret=등록: [null]|ex=-
+plain|notnull|empty => 200|seen=false|viol=-|ctrl=true|ret=등록: []|ex=-
+plain|notnull|blank => 200|seen=false|viol=-|ctrl=true|ret=등록: [ ]|ex=-
+plain|notnull|pen => 200|seen=false|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+plain|notempty|none => 200|seen=false|viol=-|ctrl=true|ret=등록: [null]|ex=-
+plain|notempty|empty => 200|seen=false|viol=-|ctrl=true|ret=등록: []|ex=-
+plain|notempty|blank => 200|seen=false|viol=-|ctrl=true|ret=등록: [ ]|ex=-
+plain|notempty|pen => 200|seen=false|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+plain|notblank|none => 200|seen=false|viol=-|ctrl=true|ret=등록: [null]|ex=-
+plain|notblank|empty => 200|seen=false|viol=-|ctrl=true|ret=등록: []|ex=-
+plain|notblank|blank => 200|seen=false|viol=-|ctrl=true|ret=등록: [ ]|ex=-
+plain|notblank|pen => 200|seen=false|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+valid|notnull|none => 400|seen=true|viol=name:NotNull|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+valid|notnull|empty => 200|seen=true|viol=-|ctrl=true|ret=등록: []|ex=-
+valid|notnull|blank => 200|seen=true|viol=-|ctrl=true|ret=등록: [ ]|ex=-
+valid|notnull|pen => 200|seen=true|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+valid|notempty|none => 400|seen=true|viol=name:NotEmpty|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+valid|notempty|empty => 400|seen=true|viol=name:NotEmpty|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+valid|notempty|blank => 200|seen=true|viol=-|ctrl=true|ret=등록: [ ]|ex=-
+valid|notempty|pen => 200|seen=true|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+valid|notblank|none => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+valid|notblank|empty => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+valid|notblank|blank => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+valid|notblank|pen => 200|seen=true|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+br|notnull|none => 200|seen=true|viol=name:NotNull|ctrl=true|ret=오류 1개|ex=-
+br|notnull|empty => 200|seen=true|viol=-|ctrl=true|ret=등록: []|ex=-
+br|notnull|blank => 200|seen=true|viol=-|ctrl=true|ret=등록: [ ]|ex=-
+br|notnull|pen => 200|seen=true|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+br|notempty|none => 200|seen=true|viol=name:NotEmpty|ctrl=true|ret=오류 1개|ex=-
+br|notempty|empty => 200|seen=true|viol=name:NotEmpty|ctrl=true|ret=오류 1개|ex=-
+br|notempty|blank => 200|seen=true|viol=-|ctrl=true|ret=등록: [ ]|ex=-
+br|notempty|pen => 200|seen=true|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+br|notblank|none => 200|seen=true|viol=name:NotBlank|ctrl=true|ret=오류 1개|ex=-
+br|notblank|empty => 200|seen=true|viol=name:NotBlank|ctrl=true|ret=오류 1개|ex=-
+br|notblank|blank => 200|seen=true|viol=name:NotBlank|ctrl=true|ret=오류 1개|ex=-
+br|notblank|pen => 200|seen=true|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+param|notnull|none => 400|seen=false|viol=-|ctrl=false|ret=-|ex=MissingServletRequestParameterException
+param|notnull|empty => 200|seen=true|viol=-|ctrl=true|ret=검색: []|ex=-
+param|notnull|blank => 200|seen=true|viol=-|ctrl=true|ret=검색: [ ]|ex=-
+param|notnull|pen => 200|seen=true|viol=-|ctrl=true|ret=검색: [pen]|ex=-
+param|notempty|none => 400|seen=false|viol=-|ctrl=false|ret=-|ex=MissingServletRequestParameterException
+param|notempty|empty => 400|seen=true|viol=name:NotEmpty|ctrl=false|ret=-|ex=HandlerMethodValidationException
+param|notempty|blank => 200|seen=true|viol=-|ctrl=true|ret=검색: [ ]|ex=-
+param|notempty|pen => 200|seen=true|viol=-|ctrl=true|ret=검색: [pen]|ex=-
+param|notblank|none => 400|seen=false|viol=-|ctrl=false|ret=-|ex=MissingServletRequestParameterException
+param|notblank|empty => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=HandlerMethodValidationException
+param|notblank|blank => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=HandlerMethodValidationException
+param|notblank|pen => 200|seen=true|viol=-|ctrl=true|ret=검색: [pen]|ex=-
+# extra validated(@Validated @RequestBody, @NotBlank)|empty => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+# extra validated(@Validated @RequestBody, @NotBlank)|pen => 200|seen=true|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+# extra valid notnull|{"name":null} => 400|seen=true|viol=name:NotNull|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+# extra model(@Valid @ModelAttribute, 폼 본문 '')|notnull|none => 400|seen=true|viol=name:NotNull|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+# extra model(@Valid @ModelAttribute, 폼 본문 'name=')|notnull|empty => 200|seen=true|viol=-|ctrl=true|ret=등록: []|ex=-
+# extra model(@Valid @ModelAttribute, 폼 본문 'name=%20')|notnull|blank => 200|seen=true|viol=-|ctrl=true|ret=등록: [ ]|ex=-
+# extra model(@Valid @ModelAttribute, 폼 본문 'name=pen')|notnull|pen => 200|seen=true|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+# extra model(@Valid @ModelAttribute, 폼 본문 '')|notempty|none => 400|seen=true|viol=name:NotEmpty|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+# extra model(@Valid @ModelAttribute, 폼 본문 'name=')|notempty|empty => 400|seen=true|viol=name:NotEmpty|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+# extra model(@Valid @ModelAttribute, 폼 본문 'name=%20')|notempty|blank => 200|seen=true|viol=-|ctrl=true|ret=등록: [ ]|ex=-
+# extra model(@Valid @ModelAttribute, 폼 본문 'name=pen')|notempty|pen => 200|seen=true|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+# extra model(@Valid @ModelAttribute, 폼 본문 '')|notblank|none => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+# extra model(@Valid @ModelAttribute, 폼 본문 'name=')|notblank|empty => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+# extra model(@Valid @ModelAttribute, 폼 본문 'name=%20')|notblank|blank => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+# extra model(@Valid @ModelAttribute, 폼 본문 'name=pen')|notblank|pen => 200|seen=true|viol=-|ctrl=true|ret=등록: [pen]|ex=-
+# extra modelplain(@ModelAttribute, @Valid 없음, @NotBlank)|empty => 200|seen=false|viol=-|ctrl=true|ret=등록: []|ex=-
+# extra modelbr(@Valid @ModelAttribute + BindingResult, @NotBlank)|empty => 200|seen=true|viol=name:NotBlank|ctrl=true|ret=오류 1개|ex=-
+# extra nestvalid(필드에 @Valid Addr addr)|{"addr":{"city":""}} => 400|seen=false|viol=addr.city:NotBlank|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+# extra nestplain(필드에 @Valid 없음)|{"addr":{"city":""}} => 200|seen=false|viol=-|ctrl=true|ret=city=[]|ex=-
+# extra nestvalid(필드에 @Valid Addr addr)|{} => 200|seen=false|viol=-|ctrl=true|ret=addr=null|ex=-
+# extra group(@NotBlank(groups = OnCreate.class) + @Valid)|empty => 200|seen=false|viol=-|ctrl=true|ret=등록: []|ex=-
+# extra group(@NotBlank(groups = OnCreate.class) + @Validated(OnCreate.class))|empty => 400|seen=false|viol=name:NotBlank|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+# extra group(@NotBlank 그룹 없음 + @Validated(OnCreate.class))|empty => 200|seen=false|viol=-|ctrl=true|ret=등록: []|ex=-
+# extra mixed(@Valid @RequestBody + @RequestParam @Min(1) int qty)|name empty, qty=1 => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=HandlerMethodValidationException
+# extra mixed(@Valid @RequestBody + @RequestParam @Min(1) int qty)|name pen, qty=0 => 400|seen=true|viol=qty:Min|ctrl=false|ret=-|ex=HandlerMethodValidationException
+# extra mixed(@Valid @RequestBody + @RequestParam @Min(1) int qty)|name pen, qty=1 => 200|seen=true|viol=-|ctrl=true|ret=등록: [pen,1]|ex=-
+# extra optparam(@RequestParam(required = false) @NotNull)|none => 400|seen=true|viol=name:NotNull|ctrl=false|ret=-|ex=HandlerMethodValidationException
+# extra optparam(@RequestParam(required = false) @NotBlank)|none => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=HandlerMethodValidationException
+# extra two(@NotBlank name, @Min(1) int qty + BindingResult)|{} => 200|seen=false|viol=name:NotBlank,qty:Min|ctrl=true|ret=오류 2개|ex=-
+# extra twovalid(@NotBlank name, @Min(1) int qty)|{} => 400|seen=false|viol=name:NotBlank,qty:Min|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+# extra badtype(@NotBlank Integer qty)|{"qty":1} => 500|seen=false|viol=-|ctrl=false|ret=-|ex=UnexpectedTypeException
+# extra classv(클래스에 @Validated, @RequestParam @NotBlank)|empty => 500|seen=true|viol=find.name:NotBlank|ctrl=false|ret=-|ex=ConstraintViolationException
+# extra classv(클래스에 @Validated, @RequestParam @NotBlank)|pen => 200|seen=true|viol=-|ctrl=true|ret=검색: [pen]|ex=-
+# extra classv(클래스에 @Validated, @Valid @RequestBody @NotBlank)|empty => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=MethodArgumentNotValidException
+# extra misplaced(BindingResult를 @Valid 파라미터 앞에 둠, @NotBlank)|empty => 500|seen=false|viol=-|ctrl=false|ret=-|ex=IllegalStateException
+# extra advised(@ExceptionHandler(MethodArgumentNotValidException.class)로 직접 응답)|empty => 400|seen=true|viol=name:NotBlank|ctrl=false|ret=-|ex=MethodArgumentNotValidException|body={"name":"NotBlank"}
+# extra 이 PC(ko_KR)에서 본 기본 메시지 => @NotNull: 널이어서는 안됩니다 / @NotEmpty: 비어 있을 수 없습니다 / @NotBlank: 공백일 수 없습니다
+# extra 기본 오류 응답 본문의 항목(valid|notblank|empty) => 400|application/json|timestamp,status,error,path
