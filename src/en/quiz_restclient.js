@@ -1,0 +1,22 @@
+// Quiz questions for the restclient lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'restclient', q: 'The connect timeout and the read timeout are each a limit on the time spent waiting for what?',
+    a: ['Connect timeout: until the connection is established. Read timeout: until the response arrives after the connection is established', 'Connect timeout: until the response arrives. Read timeout: until the response body is converted to an object', 'Connect timeout: the whole call. Read timeout: only the GET request within the call', 'Connect timeout: the first call. Read timeout: the second call onward'],
+    why: 'The connect timeout counts time only until the TCP connection to the remote server is established, and the read timeout counts time only while the caller waits for the response after the connection is established. They measure different intervals, so one cannot stand in for the other.' },
+  { lv: 1, id: 'restclient', q: 'You made a call with RestClient, and the remote server responded with 404. How does this show up in the calling code?',
+    a: ['An HttpClientErrorException is thrown', 'body() returns null', 'A ResourceAccessException is thrown', 'The error message comes back as a string'],
+    why: 'RestClient turns a 4xx response into an HttpClientErrorException and a 5xx response into an HttpServerErrorException and throws it. A ResourceAccessException is thrown when the response itself was not received, as with a connection failure or a timeout.',
+    sim: { c: { server: 'e404', ct: true, rt: true }, col: 1, has: 'HttpClientErrorException' } },
+  { lv: 2, id: 'restclient', q: 'Only the connect timeout is set, to 2 seconds, and the read timeout is not set. If the remote server accepts the connection right away but sends the response after 10 seconds, why does the calling thread wait 10 seconds?',
+    a: ['Because the job of the connect timeout ends the moment the connection is established', 'Because the connect timeout is ignored when it is shorter than the read timeout', 'Because no timeout expires while a response is arriving', 'Because timeouts apply only to 4xx and 5xx responses'],
+    why: 'The connection was established right away, so the connect timeout has no reason to expire. The interval after that, in which the caller waits for the response, is measured by the read timeout, and because it is not set, the wait has no limit. To protect against a slow response, you must set the read timeout.',
+    sim: { c: { server: 'slow', ct: true, rt: false }, col: 2, has: '10s' } },
+  { lv: 2, id: 'restclient', q: 'The program on the remote server is not running, so the connection is refused. If the connect timeout is set to 2 seconds, when does the call fail?',
+    a: ['The refusal comes back right away, so the call fails immediately without waiting 2 seconds', 'It fails after waiting 2 seconds for the connect timeout to expire', 'It fails after waiting for the read timeout to expire', 'It fails after waiting tens of seconds for the operating system to give up'],
+    why: 'When you connect to a port that no program is listening on, the operating system of the remote machine returns a refusal right away. There is nothing to wait for, so the call fails immediately regardless of the timeouts. A timeout expires when there is no answer at all or when the answer is late.',
+    sim: { c: { server: 'refused', ct: true, rt: true }, col: 2, has: 'right away' } },
+  { lv: 3, id: 'restclient', q: 'The order server called the payment server with a read timeout of 3 seconds, and the payment server takes 10 seconds to handle that request. When a timeout exception occurs on the order server after 3 seconds, what happens to the payment?',
+    a: ['The payment server keeps handling the request, so the payment can be completed', 'The handling on the payment server is canceled at the same moment as the timeout', 'The request did not reach the payment server, so the payment was never started', 'The payment server notices the timeout and reverses the payment'],
+    why: 'A read timeout only means that the caller stops waiting. The remote server does not know this and handles the request to the end. So if the same request is sent again after a timeout, it can be handled twice, which is why retries need idempotency.',
+    sim: { c: { server: 'slow', ct: true, rt: true }, col: 3, has: 'Handled the request' } },
+]);

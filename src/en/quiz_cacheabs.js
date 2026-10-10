@@ -1,0 +1,22 @@
+// Quiz questions for the cacheabs lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'cacheabs', q: 'find(Long id), which is annotated with @Cacheable, is called twice from another bean, as find(1L) and then find(1L). How many times does the body of find run?',
+    a: ['Once', 'Twice', 'Zero times', 'It differs from call to call'],
+    why: 'The first call runs the body and puts the result in the cache. The second call has the same argument, so the value is in the cache, and the proxy returns the value from the cache without running the body.',
+    sim: { c: { mid: 'none', via: 'ext', data: 'yes', unless: false }, col: 0, has: '1' } },
+  { lv: 1, id: 'cacheabs', q: 'How does a method annotated with @CachePut behave when the cache already has a value?',
+    a: ['It runs the body and overwrites the cache with the returned value', 'It does not run the body and returns the value from the cache', 'It only removes the value from the cache and does not run the body', 'It runs the body but does not touch the cache'],
+    why: 'Unlike @Cacheable, @CachePut does not skip the body. It always runs the body and puts the result in the cache. It is used to update the cache with the new value when data is modified.' },
+  { lv: 2, id: 'cacheabs', q: 'When find, which is annotated with @Cacheable, is called as find(id) from another method of the same class, caching is not applied. Why?',
+    a: ['Because it is the proxy that looks up the cache, and a call inside the same object does not go through the proxy', 'Because a cache key cannot be built inside the same class', 'Because @Cacheable works only when the method is called from a static method', 'Because a separate cache is created for each thread, so the value is not found'],
+    why: '@Cacheable does not change the method. It works by having a proxy that wraps the bean receive the call and look up the cache first. When an object calls its own method with this, the call does not go through the proxy, so the body runs every time.',
+    sim: { c: { mid: 'none', via: 'self', data: 'yes', unless: false }, col: 0, has: '2' } },
+  { lv: 3, id: 'cacheabs', q: 'After find(1L) was called once, a method with no cache annotation changed the name in the DB from "Keyboard" to "New keyboard". What does another call to find(1L) receive?',
+    a: ['"Keyboard" (the body does not run)', '"New keyboard" (the body runs again)', '"New keyboard" (the cache is updated automatically)', 'null (the cache is emptied automatically)'],
+    why: 'A cache does not find out by itself that the DB has changed. "Keyboard" is still stored under key 1, so the proxy returns that value without running the body. You must put @CacheEvict or @CachePut on methods that change data.',
+    sim: { c: { mid: 'plain', via: 'ext', data: 'yes', unless: false }, col: 1, has: '"Keyboard"' } },
+  { lv: 3, id: 'cacheabs', q: 'A find method annotated with only @Cacheable(cacheNames = "product") returns null for an id that is not in the DB. With ConcurrentMapCacheManager, what happens when find is called once more with the same id?',
+    a: ['null is cached, so null is returned without running the body', 'null is not cached, so the body runs again', 'An exception is thrown when null is put in the cache', 'The whole cache is emptied and the body runs again'],
+    why: 'With the default settings, the result is stored in the cache even when it is null. To avoid storing null, add unless = "#result == null". Then the second call also runs the body.',
+    sim: { c: { mid: 'none', via: 'ext', data: 'no', unless: false }, col: 0, has: '1' } },
+]);

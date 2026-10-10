@@ -13,5 +13,5 @@ module.exports = [
   // Spring
   'ioc', 'di', 'singleton', 'scope', 'mvc', 'binding', 'validation', 'msgconv',
   'txprop', 'jdbctmpl', 'connpool', 'servlet', 'lifecycle', 'proxy', 'aop', 'tx',
-  'autoconf', 'config', 'actuator', 'testing',
+  'autoconf', 'config', 'actuator', 'testing', 'restclient', 'cacheabs', 'security',
 ];
