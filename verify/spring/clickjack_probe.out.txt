@@ -1,0 +1,71 @@
+# spring boot 4.1.1 | spring security 7.1.1 | {서버}는 시험 서버의 주소(http://127.0.0.1:포트)
+# 기본 설정의 응답 헤더: {cache-control=no-cache, no-store, max-age=0, must-revalidate, expires=0, pragma=no-cache, x-content-type-options=nosniff, x-frame-options=DENY, x-xss-protection=0}
+frame|default => status=200|xfo=DENY|csp=-
+redir|none|path => status=302|location={서버}/orders|host={서버}
+redir|none|abs => status=302|location=https://attacker.example/login|host=attacker.example
+redir|none|dslash => status=302|location=http://attacker.example/login|host=attacker.example
+redir|none|bslash => status=302|location={서버}/\attacker.example/login|host=(자바 URI로는 해석 불가)
+redir|slash|path => status=302|location={서버}/orders|host={서버}
+redir|slash|abs => status=302|location={서버}/|host={서버}
+redir|slash|dslash => status=302|location=http://attacker.example/login|host=attacker.example
+redir|slash|bslash => status=302|location={서버}/\attacker.example/login|host=(자바 URI로는 해석 불가)
+redir|path|path => status=302|location={서버}/orders|host={서버}
+redir|path|abs => status=302|location={서버}/|host={서버}
+redir|path|dslash => status=302|location={서버}/|host={서버}
+redir|path|bslash => status=302|location={서버}/|host={서버}
+frame|same => status=200|xfo=SAMEORIGIN|csp=-
+frame|off => status=200|xfo=-|csp=-
+frame|csp => status=200|xfo=-|csp=frame-ancestors 'self' https://partner.example
+frame|both => status=200|xfo=DENY|csp=frame-ancestors 'self' https://partner.example
+redirrel|none|path => status=302|location=/orders|host={서버}
+redirrel|none|abs => status=302|location=https://attacker.example/login|host=attacker.example
+redirrel|none|dslash => status=302|location=//attacker.example/login|host=attacker.example
+redirrel|none|bslash => status=302|location=/\attacker.example/login|host=(자바 URI로는 해석 불가)
+redirrel|slash|path => status=302|location=/orders|host={서버}
+redirrel|slash|abs => status=302|location=/|host={서버}
+redirrel|slash|dslash => status=302|location=//attacker.example/login|host=attacker.example
+redirrel|slash|bslash => status=302|location=/\attacker.example/login|host=(자바 URI로는 해석 불가)
+redirrel|path|path => status=302|location=/orders|host={서버}
+redirrel|path|abs => status=302|location=/|host={서버}
+redirrel|path|dslash => status=302|location=/|host={서버}
+redirrel|path|bslash => status=302|location=/|host={서버}
+# browser: Google Chrome for Testing 151.0.7922.34 | 협력 사이트의 출처 http://127.0.0.1:포트 | 그려졌는지는 결제 화면 안의 그림 요청(/shown)이 서버에 왔는지로 판단
+browser|default|attacker => shown=false
+browser|default|self => shown=false
+browser|default|partner => shown=false
+browser|same|attacker => shown=false
+browser|same|self => shown=true
+browser|same|partner => shown=false
+browser|off|attacker => shown=true
+browser|off|self => shown=true
+browser|off|partner => shown=true
+browser|csp|attacker => shown=false
+browser|csp|self => shown=true
+browser|csp|partner => shown=true
+browser|both|attacker => shown=false
+browser|both|self => shown=true
+browser|both|partner => shown=true
+browserredir|none|path => attacker=false|shop=[/orders]
+browserredir|none|abs => attacker=true|shop=[]
+browserredir|none|dslash => attacker=true|shop=[]
+browserredir|none|bslash => attacker=false|shop=[//{공격자}/landed]
+browserredir|slash|path => attacker=false|shop=[/orders]
+browserredir|slash|abs => attacker=false|shop=[/]
+browserredir|slash|dslash => attacker=true|shop=[]
+browserredir|slash|bslash => attacker=false|shop=[//{공격자}/landed]
+browserredir|path|path => attacker=false|shop=[/orders]
+browserredir|path|abs => attacker=false|shop=[/]
+browserredir|path|dslash => attacker=false|shop=[/]
+browserredir|path|bslash => attacker=false|shop=[/]
+browserredirrel|none|path => attacker=false|shop=[/orders]
+browserredirrel|none|abs => attacker=true|shop=[]
+browserredirrel|none|dslash => attacker=true|shop=[]
+browserredirrel|none|bslash => attacker=true|shop=[]
+browserredirrel|slash|path => attacker=false|shop=[/orders]
+browserredirrel|slash|abs => attacker=false|shop=[/]
+browserredirrel|slash|dslash => attacker=true|shop=[]
+browserredirrel|slash|bslash => attacker=true|shop=[]
+browserredirrel|path|path => attacker=false|shop=[/orders]
+browserredirrel|path|abs => attacker=false|shop=[/]
+browserredirrel|path|dslash => attacker=false|shop=[/]
+browserredirrel|path|bslash => attacker=false|shop=[/]

@@ -1,0 +1,30 @@
+# 소켓과 포트: Node.js v24.18.0 (win32), 127.0.0.1에서 실행
+# srv|to|n => B의 listen|성공|거절|받은 서버|서버가 본 연결|서버 쪽 포트 가짓수|서버 쪽 포트 = 듣는 포트|클라이언트 쪽 포트 가짓수|양쪽 포트가 서로 맞음|동시에 열린 연결
+ab|9000|1 => ok|1|0|A|1|1|true|1|true|1
+ab|9000|2 => ok|2|0|A|2|1|true|2|true|2
+ab|9000|3 => ok|3|0|A|3|1|true|3|true|3
+ab|9001|1 => ok|1|0|B|1|1|true|1|true|1
+ab|9001|2 => ok|2|0|B|2|1|true|2|true|2
+ab|9001|3 => ok|3|0|B|3|1|true|3|true|3
+ab|9002|1 => ok|0|1(ECONNREFUSED)|none|0|0|-|0|-|0
+ab|9002|2 => ok|0|2(ECONNREFUSED)|none|0|0|-|0|-|0
+ab|9002|3 => ok|0|3(ECONNREFUSED)|none|0|0|-|0|-|0
+same|9000|1 => EADDRINUSE|1|0|A|1|1|true|1|true|1
+same|9000|2 => EADDRINUSE|2|0|A|2|1|true|2|true|2
+same|9000|3 => EADDRINUSE|3|0|A|3|1|true|3|true|3
+same|9001|1 => EADDRINUSE|0|1(ECONNREFUSED)|none|0|0|-|0|-|0
+same|9001|2 => EADDRINUSE|0|2(ECONNREFUSED)|none|0|0|-|0|-|0
+same|9001|3 => EADDRINUSE|0|3(ECONNREFUSED)|none|0|0|-|0|-|0
+same|9002|1 => EADDRINUSE|0|1(ECONNREFUSED)|none|0|0|-|0|-|0
+same|9002|2 => EADDRINUSE|0|2(ECONNREFUSED)|none|0|0|-|0|-|0
+same|9002|3 => EADDRINUSE|0|3(ECONNREFUSED)|none|0|0|-|0|-|0
+a|9000|1 => none|1|0|A|1|1|true|1|true|1
+a|9000|2 => none|2|0|A|2|1|true|2|true|2
+a|9000|3 => none|3|0|A|3|1|true|3|true|3
+a|9001|1 => none|0|1(ECONNREFUSED)|none|0|0|-|0|-|0
+a|9001|2 => none|0|2(ECONNREFUSED)|none|0|0|-|0|-|0
+a|9001|3 => none|0|3(ECONNREFUSED)|none|0|0|-|0|-|0
+a|9002|1 => none|0|1(ECONNREFUSED)|none|0|0|-|0|-|0
+a|9002|2 => none|0|2(ECONNREFUSED)|none|0|0|-|0|-|0
+a|9002|3 => none|0|3(ECONNREFUSED)|none|0|0|-|0|-|0
+# 참고(결과로 삼지 않음, 실행할 때마다 달라짐): 이번 실행에서 운영체제가 골라 준 클라이언트 포트의 예 62412,62413,62414

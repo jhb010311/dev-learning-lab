@@ -129,6 +129,7 @@ node tools/check_lesson.js <id>
   - 행을 지워도 한동안 "삭제 표시만 된 레코드"가 남아 락 목록에 섞입니다. 조합마다 테이블을 새로 만드세요.
   - `performance_schema.data_lock_waits`는 대기 "관계"의 수입니다. 기다리는 세션 수는 `count(distinct requesting_engine_transaction_id)`.
   - 행이 몇 개뿐인 테이블에서는 옵티마이저가 인덱스 전체를 훑는 계획을 고릅니다. 실행 계획이나 락 범위를 보이는 실습은 행을 충분히 넣고(`analyze table`) `EXPLAIN` 결과를 함께 기록하세요.
+  - `information_schema.innodb_trx`는 자주 읽으면 옛 내용이 보입니다(마지막으로 읽힌 뒤 잠시 지나야 갱신). 락 대기 확인은 `performance_schema.data_lock_waits`로 하세요.
   - 실행 계획의 rows, cost 같은 추정값은 통계에 따라 달라집니다. 화면의 결과는 type, key, Extra처럼 안정적인 것으로 삼고, 수치는 "이 PC에서 본 값"이라고 밝히세요.
 
 ### 네트워크와 그 밖

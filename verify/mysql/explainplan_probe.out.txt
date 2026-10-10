@@ -1,0 +1,53 @@
+# mysql 8.4.11 | member 20000행 (idx_name), orders 20000행
+# counts none=20000|pk=1|eq=2|prefix=200|suffix=2|func=200|noidx=400
+none|star|none => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=100.0|Extra=null ## SELECT * FROM member
+none|cov|none => table=member|type=index|possible_keys=null|key=idx_name|key_len=82|ref=null|rows=19734|filtered=100.0|Extra=Using index ## SELECT id, name FROM member
+none|star|oname => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=100.0|Extra=Using filesort ## SELECT * FROM member ORDER BY name
+none|cov|oname => table=member|type=index|possible_keys=null|key=idx_name|key_len=82|ref=null|rows=19734|filtered=100.0|Extra=Using index ## SELECT id, name FROM member ORDER BY name
+none|star|oage => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=100.0|Extra=Using filesort ## SELECT * FROM member ORDER BY age
+none|cov|oage => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=100.0|Extra=Using filesort ## SELECT id, name FROM member ORDER BY age
+none|star|gage => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=100.0|Extra=Using temporary ## SELECT age, COUNT(*) FROM member GROUP BY age
+pk|star|none => table=member|type=const|possible_keys=PRIMARY|key=PRIMARY|key_len=4|ref=const|rows=1|filtered=100.0|Extra=null ## SELECT * FROM member WHERE id = 500
+pk|cov|none => table=member|type=const|possible_keys=PRIMARY|key=PRIMARY|key_len=4|ref=const|rows=1|filtered=100.0|Extra=null ## SELECT id, name FROM member WHERE id = 500
+pk|star|oname => table=member|type=const|possible_keys=PRIMARY|key=PRIMARY|key_len=4|ref=const|rows=1|filtered=100.0|Extra=null ## SELECT * FROM member WHERE id = 500 ORDER BY name
+pk|cov|oname => table=member|type=const|possible_keys=PRIMARY|key=PRIMARY|key_len=4|ref=const|rows=1|filtered=100.0|Extra=null ## SELECT id, name FROM member WHERE id = 500 ORDER BY name
+pk|star|oage => table=member|type=const|possible_keys=PRIMARY|key=PRIMARY|key_len=4|ref=const|rows=1|filtered=100.0|Extra=null ## SELECT * FROM member WHERE id = 500 ORDER BY age
+pk|cov|oage => table=member|type=const|possible_keys=PRIMARY|key=PRIMARY|key_len=4|ref=const|rows=1|filtered=100.0|Extra=null ## SELECT id, name FROM member WHERE id = 500 ORDER BY age
+pk|star|gage => table=member|type=const|possible_keys=PRIMARY|key=PRIMARY|key_len=4|ref=const|rows=1|filtered=100.0|Extra=null ## SELECT age, COUNT(*) FROM member WHERE id = 500 GROUP BY age
+eq|star|none => table=member|type=ref|possible_keys=idx_name|key=idx_name|key_len=82|ref=const|rows=2|filtered=100.0|Extra=null ## SELECT * FROM member WHERE name = 'user00123'
+eq|cov|none => table=member|type=ref|possible_keys=idx_name|key=idx_name|key_len=82|ref=const|rows=2|filtered=100.0|Extra=Using index ## SELECT id, name FROM member WHERE name = 'user00123'
+eq|star|oname => table=member|type=ref|possible_keys=idx_name|key=idx_name|key_len=82|ref=const|rows=2|filtered=100.0|Extra=null ## SELECT * FROM member WHERE name = 'user00123' ORDER BY name
+eq|cov|oname => table=member|type=ref|possible_keys=idx_name|key=idx_name|key_len=82|ref=const|rows=2|filtered=100.0|Extra=Using index ## SELECT id, name FROM member WHERE name = 'user00123' ORDER BY name
+eq|star|oage => table=member|type=ref|possible_keys=idx_name|key=idx_name|key_len=82|ref=const|rows=2|filtered=100.0|Extra=Using filesort ## SELECT * FROM member WHERE name = 'user00123' ORDER BY age
+eq|cov|oage => table=member|type=ref|possible_keys=idx_name|key=idx_name|key_len=82|ref=const|rows=2|filtered=100.0|Extra=Using filesort ## SELECT id, name FROM member WHERE name = 'user00123' ORDER BY age
+eq|star|gage => table=member|type=ref|possible_keys=idx_name|key=idx_name|key_len=82|ref=const|rows=2|filtered=100.0|Extra=Using temporary ## SELECT age, COUNT(*) FROM member WHERE name = 'user00123' GROUP BY age
+prefix|star|none => table=member|type=range|possible_keys=idx_name|key=idx_name|key_len=82|ref=null|rows=200|filtered=100.0|Extra=Using index condition ## SELECT * FROM member WHERE name LIKE 'user001%'
+prefix|cov|none => table=member|type=range|possible_keys=idx_name|key=idx_name|key_len=82|ref=null|rows=200|filtered=100.0|Extra=Using where; Using index ## SELECT id, name FROM member WHERE name LIKE 'user001%'
+prefix|star|oname => table=member|type=range|possible_keys=idx_name|key=idx_name|key_len=82|ref=null|rows=200|filtered=100.0|Extra=Using index condition ## SELECT * FROM member WHERE name LIKE 'user001%' ORDER BY name
+prefix|cov|oname => table=member|type=range|possible_keys=idx_name|key=idx_name|key_len=82|ref=null|rows=200|filtered=100.0|Extra=Using where; Using index ## SELECT id, name FROM member WHERE name LIKE 'user001%' ORDER BY name
+prefix|star|oage => table=member|type=range|possible_keys=idx_name|key=idx_name|key_len=82|ref=null|rows=200|filtered=100.0|Extra=Using index condition; Using filesort ## SELECT * FROM member WHERE name LIKE 'user001%' ORDER BY age
+prefix|cov|oage => table=member|type=range|possible_keys=idx_name|key=idx_name|key_len=82|ref=null|rows=200|filtered=100.0|Extra=Using index condition; Using filesort ## SELECT id, name FROM member WHERE name LIKE 'user001%' ORDER BY age
+prefix|star|gage => table=member|type=range|possible_keys=idx_name|key=idx_name|key_len=82|ref=null|rows=200|filtered=100.0|Extra=Using index condition; Using temporary ## SELECT age, COUNT(*) FROM member WHERE name LIKE 'user001%' GROUP BY age
+suffix|star|none => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=11.11|Extra=Using where ## SELECT * FROM member WHERE name LIKE '%00123'
+suffix|cov|none => table=member|type=index|possible_keys=null|key=idx_name|key_len=82|ref=null|rows=19734|filtered=11.11|Extra=Using where; Using index ## SELECT id, name FROM member WHERE name LIKE '%00123'
+suffix|star|oname => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=11.11|Extra=Using where; Using filesort ## SELECT * FROM member WHERE name LIKE '%00123' ORDER BY name
+suffix|cov|oname => table=member|type=index|possible_keys=null|key=idx_name|key_len=82|ref=null|rows=19734|filtered=11.11|Extra=Using where; Using index ## SELECT id, name FROM member WHERE name LIKE '%00123' ORDER BY name
+suffix|star|oage => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=11.11|Extra=Using where; Using filesort ## SELECT * FROM member WHERE name LIKE '%00123' ORDER BY age
+suffix|cov|oage => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=11.11|Extra=Using where; Using filesort ## SELECT id, name FROM member WHERE name LIKE '%00123' ORDER BY age
+suffix|star|gage => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=11.11|Extra=Using where; Using temporary ## SELECT age, COUNT(*) FROM member WHERE name LIKE '%00123' GROUP BY age
+func|star|none => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=100.0|Extra=Using where ## SELECT * FROM member WHERE LEFT(name, 7) = 'user001'
+func|cov|none => table=member|type=index|possible_keys=null|key=idx_name|key_len=82|ref=null|rows=19734|filtered=100.0|Extra=Using where; Using index ## SELECT id, name FROM member WHERE LEFT(name, 7) = 'user001'
+func|star|oname => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=100.0|Extra=Using where; Using filesort ## SELECT * FROM member WHERE LEFT(name, 7) = 'user001' ORDER BY name
+func|cov|oname => table=member|type=index|possible_keys=null|key=idx_name|key_len=82|ref=null|rows=19734|filtered=100.0|Extra=Using where; Using index ## SELECT id, name FROM member WHERE LEFT(name, 7) = 'user001' ORDER BY name
+func|star|oage => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=100.0|Extra=Using where; Using filesort ## SELECT * FROM member WHERE LEFT(name, 7) = 'user001' ORDER BY age
+func|cov|oage => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=100.0|Extra=Using where; Using filesort ## SELECT id, name FROM member WHERE LEFT(name, 7) = 'user001' ORDER BY age
+func|star|gage => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=100.0|Extra=Using where; Using temporary ## SELECT age, COUNT(*) FROM member WHERE LEFT(name, 7) = 'user001' GROUP BY age
+noidx|star|none => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=10.0|Extra=Using where ## SELECT * FROM member WHERE age = 30
+noidx|cov|none => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=10.0|Extra=Using where ## SELECT id, name FROM member WHERE age = 30
+noidx|star|oname => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=10.0|Extra=Using where; Using filesort ## SELECT * FROM member WHERE age = 30 ORDER BY name
+noidx|cov|oname => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=10.0|Extra=Using where; Using filesort ## SELECT id, name FROM member WHERE age = 30 ORDER BY name
+noidx|star|oage => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=10.0|Extra=Using where ## SELECT * FROM member WHERE age = 30 ORDER BY age
+noidx|cov|oage => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=10.0|Extra=Using where ## SELECT id, name FROM member WHERE age = 30 ORDER BY age
+noidx|star|gage => table=member|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19734|filtered=10.0|Extra=Using where ## SELECT age, COUNT(*) FROM member WHERE age = 30 GROUP BY age
+join|star|none => table=o|type=ALL|possible_keys=null|key=null|key_len=null|ref=null|rows=19905|filtered=100.0|Extra=null ;; table=m|type=eq_ref|possible_keys=PRIMARY|key=PRIMARY|key_len=4|ref=lab_explainplan.o.member_id|rows=1|filtered=100.0|Extra=null ## SELECT o.id, o.amount, m.name FROM orders o JOIN member m ON m.id = o.member_id
+# extra groupbyname => table=member|type=index|possible_keys=idx_name|key=idx_name|key_len=82|ref=null|rows=19734|filtered=100.0|Extra=Using index ## SELECT name, COUNT(*) FROM member GROUP BY name

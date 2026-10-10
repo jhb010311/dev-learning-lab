@@ -1,0 +1,43 @@
+# spring security 7.1.1 | java 21.0.12.1 | 컴파일할 때 -parameters 없음
+true|role|kim|ext => checks=1|denies=1|body=0|got=EX:AuthorizationDeniedException|accessDenied=true|proxy=true
+true|role|kim|self => checks=0|denies=0|body=1|got=모두 삭제함|accessDenied=false|proxy=true
+true|role|lee|ext => checks=1|denies=1|body=0|got=EX:AuthorizationDeniedException|accessDenied=true|proxy=true
+true|role|lee|self => checks=0|denies=0|body=1|got=모두 삭제함|accessDenied=false|proxy=true
+true|role|admin|ext => checks=1|denies=0|body=1|got=모두 삭제함|accessDenied=false|proxy=true
+true|role|admin|self => checks=0|denies=0|body=1|got=모두 삭제함|accessDenied=false|proxy=true
+true|arg|kim|ext => checks=1|denies=1|body=0|got=EX:AuthorizationDeniedException|accessDenied=true|proxy=true
+true|arg|kim|self => checks=0|denies=0|body=1|got=kim의 주문 목록|accessDenied=false|proxy=true
+true|arg|lee|ext => checks=1|denies=1|body=0|got=EX:AuthorizationDeniedException|accessDenied=true|proxy=true
+true|arg|lee|self => checks=0|denies=0|body=1|got=kim의 주문 목록|accessDenied=false|proxy=true
+true|arg|admin|ext => checks=1|denies=1|body=0|got=EX:AuthorizationDeniedException|accessDenied=true|proxy=true
+true|arg|admin|self => checks=0|denies=0|body=1|got=kim의 주문 목록|accessDenied=false|proxy=true
+true|post|kim|ext => checks=1|denies=0|body=1|got=Order(1,kim)|accessDenied=false|proxy=true
+true|post|kim|self => checks=0|denies=0|body=1|got=Order(1,kim)|accessDenied=false|proxy=true
+true|post|lee|ext => checks=1|denies=1|body=1|got=EX:AuthorizationDeniedException|accessDenied=true|proxy=true
+true|post|lee|self => checks=0|denies=0|body=1|got=Order(1,kim)|accessDenied=false|proxy=true
+true|post|admin|ext => checks=1|denies=1|body=1|got=EX:AuthorizationDeniedException|accessDenied=true|proxy=true
+true|post|admin|self => checks=0|denies=0|body=1|got=Order(1,kim)|accessDenied=false|proxy=true
+# 참고 enable=true 로그인 정보 없이 deleteAll() => checks=0|denies=0|body=0|got=EX:AuthenticationCredentialsNotFoundException|accessDenied=false
+false|role|kim|ext => checks=0|denies=0|body=1|got=모두 삭제함|accessDenied=false|proxy=false
+false|role|kim|self => checks=0|denies=0|body=1|got=모두 삭제함|accessDenied=false|proxy=false
+false|role|lee|ext => checks=0|denies=0|body=1|got=모두 삭제함|accessDenied=false|proxy=false
+false|role|lee|self => checks=0|denies=0|body=1|got=모두 삭제함|accessDenied=false|proxy=false
+false|role|admin|ext => checks=0|denies=0|body=1|got=모두 삭제함|accessDenied=false|proxy=false
+false|role|admin|self => checks=0|denies=0|body=1|got=모두 삭제함|accessDenied=false|proxy=false
+false|arg|kim|ext => checks=0|denies=0|body=1|got=kim의 주문 목록|accessDenied=false|proxy=false
+false|arg|kim|self => checks=0|denies=0|body=1|got=kim의 주문 목록|accessDenied=false|proxy=false
+false|arg|lee|ext => checks=0|denies=0|body=1|got=kim의 주문 목록|accessDenied=false|proxy=false
+false|arg|lee|self => checks=0|denies=0|body=1|got=kim의 주문 목록|accessDenied=false|proxy=false
+false|arg|admin|ext => checks=0|denies=0|body=1|got=kim의 주문 목록|accessDenied=false|proxy=false
+false|arg|admin|self => checks=0|denies=0|body=1|got=kim의 주문 목록|accessDenied=false|proxy=false
+false|post|kim|ext => checks=0|denies=0|body=1|got=Order(1,kim)|accessDenied=false|proxy=false
+false|post|kim|self => checks=0|denies=0|body=1|got=Order(1,kim)|accessDenied=false|proxy=false
+false|post|lee|ext => checks=0|denies=0|body=1|got=Order(1,kim)|accessDenied=false|proxy=false
+false|post|lee|self => checks=0|denies=0|body=1|got=Order(1,kim)|accessDenied=false|proxy=false
+false|post|admin|ext => checks=0|denies=0|body=1|got=Order(1,kim)|accessDenied=false|proxy=false
+false|post|admin|self => checks=0|denies=0|body=1|got=Order(1,kim)|accessDenied=false|proxy=false
+# 참고 enable=false 로그인 정보 없이 deleteAll() => checks=0|denies=0|body=1|got=모두 삭제함|accessDenied=false
+# 참고 웹 요청(스프링 부트, @EnableMethodSecurity 있음) GET /delete-all → @PreAuthorize("hasRole('ADMIN')")가 붙은 deleteAll() 호출, kim => 403|body=0
+# 참고 웹 요청(스프링 부트, @EnableMethodSecurity 있음) GET /delete-all → @PreAuthorize("hasRole('ADMIN')")가 붙은 deleteAll() 호출, park => 200|body=1
+# 참고 웹 요청(스프링 부트, @EnableMethodSecurity 없음) GET /delete-all → @PreAuthorize("hasRole('ADMIN')")가 붙은 deleteAll() 호출, kim => 200|body=1
+# 참고 웹 요청(스프링 부트, @EnableMethodSecurity 없음) GET /delete-all → @PreAuthorize("hasRole('ADMIN')")가 붙은 deleteAll() 호출, park => 200|body=1

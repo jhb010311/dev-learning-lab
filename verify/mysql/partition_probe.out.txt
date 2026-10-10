@@ -1,0 +1,42 @@
+# mysql 8.4.11
+range|with|in|key => ok|p2025|p2024|3|121,122,57|ALL|null|
+range|with|in|range => ok|p2025|p2024,p2025|3|121,122,57|ALL|null|
+range|with|in|func => ok|p2025|p2023,p2024,p2025|3|121,122,57|ALL|null|
+range|with|in|other => ok|p2025|p2023,p2024,p2025|3|121,122,57|ref|PRIMARY|
+range|with|out|key => ok|1526|p2024|3|121,122,57|ALL|null|Table has no partition for value 2026
+range|with|out|range => ok|1526|p2024,p2025|3|121,122,57|ALL|null|Table has no partition for value 2026
+range|with|out|func => ok|1526|p2023,p2024,p2025|3|121,122,57|ALL|null|Table has no partition for value 2026
+range|with|out|other => ok|1526|p2023,p2024,p2025|3|121,122,57|ref|PRIMARY|Table has no partition for value 2026
+range|only|in|key => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+range|only|in|range => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+range|only|in|func => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+range|only|in|other => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+range|only|out|key => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+range|only|out|range => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+range|only|out|func => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+range|only|out|other => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+hash|with|in|key => ok|p3|p3|4|75,75,75,75|ALL|null|
+hash|with|in|range => ok|p3|p0,p1,p2,p3|4|75,75,75,75|ALL|null|
+hash|with|in|func => ok|p3|p0,p1,p2,p3|4|75,75,75,75|ALL|null|
+hash|with|in|other => ok|p3|p0,p1,p2,p3|4|75,75,75,75|ref|PRIMARY|
+hash|with|out|key => ok|p1|p3|4|75,75,75,75|ALL|null|
+hash|with|out|range => ok|p1|p0,p1,p2,p3|4|75,75,75,75|ALL|null|
+hash|with|out|func => ok|p1|p0,p1,p2,p3|4|75,75,75,75|ALL|null|
+hash|with|out|other => ok|p1|p0,p1,p2,p3|4|75,75,75,75|ref|PRIMARY|
+hash|only|in|key => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+hash|only|in|range => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+hash|only|in|func => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+hash|only|in|other => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+hash|only|out|key => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+hash|only|out|range => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+hash|only|out|func => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+hash|only|out|other => 1503|-|-|-|-|-|-|A PRIMARY KEY must include all columns in the table's partitioning function (prefixed columns are not considered).
+extra unique => 1503:A UNIQUE INDEX must include all columns in the table's partitioning function (prefixed columns are not considered).
+extra nokey => ok
+extra rewrite => p2024
+extra localindex => InnoDB 테이블 3개, PRIMARY 인덱스 3개, 데이터 파일 3개
+extra addpartition => 추가 전 1526, 추가 뒤 ok, 들어간 곳 p2026=1
+extra droppartition => 전체 301행, p2023 121행 -> DROP PARTITION p2023 뒤 전체 180행, 남은 파티션 p2024,p2025,p2026
+extra sameid => ok, id가 5000인 행 수=2
+extra shortrange => p1,p2
+extra engine => 1개 테이블, 4개 파티션, 엔진 InnoDB

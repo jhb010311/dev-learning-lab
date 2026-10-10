@@ -1,0 +1,31 @@
+# spring boot 4.1.1 | spring security 7.1.1
+boot|never|never|false => status=500|keys=timestamp,status,error,path|sql=false|frames=false|db=false|class=false
+boot|never|never|true => status=500|keys=timestamp,status,error,path|sql=false|frames=false|db=false|class=false
+boot|never|on_param|false => status=500|keys=timestamp,status,error,path|sql=false|frames=false|db=false|class=false
+boot|never|on_param|true => status=500|keys=timestamp,status,error,trace,path|sql=true|frames=true|db=true|class=true
+boot|never|always|false => status=500|keys=timestamp,status,error,trace,path|sql=true|frames=true|db=true|class=true
+boot|never|always|true => status=500|keys=timestamp,status,error,trace,path|sql=true|frames=true|db=true|class=true
+boot|always|never|false => status=500|keys=timestamp,status,error,message,path|sql=true|frames=false|db=false|class=false
+boot|always|never|true => status=500|keys=timestamp,status,error,message,path|sql=true|frames=false|db=false|class=false
+boot|always|on_param|false => status=500|keys=timestamp,status,error,message,path|sql=true|frames=false|db=false|class=false
+boot|always|on_param|true => status=500|keys=timestamp,status,error,trace,message,path|sql=true|frames=true|db=true|class=true
+boot|always|always|false => status=500|keys=timestamp,status,error,trace,message,path|sql=true|frames=true|db=true|class=true
+# 이 PC에서 본 message의 예: PreparedStatementCallback; bad SQL grammar [select id, item, pirce from orders where id = ?]
+# 이 PC에서 본 trace의 예 (모두 118줄): 첫 줄 [org.springframework.jdbc.BadSqlGrammarException: PreparedStatementCallback; bad SQL grammar [select id, item, pirce from orders where id = ?]]
+#   내 코드가 보이는 줄 [at InfoLeakProbe$Api.order(InfoLeakProbe.java:101)]
+#   DB 드라이버의 예외가 보이는 줄 [Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "PIRCE" not found; SQL statement:]
+html|always|always => status=500|type=text/html|sql=true|frames=true|db=true|class=true
+boot|always|always|true => status=500|keys=timestamp,status,error,trace,message,path|sql=true|frames=true|db=true|class=true
+defaults => status=500|keys=timestamp,status,error,path|sql=false|frames=false|db=false|class=false
+oldname => status=500|keys=timestamp,status,error,path|sql=false|frames=false|db=false|class=false
+handler|raw => status=500|keys=message|sql=true|frames=false|db=false|class=false|loggedWithSql=false
+handler|safe => status=500|keys=message,errorId|sql=false|frames=false|db=false|class=false|loggedWithSql=true
+login|split|none => status=401|exception=-|sameAsOther=false|matches=0
+login|split|exist => status=401|exception=-|sameAsOther=false|matches=1
+# split: 이 PC에서 본 글귀: 없는 아이디 [존재하지 않는 아이디입니다.] / 틀린 비밀번호 [비밀번호가 틀렸습니다.] / 맞는 비밀번호의 상태 코드 200
+login|sec|none => status=401|exception=BadCredentialsException|sameAsOther=true|matches=1
+login|sec|exist => status=401|exception=BadCredentialsException|sameAsOther=true|matches=1
+# sec: 이 PC에서 본 글귀: 없는 아이디 [자격 증명에 실패하였습니다.] / 틀린 비밀번호 [자격 증명에 실패하였습니다.] / 맞는 비밀번호의 상태 코드 200
+login|unhide|none => status=401|exception=UsernameNotFoundException|sameAsOther=false|matches=1
+login|unhide|exist => status=401|exception=BadCredentialsException|sameAsOther=false|matches=1
+# unhide: 이 PC에서 본 글귀: 없는 아이디 [user not found] / 틀린 비밀번호 [자격 증명에 실패하였습니다.] / 맞는 비밀번호의 상태 코드 200

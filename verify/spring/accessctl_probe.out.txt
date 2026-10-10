@@ -1,0 +1,46 @@
+# spring boot 4.1.1 | spring security 7.1.1 | java 21.0.12.1
+login|kim|mine => 200|owner=kim|controller=true|reason=no-owner-check|leak=true
+login|kim|other => 200|owner=lee|controller=true|reason=no-owner-check|leak=true
+login|kim|missing => 404|owner=-|controller=true|reason=not-found|leak=false
+login|admin|mine => 200|owner=kim|controller=true|reason=no-owner-check|leak=true
+login|admin|other => 200|owner=lee|controller=true|reason=no-owner-check|leak=true
+login|admin|missing => 404|owner=-|controller=true|reason=not-found|leak=false
+# 참고 login|anon|mine => 401|owner=-|controller=false|reason=-|leak=false
+# 참고 login|anon|other => 401|owner=-|controller=false|reason=-|leak=false
+# 참고 login|anon|missing => 401|owner=-|controller=false|reason=-|leak=false
+role|kim|mine => 200|owner=kim|controller=true|reason=no-owner-check|leak=true
+role|kim|other => 200|owner=lee|controller=true|reason=no-owner-check|leak=true
+role|kim|missing => 404|owner=-|controller=true|reason=not-found|leak=false
+role|admin|mine => 403|owner=-|controller=false|reason=-|leak=false
+role|admin|other => 403|owner=-|controller=false|reason=-|leak=false
+role|admin|missing => 403|owner=-|controller=false|reason=-|leak=false
+# 참고 role|anon|mine => 401|owner=-|controller=false|reason=-|leak=false
+# 참고 role|anon|other => 401|owner=-|controller=false|reason=-|leak=false
+# 참고 role|anon|missing => 401|owner=-|controller=false|reason=-|leak=false
+owner403|kim|mine => 200|owner=kim|controller=true|reason=owner|leak=true
+owner403|kim|other => 403|owner=-|controller=true|reason=not-owner|leak=false
+owner403|kim|missing => 404|owner=-|controller=true|reason=not-found|leak=false
+owner403|admin|mine => 403|owner=-|controller=true|reason=not-owner|leak=false
+owner403|admin|other => 403|owner=-|controller=true|reason=not-owner|leak=false
+owner403|admin|missing => 404|owner=-|controller=true|reason=not-found|leak=false
+# 참고 owner403|anon|mine => 401|owner=-|controller=false|reason=-|leak=false
+# 참고 owner403|anon|other => 401|owner=-|controller=false|reason=-|leak=false
+# 참고 owner403|anon|missing => 401|owner=-|controller=false|reason=-|leak=false
+owner404|kim|mine => 200|owner=kim|controller=true|reason=owner|leak=true
+owner404|kim|other => 404|owner=-|controller=true|reason=not-mine|leak=false
+owner404|kim|missing => 404|owner=-|controller=true|reason=not-mine|leak=false
+owner404|admin|mine => 404|owner=-|controller=true|reason=not-mine|leak=false
+owner404|admin|other => 404|owner=-|controller=true|reason=not-mine|leak=false
+owner404|admin|missing => 404|owner=-|controller=true|reason=not-mine|leak=false
+# 참고 owner404|anon|mine => 401|owner=-|controller=false|reason=-|leak=false
+# 참고 owner404|anon|other => 401|owner=-|controller=false|reason=-|leak=false
+# 참고 owner404|anon|missing => 401|owner=-|controller=false|reason=-|leak=false
+ownerAdmin|kim|mine => 200|owner=kim|controller=true|reason=owner|leak=true
+ownerAdmin|kim|other => 403|owner=-|controller=true|reason=not-owner|leak=false
+ownerAdmin|kim|missing => 404|owner=-|controller=true|reason=not-found|leak=false
+ownerAdmin|admin|mine => 200|owner=kim|controller=true|reason=admin|leak=true
+ownerAdmin|admin|other => 200|owner=lee|controller=true|reason=admin|leak=true
+ownerAdmin|admin|missing => 404|owner=-|controller=true|reason=not-found|leak=false
+# 참고 ownerAdmin|anon|mine => 401|owner=-|controller=false|reason=-|leak=false
+# 참고 ownerAdmin|anon|other => 401|owner=-|controller=false|reason=-|leak=false
+# 참고 ownerAdmin|anon|missing => 401|owner=-|controller=false|reason=-|leak=false

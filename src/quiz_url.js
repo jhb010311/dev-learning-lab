@@ -1,0 +1,22 @@
+// "URL의 구조" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'url', q: '브라우저가 https://shop.example/shop/list?q=a#review 를 열 때 서버로 보내지 않는 부분은 무엇입니까?',
+    a: ['# 뒤의 프래그먼트 (review)', '? 뒤의 쿼리 (q=a)', '호스트 뒤의 경로 (/shop/list)', '쿼리와 프래그먼트 둘 다'],
+    why: '프래그먼트는 받은 문서 안의 위치를 가리키는 표시로 브라우저만 씁니다. 요청 줄에는 경로와 쿼리만 실리므로 서버는 # 뒤에 무엇이 있었는지 알 수 없습니다.' },
+  { lv: 1, id: 'url', q: 'https://shop.example/shop/list 처럼 포트를 적지 않은 주소는 몇 번 포트로 접속합니까?',
+    a: ['443번 (https의 기본 포트)', '80번 (모든 웹 주소의 기본 포트)', '8080번 (웹 서버의 기본 포트)', '서버가 응답으로 알려 주는 포트'],
+    why: '포트를 적지 않으면 스킴의 기본 포트를 씁니다. http는 80번, https는 443번입니다. 기본 포트는 적어도 적지 않은 것과 같아서, 정리된 주소와 Host 헤더에는 나타나지 않습니다.',
+    sim: { c: { origin: 'https://shop.example', q: 'keyboard', enc: true, rel: 'detail' }, col: 0, has: '443' } },
+  { lv: 2, id: 'url', q: '검색어 A&B를 인코딩하지 않고 ?q=A&B&sort=price 로 이어 붙였더니 서버가 받은 q의 값이 A였습니다. 까닭은 무엇입니까?',
+    a: ['서버가 쿼리를 &에서 먼저 나누므로 & 뒤의 B가 다른 파라미터로 읽혔기 때문이다', '브라우저가 주소에 쓸 수 없는 글자인 &와 그 뒤의 글자를 지우고 보냈기 때문이다', '& 뒤는 프래그먼트로 취급되어 서버로 가지 않았기 때문이다', '쿼리의 값은 특수 문자 앞까지만 보낼 수 있도록 길이가 제한되기 때문이다'],
+    why: '&는 쿼리에서 이름=값 쌍을 나누는 기호입니다. 서버는 &에서 먼저 나누므로 q=A와 B와 sort=price의 세 조각으로 읽습니다. 값 안의 &를 %26으로 인코딩해 두면 나눈 뒤에 원래 글자로 돌아오므로 값이 온전합니다.',
+    sim: { c: { origin: 'https://shop.example', q: 'A&B', enc: false, rel: 'detail' }, col: 2, has: '"A" (보낸 값은' } },
+  { lv: 3, id: 'url', q: '검색어 C#을 인코딩하지 않고 /shop/list?q=C#&sort=price 로 이어 붙여 요청했습니다. 서버가 받는 파라미터는 무엇입니까?',
+    a: ['q="C" 하나만 받는다', 'q="C#"과 sort="price"를 받는다', 'q="C"와 sort="price"를 받는다', 'q="C#&sort=price" 하나만 받는다'],
+    why: '첫 번째 # 뒤는 모두 프래그먼트가 되어 서버로 가지 않습니다. 쿼리는 q=C에서 끝나므로, 검색어가 잘릴 뿐 아니라 뒤에 있던 sort까지 사라집니다. #을 %23으로 인코딩해야 값의 일부로 전달됩니다.',
+    sim: { c: { origin: 'https://shop.example', q: 'C#', enc: false, rel: 'detail' }, col: 2, has: '"C" (보낸 값은' } },
+  { lv: 3, id: 'url', q: 'https://shop.example/shop/list 페이지에 href="detail"인 링크가 있습니다. 이 링크가 가리키는 주소는 무엇입니까?',
+    a: ['https://shop.example/shop/detail', 'https://shop.example/shop/list/detail', 'https://shop.example/detail', 'https://detail/shop/list'],
+    why: '/로 시작하지 않는 상대 주소는 기준 경로의 마지막 조각을 바꿉니다. /shop/list에서 list가 detail로 바뀌어 /shop/detail이 됩니다. 기준 주소가 /shop/list/처럼 /로 끝났다면 /shop/list/detail이 됩니다.',
+    sim: { c: { origin: 'https://shop.example', q: 'keyboard', enc: true, rel: 'detail' }, col: 4, has: 'https://shop.example/shop/detail' } },
+]);

@@ -1,0 +1,24 @@
+# mysql 8.4.11 | 문서 모델은 JSON 컬럼으로 재현. 전용 문서 DB는 실행하지 않음
+rel|read|3 => 0|3|2|2|이 PC에서 본 Handler_read 합계 증가=8
+rel|rename|2 => 0|1|2|0|
+rel|rename|3 => 0|1|3|0|
+rel|rename|5 => 0|1|5|0|
+rel|newfield|2 => 1054|2|0|-|Unknown column 'gift' in 'field list' | ALTER TABLE 뒤 같은 INSERT=0,gift 칸이 있는 주문=3,gift가 참인 주문=1
+rel|newfield|3 => 1054|3|0|-|Unknown column 'gift' in 'field list' | ALTER TABLE 뒤 같은 INSERT=0,gift 칸이 있는 주문=4,gift가 참인 주문=1
+rel|newfield|5 => 1054|5|0|-|Unknown column 'gift' in 'field list' | ALTER TABLE 뒤 같은 INSERT=0,gift 칸이 있는 주문=6,gift가 참인 주문=1
+rel|typo|2 => 1054|2|6|6|Unknown column 'quantity' in 'field list'
+rel|typo|3 => 1054|3|9|9|Unknown column 'quantity' in 'field list'
+rel|typo|5 => 1054|5|15|15|Unknown column 'quantity' in 'field list'
+doc|read|3 => 0|1|1|2|이 PC에서 본 Handler_read 합계 증가=1
+doc|rename|2 => 0|2|2|0|
+doc|rename|3 => 0|3|3|0|
+doc|rename|5 => 0|5|5|0|
+doc|newfield|2 => 0|3|1|-|gift가 없는 문서에서 읽은 값=NULL
+doc|newfield|3 => 0|4|1|-|gift가 없는 문서에서 읽은 값=NULL
+doc|newfield|5 => 0|6|1|-|gift가 없는 문서에서 읽은 값=NULL
+doc|typo|2 => 0|3|6|9|
+doc|typo|3 => 0|4|9|12|
+doc|typo|5 => 0|6|15|18|
+extra separate => 조인 없이 테이블마다 따로 읽으면 쿼리 3번: orders 1행, order_item 2행, product 2행
+extra schemacheck => 3819 | 올바른 문서는 0
+extra partial => 문서 1개만 고친 뒤 상품 1의 이름 종류=기계식 키보드,키보드

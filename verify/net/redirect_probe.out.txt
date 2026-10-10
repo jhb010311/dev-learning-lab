@@ -1,0 +1,34 @@
+# node v24.18.0 (fetch) · curl 8.21.0
+301|GET|ok => GET /orders|GET /orders|2|2|200|200
+301|GET|loop => GET /orders|GET /orders|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+301|POST|ok => GET /orders|GET /orders|2|2|200|200
+301|POST|loop => GET /orders|GET /orders|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+301|PUT|ok => PUT /orders +본문|PUT /orders +본문|2|2|200|200
+301|PUT|loop => PUT /orders +본문|PUT /orders +본문|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+302|GET|ok => GET /orders|GET /orders|2|2|200|200
+302|GET|loop => GET /orders|GET /orders|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+302|POST|ok => GET /orders|GET /orders|2|2|200|200
+302|POST|loop => GET /orders|GET /orders|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+302|PUT|ok => PUT /orders +본문|PUT /orders +본문|2|2|200|200
+302|PUT|loop => PUT /orders +본문|PUT /orders +본문|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+303|GET|ok => GET /orders|GET /orders|2|2|200|200
+303|GET|loop => GET /orders|GET /orders|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+303|POST|ok => GET /orders|GET /orders|2|2|200|200
+303|POST|loop => GET /orders|GET /orders|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+303|PUT|ok => GET /orders|GET /orders|2|2|200|200
+303|PUT|loop => GET /orders|GET /orders|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+307|GET|ok => GET /orders|GET /orders|2|2|200|200
+307|GET|loop => GET /orders|GET /orders|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+307|POST|ok => POST /orders +본문|POST /orders +본문|2|2|200|200
+307|POST|loop => POST /orders +본문|POST /orders +본문|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+307|PUT|ok => PUT /orders +본문|PUT /orders +본문|2|2|200|200
+307|PUT|loop => PUT /orders +본문|PUT /orders +본문|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+308|GET|ok => GET /orders|GET /orders|2|2|200|200
+308|GET|loop => GET /orders|GET /orders|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+308|POST|ok => POST /orders +본문|POST /orders +본문|2|2|200|200
+308|POST|loop => POST /orders +본문|POST /orders +본문|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+308|PUT|ok => PUT /orders +본문|PUT /orders +본문|2|2|200|200
+308|PUT|loop => PUT /orders +본문|PUT /orders +본문|21|51|ERR redirect count exceeded|ERR exit 47 (47) Maximum (50) redirects followed
+# 따라가지 않음 http.get => 302 Location=/orders 요청 1번
+# 따라가지 않음 curl(-L 없음) => 302 요청 1번
+# 따라가지 않음 fetch(redirect: manual) => 302 Location=/orders 요청 1번

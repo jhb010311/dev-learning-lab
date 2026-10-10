@@ -1,0 +1,10 @@
+# TCP와 UDP: Node.js v24.18.0 (win32), 127.0.0.1에서 실행. 조합마다 5번 실행해 매번 같은 결과인지 확인
+# proto|recv|net => 연결 결과|오류 없이 끝난 보내기|보내는 쪽이 받은 오류|받는 프로그램이 읽은 덩어리
+tcp|on|ok => connected|3|none|["ABCDEF"]
+tcp|on|loss => (실행으로 재현하지 않음: 문서 기준)
+tcp|on|reorder => (실행으로 재현하지 않음: 문서 기준)
+tcp|off|ok => failed|0|ECONNREFUSED|[]
+udp|on|ok => none|3|none|["AB","CD","EF"]
+udp|on|loss => none|3|none|["AB","EF"]
+udp|on|reorder => none|3|none|["AB","EF","CD"]
+udp|off|ok => none|3|none|[]

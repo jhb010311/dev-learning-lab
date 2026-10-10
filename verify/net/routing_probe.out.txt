@@ -1,0 +1,20 @@
+# 스위치와 라우터: RFC 826, 791, 792, 1122, 1812의 규칙을 옮겨 계산한 값 (실제 장비 실행이 아님)
+# dst|ttl|arp => 판단|첫 프레임의 받는 MAC 주인|ARP 요청|결과|끝났을 때 TTL|프레임(구간 보내는MAC>받는MAC TTL)|IP 그대로|ICMP가 보낸 쪽에 닿음|그때 추가 ARP
+b|64|empty => direct|B|1|delivered|64|A>B 0A>0B ttl64|true|-|-
+b|64|cached => direct|B|0|delivered|64|A>B 0A>0B ttl64|true|-|-
+b|2|empty => direct|B|1|delivered|2|A>B 0A>0B ttl2|true|-|-
+b|2|cached => direct|B|0|delivered|2|A>B 0A>0B ttl2|true|-|-
+b|1|empty => direct|B|1|delivered|1|A>B 0A>0B ttl1|true|-|-
+b|1|cached => direct|B|0|delivered|1|A>B 0A>0B ttl1|true|-|-
+c|64|empty => gateway|R1|2|delivered|63|A>R1 0A>11 ttl64; R1>C 12>0C ttl63|true|-|-
+c|64|cached => gateway|R1|0|delivered|63|A>R1 0A>11 ttl64; R1>C 12>0C ttl63|true|-|-
+c|2|empty => gateway|R1|2|delivered|1|A>R1 0A>11 ttl2; R1>C 12>0C ttl1|true|-|-
+c|2|cached => gateway|R1|0|delivered|1|A>R1 0A>11 ttl2; R1>C 12>0C ttl1|true|-|-
+c|1|empty => gateway|R1|1|dropped at R1|0|A>R1 0A>11 ttl1|true|true|0
+c|1|cached => gateway|R1|0|dropped at R1|0|A>R1 0A>11 ttl1|true|true|0
+d|64|empty => gateway|R1|3|delivered|62|A>R1 0A>11 ttl64; R1>R2 12>21 ttl63; R2>D 22>0D ttl62|true|-|-
+d|64|cached => gateway|R1|0|delivered|62|A>R1 0A>11 ttl64; R1>R2 12>21 ttl63; R2>D 22>0D ttl62|true|-|-
+d|2|empty => gateway|R1|2|dropped at R2|0|A>R1 0A>11 ttl2; R1>R2 12>21 ttl1|true|true|0
+d|2|cached => gateway|R1|0|dropped at R2|0|A>R1 0A>11 ttl2; R1>R2 12>21 ttl1|true|true|0
+d|1|empty => gateway|R1|1|dropped at R1|0|A>R1 0A>11 ttl1|true|true|0
+d|1|cached => gateway|R1|0|dropped at R1|0|A>R1 0A>11 ttl1|true|true|0

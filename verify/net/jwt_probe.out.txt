@@ -1,0 +1,34 @@
+# node v24.18.0 | openssl 3.5.7 | HMAC-SHA256, base64url
+# exp 1767225600 = 2026-01-01T00:00:00.000Z | before 1767225000 = 2025-12-31T23:50:00.000Z | after 1767225660 = 2026-01-01T00:01:00.000Z
+# header.hs256 {"alg":"HS256","typ":"JWT"} -> eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+# header.none {"alg":"none","typ":"JWT"} -> eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0
+# payload.user {"sub":"7","role":"USER","exp":1767225600} -> eyJzdWIiOiI3Iiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjcyMjU2MDB9
+# payload.admin {"sub":"7","role":"ADMIN","exp":1767225600} -> eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ
+# sig.ok 5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
+# sig.serverForAdmin _Crl3waja45Oj0WU2YHqH-bAhgouCo5PsGQEAgYkIuQ
+# sig.other qmZRR9KJgyn1QAoptqhfdyZ5pV0I2gPLAaszvAlaFJ8
+# token.ok eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Iiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjcyMjU2MDB9.5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
+# token.payload eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ.5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
+# token.otherkey eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ.qmZRR9KJgyn1QAoptqhfdyZ5pV0I2gPLAaszvAlaFJ8
+# token.none eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ.
+# decoded.ok {"alg":"HS256","typ":"JWT"} {"sub":"7","role":"USER","exp":1767225600}
+# decoded.payload {"alg":"HS256","typ":"JWT"} {"sub":"7","role":"ADMIN","exp":1767225600}
+# decoded.otherkey {"alg":"HS256","typ":"JWT"} {"sub":"7","role":"ADMIN","exp":1767225600}
+# decoded.none {"alg":"none","typ":"JWT"} {"sub":"7","role":"ADMIN","exp":1767225600}
+# boundary now==exp: reject | now==exp-1: accept
+ok|before|fixed => match|valid|accept|USER
+ok|before|trust => match|valid|accept|USER
+ok|after|fixed => match|expired|reject|-
+ok|after|trust => match|expired|reject|-
+payload|before|fixed => mismatch|skipped|reject|-
+payload|before|trust => mismatch|skipped|reject|-
+payload|after|fixed => mismatch|skipped|reject|-
+payload|after|trust => mismatch|skipped|reject|-
+otherkey|before|fixed => mismatch|skipped|reject|-
+otherkey|before|trust => mismatch|skipped|reject|-
+otherkey|after|fixed => mismatch|skipped|reject|-
+otherkey|after|trust => mismatch|skipped|reject|-
+none|before|fixed => alg-rejected|skipped|reject|-
+none|before|trust => not-checked|valid|accept|ADMIN
+none|after|fixed => alg-rejected|skipped|reject|-
+none|after|trust => not-checked|expired|reject|-

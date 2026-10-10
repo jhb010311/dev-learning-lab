@@ -1,0 +1,17 @@
+# node v24.18.0 · curl 8.21.0 · http-cache-semantics 4.2.0 · 모형의 1초 = 실제 30ms
+60|same|false|none => MISS,old|HIT,old|HIT,old|EXPIRED,old|2
+60|same|true|none => MISS,old|HIT,old|HIT,old|EXPIRED,new|2
+60|same|true|purge => MISS,old|HIT,old|MISS,new|HIT,new|2
+60|same|true|ver => MISS,old|HIT,old|MISS,new|HIT,new|2
+60|ref|false|none => MISS,old|MISS,old|HIT,old|EXPIRED,old|3
+60|ref|true|none => MISS,old|MISS,old|HIT,old|EXPIRED,new|3
+60|ref|true|purge => MISS,old|MISS,old|MISS,new|HIT,new|3
+60|ref|true|ver => MISS,old|MISS,old|MISS,new|HIT,new|3
+300|same|false|none => MISS,old|HIT,old|HIT,old|HIT,old|1
+300|same|true|none => MISS,old|HIT,old|HIT,old|HIT,old|1
+300|same|true|purge => MISS,old|HIT,old|MISS,new|HIT,new|2
+300|same|true|ver => MISS,old|HIT,old|MISS,new|HIT,new|2
+300|ref|false|none => MISS,old|MISS,old|HIT,old|HIT,old|2
+300|ref|true|none => MISS,old|MISS,old|HIT,old|HIT,old|2
+300|ref|true|purge => MISS,old|MISS,old|MISS,new|HIT,new|3
+300|ref|true|ver => MISS,old|MISS,old|MISS,new|HIT,new|3

@@ -1,0 +1,43 @@
+# mysql 8.4.11 | optimizer_switch: semijoin=on 1, materialization=on 1, subquery_to_derived=off 1 (1이면 그렇다)
+# 형식: kind|nul|pick => 오류 번호|오류 메시지|결과의 모든 행(JSON)|서브쿼리만 실행한 오류 번호|그 오류 메시지|그 결과의 행(JSON)|EXPLAIN의 select_type(줄 순서대로)|EXPLAIN ANALYZE의 서브쿼리 부분
+scalar|false|one => 0||[["박민수"]]|0||[["3"]]|PRIMARY,SUBQUERY|Select #2 줄 없음
+scalar|false|two => 1242|Subquery returns more than 1 row|[]|0||[["1"],["2"]]|-|-
+scalar|false|zero => 0||[]|0||[]|PRIMARY,SUBQUERY|Select #2 줄 없음
+scalar|true|one => 0||[["박민수"]]|0||[["3"]]|PRIMARY,SUBQUERY|Select #2 줄 없음
+scalar|true|two => 1242|Subquery returns more than 1 row|[]|0||[["1"],["2"]]|-|-
+scalar|true|zero => 0||[]|0||[]|PRIMARY,SUBQUERY|Select #2 줄 없음
+corr|false|one => 0||[["김철수","2"],["이영희","1"],["박민수","1"],["최지우","0"]]|1054|Unknown column 'm.id' in 'where clause'|[]|PRIMARY,DEPENDENT SUBQUERY|Select #2 (subquery in projection; dependent) / 바로 아래 줄의 loops=4
+corr|false|two => 0||[["김철수","2"],["이영희","1"],["박민수","1"],["최지우","0"]]|1054|Unknown column 'm.id' in 'where clause'|[]|PRIMARY,DEPENDENT SUBQUERY|Select #2 (subquery in projection; dependent) / 바로 아래 줄의 loops=4
+corr|false|zero => 0||[["김철수","2"],["이영희","1"],["박민수","1"],["최지우","0"]]|1054|Unknown column 'm.id' in 'where clause'|[]|PRIMARY,DEPENDENT SUBQUERY|Select #2 (subquery in projection; dependent) / 바로 아래 줄의 loops=4
+corr|true|one => 0||[["김철수","2"],["이영희","1"],["박민수","1"],["최지우","0"]]|1054|Unknown column 'm.id' in 'where clause'|[]|PRIMARY,DEPENDENT SUBQUERY|Select #2 (subquery in projection; dependent) / 바로 아래 줄의 loops=4
+corr|true|two => 0||[["김철수","2"],["이영희","1"],["박민수","1"],["최지우","0"]]|1054|Unknown column 'm.id' in 'where clause'|[]|PRIMARY,DEPENDENT SUBQUERY|Select #2 (subquery in projection; dependent) / 바로 아래 줄의 loops=4
+corr|true|zero => 0||[["김철수","2"],["이영희","1"],["박민수","1"],["최지우","0"]]|1054|Unknown column 'm.id' in 'where clause'|[]|PRIMARY,DEPENDENT SUBQUERY|Select #2 (subquery in projection; dependent) / 바로 아래 줄의 loops=4
+in|false|one => 0||[["김철수"],["이영희"],["박민수"]]|0||[["1"],["1"],["2"],["3"]]|SIMPLE,SIMPLE,MATERIALIZED|Select #2 줄 없음
+in|false|two => 0||[["김철수"],["이영희"],["박민수"]]|0||[["1"],["1"],["2"],["3"]]|SIMPLE,SIMPLE,MATERIALIZED|Select #2 줄 없음
+in|false|zero => 0||[["김철수"],["이영희"],["박민수"]]|0||[["1"],["1"],["2"],["3"]]|SIMPLE,SIMPLE,MATERIALIZED|Select #2 줄 없음
+in|true|one => 0||[["김철수"],["이영희"],["박민수"]]|0||[["1"],["1"],["2"],["3"],["NULL"]]|SIMPLE,SIMPLE|Select #2 줄 없음
+in|true|two => 0||[["김철수"],["이영희"],["박민수"]]|0||[["1"],["1"],["2"],["3"],["NULL"]]|SIMPLE,SIMPLE|Select #2 줄 없음
+in|true|zero => 0||[["김철수"],["이영희"],["박민수"]]|0||[["1"],["1"],["2"],["3"],["NULL"]]|SIMPLE,SIMPLE|Select #2 줄 없음
+exists|false|one => 0||[["김철수"],["이영희"],["박민수"]]|1054|Unknown column 'm.id' in 'where clause'|[]|SIMPLE,SIMPLE,MATERIALIZED|Select #2 줄 없음
+exists|false|two => 0||[["김철수"],["이영희"],["박민수"]]|1054|Unknown column 'm.id' in 'where clause'|[]|SIMPLE,SIMPLE,MATERIALIZED|Select #2 줄 없음
+exists|false|zero => 0||[["김철수"],["이영희"],["박민수"]]|1054|Unknown column 'm.id' in 'where clause'|[]|SIMPLE,SIMPLE,MATERIALIZED|Select #2 줄 없음
+exists|true|one => 0||[["김철수"],["이영희"],["박민수"]]|1054|Unknown column 'm.id' in 'where clause'|[]|SIMPLE,SIMPLE|Select #2 줄 없음
+exists|true|two => 0||[["김철수"],["이영희"],["박민수"]]|1054|Unknown column 'm.id' in 'where clause'|[]|SIMPLE,SIMPLE|Select #2 줄 없음
+exists|true|zero => 0||[["김철수"],["이영희"],["박민수"]]|1054|Unknown column 'm.id' in 'where clause'|[]|SIMPLE,SIMPLE|Select #2 줄 없음
+notin|false|one => 0||[["최지우"]]|0||[["1"],["1"],["2"],["3"]]|PRIMARY,SUBQUERY|Select #2 (subquery in condition; run only once)
+notin|false|two => 0||[["최지우"]]|0||[["1"],["1"],["2"],["3"]]|PRIMARY,SUBQUERY|Select #2 (subquery in condition; run only once)
+notin|false|zero => 0||[["최지우"]]|0||[["1"],["1"],["2"],["3"]]|PRIMARY,SUBQUERY|Select #2 (subquery in condition; run only once)
+notin|true|one => 0||[]|0||[["1"],["1"],["2"],["3"],["NULL"]]|PRIMARY,SUBQUERY|Select #2 (subquery in condition; run only once)
+notin|true|two => 0||[]|0||[["1"],["1"],["2"],["3"],["NULL"]]|PRIMARY,SUBQUERY|Select #2 (subquery in condition; run only once)
+notin|true|zero => 0||[]|0||[["1"],["1"],["2"],["3"],["NULL"]]|PRIMARY,SUBQUERY|Select #2 (subquery in condition; run only once)
+notexists|false|one => 0||[["최지우"]]|1054|Unknown column 'm.id' in 'where clause'|[]|SIMPLE,SIMPLE|Select #2 줄 없음
+notexists|false|two => 0||[["최지우"]]|1054|Unknown column 'm.id' in 'where clause'|[]|SIMPLE,SIMPLE|Select #2 줄 없음
+notexists|false|zero => 0||[["최지우"]]|1054|Unknown column 'm.id' in 'where clause'|[]|SIMPLE,SIMPLE|Select #2 줄 없음
+notexists|true|one => 0||[["최지우"]]|1054|Unknown column 'm.id' in 'where clause'|[]|SIMPLE,SIMPLE|Select #2 줄 없음
+notexists|true|two => 0||[["최지우"]]|1054|Unknown column 'm.id' in 'where clause'|[]|SIMPLE,SIMPLE|Select #2 줄 없음
+notexists|true|zero => 0||[["최지우"]]|1054|Unknown column 'm.id' in 'where clause'|[]|SIMPLE,SIMPLE|Select #2 줄 없음
+# = 대신 IN (키보드를 주문한 회원): [["김철수"],["이영희"]]
+# LEFT JOIN과 GROUP BY로 회원마다 주문 수: [["김철수","2"],["이영희","1"],["박민수","1"],["최지우","0"]]
+# NULL 주문이 있을 때 서브쿼리에 IS NOT NULL을 넣은 NOT IN: [["최지우"]]
+# member_id가 NOT NULL인 테이블에서 같은 NOT IN 문장: select_type SIMPLE,SIMPLE, 결과 [["최지우"]]
+# 1,000행씩일 때의 select_type: corr PRIMARY,DEPENDENT SUBQUERY / in SIMPLE,SIMPLE,MATERIALIZED / exists SIMPLE,SIMPLE,MATERIALIZED / notin PRIMARY,SUBQUERY / notexists SIMPLE,SIMPLE,MATERIALIZED

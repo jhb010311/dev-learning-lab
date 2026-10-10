@@ -1,0 +1,22 @@
+# java 21.0.12.1 | javax.crypto.Mac HmacSHA256, java.util.Base64 url
+# sig.serverForAdmin _Crl3waja45Oj0WU2YHqH-bAhgouCo5PsGQEAgYkIuQ
+# token.ok eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Iiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjcyMjU2MDB9.5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
+# token.payload eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ.5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
+# token.otherkey eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ.qmZRR9KJgyn1QAoptqhfdyZ5pV0I2gPLAaszvAlaFJ8
+# token.none eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ.
+ok|before|fixed => accept|USER
+ok|before|trust => accept|USER
+ok|after|fixed => reject:만료됨|-
+ok|after|trust => reject:만료됨|-
+payload|before|fixed => reject:서명 불일치|-
+payload|before|trust => reject:서명 불일치|-
+payload|after|fixed => reject:서명 불일치|-
+payload|after|trust => reject:서명 불일치|-
+otherkey|before|fixed => reject:서명 불일치|-
+otherkey|before|trust => reject:서명 불일치|-
+otherkey|after|fixed => reject:서명 불일치|-
+otherkey|after|trust => reject:서명 불일치|-
+none|before|fixed => reject:허용하지 않는 알고리즘|-
+none|before|trust => accept|ADMIN
+none|after|fixed => reject:허용하지 않는 알고리즘|-
+none|after|trust => reject:만료됨|-

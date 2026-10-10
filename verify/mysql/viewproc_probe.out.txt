@@ -1,0 +1,14 @@
+# mysql 8.4.11 | autocommit=1 | product 1행(재고 10), 주문 문장 하나 실행
+insert|false|3 => result=ok|orders=1|stock=10|log=0|memo=|viewBefore=10|view=10|copy=10|viewType=VIEW/NULL|copyType=BASE TABLE/InnoDB
+insert|false|6 => result=ok|orders=1|stock=10|log=0|memo=|viewBefore=10|view=10|copy=10|viewType=VIEW/NULL|copyType=BASE TABLE/InnoDB
+insert|false|12 => result=ok|orders=1|stock=10|log=0|memo=|viewBefore=10|view=10|copy=10|viewType=VIEW/NULL|copyType=BASE TABLE/InnoDB
+insert|true|3 => result=ok|orders=1|stock=7|log=1|memo=트리거|viewBefore=10|view=7|copy=10|viewType=VIEW/NULL|copyType=BASE TABLE/InnoDB
+insert|true|6 => result=ok|orders=1|stock=4|log=1|memo=트리거|viewBefore=10|view=4|copy=10|viewType=VIEW/NULL|copyType=BASE TABLE/InnoDB
+insert|true|12 => result=error 3819 Check constraint 'chk_stock' is violated.|orders=0|stock=10|log=0|memo=|viewBefore=10|view=10|copy=10|viewType=VIEW/NULL|copyType=BASE TABLE/InnoDB
+proc|false|3 => result=ok|orders=1|stock=7|log=1|memo=프로시저|viewBefore=10|view=7|copy=10|viewType=VIEW/NULL|copyType=BASE TABLE/InnoDB
+proc|false|6 => result=ok|orders=1|stock=4|log=1|memo=프로시저|viewBefore=10|view=4|copy=10|viewType=VIEW/NULL|copyType=BASE TABLE/InnoDB
+proc|false|12 => result=error 3819 Check constraint 'chk_stock' is violated.|orders=0|stock=10|log=0|memo=|viewBefore=10|view=10|copy=10|viewType=VIEW/NULL|copyType=BASE TABLE/InnoDB
+proc|true|3 => result=ok|orders=1|stock=4|log=2|memo=트리거,프로시저|viewBefore=10|view=4|copy=10|viewType=VIEW/NULL|copyType=BASE TABLE/InnoDB
+proc|true|6 => result=error 3819 Check constraint 'chk_stock' is violated.|orders=0|stock=4|log=0|memo=|viewBefore=10|view=4|copy=10|viewType=VIEW/NULL|copyType=BASE TABLE/InnoDB
+proc|true|12 => result=error 3819 Check constraint 'chk_stock' is violated.|orders=0|stock=10|log=0|memo=|viewBefore=10|view=10|copy=10|viewType=VIEW/NULL|copyType=BASE TABLE/InnoDB
+# tx-check proc|true|6 (트랜잭션 안에서 CALL, 오류 시 ROLLBACK) => result=error 3819|orders=0|stock=10|log=0

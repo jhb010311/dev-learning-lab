@@ -1,0 +1,13 @@
+# mysql 8.4.11 | innodb_deadlock_detect=1 | innodb_lock_wait_timeout 기본값=50 | innodb_rollback_on_timeout=0 | 격리 수준=REPEATABLE-READ
+rev|eq|giveup => 0|1213|rolledback|900|1100|오류까지 걸린 시간(ms)=77,락 대기 제한(초)=20,trx_weight A=4(LOCK WAIT) B=3(RUNNING),오류 직후 record_locks=0,rows_modified=0,자기가 고친 행을 다시 읽은 값=1000
+rev|eq|retry => 0|1213|rolledback|950|1050|오류까지 걸린 시간(ms)=10,락 대기 제한(초)=20,trx_weight A=4(LOCK WAIT) B=3(RUNNING),오류 직후 record_locks=0,rows_modified=0,자기가 고친 행을 다시 읽은 값=1000
+rev|eq|commit => 0|1213|rolledback|900|1100|오류까지 걸린 시간(ms)=4,락 대기 제한(초)=20,trx_weight A=4(LOCK WAIT) B=3(RUNNING),오류 직후 record_locks=0,rows_modified=0,자기가 고친 행을 다시 읽은 값=1000
+rev|b|giveup => 1213|0|rolledback|1050|950|오류까지 걸린 시간(ms)=7,락 대기 제한(초)=20,trx_weight A=4(LOCK WAIT) B=54(RUNNING),오류 직후 record_locks=0,rows_modified=0,자기가 고친 행을 다시 읽은 값=1000
+rev|b|retry => 1213|0|rolledback|950|1050|오류까지 걸린 시간(ms)=3,락 대기 제한(초)=20,trx_weight A=4(LOCK WAIT) B=54(RUNNING),오류 직후 record_locks=0,rows_modified=0,자기가 고친 행을 다시 읽은 값=1000
+rev|b|commit => 1213|0|rolledback|1050|950|오류까지 걸린 시간(ms)=26,락 대기 제한(초)=20,trx_weight A=4(LOCK WAIT) B=54(RUNNING),오류 직후 record_locks=0,rows_modified=0,자기가 고친 행을 다시 읽은 값=1000
+same|eq|giveup => 0|0|-|950|1050|B가 기다린 시간(ms)=46,대기 중인 트랜잭션 수=1
+hold|eq|giveup => 0|1205|kept|900|1100|오류까지 걸린 시간(ms)=2002,락 대기 제한(초)=2,대기 중인 트랜잭션 수=1,오류 직후 record_locks=1,rows_modified=1,자기가 고친 행을 다시 읽은 값=950
+hold|eq|retry => 0|1205|kept|950|1050|오류까지 걸린 시간(ms)=2002,락 대기 제한(초)=2,대기 중인 트랜잭션 수=1,오류 직후 record_locks=1,rows_modified=1,자기가 고친 행을 다시 읽은 값=950
+hold|eq|commit => 0|1205|kept|900|1050|오류까지 걸린 시간(ms)=2002,락 대기 제한(초)=2,대기 중인 트랜잭션 수=1,오류 직후 record_locks=1,rows_modified=1,자기가 고친 행을 다시 읽은 값=950
+# repeat eq: 30번 되풀이, A가 롤백된 횟수=0, B가 롤백된 횟수=30
+# repeat b: 30번 되풀이, A가 롤백된 횟수=30, B가 롤백된 횟수=0
