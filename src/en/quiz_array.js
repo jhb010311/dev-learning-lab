@@ -1,0 +1,23 @@
+// Quiz questions for the "Arrays" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'array', q: 'In an array created with int[] a = new int[3];, which element numbers (indexes) can be used?',
+    a: ['0, 1, 2', '1, 2, 3', '0, 1, 2, 3', '-1, 0, 1'],
+    why: 'Indexes start at 0 and end at length - 1. With a length of 3, they are 0, 1, and 2. a[3] is an element that does not exist, so using it throws an ArrayIndexOutOfBoundsException at run time.',
+    sim: { c: { shape: '1', type: 'int', copy: 'clone', idx: '3' }, col: 1, has: 'ArrayIndexOutOfBoundsException' } },
+  { lv: 1, id: 'array', q: 'Right after String[] a = new String[3]; runs, what does each element hold in which no value has been stored?',
+    a: ['null (refers to no object)', '"" (an empty string with no characters at all)', '"null" (a string of four characters)', 'An undefined value that differs from one time to the next'],
+    why: 'When an array is created, every element is filled with a default value. It is 0 for numeric types, false for boolean, and null for reference types such as String. An empty string and null are different.',
+    sim: { c: { shape: '1', type: 'String', copy: 'clone', idx: '0' }, col: 2, has: '[null, null, null]' } },
+  { lv: 2, id: 'array', q: 'After int[] b = a; b[2] = 7; runs, a[2] also reads as 7. Why?',
+    a: ['Because an array variable holds a reference, so after the assignment a and b refer to the same single array', 'Because the assignment copies the whole array, but the elements of the two arrays stay connected', 'Because the elements of an int array are a shared space that all arrays of the same length use together', 'Because when a value is stored in an array, Java also stores it in the other arrays of the same type'],
+    why: 'An array is an object too, and an array variable holds a reference to the array. b = a only copies that reference, so there is still only one array. If you want a separate array, create a new one with a.clone() or Arrays.copyOf.',
+    sim: { c: { shape: '1', type: 'int', copy: 'ref', idx: '2' }, col: 2, has: '[0, 0, 7]' } },
+  { lv: 3, id: 'array', q: 'What do you get when you read a[0][2] after int[][] a = new int[2][3]; int[][] b = a.clone(); b[0][2] = 7; runs?',
+    a: ['7. clone creates only a new outer array, and the row arrays are shared', '0. clone creates new copies of everything, including the row arrays', '0. a == b is false, so the two arrays have no effect on each other', 'An exception is thrown. clone is not allowed on a two-dimensional array'],
+    why: 'A two-dimensional array is an array whose elements hold references to row arrays. clone creates only the one outer level anew and copies the references in its elements as they are, so a[0] and b[0] are the same row array. To have separate rows as well, you must clone each row.',
+    sim: { c: { shape: '2', type: 'int', copy: 'clone', idx: '2' }, col: 2, has: '[[0, 0, 7], [0, 0, 0]]' } },
+  { lv: 3, id: 'array', q: 'What happens when int[] a = new int[3]; for (int i = 0; i <= a.length; i++) a[i] = i; runs?',
+    a: ['An ArrayIndexOutOfBoundsException is thrown when i is 3', 'The array grows automatically and has four elements', 'A compile-time error occurs and the program does not run', 'Only the last assignment is silently ignored, and the program ends normally'],
+    why: 'a.length is 3 and the condition uses <=, so the loop runs up to the iteration in which i is 3. a[3] is an element that does not exist, and the length of an array does not grow, so an exception is thrown at run time. Write the condition as i < a.length.',
+    sim: { c: { shape: '1', type: 'int', copy: 'ref', idx: '3' }, col: 1, has: 'Index 3 out of bounds for length 3' } },
+]);

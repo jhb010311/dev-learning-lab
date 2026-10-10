@@ -1,0 +1,18 @@
+// Quiz questions for the "Classes, objects, and constructors" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab's model.
+Lab.quiz([
+  { lv: 1, id: 'ctor', q: 'Which is the correct order of what happens when an object is created with new?',
+    a: ['Fields are set to their default values → field initializers and initializer blocks → constructor body', 'Constructor body → field initializers and initializer blocks → fields are set to their default values', 'Field initializers and initializer blocks → fields are set to their default values → constructor body', 'Fields are set to their default values → constructor body → field initializers and initializer blocks'],
+    why: 'Once memory for the object is allocated, all fields are first set to their default values (0, false, null). Then the field initializers and initializer blocks run in the order in which they are written in the class, and the constructor body runs last. That is why the constructor body can see the values that the initializers assigned.' },
+  { lv: 2, id: 'ctor', q: 'You add the constructor Order(int extra) to a class that declared no constructors, and new Order() in another file no longer compiles. Why?',
+    a: ['Because once you write even one constructor yourself, the compiler does not provide a default constructor', 'Because once there are two constructors, the compiler cannot decide which one to call', 'Because of a rule that new must always be given arguments when a constructor with arguments exists', 'Because a default constructor is created only for classes that have no field initializers'],
+    why: 'The compiler provides a default constructor only when the class declares no constructors at all. The moment you write Order(int extra), there is no longer a no-argument constructor, so no constructor matches new Order(). To keep using it, you must write the Order() constructor yourself.',
+    sim: { c: { ctors: 'arg', call: 'noarg', first: 'field' }, col: 0, has: 'Error' } },
+  { lv: 3, id: 'ctor', q: 'An initializer block { qty = 20; } is written below the field int qty = 10, and the constructor Order() calls Order(int extra) with this(1) on its first line. Order(int extra) executes qty = qty + extra. What is qty after new Order()?',
+    a: ['21', '11', '1', '41'],
+    why: 'qty goes from its default value 0 to 10 through the initializer and then to 20 through the block below it, and only then does the constructor body run. Order(int extra), called with this(1), adds 1 to make 21. The initializer and the block run only once, even when one constructor goes through another with this(...).',
+    sim: { c: { ctors: 'chain', call: 'noarg', first: 'field' }, col: 2, has: '21' } },
+  { lv: 3, id: 'ctor', q: 'A class that declares no constructors has a field String memo with no initializer. What is printed if you print memo right after creating an object with new?',
+    a: ['null is printed', 'An empty string is printed', 'A compile-time error occurs because the field is not initialized', 'A NullPointerException is thrown'],
+    why: 'A field is set to its default value even if you do not give it a value, and the default value of a reference type is null. Unlike reading a local variable that has not been given a value, this is not a compile-time error. Just printing null does not throw an exception. The text null is printed.',
+    sim: { c: { ctors: 'none', call: 'noarg', first: 'field' }, col: 2, has: 'null' } },
+]);

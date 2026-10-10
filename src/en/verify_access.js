@@ -1,0 +1,1 @@
+Lab.verify({ access: ['run', 'The 24 combinations were compiled on JDK 21 from sources split into packages, and whether compilation succeeded and the error messages were checked against the results'] });

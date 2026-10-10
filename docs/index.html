@@ -951,8 +951,10 @@ var Lab = (function () {
       var en = LANG === 'en', cands = ix.by[en ? text.charAt(i).toLowerCase() : text.charAt(i)], hit = null, got = '';
       if (cands) for (var k = 0; k < cands.length; k++) {
         var c = cands[k], e = ix.entries[c.i], seg = text.substr(i, c.w.length);
-        if (!(en ? seg.toLowerCase() === c.lw : seg === c.w) || !glScope(e, ctx)) continue;
-        if (en) { var pl = /^(es|s)(?![A-Za-z0-9])/.exec(text.substr(i + seg.length, 3)); if (pl && glAlnum(seg.charAt(seg.length - 1))) seg += pl[1]; }
+        // 영어의 대문자 약어(CAS, GC 등)는 글자 그대로만 찾는다. 그러지 않으면 CAS가 "cases"의 앞부분에 걸린다.
+        var ac = en && c.w === c.w.toUpperCase() && /[A-Z]/.test(c.w);
+        if (!(en && !ac ? seg.toLowerCase() === c.lw : seg === c.w) || !glScope(e, ctx)) continue;
+        if (en) { var pl = (ac ? /^(s)(?![A-Za-z0-9])/ : /^(es|s)(?![A-Za-z0-9])/).exec(text.substr(i + seg.length, 3)); if (pl && glAlnum(seg.charAt(seg.length - 1))) seg += pl[1]; }
         if (glEdge(text, i, seg, e)) { hit = c; got = seg; break; }
       }
       if (!hit) { buf += text.charAt(i); i++; continue; }
@@ -15143,7 +15145,7 @@ Lab.register({
     var leak = r.fin !== 2;
     sum.push('(1) 뒤 내부 상품 ' + r.a + '개, (2)의 결과 ' + (r.via === 'ok' ? '예외 없음' : r.via) + ', 최종 내부 상품 ' + r.fin + '개(처음 2개).');
     sum.push('final은 변수가 가리키는 대상을 바꾸지 못하게 할 뿐, 대상 객체의 내용 변경은 막지 않습니다. 객체를 불변으로 만들려면 필드가 가리키는 가변 객체(리스트, 배열, Date 등)가 밖과 공유되지 않도록 해야 합니다.');
-    if (leak) sum.push('밖에서 내부 상태가 바뀌었습니다. 받을 때 복사하고(생성자), 내줄 때도 복사하거나 수정 불가로 감싸야(getter) 합니다. 이를 방어적 복사라고 합니다.');
+    if (leak) sum.push('밖에서 내부 상태가 바뀌었습니다. 받을 때 복사하고(생성자), 내줄 때도 복사하거나 수정 불가로 감싸야(getter) 합니다. 이렇게 복사해 두는 것을 방어적 복사라고 합니다.');
     else sum.push('들어올 때와 나갈 때 모두 막아서 밖에서 내부를 바꿀 수 없습니다. 생성자에서 List.copyOf(items)를 쓰면 복사와 수정 불가를 한 번에 얻습니다.');
     if (c.in === 'ref' && c.out === 'unmod') sum.push('수정 불가 뷰는 "이 뷰를 통해서는" 바꿀 수 없다는 뜻입니다. 원본 리스트를 쥔 쪽이 바꾸면 뷰에도 그대로 보입니다.');
     sum.push('record도 마찬가지입니다. 필드는 final이지만 리스트 같은 가변 객체를 담으면 그 내용은 바뀔 수 있습니다.');
@@ -16176,7 +16178,7 @@ Lab.register({
     }
     if (W === 'state') {
       if (I) { out = '컴파일 오류: = expected (인터페이스의 필드는 값이 정해진 상수여야 함)'; push('인터페이스 안에 값이 없는 필드와 생성자를 넣었습니다. 인터페이스의 필드는 자동으로 public static final, 즉 모든 곳에서 같은 값인 상수가 됩니다. 객체마다 다른 값을 담는 필드나 그것을 초기화하는 생성자는 둘 수 없습니다.', 'bad', 2); }
-      else { push('추상 클래스 Payment에는 amount 필드와 생성자가 있습니다. Card는 이것을 물려받습니다.', '', 2); out = 'amount=150'; push('Card의 pay()가 물려받은 amount(100)에 50을 더해 출력합니다. 공통으로 쓰는 상태와 초기화 코드를 부모에 한 번만 두고 자식들이 나눠 씁니다.', 'good', 3); }
+      else { push('추상 클래스 Payment에는 amount 필드와 생성자가 있습니다. Card는 amount 필드를 물려받고, Card 객체를 만들 때 Payment의 생성자도 실행됩니다(생성자 자체는 상속되지 않습니다).', '', 2); out = 'amount=150'; push('Card의 pay()가 물려받은 amount(100)에 50을 더해 출력합니다. 공통으로 쓰는 상태와 초기화 코드를 부모에 한 번만 두고 자식들이 나눠 씁니다.', 'good', 3); }
       sum.push('추상 클래스는 상태(필드)와 생성자를 가질 수 있고, 인터페이스는 상수만 가질 수 있습니다. 여러 구현이 같은 필드와 같은 코드를 공유해야 하면 추상 클래스가 맞습니다.');
     }
     if (W === 'default') { push('Card는 pay()만 채우고 name()은 구현하지 않았습니다. ' + (I ? 'Payable의 name()은 default 메서드라서 본문이 있습니다.' : 'Payment의 name()은 본문이 있는 일반 메서드입니다.'), '', 2); out = '기본 이름'; push('new Card().name()을 호출하면 ' + T + '에 적혀 있는 내용이 실행됩니다. ' + (I ? '자바 8부터 인터페이스도 default 메서드로 기본 구현을 줄 수 있게 됐습니다. 이미 여러 클래스가 구현한 인터페이스에 메서드를 추가해도 기존 클래스들이 깨지지 않게 하려고 생긴 기능입니다.' : '추상 클래스는 원래부터 일반 메서드를 가질 수 있습니다.'), 'good', 3); sum.push('둘 다 본문이 있는 메서드를 물려줄 수 있습니다. 차이는 그 메서드가 객체의 필드를 쓸 수 있느냐입니다. 인터페이스의 default 메서드는 상태가 없으므로 다른 메서드를 호출하는 식으로만 작성할 수 있습니다.'); }

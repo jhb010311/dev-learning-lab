@@ -40,7 +40,14 @@ function toEnglish(html) {
 module.exports.toEnglish = toEnglish;
 
 if (require.main === module) {
-  const { list, files } = loadLessons();
+  let { list, files } = loadLessons();
+  // 영어판: 아직 다 옮기지 않은 실습은 빼고 만든다(설명집 용어, 문제 파일, 검증 수준 파일이 모두 있어야 한다)
+  const skipEn = new Set();
+  if (EN) { list.forEach(l => { const why = []; (l.terms || []).forEach(t => { if (!kb.some(r => r[1] === t)) why.push('설명집에 없는 용어 ' + t); });
+      ['quiz_', 'verify_'].forEach(p => { if (!fs.existsSync(path.join(dir, p + l.id + '.js'))) why.push(p + l.id + '.js 없음'); });
+      if (why.length) { skipEn.add(l.id); console.log('영어판에서 제외(아직 다 옮기지 않음): ' + l.id + ' — ' + why.join(', ')); } });
+    files = files.filter((x, i) => !skipEn.has(list[i].id)); list = list.filter(l => !skipEn.has(l.id)); }
+  const enReady = x => !EN || !skipEn.has(x.replace(/^(quiz|verify)_/, '').replace(/\.js$/, ''));
   // 영어판의 글에는 한글이 남아 있으면 안 된다 (목차 파일의 책 이름과 언어 바꾸기 글자는 예외라서 따로 본다)
   if (EN) { const bad = []; const scan = (d, re) => ls(d).filter(x => re.test(x)).forEach(x => fs.readFileSync(path.join(d, x), 'utf8').split('\n').forEach((l, i) => { if (HAN.test(l)) bad.push(x + ':' + (i + 1) + ' ' + l.trim().slice(0, 70)); }));
     scan(path.join(dir, 'lessons'), /\.js$/); scan(dir, /^(quiz|verify|glossary).*\.js$/); scan(kbDir, /^kb.*\.js$/);
@@ -60,7 +67,7 @@ if (require.main === module) {
   tracks.forEach(t => { if (!t.id || !t.name || !t.desc || !t.steps.length) throw new Error('학습 경로 형식 오류: ' + t.id); t.steps.forEach(s => { if (!ids.has(s[0])) throw new Error(t.id + ': 없는 개념 ' + s[0]); if (!s[1] || !s[2]) throw new Error(t.id + ': 단계 설명 없음 ' + s[0]); inTrack.add(s[0]); }); if (new Set(t.steps.map(s => s[0])).size !== t.steps.length) throw new Error(t.id + ': 같은 개념이 두 번 들어감'); });
   console.log('학습 경로', tracks.length + '개, 단계', tracks.reduce((a, t) => a + t.steps.length, 0) + '개');
   // 개념 테스트 문제: 형식, 가리키는 학습 경로와 실습, 그리고 실습 모형의 결과와 정답이 맞는지(sim) 확인
-  const quizFiles = ls(dir).filter(f => /^quiz.*\.js$/.test(f)).sort();
+  const quizFiles = ls(dir).filter(f => /^quiz.*\.js$/.test(f) && enReady(f)).sort();
   const quizSrc = quizFiles.map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
   const bank = []; new Function('Lab', quizSrc)({ quiz: q => bank.push(...q) });
   let simChecked = 0;
@@ -82,7 +89,7 @@ if (require.main === module) {
   const gl = []; new Function('Lab', glossSrc)({ glossary: g => gl.push(...g) });
   // 영어판: 아직 옮기지 않은 용어나 실습을 가리키는 항목은 뺀다
   if (EN) for (let i = gl.length - 1; i >= 0; i--) { const e = gl[i]; if (e.kb && !kb.some(r => r[1] === e.kb)) { gl.splice(i, 1); continue; } if (e.only) { e.only = e.only.filter(id => ids.has(id)); if (!e.only.length) gl.splice(i, 1); } if (e.not) { e.not = e.not.filter(id => ids.has(id)); if (!e.not.length) delete e.not; } }
-  const aliasMap = {};
+  const aliasMap = Object.create(null); // 영어 낱말(constructor 등)이 객체의 기본 속성 이름과 겹치지 않게 빈 틀에서 시작한다
   gl.forEach((e, i) => {
     const at = 'glossary #' + (i + 1) + ' (' + (e.kb || e.t) + ')';
     if (e.kb) { if (!kb.some(r => r[1] === e.kb)) throw new Error(at + ': 설명집에 없는 용어'); if (e.t || e.d) throw new Error(at + ': kb 항목에는 t, d를 쓰지 않음'); }
@@ -96,7 +103,7 @@ if (require.main === module) {
   Object.keys(aliasMap).forEach(w => [''].concat([...ids]).forEach(ctx => { const hit = [...new Set(aliasMap[w].filter(e => applies(e, ctx)).map(e => e.kb || e.t))]; if (hit.length > 1) throw new Error('glossary: "' + w + '"가 ' + (ctx || '(실습 밖)') + '에서 여러 항목에 걸림: ' + hit.join(' / ')); }));
   console.log('용어 풀이', gl.length + '개 항목, 찾는 표현', Object.keys(aliasMap).length + '개');
   // 검증 수준: 모든 실습에 항목이 있고, 수준이 네 가지 중 하나인지 확인
-  const verSrc = ls(dir).filter(f => /^verify.*\.js$/.test(f)).sort().map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
+  const verSrc = ls(dir).filter(f => /^verify.*\.js$/.test(f) && enReady(f)).sort().map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
   const ver = {}; new Function('Lab', verSrc)({ verify: v => { Object.keys(v).forEach(k => { if (ver[k]) throw new Error('verify: 같은 실습이 두 번 있음 ' + k); ver[k] = v[k]; }); } });
   list.forEach(l => { const v = ver[l.id]; if (!v || !['run', 'part', 'doc', 'model'].includes(v[0]) || !v[1]) throw new Error('verify: ' + l.id + ' 항목이 없거나 형식 오류'); });
   Object.keys(ver).forEach(id => { if (!ids.has(id)) throw new Error('verify: 없는 실습 ' + id); });

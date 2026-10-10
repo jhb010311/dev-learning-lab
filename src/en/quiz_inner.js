@@ -1,0 +1,19 @@
+// Quiz questions for the "Inner classes and anonymous classes" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'inner', q: 'What must already exist when you create an object of the inner class Inner, which is declared without static?',
+    a: ['An object of the outer class Outer', 'A subclass that extends Inner', 'A static field declared in Outer', 'The public access modifier on Inner'],
+    why: 'An object of an inner class without static is created in association with one particular outer object and holds a reference to that outer object. So you need an outer object o before you can create it with o.new Inner(), and trying to create it without an outer object is a compile-time error.',
+    sim: { c: { kind: 'inner', use: 'alone', loc: 'keep' }, col: 0, has: 'an enclosing instance' } },
+  { lv: 2, id: 'inner', q: 'Changing the value of a local variable that is used inside a lambda expression is a compile-time error. Which is the correct reason that Java prevents this?',
+    a: ['A lambda expression takes a copy of the value of the variable, so if the original changed, it would differ from the copy', 'A lambda expression moves the local variable into a static field so that all objects share it', 'A local variable can be given a value only once, when it is declared', 'A lambda expression creates the local variable again with its initial value every time it runs'],
+    why: 'A lambda expression and an anonymous class keep a copy of the value, not the local variable itself. This is because a local variable disappears when the method ends. If the original could be changed, its value would differ from the copy and cause confusion, so only variables whose values do not change (effectively final variables) can be used.',
+    sim: { c: { kind: 'lambda', use: 'alone', loc: 'change' }, col: 0, has: 'effectively final' } },
+  { lv: 3, id: 'inner', q: 'Inside a method of the Outer class, a Runnable is created as an anonymous class, and run() prints this.getClass().getName(). What is printed?',
+    a: ['Outer$1', 'Outer', 'Runnable', 'Object'],
+    why: 'Inside an anonymous class, this is the object created from that anonymous class itself. Because the class has no name, the compiler gives it the name Outer$1. If the same code is written as a lambda expression, this refers to the outer object and Outer is printed.',
+    sim: { c: { kind: 'anon', use: 'alone', loc: 'keep' }, col: 1, has: 'this = Outer$1' } },
+  { lv: 3, id: 'inner', q: 'A method of the static nested class Nested tries to read name, an instance field of the outer class Outer, directly. What happens?',
+    a: ['A compile-time error occurs and the program does not run', 'null is read, because the field is treated as having no value', 'The value of the most recently created Outer object is read', 'A NullPointerException is thrown at run time'],
+    why: 'An object of a static nested class has no reference to an outer object. name is a field that each Outer object has separately, so there is no way to determine whose name it is, and the compiler rejects the code with an error.',
+    sim: { c: { kind: 'nested', use: 'field', loc: 'keep' }, col: 0, has: 'Error' } },
+]);

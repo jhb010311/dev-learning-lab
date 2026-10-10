@@ -1,0 +1,22 @@
+// Quiz questions for the "Variables and types" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'vars', q: 'After Point a = new Point(1); runs, what does the variable a hold?',
+    a: ['A reference to the Point object created on the heap', 'The whole Point object, including the field x', 'The value 1 that is in the field x of the Point object', 'A string that records the name of the Point class'],
+    why: 'A variable of a reference type does not hold the object itself. It holds a reference that points to where the object is. The object is created on the heap by new. It is a variable of a primitive type such as int that holds the value itself.' },
+  { lv: 1, id: 'vars', q: 'int a = 1; int b = a; b = 99; are executed in order. What is printed when you then print a?',
+    a: ['1. Only the value was copied to b', '99. b and a use the same storage location', '99. An assignment links the two variables', '0. The value has moved over to b'],
+    why: 'A variable of a primitive type holds the value itself, and an assignment copies that value. a and b are separate variables, so a is still 1 after b is changed.',
+    sim: { c: { what: 'prim', how: 'assign' }, col: 1, has: '1' } },
+  { lv: 2, id: 'vars', q: 'After Point b = a; b.x = 99; runs, a.x also reads as 99. Why?',
+    a: ['Because what the assignment copied is a reference, so a and b refer to the same single object', 'Because the assignment copies the whole object, and the two objects are then kept at the same values', 'Because the field x is a shared storage location that all Point objects use together', 'Because when you assign to b.x, Java assigns the same value to a.x one more time'],
+    why: 'Assigning a variable of a reference type copies the reference, not the object. There is still only one object and both variables refer to it, so a change made through b is also visible when you read through a.',
+    sim: { c: { what: 'field', how: 'assign' }, col: 1, has: '99' } },
+  { lv: 3, id: 'vars', q: 'There is a method static void change(Point p) { p = new Point(99); }. What is printed when you print a.x after Point a = new Point(1); change(a); runs?',
+    a: ['1. Only p came to refer to the new object', '99. When a method changes a reference type, the outside changes too', '99. p is just another name for a', 'An error occurs. You cannot assign to a parameter'],
+    why: 'When a is passed to the method, the reference that a holds is copied to p. Assigning a new object to p changes only what p holds, and a and the object that a refers to stay the same. A change is visible outside only when the method changes the contents of the passed object (p.x = 99).',
+    sim: { c: { what: 'renew', how: 'call' }, col: 1, has: '1' } },
+  { lv: 3, id: 'vars', q: 'There is a method static void change(Point p) { p.x = 99; }. What is printed when you print a.x after Point a = new Point(1); change(a); runs?',
+    a: ['99. p and a refer to the same object', '1. A copy of the object is passed to the method', '1. The change disappears when the method finishes', '0. The object is reset when the method finishes'],
+    why: 'What is copied and passed is the reference, not the object. p and a refer to the same object, so when the method changes the contents of that object, the change remains after the method finishes. Only the parameter p disappears.',
+    sim: { c: { what: 'field', how: 'call' }, col: 1, has: '99' } },
+]);

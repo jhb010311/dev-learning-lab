@@ -93,7 +93,9 @@ if (!errs.length) for (const c of combos(ko)) {
   let a, b; try { a = runAll(ko, c); b = runAll(en, c); } catch (e) { err('실행 오류 ' + at + ': ' + e.message); break; }
   same(a.sim, b.sim, 'sim');
   if (a.calls.join() !== b.calls.join()) err('render가 부르는 그리기 도구의 순서가 다름');
-  if (JSON.stringify(a.scenes) !== JSON.stringify(b.scenes)) sceneDiff++;
+  // 상자의 id가 한글 데이터(상품 이름 등)로 만들어지는 실습이 있다. 그런 id는 영어판에서 달라질 수밖에 없으므로, 한글이 없는 글자이기만 하면 같은 것으로 본다.
+  const norm = (sc, ref) => JSON.stringify(sc.map((items, i) => items.map((it, j) => { const r = ref[i] && ref[i][j]; return { k: it.k, cls: it.cls, id: r && HAN.test(r.id) && !HAN.test(it.id) ? '§' : HAN.test(it.id) ? '§' : it.id }; })));
+  if (norm(a.scenes, a.scenes) !== norm(b.scenes, a.scenes)) sceneDiff++;
   const ac = a.code.split('\n'), bc = b.code.split('\n');
   if (ac.length !== bc.length) err('code의 줄 수가 다름'); else ac.forEach((l, i) => { if (!HAN.test(l) && l !== bc[i]) err('code에서 한글이 없던 줄이 바뀜: ' + bc[i].trim().slice(0, 60)); });
   [b.code, b.label].concat(b.sim.summary, b.sim.row.map(String), b.sim.events.map(e => e.s)).forEach(x => { if (HAN.test(x)) err('결과에 한글이 남음: ' + String(x).slice(0, 60)); });

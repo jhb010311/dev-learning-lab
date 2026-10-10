@@ -1,0 +1,5 @@
+// Quiz questions for the poly lab. The first entry of a is the correct answer.
+Lab.quiz([
+  { lv: 2, id: 'poly', q: 'Dog overrides sound() of Animal. Which method does Animal a = new Dog(); a.sound(); run?', a: ['sound() of Dog. It is decided at run time by the type of the actual object', 'sound() of Animal. It is decided by the declared type of the variable', 'A compile-time error occurs', 'Both run, one after the other'], why: 'An overridden method is selected at run time according to the type of the actual object, not the type of the variable.' },
+  { lv: 2, id: 'poly', q: 'Among methods that have the same name and different parameter types (overloading), when is it decided which one is called, and on what basis?', a: ['At compile time, based on the declared type of the argument', 'At run time, based on the type of the actual object that the argument refers to', 'At run time, based on the order in which the methods are declared', 'At compile time, based on the return type'], why: 'Overloading is decided at compile time by the declared type of the argument. What follows the actual type at run time is overriding.' },
+]);

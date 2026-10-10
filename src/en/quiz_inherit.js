@@ -1,0 +1,19 @@
+// Quiz questions for the "Inheritance and overriding" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab's model.
+Lab.quiz([
+  { lv: 1, id: 'inherit', q: 'Dog extends Animal. When new Dog() runs, in what order do the pieces finish running?',
+    a: ['Animal constructor → field initializer of Dog → body of the Dog constructor', 'Field initializer of Dog → body of the Dog constructor → Animal constructor', 'Field initializer of Dog → Animal constructor → body of the Dog constructor', 'Body of the Dog constructor → field initializer of Dog → Animal constructor'],
+    why: 'A subclass constructor calls the superclass constructor first, on its first line. The field initializers of the subclass run only after the superclass constructor finishes, and the body of the subclass constructor comes last of all. This is because the inherited part must be ready first for the subclass to be able to use it.',
+    sim: { c: { pctor: 'arg', sup: 'arg', pcall: false, sm: false }, col: 1, has: 'Animal(String) runs / Dog() runs' } },
+  { lv: 2, id: 'inherit', q: 'The superclass has only the constructor Animal(String name). Why is it a compile-time error when the subclass constructor Dog() does not write super(...)?',
+    a: ['Because there is no no-argument superclass constructor for the super() that the compiler inserts to call', 'Because a subclass can have only constructors that take exactly the same arguments as the superclass', 'Because super(...) can never be omitted and must always be written explicitly', 'Because superclass constructors are not inherited, so there is no way to call them from the subclass'],
+    why: 'If you do not write super(...), the compiler inserts super() with no arguments on the first line. The superclass declares a constructor itself, so it did not get a no-argument default constructor, and super() has nothing to call. Calling the constructor yourself with an argument, as in super("Buddy"), solves the problem.',
+    sim: { c: { pctor: 'arg', sup: 'omit', pcall: false, sm: false }, col: 0, has: 'Error' } },
+  { lv: 3, id: 'inherit', q: 'The constructor of Animal calls describe(). Dog declares the field String sound = "Woof" and overrides describe() to print sound. What does describe() print while new Dog() is running?',
+    a: ['It prints sound=null', 'It prints sound=Woof', 'describe() of Animal runs instead', 'A compile-time error occurs, and nothing runs'],
+    why: 'Even though the call is made inside the superclass constructor, the actual object is a Dog, so describe() of Dog runs. But the field initializer of Dog runs after the superclass constructor finishes, so at that point sound has its default value, null. That is why it is better for a constructor not to call methods that can be overridden.',
+    sim: { c: { pctor: 'arg', sup: 'arg', pcall: true, sm: false }, col: 1, has: 'sound=null' } },
+  { lv: 2, id: 'inherit', q: 'What happens when describe(), which Dog overrides, calls super.describe() inside it?',
+    a: ['The original describe() written in Animal runs', 'describe() of Dog calls itself again', 'One more Animal object is newly created', 'The overriding is canceled, and a compile-time error occurs'],
+    why: 'super.method() calls the overridden method of the superclass. There is still only one object, and the code written in the superclass runs on that object. Use it when you want to keep the behavior of the superclass as it is and add the behavior of the subclass to it.',
+    sim: { c: { pctor: 'arg', sup: 'arg', pcall: false, sm: true }, col: 2, has: 'name=Buddy / sound=Woof' } },
+]);
