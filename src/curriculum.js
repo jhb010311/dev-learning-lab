@@ -100,7 +100,7 @@ Lab.curriculum([
         { id: 'actuator' },
       ] },
       { name: '그 밖의 기능', items: [
-        { t: '테스트', d: '단위 테스트와 스프링 컨텍스트를 띄우는 테스트' },
+        { id: 'testing' },
         { id: 'restclient' },
         { id: 'cacheabs' },
         { id: 'security' },
