@@ -1,0 +1,13 @@
+# mysql 8.4.11 | 기본 격리 수준 REPEATABLE-READ
+dirty|RU => 500|-|없음|끝난 뒤 1000
+dirty|RC => 1000|-|없음|끝난 뒤 1000
+dirty|RR => 1000|-|없음|끝난 뒤 1000
+dirty|SER => 1000|-|A가 기다림|끝난 뒤 1000
+nonrep|RU => 1000|500|없음|끝난 뒤 500
+nonrep|RC => 1000|500|없음|끝난 뒤 500
+nonrep|RR => 1000|1000|없음|끝난 뒤 500
+nonrep|SER => 1000|1000|B가 기다림|끝난 뒤 500
+phantom|RU => 3건|4건|없음|끝난 뒤 4건
+phantom|RC => 3건|4건|없음|끝난 뒤 4건
+phantom|RR => 3건|3건|없음|끝난 뒤 4건
+phantom|SER => 3건|3건|B가 기다림|끝난 뒤 4건

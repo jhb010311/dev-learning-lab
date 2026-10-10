@@ -1,0 +1,5 @@
+{
+ "gcmTampered": "FAIL: Unsupported state or unable to authenticate data",
+ "rsaTampered": "FAIL: error:02000079:rsa routines::oaep decoding error",
+ "rsaOk": "주문 100원"
+}

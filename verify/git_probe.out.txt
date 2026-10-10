@@ -1,0 +1,95 @@
+[merge, main에 새 커밋]
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'd.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'c.txt', LF will be replaced by CRLF the next time Git touches it
+Merge 부모 수 4
+Merge branch 'feature' C E D B A 
+[merge, main 그대로]
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'd.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e.txt', LF will be replaced by CRLF the next time Git touches it
+Updating 8d2b4d6..6ee22b1 Fast-forward 
+E D B A 
+[rebase 후 merge]
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'd.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'd.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'c.txt', LF will be replaced by CRLF the next time Git touches it
+fatal: Needed a single revision
+fatal: Needed a single revision
+D,E 해시 전: / 후: 
+Updating 8e3b19a..db966c2 Fast-forward 
+E D C B A | 병합 커밋 수: 0
+[rebase한 브랜치를 이미 push했다면]
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'd.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'c.txt', LF will be replaced by CRLF the next time Git touches it
+ ! [rejected]        feature -> feature (non-fast-forward)
+ + c20e217...bdeb2fd feature -> feature (forced update)
+[squash]
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'd.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'd.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'c.txt', LF will be replaced by CRLF the next time Git touches it
+Automatic merge went well; stopped before committing as requested
+Squash commit -- not updating HEAD
+S: 부모 수 1
+S C B A | feature가 main에 합쳐졌다고 git이 아는가: 0
+[merge 충돌]
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+CONFLICT (content): Merge conflict in f.txt Automatic merge failed; fix conflicts and then commit the result. 
+<<<<<<< HEAD
+limit = 10
+=======
+limit = 20
+>>>>>>> feature
+[rebase 충돌]
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'a.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'f.txt', LF will be replaced by CRLF the next time Git touches it
+CONFLICT (content): Merge conflict in f.txt Could not apply 73fda6d... # D 
+merge: 병합 커밋의 부모 수 = 2, 기존 커밋 D 해시 유지 = D 9973127
+rebase: D 9973127 → 9110ddc, E af59e60 → cf390ab, D의 부모 = C

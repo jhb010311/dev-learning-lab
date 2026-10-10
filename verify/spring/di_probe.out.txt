@@ -1,0 +1,13 @@
+# spring boot 4.1.1
+ctor|false|false => 성공|OrderRepository → OrderService → OrderController|OrderRepository → OrderService → OrderController|
+ctor|false|true => 성공|OrderRepository → OrderService → OrderController|OrderRepository → OrderService → OrderController|
+ctor|true|false => 실패|OrderRepository|OrderRepository|BeanCurrentlyInCreationException
+ctor|true|true => 실패|OrderRepository|OrderRepository|BeanCurrentlyInCreationException
+field|false|false => 성공|OrderController → OrderService → OrderRepository|OrderRepository → OrderService → OrderController|
+field|false|true => 성공|OrderController → OrderService → OrderRepository|OrderRepository → OrderService → OrderController|
+field|true|false => 실패|OrderController → OrderService → OrderRepository → PaymentService|OrderRepository|BeanCurrentlyInCreationException
+field|true|true => 성공|OrderController → OrderService → OrderRepository → PaymentService|OrderRepository → PaymentService → OrderService → OrderController|
+setter|false|false => 성공|OrderController → OrderService → OrderRepository|OrderRepository → OrderService → OrderController|
+setter|false|true => 성공|OrderController → OrderService → OrderRepository|OrderRepository → OrderService → OrderController|
+setter|true|false => 실패|OrderController → OrderService → OrderRepository → PaymentService|OrderRepository|BeanCurrentlyInCreationException
+setter|true|true => 성공|OrderController → OrderService → OrderRepository → PaymentService|OrderRepository → PaymentService → OrderService → OrderController|

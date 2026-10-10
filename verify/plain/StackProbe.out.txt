@@ -1,0 +1,6 @@
+factorial(4) = 24
+종료 조건 없음 = StackOverflowError, 깊이 16861에서 발생
+종료 조건 있음, 깊이 200000 = StackOverflowError, 깊이 10403에서 발생
+다른 스레드에서 StackOverflowError 발생 후 그 스레드 종료
+main 스레드는 계속 실행 중, factorial(5) = 120
+종료 조건 있음, 깊이 200000 = 정상 종료, 깊이 200000

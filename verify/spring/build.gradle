@@ -1,0 +1,22 @@
+// 실습 모형을 실제 스프링·JPA·Resilience4j·Kafka 클라이언트와 대조하기 위한 라이브러리 모음.
+// 빌드 도구 플러그인은 쓰지 않고, 필요한 jar만 libs/ 로 모은 뒤 javac/java로 직접 실행한다.
+plugins { id 'java' }
+
+repositories { mavenCentral() }
+
+dependencies {
+    implementation platform('org.springframework.boot:spring-boot-dependencies:4.1.1')
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-aspectj'
+    implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.4.0'
+    implementation 'org.apache.kafka:kafka-clients'
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+}
+
+tasks.register('copyLibs', Copy) {
+    from configurations.runtimeClasspath
+    into layout.projectDirectory.dir('libs')
+}

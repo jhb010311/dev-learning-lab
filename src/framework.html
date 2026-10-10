@@ -1,0 +1,1139 @@
+<title>개발 학습 실습실</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 레이아웃: 왼쪽에서 설정을 만지고, 오른쪽 무대에서 개념이 움직이는 것을 보고, 아래에서 실행끼리 비교한다. */
+:root {
+  --bg: #f4f6f8; --surface: #ffffff; --ink: #1b2430; --muted: #5a6575; --line: #d7dde5;
+  --busy: #ffd766; --busy-edge: #b98a00; --idle: #e7ebf0; --queue: #cfe3ff; --queue-edge: #2f6fc0;
+  --done: #cfeee6; --done-edge: #0f7a6c; --rej: #ffd9d4; --rej-edge: #b3362a; --accent: #0d6b60;
+  --term: #1558c0; --code-bg: #fbfcfd; --kw: #7a3e9d; --num: #a14a00; --type: #1f5fa8; --cm: #7b8494; --str: #0b6b3a;
+  --font-body: "IBM Plex Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  --font-code: "JetBrains Mono", "D2Coding", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11151b; --surface: #19202a; --ink: #e5eaf1; --muted: #9aa6b6; --line: #2a3441;
+  --busy: #6b5310; --busy-edge: #e3b93c; --idle: #232c38; --queue: #1c3760; --queue-edge: #7fb2f5;
+  --done: #15423c; --done-edge: #5fd0c0; --rej: #5a211c; --rej-edge: #ff9a8e; --accent: #5fd0c0;
+  --term: #8ab8ff; --code-bg: #141a22; --kw: #c79df2; --num: #f0b072; --type: #8cb8f0; --cm: #76828f; --str: #8fd6a4; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11151b; --surface: #19202a; --ink: #e5eaf1; --muted: #9aa6b6; --line: #2a3441;
+  --busy: #6b5310; --busy-edge: #e3b93c; --idle: #232c38; --queue: #1c3760; --queue-edge: #7fb2f5;
+  --done: #15423c; --done-edge: #5fd0c0; --rej: #5a211c; --rej-edge: #ff9a8e; --accent: #5fd0c0;
+  --term: #8ab8ff; --code-bg: #141a22; --kw: #c79df2; --num: #f0b072; --type: #8cb8f0; --cm: #76828f; --str: #8fd6a4; color-scheme: dark }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.65; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-inline: 20px; padding-block: 24px 64px; display: flex; flex-direction: column; gap: 24px; }
+h1 { font-size: 1.6rem; line-height: 1.25; margin: 0; font-weight: 700; }
+h2 { font-size: 1.25rem; line-height: 1.35; margin: 0; font-weight: 700; text-wrap: balance; }
+h3 { font-size: .8rem; margin: 0; font-weight: 600; letter-spacing: .04em; color: var(--muted); }
+p { margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+.muted { color: var(--muted); }
+.mono { font-family: var(--font-code); }
+
+.top { display: flex; flex-direction: column; gap: 10px; }
+.top p { max-width: 110ch; color: var(--muted); }
+.cats { display: flex; flex-direction: column; gap: 6px; }
+.catrow { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+.catname { font-size: .78rem; font-weight: 600; color: var(--muted); min-width: 5.5em; }
+.cat { border: 1px solid var(--line); background: var(--surface); padding: 5px 13px; border-radius: 999px; font-size: .88rem; cursor: pointer; }
+.cat:hover, .cat:focus-visible { border-color: var(--accent); outline: none; }
+.cat[aria-current="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 600; }
+.navbox { display: flex; flex-direction: column; gap: 12px; }
+.navhead { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.tracks { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 8px; }
+.track { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 8px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 1px; }
+.track b { font-size: .94rem; }
+.track span { font-size: .78rem; color: var(--muted); }
+.track:hover, .track:focus-visible { border-color: var(--accent); outline: none; }
+.track[aria-current="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.track[aria-current="true"] span { color: inherit; opacity: .75; }
+.trackpanel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.trackpanel p { color: var(--ink); }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.stagehead { font-size: .78rem; font-weight: 600; color: var(--accent); letter-spacing: .04em; margin-top: 8px; }
+.step { display: grid; grid-template-columns: 2em minmax(0, 1fr) auto; gap: 10px; align-items: start; text-align: left; width: 100%; border: 1px solid transparent; background: transparent; border-radius: 4px; padding: 6px 8px; cursor: pointer; }
+.step:hover, .step:focus-visible { border-color: var(--accent); outline: none; }
+.step[aria-current="true"] { background: var(--bg); border-color: var(--ink); }
+.step .num { font-family: var(--font-code); font-size: .8rem; color: var(--muted); padding-top: 2px; }
+.step .nm { font-weight: 600; }
+.step .nt { display: block; font-size: .84rem; color: var(--muted); font-weight: 400; }
+.step .seen { font-size: .74rem; color: var(--done-edge); white-space: nowrap; padding-top: 3px; }
+.pathbar { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; font-size: .86rem; }
+.pathbar .where { color: var(--muted); }
+.linkbtn { border: 0; background: transparent; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; font-size: inherit; }
+
+.lesson-head { border-top: 3px solid var(--ink); padding-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.eyebrow { font-size: .8rem; font-weight: 600; color: var(--accent); letter-spacing: .04em; }
+.lesson-head p { max-width: 72ch; }
+.titlerow { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+
+.explain { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 4px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.explain .bar2 { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 4px 12px; cursor: pointer; font-size: .86rem; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 600; }
+.terms { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px 26px; }
+.term b { display: block; }
+.term .no { font-family: var(--font-code); font-size: .74rem; color: var(--muted); font-weight: 400; }
+.term p { font-size: .92rem; max-width: 70ch; }
+
+/* 위에서부터: 설정과 예시 → 실행 띠(스크롤해도 따라옴) → 왼쪽 그림과 오른쪽 실행표 → 실행 비교 → 코드.
+   그림이 없는 실습은 그림 자리에 코드가 온다. 한 번의 실험(설정 → 실행 → 관찰 → 비교)이 한 화면 안에서 이어지게 한다. */
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); grid-template-areas: "ctl pre" "bar bar" "code stage"; gap: 16px 22px; align-items: start; }
+.p-ctl { grid-area: ctl; } .p-stage { grid-area: stage; } .p-pre { grid-area: pre; } .p-code { grid-area: code; } .p-pic { grid-area: pic; } .p-bar { grid-area: bar; }
+.grid:not(.haspic) .p-pic { display: none; }
+.grid.haspic { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-areas: "ctl pre" "bar bar" "pic stage"; }
+.below { display: flex; flex-direction: column; gap: 16px; }
+.ctls { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px 20px; align-items: start; }
+.presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px; }
+.grid.haspic .p-pic, .grid:not(.haspic) .p-code { position: sticky; top: calc(var(--barh, 104px) + 10px); max-height: calc(100vh - var(--barh, 104px) - 20px); overflow-y: auto; }
+/* 실행 띠: 조작 줄과 그 아래의 현재 단계 문장 */
+.p-bar { position: sticky; top: 0; z-index: 20; padding: 10px 16px; gap: 8px; box-shadow: 0 4px 14px rgba(0, 0, 0, .08); }
+.p-bar .runrow { gap: 8px 10px; }
+.p-bar .clock { font-family: var(--font-code); font-size: .84rem; color: var(--muted); margin-left: 4px; }
+.p-bar .clock b { color: var(--accent); }
+.p-bar .stale { font-size: .86rem; font-weight: 600; color: var(--busy-edge); margin-left: auto; }
+.p-bar.isstale #run { box-shadow: 0 0 0 3px color-mix(in srgb, var(--busy-edge) 45%, transparent); }
+.p-bar .now { min-height: 3.1em; padding: 4px 12px; display: flex; align-items: center; }
+.p-ctl .sub { border-top: 1px solid var(--line); padding-top: 10px; }
+.ask { border-left: 4px solid var(--queue-edge); background: var(--bg); padding: 10px 12px; border-radius: 0 4px 4px 0; display: flex; flex-direction: column; gap: 8px; }
+.askopts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 6px 18px; }
+.askopts .check { font-weight: 400; align-items: baseline; }
+.p-bar.asking .now { display: none; }
+.p-bar .predtoggle { margin-left: auto; font-weight: 400; font-size: .88rem; }
+.p-bar .stale:not([hidden]) ~ .predtoggle { margin-left: 0; }
+.vsprev ul { margin: 2px 0 0; padding-left: 1.2em; } .vsprev li.pok { color: var(--done-edge); } .vsprev li.pno { color: var(--rej-edge); font-weight: 600; }
+.ctlsum { display: none; font-size: .88rem; color: var(--muted); }
+.fold { align-self: flex-start; }
+.p-hist { gap: 10px; }
+.ctl.chg, .check.chg { outline: 2px solid var(--busy-edge); outline-offset: 4px; border-radius: 3px; }
+.chgtag { font-size: .72rem; font-weight: 600; color: var(--busy-edge); margin-left: 6px; }
+.preset[aria-pressed="true"] { border-color: var(--ink); background: var(--surface); box-shadow: inset 3px 0 0 var(--ink); }
+.vsprev { font-size: .88rem; border-top: 1px solid var(--line); margin-top: 8px; padding-top: 8px; display: flex; flex-direction: column; gap: 2px; }
+.vsprev .mono { font-size: .82rem; }
+.assume { font-size: .85rem; color: var(--muted); }
+/* 검증 수준: 이 모형이 무엇과 대조해 확인됐는지 */
+.vbadge { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: .82rem; }
+.vbadge b { border-radius: 999px; padding: 1px 10px; font-size: .76rem; border: 1px solid var(--line); background: var(--idle); white-space: nowrap; }
+.vbadge.run b { background: var(--done); border-color: var(--done-edge); } .vbadge.part b { background: var(--queue); border-color: var(--queue-edge); } .vbadge.doc b { background: var(--surface); border-color: var(--muted); }
+.vbadge span { color: var(--muted); }
+.vsum { font-size: .84rem; color: var(--muted); }
+.cat .vd { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; background: var(--muted); vertical-align: 1px; }
+.cat .vd.run { background: var(--done-edge); } .cat .vd.part { background: var(--queue-edge); } .cat .vd.model { background: transparent; border: 1px solid var(--muted); }
+/* 처음 화면과 분야 목록 */
+.brand { font-size: 1.25rem; font-weight: 700; color: var(--ink); text-decoration: none; }
+.brand:hover, .brand:focus-visible { color: var(--accent); outline: none; }
+.home, .catview { display: flex; flex-direction: column; gap: 28px; }
+.catview { gap: 16px; }
+.hero { display: flex; flex-direction: column; gap: 10px; padding-block: 12px 4px; }
+.hero h1 { font-size: 2rem; }
+.lead { font-size: 1.05rem; max-width: 64ch; }
+.hero .muted { max-width: 70ch; }
+.hsec { display: flex; flex-direction: column; gap: 10px; border-top: 3px solid var(--ink); padding-top: 14px; }
+.hsec h2 { font-size: 1.3rem; }
+.hsec h3 { margin-top: 8px; }
+.hsec.about p { max-width: 76ch; }
+.hgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.hgrid.small { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.hcard { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 14px 16px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; min-height: 96px; }
+.hgrid.small .hcard { min-height: 0; padding: 10px 14px; }
+.hcard b { font-size: 1.15rem; }
+.hgrid.small .hcard b { font-size: 1rem; }
+.hcard .d { font-size: .9rem; color: var(--muted); }
+.hcard .m { font-size: .8rem; color: var(--accent); font-weight: 600; margin-top: auto; }
+.hcard:hover, .hcard:focus-visible { border-color: var(--accent); outline: none; box-shadow: 0 2px 10px rgba(0, 0, 0, .08); }
+.hcard.test { border-left: 4px solid var(--queue-edge); }
+.crumbs, .eyebrow { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; font-size: .86rem; }
+.crumbs .sep, .eyebrow .sep { color: var(--muted); }
+.crumbs .here { font-weight: 600; }
+.cgroup { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.cgroup h3 { font-size: .92rem; color: var(--ink); letter-spacing: 0; }
+.step.todo { cursor: default; color: var(--muted); }
+.step.todo:hover { border-color: transparent; }
+.step.todo .nm { font-weight: 500; }
+.step .seen.todo { color: var(--muted); border: 1px dashed var(--line); border-radius: 999px; padding: 0 8px; }
+.site-foot { border-top: 1px solid var(--line); padding-top: 14px; font-size: .84rem; color: var(--muted); }
+.toprow { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between; }
+.picwrap { overflow-x: auto; }
+#pic { display: block; width: 100%; min-width: 520px; height: auto; font-family: var(--font-body); }
+#pic text { font-size: 12.5px; fill: var(--ink); }
+#pic .ttl { font-weight: 600; font-size: 13px; }
+#pic .mono { font-family: var(--font-code); font-size: 12px; }
+#pic .pr rect { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 5 4; }
+#pic .pr text { fill: var(--muted); font-weight: 600; }
+#pic .pb rect { fill: var(--idle); stroke: var(--line); stroke-width: 1; }
+#pic .pb.hot rect { fill: var(--busy); stroke: var(--busy-edge); }
+#pic .pb.wait rect { fill: var(--queue); stroke: var(--queue-edge); }
+#pic .pb.good rect { fill: var(--done); stroke: var(--done-edge); }
+#pic .pb.bad rect { fill: var(--rej); stroke: var(--rej-edge); }
+#pic .pb.plain rect { fill: var(--surface); stroke: var(--muted); }
+#pic .pb.ghost rect { fill: none; stroke: var(--muted); stroke-dasharray: 4 3; }
+#pic .pb.ghost text, #pic .pt.mut { fill: var(--muted); }
+#pic .pb.now rect { stroke: var(--ink); stroke-width: 2; }
+#pic .pt.bad { fill: var(--rej-edge); font-weight: 600; } #pic .pt.good { fill: var(--done-edge); font-weight: 600; }
+#pic .pa path { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+#pic .pa.hot path { stroke: var(--busy-edge); stroke-width: 2; } #pic .pa.bad path { stroke: var(--rej-edge); } #pic .pa.good path { stroke: var(--done-edge); } #pic .pa.mut path { stroke: var(--muted); }
+#pic .pa.dash path.ln { stroke-dasharray: 5 4; }
+#pic .pa text { font-size: 11.5px; fill: var(--muted); }
+.now.running { border-left-color: var(--accent); }
+.now .clock b { color: var(--accent); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.ctl { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; }
+.ctl label { font-size: .9rem; font-weight: 500; }
+.ctl output { font-family: var(--font-code); font-size: .85rem; font-variant-numeric: tabular-nums; }
+.ctl input[type=range], .ctl select { grid-column: 1 / -1; width: 100%; }
+.ctl input[type=range] { accent-color: var(--accent); }
+.ctl .hint { grid-column: 1 / -1; font-size: .8rem; color: var(--muted); }
+.check { display: flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 500; }
+.preset { text-align: left; border: 1px solid var(--line); background: var(--bg); border-radius: 4px; padding: 7px 10px; cursor: pointer; font-size: .88rem; }
+.preset:hover, .preset:focus-visible { border-color: var(--accent); outline: none; }
+.preset b { display: block; }
+.preset span { color: var(--muted); font-size: .82rem; }
+.runrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { border: 1px solid var(--ink); background: var(--ink); color: var(--bg); border-radius: 4px; padding: 7px 16px; cursor: pointer; font-weight: 600; }
+.btn.ghost { background: transparent; color: var(--ink); font-weight: 500; }
+.btn.small { padding: 4px 10px; font-size: .86rem; }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+select { border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 6px 8px; }
+
+.code { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; font-family: var(--font-code); font-size: .76rem; line-height: 1.6; overflow-x: auto; white-space: pre; tab-size: 4; }
+.k { color: var(--kw); } .n { color: var(--num); font-weight: 600; } .t { color: var(--type); } .c { color: var(--cm); } .s { color: var(--str); }
+
+.stage { display: flex; flex-direction: column; gap: 14px; }
+.now { border-left: 4px solid var(--busy-edge); padding: 8px 12px; background: var(--bg); border-radius: 0 4px 4px 0; min-height: 3.4em; }
+.now .clock { font-family: var(--font-code); font-size: .8rem; color: var(--muted); }
+.now .say { font-weight: 600; }
+.steprow { display: flex; flex-wrap: wrap; gap: 8px; }
+.view { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.counters { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.counter { border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; }
+.counter { min-width: 0; }
+.counter .v { font-family: var(--font-code); font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.counter .l { font-size: .78rem; color: var(--muted); }
+.lanes { display: flex; flex-direction: column; gap: 6px; }
+.lane { display: grid; grid-template-columns: 5.6em minmax(0, 1fr); gap: 8px; align-items: center; font-size: .85rem; }
+.lane .name { font-family: var(--font-code); font-size: .78rem; }
+.bar { position: relative; min-height: 28px; border-radius: 4px; background: var(--idle); border: 1px solid var(--line); overflow: hidden; }
+.bar .fill { position: absolute; inset: 0 auto 0 0; background: var(--busy); border-right: 2px solid var(--busy-edge); }
+.bar .txt { position: relative; display: flex; align-items: center; min-height: 26px; padding: 2px 8px; font-size: .8rem; }
+.lane.none .bar { border-style: dashed; background: transparent; }
+.lane.none .txt { color: var(--muted); }
+.lane.hot .bar { background: var(--busy); border-color: var(--busy-edge); }
+.lane.wait .bar { background: var(--queue); border-color: var(--queue-edge); }
+.lane.bad .bar { background: var(--rej); border-color: var(--rej-edge); }
+.lane.good .bar { background: var(--done); border-color: var(--done-edge); }
+.slots { display: flex; flex-wrap: wrap; gap: 6px; min-height: 30px; align-items: center; }
+.slot { min-width: 44px; min-height: 28px; border-radius: 4px; border: 1px dashed var(--line); display: flex; align-items: center; justify-content: center; font-family: var(--font-code); font-size: .78rem; color: var(--muted); padding: 2px 7px; }
+.slot.q { background: var(--queue); border: 1px solid var(--queue-edge); color: var(--ink); }
+.slot.r { background: var(--rej); border: 1px solid var(--rej-edge); color: var(--ink); }
+.slot.d { background: var(--done); border: 1px solid var(--done-edge); color: var(--ink); }
+.slot.b { background: var(--busy); border: 1px solid var(--busy-edge); color: var(--ink); }
+.slot.now { outline: 2px solid var(--ink); outline-offset: 1px; }
+.slots.mini { gap: 4px; }
+.slots.mini .slot { min-width: 30px; min-height: 26px; padding: 0 3px; }
+.log { margin: 0; padding: 0; list-style: none; max-height: 240px; overflow: auto; border: 1px solid var(--line); border-radius: 4px; font-size: .86rem; }
+.log li { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); gap: 8px; padding: 5px 10px; border-bottom: 1px solid var(--line); }
+.log li:last-child { border-bottom: 0; }
+.log .tm { font-family: var(--font-code); font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.log li.bad .tx { color: var(--rej-edge); font-weight: 600; }
+.log li.good .tx { color: var(--done-edge); font-weight: 600; }
+.verdict { background: var(--bg); border-radius: 4px; padding: 10px 12px; }
+.verdict:empty { display: none; }
+.verdict ul { margin: 6px 0 0; padding-left: 1.2em; }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .86rem; }
+table.hist { min-width: 640px; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+th { font-weight: 600; color: var(--muted); font-size: .78rem; }
+th:first-child, td:first-child, th.l, td.l { text-align: left; }
+tr:last-child td { border-bottom: 0; }
+tr.latest td { font-weight: 600; }
+table.data td, table.data th { text-align: left; font-family: var(--font-code); font-size: .78rem; }
+table.data td.hot { background: var(--busy); }
+table.data td.bad { background: var(--rej); }
+table.data td.good { background: var(--done); }
+table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
+.note { font-size: .85rem; color: var(--muted); max-width: 78ch; }
+.cap { font-size: .8rem; color: var(--muted); }
+
+/* 용어 풀이: 파란 낱말을 누르면 뜻이 뜬다 */
+.gl { color: var(--term); border-bottom: 1px dotted currentColor; cursor: pointer; border-radius: 2px; }
+.gl:hover, .gl:focus-visible { background: color-mix(in srgb, var(--term) 16%, transparent); border-bottom-style: solid; outline: none; }
+.glpop { position: absolute; z-index: 50; width: min(400px, calc(100vw - 24px)); background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-top: 3px solid var(--term); border-radius: 6px; box-shadow: 0 8px 28px rgba(0, 0, 0, .2); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; font-size: .92rem; font-weight: 400; }
+.glpop .glhead { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; }
+.glpop .glhead b { font-size: 1rem; }
+.glpop .glfoot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.glpop .no { font-family: var(--font-code); font-size: .74rem; color: var(--muted); }
+
+/* 개념 테스트 */
+.tabs { align-self: flex-start; }
+.tabs button { padding: 7px 18px; font-size: .95rem; }
+.wrap:not(.v-lab) .labonly { display: none !important; }
+.wrap:not(.v-quiz) #quizview { display: none; }
+.wrap:not(.v-home):not(.v-study):not(.v-quizpick) #homeview { display: none; }
+.wrap:not(.v-cat) #catview { display: none; }
+.quiz { display: flex; flex-direction: column; gap: 16px; border-top: 3px solid var(--ink); padding-top: 14px; }
+.quiz .qlead { max-width: 72ch; }
+.lvgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.lvgrid .track { padding: 12px 14px; gap: 4px; }
+.lvgrid .track b { font-size: 1.05rem; }
+.lvgrid .track span { font-size: .84rem; }
+.lvgrid .track .best { font-family: var(--font-code); font-size: .76rem; }
+.qmeta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; font-size: .88rem; }
+.qmeta .cnt { font-family: var(--font-code); font-weight: 600; }
+.qmeta .linkbtn { margin-left: auto; }
+.qbar { height: 4px; background: var(--idle); border-radius: 2px; overflow: hidden; }
+.qbar div { height: 100%; background: var(--accent); }
+.qcard { gap: 16px; max-width: 860px; }
+.qtext { font-size: 1.12rem; text-wrap: pretty; }
+.qbody { border-left: 4px solid var(--line); padding: 6px 12px; background: var(--bg); border-radius: 0 4px 4px 0; max-width: 72ch; }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.opt { display: grid; grid-template-columns: 1.6em minmax(0, 1fr) auto; gap: 8px; align-items: start; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 10px 12px; cursor: pointer; }
+.opt .num { font-family: var(--font-code); font-size: .82rem; color: var(--muted); padding-top: 1px; }
+.opt .mark { font-size: .76rem; font-weight: 600; white-space: nowrap; padding-top: 2px; }
+.opt:hover, .opt:focus-visible { border-color: var(--accent); outline: none; }
+.opt.good { background: var(--done); border-color: var(--done-edge); cursor: default; }
+.opt.bad { background: var(--rej); border-color: var(--rej-edge); cursor: default; }
+.opt.dim { color: var(--muted); cursor: default; }
+.opt.dim:hover { border-color: var(--line); }
+.feedback { border-left: 4px solid var(--done-edge); background: var(--bg); border-radius: 0 4px 4px 0; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+.feedback.bad { border-left-color: var(--rej-edge); }
+.feedback p { max-width: 72ch; }
+.qrev { border: 1px solid var(--line); border-left: 4px solid var(--done-edge); background: var(--surface); border-radius: 0 6px 6px 0; padding: 10px 14px; display: flex; flex-direction: column; gap: 4px; max-width: 860px; }
+.qrev.bad { border-left-color: var(--rej-edge); }
+.qrev .qq { font-weight: 600; }
+.qrev .small { font-size: .88rem; }
+.qrev .small.muted { max-width: 76ch; }
+.revbox { border-left: 4px solid var(--queue-edge); max-width: 860px; gap: 10px; }
+.score { font-family: var(--font-code); font-size: 1.5rem; font-weight: 600; }
+
+/* 좁은 화면: 한 줄로 쌓는다. 예시는 옆으로 넘기는 한 줄, 설정은 현재 값 요약과 함께 접어 둔다. */
+@media (max-width: 900px) {
+  .grid, .grid.haspic { grid-template-columns: minmax(0, 1fr); grid-template-areas: "pre" "ctl" "bar" "stage" "code"; }
+  .grid.haspic { grid-template-areas: "pre" "ctl" "bar" "pic" "stage"; }
+  .grid.haspic .p-pic, .grid:not(.haspic) .p-code { position: static; max-height: none; }
+  .presets { display: flex; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
+  .preset { flex: 0 0 min(230px, 72vw); scroll-snap-align: start; }
+  .ctlsum { display: block; }
+  .p-ctl.shut .ctls, .p-ctl.shut .sub { display: none; }
+  .p-bar { padding: 8px 12px; gap: 6px; }
+  .p-bar .btn { padding: 6px 11px; font-size: .9rem; }
+  .p-bar .lng { display: none; }
+  .p-bar .clock { font-size: .78rem; margin-left: 0; }
+  .p-bar .now { min-height: 0; }
+  .p-bar .say { font-size: .93rem; line-height: 1.5; }
+  .p-bar .stale { margin-left: 0; flex-basis: 100%; }
+  .p-bar.asking { position: static; }
+  .p-bar .predtoggle { margin-left: 0; }
+}
+@media (min-width: 901px) { #ctl-toggle { display: none; } }
+</style>
+
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="#home" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div></div>
+  </header>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="vbadge" id="vbadge"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요 · 누르면 그 설정으로 바꾸고 바로 실행합니다</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>이 설정에 해당하는 코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림으로 보기</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <p class="note">실행할 때마다 한 줄씩 쌓입니다. 설정 하나만 바꿔 다시 실행하면 그 설정이 결과를 어떻게 바꾸는지 보입니다.</p>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+
+<script>
+var Lab = (function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var lessons = [], cur = null, sim = null, clock = 0, timer = null, hist = {}, tracks = [], seen = {}, running = false, paused = false, hold = 0, predOn = false, ask = null, isStale = false, verify = {}, logOpen = false, assumeOpen = false, codeOpen = true, curri = [], curCat = null, view = 'home', SITE = { name: '개발 학습 실습실', feedback: '' };
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  var fmt = function (x) { return (Math.round(x * 10) / 10).toFixed(1); };
+  var RE = /(\/\/.*$|--.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(import|public|private|static|final|class|record|void|int|long|boolean|new|return|for|if|else|try|catch|finally|throw|throws|synchronized|volatile|instanceof|this|SELECT|FROM|WHERE|JOIN|LEFT|INNER|ON|IN|AND|UPDATE|SET|INSERT|INTO|VALUES|DELETE|ORDER|GROUP|BY|LIMIT)\b|(@\w+)|\b(\d[\d_.]*)\b|\b([A-Z][a-z]\w*)\b/gm;
+  var CLS = [null, 'c', 's', 'k', 't', 'n', 't'];
+  function highlight(code) {
+    return code.split('\n').map(function (line) {
+      var out = '', last = 0, m; RE.lastIndex = 0;
+      while ((m = RE.exec(line))) {
+        out += esc(line.slice(last, m.index));
+        for (var g = 1; g <= 6; g++) if (m[g] !== undefined) { out += '<span class="' + CLS[g] + '">' + esc(m[0]) + '</span>'; break; }
+        last = m.index + m[0].length; if (m[0].length === 0) RE.lastIndex++;
+      }
+      return out + esc(line.slice(last));
+    }).join('\n');
+  }
+  // 무대를 그릴 때 쓰는 공통 도우미
+  var H = {
+    el: el, fmt: fmt,
+    title: function (p, t) { p.appendChild(el('h3', null, t)); },
+    counters: function (p, items) { var c = el('div', 'counters'); items.forEach(function (it) { var b = el('div', 'counter'); b.appendChild(el('div', 'v', String(it[0]))); b.appendChild(el('div', 'l', it[1])); c.appendChild(b); }); p.appendChild(c); return c; },
+    lane: function (p, name, text, cls, fill) { var l = el('div', 'lane' + (cls ? ' ' + cls : '')), b = el('div', 'bar'); l.appendChild(el('div', 'name', name)); if (fill !== undefined) { var f = el('div', 'fill'); f.style.width = Math.max(0, Math.min(100, fill * 100)) + '%'; b.appendChild(f); } b.appendChild(el('div', 'txt', text)); l.appendChild(b); p.appendChild(l); return l; },
+    lanes: function (p) { var d = el('div', 'lanes'); p.appendChild(d); return d; },
+    slots: function (p, items, empty, mini) { var s = el('div', 'slots' + (mini ? ' mini' : '')); if (!items.length && empty) s.appendChild(el('span', 'muted', empty)); items.forEach(function (it) { s.appendChild(el('div', 'slot' + (it[1] ? ' ' + it[1] : ''), it[0])); }); p.appendChild(s); return s; },
+    table: function (p, head, rows, caption) { var w = el('div', 'tablewrap'), t = el('table', 'data'), th = el('tr'); head.forEach(function (h) { th.appendChild(el('th', null, h)); }); var hd = el('thead'); hd.appendChild(th); t.appendChild(hd); var tb = el('tbody'); rows.forEach(function (r) { var tr = el('tr', r.cls || ''); r.cells.forEach(function (c) { var td = el('td', typeof c === 'object' ? c.cls : '', typeof c === 'object' ? c.v : c); tr.appendChild(td); }); tb.appendChild(tr); }); t.appendChild(tb); w.appendChild(t); if (caption) p.appendChild(el('div', 'cap', caption)); p.appendChild(w); return w; },
+    text: function (p, t, cls) { p.appendChild(el('p', cls || 'cap', t)); },
+  };
+
+  function cfg() {
+    var c = {};
+    cur.controls.forEach(function (d) { var e = $('ctl-' + d.id); c[d.id] = d.type === 'check' ? e.checked : d.type === 'range' ? +e.value : e.value; });
+    if (cur.fix) { var f = cur.fix(c); if (f) Object.keys(f).forEach(function (k) { c[k] = f[k]; var d = cur.controls.filter(function (x) { return x.id === k; })[0], e = $('ctl-' + k); if (d.type === 'check') e.checked = f[k]; else e.value = f[k]; }); }
+    return c;
+  }
+  function labels() {
+    var c = cfg();
+    cur.controls.forEach(function (d) {
+      var box = $('box-' + d.id); box.hidden = d.show ? !d.show(c) : false;
+      if (d.type === 'range') $('out-' + d.id).textContent = d.fmt ? d.fmt(c[d.id], c) : String(c[d.id]);
+    });
+    $('code').innerHTML = highlight(cur.code(c));
+    $('ctlsum').textContent = '지금 설정: ' + cur.label(c);
+    if (ask) { if (JSON.stringify(c) === JSON.stringify(sim.c)) askCancel(); else askShow(c); }
+    syncBar(c);
+  }
+  // 실행 띠의 상태: 화면의 결과가 지금 설정의 것이 아니면 알리고, 실행 버튼은 상황에 맞는 일(실행, 일시정지, 이어서)을 한다
+  function syncBar(c) {
+    var stale = !!sim && JSON.stringify(c || cfg()) !== JSON.stringify(sim.c), mid = !!sim && clock < sim.total - 1e-9;
+    isStale = stale; $('stale').hidden = !stale || !!ask; $('runbar').className = 'panel p-bar' + (stale ? ' isstale' : '') + (ask ? ' asking' : '');
+    $('run').textContent = stale ? '실행' : running ? '일시정지' : paused && mid ? '이어서' : '실행';
+    $('restart').hidden = stale || !(running || (paused && mid));
+  }
+  // 예시를 눌러 바뀐 설정에는 다음에 설정을 만질 때까지 표시를 남긴다
+  function clearMarks() {
+    Array.prototype.forEach.call($('controls').querySelectorAll('.chg'), function (x) { x.classList.remove('chg'); });
+    Array.prototype.forEach.call($('controls').querySelectorAll('.chgtag'), function (x) { x.parentNode.removeChild(x); });
+    Array.prototype.forEach.call($('presets').querySelectorAll('.preset'), function (x) { x.setAttribute('aria-pressed', 'false'); });
+  }
+  function onCtl() { clearMarks(); labels(); }
+  // 예측하고 실행: 지금 화면의 결과와 견주어, 새 설정에서 달라질 결과 항목을 실행 전에 고르게 한다
+  function askCancel() { ask = null; var b = $('ask'); b.hidden = true; b.textContent = ''; }
+  function askShow(c) {
+    stop(); paused = false; ask = { base: sim, picks: {} }; var a = ask, box = $('ask'); box.textContent = ''; box.hidden = false;
+    box.appendChild(el('b', null, '실행하기 전에 예측해 보세요'));
+    box.appendChild(el('p', null, '지금 화면의 결과는 「' + sim.label + '」 설정의 것입니다. 이번에 실행할 설정은 「' + cur.label(c) + '」입니다. 아래 결과 가운데 달라질 것을 모두 고르세요. 달라질 것이 없다고 생각하면 고르지 않고 실행합니다.'));
+    var wrap = el('div', 'askopts');
+    cur.columns.forEach(function (col, k) { var lb = el('label', 'check'), cb = el('input'); cb.type = 'checkbox'; cb.addEventListener('change', function () { a.picks[k] = cb.checked; }); lb.appendChild(cb); var tx = el('span', null, col + ' '); tx.appendChild(el('span', 'mono muted', '(지금 ' + sim.row[k] + ')')); lb.appendChild(tx); wrap.appendChild(lb); });
+    box.appendChild(wrap);
+    var row = el('div', 'runrow'), yes = el('button', 'btn', '예측하고 실행'), no = el('button', 'btn ghost', '예측 없이 실행'); yes.type = 'button'; no.type = 'button';
+    yes.addEventListener('click', function () { askCancel(); run(true, false, a); }); no.addEventListener('click', function () { askCancel(); run(true, false, null, true); });
+    row.appendChild(yes); row.appendChild(no); box.appendChild(row);
+  }
+  function buildControls() {
+    var box = $('controls'); box.textContent = '';
+    cur.controls.forEach(function (d) {
+      var w;
+      if (d.type === 'check') { w = el('label', 'check'); var cb = el('input'); cb.type = 'checkbox'; cb.id = 'ctl-' + d.id; cb.checked = !!d.value; cb.addEventListener('change', onCtl); w.appendChild(cb); w.appendChild(document.createTextNode(' ' + d.label)); }
+      else {
+        w = el('div', 'ctl'); var lb = el('label', null, d.label); lb.htmlFor = 'ctl-' + d.id; w.appendChild(lb);
+        if (d.type === 'range') { var o = el('output'); o.id = 'out-' + d.id; w.appendChild(o); var r = el('input'); r.type = 'range'; r.id = 'ctl-' + d.id; r.min = d.min; r.max = d.max; r.step = d.step || 1; r.value = d.value; r.addEventListener('input', onCtl); w.appendChild(r); }
+        else { w.appendChild(el('span')); var s = el('select'); s.id = 'ctl-' + d.id; d.options.forEach(function (op) { var x = el('option', null, op[1]); x.value = op[0]; s.appendChild(x); }); s.value = d.value; s.addEventListener('change', onCtl); w.appendChild(s); }
+        if (d.hint) w.appendChild(el('div', 'hint', d.hint));
+      }
+      w.id = 'box-' + d.id; box.appendChild(w);
+    });
+    var ps = $('presets'); ps.textContent = '';
+    cur.presets.forEach(function (p) {
+      var b = el('button', 'preset'); b.type = 'button'; b.setAttribute('aria-pressed', 'false'); b.appendChild(el('b', null, p.t)); b.appendChild(el('span', null, p.d));
+      b.addEventListener('click', function () {
+        var before = cfg(); setValues(p.v); var after = cfg(); clearMarks();
+        cur.controls.forEach(function (d) { if (String(before[d.id]) === String(after[d.id])) return; var bx = $('box-' + d.id); bx.classList.add('chg'); (bx.querySelector('label') || bx).appendChild(el('span', 'chgtag', '바뀜')); });
+        b.setAttribute('aria-pressed', 'true'); run(true);
+      });
+      ps.appendChild(b);
+    });
+  }
+  function setValues(v) { cur.controls.forEach(function (d) { if (v[d.id] === undefined) return; var e = $('ctl-' + d.id); if (d.type === 'check') e.checked = v[d.id]; else e.value = v[d.id]; }); labels(); }
+
+  function render(t) {
+    var shown = sim.events.filter(function (e) { return e.t <= t + 1e-9; }), last = shown[shown.length - 1];
+    $('clock').textContent = cur.mode === 'step' ? '단계 ' + shown.length + ' / ' + sim.events.length : '모형 속 시간 ' + fmt(Math.min(t, sim.total)) + '초 / ' + fmt(sim.total) + '초';
+    var state = running ? '실행 중 · ' : paused && t < sim.total - 1e-9 ? '멈춤 · ' : '';
+    if (state) { var cl = $('clock'), tx = cl.textContent; cl.textContent = ''; cl.appendChild(el('b', null, state)); cl.appendChild(document.createTextNode(tx)); }
+    $('say').parentNode.className = 'now' + (running ? ' running' : '');
+    var sayText = last ? last.s : running ? '시작합니다…' : '실행을 누르면 시작합니다.', sayEl = $('say'); if (sayEl.dataset.txt !== cur.id + '|' + sayText) { sayEl.dataset.txt = cur.id + '|' + sayText; glossInto(sayEl, sayText, cur.id); }
+    var v = $('view'); v.textContent = ''; cur.render(v, sim, t, H, shown); if (cur.draw) picDraw(t, shown);
+    var lg = $('log');
+    if (lg.children.length !== shown.length) {
+      lg.textContent = ''; var seenLog = {};
+      shown.forEach(function (e, i) { var li = el('li', e.k === 'bad' ? 'bad' : e.k === 'good' ? 'good' : ''); li.appendChild(el('span', 'tm', cur.mode === 'step' ? (i + 1) + '단계' : fmt(e.t) + '초')); li.appendChild(glossEl('span', 'tx', e.s, cur.id, seenLog)); lg.appendChild(li); });
+      lg.scrollTop = lg.scrollHeight;
+    }
+    $('log-toggle').textContent = (logOpen ? '전체 단계 기록 접기' : '전체 단계 기록 보기') + ' (' + shown.length + ')';
+  }
+  function verdict() {
+    var v = $('verdict'); v.textContent = ''; v.appendChild(el('b', null, '이번 실행 결과'));
+    var ul = el('ul'), seenV = {}; sim.summary.forEach(function (s) { ul.appendChild(glossEl('li', null, s, cur.id, seenV)); }); v.appendChild(ul);
+    if (sim._pred) {
+      var p = sim._pred, okN = 0, pd = el('div', 'vsprev'), pl = el('ul');
+      cur.columns.forEach(function (col, k) { var changed = String(p.baseRow[k]) !== String(sim.row[k]), pick = !!p.picks[k], ok = changed === pick; if (ok) okN++; pl.appendChild(el('li', ok ? 'pok' : 'pno', (ok ? '맞음' : '틀림') + ' · ' + col + ': ' + (changed ? p.baseRow[k] + ' → ' + sim.row[k] : '그대로 ' + sim.row[k]) + ' (예측: ' + (pick ? '달라진다' : '그대로') + ')')); });
+      pd.appendChild(el('b', null, '예측 확인 · ' + cur.columns.length + '개 가운데 ' + okN + '개 맞음')); pd.appendChild(el('span', null, '견준 설정: ' + p.baseLabel + ' → ' + sim.label)); pd.appendChild(pl); v.appendChild(pd); return;
+    }
+    // 바로 앞의 실행과 무엇이 달라졌는지를 결과 옆에 적어, 아래의 비교 표까지 내려가지 않아도 되게 한다
+    var list = hist[cur.id] || [], i = list.indexOf(sim), pv = i > 0 ? list[i - 1] : null; if (!pv) return;
+    var d = el('div', 'vsprev'), ch = []; d.appendChild(el('b', null, '직전 실행과 비교'));
+    d.appendChild(el('span', null, pv.label === sim.label ? '설정: 직전과 같음' : '설정: ' + pv.label + ' → ' + sim.label));
+    cur.columns.forEach(function (c, k) { if (String(pv.row[k]) !== String(sim.row[k])) ch.push(c + ' ' + pv.row[k] + ' → ' + sim.row[k]); });
+    d.appendChild(el('span', ch.length ? 'mono' : '', ch.length ? ch.join('  ·  ') : '결과: 직전 실행과 같습니다.'));
+    var lb = el('button', 'linkbtn', '실행 비교 표에서 모두 보기'); lb.type = 'button'; lb.style.alignSelf = 'flex-start'; lb.addEventListener('click', function () { $('histpanel').scrollIntoView({ behavior: 'smooth', block: 'center' }); }); d.appendChild(lb);
+    v.appendChild(d);
+  }
+  // 전제는 결과 바로 아래에 첫 문장만 먼저 보이고, 누르면 모두 보인다
+  function firstSentence(s) { var depth = 0; for (var i = 1; i < s.length - 1; i++) { var ch = s.charAt(i); if (ch === '(') depth++; else if (ch === ')') depth = Math.max(0, depth - 1); else if (ch === '.' && !depth && s.charAt(i + 1) === ' ' && '다요)'.indexOf(s.charAt(i - 1)) >= 0) return s.slice(0, i + 1); } return s; }
+  function drawAssume() { var one = firstSentence(cur.assume), b = $('assume-more'); glossInto($('assume'), '이 모형의 전제: ' + (assumeOpen ? cur.assume : one), cur.id); b.hidden = one === cur.assume; b.textContent = assumeOpen ? '줄이기' : '전제 모두 보기'; b.setAttribute('aria-expanded', String(assumeOpen)); }
+  // 검증 수준 표시: 제목 아래에 수준과 근거 한 줄, 전체 목록에는 점으로
+  var VER = { run: '실행으로 대조', part: '일부만 실행으로 확인', doc: '문서·표준 대조', model: '개념 모형' };
+  function drawVerify() { var v = verify[cur.id], b = $('vbadge'); b.textContent = ''; if (!v) { b.hidden = true; return; } b.hidden = false; b.className = 'vbadge ' + v[0]; b.appendChild(el('b', null, '검증: ' + VER[v[0]])); b.appendChild(el('span', null, v[1])); }
+  function drawCode() { var o = !cur.draw || codeOpen, b = $('code-toggle'); $('code').hidden = !o; b.hidden = !cur.draw; b.textContent = o ? '코드 접기' : '이 동작을 코드로 보기'; b.setAttribute('aria-expanded', String(o)); }
+  function drawHist() {
+    var hd = $('hist-head'); hd.textContent = ''; var tr = el('tr'); ['실행', '설정'].concat(cur.columns).forEach(function (c, i) { tr.appendChild(el('th', i === 1 ? 'l' : '', c)); }); hd.appendChild(tr);
+    var tb = $('hist'); tb.textContent = ''; var list = hist[cur.id] || [];
+    list.forEach(function (s, i) { var r = el('tr', i === list.length - 1 ? 'latest' : ''); r.appendChild(el('td', null, (i + 1) + '번')); r.appendChild(el('td', 'l', s.label)); s.row.forEach(function (x) { r.appendChild(el('td', null, String(x))); }); tb.appendChild(r); });
+  }
+  function stop() { if (timer) { clearInterval(timer); timer = null; } running = false; }
+  // 실행을 누르면 그림과 표가 보이도록, 화면의 아래쪽 절반 밖에 있을 때만 실행 띠가 맨 위에 오게 옮긴다. 옮겼으면 true.
+  function showStage() {
+    var r = (cur.draw ? $('picpanel') : $('stage')).getBoundingClientRect(), h = window.innerHeight || 800; if (r.top <= h * 0.5) return false;
+    var calm = document.hidden || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    window.scrollBy({ top: r.top - $('runbar').offsetHeight - 16, behavior: calm ? 'auto' : 'smooth' }); return true;
+  }
+  function record() { if (!sim._want || sim._rec) return; sim._rec = true; (hist[cur.id] = hist[cur.id] || []).push(sim); drawHist(); markSeen(); }
+  function finish() { stop(); paused = false; clock = sim.total; render(clock); record(); verdict(); syncBar(); }
+  function play() {
+    var prev = Date.now(), sp = cur.mode === 'step' ? 1 / 1.5 : 1.6; running = true; paused = false; sim._want = true;
+    timer = setInterval(function () { var now = Date.now(); if (now < hold) { prev = now; return; } clock += (now - prev) / 1000 * (+$('speed').value) * sp; prev = now; if (clock >= sim.total) finish(); else render(clock); }, 60);
+    render(clock); syncBar();
+  }
+  function pause() { stop(); paused = true; render(clock); syncBar(); }
+  // ── 화면 이동: 주소의 # 뒤를 보고 처음 화면, 분야 목록, 실습, 테스트 가운데 하나를 보여 준다.
+  //    #home 처음 · #study 공부(분야 고르기) · #study/java 분야의 목차 · #poly 실습 · #quiz 테스트(분야 고르기) · #quiz/java 테스트
+  function loadState() { try { seen = JSON.parse(localStorage.getItem('lab-seen') || '{}') || {}; } catch (e) { seen = {}; } }
+  function markSeen() { if (seen[cur.id]) return; seen[cur.id] = 1; try { localStorage.setItem('lab-seen', JSON.stringify(seen)); } catch (e) {} }
+  function byId(id) { return lessons.filter(function (l) { return l.id === id; })[0]; }
+  function catById(id) { return curri.filter(function (c) { return c.id === id; })[0]; }
+  // 분야 안의 실습을 목차 순서대로 (같은 실습이 두 번 나오면 처음 것만)
+  function lessonsOf(cat) { var out = [], had = {}; cat.groups.forEach(function (g) { g.items.forEach(function (it) { if (it.id && !had[it.id]) { had[it.id] = 1; out.push(it.id); } }); }); return out; }
+  function todoOf(cat) { var n = 0; cat.groups.forEach(function (g) { g.items.forEach(function (it) { if (!it.id) n++; }); }); return n; }
+  function groupOf(cat, id) { return cat.groups.filter(function (g) { return g.items.some(function (it) { return it.id === id; }); })[0]; }
+  function placeOf(id) { for (var i = 0; i < curri.length; i++) { var g = groupOf(curri[i], id); if (g) return { cat: curri[i], group: g }; } return null; }
+  function nav(hash) { if (location.hash === '#' + hash) route(); else location.hash = hash; }
+  function setView(v) {
+    glHide(); if (v !== 'lab' && timer) pause(); view = v; tab = v;
+    $('wrap').className = 'wrap v-' + v;
+    $('t-home').setAttribute('aria-pressed', v === 'home'); $('t-lab').setAttribute('aria-pressed', v === 'study' || v === 'cat' || v === 'lab'); $('t-quiz').setAttribute('aria-pressed', v === 'quizpick' || v === 'quiz');
+  }
+  function route() {
+    var h = ''; try { h = decodeURIComponent((location.hash || '').slice(1)); } catch (e) {}
+    var p = h.split('/'), title = SITE.name;
+    if (p[0] === 'quiz') {
+      if (p[1] === 'all' || catById(p[1])) { var qc = p[1] === 'all' ? '' : p[1]; if (qz.cat !== qc) { qz.cat = qc; qz.run = null; } setView('quiz'); drawQuiz(); title = (qc ? catById(qc).name + ' ' : '') + '테스트 · ' + SITE.name; }
+      else { setView('quizpick'); drawHome('quizpick'); title = '테스트 · ' + SITE.name; }
+    } else if (p[0] === 'study') {
+      if (catById(p[1])) { curCat = catById(p[1]); setView('cat'); drawCat(); title = curCat.name + ' · ' + SITE.name; }
+      else { setView('study'); drawHome('study'); title = '공부 · ' + SITE.name; }
+    } else if (byId(p[0])) { setView('lab'); if (!cur || cur.id !== p[0]) open(p[0]); else drawPath(); title = cur.nav + ' · ' + SITE.name; }
+    else { setView('home'); drawHome('home'); }
+    document.title = title; window.scrollTo(0, 0);
+  }
+  function crumbs(box, parts) {
+    var d = el('div', 'crumbs');
+    parts.forEach(function (p, i) { if (i) d.appendChild(el('span', 'sep', '›')); if (p[1] === null) d.appendChild(el('span', 'here', p[0])); else { var b = el('button', 'linkbtn', p[0]); b.type = 'button'; b.addEventListener('click', function () { nav(p[1]); }); d.appendChild(b); } });
+    box.appendChild(d); return d;
+  }
+  function hcard(title, desc, meta, hash, cls) { var b = el('button', 'hcard' + (cls ? ' ' + cls : '')); b.type = 'button'; b.appendChild(el('b', null, title)); if (desc) b.appendChild(el('span', 'd', desc)); if (meta) b.appendChild(el('span', 'm', meta)); b.addEventListener('click', function () { nav(hash); }); return b; }
+  function quizCount(catId) { var n = 0; for (var lv = 0; lv < LEVELS.length; lv++) n += pool(lv, catId).length; return n; }
+  // 처음 화면, 공부(분야 고르기), 테스트(분야 고르기)는 같은 자리에 그린다
+  function drawHome(mode) {
+    var box = $('homeview'); box.textContent = '';
+    var main = curri.filter(function (c) { return !c.extra; }), extra = curri.filter(function (c) { return c.extra; });
+    if (mode === 'home') {
+      var hero = el('div', 'hero'); hero.appendChild(el('h1', null, SITE.name));
+      hero.appendChild(el('p', 'lead', '개념을 글로만 읽지 않고, 설정을 바꾸고 실행을 눌러 그 개념이 어떻게 움직이는지 직접 확인하는 곳입니다. 무료이고 가입이 없습니다.'));
+      hero.appendChild(el('p', 'muted', '여기의 실습은 실제 서버를 돌리는 것이 아니라 개념의 규칙을 옮긴 모형입니다. 그래서 실습마다 무엇과 대조해 확인했는지를 제목 아래에 적어 두었습니다.'));
+      var last = ''; try { last = localStorage.getItem('lab-last') || ''; } catch (e) {}
+      last = last.split('|')[0];
+      if (byId(last)) { var cb = el('button', 'btn', '지난번에 보던 실습 이어서 하기: ' + byId(last).nav); cb.type = 'button'; cb.addEventListener('click', function () { nav(last); }); var rr = el('div', 'runrow'); rr.appendChild(cb); hero.appendChild(rr); }
+      box.appendChild(hero);
+    } else crumbs(box, [['처음', 'home'], [mode === 'study' ? '공부' : '테스트', null]]);
+    if (mode !== 'quizpick') {
+      var s1 = el('section', 'hsec'); s1.appendChild(el('h2', null, '공부')); s1.appendChild(el('p', 'muted', '분야를 고르면 그 분야에서 배울 항목이 차례대로 나옵니다. 항목마다 설정을 바꿔 가며 돌려 보는 실습이 있습니다.'));
+      var g1 = el('div', 'hgrid');
+      main.forEach(function (c) { var ids = lessonsOf(c), todo = todoOf(c), done = ids.filter(function (id) { return seen[id]; }).length; g1.appendChild(hcard(c.name, c.desc, '실습 ' + ids.length + '개' + (todo ? ' · 준비 중 ' + todo + '개' : '') + (done ? ' · ' + done + '개 해 봄' : ''), 'study/' + c.id)); });
+      s1.appendChild(g1);
+      if (extra.length) { s1.appendChild(el('h3', null, '그 밖의 주제')); var g2 = el('div', 'hgrid small'); extra.forEach(function (c) { var ids = lessonsOf(c), todo = todoOf(c); g2.appendChild(hcard(c.name, c.desc, '실습 ' + ids.length + '개' + (todo ? ' · 준비 중 ' + todo + '개' : ''), 'study/' + c.id)); }); s1.appendChild(g2); }
+      box.appendChild(s1);
+    }
+    if (mode !== 'study') {
+      var s2 = el('section', 'hsec'); s2.appendChild(el('h2', null, '테스트')); s2.appendChild(el('p', 'muted', '공부한 내용을 얼마나 알고 있는지 스스로 확인합니다. 분야를 고른 뒤 단계(기초, 초급, 중급, 응용)를 정해 풉니다. 답을 고르면 바로 해설이 나옵니다.'));
+      var g3 = el('div', 'hgrid');
+      main.forEach(function (c) { g3.appendChild(hcard(c.name, '', '문제 ' + quizCount(c.id) + '개', 'quiz/' + c.id, 'test')); });
+      s2.appendChild(g3);
+      var g4 = el('div', 'hgrid small'); extra.forEach(function (c) { g4.appendChild(hcard(c.name, '', '문제 ' + quizCount(c.id) + '개', 'quiz/' + c.id, 'test')); });
+      g4.appendChild(hcard('전체', '', '모든 분야에서 섞어서 · 문제 ' + quizCount('') + '개', 'quiz/all', 'test')); s2.appendChild(g4);
+      box.appendChild(s2);
+    }
+    if (mode === 'home') {
+      var n = { run: 0, part: 0, doc: 0, model: 0 }; lessons.forEach(function (l) { var v = verify[l.id]; if (v) n[v[0]]++; });
+      var ft = el('section', 'hsec about'); ft.appendChild(el('h2', null, '이 사이트에 대해'));
+      ft.appendChild(el('p', null, '실습 ' + lessons.length + '개 가운데 ' + n.run + '개는 실제 프로그램(JDK, 스프링, MySQL 등)을 실행한 결과와 대조했고, ' + n.part + '개는 일부만 실행으로 확인했으며, ' + n.doc + '개는 공식 문서와 표준에 대조했고, ' + n.model + '개는 원리를 보이는 개념 모형입니다. 틀린 내용을 발견하면 알려 주세요.'));
+      ft.appendChild(el('p', null, '공부한 기록과 테스트 결과는 이 브라우저에만 저장됩니다. 서버로 보내는 정보는 없습니다.'));
+      if (SITE.feedback) { var fa = el('a', 'btn ghost', '의견 남기기 · 오류 알리기'); fa.href = SITE.feedback; fa.target = '_blank'; fa.rel = 'noopener'; var fr = el('div', 'runrow'); fr.appendChild(fa); ft.appendChild(fr); }
+      box.appendChild(ft);
+    }
+  }
+  // 분야의 목차: 묶음마다 배울 항목을 차례로 보여 준다. 아직 실습이 없는 항목은 "준비 중"으로 적는다.
+  function drawCat() {
+    var c = curCat, box = $('catview'); box.textContent = '';
+    crumbs(box, [['처음', 'home'], ['공부', 'study'], [c.name, null]]);
+    box.appendChild(el('h2', null, c.name)); box.appendChild(el('p', 'lead', c.desc));
+    var ids = lessonsOf(c), todo = todoOf(c), row = el('div', 'runrow');
+    row.appendChild(el('span', 'muted', '실습 ' + ids.length + '개' + (todo ? ' · 준비 중 ' + todo + '개' : '')));
+    var tb = el('button', 'btn ghost small', c.name + ' 테스트 하기'); tb.type = 'button'; tb.addEventListener('click', function () { nav('quiz/' + c.id); }); row.appendChild(tb); box.appendChild(row);
+    var num = 0;
+    c.groups.forEach(function (g) {
+      var sec = el('section', 'cgroup'); sec.appendChild(el('h3', null, g.name)); var ol = el('ol', 'steps');
+      g.items.forEach(function (it) {
+        var li = el('li'), l = it.id ? byId(it.id) : null, b = el(l ? 'button' : 'div', 'step' + (l ? '' : ' todo')), mid = el('span');
+        if (l) { b.type = 'button'; num++; b.appendChild(el('span', 'num', num + '.')); mid.appendChild(el('span', 'nm', it.t || l.nav)); mid.appendChild(el('span', 'nt', l.title)); b.appendChild(mid); b.appendChild(el('span', 'seen', seen[it.id] ? '해 봄' : '')); b.addEventListener('click', function () { nav(it.id); }); }
+        else { b.appendChild(el('span', 'num', '·')); mid.appendChild(el('span', 'nm', it.t)); if (it.d) mid.appendChild(el('span', 'nt', it.d)); b.appendChild(mid); b.appendChild(el('span', 'seen todo', '준비 중')); }
+        li.appendChild(b); ol.appendChild(li);
+      });
+      sec.appendChild(ol); box.appendChild(sec);
+    });
+    if (c.refs && c.refs.length) box.appendChild(el('p', 'note', '이 목차는 다음 책과 자료의 차례를 참고해, 어떤 주제를 어떤 순서로 다루는지를 정했습니다: ' + c.refs.join(', ') + '. 책의 내용을 옮긴 것은 아닙니다.'));
+  }
+  // 실습 화면 위쪽: 어디에 속한 실습인지와 앞뒤 실습
+  function drawPath() {
+    var pb = $('pathbar'), eb = $('eyebrow'); pb.textContent = ''; eb.textContent = ''; if (!cur) return;
+    var pl = curCat && groupOf(curCat, cur.id) ? { cat: curCat, group: groupOf(curCat, cur.id) } : placeOf(cur.id); if (!pl) return;
+    curCat = pl.cat;
+    [['공부', 'study'], [pl.cat.name, 'study/' + pl.cat.id]].forEach(function (p) { var b = el('button', 'linkbtn', p[0]); b.type = 'button'; b.addEventListener('click', function () { nav(p[1]); }); eb.appendChild(b); eb.appendChild(el('span', 'sep', ' › ')); });
+    eb.appendChild(el('span', null, pl.group.name));
+    var ids = lessonsOf(pl.cat), i = ids.indexOf(cur.id);
+    pb.appendChild(el('span', 'where', pl.cat.name + ' 실습 ' + ids.length + '개 가운데 ' + (i + 1) + '번째'));
+    if (i > 0) { var pv = el('button', 'btn ghost small', '← 앞 실습: ' + byId(ids[i - 1]).nav); pv.type = 'button'; pv.addEventListener('click', function () { nav(ids[i - 1]); }); pb.appendChild(pv); }
+    if (i < ids.length - 1) { var nx = el('button', 'btn ghost small', '다음 실습: ' + byId(ids[i + 1]).nav + ' →'); nx.type = 'button'; nx.addEventListener('click', function () { nav(ids[i + 1]); }); pb.appendChild(nx); }
+  }
+  function run(animated, quiet, pred, force) {
+    var c = cfg();
+    if (animated && !pred && !force && predOn && sim && JSON.stringify(c) !== JSON.stringify(sim.c)) { askShow(c); render(clock); syncBar(c); return; }
+    askCancel(); stop(); paused = false; sim = cur.simulate(c); sim.c = c; sim.label = cur.label(c); sim._want = !quiet;
+    sim._pred = pred ? { baseRow: pred.base.row.slice(), baseLabel: pred.base.label, picks: pred.picks } : null;
+    if (cur.mode === 'step') { sim.events.forEach(function (e, i) { e.t = i + 1; }); sim.total = sim.events.length; }
+    $('verdict').textContent = ''; $('log').textContent = '';
+    if (!animated) { finish(); return; }
+    // 단계 실습은 문장을 읽을 수 있게 보통 속도에서 한 단계에 1.5초를 쓴다(첫 단계만 빨리 나온다). 화면을 옮겼으면 다 옮긴 뒤에 시작한다.
+    clock = cur.mode === 'step' ? 0.6 : 0; hold = showStage() ? Date.now() + 650 : 0; play();
+  }
+  // 이전·다음 단계로 직접 옮기면 자동 진행은 멈춘 채로 둔다. "이어서"를 누르면 그 자리에서 다시 자동으로 진행한다.
+  function stepTo(dir) {
+    if (!sim) return; stop();
+    var ts = sim.events.map(function (e) { return e.t; }), target;
+    if (dir > 0) { target = ts.filter(function (x) { return x > clock + 1e-9; })[0]; if (target === undefined) target = sim.total; }
+    else { var before = ts.filter(function (x) { return x < clock - 1e-9; }); target = before.length ? before[before.length - 1] : 0; }
+    clock = target; paused = clock < sim.total - 1e-9; $('log').textContent = ''; render(clock);
+    if (!paused) { record(); verdict(); } else $('verdict').textContent = '';
+    syncBar();
+  }
+  function drawExplain() {
+    var box = $('terms'); box.textContent = '';
+    (cur.explain || []).forEach(function (t) { var d = el('div', 'term'); var b = el('b', null, t.name + ' '); d.appendChild(b); d.appendChild(glossEl('p', null, t.book, cur.id, {}, t.name)); box.appendChild(d); });
+  }
+  function open(id) {
+    stop(); askCancel(); sim = null; paused = false; assumeOpen = false; cur = byId(id) || lessons[0];
+    $('title').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
+    $('explain').hidden = true; $('explain-btn').setAttribute('aria-expanded', 'false'); $('explain-btn').textContent = '개념 설명 보기';
+    drawPath();
+    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); (cur.draw ? $('below') : grid).appendChild($('codepanel')); picReset();
+    buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
+    try { localStorage.setItem('lab-last', cur.id); } catch (e) {}
+  }
+  function start() {
+    $('run').addEventListener('click', function () { if (ask) { askCancel(); run(true, false, null, true); return; } var stale = isStale, mid = !!sim && clock < sim.total - 1e-9; if (running && !stale) pause(); else if (paused && mid && !stale) { hold = 0; play(); } else run(true); });
+    $('restart').addEventListener('click', function () { run(true); });
+    $('skip').addEventListener('click', function () { run(false); });
+    $('log-toggle').addEventListener('click', function () { logOpen = !logOpen; var lg = $('log'); lg.hidden = !logOpen; this.setAttribute('aria-expanded', String(logOpen)); this.textContent = (logOpen ? '전체 단계 기록 접기' : '전체 단계 기록 보기') + ' (' + lg.children.length + ')'; lg.scrollTop = lg.scrollHeight; });
+    $('assume-more').addEventListener('click', function () { assumeOpen = !assumeOpen; drawAssume(); });
+    $('code-toggle').addEventListener('click', function () { codeOpen = !codeOpen; try { localStorage.setItem('lab-code', codeOpen ? '1' : '0'); } catch (e) {} drawCode(); });
+    $('ctl-toggle').addEventListener('click', function () { var p = $('ctlpanel'), shut = !p.classList.contains('shut'); p.classList.toggle('shut', shut); this.setAttribute('aria-expanded', String(!shut)); this.textContent = shut ? '설정 바꾸기' : '설정 접기'; });
+    try { codeOpen = localStorage.getItem('lab-code') !== '0'; predOn = localStorage.getItem('lab-pred') === '1'; } catch (e) {}
+    $('pred-on').checked = predOn; $('pred-on').addEventListener('change', function () { predOn = this.checked; try { localStorage.setItem('lab-pred', predOn ? '1' : '0'); } catch (e) {} if (!predOn && ask) { askCancel(); syncBar(); } });
+    // 실행 띠의 높이만큼 그림(또는 코드)이 그 아래에 붙도록 알려 준다
+    var bar = $('runbar'), barH = function () { document.documentElement.style.setProperty('--barh', bar.offsetHeight + 'px'); };
+    if (window.ResizeObserver) new ResizeObserver(barH).observe(bar); else window.addEventListener('resize', barH);
+    $('next').addEventListener('click', function () { stepTo(1); });
+    $('prev').addEventListener('click', function () { stepTo(-1); });
+    $('clear').addEventListener('click', function () { hist[cur.id] = []; drawHist(); });
+    $('explain-btn').addEventListener('click', function () { var x = $('explain'); x.hidden = !x.hidden; this.setAttribute('aria-expanded', String(!x.hidden)); this.textContent = x.hidden ? '개념 설명 보기' : '개념 설명 닫기'; });
+    $('to-list').addEventListener('click', function () { nav(curCat ? 'study/' + curCat.id : 'study'); });
+    $('brand').addEventListener('click', function (e) { e.preventDefault(); nav('home'); });
+    $('t-home').addEventListener('click', function () { nav('home'); });
+    $('t-lab').addEventListener('click', function () { nav('study'); });
+    $('t-quiz').addEventListener('click', function () { nav('quiz'); });
+    loadState(); startGloss(); startQuizTab();
+    window.addEventListener('hashchange', route);
+    route();
+  }
+  // ── 그림: 실습이 draw(P, sim, shown, t)로 장면(영역, 상자, 글자, 화살표)을 적으면,
+  //    앞 장면과 id로 비교해 새로 생긴 것은 나타나고, 자리가 바뀐 것은 움직이고, 없어진 것은 사라지게 그린다.
+  var NS = 'http://www.w3.org/2000/svg', pic = { nodes: {}, layers: null, raf: 0, first: true, sig: '' }, PIC_MS = 420;
+  function sv(tag, attrs, text) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text !== undefined) e.textContent = text; return e; }
+  /*PIC-BEGIN*/
+  function picWidth(s, size) { var w = 0; for (var i = 0; i < s.length; i++) w += s.charCodeAt(i) > 0x2e7f ? size : size * 0.6; return w; }
+  function picFit(s, max, size) { s = String(s); size = size || 12.5; if (picWidth(s, size) <= max) return s; while (s.length > 1 && picWidth(s + '…', size) > max) s = s.slice(0, -1); return s + '…'; }
+  function picScene() {
+    var items = [], P = { w: 680, h: 360, items: items, noteText: '', fit: picFit,
+      size: function (w, h) { P.w = w; P.h = h; },
+      region: function (id, x, y, w, h, label) { items.push({ k: 'region', id: id, x: x, y: y, w: w, h: h, label: label || '' }); },
+      // o: cls(hot, wait, good, bad, plain, ghost, now을 띄어 써서 조합), title, sub(문자열 또는 배열), right(오른쪽 끝 글자), center, mono, from(이 id의 자리에서 나타남)
+      box: function (id, x, y, w, h, o) { o = o || {}; items.push({ k: 'box', id: id, x: x, y: y, w: w, h: h, cls: o.cls || '', title: o.title || '', sub: o.sub === undefined ? [] : [].concat(o.sub), right: o.right || '', center: !!o.center, mono: !!o.mono, from: o.from || '' }); },
+      text: function (id, x, y, str, o) { o = o || {}; items.push({ k: 'text', id: id, x: x, y: y, w: 0, h: 0, str: String(str), cls: o.cls || '', anchor: o.anchor || 'start', bold: !!o.bold }); },
+      // from, to: '상자id' 또는 '상자id:변' 또는 '상자id:변:위치(0~1)' 또는 [x, y]. 변은 l, r, t, b. o: cls(hot, bad, good, mut, dash), label
+      arrow: function (id, from, to, o) { o = o || {}; var pts = typeof from !== 'string' && typeof to !== 'string'; items.push({ k: 'arrow', id: id, from: from, to: to, cls: o.cls || '', label: o.label || '', pts: pts, x: pts ? from[0] : 0, y: pts ? from[1] : 0, w: pts ? to[0] : 0, h: pts ? to[1] : 0 }); },
+      // 순서 그림: 주체들을 위에 나란히 놓고 그 사이를 오가는 메시지를 위에서 아래로 그린다. 최근 keep개만 보여 준다.
+      // actors: [[id, 이름, cls]] · msgs: [{ f, t, s, cls }]. t가 없거나 f와 같으면 그 주체 안에서 일어난 일, f가 '*'이면 모두에 걸친 일.
+      // 돌려주는 값은 그림의 아래쪽 끝 y.
+      seq: function (actors, msgs, o) {
+        o = o || {}; var n = actors.length, top = o.top === undefined ? 16 : o.top, keep = o.keep || 8, rowH = 36, colW = 648 / n, cx = {}, hw = Math.min(170, colW - 10), first = Math.max(0, msgs.length - keep), bodyH = keep * rowH + 14;
+        actors.forEach(function (a, i) { cx[a[0]] = 16 + (i + 0.5) * colW; P.box('sqa_' + a[0], cx[a[0]] - hw / 2, top, hw, 32, { cls: a[2] || 'plain', title: a[1], center: true }); P.box('sql_' + a[0], cx[a[0]] - 1, top + 32, 2, bodyH, { cls: 'plain' }); });
+        if (first) P.text('sqmore', 664, top + 46, '앞의 ' + first + '단계는 위로 지나감', { cls: 'mut', anchor: 'end' });
+        msgs.slice(first).forEach(function (m, k) {
+          var i = first + k, y = top + 32 + 32 + k * rowH, cur = i === msgs.length - 1, bc = (m.cls || 'plain') + (cur ? ' now' : '');
+          if (m.f === '*') { P.box('sqm' + i, 36, y - 14, 608, 26, { cls: bc, sub: m.s, center: true }); return; }
+          if (!m.lost && (!m.t || m.t === m.f)) { var w = Math.min(460, Math.max(110, picWidth(m.s, 12.5) + 20)), x = Math.max(16, Math.min(664 - w, cx[m.f] - w / 2)); P.box('sqm' + i, x, y - 14, w, 26, { cls: bc, sub: m.s, center: true }); return; }
+          if (m.lost) { var ot = actors.filter(function (a) { return a[0] !== m.f; })[0][0]; P.arrow('sqm' + i, [cx[m.f], y], [(cx[m.f] + cx[ot]) / 2, y], { cls: 'bad dash', label: picFit(m.s + ' (사라짐)', 300, 11.5) }); return; }
+          P.arrow('sqm' + i, [cx[m.f], y], [cx[m.t], y], { cls: m.cls || (cur ? 'hot' : ''), label: picFit(m.s, Math.max(Math.abs(cx[m.t] - cx[m.f]) + 70, 210), 11.5) });
+        });
+        return top + 32 + bodyH;
+      },
+      // 표의 칸 값: 글자이거나 { v: 글자, cls: 색 } 이다
+      v: function (x) { return x !== null && typeof x === 'object' ? String(x.v) : String(x); },
+      c: function (x) { return x !== null && typeof x === 'object' ? (x.cls || '') : ''; },
+      // '브라우저 → 서버' 같은 방향 글자를 { f, t }로 바꾼다. ids는 { 표시 이름: 주체 id }.
+      // 'X → (유실)'은 { f, lost }, 'X'나 '(X 내부)'는 { f }, 그 밖의 것('양쪽' 등)은 { f: '*' }.
+      dir: function (d, ids) {
+        var p = String(d).split(/\s*[→↔]\s*/), inner = /^\((.+) 내부\)$/.exec(d);
+        if (p.length === 2 && ids[p[0]] && ids[p[1]]) return { f: ids[p[0]], t: ids[p[1]] };
+        if (p.length === 2 && ids[p[0]]) return p[1].indexOf('유실') >= 0 ? { f: ids[p[0]], lost: true } : { f: ids[p[0]] };
+        if (inner && ids[inner[1]]) return { f: ids[inner[1]] };
+        return ids[d] ? { f: ids[d] } : { f: '*' };
+      },
+      note: function (s) { P.noteText = s; } };
+    return P;
+  }
+  /*PIC-END*/
+  function picReset() {
+    var svg = $('pic'); svg.textContent = ''; if (pic.raf) cancelAnimationFrame(pic.raf);
+    pic = { nodes: {}, layers: { region: sv('g'), box: sv('g'), arrow: sv('g'), text: sv('g') }, raf: 0, first: true, sig: '' };
+    ['region', 'box', 'arrow', 'text'].forEach(function (k) { svg.appendChild(pic.layers[k]); });
+    $('pic-note').textContent = '';
+  }
+  function picDraw(t, shown) {
+    var P = picScene(); cur.draw(P, sim, shown, t);
+    var sig = P.w + 'x' + P.h + JSON.stringify(P.items) + P.noteText; if (sig === pic.sig) return; pic.sig = sig;
+    $('pic').setAttribute('viewBox', '0 0 ' + P.w + ' ' + P.h); $('pic-note').textContent = P.noteText;
+    var now = Date.now(), seenIds = {}, instant = pic.first || document.hidden || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    P.items.forEach(function (it) {
+      var n = pic.nodes[it.id], tg = { x: it.x, y: it.y, w: it.w, h: it.h, o: 1 }; seenIds[it.id] = 1;
+      if (!n || n.kind !== it.k) {
+        if (n) n.g.parentNode.removeChild(n.g);
+        var src = it.from && pic.nodes[it.from] ? pic.nodes[it.from].cur : null;
+        n = pic.nodes[it.id] = { kind: it.k, g: sv('g'), cur: src ? { x: src.x, y: src.y, w: it.w, h: it.h, o: 0 } : { x: it.x, y: it.y - (it.k === 'box' ? 10 : 0), w: it.w, h: it.h, o: 0 }, spec: '' };
+        pic.layers[it.k].appendChild(n.g);
+      }
+      n.dying = false; n.it = it;
+      var spec = JSON.stringify([it.cls, it.title, it.sub, it.right, it.center, it.mono, it.label, it.str, it.anchor, it.bold, it.k === 'box' ? [it.w, it.h] : 0]);
+      if (spec !== n.spec) { n.spec = spec; picBuild(n); }
+      if (it.k === 'arrow') n.ends = [it.from, it.to];
+      n.from = { x: n.cur.x, y: n.cur.y, w: n.cur.w, h: n.cur.h, o: n.cur.o }; n.to = tg; n.t0 = now;
+    });
+    Object.keys(pic.nodes).forEach(function (id) { var n = pic.nodes[id]; if (!seenIds[id] && !n.dying) { n.dying = true; n.from = { x: n.cur.x, y: n.cur.y, w: n.cur.w, h: n.cur.h, o: n.cur.o }; n.to = { x: n.cur.x, y: n.cur.y, w: n.cur.w, h: n.cur.h, o: 0 }; n.t0 = now; } });
+    pic.first = false;
+    if (instant) picFrame(true); else if (!pic.raf) pic.raf = requestAnimationFrame(function () { pic.raf = 0; picFrame(false); });
+  }
+  // 상자와 글자의 내용을 만든다 (모양이나 글자가 바뀌었을 때만)
+  function picBuild(n) {
+    var it = n.it, g = n.g; g.textContent = '';
+    if (it.k === 'region') { g.setAttribute('class', 'pr'); n.rect = sv('rect', { rx: 8 }); g.appendChild(n.rect); g.appendChild(sv('text', { x: 12, y: 20 }, it.label)); }
+    else if (it.k === 'box') {
+      g.setAttribute('class', 'pb ' + it.cls); n.rect = sv('rect', { rx: 4 }); g.appendChild(n.rect); n.texts = [];
+      var lines = (it.title ? [[it.title, 'ttl']] : []).concat(it.sub.map(function (x) { return [x, '']; })), single = lines.length === 1 && it.h <= 34, room = it.w - (it.center ? 4 : 14) - (it.right ? picWidth(it.right, 12.5) + 10 : 0);
+      lines.forEach(function (ln, i) { var tx = sv('text', { 'class': ln[1] + (it.mono ? ' mono' : ''), 'text-anchor': it.center ? 'middle' : 'start' }, picFit(ln[0], room, ln[1] ? 13 : 12.5)); tx._y = single ? it.h / 2 + 4.5 : 17 + i * 15.5; g.appendChild(tx); n.texts.push(tx); });
+      if (it.right) { n.rt = sv('text', { 'text-anchor': 'end', 'class': it.mono ? 'mono' : '' }, it.right); n.rt._y = single || !lines.length ? it.h / 2 + 4.5 : 17; g.appendChild(n.rt); } else n.rt = null;
+    }
+    else if (it.k === 'text') { g.textContent = ''; g.appendChild(sv('text', { 'class': 'pt ' + it.cls + (it.bold ? ' ttl' : ''), 'text-anchor': it.anchor }, it.str)); }
+    else { g.setAttribute('class', 'pa ' + it.cls); n.line = sv('path', { 'class': 'ln' }); n.head = sv('path', {}); g.appendChild(n.line); g.appendChild(n.head); n.lab = it.label ? sv('text', { 'text-anchor': 'middle' }, it.label) : null; if (n.lab) g.appendChild(n.lab); }
+  }
+  // 화살표가 닿을 점과 바깥쪽 방향
+  function picAnchor(spec, other) {
+    if (typeof spec !== 'string') return { x: spec[0], y: spec[1], nx: 0, ny: 0, pt: true };
+    var p = spec.split(':'), n = pic.nodes[p[0]]; if (!n) return null; var c = n.cur, side = p[1], f = p[2] === undefined ? 0.5 : +p[2];
+    if (!side) { var dx = other.x - (c.x + c.w / 2), dy = other.y - (c.y + c.h / 2); side = Math.abs(dx) * c.h >= Math.abs(dy) * c.w ? (dx >= 0 ? 'r' : 'l') : (dy >= 0 ? 'b' : 't'); }
+    return side === 'r' ? { x: c.x + c.w, y: c.y + c.h * f, nx: 1, ny: 0, o: c.o } : side === 'l' ? { x: c.x, y: c.y + c.h * f, nx: -1, ny: 0, o: c.o } : side === 't' ? { x: c.x + c.w * f, y: c.y, nx: 0, ny: -1, o: c.o } : { x: c.x + c.w * f, y: c.y + c.h, nx: 0, ny: 1, o: c.o };
+  }
+  function picCenter(spec) { if (typeof spec !== 'string') return { x: spec[0], y: spec[1] }; var n = pic.nodes[spec.split(':')[0]]; return n ? { x: n.cur.x + n.cur.w / 2, y: n.cur.y + n.cur.h / 2 } : { x: 0, y: 0 }; }
+  function picFrame(instant) {
+    var now = Date.now(), busy = false, r = function (x) { return Math.round(x * 10) / 10; };
+    Object.keys(pic.nodes).forEach(function (id) {
+      var n = pic.nodes[id], k = instant || !n.t0 ? 1 : Math.min(1, (now - n.t0) / PIC_MS), e = 1 - Math.pow(1 - k, 3);
+      if (n.to) { ['x', 'y', 'w', 'h', 'o'].forEach(function (p) { n.cur[p] = n.from[p] + (n.to[p] - n.from[p]) * e; }); if (k >= 1) n.to = null; else busy = true; }
+      if (n.dying && !n.to) { n.g.parentNode.removeChild(n.g); delete pic.nodes[id]; }
+    });
+    Object.keys(pic.nodes).forEach(function (id) {
+      var n = pic.nodes[id], c = n.cur;
+      if (n.kind === 'arrow') {
+        var a = n.it.pts ? { x: c.x, y: c.y, pt: true } : picAnchor(n.ends[0], picCenter(n.ends[1])), b = n.it.pts ? { x: c.w, y: c.h, pt: true } : picAnchor(n.ends[1], picCenter(n.ends[0]));
+        if (!a || !b) { n.g.setAttribute('opacity', 0); return; }
+        var dist = Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y)), d = Math.max(18, Math.min(80, dist * 0.4));
+        if (a.pt) { a.nx = 0; a.ny = 0; } if (b.pt) { var len = dist || 1; b.nx = (a.x - b.x) / len; b.ny = (a.y - b.y) / len; }
+        n.line.setAttribute('d', 'M' + r(a.x) + ' ' + r(a.y) + ' C' + r(a.x + a.nx * d) + ' ' + r(a.y + a.ny * d) + ' ' + r(b.x + b.nx * d) + ' ' + r(b.y + b.ny * d) + ' ' + r(b.x + b.nx * 1.5) + ' ' + r(b.y + b.ny * 1.5));
+        var px = -b.ny, py = b.nx; n.head.setAttribute('d', 'M' + r(b.x + b.nx * 8 + px * 4.5) + ' ' + r(b.y + b.ny * 8 + py * 4.5) + ' L' + r(b.x + b.nx * 1.5) + ' ' + r(b.y + b.ny * 1.5) + ' L' + r(b.x + b.nx * 8 - px * 4.5) + ' ' + r(b.y + b.ny * 8 - py * 4.5));
+        if (n.lab) { n.lab.setAttribute('x', r((a.x + b.x) / 2)); n.lab.setAttribute('y', r((a.y + b.y) / 2 - 6)); }
+        n.g.setAttribute('opacity', r(Math.min(c.o, a.o === undefined ? 1 : a.o, b.o === undefined ? 1 : b.o)));
+        return;
+      }
+      n.g.setAttribute('transform', 'translate(' + r(c.x) + ' ' + r(c.y) + ')'); n.g.setAttribute('opacity', r(c.o));
+      if (n.rect) { n.rect.setAttribute('width', Math.max(0, r(c.w))); n.rect.setAttribute('height', Math.max(0, r(c.h))); }
+      if (n.kind === 'box') { n.texts.forEach(function (tx) { tx.setAttribute('x', n.it.center ? r(c.w / 2) : 8); tx.setAttribute('y', tx._y); }); if (n.rt) { n.rt.setAttribute('x', r(c.w - 8)); n.rt.setAttribute('y', n.rt._y); } }
+    });
+    if (busy && !instant) pic.raf = requestAnimationFrame(function () { pic.raf = 0; picFrame(false); });
+  }
+
+  // ── 용어 풀이: 문장에서 사전의 낱말을 찾아 표시하고, 누르면 뜻을 띄운다
+  var gloss = [], glIndex = null, glOpen = null;
+  /*GLOSS-BEGIN*/
+  // 사전 항목을 "첫 글자 → 찾을 표현들(긴 것부터)"로 정리한다. names는 설명집 용어 이름 목록.
+  function glBuild(entries, names) {
+    var by = {};
+    entries.forEach(function (e, idx) {
+      var ws = (e.w || []).slice();
+      if (e.kb) { ws.push(e.kb); var bare = e.kb.replace(/\(.*?\)/g, '').trim(); if (bare !== e.kb) ws.push(bare); }
+      ws.forEach(function (w) { (by[w.charAt(0)] = by[w.charAt(0)] || []).push({ w: w, i: idx }); });
+    });
+    Object.keys(by).forEach(function (k) { by[k].sort(function (a, b) { return b.w.length - a.w.length; }); });
+    return { by: by, entries: entries, names: names };
+  }
+  function glHangul(c) { return !!c && c >= '가' && c <= '힣'; }
+  function glAlnum(c) { return !!c && /[A-Za-z0-9]/.test(c); }
+  function glScope(e, ctx) { if (e.only) return !!ctx && e.only.indexOf(ctx) >= 0; if (e.not) return !ctx || e.not.indexOf(ctx) < 0; return true; }
+  // 낱말의 앞뒤 경계: 한글 낱말은 앞 글자가 한글이면 다른 낱말의 일부로 보고 건너뛴다. 영문은 앞뒤가 영문·숫자면 건너뛴다.
+  function glEdge(text, at, w, e) {
+    var prev = text.charAt(at - 1), next = text.charAt(at + w.length), first = w.charAt(0), last = w.charAt(w.length - 1);
+    if (glHangul(first) && glHangul(prev)) return false;
+    if (glAlnum(first) && glAlnum(prev)) return false;
+    if (glAlnum(last) && glAlnum(next)) return false;
+    if (e.nx && next && e.nx.indexOf(next) >= 0) return false;
+    if (w.length === 1 && glHangul(first)) {
+      var particle = '은는이가을를의에과와'.indexOf(next) >= 0 && next !== '';
+      if (e.tight) return particle;
+      if (glHangul(next) && !particle && '도로만'.indexOf(next) < 0) return false;
+    }
+    return true;
+  }
+  // 문장을 [글자 조각 또는 {t: 표시할 글자, i: 사전 항목 번호}]로 나눈다. seen에 든 항목은 다시 표시하지 않는다.
+  function glFind(ix, text, ctx, seen, skip) {
+    var out = [], buf = '', i = 0, n = text.length;
+    while (i < n) {
+      var cands = ix.by[text.charAt(i)], hit = null;
+      if (cands) for (var k = 0; k < cands.length; k++) {
+        var c = cands[k], e = ix.entries[c.i];
+        if (text.substr(i, c.w.length) === c.w && glScope(e, ctx) && glEdge(text, i, c.w, e)) { hit = c; break; }
+      }
+      if (!hit) { buf += text.charAt(i); i++; continue; }
+      var key = ix.entries[hit.i].kb || ix.entries[hit.i].t;
+      if (seen[key] || key === skip) buf += hit.w; else { if (buf) { out.push(buf); buf = ''; } out.push({ t: hit.w, i: hit.i }); seen[key] = 1; }
+      i += hit.w.length;
+    }
+    if (buf) out.push(buf);
+    return out;
+  }
+  /*GLOSS-END*/
+  // 요소의 내용을 문장으로 채우되 사전의 낱말은 누를 수 있게 만든다
+  function glossInto(node, text, ctx, seen, skip) {
+    node.textContent = '';
+    if (!glIndex) { node.textContent = text; return; }
+    glFind(glIndex, String(text), ctx || '', seen || {}, skip || '').forEach(function (p) {
+      if (typeof p === 'string') { node.appendChild(document.createTextNode(p)); return; }
+      var s = el('span', 'gl', p.t); s.setAttribute('role', 'button'); s.tabIndex = 0; s.dataset.g = p.i; s.dataset.ctx = ctx || ''; node.appendChild(s);
+    });
+  }
+  function glossEl(tag, cls, text, ctx, seen, skip) { var e = el(tag, cls); glossInto(e, text, ctx, seen, skip); return e; }
+  // 낱말을 누르면 그 아래에 풀이를 띄운다. 풀이 안의 낱말을 누르면 같은 자리에서 그 낱말의 풀이로 바뀐다.
+  function glShow(anchor) {
+    if (!glOpen || !$('glpop').contains(anchor)) { var r = anchor.getBoundingClientRect(); glOpen = { x: r.left + window.pageXOffset, y: r.bottom + window.pageYOffset + 6, from: anchor }; }
+    glOpen.g = +anchor.dataset.g; glOpen.ctx = anchor.dataset.ctx || ''; glDraw();
+  }
+  function glDraw() {
+    var e = gloss[glOpen.g], ctx = glOpen.ctx, pop = $('glpop'), title = e.kb || e.t, k = e.kb ? kbTerms.filter(function (x) { return x[1] === e.kb; })[0] : null;
+    $('glpop-t').textContent = title;
+    glossInto($('glpop-d'), k ? k[2] : e.d, ctx, {}, title);
+    var f = $('glpop-f'); f.textContent = '';
+    if (k) {
+      var lid = termLesson[e.kb], mine = tab !== 'quiz' && cur && (cur.explain || []).some(function (x) { return x.name === e.kb; });
+      if (lid && !mine) { var lb = el('button', 'linkbtn', '실습: ' + byId(lid).nav); lb.type = 'button'; lb.addEventListener('click', function (ev) { ev.stopPropagation(); glOpen.from = null; glHide(); nav(lid); }); f.appendChild(lb); }
+    }
+    pop.hidden = false;
+    var maxX = window.pageXOffset + document.documentElement.clientWidth - pop.offsetWidth - 12;
+    pop.style.left = Math.max(window.pageXOffset + 12, Math.min(glOpen.x, maxX)) + 'px'; pop.style.top = glOpen.y + 'px';
+    if (pop.getBoundingClientRect().bottom > (window.innerHeight || 0)) pop.scrollIntoView({ block: 'nearest' });
+  }
+  function glHide() { var pop = $('glpop'); if (pop.hidden) return; pop.hidden = true; var from = glOpen && glOpen.from; glOpen = null; if (from && document.body.contains(from) && from.offsetParent) from.focus({ preventScroll: true }); }
+  function startGloss() {
+    glIndex = gloss.length ? glBuild(gloss, kbTerms.map(function (k) { return k[1]; })) : null;
+    document.addEventListener('click', function (ev) {
+      var g = ev.target.closest ? ev.target.closest('.gl[data-g]') : null;
+      if (g) { ev.preventDefault(); ev.stopPropagation(); glShow(g); return; }
+      if (!$('glpop').hidden && !$('glpop').contains(ev.target)) glHide();
+    });
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape') { glHide(); return; }
+      var t = ev.target; if ((ev.key === 'Enter' || ev.key === ' ') && t && t.classList && t.classList.contains('gl') && t.dataset.g) { ev.preventDefault(); glShow(t); }
+    });
+    $('glpop-x').addEventListener('click', glHide);
+  }
+
+  // ── 개념 테스트: 단계를 고르면 문제를 뽑아 하나씩 풀고, 답할 때마다 해설과 관련 실습을 보여 준다
+  var LEVELS = [['기초', '설명을 읽고 어떤 용어인지 고릅니다. 용어의 뜻을 아는지 확인합니다.'], ['초급', '개념의 핵심 사실과, 헷갈리기 쉬운 개념의 차이를 묻습니다.'], ['중급', '왜 그렇게 동작하는지, 원리와 이유를 묻습니다.'], ['응용', '상황이 주어지면 결과를 예측하거나 원인과 대응을 고릅니다.']];
+  var quizBank = [], kbTerms = [], termLesson = {}, qz = { lv: 0, cat: '', n: 10, run: null }, qstat = {}, tab = 'lab';
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  // 설명문 안에 든 용어 이름을 가린다 (이름을 낱말로 나눠 두 글자 이상인 것만)
+  function maskTerm(name, text) {
+    var toks = name.replace(/[()]/g, ' ').split(/[\s,·\/]+/).map(function (t) { return t.replace(/(와|과)$/, ''); }).filter(function (t) { return t.length >= 2; });
+    toks.sort(function (a, b) { return b.length - a.length; });
+    toks.forEach(function (t) { text = text.split(t).join('○○'); });
+    return text.replace(/○○(\s*○○)+/g, '○○');
+  }
+  function catTerms(catId) { var c = catById(catId), set = {}; if (c) lessonsOf(c).forEach(function (id) { (byId(id).explain || []).forEach(function (e) { set[e.name] = 1; }); }); return set; }
+  function catIds(catId) { var c = catById(catId), set = {}; if (c) lessonsOf(c).forEach(function (id) { set[id] = 1; }); return set; }
+  function pool(lv, cat) {
+    if (lv === 0) { var only = cat ? catTerms(cat) : null; return kbTerms.filter(function (k) { return !only || only[k[1]]; }); }
+    var ids = cat ? catIds(cat) : null; return quizBank.filter(function (q) { return q.lv === lv && (!ids || ids[q.id]); });
+  }
+  function makeItem(lv, src) {
+    if (lv === 0) {
+      var others = shuffle(kbTerms.filter(function (k) { return k[0] === src[0] && k[1] !== src[1]; })).slice(0, 3);
+      return { lv: 0, src: src, tag: src[0], q: '다음 설명에 해당하는 용어는 무엇입니까?', body: maskTerm(src[1], src[2]), opts: shuffle([{ t: src[1], ok: true }].concat(others.map(function (o) { return { t: o[1], ok: false }; }))), why: src[1] + ': ' + src[2], id: termLesson[src[1]] || null, picked: -1 };
+    }
+    var tk = placeOf(src.id); tk = tk ? tk.cat : null;
+    return { lv: lv, src: src, tag: tk ? tk.name : '', q: src.q, body: '', opts: shuffle(src.a.map(function (t, i) { return { t: t, ok: i === 0 }; })), why: src.why, id: src.id, picked: -1 };
+  }
+  function right(it) { return it.picked >= 0 && it.opts[it.picked].ok; }
+  // 복습 상자: 문제마다 { s: 몇 번째 간격인지, due: 다시 풀 시각 }. 틀리면 처음 간격으로 돌아가고, 풀 차례에 맞히면 다음 간격으로 넘어간다.
+  var review = {}, REV_DAYS = [1, 3, 7], DAY = 864e5;
+  function revKey(it) { return it.lv === 0 ? 't:' + it.src[1] : 'q:' + it.src.q; }
+  function revSave() { try { localStorage.setItem('lab-review', JSON.stringify(review)); } catch (e) {} }
+  function revSrc(k) { var name = k.slice(2); if (k.slice(0, 2) === 't:') { var t = kbTerms.filter(function (x) { return x[1] === name; })[0]; return t ? { lv: 0, src: t } : null; } var q = quizBank.filter(function (x) { return x.q === name; })[0]; return q ? { lv: q.lv, src: q } : null; }
+  function revList(dueOnly) { var now = Date.now(); return Object.keys(review).filter(function (k) { return (!dueOnly || review[k].due <= now) && revSrc(k); }); }
+  function revNote(it) {
+    var k = revKey(it), e = review[k], now = Date.now();
+    if (!right(it)) { review[k] = { s: 0, due: now + REV_DAYS[0] * DAY }; revSave(); return; }
+    if (e && qz.run.review && e.due <= now) { if (e.s >= REV_DAYS.length - 1) delete review[k]; else review[k] = { s: e.s + 1, due: now + REV_DAYS[e.s + 1] * DAY }; revSave(); }
+  }
+  function startReview(keys, counts) { qz.run = { lv: 0, cat: qz.cat, retry: true, review: !!counts, practice: !counts, items: shuffle(keys).slice(0, 20).map(function (k) { var s = revSrc(k); return makeItem(s.lv, s.src); }), i: 0, done: false }; drawQuiz(); $('quizview').scrollIntoView({ block: 'start' }); }
+  function statKey(lv, tr) { return lv + '|' + (tr || 'all'); }
+  function startQuiz(sources) { var lv = qz.lv; qz.run = { lv: lv, cat: qz.cat, items: sources.map(function (s) { return makeItem(lv, s); }), i: 0, done: false }; drawQuiz(); $('quizview').scrollIntoView({ block: 'start' }); }
+  function endQuiz() {
+    var r = qz.run; r.done = true;
+    var c = r.items.filter(right).length, n = r.items.length, k = statKey(r.lv, r.cat), old = qstat[k];
+    if (!r.retry && (!old || c / n > old.c / old.n || (c / n === old.c / old.n && n > old.n))) { qstat[k] = { c: c, n: n }; try { localStorage.setItem('lab-quiz', JSON.stringify(qstat)); } catch (e) {} }
+    drawQuiz();
+  }
+  function pick(k) { var r = qz.run; if (!r || r.done) return; var it = r.items[r.i]; if (it.picked >= 0 || !it.opts[k]) return; it.picked = k; revNote(it); drawQuiz(); var nb = $('q-next'); if (nb) nb.focus(); }
+  function nextQ() { var r = qz.run; if (r.i < r.items.length - 1) { r.i++; drawQuiz(); } else endQuiz(); }
+  function labLink(id, label) { var l = byId(id), b = el('button', 'btn ghost small', (label || '이 개념 실습으로 확인하기') + ': ' + l.nav); b.type = 'button'; b.addEventListener('click', function () { nav(id); }); return b; }
+  function drawQuiz() {
+    var box = $('quizview'); box.textContent = '';
+    if (!qz.run) quizHome(box); else if (qz.run.done) quizResult(box); else quizQuestion(box);
+  }
+  function quizHome(box) {
+    var qcat = qz.cat ? catById(qz.cat) : null; crumbs(box, [['처음', 'home'], ['테스트', 'quiz'], [qcat ? qcat.name : '전체', null]]);
+    box.appendChild(el('h2', null, (qcat ? qcat.name + ' ' : '') + '테스트'));
+    box.appendChild(el('p', 'qlead', '공부한 개념을 얼마나 알고 있는지 스스로 확인하는 곳입니다. 단계를 고르고 시작하세요. 답을 고르면 바로 해설이 나오고, 관련 실습으로 넘어가 직접 확인할 수 있습니다.'));
+    var all = revList(false), due = revList(true);
+    if (all.length) {
+      var rb = el('div', 'panel revbox'); rb.appendChild(el('b', null, '복습 상자 · 틀린 문제 ' + all.length + '개'));
+      var nextDue = Math.min.apply(null, all.map(function (k) { return review[k].due; })), nd = new Date(nextDue);
+      rb.appendChild(el('p', null, due.length ? '오늘 다시 풀 차례인 문제가 ' + due.length + '개 있습니다.' : '지금 풀 차례인 문제는 없습니다. 다음 복습은 ' + (nd.getMonth() + 1) + '월 ' + nd.getDate() + '일부터입니다.'));
+      var rr0 = el('div', 'runrow');
+      if (due.length) { var rb1 = el('button', 'btn', '오늘 복습 ' + Math.min(20, due.length) + '문제 시작'); rb1.type = 'button'; rb1.id = 'q-review'; rb1.addEventListener('click', function () { startReview(due, true); }); rr0.appendChild(rb1); }
+      var rb2 = el('button', 'btn ghost', '기다리지 않고 풀어 보기'); rb2.type = 'button'; rb2.id = 'q-practice'; rb2.addEventListener('click', function () { startReview(all, false); }); rr0.appendChild(rb2); rb.appendChild(rr0);
+      rb.appendChild(el('p', 'note', '틀린 문제는 다음 날 다시 나옵니다. 그때 맞히면 3일 뒤, 또 맞히면 7일 뒤에 나오고, 세 번 이어서 맞히면 상자에서 빠집니다. 중간에 틀리면 다음 날부터 다시 시작합니다. "기다리지 않고 풀어 보기"에서 맞힌 것은 복습 날짜에 반영하지 않습니다. 이 브라우저에만 저장됩니다.'));
+      box.appendChild(rb);
+    }
+    box.appendChild(el('h3', null, '단계'));
+    var g = el('div', 'lvgrid');
+    LEVELS.forEach(function (L, i) {
+      var b = el('button', 'track'), st = qstat[statKey(i, qz.cat)]; b.type = 'button';
+      b.appendChild(el('b', null, L[0])); b.appendChild(el('span', null, L[1]));
+      b.appendChild(el('span', 'best', '문제 ' + pool(i, qz.cat).length + '개' + (st ? ' · 최고 기록 ' + st.c + ' / ' + st.n : '')));
+      b.setAttribute('aria-current', qz.lv === i ? 'true' : 'false'); b.addEventListener('click', function () { qz.lv = i; drawQuiz(); });
+      g.appendChild(b);
+    });
+    box.appendChild(g);
+    var row = el('div', 'runrow');
+    var l1 = el('label', 'check', '분야 '), s1 = el('select'); s1.id = 'q-scope';
+    [['', '전체']].concat(curri.map(function (t) { return [t.id, t.name]; })).forEach(function (o) { var x = el('option', null, o[1]); x.value = o[0]; s1.appendChild(x); });
+    s1.value = qz.cat; s1.addEventListener('change', function () { nav('quiz/' + (s1.value || 'all')); }); l1.appendChild(s1); row.appendChild(l1);
+    var l2 = el('label', 'check', '문제 수 '), s2 = el('select'); s2.id = 'q-count';
+    [5, 10, 20].forEach(function (n) { var x = el('option', null, n + '문제'); x.value = n; s2.appendChild(x); });
+    s2.value = qz.n; s2.addEventListener('change', function () { qz.n = +s2.value; drawQuiz(); }); l2.appendChild(s2); row.appendChild(l2);
+    var have = pool(qz.lv, qz.cat), n = Math.min(qz.n, have.length), go1 = el('button', 'btn', LEVELS[qz.lv][0] + ' ' + n + '문제 시작'); go1.type = 'button'; go1.id = 'q-start';
+    go1.addEventListener('click', function () { startQuiz(shuffle(have).slice(0, n)); }); row.appendChild(go1);
+    box.appendChild(row);
+    if (have.length < qz.n) box.appendChild(el('p', 'note', '이 분야의 이 단계에는 문제가 ' + have.length + '개 있습니다.'));
+    box.appendChild(el('p', 'note', '기초 단계는 설명집의 설명문에서 용어 이름을 가려 만든 문제이고, 초급부터 응용까지는 따로 쓴 문제 ' + quizBank.length + '개에서 무작위로 나옵니다. 틀린 문제는 복습 상자에 들어가 간격을 두고 다시 나옵니다. 최고 기록과 복습 상자는 이 브라우저에만 저장됩니다.'));
+  }
+  function quizQuestion(box) {
+    var r = qz.run, it = r.items[r.i], done = it.picked >= 0;
+    var meta = el('div', 'qmeta'); meta.appendChild(el('span', 'cnt', '문제 ' + (r.i + 1) + ' / ' + r.items.length)); meta.appendChild(el('span', 'muted', LEVELS[it.lv][0] + (it.tag ? ' · ' + it.tag : '')));
+    var quit = el('button', 'linkbtn', '그만두고 단계 고르기'); quit.type = 'button'; quit.addEventListener('click', function () { qz.run = null; drawQuiz(); }); meta.appendChild(quit);
+    box.appendChild(meta);
+    var bar = el('div', 'qbar'), fill = el('div'); fill.style.width = ((r.i + (done ? 1 : 0)) / r.items.length * 100) + '%'; bar.appendChild(fill); box.appendChild(bar);
+    var card = el('div', 'panel qcard');
+    card.appendChild(el('h2', 'qtext', it.q));
+    if (it.body) card.appendChild(el('p', 'qbody', it.body));
+    var ol = el('div', 'opts');
+    it.opts.forEach(function (o, k) {
+      var b = el('button', 'opt' + (done ? (o.ok ? ' good' : k === it.picked ? ' bad' : ' dim') : '')); b.type = 'button';
+      b.appendChild(el('span', 'num', (k + 1) + '.')); b.appendChild(el('span', null, o.t));
+      b.appendChild(el('span', 'mark', done && o.ok ? '정답' : done && k === it.picked ? '내가 고른 답' : ''));
+      if (done) b.setAttribute('aria-disabled', 'true');
+      b.addEventListener('click', function () { pick(k); }); ol.appendChild(b);
+    });
+    card.appendChild(ol);
+    if (done) {
+      var ok = right(it), fb = el('div', 'feedback' + (ok ? '' : ' bad'));
+      fb.appendChild(el('b', null, ok ? '맞았습니다.' : '틀렸습니다. 정답은 ' + (it.opts.map(function (o) { return o.ok; }).indexOf(true) + 1) + '번입니다.'));
+      fb.appendChild(glossEl('p', null, it.why, it.id || ''));
+      var rr = el('div', 'runrow'), nb = el('button', 'btn', r.i < r.items.length - 1 ? '다음 문제' : '결과 보기'); nb.type = 'button'; nb.id = 'q-next'; nb.addEventListener('click', nextQ); rr.appendChild(nb);
+      if (it.id) rr.appendChild(labLink(it.id));
+      fb.appendChild(rr); card.appendChild(fb);
+    } else card.appendChild(el('p', 'cap', '숫자 키 1~4로도 고를 수 있습니다.'));
+    box.appendChild(card);
+  }
+  function quizResult(box) {
+    var r = qz.run, c = r.items.filter(right).length, n = r.items.length, ratio = c / n, wrong = r.items.filter(function (it) { return !right(it); });
+    box.appendChild(el('h2', null, r.review ? '복습 결과' : r.practice ? '복습 상자 연습 결과' : LEVELS[r.lv][0] + ' 단계 결과'));
+    box.appendChild(el('div', 'score', n + '문제 중 ' + c + '개 정답'));
+    if (r.review || r.practice) box.appendChild(el('p', 'qlead', r.review ? '맞힌 문제는 다음 복습 날짜로 넘어갔고, 틀린 문제는 내일 다시 나옵니다. 복습 상자에 남은 문제는 ' + revList(false).length + '개입니다.' : '연습으로 푼 것이라 맞힌 문제의 복습 날짜는 그대로입니다. 틀린 문제는 내일 다시 나옵니다.'));
+    else box.appendChild(el('p', 'qlead', ratio >= 0.9 ? (r.lv < 3 ? '이 단계는 충분히 알고 있습니다. 다음 단계(' + LEVELS[r.lv + 1][0] + ')로 넘어가 보세요.' : '응용 단계까지 충분히 알고 있습니다. 범위를 바꿔 다른 묶음도 확인해 보세요.') : ratio >= 0.6 ? '대부분 알고 있습니다. 틀린 문제의 해설을 읽고 관련 실습을 해 본 뒤 다시 풀어 보세요.' : '아직 낯선 개념이 많습니다. 아래 틀린 문제의 실습부터 차례로 해 본 뒤 다시 풀어 보세요.'));
+    var row = el('div', 'runrow');
+    if (wrong.length) { var b1 = el('button', 'btn', '틀린 ' + wrong.length + '문제 다시 풀기'); b1.type = 'button'; b1.addEventListener('click', function () { var lv = r.lv; qz.run = { lv: lv, cat: r.cat, retry: true, items: shuffle(wrong).map(function (it) { return makeItem(it.lv, it.src); }), i: 0, done: false }; drawQuiz(); }); row.appendChild(b1); }
+    if (r.review || r.practice) { var bh = el('button', 'btn ghost', '테스트 처음으로'); bh.type = 'button'; bh.addEventListener('click', function () { qz.run = null; drawQuiz(); }); row.appendChild(bh); box.appendChild(row); row = el('div', 'runrow'); row.hidden = true; }
+    var b2 = el('button', 'btn' + (wrong.length ? ' ghost' : ''), '같은 조건으로 새 문제'); b2.type = 'button'; b2.addEventListener('click', function () { qz.lv = r.lv; qz.cat = r.cat; var have = pool(r.lv, r.cat); startQuiz(shuffle(have).slice(0, Math.min(qz.n, have.length))); }); row.appendChild(b2);
+    var b3 = el('button', 'btn ghost', '단계 다시 고르기'); b3.type = 'button'; b3.addEventListener('click', function () { qz.run = null; drawQuiz(); }); row.appendChild(b3);
+    box.appendChild(row);
+    var weak = []; wrong.forEach(function (it) { if (it.id && weak.indexOf(it.id) < 0) weak.push(it.id); });
+    if (weak.length) { box.appendChild(el('h3', null, '틀린 문제와 이어지는 실습')); var wr = el('div', 'runrow'); weak.forEach(function (id) { wr.appendChild(labLink(id, '실습')); }); box.appendChild(wr); }
+    box.appendChild(el('h3', null, '문제별 결과'));
+    r.items.forEach(function (it, i) {
+      var ok = right(it), d = el('div', 'qrev' + (ok ? '' : ' bad'));
+      d.appendChild(el('div', 'qq', (i + 1) + '. ' + (ok ? '[정답] ' : '[오답] ') + it.q));
+      if (it.body) d.appendChild(el('div', 'small', it.body));
+      if (!ok) d.appendChild(el('div', 'small', '내가 고른 답: ' + it.opts[it.picked].t));
+      d.appendChild(el('div', 'small', '정답: ' + it.opts.filter(function (o) { return o.ok; })[0].t));
+      if (!ok || it.lv > 0) d.appendChild(glossEl('div', 'small muted', it.why, it.id || ''));
+      box.appendChild(d);
+    });
+  }
+  function startQuizTab() {
+    try { qstat = JSON.parse(localStorage.getItem('lab-quiz') || '{}') || {}; } catch (e) { qstat = {}; }
+    try { review = JSON.parse(localStorage.getItem('lab-review') || '{}') || {}; } catch (e) { review = {}; }
+    lessons.forEach(function (l) { (l.explain || []).forEach(function (e) { if (!termLesson[e.name]) termLesson[e.name] = l.id; }); });
+    document.addEventListener('keydown', function (e) {
+      if (tab !== 'quiz' || !qz.run || qz.run.done || e.ctrlKey || e.metaKey || e.altKey) return;
+      var tg = e.target && e.target.tagName; if (tg === 'SELECT' || tg === 'INPUT' || tg === 'TEXTAREA') return;
+      if (e.key >= '1' && e.key <= '4') { e.preventDefault(); pick(+e.key - 1); }
+    });
+  }
+  function attach(map, terms) { lessons.forEach(function (l) { var m = map[l.id]; if (m) { l.explain = m.explain; l.refs = m.refs; } }); kbTerms = terms || []; }
+  return { curriculum: function (c) { curri = c; }, site: function (o) { Object.keys(o).forEach(function (k) { SITE[k] = o[k]; }); }, verify: function (v) { verify = v; }, register: function (l) { lessons.push(l); }, tracks: function (t) { tracks = t; }, quiz: function (q) { quizBank = quizBank.concat(q); }, glossary: function (g) { gloss = gloss.concat(g); }, start: start, fmt: fmt, attach: attach };
+})();
+</script>
+<script type="application/json" id="explain-data">/*__EXPLAIN__*/{}</script>
+<script type="application/json" id="quiz-terms">/*__TERMS__*/[]</script>
+<script>
+/*__LESSONS__*/
+Lab.attach(JSON.parse(document.getElementById('explain-data').textContent), JSON.parse(document.getElementById('quiz-terms').textContent));
+Lab.start();
+</script>

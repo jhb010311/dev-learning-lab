@@ -1,0 +1,9 @@
+str,lit=true,true
+str,new=false,true
+str,intern=true,true
+str,const=true,true
+str,concat=false,true
+int,127,box=true,true
+int,128,box=false,true
+int,127,prim=true,true
+int,128,prim=true,true

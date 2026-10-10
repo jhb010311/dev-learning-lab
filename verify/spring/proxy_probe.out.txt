@@ -1,0 +1,11 @@
+# spring 7.0.9 | OrderService 빈의 실제 클래스에 CGLIB 포함: true
+tx|ext => txActive=true|rows=0
+tx|self => txActive=false|rows=2
+tx|priv => txActive=false|rows=2
+tx|inject => txActive=true|rows=0
+tx|split => txActive=true|rows=0
+async|ext => otherThread=true|thread=task-1|callerWaitedMs=1
+async|self => otherThread=false|thread=main|callerWaitedMs=308
+async|priv => otherThread=false|thread=main|callerWaitedMs=310
+async|inject => otherThread=true|thread=task-2|callerWaitedMs=0
+async|split => otherThread=true|thread=task-1|callerWaitedMs=0

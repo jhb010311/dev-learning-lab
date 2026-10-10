@@ -1,0 +1,12 @@
+none,false,false=|(실행 안 됨)
+none,false,true=|(실행 안 됨)
+none,true,false=|(실행 안 됨)
+none,true,true=|(실행 안 됨)
+toList,false,false=filter(5) map(5) filter(2) filter(8) map(8) filter(1) filter(9) map(9) filter(4) map(4)|[50, 80, 90, 40]
+toList,false,true=filter(5) map(5) filter(2) filter(8) map(8)|[50, 80]
+toList,true,false=filter(5) filter(2) filter(8) filter(1) filter(9) filter(4) map(4) map(5) map(8) map(9)|[40, 50, 80, 90]
+toList,true,true=filter(5) filter(2) filter(8) filter(1) filter(9) filter(4) map(4) map(5)|[40, 50]
+findFirst,false,false=filter(5) map(5)|Optional[50]
+findFirst,false,true=filter(5) map(5)|Optional[50]
+findFirst,true,false=filter(5) filter(2) filter(8) filter(1) filter(9) filter(4) map(4)|Optional[40]
+findFirst,true,true=filter(5) filter(2) filter(8) filter(1) filter(9) filter(4) map(4)|Optional[40]

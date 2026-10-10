@@ -1,0 +1,26 @@
+ca.pem expired.pem name.pem ok.pem self.pem 
+[ok] Verify return code: 0 (ok)     Verify return code: 0 (ok)  | 프로토콜: New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+[expired] verify error:num=10:certificate has expired Verify return code: 10 (certificate has expired)  | 프로토콜: New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+[name] verify error:num=62:hostname mismatch Verify return code: 62 (hostname mismatch)  | 프로토콜: New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+[self] verify error:num=18:self-signed certificate Verify return code: 18 (self-signed certificate)  | 프로토콜: New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+>>> TLS 1.3, Handshake
+<<< TLS 1.3, Handshake
+<<< TLS 1.3, InnerContent
+<<< TLS 1.3, Handshake
+<<< TLS 1.3, InnerContent
+<<< TLS 1.3, Handshake
+<<< TLS 1.3, InnerContent
+<<< TLS 1.3, Handshake
+<<< TLS 1.3, InnerContent
+<<< TLS 1.3, Handshake
+>>> TLS 1.2, InnerContent
+>>> TLS 1.3, Handshake
+>>> TLS 1.3, Handshake, ClientHello
+<<< TLS 1.3, Handshake, ServerHello
+<<< TLS 1.3, Handshake, EncryptedExtensions
+<<< TLS 1.3, Handshake, Certificate
+<<< TLS 1.3, Handshake, CertificateVerify
+<<< TLS 1.3, Handshake, Finished
+>>> TLS 1.3, Handshake, Finished
+<<< TLS 1.3, Handshake, NewSessionTicket
+<<< TLS 1.3, Handshake, NewSessionTicket

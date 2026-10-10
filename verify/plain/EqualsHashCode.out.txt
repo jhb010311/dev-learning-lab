@@ -1,0 +1,5 @@
+a.equals(b)       : true
+hashCode 같은가   : false
+equals만 재정의   : null
+둘 다 재정의      : 주문 내역
+record            : 주문 내역

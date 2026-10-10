@@ -1,0 +1,4 @@
+기대값        : 2000000
+plain++       : 1017250
+synchronized  : 2000000
+AtomicInteger : 2000000

@@ -1,0 +1,13 @@
+# mysql 8.4.11 | 행 10, 20, 30, 40과 멀리 떨어진 행 500개(1001~1500)
+hit|RR|25 => plan=-> Rows fetched before execution|locks=X,REC_NOT_GAP@20|blocked=false|first=20|second=20
+hit|RR|45 => plan=-> Rows fetched before execution|locks=X,REC_NOT_GAP@20|blocked=false|first=20|second=20
+hit|RC|25 => plan=-> Rows fetched before execution|locks=X,REC_NOT_GAP@20|blocked=false|first=20|second=20
+hit|RC|45 => plan=-> Rows fetched before execution|locks=X,REC_NOT_GAP@20|blocked=false|first=20|second=20
+miss|RR|25 => plan=-> Zero rows (no matching row in const table)|locks=X,GAP@30|blocked=true|first=|second=
+miss|RR|45 => plan=-> Zero rows (no matching row in const table)|locks=X,GAP@30|blocked=false|first=|second=
+miss|RC|25 => plan=-> Zero rows (no matching row in const table)|locks=|blocked=false|first=|second=25
+miss|RC|45 => plan=-> Zero rows (no matching row in const table)|locks=|blocked=false|first=|second=
+range|RR|25 => plan=-> Filter: (coupon.id between 20 and 30)|locks=X,REC_NOT_GAP@20,X@30|blocked=true|first=20,30|second=20,30
+range|RR|45 => plan=-> Filter: (coupon.id between 20 and 30)|locks=X,REC_NOT_GAP@20,X@30|blocked=false|first=20,30|second=20,30
+range|RC|25 => plan=-> Filter: (coupon.id between 20 and 30)|locks=X,REC_NOT_GAP@20,X,REC_NOT_GAP@30|blocked=false|first=20,30|second=20,25,30
+range|RC|45 => plan=-> Filter: (coupon.id between 20 and 30)|locks=X,REC_NOT_GAP@20,X,REC_NOT_GAP@30|blocked=false|first=20,30|second=20,30

@@ -1,0 +1,5 @@
+힙 64m, normal: Young GC 24번, Full GC 0번, 결과=정상 종료, 만든 객체 40000개
+힙 64m, longlived: Young GC 24번, Full GC 7번, 결과=정상 종료, 만든 객체 40000개
+힙 64m, leak: Young GC 9번, Full GC 37번, 결과=OutOfMemoryError(Java heap space), 만든 객체 18604개, 붙잡고 있던 객체 6202개
+힙 128m, leak: Young GC 9번, Full GC 39번, 결과=OutOfMemoryError(Java heap space), 만든 객체 38026개, 붙잡고 있던 객체 12676개
+64MB 힙: Young GC 평균 2.1ms (24번), Full GC 평균 11.5ms (7번)

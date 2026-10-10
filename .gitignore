@@ -1,0 +1,19 @@
+# 빌드 중간 결과
+dist/
+node_modules/
+
+# 검증용으로 내려받은 라이브러리와 컴파일 결과
+verify/spring/libs/
+verify/spring/out/
+verify/gradle-home/
+verify/tls/
+verify/gitprobe/
+*.class
+
+# 구조를 바꿀 때 한 번 쓰고 끝난 스크립트와 옛 빌드 스크립트 (지워도 된다)
+build_lab2.js
+test_lab.js
+tools/make_build.js
+tools/refactor_site.js
+tools/frag_*
+tools/strip_dc.js

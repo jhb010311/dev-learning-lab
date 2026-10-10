@@ -1,0 +1,7 @@
+# hibernate 7.4.5.Final
+find2 => sql=1|select=1|same=true
+update|tx => sql=2|updateBeforeCommit=0|updateAfterCommit=1|db=김영수
+update|notx => sql=1|update=0|db=김철수
+jpql => sql=3|sqlBeforeCommit=3|updateBeforeQueryCall=0|updateIndex=1|jpqlSelectIndex=2|db=김영수
+persist|IDENTITY => sql=3|insertsAfterEachPersist=1,2,3,|insertBeforeCommit=3|insertTotal=3
+persist|SEQUENCE => sql=6|sequenceCallsBeforeCommit=3|insertBeforeCommit=0|insertTotal=3

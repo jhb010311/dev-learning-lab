@@ -1,0 +1,9 @@
+single,none=끝까지 실행, counter=3, 0.9초
+single,ex=작업 2의 예외로 중단, counter=1, 0.6초
+single,kill=(프로그램 전체가 종료 코드 3 로 끝남, 결과 출력 없음)
+multi,none=스레드 3개 종료, counter=3, 0.3초
+multi,ex=스레드 3개 종료, counter=2, 0.3초
+multi,kill=(프로그램 전체가 종료 코드 3 로 끝남, 결과 출력 없음)
+proc,none=[종료 코드 0, counter=1] [종료 코드 0, counter=1] [종료 코드 0, counter=1], 부모의 counter=0
+proc,ex=[종료 코드 0, counter=1] [종료 코드 1, 출력 없음] [종료 코드 0, counter=1], 부모의 counter=0
+proc,kill=[종료 코드 0, counter=1] [종료 코드 3, 출력 없음] [종료 코드 0, counter=1], 부모의 counter=0

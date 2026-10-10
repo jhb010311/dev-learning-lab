@@ -1,0 +1,76 @@
+Lab.register({
+  id: 'tx', nav: '트랜잭션 기본', cat: '데이터베이스', mode: 'step',
+  title: '출금은 됐는데 입금이 안 됐다면',
+  intro: 'A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다. 두 문장을 트랜잭션으로 묶었을 때와 아닐 때, 중간에 문제가 생기면 DB에 무엇이 남는지 보세요.',
+  terms: ['트랜잭션', 'ACID', 'Undo 로그와 Redo 로그', '@Transactional'], ranks: ['dbengine', 'txspring', 'isolation'],
+  controls: [
+    { id: 'mode', label: '실행 방식', type: 'select', value: 'auto', options: [['auto', '트랜잭션 없이 (문장마다 바로 확정)'], ['tx', '두 문장을 트랜잭션으로 묶음']] },
+    { id: 'fail', label: '출금과 입금 사이에 생기는 일', type: 'select', value: 'ex', options: [['none', '아무 일 없음'], ['ex', '애플리케이션에서 오류(예외) 발생'], ['crash', '서버가 꺼짐']] },
+    { id: 'peek', label: '다른 사용자가 중간에 두 계좌의 합계를 조회한다', type: 'check', value: false },
+  ],
+  presets: [
+    { t: '처음 설정으로', d: '트랜잭션 없이 중간에 오류. 1,000원이 사라집니다.', v: { mode: 'auto', fail: 'ex', peek: false } },
+    { t: '트랜잭션으로 묶으면', d: '같은 오류에서 출금까지 취소됩니다.', v: { mode: 'tx', fail: 'ex', peek: false } },
+    { t: '묶은 상태에서 서버가 꺼지면', d: '커밋하지 않은 변경은 남지 않습니다.', v: { mode: 'tx', fail: 'crash', peek: false } },
+    { t: '문제가 없을 때', d: '어느 방식이든 결과는 같습니다.', v: { mode: 'tx', fail: 'none', peek: false } },
+    { t: '중간에 다른 사람이 조회하면', d: '트랜잭션 없이: 합계가 1,000원 모자란 순간이 보입니다.', v: { mode: 'auto', fail: 'none', peek: true } },
+    { t: '묶은 상태에서 중간 조회', d: '커밋 전의 변경은 다른 사람에게 보이지 않습니다.', v: { mode: 'tx', fail: 'none', peek: true } },
+  ],
+  code: function (c) {
+    var w = "UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- 출금\n", d = "UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- 입금\n", gap = c.fail === 'ex' ? '-- (여기서 애플리케이션 오류 발생)\n' : c.fail === 'crash' ? '-- (여기서 서버가 꺼짐)\n' : '';
+    if (c.mode === 'auto') return '-- 자동 커밋: 문장 하나가 끝날 때마다 바로 확정된다\n' + w + gap + (c.fail === 'none' ? d : '-- 입금 문장은 실행되지 못함');
+    return 'START TRANSACTION;\n' + w + gap + (c.fail === 'none' ? d + 'COMMIT;      -- 여기서 둘 다 한꺼번에 확정' : c.fail === 'ex' ? 'ROLLBACK;    -- 오류를 감지하고 지금까지 한 것을 전부 취소' : '-- COMMIT에 도달하지 못함 → DB가 알아서 취소');
+  },
+  label: function (c) { return (c.mode === 'auto' ? '트랜잭션 없음' : '트랜잭션') + ' · ' + { none: '문제 없음', ex: '중간에 오류', crash: '중간에 서버 꺼짐' }[c.fail] + (c.peek ? ' · 중간 조회' : ''); },
+  columns: ['최종 A', '최종 B', '합계 (처음 6,000)', '중간에 다른 사람이 본 합계'],
+  // 실제 실행 결과와 대조하는 데 쓰는 순수 계산
+  result: function (c) { var auto = c.mode === 'auto', ok = c.fail === 'none'; return { mid: auto ? 'A=4000, B=1000' : 'A=5000, B=1000', final: ok ? 'A=4000, B=2000' : auto ? 'A=4000, B=1000' : 'A=5000, B=1000' }; },
+  simulate: function (c) {
+    var auto = c.mode === 'auto', ev = [], sum = [], S = { A: 5000, B: 1000, pA: null, pB: null, tx: auto ? '없음 (자동 커밋)' : '시작 전', seen: '' };
+    function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(S)) }); }
+    push('A 계좌 5,000원, B 계좌 1,000원. 합계는 6,000원입니다. A에서 B로 1,000원을 이체합니다.', '');
+    if (!auto) { S.tx = '진행 중'; push('START TRANSACTION: 지금부터 하는 변경을 한 묶음으로 다루겠다고 DB에 알립니다. 묶음이 끝날 때까지 변경은 확정되지 않습니다.', ''); }
+    if (auto) { S.A = 4000; push('출금: A를 4,000원으로 바꿉니다. 트랜잭션이 없으므로 이 문장은 실행되자마자 확정(커밋)됩니다. 되돌릴 수 없습니다.', ''); }
+    else { S.pA = 4000; push('출금: A를 4,000원으로 바꿉니다. 아직 확정 전입니다. 이 트랜잭션 안에서만 4,000원으로 보이고, DB에 확정된 값은 여전히 5,000원입니다.', ''); }
+    var midSum = auto ? 5000 : 6000;
+    if (c.peek) { S.seen = '다른 사용자가 본 값: A=' + (auto ? 4000 : 5000) + ', B=1000, 합계 ' + midSum; push('이 순간 다른 사용자가 두 계좌를 조회합니다. ' + (auto ? '출금은 이미 확정됐고 입금은 아직이라, 합계가 5,000원으로 보입니다. 1,000원이 어디에도 없는 순간이 밖에 드러났습니다.' : '커밋되지 않은 변경은 다른 사용자에게 보이지 않습니다. 이체 전의 값 그대로 합계 6,000원이 보입니다.'), auto ? 'bad' : 'good'); }
+    if (c.fail === 'none') {
+      if (auto) { S.B = 2000; push('입금: B를 2,000원으로 바꿉니다. 이것도 바로 확정됩니다. 합계는 다시 6,000원입니다.', 'good'); }
+      else { S.pB = 2000; push('입금: B를 2,000원으로 바꿉니다. 아직 확정 전입니다.', ''); S.A = 4000; S.B = 2000; S.pA = null; S.pB = null; S.tx = '커밋됨'; push('COMMIT: 두 변경이 한꺼번에 확정됩니다. 이 순간부터 다른 사용자에게도 새 값이 보입니다. 커밋된 내용은 서버가 꺼져도 남습니다.', 'good'); }
+    } else {
+      var what = c.fail === 'ex' ? '애플리케이션에서 오류가 발생해 입금 문장을 실행하지 못했습니다.' : '서버가 꺼져서 입금 문장을 실행하지 못했습니다.';
+      if (auto) push(what + ' 출금은 이미 확정돼 있습니다. A에서는 1,000원이 빠졌는데 B에는 들어가지 않았습니다. 1,000원이 사라졌습니다.', 'bad');
+      else { S.pA = null; S.tx = c.fail === 'ex' ? '롤백됨' : '롤백됨 (재시작 후 DB가 취소)'; push(what + (c.fail === 'ex' ? ' 애플리케이션이 ROLLBACK을 보냅니다.' : ' 커밋에 도달하지 못했으므로, DB는 다시 시작할 때 끝나지 않은 트랜잭션을 찾아 취소합니다.') + ' 출금이 없던 일이 됩니다. A는 5,000원 그대로입니다.', 'good'); }
+    }
+    var total = S.A + S.B;
+    sum.push('최종 A ' + S.A + '원, B ' + S.B + '원, 합계 ' + total + '원.' + (total !== 6000 ? ' 1,000원이 사라졌습니다.' : ''));
+    if (auto && c.fail !== 'none') sum.push('여러 문장이 "전부 되거나 전부 안 되거나"여야 하는데 일부만 반영됐습니다. 트랜잭션은 이것을 보장하는 장치입니다(원자성).');
+    if (!auto && c.fail !== 'none') sum.push('트랜잭션으로 묶으면 중간에 무슨 일이 생겨도 커밋 전의 변경은 남지 않습니다. 오류면 롤백하고, 서버가 꺼졌으면 DB가 복구하면서 취소합니다.');
+    if (c.peek) sum.push(auto ? '묶지 않으면 중간 상태가 다른 사용자에게 그대로 보입니다.' : '커밋 전의 변경은 다른 트랜잭션에 보이지 않습니다(격리성). 얼마나 엄격하게 가릴지는 격리 수준으로 정하며, 그 내용은 "격리 수준" 실습에서 다룹니다.');
+    sum.push('트랜잭션의 네 가지 성질(ACID): 전부 아니면 전무(원자성), 규칙에 맞는 상태 유지(일관성), 진행 중인 변경은 서로 안 보임(격리성), 커밋된 것은 남음(지속성). 스프링의 @Transactional은 메서드 시작에 START TRANSACTION, 정상 종료에 COMMIT, 예외에 ROLLBACK을 대신 보내 주는 것입니다.');
+    return { events: ev, summary: sum, row: [S.A + '원', S.B + '원', total + '원' + (total !== 6000 ? ' (1,000원 사라짐)' : ''), c.peek ? midSum + '원' : '조회 안 함'] };
+  },
+  render: function (v, sim, t, H, shown) {
+    var last = shown[shown.length - 1], s = last ? last.snap : { A: 5000, B: 1000, pA: null, pB: null, tx: '', seen: '' };
+    H.table(v, ['계좌', 'DB에 확정된 잔액', '이 트랜잭션 안에서만 보이는 값 (커밋 전)'], [['A', s.A, s.pA], ['B', s.B, s.pB]].map(function (r) { return { cells: [r[0], r[1] + '원', { v: r[2] === null ? '-' : r[2] + '원', cls: r[2] === null ? '' : 'hot' }] }; }), 'account 테이블');
+    H.counters(v, [[(s.A + s.B) + '원', 'DB에 확정된 합계 (처음 6,000원)'], [s.tx || '-', '트랜잭션 상태']]);
+    if (s.seen) H.text(v, s.seen);
+  },
+  // 그림: 왼쪽은 DB에 확정되어 모두가 보는 값, 오른쪽은 이 트랜잭션 안에서만 보이는 아직 확정되지 않은 값.
+  draw: function (P, sim, shown) {
+    var last = shown[shown.length - 1], s = last ? last.snap : { A: 5000, B: 1000, pA: null, pB: null, tx: '', seen: '' }, total = s.A + s.B, auto = sim.c.mode === 'auto';
+    P.size(680, 300);
+    P.region('db', 16, 16, 392, 200, 'DB에 확정된 값 (모두에게 보임)');
+    P.box('A', 28, 54, 178, 60, { cls: s.A === 5000 ? 'plain' : 'hot', title: 'A 계좌', sub: s.A + '원' });
+    P.box('B', 218, 54, 178, 60, { cls: s.B === 1000 ? 'plain' : 'hot', title: 'B 계좌', sub: s.B + '원' });
+    P.text('sum', 28, 148, '합계 ' + total + '원' + (total !== 6000 ? ' (1,000원이 어디에도 없음)' : ''), { cls: total !== 6000 ? 'bad' : 'good' });
+    P.region('tx', 432, 16, 232, 200, auto ? '트랜잭션 없음 (문장마다 바로 확정)' : '이 트랜잭션 안에서만 보이는 값');
+    P.box('pA', 444, 54, 208, 38, { cls: s.pA === null ? 'ghost' : 'hot', title: 'A', right: s.pA === null ? '-' : s.pA + '원 (커밋 전)' });
+    P.box('pB', 444, 98, 208, 38, { cls: s.pB === null ? 'ghost' : 'hot', title: 'B', right: s.pB === null ? '-' : s.pB + '원 (커밋 전)' });
+    P.text('txs', 444, 170, '상태: ' + (s.tx || '-'), { cls: s.tx.indexOf('롤백') >= 0 ? 'bad' : s.tx.indexOf('커밋됨') >= 0 ? 'good' : 'mut' });
+    if (s.tx === '커밋됨') P.arrow('cm', 'tx:l', 'db:r', { cls: 'good', label: '커밋' });
+    P.box('seen', 16, 232, 648, 40, { cls: !s.seen ? 'ghost' : s.seen.indexOf('5000') >= 0 && s.seen.indexOf('합계 5000') >= 0 ? 'bad' : 'good', title: '다른 사용자가 중간에 본 값', right: s.seen ? s.seen.replace('다른 사용자가 본 값: ', '') : '조회 안 함' });
+    P.note('트랜잭션으로 묶으면 변경은 먼저 오른쪽에만 쌓이고, 커밋하는 순간 한꺼번에 왼쪽으로 넘어갑니다. 묶지 않으면 문장 하나하나가 곧바로 왼쪽에 반영되어, 중간에 멈추면 반쯤 바뀐 상태가 남습니다.');
+  },
+  assume: '열두 가지 조합의 최종 잔액과 중간 조회 결과를 실제 SQL 엔진(SQLite)에서 연결 두 개로 실행해 확인했습니다. "서버가 꺼짐"은 커밋하지 않은 채 연결을 끊는 것으로 재현했습니다. 중간 조회에서 커밋 전 값이 보이지 않는 것은 대부분의 DB 기본 설정에서의 동작이며, 가장 낮은 격리 수준에서는 보일 수 있습니다.',
+});

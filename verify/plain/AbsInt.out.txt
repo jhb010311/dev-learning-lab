@@ -1,0 +1,13 @@
+iface_new=error: Payable is abstract
+abs_new=error: Payment is abstract
+iface_impl=OK Card.pay
+abs_impl=OK Card.pay amount=100
+iface_multi=OK both
+abs_multi=error: '
+iface_state=error: = expected
+abs_state=OK amount=150
+iface_default=OK default-name
+abs_default=OK default-name
+iface_missing=error: Card is not abstract and does not override abstract method pay() in Payable
+abs_missing=error: Card is not abstract and does not override abstract method pay() in Payment
+iface_const=OK MAX=10

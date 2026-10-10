@@ -1,0 +1,6 @@
+필드: 철수의 주문=영희, 영희의 주문=영희
+지역 변수: 철수의 주문=철수, 영희의 주문=영희
+ThreadLocal 정리 안 함: 다음 요청이 본 값=철수
+ThreadLocal 정리함: 다음 요청이 본 값=null
+외부에서 proxy.saveAll(): [프록시: 트랜잭션 시작] saveAll 실행 [프록시: 커밋]
+외부에서 proxy.placeOrder() → 내부에서 this.saveAll(): placeOrder 실행 → saveAll 실행

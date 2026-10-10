@@ -1,0 +1,18 @@
+실제 브라우저(내장 Chromium)로 cookie_probe.js 서버(127.0.0.1:4183)에 접속해 확인한 결과 (2026-10-06)
+
+서버가 보낸 것:
+  Set-Cookie: sid=abc123; Path=/; HttpOnly
+  Set-Cookie: theme=dark; Path=/
+  Set-Cookie: cart=3; Path=/shop
+  Set-Cookie: temp=1; Path=/; Max-Age=3
+
+자바스크립트 document.cookie          : theme=dark; temp=1            (HttpOnly인 sid는 안 보임. Path=/shop인 cart도 /set 페이지에서는 안 보임)
+GET /echo           에 붙은 Cookie    : sid=abc123; theme=dark; temp=1
+GET /shop/echo      에 붙은 Cookie    : cart=3; sid=abc123; theme=dark; temp=1
+GET /shop/items/1   에 붙은 Cookie    : cart=3; sid=abc123; theme=dark; temp=1
+GET /other/echo     에 붙은 Cookie    : sid=abc123; theme=dark; temp=1   (cart 없음)
+GET /shopping       에 붙은 Cookie    : sid=abc123; theme=dark; temp=1   (cart 없음. /shop 과 글자만 겹치는 경로는 해당 안 됨)
+4초 뒤 GET /echo    에 붙은 Cookie    : sid=abc123; theme=dark           (Max-Age=3인 temp 사라짐)
+4초 뒤 document.cookie                : theme=dark
+http://localhost:4183/echo 로 접속    : Cookie 헤더 없음                (호스트가 다르면 보내지 않음)
+/clear (Max-Age=0) 후 GET /shop/echo  : Cookie 헤더 없음                (삭제는 Max-Age=0으로 다시 내려 주는 것)

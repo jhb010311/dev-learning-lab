@@ -1,0 +1,81 @@
+{
+ "hash": {
+  "m1": "d262c5de4c7e878debde9ca793209ecf6ed055bede1b021f298f05dee15d9071",
+  "m1again": "d262c5de4c7e878debde9ca793209ecf6ed055bede1b021f298f05dee15d9071",
+  "m2": "183b226fc6f1393a5716b07ae1f7aa52d1527f69c83a5b9898de63ae8d362396"
+ },
+ "sym": {
+  "cipher": "376ab1de11a014258a13186347",
+  "sameKey": "주문 100원",
+  "otherKey": "실패: Unsupported state or unable to authenticate data"
+ },
+ "asym": {
+  "cipherHead": "863cd521da711cdb8380126b48e49dd3",
+  "cipherBytes": 256,
+  "privateDec": "주문 100원",
+  "publicDec": "실패",
+  "otherPrivateDec": "실패"
+ },
+ "hmac": {
+  "sig": "b5efce470986677f38c0dfabf8b0a3b662000538d1335eca9146c3ddb736029d",
+  "verifyOk": true,
+  "tampered": false,
+  "forged": false
+ },
+ "sign": {
+  "sigHead": "a8f856a3dba36a039c50d4dc0cdada50",
+  "ok": true,
+  "tampered": false,
+  "forged": false
+ },
+ "tx": {
+  "auto,none": {
+   "mid": "A=4000, B=1000",
+   "final": "A=4000, B=2000"
+  },
+  "auto,ex": {
+   "mid": "A=4000, B=1000",
+   "final": "A=4000, B=1000"
+  },
+  "auto,crash": {
+   "mid": "A=4000, B=1000",
+   "final": "A=4000, B=1000"
+  },
+  "tx,none": {
+   "mid": "A=5000, B=1000",
+   "final": "A=4000, B=2000"
+  },
+  "tx,ex": {
+   "mid": "A=5000, B=1000",
+   "final": "A=5000, B=1000"
+  },
+  "tx,crash": {
+   "mid": "A=5000, B=1000",
+   "final": "A=5000, B=1000"
+  }
+ },
+ "http": {
+  "request": [
+   "POST /orders HTTP/1.1",
+   "Host: 127.0.0.1:4190",
+   "Content-Type: application/json",
+   "Content-Length: 20",
+   "Connection: close",
+   "",
+   "{\"item\":\"키보드\"}"
+  ],
+  "response": [
+   "HTTP/1.1 201 Created",
+   "Content-Type: application/json",
+   "Location: /orders/7",
+   "Connection: close",
+   "Transfer-Encoding: chunked",
+   "",
+   "8",
+   "{\"id\":7}",
+   "0",
+   "",
+   ""
+  ]
+ }
+}

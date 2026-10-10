@@ -1,0 +1,17 @@
+# spring boot 4.1.1
+rest|none|false => 200|ctrl=true|post=true|after=true|by=-|type=application/json|body={"id":1,"by":"controller"}
+rest|filter|false => 401|ctrl=false|post=false|after=false|by=filter|type=-|body=
+rest|pre|false => 401|ctrl=false|post=false|after=false|by=interceptor|type=-|body=
+rest|ex|false => 500|ctrl=true|post=false|after=true|by=-|type=application/json|body={"timestamp":"2026-10-10T06:27:03.687Z","status":500,"error":"Internal
+view|none|false => 200|ctrl=true|post=true|after=true|by=view|type=text/html;charset=UTF-8|body=<h1>order</h1>
+view|filter|false => 401|ctrl=false|post=false|after=false|by=filter|type=-|body=
+view|pre|false => 401|ctrl=false|post=false|after=false|by=interceptor|type=-|body=
+view|ex|false => 500|ctrl=true|post=false|after=true|by=-|type=text/html;charset=UTF-8|body=<html><body><h1>Whitelabel Error Page</h1><p>This application has no e
+rest|none|true => 200|ctrl=true|post=true|after=true|by=-|type=application/json|body={"id":1,"by":"controller"}
+rest|filter|true => 401|ctrl=false|post=false|after=false|by=filter|type=-|body=
+rest|pre|true => 401|ctrl=false|post=false|after=false|by=interceptor|type=-|body=
+rest|ex|true => 409|ctrl=true|post=false|after=true|by=advice|type=application/json|body={"error":"CONFLICT"}
+view|none|true => 200|ctrl=true|post=true|after=true|by=view|type=text/html;charset=UTF-8|body=<h1>order</h1>
+view|filter|true => 401|ctrl=false|post=false|after=false|by=filter|type=-|body=
+view|pre|true => 401|ctrl=false|post=false|after=false|by=interceptor|type=-|body=
+view|ex|true => 409|ctrl=true|post=false|after=true|by=advice|type=application/json|body={"error":"CONFLICT"}

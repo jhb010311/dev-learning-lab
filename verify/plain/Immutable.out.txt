@@ -1,0 +1,6 @@
+false,none=3,ok,4
+false,copy=3,ok,3
+false,unmod=3,UnsupportedOperationException,3
+true,none=2,ok,3
+true,copy=2,ok,2
+true,unmod=2,UnsupportedOperationException,2

@@ -1,0 +1,12 @@
+Animal,Animal,override=Animal.sound
+Animal,Dog,override=Dog.sound
+Dog,Dog,override=Dog.sound
+Animal,Animal,overload=print(Animal)
+Animal,Dog,overload=print(Animal)
+Dog,Dog,overload=print(Dog)
+Animal,Animal,static=Animal.info
+Animal,Dog,static=Animal.info
+Dog,Dog,static=Dog.info
+Animal,Animal,field=동물
+Animal,Dog,field=동물
+Dog,Dog,field=개
