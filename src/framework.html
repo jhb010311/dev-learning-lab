@@ -83,12 +83,12 @@ button, input, select { font: inherit; color: inherit; }
 .term .no { font-family: var(--font-code); font-size: .74rem; color: var(--muted); font-weight: 400; }
 .term p { font-size: .92rem; max-width: 70ch; }
 
-/* 위에서부터: 설정과 예시 → 실행 띠(스크롤해도 따라옴) → 왼쪽 그림과 오른쪽 실행표 → 실행 비교 → 코드.
+/* 위에서부터: 설정 → 실행 띠(스크롤해도 따라옴) → 왼쪽 그림과 오른쪽 실행표 → 예시("이렇게 바꿔 보세요") → 실행 비교 → 코드.
    그림이 없는 실습은 그림 자리에 코드가 온다. 한 번의 실험(설정 → 실행 → 관찰 → 비교)이 한 화면 안에서 이어지게 한다. */
-.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); grid-template-areas: "ctl pre" "bar bar" "code stage"; gap: 16px 22px; align-items: start; }
-.p-ctl { grid-area: ctl; } .p-stage { grid-area: stage; } .p-pre { grid-area: pre; } .p-code { grid-area: code; } .p-pic { grid-area: pic; } .p-bar { grid-area: bar; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); grid-template-areas: "ctl ctl" "bar bar" "code stage"; gap: 16px 22px; align-items: start; }
+.p-ctl { grid-area: ctl; } .p-stage { grid-area: stage; } .p-code { grid-area: code; } .p-pic { grid-area: pic; } .p-bar { grid-area: bar; }
 .grid:not(.haspic) .p-pic { display: none; }
-.grid.haspic { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-areas: "ctl pre" "bar bar" "pic stage"; }
+.grid.haspic { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-areas: "ctl ctl" "bar bar" "pic stage"; }
 .below { display: flex; flex-direction: column; gap: 16px; }
 .ctls { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px 20px; align-items: start; }
 .presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px; }
@@ -322,8 +322,8 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 
 /* 좁은 화면: 한 줄로 쌓는다. 예시는 옆으로 넘기는 한 줄, 설정은 현재 값 요약과 함께 접어 둔다. */
 @media (max-width: 900px) {
-  .grid, .grid.haspic { grid-template-columns: minmax(0, 1fr); grid-template-areas: "pre" "ctl" "bar" "stage" "code"; }
-  .grid.haspic { grid-template-areas: "pre" "ctl" "bar" "pic" "stage"; }
+  .grid, .grid.haspic { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ctl" "bar" "stage" "code"; }
+  .grid.haspic { grid-template-areas: "ctl" "bar" "pic" "stage"; }
   .grid.haspic .p-pic, .grid:not(.haspic) .p-code { position: static; max-height: none; }
   .presets { display: flex; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
   .preset { flex: 0 0 min(230px, 72vw); scroll-snap-align: start; }
@@ -359,7 +359,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
     <p id="intro"></p>
     <div class="guide" id="guide" hidden>
       <b>이 화면을 쓰는 방법</b>
-      <ol><li>아래 <b>"이렇게 바꿔 보세요"</b>에서 예시 하나를 누르면 바로 실행됩니다.</li><li>그림과 그 위의 문장이 한 단계씩 넘어갑니다. <b>이전 단계, 다음 단계</b>로 직접 넘겨도 됩니다.</li><li>다른 예시를 누르거나 <b>설정</b>을 바꾼 뒤 <b>실행</b>을 눌러, 결과가 어떻게 달라지는지 비교합니다.</li><li>파란 낱말은 누르면 뜻이 나옵니다.</li></ol>
+      <ol><li><b>실행</b>을 누르면 그림과 그 위의 문장이 한 단계씩 넘어갑니다. <b>이전 단계, 다음 단계</b>로 직접 넘겨도 됩니다.</li><li>결과를 본 뒤, 그 아래의 <b>"이렇게 바꿔 보세요"</b>에서 다른 예시를 누르거나 <b>설정</b>을 바꿔 다시 실행해, 결과가 어떻게 달라지는지 비교합니다.</li><li>파란 낱말은 누르면 뜻이 나옵니다.</li></ol>
       <div><button class="btn ghost small" id="guide-x" type="button">알겠습니다 (다시 보지 않기)</button></div>
     </div>
     <div class="pathbar" id="pathbar"></div>
@@ -379,11 +379,6 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
         <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
         <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
       </div>
-    </div>
-
-    <div class="panel p-pre">
-      <h3>이렇게 바꿔 보세요 · 누르면 그 설정으로 바꾸고 바로 실행합니다</h3>
-      <div class="presets" id="presets"></div>
     </div>
 
     <div class="panel p-bar" id="runbar">
@@ -422,6 +417,10 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
   </div>
 
   <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요 · 누르면 그 설정으로 바꾸고 바로 실행합니다</h3>
+      <div class="presets" id="presets"></div>
+    </div>
     <div class="panel p-hist" id="histpanel">
       <h3>실행 비교</h3>
       <p class="note">실행할 때마다 한 줄씩 쌓입니다. 설정 하나만 바꿔 다시 실행하면 그 설정이 결과를 어떻게 바꾸는지 보입니다.</p>
@@ -535,6 +534,8 @@ var Lab = (function () {
         var before = cfg(); setValues(p.v); var after = cfg(); clearMarks();
         cur.controls.forEach(function (d) { if (String(before[d.id]) === String(after[d.id])) return; var bx = $('box-' + d.id); bx.classList.add('chg'); (bx.querySelector('label') || bx).appendChild(el('span', 'chgtag', '바뀜')); });
         b.setAttribute('aria-pressed', 'true'); run(true);
+        // 예시는 결과 아래에 있으므로, 누르면 실행되는 모습이 보이도록 실행 띠가 있는 곳으로 올라간다
+        $('runbar').scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
       ps.appendChild(b);
     });
@@ -653,7 +654,7 @@ var Lab = (function () {
       if (byId(last)) { var cb = el('button', 'btn', '지난번에 보던 실습 이어서 하기: ' + byId(last).nav); cb.type = 'button'; cb.addEventListener('click', function () { nav(last); }); var rr = el('div', 'runrow'); rr.appendChild(cb); hero.appendChild(rr); }
       box.appendChild(hero);
       var sb = el('section', 'startbox'); sb.appendChild(el('b', null, '처음이라면 이렇게 해 보세요'));
-      var so = el('ol'); ['아래에서 실습 하나를 누릅니다.', '실습 화면에서 "이렇게 바꿔 보세요"에 있는 예시 하나를 누릅니다. 그림과 설명이 한 단계씩 넘어갑니다.', '다른 예시를 눌러, 결과가 어떻게 달라지는지 비교합니다.'].forEach(function (t) { so.appendChild(el('li', null, t)); }); sb.appendChild(so);
+      var so = el('ol'); ['아래에서 실습 하나를 누릅니다.', '실습 화면에서 실행을 누릅니다. 그림과 설명이 한 단계씩 넘어갑니다.', '결과 아래의 "이렇게 바꿔 보세요"에서 다른 예시를 눌러, 결과가 어떻게 달라지는지 비교합니다.'].forEach(function (t) { so.appendChild(el('li', null, t)); }); sb.appendChild(so);
       var sg = el('div', 'hgrid small'); (SITE.start || []).forEach(function (id) { var l = byId(id); if (l) sg.appendChild(hcard(l.title, '', l.nav + ' 실습', id)); }); sb.appendChild(sg);
       box.appendChild(sb);
     } else crumbs(box, [['처음', 'home'], [mode === 'study' ? '공부' : '테스트', null]]);

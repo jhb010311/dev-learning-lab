@@ -1,0 +1,23 @@
+// Quiz questions for the "Enum classes" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab's model.
+Lab.quiz([
+  { lv: 1, id: 'enumtype', q: 'Enum constants can be compared with == instead of equals. Why?',
+    a: ['Because there is only one object for each constant, so the same constant is always the same object', 'Because the compiler automatically turns == on an enum into a call to equals', 'Because enum constants are treated as primitive values like int, not as objects', 'Because for an enum, == is changed so that it compares the name strings of the constants'],
+    why: 'An enum constant is created only once, and you cannot create another one with new. What you get from values() or valueOf is the same object as the Status.PAID you write in the code, so ==, which checks whether two references are the same object, is enough.',
+    sim: { c: { store: 'name', change: 'same', saved: 'PAID' }, col: 2, has: 'true' } },
+  { lv: 1, id: 'enumtype', q: 'You call Status.valueOf("PAID"), but Status has no constant named PAID. What happens?',
+    a: ['An IllegalArgumentException is thrown', 'It returns null, and the program keeps running without an exception', 'It picks the first declared constant and returns that instead', 'The compiler reports in advance that the name does not exist'],
+    why: 'When there is no constant with exactly that name, valueOf does not return null. It throws an IllegalArgumentException. What you pass is a string, so the compiler cannot check whether such a constant exists.',
+    sim: { c: { store: 'name', change: 'rename', saved: 'PAID' }, col: 3, has: 'IllegalArgumentException' } },
+  { lv: 2, id: 'enumtype', q: 'Why are you told not to use the ordinal() value when you save an enum constant to a database?',
+    a: ['Because it is only the position in the declaration, so when a constant is inserted or the order is changed, the same number refers to a different constant', 'Because ordinal() can return a different value each time it is called, so saving it is of no use', 'Because the number that ordinal() returns is a special type that cannot be put into an integer column of a database', 'Because saving a number uses far more storage space in the database than saving a name'],
+    why: 'ordinal() is only the position of the constant in the declaration. When the declaration is changed and the order becomes different, the number that was already saved stays the same but the constant at that position changes, so the value is read as a different constant without any exception.',
+    sim: { c: { store: 'ordinal', change: 'swap', saved: 'PAID' }, col: 2, has: 'false' } },
+  { lv: 3, id: 'enumtype', q: 'When the declaration was in the order ORDERED, PAID, SHIPPED, you saved 1, which is PAID.ordinal(). After that, CANCELED was inserted between ORDERED and PAID. What is Status.values()[1]?',
+    a: ['CANCELED. No exception is thrown', 'PAID. The number follows the constant', 'An exception is thrown. The number and the constant do not match', 'null. Position 1 becomes empty'],
+    why: 'values() is an array that contains the constants in the order of the current declaration. After the insertion, index 1 is CANCELED. A different constant comes back with no exception and no warning, so the mistake is hard to notice.',
+    sim: { c: { store: 'ordinal', change: 'insert', saved: 'PAID' }, col: 1, has: 'CANCELED' } },
+  { lv: 3, id: 'enumtype', q: 'You saved PAID as the string "PAID" obtained from name(). After that, the declaration order of ORDERED and PAID in the enum was swapped. What happens when you read the value with Status.valueOf("PAID")?',
+    a: ['PAID comes back as before. The lookup is by name, so the order does not matter', 'ORDERED comes back. The order changed, so the position is different', 'An exception is thrown. valueOf cannot be used once the declaration changes', 'PAID comes back, but comparing it with == gives false'],
+    why: 'valueOf finds a constant by its name, not by its ordinal. Even if the order is changed or constants are added, the same constant comes back as long as the name stays the same. What you have to be careful about when you save by name is renaming a constant.',
+    sim: { c: { store: 'name', change: 'swap', saved: 'PAID' }, col: 1, has: 'PAID' } },
+]);

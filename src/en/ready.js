@@ -7,5 +7,5 @@ module.exports = [
   // Java
   'vars', 'casting', 'loops', 'array', 'ctor', 'static', 'inherit', 'poly', 'absint', 'access', 'inner', 'immut',
   'strategy', 'eqhash', 'strbuild', 'datetime', 'optional', 'exflow', 'chkex', 'generic',
-  'setmap', 'sqh', 'cme', 'sorting',
+  'setmap', 'sqh', 'cme', 'sorting', 'enumtype', 'annot', 'list', 'hashmap',
 ];

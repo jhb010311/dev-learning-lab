@@ -1,0 +1,23 @@
+// Quiz questions for the "Annotations" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab's model.
+Lab.quiz([
+  { lv: 1, id: 'annot', q: 'You apply @Timed, an annotation you created yourself, to the work method. If no code anywhere in the program reads @Timed, what happens when work is called?',
+    a: ['Only work runs, exactly as it would without the annotation', 'The JVM adds behavior that fits the name on its own', 'A compile-time error occurs because no code reads the annotation', 'An exception is thrown because the annotation cannot be processed'],
+    why: 'An annotation is only a label attached to code, and it does nothing by itself. Something happens only when something reads it, such as the compiler or code that uses reflection.',
+    sim: { c: { topic: 'custom', ret: 'RUNTIME', target: 'METHOD', reader: false, typo: true, ov: false }, col: 3, has: 'work runs' } },
+  { lv: 1, id: 'annot', q: 'A method annotated with @Override does not actually override any method of a supertype (its name is misspelled). What happens?',
+    a: ['A compile-time error occurs, so you notice the mistake right away', 'Only a warning is shown, and the method is compiled as a new method', 'The code compiles, and an exception is thrown at run time', 'The compiler corrects the name by itself and compiles the code'],
+    why: 'It is the compiler that reads @Override. It checks whether the method right below overrides a method of a supertype, and if it does not, the compiler reports the error "method does not override or implement a method from a supertype".',
+    sim: { c: { topic: 'override', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: true }, col: 0, has: 'Error' } },
+  { lv: 2, id: 'annot', q: 'You apply an annotation that was created without @Retention to a method. At run time, isAnnotationPresent in reflection returns false. Why?',
+    a: ['Because the default is CLASS, so the annotation is retained in the class file but is not visible to reflection at run time', 'Because the default is SOURCE, so the annotation is removed completely, even from the class file, once compilation is finished', 'Because an annotation you create yourself cannot be read with reflection, regardless of @Retention', 'Because reflection reads only annotations applied to classes and cannot read those applied to methods'],
+    why: 'When @Retention is not written, CLASS applies. An annotation retained with CLASS is recorded in the class file, but the JVM does not make it visible to reflection. To read it at run time, you must write RUNTIME.',
+    sim: { c: { topic: 'custom', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: false }, col: 2, has: 'not visible' } },
+  { lv: 2, id: 'annot', q: 'What happens when you apply an annotation created with @Target(ElementType.TYPE) to a method?',
+    a: ['A compile-time error occurs. It cannot be applied there', 'The code compiles, and the annotation is silently ignored', 'The code compiles, and the annotation is treated as applied to the whole class', 'The code compiles, and an exception is thrown when the annotation is read at run time'],
+    why: '@Target decides where an annotation can be applied, and the compiler checks this. TYPE means a type declaration such as a class or an interface, so applying the annotation to a method is a compile-time error.',
+    sim: { c: { topic: 'custom', ret: 'RUNTIME', target: 'TYPE', reader: true, typo: true, ov: false }, col: 0, has: 'Error' } },
+  { lv: 3, id: 'annot', q: 'In Dog, you meant to override sound() of Animal but misspelled the name as sount(), and you did not apply @Override. What happens when Animal a = new Dog(); a.sound(); runs?',
+    a: ['sound() of Animal runs, with no error', 'sount() of Dog runs, with no error', 'An exception is thrown because sound() cannot be found', 'A compile-time error says that the override is wrong'],
+    why: 'Without @Override, the compiler does not check whether the method really overrides. sount() is compiled as a new method, and Dog has no sound(), so the inherited sound() of Animal runs.',
+    sim: { c: { topic: 'override', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: false }, col: 3, has: '...' } },
+]);
