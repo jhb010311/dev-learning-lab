@@ -7,6 +7,8 @@ Lab.site({
   name: '개발 학습 실습실',
   desc: '자바, 스프링, JPA, 데이터베이스, 네트워크, 보안의 개념을 설정을 바꿔 실행해 보며 익히는 무료 실습실',
   feedback: 'https://github.com/jhb010311/dev-learning-lab/issues',
+  // 처음 화면의 "처음이라면"에 보일 실습: 배경 지식이 적어도 따라갈 수 있는 것
+  start: ['journey', 'stack', 'eq'],
 });
 Lab.curriculum([
   { id: 'java', name: 'Java', desc: '문법부터 객체 지향, 컬렉션, 스레드, JVM까지. 코드가 실행될 때 안에서 무슨 일이 일어나는지를 봅니다.',

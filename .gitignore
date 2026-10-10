@@ -17,3 +17,4 @@ tools/make_build.js
 tools/refactor_site.js
 tools/frag_*
 tools/strip_dc.js
+tools/add_onboarding.js

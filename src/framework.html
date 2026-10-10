@@ -130,6 +130,10 @@ button, input, select { font: inherit; color: inherit; }
 .catview { gap: 16px; }
 .hero { display: flex; flex-direction: column; gap: 10px; padding-block: 12px 4px; }
 .hero h1 { font-size: 2rem; }
+.startbox { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.startbox ol { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 2px; max-width: 70ch; }
+.guide { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--busy-edge); border-radius: 6px; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.guide ol { margin: 0; padding-left: 1.3em; max-width: 74ch; }
 .lead { font-size: 1.05rem; max-width: 64ch; }
 .hero .muted { max-width: 70ch; }
 .hsec { display: flex; flex-direction: column; gap: 10px; border-top: 3px solid var(--ink); padding-top: 14px; }
@@ -347,6 +351,11 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
     <div class="vbadge" id="vbadge"></div>
     <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
     <p id="intro"></p>
+    <div class="guide" id="guide" hidden>
+      <b>이 화면을 쓰는 방법</b>
+      <ol><li>아래 <b>"이렇게 바꿔 보세요"</b>에서 예시 하나를 누르면 바로 실행됩니다.</li><li>그림과 그 위의 문장이 한 단계씩 넘어갑니다. <b>이전 단계, 다음 단계</b>로 직접 넘겨도 됩니다.</li><li>다른 예시를 누르거나 <b>설정</b>을 바꾼 뒤 <b>실행</b>을 눌러, 결과가 어떻게 달라지는지 비교합니다.</li><li>파란 낱말은 누르면 뜻이 나옵니다.</li></ol>
+      <div><button class="btn ghost small" id="guide-x" type="button">알겠습니다 (다시 보지 않기)</button></div>
+    </div>
     <div class="pathbar" id="pathbar"></div>
   </section>
 
@@ -634,6 +643,10 @@ var Lab = (function () {
       last = last.split('|')[0];
       if (byId(last)) { var cb = el('button', 'btn', '지난번에 보던 실습 이어서 하기: ' + byId(last).nav); cb.type = 'button'; cb.addEventListener('click', function () { nav(last); }); var rr = el('div', 'runrow'); rr.appendChild(cb); hero.appendChild(rr); }
       box.appendChild(hero);
+      var sb = el('section', 'startbox'); sb.appendChild(el('b', null, '처음이라면 이렇게 해 보세요'));
+      var so = el('ol'); ['아래에서 실습 하나를 누릅니다.', '실습 화면에서 "이렇게 바꿔 보세요"에 있는 예시 하나를 누릅니다. 그림과 설명이 한 단계씩 넘어갑니다.', '다른 예시를 눌러, 결과가 어떻게 달라지는지 비교합니다.'].forEach(function (t) { so.appendChild(el('li', null, t)); }); sb.appendChild(so);
+      var sg = el('div', 'hgrid small'); (SITE.start || []).forEach(function (id) { var l = byId(id); if (l) sg.appendChild(hcard(l.title, '', l.nav + ' 실습', id)); }); sb.appendChild(sg);
+      box.appendChild(sb);
     } else crumbs(box, [['처음', 'home'], [mode === 'study' ? '공부' : '테스트', null]]);
     if (mode !== 'quizpick') {
       var s1 = el('section', 'hsec'); s1.appendChild(el('h2', null, '공부')); s1.appendChild(el('p', 'muted', '분야를 고르면 그 분야에서 배울 항목이 차례대로 나옵니다. 항목마다 설정을 바꿔 가며 돌려 보는 실습이 있습니다.'));
@@ -668,6 +681,7 @@ var Lab = (function () {
     box.appendChild(el('h2', null, c.name)); box.appendChild(el('p', 'lead', c.desc));
     var ids = lessonsOf(c), todo = todoOf(c), row = el('div', 'runrow');
     row.appendChild(el('span', 'muted', '실습 ' + ids.length + '개' + (todo ? ' · 준비 중 ' + todo + '개' : '')));
+    if (ids.length) { var fb = el('button', 'btn small', '첫 실습부터 시작: ' + byId(ids[0]).nav); fb.type = 'button'; fb.addEventListener('click', function () { nav(ids[0]); }); row.appendChild(fb); }
     var tb = el('button', 'btn ghost small', c.name + ' 테스트 하기'); tb.type = 'button'; tb.addEventListener('click', function () { nav('quiz/' + c.id); }); row.appendChild(tb); box.appendChild(row);
     var num = 0;
     c.groups.forEach(function (g) {
@@ -746,6 +760,8 @@ var Lab = (function () {
     $('clear').addEventListener('click', function () { hist[cur.id] = []; drawHist(); });
     $('explain-btn').addEventListener('click', function () { var x = $('explain'); x.hidden = !x.hidden; this.setAttribute('aria-expanded', String(!x.hidden)); this.textContent = x.hidden ? '개념 설명 보기' : '개념 설명 닫기'; });
     $('to-list').addEventListener('click', function () { nav(curCat ? 'study/' + curCat.id : 'study'); });
+    var guideSeen = false; try { guideSeen = localStorage.getItem('lab-guide') === '1'; } catch (e) {}
+    $('guide').hidden = guideSeen; $('guide-x').addEventListener('click', function () { $('guide').hidden = true; try { localStorage.setItem('lab-guide', '1'); } catch (e) {} });
     $('brand').addEventListener('click', function (e) { e.preventDefault(); nav('home'); });
     $('t-home').addEventListener('click', function () { nav('home'); });
     $('t-lab').addEventListener('click', function () { nav('study'); });
