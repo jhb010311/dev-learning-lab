@@ -93,7 +93,7 @@ module.exports = [
   ["Collections and data structures", "Stack, queue, deque",
    "A stack takes out the most recently added item first (LIFO), a queue takes out the earliest added item first (FIFO), and a deque lets you add and remove items at both ends. In Java, ArrayDeque is the recommended implementation for both stacks and queues."],
   ["Collections and data structures", "Heap and priority queue",
-   "A heap is a complete binary tree in which each parent node is always smaller than its child nodes (a min-heap) or larger (a max-heap). It lets you see the smallest (or largest) value in O(1) and remove it in O(log n), so it is used to implement a priority queue. Java's PriorityQueue is implemented with a heap. It shares only its name with the heap that is a memory area of the JVM."],
+   "A heap is a complete binary tree in which each parent node is always less than or equal to its child nodes (a min-heap) or greater than or equal to them (a max-heap). It lets you see the smallest (or largest) value in O(1) and remove it in O(log n), so it is used to implement a priority queue. Java's PriorityQueue is implemented with a heap. It shares only its name with the heap that is a memory area of the JVM."],
   ["Collections and data structures", "Time complexity (big-O notation)",
    "This notation shows how fast the number of operations of an algorithm grows as the input size n grows. O(1) means constant regardless of size, O(log n) means only one more step when the size doubles, O(n) means proportional to the size, and O(n²) means proportional to the square of the size. It is the basis for judging which approach holds up as the amount of data grows."],
   ["Collections and data structures", "Amortized analysis",
