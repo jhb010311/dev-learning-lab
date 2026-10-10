@@ -1,0 +1,23 @@
+// Quiz questions for the "Collecting a stream" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab's model.
+Lab.quiz([
+  { lv: 1, id: 'collect', q: 'If you collect a stream of orders with Collectors.groupingBy(Order::customer), what shape does the result have?',
+    a: ['A Map with the customer as the key and the list of that customer\'s orders as the value', 'A Map with the customer as the key and that customer\'s last order alone as the value', 'A List that holds only the customer names, every one of them, in the order in which they appeared', 'A single string made by joining the customer names with commas'],
+    why: 'groupingBy computes a key for each element and groups the elements that have the same key. If you do not give a second argument, the value is a List of the elements that belong to that key.',
+    sim: { c: { how: 'group', data: 'dup' }, col: 0, has: 'Map<String, List<Order>>' } },
+  { lv: 1, id: 'collect', q: 'What is the type of the variable that receives the result of groupingBy(Order::customer, Collectors.counting())?',
+    a: ['Map<String, Long>', 'Map<String, Integer>', 'Map<String, List<Order>>', 'List<Long>'],
+    why: 'counting() returns the count as a Long. If you assign the result to a Map<String, Integer>, the types do not match and a compile-time error occurs.',
+    sim: { c: { how: 'count', data: 'dup' }, col: 0, has: 'Map<String, Long>' } },
+  { lv: 2, id: 'collect', q: 'You collect with Collectors.toMap(Order::customer, Order::price), and the data contains two orders from the same customer. What happens?',
+    a: ['An IllegalStateException is thrown', 'The value is overwritten with the value of the later order', 'The value of the earlier order stays as it is', 'The values of the two orders are added together automatically'],
+    why: 'toMap holds only one value per key, and when the same key appears again, it does not decide on its own which value to keep. If no merge function was given as the third argument, it throws an IllegalStateException (Duplicate key). It is easy to be confused by the fact that it does not overwrite the value the way map.put does.',
+    sim: { c: { how: 'toMap', data: 'dup' }, col: 2, has: 'IllegalStateException' } },
+  { lv: 2, id: 'collect', q: 'If you collect a list that has no orders at all with partitioningBy(o -> o.price() >= 300), what is the result?',
+    a: ['Both keys, false and true, are present, and both values are empty lists', 'There are no elements to split, so the result is an empty Map with no keys', 'There is nothing to collect, so null is returned instead of a Map', 'There are no elements, so a NoSuchElementException is thrown'],
+    why: 'The result of partitioningBy always contains the two keys, false and true, even when no element belongs to them. So you do not need to check whether the result of get(true) is null. groupingBy does not create a key that has no elements.',
+    sim: { c: { how: 'part', data: 'empty' }, col: 1, has: '{false=[], true=[]}' } },
+  { lv: 3, id: 'collect', q: 'Orders that arrive in the order kim 300, han 100, kim 200, choi 400, han 500 are collected with toMap(Order::customer, Order::price, (a, b) -> a + b). What is the value of kim in the result?',
+    a: ['500', '300', '200', '2'],
+    why: 'When kim appears for the second time, the merge function receives the existing value 300 and the new value 200 and returns their sum, 500. 300 is the result when only the value that came first is kept, 200 when the value is overwritten with the later one, and 2 when the orders are counted.',
+    sim: { c: { how: 'toMapMerge', data: 'dup' }, col: 1, has: 'kim=500' } },
+]);

@@ -8,4 +8,5 @@ module.exports = [
   'vars', 'casting', 'loops', 'array', 'ctor', 'static', 'inherit', 'poly', 'absint', 'access', 'inner', 'immut',
   'strategy', 'eqhash', 'strbuild', 'datetime', 'optional', 'exflow', 'chkex', 'generic',
   'setmap', 'sqh', 'cme', 'sorting', 'enumtype', 'annot', 'list', 'hashmap',
+  'lambda', 'stream', 'collect', 'parstream', 'process', 'thread', 'race', 'deadlock', 'threadpool', 'ctx', 'parallel', 'blocking',
 ];

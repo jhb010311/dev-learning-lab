@@ -1,0 +1,7 @@
+// Terms needed for the "Collecting a stream" lab
+module.exports = [
+  ['Java language', 'Collector and collect',
+   'collect is the terminal operation that gathers the elements that come out of a stream into a single result, and a Collector is the object that represents how they are gathered (which container is used and how the elements are put in). The Collectors class provides the Collectors that are used often. toList and toSet put the elements into a collection, joining concatenates them into a single string, and toMap puts them into a Map with the key and the value that you specify. toMap throws an IllegalStateException when the same key appears twice, so if keys can be duplicated, give a merge function that combines the two values as the third argument.'],
+  ['Java language', 'groupingBy and partitioningBy',
+   'These are Collectors that divide the elements of a stream into groups and collect them into a Map. groupingBy computes a key for each element and groups the elements that have the same key, and its default result is a Map<key, List<element>>. If you give a Collector such as counting or summingInt as the second argument, you get the count or the sum of each group instead of a list. partitioningBy divides the elements into two groups, a true group and a false group, by a single condition, and the two keys are always present even when no element belongs to a group. The Map that groupingBy returns does not guarantee an order, so if you need an order, specify separately that a Map such as TreeMap is to be used.'],
+];

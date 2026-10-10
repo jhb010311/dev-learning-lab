@@ -1,0 +1,5 @@
+// Quiz questions for the "Race condition" lab. The first entry of a is the correct answer.
+Lab.quiz([
+  { lv: 1, id: 'race', q: 'When two threads run count++ on the same variable at the same time, the value can go up by less than expected. Why?', a: ['count++ consists of three steps (read, add, and write), so another thread can cut in between them', 'Because the int type cannot be used in threads', 'Because the CPU sometimes gets an addition wrong', 'Because the compiler removes count++'], why: 'If two threads read the same value and each adds 1 and writes the result, the value has gone up only once (a lost update).' },
+  { lv: 2, id: 'race', q: 'Several threads run count++ on a variable declared as volatile int count;. Is this safe?', a: ['It is not safe. volatile only makes the latest value visible and does not tie the read and the write together', 'It is safe. volatile acts as a lock', 'It is safe. Only one thread can use a volatile variable', 'A compile-time error occurs'], why: 'volatile guarantees only visibility. To combine read, add, and write into one, you need synchronized or AtomicInteger.' },
+]);
