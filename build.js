@@ -5,12 +5,16 @@
 const fs = require('fs');
 const path = require('path');
 const dir = path.join(__dirname, 'src');
-const kb = [1, 2, 3, 4, 5, 6].flatMap(i => require('./kb/kb' + i + '.js'));
+// 설명: kb1~6.js 다음에, 나중에 실습과 함께 추가한 kb_<id>.js를 이름 순으로 잇는다
+const kbFiles = fs.readdirSync(path.join(__dirname, 'kb')).filter(f => /^kb.*\.js$/.test(f)).sort((a, b) => (/^kb\d/.test(a) ? 0 : 1) - (/^kb\d/.test(b) ? 0 : 1) || a.localeCompare(b));
+const kb = kbFiles.flatMap(f => require('./kb/' + f));
+{ const seen = new Set(); kb.forEach(r => { if (r.length < 3 || !r[0] || !r[1] || !r[2]) throw new Error('kb 형식 오류: ' + r[1]); if (seen.has(r[1])) throw new Error('kb에 같은 용어가 두 번 있음: ' + r[1]); seen.add(r[1]); }); }
 
 function loadLessons() {
   const list = [];
   const Lab = { register: l => list.push(l), fmt: x => (Math.round(x * 10) / 10).toFixed(1) };
-  const files = fs.readdirSync(path.join(dir, 'lessons')).filter(f => f.endsWith('.js')).sort();
+  // LAB_ONLY_FILE이 있으면 그 실습 파일 하나만 읽는다 (tools/check_lesson.js가 쓴다)
+  const files = fs.readdirSync(path.join(dir, 'lessons')).filter(f => f.endsWith('.js') && (!process.env.LAB_ONLY_FILE || f === process.env.LAB_ONLY_FILE)).sort();
   files.forEach(f => new Function('Lab', fs.readFileSync(path.join(dir, 'lessons', f), 'utf8'))(Lab));
   return { list, files, Lab };
 }
@@ -33,7 +37,7 @@ if (require.main === module) {
   tracks.forEach(t => { if (!t.id || !t.name || !t.desc || !t.steps.length) throw new Error('학습 경로 형식 오류: ' + t.id); t.steps.forEach(s => { if (!ids.has(s[0])) throw new Error(t.id + ': 없는 개념 ' + s[0]); if (!s[1] || !s[2]) throw new Error(t.id + ': 단계 설명 없음 ' + s[0]); inTrack.add(s[0]); }); if (new Set(t.steps.map(s => s[0])).size !== t.steps.length) throw new Error(t.id + ': 같은 개념이 두 번 들어감'); });
   console.log('학습 경로', tracks.length + '개, 단계', tracks.reduce((a, t) => a + t.steps.length, 0) + '개');
   // 개념 테스트 문제: 형식, 가리키는 학습 경로와 실습, 그리고 실습 모형의 결과와 정답이 맞는지(sim) 확인
-  const quizFiles = fs.readdirSync(dir).filter(f => /^quiz\d*\.js$/.test(f)).sort();
+  const quizFiles = fs.readdirSync(dir).filter(f => /^quiz.*\.js$/.test(f)).sort();
   const quizSrc = quizFiles.map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
   const bank = []; new Function('Lab', quizSrc)({ quiz: q => bank.push(...q) });
   let simChecked = 0;
@@ -67,8 +71,8 @@ if (require.main === module) {
   Object.keys(aliasMap).forEach(w => [''].concat([...ids]).forEach(ctx => { const hit = [...new Set(aliasMap[w].filter(e => applies(e, ctx)).map(e => e.kb || e.t))]; if (hit.length > 1) throw new Error('glossary: "' + w + '"가 ' + (ctx || '(실습 밖)') + '에서 여러 항목에 걸림: ' + hit.join(' / ')); }));
   console.log('용어 풀이', gl.length + '개 항목, 찾는 표현', Object.keys(aliasMap).length + '개');
   // 검증 수준: 모든 실습에 항목이 있고, 수준이 네 가지 중 하나인지 확인
-  const verSrc = fs.readFileSync(path.join(dir, 'verify.js'), 'utf8');
-  let ver = {}; new Function('Lab', verSrc)({ verify: v => { ver = v; } });
+  const verSrc = fs.readdirSync(dir).filter(f => /^verify.*\.js$/.test(f)).sort().map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
+  const ver = {}; new Function('Lab', verSrc)({ verify: v => { Object.keys(v).forEach(k => { if (ver[k]) throw new Error('verify: 같은 실습이 두 번 있음 ' + k); ver[k] = v[k]; }); } });
   list.forEach(l => { const v = ver[l.id]; if (!v || !['run', 'part', 'doc', 'model'].includes(v[0]) || !v[1]) throw new Error('verify: ' + l.id + ' 항목이 없거나 형식 오류'); });
   Object.keys(ver).forEach(id => { if (!ids.has(id)) throw new Error('verify: 없는 실습 ' + id); });
   console.log('검증 수준', ['run', 'part', 'doc', 'model'].map(k => k + ' ' + list.filter(l => ver[l.id][0] === k).length).join(', '));

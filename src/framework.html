@@ -1143,7 +1143,7 @@ var Lab = (function () {
     });
   }
   function attach(map, terms) { lessons.forEach(function (l) { var m = map[l.id]; if (m) { l.explain = m.explain; l.refs = m.refs; } }); kbTerms = terms || []; }
-  return { curriculum: function (c) { curri = c; }, site: function (o) { Object.keys(o).forEach(function (k) { SITE[k] = o[k]; }); }, verify: function (v) { verify = v; }, register: function (l) { lessons.push(l); }, tracks: function (t) { tracks = t; }, quiz: function (q) { quizBank = quizBank.concat(q); }, glossary: function (g) { gloss = gloss.concat(g); }, start: start, fmt: fmt, attach: attach };
+  return { curriculum: function (c) { curri = c; }, site: function (o) { Object.keys(o).forEach(function (k) { SITE[k] = o[k]; }); }, verify: function (v) { Object.keys(v).forEach(function (k) { verify[k] = v[k]; }); }, register: function (l) { lessons.push(l); }, tracks: function (t) { tracks = t; }, quiz: function (q) { quizBank = quizBank.concat(q); }, glossary: function (g) { gloss = gloss.concat(g); }, start: start, fmt: fmt, attach: attach };
 })();
 </script>
 <script type="application/json" id="explain-data">/*__EXPLAIN__*/{}</script>
