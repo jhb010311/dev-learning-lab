@@ -1,0 +1,5 @@
+// Quiz questions for the eq lab. The first entry of a is the correct answer.
+Lab.quiz([
+  { lv: 1, id: 'eq', q: 'What is the result of new String("a") == new String("a")?', a: ['false. == compares whether two variables refer to the same object', 'true. The contents of the two strings are the same', 'A compile-time error. == cannot be used on objects', 'true. Only one copy of a string is ever created'], why: 'Objects created with new are different objects even when their contents are the same. == checks whether the two are the same object. To compare contents, use equals.' },
+  { lv: 3, id: 'eq', q: 'A class overrides only equals and does not override hashCode. You add two objects of this class with the same contents to a HashSet. What can happen?', a: ['Their hash codes differ, so they go into different buckets, both are stored, and the size becomes 2', 'equals says they are equal, so only one is ever stored', 'The second add throws an exception', 'A compile-time error occurs'], why: 'A HashSet first picks a bucket with hashCode and compares with equals only inside that bucket. If the hash codes differ, equals is not even called.' },
+]);
