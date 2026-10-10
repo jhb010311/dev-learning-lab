@@ -1,0 +1,23 @@
+// Quiz questions for the "REST APIs and message converters" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'msgconv', q: 'What converts the Java object returned by a method of an @RestController into JSON text and writes it to the response body?',
+    a: ['A message converter (HttpMessageConverter)', 'A view resolver (ViewResolver)', 'A handler mapping (HandlerMapping)', 'A servlet filter (Filter)'],
+    why: 'A message converter converts the value returned by an @RestController (@ResponseBody) into the response body. For JSON, a converter that uses Jackson does the work. A view resolver is used to find a view by the view name returned by an @Controller.',
+    sim: { c: { kind: 'obj', req: 'ok' }, col: 3, has: 'JSON converter' } },
+  { lv: 1, id: 'msgconv', q: 'A method of a class annotated with @Controller returns the string "orders/done" without @ResponseBody. How does Spring handle it?',
+    a: ['It finds the view with that name and renders it', 'It writes that text to the response body as it is', 'It converts that text to a JSON string and writes it', 'It responds by telling the client to request that URL again'],
+    why: 'A string returned by a method of an @Controller is interpreted as a view name, and ViewResolver finds the view. To write the text to the body as it is, put @ResponseBody on the method or use @RestController.',
+    sim: { c: { kind: 'view', req: 'ok' }, col: 3, has: 'View' } },
+  { lv: 2, id: 'msgconv', q: 'You sent valid JSON in the body, but 415 Unsupported Media Type came back. What should you check first?',
+    a: ['Whether the Content-Type header of the request is application/json', 'Whether the Accept header of the request is application/json', 'Whether the closing brace is missing from the JSON in the body', 'Whether the controller method throws an exception'],
+    why: '415 means that the server cannot read the format of the request body, and Spring chooses the converter that reads the body by looking at the Content-Type header, not at the content of the body. If the Accept does not match, the result is 406, and if the JSON syntax is wrong, the result is 400.',
+    sim: { c: { kind: 'obj', req: 'text' }, col: 0, has: '415' } },
+  { lv: 2, id: 'msgconv', q: 'Why would you wrap an object in a ResponseEntity instead of returning the object as it is?',
+    a: ['So that the controller can set the status code and the response headers itself', 'To make the conversion of the object to JSON faster', 'To respond without going through a message converter', 'To return JSON even without @RestController'],
+    why: 'When you return only an object, the status code is 200. A ResponseEntity can hold the status code, the headers, and the body together, so you can build a response that fits the situation, such as 201 with a Location header. The body is converted by a message converter in the same way.',
+    sim: { c: { kind: 'entity', req: 'ok' }, col: 0, has: '201' } },
+  { lv: 3, id: 'msgconv', q: 'You sent a request with Accept: application/xml to POST /orders, which creates an order, and 406 came back. The server cannot produce XML, and produces is not written on the method. What happened to the order?',
+    a: ['The controller had already run, so the order was created', 'The controller did not run, so there is no order', 'Spring rolled back the transaction, so the order was canceled', 'The order was created, and only the response body came as JSON'],
+    why: 'The response format is chosen after the controller returns its value. So 406 is decided after the controller has run, and the code that creates the order has already finished. This is where it differs from 415 and 400, which are decided while the request body is being read.',
+    sim: { c: { kind: 'obj', req: 'xml' }, col: 1, has: 'ran' } },
+]);

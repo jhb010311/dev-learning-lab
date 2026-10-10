@@ -1,0 +1,22 @@
+// Quiz questions for the "Request mapping and parameter binding" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'binding', q: 'A controller method receives a value with @RequestParam int qty. What happens when a request arrives without qty, such as GET /orders?',
+    a: ['Spring does not run the controller and responds with 400', 'Spring puts 0 in qty and runs the controller', 'Spring puts null in qty and runs the controller', 'Spring finds no matching URL and responds with 404'],
+    why: 'By default, @RequestParam requires the value to be present. When the value is missing, Spring rejects the request with 400 before it calls the controller. If the value is optional, set required = false or a defaultValue.',
+    sim: { c: { how: 'param', req: 'none' }, col: 0, has: '400' } },
+  { lv: 1, id: 'binding', q: 'From which part of the request does @PathVariable take its value?',
+    a: ['The position marked with {name} in the path of the URL', 'The query string that comes after the ? in the URL', 'The request body sent as JSON', 'The Content-Type header that came with the request'],
+    why: 'When you put a {name} placeholder in the path, as in @GetMapping("/orders/{qty}"), the segment of the request path at that position comes in as the @PathVariable parameter. The query string is taken by @RequestParam, and a JSON body is taken by @RequestBody.' },
+  { lv: 2, id: 'binding', q: 'A parameter is declared as @RequestParam(defaultValue = "1") int qty, and the request GET /orders?qty=abc arrives. Why is the result 400?',
+    a: ['Because defaultValue is used only when the value is missing and does not replace a value that cannot be converted to a number', 'Because setting defaultValue changes required to true and makes the check of the value stricter', 'Because the "1" written in defaultValue is text and cannot be put in an int parameter', 'Because a value in the query string has to be received with @PathVariable, not with @RequestParam'],
+    why: 'When a value is present, Spring tries to convert it to the type of the parameter. "abc" cannot be converted to int, so the result is 400. defaultValue and required = false take part only when the value is missing altogether.',
+    sim: { c: { how: 'def', req: 'qabc' }, col: 3, has: 'cannot be converted to a number' } },
+  { lv: 2, id: 'binding', q: 'Why can qty=3, sent as form data in the body (application/x-www-form-urlencoded), be received with @RequestParam int qty?',
+    a: ['Because form data in the body is handled as request parameters together with the query string', 'Because @RequestParam reads the whole body regardless of the format of the body', 'Because Spring converts the form data to JSON and then reads it with a message converter', 'Because in a POST request the body is automatically appended to the path of the URL'],
+    why: 'The servlet container combines the query string and the form data in the body and provides them as request parameters. @RequestParam looks for the value in those request parameters. A JSON body is not part of the request parameters.',
+    sim: { c: { how: 'param', req: 'f3' }, col: 2, has: '3' } },
+  { lv: 3, id: 'binding', q: 'A web page sends POST /orders with the JSON body {"qty": 3}. The controller receives it with @ModelAttribute OrderForm form, and OrderForm has an int qty field and a setter. What is the result?',
+    a: ['Spring responds with 200, but the qty of form is 0', 'Spring responds with 200, and the qty of form is 3', 'Spring responds with 400 because a required value is missing', 'Spring responds with 415 because the format cannot be read'],
+    why: '@ModelAttribute looks only at the request parameters (query string and form data) and does not read a JSON body. When there is no value to set, it simply does not call the setter and does not treat this as an error, so the controller runs with qty left at 0, the default value of int. A JSON body has to be received with @RequestBody.',
+    sim: { c: { how: 'model', req: 'j3' }, col: 2, has: '0' } },
+]);

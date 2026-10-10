@@ -11,5 +11,6 @@ module.exports = [
   'lambda', 'stream', 'collect', 'parstream', 'process', 'thread', 'race', 'deadlock', 'threadpool', 'ctx', 'parallel', 'blocking',
   'gc', 'jit', 'classload', 'iobuf', 'serial',
   // Spring
-  'ioc', 'di', 'singleton', 'scope',
+  'ioc', 'di', 'singleton', 'scope', 'mvc', 'binding', 'validation', 'msgconv',
+  'txprop', 'jdbctmpl', 'connpool', 'servlet',
 ];
