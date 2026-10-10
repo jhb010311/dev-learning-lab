@@ -1,0 +1,23 @@
+// Quiz questions for the merge lab. The first entry of a is the correct answer; if sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'merge', q: 'After you run Member r = em.merge(m);, which object is managed?',
+    a: ['Only r, which merge returned, is managed, and m, which you passed, stays detached', 'The m you passed becomes managed, and r is only a copy of m', 'm and r become the same object, and both are managed', 'Both m and r are detached until the commit'],
+    why: 'merge does not make the object you pass managed. It finds the managed entity with the same id (loading it if there is none), overwrites its values, and returns that entity. So you have to do the work after merge with the returned object.',
+    sim: { c: { src: 'loaded', how: 'merge', after: 'none' }, col: 0, has: 'false' } },
+  { lv: 2, id: 'merge', q: 'On a member edit screen, you received only id and name, filled them into new Member(), and passed it to em.merge. Why did the city value in the DB become NULL?',
+    a: ['merge overwrote with all the fields of the object you passed, so the null in city was applied too', 'merge DELETEs the existing row and INSERTs a new one', 'An object created with new is set to apply only name when it is merged', 'merge does not send a SELECT, so it could not know the existing city value'],
+    why: 'merge does not pick only the changed fields. It overwrites the managed entity with the values of all the fields of the object you passed. A field that was not filled in is null, so that null is saved as it is. merge reads the existing values with a SELECT, but it overwrites everything you passed on top of the values it read.',
+    sim: { c: { src: 'form', how: 'merge', after: 'none' }, col: 3, has: 'NULL' } },
+  { lv: 2, id: 'merge', q: 'When you fix only some fields, why is the dirty checking approach of "loading again and putting in only the values to change" said to be safer than merge?',
+    a: ['Because the fields you did not touch keep the values that were loaded', 'Because no SELECT is sent, so there is one less SQL statement', 'Because only the one changed column goes into the UPDATE statement', 'Because the change is applied to the DB even without a transaction'],
+    why: 'The dirty checking approach puts only the values to change into the managed entity, so the other fields keep the values first read. The number of SQL statements sent is the same as for merge (one SELECT and one UPDATE), and the default UPDATE statement of Hibernate contains all the columns in both approaches. The difference is the values it carries.',
+    sim: { c: { src: 'form', how: 'dirty', after: 'none' }, col: 3, has: 'Seoul' } },
+  { lv: 3, id: 'merge', q: 'You changed the name of a loaded detached object m, called Member r = em.merge(m);, then called m.setCity("Busan"), and committed. What happens to city in the DB? (The first value is Seoul)',
+    a: ['It stays Seoul', 'It changes to Busan', 'It becomes NULL', 'An exception is thrown at commit'],
+    why: 'The m that you passed to merge is still detached after merge. Even if you change the city of m, no persistence context is watching it. To save Busan, you have to call r.setCity("Busan") on r, which is managed.',
+    sim: { c: { src: 'loaded', how: 'merge', after: 'arg' }, col: 3, has: 'Seoul' } },
+  { lv: 3, id: 'merge', q: 'You changed the name of a detached object, called em.merge(m) once in a new transaction, and committed. What SQL is sent to the DB in that transaction?',
+    a: ['One SELECT and one UPDATE', 'One UPDATE', 'One DELETE and one INSERT', 'Two SELECTs and one UPDATE'],
+    why: 'merge first has to get the managed entity with the id of the object you passed, so if it is not in the persistence context, it sends a SELECT. After overwriting the values, if anything changed, an UPDATE is sent at commit.',
+    sim: { c: { src: 'form', how: 'merge', after: 'none' }, col: 2, has: 'SELECT: 1, UPDATE: 1' } },
+]);

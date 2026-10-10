@@ -1,0 +1,1 @@
+Lab.verify({ mapping: ['run', 'All 96 combinations of entities were compiled and run on Hibernate 7.4.5 and H2, and the create table statements and the stored values were checked against the results'] });

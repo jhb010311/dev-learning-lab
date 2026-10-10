@@ -1,0 +1,22 @@
+// Quiz questions for the entitylife lab. The first entry of a is the correct answer; if sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'entitylife', q: 'In which state of an entity is an UPDATE sent at commit if you only change its values?',
+    a: ['The managed state, where the persistence context manages it', 'The new state, right after creating it with new', 'The detached state, after taking it out with em.detach', 'Every state in which it has an id value'],
+    why: 'Dirty checking is the work of comparing the value that the persistence context remembers with the current value. It happens only for entities that the persistence context manages, that is, entities in the managed state. Nobody watches new and detached objects, even if you change their values.' },
+  { lv: 1, id: 'entitylife', q: 'You called em.remove(m) on a loaded entity m. What happens to the DB on that line?',
+    a: ['No SQL is sent, and the DELETE is sent at commit', 'The DELETE is sent right on that line, and the row is deleted', 'A SELECT is sent on that line to check again that the row exists', 'The Java object m disappears from memory immediately'],
+    why: 'remove only marks the entity as a target to delete, and the DELETE is sent at commit, when a flush happens. The Java object m stays in memory even after the row is deleted.',
+    sim: { c: { st: 'remove', when: 'after' }, col: 2, has: 'At commit' } },
+  { lv: 2, id: 'entitylife', q: 'You changed the name of a loaded entity, called em.clear(), and committed, but no UPDATE was sent. Why?',
+    a: ['The entity left the managed set before the UPDATE was sent', 'em.clear() rolled back the UPDATE that had already been sent to the DB', 'The transaction is rolled back automatically after em.clear()', 'A value changed with a setter is never applied in the managed state'],
+    why: 'On the line that called setName, only the value in memory changes, and the UPDATE is postponed to the flush at commit. If you empty the persistence context with em.clear() before that, the entity becomes detached and drops out of the comparison. If you call em.flush() before clear, the UPDATE is sent first, so the change is applied.',
+    sim: { c: { st: 'clear', when: 'before' }, col: 3, has: 'Alice' } },
+  { lv: 3, id: 'entitylife', q: 'You created a member object with new, called em.persist(m), changed the name with m.setName, and committed. You set the id directly in the code. What SQL is sent to the DB?',
+    a: ['One INSERT and one UPDATE', 'One INSERT that contains the changed name', 'One INSERT, and the changed name is discarded', 'One SELECT and one INSERT'],
+    why: 'A value changed after persist has made the entity managed is a target of dirty checking. At commit, an INSERT is sent with the value from the time of persist, and the changed name is sent once more as an UPDATE. If you persist after filling in all the values, one INSERT is enough.',
+    sim: { c: { st: 'persist', when: 'after' }, col: 1, has: 'INSERT: 1, UPDATE: 1' } },
+  { lv: 3, id: 'entitylife', q: 'The controller changed the name of a member entity returned by a service method (@Transactional) with setName. The transaction ended, and the EntityManager was closed too. What happens?',
+    a: ['The value of the object changes, but it is not applied to the DB, and no exception is thrown', 'An exception saying that you modified a detached object is thrown at setName', 'JPA sends an UPDATE on its own when the request ends', 'The value of the object does not change either, and the original name is kept'],
+    why: 'When em is closed, the entities that were in it become detached. A detached object is like an ordinary Java object, so the value changes, but no persistence context is watching it, so no UPDATE is sent. Since there is no exception, it is easy to miss.',
+    sim: { c: { st: 'close', when: 'after' }, col: 3, has: 'Alice' } },
+]);

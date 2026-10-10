@@ -1,0 +1,22 @@
+// Quiz questions for the "Many-to-one, one-to-many, one-to-one, many-to-many" lab. The first entry of a is the correct answer. If sim is present, the answer is checked against the result of the lab's model.
+Lab.quiz([
+  { lv: 1, id: 'relations', q: 'Many members belong to one team. If you map this as a unidirectional one-to-many (Team holds a list of members), which table holds the foreign key?',
+    a: ['The member table, as team_id', 'The team table, as member_id', 'Both tables, one in each', 'Only the team table, which holds the list'],
+    why: 'A cell can hold only one value, so the rows on the "many" side (member) have to point to the row on the "one" side (team). Whether you map it as a many-to-one or as a one-to-many, the foreign key is in the member table. What changes is which entity manages that foreign key.',
+    sim: { c: { rel: 'o2m', fk: 'main', n: 2 }, col: 1, has: 'member.team_id' } },
+  { lv: 2, id: 'relations', q: 'When you save with a unidirectional one-to-many (@OneToMany + @JoinColumn), UPDATEs are sent after the INSERTs. Why?',
+    a: ['Member has no field that points to the team, so team_id cannot be put into the INSERT', 'With the IDENTITY strategy, the foreign key is always filled in with an UPDATE', 'The member was saved before the team, so the id of the team was not known yet at that time', 'Dirty checking wrongly decides that the name of the member changed and saves it again'],
+    why: 'The foreign key team_id is in the member table, but what manages it is the list in Team. When Member is INSERTed, there is no value to put in, so just before commit, JPA looks at the list in Team and fills the value in with an UPDATE. In a many-to-one, Member manages it directly, so this UPDATE does not occur.' },
+  { lv: 2, id: 'relations', q: 'In a one-to-one (@OneToOne), what constraint is placed on the foreign key column as well, and what does it prevent?',
+    a: ['A unique constraint. It stops two members from pointing to the same locker', 'A NOT NULL constraint. It stops a member without a locker from being saved', 'A primary key constraint. It makes the foreign key take the place of the primary key of the member', 'A check constraint. It keeps the locker number and the member number always the same'],
+    why: 'With only a foreign key, several members can point to the same locker, which makes it a many-to-one. Only when a unique constraint is added to the foreign key is the counterpart limited to one. In the lab, "unique" is shown next to the foreign key.',
+    sim: { c: { rel: 'o2o', fk: 'main', n: 2 }, col: 1, has: 'unique' } },
+  { lv: 3, id: 'relations', q: 'You saved one team and 3 members with a unidirectional one-to-many (@OneToMany + @JoinColumn). What SQL is sent to the database?',
+    a: ['INSERT: 4, UPDATE: 3', 'INSERT: 4, UPDATE: 0', 'INSERT: 4, UPDATE: 1', 'INSERT: 7, UPDATE: 0'],
+    why: 'INSERTs are sent for 1 team and 3 members, and team_id is not in the INSERT of a member. Just before commit, one UPDATE per member that fills in team_id is sent, 3 in all.',
+    sim: { c: { rel: 'o2m', fk: 'main', n: 3 }, col: 2, has: 'INSERT: 4, UPDATE: 3' } },
+  { lv: 3, id: 'relations', q: 'You saved with @ManyToMany so that one member picks 2 products. Which tables are created?',
+    a: ['member, product, and the join table member_product', 'Two tables, member and product, and the foreign key is in product', 'One table, member, with as many product columns as there are products', 'member, product, and one join table for each product'],
+    why: 'A many-to-many cannot be expressed with the foreign keys of two tables alone, so a join table that has two foreign keys, one pointing to each side, is created automatically in the middle. Each relationship becomes one row of the join table.',
+    sim: { c: { rel: 'm2m', fk: 'main', n: 2 }, col: 0, has: 'member_product' } },
+]);

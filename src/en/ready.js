@@ -14,4 +14,6 @@ module.exports = [
   'ioc', 'di', 'singleton', 'scope', 'mvc', 'binding', 'validation', 'msgconv',
   'txprop', 'jdbctmpl', 'connpool', 'servlet', 'lifecycle', 'proxy', 'aop', 'tx',
   'autoconf', 'config', 'actuator', 'testing', 'restclient', 'cacheabs', 'security',
+  // JPA
+  'ormwhy', 'pc', 'entitylife', 'merge', 'mapping', 'embedded', 'owner', 'relations',
 ];

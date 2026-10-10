@@ -1,0 +1,21 @@
+// Quiz questions for the "Value types and embeddable types" lab. The first entry of a is the correct answer. If sim is present, the answer is checked against the result of the lab's model.
+Lab.quiz([
+  { lv: 1, id: 'embedded', q: 'Member has an Address, which has @Embeddable, as an @Embedded field. How is the table created?',
+    a: ['The city and street columns go into the one member table', 'The two tables member and address are connected by a foreign key', 'The columns of the member also go into one address table', 'A column that holds the whole address is created in the member table'],
+    why: 'An embeddable type is a value type, so it has no table of its own. The fields inside it are spread out as columns of the table of the entity that holds it. So the table shape is the same as when you keep the fields as they are, without grouping them.',
+    sim: { c: { sc: 'table', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 }, col: 0, has: 'member (id, name, city, street)' } },
+  { lv: 2, id: 'embedded', q: 'Why do you make a value type an immutable object (a class with no setters)?',
+    a: ['To prevent a change from also affecting other entities that point to the same object', 'Because only immutable objects can be spread out and stored as columns of the table', 'Because dirty checking is designed to work only on immutable objects', 'Because JPA cannot fill in the values it reads from the database if there are setters'],
+    why: 'In Java, only the reference is copied when you pass an object on, so it is easy for several entities to point to one value type object. If that object can be changed, a modification on one side spreads to the other. If you remove the way to change it, this cannot happen.' },
+  { lv: 2, id: 'embedded', q: 'You changed just one value in an element collection held as a List, and SQL that deletes all the rows of that entity and inserts them again is sent. Why?',
+    a: ['A value type has no id, so you cannot point to which row in the database changed', 'The JPA standard says a collection must always be saved as a whole', 'It is lazily fetched, so it does not know what the collection originally held', 'Hibernate chooses DELETE and INSERT because they are faster than UPDATE'],
+    why: 'An entity can point to "this row" by its id, but a value type has no id. A List also has no column that records the order, so you cannot build a condition to find the changed row. So all the rows of that entity are deleted and the current contents are inserted again.' },
+  { lv: 3, id: 'embedded', q: 'You put the same Address object into member1 and member2 and saved them, and then called member1.getAddress().setCity("Denver"). What UPDATEs are sent at commit?',
+    a: ['2 times. The rows of both members change to Denver', '1 time. Only the row of member1 changes to Denver', '0 times. A change to a value type is not detected', '1 time. One row of the address table changes'],
+    why: 'The two members point to the same object, so the value changed with setCity is seen through member2 as well. Dirty checking decides that both entities changed and sends 2 UPDATEs. Only member1 was meant to change, but the address of member2 changes too.',
+    sim: { c: { sc: 'share', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 }, col: 1, has: 'UPDATE: 2' } },
+  { lv: 3, id: 'embedded', q: 'A List<Address> element collection has 3 addresses stored. You remove one, add one new address, and commit. What write SQL is sent?',
+    a: ['DELETE: 1, INSERT: 3', 'DELETE: 1, INSERT: 1', 'UPDATE: 1, INSERT: 0', 'DELETE: 3, INSERT: 3'],
+    why: 'One DELETE removes all the address rows of that member, and the 3 addresses that are in the collection now are INSERTed again, one by one. Only one thing changed, but the 2 addresses that were left are inserted again too.',
+    sim: { c: { sc: 'coll', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 }, col: 1, has: 'DELETE: 1, INSERT: 3' } },
+]);

@@ -1,0 +1,1 @@
+Lab.verify({ relations: ['run', 'All 14 combinations were run on Hibernate 7.4.5 and H2, and the tables, the foreign key and unique constraints, the SQL that was sent, and the values left were checked against the results'] });

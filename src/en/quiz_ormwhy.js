@@ -1,0 +1,18 @@
+// Quiz questions for the ormwhy lab. The first entry of a is the correct answer; if sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'ormwhy', q: 'How does an order row in a table point to the member, and how does a Java order object point to the member?',
+    a: ['The row holds the number of the member (a foreign key) as a value, and the object holds a reference to the member object', 'The row holds a reference to the member row, and the object holds only the number of the member as a value', 'Both the row and the object hold only the number of the member and use no references', 'Both the row and the object hold a copy of all the member data inside themselves'],
+    why: 'A table points to another row by a foreign key value such as member_id, and an object points to another object by a reference. Because of this difference, when you move a row into an object, something has to turn the number into a reference. If you write the SQL yourself, you write that code. If you use JPA, you only write the mapping and leave the work to JPA.' },
+  { lv: 2, id: 'ormwhy', q: 'In a DAO built with JDBC, you loaded the same order twice and a == b was false. Why?',
+    a: ['Each time it loads, it moves the SELECT result into a newly created object', 'JDBC prevents the same row from being read twice', 'The value in the DB had changed by the second load', 'The Order class does not override equals'],
+    why: 'The load method of the DAO creates an object with new and fills it in every time it is called. Even though both objects come from the same row, new was called twice, so they are different objects. == checks whether two references point to the same object, so it has nothing to do with equals. JPA keeps the objects it has read within one persistence context and returns them as they are, so the result is true.',
+    sim: { c: { sc: 'same', how: 'jdbc', fix: false }, col: 3, has: 'false' } },
+  { lv: 3, id: 'ormwhy', q: 'In a project that uses JDBC, you added grade to the Member class and the member table, but you did not change the SQL in the DAO. If you save a member with grade "VIP" and then read it back, what happens?',
+    a: ['It is saved without an error, but grade is missing both in the DB and in the object read back (null)', 'An exception is thrown at the moment of saving because the SQL and the class do not match', 'JDBC notices the new field and puts grade in the INSERT', 'It is saved as VIP, but only null comes out when it is read back'],
+    why: 'JDBC only runs the SQL written in the code and does not know that the class gained a field. The old INSERT sends only id and name, so the grade column becomes NULL, and the old SELECT does not read grade either. No exception is thrown, so it is easy to miss.',
+    sim: { c: { sc: 'field', how: 'jdbc', fix: false }, col: 3, has: 'null' } },
+  { lv: 2, id: 'ormwhy', q: 'In JPA, how is it possible that the member name appears when you call order.getMember().getName()?',
+    a: ['JPA looks at the mapping information and builds and sends the SQL that reads the member for you', 'The member name is also stored in the orders table', 'JPA computes the member object in memory without SQL', 'JPA reads all the tables in advance when the application starts'],
+    why: 'The @ManyToOne mapping is the information that the member_id column of orders is connected to the Member object. When you follow the reference, JPA uses this information to build and send a SELECT that reads the member. The SQL does not disappear. JPA writes it for you.',
+    sim: { c: { sc: 'nav', how: 'jpa', fix: false }, col: 0, has: '0' } },
+]);
