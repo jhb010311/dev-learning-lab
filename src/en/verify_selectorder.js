@@ -1,0 +1,1 @@
+Lab.verify({ selectorder: ['run', 'The SQL for the 32 combinations was run as is on MySQL 8.4.11, and the error numbers and messages and every row of the final results were checked against the results. Differences from standard SQL follow the MySQL documentation'] });

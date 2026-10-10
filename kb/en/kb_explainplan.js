@@ -1,0 +1,7 @@
+// Concept notes needed for the "Reading the execution plan" lab
+module.exports = [
+  ['Database', 'EXPLAIN join types (type column)',
+   'The column in MySQL EXPLAIN output that shows the method used to read the table. Roughly from the fewest rows read to the most, the values are const (one row through a primary key or unique index), eq_ref (in a join, one row for each row of the previous table), ref (the rows with the same value in a non-unique index), range (one range of an index), index (the whole index), and ALL (the whole table). Despite its name, index means that the index is read from beginning to end, so it is an access that reads everything, like ALL. Which value appears is decided by the optimizer based on statistics, so even the same query can differ depending on the amount and distribution of the data.'],
+  ['Database', 'EXPLAIN Extra information (Extra column)',
+   'The column in MySQL EXPLAIN output that lists work done in addition to the way the table is read. Using where means that the rows that were read are filtered again by the condition, and Using index means that the query finishes by reading only the index, without going to the table. Using filesort means that a separate sort is done for ORDER BY, and Using temporary means that a temporary table is created for GROUP BY and the like. If the column is empty, no extra work is added. Using filesort and Using temporary can cause slowness when many rows are read, so look at them together with the value of the rows column.'],
+];

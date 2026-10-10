@@ -1,0 +1,22 @@
+// Quiz questions for the cascade lab. The first entry of a is the correct answer; if sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'cascade', q: 'What changes if you write cascade = CascadeType.PERSIST on @OneToMany?',
+    a: ['When you persist the parent, the persist is passed on to the children too', 'Whenever you query a child, the parent is always queried together', 'The foreign key between the parent and the child is created automatically', 'A child taken out of the collection is automatically deleted from the DB too'],
+    why: 'Cascade is a feature that does to the children the same thing that you did to the parent. PERSIST passes on only saving. It is not a feature that sets up a relationship or creates a foreign key, and deleting a child that was taken out of a collection is the job of orphanRemoval.' },
+  { lv: 1, id: 'cascade', q: 'You put two new comments in a comment list that has mappedBy, persisted only the post with no cascade setting, and committed. What is the result when you run it on Hibernate 7.4.5?',
+    a: ['Only the post is saved, with no exception, and the comments are not saved', 'The post and both comments are saved', 'An exception is thrown at commit and nothing is saved', 'The post is not saved and only the two comments are saved'],
+    why: 'Without PERSIST in cascade, the persist is not passed on to the comments. A list with mappedBy does not manage the foreign key, so no exception is thrown even if it holds objects that have not been saved. That is why it is easy to miss that the comments are missing.',
+    sim: { c: { act: 'persist', cas: 'none', orphan: false }, col: 3, has: 'Comments: 0' } },
+  { lv: 2, id: 'cascade', q: 'You wrote only cascade = CascadeType.ALL and did not turn on orphanRemoval. If you take one comment out of the comment list of the post and commit, no DELETE is sent. Why?',
+    a: ['REMOVE is passed on only when you remove the parent', 'CascadeType.ALL does not include REMOVE', 'Because you did not call em.flush yourself after changing the list', 'Because changes to a lazily fetched list are not detected by dirty checking'],
+    why: 'Cascade only passes on to the children the operation that you performed on the parent. Taking a child out of the list is not a remove on the parent, so there is no operation to pass on. To have a child that was taken out of the list deleted, you need orphanRemoval = true.',
+    sim: { c: { act: 'orphan', cas: 'ALL', orphan: false }, col: 1, has: 'None' } },
+  { lv: 3, id: 'cascade', q: 'The DB has one post and two comments that point to it. You write neither cascade nor orphanRemoval, call em.remove(post), and commit. What happens?',
+    a: ['The DELETE of the post is blocked by the foreign key constraint, an exception is thrown, and it is rolled back', 'Only the post is deleted and the two comments remain', 'The two comments are deleted first and then the post', 'An exception is thrown the moment you call em.remove, and no SQL is sent'],
+    why: 'Cascade does not have REMOVE, so Hibernate sends only the DELETE for the post. The DB still has comments that point to the post, so it is rejected for violating the foreign key constraint, and the transaction is rolled back along with a ConstraintViolationException. The exception is thrown at commit, not when you call remove.',
+    sim: { c: { act: 'remove', cas: 'none', orphan: false }, col: 2, has: 'ConstraintViolationException' } },
+  { lv: 3, id: 'cascade', q: 'You did not write cascade and turned on only orphanRemoval = true. If you call em.remove(post) and commit, how many DELETEs are sent? (There are two comments.)',
+    a: ['3 (the two comments and the post)', '1 (only the post, and it fails)', '1 (a SQL statement that deletes the comments all at once)', '2 (only the two comments)'],
+    why: 'orphanRemoval = true means that a child without a parent is deleted, so it also deletes the children when the parent is deleted. Hibernate reads the comment list, deletes the comments one by one with DELETE, and last deletes the post.',
+    sim: { c: { act: 'remove', cas: 'none', orphan: true }, col: 1, has: 'DELETE: 3' } },
+]);

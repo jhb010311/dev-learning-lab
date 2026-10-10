@@ -1,0 +1,1 @@
+Lab.verify({ inheritmap: ['run', '27 combinations were run on Hibernate 7.4.5 and H2, and the tables, the number of INSERTs, the numbers of joins and UNIONs in the find queries, and the rows left were checked'] });

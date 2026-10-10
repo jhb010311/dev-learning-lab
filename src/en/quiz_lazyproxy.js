@@ -1,0 +1,23 @@
+// Quiz questions for the lazyproxy lab. The first entry of a is the correct answer; if sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'lazyproxy', q: 'What happens at the moment you call em.getReference(Member.class, 1L) (the persistence context is empty)?',
+    a: ['A proxy object that holds only the identifier is created, without SQL', 'A SELECT is sent and a real Member object is created', 'A SELECT is sent and a proxy that holds the result is created', 'If the member is not in the DB, an exception is thrown right there'],
+    why: 'getReference does not query the DB and returns a proxy that holds only the identifier. The query is sent when you first read a value other than the identifier. That the identifier was not in the DB shows up only then, too.',
+    sim: { c: { how: 'ref', use: 'id' }, col: 1, has: '0' } },
+  { lv: 1, id: 'lazyproxy', q: 'If you call m.getId() on an uninitialized proxy m, is a query SQL sent?',
+    a: ['No. The proxy already has the identifier', 'Yes. Any getter initializes it the first time you call it', 'Yes. It has to check in the DB whether the identifier is correct', 'No. It returns null instead'],
+    why: 'A proxy has the identifier from the moment it is created, so getId() does not initialize it. A SELECT is sent only when you read a value other than the identifier, such as the name.',
+    sim: { c: { how: 'lazy', use: 'id' }, col: 1, has: '0' } },
+  { lv: 2, id: 'lazyproxy', q: 'Why is m.getClass() == Member.class false for a member m received through lazy fetching?',
+    a: ['Because m is an object of a proxy class created as a subclass of Member', 'Because m is not initialized yet, so its class is not decided', 'Because lazily fetched objects come in as the Object type', 'Because == cannot compare classes, and you have to use equals'],
+    why: 'Hibernate creates a proxy class that extends the entity class and returns an object of it. The class of the proxy is a subclass of Member, so the getClass() comparison is false and instanceof Member is true. The class of a proxy does not change even after it is initialized.',
+    sim: { c: { how: 'lazy', use: 'cls' }, col: 2, has: 'false' } },
+  { lv: 3, id: 'lazyproxy', q: 'A service method (transaction) loaded an order with em.find and returned it. After the transaction and the persistence context ended, you called order.getMember().getName(). member is LAZY, and you have not touched the member before. What happens?',
+    a: ['A LazyInitializationException is thrown', 'A SELECT is sent at that point and the name is returned', 'It returns null without SQL', 'A NullPointerException is thrown'],
+    why: 'An uninitialized proxy is in the place of member. Reading the name requires querying the DB, but the persistence context is closed, so it cannot query and a LazyInitializationException is thrown. Read the values you need in advance inside the transaction, or fetch them together with a fetch join.',
+    sim: { c: { how: 'lazy', use: 'closed' }, col: 2, has: 'LazyInitializationException' } },
+  { lv: 3, id: 'lazyproxy', q: 'In the same persistence context, you first called em.getReference(Member.class, 1L) and then em.find(Member.class, 1L). What object did em.find return?',
+    a: ['The proxy created earlier (with its data filled in)', 'A new Member object that is separate from the proxy', 'A new proxy that is not initialized yet', 'null (because a proxy already exists)'],
+    why: 'Within one persistence context, the same identifier must be the same object. So em.find reads the data with a SELECT, but what it returns is the proxy that was created first. You cannot assume that getClass() is Member just because it is the result of em.find.',
+    sim: { c: { how: 'reffind', use: 'cls' }, col: 0, has: 'Proxy' } },
+]);

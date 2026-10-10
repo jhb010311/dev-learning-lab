@@ -1,0 +1,1 @@
+Lab.verify({ subquery: ['run', 'The SQL for the 36 combinations was run as is on MySQL 8.4.11, and the error numbers, every row of the results, the select_type in EXPLAIN, and the number of times a correlated subquery was run (EXPLAIN ANALYZE) were checked against the results'] });

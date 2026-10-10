@@ -16,4 +16,8 @@ module.exports = [
   'autoconf', 'config', 'actuator', 'testing', 'restclient', 'cacheabs', 'security',
   // JPA
   'ormwhy', 'pc', 'entitylife', 'merge', 'mapping', 'embedded', 'owner', 'relations',
+  'inheritmap', 'cascade', 'lazyproxy', 'nplus1',
+  'index', 'compidx', 'explainplan', 'joinalgo',
+  'normal', 'selectorder', 'join', 'subquery',
+  'iso', 'gaplock', 'dbdeadlock', 'undoredo',
 ];

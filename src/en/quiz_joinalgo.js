@@ -1,0 +1,23 @@
+// Quiz questions for the "Join algorithms" lab. The first entry of a is the correct answer, and where sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'joinalgo', q: 'How does a nested-loop join find the matching rows of two tables?',
+    a: ['It reads the rows of one table one at a time, and for each row it finds the match in the other table', 'It sorts both tables by the join column, then places them side by side and scans them in one pass', 'It loads all the rows of both tables into memory and then compares them all at once', 'It merges the two tables into a new table and then reads that table'],
+    why: 'A nested-loop join has the same shape as a double loop. For each row of the table read first (the driving table), it finds the matching rows in the other table. So what matters is whether that one lookup finishes quickly with an index.',
+    sim: { c: { idx: true, drive: 'm', hash: true }, col: 1, has: 'Nested-loop join' } },
+  { lv: 2, id: 'joinalgo', q: 'In a join that reads member first and orders later, where must the index be for each row to find its match quickly?',
+    a: ['On the join column of orders, which is read later (orders.member_id)', 'On the join column of member, which is read first (member.id)', 'On any column of whichever of the two tables has fewer rows', 'On the columns being selected, member.name and orders.amount'],
+    why: 'The work that is repeated in a nested-loop join is "finding the match in the later table". Only if the join column of that table has an index are just the rows needed read in each lookup. The table read first is read through in order anyway, so an index on its join column is not used.',
+    sim: { c: { idx: true, drive: 'm', hash: true }, col: 2, has: 'ref / idx_member' } },
+  { lv: 2, id: 'joinalgo', q: 'Why does a hash join read less than a nested-loop join without an index?',
+    a: ['It builds a hash table from one table and reads the other table only once', 'It creates temporary indexes on both tables and then joins them with a nested loop', 'It uses statistics to find out beforehand which rows will not match the join condition and skips them', 'Several threads divide the two tables and read them at the same time'],
+    why: 'A nested-loop join without an index reads the whole of the other table again for each row of the table read first. A hash join builds a hash table from one side, then scans the other side once and finds the matches in the hash table, so it reads each table only once.',
+    sim: { c: { idx: false, drive: 'm', hash: true }, col: 3, has: '1 × 10,000' } },
+  { lv: 3, id: 'joinalgo', q: 'You join member (1,000 rows) and orders (10,000 rows). There is no index on orders.member_id, and a hash join cannot be used. If member is read first, how many rows in all are read from orders?',
+    a: ['10,000,000 rows', '10,000 rows', '11,000 rows', '1,000 rows'],
+    why: 'For each row of member, the 10,000 rows of orders must be read from beginning to end, so 1,000 × 10,000 = 10,000,000 rows. With an index, it would be 1,000 lookups × 10 rows, so only 10,000 rows would be read.',
+    sim: { c: { idx: false, drive: 'm', hash: false }, col: 3, has: '1,000 × 10,000' } },
+  { lv: 3, id: 'joinalgo', q: 'With no index on orders.member_id, you ran FROM member m JOIN orders o ON o.member_id = m.id (the reading order is not fixed). With the data in this lab, how does MySQL 8.4 run it?',
+    a: ['It reads orders first, and looks up member one row at a time by primary key', 'It reads member first, as written in FROM, and does a hash join', 'It reads member first, as written in FROM, and reads the whole of orders every time', 'It gives an error that there is no index to use, and does not run the query'],
+    why: 'The reading order is decided by the optimizer, not by the order written in FROM. member.id is the primary key, so if orders is read first, member can be reached through an index. The optimizer chose that order, and the type of the second line of EXPLAIN becomes eq_ref.',
+    sim: { c: { idx: false, drive: 'auto', hash: true }, col: 0, has: 'orders' } },
+]);

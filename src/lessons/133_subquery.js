@@ -70,7 +70,7 @@ Lab.register({
       M.forEach(function (m) {
         var mine = O.filter(function (o) { return o[1] === m[0]; });
         st.cur = m[0]; st.hit = mine.map(function (o) { return o[0]; }); st.verdict[m[0]] = ['cnt ' + mine.length, 'in']; out.push(m[1] + ' ' + mine.length);
-        push('바깥 행 ' + m[1] + '(id ' + m[0] + '): m.id 자리에 ' + jo(m[0], '을', '를') + ' 넣어 서브쿼리를 실행합니다. member_id가 ' + m[0] + '인 주문은 ' + mine.length + '건이므로 cnt는 ' + mine.length + '입니다.', '');
+        push('바깥 행 ' + m[1] + ' (id ' + m[0] + '): m.id 자리에 ' + jo(m[0], '을', '를') + ' 넣어 서브쿼리를 실행합니다. member_id가 ' + m[0] + '인 주문은 ' + mine.length + '건이므로 cnt는 ' + mine.length + '입니다.', '');
       });
       st.cur = 0; st.hit = []; st.res = out.length + '행'; type = 'DEPENDENT SUBQUERY'; st.exp = type; loops = M.length;
       push('EXPLAIN: 서브쿼리 줄의 select_type이 DEPENDENT SUBQUERY입니다. 바깥 행의 값에 기대는 서브쿼리라는 뜻입니다. EXPLAIN ANALYZE로 실제 실행을 보면 서브쿼리 부분의 loops가 ' + M.length + '로, 바깥 행 ' + M.length + '개마다 한 번씩 실행됐습니다.', 'good');
@@ -84,7 +84,7 @@ Lab.register({
         st.cur = m[0]; st.hit = O.filter(function (o) { return o[1] === m[0] || (!found && o[1] === null); }).map(function (o) { return o[0]; });
         st.verdict[m[0]] = [v === 'T' ? '참' : v === 'F' ? '거짓' : '알 수 없음', v === 'T' ? 'in' : v === 'F' ? 'out' : 'unk'];
         if (v === 'T') out.push(m[1]);
-        var head = m[1] + '(id ' + m[0] + ') ' + (not ? 'NOT IN' : 'IN') + ' (' + shown + '): ';
+        var head = m[1] + ' (id ' + m[0] + ') ' + (not ? 'NOT IN' : 'IN') + ' (' + shown + '): ';
         if (!not) push(head + (found ? '목록에 ' + jo(m[0], '이', '가') + ' 있으므로 참입니다. 결과에 들어갑니다.' : hasNull ? '목록에 ' + jo(m[0], '과', '와') + ' 같은 값이 없습니다. 다만 NULL과는 같은지 알 수 없어서 결과는 거짓이 아니라 "알 수 없음"입니다. WHERE는 참인 행만 남기므로 어느 쪽이든 빠집니다.' : '목록에 ' + jo(m[0], '이', '가') + ' 없으므로 거짓입니다. 빠집니다.'), found ? 'good' : '');
         else push(head + (found ? '목록에 ' + jo(m[0], '이', '가') + ' 있으므로 IN이 참이고, NOT IN은 거짓입니다. 빠집니다.' : hasNull ? 'NOT IN은 "목록의 모든 값과 다르다"는 뜻입니다. ' + jo(m[0], '은', '는') + ' 1, 2, 3과는 다르지만, NULL과 다른지는 알 수 없습니다. 하나라도 알 수 없으면 전체가 "알 수 없음"이 되고, WHERE는 참인 행만 남기므로 주문이 없는 ' + m[1] + '도 빠집니다.' : jo(m[0], '은', '는') + ' 목록의 어느 값과도 다르므로 참입니다. 결과에 들어갑니다.'), found ? '' : hasNull ? 'bad' : 'good');
       });
@@ -99,7 +99,7 @@ Lab.register({
         var mine = O.filter(function (o) { return o[1] === m[0]; }), ex = mine.length > 0, v = notE ? !ex : ex;
         st.cur = m[0]; st.hit = mine.map(function (o) { return o[0]; }); st.verdict[m[0]] = [v ? '참' : '거짓', v ? 'in' : 'out'];
         if (v) out.push(m[1]);
-        push('바깥 행 ' + m[1] + '(id ' + m[0] + '): member_id가 ' + m[0] + '인 주문이 ' + (ex ? mine.length + '건 있습니다. 서브쿼리가 행을 돌려주므로 EXISTS는 참' + (notE ? ', NOT EXISTS는 거짓입니다. 빠집니다.' : '입니다. 결과에 들어갑니다.') : '없습니다. 서브쿼리가 0행이므로 EXISTS는 거짓' + (notE ? ', NOT EXISTS는 참입니다. 결과에 들어갑니다.' : '입니다. 빠집니다.') + (c.nul ? ' member_id가 NULL인 주문은 조건 o.member_id = ' + jo(m[0], '을', '를') + ' 통과하지 못해 서브쿼리의 결과에 들어오지 않을 뿐입니다. EXISTS의 값은 참 아니면 거짓이고 "알 수 없음"이 되지 않습니다.' : '')), v ? 'good' : '');
+        push('바깥 행 ' + m[1] + ' (id ' + m[0] + '): member_id가 ' + m[0] + '인 주문이 ' + (ex ? mine.length + '건 있습니다. 서브쿼리가 행을 돌려주므로 EXISTS는 참' + (notE ? ', NOT EXISTS는 거짓입니다. 빠집니다.' : '입니다. 결과에 들어갑니다.') : '없습니다. 서브쿼리가 0행이므로 EXISTS는 거짓' + (notE ? ', NOT EXISTS는 참입니다. 결과에 들어갑니다.' : '입니다. 빠집니다.') + (c.nul ? ' member_id가 NULL인 주문은 조건 o.member_id = ' + jo(m[0], '을', '를') + ' 통과하지 못해 서브쿼리의 결과에 들어오지 않을 뿐입니다. EXISTS의 값은 참 아니면 거짓이고 "알 수 없음"이 되지 않습니다.' : '')), v ? 'good' : '');
       });
       st.cur = 0; st.hit = []; st.res = out.length + '행';
       type = 'SIMPLE (조인으로 바꿔 실행)'; st.exp = type;

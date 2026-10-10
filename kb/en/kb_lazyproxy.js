@@ -1,0 +1,7 @@
+// Terms needed for the "Proxies and lazy fetching" lab
+module.exports = [
+  ['JPA', 'Entity proxy',
+   'A stand-in object that is put in the place of a real entity. Hibernate creates a subclass of the entity class at run time and returns an object of it, and at first it knows only the identifier and the rest of its contents is empty. The moment you first read a value other than the identifier, it queries the DB and reads the real entity; this is called proxy initialization. The result of em.getReference and an association configured for lazy fetching come in as proxies. The class of a proxy is different from the entity class, so use instanceof instead of getClass() when you compare types.'],
+  ['JPA', 'LazyInitializationException',
+   'The exception that Hibernate throws when you try to use an uninitialized proxy or a lazily fetched collection after the persistence context has been closed. It occurs because initializing a proxy requires querying the DB through the persistence context, and that is already closed, so there is no way to query. You often meet it when you take an associated object in the controller or the view after the transaction has ended. You avoid it by reading the values you need in advance inside the transaction, by fetching them together from the start with a fetch join, or by converting the entity to an object that holds only the values you need before you return it.'],
+];

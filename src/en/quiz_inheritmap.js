@@ -1,0 +1,21 @@
+// Quiz questions for the inheritmap lab. The first entry of a is the correct answer; if sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'inheritmap', q: 'With the joined subclass strategy (JOINED), how many INSERTs are sent when you save one Book object?',
+    a: ['2. One each for the superclass table and the subclass table', '1. It goes only into the subclass table book', '1. It goes only into the superclass table item', 'As many as the number of subclasses'],
+    why: 'The joined subclass strategy stores the fields of the superclass in the superclass table and the fields that only the subclass has in the subclass table. So saving one object sends one INSERT each to item and book.',
+    sim: { c: { st: 'JOINED', op: 'save', kids: 3 }, col: 1, has: 'INSERT: 2' } },
+  { lv: 1, id: 'inheritmap', q: 'With the single table strategy, how do you tell which subclass a row belongs to when rows of different subclasses are mixed in one table?',
+    a: ['By the value in the discriminator column (DTYPE)', 'By the range the primary key value falls in', 'By the order in which the rows were stored', 'By the number of columns that are not null'],
+    why: 'The single table strategy puts all the subclasses in one table, so a discriminator column that records which subclass each row belongs to is created along with it. When you save a Book, "Book" goes into that column.' },
+  { lv: 2, id: 'inheritmap', q: 'With the table per concrete class strategy, finding by the superclass type needs a UNION. Why?',
+    a: ['There is no superclass table, so it does not know which subclass table has that id', 'The subclass tables are linked by foreign keys, so they have to be read together', 'To find the value of the discriminator column, all the tables have to be combined', 'UNION is faster than a join, so JPA chooses it on purpose'],
+    why: 'This strategy creates only the subclass tables and no superclass table. To find id 1 by the type Item, there is no way to know which subclass table has it, so it chains all the subclass tables together with UNION ALL and then looks inside.',
+    sim: { c: { st: 'TABLE_PER_CLASS', op: 'findp', kids: 3 }, col: 3, has: 'UNION ALL: 2' } },
+  { lv: 2, id: 'inheritmap', q: 'The single table strategy has simple queries, but it comes at a cost. What is it?',
+    a: ['The columns of the subclasses must allow null, and the table gets wide', 'A join is needed on every query, so the query gets heavy', 'Two INSERTs are sent for each object you save', 'You cannot find by the superclass type; only by the subclass type'],
+    why: 'One table holds the columns of all the subclasses, so in a row where you saved a Book, the columns of Album and Movie are null. So you cannot put NOT NULL on the columns of the subclasses, and the more subclasses there are, the more columns there are.' },
+  { lv: 3, id: 'inheritmap', q: 'You use the joined subclass strategy with three subclasses, Book, Album, and Movie, and run em.find(Item.class, 1L). What does the query look like?',
+    a: ['One SELECT with 3 joins', 'One SELECT with 1 join', '4 SELECTs with no join', 'One SELECT with 2 UNIONs'],
+    why: 'When you find by the superclass type, it does not know which subclass has id 1. So it attaches all three subclass tables to item with left joins and reads them in one go, then decides the type by looking at which subclass table has a row. If you had found by the subclass type (Book), there would be 1 join.',
+    sim: { c: { st: 'JOINED', op: 'findp', kids: 3 }, col: 3, has: 'Joins: 3' } },
+]);

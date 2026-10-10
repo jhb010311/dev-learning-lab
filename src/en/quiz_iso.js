@@ -1,0 +1,6 @@
+// Quiz questions for the iso lab. The first entry of a is the correct answer.
+Lab.quiz([
+  { lv: 2, id: 'iso', q: 'What is the default transaction isolation level of MySQL InnoDB?', a: ['REPEATABLE READ', 'READ COMMITTED', 'READ UNCOMMITTED', 'SERIALIZABLE'], why: 'The default of InnoDB is REPEATABLE READ. The default of Oracle and PostgreSQL is READ COMMITTED.' },
+  { lv: 2, id: 'iso', q: 'What is a dirty read?', a: ['Reading a change that another transaction has not committed yet', 'Running the same query twice and finding that the value has changed', 'Running a query with the same condition and finding a row that did not exist before', 'Reading the whole table without an index'], why: 'If that transaction rolls back, you have read a value that never existed. It happens at READ UNCOMMITTED.' },
+  { lv: 3, id: 'iso', q: 'In MySQL InnoDB (REPEATABLE READ), a transaction runs the same SELECT twice, and in between, another transaction runs an UPDATE on that row and commits. What does the second SELECT return?', a: ['The same value as the first one', 'The new value that the other transaction set', 'An error because of a lock', 'No row at all'], why: 'At REPEATABLE READ, a transaction keeps seeing the state (the snapshot) from the time of its first read. At READ COMMITTED, you would see the new value.' },
+]);
