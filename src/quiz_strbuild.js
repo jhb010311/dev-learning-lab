@@ -1,0 +1,19 @@
+// "String, StringBuilder" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'strbuild', q: 'String s = "java"; 다음 줄에서 s.toUpperCase();만 호출하고 돌려준 값을 받지 않았습니다. 그 뒤에 s를 출력하면 무엇이 나옵니까?',
+    a: ['java', 'JAVA', 'Java', 'null'],
+    why: 'String은 내용이 바뀌지 않는 객체입니다. toUpperCase()는 원본을 고치지 않고 새 문자열 "JAVA"를 돌려주는데, 그것을 받지 않았으므로 s는 처음 객체를 그대로 가리킵니다.',
+    sim: { c: { type: 'str', op: 'drop', m: 'upper' }, col: 0, has: 'java' } },
+  { lv: 2, id: 'strbuild', q: 'String first = s;로 같은 객체를 가리키게 한 뒤 s = s.concat("!");를 실행했습니다. first를 출력하면 여전히 java가 나오는 까닭은 무엇입니까?',
+    a: ['concat이 원래 객체를 고치지 않고 새 문자열 객체를 돌려주기 때문이다', 'first에 대입할 때 문자열 전체가 복사되어 따로 저장되기 때문이다', 'concat이 원래 객체를 고친 뒤 first만 이전 내용으로 되돌리기 때문이다', '문자열 리터럴은 final 변수에만 담을 수 있어 바뀌지 않기 때문이다'],
+    why: 'first = s는 내용을 복사하지 않고 같은 객체를 가리키게 할 뿐입니다. concat은 그 객체를 고치지 않고 새 객체를 돌려주므로, s만 새 객체로 옮겨 가고 first가 가리키는 처음 객체는 그대로입니다.',
+    sim: { c: { type: 'str', op: 'assign', m: 'concat' }, col: 1, has: 'java' } },
+  { lv: 3, id: 'strbuild', q: 'StringBuilder first = sb;로 기억해 둔 뒤, 반복문에서 sb.append(i)를 세 번 호출했습니다. sb == first의 결과와 first를 출력한 내용으로 알맞은 것은 무엇입니까?',
+    a: ['true이고, first를 출력해도 이어 붙인 내용이 보인다', 'true이지만, first를 출력하면 처음 내용만 보인다', 'false이고, first를 출력하면 처음 내용만 보인다', 'false이지만, first를 출력해도 이어 붙인 내용이 보인다'],
+    why: 'StringBuilder의 append는 새 객체를 만들지 않고 같은 객체의 내용을 고칩니다. sb와 first는 끝까지 같은 객체를 가리키므로 ==는 true이고, first로 보아도 바뀐 내용이 보입니다.',
+    sim: { c: { type: 'sb', op: 'loop', m: 'upper' }, col: 2, has: '같은 객체' } },
+  { lv: 3, id: 'strbuild', q: 'String s = "java";에 대해 반복문에서 s = s + i;를 세 번 실행하면서, 매번 실행 직전의 s와 실행 뒤의 s를 !=로 비교해 다르면 changed를 1씩 늘렸습니다. changed는 얼마가 됩니까?',
+    a: ['3', '0', '1', '2'],
+    why: 'String은 내용을 고칠 수 없으므로 +로 이어 붙일 때마다 새 문자열 객체가 만들어지고 s가 그 객체를 가리키게 됩니다. 세 번 모두 직전과 다른 객체이므로 changed는 3입니다.',
+    sim: { c: { type: 'str', op: 'loop', m: 'upper' }, col: 3, has: '3번' } },
+]);

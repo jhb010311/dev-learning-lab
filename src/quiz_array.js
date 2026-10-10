@@ -1,0 +1,23 @@
+// "배열" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'array', q: 'int[] a = new int[3]; 으로 만든 배열에서 쓸 수 있는 칸의 번호(인덱스)는 무엇입니까?',
+    a: ['0, 1, 2', '1, 2, 3', '0, 1, 2, 3', '-1, 0, 1'],
+    why: '인덱스는 0부터 시작하고 길이 - 1에서 끝납니다. 길이가 3이면 0, 1, 2입니다. a[3]은 없는 칸이라서 쓰면 실행 중에 ArrayIndexOutOfBoundsException이 납니다.',
+    sim: { c: { shape: '1', type: 'int', copy: 'clone', idx: '3' }, col: 1, has: 'ArrayIndexOutOfBoundsException' } },
+  { lv: 1, id: 'array', q: 'String[] a = new String[3]; 을 실행한 직후, 값을 넣지 않은 각 칸에는 무엇이 들어 있습니까?',
+    a: ['null (아무 객체도 가리키지 않음)', '"" (글자가 하나도 없는 빈 문자열)', '"null" (네 글자로 된 문자열)', '그때그때 다른 정해지지 않은 값'],
+    why: '배열은 만들 때 모든 칸이 기본값으로 채워집니다. 숫자 타입은 0, boolean은 false이고, String 같은 참조형은 null입니다. 빈 문자열과 null은 다릅니다.',
+    sim: { c: { shape: '1', type: 'String', copy: 'clone', idx: '0' }, col: 2, has: '[null, null, null]' } },
+  { lv: 2, id: 'array', q: 'int[] b = a; b[2] = 7; 을 실행하면 a[2]도 7로 읽힙니다. 이유는 무엇입니까?',
+    a: ['배열 변수에는 참조가 들어 있어서, 대입하면 a와 b가 같은 배열 하나를 가리키기 때문이다', '대입할 때 배열이 통째로 복사되지만, 두 배열의 칸이 계속 이어져 있기 때문이다', 'int 배열의 칸은 길이가 같은 모든 배열이 함께 쓰는 공용 공간이기 때문이다', '배열에 값을 넣으면 자바가 같은 타입의 다른 배열에도 넣어 주기 때문이다'],
+    why: '배열도 객체이고, 배열 변수에는 배열의 참조가 들어 있습니다. b = a는 그 참조를 복사할 뿐이라 배열은 여전히 하나입니다. 배열을 따로 갖고 싶으면 a.clone()이나 Arrays.copyOf로 새 배열을 만듭니다.',
+    sim: { c: { shape: '1', type: 'int', copy: 'ref', idx: '2' }, col: 2, has: '[0, 0, 7]' } },
+  { lv: 3, id: 'array', q: 'int[][] a = new int[2][3]; int[][] b = a.clone(); b[0][2] = 7; 을 실행한 뒤 a[0][2]를 읽으면 무엇이 나옵니까?',
+    a: ['7이 나온다. clone은 바깥 배열만 새로 만들고 행 배열은 함께 쓴다', '0이 나온다. clone은 행 배열까지 모두 새로 만들어 복사한다', '0이 나온다. a == b가 false이므로 두 배열은 서로 영향이 없다', '예외가 난다. 2차원 배열에는 clone을 쓸 수 없게 되어 있다'],
+    why: '2차원 배열은 행 배열의 참조를 칸에 담은 배열입니다. clone은 바깥 배열 한 겹만 새로 만들고 칸에 든 참조를 그대로 옮기므로, a[0]과 b[0]은 같은 행 배열입니다. 행까지 따로 가지려면 행마다 clone을 해야 합니다.',
+    sim: { c: { shape: '2', type: 'int', copy: 'clone', idx: '2' }, col: 2, has: '[[0, 0, 7], [0, 0, 0]]' } },
+  { lv: 3, id: 'array', q: 'int[] a = new int[3]; for (int i = 0; i <= a.length; i++) a[i] = i; 를 실행하면 어떻게 됩니까?',
+    a: ['i가 3일 때 ArrayIndexOutOfBoundsException이 난다', '배열이 저절로 늘어나서 칸이 네 개가 된다', '컴파일 오류가 나서 프로그램이 실행되지 않는다', '마지막 대입만 조용히 무시되고 정상으로 끝난다'],
+    why: 'a.length는 3이고 조건이 <=이므로 i가 3인 회차까지 돕니다. a[3]은 없는 칸이고 배열은 길이가 늘어나지 않으므로 실행 중에 예외가 납니다. 조건은 i < a.length로 씁니다.',
+    sim: { c: { shape: '1', type: 'int', copy: 'ref', idx: '3' }, col: 1, has: 'Index 3 out of bounds for length 3' } },
+]);

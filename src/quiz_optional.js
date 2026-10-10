@@ -1,0 +1,23 @@
+// "Optional" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'optional', q: 'name이 null일 때 Optional.of(name)을 실행하면 어떻게 됩니까?',
+    a: ['NullPointerException이 발생한다', '비어 있는 Optional이 만들어진다', 'null을 담은 Optional이 만들어진다', 'NoSuchElementException이 발생한다'],
+    why: 'Optional.of는 값이 반드시 있을 때 쓰는 메서드라서 null을 받으면 그 자리에서 NullPointerException을 던집니다. null일 수도 있는 값은 Optional.ofNullable로 감싸야 비어 있는 Optional이 됩니다.',
+    sim: { c: { val: 'null', make: 'of', take: 'get' }, col: 0, has: 'NullPointerException' } },
+  { lv: 2, id: 'optional', q: 'Optional에 값이 들어 있는데도 opt.orElse(makeDefault())를 실행하면 makeDefault()가 실행됩니다. 까닭은 무엇입니까?',
+    a: ['자바가 메서드를 호출하기 전에 인자의 값을 먼저 계산하기 때문이다', 'orElse가 들어 있는 값과 기본값을 비교해 한쪽을 고르기 때문이다', 'Optional이 값을 꺼낼 때마다 기본값을 함께 저장해 두기 때문이다', 'static 메서드는 클래스를 읽어 들일 때 한 번 실행되기 때문이다'],
+    why: 'orElse의 괄호 안은 평범한 인자입니다. 자바는 메서드를 부르기 전에 인자를 먼저 계산하므로, Optional에 값이 있든 없든 makeDefault()가 실행됩니다. 비어 있을 때만 실행되게 하려면 orElseGet(() -> makeDefault())처럼 코드를 람다로 넘깁니다.',
+    sim: { c: { val: 'kim', make: 'nullable', take: 'orElse' }, col: 2, has: '실행됨' } },
+  { lv: 2, id: 'optional', q: '비어 있는 Optional<String>에 map(s -> s.toUpperCase())를 호출하면 어떻게 됩니까?',
+    a: ['함수를 실행하지 않고 비어 있는 Optional을 돌려준다', '함수에 null을 넘겨 NullPointerException이 발생한다', '함수에 빈 문자열을 넘기고 그 결과를 담아 돌려준다', '값이 없다는 뜻으로 NoSuchElementException을 던진다'],
+    why: 'map은 값이 들어 있을 때만 함수를 적용합니다. 비어 있으면 함수를 건너뛰고 비어 있는 Optional을 넘기므로, null 검사를 적지 않아도 예외 없이 이어 갈 수 있습니다. 값이 없을 때의 처리는 끝의 orElse에 적습니다.',
+    sim: { c: { val: 'null', make: 'nullable', take: 'map' }, col: 1, has: '이름 없음' } },
+  { lv: 3, id: 'optional', q: 'Optional.ofNullable(null)로 만든 opt에 대해 String result = opt.get();을 실행하면 어떻게 됩니까?',
+    a: ['NoSuchElementException이 발생한다', 'result에 null이 들어간다', 'result에 빈 문자열이 들어간다', 'NullPointerException이 발생한다'],
+    why: 'ofNullable(null)은 예외 없이 비어 있는 Optional을 만듭니다. 비어 있는 Optional에서 get()을 부르면 null을 돌려주지 않고 NoSuchElementException을 던집니다.',
+    sim: { c: { val: 'null', make: 'nullable', take: 'get' }, col: 1, has: 'NoSuchElementException' } },
+  { lv: 3, id: 'optional', q: '값 "kim"이 들어 있는 Optional opt에 대해 opt.orElseGet(() -> makeDefault())를 실행했습니다. makeDefault()는 "손님"을 돌려주는 메서드입니다. 결과와 makeDefault()의 실행 여부로 알맞은 것은 무엇입니까?',
+    a: ['"kim"이 나오고 makeDefault()는 실행되지 않는다', '"kim"이 나오고 makeDefault()도 실행된다', '"손님"이 나오고 makeDefault()가 실행된다', '"손님"이 나오고 makeDefault()는 실행되지 않는다'],
+    why: 'orElseGet은 기본값이 아니라 기본값을 만드는 코드(람다)를 받습니다. 값이 들어 있으면 그 값을 돌려주고 람다는 실행하지 않으므로 makeDefault()도 불리지 않습니다.',
+    sim: { c: { val: 'kim', make: 'nullable', take: 'orElseGet' }, col: 2, has: '실행되지 않음' } },
+]);

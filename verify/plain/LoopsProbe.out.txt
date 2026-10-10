@@ -1,0 +1,26 @@
+for|lt|none => 0, 1, 2, 끝|3
+for|lt|break => 0, 끝|2
+for|lt|cont => 0, 2, 끝|3
+for|le|none => 0, 1, 2, 3, 끝|4
+for|le|break => 0, 끝|2
+for|le|cont => 0, 2, 3, 끝|4
+while|lt|none => 0, 1, 2, 끝|3
+while|lt|break => 0, 끝|2
+while|lt|cont => 0 (끝나지 않음)|끝없이
+while|le|none => 0, 1, 2, 3, 끝|4
+while|le|break => 0, 끝|2
+while|le|cont => 0 (끝나지 않음)|끝없이
+swc|1 => 하나, 끝|1
+swc|2 => 둘, 끝|1
+swc|3 => 셋, 끝|1
+swc|9 => 그 외, 끝|1
+swf|1 => 하나, 둘, 셋, 그 외, 끝|4
+swf|2 => 둘, 셋, 그 외, 끝|3
+swf|3 => 셋, 그 외, 끝|2
+swf|9 => 그 외, 끝|1
+swa|1 => 하나, 끝|1
+swa|2 => 둘, 끝|1
+swa|3 => 셋, 끝|1
+swa|9 => 그 외, 끝|1
+# default가 없는 switch에 일치하는 case가 없는 값(9)을 넣었을 때의 출력: 끝
+# break가 없는 switch(switchFall)는 이 파일과 함께 오류 없이 컴파일됐다

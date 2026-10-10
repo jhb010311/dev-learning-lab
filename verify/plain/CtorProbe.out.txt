@@ -1,0 +1,34 @@
+SRC none|noarg|field => class Order {\n    int qty = 10;\n    String memo;\n\n    {\n        qty = 20;\n    }\n}\n\nOrder o = new Order();\nSystem.out.println(o.qty + ", " + o.memo);
+none|noarg|field => 성공|필드 초기화식 → 초기화 블록|20, null
+SRC none|noarg|block => class Order {\n    {\n        qty = 20;\n    }\n\n    int qty = 10;\n    String memo;\n}\n\nOrder o = new Order();\nSystem.out.println(o.qty + ", " + o.memo);
+none|noarg|block => 성공|초기화 블록 → 필드 초기화식|10, null
+SRC none|arg|field => class Order {\n    int qty = 10;\n    String memo;\n\n    {\n        qty = 20;\n    }\n}\n\nOrder o = new Order(3);\nSystem.out.println(o.qty + ", " + o.memo);
+none|arg|field => 오류: constructor Order in class Order cannot be applied to given types|-|-
+SRC none|arg|block => class Order {\n    {\n        qty = 20;\n    }\n\n    int qty = 10;\n    String memo;\n}\n\nOrder o = new Order(3);\nSystem.out.println(o.qty + ", " + o.memo);
+none|arg|block => 오류: constructor Order in class Order cannot be applied to given types|-|-
+SRC arg|noarg|field => class Order {\n    int qty = 10;\n    String memo;\n\n    {\n        qty = 20;\n    }\n\n    Order(int extra) {\n        qty = qty + extra;\n        memo = "추가 " + extra;\n    }\n}\n\nOrder o = new Order();\nSystem.out.println(o.qty + ", " + o.memo);
+arg|noarg|field => 오류: constructor Order in class Order cannot be applied to given types|-|-
+SRC arg|noarg|block => class Order {\n    {\n        qty = 20;\n    }\n\n    int qty = 10;\n    String memo;\n\n    Order(int extra) {\n        qty = qty + extra;\n        memo = "추가 " + extra;\n    }\n}\n\nOrder o = new Order();\nSystem.out.println(o.qty + ", " + o.memo);
+arg|noarg|block => 오류: constructor Order in class Order cannot be applied to given types|-|-
+SRC arg|arg|field => class Order {\n    int qty = 10;\n    String memo;\n\n    {\n        qty = 20;\n    }\n\n    Order(int extra) {\n        qty = qty + extra;\n        memo = "추가 " + extra;\n    }\n}\n\nOrder o = new Order(3);\nSystem.out.println(o.qty + ", " + o.memo);
+arg|arg|field => 성공|필드 초기화식 → 초기화 블록 → Order(int) 본문|23, 추가 3
+SRC arg|arg|block => class Order {\n    {\n        qty = 20;\n    }\n\n    int qty = 10;\n    String memo;\n\n    Order(int extra) {\n        qty = qty + extra;\n        memo = "추가 " + extra;\n    }\n}\n\nOrder o = new Order(3);\nSystem.out.println(o.qty + ", " + o.memo);
+arg|arg|block => 성공|초기화 블록 → 필드 초기화식 → Order(int) 본문|13, 추가 3
+SRC both|noarg|field => class Order {\n    int qty = 10;\n    String memo;\n\n    {\n        qty = 20;\n    }\n\n    Order() {\n        memo = "기본";\n    }\n\n    Order(int extra) {\n        qty = qty + extra;\n        memo = "추가 " + extra;\n    }\n}\n\nOrder o = new Order();\nSystem.out.println(o.qty + ", " + o.memo);
+both|noarg|field => 성공|필드 초기화식 → 초기화 블록 → Order() 본문|20, 기본
+SRC both|noarg|block => class Order {\n    {\n        qty = 20;\n    }\n\n    int qty = 10;\n    String memo;\n\n    Order() {\n        memo = "기본";\n    }\n\n    Order(int extra) {\n        qty = qty + extra;\n        memo = "추가 " + extra;\n    }\n}\n\nOrder o = new Order();\nSystem.out.println(o.qty + ", " + o.memo);
+both|noarg|block => 성공|초기화 블록 → 필드 초기화식 → Order() 본문|10, 기본
+SRC both|arg|field => class Order {\n    int qty = 10;\n    String memo;\n\n    {\n        qty = 20;\n    }\n\n    Order() {\n        memo = "기본";\n    }\n\n    Order(int extra) {\n        qty = qty + extra;\n        memo = "추가 " + extra;\n    }\n}\n\nOrder o = new Order(3);\nSystem.out.println(o.qty + ", " + o.memo);
+both|arg|field => 성공|필드 초기화식 → 초기화 블록 → Order(int) 본문|23, 추가 3
+SRC both|arg|block => class Order {\n    {\n        qty = 20;\n    }\n\n    int qty = 10;\n    String memo;\n\n    Order() {\n        memo = "기본";\n    }\n\n    Order(int extra) {\n        qty = qty + extra;\n        memo = "추가 " + extra;\n    }\n}\n\nOrder o = new Order(3);\nSystem.out.println(o.qty + ", " + o.memo);
+both|arg|block => 성공|초기화 블록 → 필드 초기화식 → Order(int) 본문|13, 추가 3
+SRC chain|noarg|field => class Order {\n    int qty = 10;\n    String memo;\n\n    {\n        qty = 20;\n    }\n\n    Order() {\n        this(1);\n        memo = "기본";\n    }\n\n    Order(int extra) {\n        qty = qty + extra;\n        memo = "추가 " + extra;\n    }\n}\n\nOrder o = new Order();\nSystem.out.println(o.qty + ", " + o.memo);
+chain|noarg|field => 성공|필드 초기화식 → 초기화 블록 → Order(int) 본문 → Order() 본문|21, 기본
+SRC chain|noarg|block => class Order {\n    {\n        qty = 20;\n    }\n\n    int qty = 10;\n    String memo;\n\n    Order() {\n        this(1);\n        memo = "기본";\n    }\n\n    Order(int extra) {\n        qty = qty + extra;\n        memo = "추가 " + extra;\n    }\n}\n\nOrder o = new Order();\nSystem.out.println(o.qty + ", " + o.memo);
+chain|noarg|block => 성공|초기화 블록 → 필드 초기화식 → Order(int) 본문 → Order() 본문|11, 기본
+SRC chain|arg|field => class Order {\n    int qty = 10;\n    String memo;\n\n    {\n        qty = 20;\n    }\n\n    Order() {\n        this(1);\n        memo = "기본";\n    }\n\n    Order(int extra) {\n        qty = qty + extra;\n        memo = "추가 " + extra;\n    }\n}\n\nOrder o = new Order(3);\nSystem.out.println(o.qty + ", " + o.memo);
+chain|arg|field => 성공|필드 초기화식 → 초기화 블록 → Order(int) 본문|23, 추가 3
+SRC chain|arg|block => class Order {\n    {\n        qty = 20;\n    }\n\n    int qty = 10;\n    String memo;\n\n    Order() {\n        this(1);\n        memo = "기본";\n    }\n\n    Order(int extra) {\n        qty = qty + extra;\n        memo = "추가 " + extra;\n    }\n}\n\nOrder o = new Order(3);\nSystem.out.println(o.qty + ", " + o.memo);
+chain|arg|block => 성공|초기화 블록 → 필드 초기화식 → Order(int) 본문|13, 추가 3
+# 기본값 => 0, null
+# this가 첫 문장이 아님 => 오류: call to this must be first statement in constructor

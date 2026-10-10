@@ -1,0 +1,32 @@
+hash|words|set => [date, apple, fig, grape]|4|false|없음|0|0,1,5,11|16
+hash|words|map => {date=3, apple=4, fig=5, grape=1}|4|2|없음|0|0,1,5,11|16
+hash|small|set => [1, 2, 3, 5]|4|false|없음|0|1,2,3,5|16
+hash|small|map => {1=4, 2=3, 3=1, 5=5}|4|2|없음|0|1,2,3,5|16
+hash|big|set => [17, 100, 5, 40]|4|false|없음|0|1,4,5,8|16
+hash|big|map => {17=3, 100=5, 5=4, 40=1}|4|2|없음|0|1,4,5,8|16
+hash|null|set => [null, apple, fig, grape]|4|false|없음|0|0,1,5,11|16
+hash|null|map => {null=3, apple=4, fig=5, grape=1}|4|2|없음|0|0,1,5,11|16
+hash|obj|set => [Task[id=17], Task[id=100], Task[id=5], Task[id=40]]|4|false|없음|0|1,4,5,8|16
+hash|obj|map => {Task[id=17]=3, Task[id=100]=5, Task[id=5]=4, Task[id=40]=1}|4|2|없음|0|1,4,5,8|16
+linked|words|set => [grape, apple, date, fig]|4|false|없음|0|-|-
+linked|words|map => {grape=1, apple=4, date=3, fig=5}|4|2|없음|0|-|-
+linked|small|set => [3, 1, 2, 5]|4|false|없음|0|-|-
+linked|small|map => {3=1, 1=4, 2=3, 5=5}|4|2|없음|0|-|-
+linked|big|set => [40, 5, 17, 100]|4|false|없음|0|-|-
+linked|big|map => {40=1, 5=4, 17=3, 100=5}|4|2|없음|0|-|-
+linked|null|set => [grape, apple, null, fig]|4|false|없음|0|-|-
+linked|null|map => {grape=1, apple=4, null=3, fig=5}|4|2|없음|0|-|-
+linked|obj|set => [Task[id=40], Task[id=5], Task[id=17], Task[id=100]]|4|false|없음|0|-|-
+linked|obj|map => {Task[id=40]=1, Task[id=5]=4, Task[id=17]=3, Task[id=100]=5}|4|2|없음|0|-|-
+tree|words|set => [apple, date, fig, grape]|4|false|없음|0|-|-
+tree|words|map => {apple=4, date=3, fig=5, grape=1}|4|2|없음|0|-|-
+tree|small|set => [1, 2, 3, 5]|4|false|없음|0|-|-
+tree|small|map => {1=4, 2=3, 3=1, 5=5}|4|2|없음|0|-|-
+tree|big|set => [5, 17, 40, 100]|4|false|없음|0|-|-
+tree|big|map => {5=4, 17=3, 40=1, 100=5}|4|2|없음|0|-|-
+tree|null|set => -|-|-|NullPointerException|3|-|-
+tree|null|map => -|-|-|NullPointerException|3|-|-
+tree|obj|set => -|-|-|ClassCastException|1|-|-
+tree|obj|map => -|-|-|ClassCastException|1|-|-
+확인 typedObj: ClassCastException
+확인 typedNull: NullPointerException, 그때 크기 2

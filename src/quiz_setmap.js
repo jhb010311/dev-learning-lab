@@ -1,0 +1,23 @@
+// "Set과 Map의 종류" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'setmap', q: 'HashSet, LinkedHashSet, TreeSet에 같은 값들을 넣고 차례로 꺼낼 때의 순서로 옳은 것은 무엇입니까?',
+    a: ['HashSet은 보장된 순서가 없고, LinkedHashSet은 넣은 순서, TreeSet은 정렬된 순서다', 'HashSet은 넣은 순서, LinkedHashSet은 정렬된 순서, TreeSet은 보장된 순서가 없다', 'HashSet은 정렬된 순서, LinkedHashSet은 넣은 순서, TreeSet은 넣은 순서의 반대다', '세 가지 모두 넣은 순서대로 나오고, 중복을 허용하는지만 서로 다르다'],
+    why: 'HashSet은 hashCode로 정한 칸 번호 순서로 꺼내므로 사람이 기대하는 순서가 아닙니다. LinkedHashSet은 넣은 순서를 따로 기억하고, TreeSet은 넣을 때마다 비교해 정렬된 자리에 둡니다. 세 가지 모두 같은 값은 한 번만 담습니다.',
+    sim: { c: { kind: 'linked', data: 'words', shape: 'set' }, col: 0, has: '[grape, apple, date, fig]' } },
+  { lv: 2, id: 'setmap', q: 'HashSet에 3, 1, 2, 5를 넣고 출력했더니 [1, 2, 3, 5]가 나왔습니다. 이 결과를 어떻게 이해해야 합니까?',
+    a: ['작은 정수는 칸 번호가 숫자와 같아서 생긴 우연이고, HashSet은 정렬을 보장하지 않는다', 'HashSet은 숫자를 넣을 때만 자동으로 정렬해 주고, 문자열은 정렬해 주지 않는다', 'HashSet은 넣을 때마다 값을 비교해 정렬된 자리에 두므로 언제나 이렇게 나온다', '출력할 때 println이 컬렉션을 정렬해서 보여 주기 때문에 이런 결과가 나온다'],
+    why: 'Integer의 hashCode는 숫자 자신이고 칸이 16개일 때 16보다 작은 수는 자기 숫자와 같은 번호의 칸에 들어갑니다. 그래서 칸 번호 순서가 우연히 크기 순서와 같아졌습니다. 40, 5, 17, 100을 넣으면 17, 100, 5, 40 순서로 나옵니다.',
+    sim: { c: { kind: 'hash', data: 'big', shape: 'set' }, col: 0, has: '[17, 100, 5, 40]' } },
+  { lv: 2, id: 'setmap', q: 'LinkedHashMap에 grape, apple, date 순서로 키를 넣은 뒤, 이미 있는 키 apple에 새 값으로 put을 한 번 더 했습니다. 꺼내는 순서는 어떻게 됩니까?',
+    a: ['grape, apple, date 그대로이고 apple의 값만 새 값으로 바뀐다', 'grape, date, apple이 되어 apple이 맨 뒤로 옮겨진다', 'apple, grape, date가 되어 apple이 맨 앞으로 옮겨진다', 'grape, apple, date, apple이 되어 apple이 두 번 나온다'],
+    why: 'Map은 같은 키를 두 번 담지 않으므로 값만 바꿉니다. LinkedHashMap은 키를 처음 넣은 순서를 기억하며, 이미 있는 키에 다시 put을 해도 그 자리는 바뀌지 않습니다.',
+    sim: { c: { kind: 'linked', data: 'words', shape: 'map' }, col: 0, has: '{grape=1, apple=4, date=3' } },
+  { lv: 3, id: 'setmap', q: 'TreeSet<String>에 "grape"와 "apple"을 넣은 뒤 null을 넣으면 어떻게 됩니까?',
+    a: ['NullPointerException이 난다', 'null이 가장 작은 값으로 맨 앞에 들어간다', 'null이 가장 큰 값으로 맨 뒤에 들어간다', '예외 없이 무시되고 false를 돌려준다'],
+    why: 'TreeSet은 넣을 때마다 값끼리 compareTo로 비교해 자리를 정합니다. null로는 비교할 수 없으므로 NullPointerException이 납니다. HashSet과 LinkedHashSet은 null을 하나 담을 수 있습니다.',
+    sim: { c: { kind: 'tree', data: 'null', shape: 'set' }, col: 3, has: 'NullPointerException' } },
+  { lv: 3, id: 'setmap', q: 'Comparable을 구현하지 않은 Task 객체를 new TreeSet<>()으로 만든 Set<Task>에 add하면 어떻게 됩니까?',
+    a: ['컴파일은 되지만 실행 중 첫 번째 add에서 ClassCastException이 난다', '컴파일 오류가 나므로 프로그램을 실행해 볼 수조차 없다', '예외 없이 들어가고, 꺼낼 때는 넣은 순서대로 나오게 된다', '예외 없이 들어가고, hashCode가 작은 것부터 정렬되어 나온다'],
+    why: 'TreeSet은 값을 Comparable로 바꿔 compareTo를 부릅니다. Task가 Comparable을 구현하지 않았으면 바꿀 수 없어 ClassCastException이 납니다. 컴파일러는 이것을 막아 주지 않으므로, Comparable을 구현하거나 TreeSet을 만들 때 Comparator를 주어야 합니다.',
+    sim: { c: { kind: 'tree', data: 'obj', shape: 'set' }, col: 3, has: 'ClassCastException' } },
+]);

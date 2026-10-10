@@ -1,0 +1,62 @@
+SRC inst|none|0 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nSystem.out.println(a.count + " " + b.count);
+inst|none|0 => 성공|0|2 0
+SRC inst|none|1 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);
+inst|none|1 => 성공|0|2 1
+SRC inst|none|2 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);
+inst|none|2 => 성공|0|2 2
+SRC inst|sm|0 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n\n    static int report() {\n        return count;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nSystem.out.println(a.count + " " + b.count);\nSystem.out.println(Counter.report());
+inst|sm|0 => 오류: non-static variable count cannot be referenced from a static context|1|-
+SRC inst|sm|1 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n\n    static int report() {\n        return count;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);\nSystem.out.println(Counter.report());
+inst|sm|1 => 오류: non-static variable count cannot be referenced from a static context|1|-
+SRC inst|sm|2 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n\n    static int report() {\n        return count;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);\nSystem.out.println(Counter.report());
+inst|sm|2 => 오류: non-static variable count cannot be referenced from a static context|1|-
+SRC inst|smThis|0 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n\n    static int report() {\n        return this.count;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nSystem.out.println(a.count + " " + b.count);\nSystem.out.println(Counter.report());
+inst|smThis|0 => 오류: non-static variable this cannot be referenced from a static context|1|-
+SRC inst|smThis|1 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n\n    static int report() {\n        return this.count;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);\nSystem.out.println(Counter.report());
+inst|smThis|1 => 오류: non-static variable this cannot be referenced from a static context|1|-
+SRC inst|smThis|2 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n\n    static int report() {\n        return this.count;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);\nSystem.out.println(Counter.report());
+inst|smThis|2 => 오류: non-static variable this cannot be referenced from a static context|1|-
+SRC inst|cls0|0 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nSystem.out.println(Counter.count);\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nSystem.out.println(a.count + " " + b.count);
+inst|cls0|0 => 오류: non-static variable count cannot be referenced from a static context|1|-
+SRC inst|cls0|1 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nSystem.out.println(Counter.count);\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);
+inst|cls0|1 => 오류: non-static variable count cannot be referenced from a static context|1|-
+SRC inst|cls0|2 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nSystem.out.println(Counter.count);\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);
+inst|cls0|2 => 오류: non-static variable count cannot be referenced from a static context|1|-
+SRC inst|clsHit|0 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nCounter.hit();\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nSystem.out.println(a.count + " " + b.count);
+inst|clsHit|0 => 오류: non-static method hit() cannot be referenced from a static context|1|-
+SRC inst|clsHit|1 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nCounter.hit();\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);
+inst|clsHit|1 => 오류: non-static method hit() cannot be referenced from a static context|1|-
+SRC inst|clsHit|2 => class Counter {\n    int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nCounter.hit();\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);
+inst|clsHit|2 => 오류: non-static method hit() cannot be referenced from a static context|1|-
+SRC static|none|0 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nSystem.out.println(a.count + " " + b.count);
+static|none|0 => 성공|0|2 2
+SRC static|none|1 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);
+static|none|1 => 성공|0|3 3
+SRC static|none|2 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);
+static|none|2 => 성공|0|4 4
+SRC static|sm|0 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n\n    static int report() {\n        return count;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nSystem.out.println(a.count + " " + b.count);\nSystem.out.println(Counter.report());
+static|sm|0 => 성공|0|2 2 / 2
+SRC static|sm|1 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n\n    static int report() {\n        return count;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);\nSystem.out.println(Counter.report());
+static|sm|1 => 성공|0|3 3 / 3
+SRC static|sm|2 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n\n    static int report() {\n        return count;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);\nSystem.out.println(Counter.report());
+static|sm|2 => 성공|0|4 4 / 4
+SRC static|smThis|0 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n\n    static int report() {\n        return this.count;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nSystem.out.println(a.count + " " + b.count);\nSystem.out.println(Counter.report());
+static|smThis|0 => 오류: non-static variable this cannot be referenced from a static context|1|-
+SRC static|smThis|1 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n\n    static int report() {\n        return this.count;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);\nSystem.out.println(Counter.report());
+static|smThis|1 => 오류: non-static variable this cannot be referenced from a static context|1|-
+SRC static|smThis|2 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n\n    static int report() {\n        return this.count;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);\nSystem.out.println(Counter.report());
+static|smThis|2 => 오류: non-static variable this cannot be referenced from a static context|1|-
+SRC static|cls0|0 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nSystem.out.println(Counter.count);\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nSystem.out.println(a.count + " " + b.count);
+static|cls0|0 => 성공|0|0 / 2 2
+SRC static|cls0|1 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nSystem.out.println(Counter.count);\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);
+static|cls0|1 => 성공|0|0 / 3 3
+SRC static|cls0|2 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nSystem.out.println(Counter.count);\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);
+static|cls0|2 => 성공|0|0 / 4 4
+SRC static|clsHit|0 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nCounter.hit();\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nSystem.out.println(a.count + " " + b.count);
+static|clsHit|0 => 오류: non-static method hit() cannot be referenced from a static context|1|-
+SRC static|clsHit|1 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nCounter.hit();\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);
+static|clsHit|1 => 오류: non-static method hit() cannot be referenced from a static context|1|-
+SRC static|clsHit|2 => class Counter {\n    static int count;\n\n    void hit() {\n        count++;\n    }\n}\n\nCounter.hit();\nCounter a = new Counter();\nCounter b = new Counter();\na.hit();\na.hit();\nb.hit();\nb.hit();\nSystem.out.println(a.count + " " + b.count);
+static|clsHit|2 => 오류: non-static method hit() cannot be referenced from a static context|1|-
+# 객체를 인자로 받는 static 메서드 => 성공|2
+# null인 변수로 static 필드 읽기 => 성공|1

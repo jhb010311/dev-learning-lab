@@ -1,0 +1,17 @@
+natural|normal|false => choi, han, kim, lee, park|13|5|false
+natural|normal|true => park, lee, kim, han, choi|-13|-5|false
+natural|big|false => choi, han, kim, lee, park|13|5|false
+natural|big|true => park, lee, kim, han, choi|-13|-5|false
+cmp|normal|false => choi, lee, han, park, kim|1|0|true
+cmp|normal|true => park, kim, han, choi, lee|-1|0|true
+cmp|big|false => choi, lee, han, park, kim|1|0|true
+cmp|big|true => park, kim, han, choi, lee|-1|0|true
+then|normal|false => choi, lee, han, kim, park|1|5|true
+then|normal|true => park, kim, han, lee, choi|-1|-5|true
+then|big|false => choi, lee, han, kim, park|1|5|true
+then|big|true => park, kim, han, lee, choi|-1|-5|true
+sub|normal|false => choi, lee, han, park, kim|200|0|true
+sub|normal|true => park, kim, han, choi, lee|-200|0|true
+sub|big|false => park, kim, choi, lee, han|-294967296|0|false
+sub|big|true => choi, lee, park, kim, han|294967296|0|false
+확인 Collections.sort와 naturalOrder가 같은 결과: true

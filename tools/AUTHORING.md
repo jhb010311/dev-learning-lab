@@ -44,7 +44,7 @@ Lab.register({
 - `mode`는 대부분 `'step'`입니다. 사건(events)이 순서대로 한 단계씩 보입니다.
 - **controls**: `{ id, label, type: 'select', value, options: [[값, 보이는 글], ...] }`, `{ type: 'check', value: true|false }`, `{ type: 'range', min, max, value, step, fmt: function (v) { return v + '개'; } }`. `show: function (c) { return 조건; }`로 다른 설정에 따라 숨길 수 있고, `hint`로 한 줄 도움말을 붙일 수 있습니다. **select의 값은 브라우저에서 문자열로 옵니다.** 숫자로 쓸 때는 `+c.x`로 바꾸세요. 설정은 2~4개가 적당합니다.
 - **presets**: `{ t: '이름', d: '눌렀을 때 무엇을 보게 되는지', v: { 설정 id: 값, ... } }`. 첫 번째는 이름을 `'처음 설정으로'`로 하고 controls의 기본값과 같게 합니다. 4~7개. 기본 설정은 **놀라운 결과가 나오는 경우**로 잡으면 좋습니다.
-- **simulate**: 순수 함수여야 합니다(같은 설정이면 항상 같은 결과, 난수 금지). `snap`은 그 단계의 상태를 **복사해서** 넣습니다(`JSON.parse(JSON.stringify(st))`). `row`의 길이는 `columns`와 같아야 하고, 값은 문자열로 둡니다. `summary`에는 결과 한 줄과, 그 설정에서 배울 점을 1~3줄 적습니다. render와 draw가 쓸 값은 반환 객체에 더 넣어도 됩니다(이름이 `_`로 시작하면 안 됩니다).
+- **simulate**: 순수 함수여야 합니다(같은 설정이면 항상 같은 결과, 난수 금지). `snap`은 그 단계의 상태를 **복사해서** 넣습니다(`JSON.parse(JSON.stringify(st))`). `row`의 길이는 `columns`와 같아야 하고, 값은 문자열로 둡니다. `summary`에는 결과 한 줄과, 그 설정에서 배울 점을 1~3줄 적습니다. render와 draw가 쓸 값은 반환 객체에 더 넣어도 됩니다(이름이 `_`로 시작하면 안 됩니다). 실습 객체에 도우미 함수를 둘 때는 `explain`이라는 이름을 쓰지 않습니다(틀이 그 이름에 설명을 붙입니다).
 - **render**의 도우미 `H`: `H.title(v, '제목')`, `H.counters(v, [[값, 이름], ...])`, `var ln = H.lanes(v); H.lane(ln, '이름', '글', cls)`(cls: `none`, `hot`, `wait`, `good`, `bad`), `H.slots(v, [[글, cls], ...], '비었을 때 글')`(cls: `q` 파랑, `d` 초록, `b` 노랑, `r` 빨강, `now` 테두리), `H.table(v, ['머리', ...], [{ cls: ''|'gone', cells: ['글' 또는 { v: '글', cls: 'hot'|'good'|'bad' }] }], '표 이름')`, `H.text(v, '글')`. `shown`은 지금까지 보인 사건들이고, `shown[shown.length - 1].snap`이 현재 상태입니다. 아직 아무 단계도 없을 때(`shown`이 빔)도 오류 없이 그려야 합니다.
 
 ## 4. 그림 (draw)

@@ -1,0 +1,26 @@
+toList|dup => [kim, han, kim, choi, han]|-|없음||-|ArrayList
+toList|uniq => [kim, han, jung, choi, kang]|-|없음||-|ArrayList
+toList|empty => []|-|없음||-|ArrayList
+group|dup => {choi=[choi:400], han=[han:100, han:500], kim=[kim:300, kim:200]}|{choi=[choi:400], han=[han:100, han:500], kim=[kim:300, kim:200]}|없음||List|HashMap
+group|uniq => {choi=[choi:400], han=[han:100], jung=[jung:200], kang=[kang:500], kim=[kim:300]}|{choi=[choi:400], han=[han:100], jung=[jung:200], kang=[kang:500], kim=[kim:300]}|없음||List|HashMap
+group|empty => {}|{}|없음||-|HashMap
+count|dup => {choi=1, han=2, kim=2}|{choi=1, han=2, kim=2}|없음||Long|HashMap
+count|uniq => {choi=1, han=1, jung=1, kang=1, kim=1}|{choi=1, han=1, jung=1, kang=1, kim=1}|없음||Long|HashMap
+count|empty => {}|{}|없음||-|HashMap
+sum|dup => {choi=400, han=600, kim=500}|{choi=400, han=600, kim=500}|없음||Integer|HashMap
+sum|uniq => {choi=400, han=100, jung=200, kang=500, kim=300}|{choi=400, han=100, jung=200, kang=500, kim=300}|없음||Integer|HashMap
+sum|empty => {}|{}|없음||-|HashMap
+part|dup => {false=[han:100, kim:200], true=[kim:300, choi:400, han:500]}|{false=[han:100, kim:200], true=[kim:300, choi:400, han:500]}|없음||List|Partition
+part|uniq => {false=[han:100, jung:200], true=[kim:300, choi:400, kang:500]}|{false=[han:100, jung:200], true=[kim:300, choi:400, kang:500]}|없음||List|Partition
+part|empty => {false=[], true=[]}|{false=[], true=[]}|없음||List|Partition
+join|dup => kim, han, kim, choi, han|-|없음||-|String
+join|uniq => kim, han, jung, choi, kang|-|없음||-|String
+join|empty => |-|없음||-|String
+toMap|dup => -|-|IllegalStateException|Duplicate key kim (attempted merging values 300 and 200)|-|-
+toMap|uniq => {choi=400, han=100, jung=200, kang=500, kim=300}|{choi=400, han=100, jung=200, kang=500, kim=300}|없음||Integer|HashMap
+toMap|empty => {}|{}|없음||-|HashMap
+toMapMerge|dup => {choi=400, han=600, kim=500}|{choi=400, han=600, kim=500}|없음||Integer|HashMap
+toMapMerge|uniq => {choi=400, han=100, jung=200, kang=500, kim=300}|{choi=400, han=100, jung=200, kang=500, kim=300}|없음||Integer|HashMap
+toMapMerge|empty => {}|{}|없음||-|HashMap
+확인 counting을 Map<String, Long>으로 받으면 컴파일됨: true
+확인 counting을 Map<String, Integer>로 받으면 컴파일됨: false

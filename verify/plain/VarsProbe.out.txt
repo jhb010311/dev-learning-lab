@@ -1,0 +1,15 @@
+prim|assign => 99|1|false
+prim|call => 99|1|false
+prim|ret => 99|99|true
+field|assign => 99|99|true
+field|call => 99|99|true
+field|ret => 99|99|true
+renew|assign => 99|1|false
+renew|call => 99|1|false
+renew|ret => 99|99|true
+copy|assign => 99|1|false
+copy|call => 99|1|false
+copy|ret => 99|99|true
+str|assign => hi!|hi|false
+str|call => hi!|hi|false
+str|ret => hi!|hi!|true

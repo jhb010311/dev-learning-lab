@@ -1,0 +1,20 @@
+ok|plain|same => ok|ok|kim 50|1|-
+ok|plain|uid => ok|InvalidClassException|-|1|User; local class incompatible: stream classdesc serialVersionUID = 1, local class serialVersionUID = 2
+ok|plain|auto => ok|InvalidClassException|-|1|User; local class incompatible: stream classdesc serialVersionUID = 6483670414588178932, local class serialVersionUID = -2544021866931334923
+ok|transient|same => ok|ok|kim 0|1|-
+ok|transient|uid => ok|InvalidClassException|-|1|User; local class incompatible: stream classdesc serialVersionUID = 1, local class serialVersionUID = 2
+ok|transient|auto => ok|InvalidClassException|-|1|User; local class incompatible: stream classdesc serialVersionUID = -4453223088491835535, local class serialVersionUID = -6005604573600556542
+ok|static|same => ok|ok|kim 70|1|-
+ok|static|uid => ok|InvalidClassException|-|1|User; local class incompatible: stream classdesc serialVersionUID = 1, local class serialVersionUID = 2
+ok|static|auto => ok|InvalidClassException|-|1|User; local class incompatible: stream classdesc serialVersionUID = -5315544784496435192, local class serialVersionUID = -2957695008993499292
+no|plain|same => NotSerializableException|-|-|1|User
+no|transient|same => NotSerializableException|-|-|1|User
+no|static|same => NotSerializableException|-|-|1|User
+field|plain|same => NotSerializableException|-|-|1|Address
+field|transient|same => NotSerializableException|-|-|1|Address
+field|static|same => NotSerializableException|-|-|1|Address
+extra|serialVersionUID를 1L로 둔 채 필드 추가 뒤 읽기 (name point email) => kim 50 null
+extra|transient String 필드를 되살린 값 (name point memo) => kim 50 null
+extra|static 필드를 다른 프로그램에서 읽은 값 (name point) => kim 0
+extra|Address 필드에 transient를 붙이고 저장한 뒤 되살린 값 (name point address) => kim 50 null
+extra|되살린 객체 == 원래 객체 => false

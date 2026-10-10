@@ -1,0 +1,23 @@
+// "스트림으로 모으기" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'collect', q: '주문 스트림을 Collectors.groupingBy(Order::customer)로 모으면 어떤 모양의 결과가 나옵니까?',
+    a: ['고객을 키로, 그 고객의 주문 목록을 값으로 하는 Map', '고객을 키로, 그 고객의 마지막 주문 하나를 값으로 하는 Map', '고객 이름만 나온 순서대로 빠짐없이 담아 놓은 List', '고객 이름을 쉼표로 이어 붙여 만든 문자열 하나'],
+    why: 'groupingBy는 원소마다 키를 계산해 키가 같은 원소끼리 묶습니다. 두 번째 인자를 주지 않으면 값은 그 키에 해당하는 원소들의 List입니다.',
+    sim: { c: { how: 'group', data: 'dup' }, col: 0, has: 'Map<String, List<Order>>' } },
+  { lv: 1, id: 'collect', q: 'groupingBy(Order::customer, Collectors.counting())의 결과를 받을 변수의 타입은 무엇입니까?',
+    a: ['Map<String, Long>', 'Map<String, Integer>', 'Map<String, List<Order>>', 'List<Long>'],
+    why: 'counting()은 개수를 Long으로 돌려줍니다. Map<String, Integer>로 받으면 타입이 맞지 않아 컴파일 오류가 납니다.',
+    sim: { c: { how: 'count', data: 'dup' }, col: 0, has: 'Map<String, Long>' } },
+  { lv: 2, id: 'collect', q: 'Collectors.toMap(Order::customer, Order::price)로 모으는데 같은 고객의 주문이 두 건 들어 있으면 어떻게 됩니까?',
+    a: ['IllegalStateException이 난다', '나중에 나온 주문의 값으로 덮어쓴다', '먼저 나온 주문의 값이 그대로 남는다', '두 주문의 값이 자동으로 더해진다'],
+    why: 'toMap은 한 키에 값 하나만 담고, 같은 키가 또 나오면 어느 값을 남길지 스스로 정하지 않습니다. 병합 함수를 세 번째 인자로 주지 않았다면 IllegalStateException(Duplicate key)을 던집니다. map.put처럼 덮어쓰지 않는다는 점이 헷갈리기 쉽습니다.',
+    sim: { c: { how: 'toMap', data: 'dup' }, col: 2, has: 'IllegalStateException' } },
+  { lv: 2, id: 'collect', q: '주문이 하나도 없는 목록을 partitioningBy(o -> o.price() >= 300)로 모으면 결과는 어떻게 됩니까?',
+    a: ['false와 true 두 키가 모두 있고, 값은 둘 다 빈 목록이다', '나눌 원소가 없으므로 키가 하나도 없는 빈 Map이 된다', '모을 것이 없으므로 Map 대신 null을 돌려주게 된다', '원소가 없으므로 NoSuchElementException이 나게 된다'],
+    why: 'partitioningBy의 결과에는 해당하는 원소가 없어도 false와 true 두 키가 항상 들어 있습니다. 그래서 get(true)의 결과가 null인지 확인할 필요가 없습니다. groupingBy는 원소가 없는 키를 만들지 않습니다.',
+    sim: { c: { how: 'part', data: 'empty' }, col: 1, has: '{false=[], true=[]}' } },
+  { lv: 3, id: 'collect', q: 'kim 300, han 100, kim 200, choi 400, han 500 순서의 주문을 toMap(Order::customer, Order::price, (a, b) -> a + b)로 모았습니다. 결과에서 kim의 값은 무엇입니까?',
+    a: ['500', '300', '200', '2'],
+    why: 'kim이 두 번째로 나왔을 때 병합 함수가 이미 있던 값 300과 새 값 200을 받아 더한 500을 돌려줍니다. 300은 먼저 나온 값만 남길 때, 200은 나중 값으로 덮어쓸 때, 2는 개수를 셀 때의 결과입니다.',
+    sim: { c: { how: 'toMapMerge', data: 'dup' }, col: 1, has: 'kim=500' } },
+]);

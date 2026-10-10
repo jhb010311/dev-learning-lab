@@ -1,0 +1,23 @@
+// "날짜와 시간" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'datetime', q: 'LocalDate d = LocalDate.of(2024, 1, 31); 다음 줄에서 d.plusMonths(1);만 호출하고 돌려준 값을 받지 않았습니다. 그 뒤에 d를 출력하면 무엇이 나옵니까?',
+    a: ['2024-01-31', '2024-02-29', '2024-02-31', '2024-03-02'],
+    why: 'java.time의 날짜 객체는 내용이 바뀌지 않습니다. plusMonths는 원래 객체를 그대로 두고 새 객체를 돌려주므로, 그것을 받지 않으면 d는 처음 날짜를 그대로 가리킵니다.',
+    sim: { c: { topic: 'plus', add: 'drop', zone: 'ny', gap: 'period' }, col: 0, has: '2024-01-31' } },
+  { lv: 2, id: 'datetime', q: '2024-01-31에 plusMonths(1)을 두 번 이어서 호출하면 2024-03-29이고, plusMonths(2)를 한 번 호출하면 2024-03-31입니다. 결과가 다른 까닭은 무엇입니까?',
+    a: ['첫 번째 결과가 2월 말일로 맞춰지고, 두 번째 계산은 그 날짜에서 출발하기 때문이다', 'plusMonths(2)는 한 달을 30일로 쳐서 60일을 더하도록 만들어져 있기 때문이다', '두 번 이어서 호출하면 두 번째 호출이 첫 번째 결과를 쓰지 않고 버리기 때문이다', '윤년에는 plusMonths를 이어서 호출할 때마다 하루씩 빠지도록 되어 있기 때문이다'],
+    why: '1월 31일의 한 달 뒤는 2월 31일인데 없는 날이라 2월 29일로 맞춰집니다. 두 번째 호출은 처음 날짜가 31일이었다는 것을 모른 채 2월 29일에 한 달을 더해 3월 29일을 냅니다.',
+    sim: { c: { topic: 'plus', add: 'twice', zone: 'ny', gap: 'period' }, col: 0, has: '2024-03-29' } },
+  { lv: 2, id: 'datetime', q: '날짜만 담은 LocalDate 두 개를 Duration.between(a, b)에 넘기면 어떻게 됩니까?',
+    a: ['컴파일은 되지만 실행 중에 예외가 난다', '컴파일 오류가 나서 실행할 수 없다', '하루를 24시간으로 쳐서 계산해 준다', '시각을 0시로 보고 알아서 계산해 준다'],
+    why: 'Duration은 초 단위로 간격을 재는데 LocalDate에는 시각이 없어 초 단위의 차이를 구할 수 없습니다. 그래서 실행 중에 UnsupportedTemporalTypeException이 납니다. 날짜 사이의 간격은 Period.between이나 ChronoUnit.DAYS.between으로 구합니다.',
+    sim: { c: { topic: 'gap', add: 'month', zone: 'ny', gap: 'durdate' }, col: 0, has: 'UnsupportedTemporalTypeException' } },
+  { lv: 3, id: 'datetime', q: '서울 시간 2024년 1월 1일 0시 30분과 같은 순간을 America/New_York 시간대의 ZonedDateTime으로 바꾼 뒤 toLocalDate()를 호출했습니다. 어떤 날짜가 나옵니까?',
+    a: ['2023-12-31', '2024-01-01', '2024-01-02', '2023-12-30'],
+    why: '이 날짜에 서울은 UTC보다 9시간 빠르고 뉴욕은 UTC보다 5시간 느립니다. 서울의 0시 30분은 뉴욕에서 전날 오전 10시 30분이므로 날짜는 2023년 12월 31일입니다. 같은 순간이어도 시간대에 따라 날짜가 다릅니다.',
+    sim: { c: { topic: 'zone', add: 'month', zone: 'ny', gap: 'period' }, col: 1, has: '2023-12-31' } },
+  { lv: 3, id: 'datetime', q: 'Period p = Period.between(LocalDate.of(2024, 1, 31), LocalDate.of(2024, 3, 1));을 실행한 뒤 p.getDays()를 출력하면 무엇이 나옵니까? 두 날짜 사이는 모두 30일입니다.',
+    a: ['1', '30', '29', '31'],
+    why: 'Period는 이 간격을 1개월 1일(P1M1D)로 나타냅니다. getDays()는 전체 일수가 아니라 그 가운데 일 부분의 값인 1을 돌려줍니다. 전체 일수 30은 ChronoUnit.DAYS.between으로 구합니다.',
+    sim: { c: { topic: 'gap', add: 'month', zone: 'ny', gap: 'period' }, col: 1, has: '1' } },
+]);

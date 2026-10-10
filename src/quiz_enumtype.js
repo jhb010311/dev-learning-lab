@@ -1,0 +1,23 @@
+// "열거형(enum)" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'enumtype', q: 'enum 상수끼리는 equals 대신 ==로 비교해도 됩니다. 이유는 무엇입니까?',
+    a: ['상수마다 객체가 하나뿐이어서 같은 상수는 언제나 같은 객체이기 때문이다', '컴파일러가 enum의 ==를 자동으로 equals 호출로 바꿔 주기 때문이다', 'enum 상수는 객체가 아니라 int와 같은 기본형 값으로 다뤄지기 때문이다', 'enum에서는 ==가 상수의 이름 문자열을 비교하도록 바뀌어 있기 때문이다'],
+    why: 'enum 상수는 한 번만 만들어지고 new로 더 만들 수 없습니다. values()나 valueOf로 얻은 것과 코드에 Status.PAID라고 적은 것이 같은 객체이므로, 같은 객체인지를 보는 ==로 충분합니다.',
+    sim: { c: { store: 'name', change: 'same', saved: 'PAID' }, col: 2, has: 'true' } },
+  { lv: 1, id: 'enumtype', q: 'Status.valueOf("PAID")를 호출했는데 Status에는 PAID라는 이름의 상수가 없습니다. 어떻게 됩니까?',
+    a: ['IllegalArgumentException이 발생한다', 'null을 돌려주고 예외 없이 계속 실행된다', '맨 앞에 선언한 상수를 대신 골라 돌려준다', '컴파일할 때 없는 이름이라고 미리 알려 준다'],
+    why: 'valueOf는 이름이 정확히 같은 상수가 없으면 null을 돌려주지 않고 IllegalArgumentException을 던집니다. 넘기는 것이 문자열이라 컴파일러는 그런 상수가 있는지 확인하지 못합니다.',
+    sim: { c: { store: 'name', change: 'rename', saved: 'PAID' }, col: 3, has: 'IllegalArgumentException' } },
+  { lv: 2, id: 'enumtype', q: 'enum 상수를 DB에 저장할 때 ordinal() 값을 쓰지 말라고 하는 이유는 무엇입니까?',
+    a: ['선언 순서 번호일 뿐이라, 상수를 끼워 넣거나 순서를 바꾸면 같은 숫자가 다른 상수를 가리키기 때문이다', 'ordinal()은 호출할 때마다 다른 값을 돌려줄 수 있어서 저장해 두어도 쓸모가 없기 때문이다', 'ordinal()이 돌려주는 숫자는 DB의 정수 칸에 넣을 수 없는 특별한 타입이기 때문이다', '숫자로 저장하면 이름으로 저장할 때보다 DB의 저장 공간을 훨씬 많이 쓰기 때문이다'],
+    why: 'ordinal()은 그 상수가 선언에서 몇 번째인지일 뿐입니다. 선언을 고쳐 순서가 달라지면 이미 저장된 숫자는 그대로인데 그 번호의 상수가 바뀌어, 예외 없이 다른 상수로 읽힙니다.',
+    sim: { c: { store: 'ordinal', change: 'swap', saved: 'PAID' }, col: 2, has: 'false' } },
+  { lv: 3, id: 'enumtype', q: '선언이 ORDERED, PAID, SHIPPED 순서일 때 PAID.ordinal()인 1을 저장했습니다. 그 뒤 ORDERED와 PAID 사이에 CANCELED를 끼워 넣었습니다. Status.values()[1]은 무엇입니까?',
+    a: ['CANCELED가 나온다. 예외는 나지 않는다', 'PAID가 나온다. 번호가 상수를 따라간다', '예외가 난다. 번호와 상수가 맞지 않는다', 'null이 나온다. 1번 자리가 비게 된다'],
+    why: 'values()는 지금 선언의 순서대로 상수를 담은 배열입니다. 끼워 넣은 뒤의 1번은 CANCELED입니다. 예외도 경고도 없이 다른 상수가 나오므로 알아차리기 어렵습니다.',
+    sim: { c: { store: 'ordinal', change: 'insert', saved: 'PAID' }, col: 1, has: 'CANCELED' } },
+  { lv: 3, id: 'enumtype', q: 'PAID를 name()으로 얻은 문자열 "PAID"로 저장했습니다. 그 뒤 enum에서 ORDERED와 PAID의 선언 순서를 서로 바꿨습니다. Status.valueOf("PAID")로 읽으면 어떻게 됩니까?',
+    a: ['PAID가 그대로 나온다. 이름으로 찾으므로 순서와 상관없다', 'ORDERED가 나온다. 순서가 바뀌어 자리가 달라졌다', '예외가 난다. 선언이 바뀌면 valueOf를 쓸 수 없다', 'PAID가 나오지만 ==로 비교하면 false가 된다'],
+    why: 'valueOf는 번호가 아니라 이름으로 상수를 찾습니다. 순서를 바꾸거나 상수를 추가해도 이름이 그대로면 같은 상수가 나옵니다. 이름으로 저장한 경우에 조심할 것은 상수의 이름을 바꾸는 일입니다.',
+    sim: { c: { store: 'name', change: 'swap', saved: 'PAID' }, col: 1, has: 'PAID' } },
+]);

@@ -1,0 +1,72 @@
+SRC private|same => package bank;\n\npublic class Account {\n    private int balance = 1000;\n\n    int read() {\n        return this.balance;\n    }\n}\n
+private|same => 성공|0|-
+SRC private|pkg => package bank;\n\npublic class Account {\n    private int balance = 1000;\n}\n\npackage bank;\n\npublic class Teller {\n    int read(Account acc) {\n        return acc.balance;\n    }\n}\n
+private|pkg => 오류|1|balance has private access in bank.Account
+SRC private|subThis => package bank;\n\npublic class Account {\n    private int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read() {\n        return this.balance;\n    }\n}\n
+private|subThis => 오류|1|balance has private access in bank.Account
+SRC private|subChild => package bank;\n\npublic class Account {\n    private int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read(SavingAccount other) {\n        return other.balance;\n    }\n}\n
+private|subChild => 오류|1|balance has private access in bank.Account
+SRC private|subParent => package bank;\n\npublic class Account {\n    private int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read(Account other) {\n        return other.balance;\n    }\n}\n
+private|subParent => 오류|1|balance has private access in bank.Account
+SRC private|other => package bank;\n\npublic class Account {\n    private int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class Report {\n    int read(Account acc) {\n        return acc.balance;\n    }\n}\n
+private|other => 오류|1|balance has private access in bank.Account
+SRC package|same => package bank;\n\npublic class Account {\n    int balance = 1000;\n\n    int read() {\n        return this.balance;\n    }\n}\n
+package|same => 성공|0|-
+SRC package|pkg => package bank;\n\npublic class Account {\n    int balance = 1000;\n}\n\npackage bank;\n\npublic class Teller {\n    int read(Account acc) {\n        return acc.balance;\n    }\n}\n
+package|pkg => 성공|0|-
+SRC package|subThis => package bank;\n\npublic class Account {\n    int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read() {\n        return this.balance;\n    }\n}\n
+package|subThis => 오류|1|balance is not public in bank.Account; cannot be accessed from outside package
+SRC package|subChild => package bank;\n\npublic class Account {\n    int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read(SavingAccount other) {\n        return other.balance;\n    }\n}\n
+package|subChild => 오류|1|balance is not public in bank.Account; cannot be accessed from outside package
+SRC package|subParent => package bank;\n\npublic class Account {\n    int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read(Account other) {\n        return other.balance;\n    }\n}\n
+package|subParent => 오류|1|balance is not public in bank.Account; cannot be accessed from outside package
+SRC package|other => package bank;\n\npublic class Account {\n    int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class Report {\n    int read(Account acc) {\n        return acc.balance;\n    }\n}\n
+package|other => 오류|1|balance is not public in bank.Account; cannot be accessed from outside package
+SRC protected|same => package bank;\n\npublic class Account {\n    protected int balance = 1000;\n\n    int read() {\n        return this.balance;\n    }\n}\n
+protected|same => 성공|0|-
+SRC protected|pkg => package bank;\n\npublic class Account {\n    protected int balance = 1000;\n}\n\npackage bank;\n\npublic class Teller {\n    int read(Account acc) {\n        return acc.balance;\n    }\n}\n
+protected|pkg => 성공|0|-
+SRC protected|subThis => package bank;\n\npublic class Account {\n    protected int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read() {\n        return this.balance;\n    }\n}\n
+protected|subThis => 성공|0|-
+SRC protected|subChild => package bank;\n\npublic class Account {\n    protected int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read(SavingAccount other) {\n        return other.balance;\n    }\n}\n
+protected|subChild => 성공|0|-
+SRC protected|subParent => package bank;\n\npublic class Account {\n    protected int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read(Account other) {\n        return other.balance;\n    }\n}\n
+protected|subParent => 오류|1|balance has protected access in bank.Account
+SRC protected|other => package bank;\n\npublic class Account {\n    protected int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class Report {\n    int read(Account acc) {\n        return acc.balance;\n    }\n}\n
+protected|other => 오류|1|balance has protected access in bank.Account
+SRC public|same => package bank;\n\npublic class Account {\n    public int balance = 1000;\n\n    int read() {\n        return this.balance;\n    }\n}\n
+public|same => 성공|0|-
+SRC public|pkg => package bank;\n\npublic class Account {\n    public int balance = 1000;\n}\n\npackage bank;\n\npublic class Teller {\n    int read(Account acc) {\n        return acc.balance;\n    }\n}\n
+public|pkg => 성공|0|-
+SRC public|subThis => package bank;\n\npublic class Account {\n    public int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read() {\n        return this.balance;\n    }\n}\n
+public|subThis => 성공|0|-
+SRC public|subChild => package bank;\n\npublic class Account {\n    public int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read(SavingAccount other) {\n        return other.balance;\n    }\n}\n
+public|subChild => 성공|0|-
+SRC public|subParent => package bank;\n\npublic class Account {\n    public int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class SavingAccount extends Account {\n    int read(Account other) {\n        return other.balance;\n    }\n}\n
+public|subParent => 성공|0|-
+SRC public|other => package bank;\n\npublic class Account {\n    public int balance = 1000;\n}\n\npackage app;\n\nimport bank.Account;\n\npublic class Report {\n    int read(Account acc) {\n        return acc.balance;\n    }\n}\n
+public|other => 성공|0|-
+M private|same => 성공|0|-
+M private|pkg => 오류|1|getBalance() has private access in bank.Account
+M private|subThis => 오류|1|cannot find symbol
+M private|subChild => 오류|1|cannot find symbol
+M private|subParent => 오류|1|getBalance() has private access in bank.Account
+M private|other => 오류|1|getBalance() has private access in bank.Account
+M package|same => 성공|0|-
+M package|pkg => 성공|0|-
+M package|subThis => 오류|1|cannot find symbol
+M package|subChild => 오류|1|cannot find symbol
+M package|subParent => 오류|1|getBalance() is not public in bank.Account; cannot be accessed from outside package
+M package|other => 오류|1|getBalance() is not public in bank.Account; cannot be accessed from outside package
+M protected|same => 성공|0|-
+M protected|pkg => 성공|0|-
+M protected|subThis => 성공|0|-
+M protected|subChild => 성공|0|-
+M protected|subParent => 오류|1|getBalance() has protected access in bank.Account
+M protected|other => 오류|1|getBalance() has protected access in bank.Account
+M public|same => 성공|0|-
+M public|pkg => 성공|0|-
+M public|subThis => 성공|0|-
+M public|subChild => 성공|0|-
+M public|subParent => 성공|0|-
+M public|other => 성공|0|-

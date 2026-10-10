@@ -1,0 +1,23 @@
+// "체크 예외와 언체크 예외" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'chkex', q: 'IOException을 던지는 줄을 try-catch로 감싸지도 않고, 그 메서드에 throws도 적지 않았습니다. 어떻게 됩니까?',
+    a: ['컴파일 오류가 나서 프로그램을 실행할 수 없다', '컴파일은 되고 실행 중에 예외가 나면 멈춘다', '컴파일러가 경고만 하고 실행은 그대로 된다', '컴파일러가 알아서 throws를 붙여 컴파일한다'],
+    why: 'IOException은 체크 예외입니다. 체크 예외가 나올 수 있는 줄은 잡거나 throws로 선언해야만 컴파일됩니다. 둘 다 하지 않으면 class 파일이 만들어지지 않아 실행할 수 없습니다.',
+    sim: { c: { ex: 'io', how: 'none', occur: true }, col: 0, has: '오류' } },
+  { lv: 1, id: 'chkex', q: '같은 코드에서 던지는 예외를 IllegalStateException(RuntimeException의 하위 클래스)으로 바꾸고 아무 처리도 하지 않았습니다. 컴파일은 어떻게 됩니까?',
+    a: ['컴파일된다. 언체크 예외는 처리를 강제하지 않는다', '컴파일 오류다. 모든 예외는 잡거나 선언해야 한다', '컴파일 오류다. main에는 반드시 try-catch가 있어야 한다', '컴파일된다. 대신 실행 중에 예외가 나지 않게 막아 준다'],
+    why: 'RuntimeException과 그 하위 클래스는 언체크 예외라서 컴파일러가 잡았는지, 선언했는지 검사하지 않습니다. 그 대신 실행 중에 예외가 나면 잡는 곳이 없어 프로그램이 멈춥니다.',
+    sim: { c: { ex: 'rt', how: 'none', occur: true }, col: 0, has: '성공' } },
+  { lv: 2, id: 'chkex', q: 'read 메서드에 throws IOException을 붙였더니 read 안의 오류는 사라지고, read를 호출한 main에서 같은 컴파일 오류가 났습니다. 이유는 무엇입니까?',
+    a: ['throws는 예외를 처리하는 것이 아니라 처리할 의무를 호출한 쪽으로 넘기는 선언이기 때문이다', 'throws는 main 메서드에만 쓸 수 있는 선언이라서 다른 메서드에 붙이면 안 되기 때문이다', 'main 메서드는 어떤 경우에도 예외를 밖으로 내보낼 수 없도록 정해져 있기 때문이다', 'throws를 붙인 메서드는 같은 클래스 안에서는 호출할 수 없도록 정해져 있기 때문이다'],
+    why: 'throws는 "이 메서드는 이 예외를 밖으로 던질 수 있다"는 알림입니다. 그러면 그 메서드를 호출하는 줄에서 체크 예외가 나올 수 있게 되므로, 호출한 쪽이 다시 잡거나 선언해야 합니다.',
+    sim: { c: { ex: 'io', how: 'throws', occur: true }, col: 1, has: 'read(true)' } },
+  { lv: 2, id: 'chkex', q: 'read(false)로 호출해서 실행하면 예외가 나지 않을 코드입니다. 그런데도 체크 예외를 처리하지 않았다는 컴파일 오류가 납니다. 이유는 무엇입니까?',
+    a: ['컴파일러는 예외가 실제로 나는지가 아니라 날 수 있는지를 코드만 보고 판단하기 때문이다', '컴파일러가 프로그램을 미리 한 번 실행해 보는데 그때는 예외가 나기 때문이다', 'boolean 값을 넘겨받는 메서드는 항상 예외를 던지는 것으로 정해져 있기 때문이다', '컴파일 오류가 아니라 경고이며 무시하고 실행하면 정상으로 동작하기 때문이다'],
+    why: '체크 예외 검사는 실행 전에 코드의 모양(throw 문과 throws 선언)만 보고 이루어집니다. 그래서 실행하면 예외가 나지 않을 경우에도 결과가 같습니다.',
+    sim: { c: { ex: 'io', how: 'none', occur: false }, col: 0, has: '오류' } },
+  { lv: 3, id: 'chkex', q: 'read 안에서 catch (IOException e) { throw new RuntimeException(e); }로 감싸 다시 던지고, main은 아무 처리 없이 read를 호출합니다. 파일이 없을 때 어떻게 됩니까?',
+    a: ['컴파일은 되고, 실행 중에 RuntimeException으로 프로그램이 멈춘다', '컴파일은 되고, 예외가 없어져 프로그램이 정상으로 끝난다', 'main에 throws 선언이 없으므로 컴파일 오류가 난다', '컴파일은 되고, IOException이 그대로 JVM까지 올라간다'],
+    why: 'RuntimeException은 언체크 예외라서 throws 없이도 컴파일됩니다. 하지만 예외가 사라진 것은 아니어서, 잡는 곳이 없으면 JVM까지 올라가 프로그램을 끝냅니다. 원래의 IOException은 원인(cause)으로 안에 들어 있습니다.',
+    sim: { c: { ex: 'io', how: 'wrap', occur: true }, col: 3, has: 'java.lang.RuntimeException: java.io.IOException' } },
+]);

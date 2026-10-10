@@ -1,0 +1,23 @@
+// "제네릭" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'generic', q: 'List<Integer>로 선언한 변수 list에 list.add("삼")처럼 문자열을 넣는 코드를 썼습니다. 어떻게 됩니까?',
+    a: ['컴파일 오류가 나서 실행 전에 잘못을 알게 된다', '컴파일은 되고 넣는 순간에 예외가 발생한다', '컴파일은 되고 문자열이 숫자로 바뀌어 들어간다', '컴파일은 되고 그 줄만 조용히 무시된다'],
+    why: 'List<Integer>라고 적어 두면 컴파일러가 넣는 값의 타입을 검사합니다. String은 Integer가 아니므로 "incompatible types" 컴파일 오류가 나고, 프로그램은 실행되지 않습니다.',
+    sim: { c: { decl: 'int', op: 'addStr' }, col: 0, has: '오류' } },
+  { lv: 1, id: 'generic', q: 'List<Integer> 객체와 List<String> 객체에 각각 getClass()를 호출해 ==로 비교하면 무엇이 나옵니까?',
+    a: ['true. 실행 중에는 둘 다 같은 클래스의 객체이다', 'false. 담는 타입이 다르면 클래스도 서로 다르다', '컴파일 오류. 타입이 다른 리스트는 비교할 수 없다', 'false. getClass()는 객체마다 다른 값을 돌려준다'],
+    why: '<Integer>와 <String>은 컴파일할 때의 검사에만 쓰이고 실행 코드에는 남지 않습니다(타입 소거). 실행 중에는 둘 다 똑같은 ArrayList 클래스의 객체입니다.',
+    sim: { c: { decl: 'int', op: 'addInt' }, col: 2, has: 'true' } },
+  { lv: 2, id: 'generic', q: 'Integer는 Number의 하위 타입입니다. 그런데 List<Integer>를 List<Number> 변수에 대입하면 컴파일 오류가 납니다. 왜 막습니까?',
+    a: ['허용하면 그 변수로 Double 같은 다른 숫자를 넣어 Integer 리스트를 망가뜨릴 수 있기 때문이다', '제네릭 타입끼리는 타입이 완전히 같더라도 서로 대입할 수 없도록 정해져 있기 때문이다', 'Integer와 Number는 메모리에서 차지하는 크기가 달라 한 리스트에 담을 수 없기 때문이다', '실행 중에 리스트가 원소 타입을 검사하는데 그 검사가 느려지는 것을 막기 위해서이다'],
+    why: 'List<Number> 변수에는 add(3.5)가 컴파일됩니다. 그 변수가 실제로는 List<Integer>를 가리킨다면 Integer만 담기로 한 리스트에 Double이 들어가게 됩니다. 그래서 대입 자체를 막습니다.',
+    sim: { c: { decl: 'num', op: 'addDbl' }, col: 1, has: 'List<Number> list = ints;' } },
+  { lv: 2, id: 'generic', q: 'List<? extends Number>로 선언한 변수 list에 list.add(3)을 쓰면 컴파일 오류가 납니다. 이유는 무엇입니까?',
+    a: ['list가 실제로는 List<Double>일 수도 있어서 컴파일러가 무엇도 넣게 두지 않기 때문이다', '와일드카드로 선언한 변수는 대입한 뒤에 어떤 메서드도 호출할 수 없기 때문이다', '3은 기본형 int이고 제네릭 리스트에는 기본형 값을 절대 넣을 수 없기 때문이다', 'extends를 쓴 리스트는 Number의 상위 타입인 Object만 넣을 수 있기 때문이다'],
+    why: '? extends Number는 "Number의 하위 타입 가운데 어떤 것"이라는 뜻이라, 컴파일러는 실제 원소 타입을 모릅니다. 꺼낸 값을 Number로 쓰는 것은 안전하지만, 넣는 것은 어떤 타입이든 안전하다고 할 수 없어 막습니다.',
+    sim: { c: { decl: 'ext', op: 'addInt' }, col: 0, has: '오류' } },
+  { lv: 3, id: 'generic', q: 'List<Integer> ints를 제네릭 없는 변수 List list에 대입하고 list.add("삼")을 한 뒤, 맨 끝에서 Integer last = ints.get(2)를 실행합니다. 어떻게 됩니까?',
+    a: ['컴파일은 되고, 값을 꺼내는 마지막 줄에서 ClassCastException이 난다', '컴파일은 되고, 문자열을 넣는 줄에서 ClassCastException이 난다', 'list.add("삼") 줄에서 컴파일 오류가 나서 실행되지 않는다', '컴파일은 되고, last에 null이 들어간 채 정상으로 끝난다'],
+    why: '로 타입 변수로 넣는 코드는 경고만 나고 컴파일됩니다. 실행 중의 리스트는 원소 타입을 기억하지 않아 넣을 때는 아무 일이 없고, Integer로 꺼내는 줄에 컴파일러가 넣어 둔 형 변환에서 예외가 납니다.',
+    sim: { c: { decl: 'raw', op: 'addStr' }, col: 3, has: 'ClassCastException' } },
+]);

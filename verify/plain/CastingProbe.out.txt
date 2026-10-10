@@ -1,0 +1,29 @@
+ints|div => int|int|3
+ints|mod => int|int|1
+ints|ndiv => int|int|-3
+ints|nmod => int|int|-1
+ints|zero => int|int|ArithmeticException: / by zero
+ints|over => int|int|-2147483648
+conv|late => int|double|3.0
+conv|mix => double|double|3.5
+conv|longlate => int|long|-2147483648
+conv|longmix => long|long|2147483648
+# 컴파일 확인 (같은 틀에 넣은 올바른 코드): int r = (int) 3.99; => OK
+# 컴파일 메시지: incompatible types: possible lossy conversion from double to int
+conv|narrow => double|int|컴파일 오류
+conv|trunc => int|int|3
+conv|ntrunc => int|int|-3
+conv|byte => byte|byte|-56
+str|ns => String|String|33
+str|sn => String|String|123
+str|paren => String|String|15
+str|mixed => String|String|3345
+# 7 / 0.0 = Infinity
+# 7 % 0 => ArithmeticException: / by zero
+# double avg = sum / count (7, 2) = 3.0 , (double) sum / count = 3.5
+# "합: " + 1 + 2 = 합: 12 , "합: " + (1 + 2) = 합: 3
+# n = -7 일 때 n % 2 == 1 은 false , n % 2 != 0 은 true
+# Math.round(3.99) = 4 , Math.round(-3.99) = -4
+# (long) big + 1 = 2147483648
+# Math.addExact(2147483647, 1) => ArithmeticException: integer overflow
+# 200의 아래쪽 8비트 = 11001000 , 200 - 256 = -56

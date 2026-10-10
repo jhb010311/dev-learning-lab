@@ -1,0 +1,23 @@
+// "애너테이션" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
+Lab.quiz([
+  { lv: 1, id: 'annot', q: 'work 메서드에 직접 만든 @Timed를 붙였습니다. 프로그램 어디에도 @Timed를 읽는 코드가 없다면, work를 호출할 때 어떻게 됩니까?',
+    a: ['표시가 없을 때와 똑같이 work만 실행된다', '이름에 맞는 동작을 JVM이 알아서 덧붙여 준다', '읽는 코드가 없다는 컴파일 오류가 발생한다', '처리할 수 없는 표시라는 예외가 발생한다'],
+    why: '애너테이션은 코드에 붙여 두는 꼬리표일 뿐, 그 자체로는 아무 일도 하지 않습니다. 컴파일러나 리플렉션을 쓰는 코드처럼 그것을 읽는 쪽이 있어야 무언가가 일어납니다.',
+    sim: { c: { topic: 'custom', ret: 'RUNTIME', target: 'METHOD', reader: false, typo: true, ov: false }, col: 3, has: 'work 실행' } },
+  { lv: 1, id: 'annot', q: '@Override를 붙인 메서드가 실제로는 상위 타입의 어떤 메서드도 재정의하지 않습니다(이름을 잘못 적었습니다). 어떻게 됩니까?',
+    a: ['컴파일 오류가 나서 실수를 바로 알게 된다', '경고만 나오고 새 메서드로 컴파일된다', '컴파일은 되고 실행 중에 예외가 발생한다', '컴파일러가 이름을 알아서 고쳐 컴파일한다'],
+    why: '@Override를 읽는 쪽은 컴파일러입니다. 바로 아래 메서드가 상위 타입의 메서드를 재정의하는지 확인하고, 아니면 "method does not override or implement a method from a supertype" 오류를 냅니다.',
+    sim: { c: { topic: 'override', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: true }, col: 0, has: '오류' } },
+  { lv: 2, id: 'annot', q: '@Retention을 적지 않고 만든 애너테이션을 메서드에 붙였습니다. 실행 중에 리플렉션의 isAnnotationPresent로 확인하니 false입니다. 이유는 무엇입니까?',
+    a: ['기본값이 CLASS라서 class 파일에는 남지만 실행 중 리플렉션에는 보이지 않기 때문이다', '기본값이 SOURCE라서 컴파일이 끝나면 class 파일에서도 완전히 지워지기 때문이다', '직접 만든 애너테이션은 @Retention과 상관없이 리플렉션으로 읽을 수 없기 때문이다', '리플렉션은 클래스에 붙은 애너테이션만 읽고 메서드에 붙은 것은 못 읽기 때문이다'],
+    why: '@Retention을 적지 않으면 CLASS가 적용됩니다. CLASS로 남긴 표시는 class 파일에는 적히지만 JVM이 리플렉션에 보여 주지 않습니다. 실행 중에 읽으려면 RUNTIME을 적어야 합니다.',
+    sim: { c: { topic: 'custom', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: false }, col: 2, has: '보이지 않음' } },
+  { lv: 2, id: 'annot', q: '@Target(ElementType.TYPE)으로 만든 애너테이션을 메서드 위에 붙이면 어떻게 됩니까?',
+    a: ['컴파일 오류가 난다. 붙일 수 있는 곳이 아니다', '컴파일되고, 그 표시는 조용히 무시된다', '컴파일되고, 클래스 전체에 붙은 것으로 본다', '컴파일되고, 실행 중에 읽을 때 예외가 난다'],
+    why: '@Target은 애너테이션을 붙일 수 있는 곳을 정하고, 컴파일러가 이것을 확인합니다. TYPE은 클래스나 인터페이스 같은 타입 선언을 뜻하므로 메서드에 붙이면 컴파일 오류입니다.',
+    sim: { c: { topic: 'custom', ret: 'RUNTIME', target: 'TYPE', reader: true, typo: true, ov: false }, col: 0, has: '오류' } },
+  { lv: 3, id: 'annot', q: 'Dog에서 Animal의 sound()를 재정의하려다 이름을 sount()로 잘못 적었고, @Override는 붙이지 않았습니다. Animal a = new Dog(); a.sound();를 실행하면 어떻게 됩니까?',
+    a: ['오류 없이 Animal의 sound()가 실행된다', '오류 없이 Dog의 sount()가 실행된다', 'sound()를 찾지 못해 예외가 발생한다', '재정의가 잘못됐다는 컴파일 오류가 난다'],
+    why: '@Override가 없으면 컴파일러는 재정의가 맞는지 확인하지 않습니다. sount()는 새 메서드로 컴파일되고, Dog에는 sound()가 없으므로 물려받은 Animal의 sound()가 실행됩니다.',
+    sim: { c: { topic: 'override', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: false }, col: 3, has: '...' } },
+]);

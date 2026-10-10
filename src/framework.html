@@ -219,7 +219,7 @@ select { border: 1px solid var(--line); background: var(--surface); border-radiu
 .counter .l { font-size: .78rem; color: var(--muted); }
 .lanes { display: flex; flex-direction: column; gap: 6px; }
 .lane { display: grid; grid-template-columns: 5.6em minmax(0, 1fr); gap: 8px; align-items: center; font-size: .85rem; }
-.lane .name { font-family: var(--font-code); font-size: .78rem; }
+.lane .name { font-family: var(--font-code); font-size: .78rem; overflow-wrap: anywhere; }
 .bar { position: relative; min-height: 28px; border-radius: 4px; background: var(--idle); border: 1px solid var(--line); overflow: hidden; }
 .bar .fill { position: absolute; inset: 0 auto 0 0; background: var(--busy); border-right: 2px solid var(--busy-edge); }
 .bar .txt { position: relative; display: flex; align-items: center; min-height: 26px; padding: 2px 8px; font-size: .8rem; }
@@ -1142,7 +1142,7 @@ var Lab = (function () {
       if (e.key >= '1' && e.key <= '4') { e.preventDefault(); pick(+e.key - 1); }
     });
   }
-  function attach(map, terms) { lessons.forEach(function (l) { var m = map[l.id]; if (m) { l.explain = m.explain; l.refs = m.refs; } }); kbTerms = terms || []; }
+  function attach(map, terms) { lessons.forEach(function (l) { var m = map[l.id]; if (m) l.explain = m.explain; }); kbTerms = terms || []; }
   return { curriculum: function (c) { curri = c; }, site: function (o) { Object.keys(o).forEach(function (k) { SITE[k] = o[k]; }); }, verify: function (v) { Object.keys(v).forEach(function (k) { verify[k] = v[k]; }); }, register: function (l) { lessons.push(l); }, tracks: function (t) { tracks = t; }, quiz: function (q) { quizBank = quizBank.concat(q); }, glossary: function (g) { gloss = gloss.concat(g); }, start: start, fmt: fmt, attach: attach };
 })();
 </script>
