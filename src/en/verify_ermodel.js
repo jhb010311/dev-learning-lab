@@ -1,0 +1,1 @@
+Lab.verify({ ermodel: ['run', 'The SQL of all 14 combinations was run as it is on MySQL 8.4.11, and the result of the write statement, all the rows of the query result, and all the rows of the tables afterwards were checked'] });

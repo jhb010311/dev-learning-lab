@@ -1,0 +1,1 @@
+Lab.verify({ dynquery: ['part', 'The 16 combinations of the string methods and the Criteria API were run on Hibernate 7.4.5 and H2 and checked against the results. The 4 Querydsl combinations follow the official documentation because the library is not available'] });

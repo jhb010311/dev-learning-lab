@@ -1,0 +1,1 @@
+Lab.verify({ bulk: ['run', '66 combinations were run on Hibernate 7.4.5 and H2, and the kind and order of the SQL, the value read, the value in the DB, and the exceptions were checked against the results'] });

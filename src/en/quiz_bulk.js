@@ -1,0 +1,23 @@
+// Quiz questions for the bulk lab. The first entry of a is the correct answer; if sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'bulk', q: 'You want to raise the price of all 8 items by 500. If you load the entities and call setPrice on them one by one, and if you run a bulk UPDATE, how many UPDATE statements are sent in each case?',
+    a: ['8 when changing them one by one, and 1 for the bulk UPDATE', 'Both 1 (they are merged into one statement at commit)', '1 when changing them one by one, and 8 for the bulk UPDATE', 'Both 8 (one is sent for each row)'],
+    why: 'Dirty checking makes one UPDATE for each entity whose value changed. A bulk operation changes the rows that match the condition with a single UPDATE statement. The more rows there are, the bigger the difference.',
+    sim: { c: { op: 'each', after: 'none', dirty: false, n: 8 }, col: 1, has: 'UPDATE: 8' } },
+  { lv: 1, id: 'bulk', q: 'Why do you call em.clear() after you run a bulk operation?',
+    a: ['To empty the entities that hold old values so that the next query reads the database', 'To commit the SQL that the bulk operation sent to the database', 'To release the database lock held by the bulk operation sooner', 'To count exactly how many rows the bulk operation changed'],
+    why: 'A bulk operation does not go through the persistence context, so entities you already loaded hold the old values. If you empty the persistence context with em.clear(), later queries read the new values from the database. It has nothing to do with commits or locks.',
+    sim: { c: { op: 'update', after: 'clear', dirty: false, n: 3 }, col: 2, has: '1500' } },
+  { lv: 2, id: 'bulk', q: 'You loaded item 1, whose price is 1000, and then raised all the prices by 500 with a bulk UPDATE. In the same transaction, you query the item list again with JPQL and read the price of item 1. What is it?',
+    a: ['1000 (the entity you hold is returned as it is)', '1500 (because JPQL reads from the database)', '2000 (500 is added once more when you query again)', 'An exception is thrown (because the entity and the database have different values)'],
+    why: 'The SELECT of the JPQL goes to the database, and the database returns 1500. But if the persistence context already has an entity with the same identifier, Hibernate throws away the value it read and returns the entity it holds. So the price is still 1000.',
+    sim: { c: { op: 'update', after: 'jpql', dirty: false, n: 3 }, col: 2, has: '1000' } },
+  { lv: 2, id: 'bulk', q: 'You changed the value of an entity with setPrice (no SQL has been sent yet) and then immediately ran a bulk UPDATE. When is that unflushed change sent to the database?',
+    a: ['It is sent first, just before the bulk UPDATE runs', 'It is sent at commit, after the bulk UPDATE', 'It is overwritten by the bulk UPDATE and is never sent', 'It is merged with the bulk UPDATE and sent in one statement'],
+    why: 'A bulk operation runs directly on the database, so Hibernate flushes the unflushed change before it. That way the changes reach the database in the order written in the code. In the lab you can confirm this: the price is changed to 5000, then 500 is added, and the database ends up with 5500.',
+    sim: { c: { op: 'update', after: 'none', dirty: true, n: 3 }, col: 3, has: '5500' } },
+  { lv: 3, id: 'bulk', q: 'You loaded 3 items and then deleted all the items with a bulk DELETE. In the same transaction, you call em.find(Item.class, 1L). What comes back?',
+    a: ['The item 1 object that you loaded before it was deleted', 'null (because there is no row in the database)', 'An EntityNotFoundException is thrown', 'A new Item object with all values empty'],
+    why: 'em.find looks at the persistence context (first-level cache) first. The bulk DELETE did not go through the persistence context, so the item 1 entity remains, and that object is returned without going to the database. You get null only if you query after em.clear().',
+    sim: { c: { op: 'delete', after: 'find', dirty: false, n: 3 }, col: 2, has: 'no such row in the DB' } },
+]);

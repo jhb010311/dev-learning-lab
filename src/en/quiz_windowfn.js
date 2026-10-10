@@ -1,0 +1,23 @@
+// Quiz questions for the window function lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'windowfn', q: 'What is the biggest difference between computing a total with GROUP BY and adding a total with a window function?',
+    a: ['GROUP BY reduces each group to one row, but a window function leaves the rows as they are and adds a value', 'GROUP BY can compute only totals, but a window function can also compute averages and counts', 'A window function reduces each group to one row, but GROUP BY leaves the rows as they are', 'GROUP BY can be used only when there is an index, but a window function can be used without one'],
+    why: 'GROUP BY turns each group into one row of the result, so the original values of the rows are not kept in the result. A window function does not change the number of rows. It adds a value, such as a rank or a running total, next to each row.',
+    sim: { c: { fn: 'group', part: true, tie: 'yes' }, col: 0, has: '2 rows' } },
+  { lv: 2, id: 'windowfn', q: 'Adding RANK() OVER (ORDER BY pts DESC) to three rows with the scores 90, 90, and 80 gives 1, 1, 3. Why is there no rank 2?',
+    a: ['RANK adds 1 to the number of rows with a higher score, and two rows have a higher score than 80', 'When there is a tie, RANK always raises the rank of the next row by 2', 'RANK skips one more rank for every 10 points of difference in the score', 'RANK is defined to skip ranks only when DESC is used in ORDER BY'],
+    why: 'RANK is the number of rows ahead of the current row plus 1. Two rows with 90 points are ahead of the row with 80 points, so its rank is 3. To avoid skipping ranks, use DENSE_RANK.',
+    sim: { c: { fn: 'rank', part: false, tie: 'yes' }, col: 1, has: '1, 1, 3' } },
+  { lv: 2, id: 'windowfn', q: 'What changes when you put PARTITION BY team inside OVER?',
+    a: ['The rows of each team are lined up separately, so the numbers, ranks, and running totals are calculated again from the beginning for each team', 'The rows with the same team are combined into one row, so the number of result rows shrinks to the number of teams', 'The result is sorted by team name, and the way the values are calculated stays the same', 'An index is created on the team column, so the window function is calculated faster'],
+    why: 'PARTITION BY only divides the range of the calculation. It does not combine rows. The number of rows stays the same, and the rank or running total starts over in each partition. Combining rows is what GROUP BY does.',
+    sim: { c: { fn: 'rank', part: true, tie: 'yes' }, col: 1, has: 'Team B 1, 2, 3' } },
+  { lv: 3, id: 'windowfn', q: 'You add SUM(pts) OVER (ORDER BY pts DESC) to six rows with the scores 90, 90, 80, 70, 70, and 60. What value does the first row (90 points) get?',
+    a: ['180', '90', '460', '270'],
+    why: 'When OVER has only ORDER BY, the sum covers the rows from the first row through the rows whose ORDER BY value is the same as the current row. The two rows with 90 points are peers, so both get 90 + 90 = 180. To add up one row at a time, write ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW.',
+    sim: { c: { fn: 'sum', part: false, tie: 'yes' }, col: 1, has: '180, 180, 260' } },
+  { lv: 3, id: 'windowfn', q: 'You add LAG(pts) OVER (PARTITION BY team ORDER BY pts DESC) to each team. What does the row with the highest score in team B get?',
+    a: ['NULL', 'The score of the row with the lowest score in team A', '0', 'Its own score'],
+    why: 'LAG fetches the value of the row just before the current row within the same partition. The first row of a partition has no previous row, so it gets NULL. Rows of another team are in a different partition, so their values do not carry over.',
+    sim: { c: { fn: 'lag', part: true, tie: 'no' }, col: 1, has: 'Team B NULL' } },
+]);

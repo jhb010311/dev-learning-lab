@@ -1,0 +1,1 @@
+Lab.verify({ dtoquery: ['run', 'Twelve combinations were run on Hibernate 7.4.5 and H2, and the number of SELECT statements, the number of columns, the number of managed entities, and the number of UPDATE statements were checked'] });

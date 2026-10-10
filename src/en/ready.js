@@ -20,4 +20,8 @@ module.exports = [
   'index', 'compidx', 'explainplan', 'joinalgo',
   'normal', 'selectorder', 'join', 'subquery',
   'iso', 'gaplock', 'dbdeadlock', 'undoredo',
+  'windowfn', 'paging', 'viewproc', 'btree',
+  'fetchjoin', 'bulk', 'datajpa', 'dynquery',
+  'bufferpool', 'replica', 'shard', 'partition', 'redis', 'nosql',
+  'stock', 'dtoquery', 'constraints', 'ermodel',
 ];

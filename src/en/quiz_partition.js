@@ -1,0 +1,22 @@
+// Quiz questions for the partitioning lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'partition', q: 'Which statement correctly describes the difference between partitioning and sharding?',
+    a: ['Partitioning divides a table inside one server, and sharding divides data across several servers', 'Partitioning divides a table across several servers, and sharding divides data inside one server', 'Partitioning divides by columns, and sharding divides rows into several tables', 'Partitioning creates read-only replicas, and sharding creates separate write-only servers'],
+    why: 'Partitioning stores one table in several pieces inside the same server. In queries it still looks like one table, and joins and transactions can be used as they are. Sharding divides data across several database servers, so joins and transactions that span servers become difficult.' },
+  { lv: 2, id: 'partition', q: 'In MySQL, why must the primary key and the unique keys of a partitioned table include the partitioning key column?',
+    a: ['Because each partition has its own indexes, so duplicates must be detectable by looking at only one partition', 'Because without the partitioning key column in the primary key, the partitions column does not appear in EXPLAIN', 'Because the partitioning key column can automatically become NULL, so it must be locked in with the primary key', 'Because the number of columns of the primary key could differ from partition to partition, so they must be matched'],
+    why: 'In MySQL, each partition has its own indexes. To guarantee uniqueness, MySQL must be able to decide by looking at only the one partition the value goes into, so the key must include the partitioning key column. Otherwise, error 1503 occurs when the table is created.',
+    sim: { c: { how: 'range', pk: 'only', ins: 'in', q: 'key' }, col: 0, has: '1503' } },
+  { lv: 2, id: 'partition', q: 'What happens when you INSERT a value that does not belong to the range of any partition into a RANGE partitioned table?',
+    a: ['An error says there is no partition to accept it, and the row is not inserted', 'It goes into the last partition automatically, and only a warning is recorded', 'A new partition to accept the value is created automatically, and the row goes into it', 'It is stored in a separate default area that does not belong to any partition'],
+    why: 'A RANGE partition puts a row only into the partition whose range matches. If no partition matches, error 1526 (Table has no partition for value) occurs. That is why you have to add the partition for the next period in advance.',
+    sim: { c: { how: 'range', pk: 'with', ins: 'out', q: 'key' }, col: 1, has: '1526' } },
+  { lv: 3, id: 'partition', q: "You divided the orders table into three yearly partitions with PARTITION BY RANGE (YEAR(ordered_at)). If you query with the condition WHERE YEAR(ordered_at) = 2024, how many partitions does it read?",
+    a: ['All 3', 'Only 1, the 2024 partition', '2, the 2024 partition and the one before it', 'It reads no partitions, only the index'],
+    why: 'Even if you use YEAR(ordered_at), the same expression the table is partitioned by, MySQL cannot pick partitions from a condition that wraps the column in a function. Only if you leave the column as it is and write a range, as in ordered_at >= \'2024-01-01\' AND ordered_at < \'2025-01-01\', does it read only the 2024 partition.',
+    sim: { c: { how: 'range', pk: 'with', ins: 'in', q: 'func' }, col: 3, has: '3 of 3' } },
+  { lv: 3, id: 'partition', q: 'In a HASH partitioned table divided by the remainder of the member number divided by 4 (the primary key is id and member_id), what happens when you query with WHERE id = 100?',
+    a: ['It cannot tell which partition the row is in, so it reads all four partitions', 'id is the first column of the primary key, so it reads only one partition', 'It reads only partition 0, the remainder of 100 divided by 4', 'The partitioning key is not in the condition, so the query fails with an error'],
+    why: 'The column that decides the partition is member_id, but the condition has only id. There is no way to know in advance which partition the row is in, so every partition has to be searched. Inside a partition it is found by the primary key index, but that work is repeated as many times as there are partitions.',
+    sim: { c: { how: 'hash', pk: 'with', ins: 'in', q: 'other' }, col: 2, has: 'p0,p1,p2,p3' } },
+]);

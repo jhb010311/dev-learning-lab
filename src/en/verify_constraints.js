@@ -1,0 +1,1 @@
+Lab.verify({ constraints: ['run', 'The SQL of all 48 combinations was run as it is on MySQL 8.4.11, and the error numbers, the number of rows changed, and all the rows of both tables afterwards were checked'] });

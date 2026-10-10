@@ -1,0 +1,7 @@
+// Terms needed for the "Querying directly into a DTO" lab
+module.exports = [
+  ['JPA', 'DTO',
+   'This is short for Data Transfer Object, a simple object made to carry values between layers or to a screen. Unlike an entity, it has no @Entity and is not connected to a table, so the persistence context does not manage it, and changing its values does not change the DB. If you put only the values the screen needs into it, the shape of the response does not change along with the structure of the entity, and you can also prevent values that must not be sent out from slipping out. You can query an entity and then copy its values into a DTO, or you can have the query pick only the values you need and receive them directly as a DTO.'],
+  ['JPA', 'JPQL constructor expression',
+   'This is the syntax in which you write new package.Class(value, value) in the select clause of JPQL to receive the query result directly as objects of a class that is not an entity. The SELECT clause of the SQL contains only the columns that correspond to the values passed to the constructor, and the constructor of that class is called for each row. The result is not an entity, so the persistence context does not manage it, and it is not a target of dirty checking. The JPA standard requires the class name to be written including the package, and the class must have a constructor whose number and types of parameters match the values you pass.'],
+];

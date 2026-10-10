@@ -1,0 +1,9 @@
+// Terms needed for the views, stored procedures, and triggers lab
+module.exports = [
+  ['Database', 'Stored procedure',
+   'This is a set of SQL statements that is given a name and stored inside the database. The application only has to call it with CALL name(values), and the statements inside run one after another on the database server. Several statements can be handled in one call. But the business rules then live in the database rather than in the application code, so you cannot tell the behavior just by reading the code, and version control and testing become harder. The statements inside a procedure do not automatically become one transaction, so if they must succeed together or be rolled back together, you have to group them in a transaction.'],
+  ['Database', 'Trigger',
+   'This is a statement that you attach to a table so that the database activates it automatically when an INSERT, UPDATE, or DELETE happens. You create it by choosing the table, the kind of change, and whether it runs before (BEFORE) or after (AFTER) the change, and inside it you can read the values of the row being changed with NEW and OLD. You can hand over processing that must not be forgotten, such as recording changes, but nothing about it shows up in the code of whoever sent the statement. That can make it hard to find out why another table changed or why an error occurred, and if a trigger fails, the original statement that activated it fails too.'],
+  ['Database', 'CHECK constraint',
+   'This is a constraint, written in the table definition, that states a condition the values of a column must meet. For example, if you define CHECK (stock >= 0), an INSERT or UPDATE that would make the stock negative is rejected with an error. Its advantage is that, whichever program changes the value, the database stops it as a last line of defense. MySQL actually enforces this constraint from 8.0.16, and earlier versions accepted the syntax but did not check it.'],
+];

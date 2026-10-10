@@ -1,0 +1,1 @@
+Lab.verify({ fetchjoin: ['run', '12 combinations were run on Hibernate 7.4.5 and H2, and the result list, the number of rows returned, the position of the row limit in the SQL, the follow-up queries, and the warnings and exceptions were checked against the results (the behavior of older versions follows the documentation)'] });

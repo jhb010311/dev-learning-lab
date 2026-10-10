@@ -1,0 +1,21 @@
+// Quiz questions for the views, stored procedures, and triggers lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'viewproc', q: 'When you query a view, where do the returned values come from?',
+    a: ['The stored SELECT statement is run at the moment you query, and the values come from the base tables', 'Rows that were copied when the view was created are stored inside the view and returned from there', 'They come from a separate storage area that is synchronized with the base tables once a day', 'The result of the last time the view was queried is remembered and returned'],
+    why: 'A view does not store data. It stores only a SELECT statement. That statement reads the base tables every time you query, so if you change the base tables, the result of the view changes right away. A table into which the result was copied does not change along with them.',
+    sim: { c: { how: 'insert', trig: true, qty: '3' }, col: 4, has: '7 / 10' } },
+  { lv: 1, id: 'viewproc', q: 'When does a trigger run?',
+    a: ['The database activates it automatically when an INSERT, UPDATE, or DELETE happens on the table it is defined on', 'It runs only when the application calls the name of the trigger with a CALL statement', 'It runs once when the database server starts, and never again after that', 'It runs every time you query the table with SELECT, to change the query result'],
+    why: 'A trigger is attached to a change (INSERT, UPDATE, or DELETE) on a particular table, and when that change happens, the database runs it on its own. What you call by name is a stored procedure.' },
+  { lv: 2, id: 'viewproc', q: 'What is the biggest reason triggers are said to be "dangerous"?',
+    a: ['They do not show up in the code of whoever sent the statement, so it is hard to tell why another table changed', 'A table with a trigger cannot have an index, so queries are always slow', 'A trigger cannot change another table, so there are almost no places to use one', 'Triggers disappear when the database restarts, so you have to create them again each time'],
+    why: 'The application code shows just one INSERT line, but other tables change as well. If you do not know a trigger exists, it is hard to find out why a value changed or why an error occurred, and the same processing may even be done a second time in the code.' },
+  { lv: 3, id: 'viewproc', q: 'The stock is 10. The stored procedure place_order reduces the stock, inserts the order, and writes a log row. But the orders table also has a trigger that reduces the stock when an order comes in. What is the stock after you run CALL place_order(1, 3)?',
+    a: ['4', '7', '10', '1'],
+    why: 'The UPDATE in the procedure reduces the stock from 10 to 7, and the INSERT INTO orders that follows activates the trigger, which reduces it once more from 7 to 4. A trigger is invisible to the caller, so this kind of duplication is easy to create.',
+    sim: { c: { how: 'proc', trig: true, qty: '3' }, col: 2, has: '4' } },
+  { lv: 3, id: 'viewproc', q: 'The stock is 10, and the stock column has a CHECK (stock >= 0) constraint. A trigger that reduces the stock when an order comes in is defined on orders. What happens when you order 12 with INSERT INTO orders?',
+    a: ['The trigger fails and the INSERT is rolled back too, so no order row remains', 'The order row is inserted, and the stock stays at 10', 'The order row is inserted, and the stock becomes -2', 'The order row is inserted, and the stock stops at 0'],
+    why: 'If the UPDATE in the trigger violates the CHECK constraint and fails, the INSERT that activated the trigger also fails, and the row that was inserted is rolled back. The application inserted into orders but gets a constraint error from product.',
+    sim: { c: { how: 'insert', trig: true, qty: '12' }, col: 1, has: '0' } },
+]);

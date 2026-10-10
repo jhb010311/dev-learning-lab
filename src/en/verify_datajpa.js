@@ -1,0 +1,1 @@
+Lab.verify({ datajpa: ['run', '19 scenes were run by starting Spring Data JPA 4.1.1, Hibernate 7.4.5, and H2 with the auto-configuration of Spring Boot 4.1.1, and the startup result and the SQL sent were checked against the results'] });

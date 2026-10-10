@@ -1,0 +1,1 @@
+Lab.verify({ bufferpool: ['part', 'On MySQL 8.4.11, disk reads and writes were checked by execution for the six combinations in which nothing is evicted. The number of slots and the order of eviction are a conceptual model'] });

@@ -1,0 +1,11 @@
+// Terms needed for the window function lab
+module.exports = [
+  ['Database', 'Window function',
+   'This is a function that adds to each row a value computed by looking at several rows related to that row, without combining the rows. You write OVER (...) after the function to say which rows are laid out in which order for the calculation. Unlike GROUP BY, which reduces each group to one row of the result, the number of result rows stays the same, so you can see the original value of each row and its rank or running total on one line. In MySQL, window functions are available from version 8.0. They are allowed only in the select list and in ORDER BY, so to filter on the result of a window function, you wrap the query in a subquery.'],
+  ['Database', 'ROW_NUMBER, RANK, DENSE_RANK',
+   'These are window functions that give rows a number or a rank in the order of the ORDER BY inside OVER. The difference among the three is how they handle rows with the same sort value (ties, which the MySQL documentation calls peers). ROW_NUMBER gives different numbers even to peers. RANK gives peers the same rank and then skips as many ranks (1, 1, 3), and DENSE_RANK gives peers the same rank without skipping (1, 1, 2). With ROW_NUMBER, which of the tied rows gets the lower number is not defined, so if the result must always be the same, add a column whose values are unique to the sort order.'],
+  ['Database', 'PARTITION BY',
+   'This is a clause you write inside the OVER of a window function to divide the rows into groups that have the same value in the columns you name. Each group is called a partition, and the numbers, ranks, and running totals are calculated again from the beginning for each partition. It looks similar to GROUP BY, but the difference is that it does not combine rows. If you do not write PARTITION BY, the whole result is one partition.'],
+  ['Database', 'LAG and LEAD',
+   'These are window functions that fetch the value of a row before or after the current row in an ordered line of rows. LAG fetches the value of the previous row, and LEAD fetches the value of the next row. They let you compare neighboring rows, such as the difference between yesterday and today, without joining the same table one more time. For the first row of a partition (LAG) or the last row (LEAD), where there is no row to fetch, the value is NULL.'],
+];

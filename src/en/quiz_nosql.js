@@ -1,0 +1,21 @@
+// Quiz questions for the NoSQL and document model lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'nosql', q: 'In the document model, which way of storing an order and its items is correct?',
+    a: ['Make one order one document, and put the items in it together as an array', 'Put the order and the items in different tables, and join them every time you read', 'Join all the values of the order into one string and store it under one key', 'Make a separate document for each order item, and do not store the order information'],
+    why: 'The document model puts the data that is read together into one document. A document can hold an array or another object inside a value, so an order and its items are stored as one unit and read in one go without a join.' },
+  { lv: 2, id: 'nosql', q: 'The product name is copied into every order document. What is the cost of this design?',
+    a: ['When the product name changes, you have to find and fix every document that contains the product', 'Every time you read one order, you must join the product table', 'You can no longer put an array in a document, so you can store only one item', 'To change the product name, you first have to change the table structure'],
+    why: 'A copied value makes reads fast and easy, but when the value changes, you have to fix all the copies. If you fix only some, the same product is left with different names in different documents. This is why a relational model keeps a value in one place only (normalization).',
+    sim: { c: { model: 'doc', op: 'rename', n: 5 }, col: 1, has: '5 documents' } },
+  { lv: 2, id: 'nosql', q: 'What is the drawback of a flexible schema, where documents are stored even if their shapes differ?',
+    a: ['Documents with missing fields or misspelled names are stored as they are, so you have to do the checking yourself', 'All documents must be the same size, so long values cannot be stored', 'To add a new field, you must first change every document to the same shape', 'Every time a document is read, the database checks its shape and always returns an error'],
+    why: 'The database does not enforce the shape, so a wrong name or a missing field goes in without an error. So the application has to check before saving, or you have to turn on the schema validation feature of the database separately.' },
+  { lv: 3, id: 'nosql', q: 'Three orders are stored as documents, and the quantity total is 9. You insert an order with a quantity of 3, but you misspell the field name as quantity instead of qty. What is the result of a query that adds up qty in all documents?',
+    a: ['9 (with no error, only the quantity of the new order is left out)', '12 (the names are similar, so they are treated as the same field)', 'An error (the INSERT is rejected and nothing is stored)', 'An error (the query fails on the quantity field)'],
+    why: 'A document has no list of columns decided in advance, so it is stored as it is even with the name quantity. The total query only skips the documents that have no qty and raises no error, so the total comes out 3 less than the actual quantity.',
+    sim: { c: { model: 'doc', op: 'typo', n: 3 }, col: 2, has: 'Quantity total 9 (actual ordered quantity 12)' } },
+  { lv: 3, id: 'nosql', q: 'You run INSERT INTO orders (id, member, gift) … with a gift value on the orders table (columns: id, member) stored relationally. What happens?',
+    a: ['An error says the column does not exist, and nothing is stored', 'A gift column is created automatically, and the row is stored', 'Only the gift value is discarded, and the rest is stored', 'The row is stored with a gift field attached to that row only'],
+    why: 'A relational table accepts only the columns decided in advance. Using a column that does not exist causes error 1054, and to store it you first have to add the column with ALTER TABLE. In return, it is guaranteed that every row has the same shape.',
+    sim: { c: { model: 'rel', op: 'newfield', n: 3 }, col: 0, has: '1054' } },
+]);

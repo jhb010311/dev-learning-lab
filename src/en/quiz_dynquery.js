@@ -1,0 +1,20 @@
+// Quiz questions for the dynquery lab. The first entry of a is the correct answer; if sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'dynquery', q: 'In which situation do you need a dynamic query?',
+    a: ['When only the search conditions that the user entered must go into where', 'When you always look up one member by id with the same condition', 'When the query runs slowly because the result is large', 'When you run the same query several times in one transaction'],
+    why: 'A dynamic query is a query built at run time from whichever conditions were supplied. A typical case is a search feature in which a condition must be added to where only when it is given. A query whose shape is always the same only needs different values put in, so it is not a dynamic query.' },
+  { lv: 2, id: 'dynquery', q: 'Why are syntax errors in a dynamic query built by joining JPQL strings easy to discover only in production?',
+    a: ['Because the compiler does not check inside strings, and the error occurs only with certain combinations of conditions', 'Because JPQL is syntax-checked only on the production DB and not on the development DB', 'Because even a syntax error returns an empty result without an exception', 'Because a string query is checked only once, when the application starts'],
+    why: 'To the Java compiler, JPQL is just a string. The built statement is checked at run time, and the result depends on the combination: it works if you give both conditions but fails if you give only one. An error in a combination that you have not tested shows up when a request with that combination actually arrives.' },
+  { lv: 3, id: 'dynquery', q: 'The code starts with "select m from Member m where", appends " m.name = :name" if there is a name, and appends " and m.age >= :age" if there is an age. What happens if you search with only an age?',
+    a: ['and comes right after where, and the query fails with a syntax error', 'A query with only the age condition runs normally', 'The name condition is compared with null, and the result is 0 rows', 'and is ignored, and all the members are returned'],
+    why: 'The built statement is "select m from Member m where and m.age >= :age". The first condition that should come before and is missing, so it does not match the JPQL syntax, and createQuery throws an exception. The SQL is not even sent to the DB.',
+    sim: { c: { how: 'fixed', name: false, age: true }, col: 1, has: 'Failed' } },
+  { lv: 3, id: 'dynquery', q: 'In code that collects condition objects in a list and passes them to where with the JPA Criteria API, the user entered no search condition at all. What happens?',
+    a: ['The query has no where clause, and all the members are returned', 'An exception says that the conditions are empty, and the query fails', 'Only where is left in the statement, which causes a syntax error', 'There are no conditions, so no member is returned'],
+    why: 'The Criteria API creates where and and to match the number of conditions. With 0 condition objects, no where clause is created at all, so everything is returned. Compare this with the mistake of leaving only where when you join strings yourself.',
+    sim: { c: { how: 'criteria', name: false, age: false }, col: 2, has: 'no where' } },
+  { lv: 2, id: 'dynquery', q: 'In Querydsl, you write where(nameEq(name), ageGoe(age)) and make the condition methods return null when there is no value. Why?',
+    a: ['Because where skips null conditions, so only the entered conditions remain without any if statements', 'Because if you pass null, where looks for rows in which that column is null', 'Because if you pass null, the query does not run and an empty list comes back', 'Because you must pass null for the Q class to be generated at compile time'],
+    why: 'The where of Querydsl skips the null ones among the conditions it receives and combines the rest with and (as the official API documentation explains). So you do not need an if statement for each condition to match where and and. Querydsl could not be run in this lab, so this is based on the documentation.' },
+]);

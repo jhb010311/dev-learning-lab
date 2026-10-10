@@ -1,0 +1,21 @@
+// Quiz questions for the buffer pool and pages lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'bufferpool', q: 'When InnoDB reads data from disk, what is the unit it reads?',
+    a: ['A page (16KB by default) that holds several rows together', 'The one row that matches the query condition', 'The one column value that the query needs', 'One file that holds the whole table'],
+    why: 'Even when only one row is needed, InnoDB reads the whole page that holds the row and loads it into the buffer pool. The default page size is 16KB, and one page holds several rows together.' },
+  { lv: 2, id: 'bufferpool', q: 'You changed a row with UPDATE and ran COMMIT. What happens to the page of that row in the data file on disk?',
+    a: ['It is not changed right away. Only the page in the buffer pool is changed, and the data file is written later', 'It must be written to the data file before the commit finishes, and only then does the server respond', 'It is written to the data file at the very moment the UPDATE statement runs', 'It is written to the data file all at once, only when the server shuts down normally'],
+    why: 'InnoDB changes the page in memory and leaves it as a dirty page, and at commit time it writes only the redo log to disk. A background thread writes the data file later. This can be postponed because the redo log makes recovery possible even if the server goes down.',
+    sim: { c: { seq: 'same', size: 3, upd: true }, col: 3, has: 'Later' } },
+  { lv: 2, id: 'bufferpool', q: 'The buffer pool is full, and InnoDB has to read a page that is not in the buffer pool. What does it do?',
+    a: ['It evicts a page that has not been used for a long time to make room, and then reads in the new page', 'It returns the value read from disk directly, without going through the buffer pool', 'It automatically enlarges the buffer pool on the spot and puts the new page in', 'It makes the query fail with an error until room is available and makes the client retry'],
+    why: 'The size of the buffer pool is fixed, so when it is full, the page that has gone unused for the longest time is evicted first. If the page to be evicted is a dirty page, it is written to disk first and then evicted.' },
+  { lv: 3, id: 'bufferpool', q: 'In a table where each page holds 4 rows (rows 1 to 4 are on the same page), the buffer pool is empty. You query row 1, row 2, and then row 1 again. How many times is the page that holds the rows read from disk?',
+    a: ['1 time', '2 times', '3 times', '0 times'],
+    why: 'When row 1 is read, the whole page that holds it is loaded into the buffer pool. Row 2 is on the same page, so even though it is read for the first time, the disk is not accessed, and reading row 1 again is also served from memory.',
+    sim: { c: { seq: 'same', size: 3, upd: false }, col: 0, has: '1' } },
+  { lv: 3, id: 'bufferpool', q: 'Suppose the buffer pool can hold only three pages. You read rows on different pages in the order 1, 5, 9, 13, and then read row 1 again. What happens? (Assume that the page that has gone unused the longest is evicted.)',
+    a: ['The page of row 1 was evicted, so it is read from disk again', 'The page of row 1 was read first, so it stays to the end', 'The page of row 13 cannot be loaded, so the query ends with an error', 'All pages are evicted, and the four pages are read again from the beginning'],
+    why: 'There is no room to load the fourth page, so the page that has gone unused the longest, that is, the page of row 1, is evicted. So when row 1 is read again, the disk has to be accessed once more, and the total number of disk reads becomes 5.',
+    sim: { c: { seq: 'spread', size: 3, upd: false }, col: 0, has: '5' } },
+]);
