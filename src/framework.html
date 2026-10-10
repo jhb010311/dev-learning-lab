@@ -68,6 +68,9 @@ button, input, select { font: inherit; color: inherit; }
 .lesson-head { border-top: 3px solid var(--ink); padding-top: 14px; display: flex; flex-direction: column; gap: 8px; }
 .eyebrow { font-size: .8rem; font-weight: 600; color: var(--accent); letter-spacing: .04em; }
 .lesson-head p { max-width: 72ch; }
+/* 실습 머리: 목차에서 고른 항목의 이름이 제목이고, 그 실습이 답하려는 물음이 그 아래에 온다 */
+.lesson-head h2 { font-size: 1.6rem; }
+.lesson-head .question { font-size: 1.12rem; font-weight: 600; line-height: 1.45; margin: 0; text-wrap: balance; }
 .titlerow { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
 
 .explain { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 4px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
@@ -350,8 +353,9 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 
   <section class="lesson-head labonly">
     <div class="eyebrow" id="eyebrow"></div>
-    <div class="vbadge" id="vbadge"></div>
     <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
     <p id="intro"></p>
     <div class="guide" id="guide" hidden>
       <b>이 화면을 쓰는 방법</b>
@@ -708,6 +712,8 @@ var Lab = (function () {
     curCat = pl.cat;
     [['공부', 'study'], [pl.cat.name, 'study/' + pl.cat.id]].forEach(function (p) { var b = el('button', 'linkbtn', p[0]); b.type = 'button'; b.addEventListener('click', function () { nav(p[1]); }); eb.appendChild(b); eb.appendChild(el('span', 'sep', ' › ')); });
     eb.appendChild(el('span', null, pl.group.name));
+    // 제목은 목차에서 누른 그 이름으로 보여 준다(목차가 따로 이름을 붙인 실습은 그 이름)
+    var here = pl.group.items.filter(function (it) { return it.id === cur.id; })[0]; $('title').textContent = (here && here.t) || cur.nav;
     var ids = lessonsOf(pl.cat), i = ids.indexOf(cur.id);
     pb.appendChild(el('span', 'where', pl.cat.name + ' 실습 ' + ids.length + '개 가운데 ' + (i + 1) + '번째'));
     if (i > 0) { var pv = el('button', 'btn ghost small', '← 앞 실습: ' + byId(ids[i - 1]).nav); pv.type = 'button'; pv.addEventListener('click', function () { nav(ids[i - 1]); }); pb.appendChild(pv); }
@@ -740,7 +746,7 @@ var Lab = (function () {
   }
   function open(id) {
     stop(); askCancel(); sim = null; paused = false; assumeOpen = false; cur = byId(id) || lessons[0];
-    $('title').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
+    $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
     $('explain').hidden = true; $('explain-btn').setAttribute('aria-expanded', 'false'); $('explain-btn').textContent = '개념 설명 보기';
     drawPath();
     var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); (cur.draw ? $('below') : grid).appendChild($('codepanel')); picReset();

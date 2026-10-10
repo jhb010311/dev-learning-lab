@@ -43,7 +43,9 @@ if (require.main === module) {
   let { list, files } = loadLessons();
   // 영어판: 아직 다 옮기지 않은 실습은 빼고 만든다(설명집 용어, 문제 파일, 검증 수준 파일이 모두 있어야 한다)
   const skipEn = new Set();
-  if (EN) { list.forEach(l => { const why = []; (l.terms || []).forEach(t => { if (!kb.some(r => r[1] === t)) why.push('설명집에 없는 용어 ' + t); });
+  // 공개 빌드에는 src/en/ready.js에 적힌 실습만 넣는다. 미리보기(LAB_OUT_DIR)에서는 옮겨진 것을 모두 넣는다.
+  const enReadyIds = EN && !process.env.LAB_OUT_DIR ? new Set(require(path.join(dir, 'ready.js'))) : null;
+  if (EN) { list.forEach(l => { const why = []; if (enReadyIds && !enReadyIds.has(l.id)) why.push('ready.js에 없음(검사와 화면 확인 전)'); (l.terms || []).forEach(t => { if (!kb.some(r => r[1] === t)) why.push('설명집에 없는 용어 ' + t); });
       ['quiz_', 'verify_'].forEach(p => { if (!fs.existsSync(path.join(dir, p + l.id + '.js'))) why.push(p + l.id + '.js 없음'); });
       if (why.length) { skipEn.add(l.id); console.log('영어판에서 제외(아직 다 옮기지 않음): ' + l.id + ' — ' + why.join(', ')); } });
     files = files.filter((x, i) => !skipEn.has(list[i].id)); list = list.filter(l => !skipEn.has(l.id)); }

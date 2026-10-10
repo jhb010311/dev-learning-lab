@@ -1,0 +1,23 @@
+// Quiz questions for the "Generics" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab's model.
+Lab.quiz([
+  { lv: 1, id: 'generic', q: 'The variable list is declared as List<Integer>, and the code adds a string to it, as in list.add("three"). What happens?',
+    a: ['A compile-time error occurs, so you learn of the mistake before the program runs', 'The code compiles, and an exception is thrown at the moment the value is added', 'The code compiles, and the string is converted to a number and added', 'The code compiles, and only that line is silently ignored'],
+    why: 'When you write List<Integer>, the compiler checks the type of the value that is added. String is not Integer, so an "incompatible types" compile-time error occurs, and the program does not run.',
+    sim: { c: { decl: 'int', op: 'addStr' }, col: 0, has: 'Error' } },
+  { lv: 1, id: 'generic', q: 'You call getClass() on a List<Integer> object and on a List<String> object and compare the results with ==. What is the result?',
+    a: ['true. At run time, both are objects of the same class', 'false. When the types they hold differ, the classes differ too', 'A compile-time error. Lists of different types cannot be compared', 'false. getClass() returns a different value for each object'],
+    why: '<Integer> and <String> are used only for the checks at compile time and do not remain in the code that runs (type erasure). At run time, both are objects of the very same ArrayList class.',
+    sim: { c: { decl: 'int', op: 'addInt' }, col: 2, has: 'true' } },
+  { lv: 2, id: 'generic', q: 'Integer is a subtype of Number. Yet assigning a List<Integer> to a List<Number> variable is a compile-time error. Why is it rejected?',
+    a: ['Because if it were allowed, another kind of number such as a Double could be added through that variable and break the list of Integer', 'Because generic types are defined so that they cannot be assigned to each other even when the types are exactly the same', 'Because Integer and Number take up different amounts of memory, so they cannot be held in one list', 'Because the list checks the element type at run time, and this keeps that check from becoming slow'],
+    why: 'add(3.5) compiles on a List<Number> variable. If that variable actually referred to a List<Integer>, a Double would go into a list that is meant to hold only Integer. So the assignment itself is rejected.',
+    sim: { c: { decl: 'num', op: 'addDbl' }, col: 1, has: 'List<Number> list = ints;' } },
+  { lv: 2, id: 'generic', q: 'The variable list is declared as List<? extends Number>, and writing list.add(3) is a compile-time error. Why?',
+    a: ['Because list might actually be a List<Double>, so the compiler does not let anything be added', 'Because no method at all can be called on a variable declared with a wildcard after it is assigned', 'Because 3 is a primitive int, and a primitive value can never be added to a generic list', 'Because only Object, a supertype of Number, can be added to a list that uses extends'],
+    why: '? extends Number means "some one of the subtypes of Number", so the compiler does not know the actual element type. Using a value taken out of the list as a Number is safe, but adding cannot be called safe for any type, so it is rejected.',
+    sim: { c: { decl: 'ext', op: 'addInt' }, col: 0, has: 'Error' } },
+  { lv: 3, id: 'generic', q: 'A List<Integer> ints is assigned to the variable List list, which has no generics, then list.add("three") is called, and at the very end Integer last = ints.get(2) runs. What happens?',
+    a: ['The code compiles, and a ClassCastException is thrown on the last line, which takes the value out', 'The code compiles, and a ClassCastException is thrown on the line that adds the string', 'A compile-time error occurs on the list.add("three") line, so the program does not run', 'The code compiles, and the program ends normally with null in last'],
+    why: 'Code that adds a value through a raw type variable gets only a warning and compiles. A list at run time does not remember its element type, so nothing happens when the value is added, and the exception is thrown by the cast that the compiler inserted on the line that takes the value out as an Integer.',
+    sim: { c: { decl: 'raw', op: 'addStr' }, col: 3, has: 'ClassCastException' } },
+]);

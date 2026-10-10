@@ -1,0 +1,49 @@
+Lab.register({
+  id: 'strategy', nav: 'Strategy pattern', cat: 'Design', mode: 'step',
+  title: 'What you have to change when one more payment method is added',
+  intro: 'Each payment method (card, bank transfer, Kakao Pay) is processed in a different way. One way to write this is to branch with if-else. Another is to keep a separate implementation for each payment method and swap the implementations in and out (the Strategy pattern). Compare where each version has to be changed when Naver Pay is added, and which implementation is selected at run time and how.',
+  terms: ['Strategy pattern', 'Design pattern', 'Polymorphism', 'SOLID', 'Interface', 'Dependency injection (DI)'], ranks: ['pattern', 'oop', 'di'],
+  controls: [
+    { id: 'how', label: 'Implementation approach', type: 'select', value: 'ifelse', options: [['ifelse', 'Branch with if-else'], ['strategy', 'Strategy pattern (interface + implementing classes)']] },
+    { id: 'add', label: 'Add a new payment method, "Naver Pay"', type: 'check', value: true },
+    { id: 'pay', label: 'Payment method to run', type: 'select', value: 'KAKAO', options: [['CARD', 'Card'], ['KAKAO', 'Kakao Pay'], ['NAVER', 'Naver Pay']] },
+  ],
+  fix: function (c) { return !c.add && c.pay === 'NAVER' ? { pay: 'KAKAO' } : null; },
+  presets: [
+    { t: 'Default settings', d: 'Naver Pay is added to the if-else version. An existing method has to be modified.', v: { how: 'ifelse', add: true, pay: 'NAVER' } },
+    { t: 'Adding Naver Pay to the Strategy pattern', d: 'You create one new class and you are done. The existing code stays as it is.', v: { how: 'strategy', add: true, pay: 'NAVER' } },
+    { t: 'How the Strategy pattern runs', d: 'The right implementation is selected without a conditional statement.', v: { how: 'strategy', add: false, pay: 'KAKAO' } },
+    { t: 'How the if-else version runs', d: 'The conditions are compared one by one from the top.', v: { how: 'ifelse', add: false, pay: 'KAKAO' } },
+  ],
+  code: function (c) {
+    if (c.how === 'ifelse') return '@Service\nclass PaymentService {\n    void pay(String type, Order order) {\n        if (type.equals("CARD")) {\n            // request approval from the card company ... (30 lines)\n        } else if (type.equals("BANK")) {\n            // bank transfer ... (25 lines)\n        } else if (type.equals("KAKAO")) {\n            // Kakao Pay ... (40 lines)\n' + (c.add ? '        } else if (type.equals("NAVER")) {      // added: an existing method is modified\n            // Naver Pay ... (35 lines)\n' : '') + '        } else {\n            throw new IllegalArgumentException(type);\n        }\n    }\n    // the same branches are repeated in refund() and cancel()\n}';
+    return 'interface PaymentStrategy {\n    String type();\n    void pay(Order order);\n}\n\n@Component class CardPayment  implements PaymentStrategy { ... }\n@Component class BankPayment  implements PaymentStrategy { ... }\n@Component class KakaoPayment implements PaymentStrategy { ... }\n' + (c.add ? '@Component class NaverPayment implements PaymentStrategy { ... }   // added: one new file\n' : '') + '\n@Service\nclass PaymentService {\n    private final Map<String, PaymentStrategy> strategies;\n\n    PaymentService(List<PaymentStrategy> list) {          // Spring injects all the implementations\n        strategies = list.stream().collect(toMap(PaymentStrategy::type, s -> s));\n    }\n\n    void pay(String type, Order order) {\n        strategies.get(type).pay(order);                  // no conditional statement\n    }\n}';
+  },
+  label: function (c) { return (c.how === 'ifelse' ? 'if-else' : 'Strategy pattern') + (c.add ? ' · Naver Pay added' : '') + ' · ' + { CARD: 'Card', KAKAO: 'Kakao Pay', NAVER: 'Naver Pay' }[c.pay] + ' payment'; },
+  columns: ['Existing code changed to add the payment method', 'Newly created', 'Comparisons at run time', 'Unit tests per payment method'],
+  simulate: function (c) {
+    var ev = [], sum = [], st = c.how === 'strategy', types = ['CARD', 'BANK', 'KAKAO'].concat(c.add ? ['NAVER'] : []), name = { CARD: 'card', BANK: 'bank transfer', KAKAO: 'Kakao Pay', NAVER: 'Naver Pay' }, files = [], cmp = 0;
+    function push(s, k, hot) { ev.push({ s: s, k: k, snap: { files: files.slice(), hot: hot || '' } }); }
+    files = st ? [['PaymentStrategy (interface)', 'unchanged'], ['PaymentService', 'unchanged'], ['CardPayment', 'unchanged'], ['BankPayment', 'unchanged'], ['KakaoPayment', 'unchanged']] : [['PaymentService.pay()', 'unchanged'], ['PaymentService.refund()', 'unchanged'], ['PaymentService.cancel()', 'unchanged']];
+    push(st ? 'Each payment method has its own class, and every one of these classes implements the PaymentStrategy interface. PaymentService does not know the concrete classes. It knows only the interface.' : 'The handling of each payment method is written as if-else branches inside the methods of PaymentService. The refund and cancel methods have branches of the same shape.', '');
+    if (c.add) {
+      if (st) { files.push(['NaverPayment', 'newly created']); push('Adding Naver Pay: You create one new class, NaverPayment, that implements the interface. Once you annotate it with @Component, Spring finds it and puts it in the list that is injected into PaymentService. Not a single line of the existing files was changed.', 'good', 'NaverPayment'); }
+      else { files = [['PaymentService.pay()', 'modified (branch added)'], ['PaymentService.refund()', 'modified (branch added)'], ['PaymentService.cancel()', 'modified (branch added)']]; push('Adding Naver Pay: You have to insert one else if into each of the three methods pay(), refund(), and cancel(). Because you are modifying methods that already worked, you have to test card and Kakao Pay again as well. If you miss even one place, only that feature throws an exception at run time.', 'bad', 'PaymentService'); }
+    }
+    push('A payment by ' + name[c.pay] + ' is requested: pay("' + c.pay + '", order).', '');
+    if (st) { cmp = 1; push('PaymentService gets the implementation object for "' + c.pay + '" from the map. It does not compare with a conditional statement.', '', c.pay); push('It calls pay() on the object it got. The type of the variable is PaymentStrategy, but what actually runs is the pay() in the class of that object (' + { CARD: 'CardPayment', KAKAO: 'KakaoPayment', NAVER: 'NaverPayment' }[c.pay] + '). Polymorphism takes over the role of the conditional statement.', 'good', c.pay); }
+    else { for (var i = 0; i < types.length; i++) { cmp++; var hit = types[i] === c.pay; push('The code compares type with "' + types[i] + '". ' + (hit ? 'They match. The ' + name[c.pay] + ' handling code inside this block runs.' : 'They do not match. Execution moves on to the next condition.'), hit ? 'good' : '', 'PaymentService'); if (hit) break; } }
+    var changed = c.add ? (st ? 'none' : '3 methods') : '-', made = c.add ? (st ? '1 class' : 'none') : '-';
+    sum.push((c.add ? 'Existing code changed to add Naver Pay: ' + changed + '. Newly created: ' + made + '. ' : '') + 'Comparisons at run time: ' + cmp + '.');
+    if (st) sum.push('The Strategy pattern hides "the part that changes" (the handling of each payment method) behind an interface so that the implementation can be swapped. A new payment method is added as a new class, and the existing code is closed to modification (the Open-Closed Principle). Because each payment method has its own class, you can test each one separately, and it is also easy to swap in a fake implementation.');
+    else sum.push('The if-else version is the simplest and the easiest to read if there are two or three payment methods and no more will be added. The problem is that every time a payment method is added, the same branches are copied into several methods, a single method keeps getting longer, and the risk of touching one payment method while modifying another grows.');
+    sum.push('Dependency injection in Spring is itself an application of the Strategy pattern. A dependency is injected as an interface type, and the actual implementation changes with the configuration (the real payment provider in production, a fake implementation in tests).');
+    return { events: ev, summary: sum, st: st, row: [changed, made, cmp + '', st ? 'Separately for each payment method' : 'All in one method'] };
+  },
+  render: function (v, sim, t, H, shown) {
+    var last = shown[shown.length - 1], s = last ? last.snap : null, M = { CARD: 'CardPayment', KAKAO: 'KakaoPayment', NAVER: 'NaverPayment' };
+    if (!s) { H.text(v, 'Click Run to start.'); return; }
+    H.table(v, [sim.st ? 'Class' : 'Method', 'In this change'], s.files.map(function (f) { var on = f[0] === s.hot || f[0] === M[s.hot] || (s.hot === 'PaymentService' && f[0].indexOf('PaymentService') === 0); return { cells: [{ v: f[0], cls: on ? 'hot' : '' }, { v: f[1], cls: f[1].indexOf('modified') === 0 ? 'bad' : f[1].indexOf('newly') === 0 ? 'good' : '' }] }; }), 'Code structure');
+  },
+  assume: 'The actual payment processing is left out, and only the structures are compared. That the if-else version has the same branches in refund and cancel as well is an assumption based on a common situation. The definition of the Strategy pattern follows the description in the GoF book Design Patterns, and injecting all the implementations of the same interface at once as a List is a standard Spring feature. Two things were confirmed with code of the same structure on JDK 21 on this PC: that the method of the implementation object taken from the map is the one that actually runs, and the number of comparisons in the if-else version. The part where Spring injects the implementations was not run.',
+});

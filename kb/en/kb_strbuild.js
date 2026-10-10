@@ -1,0 +1,4 @@
+// Terms needed for the "String, StringBuilder" lab
+module.exports = [
+  ['Java language', 'String immutability', 'This is the property that the characters inside a String object cannot be changed once the object has been created. Methods such as concat, replace, toUpperCase, and trim do not modify the original. They return a String that holds the result. So if you only call the method, as in s.toUpperCase(), and ignore the return value, s stays as it was, and you have to assign the return value back, as in s = s.toUpperCase(), to use the result. What changes in that case is not the string object but the object that the variable s refers to. Because the contents do not change, it is safe for several places to refer to the same string, and a String is well suited for use as a key in a HashMap.'],
+];

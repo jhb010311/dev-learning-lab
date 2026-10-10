@@ -1,0 +1,23 @@
+// Quiz questions for the "Checked and unchecked exceptions" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab's model.
+Lab.quiz([
+  { lv: 1, id: 'chkex', q: 'A line that throws an IOException is not enclosed in a try-catch, and its method has no throws clause. What happens?',
+    a: ['A compile-time error occurs, and the program cannot run', 'The code compiles, and the program stops if the exception is thrown at run time', 'The compiler only gives a warning, and the program runs as it is', 'The compiler adds throws by itself and compiles the code'],
+    why: 'IOException is a checked exception. A line that can throw a checked exception compiles only if the exception is caught or declared with throws. If neither is done, no class file is produced, so the program cannot run.',
+    sim: { c: { ex: 'io', how: 'none', occur: true }, col: 0, has: 'Error' } },
+  { lv: 1, id: 'chkex', q: 'In the same code, the exception that is thrown is changed to IllegalStateException (a subclass of RuntimeException), and nothing is done to handle it. Does the code compile?',
+    a: ['It compiles. An unchecked exception does not have to be handled', 'It is a compile-time error. Every exception must be caught or declared', 'It is a compile-time error. main must always have a try-catch', 'It compiles. In return, the compiler keeps the exception from being thrown at run time'],
+    why: 'RuntimeException and its subclasses are unchecked exceptions, so the compiler does not check whether they are caught or declared. In return, if the exception is thrown at run time, nothing catches it, and the program stops.',
+    sim: { c: { ex: 'rt', how: 'none', occur: true }, col: 0, has: 'Success' } },
+  { lv: 2, id: 'chkex', q: 'After throws IOException was added to the read method, the error inside read went away, and the same compile-time error appeared in main, which calls read. Why?',
+    a: ['Because throws does not handle the exception but is a declaration that passes the obligation to handle it on to the caller', 'Because throws is a declaration that can be used only on the main method, so it must not be added to other methods', 'Because the main method is defined so that it can never let an exception out under any circumstances', 'Because a method with throws is defined so that it cannot be called from inside the same class'],
+    why: 'throws is an announcement that "this method can throw this exception to its caller". The line that calls the method can then throw a checked exception, so the caller must in turn catch it or declare it.',
+    sim: { c: { ex: 'io', how: 'throws', occur: true }, col: 1, has: 'read(true)' } },
+  { lv: 2, id: 'chkex', q: 'The code calls read(false), so no exception would be thrown if it ran. Even so, there is a compile-time error saying that the checked exception is not handled. Why?',
+    a: ['Because the compiler decides from the code alone whether the exception can be thrown, not whether it is actually thrown', 'Because the compiler runs the program once in advance, and the exception is thrown during that run', 'Because a method that takes a boolean value is defined as always throwing an exception', 'Because it is not a compile-time error but a warning, and the program works normally if you ignore it and run'],
+    why: 'The check for checked exceptions is made before the program runs, by looking only at the form of the code (throw statements and throws clauses). So the result is the same even when no exception would be thrown at run time.',
+    sim: { c: { ex: 'io', how: 'none', occur: false }, col: 0, has: 'Error' } },
+  { lv: 3, id: 'chkex', q: 'Inside read, the exception is wrapped and rethrown with catch (IOException e) { throw new RuntimeException(e); }, and main calls read with no handling. What happens when the file is missing?',
+    a: ['The code compiles, and the program stops at run time with a RuntimeException', 'The code compiles, the exception disappears, and the program ends normally', 'main has no throws clause, so a compile-time error occurs', 'The code compiles, and the IOException propagates up to the JVM unchanged'],
+    why: 'RuntimeException is an unchecked exception, so the code compiles without throws. But the exception has not gone away, so if nothing catches it, it propagates up to the JVM and ends the program. The original IOException is inside it as the cause.',
+    sim: { c: { ex: 'io', how: 'wrap', occur: true }, col: 3, has: 'java.lang.RuntimeException: java.io.IOException' } },
+]);

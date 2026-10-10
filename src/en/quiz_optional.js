@@ -1,0 +1,23 @@
+// Quiz questions for the "Optional" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab's model.
+Lab.quiz([
+  { lv: 1, id: 'optional', q: 'What happens when Optional.of(name) runs while name is null?',
+    a: ['A NullPointerException is thrown', 'An empty Optional is created', 'An Optional that contains null is created', 'A NoSuchElementException is thrown'],
+    why: 'Optional.of is the method to use when the value is certain to be present, so when it receives null, it throws a NullPointerException on the spot. A value that may be null must be wrapped with Optional.ofNullable, which gives an empty Optional.',
+    sim: { c: { val: 'null', make: 'of', take: 'get' }, col: 0, has: 'NullPointerException' } },
+  { lv: 2, id: 'optional', q: 'makeDefault() runs when opt.orElse(makeDefault()) is executed, even though the Optional contains a value. Why?',
+    a: ['Because Java evaluates the argument before it calls the method', 'Because orElse compares the contained value with the default value and picks one of them', 'Because an Optional stores the default value along with the value every time the value is taken out', 'Because a static method runs once when the class is loaded'],
+    why: 'What is inside the parentheses of orElse is an ordinary argument. Java evaluates arguments before it calls a method, so makeDefault() runs whether or not the Optional has a value. To make it run only when the Optional is empty, pass the code as a lambda expression, as in orElseGet(() -> makeDefault()).',
+    sim: { c: { val: 'kim', make: 'nullable', take: 'orElse' }, col: 2, has: 'Ran' } },
+  { lv: 2, id: 'optional', q: 'What happens when map(s -> s.toUpperCase()) is called on an empty Optional<String>?',
+    a: ['It does not run the function and returns an empty Optional', 'It passes null to the function, and a NullPointerException is thrown', 'It passes an empty string to the function and returns the result in an Optional', 'It throws a NoSuchElementException to indicate that there is no value'],
+    why: 'map applies the function only when a value is present. When the Optional is empty, it skips the function and passes an empty Optional along, so the chain can continue without an exception even though no null check is written. What to do when there is no value is written in the orElse at the end.',
+    sim: { c: { val: 'null', make: 'nullable', take: 'map' }, col: 1, has: 'no name' } },
+  { lv: 3, id: 'optional', q: 'opt is created with Optional.ofNullable(null). What happens when String result = opt.get(); runs?',
+    a: ['A NoSuchElementException is thrown', 'result is set to null', 'result is set to an empty string', 'A NullPointerException is thrown'],
+    why: 'ofNullable(null) creates an empty Optional without an exception. Calling get() on an empty Optional does not return null. It throws a NoSuchElementException.',
+    sim: { c: { val: 'null', make: 'nullable', take: 'get' }, col: 1, has: 'NoSuchElementException' } },
+  { lv: 3, id: 'optional', q: 'opt is an Optional that contains the value "kim", and opt.orElseGet(() -> makeDefault()) is executed. makeDefault() is a method that returns "guest". Which is correct about the result and about whether makeDefault() runs?',
+    a: ['The result is "kim", and makeDefault() does not run', 'The result is "kim", and makeDefault() also runs', 'The result is "guest", and makeDefault() runs', 'The result is "guest", and makeDefault() does not run'],
+    why: 'orElseGet takes not a default value but code that creates the default value (a lambda expression). When a value is present, it returns that value and does not run the lambda expression, so makeDefault() is not called either.',
+    sim: { c: { val: 'kim', make: 'nullable', take: 'orElseGet' }, col: 2, has: 'Did not run' } },
+]);

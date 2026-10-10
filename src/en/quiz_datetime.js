@@ -1,0 +1,23 @@
+// Quiz questions for the "Dates and times" lab. The first entry of a is the correct answer, and when there is a sim, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'datetime', q: 'LocalDate d = LocalDate.of(2024, 1, 31); On the next line, the code only calls d.plusMonths(1); and ignores the return value. What is printed when d is printed after that?',
+    a: ['2024-01-31', '2024-02-29', '2024-02-31', '2024-03-02'],
+    why: 'The date objects of java.time do not change their contents. plusMonths leaves the original object as it is and returns a new object, so if the return value is ignored, d still refers to the first date.',
+    sim: { c: { topic: 'plus', add: 'drop', zone: 'ny', gap: 'period' }, col: 0, has: '2024-01-31' } },
+  { lv: 2, id: 'datetime', q: 'Calling plusMonths(1) twice in a row on 2024-01-31 gives 2024-03-29, and calling plusMonths(2) once gives 2024-03-31. Why are the results different?',
+    a: ['Because the first result is adjusted to the last day of February, and the second calculation starts from that date', 'Because plusMonths(2) is made to count a month as 30 days and add 60 days', 'Because when it is called twice in a row, the second call discards the first result instead of using it', 'Because in a leap year plusMonths is made to drop one day each time it is called in a row'],
+    why: 'One month after January 31 is February 31, which does not exist, so the date is adjusted to February 29. The second call does not know that the original date was the 31st. It adds one month to February 29 and gives March 29.',
+    sim: { c: { topic: 'plus', add: 'twice', zone: 'ny', gap: 'period' }, col: 0, has: '2024-03-29' } },
+  { lv: 2, id: 'datetime', q: 'What happens when you pass two LocalDate values, which hold only dates, to Duration.between(a, b)?',
+    a: ['The code compiles, but an exception is thrown at run time', 'A compile-time error occurs, and the code cannot be run', 'It calculates the result by counting a day as 24 hours', 'It takes the time to be 00:00 and calculates the result for you'],
+    why: 'A Duration measures an amount of time in seconds, but a LocalDate has no time, so the difference in seconds cannot be obtained. So an UnsupportedTemporalTypeException is thrown at run time. Get the amount of time between dates with Period.between or ChronoUnit.DAYS.between.',
+    sim: { c: { topic: 'gap', add: 'month', zone: 'ny', gap: 'durdate' }, col: 0, has: 'UnsupportedTemporalTypeException' } },
+  { lv: 3, id: 'datetime', q: 'The same instant as 00:30 on January 1, 2024 in Seoul time is converted to a ZonedDateTime in the America/New_York time zone, and then toLocalDate() is called. What date is returned?',
+    a: ['2023-12-31', '2024-01-01', '2024-01-02', '2023-12-30'],
+    why: 'On this date Seoul is 9 hours ahead of UTC and New York is 5 hours behind UTC. 00:30 in Seoul is 10:30 in the morning of the previous day in New York, so the date is December 31, 2023. Even at the same instant, the date differs from one time zone to another.',
+    sim: { c: { topic: 'zone', add: 'month', zone: 'ny', gap: 'period' }, col: 1, has: '2023-12-31' } },
+  { lv: 3, id: 'datetime', q: 'After Period p = Period.between(LocalDate.of(2024, 1, 31), LocalDate.of(2024, 3, 1)); is executed, what is printed when p.getDays() is printed? There are 30 days in all between the two dates.',
+    a: ['1', '30', '29', '31'],
+    why: 'A Period expresses this amount of time as 1 month and 1 day (P1M1D). getDays() does not return the total number of days. It returns 1, the value of the days part. Get the total number of days, 30, with ChronoUnit.DAYS.between.',
+    sim: { c: { topic: 'gap', add: 'month', zone: 'ny', gap: 'period' }, col: 1, has: '1' } },
+]);
