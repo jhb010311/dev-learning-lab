@@ -1,0 +1,22 @@
+// Quiz questions for the "Bean lifecycle callbacks" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'lifecycle', q: 'In which order does the Spring container handle a singleton bean?',
+    a: ['Constructor call → dependency injection → initialization callback → use → destruction callback', 'Dependency injection → constructor call → initialization callback → use → destruction callback', 'Initialization callback → constructor call → dependency injection → use → destruction callback', 'Constructor call → initialization callback → dependency injection → use → destruction callback'],
+    why: 'A field can be set only after the object exists, so the constructor comes first, and the initialization callback is called after dependency injection finishes. The destruction callback is called when the container is closed.' },
+  { lv: 1, id: 'lifecycle', q: 'When is a method annotated with @PostConstruct called?',
+    a: ['Right after the object is created and dependency injection finishes', 'Just before the constructor runs', 'When a method of the bean is called for the first time', 'Just before the container is closed'],
+    why: '@PostConstruct is an initialization callback. The container calls it after creating the object and injecting all the dependencies, so the injected objects can be used inside this method.',
+    sim: { c: { inj: 'field', cb: 'anno', scope: 'singleton' }, col: 2, has: '@PostConstruct' } },
+  { lv: 2, id: 'lifecycle', q: 'In a bean that receives a dependency through a field annotated with @Autowired, why does calling a method on that field inside the constructor throw a NullPointerException?',
+    a: ['Because the container first creates the object with the constructor and sets the field afterward', 'Because field injection happens at the moment the field is first read', 'Because a private field cannot be accessed inside a constructor', 'Because an @Autowired field is set after the initialization callback finishes'],
+    why: 'The object must exist before a value can be set in its field. So while the constructor is running, the field that is to be injected is still null. Move the setup work to an initialization callback, or switch to constructor injection.',
+    sim: { c: { inj: 'field', cb: 'ctor', scope: 'singleton' }, col: 0, has: 'NullPointerException' } },
+  { lv: 3, id: 'lifecycle', q: 'One bean has a @PostConstruct method, afterPropertiesSet() of InitializingBean, and init() specified as the initMethod of @Bean. In what order are they called?',
+    a: ['@PostConstruct → afterPropertiesSet() → init()', 'afterPropertiesSet() → @PostConstruct → init()', 'init() → afterPropertiesSet() → @PostConstruct', '@PostConstruct → init() → afterPropertiesSet()'],
+    why: 'The method marked with an annotation comes first, the interface method comes next, and the method specified by name in @Bean comes last. The destruction callbacks follow the same order: @PreDestroy → destroy() → destroyMethod.',
+    sim: { c: { inj: 'field', cb: 'all', scope: 'singleton' }, col: 2, has: '@PostConstruct → afterPropertiesSet() → init()' } },
+  { lv: 3, id: 'lifecycle', q: 'A prototype-scoped bean has a @PostConstruct method and a @PreDestroy method. The bean is retrieved and used once, and then the container is closed. What happens to the two methods?',
+    a: ['@PostConstruct is called, and @PreDestroy is not called', 'Both @PostConstruct and @PreDestroy are called', 'Neither @PostConstruct nor @PreDestroy is called', '@PostConstruct is not called, and only @PreDestroy is called'],
+    why: 'The container only creates and initializes a prototype bean, hands it over, and does not manage it after that. So the destruction callback is not called even when the container is closed. If cleanup is needed, the code that retrieved the bean must do it itself.',
+    sim: { c: { inj: 'field', cb: 'anno', scope: 'prototype' }, col: 3, has: 'Not called' } },
+]);

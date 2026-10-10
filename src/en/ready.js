@@ -12,5 +12,6 @@ module.exports = [
   'gc', 'jit', 'classload', 'iobuf', 'serial',
   // Spring
   'ioc', 'di', 'singleton', 'scope', 'mvc', 'binding', 'validation', 'msgconv',
-  'txprop', 'jdbctmpl', 'connpool', 'servlet',
+  'txprop', 'jdbctmpl', 'connpool', 'servlet', 'lifecycle', 'proxy', 'aop', 'tx',
+  'autoconf', 'config', 'actuator', 'testing',
 ];

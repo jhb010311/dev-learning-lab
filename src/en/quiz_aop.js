@@ -1,0 +1,21 @@
+// Quiz questions for the "AOP: advice and pointcuts" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'aop', q: 'Of the kinds of advice that run after a method finishes, which one runs both when the method returns normally and when it throws an exception?',
+    a: ['@After', '@AfterReturning', '@AfterThrowing', 'Both @AfterReturning and @AfterThrowing'],
+    why: '@After runs however the method finished, like finally in Java. @AfterReturning runs only when the method returned a value normally, and @AfterThrowing runs only when an exception went out.' },
+  { lv: 1, id: 'aop', q: 'Does the pointcut execution(* shop.OrderService.cancel()) match the method public String cancel(Long id)?',
+    a: ['It does not match. Empty parentheses match only a method that takes no parameters', 'It matches. Empty parentheses mean that the parameters are not checked', 'It matches. When the method name is the same, the parameters are not looked at', 'It does not match. When the return type is written as *, only void methods are matched'],
+    why: 'Empty parentheses () mean "no parameters". To match a method with any number of parameters, you must write (..). When an expression matches nothing, there is no error, and the advice simply does not run.',
+    sim: { c: { pc: 'noarg', m: 'cancel', out: 'ok', second: 'none' }, col: 0, has: 'Not matched' } },
+  { lv: 2, id: 'aop', q: 'In an @Around advice method, you wrote a line that prints a log below pjp.proceed(). Why does that line not run when the target method throws an exception?',
+    a: ['Because pjp.proceed() throws that exception as it is, so execution never reaches the line below it', 'Because Spring skips the whole @Around advice when an exception is thrown', 'Because @AfterThrowing handles the exception instead and ends @Around', 'Because the second part of @Around runs only when there is no @After'],
+    why: 'An @Around advice method is an ordinary method, and pjp.proceed() is a method call inside it. When that call throws an exception, the lines below it do not run and the exception goes out. To run them even on an exception, wrap the call in try-finally.' },
+  { lv: 3, id: 'aop', q: 'One aspect has all five kinds of advice, and the target method throws an exception. @Around prints a log before and after pjp.proceed() without try-finally. Which logs are printed after the method body?',
+    a: ['@AfterThrowing, then @After', '@After, then @AfterThrowing, then @Around after', '@AfterThrowing, then @After, then @Around after', 'Only @AfterThrowing'],
+    why: 'When an exception is thrown, @AfterThrowing runs, and then @After runs. @AfterReturning does not run, and the lines written below pjp.proceed() in @Around do not run either because of the exception.',
+    sim: { c: { pc: 'cls', m: 'order', out: 'ex', second: 'none' }, col: 1, has: 'order body → Log @AfterThrowing → Log @After' } },
+  { lv: 3, id: 'aop', q: 'LogAspect has @Order(1) and TimeAspect has @Order(2), and both apply to the same method. Which aspect does the code that runs first belong to, and which aspect does the code that runs last belong to?',
+    a: ['Both are code of LogAspect', 'Both are code of TimeAspect', 'The first is code of LogAspect, and the last is code of TimeAspect', 'The first is code of TimeAspect, and the last is code of LogAspect'],
+    why: 'The aspect with the lower @Order value wraps on the outside. The outer aspect runs first on the way in and last on the way out, so both the first and the last are code of LogAspect.',
+    sim: { c: { pc: 'cls', m: 'order', out: 'ok', second: 'log1' }, col: 1, has: 'Log @Around before → Log @Before → Time start' } },
+]);

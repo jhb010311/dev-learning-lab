@@ -260,7 +260,7 @@ Lab.register({
         title: unit ? (i === 0 ? '첫 번째' : '두 번째') + ' 테스트가 new와 mock으로 만든 객체' : x.n + '번째 컨텍스트', sub: unit ? [] : [x.cfg],
         right: { build: '만드는 중', up: '캐시에 보관', fail: '기동 실패', closed: '닫힘', obj: '' }[x.state] });
       x.beans.forEach(function (b, j) {
-        P.box(id + 'b' + j, 256 + j * 132, y + 52, 126, 34, { cls: x.state === 'closed' ? 'ghost' : b === '진짜' ? 'good' : b === '가짜' ? 'hot' : 'ghost', title: names[j], right: b });
+        P.box(id + 'b' + j, 251 + j * 135, y + 52, 132, 34, { cls: x.state === 'closed' ? 'ghost' : b === '진짜' ? 'good' : b === '가짜' ? 'hot' : 'ghost', title: names[j], right: b });
       });
     });
     if (s.use1 >= 0 && s.how1) P.arrow('a1', 't1:r', 'ctx' + (s.use1 + 1) + ':l', { cls: s.ctxs[s.use1].state === 'fail' ? 'bad' : s.ctxs[s.use1].state === 'closed' ? 'mut' : '', label: s.how1 });
