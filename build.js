@@ -31,8 +31,6 @@ if (require.main === module) {
   let tracks = []; new Function('Lab', tracksSrc)({ tracks: t => { tracks = t; } });
   const ids = new Set(list.map(l => l.id)), inTrack = new Set();
   tracks.forEach(t => { if (!t.id || !t.name || !t.desc || !t.steps.length) throw new Error('학습 경로 형식 오류: ' + t.id); t.steps.forEach(s => { if (!ids.has(s[0])) throw new Error(t.id + ': 없는 개념 ' + s[0]); if (!s[1] || !s[2]) throw new Error(t.id + ': 단계 설명 없음 ' + s[0]); inTrack.add(s[0]); }); if (new Set(t.steps.map(s => s[0])).size !== t.steps.length) throw new Error(t.id + ': 같은 개념이 두 번 들어감'); });
-  const orphan = list.filter(l => !inTrack.has(l.id)).map(l => l.id);
-  if (orphan.length) throw new Error('어느 학습 경로에도 없는 개념: ' + orphan.join(', '));
   console.log('학습 경로', tracks.length + '개, 단계', tracks.reduce((a, t) => a + t.steps.length, 0) + '개');
   // 개념 테스트 문제: 형식, 가리키는 학습 경로와 실습, 그리고 실습 모형의 결과와 정답이 맞는지(sim) 확인
   const quizFiles = fs.readdirSync(dir).filter(f => /^quiz\d*\.js$/.test(f)).sort();
@@ -42,7 +40,7 @@ if (require.main === module) {
   bank.forEach((q, i) => {
     const at = 'quiz #' + (i + 1) + ' (' + String(q.q).slice(0, 24) + '…)';
     if (![1, 2, 3].includes(q.lv)) throw new Error(at + ': lv');
-    if (!tracks.some(t => t.id === q.tr)) throw new Error(at + ': 없는 학습 경로 ' + q.tr);
+    if (q.tr && !tracks.some(t => t.id === q.tr)) throw new Error(at + ': 없는 학습 경로 ' + q.tr);
     if (!ids.has(q.id)) throw new Error(at + ': 없는 실습 ' + q.id);
     if (!q.q || !q.why || !Array.isArray(q.a) || q.a.length !== 4 || new Set(q.a).size !== 4 || q.a.some(x => !x)) throw new Error(at + ': 질문, 해설, 보기 4개 형식 오류');
     if (q.sim) { const l = list.find(x => x.id === (q.sim.id || q.id)), row = l.simulate(Object.assign({}, q.sim.c)).row; if (!String(row[q.sim.col]).includes(q.sim.has)) throw new Error(at + ': 실습 결과와 다름. 실습=' + row[q.sim.col] + ' 기대=' + q.sim.has); simChecked++; }

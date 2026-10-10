@@ -1,0 +1,12 @@
+none|same => false|false|null|2
+none|diff => false|false|null|2
+eq|same => true|false|null|2
+eq|diff => false|false|null|2
+hash|same => false|true|null|2
+hash|diff => false|false|null|2
+both|same => true|true|주문 내역|1
+both|diff => false|false|null|2
+const|same => true|true|주문 내역|1
+const|diff => false|true|null|2
+record|same => true|true|주문 내역|1
+record|diff => false|false|null|2

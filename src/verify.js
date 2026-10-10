@@ -36,6 +36,7 @@ Lab.verify({
   absint: ['run', 'JDK 21에서 열두 가지 조합을 컴파일·실행해 대조'],
   crypto: ['run', 'Node.js 암호 라이브러리로 실제 계산·검증'],
   tx: ['run', 'SQLite에서 연결 두 개로 열두 가지 조합 실행'],
+  eqhash: ['run', 'JDK 21에서 열두 가지 조합을 실행해 대조'],
   btree: ['run', '화면의 탐색은 알고리즘을 실제로 실행한 결과'],
 
   gc: ['part', 'JDK 21에서 방향만 확인(수치는 모형)'],

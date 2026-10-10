@@ -29,7 +29,7 @@ Lab.curriculum([
       ] },
       { name: '자주 쓰는 클래스', items: [
         { id: 'eq' },
-        { t: 'equals와 hashCode', d: '둘을 함께 재정의해야 하는 이유' },
+        { id: 'eqhash' },
         { t: 'String, StringBuilder', d: '문자열이 불변이라서 생기는 일' },
         { t: '날짜와 시간', d: 'LocalDateTime, 시간대, 기간 계산' },
         { t: 'Optional', d: 'null 대신 "없을 수 있음"을 타입으로 나타내기' },
