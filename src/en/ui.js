@@ -131,6 +131,8 @@ module.exports = [
    `'Of the ' + lessons.length + ' labs here, ' + n.run + ' were checked against the results of running real programs (the JDK, Spring, MySQL, and others), ' + n.part + ' were partly checked by execution, ' + n.doc + ' were checked against official documentation and standards, and ' + n.model + ' are conceptual models that show a principle. If you find a mistake, please report it.'`],
   [`'공부한 기록과 테스트 결과는 이 브라우저에만 저장됩니다. 서버로 보내는 정보는 없습니다.'`, `'Your progress and quiz results are stored only in this browser. Nothing is sent to a server.'`],
   [`'의견 남기기 · 오류 알리기'`, `'Send feedback · Report a mistake'`],
+  [`'이 사이트의 소스와 대조에 쓴 프로그램은 GitHub 저장소에 공개돼 있습니다. 도움이 됐다면 저장소 오른쪽 위의 Star를 눌러 주세요.'`, `'The source of this site and the programs used for checking are public in the GitHub repository. If the site helped you, please click Star at the top right of the repository.'`],
+  [`'GitHub에서 보기 · Star 누르기'`, `'View on GitHub · Star the repository'`],
   [`'첫 실습부터 시작: '`, `'Start with the first lab: '`],
   [`c.name + ' 테스트 하기'`, `'Take the ' + c.name + ' quiz'`],
   [`seen[it.id] ? '해 봄' : ''`, `seen[it.id] ? 'Done' : ''`],

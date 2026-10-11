@@ -140,6 +140,7 @@ button, input, select { font: inherit; color: inherit; }
 .brand { font-size: 1.25rem; font-weight: 700; color: var(--ink); text-decoration: none; }
 .brand:hover, .brand:focus-visible { color: var(--accent); outline: none; }
 .langsw { font-size: .9rem; color: var(--muted); }
+.toplinks { display: flex; gap: 14px; align-items: center; }
 .notice { max-width: 70ch; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; }
 .home, .catview { display: flex; flex-direction: column; gap: 28px; }
 .catview { gap: 16px; }
@@ -357,7 +358,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 <div class="wrap" id="wrap">
   <header class="top">
     <div class="toprow"><a class="brand" href="#home" id="brand">개발 학습 실습실</a>
-      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><a class="langsw" id="langsw" hidden></a></div>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
   </header>
 
   <main class="home" id="homeview"></main>
@@ -643,6 +644,7 @@ var Lab = (function () {
     } else if (byId(p[0])) { setView('lab'); if (!cur || cur.id !== p[0]) open(p[0]); else drawPath(); title = cur.nav + ' · ' + SITE.name; }
     else { setView('home'); drawHome('home'); }
     document.title = title; window.scrollTo(0, 0);
+    if (SITE.repo) { var rl = $('repolink'); rl.hidden = false; rl.href = SITE.repo; }
     if (SITE.other) { var sw = $('langsw'); sw.hidden = false; sw.textContent = SITE.other[0]; sw.href = SITE.other[1] + (location.hash || ''); }
   }
   function crumbs(box, parts) {
@@ -692,7 +694,11 @@ var Lab = (function () {
       var ft = el('section', 'hsec about'); ft.appendChild(el('h2', null, '이 사이트에 대해'));
       ft.appendChild(el('p', null, '실습 ' + lessons.length + '개 가운데 ' + n.run + '개는 실제 프로그램(JDK, 스프링, MySQL 등)을 실행한 결과와 대조했고, ' + n.part + '개는 일부만 실행으로 확인했으며, ' + n.doc + '개는 공식 문서와 표준에 대조했고, ' + n.model + '개는 원리를 보이는 개념 모형입니다. 틀린 내용을 발견하면 알려 주세요.'));
       ft.appendChild(el('p', null, '공부한 기록과 테스트 결과는 이 브라우저에만 저장됩니다. 서버로 보내는 정보는 없습니다.'));
-      if (SITE.feedback) { var fa = el('a', 'btn ghost', '의견 남기기 · 오류 알리기'); fa.href = SITE.feedback; fa.target = '_blank'; fa.rel = 'noopener'; var fr = el('div', 'runrow'); fr.appendChild(fa); ft.appendChild(fr); }
+      if (SITE.repo) ft.appendChild(el('p', null, '이 사이트의 소스와 대조에 쓴 프로그램은 GitHub 저장소에 공개돼 있습니다. 도움이 됐다면 저장소 오른쪽 위의 Star를 눌러 주세요.'));
+      var fr = el('div', 'runrow');
+      if (SITE.repo) { var ga = el('a', 'btn', 'GitHub에서 보기 · Star 누르기'); ga.href = SITE.repo; ga.target = '_blank'; ga.rel = 'noopener'; fr.appendChild(ga); }
+      if (SITE.feedback) { var fa = el('a', 'btn ghost', '의견 남기기 · 오류 알리기'); fa.href = SITE.feedback; fa.target = '_blank'; fa.rel = 'noopener'; fr.appendChild(fa); }
+      if (fr.firstChild) ft.appendChild(fr);
       box.appendChild(ft);
     }
   }
@@ -22978,6 +22984,8 @@ Lab.site({
   name: '개발 학습 실습실',
   desc: '자바, 스프링, JPA, 데이터베이스, 네트워크, 보안의 개념을 설정을 바꿔 실행해 보며 익히는 무료 실습실',
   feedback: 'https://github.com/jhb010311/dev-learning-lab/issues',
+  // 저장소 주소: 머리말의 GitHub 링크와 처음 화면 아래쪽의 Star 안내에 쓴다
+  repo: 'https://github.com/jhb010311/dev-learning-lab',
   // 처음 화면의 "처음이라면"에 보일 실습: 배경 지식이 적어도 따라갈 수 있는 것
   start: ['journey', 'stack', 'eq'],
   // 다른 언어판으로 가는 링크: [보일 이름, 주소]
