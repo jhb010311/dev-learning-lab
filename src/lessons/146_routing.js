@@ -1,7 +1,7 @@
 Lab.register({
   id: 'routing', nav: '스위치와 라우터', cat: '네트워크', mode: 'step',
   title: '받는 IP는 서버인데 왜 라우터의 MAC 주소로 보내나',
-  intro: '같은 네트워크 안의 기기에게는 그 기기의 MAC 주소로 직접 보내고, 스위치가 그 주소를 보고 전달합니다. 다른 네트워크의 기기에게는 직접 닿을 수 없으므로 게이트웨이(라우터)에게 맡깁니다. 라우터를 하나 지날 때마다 프레임의 MAC 주소는 새로 쓰이지만 IP 주소는 그대로이고, TTL은 1씩 줄어듭니다. 받는 쪽을 바꿔 가며 패킷이 구간마다 어떻게 달라지는지 따라가 보세요.',
+  intro: '같은 네트워크 안의 기기에게는 그 기기의 MAC 주소로 직접 보내고, 스위치가 그 주소를 보고 전달합니다. 다른 네트워크의 기기에게는 직접 닿을 수 없으므로 게이트웨이(라우터)에게 맡깁니다. 라우터를 하나 지날 때마다 프레임의 MAC 주소는 새로 쓰이지만 IP 주소는 그대로이고, TTL은 1씩 줄어듭니다.',
   terms: ['MAC 주소와 ARP', '스위치와 라우터', '기본 게이트웨이', 'IP 패킷의 TTL', 'OSI 7계층'],
   controls: [
     { id: 'dst', label: 'PC A(192.168.1.10)가 패킷을 보내는 곳', type: 'select', value: 'c', options: [['b', '같은 네트워크의 PC B (192.168.1.20)'], ['c', '라우터 하나 건너의 서버 C (192.168.2.30)'], ['d', '라우터 둘 건너의 서버 D (192.168.3.40)']] },
@@ -79,19 +79,19 @@ Lab.register({
       }
     }
     var ok = st.end === 'ok', changed = frames.length - 1;
-    sum.push(ok ? to.name + '에 도착했습니다. 프레임은 ' + frames.length + '번 만들어졌고 도착했을 때의 TTL은 ' + ttl + '입니다.' : D[st.endAt].name + '에서 TTL이 0이 되어 버려졌습니다. ' + to.name + '까지 가려면 라우터 ' + (hops.length - 1) + '개를 지나야 하므로 처음 TTL이 ' + hops.length + ' 이상이어야 합니다.');
+    if (!ok) sum.push(D[st.endAt].name + '에서 TTL이 0이 되어 버려졌습니다. ' + to.name + '까지 가려면 라우터 ' + (hops.length - 1) + '개를 지나야 하므로 처음 TTL이 ' + hops.length + ' 이상이어야 합니다.');
     if (direct) sum.push('같은 네트워크 안에서는 받는 기기의 MAC 주소를 ARP로 알아내 직접 보냅니다. 스위치는 MAC 주소만 보고 전달하고, 라우터는 관여하지 않으므로 TTL도 줄지 않습니다.' + (ttl0 === 1 ? ' 그래서 TTL이 1이어도 도착합니다.' : ''));
     else sum.push('다른 네트워크로 보낼 때 PC A가 ARP로 묻는 것은 받는 기기가 아니라 게이트웨이의 MAC 주소입니다. 기본 게이트웨이 설정이 틀리면 같은 네트워크 안에서는 통신이 되는데 바깥으로는 나가지 못하는 까닭입니다.');
     if (changed > 0) sum.push('라우터를 지날 때마다 프레임은 새로 만들어져 MAC 주소가 ' + changed + '번 바뀌었습니다. 보내는 IP와 받는 IP는 처음부터 끝까지 같았습니다. MAC 주소는 한 구간 안에서만 쓰이는 주소이고, IP 주소는 출발지에서 목적지까지 쓰이는 주소입니다.');
     if (!ok) sum.push('버린 라우터가 "시간 초과"를 돌려보내는 성질을 이용한 도구가 traceroute(윈도의 tracert)입니다. TTL을 1, 2, 3으로 늘려 가며 보내서, 응답한 라우터를 차례로 적어 길을 알아냅니다.');
-    if (!cached && ok && !direct) sum.push('ARP 요청은 구간마다 한 번씩, 모두 ' + st.arpN + '번 있었습니다. 한 번 알아낸 MAC 주소는 캐시에 남으므로 이어지는 패킷은 묻지 않고 보냅니다. "ARP 캐시" 설정을 켜서 비교해 보세요.');
+    if (!cached && ok && !direct) sum.push('ARP 요청은 구간마다 한 번씩, 모두 ' + st.arpN + '번 있었습니다. 한 번 알아낸 MAC 주소는 캐시에 남으므로 이어지는 패킷은 묻지 않고 보냅니다.');
     return { events: ev, summary: sum, frames: frames.join('; '),
       row: [direct ? '같은 네트워크: 직접 보냄' : '다른 네트워크: 게이트웨이로 보냄', D[hops[0].t].name + ' (' + mac(hops[0].dm) + ')', st.arpN + '번', ok ? '도착 (TTL ' + ttl + ')' : D[st.endAt].name + '에서 버려짐 (TTL 0)', changed + '번'] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 PC A의 판단부터 한 단계씩 진행합니다.'); return; }
-    H.counters(v, [[s.arpN + '번', 'ARP 요청'], [String(s.ttl), '지금 TTL'], [s.frames.length + '개', '만들어진 프레임']]);
+    H.counters(v, [[s.arpN + '번', 'ARP 요청'], [s.frames.length + '개', '만들어진 프레임']]);
     if (s.frames.length) H.table(v, ['구간', '보내는 MAC', '받는 MAC', '보내는 IP', '받는 IP', 'TTL'], s.frames.map(function (f, k) { var cur = k === s.frames.length - 1; return { cells: [f.seg, { v: '…:' + f.sm, cls: cur ? 'hot' : '' }, { v: '…:' + f.dm, cls: cur ? 'hot' : '' }, f.sip, f.dip, String(f.ttl)] }; }), '구간마다의 프레임 (MAC 주소는 바뀌고 IP 주소는 그대로. MAC 주소는 끝의 두 자리만 적음)');
     else H.text(v, '아직 프레임을 보내지 않았습니다.');
     if (s.arpTab.length) H.table(v, ['기기', 'IP 주소', 'MAC 주소'], s.arpTab.map(function (a) { return { cells: [a.dev, a.ip, a.mac + (a.old ? ' (이미 알고 있었음)' : '')] }; }), 'ARP 캐시 (IP 주소로 알아낸 MAC 주소)');

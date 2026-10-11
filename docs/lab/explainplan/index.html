@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>실행 계획 읽기: EXPLAIN 한 줄에서 무엇을 읽어야 하나 · 개발 학습 실습실</title>
-<meta name="description" content="쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다. 쿼리의 모양을 바꿔 가며 각 칸이 어떻게…">
+<meta name="description" content="쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/explainplan/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/explainplan/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/explainplan/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="실행 계획 읽기: EXPLAIN 한 줄에서 무엇을 읽어야 하나 · 개발 학습 실습실">
-<meta property="og:description" content="쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다. 쿼리의 모양을 바꿔 가며 각 칸이 어떻게…">
+<meta property="og:description" content="쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/explainplan/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=247ede25a6">
+<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 인덱스와 실행 계획</p>
 <h1>실행 계획 읽기</h1>
 <p><b>EXPLAIN 한 줄에서 무엇을 읽어야 하나</b></p>
-<p>쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다. 쿼리의 모양을 바꿔 가며 각 칸이 어떻게 달라지는지 보세요.</p>
+<p>쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다.</p>
 <p>실행으로 대조 · MySQL 8.4에서 쉰 가지 조합을 EXPLAIN으로 실행해 type, possible_keys, key, Extra를 대조 (rows는 크기만)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>type ALL, key NULL, rows 약 20,000, Extra Using where입니다. 조건에 실제로 맞는 행은 200행입니다.</li>
 <li>인덱스가 있는 컬럼이라도 함수나 계산을 씌우면 인덱스로 범위를 좁히지 못합니다. 컬럼은 그대로 두고 비교할 값 쪽을 바꿔 쓰는 것이 원칙입니다. 여기서는 name LIKE 'user001%'가 같은 뜻이면서 type range가 됩니다.</li>
 <li>읽는 순서: type으로 얼마나 넓게 읽는지 보고, key로 어떤 인덱스를 쓰는지 확인하고, rows로 읽는 양을 가늠한 뒤, Extra에서 걸러내기, 정렬, 임시 테이블 같은 덧붙은 작업을 봅니다.</li>
 </ul>
@@ -164,6 +163,6 @@ SELECT *
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=247ede25a6"></script>
+<script src="../../app.js?v=d45f9d1282"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'explainplan', nav: 'Reading the execution plan', cat: 'Database', mode: 'step',
   title: 'What should you read in one line of EXPLAIN?',
-  intro: 'Put EXPLAIN in front of a query and the database shows the plan it has made for running that query. One line has many columns, but if you can read just four of them (type, key, rows, and Extra), you can find the cause of most slow queries. Change the shape of the query and see how each column changes.',
+  intro: 'Put EXPLAIN in front of a query and the database shows the plan it has made for running that query. One line has many columns, but if you can read just four of them (type, key, rows, and Extra), you can find the cause of most slow queries.',
   terms: ['Query execution plan (EXPLAIN)', 'EXPLAIN join types (type column)', 'EXPLAIN Extra information (Extra column)', 'Full table scan', 'Covering index'],
   controls: [
     { id: 'w', label: 'Shape of the WHERE condition', type: 'select', value: 'func', options: [['none', 'No condition'], ['pk', 'id = 500 (primary key)'], ['eq', "name = 'user00123' (indexed column, one value)"], ['prefix', "name LIKE 'user001%' (LIKE with a fixed beginning)"], ['suffix', "name LIKE '%00123' (LIKE with a leading %)"], ['func', "LEFT(name, 7) = 'user001' (function on an indexed column)"], ['noidx', 'age = 30 (column without an index)'], ['join', 'Join: orders and member, connected by the primary key']] },
@@ -87,7 +87,6 @@ Lab.register({
       st.a = 4; st.b = 4; st.cur = 'extra';
       push('The Extra column is empty on both lines: there is nothing to add. How the two tables are paired is covered in the "Join algorithms" lab.');
       st.cur = '';
-      sum.push('This is a two-line plan. o is read in full with type ALL, and m is looked up one row at a time by primary key for each row, with type eq_ref.');
       sum.push('Read the EXPLAIN of a join from top to bottom. If the type of a lower line is eq_ref or ref, the table is reached through an index. If it is ALL, the lower table is read in full for each row of the earlier table, or a hash join is used.');
       sum.push('Roughly, the amount read grows in the order const, eq_ref, ref, range, index, ALL. The leftmost one is not always the one you must get. What you check is whether the number of rows read (rows) is too large compared with the number of rows you need.');
       return { events: ev, summary: sum, p: p, match: 20000, row: row };
@@ -129,7 +128,6 @@ Lab.register({
       push({ oname: 'ORDER BY name', oage: 'ORDER BY age', gage: 'GROUP BY age' }[c.tail] + ' is present, but Extra has no ' + sortTag + ': ' + reason + ' ' + (c.tail === 'gage' ? 'No temporary table is created.' : 'No separate sort is done.'), 'good');
     }
     st.cur = '';
-    sum.push('type ' + r.type + ', key ' + r.key + ', rows ' + rt + ', Extra ' + (r.extra.join('; ') || 'none') + '. The number of rows that actually match the condition: ' + (w === 'none' ? 'all 20,000' : match) + '.');
     if (w === 'func') sum.push("A column that has an index cannot have its range narrowed by the index if a function or a calculation is applied to it. The rule is to leave the column as it is and change the value you compare it with. Here, name LIKE 'user001%' means the same thing and gives type range.");
     if (w === 'suffix') sum.push("A LIKE with a leading % cannot use the sort order of the index. The index can find \"starts with\", but \"ends with\" and \"contains\" are known only by reading everything.");
     if (w === 'prefix') sum.push('A LIKE with a fixed beginning becomes one range of the index and is read with type range. Of the 20,000 rows, only 200 are read.');
@@ -152,7 +150,7 @@ Lab.register({
       var ex = lv >= 4 ? (join ? '' : r.extra.slice(0, s.ex).join('; ')) : '?';
       return { cells: [r.table, cl(1, 'type', r.type), cl(2, 'key', r.pkeys), cl(2, 'key', r.key)].concat(join ? [cl(2, 'key', r.ref)] : []).concat([cl(3, 'rows', self.rowsText(c, r)), { v: ex, cls: lv >= 4 && s.cur === 'extra' ? 'hot' : '' }]) };
     });
-    H.table(v, ['table', 'type', 'possible_keys', 'key'].concat(join ? ['ref'] : []).concat(['rows', 'Extra']), rows, 'EXPLAIN result (main columns only)');
+    if (join) H.table(v, ['table', 'type', 'possible_keys', 'key'].concat(join ? ['ref'] : []).concat(['rows', 'Extra']), rows, 'EXPLAIN result (main columns only)');
     if (!join && s.a >= 3) H.counters(v, [[String(sim.match).replace(/\B(?=(\d{3})+(?!\d))/g, ','), 'Rows that actually match the condition'], [this.rowsText(c, p[0]), 'Rows expected to be read (rows)']]);
     if (join && s.b >= 3) H.counters(v, [['about 20,000', 'Rows read from o'], ['1', 'Rows read from m for each row of o']]);
     H.text(v, 'rows is an estimate from statistics, so it can differ slightly each time you run it. The numbers shown here are rounded from the values seen on the PC used to write this lab.');

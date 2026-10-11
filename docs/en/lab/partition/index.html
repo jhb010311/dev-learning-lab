@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Scaling and distribution</p>
 <h1>Partitioning</h1>
 <p><b>When a table is cut into pieces, which pieces does a query read?</b></p>
-<p>Partitioning stores one big table in several pieces (partitions) inside the same server. You can divide it by a range, such as the year of the order date (RANGE), or by a calculation, such as the remainder of the member number divided by 4 (HASH). Depending on how you write the condition, a query reads only the partitions it needs or reads all of them. Create the table, insert a row, and query it, and see which partitions MySQL chooses.</p>
+<p>Partitioning stores one big table in several pieces (partitions) inside the same server. You can divide it by a range, such as the year of the order date (RANGE), or by a calculation, such as the remainder of the member number divided by 4 (HASH). Depending on how you write the condition, a query reads only the partitions it needs or reads all of them.</p>
 <p>Checked against real execution · On MySQL 8.4.11, 32 combinations were run, and the error codes and the partitions in EXPLAIN were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The table was created, the INSERT went into partition p2025, and the query reads 3 of the 3 partitions.</li>
 <li>Partitioning stores one table in pieces inside a single server. Unlike sharding, which divides data among several servers, it lets you use joins, transactions, and queries as they are. In return, it does not let you go past the limit of one server. Its purpose is to reduce the range that is read and deleted at one time.</li>
 <li>If you apply a function or a calculation to the partitioning key column, pruning does not happen. It is the same principle as an index not being usable when a function is applied to the indexed column. Leave the column as it is and change the value you compare it with.</li>
 <li>A big advantage of a RANGE partition is that old data can be dropped as a whole. ALTER TABLE orders DROP PARTITION p2023 removes that partition as a piece, instead of deleting its rows one by one.</li>
@@ -175,6 +174,6 @@ EXPLAIN SELECT * FROM orders WHERE YEAR(ordered_at) = 2024;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

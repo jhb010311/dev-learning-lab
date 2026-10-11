@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>URL의 구조: 검색어 &quot;A&amp;B&quot;를 주소에 붙였더니 서버에는 &quot;A&quot;만 도착했다 · 개발 학습 실습실</title>
-<meta name="description" content="URL은 정해진 기호(://, :, /, ?, #, &amp;, =)를 기준으로 스킴, 호스트, 포트, 경로, 쿼리, 프래그먼트로 나뉩니다. 이 기호들은 주소 안에서 구분하는 역할을 맡고 있어서, 값 안에 같은 글자를 그대로 넣으면 주소가 엉뚱한 곳에서 잘립니다. 주소가 어떻게 나뉘…">
+<meta name="description" content="URL은 정해진 기호(://, :, /, ?, #, &amp;, =)를 기준으로 스킴, 호스트, 포트, 경로, 쿼리, 프래그먼트로 나뉩니다. 이 기호들은 주소 안에서 구분하는 역할을 맡고 있어서, 값 안에 같은 글자를 그대로 넣으면 주소가 엉뚱한 곳에서 잘립니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/url/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/url/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/url/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="URL의 구조: 검색어 &quot;A&amp;B&quot;를 주소에 붙였더니 서버에는 &quot;A&quot;만 도착했다 · 개발 학습 실습실">
-<meta property="og:description" content="URL은 정해진 기호(://, :, /, ?, #, &amp;, =)를 기준으로 스킴, 호스트, 포트, 경로, 쿼리, 프래그먼트로 나뉩니다. 이 기호들은 주소 안에서 구분하는 역할을 맡고 있어서, 값 안에 같은 글자를 그대로 넣으면 주소가 엉뚱한 곳에서 잘립니다. 주소가 어떻게 나뉘…">
+<meta property="og:description" content="URL은 정해진 기호(://, :, /, ?, #, &amp;, =)를 기준으로 스킴, 호스트, 포트, 경로, 쿼리, 프래그먼트로 나뉩니다. 이 기호들은 주소 안에서 구분하는 역할을 맡고 있어서, 값 안에 같은 글자를 그대로 넣으면 주소가 엉뚱한 곳에서 잘립니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/url/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=247ede25a6">
+<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 주소와 이름</p>
 <h1>URL의 구조</h1>
 <p><b>검색어 &quot;A&amp;B&quot;를 주소에 붙였더니 서버에는 &quot;A&quot;만 도착했다</b></p>
-<p>URL은 정해진 기호(://, :, /, ?, #, &amp;, =)를 기준으로 스킴, 호스트, 포트, 경로, 쿼리, 프래그먼트로 나뉩니다. 이 기호들은 주소 안에서 구분하는 역할을 맡고 있어서, 값 안에 같은 글자를 그대로 넣으면 주소가 엉뚱한 곳에서 잘립니다. 주소가 어떻게 나뉘고, 그 가운데 무엇이 서버로 가며, 값은 어떻게 넣어야 온전히 도착하는지 따라가 보세요.</p>
+<p>URL은 정해진 기호(://, :, /, ?, #, &amp;, =)를 기준으로 스킴, 호스트, 포트, 경로, 쿼리, 프래그먼트로 나뉩니다. 이 기호들은 주소 안에서 구분하는 역할을 맡고 있어서, 값 안에 같은 글자를 그대로 넣으면 주소가 엉뚱한 곳에서 잘립니다.</p>
 <p>실행으로 대조 · Node.js 24의 URL, URLSearchParams, HTTP 클라이언트(127.0.0.1의 시험 서버로 받음)로 삼백 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -70,7 +70,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>shop.example의 443번 포트로 요청 줄(GET /shop/list?q=A&amp;B&amp;sort=price HTTP/1.1)이 갔고, 서버가 받은 q의 값은 &quot;A&quot;입니다. 보낸 검색어(&quot;A&amp;B&quot;)와 다릅니다.</li>
 <li>&amp;, =, #, +, %, ?는 주소 안에서 구분하는 일을 맡은 글자입니다. 값에 이런 글자가 들어갈 수 있으면 반드시 인코딩해서 넣어야 합니다. 자바스크립트에서는 URLSearchParams나 encodeURIComponent, 자바에서는 URLEncoder.encode가 이 일을 합니다. 글자를 직접 이어 붙여 주소를 만드는 코드는 평소에는 잘 돌다가 이런 값이 들어오는 날 틀립니다.</li>
 <li>프래그먼트(# 뒤)는 서버로 가지 않습니다. 서버 로그에도 남지 않으며, 서버 코드에서 읽을 수도 없습니다. 반대로 쿼리는 서버로 가고 서버의 접속 기록에도 남을 수 있으므로, 비밀번호 같은 값을 쿼리에 넣지 않습니다.</li>
 </ul>
@@ -170,6 +169,6 @@ console.log(new URL('detail', url).href);                // 링크(href=&quot;de
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=247ede25a6"></script>
+<script src="../../app.js?v=d45f9d1282"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'udp', nav: 'TCP와 UDP', cat: '네트워크', mode: 'step',
   title: '세 번에 나눠 보낸 데이터는 세 번에 나뉘어 도착하나',
-  intro: 'TCP와 UDP는 프로그램의 데이터를 상대 프로그램까지 실어 나르는 두 가지 방식입니다. TCP는 먼저 연결을 맺고 바이트를 순서대로 빠짐없이 전하지만, 어디서 끊어 보냈는지는 전해 주지 않습니다. UDP는 연결 없이 덩어리째 그냥 보내고, 도착했는지는 책임지지 않습니다. 같은 데이터를 두 방식으로 보내 보고 받는 쪽에서 무엇이 달라지는지 확인하세요.',
+  intro: 'TCP와 UDP는 프로그램의 데이터를 상대 프로그램까지 실어 나르는 두 가지 방식입니다. TCP는 먼저 연결을 맺고 바이트를 순서대로 빠짐없이 전하지만, 어디서 끊어 보냈는지는 전해 주지 않습니다. UDP는 연결 없이 덩어리째 그냥 보내고, 도착했는지는 책임지지 않습니다.',
   terms: ['TCP와 UDP', '바이트 스트림과 데이터그램', '소켓', '포트', '3-way handshake'],
   controls: [
     { id: 'proto', label: '보내는 방식', type: 'select', value: 'tcp', options: [['tcp', 'TCP'], ['udp', 'UDP']] },
@@ -84,27 +84,20 @@ Lab.register({
     var q = function (a) { return a.map(function (x) { return '"' + x + '"'; }).join(', '); };
     var same = !on ? (tcp ? '아무것도 보내지 않음' : '모두 사라짐') : tcp ? '내용과 순서는 같고 경계는 사라짐' : { ok: '보낸 그대로', loss: '하나가 빠짐', reorder: '순서가 바뀜' }[net];
     var row = [tcp ? (on ? '맺음 (성공)' : '실패 (ECONNREFUSED)') : '없음', tcp ? (on ? 'write 3번 성공' : '보내지 못함') : 'send 3번 모두 오류 없음', got.length ? q(got) + ' ' + ['', '한', '두', '세'][got.length] + ' 덩어리' : '없음', same];
-    sum.push(tcp && !on ? 'TCP: 연결이 거절되어 아무것도 보내지 못했습니다.' : (tcp ? 'TCP: ' : 'UDP: ') + '보낸 것은 "AB", "CD", "EF" 세 덩어리이고, 받는 프로그램이 읽은 것은 ' + (got.length ? q(got) : '없습니다') + (got.length ? '입니다.' : '.'));
     if (tcp && on) sum.push('TCP는 바이트의 흐름(스트림)입니다. 순서와 내용은 지켜 주지만 write를 몇 번에 나눠 했는지는 전하지 않습니다. 그래서 TCP 위에서 메시지를 주고받는 프로그램은 "어디까지가 메시지 하나인지"를 스스로 정합니다. 길이를 먼저 적어 보내거나(HTTP의 Content-Length), 줄바꿈 같은 구분 글자를 씁니다.');
     if (tcp && on && net === 'ok') sum.push('이 실습은 받는 프로그램이 늦게 읽는 경우입니다. 도착하자마자 읽으면 보낸 대로 세 번에 나뉘어 읽히기도 하지만, 그렇게 된다는 보장은 없습니다. "write 한 번이 read 한 번"이라고 가정한 코드는 내 컴퓨터에서는 돌다가 실제 환경에서 깨집니다.');
     if (tcp && on && net !== 'ok') sum.push('TCP에서는 가는 길에 사라지거나 순서가 바뀌어도 운영체제가 번호와 확인 응답으로 바로잡은 뒤에 프로그램에 넘깁니다. 프로그램이 읽는 결과는 아무 일 없을 때와 같습니다. 그 대신 빈자리가 채워질 때까지 뒤에 온 데이터도 기다려야 합니다. 재전송의 자세한 과정은 "TCP 연결과 재전송" 실습에서 볼 수 있습니다. 이 경우는 이 PC에서 일부러 만들 수 없어 실행으로 확인하지 못했고, TCP 표준의 설명을 따랐습니다.');
-    if (tcp && !on) sum.push('TCP는 연결을 맺는 단계에서 상대가 없다는 것을 알게 됩니다. 같은 상황에서 UDP는 어떻게 되는지 방식을 바꿔 비교해 보세요.');
-    if (!tcp && on && net === 'ok') sum.push('UDP는 보낸 덩어리(데이터그램)의 경계를 지킵니다. send 한 번이 받는 쪽의 message 한 번입니다. 다만 이것은 가는 길에 아무 일이 없었을 때의 이야기입니다. 유실이나 순서 바뀜을 설정해 보세요.');
+    if (tcp && !on) sum.push('TCP는 연결을 맺는 단계에서 상대가 없다는 것을 알게 됩니다.');
+    if (!tcp && on && net === 'ok') sum.push('UDP는 보낸 덩어리(데이터그램)의 경계를 지킵니다. send 한 번이 받는 쪽의 message 한 번입니다. 다만 이것은 가는 길에 아무 일이 없었을 때의 이야기입니다.');
     if (!tcp && on && net !== 'ok') sum.push('UDP는 빠진 것을 다시 보내지 않고 순서도 맞춰 주지 않습니다. 필요하면 프로그램이 직접 번호를 붙이고 확인하고 다시 보내야 합니다. HTTP/3이 쓰는 QUIC이 UDP 위에 그런 기능을 직접 만든 예입니다.');
     if (!tcp && !on) sum.push('UDP의 send가 성공했다는 것은 운영체제가 데이터그램을 내보냈다는 뜻일 뿐입니다. 상대 프로그램이 없어도, 가는 길에 사라져도 보내는 쪽은 알지 못합니다.');
     sum.push(tcp ? 'TCP는 하나라도 빠지거나 순서가 바뀌면 안 되는 곳에 씁니다. 웹(HTTP/1.1, HTTP/2), DB 연결, 파일 전송, 메일이 TCP 위에서 동작합니다.' : 'UDP는 조금 빠져도 괜찮고 늦게 오는 것이 더 곤란한 곳, 또는 짧게 한 번 묻고 답하는 곳에 씁니다. 실시간 음성과 영상, 게임, DNS 조회가 대표적입니다.');
     return { events: ev, summary: sum, row: row };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, tcp = sim.c.proto === 'tcp', P = this.PARTS;
+    var last = shown[shown.length - 1], s = last ? last.snap : null, P = this.PARTS;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '연결', { ok: '맺어짐 (3-way handshake)', fail: '실패 (ECONNREFUSED)', none: '없음 (UDP는 연결하지 않음)' }[s.conn], s.conn === 'ok' ? 'good' : s.conn === 'fail' ? 'bad' : 'none');
     H.table(v, ['보낸 것', '어떻게 됐나'], P.map(function (x, i) { var z = s.sent[i]; return { cells: ['"' + x + '"', z === 0 ? '아직 보내지 않음' : z === 1 ? { v: '받는 쪽 운영체제에 도착', cls: 'good' } : z === 2 ? { v: '사라짐', cls: 'bad' } : { v: '가는 중 (늦어짐)', cls: 'hot' }] }; }), '보내는 쪽이 보낸 세 덩어리');
-    H.text(v, tcp ? '받는 쪽 운영체제의 수신 버퍼 (바이트가 한 줄로 이어짐)' : '받는 쪽 운영체제의 수신 버퍼 (데이터그램이 하나씩 따로)');
-    H.slots(v, s.buf.map(function (x) { return [x, 'q']; }).concat(s.held ? [[s.held + ' (앞이 비어 보관 중)', 'b']] : []), '비어 있음');
-    H.text(v, '받는 프로그램이 읽은 것 (칸 하나가 읽기 한 번)');
-    H.slots(v, s.read.map(function (x) { return [x, 'd']; }), '아직 읽지 않음');
   },
   // 그림: 왼쪽은 보내는 프로그램이 보낸 세 덩어리, 가운데는 받는 쪽 운영체제의 수신 버퍼, 오른쪽은 받는 프로그램이 읽은 것. TCP는 가운데에서 한 줄로 합쳐지고 UDP는 따로 남는다.
   draw: function (P, sim, shown) {

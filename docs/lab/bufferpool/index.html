@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>버퍼 풀과 페이지: 행 하나를 읽는데 왜 16KB를 통째로 읽나 · 개발 학습 실습실</title>
-<meta name="description" content="InnoDB는 디스크의 데이터를 행 단위가 아니라 페이지(기본 16KB)라는 덩어리로 읽고 씁니다. 한 번 읽은 페이지는 메모리의 버퍼 풀에 올려 두고, 그다음부터는 디스크에 가지 않고 메모리에서 읽습니다. 고칠 때도 메모리의 페이지만 고치고 디스크에는 나중에 씁니다. 행 1…">
+<meta name="description" content="InnoDB는 디스크의 데이터를 행 단위가 아니라 페이지(기본 16KB)라는 덩어리로 읽고 씁니다. 한 번 읽은 페이지는 메모리의 버퍼 풀에 올려 두고, 그다음부터는 디스크에 가지 않고 메모리에서 읽습니다. 고칠 때도 메모리의 페이지만 고치고 디스크에는 나중에 씁니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/bufferpool/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/bufferpool/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/bufferpool/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="버퍼 풀과 페이지: 행 하나를 읽는데 왜 16KB를 통째로 읽나 · 개발 학습 실습실">
-<meta property="og:description" content="InnoDB는 디스크의 데이터를 행 단위가 아니라 페이지(기본 16KB)라는 덩어리로 읽고 씁니다. 한 번 읽은 페이지는 메모리의 버퍼 풀에 올려 두고, 그다음부터는 디스크에 가지 않고 메모리에서 읽습니다. 고칠 때도 메모리의 페이지만 고치고 디스크에는 나중에 씁니다. 행 1…">
+<meta property="og:description" content="InnoDB는 디스크의 데이터를 행 단위가 아니라 페이지(기본 16KB)라는 덩어리로 읽고 씁니다. 한 번 읽은 페이지는 메모리의 버퍼 풀에 올려 두고, 그다음부터는 디스크에 가지 않고 메모리에서 읽습니다. 고칠 때도 메모리의 페이지만 고치고 디스크에는 나중에 씁니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/bufferpool/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=247ede25a6">
+<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 저장과 복구</p>
 <h1>버퍼 풀과 페이지</h1>
 <p><b>행 하나를 읽는데 왜 16KB를 통째로 읽나</b></p>
-<p>InnoDB는 디스크의 데이터를 행 단위가 아니라 페이지(기본 16KB)라는 덩어리로 읽고 씁니다. 한 번 읽은 페이지는 메모리의 버퍼 풀에 올려 두고, 그다음부터는 디스크에 가지 않고 메모리에서 읽습니다. 고칠 때도 메모리의 페이지만 고치고 디스크에는 나중에 씁니다. 행 16개가 페이지 네 개에 나뉘어 들어 있는 테이블을 조회하면서, 디스크를 몇 번 읽고 쓰는지 보세요.</p>
+<p>InnoDB는 디스크의 데이터를 행 단위가 아니라 페이지(기본 16KB)라는 덩어리로 읽고 씁니다. 한 번 읽은 페이지는 메모리의 버퍼 풀에 올려 두고, 그다음부터는 디스크에 가지 않고 메모리에서 읽습니다. 고칠 때도 메모리의 페이지만 고치고 디스크에는 나중에 씁니다.</p>
 <p>일부만 실행으로 확인 · MySQL 8.4.11에서 밀려남이 없는 여섯 조합의 디스크 읽기와 쓰기를 실행으로 대조. 칸 수와 밀려나는 순서는 개념 모형</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>디스크에서 페이지를 1번 읽었고, 조회 3번 가운데 2번은 디스크에 가지 않았습니다.</li>
 <li>InnoDB가 디스크에서 읽는 단위는 행이 아니라 페이지입니다. 1번 행을 읽으면 같은 페이지의 2, 3, 4번 행도 함께 메모리에 올라오므로, 가까이 저장된 행을 이어서 읽을 때는 디스크에 다시 가지 않습니다.</li>
 <li>행을 고쳐도 메모리의 페이지만 바뀌고, 데이터 파일에는 나중에 씁니다. 그 사이에 서버가 꺼져도 커밋한 내용을 잃지 않는 것은 Redo 로그 덕분입니다(&quot;Undo와 Redo 로그&quot; 실습).</li>
 </ul>
@@ -170,6 +169,6 @@ SELECT name FROM item WHERE id = 1;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=247ede25a6"></script>
+<script src="../../app.js?v=d45f9d1282"></script>
 </body>
 </html>

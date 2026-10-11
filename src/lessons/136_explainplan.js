@@ -1,7 +1,7 @@
 Lab.register({
   id: 'explainplan', nav: '실행 계획 읽기', cat: '데이터베이스', mode: 'step',
   title: 'EXPLAIN 한 줄에서 무엇을 읽어야 하나',
-  intro: '쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다. 쿼리의 모양을 바꿔 가며 각 칸이 어떻게 달라지는지 보세요.',
+  intro: '쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다.',
   terms: ['실행 계획(EXPLAIN)', 'EXPLAIN의 type', 'EXPLAIN의 Extra', '풀 테이블 스캔', '커버링 인덱스'],
   controls: [
     { id: 'w', label: 'WHERE 조건의 모양', type: 'select', value: 'func', options: [['none', '조건 없음'], ['pk', 'id = 500 (기본 키)'], ['eq', "name = 'user00123' (인덱스 컬럼, 값 하나)"], ['prefix', "name LIKE 'user001%' (앞부분이 정해진 LIKE)"], ['suffix', "name LIKE '%00123' (앞에 %가 붙은 LIKE)"], ['func', "LEFT(name, 7) = 'user001' (인덱스 컬럼에 함수)"], ['noidx', 'age = 30 (인덱스 없는 컬럼)'], ['join', '조인: orders와 member를 기본 키로 연결']] },
@@ -87,7 +87,6 @@ Lab.register({
       st.a = 4; st.b = 4; st.cur = 'extra';
       push('Extra 칸은 두 줄 모두 비어 있습니다: 덧붙일 것이 없다는 뜻입니다. 두 테이블을 어떤 방식으로 짝짓는지는 "조인 알고리즘" 실습에서 다룹니다.');
       st.cur = '';
-      sum.push('두 줄짜리 계획입니다. o는 type ALL로 전체를 읽고, m은 type eq_ref로 행마다 기본 키로 한 행씩 찾습니다.');
       sum.push('조인의 EXPLAIN은 위에서 아래로 읽습니다. 아래 줄의 type이 eq_ref나 ref이면 인덱스로 찾아간다는 뜻이고, ALL이면 앞 테이블의 행마다 뒤 테이블을 통째로 읽거나 해시 조인을 쓴다는 뜻입니다.');
       sum.push('type은 대략 const, eq_ref, ref, range, index, ALL 순으로 읽는 양이 늘어납니다. 반드시 왼쪽이어야 하는 것은 아니고, 필요한 행 수에 비해 읽는 행(rows)이 지나치게 많은지를 봅니다.');
       return { events: ev, summary: sum, p: p, match: 20000, row: row };
@@ -129,7 +128,6 @@ Lab.register({
       push({ oname: 'ORDER BY name', oage: 'ORDER BY age', gage: 'GROUP BY age' }[c.tail] + ' 절이 있는데 Extra에 ' + sortTag + '가 없습니다: ' + reason + ' 따로 ' + (c.tail === 'gage' ? '임시 테이블을 만들지' : '정렬하지') + ' 않습니다.', 'good');
     }
     st.cur = '';
-    sum.push('type ' + r.type + ', key ' + r.key + ', rows ' + rt + ', Extra ' + (r.extra.join('; ') || '없음') + '입니다. 조건에 실제로 맞는 행은 ' + (w === 'none' ? '2만 행 전부' : match + '행') + '입니다.');
     if (w === 'func') sum.push("인덱스가 있는 컬럼이라도 함수나 계산을 씌우면 인덱스로 범위를 좁히지 못합니다. 컬럼은 그대로 두고 비교할 값 쪽을 바꿔 쓰는 것이 원칙입니다. 여기서는 name LIKE 'user001%'가 같은 뜻이면서 type range가 됩니다.");
     if (w === 'suffix') sum.push("앞에 %가 붙은 LIKE는 인덱스의 정렬 순서를 이용할 수 없습니다. '무엇으로 시작하는가'는 인덱스로 찾을 수 있지만 '무엇으로 끝나는가'와 '무엇을 포함하는가'는 전부 읽어야 압니다.");
     if (w === 'prefix') sum.push('앞부분이 정해진 LIKE는 인덱스의 한 구간이 되어 type range로 읽습니다. 2만 행 가운데 200행만 읽습니다.');
@@ -152,7 +150,7 @@ Lab.register({
       var ex = lv >= 4 ? (join ? '' : r.extra.slice(0, s.ex).join('; ')) : '?';
       return { cells: [r.table, cl(1, 'type', r.type), cl(2, 'key', r.pkeys), cl(2, 'key', r.key)].concat(join ? [cl(2, 'key', r.ref)] : []).concat([cl(3, 'rows', self.rowsText(c, r)), { v: ex, cls: lv >= 4 && s.cur === 'extra' ? 'hot' : '' }]) };
     });
-    H.table(v, ['table', 'type', 'possible_keys', 'key'].concat(join ? ['ref'] : []).concat(['rows', 'Extra']), rows, 'EXPLAIN 결과 (주요 칸만)');
+    if (join) H.table(v, ['table', 'type', 'possible_keys', 'key'].concat(join ? ['ref'] : []).concat(['rows', 'Extra']), rows, 'EXPLAIN 결과 (주요 칸만)');
     if (!join && s.a >= 3) H.counters(v, [[String(sim.match).replace(/\B(?=(\d{3})+(?!\d))/g, ','), '조건에 실제로 맞는 행'], [this.rowsText(c, p[0]), '읽을 것으로 예상한 행 (rows)']]);
     if (join && s.b >= 3) H.counters(v, [['약 20,000', 'o에서 읽는 행'], ['1', 'o의 행마다 m에서 읽는 행']]);
     H.text(v, 'rows는 통계로 추정한 값이라 실행할 때마다 조금씩 다를 수 있습니다. 여기 적힌 수는 이 PC에서 본 값을 어림한 것입니다.');

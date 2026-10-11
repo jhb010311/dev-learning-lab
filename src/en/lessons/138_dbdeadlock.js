@@ -1,7 +1,7 @@
 Lab.register({
   id: 'dbdeadlock', nav: 'Deadlocks in the database', cat: 'Database', mode: 'step',
   title: 'When two transactions wait for each other, how does the database end it?',
-  intro: 'Transaction A moves 100 from account 1 to account 2, and transaction B moves 50 from account 2 to account 1. If the two lock the rows in opposite orders, they end up waiting for each other. Java threads in this situation would simply stop forever, but MySQL InnoDB detects the situation by itself, rolls one side back, and returns an error. See which side gets which error, and what the side that got the error has to do afterward.',
+  intro: 'Transaction A moves 100 from account 1 to account 2, and transaction B moves 50 from account 2 to account 1. If the two lock the rows in opposite orders, they end up waiting for each other. Java threads in this situation would simply stop forever, but MySQL InnoDB detects the situation by itself, rolls one side back, and returns an error.',
   terms: ['Deadlock', 'Deadlock detection and the victim', 'Lock wait timeout', 'Shared locks and exclusive locks', 'Transaction'],
   controls: [
     { id: 'sit', label: 'Order in which the two transactions lock the rows', type: 'select', value: 'rev', options: [['rev', 'Opposite (A: 1 → 2, B: 2 → 1)'], ['same', 'Same order (both 1 → 2)'], ['hold', 'Opposite, but A stops for a long time holding only the first row']] },
@@ -117,10 +117,9 @@ Lab.register({
         }
       }
     }
-    sum.push('The final balance is ' + p.b1 + ' for account 1 and ' + p.b2 + ' for account 2. ' + (p.half ? 'The total of the two accounts dropped from 2000 to 1950. This is because only half of the transfer of B was applied.' : p.aDone && p.bDone ? 'Both transfers were applied.' : 'The transfer of ' + (p.aDone ? 'B' : 'A') + ' is missing.'));
     if (sit === 'rev') {
       sum.push('InnoDB detects the deadlock by itself, rolls one transaction back as a whole, and returns error 1213. The side that survives proceeds as if nothing had happened. The database ends the deadlock, but doing the rolled-back work again is up to the application.');
-      sum.push(c.after === 'retry' ? 'When you get error 1213, run the transaction again from the start. It has to be from the start, not from the middle, because everything changed earlier was canceled too.' : c.after === 'giveup' ? 'If it does not try again, that request disappears without being applied. Switch the response to trying again and compare.' : 'A COMMIT after a rollback caused by a deadlock applies nothing. Code that ignores the error makes a failure look like a success.');
+      sum.push(c.after === 'retry' ? 'When you get error 1213, run the transaction again from the start. It has to be from the start, not from the middle, because everything changed earlier was canceled too.' : c.after === 'giveup' ? 'If it does not try again, that request disappears without being applied.' : 'A COMMIT after a rollback caused by a deadlock applies nothing. Code that ignores the error makes a failure look like a success.');
       sum.push(c.heavy === 'b' ? 'InnoDB tries to choose the small transaction that changed fewer rows to roll back, because it costs less to undo. So which side gets the error depends not on the order but on the amount of work done up to that point.' : 'Your code cannot decide which side is rolled back. So prepare for the possibility that both transactions can get error 1213.');
     } else if (sit === 'same') {
       sum.push('When every transaction locks in the same order (the account with the smaller number first), the waiting goes in only one direction and no cycle is created. This is the most basic way to reduce deadlocks.');
@@ -134,12 +133,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Press Run to go through it one step at a time.'); return; }
-    var cls = { pre: 'none', hold: 'hot', wait: 'wait', err: 'bad', done: 'good' };
-    H.title(v, 'Transactions'); var ln = H.lanes(v);
-    ['A', 'B'].forEach(function (x) { H.lane(ln, 'Transaction ' + x, s.msg[x][0] + (s.msg[x][1] !== ' ' ? ' · ' + s.msg[x][1] : '') + (x === 'A' ? '  (100 from account 1 → 2)' : '  (50 from account 2 → 1)'), s.cyc && s.ph[x] === 'wait' ? 'bad' : cls[s.ph[x]]); });
-    H.table(v, ['Row', 'Transaction holding the lock', 'Transaction waiting for the lock', 'Committed balance'], [1, 2].map(function (r) { var w = ['A', 'B'].filter(function (x) { return s.wait[x] === r; }); return { cells: ['Account ' + r, { v: s.own[r] || 'None', cls: s.own[r] ? 'hot' : '' }, { v: w.length ? w[0] : 'None', cls: w.length ? (s.cyc ? 'bad' : 'hot') : '' }, String(s.bal[r])] }; }), 'account table');
-    H.text(v, 'Deadlock detection in InnoDB: ' + s.det);
-    H.counters(v, [[s.bal[1] + ' / ' + s.bal[2], 'Committed balances (account 1 / account 2)'], [String(s.bal[1] + s.bal[2]), 'Total of the two accounts']]);
+    H.counters(v, [[String(s.bal[1] + s.bal[2]), 'Total of the two accounts']]);
   },
   // Diagram: Transactions A and B are on the two sides, and the two rows are in the middle. A solid line from a row to a transaction means "holds the lock", and a dotted line from a transaction to a row means "waits". Below are the deadlock detection of InnoDB and the committed balances.
   draw: function (P, sim, shown) {
@@ -157,7 +151,7 @@ Lab.register({
     });
     P.box('det', 16, 262, 440, 40, { cls: s.cyc ? 'bad' : s.det.indexOf('broken') >= 0 ? 'good' : 'plain', title: 'Deadlock detection in InnoDB', sub: s.det });
     P.box('bal', 464, 262, 200, 40, { cls: s.bal[1] + s.bal[2] !== 2000 ? 'bad' : 'plain', title: 'Balances', right: s.bal[1] + ' / ' + s.bal[2] });
-    P.note('A solid arrow means the transaction holds the lock on that row, and a dotted arrow means it waits for that lock. If you follow the arrows and come back to where you started, a cycle has formed, and that is a deadlock. InnoDB finds this cycle and breaks it by rolling back one of the transactions. The number on the right of a row is the committed balance.');
+    P.note('A solid arrow means the transaction holds the lock on that row, and a dotted arrow means it waits for that lock. If you follow the arrows and come back to where you started, a cycle has formed, and that is a deadlock. The number on the right of a row is the committed balance.');
   },
   assume: 'Ten combinations (the settings that make sense for each of the three orders) were run in the same order as shown on the screen, with two sessions, on MySQL 8.4.11 on the PC used to write this lab (InnoDB, isolation level REPEATABLE READ, innodb_deadlock_detect on, innodb_rollback_on_timeout off). The lab was checked against these runs: which side gets which error code, whether the changes and locks remain in that transaction right after the error, and the final balances all match the screen. In the deadlock, error 1213 arrived within a few milliseconds (with the lock wait timeout set to 20 seconds), and when the session that got the error read again the row it had changed, it saw the original value 1000 and held 0 record locks. For the lock wait timeout, instead of waiting for the default 50 seconds, innodb_lock_wait_timeout of that session was reduced to 2 seconds, and even after error 1205 arrived 2 seconds later, the value 950 that the session had changed and 1 record lock were still there. Which side is rolled back in a deadlock with equal amounts of work is not set by the documentation, so the lab does not state it as a fact. Over 30 repetitions, B, which started waiting later, was rolled back all 30 times, and when B first changed 50 other rows, A was rolled back all 30 times. The statements that InnoDB tries to choose a small transaction, and that a deadlock rolls back the whole transaction while a lock wait timeout rolls back only that statement, also agree with the explanations in 17.7.5.2 Deadlock Detection and 17.20.5 InnoDB Error Handling of the MySQL 8.4 Reference Manual. What changes when the server settings are changed (when deadlock detection is turned off, or innodb_rollback_on_timeout is turned on) is not covered. The lab assumes that the two transactions interleave in exactly this order; in practice, depending on the timing, they more often pass without a deadlock.',
 });

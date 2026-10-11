@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Storage and recovery</p>
 <h1>Buffer pool and pages</h1>
 <p><b>Why does reading one row read a whole 16KB page?</b></p>
-<p>InnoDB reads and writes data on disk in blocks called pages (16KB by default), not row by row. A page that has been read is kept in memory in the buffer pool, and later reads come from memory instead of going to disk. When a row is changed, only the page in memory is changed, and it is written to disk later. Query a table whose 16 rows are spread over four pages, and watch how many times the disk is read and written.</p>
+<p>InnoDB reads and writes data on disk in blocks called pages (16KB by default), not row by row. A page that has been read is kept in memory in the buffer pool, and later reads come from memory instead of going to disk. When a row is changed, only the page in memory is changed, and it is written to disk later.</p>
 <p>Partly checked against real execution · On MySQL 8.4.11, disk reads and writes were checked by execution for the six combinations in which nothing is evicted. The number of slots and the order of eviction are a conceptual model</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Pages read from disk: 1. Lookups that did not go to disk: 2 of 3.</li>
 <li>InnoDB reads from disk in units of pages, not rows. Reading row 1 also loads rows 2, 3, and 4 of the same page into memory, so reading rows that are stored close together does not go back to disk.</li>
 <li>Even when a row is changed, only the page in memory changes, and the data file is written later. It is the redo log that keeps committed changes from being lost if the server goes down in the meantime (see the &quot;Undo and redo logs&quot; lab).</li>
 </ul>
@@ -170,6 +169,6 @@ SELECT name FROM item WHERE id = 1;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'congestion', nav: '흐름 제어와 혼잡 제어', cat: '네트워크', mode: 'step',
   title: 'TCP는 한 번에 얼마나 보낼지를 어떻게 정하나',
-  intro: 'TCP는 보낼 데이터가 많아도 한꺼번에 쏟아 보내지 않습니다. 받는 쪽이 감당할 수 있는 양(수신 윈도)과 네트워크가 감당할 수 있다고 짐작한 양(혼잡 윈도) 가운데 작은 쪽까지만 보냅니다. 앞의 것을 지키는 일이 흐름 제어, 뒤의 것을 조절하는 일이 혼잡 제어입니다. 열두 번의 왕복 동안 보내는 양이 어떻게 늘고 줄어드는지 확인하세요.',
+  intro: 'TCP는 보낼 데이터가 많아도 한꺼번에 쏟아 보내지 않습니다. 받는 쪽이 감당할 수 있는 양(수신 윈도)과 네트워크가 감당할 수 있다고 짐작한 양(혼잡 윈도) 가운데 작은 쪽까지만 보냅니다. 앞의 것을 지키는 일이 흐름 제어, 뒤의 것을 조절하는 일이 혼잡 제어입니다.',
   terms: ['흐름 제어와 혼잡 제어', '수신 윈도와 혼잡 윈도', '느린 시작과 혼잡 회피', 'TCP와 UDP'],
   controls: [
     { id: 'loss', label: '가는 길에 생기는 일', type: 'select', value: 'dup', options: [['none', '유실 없음'], ['dup', '한 조각이 사라짐 (같은 ACK 세 번으로 알아챔)'], ['rto', '보낸 것이 모두 사라짐 (타임아웃으로 알아챔)']] },
@@ -70,12 +70,11 @@ Lab.register({
       push(head + tail, o.phase === 'ca' ? 'good' : '');
     });
     var flights = R.map(function (o) { return o.flight; });
-    sum.push('열두 번의 왕복 동안 ' + total + '조각을 보냈습니다. 왕복마다 보낸 양: ' + flights.join(', ') + '.');
     if (hit && c.loss === 'dup') sum.push('같은 ACK 세 번으로 유실을 알아채면 문턱값과 혼잡 윈도를 보낸 양의 절반(' + hit.nextSsth + '조각)으로 줄이고 거기서부터 하나씩 다시 늘립니다. 늘렸다가 유실을 만나면 줄이기를 되풀이하므로, 보내는 양을 그리면 톱니 모양이 됩니다.');
     if (hit && c.loss === 'rto') sum.push('타임아웃으로 유실을 알아채면 혼잡 윈도를 1조각으로 되돌립니다. 문턱값(' + hit.nextSsth + '조각)까지는 다시 두 배씩 늘고 그 뒤로는 하나씩 늡니다. 같은 유실을 같은 ACK 세 번으로 알아챘다면 열두 번 동안 ' + this.rounds({ loss: 'dup', at: c.at, ssth: c.ssth, rwnd: c.rwnd }).reduce(function (a, o) { return a + o.flight; }, 0) + '조각을 보냈을 것입니다. 타임아웃 쪽이 더 크게 물러섭니다.');
     if (!hit) sum.push('유실이 없으면 느린 시작으로 문턱값까지 빠르게 올라간 뒤 혼잡 회피로 조금씩 계속 늘립니다. 보내는 쪽은 네트워크의 한계를 미리 알 수 없으므로, 유실이 생길 때까지 늘려 보는 방법으로 한계를 찾습니다.');
     if (capped) sum.push('수신 윈도가 혼잡 윈도보다 작았던 왕복이 ' + capped + '번입니다. 그때는 혼잡 윈도가 아무리 커도 수신 윈도만큼만 보냈습니다. 흐름 제어는 받는 쪽을, 혼잡 제어는 그 사이의 네트워크를 넘치지 않게 하는 서로 다른 장치이고, 실제로 보내는 양은 둘 가운데 작은 쪽이 정합니다.');
-    else sum.push('이 설정에서는 수신 윈도가 늘 넉넉해서 보내는 양을 혼잡 윈도가 정했습니다. 수신 윈도를 6조각으로 줄여 보면 받는 쪽이 한계가 되는 경우를 볼 수 있습니다.');
+    else sum.push('이 설정에서는 수신 윈도가 늘 넉넉해서 보내는 양을 혼잡 윈도가 정했습니다.');
     if (hit && hit.capped) sum.push('유실 뒤의 문턱값은 혼잡 윈도(' + hit.cwnd + '조각)의 절반이 아니라 실제로 보내 놓은 양(' + hit.flight + '조각)의 절반입니다. 수신 윈도에 막혀 있던 동안에는 혼잡 윈도만큼 보내 본 적이 없기 때문입니다.');
     return { events: ev, summary: sum, R: R, top: Math.max.apply(null, R.map(function (o) { return o.cwnd; })),
       row: [flights.join(' '), hit ? hit.nextSsth + '조각' : '유실 없음', hit ? hit.nextCwnd + '조각' : '유실 없음', total + '조각', capped + '번'] };
@@ -83,8 +82,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 왕복 한 번씩 진행합니다. 조각은 TCP가 한 번에 실어 보내는 데이터 한 덩어리(세그먼트)입니다.'); return; }
-    var cur = s.rows[s.rows.length - 1];
-    H.counters(v, [[s.cwnd + '조각', '혼잡 윈도 (다음 왕복)'], [s.ssth + '조각', '문턱값'], [cur.rwnd + '조각', '수신 윈도'], [cur.flight + '조각', '이번 왕복에 보낸 양']]);
+    H.counters(v, [[s.cwnd + '조각', '혼잡 윈도 (다음 왕복)']]);
     var name = { ss: '느린 시작', ca: '혼잡 회피', loss: '유실' };
     H.table(v, ['왕복', '단계', '혼잡 윈도', '수신 윈도', '보낸 양', '문턱값'], s.rows.map(function (r) { return { cells: [String(r.r), { v: name[r.phase], cls: r.phase === 'loss' ? 'bad' : r.phase === 'ca' ? 'good' : '' }, String(r.cwnd), String(r.rwnd), { v: String(r.flight), cls: r.capped ? 'hot' : '' }, String(r.ssth)] }; }), '왕복마다의 값 (노란 칸은 수신 윈도에 막힌 양)');
   },

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Transport layer</p>
 <h1>Flow control and congestion control</h1>
 <p><b>How does TCP decide how much to send at a time?</b></p>
-<p>Even when TCP has a lot of data to send, it does not pour it all out at once. It sends only up to the smaller of two amounts: the amount the receiver can handle (the receive window) and the amount TCP estimates the network can handle (the congestion window). Respecting the first is flow control, and adjusting the second is congestion control. See how the amount sent grows and shrinks over twelve round trips.</p>
+<p>Even when TCP has a lot of data to send, it does not pour it all out at once. It sends only up to the smaller of two amounts: the amount the receiver can handle (the receive window) and the amount TCP estimates the network can handle (the congestion window). Respecting the first is flow control, and adjusting the second is congestion control.</p>
 <p>Conceptual model · A model of the concept that follows the rules of RFC 5681. It was not checked against a real TCP run; it was checked in 153 settings against a separate calculation of the same rules, one ACK at a time</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -71,9 +71,8 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>In twelve round trips, 79 segments were sent. Amount sent in each round trip: 1, 2, 4, 8, 9, 10, 5, 6, 7, 8, 9, 10.</li>
 <li>When the loss is detected by three duplicate ACKs, the slow start threshold and the congestion window are reduced to half of the amount sent (5 segments), and the window grows by one again from there. It grows, and when it meets a loss it is reduced, over and over, so if you draw the amount sent, it forms a sawtooth.</li>
-<li>In this setting, the receive window was always ample, so the congestion window decided the amount sent. If you reduce the receive window to 6 segments, you can see the case in which the receiver is the limit.</li>
+<li>In this setting, the receive window was always ample, so the congestion window decided the amount sent.</li>
 </ul>
 <h2>Code</h2>
 <pre>// The rules of RFC 5681, expressed in units of segments. This is done by TCP in the operating system, not by the program
@@ -178,6 +177,6 @@ function onThreeDuplicateAcks(flight) {   // the same ACK three times = one segm
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

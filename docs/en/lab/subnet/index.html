@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -68,7 +68,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>192.168.0.10/25 has the network address 192.168.0.0, the broadcast address 192.168.0.127, and 126 usable hosts. The destination (192.168.0.200) is on a different network, and the way it is sent is &quot;Passed to the gateway (no address translation)&quot;.</li>
 <li>Whether two addresses are on the same network is decided not by the leading decimal numbers but by the first 25 bits that the subnet mask picks out. With a prefix longer than /24 (/25, /26, /30), the networks split even within the last number. If you enter the wrong subnet mask, data that should go to the device right next to you goes to the gateway, or the other way around.</li>
 <li>NAT is needed when data goes from a private address out to a public address. In an internal network where private addresses talk to each other, a router only forwards the data and does not change the addresses.</li>
 </ul>
@@ -172,6 +171,6 @@ console.log(((toNumber('192.168.0.200') &amp; mask) &gt;&gt;&gt; 0) === network)
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'udp', nav: 'TCP and UDP', cat: 'Networking', mode: 'step',
   title: 'If you send data in three pieces, does it arrive in three pieces?',
-  intro: 'TCP and UDP are two ways of carrying the data of one program to another program. TCP first establishes a connection and delivers the bytes in order and without gaps, but it does not tell the receiver where the sender split the data. UDP sends each piece as it is, with no connection, and takes no responsibility for whether it arrives. Send the same data both ways and see what changes on the receiving side.',
+  intro: 'TCP and UDP are two ways of carrying the data of one program to another program. TCP first establishes a connection and delivers the bytes in order and without gaps, but it does not tell the receiver where the sender split the data. UDP sends each piece as it is, with no connection, and takes no responsibility for whether it arrives.',
   terms: ['TCP and UDP', 'Byte stream and datagram', 'Socket', 'Port', 'Three-way handshake'],
   controls: [
     { id: 'proto', label: 'Protocol', type: 'select', value: 'tcp', options: [['tcp', 'TCP'], ['udp', 'UDP']] },
@@ -84,27 +84,20 @@ Lab.register({
     var q = function (a) { return a.map(function (x) { return '"' + x + '"'; }).join(', '); };
     var same = !on ? (tcp ? 'Nothing was sent' : 'All lost') : tcp ? 'Same content and order, boundaries gone' : { ok: 'Exactly as sent', loss: 'One is missing', reorder: 'Order changed' }[net];
     var row = [tcp ? (on ? 'Established (success)' : 'Failed (ECONNREFUSED)') : 'None', tcp ? (on ? '3 writes succeeded' : 'Could not send') : 'All 3 sends: no error', got.length ? q(got) + ' (' + got.length + (got.length === 1 ? ' piece)' : ' pieces)') : 'None', same];
-    sum.push(tcp && !on ? 'TCP: the connection was refused, so nothing could be sent.' : (tcp ? 'TCP: ' : 'UDP: ') + 'The pieces sent were "AB", "CD", and "EF", and the receiving program read ' + (got.length ? q(got) : 'nothing') + '.');
     if (tcp && on) sum.push('TCP is a stream of bytes. It keeps the order and the content, but it does not tell the receiver how many writes the data was split into. So a program that exchanges messages over TCP has to decide for itself "where one message ends." It writes the length first (as HTTP does with Content-Length) or uses a delimiter such as a newline.');
     if (tcp && on && net === 'ok') sum.push('In this lab, the receiving program reads late. If it reads as soon as the data arrives, the data may be read in three separate pieces, as it was sent, but there is no guarantee of that. Code that assumes "one write is one read" works on your own computer and then breaks in a real environment.');
     if (tcp && on && net !== 'ok') sum.push('With TCP, even if data is lost or reordered on the way, the operating system corrects it with sequence numbers and acknowledgments before handing it to the program. What the program reads is the same as when nothing went wrong. In exchange, the data that came later has to wait until the gap is filled. You can see the detailed process of retransmission in the "TCP connections and retransmission" lab. This case could not be created on the PC used to write this lab, so it was not verified by execution, and it follows the description in the TCP specification.');
-    if (tcp && !on) sum.push('With TCP, the sender finds out that nobody is there while it is establishing the connection. Change the protocol and compare what happens with UDP in the same situation.');
-    if (!tcp && on && net === 'ok') sum.push('UDP keeps the boundaries of the pieces that were sent (datagrams). One send is one message on the receiving side. However, this is true only when nothing happens on the way. Try setting a loss or a reordering.');
+    if (tcp && !on) sum.push('With TCP, the sender finds out that nobody is there while it is establishing the connection.');
+    if (!tcp && on && net === 'ok') sum.push('UDP keeps the boundaries of the pieces that were sent (datagrams). One send is one message on the receiving side. However, this is true only when nothing happens on the way.');
     if (!tcp && on && net !== 'ok') sum.push('UDP does not send lost data again and does not put data in order. If needed, the program has to add numbers, acknowledge, and resend by itself. QUIC, which HTTP/3 uses, is an example that built such features on top of UDP.');
     if (!tcp && !on) sum.push('A UDP send succeeding means only that the operating system sent the datagram out. Even if the other program does not exist, or the datagram is lost on the way, the sender cannot know.');
     sum.push(tcp ? 'TCP is used where nothing may be lost or reordered. The web (HTTP/1.1, HTTP/2), database connections, file transfer, and email run on TCP.' : 'UDP is used where losing a little is acceptable and late arrival is worse, or where one short question and answer is enough. Real-time voice and video, games, and DNS lookups are typical.');
     return { events: ev, summary: sum, row: row };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, tcp = sim.c.proto === 'tcp', P = this.PARTS;
+    var last = shown[shown.length - 1], s = last ? last.snap : null, P = this.PARTS;
     if (!s) { H.text(v, 'Click Run to go through it one step at a time.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'Connection', { ok: 'Established (three-way handshake)', fail: 'Failed (ECONNREFUSED)', none: 'None (UDP does not connect)' }[s.conn], s.conn === 'ok' ? 'good' : s.conn === 'fail' ? 'bad' : 'none');
     H.table(v, ['Sent', 'What happened'], P.map(function (x, i) { var z = s.sent[i]; return { cells: ['"' + x + '"', z === 0 ? 'Not sent yet' : z === 1 ? { v: 'Arrived at the receiver\'s OS', cls: 'good' } : z === 2 ? { v: 'Lost', cls: 'bad' } : { v: 'In flight (delayed)', cls: 'hot' }] }; }), 'The three pieces the sender sent');
-    H.text(v, tcp ? 'Receive buffer of the receiver\'s operating system (the bytes form one line)' : 'Receive buffer of the receiver\'s operating system (each datagram is kept separate)');
-    H.slots(v, s.buf.map(function (x) { return [x, 'q']; }).concat(s.held ? [[s.held + ' (held, gap before it)', 'b']] : []), 'Empty');
-    H.text(v, 'What the receiving program read (each slot is one read)');
-    H.slots(v, s.read.map(function (x) { return [x, 'd']; }), 'Not read yet');
   },
   // Diagram: on the left, the three pieces the sending program sent; in the middle, the receive buffer of the receiver's operating system; on the right, what the receiving program read. TCP joins them into one line in the middle, and UDP keeps them separate.
   draw: function (P, sim, shown) {

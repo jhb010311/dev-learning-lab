@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Scaling and distribution</p>
 <h1>NoSQL and the document model</h1>
 <p><b>Split an order into three tables, or put it in one document?</b></p>
-<p>Store the same data (orders and order items) in two ways. The relational way splits products, orders, and order items into three tables and joins them when reading. The document model is the way used by document databases such as MongoDB: it treats one order as one document and puts the array of items and even the product names inside it. Read, rename, and add a new field to see what becomes easier and what becomes harder.</p>
+<p>Store the same data (orders and order items) in two ways. The relational way splits products, orders, and order items into three tables and joins them when reading. The document model is the way used by document databases such as MongoDB: it treats one order as one document and puts the array of items and even the product names inside it.</p>
 <p>Partly checked against real execution · The document model was reproduced with a MySQL 8.4.11 JSON column, and 20 combinations were checked by execution. A dedicated document database was not run</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Database reaction: Success. 3 documents changed. Orders showing the new name: 3 of 3.</li>
 <li>A value copied into documents has to be found and changed in every copy each time it changes. This is the cost of making reads easy. So in the document model, you either copy only values that rarely change, or keep only the product number and look up the name separately.</li>
 <li>However, if you must keep a record of the product name and price at the time of the order, it is actually correct behavior that the copied value does not change later. Copying is not always bad.</li>
 <li>NoSQL is a general name for databases that are not relational, and the document model is one of them. Rather than one being better, you choose according to what you often read together and what changes often.</li>
@@ -166,6 +165,6 @@ WHERE JSON_SEARCH(doc, 'one', 'keyboard', NULL, '$.items[*].name') IS NOT NULL;<
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

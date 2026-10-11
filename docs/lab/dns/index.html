@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DNS: 도메인 이름의 주소는 누가 알고 있고, 바꾸면 언제 반영될까 · 개발 학습 실습실</title>
-<meta name="description" content="컴퓨터는 shop.example 같은 이름으로는 접속할 수 없고 IP 주소가 있어야 합니다. 이름을 주소로 바꿔 주는 것이 DNS입니다. 답을 아는 서버는 한 곳이 아니라 여러 단계로 나뉘어 있고, 한 번 받은 답은 정해진 시간(TTL) 동안 캐시에 남아 다시 묻지 않습니다.…">
+<meta name="description" content="컴퓨터는 shop.example 같은 이름으로는 접속할 수 없고 IP 주소가 있어야 합니다. 이름을 주소로 바꿔 주는 것이 DNS입니다. 답을 아는 서버는 한 곳이 아니라 여러 단계로 나뉘어 있고, 한 번 받은 답은 정해진 시간(TTL) 동안 캐시에 남아 다시 묻지 않습니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/dns/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/dns/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dns/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="DNS: 도메인 이름의 주소는 누가 알고 있고, 바꾸면 언제 반영될까 · 개발 학습 실습실">
-<meta property="og:description" content="컴퓨터는 shop.example 같은 이름으로는 접속할 수 없고 IP 주소가 있어야 합니다. 이름을 주소로 바꿔 주는 것이 DNS입니다. 답을 아는 서버는 한 곳이 아니라 여러 단계로 나뉘어 있고, 한 번 받은 답은 정해진 시간(TTL) 동안 캐시에 남아 다시 묻지 않습니다.…">
+<meta property="og:description" content="컴퓨터는 shop.example 같은 이름으로는 접속할 수 없고 IP 주소가 있어야 합니다. 이름을 주소로 바꿔 주는 것이 DNS입니다. 답을 아는 서버는 한 곳이 아니라 여러 단계로 나뉘어 있고, 한 번 받은 답은 정해진 시간(TTL) 동안 캐시에 남아 다시 묻지 않습니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/dns/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=247ede25a6">
+<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 주소와 이름</p>
 <h1>DNS</h1>
 <p><b>도메인 이름의 주소는 누가 알고 있고, 바꾸면 언제 반영될까</b></p>
-<p>컴퓨터는 shop.example 같은 이름으로는 접속할 수 없고 IP 주소가 있어야 합니다. 이름을 주소로 바꿔 주는 것이 DNS입니다. 답을 아는 서버는 한 곳이 아니라 여러 단계로 나뉘어 있고, 한 번 받은 답은 정해진 시간(TTL) 동안 캐시에 남아 다시 묻지 않습니다. 묻는 과정과 캐시가 만드는 차이를 따라가 보세요.</p>
+<p>컴퓨터는 shop.example 같은 이름으로는 접속할 수 없고 IP 주소가 있어야 합니다. 이름을 주소로 바꿔 주는 것이 DNS입니다. 답을 아는 서버는 한 곳이 아니라 여러 단계로 나뉘어 있고, 한 번 받은 답은 정해진 시간(TTL) 동안 캐시에 남아 다시 묻지 않습니다.</p>
 <p>일부만 실행으로 확인 · 127.0.0.1에 띄운 시험용 네임 서버와 리졸버로 서른두 가지 조합을 실제 DNS 메시지로 실행해 대조. 레코드의 풀이는 Node.js 24의 c-ares와 대조했고, 리졸버와 캐시의 동작은 RFC 1034와 1035의 절차를 재현한 것</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>받은 답: 203.0.113.10. 답이 나온 곳: 권한 있는 네임 서버. PC가 리졸버에 1번, 리졸버가 네임 서버에 3번 물었습니다.</li>
 <li>어느 서버도 모든 이름의 답을 가지고 있지 않습니다. 루트 서버는 맨 끝 부분(.example, .com, .kr)을 맡은 서버를, 그 서버는 각 도메인을 맡은 네임 서버를 알려 주고, 답은 그 도메인의 권한 있는 네임 서버만 가지고 있습니다. 이 PC는 리졸버 하나에게만 묻고, 차례로 묻는 일은 리졸버가 대신합니다.</li>
 <li>A 레코드는 이름에 IPv4 주소를 연결합니다. 가장 기본이 되는 레코드입니다.</li>
 </ul>
@@ -167,6 +166,6 @@ console.log(await new Resolver().resolve4('shop.example', { ttl: true }));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=247ede25a6"></script>
+<script src="../../app.js?v=d45f9d1282"></script>
 </body>
 </html>

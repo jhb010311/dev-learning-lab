@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=247ede25a6">
+<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>리다이렉션</h1>
 <p><b>&quot;다른 주소로 가라&quot;는 응답을 받으면 다음 요청은 어떻게 나가나</b></p>
-<p>서버는 요청을 직접 처리하는 대신 3xx 상태 코드와 Location 헤더로 &quot;이 주소로 다시 요청하라&quot;고 안내할 수 있습니다. 이것을 리다이렉션이라고 합니다. 301, 302, 303, 307, 308은 모두 같은 안내처럼 보이지만, 영구인지 임시인지와 다음 요청의 메서드가 유지되는지가 다릅니다. 상태 코드와 요청 메서드를 바꿔 가며 두 번째 요청이 어떤 모양으로 나가는지 보세요.</p>
+<p>서버는 요청을 직접 처리하는 대신 3xx 상태 코드와 Location 헤더로 &quot;이 주소로 다시 요청하라&quot;고 안내할 수 있습니다. 이것을 리다이렉션이라고 합니다. 301, 302, 303, 307, 308은 모두 같은 안내처럼 보이지만, 영구인지 임시인지와 다음 요청의 메서드가 유지되는지가 다릅니다.</p>
 <p>실행으로 대조 · 시험 서버(127.0.0.1)에 Node 24의 fetch와 curl 8.21(-L)로 서른 가지 조합을 실행해 대조. 영구·임시 구분과 표준의 문구는 RFC 9110 15.4절을 따름</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>302 Found 응답의 뜻은 &quot;임시 이동&quot;입니다. 두 번째 요청은 GET /orders (본문 없음)로 나갔고, 서버에 도착한 요청은 모두 2번입니다.</li>
 <li>301과 302에서 POST가 GET으로 바뀌는 것은 표준이 &quot;그래도 된다&quot;고 허용한 동작인데, 브라우저를 비롯한 대부분의 클라이언트가 그렇게 합니다. 이때 본문이 사라집니다. POST를 그대로 새 주소로 넘기려면 307(임시)이나 308(영구)을 씁니다.</li>
 </ul>
 <h2>코드</h2>
@@ -172,6 +171,6 @@ await fetch('http://shop.example/order', {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=247ede25a6"></script>
+<script src="../../app.js?v=d45f9d1282"></script>
 </body>
 </html>

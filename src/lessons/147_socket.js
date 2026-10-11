@@ -1,7 +1,7 @@
 Lab.register({
   id: 'socket', nav: '소켓과 포트', cat: '네트워크', mode: 'step',
   title: '한 컴퓨터의 여러 프로그램 가운데 누가 이 데이터를 받나',
-  intro: 'IP 주소는 컴퓨터 한 대까지만 찾아갑니다. 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 누가 데이터를 받을지는 포트 번호가 정합니다. 서버를 띄우는 포트와 클라이언트가 연결하는 포트를 바꿔 가며, 연결이 언제 거절되고 포트 하나에 여러 클라이언트가 어떻게 함께 붙는지 확인하세요.',
+  intro: 'IP 주소는 컴퓨터 한 대까지만 찾아갑니다. 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 누가 데이터를 받을지는 포트 번호가 정합니다.',
   terms: ['포트', '소켓', '임시 포트', 'TCP와 UDP'],
   controls: [
     { id: 'srv', label: '띄우는 서버', type: 'select', value: 'same', options: [['ab', '서버 A는 9000번, 서버 B는 9001번'], ['same', '서버 A도 9000번, 서버 B도 9000번'], ['a', '서버 A만 9000번']] },
@@ -54,10 +54,9 @@ Lab.register({
       push('socket.write: ' + (n > 1 ? '클라이언트 ' + n + '개가 저마다 데이터를 보냅니다. 모두 ' + to + '번 포트로 가지만, 운영체제가 보내는 포트를 보고 어느 연결의 데이터인지 가려서 서버 ' + who + '에게 연결별로 따로 넘깁니다.' : '클라이언트가 데이터를 보냅니다. 받는 포트가 ' + to + '번이므로 운영체제가 서버 ' + who + '에게 넘깁니다.') + (c.srv === 'ab' ? ' 같은 컴퓨터의 서버 ' + (who === 'A' ? 'B' : 'A') + '에게는 아무것도 가지 않습니다.' : ''), 'good');
     }
     var bRow = { ok: '성공 (9001번)', EADDRINUSE: '실패 (EADDRINUSE)', none: '띄우지 않음' }[o.b];
-    sum.push(who ? (n > 1 ? '클라이언트 ' + n + '개가 모두 연결됐고' : '클라이언트가 연결됐고') + ' 데이터는 서버 ' + who + '가 받았습니다.' : (n > 1 ? '클라이언트 ' + n + '개의 연결이 모두' : '클라이언트의 연결이') + ' 거절됐습니다(ECONNREFUSED).');
     if (c.srv === 'same') sum.push('이미 쓰이는 포트에 서버를 또 띄우면 EADDRINUSE로 실패합니다. 개발 중에 "포트가 이미 사용 중"이라는 오류를 만나면, 먼저 띄워 둔 서버가 아직 살아 있는 경우가 대부분입니다. 그 프로그램을 끝내거나 다른 포트를 씁니다.');
     if (who && n > 1) sum.push('서버 포트 하나에 클라이언트 여럿이 함께 연결됩니다. 연결이 늘어도 서버 쪽 포트는 ' + to + '번 하나뿐이고, 연결은 (보내는 IP, 보내는 포트, 받는 IP, 받는 포트) 네 값의 묶음으로 구분됩니다. 웹 서버가 443번 포트 하나로 수많은 사용자를 받는 것도 같은 원리입니다.');
-    if (who && n === 1) sum.push('클라이언트는 받는 포트만 정하고, 보내는 포트는 운영체제가 임시로 골라 줍니다. 클라이언트 수를 늘려서 보내는 포트가 어떻게 달라지는지 보세요.');
+    if (who && n === 1) sum.push('클라이언트는 받는 포트만 정하고, 보내는 포트는 운영체제가 임시로 골라 줍니다.');
     if (!who) sum.push('ECONNREFUSED는 "그 컴퓨터까지는 갔지만 그 포트를 듣는 프로그램이 없다"는 뜻입니다. 서버가 떠 있는지, 포트 번호가 맞는지를 먼저 확인합니다. 응답이 아예 없어서 기다리다 끝나는 타임아웃과는 다른 오류입니다.');
     if (c.srv === 'ab' && who) sum.push('IP 주소가 같아도 포트가 다르면 다른 프로그램입니다. 주소를 "IP:포트"로 함께 적는 이유입니다.');
     return { events: ev, summary: sum, own: o.own, who: who,
@@ -66,12 +65,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 서버를 띄우는 것부터 한 단계씩 진행합니다.'); return; }
-    H.table(v, ['포트', '듣고 있는 프로그램'], [9000, 9001, 9002].map(function (p) { return { cells: [p + '번', s.ports[p] ? { v: '서버 ' + s.ports[p], cls: 'good' } : '없음'] }; }), '이 컴퓨터(127.0.0.1)에서 연결을 기다리는 포트');
-    if (s.b === 'EADDRINUSE') H.text(v, '서버 B: listen(9000) 실패, EADDRINUSE');
     if (s.conns.length) H.table(v, ['클라이언트', '보내는 IP', '보내는 포트', '받는 IP', '받는 포트', '받는 프로그램'], s.conns.map(function (k) { return { cells: [String(k.c), '127.0.0.1', { v: String(k.cp), cls: 'hot' }, '127.0.0.1', String(k.sp), '서버 ' + k.who] }; }), '맺어진 연결 (네 값이 모두 같아야 같은 연결)');
-    if (s.fails.length) H.table(v, ['클라이언트', '연결하려던 포트', '결과'], s.fails.map(function (k) { return { cells: [String(k.c), k.to + '번', { v: 'ECONNREFUSED', cls: 'bad' }] }; }), '거절된 연결');
-    H.counters(v, [[s.conns.length + '개', '맺어진 연결'], [s.fails.length + '개', '거절된 연결']]);
-  },
+    if (s.fails.length) H.table(v, ['클라이언트', '연결하려던 포트', '결과'], s.fails.map(function (k) { return { cells: [String(k.c), k.to + '번', { v: 'ECONNREFUSED', cls: 'bad' }] }; }), '거절된 연결');  },
   // 그림: 왼쪽에 클라이언트들, 오른쪽에 서버 컴퓨터의 포트 세 개. 화살표가 닿는 포트에 듣는 프로그램이 있으면 연결되고 없으면 거절된다.
   draw: function (P, sim, shown) {
     var c = sim.c, n = +c.n, last = shown[shown.length - 1], s = last ? last.snap : { ports: {}, b: '', conns: [], fails: [], sent: false };
@@ -89,7 +84,7 @@ Lab.register({
     }
     P.box('rb', 16, 268, 320, 34, { cls: !s.b ? 'ghost' : s.b === 'ok' ? 'good' : 'bad', title: '서버 B의 listen', right: !s.b ? (c.srv === 'a' ? '띄우지 않음' : '아직') : s.b === 'ok' ? '성공' : 'EADDRINUSE' });
     P.box('rc', 344, 268, 320, 34, { cls: s.conns.length ? 'good' : s.fails.length ? 'bad' : 'ghost', title: '클라이언트의 연결', right: '성공 ' + s.conns.length + ' · 거절 ' + s.fails.length });
-    P.note('오른쪽 상자 하나가 포트 하나입니다. 포트에는 듣는 프로그램이 하나만 있을 수 있지만, 그 포트로 들어오는 연결은 여러 개일 수 있습니다. 클라이언트 쪽 보내는 포트(50001 등)는 설명을 위한 예이고, 실제로는 운영체제가 실행할 때마다 다른 번호를 골라 줍니다.');
+    P.note('오른쪽 상자 하나가 포트 하나입니다. 클라이언트 쪽 보내는 포트(50001 등)는 설명을 위한 예이고, 실제로는 운영체제가 실행할 때마다 다른 번호를 골라 줍니다.');
   },
   assume: '스물일곱 가지 조합을 이 PC(윈도, Node.js 24)의 127.0.0.1에서 net 모듈로 실제로 실행해 대조했습니다. 대조한 것은 서버 B의 listen 결과(성공 또는 EADDRINUSE), 클라이언트 연결의 성공 수와 거절 수(ECONNREFUSED), 데이터를 받은 서버, 서버가 본 연결 수, 서버 쪽 소켓의 포트가 모두 듣는 포트 하나와 같은지, 클라이언트 쪽 포트가 서로 다른지입니다. 실행에서는 9000, 9001, 9002 대신 그때 비어 있던 포트 세 개를 썼고, 클라이언트 쪽 포트 번호(화면의 50001 등)는 실행할 때마다 달라지므로 "서로 다르다"는 것만 결과로 삼았습니다. 운영체제가 임시 포트를 고르는 범위는 운영체제와 설정에 따라 다릅니다(IANA가 권하는 범위는 49152~65535, RFC 6335 6절). 연결을 양쪽의 IP 주소와 포트로 구분한다는 것은 TCP 표준(RFC 9293 4절 용어 풀이의 connection과 socket)의 정의입니다. 클라이언트를 다른 컴퓨터에 두는 경우와, 같은 포트를 여러 프로그램이 함께 쓰게 하는 특수한 소켓 옵션(SO_REUSEPORT 등)은 다루지 않았습니다.',
 });

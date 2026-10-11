@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Transactions and locking</p>
 <h1>Deadlocks in the database</h1>
 <p><b>When two transactions wait for each other, how does the database end it?</b></p>
-<p>Transaction A moves 100 from account 1 to account 2, and transaction B moves 50 from account 2 to account 1. If the two lock the rows in opposite orders, they end up waiting for each other. Java threads in this situation would simply stop forever, but MySQL InnoDB detects the situation by itself, rolls one side back, and returns an error. See which side gets which error, and what the side that got the error has to do afterward.</p>
+<p>Transaction A moves 100 from account 1 to account 2, and transaction B moves 50 from account 2 to account 1. If the two lock the rows in opposite orders, they end up waiting for each other. Java threads in this situation would simply stop forever, but MySQL InnoDB detects the situation by itself, rolls one side back, and returns an error.</p>
 <p>Checked against real execution · Ran 10 combinations on MySQL 8.4.11 with two sessions and checked the results against them</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -69,9 +69,8 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The final balance is 900 for account 1 and 1100 for account 2. The transfer of B is missing.</li>
 <li>InnoDB detects the deadlock by itself, rolls one transaction back as a whole, and returns error 1213. The side that survives proceeds as if nothing had happened. The database ends the deadlock, but doing the rolled-back work again is up to the application.</li>
-<li>If it does not try again, that request disappears without being applied. Switch the response to trying again and compare.</li>
+<li>If it does not try again, that request disappears without being applied.</li>
 <li>Your code cannot decide which side is rolled back. So prepare for the possibility that both transactions can get error 1213.</li>
 </ul>
 <h2>Code</h2>
@@ -176,6 +175,6 @@ ROLLBACK;                          -- and stops</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'joinalgo', nav: '조인 알고리즘', cat: '데이터베이스', mode: 'step',
   title: '조인 컬럼에 인덱스가 없으면 DB는 어떻게 짝을 찾나',
-  intro: '조인은 한 테이블을 먼저 읽고, 그 행마다 다른 테이블에서 짝이 되는 행을 찾는 일입니다. 짝을 찾을 때 인덱스를 쓸 수 있으면 필요한 행만 읽지만, 없으면 전체를 읽어야 합니다. MySQL 8은 그런 경우에 해시 조인이라는 다른 방법을 씁니다. 인덱스와 읽는 순서를 바꿔 가며 MySQL이 고르는 방식을 보세요.',
+  intro: '조인은 한 테이블을 먼저 읽고, 그 행마다 다른 테이블에서 짝이 되는 행을 찾는 일입니다. 짝을 찾을 때 인덱스를 쓸 수 있으면 필요한 행만 읽지만, 없으면 전체를 읽어야 합니다. MySQL 8은 그런 경우에 해시 조인이라는 다른 방법을 씁니다.',
   terms: ['중첩 루프 조인', '해시 조인', '구동 테이블', '옵티마이저', '실행 계획(EXPLAIN)'],
   controls: [
     { id: 'idx', label: 'orders.member_id에 인덱스가 있다', type: 'check', value: false },
@@ -67,13 +67,12 @@ Lab.register({
     }
     st.stage = 7; st.cur = -1; st.all = true; st.loops = p.loops;
     push('결과 10,000행이 나옵니다. 두 테이블에서 읽은 행은 ' + F + ' ' + num(p.firstRows) + '행과 ' + S + ' ' + num(p.loops * p.each) + '행, 합쳐서 ' + num(p.total) + '행입니다.', p.algo === 'scan' ? 'bad' : 'good');
-    sum.push(F + '를 먼저 읽고 ' + (p.algo === 'hash' ? '해시 조인' : '중첩 루프 조인') + '으로 짝을 찾았습니다. ' + S + '를 ' + num(p.loops) + '번, 한 번에 ' + num(p.each) + '행씩 읽어 두 테이블에서 모두 ' + num(p.total) + '행을 읽었습니다.');
     if (p.algo === 'nl' && p.second === 'o') sum.push('중첩 루프 조인이 읽는 양은 "먼저 읽는 테이블의 행 수 × 한 번 찾을 때 읽는 행 수"입니다. 나중 테이블의 조인 컬럼에 인덱스가 있으면 한 번에 필요한 행만 읽습니다. 다른 테이블의 기본 키를 가리키는 컬럼(여기서는 orders.member_id)에 인덱스를 만들어 두라는 이유입니다.');
     if (p.algo === 'nl' && p.second === 'm') sum.push('orders를 먼저 읽으면 member는 기본 키로 한 행씩 찾습니다(type eq_ref). 조인 컬럼의 인덱스는 "나중에 읽는 테이블" 쪽에 있어야 쓰입니다.' + (c.drive === 'auto' ? ' 옵티마이저는 이렇게 인덱스로 찾아갈 수 있는 순서를 스스로 고릅니다. 다만 읽은 행은 20,000행으로, orders.member_id에 인덱스가 있어 member를 먼저 읽을 때의 11,000행보다 많습니다.' : ' 이 순서에서는 orders.member_id에 인덱스가 있든 없든 계획이 같습니다.'));
     if (c.drive === 'auto' && c.idx) sum.push('옵티마이저에게 맡기면 통계를 보고 비용이 낮은 순서를 고릅니다. 여기서는 행이 적은 member를 먼저 읽었습니다. 데이터의 양과 분포가 달라지면 선택도 달라질 수 있습니다.');
     if (p.algo === 'hash') sum.push('해시 조인은 한 테이블로 해시 테이블을 만들고 다른 테이블을 한 번만 읽습니다. 인덱스 없는 중첩 루프라면 1,000 × 10,000 = 1,000만 행을 읽었을 것을 11,000행으로 끝냅니다. EXPLAIN의 Extra에는 Using join buffer (hash join)이라고 나옵니다.');
     if (p.algo === 'hash') sum.push('그래도 인덱스가 필요 없어지는 것은 아닙니다. 해시 조인은 orders를 통째로 읽으므로, 회원 10명의 주문만 찾을 때에도 orders 10,000행을 다 읽습니다. 인덱스가 있으면 10번 찾아가 100행만 읽습니다.');
-    if (p.algo === 'scan') sum.push('인덱스도 해시 조인도 없으면 먼저 읽는 테이블의 행마다 나중 테이블 전체를 읽습니다. 1,000 × 10,000 = 1,000만 행입니다. 두 테이블이 각각 10배가 되면 읽는 양은 100배가 됩니다. 해시 조인을 켠 처음 설정과 비교해 보세요.');
+    if (p.algo === 'scan') sum.push('인덱스도 해시 조인도 없으면 먼저 읽는 테이블의 행마다 나중 테이블 전체를 읽습니다. 1,000 × 10,000 = 1,000만 행입니다. 두 테이블이 각각 10배가 되면 읽는 양은 100배가 됩니다.');
     return { events: ev, summary: sum, p: p, row: [F, p.algo === 'hash' ? '해시 조인' : '중첩 루프 조인', p.type + ' / ' + (p.key === 'NULL' ? '인덱스 없음' : p.key), num(p.loops) + '번 × ' + num(p.each) + '행', num(p.total) + '행'] };
   },
   render: function (v, sim, t, H, shown) {

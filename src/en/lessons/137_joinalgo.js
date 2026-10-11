@@ -1,7 +1,7 @@
 Lab.register({
   id: 'joinalgo', nav: 'Join algorithms', cat: 'Database', mode: 'step',
   title: 'How does the database find matching rows when the join column has no index?',
-  intro: 'A join reads one table first and, for each of its rows, finds the matching rows in the other table. If an index can be used to find the matches, only the rows needed are read. If not, the whole table must be read. In that case, MySQL 8 uses a different method called a hash join. Change the index and the reading order, and see which method MySQL chooses.',
+  intro: 'A join reads one table first and, for each of its rows, finds the matching rows in the other table. If an index can be used to find the matches, only the rows needed are read. If not, the whole table must be read. In that case, MySQL 8 uses a different method called a hash join.',
   terms: ['Nested-loop join', 'Hash join', 'Driving table', 'Optimizer', 'Query execution plan (EXPLAIN)'],
   controls: [
     { id: 'idx', label: 'orders.member_id has an index', type: 'check', value: false },
@@ -67,13 +67,12 @@ Lab.register({
     }
     st.stage = 7; st.cur = -1; st.all = true; st.loops = p.loops;
     push('The result, 10,000 rows, is produced. The rows read from the two tables: ' + F + ' ' + num(p.firstRows) + ' rows and ' + S + ' ' + num(p.loops * p.each) + ' rows, ' + num(p.total) + ' rows in total.', p.algo === 'scan' ? 'bad' : 'good');
-    sum.push(F + ' was read first, and the matches were found with a ' + (p.algo === 'hash' ? 'hash join' : 'nested-loop join') + '. Times ' + S + ' was read: ' + num(p.loops) + '. Rows read each time: ' + num(p.each) + '. In all, ' + num(p.total) + ' rows were read from the two tables.');
     if (p.algo === 'nl' && p.second === 'o') sum.push('The amount a nested-loop join reads is "the number of rows in the table read first × the number of rows read per lookup". If the join column of the later table has an index, only the rows needed are read each time. This is why you should create an index on a column that refers to the primary key of another table (here, orders.member_id).');
     if (p.algo === 'nl' && p.second === 'm') sum.push('If orders is read first, member is looked up one row at a time by primary key (type eq_ref). An index on the join column is used only when it is on the table that is read later.' + (c.drive === 'auto' ? ' The optimizer chooses an order that allows lookups through an index like this by itself. But it reads 20,000 rows, which is more than the 11,000 rows read when member is read first with the index on orders.member_id.' : ' In this order, the plan is the same whether or not orders.member_id has an index.'));
     if (c.drive === 'auto' && c.idx) sum.push('When it is left to the optimizer, it looks at statistics and chooses the order with the lower cost. Here it read member, which has fewer rows, first. If the amount and distribution of the data change, the choice can change too.');
     if (p.algo === 'hash') sum.push('A hash join builds a hash table from one table and reads the other table only once. Where a nested-loop join without an index would have read 1,000 × 10,000 = 10,000,000 rows, it finishes with 11,000 rows. In EXPLAIN, the Extra column shows Using join buffer (hash join).');
     if (p.algo === 'hash') sum.push('Even so, indexes do not become unnecessary. A hash join reads the whole of orders, so even if you only look for the orders of 10 members, it reads all 10,000 rows of orders. With an index, it would look up 10 times and read only 100 rows.');
-    if (p.algo === 'scan') sum.push('Without an index or a hash join, the whole of the later table is read for every row of the table read first. That is 1,000 × 10,000 = 10,000,000 rows. If each of the two tables becomes 10 times larger, the amount read becomes 100 times larger. Compare it with the default settings, where the hash join is on.');
+    if (p.algo === 'scan') sum.push('Without an index or a hash join, the whole of the later table is read for every row of the table read first. That is 1,000 × 10,000 = 10,000,000 rows. If each of the two tables becomes 10 times larger, the amount read becomes 100 times larger.');
     return { events: ev, summary: sum, p: p, row: [F, p.algo === 'hash' ? 'Hash join' : 'Nested-loop join', p.type + ' / ' + (p.key === 'NULL' ? 'no index' : p.key), num(p.loops) + ' × ' + num(p.each), num(p.total)] };
   },
   render: function (v, sim, t, H, shown) {

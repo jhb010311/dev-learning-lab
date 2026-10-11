@@ -1,7 +1,7 @@
 Lab.register({
   id: 'redirect', nav: 'Redirection', cat: 'HTTP', mode: 'step',
   title: 'When a server says "go to another address", how does the next request go out?',
-  intro: 'Instead of handling a request itself, a server can use a 3xx status code and the Location header to tell the client "send the request again to this address". This is called redirection. The codes 301, 302, 303, 307, and 308 all look like the same instruction, but they differ in whether the move is permanent or temporary and in whether the method of the next request is kept. Change the status code and the request method, and see what the second request looks like when it goes out.',
+  intro: 'Instead of handling a request itself, a server can use a 3xx status code and the Location header to tell the client "send the request again to this address". This is called redirection. The codes 301, 302, 303, 307, and 308 all look like the same instruction, but they differ in whether the move is permanent or temporary and in whether the method of the next request is kept.',
   terms: ['Redirection and the Location header', 'Post-Redirect-Get pattern', 'HTTP status codes', 'HTTP methods', 'Safe methods and idempotent methods'],
   controls: [
     { id: 'code', label: 'Status code the server responds with', type: 'select', value: '302', options: [['301', '301 Moved Permanently'], ['302', '302 Found'], ['303', '303 See Other'], ['307', '307 Temporary Redirect'], ['308', '308 Permanent Redirect']] },
@@ -76,7 +76,6 @@ Lab.register({
       push('The client stops by itself. fetch follows 20 redirects and then reports a "redirect count exceeded" error, and curl follows 50 and then reports a "Maximum (50) redirects followed" error. By then, 21 requests had reached the server in the case of fetch and 51 in the case of curl.', 'bad');
       count = 'fetch 21, curl 51'; end = 'Stopped with an error (after following 20 redirects in fetch, 50 in curl)';
     }
-    sum.push('Kind of redirect for ' + line + ': ' + K.kind + '. The second request went out as ' + next + ', and ' + (loop ? 'because the two addresses point to each other, the client reported an error and stopped.' : 'two requests reached the server in all.'));
     if (nx.toGet && c.code !== '303') sum.push('Changing POST to GET on a 301 or 302 is something the standard permits ("it is allowed"), and most clients, including browsers, do it. The body is lost when this happens. To pass the POST on to the new address as it is, use 307 (temporary) or 308 (permanent).');
     if (c.code === '303') sum.push(hasBody ? 'A 303 is used to send the user to a result page after a form is submitted. The second request is a GET, so even if the user presses refresh, the form is not submitted again. This approach is called the Post-Redirect-Get pattern.' : 'A 303 is mainly used after a POST, to tell the client "see the result at this address with GET". If the request was a GET from the start, the result is the same as with 302 or 307.');
     if ((c.code === '307' || c.code === '308') && hasBody) sum.push('307 and 308 were added later to guarantee that the method and the body do not change. 307 is the "keep the method" version of 302, and 308 is the "keep the method" version of 301.');
@@ -89,7 +88,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, CODES = this.CODES;
     if (!s) { H.text(v, 'Click Run to see the requests and responses go back and forth one at a time.'); return; }
-    H.counters(v, [[s.n + '', 'Requests that reached the server'], [s.msgs.length > 3 ? sim.next : '?', 'Second request'], [s.done || 'In progress', 'How it ended']]);
+    H.counters(v, [[s.n + '', 'Requests that reached the server']]);
     H.table(v, ['Who', 'Sent', 'Meaning'], s.msgs.map(function (m) { return { cells: [m.f === '*' ? 'Both' : m.f === 'c' ? (m.t ? 'Client → server' : 'Client') : 'Server → client', { v: m.s, cls: m.cls === 'bad' ? 'bad' : m.cls === 'good' ? 'good' : '' }, m.mean] }; }), 'Between the client and the server');
     H.table(v, ['Code', 'Kind', 'Method handling set by the standard'], ['301', '302', '303', '307', '308'].map(function (k) { var X = CODES[k]; return { cells: [{ v: k + ' ' + X.name, cls: k === c.code ? 'hot' : '' }, X.kind, X.rule] }; }), 'The five redirection status codes');
   },

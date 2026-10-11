@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Transport layer</p>
 <h1>TCP and UDP</h1>
 <p><b>If you send data in three pieces, does it arrive in three pieces?</b></p>
-<p>TCP and UDP are two ways of carrying the data of one program to another program. TCP first establishes a connection and delivers the bytes in order and without gaps, but it does not tell the receiver where the sender split the data. UDP sends each piece as it is, with no connection, and takes no responsibility for whether it arrives. Send the same data both ways and see what changes on the receiving side.</p>
+<p>TCP and UDP are two ways of carrying the data of one program to another program. TCP first establishes a connection and delivers the bytes in order and without gaps, but it does not tell the receiver where the sender split the data. UDP sends each piece as it is, with no connection, and takes no responsibility for whether it arrives.</p>
 <p>Partly checked against real execution · Six of the eight combinations were run on 127.0.0.1 with the net and dgram modules of Node.js 24 and checked. The two combinations of TCP with a loss or a reordering are based on RFC 9293</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>TCP: The pieces sent were &quot;AB&quot;, &quot;CD&quot;, and &quot;EF&quot;, and the receiving program read &quot;ABCDEF&quot;.</li>
 <li>TCP is a stream of bytes. It keeps the order and the content, but it does not tell the receiver how many writes the data was split into. So a program that exchanges messages over TCP has to decide for itself &quot;where one message ends.&quot; It writes the length first (as HTTP does with Content-Length) or uses a delimiter such as a newline.</li>
 <li>In this lab, the receiving program reads late. If it reads as soon as the data arrives, the data may be read in three separate pieces, as it was sent, but there is no guarantee of that. Code that assumes &quot;one write is one read&quot; works on your own computer and then breaks in a real environment.</li>
 <li>TCP is used where nothing may be lost or reordered. The web (HTTP/1.1, HTTP/2), database connections, file transfer, and email run on TCP.</li>
@@ -171,6 +170,6 @@ net.createServer({ pauseOnConnect: true }, conn =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

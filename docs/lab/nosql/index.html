@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=247ede25a6">
+<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 확장과 분산</p>
 <h1>NoSQL과 문서 모델</h1>
 <p><b>주문을 테이블 셋에 나눌까, 문서 하나에 담을까</b></p>
-<p>같은 데이터(주문과 주문 항목)를 두 가지 방식으로 저장해 봅니다. 관계형은 상품, 주문, 주문 항목을 테이블 셋에 나눠 두고 읽을 때 조인합니다. 문서 모델은 MongoDB 같은 문서 DB가 쓰는 방식으로, 주문 하나를 문서 하나로 보고 그 안에 항목 배열과 상품 이름까지 함께 담습니다. 읽기, 이름 바꾸기, 새 항목 넣기를 해 보면서 무엇이 쉬워지고 무엇이 어려워지는지 보세요.</p>
+<p>같은 데이터(주문과 주문 항목)를 두 가지 방식으로 저장해 봅니다. 관계형은 상품, 주문, 주문 항목을 테이블 셋에 나눠 두고 읽을 때 조인합니다. 문서 모델은 MongoDB 같은 문서 DB가 쓰는 방식으로, 주문 하나를 문서 하나로 보고 그 안에 항목 배열과 상품 이름까지 함께 담습니다.</p>
 <p>일부만 실행으로 확인 · MySQL 8.4.11의 JSON 컬럼으로 문서 모델을 재현해 스무 가지 조합을 실행으로 대조. 전용 문서 DB는 실행하지 못함</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>DB의 반응: 성공. 문서 3개 수정. 새 이름으로 보이는 주문: 3건 중 3건.</li>
 <li>문서에 복사해 둔 값은 바뀔 때마다 복사본을 모두 찾아 고쳐야 합니다. 읽기를 쉽게 만든 대가입니다. 그래서 문서 모델에서는 잘 바뀌지 않는 값만 복사해 넣거나, 상품 번호만 넣어 두고 이름은 따로 조회합니다.</li>
 <li>다만 주문 당시의 상품 이름과 가격을 기록으로 남겨야 한다면, 복사해 둔 값이 나중에 바뀌지 않는 것이 오히려 맞는 동작입니다. 복사가 늘 나쁜 것은 아닙니다.</li>
 <li>NoSQL은 관계형이 아닌 DB를 통틀어 부르는 말이고, 문서 모델은 그 가운데 하나입니다. 어느 쪽이 더 좋다기보다, 무엇을 자주 함께 읽고 무엇이 자주 바뀌는지에 따라 고릅니다.</li>
@@ -166,6 +165,6 @@ WHERE JSON_SEARCH(doc, 'one', '키보드', NULL, '$.items[*].name') IS NOT NULL;
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=247ede25a6"></script>
+<script src="../../app.js?v=d45f9d1282"></script>
 </body>
 </html>

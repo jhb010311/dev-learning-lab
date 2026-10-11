@@ -6974,14 +6974,13 @@ Lab.register({
     }
     if (d === 'm2m_cols' && add) { rows = [T.post[0].slice(2).map(nul)]; finish('Reads tag1, tag2, and tag3 of post 1. They are the original three tags, unchanged.', 'The docker tag was not attached.'); }
     var wres = !add ? 'Query only' : w.err ? 'Error ' + w.err.no : 'Success (' + w.affected + (w.affected === 1 ? ' row)' : ' rows)');
-    sum.push((add ? 'The write statement ' + (w.err ? 'was rejected with error ' + w.err.no : 'succeeded') + ', and the ' : 'The ') + 'query result is ' + res.text + '. It is ' + (res.same ? 'the same as' : 'different from') + ' what should come back (' + nounOf + ' ' + want.join(', ') + ').');
     sum.push({ o2m_many: add ? 'To write one more post, you only insert one row into post. However many posts a member writes, the shape of the table stays the same and only the rows increase.' : 'In one-to-many, the foreign key goes in the table on the "many" side. A post row has only one author, so one cell is enough, and however many posts a member writes, the rows of post just increase.',
       o2m_one: add ? 'When the new post was connected, the connection to the earlier post was overwritten. There is only one cell, so "connect one more" becomes "replace". If you put the foreign key on the post, the "many" side, this does not happen.' : 'If you put the foreign key on the "one" side, one cell holds only one value, so it cannot hold "many". That is why in one-to-many the foreign key goes in the table on the "many" side.',
       m2m_link: add ? 'Attaching one more tag is inserting one row into the associative table. The shape of the tables does not change however many tags there are. The primary key (post_id, tag_id) prevents attaching the same tag twice, and the foreign keys prevent attaching a tag that does not exist.' : 'A many-to-many relationship cannot be expressed with foreign keys between two tables alone, so you put an associative table in the middle. From the associative table, it is one-to-many with the post and also one-to-many with the tag. One many-to-many relationship has been broken down into two one-to-many relationships.',
       m2m_csv: add ? 'Appending itself works. But the DB does not know those characters are a tag, so it does not stop you from appending the same tag again, a tag that does not exist, or a typo. And the problem shows up in "find what is connected".' : "When you put several values in one cell, the DB cannot handle them one by one. If you search for java with LIKE, javascript is matched too. If you use MySQL's FIND_IN_SET('java', tags), it compares with the pieces split at the commas, so only posts 1 and 2 come back, but because the condition puts the column into a function, even if tags has an index, it cannot be used, and every row is read.",
-      m2m_cols: add ? 'The limit on the number of tags is built into the shape of the table. If you add tag4 with ALTER TABLE, you must also add an OR tag4 = ... condition to every query that searches for tags.' : 'The condition for finding a tag gets as long as the number of columns, and every time a column is added, all the SQL that uses this query has to be fixed. Try "connect one more" and you will see a bigger problem.',
+      m2m_cols: add ? 'The limit on the number of tags is built into the shape of the table. If you add tag4 with ALTER TABLE, you must also add an OR tag4 = ... condition to every query that searches for tags.' : 'The condition for finding a tag gets as long as the number of columns, and every time a column is added, all the SQL that uses this query has to be fixed.',
       o2o_uq: add ? 'One-to-one is a one-to-many foreign key plus a unique constraint. The unique constraint blocks a second row that points to the same member, so "one profile per member" is kept.' : 'One-to-one is a one-to-many foreign key plus a unique constraint. The foreign key can go in either of the two tables, and if the information is always queried together, the two are sometimes merged into one table.',
-      o2o_fk: add ? 'Without a unique constraint, two profiles that point to the same member can go in. This is because the structure of the table is the same as one-to-many. A program that was built on the belief that "the profile of a member is one row" breaks here.' : 'Just by querying, you cannot see a difference from the design with a unique constraint. Try "connect one more" and it changes.' }[d]);
+      o2o_fk: add ? 'Without a unique constraint, two profiles that point to the same member can go in. This is because the structure of the table is the same as one-to-many. A program that was built on the belief that "the profile of a member is one row" breaks here.' : 'Just by querying, you cannot see a difference from the design with a unique constraint.' }[d]);
     var dump = {}; b.t.forEach(function (t) { dump[t[0]] = T[t[0]].map(function (r) { return r.map(nul); }); });
     return { events: ev, summary: sum, rel: b.rel, werr: w.err, rows: rows, same: res.same, dump: dump, row: [wres, res.text, res.same ? 'Same' : 'Different'] };
   },
@@ -6989,7 +6988,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, 'Click Run to go step by step.'); return; }
     var ln = H.lanes(v);
-    if (c.task === 'add') H.lane(ln, 'Write statement', s.wr || 'Not run yet', !s.wr ? 'none' : /Error/.test(s.wr) ? 'wait' : 'hot');
     H.lane(ln, 'Query result', s.res ? s.res.text + (s.res.same ? ' (same as what should come back)' : ' (different from what should come back)') : 'Not queried yet', !s.res ? 'none' : s.res.same ? 'good' : 'bad');
     var key = { member: 'm', post: 'p', tag: 't', profile: 'f' };
     s.t.forEach(function (tb) {
@@ -7045,7 +7043,7 @@ Lab.register({
       });
       if (s.hl.x4) P.box('x4', 554, y(0), 98, 26, { cls: 'bad', title: 'no tag4', center: true });
     }
-    P.note({ o2m_many: 'An arrow points to the member that member_id of a post refers to. Only one arrow leaves each row on the "many" side, and several arrows can arrive at a row on the "one" side.', o2m_one: 'An arrow points to the post that post_id of a member refers to. Only one arrow can leave a member row, so it cannot hold the many posts that one member wrote. A red post is a post whose author cannot be known from the tables.', m2m_link: 'One row of the associative table in the middle is one connection: "this tag is attached to this post". From each row, one arrow goes to the post and one goes to the tag.', m2m_csv: 'The tags are only characters inside the tags cell, so there are no arrows to draw. The DB does not know these characters are tags. A red row is a post that matched the condition but should not have come back.', m2m_cols: 'Each post has three cells fixed for writing tags. A dashed cell is an empty cell that is NULL.', o2o_uq: 'An arrow points to the member that member_id of a profile refers to. Because of the unique constraint, only one arrow can reach a member.', o2o_fk: 'An arrow points to the member that member_id of a profile refers to. There is no unique constraint, so several arrows can reach one member.' }[d]);
+    P.note({ o2m_many: 'An arrow points to the member that member_id of a post refers to. Only one arrow leaves each row on the "many" side, and several arrows can arrive at a row on the "one" side.', o2m_one: 'An arrow points to the post that post_id of a member refers to. A red post is a post whose author cannot be known from the tables.', m2m_link: 'One row of the associative table in the middle is one connection: "this tag is attached to this post". From each row, one arrow goes to the post and one goes to the tag.', m2m_csv: 'The tags are only characters inside the tags cell, so there are no arrows to draw. A red row is a post that matched the condition but should not have come back.', m2m_cols: 'Each post has three cells fixed for writing tags. A dashed cell is an empty cell that is NULL.', o2o_uq: 'An arrow points to the member that member_id of a profile refers to. Because of the unique constraint, only one arrow can reach a member.', o2o_fk: 'An arrow points to the member that member_id of a profile refers to. There is no unique constraint, so several arrows can reach one member.' }[d]);
   },
   assume: 'This is a small example with 3 members, 3 posts, and 5 tags. For all 14 combinations (7 designs × 2 tasks), the SQL on the screen was run as it is on a real MySQL 8.4.11 (InnoDB), and the error number and number of rows changed of the write statement, all the rows of the query result, and all the rows of each table afterwards were checked to be the same as in the model. "What should come back" is a fact decided in this example (Alice wrote posts 1 and 2, the java tag is on posts 1 and 2, and a member has one profile), and it is not a value the DB tells you. The following points in the summaries were also confirmed by running them separately on the same MySQL. With FIND_IN_SET on the comma-separated string, only posts 1 and 2 come back. Even when an index is created on tags and 2,000 rows are inserted, the execution plan of the FIND_IN_SET condition does not use the index and reads every row (type is ALL). In the comma-separated string, adding a tag that is already there is accepted as it is. In the associative table, inserting the same connection once more is rejected with error 1062, and connecting to a tag that does not exist is rejected with error 1452. That LIKE also matches javascript is the same in any database, but FIND_IN_SET is a MySQL function. The error numbers and messages are also MySQL\'s. The design that puts the foreign key of a one-to-many relationship on the "one" side is an example made to show a mistake. Which table to put the foreign key in for a one-to-one relationship, and whether to merge the tables, is a design decision that depends on how the data is queried, and this lab does not go as far as that comparison. Normalization and anomalies are covered in the "Normalization" lab.',
 });
@@ -7053,7 +7051,7 @@ Lab.register({
 Lab.register({
   id: 'selectorder', nav: 'SELECT processing order', cat: 'Database', mode: 'step',
   title: 'Why can\'t you use an alias or an aggregate function in WHERE?',
-  intro: 'You can think of a SELECT statement as being processed not in the order it is written but in the order FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT. Which names you can use depends on where in this order a clause comes. Write the same condition in WHERE and then in HAVING, and follow the steps to see where an error occurs and how the result changes.',
+  intro: 'You can think of a SELECT statement as being processed not in the order it is written but in the order FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT. Which names you can use depends on where in this order a clause comes.',
   terms: ['Logical processing order of the SELECT statement', 'GROUP BY, WHERE, HAVING', 'Column alias (AS)', 'Aggregate function'],
   controls: [
     { id: 'cond', label: 'Condition to filter by', type: 'select', value: 'alias', options: [['grpcol', "member <> 'Carol' (the column you group by)"], ['rowcol', 'amount >= 300 (the amount of a single order)'], ['agg', 'SUM(amount) >= 300 (an aggregate function)'], ['alias', 'total >= 300 (an alias given in SELECT)']] },
@@ -7148,10 +7146,10 @@ Lab.register({
     if (!err && ga) ext.push('GROUP BY');
     if (!err && !W && c.cond === 'alias') ext.push('HAVING');
     var extText = err ? '-' : ext.length ? 'Alias in ' + ext.join(' and ') : 'None';
-    sum.push(err ? 'The statement was rejected with error ' + err.no + ' (' + err.msg + '). A name that cannot be used at the ' + (W ? 'WHERE' : 'HAVING') + ' step was used.' : 'The result is ' + list.join(', ') + ' (rows: ' + list.length + ').' + (lim ? '' : ' There is no ORDER BY, so the order in which the rows come out is not defined.'));
+    if (!err && !lim) sum.push('There is no ORDER BY, so the order in which the rows come out is not defined.');
     sum.push({ grpcol: 'A condition on the grouping column gives the same result whether you write it in WHERE or in HAVING. But WHERE cuts down the rows before they are grouped, while HAVING throws groups away after everything has been grouped. As a rule, write a condition that can be checked without grouping in WHERE.',
       rowcol: W ? 'WHERE discards rows before the total is computed. That is why Alice\'s total came out as 300, not 450. This result means "pick only the orders of 300 or more, then add them up by member". If you wanted "the members whose total is 300 or more", you have to write HAVING SUM(amount) >= 300, and then Alice 450 and Bob 320 come out.' : 'After grouping, you can use only the grouping column and aggregate functions. A condition that filters on the value of each single row must be written in WHERE, which is processed before grouping.',
-      agg: W ? 'A condition that filters on an aggregate function is written in HAVING, which is processed after grouping. When WHERE is processed, there are no groups yet.' : 'The same words "300 or more" mean different things: WHERE amount >= 300 filters single orders, and HAVING SUM(amount) >= 300 filters the totals by member. Change the condition to "amount >= 300" and the place to WHERE, and compare the results.',
+      agg: W ? 'A condition that filters on an aggregate function is written in HAVING, which is processed after grouping. When WHERE is processed, there are no groups yet.' : 'The same words "300 or more" mean different things: WHERE amount >= 300 filters single orders, and HAVING SUM(amount) >= 300 filters the totals by member.',
       alias: W ? 'An alias is attached at the SELECT step, so it cannot be used in WHERE, which is processed earlier. This is true in standard SQL as well as in MySQL. To filter on an alias for an aggregate, move the condition to HAVING.' : 'MySQL accepts an alias from SELECT in HAVING. This is an extension that standard SQL does not have, so it can cause an error in other databases. To write it so that it works everywhere, write the expression itself, as in HAVING SUM(amount) >= 300.' }[c.cond]);
     if (!err && ga) sum.push('Using an alias in GROUP BY is also a MySQL extension. In the processing order, GROUP BY comes before SELECT, so in standard SQL you write the original column or expression instead of the alias.');
     if (!err && lim) sum.push('ORDER BY and LIMIT are processed last. So LIMIT 1 means "the one row with the largest total in the filtered and grouped result". If you use LIMIT without ORDER BY, which row is left is not defined.');
@@ -7161,9 +7159,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the steps one at a time, in the order they are processed.'); return; }
-    H.title(v, 'Processing order');
-    H.slots(v, s.stat.map(function (x, i) { return [(i + 1) + '. ' + x.name + (x.n ? ' · ' + x.n : ''), x.k === 'now' ? 'b now' : x.k === 'done' ? 'd' : x.k === 'err' ? 'r' : x.k === 'none' ? '' : 'q']; }), '');
-    H.text(v, 'Names you can use now: ' + s.names + (s.err ? ' · Error ' + s.err.no : ''));
     H.table(v, s.view.head, s.view.rows.map(function (r) { return { cls: r.cls, cells: r.cells }; }), s.view.title);
   },
   // Diagram: The seven steps are placed from left to right in the order they are processed, and below them are the rows (or groups) that passed the current step.
@@ -7190,7 +7185,7 @@ Lab.register({
 Lab.register({
   id: 'subquery', nav: 'Subqueries', cat: 'Database', mode: 'step',
   title: 'Why does NOT IN return no rows at all?',
-  intro: 'A subquery is another SELECT placed inside a SELECT statement, in parentheses. There are several kinds: one that returns a single value, one that returns a list (IN), one that only checks whether a row exists (EXISTS), and one that is run again for every outer row (a correlated subquery). Run each one on the member and orders tables, and see how NOT IN and NOT EXISTS differ when one of the orders has a NULL.',
+  intro: 'A subquery is another SELECT placed inside a SELECT statement, in parentheses. There are several kinds: one that returns a single value, one that returns a list (IN), one that only checks whether a row exists (EXISTS), and one that is run again for every outer row (a correlated subquery).',
   terms: ['Subquery', 'Scalar subquery', 'Correlated subquery', 'IN and EXISTS', 'NULL and three-valued logic'],
   controls: [
     { id: 'kind', label: 'Shape of the subquery', type: 'select', value: 'notin', options: [['scalar', 'A single value: WHERE id = (SELECT ...)'], ['corr', 'Correlated subquery: count the orders of each member'], ['in', 'IN (SELECT ...): members who have orders'], ['exists', 'EXISTS (SELECT ...): members who have orders'], ['notin', 'NOT IN (SELECT ...): members who have no orders'], ['notexists', 'NOT EXISTS (SELECT ...): members who have no orders']] },
@@ -7295,12 +7290,11 @@ Lab.register({
       push('EXPLAIN: The select_type of the row that reads member is SIMPLE, and there is no SUBQUERY or DEPENDENT SUBQUERY row. The statement looks like a correlated subquery, but MySQL 8.4 rewrites it as a join of member and orders (' + (notE ? 'an antijoin' : 'a semijoin') + ') and runs that, so it does not appear as DEPENDENT SUBQUERY. The result is the same as the one worked out above.', '');
     }
     var resText = err ? '-' : out.length ? 'Rows: ' + out.length + ' (' + out.join(', ') + ')' : 'Rows: 0';
-    sum.push(err ? 'The statement was rejected with error 1242.' : 'Result: ' + resText + '. The select_type in EXPLAIN is ' + type + '.');
     if (kind === 'scalar') sum.push({ one: 'A subquery that returns a single value (a scalar subquery) can be used like a value on one side of a comparison such as =, <, or >. It must return exactly one column and at most one row.', two: 'You cannot be sure that one row will keep coming out just because the current data gives one. The moment the data grows and gives two rows, an error occurs. Where several rows can come out, use IN instead of = (in this example, Alice and Bob come out). If you need a single value, write the condition so that the subquery always returns only one row.', zero: 'When the subquery returns 0 rows, the value becomes NULL, not an error. A comparison with NULL is never true, so the result quietly becomes 0 rows. With two rows you are told by an error, but with 0 rows you are not.' }[c.pick]);
     if (kind === 'corr') sum.push('A correlated subquery can be run again as many times as there are outer rows. With 4 outer rows that is 4 times, but with 100,000 outer rows it is 100,000 times. The same result as in this example can also be obtained with LEFT JOIN and GROUP BY.');
     if (kind === 'in') sum.push('IN asks "is there at least one equal value in the list?" Even if the list contains a NULL, a row that finds an equal value is true. A row that does not find one is removed whether its value is false or unknown, so the result does not change. The trouble starts with NOT IN.');
     if (kind === 'exists') sum.push('EXISTS does not compare values. It only looks at "is there a row that satisfies the condition?" In this example IN and EXISTS gave the same result, and MySQL 8.4 ran both as joins. Which one is faster is decided not by the shape of the statement but by looking at the execution plan.');
-    if (kind === 'notin') sum.push(c.nul ? 'If the NOT IN list contains even one NULL, the result is always 0 rows. An empty result comes out with no error and no warning, so it is hard to notice. Add WHERE member_id IS NOT NULL to the subquery (then Dave comes out), or rewrite the statement with NOT EXISTS.' : 'When the list has no NULL, NOT IN works as expected. Turn on "Add one order whose member_id is NULL" and run it again.');
+    if (kind === 'notin') sum.push(c.nul ? 'If the NOT IN list contains even one NULL, the result is always 0 rows. An empty result comes out with no error and no warning, so it is hard to notice. Add WHERE member_id IS NOT NULL to the subquery (then Dave comes out), or rewrite the statement with NOT EXISTS.' : 'When the list has no NULL, NOT IN works as expected.');
     if (kind === 'notexists') sum.push('NOT EXISTS only asks, for each outer row, "is there a matching row?", so the result does not change when a NULL is mixed in. NOT EXISTS is the safe choice for "finding what is missing".');
     if (kind === 'in' || kind === 'exists' || kind === 'notexists') sum.push('The select_type came out as SIMPLE because the MySQL optimizer rewrote the subquery as a join. Depending on the amount of data, EXPLAIN may also show an additional MATERIALIZED row.');
     return { events: ev, summary: sum, err: err, out: out, innerText: innerText, type: type, loops: loops, row: [err ? 'Error ' + err.no : 'Success', resText, innerText, type] };
@@ -7308,12 +7302,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, 'Click Run to go through the steps one at a time.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'Subquery', s.sub || 'Not run yet', s.sub ? 'hot' : 'none');
-    H.lane(ln, 'Result', s.res || 'Not decided yet', !s.res ? 'none' : /Error|^Rows: 0/.test(s.res) ? 'bad' : 'good');
-    H.lane(ln, 'select_type', s.exp || 'Not checked yet', s.exp ? 'wait' : 'none');
     H.table(v, ['id', 'name', c.kind === 'corr' ? 'Value of the subquery' : 'Value of the WHERE condition'], this.M.map(function (m) { var vd = s.verdict[m[0]]; return { cells: [String(m[0]), m[1], vd ? { v: vd[0], cls: vd[1] === 'in' ? 'good' : vd[1] === 'unk' ? 'bad' : '' } : (s.cur === m[0] ? { v: 'Checking', cls: 'hot' } : '')] }; }), 'member table (outer query)');
-    H.table(v, ['id', 'member_id', 'item'], this.orders(c).map(function (o) { var hit = s.hit.indexOf(o[0]) >= 0; return { cells: [String(o[0]), { v: o[1] === null ? 'NULL' : String(o[1]), cls: o[1] === null ? 'bad' : hit ? 'hot' : '' }, { v: o[2], cls: hit ? 'hot' : '' }] }; }), 'orders table (subquery)');
   },
   // Diagram: On the left are the rows of the outer query (members), and on the right are the rows that the subquery reads (orders). Each member gets the value of the condition (true, false, unknown).
   draw: function (P, sim, shown) {
@@ -7334,7 +7323,7 @@ Lab.register({
     if (s && s.cur && !corr) P.arrow('cmp', 'm' + s.cur + ':b', 'sub:t:0.25', { cls: 'hot', label: 'compare' });
     P.box('res', 16, 260, 250, 34, { cls: !s || !s.res ? 'ghost' : /Error|^Rows: 0/.test(s.res) ? 'bad' : 'good', title: 'Result', right: s && s.res ? s.res : '?' });
     P.box('exp', 278, 260, 386, 34, { cls: s && s.exp ? 'wait' : 'ghost', title: 'select_type', right: s && s.exp ? s.exp : '?' });
-    P.note(corr ? 'A correlated subquery looks up the orders again, using the id of the outer row, every time an outer row is fixed. The yellow arrow goes from the outer row being looked at to its matching orders. The order with a thick border is the one whose member_id is NULL.' : 'A subquery that is not correlated is run once, and its result (a single value or a list) is kept. Each outer row is then compared with that result one by one. The text to the right of each member is the value of the WHERE condition. WHERE keeps only the rows whose value is "true", and "unknown" is removed too.');
+    P.note(corr ? 'The yellow arrow goes from the outer row being looked at to its matching orders. The order with a thick border is the one whose member_id is NULL.' : 'The text to the right of each member is the value of the WHERE condition. WHERE keeps only the rows whose value is "true", and "unknown" is removed too.');
   },
   assume: 'This is a small example with 4 members and 4 or 5 orders. For all 36 combinations (6 shapes × with or without the NULL order × 3 items to look for; the item to look for changes the statement only in the "single value" shape), the SQL shown on the screen was run as is on a real MySQL 8.4.11, and the error numbers and messages, every row of the result, the result of running only the subquery in parentheses on its own, and the select_type in EXPLAIN were checked against the model and matched. That a correlated subquery is run for every outer row was confirmed by the loops of the subquery part in EXPLAIN ANALYZE being equal to the number of outer rows (4), and that the subquery of NOT IN is run only once was confirmed by "run only once" being shown in EXPLAIN ANALYZE. The steps on the screen are a logical explanation that follows the meaning of the condition, and they may differ from how MySQL actually runs the statement. The MySQL 8.4 optimizer ran IN and EXISTS subqueries as semijoins and NOT EXISTS as an antijoin, which is why select_type came out as SIMPLE. This rewriting depends on the version, the settings (optimizer_switch), and the amount of data, and the EXPLAIN of the same statement sometimes also showed a MATERIALIZED row. When the members and orders were increased to 1,000 rows each, the select_type classification was the same. Versions before MySQL 8.0.16 do not rewrite EXISTS subqueries as semijoins, so they may show DEPENDENT SUBQUERY (this part follows the MySQL documentation, not execution). NOT IN came out as SUBQUERY instead of being rewritten as a join because member_id is a column that allows NULL. For a table where member_id was declared NOT NULL, the same NOT IN statement came out as SIMPLE (antijoin), which was confirmed by running it. Apart from select_type, the result rows and errors follow the definition of SQL, so they are the same in other databases. Among the contents of the summary, "if you use IN instead of =, Alice and Bob come out", "LEFT JOIN and GROUP BY give the same result", and "if you add IS NOT NULL to the subquery, Dave comes out" were also run separately on the same MySQL and confirmed. That a subquery in the place of a single value becomes NULL when it returns 0 rows agrees between the explanation in the MySQL documentation and the execution result (0 rows, no error).',
 });
@@ -7342,7 +7331,7 @@ Lab.register({
 Lab.register({
   id: 'windowfn', nav: 'Window functions', cat: 'Database', mode: 'step',
   title: 'How do you add a rank and a running total without reducing the rows?',
-  intro: 'GROUP BY combines many rows into one row to compute a total. A window function leaves the rows as they are and adds one value, such as a rank or a running total, next to each row. Change the function and the data, and see what value the tied rows get.',
+  intro: 'GROUP BY combines many rows into one row to compute a total. A window function leaves the rows as they are and adds one value, such as a rank or a running total, next to each row.',
   terms: ['Window function', 'ROW_NUMBER, RANK, DENSE_RANK', 'PARTITION BY', 'LAG and LEAD', 'GROUP BY, WHERE, HAVING'],
   controls: [
     { id: 'fn', label: 'Calculation', type: 'select', value: 'rank', options: [['group', 'Total with GROUP BY (for comparison)'], ['rownum', 'ROW_NUMBER() row number'], ['rank', 'RANK() rank'], ['dense', 'DENSE_RANK() rank'], ['sum', 'SUM(pts) OVER running total'], ['lag', 'LAG(pts) value of the previous row']] },
@@ -7399,8 +7388,7 @@ Lab.register({
       push(part ? 'GROUP BY team: Rows with the same team value are put into one group. This makes two groups: 3 rows for team A and 3 rows for team B.' : 'SUM(pts) is used without GROUP BY. In that case the whole table is one group.');
       st.stage = 'end'; st.done = k.groups.length;
       push('SUM(pts): One total is computed for each group. ' + k.groups.map(function (g) { return (g.team ? 'Team ' + g.team + ' ' : 'All rows ') + g.v + ' points'; }).join(', ') + '. Each group becomes one row of the result, so the 6 rows shrank to ' + rw(k.groups.length) + '. Who scored how many points is not kept in the result.', '');
-      sum.push('The result has ' + rw(k.groups.length) + '. ' + k.groups.map(function (g) { return (g.team ? 'Team ' + g.team + ' ' : 'All rows ') + 'total ' + g.v; }).join(', ') + '.');
-      sum.push('GROUP BY turns each group into one row of the result. You get the totals, but each row\'s name and score are gone. If you want to see a rank or a running total next to each person\'s score, you need a window function, which does not reduce the rows. Change the calculation to RANK or SUM OVER to compare.');
+      sum.push('GROUP BY turns each group into one row of the result. You get the totals, but each row\'s name and score are gone. If you want to see a rank or a running total next to each person\'s score, you need a window function, which does not reduce the rows.');
       return { events: ev, summary: sum, k: k, row: [rw(k.groups.length), k.groups.map(function (g) { return (g.team ? 'Team ' + g.team + ' ' : '') + g.v; }).join(' / '), 'Not applicable'] };
     }
     var f = this.FN[fn], show1 = this.show1;
@@ -7420,8 +7408,7 @@ Lab.register({
     push('ORDER BY ' + (part ? 'team, ' : '') + 'pts DESC: The result is returned. The 6 rows are still 6 rows, and each row now has one value in the ' + f[1] + ' column.', 'good');
     var vals = k.parts.map(function (p, pi) { return (part ? 'Team ' + p[0].team + ' ' : '') + k.out.filter(function (r) { return r.pi === pi; }).map(function (r) { return r.v === null ? 'NULL' : r.v; }).join(', '); }).join(' / ');
     var tied = k.out.filter(function (r) { return r.tiePrev; }), tieCol = !tied.length ? 'No ties' : tied.every(function (r) { return r.v === k.out[k.out.indexOf(r) - 1].v; }) ? 'The same' : 'Different';
-    sum.push('The 6 rows came out as 6 rows. The values added by ' + f[0] + ' are ' + vals + '.');
-    if (fn === 'rownum' || fn === 'rank' || fn === 'dense') sum.push(c.tie === 'yes' ? 'How ties are handled is the difference among the three functions. For the scores 90, 90, 80, ROW_NUMBER gives 1, 2, 3 (different numbers even for a tie), RANK gives 1, 1, 3 (the tied rows share a rank, and the next rank is skipped), and DENSE_RANK gives 1, 1, 2 (the tied rows share a rank, and no rank is skipped).' : 'When there are no ties, ROW_NUMBER, RANK, and DENSE_RANK give the same result. The difference shows only when there are ties. Change the score data to "With ties".');
+    if (fn === 'rownum' || fn === 'rank' || fn === 'dense') sum.push(c.tie === 'yes' ? 'How ties are handled is the difference among the three functions. For the scores 90, 90, 80, ROW_NUMBER gives 1, 2, 3 (different numbers even for a tie), RANK gives 1, 1, 3 (the tied rows share a rank, and the next rank is skipped), and DENSE_RANK gives 1, 1, 2 (the tied rows share a rank, and no rank is skipped).' : 'When there are no ties, ROW_NUMBER, RANK, and DENSE_RANK give the same result. The difference shows only when there are ties.');
     if (fn === 'rownum' && c.tie === 'yes') sum.push('ROW_NUMBER is often used to "pick one row per group" (for example, the top scorer of each team). But the order of tied rows is not defined, so if you need the same result every time, add a column whose values are unique to ORDER BY.');
     if (fn === 'sum') sum.push(c.tie === 'yes' ? 'In a running total, tied rows get the same value. This is because, when you write only ORDER BY, the default frame also includes the rows that have the same ORDER BY value as the current row. To add up one row at a time, write ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW inside OVER. Then the running totals for this data become ' + k.parts.map(function (p, pi) { return (part ? 'Team ' + p[0].team + ' ' : '') + k.out.filter(function (r) { return r.pi === pi; }).map(function (r) { return r.rowsFrame; }).join(', '); }).join(' / ') + '.' : 'Adding OVER (ORDER BY ...) to SUM gives not the grand total but the total from the first row through the current row, that is, a running total. It is used for calculations such as a running total of sales by date.');
     if (fn === 'lag') sum.push('LAG brings a value from another row next to the current row. It lets you compare neighboring rows, such as the difference between yesterday\'s value and today\'s, without joining the same table to itself again. The first row, which has no previous row, gets NULL.');
@@ -7433,8 +7420,6 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go one step at a time.'); return; }
     if (c.fn === 'group') {
       H.table(v, ['name', 'team', 'pts'], this.rowsOf(c).map(function (r) { return { cls: s.stage === 'end' ? 'gone' : '', cells: [r.name, r.team, String(r.pts)] }; }), 'score table (6 rows read)');
-      if (s.stage === 'end') H.table(v, c.part ? ['team', 'total'] : ['total'], k.groups.map(function (g) { return { cells: c.part ? [g.team, { v: String(g.v), cls: 'hot' }] : [{ v: String(g.v), cls: 'hot' }] }; }), 'Result');
-      H.counters(v, [['6', 'Rows read'], [s.stage === 'end' ? String(k.groups.length) : '?', 'Result rows']]);
       return;
     }
     var list = s.stage === 'read' ? this.rowsOf(c).map(function (r) { return { name: r.name, team: r.team, pts: r.pts, v: undefined }; }) : k.out;
@@ -7442,7 +7427,6 @@ Lab.register({
       var done = s.stage !== 'read' && n < s.done, cur = s.stage === 'row' && n === s.done - 1;
       return { cells: [r.name, r.team, String(r.pts), { v: done ? (r.v === null ? 'NULL' : String(r.v)) : '?', cls: cur ? 'hot' : done ? 'good' : '' }] };
     }), s.stage === 'read' ? 'score table (6 rows read)' : 'The 6 rows in line, with their values');
-    H.counters(v, [['6', 'Rows read'], ['6', 'Result rows'], [s.stage === 'read' ? '0' : String(s.done), 'Rows with a value']]);
   },
   // Diagram: On the left are the 6 rows of the score table, and on the right is the result. With GROUP BY, many rows gather into one box. With a window function, each row gets its own box with a value.
   draw: function (P, sim, shown) {
@@ -7463,7 +7447,7 @@ Lab.register({
         if (sorted) k.parts[gi].forEach(function (r) { P.arrow('a' + r.id, 's' + r.id + ':r', 'g' + gi + ':l', { cls: on ? 'good' : 'mut' }); });
       });
       P.text('fn', 340, 36, part ? 'GROUP BY team' : 'SUM(pts)', { anchor: 'middle', bold: true });
-      P.note('The 6 rows on the left shrink to ' + k.groups.length + (k.groups.length === 1 ? ' row' : ' rows') + ' on the right. Blue boxes are team A, and yellow boxes are team B. GROUP BY keeps only one row per group, so who scored how many points disappears from the result.');
+      P.note('The 6 rows on the left shrink to ' + k.groups.length + (k.groups.length === 1 ? ' row' : ' rows') + ' on the right. Blue boxes are team A, and yellow boxes are team B.');
       return;
     }
     order.forEach(function (r, n) {
@@ -7472,7 +7456,7 @@ Lab.register({
       if (done) P.arrow('a' + r.id, 's' + r.id + ':r', 'd' + r.id + ':l', { cls: cur ? 'hot' : 'mut' });
     });
     P.text('fn', 340, 36, this.FN[c.fn][0], { anchor: 'middle', bold: true });
-    P.note('Each row on the left leads straight to one row on the right. The number of rows does not shrink, and only a value is added to each. Blue boxes are team A, and yellow boxes are team B' + (part ? '. The gap between the teams is the boundary made by PARTITION BY.' : '. The teams are not divided, and all the rows are lined up in one line.'));
+    P.note('Each row on the left leads straight to one row on the right. Blue boxes are team A, and yellow boxes are team B' + (part ? '. The gap between the teams is the boundary made by PARTITION BY.' : '. The teams are not divided, and all the rows are lined up in one line.'));
   },
   assume: 'For all 24 combinations, the same SQL statement as the one on the screen was run on MySQL 8.4 on the PC used to write this lab, and the number of result rows and the value added to each row were checked against the screen. The values with ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW in the running total were checked the same way. SQL does not define which of the tied rows is placed first (see the ROW_NUMBER description in the MySQL documentation), so the order of the two tied people on the screen is just one example, and the check was made on the team, the score, and the added value, not on the names. Window functions are available from MySQL 8.0. The way the step sentences calculate (for example, adding 1 to the number of rows with a higher score) is a plain-words version of each function\'s definition. A real database sorts the rows and then makes one pass over them to compute the values.',
 });
@@ -7480,7 +7464,7 @@ Lab.register({
 Lab.register({
   id: 'viewproc', nav: 'Views, stored procedures, and triggers', cat: 'Database', mode: 'step',
   title: 'Why did the stock go down when you ran one INSERT line?',
-  intro: 'A database can store more than tables. A view is a stored SELECT statement, a stored procedure is a set of statements that you call by name, and a trigger is a statement that the database runs automatically when an INSERT or UPDATE happens. Follow what happens, out of sight of the application code, when one order is inserted.',
+  intro: 'A database can store more than tables. A view is a stored SELECT statement, a stored procedure is a set of statements that you call by name, and a trigger is a statement that the database runs automatically when an INSERT or UPDATE happens.',
   terms: ['View', 'Stored procedure', 'Trigger', 'CHECK constraint', 'Transaction'],
   controls: [
     { id: 'how', label: 'How the application inserts the order', type: 'select', value: 'insert', options: [['insert', 'One INSERT INTO orders statement'], ['proc', 'CALL place_order (call the procedure)']] },
@@ -7550,7 +7534,6 @@ Lab.register({
     push('SELECT stock FROM v_stock: The view holds no data, only a SELECT statement. It reads product at the moment you query it and returns a stock of ' + st.stock + '.' + (changed ? ' The view itself was never changed, but the base table changed, so the result changed too.' : ' The base table did not change, so the value is the same as at the start.'), changed ? 'good' : '', 'view');
     st.copy = '10'; st.did.copy = 1;
     push('SELECT stock FROM stock_copy: The copy table stored the result from when it was created, as its own rows. It does not change when product changes, so it is still 10.' + (changed ? ' This value no longer matches the actual stock.' : ''), changed ? 'bad' : '', 'copy');
-    sum.push('The order statement ' + (ok ? 'succeeded' : 'ended with an error') + '. Rows in orders: ' + st.orders + ', actual stock: ' + st.stock + ', rows in stock_log: ' + st.logs.length + '. The stock seen through the view is ' + st.view + ', and the stock in the copy is 10.');
     if (!proc && trig && ok) sum.push('The application code has just one INSERT line, but three tables changed. A trigger is convenient because it cannot be forgotten, but it is invisible to the person reading the code. To find out why the stock went down, you have to know about the triggers defined in the database.');
     if (!proc && trig && !ok) sum.push('You ran an INSERT on orders, but you got an error about a constraint on the product table. If you do not know a trigger exists, it is hard to find the cause. A failed trigger also makes the original statement fail, so no order row was left.');
     if (!proc && !trig) sum.push('Without a trigger, the INSERT does nothing but insert a row into orders. Reducing the stock and recording the change is left to the application, which must send those statements itself, or to a procedure.' + (q > 10 ? ' Nothing checks the stock, so an order for more than the stock went in.' : ''));
@@ -7558,22 +7541,16 @@ Lab.register({
     if (proc && trig && ok) sum.push('The stock went down by ' + (q * 2) + ', not ' + q + ', and there are two log rows. The person who wrote the procedure reduced the stock directly, and the trigger did the same thing. Because a trigger is invisible to the caller, if the two do not know about each other, the same change happens twice.');
     if (proc && trig && !ok && st.did.trg) sum.push('The order failed, but the stock is down to ' + st.stock + '. To make several statements succeed together or be rolled back together, you have to group them in a transaction. If you run the same CALL inside a transaction and run ROLLBACK when an error occurs, the stock returns to 10.');
     if (proc && trig && !ok && !st.did.trg) sum.push('It failed at the first statement of the procedure and never reached the trigger. Nothing changed.');
-    sum.push(changed ? 'A view is a "stored query" that does not store data separately. It reads the base table every time you query it, so when the stock changed, the result of the view changed to ' + st.view + ' as well. The copy, where the result was copied into a table, is still at 10.' : 'The stock did not change this time, so the view and the copy show the same value. If you run a setting where the stock changes, you can see that only the view changes along with it.');
+    sum.push(changed ? 'A view is a "stored query" that does not store data separately. It reads the base table every time you query it, so when the stock changed, the result of the view changed to ' + st.view + ' as well. The copy, where the result was copied into a table, is still at 10.' : 'The stock did not change this time, so the view and the copy show the same value.');
     return { events: ev, summary: sum, row: [ok ? 'Success' : 'Error 3819 (CHECK constraint violated)', String(st.orders), String(st.stock), st.logs.length + (st.logs.length ? ' (' + st.logs.join(', ') + ')' : ''), st.view + ' / 10'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null, q = +c.qty;
     if (!s) { H.text(v, 'Click Run to go one statement at a time.'); return; }
-    H.table(v, ['id', 'name', 'stock'], [{ cells: ['1', 'keyboard', { v: String(s.stock), cls: s.stock !== 10 ? 'hot' : '' }] }], 'product table');
-    if (s.orders) H.table(v, ['id', 'product_id', 'qty'], [{ cells: ['1', '1', String(q)] }], 'orders table');
-    else { H.title(v, 'orders table'); H.text(v, s.err ? 'No rows (the order that was being inserted was rolled back).' : 'No rows.'); }
     if (s.logs.length) H.table(v, ['id', 'product_id', 'change_qty', 'memo'], s.logs.map(function (m, i) { return { cells: [String(i + 1), '1', String(-q), m] }; }), 'stock_log table');
-    else { H.title(v, 'stock_log table'); H.text(v, 'No rows.'); }
     var ln = H.lanes(v);
     H.lane(ln, 'Application', s.cur === 'init' ? 'Not run yet' : (c.how === 'proc' ? 'CALL place_order(1, ' + q + ')' : 'One INSERT INTO orders statement') + (s.err ? ' → error 3819' : ''), s.cur === 'init' ? 'none' : s.err ? 'bad' : 'hot');
     H.lane(ln, 'Trigger', !c.trig ? 'None' : s.did.trgFail ? 'Activated automatically → failed on a constraint violation' : s.did.trgUpd ? 'Activated automatically: reduced the stock' + (s.did.trgLog ? ', wrote the log' : '') : 'Not activated yet', !c.trig ? 'none' : s.did.trgFail ? 'bad' : s.did.trgUpd ? 'hot' : 'none');
-    H.lane(ln, 'v_stock (view)', s.view === '?' ? 'Not queried yet' : 'Stock ' + s.view + ' (read from product just now)', s.view === '?' ? 'none' : 'good');
-    H.lane(ln, 'stock_copy (copy)', s.copy === '?' ? 'Not queried yet' : 'Stock 10 (the value when it was created)', s.copy === '?' ? 'none' : s.stock !== 10 ? 'bad' : 'wait');
   },
   // Diagram: On the left is the application. On the right, inside the database, are the procedure, the trigger, and three tables, with the view and the copy below. Arrows connect who changed which table.
   draw: function (P, sim, shown) {
@@ -7597,7 +7574,7 @@ Lab.register({
     if (d.trgUpd || d.trgFail) P.arrow('tUpd', 'trg:r:0.65', 'product:l:0.7', d.trgFail ? { cls: 'bad', label: 'failed' } : { cls: 'bad' });
     if (d.trgLog) P.arrow('tLog', 'trg:b:0.85', 'slog:l:0.6', { cls: 'bad' });
     if (d.view) P.arrow('vRead', 'view:r', 'product:b:0.12', { cls: 'good' });
-    P.note('Yellow arrows are statements run by the application or the procedure, and red arrows are what the trigger did. The dotted line shows that an INSERT on orders activated the trigger automatically. What the trigger did is not written in the statement the application sent. As the green arrow shows, the view reads product every time you query it, while the copy table at the lower left keeps the values that were copied when it was created.');
+    P.note('Yellow arrows are statements run by the application or the procedure, and red arrows are what the trigger did. The dotted line shows that an INSERT on orders activated the trigger automatically. As the green arrow shows, the view reads product every time you query it, while the copy table at the lower left keeps the values that were copied when it was created.');
   },
   assume: 'For all 12 combinations, the same tables, view, procedure, and trigger as the ones on the screen were created on MySQL 8.4 (InnoDB, autocommit on) on the PC used to write this lab, and the order statement was run. The error or success, the number of rows in each table, the stock, and the values from the view and the copy were checked against the screen. That the view stores no data was checked in information_schema, where v_stock shows up as a VIEW with no storage engine and stock_copy shows up as an InnoDB table. That the stock returns when the statements are grouped in a transaction and rolled back was also checked by running it once on the same database. That the original statement is rolled back together with a failed trigger is the behavior on an engine that supports transactions, such as InnoDB. How much remains after an error inside a procedure depends on the autocommit setting, START TRANSACTION inside the procedure, and handlers (DECLARE ... HANDLER), and here the simplest procedure without any of these was used. The error when the stock is short was produced by a CHECK constraint (which MySQL actually enforces from 8.0.16).',
 });
@@ -7605,7 +7582,7 @@ Lab.register({
 Lab.register({
   id: 'explainplan', nav: 'Reading the execution plan', cat: 'Database', mode: 'step',
   title: 'What should you read in one line of EXPLAIN?',
-  intro: 'Put EXPLAIN in front of a query and the database shows the plan it has made for running that query. One line has many columns, but if you can read just four of them (type, key, rows, and Extra), you can find the cause of most slow queries. Change the shape of the query and see how each column changes.',
+  intro: 'Put EXPLAIN in front of a query and the database shows the plan it has made for running that query. One line has many columns, but if you can read just four of them (type, key, rows, and Extra), you can find the cause of most slow queries.',
   terms: ['Query execution plan (EXPLAIN)', 'EXPLAIN join types (type column)', 'EXPLAIN Extra information (Extra column)', 'Full table scan', 'Covering index'],
   controls: [
     { id: 'w', label: 'Shape of the WHERE condition', type: 'select', value: 'func', options: [['none', 'No condition'], ['pk', 'id = 500 (primary key)'], ['eq', "name = 'user00123' (indexed column, one value)"], ['prefix', "name LIKE 'user001%' (LIKE with a fixed beginning)"], ['suffix', "name LIKE '%00123' (LIKE with a leading %)"], ['func', "LEFT(name, 7) = 'user001' (function on an indexed column)"], ['noidx', 'age = 30 (column without an index)'], ['join', 'Join: orders and member, connected by the primary key']] },
@@ -7691,7 +7668,6 @@ Lab.register({
       st.a = 4; st.b = 4; st.cur = 'extra';
       push('The Extra column is empty on both lines: there is nothing to add. How the two tables are paired is covered in the "Join algorithms" lab.');
       st.cur = '';
-      sum.push('This is a two-line plan. o is read in full with type ALL, and m is looked up one row at a time by primary key for each row, with type eq_ref.');
       sum.push('Read the EXPLAIN of a join from top to bottom. If the type of a lower line is eq_ref or ref, the table is reached through an index. If it is ALL, the lower table is read in full for each row of the earlier table, or a hash join is used.');
       sum.push('Roughly, the amount read grows in the order const, eq_ref, ref, range, index, ALL. The leftmost one is not always the one you must get. What you check is whether the number of rows read (rows) is too large compared with the number of rows you need.');
       return { events: ev, summary: sum, p: p, match: 20000, row: row };
@@ -7733,7 +7709,6 @@ Lab.register({
       push({ oname: 'ORDER BY name', oage: 'ORDER BY age', gage: 'GROUP BY age' }[c.tail] + ' is present, but Extra has no ' + sortTag + ': ' + reason + ' ' + (c.tail === 'gage' ? 'No temporary table is created.' : 'No separate sort is done.'), 'good');
     }
     st.cur = '';
-    sum.push('type ' + r.type + ', key ' + r.key + ', rows ' + rt + ', Extra ' + (r.extra.join('; ') || 'none') + '. The number of rows that actually match the condition: ' + (w === 'none' ? 'all 20,000' : match) + '.');
     if (w === 'func') sum.push("A column that has an index cannot have its range narrowed by the index if a function or a calculation is applied to it. The rule is to leave the column as it is and change the value you compare it with. Here, name LIKE 'user001%' means the same thing and gives type range.");
     if (w === 'suffix') sum.push("A LIKE with a leading % cannot use the sort order of the index. The index can find \"starts with\", but \"ends with\" and \"contains\" are known only by reading everything.");
     if (w === 'prefix') sum.push('A LIKE with a fixed beginning becomes one range of the index and is read with type range. Of the 20,000 rows, only 200 are read.');
@@ -7756,7 +7731,7 @@ Lab.register({
       var ex = lv >= 4 ? (join ? '' : r.extra.slice(0, s.ex).join('; ')) : '?';
       return { cells: [r.table, cl(1, 'type', r.type), cl(2, 'key', r.pkeys), cl(2, 'key', r.key)].concat(join ? [cl(2, 'key', r.ref)] : []).concat([cl(3, 'rows', self.rowsText(c, r)), { v: ex, cls: lv >= 4 && s.cur === 'extra' ? 'hot' : '' }]) };
     });
-    H.table(v, ['table', 'type', 'possible_keys', 'key'].concat(join ? ['ref'] : []).concat(['rows', 'Extra']), rows, 'EXPLAIN result (main columns only)');
+    if (join) H.table(v, ['table', 'type', 'possible_keys', 'key'].concat(join ? ['ref'] : []).concat(['rows', 'Extra']), rows, 'EXPLAIN result (main columns only)');
     if (!join && s.a >= 3) H.counters(v, [[String(sim.match).replace(/\B(?=(\d{3})+(?!\d))/g, ','), 'Rows that actually match the condition'], [this.rowsText(c, p[0]), 'Rows expected to be read (rows)']]);
     if (join && s.b >= 3) H.counters(v, [['about 20,000', 'Rows read from o'], ['1', 'Rows read from m for each row of o']]);
     H.text(v, 'rows is an estimate from statistics, so it can differ slightly each time you run it. The numbers shown here are rounded from the values seen on the PC used to write this lab.');
@@ -7800,7 +7775,7 @@ Lab.register({
 Lab.register({
   id: 'joinalgo', nav: 'Join algorithms', cat: 'Database', mode: 'step',
   title: 'How does the database find matching rows when the join column has no index?',
-  intro: 'A join reads one table first and, for each of its rows, finds the matching rows in the other table. If an index can be used to find the matches, only the rows needed are read. If not, the whole table must be read. In that case, MySQL 8 uses a different method called a hash join. Change the index and the reading order, and see which method MySQL chooses.',
+  intro: 'A join reads one table first and, for each of its rows, finds the matching rows in the other table. If an index can be used to find the matches, only the rows needed are read. If not, the whole table must be read. In that case, MySQL 8 uses a different method called a hash join.',
   terms: ['Nested-loop join', 'Hash join', 'Driving table', 'Optimizer', 'Query execution plan (EXPLAIN)'],
   controls: [
     { id: 'idx', label: 'orders.member_id has an index', type: 'check', value: false },
@@ -7866,13 +7841,12 @@ Lab.register({
     }
     st.stage = 7; st.cur = -1; st.all = true; st.loops = p.loops;
     push('The result, 10,000 rows, is produced. The rows read from the two tables: ' + F + ' ' + num(p.firstRows) + ' rows and ' + S + ' ' + num(p.loops * p.each) + ' rows, ' + num(p.total) + ' rows in total.', p.algo === 'scan' ? 'bad' : 'good');
-    sum.push(F + ' was read first, and the matches were found with a ' + (p.algo === 'hash' ? 'hash join' : 'nested-loop join') + '. Times ' + S + ' was read: ' + num(p.loops) + '. Rows read each time: ' + num(p.each) + '. In all, ' + num(p.total) + ' rows were read from the two tables.');
     if (p.algo === 'nl' && p.second === 'o') sum.push('The amount a nested-loop join reads is "the number of rows in the table read first × the number of rows read per lookup". If the join column of the later table has an index, only the rows needed are read each time. This is why you should create an index on a column that refers to the primary key of another table (here, orders.member_id).');
     if (p.algo === 'nl' && p.second === 'm') sum.push('If orders is read first, member is looked up one row at a time by primary key (type eq_ref). An index on the join column is used only when it is on the table that is read later.' + (c.drive === 'auto' ? ' The optimizer chooses an order that allows lookups through an index like this by itself. But it reads 20,000 rows, which is more than the 11,000 rows read when member is read first with the index on orders.member_id.' : ' In this order, the plan is the same whether or not orders.member_id has an index.'));
     if (c.drive === 'auto' && c.idx) sum.push('When it is left to the optimizer, it looks at statistics and chooses the order with the lower cost. Here it read member, which has fewer rows, first. If the amount and distribution of the data change, the choice can change too.');
     if (p.algo === 'hash') sum.push('A hash join builds a hash table from one table and reads the other table only once. Where a nested-loop join without an index would have read 1,000 × 10,000 = 10,000,000 rows, it finishes with 11,000 rows. In EXPLAIN, the Extra column shows Using join buffer (hash join).');
     if (p.algo === 'hash') sum.push('Even so, indexes do not become unnecessary. A hash join reads the whole of orders, so even if you only look for the orders of 10 members, it reads all 10,000 rows of orders. With an index, it would look up 10 times and read only 100 rows.');
-    if (p.algo === 'scan') sum.push('Without an index or a hash join, the whole of the later table is read for every row of the table read first. That is 1,000 × 10,000 = 10,000,000 rows. If each of the two tables becomes 10 times larger, the amount read becomes 100 times larger. Compare it with the default settings, where the hash join is on.');
+    if (p.algo === 'scan') sum.push('Without an index or a hash join, the whole of the later table is read for every row of the table read first. That is 1,000 × 10,000 = 10,000,000 rows. If each of the two tables becomes 10 times larger, the amount read becomes 100 times larger.');
     return { events: ev, summary: sum, p: p, row: [F, p.algo === 'hash' ? 'Hash join' : 'Nested-loop join', p.type + ' / ' + (p.key === 'NULL' ? 'no index' : p.key), num(p.loops) + ' × ' + num(p.each), num(p.total)] };
   },
   render: function (v, sim, t, H, shown) {
@@ -7945,7 +7919,7 @@ Lab.register({
 Lab.register({
   id: 'dbdeadlock', nav: 'Deadlocks in the database', cat: 'Database', mode: 'step',
   title: 'When two transactions wait for each other, how does the database end it?',
-  intro: 'Transaction A moves 100 from account 1 to account 2, and transaction B moves 50 from account 2 to account 1. If the two lock the rows in opposite orders, they end up waiting for each other. Java threads in this situation would simply stop forever, but MySQL InnoDB detects the situation by itself, rolls one side back, and returns an error. See which side gets which error, and what the side that got the error has to do afterward.',
+  intro: 'Transaction A moves 100 from account 1 to account 2, and transaction B moves 50 from account 2 to account 1. If the two lock the rows in opposite orders, they end up waiting for each other. Java threads in this situation would simply stop forever, but MySQL InnoDB detects the situation by itself, rolls one side back, and returns an error.',
   terms: ['Deadlock', 'Deadlock detection and the victim', 'Lock wait timeout', 'Shared locks and exclusive locks', 'Transaction'],
   controls: [
     { id: 'sit', label: 'Order in which the two transactions lock the rows', type: 'select', value: 'rev', options: [['rev', 'Opposite (A: 1 → 2, B: 2 → 1)'], ['same', 'Same order (both 1 → 2)'], ['hold', 'Opposite, but A stops for a long time holding only the first row']] },
@@ -8061,10 +8035,9 @@ Lab.register({
         }
       }
     }
-    sum.push('The final balance is ' + p.b1 + ' for account 1 and ' + p.b2 + ' for account 2. ' + (p.half ? 'The total of the two accounts dropped from 2000 to 1950. This is because only half of the transfer of B was applied.' : p.aDone && p.bDone ? 'Both transfers were applied.' : 'The transfer of ' + (p.aDone ? 'B' : 'A') + ' is missing.'));
     if (sit === 'rev') {
       sum.push('InnoDB detects the deadlock by itself, rolls one transaction back as a whole, and returns error 1213. The side that survives proceeds as if nothing had happened. The database ends the deadlock, but doing the rolled-back work again is up to the application.');
-      sum.push(c.after === 'retry' ? 'When you get error 1213, run the transaction again from the start. It has to be from the start, not from the middle, because everything changed earlier was canceled too.' : c.after === 'giveup' ? 'If it does not try again, that request disappears without being applied. Switch the response to trying again and compare.' : 'A COMMIT after a rollback caused by a deadlock applies nothing. Code that ignores the error makes a failure look like a success.');
+      sum.push(c.after === 'retry' ? 'When you get error 1213, run the transaction again from the start. It has to be from the start, not from the middle, because everything changed earlier was canceled too.' : c.after === 'giveup' ? 'If it does not try again, that request disappears without being applied.' : 'A COMMIT after a rollback caused by a deadlock applies nothing. Code that ignores the error makes a failure look like a success.');
       sum.push(c.heavy === 'b' ? 'InnoDB tries to choose the small transaction that changed fewer rows to roll back, because it costs less to undo. So which side gets the error depends not on the order but on the amount of work done up to that point.' : 'Your code cannot decide which side is rolled back. So prepare for the possibility that both transactions can get error 1213.');
     } else if (sit === 'same') {
       sum.push('When every transaction locks in the same order (the account with the smaller number first), the waiting goes in only one direction and no cycle is created. This is the most basic way to reduce deadlocks.');
@@ -8078,12 +8051,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Press Run to go through it one step at a time.'); return; }
-    var cls = { pre: 'none', hold: 'hot', wait: 'wait', err: 'bad', done: 'good' };
-    H.title(v, 'Transactions'); var ln = H.lanes(v);
-    ['A', 'B'].forEach(function (x) { H.lane(ln, 'Transaction ' + x, s.msg[x][0] + (s.msg[x][1] !== ' ' ? ' · ' + s.msg[x][1] : '') + (x === 'A' ? '  (100 from account 1 → 2)' : '  (50 from account 2 → 1)'), s.cyc && s.ph[x] === 'wait' ? 'bad' : cls[s.ph[x]]); });
-    H.table(v, ['Row', 'Transaction holding the lock', 'Transaction waiting for the lock', 'Committed balance'], [1, 2].map(function (r) { var w = ['A', 'B'].filter(function (x) { return s.wait[x] === r; }); return { cells: ['Account ' + r, { v: s.own[r] || 'None', cls: s.own[r] ? 'hot' : '' }, { v: w.length ? w[0] : 'None', cls: w.length ? (s.cyc ? 'bad' : 'hot') : '' }, String(s.bal[r])] }; }), 'account table');
-    H.text(v, 'Deadlock detection in InnoDB: ' + s.det);
-    H.counters(v, [[s.bal[1] + ' / ' + s.bal[2], 'Committed balances (account 1 / account 2)'], [String(s.bal[1] + s.bal[2]), 'Total of the two accounts']]);
+    H.counters(v, [[String(s.bal[1] + s.bal[2]), 'Total of the two accounts']]);
   },
   // Diagram: Transactions A and B are on the two sides, and the two rows are in the middle. A solid line from a row to a transaction means "holds the lock", and a dotted line from a transaction to a row means "waits". Below are the deadlock detection of InnoDB and the committed balances.
   draw: function (P, sim, shown) {
@@ -8101,7 +8069,7 @@ Lab.register({
     });
     P.box('det', 16, 262, 440, 40, { cls: s.cyc ? 'bad' : s.det.indexOf('broken') >= 0 ? 'good' : 'plain', title: 'Deadlock detection in InnoDB', sub: s.det });
     P.box('bal', 464, 262, 200, 40, { cls: s.bal[1] + s.bal[2] !== 2000 ? 'bad' : 'plain', title: 'Balances', right: s.bal[1] + ' / ' + s.bal[2] });
-    P.note('A solid arrow means the transaction holds the lock on that row, and a dotted arrow means it waits for that lock. If you follow the arrows and come back to where you started, a cycle has formed, and that is a deadlock. InnoDB finds this cycle and breaks it by rolling back one of the transactions. The number on the right of a row is the committed balance.');
+    P.note('A solid arrow means the transaction holds the lock on that row, and a dotted arrow means it waits for that lock. If you follow the arrows and come back to where you started, a cycle has formed, and that is a deadlock. The number on the right of a row is the committed balance.');
   },
   assume: 'Ten combinations (the settings that make sense for each of the three orders) were run in the same order as shown on the screen, with two sessions, on MySQL 8.4.11 on the PC used to write this lab (InnoDB, isolation level REPEATABLE READ, innodb_deadlock_detect on, innodb_rollback_on_timeout off). The lab was checked against these runs: which side gets which error code, whether the changes and locks remain in that transaction right after the error, and the final balances all match the screen. In the deadlock, error 1213 arrived within a few milliseconds (with the lock wait timeout set to 20 seconds), and when the session that got the error read again the row it had changed, it saw the original value 1000 and held 0 record locks. For the lock wait timeout, instead of waiting for the default 50 seconds, innodb_lock_wait_timeout of that session was reduced to 2 seconds, and even after error 1205 arrived 2 seconds later, the value 950 that the session had changed and 1 record lock were still there. Which side is rolled back in a deadlock with equal amounts of work is not set by the documentation, so the lab does not state it as a fact. Over 30 repetitions, B, which started waiting later, was rolled back all 30 times, and when B first changed 50 other rows, A was rolled back all 30 times. The statements that InnoDB tries to choose a small transaction, and that a deadlock rolls back the whole transaction while a lock wait timeout rolls back only that statement, also agree with the explanations in 17.7.5.2 Deadlock Detection and 17.20.5 InnoDB Error Handling of the MySQL 8.4 Reference Manual. What changes when the server settings are changed (when deadlock detection is turned off, or innodb_rollback_on_timeout is turned on) is not covered. The lab assumes that the two transactions interleave in exactly this order; in practice, depending on the timing, they more often pass without a deadlock.',
 });
@@ -8109,7 +8077,7 @@ Lab.register({
 Lab.register({
   id: 'bufferpool', nav: 'Buffer pool and pages', cat: 'Database', mode: 'step',
   title: 'Why does reading one row read a whole 16KB page?',
-  intro: 'InnoDB reads and writes data on disk in blocks called pages (16KB by default), not row by row. A page that has been read is kept in memory in the buffer pool, and later reads come from memory instead of going to disk. When a row is changed, only the page in memory is changed, and it is written to disk later. Query a table whose 16 rows are spread over four pages, and watch how many times the disk is read and written.',
+  intro: 'InnoDB reads and writes data on disk in blocks called pages (16KB by default), not row by row. A page that has been read is kept in memory in the buffer pool, and later reads come from memory instead of going to disk. When a row is changed, only the page in memory is changed, and it is written to disk later.',
   terms: ['Buffer pool', 'Page (InnoDB)', 'Dirty pages and flushing', 'Eviction policy', 'Undo log and redo log'],
   controls: [
     { id: 'seq', label: 'Order of the rows to query', type: 'select', value: 'same', options: [['same', 'Row 1 → row 2 → row 1 (all on the same page)'], ['spread', 'Row 1 → 5 → 9 → 13 → 1 (the four pages in turn)'], ['hot', 'Row 1 → 5 → 1 → 9 → 13 → 1 (row 1 often)']] },
@@ -8178,7 +8146,6 @@ Lab.register({
       st.slots[dj].dirty = false; st.writes++; st.diskNew = true; when = 'Later, after the commit (in the background)'; st.cur = 'A'; st.at = dj; st.act = 'flush';
       push('A little later: a background thread writes dirty page A to the data file. The page stays in the buffer pool, and only its dirty mark is cleared. InnoDB decides when to write, and the commit does not wait for it.', 'good');
     }
-    sum.push('Pages read from disk: ' + st.reads + '. Lookups that did not go to disk: ' + st.hits + ' of ' + ids.length + '.' + (evicted.length ? ' Pages evicted from the buffer pool: ' + evicted.join(', ') + '.' : ''));
     if (c.seq === 'same') sum.push('InnoDB reads from disk in units of pages, not rows. Reading row 1 also loads rows 2, 3, and 4 of the same page into memory, so reading rows that are stored close together does not go back to disk.');
     else if (evicted.length) sum.push('When the buffer pool is full, the page that has gone unused the longest is evicted first. Reading an evicted page again requires another trip to disk.' + (c.seq === 'hot' && find('A') >= 0 && evicted.indexOf('A') < 0 ? ' Page A, which was read often, stayed to the end, and pages that had not been used in the meantime were evicted.' : ' If the buffer pool is too small for the data, this keeps happening and everything slows down.'));
     else sum.push('With enough slots, a page that has been read stays in memory. That is why a database server gives a large part of its memory to the buffer pool.');
@@ -8190,8 +8157,6 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go one step at a time.'); return; }
     var oldest = -1; if (s.slots.indexOf(null) < 0) s.slots.forEach(function (x, j) { if (oldest < 0 || x.last < s.slots[oldest].last) oldest = j; });
     H.table(v, ['Slot', 'Page loaded', 'Rows held', 'State'], s.slots.map(function (x, j) { return { cells: ['Slot ' + (j + 1), x ? { v: 'Page ' + x.p, cls: s.at === j && s.act === 'hit' ? 'good' : s.at === j ? 'hot' : '' } : 'Empty', x ? R[x.p] : '-', x ? { v: (x.dirty ? 'Dirty (differs from disk)' : 'Same as disk') + (j === oldest ? ' · Unused the longest' : ''), cls: x.dirty ? 'hot' : '' } : '-'] }; }), 'Buffer pool (memory)');
-    H.counters(v, [[String(s.reads), 'Disk reads'], [String(s.hits), 'Reads without disk'], [String(s.writes), 'Writes to the data file']]);
-    H.text(v, 'name of row 1 in the data file on disk: ' + (s.diskNew ? 'changed' : 'item1'));
   },
   // Diagram: on the left, the slots of the buffer pool (memory). On the right, the four pages in the data file on disk. Arrows appear when a page is read or written, and a dirty page is shown in yellow.
   draw: function (P, sim, shown) {
@@ -8301,7 +8266,7 @@ Lab.register({
 Lab.register({
   id: 'partition', nav: 'Partitioning', cat: 'Database', mode: 'step',
   title: 'When a table is cut into pieces, which pieces does a query read?',
-  intro: 'Partitioning stores one big table in several pieces (partitions) inside the same server. You can divide it by a range, such as the year of the order date (RANGE), or by a calculation, such as the remainder of the member number divided by 4 (HASH). Depending on how you write the condition, a query reads only the partitions it needs or reads all of them. Create the table, insert a row, and query it, and see which partitions MySQL chooses.',
+  intro: 'Partitioning stores one big table in several pieces (partitions) inside the same server. You can divide it by a range, such as the year of the order date (RANGE), or by a calculation, such as the remainder of the member number divided by 4 (HASH). Depending on how you write the condition, a query reads only the partitions it needs or reads all of them.',
   terms: ['Sharding and partitioning', 'RANGE partitioning and HASH partitioning', 'Partition pruning', 'Query execution plan (EXPLAIN)', 'Primary key, unique key, foreign key'],
   controls: [
     { id: 'how', label: 'How to divide', type: 'select', value: 'range', options: [['range', 'RANGE: by the year of the order date'], ['hash', 'HASH: by the remainder of the member number divided by 4']] },
@@ -8347,7 +8312,6 @@ Lab.register({
       push('CREATE TABLE … PRIMARY KEY (id) … PARTITION BY ' + (R ? 'RANGE (YEAR(ordered_at))' : 'HASH (member_id)') + ': error 1503 occurs and the table is not created. The message is "A PRIMARY KEY must include all columns in the table\'s partitioning function". This is because the primary key (id) does not include the ' + keycol + ' column, the column the table is divided by.', 'bad');
       st.stage = 'why';
       push('The reason for this restriction: in MySQL, each partition has its own indexes. A primary key and a unique key must check whether the same value already exists. If the key includes the ' + keycol + ' column, MySQL can decide by looking at only the one partition the row goes to. If it does not, MySQL cannot know whether the same id exists in another partition. That is why the partitioning key column has to be in the primary key and in every unique key. Here, changing it to PRIMARY KEY (id, ' + keycol + ') fixes it.', '');
-      sum.push('The table could not be created (error 1503). So the INSERT and the query were not run.');
       sum.push('In a partitioned table, the primary key and every unique key must include the partitioning key column. If you partition a table that is already in operation later, you may have to change the primary key first, so decide this at design time.');
       sum.push('Because of this restriction, the database cannot guarantee that "id alone is unique." If the primary key is (id, ' + keycol + '), two rows with the same id and a different ' + keycol + ' can be inserted.');
       return { events: ev, summary: sum, names: names, w: W, vals: this.values(c), row: ['Error 1503', '-', '-', '-'] };
@@ -8380,7 +8344,6 @@ Lab.register({
     var list = read.map(function (i) { return names[i]; }).join(',');
     push('EXPLAIN SELECT * FROM orders WHERE ' + W + ': ' + why + ' The partitions column of EXPLAIN: ' + list + '.', k);
     var cnt = read.length + ' of ' + N + (read.length === N ? ' (all)' : '');
-    sum.push('The table was created, the INSERT ' + (to < 0 ? 'failed with error 1526' : 'went into partition ' + names[to]) + ', and the query reads ' + read.length + ' of the ' + N + ' partitions.');
     sum.push('Partitioning stores one table in pieces inside a single server. Unlike sharding, which divides data among several servers, it lets you use joins, transactions, and queries as they are. In return, it does not let you go past the limit of one server. Its purpose is to reduce the range that is read and deleted at one time.');
     if (read.length < N) sum.push('If the condition contains the partitioning key column as it is, MySQL picks and reads only the partitions it needs. However big the table is, the range that is read shrinks to those partitions.');
     else sum.push(c.q === 'other' ? 'A query without the partitioning key reads all the partitions, so it can even create more work than before the table was partitioned. Choose as the partitioning key the column that is in the most frequently used query condition.' : c.q === 'func' ? 'If you apply a function or a calculation to the partitioning key column, pruning does not happen. It is the same principle as an index not being usable when a function is applied to the indexed column. Leave the column as it is and change the value you compare it with.' : 'A HASH partition is used to scatter rows evenly, and it suits queries that look up a single value. If you often search by range, as with dates, a RANGE partition is the better fit.');
@@ -8388,10 +8351,9 @@ Lab.register({
     return { events: ev, summary: sum, names: names, w: W, vals: V, row: ['Success', to < 0 ? 'Error 1526' : 'Stored in ' + names[to], list, cnt] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, R = c.how === 'range', names = sim.names;
+    var last = shown[shown.length - 1], s = last ? last.snap : null, names = sim.names;
     if (!s) { H.text(v, 'Click Run to go one step at a time.'); return; }
     if (s.made < 0) { H.text(v, 'The orders table was not created (error 1503).'); H.counters(v, [['Failed', 'CREATE TABLE']]); return; }
-    H.table(v, ['Partition', 'Rows it holds', 'Row count', 'State'], names.map(function (nm, i) { var on = s.read && s.read.indexOf(i) >= 0; return { cls: s.read && !on ? 'gone' : '', cells: [nm, R ? 'Orders of ' + (2023 + i) : 'Member number % 4 = ' + i, String(s.rows[i]), { v: s.ins === i ? 'New row inserted' : s.read ? (on ? 'Read' : 'Skipped') : '-', cls: s.ins === i ? 'good' : on ? 'hot' : '' }] }; }), 'orders table (inside one server)');
     H.counters(v, [[s.insErr ? 'Error 1526' : s.stage === 'ins' || s.stage === 'sel' ? 'Success' : '-', 'INSERT'], [s.read ? s.read.length + ' of ' + names.length : '-', 'Partitions read by the query']]);
   },
   // Diagram: at the top is the statement being run, and below it is the orders table inside one server with its partitions. The partitions that the query reads are yellow, and the ones it skips are dashed.
@@ -8408,7 +8370,7 @@ Lab.register({
       if (got) P.arrow('a' + i, 'q:b:' + ((i + 0.5) / N), 'p' + i + ':t', { cls: 'good', label: 'Stored' });
     }
     P.box('res', 16, 258, 648, 38, { cls: s.made < 0 || (s.insErr && st === 'ins') ? 'bad' : sel ? (s.read.length < N ? 'good' : 'hot') : 'plain', title: 'Result', right: s.res });
-    P.note('All the partitions are inside one MySQL server, and in a query they look like a single orders table. This is the difference from sharding, which divides data among several servers. In the query step, a yellow partition is one that is actually read, and a dashed partition is one that is skipped without being opened.');
+    P.note('In the query step, a yellow partition is one that is actually read, and a dashed partition is one that is skipped without being opened.');
   },
   assume: 'All 32 combinations were run with the same statements as on the screen on MySQL 8.4.11 (InnoDB) on the PC used to write this lab, and checked against the screen. For each combination I created the table anew and confirmed that the following matched the screen: whether CREATE TABLE succeeded and its error code; the number of rows of the 300 orders in each partition (SELECT COUNT(*) … PARTITION (name)); the partition that the new row went into, or the error code of the INSERT; and the partitions column of EXPLAIN. The error messages written on the screen are the real messages too. I also confirmed the following facts used in the explanations by execution. Error 1503 occurs even when a unique key does not have the partitioning key. A table with neither a primary key nor a unique key is not subject to the restriction. If the date condition is written as a range on the column (>= and <), only p2024 is read. In HASH, BETWEEN 5 AND 6 reads only p1 and p2. After a 2026 partition is added with ADD PARTITION, the same INSERT succeeds. DROP PARTITION p2023 removes the 121 rows of that partition. When the primary key is (id, ordered_at), two rows with the same id and different dates can be inserted. Which partitions are read is decided by the condition and has nothing to do with the number of rows or statistics, but whether an index is used inside a partition and the estimated number of rows depend on the data, so I did not treat them as results. The restriction on the partitioning key and the primary key and the form of conditions that allow pruning also agree with the explanations in the MySQL 8.4 Reference Manual, 26.6.1 Partitioning Keys, Primary Keys, and Unique Keys and 26.4 Partition Pruning. That each partition has its own indexes was confirmed by seeing that the partition set is stored in InnoDB as separate tables and data files, and that a separate PRIMARY index is listed for each partition in the index statistics (mysql.innodb_index_stats). LIST and KEY partitioning, subpartitions, and the cost when there are a very large number of partitions are not covered. Other database products sometimes allow a unique index without the partitioning key, so this restriction is MySQL-specific.',
 });
@@ -8416,7 +8378,7 @@ Lab.register({
 Lab.register({
   id: 'nosql', nav: 'NoSQL and the document model', cat: 'Database', mode: 'step',
   title: 'Split an order into three tables, or put it in one document?',
-  intro: 'Store the same data (orders and order items) in two ways. The relational way splits products, orders, and order items into three tables and joins them when reading. The document model is the way used by document databases such as MongoDB: it treats one order as one document and puts the array of items and even the product names inside it. Read, rename, and add a new field to see what becomes easier and what becomes harder.',
+  intro: 'Store the same data (orders and order items) in two ways. The relational way splits products, orders, and order items into three tables and joins them when reading. The document model is the way used by document databases such as MongoDB: it treats one order as one document and puts the array of items and even the product names inside it.',
   terms: ['NoSQL', 'Document model (document database)', 'Fixed schema and flexible schema', 'Normalization and denormalization', 'JOIN (INNER, OUTER)'],
   controls: [
     { id: 'model', label: 'How to store', type: 'select', value: 'doc', options: [['doc', 'Document: one order holds its items too'], ['rel', 'Relational: split into three tables and join']] },
@@ -8471,7 +8433,7 @@ Lab.register({
       st.res = row[1];
       if (rel) { st.hot = ['to', 'ti', 'tp']; push('SELECT … FROM orders o JOIN order_item i … JOIN product p … WHERE o.id = 1: It finds order 1 in orders, finds the 2 items of that order in order_item, and for each item finds the product name in product and attaches it. You have to join three tables to complete one order. If you did not use a join, you would have to send three queries, one for each table.', ''); st.chk = row[2]; push('The result is 2 rows. One item is one row, and the order number and the person who ordered are repeated in every row. The application groups these rows back into one order.', 'good'); }
       else { st.docs[0].cls = 'hot'; push('SELECT doc FROM order_doc WHERE id = 1: It finds one document by the primary key. The person who ordered, the 2 items, and the product names are all inside that document, so there is no need to go anywhere else.', ''); st.chk = row[2]; push('The result is 1 document, and the items array in it holds 2 items. Because the data that is read together was stored together, it is read in one go. This is what the document model does best.', 'good'); }
-      sum.push(rel ? 'The relational model divides data so that nothing overlaps and puts it together with joins when reading. There is more to do when reading, but the same value is in only one place, so it is easy to change. Compare it with "Rename a product."' : 'The document model stores together the data that is read together. If you often read "one order and everything attached to it," as on an order screen, it is read in one go without joins. The cost shows up in "Rename a product."');
+      sum.push(rel ? 'The relational model divides data so that nothing overlaps and puts it together with joins when reading. There is more to do when reading, but the same value is in only one place, so it is easy to change.' : 'The document model stores together the data that is read together. If you often read "one order and everything attached to it," as on an order screen, it is read in one go without joins. The cost shows up in "Rename a product."');
     } else if (op === 'rename') {
       st.res = row[1];
       if (rel) { st.tabs.p1 = 'mechanical keyboard'; st.hot = ['tp']; push("UPDATE product SET name = 'mechanical keyboard' WHERE id = 1: Only one row of the product table is changed, because the product name is stored in that one place only. However many orders there are, there is just one place to change.", 'good'); st.hot = ['to', 'ti', 'tp']; st.chk = row[2]; push('If you query the orders again, all ' + n + ' appear with the new name. This is because the order items have only the product number, and the name is fetched from the product table at every query.', 'good'); }
@@ -8489,7 +8451,6 @@ Lab.register({
       else { st.docs.push({ id: x, who: 'han', a: 'keyboard quantity: 3', b: 'no field named qty', cls: 'bad' }); push('INSERT INTO order_doc VALUES (' + x + ', \'{… "items": [{"product_id": 1, "name": "keyboard", "quantity": 3}]}\'): It is stored as it is. The database does not know that qty is the right name and quantity is the wrong one. There is no error and no warning.', 'bad'); st.chk = row[2]; push('SELECT SUM(j.qty) FROM order_doc, JSON_TABLE(…) j: the quantity total, adding up qty in all documents, is ' + 3 * n + '. The quantity actually ordered is ' + (3 * n + 3) + ', but the new document has no qty, so it was left out. The query also finishes without an error, so it is easy to miss that the total is wrong.', 'bad'); }
       sum.push(rel ? 'The database keeps the promises such as column names, data types, and NOT NULL, so wrong data shows up the moment it comes in.' : 'Not checking the shape also means accepting a wrong shape. So in the document model, the application checks before saving, or you turn on the schema validation feature that the database provides. In a MySQL JSON column, too, you can add a CHECK (JSON_SCHEMA_VALID(…)) constraint, and then this INSERT is rejected with error 3819.');
     }
-    sum.unshift('Database reaction: ' + row[0] + '. ' + row[1] + '. ' + row[2] + '.');
     sum.push('NoSQL is a general name for databases that are not relational, and the document model is one of them. Rather than one being better, you choose according to what you often read together and what changes often.');
     return { events: ev, summary: sum, row: row };
   },
@@ -8503,7 +8464,6 @@ Lab.register({
       { cells: [{ v: 'order_item', cls: cl('ti') }, String(s.tabs.items), 'Columns: order_id, product_id, qty'] },
     ], 'Relational: three tables');
     else H.table(v, ['Document', 'Person who ordered', 'items array'], s.docs.map(function (d) { return { cells: [{ v: 'Document ' + d.id, cls: d.cls === 'bad' ? 'bad' : d.cls === 'good' ? 'good' : d.cls === 'hot' ? 'hot' : '' }, d.who, d.a + ', ' + d.b] }; }), 'Documents: order_doc table');
-    H.counters(v, [[s.res, 'Scope read or changed'], [s.chk, 'What was checked after running']]);
   },
   // Diagram: for the relational model, three tables and the references between them. For the document model, one box per order. The place that was touched is yellow, and the place where a problem occurred is red.
   draw: function (P, sim, shown) {
@@ -8524,7 +8484,7 @@ Lab.register({
     }
     P.box('res', 16, 228, 648, 38, { cls: s.k === 'bad' ? 'bad' : s.k === 'good' ? 'good' : 'plain', title: 'Scope read or changed', right: s.res });
     P.box('chk', 16, 272, 648, 38, { cls: 'plain', title: 'What was checked after running', right: s.chk });
-    P.note(rel ? 'The relational model keeps the same value in one place only (the product name is only in product), and the other tables point to it by number. When reading, you follow the arrows and join the tables.' : 'The document model puts everything one order needs in one document. The product name is copied into every document too. The documents on this screen are reproduced with a MySQL JSON column.');
+    P.note(rel ? 'When reading, you follow the arrows and join the tables.' : 'The documents on this screen are reproduced with a MySQL JSON column.');
   },
   assume: 'The document model was reproduced with a MySQL JSON column. I ran twenty combinations (two ways of storing, four things to do, and 2, 3, and 5 orders) with the same statements as on the screen on MySQL 8.4.11 on the PC used to write this lab, and checked that the following matched the screen: the error code; the number of tables and the number of result rows shown by EXPLAIN; the number of rows (documents) changed by UPDATE; the number of documents with gift; and the quantity total. I also confirmed the following facts used in the explanations by execution. Reading without a join needs three queries, one for each table. After a column is added with ALTER TABLE, the same INSERT goes in, and the existing rows also get that column. If only one document is changed, the same product is left with two different names. After a JSON_SCHEMA_VALID constraint is added, a document with a misspelled field name is rejected with error 3819. A dedicated document database (MongoDB and others) is not on this PC, so I could not run one. So what is shown here is "the shape of reads and writes when an order is stored as one document," not the exact behavior of a document database product. Query syntax, how to change a value inside an array, the schema validation feature, and support for transactions and joins across several documents differ by product and version. Which way is faster depends on the data volume, the indexes, and the product, so it is not covered, and the results on the screen are the number of places read or changed, not the speed. Other kinds of NoSQL, such as key-value stores, wide-column stores, and graph databases, are not covered.',
 });
@@ -8532,7 +8492,7 @@ Lab.register({
 Lab.register({
   id: 'layers', nav: 'Layers and encapsulation', cat: 'Networking', mode: 'step',
   title: 'You send 1500 bytes, so why do 1616 bytes cross the wire?',
-  intro: 'A network divides its work into layers. On the sending side, data moves down from the upper layers to the lower layers, and each layer adds a header in front of the data that holds the information that layer needs for its own job. This is called encapsulation. The receiving side removes the headers one at a time in the reverse order. Follow one HTTP message to see how it is wrapped and, if it is large, how it is split.',
+  intro: 'A network divides its work into layers. On the sending side, data moves down from the upper layers to the lower layers, and each layer adds a header in front of the data that holds the information that layer needs for its own job. This is called encapsulation. The receiving side removes the headers one at a time in the reverse order.',
   terms: ['OSI model', 'TCP/IP model', 'Encapsulation and decapsulation', 'Segment, packet, and frame', 'MTU and MSS'],
   controls: [
     { id: 'size', label: 'Size of the HTTP message to send', type: 'select', value: '1500', options: [['300', '300 bytes (one short request)'], ['1460', '1460 bytes'], ['1500', '1500 bytes'], ['4000', '4000 bytes'], ['10000', '10000 bytes (uploading a long text)']] },
@@ -8582,7 +8542,6 @@ Lab.register({
     push('Receiving side, transport layer: It looks at the destination port ' + A.sp + ' in the TCP header to decide which program (the web server) the data is for. ' + (n > 1 ? 'It uses the sequence numbers to join the ' + n + ' pieces in order and then removes the header.' : 'It removes the TCP header.'));
     st.at = 'r0'; st.done = true;
     push('Receiving side, application layer: The web server receives the original HTTP message of ' + k.size + ' bytes exactly as it was. It does not know how many pieces the message was split into on the way, or which headers were added and removed.', 'good');
-    sum.push('HTTP message: ' + k.size + ' bytes. Pieces sent: ' + n + '. Each piece got TCP ' + T + ' + IP ' + I + ' + Ethernet ' + E + ' + FCS ' + F + ' = ' + k.per + ' bytes, so ' + total + ' bytes crossed the wire.');
     if (n > 1 && k.size <= k.mtu) sum.push('The MTU is a limit on the size of the packet, which includes the IP header and the TCP header, not on the size of the data. So one piece carries only up to ' + k.mss + ' bytes of data (the MSS), which is the MTU minus 40 bytes. This is why data that is equal to the MTU, or slightly smaller, still becomes two pieces.');
     if (n > 2) sum.push('When the data is large, headers are added again for every piece. TCP on the receiving side joins the pieces using the sequence numbers, so the program reads them as continuous data without having to care about the pieces.');
     if (n === 1) sum.push('Even if the data is not split, the ' + k.per + ' bytes of headers and FCS are always added. The smaller the data, the larger the share of the total that the headers take up.');
@@ -8599,7 +8558,7 @@ Lab.register({
       { cells: ['2 Data link · 1 Physical', { v: 'Link', cls: on(3) }, 'Ethernet (header ' + E + ' + FCS ' + F + ' bytes)', 'Frame', 'MAC address ' + A.cmac + ' → ' + A.smac] },
     ], 'How the layers correspond (the yellow cell is the layer working now)');
     if (!s.stage) { H.text(v, 'Click Run and the data goes down one step at a time, starting from the top layer on the sending side.'); return; }
-    H.counters(v, [[s.split ? k.mss + ' bytes' : '?', 'Data that fits in one piece'], [s.split ? k.segs.length + '' : '?', 'Pieces'], [s.sent ? sim.wire + ' bytes' : '?', 'Total size on the wire']]);
+    H.counters(v, [[s.split ? k.mss + ' bytes' : '?', 'Data that fits in one piece']]);
     if (s.split) H.table(v, ['Piece', 'Data', '+ TCP ' + T + ' = segment', '+ IP ' + I + ' = packet', '+ Ethernet ' + E + ' + FCS ' + F + ' = frame'], k.segs.map(function (d, i) {
       var cur = i === 0 || s.sent, sh = function (x, need) { return cur && need ? String(x) : '-'; };
       return { cells: ['#' + (i + 1), d + ' bytes', sh(d + T, s.stage >= 3), sh(d + T + I, s.stage >= 4), { v: sh(d + T + I + E + F, s.stage >= 5), cls: cur && s.stage >= 5 ? 'hot' : '' }] };
@@ -8638,7 +8597,7 @@ Lab.register({
 Lab.register({
   id: 'url', nav: 'URL structure', cat: 'Networking', mode: 'step',
   title: 'After I added the search term "A&B" to the URL, the server received only "A"',
-  intro: 'A URL is divided into the scheme, host, port, path, query, and fragment at fixed symbols (://, :, /, ?, #, &, =). These symbols act as separators within a URL, so if you put the same character directly into a value, the URL gets cut at the wrong place. Follow how a URL is split, which parts of it go to the server, and how to insert a value so that it arrives intact.',
+  intro: 'A URL is divided into the scheme, host, port, path, query, and fragment at fixed symbols (://, :, /, ?, #, &, =). These symbols act as separators within a URL, so if you put the same character directly into a value, the URL gets cut at the wrong place.',
   terms: ['URI and URL', 'URL components', 'Percent-encoding', 'Query string and form data', 'Relative URL'],
   controls: [
     { id: 'origin', label: 'Beginning of the URL (scheme, host, port)', type: 'select', value: 'https://shop.example', options: [['https://shop.example', 'https://shop.example (port not written)'], ['https://shop.example:443', 'https://shop.example:443'], ['https://shop.example:8443', 'https://shop.example:8443'], ['http://shop.example', 'http://shop.example (port not written)'], ['http://shop.example:8080', 'http://shop.example:8080']] },
@@ -8757,10 +8716,9 @@ Lab.register({
     push('Server query parsing: The query is split at &, each piece is split into a name and a value at the first =, and then + is turned back into a space and %XX into the original character. The result is ' + plist + '. ' + why, ok && sortOk ? 'good' : 'bad');
     var relWhy = { 'detail': 'It does not start with /, so the last segment of the current path (' + u.path + ') is replaced with detail. The query and the fragment are not inherited.', '../cart': '.. means one level up. Removing the last segment of the current path (' + u.path + ') leaves /shop/, and going up one level from there and adding cart gives /cart.', '/help': 'It starts with /, so the whole path is replaced with /help. The scheme, host, and port of the current URL are used as they are.', '?page=2': 'It starts with ?, so the path stays and only the query is replaced with page=2. The query of the current URL is not inherited; it is replaced entirely.', '#top': 'It starts with #, so the path and the query stay and only the fragment is replaced with top. This only moves to a position inside the same document, so no new request is sent to the server.', '//cdn.example/app.js': 'It starts with //, so only the scheme (' + u.scheme + ') is inherited, and the host onward is set anew. The port is not inherited either.' }[c.rel];
     push('Resolving the relative URL: The link on this page (href="' + c.rel + '") gives only part of a URL, so the browser fills in the missing parts using the current URL as the base. ' + relWhy + ' The result is ' + linkHref + '.');
-    sum.push('Sent to ' + u.host + ' on port ' + eff + ': the request line (GET ' + target + ' HTTP/1.1). Value of q received by the server: ' + (got === null ? 'none' : '"' + got + '"') + (ok ? '.' : '. It differs from the search term that was sent ("' + q + '").'));
     if (!ok) sum.push('&, =, #, +, %, and ? are characters that act as separators within a URL. If a value can contain such characters, you must always encode it before inserting it. In JavaScript, URLSearchParams or encodeURIComponent does this, and in Java, URLEncoder.encode does. Code that builds a URL by joining characters by hand usually works, and then fails on the day such a value arrives.');
-    else if (c.enc) sum.push('Encoding replaces a character inside a value with its %XX form so that it is not read as a separator. The server splits at the separators first and decodes afterward, so the value stays intact. Turn encoding off and compare what happens to the same search term.');
-    else sum.push('This search term worked even when appended as it is, but users can type any characters into a value. Try changing the search term to A&B or C#.');
+    else if (c.enc) sum.push('Encoding replaces a character inside a value with its %XX form so that it is not read as a separator. The server splits at the separators first and decodes afterward, so the value stays intact.');
+    else sum.push('This search term worked even when appended as it is, but users can type any characters into a value.');
     sum.push('The fragment (the part after #) does not go to the server. It is not in the server log, and server code cannot read it. The query, on the other hand, goes to the server and may be kept in its access log, so do not put values such as passwords in the query.');
     if (u.typedPort !== '') sum.push(u.port === '' ? 'A default port (80 for http, 443 for https) is the same whether it is written or not. So the port does not appear in the normalized URL or in the Host header.' : 'A port other than the default must always be written in the URL, and it is carried in the Host header too.');
     return { events: ev, summary: sum, u: u, typed: typed, href: href, eff: eff, def: def, target: target, hostHeader: hostHeader, params: params, got: got, ok: ok && sortOk, link: linkHref, portWhy: portWhy,
@@ -8778,10 +8736,7 @@ Lab.register({
     if (n >= 6) rows.push({ cells: ['Fragment', u.frag, 'Position inside the document (used only by the browser)', { v: 'Not sent', cls: 'bad' }] });
     if (rows.length) H.table(v, ['Part', 'Value', 'What it does', 'Sent to the server?'], rows, 'Result of splitting the URL');
     var ln = H.lanes(v);
-    H.lane(ln, 'Request line', n >= 7 ? 'GET ' + sim.target + ' HTTP/1.1' : 'Not sent yet', n >= 7 ? 'hot' : 'none');
     H.lane(ln, 'Host header', n >= 7 ? 'Host: ' + sim.hostHeader : 'Not sent yet', n >= 7 ? 'hot' : 'none');
-    if (n >= 8) H.table(v, ['Name', 'Value'], sim.params.map(function (p) { return { cells: [p[0], { v: '"' + p[1] + '"', cls: p[0] === 'q' ? (sim.got === c.q ? 'good' : 'bad') : p[0] === 'sort' ? '' : 'bad' }] }; }), 'Parameters the server parsed from the query (search term sent: "' + c.q + '")');
-    if (n >= 9) H.table(v, ['Link', 'URL it points to'], [{ cells: ['href="' + c.rel + '"', { v: sim.link, cls: 'hot' }] }], 'Result of resolving the relative URL');
   },
   // Diagram: the URL is split into six parts, placed one line at a time from top to bottom, and below them come the request line sent to the server, the values the server parsed, and the URL the link points to.
   draw: function (P, sim, shown) {
@@ -8796,7 +8751,7 @@ Lab.register({
     P.box('req', 16, 190, 648, 44, { cls: n >= 7 ? (n === 7 ? 'hot now' : 'plain') : 'ghost', title: n >= 7 ? 'Request line sent to the server (connecting to ' + u.host + ' on port ' + sim.eff + ')' : 'Request line sent to the server', sub: n >= 7 ? 'GET ' + sim.target + ' HTTP/1.1' : '', mono: true });
     P.box('srv', 16, 240, 648, 44, { cls: n >= 8 ? (sim.ok ? 'good' : 'bad') + (n === 8 ? ' now' : '') : 'ghost', title: 'Values the server parsed from the query (search term sent: "' + c.q + '")', sub: n >= 8 ? sim.row[3] : '' });
     P.box('lnk', 16, 290, 648, 44, { cls: n >= 9 ? 'hot now' : 'ghost', title: 'URL the link (href="' + c.rel + '") points to', sub: n >= 9 ? sim.link : '', mono: true });
-    P.note('The six lines at the top are the parts of the URL. Only the green lines (path and query) are carried in the request line to the server, and the red line (fragment) stays in the browser. The host and port decide where to connect, and they are written in the Host header.');
+    P.note('The six lines at the top are the parts of the URL. Only the green lines (path and query) are carried in the request line to the server, and the red line (fragment) stays in the browser.');
   },
   assume: 'All 300 combinations were run on Node.js 24 and checked. The result of splitting the URL, the normalized URL, and the resolution of relative URLs were checked against the values produced by the Node.js URL (an implementation of the WHATWG URL standard, which browsers follow). The connection port, the request line, and the Host header were checked by sending a request to that URL with the Node.js HTTP client, redirecting only the connection to a test server on 127.0.0.1, and receiving the characters that were actually sent (no DNS lookup for shop.example and no outside connection was made, and even the https URLs were received without encryption). The values the server received are the query of that request line parsed with URLSearchParams. Other servers such as Tomcat use the same rules (application/x-www-form-urlencoded), which split at & and = and turn + and %XX back, but this lab did not run them separately. Parts that differ from server to server, such as whether a malformed %XX is treated as an error, are not covered. encodeURIComponent turns a space into %20, not +, and in a query both are read as a space (this difference was also confirmed by execution). The rules for splitting a URL are in RFC 3986 section 3, removing the fragment before making the request is in section 3.5, resolving relative URLs is in section 5.2, and the request line and the Host header are in RFC 9112 section 3.2 and RFC 9110 section 7.2. That clicking a link that starts with # does not send a new request to the server was written down from the behavior of browsers (fragment navigation in the HTML standard) and was not run. URLs that contain a user name, IPv6 addresses, and domain names written in Korean are not covered.',
 });
@@ -8804,7 +8759,7 @@ Lab.register({
 Lab.register({
   id: 'dns', nav: 'DNS', cat: 'Networking', mode: 'step',
   title: 'Who knows the IP address of a domain name, and when does a change show up?',
-  intro: 'A computer cannot connect to a name like shop.example; it needs an IP address. DNS is what turns a name into an address. The servers that know the answer are not in one place but are divided into several levels, and an answer that has been received stays in a cache for a set time (the TTL) so that it is not asked for again. Follow the lookup process and see the difference the cache makes.',
+  intro: 'A computer cannot connect to a name like shop.example; it needs an IP address. DNS is what turns a name into an address. The servers that know the answer are not in one place but are divided into several levels, and an answer that has been received stays in a cache for a set time (the TTL) so that it is not asked for again.',
   terms: ['DNS', 'DNS record', 'Recursive resolver and authoritative name server', 'DNS cache and TTL'],
   controls: [
     { id: 'q', label: 'What to ask for', type: 'select', value: 'a', options: [['a', 'IPv4 address of shop.example (A)'], ['aaaa', 'IPv6 address of shop.example (AAAA)'], ['cname', 'Address of www.shop.example (through a CNAME)'], ['mx', 'Mail server of shop.example (MX)']] },
@@ -8901,21 +8856,18 @@ Lab.register({
     var stale = c.changed && cached;
     push(c.q === 'mx' ? 'Mail is sent to the ' + st.ans.slice(3) + ' server. The IP address of this name is looked up once more with an A record (the name server may also include it in the MX answer).' + (stale ? ' This is the old server from before the administrator changed it.' : '') : 'The browser connects to the address it received (' + (cn ? val : st.ans) + ').' + (stale ? ' This is the old address from before the administrator changed it.' : ''), stale ? 'bad' : 'good');
     var reflected = !c.changed ? 'Not changed' : cached ? 'Still the old value' : 'Reflected (new value)';
-    sum.push('Answer received: ' + answer + '. Where it came from: ' + st.src + '. Queries from the PC to the resolver: ' + st.pcq + '. Queries from the resolver to name servers: ' + st.upq + '.');
     if (c.cache === 'none') sum.push('No server has the answer for every name. A root server tells you which servers handle the last part of a name (.example, .com, .kr), those servers tell you the name server for each domain, and only the authoritative name server of that domain has the answer. This PC asks only one resolver, and the resolver does the step-by-step asking on its behalf.');
     if (cached) sum.push('An answer that has been received stays in the cache for the TTL, and during that time it is not asked for again. There are caches on the PC and on the resolver. Thanks to this, most lookups finish without reaching a root server.');
     if (c.cache === 'expired') sum.push('Once the TTL has passed, it asks again. Even so, it does not start from the root server again. This is because which name servers are responsible for the domain is remembered separately, with a longer TTL.');
     if (stale) sum.push('Even if you change a record, an answer that is already in a cache is used until its TTL ends. So each user gets the new value at a different time, and at the latest it takes as long as the TTL before the change. If you plan to move a server, shorten the TTL in advance, and keep the old server running for a while after the move.');
-    if (c.changed && !cached) sum.push('This time no cache held the old value, so the new value was received right away. If you change the cache state to "In the resolver\'s cache", you can see another user receive the old value at the same moment.');
+    if (c.changed && !cached) sum.push('This time no cache held the old value, so the new value was received right away.');
     sum.push({ a: 'An A record connects a name to an IPv4 address. It is the most basic record.', aaaa: 'An AAAA record connects a name to an IPv6 address. An IPv6 address is 128 bits, four times the length of an IPv4 address (32 bits), and the name of the record is A written four times, AAAA. One name can have both A and AAAA records.', cname: 'A CNAME record connects a name to another name, not to an address. When the side that owns the canonical name (a CDN or a hosting company) changes the server address, you do not need to fix your record. In exchange, the canonical name has to be looked up once more.', mx: 'An MX record tells you the name of the server that receives mail sent to the domain. The number in front is the priority, and when there are several records, the server with the smaller number is tried first.' }[c.q]);
     return { events: ev, summary: sum, answer: answer, path: path, cn: cn, row: [answer, st.src, st.pcq + '', st.upq + (path.length ? ' (' + path.join(' → ') + ')' : ''), reflected] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { msgs: [], pc: [], rs: [], pcq: 0, upq: 0, ans: '', src: '' }, c = sim.c;
-    H.counters(v, [[s.pcq + '', 'Queries from the PC to the resolver'], [s.upq + '', 'Queries from the resolver to name servers']]);
     if (!last) H.text(v, 'Click Run to look for the answer in order, starting with the cache of this PC.');
-    var ln = H.lanes(v), stale = sim.row[4] === 'Still the old value';
-    H.lane(ln, 'Answer received', s.ans || 'None yet', s.ans ? (stale ? 'bad' : 'good') : 'none');
+    var ln = H.lanes(v);
     H.lane(ln, 'Where the answer came from', s.src || 'None yet', s.src ? (s.src === 'Authoritative name server' ? 'good' : 'wait') : 'none');
     var rows = function (list) { return list.length ? list.map(function (r) { return { cls: r[3] === 'TTL passed' ? 'gone' : '', cells: [r[0], r[1], r[2], r[3]] }; }) : [{ cells: ['(empty)', '', '', ''] }]; };
     H.table(v, ['Name', 'Type', 'Value', 'TTL left'], rows(s.pc), 'Cache of this PC');
@@ -8991,10 +8943,9 @@ Lab.register({
       push('The destination is a public address on the internet, and my address (' + c.ip + ') is a private address. A private address is not routed on the internet, so if the packet were sent out as it is, the response could not come back. So the gateway replaces the source address and port with its own public address before sending it out (NAT): ' + c.ip + ':51000 → ' + pub + ':40001.', '');
       push('The gateway writes the replaced pair in the translation table. When the response from the server comes back addressed to ' + pub + ':40001, it looks at the table, changes the destination back to ' + c.ip + ':51000, and delivers it to my PC.' + (other ? ' Packets sent out by another device on the same network (' + other + ') get a different port, 40002, so several devices can share one public address.' : ' This network has only my PC and the gateway, but even if there were more devices, each would get a different port, and they would share one public address.'), 'good');
     } else if (!k.same) push('The destination is also a private address. In a place where several private networks are connected by routers, such as the internal network of a company, the gateway passes the packet on without changing the address. A private address does not work on the internet, so this destination can be reached only if it is inside the internal network of the same organization.', '');
-    sum.push(c.ip + '/' + k.p + ' has the network address ' + netS + ', the broadcast address ' + bcS + ', and ' + k.hosts + ' usable hosts. The destination (' + c.dest + ') is on ' + (k.same ? 'the same' : 'a different') + ' network, and the way it is sent is "' + route + '".');
     if (!k.same && a3 === d3) sum.push('Whether two addresses are on the same network is decided not by the leading decimal numbers but by the first ' + k.p + ' bits that the subnet mask picks out. With a prefix longer than /24 (/25, /26, /30), the networks split even within the last number. If you enter the wrong subnet mask, data that should go to the device right next to you goes to the gateway, or the other way around.');
     if (k.same && a3 !== d3) sum.push('With a prefix shorter than /24 (/23, /16), two addresses can be on the same network even when the third number differs. The judgment is always "is the result of applying the same mask the same?"');
-    if (k.same && a3 === d3) sum.push('Devices on the same network do not go through the gateway. Change the length of the network part to a longer one (for example, /25 or /26) and compare how the same two addresses are split.');
+    if (k.same && a3 === d3) sum.push('Devices on the same network do not go through the gateway.');
     if (k.hosts <= 2) sum.push('With /30, the host part is only 2 bits, so only 2 of the 4 addresses can be used. It is used where there are only two devices, such as a link between two routers.');
     if (nat) sum.push('10.0.0.0/8, 172.16.0.0/12, and 192.168.0.0/16 are the private address ranges that anyone can use freely inside their own network. When data goes out to the internet, the gateway lends it a public address with NAT, and because devices are told apart by port number, several devices in a home use the internet through one public address. Conversely, the internet side cannot start a connection to my PC first, because the translation table has no pair for it.');
     if (!k.same && !nat) sum.push('NAT is needed when data goes from a private address out to a public address. In an internal network where private addresses talk to each other, a router only forwards the data and does not change the addresses.');
@@ -9009,10 +8960,9 @@ Lab.register({
     if (n >= 4) rows.push({ cells: ['Broadcast address', { v: S(k.bc), cls: 'hot' }, self.bin(k.bc, k.p)] });
     if (n >= 6) rows.push({ cells: ['Destination', c.dest, self.bin(k.dn, k.p)] }, { cells: ['Destination with the mask applied', { v: S(k.dnet), cls: k.same ? 'good' : 'bad' }, self.bin(k.dnet, k.p)] });
     H.table(v, ['What', 'Decimal', 'Binary (network part | host part)'], rows, 'The addresses unpacked into binary');
-    H.counters(v, [[n >= 5 ? k.hosts + '' : '?', 'Usable hosts'], [n >= 6 ? (k.same ? 'Same' : 'Different') : '?', 'Network of the destination']]);
+    H.counters(v, [[n >= 5 ? k.hosts + '' : '?', 'Usable hosts']]);
     var ln = H.lanes(v);
     H.lane(ln, 'Judgment', n < 6 ? 'Not compared yet' : k.same ? 'Same network: ' + S(k.dnet) + ' = ' + S(k.net) : 'Different network: ' + S(k.dnet) + ' ≠ ' + S(k.net), n < 6 ? 'none' : k.same ? 'good' : 'wait');
-    H.lane(ln, 'How it is sent', n < 7 ? 'Not decided yet' : sim.route, n < 7 ? 'none' : k.same ? 'good' : 'hot');
     if (sim.nat && n >= 8) {
       var nr = [{ cells: [c.ip + ':51000', sim.pub + ':40001', c.dest + ':443'] }];
       if (n >= 9 && sim.other) nr.push({ cells: [sim.other + ':51000', sim.pub + ':40002', c.dest + ':443'] });
@@ -9034,7 +8984,7 @@ Lab.register({
     if (n >= 7 && k.same) P.arrow('send', 'me:r', 'dst:l', { cls: 'good', label: 'Direct' });
     if (n >= 7 && !k.same) { P.arrow('send', 'me:b', 'gw:l', { cls: 'hot', label: 'Handed off' }); P.arrow('fwd', 'gw:r', 'dst:b', { cls: sim.nat && n >= 8 ? 'hot' : '', label: sim.nat && n >= 8 ? 'Forwarded with the address changed by NAT' : 'Forwarded' }); }
     P.box('res', 16, 286, 648, 34, { cls: n < 7 ? 'ghost' : k.same ? 'good' : 'hot', title: 'How it is sent', right: n < 7 ? (n >= 6 ? (k.same ? 'Same network' : 'Different network') : 'Not decided yet') : sim.route });
-    P.note('The blue cells are the network part and the yellow cells are the host part. If the blue part of the destination equals mine, it is the same network and the data is sent directly; if not, it is handed to the gateway. In this example, the address of the gateway is set to the first address of the network.');
+    P.note('The blue cells are the network part and the yellow cells are the host part. In this example, the address of the gateway is set to the first address of the network.');
   },
   assume: 'The network address, the broadcast address, the number of usable hosts, and the judgment of whether two addresses are on the same network were recalculated and checked for all 72 combinations. Three methods different from the model were used for the check: the values from running the bit-operation code shown on the screen on Node.js 24, the values obtained by cutting and joining a 32-character binary string, and the two ends and the count of the range found by putting my address and the length into net.BlockList in Node.js and asking about the addresses one by one. The rule "if the results of applying the same mask are the same, send directly; if not, send to the gateway" follows RFC 1122 section 3.3.1.1, and the private address ranges follow RFC 1918 section 3. NAT was not verified by execution on the PC used to write this lab; it was written following the address and port translation (NAPT) described in RFC 3022 (sections 2.2 and 4.1). The public address 198.51.100.7, the ports 40001 and 40002, and placing the gateway at the first address of the network are examples for explanation. A destination that is a private address is assumed to be in the internal network of the same organization. 203.0.113.7 is an address reserved for documentation, and it is used here as an example of a public address. Prefix lengths such as /31 and /32, for which the rule "subtract 2 addresses" does not hold (RFC 3021), and IPv6 are not covered.',
 });
@@ -9042,7 +8992,7 @@ Lab.register({
 Lab.register({
   id: 'routing', nav: 'Switches and routers', cat: 'Networking', mode: 'step',
   title: 'If the destination IP is the server, why is the frame sent to the router\'s MAC address?',
-  intro: 'A frame for a device on the same network is sent directly to that device\'s MAC address, and a switch uses that address to deliver it. A device on another network cannot be reached directly, so the sender hands the frame to its gateway (a router). Each time the packet passes a router, the MAC addresses in the frame are written anew, but the IP addresses stay the same and the TTL goes down by 1. Change the destination and follow how the packet changes on each hop.',
+  intro: 'A frame for a device on the same network is sent directly to that device\'s MAC address, and a switch uses that address to deliver it. A device on another network cannot be reached directly, so the sender hands the frame to its gateway (a router). Each time the packet passes a router, the MAC addresses in the frame are written anew, but the IP addresses stay the same and the TTL goes down by 1.',
   terms: ['MAC address and ARP', 'Switch and router', 'Default gateway', 'TTL of an IP packet', 'OSI model'],
   controls: [
     { id: 'dst', label: 'Where PC A (192.168.1.10) sends the packet', type: 'select', value: 'c', options: [['b', 'PC B on the same network (192.168.1.20)'], ['c', 'Server C, one router away (192.168.2.30)'], ['d', 'Server D, two routers away (192.168.3.40)']] },
@@ -9120,19 +9070,19 @@ Lab.register({
       }
     }
     var ok = st.end === 'ok', changed = frames.length - 1;
-    sum.push(ok ? 'The packet arrived at ' + to.name + '. Frames built: ' + frames.length + '. TTL on arrival: ' + ttl + '.' : 'The TTL reached 0 at ' + D[st.endAt].name + ' and the packet was discarded. To reach ' + to.name + ', the packet has to pass ' + (hops.length - 1) + (hops.length === 2 ? ' router' : ' routers') + ', so the initial TTL must be at least ' + hops.length + '.');
+    if (!ok) sum.push('The TTL reached 0 at ' + D[st.endAt].name + ' and the packet was discarded. To reach ' + to.name + ', the packet has to pass ' + (hops.length - 1) + (hops.length === 2 ? ' router' : ' routers') + ', so the initial TTL must be at least ' + hops.length + '.');
     if (direct) sum.push('Within the same network, the sender finds the MAC address of the receiving device with ARP and sends to it directly. The switch forwards by MAC address only and no router is involved, so the TTL does not go down either.' + (ttl0 === 1 ? ' That is why the packet arrives even with a TTL of 1.' : ''));
     else sum.push('When sending to another network, what PC A asks about with ARP is not the receiving device but the MAC address of the gateway. This is why, if the default gateway setting is wrong, communication works inside the same network but cannot get out.');
     if (changed > 0) sum.push('Each router the packet passed built a new frame, so the MAC addresses changed ' + changed + (changed === 1 ? ' time' : ' times') + '. The source IP and the destination IP stayed the same from start to finish. A MAC address is used only within one hop, and an IP address is used all the way from the source to the destination.');
     if (!ok) sum.push('The tool that makes use of the fact that the router that discards a packet sends back "Time Exceeded" is traceroute (tracert on Windows). It sends packets with the TTL raised to 1, 2, 3, and so on, and writes down the routers that responded, in order, to find the path.');
-    if (!cached && ok && !direct) sum.push('ARP requests: one on each hop, ' + st.arpN + ' in total. A MAC address that has been found stays in the cache, so the packets that follow are sent without asking. Turn on the "ARP cache" setting and compare.');
+    if (!cached && ok && !direct) sum.push('ARP requests: one on each hop, ' + st.arpN + ' in total. A MAC address that has been found stays in the cache, so the packets that follow are sent without asking.');
     return { events: ev, summary: sum, frames: frames.join('; '),
       row: [direct ? 'Same network: sent directly' : 'Other network: sent to the gateway', D[hops[0].t].name + ' (' + mac(hops[0].dm) + ')', st.arpN + '', ok ? 'Arrived (TTL ' + ttl + ')' : 'Dropped at ' + D[st.endAt].name + ' (TTL 0)', changed + ''] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the steps one at a time, starting from the decision made by PC A.'); return; }
-    H.counters(v, [[s.arpN + '', 'ARP requests'], [String(s.ttl), 'TTL now'], [s.frames.length + '', 'Frames built']]);
+    H.counters(v, [[s.arpN + '', 'ARP requests'], [s.frames.length + '', 'Frames built']]);
     if (s.frames.length) H.table(v, ['Hop', 'Source MAC', 'Destination MAC', 'Source IP', 'Destination IP', 'TTL'], s.frames.map(function (f, k) { var cur = k === s.frames.length - 1; return { cells: [f.seg, { v: '…:' + f.sm, cls: cur ? 'hot' : '' }, { v: '…:' + f.dm, cls: cur ? 'hot' : '' }, f.sip, f.dip, String(f.ttl)] }; }), 'Frame on each hop (the MAC addresses change and the IP addresses stay the same. Only the last two digits of each MAC address are shown)');
     else H.text(v, 'No frame has been sent yet.');
     if (s.arpTab.length) H.table(v, ['Device', 'IP address', 'MAC address'], s.arpTab.map(function (a) { return { cells: [a.dev, a.ip, a.mac + (a.old ? ' (already known)' : '')] }; }), 'ARP cache (MAC addresses found from IP addresses)');
@@ -9179,7 +9129,7 @@ Lab.register({
 Lab.register({
   id: 'socket', nav: 'Sockets and ports', cat: 'Networking', mode: 'step',
   title: 'Of the several programs on one computer, which one receives this data?',
-  intro: 'An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number. Change the port on which the servers start and the port to which the clients connect, and see when a connection is refused and how several clients can connect to one port at the same time.',
+  intro: 'An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number.',
   terms: ['Port', 'Socket', 'Ephemeral port', 'TCP and UDP'],
   controls: [
     { id: 'srv', label: 'Servers to start', type: 'select', value: 'same', options: [['ab', 'Server A on port 9000, Server B on port 9001'], ['same', 'Server A on port 9000, Server B also on port 9000'], ['a', 'Only Server A, on port 9000']] },
@@ -9232,10 +9182,9 @@ Lab.register({
       push('socket.write: ' + (n > 1 ? 'Each of the ' + n + ' clients sends its data. All of it goes to port ' + to + ', but the operating system looks at the source port to tell which connection the data belongs to, and passes it to Server ' + who + ' separately for each connection.' : 'The client sends its data. The destination port is ' + to + ', so the operating system passes it to Server ' + who + '.') + (c.srv === 'ab' ? ' Nothing goes to Server ' + (who === 'A' ? 'B' : 'A') + ' on the same computer.' : ''), 'good');
     }
     var bRow = { ok: 'Succeeded (port 9001)', EADDRINUSE: 'Failed (EADDRINUSE)', none: 'Not started' }[o.b];
-    sum.push(who ? (n > 1 ? 'All ' + n + ' clients connected, and' : 'The client connected, and') + ' the data was received by Server ' + who + '.' : (n > 1 ? 'The connections of all ' + n + ' clients were' : 'The connection of the client was') + ' refused (ECONNREFUSED).');
     if (c.srv === 'same') sum.push('Starting a server on a port that is already in use fails with EADDRINUSE. If you meet a "port already in use" error during development, most often the server you started earlier is still alive. End that program or use another port.');
     if (who && n > 1) sum.push('Several clients can connect to one server port at the same time. Even when connections increase, the server side has only one port, ' + to + ', and connections are told apart by the set of four values (source IP, source port, destination IP, destination port). A web server receiving many users on the single port 443 works on the same principle.');
-    if (who && n === 1) sum.push('A client decides only the destination port, and the operating system picks the source port temporarily. Increase the number of clients and see how the source ports differ.');
+    if (who && n === 1) sum.push('A client decides only the destination port, and the operating system picks the source port temporarily.');
     if (!who) sum.push('ECONNREFUSED means "the connection reached that computer, but no program is listening on that port." First check whether the server is running and whether the port number is right. It is a different error from a timeout, which ends after waiting when there is no response at all.');
     if (c.srv === 'ab' && who) sum.push('Even with the same IP address, a different port means a different program. This is why an address is written together as "IP:port".');
     return { events: ev, summary: sum, own: o.own, who: who,
@@ -9244,12 +9193,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the steps one at a time, starting from the servers.'); return; }
-    H.table(v, ['Port', 'Program listening'], [9000, 9001, 9002].map(function (p) { return { cells: [p + '', s.ports[p] ? { v: 'Server ' + s.ports[p], cls: 'good' } : 'None'] }; }), 'Ports waiting for connections on this computer (127.0.0.1)');
-    if (s.b === 'EADDRINUSE') H.text(v, 'Server B: listen(9000) failed, EADDRINUSE');
     if (s.conns.length) H.table(v, ['Client', 'Source IP', 'Source port', 'Destination IP', 'Destination port', 'Receiving program'], s.conns.map(function (k) { return { cells: [String(k.c), '127.0.0.1', { v: String(k.cp), cls: 'hot' }, '127.0.0.1', String(k.sp), 'Server ' + k.who] }; }), 'Established connections (two connections are the same only if all four values are the same)');
-    if (s.fails.length) H.table(v, ['Client', 'Port it tried to connect to', 'Result'], s.fails.map(function (k) { return { cells: [String(k.c), k.to + '', { v: 'ECONNREFUSED', cls: 'bad' }] }; }), 'Refused connections');
-    H.counters(v, [[s.conns.length + '', 'Established connections'], [s.fails.length + '', 'Refused connections']]);
-  },
+    if (s.fails.length) H.table(v, ['Client', 'Port it tried to connect to', 'Result'], s.fails.map(function (k) { return { cells: [String(k.c), k.to + '', { v: 'ECONNREFUSED', cls: 'bad' }] }; }), 'Refused connections');  },
   // Diagram: the clients on the left, and the three ports of the server computer on the right. If the port an arrow reaches has a program listening, the connection is made, and if not, it is refused.
   draw: function (P, sim, shown) {
     var c = sim.c, n = +c.n, last = shown[shown.length - 1], s = last ? last.snap : { ports: {}, b: '', conns: [], fails: [], sent: false };
@@ -9267,7 +9212,7 @@ Lab.register({
     }
     P.box('rb', 16, 268, 320, 34, { cls: !s.b ? 'ghost' : s.b === 'ok' ? 'good' : 'bad', title: 'Listen of Server B', right: !s.b ? (c.srv === 'a' ? 'Not started' : 'Not yet') : s.b === 'ok' ? 'Succeeded' : 'EADDRINUSE' });
     P.box('rc', 344, 268, 320, 34, { cls: s.conns.length ? 'good' : s.fails.length ? 'bad' : 'ghost', title: 'Connections', right: 'Succeeded ' + s.conns.length + ' · Refused ' + s.fails.length });
-    P.note('Each box on the right is one port. Only one listening program can be on a port, but several connections can arrive on that port. The client-side source ports (such as 50001) are examples for the explanation. In reality, the operating system picks a different number each time you run it.');
+    P.note('Each box on the right is one port. The client-side source ports (such as 50001) are examples for the explanation. In reality, the operating system picks a different number each time you run it.');
   },
   assume: 'The 27 combinations were actually run with the net module on 127.0.0.1 of the PC used to write this lab (Windows, Node.js 24) and checked against the results. What was checked: the result of the listen call of Server B (success or EADDRINUSE), the number of successful and refused client connections (ECONNREFUSED), the server that received the data, the number of connections the server saw, whether the ports of the server-side sockets were all the same as the one listening port, and whether the client-side ports were different from each other. In the runs, three ports that were free at the time were used instead of 9000, 9001, and 9002, and because the client-side port numbers (such as 50001 on the screen) change on every run, only the fact that they are "different from each other" was used as a result. The range from which an operating system picks ephemeral ports depends on the operating system and its settings (the range that IANA recommends is 49152 to 65535, Section 6 of RFC 6335). That a connection is identified by the IP addresses and ports on both sides is the definition in the TCP specification (the entries for connection and socket in the glossary in Section 4 of RFC 9293). Not covered: clients on another computer, and special socket options (such as SO_REUSEPORT) that let several programs share the same port.',
 });
@@ -9275,7 +9220,7 @@ Lab.register({
 Lab.register({
   id: 'udp', nav: 'TCP and UDP', cat: 'Networking', mode: 'step',
   title: 'If you send data in three pieces, does it arrive in three pieces?',
-  intro: 'TCP and UDP are two ways of carrying the data of one program to another program. TCP first establishes a connection and delivers the bytes in order and without gaps, but it does not tell the receiver where the sender split the data. UDP sends each piece as it is, with no connection, and takes no responsibility for whether it arrives. Send the same data both ways and see what changes on the receiving side.',
+  intro: 'TCP and UDP are two ways of carrying the data of one program to another program. TCP first establishes a connection and delivers the bytes in order and without gaps, but it does not tell the receiver where the sender split the data. UDP sends each piece as it is, with no connection, and takes no responsibility for whether it arrives.',
   terms: ['TCP and UDP', 'Byte stream and datagram', 'Socket', 'Port', 'Three-way handshake'],
   controls: [
     { id: 'proto', label: 'Protocol', type: 'select', value: 'tcp', options: [['tcp', 'TCP'], ['udp', 'UDP']] },
@@ -9358,27 +9303,20 @@ Lab.register({
     var q = function (a) { return a.map(function (x) { return '"' + x + '"'; }).join(', '); };
     var same = !on ? (tcp ? 'Nothing was sent' : 'All lost') : tcp ? 'Same content and order, boundaries gone' : { ok: 'Exactly as sent', loss: 'One is missing', reorder: 'Order changed' }[net];
     var row = [tcp ? (on ? 'Established (success)' : 'Failed (ECONNREFUSED)') : 'None', tcp ? (on ? '3 writes succeeded' : 'Could not send') : 'All 3 sends: no error', got.length ? q(got) + ' (' + got.length + (got.length === 1 ? ' piece)' : ' pieces)') : 'None', same];
-    sum.push(tcp && !on ? 'TCP: the connection was refused, so nothing could be sent.' : (tcp ? 'TCP: ' : 'UDP: ') + 'The pieces sent were "AB", "CD", and "EF", and the receiving program read ' + (got.length ? q(got) : 'nothing') + '.');
     if (tcp && on) sum.push('TCP is a stream of bytes. It keeps the order and the content, but it does not tell the receiver how many writes the data was split into. So a program that exchanges messages over TCP has to decide for itself "where one message ends." It writes the length first (as HTTP does with Content-Length) or uses a delimiter such as a newline.');
     if (tcp && on && net === 'ok') sum.push('In this lab, the receiving program reads late. If it reads as soon as the data arrives, the data may be read in three separate pieces, as it was sent, but there is no guarantee of that. Code that assumes "one write is one read" works on your own computer and then breaks in a real environment.');
     if (tcp && on && net !== 'ok') sum.push('With TCP, even if data is lost or reordered on the way, the operating system corrects it with sequence numbers and acknowledgments before handing it to the program. What the program reads is the same as when nothing went wrong. In exchange, the data that came later has to wait until the gap is filled. You can see the detailed process of retransmission in the "TCP connections and retransmission" lab. This case could not be created on the PC used to write this lab, so it was not verified by execution, and it follows the description in the TCP specification.');
-    if (tcp && !on) sum.push('With TCP, the sender finds out that nobody is there while it is establishing the connection. Change the protocol and compare what happens with UDP in the same situation.');
-    if (!tcp && on && net === 'ok') sum.push('UDP keeps the boundaries of the pieces that were sent (datagrams). One send is one message on the receiving side. However, this is true only when nothing happens on the way. Try setting a loss or a reordering.');
+    if (tcp && !on) sum.push('With TCP, the sender finds out that nobody is there while it is establishing the connection.');
+    if (!tcp && on && net === 'ok') sum.push('UDP keeps the boundaries of the pieces that were sent (datagrams). One send is one message on the receiving side. However, this is true only when nothing happens on the way.');
     if (!tcp && on && net !== 'ok') sum.push('UDP does not send lost data again and does not put data in order. If needed, the program has to add numbers, acknowledge, and resend by itself. QUIC, which HTTP/3 uses, is an example that built such features on top of UDP.');
     if (!tcp && !on) sum.push('A UDP send succeeding means only that the operating system sent the datagram out. Even if the other program does not exist, or the datagram is lost on the way, the sender cannot know.');
     sum.push(tcp ? 'TCP is used where nothing may be lost or reordered. The web (HTTP/1.1, HTTP/2), database connections, file transfer, and email run on TCP.' : 'UDP is used where losing a little is acceptable and late arrival is worse, or where one short question and answer is enough. Real-time voice and video, games, and DNS lookups are typical.');
     return { events: ev, summary: sum, row: row };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, tcp = sim.c.proto === 'tcp', P = this.PARTS;
+    var last = shown[shown.length - 1], s = last ? last.snap : null, P = this.PARTS;
     if (!s) { H.text(v, 'Click Run to go through it one step at a time.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'Connection', { ok: 'Established (three-way handshake)', fail: 'Failed (ECONNREFUSED)', none: 'None (UDP does not connect)' }[s.conn], s.conn === 'ok' ? 'good' : s.conn === 'fail' ? 'bad' : 'none');
     H.table(v, ['Sent', 'What happened'], P.map(function (x, i) { var z = s.sent[i]; return { cells: ['"' + x + '"', z === 0 ? 'Not sent yet' : z === 1 ? { v: 'Arrived at the receiver\'s OS', cls: 'good' } : z === 2 ? { v: 'Lost', cls: 'bad' } : { v: 'In flight (delayed)', cls: 'hot' }] }; }), 'The three pieces the sender sent');
-    H.text(v, tcp ? 'Receive buffer of the receiver\'s operating system (the bytes form one line)' : 'Receive buffer of the receiver\'s operating system (each datagram is kept separate)');
-    H.slots(v, s.buf.map(function (x) { return [x, 'q']; }).concat(s.held ? [[s.held + ' (held, gap before it)', 'b']] : []), 'Empty');
-    H.text(v, 'What the receiving program read (each slot is one read)');
-    H.slots(v, s.read.map(function (x) { return [x, 'd']; }), 'Not read yet');
   },
   // Diagram: on the left, the three pieces the sending program sent; in the middle, the receive buffer of the receiver's operating system; on the right, what the receiving program read. TCP joins them into one line in the middle, and UDP keeps them separate.
   draw: function (P, sim, shown) {
@@ -9419,7 +9357,7 @@ Lab.register({
 Lab.register({
   id: 'congestion', nav: 'Flow control and congestion control', cat: 'Networking', mode: 'step',
   title: 'How does TCP decide how much to send at a time?',
-  intro: 'Even when TCP has a lot of data to send, it does not pour it all out at once. It sends only up to the smaller of two amounts: the amount the receiver can handle (the receive window) and the amount TCP estimates the network can handle (the congestion window). Respecting the first is flow control, and adjusting the second is congestion control. See how the amount sent grows and shrinks over twelve round trips.',
+  intro: 'Even when TCP has a lot of data to send, it does not pour it all out at once. It sends only up to the smaller of two amounts: the amount the receiver can handle (the receive window) and the amount TCP estimates the network can handle (the congestion window). Respecting the first is flow control, and adjusting the second is congestion control.',
   terms: ['Flow control and congestion control', 'Receive window and congestion window', 'Slow start and congestion avoidance', 'TCP and UDP'],
   controls: [
     { id: 'loss', label: 'What happens on the way', type: 'select', value: 'dup', options: [['none', 'No loss'], ['dup', 'One segment is lost (detected by three duplicate ACKs)'], ['rto', 'Everything sent is lost (detected by a timeout)']] },
@@ -9488,12 +9426,11 @@ Lab.register({
       push(head + tail, o.phase === 'ca' ? 'good' : '');
     });
     var flights = R.map(function (o) { return o.flight; });
-    function seg(n) { return n + (n === 1 ? ' segment' : ' segments'); } function ack(n) { return n + (n === 1 ? ' ACK' : ' ACKs'); } sum.push('In twelve round trips, ' + total + ' segments were sent. Amount sent in each round trip: ' + flights.join(', ') + '.');
-    if (hit && c.loss === 'dup') sum.push('When the loss is detected by three duplicate ACKs, the slow start threshold and the congestion window are reduced to half of the amount sent (' + seg(hit.nextSsth) + '), and the window grows by one again from there. It grows, and when it meets a loss it is reduced, over and over, so if you draw the amount sent, it forms a sawtooth.');
+    function seg(n) { return n + (n === 1 ? ' segment' : ' segments'); } function ack(n) { return n + (n === 1 ? ' ACK' : ' ACKs'); } if (hit && c.loss === 'dup') sum.push('When the loss is detected by three duplicate ACKs, the slow start threshold and the congestion window are reduced to half of the amount sent (' + seg(hit.nextSsth) + '), and the window grows by one again from there. It grows, and when it meets a loss it is reduced, over and over, so if you draw the amount sent, it forms a sawtooth.');
     if (hit && c.loss === 'rto') sum.push('When the loss is detected by a timeout, the congestion window is returned to 1 segment. It doubles again up to the slow start threshold (' + seg(hit.nextSsth) + '), and after that it grows by one. If the same loss had been detected by three duplicate ACKs, ' + this.rounds({ loss: 'dup', at: c.at, ssth: c.ssth, rwnd: c.rwnd }).reduce(function (a, o) { return a + o.flight; }, 0) + ' segments would have been sent in twelve round trips. The timeout backs off further.');
     if (!hit) sum.push('With no loss, the window climbs quickly to the slow start threshold in slow start, and then keeps growing little by little in congestion avoidance. The sender cannot know the limit of the network in advance, so it finds the limit by growing until a loss happens.');
     if (capped) sum.push('The receive window was smaller than the congestion window in ' + capped + (capped === 1 ? ' round trip' : ' round trips') + '. In those, however large the congestion window was, only as much as the receive window was sent. Flow control protects the receiver and congestion control protects the network in between; they are different mechanisms, and the amount actually sent is decided by the smaller of the two.');
-    else sum.push('In this setting, the receive window was always ample, so the congestion window decided the amount sent. If you reduce the receive window to 6 segments, you can see the case in which the receiver is the limit.');
+    else sum.push('In this setting, the receive window was always ample, so the congestion window decided the amount sent.');
     if (hit && hit.capped) sum.push('The slow start threshold after the loss is not half of the congestion window (' + seg(hit.cwnd) + ') but half of the amount actually sent (' + seg(hit.flight) + '). This is because while the sender was held back by the receive window, it never actually sent as much as the congestion window.');
     return { events: ev, summary: sum, R: R, top: Math.max.apply(null, R.map(function (o) { return o.cwnd; })),
       row: [flights.join(' '), hit ? seg(hit.nextSsth) : 'No loss', hit ? seg(hit.nextCwnd) : 'No loss', seg(total), capped + (capped === 1 ? ' round trip' : ' round trips')] };
@@ -9501,8 +9438,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     function seg(n) { return n + (n === 1 ? ' segment' : ' segments'); } if (!s) { H.text(v, 'Click Run to go through one round trip at a time. A segment is one piece of data that TCP sends at a time.'); return; }
-    var cur = s.rows[s.rows.length - 1];
-    H.counters(v, [[seg(s.cwnd), 'Congestion window (next round trip)'], [seg(s.ssth), 'Slow start threshold'], [seg(cur.rwnd), 'Receive window'], [seg(cur.flight), 'Sent in this round trip']]);
+    H.counters(v, [[seg(s.cwnd), 'Congestion window (next round trip)']]);
     var name = { ss: 'Slow start', ca: 'Congestion avoidance', loss: 'Loss' };
     H.table(v, ['Round trip', 'Phase', 'Congestion window', 'Receive window', 'Sent', 'Slow start threshold'], s.rows.map(function (r) { return { cells: [String(r.r), { v: name[r.phase], cls: r.phase === 'loss' ? 'bad' : r.phase === 'ca' ? 'good' : '' }, String(r.cwnd), String(r.rwnd), { v: String(r.flight), cls: r.capped ? 'hot' : '' }, String(r.ssth)] }; }), 'Values for each round trip (a yellow cell is an amount blocked by the receive window)');
   },
@@ -9617,7 +9553,7 @@ Lab.register({
 Lab.register({
   id: 'redirect', nav: 'Redirection', cat: 'HTTP', mode: 'step',
   title: 'When a server says "go to another address", how does the next request go out?',
-  intro: 'Instead of handling a request itself, a server can use a 3xx status code and the Location header to tell the client "send the request again to this address". This is called redirection. The codes 301, 302, 303, 307, and 308 all look like the same instruction, but they differ in whether the move is permanent or temporary and in whether the method of the next request is kept. Change the status code and the request method, and see what the second request looks like when it goes out.',
+  intro: 'Instead of handling a request itself, a server can use a 3xx status code and the Location header to tell the client "send the request again to this address". This is called redirection. The codes 301, 302, 303, 307, and 308 all look like the same instruction, but they differ in whether the move is permanent or temporary and in whether the method of the next request is kept.',
   terms: ['Redirection and the Location header', 'Post-Redirect-Get pattern', 'HTTP status codes', 'HTTP methods', 'Safe methods and idempotent methods'],
   controls: [
     { id: 'code', label: 'Status code the server responds with', type: 'select', value: '302', options: [['301', '301 Moved Permanently'], ['302', '302 Found'], ['303', '303 See Other'], ['307', '307 Temporary Redirect'], ['308', '308 Permanent Redirect']] },
@@ -9692,7 +9628,6 @@ Lab.register({
       push('The client stops by itself. fetch follows 20 redirects and then reports a "redirect count exceeded" error, and curl follows 50 and then reports a "Maximum (50) redirects followed" error. By then, 21 requests had reached the server in the case of fetch and 51 in the case of curl.', 'bad');
       count = 'fetch 21, curl 51'; end = 'Stopped with an error (after following 20 redirects in fetch, 50 in curl)';
     }
-    sum.push('Kind of redirect for ' + line + ': ' + K.kind + '. The second request went out as ' + next + ', and ' + (loop ? 'because the two addresses point to each other, the client reported an error and stopped.' : 'two requests reached the server in all.'));
     if (nx.toGet && c.code !== '303') sum.push('Changing POST to GET on a 301 or 302 is something the standard permits ("it is allowed"), and most clients, including browsers, do it. The body is lost when this happens. To pass the POST on to the new address as it is, use 307 (temporary) or 308 (permanent).');
     if (c.code === '303') sum.push(hasBody ? 'A 303 is used to send the user to a result page after a form is submitted. The second request is a GET, so even if the user presses refresh, the form is not submitted again. This approach is called the Post-Redirect-Get pattern.' : 'A 303 is mainly used after a POST, to tell the client "see the result at this address with GET". If the request was a GET from the start, the result is the same as with 302 or 307.');
     if ((c.code === '307' || c.code === '308') && hasBody) sum.push('307 and 308 were added later to guarantee that the method and the body do not change. 307 is the "keep the method" version of 302, and 308 is the "keep the method" version of 301.');
@@ -9705,7 +9640,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, CODES = this.CODES;
     if (!s) { H.text(v, 'Click Run to see the requests and responses go back and forth one at a time.'); return; }
-    H.counters(v, [[s.n + '', 'Requests that reached the server'], [s.msgs.length > 3 ? sim.next : '?', 'Second request'], [s.done || 'In progress', 'How it ended']]);
+    H.counters(v, [[s.n + '', 'Requests that reached the server']]);
     H.table(v, ['Who', 'Sent', 'Meaning'], s.msgs.map(function (m) { return { cells: [m.f === '*' ? 'Both' : m.f === 'c' ? (m.t ? 'Client → server' : 'Client') : 'Server → client', { v: m.s, cls: m.cls === 'bad' ? 'bad' : m.cls === 'good' ? 'good' : '' }, m.mean] }; }), 'Between the client and the server');
     H.table(v, ['Code', 'Kind', 'Method handling set by the standard'], ['301', '302', '303', '307', '308'].map(function (k) { var X = CODES[k]; return { cells: [{ v: k + ' ' + X.name, cls: k === c.code ? 'hot' : '' }, X.kind, X.rule] }; }), 'The five redirection status codes');
   },

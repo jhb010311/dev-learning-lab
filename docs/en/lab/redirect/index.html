@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>Redirection</h1>
 <p><b>When a server says &quot;go to another address&quot;, how does the next request go out?</b></p>
-<p>Instead of handling a request itself, a server can use a 3xx status code and the Location header to tell the client &quot;send the request again to this address&quot;. This is called redirection. The codes 301, 302, 303, 307, and 308 all look like the same instruction, but they differ in whether the move is permanent or temporary and in whether the method of the next request is kept. Change the status code and the request method, and see what the second request looks like when it goes out.</p>
+<p>Instead of handling a request itself, a server can use a 3xx status code and the Location header to tell the client &quot;send the request again to this address&quot;. This is called redirection. The codes 301, 302, 303, 307, and 308 all look like the same instruction, but they differ in whether the move is permanent or temporary and in whether the method of the next request is kept.</p>
 <p>Checked against real execution · Ran 30 combinations against a test server (127.0.0.1) with fetch in Node 24 and curl 8.21 (-L) and checked them against the model. The permanent and temporary distinction and the wording of the standard follow RFC 9110 section 15.4</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Kind of redirect for 302 Found: Temporary. The second request went out as GET /orders (no body), and two requests reached the server in all.</li>
 <li>Changing POST to GET on a 301 or 302 is something the standard permits (&quot;it is allowed&quot;), and most clients, including browsers, do it. The body is lost when this happens. To pass the POST on to the new address as it is, use 307 (temporary) or 308 (permanent).</li>
 </ul>
 <h2>Code</h2>
@@ -172,6 +171,6 @@ await fetch('http://shop.example/order', {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

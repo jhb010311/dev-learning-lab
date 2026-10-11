@@ -1,7 +1,7 @@
 Lab.register({
   id: 'dns', nav: 'DNS', cat: '네트워크', mode: 'step',
   title: '도메인 이름의 주소는 누가 알고 있고, 바꾸면 언제 반영될까',
-  intro: '컴퓨터는 shop.example 같은 이름으로는 접속할 수 없고 IP 주소가 있어야 합니다. 이름을 주소로 바꿔 주는 것이 DNS입니다. 답을 아는 서버는 한 곳이 아니라 여러 단계로 나뉘어 있고, 한 번 받은 답은 정해진 시간(TTL) 동안 캐시에 남아 다시 묻지 않습니다. 묻는 과정과 캐시가 만드는 차이를 따라가 보세요.',
+  intro: '컴퓨터는 shop.example 같은 이름으로는 접속할 수 없고 IP 주소가 있어야 합니다. 이름을 주소로 바꿔 주는 것이 DNS입니다. 답을 아는 서버는 한 곳이 아니라 여러 단계로 나뉘어 있고, 한 번 받은 답은 정해진 시간(TTL) 동안 캐시에 남아 다시 묻지 않습니다.',
   terms: ['DNS', 'DNS 레코드', '재귀 리졸버와 권한 있는 네임 서버', 'DNS 캐시와 TTL'],
   controls: [
     { id: 'q', label: '묻는 것', type: 'select', value: 'a', options: [['a', 'shop.example 의 IPv4 주소 (A)'], ['aaaa', 'shop.example 의 IPv6 주소 (AAAA)'], ['cname', 'www.shop.example 의 주소 (CNAME을 거침)'], ['mx', 'shop.example 의 메일 서버 (MX)']] },
@@ -98,21 +98,18 @@ Lab.register({
     var stale = c.changed && cached;
     push(c.q === 'mx' ? '메일을 ' + st.ans.slice(3) + ' 서버로 보냅니다. 이 이름의 IP 주소는 A 레코드로 한 번 더 찾습니다(네임 서버가 MX 답에 함께 실어 주기도 합니다).' + (stale ? ' 관리자가 바꾸기 전의 예전 서버입니다.' : '') : '브라우저는 받은 주소(' + (cn ? val : st.ans) + ')로 접속합니다.' + (stale ? ' 관리자가 바꾸기 전의 예전 주소입니다.' : ''), stale ? 'bad' : 'good');
     var reflected = !c.changed ? '바꾸지 않음' : cached ? '아직 예전 값' : '반영됨 (새 값)';
-    sum.push('받은 답: ' + answer + '. 답이 나온 곳: ' + st.src + '. PC가 리졸버에 ' + st.pcq + '번, 리졸버가 네임 서버에 ' + st.upq + '번 물었습니다.');
     if (c.cache === 'none') sum.push('어느 서버도 모든 이름의 답을 가지고 있지 않습니다. 루트 서버는 맨 끝 부분(.example, .com, .kr)을 맡은 서버를, 그 서버는 각 도메인을 맡은 네임 서버를 알려 주고, 답은 그 도메인의 권한 있는 네임 서버만 가지고 있습니다. 이 PC는 리졸버 하나에게만 묻고, 차례로 묻는 일은 리졸버가 대신합니다.');
     if (cached) sum.push('한 번 받은 답은 TTL 동안 캐시에 남아, 그동안은 다시 묻지 않습니다. 캐시는 PC에도 있고 리졸버에도 있습니다. 덕분에 대부분의 조회는 루트 서버까지 가지 않고 끝납니다.');
     if (c.cache === 'expired') sum.push('TTL이 지나면 다시 묻습니다. 그래도 루트 서버부터 다시 가는 것은 아닙니다. 어느 네임 서버가 그 도메인을 맡는지는 따로, 더 긴 TTL로 기억하고 있기 때문입니다.');
     if (stale) sum.push('레코드를 바꿔도 이미 캐시에 들어간 답은 TTL이 끝날 때까지 그대로 쓰입니다. 그래서 사용자마다 새 값을 받는 시점이 다르고, 늦으면 바꾸기 전의 TTL만큼 걸립니다. 서버를 옮길 계획이 있으면 미리 TTL을 짧게 줄여 두고, 옮긴 뒤에도 예전 서버를 한동안 켜 둡니다.');
-    if (c.changed && !cached) sum.push('이번에는 어느 캐시에도 예전 값이 없어서 새 값을 바로 받았습니다. 캐시의 상태를 "리졸버의 캐시에 있다"로 바꾸면, 같은 시각에 다른 사용자는 예전 값을 받는 것을 볼 수 있습니다.');
+    if (c.changed && !cached) sum.push('이번에는 어느 캐시에도 예전 값이 없어서 새 값을 바로 받았습니다.');
     sum.push({ a: 'A 레코드는 이름에 IPv4 주소를 연결합니다. 가장 기본이 되는 레코드입니다.', aaaa: 'AAAA 레코드는 이름에 IPv6 주소를 연결합니다. IPv6 주소는 128비트로 IPv4 주소(32비트)의 네 배 길이이고, 레코드의 이름도 A를 네 번 쓴 AAAA입니다. 한 이름에 A와 AAAA를 둘 다 둘 수 있습니다.', cname: 'CNAME 레코드는 이름을 주소가 아닌 다른 이름에 연결합니다. 진짜 이름을 가진 쪽(CDN이나 호스팅 회사)이 서버 주소를 바꿔도 내 레코드는 고칠 필요가 없습니다. 대신 진짜 이름으로 한 번 더 찾아야 합니다.', mx: 'MX 레코드는 그 도메인 앞으로 온 메일을 받는 서버의 이름을 알려 줍니다. 앞의 숫자는 우선순위이고, 여러 개가 있으면 숫자가 작은 서버부터 시도합니다.' }[c.q]);
     return { events: ev, summary: sum, answer: answer, path: path, cn: cn, row: [answer, st.src, st.pcq + '번', st.upq + '번' + (path.length ? ' (' + path.join(' → ') + ')' : ''), reflected] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { msgs: [], pc: [], rs: [], pcq: 0, upq: 0, ans: '', src: '' }, c = sim.c;
-    H.counters(v, [[s.pcq + '번', 'PC가 리졸버에 물은 횟수'], [s.upq + '번', '리졸버가 네임 서버에 물은 횟수']]);
     if (!last) H.text(v, '실행을 누르면 이 PC의 캐시부터 차례로 찾아봅니다.');
-    var ln = H.lanes(v), stale = sim.row[4] === '아직 예전 값';
-    H.lane(ln, '받은 답', s.ans || '아직 없음', s.ans ? (stale ? 'bad' : 'good') : 'none');
+    var ln = H.lanes(v);
     H.lane(ln, '답이 나온 곳', s.src || '아직 없음', s.src ? (s.src === '권한 있는 네임 서버' ? 'good' : 'wait') : 'none');
     var rows = function (list) { return list.length ? list.map(function (r) { return { cls: r[3] === 'TTL 지남' ? 'gone' : '', cells: [r[0], r[1], r[2], r[3]] }; }) : [{ cells: ['(비어 있음)', '', '', ''] }]; };
     H.table(v, ['이름', '종류', '값', '남은 TTL'], rows(s.pc), '이 PC의 캐시');

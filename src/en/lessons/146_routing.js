@@ -1,7 +1,7 @@
 Lab.register({
   id: 'routing', nav: 'Switches and routers', cat: 'Networking', mode: 'step',
   title: 'If the destination IP is the server, why is the frame sent to the router\'s MAC address?',
-  intro: 'A frame for a device on the same network is sent directly to that device\'s MAC address, and a switch uses that address to deliver it. A device on another network cannot be reached directly, so the sender hands the frame to its gateway (a router). Each time the packet passes a router, the MAC addresses in the frame are written anew, but the IP addresses stay the same and the TTL goes down by 1. Change the destination and follow how the packet changes on each hop.',
+  intro: 'A frame for a device on the same network is sent directly to that device\'s MAC address, and a switch uses that address to deliver it. A device on another network cannot be reached directly, so the sender hands the frame to its gateway (a router). Each time the packet passes a router, the MAC addresses in the frame are written anew, but the IP addresses stay the same and the TTL goes down by 1.',
   terms: ['MAC address and ARP', 'Switch and router', 'Default gateway', 'TTL of an IP packet', 'OSI model'],
   controls: [
     { id: 'dst', label: 'Where PC A (192.168.1.10) sends the packet', type: 'select', value: 'c', options: [['b', 'PC B on the same network (192.168.1.20)'], ['c', 'Server C, one router away (192.168.2.30)'], ['d', 'Server D, two routers away (192.168.3.40)']] },
@@ -79,19 +79,19 @@ Lab.register({
       }
     }
     var ok = st.end === 'ok', changed = frames.length - 1;
-    sum.push(ok ? 'The packet arrived at ' + to.name + '. Frames built: ' + frames.length + '. TTL on arrival: ' + ttl + '.' : 'The TTL reached 0 at ' + D[st.endAt].name + ' and the packet was discarded. To reach ' + to.name + ', the packet has to pass ' + (hops.length - 1) + (hops.length === 2 ? ' router' : ' routers') + ', so the initial TTL must be at least ' + hops.length + '.');
+    if (!ok) sum.push('The TTL reached 0 at ' + D[st.endAt].name + ' and the packet was discarded. To reach ' + to.name + ', the packet has to pass ' + (hops.length - 1) + (hops.length === 2 ? ' router' : ' routers') + ', so the initial TTL must be at least ' + hops.length + '.');
     if (direct) sum.push('Within the same network, the sender finds the MAC address of the receiving device with ARP and sends to it directly. The switch forwards by MAC address only and no router is involved, so the TTL does not go down either.' + (ttl0 === 1 ? ' That is why the packet arrives even with a TTL of 1.' : ''));
     else sum.push('When sending to another network, what PC A asks about with ARP is not the receiving device but the MAC address of the gateway. This is why, if the default gateway setting is wrong, communication works inside the same network but cannot get out.');
     if (changed > 0) sum.push('Each router the packet passed built a new frame, so the MAC addresses changed ' + changed + (changed === 1 ? ' time' : ' times') + '. The source IP and the destination IP stayed the same from start to finish. A MAC address is used only within one hop, and an IP address is used all the way from the source to the destination.');
     if (!ok) sum.push('The tool that makes use of the fact that the router that discards a packet sends back "Time Exceeded" is traceroute (tracert on Windows). It sends packets with the TTL raised to 1, 2, 3, and so on, and writes down the routers that responded, in order, to find the path.');
-    if (!cached && ok && !direct) sum.push('ARP requests: one on each hop, ' + st.arpN + ' in total. A MAC address that has been found stays in the cache, so the packets that follow are sent without asking. Turn on the "ARP cache" setting and compare.');
+    if (!cached && ok && !direct) sum.push('ARP requests: one on each hop, ' + st.arpN + ' in total. A MAC address that has been found stays in the cache, so the packets that follow are sent without asking.');
     return { events: ev, summary: sum, frames: frames.join('; '),
       row: [direct ? 'Same network: sent directly' : 'Other network: sent to the gateway', D[hops[0].t].name + ' (' + mac(hops[0].dm) + ')', st.arpN + '', ok ? 'Arrived (TTL ' + ttl + ')' : 'Dropped at ' + D[st.endAt].name + ' (TTL 0)', changed + ''] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the steps one at a time, starting from the decision made by PC A.'); return; }
-    H.counters(v, [[s.arpN + '', 'ARP requests'], [String(s.ttl), 'TTL now'], [s.frames.length + '', 'Frames built']]);
+    H.counters(v, [[s.arpN + '', 'ARP requests'], [s.frames.length + '', 'Frames built']]);
     if (s.frames.length) H.table(v, ['Hop', 'Source MAC', 'Destination MAC', 'Source IP', 'Destination IP', 'TTL'], s.frames.map(function (f, k) { var cur = k === s.frames.length - 1; return { cells: [f.seg, { v: '…:' + f.sm, cls: cur ? 'hot' : '' }, { v: '…:' + f.dm, cls: cur ? 'hot' : '' }, f.sip, f.dip, String(f.ttl)] }; }), 'Frame on each hop (the MAC addresses change and the IP addresses stay the same. Only the last two digits of each MAC address are shown)');
     else H.text(v, 'No frame has been sent yet.');
     if (s.arpTab.length) H.table(v, ['Device', 'IP address', 'MAC address'], s.arpTab.map(function (a) { return { cells: [a.dev, a.ip, a.mac + (a.old ? ' (already known)' : '')] }; }), 'ARP cache (MAC addresses found from IP addresses)');

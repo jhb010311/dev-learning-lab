@@ -1,7 +1,7 @@
 Lab.register({
   id: 'bufferpool', nav: '버퍼 풀과 페이지', cat: '데이터베이스', mode: 'step',
   title: '행 하나를 읽는데 왜 16KB를 통째로 읽나',
-  intro: 'InnoDB는 디스크의 데이터를 행 단위가 아니라 페이지(기본 16KB)라는 덩어리로 읽고 씁니다. 한 번 읽은 페이지는 메모리의 버퍼 풀에 올려 두고, 그다음부터는 디스크에 가지 않고 메모리에서 읽습니다. 고칠 때도 메모리의 페이지만 고치고 디스크에는 나중에 씁니다. 행 16개가 페이지 네 개에 나뉘어 들어 있는 테이블을 조회하면서, 디스크를 몇 번 읽고 쓰는지 보세요.',
+  intro: 'InnoDB는 디스크의 데이터를 행 단위가 아니라 페이지(기본 16KB)라는 덩어리로 읽고 씁니다. 한 번 읽은 페이지는 메모리의 버퍼 풀에 올려 두고, 그다음부터는 디스크에 가지 않고 메모리에서 읽습니다. 고칠 때도 메모리의 페이지만 고치고 디스크에는 나중에 씁니다.',
   terms: ['버퍼 풀', '페이지(InnoDB)', '더티 페이지와 플러시', '캐시 제거(Eviction) 정책', 'Undo 로그와 Redo 로그'],
   controls: [
     { id: 'seq', label: '조회하는 행의 순서', type: 'select', value: 'same', options: [['same', '1번 → 2번 → 1번 (모두 같은 페이지)'], ['spread', '1번 → 5번 → 9번 → 13번 → 1번 (페이지 넷을 차례로)'], ['hot', '1번 → 5번 → 1번 → 9번 → 13번 → 1번 (1번을 자주)']] },
@@ -70,7 +70,6 @@ Lab.register({
       st.slots[dj].dirty = false; st.writes++; st.diskNew = true; when = '커밋 뒤 나중에 (백그라운드)'; st.cur = 'A'; st.at = dj; st.act = 'flush';
       push('얼마 뒤: 백그라운드 스레드가 더티 페이지 A를 데이터 파일에 씁니다. 페이지는 버퍼 풀에 그대로 남고 더티 표시만 없어집니다. 언제 쓸지는 InnoDB가 정하며, 커밋은 이것을 기다리지 않습니다.', 'good');
     }
-    sum.push('디스크에서 페이지를 ' + st.reads + '번 읽었고, 조회 ' + ids.length + '번 가운데 ' + st.hits + '번은 디스크에 가지 않았습니다.' + (evicted.length ? ' 버퍼 풀에서 밀려난 페이지: ' + evicted.join(', ') + '.' : ''));
     if (c.seq === 'same') sum.push('InnoDB가 디스크에서 읽는 단위는 행이 아니라 페이지입니다. 1번 행을 읽으면 같은 페이지의 2, 3, 4번 행도 함께 메모리에 올라오므로, 가까이 저장된 행을 이어서 읽을 때는 디스크에 다시 가지 않습니다.');
     else if (evicted.length) sum.push('버퍼 풀이 가득 차면 가장 오래 쓰이지 않은 페이지부터 내보냅니다. 밀려난 페이지를 다시 읽으려면 디스크에 또 가야 합니다.' + (c.seq === 'hot' && find('A') >= 0 && evicted.indexOf('A') < 0 ? ' 자주 읽은 페이지 A는 끝까지 남아 있었고, 그동안 쓰이지 않은 페이지가 밀려났습니다.' : ' 데이터에 비해 버퍼 풀이 너무 작으면 이런 일이 되풀이되어 느려집니다.'));
     else sum.push('칸이 넉넉하면 한 번 읽은 페이지는 계속 메모리에 남습니다. 그래서 DB 서버는 메모리의 큰 부분을 버퍼 풀에 줍니다.');
@@ -82,8 +81,6 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     var oldest = -1; if (s.slots.indexOf(null) < 0) s.slots.forEach(function (x, j) { if (oldest < 0 || x.last < s.slots[oldest].last) oldest = j; });
     H.table(v, ['칸', '올라와 있는 페이지', '든 행', '상태'], s.slots.map(function (x, j) { return { cells: ['칸 ' + (j + 1), x ? { v: '페이지 ' + x.p, cls: s.at === j && s.act === 'hit' ? 'good' : s.at === j ? 'hot' : '' } : '비어 있음', x ? R[x.p] : '-', x ? { v: (x.dirty ? '더티 (디스크와 다름)' : '디스크와 같음') + (j === oldest ? ' · 가장 오래 안 쓰임' : ''), cls: x.dirty ? 'hot' : '' } : '-'] }; }), '버퍼 풀 (메모리)');
-    H.counters(v, [[s.reads + '번', '디스크에서 읽음'], [s.hits + '번', '디스크 없이 읽음'], [s.writes + '번', '데이터 파일에 씀']]);
-    H.text(v, '디스크의 데이터 파일에 있는 1번 행의 name: ' + (s.diskNew ? 'changed' : 'item1'));
   },
   // 그림: 왼쪽은 버퍼 풀(메모리)의 칸들, 오른쪽은 디스크의 데이터 파일에 있는 페이지 넷. 읽어 올 때와 쓸 때 화살표가 생기고, 더티 페이지는 노랗게 보인다.
   draw: function (P, sim, shown) {

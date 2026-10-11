@@ -1,7 +1,7 @@
 Lab.register({
   id: 'url', nav: 'URL의 구조', cat: '네트워크', mode: 'step',
   title: '검색어 "A&B"를 주소에 붙였더니 서버에는 "A"만 도착했다',
-  intro: 'URL은 정해진 기호(://, :, /, ?, #, &, =)를 기준으로 스킴, 호스트, 포트, 경로, 쿼리, 프래그먼트로 나뉩니다. 이 기호들은 주소 안에서 구분하는 역할을 맡고 있어서, 값 안에 같은 글자를 그대로 넣으면 주소가 엉뚱한 곳에서 잘립니다. 주소가 어떻게 나뉘고, 그 가운데 무엇이 서버로 가며, 값은 어떻게 넣어야 온전히 도착하는지 따라가 보세요.',
+  intro: 'URL은 정해진 기호(://, :, /, ?, #, &, =)를 기준으로 스킴, 호스트, 포트, 경로, 쿼리, 프래그먼트로 나뉩니다. 이 기호들은 주소 안에서 구분하는 역할을 맡고 있어서, 값 안에 같은 글자를 그대로 넣으면 주소가 엉뚱한 곳에서 잘립니다.',
   terms: ['URI와 URL', 'URL의 구성 요소', '퍼센트 인코딩', '쿼리 스트링과 폼 본문', '상대 URL'],
   controls: [
     { id: 'origin', label: '주소의 앞부분 (스킴, 호스트, 포트)', type: 'select', value: 'https://shop.example', options: [['https://shop.example', 'https://shop.example (포트를 적지 않음)'], ['https://shop.example:443', 'https://shop.example:443'], ['https://shop.example:8443', 'https://shop.example:8443'], ['http://shop.example', 'http://shop.example (포트를 적지 않음)'], ['http://shop.example:8080', 'http://shop.example:8080']] },
@@ -120,10 +120,9 @@ Lab.register({
     push('서버의 쿼리 풀이: 쿼리를 &에서 나누고, 조각마다 첫 번째 =에서 이름과 값으로 나눈 다음, +는 공백으로 %XX는 원래 글자로 되돌립니다. 결과는 ' + plist + '입니다. ' + why, ok && sortOk ? 'good' : 'bad');
     var relWhy = { 'detail': '/로 시작하지 않으므로, 지금 경로(' + u.path + ')의 마지막 조각을 detail로 바꿉니다. 쿼리와 프래그먼트는 물려받지 않습니다.', '../cart': '..은 한 단계 위를 뜻합니다. 지금 경로(' + u.path + ')에서 마지막 조각을 떼면 /shop/이고, 거기서 한 단계 올라가 cart를 붙이면 /cart입니다.', '/help': '/로 시작하므로 경로 전체를 /help로 바꿉니다. 스킴, 호스트, 포트는 지금 주소의 것을 그대로 씁니다.', '?page=2': '?로 시작하므로 경로는 그대로 두고 쿼리만 page=2로 바꿉니다. 지금 주소의 쿼리는 이어받지 않고 통째로 바뀝니다.', '#top': '#으로 시작하므로 경로와 쿼리는 그대로 두고 프래그먼트만 top으로 바꿉니다. 같은 문서 안에서 위치만 옮기는 것이라 서버에 새 요청을 보내지 않습니다.', '//cdn.example/app.js': '//로 시작하므로 스킴(' + u.scheme + ')만 물려받고 호스트부터 새로 정합니다. 포트도 물려받지 않습니다.' }[c.rel];
     push('상대 주소 풀이: 이 페이지 안의 링크(href="' + c.rel + '")는 주소의 일부만 적은 것이라서, 브라우저가 지금 주소를 기준으로 빠진 부분을 채웁니다. ' + relWhy + ' 결과는 ' + linkHref + ' 입니다.');
-    sum.push(u.host + '의 ' + eff + '번 포트로 요청 줄(GET ' + target + ' HTTP/1.1)이 갔고, 서버가 받은 q의 값은 ' + (got === null ? '없습니다' : '"' + got + '"입니다') + (ok ? '.' : '. 보낸 검색어("' + q + '")와 다릅니다.'));
     if (!ok) sum.push('&, =, #, +, %, ?는 주소 안에서 구분하는 일을 맡은 글자입니다. 값에 이런 글자가 들어갈 수 있으면 반드시 인코딩해서 넣어야 합니다. 자바스크립트에서는 URLSearchParams나 encodeURIComponent, 자바에서는 URLEncoder.encode가 이 일을 합니다. 글자를 직접 이어 붙여 주소를 만드는 코드는 평소에는 잘 돌다가 이런 값이 들어오는 날 틀립니다.');
-    else if (c.enc) sum.push('인코딩은 값 안의 글자가 구분 기호로 읽히지 않게 %XX 모양으로 바꿔 두는 일입니다. 서버는 구분 기호로 먼저 나눈 다음에 되돌리므로 값이 온전합니다. 인코딩을 끄고 같은 검색어가 어떻게 되는지 비교해 보세요.');
-    else sum.push('이 검색어는 그대로 붙여도 문제가 없었지만, 사용자가 입력하는 값에는 어떤 글자든 들어올 수 있습니다. 검색어를 A&B나 C#으로 바꿔 보세요.');
+    else if (c.enc) sum.push('인코딩은 값 안의 글자가 구분 기호로 읽히지 않게 %XX 모양으로 바꿔 두는 일입니다. 서버는 구분 기호로 먼저 나눈 다음에 되돌리므로 값이 온전합니다.');
+    else sum.push('이 검색어는 그대로 붙여도 문제가 없었지만, 사용자가 입력하는 값에는 어떤 글자든 들어올 수 있습니다.');
     sum.push('프래그먼트(# 뒤)는 서버로 가지 않습니다. 서버 로그에도 남지 않으며, 서버 코드에서 읽을 수도 없습니다. 반대로 쿼리는 서버로 가고 서버의 접속 기록에도 남을 수 있으므로, 비밀번호 같은 값을 쿼리에 넣지 않습니다.');
     if (u.typedPort !== '') sum.push(u.port === '' ? '기본 포트(http는 80, https는 443)는 적어도 적지 않은 것과 같습니다. 그래서 정리된 주소와 Host 헤더에는 포트가 나타나지 않습니다.' : '기본 포트가 아닌 번호는 주소에 반드시 적어야 하고, Host 헤더에도 함께 실립니다.');
     return { events: ev, summary: sum, u: u, typed: typed, href: href, eff: eff, def: def, target: target, hostHeader: hostHeader, params: params, got: got, ok: ok && sortOk, link: linkHref, portWhy: portWhy,
@@ -141,10 +140,7 @@ Lab.register({
     if (n >= 6) rows.push({ cells: ['프래그먼트', u.frag, '문서 안의 위치 (브라우저만 사용)', { v: '보내지 않음', cls: 'bad' }] });
     if (rows.length) H.table(v, ['부분', '값', '하는 일', '서버로 가는가'], rows, '주소를 나눈 결과');
     var ln = H.lanes(v);
-    H.lane(ln, '요청 줄', n >= 7 ? 'GET ' + sim.target + ' HTTP/1.1' : '아직 보내기 전', n >= 7 ? 'hot' : 'none');
     H.lane(ln, 'Host 헤더', n >= 7 ? 'Host: ' + sim.hostHeader : '아직 보내기 전', n >= 7 ? 'hot' : 'none');
-    if (n >= 8) H.table(v, ['이름', '값'], sim.params.map(function (p) { return { cells: [p[0], { v: '"' + p[1] + '"', cls: p[0] === 'q' ? (sim.got === c.q ? 'good' : 'bad') : p[0] === 'sort' ? '' : 'bad' }] }; }), '서버가 쿼리에서 풀어낸 파라미터 (보낸 검색어: "' + c.q + '")');
-    if (n >= 9) H.table(v, ['링크', '가리키는 주소'], [{ cells: ['href="' + c.rel + '"', { v: sim.link, cls: 'hot' }] }], '상대 주소를 풀이한 결과');
   },
   // 그림: 주소를 여섯 부분으로 나눠 위에서 아래로 한 줄씩 놓고, 그 아래에 서버로 가는 요청 줄, 서버가 풀어낸 값, 링크가 가리키는 주소를 차례로 놓는다.
   draw: function (P, sim, shown) {
@@ -159,7 +155,7 @@ Lab.register({
     P.box('req', 16, 190, 648, 44, { cls: n >= 7 ? (n === 7 ? 'hot now' : 'plain') : 'ghost', title: n >= 7 ? '서버로 가는 요청 줄 (' + u.host + '의 ' + sim.eff + '번 포트에 연결)' : '서버로 가는 요청 줄', sub: n >= 7 ? 'GET ' + sim.target + ' HTTP/1.1' : '', mono: true });
     P.box('srv', 16, 240, 648, 44, { cls: n >= 8 ? (sim.ok ? 'good' : 'bad') + (n === 8 ? ' now' : '') : 'ghost', title: '서버가 쿼리에서 풀어낸 값 (보낸 검색어: "' + c.q + '")', sub: n >= 8 ? sim.row[3] : '' });
     P.box('lnk', 16, 290, 648, 44, { cls: n >= 9 ? 'hot now' : 'ghost', title: '링크(href="' + c.rel + '")가 가리키는 주소', sub: n >= 9 ? sim.link : '', mono: true });
-    P.note('위의 여섯 줄이 주소를 나눈 부분입니다. 초록 줄(경로와 쿼리)만 요청 줄에 실려 서버로 가고, 빨간 줄(프래그먼트)은 브라우저에 남습니다. 호스트와 포트는 어디에 연결할지를 정하는 데 쓰이고 Host 헤더에 적힙니다.');
+    P.note('위의 여섯 줄이 주소를 나눈 부분입니다. 초록 줄(경로와 쿼리)만 요청 줄에 실려 서버로 가고, 빨간 줄(프래그먼트)은 브라우저에 남습니다.');
   },
   assume: '삼백 가지 조합을 모두 Node.js 24에서 실행해 대조했습니다. 주소를 나눈 결과와 정리된 주소, 상대 주소의 풀이는 Node.js의 URL(브라우저와 같은 WHATWG URL 표준의 구현)이 낸 값과 대조했습니다. 접속 포트, 요청 줄, Host 헤더는 Node.js의 HTTP 클라이언트로 그 주소에 요청을 보내고, 연결만 127.0.0.1의 시험 서버로 돌려 실제로 나간 글자를 받아 대조했습니다(shop.example에 대한 DNS 조회나 외부 접속은 하지 않았고, https 주소도 암호화하지 않은 채 받았습니다). 서버가 받은 값은 그 요청 줄의 쿼리를 URLSearchParams로 풀이한 것입니다. 톰캣 같은 다른 서버도 &와 =로 나누고 +와 %XX를 되돌리는 같은 규칙(application/x-www-form-urlencoded)을 쓰지만, 이 실습에서 따로 실행해 보지는 않았습니다. 잘못된 %XX가 왔을 때 오류로 처리하는지처럼 서버마다 다른 부분은 다루지 않았습니다. encodeURIComponent는 공백을 +가 아닌 %20으로 바꾸며, 쿼리에서는 둘 다 공백으로 풀립니다(이 차이도 실행으로 확인했습니다). 주소가 나뉘는 규칙은 RFC 3986 3절, 프래그먼트를 떼어 내고 요청한다는 것은 3.5절, 상대 주소의 풀이는 5.2절, 요청 줄과 Host 헤더는 RFC 9112 3.2절과 RFC 9110 7.2절에 있습니다. #으로 시작하는 링크를 눌렀을 때 서버에 새 요청이 가지 않는다는 것은 브라우저의 동작(HTML 표준의 프래그먼트 이동)을 따라 적은 것이고 실행해 보지는 않았습니다. 사용자 이름이 든 주소, IPv6 주소, 한글 도메인은 다루지 않았습니다.',
 });

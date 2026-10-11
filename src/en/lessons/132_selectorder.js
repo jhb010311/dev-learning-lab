@@ -1,7 +1,7 @@
 Lab.register({
   id: 'selectorder', nav: 'SELECT processing order', cat: 'Database', mode: 'step',
   title: 'Why can\'t you use an alias or an aggregate function in WHERE?',
-  intro: 'You can think of a SELECT statement as being processed not in the order it is written but in the order FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT. Which names you can use depends on where in this order a clause comes. Write the same condition in WHERE and then in HAVING, and follow the steps to see where an error occurs and how the result changes.',
+  intro: 'You can think of a SELECT statement as being processed not in the order it is written but in the order FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT. Which names you can use depends on where in this order a clause comes.',
   terms: ['Logical processing order of the SELECT statement', 'GROUP BY, WHERE, HAVING', 'Column alias (AS)', 'Aggregate function'],
   controls: [
     { id: 'cond', label: 'Condition to filter by', type: 'select', value: 'alias', options: [['grpcol', "member <> 'Carol' (the column you group by)"], ['rowcol', 'amount >= 300 (the amount of a single order)'], ['agg', 'SUM(amount) >= 300 (an aggregate function)'], ['alias', 'total >= 300 (an alias given in SELECT)']] },
@@ -96,10 +96,10 @@ Lab.register({
     if (!err && ga) ext.push('GROUP BY');
     if (!err && !W && c.cond === 'alias') ext.push('HAVING');
     var extText = err ? '-' : ext.length ? 'Alias in ' + ext.join(' and ') : 'None';
-    sum.push(err ? 'The statement was rejected with error ' + err.no + ' (' + err.msg + '). A name that cannot be used at the ' + (W ? 'WHERE' : 'HAVING') + ' step was used.' : 'The result is ' + list.join(', ') + ' (rows: ' + list.length + ').' + (lim ? '' : ' There is no ORDER BY, so the order in which the rows come out is not defined.'));
+    if (!err && !lim) sum.push('There is no ORDER BY, so the order in which the rows come out is not defined.');
     sum.push({ grpcol: 'A condition on the grouping column gives the same result whether you write it in WHERE or in HAVING. But WHERE cuts down the rows before they are grouped, while HAVING throws groups away after everything has been grouped. As a rule, write a condition that can be checked without grouping in WHERE.',
       rowcol: W ? 'WHERE discards rows before the total is computed. That is why Alice\'s total came out as 300, not 450. This result means "pick only the orders of 300 or more, then add them up by member". If you wanted "the members whose total is 300 or more", you have to write HAVING SUM(amount) >= 300, and then Alice 450 and Bob 320 come out.' : 'After grouping, you can use only the grouping column and aggregate functions. A condition that filters on the value of each single row must be written in WHERE, which is processed before grouping.',
-      agg: W ? 'A condition that filters on an aggregate function is written in HAVING, which is processed after grouping. When WHERE is processed, there are no groups yet.' : 'The same words "300 or more" mean different things: WHERE amount >= 300 filters single orders, and HAVING SUM(amount) >= 300 filters the totals by member. Change the condition to "amount >= 300" and the place to WHERE, and compare the results.',
+      agg: W ? 'A condition that filters on an aggregate function is written in HAVING, which is processed after grouping. When WHERE is processed, there are no groups yet.' : 'The same words "300 or more" mean different things: WHERE amount >= 300 filters single orders, and HAVING SUM(amount) >= 300 filters the totals by member.',
       alias: W ? 'An alias is attached at the SELECT step, so it cannot be used in WHERE, which is processed earlier. This is true in standard SQL as well as in MySQL. To filter on an alias for an aggregate, move the condition to HAVING.' : 'MySQL accepts an alias from SELECT in HAVING. This is an extension that standard SQL does not have, so it can cause an error in other databases. To write it so that it works everywhere, write the expression itself, as in HAVING SUM(amount) >= 300.' }[c.cond]);
     if (!err && ga) sum.push('Using an alias in GROUP BY is also a MySQL extension. In the processing order, GROUP BY comes before SELECT, so in standard SQL you write the original column or expression instead of the alias.');
     if (!err && lim) sum.push('ORDER BY and LIMIT are processed last. So LIMIT 1 means "the one row with the largest total in the filtered and grouped result". If you use LIMIT without ORDER BY, which row is left is not defined.');
@@ -109,9 +109,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the steps one at a time, in the order they are processed.'); return; }
-    H.title(v, 'Processing order');
-    H.slots(v, s.stat.map(function (x, i) { return [(i + 1) + '. ' + x.name + (x.n ? ' · ' + x.n : ''), x.k === 'now' ? 'b now' : x.k === 'done' ? 'd' : x.k === 'err' ? 'r' : x.k === 'none' ? '' : 'q']; }), '');
-    H.text(v, 'Names you can use now: ' + s.names + (s.err ? ' · Error ' + s.err.no : ''));
     H.table(v, s.view.head, s.view.rows.map(function (r) { return { cls: r.cls, cells: r.cells }; }), s.view.title);
   },
   // Diagram: The seven steps are placed from left to right in the order they are processed, and below them are the rows (or groups) that passed the current step.

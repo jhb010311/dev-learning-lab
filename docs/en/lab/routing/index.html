@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Addresses and names</p>
 <h1>Switches and routers</h1>
 <p><b>If the destination IP is the server, why is the frame sent to the router's MAC address?</b></p>
-<p>A frame for a device on the same network is sent directly to that device's MAC address, and a switch uses that address to deliver it. A device on another network cannot be reached directly, so the sender hands the frame to its gateway (a router). Each time the packet passes a router, the MAC addresses in the frame are written anew, but the IP addresses stay the same and the TTL goes down by 1. Change the destination and follow how the packet changes on each hop.</p>
+<p>A frame for a device on the same network is sent directly to that device's MAC address, and a switch uses that address to deliver it. A device on another network cannot be reached directly, so the sender hands the frame to its gateway (a router). Each time the packet passes a router, the MAC addresses in the frame are written anew, but the IP addresses stay the same and the TTL goes down by 1.</p>
 <p>Conceptual model · A conceptual model of the rules in RFC 826, 791, 1122, and 1812. It could not be checked against real equipment, so it was checked in 18 combinations against values calculated from the same rules by a different method</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -70,10 +70,9 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The packet arrived at Server C. Frames built: 2. TTL on arrival: 63.</li>
 <li>When sending to another network, what PC A asks about with ARP is not the receiving device but the MAC address of the gateway. This is why, if the default gateway setting is wrong, communication works inside the same network but cannot get out.</li>
 <li>Each router the packet passed built a new frame, so the MAC addresses changed 1 time. The source IP and the destination IP stayed the same from start to finish. A MAC address is used only within one hop, and an IP address is used all the way from the source to the destination.</li>
-<li>ARP requests: one on each hop, 2 in total. A MAC address that has been found stays in the cache, so the packets that follow are sent without asking. Turn on the &quot;ARP cache&quot; setting and compare.</li>
+<li>ARP requests: one on each hop, 2 in total. A MAC address that has been found stays in the cache, so the packets that follow are sent without asking.</li>
 </ul>
 <h2>Code</h2>
 <pre>// Network settings of PC A
@@ -177,6 +176,6 @@ else forwardInNewFrame(packet);    // write only new MAC addresses and send it o
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

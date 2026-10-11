@@ -1,7 +1,7 @@
 Lab.register({
   id: 'partition', nav: '파티셔닝', cat: '데이터베이스', mode: 'step',
   title: '테이블을 조각내면 조회는 어느 조각을 읽나',
-  intro: '파티셔닝은 큰 테이블 하나를 같은 서버 안에서 여러 조각(파티션)으로 나눠 저장하는 것입니다. 주문 날짜의 연도처럼 범위로 나누거나(RANGE), 회원 번호를 나눈 나머지처럼 계산으로 나눕니다(HASH). 조건을 어떻게 쓰느냐에 따라 필요한 파티션만 읽기도 하고 전부 읽기도 합니다. 테이블을 만들고, 행을 넣고, 조회하면서 MySQL이 어느 파티션을 고르는지 보세요.',
+  intro: '파티셔닝은 큰 테이블 하나를 같은 서버 안에서 여러 조각(파티션)으로 나눠 저장하는 것입니다. 주문 날짜의 연도처럼 범위로 나누거나(RANGE), 회원 번호를 나눈 나머지처럼 계산으로 나눕니다(HASH). 조건을 어떻게 쓰느냐에 따라 필요한 파티션만 읽기도 하고 전부 읽기도 합니다.',
   terms: ['샤딩과 파티셔닝', 'RANGE 파티션과 HASH 파티션', '파티션 프루닝', '실행 계획(EXPLAIN)', '기본 키, 유니크 키, 외래 키'],
   controls: [
     { id: 'how', label: '나누는 방법', type: 'select', value: 'range', options: [['range', 'RANGE: 주문 날짜의 연도별로'], ['hash', 'HASH: 회원 번호를 4로 나눈 나머지로']] },
@@ -47,7 +47,6 @@ Lab.register({
       push('CREATE TABLE … PRIMARY KEY (id) … PARTITION BY ' + (R ? 'RANGE (YEAR(ordered_at))' : 'HASH (member_id)') + ': 오류 1503이 나고 테이블이 만들어지지 않습니다. 메시지는 "A PRIMARY KEY must include all columns in the table\'s partitioning function"입니다. 기본 키 (id)에 파티션을 나누는 기준인 ' + keycol + ' 컬럼이 들어 있지 않기 때문입니다.', 'bad');
       st.stage = 'why';
       push('이런 제약이 있는 까닭: MySQL에서는 파티션마다 인덱스를 따로 가집니다. 기본 키와 유니크 키는 같은 값이 또 있는지 검사해야 하는데, 키에 ' + keycol + ' 컬럼이 들어 있으면 그 행이 갈 파티션 하나만 보고 판단할 수 있습니다. 들어 있지 않으면 같은 id가 다른 파티션에 있는지 알 수 없습니다. 그래서 기본 키와 모든 유니크 키에 파티션 키 컬럼을 넣어야 합니다. 여기서는 PRIMARY KEY (id, ' + keycol + ')로 바꾸면 됩니다.', '');
-      sum.push('테이블을 만들지 못했습니다(오류 1503). 그래서 INSERT와 조회는 실행되지 않았습니다.');
       sum.push('파티션을 나눈 테이블에서는 기본 키와 모든 유니크 키에 파티션 키 컬럼이 들어 있어야 합니다. 이미 운영 중인 테이블을 나중에 파티셔닝하려면 기본 키부터 바꿔야 할 수 있으므로, 설계할 때 함께 정합니다.');
       sum.push('이 제약 때문에 "id만으로는 유일하다"를 DB가 보장해 주지 못하게 됩니다. 기본 키가 (id, ' + keycol + ')이면 id가 같고 ' + keycol + '만 다른 두 행이 들어갈 수 있습니다.');
       return { events: ev, summary: sum, names: names, w: W, vals: this.values(c), row: ['오류 1503', '-', '-', '-'] };
@@ -80,7 +79,6 @@ Lab.register({
     var list = read.map(function (i) { return names[i]; }).join(',');
     push('EXPLAIN SELECT * FROM orders WHERE ' + W + ': ' + why + ' EXPLAIN의 partitions 칸: ' + list + '.', k);
     var cnt = N + '개 중 ' + read.length + '개' + (read.length === N ? ' (전부)' : '');
-    sum.push('테이블은 만들어졌고, INSERT는 ' + (to < 0 ? '오류 1526으로 실패했고' : names[to] + ' 파티션에 들어갔고') + ', 조회는 파티션 ' + N + '개 중 ' + read.length + '개를 읽습니다.');
     sum.push('파티셔닝은 서버 한 대 안에서 테이블 하나를 나눠 저장하는 것입니다. 데이터를 여러 서버에 나누는 샤딩과 달리 조인과 트랜잭션, 쿼리는 그대로 쓸 수 있습니다. 대신 서버 한 대의 한계를 넘게 해 주지는 않습니다. 한 번에 읽고 지울 범위를 줄이는 것이 목적입니다.');
     if (read.length < N) sum.push('조건에 파티션 키 컬럼이 그대로 들어 있으면 MySQL이 필요한 파티션만 골라 읽습니다. 테이블이 아무리 커도 읽는 범위는 그 파티션으로 줄어듭니다.');
     else sum.push(c.q === 'other' ? '파티션 키가 없는 조회는 모든 파티션을 읽으므로 파티션을 나누기 전보다 오히려 일이 늘 수 있습니다. 가장 자주 쓰는 조회 조건에 들어가는 컬럼을 파티션 키로 골라야 합니다.' : c.q === 'func' ? '파티션 키 컬럼에 함수나 계산을 씌우면 프루닝이 되지 않습니다. 인덱스가 걸린 컬럼에 함수를 씌우면 인덱스를 못 쓰는 것과 같은 이치입니다. 컬럼은 그대로 두고 비교할 값 쪽을 바꿉니다.' : 'HASH 파티션은 행을 고르게 흩어 놓는 데 쓰고, 값 하나를 찾는 조회에 맞습니다. 날짜처럼 범위로 찾는 일이 많으면 RANGE 파티션이 맞습니다.');
@@ -88,10 +86,9 @@ Lab.register({
     return { events: ev, summary: sum, names: names, w: W, vals: V, row: ['성공', to < 0 ? '오류 1526' : names[to] + '에 저장', list, cnt] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, R = c.how === 'range', names = sim.names;
+    var last = shown[shown.length - 1], s = last ? last.snap : null, names = sim.names;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     if (s.made < 0) { H.text(v, 'orders 테이블이 만들어지지 않았습니다 (오류 1503).'); H.counters(v, [['실패', 'CREATE TABLE']]); return; }
-    H.table(v, ['파티션', '담는 행', '행 수', '상태'], names.map(function (nm, i) { var on = s.read && s.read.indexOf(i) >= 0; return { cls: s.read && !on ? 'gone' : '', cells: [nm, R ? (2023 + i) + '년 주문' : '회원 번호 % 4 = ' + i, s.rows[i] + '건', { v: s.ins === i ? '새 행이 들어옴' : s.read ? (on ? '읽음' : '건너뜀') : '-', cls: s.ins === i ? 'good' : on ? 'hot' : '' }] }; }), 'orders 테이블 (서버 한 대 안)');
     H.counters(v, [[s.insErr ? '오류 1526' : s.stage === 'ins' || s.stage === 'sel' ? '성공' : '-', 'INSERT'], [s.read ? names.length + '개 중 ' + s.read.length + '개' : '-', '조회가 읽는 파티션']]);
   },
   // 그림: 위에 지금 실행하는 문장, 아래에 서버 한 대 안의 orders 테이블과 그 파티션들. 조회가 읽는 파티션은 노랗게, 건너뛰는 파티션은 점선으로 보인다.
@@ -108,7 +105,7 @@ Lab.register({
       if (got) P.arrow('a' + i, 'q:b:' + ((i + 0.5) / N), 'p' + i + ':t', { cls: 'good', label: '저장' });
     }
     P.box('res', 16, 258, 648, 38, { cls: s.made < 0 || (s.insErr && st === 'ins') ? 'bad' : sel ? (s.read.length < N ? 'good' : 'hot') : 'plain', title: '결과', right: s.res });
-    P.note('파티션은 모두 한 MySQL 서버 안에 있고, 쿼리에서는 orders 테이블 하나로 보입니다. 데이터를 여러 서버에 나누는 샤딩과 다른 점입니다. 조회 단계에서 노란 파티션은 실제로 읽는 곳이고, 점선 파티션은 열어 보지 않고 건너뛴 곳입니다.');
+    P.note('조회 단계에서 노란 파티션은 실제로 읽는 곳이고, 점선 파티션은 열어 보지 않고 건너뛴 곳입니다.');
   },
   assume: '서른두 가지 조합 모두를 이 PC의 MySQL 8.4.11(InnoDB)에서 화면과 같은 문장으로 실행해 대조했습니다. 조합마다 테이블을 새로 만들어 CREATE TABLE의 성공 여부와 오류 코드, 주문 300건이 파티션마다 들어간 건수(SELECT COUNT(*) … PARTITION (이름)), 새 행이 들어간 파티션 또는 INSERT의 오류 코드, EXPLAIN의 partitions 칸이 화면과 일치하는 것을 확인했습니다. 화면에 적은 오류 메시지도 실제 메시지입니다. 설명에 쓴 다음 사실도 실행으로 확인했습니다. 유니크 키에 파티션 키가 없어도 오류 1503이 납니다. 기본 키와 유니크 키가 모두 없는 테이블은 제약에 걸리지 않습니다. 날짜 조건을 컬럼의 범위(>= 와 <)로 쓰면 p2024만 읽습니다. HASH에서 BETWEEN 5 AND 6은 p1, p2만 읽습니다. ADD PARTITION으로 2026년 파티션을 추가한 뒤에는 같은 INSERT가 성공합니다. DROP PARTITION p2023은 그 파티션의 121행을 없앱니다. 기본 키가 (id, ordered_at)일 때 id가 같고 날짜만 다른 두 행이 들어갑니다. 어느 파티션을 읽는지는 조건에서 정해지며 행 수나 통계와 무관하지만, 파티션 안에서 인덱스를 쓰는지와 예상 행 수는 데이터에 따라 달라지므로 결과로 삼지 않았습니다. 파티션 키와 기본 키의 제약, 프루닝이 되는 조건의 형태는 MySQL 8.4 참조 설명서 26.6.1 Partitioning Keys, Primary Keys, and Unique Keys와 26.4 Partition Pruning의 설명과도 맞습니다. 파티션마다 인덱스를 따로 가진다는 것은, 파티션 셋이 InnoDB 안에서 별도의 테이블과 데이터 파일로 저장되고 인덱스 통계(mysql.innodb_index_stats)에도 파티션마다 PRIMARY 인덱스가 따로 올라 있는 것을 보고 확인했습니다. LIST와 KEY 파티션, 서브파티션, 파티션 수가 아주 많을 때의 비용은 다루지 않았습니다. 다른 DB 제품은 파티션 키가 없는 유니크 인덱스를 허용하기도 하므로, 이 제약은 MySQL 기준입니다.',
 });

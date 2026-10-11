@@ -1,7 +1,7 @@
 Lab.register({
   id: 'socket', nav: 'Sockets and ports', cat: 'Networking', mode: 'step',
   title: 'Of the several programs on one computer, which one receives this data?',
-  intro: 'An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number. Change the port on which the servers start and the port to which the clients connect, and see when a connection is refused and how several clients can connect to one port at the same time.',
+  intro: 'An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number.',
   terms: ['Port', 'Socket', 'Ephemeral port', 'TCP and UDP'],
   controls: [
     { id: 'srv', label: 'Servers to start', type: 'select', value: 'same', options: [['ab', 'Server A on port 9000, Server B on port 9001'], ['same', 'Server A on port 9000, Server B also on port 9000'], ['a', 'Only Server A, on port 9000']] },
@@ -54,10 +54,9 @@ Lab.register({
       push('socket.write: ' + (n > 1 ? 'Each of the ' + n + ' clients sends its data. All of it goes to port ' + to + ', but the operating system looks at the source port to tell which connection the data belongs to, and passes it to Server ' + who + ' separately for each connection.' : 'The client sends its data. The destination port is ' + to + ', so the operating system passes it to Server ' + who + '.') + (c.srv === 'ab' ? ' Nothing goes to Server ' + (who === 'A' ? 'B' : 'A') + ' on the same computer.' : ''), 'good');
     }
     var bRow = { ok: 'Succeeded (port 9001)', EADDRINUSE: 'Failed (EADDRINUSE)', none: 'Not started' }[o.b];
-    sum.push(who ? (n > 1 ? 'All ' + n + ' clients connected, and' : 'The client connected, and') + ' the data was received by Server ' + who + '.' : (n > 1 ? 'The connections of all ' + n + ' clients were' : 'The connection of the client was') + ' refused (ECONNREFUSED).');
     if (c.srv === 'same') sum.push('Starting a server on a port that is already in use fails with EADDRINUSE. If you meet a "port already in use" error during development, most often the server you started earlier is still alive. End that program or use another port.');
     if (who && n > 1) sum.push('Several clients can connect to one server port at the same time. Even when connections increase, the server side has only one port, ' + to + ', and connections are told apart by the set of four values (source IP, source port, destination IP, destination port). A web server receiving many users on the single port 443 works on the same principle.');
-    if (who && n === 1) sum.push('A client decides only the destination port, and the operating system picks the source port temporarily. Increase the number of clients and see how the source ports differ.');
+    if (who && n === 1) sum.push('A client decides only the destination port, and the operating system picks the source port temporarily.');
     if (!who) sum.push('ECONNREFUSED means "the connection reached that computer, but no program is listening on that port." First check whether the server is running and whether the port number is right. It is a different error from a timeout, which ends after waiting when there is no response at all.');
     if (c.srv === 'ab' && who) sum.push('Even with the same IP address, a different port means a different program. This is why an address is written together as "IP:port".');
     return { events: ev, summary: sum, own: o.own, who: who,
@@ -66,12 +65,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the steps one at a time, starting from the servers.'); return; }
-    H.table(v, ['Port', 'Program listening'], [9000, 9001, 9002].map(function (p) { return { cells: [p + '', s.ports[p] ? { v: 'Server ' + s.ports[p], cls: 'good' } : 'None'] }; }), 'Ports waiting for connections on this computer (127.0.0.1)');
-    if (s.b === 'EADDRINUSE') H.text(v, 'Server B: listen(9000) failed, EADDRINUSE');
     if (s.conns.length) H.table(v, ['Client', 'Source IP', 'Source port', 'Destination IP', 'Destination port', 'Receiving program'], s.conns.map(function (k) { return { cells: [String(k.c), '127.0.0.1', { v: String(k.cp), cls: 'hot' }, '127.0.0.1', String(k.sp), 'Server ' + k.who] }; }), 'Established connections (two connections are the same only if all four values are the same)');
-    if (s.fails.length) H.table(v, ['Client', 'Port it tried to connect to', 'Result'], s.fails.map(function (k) { return { cells: [String(k.c), k.to + '', { v: 'ECONNREFUSED', cls: 'bad' }] }; }), 'Refused connections');
-    H.counters(v, [[s.conns.length + '', 'Established connections'], [s.fails.length + '', 'Refused connections']]);
-  },
+    if (s.fails.length) H.table(v, ['Client', 'Port it tried to connect to', 'Result'], s.fails.map(function (k) { return { cells: [String(k.c), k.to + '', { v: 'ECONNREFUSED', cls: 'bad' }] }; }), 'Refused connections');  },
   // Diagram: the clients on the left, and the three ports of the server computer on the right. If the port an arrow reaches has a program listening, the connection is made, and if not, it is refused.
   draw: function (P, sim, shown) {
     var c = sim.c, n = +c.n, last = shown[shown.length - 1], s = last ? last.snap : { ports: {}, b: '', conns: [], fails: [], sent: false };
@@ -89,7 +84,7 @@ Lab.register({
     }
     P.box('rb', 16, 268, 320, 34, { cls: !s.b ? 'ghost' : s.b === 'ok' ? 'good' : 'bad', title: 'Listen of Server B', right: !s.b ? (c.srv === 'a' ? 'Not started' : 'Not yet') : s.b === 'ok' ? 'Succeeded' : 'EADDRINUSE' });
     P.box('rc', 344, 268, 320, 34, { cls: s.conns.length ? 'good' : s.fails.length ? 'bad' : 'ghost', title: 'Connections', right: 'Succeeded ' + s.conns.length + ' · Refused ' + s.fails.length });
-    P.note('Each box on the right is one port. Only one listening program can be on a port, but several connections can arrive on that port. The client-side source ports (such as 50001) are examples for the explanation. In reality, the operating system picks a different number each time you run it.');
+    P.note('Each box on the right is one port. The client-side source ports (such as 50001) are examples for the explanation. In reality, the operating system picks a different number each time you run it.');
   },
   assume: 'The 27 combinations were actually run with the net module on 127.0.0.1 of the PC used to write this lab (Windows, Node.js 24) and checked against the results. What was checked: the result of the listen call of Server B (success or EADDRINUSE), the number of successful and refused client connections (ECONNREFUSED), the server that received the data, the number of connections the server saw, whether the ports of the server-side sockets were all the same as the one listening port, and whether the client-side ports were different from each other. In the runs, three ports that were free at the time were used instead of 9000, 9001, and 9002, and because the client-side port numbers (such as 50001 on the screen) change on every run, only the fact that they are "different from each other" was used as a result. The range from which an operating system picks ephemeral ports depends on the operating system and its settings (the range that IANA recommends is 49152 to 65535, Section 6 of RFC 6335). That a connection is identified by the IP addresses and ports on both sides is the definition in the TCP specification (the entries for connection and socket in the glossary in Section 4 of RFC 9293). Not covered: clients on another computer, and special socket options (such as SO_REUSEPORT) that let several programs share the same port.',
 });

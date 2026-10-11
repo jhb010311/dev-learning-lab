@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Addresses and names</p>
 <h1>URL structure</h1>
 <p><b>After I added the search term &quot;A&amp;B&quot; to the URL, the server received only &quot;A&quot;</b></p>
-<p>A URL is divided into the scheme, host, port, path, query, and fragment at fixed symbols (://, :, /, ?, #, &amp;, =). These symbols act as separators within a URL, so if you put the same character directly into a value, the URL gets cut at the wrong place. Follow how a URL is split, which parts of it go to the server, and how to insert a value so that it arrives intact.</p>
+<p>A URL is divided into the scheme, host, port, path, query, and fragment at fixed symbols (://, :, /, ?, #, &amp;, =). These symbols act as separators within a URL, so if you put the same character directly into a value, the URL gets cut at the wrong place.</p>
 <p>Checked against real execution · All 300 combinations were run and checked against Node.js 24 URL, URLSearchParams, and the HTTP client (received by a test server on 127.0.0.1)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -70,7 +70,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Sent to shop.example on port 443: the request line (GET /shop/list?q=A&amp;B&amp;sort=price HTTP/1.1). Value of q received by the server: &quot;A&quot;. It differs from the search term that was sent (&quot;A&amp;B&quot;).</li>
 <li>&amp;, =, #, +, %, and ? are characters that act as separators within a URL. If a value can contain such characters, you must always encode it before inserting it. In JavaScript, URLSearchParams or encodeURIComponent does this, and in Java, URLEncoder.encode does. Code that builds a URL by joining characters by hand usually works, and then fails on the day such a value arrives.</li>
 <li>The fragment (the part after #) does not go to the server. It is not in the server log, and server code cannot read it. The query, on the other hand, goes to the server and may be kept in its access log, so do not put values such as passwords in the query.</li>
 </ul>
@@ -170,6 +169,6 @@ console.log(new URL('detail', url).href);                // the URL that the lin
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

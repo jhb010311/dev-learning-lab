@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>계층 구조와 캡슐화: 1500바이트를 보냈는데 왜 전선에는 1616바이트가 지나갈까 · 개발 학습 실습실</title>
-<meta name="description" content="네트워크는 일을 계층으로 나눠 맡습니다. 보내는 쪽에서는 데이터가 위 계층에서 아래 계층으로 내려가며, 계층마다 자기 일에 필요한 정보를 적은 머리말(헤더)을 앞에 붙입니다. 이것을 캡슐화라고 합니다. 받는 쪽은 반대 순서로 머리말을 하나씩 떼어 냅니다. HTTP 메시지 하나…">
+<meta name="description" content="네트워크는 일을 계층으로 나눠 맡습니다. 보내는 쪽에서는 데이터가 위 계층에서 아래 계층으로 내려가며, 계층마다 자기 일에 필요한 정보를 적은 머리말(헤더)을 앞에 붙입니다. 이것을 캡슐화라고 합니다. 받는 쪽은 반대 순서로 머리말을 하나씩 떼어 냅니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/layers/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/layers/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/layers/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="계층 구조와 캡슐화: 1500바이트를 보냈는데 왜 전선에는 1616바이트가 지나갈까 · 개발 학습 실습실">
-<meta property="og:description" content="네트워크는 일을 계층으로 나눠 맡습니다. 보내는 쪽에서는 데이터가 위 계층에서 아래 계층으로 내려가며, 계층마다 자기 일에 필요한 정보를 적은 머리말(헤더)을 앞에 붙입니다. 이것을 캡슐화라고 합니다. 받는 쪽은 반대 순서로 머리말을 하나씩 떼어 냅니다. HTTP 메시지 하나…">
+<meta property="og:description" content="네트워크는 일을 계층으로 나눠 맡습니다. 보내는 쪽에서는 데이터가 위 계층에서 아래 계층으로 내려가며, 계층마다 자기 일에 필요한 정보를 적은 머리말(헤더)을 앞에 붙입니다. 이것을 캡슐화라고 합니다. 받는 쪽은 반대 순서로 머리말을 하나씩 떼어 냅니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/layers/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=247ede25a6">
+<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 큰 그림</p>
 <h1>계층 구조와 캡슐화</h1>
 <p><b>1500바이트를 보냈는데 왜 전선에는 1616바이트가 지나갈까</b></p>
-<p>네트워크는 일을 계층으로 나눠 맡습니다. 보내는 쪽에서는 데이터가 위 계층에서 아래 계층으로 내려가며, 계층마다 자기 일에 필요한 정보를 적은 머리말(헤더)을 앞에 붙입니다. 이것을 캡슐화라고 합니다. 받는 쪽은 반대 순서로 머리말을 하나씩 떼어 냅니다. HTTP 메시지 하나가 어떻게 싸이고, 크면 어떻게 나뉘는지 따라가 보세요.</p>
+<p>네트워크는 일을 계층으로 나눠 맡습니다. 보내는 쪽에서는 데이터가 위 계층에서 아래 계층으로 내려가며, 계층마다 자기 일에 필요한 정보를 적은 머리말(헤더)을 앞에 붙입니다. 이것을 캡슐화라고 합니다. 받는 쪽은 반대 순서로 머리말을 하나씩 떼어 냅니다.</p>
 <p>일부만 실행으로 확인 · 조각 수와 크기 열 가지 조합을 Node.js 24에서 실제 머리말 바이트를 만들어 붙이고 풀어 대조. 머리말의 크기와 계층의 대응은 RFC 9293, 791, 894, 1122에 따른 설명</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -69,7 +69,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>HTTP 메시지 1500바이트가 2조각으로 나갔고, 조각마다 TCP 20 + IP 20 + 이더넷 14 + FCS 4 = 58바이트가 붙어 전선으로는 1616바이트가 지나갔습니다.</li>
 <li>MTU는 데이터의 크기가 아니라 IP 머리말과 TCP 머리말까지 합친 패킷의 크기에 대한 한도입니다. 그래서 데이터는 MTU에서 40바이트를 뺀 1460바이트(MSS)까지만 한 조각에 실립니다. MTU와 같거나 조금 작은 데이터도 두 조각이 되는 이유입니다.</li>
 <li>계층마다 보는 주소가 다릅니다. 전송 계층은 포트 번호로 프로그램을, 인터넷 계층은 IP 주소로 컴퓨터를, 링크 계층은 MAC 주소로 같은 네트워크 안의 바로 다음 장비를 가리킵니다. 각 계층은 자기 머리말만 읽고 그 안쪽은 내용물로만 취급하므로, 한 계층의 기술을 바꿔도(유선을 무선으로, HTTP를 다른 프로토콜로) 나머지 계층은 그대로 쓸 수 있습니다.</li>
 </ul>
@@ -178,6 +177,6 @@ console.log(total);                                     // 전선으로 나간 �
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=247ede25a6"></script>
+<script src="../../app.js?v=d45f9d1282"></script>
 </body>
 </html>

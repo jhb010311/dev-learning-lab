@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=247ede25a6">
+<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -68,7 +68,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>192.168.0.10/25의 네트워크 주소는 192.168.0.0, 브로드캐스트 주소는 192.168.0.127, 쓸 수 있는 호스트는 126개입니다. 목적지(192.168.0.200)는 다른 네트워크이고, 보내는 방법은 &quot;게이트웨이로 전달 (주소 변환 없음)&quot;입니다.</li>
 <li>두 주소가 같은 네트워크인지는 10진수의 앞자리가 아니라 서브넷 마스크가 가리는 앞 25비트로 정해집니다. /24보다 긴 길이(/25, /26, /30)에서는 마지막 숫자 안에서도 네트워크가 갈립니다. 서브넷 마스크를 잘못 넣으면 바로 옆 기기에 보낼 것을 게이트웨이로 보내거나, 그 반대가 됩니다.</li>
 <li>NAT는 사설 주소에서 공인 주소로 나갈 때 필요합니다. 사설 주소끼리 오가는 내부망에서는 라우터가 주소를 바꾸지 않고 전달만 합니다.</li>
 </ul>
@@ -172,6 +171,6 @@ console.log(((toNumber('192.168.0.200') &amp; mask) &gt;&gt;&gt; 0) === network)
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=247ede25a6"></script>
+<script src="../../app.js?v=d45f9d1282"></script>
 </body>
 </html>

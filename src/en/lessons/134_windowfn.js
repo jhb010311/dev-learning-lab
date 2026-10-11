@@ -1,7 +1,7 @@
 Lab.register({
   id: 'windowfn', nav: 'Window functions', cat: 'Database', mode: 'step',
   title: 'How do you add a rank and a running total without reducing the rows?',
-  intro: 'GROUP BY combines many rows into one row to compute a total. A window function leaves the rows as they are and adds one value, such as a rank or a running total, next to each row. Change the function and the data, and see what value the tied rows get.',
+  intro: 'GROUP BY combines many rows into one row to compute a total. A window function leaves the rows as they are and adds one value, such as a rank or a running total, next to each row.',
   terms: ['Window function', 'ROW_NUMBER, RANK, DENSE_RANK', 'PARTITION BY', 'LAG and LEAD', 'GROUP BY, WHERE, HAVING'],
   controls: [
     { id: 'fn', label: 'Calculation', type: 'select', value: 'rank', options: [['group', 'Total with GROUP BY (for comparison)'], ['rownum', 'ROW_NUMBER() row number'], ['rank', 'RANK() rank'], ['dense', 'DENSE_RANK() rank'], ['sum', 'SUM(pts) OVER running total'], ['lag', 'LAG(pts) value of the previous row']] },
@@ -58,8 +58,7 @@ Lab.register({
       push(part ? 'GROUP BY team: Rows with the same team value are put into one group. This makes two groups: 3 rows for team A and 3 rows for team B.' : 'SUM(pts) is used without GROUP BY. In that case the whole table is one group.');
       st.stage = 'end'; st.done = k.groups.length;
       push('SUM(pts): One total is computed for each group. ' + k.groups.map(function (g) { return (g.team ? 'Team ' + g.team + ' ' : 'All rows ') + g.v + ' points'; }).join(', ') + '. Each group becomes one row of the result, so the 6 rows shrank to ' + rw(k.groups.length) + '. Who scored how many points is not kept in the result.', '');
-      sum.push('The result has ' + rw(k.groups.length) + '. ' + k.groups.map(function (g) { return (g.team ? 'Team ' + g.team + ' ' : 'All rows ') + 'total ' + g.v; }).join(', ') + '.');
-      sum.push('GROUP BY turns each group into one row of the result. You get the totals, but each row\'s name and score are gone. If you want to see a rank or a running total next to each person\'s score, you need a window function, which does not reduce the rows. Change the calculation to RANK or SUM OVER to compare.');
+      sum.push('GROUP BY turns each group into one row of the result. You get the totals, but each row\'s name and score are gone. If you want to see a rank or a running total next to each person\'s score, you need a window function, which does not reduce the rows.');
       return { events: ev, summary: sum, k: k, row: [rw(k.groups.length), k.groups.map(function (g) { return (g.team ? 'Team ' + g.team + ' ' : '') + g.v; }).join(' / '), 'Not applicable'] };
     }
     var f = this.FN[fn], show1 = this.show1;
@@ -79,8 +78,7 @@ Lab.register({
     push('ORDER BY ' + (part ? 'team, ' : '') + 'pts DESC: The result is returned. The 6 rows are still 6 rows, and each row now has one value in the ' + f[1] + ' column.', 'good');
     var vals = k.parts.map(function (p, pi) { return (part ? 'Team ' + p[0].team + ' ' : '') + k.out.filter(function (r) { return r.pi === pi; }).map(function (r) { return r.v === null ? 'NULL' : r.v; }).join(', '); }).join(' / ');
     var tied = k.out.filter(function (r) { return r.tiePrev; }), tieCol = !tied.length ? 'No ties' : tied.every(function (r) { return r.v === k.out[k.out.indexOf(r) - 1].v; }) ? 'The same' : 'Different';
-    sum.push('The 6 rows came out as 6 rows. The values added by ' + f[0] + ' are ' + vals + '.');
-    if (fn === 'rownum' || fn === 'rank' || fn === 'dense') sum.push(c.tie === 'yes' ? 'How ties are handled is the difference among the three functions. For the scores 90, 90, 80, ROW_NUMBER gives 1, 2, 3 (different numbers even for a tie), RANK gives 1, 1, 3 (the tied rows share a rank, and the next rank is skipped), and DENSE_RANK gives 1, 1, 2 (the tied rows share a rank, and no rank is skipped).' : 'When there are no ties, ROW_NUMBER, RANK, and DENSE_RANK give the same result. The difference shows only when there are ties. Change the score data to "With ties".');
+    if (fn === 'rownum' || fn === 'rank' || fn === 'dense') sum.push(c.tie === 'yes' ? 'How ties are handled is the difference among the three functions. For the scores 90, 90, 80, ROW_NUMBER gives 1, 2, 3 (different numbers even for a tie), RANK gives 1, 1, 3 (the tied rows share a rank, and the next rank is skipped), and DENSE_RANK gives 1, 1, 2 (the tied rows share a rank, and no rank is skipped).' : 'When there are no ties, ROW_NUMBER, RANK, and DENSE_RANK give the same result. The difference shows only when there are ties.');
     if (fn === 'rownum' && c.tie === 'yes') sum.push('ROW_NUMBER is often used to "pick one row per group" (for example, the top scorer of each team). But the order of tied rows is not defined, so if you need the same result every time, add a column whose values are unique to ORDER BY.');
     if (fn === 'sum') sum.push(c.tie === 'yes' ? 'In a running total, tied rows get the same value. This is because, when you write only ORDER BY, the default frame also includes the rows that have the same ORDER BY value as the current row. To add up one row at a time, write ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW inside OVER. Then the running totals for this data become ' + k.parts.map(function (p, pi) { return (part ? 'Team ' + p[0].team + ' ' : '') + k.out.filter(function (r) { return r.pi === pi; }).map(function (r) { return r.rowsFrame; }).join(', '); }).join(' / ') + '.' : 'Adding OVER (ORDER BY ...) to SUM gives not the grand total but the total from the first row through the current row, that is, a running total. It is used for calculations such as a running total of sales by date.');
     if (fn === 'lag') sum.push('LAG brings a value from another row next to the current row. It lets you compare neighboring rows, such as the difference between yesterday\'s value and today\'s, without joining the same table to itself again. The first row, which has no previous row, gets NULL.');
@@ -92,8 +90,6 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go one step at a time.'); return; }
     if (c.fn === 'group') {
       H.table(v, ['name', 'team', 'pts'], this.rowsOf(c).map(function (r) { return { cls: s.stage === 'end' ? 'gone' : '', cells: [r.name, r.team, String(r.pts)] }; }), 'score table (6 rows read)');
-      if (s.stage === 'end') H.table(v, c.part ? ['team', 'total'] : ['total'], k.groups.map(function (g) { return { cells: c.part ? [g.team, { v: String(g.v), cls: 'hot' }] : [{ v: String(g.v), cls: 'hot' }] }; }), 'Result');
-      H.counters(v, [['6', 'Rows read'], [s.stage === 'end' ? String(k.groups.length) : '?', 'Result rows']]);
       return;
     }
     var list = s.stage === 'read' ? this.rowsOf(c).map(function (r) { return { name: r.name, team: r.team, pts: r.pts, v: undefined }; }) : k.out;
@@ -101,7 +97,6 @@ Lab.register({
       var done = s.stage !== 'read' && n < s.done, cur = s.stage === 'row' && n === s.done - 1;
       return { cells: [r.name, r.team, String(r.pts), { v: done ? (r.v === null ? 'NULL' : String(r.v)) : '?', cls: cur ? 'hot' : done ? 'good' : '' }] };
     }), s.stage === 'read' ? 'score table (6 rows read)' : 'The 6 rows in line, with their values');
-    H.counters(v, [['6', 'Rows read'], ['6', 'Result rows'], [s.stage === 'read' ? '0' : String(s.done), 'Rows with a value']]);
   },
   // Diagram: On the left are the 6 rows of the score table, and on the right is the result. With GROUP BY, many rows gather into one box. With a window function, each row gets its own box with a value.
   draw: function (P, sim, shown) {
@@ -122,7 +117,7 @@ Lab.register({
         if (sorted) k.parts[gi].forEach(function (r) { P.arrow('a' + r.id, 's' + r.id + ':r', 'g' + gi + ':l', { cls: on ? 'good' : 'mut' }); });
       });
       P.text('fn', 340, 36, part ? 'GROUP BY team' : 'SUM(pts)', { anchor: 'middle', bold: true });
-      P.note('The 6 rows on the left shrink to ' + k.groups.length + (k.groups.length === 1 ? ' row' : ' rows') + ' on the right. Blue boxes are team A, and yellow boxes are team B. GROUP BY keeps only one row per group, so who scored how many points disappears from the result.');
+      P.note('The 6 rows on the left shrink to ' + k.groups.length + (k.groups.length === 1 ? ' row' : ' rows') + ' on the right. Blue boxes are team A, and yellow boxes are team B.');
       return;
     }
     order.forEach(function (r, n) {
@@ -131,7 +126,7 @@ Lab.register({
       if (done) P.arrow('a' + r.id, 's' + r.id + ':r', 'd' + r.id + ':l', { cls: cur ? 'hot' : 'mut' });
     });
     P.text('fn', 340, 36, this.FN[c.fn][0], { anchor: 'middle', bold: true });
-    P.note('Each row on the left leads straight to one row on the right. The number of rows does not shrink, and only a value is added to each. Blue boxes are team A, and yellow boxes are team B' + (part ? '. The gap between the teams is the boundary made by PARTITION BY.' : '. The teams are not divided, and all the rows are lined up in one line.'));
+    P.note('Each row on the left leads straight to one row on the right. Blue boxes are team A, and yellow boxes are team B' + (part ? '. The gap between the teams is the boundary made by PARTITION BY.' : '. The teams are not divided, and all the rows are lined up in one line.'));
   },
   assume: 'For all 24 combinations, the same SQL statement as the one on the screen was run on MySQL 8.4 on the PC used to write this lab, and the number of result rows and the value added to each row were checked against the screen. The values with ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW in the running total were checked the same way. SQL does not define which of the tied rows is placed first (see the ROW_NUMBER description in the MySQL documentation), so the order of the two tied people on the screen is just one example, and the check was made on the team, the score, and the added value, not on the names. Window functions are available from MySQL 8.0. The way the step sentences calculate (for example, adding 1 to the number of rows with a higher score) is a plain-words version of each function\'s definition. A real database sorts the rows and then makes one pass over them to compute the values.',
 });

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'redirect', nav: '리다이렉션', cat: 'HTTP', mode: 'step',
   title: '"다른 주소로 가라"는 응답을 받으면 다음 요청은 어떻게 나가나',
-  intro: '서버는 요청을 직접 처리하는 대신 3xx 상태 코드와 Location 헤더로 "이 주소로 다시 요청하라"고 안내할 수 있습니다. 이것을 리다이렉션이라고 합니다. 301, 302, 303, 307, 308은 모두 같은 안내처럼 보이지만, 영구인지 임시인지와 다음 요청의 메서드가 유지되는지가 다릅니다. 상태 코드와 요청 메서드를 바꿔 가며 두 번째 요청이 어떤 모양으로 나가는지 보세요.',
+  intro: '서버는 요청을 직접 처리하는 대신 3xx 상태 코드와 Location 헤더로 "이 주소로 다시 요청하라"고 안내할 수 있습니다. 이것을 리다이렉션이라고 합니다. 301, 302, 303, 307, 308은 모두 같은 안내처럼 보이지만, 영구인지 임시인지와 다음 요청의 메서드가 유지되는지가 다릅니다.',
   terms: ['리다이렉션과 Location 헤더', 'PRG 패턴(Post/Redirect/Get)', 'HTTP 상태 코드', 'HTTP 메서드', '안전한 메서드와 멱등한 메서드'],
   controls: [
     { id: 'code', label: '서버가 응답하는 상태 코드', type: 'select', value: '302', options: [['301', '301 Moved Permanently'], ['302', '302 Found'], ['303', '303 See Other'], ['307', '307 Temporary Redirect'], ['308', '308 Permanent Redirect']] },
@@ -76,7 +76,6 @@ Lab.register({
       push('클라이언트가 스스로 멈춥니다. fetch는 20번 따라간 뒤 "redirect count exceeded" 오류를 내고, curl은 50번 따라간 뒤 "Maximum (50) redirects followed" 오류를 냅니다. 그때까지 서버에는 각각 21번, 51번의 요청이 도착했습니다.', 'bad');
       count = 'fetch 21번, curl 51번'; end = '오류로 멈춤 (fetch는 20번, curl은 50번 따라간 뒤)';
     }
-    sum.push(line + ' 응답의 뜻은 "' + K.kind + '"입니다. 두 번째 요청은 ' + next + '로 나갔고, ' + (loop ? '두 주소가 서로를 가리켜 클라이언트가 오류를 내고 멈췄습니다.' : '서버에 도착한 요청은 모두 2번입니다.'));
     if (nx.toGet && c.code !== '303') sum.push('301과 302에서 POST가 GET으로 바뀌는 것은 표준이 "그래도 된다"고 허용한 동작인데, 브라우저를 비롯한 대부분의 클라이언트가 그렇게 합니다. 이때 본문이 사라집니다. POST를 그대로 새 주소로 넘기려면 307(임시)이나 308(영구)을 씁니다.');
     if (c.code === '303') sum.push(hasBody ? '303은 폼을 보낸 뒤 결과 화면으로 넘길 때 씁니다. 두 번째 요청이 GET이므로 사용자가 새로 고침을 눌러도 폼이 다시 전송되지 않습니다. 이 방식을 PRG(Post/Redirect/Get)라고 부릅니다.' : '303은 주로 POST 뒤에 "결과는 이 주소에서 GET으로 보라"고 안내할 때 씁니다. 처음부터 GET이었다면 302나 307과 결과가 같습니다.');
     if ((c.code === '307' || c.code === '308') && hasBody) sum.push('307과 308은 메서드와 본문을 바꾸지 않는다는 것을 보장하려고 뒤에 추가된 코드입니다. 307은 302의, 308은 301의 "메서드 유지" 판입니다.');
@@ -89,7 +88,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, CODES = this.CODES;
     if (!s) { H.text(v, '실행을 누르면 요청과 응답이 하나씩 오갑니다.'); return; }
-    H.counters(v, [[s.n + (typeof s.n === 'number' ? '번' : ''), '서버에 도착한 요청'], [s.msgs.length > 3 ? sim.next : '?', '두 번째 요청'], [s.done || '진행 중', '끝난 모습']]);
+    H.counters(v, [[s.n + (typeof s.n === 'number' ? '번' : ''), '서버에 도착한 요청']]);
     H.table(v, ['누가', '보낸 것', '뜻'], s.msgs.map(function (m) { return { cells: [m.f === '*' ? '양쪽' : m.f === 'c' ? (m.t ? '클라이언트 → 서버' : '클라이언트') : '서버 → 클라이언트', { v: m.s, cls: m.cls === 'bad' ? 'bad' : m.cls === 'good' ? 'good' : '' }, m.mean] }; }), '클라이언트와 서버 사이');
     H.table(v, ['코드', '종류', '표준이 정한 메서드 처리'], ['301', '302', '303', '307', '308'].map(function (k) { var X = CODES[k]; return { cells: [{ v: k + ' ' + X.name, cls: k === c.code ? 'hot' : '' }, X.kind, X.rule] }; }), '리다이렉션 상태 코드 다섯 가지');
   },

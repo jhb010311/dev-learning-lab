@@ -1,7 +1,7 @@
 Lab.register({
   id: 'congestion', nav: 'Flow control and congestion control', cat: 'Networking', mode: 'step',
   title: 'How does TCP decide how much to send at a time?',
-  intro: 'Even when TCP has a lot of data to send, it does not pour it all out at once. It sends only up to the smaller of two amounts: the amount the receiver can handle (the receive window) and the amount TCP estimates the network can handle (the congestion window). Respecting the first is flow control, and adjusting the second is congestion control. See how the amount sent grows and shrinks over twelve round trips.',
+  intro: 'Even when TCP has a lot of data to send, it does not pour it all out at once. It sends only up to the smaller of two amounts: the amount the receiver can handle (the receive window) and the amount TCP estimates the network can handle (the congestion window). Respecting the first is flow control, and adjusting the second is congestion control.',
   terms: ['Flow control and congestion control', 'Receive window and congestion window', 'Slow start and congestion avoidance', 'TCP and UDP'],
   controls: [
     { id: 'loss', label: 'What happens on the way', type: 'select', value: 'dup', options: [['none', 'No loss'], ['dup', 'One segment is lost (detected by three duplicate ACKs)'], ['rto', 'Everything sent is lost (detected by a timeout)']] },
@@ -70,12 +70,11 @@ Lab.register({
       push(head + tail, o.phase === 'ca' ? 'good' : '');
     });
     var flights = R.map(function (o) { return o.flight; });
-    function seg(n) { return n + (n === 1 ? ' segment' : ' segments'); } function ack(n) { return n + (n === 1 ? ' ACK' : ' ACKs'); } sum.push('In twelve round trips, ' + total + ' segments were sent. Amount sent in each round trip: ' + flights.join(', ') + '.');
-    if (hit && c.loss === 'dup') sum.push('When the loss is detected by three duplicate ACKs, the slow start threshold and the congestion window are reduced to half of the amount sent (' + seg(hit.nextSsth) + '), and the window grows by one again from there. It grows, and when it meets a loss it is reduced, over and over, so if you draw the amount sent, it forms a sawtooth.');
+    function seg(n) { return n + (n === 1 ? ' segment' : ' segments'); } function ack(n) { return n + (n === 1 ? ' ACK' : ' ACKs'); } if (hit && c.loss === 'dup') sum.push('When the loss is detected by three duplicate ACKs, the slow start threshold and the congestion window are reduced to half of the amount sent (' + seg(hit.nextSsth) + '), and the window grows by one again from there. It grows, and when it meets a loss it is reduced, over and over, so if you draw the amount sent, it forms a sawtooth.');
     if (hit && c.loss === 'rto') sum.push('When the loss is detected by a timeout, the congestion window is returned to 1 segment. It doubles again up to the slow start threshold (' + seg(hit.nextSsth) + '), and after that it grows by one. If the same loss had been detected by three duplicate ACKs, ' + this.rounds({ loss: 'dup', at: c.at, ssth: c.ssth, rwnd: c.rwnd }).reduce(function (a, o) { return a + o.flight; }, 0) + ' segments would have been sent in twelve round trips. The timeout backs off further.');
     if (!hit) sum.push('With no loss, the window climbs quickly to the slow start threshold in slow start, and then keeps growing little by little in congestion avoidance. The sender cannot know the limit of the network in advance, so it finds the limit by growing until a loss happens.');
     if (capped) sum.push('The receive window was smaller than the congestion window in ' + capped + (capped === 1 ? ' round trip' : ' round trips') + '. In those, however large the congestion window was, only as much as the receive window was sent. Flow control protects the receiver and congestion control protects the network in between; they are different mechanisms, and the amount actually sent is decided by the smaller of the two.');
-    else sum.push('In this setting, the receive window was always ample, so the congestion window decided the amount sent. If you reduce the receive window to 6 segments, you can see the case in which the receiver is the limit.');
+    else sum.push('In this setting, the receive window was always ample, so the congestion window decided the amount sent.');
     if (hit && hit.capped) sum.push('The slow start threshold after the loss is not half of the congestion window (' + seg(hit.cwnd) + ') but half of the amount actually sent (' + seg(hit.flight) + '). This is because while the sender was held back by the receive window, it never actually sent as much as the congestion window.');
     return { events: ev, summary: sum, R: R, top: Math.max.apply(null, R.map(function (o) { return o.cwnd; })),
       row: [flights.join(' '), hit ? seg(hit.nextSsth) : 'No loss', hit ? seg(hit.nextCwnd) : 'No loss', seg(total), capped + (capped === 1 ? ' round trip' : ' round trips')] };
@@ -83,8 +82,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     function seg(n) { return n + (n === 1 ? ' segment' : ' segments'); } if (!s) { H.text(v, 'Click Run to go through one round trip at a time. A segment is one piece of data that TCP sends at a time.'); return; }
-    var cur = s.rows[s.rows.length - 1];
-    H.counters(v, [[seg(s.cwnd), 'Congestion window (next round trip)'], [seg(s.ssth), 'Slow start threshold'], [seg(cur.rwnd), 'Receive window'], [seg(cur.flight), 'Sent in this round trip']]);
+    H.counters(v, [[seg(s.cwnd), 'Congestion window (next round trip)']]);
     var name = { ss: 'Slow start', ca: 'Congestion avoidance', loss: 'Loss' };
     H.table(v, ['Round trip', 'Phase', 'Congestion window', 'Receive window', 'Sent', 'Slow start threshold'], s.rows.map(function (r) { return { cells: [String(r.r), { v: name[r.phase], cls: r.phase === 'loss' ? 'bad' : r.phase === 'ca' ? 'good' : '' }, String(r.cwnd), String(r.rwnd), { v: String(r.flight), cls: r.capped ? 'hot' : '' }, String(r.ssth)] }; }), 'Values for each round trip (a yellow cell is an amount blocked by the receive window)');
   },

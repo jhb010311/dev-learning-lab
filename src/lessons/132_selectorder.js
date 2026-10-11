@@ -1,7 +1,7 @@
 Lab.register({
   id: 'selectorder', nav: 'SELECT가 처리되는 순서', cat: '데이터베이스', mode: 'step',
   title: 'WHERE에서는 왜 별칭과 집계 함수를 쓸 수 없나',
-  intro: 'SELECT 문은 적힌 순서가 아니라 FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT 순서로 처리된다고 보면 됩니다. 어떤 이름을 쓸 수 있는지는 그 절이 몇 번째로 처리되는지에 달려 있습니다. 같은 조건을 WHERE와 HAVING에 번갈아 적어 보며, 어느 단계에서 오류가 나고 결과가 어떻게 달라지는지 따라가 보세요.',
+  intro: 'SELECT 문은 적힌 순서가 아니라 FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT 순서로 처리된다고 보면 됩니다. 어떤 이름을 쓸 수 있는지는 그 절이 몇 번째로 처리되는지에 달려 있습니다.',
   terms: ['SELECT 문의 논리적 처리 순서', 'GROUP BY, WHERE, HAVING', '컬럼 별칭(AS)', '집계 함수'],
   controls: [
     { id: 'cond', label: '거르는 조건', type: 'select', value: 'alias', options: [['grpcol', "member <> '박민수' (묶는 기준 컬럼)"], ['rowcol', 'amount >= 300 (주문 한 건의 금액)'], ['agg', 'SUM(amount) >= 300 (집계 함수)'], ['alias', 'total >= 300 (SELECT에서 붙인 별칭)']] },
@@ -96,10 +96,10 @@ Lab.register({
     if (!err && ga) ext.push('GROUP BY');
     if (!err && !W && c.cond === 'alias') ext.push('HAVING');
     var extText = err ? '-' : ext.length ? ext.join('와 ') + '의 별칭' : '없음';
-    sum.push(err ? '오류 ' + err.no + '(' + err.msg + ')로 문장이 거부됐습니다. ' + (W ? 'WHERE' : 'HAVING') + ' 단계에서 쓸 수 없는 이름을 썼기 때문입니다.' : '결과는 ' + list.length + '행입니다: ' + list.join(', ') + '.' + (lim ? '' : ' ORDER BY가 없으므로 행이 나오는 순서는 정해져 있지 않습니다.'));
+    if (!err && !lim) sum.push('ORDER BY가 없으므로 행이 나오는 순서는 정해져 있지 않습니다.');
     sum.push({ grpcol: '묶는 기준 컬럼에 대한 조건은 WHERE와 HAVING 어디에 적어도 결과가 같습니다. 다만 WHERE는 묶기 전에 행을 줄이고 HAVING은 다 묶은 뒤에 그룹을 버립니다. 그룹과 상관없이 거를 수 있는 조건은 WHERE에 적는 것이 원칙입니다.',
       rowcol: W ? 'WHERE는 합계를 내기 전에 행을 버립니다. 그래서 김철수의 합계가 450이 아니라 300으로 나왔습니다. 이 결과는 "300 이상인 주문만 골라 회원별로 더한 것"입니다. "합계가 300 이상인 회원"을 원했다면 HAVING SUM(amount) >= 300으로 적어야 하고, 그때는 김철수 450과 이영희 320이 나옵니다.' : '묶은 뒤에는 묶는 기준 컬럼과 집계 함수만 쓸 수 있습니다. 행 하나하나의 값으로 거르는 조건은 묶기 전에 처리되는 WHERE에 적어야 합니다.',
-      agg: W ? '집계 함수로 거르는 조건은 묶은 뒤에 처리되는 HAVING에 적습니다. WHERE가 처리되는 시점에는 아직 그룹이 없습니다.' : '"300 이상"이라는 같은 말도 WHERE amount >= 300은 주문 한 건씩을, HAVING SUM(amount) >= 300은 회원별 합계를 거릅니다. 조건을 "amount >= 300"으로, 적는 곳을 WHERE로 바꿔 결과를 비교해 보세요.',
+      agg: W ? '집계 함수로 거르는 조건은 묶은 뒤에 처리되는 HAVING에 적습니다. WHERE가 처리되는 시점에는 아직 그룹이 없습니다.' : '"300 이상"이라는 같은 말도 WHERE amount >= 300은 주문 한 건씩을, HAVING SUM(amount) >= 300은 회원별 합계를 거릅니다.',
       alias: W ? '별칭은 SELECT 단계에서 붙으므로, 그보다 먼저 처리되는 WHERE에서는 쓸 수 없습니다. MySQL만이 아니라 표준 SQL에서도 그렇습니다. 집계에 붙인 별칭으로 거르려면 조건을 HAVING으로 옮깁니다.' : 'MySQL은 HAVING에서 SELECT의 별칭을 받아 줍니다. 표준 SQL에는 없는 확장이라 다른 DB에서는 오류가 날 수 있습니다. 어디서나 통하게 적으려면 HAVING SUM(amount) >= 300처럼 식을 그대로 적습니다.' }[c.cond]);
     if (!err && ga) sum.push('GROUP BY에 별칭을 쓰는 것도 MySQL의 확장입니다. 처리 순서로 보면 GROUP BY는 SELECT보다 먼저이므로 표준 SQL에서는 별칭 대신 원래 컬럼이나 식을 적습니다.');
     if (!err && lim) sum.push('ORDER BY와 LIMIT은 맨 뒤에 처리됩니다. 그래서 LIMIT 1은 "거르고 묶은 결과 가운데 합계가 가장 큰 한 행"을 뜻합니다. ORDER BY 없이 LIMIT만 쓰면 어느 행이 남을지 정해져 있지 않습니다.');
@@ -109,9 +109,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 처리되는 순서대로 한 단계씩 진행합니다.'); return; }
-    H.title(v, '처리되는 순서');
-    H.slots(v, s.stat.map(function (x, i) { return [(i + 1) + '. ' + x.name + (x.n ? ' · ' + x.n : ''), x.k === 'now' ? 'b now' : x.k === 'done' ? 'd' : x.k === 'err' ? 'r' : x.k === 'none' ? '' : 'q']; }), '');
-    H.text(v, '지금 쓸 수 있는 이름: ' + s.names + (s.err ? ' · 오류 ' + s.err.no : ''));
     H.table(v, s.view.head, s.view.rows.map(function (r) { return { cls: r.cls, cells: r.cells }; }), s.view.title);
   },
   // 그림: 일곱 단계를 처리되는 순서대로 왼쪽에서 오른쪽으로 놓고, 아래에 지금 단계를 지난 행(또는 그룹)을 보여 준다.

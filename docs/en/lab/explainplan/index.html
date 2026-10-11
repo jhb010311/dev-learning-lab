@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Indexes and execution plans</p>
 <h1>Reading the execution plan</h1>
 <p><b>What should you read in one line of EXPLAIN?</b></p>
-<p>Put EXPLAIN in front of a query and the database shows the plan it has made for running that query. One line has many columns, but if you can read just four of them (type, key, rows, and Extra), you can find the cause of most slow queries. Change the shape of the query and see how each column changes.</p>
+<p>Put EXPLAIN in front of a query and the database shows the plan it has made for running that query. One line has many columns, but if you can read just four of them (type, key, rows, and Extra), you can find the cause of most slow queries.</p>
 <p>Checked against real execution · All 50 combinations were run with EXPLAIN on MySQL 8.4 and checked against type, possible_keys, key, and Extra (for rows, only the size was checked)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>type ALL, key NULL, rows about 20,000, Extra Using where. The number of rows that actually match the condition: 200.</li>
 <li>A column that has an index cannot have its range narrowed by the index if a function or a calculation is applied to it. The rule is to leave the column as it is and change the value you compare it with. Here, name LIKE 'user001%' means the same thing and gives type range.</li>
 <li>Order of reading: look at type to see how widely it reads, check key to see which index is used, estimate the amount read with rows, and then look in Extra for added work such as filtering, sorting, and temporary tables.</li>
 </ul>
@@ -164,6 +163,6 @@ SELECT *
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

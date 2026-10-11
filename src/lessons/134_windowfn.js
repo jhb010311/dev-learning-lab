@@ -1,7 +1,7 @@
 Lab.register({
   id: 'windowfn', nav: '윈도우 함수', cat: '데이터베이스', mode: 'step',
   title: '행을 줄이지 않고 순위와 누계를 붙이려면',
-  intro: 'GROUP BY는 여러 행을 한 행으로 합쳐서 합계를 냅니다. 윈도우 함수는 행을 그대로 둔 채, 행마다 순위나 누계 같은 값을 하나씩 옆에 붙입니다. 함수와 데이터를 바꿔 가며 동점인 행에 어떤 값이 붙는지 보세요.',
+  intro: 'GROUP BY는 여러 행을 한 행으로 합쳐서 합계를 냅니다. 윈도우 함수는 행을 그대로 둔 채, 행마다 순위나 누계 같은 값을 하나씩 옆에 붙입니다.',
   terms: ['윈도우 함수', 'ROW_NUMBER, RANK, DENSE_RANK', 'PARTITION BY', 'LAG와 LEAD', 'GROUP BY, WHERE, HAVING'],
   controls: [
     { id: 'fn', label: '계산 방법', type: 'select', value: 'rank', options: [['group', 'GROUP BY로 합계 (비교용)'], ['rownum', 'ROW_NUMBER() 줄 번호'], ['rank', 'RANK() 순위'], ['dense', 'DENSE_RANK() 순위'], ['sum', 'SUM(pts) OVER 누계'], ['lag', 'LAG(pts) 앞 행의 값']] },
@@ -58,8 +58,7 @@ Lab.register({
       push(part ? 'GROUP BY team: team 값이 같은 행끼리 묶습니다. A팀 3행과 B팀 3행, 두 묶음이 생깁니다.' : 'GROUP BY 없이 SUM(pts)만 썼습니다. 이때는 테이블 전체가 한 묶음입니다.');
       st.stage = 'end'; st.done = k.groups.length;
       push('SUM(pts): 묶음마다 합계를 하나씩 구합니다. ' + k.groups.map(function (g) { return (g.team ? g.team + '팀 ' : '전체 ') + g.v + '점'; }).join(', ') + '입니다. 묶음 하나가 결과 한 행이 되므로 6행이 ' + k.groups.length + '행으로 줄었습니다. 누가 몇 점이었는지는 결과에 남지 않습니다.', '');
-      sum.push('결과는 ' + k.groups.length + '행입니다. ' + k.groups.map(function (g) { return (g.team ? g.team + '팀 ' : '전체 ') + '합계 ' + g.v; }).join(', ') + '.');
-      sum.push('GROUP BY는 묶음 하나를 결과 한 행으로 만듭니다. 합계는 얻지만 각 행의 이름과 점수는 사라집니다. "각 사람의 점수 옆에 순위나 누계를 함께 보고 싶다"면 행을 줄이지 않는 윈도우 함수가 필요합니다. 계산 방법을 RANK나 SUM OVER로 바꿔 비교해 보세요.');
+      sum.push('GROUP BY는 묶음 하나를 결과 한 행으로 만듭니다. 합계는 얻지만 각 행의 이름과 점수는 사라집니다. "각 사람의 점수 옆에 순위나 누계를 함께 보고 싶다"면 행을 줄이지 않는 윈도우 함수가 필요합니다.');
       return { events: ev, summary: sum, k: k, row: [k.groups.length + '행', k.groups.map(function (g) { return (g.team ? g.team + '팀 ' : '') + g.v; }).join(' / '), '해당 없음'] };
     }
     var f = this.FN[fn], show1 = this.show1;
@@ -79,8 +78,7 @@ Lab.register({
     push('ORDER BY ' + (part ? 'team, ' : '') + 'pts DESC: 결과를 내보냅니다. 6행이 그대로 6행이고, 행마다 ' + f[1] + ' 컬럼의 값이 하나씩 붙었습니다.', 'good');
     var vals = k.parts.map(function (p, pi) { return (part ? p[0].team + '팀 ' : '') + k.out.filter(function (r) { return r.pi === pi; }).map(function (r) { return r.v === null ? 'NULL' : r.v; }).join(', '); }).join(' / ');
     var tied = k.out.filter(function (r) { return r.tiePrev; }), tieCol = !tied.length ? '동점 없음' : tied.every(function (r) { return r.v === k.out[k.out.indexOf(r) - 1].v; }) ? '서로 같음' : '서로 다름';
-    sum.push('6행이 그대로 6행으로 나왔습니다. ' + f[0] + '로 붙은 값은 ' + vals + '입니다.');
-    if (fn === 'rownum' || fn === 'rank' || fn === 'dense') sum.push(c.tie === 'yes' ? '동점을 다루는 방법이 세 함수의 차이입니다. 90, 90, 80점에 ROW_NUMBER는 1, 2, 3(동점이어도 다른 번호), RANK는 1, 1, 3(같은 순위를 주고 다음 순위를 건너뜀), DENSE_RANK는 1, 1, 2(같은 순위를 주고 건너뛰지 않음)를 붙입니다.' : '동점이 없으면 ROW_NUMBER, RANK, DENSE_RANK의 결과가 똑같습니다. 차이는 동점이 있을 때만 드러납니다. 점수 데이터를 "동점이 있음"으로 바꿔 보세요.');
+    if (fn === 'rownum' || fn === 'rank' || fn === 'dense') sum.push(c.tie === 'yes' ? '동점을 다루는 방법이 세 함수의 차이입니다. 90, 90, 80점에 ROW_NUMBER는 1, 2, 3(동점이어도 다른 번호), RANK는 1, 1, 3(같은 순위를 주고 다음 순위를 건너뜀), DENSE_RANK는 1, 1, 2(같은 순위를 주고 건너뛰지 않음)를 붙입니다.' : '동점이 없으면 ROW_NUMBER, RANK, DENSE_RANK의 결과가 똑같습니다. 차이는 동점이 있을 때만 드러납니다.');
     if (fn === 'rownum' && c.tie === 'yes') sum.push('ROW_NUMBER는 "한 묶음에서 한 행만 고르기"(예: 팀별 최고 점수 한 명)에 자주 씁니다. 다만 동점인 행의 순서는 정해져 있지 않으므로, 항상 같은 결과가 필요하면 ORDER BY에 겹치지 않는 컬럼을 덧붙입니다.');
     if (fn === 'sum') sum.push(c.tie === 'yes' ? '누계에서 동점인 행은 값이 같게 나옵니다. ORDER BY만 적으면 "정렬 값이 같은 행까지 함께" 더하는 것이 기본 범위이기 때문입니다. 행 하나씩 차례로 쌓으려면 OVER 안에 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW를 적습니다. 그러면 이 데이터의 누계는 ' + k.parts.map(function (p, pi) { return (part ? p[0].team + '팀 ' : '') + k.out.filter(function (r) { return r.pi === pi; }).map(function (r) { return r.rowsFrame; }).join(', '); }).join(' / ') + '이 됩니다.' : 'SUM에 OVER (ORDER BY ...)를 붙이면 전체 합계가 아니라 첫 행부터 지금 행까지의 합계, 곧 누계가 됩니다. 날짜순 매출 누계 같은 계산에 씁니다.');
     if (fn === 'lag') sum.push('LAG는 다른 행의 값을 지금 행 옆으로 가져옵니다. "어제 값과 오늘 값의 차이"처럼 앞뒤 행을 비교하는 계산을, 같은 테이블을 다시 조인하지 않고 쓸 수 있습니다. 앞 행이 없는 첫 행은 NULL이 됩니다.');
@@ -92,8 +90,6 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     if (c.fn === 'group') {
       H.table(v, ['name', 'team', 'pts'], this.rowsOf(c).map(function (r) { return { cls: s.stage === 'end' ? 'gone' : '', cells: [r.name, r.team, String(r.pts)] }; }), 'score 테이블 (읽은 6행)');
-      if (s.stage === 'end') H.table(v, c.part ? ['team', 'total'] : ['total'], k.groups.map(function (g) { return { cells: c.part ? [g.team, { v: String(g.v), cls: 'hot' }] : [{ v: String(g.v), cls: 'hot' }] }; }), '결과');
-      H.counters(v, [['6', '읽은 행'], [s.stage === 'end' ? String(k.groups.length) : '?', '결과 행']]);
       return;
     }
     var list = s.stage === 'read' ? this.rowsOf(c).map(function (r) { return { name: r.name, team: r.team, pts: r.pts, v: undefined }; }) : k.out;
@@ -101,7 +97,6 @@ Lab.register({
       var done = s.stage !== 'read' && n < s.done, cur = s.stage === 'row' && n === s.done - 1;
       return { cells: [r.name, r.team, String(r.pts), { v: done ? (r.v === null ? 'NULL' : String(r.v)) : '?', cls: cur ? 'hot' : done ? 'good' : '' }] };
     }), s.stage === 'read' ? 'score 테이블 (읽은 6행)' : '줄 세운 6행과 붙은 값');
-    H.counters(v, [['6', '읽은 행'], ['6', '결과 행'], [s.stage === 'read' ? '0' : String(s.done), '값이 붙은 행']]);
   },
   // 그림: 왼쪽에 score 테이블의 6행, 오른쪽에 결과. GROUP BY는 여러 행이 한 상자로 모이고, 윈도우 함수는 행마다 값이 붙은 상자가 하나씩 생긴다.
   draw: function (P, sim, shown) {
@@ -122,7 +117,7 @@ Lab.register({
         if (sorted) k.parts[gi].forEach(function (r) { P.arrow('a' + r.id, 's' + r.id + ':r', 'g' + gi + ':l', { cls: on ? 'good' : 'mut' }); });
       });
       P.text('fn', 340, 36, part ? 'GROUP BY team' : 'SUM(pts)', { anchor: 'middle', bold: true });
-      P.note('왼쪽의 6행이 오른쪽에서 ' + k.groups.length + '행으로 줄어듭니다. 파란 상자는 A팀, 노란 상자는 B팀입니다. GROUP BY는 묶음마다 한 행만 남기므로 누가 몇 점인지는 결과에서 사라집니다.');
+      P.note('왼쪽의 6행이 오른쪽에서 ' + k.groups.length + '행으로 줄어듭니다. 파란 상자는 A팀, 노란 상자는 B팀입니다.');
       return;
     }
     order.forEach(function (r, n) {
@@ -131,7 +126,7 @@ Lab.register({
       if (done) P.arrow('a' + r.id, 's' + r.id + ':r', 'd' + r.id + ':l', { cls: cur ? 'hot' : 'mut' });
     });
     P.text('fn', 340, 36, this.FN[c.fn][0], { anchor: 'middle', bold: true });
-    P.note('왼쪽의 한 행이 오른쪽의 한 행으로 그대로 이어집니다. 행 수는 줄지 않고 값만 하나씩 붙습니다. 파란 상자는 A팀, 노란 상자는 B팀이며' + (part ? ', 팀 사이의 빈 줄이 PARTITION BY로 나눈 경계입니다.' : ' 팀을 나누지 않고 한 줄로 세웠습니다.'));
+    P.note('왼쪽의 한 행이 오른쪽의 한 행으로 그대로 이어집니다. 파란 상자는 A팀, 노란 상자는 B팀이며' + (part ? ', 팀 사이의 빈 줄이 PARTITION BY로 나눈 경계입니다.' : ' 팀을 나누지 않고 한 줄로 세웠습니다.'));
   },
   assume: '스물네 가지 조합 모두, 화면의 SQL과 같은 문장을 이 PC의 MySQL 8.4에서 실행해 결과 행 수와 행마다 붙은 값을 대조했습니다. 누계에 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW를 적었을 때의 값도 같은 방법으로 확인했습니다. 동점인 행 가운데 어느 행이 먼저 놓이는지는 SQL이 정하지 않으므로(MySQL 문서의 ROW_NUMBER 설명), 화면에서 동점인 두 사람의 순서는 한 가지 예이며 대조는 이름이 아니라 팀, 점수, 붙은 값으로 했습니다. 윈도우 함수는 MySQL 8.0부터 쓸 수 있습니다. 단계 문장의 계산 방법(자기보다 높은 행의 수에 1을 더함 등)은 함수의 정의를 풀어 쓴 것이고, 실제 DB는 정렬한 뒤 한 번 훑으며 값을 구합니다.',
 });

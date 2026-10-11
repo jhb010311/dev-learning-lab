@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Addresses and names</p>
 <h1>DNS</h1>
 <p><b>Who knows the IP address of a domain name, and when does a change show up?</b></p>
-<p>A computer cannot connect to a name like shop.example; it needs an IP address. DNS is what turns a name into an address. The servers that know the answer are not in one place but are divided into several levels, and an answer that has been received stays in a cache for a set time (the TTL) so that it is not asked for again. Follow the lookup process and see the difference the cache makes.</p>
+<p>A computer cannot connect to a name like shop.example; it needs an IP address. DNS is what turns a name into an address. The servers that know the answer are not in one place but are divided into several levels, and an answer that has been received stays in a cache for a set time (the TTL) so that it is not asked for again.</p>
 <p>Partly checked against real execution · 32 combinations were run as real DNS messages with a test name server and resolver started on 127.0.0.1, and checked. The parsing of records was checked against c-ares in Node.js 24, and the behavior of the resolver and the cache reproduces the procedures of RFC 1034 and 1035</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Answer received: 203.0.113.10. Where it came from: Authoritative name server. Queries from the PC to the resolver: 1. Queries from the resolver to name servers: 3.</li>
 <li>No server has the answer for every name. A root server tells you which servers handle the last part of a name (.example, .com, .kr), those servers tell you the name server for each domain, and only the authoritative name server of that domain has the answer. This PC asks only one resolver, and the resolver does the step-by-step asking on its behalf.</li>
 <li>An A record connects a name to an IPv4 address. It is the most basic record.</li>
 </ul>
@@ -167,6 +166,6 @@ console.log(await new Resolver().resolve4('shop.example', { ttl: true }));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

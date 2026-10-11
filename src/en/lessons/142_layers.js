@@ -1,7 +1,7 @@
 Lab.register({
   id: 'layers', nav: 'Layers and encapsulation', cat: 'Networking', mode: 'step',
   title: 'You send 1500 bytes, so why do 1616 bytes cross the wire?',
-  intro: 'A network divides its work into layers. On the sending side, data moves down from the upper layers to the lower layers, and each layer adds a header in front of the data that holds the information that layer needs for its own job. This is called encapsulation. The receiving side removes the headers one at a time in the reverse order. Follow one HTTP message to see how it is wrapped and, if it is large, how it is split.',
+  intro: 'A network divides its work into layers. On the sending side, data moves down from the upper layers to the lower layers, and each layer adds a header in front of the data that holds the information that layer needs for its own job. This is called encapsulation. The receiving side removes the headers one at a time in the reverse order.',
   terms: ['OSI model', 'TCP/IP model', 'Encapsulation and decapsulation', 'Segment, packet, and frame', 'MTU and MSS'],
   controls: [
     { id: 'size', label: 'Size of the HTTP message to send', type: 'select', value: '1500', options: [['300', '300 bytes (one short request)'], ['1460', '1460 bytes'], ['1500', '1500 bytes'], ['4000', '4000 bytes'], ['10000', '10000 bytes (uploading a long text)']] },
@@ -51,7 +51,6 @@ Lab.register({
     push('Receiving side, transport layer: It looks at the destination port ' + A.sp + ' in the TCP header to decide which program (the web server) the data is for. ' + (n > 1 ? 'It uses the sequence numbers to join the ' + n + ' pieces in order and then removes the header.' : 'It removes the TCP header.'));
     st.at = 'r0'; st.done = true;
     push('Receiving side, application layer: The web server receives the original HTTP message of ' + k.size + ' bytes exactly as it was. It does not know how many pieces the message was split into on the way, or which headers were added and removed.', 'good');
-    sum.push('HTTP message: ' + k.size + ' bytes. Pieces sent: ' + n + '. Each piece got TCP ' + T + ' + IP ' + I + ' + Ethernet ' + E + ' + FCS ' + F + ' = ' + k.per + ' bytes, so ' + total + ' bytes crossed the wire.');
     if (n > 1 && k.size <= k.mtu) sum.push('The MTU is a limit on the size of the packet, which includes the IP header and the TCP header, not on the size of the data. So one piece carries only up to ' + k.mss + ' bytes of data (the MSS), which is the MTU minus 40 bytes. This is why data that is equal to the MTU, or slightly smaller, still becomes two pieces.');
     if (n > 2) sum.push('When the data is large, headers are added again for every piece. TCP on the receiving side joins the pieces using the sequence numbers, so the program reads them as continuous data without having to care about the pieces.');
     if (n === 1) sum.push('Even if the data is not split, the ' + k.per + ' bytes of headers and FCS are always added. The smaller the data, the larger the share of the total that the headers take up.');
@@ -68,7 +67,7 @@ Lab.register({
       { cells: ['2 Data link · 1 Physical', { v: 'Link', cls: on(3) }, 'Ethernet (header ' + E + ' + FCS ' + F + ' bytes)', 'Frame', 'MAC address ' + A.cmac + ' → ' + A.smac] },
     ], 'How the layers correspond (the yellow cell is the layer working now)');
     if (!s.stage) { H.text(v, 'Click Run and the data goes down one step at a time, starting from the top layer on the sending side.'); return; }
-    H.counters(v, [[s.split ? k.mss + ' bytes' : '?', 'Data that fits in one piece'], [s.split ? k.segs.length + '' : '?', 'Pieces'], [s.sent ? sim.wire + ' bytes' : '?', 'Total size on the wire']]);
+    H.counters(v, [[s.split ? k.mss + ' bytes' : '?', 'Data that fits in one piece']]);
     if (s.split) H.table(v, ['Piece', 'Data', '+ TCP ' + T + ' = segment', '+ IP ' + I + ' = packet', '+ Ethernet ' + E + ' + FCS ' + F + ' = frame'], k.segs.map(function (d, i) {
       var cur = i === 0 || s.sent, sh = function (x, need) { return cur && need ? String(x) : '-'; };
       return { cells: ['#' + (i + 1), d + ' bytes', sh(d + T, s.stage >= 3), sh(d + T + I, s.stage >= 4), { v: sh(d + T + I + E + F, s.stage >= 5), cls: cur && s.stage >= 5 ? 'hot' : '' }] };

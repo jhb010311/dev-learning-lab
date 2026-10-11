@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › The big picture</p>
 <h1>Layers and encapsulation</h1>
 <p><b>You send 1500 bytes, so why do 1616 bytes cross the wire?</b></p>
-<p>A network divides its work into layers. On the sending side, data moves down from the upper layers to the lower layers, and each layer adds a header in front of the data that holds the information that layer needs for its own job. This is called encapsulation. The receiving side removes the headers one at a time in the reverse order. Follow one HTTP message to see how it is wrapped and, if it is large, how it is split.</p>
+<p>A network divides its work into layers. On the sending side, data moves down from the upper layers to the lower layers, and each layer adds a header in front of the data that holds the information that layer needs for its own job. This is called encapsulation. The receiving side removes the headers one at a time in the reverse order.</p>
 <p>Partly checked against real execution · The number of pieces and their sizes for 10 combinations were checked on Node.js 24 by building the real header bytes, attaching them, and unpacking them. The header sizes and the correspondence between layers are explanations based on RFC 9293, 791, 894, and 1122</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -69,7 +69,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>HTTP message: 1500 bytes. Pieces sent: 2. Each piece got TCP 20 + IP 20 + Ethernet 14 + FCS 4 = 58 bytes, so 1616 bytes crossed the wire.</li>
 <li>The MTU is a limit on the size of the packet, which includes the IP header and the TCP header, not on the size of the data. So one piece carries only up to 1460 bytes of data (the MSS), which is the MTU minus 40 bytes. This is why data that is equal to the MTU, or slightly smaller, still becomes two pieces.</li>
 <li>Each layer looks at a different address. The transport layer uses a port number to identify a program, the internet layer uses an IP address to identify a computer, and the link layer uses a MAC address to identify the next device on the same network. Each layer reads only its own header and treats everything inside it as content, so you can change the technology of one layer (wired to wireless, or HTTP to another protocol) and keep using the other layers as they are.</li>
 </ul>
@@ -178,6 +177,6 @@ console.log(total);                                     // total size that went 
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

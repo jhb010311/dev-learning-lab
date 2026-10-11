@@ -1,7 +1,7 @@
 Lab.register({
   id: 'bufferpool', nav: 'Buffer pool and pages', cat: 'Database', mode: 'step',
   title: 'Why does reading one row read a whole 16KB page?',
-  intro: 'InnoDB reads and writes data on disk in blocks called pages (16KB by default), not row by row. A page that has been read is kept in memory in the buffer pool, and later reads come from memory instead of going to disk. When a row is changed, only the page in memory is changed, and it is written to disk later. Query a table whose 16 rows are spread over four pages, and watch how many times the disk is read and written.',
+  intro: 'InnoDB reads and writes data on disk in blocks called pages (16KB by default), not row by row. A page that has been read is kept in memory in the buffer pool, and later reads come from memory instead of going to disk. When a row is changed, only the page in memory is changed, and it is written to disk later.',
   terms: ['Buffer pool', 'Page (InnoDB)', 'Dirty pages and flushing', 'Eviction policy', 'Undo log and redo log'],
   controls: [
     { id: 'seq', label: 'Order of the rows to query', type: 'select', value: 'same', options: [['same', 'Row 1 → row 2 → row 1 (all on the same page)'], ['spread', 'Row 1 → 5 → 9 → 13 → 1 (the four pages in turn)'], ['hot', 'Row 1 → 5 → 1 → 9 → 13 → 1 (row 1 often)']] },
@@ -70,7 +70,6 @@ Lab.register({
       st.slots[dj].dirty = false; st.writes++; st.diskNew = true; when = 'Later, after the commit (in the background)'; st.cur = 'A'; st.at = dj; st.act = 'flush';
       push('A little later: a background thread writes dirty page A to the data file. The page stays in the buffer pool, and only its dirty mark is cleared. InnoDB decides when to write, and the commit does not wait for it.', 'good');
     }
-    sum.push('Pages read from disk: ' + st.reads + '. Lookups that did not go to disk: ' + st.hits + ' of ' + ids.length + '.' + (evicted.length ? ' Pages evicted from the buffer pool: ' + evicted.join(', ') + '.' : ''));
     if (c.seq === 'same') sum.push('InnoDB reads from disk in units of pages, not rows. Reading row 1 also loads rows 2, 3, and 4 of the same page into memory, so reading rows that are stored close together does not go back to disk.');
     else if (evicted.length) sum.push('When the buffer pool is full, the page that has gone unused the longest is evicted first. Reading an evicted page again requires another trip to disk.' + (c.seq === 'hot' && find('A') >= 0 && evicted.indexOf('A') < 0 ? ' Page A, which was read often, stayed to the end, and pages that had not been used in the meantime were evicted.' : ' If the buffer pool is too small for the data, this keeps happening and everything slows down.'));
     else sum.push('With enough slots, a page that has been read stays in memory. That is why a database server gives a large part of its memory to the buffer pool.');
@@ -82,8 +81,6 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go one step at a time.'); return; }
     var oldest = -1; if (s.slots.indexOf(null) < 0) s.slots.forEach(function (x, j) { if (oldest < 0 || x.last < s.slots[oldest].last) oldest = j; });
     H.table(v, ['Slot', 'Page loaded', 'Rows held', 'State'], s.slots.map(function (x, j) { return { cells: ['Slot ' + (j + 1), x ? { v: 'Page ' + x.p, cls: s.at === j && s.act === 'hit' ? 'good' : s.at === j ? 'hot' : '' } : 'Empty', x ? R[x.p] : '-', x ? { v: (x.dirty ? 'Dirty (differs from disk)' : 'Same as disk') + (j === oldest ? ' · Unused the longest' : ''), cls: x.dirty ? 'hot' : '' } : '-'] }; }), 'Buffer pool (memory)');
-    H.counters(v, [[String(s.reads), 'Disk reads'], [String(s.hits), 'Reads without disk'], [String(s.writes), 'Writes to the data file']]);
-    H.text(v, 'name of row 1 in the data file on disk: ' + (s.diskNew ? 'changed' : 'item1'));
   },
   // Diagram: on the left, the slots of the buffer pool (memory). On the right, the four pages in the data file on disk. Arrows appear when a page is read or written, and a dirty page is shown in yellow.
   draw: function (P, sim, shown) {

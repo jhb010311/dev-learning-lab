@@ -1,7 +1,7 @@
 Lab.register({
   id: 'dns', nav: 'DNS', cat: 'Networking', mode: 'step',
   title: 'Who knows the IP address of a domain name, and when does a change show up?',
-  intro: 'A computer cannot connect to a name like shop.example; it needs an IP address. DNS is what turns a name into an address. The servers that know the answer are not in one place but are divided into several levels, and an answer that has been received stays in a cache for a set time (the TTL) so that it is not asked for again. Follow the lookup process and see the difference the cache makes.',
+  intro: 'A computer cannot connect to a name like shop.example; it needs an IP address. DNS is what turns a name into an address. The servers that know the answer are not in one place but are divided into several levels, and an answer that has been received stays in a cache for a set time (the TTL) so that it is not asked for again.',
   terms: ['DNS', 'DNS record', 'Recursive resolver and authoritative name server', 'DNS cache and TTL'],
   controls: [
     { id: 'q', label: 'What to ask for', type: 'select', value: 'a', options: [['a', 'IPv4 address of shop.example (A)'], ['aaaa', 'IPv6 address of shop.example (AAAA)'], ['cname', 'Address of www.shop.example (through a CNAME)'], ['mx', 'Mail server of shop.example (MX)']] },
@@ -98,21 +98,18 @@ Lab.register({
     var stale = c.changed && cached;
     push(c.q === 'mx' ? 'Mail is sent to the ' + st.ans.slice(3) + ' server. The IP address of this name is looked up once more with an A record (the name server may also include it in the MX answer).' + (stale ? ' This is the old server from before the administrator changed it.' : '') : 'The browser connects to the address it received (' + (cn ? val : st.ans) + ').' + (stale ? ' This is the old address from before the administrator changed it.' : ''), stale ? 'bad' : 'good');
     var reflected = !c.changed ? 'Not changed' : cached ? 'Still the old value' : 'Reflected (new value)';
-    sum.push('Answer received: ' + answer + '. Where it came from: ' + st.src + '. Queries from the PC to the resolver: ' + st.pcq + '. Queries from the resolver to name servers: ' + st.upq + '.');
     if (c.cache === 'none') sum.push('No server has the answer for every name. A root server tells you which servers handle the last part of a name (.example, .com, .kr), those servers tell you the name server for each domain, and only the authoritative name server of that domain has the answer. This PC asks only one resolver, and the resolver does the step-by-step asking on its behalf.');
     if (cached) sum.push('An answer that has been received stays in the cache for the TTL, and during that time it is not asked for again. There are caches on the PC and on the resolver. Thanks to this, most lookups finish without reaching a root server.');
     if (c.cache === 'expired') sum.push('Once the TTL has passed, it asks again. Even so, it does not start from the root server again. This is because which name servers are responsible for the domain is remembered separately, with a longer TTL.');
     if (stale) sum.push('Even if you change a record, an answer that is already in a cache is used until its TTL ends. So each user gets the new value at a different time, and at the latest it takes as long as the TTL before the change. If you plan to move a server, shorten the TTL in advance, and keep the old server running for a while after the move.');
-    if (c.changed && !cached) sum.push('This time no cache held the old value, so the new value was received right away. If you change the cache state to "In the resolver\'s cache", you can see another user receive the old value at the same moment.');
+    if (c.changed && !cached) sum.push('This time no cache held the old value, so the new value was received right away.');
     sum.push({ a: 'An A record connects a name to an IPv4 address. It is the most basic record.', aaaa: 'An AAAA record connects a name to an IPv6 address. An IPv6 address is 128 bits, four times the length of an IPv4 address (32 bits), and the name of the record is A written four times, AAAA. One name can have both A and AAAA records.', cname: 'A CNAME record connects a name to another name, not to an address. When the side that owns the canonical name (a CDN or a hosting company) changes the server address, you do not need to fix your record. In exchange, the canonical name has to be looked up once more.', mx: 'An MX record tells you the name of the server that receives mail sent to the domain. The number in front is the priority, and when there are several records, the server with the smaller number is tried first.' }[c.q]);
     return { events: ev, summary: sum, answer: answer, path: path, cn: cn, row: [answer, st.src, st.pcq + '', st.upq + (path.length ? ' (' + path.join(' → ') + ')' : ''), reflected] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { msgs: [], pc: [], rs: [], pcq: 0, upq: 0, ans: '', src: '' }, c = sim.c;
-    H.counters(v, [[s.pcq + '', 'Queries from the PC to the resolver'], [s.upq + '', 'Queries from the resolver to name servers']]);
     if (!last) H.text(v, 'Click Run to look for the answer in order, starting with the cache of this PC.');
-    var ln = H.lanes(v), stale = sim.row[4] === 'Still the old value';
-    H.lane(ln, 'Answer received', s.ans || 'None yet', s.ans ? (stale ? 'bad' : 'good') : 'none');
+    var ln = H.lanes(v);
     H.lane(ln, 'Where the answer came from', s.src || 'None yet', s.src ? (s.src === 'Authoritative name server' ? 'good' : 'wait') : 'none');
     var rows = function (list) { return list.length ? list.map(function (r) { return { cls: r[3] === 'TTL passed' ? 'gone' : '', cells: [r[0], r[1], r[2], r[3]] }; }) : [{ cells: ['(empty)', '', '', ''] }]; };
     H.table(v, ['Name', 'Type', 'Value', 'TTL left'], rows(s.pc), 'Cache of this PC');

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=247ede25a6">
+<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -64,7 +64,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>조회 결과는 3행: 글 1, 2, 3입니다. 나와야 하는 것(글 1, 2)과 다릅니다.</li>
 <li>한 칸에 값을 여러 개 넣으면 DB가 그 값을 하나씩 다루지 못합니다. LIKE로 java를 찾으면 javascript도 걸립니다. MySQL의 FIND_IN_SET('java', tags)을 쓰면 쉼표로 나눈 조각과 비교해 글 1과 2만 나오지만, 컬럼을 함수에 넣은 조건이라 tags에 인덱스가 있어도 쓰지 못하고 모든 행을 읽습니다.</li>
 </ul>
 <h2>코드</h2>
@@ -171,6 +170,6 @@ SELECT id, title
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=247ede25a6"></script>
+<script src="../../app.js?v=d45f9d1282"></script>
 </body>
 </html>

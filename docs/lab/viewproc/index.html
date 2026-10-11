@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>뷰, 프로시저, 트리거: INSERT 한 줄을 실행했는데 왜 재고가 줄었나 · 개발 학습 실습실</title>
-<meta name="description" content="DB 안에는 테이블 말고도 저장해 둘 수 있는 것이 있습니다. 뷰는 저장해 둔 SELECT 문이고, 프로시저는 이름으로 부르는 여러 문장이며, 트리거는 INSERT나 UPDATE가 일어날 때 DB가 자동으로 실행하는 문장입니다. 주문 하나를 넣으면서 애플리케이션 코드에 보이지…">
+<meta name="description" content="DB 안에는 테이블 말고도 저장해 둘 수 있는 것이 있습니다. 뷰는 저장해 둔 SELECT 문이고, 프로시저는 이름으로 부르는 여러 문장이며, 트리거는 INSERT나 UPDATE가 일어날 때 DB가 자동으로 실행하는 문장입니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/viewproc/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/viewproc/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/viewproc/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="뷰, 프로시저, 트리거: INSERT 한 줄을 실행했는데 왜 재고가 줄었나 · 개발 학습 실습실">
-<meta property="og:description" content="DB 안에는 테이블 말고도 저장해 둘 수 있는 것이 있습니다. 뷰는 저장해 둔 SELECT 문이고, 프로시저는 이름으로 부르는 여러 문장이며, 트리거는 INSERT나 UPDATE가 일어날 때 DB가 자동으로 실행하는 문장입니다. 주문 하나를 넣으면서 애플리케이션 코드에 보이지…">
+<meta property="og:description" content="DB 안에는 테이블 말고도 저장해 둘 수 있는 것이 있습니다. 뷰는 저장해 둔 SELECT 문이고, 프로시저는 이름으로 부르는 여러 문장이며, 트리거는 INSERT나 UPDATE가 일어날 때 DB가 자동으로 실행하는 문장입니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/viewproc/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=247ede25a6">
+<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › SQL</p>
 <h1>뷰, 프로시저, 트리거</h1>
 <p><b>INSERT 한 줄을 실행했는데 왜 재고가 줄었나</b></p>
-<p>DB 안에는 테이블 말고도 저장해 둘 수 있는 것이 있습니다. 뷰는 저장해 둔 SELECT 문이고, 프로시저는 이름으로 부르는 여러 문장이며, 트리거는 INSERT나 UPDATE가 일어날 때 DB가 자동으로 실행하는 문장입니다. 주문 하나를 넣으면서 애플리케이션 코드에 보이지 않는 곳에서 무슨 일이 일어나는지 따라가 보세요.</p>
+<p>DB 안에는 테이블 말고도 저장해 둘 수 있는 것이 있습니다. 뷰는 저장해 둔 SELECT 문이고, 프로시저는 이름으로 부르는 여러 문장이며, 트리거는 INSERT나 UPDATE가 일어날 때 DB가 자동으로 실행하는 문장입니다.</p>
 <p>실행으로 대조 · MySQL 8.4에 같은 뷰, 프로시저, 트리거를 만들고 열두 가지 조합의 주문을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>주문 문장은 성공했습니다. orders 1행, 실제 재고 7개, stock_log 1행입니다. 뷰로 본 재고는 7개, 복사본의 재고는 10개입니다.</li>
 <li>애플리케이션 코드에는 INSERT 한 줄뿐인데 테이블 세 개가 바뀌었습니다. 트리거는 빠뜨릴 수 없다는 점에서 편리하지만 코드를 읽는 사람에게 보이지 않습니다. 재고가 왜 줄었는지 찾으려면 DB에 걸려 있는 트리거까지 알아야 합니다.</li>
 <li>뷰는 데이터를 따로 저장하지 않는 &quot;저장해 둔 쿼리&quot;입니다. 조회할 때마다 원본 테이블을 읽으므로 재고가 바뀌자 뷰의 결과도 7개로 바뀌었습니다. 결과를 테이블로 복사해 둔 쪽은 10개에 머물러 있습니다.</li>
 </ul>
@@ -176,6 +175,6 @@ SELECT stock FROM stock_copy;     -- 복사본으로 조회</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=247ede25a6"></script>
+<script src="../../app.js?v=d45f9d1282"></script>
 </body>
 </html>

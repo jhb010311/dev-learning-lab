@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
+<link rel="stylesheet" href="../../app.css?v=af2da63956">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › SQL</p>
 <h1>Views, stored procedures, and triggers</h1>
 <p><b>Why did the stock go down when you ran one INSERT line?</b></p>
-<p>A database can store more than tables. A view is a stored SELECT statement, a stored procedure is a set of statements that you call by name, and a trigger is a statement that the database runs automatically when an INSERT or UPDATE happens. Follow what happens, out of sight of the application code, when one order is inserted.</p>
+<p>A database can store more than tables. A view is a stored SELECT statement, a stored procedure is a set of statements that you call by name, and a trigger is a statement that the database runs automatically when an INSERT or UPDATE happens.</p>
 <p>Checked against real execution · The same view, procedure, and trigger were created on MySQL 8.4, and orders for all 12 combinations were run and checked against the screen</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The order statement succeeded. Rows in orders: 1, actual stock: 7, rows in stock_log: 1. The stock seen through the view is 7, and the stock in the copy is 10.</li>
 <li>The application code has just one INSERT line, but three tables changed. A trigger is convenient because it cannot be forgotten, but it is invisible to the person reading the code. To find out why the stock went down, you have to know about the triggers defined in the database.</li>
 <li>A view is a &quot;stored query&quot; that does not store data separately. It reads the base table every time you query it, so when the stock changed, the result of the view changed to 7 as well. The copy, where the result was copied into a table, is still at 10.</li>
 </ul>
@@ -176,6 +175,6 @@ SELECT stock FROM stock_copy;     -- Query the copy</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b5ed67da09"></script>
+<script src="../../app.js?v=af2da63956"></script>
 </body>
 </html>

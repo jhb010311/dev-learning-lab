@@ -7023,14 +7023,13 @@ Lab.register({
     }
     if (d === 'm2m_cols' && add) { rows = [T.post[0].slice(2).map(nul)]; finish('글 1의 tag1, tag2, tag3을 읽습니다. 처음의 세 태그 그대로입니다.', 'docker 태그는 붙지 않았습니다.'); }
     var wres = !add ? '조회만 함' : w.err ? '오류 ' + w.err.no : '성공 (' + w.affected + '행)';
-    sum.push((add ? '쓰기 문장은 ' + (w.err ? '오류 ' + w.err.no + '로 거부됐고' : '성공했고') + ', ' : '') + '조회 결과는 ' + res.text + '입니다. 나와야 하는 것(' + nounOf + ' ' + want.join(', ') + ')과 ' + (res.same ? '같습니다.' : '다릅니다.'));
     sum.push({ o2m_many: add ? '글을 하나 더 쓰면 post에 행 하나를 넣으면 끝납니다. 회원이 글을 몇 개 쓰든 테이블의 모양은 그대로이고 행만 늘어납니다.' : '일대다의 외래 키는 "다" 쪽 테이블에 둡니다. 글 한 행에는 쓴 사람이 한 명뿐이라 칸 하나로 충분하고, 회원이 글을 몇 개 쓰든 post의 행이 늘어날 뿐입니다.',
       o2m_one: add ? '새 글을 연결하자 앞의 글과의 연결이 덮어써졌습니다. 칸이 하나뿐이라 "하나 더"가 아니라 "바꾸기"가 됩니다. 외래 키를 "다" 쪽인 글에 두면 이런 일이 없습니다.' : '외래 키를 "일" 쪽에 두면 한 칸에 값이 하나만 들어가므로 "여러 개"를 담을 수 없습니다. 그래서 일대다의 외래 키는 "다" 쪽 테이블에 둡니다.',
       m2m_link: add ? '태그를 하나 더 붙이는 것은 연결 테이블에 행 하나를 넣는 일입니다. 태그가 몇 개든 테이블의 모양은 바뀌지 않습니다. 기본 키 (post_id, tag_id)는 같은 태그를 두 번 붙이는 것을, 외래 키는 없는 태그를 붙이는 것을 막아 줍니다.' : '다대다는 테이블 두 개의 외래 키만으로는 옮길 수 없어서 가운데에 연결 테이블을 둡니다. 연결 테이블에서 보면 글과도 일대다, 태그와도 일대다입니다. 다대다 하나를 일대다 둘로 푼 것입니다.',
       m2m_csv: add ? '이어 붙이는 것 자체는 됩니다. 하지만 DB는 그 글자가 태그인지 모르므로, 같은 태그를 또 붙여도 없는 태그나 오타를 붙여도 막지 않습니다. 그리고 "연결된 것 찾기"에서 문제가 드러납니다.' : "한 칸에 값을 여러 개 넣으면 DB가 그 값을 하나씩 다루지 못합니다. LIKE로 java를 찾으면 javascript도 걸립니다. MySQL의 FIND_IN_SET('java', tags)을 쓰면 쉼표로 나눈 조각과 비교해 글 1과 2만 나오지만, 컬럼을 함수에 넣은 조건이라 tags에 인덱스가 있어도 쓰지 못하고 모든 행을 읽습니다.",
-      m2m_cols: add ? '태그 수의 한계가 테이블의 모양에 박혀 있습니다. ALTER TABLE로 tag4를 추가하면, 태그를 찾는 모든 조회에 OR tag4 = ... 조건도 함께 더해야 합니다.' : '태그를 찾는 조건이 컬럼 수만큼 길어지고, 컬럼이 늘 때마다 이 조회를 쓰는 SQL을 모두 고쳐야 합니다. "하나 더 연결하기"를 해 보면 더 큰 문제가 보입니다.',
+      m2m_cols: add ? '태그 수의 한계가 테이블의 모양에 박혀 있습니다. ALTER TABLE로 tag4를 추가하면, 태그를 찾는 모든 조회에 OR tag4 = ... 조건도 함께 더해야 합니다.' : '태그를 찾는 조건이 컬럼 수만큼 길어지고, 컬럼이 늘 때마다 이 조회를 쓰는 SQL을 모두 고쳐야 합니다.',
       o2o_uq: add ? '일대일은 일대다의 외래 키에 유니크 제약을 더한 것입니다. 유니크가 같은 회원을 가리키는 두 번째 행을 막아 주므로 "한 회원에 프로필 하나"가 지켜집니다.' : '일대일은 일대다의 외래 키에 유니크 제약을 더한 것입니다. 외래 키는 두 테이블 가운데 어느 쪽에 두어도 되고, 늘 함께 조회하는 정보라면 테이블 하나로 합치기도 합니다.',
-      o2o_fk: add ? '유니크가 없으면 같은 회원을 가리키는 프로필이 두 개 들어갑니다. 테이블의 구조가 일대다와 같기 때문입니다. "회원의 프로필은 한 행"이라고 믿고 만든 프로그램이 여기서 틀어집니다.' : '조회만 해서는 유니크를 건 설계와 차이가 보이지 않습니다. "하나 더 연결하기"를 해 보면 달라집니다.' }[d]);
+      o2o_fk: add ? '유니크가 없으면 같은 회원을 가리키는 프로필이 두 개 들어갑니다. 테이블의 구조가 일대다와 같기 때문입니다. "회원의 프로필은 한 행"이라고 믿고 만든 프로그램이 여기서 틀어집니다.' : '조회만 해서는 유니크를 건 설계와 차이가 보이지 않습니다.' }[d]);
     var dump = {}; b.t.forEach(function (t) { dump[t[0]] = T[t[0]].map(function (r) { return r.map(nul); }); });
     return { events: ev, summary: sum, rel: b.rel, werr: w.err, rows: rows, same: res.same, dump: dump, row: [wres, res.text, res.same ? '같음' : '다름'] };
   },
@@ -7038,7 +7037,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     var ln = H.lanes(v);
-    if (c.task === 'add') H.lane(ln, '쓰기 문장', s.wr || '아직 실행 전', !s.wr ? 'none' : /오류/.test(s.wr) ? 'wait' : 'hot');
     H.lane(ln, '조회 결과', s.res ? s.res.text + (s.res.same ? ' (나와야 하는 것과 같음)' : ' (나와야 하는 것과 다름)') : '아직 조회 전', !s.res ? 'none' : s.res.same ? 'good' : 'bad');
     var key = { member: 'm', post: 'p', tag: 't', profile: 'f' };
     s.t.forEach(function (tb) {
@@ -7094,7 +7092,7 @@ Lab.register({
       });
       if (s.hl.x4) P.box('x4', 554, y(0), 98, 26, { cls: 'bad', title: 'tag4 없음', center: true });
     }
-    P.note({ o2m_many: '화살표는 글의 member_id가 가리키는 회원입니다. 화살표는 "다" 쪽의 행에서 하나씩만 나가고, "일" 쪽의 행에는 여러 개가 모일 수 있습니다.', o2m_one: '화살표는 회원의 post_id가 가리키는 글입니다. 회원 한 행에서 화살표가 하나만 나갈 수 있어서, 한 회원이 쓴 여러 글을 담지 못합니다. 빨간 글은 쓴 회원을 테이블에서 알 수 없는 글입니다.', m2m_link: '가운데 연결 테이블의 행 하나가 "이 글에 이 태그가 붙어 있다"는 연결 하나입니다. 행마다 화살표가 글 쪽으로 하나, 태그 쪽으로 하나 나갑니다.', m2m_csv: '태그가 tags 칸 안의 글자로만 들어 있어 그릴 수 있는 화살표가 없습니다. DB는 이 글자들이 태그라는 것을 모릅니다. 빨간 행은 조건에는 맞았지만 나오면 안 되는 글입니다.', m2m_cols: '글마다 태그를 적는 칸이 세 개로 정해져 있습니다. 점선 칸은 NULL로 비어 있는 칸입니다.', o2o_uq: '화살표는 프로필의 member_id가 가리키는 회원입니다. 유니크 제약 때문에 회원 한 명에게 화살표가 하나만 닿을 수 있습니다.', o2o_fk: '화살표는 프로필의 member_id가 가리키는 회원입니다. 유니크 제약이 없어 회원 한 명에게 화살표가 여러 개 닿을 수 있습니다.' }[d]);
+    P.note({ o2m_many: '화살표는 글의 member_id가 가리키는 회원입니다. 화살표는 "다" 쪽의 행에서 하나씩만 나가고, "일" 쪽의 행에는 여러 개가 모일 수 있습니다.', o2m_one: '화살표는 회원의 post_id가 가리키는 글입니다. 빨간 글은 쓴 회원을 테이블에서 알 수 없는 글입니다.', m2m_link: '가운데 연결 테이블의 행 하나가 "이 글에 이 태그가 붙어 있다"는 연결 하나입니다. 행마다 화살표가 글 쪽으로 하나, 태그 쪽으로 하나 나갑니다.', m2m_csv: '태그가 tags 칸 안의 글자로만 들어 있어 그릴 수 있는 화살표가 없습니다. 빨간 행은 조건에는 맞았지만 나오면 안 되는 글입니다.', m2m_cols: '글마다 태그를 적는 칸이 세 개로 정해져 있습니다. 점선 칸은 NULL로 비어 있는 칸입니다.', o2o_uq: '화살표는 프로필의 member_id가 가리키는 회원입니다. 유니크 제약 때문에 회원 한 명에게 화살표가 하나만 닿을 수 있습니다.', o2o_fk: '화살표는 프로필의 member_id가 가리키는 회원입니다. 유니크 제약이 없어 회원 한 명에게 화살표가 여러 개 닿을 수 있습니다.' }[d]);
   },
   assume: '회원 3명, 글 3개, 태그 5개의 작은 예입니다. 열네 가지 조합(설계 일곱 가지 × 시켜 볼 일 두 가지) 모두, 화면의 SQL을 실제 MySQL 8.4.11(InnoDB)에서 그대로 실행해 쓰기 문장의 오류 번호와 바뀐 행 수, 조회 결과의 모든 행, 끝난 뒤 각 테이블의 모든 행이 모형과 같은 것을 대조했습니다. "나와야 하는 것"은 이 예에서 정한 사실(김철수가 글 1과 2를 썼다, java 태그는 글 1과 2에 붙어 있다, 회원의 프로필은 하나다)이며 DB가 알려 주는 값이 아닙니다. 요약에 적은 다음 내용도 같은 MySQL에서 따로 실행해 확인했습니다. 쉼표 문자열에 FIND_IN_SET을 쓰면 글 1과 2만 나오는 것, tags에 인덱스를 만들고 행을 2,000개 넣어도 FIND_IN_SET 조건의 실행 계획은 인덱스로 찾지 않고 모든 행을 읽는 것(type이 ALL), 쉼표 문자열에는 이미 있는 태그를 또 붙여도 그대로 들어가는 것, 연결 테이블에서는 같은 연결을 한 번 더 넣으면 오류 1062로, 없는 태그를 연결하면 오류 1452로 거부되는 것입니다. LIKE가 javascript까지 찾는 것은 어느 DB에서나 같지만 FIND_IN_SET은 MySQL의 함수입니다. 오류 번호와 메시지도 MySQL의 것입니다. 일대다의 외래 키를 "일" 쪽에 두는 설계는 잘못을 보이려고 만든 예입니다. 일대일에서 외래 키를 어느 테이블에 둘지, 테이블을 합칠지는 조회 방식에 따라 정하는 설계 판단이며 이 실습은 그 비교까지는 다루지 않습니다. 정규화와 이상 현상은 "정규화" 실습에서 다룹니다.',
 });
@@ -7102,7 +7100,7 @@ Lab.register({
 Lab.register({
   id: 'selectorder', nav: 'SELECT가 처리되는 순서', cat: '데이터베이스', mode: 'step',
   title: 'WHERE에서는 왜 별칭과 집계 함수를 쓸 수 없나',
-  intro: 'SELECT 문은 적힌 순서가 아니라 FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT 순서로 처리된다고 보면 됩니다. 어떤 이름을 쓸 수 있는지는 그 절이 몇 번째로 처리되는지에 달려 있습니다. 같은 조건을 WHERE와 HAVING에 번갈아 적어 보며, 어느 단계에서 오류가 나고 결과가 어떻게 달라지는지 따라가 보세요.',
+  intro: 'SELECT 문은 적힌 순서가 아니라 FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT 순서로 처리된다고 보면 됩니다. 어떤 이름을 쓸 수 있는지는 그 절이 몇 번째로 처리되는지에 달려 있습니다.',
   terms: ['SELECT 문의 논리적 처리 순서', 'GROUP BY, WHERE, HAVING', '컬럼 별칭(AS)', '집계 함수'],
   controls: [
     { id: 'cond', label: '거르는 조건', type: 'select', value: 'alias', options: [['grpcol', "member <> '박민수' (묶는 기준 컬럼)"], ['rowcol', 'amount >= 300 (주문 한 건의 금액)'], ['agg', 'SUM(amount) >= 300 (집계 함수)'], ['alias', 'total >= 300 (SELECT에서 붙인 별칭)']] },
@@ -7197,10 +7195,10 @@ Lab.register({
     if (!err && ga) ext.push('GROUP BY');
     if (!err && !W && c.cond === 'alias') ext.push('HAVING');
     var extText = err ? '-' : ext.length ? ext.join('와 ') + '의 별칭' : '없음';
-    sum.push(err ? '오류 ' + err.no + '(' + err.msg + ')로 문장이 거부됐습니다. ' + (W ? 'WHERE' : 'HAVING') + ' 단계에서 쓸 수 없는 이름을 썼기 때문입니다.' : '결과는 ' + list.length + '행입니다: ' + list.join(', ') + '.' + (lim ? '' : ' ORDER BY가 없으므로 행이 나오는 순서는 정해져 있지 않습니다.'));
+    if (!err && !lim) sum.push('ORDER BY가 없으므로 행이 나오는 순서는 정해져 있지 않습니다.');
     sum.push({ grpcol: '묶는 기준 컬럼에 대한 조건은 WHERE와 HAVING 어디에 적어도 결과가 같습니다. 다만 WHERE는 묶기 전에 행을 줄이고 HAVING은 다 묶은 뒤에 그룹을 버립니다. 그룹과 상관없이 거를 수 있는 조건은 WHERE에 적는 것이 원칙입니다.',
       rowcol: W ? 'WHERE는 합계를 내기 전에 행을 버립니다. 그래서 김철수의 합계가 450이 아니라 300으로 나왔습니다. 이 결과는 "300 이상인 주문만 골라 회원별로 더한 것"입니다. "합계가 300 이상인 회원"을 원했다면 HAVING SUM(amount) >= 300으로 적어야 하고, 그때는 김철수 450과 이영희 320이 나옵니다.' : '묶은 뒤에는 묶는 기준 컬럼과 집계 함수만 쓸 수 있습니다. 행 하나하나의 값으로 거르는 조건은 묶기 전에 처리되는 WHERE에 적어야 합니다.',
-      agg: W ? '집계 함수로 거르는 조건은 묶은 뒤에 처리되는 HAVING에 적습니다. WHERE가 처리되는 시점에는 아직 그룹이 없습니다.' : '"300 이상"이라는 같은 말도 WHERE amount >= 300은 주문 한 건씩을, HAVING SUM(amount) >= 300은 회원별 합계를 거릅니다. 조건을 "amount >= 300"으로, 적는 곳을 WHERE로 바꿔 결과를 비교해 보세요.',
+      agg: W ? '집계 함수로 거르는 조건은 묶은 뒤에 처리되는 HAVING에 적습니다. WHERE가 처리되는 시점에는 아직 그룹이 없습니다.' : '"300 이상"이라는 같은 말도 WHERE amount >= 300은 주문 한 건씩을, HAVING SUM(amount) >= 300은 회원별 합계를 거릅니다.',
       alias: W ? '별칭은 SELECT 단계에서 붙으므로, 그보다 먼저 처리되는 WHERE에서는 쓸 수 없습니다. MySQL만이 아니라 표준 SQL에서도 그렇습니다. 집계에 붙인 별칭으로 거르려면 조건을 HAVING으로 옮깁니다.' : 'MySQL은 HAVING에서 SELECT의 별칭을 받아 줍니다. 표준 SQL에는 없는 확장이라 다른 DB에서는 오류가 날 수 있습니다. 어디서나 통하게 적으려면 HAVING SUM(amount) >= 300처럼 식을 그대로 적습니다.' }[c.cond]);
     if (!err && ga) sum.push('GROUP BY에 별칭을 쓰는 것도 MySQL의 확장입니다. 처리 순서로 보면 GROUP BY는 SELECT보다 먼저이므로 표준 SQL에서는 별칭 대신 원래 컬럼이나 식을 적습니다.');
     if (!err && lim) sum.push('ORDER BY와 LIMIT은 맨 뒤에 처리됩니다. 그래서 LIMIT 1은 "거르고 묶은 결과 가운데 합계가 가장 큰 한 행"을 뜻합니다. ORDER BY 없이 LIMIT만 쓰면 어느 행이 남을지 정해져 있지 않습니다.');
@@ -7210,9 +7208,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 처리되는 순서대로 한 단계씩 진행합니다.'); return; }
-    H.title(v, '처리되는 순서');
-    H.slots(v, s.stat.map(function (x, i) { return [(i + 1) + '. ' + x.name + (x.n ? ' · ' + x.n : ''), x.k === 'now' ? 'b now' : x.k === 'done' ? 'd' : x.k === 'err' ? 'r' : x.k === 'none' ? '' : 'q']; }), '');
-    H.text(v, '지금 쓸 수 있는 이름: ' + s.names + (s.err ? ' · 오류 ' + s.err.no : ''));
     H.table(v, s.view.head, s.view.rows.map(function (r) { return { cls: r.cls, cells: r.cells }; }), s.view.title);
   },
   // 그림: 일곱 단계를 처리되는 순서대로 왼쪽에서 오른쪽으로 놓고, 아래에 지금 단계를 지난 행(또는 그룹)을 보여 준다.
@@ -7239,7 +7234,7 @@ Lab.register({
 Lab.register({
   id: 'subquery', nav: '서브쿼리', cat: '데이터베이스', mode: 'step',
   title: 'NOT IN의 결과가 왜 한 행도 없나',
-  intro: 'SELECT 문 안에 괄호로 넣은 또 하나의 SELECT를 서브쿼리라고 합니다. 값 하나를 돌려주는 것, 목록을 돌려주는 것(IN), 행이 있는지만 보는 것(EXISTS), 바깥 행마다 다시 실행되는 것(상관 서브쿼리)이 있습니다. 회원과 주문 테이블로 하나씩 실행해 보고, 주문에 NULL이 한 건 섞였을 때 NOT IN과 NOT EXISTS가 어떻게 달라지는지 확인하세요.',
+  intro: 'SELECT 문 안에 괄호로 넣은 또 하나의 SELECT를 서브쿼리라고 합니다. 값 하나를 돌려주는 것, 목록을 돌려주는 것(IN), 행이 있는지만 보는 것(EXISTS), 바깥 행마다 다시 실행되는 것(상관 서브쿼리)이 있습니다.',
   terms: ['서브쿼리', '스칼라 서브쿼리', '상관 서브쿼리', 'IN과 EXISTS', 'NULL과 3값 논리'],
   controls: [
     { id: 'kind', label: '서브쿼리의 모양', type: 'select', value: 'notin', options: [['scalar', '값 하나: WHERE id = (SELECT ...)'], ['corr', '상관 서브쿼리: 회원마다 주문 수 세기'], ['in', 'IN (SELECT ...): 주문이 있는 회원'], ['exists', 'EXISTS (SELECT ...): 주문이 있는 회원'], ['notin', 'NOT IN (SELECT ...): 주문이 없는 회원'], ['notexists', 'NOT EXISTS (SELECT ...): 주문이 없는 회원']] },
@@ -7344,12 +7339,11 @@ Lab.register({
       push('EXPLAIN: member를 읽는 줄의 select_type이 SIMPLE이고, SUBQUERY나 DEPENDENT SUBQUERY 줄이 없습니다. 문장의 모양은 상관 서브쿼리지만, MySQL 8.4는 이것을 member와 orders의 조인(' + (notE ? '안티조인' : '세미조인') + ')으로 바꿔 실행하므로 DEPENDENT SUBQUERY로 나오지 않습니다. 결과는 위에서 따져 본 것과 같습니다.', '');
     }
     var resText = err ? '-' : out.length ? out.length + '행: ' + out.join(', ') : '0행';
-    sum.push(err ? '오류 1242로 문장이 거부됐습니다.' : '결과는 ' + resText + '입니다. EXPLAIN의 select_type은 ' + type + '입니다.');
     if (kind === 'scalar') sum.push({ one: '값 하나를 돌려주는 서브쿼리(스칼라 서브쿼리)는 =, <, > 같은 비교의 한쪽에 값처럼 쓸 수 있습니다. 반드시 한 컬럼, 많아야 한 행만 돌려줘야 합니다.', two: '지금 데이터에서 한 행이 나온다고 안심할 수 없습니다. 데이터가 늘어 두 행이 되는 순간 오류가 납니다. 여러 행이 나올 수 있는 자리라면 = 대신 IN을 쓰고(이 예에서는 김철수와 이영희가 나옵니다), 값 하나가 필요하다면 서브쿼리가 반드시 한 행만 돌려주게 조건을 적습니다.', zero: '서브쿼리가 0행이면 오류가 아니라 NULL이 됩니다. NULL과의 비교는 참이 되지 않으므로 결과가 조용히 0행이 됩니다. 두 행일 때는 오류로 알려 주지만 0행일 때는 알려 주지 않습니다.' }[c.pick]);
     if (kind === 'corr') sum.push('상관 서브쿼리는 바깥 행의 수만큼 다시 실행될 수 있습니다. 바깥 행이 4개면 4번이지만 10만 개면 10만 번입니다. 이 예와 같은 결과는 LEFT JOIN과 GROUP BY로도 구할 수 있습니다.');
     if (kind === 'in') sum.push('IN은 "목록에 같은 값이 하나라도 있는가"입니다. 목록에 NULL이 섞여 있어도 같은 값을 찾으면 참이고, 못 찾은 행은 거짓이든 알 수 없음이든 어차피 빠지므로 결과가 달라지지 않습니다. 문제는 NOT IN에서 생깁니다.');
     if (kind === 'exists') sum.push('EXISTS는 값을 비교하지 않고 "조건에 맞는 행이 있는가"만 봅니다. 이 예에서 IN과 EXISTS는 같은 결과를 냈고 MySQL 8.4는 둘 다 조인으로 바꿔 실행했습니다. 어느 쪽이 빠른지는 문장의 모양이 아니라 실행 계획을 보고 판단합니다.');
-    if (kind === 'notin') sum.push(c.nul ? 'NOT IN의 목록에 NULL이 하나라도 있으면 결과는 언제나 0행입니다. 오류도 경고도 없이 빈 결과가 나오므로 알아채기 어렵습니다. 서브쿼리에 WHERE member_id IS NOT NULL을 넣거나(그러면 최지우가 나옵니다) NOT EXISTS로 바꿔 씁니다.' : '목록에 NULL이 없으면 NOT IN은 기대한 대로 동작합니다. "member_id가 NULL인 주문을 한 건 넣는다"를 켜고 다시 실행해 보세요.');
+    if (kind === 'notin') sum.push(c.nul ? 'NOT IN의 목록에 NULL이 하나라도 있으면 결과는 언제나 0행입니다. 오류도 경고도 없이 빈 결과가 나오므로 알아채기 어렵습니다. 서브쿼리에 WHERE member_id IS NOT NULL을 넣거나(그러면 최지우가 나옵니다) NOT EXISTS로 바꿔 씁니다.' : '목록에 NULL이 없으면 NOT IN은 기대한 대로 동작합니다.');
     if (kind === 'notexists') sum.push('NOT EXISTS는 바깥 행마다 "짝이 되는 행이 있는가"만 따지므로 NULL이 섞여 있어도 결과가 달라지지 않습니다. "없는 것 찾기"에는 NOT EXISTS가 안전합니다.');
     if (kind === 'in' || kind === 'exists' || kind === 'notexists') sum.push('select_type이 SIMPLE로 나온 것은 MySQL의 옵티마이저가 서브쿼리를 조인으로 바꿨기 때문입니다. 데이터의 양에 따라 EXPLAIN에 MATERIALIZED 줄이 더 나오기도 합니다.');
     return { events: ev, summary: sum, err: err, out: out, innerText: innerText, type: type, loops: loops, row: [err ? '오류 ' + err.no : '성공', resText, innerText, type] };
@@ -7357,12 +7351,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '서브쿼리', s.sub || '아직 실행 전', s.sub ? 'hot' : 'none');
-    H.lane(ln, '결과', s.res || '아직 정해지지 않음', !s.res ? 'none' : /오류|^0행/.test(s.res) ? 'bad' : 'good');
-    H.lane(ln, 'select_type', s.exp || '아직 확인 전', s.exp ? 'wait' : 'none');
     H.table(v, ['id', 'name', c.kind === 'corr' ? '서브쿼리의 값' : 'WHERE 조건의 값'], this.M.map(function (m) { var vd = s.verdict[m[0]]; return { cells: [String(m[0]), m[1], vd ? { v: vd[0], cls: vd[1] === 'in' ? 'good' : vd[1] === 'unk' ? 'bad' : '' } : (s.cur === m[0] ? { v: '확인 중', cls: 'hot' } : '')] }; }), 'member 테이블 (바깥 쿼리)');
-    H.table(v, ['id', 'member_id', 'item'], this.orders(c).map(function (o) { var hit = s.hit.indexOf(o[0]) >= 0; return { cells: [String(o[0]), { v: o[1] === null ? 'NULL' : String(o[1]), cls: o[1] === null ? 'bad' : hit ? 'hot' : '' }, { v: o[2], cls: hit ? 'hot' : '' }] }; }), 'orders 테이블 (서브쿼리)');
   },
   // 그림: 왼쪽이 바깥 쿼리의 행(회원), 오른쪽이 서브쿼리가 읽는 행(주문). 회원마다 조건의 값(참, 거짓, 알 수 없음)이 붙는다.
   draw: function (P, sim, shown) {
@@ -7383,7 +7372,7 @@ Lab.register({
     if (s && s.cur && !corr) P.arrow('cmp', 'm' + s.cur + ':b', 'sub:t:0.25', { cls: 'hot', label: '비교' });
     P.box('res', 16, 260, 250, 34, { cls: !s || !s.res ? 'ghost' : /오류|^0행/.test(s.res) ? 'bad' : 'good', title: '결과', right: s && s.res ? s.res : '?' });
     P.box('exp', 278, 260, 386, 34, { cls: s && s.exp ? 'wait' : 'ghost', title: 'select_type', right: s && s.exp ? s.exp : '?' });
-    P.note(corr ? '상관 서브쿼리는 바깥 행 하나가 정해질 때마다 그 행의 id로 주문을 다시 찾습니다. 노란 화살표가 지금 보고 있는 바깥 행에서 짝이 되는 주문으로 갑니다. 굵은 테두리의 주문은 member_id가 NULL인 행입니다.' : '상관이 없는 서브쿼리는 한 번 실행한 결과(값 하나 또는 목록)를 두고, 바깥 행을 하나씩 그 결과와 비교합니다. 회원 오른쪽의 글자가 WHERE 조건의 값입니다. WHERE는 "참"인 행만 남기며 "알 수 없음"도 빠집니다.');
+    P.note(corr ? '노란 화살표가 지금 보고 있는 바깥 행에서 짝이 되는 주문으로 갑니다. 굵은 테두리의 주문은 member_id가 NULL인 행입니다.' : '회원 오른쪽의 글자가 WHERE 조건의 값입니다. WHERE는 "참"인 행만 남기며 "알 수 없음"도 빠집니다.');
   },
   assume: '회원 4명, 주문 4~5건의 작은 예입니다. 서른여섯 가지 조합(모양 여섯 가지 × NULL 주문 유무 × 찾는 상품 세 가지, 찾는 상품은 "값 하나" 모양에서만 문장이 달라집니다) 모두, 화면의 SQL을 실제 MySQL 8.4.11에서 그대로 실행해 오류 번호와 메시지, 결과의 모든 행, 괄호 안의 서브쿼리만 따로 실행한 결과, EXPLAIN의 select_type이 모형과 같은 것을 대조했습니다. 상관 서브쿼리가 바깥 행마다 실행된다는 것은 EXPLAIN ANALYZE의 서브쿼리 부분 loops가 바깥 행 수(4)와 같은 것으로, NOT IN의 서브쿼리가 한 번만 실행된다는 것은 EXPLAIN ANALYZE에 "run only once"로 표시되는 것으로 확인했습니다. 화면의 단계는 조건의 뜻을 따라가는 논리적인 설명이며 MySQL이 실제로 실행하는 방법과는 다를 수 있습니다. MySQL 8.4의 옵티마이저는 IN과 EXISTS 서브쿼리를 세미조인으로, NOT EXISTS를 안티조인으로 바꿔 실행했고 그래서 select_type이 SIMPLE로 나왔습니다. 이 변환은 버전과 설정(optimizer_switch), 데이터의 양에 따라 달라지며, 같은 문장의 EXPLAIN에 MATERIALIZED 줄이 함께 나오기도 했습니다. 회원과 주문을 1,000행씩으로 늘려 실행했을 때도 select_type의 분류는 같았습니다. MySQL 8.0.16보다 앞선 버전은 EXISTS 서브쿼리를 세미조인으로 바꾸지 않으므로 DEPENDENT SUBQUERY로 나올 수 있습니다(이 부분은 실행이 아니라 MySQL 문서를 따랐습니다). NOT IN이 조인으로 바뀌지 않고 SUBQUERY로 나온 것은 member_id가 NULL을 허용하는 컬럼이기 때문이며, member_id를 NOT NULL로 선언한 테이블에서는 같은 NOT IN 문장이 SIMPLE(안티조인)로 나오는 것을 실행해 확인했습니다. select_type을 뺀 결과 행과 오류는 SQL의 정의에 따른 것이라 다른 DB에서도 같습니다. 요약에 적은 내용 가운데 "= 대신 IN을 쓰면 김철수와 이영희가 나온다", "LEFT JOIN과 GROUP BY로 같은 결과가 나온다", "서브쿼리에 IS NOT NULL을 넣으면 최지우가 나온다"도 같은 MySQL에서 따로 실행해 확인했습니다. 값 하나 자리의 서브쿼리가 0행일 때 NULL이 되는 것은 MySQL 문서의 설명과 실행 결과(0행, 오류 없음)가 일치합니다.',
 });
@@ -7391,7 +7380,7 @@ Lab.register({
 Lab.register({
   id: 'windowfn', nav: '윈도우 함수', cat: '데이터베이스', mode: 'step',
   title: '행을 줄이지 않고 순위와 누계를 붙이려면',
-  intro: 'GROUP BY는 여러 행을 한 행으로 합쳐서 합계를 냅니다. 윈도우 함수는 행을 그대로 둔 채, 행마다 순위나 누계 같은 값을 하나씩 옆에 붙입니다. 함수와 데이터를 바꿔 가며 동점인 행에 어떤 값이 붙는지 보세요.',
+  intro: 'GROUP BY는 여러 행을 한 행으로 합쳐서 합계를 냅니다. 윈도우 함수는 행을 그대로 둔 채, 행마다 순위나 누계 같은 값을 하나씩 옆에 붙입니다.',
   terms: ['윈도우 함수', 'ROW_NUMBER, RANK, DENSE_RANK', 'PARTITION BY', 'LAG와 LEAD', 'GROUP BY, WHERE, HAVING'],
   controls: [
     { id: 'fn', label: '계산 방법', type: 'select', value: 'rank', options: [['group', 'GROUP BY로 합계 (비교용)'], ['rownum', 'ROW_NUMBER() 줄 번호'], ['rank', 'RANK() 순위'], ['dense', 'DENSE_RANK() 순위'], ['sum', 'SUM(pts) OVER 누계'], ['lag', 'LAG(pts) 앞 행의 값']] },
@@ -7448,8 +7437,7 @@ Lab.register({
       push(part ? 'GROUP BY team: team 값이 같은 행끼리 묶습니다. A팀 3행과 B팀 3행, 두 묶음이 생깁니다.' : 'GROUP BY 없이 SUM(pts)만 썼습니다. 이때는 테이블 전체가 한 묶음입니다.');
       st.stage = 'end'; st.done = k.groups.length;
       push('SUM(pts): 묶음마다 합계를 하나씩 구합니다. ' + k.groups.map(function (g) { return (g.team ? g.team + '팀 ' : '전체 ') + g.v + '점'; }).join(', ') + '입니다. 묶음 하나가 결과 한 행이 되므로 6행이 ' + k.groups.length + '행으로 줄었습니다. 누가 몇 점이었는지는 결과에 남지 않습니다.', '');
-      sum.push('결과는 ' + k.groups.length + '행입니다. ' + k.groups.map(function (g) { return (g.team ? g.team + '팀 ' : '전체 ') + '합계 ' + g.v; }).join(', ') + '.');
-      sum.push('GROUP BY는 묶음 하나를 결과 한 행으로 만듭니다. 합계는 얻지만 각 행의 이름과 점수는 사라집니다. "각 사람의 점수 옆에 순위나 누계를 함께 보고 싶다"면 행을 줄이지 않는 윈도우 함수가 필요합니다. 계산 방법을 RANK나 SUM OVER로 바꿔 비교해 보세요.');
+      sum.push('GROUP BY는 묶음 하나를 결과 한 행으로 만듭니다. 합계는 얻지만 각 행의 이름과 점수는 사라집니다. "각 사람의 점수 옆에 순위나 누계를 함께 보고 싶다"면 행을 줄이지 않는 윈도우 함수가 필요합니다.');
       return { events: ev, summary: sum, k: k, row: [k.groups.length + '행', k.groups.map(function (g) { return (g.team ? g.team + '팀 ' : '') + g.v; }).join(' / '), '해당 없음'] };
     }
     var f = this.FN[fn], show1 = this.show1;
@@ -7469,8 +7457,7 @@ Lab.register({
     push('ORDER BY ' + (part ? 'team, ' : '') + 'pts DESC: 결과를 내보냅니다. 6행이 그대로 6행이고, 행마다 ' + f[1] + ' 컬럼의 값이 하나씩 붙었습니다.', 'good');
     var vals = k.parts.map(function (p, pi) { return (part ? p[0].team + '팀 ' : '') + k.out.filter(function (r) { return r.pi === pi; }).map(function (r) { return r.v === null ? 'NULL' : r.v; }).join(', '); }).join(' / ');
     var tied = k.out.filter(function (r) { return r.tiePrev; }), tieCol = !tied.length ? '동점 없음' : tied.every(function (r) { return r.v === k.out[k.out.indexOf(r) - 1].v; }) ? '서로 같음' : '서로 다름';
-    sum.push('6행이 그대로 6행으로 나왔습니다. ' + f[0] + '로 붙은 값은 ' + vals + '입니다.');
-    if (fn === 'rownum' || fn === 'rank' || fn === 'dense') sum.push(c.tie === 'yes' ? '동점을 다루는 방법이 세 함수의 차이입니다. 90, 90, 80점에 ROW_NUMBER는 1, 2, 3(동점이어도 다른 번호), RANK는 1, 1, 3(같은 순위를 주고 다음 순위를 건너뜀), DENSE_RANK는 1, 1, 2(같은 순위를 주고 건너뛰지 않음)를 붙입니다.' : '동점이 없으면 ROW_NUMBER, RANK, DENSE_RANK의 결과가 똑같습니다. 차이는 동점이 있을 때만 드러납니다. 점수 데이터를 "동점이 있음"으로 바꿔 보세요.');
+    if (fn === 'rownum' || fn === 'rank' || fn === 'dense') sum.push(c.tie === 'yes' ? '동점을 다루는 방법이 세 함수의 차이입니다. 90, 90, 80점에 ROW_NUMBER는 1, 2, 3(동점이어도 다른 번호), RANK는 1, 1, 3(같은 순위를 주고 다음 순위를 건너뜀), DENSE_RANK는 1, 1, 2(같은 순위를 주고 건너뛰지 않음)를 붙입니다.' : '동점이 없으면 ROW_NUMBER, RANK, DENSE_RANK의 결과가 똑같습니다. 차이는 동점이 있을 때만 드러납니다.');
     if (fn === 'rownum' && c.tie === 'yes') sum.push('ROW_NUMBER는 "한 묶음에서 한 행만 고르기"(예: 팀별 최고 점수 한 명)에 자주 씁니다. 다만 동점인 행의 순서는 정해져 있지 않으므로, 항상 같은 결과가 필요하면 ORDER BY에 겹치지 않는 컬럼을 덧붙입니다.');
     if (fn === 'sum') sum.push(c.tie === 'yes' ? '누계에서 동점인 행은 값이 같게 나옵니다. ORDER BY만 적으면 "정렬 값이 같은 행까지 함께" 더하는 것이 기본 범위이기 때문입니다. 행 하나씩 차례로 쌓으려면 OVER 안에 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW를 적습니다. 그러면 이 데이터의 누계는 ' + k.parts.map(function (p, pi) { return (part ? p[0].team + '팀 ' : '') + k.out.filter(function (r) { return r.pi === pi; }).map(function (r) { return r.rowsFrame; }).join(', '); }).join(' / ') + '이 됩니다.' : 'SUM에 OVER (ORDER BY ...)를 붙이면 전체 합계가 아니라 첫 행부터 지금 행까지의 합계, 곧 누계가 됩니다. 날짜순 매출 누계 같은 계산에 씁니다.');
     if (fn === 'lag') sum.push('LAG는 다른 행의 값을 지금 행 옆으로 가져옵니다. "어제 값과 오늘 값의 차이"처럼 앞뒤 행을 비교하는 계산을, 같은 테이블을 다시 조인하지 않고 쓸 수 있습니다. 앞 행이 없는 첫 행은 NULL이 됩니다.');
@@ -7482,8 +7469,6 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     if (c.fn === 'group') {
       H.table(v, ['name', 'team', 'pts'], this.rowsOf(c).map(function (r) { return { cls: s.stage === 'end' ? 'gone' : '', cells: [r.name, r.team, String(r.pts)] }; }), 'score 테이블 (읽은 6행)');
-      if (s.stage === 'end') H.table(v, c.part ? ['team', 'total'] : ['total'], k.groups.map(function (g) { return { cells: c.part ? [g.team, { v: String(g.v), cls: 'hot' }] : [{ v: String(g.v), cls: 'hot' }] }; }), '결과');
-      H.counters(v, [['6', '읽은 행'], [s.stage === 'end' ? String(k.groups.length) : '?', '결과 행']]);
       return;
     }
     var list = s.stage === 'read' ? this.rowsOf(c).map(function (r) { return { name: r.name, team: r.team, pts: r.pts, v: undefined }; }) : k.out;
@@ -7491,7 +7476,6 @@ Lab.register({
       var done = s.stage !== 'read' && n < s.done, cur = s.stage === 'row' && n === s.done - 1;
       return { cells: [r.name, r.team, String(r.pts), { v: done ? (r.v === null ? 'NULL' : String(r.v)) : '?', cls: cur ? 'hot' : done ? 'good' : '' }] };
     }), s.stage === 'read' ? 'score 테이블 (읽은 6행)' : '줄 세운 6행과 붙은 값');
-    H.counters(v, [['6', '읽은 행'], ['6', '결과 행'], [s.stage === 'read' ? '0' : String(s.done), '값이 붙은 행']]);
   },
   // 그림: 왼쪽에 score 테이블의 6행, 오른쪽에 결과. GROUP BY는 여러 행이 한 상자로 모이고, 윈도우 함수는 행마다 값이 붙은 상자가 하나씩 생긴다.
   draw: function (P, sim, shown) {
@@ -7512,7 +7496,7 @@ Lab.register({
         if (sorted) k.parts[gi].forEach(function (r) { P.arrow('a' + r.id, 's' + r.id + ':r', 'g' + gi + ':l', { cls: on ? 'good' : 'mut' }); });
       });
       P.text('fn', 340, 36, part ? 'GROUP BY team' : 'SUM(pts)', { anchor: 'middle', bold: true });
-      P.note('왼쪽의 6행이 오른쪽에서 ' + k.groups.length + '행으로 줄어듭니다. 파란 상자는 A팀, 노란 상자는 B팀입니다. GROUP BY는 묶음마다 한 행만 남기므로 누가 몇 점인지는 결과에서 사라집니다.');
+      P.note('왼쪽의 6행이 오른쪽에서 ' + k.groups.length + '행으로 줄어듭니다. 파란 상자는 A팀, 노란 상자는 B팀입니다.');
       return;
     }
     order.forEach(function (r, n) {
@@ -7521,7 +7505,7 @@ Lab.register({
       if (done) P.arrow('a' + r.id, 's' + r.id + ':r', 'd' + r.id + ':l', { cls: cur ? 'hot' : 'mut' });
     });
     P.text('fn', 340, 36, this.FN[c.fn][0], { anchor: 'middle', bold: true });
-    P.note('왼쪽의 한 행이 오른쪽의 한 행으로 그대로 이어집니다. 행 수는 줄지 않고 값만 하나씩 붙습니다. 파란 상자는 A팀, 노란 상자는 B팀이며' + (part ? ', 팀 사이의 빈 줄이 PARTITION BY로 나눈 경계입니다.' : ' 팀을 나누지 않고 한 줄로 세웠습니다.'));
+    P.note('왼쪽의 한 행이 오른쪽의 한 행으로 그대로 이어집니다. 파란 상자는 A팀, 노란 상자는 B팀이며' + (part ? ', 팀 사이의 빈 줄이 PARTITION BY로 나눈 경계입니다.' : ' 팀을 나누지 않고 한 줄로 세웠습니다.'));
   },
   assume: '스물네 가지 조합 모두, 화면의 SQL과 같은 문장을 이 PC의 MySQL 8.4에서 실행해 결과 행 수와 행마다 붙은 값을 대조했습니다. 누계에 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW를 적었을 때의 값도 같은 방법으로 확인했습니다. 동점인 행 가운데 어느 행이 먼저 놓이는지는 SQL이 정하지 않으므로(MySQL 문서의 ROW_NUMBER 설명), 화면에서 동점인 두 사람의 순서는 한 가지 예이며 대조는 이름이 아니라 팀, 점수, 붙은 값으로 했습니다. 윈도우 함수는 MySQL 8.0부터 쓸 수 있습니다. 단계 문장의 계산 방법(자기보다 높은 행의 수에 1을 더함 등)은 함수의 정의를 풀어 쓴 것이고, 실제 DB는 정렬한 뒤 한 번 훑으며 값을 구합니다.',
 });
@@ -7529,7 +7513,7 @@ Lab.register({
 Lab.register({
   id: 'viewproc', nav: '뷰, 프로시저, 트리거', cat: '데이터베이스', mode: 'step',
   title: 'INSERT 한 줄을 실행했는데 왜 재고가 줄었나',
-  intro: 'DB 안에는 테이블 말고도 저장해 둘 수 있는 것이 있습니다. 뷰는 저장해 둔 SELECT 문이고, 프로시저는 이름으로 부르는 여러 문장이며, 트리거는 INSERT나 UPDATE가 일어날 때 DB가 자동으로 실행하는 문장입니다. 주문 하나를 넣으면서 애플리케이션 코드에 보이지 않는 곳에서 무슨 일이 일어나는지 따라가 보세요.',
+  intro: 'DB 안에는 테이블 말고도 저장해 둘 수 있는 것이 있습니다. 뷰는 저장해 둔 SELECT 문이고, 프로시저는 이름으로 부르는 여러 문장이며, 트리거는 INSERT나 UPDATE가 일어날 때 DB가 자동으로 실행하는 문장입니다.',
   terms: ['뷰(View)', '저장 프로시저', '트리거', 'CHECK 제약', '트랜잭션'],
   controls: [
     { id: 'how', label: '애플리케이션이 주문을 넣는 방법', type: 'select', value: 'insert', options: [['insert', 'INSERT INTO orders 한 문장'], ['proc', 'CALL place_order (프로시저 호출)']] },
@@ -7599,7 +7583,6 @@ Lab.register({
     push('SELECT stock FROM v_stock: 뷰에는 데이터가 없고 SELECT 문만 저장돼 있습니다. 조회하는 지금 product를 읽어 ' + st.stock + '개를 돌려줍니다.' + (changed ? ' 뷰를 고친 적은 없지만 원본 테이블이 바뀌었으므로 결과도 바뀌었습니다.' : ' 원본 테이블이 바뀌지 않았으므로 처음과 같습니다.'), changed ? 'good' : '', 'view');
     st.copy = '10'; st.did.copy = 1;
     push('SELECT stock FROM stock_copy: 복사본 테이블은 만들 때의 결과를 자기 행으로 저장해 두었습니다. product가 바뀌어도 따라 바뀌지 않으므로 10개 그대로입니다.' + (changed ? ' 실제 재고와 어긋난 값입니다.' : ''), changed ? 'bad' : '', 'copy');
-    sum.push('주문 문장은 ' + (ok ? '성공했습니다' : '오류로 끝났습니다') + '. orders ' + st.orders + '행, 실제 재고 ' + st.stock + '개, stock_log ' + st.logs.length + '행입니다. 뷰로 본 재고는 ' + st.view + '개, 복사본의 재고는 10개입니다.');
     if (!proc && trig && ok) sum.push('애플리케이션 코드에는 INSERT 한 줄뿐인데 테이블 세 개가 바뀌었습니다. 트리거는 빠뜨릴 수 없다는 점에서 편리하지만 코드를 읽는 사람에게 보이지 않습니다. 재고가 왜 줄었는지 찾으려면 DB에 걸려 있는 트리거까지 알아야 합니다.');
     if (!proc && trig && !ok) sum.push('orders에 INSERT를 했는데 product 테이블의 제약 오류가 났습니다. 트리거가 있다는 것을 모르면 원인을 찾기 어렵습니다. 트리거가 실패하면 원래 문장도 취소되므로 주문 행은 남지 않았습니다.');
     if (!proc && !trig) sum.push('트리거가 없으면 INSERT는 orders에 행을 넣는 일만 합니다. 재고를 줄이고 기록을 남기는 일은 애플리케이션이 직접 문장을 보내거나 프로시저에 맡겨야 합니다.' + (q > 10 ? ' 재고를 확인하는 곳이 없어서 재고보다 많은 주문이 들어갔습니다.' : ''));
@@ -7607,22 +7590,16 @@ Lab.register({
     if (proc && trig && ok) sum.push('재고가 ' + q + '개가 아니라 ' + (q * 2) + '개 줄었고 로그도 두 줄입니다. 프로시저를 만든 사람은 재고를 직접 줄였고, 트리거도 같은 일을 했습니다. 트리거는 호출하는 쪽에서 보이지 않기 때문에, 서로의 존재를 모르면 같은 변경이 두 번 일어납니다.');
     if (proc && trig && !ok && st.did.trg) sum.push('주문은 실패했는데 재고는 ' + st.stock + '개로 줄어 있습니다. 여러 문장이 함께 성공하거나 함께 취소되게 하려면 트랜잭션으로 묶어야 합니다. 같은 CALL을 트랜잭션 안에서 실행하고 오류가 났을 때 ROLLBACK하면 재고가 10개로 돌아옵니다.');
     if (proc && trig && !ok && !st.did.trg) sum.push('프로시저의 첫 문장에서 실패해 트리거까지 가지도 않았습니다. 아무것도 바뀌지 않았습니다.');
-    sum.push(changed ? '뷰는 데이터를 따로 저장하지 않는 "저장해 둔 쿼리"입니다. 조회할 때마다 원본 테이블을 읽으므로 재고가 바뀌자 뷰의 결과도 ' + st.view + '개로 바뀌었습니다. 결과를 테이블로 복사해 둔 쪽은 10개에 머물러 있습니다.' : '이번에는 재고가 바뀌지 않아 뷰와 복사본의 값이 같습니다. 재고가 바뀌는 설정으로 실행하면 뷰만 따라 바뀌는 것을 볼 수 있습니다.');
+    sum.push(changed ? '뷰는 데이터를 따로 저장하지 않는 "저장해 둔 쿼리"입니다. 조회할 때마다 원본 테이블을 읽으므로 재고가 바뀌자 뷰의 결과도 ' + st.view + '개로 바뀌었습니다. 결과를 테이블로 복사해 둔 쪽은 10개에 머물러 있습니다.' : '이번에는 재고가 바뀌지 않아 뷰와 복사본의 값이 같습니다.');
     return { events: ev, summary: sum, row: [ok ? '성공' : '오류 3819 (CHECK 제약 위반)', st.orders + '행', st.stock + '개', st.logs.length + '행' + (st.logs.length ? ' (' + st.logs.join(', ') + ')' : ''), st.view + '개 / 10개'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null, q = +c.qty;
     if (!s) { H.text(v, '실행을 누르면 한 문장씩 진행합니다.'); return; }
-    H.table(v, ['id', 'name', 'stock'], [{ cells: ['1', '키보드', { v: String(s.stock), cls: s.stock !== 10 ? 'hot' : '' }] }], 'product 테이블');
-    if (s.orders) H.table(v, ['id', 'product_id', 'qty'], [{ cells: ['1', '1', String(q)] }], 'orders 테이블');
-    else { H.title(v, 'orders 테이블'); H.text(v, s.err ? '행이 없습니다 (넣으려던 주문이 취소됨).' : '행이 없습니다.'); }
     if (s.logs.length) H.table(v, ['id', 'product_id', 'change_qty', 'memo'], s.logs.map(function (m, i) { return { cells: [String(i + 1), '1', String(-q), m] }; }), 'stock_log 테이블');
-    else { H.title(v, 'stock_log 테이블'); H.text(v, '행이 없습니다.'); }
     var ln = H.lanes(v);
     H.lane(ln, '애플리케이션', s.cur === 'init' ? '아직 실행 전' : (c.how === 'proc' ? 'CALL place_order(1, ' + q + ')' : 'INSERT INTO orders 한 문장') + (s.err ? ' → 오류 3819' : ''), s.cur === 'init' ? 'none' : s.err ? 'bad' : 'hot');
     H.lane(ln, '트리거', !c.trig ? '없음' : s.did.trgFail ? '자동 실행됨 → 제약 위반으로 실패' : s.did.trgUpd ? '자동 실행됨: 재고 감소' + (s.did.trgLog ? ', 로그 기록' : '') : '아직 실행되지 않음', !c.trig ? 'none' : s.did.trgFail ? 'bad' : s.did.trgUpd ? 'hot' : 'none');
-    H.lane(ln, 'v_stock (뷰)', s.view === '?' ? '아직 조회 전' : '재고 ' + s.view + '개 (지금의 product를 읽음)', s.view === '?' ? 'none' : 'good');
-    H.lane(ln, 'stock_copy (복사본)', s.copy === '?' ? '아직 조회 전' : '재고 10개 (만들 때의 값)', s.copy === '?' ? 'none' : s.stock !== 10 ? 'bad' : 'wait');
   },
   // 그림: 왼쪽에 애플리케이션, 오른쪽 DB 안에 프로시저·트리거와 테이블 셋, 아래에 뷰와 복사본. 누가 어느 테이블을 고쳤는지 화살표로 잇는다.
   draw: function (P, sim, shown) {
@@ -7646,7 +7623,7 @@ Lab.register({
     if (d.trgUpd || d.trgFail) P.arrow('tUpd', 'trg:r:0.65', 'product:l:0.7', d.trgFail ? { cls: 'bad', label: '실패' } : { cls: 'bad' });
     if (d.trgLog) P.arrow('tLog', 'trg:b:0.85', 'slog:l:0.6', { cls: 'bad' });
     if (d.view) P.arrow('vRead', 'view:r', 'product:b:0.12', { cls: 'good' });
-    P.note('노란 화살표는 애플리케이션이나 프로시저가 실행한 문장이고, 빨간 화살표는 트리거가 한 일입니다. 점선은 orders에 INSERT가 일어나 트리거가 자동으로 실행됐다는 표시입니다. 트리거가 한 일은 애플리케이션이 보낸 문장에 적혀 있지 않습니다. 초록 화살표처럼 뷰는 조회할 때마다 product를 읽고, 왼쪽 아래의 복사본 테이블은 만들 때 복사해 둔 값을 그대로 갖고 있습니다.');
+    P.note('노란 화살표는 애플리케이션이나 프로시저가 실행한 문장이고, 빨간 화살표는 트리거가 한 일입니다. 점선은 orders에 INSERT가 일어나 트리거가 자동으로 실행됐다는 표시입니다. 초록 화살표처럼 뷰는 조회할 때마다 product를 읽고, 왼쪽 아래의 복사본 테이블은 만들 때 복사해 둔 값을 그대로 갖고 있습니다.');
   },
   assume: '열두 가지 조합 모두, 화면의 SQL과 같은 테이블, 뷰, 프로시저, 트리거를 이 PC의 MySQL 8.4(InnoDB, 자동 커밋 켜짐)에 만들고 주문 문장을 실행해 오류 여부, 각 테이블의 행 수, 재고, 뷰와 복사본의 값을 대조했습니다. 뷰가 데이터를 저장하지 않는다는 것은 information_schema에서 v_stock이 저장 엔진이 없는 VIEW로, stock_copy가 InnoDB 테이블로 나오는 것으로 확인했습니다. "트랜잭션으로 묶고 ROLLBACK하면 재고가 돌아온다"는 것도 같은 DB에서 한 번 실행해 확인했습니다. 트리거가 실패했을 때 원래 문장이 함께 취소되는 것은 InnoDB처럼 트랜잭션을 지원하는 엔진에서의 동작입니다. 프로시저 안에서 오류가 났을 때 어디까지 남는지는 자동 커밋 설정, 프로시저 안의 START TRANSACTION과 오류 처리기(HANDLER)에 따라 달라지며, 여기서는 그런 장치가 없는 가장 단순한 프로시저를 썼습니다. 재고가 모자랄 때의 오류는 CHECK 제약(MySQL 8.0.16부터 실제로 검사)에서 나오게 했습니다.',
 });
@@ -7654,7 +7631,7 @@ Lab.register({
 Lab.register({
   id: 'explainplan', nav: '실행 계획 읽기', cat: '데이터베이스', mode: 'step',
   title: 'EXPLAIN 한 줄에서 무엇을 읽어야 하나',
-  intro: '쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다. 쿼리의 모양을 바꿔 가며 각 칸이 어떻게 달라지는지 보세요.',
+  intro: '쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다.',
   terms: ['실행 계획(EXPLAIN)', 'EXPLAIN의 type', 'EXPLAIN의 Extra', '풀 테이블 스캔', '커버링 인덱스'],
   controls: [
     { id: 'w', label: 'WHERE 조건의 모양', type: 'select', value: 'func', options: [['none', '조건 없음'], ['pk', 'id = 500 (기본 키)'], ['eq', "name = 'user00123' (인덱스 컬럼, 값 하나)"], ['prefix', "name LIKE 'user001%' (앞부분이 정해진 LIKE)"], ['suffix', "name LIKE '%00123' (앞에 %가 붙은 LIKE)"], ['func', "LEFT(name, 7) = 'user001' (인덱스 컬럼에 함수)"], ['noidx', 'age = 30 (인덱스 없는 컬럼)'], ['join', '조인: orders와 member를 기본 키로 연결']] },
@@ -7740,7 +7717,6 @@ Lab.register({
       st.a = 4; st.b = 4; st.cur = 'extra';
       push('Extra 칸은 두 줄 모두 비어 있습니다: 덧붙일 것이 없다는 뜻입니다. 두 테이블을 어떤 방식으로 짝짓는지는 "조인 알고리즘" 실습에서 다룹니다.');
       st.cur = '';
-      sum.push('두 줄짜리 계획입니다. o는 type ALL로 전체를 읽고, m은 type eq_ref로 행마다 기본 키로 한 행씩 찾습니다.');
       sum.push('조인의 EXPLAIN은 위에서 아래로 읽습니다. 아래 줄의 type이 eq_ref나 ref이면 인덱스로 찾아간다는 뜻이고, ALL이면 앞 테이블의 행마다 뒤 테이블을 통째로 읽거나 해시 조인을 쓴다는 뜻입니다.');
       sum.push('type은 대략 const, eq_ref, ref, range, index, ALL 순으로 읽는 양이 늘어납니다. 반드시 왼쪽이어야 하는 것은 아니고, 필요한 행 수에 비해 읽는 행(rows)이 지나치게 많은지를 봅니다.');
       return { events: ev, summary: sum, p: p, match: 20000, row: row };
@@ -7782,7 +7758,6 @@ Lab.register({
       push({ oname: 'ORDER BY name', oage: 'ORDER BY age', gage: 'GROUP BY age' }[c.tail] + ' 절이 있는데 Extra에 ' + sortTag + '가 없습니다: ' + reason + ' 따로 ' + (c.tail === 'gage' ? '임시 테이블을 만들지' : '정렬하지') + ' 않습니다.', 'good');
     }
     st.cur = '';
-    sum.push('type ' + r.type + ', key ' + r.key + ', rows ' + rt + ', Extra ' + (r.extra.join('; ') || '없음') + '입니다. 조건에 실제로 맞는 행은 ' + (w === 'none' ? '2만 행 전부' : match + '행') + '입니다.');
     if (w === 'func') sum.push("인덱스가 있는 컬럼이라도 함수나 계산을 씌우면 인덱스로 범위를 좁히지 못합니다. 컬럼은 그대로 두고 비교할 값 쪽을 바꿔 쓰는 것이 원칙입니다. 여기서는 name LIKE 'user001%'가 같은 뜻이면서 type range가 됩니다.");
     if (w === 'suffix') sum.push("앞에 %가 붙은 LIKE는 인덱스의 정렬 순서를 이용할 수 없습니다. '무엇으로 시작하는가'는 인덱스로 찾을 수 있지만 '무엇으로 끝나는가'와 '무엇을 포함하는가'는 전부 읽어야 압니다.");
     if (w === 'prefix') sum.push('앞부분이 정해진 LIKE는 인덱스의 한 구간이 되어 type range로 읽습니다. 2만 행 가운데 200행만 읽습니다.');
@@ -7805,7 +7780,7 @@ Lab.register({
       var ex = lv >= 4 ? (join ? '' : r.extra.slice(0, s.ex).join('; ')) : '?';
       return { cells: [r.table, cl(1, 'type', r.type), cl(2, 'key', r.pkeys), cl(2, 'key', r.key)].concat(join ? [cl(2, 'key', r.ref)] : []).concat([cl(3, 'rows', self.rowsText(c, r)), { v: ex, cls: lv >= 4 && s.cur === 'extra' ? 'hot' : '' }]) };
     });
-    H.table(v, ['table', 'type', 'possible_keys', 'key'].concat(join ? ['ref'] : []).concat(['rows', 'Extra']), rows, 'EXPLAIN 결과 (주요 칸만)');
+    if (join) H.table(v, ['table', 'type', 'possible_keys', 'key'].concat(join ? ['ref'] : []).concat(['rows', 'Extra']), rows, 'EXPLAIN 결과 (주요 칸만)');
     if (!join && s.a >= 3) H.counters(v, [[String(sim.match).replace(/\B(?=(\d{3})+(?!\d))/g, ','), '조건에 실제로 맞는 행'], [this.rowsText(c, p[0]), '읽을 것으로 예상한 행 (rows)']]);
     if (join && s.b >= 3) H.counters(v, [['약 20,000', 'o에서 읽는 행'], ['1', 'o의 행마다 m에서 읽는 행']]);
     H.text(v, 'rows는 통계로 추정한 값이라 실행할 때마다 조금씩 다를 수 있습니다. 여기 적힌 수는 이 PC에서 본 값을 어림한 것입니다.');
@@ -7849,7 +7824,7 @@ Lab.register({
 Lab.register({
   id: 'joinalgo', nav: '조인 알고리즘', cat: '데이터베이스', mode: 'step',
   title: '조인 컬럼에 인덱스가 없으면 DB는 어떻게 짝을 찾나',
-  intro: '조인은 한 테이블을 먼저 읽고, 그 행마다 다른 테이블에서 짝이 되는 행을 찾는 일입니다. 짝을 찾을 때 인덱스를 쓸 수 있으면 필요한 행만 읽지만, 없으면 전체를 읽어야 합니다. MySQL 8은 그런 경우에 해시 조인이라는 다른 방법을 씁니다. 인덱스와 읽는 순서를 바꿔 가며 MySQL이 고르는 방식을 보세요.',
+  intro: '조인은 한 테이블을 먼저 읽고, 그 행마다 다른 테이블에서 짝이 되는 행을 찾는 일입니다. 짝을 찾을 때 인덱스를 쓸 수 있으면 필요한 행만 읽지만, 없으면 전체를 읽어야 합니다. MySQL 8은 그런 경우에 해시 조인이라는 다른 방법을 씁니다.',
   terms: ['중첩 루프 조인', '해시 조인', '구동 테이블', '옵티마이저', '실행 계획(EXPLAIN)'],
   controls: [
     { id: 'idx', label: 'orders.member_id에 인덱스가 있다', type: 'check', value: false },
@@ -7915,13 +7890,12 @@ Lab.register({
     }
     st.stage = 7; st.cur = -1; st.all = true; st.loops = p.loops;
     push('결과 10,000행이 나옵니다. 두 테이블에서 읽은 행은 ' + F + ' ' + num(p.firstRows) + '행과 ' + S + ' ' + num(p.loops * p.each) + '행, 합쳐서 ' + num(p.total) + '행입니다.', p.algo === 'scan' ? 'bad' : 'good');
-    sum.push(F + '를 먼저 읽고 ' + (p.algo === 'hash' ? '해시 조인' : '중첩 루프 조인') + '으로 짝을 찾았습니다. ' + S + '를 ' + num(p.loops) + '번, 한 번에 ' + num(p.each) + '행씩 읽어 두 테이블에서 모두 ' + num(p.total) + '행을 읽었습니다.');
     if (p.algo === 'nl' && p.second === 'o') sum.push('중첩 루프 조인이 읽는 양은 "먼저 읽는 테이블의 행 수 × 한 번 찾을 때 읽는 행 수"입니다. 나중 테이블의 조인 컬럼에 인덱스가 있으면 한 번에 필요한 행만 읽습니다. 다른 테이블의 기본 키를 가리키는 컬럼(여기서는 orders.member_id)에 인덱스를 만들어 두라는 이유입니다.');
     if (p.algo === 'nl' && p.second === 'm') sum.push('orders를 먼저 읽으면 member는 기본 키로 한 행씩 찾습니다(type eq_ref). 조인 컬럼의 인덱스는 "나중에 읽는 테이블" 쪽에 있어야 쓰입니다.' + (c.drive === 'auto' ? ' 옵티마이저는 이렇게 인덱스로 찾아갈 수 있는 순서를 스스로 고릅니다. 다만 읽은 행은 20,000행으로, orders.member_id에 인덱스가 있어 member를 먼저 읽을 때의 11,000행보다 많습니다.' : ' 이 순서에서는 orders.member_id에 인덱스가 있든 없든 계획이 같습니다.'));
     if (c.drive === 'auto' && c.idx) sum.push('옵티마이저에게 맡기면 통계를 보고 비용이 낮은 순서를 고릅니다. 여기서는 행이 적은 member를 먼저 읽었습니다. 데이터의 양과 분포가 달라지면 선택도 달라질 수 있습니다.');
     if (p.algo === 'hash') sum.push('해시 조인은 한 테이블로 해시 테이블을 만들고 다른 테이블을 한 번만 읽습니다. 인덱스 없는 중첩 루프라면 1,000 × 10,000 = 1,000만 행을 읽었을 것을 11,000행으로 끝냅니다. EXPLAIN의 Extra에는 Using join buffer (hash join)이라고 나옵니다.');
     if (p.algo === 'hash') sum.push('그래도 인덱스가 필요 없어지는 것은 아닙니다. 해시 조인은 orders를 통째로 읽으므로, 회원 10명의 주문만 찾을 때에도 orders 10,000행을 다 읽습니다. 인덱스가 있으면 10번 찾아가 100행만 읽습니다.');
-    if (p.algo === 'scan') sum.push('인덱스도 해시 조인도 없으면 먼저 읽는 테이블의 행마다 나중 테이블 전체를 읽습니다. 1,000 × 10,000 = 1,000만 행입니다. 두 테이블이 각각 10배가 되면 읽는 양은 100배가 됩니다. 해시 조인을 켠 처음 설정과 비교해 보세요.');
+    if (p.algo === 'scan') sum.push('인덱스도 해시 조인도 없으면 먼저 읽는 테이블의 행마다 나중 테이블 전체를 읽습니다. 1,000 × 10,000 = 1,000만 행입니다. 두 테이블이 각각 10배가 되면 읽는 양은 100배가 됩니다.');
     return { events: ev, summary: sum, p: p, row: [F, p.algo === 'hash' ? '해시 조인' : '중첩 루프 조인', p.type + ' / ' + (p.key === 'NULL' ? '인덱스 없음' : p.key), num(p.loops) + '번 × ' + num(p.each) + '행', num(p.total) + '행'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -7994,7 +7968,7 @@ Lab.register({
 Lab.register({
   id: 'dbdeadlock', nav: 'DB의 교착 상태', cat: '데이터베이스', mode: 'step',
   title: '두 트랜잭션이 서로를 기다리면 DB는 어떻게 끝내나',
-  intro: '트랜잭션 A는 계좌 1에서 2로 100을, 트랜잭션 B는 계좌 2에서 1로 50을 옮깁니다. 둘이 행을 서로 반대 순서로 잠그면 서로를 기다리게 됩니다. 자바 스레드라면 그대로 멈춰 버리지만, MySQL InnoDB는 이 상황을 스스로 찾아내 한쪽을 롤백시키고 오류를 돌려줍니다. 어느 쪽이 어떤 오류를 받는지, 오류를 받은 쪽이 그 뒤에 무엇을 해야 하는지 보세요.',
+  intro: '트랜잭션 A는 계좌 1에서 2로 100을, 트랜잭션 B는 계좌 2에서 1로 50을 옮깁니다. 둘이 행을 서로 반대 순서로 잠그면 서로를 기다리게 됩니다. 자바 스레드라면 그대로 멈춰 버리지만, MySQL InnoDB는 이 상황을 스스로 찾아내 한쪽을 롤백시키고 오류를 돌려줍니다.',
   terms: ['교착 상태(Deadlock)', '교착 감지와 희생 트랜잭션', '락 대기 시간 초과', '공유 락과 배타 락', '트랜잭션'],
   controls: [
     { id: 'sit', label: '두 트랜잭션이 행을 잠그는 순서', type: 'select', value: 'rev', options: [['rev', '서로 반대 (A는 1 → 2, B는 2 → 1)'], ['same', '같은 순서 (둘 다 1 → 2)'], ['hold', '서로 반대인데 A가 첫 행만 잠근 채 오래 멈춤']] },
@@ -8110,10 +8084,9 @@ Lab.register({
         }
       }
     }
-    sum.push('최종 잔액은 계좌 1이 ' + p.b1 + ', 계좌 2가 ' + p.b2 + '입니다. ' + (p.half ? '두 계좌의 합이 2000에서 1950으로 줄었습니다. B의 이체가 절반만 반영됐기 때문입니다.' : p.aDone && p.bDone ? '두 이체가 모두 반영됐습니다.' : (p.aDone ? 'B' : 'A') + '의 이체가 빠졌습니다.'));
     if (sit === 'rev') {
       sum.push('InnoDB는 교착을 스스로 감지해 한쪽 트랜잭션을 통째로 롤백시키고 오류 1213을 돌려줍니다. 살아남은 쪽은 아무 일도 없었던 것처럼 진행합니다. 교착은 DB가 끝내 주지만, 롤백된 일을 다시 하는 것은 애플리케이션이 해야 합니다.');
-      sum.push(c.after === 'retry' ? '오류 1213을 받으면 트랜잭션을 처음부터 다시 실행합니다. 중간부터가 아니라 처음부터여야 합니다. 앞에서 고친 것까지 모두 취소됐기 때문입니다.' : c.after === 'giveup' ? '다시 시도하지 않으면 그 요청은 반영되지 않은 채 사라집니다. "다시 시도한다"로 바꿔 비교해 보세요.' : '교착으로 롤백된 뒤의 COMMIT은 아무것도 반영하지 않습니다. 오류를 무시하는 코드는 실패를 성공처럼 보이게 만듭니다.');
+      sum.push(c.after === 'retry' ? '오류 1213을 받으면 트랜잭션을 처음부터 다시 실행합니다. 중간부터가 아니라 처음부터여야 합니다. 앞에서 고친 것까지 모두 취소됐기 때문입니다.' : c.after === 'giveup' ? '다시 시도하지 않으면 그 요청은 반영되지 않은 채 사라집니다.' : '교착으로 롤백된 뒤의 COMMIT은 아무것도 반영하지 않습니다. 오류를 무시하는 코드는 실패를 성공처럼 보이게 만듭니다.');
       sum.push(c.heavy === 'b' ? 'InnoDB는 고친 행이 적은 작은 트랜잭션을 롤백 대상으로 고르려 합니다. 되돌리는 비용이 적기 때문입니다. 그래서 어느 쪽이 오류를 받을지는 순서가 아니라 그때까지 한 일의 양에 달려 있습니다.' : '어느 쪽이 롤백될지는 코드에서 정할 수 없습니다. 그러므로 두 트랜잭션 모두 오류 1213을 받을 수 있다고 보고 준비해야 합니다.');
     } else if (sit === 'same') {
       sum.push('모든 트랜잭션이 같은 순서(번호가 작은 계좌부터)로 잠그면 기다림이 한 방향으로만 생겨 고리가 만들어지지 않습니다. 교착을 줄이는 가장 기본적인 방법입니다.');
@@ -8127,12 +8100,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
-    var cls = { pre: 'none', hold: 'hot', wait: 'wait', err: 'bad', done: 'good' };
-    H.title(v, '트랜잭션'); var ln = H.lanes(v);
-    ['A', 'B'].forEach(function (x) { H.lane(ln, '트랜잭션 ' + x, s.msg[x][0] + (s.msg[x][1] !== ' ' ? ' · ' + s.msg[x][1] : '') + (x === 'A' ? '  (계좌 1 → 2로 100)' : '  (계좌 2 → 1로 50)'), s.cyc && s.ph[x] === 'wait' ? 'bad' : cls[s.ph[x]]); });
-    H.table(v, ['행', '락을 쥔 트랜잭션', '락을 기다리는 트랜잭션', '커밋된 잔액'], [1, 2].map(function (r) { var w = ['A', 'B'].filter(function (x) { return s.wait[x] === r; }); return { cells: ['계좌 ' + r, { v: s.own[r] || '없음', cls: s.own[r] ? 'hot' : '' }, { v: w.length ? w[0] : '없음', cls: w.length ? (s.cyc ? 'bad' : 'hot') : '' }, String(s.bal[r])] }; }), 'account 테이블');
-    H.text(v, 'InnoDB의 교착 감지: ' + s.det);
-    H.counters(v, [[s.bal[1] + ' / ' + s.bal[2], '커밋된 잔액 (계좌 1 / 계좌 2)'], [String(s.bal[1] + s.bal[2]), '두 계좌의 합']]);
+    H.counters(v, [[String(s.bal[1] + s.bal[2]), '두 계좌의 합']]);
   },
   // 그림: 양옆에 트랜잭션 A와 B, 가운데에 두 행. 행에서 트랜잭션으로 가는 실선은 "락을 쥠", 트랜잭션에서 행으로 가는 점선은 "기다림". 아래에 InnoDB의 교착 감지와 커밋된 잔액.
   draw: function (P, sim, shown) {
@@ -8150,7 +8118,7 @@ Lab.register({
     });
     P.box('det', 16, 262, 440, 40, { cls: s.cyc ? 'bad' : s.det.indexOf('끊음') >= 0 ? 'good' : 'plain', title: 'InnoDB의 교착 감지', sub: s.det });
     P.box('bal', 464, 262, 200, 40, { cls: s.bal[1] + s.bal[2] !== 2000 ? 'bad' : 'plain', title: '커밋된 잔액', right: s.bal[1] + ' / ' + s.bal[2] });
-    P.note('실선 화살표는 그 행의 락을 쥐고 있다는 뜻이고, 점선 화살표는 그 락을 기다린다는 뜻입니다. 화살표를 따라가 처음 자리로 돌아오는 고리가 생기면 교착입니다. InnoDB는 이 고리를 찾아 한쪽 트랜잭션을 롤백시켜 끊습니다. 행 오른쪽의 숫자는 커밋된 잔액입니다.');
+    P.note('실선 화살표는 그 행의 락을 쥐고 있다는 뜻이고, 점선 화살표는 그 락을 기다린다는 뜻입니다. 화살표를 따라가 처음 자리로 돌아오는 고리가 생기면 교착입니다. 행 오른쪽의 숫자는 커밋된 잔액입니다.');
   },
   assume: '열 가지 조합(순서 세 가지에서 의미가 있는 설정만 남긴 것)을 이 PC의 MySQL 8.4.11(InnoDB, 격리 수준 REPEATABLE READ, innodb_deadlock_detect 켜짐, innodb_rollback_on_timeout 꺼짐)에서 세션 두 개로 화면과 같은 순서로 실행해, 어느 쪽이 어떤 오류 코드를 받는지, 오류 직후 그 트랜잭션에 변경과 락이 남아 있는지, 최종 잔액이 화면과 일치하는 것을 확인했습니다. 교착에서는 오류 1213이 몇 밀리초 만에 왔고(락 대기 제한은 20초로 둔 상태), 오류를 받은 세션이 자기가 고쳤던 행을 다시 읽으면 원래 값 1000이었으며 쥐고 있는 레코드 락이 0개였습니다. 락 대기 시간 초과는 기본값 50초를 기다리는 대신 그 세션의 innodb_lock_wait_timeout을 2초로 줄여 실행했고, 2초 뒤 오류 1205가 온 다음에도 그 세션이 고친 값 950과 레코드 락 1개가 남아 있었습니다. 일의 양이 같은 교착에서 어느 쪽이 롤백되는지는 문서가 정해 두지 않았으므로 결과로 단정하지 않습니다. 30번 되풀이했을 때 30번 모두 나중에 기다리기 시작한 B가 롤백됐고, B가 다른 행 50개를 먼저 고친 경우에는 30번 모두 A가 롤백됐습니다. "작은 트랜잭션을 고르려 한다"와 "교착은 트랜잭션 전체를, 락 대기 시간 초과는 그 문장만 롤백한다"는 MySQL 8.4 참조 설명서 17.7.5.2 Deadlock Detection과 17.20.5 InnoDB Error Handling의 설명과도 맞습니다. 서버 설정을 바꾸면 달라지는 것(교착 감지를 끈 경우, innodb_rollback_on_timeout을 켠 경우)은 다루지 않았습니다. 두 트랜잭션이 정확히 엇갈리는 순서를 가정했으며, 실제로는 타이밍에 따라 교착 없이 지나가는 경우가 더 많습니다.',
 });
@@ -8158,7 +8126,7 @@ Lab.register({
 Lab.register({
   id: 'bufferpool', nav: '버퍼 풀과 페이지', cat: '데이터베이스', mode: 'step',
   title: '행 하나를 읽는데 왜 16KB를 통째로 읽나',
-  intro: 'InnoDB는 디스크의 데이터를 행 단위가 아니라 페이지(기본 16KB)라는 덩어리로 읽고 씁니다. 한 번 읽은 페이지는 메모리의 버퍼 풀에 올려 두고, 그다음부터는 디스크에 가지 않고 메모리에서 읽습니다. 고칠 때도 메모리의 페이지만 고치고 디스크에는 나중에 씁니다. 행 16개가 페이지 네 개에 나뉘어 들어 있는 테이블을 조회하면서, 디스크를 몇 번 읽고 쓰는지 보세요.',
+  intro: 'InnoDB는 디스크의 데이터를 행 단위가 아니라 페이지(기본 16KB)라는 덩어리로 읽고 씁니다. 한 번 읽은 페이지는 메모리의 버퍼 풀에 올려 두고, 그다음부터는 디스크에 가지 않고 메모리에서 읽습니다. 고칠 때도 메모리의 페이지만 고치고 디스크에는 나중에 씁니다.',
   terms: ['버퍼 풀', '페이지(InnoDB)', '더티 페이지와 플러시', '캐시 제거(Eviction) 정책', 'Undo 로그와 Redo 로그'],
   controls: [
     { id: 'seq', label: '조회하는 행의 순서', type: 'select', value: 'same', options: [['same', '1번 → 2번 → 1번 (모두 같은 페이지)'], ['spread', '1번 → 5번 → 9번 → 13번 → 1번 (페이지 넷을 차례로)'], ['hot', '1번 → 5번 → 1번 → 9번 → 13번 → 1번 (1번을 자주)']] },
@@ -8227,7 +8195,6 @@ Lab.register({
       st.slots[dj].dirty = false; st.writes++; st.diskNew = true; when = '커밋 뒤 나중에 (백그라운드)'; st.cur = 'A'; st.at = dj; st.act = 'flush';
       push('얼마 뒤: 백그라운드 스레드가 더티 페이지 A를 데이터 파일에 씁니다. 페이지는 버퍼 풀에 그대로 남고 더티 표시만 없어집니다. 언제 쓸지는 InnoDB가 정하며, 커밋은 이것을 기다리지 않습니다.', 'good');
     }
-    sum.push('디스크에서 페이지를 ' + st.reads + '번 읽었고, 조회 ' + ids.length + '번 가운데 ' + st.hits + '번은 디스크에 가지 않았습니다.' + (evicted.length ? ' 버퍼 풀에서 밀려난 페이지: ' + evicted.join(', ') + '.' : ''));
     if (c.seq === 'same') sum.push('InnoDB가 디스크에서 읽는 단위는 행이 아니라 페이지입니다. 1번 행을 읽으면 같은 페이지의 2, 3, 4번 행도 함께 메모리에 올라오므로, 가까이 저장된 행을 이어서 읽을 때는 디스크에 다시 가지 않습니다.');
     else if (evicted.length) sum.push('버퍼 풀이 가득 차면 가장 오래 쓰이지 않은 페이지부터 내보냅니다. 밀려난 페이지를 다시 읽으려면 디스크에 또 가야 합니다.' + (c.seq === 'hot' && find('A') >= 0 && evicted.indexOf('A') < 0 ? ' 자주 읽은 페이지 A는 끝까지 남아 있었고, 그동안 쓰이지 않은 페이지가 밀려났습니다.' : ' 데이터에 비해 버퍼 풀이 너무 작으면 이런 일이 되풀이되어 느려집니다.'));
     else sum.push('칸이 넉넉하면 한 번 읽은 페이지는 계속 메모리에 남습니다. 그래서 DB 서버는 메모리의 큰 부분을 버퍼 풀에 줍니다.');
@@ -8239,8 +8206,6 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     var oldest = -1; if (s.slots.indexOf(null) < 0) s.slots.forEach(function (x, j) { if (oldest < 0 || x.last < s.slots[oldest].last) oldest = j; });
     H.table(v, ['칸', '올라와 있는 페이지', '든 행', '상태'], s.slots.map(function (x, j) { return { cells: ['칸 ' + (j + 1), x ? { v: '페이지 ' + x.p, cls: s.at === j && s.act === 'hit' ? 'good' : s.at === j ? 'hot' : '' } : '비어 있음', x ? R[x.p] : '-', x ? { v: (x.dirty ? '더티 (디스크와 다름)' : '디스크와 같음') + (j === oldest ? ' · 가장 오래 안 쓰임' : ''), cls: x.dirty ? 'hot' : '' } : '-'] }; }), '버퍼 풀 (메모리)');
-    H.counters(v, [[s.reads + '번', '디스크에서 읽음'], [s.hits + '번', '디스크 없이 읽음'], [s.writes + '번', '데이터 파일에 씀']]);
-    H.text(v, '디스크의 데이터 파일에 있는 1번 행의 name: ' + (s.diskNew ? 'changed' : 'item1'));
   },
   // 그림: 왼쪽은 버퍼 풀(메모리)의 칸들, 오른쪽은 디스크의 데이터 파일에 있는 페이지 넷. 읽어 올 때와 쓸 때 화살표가 생기고, 더티 페이지는 노랗게 보인다.
   draw: function (P, sim, shown) {
@@ -8350,7 +8315,7 @@ Lab.register({
 Lab.register({
   id: 'partition', nav: '파티셔닝', cat: '데이터베이스', mode: 'step',
   title: '테이블을 조각내면 조회는 어느 조각을 읽나',
-  intro: '파티셔닝은 큰 테이블 하나를 같은 서버 안에서 여러 조각(파티션)으로 나눠 저장하는 것입니다. 주문 날짜의 연도처럼 범위로 나누거나(RANGE), 회원 번호를 나눈 나머지처럼 계산으로 나눕니다(HASH). 조건을 어떻게 쓰느냐에 따라 필요한 파티션만 읽기도 하고 전부 읽기도 합니다. 테이블을 만들고, 행을 넣고, 조회하면서 MySQL이 어느 파티션을 고르는지 보세요.',
+  intro: '파티셔닝은 큰 테이블 하나를 같은 서버 안에서 여러 조각(파티션)으로 나눠 저장하는 것입니다. 주문 날짜의 연도처럼 범위로 나누거나(RANGE), 회원 번호를 나눈 나머지처럼 계산으로 나눕니다(HASH). 조건을 어떻게 쓰느냐에 따라 필요한 파티션만 읽기도 하고 전부 읽기도 합니다.',
   terms: ['샤딩과 파티셔닝', 'RANGE 파티션과 HASH 파티션', '파티션 프루닝', '실행 계획(EXPLAIN)', '기본 키, 유니크 키, 외래 키'],
   controls: [
     { id: 'how', label: '나누는 방법', type: 'select', value: 'range', options: [['range', 'RANGE: 주문 날짜의 연도별로'], ['hash', 'HASH: 회원 번호를 4로 나눈 나머지로']] },
@@ -8396,7 +8361,6 @@ Lab.register({
       push('CREATE TABLE … PRIMARY KEY (id) … PARTITION BY ' + (R ? 'RANGE (YEAR(ordered_at))' : 'HASH (member_id)') + ': 오류 1503이 나고 테이블이 만들어지지 않습니다. 메시지는 "A PRIMARY KEY must include all columns in the table\'s partitioning function"입니다. 기본 키 (id)에 파티션을 나누는 기준인 ' + keycol + ' 컬럼이 들어 있지 않기 때문입니다.', 'bad');
       st.stage = 'why';
       push('이런 제약이 있는 까닭: MySQL에서는 파티션마다 인덱스를 따로 가집니다. 기본 키와 유니크 키는 같은 값이 또 있는지 검사해야 하는데, 키에 ' + keycol + ' 컬럼이 들어 있으면 그 행이 갈 파티션 하나만 보고 판단할 수 있습니다. 들어 있지 않으면 같은 id가 다른 파티션에 있는지 알 수 없습니다. 그래서 기본 키와 모든 유니크 키에 파티션 키 컬럼을 넣어야 합니다. 여기서는 PRIMARY KEY (id, ' + keycol + ')로 바꾸면 됩니다.', '');
-      sum.push('테이블을 만들지 못했습니다(오류 1503). 그래서 INSERT와 조회는 실행되지 않았습니다.');
       sum.push('파티션을 나눈 테이블에서는 기본 키와 모든 유니크 키에 파티션 키 컬럼이 들어 있어야 합니다. 이미 운영 중인 테이블을 나중에 파티셔닝하려면 기본 키부터 바꿔야 할 수 있으므로, 설계할 때 함께 정합니다.');
       sum.push('이 제약 때문에 "id만으로는 유일하다"를 DB가 보장해 주지 못하게 됩니다. 기본 키가 (id, ' + keycol + ')이면 id가 같고 ' + keycol + '만 다른 두 행이 들어갈 수 있습니다.');
       return { events: ev, summary: sum, names: names, w: W, vals: this.values(c), row: ['오류 1503', '-', '-', '-'] };
@@ -8429,7 +8393,6 @@ Lab.register({
     var list = read.map(function (i) { return names[i]; }).join(',');
     push('EXPLAIN SELECT * FROM orders WHERE ' + W + ': ' + why + ' EXPLAIN의 partitions 칸: ' + list + '.', k);
     var cnt = N + '개 중 ' + read.length + '개' + (read.length === N ? ' (전부)' : '');
-    sum.push('테이블은 만들어졌고, INSERT는 ' + (to < 0 ? '오류 1526으로 실패했고' : names[to] + ' 파티션에 들어갔고') + ', 조회는 파티션 ' + N + '개 중 ' + read.length + '개를 읽습니다.');
     sum.push('파티셔닝은 서버 한 대 안에서 테이블 하나를 나눠 저장하는 것입니다. 데이터를 여러 서버에 나누는 샤딩과 달리 조인과 트랜잭션, 쿼리는 그대로 쓸 수 있습니다. 대신 서버 한 대의 한계를 넘게 해 주지는 않습니다. 한 번에 읽고 지울 범위를 줄이는 것이 목적입니다.');
     if (read.length < N) sum.push('조건에 파티션 키 컬럼이 그대로 들어 있으면 MySQL이 필요한 파티션만 골라 읽습니다. 테이블이 아무리 커도 읽는 범위는 그 파티션으로 줄어듭니다.');
     else sum.push(c.q === 'other' ? '파티션 키가 없는 조회는 모든 파티션을 읽으므로 파티션을 나누기 전보다 오히려 일이 늘 수 있습니다. 가장 자주 쓰는 조회 조건에 들어가는 컬럼을 파티션 키로 골라야 합니다.' : c.q === 'func' ? '파티션 키 컬럼에 함수나 계산을 씌우면 프루닝이 되지 않습니다. 인덱스가 걸린 컬럼에 함수를 씌우면 인덱스를 못 쓰는 것과 같은 이치입니다. 컬럼은 그대로 두고 비교할 값 쪽을 바꿉니다.' : 'HASH 파티션은 행을 고르게 흩어 놓는 데 쓰고, 값 하나를 찾는 조회에 맞습니다. 날짜처럼 범위로 찾는 일이 많으면 RANGE 파티션이 맞습니다.');
@@ -8437,10 +8400,9 @@ Lab.register({
     return { events: ev, summary: sum, names: names, w: W, vals: V, row: ['성공', to < 0 ? '오류 1526' : names[to] + '에 저장', list, cnt] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, R = c.how === 'range', names = sim.names;
+    var last = shown[shown.length - 1], s = last ? last.snap : null, names = sim.names;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     if (s.made < 0) { H.text(v, 'orders 테이블이 만들어지지 않았습니다 (오류 1503).'); H.counters(v, [['실패', 'CREATE TABLE']]); return; }
-    H.table(v, ['파티션', '담는 행', '행 수', '상태'], names.map(function (nm, i) { var on = s.read && s.read.indexOf(i) >= 0; return { cls: s.read && !on ? 'gone' : '', cells: [nm, R ? (2023 + i) + '년 주문' : '회원 번호 % 4 = ' + i, s.rows[i] + '건', { v: s.ins === i ? '새 행이 들어옴' : s.read ? (on ? '읽음' : '건너뜀') : '-', cls: s.ins === i ? 'good' : on ? 'hot' : '' }] }; }), 'orders 테이블 (서버 한 대 안)');
     H.counters(v, [[s.insErr ? '오류 1526' : s.stage === 'ins' || s.stage === 'sel' ? '성공' : '-', 'INSERT'], [s.read ? names.length + '개 중 ' + s.read.length + '개' : '-', '조회가 읽는 파티션']]);
   },
   // 그림: 위에 지금 실행하는 문장, 아래에 서버 한 대 안의 orders 테이블과 그 파티션들. 조회가 읽는 파티션은 노랗게, 건너뛰는 파티션은 점선으로 보인다.
@@ -8457,7 +8419,7 @@ Lab.register({
       if (got) P.arrow('a' + i, 'q:b:' + ((i + 0.5) / N), 'p' + i + ':t', { cls: 'good', label: '저장' });
     }
     P.box('res', 16, 258, 648, 38, { cls: s.made < 0 || (s.insErr && st === 'ins') ? 'bad' : sel ? (s.read.length < N ? 'good' : 'hot') : 'plain', title: '결과', right: s.res });
-    P.note('파티션은 모두 한 MySQL 서버 안에 있고, 쿼리에서는 orders 테이블 하나로 보입니다. 데이터를 여러 서버에 나누는 샤딩과 다른 점입니다. 조회 단계에서 노란 파티션은 실제로 읽는 곳이고, 점선 파티션은 열어 보지 않고 건너뛴 곳입니다.');
+    P.note('조회 단계에서 노란 파티션은 실제로 읽는 곳이고, 점선 파티션은 열어 보지 않고 건너뛴 곳입니다.');
   },
   assume: '서른두 가지 조합 모두를 이 PC의 MySQL 8.4.11(InnoDB)에서 화면과 같은 문장으로 실행해 대조했습니다. 조합마다 테이블을 새로 만들어 CREATE TABLE의 성공 여부와 오류 코드, 주문 300건이 파티션마다 들어간 건수(SELECT COUNT(*) … PARTITION (이름)), 새 행이 들어간 파티션 또는 INSERT의 오류 코드, EXPLAIN의 partitions 칸이 화면과 일치하는 것을 확인했습니다. 화면에 적은 오류 메시지도 실제 메시지입니다. 설명에 쓴 다음 사실도 실행으로 확인했습니다. 유니크 키에 파티션 키가 없어도 오류 1503이 납니다. 기본 키와 유니크 키가 모두 없는 테이블은 제약에 걸리지 않습니다. 날짜 조건을 컬럼의 범위(>= 와 <)로 쓰면 p2024만 읽습니다. HASH에서 BETWEEN 5 AND 6은 p1, p2만 읽습니다. ADD PARTITION으로 2026년 파티션을 추가한 뒤에는 같은 INSERT가 성공합니다. DROP PARTITION p2023은 그 파티션의 121행을 없앱니다. 기본 키가 (id, ordered_at)일 때 id가 같고 날짜만 다른 두 행이 들어갑니다. 어느 파티션을 읽는지는 조건에서 정해지며 행 수나 통계와 무관하지만, 파티션 안에서 인덱스를 쓰는지와 예상 행 수는 데이터에 따라 달라지므로 결과로 삼지 않았습니다. 파티션 키와 기본 키의 제약, 프루닝이 되는 조건의 형태는 MySQL 8.4 참조 설명서 26.6.1 Partitioning Keys, Primary Keys, and Unique Keys와 26.4 Partition Pruning의 설명과도 맞습니다. 파티션마다 인덱스를 따로 가진다는 것은, 파티션 셋이 InnoDB 안에서 별도의 테이블과 데이터 파일로 저장되고 인덱스 통계(mysql.innodb_index_stats)에도 파티션마다 PRIMARY 인덱스가 따로 올라 있는 것을 보고 확인했습니다. LIST와 KEY 파티션, 서브파티션, 파티션 수가 아주 많을 때의 비용은 다루지 않았습니다. 다른 DB 제품은 파티션 키가 없는 유니크 인덱스를 허용하기도 하므로, 이 제약은 MySQL 기준입니다.',
 });
@@ -8465,7 +8427,7 @@ Lab.register({
 Lab.register({
   id: 'nosql', nav: 'NoSQL과 문서 모델', cat: '데이터베이스', mode: 'step',
   title: '주문을 테이블 셋에 나눌까, 문서 하나에 담을까',
-  intro: '같은 데이터(주문과 주문 항목)를 두 가지 방식으로 저장해 봅니다. 관계형은 상품, 주문, 주문 항목을 테이블 셋에 나눠 두고 읽을 때 조인합니다. 문서 모델은 MongoDB 같은 문서 DB가 쓰는 방식으로, 주문 하나를 문서 하나로 보고 그 안에 항목 배열과 상품 이름까지 함께 담습니다. 읽기, 이름 바꾸기, 새 항목 넣기를 해 보면서 무엇이 쉬워지고 무엇이 어려워지는지 보세요.',
+  intro: '같은 데이터(주문과 주문 항목)를 두 가지 방식으로 저장해 봅니다. 관계형은 상품, 주문, 주문 항목을 테이블 셋에 나눠 두고 읽을 때 조인합니다. 문서 모델은 MongoDB 같은 문서 DB가 쓰는 방식으로, 주문 하나를 문서 하나로 보고 그 안에 항목 배열과 상품 이름까지 함께 담습니다.',
   terms: ['NoSQL', '문서 모델(문서 데이터베이스)', '고정 스키마와 유연한 스키마', '정규화와 반정규화', 'JOIN (INNER, OUTER)'],
   controls: [
     { id: 'model', label: '저장 방식', type: 'select', value: 'doc', options: [['doc', '문서: 주문 하나에 항목까지 담는다'], ['rel', '관계형: 테이블 셋으로 나누고 조인한다']] },
@@ -8520,7 +8482,7 @@ Lab.register({
       st.res = row[1];
       if (rel) { st.hot = ['to', 'ti', 'tp']; push('SELECT … FROM orders o JOIN order_item i … JOIN product p … WHERE o.id = 1: orders에서 주문 1번을 찾고, order_item에서 그 주문의 항목 2개를 찾고, 항목마다 product에서 상품 이름을 찾아 붙입니다. 테이블 세 개를 조인해야 주문 하나가 완성됩니다. 조인을 쓰지 않는다면 테이블마다 한 번씩 쿼리를 세 번 보내야 합니다.', ''); st.chk = row[2]; push('결과는 2행입니다. 항목 하나가 한 행이고, 주문 번호와 주문한 사람은 행마다 되풀이됩니다. 애플리케이션이 이 행들을 다시 주문 하나로 묶어 씁니다.', 'good'); }
       else { st.docs[0].cls = 'hot'; push('SELECT doc FROM order_doc WHERE id = 1: 기본 키로 문서 하나를 찾습니다. 주문한 사람, 항목 2개, 상품 이름이 모두 그 문서 안에 들어 있어 다른 곳을 찾아갈 필요가 없습니다.', ''); st.chk = row[2]; push('결과는 문서 1개이고, 그 안의 items 배열에 항목 2개가 들어 있습니다. 함께 읽는 데이터를 함께 저장해 두었기 때문에 한 번에 읽힙니다. 문서 모델이 가장 잘하는 일입니다.', 'good'); }
-      sum.push(rel ? '관계형은 데이터를 겹치지 않게 나눠 두고 읽을 때 조인으로 합칩니다. 읽을 때 할 일이 더 많지만, 같은 값이 한 곳에만 있어 고치기 쉽습니다. "상품 이름을 바꾼다"로 바꿔 비교해 보세요.' : '문서 모델은 함께 읽는 데이터를 함께 저장합니다. 주문 화면처럼 "주문 하나와 거기에 딸린 것 전부"를 자주 읽는다면 조인 없이 한 번에 읽힙니다. 그 대가는 "상품 이름을 바꾼다"에서 드러납니다.');
+      sum.push(rel ? '관계형은 데이터를 겹치지 않게 나눠 두고 읽을 때 조인으로 합칩니다. 읽을 때 할 일이 더 많지만, 같은 값이 한 곳에만 있어 고치기 쉽습니다.' : '문서 모델은 함께 읽는 데이터를 함께 저장합니다. 주문 화면처럼 "주문 하나와 거기에 딸린 것 전부"를 자주 읽는다면 조인 없이 한 번에 읽힙니다. 그 대가는 "상품 이름을 바꾼다"에서 드러납니다.');
     } else if (op === 'rename') {
       st.res = row[1];
       if (rel) { st.tabs.p1 = '기계식 키보드'; st.hot = ['tp']; push("UPDATE product SET name = '기계식 키보드' WHERE id = 1: product 테이블의 한 행만 고칩니다. 상품 이름이 그 한 곳에만 저장되어 있기 때문입니다. 주문이 몇 건이든 고치는 곳은 하나입니다.", 'good'); st.hot = ['to', 'ti', 'tp']; st.chk = row[2]; push('주문을 다시 조회하면 ' + n + '건 모두 새 이름으로 나옵니다. 주문 항목은 상품 번호만 갖고 있고, 이름은 조회할 때마다 product 테이블에서 가져오기 때문입니다.', 'good'); }
@@ -8538,7 +8500,6 @@ Lab.register({
       else { st.docs.push({ id: x, who: 'han', a: '키보드 quantity: 3', b: 'qty라는 항목이 없음', cls: 'bad' }); push('INSERT INTO order_doc VALUES (' + x + ', \'{… "items": [{"product_id": 1, "name": "키보드", "quantity": 3}]}\'): 그대로 저장됩니다. qty가 맞는 이름이고 quantity가 틀린 이름이라는 것을 DB는 알지 못합니다. 오류도 경고도 없습니다.', 'bad'); st.chk = row[2]; push('SELECT SUM(j.qty) FROM order_doc, JSON_TABLE(…) j: 모든 문서의 qty를 더한 수량 합계는 ' + 3 * n + '입니다. 실제로 주문된 수량은 ' + (3 * n + 3) + '인데, 새 문서에는 qty가 없어서 빠졌습니다. 조회도 오류 없이 끝나므로 틀린 줄 모르고 지나가기 쉽습니다.', 'bad'); }
       sum.push(rel ? '컬럼 이름, 자료형, NOT NULL 같은 약속을 DB가 지켜 주므로, 잘못된 데이터는 들어오는 순간에 드러납니다.' : '모양을 검사하지 않는다는 것은 잘못된 모양도 받아 준다는 뜻입니다. 그래서 문서 모델에서는 저장하기 전에 애플리케이션이 검사하거나, DB가 제공하는 스키마 검사 기능을 켭니다. MySQL의 JSON 컬럼에도 CHECK (JSON_SCHEMA_VALID(…)) 제약을 걸 수 있고, 그러면 이 INSERT는 오류 3819로 거절됩니다.');
     }
-    sum.unshift('DB의 반응: ' + row[0] + '. ' + row[1] + '. ' + row[2] + '.');
     sum.push('NoSQL은 관계형이 아닌 DB를 통틀어 부르는 말이고, 문서 모델은 그 가운데 하나입니다. 어느 쪽이 더 좋다기보다, 무엇을 자주 함께 읽고 무엇이 자주 바뀌는지에 따라 고릅니다.');
     return { events: ev, summary: sum, row: row };
   },
@@ -8552,7 +8513,6 @@ Lab.register({
       { cells: [{ v: 'order_item', cls: cl('ti') }, s.tabs.items + '행', '컬럼: order_id, product_id, qty'] },
     ], '관계형: 테이블 셋');
     else H.table(v, ['문서', '주문한 사람', 'items 배열'], s.docs.map(function (d) { return { cells: [{ v: '문서 ' + d.id, cls: d.cls === 'bad' ? 'bad' : d.cls === 'good' ? 'good' : d.cls === 'hot' ? 'hot' : '' }, d.who, d.a + ', ' + d.b] }; }), '문서: order_doc 테이블');
-    H.counters(v, [[s.res, '읽거나 고친 범위'], [s.chk, '실행 뒤 확인한 것']]);
   },
   // 그림: 관계형이면 테이블 셋과 그 사이의 참조, 문서 모델이면 주문마다 문서 상자 하나. 건드린 곳이 노랗게, 문제가 생긴 곳이 빨갛게 보인다.
   draw: function (P, sim, shown) {
@@ -8573,7 +8533,7 @@ Lab.register({
     }
     P.box('res', 16, 228, 648, 38, { cls: s.k === 'bad' ? 'bad' : s.k === 'good' ? 'good' : 'plain', title: '읽거나 고친 범위', right: s.res });
     P.box('chk', 16, 272, 648, 38, { cls: 'plain', title: '실행 뒤 확인한 것', right: s.chk });
-    P.note(rel ? '관계형은 같은 값을 한 곳에만 두고(상품 이름은 product에만), 다른 테이블은 번호로 그것을 가리킵니다. 읽을 때는 화살표를 따라 테이블을 조인합니다.' : '문서 모델은 주문 하나에 필요한 것을 문서 하나에 모두 담습니다. 상품 이름도 문서마다 복사되어 있습니다. 이 화면의 문서는 MySQL의 JSON 컬럼으로 재현한 것입니다.');
+    P.note(rel ? '읽을 때는 화살표를 따라 테이블을 조인합니다.' : '이 화면의 문서는 MySQL의 JSON 컬럼으로 재현한 것입니다.');
   },
   assume: '문서 모델은 MySQL의 JSON 컬럼으로 재현했습니다. 스무 가지 조합(저장 방식 둘, 하는 일 넷, 주문 수 2건, 3건, 5건)을 이 PC의 MySQL 8.4.11에서 화면과 같은 문장으로 실행해, 오류 코드, EXPLAIN에 나오는 테이블 수와 결과 행 수, UPDATE가 고친 행(문서) 수, gift가 있는 문서 수, 수량 합계가 화면과 일치하는 것을 확인했습니다. 설명에 쓴 다음 사실도 실행으로 확인했습니다. 조인 없이 읽으면 테이블마다 한 번씩 쿼리 세 번이 필요합니다. ALTER TABLE로 컬럼을 추가한 뒤에는 같은 INSERT가 들어가고 기존 행에도 그 칸이 생깁니다. 문서 하나만 고치면 같은 상품의 이름이 두 가지로 남습니다. JSON_SCHEMA_VALID 제약을 건 뒤에는 필드 이름을 틀린 문서가 오류 3819로 거절됩니다. 전용 문서 DB(MongoDB 등)는 이 PC에 없어 실행하지 못했습니다. 그래서 여기서 보인 것은 "주문을 문서 하나로 담았을 때의 읽기와 쓰기의 모양"이며, 문서 DB 제품의 동작 그대로는 아닙니다. 쿼리 문법, 배열 안의 값을 고치는 방법, 스키마 검사 기능, 여러 문서에 걸친 트랜잭션과 조인 지원은 제품과 버전에 따라 다릅니다. 어느 방식이 더 빠른지는 데이터의 양과 인덱스, 제품에 따라 달라지므로 다루지 않았고, 화면의 결과는 속도가 아니라 읽거나 고치는 곳의 수입니다. 키-값 저장소, 와이드 컬럼 저장소, 그래프 DB 같은 다른 종류의 NoSQL은 다루지 않았습니다.',
 });
@@ -8581,7 +8541,7 @@ Lab.register({
 Lab.register({
   id: 'layers', nav: '계층 구조와 캡슐화', cat: '네트워크', mode: 'step',
   title: '1500바이트를 보냈는데 왜 전선에는 1616바이트가 지나갈까',
-  intro: '네트워크는 일을 계층으로 나눠 맡습니다. 보내는 쪽에서는 데이터가 위 계층에서 아래 계층으로 내려가며, 계층마다 자기 일에 필요한 정보를 적은 머리말(헤더)을 앞에 붙입니다. 이것을 캡슐화라고 합니다. 받는 쪽은 반대 순서로 머리말을 하나씩 떼어 냅니다. HTTP 메시지 하나가 어떻게 싸이고, 크면 어떻게 나뉘는지 따라가 보세요.',
+  intro: '네트워크는 일을 계층으로 나눠 맡습니다. 보내는 쪽에서는 데이터가 위 계층에서 아래 계층으로 내려가며, 계층마다 자기 일에 필요한 정보를 적은 머리말(헤더)을 앞에 붙입니다. 이것을 캡슐화라고 합니다. 받는 쪽은 반대 순서로 머리말을 하나씩 떼어 냅니다.',
   terms: ['OSI 7계층', 'TCP/IP 4계층', '캡슐화와 역캡슐화', '세그먼트, 패킷, 프레임', 'MTU와 MSS'],
   controls: [
     { id: 'size', label: '보낼 HTTP 메시지의 크기', type: 'select', value: '1500', options: [['300', '300바이트 (짧은 요청 하나)'], ['1460', '1460바이트'], ['1500', '1500바이트'], ['4000', '4000바이트'], ['10000', '10000바이트 (긴 글 올리기)']] },
@@ -8631,7 +8591,6 @@ Lab.register({
     push('받는 쪽 전송 계층: TCP 머리말의 목적지 포트 ' + A.sp + '번을 보고 어느 프로그램(웹 서버)에 줄 데이터인지 정합니다. ' + (n > 1 ? '순서 번호를 보고 조각 ' + n + '개를 차례대로 이어 붙인 뒤 머리말을 떼어 냅니다.' : 'TCP 머리말을 떼어 냅니다.'));
     st.at = 'r0'; st.done = true;
     push('받는 쪽 응용 계층: 웹 서버가 처음의 HTTP 메시지 ' + k.size + '바이트를 그대로 받습니다. 중간에 몇 조각으로 나뉘었는지, 어떤 머리말이 붙었다 떨어졌는지는 알지 못합니다.', 'good');
-    sum.push('HTTP 메시지 ' + k.size + '바이트가 ' + n + '조각으로 나갔고, 조각마다 TCP ' + T + ' + IP ' + I + ' + 이더넷 ' + E + ' + FCS ' + F + ' = ' + k.per + '바이트가 붙어 전선으로는 ' + total + '바이트가 지나갔습니다.');
     if (n > 1 && k.size <= k.mtu) sum.push('MTU는 데이터의 크기가 아니라 IP 머리말과 TCP 머리말까지 합친 패킷의 크기에 대한 한도입니다. 그래서 데이터는 MTU에서 40바이트를 뺀 ' + k.mss + '바이트(MSS)까지만 한 조각에 실립니다. MTU와 같거나 조금 작은 데이터도 두 조각이 되는 이유입니다.');
     if (n > 2) sum.push('데이터가 크면 조각 수만큼 머리말이 되풀이해 붙습니다. 받는 쪽 TCP가 순서 번호로 이어 붙여 주므로, 프로그램은 조각을 신경 쓰지 않고 이어진 데이터로 읽습니다.');
     if (n === 1) sum.push('나뉘지 않아도 머리말 ' + k.per + '바이트는 반드시 붙습니다. 데이터가 작을수록 전체에서 머리말이 차지하는 몫이 커집니다.');
@@ -8648,7 +8607,7 @@ Lab.register({
       { cells: ['2 데이터 링크 · 1 물리', { v: '링크', cls: on(3) }, '이더넷 (머리말 ' + E + ' + 꼬리말 ' + F + '바이트)', '프레임', 'MAC 주소 ' + A.cmac + ' → ' + A.smac] },
     ], '계층의 대응 (노란 칸이 지금 일하는 계층)');
     if (!s.stage) { H.text(v, '실행을 누르면 보내는 쪽의 위 계층부터 한 단계씩 내려갑니다.'); return; }
-    H.counters(v, [[s.split ? k.mss + '바이트' : '?', '한 조각에 실을 수 있는 데이터'], [s.split ? k.segs.length + '개' : '?', '조각 수'], [s.sent ? sim.wire + '바이트' : '?', '전선으로 나간 전체 크기']]);
+    H.counters(v, [[s.split ? k.mss + '바이트' : '?', '한 조각에 실을 수 있는 데이터']]);
     if (s.split) H.table(v, ['조각', '데이터', '+ TCP ' + T + ' = 세그먼트', '+ IP ' + I + ' = 패킷', '+ 이더넷 ' + E + ' + FCS ' + F + ' = 프레임'], k.segs.map(function (d, i) {
       var cur = i === 0 || s.sent, sh = function (x, need) { return cur && need ? String(x) : '-'; };
       return { cells: [(i + 1) + '번', d + '바이트', sh(d + T, s.stage >= 3), sh(d + T + I, s.stage >= 4), { v: sh(d + T + I + E + F, s.stage >= 5), cls: cur && s.stage >= 5 ? 'hot' : '' }] };
@@ -8687,7 +8646,7 @@ Lab.register({
 Lab.register({
   id: 'url', nav: 'URL의 구조', cat: '네트워크', mode: 'step',
   title: '검색어 "A&B"를 주소에 붙였더니 서버에는 "A"만 도착했다',
-  intro: 'URL은 정해진 기호(://, :, /, ?, #, &, =)를 기준으로 스킴, 호스트, 포트, 경로, 쿼리, 프래그먼트로 나뉩니다. 이 기호들은 주소 안에서 구분하는 역할을 맡고 있어서, 값 안에 같은 글자를 그대로 넣으면 주소가 엉뚱한 곳에서 잘립니다. 주소가 어떻게 나뉘고, 그 가운데 무엇이 서버로 가며, 값은 어떻게 넣어야 온전히 도착하는지 따라가 보세요.',
+  intro: 'URL은 정해진 기호(://, :, /, ?, #, &, =)를 기준으로 스킴, 호스트, 포트, 경로, 쿼리, 프래그먼트로 나뉩니다. 이 기호들은 주소 안에서 구분하는 역할을 맡고 있어서, 값 안에 같은 글자를 그대로 넣으면 주소가 엉뚱한 곳에서 잘립니다.',
   terms: ['URI와 URL', 'URL의 구성 요소', '퍼센트 인코딩', '쿼리 스트링과 폼 본문', '상대 URL'],
   controls: [
     { id: 'origin', label: '주소의 앞부분 (스킴, 호스트, 포트)', type: 'select', value: 'https://shop.example', options: [['https://shop.example', 'https://shop.example (포트를 적지 않음)'], ['https://shop.example:443', 'https://shop.example:443'], ['https://shop.example:8443', 'https://shop.example:8443'], ['http://shop.example', 'http://shop.example (포트를 적지 않음)'], ['http://shop.example:8080', 'http://shop.example:8080']] },
@@ -8806,10 +8765,9 @@ Lab.register({
     push('서버의 쿼리 풀이: 쿼리를 &에서 나누고, 조각마다 첫 번째 =에서 이름과 값으로 나눈 다음, +는 공백으로 %XX는 원래 글자로 되돌립니다. 결과는 ' + plist + '입니다. ' + why, ok && sortOk ? 'good' : 'bad');
     var relWhy = { 'detail': '/로 시작하지 않으므로, 지금 경로(' + u.path + ')의 마지막 조각을 detail로 바꿉니다. 쿼리와 프래그먼트는 물려받지 않습니다.', '../cart': '..은 한 단계 위를 뜻합니다. 지금 경로(' + u.path + ')에서 마지막 조각을 떼면 /shop/이고, 거기서 한 단계 올라가 cart를 붙이면 /cart입니다.', '/help': '/로 시작하므로 경로 전체를 /help로 바꿉니다. 스킴, 호스트, 포트는 지금 주소의 것을 그대로 씁니다.', '?page=2': '?로 시작하므로 경로는 그대로 두고 쿼리만 page=2로 바꿉니다. 지금 주소의 쿼리는 이어받지 않고 통째로 바뀝니다.', '#top': '#으로 시작하므로 경로와 쿼리는 그대로 두고 프래그먼트만 top으로 바꿉니다. 같은 문서 안에서 위치만 옮기는 것이라 서버에 새 요청을 보내지 않습니다.', '//cdn.example/app.js': '//로 시작하므로 스킴(' + u.scheme + ')만 물려받고 호스트부터 새로 정합니다. 포트도 물려받지 않습니다.' }[c.rel];
     push('상대 주소 풀이: 이 페이지 안의 링크(href="' + c.rel + '")는 주소의 일부만 적은 것이라서, 브라우저가 지금 주소를 기준으로 빠진 부분을 채웁니다. ' + relWhy + ' 결과는 ' + linkHref + ' 입니다.');
-    sum.push(u.host + '의 ' + eff + '번 포트로 요청 줄(GET ' + target + ' HTTP/1.1)이 갔고, 서버가 받은 q의 값은 ' + (got === null ? '없습니다' : '"' + got + '"입니다') + (ok ? '.' : '. 보낸 검색어("' + q + '")와 다릅니다.'));
     if (!ok) sum.push('&, =, #, +, %, ?는 주소 안에서 구분하는 일을 맡은 글자입니다. 값에 이런 글자가 들어갈 수 있으면 반드시 인코딩해서 넣어야 합니다. 자바스크립트에서는 URLSearchParams나 encodeURIComponent, 자바에서는 URLEncoder.encode가 이 일을 합니다. 글자를 직접 이어 붙여 주소를 만드는 코드는 평소에는 잘 돌다가 이런 값이 들어오는 날 틀립니다.');
-    else if (c.enc) sum.push('인코딩은 값 안의 글자가 구분 기호로 읽히지 않게 %XX 모양으로 바꿔 두는 일입니다. 서버는 구분 기호로 먼저 나눈 다음에 되돌리므로 값이 온전합니다. 인코딩을 끄고 같은 검색어가 어떻게 되는지 비교해 보세요.');
-    else sum.push('이 검색어는 그대로 붙여도 문제가 없었지만, 사용자가 입력하는 값에는 어떤 글자든 들어올 수 있습니다. 검색어를 A&B나 C#으로 바꿔 보세요.');
+    else if (c.enc) sum.push('인코딩은 값 안의 글자가 구분 기호로 읽히지 않게 %XX 모양으로 바꿔 두는 일입니다. 서버는 구분 기호로 먼저 나눈 다음에 되돌리므로 값이 온전합니다.');
+    else sum.push('이 검색어는 그대로 붙여도 문제가 없었지만, 사용자가 입력하는 값에는 어떤 글자든 들어올 수 있습니다.');
     sum.push('프래그먼트(# 뒤)는 서버로 가지 않습니다. 서버 로그에도 남지 않으며, 서버 코드에서 읽을 수도 없습니다. 반대로 쿼리는 서버로 가고 서버의 접속 기록에도 남을 수 있으므로, 비밀번호 같은 값을 쿼리에 넣지 않습니다.');
     if (u.typedPort !== '') sum.push(u.port === '' ? '기본 포트(http는 80, https는 443)는 적어도 적지 않은 것과 같습니다. 그래서 정리된 주소와 Host 헤더에는 포트가 나타나지 않습니다.' : '기본 포트가 아닌 번호는 주소에 반드시 적어야 하고, Host 헤더에도 함께 실립니다.');
     return { events: ev, summary: sum, u: u, typed: typed, href: href, eff: eff, def: def, target: target, hostHeader: hostHeader, params: params, got: got, ok: ok && sortOk, link: linkHref, portWhy: portWhy,
@@ -8827,10 +8785,7 @@ Lab.register({
     if (n >= 6) rows.push({ cells: ['프래그먼트', u.frag, '문서 안의 위치 (브라우저만 사용)', { v: '보내지 않음', cls: 'bad' }] });
     if (rows.length) H.table(v, ['부분', '값', '하는 일', '서버로 가는가'], rows, '주소를 나눈 결과');
     var ln = H.lanes(v);
-    H.lane(ln, '요청 줄', n >= 7 ? 'GET ' + sim.target + ' HTTP/1.1' : '아직 보내기 전', n >= 7 ? 'hot' : 'none');
     H.lane(ln, 'Host 헤더', n >= 7 ? 'Host: ' + sim.hostHeader : '아직 보내기 전', n >= 7 ? 'hot' : 'none');
-    if (n >= 8) H.table(v, ['이름', '값'], sim.params.map(function (p) { return { cells: [p[0], { v: '"' + p[1] + '"', cls: p[0] === 'q' ? (sim.got === c.q ? 'good' : 'bad') : p[0] === 'sort' ? '' : 'bad' }] }; }), '서버가 쿼리에서 풀어낸 파라미터 (보낸 검색어: "' + c.q + '")');
-    if (n >= 9) H.table(v, ['링크', '가리키는 주소'], [{ cells: ['href="' + c.rel + '"', { v: sim.link, cls: 'hot' }] }], '상대 주소를 풀이한 결과');
   },
   // 그림: 주소를 여섯 부분으로 나눠 위에서 아래로 한 줄씩 놓고, 그 아래에 서버로 가는 요청 줄, 서버가 풀어낸 값, 링크가 가리키는 주소를 차례로 놓는다.
   draw: function (P, sim, shown) {
@@ -8845,7 +8800,7 @@ Lab.register({
     P.box('req', 16, 190, 648, 44, { cls: n >= 7 ? (n === 7 ? 'hot now' : 'plain') : 'ghost', title: n >= 7 ? '서버로 가는 요청 줄 (' + u.host + '의 ' + sim.eff + '번 포트에 연결)' : '서버로 가는 요청 줄', sub: n >= 7 ? 'GET ' + sim.target + ' HTTP/1.1' : '', mono: true });
     P.box('srv', 16, 240, 648, 44, { cls: n >= 8 ? (sim.ok ? 'good' : 'bad') + (n === 8 ? ' now' : '') : 'ghost', title: '서버가 쿼리에서 풀어낸 값 (보낸 검색어: "' + c.q + '")', sub: n >= 8 ? sim.row[3] : '' });
     P.box('lnk', 16, 290, 648, 44, { cls: n >= 9 ? 'hot now' : 'ghost', title: '링크(href="' + c.rel + '")가 가리키는 주소', sub: n >= 9 ? sim.link : '', mono: true });
-    P.note('위의 여섯 줄이 주소를 나눈 부분입니다. 초록 줄(경로와 쿼리)만 요청 줄에 실려 서버로 가고, 빨간 줄(프래그먼트)은 브라우저에 남습니다. 호스트와 포트는 어디에 연결할지를 정하는 데 쓰이고 Host 헤더에 적힙니다.');
+    P.note('위의 여섯 줄이 주소를 나눈 부분입니다. 초록 줄(경로와 쿼리)만 요청 줄에 실려 서버로 가고, 빨간 줄(프래그먼트)은 브라우저에 남습니다.');
   },
   assume: '삼백 가지 조합을 모두 Node.js 24에서 실행해 대조했습니다. 주소를 나눈 결과와 정리된 주소, 상대 주소의 풀이는 Node.js의 URL(브라우저와 같은 WHATWG URL 표준의 구현)이 낸 값과 대조했습니다. 접속 포트, 요청 줄, Host 헤더는 Node.js의 HTTP 클라이언트로 그 주소에 요청을 보내고, 연결만 127.0.0.1의 시험 서버로 돌려 실제로 나간 글자를 받아 대조했습니다(shop.example에 대한 DNS 조회나 외부 접속은 하지 않았고, https 주소도 암호화하지 않은 채 받았습니다). 서버가 받은 값은 그 요청 줄의 쿼리를 URLSearchParams로 풀이한 것입니다. 톰캣 같은 다른 서버도 &와 =로 나누고 +와 %XX를 되돌리는 같은 규칙(application/x-www-form-urlencoded)을 쓰지만, 이 실습에서 따로 실행해 보지는 않았습니다. 잘못된 %XX가 왔을 때 오류로 처리하는지처럼 서버마다 다른 부분은 다루지 않았습니다. encodeURIComponent는 공백을 +가 아닌 %20으로 바꾸며, 쿼리에서는 둘 다 공백으로 풀립니다(이 차이도 실행으로 확인했습니다). 주소가 나뉘는 규칙은 RFC 3986 3절, 프래그먼트를 떼어 내고 요청한다는 것은 3.5절, 상대 주소의 풀이는 5.2절, 요청 줄과 Host 헤더는 RFC 9112 3.2절과 RFC 9110 7.2절에 있습니다. #으로 시작하는 링크를 눌렀을 때 서버에 새 요청이 가지 않는다는 것은 브라우저의 동작(HTML 표준의 프래그먼트 이동)을 따라 적은 것이고 실행해 보지는 않았습니다. 사용자 이름이 든 주소, IPv6 주소, 한글 도메인은 다루지 않았습니다.',
 });
@@ -8853,7 +8808,7 @@ Lab.register({
 Lab.register({
   id: 'dns', nav: 'DNS', cat: '네트워크', mode: 'step',
   title: '도메인 이름의 주소는 누가 알고 있고, 바꾸면 언제 반영될까',
-  intro: '컴퓨터는 shop.example 같은 이름으로는 접속할 수 없고 IP 주소가 있어야 합니다. 이름을 주소로 바꿔 주는 것이 DNS입니다. 답을 아는 서버는 한 곳이 아니라 여러 단계로 나뉘어 있고, 한 번 받은 답은 정해진 시간(TTL) 동안 캐시에 남아 다시 묻지 않습니다. 묻는 과정과 캐시가 만드는 차이를 따라가 보세요.',
+  intro: '컴퓨터는 shop.example 같은 이름으로는 접속할 수 없고 IP 주소가 있어야 합니다. 이름을 주소로 바꿔 주는 것이 DNS입니다. 답을 아는 서버는 한 곳이 아니라 여러 단계로 나뉘어 있고, 한 번 받은 답은 정해진 시간(TTL) 동안 캐시에 남아 다시 묻지 않습니다.',
   terms: ['DNS', 'DNS 레코드', '재귀 리졸버와 권한 있는 네임 서버', 'DNS 캐시와 TTL'],
   controls: [
     { id: 'q', label: '묻는 것', type: 'select', value: 'a', options: [['a', 'shop.example 의 IPv4 주소 (A)'], ['aaaa', 'shop.example 의 IPv6 주소 (AAAA)'], ['cname', 'www.shop.example 의 주소 (CNAME을 거침)'], ['mx', 'shop.example 의 메일 서버 (MX)']] },
@@ -8950,21 +8905,18 @@ Lab.register({
     var stale = c.changed && cached;
     push(c.q === 'mx' ? '메일을 ' + st.ans.slice(3) + ' 서버로 보냅니다. 이 이름의 IP 주소는 A 레코드로 한 번 더 찾습니다(네임 서버가 MX 답에 함께 실어 주기도 합니다).' + (stale ? ' 관리자가 바꾸기 전의 예전 서버입니다.' : '') : '브라우저는 받은 주소(' + (cn ? val : st.ans) + ')로 접속합니다.' + (stale ? ' 관리자가 바꾸기 전의 예전 주소입니다.' : ''), stale ? 'bad' : 'good');
     var reflected = !c.changed ? '바꾸지 않음' : cached ? '아직 예전 값' : '반영됨 (새 값)';
-    sum.push('받은 답: ' + answer + '. 답이 나온 곳: ' + st.src + '. PC가 리졸버에 ' + st.pcq + '번, 리졸버가 네임 서버에 ' + st.upq + '번 물었습니다.');
     if (c.cache === 'none') sum.push('어느 서버도 모든 이름의 답을 가지고 있지 않습니다. 루트 서버는 맨 끝 부분(.example, .com, .kr)을 맡은 서버를, 그 서버는 각 도메인을 맡은 네임 서버를 알려 주고, 답은 그 도메인의 권한 있는 네임 서버만 가지고 있습니다. 이 PC는 리졸버 하나에게만 묻고, 차례로 묻는 일은 리졸버가 대신합니다.');
     if (cached) sum.push('한 번 받은 답은 TTL 동안 캐시에 남아, 그동안은 다시 묻지 않습니다. 캐시는 PC에도 있고 리졸버에도 있습니다. 덕분에 대부분의 조회는 루트 서버까지 가지 않고 끝납니다.');
     if (c.cache === 'expired') sum.push('TTL이 지나면 다시 묻습니다. 그래도 루트 서버부터 다시 가는 것은 아닙니다. 어느 네임 서버가 그 도메인을 맡는지는 따로, 더 긴 TTL로 기억하고 있기 때문입니다.');
     if (stale) sum.push('레코드를 바꿔도 이미 캐시에 들어간 답은 TTL이 끝날 때까지 그대로 쓰입니다. 그래서 사용자마다 새 값을 받는 시점이 다르고, 늦으면 바꾸기 전의 TTL만큼 걸립니다. 서버를 옮길 계획이 있으면 미리 TTL을 짧게 줄여 두고, 옮긴 뒤에도 예전 서버를 한동안 켜 둡니다.');
-    if (c.changed && !cached) sum.push('이번에는 어느 캐시에도 예전 값이 없어서 새 값을 바로 받았습니다. 캐시의 상태를 "리졸버의 캐시에 있다"로 바꾸면, 같은 시각에 다른 사용자는 예전 값을 받는 것을 볼 수 있습니다.');
+    if (c.changed && !cached) sum.push('이번에는 어느 캐시에도 예전 값이 없어서 새 값을 바로 받았습니다.');
     sum.push({ a: 'A 레코드는 이름에 IPv4 주소를 연결합니다. 가장 기본이 되는 레코드입니다.', aaaa: 'AAAA 레코드는 이름에 IPv6 주소를 연결합니다. IPv6 주소는 128비트로 IPv4 주소(32비트)의 네 배 길이이고, 레코드의 이름도 A를 네 번 쓴 AAAA입니다. 한 이름에 A와 AAAA를 둘 다 둘 수 있습니다.', cname: 'CNAME 레코드는 이름을 주소가 아닌 다른 이름에 연결합니다. 진짜 이름을 가진 쪽(CDN이나 호스팅 회사)이 서버 주소를 바꿔도 내 레코드는 고칠 필요가 없습니다. 대신 진짜 이름으로 한 번 더 찾아야 합니다.', mx: 'MX 레코드는 그 도메인 앞으로 온 메일을 받는 서버의 이름을 알려 줍니다. 앞의 숫자는 우선순위이고, 여러 개가 있으면 숫자가 작은 서버부터 시도합니다.' }[c.q]);
     return { events: ev, summary: sum, answer: answer, path: path, cn: cn, row: [answer, st.src, st.pcq + '번', st.upq + '번' + (path.length ? ' (' + path.join(' → ') + ')' : ''), reflected] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { msgs: [], pc: [], rs: [], pcq: 0, upq: 0, ans: '', src: '' }, c = sim.c;
-    H.counters(v, [[s.pcq + '번', 'PC가 리졸버에 물은 횟수'], [s.upq + '번', '리졸버가 네임 서버에 물은 횟수']]);
     if (!last) H.text(v, '실행을 누르면 이 PC의 캐시부터 차례로 찾아봅니다.');
-    var ln = H.lanes(v), stale = sim.row[4] === '아직 예전 값';
-    H.lane(ln, '받은 답', s.ans || '아직 없음', s.ans ? (stale ? 'bad' : 'good') : 'none');
+    var ln = H.lanes(v);
     H.lane(ln, '답이 나온 곳', s.src || '아직 없음', s.src ? (s.src === '권한 있는 네임 서버' ? 'good' : 'wait') : 'none');
     var rows = function (list) { return list.length ? list.map(function (r) { return { cls: r[3] === 'TTL 지남' ? 'gone' : '', cells: [r[0], r[1], r[2], r[3]] }; }) : [{ cells: ['(비어 있음)', '', '', ''] }]; };
     H.table(v, ['이름', '종류', '값', '남은 TTL'], rows(s.pc), '이 PC의 캐시');
@@ -9040,10 +8992,9 @@ Lab.register({
       push('목적지는 인터넷의 공인 주소이고, 내 주소(' + c.ip + ')는 사설 주소입니다. 사설 주소는 인터넷에서 길을 찾아 주지 않으므로 이대로 내보내면 응답이 돌아올 수 없습니다. 그래서 게이트웨이가 보내는 쪽 주소와 포트를 자신의 공인 주소로 바꿔서 내보냅니다(NAT): ' + c.ip + ':51000 → ' + pub + ':40001.', '');
       push('게이트웨이는 바꾼 짝을 변환표에 적어 둡니다. 서버의 응답이 ' + pub + ':40001 앞으로 돌아오면 표를 보고 받는 쪽을 ' + c.ip + ':51000으로 되돌려 내 PC에 전달합니다.' + (other ? ' 같은 네트워크의 다른 기기(' + other + ')가 내보낸 것에는 다른 포트 40002를 붙이므로, 여러 기기가 공인 주소 하나를 함께 쓸 수 있습니다.' : ' 이 네트워크에는 내 PC와 게이트웨이뿐이지만, 기기가 더 있더라도 기기마다 다른 포트를 붙여 공인 주소 하나를 함께 쓰게 됩니다.'), 'good');
     } else if (!k.same) push('목적지도 사설 주소입니다. 회사 내부망처럼 사설 네트워크 여러 개가 라우터로 이어진 곳이라면, 게이트웨이는 주소를 바꾸지 않고 그대로 넘깁니다. 사설 주소는 인터넷에서는 통하지 않으므로, 이 목적지는 같은 조직의 내부망 안에 있을 때만 닿습니다.', '');
-    sum.push(c.ip + '/' + k.p + '의 네트워크 주소는 ' + netS + ', 브로드캐스트 주소는 ' + bcS + ', 쓸 수 있는 호스트는 ' + k.hosts + '개입니다. 목적지(' + c.dest + ')는 ' + (k.same ? '같은' : '다른') + ' 네트워크이고, 보내는 방법은 "' + route + '"입니다.');
     if (!k.same && a3 === d3) sum.push('두 주소가 같은 네트워크인지는 10진수의 앞자리가 아니라 서브넷 마스크가 가리는 앞 ' + k.p + '비트로 정해집니다. /24보다 긴 길이(/25, /26, /30)에서는 마지막 숫자 안에서도 네트워크가 갈립니다. 서브넷 마스크를 잘못 넣으면 바로 옆 기기에 보낼 것을 게이트웨이로 보내거나, 그 반대가 됩니다.');
     if (k.same && a3 !== d3) sum.push('/24보다 짧은 길이(/23, /16)에서는 세 번째 숫자가 달라도 같은 네트워크일 수 있습니다. 판단은 언제나 "같은 마스크를 적용한 결과가 같은가"입니다.');
-    if (k.same && a3 === d3) sum.push('같은 네트워크의 기기끼리는 게이트웨이를 거치지 않습니다. 네트워크 부분의 길이를 더 길게(예: /25, /26) 바꿔 같은 두 주소가 어떻게 갈리는지 비교해 보세요.');
+    if (k.same && a3 === d3) sum.push('같은 네트워크의 기기끼리는 게이트웨이를 거치지 않습니다.');
     if (k.hosts <= 2) sum.push('/30은 호스트 부분이 2비트뿐이라 주소 4개 가운데 2개만 쓸 수 있습니다. 라우터 두 대를 잇는 구간처럼 기기가 둘뿐인 곳에 씁니다.');
     if (nat) sum.push('10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16은 누구나 내부에서 자유롭게 쓰는 사설 주소 대역입니다. 인터넷으로 나갈 때는 게이트웨이가 NAT로 공인 주소를 빌려주며, 포트 번호로 기기를 구분하기 때문에 집 안의 여러 기기가 공인 주소 하나로 인터넷을 씁니다. 반대로 인터넷 쪽에서 먼저 내 PC로 연결을 시작할 수는 없습니다. 변환표에 짝이 없기 때문입니다.');
     if (!k.same && !nat) sum.push('NAT는 사설 주소에서 공인 주소로 나갈 때 필요합니다. 사설 주소끼리 오가는 내부망에서는 라우터가 주소를 바꾸지 않고 전달만 합니다.');
@@ -9058,10 +9009,9 @@ Lab.register({
     if (n >= 4) rows.push({ cells: ['브로드캐스트 주소', { v: S(k.bc), cls: 'hot' }, self.bin(k.bc, k.p)] });
     if (n >= 6) rows.push({ cells: ['목적지', c.dest, self.bin(k.dn, k.p)] }, { cells: ['목적지에 마스크 적용', { v: S(k.dnet), cls: k.same ? 'good' : 'bad' }, self.bin(k.dnet, k.p)] });
     H.table(v, ['무엇', '10진수', '2진수 (네트워크 부분 | 호스트 부분)'], rows, '주소를 2진수로 풀어 보기');
-    H.counters(v, [[n >= 5 ? k.hosts + '개' : '?', '쓸 수 있는 호스트 수'], [n >= 6 ? (k.same ? '같음' : '다름') : '?', '목적지의 네트워크']]);
+    H.counters(v, [[n >= 5 ? k.hosts + '개' : '?', '쓸 수 있는 호스트 수']]);
     var ln = H.lanes(v);
     H.lane(ln, '판단', n < 6 ? '아직 비교 전' : k.same ? '같은 네트워크: ' + S(k.dnet) + ' = ' + S(k.net) : '다른 네트워크: ' + S(k.dnet) + ' ≠ ' + S(k.net), n < 6 ? 'none' : k.same ? 'good' : 'wait');
-    H.lane(ln, '보내는 방법', n < 7 ? '아직 정하지 않음' : sim.route, n < 7 ? 'none' : k.same ? 'good' : 'hot');
     if (sim.nat && n >= 8) {
       var nr = [{ cells: [c.ip + ':51000', sim.pub + ':40001', c.dest + ':443'] }];
       if (n >= 9 && sim.other) nr.push({ cells: [sim.other + ':51000', sim.pub + ':40002', c.dest + ':443'] });
@@ -9083,7 +9033,7 @@ Lab.register({
     if (n >= 7 && k.same) P.arrow('send', 'me:r', 'dst:l', { cls: 'good', label: '직접' });
     if (n >= 7 && !k.same) { P.arrow('send', 'me:b', 'gw:l', { cls: 'hot', label: '맡김' }); P.arrow('fwd', 'gw:r', 'dst:b', { cls: sim.nat && n >= 8 ? 'hot' : '', label: sim.nat && n >= 8 ? 'NAT로 주소를 바꿔 전달' : '전달' }); }
     P.box('res', 16, 286, 648, 34, { cls: n < 7 ? 'ghost' : k.same ? 'good' : 'hot', title: '보내는 방법', right: n < 7 ? (n >= 6 ? (k.same ? '같은 네트워크' : '다른 네트워크') : '아직 정하지 않음') : sim.route });
-    P.note('파란 칸이 네트워크 부분, 노란 칸이 호스트 부분입니다. 목적지의 파란 칸 부분이 내 것과 같으면 같은 네트워크라서 직접 보내고, 다르면 게이트웨이에 맡깁니다. 게이트웨이의 주소는 이 예에서 네트워크의 첫 번째 주소로 두었습니다.');
+    P.note('파란 칸이 네트워크 부분, 노란 칸이 호스트 부분입니다. 게이트웨이의 주소는 이 예에서 네트워크의 첫 번째 주소로 두었습니다.');
   },
   assume: '네트워크 주소, 브로드캐스트 주소, 쓸 수 있는 호스트 수, 같은 네트워크인지의 판단은 일흔두 가지 조합을 모두 다시 계산해 대조했습니다. 대조에는 모형과 다른 세 가지 방법을 썼습니다: 화면에 보이는 비트 연산 코드를 Node.js 24에서 실행한 값, 32글자 2진수 문자열을 잘라 붙여 구한 값, 그리고 Node.js의 net.BlockList에 내 주소와 길이를 넣고 주소를 하나씩 물어 찾은 범위의 양 끝과 개수입니다. "같은 마스크를 적용한 결과가 같으면 직접, 다르면 게이트웨이로"라는 규칙은 RFC 1122 3.3.1.1절, 사설 주소 대역은 RFC 1918 3절을 따랐습니다. NAT는 이 PC에서 실행해 확인하지 못했고 RFC 3022(2.2절, 4.1절)가 설명하는 주소와 포트 변환(NAPT)을 따라 적었습니다. 공인 주소 198.51.100.7과 포트 40001, 40002, 게이트웨이를 네트워크의 첫 번째 주소로 둔 것은 설명을 위한 예입니다. 사설 주소인 목적지는 같은 조직의 내부망에 있다고 가정했습니다. 203.0.113.7은 문서용으로 예약된 주소이며 여기서는 공인 주소의 예로 썼습니다. /31과 /32처럼 "주소 2개를 뺀다"는 규칙이 맞지 않는 길이(RFC 3021)와 IPv6는 다루지 않았습니다.',
 });
@@ -9091,7 +9041,7 @@ Lab.register({
 Lab.register({
   id: 'routing', nav: '스위치와 라우터', cat: '네트워크', mode: 'step',
   title: '받는 IP는 서버인데 왜 라우터의 MAC 주소로 보내나',
-  intro: '같은 네트워크 안의 기기에게는 그 기기의 MAC 주소로 직접 보내고, 스위치가 그 주소를 보고 전달합니다. 다른 네트워크의 기기에게는 직접 닿을 수 없으므로 게이트웨이(라우터)에게 맡깁니다. 라우터를 하나 지날 때마다 프레임의 MAC 주소는 새로 쓰이지만 IP 주소는 그대로이고, TTL은 1씩 줄어듭니다. 받는 쪽을 바꿔 가며 패킷이 구간마다 어떻게 달라지는지 따라가 보세요.',
+  intro: '같은 네트워크 안의 기기에게는 그 기기의 MAC 주소로 직접 보내고, 스위치가 그 주소를 보고 전달합니다. 다른 네트워크의 기기에게는 직접 닿을 수 없으므로 게이트웨이(라우터)에게 맡깁니다. 라우터를 하나 지날 때마다 프레임의 MAC 주소는 새로 쓰이지만 IP 주소는 그대로이고, TTL은 1씩 줄어듭니다.',
   terms: ['MAC 주소와 ARP', '스위치와 라우터', '기본 게이트웨이', 'IP 패킷의 TTL', 'OSI 7계층'],
   controls: [
     { id: 'dst', label: 'PC A(192.168.1.10)가 패킷을 보내는 곳', type: 'select', value: 'c', options: [['b', '같은 네트워크의 PC B (192.168.1.20)'], ['c', '라우터 하나 건너의 서버 C (192.168.2.30)'], ['d', '라우터 둘 건너의 서버 D (192.168.3.40)']] },
@@ -9169,19 +9119,19 @@ Lab.register({
       }
     }
     var ok = st.end === 'ok', changed = frames.length - 1;
-    sum.push(ok ? to.name + '에 도착했습니다. 프레임은 ' + frames.length + '번 만들어졌고 도착했을 때의 TTL은 ' + ttl + '입니다.' : D[st.endAt].name + '에서 TTL이 0이 되어 버려졌습니다. ' + to.name + '까지 가려면 라우터 ' + (hops.length - 1) + '개를 지나야 하므로 처음 TTL이 ' + hops.length + ' 이상이어야 합니다.');
+    if (!ok) sum.push(D[st.endAt].name + '에서 TTL이 0이 되어 버려졌습니다. ' + to.name + '까지 가려면 라우터 ' + (hops.length - 1) + '개를 지나야 하므로 처음 TTL이 ' + hops.length + ' 이상이어야 합니다.');
     if (direct) sum.push('같은 네트워크 안에서는 받는 기기의 MAC 주소를 ARP로 알아내 직접 보냅니다. 스위치는 MAC 주소만 보고 전달하고, 라우터는 관여하지 않으므로 TTL도 줄지 않습니다.' + (ttl0 === 1 ? ' 그래서 TTL이 1이어도 도착합니다.' : ''));
     else sum.push('다른 네트워크로 보낼 때 PC A가 ARP로 묻는 것은 받는 기기가 아니라 게이트웨이의 MAC 주소입니다. 기본 게이트웨이 설정이 틀리면 같은 네트워크 안에서는 통신이 되는데 바깥으로는 나가지 못하는 까닭입니다.');
     if (changed > 0) sum.push('라우터를 지날 때마다 프레임은 새로 만들어져 MAC 주소가 ' + changed + '번 바뀌었습니다. 보내는 IP와 받는 IP는 처음부터 끝까지 같았습니다. MAC 주소는 한 구간 안에서만 쓰이는 주소이고, IP 주소는 출발지에서 목적지까지 쓰이는 주소입니다.');
     if (!ok) sum.push('버린 라우터가 "시간 초과"를 돌려보내는 성질을 이용한 도구가 traceroute(윈도의 tracert)입니다. TTL을 1, 2, 3으로 늘려 가며 보내서, 응답한 라우터를 차례로 적어 길을 알아냅니다.');
-    if (!cached && ok && !direct) sum.push('ARP 요청은 구간마다 한 번씩, 모두 ' + st.arpN + '번 있었습니다. 한 번 알아낸 MAC 주소는 캐시에 남으므로 이어지는 패킷은 묻지 않고 보냅니다. "ARP 캐시" 설정을 켜서 비교해 보세요.');
+    if (!cached && ok && !direct) sum.push('ARP 요청은 구간마다 한 번씩, 모두 ' + st.arpN + '번 있었습니다. 한 번 알아낸 MAC 주소는 캐시에 남으므로 이어지는 패킷은 묻지 않고 보냅니다.');
     return { events: ev, summary: sum, frames: frames.join('; '),
       row: [direct ? '같은 네트워크: 직접 보냄' : '다른 네트워크: 게이트웨이로 보냄', D[hops[0].t].name + ' (' + mac(hops[0].dm) + ')', st.arpN + '번', ok ? '도착 (TTL ' + ttl + ')' : D[st.endAt].name + '에서 버려짐 (TTL 0)', changed + '번'] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 PC A의 판단부터 한 단계씩 진행합니다.'); return; }
-    H.counters(v, [[s.arpN + '번', 'ARP 요청'], [String(s.ttl), '지금 TTL'], [s.frames.length + '개', '만들어진 프레임']]);
+    H.counters(v, [[s.arpN + '번', 'ARP 요청'], [s.frames.length + '개', '만들어진 프레임']]);
     if (s.frames.length) H.table(v, ['구간', '보내는 MAC', '받는 MAC', '보내는 IP', '받는 IP', 'TTL'], s.frames.map(function (f, k) { var cur = k === s.frames.length - 1; return { cells: [f.seg, { v: '…:' + f.sm, cls: cur ? 'hot' : '' }, { v: '…:' + f.dm, cls: cur ? 'hot' : '' }, f.sip, f.dip, String(f.ttl)] }; }), '구간마다의 프레임 (MAC 주소는 바뀌고 IP 주소는 그대로. MAC 주소는 끝의 두 자리만 적음)');
     else H.text(v, '아직 프레임을 보내지 않았습니다.');
     if (s.arpTab.length) H.table(v, ['기기', 'IP 주소', 'MAC 주소'], s.arpTab.map(function (a) { return { cells: [a.dev, a.ip, a.mac + (a.old ? ' (이미 알고 있었음)' : '')] }; }), 'ARP 캐시 (IP 주소로 알아낸 MAC 주소)');
@@ -9228,7 +9178,7 @@ Lab.register({
 Lab.register({
   id: 'socket', nav: '소켓과 포트', cat: '네트워크', mode: 'step',
   title: '한 컴퓨터의 여러 프로그램 가운데 누가 이 데이터를 받나',
-  intro: 'IP 주소는 컴퓨터 한 대까지만 찾아갑니다. 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 누가 데이터를 받을지는 포트 번호가 정합니다. 서버를 띄우는 포트와 클라이언트가 연결하는 포트를 바꿔 가며, 연결이 언제 거절되고 포트 하나에 여러 클라이언트가 어떻게 함께 붙는지 확인하세요.',
+  intro: 'IP 주소는 컴퓨터 한 대까지만 찾아갑니다. 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 누가 데이터를 받을지는 포트 번호가 정합니다.',
   terms: ['포트', '소켓', '임시 포트', 'TCP와 UDP'],
   controls: [
     { id: 'srv', label: '띄우는 서버', type: 'select', value: 'same', options: [['ab', '서버 A는 9000번, 서버 B는 9001번'], ['same', '서버 A도 9000번, 서버 B도 9000번'], ['a', '서버 A만 9000번']] },
@@ -9281,10 +9231,9 @@ Lab.register({
       push('socket.write: ' + (n > 1 ? '클라이언트 ' + n + '개가 저마다 데이터를 보냅니다. 모두 ' + to + '번 포트로 가지만, 운영체제가 보내는 포트를 보고 어느 연결의 데이터인지 가려서 서버 ' + who + '에게 연결별로 따로 넘깁니다.' : '클라이언트가 데이터를 보냅니다. 받는 포트가 ' + to + '번이므로 운영체제가 서버 ' + who + '에게 넘깁니다.') + (c.srv === 'ab' ? ' 같은 컴퓨터의 서버 ' + (who === 'A' ? 'B' : 'A') + '에게는 아무것도 가지 않습니다.' : ''), 'good');
     }
     var bRow = { ok: '성공 (9001번)', EADDRINUSE: '실패 (EADDRINUSE)', none: '띄우지 않음' }[o.b];
-    sum.push(who ? (n > 1 ? '클라이언트 ' + n + '개가 모두 연결됐고' : '클라이언트가 연결됐고') + ' 데이터는 서버 ' + who + '가 받았습니다.' : (n > 1 ? '클라이언트 ' + n + '개의 연결이 모두' : '클라이언트의 연결이') + ' 거절됐습니다(ECONNREFUSED).');
     if (c.srv === 'same') sum.push('이미 쓰이는 포트에 서버를 또 띄우면 EADDRINUSE로 실패합니다. 개발 중에 "포트가 이미 사용 중"이라는 오류를 만나면, 먼저 띄워 둔 서버가 아직 살아 있는 경우가 대부분입니다. 그 프로그램을 끝내거나 다른 포트를 씁니다.');
     if (who && n > 1) sum.push('서버 포트 하나에 클라이언트 여럿이 함께 연결됩니다. 연결이 늘어도 서버 쪽 포트는 ' + to + '번 하나뿐이고, 연결은 (보내는 IP, 보내는 포트, 받는 IP, 받는 포트) 네 값의 묶음으로 구분됩니다. 웹 서버가 443번 포트 하나로 수많은 사용자를 받는 것도 같은 원리입니다.');
-    if (who && n === 1) sum.push('클라이언트는 받는 포트만 정하고, 보내는 포트는 운영체제가 임시로 골라 줍니다. 클라이언트 수를 늘려서 보내는 포트가 어떻게 달라지는지 보세요.');
+    if (who && n === 1) sum.push('클라이언트는 받는 포트만 정하고, 보내는 포트는 운영체제가 임시로 골라 줍니다.');
     if (!who) sum.push('ECONNREFUSED는 "그 컴퓨터까지는 갔지만 그 포트를 듣는 프로그램이 없다"는 뜻입니다. 서버가 떠 있는지, 포트 번호가 맞는지를 먼저 확인합니다. 응답이 아예 없어서 기다리다 끝나는 타임아웃과는 다른 오류입니다.');
     if (c.srv === 'ab' && who) sum.push('IP 주소가 같아도 포트가 다르면 다른 프로그램입니다. 주소를 "IP:포트"로 함께 적는 이유입니다.');
     return { events: ev, summary: sum, own: o.own, who: who,
@@ -9293,12 +9242,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 서버를 띄우는 것부터 한 단계씩 진행합니다.'); return; }
-    H.table(v, ['포트', '듣고 있는 프로그램'], [9000, 9001, 9002].map(function (p) { return { cells: [p + '번', s.ports[p] ? { v: '서버 ' + s.ports[p], cls: 'good' } : '없음'] }; }), '이 컴퓨터(127.0.0.1)에서 연결을 기다리는 포트');
-    if (s.b === 'EADDRINUSE') H.text(v, '서버 B: listen(9000) 실패, EADDRINUSE');
     if (s.conns.length) H.table(v, ['클라이언트', '보내는 IP', '보내는 포트', '받는 IP', '받는 포트', '받는 프로그램'], s.conns.map(function (k) { return { cells: [String(k.c), '127.0.0.1', { v: String(k.cp), cls: 'hot' }, '127.0.0.1', String(k.sp), '서버 ' + k.who] }; }), '맺어진 연결 (네 값이 모두 같아야 같은 연결)');
-    if (s.fails.length) H.table(v, ['클라이언트', '연결하려던 포트', '결과'], s.fails.map(function (k) { return { cells: [String(k.c), k.to + '번', { v: 'ECONNREFUSED', cls: 'bad' }] }; }), '거절된 연결');
-    H.counters(v, [[s.conns.length + '개', '맺어진 연결'], [s.fails.length + '개', '거절된 연결']]);
-  },
+    if (s.fails.length) H.table(v, ['클라이언트', '연결하려던 포트', '결과'], s.fails.map(function (k) { return { cells: [String(k.c), k.to + '번', { v: 'ECONNREFUSED', cls: 'bad' }] }; }), '거절된 연결');  },
   // 그림: 왼쪽에 클라이언트들, 오른쪽에 서버 컴퓨터의 포트 세 개. 화살표가 닿는 포트에 듣는 프로그램이 있으면 연결되고 없으면 거절된다.
   draw: function (P, sim, shown) {
     var c = sim.c, n = +c.n, last = shown[shown.length - 1], s = last ? last.snap : { ports: {}, b: '', conns: [], fails: [], sent: false };
@@ -9316,7 +9261,7 @@ Lab.register({
     }
     P.box('rb', 16, 268, 320, 34, { cls: !s.b ? 'ghost' : s.b === 'ok' ? 'good' : 'bad', title: '서버 B의 listen', right: !s.b ? (c.srv === 'a' ? '띄우지 않음' : '아직') : s.b === 'ok' ? '성공' : 'EADDRINUSE' });
     P.box('rc', 344, 268, 320, 34, { cls: s.conns.length ? 'good' : s.fails.length ? 'bad' : 'ghost', title: '클라이언트의 연결', right: '성공 ' + s.conns.length + ' · 거절 ' + s.fails.length });
-    P.note('오른쪽 상자 하나가 포트 하나입니다. 포트에는 듣는 프로그램이 하나만 있을 수 있지만, 그 포트로 들어오는 연결은 여러 개일 수 있습니다. 클라이언트 쪽 보내는 포트(50001 등)는 설명을 위한 예이고, 실제로는 운영체제가 실행할 때마다 다른 번호를 골라 줍니다.');
+    P.note('오른쪽 상자 하나가 포트 하나입니다. 클라이언트 쪽 보내는 포트(50001 등)는 설명을 위한 예이고, 실제로는 운영체제가 실행할 때마다 다른 번호를 골라 줍니다.');
   },
   assume: '스물일곱 가지 조합을 이 PC(윈도, Node.js 24)의 127.0.0.1에서 net 모듈로 실제로 실행해 대조했습니다. 대조한 것은 서버 B의 listen 결과(성공 또는 EADDRINUSE), 클라이언트 연결의 성공 수와 거절 수(ECONNREFUSED), 데이터를 받은 서버, 서버가 본 연결 수, 서버 쪽 소켓의 포트가 모두 듣는 포트 하나와 같은지, 클라이언트 쪽 포트가 서로 다른지입니다. 실행에서는 9000, 9001, 9002 대신 그때 비어 있던 포트 세 개를 썼고, 클라이언트 쪽 포트 번호(화면의 50001 등)는 실행할 때마다 달라지므로 "서로 다르다"는 것만 결과로 삼았습니다. 운영체제가 임시 포트를 고르는 범위는 운영체제와 설정에 따라 다릅니다(IANA가 권하는 범위는 49152~65535, RFC 6335 6절). 연결을 양쪽의 IP 주소와 포트로 구분한다는 것은 TCP 표준(RFC 9293 4절 용어 풀이의 connection과 socket)의 정의입니다. 클라이언트를 다른 컴퓨터에 두는 경우와, 같은 포트를 여러 프로그램이 함께 쓰게 하는 특수한 소켓 옵션(SO_REUSEPORT 등)은 다루지 않았습니다.',
 });
@@ -9324,7 +9269,7 @@ Lab.register({
 Lab.register({
   id: 'udp', nav: 'TCP와 UDP', cat: '네트워크', mode: 'step',
   title: '세 번에 나눠 보낸 데이터는 세 번에 나뉘어 도착하나',
-  intro: 'TCP와 UDP는 프로그램의 데이터를 상대 프로그램까지 실어 나르는 두 가지 방식입니다. TCP는 먼저 연결을 맺고 바이트를 순서대로 빠짐없이 전하지만, 어디서 끊어 보냈는지는 전해 주지 않습니다. UDP는 연결 없이 덩어리째 그냥 보내고, 도착했는지는 책임지지 않습니다. 같은 데이터를 두 방식으로 보내 보고 받는 쪽에서 무엇이 달라지는지 확인하세요.',
+  intro: 'TCP와 UDP는 프로그램의 데이터를 상대 프로그램까지 실어 나르는 두 가지 방식입니다. TCP는 먼저 연결을 맺고 바이트를 순서대로 빠짐없이 전하지만, 어디서 끊어 보냈는지는 전해 주지 않습니다. UDP는 연결 없이 덩어리째 그냥 보내고, 도착했는지는 책임지지 않습니다.',
   terms: ['TCP와 UDP', '바이트 스트림과 데이터그램', '소켓', '포트', '3-way handshake'],
   controls: [
     { id: 'proto', label: '보내는 방식', type: 'select', value: 'tcp', options: [['tcp', 'TCP'], ['udp', 'UDP']] },
@@ -9407,27 +9352,20 @@ Lab.register({
     var q = function (a) { return a.map(function (x) { return '"' + x + '"'; }).join(', '); };
     var same = !on ? (tcp ? '아무것도 보내지 않음' : '모두 사라짐') : tcp ? '내용과 순서는 같고 경계는 사라짐' : { ok: '보낸 그대로', loss: '하나가 빠짐', reorder: '순서가 바뀜' }[net];
     var row = [tcp ? (on ? '맺음 (성공)' : '실패 (ECONNREFUSED)') : '없음', tcp ? (on ? 'write 3번 성공' : '보내지 못함') : 'send 3번 모두 오류 없음', got.length ? q(got) + ' ' + ['', '한', '두', '세'][got.length] + ' 덩어리' : '없음', same];
-    sum.push(tcp && !on ? 'TCP: 연결이 거절되어 아무것도 보내지 못했습니다.' : (tcp ? 'TCP: ' : 'UDP: ') + '보낸 것은 "AB", "CD", "EF" 세 덩어리이고, 받는 프로그램이 읽은 것은 ' + (got.length ? q(got) : '없습니다') + (got.length ? '입니다.' : '.'));
     if (tcp && on) sum.push('TCP는 바이트의 흐름(스트림)입니다. 순서와 내용은 지켜 주지만 write를 몇 번에 나눠 했는지는 전하지 않습니다. 그래서 TCP 위에서 메시지를 주고받는 프로그램은 "어디까지가 메시지 하나인지"를 스스로 정합니다. 길이를 먼저 적어 보내거나(HTTP의 Content-Length), 줄바꿈 같은 구분 글자를 씁니다.');
     if (tcp && on && net === 'ok') sum.push('이 실습은 받는 프로그램이 늦게 읽는 경우입니다. 도착하자마자 읽으면 보낸 대로 세 번에 나뉘어 읽히기도 하지만, 그렇게 된다는 보장은 없습니다. "write 한 번이 read 한 번"이라고 가정한 코드는 내 컴퓨터에서는 돌다가 실제 환경에서 깨집니다.');
     if (tcp && on && net !== 'ok') sum.push('TCP에서는 가는 길에 사라지거나 순서가 바뀌어도 운영체제가 번호와 확인 응답으로 바로잡은 뒤에 프로그램에 넘깁니다. 프로그램이 읽는 결과는 아무 일 없을 때와 같습니다. 그 대신 빈자리가 채워질 때까지 뒤에 온 데이터도 기다려야 합니다. 재전송의 자세한 과정은 "TCP 연결과 재전송" 실습에서 볼 수 있습니다. 이 경우는 이 PC에서 일부러 만들 수 없어 실행으로 확인하지 못했고, TCP 표준의 설명을 따랐습니다.');
-    if (tcp && !on) sum.push('TCP는 연결을 맺는 단계에서 상대가 없다는 것을 알게 됩니다. 같은 상황에서 UDP는 어떻게 되는지 방식을 바꿔 비교해 보세요.');
-    if (!tcp && on && net === 'ok') sum.push('UDP는 보낸 덩어리(데이터그램)의 경계를 지킵니다. send 한 번이 받는 쪽의 message 한 번입니다. 다만 이것은 가는 길에 아무 일이 없었을 때의 이야기입니다. 유실이나 순서 바뀜을 설정해 보세요.');
+    if (tcp && !on) sum.push('TCP는 연결을 맺는 단계에서 상대가 없다는 것을 알게 됩니다.');
+    if (!tcp && on && net === 'ok') sum.push('UDP는 보낸 덩어리(데이터그램)의 경계를 지킵니다. send 한 번이 받는 쪽의 message 한 번입니다. 다만 이것은 가는 길에 아무 일이 없었을 때의 이야기입니다.');
     if (!tcp && on && net !== 'ok') sum.push('UDP는 빠진 것을 다시 보내지 않고 순서도 맞춰 주지 않습니다. 필요하면 프로그램이 직접 번호를 붙이고 확인하고 다시 보내야 합니다. HTTP/3이 쓰는 QUIC이 UDP 위에 그런 기능을 직접 만든 예입니다.');
     if (!tcp && !on) sum.push('UDP의 send가 성공했다는 것은 운영체제가 데이터그램을 내보냈다는 뜻일 뿐입니다. 상대 프로그램이 없어도, 가는 길에 사라져도 보내는 쪽은 알지 못합니다.');
     sum.push(tcp ? 'TCP는 하나라도 빠지거나 순서가 바뀌면 안 되는 곳에 씁니다. 웹(HTTP/1.1, HTTP/2), DB 연결, 파일 전송, 메일이 TCP 위에서 동작합니다.' : 'UDP는 조금 빠져도 괜찮고 늦게 오는 것이 더 곤란한 곳, 또는 짧게 한 번 묻고 답하는 곳에 씁니다. 실시간 음성과 영상, 게임, DNS 조회가 대표적입니다.');
     return { events: ev, summary: sum, row: row };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, tcp = sim.c.proto === 'tcp', P = this.PARTS;
+    var last = shown[shown.length - 1], s = last ? last.snap : null, P = this.PARTS;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '연결', { ok: '맺어짐 (3-way handshake)', fail: '실패 (ECONNREFUSED)', none: '없음 (UDP는 연결하지 않음)' }[s.conn], s.conn === 'ok' ? 'good' : s.conn === 'fail' ? 'bad' : 'none');
     H.table(v, ['보낸 것', '어떻게 됐나'], P.map(function (x, i) { var z = s.sent[i]; return { cells: ['"' + x + '"', z === 0 ? '아직 보내지 않음' : z === 1 ? { v: '받는 쪽 운영체제에 도착', cls: 'good' } : z === 2 ? { v: '사라짐', cls: 'bad' } : { v: '가는 중 (늦어짐)', cls: 'hot' }] }; }), '보내는 쪽이 보낸 세 덩어리');
-    H.text(v, tcp ? '받는 쪽 운영체제의 수신 버퍼 (바이트가 한 줄로 이어짐)' : '받는 쪽 운영체제의 수신 버퍼 (데이터그램이 하나씩 따로)');
-    H.slots(v, s.buf.map(function (x) { return [x, 'q']; }).concat(s.held ? [[s.held + ' (앞이 비어 보관 중)', 'b']] : []), '비어 있음');
-    H.text(v, '받는 프로그램이 읽은 것 (칸 하나가 읽기 한 번)');
-    H.slots(v, s.read.map(function (x) { return [x, 'd']; }), '아직 읽지 않음');
   },
   // 그림: 왼쪽은 보내는 프로그램이 보낸 세 덩어리, 가운데는 받는 쪽 운영체제의 수신 버퍼, 오른쪽은 받는 프로그램이 읽은 것. TCP는 가운데에서 한 줄로 합쳐지고 UDP는 따로 남는다.
   draw: function (P, sim, shown) {
@@ -9468,7 +9406,7 @@ Lab.register({
 Lab.register({
   id: 'congestion', nav: '흐름 제어와 혼잡 제어', cat: '네트워크', mode: 'step',
   title: 'TCP는 한 번에 얼마나 보낼지를 어떻게 정하나',
-  intro: 'TCP는 보낼 데이터가 많아도 한꺼번에 쏟아 보내지 않습니다. 받는 쪽이 감당할 수 있는 양(수신 윈도)과 네트워크가 감당할 수 있다고 짐작한 양(혼잡 윈도) 가운데 작은 쪽까지만 보냅니다. 앞의 것을 지키는 일이 흐름 제어, 뒤의 것을 조절하는 일이 혼잡 제어입니다. 열두 번의 왕복 동안 보내는 양이 어떻게 늘고 줄어드는지 확인하세요.',
+  intro: 'TCP는 보낼 데이터가 많아도 한꺼번에 쏟아 보내지 않습니다. 받는 쪽이 감당할 수 있는 양(수신 윈도)과 네트워크가 감당할 수 있다고 짐작한 양(혼잡 윈도) 가운데 작은 쪽까지만 보냅니다. 앞의 것을 지키는 일이 흐름 제어, 뒤의 것을 조절하는 일이 혼잡 제어입니다.',
   terms: ['흐름 제어와 혼잡 제어', '수신 윈도와 혼잡 윈도', '느린 시작과 혼잡 회피', 'TCP와 UDP'],
   controls: [
     { id: 'loss', label: '가는 길에 생기는 일', type: 'select', value: 'dup', options: [['none', '유실 없음'], ['dup', '한 조각이 사라짐 (같은 ACK 세 번으로 알아챔)'], ['rto', '보낸 것이 모두 사라짐 (타임아웃으로 알아챔)']] },
@@ -9537,12 +9475,11 @@ Lab.register({
       push(head + tail, o.phase === 'ca' ? 'good' : '');
     });
     var flights = R.map(function (o) { return o.flight; });
-    sum.push('열두 번의 왕복 동안 ' + total + '조각을 보냈습니다. 왕복마다 보낸 양: ' + flights.join(', ') + '.');
     if (hit && c.loss === 'dup') sum.push('같은 ACK 세 번으로 유실을 알아채면 문턱값과 혼잡 윈도를 보낸 양의 절반(' + hit.nextSsth + '조각)으로 줄이고 거기서부터 하나씩 다시 늘립니다. 늘렸다가 유실을 만나면 줄이기를 되풀이하므로, 보내는 양을 그리면 톱니 모양이 됩니다.');
     if (hit && c.loss === 'rto') sum.push('타임아웃으로 유실을 알아채면 혼잡 윈도를 1조각으로 되돌립니다. 문턱값(' + hit.nextSsth + '조각)까지는 다시 두 배씩 늘고 그 뒤로는 하나씩 늡니다. 같은 유실을 같은 ACK 세 번으로 알아챘다면 열두 번 동안 ' + this.rounds({ loss: 'dup', at: c.at, ssth: c.ssth, rwnd: c.rwnd }).reduce(function (a, o) { return a + o.flight; }, 0) + '조각을 보냈을 것입니다. 타임아웃 쪽이 더 크게 물러섭니다.');
     if (!hit) sum.push('유실이 없으면 느린 시작으로 문턱값까지 빠르게 올라간 뒤 혼잡 회피로 조금씩 계속 늘립니다. 보내는 쪽은 네트워크의 한계를 미리 알 수 없으므로, 유실이 생길 때까지 늘려 보는 방법으로 한계를 찾습니다.');
     if (capped) sum.push('수신 윈도가 혼잡 윈도보다 작았던 왕복이 ' + capped + '번입니다. 그때는 혼잡 윈도가 아무리 커도 수신 윈도만큼만 보냈습니다. 흐름 제어는 받는 쪽을, 혼잡 제어는 그 사이의 네트워크를 넘치지 않게 하는 서로 다른 장치이고, 실제로 보내는 양은 둘 가운데 작은 쪽이 정합니다.');
-    else sum.push('이 설정에서는 수신 윈도가 늘 넉넉해서 보내는 양을 혼잡 윈도가 정했습니다. 수신 윈도를 6조각으로 줄여 보면 받는 쪽이 한계가 되는 경우를 볼 수 있습니다.');
+    else sum.push('이 설정에서는 수신 윈도가 늘 넉넉해서 보내는 양을 혼잡 윈도가 정했습니다.');
     if (hit && hit.capped) sum.push('유실 뒤의 문턱값은 혼잡 윈도(' + hit.cwnd + '조각)의 절반이 아니라 실제로 보내 놓은 양(' + hit.flight + '조각)의 절반입니다. 수신 윈도에 막혀 있던 동안에는 혼잡 윈도만큼 보내 본 적이 없기 때문입니다.');
     return { events: ev, summary: sum, R: R, top: Math.max.apply(null, R.map(function (o) { return o.cwnd; })),
       row: [flights.join(' '), hit ? hit.nextSsth + '조각' : '유실 없음', hit ? hit.nextCwnd + '조각' : '유실 없음', total + '조각', capped + '번'] };
@@ -9550,8 +9487,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 왕복 한 번씩 진행합니다. 조각은 TCP가 한 번에 실어 보내는 데이터 한 덩어리(세그먼트)입니다.'); return; }
-    var cur = s.rows[s.rows.length - 1];
-    H.counters(v, [[s.cwnd + '조각', '혼잡 윈도 (다음 왕복)'], [s.ssth + '조각', '문턱값'], [cur.rwnd + '조각', '수신 윈도'], [cur.flight + '조각', '이번 왕복에 보낸 양']]);
+    H.counters(v, [[s.cwnd + '조각', '혼잡 윈도 (다음 왕복)']]);
     var name = { ss: '느린 시작', ca: '혼잡 회피', loss: '유실' };
     H.table(v, ['왕복', '단계', '혼잡 윈도', '수신 윈도', '보낸 양', '문턱값'], s.rows.map(function (r) { return { cells: [String(r.r), { v: name[r.phase], cls: r.phase === 'loss' ? 'bad' : r.phase === 'ca' ? 'good' : '' }, String(r.cwnd), String(r.rwnd), { v: String(r.flight), cls: r.capped ? 'hot' : '' }, String(r.ssth)] }; }), '왕복마다의 값 (노란 칸은 수신 윈도에 막힌 양)');
   },
@@ -9666,7 +9602,7 @@ Lab.register({
 Lab.register({
   id: 'redirect', nav: '리다이렉션', cat: 'HTTP', mode: 'step',
   title: '"다른 주소로 가라"는 응답을 받으면 다음 요청은 어떻게 나가나',
-  intro: '서버는 요청을 직접 처리하는 대신 3xx 상태 코드와 Location 헤더로 "이 주소로 다시 요청하라"고 안내할 수 있습니다. 이것을 리다이렉션이라고 합니다. 301, 302, 303, 307, 308은 모두 같은 안내처럼 보이지만, 영구인지 임시인지와 다음 요청의 메서드가 유지되는지가 다릅니다. 상태 코드와 요청 메서드를 바꿔 가며 두 번째 요청이 어떤 모양으로 나가는지 보세요.',
+  intro: '서버는 요청을 직접 처리하는 대신 3xx 상태 코드와 Location 헤더로 "이 주소로 다시 요청하라"고 안내할 수 있습니다. 이것을 리다이렉션이라고 합니다. 301, 302, 303, 307, 308은 모두 같은 안내처럼 보이지만, 영구인지 임시인지와 다음 요청의 메서드가 유지되는지가 다릅니다.',
   terms: ['리다이렉션과 Location 헤더', 'PRG 패턴(Post/Redirect/Get)', 'HTTP 상태 코드', 'HTTP 메서드', '안전한 메서드와 멱등한 메서드'],
   controls: [
     { id: 'code', label: '서버가 응답하는 상태 코드', type: 'select', value: '302', options: [['301', '301 Moved Permanently'], ['302', '302 Found'], ['303', '303 See Other'], ['307', '307 Temporary Redirect'], ['308', '308 Permanent Redirect']] },
@@ -9741,7 +9677,6 @@ Lab.register({
       push('클라이언트가 스스로 멈춥니다. fetch는 20번 따라간 뒤 "redirect count exceeded" 오류를 내고, curl은 50번 따라간 뒤 "Maximum (50) redirects followed" 오류를 냅니다. 그때까지 서버에는 각각 21번, 51번의 요청이 도착했습니다.', 'bad');
       count = 'fetch 21번, curl 51번'; end = '오류로 멈춤 (fetch는 20번, curl은 50번 따라간 뒤)';
     }
-    sum.push(line + ' 응답의 뜻은 "' + K.kind + '"입니다. 두 번째 요청은 ' + next + '로 나갔고, ' + (loop ? '두 주소가 서로를 가리켜 클라이언트가 오류를 내고 멈췄습니다.' : '서버에 도착한 요청은 모두 2번입니다.'));
     if (nx.toGet && c.code !== '303') sum.push('301과 302에서 POST가 GET으로 바뀌는 것은 표준이 "그래도 된다"고 허용한 동작인데, 브라우저를 비롯한 대부분의 클라이언트가 그렇게 합니다. 이때 본문이 사라집니다. POST를 그대로 새 주소로 넘기려면 307(임시)이나 308(영구)을 씁니다.');
     if (c.code === '303') sum.push(hasBody ? '303은 폼을 보낸 뒤 결과 화면으로 넘길 때 씁니다. 두 번째 요청이 GET이므로 사용자가 새로 고침을 눌러도 폼이 다시 전송되지 않습니다. 이 방식을 PRG(Post/Redirect/Get)라고 부릅니다.' : '303은 주로 POST 뒤에 "결과는 이 주소에서 GET으로 보라"고 안내할 때 씁니다. 처음부터 GET이었다면 302나 307과 결과가 같습니다.');
     if ((c.code === '307' || c.code === '308') && hasBody) sum.push('307과 308은 메서드와 본문을 바꾸지 않는다는 것을 보장하려고 뒤에 추가된 코드입니다. 307은 302의, 308은 301의 "메서드 유지" 판입니다.');
@@ -9754,7 +9689,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, CODES = this.CODES;
     if (!s) { H.text(v, '실행을 누르면 요청과 응답이 하나씩 오갑니다.'); return; }
-    H.counters(v, [[s.n + (typeof s.n === 'number' ? '번' : ''), '서버에 도착한 요청'], [s.msgs.length > 3 ? sim.next : '?', '두 번째 요청'], [s.done || '진행 중', '끝난 모습']]);
+    H.counters(v, [[s.n + (typeof s.n === 'number' ? '번' : ''), '서버에 도착한 요청']]);
     H.table(v, ['누가', '보낸 것', '뜻'], s.msgs.map(function (m) { return { cells: [m.f === '*' ? '양쪽' : m.f === 'c' ? (m.t ? '클라이언트 → 서버' : '클라이언트') : '서버 → 클라이언트', { v: m.s, cls: m.cls === 'bad' ? 'bad' : m.cls === 'good' ? 'good' : '' }, m.mean] }; }), '클라이언트와 서버 사이');
     H.table(v, ['코드', '종류', '표준이 정한 메서드 처리'], ['301', '302', '303', '307', '308'].map(function (k) { var X = CODES[k]; return { cells: [{ v: k + ' ' + X.name, cls: k === c.code ? 'hot' : '' }, X.kind, X.rule] }; }), '리다이렉션 상태 코드 다섯 가지');
   },
