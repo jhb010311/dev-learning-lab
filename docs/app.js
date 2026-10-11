@@ -22559,7 +22559,7 @@ Lab.site({
 });
 Lab.curriculum([
   { id: 'java', name: 'Java', desc: '문법부터 객체 지향, 컬렉션, 스레드, JVM까지. 코드가 실행될 때 안에서 무슨 일이 일어나는지를 봅니다.',
-    refs: ['자바의 정석 3판(남궁성)', '이펙티브 자바 3판(조슈아 블로크)', '모던 자바 인 액션', 'JVM 밑바닥까지 파헤치기(저우즈밍)'],
+    refs: ['자바의 정석 3판', '이펙티브 자바 3판', '모던 자바 인 액션', 'JVM 밑바닥까지 파헤치기'],
     groups: [
       { name: '기본 문법', items: [
         { id: 'vars' },
@@ -22619,7 +22619,7 @@ Lab.curriculum([
       ] },
     ] },
   { id: 'spring', name: 'Spring', desc: '컨테이너와 의존성 주입, AOP와 트랜잭션, 웹 요청이 처리되는 길, 스프링 부트가 대신 해 주는 일을 봅니다.',
-    refs: ['토비의 스프링 3.1(이일민)', '스프링 부트 핵심 가이드(장정우)', '김영한의 스프링 로드맵(강의 차례)'],
+    refs: ['토비의 스프링 3.1', '스프링 부트 핵심 가이드', '인프런 스프링 로드맵(강의 차례)'],
     groups: [
       { name: 'IoC 컨테이너와 DI', items: [
         { id: 'ioc' },
@@ -22654,7 +22654,7 @@ Lab.curriculum([
       ] },
     ] },
   { id: 'jpa', name: 'JPA', desc: '객체를 테이블에 저장한다는 것이 무엇인지, 영속성 컨텍스트와 연관관계, 지연 로딩, 쿼리가 언제 몇 번 나가는지를 봅니다.',
-    refs: ['자바 ORM 표준 JPA 프로그래밍(김영한)', '김영한의 JPA 로드맵(강의 차례)', 'Hibernate ORM 사용자 가이드'],
+    refs: ['자바 ORM 표준 JPA 프로그래밍', '인프런 JPA 로드맵(강의 차례)', 'Hibernate ORM 사용자 가이드'],
     groups: [
       { name: '시작', items: [
         { id: 'ormwhy' },
@@ -22691,7 +22691,7 @@ Lab.curriculum([
       ] },
     ] },
   { id: 'db', name: 'DB', desc: '테이블 설계와 SQL, 인덱스와 실행 계획, 트랜잭션과 잠금, 복제와 분산까지. 데이터가 저장되고 조회되는 과정을 봅니다.',
-    refs: ['Real MySQL 8.0(백은빈, 이성욱)', 'SQL 레벨업(미크)', '데이터베이스 개론(김연희)', '데이터 중심 애플리케이션 설계(마틴 클레프만)'],
+    refs: ['Real MySQL 8.0', 'SQL 레벨업', '데이터베이스 개론', '데이터 중심 애플리케이션 설계'],
     groups: [
       { name: '관계형 모델과 설계', items: [
         { id: 'constraints' },
@@ -22727,7 +22727,7 @@ Lab.curriculum([
       ] },
     ] },
   { id: 'network', name: '네트워크', desc: '주소를 입력한 뒤 응답이 오기까지. DNS, TCP, HTTP, TLS와 그 사이에 놓인 장비들을 봅니다.',
-    refs: ['성공과 실패를 결정하는 1%의 네트워크 원리(Tsutomu Tone)', 'HTTP 완벽 가이드', '모두의 네트워크 기초(서지영)', 'Computer Networking: A Top-Down Approach(Kurose, Ross)'],
+    refs: ['성공과 실패를 결정하는 1%의 네트워크 원리', 'HTTP 완벽 가이드', '모두의 네트워크 기초', 'Computer Networking: A Top-Down Approach'],
     groups: [
       { name: '큰 그림', items: [
         { id: 'journey' },
@@ -22759,7 +22759,7 @@ Lab.curriculum([
       ] },
     ] },
   { id: 'sec', name: '보안', desc: '누구인지 확인하는 인증, 무엇을 할 수 있는지 정하는 인가, 웹 공격과 방어, 암호 기술을 봅니다.',
-    refs: ['OWASP Top 10:2025', '스프링 시큐리티 인 액션(로렌티우 스필카)', '웹 개발자를 위한 웹 보안(말콤 맥도널드)', 'RFC 6749(OAuth 2.0)', 'RFC 7519(JWT)'],
+    refs: ['OWASP Top 10:2025', '스프링 시큐리티 인 액션', '웹 개발자를 위한 웹 보안', 'RFC 6749(OAuth 2.0)', 'RFC 7519(JWT)'],
     groups: [
       { name: '인증', items: [
         { id: 'auth' }, { id: 'cookie' }, { id: 'pwhash' },
