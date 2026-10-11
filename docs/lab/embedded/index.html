@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>값 타입과 임베디드 타입: 주소를 묶은 클래스는 테이블에 어떻게 저장되고, 왜 불변으로 만드나 · 개발 학습 실습실</title>
-<meta name="description" content="도시와 거리처럼 늘 함께 다니는 값은 Address 같은 클래스로 묶어 두면 다루기 쉽습니다. 이런 클래스는 id가 없고 들어 있는 값이 전부여서 값 타입이라고 부릅니다. 값 타입은 엔티티와 달리 자기 테이블을 갖지 않고, 그것을 가진 엔티티에 얹혀서 저장됩니다. 여기에서 생…">
+<meta name="description" content="도시와 거리처럼 늘 함께 다니는 값은 Address 같은 클래스로 묶어 두면 다루기 쉽습니다. 이런 클래스는 id가 없고 들어 있는 값이 전부여서 값 타입이라고 부릅니다. 값 타입은 엔티티와 달리 혼자서는 저장되지 않고, 그것을 가진 엔티티에 딸려서 저장됩니다. 값 하나는 엔…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/embedded/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/embedded/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/embedded/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="값 타입과 임베디드 타입: 주소를 묶은 클래스는 테이블에 어떻게 저장되고, 왜 불변으로 만드나 · 개발 학습 실습실">
-<meta property="og:description" content="도시와 거리처럼 늘 함께 다니는 값은 Address 같은 클래스로 묶어 두면 다루기 쉽습니다. 이런 클래스는 id가 없고 들어 있는 값이 전부여서 값 타입이라고 부릅니다. 값 타입은 엔티티와 달리 자기 테이블을 갖지 않고, 그것을 가진 엔티티에 얹혀서 저장됩니다. 여기에서 생…">
+<meta property="og:description" content="도시와 거리처럼 늘 함께 다니는 값은 Address 같은 클래스로 묶어 두면 다루기 쉽습니다. 이런 클래스는 id가 없고 들어 있는 값이 전부여서 값 타입이라고 부릅니다. 값 타입은 엔티티와 달리 혼자서는 저장되지 않고, 그것을 가진 엔티티에 딸려서 저장됩니다. 값 하나는 엔…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/embedded/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=d6d9d3a829">
+<link rel="stylesheet" href="../../app.css?v=f8d2d8a24c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 엔티티 매핑</p>
 <h1>값 타입과 임베디드 타입</h1>
 <p><b>주소를 묶은 클래스는 테이블에 어떻게 저장되고, 왜 불변으로 만드나</b></p>
-<p>도시와 거리처럼 늘 함께 다니는 값은 Address 같은 클래스로 묶어 두면 다루기 쉽습니다. 이런 클래스는 id가 없고 들어 있는 값이 전부여서 값 타입이라고 부릅니다. 값 타입은 엔티티와 달리 자기 테이블을 갖지 않고, 그것을 가진 엔티티에 얹혀서 저장됩니다. 여기에서 생기는 세 가지 장면을 봅니다. 테이블이 어떤 모양이 되는지, 같은 값 객체를 두 엔티티가 함께 쓰면 무슨 일이 생기는지, 값 타입을 여러 개 담은 컬렉션을 고치면 어떤 SQL이 나가는지입니다.</p>
+<p>도시와 거리처럼 늘 함께 다니는 값은 Address 같은 클래스로 묶어 두면 다루기 쉽습니다. 이런 클래스는 id가 없고 들어 있는 값이 전부여서 값 타입이라고 부릅니다. 값 타입은 엔티티와 달리 혼자서는 저장되지 않고, 그것을 가진 엔티티에 딸려서 저장됩니다. 값 하나는 엔티티의 테이블에 컬럼으로 들어가고, 여러 개를 담은 컬렉션은 그 엔티티의 id를 외래 키로 가진 별도 테이블에 들어갑니다. 여기에서 생기는 세 가지 장면을 봅니다. 테이블이 어떤 모양이 되는지, 같은 값 객체를 두 엔티티가 함께 쓰면 무슨 일이 생기는지, 값 타입을 여러 개 담은 컬렉션을 고치면 어떤 SQL이 나가는지입니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 쉰여섯 가지 조합을 실행해 테이블, 나간 SQL, 남은 값, 시작할 때의 예외를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -185,6 +185,6 @@ member1.getAddress().setCity(&quot;부산&quot;);
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=d6d9d3a829"></script>
+<script src="../../app.js?v=f8d2d8a24c"></script>
 </body>
 </html>

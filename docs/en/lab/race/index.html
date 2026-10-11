@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b1476e72c4">
+<link rel="stylesheet" href="../../app.css?v=a06cbaab2c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
 <h1>Race condition</h1>
 <p><b>Why does count++ lose increments?</b></p>
-<p>Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost.</p>
+<p>Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost. A situation like this, where the result depends on the order in which the threads run, is called a race condition.</p>
 <p>Checked against real execution · The same code was run on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -82,7 +82,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Increments lost: 3. Another thread cut in between the read and the write of one thread, so a result computed from a stale value overwrote the newer one.</li>
+<li>Increments lost: 3. Another thread cut in between the read and the write of one thread, so a result computed from a stale value overwrote the newer one. This is a race condition: the result depends on the order in which the threads happen to run.</li>
 </ul>
 <h2>Code</h2>
 <pre>static int count = 0;
@@ -182,6 +182,6 @@ for (int t = 0; t &lt; 2; t++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b1476e72c4"></script>
+<script src="../../app.js?v=a06cbaab2c"></script>
 </body>
 </html>

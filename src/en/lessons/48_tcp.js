@@ -1,7 +1,7 @@
 Lab.register({
   id: 'tcp', nav: 'TCP connections and retransmission', cat: 'Networking', mode: 'step',
   title: 'When a packet is lost, who notices and sends it again?',
-  intro: 'TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure.',
+  intro: 'TCP establishes a connection before it sends data, and it receives acknowledgments that tell it how far the data has been received. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure.',
   terms: ['TCP and UDP', 'Three-way handshake', 'Flow control and congestion control'], ranks: ['network', 'os'],
   controls: [
     { id: 'proto', label: 'Protocol', type: 'select', value: 'tcp', options: [['tcp', 'TCP'], ['udp', 'UDP']] },

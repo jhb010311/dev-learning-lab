@@ -1,7 +1,7 @@
 Lab.register({
   id: 'k8s', nav: '쿠버네티스 자가 치유', cat: '배포와 운영', mode: 'step',
   title: '컨테이너가 죽으면 누가 다시 띄우나',
-  intro: '쿠버네티스에는 "이 애플리케이션을 3개 띄워 둬라"처럼 원하는 상태를 적어 둡니다. 쿠버네티스는 실제 상태를 계속 지켜보다가 원하는 상태와 달라지면 스스로 맞춥니다.',
+  intro: '쿠버네티스에는 "이 애플리케이션을 3개 띄워 둬라"처럼 원하는 상태를 적어 둡니다. 쿠버네티스는 실제 상태를 계속 지켜보다가 원하는 상태와 달라지면 스스로 맞춥니다. 죽은 Pod를 사람이 손대지 않아도 새것으로 바꿔 놓는 이런 동작을 자가 치유라고 합니다.',
   terms: ['Kubernetes', 'Pod, Deployment, Service', '헬스 체크(Liveness, Readiness)', '오토스케일링', '컨테이너와 이미지'], ranks: ['container', 'deploy', 'cloud'],
   controls: [
     { id: 'what', label: '일어나는 일', type: 'select', value: 'kill', options: [['kill', 'Pod 하나가 갑자기 죽는다'], ['node', '노드(서버) 한 대가 통째로 죽는다'], ['scale', '복제본 수를 3에서 5로 바꾼다'], ['hang', '애플리케이션이 멈췄다 (프로세스는 살아 있음)'], ['notready', '애플리케이션이 잠시 요청을 받을 수 없다 (DB 연결 끊김)']] },
@@ -27,7 +27,7 @@ Lab.register({
       push('컨트롤러가 상태를 비교합니다. 원하는 수 3, 실제 2. 하나가 모자랍니다. 누가 알려 주지 않아도 이 비교는 계속 반복되고 있습니다.', '');
       pods[1] = { n: 'shop-d', node: '노드 1', st: '시작 중', svc: false }; push('새 Pod shop-d를 만듭니다. 스케줄러가 여유 있는 노드를 골라 배치하고, 그 노드의 kubelet이 컨테이너를 띄웁니다. 죽은 Pod를 살리는 것이 아니라 새것으로 교체합니다.', '');
       pods[1].st = '실행 중'; pods[1].svc = true; push('shop-d가 준비 상태 검사(readiness)를 통과했습니다. Service가 요청을 보내기 시작합니다. 다시 3개입니다.', 'good');
-      did = '새 Pod 1개 생성'; sum.push('Pod는 언제든 죽고 교체될 수 있는 일회용으로 다룹니다. 그래서 Pod 안에 상태(파일, 세션)를 두면 안 되고, Pod의 IP 대신 Service의 고정된 이름으로 접근합니다.');
+      did = '새 Pod 1개 생성'; sum.push('사람이 손대지 않았는데 Pod가 다시 3개가 됐습니다. 이것이 자가 치유입니다. Pod는 언제든 죽고 교체될 수 있는 일회용으로 다룹니다. 그래서 Pod 안에 상태(파일, 세션)를 두면 안 되고, Pod의 IP 대신 Service의 고정된 이름으로 접근합니다.');
     }
     if (c.what === 'node') {
       pods[1].st = '죽음'; pods[1].svc = false; pods[2].st = '죽음'; pods[2].svc = false; push('노드 2가 통째로 꺼졌습니다. 그 위에 있던 shop-b, shop-c와 연락이 끊깁니다. 남은 것은 노드 1의 shop-a 하나입니다.', 'bad');

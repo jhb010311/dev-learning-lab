@@ -1,7 +1,7 @@
 Lab.register({
   id: 'loops', nav: 'Conditionals and loops', cat: 'Java language', mode: 'step',
   title: 'How many times does a loop run, and where does it stop?',
-  intro: 'A loop repeats "check the condition → body → change the value" until the condition becomes false. Whether you write < or <= in the condition changes the number of iterations by one, and break and continue cut that flow short or skip part of it. switch is a statement that jumps to the case whose value matches, and if there is no break, execution continues into the cases below.',
+  intro: 'A loop repeats "check the condition → body → change the value" until the condition becomes false. Whether you write < or <= in the condition changes the number of iterations by one, and break and continue cut that flow short or skip part of it. switch is a conditional statement: like if, it chooses what to run based on a value. It jumps to the case whose value matches, and if there is no break, execution continues into the cases below.',
   terms: ['for statement and while statement', 'break and continue', 'switch statement and fall through'],
   controls: [
     { id: 'stmt', label: 'Statement', type: 'select', value: 'for', options: [['for', 'for statement'], ['while', 'while statement'], ['swc', 'switch (a break in every case)'], ['swf', 'switch (no break)'], ['swa', 'switch (arrow ->)']] },

@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TCP 연결과 재전송: 패킷이 사라지면 누가 알아채고 다시 보내나 · 개발 학습 실습실</title>
-<meta name="description" content="TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.">
+<meta name="description" content="TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터를 어디까지 받았는지 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/tcp/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/tcp/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tcp/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="TCP 연결과 재전송: 패킷이 사라지면 누가 알아채고 다시 보내나 · 개발 학습 실습실">
-<meta property="og:description" content="TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.">
+<meta property="og:description" content="TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터를 어디까지 받았는지 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/tcp/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=d6d9d3a829">
+<link rel="stylesheet" href="../../app.css?v=f8d2d8a24c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 전송 계층</p>
 <h1>TCP 연결과 재전송</h1>
 <p><b>패킷이 사라지면 누가 알아채고 다시 보내나</b></p>
-<p>TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.</p>
+<p>TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터를 어디까지 받았는지 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.</p>
 <p>문서·표준 대조 · TCP 표준(RFC 9293)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -158,6 +158,6 @@ socket.close();                                // 연결 종료</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=d6d9d3a829"></script>
+<script src="../../app.js?v=f8d2d8a24c"></script>
 </body>
 </html>

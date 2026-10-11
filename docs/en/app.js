@@ -819,7 +819,7 @@ Lab.register({
 Lab.register({
   id: 'race', nav: 'Race condition', cat: 'Concurrency', mode: 'step',
   title: 'Why does count++ lose increments?',
-  intro: 'Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost.',
+  intro: 'Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost. A situation like this, where the result depends on the order in which the threads run, is called a race condition.',
   terms: ['Race condition', 'Critical section and mutual exclusion', 'synchronized', 'volatile', 'Visibility', 'Atomicity and CAS (compare-and-swap)', 'Thread safety'], ranks: ['javasync', 'concurrency'],
   controls: [
     { id: 'threads', label: 'Number of threads', type: 'range', min: 2, max: 4, value: 2, fmt: function (v) { return v + ' threads'; } },
@@ -893,7 +893,7 @@ Lab.register({
       }
     }
     var expect = c.threads * c.loops, sum = [];
-    if (lost > 0) sum.push('Increments lost: ' + lost + '. Another thread cut in between the read and the write of one thread, so a result computed from a stale value overwrote the newer one.');
+    if (lost > 0) sum.push('Increments lost: ' + lost + '. Another thread cut in between the read and the write of one thread, so a result computed from a stale value overwrote the newer one. This is a race condition: the result depends on the order in which the threads happen to run.');
     if (c.sync === 'volatile') sum.push('volatile only makes a value written by another thread visible. It does not combine the three steps of read, add, and write into one, so the result is the same as with no synchronization.');
     if (c.sync === 'sync') sum.push('Only one thread at a time can be inside the synchronized block, so the three steps were never broken up. In return, other threads had to wait. Number of waits: ' + waits + '.');
     if (c.sync === 'atomic') sum.push('AtomicInteger does not acquire a lock. Instead, it follows the rule "write only if the value is still the one I read" (CAS), so if another thread changed the value first, it does not overwrite it and tries again.');
@@ -4575,7 +4575,7 @@ Lab.register({
 Lab.register({
   id: 'embedded', nav: 'Value types and embeddable types', cat: 'JPA', mode: 'step',
   title: 'How is a class that groups an address stored in a table, and why make it immutable?',
-  intro: 'Values that always go together, such as a city and a street, are easier to handle when you group them in a class like Address. A class like this has no id, and the values it holds are all there is to it, so it is called a value type. Unlike an entity, a value type does not have its own table. It is stored as part of the entity that holds it. Here you see three scenes: what shape the table takes, what happens when two entities share the same Address object, and what SQL is sent when you change a collection that holds several value types.',
+  intro: 'Values that always go together, such as a city and a street, are easier to handle when you group them in a class like Address. A class like this has no id, and the values it holds are all there is to it, so it is called a value type. Unlike an entity, a value type is not stored on its own. It is stored along with the entity that holds it: a single value goes into columns of the table of that entity, and a collection of values goes into a separate table whose foreign key is the id of that entity. Here you see three scenes: what shape the table takes, what happens when two entities share the same Address object, and what SQL is sent when you change a collection that holds several value types.',
   terms: ['Value type', 'Embeddable type (@Embeddable)', 'Element collection (@ElementCollection)', 'Immutable object', 'Dirty checking'],
   controls: [
     { id: 'sc', label: 'Scene to view', type: 'select', value: 'share', options: [['table', 'How an embeddable type is stored in the table'], ['share', 'When two members share the same address object'], ['coll', 'When you change one address in an element collection']] },
@@ -8548,7 +8548,7 @@ Lab.register({
     st.at = 's1'; st.split = true; st.data = first; st.name = n > 1 ? 'First piece' : 'Data (not split)'; st.bytes = first;
     push('Transport layer (TCP): First, work out how much can be sent at one time. The MTU, the largest size the link layer carries in one frame, is ' + k.mtu + ' bytes, and the ' + I + '-byte IP header and the ' + T + '-byte TCP header must fit inside it, so one piece can carry up to ' + k.mss + ' bytes of data (the MSS). ' + (n > 1 ? 'The ' + k.size + ' bytes of data to send are larger than that, so the data is split into ' + n + ' pieces (' + (n <= 3 ? k.segs.join(', ') : first + ' bytes x ' + (n - 1) + ', then ' + lastSeg) + ' bytes).' : 'The ' + k.size + ' bytes of data to send fit in this, so the data is not split.'), n > 1 ? 'bad' : 'good');
     st.tcp = true; st.name = 'Segment'; st.bytes = first + T;
-    push('Transport layer (TCP): ' + (n > 1 ? 'The first piece' : 'The data') + ' gets a ' + T + '-byte TCP header in front. The header holds the port numbers that identify the sending program and the receiving program (' + A.cp + ' → ' + A.sp + ') and a sequence number that tells which byte of the whole data this piece starts at. Data wrapped like this is called a segment. It is now ' + (first + T) + ' bytes.');
+    push('Transport layer (TCP): ' + (n > 1 ? 'The first piece' : 'The data') + ' gets a ' + T + '-byte TCP header in front. Wrapping the data with a header like this is encapsulation. The header holds the port numbers that identify the sending program and the receiving program (' + A.cp + ' → ' + A.sp + ') and a sequence number that tells which byte of the whole data this piece starts at. Data wrapped like this is called a segment. It is now ' + (first + T) + ' bytes.');
     st.at = 's2'; st.ip = true; st.name = 'Packet'; st.bytes = first + T + I;
     push('Internet layer (IP): A ' + I + '-byte IP header is placed in front of the segment. The header holds the IP addresses of the sending computer and the receiving computer (' + A.cip + ' → ' + A.sip + '). Data wrapped like this is called a packet. It is now ' + (first + T + I) + ' bytes.' + (first + T + I === k.mtu ? ' This fills the MTU of ' + k.mtu + ' bytes exactly.' : ''));
     st.at = 's3'; st.eth = true; st.name = 'Frame'; st.bytes = first + k.per;
@@ -10950,7 +10950,7 @@ Lab.register({
 Lab.register({
   id: 'supplychain', nav: 'Dependencies and the supply chain', cat: 'Authentication', mode: 'step',
   title: 'How do libraries I never wrote down get into my program, and who decides their versions?',
-  intro: 'When you write one line for a library in the build file, the other libraries that library needs (its transitive dependencies) come in with it and run as part of your program. That is why a vulnerability in a library you never chose becomes your problem too. Depending on whether you wrote a version as a range or pinned it, a newly published version may come in automatically, and if you misspell a name by one letter, a completely different package may come in. The library names and vulnerabilities shown here are all made up for the explanation.',
+  intro: 'When you write one line for a library in the build file, the other libraries that library needs (its transitive dependencies) come in with it and run as part of your program. That is why a vulnerability in a library you never chose becomes your problem too. Depending on whether you wrote a version as a range or pinned it, a newly published version may come in automatically, and if you misspell a name by one letter, a completely different package may come in. The path a library takes from being built, through the repository, into your build is called the supply chain, and slipping malicious code in somewhere along that path is a supply chain attack. The library names and vulnerabilities shown here are all made up for the explanation.',
   terms: ['Transitive dependency', 'Version ranges and lock files', 'Supply chain attacks and typosquatting', 'CI/CD'],
   controls: [
     { id: 'topic', label: 'Situation to look at', type: 'select', value: 'range', options: [['range', 'When the version is written as a range, and when it is pinned'], ['fix', 'When a vulnerability in a transitive dependency becomes known'], ['typo', 'A fake package with a similar name']] },
@@ -11078,7 +11078,7 @@ Lab.register({
       if (c.ver === 'lock') { st.lock = 'web-kit 2.0.0, json-lite 1.2.0, mail-kit 1.4.0, text-util 3.1.0'; push('./gradlew dependencies --write-locks: the versions chosen now are written to the lock file (gradle.lockfile). Not only web-kit 2.0.0, which was written directly, but also json-lite 1.2.0, a transitive dependency, is recorded. This file is committed to Git together with the code.', ''); }
       st.reg = regText(p.avail, true);
       if (vulnKnown) st.libs = libs(f, true);
-      push(evil ? 'A few days later, web-kit 2.1.0 is published to the repository. (A made-up situation.) It is a version that someone who took over the publishing account uploaded with malicious code in it. In the repository, it looks like an ordinary new version.' : 'A few days later (a made-up situation), a vulnerability in json-lite 1.2.0 becomes known, and the fixed json-lite 1.2.1 and web-kit 2.0.1, which was changed to use it, are published to the repository.', '');
+      push(evil ? 'A few days later, web-kit 2.1.0 is published to the repository. (A made-up situation.) It is a version that someone who took over the publishing account uploaded with malicious code in it. This is a supply chain attack: it targets the path by which libraries come in, not your own code. In the repository, it looks like an ordinary new version.' : 'A few days later (a made-up situation), a vulnerability in json-lite 1.2.0 becomes known, and the fixed json-lite 1.2.1 and web-kit 2.0.1, which was changed to use it, are published to the repository.', '');
       var moved = wkNow !== '2.0.0';
       st.libs = libs(now, true);
       k = evil ? (moved ? 'bad' : 'good') : (moved ? 'good' : 'bad');
@@ -11129,7 +11129,7 @@ Lab.register({
       push(c.name === 'ok' ? 'It reads the POM of web-kit 2.0.0: it says json-lite 1.2.0 is needed, so that comes in too.' : 'The POM of the fake web-kti lists the real web-kit 2.0.0 as a dependency. So the real web-kit and json-lite come in as well, and my code compiles and works as usual. There is nothing noticeably wrong.', c.name === 'ok' ? '' : 'bad');
       verdict = c.name === 'ok' ? 'The intended library came in' : 'A fake package came in too'; st.verdict = verdict; k = c.name === 'ok' ? 'good' : 'bad';
       push(c.name === 'ok' ? 'What came into the build is web-kit 2.0.0 and the json-lite 1.2.0 that it pulled in. It is as intended.' : 'The build succeeds. The code inside the fake web-kti also becomes part of my program and runs with the same permissions. Even if it contains code that reads the server\'s environment variables or files and sends them out, there is nothing to stop it.', k);
-      if (c.name === 'typo') sum.push('The technique of publishing a fake package with a similar name and waiting for typos is called typosquatting. If the fake pulls in the real one as a dependency so that everything works normally, it is hard to notice. Do not type names from memory: copy them from the official documentation or the repository page, and in code review, check the name and the maker for any change that adds a new dependency.');
+      if (c.name === 'typo') sum.push('The technique of publishing a fake package with a similar name and waiting for typos is called typosquatting. It is also a kind of supply chain attack. If the fake pulls in the real one as a dependency so that everything works normally, it is hard to notice. Do not type names from memory: copy them from the official documentation or the repository page, and in code review, check the name and the maker for any change that adds a new dependency.');
       if (c.name === 'ok') sum.push('The build screen looks equally successful whether the name was written correctly or with a typo. The difference is only in the list of libraries that came in.');
     }
     var wkCol = (c.topic === 'typo' && c.name === 'typo' ? 'web-kti 2.0.0 (fake) and ' : '') + 'web-kit ' + wkNow;
@@ -12399,7 +12399,7 @@ Lab.register({
 Lab.register({
   id: 'compidx', nav: 'Composite and covering indexes', cat: 'Database', mode: 'step',
   title: 'A composite index can be used only in column order',
-  intro: 'An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to narrow the search range, and once a range condition is reached, the columns after it cannot be used to narrow the range.',
+  intro: 'An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to narrow the search range, and once a range condition is reached, the columns after it cannot be used to narrow the range. When every column the query reads is in the index, so that the table does not have to be visited, the index is called a covering index for that query.',
   terms: ['Composite index and leftmost prefix', 'Covering index', 'Clustered index and secondary index', 'Cardinality and selectivity', 'Query execution plan (EXPLAIN)'], ranks: ['index', 'tuning'],
   controls: [
     { id: 'ord', label: 'Column order of the index', type: 'select', value: 'msc', options: [['msc', '(member_id, status, created_at)'], ['mcs', '(member_id, created_at, status)']] },
@@ -12455,7 +12455,7 @@ Lab.register({
     if (!p.used.length) sum.push('A composite index cannot be used for searching when there is no condition on its first column. Put the columns of the conditions you use often first, and among them the columns used with "=".');
     else if (p.filt.length) sum.push('The conditions after the order was broken (' + p.filt.map(function (k) { return C[k][0]; }).join(', ') + ') could not narrow the range, so more index entries were read than necessary. If you put the "=" condition columns first and the range condition column last, all three columns narrow the range.');
     else if (p.used.length === 3) sum.push('The conditions continue in index order without a gap, so all three columns narrowed the range. The order in which you write the conditions in WHERE does not matter; the column order of the index decides.');
-    if (p.cov && p.type !== 'ALL') sum.push('A secondary index holds only the index columns and the primary key, so if another column is needed, the query must go to the table one more time. If every needed column is in the index, that extra trip disappears. This is one reason to avoid SELECT *.');
+    if (p.cov && p.type !== 'ALL') sum.push('A secondary index holds only the index columns and the primary key, so if another column is needed, the query must go to the table one more time. If every needed column is in the index, that extra trip disappears. Such an index is called a covering index, and it appears as Using index in the Extra column of EXPLAIN. This is one reason to avoid SELECT *.');
     if (!sum.length) sum.push('Columns used to narrow the range: ' + usedNames + '. The query read ' + num(p.idxRead) + ' index entries and ' + num(p.tblRead) + ' table rows, and got about ' + num(Math.max(1, p.out)) + ' results.');
     return { events: ev, summary: sum, p: p, row: [usedNames, p.type, num(p.idxRead), num(p.tblRead), p.extra || '(none)'] };
   },
@@ -13675,7 +13675,7 @@ Lab.register({
 Lab.register({
   id: 'tcp', nav: 'TCP connections and retransmission', cat: 'Networking', mode: 'step',
   title: 'When a packet is lost, who notices and sends it again?',
-  intro: 'TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure.',
+  intro: 'TCP establishes a connection before it sends data, and it receives acknowledgments that tell it how far the data has been received. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure.',
   terms: ['TCP and UDP', 'Three-way handshake', 'Flow control and congestion control'], ranks: ['network', 'os'],
   controls: [
     { id: 'proto', label: 'Protocol', type: 'select', value: 'tcp', options: [['tcp', 'TCP'], ['udp', 'UDP']] },
@@ -14365,7 +14365,7 @@ Lab.register({
 Lab.register({
   id: 'k8s', nav: 'Kubernetes self-healing', cat: 'Deployment and operations', mode: 'step',
   title: 'When a container dies, what starts it again?',
-  intro: 'In Kubernetes, you write down the state you want, such as "run 3 copies of this application". Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself.',
+  intro: 'In Kubernetes, you write down the state you want, such as "run 3 copies of this application". Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself. Replacing a dead Pod with a new one without anyone stepping in, as happens here, is called self-healing.',
   terms: ['Kubernetes', 'Pod, Deployment, and Service', 'Health check (liveness, readiness)', 'Autoscaling', 'Containers and images'], ranks: ['container', 'deploy', 'cloud'],
   controls: [
     { id: 'what', label: 'What happens', type: 'select', value: 'kill', options: [['kill', 'One Pod suddenly dies'], ['node', 'One node (server) dies completely'], ['scale', 'The number of replicas is changed from 3 to 5'], ['hang', 'The application hangs (the process is still alive)'], ['notready', 'The application cannot take requests for a while (database connection lost)']] },
@@ -14391,7 +14391,7 @@ Lab.register({
       push('The controller compares the states. Desired: 3, actual: 2. One Pod is missing. No one has to tell it, because this comparison keeps repeating.', '');
       pods[1] = { n: 'shop-d', node: 'Node 1', st: 'Starting', svc: false }; push('A new Pod, shop-d, is created. The scheduler picks a node with room and places the Pod there, and the kubelet on that node starts the container. The dead Pod is not revived. It is replaced with a new one.', '');
       pods[1].st = 'Running'; pods[1].svc = true; push('shop-d passed its readiness probe. The Service starts sending requests to it. There are 3 Pods again.', 'good');
-      did = 'Created 1 new Pod'; sum.push('Treat a Pod as disposable: it can die and be replaced at any time. So do not keep state (files, sessions) inside a Pod, and reach Pods through the fixed name of a Service, not through a Pod\'s IP.');
+      did = 'Created 1 new Pod'; sum.push('The number of Pods is back to 3 although nobody stepped in. This is self-healing. Treat a Pod as disposable: it can die and be replaced at any time. So do not keep state (files, sessions) inside a Pod, and reach Pods through the fixed name of a Service, not through a Pod\'s IP.');
     }
     if (c.what === 'node') {
       pods[1].st = 'Dead'; pods[1].svc = false; pods[2].st = 'Dead'; pods[2].svc = false; push('Node 2 shut down completely. Contact with shop-b and shop-c, which ran on it, is lost. Only shop-a on Node 1 is left.', 'bad');
@@ -16339,7 +16339,7 @@ Lab.register({
 Lab.register({
   id: 'loops', nav: 'Conditionals and loops', cat: 'Java language', mode: 'step',
   title: 'How many times does a loop run, and where does it stop?',
-  intro: 'A loop repeats "check the condition → body → change the value" until the condition becomes false. Whether you write < or <= in the condition changes the number of iterations by one, and break and continue cut that flow short or skip part of it. switch is a statement that jumps to the case whose value matches, and if there is no break, execution continues into the cases below.',
+  intro: 'A loop repeats "check the condition → body → change the value" until the condition becomes false. Whether you write < or <= in the condition changes the number of iterations by one, and break and continue cut that flow short or skip part of it. switch is a conditional statement: like if, it chooses what to run based on a value. It jumps to the case whose value matches, and if there is no break, execution continues into the cases below.',
   terms: ['for statement and while statement', 'break and continue', 'switch statement and fall through'],
   controls: [
     { id: 'stmt', label: 'Statement', type: 'select', value: 'for', options: [['for', 'for statement'], ['while', 'while statement'], ['swc', 'switch (a break in every case)'], ['swf', 'switch (no break)'], ['swa', 'switch (arrow ->)']] },

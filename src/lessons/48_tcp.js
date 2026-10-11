@@ -1,7 +1,7 @@
 Lab.register({
   id: 'tcp', nav: 'TCP 연결과 재전송', cat: '네트워크', mode: 'step',
   title: '패킷이 사라지면 누가 알아채고 다시 보내나',
-  intro: 'TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.',
+  intro: 'TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터를 어디까지 받았는지 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.',
   terms: ['TCP와 UDP', '3-way handshake', '흐름 제어와 혼잡 제어'], ranks: ['network', 'os'],
   controls: [
     { id: 'proto', label: '프로토콜', type: 'select', value: 'tcp', options: [['tcp', 'TCP'], ['udp', 'UDP']] },

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'k8s', nav: 'Kubernetes self-healing', cat: 'Deployment and operations', mode: 'step',
   title: 'When a container dies, what starts it again?',
-  intro: 'In Kubernetes, you write down the state you want, such as "run 3 copies of this application". Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself.',
+  intro: 'In Kubernetes, you write down the state you want, such as "run 3 copies of this application". Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself. Replacing a dead Pod with a new one without anyone stepping in, as happens here, is called self-healing.',
   terms: ['Kubernetes', 'Pod, Deployment, and Service', 'Health check (liveness, readiness)', 'Autoscaling', 'Containers and images'], ranks: ['container', 'deploy', 'cloud'],
   controls: [
     { id: 'what', label: 'What happens', type: 'select', value: 'kill', options: [['kill', 'One Pod suddenly dies'], ['node', 'One node (server) dies completely'], ['scale', 'The number of replicas is changed from 3 to 5'], ['hang', 'The application hangs (the process is still alive)'], ['notready', 'The application cannot take requests for a while (database connection lost)']] },
@@ -27,7 +27,7 @@ Lab.register({
       push('The controller compares the states. Desired: 3, actual: 2. One Pod is missing. No one has to tell it, because this comparison keeps repeating.', '');
       pods[1] = { n: 'shop-d', node: 'Node 1', st: 'Starting', svc: false }; push('A new Pod, shop-d, is created. The scheduler picks a node with room and places the Pod there, and the kubelet on that node starts the container. The dead Pod is not revived. It is replaced with a new one.', '');
       pods[1].st = 'Running'; pods[1].svc = true; push('shop-d passed its readiness probe. The Service starts sending requests to it. There are 3 Pods again.', 'good');
-      did = 'Created 1 new Pod'; sum.push('Treat a Pod as disposable: it can die and be replaced at any time. So do not keep state (files, sessions) inside a Pod, and reach Pods through the fixed name of a Service, not through a Pod\'s IP.');
+      did = 'Created 1 new Pod'; sum.push('The number of Pods is back to 3 although nobody stepped in. This is self-healing. Treat a Pod as disposable: it can die and be replaced at any time. So do not keep state (files, sessions) inside a Pod, and reach Pods through the fixed name of a Service, not through a Pod\'s IP.');
     }
     if (c.what === 'node') {
       pods[1].st = 'Dead'; pods[1].svc = false; pods[2].st = 'Dead'; pods[2].svc = false; push('Node 2 shut down completely. Contact with shop-b and shop-c, which ran on it, is lost. Only shop-a on Node 1 is left.', 'bad');

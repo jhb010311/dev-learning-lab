@@ -1,7 +1,7 @@
 Lab.register({
   id: 'race', nav: 'Race condition', cat: 'Concurrency', mode: 'step',
   title: 'Why does count++ lose increments?',
-  intro: 'Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost.',
+  intro: 'Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost. A situation like this, where the result depends on the order in which the threads run, is called a race condition.',
   terms: ['Race condition', 'Critical section and mutual exclusion', 'synchronized', 'volatile', 'Visibility', 'Atomicity and CAS (compare-and-swap)', 'Thread safety'], ranks: ['javasync', 'concurrency'],
   controls: [
     { id: 'threads', label: 'Number of threads', type: 'range', min: 2, max: 4, value: 2, fmt: function (v) { return v + ' threads'; } },
@@ -75,7 +75,7 @@ Lab.register({
       }
     }
     var expect = c.threads * c.loops, sum = [];
-    if (lost > 0) sum.push('Increments lost: ' + lost + '. Another thread cut in between the read and the write of one thread, so a result computed from a stale value overwrote the newer one.');
+    if (lost > 0) sum.push('Increments lost: ' + lost + '. Another thread cut in between the read and the write of one thread, so a result computed from a stale value overwrote the newer one. This is a race condition: the result depends on the order in which the threads happen to run.');
     if (c.sync === 'volatile') sum.push('volatile only makes a value written by another thread visible. It does not combine the three steps of read, add, and write into one, so the result is the same as with no synchronization.');
     if (c.sync === 'sync') sum.push('Only one thread at a time can be inside the synchronized block, so the three steps were never broken up. In return, other threads had to wait. Number of waits: ' + waits + '.');
     if (c.sync === 'atomic') sum.push('AtomicInteger does not acquire a lock. Instead, it follows the rule "write only if the value is still the one I read" (CAS), so if another thread changed the value first, it does not overwrite it and tries again.');

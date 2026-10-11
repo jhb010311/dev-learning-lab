@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=d6d9d3a829">
+<link rel="stylesheet" href="../../app.css?v=f8d2d8a24c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,7 +58,7 @@
 <ol>
 <li>응용 계층(HTTP): 브라우저가 서버에 보낼 HTTP 메시지를 만듭니다. 크기는 1500바이트입니다. 이 계층은 &quot;무슨 내용을 주고받을지&quot;만 정하고, 그것이 상대에게 어떻게 닿을지는 아래 계층에 맡깁니다.</li>
 <li>전송 계층(TCP): 먼저 한 번에 실어 보낼 수 있는 크기를 따집니다. 링크 계층이 한 번에 실어 주는 크기(MTU)가 1500바이트이고, 그 안에 IP 머리말 20바이트와 TCP 머리말 20바이트도 들어가야 하므로 데이터는 한 조각에 1460바이트까지 실립니다(MSS). 보낼 데이터 1500바이트는 이보다 크므로 2조각으로 나눕니다(1460, 40바이트).</li>
-<li>전송 계층(TCP): 첫 조각 앞에 TCP 머리말 20바이트를 붙입니다. 머리말에는 보내는 프로그램과 받는 프로그램을 가리키는 포트 번호(51000 → 80)와, 이 조각이 전체에서 몇 번째 바이트부터인지 알려 주는 순서 번호가 들어 있습니다. 이렇게 싸인 것을 세그먼트라고 부릅니다. 1480바이트가 됐습니다.</li>
+<li>전송 계층(TCP): 첫 조각 앞에 TCP 머리말 20바이트를 붙입니다. 이렇게 데이터 앞에 머리말을 붙여 감싸는 것이 캡슐화입니다. 머리말에는 보내는 프로그램과 받는 프로그램을 가리키는 포트 번호(51000 → 80)와, 이 조각이 전체에서 몇 번째 바이트부터인지 알려 주는 순서 번호가 들어 있습니다. 이렇게 싸인 것을 세그먼트라고 부릅니다. 1480바이트가 됐습니다.</li>
 <li>인터넷 계층(IP): 세그먼트 앞에 IP 머리말 20바이트를 붙입니다. 머리말에는 보내는 컴퓨터와 받는 컴퓨터의 IP 주소(192.168.0.10 → 192.168.0.20)가 들어 있습니다. 이렇게 싸인 것을 패킷이라고 부릅니다. 1500바이트가 됐습니다. MTU 1500바이트를 꽉 채운 크기입니다.</li>
 <li>링크 계층(이더넷): 패킷 앞에 이더넷 머리말 14바이트를, 뒤에 오류 검사용 꼬리말(FCS) 4바이트를 붙입니다. 머리말에는 같은 네트워크 안에서 이 데이터를 주고받는 두 장비의 MAC 주소(00:00:5e:00:53:0a → 00:00:5e:00:53:14)가 들어 있습니다. 이렇게 싸인 것을 프레임이라고 부릅니다. 1518바이트가 전선으로 나갑니다.</li>
 <li>나머지 조각도 같은 순서로 쌉니다. 머리말은 조각마다 따로 붙습니다. 프레임 2개에 58바이트씩, 모두 116바이트가 덧붙었습니다. 전선으로 나간 것은 데이터 1500바이트를 합쳐 1616바이트입니다.</li>
@@ -177,6 +177,6 @@ console.log(total);                                     // 전선으로 나간 �
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=d6d9d3a829"></script>
+<script src="../../app.js?v=f8d2d8a24c"></script>
 </body>
 </html>

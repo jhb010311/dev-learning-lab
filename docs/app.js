@@ -868,7 +868,7 @@ Lab.register({
 Lab.register({
   id: 'race', nav: '경쟁 상태', cat: '동시성', mode: 'step',
   title: 'count++는 왜 숫자를 잃어버리나',
-  intro: '여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다.',
+  intro: '여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다. 이렇게 스레드들이 실행되는 순서에 따라 결과가 달라지는 상황을 경쟁 상태라고 합니다.',
   terms: ['경쟁 상태(Race Condition)', '임계 영역과 상호 배제', 'synchronized', 'volatile', '가시성(Visibility)', '원자성(Atomicity)과 CAS', '스레드 안전(Thread-safe)'], ranks: ['javasync', 'concurrency'],
   controls: [
     { id: 'threads', label: '스레드 수', type: 'range', min: 2, max: 4, value: 2, fmt: function (v) { return v + '개'; } },
@@ -942,7 +942,7 @@ Lab.register({
       }
     }
     var expect = c.threads * c.loops, sum = [];
-    if (lost > 0) sum.push('증가 ' + lost + '번이 사라졌습니다. 한 스레드가 읽고 쓰는 사이에 다른 스레드가 끼어들어, 오래된 값을 기준으로 계산한 결과가 덮어써졌기 때문입니다.');
+    if (lost > 0) sum.push('증가 ' + lost + '번이 사라졌습니다. 한 스레드가 읽고 쓰는 사이에 다른 스레드가 끼어들어, 오래된 값을 기준으로 계산한 결과가 덮어써졌기 때문입니다. 끼어드는 순서에 따라 결과가 달라지는 경쟁 상태입니다.');
     if (c.sync === 'volatile') sum.push('volatile은 다른 스레드가 쓴 값이 보이도록 해 줄 뿐입니다. 읽기-더하기-쓰기 세 단계를 하나로 묶어 주지 않아서 결과는 동기화가 없을 때와 같습니다.');
     if (c.sync === 'sync') sum.push('synchronized 블록 안에는 한 번에 한 스레드만 들어갈 수 있어서 세 단계가 끊기지 않았습니다. 대신 다른 스레드가 ' + waits + '번 기다렸습니다.');
     if (c.sync === 'atomic') sum.push('AtomicInteger는 락을 잡지 않습니다. 대신 "내가 읽은 값 그대로일 때만 쓴다"(CAS)를 지켜서, 다른 스레드가 먼저 바꿨으면 덮어쓰지 않고 다시 시도합니다.');
@@ -4624,7 +4624,7 @@ Lab.register({
 Lab.register({
   id: 'embedded', nav: '값 타입과 임베디드 타입', cat: 'JPA', mode: 'step',
   title: '주소를 묶은 클래스는 테이블에 어떻게 저장되고, 왜 불변으로 만드나',
-  intro: '도시와 거리처럼 늘 함께 다니는 값은 Address 같은 클래스로 묶어 두면 다루기 쉽습니다. 이런 클래스는 id가 없고 들어 있는 값이 전부여서 값 타입이라고 부릅니다. 값 타입은 엔티티와 달리 자기 테이블을 갖지 않고, 그것을 가진 엔티티에 얹혀서 저장됩니다. 여기에서 생기는 세 가지 장면을 봅니다. 테이블이 어떤 모양이 되는지, 같은 값 객체를 두 엔티티가 함께 쓰면 무슨 일이 생기는지, 값 타입을 여러 개 담은 컬렉션을 고치면 어떤 SQL이 나가는지입니다.',
+  intro: '도시와 거리처럼 늘 함께 다니는 값은 Address 같은 클래스로 묶어 두면 다루기 쉽습니다. 이런 클래스는 id가 없고 들어 있는 값이 전부여서 값 타입이라고 부릅니다. 값 타입은 엔티티와 달리 혼자서는 저장되지 않고, 그것을 가진 엔티티에 딸려서 저장됩니다. 값 하나는 엔티티의 테이블에 컬럼으로 들어가고, 여러 개를 담은 컬렉션은 그 엔티티의 id를 외래 키로 가진 별도 테이블에 들어갑니다. 여기에서 생기는 세 가지 장면을 봅니다. 테이블이 어떤 모양이 되는지, 같은 값 객체를 두 엔티티가 함께 쓰면 무슨 일이 생기는지, 값 타입을 여러 개 담은 컬렉션을 고치면 어떤 SQL이 나가는지입니다.',
   terms: ['값 타입', '임베디드 타입(@Embeddable)', '값 타입 컬렉션(@ElementCollection)', '불변 객체', '변경 감지(Dirty Checking)'],
   controls: [
     { id: 'sc', label: '볼 장면', type: 'select', value: 'share', options: [['table', '임베디드 타입이 테이블에 저장되는 모습'], ['share', '같은 주소 객체를 두 회원이 함께 쓸 때'], ['coll', '값 타입 컬렉션에서 주소 하나를 바꿀 때']] },
@@ -8597,7 +8597,7 @@ Lab.register({
     st.at = 's1'; st.split = true; st.data = first; st.name = n > 1 ? '첫 조각' : '나누지 않은 데이터'; st.bytes = first;
     push('전송 계층(TCP): 먼저 한 번에 실어 보낼 수 있는 크기를 따집니다. 링크 계층이 한 번에 실어 주는 크기(MTU)가 ' + k.mtu + '바이트이고, 그 안에 IP 머리말 ' + I + '바이트와 TCP 머리말 ' + T + '바이트도 들어가야 하므로 데이터는 한 조각에 ' + k.mss + '바이트까지 실립니다(MSS). ' + (n > 1 ? '보낼 데이터 ' + k.size + '바이트는 이보다 크므로 ' + n + '조각으로 나눕니다(' + (n <= 3 ? k.segs.join(', ') : first + '바이트짜리 ' + (n - 1) + '개와 ' + lastSeg) + '바이트).' : '보낼 데이터 ' + k.size + '바이트는 이 안에 들어가므로 나누지 않습니다.'), n > 1 ? 'bad' : 'good');
     st.tcp = true; st.name = '세그먼트'; st.bytes = first + T;
-    push('전송 계층(TCP): ' + (n > 1 ? '첫 조각' : '데이터') + ' 앞에 TCP 머리말 ' + T + '바이트를 붙입니다. 머리말에는 보내는 프로그램과 받는 프로그램을 가리키는 포트 번호(' + A.cp + ' → ' + A.sp + ')와, 이 조각이 전체에서 몇 번째 바이트부터인지 알려 주는 순서 번호가 들어 있습니다. 이렇게 싸인 것을 세그먼트라고 부릅니다. ' + (first + T) + '바이트가 됐습니다.');
+    push('전송 계층(TCP): ' + (n > 1 ? '첫 조각' : '데이터') + ' 앞에 TCP 머리말 ' + T + '바이트를 붙입니다. 이렇게 데이터 앞에 머리말을 붙여 감싸는 것이 캡슐화입니다. 머리말에는 보내는 프로그램과 받는 프로그램을 가리키는 포트 번호(' + A.cp + ' → ' + A.sp + ')와, 이 조각이 전체에서 몇 번째 바이트부터인지 알려 주는 순서 번호가 들어 있습니다. 이렇게 싸인 것을 세그먼트라고 부릅니다. ' + (first + T) + '바이트가 됐습니다.');
     st.at = 's2'; st.ip = true; st.name = '패킷'; st.bytes = first + T + I;
     push('인터넷 계층(IP): 세그먼트 앞에 IP 머리말 ' + I + '바이트를 붙입니다. 머리말에는 보내는 컴퓨터와 받는 컴퓨터의 IP 주소(' + A.cip + ' → ' + A.sip + ')가 들어 있습니다. 이렇게 싸인 것을 패킷이라고 부릅니다. ' + (first + T + I) + '바이트가 됐습니다.' + (first + T + I === k.mtu ? ' MTU ' + k.mtu + '바이트를 꽉 채운 크기입니다.' : ''));
     st.at = 's3'; st.eth = true; st.name = '프레임'; st.bytes = first + k.per;
@@ -10999,7 +10999,7 @@ Lab.register({
 Lab.register({
   id: 'supplychain', nav: '의존성과 공급망', cat: '인증', mode: 'step',
   title: '내가 적지 않은 라이브러리는 어떻게 내 프로그램에 들어오고, 그 버전은 누가 정하나',
-  intro: '빌드 파일에 라이브러리 한 줄을 적으면, 그 라이브러리가 필요로 하는 다른 라이브러리(전이 의존성)까지 함께 들어와 내 프로그램의 일부로 실행됩니다. 그래서 내가 고른 적 없는 라이브러리의 취약점도 내 문제가 됩니다. 버전을 범위로 적었는지 고정했는지에 따라 새로 올라온 버전이 자동으로 들어오기도 하고, 이름을 한 글자 잘못 적으면 전혀 다른 패키지가 들어오기도 합니다. 여기 나오는 라이브러리 이름과 취약점은 모두 설명을 위해 꾸민 것입니다.',
+  intro: '빌드 파일에 라이브러리 한 줄을 적으면, 그 라이브러리가 필요로 하는 다른 라이브러리(전이 의존성)까지 함께 들어와 내 프로그램의 일부로 실행됩니다. 그래서 내가 고른 적 없는 라이브러리의 취약점도 내 문제가 됩니다. 버전을 범위로 적었는지 고정했는지에 따라 새로 올라온 버전이 자동으로 들어오기도 하고, 이름을 한 글자 잘못 적으면 전혀 다른 패키지가 들어오기도 합니다. 라이브러리가 만들어져 저장소를 거쳐 내 빌드에 들어오기까지의 길을 공급망이라고 하고, 그 길 어딘가에 악성 코드를 끼워 넣는 것이 공급망 공격입니다. 여기 나오는 라이브러리 이름과 취약점은 모두 설명을 위해 꾸민 것입니다.',
   terms: ['전이 의존성', '버전 범위와 잠금 파일', '공급망 공격과 타이포스쿼팅', 'CI/CD'],
   controls: [
     { id: 'topic', label: '살펴볼 상황', type: 'select', value: 'range', options: [['range', '버전을 범위로 적었을 때와 고정했을 때'], ['fix', '전이 의존성의 취약점이 알려졌을 때'], ['typo', '이름이 비슷한 가짜 패키지']] },
@@ -11127,7 +11127,7 @@ Lab.register({
       if (c.ver === 'lock') { st.lock = 'web-kit 2.0.0, json-lite 1.2.0, mail-kit 1.4.0, text-util 3.1.0'; push('./gradlew dependencies --write-locks: 지금 고른 버전을 잠금 파일(gradle.lockfile)에 적어 둡니다. 직접 적은 web-kit 2.0.0뿐 아니라 전이 의존성인 json-lite 1.2.0까지 모두 적힙니다. 이 파일은 코드와 함께 Git에 올립니다.', ''); }
       st.reg = regText(p.avail, true);
       if (vulnKnown) st.libs = libs(f, true);
-      push(evil ? '며칠 뒤 저장소에 web-kit 2.1.0이 올라옵니다. (꾸민 상황) 배포 계정을 빼앗은 누군가가 악성 코드를 넣어 올린 버전입니다. 저장소에서는 평범한 새 버전으로 보입니다.' : '며칠 뒤 (꾸민 상황) json-lite 1.2.0의 취약점이 알려지고, 고친 json-lite 1.2.1과 그것을 쓰도록 바꾼 web-kit 2.0.1이 저장소에 올라옵니다.', '');
+      push(evil ? '며칠 뒤 저장소에 web-kit 2.1.0이 올라옵니다. (꾸민 상황) 배포 계정을 빼앗은 누군가가 악성 코드를 넣어 올린 버전입니다. 내 코드가 아니라 라이브러리가 들어오는 길을 노린 공급망 공격입니다. 저장소에서는 평범한 새 버전으로 보입니다.' : '며칠 뒤 (꾸민 상황) json-lite 1.2.0의 취약점이 알려지고, 고친 json-lite 1.2.1과 그것을 쓰도록 바꾼 web-kit 2.0.1이 저장소에 올라옵니다.', '');
       var moved = wkNow !== '2.0.0';
       st.libs = libs(now, true);
       k = evil ? (moved ? 'bad' : 'good') : (moved ? 'good' : 'bad');
@@ -11178,7 +11178,7 @@ Lab.register({
       push(c.name === 'ok' ? 'web-kit 2.0.0의 설명 파일(POM)을 읽습니다: json-lite 1.2.0이 필요하다고 적혀 있으므로 함께 들어옵니다.' : '가짜 web-kti의 설명 파일(POM)에는 진짜 web-kit 2.0.0이 의존성으로 적혀 있습니다. 그래서 진짜 web-kit과 json-lite도 함께 들어오고, 내 코드는 평소처럼 컴파일되고 동작합니다. 눈에 띄는 이상이 없습니다.', c.name === 'ok' ? '' : 'bad');
       verdict = c.name === 'ok' ? '의도한 라이브러리가 들어옴' : '가짜 패키지가 함께 들어옴'; st.verdict = verdict; k = c.name === 'ok' ? 'good' : 'bad';
       push(c.name === 'ok' ? '빌드에 들어온 것은 web-kit 2.0.0과 그것이 끌어온 json-lite 1.2.0입니다. 의도한 대로입니다.' : '빌드는 성공합니다. 가짜 web-kti 안에 든 코드도 내 프로그램의 일부가 되어 같은 권한으로 실행됩니다. 서버의 환경 변수나 파일을 읽어 밖으로 보내는 코드가 들어 있어도 막을 것이 없습니다.', k);
-      if (c.name === 'typo') sum.push('이름이 비슷한 가짜 패키지를 올려 두고 오타를 기다리는 수법을 타이포스쿼팅이라고 합니다. 진짜를 의존성으로 끌어와 정상 동작하게 만들면 알아채기 어렵습니다. 이름을 외워서 치지 말고 공식 문서나 저장소 페이지에서 복사하고, 새 의존성을 추가한 변경은 코드 리뷰에서 이름과 만든 곳을 확인합니다.');
+      if (c.name === 'typo') sum.push('이름이 비슷한 가짜 패키지를 올려 두고 오타를 기다리는 수법을 타이포스쿼팅이라고 합니다. 이것도 공급망 공격의 한 가지입니다. 진짜를 의존성으로 끌어와 정상 동작하게 만들면 알아채기 어렵습니다. 이름을 외워서 치지 말고 공식 문서나 저장소 페이지에서 복사하고, 새 의존성을 추가한 변경은 코드 리뷰에서 이름과 만든 곳을 확인합니다.');
       if (c.name === 'ok') sum.push('바르게 적었을 때와 오타를 냈을 때 빌드 화면은 똑같이 성공으로 보입니다. 차이는 들어온 라이브러리의 목록에만 있습니다.');
     }
     var wkCol = (c.topic === 'typo' && c.name === 'typo' ? 'web-kti 2.0.0(가짜)과 ' : '') + 'web-kit ' + wkNow;
@@ -12448,7 +12448,7 @@ Lab.register({
 Lab.register({
   id: 'compidx', nav: '복합·커버링 인덱스', cat: '데이터베이스', mode: 'step',
   title: '복합 인덱스는 컬럼 순서대로만 쓸 수 있다',
-  intro: '여러 컬럼을 묶은 인덱스는 첫 컬럼부터 차례로 정렬돼 있습니다. 그래서 WHERE 조건이 앞 컬럼부터 채워져야 탐색 범위를 좁힐 수 있고, 범위 조건을 만나면 그 뒤 컬럼은 범위를 좁히는 데 쓰이지 못합니다.',
+  intro: '여러 컬럼을 묶은 인덱스는 첫 컬럼부터 차례로 정렬돼 있습니다. 그래서 WHERE 조건이 앞 컬럼부터 채워져야 탐색 범위를 좁힐 수 있고, 범위 조건을 만나면 그 뒤 컬럼은 범위를 좁히는 데 쓰이지 못합니다. 조회하는 컬럼이 모두 인덱스 안에 있어서 테이블을 찾아가지 않아도 되는 경우, 그 인덱스를 커버링 인덱스라고 합니다.',
   terms: ['복합 인덱스와 Leftmost Prefix', '커버링 인덱스', '클러스터드 인덱스와 세컨더리 인덱스', '카디널리티와 선택도', '실행 계획(EXPLAIN)'], ranks: ['index', 'tuning'],
   controls: [
     { id: 'ord', label: '인덱스의 컬럼 순서', type: 'select', value: 'msc', options: [['msc', '(member_id, status, created_at)'], ['mcs', '(member_id, created_at, status)']] },
@@ -12504,7 +12504,7 @@ Lab.register({
     if (!p.used.length) sum.push('복합 인덱스는 첫 컬럼의 조건이 없으면 탐색에 쓸 수 없습니다. 자주 쓰는 조건의 컬럼, 그중에서도 "=" 조건으로 쓰이는 컬럼을 앞에 둡니다.');
     else if (p.filt.length) sum.push('순서가 끊긴 뒤의 조건(' + p.filt.map(function (k) { return C[k][0]; }).join(', ') + ')은 범위를 좁히지 못해, 필요한 것보다 많은 인덱스 항목을 읽었습니다. "=" 조건 컬럼을 앞에, 범위 조건 컬럼을 맨 뒤에 두면 세 컬럼 모두 범위를 좁힙니다.');
     else if (p.used.length === 3) sum.push('조건이 인덱스 순서대로 빠짐없이 이어져 세 컬럼 모두 범위를 좁혔습니다. WHERE에 적는 순서는 상관없고, 인덱스의 컬럼 순서가 기준입니다.');
-    if (p.cov && p.type !== 'ALL') sum.push('세컨더리 인덱스에는 인덱스 컬럼과 기본 키만 들어 있어, 다른 컬럼이 필요하면 테이블을 한 번 더 찾아가야 합니다. 필요한 컬럼이 인덱스에 다 있으면 그 왕복이 사라집니다. SELECT *를 피하라는 이유 중 하나입니다.');
+    if (p.cov && p.type !== 'ALL') sum.push('세컨더리 인덱스에는 인덱스 컬럼과 기본 키만 들어 있어, 다른 컬럼이 필요하면 테이블을 한 번 더 찾아가야 합니다. 필요한 컬럼이 인덱스에 다 있으면 그 왕복이 사라집니다. 이때의 인덱스를 커버링 인덱스라고 하고, EXPLAIN의 Extra에 Using index로 나타납니다. SELECT *를 피하라는 이유 중 하나입니다.');
     if (!sum.length) sum.push('범위를 좁히는 데 쓰인 컬럼: ' + usedNames + '. 인덱스 항목 ' + num(p.idxRead) + '개, 테이블 행 ' + num(p.tblRead) + '개를 읽어 결과 약 ' + num(Math.max(1, p.out)) + '건을 얻었습니다.');
     return { events: ev, summary: sum, p: p, row: [usedNames, p.type, num(p.idxRead) + '개', num(p.tblRead) + '행', p.extra || '(없음)'] };
   },
@@ -13724,7 +13724,7 @@ Lab.register({
 Lab.register({
   id: 'tcp', nav: 'TCP 연결과 재전송', cat: '네트워크', mode: 'step',
   title: '패킷이 사라지면 누가 알아채고 다시 보내나',
-  intro: 'TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.',
+  intro: 'TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터를 어디까지 받았는지 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.',
   terms: ['TCP와 UDP', '3-way handshake', '흐름 제어와 혼잡 제어'], ranks: ['network', 'os'],
   controls: [
     { id: 'proto', label: '프로토콜', type: 'select', value: 'tcp', options: [['tcp', 'TCP'], ['udp', 'UDP']] },
@@ -14414,7 +14414,7 @@ Lab.register({
 Lab.register({
   id: 'k8s', nav: '쿠버네티스 자가 치유', cat: '배포와 운영', mode: 'step',
   title: '컨테이너가 죽으면 누가 다시 띄우나',
-  intro: '쿠버네티스에는 "이 애플리케이션을 3개 띄워 둬라"처럼 원하는 상태를 적어 둡니다. 쿠버네티스는 실제 상태를 계속 지켜보다가 원하는 상태와 달라지면 스스로 맞춥니다.',
+  intro: '쿠버네티스에는 "이 애플리케이션을 3개 띄워 둬라"처럼 원하는 상태를 적어 둡니다. 쿠버네티스는 실제 상태를 계속 지켜보다가 원하는 상태와 달라지면 스스로 맞춥니다. 죽은 Pod를 사람이 손대지 않아도 새것으로 바꿔 놓는 이런 동작을 자가 치유라고 합니다.',
   terms: ['Kubernetes', 'Pod, Deployment, Service', '헬스 체크(Liveness, Readiness)', '오토스케일링', '컨테이너와 이미지'], ranks: ['container', 'deploy', 'cloud'],
   controls: [
     { id: 'what', label: '일어나는 일', type: 'select', value: 'kill', options: [['kill', 'Pod 하나가 갑자기 죽는다'], ['node', '노드(서버) 한 대가 통째로 죽는다'], ['scale', '복제본 수를 3에서 5로 바꾼다'], ['hang', '애플리케이션이 멈췄다 (프로세스는 살아 있음)'], ['notready', '애플리케이션이 잠시 요청을 받을 수 없다 (DB 연결 끊김)']] },
@@ -14440,7 +14440,7 @@ Lab.register({
       push('컨트롤러가 상태를 비교합니다. 원하는 수 3, 실제 2. 하나가 모자랍니다. 누가 알려 주지 않아도 이 비교는 계속 반복되고 있습니다.', '');
       pods[1] = { n: 'shop-d', node: '노드 1', st: '시작 중', svc: false }; push('새 Pod shop-d를 만듭니다. 스케줄러가 여유 있는 노드를 골라 배치하고, 그 노드의 kubelet이 컨테이너를 띄웁니다. 죽은 Pod를 살리는 것이 아니라 새것으로 교체합니다.', '');
       pods[1].st = '실행 중'; pods[1].svc = true; push('shop-d가 준비 상태 검사(readiness)를 통과했습니다. Service가 요청을 보내기 시작합니다. 다시 3개입니다.', 'good');
-      did = '새 Pod 1개 생성'; sum.push('Pod는 언제든 죽고 교체될 수 있는 일회용으로 다룹니다. 그래서 Pod 안에 상태(파일, 세션)를 두면 안 되고, Pod의 IP 대신 Service의 고정된 이름으로 접근합니다.');
+      did = '새 Pod 1개 생성'; sum.push('사람이 손대지 않았는데 Pod가 다시 3개가 됐습니다. 이것이 자가 치유입니다. Pod는 언제든 죽고 교체될 수 있는 일회용으로 다룹니다. 그래서 Pod 안에 상태(파일, 세션)를 두면 안 되고, Pod의 IP 대신 Service의 고정된 이름으로 접근합니다.');
     }
     if (c.what === 'node') {
       pods[1].st = '죽음'; pods[1].svc = false; pods[2].st = '죽음'; pods[2].svc = false; push('노드 2가 통째로 꺼졌습니다. 그 위에 있던 shop-b, shop-c와 연락이 끊깁니다. 남은 것은 노드 1의 shop-a 하나입니다.', 'bad');
@@ -16388,7 +16388,7 @@ Lab.register({
 Lab.register({
   id: 'loops', nav: '조건문과 반복문', cat: '자바 언어', mode: 'step',
   title: '반복문은 몇 번 돌고, 어디에서 멈추나',
-  intro: '반복문은 "조건 검사 → 본문 → 값 바꾸기"를 조건이 false가 될 때까지 되풀이합니다. 조건에 <를 쓰느냐 <=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 값이 일치하는 case로 건너뛰는 문장인데, break가 없으면 아래 case까지 이어서 실행됩니다.',
+  intro: '반복문은 "조건 검사 → 본문 → 값 바꾸기"를 조건이 false가 될 때까지 되풀이합니다. 조건에 <를 쓰느냐 <=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 if처럼 값에 따라 실행할 곳을 고르는 조건문입니다. 값이 일치하는 case로 건너뛰는데, break가 없으면 아래 case까지 이어서 실행됩니다.',
   terms: ['for문과 while문', 'break와 continue', 'switch문과 fall-through'],
   controls: [
     { id: 'stmt', label: '문장', type: 'select', value: 'for', options: [['for', 'for 반복문'], ['while', 'while 반복문'], ['swc', 'switch (case마다 break 있음)'], ['swf', 'switch (break 없음)'], ['swa', 'switch (화살표 ->)']] },

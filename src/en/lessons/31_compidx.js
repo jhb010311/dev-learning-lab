@@ -1,7 +1,7 @@
 Lab.register({
   id: 'compidx', nav: 'Composite and covering indexes', cat: 'Database', mode: 'step',
   title: 'A composite index can be used only in column order',
-  intro: 'An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to narrow the search range, and once a range condition is reached, the columns after it cannot be used to narrow the range.',
+  intro: 'An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to narrow the search range, and once a range condition is reached, the columns after it cannot be used to narrow the range. When every column the query reads is in the index, so that the table does not have to be visited, the index is called a covering index for that query.',
   terms: ['Composite index and leftmost prefix', 'Covering index', 'Clustered index and secondary index', 'Cardinality and selectivity', 'Query execution plan (EXPLAIN)'], ranks: ['index', 'tuning'],
   controls: [
     { id: 'ord', label: 'Column order of the index', type: 'select', value: 'msc', options: [['msc', '(member_id, status, created_at)'], ['mcs', '(member_id, created_at, status)']] },
@@ -57,7 +57,7 @@ Lab.register({
     if (!p.used.length) sum.push('A composite index cannot be used for searching when there is no condition on its first column. Put the columns of the conditions you use often first, and among them the columns used with "=".');
     else if (p.filt.length) sum.push('The conditions after the order was broken (' + p.filt.map(function (k) { return C[k][0]; }).join(', ') + ') could not narrow the range, so more index entries were read than necessary. If you put the "=" condition columns first and the range condition column last, all three columns narrow the range.');
     else if (p.used.length === 3) sum.push('The conditions continue in index order without a gap, so all three columns narrowed the range. The order in which you write the conditions in WHERE does not matter; the column order of the index decides.');
-    if (p.cov && p.type !== 'ALL') sum.push('A secondary index holds only the index columns and the primary key, so if another column is needed, the query must go to the table one more time. If every needed column is in the index, that extra trip disappears. This is one reason to avoid SELECT *.');
+    if (p.cov && p.type !== 'ALL') sum.push('A secondary index holds only the index columns and the primary key, so if another column is needed, the query must go to the table one more time. If every needed column is in the index, that extra trip disappears. Such an index is called a covering index, and it appears as Using index in the Extra column of EXPLAIN. This is one reason to avoid SELECT *.');
     if (!sum.length) sum.push('Columns used to narrow the range: ' + usedNames + '. The query read ' + num(p.idxRead) + ' index entries and ' + num(p.tblRead) + ' table rows, and got about ' + num(Math.max(1, p.out)) + ' results.');
     return { events: ev, summary: sum, p: p, row: [usedNames, p.type, num(p.idxRead), num(p.tblRead), p.extra || '(none)'] };
   },

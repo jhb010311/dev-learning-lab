@@ -1,7 +1,7 @@
 Lab.register({
   id: 'loops', nav: '조건문과 반복문', cat: '자바 언어', mode: 'step',
   title: '반복문은 몇 번 돌고, 어디에서 멈추나',
-  intro: '반복문은 "조건 검사 → 본문 → 값 바꾸기"를 조건이 false가 될 때까지 되풀이합니다. 조건에 <를 쓰느냐 <=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 값이 일치하는 case로 건너뛰는 문장인데, break가 없으면 아래 case까지 이어서 실행됩니다.',
+  intro: '반복문은 "조건 검사 → 본문 → 값 바꾸기"를 조건이 false가 될 때까지 되풀이합니다. 조건에 <를 쓰느냐 <=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 if처럼 값에 따라 실행할 곳을 고르는 조건문입니다. 값이 일치하는 case로 건너뛰는데, break가 없으면 아래 case까지 이어서 실행됩니다.',
   terms: ['for문과 while문', 'break와 continue', 'switch문과 fall-through'],
   controls: [
     { id: 'stmt', label: '문장', type: 'select', value: 'for', options: [['for', 'for 반복문'], ['while', 'while 반복문'], ['swc', 'switch (case마다 break 있음)'], ['swf', 'switch (break 없음)'], ['swa', 'switch (화살표 ->)']] },

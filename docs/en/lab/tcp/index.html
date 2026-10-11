@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TCP connections and retransmission: When a packet is lost, who notices and sends it again? · Dev Learning Lab</title>
-<meta name="description" content="TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sen…">
+<meta name="description" content="TCP establishes a connection before it sends data, and it receives acknowledgments that tell it how far the data has been received. If no acknowledgment a…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tcp/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tcp/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/tcp/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="TCP connections and retransmission: When a packet is lost, who notices and sends it again? · Dev Learning Lab">
-<meta property="og:description" content="TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sen…">
+<meta property="og:description" content="TCP establishes a connection before it sends data, and it receives acknowledgments that tell it how far the data has been received. If no acknowledgment a…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/tcp/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b1476e72c4">
+<link rel="stylesheet" href="../../app.css?v=a06cbaab2c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Transport layer</p>
 <h1>TCP connections and retransmission</h1>
 <p><b>When a packet is lost, who notices and sends it again?</b></p>
-<p>TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure.</p>
+<p>TCP establishes a connection before it sends data, and it receives acknowledgments that tell it how far the data has been received. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure.</p>
 <p>Checked against documentation and standards · Checked against the TCP specification (RFC 9293)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -158,6 +158,6 @@ socket.close();                                // close the connection</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b1476e72c4"></script>
+<script src="../../app.js?v=a06cbaab2c"></script>
 </body>
 </html>

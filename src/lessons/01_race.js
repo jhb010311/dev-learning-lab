@@ -1,7 +1,7 @@
 Lab.register({
   id: 'race', nav: '경쟁 상태', cat: '동시성', mode: 'step',
   title: 'count++는 왜 숫자를 잃어버리나',
-  intro: '여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다.',
+  intro: '여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다. 이렇게 스레드들이 실행되는 순서에 따라 결과가 달라지는 상황을 경쟁 상태라고 합니다.',
   terms: ['경쟁 상태(Race Condition)', '임계 영역과 상호 배제', 'synchronized', 'volatile', '가시성(Visibility)', '원자성(Atomicity)과 CAS', '스레드 안전(Thread-safe)'], ranks: ['javasync', 'concurrency'],
   controls: [
     { id: 'threads', label: '스레드 수', type: 'range', min: 2, max: 4, value: 2, fmt: function (v) { return v + '개'; } },
@@ -75,7 +75,7 @@ Lab.register({
       }
     }
     var expect = c.threads * c.loops, sum = [];
-    if (lost > 0) sum.push('증가 ' + lost + '번이 사라졌습니다. 한 스레드가 읽고 쓰는 사이에 다른 스레드가 끼어들어, 오래된 값을 기준으로 계산한 결과가 덮어써졌기 때문입니다.');
+    if (lost > 0) sum.push('증가 ' + lost + '번이 사라졌습니다. 한 스레드가 읽고 쓰는 사이에 다른 스레드가 끼어들어, 오래된 값을 기준으로 계산한 결과가 덮어써졌기 때문입니다. 끼어드는 순서에 따라 결과가 달라지는 경쟁 상태입니다.');
     if (c.sync === 'volatile') sum.push('volatile은 다른 스레드가 쓴 값이 보이도록 해 줄 뿐입니다. 읽기-더하기-쓰기 세 단계를 하나로 묶어 주지 않아서 결과는 동기화가 없을 때와 같습니다.');
     if (c.sync === 'sync') sum.push('synchronized 블록 안에는 한 번에 한 스레드만 들어갈 수 있어서 세 단계가 끊기지 않았습니다. 대신 다른 스레드가 ' + waits + '번 기다렸습니다.');
     if (c.sync === 'atomic') sum.push('AtomicInteger는 락을 잡지 않습니다. 대신 "내가 읽은 값 그대로일 때만 쓴다"(CAS)를 지켜서, 다른 스레드가 먼저 바꿨으면 덮어쓰지 않고 다시 시도합니다.');

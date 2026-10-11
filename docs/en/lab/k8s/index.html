@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b1476e72c4">
+<link rel="stylesheet" href="../../app.css?v=a06cbaab2c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Deployment and operations</p>
 <h1>Kubernetes self-healing</h1>
 <p><b>When a container dies, what starts it again?</b></p>
-<p>In Kubernetes, you write down the state you want, such as &quot;run 3 copies of this application&quot;. Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself.</p>
+<p>In Kubernetes, you write down the state you want, such as &quot;run 3 copies of this application&quot;. Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself. Replacing a dead Pod with a new one without anyone stepping in, as happens here, is called self-healing.</p>
 <p>Checked against documentation and standards · The official Kubernetes documentation</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Treat a Pod as disposable: it can die and be replaced at any time. So do not keep state (files, sessions) inside a Pod, and reach Pods through the fixed name of a Service, not through a Pod's IP.</li>
+<li>The number of Pods is back to 3 although nobody stepped in. This is self-healing. Treat a Pod as disposable: it can die and be replaced at any time. So do not keep state (files, sessions) inside a Pod, and reach Pods through the fixed name of a Service, not through a Pod's IP.</li>
 <li>The controller keeps comparing the desired state with the actual state and closes the gap. This loop is the basic principle of how Kubernetes works.</li>
 </ul>
 <h2>Code</h2>
@@ -167,6 +167,6 @@ spec:
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b1476e72c4"></script>
+<script src="../../app.js?v=a06cbaab2c"></script>
 </body>
 </html>

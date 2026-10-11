@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b1476e72c4">
+<link rel="stylesheet" href="../../app.css?v=a06cbaab2c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,7 +58,7 @@
 <ol>
 <li>Application layer (HTTP): The browser creates the HTTP message to send to the server. Its size is 1500 bytes. This layer only decides &quot;what content is exchanged&quot; and leaves how it reaches the other side to the layers below.</li>
 <li>Transport layer (TCP): First, work out how much can be sent at one time. The MTU, the largest size the link layer carries in one frame, is 1500 bytes, and the 20-byte IP header and the 20-byte TCP header must fit inside it, so one piece can carry up to 1460 bytes of data (the MSS). The 1500 bytes of data to send are larger than that, so the data is split into 2 pieces (1460, 40 bytes).</li>
-<li>Transport layer (TCP): The first piece gets a 20-byte TCP header in front. The header holds the port numbers that identify the sending program and the receiving program (51000 → 80) and a sequence number that tells which byte of the whole data this piece starts at. Data wrapped like this is called a segment. It is now 1480 bytes.</li>
+<li>Transport layer (TCP): The first piece gets a 20-byte TCP header in front. Wrapping the data with a header like this is encapsulation. The header holds the port numbers that identify the sending program and the receiving program (51000 → 80) and a sequence number that tells which byte of the whole data this piece starts at. Data wrapped like this is called a segment. It is now 1480 bytes.</li>
 <li>Internet layer (IP): A 20-byte IP header is placed in front of the segment. The header holds the IP addresses of the sending computer and the receiving computer (192.168.0.10 → 192.168.0.20). Data wrapped like this is called a packet. It is now 1500 bytes. This fills the MTU of 1500 bytes exactly.</li>
 <li>Link layer (Ethernet): A 14-byte Ethernet header is placed in front of the packet, and a 4-byte frame check sequence (FCS) for error checking is placed after it. The header holds the MAC addresses of the two devices that exchange this data within the same network (00:00:5e:00:53:0a → 00:00:5e:00:53:14). Data wrapped like this is called a frame. 1518 bytes go out on the wire.</li>
 <li>The remaining pieces are wrapped in the same order. The headers are added to each piece separately. With 2 frames and 58 bytes added to each, 116 bytes were added in all. Counting the 1500 bytes of data, 1616 bytes went out on the wire.</li>
@@ -177,6 +177,6 @@ console.log(total);                                     // total size that went 
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b1476e72c4"></script>
+<script src="../../app.js?v=a06cbaab2c"></script>
 </body>
 </html>

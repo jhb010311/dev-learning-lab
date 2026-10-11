@@ -1,11 +1,11 @@
 // 실습의 소개가 말한 것을 화면이 실제로 보여 주는지 대조하려고, 실습마다 화면에 나오는 것을 글로 뽑는다.
 // 소개, 설정(이름과 고를 수 있는 값), 결과 표의 열, 예시, 그리고 처음 설정과 예시마다의 그림 글자·단계 설명·실행 결과.
-// 실행: node tools/dump_show.js <내보낼 폴더> <id> [id ...]      (id 대신 all이면 전부)
+// 실행: node tools/dump_show.js <내보낼 폴더> <id> [id ...] [--slim]      (id 대신 all이면 전부, --slim이면 예시 실행은 결과만)
 const fs = require('fs'), path = require('path');
 const { loadLessons } = require('../build.js'); const { list } = loadLessons();
 const fw = fs.readFileSync(path.join(__dirname, '..', 'src', 'framework.html'), 'utf8').split('/*PIC-BEGIN*/')[1].split('/*PIC-END*/')[0];
 const pic = new Function(fw + '; return { picScene: picScene };')();
-const out = process.argv[2], ids = process.argv.slice(3); fs.mkdirSync(out, { recursive: true });
+const slim = process.argv.includes('--slim'), out = process.argv[2], ids = process.argv.slice(3).filter(a => a !== '--slim'); fs.mkdirSync(out, { recursive: true });
 const cut = (s, n) => { s = String(s).replace(/\s+/g, ' '); return s.length > n ? s.slice(0, n) + '…' : s; };
 list.filter(l => ids[0] === 'all' || ids.includes(l.id)).forEach(l => {
   const base = {}; l.controls.forEach(d => { base[d.id] = d.value; });
@@ -17,7 +17,7 @@ list.filter(l => ids[0] === 'all' || ids.includes(l.id)).forEach(l => {
     L.push('', '## 실행: ' + p.t, '결과 행: ' + (sim.row || []).join(' | '), '실행 결과 글: ' + (sim.summary || []).join(' / '));
     const ev = sim.events || [];
     if (pi === 0) { L.push('단계 설명 ' + ev.length + '개:'); ev.forEach((e, i) => { if (e.s) L.push('  ' + (i + 1) + '. ' + cut(e.s, 150)); }); }
-    else L.push('단계 설명 ' + ev.length + '개 (마지막): ' + cut((ev[ev.length - 1] || {}).s || '', 150));
+    else if (slim) return; else L.push('단계 설명 ' + ev.length + '개 (마지막): ' + cut((ev[ev.length - 1] || {}).s || '', 150));
     if (l.draw) {
       const seen = new Set(), texts = []; const add = s => { s = String(s || '').trim(); if (s && !seen.has(s)) { seen.add(s); texts.push(s); } };
       const times = l.mode === 'step' ? ev.map((e, i) => i) : ev.map(e => e.t);
