@@ -1,0 +1,32 @@
+{
+  "hash": {
+    "m1": "61f18f18afa3952402e0636904f28f39d8f4d6f0039f981d653dc97ec51ec10e",
+    "m1again": "61f18f18afa3952402e0636904f28f39d8f4d6f0039f981d653dc97ec51ec10e",
+    "m2": "5b741fe8fa44f42905aa1ae1fe2d3365344c69d000b16c1a4981891d16945c44"
+  },
+  "sym": {
+    "cipher": "94bb6950cf3805248a038397b9",
+    "sameKey": "Order 100 won",
+    "otherKey": "failed: Unsupported state or unable to authenticate data"
+  },
+  "asym": {
+    "cipherHead": "5f398a6b908d7f5c16625512aa635838",
+    "cipherBytes": 256,
+    "privateDec": "Order 100 won",
+    "publicDec": "failed",
+    "otherPrivateDec": "failed"
+  },
+  "hmac": {
+    "sig": "81f0583e32233d7bac91d36b2f7365bdaa3a990cc2fe8b66eabc7d63deb89a90",
+    "verifyOk": true,
+    "tampered": false,
+    "forged": false
+  },
+  "sign": {
+    "sigHead": "ef2985c80f2dbf73f615931fed54e2ae",
+    "sigBytes": 256,
+    "ok": true,
+    "tampered": false,
+    "forged": false
+  }
+}

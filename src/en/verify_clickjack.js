@@ -1,0 +1,1 @@
+Lab.verify({ clickjack: ['run', 'Response headers were checked against the actual responses of a Spring Boot 4.1.1 (Spring Security 7.1.1) server for 24 combinations, and browser behavior was checked with Chromium 151. Other browsers follow the documentation'] });

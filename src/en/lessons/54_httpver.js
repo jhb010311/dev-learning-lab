@@ -9,7 +9,7 @@ Lab.register({
     { id: 'loss', label: 'One packet is lost in transit', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'HTTP/1.1. Six connections fetch six files at a time, so the requests wait in line five times.', v: { ver: '1.1', n: 30, loss: false } },
+    { t: 'Default settings', d: 'HTTP/1.1. Six connections fetch six files at a time in five batches, so the requests wait in line four times.', v: { ver: '1.1', n: 30, loss: false } },
     { t: 'Switch to HTTP/2', d: 'One connection fetches all 30 files at the same time.', v: { ver: '2', n: 30, loss: false } },
     { t: 'Packet loss with HTTP/2', d: 'When one packet disappears, all the files stop together.', v: { ver: '2', n: 30, loss: true } },
     { t: 'Packet loss with HTTP/3', d: 'Only the one file that the packet belongs to waits.', v: { ver: '3', n: 30, loss: true } },
@@ -26,7 +26,7 @@ Lab.register({
     if (c.ver === '1.1') {
       conns = 6; waves = Math.ceil(n / 6); setup = 60; total = setup + waves * T + (c.loss ? RT : 0);
       push('In HTTP/1.1, a connection has to receive the whole response to one request before it can send the next request. To go faster, the browser opens up to 6 connections to the same server. Each connection needs its own TCP and TLS handshakes.', '', { done: 0, wave: 0 });
-      for (var w = 1; w <= waves; w++) { var cnt = Math.min(6, n - (w - 1) * 6), lossNow = c.loss && w === 1; push('Batch #' + w + ': the 6 connections receive ' + cnt + ' files, one file each. The remaining ' + Math.max(0, n - w * 6) + ' wait until a connection is free.' + (lossNow ? ' A packet is lost on one connection, so the file on that connection, and the files waiting for that connection, are delayed by the retransmission time. The other 5 connections are not affected.' : ''), lossNow ? 'bad' : '', { done: Math.min(n, w * 6), wave: w, loss: lossNow }); }
+      for (var w = 1; w <= waves; w++) { var cnt = Math.min(6, n - (w - 1) * 6), lossNow = c.loss && w === 1; push('Batch #' + w + ': ' + cnt + (cnt === 1 ? ' connection receives one file.' : ' connections receive one file each.') + (n > w * 6 ? ' The remaining ' + (n - w * 6) + ' wait until a connection is free.' : ' No files are waiting now.') + (lossNow ? ' A packet is lost on one connection, so the file on that connection, and the files waiting for that connection, are delayed by the retransmission time. The other 5 connections are not affected.' : ''), lossNow ? 'bad' : '', { done: Math.min(n, w * 6), wave: w, loss: lossNow }); }
       stalled = c.loss ? waves : 0;
       sum.push('The files were received in ' + waves + ' batches over 6 connections. The next request can be sent only after the earlier response is finished, so the more files there are, the longer the time spent waiting in line. That is why people used to use workarounds such as combining files into one or spreading them over several domains.');
     } else {
@@ -38,7 +38,7 @@ Lab.register({
         else { stalled = 1; push('One packet is lost. QUIC keeps the order of each stream separately. Only the 1 file that the lost packet belongs to waits for the retransmission, and the other ' + (n - 1) + ' are received as usual.', 'good', { done: n - 1, wave: 1, stall: 1 }); }
         push('The retransmitted packet arrives, and the remaining files are completed too.', '', { done: n, wave: 1 });
       }
-      total = setup + T + (c.loss ? (c.ver === '2' ? RT : RT) : 0);
+      total = setup + T + (c.loss ? RT : 0);
       sum.push(c.ver === '2' ? 'All the files were received at the same time over one connection. The "waiting in line at the request level" of HTTP/1.1 is gone.' : 'All the files were received at the same time over one connection, and the round trips needed to open the connection were reduced too.');
       if (c.loss) sum.push(c.ver === '2' ? 'Because HTTP/2 runs over TCP, losing a single packet makes all the streams of that connection wait together. On mobile networks, where loss is frequent, it can even end up worse than HTTP/1.1 with its 6 connections.' : 'HTTP/3 left TCP for QUIC to solve this problem. The effect of a loss is limited to that one stream. It also has the advantage that the connection can survive a change of network (from Wi-Fi to a cellular network).');
     }

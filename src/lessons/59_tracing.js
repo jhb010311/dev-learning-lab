@@ -49,14 +49,14 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0, total = sim.spans[0][2];
     P.size(680, 260);
-    P.region('tr', 16, 16, 648, 228, c.prop ? '추적 화면: 같은 Trace ID로 묶인 구간들' : '추적 번호가 전달되지 않아 서비스마다 다른 번호가 찍힘');
+    P.region('tr', 16, 16, 648, 228, c.prop ? '추적 화면: 같은 Trace ID로 묶인 구간들' : '추적 번호가 전달되지 않아 로그에 번호가 없음');
     sim.spans.forEach(function (sp, i) {
       var y = 50 + i * 36, on = i < n, slow = n >= 6 && i === sim.mi && c.slow !== 'none';
       P.text('nm' + i, 28, y + 17, sp[0], { cls: on ? '' : 'mut' });
       if (c.prop) { if (on) P.box('bar' + i, 170 + 480 * sp[1] / total, y, Math.max(4, 480 * sp[2] / total), 24, { cls: slow ? 'bad' : 'wait' }); P.text('ms' + i, 652, y + 17, on ? sp[2] + 'ms (자체 ' + sp[3] + 'ms)' : '', { anchor: 'end', cls: slow ? 'bad' : 'mut' }); }
       else if (on) P.box('id' + i, 170, y, 240, 24, { cls: 'bad', sub: '추적 번호 ' + sim.ids[i], mono: true, center: true });
     });
-    P.note(c.prop ? '막대의 위치가 시작 시각, 길이가 걸린 시간입니다. 안쪽 구간은 바깥 구간의 시간에 포함됩니다. 빨간 막대가 실제로 시간을 쓴 구간이며, "자체" 시간이 큰 곳이 원인입니다.' : '번호가 서로 달라서 이 로그들이 같은 요청의 것인지 알 수 없습니다. 구간을 한 줄로 이어 볼 수 없으므로 어디가 느린지도 찾기 어렵습니다.');
+    P.note(c.prop ? '막대의 위치가 시작 시각, 길이가 걸린 시간입니다. 안쪽 구간은 바깥 구간의 시간에 포함됩니다. 빨간 막대가 실제로 시간을 쓴 구간이며, "자체" 시간이 큰 곳이 원인입니다.' : '추적 번호가 없어서 이 로그들이 같은 요청의 것인지 알 수 없습니다. 구간을 한 줄로 이어 볼 수 없으므로 어디가 느린지도 찾기 어렵습니다.');
   },
   assume: '서비스 네 개를 차례로 호출하는 단순한 구조이고 시간은 예시 값입니다. Trace ID와 스팬, 헤더로 전파하는 방식은 W3C Trace Context 표준과 OpenTelemetry, Micrometer Tracing 문서의 설명을 따랐습니다. 실제로는 모든 요청을 기록하지 않고 일부만 표본으로 수집하는 경우가 많습니다.',
 });

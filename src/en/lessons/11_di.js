@@ -69,7 +69,7 @@ Lab.register({
     } else {
       sum.push('Startup succeeded. The objects were created in the order ' + made.join(' → ') + ', and the beans were fully initialized in the order ' + done.join(' → ') + '.');
       if (ctor) sum.push('With constructor injection, an object can be created only after its dependencies are fully initialized. So from the moment the object exists, all of its dependencies are in place, and the fields can be final.');
-      else sum.push('With ' + how + ' injection, the object is created first and its dependencies are filled in later. In between, the object exists with the dependency for its ' + how + ' still null, and final cannot be used. If a test creates the object without Spring, its dependencies stay empty.');
+      else sum.push('With ' + how + ' injection, the object is created first and its dependencies are filled in later. In between, the object exists with its dependencies still null, and those fields cannot be final. If a test creates the object without Spring, its dependencies stay empty.');
       if (c.cycle) sum.push('Startup got through because circular dependencies were allowed, but an object whose injection was not finished was handed to another bean early. A structure in which two beans must know each other is likely to be a design problem in itself.');
     }
     return { events: ev, summary: sum, order: order, deps: deps, row: [failed ? 'Failed' : 'Succeeded', made.join(' → ') || 'none', done.join(' → ') || 'none'] };

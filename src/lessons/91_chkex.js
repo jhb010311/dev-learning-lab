@@ -1,7 +1,7 @@
 Lab.register({
   id: 'chkex', nav: '체크 예외와 언체크 예외', cat: '자바 언어', mode: 'step',
   title: '어떤 예외는 왜 처리하지 않으면 컴파일조차 안 되나',
-  intro: '자바의 예외는 두 갈래입니다. 체크 예외(IOException 등)는 잡거나(try-catch) 던진다고 선언(throws)하지 않으면 컴파일러가 컴파일을 거부합니다. 언체크 예외(RuntimeException 계열)는 그런 강제가 없어서 아무 처리 없이도 컴파일됩니다. 예외의 종류와 처리 방식을 바꿔 가며 컴파일이 되는지, 실행하면 어떻게 끝나는지 확인하세요.',
+  intro: '자바의 예외는 두 갈래입니다. 체크 예외(IOException 등)는 잡거나(try-catch) 던진다고 선언(throws)하지 않으면 컴파일러가 컴파일을 거부합니다. 언체크 예외(대표적으로 RuntimeException 계열)는 그런 강제가 없어서 아무 처리 없이도 컴파일됩니다. 예외의 종류와 처리 방식을 바꿔 가며 컴파일이 되는지, 실행하면 어떻게 끝나는지 확인하세요.',
   terms: ['Checked 예외와 Unchecked 예외', '예외(Exception)와 Error', 'throws 선언', '예외 감싸기'],
   controls: [
     { id: 'ex', label: 'read 메서드가 던지는 예외', type: 'select', value: 'io', options: [['io', 'IOException (체크 예외)'], ['rt', 'IllegalStateException (언체크 예외)']] },
@@ -145,7 +145,7 @@ Lab.register({
     if (!io && h === 'throws') sum.push('같은 모양의 코드가 IOException일 때는 main에서 컴파일 오류입니다. 예외의 종류만 바꿔 비교해 보세요.');
     if (!io && (h === 'catch' || h === 'throwscatch')) sum.push('언체크 예외도 잡을 수 있습니다. 강제가 없을 뿐입니다. 어디서 잡을지는 개발자가 정합니다.');
     if (!io && h === 'wrap') sum.push('이미 언체크 예외인 것을 RuntimeException으로 다시 감싸면 얻는 것이 없습니다. 감싸기는 체크 예외를 언체크 예외로 바꿀 때 쓰는 방법입니다.');
-    if (!io) sum.push('Error(OutOfMemoryError, StackOverflowError 등)는 메모리 부족처럼 프로그램이 스스로 복구하기 어려운 JVM 수준의 문제를 나타내는 또 다른 계열입니다. 컴파일러가 처리를 강제하지 않는 점은 언체크 예외와 같고, 보통 잡지 않습니다.');
+    if (!io) sum.push('Error(OutOfMemoryError, StackOverflowError 등)는 메모리 부족처럼 프로그램이 스스로 복구하기 어려운 JVM 수준의 문제를 나타냅니다. 자바 언어 명세는 RuntimeException 계열과 Error 계열을 묶어 언체크 예외라고 부릅니다. 그래서 Error도 컴파일러가 처리를 강제하지 않으며, 보통 잡지 않습니다.');
     if (io && h === 'catch') sum.push('예외가 난 메서드 안에서 잡으면 부르는 쪽은 아무것도 하지 않아도 됩니다. 다만 잡은 자리에서 제대로 대처할 수 있을 때만 이렇게 합니다. 잡아 놓고 아무것도 하지 않으면 문제가 있었다는 사실이 사라집니다.');
     if (io && h === 'throws2') sum.push('모든 메서드가 throws로 넘기면 컴파일은 되지만 잡는 곳이 없습니다.' + (occur ? ' 예외는 JVM까지 올라가 프로그램을 끝냅니다.' : ' 예외가 실제로 나면 JVM까지 올라가 프로그램을 끝냅니다.') + ' 컴파일러가 강제하는 것은 "잡거나 선언하는 것"까지이고, 제대로 대처했는지는 확인해 주지 않습니다.');
     if (io && h === 'throwscatch') sum.push('read는 무엇이 잘못될 수 있는지 throws로 알리고, 어떻게 대처할지 아는 쪽(main)이 잡습니다. 체크 예외가 의도한 쓰임새입니다.');
@@ -188,7 +188,7 @@ Lab.register({
     P.text('exc', 30, 176, s.comp === '오류' ? '컴파일 오류: 실행되지 않으므로 예외도 생기지 않습니다' : s.exc ? '던져진 예외: ' + s.exc : s.caught ? s.caught + '의 catch가 예외를 잡았습니다' : s.comp === '성공' ? '던져진 예외: 없음' : '컴파일러가 검사하는 중입니다', { cls: s.exc || s.comp === '오류' ? 'bad' : s.caught ? 'good' : 'mut' });
     P.box('r1', 16, 196, 320, 36, { cls: s.comp === '성공' ? 'good' : s.comp === '오류' ? 'bad' : 'ghost', title: '컴파일', right: s.comp });
     P.box('r2', 344, 196, 320, 36, { cls: s.end === '정상 종료' ? 'good' : s.end === '?' ? 'ghost' : 'bad', title: '프로그램', right: s.end });
-    P.note('체크 예외는 길 위의 어느 메서드인가가 잡거나, 지나가는 메서드마다 throws로 선언해야 컴파일됩니다. 언체크 예외(RuntimeException 계열)와 Error(메모리 부족 같은 JVM 수준의 문제)는 컴파일러가 이 검사를 하지 않습니다.');
+    P.note('체크 예외는 길 위의 어느 메서드인가가 잡거나, 지나가는 메서드마다 throws로 선언해야 컴파일됩니다. 언체크 예외, 곧 RuntimeException 계열과 Error 계열(메모리 부족 같은 JVM 수준의 문제)은 컴파일러가 이 검사를 하지 않습니다.');
   },
   assume: '스물네 가지 조합 모두를 이 PC의 JDK 21에서 화면의 코드와 같은 소스로 실제로 컴파일하고, 컴파일된 것은 실행해서 컴파일 여부, 오류가 난 줄, 컴파일러 메시지, 출력, 종료 코드, 오류 출력의 첫 줄을 대조했습니다. 컴파일러 메시지는 명령줄 javac가 보여 주는 모양(클래스 이름만)으로 적었습니다. Error 계열을 아무 처리 없이 던져도 컴파일된다는 것과, Exception 자체를 던지면 체크 예외로 취급된다는 것도 같은 방법으로 확인했습니다. 모형은 메서드가 둘(read, main)인 경우만 다룹니다. 호출이 더 깊어도 규칙은 같아서, 체크 예외가 지나가는 메서드마다 잡거나 선언해야 합니다. 잡히지 않은 예외가 프로그램을 끝내는 것은 스레드가 main 하나뿐인 경우의 이야기입니다.',
 });

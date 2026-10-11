@@ -35,7 +35,7 @@ Lab.register({
     }
     var total = reqs.reduce(function (m, x) { return Math.max(m, x.end); }, 0), peak = serial ? Math.min(c.n, osT) : c.n;
     if (serial) {
-      ev.push({ t: 0, k: c.n > osT ? 'bad' : '', s: '0.0초: 요청 ' + c.n + '건이 들어옵니다. ' + (c.model === 'pool' ? '스레드 ' + osT + '개가 요청을 하나씩 맡습니다.' : '이벤트 루프 스레드 2개가 요청을 하나씩 처리하기 시작합니다.') + (c.n > osT ? ' 나머지 ' + (c.n - osT) + '건은 스레드가 빌 때까지 기다립니다.' : '') });
+      ev.push({ t: 0, k: c.n > osT ? 'bad' : '', s: '0.0초: 요청 ' + c.n + '건이 들어옵니다. ' + (c.model === 'pool' ? '스레드 ' + peak + '개가 요청을 하나씩 맡습니다.' : '이벤트 루프 스레드 ' + peak + '개가 요청을 하나씩 처리하기 시작합니다.') + (c.n > osT ? ' 나머지 ' + (c.n - osT) + '건은 스레드가 빌 때까지 기다립니다.' : '') });
       ev.push({ t: 0.05, k: c.model === 'loop' ? 'bad' : '', s: '0.1초: 각 스레드가 외부 응답을 기다립니다. ' + (c.model === 'pool' ? '기다리는 동안 스레드는 아무 일도 하지 않지만 다른 요청을 맡을 수도 없습니다(블로킹).' : '이벤트 루프 스레드가 블로킹 호출에 묶였습니다. 이 스레드는 수많은 요청을 번갈아 처리해야 하는데, 멈춰 있는 동안 다른 요청은 전혀 진행되지 않습니다.') });
       var waves = []; reqs.forEach(function (x) { if (waves.indexOf(x.end) < 0) waves.push(x.end); });
       waves.forEach(function (t2) { var done = reqs.filter(function (x) { return x.end === t2; }).length, left = reqs.filter(function (x) { return x.start >= t2; }).length; ev.push({ t: t2, s: fmt(t2) + '초: 응답이 도착해 요청 ' + done + '건이 끝났습니다.' + (left ? ' 풀려난 스레드가 기다리던 요청을 맡습니다(남은 대기 ' + Math.max(0, left - done) + '건).' : '') }); });
@@ -72,7 +72,7 @@ Lab.register({
     if (sim.serial) wait.slice(0, 30).forEach(function (r, j) { P.box('rq' + r.id, 26 + (j % 3) * 56, 50 + Math.floor(j / 3) * 26, 52, 22, { cls: 'wait', sub: '요청 ' + r.id, center: true }); });
     for (var i = 0; i < T; i++) {
       var y = 50 + i * 30, r = sim.serial ? run.filter(function (x) { return x.th === i; })[0] : null;
-      P.box('os' + i, 228, y, 238, 26, { cls: r ? (c.model === 'loop' ? 'bad' : 'hot') : !sim.serial && run.length ? 'good' : 'plain', title: '스레드 ' + (i + 1), right: r ? '' : !sim.serial && run.length ? '한가함' : '대기' });
+      P.box('os' + i, 228, y, 238, 26, { cls: r ? (c.model === 'loop' ? 'bad' : 'hot') : !sim.serial && run.length ? 'good' : 'plain', title: '스레드 ' + (i + 1), right: r ? '' : !sim.serial && run.length ? '한가함' : done === c.n ? '쉬는 중' : '대기' });
       if (r) P.box('rq' + r.id, 318, y + 3, 142, 20, { cls: 'wait', sub: '요청 ' + r.id + ' · 응답 대기', center: true });
     }
     if (!sim.serial) run.slice(0, 30).forEach(function (r, j) { P.box('rq' + r.id, 502 + (j % 3) * 52, 50 + Math.floor(j / 3) * 26, 48, 22, { cls: 'good', sub: String(r.id), center: true }); });

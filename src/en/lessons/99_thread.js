@@ -148,7 +148,7 @@ Lab.register({
     P.box('s_w', 456, 82, 190, 30, { cls: cls('WAITING'), title: 'WAITING', right: 'join' });
     P.box('s_b', 456, 120, 190, 30, { cls: cls('BLOCKED'), title: 'BLOCKED', right: 'lock' });
     P.arrow('a_start', 's_new:r', 's_run:l', { label: 'start()', cls: s.t && s.t !== 'NEW' ? 'good' : 'mut' });
-    P.arrow('a_end', 's_run:b', 's_term:t', { label: 'run() ends', cls: s.t === 'TERMINATED' ? 'good' : 'mut' });
+    P.arrow('a_end', 's_run:b', 's_term:t', { cls: s.t === 'TERMINATED' ? 'good' : 'mut' }); P.text('t_end', 290, 113, 'run() ends', { cls: s.t === 'TERMINATED' ? '' : 'mut' });
     if (wname) P.arrow('a_wait', 's_run:r', { TIMED_WAITING: 's_tw', WAITING: 's_w', BLOCKED: 's_b' }[wname] + ':l', { label: 'waits', cls: s.t === wname ? 'hot' : 'mut' });
     P.box('m', 16, 180, 320, 56, { cls: 'hot', title: 'main thread', sub: s.main });
     P.box('w', 344, 180, 320, 56, s.worker ? { cls: s.worker === 'Finished' ? 'good' : s.t === 'RUNNABLE' ? 'hot' : 'wait', title: 'worker thread', sub: s.worker } : { cls: 'ghost', title: 'worker thread', sub: c.call === 'run' && s.ran === 'main' ? 'Never created' : 'Not created yet' });

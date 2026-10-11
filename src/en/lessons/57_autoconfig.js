@@ -4,7 +4,7 @@ Lab.register({
   intro: 'When an application starts, Spring Boot goes through a set of configuration classes prepared in advance, one by one, and decides "if this condition is met, register this bean". The conditions are mainly which libraries are on the classpath and whether the developer has registered the same bean. Change the dependencies and whether you register a bean yourself, and watch the final list of beans.',
   terms: ['Spring Boot auto-configuration', 'Starter', 'Embedded server', '@Configuration and @Bean', 'Component scanning'], ranks: ['boot', 'bean', 'di'],
   controls: [
-    { id: 'web', label: 'spring-boot-starter-web dependency', type: 'check', value: true },
+    { id: 'web', label: 'spring-boot-starter-webmvc dependency', type: 'check', value: true },
     { id: 'myOm', label: 'You registered your own ObjectMapper bean', type: 'check', value: false, show: function (c) { return c.web; } },
     { id: 'jpa', label: 'spring-boot-starter-data-jpa dependency', type: 'check', value: true },
     { id: 'db', label: 'Database driver', type: 'select', value: 'mysql', options: [['h2', 'H2 (embedded database)'], ['mysql', 'MySQL driver']], show: function (c) { return c.jpa; } },
@@ -21,7 +21,7 @@ Lab.register({
   ],
   code: function (c) {
     var dep = [];
-    if (c.web) dep.push("    implementation 'org.springframework.boot:spring-boot-starter-web'");
+    if (c.web) dep.push("    implementation 'org.springframework.boot:spring-boot-starter-webmvc'");
     if (c.jpa) { dep.push("    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'"); dep.push(c.db === 'h2' ? "    runtimeOnly 'com.h2database:h2'" : "    runtimeOnly 'com.mysql:mysql-connector-j'"); }
     var s = '// build.gradle\ndependencies {\n' + (dep.length ? dep.join('\n') : "    implementation 'org.springframework.boot:spring-boot-starter'") + '\n}\n';
     if (c.jpa && c.url) s += '\n# application.yml\nspring.datasource.url: jdbc:' + (c.db === 'h2' ? 'h2:mem:shop' : 'mysql://localhost:3306/shop') + '\n';
@@ -59,5 +59,5 @@ Lab.register({
     if (rows.length) H.table(v, ['Auto-configuration', 'Condition evaluation', 'Result'], rows, 'Evaluation of auto-configuration conditions'); else H.text(v, 'When the application starts, the results of the condition evaluation build up here.');
     H.text(v, 'Green means registered automatically, yellow means the auto-configuration backed away because you registered your own bean, and red means failure.');
   },
-  assume: 'This lab picks only a few representative auto-configurations and simplifies them. The real class names and conditions are more fine-grained (for example, DataSourceAutoConfiguration, JacksonAutoConfiguration, HibernateJpaAutoConfiguration). The meaning of the conditions and the principle that "auto-configuration backs away when you have registered the bean yourself" follow the explanation in the official Spring Boot documentation. These results were not checked against a running Spring Boot application.',
+  assume: 'This lab picks only a few representative auto-configurations and simplifies them. The real class names and conditions are more fine-grained (for example, DataSourceAutoConfiguration, JacksonAutoConfiguration, HibernateJpaAutoConfiguration). The meaning of the conditions and the principle that "auto-configuration backs away when you have registered the bean yourself" follow the explanation in the official Spring Boot documentation. The dependency names are those of Spring Boot 4 (up to Spring Boot 3, the web starter was named spring-boot-starter-web). These results were not checked against a running Spring Boot application.',
 });

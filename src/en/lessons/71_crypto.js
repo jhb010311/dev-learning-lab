@@ -1,0 +1,90 @@
+Lab.register({
+  id: 'crypto', nav: 'Hashing, encryption, and signatures', cat: 'Authentication', mode: 'step',
+  title: 'What hides, what checks, and what cannot be undone',
+  intro: 'Hash functions, symmetric-key cryptography, public-key cryptography, and signatures come up all the time in security, and each does a different job. Try each of the five tools on the message "Order 100 won", then change the content or use a different key and see what happens. All values on screen were actually computed.',
+  terms: ['Hash function and salt', 'Symmetric-key cryptography and public-key cryptography', 'HMAC and digital signatures', 'JSON Web Token (JWT)'], ranks: ['websec', 'auth', 'network'],
+  controls: [
+    { id: 'tool', label: 'Tool', type: 'select', value: 'hash', options: [['hash', 'Hash (SHA-256)'], ['sym', 'Symmetric-key cryptography (AES)'], ['asym', 'Public-key cryptography (RSA)'], ['hmac', 'Signing with a keyed hash (HMAC)'], ['sign', 'Digital signature (sign with the private key, verify with the public key)']] },
+    { id: 'act', label: 'What to try', type: 'select', value: 'ok', options: [['ok', 'Normal use'], ['tamper', 'The content is changed to "Order 900 won" on the way'], ['wrong', 'Try with a different key (or without a key)']] },
+  ],
+  presets: [
+    { t: 'Default settings', d: 'A hash. The same input always gives the same value, and the value cannot be reversed.', v: { tool: 'hash', act: 'ok' } },
+    { t: 'Hash: change just one character', d: 'The result becomes a completely different value.', v: { tool: 'hash', act: 'tamper' } },
+    { t: 'Symmetric key: decrypt with a different key', d: 'Without the same key, you cannot decrypt.', v: { tool: 'sym', act: 'wrong' } },
+    { t: 'Public key: decrypt with the public key', d: 'The key that locked it cannot open it. Only the matching private key opens it.', v: { tool: 'asym', act: 'wrong' } },
+    { t: 'HMAC: change the content', d: 'The signature no longer matches, so the tampering is revealed. JWT works this way.', v: { tool: 'hmac', act: 'tamper' } },
+    { t: 'Digital signature: sign with someone else\'s key', d: 'Verifying with the public key reveals that it is fake.', v: { tool: 'sign', act: 'wrong' } },
+  ],
+  code: function (c) {
+    return {
+      hash: 'MessageDigest md = MessageDigest.getInstance("SHA-256");\nbyte[] digest = md.digest(message.getBytes(UTF_8));\n// There is no key. Anyone gets the same value from the same input.',
+      sym: 'Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");\ncipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));\nbyte[] encrypted = cipher.doFinal(message.getBytes(UTF_8));\n\n// To decrypt, use the same secretKey\ncipher.init(Cipher.DECRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));',
+      asym: 'Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");\ncipher.init(Cipher.ENCRYPT_MODE, publicKey);      // lock with the public key,\nbyte[] encrypted = cipher.doFinal(message.getBytes(UTF_8));\n\ncipher.init(Cipher.DECRYPT_MODE, privateKey);     // only the private key opens it',
+      hmac: 'Mac mac = Mac.getInstance("HmacSHA256");\nmac.init(new SecretKeySpec(serverKey, "HmacSHA256"));\nbyte[] signature = mac.doFinal(message.getBytes(UTF_8));\n\n// The receiver also recalculates with the same key and compares (HS256 of JWT)',
+      sign: 'Signature s = Signature.getInstance("SHA256withRSA");\ns.initSign(privateKey);                            // sign with the private key\ns.update(message.getBytes(UTF_8));\nbyte[] signature = s.sign();\n\ns.initVerify(publicKey);                           // verify with the public key\ns.update(message.getBytes(UTF_8));\nboolean ok = s.verify(signature);',
+    }[c.tool];
+  },
+  label: function (c) { return { hash: 'Hash', sym: 'Symmetric-key cryptography', asym: 'Public-key cryptography', hmac: 'HMAC signature', sign: 'Digital signature' }[c.tool] + ' · ' + { ok: 'normal use', tamper: 'content tampered with', wrong: 'different key' }[c.act]; },
+  columns: ['Result', 'Can it be turned back into the original?', 'Key used', 'Typical use'],
+  simulate: function (c) {
+    var T = c.tool, A = c.act, ev = [], rows = [], sum = [], res;
+    var SHA1 = '61f18f18afa3952402e0636904f28f39d8f4d6f0039f981d653dc97ec51ec10e', SHA2 = '5b741fe8fa44f42905aa1ae1fe2d3365344c69d000b16c1a4981891d16945c44', AES = '94bb6950cf3805248a038397b9', RSA = '5f398a6b908d7f5c16625512aa635838… (256 bytes)', HM = '81f0583e32233d7bac91d36b2f7365bdaa3a990cc2fe8b66eabc7d63deb89a90', SIG = 'ef2985c80f2dbf73f615931fed54e2ae… (256 bytes)';
+    function row(a, b, cls) { rows.push({ cells: [a, { v: b, cls: cls || '' }] }); }
+    function push(s, k) { ev.push({ s: s, k: k, snap: { rows: rows.slice() } }); }
+    row('Original message', 'Order 100 won'); push('The message to send is "Order 100 won".', '');
+    if (T === 'hash') {
+      row('SHA-256 hash', SHA1); push('Put into a hash function, the message gives a value of a fixed length. No key is used. If you put in the same message again, anyone, at any time, gets exactly the same value.', '');
+      if (A === 'ok') { row('Recovering the original message from the hash', 'Impossible (there is no calculation that reverses it)', 'hot'); res = 'Same input → same hash'; push('There is no way to calculate "Order 100 won" backwards from this value. A hash goes in one direction only. That is why it is used to store things such as passwords, which do not need to be known in their original form.', 'good'); }
+      if (A === 'tamper') { row('Hash of "Order 900 won"', SHA2, 'bad'); res = 'The hash becomes completely different'; push('Changing just one character of the message (1 → 9) gives a completely different hash. If you know the hash of the original, you can tell at once that the content was changed. But a hash alone cannot stop anyone from making the change. An attacker can also calculate a new hash for the changed content.', 'bad'); }
+      if (A === 'wrong') { row('Key', 'None', 'hot'); res = 'No key, so anyone can calculate it'; push('A hash has no key. Anyone can calculate the same value from the same input. That is why the hash of a common password can be found with a table calculated in advance, and why a hash cannot guarantee that the content is genuine. Mixing in a key gives you an HMAC.', ''); }
+      sum.push('Hash: it cannot be reversed, it has no key, and the same input always gives the same value. Use it to compare whether contents are the same, or to store a value while hiding the original.');
+    }
+    if (T === 'sym') {
+      row('Key', 'The sender and the receiver hold the same single key'); row('Encrypted value (AES)', AES); push('The message is locked with one key. Looking only at the encrypted value, you cannot tell the content.', '');
+      if (A === 'ok') { row('Decrypt with the same key', 'Order 100 won', 'good'); res = 'Decryption succeeded'; push('When the receiver decrypts with the same key, the original message comes out. Unlike a hash, it can be reversed.', 'good'); }
+      if (A === 'wrong') { row('Decrypt with a different key', 'Failed (authentication error)', 'bad'); res = 'Decryption failed'; push('A different key cannot decrypt it. The problem is how to hand over this "same key" safely to the other side in the first place. If you simply send the key, anyone who looks at it on the way can decrypt too.', 'bad'); }
+      if (A === 'tamper') { row('The ciphertext is changed in transit', 'Decryption failed (tampering detected)', 'bad'); res = 'Tampering detected'; push('The method used here (AES-GCM) notices at the decryption step if the ciphertext has changed even slightly. Someone who does not know the key cannot swap the content for a value of their choice.', 'bad'); }
+      sum.push('Symmetric-key cryptography: lock with one key and open with the same key. It is fast, so it is used to encrypt real data (the body of HTTPS, database encryption). Its weak point is how to share the key.');
+    }
+    if (T === 'asym') {
+      row('Key', 'One pair: a public key (open to everyone) and a private key (kept only by the owner)'); row('Value encrypted with the public key (RSA)', RSA); push('The message is locked with the receiver\'s public key. Anyone can get the public key and use it.', '');
+      if (A === 'ok') { row('Decrypt with the matching private key', 'Order 100 won', 'good'); res = 'Decryption succeeded'; push('Only the person who has the matching private key can decrypt it. The difference from a symmetric key is that you do not have to share a key secretly beforehand.', 'good'); }
+      if (A === 'wrong') { row('Try to decrypt again with the public key', 'Failed', 'bad'); row('Try to decrypt with someone else\'s private key', 'Failed', 'bad'); res = 'Decryption failed'; push('The public key used to lock it cannot decrypt it, and neither can someone else\'s private key. That is why it is safe even though the public key is known.', 'bad'); }
+      if (A === 'tamper') { row('The ciphertext is changed in transit', 'Decryption failed', 'bad'); res = 'Decryption failed'; push('If the ciphertext changes, even the private key cannot decrypt it correctly. But public-key encryption alone cannot tell you who sent it, because anyone can use the public key. To check the sender, you need a signature.', 'bad'); }
+      sum.push('Public-key cryptography: lock with the public key and open with the private key. You do not have to share a key beforehand, but the calculation is slow, so it is mainly used not for large data but for "agreeing on a symmetric key securely" and for signatures. HTTPS mixes the two in this way.');
+    }
+    if (T === 'hmac') {
+      row('Key', 'One key that only the server knows'); row('Signature attached to the message (HMAC-SHA256)', HM); push('The signature is made by hashing the message together with the server\'s key. It does not hide the message itself. "Order 100 won" is sent out together with the signature.', '');
+      if (A === 'ok') { row('The server recalculates with the same key and compares', 'Match → exactly as I issued it', 'good'); res = 'Verification succeeded'; push('When this message comes back later, the server recalculates the signature with the same key. If it equals the attached signature, the server trusts that the content has not changed. The signature part of a JWT (HS256) is exactly this.', 'good'); }
+      if (A === 'tamper') { row('The content is changed to "Order 900 won" and the signature is left as it is', 'Mismatch → tampered with', 'bad'); res = 'Verification failed (tampering detected)'; push('Someone changed the content to "Order 900 won". The signature the server recalculates differs from the attached one, so the tampering is revealed. This is why anyone can read the content of a JWT but cannot change it.', 'bad'); }
+      if (A === 'wrong') { row('The attacker makes a new signature with a guessed key', 'Mismatch → forgery failed', 'bad'); res = 'Verification failed (cannot be forged)'; push('The attacker changed the content and attached a new signature made with a key the attacker knows. It differs from the value calculated with the server\'s key, so it does not pass. It cannot be forged unless the server\'s key leaks.', 'bad'); }
+      sum.push('HMAC: a hash mixed with a key confirms that "I made this and it has not changed". It does not hide the content. The side that makes it and the side that checks it must hold the same key, so it suits the case where one server issues and the same server checks again.');
+    }
+    if (T === 'sign') {
+      row('Key', 'The signer\'s private key + the public key that anyone has'); row('Signature made with the private key (RSA-SHA256)', SIG); push('The hash of the message is signed with the private key. The message and the signature are sent together. The content is not hidden.', '');
+      if (A === 'ok') { row('Verify with the public key', 'Pass → signed by the owner of the private key', 'good'); res = 'Verification succeeded'; push('The receiver verifies the signature with the public key. If it passes, it means "the very owner who holds the private key signed it, and the content has not changed". The side that verifies does not need to know any secret.', 'good'); }
+      if (A === 'tamper') { row('The content is changed to "Order 900 won"', 'Verification failed', 'bad'); res = 'Verification failed (tampering detected)'; push('If the content changes, the same signature does not pass verification.', 'bad'); }
+      if (A === 'wrong') { row('Signed with someone else\'s private key', 'Verification failed', 'bad'); res = 'Verification failed (cannot be forged)'; push('The attacker signed with their own private key and sent it. Verifying with the true owner\'s public key fails. Even though the public key is known to the whole world, the signature cannot be imitated.', 'bad'); }
+      sum.push('Digital signature: sign with the private key and verify with the public key. Unlike HMAC, the side that verifies does not need to hold a secret key, so it is used when the issuer and the verifier are different (certificates, and RS256 of JWTs that several services verify).');
+    }
+    var back = { hash: 'Impossible', sym: 'Possible with the same key', asym: 'Possible with the private key', hmac: 'Not applicable (does not hide the content)', sign: 'Not applicable (does not hide the content)' }[T], key = { hash: 'None', sym: 'One shared key', asym: 'Lock with the public key, open with the private key', hmac: 'One shared key', sign: 'Sign with the private key, verify with the public key' }[T], use = { hash: 'Storing passwords, comparing content', sym: 'HTTPS body, data encryption', asym: 'Agreeing on a key securely', hmac: 'JWT (HS256), signing API requests', sign: 'Certificates, JWT (RS256)' }[T];
+    sum.unshift('Result: ' + res + '.');
+    return { events: ev, summary: sum, row: [res, back, key, use] };
+  },
+  render: function (v, sim, t, H, shown) {
+    var last = shown[shown.length - 1], rows = last ? last.snap.rows : [];
+    if (rows.length) H.table(v, ['What', 'Value'], rows, 'Actually computed values'); else H.text(v, 'Click Run to start.');
+    H.table(v, ['Tool', 'Hides the content?', 'Can it be reversed?', 'Key'], [['Hash', 'Hides', 'Impossible', 'None'], ['Symmetric-key cryptography', 'Hides', 'Possible', 'One shared key'], ['Public-key cryptography', 'Hides', 'Possible', 'Public key / private key'], ['HMAC', 'Does not hide', '-', 'One shared key'], ['Digital signature', 'Does not hide', '-', 'Private key / public key']].map(function (r, i) { var on = ['hash', 'sym', 'asym', 'hmac', 'sign'][i] === sim.c.tool; return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2], r[3]] }; }), 'Comparison of the five tools');
+  },
+  // Diagram: connects, from top to bottom, what the original text becomes after passing through the tool and the key.
+  draw: function (P, sim, shown) {
+    var tool = sim.c.tool, last = shown[shown.length - 1], rows = last ? last.snap.rows : [], n = rows.length;
+    var key = { hash: 'No key: anyone can do the same calculation', sym: 'Lock and unlock with one shared key', asym: 'Lock with the public key; only the matching private key unlocks', hmac: 'One shared key: only those who know it can make and check a signature', sign: 'Sign with the private key; anyone can verify with the public key' }[tool];
+    P.size(680, 76 + Math.max(1, n) * 56 + 16);
+    P.box('key', 16, 16, 648, 40, { cls: tool === 'hash' ? 'ghost' : 'hot', title: 'Key used', right: key });
+    rows.forEach(function (r, i) { var c = P.c(r.cells[1]); P.box('row' + i, 16, 72 + i * 56, 648, 46, { cls: (c || 'plain') + (i === n - 1 ? ' now' : ''), title: P.v(r.cells[0]), sub: P.v(r.cells[1]), mono: true }); if (i) P.arrow('ar' + i, 'row' + (i - 1) + ':b:0.1', 'row' + i + ':t:0.1'); });
+    if (!n) P.text('hint', 340, 100, 'Click Run to start', { cls: 'mut', anchor: 'middle' });
+    P.note('It proceeds from top to bottom. Green is what worked as intended, red is what failed or changed. Hashes and signatures do not hide the content; encryption does.');
+  },
+  assume: 'The hash, ciphertext, and signature values on screen, and the success and failure results, were all actually computed and verified with the cryptography library of Node.js (SHA-256, AES-256-GCM, RSA with a 2048-bit key, HMAC-SHA256). The RSA values are long, so only the first part is shown, and the values differ every time the keys are created. In a real service, you do not implement these yourself; you use proven libraries and protocols (TLS, a JWT library). The values in this English edition were computed again in the same way for the English message text, so they differ from the values in the Korean edition.',
+});

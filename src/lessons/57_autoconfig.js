@@ -4,7 +4,7 @@ Lab.register({
   intro: '스프링 부트는 애플리케이션이 뜰 때 미리 준비된 설정 클래스들을 하나씩 살펴보며 "이 조건이 맞으면 이 빈을 등록한다"를 판단합니다. 조건은 주로 클래스패스에 어떤 라이브러리가 있는지와 개발자가 같은 빈을 직접 등록했는지입니다. 의존성과 직접 등록 여부를 바꿔 가며 최종 빈 목록을 보세요.',
   terms: ['Spring Boot 자동 설정(Auto-configuration)', '스타터(Starter)', '내장 서버', '@Configuration과 @Bean', '컴포넌트 스캔'], ranks: ['boot', 'bean', 'di'],
   controls: [
-    { id: 'web', label: 'spring-boot-starter-web 의존성', type: 'check', value: true },
+    { id: 'web', label: 'spring-boot-starter-webmvc 의존성', type: 'check', value: true },
     { id: 'myOm', label: 'ObjectMapper 빈을 직접 등록했다', type: 'check', value: false, show: function (c) { return c.web; } },
     { id: 'jpa', label: 'spring-boot-starter-data-jpa 의존성', type: 'check', value: true },
     { id: 'db', label: 'DB 드라이버', type: 'select', value: 'mysql', options: [['h2', 'H2 (내장형 DB)'], ['mysql', 'MySQL 드라이버']], show: function (c) { return c.jpa; } },
@@ -21,7 +21,7 @@ Lab.register({
   ],
   code: function (c) {
     var dep = [];
-    if (c.web) dep.push("    implementation 'org.springframework.boot:spring-boot-starter-web'");
+    if (c.web) dep.push("    implementation 'org.springframework.boot:spring-boot-starter-webmvc'");
     if (c.jpa) { dep.push("    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'"); dep.push(c.db === 'h2' ? "    runtimeOnly 'com.h2database:h2'" : "    runtimeOnly 'com.mysql:mysql-connector-j'"); }
     var s = '// build.gradle\ndependencies {\n' + (dep.length ? dep.join('\n') : "    implementation 'org.springframework.boot:spring-boot-starter'") + '\n}\n';
     if (c.jpa && c.url) s += '\n# application.yml\nspring.datasource.url: jdbc:' + (c.db === 'h2' ? 'h2:mem:shop' : 'mysql://localhost:3306/shop') + '\n';
@@ -59,5 +59,5 @@ Lab.register({
     if (rows.length) H.table(v, ['자동 설정', '조건 평가', '결과'], rows, '자동 설정 조건 평가'); else H.text(v, '애플리케이션이 시작되면 조건 평가 결과가 쌓입니다.');
     H.text(v, '초록은 자동으로 등록됨, 노랑은 내가 등록한 빈이 있어 자동 설정이 물러남, 빨강은 실패입니다.');
   },
-  assume: '자동 설정 가운데 대표적인 몇 개만 골라 단순화했습니다. 실제 클래스 이름과 조건은 더 세분돼 있습니다(예: DataSourceAutoConfiguration, JacksonAutoConfiguration, HibernateJpaAutoConfiguration). 조건의 의미와 "직접 등록한 빈이 있으면 물러난다"는 원칙은 스프링 부트 공식 문서의 설명을 따랐습니다. 스프링 부트를 실제로 띄워 대조한 결과는 아닙니다.',
+  assume: '자동 설정 가운데 대표적인 몇 개만 골라 단순화했습니다. 실제 클래스 이름과 조건은 더 세분돼 있습니다(예: DataSourceAutoConfiguration, JacksonAutoConfiguration, HibernateJpaAutoConfiguration). 조건의 의미와 "직접 등록한 빈이 있으면 물러난다"는 원칙은 스프링 부트 공식 문서의 설명을 따랐습니다. 의존성 이름은 스프링 부트 4 기준입니다(3까지는 웹 스타터의 이름이 spring-boot-starter-web이었습니다). 스프링 부트를 실제로 띄워 대조한 결과는 아닙니다.',
 });

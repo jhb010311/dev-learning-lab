@@ -30,7 +30,7 @@ Lab.register({
       sum.push('A rollback is done with the undo log. The undo log supports "all applied or all canceled" (atomicity).');
     } else if (W === 'crashBefore') {
       S.redo = '"Account 1 = 500" (maybe partly on disk, no committed note)'; push('The server went down before the commit. Everything in memory is lost. What remains on disk is the data file (1000) and the log that had been written to disk.', 'bad');
-      S.mem = '(restarting)'; S.tx = 'Aborted'; push('The server starts again. Recovery reads the redo log, applies again the changes that remain on disk, and then finds the transactions that have no note that they committed.', '');
+      S.mem = '(restarting)'; S.tx = 'Aborted'; push('The server starts again. Recovery reads the redo log, applies again the changes that remain on disk, and then finds the transactions that have no record that they committed.', '');
       S.mem = '1000'; S.tx = 'Rolled back (during recovery)'; usedU = 'Undo log'; usedR = 'Redo log (at the start of recovery)'; fin = '1000'; prop = 'Atomicity';
       push('The changes of the transaction that was not committed are undone using the undo log. The balance is 1000. The user never received a "commit succeeded" reply, so this result is correct.', 'good');
       sum.push('Changes that were not committed do not remain after a failure. Recovery undoes them with the undo log.');
@@ -39,13 +39,13 @@ Lab.register({
       push('COMMIT: The redo log is written to disk for certain (fsync). Only after this is done does the server reply "commit succeeded" to the user. Even at this point the data file is still 1000. What is written to disk at commit time is only the log.', 'good');
       if (W === 'commit') {
         S.file = '500'; S.mem = '500'; usedR = 'Not used (no failure occurred)'; fin = '500'; prop = 'Durability';
-        push('A while later, a background task writes the changed data in memory to the data file (checkpoint). Now the data file also holds 500. After that, the corresponding redo log is no longer needed.', '');
+        push('A while later, a background task writes the changed data in memory to the data file (flushing). Now the data file also holds 500. After that, the corresponding redo log is no longer needed.', '');
         sum.push('The speed of a commit is set by the speed of writing the log to disk. Reflecting the changes in the data file is done later, in batches.');
       } else {
         S.mem = '(lost)'; push('The server went down right after the commit reply, before the changes were written to the data file. The 500 in memory is lost, and the data file still holds 1000. The user has already received "success".', 'bad');
         S.mem = '(restarting)'; push('The server starts again. Recovery reads the redo log on disk from the beginning.', '');
         S.mem = '500'; S.file = '500'; usedR = 'Redo log'; fin = '500'; prop = 'Durability';
-        push('The redo log has "account 1 set to 500" and the note that it committed. This change is applied again. The balance is recovered as 500. No committed data was lost.', 'good');
+        push('The redo log has "account 1 set to 500" and the record that it committed. This change is applied again. The balance is recovered as 500. No committed data was lost.', 'good');
         sum.push('A committed change is recovered from the redo log even if it was not yet written to the data file. The redo log supports "what is committed remains even after a failure" (durability).');
       }
     }

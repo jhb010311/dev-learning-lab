@@ -9,7 +9,7 @@ Lab.register({
     { id: 'loss', label: '전송 중 패킷 하나가 유실된다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'HTTP/1.1. 연결 6개로 6개씩 나눠 받느라 다섯 번 줄을 섭니다.', v: { ver: '1.1', n: 30, loss: false } },
+    { t: '처음 설정으로', d: 'HTTP/1.1. 연결 6개로 6개씩 다섯 묶음으로 나눠 받느라 네 번 줄을 섭니다.', v: { ver: '1.1', n: 30, loss: false } },
     { t: 'HTTP/2로', d: '연결 하나로 30개를 동시에 받습니다.', v: { ver: '2', n: 30, loss: false } },
     { t: 'HTTP/2에서 패킷 유실', d: '패킷 하나가 사라지면 모든 파일이 함께 멈춥니다.', v: { ver: '2', n: 30, loss: true } },
     { t: 'HTTP/3에서 패킷 유실', d: '그 패킷이 속한 파일 하나만 기다립니다.', v: { ver: '3', n: 30, loss: true } },
@@ -26,7 +26,7 @@ Lab.register({
     if (c.ver === '1.1') {
       conns = 6; waves = Math.ceil(n / 6); setup = 60; total = setup + waves * T + (c.loss ? RT : 0);
       push('HTTP/1.1에서는 연결 하나가 요청 하나를 보내고 응답을 다 받아야 다음 요청을 보낼 수 있습니다. 브라우저는 속도를 내려고 같은 서버에 연결을 최대 6개까지 맺습니다. 연결마다 TCP와 TLS 핸드셰이크가 따로 듭니다.', '', { done: 0, wave: 0 });
-      for (var w = 1; w <= waves; w++) { var cnt = Math.min(6, n - (w - 1) * 6), lossNow = c.loss && w === 1; push(w + '번째 묶음: 연결 6개가 파일 ' + cnt + '개를 하나씩 맡아 받습니다. 나머지 ' + Math.max(0, n - w * 6) + '개는 연결이 빌 때까지 기다립니다.' + (lossNow ? ' 연결 하나에서 패킷이 유실돼 그 연결의 파일과, 그 연결을 기다리던 파일들이 재전송 시간만큼 늦어집니다. 다른 연결 5개는 영향을 받지 않습니다.' : ''), lossNow ? 'bad' : '', { done: Math.min(n, w * 6), wave: w, loss: lossNow }); }
+      for (var w = 1; w <= waves; w++) { var cnt = Math.min(6, n - (w - 1) * 6), lossNow = c.loss && w === 1; push(w + '번째 묶음: 연결 ' + cnt + '개가 파일을 하나씩 맡아 받습니다.' + (n > w * 6 ? ' 나머지 ' + (n - w * 6) + '개는 연결이 빌 때까지 기다립니다.' : ' 기다리는 파일은 이제 없습니다.') + (lossNow ? ' 연결 하나에서 패킷이 유실돼 그 연결의 파일과, 그 연결을 기다리던 파일들이 재전송 시간만큼 늦어집니다. 다른 연결 5개는 영향을 받지 않습니다.' : ''), lossNow ? 'bad' : '', { done: Math.min(n, w * 6), wave: w, loss: lossNow }); }
       stalled = c.loss ? waves : 0;
       sum.push('연결 6개로 ' + waves + '번에 나눠 받았습니다. 앞의 응답이 끝나야 다음 요청을 보낼 수 있어서 파일이 많을수록 줄 서는 시간이 깁니다. 그래서 예전에는 파일을 하나로 합치거나 도메인을 여러 개로 나누는 편법을 썼습니다.');
     } else {
@@ -38,7 +38,7 @@ Lab.register({
         else { stalled = 1; push('패킷 하나가 유실됐습니다. QUIC은 스트림마다 따로 순서를 관리합니다. 유실된 패킷이 속한 파일 1개만 재전송을 기다리고, 나머지 ' + (n - 1) + '개는 그대로 받습니다.', 'good', { done: n - 1, wave: 1, stall: 1 }); }
         push('재전송된 패킷이 도착해 남은 파일도 완료됩니다.', '', { done: n, wave: 1 });
       }
-      total = setup + T + (c.loss ? (c.ver === '2' ? RT : RT) : 0);
+      total = setup + T + (c.loss ? RT : 0);
       sum.push(c.ver === '2' ? '연결 하나로 모든 파일을 동시에 받았습니다. HTTP/1.1의 "요청 수준의 줄 서기"가 사라졌습니다.' : '연결 하나로 모든 파일을 동시에 받았고, 연결을 맺는 왕복도 줄었습니다.');
       if (c.loss) sum.push(c.ver === '2' ? 'HTTP/2는 TCP 위에 있기 때문에, 패킷이 하나만 빠져도 그 연결의 모든 스트림이 함께 기다립니다. 유실이 잦은 모바일 네트워크에서는 연결 6개를 쓰는 HTTP/1.1보다 불리해질 수도 있습니다.' : 'HTTP/3는 이 문제를 풀려고 TCP를 떠나 QUIC을 택했습니다. 유실의 영향이 그 스트림 하나로 한정됩니다. 네트워크가 바뀌어도(와이파이에서 이동통신으로) 연결을 유지할 수 있다는 장점도 있습니다.');
     }

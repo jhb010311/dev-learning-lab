@@ -49,14 +49,14 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0, total = sim.spans[0][2];
     P.size(680, 260);
-    P.region('tr', 16, 16, 648, 228, c.prop ? 'Tracing screen: spans tied together by the same trace ID' : 'The trace ID is not passed along, so each service prints a different ID');
+    P.region('tr', 16, 16, 648, 228, c.prop ? 'Tracing screen: spans tied together by the same trace ID' : 'The trace ID is not passed along, so the logs have no ID');
     sim.spans.forEach(function (sp, i) {
       var y = 50 + i * 36, on = i < n, slow = n >= 6 && i === sim.mi && c.slow !== 'none';
       P.text('nm' + i, 28, y + 17, sp[0], { cls: on ? '' : 'mut' });
       if (c.prop) { if (on) P.box('bar' + i, 170 + 480 * sp[1] / total, y, Math.max(4, 480 * sp[2] / total), 24, { cls: slow ? 'bad' : 'wait' }); P.text('ms' + i, 652, y + 17, on ? sp[2] + 'ms (own ' + sp[3] + 'ms)' : '', { anchor: 'end', cls: slow ? 'bad' : 'mut' }); }
       else if (on) P.box('id' + i, 170, y, 240, 24, { cls: 'bad', sub: 'Trace ID ' + sim.ids[i], mono: true, center: true });
     });
-    P.note(c.prop ? 'The position of a bar is its start time, and its length is the time it took. An inner span is included in the time of the outer span. The red bar is the span that actually spent the time, and the span with a large "own" time is the cause.' : 'The IDs differ, so you cannot tell whether these logs belong to the same request. You cannot line the spans up in one view, so it is also hard to find where it is slow.');
+    P.note(c.prop ? 'The position of a bar is its start time, and its length is the time it took. An inner span is included in the time of the outer span. The red bar is the span that actually spent the time, and the span with a large "own" time is the cause.' : 'There is no trace ID, so you cannot tell whether these logs belong to the same request. You cannot line the spans up in one view, so it is also hard to find where it is slow.');
   },
   assume: 'This is a simple structure in which four services are called in turn, and the times are example values. The trace ID, the span, and the way they are propagated in headers follow the explanations in the W3C Trace Context standard and the documentation of OpenTelemetry and Micrometer Tracing. In practice, not every request is recorded in many cases, and only a sample is collected.',
 });

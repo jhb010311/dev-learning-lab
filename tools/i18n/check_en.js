@@ -14,6 +14,9 @@ if (!id) { console.log('사용: node tools/i18n/check_en.js <실습 id>'); proce
 const HAN = /[가-힣]/, errs = [], warns = [], MAPS = require('./maps.js');
 // 영어판에도 남아야 하는 한글 데이터(src/en/hangul_ok.js)는 한글 검사에서 뺀다
 const OKH = (() => { try { return require(path.join(root, 'src', 'en', 'hangul_ok.js'))[id] || []; } catch (e) { return []; } })();
+// 영어판에서 달라져도 되는 값(src/en/data_ok.js): 메시지 글자가 달라져서 다시 계산한 해시 같은 것. [한국어판의 값, 영어판의 값]
+const OKD = (() => { try { return require(path.join(root, 'src', 'en', 'data_ok.js'))[id] || []; } catch (e) { return []; } })();
+const DATA = s => OKD.reduce((a, p) => a.split(p[0]).join(p[1]), s);
 const HANEN = s => HAN.test(OKH.reduce((a, w) => a.split(w).join(''), String(s)));
 const err = m => { if (errs.length < 60) errs.push(m); else if (errs.length === 60) errs.push('… (오류가 더 있음)'); };
 const koDir = path.join(root, 'src', 'lessons'), enDir = path.join(root, 'src', 'en', 'lessons');
@@ -46,7 +49,7 @@ function same(a, b, at) {
   if (typeof a === 'function' || typeof b === 'function') return;
   if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
     if (typeof a !== typeof b) return err(at + ': 종류가 다름 ' + JSON.stringify(a) + ' / ' + JSON.stringify(b));
-    if (typeof a === 'string') { if (HAN.test(a)) { if (!b || HANEN(b)) err(at + ': 옮기지 않은 글자 ' + JSON.stringify(b)); } else if (a !== b) err(at + ': 한글이 없던 글자가 바뀜 ' + JSON.stringify(a) + ' → ' + JSON.stringify(b)); return; }
+    if (typeof a === 'string') { if (HAN.test(a)) { if (!b || HANEN(b)) err(at + ': 옮기지 않은 글자 ' + JSON.stringify(b)); } else if (DATA(a) !== b) err(at + ': 한글이 없던 글자가 바뀜 ' + JSON.stringify(a) + ' → ' + JSON.stringify(b)); return; }
     if (a !== b && !(a !== a && b !== b)) err(at + ': 값이 다름 ' + a + ' / ' + b); return;
   }
   if (Array.isArray(a) !== Array.isArray(b)) return err(at + ': 배열 여부가 다름');

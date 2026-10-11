@@ -63,7 +63,7 @@ Lab.register({
     if (dead) H.text(v, 'Thread 1 → (waits for B) → Thread 2 → (waits for A) → Thread 1. The waits form a cycle.');
     H.counters(v, [[s.done + ' / 2', 'Transfers completed']]);
   },
-  // Diagram: the two threads and the two locks are placed at the four corners. An arrow from a lock to a thread means "holds", and an arrow from a thread to a lock means "waits".
+  // Diagram: the two threads and the two locks are placed in a diamond shape. An arrow from a lock to a thread means "holds", and an arrow from a thread to a lock means "waits".
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { own: { A: null, B: null }, st: { 1: 'Not started', 2: 'Not started' }, done: 0 };
     var waits = function (t, l) { return s.st[t].indexOf('Waiting for ' + l) >= 0 || s.st[t].indexOf('Waiting for the ' + l + ' lock') >= 0; }, dead = waits(1, 'B') && waits(2, 'A') && s.own.A === 1 && s.own.B === 2;

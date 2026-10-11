@@ -86,7 +86,7 @@ Lab.register({
       if (sc === 'request') st.carts[perReq[r] - 1].gone = true;
       push('요청 ' + r + '의 응답은 "' + st.used[r - 1].join(',') + '"입니다.' + (sc === 'request' ? ' 요청이 끝났으므로 이 요청에 묶여 있던 Cart ' + perReq[r] + '번은 버려집니다.' : ''), '');
     }
-    st.result = '기동 성공';
+    // 여기까지 왔으면 기동과 두 요청이 모두 끝났다. 그림의 상태 상자는 st.phase(진행 단계)를 보여 준다.
     var total = st.carts.length, u1 = st.used[0].map(function (n) { return n + '번'; }).join(', '), u2 = st.used[1].map(function (n) { return n + '번'; }).join(', ');
     sum.push('기동 성공. 요청 두 번(요청마다 두 번 사용)에 Cart 객체는 모두 ' + total + '개 만들어졌습니다. 요청 1은 ' + u1 + '을, 요청 2는 ' + u2 + '을 썼습니다.');
     if (sc === 'singleton') {
@@ -137,7 +137,7 @@ Lab.register({
     if (g !== 'inject' && s.cur) P.arrow('use', 'svc:r', 'cart' + s.cur + ':l', { cls: 'hot', label: g === 'provider' ? 'getObject()' : '프록시' });
     if (s.req) P.arrow('call', 'rq' + s.req + ':r', 'svc:l', { label: 'cartNo()' });
     P.box('r1', 16, 294, 320, 38, { cls: s.carts.length ? 'plain' : 'ghost', title: '만들어진 Cart 객체', right: s.carts.length + '개' });
-    P.box('r2', 344, 294, 320, 38, { cls: s.result === '기동 성공' ? 'good' : s.result ? 'bad' : 'ghost', title: '상태', right: s.result === '기동 실패' ? 'ScopeNotActiveException' : s.result || s.phase || '시작 전' });
+    P.box('r2', 344, 294, 320, 38, { cls: s.result ? 'bad' : s.phase ? 'plain' : 'ghost', title: '상태', right: s.result === '기동 실패' ? 'ScopeNotActiveException' : s.result || s.phase || '시작 전' });
     P.note(g === 'inject' ? '초록 화살표는 OrderService의 필드가 붙잡고 있는 객체입니다. 주입은 OrderService를 만들 때 한 번뿐이라, 이 화살표는 기동 뒤에 바뀌지 않습니다.' : g === 'provider' ? '노란 화살표는 getObject()가 이번에 돌려준 객체입니다. 스코프에 따라 같은 객체를 돌려주기도 하고 새로 만들기도 합니다.' : '노란 화살표는 프록시가 이번 메서드 호출을 넘긴 진짜 객체입니다. OrderService의 필드에는 프록시만 들어 있습니다.');
   },
   assume: '아홉 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9, 내장 톰캣 11)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해 서버를 띄우고, 실제로 GET /order 요청을 두 번 보내 응답에 적힌 Cart 번호를 읽었습니다. Cart의 생성자가 불린 횟수(기동 직후, 요청 두 번 뒤), OrderService의 필드에 들어 있는 것(Cart, ObjectProvider, 프록시), 기동 실패의 예외 사슬(UnsatisfiedDependencyException → UnsatisfiedDependencyException → ScopeNotActiveException → IllegalStateException)을 비교했습니다. 요청 두 개는 하나가 끝난 뒤 다음 것을 보냈습니다(동시에 보낸 경우는 "싱글톤 빈과 상태" 실습에서 다룹니다). 다음도 실행으로 확인했습니다: 프로토타입 빈을 주입받는 싱글톤 빈이 둘이면 서로 다른 객체를 받는 것, 프로토타입에 프록시를 쓰면 add로 넣은 값이 바로 다음 size 호출에서 보이지 않는 것(0이 나옴), @RequestScope를 붙인 빈은 그대로 주입받아도 기동되고 요청마다 하나인 것, request 스코프 빈의 @PreDestroy가 요청이 끝날 때마다 불리는 것. 다루지 않은 것: session 스코프와 application 스코프, 프로토타입 빈을 꺼내는 다른 방법(@Lookup, jakarta.inject.Provider), 프록시 방식 가운데 인터페이스를 쓰는 것(ScopedProxyMode.INTERFACES). 화면의 Cart는 객체를 세려고 static 변수를 썼는데, 요청이 동시에 들어오는 실제 코드라면 이렇게 세면 안 됩니다.',

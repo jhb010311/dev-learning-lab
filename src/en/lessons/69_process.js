@@ -38,7 +38,7 @@ Lab.register({
         P[0].mem++; done++; push('Task ' + i + ' is finished. counter is ' + P[0].mem + '.', 'good');
       }
       if (!stopped) th.st = 'All tasks finished';
-      time = F === 'none' ? '0.9 seconds' : F === 'ex' ? '0.6 seconds (stopped)' : '0.6 seconds (stopped)'; cnt = F === 'kill' ? 'gone' : String(P[0].mem);
+      time = F === 'none' ? '0.9 seconds' : '0.6 seconds (stopped)'; cnt = F === 'none' ? String(P[0].mem) : 'gone';
     }
     if (H === 'multi') {
       P[0].th.forEach(function (t) { t.st = 'Task ' + t.id + ' running'; }); push('The 3 threads each take one task and start at the same time. They do not wait for one another.', '');
@@ -59,7 +59,7 @@ Lab.register({
     if (H === 'single') sum.push('One thread does only one thing at a time. This is simple and safe, but the times simply add up.');
     if (H === 'multi') sum.push('Threads share the memory of the same process. They are lightweight to create and can exchange data easily, but touching the same data at the same time causes problems, and when the process dies, all the threads die with it. A web server (Tomcat) that uses a thread for each request works this way.');
     if (H === 'proc') sum.push('Processes have separate memory, so when one dies, the problem does not spread to the others. In return, they cost more to create and to switch between, each uses its own memory, and sharing data requires inter-process communication. Running several servers (several processes) is an extension of this approach.');
-    if (F === 'ex' && H !== 'proc') sum.push('An uncaught exception ends that one thread. The process keeps running as long as other threads remain.');
+    if (F === 'ex' && H !== 'proc') sum.push('An uncaught exception ends that one thread. The process keeps running as long as other non-daemon threads remain.');
     return { events: ev, summary: sum, row: [done + '', time, cnt, spread] };
   },
   render: function (v, sim, t, H, shown) {

@@ -35,7 +35,7 @@ Lab.register({
     }
     var total = reqs.reduce(function (m, x) { return Math.max(m, x.end); }, 0), peak = serial ? Math.min(c.n, osT) : c.n;
     if (serial) {
-      ev.push({ t: 0, k: c.n > osT ? 'bad' : '', s: '0.0s: Requests arrive (' + c.n + ' in total). ' + (c.model === 'pool' ? 'The ' + osT + ' threads take one request each.' : 'The 2 event loop threads each start handling one request.') + (c.n > osT ? ' The rest (' + (c.n - osT) + ') wait until a thread is free.' : '') });
+      ev.push({ t: 0, k: c.n > osT ? 'bad' : '', s: '0.0s: Requests arrive (' + c.n + ' in total). ' + (c.model === 'pool' ? (peak === 1 ? 'One thread takes the request.' : peak + ' threads take one request each.') : (peak === 1 ? 'One event loop thread starts handling the request.' : 'The 2 event loop threads each start handling one request.')) + (c.n > osT ? ' The rest (' + (c.n - osT) + ') wait until a thread is free.' : '') });
       ev.push({ t: 0.05, k: c.model === 'loop' ? 'bad' : '', s: '0.1s: Each thread waits for an external response. ' + (c.model === 'pool' ? 'While it waits, the thread does no work, but it cannot take another request either (blocking).' : 'The event loop threads are tied up in blocking calls. An event loop thread is supposed to switch among a great many requests, but while it is stopped, no other request makes any progress.') });
       var waves = []; reqs.forEach(function (x) { if (waves.indexOf(x.end) < 0) waves.push(x.end); });
       waves.forEach(function (t2) { var done = reqs.filter(function (x) { return x.end === t2; }).length, left = reqs.filter(function (x) { return x.start >= t2; }).length; ev.push({ t: t2, s: fmt(t2) + 's: The responses arrive. Requests finished: ' + done + '.' + (left ? ' The freed threads take requests that were waiting (still waiting: ' + Math.max(0, left - done) + ').' : '') }); });
@@ -72,7 +72,7 @@ Lab.register({
     if (sim.serial) wait.slice(0, 30).forEach(function (r, j) { P.box('rq' + r.id, 26 + (j % 3) * 56, 50 + Math.floor(j / 3) * 26, 52, 22, { cls: 'wait', sub: '#' + r.id, center: true }); });
     for (var i = 0; i < T; i++) {
       var y = 50 + i * 30, r = sim.serial ? run.filter(function (x) { return x.th === i; })[0] : null;
-      P.box('os' + i, 228, y, 238, 26, { cls: r ? (c.model === 'loop' ? 'bad' : 'hot') : !sim.serial && run.length ? 'good' : 'plain', title: 'Thread ' + (i + 1), right: r ? '' : !sim.serial && run.length ? 'free' : 'waiting for work' });
+      P.box('os' + i, 228, y, 238, 26, { cls: r ? (c.model === 'loop' ? 'bad' : 'hot') : !sim.serial && run.length ? 'good' : 'plain', title: 'Thread ' + (i + 1), right: r ? '' : !sim.serial && run.length ? 'free' : done === c.n ? 'idle' : 'waiting for work' });
       if (r) P.box('rq' + r.id, 318, y + 3, 142, 20, { cls: 'wait', sub: 'Request ' + r.id + ' waiting', center: true });
     }
     if (!sim.serial) run.slice(0, 30).forEach(function (r, j) { P.box('rq' + r.id, 502 + (j % 3) * 52, 50 + Math.floor(j / 3) * 26, 48, 22, { cls: 'good', sub: String(r.id), center: true }); });

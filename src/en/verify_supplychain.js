@@ -1,0 +1,1 @@
+Lab.verify({ supplychain: ['part', 'A concept model built with made-up libraries. Which versions come in was checked against the result of actually resolving 15 combinations with Gradle 8.14.3, and the verdicts "vulnerable", "malicious", and "fake" are a made-up storyline'] });

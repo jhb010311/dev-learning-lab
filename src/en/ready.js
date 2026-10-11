@@ -33,4 +33,5 @@ module.exports = [
   'k8s', 'pct', 'trace', 'git',
   'cache', 'mq', 'kafka', 'circuit', 'saga',
   'gateway', 'cicd', 'deploy', 'container',
+  'clickjack', 'infoleak', 'ratelimit', 'supplychain', 'crypto',
 ];

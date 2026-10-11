@@ -63,7 +63,7 @@ Lab.register({
     if (dead) H.text(v, '스레드 1 → (B를 기다림) → 스레드 2 → (A를 기다림) → 스레드 1. 기다림이 고리를 이뤘습니다.');
     H.counters(v, [[s.done + ' / 2', '완료된 이체']]);
   },
-  // 그림: 스레드 둘과 락 둘을 네 귀퉁이에 놓는다. 락에서 스레드로 가는 화살표는 "쥐고 있음", 스레드에서 락으로 가는 화살표는 "기다림"이다.
+  // 그림: 스레드 둘과 락 둘을 마름모꼴로 놓는다. 락에서 스레드로 가는 화살표는 "쥐고 있음", 스레드에서 락으로 가는 화살표는 "기다림"이다.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { own: { A: null, B: null }, st: { 1: '시작 전', 2: '시작 전' }, done: 0 };
     var waits = function (t, l) { return s.st[t].indexOf(l + '를 기다리는') >= 0 || s.st[t].indexOf('계좌 ' + l + ' 락을 기다리는') >= 0; }, dead = waits(1, 'B') && waits(2, 'A') && s.own.A === 1 && s.own.B === 2;

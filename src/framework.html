@@ -855,6 +855,11 @@ var Lab = (function () {
       if (it.k === 'arrow') n.ends = [it.from, it.to];
       n.from = { x: n.cur.x, y: n.cur.y, w: n.cur.w, h: n.cur.h, o: n.cur.o }; n.to = tg; n.t0 = now;
     });
+    // 겹치는 것은 장면에 적힌 순서대로 쌓는다. 나중 단계에서 새로 생긴 큰 상자가 먼저 있던 작은 상자를 가리지 않게 한다.
+    ['region', 'box', 'arrow', 'text'].forEach(function (k) {
+      var want = P.items.filter(function (it) { return it.k === k; }).map(function (it) { return pic.nodes[it.id].g; }), have = Array.prototype.filter.call(pic.layers[k].childNodes, function (g) { return want.indexOf(g) >= 0; });
+      if (want.some(function (g, i) { return g !== have[i]; })) want.forEach(function (g) { pic.layers[k].appendChild(g); });
+    });
     Object.keys(pic.nodes).forEach(function (id) { var n = pic.nodes[id]; if (!seenIds[id] && !n.dying) { n.dying = true; n.from = { x: n.cur.x, y: n.cur.y, w: n.cur.w, h: n.cur.h, o: n.cur.o }; n.to = { x: n.cur.x, y: n.cur.y, w: n.cur.w, h: n.cur.h, o: 0 }; n.t0 = now; } });
     pic.first = false;
     if (instant) picFrame(true); else if (!pic.raf) pic.raf = requestAnimationFrame(function () { pic.raf = 0; picFrame(false); });

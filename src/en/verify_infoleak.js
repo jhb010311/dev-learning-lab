@@ -1,0 +1,1 @@
+Lab.verify({ infoleak: ['run', 'Checked against the actual responses of a Spring Boot 4.1.1 (Spring Security 7.1.1) server for 20 combinations. What was compared is which items are in the response and whether the two responses are the same, not the message texts'] });
