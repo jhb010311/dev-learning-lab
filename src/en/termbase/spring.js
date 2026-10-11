@@ -353,4 +353,7 @@ module.exports = [
   { ko: '액추에이터 엔드포인트의 노출과 접근', en: 'Exposing Actuator endpoints and controlling access', how: 'descriptive',
     src: 'Spring Boot Reference, "Endpoints" > "Controlling Access to Endpoints", "Exposing Endpoints" — https://docs.spring.io/spring-boot/reference/actuator/endpoints.html',
     note: '정해진 용어가 아니라 두 설정을 묶은 설명이라, 문서의 두 절 제목("Exposing Endpoints", "Controlling Access to Endpoints")의 말로 풀어 썼다. 문서: "An endpoint is considered to be available when access to it is permitted and it is exposed." 동사는 expose, 형용사는 exposed. 명사 exposure는 속성 이름(management.endpoints.web.exposure.include)에만 나온다.' },
+  { ko: 'MVC(Model-View-Controller)', en: 'MVC (Model-View-Controller)', how: 'official',
+    src: 'MDN Web Docs Glossary "MVC" ("MVC (Model-View-Controller) is a pattern in software design commonly used to implement user interfaces, data, and controlling logic.") — https://developer.mozilla.org/en-US/docs/Glossary/MVC ; Spring Framework Reference, Web MVC > DispatcherServlet ("Spring MVC, as many other web frameworks, is designed around the front controller pattern…") — https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-servlet.html',
+    note: 'MDN: Model "Manages data and business logic", View "Handles layout and display", Controller "Routes commands to the model and view parts".' },
 ];

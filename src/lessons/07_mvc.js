@@ -1,8 +1,8 @@
 Lab.register({
   id: 'mvc', nav: 'MVC 요청 흐름', cat: '스프링', mode: 'step',
   title: '요청 하나가 컨트롤러에 닿기까지, 그리고 돌아가기까지',
-  intro: 'HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다.',
-  terms: ['DispatcherServlet과 프론트 컨트롤러', 'HandlerMapping과 HandlerAdapter', 'ArgumentResolver', 'HttpMessageConverter', '필터(Filter)', '인터셉터(HandlerInterceptor)', '@ControllerAdvice와 @ExceptionHandler', 'ViewResolver'], ranks: ['mvc', 'filter'],
+  intro: 'MVC는 프로그램을 모델(Model, 데이터), 뷰(View, 화면), 컨트롤러(Controller, 요청을 받아 처리하는 곳)로 나누는 방식이고, 스프링 MVC는 이 방식으로 웹 요청을 처리합니다. HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다. 요청 하나가 지나가는 길을 따라가며 컨트롤러, 모델, 뷰가 각각 어느 단계에서 일하는지 봅니다.',
+  terms: ['MVC(Model-View-Controller)', 'DispatcherServlet과 프론트 컨트롤러', 'HandlerMapping과 HandlerAdapter', 'ArgumentResolver', 'HttpMessageConverter', '필터(Filter)', '인터셉터(HandlerInterceptor)', '@ControllerAdvice와 @ExceptionHandler', 'ViewResolver'], ranks: ['mvc', 'filter'],
   controls: [
     { id: 'kind', label: '컨트롤러 종류', type: 'select', value: 'rest', options: [['rest', '@RestController (JSON 응답)'], ['view', '@Controller (화면 이름 반환)']] },
     { id: 'what', label: '도중에 생기는 일', type: 'select', value: 'none', options: [['none', '아무 일 없음 (정상 처리)'], ['filter', '필터가 요청을 거절 (인증 실패)'], ['pre', '인터셉터 preHandle이 false 반환'], ['ex', '컨트롤러에서 예외 발생']] },

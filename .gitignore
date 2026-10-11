@@ -37,3 +37,5 @@ tools/patch_wide*.js
 tools/patch_refs*.js
 tools/patch_trim*.js
 tools/patch_ct.js
+tools/patch_mvc*.js
+tools/patch_tb*.js

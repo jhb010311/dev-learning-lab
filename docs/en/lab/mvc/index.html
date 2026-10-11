@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Spring MVC request flow: How one request reaches the controller, and how it goes back · Dev Learning Lab</title>
-<meta name="description" content="An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response…">
+<meta name="description" content="MVC is a pattern that divides a program into the model (the data), the view (the display), and the controller (the part that receives and handles a reques…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/mvc/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/mvc/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/mvc/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Spring MVC request flow: How one request reaches the controller, and how it goes back · Dev Learning Lab">
-<meta property="og:description" content="An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response…">
+<meta property="og:description" content="MVC is a pattern that divides a program into the model (the data), the view (the display), and the controller (the part that receives and handles a reques…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/mvc/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=70c86af090">
+<link rel="stylesheet" href="../../app.css?v=c746fa638d">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,10 +31,12 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
 <h1>Spring MVC request flow</h1>
 <p><b>How one request reaches the controller, and how it goes back</b></p>
-<p>An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse.</p>
+<p>MVC is a pattern that divides a program into the model (the data), the view (the display), and the controller (the part that receives and handles a request), and Spring MVC handles web requests in this way. An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse. This lab follows the path of one request and shows at which step the controller, the model, and the view each do their work.</p>
 <p>Checked against real execution · Checked by sending 16 kinds of requests to a Spring Boot 4.1.1 server</p>
 <h2>Concepts in this lab</h2>
 <dl>
+<dt>MVC (Model-View-Controller)</dt>
+<dd>A software design pattern that divides a program into three roles: model, view, and controller. The model manages the data and the logic that works on it, the view handles how the data is displayed, and the controller takes the incoming input and updates the model and the view. Spring MVC is a web framework that follows this pattern. DispatcherServlet receives every request and calls the matching controller method; the controller puts the data to be shown into the model and returns it together with a view name, and the view renders the response from that data. In a REST API that responds with JSON, an HttpMessageConverter writes the return value of the controller to the response body instead of a view rendering a page.</dd>
 <dt>DispatcherServlet and the front controller pattern</dt>
 <dd>This is the servlet in Spring MVC that receives every HTTP request first. It coordinates the whole flow: it finds and calls the controller that handles the request, and it turns the result into a response. A structure like this, in which a single entry point receives all requests, does the common processing, and then hands each request to the part responsible for it, is called the front controller pattern.</dd>
 <dt>HandlerMapping and HandlerAdapter</dt>
@@ -172,6 +174,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=70c86af090"></script>
+<script src="../../app.js?v=c746fa638d"></script>
 </body>
 </html>

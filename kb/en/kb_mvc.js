@@ -1,0 +1,4 @@
+// Term added to the "Spring MVC request flow" lab (nothing on the page said what the MVC in the lab name is)
+module.exports = [
+  ['Spring', 'MVC (Model-View-Controller)', 'A software design pattern that divides a program into three roles: model, view, and controller. The model manages the data and the logic that works on it, the view handles how the data is displayed, and the controller takes the incoming input and updates the model and the view. Spring MVC is a web framework that follows this pattern. DispatcherServlet receives every request and calls the matching controller method; the controller puts the data to be shown into the model and returns it together with a view name, and the view renders the response from that data. In a REST API that responds with JSON, an HttpMessageConverter writes the return value of the controller to the response body instead of a view rendering a page.'],
+];

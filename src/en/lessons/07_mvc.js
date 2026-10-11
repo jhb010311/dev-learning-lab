@@ -1,8 +1,8 @@
 Lab.register({
   id: 'mvc', nav: 'Spring MVC request flow', cat: 'Spring', mode: 'step',
   title: 'How one request reaches the controller, and how it goes back',
-  intro: 'An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse.',
-  terms: ['DispatcherServlet and the front controller pattern', 'HandlerMapping and HandlerAdapter', 'HandlerMethodArgumentResolver', 'HttpMessageConverter', 'Servlet filter', 'Interceptor (HandlerInterceptor)', '@ControllerAdvice and @ExceptionHandler', 'ViewResolver'], ranks: ['mvc', 'filter'],
+  intro: 'MVC is a pattern that divides a program into the model (the data), the view (the display), and the controller (the part that receives and handles a request), and Spring MVC handles web requests in this way. An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse. This lab follows the path of one request and shows at which step the controller, the model, and the view each do their work.',
+  terms: ['MVC (Model-View-Controller)', 'DispatcherServlet and the front controller pattern', 'HandlerMapping and HandlerAdapter', 'HandlerMethodArgumentResolver', 'HttpMessageConverter', 'Servlet filter', 'Interceptor (HandlerInterceptor)', '@ControllerAdvice and @ExceptionHandler', 'ViewResolver'], ranks: ['mvc', 'filter'],
   controls: [
     { id: 'kind', label: 'Kind of controller', type: 'select', value: 'rest', options: [['rest', '@RestController (JSON response)'], ['view', '@Controller (returns a view name)']] },
     { id: 'what', label: 'What happens along the way', type: 'select', value: 'none', options: [['none', 'Nothing (handled normally)'], ['filter', 'A filter rejects the request (authentication failure)'], ['pre', 'The interceptor preHandle returns false'], ['ex', 'The controller throws an exception']] },
