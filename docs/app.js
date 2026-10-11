@@ -188,6 +188,13 @@ var Lab = (function () {
     p = p.slice(BASE.length).replace(/index\.html$/, '').replace(/\/$/, '');
     return p.indexOf('lab/') === 0 ? p.slice(4) : p;
   }
+  // 코드 상자의 자리: 그림이 없는 실습은 늘 그림 자리(왼쪽). 그림이 있는 실습은 아주 넓은 화면(1600px 이상)이면 그림 왼쪽의 세 번째 칸, 아니면 아래 구역.
+  var wideMq = window.matchMedia ? window.matchMedia('(min-width: 1600px)') : null; // 이보다 좁으면 세 칸에서 그림이 잘린다
+  function placeCode() {
+    if (!cur) return; var grid = document.querySelector('.grid'), three = !!(cur.draw && wideMq && wideMq.matches);
+    grid.classList.toggle('wide3', three);
+    (cur.draw && !three ? $('below') : grid).appendChild($('codepanel')); $('below').appendChild($('prepanel'));
+  }
   function nav(r) {
     if (BASE === null) { if (location.hash === '#' + r) route(); else location.hash = r; return; }
     if (location.pathname !== pathOf(r) || location.hash) history.pushState(null, '', pathOf(r));
@@ -331,7 +338,7 @@ var Lab = (function () {
     $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
     $('explain').hidden = true; $('explain-btn').setAttribute('aria-expanded', 'false'); $('explain-btn').textContent = '개념 설명 보기';
     drawPath();
-    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); (cur.draw ? $('below') : grid).appendChild($('codepanel')); $('below').appendChild($('prepanel')); picReset();
+    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); placeCode(); picReset();
     buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
     try { localStorage.setItem('lab-last', cur.id); } catch (e) {}
   }
@@ -357,6 +364,7 @@ var Lab = (function () {
     $('t-quiz').addEventListener('click', function () { nav('quiz'); });
     loadState(); startGloss(); startQuizTab();
     window.addEventListener('hashchange', route); window.addEventListener('popstate', route);
+    if (wideMq && wideMq.addEventListener) wideMq.addEventListener('change', placeCode);
     // 스크립트 없이 읽는 프로그램을 위해 페이지에 미리 적어 둔 글(#pre)은 화면이 그려지면 필요 없다
     var pre = $('pre'); if (pre) pre.parentNode.removeChild(pre);
     route();

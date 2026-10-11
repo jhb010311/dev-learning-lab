@@ -335,3 +335,13 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
   .p-bar .predtoggle { margin-left: 0; }
 }
 @media (min-width: 901px) { #ctl-toggle { display: none; } }
+/* 넓은 화면: 좌우의 빈 자리를 쓴다. 처음 화면의 분야는 세 칸, 분야의 목차는 두 칸. 실습은 1600px 이상이면 코드 | 그림 | 실행표 세 칸(wide3는 스크립트가 붙인다). */
+@media (min-width: 1400px) {
+  .wrap { max-width: 1680px; padding-inline: 32px; }
+  .hgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .hgrid.small { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .catview { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 48px; align-items: start; }
+  .catview > :not(.cgroup) { grid-column: 1 / -1; }
+  .grid.haspic.wide3 { grid-template-columns: minmax(0, .92fr) minmax(0, 1.2fr) minmax(0, 1fr); grid-template-areas: "ctl ctl ctl" "bar bar bar" "code pic stage"; }
+  .grid.haspic.wide3 .p-code { position: sticky; top: calc(var(--barh, 104px) + 10px); max-height: calc(100vh - var(--barh, 104px) - 20px); overflow-y: auto; }
+}

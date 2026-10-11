@@ -12,7 +12,7 @@ const RUN = `(async () => { const w = ms => new Promise(r => setTimeout(r, ms)),
   window.scrollTo(0, 0); await w(400); return document.title; })()`;
 const PAGES = [
   ['home', '#home', 1280, 1500, false], ['study', '#study/spring', 1280, 1300, false], ['lab', '#txprop', 1280, 1700, true], ['lab2', '#threadpool', 1280, 1500, true], ['quiz', '#quiz/db', 1280, 1100, false],
-  ['m-home', '#home', 390, 1500, false], ['m-lab', '#txprop', 390, 1900, true], ['en-home', 'en/#home', 1280, 1500, false],
+  ['w-lab', '#txprop', 1920, 1300, true], ['w-lab2', '#hashmap', 1920, 1300, true], ['w-home', '#home', 1920, 1300, false], ['w-study', '#study/spring', 1920, 1300, false], ['w-quiz', '#quiz/db', 1920, 1000, false], ['mid-lab', '#txprop', 1440, 1300, true], ['m-home', '#home', 390, 1500, false], ['m-lab', '#txprop', 390, 1900, true], ['en-home', 'en/#home', 1280, 1500, false],
 ];
 (async () => {
   const chrome = spawn(CHROME, ['--headless=new', '--remote-debugging-port=' + PORT, '--user-data-dir=' + path.join(tmp, 'chrome-shotpages'), '--window-size=1280,1200', '--hide-scrollbars', '--no-first-run', 'about:blank'], { stdio: 'ignore' });

@@ -172,6 +172,12 @@ var Lab = (function () {
     p = p.slice(BASE.length).replace(/index\.html$/, '').replace(/\/$/, '');
     return p.indexOf('lab/') === 0 ? p.slice(4) : p;
   }
+  var wideMq = window.matchMedia ? window.matchMedia('(min-width: 1600px)') : null;
+  function placeCode() {
+    if (!cur) return; var grid = document.querySelector('.grid'), three = !!(cur.draw && wideMq && wideMq.matches);
+    grid.classList.toggle('wide3', three);
+    (cur.draw && !three ? $('below') : grid).appendChild($('codepanel')); $('below').appendChild($('prepanel'));
+  }
   function nav(r) {
     if (BASE === null) { if (location.hash === '#' + r) route(); else location.hash = r; return; }
     if (location.pathname !== pathOf(r) || location.hash) history.pushState(null, '', pathOf(r));
@@ -309,7 +315,7 @@ var Lab = (function () {
     $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
     $('explain').hidden = true; $('explain-btn').setAttribute('aria-expanded', 'false'); $('explain-btn').textContent = 'Show concept notes';
     drawPath();
-    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); (cur.draw ? $('below') : grid).appendChild($('codepanel')); $('below').appendChild($('prepanel')); picReset();
+    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); placeCode(); picReset();
     buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
     try { localStorage.setItem('lab-last', cur.id); } catch (e) {}
   }
@@ -334,6 +340,7 @@ var Lab = (function () {
     $('t-quiz').addEventListener('click', function () { nav('quiz'); });
     loadState(); startGloss(); startQuizTab();
     window.addEventListener('hashchange', route); window.addEventListener('popstate', route);
+    if (wideMq && wideMq.addEventListener) wideMq.addEventListener('change', placeCode);
     var pre = $('pre'); if (pre) pre.parentNode.removeChild(pre);
     route();
   }
