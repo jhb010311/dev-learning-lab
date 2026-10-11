@@ -54,9 +54,9 @@ Lab.register({
       else if (x === 'cls0') push('컴파일: Counter.count를 검사합니다. 클래스 이름으로는 클래스에 속한 static 멤버만 쓸 수 있습니다. count는 객체마다 따로 있는 인스턴스 필드라서 어느 객체의 것인지 알 수 없습니다. 컴파일 오류입니다.', 'bad');
       else push('컴파일: Counter.hit()을 검사합니다. hit()은 인스턴스 메서드라서 어느 객체를 대상으로 실행할지가 있어야 합니다. ' + (isS ? 'hit()이 건드리는 count가 static 필드여도, hit() 자체에 static이 없으면 객체가 필요합니다. ' : '') + '클래스 이름만으로는 대상 객체가 없어 컴파일 오류입니다.', 'bad');
       sum.push('컴파일 오류입니다. javac의 메시지는 "' + e.msg + '"이고, "static이 아닌 것을 static인 자리에서 쓸 수 없다"는 뜻입니다. 프로그램은 실행되지 않습니다.');
-      if (x === 'smThis') { sum.push('static 메서드에는 this가 없습니다. 객체 없이 클래스 이름으로 불리기 때문입니다.'); sum.push(isS ? 'count가 static이므로 this를 빼고 return count라고 쓰면 됩니다. 설정에서 "report()에서 return count"를 골라 비교해 보세요.' : 'static 메서드에서 어떤 객체의 값을 읽으려면 그 객체를 인자로 받아야 합니다. static int report(Counter c) { return c.count; }처럼 쓰면 컴파일됩니다.'); }
+      if (x === 'smThis') { sum.push('static 메서드에는 this가 없습니다. 객체 없이 클래스 이름으로 불리기 때문입니다.'); sum.push(isS ? 'count가 static이므로 this를 빼고 return count라고 쓰면 됩니다.' : 'static 메서드에서 어떤 객체의 값을 읽으려면 그 객체를 인자로 받아야 합니다. static int report(Counter c) { return c.count; }처럼 쓰면 컴파일됩니다.'); }
       if (x === 'sm') { sum.push('static 메서드 안에서 이름만 적어서 쓸 수 있는 것은 static 멤버뿐입니다. 인스턴스 필드는 객체가 있어야 존재합니다.'); sum.push('고치는 방법은 둘입니다. count가 클래스 전체에 하나면 되는 값이면 count에 static을 붙이고, 객체마다 달라야 하는 값이면 static int report(Counter c) { return c.count; }처럼 객체를 인자로 받습니다.'); }
-      if (x === 'cls0') sum.push('인스턴스 필드는 a.count처럼 객체를 통해서만 읽을 수 있습니다. 클래스 이름으로 읽으려면 그 필드가 static이어야 합니다. count의 선언을 static으로 바꿔 비교해 보세요.');
+      if (x === 'cls0') sum.push('인스턴스 필드는 a.count처럼 객체를 통해서만 읽을 수 있습니다. 클래스 이름으로 읽으려면 그 필드가 static이어야 합니다.');
       if (x === 'clsHit') sum.push('인스턴스 메서드는 a.hit()처럼 객체를 대상으로 부릅니다. main처럼 static인 메서드 안에서 인스턴스 메서드를 그냥 부르려다 이 오류를 자주 만납니다. 그럴 때는 먼저 new로 객체를 만들고 그 객체로 부릅니다.');
       return { events: ev, summary: sum, row: ['오류: ' + e.msg, '실행되지 않음', '실행되지 않음'] };
     }
@@ -76,35 +76,27 @@ Lab.register({
     st.by = ''; st.hot = 'read'; st.ab = isS ? st.sv + ' ' + st.sv : st.av + ' ' + st.bv;
     push('System.out.println(a.count + " " + b.count): ' + (isS ? 'a.count와 b.count는 적힌 모양만 다를 뿐 둘 다 클래스에 하나뿐인 count를 읽습니다. 객체 변수로 static 필드를 읽으면 변수의 타입인 Counter의 static 필드가 읽힙니다.' : 'a의 count와 b의 count는 서로 다른 변수입니다. 각자 자기 객체에서 불린 hit()의 횟수만 들어 있습니다.') + ' 출력은 ' + st.ab + '입니다.', x === 'sm' ? '' : 'good');
     if (x === 'sm') { st.hot = 'mt'; st.ex = st.sv; push('System.out.println(Counter.report()): report()는 static 메서드라서 객체 없이 클래스 이름으로 부릅니다. 그 안의 count는 static 필드이므로 객체 없이도 읽을 수 있습니다. 출력은 ' + st.ex + '입니다.', 'good'); }
-    sum.push('a.count와 b.count의 출력은 ' + st.ab + '입니다.' + (st.ex ? ' 추가한 줄의 출력은 ' + st.ex + '입니다.' : ''));
     if (isS) {
       sum.push('static 필드는 클래스에 하나뿐이라 모든 객체가 같은 값을 봅니다. a.hit() 2번과 b.hit() ' + nb + '번이 같은 count를 올려서, 어느 객체로 읽어도 합계인 ' + st.sv + '입니다.' + (nb === 0 ? ' b.hit()은 한 번도 부르지 않았는데도 b.count가 0이 아닙니다.' : ''));
       sum.push('a.count처럼 객체 변수로 static 필드를 쓰면 객체마다 따로 있는 값처럼 보여 헷갈립니다. static 멤버는 Counter.count처럼 클래스 이름으로 쓰는 것이 원칙입니다.');
-      if (x === 'none') sum.push('객체마다 달라야 하는 값(이름, 수량)은 인스턴스 필드로, 클래스 전체에 하나면 되는 값(상수, 만들어진 객체 수)은 static 필드로 둡니다. 선언에서 static을 떼고 결과를 비교해 보세요.');
+      if (x === 'none') sum.push('객체마다 달라야 하는 값(이름, 수량)은 인스턴스 필드로, 클래스 전체에 하나면 되는 값(상수, 만들어진 객체 수)은 static 필드로 둡니다.');
       if (x === 'sm') sum.push('static 메서드는 객체 없이 Counter.report()로 부릅니다. 그 안에서는 static 필드와 다른 static 메서드를 이름만으로 쓸 수 있습니다. count에서 static을 떼면 같은 report()가 컴파일되지 않습니다.');
       if (x === 'cls0') sum.push('static 필드는 객체가 하나도 없어도 클래스와 함께 있습니다. 그래서 객체를 만들기 전에 Counter.count가 0으로 읽혔습니다. 인스턴스 필드는 객체가 만들어져야 생기므로 이렇게 읽을 수 없습니다.');
     } else {
       sum.push('인스턴스 필드는 객체마다 따로 있습니다. a.hit()은 a의 count만, b.hit()은 b의 count만 올립니다.');
-      sum.push('선언에 static을 붙이면 같은 코드의 출력은 ' + (2 + nb) + ' ' + (2 + nb) + '입니다. 설정을 바꿔 비교해 보세요.');
+      sum.push('선언에 static을 붙이면 같은 코드의 출력은 ' + (2 + nb) + ' ' + (2 + nb) + '입니다.');
     }
     return { events: ev, summary: sum, row: ['성공', st.ab, st.ex || '추가한 줄 없음'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, isS = c.decl === 'static';
+    var last = shown[shown.length - 1], s = last ? last.snap : null, isS = sim.c.decl === 'static';
     if (!s) { H.text(v, '실행을 누르면 컴파일 단계부터 한 단계씩 진행합니다.'); return; }
-    if (s.err) { H.title(v, '컴파일 오류'); H.text(v, 'javac: ' + s.err); H.text(v, '프로그램이 만들어지지 않아 객체도 출력도 없습니다.'); return; }
+    if (s.err) { H.title(v, '컴파일 오류'); H.text(v, 'javac: ' + s.err); return; }
     var rows = [];
     if (isS) rows.push({ cells: ['클래스 Counter', { v: s.sv === '' ? '아직 없음' : s.sv, cls: s.hot === 'sf' ? 'hot' : '' }, 'a와 b가 함께 씀'] });
     else { if (s.a) rows.push({ cells: ['a가 가리키는 객체', { v: s.av, cls: s.hot === 'oa' ? 'hot' : '' }, 'a만 씀'] }); if (s.b) rows.push({ cells: ['b가 가리키는 객체', { v: s.bv, cls: s.hot === 'ob' ? 'hot' : '' }, 'b만 씀'] }); }
     H.table(v, ['count가 있는 곳', '값', '누가 쓰는가'], rows, isS ? 'count 변수는 클래스에 1개' : 'count 변수는 객체마다 1개');
     if (!rows.length) H.text(v, '아직 객체가 없어서 count도 없습니다.');
-    var ln = H.lanes(v);
-    H.lane(ln, 'a', s.a ? (isS ? '객체 있음 · 자기 count 없음' : '객체 있음 · count ' + s.av) : '아직 없음', s.a ? (s.by === 'a' ? 'hot' : 'wait') : 'none');
-    H.lane(ln, 'b', s.b ? (isS ? '객체 있음 · 자기 count 없음' : '객체 있음 · count ' + s.bv) : '아직 없음', s.b ? (s.by === 'b' ? 'hot' : 'wait') : 'none');
-    var cs = [[s.ab || '?', 'a.count와 b.count']];
-    if (c.extra === 'sm') cs.push([s.ex || '?', 'Counter.report()']);
-    if (c.extra === 'cls0') cs.push([s.ex || '?', '객체 만들기 전 Counter.count']);
-    H.counters(v, cs);
   },
   // 그림: 왼쪽은 클래스(하나뿐), 오른쪽은 힙의 객체 둘. count 상자가 왼쪽에 하나 있는지, 오른쪽 객체마다 있는지가 핵심이다. hit()이 어느 count를 올리는지 화살표로 보인다.
   draw: function (P, sim, shown) {
@@ -127,7 +119,7 @@ Lab.register({
     var exT = { none: '추가한 줄 없음', sm: 'Counter.report()', smThis: 'Counter.report()', cls0: '객체 만들기 전 Counter.count', clsHit: 'Counter.hit()' }[x];
     P.box('o1', 16, 204, 320, 38, { cls: s.err ? 'bad' : s.ab ? 'good' : 'ghost', title: s.err ? '컴파일 오류' : 'a.count와 b.count', right: s.err ? '실행되지 않음' : s.ab || '?' });
     P.box('o2', 344, 204, 320, 38, { cls: s.err ? 'bad' : s.ex ? 'good' : 'ghost', title: exT, right: s.err ? '오류' : x === 'none' ? '' : s.ex || '?' });
-    P.note(isS ? 'count 상자가 왼쪽 클래스에 하나만 있습니다. a로 부르든 b로 부르든 hit()은 이 하나를 올리고, a.count와 b.count도 이 하나를 읽습니다.' : 'count가 오른쪽 객체마다 하나씩 있습니다. a.hit()은 a의 것만, b.hit()은 b의 것만 올립니다. 메서드의 코드 자체는 클래스에 하나만 있고, 인스턴스 메서드는 불릴 때 대상 객체를 넘겨받습니다.');
+    P.note(isS ? 'count 상자가 왼쪽 클래스에 하나만 있습니다. a로 부르든 b로 부르든 hit()은 이 하나를 올리고, a.count와 b.count도 이 하나를 읽습니다.' : 'count가 오른쪽 객체마다 하나씩 있습니다. 메서드의 코드 자체는 클래스에 하나만 있고, 인스턴스 메서드는 불릴 때 대상 객체를 넘겨받습니다.');
   },
   assume: '서른 가지 조합을 이 PC의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 출력을 대조했습니다. 요약에서 고치는 방법으로 든 "객체를 인자로 받는 static 메서드"가 컴파일되고 실행된다는 것, 객체 변수로 static 필드를 읽을 때 객체가 쓰이지 않는다는 것(null인 변수로 읽어도 예외가 나지 않음)도 실행으로 확인했습니다. 단순화한 점: 그림의 "클래스" 영역은 JVM이 클래스 정보를 두는 곳을 뭉뚱그린 것이며, static 필드가 메모리의 정확히 어디에 놓이는지는 JVM 구현에 따라 다릅니다. 클래스가 준비되는 정확한 시점(처음으로 객체를 만들거나 static 멤버를 쓸 때)은 "실행 시작" 한 단계로 줄였습니다. a.count처럼 객체 변수로 static 필드를 쓰는 코드는 컴파일되지만 권장되지 않으며, 공유된다는 것을 보이려고 넣었습니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.',
 });

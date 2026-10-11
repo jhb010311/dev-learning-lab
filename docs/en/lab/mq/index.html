@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b88d80401a">
+<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Messaging and asynchronous processing</p>
 <h1>Message queue basics</h1>
 <p><b>Leave a note instead of calling directly</b></p>
-<p>When an order comes in, you must send a confirmation email. The order server can call the email server directly and wait until it finishes, or it can put a message that says &quot;send the email&quot; in a queue and respond right away. Compare the two approaches to see what happens to orders when the email server is slow or down.</p>
+<p>When an order comes in, you must send a confirmation email. The order server can call the email server directly and wait until it finishes, or it can put a message that says &quot;send the email&quot; in a queue and respond right away.</p>
 <p>Conceptual model · A conceptual model (not checked against a real message queue)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -63,7 +63,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Orders succeeded: 3 of 3. Response time of one order: 1.05s. Emails sent: 3.</li>
 <li>With a direct call, the other side's processing time is added to your response time as it is. If email gets slow, orders get slow too. In return, when the response arrives, you can be sure the email is already sent.</li>
 <li>A queue suits work that does not need a result in the response and can be a little late. Email, notifications, and aggregating statistics are typical examples. Work where you need the result before you can go on, such as payment approval, is done with a direct call.</li>
 </ul>
@@ -159,6 +158,6 @@ OrderDto order(@RequestBody OrderRequest req) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b88d80401a"></script>
+<script src="../../app.js?v=df17f1edb0"></script>
 </body>
 </html>

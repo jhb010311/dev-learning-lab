@@ -90,12 +90,11 @@ Lab.register({
         }
       }
     }
-    sum.push(ok ? 'The code compiles. Reason for the decision: ' + reason + '.' : 'This is a compile-time error. The javac message is "' + msg + '". Reason for the decision: ' + reason + '.');
     if (mod === 'private') sum.push(ok ? 'A private member can be used only inside the class that declares it. If you change where the access comes from in the settings, every other place gives a compile-time error.' : 'A private member is not visible outside the class that declares it. This is true for the same package and for subclasses alike. Keeping fields private and exposing only the necessary operations as methods is the basis of encapsulation, and it prevents outside code from changing the values freely.');
-    if (mod === 'package') sum.push(ok ? 'A member with no access modifier can be used inside the same package.' + (from === 'pkg' ? ' This suits internal members that only classes in the same package use.' : '') : 'A member with no access modifier is not visible outside its package.' + (sub ? ' Unlike protected, it cannot be used even from a subclass in a different package. Change the access modifier to protected and compare.' : ''));
+    if (mod === 'package') sum.push(ok ? 'A member with no access modifier can be used inside the same package.' + (from === 'pkg' ? ' This suits internal members that only classes in the same package use.' : '') : 'A member with no access modifier is not visible outside its package.' + (sub ? ' Unlike protected, it cannot be used even from a subclass in a different package.' : ''));
     if (mod === 'protected') {
       if (from === 'pkg') sum.push('It is easy to remember protected as "only subclasses can use it", but a class in the same package can use it even if it is not a subclass. protected gives wider access than package-private.');
-      if (from === 'subThis' || from === 'subChild') sum.push('A subclass in a different package can use an inherited protected member through its own type (this, or a variable of its own class type). Select "through an Account variable" in the settings and compare.');
+      if (from === 'subThis' || from === 'subChild') sum.push('A subclass in a different package can use an inherited protected member through its own type (this, or a variable of its own class type).');
       if (from === 'subParent') { sum.push('Even inside a subclass in a different package, a protected member cannot be used through a variable of the superclass type. This is because a variable of type Account might hold an object of some other subclass that has nothing to do with SavingAccount.'); sum.push('this.balance and the balance of a variable of type SavingAccount are allowed. Just changing the type of the variable from Account to SavingAccount makes the code compile.'); }
       if (from === 'other') sum.push('A protected member is not visible from a class that is in a different package and is not a subclass. From this place, only public members can be used.');
       if (from === 'same') sum.push('Inside the same class, a member with any access modifier can be used.');
@@ -113,9 +112,7 @@ Lab.register({
     H.lane(ln, 'Code that reads it', s.step === 'decl' ? 'not looked at yet' : this.places.filter(function (p) { return p[0] === c.from; })[0][1], s.step === 'decl' ? 'none' : 'hot');
     H.table(v, ['What was checked', 'Answer and conclusion'], s.checks.map(function (k, i) { var lastOne = i === s.checks.length - 1 && s.verdict; return { cells: [k.q, { v: k.a + ' → ' + k.then, cls: lastOne ? (s.verdict === 'ok' ? 'good' : 'bad') : '' }] }; }), 'Order of the checks');
     if (!s.checks.length) H.text(v, 'The checks have not started yet.');
-    H.counters(v, [[s.verdict ? (s.verdict === 'ok' ? 'Success' : 'Error') : '?', 'Compilation']]);
     if (s.verdict) {
-      if (s.msg) H.text(v, 'javac: ' + s.msg);
       H.table(v, ['Where the reading code is', 'Result'], this.places.map(function (p) { var a = self.allowed(c.mod, p[0]); return { cells: [{ v: p[1], cls: p[0] === c.from ? 'hot' : '' }, { v: a ? 'Compiles' : 'Compile-time error', cls: a ? 'good' : 'bad' }] }; }), modT + ': results for the 6 places');
     }
   },
@@ -141,7 +138,7 @@ Lab.register({
       P.arrow('ar', src === 'tel' ? 'tel:t' : src === 'sav' ? 'sav:l' : 'rep:l', src === 'tel' ? 'acc:b' : src === 'sav' ? 'acc:r' : 'acc:r:0.85', { cls: ac, label: lb });
     }
     P.box('res', 16, 230, 648, 48, { cls: s.verdict === 'ok' ? 'good' : s.verdict === 'no' ? 'bad' : 'ghost', title: s.verdict === 'ok' ? 'Compilation succeeded' : s.verdict === 'no' ? 'Compile-time error' : 'Compilation result', sub: s.verdict === 'ok' ? s.reason : s.verdict === 'no' ? s.msg : 'still checking' });
-    P.note('The compiler does not look at the actual object. It decides only from where the code is written (which class, which package) and from the declared type of the variable. At the last step, the right side of each box shows whether code in that place can read the member with this access modifier. "conditional" means that the access works only through its own type (this or a variable of type SavingAccount).');
+    P.note('At the last step, the right side of each box shows whether code in that place can read the member with this access modifier. "conditional" means that the access works only through its own type (this or a variable of type SavingAccount).');
   },
   assume: 'The 24 combinations were actually compiled on JDK 21 on this PC from source files split into the packages bank and app, and whether compilation succeeded and the error messages were checked against the results (this lab looks at the result of compilation, not the result of execution). The "Reason for the decision" column and the order of the checks are an explanation that restates the access rules of the Java Language Specification, and they do not mean that the compiler actually checks in this order. When the same access modifiers were put on a method instead of a field and compiled, success and error were exactly the same for the 24 combinations (the wording of the error messages differs in part). Not covered: access modifiers on the class itself, constructors, static members, nested classes, and modules (module-info). The "only through its own type" condition of protected applies to members that are not static. The error messages are the first line of the English javac message.',
 });

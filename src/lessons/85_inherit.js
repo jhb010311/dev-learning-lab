@@ -44,7 +44,7 @@ Lab.register({
       push('컴파일: Animal 클래스에서 ' + pName + ' 생성자를 찾습니다. Animal에는 ' + (c.pctor === 'arg' ? 'Animal(String name)' : 'Animal()') + '만 있습니다. ' + (c.pctor === 'arg' ? '생성자를 직접 적은 클래스에는 기본 생성자가 생기지 않기 때문입니다. ' : '') + '부를 부모 생성자가 없어 컴파일 오류입니다. 프로그램은 실행되지 않습니다.', 'bad');
       sum.push('컴파일 오류입니다. javac의 메시지는 "' + ERR + '"이고, "Animal의 생성자를 이 인자들로는 부를 수 없다"는 뜻입니다.');
       if (c.pctor === 'arg') { sum.push('자식 생성자는 반드시 부모 생성자 하나를 먼저 부릅니다. ' + (c.sup === 'omit' ? 'super(...)를 쓰지 않으면 super()가 자동으로 들어가는데' : 'super()는 인자 없는 생성자를 찾는데') + ', 부모에 인자 없는 생성자가 없으면 부를 것이 없습니다.'); sum.push('부모에 Animal(String name)만 있을 때는 자식 생성자의 첫 줄에 super("바둑이")처럼 인자를 넘겨 직접 불러야 합니다. Dog에 생성자를 하나도 적지 않아도 같은 오류가 납니다. 자동으로 생기는 기본 생성자도 super()를 부르기 때문입니다.'); }
-      else sum.push('super(...)에 넘긴 인자에 맞는 생성자가 부모에 있어야 합니다. Animal에는 문자열을 받는 생성자가 없습니다. 설정에서 부모의 생성자를 바꿔 비교해 보세요.');
+      else sum.push('super(...)에 넘긴 인자에 맞는 생성자가 부모에 있어야 합니다. Animal에는 문자열을 받는 생성자가 없습니다.');
       return { events: ev, summary: sum, row: ['오류: ' + ERR, '실행되지 않음', '실행되지 않음'] };
     }
     push(e1 + ' Animal에 이 생성자가 있으므로 컴파일됩니다.');
@@ -83,7 +83,6 @@ Lab.register({
     push('Dog d = new Dog(): 생성자가 모두 끝났습니다. 완성된 객체의 참조가 변수 d에 담깁니다.');
     describe(); st.cur = ''; st.stack = [];
     var o1 = st.out1.join(' / '), o2 = st.out2.join(' / ');
-    sum.push('new Dog() 동안의 출력은 ' + o1 + '이고, d.describe()의 출력은 ' + o2 + '입니다.');
     sum.push('실행 순서는 부모 생성자 ' + pName + ' → Dog의 필드 초기화식 → Dog() 생성자의 본문입니다. 자식 생성자가 먼저 시작되지만, 첫 줄에서 부모 생성자로 넘어가 부모 쪽이 먼저 끝납니다.');
     if (c.sup === 'omit') sum.push('super(...)를 쓰지 않아도 부모 생성자는 실행됩니다. 컴파일러가 Dog()의 첫 줄에 super()를 넣기 때문입니다.' + (c.pctor === 'both' ? ' Animal에 생성자가 둘 있지만 super()에 맞는 것은 인자 없는 Animal()입니다.' : ''));
     if (c.sup !== 'omit' && c.pctor === 'both') sum.push('부모에 생성자가 여럿이면 super(...)에 넘긴 인자에 맞는 것이 선택됩니다. ' + supTxt + '이므로 ' + pName + ' 생성자가 실행되었습니다.');
@@ -95,18 +94,12 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 컴파일 단계부터 한 단계씩 진행합니다.'); return; }
-    if (s.err) { H.title(v, '컴파일 오류'); H.text(v, 'javac: ' + s.err); H.text(v, '프로그램이 만들어지지 않아 객체도 출력도 없습니다.'); return; }
+    if (s.err) { H.title(v, '컴파일 오류'); H.text(v, 'javac: ' + s.err); return; }
     H.table(v, ['필드', '선언한 클래스', '지금 값'], s.made ? [
       { cells: ['name', 'Animal (물려받음)', { v: s.name, cls: s.name === 'null' ? '' : 'good' }] },
       { cells: ['sound', 'Dog', { v: s.sound, cls: s.sound === 'null' ? (String(s.stack[s.stack.length - 1]).indexOf('describe') >= 0 ? 'bad' : '') : 'good' }] },
     ] : [], '힙의 Dog 객체 (하나)');
     if (!s.made) H.text(v, '아직 객체가 만들어지지 않았습니다.');
-    var ln = H.lanes(v);
-    H.lane(ln, '실행 중인 코드', s.stack.length ? s.stack.join(' → ') : s.d ? '없음 (객체 완성)' : '아직 시작 전', s.stack.length ? 'hot' : s.d ? 'good' : 'none');
-    H.title(v, 'new Dog() 동안의 출력');
-    H.slots(v, s.out1.map(function (x) { return [x, x === 'sound=null' ? 'r' : 'q']; }), '아직 없음');
-    H.title(v, 'd.describe()의 출력');
-    H.slots(v, s.out2.map(function (x) { return [x, 'd']; }), '아직 없음');
   },
   // 그림: 왼쪽에 자식 Dog의 코드 조각, 가운데에 부모 Animal의 코드 조각, 오른쪽에 힙의 객체 하나(물려받은 name과 자기 sound). 호출이 Dog에서 Animal로, 다시 Dog의 describe()로 넘어가는 것을 화살표로 보인다.
   draw: function (P, sim, shown) {
@@ -139,7 +132,7 @@ Lab.register({
     var o1 = s.out1.join(' / '), o2 = s.out2.join(' / ');
     P.box('o1', 16, 222, 648, 34, { cls: s.err ? 'bad' : !o1 ? 'ghost' : s.out1.indexOf('sound=null') >= 0 ? 'bad' : 'plain', title: s.err ? '컴파일 오류' : 'new Dog() 동안의 출력', right: s.err ? '부를 부모 생성자가 없음' : o1 || '아직 없음' });
     P.box('o2', 16, 264, 648, 34, { cls: s.err ? 'ghost' : o2 ? 'good' : 'ghost', title: 'd.describe()의 출력', right: s.err ? '실행되지 않음' : o2 || '아직 없음' });
-    P.note('객체는 하나이고, 그 안에 부모에게서 물려받은 name과 자식의 sound가 함께 있습니다. 노란 상자가 지금 실행 중인 코드, 파란 상자는 부른 쪽에서 기다리는 코드입니다. 빨간 화살표는 부모 생성자가 부른 describe()가 자식 Dog의 것으로 넘어가는 것을 나타냅니다. 부모 생성자가 끝나기 전에는 자식의 sound가 null입니다.');
+    P.note('객체는 하나이고, 그 안에 부모에게서 물려받은 name과 자식의 sound가 함께 있습니다. 노란 상자가 지금 실행 중인 코드, 파란 상자는 부른 쪽에서 기다리는 코드입니다. 빨간 화살표는 부모 생성자가 부른 describe()가 자식 Dog의 것으로 넘어가는 것을 나타냅니다.');
   },
   assume: '서른여섯 가지 조합을 이 PC의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 객체를 만드는 동안의 출력과 d.describe()의 출력을 대조했습니다. 자식에 생성자를 적지 않아도 부모에 인자 없는 생성자가 없으면 같은 오류가 난다는 것과, super(...)가 생성자의 첫 문장이어야 한다는 것(JDK 21 기준)도 컴파일로 확인했습니다. 더 새로운 JDK에서는 super(...) 앞에 일부 문장을 둘 수 있게 바뀌었다고 알려져 있으나 이 PC에서는 확인하지 못했습니다. 단순화한 점: Animal의 생성자도 맨 먼저 자기 부모인 Object의 생성자를 부르는데 이 단계는 뺐습니다. 어느 메서드가 선택되는지에 대한 자세한 규칙은 "다형성과 메서드 선택" 실습에서 다룹니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.',
 });

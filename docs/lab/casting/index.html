@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>연산자와 형변환: 7 / 2는 왜 3.5가 아니라 3이 나오나 · 개발 학습 실습실</title>
-<meta name="description" content="자바에서 계산 결과는 숫자만이 아니라 타입으로도 정해집니다. int끼리 계산하면 결과도 int라서 소수점 아래나 범위를 넘는 부분이 사라지고, 타입이 섞이면 좁은 쪽을 넓은 쪽으로 자동으로 맞춘 뒤 계산합니다. +는 한쪽이 문자열이면 덧셈이 아니라 이어 붙이기가 됩니다. 식을…">
+<meta name="description" content="자바에서 계산 결과는 숫자만이 아니라 타입으로도 정해집니다. int끼리 계산하면 결과도 int라서 소수점 아래나 범위를 넘는 부분이 사라지고, 타입이 섞이면 좁은 쪽을 넓은 쪽으로 자동으로 맞춘 뒤 계산합니다. +는 한쪽이 문자열이면 덧셈이 아니라 이어 붙이기가 됩니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/casting/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/casting/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/casting/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="연산자와 형변환: 7 / 2는 왜 3.5가 아니라 3이 나오나 · 개발 학습 실습실">
-<meta property="og:description" content="자바에서 계산 결과는 숫자만이 아니라 타입으로도 정해집니다. int끼리 계산하면 결과도 int라서 소수점 아래나 범위를 넘는 부분이 사라지고, 타입이 섞이면 좁은 쪽을 넓은 쪽으로 자동으로 맞춘 뒤 계산합니다. +는 한쪽이 문자열이면 덧셈이 아니라 이어 붙이기가 됩니다. 식을…">
+<meta property="og:description" content="자바에서 계산 결과는 숫자만이 아니라 타입으로도 정해집니다. int끼리 계산하면 결과도 int라서 소수점 아래나 범위를 넘는 부분이 사라지고, 타입이 섞이면 좁은 쪽을 넓은 쪽으로 자동으로 맞춘 뒤 계산합니다. +는 한쪽이 문자열이면 덧셈이 아니라 이어 붙이기가 됩니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/casting/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
+<link rel="stylesheet" href="../../app.css?v=b3ddaad4fd">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 기본 문법</p>
 <h1>연산자와 형변환</h1>
 <p><b>7 / 2는 왜 3.5가 아니라 3이 나오나</b></p>
-<p>자바에서 계산 결과는 숫자만이 아니라 타입으로도 정해집니다. int끼리 계산하면 결과도 int라서 소수점 아래나 범위를 넘는 부분이 사라지고, 타입이 섞이면 좁은 쪽을 넓은 쪽으로 자동으로 맞춘 뒤 계산합니다. +는 한쪽이 문자열이면 덧셈이 아니라 이어 붙이기가 됩니다. 식을 하나 골라, 어느 순간에 무엇이 사라지거나 바뀌는지 따라가 보세요.</p>
+<p>자바에서 계산 결과는 숫자만이 아니라 타입으로도 정해집니다. int끼리 계산하면 결과도 int라서 소수점 아래나 범위를 넘는 부분이 사라지고, 타입이 섞이면 좁은 쪽을 넓은 쪽으로 자동으로 맞춘 뒤 계산합니다. +는 한쪽이 문자열이면 덧셈이 아니라 이어 붙이기가 됩니다.</p>
 <p>실행으로 대조 · JDK 21에서 열여덟 가지 코드를 실행해 대조 (컴파일 오류 한 가지 포함)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -62,9 +62,8 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>r을 출력하면 3입니다. 오른쪽 식 7 / 2의 타입은 int이고, 변수 r의 타입은 int입니다.</li>
 <li>int끼리 나누면 결과도 int입니다. 소수점 아래는 반올림 없이 버려집니다.</li>
-<li>소수점까지 얻으려면 나누기 전에 한쪽을 double로 만들어야 합니다. &quot;살펴볼 것&quot;을 형변환으로 바꿔 7 / 2.0을 실행해 보세요.</li>
+<li>소수점까지 얻으려면 나누기 전에 한쪽을 double로 만들어야 합니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>int r = 7 / 2;                  // int끼리 나눗셈
@@ -155,6 +154,6 @@ System.out.println(r);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=28e3eacea2"></script>
+<script src="../../app.js?v=b3ddaad4fd"></script>
 </body>
 </html>

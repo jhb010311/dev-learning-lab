@@ -57,27 +57,19 @@ Lab.register({
     }
     st.set = found ? '1' : '2';
     push('set.add(a), set.add(b): HashSet도 안에서 HashMap을 쓰므로 같은 순서로 판단합니다. ' + (found ? 'b는 이미 들어 있는 a와 같은 원소로 보아 넣지 않습니다. 크기는 1입니다.' : 'b를 a와 다른 원소로 보아 둘 다 넣습니다. 크기는 2입니다.' + (same ? ' 내용이 같은 객체가 중복으로 들어갔습니다.' : '')), found ? 'good' : same ? 'bad' : '');
-    sum.push('a.equals(b)는 ' + f.eq + ', hashCode는 ' + (f.hs ? '같고' : '다르고') + ', map.get(b)는 ' + st.got + ', set의 크기는 ' + st.set + '입니다.');
     if (same && f.eq && !f.hs) sum.push('equals만 재정의하면 equals로는 같은 두 객체가 서로 다른 자리로 갑니다. HashMap, HashSet, HashMap을 쓰는 캐시에서 "넣었는데 못 찾는" 버그가 됩니다. equals를 재정의할 때는 hashCode도 같은 필드로 함께 재정의합니다.');
     if (same && !f.eq && f.hs) sum.push('hashCode만 재정의하면 같은 자리까지는 가지만 마지막 확인인 equals가 false입니다. 둘은 짝이라서 하나만으로는 소용이 없습니다.');
     if (same && !f.eqOver && !f.hashOver) sum.push('아무것도 재정의하지 않으면 객체는 자기 자신과만 같습니다. 주문 번호나 좌표처럼 "값이 같으면 같은 것"으로 다뤄야 하는 객체는 둘 다 재정의하거나 record로 선언합니다.');
     if (found) sum.push(c.how === 'record' ? 'record는 모든 구성 요소를 비교하는 equals와 그에 맞는 hashCode를 자동으로 만들어 줍니다. 값을 담는 객체에 잘 맞습니다.' : c.how === 'const' ? '모든 객체의 hashCode가 같아도 규약에는 어긋나지 않고 결과도 맞습니다. 하지만 모든 키가 한 자리에 몰려, 찾을 때마다 그 자리의 키를 하나씩 equals로 비교해야 합니다. 키가 많아지면 HashMap이 느려집니다.' : 'equals가 같은 두 객체가 같은 hashCode를 돌려주므로 HashMap과 HashSet이 둘을 같은 키로 다룹니다.');
     if (!same && c.how === 'const') sum.push('내용이 다른 두 객체가 같은 hashCode를 가져도 됩니다(해시 충돌). 같은 자리에 들어간 뒤 equals로 구분됩니다. 다만 충돌이 많을수록 느려지므로, hashCode는 값이 고르게 퍼지도록 만드는 것이 좋습니다.');
-    if (!same && c.how !== 'const') sum.push('내용이 다른 두 객체는 어떤 방식에서든 다른 키로 다뤄집니다. 내용이 같은 경우(id를 둘 다 1로)와 비교해 보세요.');
+    if (!same && c.how !== 'const') sum.push('내용이 다른 두 객체는 어떤 방식에서든 다른 키로 다뤄집니다.');
     return { events: ev, summary: sum, hs: f.hs, row: [String(f.eq), f.hs ? '같음' : '다름', st.got, st.set + '개'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    H.table(v, ['객체', 'id', 'hashCode'], [
-      { cells: ['a', '1', c.how === 'const' ? '42' : s.hs === '?' ? '?' : s.hs === 'true' ? '(b와 같은 값)' : '(b와 다른 값)'] },
-      { cells: ['b', c.same === 'same' ? '1' : '2', c.how === 'const' ? '42' : s.hs === '?' ? '?' : s.hs === 'true' ? '(a와 같은 값)' : '(a와 다른 값)'] },
-    ], '키로 쓸 객체');
     var ln = H.lanes(v);
     H.lane(ln, 'equals', s.eq === '?' ? '아직 비교 전' : 'a.equals(b) = ' + s.eq, s.eq === 'true' ? 'good' : s.eq === 'false' ? 'wait' : 'none');
-    H.lane(ln, 'hashCode', s.hs === '?' ? '아직 비교 전' : s.hs === 'true' ? '두 값이 같음' : '두 값이 다름', s.hs === 'true' ? 'good' : s.hs === 'false' ? 'wait' : 'none');
-    H.lane(ln, 'map.get(b)', !s.look ? (s.put ? 'a를 넣어 둠' : '아직 넣기 전') : s.look === 'same' ? 'a가 있는 자리에서 찾음' + (s.got !== '?' ? ' → ' + s.got : '') : 'a가 없는 다른 자리에서 찾음 → null', s.got === '주문 내역' ? 'good' : s.got === 'null' ? 'bad' : 'none');
-    H.counters(v, [[s.got, 'map.get(b)'], [s.set === '?' ? '?' : s.set + '개', 'set의 크기']]);
   },
   // 그림: 왼쪽에 키 객체 둘, 오른쪽에 HashMap의 자리(버킷). hashCode가 자리를 정하고, 그 자리에서 equals로 확인한다.
   draw: function (P, sim, shown) {
@@ -94,7 +86,7 @@ Lab.register({
     var res = function (x, good) { return x === '?' ? 'ghost' : x === good ? 'good' : 'bad'; };
     P.box('r1', 16, 232, 320, 36, { cls: res(s.got, '주문 내역'), title: 'map.get(b)', right: s.got });
     P.box('r2', 344, 232, 320, 36, { cls: s.set === '?' ? 'ghost' : s.set === '1' ? 'good' : c.same === 'same' ? 'bad' : 'plain', title: 'set의 크기', right: s.set === '?' ? '?' : s.set + '개' });
-    P.note('HashMap은 hashCode로 자리를 먼저 정하고, 그 자리에 있는 키와만 equals로 비교합니다. 그래서 equals가 true인 두 객체의 hashCode가 다르면 서로를 찾지 못합니다. 자리(버킷)는 실제로는 번호가 붙은 배열의 칸입니다.');
+    P.note('자리(버킷)는 실제로는 번호가 붙은 배열의 칸입니다.');
   },
   assume: '열두 가지 조합의 결과(equals, hashCode가 같은지, map.get, set의 크기)를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. hashCode를 재정의하지 않은 두 객체의 값이 "다르다"는 것은 거의 항상 그렇다는 뜻입니다. Object의 hashCode는 서로 다른 객체에 같은 값을 줄 수도 있으며(그래도 규약에 어긋나지 않습니다), 그 경우에는 equals의 결과에 따라 찾을 수도 있습니다. HashMap은 같은 자리에 있더라도 hashCode 값이 다른 키와는 equals를 부르지 않고 넘어갑니다. record의 hashCode가 내는 구체적인 값은 명세가 정하지 않지만, equals가 같은 두 record의 hashCode가 같다는 것은 보장됩니다.',
 });

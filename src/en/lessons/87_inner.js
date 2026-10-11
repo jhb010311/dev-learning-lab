@@ -58,15 +58,13 @@ Lab.register({
       st.cmp = 'err';
       push('new Outer.Inner(): This is a compile-time error. main is a static method, so there is no Outer object at this point, and the code does not specify one either. The compiler rejects the code because it cannot determine which outer object the inner object belongs to.', 'bad');
       fail('an enclosing instance that contains Outer.Inner is required', 'It means that there must be an outer object that contains Outer.Inner.');
-      sum.push('A compile-time error occurs, so the program does not run.');
       sum.push('An object of an inner class without static is created so that it holds a reference to an outer object. So the outer object must exist first, and when you have an outer object o, you create the inner object with o.new Inner().');
-      sum.push('If the class inside does not use the fields or methods of the outer object, it is better to add static and make it a static nested class. Change the kind to "static nested class" and run the same code.');
+      sum.push('If the class inside does not use the fields or methods of the outer object, it is better to add static and make it a static nested class.');
     } else if (member && c.use === 'field' && nested) {
       push('The compiler reads the Outer class: Nested is declared static. An object of a static nested class is not connected to any Outer object.');
       st.cmp = 'err';
       push('return name: This is a compile-time error. name is a field that each Outer object has separately. A Nested object has no Outer object that it refers to, so there is no way to determine whose name to read.', 'bad');
       fail('non-static variable name cannot be referenced from a static context', 'It means that the non-static variable name cannot be used from a static context. Even if main creates an Outer object o, the Nested object does not know about that o.');
-      sum.push('A compile-time error occurs, so the program does not run.');
       sum.push('A static nested class is an independent class that only borrows a place inside the outer class. It has no reference to an outer object, so it cannot simply use the fields of an outer object.');
       sum.push('If you need a field of the outer object, remove static to make the class an inner class, or pass the value you need to the constructor.');
     } else if (member && !nested) {
@@ -79,7 +77,6 @@ Lab.register({
       push('o.name = "B": The field of the outer object is changed to "B". Nothing is done to the inner object.');
       st.out.push('B'); rel = 'The inner object refers to the outer object o';
       push('in.who(): Inside Inner, name means "the name of the outer object that I refer to". The value was not copied in advance. It is read now by following the reference, so B is printed.', 'good');
-      sum.push('B is printed. The value of the outer object that was changed after the inner object was created is visible.');
       sum.push('An object of an inner class without static holds a reference to the outer object, so it can use the fields and methods of the outer object as if they were its own.');
       sum.push('In return, as long as the inner object remains, the outer object is not removed by garbage collection either. This is why static is added to a class inside that does not use the outer object.');
     } else if (member) {
@@ -88,15 +85,12 @@ Lab.register({
       push('new Outer.Nested(): The Nested object is created. A static nested class can be created even without an outer object. In this program, not a single Outer object was created.', 'good');
       st.out.push('inside'); rel = 'Does not refer to an outer object';
       push('in.who(): It runs only its own code and returns "inside", which is printed. This object has no reference to an outer object.');
-      sum.push('"inside" is printed. A Nested object was created and used without creating an Outer object.');
       sum.push('A static nested class merely has the name Outer.Nested. It is created and used in the same way as a separately declared class. It has no reference to an outer object.');
-      sum.push('To see what happens when only static is removed from the same code, change the kind to "Inner class" and compare.');
     } else if (c.loc === 'change') {
       push('The compiler reads make(): 1 is assigned to count, and 2 is assigned to it again below. A local variable whose value changes even once is not "effectively final".');
       st.cmp = 'err';
       push('count inside the ' + (anon ? 'anonymous class' : 'lambda expression') + ': This is a compile-time error. ' + (anon ? 'An anonymous class' : 'A lambda expression') + ' does not take the local variable itself. It takes a copy of its value. If the original changed later, it would differ from the copy, so Java allows only local variables whose values do not change to be used inside.', 'bad');
       fail('local variables referenced from ' + (anon ? 'an inner class' : 'a lambda expression') + ' must be final or effectively final', 'It means that local variables used in ' + (anon ? 'an inner class' : 'a lambda expression') + ' must be final or effectively final.' + (anon ? ' An anonymous class is also a kind of inner class, so the message says inner class.' : ''));
-      sum.push('A compile-time error occurs, so the program does not run.');
       sum.push('"Effectively final" describes a variable whose initial value never changes, even though final is not written. Whether the change comes after the ' + (anon ? 'anonymous class' : 'lambda expression') + ' is created or before it, even one line that assigns to the variable again is an error.');
       sum.push('Anonymous classes and lambda expressions both follow the same rule. If you need to change the value, keep it in a field, or put it in an array or an object and change the value inside, as in "Stored in an array, and only the element value is changed" in the local variable setting.');
     } else {
@@ -114,7 +108,6 @@ Lab.register({
       push('First line of r.run(): ' + (arr ? 'It follows the copied reference to the array and reads the value of the element. The value that was changed after r was created is visible, so count = 2 is printed.' : 'It reads the copied value and prints count = 1.'), 'good');
       st.th = anon ? 'self' : 'outer'; st.out.push('this = ' + (anon ? 'Outer$1' : 'Outer')); rel = anon ? 'this is the anonymous object itself' : 'this is the outer Outer object';
       push(anon ? 'this.getClass().getName(): Inside an anonymous class, this is the object created from that anonymous class itself. Because the class has no name, the compiler gave it the name Outer$1, and that is what is printed.' : 'this.getClass().getName(): A lambda expression does not have a this of its own. Inside a lambda expression, this is the this of make(), the method in which the lambda expression is written, that is, the outer Outer object. Outer is printed.', anon ? '' : 'good');
-      sum.push('The output is two lines: count = ' + (arr ? '2' : '1') + ' and this = ' + (anon ? 'Outer$1' : 'Outer') + '.');
       sum.push(anon ? 'An anonymous class declares a new class, so this inside it is the newly created object. To refer to the outer object, you must write Outer.this.' : 'A lambda expression is not a declaration of a new class but a piece of code, so this inside it is the same as this outside the lambda expression. When you convert an anonymous class to a lambda expression, any code that uses this changes its meaning.');
       sum.push(arr ? 'When the value is stored in an array, the variable count does not change and only the value inside the array changes, so the code passes the rule. However, in code that several threads use together, the value can become inconsistent, so use this with care.' : 'Even after make() ends and the local variable disappears, the code runs with the copied value. Because the value is copied, changing that variable elsewhere is not allowed.');
     }
@@ -123,8 +116,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, member = c.kind === 'inner' || c.kind === 'nested', arr = c.loc === 'arr';
     if (!s) { H.text(v, 'Click Run to go one step at a time, starting with compilation.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'Compilation', s.cmp === '?' ? 'checking' : s.cmp === 'ok' ? 'Success' : 'Error', s.cmp === '?' ? 'none' : s.cmp === 'ok' ? 'good' : 'bad');
     if (s.cmp === 'err') { H.text(v, 'When there is a compile-time error, no class file is produced, so the program cannot run.'); return; }
     var rows = [];
     if (member) {
@@ -135,10 +126,7 @@ Lab.register({
       if (s.cnt) rows.push({ cls: s.live ? '' : 'gone', cells: ['count', 'Local variable of make()', s.live ? (arr ? 'refers to the array { ' + s.cnt + ' }' : s.cnt) : 'gone (the method ended)'] });
       if (s.r) rows.push({ cells: ['r', c.kind === 'anon' ? 'Object of the anonymous class' : 'Lambda expression', arr ? 'copied reference → array { ' + s.cnt + ' }' : 'copied value ' + s.cap] });
       H.table(v, ['Name', 'What it is', 'What it holds'], rows, 'Created inside make()');
-      H.lane(ln, 'this', !s.th ? 'not checked yet' : s.th === 'self' ? 'the anonymous object itself (Outer$1)' : 'the outer Outer object', !s.th ? 'none' : s.th === 'self' ? 'wait' : 'good');
     }
-    H.title(v, 'Output');
-    H.slots(v, s.out.map(function (x) { return [x, 'd']; }), 'No output yet');
   },
   // Diagram: on the left, the outer object (and the local variable); on the right, the object created inside. Arrows show what that object refers to or keeps a copy of.
   draw: function (P, sim, shown) {

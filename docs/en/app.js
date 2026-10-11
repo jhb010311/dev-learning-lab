@@ -15647,12 +15647,9 @@ Lab.register({
       sum.push('Digital signature: sign with the private key and verify with the public key. Unlike HMAC, the side that verifies does not need to hold a secret key, so it is used when the issuer and the verifier are different (certificates, and RS256 of JWTs that several services verify).');
     }
     var back = { hash: 'Impossible', sym: 'Possible with the same key', asym: 'Possible with the private key', hmac: 'Not applicable (does not hide the content)', sign: 'Not applicable (does not hide the content)' }[T], key = { hash: 'None', sym: 'One shared key', asym: 'Lock with the public key, open with the private key', hmac: 'One shared key', sign: 'Sign with the private key, verify with the public key' }[T], use = { hash: 'Storing passwords, comparing content', sym: 'HTTPS body, data encryption', asym: 'Agreeing on a key securely', hmac: 'JWT (HS256), signing API requests', sign: 'Certificates, JWT (RS256)' }[T];
-    sum.unshift('Result: ' + res + '.');
     return { events: ev, summary: sum, row: [res, back, key, use] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], rows = last ? last.snap.rows : [];
-    if (rows.length) H.table(v, ['What', 'Value'], rows, 'Actually computed values'); else H.text(v, 'Click Run to start.');
     H.table(v, ['Tool', 'Hides the content?', 'Can it be reversed?', 'Key'], [['Hash', 'Hides', 'Impossible', 'None'], ['Symmetric-key cryptography', 'Hides', 'Possible', 'One shared key'], ['Public-key cryptography', 'Hides', 'Possible', 'Public key / private key'], ['HMAC', 'Does not hide', '-', 'One shared key'], ['Digital signature', 'Does not hide', '-', 'Private key / public key']].map(function (r, i) { var on = ['hash', 'sym', 'asym', 'hmac', 'sign'][i] === sim.c.tool; return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2], r[3]] }; }), 'Comparison of the five tools');
   },
   // Diagram: connects, from top to bottom, what the original text becomes after passing through the tool and the key.
@@ -15671,7 +15668,7 @@ Lab.register({
 Lab.register({
   id: 'tx', nav: 'Transaction basics', cat: 'Database', mode: 'step',
   title: 'What if the withdrawal went through but the deposit did not?',
-  intro: 'A transfer that takes 1,000 won out of account A and adds 1,000 won to account B is two SQL statements. If an error occurs or the server crashes between the two statements, money can disappear. See what is left in the DB when something goes wrong partway through, with the two statements grouped in a transaction and without one.',
+  intro: 'A transfer that takes 1,000 won out of account A and adds 1,000 won to account B is two SQL statements. If an error occurs or the server crashes between the two statements, money can disappear.',
   terms: ['Transaction', 'ACID', 'Undo log and redo log', '@Transactional'], ranks: ['dbengine', 'txspring', 'isolation'],
   controls: [
     { id: 'mode', label: 'How the statements are run', type: 'select', value: 'auto', options: [['auto', 'Without a transaction (each statement is made permanent right away)'], ['tx', 'The two statements are grouped in a transaction']] },
@@ -15713,7 +15710,6 @@ Lab.register({
       else { S.pA = null; S.tx = c.fail === 'ex' ? 'Rolled back' : 'Rolled back (on restart)'; push(what + (c.fail === 'ex' ? ' The application sends ROLLBACK.' : ' COMMIT was never reached, so when the DB starts again, it finds the unfinished transaction and undoes it.') + ' It is as if the withdrawal never happened. A is still 5,000 won.', 'good'); }
     }
     var total = S.A + S.B;
-    sum.push('Final: A ' + S.A + ' won, B ' + S.B + ' won, total ' + total + ' won.' + (total !== 6000 ? ' 1,000 won has disappeared.' : ''));
     if (auto && c.fail !== 'none') sum.push('Several statements must be "all or nothing", but only some of them were applied. A transaction is the mechanism that guarantees this (atomicity).');
     if (!auto && c.fail !== 'none') sum.push('With the statements grouped in a transaction, changes that are not committed do not remain, whatever happens partway through. On an error, the transaction is rolled back, and if the server crashed, the DB undoes the changes as it recovers.');
     if (c.peek) sum.push(auto ? 'Without a transaction, the intermediate state is visible to other users as it is.' : 'Uncommitted changes are not visible to other transactions (isolation). How strictly they are hidden is set by the isolation level, which is covered in the "Isolation levels" lab.');
@@ -15722,9 +15718,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { A: 5000, B: 1000, pA: null, pB: null, tx: '', seen: '' };
-    H.table(v, ['Account', 'Balance made permanent in the DB', 'Value visible only inside this transaction (not committed)'], [['A', s.A, s.pA], ['B', s.B, s.pB]].map(function (r) { return { cells: [r[0], r[1] + ' won', { v: r[2] === null ? '-' : r[2] + ' won', cls: r[2] === null ? '' : 'hot' }] }; }), 'account table');
-    H.counters(v, [[(s.A + s.B) + ' won', 'Total made permanent in the DB (6,000 won at first)'], [s.tx || '-', 'Transaction state']]);
-    if (s.seen) H.text(v, s.seen);
+    H.counters(v, [[s.tx || '-', 'Transaction state']]);
   },
   // Diagram: On the left are the values that are permanent in the DB and that everyone sees, and on the right are the values that are visible only inside this transaction and are not permanent yet.
   draw: function (P, sim, shown) {
@@ -15748,7 +15742,7 @@ Lab.register({
 Lab.register({
   id: 'httpmsg', nav: 'HTTP messages and status codes', cat: 'HTTP', mode: 'step',
   title: 'This is what a request and a response look like as text',
-  intro: 'The HTTP messages that a browser and a server exchange are text with a fixed shape. A request has "what" (the address) and "how" (the method) on its first line, and a response has "how it went" (the status code) on its first line. Change the situation, and look at the raw text of the request and the response and at what the status code means.',
+  intro: 'The HTTP messages that a browser and a server exchange are text with a fixed shape. A request has "what" (the address) and "how" (the method) on its first line, and a response has "how it went" (the status code) on its first line.',
   terms: ['HTTP as a stateless protocol', 'HTTP methods', 'HTTP status codes', 'REST', 'URI and URL'], ranks: ['http', 'rest'],
   controls: [
     { id: 'sc', label: 'Situation', type: 'select', value: 'get', options: [['get', 'Get order 1'], ['create', 'Create a new order'], ['delete', 'Delete order 1'], ['bad', 'Create an order with a required value missing'], ['noauth', 'Get an order without logging in'], ['forbid', 'Get another user\'s order'], ['missing', 'Get order 999, which does not exist'], ['moved', 'Get an old path whose address has changed'], ['error', 'An exception is thrown in server code']] },
@@ -15792,7 +15786,6 @@ Lab.register({
     K.hdr.forEach(function (h) { S.res.push(['Header', h]); }); S.res.push(['Empty line', '']); if (K.rbody) S.res.push(['Body', K.rbody]);
     var why = { get: 'The server finds the requested order and returns it in the body.', create: 'A new order has been created. The Location header tells you the address of the new order. The server uses 201 instead of 200 to tell you that something new was created.', delete: 'The delete succeeded and there is nothing to return. That is why the response is 204, which has no body.', bad: 'The required value quantity is missing. The request itself does not follow the rules, so the response is 400. The server did not even start the work.', noauth: 'The server cannot tell who sent the request. The response is 401, which means "authenticate first".', forbid: 'The server has confirmed who you are, but you do not have permission to view this order. The response is 403.', missing: 'The form of the address is correct, but there is no order with that number. The response is 404.', moved: 'This address has been moved permanently to /orders. The browser automatically requests again at the address in the Location header.', error: 'There was nothing wrong with the request, but the server code threw an exception that it did not handle. The response is 500. The details of the internal error are not sent out as they are in the body.' }[c.sc];
     push(why, cls === '2' || cls === '3' ? 'good' : 'bad', 'res');
-    sum.push('Response ' + K.status + ' (' + group + '). Who has to fix it: ' + K.who + '. What the receiver should do: ' + K.next + '.');
     sum.push('The first digit of the status code alone tells you how to respond. With 4xx, sending the same request again does not help, and the request has to be fixed. 5xx is a problem on the server side, so you can try again after a short while. Monitoring also counts 4xx and 5xx separately.');
     if (c.sc === 'noauth' || c.sc === 'forbid') sum.push('401 means "I do not know who you are" (authentication), and 403 means "I know who you are, but it is not allowed" (authorization). Despite its name, 401 Unauthorized means that authentication failed.');
     if (c.sc === 'error' || c.sc === 'bad') sum.push('Avoid answering every failure with 200 and writing the error in the body. Browsers, proxies, and monitoring tools that act on the status code will mistake it for a success.');
@@ -15819,7 +15812,7 @@ Lab.register({
     if (s.res.length) P.arrow('go', 'rq:r', 'rs:l');
     var done = s.res.length > 0, code = done ? sim.row[0] : '';
     P.box('st', 16, 250, 648, 34, { cls: !done ? 'ghost' : /^[23]/.test(code) ? 'good' : 'bad', title: done ? 'Status code ' + code : 'Status code', right: done ? sim.row[1] : 'No response yet' });
-    P.note('The yellow line is the start line, white lines are headers, the dotted line is the empty line, and the green line is the body. The start line of a request holds the method and the path, and the start line of a response holds the status code.');
+    P.note('The yellow line is the start line, white lines are headers, the dotted line is the empty line, and the green line is the body.');
   },
   assume: 'The structure of the messages (start line, headers, empty line, body) is exactly the shape seen in the raw text exchanged between a real HTTP server and a socket, and only the main headers are kept on screen. The status code for each situation follows the definitions in the HTTP standard (RFC 9110) and the conventions widely used in REST APIs. Some designs return 404 instead of 403 for a request about another user\'s resource, to hide that the resource exists.',
 });
@@ -15827,7 +15820,7 @@ Lab.register({
 Lab.register({
   id: 'cookie', nav: 'Cookies', cat: 'Authentication', mode: 'step',
   title: 'Showing a name tag, every time, to a server that cannot remember you',
-  intro: 'An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site. Change the attributes of the cookie, and see which requests get the cookie and which do not.',
+  intro: 'An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site.',
   terms: ['Cookie', 'HTTP as a stateless protocol', 'HttpOnly, Secure, and SameSite', 'Session'], ranks: ['auth', 'http'],
   controls: [
     { id: 'give', label: 'The login response sets a cookie', type: 'check', value: true },
@@ -15885,7 +15878,6 @@ Lab.register({
     push('This is a request going to another site, other.example. The cookie that shop.example gave is not attached. A cookie is attached only to requests going to the site that sent it.', '');
     S.rows.push(['JavaScript on the page: document.cookie', R.js ? '"sid=abc123" is read' : '(not readable)', R.js ? 'The script can take the value' : R.alive ? 'Not visible to scripts because of HttpOnly' : 'No cookie']);
     push('JavaScript on the shop.example/shop/cart page reads document.cookie. ' + (R.js ? 'There is no HttpOnly, so the value is read as it is. If a malicious script gets into the page (XSS), it can steal this value and take over the login state.' : R.alive ? 'A cookie with HttpOnly is not visible to scripts. It is still attached to requests automatically.' : 'No cookie is stored.'), R.js ? 'bad' : R.alive ? 'good' : '');
-    sum.push(R.alive ? 'The cookie is alive, and it is attached automatically to requests going to ' + (c.path === '/' ? 'every path of the site' : 'paths under /shop') + '. It is not attached to requests going to another site.' : 'The cookie was deleted, so all later requests are handled as requests from a user who is not logged in.');
     if (R.alive && c.path !== '/') sum.push('Narrowing the Path means the cookie is not attached to requests outside that path. A login cookie is usually left at Path=/.');
     if (R.js) sum.push('Put HttpOnly on the cookie used for login so that scripts cannot read it. In a real service, you also specify Secure, which sends the cookie only over https, and SameSite, which decides whether the cookie is attached to requests started from another site.');
     if (c.life === 'session' && c.later !== 'restart') sum.push('A cookie with no lifetime specified is deleted when the browser is closed. "Stay logged in" is a cookie whose lifetime is specified with Max-Age or Expires.');
@@ -15894,8 +15886,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { jar: [], rows: [] };
-    H.title(v, 'Cookies of shop.example that the browser is storing');
-    H.slots(v, s.jar.map(function (x) { return [x, 'd']; }), 'None');
     if (s.rows.length) H.table(v, ['Request or action', 'Cookie header the browser attached', 'What the server (or the script) knows'], s.rows.map(function (r, i) { var on = i === s.rows.length - 1; return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, { v: r[1], cls: r[1].indexOf('sid=') >= 0 ? (r[0].indexOf('document') >= 0 ? 'bad' : 'good') : '' }, r[2]] }; }), 'Whether the cookie is attached to each request');
   },
   // Diagram: whether the browser attaches the cookie to each request. Look at the same site, a different path, another site, and the case where a script reads it, one after another.
@@ -15911,7 +15901,7 @@ Lab.register({
     var end = P.seq([['b', 'Browser', 'wait'], ['s', 'shop.example server', 'wait'], ['o', 'other.example']], msgs, { keep: 7 });
     P.box('jar', 16, end + 14, 648, 46, { cls: s.jar.length ? 'good' : 'ghost', title: 'Cookies of shop.example that the browser is storing', sub: s.jar[0] || 'None' });
     P.size(680, end + 76);
-    P.note('Green arrows are requests that went with the cookie attached, and red arrows are requests that went without a cookie, so the server does not know who sent them. The browser attaches cookies by itself, and only to requests going to the site that sent the cookie.');
+    P.note('Green arrows are requests that went with the cookie attached, and red arrows are requests that went without a cookie, so the server does not know who sent them.');
   },
   assume: 'The paths that a cookie is attached to according to Path, the fact that an HttpOnly cookie is not visible in document.cookie, the disappearance of a cookie after its Max-Age has passed, and the fact that a cookie is not sent to an address on a different host are the same as the results checked with a real browser and a test server. That a session cookie is deleted when the browser is closed follows the standard behavior, and it was not checked by running it. A browser with the "restore previous tabs" feature turned on may bring session cookies back. The Secure, SameSite, and Domain attributes are not covered in this lab.',
 });
@@ -15919,7 +15909,7 @@ Lab.register({
 Lab.register({
   id: 'btree', nav: 'Binary search and B-trees', cat: 'Data structures', mode: 'step',
   title: 'If the data is sorted, you can discard half at a time',
-  intro: 'You look for one value among 27 values. You can check them one by one from the start. If they are sorted, you can look at the middle and discard half. Or you can use a B-tree, which splits the search into many branches at once. Change the search method and the value you look for, see how many steps it takes, and then see how the gap widens when there is much more data.',
+  intro: 'You look for one value among 27 values. You can check them one by one from the start. If they are sorted, you can look at the middle and discard half. Or you can use a B-tree, which splits the search into many branches at once.',
   terms: ['Binary search', 'Time complexity (big-O notation)', 'B-tree index', 'Full table scan', 'Index'], ranks: ['ds', 'index'],
   controls: [
     { id: 'how', label: 'Search method', type: 'select', value: 'scan', options: [['scan', 'One by one from the start (unsorted data)'], ['binary', 'Binary search (sorted array)'], ['btree', 'B-tree (several values in one node)']] },
@@ -15991,8 +15981,6 @@ Lab.register({
     var N = +c.n, worst = { scan: N, binary: self.depth(N + 1, 2), b3: self.depth(N, 3), b500: self.depth(N, 500) };
     var fmtN = function (x) { return x >= 1000000000 ? (x / 1000000000) + ' billion' : x >= 1000000 ? (x / 1000000) + ' million' : String(x); };
     var unit = c.how === 'btree' ? 'Nodes read: ' + T.count : 'Checks: ' + T.count;
-    sum.push('Finding ' + tg + ' among 27 values. ' + unit + '. ' + (T.found ? 'Found.' : 'Confirmed that it is not there.'));
-    sum.push('With ' + fmtN(N) + ' rows, in the worst case: one by one, ' + fmtN(worst.scan) + ' checks; binary search, ' + worst.binary + ' checks; a B-tree with 3 children per node, ' + worst.b3 + ' levels; a B-tree with 500 children per node, ' + worst.b500 + ' levels.');
     if (c.how === 'scan') sum.push('Checking one by one takes 10 times as many checks when the data is 10 times as large (O(n)). To find out that a value is missing, you have to look at all of them. This is what the database does when you query by a column that has no index.');
     if (c.how === 'binary') sum.push('Each check cuts the candidates in half (O(log n)). Even if the data becomes 1,000 times larger, the number of checks grows by only about 10. But the data must be sorted, and inserting a value into the middle of a sorted array is expensive.');
     if (c.how === 'btree') sum.push('A B-tree splits the search not in two but into many branches at a time. The more children each node has, the lower the tree is and the fewer nodes (disk pages) you have to read. In a real database index, one node holds hundreds of values, so even hundreds of millions of rows can be found in three or four levels.');
@@ -16000,18 +15988,13 @@ Lab.register({
     return { events: ev, summary: sum, row: [unit, T.found ? 'Found' : 'Not found', { scan: 'Checks: ' + fmtN(worst.scan), binary: 'Checks: ' + worst.binary, btree: 'Levels: ' + worst.b500 + ' (500 children per node)' }[c.how]], worst: worst, big: fmtN(N) };
   },
   render: function (v, sim, t, H, shown) {
-    var a = this.keys(), last = shown[shown.length - 1], s = last ? last.snap : null;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to see the search one step at a time.'); return; }
     if (s.how !== 'btree') {
-      H.title(v, s.how === 'scan' ? '27 values (assumed to be in unsorted order in reality)' : '27 sorted values');
-      H.slots(v, a.map(function (k, i) { var cand = s.how === 'binary' ? (i >= s.lo && i <= s.hi && s.seen.indexOf(i) < 0) : s.seen.indexOf(i) < 0, cls = i === s.cur ? (s.done ? (s.found ? 'd now' : 'r now') : 'b now') : cand ? 'q' : ''; return [String(k), cls]; }), '', true);
-      H.text(v, 'Blue slots are still candidates, faded slots are no longer candidates, and the thick border is the slot being checked now.'); H.counters(v, [[String(s.seen.length), 'Checks so far'], [s.how === 'binary' ? (s.found ? '-' : String(Math.max(0, s.hi - s.lo + 1))) : String(27 - s.seen.length), s.how === 'binary' ? 'Slots still candidates' : 'Slots not yet checked']]);
+      H.counters(v, [[s.how === 'binary' ? (s.found ? '-' : String(Math.max(0, s.hi - s.lo + 1))) : String(27 - s.seen.length), s.how === 'binary' ? 'Slots still candidates' : 'Slots not yet checked']]);
     } else {
-      var p = s.path, br = p.length > 1 ? p[1].branch : -1, lf = p.length > 2 ? p[2].leaf : -1;
-      H.title(v, 'Root node'); H.slots(v, [['100', p.length ? 'b' + (p.length === 1 ? ' now' : '') : 'q'], ['190', p.length ? 'b' + (p.length === 1 ? ' now' : '') : 'q']], '', true);
-      H.title(v, 'Internal nodes (3): keys that show the way down'); H.slots(v, [0, 1, 2].map(function (i) { return ['Internal ' + (i + 1) + ': ' + a[i * 9 + 3] + ', ' + a[i * 9 + 6], i === br ? 'b' + (p.length === 2 ? ' now' : '') : p.length > 1 ? '' : 'q']; }), '', true);
-      H.title(v, 'Leaf nodes (9): the actual values'); H.slots(v, [0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (i) { return [a.slice(i * 3, i * 3 + 3).join(' '), i === lf ? (s.found ? 'd now' : 'r now') : p.length > 2 ? '' : 'q']; }), '', true);
-      H.text(v, 'Yellow slots are nodes that were read, and faded slots are nodes that were skipped without being read.'); H.counters(v, [[String(p.length), 'Nodes read (disk reads)'], [String(13 - p.length), 'Nodes not read']]);
+      var p = s.path;
+      H.counters(v, [[String(p.length), 'Nodes read (disk reads)'], [String(13 - p.length), 'Nodes not read']]);
     }
     if (s.done) { var w = sim.worst; H.table(v, ['Method', 'Worst case with ' + sim.big + ' rows', 'How it grows'], [['One by one from the start', sim.big + ' checks', 'O(n): in proportion to the data'], ['Binary search', w.binary + ' checks', 'O(log n): halved each time'], ['B-tree (3 children per node)', w.b3 + ' levels', 'O(log n): cut to 1/3 at each level'], ['B-tree (500 children per node)', w.b500 + ' levels', 'O(log n): cut to 1/500 at each level']].map(function (r, i) { var on = (s.how === 'scan' && i === 0) || (s.how === 'binary' && i === 1) || (s.how === 'btree' && i >= 2); return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2]] }; }), 'As the data grows'); }
   },
@@ -16049,7 +16032,7 @@ Lab.register({
 Lab.register({
   id: 'mq', nav: 'Message queue basics', cat: 'Message queues', mode: 'step',
   title: 'Leave a note instead of calling directly',
-  intro: 'When an order comes in, you must send a confirmation email. The order server can call the email server directly and wait until it finishes, or it can put a message that says "send the email" in a queue and respond right away. Compare the two approaches to see what happens to orders when the email server is slow or down.',
+  intro: 'When an order comes in, you must send a confirmation email. The order server can call the email server directly and wait until it finishes, or it can put a message that says "send the email" in a queue and respond right away.',
   terms: ['Message queue', 'Synchronous and asynchronous', 'Pub/Sub', 'Message delivery guarantees', 'Eventual consistency'], ranks: ['mq', 'msa'],
   controls: [
     { id: 'how', label: 'How the work is handed to the email server', type: 'select', value: 'direct', options: [['direct', 'Call it directly and wait until it finishes'], ['queue', 'Put it in a message queue and respond right away']] },
@@ -16088,7 +16071,6 @@ Lab.register({
       if (down) { push('The email server is down, so nothing takes messages out of the queue. They stay in the queue as they are (' + n + (n === 1 ? ' message' : ' messages') + '). All the orders were already answered as successful.', ''); S.mail = 'Recovered'; push('The email server has recovered. It starts taking the messages that piled up in the queue, from the front.', ''); }
       for (i = 1; i <= n; i++) { S.q.shift(); S.sent++; S.mail = 'Email for order ' + i + ' sent'; S.orders[i - 1] = ['Order ' + i, f(resp), 'Success', 'Email sent (after the response)']; push('The email server takes the "Order ' + i + '" message from the queue and sends the email (' + f(work) + '). It handles them one at a time, at its own pace.', ''); }
     }
-    sum.push('Orders succeeded: ' + okCount + ' of ' + n + '. Response time of one order: ' + f(resp) + '. Emails sent: ' + S.sent + '.');
     if (direct && down) sum.push('With a direct call, a failure in the service being called spreads to the caller. When the email server went down, orders could not be accepted either.');
     if (direct && !down) sum.push('With a direct call, the other side\'s processing time is added to your response time as it is. If email gets slow, orders get slow too. In return, when the response arrives, you can be sure the email is already sent.');
     if (!direct) sum.push('With a queue in between, the order server is responsible only for putting the message in. Even if the email server is slow or down, the response time and the success of the order stay the same. The queue works as a buffer between the two.');
@@ -16098,10 +16080,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { orders: [], q: [], mail: '', sent: 0 };
-    if (s.orders.length) H.table(v, ['Order', 'Time until the user gets a response', 'Order result', 'Email'], s.orders.map(function (r) { return { cells: [r[0], r[1], { v: r[2], cls: r[2] === 'Success' ? 'good' : 'bad' }, r[3]] }; }), 'Order server');
-    H.title(v, 'Messages waiting in the message queue');
-    H.slots(v, s.q.map(function (x) { return [x, 'q']; }), sim.row[3] === 'No queue' ? 'No queue is used' : 'Empty');
-    H.counters(v, [[s.mail || '-', 'Email server'], [s.sent, 'Emails sent']]);
+    H.counters(v, [[s.sent, 'Emails sent']]);
   },
   // Diagram: The order server and the email server. A direct call ties them together with an arrow, and with a queue, messages pile up between them.
   draw: function (P, sim, shown) {
@@ -16118,7 +16097,7 @@ Lab.register({
     }
     s.orders.forEach(function (r, i) { P.box('o' + i, 16, 226 + i * 30, 648, 26, { cls: r[2] === 'Success' ? 'good' : 'bad', title: r[0] + ' · response in ' + r[1], right: r[2] + ' · ' + r[3] }); });
     if (!s.orders.length) P.text('none', 340, 244, 'No orders have arrived yet', { cls: 'mut', anchor: 'middle' });
-    P.note(direct ? 'The two servers are tied together by one arrow. If the email server is slow, the order response is slow too, and if it goes down, the order fails too.' : 'The queue in the middle works as a buffer. The order server only puts in the message and responds right away, and even if the email server is down, the messages stay in the queue and wait.');
+    P.note(direct ? 'The two servers are tied together by one arrow.' : 'The queue in the middle works as a buffer.');
   },
   assume: 'This is a model to explain the concept, and it is not the result of running a real message queue. The time values (0.05s to save, 0.01s to put in the queue, 3s timeout) are examples. Even with a direct call, you can add a timeout and exception handling to keep the order from failing, and the cases where the queue itself goes down, message loss, duplicate delivery, and ordering problems are not covered here. @RabbitListener in the code is an example for when you use RabbitMQ.',
 });
@@ -16126,7 +16105,7 @@ Lab.register({
 Lab.register({
   id: 'cicd', nav: 'CI/CD pipelines', cat: 'Deployment and operations', mode: 'step',
   title: 'You push code, and a machine checks and deploys it for you',
-  intro: 'Between changing code and getting it onto the production server, there are steps: build, test, package, and deploy. When people do these steps by hand, they skip some, or each person does them differently. Compare doing it by hand, automating only the checks (CI), and automating the deployment as well (CD), and see where code with a problem gets caught.',
+  intro: 'Between changing code and getting it onto the production server, there are steps: build, test, package, and deploy. When people do these steps by hand, they skip some, or each person does them differently.',
   terms: ['CI/CD', 'Unit tests and integration tests', 'Code review and pull requests', 'Health check (liveness, readiness)', 'Rolling, blue-green, and canary deployments'], ranks: ['deploy', 'test'],
   controls: [
     { id: 'pipe', label: 'How changes reach production', type: 'select', value: 'manual', options: [['manual', 'By hand: build on my PC and copy to the server'], ['ci', 'CI: build and test automatically on push, a person deploys'], ['cicd', 'CI/CD: if everything passes, deploy automatically too']] },
@@ -16196,7 +16175,6 @@ Lab.register({
         }
       }
     }
-    sum.push('Where the problem was found: ' + R.where + '. Impact on production users: ' + R.impact + '.');
     if (!auto && R.impact === 'Outage') sum.push('When you do it by hand, you can skip the checking steps, and nobody knows they were skipped. The problem is found in the most expensive place, production.');
     if (auto && (R.stop === 'build' || R.stop === 'test')) sum.push('CI (continuous integration) automatically runs the build and tests in a clean environment every time code is pushed, so it finds problems before the merge. The earlier you find a problem, the cheaper it is to fix.');
     if (p === 'ci' && b === 'runtime') sum.push('CI protects only up to the merge. Deployment and the checks after it are still left as work for people.');
@@ -16208,7 +16186,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { stages: [] };
     if (!s.stages.length) { H.text(v, 'Click Run to go through the steps one at a time.'); return; }
-    H.slots(v, s.stages.map(function (r, i) { var bad = r[1] === 'Failed' || r[1] === 'Outage', skip = r[1] === 'Skipped'; return [r[0], (bad ? 'r' : skip ? 'q' : 'd') + (i === s.stages.length - 1 ? ' now' : '')]; }), '');
     H.table(v, ['Step', 'Result', 'Done by'], s.stages.map(function (r, i) { var bad = r[1] === 'Failed' || r[1] === 'Outage'; return { cells: [{ v: r[0], cls: i === s.stages.length - 1 ? 'hot' : '' }, { v: r[1], cls: bad ? 'bad' : r[1] === 'Skipped' ? '' : 'good' }, r[2]] }; }), 'Until the code reaches production');
   },
   // Diagram: the steps the code goes through before it reaches production, joined from left to right. You can see where it stopped.
@@ -16286,27 +16263,19 @@ Lab.register({
     }
     st.set = found ? '1' : '2';
     push('set.add(a), set.add(b): HashSet uses a HashMap internally, so it decides in the same order. ' + (found ? 'b is treated as the same element as a, which is already in the set, so b is not added. The size is 1.' : 'b is treated as a different element from a, so both are added. The size is 2.' + (same ? ' Objects with the same contents are now in the set as duplicates.' : '')), found ? 'good' : same ? 'bad' : '');
-    sum.push('a.equals(b) is ' + f.eq + ', the hashCode values are ' + (f.hs ? 'the same' : 'different') + ', map.get(b) is ' + st.got + ', and the size of set is ' + st.set + '.');
     if (same && f.eq && !f.hs) sum.push('If you override only equals, two objects that are equal according to equals go to different buckets. In a HashMap, a HashSet, or a cache that uses a HashMap, this becomes a bug in which you "put it in but cannot find it". When you override equals, override hashCode together with it, using the same fields.');
     if (same && !f.eq && f.hs) sum.push('If you override only hashCode, the lookup reaches the same bucket, but equals, which is the final check, is false. The two methods are a pair, so one alone is of no use.');
     if (same && !f.eqOver && !f.hashOver) sum.push('If you override nothing, an object is equal only to itself. For objects that should be treated as "the same thing if the values are the same", such as an order number or a coordinate, override both methods or declare the class as a record.');
     if (found) sum.push(c.how === 'record' ? 'A record automatically provides an equals that compares all the record components and a hashCode that matches it. It is a good fit for objects that hold values.' : c.how === 'const' ? 'Even if every object has the same hashCode, the contract is not broken and the results are correct. But all the keys end up in one bucket, so every lookup has to compare the keys in that bucket one by one with equals. As the number of keys grows, the HashMap gets slower.' : 'Two objects that are equal according to equals return the same hashCode, so HashMap and HashSet treat the two as the same key.');
     if (!same && c.how === 'const') sum.push('Two objects with different contents are allowed to have the same hashCode (a hash collision). They go into the same bucket and are then told apart with equals. However, the more collisions there are, the slower the lookups get, so it is better to write hashCode so that its values are spread evenly.');
-    if (!same && c.how !== 'const') sum.push('Two objects with different contents are treated as different keys whichever option you choose. Compare this with the case where the contents are the same (both id values set to 1).');
+    if (!same && c.how !== 'const') sum.push('Two objects with different contents are treated as different keys whichever option you choose.');
     return { events: ev, summary: sum, hs: f.hs, row: [String(f.eq), f.hs ? 'Same' : 'Different', st.got, st.set + ''] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    H.table(v, ['Object', 'id', 'hashCode'], [
-      { cells: ['a', '1', c.how === 'const' ? '42' : s.hs === '?' ? '?' : s.hs === 'true' ? '(same value as b)' : '(different value from b)'] },
-      { cells: ['b', c.same === 'same' ? '1' : '2', c.how === 'const' ? '42' : s.hs === '?' ? '?' : s.hs === 'true' ? '(same value as a)' : '(different value from a)'] },
-    ], 'Objects used as keys');
     var ln = H.lanes(v);
     H.lane(ln, 'equals', s.eq === '?' ? 'not compared yet' : 'a.equals(b) = ' + s.eq, s.eq === 'true' ? 'good' : s.eq === 'false' ? 'wait' : 'none');
-    H.lane(ln, 'hashCode', s.hs === '?' ? 'not compared yet' : s.hs === 'true' ? 'the two values are the same' : 'the two values are different', s.hs === 'true' ? 'good' : s.hs === 'false' ? 'wait' : 'none');
-    H.lane(ln, 'map.get(b)', !s.look ? (s.put ? 'a has been put in' : 'nothing put in yet') : s.look === 'same' ? 'looked in the bucket that holds a' + (s.got !== '?' ? ' → ' + s.got : '') : 'looked in another bucket, which does not hold a → null', s.got === 'order details' ? 'good' : s.got === 'null' ? 'bad' : 'none');
-    H.counters(v, [[s.got, 'map.get(b)'], [s.set === '?' ? '?' : s.set + '', 'Size of set']]);
   },
   // Diagram: the two key objects on the left, and the buckets of the HashMap on the right. hashCode decides the bucket, and equals checks the key in that bucket.
   draw: function (P, sim, shown) {
@@ -16323,7 +16292,7 @@ Lab.register({
     var res = function (x, good) { return x === '?' ? 'ghost' : x === good ? 'good' : 'bad'; };
     P.box('r1', 16, 232, 320, 36, { cls: res(s.got, 'order details'), title: 'map.get(b)', right: s.got });
     P.box('r2', 344, 232, 320, 36, { cls: s.set === '?' ? 'ghost' : s.set === '1' ? 'good' : c.same === 'same' ? 'bad' : 'plain', title: 'Size of set', right: s.set === '?' ? '?' : s.set + '' });
-    P.note('HashMap first uses hashCode to decide the bucket, and it compares with equals only against the keys in that bucket. So if two objects for which equals is true have different hashCode values, one cannot be found with the other. A bucket is actually a numbered slot in an array.');
+    P.note('A bucket is actually a numbered slot in an array.');
   },
   assume: 'The results of the 12 combinations (equals, whether the hashCode values are the same, map.get, and the size of set) were checked against the results of running the same code on JDK 21 on this PC. Saying that the values of two objects that do not override hashCode are "different" means that this is almost always the case. The hashCode of Object can also give the same value to different objects (this still does not break the contract), and in that case the key may be found, depending on the result of equals. Even within the same bucket, HashMap skips a key whose hashCode value is different, without calling equals. The specification does not define the exact value that the hashCode of a record returns, but it does guarantee that two records that are equal according to equals have the same hashCode.',
 });
@@ -16412,7 +16381,6 @@ Lab.register({
     else if (W === 'renew') why = cv + ' alone came to refer to the new object, and nothing changed the object that a refers to.';
     else why = 'A new String object was created, and the "hi" object that a refers to was not changed.';
     push('System.out.println(' + fld('a') + '): ' + (prim ? 'The value that a holds is read.' : str ? 'The text of the object that a refers to is read.' : 'The x of the object that a refers to is read.') + ' The output is ' + st.out2 + '. ' + why, changed ? (ret ? 'good' : 'bad') : '');
-    sum.push((call ? 'p' : 'b') + ' gives ' + st.out1 + ' when it is read, and a gives ' + st.out2 + '. The value read from a ' + (changed ? 'is different from what it was at first.' : 'is the same as it was at first.'));
     if (prim) sum.push('A variable of a primitive type holds the value itself. Copying it only creates one more copy of the same value, so however much you change the copy, the original variable does not change.');
     if (W === 'field') sum.push('A variable of a reference type holds a reference, not an object. What is copied is the reference, so the two variables refer to the same single object, and a change made through one is visible through the other.');
     if (W === 'renew') sum.push('"Changing the contents of the object that a variable refers to" (' + cv + '.x = 99) and "making a variable refer to a different object" (' + cv + ' = new Point(99)) are different things. The second changes only what that variable holds, so it has no effect on another variable that referred to the same object.');
@@ -16432,12 +16400,6 @@ Lab.register({
       { cells: ['a', { v: self.cell(s.a, c), cls: s.hot === 'a' ? 'hot' : '' }] },
       { cls: s.cp ? '' : 'gone', cells: [cv === 'p' ? 'p (parameter of change)' : 'b', { v: s.cp ? self.cell(s.cp, c) : s.gone ? 'gone (the method has finished)' : 'not declared yet', cls: s.hot === 'cp' ? 'hot' : '' }] },
     ], 'Variables');
-    if (c.what !== 'prim') H.table(v, ['Object', 'Contents', 'Referenced by'], s.objs.map(function (o) {
-      var by = []; if (s.a && s.a.ref === o.id) by.push('a'); if (s.cp && s.cp.ref === o.id) by.push(cv);
-      return { cls: by.length ? '' : 'gone', cells: ['Object ' + o.id, self.objText(o, c), { v: by.length ? by.join(', ') : 'none', cls: by.length > 1 ? 'hot' : '' }] };
-    }), 'Objects on the heap');
-    else H.text(v, 'A primitive type does not create an object. The value is stored directly in the variable.');
-    H.counters(v, [[s.out1, cv + ': value read'], [s.out2, 'a: value read']]);
   },
   // Diagram: the variables on the left and the objects on the heap on the right. An arrow goes from a variable that holds a reference to the object. At the bottom are the two outputs.
   draw: function (P, sim, shown) {
@@ -16457,7 +16419,7 @@ Lab.register({
     });
     P.box('r1', 16, 232, 320, 36, { cls: s.out1 === '?' ? 'ghost' : 'plain', title: cv + ': value read', right: s.out1 });
     P.box('r2', 344, 232, 320, 36, { cls: s.out2 === '?' ? 'ghost' : s.out2 === s.out1 && c.what === 'field' && c.how !== 'ret' ? 'bad' : 'plain', title: 'a: value read', right: s.out2 });
-    P.note(c.what === 'prim' ? 'A variable of a primitive type holds the value directly. Copying it creates one more value, and the two variables are not connected to each other.' : 'An arrow shows the object that the reference in a variable refers to. What an assignment or a method call copies is the arrow (the reference), and a new object is created only by new. When two arrows reach one object, a change made through one is visible through the other.');
+    P.note(c.what === 'prim' ? 'A variable of a primitive type holds the value directly. Copying it creates one more value, and the two variables are not connected to each other.' : 'An arrow shows the object that the reference in a variable refers to. When two arrows reach one object, a change made through one is visible through the other.');
   },
   assume: 'The output of the 15 combinations (the value read from the copy and the value read from a) was checked against the result of running code with the same structure on JDK 21 on this PC. "Reference" is used here to mean a value that points to where an object is. In Java you cannot take this value out and look at it as a number, and whether it is actually a plain memory address differs from one JVM to another. The picture in which variables are placed on the stack and objects on the heap is the usual explanation for local variables, and when the JIT compiler optimizes the code, an object may not be created on the heap at all, but the result of the program is the same. The string "hi" is actually an object in the string pool, but here it is drawn simply as one object on the heap. The frame that is created when a variable is passed to a method is covered in the "Stack and heap" lab, and the difference between == and equals is covered in the "== and equals" lab.',
 });
@@ -16465,7 +16427,7 @@ Lab.register({
 Lab.register({
   id: 'casting', nav: 'Operators and type conversion', cat: 'Java language', mode: 'step',
   title: 'Why is 7 / 2 equal to 3 and not 3.5?',
-  intro: 'In Java, the result of a calculation is determined not only by the numbers but also by the types. A calculation between two int values gives an int, so the fractional part, or the part that goes beyond the range, is lost, and when the types are mixed, the narrower type is automatically converted to the wider type before the calculation. With +, if either side is a string, the operation is concatenation, not addition. Pick an expression and follow at which moment something is lost or changed.',
+  intro: 'In Java, the result of a calculation is determined not only by the numbers but also by the types. A calculation between two int values gives an int, so the fractional part, or the part that goes beyond the range, is lost, and when the types are mixed, the narrower type is automatically converted to the wider type before the calculation. With +, if either side is a string, the operation is concatenation, not addition.',
   terms: ['Type conversion', 'Integer division and remainder', 'Integer overflow', 'String concatenation'],
   controls: [
     { id: 'topic', label: 'What to look at', type: 'select', value: 'ints', options: [['ints', 'Calculations between integers (division, remainder, range)'], ['conv', 'When types are mixed or changed (type conversion)'], ['str', 'Strings and +']] },
@@ -16610,7 +16572,7 @@ Lab.register({
       } catch (e) { if (!(e instanceof Stop)) throw e; result = e.msg; }
     }
     var tips = {
-      div: ['Dividing an int by an int gives an int. The fractional part is discarded without rounding.', 'To get the fractional part too, you must make one side a double before dividing. Change "What to look at" to type conversion and run 7 / 2.0.'],
+      div: ['Dividing an int by an int gives an int. The fractional part is discarded without rounding.', 'To get the fractional part too, you must make one side a double before dividing.'],
       mod: ['% gives the remainder. It is used often, for example to see whether a number is even (n % 2 == 0) or to do something only once in every 10 times (i % 10 == 0).'],
       ndiv: ['Integer division does not round down. It truncates toward zero. For positive numbers the two are the same, so the difference does not show, and it appears only with negative numbers.'],
       nmod: ['The sign of the remainder follows the number on the left (the dividend). So if you write the test for an odd number as n % 2 == 1, it is false for negative odd numbers. Write n % 2 != 0.'],
@@ -16618,7 +16580,7 @@ Lab.register({
       over: ['An int holds only values from about -2.1 billion to 2.1 billion. When the range is exceeded, the value wraps around to the opposite end without an exception or a warning, so it is hard to notice.', 'Use long for calculations that can produce large numbers (amounts of money, times in milliseconds, products of counts). If you want to learn of the overflow through an exception at the moment it happens, use Math.addExact.'],
       late: ['The type is determined when the calculation is done, not when the value is stored in a variable. 7 / 2 is a calculation between two int values, so it has already become 3, and storing it in a double variable only makes it 3.0.', 'The same thing happens when you compute an average and write double avg = sum / count;. Convert one side to double before dividing, as in (double) sum / count.'],
       mix: ['In a calculation with mixed types, the narrower type is automatically converted to the wider type before the calculation (long is wider than int, and double is wider than long). The conversion goes in the direction of a wider range of values, so you do not have to write anything for it.'],
-      longlate: ['Storing the result in a long variable is not enough to prevent overflow. big + 1 is a calculation between two int values, so it has already overflowed, and that result is merely widened to long.', 'The calculation itself must be done in long. Change the code to long r = big + 1L and run it.'],
+      longlate: ['Storing the result in a long variable is not enough to prevent overflow. big + 1 is a calculation between two int values, so it has already overflowed, and that result is merely widened to long.', 'The calculation itself must be done in long.'],
       longmix: ['If even one long is involved in a calculation, the calculation is done in long. Add L after the number, as in 1L, or convert one side first, as in (long) big.'],
       narrow: ['Storing a value of a wider type in a variable of a narrower type can lose information, so it is not done automatically. The compiler stops it before the program runs.', 'If you write (int) yourself, meaning that it is acceptable to lose information, the code compiles. This is called a cast.'],
       trunc: ['(int) discards the fractional part. Even 3.99 becomes 3. If you need rounding to the nearest integer, use Math.round.'],
@@ -16629,8 +16591,6 @@ Lab.register({
       paren: ['To add the numbers first, put them in parentheses. The part in parentheses is calculated first and becomes 5, and only then is it joined to the string.'],
       mixed: ['Once the value has become a string, every + after it is concatenation. The 4 and the 5 at the end are not added to make 9. They are joined on one after the other.'],
     }[p.key];
-    var types = 'The type of the right-hand expression ' + st.forms[0].x + ' is ' + et + ', and the type of the variable r is ' + T + '.';
-    sum.push(result === 'Compile-time error' ? 'A compile-time error occurs, so the program does not run. ' + types : st.bad ? 'At run time the exception ' + result + ' is thrown, so nothing is printed. ' + types : 'Printing r gives ' + result + '. ' + types);
     tips.forEach(function (x) { sum.push(x); });
     return { events: ev, summary: sum, T: T, first: st.forms[0], msg: msgText, row: [et, T, result] };
   },
@@ -16638,10 +16598,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the calculation one step at a time.'); return; }
     H.table(v, ['Order', 'Expression', 'Type'], s.forms.map(function (f, i) { return { cells: [i === 0 ? 'At the start' : 'After step ' + i, { v: f.x, cls: i === s.forms.length - 1 ? 'hot' : '' }, f.t || '(not evaluated yet)'] }; }), 'Order in which the right-hand expression is evaluated');
-    var ln = H.lanes(v), h = s.hi;
-    if (h && h.rule) H.lane(ln, 'Meaning of +', h.rule === 'concat' ? 'One side is a string: concatenation' : 'Both sides are numbers: addition', h.rule === 'concat' ? 'hot' : 'wait');
-    else if (h) H.lane(ln, 'Type', h.kind === 'same' ? h.from + ' calculation: the result is also ' + h.to : h.kind === 'widen' ? h.from + ' → ' + h.to + ': widening (automatic)' : h.kind === 'narrow' ? h.from + ' → ' + h.to + ': narrowing (a cast, may lose information)' : h.from + ' → ' + h.to + ': narrowing is not done automatically', h.kind === 'widen' ? 'good' : h.kind === 'same' ? 'wait' : 'bad');
-    H.counters(v, [[s.r === null ? '?' : s.r, 'Variable r (' + sim.T + ')'], [s.out === null ? '?' : s.out, s.bad ? 'Error' : 'Output']]);
   },
   // Diagram: on the left, the right-hand expression getting shorter one step at a time; on the right, the types in order of width (for the strings topic, the two meanings of +); at the bottom, the variable r and the output.
   draw: function (P, sim, shown) {
@@ -16675,7 +16631,7 @@ Lab.register({
 Lab.register({
   id: 'loops', nav: 'Conditionals and loops', cat: 'Java language', mode: 'step',
   title: 'How many times does a loop run, and where does it stop?',
-  intro: 'A loop repeats "check the condition → body → change the value" until the condition becomes false. Whether you write < or <= in the condition changes the number of iterations by one, and break and continue cut that flow short or skip part of it. switch is a statement that jumps to the case whose value matches, and if there is no break, execution continues into the cases below. Follow the code one line at a time and check where control goes.',
+  intro: 'A loop repeats "check the condition → body → change the value" until the condition becomes false. Whether you write < or <= in the condition changes the number of iterations by one, and break and continue cut that flow short or skip part of it. switch is a statement that jumps to the case whose value matches, and if there is no break, execution continues into the cases below.',
   terms: ['for statement and while statement', 'break and continue', 'switch statement and fall through'],
   controls: [
     { id: 'stmt', label: 'Statement', type: 'select', value: 'for', options: [['for', 'for statement'], ['while', 'while statement'], ['swc', 'switch (a break in every case)'], ['swf', 'switch (no break)'], ['swa', 'switch (arrow ->)']] },
@@ -16744,7 +16700,6 @@ Lab.register({
       }
       if (!spin) { st.at = 'after'; st.cond = null; st.out.push('done'); st.done = true; push('System.out.println("done"): The line after the loop is executed. The body was entered ' + st.body + ' times in all.', 'good'); }
       var outText = st.out.join(', ') + (spin ? ' (never ends)' : '');
-      sum.push(spin ? 'The output stops after ' + st.out.join(', ') + ', and the program never ends.' : 'The output is ' + st.out.join(', ') + '. The body was entered ' + st.body + ' times, and the condition was checked ' + st.checks + ' times' + (broke ? '.' : ' (the last check was false).'));
       if (spin) sum.push('In a while statement, continue goes straight back to the condition check. If i++ is below the continue, it is skipped as well, and i never changes. If the same code is written as a for statement, the increment is outside the body, so the loop ends normally. When you use continue in a while statement, change the value before the continue.');
       else {
         if (!broke) sum.push(le ? 'i <= 3 is true when i is 3 as well, so it runs one more time than i < 3. Starting from 0, i < n runs n times and i <= n runs n + 1 times. Mistakes like this, in which the count is off by one, are very common. To loop over an array with n elements, use i < n.' : 'i < 3 is true when i is 0, 1, and 2. Starting from 0 and writing i < n makes the loop run n times.' + (skipped ? ' In one of those iterations, continue skipped the output.' : ''));
@@ -16772,12 +16727,11 @@ Lab.register({
     }
     st.cur = null; st.out.push('done'); st.done = true;
     push('System.out.println("done"): The line after the switch is executed. Number of cases executed: ' + st.ran.length + '.', st.ran.length > 1 ? 'bad' : 'good');
-    sum.push('The output is ' + st.out.join(', ') + '. n is ' + n + ', and the number of cases whose code was executed is ' + st.ran.length + '.');
     if (c.stmt === 'swf') {
       if (st.ran.length > 1) { sum.push('A case is only a starting mark that says "start executing from here". It is not a partition that makes execution stop before the next case. If there is no break, everything from the matching case to the end of the switch is executed in order. This is called fall through.'); sum.push('Leaving out a break is a common mistake, and it does not cause a compile-time error. Unless you want execution to fall through on purpose, write a break in every case or use a switch with arrows.'); }
-      else sum.push('No case matched, so execution started at default. default is at the very bottom and there is nowhere to fall through to, so the result is the same even without a break. Change n to 1 or 2 to see the difference.');
+      else sum.push('No case matched, so execution started at default. default is at the very bottom and there is nowhere to fall through to, so the result is the same even without a break.');
     }
-    if (c.stmt === 'swc') sum.push('When every case has a break, only the code of the one matching case is executed. To see what happens when the breaks are removed, change to "switch (no break)" and compare.');
+    if (c.stmt === 'swc') sum.push('When every case has a break, only the code of the one matching case is executed.');
     if (arrow) sum.push('A switch with arrows (->) executes only the code to the right of the matching case. No break is needed, so the mistake of leaving one out cannot happen. It is available from Java 14.');
     if (m === 3 && c.stmt !== 'swf') sum.push('If no case matches, default is executed. In a switch that has no default, nothing is executed and control moves on.');
     return { events: ev, summary: sum, row: [st.out.join(', '), st.ran.length + (st.ran.length === 1 ? ' case' : ' cases')] };
@@ -16786,13 +16740,11 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, w = this.words;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
     if (s.kind === 'loop') {
-      H.counters(v, [[s.i === null ? '?' : s.i, 'Value of i'], [s.body, 'Times the body was entered'], [s.checks, 'Times the condition was checked']]);
+      H.counters(v, [[s.checks, 'Times the condition was checked']]);
       H.table(v, ['Iteration', 'i on entry', 'What happened'], s.rounds.map(function (r, i) { return { cells: ['#' + (i + 1), String(r.i), { v: r.did || 'in progress', cls: r.did === 'printed' ? '' : r.did ? 'hot' : '' }] }; }), 'Record of entries into the body');
-      if (s.spin) H.text(v, 'i does not change, so the same iteration is repeated without end.');
     } else {
       H.table(v, ['case', 'Code', 'Executed?'], ['case 1', 'case 2', 'case 3', 'default'].map(function (nm, i) { var ran = s.ran.indexOf(i) >= 0; return { cls: ran || s.match === null ? '' : 'gone', cells: [nm + (s.match === i ? ' (match)' : ''), 'println("' + w[i] + '")', { v: ran ? (i === s.match ? 'executed' : 'executed by fall through') : s.done || s.exit !== null || (s.match !== null && i < s.match) ? 'not executed' : '', cls: ran ? (i === s.match ? 'good' : 'bad') : '' }] }; }), 'n = ' + s.n);
     }
-    H.title(v, 'Output'); H.slots(v, s.out.map(function (x) { return [x, x === 'done' ? 'd' : 'q']; }), 'No output yet.');
   },
   // Diagram: for a loop, a flowchart laid out from top to bottom (condition → body → increment → back to the condition), in which the box being executed now is yellow. For a switch, the cases are lined up vertically, showing where control entered and the path along which execution fell through.
   draw: function (P, sim, shown) {
@@ -16824,7 +16776,7 @@ Lab.register({
       }
       if (s && s.spin) { P.text('t_spin', 590, 170, 'i does not change,', { cls: 'bad', anchor: 'middle' }); P.text('t_spin2', 590, 188, 'repeats without end', { cls: 'bad', anchor: 'middle' }); }
       P.box('out', 16, 250, 648, 34, { cls: s && s.out.length ? (s.spin ? 'bad' : 'good') : 'ghost', title: 'Output', right: s && s.out.length ? s.out.join(', ') + (s.spin ? ' (never ends)' : '') : 'none yet' });
-      P.note(isFor ? 'A for statement does the initialization once and then repeats "condition → body → increment". The moment the condition becomes false, control leaves to the right. continue skips the remaining lines of the body but still goes through the increment.' : 'A while statement repeats "condition → body". i++ is just one line inside the body, so when continue skips the remaining lines of the body, i++ is skipped along with them.');
+      P.note(isFor ? 'The moment the condition becomes false, control leaves to the right.' : 'A while statement repeats "condition → body". i++ is just one line inside the body, so when continue skips the remaining lines of the body, i++ is skipped along with them.');
       return;
     }
     var arrow = c.stmt === 'swa', hasBreak = c.stmt === 'swc', names = ['case 1', 'case 2', 'case 3', 'default'];
@@ -16838,7 +16790,7 @@ Lab.register({
     if (s && s.exit !== null) P.text('ex', 540, 40 + s.exit * 46, '→ out of switch', { cls: s.ran.length > 1 ? 'bad' : 'good' });
     P.box('after', 210, 214, 304, 28, { cls: s && s.done ? 'good now' : 'plain', title: 'System.out.println("done")' });
     P.box('out', 16, 254, 648, 34, { cls: s && s.out.length ? (s.ran.length > 1 ? 'bad' : 'good') : 'ghost', title: 'Output', right: s && s.out.length ? s.out.join(', ') : 'none yet' });
-    P.note(arrow ? 'A switch with arrows enters the one case that matches n, executes only that line, and leaves. If no case matches, control goes to default.' : hasBreak ? 'A switch jumps straight to the case that matches n. When it then reaches a break, control leaves the switch. If no case matches, control goes to default.' : 'A switch jumps straight to the case that matches n. If there is no break, execution keeps falling through to the code of the cases below, as the red arrows show. If no case matches, control goes to default.');
+    P.note(arrow ? 'A switch with arrows enters the one case that matches n, executes only that line, and leaves. If no case matches, control goes to default.' : hasBreak ? 'A switch jumps straight to the case that matches n. When it then reaches a break, control leaves the switch. If no case matches, control goes to default.' : 'If there is no break, execution keeps falling through to the code of the cases below, as the red arrows show.');
   },
   assume: 'The output and the counts of the 24 combinations (12 loops and 12 switch statements) were checked against the result of running code with the same structure on JDK 21 on this PC. The number of times the body was entered was obtained by putting counting code on the first line of the body in the program used for the check. For the two combinations that use continue in a while statement, it was confirmed that the real program does not end after 2 seconds and keeps repeating only the body. That the program "never ends" cannot itself be proved by execution. It is a conclusion that follows from the structure of the code, in which i does not change. The model decides that there is an infinite loop, and stops, when control comes back to the condition check with the same value of i. It was also confirmed by execution that a switch without a default executes nothing when it is given a value that matches no case. The switch with arrows has been a standard part of the language since Java 14. The do-while statement, the enhanced for statement (for-each), switch expressions that produce a value, and the labeled break are not covered.',
 });
@@ -16921,11 +16873,9 @@ Lab.register({
       push('System.out.println(' + pr + '(b)): The contents of the array that b refers to are printed. The output is ' + st.outB + '.');
     }
     if (st.err) {
-      sum.push('The line that stores the value threw ' + st.err.split(':')[0] + ', and the program stopped. The two output lines below it were not executed.');
       sum.push('The length of an array is set when the array is created and does not change after that. If the length is n, the indexes go from 0 through n - 1. An index outside this range shows up as an exception at run time, not at compile time.');
       sum.push(idx < 0 ? 'Java has no syntax for counting from the end with a negative index. Write the last element as a[a.length - 1].' : 'If you write the condition of a loop as i <= a.length, you run into exactly this exception at the end. Write i < a.length. If you need more elements, create a longer array and move the values into it (Arrays.copyOf(a, 5)), or use an ArrayList, whose size grows automatically.');
     } else {
-      sum.push('a == b is ' + st.eq + (two ? ', and a[0] == b[0] is ' + st.eq0 : '') + '. The output of a is ' + st.outA + ', and the output of b is ' + st.outB + '.');
       if (c.copy === 'ref') sum.push('Assigning an array variable does not copy the array. It gives you one more variable that refers to the same array. So a value stored through one is visible through the other too. The same is true when you pass an array to a method.');
       else if (!two) sum.push('To copy an array, create a new array with a.clone() or Arrays.copyOf(a, a.length). The two arrays are separate, so changing one leaves the other as it was.' + (c.copy === 'copyOf' ? ' The second argument of Arrays.copyOf is the length of the new array. If you give a number larger than the original length, you get a longer array whose extra elements are filled with the default value.' : ''));
       else sum.push('When clone or Arrays.copyOf is used on a two-dimensional array, only the outer array is newly created, and the row arrays are shared. This is called a shallow copy. So changing an element of b[0] changes it in a[0] too. To have separate rows as well, you must clone each row (a deep copy).');
@@ -16936,14 +16886,9 @@ Lab.register({
   },
   cellText: function (x) { return x === null ? 'null' : typeof x === 'string' ? '"' + x + '"' : typeof x === 'object' ? 'reference to array ' + x.ref : String(x); },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, self = this, two = sim.c.shape === '2';
+    var last = shown[shown.length - 1], s = last ? last.snap : null, self = this;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'a', s.a ? '→ array ' + s.a : 'not declared yet', s.a ? 'wait' : 'none');
-    H.lane(ln, 'b', s.b ? '→ array ' + s.b + (s.b === s.a ? ' (the same array as a)' : '') : 'not declared yet', s.b ? (s.b === s.a ? 'hot' : 'wait') : 'none');
     H.table(v, ['Array', 'Type', 'Length', 'Contents of the elements (from index 0)'], s.arrs.map(function (A) { return { cells: ['Array ' + A.id, A.type, String(A.cells.length), { v: A.cells.map(function (x) { return self.cellText(x); }).join(' | '), cls: s.hit && s.hit.arr === A.id ? 'hot' : '' }] }; }), 'Arrays on the heap');
-    if (s.err) H.text(v, s.err);
-    H.counters(v, [[s.eq === null ? '?' : s.eq, 'a == b']].concat(two ? [[s.eq0 === null ? '?' : s.eq0, 'a[0] == b[0]']] : []));
   },
   // Diagram: each array has a border around it, and its elements are placed inside side by side in index order. Arrows go to the arrays from the variables and from the elements that hold references. For a two-dimensional array, the row arrays are in the middle and the outer arrays are on either side.
   draw: function (P, sim, shown) {
@@ -17040,7 +16985,7 @@ Lab.register({
       if (noarg) push('Compilation: The compiler looks for a constructor that takes no arguments, to match new Order(). This class has only Order(int extra). There is no matching constructor, so this is a compile-time error. The program does not run.', 'bad');
       else push('Compilation: The compiler looks for a constructor that takes one int, to match new Order(3). This class has only the Order() that the compiler provided. There is no matching constructor, so this is a compile-time error. The program does not run.', 'bad');
       sum.push('This is a compile-time error. The javac message is "' + ERR + '", which means "the constructor of Order cannot be called with these arguments".');
-      if (noarg) { sum.push('A default constructor exists only when the class declares no constructors at all. The moment you add a constructor that takes arguments, new Order(), which compiled until then, no longer compiles.'); sum.push('To keep using new Order() as well, write the no-argument constructor Order() { } yourself. Select "Order() and Order(int extra)" in the settings and compare.'); }
+      if (noarg) { sum.push('A default constructor exists only when the class declares no constructors at all. The moment you add a constructor that takes arguments, new Order(), which compiled until then, no longer compiles.'); sum.push('To keep using new Order() as well, write the no-argument constructor Order() { } yourself.'); }
       else sum.push('The default constructor that the compiler provides takes no arguments. To create an object from a value that you pass in, you must write a constructor that takes that argument.');
       return { events: ev, summary: sum, row: ['Error: ' + ERR, 'Not run', 'Not run'] };
     }
@@ -17082,27 +17027,22 @@ Lab.register({
     push('Order o = ' + callTxt + ': The constructor has finished. new returns a reference to the completed object, and the variable o holds that reference.');
     var out = st.qty + ', ' + st.memo.replace(/"/g, ''); st.out = out;
     push('System.out.println(o.qty + ", " + o.memo): This reads qty and memo of the object that o refers to and prints them. The output is ' + out + '.', 'good');
-    sum.push('The output is ' + out + '. The order of execution is: default values → ' + order.join(' → ') + '.');
     sum.push(c.first === 'field' ? 'The initializer (10) ran first and the block below it (20) ran later, so qty was 20 when the constructor body started.' : 'The block (20) ran first and the initializer below it (10) ran later, so qty was 10 when the constructor body started. Field initializers and initializer blocks run from the top of the class down, so when both of them touch the same field, where you write them changes the result.');
     if (c.ctors === 'none') sum.push('new Order() works even though no constructor is declared, because the compiler provides a default constructor. A field that is never assigned a value keeps its default value (0 for numbers, null for reference types). Unlike a local variable, a field (unless it is final) does not cause a compile-time error when you leave it uninitialized.');
     if (chained) sum.push('this(...) can be used only as the first statement of a constructor, and it runs another constructor of the same class first. Use it to gather the common work in one constructor. The initializer and the block run only once.');
-    if (c.ctors === 'both' && noarg) sum.push('Order() and Order(int extra) are different constructors. Only the one that matches the arguments passed to new runs. In the settings, compare this with the case that adds this(1).');
+    if (c.ctors === 'both' && noarg) sum.push('Order() and Order(int extra) are different constructors. Only the one that matches the arguments passed to new runs.');
     if (!noarg) sum.push('new Order(3) runs Order(int extra), which matches the argument that is passed. Whether or not an Order() constructor exists, it does not run for this call.');
     return { events: ev, summary: sum, row: ['Success', order.join(' → '), out] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go one step at a time, starting from compilation.'); return; }
-    if (s.err) { H.title(v, 'Compile-time error'); H.text(v, 'javac: ' + s.err); H.text(v, 'No program is produced, so there is no object and no output.'); return; }
+    if (s.err) { H.title(v, 'Compile-time error'); H.text(v, 'javac: ' + s.err); return; }
     H.table(v, ['Field', 'Type', 'Current value', 'Set by'], s.made ? [
       { cells: ['qty', 'int', { v: s.qty, cls: s.tgt === 'fq' ? 'hot' : '' }, s.qtyBy] },
       { cells: ['memo', 'String', { v: s.memo, cls: s.tgt === 'fm' ? 'hot' : '' }, s.memoBy] },
     ] : [], 'Order object on the heap');
     if (!s.made) H.text(v, 'No object has been created yet.');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Running constructor', s.stack.length ? s.stack.join(' → ') : s.o ? 'all finished' : 'not started yet', s.stack.length ? 'hot' : s.o ? 'good' : 'none');
-    H.lane(ln, 'Order so far', s.made ? ['default values'].concat(s.order).join(' → ') : 'none yet', s.made ? 'wait' : 'none');
-    H.counters(v, [[s.out || '?', 'Output']]);
   },
   // Diagram: on the left, the pieces written in the class (in the order written, top to bottom); on the right, the object on the heap and its field values. An arrow goes from the piece that is running now to the field that it changes.
   draw: function (P, sim, shown) {
@@ -17134,7 +17074,7 @@ Lab.register({
     if (s.o) P.arrow('ao', 'vo:t', 'fm:b', {});
     if (s.cur && s.tgt) P.arrow('wr', s.cur + ':r', s.tgt + ':l', { cls: 'hot' });
     P.box('out', 16, 266, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? 'Compile-time error' : 'Console output', right: s.err ? 'no matching constructor' : s.out || (s.made ? (noarg ? 'new Order()' : 'new Order(3)') + ' in progress' : 'not run yet') });
-    P.note('The "#1, #2" marks in the boxes on the left show the order in which the pieces actually ran. Fields are first set to their default values (0 for int, null for reference types), then the initializers and blocks run starting from the one that is written first, and then the constructor body runs.');
+    P.note('The "#1, #2" marks in the boxes on the left show the order in which the pieces actually ran.');
   },
   assume: 'All 16 combinations were actually compiled and run with the same code on JDK 21 on this PC, and the compilation result, the error message, the order in which the initializer, the block, and the constructor bodies ran, and the output were checked against the results. The order of execution was confirmed by inserting only logging lines into the same code, and it was also confirmed by execution that the fields already hold their default values (0, null) before the initializers run. Simplifications: every constructor calls a constructor of its superclass (here, Object) before its own body, and the diagram leaves this step out (the "Inheritance and overriding" lab covers it). Initializer blocks are not used often in practice, and they are included here to show the order. The error message is the first line of the English message from javac. That this(...) can be used only as the first statement of a constructor is as of JDK 21 and was confirmed by compiling on this PC. In newer JDKs this is said to have changed so that some statements can come before this(...), but this was not verified on this PC.',
 });
@@ -17195,9 +17135,9 @@ Lab.register({
       else if (x === 'cls0') push('Compilation: The compiler checks Counter.count. With the class name, you can use only the static members, which belong to the class. count is an instance variable, which each object has separately, so there is no telling which object it belongs to. The result is a compile-time error.', 'bad');
       else push('Compilation: The compiler checks Counter.hit(). hit() is an instance method, so there must be an object for it to run on. ' + (isS ? 'Even though the count that hit() touches is a static field, an object is needed as long as hit() itself is not static. ' : '') + 'With the class name alone there is no target object, so the result is a compile-time error.', 'bad');
       sum.push('This is a compile-time error. The javac message is "' + e.msg + '", which means "something that is not static cannot be used in a place that is static". The program does not run.');
-      if (x === 'smThis') { sum.push('A static method has no this, because it is called with the class name, without an object.'); sum.push(isS ? 'count is static, so you can remove this and write return count. Select "return count in the static method report()" in the settings and compare.' : 'To read a value of some object in a static method, the method must receive that object as an argument. Written as static int report(Counter c) { return c.count; }, it compiles.'); }
+      if (x === 'smThis') { sum.push('A static method has no this, because it is called with the class name, without an object.'); sum.push(isS ? 'count is static, so you can remove this and write return count.' : 'To read a value of some object in a static method, the method must receive that object as an argument. Written as static int report(Counter c) { return c.count; }, it compiles.'); }
       if (x === 'sm') { sum.push('Inside a static method, only static members can be used by name alone. An instance variable exists only when there is an object.'); sum.push('There are two ways to fix this. If count is a value that needs to exist only once for the whole class, add static to count. If it is a value that must differ for each object, receive the object as an argument, as in static int report(Counter c) { return c.count; }.'); }
-      if (x === 'cls0') sum.push('An instance variable can be read only through an object, as in a.count. To read a field with the class name, the field must be static. Change the declaration of count to static and compare.');
+      if (x === 'cls0') sum.push('An instance variable can be read only through an object, as in a.count. To read a field with the class name, the field must be static.');
       if (x === 'clsHit') sum.push('An instance method is called on an object, as in a.hit(). You often run into this error when you try to call an instance method directly inside a static method such as main. In that case, first create an object with new and call the method on that object.');
       return { events: ev, summary: sum, row: ['Error: ' + e.msg, 'Not run', 'Not run'] };
     }
@@ -17217,35 +17157,27 @@ Lab.register({
     st.by = ''; st.hot = 'read'; st.ab = isS ? st.sv + ' ' + st.sv : st.av + ' ' + st.bv;
     push('System.out.println(a.count + " " + b.count): ' + (isS ? 'a.count and b.count differ only in how they are written. Both read the single count in the class. When a static field is read through an object variable, the static field of Counter, the type of the variable, is read.' : 'The count of a and the count of b are different variables. Each holds only the number of times hit() was called on its own object.') + ' The output is ' + st.ab + '.', x === 'sm' ? '' : 'good');
     if (x === 'sm') { st.hot = 'mt'; st.ex = st.sv; push('System.out.println(Counter.report()): report() is a static method, so it is called with the class name, without an object. The count inside it is a static field, so it can be read without an object. The output is ' + st.ex + '.', 'good'); }
-    sum.push('The output of a.count and b.count is ' + st.ab + '.' + (st.ex ? ' The output of the added line is ' + st.ex + '.' : ''));
     if (isS) {
       sum.push('There is only one static field, in the class, so all objects see the same value. The calls to a.hit() (2 of them) and to b.hit() (' + nb + ' of them) increment the same count, so whichever object you read it through, the value is the total, ' + st.sv + '.' + (nb === 0 ? ' b.count is not 0 even though b.hit() was never called.' : ''));
       sum.push('Using a static field through an object variable, as in a.count, is confusing because it looks like a value that each object has separately. As a rule, use static members with the class name, as in Counter.count.');
-      if (x === 'none') sum.push('Make a value that must differ for each object (a name, a quantity) an instance variable, and make a value that needs to exist only once for the whole class (a constant, the number of objects created) a static field. Remove static from the declaration and compare the results.');
+      if (x === 'none') sum.push('Make a value that must differ for each object (a name, a quantity) an instance variable, and make a value that needs to exist only once for the whole class (a constant, the number of objects created) a static field.');
       if (x === 'sm') sum.push('A static method is called without an object, as Counter.report(). Inside it, you can use static fields and other static methods by name alone. If you remove static from count, the same report() does not compile.');
       if (x === 'cls0') sum.push('A static field exists together with the class even when there are no objects at all. That is why Counter.count was read as 0 before any object was created. An instance variable is created only when an object is created, so it cannot be read this way.');
     } else {
       sum.push('Each object has its own instance variable. a.hit() increments only the count of a, and b.hit() increments only the count of b.');
-      sum.push('If you add static to the declaration, the output of the same code is ' + (2 + nb) + ' ' + (2 + nb) + '. Change the setting and compare.');
+      sum.push('If you add static to the declaration, the output of the same code is ' + (2 + nb) + ' ' + (2 + nb) + '.');
     }
     return { events: ev, summary: sum, row: ['Success', st.ab, st.ex || 'No line added'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, isS = c.decl === 'static';
+    var last = shown[shown.length - 1], s = last ? last.snap : null, isS = sim.c.decl === 'static';
     if (!s) { H.text(v, 'Click Run to go one step at a time, starting from compilation.'); return; }
-    if (s.err) { H.title(v, 'Compile-time error'); H.text(v, 'javac: ' + s.err); H.text(v, 'No program is produced, so there is no object and no output.'); return; }
+    if (s.err) { H.title(v, 'Compile-time error'); H.text(v, 'javac: ' + s.err); return; }
     var rows = [];
     if (isS) rows.push({ cells: ['Class Counter', { v: s.sv === '' ? 'none yet' : s.sv, cls: s.hot === 'sf' ? 'hot' : '' }, 'Shared by a and b'] });
     else { if (s.a) rows.push({ cells: ['Object that a refers to', { v: s.av, cls: s.hot === 'oa' ? 'hot' : '' }, 'Used only by a'] }); if (s.b) rows.push({ cells: ['Object that b refers to', { v: s.bv, cls: s.hot === 'ob' ? 'hot' : '' }, 'Used only by b'] }); }
     H.table(v, ['Where count is', 'Value', 'Used by'], rows, isS ? 'The count variable: 1 in the class' : 'The count variable: 1 in each object');
     if (!rows.length) H.text(v, 'There are no objects yet, so there is no count either.');
-    var ln = H.lanes(v);
-    H.lane(ln, 'a', s.a ? (isS ? 'object exists · no count of its own' : 'object exists · count ' + s.av) : 'none yet', s.a ? (s.by === 'a' ? 'hot' : 'wait') : 'none');
-    H.lane(ln, 'b', s.b ? (isS ? 'object exists · no count of its own' : 'object exists · count ' + s.bv) : 'none yet', s.b ? (s.by === 'b' ? 'hot' : 'wait') : 'none');
-    var cs = [[s.ab || '?', 'a.count and b.count']];
-    if (c.extra === 'sm') cs.push([s.ex || '?', 'Counter.report()']);
-    if (c.extra === 'cls0') cs.push([s.ex || '?', 'Counter.count before any object']);
-    H.counters(v, cs);
   },
   // Diagram: the class (only one) on the left, and two objects on the heap on the right. The key point is whether there is one count box on the left or one in each object on the right. An arrow shows which count hit() increments.
   draw: function (P, sim, shown) {
@@ -17268,7 +17200,7 @@ Lab.register({
     var exT = { none: 'No line added', sm: 'Counter.report()', smThis: 'Counter.report()', cls0: 'Counter.count before any object', clsHit: 'Counter.hit()' }[x];
     P.box('o1', 16, 204, 320, 38, { cls: s.err ? 'bad' : s.ab ? 'good' : 'ghost', title: s.err ? 'Compile-time error' : 'a.count and b.count', right: s.err ? 'not run' : s.ab || '?' });
     P.box('o2', 344, 204, 320, 38, { cls: s.err ? 'bad' : s.ex ? 'good' : 'ghost', title: exT, right: s.err ? 'error' : x === 'none' ? '' : s.ex || '?' });
-    P.note(isS ? 'There is only one count box, in the class on the left. Whether it is called on a or on b, hit() increments this one count, and a.count and b.count also read this one count.' : 'There is one count in each object on the right. a.hit() increments only the count of a, and b.hit() increments only the count of b. The code of the method itself exists only once, in the class, and an instance method is passed its target object when it is called.');
+    P.note(isS ? 'There is only one count box, in the class on the left. Whether it is called on a or on b, hit() increments this one count, and a.count and b.count also read this one count.' : 'There is one count in each object on the right. The code of the method itself exists only once, in the class, and an instance method is passed its target object when it is called.');
   },
   assume: 'All 30 combinations were actually compiled and run with the same code on JDK 21 on this PC, and the compilation result, the error message, and the output were checked against the results. It was also confirmed by execution that the "static method that receives an object as an argument", which the summary gives as a fix, compiles and runs, and that the object is not used when a static field is read through an object variable (no exception is thrown even when it is read through a variable that is null). Simplifications: the "class" area in the diagram lumps together the place where the JVM keeps class information, and exactly where in memory a static field is placed depends on the JVM implementation. The exact moment when the class is made ready (when an object is first created or a static member is first used) is reduced to the single step "Execution starts". Code that uses a static field through an object variable, as in a.count, compiles but is not recommended, and it is included here to show that the field is shared. The error message is the first line of the English message from javac.',
 });
@@ -17319,7 +17251,7 @@ Lab.register({
       push('Compilation: The compiler looks for the constructor ' + pName + ' in the Animal class. Animal has only ' + (c.pctor === 'arg' ? 'Animal(String name)' : 'Animal()') + '. ' + (c.pctor === 'arg' ? 'This is because a class that declares a constructor itself does not get a default constructor. ' : '') + 'There is no superclass constructor to call, so this is a compile-time error. The program does not run.', 'bad');
       sum.push('This is a compile-time error. The javac message is "' + ERR + '", which means "the constructor of Animal cannot be called with these arguments".');
       if (c.pctor === 'arg') { sum.push('A subclass constructor always calls one superclass constructor first. ' + (c.sup === 'omit' ? 'If you do not write super(...), super() is inserted automatically' : 'super() looks for the no-argument constructor') + ', and if the superclass has no no-argument constructor, there is nothing to call.'); sum.push('When the superclass has only Animal(String name), you must call it yourself by passing an argument on the first line of the subclass constructor, as in super("Buddy"). The same error occurs even if Dog declares no constructors at all, because the default constructor that is created automatically also calls super().'); }
-      else sum.push('The superclass must have a constructor that matches the arguments passed to super(...). Animal has no constructor that takes a string. Change the constructors of the superclass in the settings and compare.');
+      else sum.push('The superclass must have a constructor that matches the arguments passed to super(...). Animal has no constructor that takes a string.');
       return { events: ev, summary: sum, row: ['Error: ' + ERR, 'Not run', 'Not run'] };
     }
     push(e1 + ' Animal has this constructor, so the code compiles.');
@@ -17358,7 +17290,6 @@ Lab.register({
     push('Dog d = new Dog(): All the constructors have finished. The reference to the completed object is stored in the variable d.');
     describe(); st.cur = ''; st.stack = [];
     var o1 = st.out1.join(' / '), o2 = st.out2.join(' / ');
-    sum.push('The output during new Dog() is ' + o1 + ', and the output of d.describe() is ' + o2 + '.');
     sum.push('The order of execution is: the superclass constructor ' + pName + ' → the field initializer of Dog → the body of the Dog() constructor. The subclass constructor starts first, but on its first line it passes control to the superclass constructor, so the superclass side finishes first.');
     if (c.sup === 'omit') sum.push('The superclass constructor runs even if you do not write super(...), because the compiler inserts super() on the first line of Dog().' + (c.pctor === 'both' ? ' Animal has two constructors, but the one that matches super() is the no-argument Animal().' : ''));
     if (c.sup !== 'omit' && c.pctor === 'both') sum.push('When the superclass has several constructors, the one that matches the arguments passed to super(...) is selected. The call is ' + supTxt + ', so the constructor ' + pName + ' ran.');
@@ -17370,18 +17301,12 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go one step at a time, starting from compilation.'); return; }
-    if (s.err) { H.title(v, 'Compile-time error'); H.text(v, 'javac: ' + s.err); H.text(v, 'No program is produced, so there is no object and no output.'); return; }
+    if (s.err) { H.title(v, 'Compile-time error'); H.text(v, 'javac: ' + s.err); return; }
     H.table(v, ['Field', 'Declared in', 'Current value'], s.made ? [
       { cells: ['name', 'Animal (inherited)', { v: s.name, cls: s.name === 'null' ? '' : 'good' }] },
       { cells: ['sound', 'Dog', { v: s.sound, cls: s.sound === 'null' ? (String(s.stack[s.stack.length - 1]).indexOf('describe') >= 0 ? 'bad' : '') : 'good' }] },
     ] : [], 'Dog object on the heap (one)');
     if (!s.made) H.text(v, 'No object has been created yet.');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Running code', s.stack.length ? s.stack.join(' → ') : s.d ? 'none (object complete)' : 'not started yet', s.stack.length ? 'hot' : s.d ? 'good' : 'none');
-    H.title(v, 'Output during new Dog()');
-    H.slots(v, s.out1.map(function (x) { return [x, x === 'sound=null' ? 'r' : 'q']; }), 'none yet');
-    H.title(v, 'Output of d.describe()');
-    H.slots(v, s.out2.map(function (x) { return [x, 'd']; }), 'none yet');
   },
   // Diagram: pieces of code of the subclass Dog on the left, pieces of code of the superclass Animal in the middle, and one object on the heap on the right (the inherited name and its own sound). Arrows show the call passing from Dog to Animal and then back to describe() in Dog.
   draw: function (P, sim, shown) {
@@ -17414,7 +17339,7 @@ Lab.register({
     var o1 = s.out1.join(' / '), o2 = s.out2.join(' / ');
     P.box('o1', 16, 222, 648, 34, { cls: s.err ? 'bad' : !o1 ? 'ghost' : s.out1.indexOf('sound=null') >= 0 ? 'bad' : 'plain', title: s.err ? 'Compile-time error' : 'Output during new Dog()', right: s.err ? 'no superclass constructor to call' : o1 || 'none yet' });
     P.box('o2', 16, 264, 648, 34, { cls: s.err ? 'ghost' : o2 ? 'good' : 'ghost', title: 'Output of d.describe()', right: s.err ? 'not run' : o2 || 'none yet' });
-    P.note('There is one object, and it contains both name, inherited from the superclass, and sound, which belongs to the subclass. A yellow box is the code that is running now, and a blue box is code that made a call and is waiting. The red arrow shows the describe() call made by the superclass constructor going to the one in the subclass Dog. Until the superclass constructor finishes, sound in the subclass is null.');
+    P.note('There is one object, and it contains both name, inherited from the superclass, and sound, which belongs to the subclass. A yellow box is the code that is running now, and a blue box is code that made a call and is waiting. The red arrow shows the describe() call made by the superclass constructor going to the one in the subclass Dog.');
   },
   assume: 'All 36 combinations were actually compiled and run with the same code on JDK 21 on this PC, and the compilation result, the error message, the output while the object is being created, and the output of d.describe() were checked against the results. It was also confirmed by compiling that the same error occurs when the subclass declares no constructor and the superclass has no no-argument constructor, and that super(...) must be the first statement of a constructor (as of JDK 21). In newer JDKs this is said to have changed so that some statements can come before super(...), but this was not verified on this PC. Simplifications: the constructor of Animal also calls the constructor of its own superclass, Object, before anything else, and this step is left out. The detailed rules for which method is selected are covered in the "Polymorphism and method selection" lab. The error message is the first line of the English message from javac.',
 });
@@ -17511,12 +17436,11 @@ Lab.register({
         }
       }
     }
-    sum.push(ok ? 'The code compiles. Reason for the decision: ' + reason + '.' : 'This is a compile-time error. The javac message is "' + msg + '". Reason for the decision: ' + reason + '.');
     if (mod === 'private') sum.push(ok ? 'A private member can be used only inside the class that declares it. If you change where the access comes from in the settings, every other place gives a compile-time error.' : 'A private member is not visible outside the class that declares it. This is true for the same package and for subclasses alike. Keeping fields private and exposing only the necessary operations as methods is the basis of encapsulation, and it prevents outside code from changing the values freely.');
-    if (mod === 'package') sum.push(ok ? 'A member with no access modifier can be used inside the same package.' + (from === 'pkg' ? ' This suits internal members that only classes in the same package use.' : '') : 'A member with no access modifier is not visible outside its package.' + (sub ? ' Unlike protected, it cannot be used even from a subclass in a different package. Change the access modifier to protected and compare.' : ''));
+    if (mod === 'package') sum.push(ok ? 'A member with no access modifier can be used inside the same package.' + (from === 'pkg' ? ' This suits internal members that only classes in the same package use.' : '') : 'A member with no access modifier is not visible outside its package.' + (sub ? ' Unlike protected, it cannot be used even from a subclass in a different package.' : ''));
     if (mod === 'protected') {
       if (from === 'pkg') sum.push('It is easy to remember protected as "only subclasses can use it", but a class in the same package can use it even if it is not a subclass. protected gives wider access than package-private.');
-      if (from === 'subThis' || from === 'subChild') sum.push('A subclass in a different package can use an inherited protected member through its own type (this, or a variable of its own class type). Select "through an Account variable" in the settings and compare.');
+      if (from === 'subThis' || from === 'subChild') sum.push('A subclass in a different package can use an inherited protected member through its own type (this, or a variable of its own class type).');
       if (from === 'subParent') { sum.push('Even inside a subclass in a different package, a protected member cannot be used through a variable of the superclass type. This is because a variable of type Account might hold an object of some other subclass that has nothing to do with SavingAccount.'); sum.push('this.balance and the balance of a variable of type SavingAccount are allowed. Just changing the type of the variable from Account to SavingAccount makes the code compile.'); }
       if (from === 'other') sum.push('A protected member is not visible from a class that is in a different package and is not a subclass. From this place, only public members can be used.');
       if (from === 'same') sum.push('Inside the same class, a member with any access modifier can be used.');
@@ -17534,9 +17458,7 @@ Lab.register({
     H.lane(ln, 'Code that reads it', s.step === 'decl' ? 'not looked at yet' : this.places.filter(function (p) { return p[0] === c.from; })[0][1], s.step === 'decl' ? 'none' : 'hot');
     H.table(v, ['What was checked', 'Answer and conclusion'], s.checks.map(function (k, i) { var lastOne = i === s.checks.length - 1 && s.verdict; return { cells: [k.q, { v: k.a + ' → ' + k.then, cls: lastOne ? (s.verdict === 'ok' ? 'good' : 'bad') : '' }] }; }), 'Order of the checks');
     if (!s.checks.length) H.text(v, 'The checks have not started yet.');
-    H.counters(v, [[s.verdict ? (s.verdict === 'ok' ? 'Success' : 'Error') : '?', 'Compilation']]);
     if (s.verdict) {
-      if (s.msg) H.text(v, 'javac: ' + s.msg);
       H.table(v, ['Where the reading code is', 'Result'], this.places.map(function (p) { var a = self.allowed(c.mod, p[0]); return { cells: [{ v: p[1], cls: p[0] === c.from ? 'hot' : '' }, { v: a ? 'Compiles' : 'Compile-time error', cls: a ? 'good' : 'bad' }] }; }), modT + ': results for the 6 places');
     }
   },
@@ -17562,7 +17484,7 @@ Lab.register({
       P.arrow('ar', src === 'tel' ? 'tel:t' : src === 'sav' ? 'sav:l' : 'rep:l', src === 'tel' ? 'acc:b' : src === 'sav' ? 'acc:r' : 'acc:r:0.85', { cls: ac, label: lb });
     }
     P.box('res', 16, 230, 648, 48, { cls: s.verdict === 'ok' ? 'good' : s.verdict === 'no' ? 'bad' : 'ghost', title: s.verdict === 'ok' ? 'Compilation succeeded' : s.verdict === 'no' ? 'Compile-time error' : 'Compilation result', sub: s.verdict === 'ok' ? s.reason : s.verdict === 'no' ? s.msg : 'still checking' });
-    P.note('The compiler does not look at the actual object. It decides only from where the code is written (which class, which package) and from the declared type of the variable. At the last step, the right side of each box shows whether code in that place can read the member with this access modifier. "conditional" means that the access works only through its own type (this or a variable of type SavingAccount).');
+    P.note('At the last step, the right side of each box shows whether code in that place can read the member with this access modifier. "conditional" means that the access works only through its own type (this or a variable of type SavingAccount).');
   },
   assume: 'The 24 combinations were actually compiled on JDK 21 on this PC from source files split into the packages bank and app, and whether compilation succeeded and the error messages were checked against the results (this lab looks at the result of compilation, not the result of execution). The "Reason for the decision" column and the order of the checks are an explanation that restates the access rules of the Java Language Specification, and they do not mean that the compiler actually checks in this order. When the same access modifiers were put on a method instead of a field and compiled, success and error were exactly the same for the 24 combinations (the wording of the error messages differs in part). Not covered: access modifiers on the class itself, constructors, static members, nested classes, and modules (module-info). The "only through its own type" condition of protected applies to members that are not static. The error messages are the first line of the English javac message.',
 });
@@ -17627,15 +17549,13 @@ Lab.register({
       st.cmp = 'err';
       push('new Outer.Inner(): This is a compile-time error. main is a static method, so there is no Outer object at this point, and the code does not specify one either. The compiler rejects the code because it cannot determine which outer object the inner object belongs to.', 'bad');
       fail('an enclosing instance that contains Outer.Inner is required', 'It means that there must be an outer object that contains Outer.Inner.');
-      sum.push('A compile-time error occurs, so the program does not run.');
       sum.push('An object of an inner class without static is created so that it holds a reference to an outer object. So the outer object must exist first, and when you have an outer object o, you create the inner object with o.new Inner().');
-      sum.push('If the class inside does not use the fields or methods of the outer object, it is better to add static and make it a static nested class. Change the kind to "static nested class" and run the same code.');
+      sum.push('If the class inside does not use the fields or methods of the outer object, it is better to add static and make it a static nested class.');
     } else if (member && c.use === 'field' && nested) {
       push('The compiler reads the Outer class: Nested is declared static. An object of a static nested class is not connected to any Outer object.');
       st.cmp = 'err';
       push('return name: This is a compile-time error. name is a field that each Outer object has separately. A Nested object has no Outer object that it refers to, so there is no way to determine whose name to read.', 'bad');
       fail('non-static variable name cannot be referenced from a static context', 'It means that the non-static variable name cannot be used from a static context. Even if main creates an Outer object o, the Nested object does not know about that o.');
-      sum.push('A compile-time error occurs, so the program does not run.');
       sum.push('A static nested class is an independent class that only borrows a place inside the outer class. It has no reference to an outer object, so it cannot simply use the fields of an outer object.');
       sum.push('If you need a field of the outer object, remove static to make the class an inner class, or pass the value you need to the constructor.');
     } else if (member && !nested) {
@@ -17648,7 +17568,6 @@ Lab.register({
       push('o.name = "B": The field of the outer object is changed to "B". Nothing is done to the inner object.');
       st.out.push('B'); rel = 'The inner object refers to the outer object o';
       push('in.who(): Inside Inner, name means "the name of the outer object that I refer to". The value was not copied in advance. It is read now by following the reference, so B is printed.', 'good');
-      sum.push('B is printed. The value of the outer object that was changed after the inner object was created is visible.');
       sum.push('An object of an inner class without static holds a reference to the outer object, so it can use the fields and methods of the outer object as if they were its own.');
       sum.push('In return, as long as the inner object remains, the outer object is not removed by garbage collection either. This is why static is added to a class inside that does not use the outer object.');
     } else if (member) {
@@ -17657,15 +17576,12 @@ Lab.register({
       push('new Outer.Nested(): The Nested object is created. A static nested class can be created even without an outer object. In this program, not a single Outer object was created.', 'good');
       st.out.push('inside'); rel = 'Does not refer to an outer object';
       push('in.who(): It runs only its own code and returns "inside", which is printed. This object has no reference to an outer object.');
-      sum.push('"inside" is printed. A Nested object was created and used without creating an Outer object.');
       sum.push('A static nested class merely has the name Outer.Nested. It is created and used in the same way as a separately declared class. It has no reference to an outer object.');
-      sum.push('To see what happens when only static is removed from the same code, change the kind to "Inner class" and compare.');
     } else if (c.loc === 'change') {
       push('The compiler reads make(): 1 is assigned to count, and 2 is assigned to it again below. A local variable whose value changes even once is not "effectively final".');
       st.cmp = 'err';
       push('count inside the ' + (anon ? 'anonymous class' : 'lambda expression') + ': This is a compile-time error. ' + (anon ? 'An anonymous class' : 'A lambda expression') + ' does not take the local variable itself. It takes a copy of its value. If the original changed later, it would differ from the copy, so Java allows only local variables whose values do not change to be used inside.', 'bad');
       fail('local variables referenced from ' + (anon ? 'an inner class' : 'a lambda expression') + ' must be final or effectively final', 'It means that local variables used in ' + (anon ? 'an inner class' : 'a lambda expression') + ' must be final or effectively final.' + (anon ? ' An anonymous class is also a kind of inner class, so the message says inner class.' : ''));
-      sum.push('A compile-time error occurs, so the program does not run.');
       sum.push('"Effectively final" describes a variable whose initial value never changes, even though final is not written. Whether the change comes after the ' + (anon ? 'anonymous class' : 'lambda expression') + ' is created or before it, even one line that assigns to the variable again is an error.');
       sum.push('Anonymous classes and lambda expressions both follow the same rule. If you need to change the value, keep it in a field, or put it in an array or an object and change the value inside, as in "Stored in an array, and only the element value is changed" in the local variable setting.');
     } else {
@@ -17683,7 +17599,6 @@ Lab.register({
       push('First line of r.run(): ' + (arr ? 'It follows the copied reference to the array and reads the value of the element. The value that was changed after r was created is visible, so count = 2 is printed.' : 'It reads the copied value and prints count = 1.'), 'good');
       st.th = anon ? 'self' : 'outer'; st.out.push('this = ' + (anon ? 'Outer$1' : 'Outer')); rel = anon ? 'this is the anonymous object itself' : 'this is the outer Outer object';
       push(anon ? 'this.getClass().getName(): Inside an anonymous class, this is the object created from that anonymous class itself. Because the class has no name, the compiler gave it the name Outer$1, and that is what is printed.' : 'this.getClass().getName(): A lambda expression does not have a this of its own. Inside a lambda expression, this is the this of make(), the method in which the lambda expression is written, that is, the outer Outer object. Outer is printed.', anon ? '' : 'good');
-      sum.push('The output is two lines: count = ' + (arr ? '2' : '1') + ' and this = ' + (anon ? 'Outer$1' : 'Outer') + '.');
       sum.push(anon ? 'An anonymous class declares a new class, so this inside it is the newly created object. To refer to the outer object, you must write Outer.this.' : 'A lambda expression is not a declaration of a new class but a piece of code, so this inside it is the same as this outside the lambda expression. When you convert an anonymous class to a lambda expression, any code that uses this changes its meaning.');
       sum.push(arr ? 'When the value is stored in an array, the variable count does not change and only the value inside the array changes, so the code passes the rule. However, in code that several threads use together, the value can become inconsistent, so use this with care.' : 'Even after make() ends and the local variable disappears, the code runs with the copied value. Because the value is copied, changing that variable elsewhere is not allowed.');
     }
@@ -17692,8 +17607,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, member = c.kind === 'inner' || c.kind === 'nested', arr = c.loc === 'arr';
     if (!s) { H.text(v, 'Click Run to go one step at a time, starting with compilation.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'Compilation', s.cmp === '?' ? 'checking' : s.cmp === 'ok' ? 'Success' : 'Error', s.cmp === '?' ? 'none' : s.cmp === 'ok' ? 'good' : 'bad');
     if (s.cmp === 'err') { H.text(v, 'When there is a compile-time error, no class file is produced, so the program cannot run.'); return; }
     var rows = [];
     if (member) {
@@ -17704,10 +17617,7 @@ Lab.register({
       if (s.cnt) rows.push({ cls: s.live ? '' : 'gone', cells: ['count', 'Local variable of make()', s.live ? (arr ? 'refers to the array { ' + s.cnt + ' }' : s.cnt) : 'gone (the method ended)'] });
       if (s.r) rows.push({ cells: ['r', c.kind === 'anon' ? 'Object of the anonymous class' : 'Lambda expression', arr ? 'copied reference → array { ' + s.cnt + ' }' : 'copied value ' + s.cap] });
       H.table(v, ['Name', 'What it is', 'What it holds'], rows, 'Created inside make()');
-      H.lane(ln, 'this', !s.th ? 'not checked yet' : s.th === 'self' ? 'the anonymous object itself (Outer$1)' : 'the outer Outer object', !s.th ? 'none' : s.th === 'self' ? 'wait' : 'good');
     }
-    H.title(v, 'Output');
-    H.slots(v, s.out.map(function (x) { return [x, 'd']; }), 'No output yet');
   },
   // Diagram: on the left, the outer object (and the local variable); on the right, the object created inside. Arrows show what that object refers to or keeps a copy of.
   draw: function (P, sim, shown) {
@@ -17818,23 +17728,17 @@ Lab.register({
     if (c.op === 'loop') { st.out.push(String(st.ch)); push('System.out.println(changed): This prints ' + st.ch + '. ' + (sb ? 'Over the three iterations, the object that sb refers to never changed.' : 'On each of the three iterations, s came to refer to a new object.'), sb ? 'good' : 'bad'); }
     var last = cur();
     if (c.op === 'loop' && !sb) {
-      sum.push('s is java123, the first object is still java, and the object that s refers to changed three times over the three iterations.');
       sum.push('The contents of a String cannot be modified, so every concatenation with + creates a new string object, and s moves over to it. The strings "java1" and "java12", which were created along the way, are not used and are discarded.');
-      sum.push('For repeated concatenation, use a StringBuilder. Change the type to StringBuilder and compare how changed differs.');
+      sum.push('For repeated concatenation, use a StringBuilder.');
     } else if (c.op === 'loop') {
-      sum.push('sb is java123, and the object it refers to never changed over the three iterations.');
       sum.push('A StringBuilder keeps modifying the contents of one object, so it does not have to create a new string object every time something is appended. You get the finished string with sb.toString().');
       sum.push('first refers to the same object, so it shows java123 as well. When several places refer to an object whose contents can change, remember that a change made through one of them is visible through the others too.');
     } else if (sb) {
-      sum.push('Both sb and first are java!, and the two variables refer to the same object.');
       sum.push(c.op === 'assign' ? 'append modifies the contents and then returns the object itself. So assigning the return value back gives the same object, and you can also chain the calls, as in sb.append("a").append("b").' : 'A StringBuilder is an object whose contents can be changed. append modifies the object itself, so the result remains even if you ignore the return value.');
-      sum.push('Change the type to String and compare how the same operation differs with a String.');
     } else if (c.op === 'drop') {
-      sum.push('Both s and the first object are still java, and s == first is true.');
       sum.push('The methods of String do not modify the original. They return a new string. If you ignore the return value, the result is thrown away. There is no compile-time error and no exception, so this mistake is hard to notice.');
       sum.push('To use the result, you must assign the return value to a variable, as in s = ' + call.src + '.');
     } else {
-      sum.push('s is ' + last + ', the first object is still java, and s == first is false.');
       sum.push('What changed is not the contents of the string object but what s refers to. Seen through first, the first object is still there as it was.');
       sum.push('Because the contents of a String do not change, several variables can refer to the same string without any worry that one of them will change the contents.');
     }
@@ -17845,14 +17749,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, sb = c.type === 'sb', name = sb ? 'sb' : 's';
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    var by = this.refs(s, name), ln = H.lanes(v);
-    H.lane(ln, name, '→ object ' + s.s, 'wait');
-    H.lane(ln, 'first', s.f ? '→ object ' + s.f : 'not declared yet', s.f ? 'wait' : 'none');
+    var by = this.refs(s, name);
     H.table(v, ['Object', 'Type', 'Contents', 'Referenced by'], s.objs.map(function (o, i) { return { cls: by[i].length ? '' : 'gone', cells: ['Object ' + (i + 1), sb ? 'StringBuilder' : 'String', '"' + o + '"', { v: by[i].length ? by[i].join(', ') : 'none', cls: by[i].length > 1 ? 'good' : '' }] }; }), 'Objects in memory');
-    var cnt = [[s.eq, name + ' == first']]; if (s.ch >= 0) cnt.push([s.ch + '', 'changed']);
-    H.counters(v, cnt);
-    H.title(v, 'Output');
-    H.slots(v, s.out.map(function (x) { return [x, 'd']; }), 'no output yet');
   },
   // Diagram: variables on the left, objects on the right. Arrows go from the variables to the objects, and an object that no variable refers to is drawn with a dashed line.
   draw: function (P, sim, shown) {
@@ -17870,7 +17768,7 @@ Lab.register({
     if (s.f) P.arrow('ar_f', 'v_first:r', 'o' + s.f + ':l' + (s.s === s.f ? ':0.7' : ''), { cls: s.s === s.f ? 'good' : '' });
     P.box('r1', 16, 242, 250, 34, { cls: s.eq === '?' ? 'ghost' : 'plain', title: name + ' == first', right: s.eq });
     P.box('r2', 274, 242, 390, 34, { cls: s.out.length ? 'plain' : 'ghost', title: 'Output', right: s.out.length ? s.out.join(' / ') : 'none yet' });
-    P.note(sb ? 'A StringBuilder modifies the contents of a single object. So the changed contents are visible through every variable that refers to the same object.' : 'The contents of a String object do not change. A method or + creates a new object, and what changes is what the variable refers to. A dashed outline marks an object that no variable refers to.');
+    P.note(sb ? 'A StringBuilder modifies the contents of a single object. So the changed contents are visible through every variable that refers to the same object.' : 'A dashed outline marks an object that no variable refers to.');
   },
   assume: 'The output of the 18 combinations (10 distinct cases when the hidden setting is left out) was checked against the results of running the same code on JDK 21 on this PC. Saying that "a new object was created" means that a == comparison confirmed that the object is different from the previous one. How many objects are actually created in memory at run time can vary with the optimizations of the JVM, so no claim is made about it. The methods and values chosen here are all cases in which the contents change. For a call that does not change the contents (for example, replace when there is no character to replace), String sometimes returns itself without creating a new object. How a StringBuilder grows the internal space that holds its characters is not covered by this model.',
 });
@@ -17948,11 +17846,11 @@ Lab.register({
       print('first', '2024-01-31', 'The contents of the first object did not change.');
       st.out.push(String(same));
       push('d == first: ' + (same ? 'The two variables refer to the same object, so the result is true.' : 'd refers to the newly created object and first refers to the first object, so the result is false.'));
-      if (c.add === 'drop') { sum.push('d is still 2024-01-31, and d == first is true.'); sum.push('The date objects of java.time do not change their contents. plusMonths returns a new object, so you have to assign the return value, as in d = d.plusMonths(1), to use the result.'); sum.push('This works the same way as the methods of String. Ignoring the return value causes no compile-time error and no exception, so the mistake is hard to notice.'); }
-      if (c.add === 'month') { sum.push('d is 2024-02-29, and the first object is still 2024-01-31.'); sum.push('When the result of an addition is a date that is not in the calendar, no exception is thrown. The date is adjusted to the last day of that month.'); sum.push('So adding months in several separate steps can give a different result. Compare "One month, twice" with "Two months at once".'); }
-      if (c.add === 'twice') { sum.push('d is 2024-03-29. It is not March 31.'); sum.push('The date that was reduced to February 29 by the first addition becomes the starting point of the next calculation. The result is two days away from the result of adding two months at once (2024-03-31).'); sum.push('To produce a recurring date such as the last day of every month, do not keep adding to the previous result. Add to the original date with a different number of months each time, as in plusMonths(1), plusMonths(2).'); }
-      if (c.add === 'two') { sum.push('d is 2024-03-31.'); sum.push('Adding two months at once does not pass through February, so the day of the month is not reduced. This differs from the result of adding one month twice (2024-03-29).'); }
-      if (c.add === 'days') { sum.push('d is 2024-03-01.'); sum.push('"30 days later" and "one month later" are different. plusDays counts the number of days as given, and plusMonths moves to another month of the calendar. The result is one day away from one month later (2024-02-29).'); }
+      if (c.add === 'drop') { sum.push('The date objects of java.time do not change their contents. plusMonths returns a new object, so you have to assign the return value, as in d = d.plusMonths(1), to use the result.'); sum.push('This works the same way as the methods of String. Ignoring the return value causes no compile-time error and no exception, so the mistake is hard to notice.'); }
+      if (c.add === 'month') { sum.push('When the result of an addition is a date that is not in the calendar, no exception is thrown. The date is adjusted to the last day of that month.'); sum.push('So adding months in several separate steps can give a different result.'); }
+      if (c.add === 'twice') { sum.push('The date that was reduced to February 29 by the first addition becomes the starting point of the next calculation. The result is two days away from the result of adding two months at once (2024-03-31).'); sum.push('To produce a recurring date such as the last day of every month, do not keep adding to the previous result. Add to the original date with a different number of months each time, as in plusMonths(1), plusMonths(2).'); }
+      if (c.add === 'two') { sum.push('Adding two months at once does not pass through February, so the day of the month is not reduced. This differs from the result of adding one month twice (2024-03-29).'); }
+      if (c.add === 'days') { sum.push('"30 days later" and "one month later" are different. plusDays counts the number of days as given, and plusMonths moves to another month of the calendar. The result is one day away from one month later (2024-02-29).'); }
     } else if (c.topic === 'zone') {
       var z = this.Z[c.zone];
       st.seoul = true;
@@ -17964,8 +17862,7 @@ Lab.register({
       print('there', z.zdt, 'The date and time are followed by the offset from UTC' + (c.zone === 'utc' ? ' (Z means no offset)' : '') + ' and the time zone ID.');
       print('there.toLocalDate()', z.date, c.zone === 'seoul' ? 'This is the date in Seoul.' : 'It is the same instant, but the date differs from the date in Seoul (2024-01-01). Even the year is different.', c.zone === 'seoul' ? '' : 'bad');
       print('there.toInstant()', '2023-12-31T15:30:00Z', 'Whichever time zone it is written in, the instant it represents is the same.', 'good');
-      sum.push('Written in the ' + z.id + ' time zone, it is ' + z.date + ' ' + z.time + ', and the instant it represents is the same, 2023-12-31T15:30:00Z.');
-      sum.push(c.zone === 'seoul' ? 'Converting back to the same time zone gives the value that was created at the start. Choose another time zone and see how the date changes.' : c.zone === 'utc' ? 'Written in UTC, the time is 9 hours earlier than in Seoul, and the date is one day earlier. This is why the date looks one day off when a time stored in UTC is shown on the screen as it is.' : 'It is the same instant, but it is January 1, 2024 in Seoul and December 31, 2023 in New York. If you store or compare only the date, without the time zone, the date can be off by one day.');
+      sum.push(c.zone === 'seoul' ? 'Converting back to the same time zone gives the value that was created at the start.' : c.zone === 'utc' ? 'Written in UTC, the time is 9 hours earlier than in Seoul, and the date is one day earlier. This is why the date looks one day off when a time stored in UTC is shown on the screen as it is.' : 'It is the same instant, but it is January 1, 2024 in Seoul and December 31, 2023 in New York. If you store or compare only the date, without the time zone, the date can be off by one day.');
       sum.push('To store or exchange a single point in time, use a value that does not depend on a time zone, such as an Instant, and convert it to the time zone of the person when you show it to that person.');
     } else {
       st.ab = true;
@@ -17976,7 +17873,6 @@ Lab.register({
         print('p', 'P1M1D', 'In this notation, P stands for Period, 1M for 1 month, and 1D for 1 day.');
         print('p.getDays()', '1', 'getDays() does not return the total number of days. It returns only the value of the days part of "1 month and 1 day".', 'bad');
         print('ChronoUnit.DAYS.between(a, b)', '30', 'This is the total number of days between the two dates. When you want to know how many days have passed, count in days like this.', 'good');
-        sum.push('The Period is P1M1D (1 month and 1 day), getDays() is 1, and the total number of days is 30.');
         sum.push('A Period expresses an amount of time in calendar years, months, and days. getDays() is only the value of the days part, so using getDays() to find "how many days have passed" gives the wrong answer.');
         sum.push('The length of a month differs from month to month, so a Period cannot be converted to a fixed number of days or hours. Get the total number of days with ChronoUnit.DAYS.between.');
       } else if (c.gap === 'duration') {
@@ -17986,14 +17882,12 @@ Lab.register({
         print('t', 'PT720H', 'PT marks a time-based amount, and 720H is 720 hours.');
         print('t.toHours()', '720', '');
         print('t.toDays()', '30', 'In a Duration, a day is always calculated as 24 hours.', 'good');
-        sum.push('The Duration is PT720H (720 hours), which is 720 in hours and 30 in days.');
         sum.push('A Duration holds the length of the elapsed time. It has no unit whose length depends on the calendar, as "1 month and 1 day" in a Period does.');
         sum.push('Express an amount that is counted by the calendar, such as "one month later", with a Period, and an amount of fixed length, such as "90 minutes" or "30 seconds", with a Duration.');
       } else {
         st.ex = true; ex = 'Unsupported unit: Seconds';
         push('Duration.between(a, b): Duration tries to measure the amount in seconds. But a LocalDate has only a date and no time, so the difference in seconds cannot be obtained. An UnsupportedTemporalTypeException is thrown.', 'bad');
         push('The exception message is "Unsupported unit: Seconds". It means that LocalDate does not support the seconds unit. The code compiles, so this is a mistake that shows up only when you run it, and because execution stopped with the exception, the three output lines below are not executed.', 'bad');
-        sum.push('An UnsupportedTemporalTypeException is thrown, and nothing is printed.');
         sum.push('A Duration measures in seconds, so it needs values that have a time, such as LocalDateTime, ZonedDateTime, or Instant. It cannot be measured from LocalDate values, which have only a date.');
         sum.push('Get the amount of time between dates with Period.between or ChronoUnit.DAYS.between.');
       }
@@ -18005,9 +17899,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, z = this.Z[c.zone];
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
     if (c.topic === 'plus') {
-      var ln = H.lanes(v);
-      H.lane(ln, 'd', '→ object ' + s.s + ' (' + s.objs[s.s - 1] + ')', 'wait');
-      H.lane(ln, 'first', s.f ? '→ object 1 (2024-01-31)' : 'not declared yet', s.f ? 'wait' : 'none');
       H.table(v, ['Object', 'Date', 'Referenced by'], s.objs.map(function (o, i) { var by = []; if (s.s === i + 1) by.push('d'); if (s.f === i + 1) by.push('first'); return { cls: by.length ? '' : 'gone', cells: ['Object ' + (i + 1), o, by.length ? by.join(', ') : 'none'] }; }), 'LocalDate objects');
     } else if (c.topic === 'zone') {
       var rows = [];
@@ -18022,8 +17913,6 @@ Lab.register({
       if (s.ex) r2.push({ cells: ['t', 'Duration', { v: 'not created because of the exception', cls: 'bad' }] });
       H.table(v, ['Variable', 'Type', 'Value'], r2, 'The two dates and the amount of time between them');
     }
-    H.title(v, 'Output');
-    H.slots(v, s.out.map(function (x) { return [x, 'd']; }), s.ex ? 'no output (stopped by the exception)' : 'no output yet');
   },
   // Diagram: depending on the topic, (1) the variables and date objects, with the months of the calendar below them (2) one instant (Instant) and the values that write it in three time zones (3) two dates with Period and Duration. The three output lines are at the bottom.
   draw: function (P, sim, shown) {
@@ -18044,7 +17933,7 @@ Lab.register({
       [[1, '31 days'], [2, '29 days (leap year)'], [3, '31 days']].forEach(function (m, i) {
         P.box('m' + m[0], 16 + i * 220, 180, 208, 46, { cls: mon === m[0] ? 'hot now' : 'plain', title: '2024-0' + m[0] + '', sub: m[1], right: mon === m[0] ? 'd: ' + (+cur.slice(8)) + '' : '' });
       });
-      P.note('The top part shows the date object that each variable refers to, and the bottom part shows where d is in the calendar now. When the result of an addition is a date that does not exist, it is adjusted to the last day of that month.');
+      P.note('The top part shows the date object that each variable refers to, and the bottom part shows where d is in the calendar now.');
     } else if (c.topic === 'zone') {
       P.size(680, 300); y0 = 208;
       P.box('inst', 170, 20, 340, 50, s.inst ? { cls: 'good', title: 'Instant: a point in time, no time zone', sub: '2023-12-31T15:30:00Z', center: true } : { cls: 'ghost', title: 'Instant: a point in time, no time zone', sub: 'not created yet', center: true });
@@ -18054,7 +17943,7 @@ Lab.register({
       });
       if (s.inst) P.arrow('a_in', 'z_seoul:t', 'inst:r', { label: 'toInstant' });
       if (s.there) P.arrow('a_out', 'inst:b', 'z_' + c.zone + ':t', { cls: 'hot', label: 'atZone' });
-      P.note('The Instant at the top center is "a single point in time", and the three boxes below show that instant written with the calendar and clock of each time zone. The dates and times written are different, but they are the same instant.');
+      P.note('The Instant at the top center is "a single point in time", and the three boxes below show that instant written with the calendar and clock of each time zone.');
     } else {
       P.size(680, 280); y0 = 188;
       P.box('a', 16, 30, 200, 40, s.ab ? { cls: 'wait', title: 'a = 2024-01-31', center: true } : { cls: 'ghost', title: 'a', center: true });
@@ -18117,9 +18006,8 @@ Lab.register({
       st.opt = 'npe'; st.ex = ex = 'NullPointerException';
       push('Optional.of(name): of is the method to use when the value is certain to be present. When it receives null, it does not create an Optional and throws a NullPointerException on the spot.', 'bad');
       push('The exception stops the program. No Optional was created, so none of the lines below run.' + (useMd ? ' makeDefault() does not run either.' : ''), 'bad');
-      sum.push('Optional.of(null) throws a NullPointerException, so nothing is printed.');
       sum.push('Wrapping a value in an Optional does not make null safe by itself. of does not accept null.');
-      sum.push('Wrap a value that may be null with Optional.ofNullable. Change the way the Optional is created to ofNullable and compare.');
+      sum.push('Wrap a value that may be null with Optional.ofNullable.');
       return { events: ev, summary: sum, ex: ex, out: [], row: ['Exception: NullPointerException', '(not run)', useMd ? 'Did not run' : '(not used)'] };
     }
     st.opt = has ? 'kim' : 'empty';
@@ -18166,19 +18054,14 @@ Lab.register({
     }
     if (!ex) { st.out.push(res); push('System.out.println(result): This prints one line, ' + res + '.'); }
     if (c.take === 'get') {
-      sum.push(has ? 'kim is printed.' : 'get() throws a NoSuchElementException, so the result is not printed.');
-      sum.push(has ? 'get() is safe only when a value is present. Change name to null, or create the Optional with Optional.empty(), and run the same code.' : 'Calling get() on an Optional without checking is no different from using a value without checking for null. Only the name of the exception changes.');
+      sum.push(has ? 'get() is safe only when a value is present.' : 'Calling get() on an Optional without checking is no different from using a value without checking for null. Only the name of the exception changes.');
       sum.push('If the value may be absent, use a method that also states "what to do when there is no value", such as orElse, orElseGet, or map.');
     } else if (c.take === 'orElse') {
-      sum.push('The result is "' + res + '", and makeDefault() ran.');
       sum.push(has ? 'A value is present, so no default value is needed, and yet makeDefault() ran. What is inside the parentheses of orElse is an ordinary argument, so it is always evaluated before orElse is called.' : 'The Optional is empty, so the default value was used. In this case, both the result and the fact that makeDefault() runs are the same as with orElseGet.');
       sum.push('When the default value is a value that already exists, such as "none", orElse is enough. When creating the default value involves work such as a database query or creating an object, use orElseGet.');
     } else if (c.take === 'orElseGet') {
-      sum.push('The result is "' + res + '", and makeDefault() ' + (has ? 'did not run.' : 'ran.'));
-      sum.push(has ? 'orElseGet takes not a default value but "code that creates the default value" (a lambda expression). When a value is present, it does not run that code.' : 'The lambda expression runs only when the Optional is empty. Change name to "kim", and you can see that makeDefault() does not run.');
-      sum.push('With the same settings, change only the way the value is taken out to orElse, and compare whether makeDefault() runs.');
+      sum.push(has ? 'orElseGet takes not a default value but "code that creates the default value" (a lambda expression). When a value is present, it does not run that code.' : 'The lambda expression runs only when the Optional is empty.');
     } else {
-      sum.push('The result is "' + res + '".');
       sum.push(has ? 'When a value is present, map applies the function and returns the result in a new Optional. That is why you can chain several map calls.' : 'When the Optional is empty, map does not run the function and passes the empty Optional along. You do not have to write if (x != null) in between.');
       sum.push('You write what to do when there is no value in only one place, the orElse at the end.');
     }
@@ -18193,9 +18076,6 @@ Lab.register({
     if (useMd) H.lane(ln, 'makeDefault()', s.md === 'run' ? 'ran → "guest"' : s.md === 'skip' ? 'did not run' : s.md === 'wait' ? 'passed as a lambda expression (not run yet)' : 'not run yet', s.md === 'run' ? 'hot' : s.md === 'skip' ? 'good' : 'none');
     if (c.take === 'map') s.chain.forEach(function (x, i) { H.lane(ln, 'map (call ' + (i + 1) + ')', x ? 'function ran → "' + x + '"' : 'function skipped (empty)', x ? 'good' : 'wait'); });
     H.lane(ln, 'result', s.res ? '"' + s.res + '"' : s.ex ? 'no value because of the exception' : 'not declared yet', s.res ? 'good' : s.ex ? 'bad' : 'none');
-    if (s.ex) H.text(v, 'Exception: ' + s.ex);
-    H.title(v, 'Output');
-    H.slots(v, s.out.map(function (x) { return [x, x === 'makeDefault ran' ? 'b' : 'd']; }), s.ex ? 'Stopped by the exception, no output' : 'No output yet');
   },
   // Diagram: from left to right, name → the Optional box → the value taken out. Below the Optional, it shows whether makeDefault(), which creates the default value, has run (or the two map steps).
   draw: function (P, sim, shown) {

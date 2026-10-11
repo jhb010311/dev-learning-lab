@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b88d80401a">
+<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Basic syntax</p>
 <h1>Operators and type conversion</h1>
 <p><b>Why is 7 / 2 equal to 3 and not 3.5?</b></p>
-<p>In Java, the result of a calculation is determined not only by the numbers but also by the types. A calculation between two int values gives an int, so the fractional part, or the part that goes beyond the range, is lost, and when the types are mixed, the narrower type is automatically converted to the wider type before the calculation. With +, if either side is a string, the operation is concatenation, not addition. Pick an expression and follow at which moment something is lost or changed.</p>
+<p>In Java, the result of a calculation is determined not only by the numbers but also by the types. A calculation between two int values gives an int, so the fractional part, or the part that goes beyond the range, is lost, and when the types are mixed, the narrower type is automatically converted to the wider type before the calculation. With +, if either side is a string, the operation is concatenation, not addition.</p>
 <p>Checked against real execution · Checked by running 18 pieces of code on JDK 21 (including one compile-time error)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -62,9 +62,8 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Printing r gives 3. The type of the right-hand expression 7 / 2 is int, and the type of the variable r is int.</li>
 <li>Dividing an int by an int gives an int. The fractional part is discarded without rounding.</li>
-<li>To get the fractional part too, you must make one side a double before dividing. Change &quot;What to look at&quot; to type conversion and run 7 / 2.0.</li>
+<li>To get the fractional part too, you must make one side a double before dividing.</li>
 </ul>
 <h2>Code</h2>
 <pre>int r = 7 / 2;                  // int divided by int
@@ -155,6 +154,6 @@ System.out.println(r);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b88d80401a"></script>
+<script src="../../app.js?v=df17f1edb0"></script>
 </body>
 </html>

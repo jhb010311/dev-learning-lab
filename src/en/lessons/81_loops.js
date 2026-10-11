@@ -1,7 +1,7 @@
 Lab.register({
   id: 'loops', nav: 'Conditionals and loops', cat: 'Java language', mode: 'step',
   title: 'How many times does a loop run, and where does it stop?',
-  intro: 'A loop repeats "check the condition → body → change the value" until the condition becomes false. Whether you write < or <= in the condition changes the number of iterations by one, and break and continue cut that flow short or skip part of it. switch is a statement that jumps to the case whose value matches, and if there is no break, execution continues into the cases below. Follow the code one line at a time and check where control goes.',
+  intro: 'A loop repeats "check the condition → body → change the value" until the condition becomes false. Whether you write < or <= in the condition changes the number of iterations by one, and break and continue cut that flow short or skip part of it. switch is a statement that jumps to the case whose value matches, and if there is no break, execution continues into the cases below.',
   terms: ['for statement and while statement', 'break and continue', 'switch statement and fall through'],
   controls: [
     { id: 'stmt', label: 'Statement', type: 'select', value: 'for', options: [['for', 'for statement'], ['while', 'while statement'], ['swc', 'switch (a break in every case)'], ['swf', 'switch (no break)'], ['swa', 'switch (arrow ->)']] },
@@ -70,7 +70,6 @@ Lab.register({
       }
       if (!spin) { st.at = 'after'; st.cond = null; st.out.push('done'); st.done = true; push('System.out.println("done"): The line after the loop is executed. The body was entered ' + st.body + ' times in all.', 'good'); }
       var outText = st.out.join(', ') + (spin ? ' (never ends)' : '');
-      sum.push(spin ? 'The output stops after ' + st.out.join(', ') + ', and the program never ends.' : 'The output is ' + st.out.join(', ') + '. The body was entered ' + st.body + ' times, and the condition was checked ' + st.checks + ' times' + (broke ? '.' : ' (the last check was false).'));
       if (spin) sum.push('In a while statement, continue goes straight back to the condition check. If i++ is below the continue, it is skipped as well, and i never changes. If the same code is written as a for statement, the increment is outside the body, so the loop ends normally. When you use continue in a while statement, change the value before the continue.');
       else {
         if (!broke) sum.push(le ? 'i <= 3 is true when i is 3 as well, so it runs one more time than i < 3. Starting from 0, i < n runs n times and i <= n runs n + 1 times. Mistakes like this, in which the count is off by one, are very common. To loop over an array with n elements, use i < n.' : 'i < 3 is true when i is 0, 1, and 2. Starting from 0 and writing i < n makes the loop run n times.' + (skipped ? ' In one of those iterations, continue skipped the output.' : ''));
@@ -98,12 +97,11 @@ Lab.register({
     }
     st.cur = null; st.out.push('done'); st.done = true;
     push('System.out.println("done"): The line after the switch is executed. Number of cases executed: ' + st.ran.length + '.', st.ran.length > 1 ? 'bad' : 'good');
-    sum.push('The output is ' + st.out.join(', ') + '. n is ' + n + ', and the number of cases whose code was executed is ' + st.ran.length + '.');
     if (c.stmt === 'swf') {
       if (st.ran.length > 1) { sum.push('A case is only a starting mark that says "start executing from here". It is not a partition that makes execution stop before the next case. If there is no break, everything from the matching case to the end of the switch is executed in order. This is called fall through.'); sum.push('Leaving out a break is a common mistake, and it does not cause a compile-time error. Unless you want execution to fall through on purpose, write a break in every case or use a switch with arrows.'); }
-      else sum.push('No case matched, so execution started at default. default is at the very bottom and there is nowhere to fall through to, so the result is the same even without a break. Change n to 1 or 2 to see the difference.');
+      else sum.push('No case matched, so execution started at default. default is at the very bottom and there is nowhere to fall through to, so the result is the same even without a break.');
     }
-    if (c.stmt === 'swc') sum.push('When every case has a break, only the code of the one matching case is executed. To see what happens when the breaks are removed, change to "switch (no break)" and compare.');
+    if (c.stmt === 'swc') sum.push('When every case has a break, only the code of the one matching case is executed.');
     if (arrow) sum.push('A switch with arrows (->) executes only the code to the right of the matching case. No break is needed, so the mistake of leaving one out cannot happen. It is available from Java 14.');
     if (m === 3 && c.stmt !== 'swf') sum.push('If no case matches, default is executed. In a switch that has no default, nothing is executed and control moves on.');
     return { events: ev, summary: sum, row: [st.out.join(', '), st.ran.length + (st.ran.length === 1 ? ' case' : ' cases')] };
@@ -112,13 +110,11 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, w = this.words;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
     if (s.kind === 'loop') {
-      H.counters(v, [[s.i === null ? '?' : s.i, 'Value of i'], [s.body, 'Times the body was entered'], [s.checks, 'Times the condition was checked']]);
+      H.counters(v, [[s.checks, 'Times the condition was checked']]);
       H.table(v, ['Iteration', 'i on entry', 'What happened'], s.rounds.map(function (r, i) { return { cells: ['#' + (i + 1), String(r.i), { v: r.did || 'in progress', cls: r.did === 'printed' ? '' : r.did ? 'hot' : '' }] }; }), 'Record of entries into the body');
-      if (s.spin) H.text(v, 'i does not change, so the same iteration is repeated without end.');
     } else {
       H.table(v, ['case', 'Code', 'Executed?'], ['case 1', 'case 2', 'case 3', 'default'].map(function (nm, i) { var ran = s.ran.indexOf(i) >= 0; return { cls: ran || s.match === null ? '' : 'gone', cells: [nm + (s.match === i ? ' (match)' : ''), 'println("' + w[i] + '")', { v: ran ? (i === s.match ? 'executed' : 'executed by fall through') : s.done || s.exit !== null || (s.match !== null && i < s.match) ? 'not executed' : '', cls: ran ? (i === s.match ? 'good' : 'bad') : '' }] }; }), 'n = ' + s.n);
     }
-    H.title(v, 'Output'); H.slots(v, s.out.map(function (x) { return [x, x === 'done' ? 'd' : 'q']; }), 'No output yet.');
   },
   // Diagram: for a loop, a flowchart laid out from top to bottom (condition → body → increment → back to the condition), in which the box being executed now is yellow. For a switch, the cases are lined up vertically, showing where control entered and the path along which execution fell through.
   draw: function (P, sim, shown) {
@@ -150,7 +146,7 @@ Lab.register({
       }
       if (s && s.spin) { P.text('t_spin', 590, 170, 'i does not change,', { cls: 'bad', anchor: 'middle' }); P.text('t_spin2', 590, 188, 'repeats without end', { cls: 'bad', anchor: 'middle' }); }
       P.box('out', 16, 250, 648, 34, { cls: s && s.out.length ? (s.spin ? 'bad' : 'good') : 'ghost', title: 'Output', right: s && s.out.length ? s.out.join(', ') + (s.spin ? ' (never ends)' : '') : 'none yet' });
-      P.note(isFor ? 'A for statement does the initialization once and then repeats "condition → body → increment". The moment the condition becomes false, control leaves to the right. continue skips the remaining lines of the body but still goes through the increment.' : 'A while statement repeats "condition → body". i++ is just one line inside the body, so when continue skips the remaining lines of the body, i++ is skipped along with them.');
+      P.note(isFor ? 'The moment the condition becomes false, control leaves to the right.' : 'A while statement repeats "condition → body". i++ is just one line inside the body, so when continue skips the remaining lines of the body, i++ is skipped along with them.');
       return;
     }
     var arrow = c.stmt === 'swa', hasBreak = c.stmt === 'swc', names = ['case 1', 'case 2', 'case 3', 'default'];
@@ -164,7 +160,7 @@ Lab.register({
     if (s && s.exit !== null) P.text('ex', 540, 40 + s.exit * 46, '→ out of switch', { cls: s.ran.length > 1 ? 'bad' : 'good' });
     P.box('after', 210, 214, 304, 28, { cls: s && s.done ? 'good now' : 'plain', title: 'System.out.println("done")' });
     P.box('out', 16, 254, 648, 34, { cls: s && s.out.length ? (s.ran.length > 1 ? 'bad' : 'good') : 'ghost', title: 'Output', right: s && s.out.length ? s.out.join(', ') : 'none yet' });
-    P.note(arrow ? 'A switch with arrows enters the one case that matches n, executes only that line, and leaves. If no case matches, control goes to default.' : hasBreak ? 'A switch jumps straight to the case that matches n. When it then reaches a break, control leaves the switch. If no case matches, control goes to default.' : 'A switch jumps straight to the case that matches n. If there is no break, execution keeps falling through to the code of the cases below, as the red arrows show. If no case matches, control goes to default.');
+    P.note(arrow ? 'A switch with arrows enters the one case that matches n, executes only that line, and leaves. If no case matches, control goes to default.' : hasBreak ? 'A switch jumps straight to the case that matches n. When it then reaches a break, control leaves the switch. If no case matches, control goes to default.' : 'If there is no break, execution keeps falling through to the code of the cases below, as the red arrows show.');
   },
   assume: 'The output and the counts of the 24 combinations (12 loops and 12 switch statements) were checked against the result of running code with the same structure on JDK 21 on this PC. The number of times the body was entered was obtained by putting counting code on the first line of the body in the program used for the check. For the two combinations that use continue in a while statement, it was confirmed that the real program does not end after 2 seconds and keeps repeating only the body. That the program "never ends" cannot itself be proved by execution. It is a conclusion that follows from the structure of the code, in which i does not change. The model decides that there is an infinite loop, and stops, when control comes back to the condition check with the same value of i. It was also confirmed by execution that a switch without a default executes nothing when it is given a value that matches no case. The switch with arrows has been a standard part of the language since Java 14. The do-while statement, the enhanced for statement (for-each), switch expressions that produce a value, and the labeled break are not covered.',
 });

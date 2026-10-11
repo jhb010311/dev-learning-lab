@@ -45,7 +45,7 @@ Lab.register({
       if (noarg) push('Compilation: The compiler looks for a constructor that takes no arguments, to match new Order(). This class has only Order(int extra). There is no matching constructor, so this is a compile-time error. The program does not run.', 'bad');
       else push('Compilation: The compiler looks for a constructor that takes one int, to match new Order(3). This class has only the Order() that the compiler provided. There is no matching constructor, so this is a compile-time error. The program does not run.', 'bad');
       sum.push('This is a compile-time error. The javac message is "' + ERR + '", which means "the constructor of Order cannot be called with these arguments".');
-      if (noarg) { sum.push('A default constructor exists only when the class declares no constructors at all. The moment you add a constructor that takes arguments, new Order(), which compiled until then, no longer compiles.'); sum.push('To keep using new Order() as well, write the no-argument constructor Order() { } yourself. Select "Order() and Order(int extra)" in the settings and compare.'); }
+      if (noarg) { sum.push('A default constructor exists only when the class declares no constructors at all. The moment you add a constructor that takes arguments, new Order(), which compiled until then, no longer compiles.'); sum.push('To keep using new Order() as well, write the no-argument constructor Order() { } yourself.'); }
       else sum.push('The default constructor that the compiler provides takes no arguments. To create an object from a value that you pass in, you must write a constructor that takes that argument.');
       return { events: ev, summary: sum, row: ['Error: ' + ERR, 'Not run', 'Not run'] };
     }
@@ -87,27 +87,22 @@ Lab.register({
     push('Order o = ' + callTxt + ': The constructor has finished. new returns a reference to the completed object, and the variable o holds that reference.');
     var out = st.qty + ', ' + st.memo.replace(/"/g, ''); st.out = out;
     push('System.out.println(o.qty + ", " + o.memo): This reads qty and memo of the object that o refers to and prints them. The output is ' + out + '.', 'good');
-    sum.push('The output is ' + out + '. The order of execution is: default values → ' + order.join(' → ') + '.');
     sum.push(c.first === 'field' ? 'The initializer (10) ran first and the block below it (20) ran later, so qty was 20 when the constructor body started.' : 'The block (20) ran first and the initializer below it (10) ran later, so qty was 10 when the constructor body started. Field initializers and initializer blocks run from the top of the class down, so when both of them touch the same field, where you write them changes the result.');
     if (c.ctors === 'none') sum.push('new Order() works even though no constructor is declared, because the compiler provides a default constructor. A field that is never assigned a value keeps its default value (0 for numbers, null for reference types). Unlike a local variable, a field (unless it is final) does not cause a compile-time error when you leave it uninitialized.');
     if (chained) sum.push('this(...) can be used only as the first statement of a constructor, and it runs another constructor of the same class first. Use it to gather the common work in one constructor. The initializer and the block run only once.');
-    if (c.ctors === 'both' && noarg) sum.push('Order() and Order(int extra) are different constructors. Only the one that matches the arguments passed to new runs. In the settings, compare this with the case that adds this(1).');
+    if (c.ctors === 'both' && noarg) sum.push('Order() and Order(int extra) are different constructors. Only the one that matches the arguments passed to new runs.');
     if (!noarg) sum.push('new Order(3) runs Order(int extra), which matches the argument that is passed. Whether or not an Order() constructor exists, it does not run for this call.');
     return { events: ev, summary: sum, row: ['Success', order.join(' → '), out] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go one step at a time, starting from compilation.'); return; }
-    if (s.err) { H.title(v, 'Compile-time error'); H.text(v, 'javac: ' + s.err); H.text(v, 'No program is produced, so there is no object and no output.'); return; }
+    if (s.err) { H.title(v, 'Compile-time error'); H.text(v, 'javac: ' + s.err); return; }
     H.table(v, ['Field', 'Type', 'Current value', 'Set by'], s.made ? [
       { cells: ['qty', 'int', { v: s.qty, cls: s.tgt === 'fq' ? 'hot' : '' }, s.qtyBy] },
       { cells: ['memo', 'String', { v: s.memo, cls: s.tgt === 'fm' ? 'hot' : '' }, s.memoBy] },
     ] : [], 'Order object on the heap');
     if (!s.made) H.text(v, 'No object has been created yet.');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Running constructor', s.stack.length ? s.stack.join(' → ') : s.o ? 'all finished' : 'not started yet', s.stack.length ? 'hot' : s.o ? 'good' : 'none');
-    H.lane(ln, 'Order so far', s.made ? ['default values'].concat(s.order).join(' → ') : 'none yet', s.made ? 'wait' : 'none');
-    H.counters(v, [[s.out || '?', 'Output']]);
   },
   // Diagram: on the left, the pieces written in the class (in the order written, top to bottom); on the right, the object on the heap and its field values. An arrow goes from the piece that is running now to the field that it changes.
   draw: function (P, sim, shown) {
@@ -139,7 +134,7 @@ Lab.register({
     if (s.o) P.arrow('ao', 'vo:t', 'fm:b', {});
     if (s.cur && s.tgt) P.arrow('wr', s.cur + ':r', s.tgt + ':l', { cls: 'hot' });
     P.box('out', 16, 266, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? 'Compile-time error' : 'Console output', right: s.err ? 'no matching constructor' : s.out || (s.made ? (noarg ? 'new Order()' : 'new Order(3)') + ' in progress' : 'not run yet') });
-    P.note('The "#1, #2" marks in the boxes on the left show the order in which the pieces actually ran. Fields are first set to their default values (0 for int, null for reference types), then the initializers and blocks run starting from the one that is written first, and then the constructor body runs.');
+    P.note('The "#1, #2" marks in the boxes on the left show the order in which the pieces actually ran.');
   },
   assume: 'All 16 combinations were actually compiled and run with the same code on JDK 21 on this PC, and the compilation result, the error message, the order in which the initializer, the block, and the constructor bodies ran, and the output were checked against the results. The order of execution was confirmed by inserting only logging lines into the same code, and it was also confirmed by execution that the fields already hold their default values (0, null) before the initializers run. Simplifications: every constructor calls a constructor of its superclass (here, Object) before its own body, and the diagram leaves this step out (the "Inheritance and overriding" lab covers it). Initializer blocks are not used often in practice, and they are included here to show the order. The error message is the first line of the English message from javac. That this(...) can be used only as the first statement of a constructor is as of JDK 21 and was confirmed by compiling on this PC. In newer JDKs this is said to have changed so that some statements can come before this(...), but this was not verified on this PC.',
 });

@@ -15696,12 +15696,9 @@ Lab.register({
       sum.push('전자서명: 개인키로 서명하고 공개키로 검증합니다. HMAC과 달리 검증하는 쪽이 비밀 키를 가질 필요가 없어서, 발급하는 곳과 확인하는 곳이 다를 때 씁니다(인증서, 여러 서비스가 검증하는 JWT의 RS256).');
     }
     var back = { hash: '불가능', sym: '같은 키로 가능', asym: '개인키로 가능', hmac: '해당 없음 (내용을 숨기지 않음)', sign: '해당 없음 (내용을 숨기지 않음)' }[T], key = { hash: '없음', sym: '같은 키 하나', asym: '공개키로 잠그고 개인키로 엶', hmac: '같은 키 하나', sign: '개인키로 서명, 공개키로 검증' }[T], use = { hash: '비밀번호 저장, 내용 비교', sym: 'HTTPS 본문, 데이터 암호화', asym: '키를 안전하게 정하기', hmac: 'JWT(HS256), API 요청 서명', sign: '인증서, JWT(RS256)' }[T];
-    sum.unshift('결과: ' + res + '.');
     return { events: ev, summary: sum, row: [res, back, key, use] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], rows = last ? last.snap.rows : [];
-    if (rows.length) H.table(v, ['무엇', '값'], rows, '실제로 계산한 값'); else H.text(v, '실행을 누르면 시작합니다.');
     H.table(v, ['도구', '내용을 숨기나', '되돌릴 수 있나', '키'], [['해시', '숨김', '불가능', '없음'], ['대칭키 암호화', '숨김', '가능', '같은 키 하나'], ['비대칭키 암호화', '숨김', '가능', '공개키 / 개인키'], ['HMAC', '안 숨김', '-', '같은 키 하나'], ['전자서명', '안 숨김', '-', '개인키 / 공개키']].map(function (r, i) { var on = ['hash', 'sym', 'asym', 'hmac', 'sign'][i] === sim.c.tool; return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2], r[3]] }; }), '다섯 가지 도구 비교');
   },
   // 그림: 원문이 도구와 키를 거쳐 무엇이 되는지를 위에서 아래로 잇는다.
@@ -15720,7 +15717,7 @@ Lab.register({
 Lab.register({
   id: 'tx', nav: '트랜잭션 기본', cat: '데이터베이스', mode: 'step',
   title: '출금은 됐는데 입금이 안 됐다면',
-  intro: 'A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다. 두 문장을 트랜잭션으로 묶었을 때와 아닐 때, 중간에 문제가 생기면 DB에 무엇이 남는지 보세요.',
+  intro: 'A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다.',
   terms: ['트랜잭션', 'ACID', 'Undo 로그와 Redo 로그', '@Transactional'], ranks: ['dbengine', 'txspring', 'isolation'],
   controls: [
     { id: 'mode', label: '실행 방식', type: 'select', value: 'auto', options: [['auto', '트랜잭션 없이 (문장마다 바로 확정)'], ['tx', '두 문장을 트랜잭션으로 묶음']] },
@@ -15762,7 +15759,6 @@ Lab.register({
       else { S.pA = null; S.tx = c.fail === 'ex' ? '롤백됨' : '롤백됨 (재시작 후 DB가 취소)'; push(what + (c.fail === 'ex' ? ' 애플리케이션이 ROLLBACK을 보냅니다.' : ' 커밋에 도달하지 못했으므로, DB는 다시 시작할 때 끝나지 않은 트랜잭션을 찾아 취소합니다.') + ' 출금이 없던 일이 됩니다. A는 5,000원 그대로입니다.', 'good'); }
     }
     var total = S.A + S.B;
-    sum.push('최종 A ' + S.A + '원, B ' + S.B + '원, 합계 ' + total + '원.' + (total !== 6000 ? ' 1,000원이 사라졌습니다.' : ''));
     if (auto && c.fail !== 'none') sum.push('여러 문장이 "전부 되거나 전부 안 되거나"여야 하는데 일부만 반영됐습니다. 트랜잭션은 이것을 보장하는 장치입니다(원자성).');
     if (!auto && c.fail !== 'none') sum.push('트랜잭션으로 묶으면 중간에 무슨 일이 생겨도 커밋 전의 변경은 남지 않습니다. 오류면 롤백하고, 서버가 꺼졌으면 DB가 복구하면서 취소합니다.');
     if (c.peek) sum.push(auto ? '묶지 않으면 중간 상태가 다른 사용자에게 그대로 보입니다.' : '커밋 전의 변경은 다른 트랜잭션에 보이지 않습니다(격리성). 얼마나 엄격하게 가릴지는 격리 수준으로 정하며, 그 내용은 "격리 수준" 실습에서 다룹니다.');
@@ -15771,9 +15767,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { A: 5000, B: 1000, pA: null, pB: null, tx: '', seen: '' };
-    H.table(v, ['계좌', 'DB에 확정된 잔액', '이 트랜잭션 안에서만 보이는 값 (커밋 전)'], [['A', s.A, s.pA], ['B', s.B, s.pB]].map(function (r) { return { cells: [r[0], r[1] + '원', { v: r[2] === null ? '-' : r[2] + '원', cls: r[2] === null ? '' : 'hot' }] }; }), 'account 테이블');
-    H.counters(v, [[(s.A + s.B) + '원', 'DB에 확정된 합계 (처음 6,000원)'], [s.tx || '-', '트랜잭션 상태']]);
-    if (s.seen) H.text(v, s.seen);
+    H.counters(v, [[s.tx || '-', '트랜잭션 상태']]);
   },
   // 그림: 왼쪽은 DB에 확정되어 모두가 보는 값, 오른쪽은 이 트랜잭션 안에서만 보이는 아직 확정되지 않은 값.
   draw: function (P, sim, shown) {
@@ -15797,7 +15791,7 @@ Lab.register({
 Lab.register({
   id: 'httpmsg', nav: 'HTTP 메시지와 상태 코드', cat: 'HTTP', mode: 'step',
   title: '요청과 응답은 이렇게 생긴 글자다',
-  intro: '브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 "무엇을(주소) 어떻게(메서드)"가, 응답에는 "어떻게 됐는지(상태 코드)"가 첫 줄에 적힙니다. 상황을 바꿔 가며 요청과 응답의 원문, 그리고 상태 코드가 무엇을 뜻하는지 보세요.',
+  intro: '브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 "무엇을(주소) 어떻게(메서드)"가, 응답에는 "어떻게 됐는지(상태 코드)"가 첫 줄에 적힙니다.',
   terms: ['HTTP와 무상태(Stateless)', 'HTTP 메서드', 'HTTP 상태 코드', 'REST', 'URI와 URL'], ranks: ['http', 'rest'],
   controls: [
     { id: 'sc', label: '상황', type: 'select', value: 'get', options: [['get', '주문 1번 조회'], ['create', '새 주문 등록'], ['delete', '주문 1번 삭제'], ['bad', '필수 값을 빼고 주문 등록'], ['noauth', '로그인하지 않고 주문 조회'], ['forbid', '남의 주문을 조회'], ['missing', '없는 주문 999번 조회'], ['moved', '주소가 바뀐 옛 경로로 조회'], ['error', '서버 코드에서 예외 발생']] },
@@ -15841,7 +15835,6 @@ Lab.register({
     K.hdr.forEach(function (h) { S.res.push(['헤더', h]); }); S.res.push(['빈 줄', '']); if (K.rbody) S.res.push(['본문', K.rbody]);
     var why = { get: '요청한 주문을 찾아 본문에 담아 돌려줍니다.', create: '새 주문이 만들어졌습니다. Location 헤더가 새로 생긴 주문의 주소를 알려 줍니다. 200이 아니라 201을 쓰는 것은 "새로 생겼다"는 사실을 전하기 위해서입니다.', delete: '삭제에 성공했고 돌려줄 내용이 없습니다. 그래서 본문이 없는 204입니다.', bad: '필수 값 quantity가 빠졌습니다. 요청 자체가 규칙에 맞지 않으므로 400입니다. 서버는 일을 시작하지도 않았습니다.', noauth: '누가 보낸 요청인지 알 수 없습니다. "먼저 인증하라"는 뜻의 401입니다.', forbid: '누구인지는 확인됐지만 이 주문을 볼 권한이 없습니다. 403입니다.', missing: '주소 형식은 맞지만 그 번호의 주문이 없습니다. 404입니다.', moved: '이 주소는 영구히 /orders로 옮겨졌습니다. 브라우저는 Location 헤더의 주소로 자동으로 다시 요청합니다.', error: '요청에는 문제가 없었는데 서버 코드에서 처리하지 못한 예외가 났습니다. 500입니다. 내부 오류 내용은 본문에 그대로 내보내지 않습니다.' }[c.sc];
     push(why, cls === '2' || cls === '3' ? 'good' : 'bad', 'res');
-    sum.push('응답 ' + K.status + ' (' + group + '). 고쳐야 하는 쪽: ' + K.who + '. 받은 쪽이 할 일: ' + K.next + '.');
     sum.push('상태 코드의 첫 자리만 봐도 대응이 갈립니다. 4xx는 같은 요청을 다시 보내도 소용없고 요청을 고쳐야 합니다. 5xx는 서버 쪽 문제라서 잠시 뒤 다시 시도해 볼 수 있습니다. 모니터링에서도 4xx와 5xx를 따로 셉니다.');
     if (c.sc === 'noauth' || c.sc === 'forbid') sum.push('401은 "누구인지 모르겠다"(인증), 403은 "누구인지는 알지만 안 된다"(인가)입니다. 이름과 달리 401 Unauthorized가 인증 실패를 뜻합니다.');
     if (c.sc === 'error' || c.sc === 'bad') sum.push('모든 실패를 200으로 응답하고 본문에 오류를 적는 방식은 피합니다. 상태 코드를 보고 동작하는 브라우저, 프록시, 모니터링 도구가 성공으로 오해합니다.');
@@ -15868,7 +15861,7 @@ Lab.register({
     if (s.res.length) P.arrow('go', 'rq:r', 'rs:l');
     var done = s.res.length > 0, code = done ? sim.row[0] : '';
     P.box('st', 16, 250, 648, 34, { cls: !done ? 'ghost' : /^[23]/.test(code) ? 'good' : 'bad', title: done ? '상태 코드 ' + code : '상태 코드', right: done ? sim.row[1] : '아직 응답 전' });
-    P.note('노란 줄이 시작 줄, 흰 줄이 헤더, 점선이 빈 줄, 초록 줄이 본문입니다. 요청의 시작 줄에는 메서드와 경로가, 응답의 시작 줄에는 상태 코드가 들어갑니다.');
+    P.note('노란 줄이 시작 줄, 흰 줄이 헤더, 점선이 빈 줄, 초록 줄이 본문입니다.');
   },
   assume: '메시지의 구조(시작 줄, 헤더, 빈 줄, 본문)는 실제 HTTP 서버와 소켓으로 주고받은 원문에서 확인한 모양 그대로이며, 화면에서는 주요 헤더만 남겼습니다. 상황별 상태 코드는 HTTP 표준(RFC 9110)의 정의와 REST API에서 널리 쓰는 관례를 따랐습니다. 남의 자원에 대한 요청에 403 대신 404를 주어 자원의 존재를 숨기는 설계도 있습니다.',
 });
@@ -15876,7 +15869,7 @@ Lab.register({
 Lab.register({
   id: 'cookie', nav: '쿠키', cat: '인증', mode: 'step',
   title: '기억하지 못하는 서버에게 매번 이름표를 내민다',
-  intro: 'HTTP 서버는 앞서 온 요청을 기억하지 못합니다. 그래서 로그인에 성공하면 서버가 응답에 작은 값(쿠키)을 실어 보내고, 브라우저는 그것을 보관했다가 같은 사이트로 가는 요청마다 자동으로 붙여 보냅니다. 쿠키의 속성을 바꿔 가며 어떤 요청에 쿠키가 붙고 어떤 요청에는 안 붙는지 보세요.',
+  intro: 'HTTP 서버는 앞서 온 요청을 기억하지 못합니다. 그래서 로그인에 성공하면 서버가 응답에 작은 값(쿠키)을 실어 보내고, 브라우저는 그것을 보관했다가 같은 사이트로 가는 요청마다 자동으로 붙여 보냅니다.',
   terms: ['쿠키', 'HTTP와 무상태(Stateless)', 'HttpOnly, Secure, SameSite', '세션'], ranks: ['auth', 'http'],
   controls: [
     { id: 'give', label: '로그인 응답에 쿠키를 내려 준다', type: 'check', value: true },
@@ -15934,7 +15927,6 @@ Lab.register({
     push('다른 사이트 other.example으로 가는 요청입니다. shop.example이 준 쿠키는 붙지 않습니다. 쿠키는 그것을 내려 준 사이트로 가는 요청에만 붙습니다.', '');
     S.rows.push(['페이지의 자바스크립트: document.cookie', R.js ? '"sid=abc123" 을 읽음' : '(읽히지 않음)', R.js ? '스크립트가 값을 가져갈 수 있음' : R.alive ? 'HttpOnly라서 스크립트에 보이지 않음' : '쿠키 없음']);
     push('shop.example/shop/cart 페이지에서 자바스크립트가 document.cookie를 읽습니다. ' + (R.js ? 'HttpOnly가 없어서 값이 그대로 읽힙니다. 페이지에 악성 스크립트가 끼어들면(XSS) 이 값을 빼내 로그인 상태를 훔칠 수 있습니다.' : R.alive ? 'HttpOnly 쿠키는 스크립트에 보이지 않습니다. 그래도 요청에는 계속 자동으로 붙습니다.' : '보관된 쿠키가 없습니다.'), R.js ? 'bad' : R.alive ? 'good' : '');
-    sum.push(R.alive ? '쿠키는 살아 있고, ' + (c.path === '/' ? '사이트의 모든 경로' : '/shop 아래 경로') + '로 가는 요청에 자동으로 붙습니다. 다른 사이트로 가는 요청에는 붙지 않습니다.' : '쿠키가 지워져서 이후 요청은 모두 로그인하지 않은 요청으로 처리됩니다.');
     if (R.alive && c.path !== '/') sum.push('Path를 좁히면 그 경로 밖의 요청에는 쿠키가 붙지 않습니다. 로그인 쿠키는 보통 Path=/로 둡니다.');
     if (R.js) sum.push('로그인에 쓰는 쿠키에는 HttpOnly를 붙여 스크립트가 읽지 못하게 합니다. 실제 서비스에서는 https에서만 보내는 Secure, 다른 사이트에서 시작된 요청에 붙을지를 정하는 SameSite도 함께 지정합니다.');
     if (c.life === 'session' && c.later !== 'restart') sum.push('수명을 지정하지 않은 쿠키는 브라우저를 닫을 때 지워집니다. "로그인 유지"는 Max-Age나 Expires로 수명을 지정한 쿠키입니다.');
@@ -15943,8 +15935,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { jar: [], rows: [] };
-    H.title(v, '브라우저가 보관 중인 shop.example의 쿠키');
-    H.slots(v, s.jar.map(function (x) { return [x, 'd']; }), '없음');
     if (s.rows.length) H.table(v, ['요청 또는 동작', '브라우저가 붙인 Cookie 헤더', '서버(또는 스크립트)가 아는 것'], s.rows.map(function (r, i) { var on = i === s.rows.length - 1; return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, { v: r[1], cls: r[1].indexOf('sid=') >= 0 ? (r[0].indexOf('document') >= 0 ? 'bad' : 'good') : '' }, r[2]] }; }), '요청마다 쿠키가 붙는지');
   },
   // 그림: 브라우저가 요청마다 쿠키를 붙이는지. 같은 사이트, 다른 경로, 다른 사이트, 스크립트가 읽는 경우를 차례로 본다.
@@ -15960,7 +15950,7 @@ Lab.register({
     var end = P.seq([['b', '브라우저', 'wait'], ['s', 'shop.example 서버', 'wait'], ['o', 'other.example']], msgs, { keep: 7 });
     P.box('jar', 16, end + 14, 648, 46, { cls: s.jar.length ? 'good' : 'ghost', title: '브라우저가 보관 중인 shop.example의 쿠키', sub: s.jar[0] || '없음' });
     P.size(680, end + 76);
-    P.note('초록 화살표는 쿠키가 붙어 간 요청, 빨간 화살표는 쿠키 없이 가서 서버가 누구인지 모르는 요청입니다. 쿠키는 브라우저가 알아서 붙이며, 그것을 내려 준 사이트로 가는 요청에만 붙습니다.');
+    P.note('초록 화살표는 쿠키가 붙어 간 요청, 빨간 화살표는 쿠키 없이 가서 서버가 누구인지 모르는 요청입니다.');
   },
   assume: 'Path에 따라 붙는 경로, HttpOnly 쿠키가 document.cookie에 보이지 않는 것, Max-Age가 지난 쿠키가 사라지는 것, 호스트가 다른 주소로는 쿠키가 가지 않는 것은 실제 브라우저와 시험용 서버로 확인한 결과와 같습니다. 브라우저를 닫을 때 세션 쿠키가 지워지는 것은 표준 동작을 따른 것이며 직접 실행해 확인하지는 않았습니다. "이전 탭 복원" 기능을 켠 브라우저는 세션 쿠키를 되살리기도 합니다. Secure와 SameSite, Domain 속성은 이 실습에서 다루지 않았습니다.',
 });
@@ -15968,7 +15958,7 @@ Lab.register({
 Lab.register({
   id: 'btree', nav: '이진 탐색과 B-트리', cat: '자료구조', mode: 'step',
   title: '정렬돼 있으면 절반씩 버릴 수 있다',
-  intro: '값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다. 찾는 방식과 찾는 값을 바꿔 가며 몇 번 만에 찾는지 보고, 데이터가 훨씬 많아지면 그 차이가 어떻게 벌어지는지 보세요.',
+  intro: '값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다.',
   terms: ['이진 탐색', '시간 복잡도(Big-O)', 'B-트리 인덱스', '풀 테이블 스캔', '인덱스'], ranks: ['ds', 'index'],
   controls: [
     { id: 'how', label: '찾는 방식', type: 'select', value: 'scan', options: [['scan', '처음부터 하나씩 (정렬 안 된 데이터)'], ['binary', '이진 탐색 (정렬된 배열)'], ['btree', 'B-트리 (노드 하나에 여러 값)']] },
@@ -16040,8 +16030,6 @@ Lab.register({
     var N = +c.n, worst = { scan: N, binary: self.depth(N + 1, 2), b3: self.depth(N, 3), b500: self.depth(N, 500) };
     var fmtN = function (x) { return x >= 100000000 ? (x / 100000000) + '억' : x >= 10000 ? (x / 10000) + '만' : String(x); };
     var unit = c.how === 'btree' ? '노드 ' + T.count + '개 읽음' : T.count + '번 확인';
-    sum.push('27건에서 값(' + tg + ') 찾기: ' + unit + ', ' + (T.found ? '찾음' : '없음을 확인') + '.');
-    sum.push(fmtN(N) + ' 건이라면 가장 오래 걸릴 때: 하나씩 ' + fmtN(worst.scan) + '번, 이진 탐색 ' + worst.binary + '번, 노드당 3갈래 B-트리 ' + worst.b3 + '단계, 노드당 500갈래 B-트리 ' + worst.b500 + '단계.');
     if (c.how === 'scan') sum.push('하나씩 찾는 방식은 데이터가 10배가 되면 확인 횟수도 10배가 됩니다(O(n)). 없는 값은 끝까지 봐야 합니다. 인덱스가 없는 컬럼으로 조회하면 DB가 하는 일이 이것입니다.');
     if (c.how === 'binary') sum.push('한 번 확인할 때마다 후보가 절반으로 줄어듭니다(O(log n)). 데이터가 1천 배가 되어도 확인은 10번쯤만 늘어납니다. 단, 데이터가 정렬돼 있어야 하고, 정렬된 배열은 중간에 값을 끼워 넣기가 비쌉니다.');
     if (c.how === 'btree') sum.push('B-트리는 한 번에 둘이 아니라 여러 갈래로 나눕니다. 갈래가 많을수록 트리가 낮아지고, 읽어야 할 노드(디스크 페이지)가 줄어듭니다. 실제 DB 인덱스는 노드 하나에 수백 개의 값을 담아 수억 건도 서너 단계로 찾습니다.');
@@ -16049,18 +16037,13 @@ Lab.register({
     return { events: ev, summary: sum, row: [unit, T.found ? '찾음' : '없음', { scan: fmtN(worst.scan) + '번', binary: worst.binary + '번', btree: '500갈래 기준 ' + worst.b500 + '단계' }[c.how]], worst: worst, big: fmtN(N) };
   },
   render: function (v, sim, t, H, shown) {
-    var a = this.keys(), last = shown[shown.length - 1], s = last ? last.snap : null;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 탐색을 한 단계씩 보여 줍니다.'); return; }
     if (s.how !== 'btree') {
-      H.title(v, s.how === 'scan' ? '값 27개 (실제로는 정렬되지 않은 순서라고 가정)' : '정렬된 값 27개');
-      H.slots(v, a.map(function (k, i) { var cand = s.how === 'binary' ? (i >= s.lo && i <= s.hi && s.seen.indexOf(i) < 0) : s.seen.indexOf(i) < 0, cls = i === s.cur ? (s.done ? (s.found ? 'd now' : 'r now') : 'b now') : cand ? 'q' : ''; return [String(k), cls]; }), '', true);
-      H.text(v, '파란 칸은 아직 후보, 흐린 칸은 후보에서 빠진 칸, 굵은 테두리는 지금 확인하는 칸입니다.'); H.counters(v, [[s.seen.length + '번', '확인한 횟수'], [s.how === 'binary' ? (s.found ? '-' : Math.max(0, s.hi - s.lo + 1) + '칸') : (27 - s.seen.length) + '칸', s.how === 'binary' ? '아직 후보로 남은 칸' : '아직 안 본 칸']]);
+      H.counters(v, [[s.how === 'binary' ? (s.found ? '-' : Math.max(0, s.hi - s.lo + 1) + '칸') : (27 - s.seen.length) + '칸', s.how === 'binary' ? '아직 후보로 남은 칸' : '아직 안 본 칸']]);
     } else {
-      var p = s.path, br = p.length > 1 ? p[1].branch : -1, lf = p.length > 2 ? p[2].leaf : -1;
-      H.title(v, '뿌리 노드'); H.slots(v, [['100', p.length ? 'b' + (p.length === 1 ? ' now' : '') : 'q'], ['190', p.length ? 'b' + (p.length === 1 ? ' now' : '') : 'q']], '', true);
-      H.title(v, '가지 노드 3개 (구분값)'); H.slots(v, [0, 1, 2].map(function (i) { return ['가지 ' + (i + 1) + ': ' + a[i * 9 + 3] + ', ' + a[i * 9 + 6], i === br ? 'b' + (p.length === 2 ? ' now' : '') : p.length > 1 ? '' : 'q']; }), '', true);
-      H.title(v, '잎 노드 9개 (실제 값)'); H.slots(v, [0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (i) { return [a.slice(i * 3, i * 3 + 3).join(' '), i === lf ? (s.found ? 'd now' : 'r now') : p.length > 2 ? '' : 'q']; }), '', true);
-      H.text(v, '노란 칸은 읽은 노드, 흐린 칸은 읽지 않고 건너뛴 노드입니다.'); H.counters(v, [[p.length + '개', '읽은 노드 (디스크 읽기 횟수)'], [(13 - p.length) + '개', '읽지 않은 노드']]);
+      var p = s.path;
+      H.counters(v, [[p.length + '개', '읽은 노드 (디스크 읽기 횟수)'], [(13 - p.length) + '개', '읽지 않은 노드']]);
     }
     if (s.done) { var w = sim.worst; H.table(v, ['방식', sim.big + ' 건에서 가장 오래 걸릴 때', '늘어나는 모양'], [['처음부터 하나씩', sim.big + '번 확인', 'O(n): 데이터에 비례'], ['이진 탐색', w.binary + '번 확인', 'O(log n): 절반씩 줄임'], ['B-트리 (노드당 3갈래)', w.b3 + '단계', 'O(log n): 3분의 1씩 줄임'], ['B-트리 (노드당 500갈래)', w.b500 + '단계', 'O(log n): 500분의 1씩 줄임']].map(function (r, i) { var on = (s.how === 'scan' && i === 0) || (s.how === 'binary' && i === 1) || (s.how === 'btree' && i >= 2); return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2]] }; }), '데이터가 많아지면'); }
   },
@@ -16098,7 +16081,7 @@ Lab.register({
 Lab.register({
   id: 'mq', nav: '메시지 큐 기본', cat: '메시지 큐', mode: 'step',
   title: '직접 부르지 않고 쪽지를 남긴다',
-  intro: '주문이 들어오면 확인 메일을 보내야 합니다. 주문 서버가 메일 서버를 직접 호출해 끝날 때까지 기다릴 수도 있고, "메일 보내 주세요"라는 메시지를 큐에 넣어 두고 바로 응답할 수도 있습니다. 메일 서버가 느리거나 죽어 있을 때 주문이 어떻게 되는지 두 방식을 비교해 보세요.',
+  intro: '주문이 들어오면 확인 메일을 보내야 합니다. 주문 서버가 메일 서버를 직접 호출해 끝날 때까지 기다릴 수도 있고, "메일 보내 주세요"라는 메시지를 큐에 넣어 두고 바로 응답할 수도 있습니다.',
   terms: ['메시지 큐', '동기와 비동기', 'Pub/Sub', '메시지 전달 보장', '최종 일관성(Eventual Consistency)'], ranks: ['mq', 'msa'],
   controls: [
     { id: 'how', label: '메일 서버에 일을 넘기는 방식', type: 'select', value: 'direct', options: [['direct', '직접 호출하고 끝날 때까지 기다림'], ['queue', '메시지 큐에 넣고 바로 응답']] },
@@ -16137,7 +16120,6 @@ Lab.register({
       if (down) { push('메일 서버가 죽어 있어 아무도 큐에서 꺼내 가지 않습니다. 메시지 ' + n + '건은 큐에 그대로 남아 있습니다. 주문은 이미 모두 성공으로 응답했습니다.', ''); S.mail = '복구됨'; push('메일 서버가 복구됐습니다. 큐에 쌓여 있던 메시지를 앞에서부터 꺼내 가기 시작합니다.', ''); }
       for (i = 1; i <= n; i++) { S.q.shift(); S.sent++; S.mail = '주문 ' + i + '의 메일 발송 완료'; S.orders[i - 1] = ['주문 ' + i, f(resp), '성공', '메일 발송됨 (응답 뒤에)']; push('메일 서버가 큐에서 "주문 ' + i + '" 메시지를 꺼내 메일을 보냅니다(' + f(work) + '). 자기 속도대로 하나씩 처리합니다.', ''); }
     }
-    sum.push('주문 ' + n + '건 중 ' + okCount + '건 성공. 주문 한 건의 응답 시간 ' + f(resp) + '. 보낸 메일 ' + S.sent + '통.');
     if (direct && down) sum.push('직접 호출하면 호출받는 쪽의 장애가 호출하는 쪽으로 번집니다. 메일 서버가 죽자 주문까지 받지 못했습니다.');
     if (direct && !down) sum.push('직접 호출하면 응답 시간에 상대의 처리 시간이 그대로 더해집니다. 메일이 느려지면 주문도 느려집니다. 대신 응답을 받은 시점에 메일까지 끝났다는 것이 확실합니다.');
     if (!direct) sum.push('큐를 사이에 두면 주문 서버는 메시지를 넣는 것까지만 책임집니다. 메일 서버가 느리거나 죽어 있어도 주문의 응답 시간과 성공 여부는 그대로입니다. 큐가 그 사이의 완충 역할을 합니다.');
@@ -16147,10 +16129,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { orders: [], q: [], mail: '', sent: 0 };
-    if (s.orders.length) H.table(v, ['주문', '사용자가 응답을 받기까지', '주문 결과', '메일'], s.orders.map(function (r) { return { cells: [r[0], r[1], { v: r[2], cls: r[2] === '성공' ? 'good' : 'bad' }, r[3]] }; }), '주문 서버');
-    H.title(v, '메시지 큐에 쌓인 메시지');
-    H.slots(v, s.q.map(function (x) { return [x, 'q']; }), sim.row[3] === '큐 없음' ? '큐를 쓰지 않음' : '비어 있음');
-    H.counters(v, [[s.mail || '-', '메일 서버'], [s.sent + '통', '보낸 메일']]);
+    H.counters(v, [[s.sent + '통', '보낸 메일']]);
   },
   // 그림: 주문 서버와 메일 서버. 직접 부르면 둘이 화살표로 묶이고, 큐를 두면 그 사이에 메시지가 쌓인다.
   draw: function (P, sim, shown) {
@@ -16167,7 +16146,7 @@ Lab.register({
     }
     s.orders.forEach(function (r, i) { P.box('o' + i, 16, 226 + i * 30, 648, 26, { cls: r[2] === '성공' ? 'good' : 'bad', title: r[0] + ' · 응답까지 ' + r[1], right: r[2] + ' · ' + r[3] }); });
     if (!s.orders.length) P.text('none', 340, 244, '아직 들어온 주문이 없습니다', { cls: 'mut', anchor: 'middle' });
-    P.note(direct ? '두 서버가 화살표 하나로 묶여 있습니다. 메일 서버가 느리면 주문 응답도 느려지고, 죽으면 주문도 실패합니다.' : '가운데 큐가 완충 역할을 합니다. 주문 서버는 메시지를 넣기만 하고 바로 응답하며, 메일 서버가 죽어 있어도 메시지는 큐에 남아 기다립니다.');
+    P.note(direct ? '두 서버가 화살표 하나로 묶여 있습니다.' : '가운데 큐가 완충 역할을 합니다.');
   },
   assume: '개념을 설명하기 위한 모델이며 실제 메시지 큐를 실행해 확인한 결과는 아닙니다. 시간 값(저장 0.05초, 큐에 넣기 0.01초, 타임아웃 3초)은 예시입니다. 직접 호출에서도 타임아웃과 예외 처리를 넣어 주문 실패를 막을 수 있고, 큐 자체가 죽는 경우와 메시지 유실, 중복 전달, 순서 문제는 여기서 다루지 않았습니다. 코드의 @RabbitListener는 RabbitMQ를 쓸 때의 예시입니다.',
 });
@@ -16175,7 +16154,7 @@ Lab.register({
 Lab.register({
   id: 'cicd', nav: 'CI/CD 파이프라인', cat: '배포와 운영', mode: 'step',
   title: '코드를 올리면 기계가 대신 확인하고 배포한다',
-  intro: '코드를 고쳐서 운영 서버에 반영하기까지는 빌드, 테스트, 포장, 배포라는 단계가 있습니다. 이 단계를 사람이 손으로 하면 빠뜨리거나 사람마다 다르게 합니다. 손으로 할 때, 확인까지만 자동화했을 때(CI), 배포까지 자동화했을 때(CD)를 나눠, 문제가 있는 코드가 어디에서 걸러지는지 보세요.',
+  intro: '코드를 고쳐서 운영 서버에 반영하기까지는 빌드, 테스트, 포장, 배포라는 단계가 있습니다. 이 단계를 사람이 손으로 하면 빠뜨리거나 사람마다 다르게 합니다.',
   terms: ['CI/CD', '단위 테스트와 통합 테스트', '코드 리뷰와 Pull Request', '헬스 체크(Liveness, Readiness)', '롤링, 블루-그린, 카나리 배포'], ranks: ['deploy', 'test'],
   controls: [
     { id: 'pipe', label: '반영 방식', type: 'select', value: 'manual', options: [['manual', '손으로: 내 PC에서 빌드해 서버에 복사'], ['ci', 'CI: 올리면 자동으로 빌드와 테스트, 배포는 사람이'], ['cicd', 'CI/CD: 통과하면 배포까지 자동']] },
@@ -16245,7 +16224,6 @@ Lab.register({
         }
       }
     }
-    sum.push('문제가 발견된 곳: ' + R.where + '. 운영 사용자 영향: ' + R.impact + '.');
     if (!auto && R.impact === '장애') sum.push('손으로 하면 확인 단계를 건너뛸 수 있고, 건너뛴 것을 아무도 모릅니다. 문제는 가장 비싼 곳인 운영에서 발견됩니다.');
     if (auto && (R.stop === 'build' || R.stop === 'test')) sum.push('CI(지속적 통합)는 코드를 올릴 때마다 깨끗한 환경에서 빌드와 테스트를 자동으로 돌려, 문제를 병합 전에 찾습니다. 문제는 일찍 찾을수록 고치는 비용이 작습니다.');
     if (p === 'ci' && b === 'runtime') sum.push('CI는 병합까지만 지킵니다. 배포와 그 뒤의 확인은 여전히 사람의 일로 남습니다.');
@@ -16257,7 +16235,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { stages: [] };
     if (!s.stages.length) { H.text(v, '실행을 누르면 단계를 하나씩 진행합니다.'); return; }
-    H.slots(v, s.stages.map(function (r, i) { var bad = r[1] === '실패' || r[1] === '장애', skip = r[1] === '건너뜀'; return [r[0], (bad ? 'r' : skip ? 'q' : 'd') + (i === s.stages.length - 1 ? ' now' : '')]; }), '');
     H.table(v, ['단계', '결과', '누가'], s.stages.map(function (r, i) { var bad = r[1] === '실패' || r[1] === '장애'; return { cells: [{ v: r[0], cls: i === s.stages.length - 1 ? 'hot' : '' }, { v: r[1], cls: bad ? 'bad' : r[1] === '건너뜀' ? '' : 'good' }, r[2]] }; }), '코드가 운영에 닿기까지');
   },
   // 그림: 코드가 운영에 닿기까지 거치는 단계를 왼쪽에서 오른쪽으로 잇는다. 어디서 멈췄는지가 보인다.
@@ -16335,27 +16312,19 @@ Lab.register({
     }
     st.set = found ? '1' : '2';
     push('set.add(a), set.add(b): HashSet도 안에서 HashMap을 쓰므로 같은 순서로 판단합니다. ' + (found ? 'b는 이미 들어 있는 a와 같은 원소로 보아 넣지 않습니다. 크기는 1입니다.' : 'b를 a와 다른 원소로 보아 둘 다 넣습니다. 크기는 2입니다.' + (same ? ' 내용이 같은 객체가 중복으로 들어갔습니다.' : '')), found ? 'good' : same ? 'bad' : '');
-    sum.push('a.equals(b)는 ' + f.eq + ', hashCode는 ' + (f.hs ? '같고' : '다르고') + ', map.get(b)는 ' + st.got + ', set의 크기는 ' + st.set + '입니다.');
     if (same && f.eq && !f.hs) sum.push('equals만 재정의하면 equals로는 같은 두 객체가 서로 다른 자리로 갑니다. HashMap, HashSet, HashMap을 쓰는 캐시에서 "넣었는데 못 찾는" 버그가 됩니다. equals를 재정의할 때는 hashCode도 같은 필드로 함께 재정의합니다.');
     if (same && !f.eq && f.hs) sum.push('hashCode만 재정의하면 같은 자리까지는 가지만 마지막 확인인 equals가 false입니다. 둘은 짝이라서 하나만으로는 소용이 없습니다.');
     if (same && !f.eqOver && !f.hashOver) sum.push('아무것도 재정의하지 않으면 객체는 자기 자신과만 같습니다. 주문 번호나 좌표처럼 "값이 같으면 같은 것"으로 다뤄야 하는 객체는 둘 다 재정의하거나 record로 선언합니다.');
     if (found) sum.push(c.how === 'record' ? 'record는 모든 구성 요소를 비교하는 equals와 그에 맞는 hashCode를 자동으로 만들어 줍니다. 값을 담는 객체에 잘 맞습니다.' : c.how === 'const' ? '모든 객체의 hashCode가 같아도 규약에는 어긋나지 않고 결과도 맞습니다. 하지만 모든 키가 한 자리에 몰려, 찾을 때마다 그 자리의 키를 하나씩 equals로 비교해야 합니다. 키가 많아지면 HashMap이 느려집니다.' : 'equals가 같은 두 객체가 같은 hashCode를 돌려주므로 HashMap과 HashSet이 둘을 같은 키로 다룹니다.');
     if (!same && c.how === 'const') sum.push('내용이 다른 두 객체가 같은 hashCode를 가져도 됩니다(해시 충돌). 같은 자리에 들어간 뒤 equals로 구분됩니다. 다만 충돌이 많을수록 느려지므로, hashCode는 값이 고르게 퍼지도록 만드는 것이 좋습니다.');
-    if (!same && c.how !== 'const') sum.push('내용이 다른 두 객체는 어떤 방식에서든 다른 키로 다뤄집니다. 내용이 같은 경우(id를 둘 다 1로)와 비교해 보세요.');
+    if (!same && c.how !== 'const') sum.push('내용이 다른 두 객체는 어떤 방식에서든 다른 키로 다뤄집니다.');
     return { events: ev, summary: sum, hs: f.hs, row: [String(f.eq), f.hs ? '같음' : '다름', st.got, st.set + '개'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    H.table(v, ['객체', 'id', 'hashCode'], [
-      { cells: ['a', '1', c.how === 'const' ? '42' : s.hs === '?' ? '?' : s.hs === 'true' ? '(b와 같은 값)' : '(b와 다른 값)'] },
-      { cells: ['b', c.same === 'same' ? '1' : '2', c.how === 'const' ? '42' : s.hs === '?' ? '?' : s.hs === 'true' ? '(a와 같은 값)' : '(a와 다른 값)'] },
-    ], '키로 쓸 객체');
     var ln = H.lanes(v);
     H.lane(ln, 'equals', s.eq === '?' ? '아직 비교 전' : 'a.equals(b) = ' + s.eq, s.eq === 'true' ? 'good' : s.eq === 'false' ? 'wait' : 'none');
-    H.lane(ln, 'hashCode', s.hs === '?' ? '아직 비교 전' : s.hs === 'true' ? '두 값이 같음' : '두 값이 다름', s.hs === 'true' ? 'good' : s.hs === 'false' ? 'wait' : 'none');
-    H.lane(ln, 'map.get(b)', !s.look ? (s.put ? 'a를 넣어 둠' : '아직 넣기 전') : s.look === 'same' ? 'a가 있는 자리에서 찾음' + (s.got !== '?' ? ' → ' + s.got : '') : 'a가 없는 다른 자리에서 찾음 → null', s.got === '주문 내역' ? 'good' : s.got === 'null' ? 'bad' : 'none');
-    H.counters(v, [[s.got, 'map.get(b)'], [s.set === '?' ? '?' : s.set + '개', 'set의 크기']]);
   },
   // 그림: 왼쪽에 키 객체 둘, 오른쪽에 HashMap의 자리(버킷). hashCode가 자리를 정하고, 그 자리에서 equals로 확인한다.
   draw: function (P, sim, shown) {
@@ -16372,7 +16341,7 @@ Lab.register({
     var res = function (x, good) { return x === '?' ? 'ghost' : x === good ? 'good' : 'bad'; };
     P.box('r1', 16, 232, 320, 36, { cls: res(s.got, '주문 내역'), title: 'map.get(b)', right: s.got });
     P.box('r2', 344, 232, 320, 36, { cls: s.set === '?' ? 'ghost' : s.set === '1' ? 'good' : c.same === 'same' ? 'bad' : 'plain', title: 'set의 크기', right: s.set === '?' ? '?' : s.set + '개' });
-    P.note('HashMap은 hashCode로 자리를 먼저 정하고, 그 자리에 있는 키와만 equals로 비교합니다. 그래서 equals가 true인 두 객체의 hashCode가 다르면 서로를 찾지 못합니다. 자리(버킷)는 실제로는 번호가 붙은 배열의 칸입니다.');
+    P.note('자리(버킷)는 실제로는 번호가 붙은 배열의 칸입니다.');
   },
   assume: '열두 가지 조합의 결과(equals, hashCode가 같은지, map.get, set의 크기)를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. hashCode를 재정의하지 않은 두 객체의 값이 "다르다"는 것은 거의 항상 그렇다는 뜻입니다. Object의 hashCode는 서로 다른 객체에 같은 값을 줄 수도 있으며(그래도 규약에 어긋나지 않습니다), 그 경우에는 equals의 결과에 따라 찾을 수도 있습니다. HashMap은 같은 자리에 있더라도 hashCode 값이 다른 키와는 equals를 부르지 않고 넘어갑니다. record의 hashCode가 내는 구체적인 값은 명세가 정하지 않지만, equals가 같은 두 record의 hashCode가 같다는 것은 보장됩니다.',
 });
@@ -16461,7 +16430,6 @@ Lab.register({
     else if (W === 'renew') why = cv + '의 칸만 새 객체를 가리키게 됐고, a가 가리키는 객체는 아무도 바꾸지 않았습니다.';
     else why = '새 String 객체가 만들어졌을 뿐, a가 가리키는 "hi" 객체는 바뀌지 않았습니다.';
     push('System.out.println(' + fld('a') + '): ' + (prim ? 'a의 칸에 든 값을 읽습니다.' : str ? 'a가 가리키는 객체의 글자를 읽습니다.' : 'a가 가리키는 객체의 x를 읽습니다.') + ' 출력은 ' + st.out2 + '입니다. ' + why, changed ? (ret ? 'good' : 'bad') : '');
-    sum.push((call ? 'p' : 'b') + '에서 읽은 값은 ' + st.out1 + ', a에서 읽은 값은 ' + st.out2 + '입니다. a에서 읽은 값은 ' + (changed ? '처음과 달라졌습니다.' : '처음 그대로입니다.'));
     if (prim) sum.push('기본형 변수의 칸에는 값 자체가 들어 있습니다. 복사하면 같은 값이 하나 더 생길 뿐이어서, 복사본을 아무리 바꿔도 원래 변수는 달라지지 않습니다.');
     if (W === 'field') sum.push('참조형 변수의 칸에는 객체가 아니라 참조가 들어 있습니다. 복사된 것이 참조이므로 두 변수가 같은 객체 하나를 가리키고, 한쪽에서 내용을 바꾸면 다른 쪽에서도 바뀐 내용이 보입니다.');
     if (W === 'renew') sum.push('"가리키는 객체의 내용을 바꾸는 것"(' + cv + '.x = 99)과 "변수가 다른 객체를 가리키게 하는 것"(' + cv + ' = new Point(99))은 다른 일입니다. 뒤의 것은 그 변수의 칸만 바꾸므로, 같은 객체를 가리키던 다른 변수에는 아무 영향이 없습니다.');
@@ -16481,12 +16449,6 @@ Lab.register({
       { cells: ['a', { v: self.cell(s.a, c), cls: s.hot === 'a' ? 'hot' : '' }] },
       { cls: s.cp ? '' : 'gone', cells: [cv === 'p' ? 'p (change의 매개변수)' : 'b', { v: s.cp ? self.cell(s.cp, c) : s.gone ? '사라짐 (메서드가 끝남)' : '아직 없음', cls: s.hot === 'cp' ? 'hot' : '' }] },
     ], '변수');
-    if (c.what !== 'prim') H.table(v, ['객체', '내용', '가리키는 변수'], s.objs.map(function (o) {
-      var by = []; if (s.a && s.a.ref === o.id) by.push('a'); if (s.cp && s.cp.ref === o.id) by.push(cv);
-      return { cls: by.length ? '' : 'gone', cells: ['객체 ' + o.id, self.objText(o, c), { v: by.length ? by.join(', ') : '없음', cls: by.length > 1 ? 'hot' : '' }] };
-    }), '힙의 객체');
-    else H.text(v, '기본형은 객체를 만들지 않습니다. 값이 변수의 칸에 바로 들어 있습니다.');
-    H.counters(v, [[s.out1, cv + '에서 읽은 값'], [s.out2, 'a에서 읽은 값']]);
   },
   // 그림: 왼쪽에 변수의 칸, 오른쪽에 힙의 객체. 참조가 든 칸에서 객체로 화살표가 간다. 아래에는 두 번의 출력.
   draw: function (P, sim, shown) {
@@ -16506,7 +16468,7 @@ Lab.register({
     });
     P.box('r1', 16, 232, 320, 36, { cls: s.out1 === '?' ? 'ghost' : 'plain', title: cv + '에서 읽은 값', right: s.out1 });
     P.box('r2', 344, 232, 320, 36, { cls: s.out2 === '?' ? 'ghost' : s.out2 === s.out1 && c.what === 'field' && c.how !== 'ret' ? 'bad' : 'plain', title: 'a에서 읽은 값', right: s.out2 });
-    P.note(c.what === 'prim' ? '기본형 변수의 칸에는 값이 그대로 들어 있습니다. 복사하면 값이 하나 더 생기고, 두 칸은 서로 이어져 있지 않습니다.' : '화살표는 칸에 든 참조가 가리키는 객체입니다. 대입이나 메서드 호출로 복사되는 것은 화살표(참조)이고, 객체는 new를 해야만 새로 생깁니다. 두 화살표가 한 객체에 닿아 있으면, 한쪽에서 바꾼 내용이 다른 쪽에서도 보입니다.');
+    P.note(c.what === 'prim' ? '기본형 변수의 칸에는 값이 그대로 들어 있습니다. 복사하면 값이 하나 더 생기고, 두 칸은 서로 이어져 있지 않습니다.' : '화살표는 칸에 든 참조가 가리키는 객체입니다. 두 화살표가 한 객체에 닿아 있으면, 한쪽에서 바꾼 내용이 다른 쪽에서도 보입니다.');
   },
   assume: '열다섯 가지 조합의 출력(복사본에서 읽은 값, a에서 읽은 값)을 이 PC의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. "참조"는 객체가 있는 곳을 가리키는 값이라는 뜻으로 썼습니다. 자바에서는 이 값을 숫자로 꺼내 볼 수 없고, 실제로 메모리 주소 그대로인지도 JVM마다 다릅니다. 변수의 칸이 스택에, 객체가 힙에 놓인다는 그림은 지역 변수에 대한 일반적인 설명이며, JIT 컴파일러가 최적화하면 객체를 힙에 만들지 않을 수도 있지만 프로그램의 결과는 같습니다. 문자열 "hi"는 실제로는 String Pool에 있는 객체인데, 여기서는 힙의 객체 하나로만 그렸습니다. 메서드에 넘길 때 생기는 호출 프레임은 "스택과 힙" 실습에서, ==와 equals의 차이는 "==와 equals" 실습에서 다룹니다.',
 });
@@ -16514,7 +16476,7 @@ Lab.register({
 Lab.register({
   id: 'casting', nav: '연산자와 형변환', cat: '자바 언어', mode: 'step',
   title: '7 / 2는 왜 3.5가 아니라 3이 나오나',
-  intro: '자바에서 계산 결과는 숫자만이 아니라 타입으로도 정해집니다. int끼리 계산하면 결과도 int라서 소수점 아래나 범위를 넘는 부분이 사라지고, 타입이 섞이면 좁은 쪽을 넓은 쪽으로 자동으로 맞춘 뒤 계산합니다. +는 한쪽이 문자열이면 덧셈이 아니라 이어 붙이기가 됩니다. 식을 하나 골라, 어느 순간에 무엇이 사라지거나 바뀌는지 따라가 보세요.',
+  intro: '자바에서 계산 결과는 숫자만이 아니라 타입으로도 정해집니다. int끼리 계산하면 결과도 int라서 소수점 아래나 범위를 넘는 부분이 사라지고, 타입이 섞이면 좁은 쪽을 넓은 쪽으로 자동으로 맞춘 뒤 계산합니다. +는 한쪽이 문자열이면 덧셈이 아니라 이어 붙이기가 됩니다.',
   terms: ['형변환', '정수 나눗셈과 나머지', '정수 오버플로', '문자열 연결'],
   controls: [
     { id: 'topic', label: '살펴볼 것', type: 'select', value: 'ints', options: [['ints', '정수끼리의 계산 (나눗셈, 나머지, 범위)'], ['conv', '타입이 섞이거나 바뀔 때 (형변환)'], ['str', '문자열과 +']] },
@@ -16659,7 +16621,7 @@ Lab.register({
       } catch (e) { if (!(e instanceof Stop)) throw e; result = e.msg; }
     }
     var tips = {
-      div: ['int끼리 나누면 결과도 int입니다. 소수점 아래는 반올림 없이 버려집니다.', '소수점까지 얻으려면 나누기 전에 한쪽을 double로 만들어야 합니다. "살펴볼 것"을 형변환으로 바꿔 7 / 2.0을 실행해 보세요.'],
+      div: ['int끼리 나누면 결과도 int입니다. 소수점 아래는 반올림 없이 버려집니다.', '소수점까지 얻으려면 나누기 전에 한쪽을 double로 만들어야 합니다.'],
       mod: ['%는 나머지를 구합니다. 짝수인지 볼 때(n % 2 == 0), 열 번에 한 번만 무언가를 할 때(i % 10 == 0)처럼 자주 쓰입니다.'],
       ndiv: ['정수 나눗셈은 아래로 내리는 것이 아니라 0 쪽으로 버리는 것입니다. 양수에서는 둘이 같아서 드러나지 않다가 음수에서 차이가 납니다.'],
       nmod: ['나머지의 부호는 왼쪽 수(나누어지는 수)를 따릅니다. 그래서 홀수 검사를 n % 2 == 1로 쓰면 음수 홀수에서 false가 됩니다. n % 2 != 0으로 씁니다.'],
@@ -16667,7 +16629,7 @@ Lab.register({
       over: ['int는 약 -21억부터 21억까지만 담습니다. 범위를 넘어도 예외나 경고 없이 반대쪽 끝으로 넘어가므로 알아차리기 어렵습니다.', '큰 수가 나올 수 있는 계산(금액, 밀리초 단위 시간, 개수의 곱)은 long으로 합니다. 넘치는 순간을 예외로 알고 싶으면 Math.addExact를 씁니다.'],
       late: ['타입은 변수에 넣을 때가 아니라 계산할 때 정해집니다. 7 / 2는 int끼리의 계산이라 이미 3이 됐고, double 변수에 넣어도 3.0이 될 뿐입니다.', '평균을 구하면서 double avg = sum / count; 로 쓰면 같은 일이 생깁니다. (double) sum / count처럼 나누기 전에 한쪽을 double로 바꿉니다.'],
       mix: ['타입이 섞인 계산에서는 좁은 쪽이 넓은 쪽으로 자동으로 바뀐 뒤 계산됩니다(int보다 long이, long보다 double이 넓습니다). 담을 수 있는 범위가 넓어지는 방향이라 따로 적지 않아도 됩니다.'],
-      longlate: ['long 변수에 받는 것만으로는 오버플로를 막지 못합니다. big + 1은 int끼리의 계산이라 이미 넘친 뒤이고, 그 결과가 long으로 넓혀질 뿐입니다.', '계산 자체가 long으로 이루어지게 해야 합니다. 코드를 long r = big + 1L로 바꿔 실행해 보세요.'],
+      longlate: ['long 변수에 받는 것만으로는 오버플로를 막지 못합니다. big + 1은 int끼리의 계산이라 이미 넘친 뒤이고, 그 결과가 long으로 넓혀질 뿐입니다.', '계산 자체가 long으로 이루어지게 해야 합니다.'],
       longmix: ['계산에 long이 하나라도 섞이면 그 계산은 long으로 이루어집니다. 1L처럼 숫자 뒤에 L을 붙이거나 (long) big처럼 한쪽을 먼저 바꿉니다.'],
       narrow: ['넓은 타입의 값을 좁은 타입의 변수에 넣는 것은 값을 잃을 수 있어서 자동으로 되지 않습니다. 컴파일러가 실행 전에 막아 줍니다.', '값을 잃어도 괜찮다는 뜻으로 (int)를 직접 적으면 통과합니다. 이것을 강제 형변환이라고 합니다.'],
       trunc: ['(int)는 소수점 아래를 버립니다. 3.99도 3이 됩니다. 반올림이 필요하면 Math.round를 씁니다.'],
@@ -16678,8 +16640,6 @@ Lab.register({
       paren: ['숫자를 먼저 더하려면 괄호로 묶습니다. 괄호 안이 먼저 계산되어 5가 된 뒤에 문자열에 붙습니다.'],
       mixed: ['한번 문자열이 되면 그 뒤의 +는 전부 이어 붙이기입니다. 뒤쪽의 4와 5는 더해져 9가 되지 않고 차례로 붙습니다.'],
     }[p.key];
-    var types = '오른쪽 식 ' + st.forms[0].x + '의 타입은 ' + et + '이고, 변수 r의 타입은 ' + T + '입니다.';
-    sum.push(result === '컴파일 오류' ? '컴파일 오류가 나서 프로그램이 실행되지 않습니다. ' + types : st.bad ? '실행 중에 ' + result + ' 예외가 나서 아무것도 출력되지 않습니다. ' + types : 'r을 출력하면 ' + result + '입니다. ' + types);
     tips.forEach(function (x) { sum.push(x); });
     return { events: ev, summary: sum, T: T, first: st.forms[0], msg: msgText, row: [et, T, result] };
   },
@@ -16687,10 +16647,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 계산을 한 단계씩 진행합니다.'); return; }
     H.table(v, ['순서', '식의 모습', '타입'], s.forms.map(function (f, i) { return { cells: [i === 0 ? '처음' : i + '번 계산한 뒤', { v: f.x, cls: i === s.forms.length - 1 ? 'hot' : '' }, f.t || '(계산 전)'] }; }), '오른쪽 식이 계산되는 순서');
-    var ln = H.lanes(v), h = s.hi;
-    if (h && h.rule) H.lane(ln, '+의 뜻', h.rule === 'concat' ? '한쪽이 문자열: 이어 붙이기' : '양쪽이 숫자: 덧셈', h.rule === 'concat' ? 'hot' : 'wait');
-    else if (h) H.lane(ln, '타입', h.kind === 'same' ? h.from + '끼리의 계산: 결과도 ' + h.to : h.kind === 'widen' ? h.from + ' → ' + h.to + ': 넓히기 (자동)' : h.kind === 'narrow' ? h.from + ' → ' + h.to + ': 좁히기 (강제, 값을 잃을 수 있음)' : h.from + ' → ' + h.to + ': 좁히기는 자동으로 되지 않음', h.kind === 'widen' ? 'good' : h.kind === 'same' ? 'wait' : 'bad');
-    H.counters(v, [[s.r === null ? '?' : s.r, '변수 r (' + sim.T + ')'], [s.out === null ? '?' : s.out, s.bad ? '오류' : '출력']]);
   },
   // 그림: 왼쪽에 오른쪽 식이 한 단계씩 줄어드는 모습, 오른쪽에 타입의 넓이 순서(문자열 주제에서는 +의 두 가지 뜻), 아래에 변수 r과 출력.
   draw: function (P, sim, shown) {
@@ -16724,7 +16680,7 @@ Lab.register({
 Lab.register({
   id: 'loops', nav: '조건문과 반복문', cat: '자바 언어', mode: 'step',
   title: '반복문은 몇 번 돌고, 어디에서 멈추나',
-  intro: '반복문은 "조건 검사 → 본문 → 값 바꾸기"를 조건이 false가 될 때까지 되풀이합니다. 조건에 <를 쓰느냐 <=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 값이 일치하는 case로 건너뛰는 문장인데, break가 없으면 아래 case까지 이어서 실행됩니다. 한 줄씩 따라가며 어디로 가는지 확인해 보세요.',
+  intro: '반복문은 "조건 검사 → 본문 → 값 바꾸기"를 조건이 false가 될 때까지 되풀이합니다. 조건에 <를 쓰느냐 <=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 값이 일치하는 case로 건너뛰는 문장인데, break가 없으면 아래 case까지 이어서 실행됩니다.',
   terms: ['for문과 while문', 'break와 continue', 'switch문과 fall-through'],
   controls: [
     { id: 'stmt', label: '문장', type: 'select', value: 'for', options: [['for', 'for 반복문'], ['while', 'while 반복문'], ['swc', 'switch (case마다 break 있음)'], ['swf', 'switch (break 없음)'], ['swa', 'switch (화살표 ->)']] },
@@ -16793,7 +16749,6 @@ Lab.register({
       }
       if (!spin) { st.at = 'after'; st.cond = null; st.out.push('끝'); st.done = true; push('System.out.println("끝"): 반복문 다음 줄이 실행됩니다. 본문에는 모두 ' + st.body + '번 들어갔습니다.', 'good'); }
       var outText = st.out.join(', ') + (spin ? ' (끝나지 않음)' : '');
-      sum.push(spin ? '출력은 ' + st.out.join(', ') + ' 다음에 멈춰 있고, 프로그램이 끝나지 않습니다.' : '출력은 ' + st.out.join(', ') + '입니다. 본문에는 ' + st.body + '번 들어갔고, 조건은 ' + st.checks + '번 검사했습니다' + (broke ? '.' : '(마지막 한 번이 false).'));
       if (spin) sum.push('while문에서 continue는 곧바로 조건 검사로 돌아갑니다. i++가 continue보다 아래에 있으면 함께 건너뛰어져서 i가 영영 바뀌지 않습니다. 같은 코드를 for문으로 쓰면 증감이 본문 밖에 있어서 정상적으로 끝납니다. while문에서 continue를 쓸 때는 그 전에 값을 바꿔 둡니다.');
       else {
         if (!broke) sum.push(le ? 'i <= 3은 i가 3일 때도 true라서 i < 3보다 한 번 더 돕니다. 0부터 시작할 때 i < n은 n번, i <= n은 n + 1번입니다. 한 번 차이로 생기는 이런 실수는 아주 흔합니다. 원소가 n개인 배열을 돌 때는 i < n을 씁니다.' : 'i < 3은 i가 0, 1, 2일 때 true입니다. 0부터 시작해 i < n으로 쓰면 n번 돕니다.' + (skipped ? ' 그 가운데 한 번은 continue로 출력을 건너뛰었습니다.' : ''));
@@ -16821,12 +16776,11 @@ Lab.register({
     }
     st.cur = null; st.out.push('끝'); st.done = true;
     push('System.out.println("끝"): switch 다음 줄이 실행됩니다. 실행된 case는 ' + st.ran.length + '개입니다.', st.ran.length > 1 ? 'bad' : 'good');
-    sum.push('출력은 ' + st.out.join(', ') + '입니다. n은 ' + n + '이고, 코드가 실행된 case는 ' + st.ran.length + '개입니다.');
     if (c.stmt === 'swf') {
       if (st.ran.length > 1) { sum.push('case는 "여기서부터 실행하라"는 시작 표시일 뿐, 다음 case 앞에서 멈추게 해 주는 칸막이가 아닙니다. break가 없으면 일치한 case부터 switch의 끝까지 차례로 모두 실행됩니다. 이것을 fall-through(흘러내림)라고 합니다.'); sum.push('break를 빠뜨리는 것은 흔한 실수이고 컴파일 오류도 나지 않습니다. 일부러 흘러내리게 하는 경우가 아니면 case마다 break를 적거나 화살표 switch를 씁니다.'); }
-      else sum.push('일치하는 case가 없어 default부터 시작했습니다. default가 맨 아래에 있어서 흘러내릴 곳이 없으므로 break가 없어도 결과가 같습니다. n을 1이나 2로 바꿔 보면 차이가 드러납니다.');
+      else sum.push('일치하는 case가 없어 default부터 시작했습니다. default가 맨 아래에 있어서 흘러내릴 곳이 없으므로 break가 없어도 결과가 같습니다.');
     }
-    if (c.stmt === 'swc') sum.push('case마다 break가 있으면 일치한 case 하나의 코드만 실행됩니다. break를 지우면 어떻게 되는지 "switch (break 없음)"으로 바꿔 비교해 보세요.');
+    if (c.stmt === 'swc') sum.push('case마다 break가 있으면 일치한 case 하나의 코드만 실행됩니다.');
     if (arrow) sum.push('화살표(->) switch는 일치한 case의 오른쪽 코드만 실행합니다. break가 필요 없어서 빠뜨리는 실수가 생기지 않습니다. Java 14부터 쓸 수 있습니다.');
     if (m === 3 && c.stmt !== 'swf') sum.push('어느 case와도 일치하지 않으면 default가 실행됩니다. default가 없는 switch라면 아무것도 실행하지 않고 지나갑니다.');
     return { events: ev, summary: sum, row: [st.out.join(', '), 'case ' + st.ran.length + '개'] };
@@ -16835,13 +16789,11 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, w = this.words;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
     if (s.kind === 'loop') {
-      H.counters(v, [[s.i === null ? '?' : s.i, 'i의 값'], [s.body, '본문에 들어간 횟수'], [s.checks, '조건을 검사한 횟수']]);
+      H.counters(v, [[s.checks, '조건을 검사한 횟수']]);
       H.table(v, ['회차', '들어올 때의 i', '한 일'], s.rounds.map(function (r, i) { return { cells: [(i + 1) + '번째', String(r.i), { v: r.did || '진행 중', cls: r.did === '출력' ? '' : r.did ? 'hot' : '' }] }; }), '본문에 들어간 기록');
-      if (s.spin) H.text(v, 'i가 바뀌지 않아 같은 회차가 끝없이 되풀이됩니다.');
     } else {
       H.table(v, ['case', '코드', '실행됐나'], ['case 1', 'case 2', 'case 3', 'default'].map(function (nm, i) { var ran = s.ran.indexOf(i) >= 0; return { cls: ran || s.match === null ? '' : 'gone', cells: [nm + (s.match === i ? ' (일치)' : ''), 'println("' + w[i] + '")', { v: ran ? (i === s.match ? '실행' : '흘러내려 실행') : s.done || s.exit !== null || (s.match !== null && i < s.match) ? '실행 안 됨' : '', cls: ran ? (i === s.match ? 'good' : 'bad') : '' }] }; }), 'n = ' + s.n);
     }
-    H.title(v, '출력'); H.slots(v, s.out.map(function (x) { return [x, x === '끝' ? 'd' : 'q']; }), '아직 출력이 없습니다.');
   },
   // 그림: 반복문은 위에서 아래로 놓인 흐름도(조건 → 본문 → 증감 → 다시 조건)이고 지금 실행 중인 칸이 노랗다. switch는 case를 세로로 늘어놓고 들어간 자리와 흘러내린 길을 보인다.
   draw: function (P, sim, shown) {
@@ -16873,7 +16825,7 @@ Lab.register({
       }
       if (s && s.spin) { P.text('t_spin', 590, 170, 'i가 바뀌지 않아', { cls: 'bad', anchor: 'middle' }); P.text('t_spin2', 590, 188, '끝없이 되풀이', { cls: 'bad', anchor: 'middle' }); }
       P.box('out', 16, 250, 648, 34, { cls: s && s.out.length ? (s.spin ? 'bad' : 'good') : 'ghost', title: '출력', right: s && s.out.length ? s.out.join(', ') + (s.spin ? ' (끝나지 않음)' : '') : '아직 없음' });
-      P.note(isFor ? 'for문은 초기화를 한 번 한 뒤 "조건 → 본문 → 증감"을 되풀이합니다. 조건이 false가 되는 순간 오른쪽으로 빠져나갑니다. continue는 본문의 남은 줄을 건너뛰지만 증감은 거칩니다.' : 'while문은 "조건 → 본문"을 되풀이합니다. i++는 본문 안의 한 줄일 뿐이어서, continue가 본문의 남은 줄을 건너뛰면 i++도 함께 건너뜁니다.');
+      P.note(isFor ? '조건이 false가 되는 순간 오른쪽으로 빠져나갑니다.' : 'while문은 "조건 → 본문"을 되풀이합니다. i++는 본문 안의 한 줄일 뿐이어서, continue가 본문의 남은 줄을 건너뛰면 i++도 함께 건너뜁니다.');
       return;
     }
     var arrow = c.stmt === 'swa', hasBreak = c.stmt === 'swc', names = ['case 1', 'case 2', 'case 3', 'default'];
@@ -16887,7 +16839,7 @@ Lab.register({
     if (s && s.exit !== null) P.text('ex', 540, 40 + s.exit * 46, '→ switch 밖으로', { cls: s.ran.length > 1 ? 'bad' : 'good' });
     P.box('after', 210, 214, 304, 28, { cls: s && s.done ? 'good now' : 'plain', title: 'System.out.println("끝")' });
     P.box('out', 16, 254, 648, 34, { cls: s && s.out.length ? (s.ran.length > 1 ? 'bad' : 'good') : 'ghost', title: '출력', right: s && s.out.length ? s.out.join(', ') : '아직 없음' });
-    P.note(arrow ? '화살표 switch는 n과 일치하는 case 하나로 들어가서 그 줄만 실행하고 나옵니다. 일치하는 case가 없으면 default로 갑니다.' : hasBreak ? 'switch는 n과 일치하는 case로 바로 건너뜁니다. 그 뒤 break를 만나면 switch 밖으로 나갑니다. 일치하는 case가 없으면 default로 갑니다.' : 'switch는 n과 일치하는 case로 바로 건너뜁니다. break가 없으면 빨간 화살표처럼 아래 case의 코드로 계속 흘러내립니다. 일치하는 case가 없으면 default로 갑니다.');
+    P.note(arrow ? '화살표 switch는 n과 일치하는 case 하나로 들어가서 그 줄만 실행하고 나옵니다. 일치하는 case가 없으면 default로 갑니다.' : hasBreak ? 'switch는 n과 일치하는 case로 바로 건너뜁니다. 그 뒤 break를 만나면 switch 밖으로 나갑니다. 일치하는 case가 없으면 default로 갑니다.' : 'break가 없으면 빨간 화살표처럼 아래 case의 코드로 계속 흘러내립니다.');
   },
   assume: '스물네 가지 조합(반복문 12, switch 12)의 출력과 횟수를 이 PC의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. 본문에 들어간 횟수는 대조용 프로그램의 본문 첫 줄에 세는 코드를 넣어 얻었습니다. while문에서 continue를 쓴 두 조합은 실제 프로그램이 2초가 지나도 끝나지 않고 본문만 계속 되풀이하는 것을 확인했습니다. "영원히 끝나지 않는다"는 것 자체는 실행으로 증명할 수 없고, i가 바뀌지 않는다는 코드의 구조에서 나오는 결론입니다. 모형은 같은 i 값으로 조건 검사에 다시 돌아오면 무한 반복으로 판단하고 멈춥니다. default가 없는 switch에 일치하는 case가 없는 값을 넣으면 아무것도 실행하지 않는다는 것도 실행해 확인했습니다. 화살표 switch는 Java 14부터 정식 문법입니다. do-while문, 향상된 for문(for-each), 값을 돌려주는 switch 식, 이름표를 붙인 break는 다루지 않았습니다.',
 });
@@ -16970,11 +16922,9 @@ Lab.register({
       push('System.out.println(' + pr + '(b)): b가 가리키는 배열의 내용을 출력합니다. 출력은 ' + st.outB + '입니다.');
     }
     if (st.err) {
-      sum.push('값을 넣는 줄에서 ' + st.err.split(':')[0] + '이 나서 프로그램이 멈췄습니다. 그 아래의 출력 두 줄은 실행되지 않았습니다.');
       sum.push('배열의 길이는 만들 때 정해지고 그 뒤로 바뀌지 않습니다. 길이가 n이면 번호는 0부터 n - 1까지입니다. 이 범위를 벗어난 번호는 컴파일할 때가 아니라 실행 중에 예외로 드러납니다.');
       sum.push(idx < 0 ? '음수 번호로 뒤에서부터 세는 문법은 자바에 없습니다. 마지막 칸은 a[a.length - 1]로 씁니다.' : '반복문의 조건을 i <= a.length로 쓰면 마지막에 바로 이 예외를 만납니다. i < a.length로 씁니다. 칸을 더 늘려야 한다면 더 긴 배열을 새로 만들어 옮기거나(Arrays.copyOf(a, 5)), 크기가 저절로 늘어나는 ArrayList를 씁니다.');
     } else {
-      sum.push('a == b는 ' + st.eq + (two ? ', a[0] == b[0]은 ' + st.eq0 : '') + '입니다. a의 출력은 ' + st.outA + ', b의 출력은 ' + st.outB + '입니다.');
       if (c.copy === 'ref') sum.push('배열 변수를 대입하면 배열이 복사되는 것이 아니라, 같은 배열을 가리키는 변수가 하나 더 생깁니다. 그래서 한쪽으로 넣은 값이 다른 쪽에서도 보입니다. 메서드에 배열을 넘길 때도 마찬가지입니다.');
       else if (!two) sum.push('배열을 복사하려면 a.clone()이나 Arrays.copyOf(a, a.length)로 새 배열을 만듭니다. 두 배열이 따로 있으므로 한쪽을 바꿔도 다른 쪽은 그대로입니다.' + (c.copy === 'copyOf' ? ' Arrays.copyOf의 둘째 인자는 새 배열의 길이입니다. 원래보다 큰 수를 주면 남는 칸이 기본값으로 채워진 더 긴 배열을 얻습니다.' : ''));
       else sum.push('2차원 배열에 clone이나 Arrays.copyOf를 쓰면 바깥 배열만 새로 만들어지고 행 배열은 함께 씁니다. 이것을 얕은 복사라고 합니다. 그래서 b[0]의 칸을 바꾸면 a[0]에서도 바뀝니다. 행까지 따로 가지려면 행마다 clone을 해야 합니다(깊은 복사).');
@@ -16985,14 +16935,9 @@ Lab.register({
   },
   cellText: function (x) { return x === null ? 'null' : typeof x === 'string' ? '"' + x + '"' : typeof x === 'object' ? '배열 ' + x.ref + '의 참조' : String(x); },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, self = this, two = sim.c.shape === '2';
+    var last = shown[shown.length - 1], s = last ? last.snap : null, self = this;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'a', s.a ? '→ 배열 ' + s.a : '아직 없음', s.a ? 'wait' : 'none');
-    H.lane(ln, 'b', s.b ? '→ 배열 ' + s.b + (s.b === s.a ? ' (a와 같은 배열)' : '') : '아직 없음', s.b ? (s.b === s.a ? 'hot' : 'wait') : 'none');
     H.table(v, ['배열', '타입', '길이', '칸의 내용 (0번부터)'], s.arrs.map(function (A) { return { cells: ['배열 ' + A.id, A.type, String(A.cells.length), { v: A.cells.map(function (x) { return self.cellText(x); }).join(' | '), cls: s.hit && s.hit.arr === A.id ? 'hot' : '' }] }; }), '힙의 배열');
-    if (s.err) H.text(v, s.err);
-    H.counters(v, [[s.eq === null ? '?' : s.eq, 'a == b']].concat(two ? [[s.eq0 === null ? '?' : s.eq0, 'a[0] == b[0]']] : []));
   },
   // 그림: 배열마다 테두리를 두르고 그 안에 칸을 번호 순서로 나란히 놓는다. 변수와 참조가 든 칸에서 배열로 화살표가 간다. 2차원이면 가운데에 행 배열, 양옆에 바깥 배열이 놓인다.
   draw: function (P, sim, shown) {
@@ -17089,7 +17034,7 @@ Lab.register({
       if (noarg) push('컴파일: new Order()에 맞는, 인자를 받지 않는 생성자를 찾습니다. 이 클래스에는 Order(int extra)밖에 없습니다. 맞는 생성자가 없어 컴파일 오류입니다. 프로그램은 실행되지 않습니다.', 'bad');
       else push('컴파일: new Order(3)에 맞는, int 하나를 받는 생성자를 찾습니다. 이 클래스에는 컴파일러가 넣어 준 Order()밖에 없습니다. 맞는 생성자가 없어 컴파일 오류입니다. 프로그램은 실행되지 않습니다.', 'bad');
       sum.push('컴파일 오류입니다. javac의 메시지는 "' + ERR + '"이고, "Order의 생성자를 이 인자들로는 부를 수 없다"는 뜻입니다.');
-      if (noarg) { sum.push('기본 생성자는 생성자를 하나도 적지 않았을 때만 생깁니다. 인자 있는 생성자를 추가하는 순간, 그전까지 되던 new Order()가 컴파일되지 않습니다.'); sum.push('new Order()도 계속 쓰려면 인자 없는 생성자 Order() { }를 직접 적어 줍니다. 설정에서 "Order()와 Order(int extra)"를 골라 비교해 보세요.'); }
+      if (noarg) { sum.push('기본 생성자는 생성자를 하나도 적지 않았을 때만 생깁니다. 인자 있는 생성자를 추가하는 순간, 그전까지 되던 new Order()가 컴파일되지 않습니다.'); sum.push('new Order()도 계속 쓰려면 인자 없는 생성자 Order() { }를 직접 적어 줍니다.'); }
       else sum.push('컴파일러가 넣어 주는 기본 생성자는 인자를 받지 않습니다. 값을 받아서 객체를 만들고 싶으면 그 인자를 받는 생성자를 직접 적어야 합니다.');
       return { events: ev, summary: sum, row: ['오류: ' + ERR, '실행되지 않음', '실행되지 않음'] };
     }
@@ -17131,27 +17076,22 @@ Lab.register({
     push('Order o = ' + callTxt + ': 생성자가 끝났습니다. new는 완성된 객체를 가리키는 참조를 돌려주고, 변수 o가 그 참조를 담습니다.');
     var out = st.qty + ', ' + st.memo.replace(/"/g, ''); st.out = out;
     push('System.out.println(o.qty + ", " + o.memo): o가 가리키는 객체의 qty와 memo를 읽어 출력합니다. 출력은 ' + out + '입니다.', 'good');
-    sum.push('출력은 ' + out + '입니다. 실행된 순서는 기본값 채우기 → ' + order.join(' → ') + '입니다.');
     sum.push(c.first === 'field' ? '초기화식(10)이 먼저, 그 아래의 블록(20)이 나중에 실행되어 생성자 본문이 시작될 때 qty는 20이었습니다.' : '블록(20)이 먼저, 그 아래의 초기화식(10)이 나중에 실행되어 생성자 본문이 시작될 때 qty는 10이었습니다. 필드 초기화식과 초기화 블록은 위에 적힌 것부터 실행되므로, 둘이 같은 필드를 건드리면 적는 위치가 결과를 바꿉니다.');
     if (c.ctors === 'none') sum.push('생성자를 적지 않아도 new Order()가 되는 것은 컴파일러가 기본 생성자를 넣어 주기 때문입니다. 값을 넣지 않은 필드는 기본값(숫자는 0, 참조 타입은 null)으로 남습니다. 지역 변수와 달리 필드는(final이 붙지 않았다면) 초기화하지 않아도 컴파일 오류가 아닙니다.');
     if (chained) sum.push('this(...)는 생성자의 첫 문장으로만 쓸 수 있고, 같은 클래스의 다른 생성자를 먼저 실행합니다. 공통으로 할 일을 한 생성자에 모아 둘 때 씁니다. 초기화식과 블록은 한 번만 실행됩니다.');
-    if (c.ctors === 'both' && noarg) sum.push('Order()와 Order(int extra)는 서로 다른 생성자입니다. new에 넘긴 인자에 맞는 것 하나만 실행됩니다. 설정에서 this(1)을 넣은 경우와 비교해 보세요.');
+    if (c.ctors === 'both' && noarg) sum.push('Order()와 Order(int extra)는 서로 다른 생성자입니다. new에 넘긴 인자에 맞는 것 하나만 실행됩니다.');
     if (!noarg) sum.push('new Order(3)은 넘긴 인자에 맞는 Order(int extra)를 실행합니다. Order() 생성자가 있든 없든 이 호출에서는 실행되지 않습니다.');
     return { events: ev, summary: sum, row: ['성공', order.join(' → '), out] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 컴파일 단계부터 한 단계씩 진행합니다.'); return; }
-    if (s.err) { H.title(v, '컴파일 오류'); H.text(v, 'javac: ' + s.err); H.text(v, '프로그램이 만들어지지 않아 객체도 출력도 없습니다.'); return; }
+    if (s.err) { H.title(v, '컴파일 오류'); H.text(v, 'javac: ' + s.err); return; }
     H.table(v, ['필드', '타입', '지금 값', '이 값을 넣은 곳'], s.made ? [
       { cells: ['qty', 'int', { v: s.qty, cls: s.tgt === 'fq' ? 'hot' : '' }, s.qtyBy] },
       { cells: ['memo', 'String', { v: s.memo, cls: s.tgt === 'fm' ? 'hot' : '' }, s.memoBy] },
     ] : [], '힙의 Order 객체');
     if (!s.made) H.text(v, '아직 객체가 만들어지지 않았습니다.');
-    var ln = H.lanes(v);
-    H.lane(ln, '실행 중인 생성자', s.stack.length ? s.stack.join(' → ') : s.o ? '모두 끝남' : '아직 시작 전', s.stack.length ? 'hot' : s.o ? 'good' : 'none');
-    H.lane(ln, '지금까지의 순서', s.made ? ['기본값 채우기'].concat(s.order).join(' → ') : '아직 없음', s.made ? 'wait' : 'none');
-    H.counters(v, [[s.out || '?', '출력']]);
   },
   // 그림: 왼쪽에 클래스에 적힌 조각들(위에서 아래로 적힌 순서), 오른쪽에 힙의 객체와 필드 값. 지금 실행 중인 조각에서 그것이 바꾸는 필드로 화살표가 간다.
   draw: function (P, sim, shown) {
@@ -17183,7 +17123,7 @@ Lab.register({
     if (s.o) P.arrow('ao', 'vo:t', 'fm:b', {});
     if (s.cur && s.tgt) P.arrow('wr', s.cur + ':r', s.tgt + ':l', { cls: 'hot' });
     P.box('out', 16, 266, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? '컴파일 오류' : '콘솔 출력', right: s.err ? '맞는 생성자가 없음' : s.out || (s.made ? (noarg ? 'new Order()' : 'new Order(3)') + ' 진행 중' : '아직 실행 전') });
-    P.note('왼쪽 상자의 "1번째, 2번째"는 실제로 실행된 순서입니다. 필드는 먼저 기본값(int는 0, 참조 타입은 null)으로 채워지고, 초기화식과 블록이 위에 적힌 것부터 실행된 뒤, 생성자 본문이 실행됩니다.');
+    P.note('왼쪽 상자의 "1번째, 2번째"는 실제로 실행된 순서입니다.');
   },
   assume: '열여섯 가지 조합을 이 PC의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 초기화식과 블록과 생성자 본문이 실행된 순서, 출력을 대조했습니다. 실행된 순서는 같은 코드에 기록하는 줄만 끼워 넣어 확인했고, 필드가 초기화식보다 먼저 기본값(0, null)으로 채워져 있다는 것도 실행으로 확인했습니다. 단순화한 점: 모든 생성자는 본문보다 먼저 부모 클래스(여기서는 Object)의 생성자를 부르는데, 이 단계는 그림에서 뺐습니다("상속과 오버라이딩" 실습에서 다룹니다). 초기화 블록은 실무에서 자주 쓰지는 않으며, 순서를 보이려고 넣었습니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다. this(...)를 생성자의 첫 문장으로만 쓸 수 있다는 것은 JDK 21 기준이며 이 PC에서 컴파일로 확인했습니다. 더 새로운 JDK에서는 this(...) 앞에 일부 문장을 둘 수 있게 바뀌었다고 알려져 있으나 이 PC에서는 확인하지 못했습니다.',
 });
@@ -17244,9 +17184,9 @@ Lab.register({
       else if (x === 'cls0') push('컴파일: Counter.count를 검사합니다. 클래스 이름으로는 클래스에 속한 static 멤버만 쓸 수 있습니다. count는 객체마다 따로 있는 인스턴스 필드라서 어느 객체의 것인지 알 수 없습니다. 컴파일 오류입니다.', 'bad');
       else push('컴파일: Counter.hit()을 검사합니다. hit()은 인스턴스 메서드라서 어느 객체를 대상으로 실행할지가 있어야 합니다. ' + (isS ? 'hit()이 건드리는 count가 static 필드여도, hit() 자체에 static이 없으면 객체가 필요합니다. ' : '') + '클래스 이름만으로는 대상 객체가 없어 컴파일 오류입니다.', 'bad');
       sum.push('컴파일 오류입니다. javac의 메시지는 "' + e.msg + '"이고, "static이 아닌 것을 static인 자리에서 쓸 수 없다"는 뜻입니다. 프로그램은 실행되지 않습니다.');
-      if (x === 'smThis') { sum.push('static 메서드에는 this가 없습니다. 객체 없이 클래스 이름으로 불리기 때문입니다.'); sum.push(isS ? 'count가 static이므로 this를 빼고 return count라고 쓰면 됩니다. 설정에서 "report()에서 return count"를 골라 비교해 보세요.' : 'static 메서드에서 어떤 객체의 값을 읽으려면 그 객체를 인자로 받아야 합니다. static int report(Counter c) { return c.count; }처럼 쓰면 컴파일됩니다.'); }
+      if (x === 'smThis') { sum.push('static 메서드에는 this가 없습니다. 객체 없이 클래스 이름으로 불리기 때문입니다.'); sum.push(isS ? 'count가 static이므로 this를 빼고 return count라고 쓰면 됩니다.' : 'static 메서드에서 어떤 객체의 값을 읽으려면 그 객체를 인자로 받아야 합니다. static int report(Counter c) { return c.count; }처럼 쓰면 컴파일됩니다.'); }
       if (x === 'sm') { sum.push('static 메서드 안에서 이름만 적어서 쓸 수 있는 것은 static 멤버뿐입니다. 인스턴스 필드는 객체가 있어야 존재합니다.'); sum.push('고치는 방법은 둘입니다. count가 클래스 전체에 하나면 되는 값이면 count에 static을 붙이고, 객체마다 달라야 하는 값이면 static int report(Counter c) { return c.count; }처럼 객체를 인자로 받습니다.'); }
-      if (x === 'cls0') sum.push('인스턴스 필드는 a.count처럼 객체를 통해서만 읽을 수 있습니다. 클래스 이름으로 읽으려면 그 필드가 static이어야 합니다. count의 선언을 static으로 바꿔 비교해 보세요.');
+      if (x === 'cls0') sum.push('인스턴스 필드는 a.count처럼 객체를 통해서만 읽을 수 있습니다. 클래스 이름으로 읽으려면 그 필드가 static이어야 합니다.');
       if (x === 'clsHit') sum.push('인스턴스 메서드는 a.hit()처럼 객체를 대상으로 부릅니다. main처럼 static인 메서드 안에서 인스턴스 메서드를 그냥 부르려다 이 오류를 자주 만납니다. 그럴 때는 먼저 new로 객체를 만들고 그 객체로 부릅니다.');
       return { events: ev, summary: sum, row: ['오류: ' + e.msg, '실행되지 않음', '실행되지 않음'] };
     }
@@ -17266,35 +17206,27 @@ Lab.register({
     st.by = ''; st.hot = 'read'; st.ab = isS ? st.sv + ' ' + st.sv : st.av + ' ' + st.bv;
     push('System.out.println(a.count + " " + b.count): ' + (isS ? 'a.count와 b.count는 적힌 모양만 다를 뿐 둘 다 클래스에 하나뿐인 count를 읽습니다. 객체 변수로 static 필드를 읽으면 변수의 타입인 Counter의 static 필드가 읽힙니다.' : 'a의 count와 b의 count는 서로 다른 변수입니다. 각자 자기 객체에서 불린 hit()의 횟수만 들어 있습니다.') + ' 출력은 ' + st.ab + '입니다.', x === 'sm' ? '' : 'good');
     if (x === 'sm') { st.hot = 'mt'; st.ex = st.sv; push('System.out.println(Counter.report()): report()는 static 메서드라서 객체 없이 클래스 이름으로 부릅니다. 그 안의 count는 static 필드이므로 객체 없이도 읽을 수 있습니다. 출력은 ' + st.ex + '입니다.', 'good'); }
-    sum.push('a.count와 b.count의 출력은 ' + st.ab + '입니다.' + (st.ex ? ' 추가한 줄의 출력은 ' + st.ex + '입니다.' : ''));
     if (isS) {
       sum.push('static 필드는 클래스에 하나뿐이라 모든 객체가 같은 값을 봅니다. a.hit() 2번과 b.hit() ' + nb + '번이 같은 count를 올려서, 어느 객체로 읽어도 합계인 ' + st.sv + '입니다.' + (nb === 0 ? ' b.hit()은 한 번도 부르지 않았는데도 b.count가 0이 아닙니다.' : ''));
       sum.push('a.count처럼 객체 변수로 static 필드를 쓰면 객체마다 따로 있는 값처럼 보여 헷갈립니다. static 멤버는 Counter.count처럼 클래스 이름으로 쓰는 것이 원칙입니다.');
-      if (x === 'none') sum.push('객체마다 달라야 하는 값(이름, 수량)은 인스턴스 필드로, 클래스 전체에 하나면 되는 값(상수, 만들어진 객체 수)은 static 필드로 둡니다. 선언에서 static을 떼고 결과를 비교해 보세요.');
+      if (x === 'none') sum.push('객체마다 달라야 하는 값(이름, 수량)은 인스턴스 필드로, 클래스 전체에 하나면 되는 값(상수, 만들어진 객체 수)은 static 필드로 둡니다.');
       if (x === 'sm') sum.push('static 메서드는 객체 없이 Counter.report()로 부릅니다. 그 안에서는 static 필드와 다른 static 메서드를 이름만으로 쓸 수 있습니다. count에서 static을 떼면 같은 report()가 컴파일되지 않습니다.');
       if (x === 'cls0') sum.push('static 필드는 객체가 하나도 없어도 클래스와 함께 있습니다. 그래서 객체를 만들기 전에 Counter.count가 0으로 읽혔습니다. 인스턴스 필드는 객체가 만들어져야 생기므로 이렇게 읽을 수 없습니다.');
     } else {
       sum.push('인스턴스 필드는 객체마다 따로 있습니다. a.hit()은 a의 count만, b.hit()은 b의 count만 올립니다.');
-      sum.push('선언에 static을 붙이면 같은 코드의 출력은 ' + (2 + nb) + ' ' + (2 + nb) + '입니다. 설정을 바꿔 비교해 보세요.');
+      sum.push('선언에 static을 붙이면 같은 코드의 출력은 ' + (2 + nb) + ' ' + (2 + nb) + '입니다.');
     }
     return { events: ev, summary: sum, row: ['성공', st.ab, st.ex || '추가한 줄 없음'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, isS = c.decl === 'static';
+    var last = shown[shown.length - 1], s = last ? last.snap : null, isS = sim.c.decl === 'static';
     if (!s) { H.text(v, '실행을 누르면 컴파일 단계부터 한 단계씩 진행합니다.'); return; }
-    if (s.err) { H.title(v, '컴파일 오류'); H.text(v, 'javac: ' + s.err); H.text(v, '프로그램이 만들어지지 않아 객체도 출력도 없습니다.'); return; }
+    if (s.err) { H.title(v, '컴파일 오류'); H.text(v, 'javac: ' + s.err); return; }
     var rows = [];
     if (isS) rows.push({ cells: ['클래스 Counter', { v: s.sv === '' ? '아직 없음' : s.sv, cls: s.hot === 'sf' ? 'hot' : '' }, 'a와 b가 함께 씀'] });
     else { if (s.a) rows.push({ cells: ['a가 가리키는 객체', { v: s.av, cls: s.hot === 'oa' ? 'hot' : '' }, 'a만 씀'] }); if (s.b) rows.push({ cells: ['b가 가리키는 객체', { v: s.bv, cls: s.hot === 'ob' ? 'hot' : '' }, 'b만 씀'] }); }
     H.table(v, ['count가 있는 곳', '값', '누가 쓰는가'], rows, isS ? 'count 변수는 클래스에 1개' : 'count 변수는 객체마다 1개');
     if (!rows.length) H.text(v, '아직 객체가 없어서 count도 없습니다.');
-    var ln = H.lanes(v);
-    H.lane(ln, 'a', s.a ? (isS ? '객체 있음 · 자기 count 없음' : '객체 있음 · count ' + s.av) : '아직 없음', s.a ? (s.by === 'a' ? 'hot' : 'wait') : 'none');
-    H.lane(ln, 'b', s.b ? (isS ? '객체 있음 · 자기 count 없음' : '객체 있음 · count ' + s.bv) : '아직 없음', s.b ? (s.by === 'b' ? 'hot' : 'wait') : 'none');
-    var cs = [[s.ab || '?', 'a.count와 b.count']];
-    if (c.extra === 'sm') cs.push([s.ex || '?', 'Counter.report()']);
-    if (c.extra === 'cls0') cs.push([s.ex || '?', '객체 만들기 전 Counter.count']);
-    H.counters(v, cs);
   },
   // 그림: 왼쪽은 클래스(하나뿐), 오른쪽은 힙의 객체 둘. count 상자가 왼쪽에 하나 있는지, 오른쪽 객체마다 있는지가 핵심이다. hit()이 어느 count를 올리는지 화살표로 보인다.
   draw: function (P, sim, shown) {
@@ -17317,7 +17249,7 @@ Lab.register({
     var exT = { none: '추가한 줄 없음', sm: 'Counter.report()', smThis: 'Counter.report()', cls0: '객체 만들기 전 Counter.count', clsHit: 'Counter.hit()' }[x];
     P.box('o1', 16, 204, 320, 38, { cls: s.err ? 'bad' : s.ab ? 'good' : 'ghost', title: s.err ? '컴파일 오류' : 'a.count와 b.count', right: s.err ? '실행되지 않음' : s.ab || '?' });
     P.box('o2', 344, 204, 320, 38, { cls: s.err ? 'bad' : s.ex ? 'good' : 'ghost', title: exT, right: s.err ? '오류' : x === 'none' ? '' : s.ex || '?' });
-    P.note(isS ? 'count 상자가 왼쪽 클래스에 하나만 있습니다. a로 부르든 b로 부르든 hit()은 이 하나를 올리고, a.count와 b.count도 이 하나를 읽습니다.' : 'count가 오른쪽 객체마다 하나씩 있습니다. a.hit()은 a의 것만, b.hit()은 b의 것만 올립니다. 메서드의 코드 자체는 클래스에 하나만 있고, 인스턴스 메서드는 불릴 때 대상 객체를 넘겨받습니다.');
+    P.note(isS ? 'count 상자가 왼쪽 클래스에 하나만 있습니다. a로 부르든 b로 부르든 hit()은 이 하나를 올리고, a.count와 b.count도 이 하나를 읽습니다.' : 'count가 오른쪽 객체마다 하나씩 있습니다. 메서드의 코드 자체는 클래스에 하나만 있고, 인스턴스 메서드는 불릴 때 대상 객체를 넘겨받습니다.');
   },
   assume: '서른 가지 조합을 이 PC의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 출력을 대조했습니다. 요약에서 고치는 방법으로 든 "객체를 인자로 받는 static 메서드"가 컴파일되고 실행된다는 것, 객체 변수로 static 필드를 읽을 때 객체가 쓰이지 않는다는 것(null인 변수로 읽어도 예외가 나지 않음)도 실행으로 확인했습니다. 단순화한 점: 그림의 "클래스" 영역은 JVM이 클래스 정보를 두는 곳을 뭉뚱그린 것이며, static 필드가 메모리의 정확히 어디에 놓이는지는 JVM 구현에 따라 다릅니다. 클래스가 준비되는 정확한 시점(처음으로 객체를 만들거나 static 멤버를 쓸 때)은 "실행 시작" 한 단계로 줄였습니다. a.count처럼 객체 변수로 static 필드를 쓰는 코드는 컴파일되지만 권장되지 않으며, 공유된다는 것을 보이려고 넣었습니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.',
 });
@@ -17368,7 +17300,7 @@ Lab.register({
       push('컴파일: Animal 클래스에서 ' + pName + ' 생성자를 찾습니다. Animal에는 ' + (c.pctor === 'arg' ? 'Animal(String name)' : 'Animal()') + '만 있습니다. ' + (c.pctor === 'arg' ? '생성자를 직접 적은 클래스에는 기본 생성자가 생기지 않기 때문입니다. ' : '') + '부를 부모 생성자가 없어 컴파일 오류입니다. 프로그램은 실행되지 않습니다.', 'bad');
       sum.push('컴파일 오류입니다. javac의 메시지는 "' + ERR + '"이고, "Animal의 생성자를 이 인자들로는 부를 수 없다"는 뜻입니다.');
       if (c.pctor === 'arg') { sum.push('자식 생성자는 반드시 부모 생성자 하나를 먼저 부릅니다. ' + (c.sup === 'omit' ? 'super(...)를 쓰지 않으면 super()가 자동으로 들어가는데' : 'super()는 인자 없는 생성자를 찾는데') + ', 부모에 인자 없는 생성자가 없으면 부를 것이 없습니다.'); sum.push('부모에 Animal(String name)만 있을 때는 자식 생성자의 첫 줄에 super("바둑이")처럼 인자를 넘겨 직접 불러야 합니다. Dog에 생성자를 하나도 적지 않아도 같은 오류가 납니다. 자동으로 생기는 기본 생성자도 super()를 부르기 때문입니다.'); }
-      else sum.push('super(...)에 넘긴 인자에 맞는 생성자가 부모에 있어야 합니다. Animal에는 문자열을 받는 생성자가 없습니다. 설정에서 부모의 생성자를 바꿔 비교해 보세요.');
+      else sum.push('super(...)에 넘긴 인자에 맞는 생성자가 부모에 있어야 합니다. Animal에는 문자열을 받는 생성자가 없습니다.');
       return { events: ev, summary: sum, row: ['오류: ' + ERR, '실행되지 않음', '실행되지 않음'] };
     }
     push(e1 + ' Animal에 이 생성자가 있으므로 컴파일됩니다.');
@@ -17407,7 +17339,6 @@ Lab.register({
     push('Dog d = new Dog(): 생성자가 모두 끝났습니다. 완성된 객체의 참조가 변수 d에 담깁니다.');
     describe(); st.cur = ''; st.stack = [];
     var o1 = st.out1.join(' / '), o2 = st.out2.join(' / ');
-    sum.push('new Dog() 동안의 출력은 ' + o1 + '이고, d.describe()의 출력은 ' + o2 + '입니다.');
     sum.push('실행 순서는 부모 생성자 ' + pName + ' → Dog의 필드 초기화식 → Dog() 생성자의 본문입니다. 자식 생성자가 먼저 시작되지만, 첫 줄에서 부모 생성자로 넘어가 부모 쪽이 먼저 끝납니다.');
     if (c.sup === 'omit') sum.push('super(...)를 쓰지 않아도 부모 생성자는 실행됩니다. 컴파일러가 Dog()의 첫 줄에 super()를 넣기 때문입니다.' + (c.pctor === 'both' ? ' Animal에 생성자가 둘 있지만 super()에 맞는 것은 인자 없는 Animal()입니다.' : ''));
     if (c.sup !== 'omit' && c.pctor === 'both') sum.push('부모에 생성자가 여럿이면 super(...)에 넘긴 인자에 맞는 것이 선택됩니다. ' + supTxt + '이므로 ' + pName + ' 생성자가 실행되었습니다.');
@@ -17419,18 +17350,12 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 컴파일 단계부터 한 단계씩 진행합니다.'); return; }
-    if (s.err) { H.title(v, '컴파일 오류'); H.text(v, 'javac: ' + s.err); H.text(v, '프로그램이 만들어지지 않아 객체도 출력도 없습니다.'); return; }
+    if (s.err) { H.title(v, '컴파일 오류'); H.text(v, 'javac: ' + s.err); return; }
     H.table(v, ['필드', '선언한 클래스', '지금 값'], s.made ? [
       { cells: ['name', 'Animal (물려받음)', { v: s.name, cls: s.name === 'null' ? '' : 'good' }] },
       { cells: ['sound', 'Dog', { v: s.sound, cls: s.sound === 'null' ? (String(s.stack[s.stack.length - 1]).indexOf('describe') >= 0 ? 'bad' : '') : 'good' }] },
     ] : [], '힙의 Dog 객체 (하나)');
     if (!s.made) H.text(v, '아직 객체가 만들어지지 않았습니다.');
-    var ln = H.lanes(v);
-    H.lane(ln, '실행 중인 코드', s.stack.length ? s.stack.join(' → ') : s.d ? '없음 (객체 완성)' : '아직 시작 전', s.stack.length ? 'hot' : s.d ? 'good' : 'none');
-    H.title(v, 'new Dog() 동안의 출력');
-    H.slots(v, s.out1.map(function (x) { return [x, x === 'sound=null' ? 'r' : 'q']; }), '아직 없음');
-    H.title(v, 'd.describe()의 출력');
-    H.slots(v, s.out2.map(function (x) { return [x, 'd']; }), '아직 없음');
   },
   // 그림: 왼쪽에 자식 Dog의 코드 조각, 가운데에 부모 Animal의 코드 조각, 오른쪽에 힙의 객체 하나(물려받은 name과 자기 sound). 호출이 Dog에서 Animal로, 다시 Dog의 describe()로 넘어가는 것을 화살표로 보인다.
   draw: function (P, sim, shown) {
@@ -17463,7 +17388,7 @@ Lab.register({
     var o1 = s.out1.join(' / '), o2 = s.out2.join(' / ');
     P.box('o1', 16, 222, 648, 34, { cls: s.err ? 'bad' : !o1 ? 'ghost' : s.out1.indexOf('sound=null') >= 0 ? 'bad' : 'plain', title: s.err ? '컴파일 오류' : 'new Dog() 동안의 출력', right: s.err ? '부를 부모 생성자가 없음' : o1 || '아직 없음' });
     P.box('o2', 16, 264, 648, 34, { cls: s.err ? 'ghost' : o2 ? 'good' : 'ghost', title: 'd.describe()의 출력', right: s.err ? '실행되지 않음' : o2 || '아직 없음' });
-    P.note('객체는 하나이고, 그 안에 부모에게서 물려받은 name과 자식의 sound가 함께 있습니다. 노란 상자가 지금 실행 중인 코드, 파란 상자는 부른 쪽에서 기다리는 코드입니다. 빨간 화살표는 부모 생성자가 부른 describe()가 자식 Dog의 것으로 넘어가는 것을 나타냅니다. 부모 생성자가 끝나기 전에는 자식의 sound가 null입니다.');
+    P.note('객체는 하나이고, 그 안에 부모에게서 물려받은 name과 자식의 sound가 함께 있습니다. 노란 상자가 지금 실행 중인 코드, 파란 상자는 부른 쪽에서 기다리는 코드입니다. 빨간 화살표는 부모 생성자가 부른 describe()가 자식 Dog의 것으로 넘어가는 것을 나타냅니다.');
   },
   assume: '서른여섯 가지 조합을 이 PC의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 객체를 만드는 동안의 출력과 d.describe()의 출력을 대조했습니다. 자식에 생성자를 적지 않아도 부모에 인자 없는 생성자가 없으면 같은 오류가 난다는 것과, super(...)가 생성자의 첫 문장이어야 한다는 것(JDK 21 기준)도 컴파일로 확인했습니다. 더 새로운 JDK에서는 super(...) 앞에 일부 문장을 둘 수 있게 바뀌었다고 알려져 있으나 이 PC에서는 확인하지 못했습니다. 단순화한 점: Animal의 생성자도 맨 먼저 자기 부모인 Object의 생성자를 부르는데 이 단계는 뺐습니다. 어느 메서드가 선택되는지에 대한 자세한 규칙은 "다형성과 메서드 선택" 실습에서 다룹니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.',
 });
@@ -17560,12 +17485,11 @@ Lab.register({
         }
       }
     }
-    sum.push(ok ? '컴파일됩니다. 판단한 이유: ' + reason + '.' : '컴파일 오류입니다. javac의 메시지는 "' + msg + '"입니다. 판단한 이유: ' + reason + '.');
     if (mod === 'private') sum.push(ok ? 'private 멤버는 선언한 클래스 안에서만 쓸 수 있습니다. 설정에서 접근하는 곳을 바꾸면 나머지는 모두 컴파일 오류가 됩니다.' : 'private 멤버는 선언한 클래스 밖에서는 보이지 않습니다. 같은 패키지든 자식 클래스든 마찬가지입니다. 필드를 private으로 두고 필요한 동작만 메서드로 공개하는 것이 캡슐화의 기본이며, 이렇게 하면 바깥 코드가 값을 마음대로 바꾸지 못합니다.');
-    if (mod === 'package') sum.push(ok ? '접근 제어자를 쓰지 않은 멤버는 같은 패키지 안에서 쓸 수 있습니다.' + (from === 'pkg' ? ' 같은 패키지의 클래스끼리만 쓰는 내부용 멤버에 알맞습니다.' : '') : '접근 제어자를 쓰지 않은 멤버는 패키지 밖에서는 보이지 않습니다.' + (sub ? ' 다른 패키지의 자식 클래스에서도 쓸 수 없다는 점이 protected와 다릅니다. 접근 제어자를 protected로 바꿔 비교해 보세요.' : ''));
+    if (mod === 'package') sum.push(ok ? '접근 제어자를 쓰지 않은 멤버는 같은 패키지 안에서 쓸 수 있습니다.' + (from === 'pkg' ? ' 같은 패키지의 클래스끼리만 쓰는 내부용 멤버에 알맞습니다.' : '') : '접근 제어자를 쓰지 않은 멤버는 패키지 밖에서는 보이지 않습니다.' + (sub ? ' 다른 패키지의 자식 클래스에서도 쓸 수 없다는 점이 protected와 다릅니다.' : ''));
     if (mod === 'protected') {
       if (from === 'pkg') sum.push('protected를 "자식만 쓸 수 있다"로 기억하기 쉽지만, 같은 패키지의 클래스는 자식이 아니어도 쓸 수 있습니다. protected는 패키지 전용보다 넓은 범위입니다.');
-      if (from === 'subThis' || from === 'subChild') sum.push('다른 패키지의 자식 클래스는 물려받은 protected 멤버를 자기 타입(this, 또는 자기 클래스 타입의 변수)을 통해 쓸 수 있습니다. 설정에서 "Account 타입 변수로"를 골라 비교해 보세요.');
+      if (from === 'subThis' || from === 'subChild') sum.push('다른 패키지의 자식 클래스는 물려받은 protected 멤버를 자기 타입(this, 또는 자기 클래스 타입의 변수)을 통해 쓸 수 있습니다.');
       if (from === 'subParent') { sum.push('다른 패키지의 자식 클래스 안이라도, 부모 타입 변수로는 protected 멤버를 쓸 수 없습니다. Account 타입 변수에는 SavingAccount와 상관없는 다른 자식 객체가 들어 있을 수도 있기 때문입니다.'); sum.push('this.balance나 SavingAccount 타입 변수의 balance는 됩니다. 변수의 타입만 Account에서 SavingAccount로 바꿔도 컴파일됩니다.'); }
       if (from === 'other') sum.push('다른 패키지이고 자식도 아니면 protected 멤버는 보이지 않습니다. 이 위치에서 쓸 수 있는 것은 public 멤버뿐입니다.');
       if (from === 'same') sum.push('같은 클래스 안에서는 어떤 접근 제어자든 쓸 수 있습니다.');
@@ -17583,9 +17507,7 @@ Lab.register({
     H.lane(ln, '읽는 코드', s.step === 'decl' ? '아직 보지 않음' : this.places.filter(function (p) { return p[0] === c.from; })[0][1], s.step === 'decl' ? 'none' : 'hot');
     H.table(v, ['확인한 것', '답과 결론'], s.checks.map(function (k, i) { var lastOne = i === s.checks.length - 1 && s.verdict; return { cells: [k.q, { v: k.a + ' → ' + k.then, cls: lastOne ? (s.verdict === 'ok' ? 'good' : 'bad') : '' }] }; }), '확인한 순서');
     if (!s.checks.length) H.text(v, '아직 확인을 시작하지 않았습니다.');
-    H.counters(v, [[s.verdict ? (s.verdict === 'ok' ? '성공' : '오류') : '?', '컴파일']]);
     if (s.verdict) {
-      if (s.msg) H.text(v, 'javac: ' + s.msg);
       H.table(v, ['읽는 코드가 있는 곳', '결과'], this.places.map(function (p) { var a = self.allowed(c.mod, p[0]); return { cells: [{ v: p[1], cls: p[0] === c.from ? 'hot' : '' }, { v: a ? '컴파일됨' : '컴파일 오류', cls: a ? 'good' : 'bad' }] }; }), modT + '일 때 여섯 곳의 결과');
     }
   },
@@ -17611,7 +17533,7 @@ Lab.register({
       P.arrow('ar', src === 'tel' ? 'tel:t' : src === 'sav' ? 'sav:l' : 'rep:l', src === 'tel' ? 'acc:b' : src === 'sav' ? 'acc:r' : 'acc:r:0.85', { cls: ac, label: lb });
     }
     P.box('res', 16, 230, 648, 48, { cls: s.verdict === 'ok' ? 'good' : s.verdict === 'no' ? 'bad' : 'ghost', title: s.verdict === 'ok' ? '컴파일 성공' : s.verdict === 'no' ? '컴파일 오류' : '컴파일 결과', sub: s.verdict === 'ok' ? s.reason : s.verdict === 'no' ? s.msg : '아직 확인 중' });
-    P.note('컴파일러는 실제 객체가 아니라 코드가 적힌 위치(어느 클래스, 어느 패키지)와 변수의 선언 타입만 보고 판단합니다. 마지막 단계에서 상자 오른쪽에 이 접근 제어자로 그곳에서 읽을 수 있는지가 표시됩니다. "조건부"는 자기 타입(this나 SavingAccount 타입 변수)을 통할 때만 된다는 뜻입니다.');
+    P.note('마지막 단계에서 상자 오른쪽에 이 접근 제어자로 그곳에서 읽을 수 있는지가 표시됩니다. "조건부"는 자기 타입(this나 SavingAccount 타입 변수)을 통할 때만 된다는 뜻입니다.');
   },
   assume: '스물네 가지 조합을 이 PC의 JDK 21에서 패키지를 bank와 app으로 나눈 소스 파일로 실제로 컴파일해, 성공 여부와 오류 메시지를 대조했습니다(실행 결과가 아니라 컴파일 결과를 보는 실습입니다). "판단한 이유" 칸과 확인 순서는 자바 언어 명세의 접근 규칙을 풀어 쓴 설명이며, 컴파일러가 실제로 이 순서로 검사한다는 뜻은 아닙니다. 필드 대신 메서드에 같은 접근 제어자를 붙여 컴파일했을 때도 스물네 조합의 성공과 오류가 똑같았습니다(오류 메시지의 글귀는 일부 다릅니다). 다루지 않은 것: 클래스 자체의 접근 제어자, 생성자, static 멤버, 중첩 클래스, 모듈(module-info). protected의 "자기 타입을 통해서만" 조건은 static이 아닌 멤버에 대한 것입니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.',
 });
@@ -17676,15 +17598,13 @@ Lab.register({
       st.cmp = 'err';
       push('new Outer.Inner(): 컴파일 오류입니다. main은 static 메서드라서 이 자리에는 Outer 객체가 없고, 코드에서 따로 정해 주지도 않았습니다. 어느 바깥 객체에 딸린 안쪽 객체인지 정할 수 없어 컴파일러가 막습니다.', 'bad');
       fail('an enclosing instance that contains Outer.Inner is required', 'Outer.Inner를 품을 바깥 객체가 있어야 한다는 뜻입니다.');
-      sum.push('컴파일 오류가 나서 실행되지 않습니다.');
       sum.push('static이 없는 내부 클래스의 객체는 바깥 객체를 가리키는 참조를 갖도록 만들어집니다. 그래서 바깥 객체가 먼저 있어야 하고, 바깥 객체 o가 있으면 o.new Inner()로 만듭니다.');
-      sum.push('안쪽 클래스가 바깥 객체의 필드나 메서드를 쓰지 않는다면 static을 붙여 중첩 클래스로 만드는 편이 낫습니다. 종류를 "static 중첩 클래스"로 바꿔 같은 코드를 실행해 보세요.');
+      sum.push('안쪽 클래스가 바깥 객체의 필드나 메서드를 쓰지 않는다면 static을 붙여 중첩 클래스로 만드는 편이 낫습니다.');
     } else if (member && c.use === 'field' && nested) {
       push('컴파일러가 Outer 클래스를 읽습니다: Nested에는 static이 붙어 있습니다. static 중첩 클래스의 객체는 어느 Outer 객체와도 이어져 있지 않습니다.');
       st.cmp = 'err';
       push('return name: 컴파일 오류입니다. name은 Outer 객체마다 따로 있는 필드입니다. Nested 객체는 가리키는 Outer 객체가 없으므로 누구의 name을 읽어야 하는지 정할 수 없습니다.', 'bad');
       fail('non-static variable name cannot be referenced from a static context', 'static인 곳에서는 static이 아닌 변수 name을 쓸 수 없다는 뜻입니다. main에서 Outer 객체 o를 만들더라도 Nested 객체는 그 o를 알지 못합니다.');
-      sum.push('컴파일 오류가 나서 실행되지 않습니다.');
       sum.push('static 중첩 클래스는 바깥 클래스 안에 자리만 빌린 독립된 클래스입니다. 바깥 객체를 가리키는 참조가 없으므로 바깥 객체의 필드를 그냥 쓸 수 없습니다.');
       sum.push('바깥 객체의 필드가 필요하면 static을 떼어 내부 클래스로 만들거나, 필요한 값을 생성자로 넘겨줍니다.');
     } else if (member && !nested) {
@@ -17697,7 +17617,6 @@ Lab.register({
       push('o.name = "B": 바깥 객체의 필드를 "B"로 바꿉니다. 안쪽 객체에는 아무 일도 하지 않았습니다.');
       st.out.push('B'); rel = '안쪽 객체가 바깥 객체 o를 가리킴';
       push('in.who(): Inner 안의 name은 "내가 가리키는 바깥 객체의 name"입니다. 값을 복사해 둔 것이 아니라 참조를 따라가 지금 값을 읽으므로 B가 출력됩니다.', 'good');
-      sum.push('B가 출력됩니다. 안쪽 객체를 만든 뒤에 바꾼 바깥 객체의 값이 보입니다.');
       sum.push('static이 없는 내부 클래스의 객체는 바깥 객체를 가리키는 참조를 갖고 있어서, 바깥 객체의 필드와 메서드를 자기 것처럼 쓸 수 있습니다.');
       sum.push('그 대신 안쪽 객체가 남아 있는 동안에는 바깥 객체도 가비지 컬렉션으로 치워지지 않습니다. 바깥 객체를 쓰지 않는 안쪽 클래스에는 static을 붙이는 이유입니다.');
     } else if (member) {
@@ -17706,15 +17625,12 @@ Lab.register({
       push('new Outer.Nested(): 안쪽 객체를 만듭니다. static 중첩 클래스는 바깥 객체가 없어도 만들 수 있습니다. 이 프로그램에서 Outer 객체는 하나도 만들어지지 않았습니다.', 'good');
       st.out.push('안쪽'); rel = '바깥 객체를 가리키지 않음';
       push('in.who(): 자기 안의 코드만 실행해 "안쪽"을 돌려주고, 그것이 출력됩니다. 이 객체에는 바깥 객체를 가리키는 참조가 없습니다.');
-      sum.push('안쪽이 출력됩니다. Outer 객체를 만들지 않고도 Nested 객체를 만들어 썼습니다.');
       sum.push('static 중첩 클래스는 이름만 Outer.Nested일 뿐, 따로 선언한 클래스와 같은 방식으로 만들어 씁니다. 바깥 객체를 가리키는 참조가 없습니다.');
-      sum.push('같은 코드에서 static만 떼면 어떻게 되는지, 종류를 "인스턴스 내부 클래스"로 바꿔 비교해 보세요.');
     } else if (c.loc === 'change') {
       push('컴파일러가 make()를 읽습니다: count에 1을 넣고, 아래에서 다시 2를 넣습니다. 값이 한 번이라도 바뀌는 지역 변수는 "사실상 final"이 아닙니다.');
       st.cmp = 'err';
       push((anon ? '익명 클래스' : '람다') + ' 안의 count: 컴파일 오류입니다. ' + (anon ? '익명 클래스' : '람다') + '는 지역 변수 자체가 아니라 그 값을 복사해 가져갑니다. 원본이 나중에 바뀌면 복사본과 서로 달라지므로, 자바는 값이 바뀌지 않는 지역 변수만 안에서 쓰게 합니다.', 'bad');
       fail('local variables referenced from ' + (anon ? 'an inner class' : 'a lambda expression') + ' must be final or effectively final', (anon ? '내부 클래스' : '람다') + '에서 쓰는 지역 변수는 final이거나 사실상 final이어야 한다는 뜻입니다.' + (anon ? ' 익명 클래스도 내부 클래스의 한 가지라서 메시지에 inner class라고 나옵니다.' : ''));
-      sum.push('컴파일 오류가 나서 실행되지 않습니다.');
       sum.push('"사실상 final"은 final을 적지 않았어도 처음 넣은 값이 한 번도 바뀌지 않는 변수를 말합니다. ' + (anon ? '익명 클래스' : '람다') + '를 만든 뒤에 바꾸든 그 전에 바꾸든, 다시 대입하는 줄이 하나라도 있으면 오류입니다.');
       sum.push('익명 클래스와 람다 모두 같은 규칙을 따릅니다. 값을 바꿔야 한다면 필드에 두거나, 지역 변수 설정의 "배열에 담아 두고 칸의 값만 바꿈"처럼 배열이나 객체에 담아 그 안의 값을 바꿉니다.');
     } else {
@@ -17732,7 +17648,6 @@ Lab.register({
       push('r.run()의 첫 줄: ' + (arr ? '복사해 둔 참조로 배열을 찾아가 칸의 값을 읽습니다. r을 만든 뒤에 바꾼 값이 보여 count = 2가 출력됩니다.' : '복사해 둔 값을 읽어 count = 1을 출력합니다.'), 'good');
       st.th = anon ? 'self' : 'outer'; st.out.push('this = ' + (anon ? 'Outer$1' : 'Outer')); rel = anon ? 'this는 익명 객체 자신' : 'this는 바깥 Outer 객체';
       push(anon ? 'this.getClass().getName(): 익명 클래스 안의 this는 그 익명 클래스로 만든 객체 자신입니다. 이름이 없는 클래스라서 컴파일러가 Outer$1이라는 이름을 붙였고, 그것이 출력됩니다.' : 'this.getClass().getName(): 람다는 자기만의 this를 갖지 않습니다. 람다 안의 this는 람다를 적은 메서드 make()의 this, 곧 바깥의 Outer 객체입니다. Outer가 출력됩니다.', anon ? '' : 'good');
-      sum.push('출력은 count = ' + (arr ? '2' : '1') + ', this = ' + (anon ? 'Outer$1' : 'Outer') + ' 두 줄입니다.');
       sum.push(anon ? '익명 클래스는 새 클래스를 하나 선언하는 것이라서 그 안의 this는 새로 만든 객체입니다. 바깥 객체를 가리키려면 Outer.this라고 적어야 합니다.' : '람다는 새 클래스의 선언이 아니라 코드 조각이라서, 그 안의 this는 람다 바깥의 this와 같습니다. 익명 클래스를 람다로 바꿀 때 this를 쓰는 코드가 있으면 뜻이 달라집니다.');
       sum.push(arr ? '배열에 담으면 변수 count는 바뀌지 않고 배열 안의 값만 바뀌므로 규칙을 통과합니다. 다만 여러 스레드가 함께 쓰는 코드에서는 값이 꼬일 수 있으니 조심해서 써야 합니다.' : 'make()가 끝나 지역 변수가 사라진 뒤에도 복사해 둔 값으로 실행됩니다. 값을 복사해 가기 때문에, 그 변수를 다른 곳에서 바꾸는 것은 허용되지 않습니다.');
     }
@@ -17741,8 +17656,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, member = c.kind === 'inner' || c.kind === 'nested', arr = c.loc === 'arr';
     if (!s) { H.text(v, '실행을 누르면 컴파일부터 한 단계씩 진행합니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '컴파일', s.cmp === '?' ? '검사하는 중' : s.cmp === 'ok' ? '성공' : '오류', s.cmp === '?' ? 'none' : s.cmp === 'ok' ? 'good' : 'bad');
     if (s.cmp === 'err') { H.text(v, '컴파일 오류가 나면 클래스 파일이 만들어지지 않아 실행할 수 없습니다.'); return; }
     var rows = [];
     if (member) {
@@ -17753,10 +17666,7 @@ Lab.register({
       if (s.cnt) rows.push({ cls: s.live ? '' : 'gone', cells: ['count', 'make()의 지역 변수', s.live ? (arr ? '배열 { ' + s.cnt + ' }을 가리킴' : s.cnt) : '사라짐 (메서드가 끝남)'] });
       if (s.r) rows.push({ cells: ['r', c.kind === 'anon' ? '익명 클래스의 객체' : '람다', arr ? '복사한 참조 → 배열 { ' + s.cnt + ' }' : '복사한 값 ' + s.cap] });
       H.table(v, ['이름', '무엇인가', '갖고 있는 것'], rows, 'make() 안에서 만들어진 것');
-      H.lane(ln, 'this', !s.th ? '아직 확인 전' : s.th === 'self' ? '익명 객체 자신 (Outer$1)' : '바깥의 Outer 객체', !s.th ? 'none' : s.th === 'self' ? 'wait' : 'good');
     }
-    H.title(v, '출력');
-    H.slots(v, s.out.map(function (x) { return [x, 'd']; }), '아직 출력 없음');
   },
   // 그림: 왼쪽에 바깥 객체(와 지역 변수), 오른쪽에 안쪽 객체. 안쪽 객체가 무엇을 가리키거나 복사해 갖는지를 화살표로 잇는다.
   draw: function (P, sim, shown) {
@@ -17867,23 +17777,17 @@ Lab.register({
     if (c.op === 'loop') { st.out.push(String(st.ch)); push('System.out.println(changed): ' + st.ch + '이 출력됩니다. ' + (sb ? '세 번 도는 동안 sb가 가리키는 객체는 한 번도 바뀌지 않았습니다.' : '세 번 돌 때마다 s가 새 객체를 가리키게 되었습니다.'), sb ? 'good' : 'bad'); }
     var last = cur();
     if (c.op === 'loop' && !sb) {
-      sum.push('s는 java123, 처음 객체는 java 그대로이고, 세 번 도는 동안 s가 가리키는 객체가 세 번 바뀌었습니다.');
       sum.push('String은 내용을 고칠 수 없으므로, +로 이어 붙일 때마다 새 문자열 객체가 만들어지고 s가 그쪽으로 옮겨 갑니다. 중간에 만들어진 "java1", "java12"는 쓰이지 않고 버려집니다.');
-      sum.push('반복해서 이어 붙일 때는 StringBuilder를 씁니다. 타입을 StringBuilder로 바꿔 changed가 어떻게 달라지는지 비교해 보세요.');
+      sum.push('반복해서 이어 붙일 때는 StringBuilder를 씁니다.');
     } else if (c.op === 'loop') {
-      sum.push('sb는 java123이고, 세 번 도는 동안 가리키는 객체가 한 번도 바뀌지 않았습니다.');
       sum.push('StringBuilder는 객체 하나의 내용을 계속 고쳐 쓰므로, 이어 붙일 때마다 새 문자열 객체를 만들지 않아도 됩니다. 완성된 문자열은 sb.toString()으로 얻습니다.');
       sum.push('first도 같은 객체를 가리키므로 java123이 보입니다. 내용이 바뀌는 객체를 여러 곳에서 함께 가리킬 때는 한쪽의 변경이 다른 쪽에도 보인다는 점을 기억해야 합니다.');
     } else if (sb) {
-      sum.push('sb와 first 모두 java!이고, 두 변수는 같은 객체를 가리킵니다.');
       sum.push(c.op === 'assign' ? 'append는 내용을 고친 뒤 자기 자신을 돌려줍니다. 그래서 다시 넣어도 같은 객체이고, sb.append("a").append("b")처럼 이어서 부를 수도 있습니다.' : 'StringBuilder는 내용을 바꿀 수 있는 객체입니다. append가 객체 자신을 고치므로, 돌려준 값을 받지 않아도 결과가 남습니다.');
-      sum.push('같은 일을 String으로 하면 어떻게 다른지, 타입을 String으로 바꿔 비교해 보세요.');
     } else if (c.op === 'drop') {
-      sum.push('s도 처음 객체도 java 그대로이고, s == first는 true입니다.');
       sum.push('String의 메서드는 원본을 고치지 않고 새 문자열을 돌려줍니다. 돌려준 값을 받지 않으면 결과가 버려집니다. 컴파일 오류도 예외도 나지 않아서 알아채기 어려운 실수입니다.');
       sum.push('결과를 쓰려면 s = ' + call.src + '처럼 돌려준 값을 변수에 받아야 합니다.');
     } else {
-      sum.push('s는 ' + last + ', 처음 객체는 java 그대로이고, s == first는 false입니다.');
       sum.push('바뀐 것은 문자열 객체의 내용이 아니라 s가 가리키는 곳입니다. 처음 객체는 first로 보면 그대로 남아 있습니다.');
       sum.push('String의 내용이 바뀌지 않기 때문에, 같은 문자열을 여러 변수가 함께 가리켜도 한쪽에서 내용을 바꿔 버릴 걱정이 없습니다.');
     }
@@ -17894,14 +17798,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, sb = c.type === 'sb', name = sb ? 'sb' : 's';
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    var by = this.refs(s, name), ln = H.lanes(v);
-    H.lane(ln, name, '→ 객체 ' + s.s, 'wait');
-    H.lane(ln, 'first', s.f ? '→ 객체 ' + s.f : '아직 없음', s.f ? 'wait' : 'none');
+    var by = this.refs(s, name);
     H.table(v, ['객체', '종류', '내용', '가리키는 변수'], s.objs.map(function (o, i) { return { cls: by[i].length ? '' : 'gone', cells: ['객체 ' + (i + 1), sb ? 'StringBuilder' : 'String', '"' + o + '"', { v: by[i].length ? by[i].join(', ') : '없음', cls: by[i].length > 1 ? 'good' : '' }] }; }), '메모리의 객체');
-    var cnt = [[s.eq, name + ' == first']]; if (s.ch >= 0) cnt.push([s.ch + '번', 'changed']);
-    H.counters(v, cnt);
-    H.title(v, '출력');
-    H.slots(v, s.out.map(function (x) { return [x, 'd']; }), '아직 출력 없음');
   },
   // 그림: 왼쪽에 변수, 오른쪽에 객체. 변수에서 객체로 화살표가 가고, 가리키는 변수가 없는 객체는 점선으로 그린다.
   draw: function (P, sim, shown) {
@@ -17919,7 +17817,7 @@ Lab.register({
     if (s.f) P.arrow('ar_f', 'v_first:r', 'o' + s.f + ':l' + (s.s === s.f ? ':0.7' : ''), { cls: s.s === s.f ? 'good' : '' });
     P.box('r1', 16, 242, 250, 34, { cls: s.eq === '?' ? 'ghost' : 'plain', title: name + ' == first', right: s.eq });
     P.box('r2', 274, 242, 390, 34, { cls: s.out.length ? 'plain' : 'ghost', title: '출력', right: s.out.length ? s.out.join(' / ') : '아직 없음' });
-    P.note(sb ? 'StringBuilder는 객체 하나의 내용을 고쳐 씁니다. 그래서 같은 객체를 가리키는 모든 변수에 바뀐 내용이 보입니다.' : 'String 객체의 내용은 바뀌지 않습니다. 메서드나 +는 새 객체를 만들고, 달라지는 것은 변수가 가리키는 곳입니다. 점선은 어느 변수도 가리키지 않는 객체입니다.');
+    P.note(sb ? 'StringBuilder는 객체 하나의 내용을 고쳐 씁니다. 그래서 같은 객체를 가리키는 모든 변수에 바뀐 내용이 보입니다.' : '점선은 어느 변수도 가리키지 않는 객체입니다.');
   },
   assume: '열여덟 가지 조합(숨겨진 설정을 빼면 서로 다른 경우는 열 가지)의 출력을 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. "새 객체가 만들어졌다"는 것은 == 비교로 직전 객체와 다른 객체임을 확인한 것입니다. 실행 중에 실제로 몇 개의 객체가 메모리에 만들어지는지는 JVM의 최적화에 따라 달라질 수 있어 단정하지 않았습니다. 여기서 고른 메서드와 값은 모두 내용이 달라지는 경우입니다. 내용이 달라지지 않는 호출(예: 바꿀 글자가 없는 replace)에서는 String이 새 객체를 만들지 않고 자기 자신을 돌려주기도 합니다. StringBuilder가 안에서 글자를 담는 공간을 어떻게 늘리는지는 이 모형에서 다루지 않습니다.',
 });
@@ -17997,11 +17895,11 @@ Lab.register({
       print('first', '2024-01-31', '처음 객체의 내용은 바뀌지 않았습니다.');
       st.out.push(String(same));
       push('d == first: ' + (same ? '두 변수가 같은 객체를 가리키므로 true입니다.' : 'd는 새로 만들어진 객체를, first는 처음 객체를 가리키므로 false입니다.'));
-      if (c.add === 'drop') { sum.push('d는 2024-01-31 그대로이고 d == first는 true입니다.'); sum.push('java.time의 날짜 객체는 내용이 바뀌지 않습니다. plusMonths는 새 객체를 돌려주므로 d = d.plusMonths(1)처럼 받아야 결과를 쓸 수 있습니다.'); sum.push('String의 메서드와 같은 방식입니다. 돌려준 값을 받지 않아도 컴파일 오류나 예외가 없어 알아채기 어렵습니다.'); }
-      if (c.add === 'month') { sum.push('d는 2024-02-29이고, 처음 객체는 2024-01-31 그대로입니다.'); sum.push('더한 결과가 달력에 없는 날짜이면 예외를 내지 않고 그 달의 마지막 날로 맞춥니다.'); sum.push('그래서 달을 여러 번 나눠 더하면 결과가 달라질 수 있습니다. "한 달씩 두 번"과 "두 달을 한 번에"를 비교해 보세요.'); }
-      if (c.add === 'twice') { sum.push('d는 2024-03-29입니다. 3월 31일이 아닙니다.'); sum.push('첫 번째 더하기에서 2월 29일로 줄어든 날짜가 다음 계산의 출발점이 됩니다. 두 달을 한 번에 더한 결과(2024-03-31)와 이틀 차이가 납니다.'); sum.push('매달 말일처럼 되풀이되는 날짜를 만들 때는 앞의 결과에 계속 더하지 말고, 처음 날짜에 plusMonths(1), plusMonths(2)처럼 달 수를 바꿔 더합니다.'); }
-      if (c.add === 'two') { sum.push('d는 2024-03-31입니다.'); sum.push('두 달을 한 번에 더하면 2월을 거치지 않으므로 날짜가 줄어들지 않습니다. 한 달씩 두 번 더한 결과(2024-03-29)와 다릅니다.'); }
-      if (c.add === 'days') { sum.push('d는 2024-03-01입니다.'); sum.push('"30일 뒤"와 "한 달 뒤"는 다릅니다. plusDays는 날수를 그대로 세고, plusMonths는 달력의 달을 넘깁니다. 한 달 뒤(2024-02-29)와 하루 차이가 납니다.'); }
+      if (c.add === 'drop') { sum.push('java.time의 날짜 객체는 내용이 바뀌지 않습니다. plusMonths는 새 객체를 돌려주므로 d = d.plusMonths(1)처럼 받아야 결과를 쓸 수 있습니다.'); sum.push('String의 메서드와 같은 방식입니다. 돌려준 값을 받지 않아도 컴파일 오류나 예외가 없어 알아채기 어렵습니다.'); }
+      if (c.add === 'month') { sum.push('더한 결과가 달력에 없는 날짜이면 예외를 내지 않고 그 달의 마지막 날로 맞춥니다.'); sum.push('그래서 달을 여러 번 나눠 더하면 결과가 달라질 수 있습니다.'); }
+      if (c.add === 'twice') { sum.push('첫 번째 더하기에서 2월 29일로 줄어든 날짜가 다음 계산의 출발점이 됩니다. 두 달을 한 번에 더한 결과(2024-03-31)와 이틀 차이가 납니다.'); sum.push('매달 말일처럼 되풀이되는 날짜를 만들 때는 앞의 결과에 계속 더하지 말고, 처음 날짜에 plusMonths(1), plusMonths(2)처럼 달 수를 바꿔 더합니다.'); }
+      if (c.add === 'two') { sum.push('두 달을 한 번에 더하면 2월을 거치지 않으므로 날짜가 줄어들지 않습니다. 한 달씩 두 번 더한 결과(2024-03-29)와 다릅니다.'); }
+      if (c.add === 'days') { sum.push('"30일 뒤"와 "한 달 뒤"는 다릅니다. plusDays는 날수를 그대로 세고, plusMonths는 달력의 달을 넘깁니다. 한 달 뒤(2024-02-29)와 하루 차이가 납니다.'); }
     } else if (c.topic === 'zone') {
       var z = this.Z[c.zone];
       st.seoul = true;
@@ -18013,8 +17911,7 @@ Lab.register({
       print('there', z.zdt, '날짜와 시각 뒤에 UTC와의 차이' + (c.zone === 'utc' ? '(Z는 차이 없음)' : '') + '와 시간대 이름이 붙습니다.');
       print('there.toLocalDate()', z.date, c.zone === 'seoul' ? '서울의 날짜입니다.' : '같은 순간인데 서울의 날짜(2024-01-01)와 다릅니다. 연도까지 다릅니다.', c.zone === 'seoul' ? '' : 'bad');
       print('there.toInstant()', '2023-12-31T15:30:00Z', '어느 시간대로 적었든 가리키는 순간은 같습니다.', 'good');
-      sum.push(z.id + ' 시간대로 적으면 ' + z.date + ' ' + z.time + '이고, 가리키는 순간은 2023-12-31T15:30:00Z로 같습니다.');
-      sum.push(c.zone === 'seoul' ? '같은 시간대로 되돌리면 처음 만든 값과 같습니다. 다른 시간대를 골라 날짜가 어떻게 달라지는지 확인해 보세요.' : c.zone === 'utc' ? 'UTC로 적으면 서울보다 9시간 이른 시각이 되어 날짜가 하루 앞섭니다. UTC로 저장한 시각을 그대로 화면에 보여 주면 날짜가 하루 어긋나 보이는 이유입니다.' : '같은 순간인데 서울은 2024년 1월 1일, 뉴욕은 2023년 12월 31일입니다. 시간대를 빼고 날짜만 저장하거나 비교하면 하루가 어긋날 수 있습니다.');
+      sum.push(c.zone === 'seoul' ? '같은 시간대로 되돌리면 처음 만든 값과 같습니다.' : c.zone === 'utc' ? 'UTC로 적으면 서울보다 9시간 이른 시각이 되어 날짜가 하루 앞섭니다. UTC로 저장한 시각을 그대로 화면에 보여 주면 날짜가 하루 어긋나 보이는 이유입니다.' : '같은 순간인데 서울은 2024년 1월 1일, 뉴욕은 2023년 12월 31일입니다. 시간대를 빼고 날짜만 저장하거나 비교하면 하루가 어긋날 수 있습니다.');
       sum.push('어느 한 순간을 저장하거나 주고받을 때는 Instant처럼 시간대와 상관없는 값을 쓰고, 사람에게 보여 줄 때 그 사람의 시간대로 바꿔 적습니다.');
     } else {
       st.ab = true;
@@ -18025,7 +17922,6 @@ Lab.register({
         print('p', 'P1M1D', 'P는 Period, 1M은 1개월, 1D는 1일이라는 표기입니다.');
         print('p.getDays()', '1', 'getDays()는 전체 일수가 아니라 "1개월 1일" 가운데 일 칸의 값만 돌려줍니다.', 'bad');
         print('ChronoUnit.DAYS.between(a, b)', '30', '두 날짜 사이의 전체 일수입니다. 며칠이 지났는지 알고 싶을 때는 이렇게 일 단위로 셉니다.', 'good');
-        sum.push('Period는 P1M1D(1개월 1일), getDays()는 1, 전체 일수는 30입니다.');
         sum.push('Period는 달력의 년, 월, 일로 간격을 나타냅니다. getDays()는 일 칸의 값일 뿐이어서 "며칠 지났나"를 getDays()로 구하면 틀립니다.');
         sum.push('한 달의 길이는 달마다 다르므로 Period를 정해진 일수나 시간으로 바꿀 수 없습니다. 전체 일수는 ChronoUnit.DAYS.between으로 구합니다.');
       } else if (c.gap === 'duration') {
@@ -18035,14 +17931,12 @@ Lab.register({
         print('t', 'PT720H', 'PT는 시간 간격이라는 표시이고 720H는 720시간입니다.');
         print('t.toHours()', '720', '');
         print('t.toDays()', '30', 'Duration에서 하루는 언제나 24시간으로 계산합니다.', 'good');
-        sum.push('Duration은 PT720H(720시간)이고, 시간으로 720, 일로 30입니다.');
         sum.push('Duration은 흐른 시간의 길이를 담습니다. Period의 "1개월 1일"처럼 달력에 따라 길이가 달라지는 단위가 없습니다.');
         sum.push('"한 달 뒤"처럼 달력으로 세는 간격은 Period로, "90분"이나 "30초"처럼 길이가 정해진 간격은 Duration으로 나타냅니다.');
       } else {
         st.ex = true; ex = 'Unsupported unit: Seconds';
         push('Duration.between(a, b): Duration은 초 단위로 간격을 재려고 합니다. 그런데 LocalDate에는 날짜만 있고 시각이 없어서 초 단위의 차이를 구할 수 없습니다. UnsupportedTemporalTypeException 예외가 발생합니다.', 'bad');
         push('예외 메시지는 "Unsupported unit: Seconds"입니다. LocalDate가 초 단위를 지원하지 않는다는 뜻입니다. 컴파일은 통과하므로 실행해 봐야 드러나는 실수이고, 예외로 멈췄기 때문에 아래의 출력 세 줄은 실행되지 않습니다.', 'bad');
-        sum.push('UnsupportedTemporalTypeException 예외가 나서 아무것도 출력되지 않습니다.');
         sum.push('Duration은 초 단위로 재므로 LocalDateTime, ZonedDateTime, Instant처럼 시각이 있는 값이 필요합니다. 날짜만 있는 LocalDate로는 잴 수 없습니다.');
         sum.push('날짜 사이의 간격은 Period.between이나 ChronoUnit.DAYS.between으로 구합니다.');
       }
@@ -18054,9 +17948,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, z = this.Z[c.zone];
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
     if (c.topic === 'plus') {
-      var ln = H.lanes(v);
-      H.lane(ln, 'd', '→ 객체 ' + s.s + ' (' + s.objs[s.s - 1] + ')', 'wait');
-      H.lane(ln, 'first', s.f ? '→ 객체 1 (2024-01-31)' : '아직 없음', s.f ? 'wait' : 'none');
       H.table(v, ['객체', '날짜', '가리키는 변수'], s.objs.map(function (o, i) { var by = []; if (s.s === i + 1) by.push('d'); if (s.f === i + 1) by.push('first'); return { cls: by.length ? '' : 'gone', cells: ['객체 ' + (i + 1), o, by.length ? by.join(', ') : '없음'] }; }), 'LocalDate 객체');
     } else if (c.topic === 'zone') {
       var rows = [];
@@ -18071,8 +17962,6 @@ Lab.register({
       if (s.ex) r2.push({ cells: ['t', 'Duration', { v: '예외로 만들어지지 않음', cls: 'bad' }] });
       H.table(v, ['변수', '타입', '값'], r2, '두 날짜와 그 사이의 간격');
     }
-    H.title(v, '출력');
-    H.slots(v, s.out.map(function (x) { return [x, 'd']; }), s.ex ? '예외로 멈춰 출력 없음' : '아직 출력 없음');
   },
   // 그림: 주제에 따라 (1) 변수와 날짜 객체, 그 아래 달력의 달 (2) 한 순간(Instant)과 그것을 세 시간대로 적은 값 (3) 두 날짜와 Period, Duration. 맨 아래는 출력 세 줄.
   draw: function (P, sim, shown) {
@@ -18093,7 +17982,7 @@ Lab.register({
       [[1, '31일까지 있음'], [2, '29일까지 있음 (윤년)'], [3, '31일까지 있음']].forEach(function (m, i) {
         P.box('m' + m[0], 16 + i * 220, 180, 208, 46, { cls: mon === m[0] ? 'hot now' : 'plain', title: '2024년 ' + m[0] + '월', sub: m[1], right: mon === m[0] ? 'd: ' + (+cur.slice(8)) + '일' : '' });
       });
-      P.note('위쪽은 변수가 가리키는 날짜 객체, 아래쪽은 d가 지금 달력의 어디에 있는지입니다. 더한 결과가 없는 날짜이면 그 달의 마지막 날로 맞춰집니다.');
+      P.note('위쪽은 변수가 가리키는 날짜 객체, 아래쪽은 d가 지금 달력의 어디에 있는지입니다.');
     } else if (c.topic === 'zone') {
       P.size(680, 300); y0 = 208;
       P.box('inst', 170, 20, 340, 50, s.inst ? { cls: 'good', title: 'Instant: 시간대와 상관없는 한 순간', sub: '2023-12-31T15:30:00Z', center: true } : { cls: 'ghost', title: 'Instant: 시간대와 상관없는 한 순간', sub: '아직 없음', center: true });
@@ -18103,7 +17992,7 @@ Lab.register({
       });
       if (s.inst) P.arrow('a_in', 'z_seoul:t', 'inst:r', { label: 'toInstant' });
       if (s.there) P.arrow('a_out', 'inst:b', 'z_' + c.zone + ':t', { cls: 'hot', label: 'atZone' });
-      P.note('가운데 위의 Instant가 "어느 한 순간"이고, 아래 세 상자는 그 순간을 각 시간대의 달력과 시계로 적은 것입니다. 적힌 날짜와 시각은 달라도 같은 순간입니다.');
+      P.note('가운데 위의 Instant가 "어느 한 순간"이고, 아래 세 상자는 그 순간을 각 시간대의 달력과 시계로 적은 것입니다.');
     } else {
       P.size(680, 280); y0 = 188;
       P.box('a', 16, 30, 200, 40, s.ab ? { cls: 'wait', title: 'a = 2024-01-31', center: true } : { cls: 'ghost', title: 'a', center: true });
@@ -18166,9 +18055,8 @@ Lab.register({
       st.opt = 'npe'; st.ex = ex = 'NullPointerException';
       push('Optional.of(name): of는 값이 반드시 있을 때 쓰는 메서드입니다. null을 받으면 Optional을 만들지 않고 그 자리에서 NullPointerException을 던집니다.', 'bad');
       push('예외로 프로그램이 멈춥니다. Optional이 만들어지지 않았으므로 아래 줄들은 하나도 실행되지 않습니다.' + (useMd ? ' makeDefault()도 실행되지 않습니다.' : ''), 'bad');
-      sum.push('Optional.of(null)에서 NullPointerException이 나서 아무것도 출력되지 않습니다.');
       sum.push('Optional로 감싼다고 해서 null이 저절로 안전해지지 않습니다. of는 null을 받지 않습니다.');
-      sum.push('null일 수도 있는 값은 Optional.ofNullable로 감쌉니다. 만드는 방법을 ofNullable로 바꿔 비교해 보세요.');
+      sum.push('null일 수도 있는 값은 Optional.ofNullable로 감쌉니다.');
       return { events: ev, summary: sum, ex: ex, out: [], row: ['예외: NullPointerException', '(실행되지 않음)', useMd ? '실행되지 않음' : '(쓰지 않음)'] };
     }
     st.opt = has ? 'kim' : 'empty';
@@ -18215,19 +18103,14 @@ Lab.register({
     }
     if (!ex) { st.out.push(res); push('System.out.println(result): ' + res + ' 한 줄이 출력됩니다.'); }
     if (c.take === 'get') {
-      sum.push(has ? 'kim이 출력됩니다.' : 'get()에서 NoSuchElementException이 나서 결과를 출력하지 못합니다.');
-      sum.push(has ? 'get()은 값이 있을 때만 안전합니다. name을 null로 바꾸거나 Optional.empty()로 만들어 같은 코드를 실행해 보세요.' : 'Optional에서 get()을 그냥 부르는 것은 null을 검사하지 않고 쓰는 것과 다르지 않습니다. 예외의 이름만 바뀔 뿐입니다.');
+      sum.push(has ? 'get()은 값이 있을 때만 안전합니다.' : 'Optional에서 get()을 그냥 부르는 것은 null을 검사하지 않고 쓰는 것과 다르지 않습니다. 예외의 이름만 바뀔 뿐입니다.');
       sum.push('값이 없을 수 있다면 orElse, orElseGet, map처럼 "없을 때 어떻게 할지"를 함께 적는 메서드를 씁니다.');
     } else if (c.take === 'orElse') {
-      sum.push('결과는 "' + res + '"이고, makeDefault()는 실행되었습니다.');
       sum.push(has ? '값이 있어서 기본값이 필요 없는데도 makeDefault()가 실행되었습니다. orElse의 괄호 안은 평범한 인자라서 orElse가 불리기 전에 항상 먼저 계산됩니다.' : '비어 있으므로 기본값이 쓰였습니다. 이 경우에는 orElseGet과 결과도, makeDefault()가 실행되는 것도 같습니다.');
       sum.push('기본값이 "없음" 같은 이미 만들어져 있는 값이면 orElse로 충분합니다. 기본값을 만드는 데 DB 조회나 객체 생성 같은 일이 따른다면 orElseGet을 씁니다.');
     } else if (c.take === 'orElseGet') {
-      sum.push('결과는 "' + res + '"이고, makeDefault()는 ' + (has ? '실행되지 않았습니다.' : '실행되었습니다.'));
-      sum.push(has ? 'orElseGet은 기본값이 아니라 "기본값을 만드는 코드"(람다)를 받습니다. 값이 있으면 그 코드를 실행하지 않습니다.' : '비어 있을 때에만 람다가 실행됩니다. name을 "kim"으로 바꾸면 makeDefault()가 실행되지 않는 것을 볼 수 있습니다.');
-      sum.push('같은 설정에서 꺼내는 방법만 orElse로 바꿔, makeDefault()가 실행되는지 비교해 보세요.');
+      sum.push(has ? 'orElseGet은 기본값이 아니라 "기본값을 만드는 코드"(람다)를 받습니다. 값이 있으면 그 코드를 실행하지 않습니다.' : '비어 있을 때에만 람다가 실행됩니다.');
     } else {
-      sum.push('결과는 "' + res + '"입니다.');
       sum.push(has ? 'map은 값이 들어 있으면 함수를 적용한 결과를 다시 Optional에 담아 돌려줍니다. 그래서 map을 여러 번 이어 쓸 수 있습니다.' : 'map은 비어 있으면 함수를 실행하지 않고 빈 Optional을 그대로 넘깁니다. 중간에 if (x != null)을 적지 않아도 됩니다.');
       sum.push('값이 없을 때의 처리는 맨 끝의 orElse 한 곳에만 적으면 됩니다.');
     }
@@ -18242,9 +18125,6 @@ Lab.register({
     if (useMd) H.lane(ln, 'makeDefault()', s.md === 'run' ? '실행됨 → "손님"' : s.md === 'skip' ? '실행되지 않음' : s.md === 'wait' ? '람다로 넘겨짐 (아직 실행 전)' : '아직 실행 전', s.md === 'run' ? 'hot' : s.md === 'skip' ? 'good' : 'none');
     if (c.take === 'map') s.chain.forEach(function (x, i) { H.lane(ln, 'map ' + (i + 1) + '번째', x ? '함수 실행 → "' + x + '"' : '함수를 건너뜀 (비어 있음)', x ? 'good' : 'wait'); });
     H.lane(ln, 'result', s.res ? '"' + s.res + '"' : s.ex ? '예외로 값을 받지 못함' : '아직 없음', s.res ? 'good' : s.ex ? 'bad' : 'none');
-    if (s.ex) H.text(v, '예외: ' + s.ex);
-    H.title(v, '출력');
-    H.slots(v, s.out.map(function (x) { return [x, x === 'makeDefault 실행' ? 'b' : 'd']; }), s.ex ? '예외로 멈춰 출력 없음' : '아직 출력 없음');
   },
   // 그림: 왼쪽에서 오른쪽으로 name → Optional 상자 → 꺼낸 결과. Optional 아래에는 기본값을 만드는 makeDefault()(또는 map의 두 단계)가 실행됐는지를 둔다.
   draw: function (P, sim, shown) {

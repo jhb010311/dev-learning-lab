@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b88d80401a">
+<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,7 +71,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The output during new Dog() is Animal(String) runs / sound=null / Dog() runs, and the output of d.describe() is sound=Woof.</li>
 <li>The order of execution is: the superclass constructor Animal(String name) → the field initializer of Dog → the body of the Dog() constructor. The subclass constructor starts first, but on its first line it passes control to the superclass constructor, so the superclass side finishes first.</li>
 <li>Pitfall: The describe() that the superclass constructor called is the one that Dog overrides, and at that point sound in Dog is not initialized yet, so it is null. Even though the code says sound = &quot;Woof&quot;, sound=null was printed. If a method had been called on the field that is null, a NullPointerException would have been thrown.</li>
 <li>For this reason, the rule is that a constructor does not call methods that a subclass can override. The output of d.describe(), called after the object was fully created, is sound=Woof, as it should be.</li>
@@ -193,6 +192,6 @@ d.describe();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b88d80401a"></script>
+<script src="../../app.js?v=df17f1edb0"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'httpmsg', nav: 'HTTP messages and status codes', cat: 'HTTP', mode: 'step',
   title: 'This is what a request and a response look like as text',
-  intro: 'The HTTP messages that a browser and a server exchange are text with a fixed shape. A request has "what" (the address) and "how" (the method) on its first line, and a response has "how it went" (the status code) on its first line. Change the situation, and look at the raw text of the request and the response and at what the status code means.',
+  intro: 'The HTTP messages that a browser and a server exchange are text with a fixed shape. A request has "what" (the address) and "how" (the method) on its first line, and a response has "how it went" (the status code) on its first line.',
   terms: ['HTTP as a stateless protocol', 'HTTP methods', 'HTTP status codes', 'REST', 'URI and URL'], ranks: ['http', 'rest'],
   controls: [
     { id: 'sc', label: 'Situation', type: 'select', value: 'get', options: [['get', 'Get order 1'], ['create', 'Create a new order'], ['delete', 'Delete order 1'], ['bad', 'Create an order with a required value missing'], ['noauth', 'Get an order without logging in'], ['forbid', 'Get another user\'s order'], ['missing', 'Get order 999, which does not exist'], ['moved', 'Get an old path whose address has changed'], ['error', 'An exception is thrown in server code']] },
@@ -45,7 +45,6 @@ Lab.register({
     K.hdr.forEach(function (h) { S.res.push(['Header', h]); }); S.res.push(['Empty line', '']); if (K.rbody) S.res.push(['Body', K.rbody]);
     var why = { get: 'The server finds the requested order and returns it in the body.', create: 'A new order has been created. The Location header tells you the address of the new order. The server uses 201 instead of 200 to tell you that something new was created.', delete: 'The delete succeeded and there is nothing to return. That is why the response is 204, which has no body.', bad: 'The required value quantity is missing. The request itself does not follow the rules, so the response is 400. The server did not even start the work.', noauth: 'The server cannot tell who sent the request. The response is 401, which means "authenticate first".', forbid: 'The server has confirmed who you are, but you do not have permission to view this order. The response is 403.', missing: 'The form of the address is correct, but there is no order with that number. The response is 404.', moved: 'This address has been moved permanently to /orders. The browser automatically requests again at the address in the Location header.', error: 'There was nothing wrong with the request, but the server code threw an exception that it did not handle. The response is 500. The details of the internal error are not sent out as they are in the body.' }[c.sc];
     push(why, cls === '2' || cls === '3' ? 'good' : 'bad', 'res');
-    sum.push('Response ' + K.status + ' (' + group + '). Who has to fix it: ' + K.who + '. What the receiver should do: ' + K.next + '.');
     sum.push('The first digit of the status code alone tells you how to respond. With 4xx, sending the same request again does not help, and the request has to be fixed. 5xx is a problem on the server side, so you can try again after a short while. Monitoring also counts 4xx and 5xx separately.');
     if (c.sc === 'noauth' || c.sc === 'forbid') sum.push('401 means "I do not know who you are" (authentication), and 403 means "I know who you are, but it is not allowed" (authorization). Despite its name, 401 Unauthorized means that authentication failed.');
     if (c.sc === 'error' || c.sc === 'bad') sum.push('Avoid answering every failure with 200 and writing the error in the body. Browsers, proxies, and monitoring tools that act on the status code will mistake it for a success.');
@@ -72,7 +71,7 @@ Lab.register({
     if (s.res.length) P.arrow('go', 'rq:r', 'rs:l');
     var done = s.res.length > 0, code = done ? sim.row[0] : '';
     P.box('st', 16, 250, 648, 34, { cls: !done ? 'ghost' : /^[23]/.test(code) ? 'good' : 'bad', title: done ? 'Status code ' + code : 'Status code', right: done ? sim.row[1] : 'No response yet' });
-    P.note('The yellow line is the start line, white lines are headers, the dotted line is the empty line, and the green line is the body. The start line of a request holds the method and the path, and the start line of a response holds the status code.');
+    P.note('The yellow line is the start line, white lines are headers, the dotted line is the empty line, and the green line is the body.');
   },
   assume: 'The structure of the messages (start line, headers, empty line, body) is exactly the shape seen in the raw text exchanged between a real HTTP server and a socket, and only the main headers are kept on screen. The status code for each situation follows the definitions in the HTTP standard (RFC 9110) and the conventions widely used in REST APIs. Some designs return 404 instead of 403 for a request about another user\'s resource, to hide that the resource exists.',
 });

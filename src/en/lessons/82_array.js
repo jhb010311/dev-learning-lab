@@ -76,11 +76,9 @@ Lab.register({
       push('System.out.println(' + pr + '(b)): The contents of the array that b refers to are printed. The output is ' + st.outB + '.');
     }
     if (st.err) {
-      sum.push('The line that stores the value threw ' + st.err.split(':')[0] + ', and the program stopped. The two output lines below it were not executed.');
       sum.push('The length of an array is set when the array is created and does not change after that. If the length is n, the indexes go from 0 through n - 1. An index outside this range shows up as an exception at run time, not at compile time.');
       sum.push(idx < 0 ? 'Java has no syntax for counting from the end with a negative index. Write the last element as a[a.length - 1].' : 'If you write the condition of a loop as i <= a.length, you run into exactly this exception at the end. Write i < a.length. If you need more elements, create a longer array and move the values into it (Arrays.copyOf(a, 5)), or use an ArrayList, whose size grows automatically.');
     } else {
-      sum.push('a == b is ' + st.eq + (two ? ', and a[0] == b[0] is ' + st.eq0 : '') + '. The output of a is ' + st.outA + ', and the output of b is ' + st.outB + '.');
       if (c.copy === 'ref') sum.push('Assigning an array variable does not copy the array. It gives you one more variable that refers to the same array. So a value stored through one is visible through the other too. The same is true when you pass an array to a method.');
       else if (!two) sum.push('To copy an array, create a new array with a.clone() or Arrays.copyOf(a, a.length). The two arrays are separate, so changing one leaves the other as it was.' + (c.copy === 'copyOf' ? ' The second argument of Arrays.copyOf is the length of the new array. If you give a number larger than the original length, you get a longer array whose extra elements are filled with the default value.' : ''));
       else sum.push('When clone or Arrays.copyOf is used on a two-dimensional array, only the outer array is newly created, and the row arrays are shared. This is called a shallow copy. So changing an element of b[0] changes it in a[0] too. To have separate rows as well, you must clone each row (a deep copy).');
@@ -91,14 +89,9 @@ Lab.register({
   },
   cellText: function (x) { return x === null ? 'null' : typeof x === 'string' ? '"' + x + '"' : typeof x === 'object' ? 'reference to array ' + x.ref : String(x); },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, self = this, two = sim.c.shape === '2';
+    var last = shown[shown.length - 1], s = last ? last.snap : null, self = this;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'a', s.a ? '→ array ' + s.a : 'not declared yet', s.a ? 'wait' : 'none');
-    H.lane(ln, 'b', s.b ? '→ array ' + s.b + (s.b === s.a ? ' (the same array as a)' : '') : 'not declared yet', s.b ? (s.b === s.a ? 'hot' : 'wait') : 'none');
     H.table(v, ['Array', 'Type', 'Length', 'Contents of the elements (from index 0)'], s.arrs.map(function (A) { return { cells: ['Array ' + A.id, A.type, String(A.cells.length), { v: A.cells.map(function (x) { return self.cellText(x); }).join(' | '), cls: s.hit && s.hit.arr === A.id ? 'hot' : '' }] }; }), 'Arrays on the heap');
-    if (s.err) H.text(v, s.err);
-    H.counters(v, [[s.eq === null ? '?' : s.eq, 'a == b']].concat(two ? [[s.eq0 === null ? '?' : s.eq0, 'a[0] == b[0]']] : []));
   },
   // Diagram: each array has a border around it, and its elements are placed inside side by side in index order. Arrows go to the arrays from the variables and from the elements that hold references. For a two-dimensional array, the row arrays are in the middle and the outer arrays are on either side.
   draw: function (P, sim, shown) {

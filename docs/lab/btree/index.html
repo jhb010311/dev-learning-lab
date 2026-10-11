@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>이진 탐색과 B-트리: 정렬돼 있으면 절반씩 버릴 수 있다 · 개발 학습 실습실</title>
-<meta name="description" content="값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다. 찾는 방식과 찾는 값을 바꿔 가며 몇 번 만에 찾는지 보고, 데이터가 훨씬 많아지면 그 차이가…">
+<meta name="description" content="값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/btree/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/btree/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/btree/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="이진 탐색과 B-트리: 정렬돼 있으면 절반씩 버릴 수 있다 · 개발 학습 실습실">
-<meta property="og:description" content="값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다. 찾는 방식과 찾는 값을 바꿔 가며 몇 번 만에 찾는지 보고, 데이터가 훨씬 많아지면 그 차이가…">
+<meta property="og:description" content="값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/btree/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
+<link rel="stylesheet" href="../../app.css?v=b3ddaad4fd">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 인덱스와 실행 계획</p>
 <h1>이진 탐색과 B-트리</h1>
 <p><b>정렬돼 있으면 절반씩 버릴 수 있다</b></p>
-<p>값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다. 찾는 방식과 찾는 값을 바꿔 가며 몇 번 만에 찾는지 보고, 데이터가 훨씬 많아지면 그 차이가 어떻게 벌어지는지 보세요.</p>
+<p>값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다.</p>
 <p>실행으로 대조 · 화면의 탐색은 알고리즘을 실제로 실행한 결과</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -67,8 +67,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>27건에서 값(230) 찾기: 23번 확인, 찾음.</li>
-<li>100만 건이라면 가장 오래 걸릴 때: 하나씩 100만번, 이진 탐색 20번, 노드당 3갈래 B-트리 13단계, 노드당 500갈래 B-트리 3단계.</li>
 <li>하나씩 찾는 방식은 데이터가 10배가 되면 확인 횟수도 10배가 됩니다(O(n)). 없는 값은 끝까지 봐야 합니다. 인덱스가 없는 컬럼으로 조회하면 DB가 하는 일이 이것입니다.</li>
 <li>세 방식의 차이는 &quot;정렬해 두었는가&quot;와 &quot;한 번에 얼마나 많이 버리는가&quot;입니다. DB 인덱스는 값을 정렬해 B-트리로 저장해 두는 것이고, 그 대가로 넣고 고칠 때마다 트리도 함께 고쳐야 합니다.</li>
 </ul>
@@ -166,6 +164,6 @@ SELECT * FROM orders WHERE amount = 230;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=28e3eacea2"></script>
+<script src="../../app.js?v=b3ddaad4fd"></script>
 </body>
 </html>

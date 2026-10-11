@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b88d80401a">
+<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Indexes and execution plans</p>
 <h1>Binary search and B-trees</h1>
 <p><b>If the data is sorted, you can discard half at a time</b></p>
-<p>You look for one value among 27 values. You can check them one by one from the start. If they are sorted, you can look at the middle and discard half. Or you can use a B-tree, which splits the search into many branches at once. Change the search method and the value you look for, see how many steps it takes, and then see how the gap widens when there is much more data.</p>
+<p>You look for one value among 27 values. You can check them one by one from the start. If they are sorted, you can look at the middle and discard half. Or you can use a B-tree, which splits the search into many branches at once.</p>
 <p>Checked against real execution · The search on the screen is the result of actually running the algorithms</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -67,8 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Finding 230 among 27 values. Checks: 23. Found.</li>
-<li>With 1 million rows, in the worst case: one by one, 1 million checks; binary search, 20 checks; a B-tree with 3 children per node, 13 levels; a B-tree with 500 children per node, 3 levels.</li>
 <li>Checking one by one takes 10 times as many checks when the data is 10 times as large (O(n)). To find out that a value is missing, you have to look at all of them. This is what the database does when you query by a column that has no index.</li>
 <li>The difference among the three methods is &quot;whether the data is kept sorted&quot; and &quot;how much is discarded at a time&quot;. A database index keeps the values sorted and stored in a B-tree, and the price is that the tree must be updated every time you insert or change a value.</li>
 </ul>
@@ -166,6 +164,6 @@ SELECT * FROM orders WHERE amount = 230;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b88d80401a"></script>
+<script src="../../app.js?v=df17f1edb0"></script>
 </body>
 </html>

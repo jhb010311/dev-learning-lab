@@ -71,11 +71,11 @@ Lab.register({
       print('first', '2024-01-31', '처음 객체의 내용은 바뀌지 않았습니다.');
       st.out.push(String(same));
       push('d == first: ' + (same ? '두 변수가 같은 객체를 가리키므로 true입니다.' : 'd는 새로 만들어진 객체를, first는 처음 객체를 가리키므로 false입니다.'));
-      if (c.add === 'drop') { sum.push('d는 2024-01-31 그대로이고 d == first는 true입니다.'); sum.push('java.time의 날짜 객체는 내용이 바뀌지 않습니다. plusMonths는 새 객체를 돌려주므로 d = d.plusMonths(1)처럼 받아야 결과를 쓸 수 있습니다.'); sum.push('String의 메서드와 같은 방식입니다. 돌려준 값을 받지 않아도 컴파일 오류나 예외가 없어 알아채기 어렵습니다.'); }
-      if (c.add === 'month') { sum.push('d는 2024-02-29이고, 처음 객체는 2024-01-31 그대로입니다.'); sum.push('더한 결과가 달력에 없는 날짜이면 예외를 내지 않고 그 달의 마지막 날로 맞춥니다.'); sum.push('그래서 달을 여러 번 나눠 더하면 결과가 달라질 수 있습니다. "한 달씩 두 번"과 "두 달을 한 번에"를 비교해 보세요.'); }
-      if (c.add === 'twice') { sum.push('d는 2024-03-29입니다. 3월 31일이 아닙니다.'); sum.push('첫 번째 더하기에서 2월 29일로 줄어든 날짜가 다음 계산의 출발점이 됩니다. 두 달을 한 번에 더한 결과(2024-03-31)와 이틀 차이가 납니다.'); sum.push('매달 말일처럼 되풀이되는 날짜를 만들 때는 앞의 결과에 계속 더하지 말고, 처음 날짜에 plusMonths(1), plusMonths(2)처럼 달 수를 바꿔 더합니다.'); }
-      if (c.add === 'two') { sum.push('d는 2024-03-31입니다.'); sum.push('두 달을 한 번에 더하면 2월을 거치지 않으므로 날짜가 줄어들지 않습니다. 한 달씩 두 번 더한 결과(2024-03-29)와 다릅니다.'); }
-      if (c.add === 'days') { sum.push('d는 2024-03-01입니다.'); sum.push('"30일 뒤"와 "한 달 뒤"는 다릅니다. plusDays는 날수를 그대로 세고, plusMonths는 달력의 달을 넘깁니다. 한 달 뒤(2024-02-29)와 하루 차이가 납니다.'); }
+      if (c.add === 'drop') { sum.push('java.time의 날짜 객체는 내용이 바뀌지 않습니다. plusMonths는 새 객체를 돌려주므로 d = d.plusMonths(1)처럼 받아야 결과를 쓸 수 있습니다.'); sum.push('String의 메서드와 같은 방식입니다. 돌려준 값을 받지 않아도 컴파일 오류나 예외가 없어 알아채기 어렵습니다.'); }
+      if (c.add === 'month') { sum.push('더한 결과가 달력에 없는 날짜이면 예외를 내지 않고 그 달의 마지막 날로 맞춥니다.'); sum.push('그래서 달을 여러 번 나눠 더하면 결과가 달라질 수 있습니다.'); }
+      if (c.add === 'twice') { sum.push('첫 번째 더하기에서 2월 29일로 줄어든 날짜가 다음 계산의 출발점이 됩니다. 두 달을 한 번에 더한 결과(2024-03-31)와 이틀 차이가 납니다.'); sum.push('매달 말일처럼 되풀이되는 날짜를 만들 때는 앞의 결과에 계속 더하지 말고, 처음 날짜에 plusMonths(1), plusMonths(2)처럼 달 수를 바꿔 더합니다.'); }
+      if (c.add === 'two') { sum.push('두 달을 한 번에 더하면 2월을 거치지 않으므로 날짜가 줄어들지 않습니다. 한 달씩 두 번 더한 결과(2024-03-29)와 다릅니다.'); }
+      if (c.add === 'days') { sum.push('"30일 뒤"와 "한 달 뒤"는 다릅니다. plusDays는 날수를 그대로 세고, plusMonths는 달력의 달을 넘깁니다. 한 달 뒤(2024-02-29)와 하루 차이가 납니다.'); }
     } else if (c.topic === 'zone') {
       var z = this.Z[c.zone];
       st.seoul = true;
@@ -87,8 +87,7 @@ Lab.register({
       print('there', z.zdt, '날짜와 시각 뒤에 UTC와의 차이' + (c.zone === 'utc' ? '(Z는 차이 없음)' : '') + '와 시간대 이름이 붙습니다.');
       print('there.toLocalDate()', z.date, c.zone === 'seoul' ? '서울의 날짜입니다.' : '같은 순간인데 서울의 날짜(2024-01-01)와 다릅니다. 연도까지 다릅니다.', c.zone === 'seoul' ? '' : 'bad');
       print('there.toInstant()', '2023-12-31T15:30:00Z', '어느 시간대로 적었든 가리키는 순간은 같습니다.', 'good');
-      sum.push(z.id + ' 시간대로 적으면 ' + z.date + ' ' + z.time + '이고, 가리키는 순간은 2023-12-31T15:30:00Z로 같습니다.');
-      sum.push(c.zone === 'seoul' ? '같은 시간대로 되돌리면 처음 만든 값과 같습니다. 다른 시간대를 골라 날짜가 어떻게 달라지는지 확인해 보세요.' : c.zone === 'utc' ? 'UTC로 적으면 서울보다 9시간 이른 시각이 되어 날짜가 하루 앞섭니다. UTC로 저장한 시각을 그대로 화면에 보여 주면 날짜가 하루 어긋나 보이는 이유입니다.' : '같은 순간인데 서울은 2024년 1월 1일, 뉴욕은 2023년 12월 31일입니다. 시간대를 빼고 날짜만 저장하거나 비교하면 하루가 어긋날 수 있습니다.');
+      sum.push(c.zone === 'seoul' ? '같은 시간대로 되돌리면 처음 만든 값과 같습니다.' : c.zone === 'utc' ? 'UTC로 적으면 서울보다 9시간 이른 시각이 되어 날짜가 하루 앞섭니다. UTC로 저장한 시각을 그대로 화면에 보여 주면 날짜가 하루 어긋나 보이는 이유입니다.' : '같은 순간인데 서울은 2024년 1월 1일, 뉴욕은 2023년 12월 31일입니다. 시간대를 빼고 날짜만 저장하거나 비교하면 하루가 어긋날 수 있습니다.');
       sum.push('어느 한 순간을 저장하거나 주고받을 때는 Instant처럼 시간대와 상관없는 값을 쓰고, 사람에게 보여 줄 때 그 사람의 시간대로 바꿔 적습니다.');
     } else {
       st.ab = true;
@@ -99,7 +98,6 @@ Lab.register({
         print('p', 'P1M1D', 'P는 Period, 1M은 1개월, 1D는 1일이라는 표기입니다.');
         print('p.getDays()', '1', 'getDays()는 전체 일수가 아니라 "1개월 1일" 가운데 일 칸의 값만 돌려줍니다.', 'bad');
         print('ChronoUnit.DAYS.between(a, b)', '30', '두 날짜 사이의 전체 일수입니다. 며칠이 지났는지 알고 싶을 때는 이렇게 일 단위로 셉니다.', 'good');
-        sum.push('Period는 P1M1D(1개월 1일), getDays()는 1, 전체 일수는 30입니다.');
         sum.push('Period는 달력의 년, 월, 일로 간격을 나타냅니다. getDays()는 일 칸의 값일 뿐이어서 "며칠 지났나"를 getDays()로 구하면 틀립니다.');
         sum.push('한 달의 길이는 달마다 다르므로 Period를 정해진 일수나 시간으로 바꿀 수 없습니다. 전체 일수는 ChronoUnit.DAYS.between으로 구합니다.');
       } else if (c.gap === 'duration') {
@@ -109,14 +107,12 @@ Lab.register({
         print('t', 'PT720H', 'PT는 시간 간격이라는 표시이고 720H는 720시간입니다.');
         print('t.toHours()', '720', '');
         print('t.toDays()', '30', 'Duration에서 하루는 언제나 24시간으로 계산합니다.', 'good');
-        sum.push('Duration은 PT720H(720시간)이고, 시간으로 720, 일로 30입니다.');
         sum.push('Duration은 흐른 시간의 길이를 담습니다. Period의 "1개월 1일"처럼 달력에 따라 길이가 달라지는 단위가 없습니다.');
         sum.push('"한 달 뒤"처럼 달력으로 세는 간격은 Period로, "90분"이나 "30초"처럼 길이가 정해진 간격은 Duration으로 나타냅니다.');
       } else {
         st.ex = true; ex = 'Unsupported unit: Seconds';
         push('Duration.between(a, b): Duration은 초 단위로 간격을 재려고 합니다. 그런데 LocalDate에는 날짜만 있고 시각이 없어서 초 단위의 차이를 구할 수 없습니다. UnsupportedTemporalTypeException 예외가 발생합니다.', 'bad');
         push('예외 메시지는 "Unsupported unit: Seconds"입니다. LocalDate가 초 단위를 지원하지 않는다는 뜻입니다. 컴파일은 통과하므로 실행해 봐야 드러나는 실수이고, 예외로 멈췄기 때문에 아래의 출력 세 줄은 실행되지 않습니다.', 'bad');
-        sum.push('UnsupportedTemporalTypeException 예외가 나서 아무것도 출력되지 않습니다.');
         sum.push('Duration은 초 단위로 재므로 LocalDateTime, ZonedDateTime, Instant처럼 시각이 있는 값이 필요합니다. 날짜만 있는 LocalDate로는 잴 수 없습니다.');
         sum.push('날짜 사이의 간격은 Period.between이나 ChronoUnit.DAYS.between으로 구합니다.');
       }
@@ -128,9 +124,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, z = this.Z[c.zone];
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
     if (c.topic === 'plus') {
-      var ln = H.lanes(v);
-      H.lane(ln, 'd', '→ 객체 ' + s.s + ' (' + s.objs[s.s - 1] + ')', 'wait');
-      H.lane(ln, 'first', s.f ? '→ 객체 1 (2024-01-31)' : '아직 없음', s.f ? 'wait' : 'none');
       H.table(v, ['객체', '날짜', '가리키는 변수'], s.objs.map(function (o, i) { var by = []; if (s.s === i + 1) by.push('d'); if (s.f === i + 1) by.push('first'); return { cls: by.length ? '' : 'gone', cells: ['객체 ' + (i + 1), o, by.length ? by.join(', ') : '없음'] }; }), 'LocalDate 객체');
     } else if (c.topic === 'zone') {
       var rows = [];
@@ -145,8 +138,6 @@ Lab.register({
       if (s.ex) r2.push({ cells: ['t', 'Duration', { v: '예외로 만들어지지 않음', cls: 'bad' }] });
       H.table(v, ['변수', '타입', '값'], r2, '두 날짜와 그 사이의 간격');
     }
-    H.title(v, '출력');
-    H.slots(v, s.out.map(function (x) { return [x, 'd']; }), s.ex ? '예외로 멈춰 출력 없음' : '아직 출력 없음');
   },
   // 그림: 주제에 따라 (1) 변수와 날짜 객체, 그 아래 달력의 달 (2) 한 순간(Instant)과 그것을 세 시간대로 적은 값 (3) 두 날짜와 Period, Duration. 맨 아래는 출력 세 줄.
   draw: function (P, sim, shown) {
@@ -167,7 +158,7 @@ Lab.register({
       [[1, '31일까지 있음'], [2, '29일까지 있음 (윤년)'], [3, '31일까지 있음']].forEach(function (m, i) {
         P.box('m' + m[0], 16 + i * 220, 180, 208, 46, { cls: mon === m[0] ? 'hot now' : 'plain', title: '2024년 ' + m[0] + '월', sub: m[1], right: mon === m[0] ? 'd: ' + (+cur.slice(8)) + '일' : '' });
       });
-      P.note('위쪽은 변수가 가리키는 날짜 객체, 아래쪽은 d가 지금 달력의 어디에 있는지입니다. 더한 결과가 없는 날짜이면 그 달의 마지막 날로 맞춰집니다.');
+      P.note('위쪽은 변수가 가리키는 날짜 객체, 아래쪽은 d가 지금 달력의 어디에 있는지입니다.');
     } else if (c.topic === 'zone') {
       P.size(680, 300); y0 = 208;
       P.box('inst', 170, 20, 340, 50, s.inst ? { cls: 'good', title: 'Instant: 시간대와 상관없는 한 순간', sub: '2023-12-31T15:30:00Z', center: true } : { cls: 'ghost', title: 'Instant: 시간대와 상관없는 한 순간', sub: '아직 없음', center: true });
@@ -177,7 +168,7 @@ Lab.register({
       });
       if (s.inst) P.arrow('a_in', 'z_seoul:t', 'inst:r', { label: 'toInstant' });
       if (s.there) P.arrow('a_out', 'inst:b', 'z_' + c.zone + ':t', { cls: 'hot', label: 'atZone' });
-      P.note('가운데 위의 Instant가 "어느 한 순간"이고, 아래 세 상자는 그 순간을 각 시간대의 달력과 시계로 적은 것입니다. 적힌 날짜와 시각은 달라도 같은 순간입니다.');
+      P.note('가운데 위의 Instant가 "어느 한 순간"이고, 아래 세 상자는 그 순간을 각 시간대의 달력과 시계로 적은 것입니다.');
     } else {
       P.size(680, 280); y0 = 188;
       P.box('a', 16, 30, 200, 40, s.ab ? { cls: 'wait', title: 'a = 2024-01-31', center: true } : { cls: 'ghost', title: 'a', center: true });

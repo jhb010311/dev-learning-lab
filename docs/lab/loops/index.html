@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
+<link rel="stylesheet" href="../../app.css?v=b3ddaad4fd">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 기본 문법</p>
 <h1>조건문과 반복문</h1>
 <p><b>반복문은 몇 번 돌고, 어디에서 멈추나</b></p>
-<p>반복문은 &quot;조건 검사 → 본문 → 값 바꾸기&quot;를 조건이 false가 될 때까지 되풀이합니다. 조건에 &lt;를 쓰느냐 &lt;=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 값이 일치하는 case로 건너뛰는 문장인데, break가 없으면 아래 case까지 이어서 실행됩니다. 한 줄씩 따라가며 어디로 가는지 확인해 보세요.</p>
+<p>반복문은 &quot;조건 검사 → 본문 → 값 바꾸기&quot;를 조건이 false가 될 때까지 되풀이합니다. 조건에 &lt;를 쓰느냐 &lt;=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 값이 일치하는 case로 건너뛰는 문장인데, break가 없으면 아래 case까지 이어서 실행됩니다.</p>
 <p>실행으로 대조 · JDK 21에서 스물네 가지 조합을 실행해 대조 (끝나지 않는 두 조합은 2초 동안 관찰)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -72,7 +72,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>출력은 0, 1, 2, 3, 끝입니다. 본문에는 4번 들어갔고, 조건은 5번 검사했습니다(마지막 한 번이 false).</li>
 <li>i &lt;= 3은 i가 3일 때도 true라서 i &lt; 3보다 한 번 더 돕니다. 0부터 시작할 때 i &lt; n은 n번, i &lt;= n은 n + 1번입니다. 한 번 차이로 생기는 이런 실수는 아주 흔합니다. 원소가 n개인 배열을 돌 때는 i &lt; n을 씁니다.</li>
 <li>for문은 초기화, 조건, 증감을 한 줄에 모아 적는 반복문입니다. 실행 순서는 초기화(한 번) → 조건 → 본문 → 증감 → 조건 → ... 입니다.</li>
 </ul>
@@ -166,6 +165,6 @@ System.out.println(&quot;끝&quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=28e3eacea2"></script>
+<script src="../../app.js?v=b3ddaad4fd"></script>
 </body>
 </html>

@@ -71,11 +71,11 @@ Lab.register({
       print('first', '2024-01-31', 'The contents of the first object did not change.');
       st.out.push(String(same));
       push('d == first: ' + (same ? 'The two variables refer to the same object, so the result is true.' : 'd refers to the newly created object and first refers to the first object, so the result is false.'));
-      if (c.add === 'drop') { sum.push('d is still 2024-01-31, and d == first is true.'); sum.push('The date objects of java.time do not change their contents. plusMonths returns a new object, so you have to assign the return value, as in d = d.plusMonths(1), to use the result.'); sum.push('This works the same way as the methods of String. Ignoring the return value causes no compile-time error and no exception, so the mistake is hard to notice.'); }
-      if (c.add === 'month') { sum.push('d is 2024-02-29, and the first object is still 2024-01-31.'); sum.push('When the result of an addition is a date that is not in the calendar, no exception is thrown. The date is adjusted to the last day of that month.'); sum.push('So adding months in several separate steps can give a different result. Compare "One month, twice" with "Two months at once".'); }
-      if (c.add === 'twice') { sum.push('d is 2024-03-29. It is not March 31.'); sum.push('The date that was reduced to February 29 by the first addition becomes the starting point of the next calculation. The result is two days away from the result of adding two months at once (2024-03-31).'); sum.push('To produce a recurring date such as the last day of every month, do not keep adding to the previous result. Add to the original date with a different number of months each time, as in plusMonths(1), plusMonths(2).'); }
-      if (c.add === 'two') { sum.push('d is 2024-03-31.'); sum.push('Adding two months at once does not pass through February, so the day of the month is not reduced. This differs from the result of adding one month twice (2024-03-29).'); }
-      if (c.add === 'days') { sum.push('d is 2024-03-01.'); sum.push('"30 days later" and "one month later" are different. plusDays counts the number of days as given, and plusMonths moves to another month of the calendar. The result is one day away from one month later (2024-02-29).'); }
+      if (c.add === 'drop') { sum.push('The date objects of java.time do not change their contents. plusMonths returns a new object, so you have to assign the return value, as in d = d.plusMonths(1), to use the result.'); sum.push('This works the same way as the methods of String. Ignoring the return value causes no compile-time error and no exception, so the mistake is hard to notice.'); }
+      if (c.add === 'month') { sum.push('When the result of an addition is a date that is not in the calendar, no exception is thrown. The date is adjusted to the last day of that month.'); sum.push('So adding months in several separate steps can give a different result.'); }
+      if (c.add === 'twice') { sum.push('The date that was reduced to February 29 by the first addition becomes the starting point of the next calculation. The result is two days away from the result of adding two months at once (2024-03-31).'); sum.push('To produce a recurring date such as the last day of every month, do not keep adding to the previous result. Add to the original date with a different number of months each time, as in plusMonths(1), plusMonths(2).'); }
+      if (c.add === 'two') { sum.push('Adding two months at once does not pass through February, so the day of the month is not reduced. This differs from the result of adding one month twice (2024-03-29).'); }
+      if (c.add === 'days') { sum.push('"30 days later" and "one month later" are different. plusDays counts the number of days as given, and plusMonths moves to another month of the calendar. The result is one day away from one month later (2024-02-29).'); }
     } else if (c.topic === 'zone') {
       var z = this.Z[c.zone];
       st.seoul = true;
@@ -87,8 +87,7 @@ Lab.register({
       print('there', z.zdt, 'The date and time are followed by the offset from UTC' + (c.zone === 'utc' ? ' (Z means no offset)' : '') + ' and the time zone ID.');
       print('there.toLocalDate()', z.date, c.zone === 'seoul' ? 'This is the date in Seoul.' : 'It is the same instant, but the date differs from the date in Seoul (2024-01-01). Even the year is different.', c.zone === 'seoul' ? '' : 'bad');
       print('there.toInstant()', '2023-12-31T15:30:00Z', 'Whichever time zone it is written in, the instant it represents is the same.', 'good');
-      sum.push('Written in the ' + z.id + ' time zone, it is ' + z.date + ' ' + z.time + ', and the instant it represents is the same, 2023-12-31T15:30:00Z.');
-      sum.push(c.zone === 'seoul' ? 'Converting back to the same time zone gives the value that was created at the start. Choose another time zone and see how the date changes.' : c.zone === 'utc' ? 'Written in UTC, the time is 9 hours earlier than in Seoul, and the date is one day earlier. This is why the date looks one day off when a time stored in UTC is shown on the screen as it is.' : 'It is the same instant, but it is January 1, 2024 in Seoul and December 31, 2023 in New York. If you store or compare only the date, without the time zone, the date can be off by one day.');
+      sum.push(c.zone === 'seoul' ? 'Converting back to the same time zone gives the value that was created at the start.' : c.zone === 'utc' ? 'Written in UTC, the time is 9 hours earlier than in Seoul, and the date is one day earlier. This is why the date looks one day off when a time stored in UTC is shown on the screen as it is.' : 'It is the same instant, but it is January 1, 2024 in Seoul and December 31, 2023 in New York. If you store or compare only the date, without the time zone, the date can be off by one day.');
       sum.push('To store or exchange a single point in time, use a value that does not depend on a time zone, such as an Instant, and convert it to the time zone of the person when you show it to that person.');
     } else {
       st.ab = true;
@@ -99,7 +98,6 @@ Lab.register({
         print('p', 'P1M1D', 'In this notation, P stands for Period, 1M for 1 month, and 1D for 1 day.');
         print('p.getDays()', '1', 'getDays() does not return the total number of days. It returns only the value of the days part of "1 month and 1 day".', 'bad');
         print('ChronoUnit.DAYS.between(a, b)', '30', 'This is the total number of days between the two dates. When you want to know how many days have passed, count in days like this.', 'good');
-        sum.push('The Period is P1M1D (1 month and 1 day), getDays() is 1, and the total number of days is 30.');
         sum.push('A Period expresses an amount of time in calendar years, months, and days. getDays() is only the value of the days part, so using getDays() to find "how many days have passed" gives the wrong answer.');
         sum.push('The length of a month differs from month to month, so a Period cannot be converted to a fixed number of days or hours. Get the total number of days with ChronoUnit.DAYS.between.');
       } else if (c.gap === 'duration') {
@@ -109,14 +107,12 @@ Lab.register({
         print('t', 'PT720H', 'PT marks a time-based amount, and 720H is 720 hours.');
         print('t.toHours()', '720', '');
         print('t.toDays()', '30', 'In a Duration, a day is always calculated as 24 hours.', 'good');
-        sum.push('The Duration is PT720H (720 hours), which is 720 in hours and 30 in days.');
         sum.push('A Duration holds the length of the elapsed time. It has no unit whose length depends on the calendar, as "1 month and 1 day" in a Period does.');
         sum.push('Express an amount that is counted by the calendar, such as "one month later", with a Period, and an amount of fixed length, such as "90 minutes" or "30 seconds", with a Duration.');
       } else {
         st.ex = true; ex = 'Unsupported unit: Seconds';
         push('Duration.between(a, b): Duration tries to measure the amount in seconds. But a LocalDate has only a date and no time, so the difference in seconds cannot be obtained. An UnsupportedTemporalTypeException is thrown.', 'bad');
         push('The exception message is "Unsupported unit: Seconds". It means that LocalDate does not support the seconds unit. The code compiles, so this is a mistake that shows up only when you run it, and because execution stopped with the exception, the three output lines below are not executed.', 'bad');
-        sum.push('An UnsupportedTemporalTypeException is thrown, and nothing is printed.');
         sum.push('A Duration measures in seconds, so it needs values that have a time, such as LocalDateTime, ZonedDateTime, or Instant. It cannot be measured from LocalDate values, which have only a date.');
         sum.push('Get the amount of time between dates with Period.between or ChronoUnit.DAYS.between.');
       }
@@ -128,9 +124,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, z = this.Z[c.zone];
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
     if (c.topic === 'plus') {
-      var ln = H.lanes(v);
-      H.lane(ln, 'd', '→ object ' + s.s + ' (' + s.objs[s.s - 1] + ')', 'wait');
-      H.lane(ln, 'first', s.f ? '→ object 1 (2024-01-31)' : 'not declared yet', s.f ? 'wait' : 'none');
       H.table(v, ['Object', 'Date', 'Referenced by'], s.objs.map(function (o, i) { var by = []; if (s.s === i + 1) by.push('d'); if (s.f === i + 1) by.push('first'); return { cls: by.length ? '' : 'gone', cells: ['Object ' + (i + 1), o, by.length ? by.join(', ') : 'none'] }; }), 'LocalDate objects');
     } else if (c.topic === 'zone') {
       var rows = [];
@@ -145,8 +138,6 @@ Lab.register({
       if (s.ex) r2.push({ cells: ['t', 'Duration', { v: 'not created because of the exception', cls: 'bad' }] });
       H.table(v, ['Variable', 'Type', 'Value'], r2, 'The two dates and the amount of time between them');
     }
-    H.title(v, 'Output');
-    H.slots(v, s.out.map(function (x) { return [x, 'd']; }), s.ex ? 'no output (stopped by the exception)' : 'no output yet');
   },
   // Diagram: depending on the topic, (1) the variables and date objects, with the months of the calendar below them (2) one instant (Instant) and the values that write it in three time zones (3) two dates with Period and Duration. The three output lines are at the bottom.
   draw: function (P, sim, shown) {
@@ -167,7 +158,7 @@ Lab.register({
       [[1, '31 days'], [2, '29 days (leap year)'], [3, '31 days']].forEach(function (m, i) {
         P.box('m' + m[0], 16 + i * 220, 180, 208, 46, { cls: mon === m[0] ? 'hot now' : 'plain', title: '2024-0' + m[0] + '', sub: m[1], right: mon === m[0] ? 'd: ' + (+cur.slice(8)) + '' : '' });
       });
-      P.note('The top part shows the date object that each variable refers to, and the bottom part shows where d is in the calendar now. When the result of an addition is a date that does not exist, it is adjusted to the last day of that month.');
+      P.note('The top part shows the date object that each variable refers to, and the bottom part shows where d is in the calendar now.');
     } else if (c.topic === 'zone') {
       P.size(680, 300); y0 = 208;
       P.box('inst', 170, 20, 340, 50, s.inst ? { cls: 'good', title: 'Instant: a point in time, no time zone', sub: '2023-12-31T15:30:00Z', center: true } : { cls: 'ghost', title: 'Instant: a point in time, no time zone', sub: 'not created yet', center: true });
@@ -177,7 +168,7 @@ Lab.register({
       });
       if (s.inst) P.arrow('a_in', 'z_seoul:t', 'inst:r', { label: 'toInstant' });
       if (s.there) P.arrow('a_out', 'inst:b', 'z_' + c.zone + ':t', { cls: 'hot', label: 'atZone' });
-      P.note('The Instant at the top center is "a single point in time", and the three boxes below show that instant written with the calendar and clock of each time zone. The dates and times written are different, but they are the same instant.');
+      P.note('The Instant at the top center is "a single point in time", and the three boxes below show that instant written with the calendar and clock of each time zone.');
     } else {
       P.size(680, 280); y0 = 188;
       P.box('a', 16, 30, 200, 40, s.ab ? { cls: 'wait', title: 'a = 2024-01-31', center: true } : { cls: 'ghost', title: 'a', center: true });

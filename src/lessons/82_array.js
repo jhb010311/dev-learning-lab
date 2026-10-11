@@ -76,11 +76,9 @@ Lab.register({
       push('System.out.println(' + pr + '(b)): b가 가리키는 배열의 내용을 출력합니다. 출력은 ' + st.outB + '입니다.');
     }
     if (st.err) {
-      sum.push('값을 넣는 줄에서 ' + st.err.split(':')[0] + '이 나서 프로그램이 멈췄습니다. 그 아래의 출력 두 줄은 실행되지 않았습니다.');
       sum.push('배열의 길이는 만들 때 정해지고 그 뒤로 바뀌지 않습니다. 길이가 n이면 번호는 0부터 n - 1까지입니다. 이 범위를 벗어난 번호는 컴파일할 때가 아니라 실행 중에 예외로 드러납니다.');
       sum.push(idx < 0 ? '음수 번호로 뒤에서부터 세는 문법은 자바에 없습니다. 마지막 칸은 a[a.length - 1]로 씁니다.' : '반복문의 조건을 i <= a.length로 쓰면 마지막에 바로 이 예외를 만납니다. i < a.length로 씁니다. 칸을 더 늘려야 한다면 더 긴 배열을 새로 만들어 옮기거나(Arrays.copyOf(a, 5)), 크기가 저절로 늘어나는 ArrayList를 씁니다.');
     } else {
-      sum.push('a == b는 ' + st.eq + (two ? ', a[0] == b[0]은 ' + st.eq0 : '') + '입니다. a의 출력은 ' + st.outA + ', b의 출력은 ' + st.outB + '입니다.');
       if (c.copy === 'ref') sum.push('배열 변수를 대입하면 배열이 복사되는 것이 아니라, 같은 배열을 가리키는 변수가 하나 더 생깁니다. 그래서 한쪽으로 넣은 값이 다른 쪽에서도 보입니다. 메서드에 배열을 넘길 때도 마찬가지입니다.');
       else if (!two) sum.push('배열을 복사하려면 a.clone()이나 Arrays.copyOf(a, a.length)로 새 배열을 만듭니다. 두 배열이 따로 있으므로 한쪽을 바꿔도 다른 쪽은 그대로입니다.' + (c.copy === 'copyOf' ? ' Arrays.copyOf의 둘째 인자는 새 배열의 길이입니다. 원래보다 큰 수를 주면 남는 칸이 기본값으로 채워진 더 긴 배열을 얻습니다.' : ''));
       else sum.push('2차원 배열에 clone이나 Arrays.copyOf를 쓰면 바깥 배열만 새로 만들어지고 행 배열은 함께 씁니다. 이것을 얕은 복사라고 합니다. 그래서 b[0]의 칸을 바꾸면 a[0]에서도 바뀝니다. 행까지 따로 가지려면 행마다 clone을 해야 합니다(깊은 복사).');
@@ -91,14 +89,9 @@ Lab.register({
   },
   cellText: function (x) { return x === null ? 'null' : typeof x === 'string' ? '"' + x + '"' : typeof x === 'object' ? '배열 ' + x.ref + '의 참조' : String(x); },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, self = this, two = sim.c.shape === '2';
+    var last = shown[shown.length - 1], s = last ? last.snap : null, self = this;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'a', s.a ? '→ 배열 ' + s.a : '아직 없음', s.a ? 'wait' : 'none');
-    H.lane(ln, 'b', s.b ? '→ 배열 ' + s.b + (s.b === s.a ? ' (a와 같은 배열)' : '') : '아직 없음', s.b ? (s.b === s.a ? 'hot' : 'wait') : 'none');
     H.table(v, ['배열', '타입', '길이', '칸의 내용 (0번부터)'], s.arrs.map(function (A) { return { cells: ['배열 ' + A.id, A.type, String(A.cells.length), { v: A.cells.map(function (x) { return self.cellText(x); }).join(' | '), cls: s.hit && s.hit.arr === A.id ? 'hot' : '' }] }; }), '힙의 배열');
-    if (s.err) H.text(v, s.err);
-    H.counters(v, [[s.eq === null ? '?' : s.eq, 'a == b']].concat(two ? [[s.eq0 === null ? '?' : s.eq0, 'a[0] == b[0]']] : []));
   },
   // 그림: 배열마다 테두리를 두르고 그 안에 칸을 번호 순서로 나란히 놓는다. 변수와 참조가 든 칸에서 배열로 화살표가 간다. 2차원이면 가운데에 행 배열, 양옆에 바깥 배열이 놓인다.
   draw: function (P, sim, shown) {

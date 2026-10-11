@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
+<link rel="stylesheet" href="../../app.css?v=b3ddaad4fd">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -71,7 +71,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>new Dog() 동안의 출력은 Animal(String) 실행 / sound=null / Dog() 실행이고, d.describe()의 출력은 sound=멍멍입니다.</li>
 <li>실행 순서는 부모 생성자 Animal(String name) → Dog의 필드 초기화식 → Dog() 생성자의 본문입니다. 자식 생성자가 먼저 시작되지만, 첫 줄에서 부모 생성자로 넘어가 부모 쪽이 먼저 끝납니다.</li>
 <li>함정: 부모 생성자가 부른 describe()는 Dog가 오버라이딩한 것이고, 그 시점에 Dog의 sound는 아직 초기화 전이라 null입니다. 코드에는 sound = &quot;멍멍&quot;이라고 적혀 있는데도 sound=null이 찍혔습니다. null인 필드의 메서드를 불렀다면 NullPointerException이 났을 것입니다.</li>
 <li>그래서 생성자 안에서는 자식이 오버라이딩할 수 있는 메서드를 부르지 않는 것이 원칙입니다. 객체가 다 만들어진 뒤에 부른 d.describe()의 출력은 sound=멍멍으로 정상입니다.</li>
@@ -193,6 +192,6 @@ d.describe();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=28e3eacea2"></script>
+<script src="../../app.js?v=b3ddaad4fd"></script>
 </body>
 </html>

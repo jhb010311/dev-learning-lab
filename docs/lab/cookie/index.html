@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>쿠키: 기억하지 못하는 서버에게 매번 이름표를 내민다 · 개발 학습 실습실</title>
-<meta name="description" content="HTTP 서버는 앞서 온 요청을 기억하지 못합니다. 그래서 로그인에 성공하면 서버가 응답에 작은 값(쿠키)을 실어 보내고, 브라우저는 그것을 보관했다가 같은 사이트로 가는 요청마다 자동으로 붙여 보냅니다. 쿠키의 속성을 바꿔 가며 어떤 요청에 쿠키가 붙고 어떤 요청에는 안 붙…">
+<meta name="description" content="HTTP 서버는 앞서 온 요청을 기억하지 못합니다. 그래서 로그인에 성공하면 서버가 응답에 작은 값(쿠키)을 실어 보내고, 브라우저는 그것을 보관했다가 같은 사이트로 가는 요청마다 자동으로 붙여 보냅니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/cookie/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cookie/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cookie/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="쿠키: 기억하지 못하는 서버에게 매번 이름표를 내민다 · 개발 학습 실습실">
-<meta property="og:description" content="HTTP 서버는 앞서 온 요청을 기억하지 못합니다. 그래서 로그인에 성공하면 서버가 응답에 작은 값(쿠키)을 실어 보내고, 브라우저는 그것을 보관했다가 같은 사이트로 가는 요청마다 자동으로 붙여 보냅니다. 쿠키의 속성을 바꿔 가며 어떤 요청에 쿠키가 붙고 어떤 요청에는 안 붙…">
+<meta property="og:description" content="HTTP 서버는 앞서 온 요청을 기억하지 못합니다. 그래서 로그인에 성공하면 서버가 응답에 작은 값(쿠키)을 실어 보내고, 브라우저는 그것을 보관했다가 같은 사이트로 가는 요청마다 자동으로 붙여 보냅니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/cookie/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
+<link rel="stylesheet" href="../../app.css?v=b3ddaad4fd">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>쿠키</h1>
 <p><b>기억하지 못하는 서버에게 매번 이름표를 내민다</b></p>
-<p>HTTP 서버는 앞서 온 요청을 기억하지 못합니다. 그래서 로그인에 성공하면 서버가 응답에 작은 값(쿠키)을 실어 보내고, 브라우저는 그것을 보관했다가 같은 사이트로 가는 요청마다 자동으로 붙여 보냅니다. 쿠키의 속성을 바꿔 가며 어떤 요청에 쿠키가 붙고 어떤 요청에는 안 붙는지 보세요.</p>
+<p>HTTP 서버는 앞서 온 요청을 기억하지 못합니다. 그래서 로그인에 성공하면 서버가 응답에 작은 값(쿠키)을 실어 보내고, 브라우저는 그것을 보관했다가 같은 사이트로 가는 요청마다 자동으로 붙여 보냅니다.</p>
 <p>일부만 실행으로 확인 · 브라우저와 시험 서버로 확인(브라우저 종료 시 삭제는 미확인)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>쿠키는 살아 있고, 사이트의 모든 경로로 가는 요청에 자동으로 붙습니다. 다른 사이트로 가는 요청에는 붙지 않습니다.</li>
 <li>수명을 지정하지 않은 쿠키는 브라우저를 닫을 때 지워집니다. &quot;로그인 유지&quot;는 Max-Age나 Expires로 수명을 지정한 쿠키입니다.</li>
 <li>쿠키는 사용자의 브라우저에 저장되므로 사용자가 내용을 보거나 바꿀 수 있습니다. 그래서 쿠키에는 회원 번호 같은 값을 직접 넣지 않고, 추측할 수 없는 식별자(세션 ID)나 서명된 토큰을 넣습니다. 그 내용은 &quot;세션과 JWT&quot; 실습에서 이어집니다.</li>
 </ul>
@@ -168,6 +167,6 @@ ResponseEntity&lt;Void&gt; login(@RequestBody LoginRequest req) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=28e3eacea2"></script>
+<script src="../../app.js?v=b3ddaad4fd"></script>
 </body>
 </html>

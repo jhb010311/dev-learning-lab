@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b88d80401a">
+<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Data access and transactions</p>
 <h1>Transaction basics</h1>
 <p><b>What if the withdrawal went through but the deposit did not?</b></p>
-<p>A transfer that takes 1,000 won out of account A and adds 1,000 won to account B is two SQL statements. If an error occurs or the server crashes between the two statements, money can disappear. See what is left in the DB when something goes wrong partway through, with the two statements grouped in a transaction and without one.</p>
+<p>A transfer that takes 1,000 won out of account A and adds 1,000 won to account B is two SQL statements. If an error occurs or the server crashes between the two statements, money can disappear.</p>
 <p>Checked against real execution · All 12 combinations were run on SQLite with two connections</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -61,7 +61,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Final: A 4000 won, B 1000 won, total 5000 won. 1,000 won has disappeared.</li>
 <li>Several statements must be &quot;all or nothing&quot;, but only some of them were applied. A transaction is the mechanism that guarantees this (atomicity).</li>
 <li>The four properties of a transaction (ACID): all or nothing (atomicity), the data stays in a state that follows the rules (consistency), changes in progress are not visible to each other (isolation), and what is committed remains (durability). The @Transactional of Spring sends START TRANSACTION at the start of the method, COMMIT when it ends normally, and ROLLBACK on an exception, on your behalf.</li>
 </ul>
@@ -155,6 +154,6 @@ UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- withdrawal
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b88d80401a"></script>
+<script src="../../app.js?v=df17f1edb0"></script>
 </body>
 </html>

@@ -82,7 +82,6 @@ Lab.register({
     else if (W === 'renew') why = cv + ' alone came to refer to the new object, and nothing changed the object that a refers to.';
     else why = 'A new String object was created, and the "hi" object that a refers to was not changed.';
     push('System.out.println(' + fld('a') + '): ' + (prim ? 'The value that a holds is read.' : str ? 'The text of the object that a refers to is read.' : 'The x of the object that a refers to is read.') + ' The output is ' + st.out2 + '. ' + why, changed ? (ret ? 'good' : 'bad') : '');
-    sum.push((call ? 'p' : 'b') + ' gives ' + st.out1 + ' when it is read, and a gives ' + st.out2 + '. The value read from a ' + (changed ? 'is different from what it was at first.' : 'is the same as it was at first.'));
     if (prim) sum.push('A variable of a primitive type holds the value itself. Copying it only creates one more copy of the same value, so however much you change the copy, the original variable does not change.');
     if (W === 'field') sum.push('A variable of a reference type holds a reference, not an object. What is copied is the reference, so the two variables refer to the same single object, and a change made through one is visible through the other.');
     if (W === 'renew') sum.push('"Changing the contents of the object that a variable refers to" (' + cv + '.x = 99) and "making a variable refer to a different object" (' + cv + ' = new Point(99)) are different things. The second changes only what that variable holds, so it has no effect on another variable that referred to the same object.');
@@ -102,12 +101,6 @@ Lab.register({
       { cells: ['a', { v: self.cell(s.a, c), cls: s.hot === 'a' ? 'hot' : '' }] },
       { cls: s.cp ? '' : 'gone', cells: [cv === 'p' ? 'p (parameter of change)' : 'b', { v: s.cp ? self.cell(s.cp, c) : s.gone ? 'gone (the method has finished)' : 'not declared yet', cls: s.hot === 'cp' ? 'hot' : '' }] },
     ], 'Variables');
-    if (c.what !== 'prim') H.table(v, ['Object', 'Contents', 'Referenced by'], s.objs.map(function (o) {
-      var by = []; if (s.a && s.a.ref === o.id) by.push('a'); if (s.cp && s.cp.ref === o.id) by.push(cv);
-      return { cls: by.length ? '' : 'gone', cells: ['Object ' + o.id, self.objText(o, c), { v: by.length ? by.join(', ') : 'none', cls: by.length > 1 ? 'hot' : '' }] };
-    }), 'Objects on the heap');
-    else H.text(v, 'A primitive type does not create an object. The value is stored directly in the variable.');
-    H.counters(v, [[s.out1, cv + ': value read'], [s.out2, 'a: value read']]);
   },
   // Diagram: the variables on the left and the objects on the heap on the right. An arrow goes from a variable that holds a reference to the object. At the bottom are the two outputs.
   draw: function (P, sim, shown) {
@@ -127,7 +120,7 @@ Lab.register({
     });
     P.box('r1', 16, 232, 320, 36, { cls: s.out1 === '?' ? 'ghost' : 'plain', title: cv + ': value read', right: s.out1 });
     P.box('r2', 344, 232, 320, 36, { cls: s.out2 === '?' ? 'ghost' : s.out2 === s.out1 && c.what === 'field' && c.how !== 'ret' ? 'bad' : 'plain', title: 'a: value read', right: s.out2 });
-    P.note(c.what === 'prim' ? 'A variable of a primitive type holds the value directly. Copying it creates one more value, and the two variables are not connected to each other.' : 'An arrow shows the object that the reference in a variable refers to. What an assignment or a method call copies is the arrow (the reference), and a new object is created only by new. When two arrows reach one object, a change made through one is visible through the other.');
+    P.note(c.what === 'prim' ? 'A variable of a primitive type holds the value directly. Copying it creates one more value, and the two variables are not connected to each other.' : 'An arrow shows the object that the reference in a variable refers to. When two arrows reach one object, a change made through one is visible through the other.');
   },
   assume: 'The output of the 15 combinations (the value read from the copy and the value read from a) was checked against the result of running code with the same structure on JDK 21 on this PC. "Reference" is used here to mean a value that points to where an object is. In Java you cannot take this value out and look at it as a number, and whether it is actually a plain memory address differs from one JVM to another. The picture in which variables are placed on the stack and objects on the heap is the usual explanation for local variables, and when the JIT compiler optimizes the code, an object may not be created on the heap at all, but the result of the program is the same. The string "hi" is actually an object in the string pool, but here it is drawn simply as one object on the heap. The frame that is created when a variable is passed to a method is covered in the "Stack and heap" lab, and the difference between == and equals is covered in the "== and equals" lab.',
 });

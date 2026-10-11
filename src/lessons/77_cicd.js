@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cicd', nav: 'CI/CD 파이프라인', cat: '배포와 운영', mode: 'step',
   title: '코드를 올리면 기계가 대신 확인하고 배포한다',
-  intro: '코드를 고쳐서 운영 서버에 반영하기까지는 빌드, 테스트, 포장, 배포라는 단계가 있습니다. 이 단계를 사람이 손으로 하면 빠뜨리거나 사람마다 다르게 합니다. 손으로 할 때, 확인까지만 자동화했을 때(CI), 배포까지 자동화했을 때(CD)를 나눠, 문제가 있는 코드가 어디에서 걸러지는지 보세요.',
+  intro: '코드를 고쳐서 운영 서버에 반영하기까지는 빌드, 테스트, 포장, 배포라는 단계가 있습니다. 이 단계를 사람이 손으로 하면 빠뜨리거나 사람마다 다르게 합니다.',
   terms: ['CI/CD', '단위 테스트와 통합 테스트', '코드 리뷰와 Pull Request', '헬스 체크(Liveness, Readiness)', '롤링, 블루-그린, 카나리 배포'], ranks: ['deploy', 'test'],
   controls: [
     { id: 'pipe', label: '반영 방식', type: 'select', value: 'manual', options: [['manual', '손으로: 내 PC에서 빌드해 서버에 복사'], ['ci', 'CI: 올리면 자동으로 빌드와 테스트, 배포는 사람이'], ['cicd', 'CI/CD: 통과하면 배포까지 자동']] },
@@ -71,7 +71,6 @@ Lab.register({
         }
       }
     }
-    sum.push('문제가 발견된 곳: ' + R.where + '. 운영 사용자 영향: ' + R.impact + '.');
     if (!auto && R.impact === '장애') sum.push('손으로 하면 확인 단계를 건너뛸 수 있고, 건너뛴 것을 아무도 모릅니다. 문제는 가장 비싼 곳인 운영에서 발견됩니다.');
     if (auto && (R.stop === 'build' || R.stop === 'test')) sum.push('CI(지속적 통합)는 코드를 올릴 때마다 깨끗한 환경에서 빌드와 테스트를 자동으로 돌려, 문제를 병합 전에 찾습니다. 문제는 일찍 찾을수록 고치는 비용이 작습니다.');
     if (p === 'ci' && b === 'runtime') sum.push('CI는 병합까지만 지킵니다. 배포와 그 뒤의 확인은 여전히 사람의 일로 남습니다.');
@@ -83,7 +82,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { stages: [] };
     if (!s.stages.length) { H.text(v, '실행을 누르면 단계를 하나씩 진행합니다.'); return; }
-    H.slots(v, s.stages.map(function (r, i) { var bad = r[1] === '실패' || r[1] === '장애', skip = r[1] === '건너뜀'; return [r[0], (bad ? 'r' : skip ? 'q' : 'd') + (i === s.stages.length - 1 ? ' now' : '')]; }), '');
     H.table(v, ['단계', '결과', '누가'], s.stages.map(function (r, i) { var bad = r[1] === '실패' || r[1] === '장애'; return { cells: [{ v: r[0], cls: i === s.stages.length - 1 ? 'hot' : '' }, { v: r[1], cls: bad ? 'bad' : r[1] === '건너뜀' ? '' : 'good' }, r[2]] }; }), '코드가 운영에 닿기까지');
   },
   // 그림: 코드가 운영에 닿기까지 거치는 단계를 왼쪽에서 오른쪽으로 잇는다. 어디서 멈췄는지가 보인다.

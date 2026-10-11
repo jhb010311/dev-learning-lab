@@ -1,7 +1,7 @@
 Lab.register({
   id: 'tx', nav: 'Transaction basics', cat: 'Database', mode: 'step',
   title: 'What if the withdrawal went through but the deposit did not?',
-  intro: 'A transfer that takes 1,000 won out of account A and adds 1,000 won to account B is two SQL statements. If an error occurs or the server crashes between the two statements, money can disappear. See what is left in the DB when something goes wrong partway through, with the two statements grouped in a transaction and without one.',
+  intro: 'A transfer that takes 1,000 won out of account A and adds 1,000 won to account B is two SQL statements. If an error occurs or the server crashes between the two statements, money can disappear.',
   terms: ['Transaction', 'ACID', 'Undo log and redo log', '@Transactional'], ranks: ['dbengine', 'txspring', 'isolation'],
   controls: [
     { id: 'mode', label: 'How the statements are run', type: 'select', value: 'auto', options: [['auto', 'Without a transaction (each statement is made permanent right away)'], ['tx', 'The two statements are grouped in a transaction']] },
@@ -43,7 +43,6 @@ Lab.register({
       else { S.pA = null; S.tx = c.fail === 'ex' ? 'Rolled back' : 'Rolled back (on restart)'; push(what + (c.fail === 'ex' ? ' The application sends ROLLBACK.' : ' COMMIT was never reached, so when the DB starts again, it finds the unfinished transaction and undoes it.') + ' It is as if the withdrawal never happened. A is still 5,000 won.', 'good'); }
     }
     var total = S.A + S.B;
-    sum.push('Final: A ' + S.A + ' won, B ' + S.B + ' won, total ' + total + ' won.' + (total !== 6000 ? ' 1,000 won has disappeared.' : ''));
     if (auto && c.fail !== 'none') sum.push('Several statements must be "all or nothing", but only some of them were applied. A transaction is the mechanism that guarantees this (atomicity).');
     if (!auto && c.fail !== 'none') sum.push('With the statements grouped in a transaction, changes that are not committed do not remain, whatever happens partway through. On an error, the transaction is rolled back, and if the server crashed, the DB undoes the changes as it recovers.');
     if (c.peek) sum.push(auto ? 'Without a transaction, the intermediate state is visible to other users as it is.' : 'Uncommitted changes are not visible to other transactions (isolation). How strictly they are hidden is set by the isolation level, which is covered in the "Isolation levels" lab.');
@@ -52,9 +51,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { A: 5000, B: 1000, pA: null, pB: null, tx: '', seen: '' };
-    H.table(v, ['Account', 'Balance made permanent in the DB', 'Value visible only inside this transaction (not committed)'], [['A', s.A, s.pA], ['B', s.B, s.pB]].map(function (r) { return { cells: [r[0], r[1] + ' won', { v: r[2] === null ? '-' : r[2] + ' won', cls: r[2] === null ? '' : 'hot' }] }; }), 'account table');
-    H.counters(v, [[(s.A + s.B) + ' won', 'Total made permanent in the DB (6,000 won at first)'], [s.tx || '-', 'Transaction state']]);
-    if (s.seen) H.text(v, s.seen);
+    H.counters(v, [[s.tx || '-', 'Transaction state']]);
   },
   // Diagram: On the left are the values that are permanent in the DB and that everyone sees, and on the right are the values that are visible only inside this transaction and are not permanent yet.
   draw: function (P, sim, shown) {

@@ -90,12 +90,11 @@ Lab.register({
         }
       }
     }
-    sum.push(ok ? '컴파일됩니다. 판단한 이유: ' + reason + '.' : '컴파일 오류입니다. javac의 메시지는 "' + msg + '"입니다. 판단한 이유: ' + reason + '.');
     if (mod === 'private') sum.push(ok ? 'private 멤버는 선언한 클래스 안에서만 쓸 수 있습니다. 설정에서 접근하는 곳을 바꾸면 나머지는 모두 컴파일 오류가 됩니다.' : 'private 멤버는 선언한 클래스 밖에서는 보이지 않습니다. 같은 패키지든 자식 클래스든 마찬가지입니다. 필드를 private으로 두고 필요한 동작만 메서드로 공개하는 것이 캡슐화의 기본이며, 이렇게 하면 바깥 코드가 값을 마음대로 바꾸지 못합니다.');
-    if (mod === 'package') sum.push(ok ? '접근 제어자를 쓰지 않은 멤버는 같은 패키지 안에서 쓸 수 있습니다.' + (from === 'pkg' ? ' 같은 패키지의 클래스끼리만 쓰는 내부용 멤버에 알맞습니다.' : '') : '접근 제어자를 쓰지 않은 멤버는 패키지 밖에서는 보이지 않습니다.' + (sub ? ' 다른 패키지의 자식 클래스에서도 쓸 수 없다는 점이 protected와 다릅니다. 접근 제어자를 protected로 바꿔 비교해 보세요.' : ''));
+    if (mod === 'package') sum.push(ok ? '접근 제어자를 쓰지 않은 멤버는 같은 패키지 안에서 쓸 수 있습니다.' + (from === 'pkg' ? ' 같은 패키지의 클래스끼리만 쓰는 내부용 멤버에 알맞습니다.' : '') : '접근 제어자를 쓰지 않은 멤버는 패키지 밖에서는 보이지 않습니다.' + (sub ? ' 다른 패키지의 자식 클래스에서도 쓸 수 없다는 점이 protected와 다릅니다.' : ''));
     if (mod === 'protected') {
       if (from === 'pkg') sum.push('protected를 "자식만 쓸 수 있다"로 기억하기 쉽지만, 같은 패키지의 클래스는 자식이 아니어도 쓸 수 있습니다. protected는 패키지 전용보다 넓은 범위입니다.');
-      if (from === 'subThis' || from === 'subChild') sum.push('다른 패키지의 자식 클래스는 물려받은 protected 멤버를 자기 타입(this, 또는 자기 클래스 타입의 변수)을 통해 쓸 수 있습니다. 설정에서 "Account 타입 변수로"를 골라 비교해 보세요.');
+      if (from === 'subThis' || from === 'subChild') sum.push('다른 패키지의 자식 클래스는 물려받은 protected 멤버를 자기 타입(this, 또는 자기 클래스 타입의 변수)을 통해 쓸 수 있습니다.');
       if (from === 'subParent') { sum.push('다른 패키지의 자식 클래스 안이라도, 부모 타입 변수로는 protected 멤버를 쓸 수 없습니다. Account 타입 변수에는 SavingAccount와 상관없는 다른 자식 객체가 들어 있을 수도 있기 때문입니다.'); sum.push('this.balance나 SavingAccount 타입 변수의 balance는 됩니다. 변수의 타입만 Account에서 SavingAccount로 바꿔도 컴파일됩니다.'); }
       if (from === 'other') sum.push('다른 패키지이고 자식도 아니면 protected 멤버는 보이지 않습니다. 이 위치에서 쓸 수 있는 것은 public 멤버뿐입니다.');
       if (from === 'same') sum.push('같은 클래스 안에서는 어떤 접근 제어자든 쓸 수 있습니다.');
@@ -113,9 +112,7 @@ Lab.register({
     H.lane(ln, '읽는 코드', s.step === 'decl' ? '아직 보지 않음' : this.places.filter(function (p) { return p[0] === c.from; })[0][1], s.step === 'decl' ? 'none' : 'hot');
     H.table(v, ['확인한 것', '답과 결론'], s.checks.map(function (k, i) { var lastOne = i === s.checks.length - 1 && s.verdict; return { cells: [k.q, { v: k.a + ' → ' + k.then, cls: lastOne ? (s.verdict === 'ok' ? 'good' : 'bad') : '' }] }; }), '확인한 순서');
     if (!s.checks.length) H.text(v, '아직 확인을 시작하지 않았습니다.');
-    H.counters(v, [[s.verdict ? (s.verdict === 'ok' ? '성공' : '오류') : '?', '컴파일']]);
     if (s.verdict) {
-      if (s.msg) H.text(v, 'javac: ' + s.msg);
       H.table(v, ['읽는 코드가 있는 곳', '결과'], this.places.map(function (p) { var a = self.allowed(c.mod, p[0]); return { cells: [{ v: p[1], cls: p[0] === c.from ? 'hot' : '' }, { v: a ? '컴파일됨' : '컴파일 오류', cls: a ? 'good' : 'bad' }] }; }), modT + '일 때 여섯 곳의 결과');
     }
   },
@@ -141,7 +138,7 @@ Lab.register({
       P.arrow('ar', src === 'tel' ? 'tel:t' : src === 'sav' ? 'sav:l' : 'rep:l', src === 'tel' ? 'acc:b' : src === 'sav' ? 'acc:r' : 'acc:r:0.85', { cls: ac, label: lb });
     }
     P.box('res', 16, 230, 648, 48, { cls: s.verdict === 'ok' ? 'good' : s.verdict === 'no' ? 'bad' : 'ghost', title: s.verdict === 'ok' ? '컴파일 성공' : s.verdict === 'no' ? '컴파일 오류' : '컴파일 결과', sub: s.verdict === 'ok' ? s.reason : s.verdict === 'no' ? s.msg : '아직 확인 중' });
-    P.note('컴파일러는 실제 객체가 아니라 코드가 적힌 위치(어느 클래스, 어느 패키지)와 변수의 선언 타입만 보고 판단합니다. 마지막 단계에서 상자 오른쪽에 이 접근 제어자로 그곳에서 읽을 수 있는지가 표시됩니다. "조건부"는 자기 타입(this나 SavingAccount 타입 변수)을 통할 때만 된다는 뜻입니다.');
+    P.note('마지막 단계에서 상자 오른쪽에 이 접근 제어자로 그곳에서 읽을 수 있는지가 표시됩니다. "조건부"는 자기 타입(this나 SavingAccount 타입 변수)을 통할 때만 된다는 뜻입니다.');
   },
   assume: '스물네 가지 조합을 이 PC의 JDK 21에서 패키지를 bank와 app으로 나눈 소스 파일로 실제로 컴파일해, 성공 여부와 오류 메시지를 대조했습니다(실행 결과가 아니라 컴파일 결과를 보는 실습입니다). "판단한 이유" 칸과 확인 순서는 자바 언어 명세의 접근 규칙을 풀어 쓴 설명이며, 컴파일러가 실제로 이 순서로 검사한다는 뜻은 아닙니다. 필드 대신 메서드에 같은 접근 제어자를 붙여 컴파일했을 때도 스물네 조합의 성공과 오류가 똑같았습니다(오류 메시지의 글귀는 일부 다릅니다). 다루지 않은 것: 클래스 자체의 접근 제어자, 생성자, static 멤버, 중첩 클래스, 모듈(module-info). protected의 "자기 타입을 통해서만" 조건은 static이 아닌 멤버에 대한 것입니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.',
 });

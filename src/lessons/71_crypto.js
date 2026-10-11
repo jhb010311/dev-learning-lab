@@ -68,12 +68,9 @@ Lab.register({
       sum.push('전자서명: 개인키로 서명하고 공개키로 검증합니다. HMAC과 달리 검증하는 쪽이 비밀 키를 가질 필요가 없어서, 발급하는 곳과 확인하는 곳이 다를 때 씁니다(인증서, 여러 서비스가 검증하는 JWT의 RS256).');
     }
     var back = { hash: '불가능', sym: '같은 키로 가능', asym: '개인키로 가능', hmac: '해당 없음 (내용을 숨기지 않음)', sign: '해당 없음 (내용을 숨기지 않음)' }[T], key = { hash: '없음', sym: '같은 키 하나', asym: '공개키로 잠그고 개인키로 엶', hmac: '같은 키 하나', sign: '개인키로 서명, 공개키로 검증' }[T], use = { hash: '비밀번호 저장, 내용 비교', sym: 'HTTPS 본문, 데이터 암호화', asym: '키를 안전하게 정하기', hmac: 'JWT(HS256), API 요청 서명', sign: '인증서, JWT(RS256)' }[T];
-    sum.unshift('결과: ' + res + '.');
     return { events: ev, summary: sum, row: [res, back, key, use] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], rows = last ? last.snap.rows : [];
-    if (rows.length) H.table(v, ['무엇', '값'], rows, '실제로 계산한 값'); else H.text(v, '실행을 누르면 시작합니다.');
     H.table(v, ['도구', '내용을 숨기나', '되돌릴 수 있나', '키'], [['해시', '숨김', '불가능', '없음'], ['대칭키 암호화', '숨김', '가능', '같은 키 하나'], ['비대칭키 암호화', '숨김', '가능', '공개키 / 개인키'], ['HMAC', '안 숨김', '-', '같은 키 하나'], ['전자서명', '안 숨김', '-', '개인키 / 공개키']].map(function (r, i) { var on = ['hash', 'sym', 'asym', 'hmac', 'sign'][i] === sim.c.tool; return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2], r[3]] }; }), '다섯 가지 도구 비교');
   },
   // 그림: 원문이 도구와 키를 거쳐 무엇이 되는지를 위에서 아래로 잇는다.

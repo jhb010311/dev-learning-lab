@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cookie', nav: 'Cookies', cat: 'Authentication', mode: 'step',
   title: 'Showing a name tag, every time, to a server that cannot remember you',
-  intro: 'An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site. Change the attributes of the cookie, and see which requests get the cookie and which do not.',
+  intro: 'An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site.',
   terms: ['Cookie', 'HTTP as a stateless protocol', 'HttpOnly, Secure, and SameSite', 'Session'], ranks: ['auth', 'http'],
   controls: [
     { id: 'give', label: 'The login response sets a cookie', type: 'check', value: true },
@@ -59,7 +59,6 @@ Lab.register({
     push('This is a request going to another site, other.example. The cookie that shop.example gave is not attached. A cookie is attached only to requests going to the site that sent it.', '');
     S.rows.push(['JavaScript on the page: document.cookie', R.js ? '"sid=abc123" is read' : '(not readable)', R.js ? 'The script can take the value' : R.alive ? 'Not visible to scripts because of HttpOnly' : 'No cookie']);
     push('JavaScript on the shop.example/shop/cart page reads document.cookie. ' + (R.js ? 'There is no HttpOnly, so the value is read as it is. If a malicious script gets into the page (XSS), it can steal this value and take over the login state.' : R.alive ? 'A cookie with HttpOnly is not visible to scripts. It is still attached to requests automatically.' : 'No cookie is stored.'), R.js ? 'bad' : R.alive ? 'good' : '');
-    sum.push(R.alive ? 'The cookie is alive, and it is attached automatically to requests going to ' + (c.path === '/' ? 'every path of the site' : 'paths under /shop') + '. It is not attached to requests going to another site.' : 'The cookie was deleted, so all later requests are handled as requests from a user who is not logged in.');
     if (R.alive && c.path !== '/') sum.push('Narrowing the Path means the cookie is not attached to requests outside that path. A login cookie is usually left at Path=/.');
     if (R.js) sum.push('Put HttpOnly on the cookie used for login so that scripts cannot read it. In a real service, you also specify Secure, which sends the cookie only over https, and SameSite, which decides whether the cookie is attached to requests started from another site.');
     if (c.life === 'session' && c.later !== 'restart') sum.push('A cookie with no lifetime specified is deleted when the browser is closed. "Stay logged in" is a cookie whose lifetime is specified with Max-Age or Expires.');
@@ -68,8 +67,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { jar: [], rows: [] };
-    H.title(v, 'Cookies of shop.example that the browser is storing');
-    H.slots(v, s.jar.map(function (x) { return [x, 'd']; }), 'None');
     if (s.rows.length) H.table(v, ['Request or action', 'Cookie header the browser attached', 'What the server (or the script) knows'], s.rows.map(function (r, i) { var on = i === s.rows.length - 1; return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, { v: r[1], cls: r[1].indexOf('sid=') >= 0 ? (r[0].indexOf('document') >= 0 ? 'bad' : 'good') : '' }, r[2]] }; }), 'Whether the cookie is attached to each request');
   },
   // Diagram: whether the browser attaches the cookie to each request. Look at the same site, a different path, another site, and the case where a script reads it, one after another.
@@ -85,7 +82,7 @@ Lab.register({
     var end = P.seq([['b', 'Browser', 'wait'], ['s', 'shop.example server', 'wait'], ['o', 'other.example']], msgs, { keep: 7 });
     P.box('jar', 16, end + 14, 648, 46, { cls: s.jar.length ? 'good' : 'ghost', title: 'Cookies of shop.example that the browser is storing', sub: s.jar[0] || 'None' });
     P.size(680, end + 76);
-    P.note('Green arrows are requests that went with the cookie attached, and red arrows are requests that went without a cookie, so the server does not know who sent them. The browser attaches cookies by itself, and only to requests going to the site that sent the cookie.');
+    P.note('Green arrows are requests that went with the cookie attached, and red arrows are requests that went without a cookie, so the server does not know who sent them.');
   },
   assume: 'The paths that a cookie is attached to according to Path, the fact that an HttpOnly cookie is not visible in document.cookie, the disappearance of a cookie after its Max-Age has passed, and the fact that a cookie is not sent to an address on a different host are the same as the results checked with a real browser and a test server. That a session cookie is deleted when the browser is closed follows the standard behavior, and it was not checked by running it. A browser with the "restore previous tabs" feature turned on may bring session cookies back. The Secure, SameSite, and Domain attributes are not covered in this lab.',
 });

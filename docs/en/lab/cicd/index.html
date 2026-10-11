@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b88d80401a">
+<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Deployment and operations</p>
 <h1>CI/CD pipelines</h1>
 <p><b>You push code, and a machine checks and deploys it for you</b></p>
-<p>Between changing code and getting it onto the production server, there are steps: build, test, package, and deploy. When people do these steps by hand, they skip some, or each person does them differently. Compare doing it by hand, automating only the checks (CI), and automating the deployment as well (CD), and see where code with a problem gets caught.</p>
+<p>Between changing code and getting it onto the production server, there are steps: build, test, package, and deploy. When people do these steps by hand, they skip some, or each person does them differently.</p>
 <p>Conceptual model · A conceptual model (not checked against real tools)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Where the problem was found: Production (reported by users). Impact on production users: Outage.</li>
 <li>When you do it by hand, you can skip the checking steps, and nobody knows they were skipped. The problem is found in the most expensive place, production.</li>
 <li>What a pipeline filters out is limited to problems that tests and checks can confirm. A bug in a feature that has no tests passes even with CI.</li>
 </ul>
@@ -160,6 +159,6 @@ ssh prod-server &quot;systemctl restart app&quot;
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b88d80401a"></script>
+<script src="../../app.js?v=df17f1edb0"></script>
 </body>
 </html>

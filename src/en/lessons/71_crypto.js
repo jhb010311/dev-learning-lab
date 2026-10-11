@@ -68,12 +68,9 @@ Lab.register({
       sum.push('Digital signature: sign with the private key and verify with the public key. Unlike HMAC, the side that verifies does not need to hold a secret key, so it is used when the issuer and the verifier are different (certificates, and RS256 of JWTs that several services verify).');
     }
     var back = { hash: 'Impossible', sym: 'Possible with the same key', asym: 'Possible with the private key', hmac: 'Not applicable (does not hide the content)', sign: 'Not applicable (does not hide the content)' }[T], key = { hash: 'None', sym: 'One shared key', asym: 'Lock with the public key, open with the private key', hmac: 'One shared key', sign: 'Sign with the private key, verify with the public key' }[T], use = { hash: 'Storing passwords, comparing content', sym: 'HTTPS body, data encryption', asym: 'Agreeing on a key securely', hmac: 'JWT (HS256), signing API requests', sign: 'Certificates, JWT (RS256)' }[T];
-    sum.unshift('Result: ' + res + '.');
     return { events: ev, summary: sum, row: [res, back, key, use] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], rows = last ? last.snap.rows : [];
-    if (rows.length) H.table(v, ['What', 'Value'], rows, 'Actually computed values'); else H.text(v, 'Click Run to start.');
     H.table(v, ['Tool', 'Hides the content?', 'Can it be reversed?', 'Key'], [['Hash', 'Hides', 'Impossible', 'None'], ['Symmetric-key cryptography', 'Hides', 'Possible', 'One shared key'], ['Public-key cryptography', 'Hides', 'Possible', 'Public key / private key'], ['HMAC', 'Does not hide', '-', 'One shared key'], ['Digital signature', 'Does not hide', '-', 'Private key / public key']].map(function (r, i) { var on = ['hash', 'sym', 'asym', 'hmac', 'sign'][i] === sim.c.tool; return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2], r[3]] }; }), 'Comparison of the five tools');
   },
   // Diagram: connects, from top to bottom, what the original text becomes after passing through the tool and the key.

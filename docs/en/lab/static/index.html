@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b88d80401a">
+<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,10 +67,9 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The output of a.count and b.count is 3 3.</li>
 <li>There is only one static field, in the class, so all objects see the same value. The calls to a.hit() (2 of them) and to b.hit() (1 of them) increment the same count, so whichever object you read it through, the value is the total, 3.</li>
 <li>Using a static field through an object variable, as in a.count, is confusing because it looks like a value that each object has separately. As a rule, use static members with the class name, as in Counter.count.</li>
-<li>Make a value that must differ for each object (a name, a quantity) an instance variable, and make a value that needs to exist only once for the whole class (a constant, the number of objects created) a static field. Remove static from the declaration and compare the results.</li>
+<li>Make a value that must differ for each object (a name, a quantity) an instance variable, and make a value that needs to exist only once for the whole class (a constant, the number of objects created) a static field.</li>
 </ul>
 <h2>Code</h2>
 <pre>class Counter {
@@ -172,6 +171,6 @@ System.out.println(a.count + &quot; &quot; + b.count);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b88d80401a"></script>
+<script src="../../app.js?v=df17f1edb0"></script>
 </body>
 </html>

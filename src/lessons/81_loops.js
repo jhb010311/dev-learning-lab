@@ -1,7 +1,7 @@
 Lab.register({
   id: 'loops', nav: '조건문과 반복문', cat: '자바 언어', mode: 'step',
   title: '반복문은 몇 번 돌고, 어디에서 멈추나',
-  intro: '반복문은 "조건 검사 → 본문 → 값 바꾸기"를 조건이 false가 될 때까지 되풀이합니다. 조건에 <를 쓰느냐 <=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 값이 일치하는 case로 건너뛰는 문장인데, break가 없으면 아래 case까지 이어서 실행됩니다. 한 줄씩 따라가며 어디로 가는지 확인해 보세요.',
+  intro: '반복문은 "조건 검사 → 본문 → 값 바꾸기"를 조건이 false가 될 때까지 되풀이합니다. 조건에 <를 쓰느냐 <=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 값이 일치하는 case로 건너뛰는 문장인데, break가 없으면 아래 case까지 이어서 실행됩니다.',
   terms: ['for문과 while문', 'break와 continue', 'switch문과 fall-through'],
   controls: [
     { id: 'stmt', label: '문장', type: 'select', value: 'for', options: [['for', 'for 반복문'], ['while', 'while 반복문'], ['swc', 'switch (case마다 break 있음)'], ['swf', 'switch (break 없음)'], ['swa', 'switch (화살표 ->)']] },
@@ -70,7 +70,6 @@ Lab.register({
       }
       if (!spin) { st.at = 'after'; st.cond = null; st.out.push('끝'); st.done = true; push('System.out.println("끝"): 반복문 다음 줄이 실행됩니다. 본문에는 모두 ' + st.body + '번 들어갔습니다.', 'good'); }
       var outText = st.out.join(', ') + (spin ? ' (끝나지 않음)' : '');
-      sum.push(spin ? '출력은 ' + st.out.join(', ') + ' 다음에 멈춰 있고, 프로그램이 끝나지 않습니다.' : '출력은 ' + st.out.join(', ') + '입니다. 본문에는 ' + st.body + '번 들어갔고, 조건은 ' + st.checks + '번 검사했습니다' + (broke ? '.' : '(마지막 한 번이 false).'));
       if (spin) sum.push('while문에서 continue는 곧바로 조건 검사로 돌아갑니다. i++가 continue보다 아래에 있으면 함께 건너뛰어져서 i가 영영 바뀌지 않습니다. 같은 코드를 for문으로 쓰면 증감이 본문 밖에 있어서 정상적으로 끝납니다. while문에서 continue를 쓸 때는 그 전에 값을 바꿔 둡니다.');
       else {
         if (!broke) sum.push(le ? 'i <= 3은 i가 3일 때도 true라서 i < 3보다 한 번 더 돕니다. 0부터 시작할 때 i < n은 n번, i <= n은 n + 1번입니다. 한 번 차이로 생기는 이런 실수는 아주 흔합니다. 원소가 n개인 배열을 돌 때는 i < n을 씁니다.' : 'i < 3은 i가 0, 1, 2일 때 true입니다. 0부터 시작해 i < n으로 쓰면 n번 돕니다.' + (skipped ? ' 그 가운데 한 번은 continue로 출력을 건너뛰었습니다.' : ''));
@@ -98,12 +97,11 @@ Lab.register({
     }
     st.cur = null; st.out.push('끝'); st.done = true;
     push('System.out.println("끝"): switch 다음 줄이 실행됩니다. 실행된 case는 ' + st.ran.length + '개입니다.', st.ran.length > 1 ? 'bad' : 'good');
-    sum.push('출력은 ' + st.out.join(', ') + '입니다. n은 ' + n + '이고, 코드가 실행된 case는 ' + st.ran.length + '개입니다.');
     if (c.stmt === 'swf') {
       if (st.ran.length > 1) { sum.push('case는 "여기서부터 실행하라"는 시작 표시일 뿐, 다음 case 앞에서 멈추게 해 주는 칸막이가 아닙니다. break가 없으면 일치한 case부터 switch의 끝까지 차례로 모두 실행됩니다. 이것을 fall-through(흘러내림)라고 합니다.'); sum.push('break를 빠뜨리는 것은 흔한 실수이고 컴파일 오류도 나지 않습니다. 일부러 흘러내리게 하는 경우가 아니면 case마다 break를 적거나 화살표 switch를 씁니다.'); }
-      else sum.push('일치하는 case가 없어 default부터 시작했습니다. default가 맨 아래에 있어서 흘러내릴 곳이 없으므로 break가 없어도 결과가 같습니다. n을 1이나 2로 바꿔 보면 차이가 드러납니다.');
+      else sum.push('일치하는 case가 없어 default부터 시작했습니다. default가 맨 아래에 있어서 흘러내릴 곳이 없으므로 break가 없어도 결과가 같습니다.');
     }
-    if (c.stmt === 'swc') sum.push('case마다 break가 있으면 일치한 case 하나의 코드만 실행됩니다. break를 지우면 어떻게 되는지 "switch (break 없음)"으로 바꿔 비교해 보세요.');
+    if (c.stmt === 'swc') sum.push('case마다 break가 있으면 일치한 case 하나의 코드만 실행됩니다.');
     if (arrow) sum.push('화살표(->) switch는 일치한 case의 오른쪽 코드만 실행합니다. break가 필요 없어서 빠뜨리는 실수가 생기지 않습니다. Java 14부터 쓸 수 있습니다.');
     if (m === 3 && c.stmt !== 'swf') sum.push('어느 case와도 일치하지 않으면 default가 실행됩니다. default가 없는 switch라면 아무것도 실행하지 않고 지나갑니다.');
     return { events: ev, summary: sum, row: [st.out.join(', '), 'case ' + st.ran.length + '개'] };
@@ -112,13 +110,11 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, w = this.words;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
     if (s.kind === 'loop') {
-      H.counters(v, [[s.i === null ? '?' : s.i, 'i의 값'], [s.body, '본문에 들어간 횟수'], [s.checks, '조건을 검사한 횟수']]);
+      H.counters(v, [[s.checks, '조건을 검사한 횟수']]);
       H.table(v, ['회차', '들어올 때의 i', '한 일'], s.rounds.map(function (r, i) { return { cells: [(i + 1) + '번째', String(r.i), { v: r.did || '진행 중', cls: r.did === '출력' ? '' : r.did ? 'hot' : '' }] }; }), '본문에 들어간 기록');
-      if (s.spin) H.text(v, 'i가 바뀌지 않아 같은 회차가 끝없이 되풀이됩니다.');
     } else {
       H.table(v, ['case', '코드', '실행됐나'], ['case 1', 'case 2', 'case 3', 'default'].map(function (nm, i) { var ran = s.ran.indexOf(i) >= 0; return { cls: ran || s.match === null ? '' : 'gone', cells: [nm + (s.match === i ? ' (일치)' : ''), 'println("' + w[i] + '")', { v: ran ? (i === s.match ? '실행' : '흘러내려 실행') : s.done || s.exit !== null || (s.match !== null && i < s.match) ? '실행 안 됨' : '', cls: ran ? (i === s.match ? 'good' : 'bad') : '' }] }; }), 'n = ' + s.n);
     }
-    H.title(v, '출력'); H.slots(v, s.out.map(function (x) { return [x, x === '끝' ? 'd' : 'q']; }), '아직 출력이 없습니다.');
   },
   // 그림: 반복문은 위에서 아래로 놓인 흐름도(조건 → 본문 → 증감 → 다시 조건)이고 지금 실행 중인 칸이 노랗다. switch는 case를 세로로 늘어놓고 들어간 자리와 흘러내린 길을 보인다.
   draw: function (P, sim, shown) {
@@ -150,7 +146,7 @@ Lab.register({
       }
       if (s && s.spin) { P.text('t_spin', 590, 170, 'i가 바뀌지 않아', { cls: 'bad', anchor: 'middle' }); P.text('t_spin2', 590, 188, '끝없이 되풀이', { cls: 'bad', anchor: 'middle' }); }
       P.box('out', 16, 250, 648, 34, { cls: s && s.out.length ? (s.spin ? 'bad' : 'good') : 'ghost', title: '출력', right: s && s.out.length ? s.out.join(', ') + (s.spin ? ' (끝나지 않음)' : '') : '아직 없음' });
-      P.note(isFor ? 'for문은 초기화를 한 번 한 뒤 "조건 → 본문 → 증감"을 되풀이합니다. 조건이 false가 되는 순간 오른쪽으로 빠져나갑니다. continue는 본문의 남은 줄을 건너뛰지만 증감은 거칩니다.' : 'while문은 "조건 → 본문"을 되풀이합니다. i++는 본문 안의 한 줄일 뿐이어서, continue가 본문의 남은 줄을 건너뛰면 i++도 함께 건너뜁니다.');
+      P.note(isFor ? '조건이 false가 되는 순간 오른쪽으로 빠져나갑니다.' : 'while문은 "조건 → 본문"을 되풀이합니다. i++는 본문 안의 한 줄일 뿐이어서, continue가 본문의 남은 줄을 건너뛰면 i++도 함께 건너뜁니다.');
       return;
     }
     var arrow = c.stmt === 'swa', hasBreak = c.stmt === 'swc', names = ['case 1', 'case 2', 'case 3', 'default'];
@@ -164,7 +160,7 @@ Lab.register({
     if (s && s.exit !== null) P.text('ex', 540, 40 + s.exit * 46, '→ switch 밖으로', { cls: s.ran.length > 1 ? 'bad' : 'good' });
     P.box('after', 210, 214, 304, 28, { cls: s && s.done ? 'good now' : 'plain', title: 'System.out.println("끝")' });
     P.box('out', 16, 254, 648, 34, { cls: s && s.out.length ? (s.ran.length > 1 ? 'bad' : 'good') : 'ghost', title: '출력', right: s && s.out.length ? s.out.join(', ') : '아직 없음' });
-    P.note(arrow ? '화살표 switch는 n과 일치하는 case 하나로 들어가서 그 줄만 실행하고 나옵니다. 일치하는 case가 없으면 default로 갑니다.' : hasBreak ? 'switch는 n과 일치하는 case로 바로 건너뜁니다. 그 뒤 break를 만나면 switch 밖으로 나갑니다. 일치하는 case가 없으면 default로 갑니다.' : 'switch는 n과 일치하는 case로 바로 건너뜁니다. break가 없으면 빨간 화살표처럼 아래 case의 코드로 계속 흘러내립니다. 일치하는 case가 없으면 default로 갑니다.');
+    P.note(arrow ? '화살표 switch는 n과 일치하는 case 하나로 들어가서 그 줄만 실행하고 나옵니다. 일치하는 case가 없으면 default로 갑니다.' : hasBreak ? 'switch는 n과 일치하는 case로 바로 건너뜁니다. 그 뒤 break를 만나면 switch 밖으로 나갑니다. 일치하는 case가 없으면 default로 갑니다.' : 'break가 없으면 빨간 화살표처럼 아래 case의 코드로 계속 흘러내립니다.');
   },
   assume: '스물네 가지 조합(반복문 12, switch 12)의 출력과 횟수를 이 PC의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. 본문에 들어간 횟수는 대조용 프로그램의 본문 첫 줄에 세는 코드를 넣어 얻었습니다. while문에서 continue를 쓴 두 조합은 실제 프로그램이 2초가 지나도 끝나지 않고 본문만 계속 되풀이하는 것을 확인했습니다. "영원히 끝나지 않는다"는 것 자체는 실행으로 증명할 수 없고, i가 바뀌지 않는다는 코드의 구조에서 나오는 결론입니다. 모형은 같은 i 값으로 조건 검사에 다시 돌아오면 무한 반복으로 판단하고 멈춥니다. default가 없는 switch에 일치하는 case가 없는 값을 넣으면 아무것도 실행하지 않는다는 것도 실행해 확인했습니다. 화살표 switch는 Java 14부터 정식 문법입니다. do-while문, 향상된 for문(for-each), 값을 돌려주는 switch 식, 이름표를 붙인 break는 다루지 않았습니다.',
 });

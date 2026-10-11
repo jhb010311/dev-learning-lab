@@ -43,9 +43,8 @@ Lab.register({
       st.opt = 'npe'; st.ex = ex = 'NullPointerException';
       push('Optional.of(name): of는 값이 반드시 있을 때 쓰는 메서드입니다. null을 받으면 Optional을 만들지 않고 그 자리에서 NullPointerException을 던집니다.', 'bad');
       push('예외로 프로그램이 멈춥니다. Optional이 만들어지지 않았으므로 아래 줄들은 하나도 실행되지 않습니다.' + (useMd ? ' makeDefault()도 실행되지 않습니다.' : ''), 'bad');
-      sum.push('Optional.of(null)에서 NullPointerException이 나서 아무것도 출력되지 않습니다.');
       sum.push('Optional로 감싼다고 해서 null이 저절로 안전해지지 않습니다. of는 null을 받지 않습니다.');
-      sum.push('null일 수도 있는 값은 Optional.ofNullable로 감쌉니다. 만드는 방법을 ofNullable로 바꿔 비교해 보세요.');
+      sum.push('null일 수도 있는 값은 Optional.ofNullable로 감쌉니다.');
       return { events: ev, summary: sum, ex: ex, out: [], row: ['예외: NullPointerException', '(실행되지 않음)', useMd ? '실행되지 않음' : '(쓰지 않음)'] };
     }
     st.opt = has ? 'kim' : 'empty';
@@ -92,19 +91,14 @@ Lab.register({
     }
     if (!ex) { st.out.push(res); push('System.out.println(result): ' + res + ' 한 줄이 출력됩니다.'); }
     if (c.take === 'get') {
-      sum.push(has ? 'kim이 출력됩니다.' : 'get()에서 NoSuchElementException이 나서 결과를 출력하지 못합니다.');
-      sum.push(has ? 'get()은 값이 있을 때만 안전합니다. name을 null로 바꾸거나 Optional.empty()로 만들어 같은 코드를 실행해 보세요.' : 'Optional에서 get()을 그냥 부르는 것은 null을 검사하지 않고 쓰는 것과 다르지 않습니다. 예외의 이름만 바뀔 뿐입니다.');
+      sum.push(has ? 'get()은 값이 있을 때만 안전합니다.' : 'Optional에서 get()을 그냥 부르는 것은 null을 검사하지 않고 쓰는 것과 다르지 않습니다. 예외의 이름만 바뀔 뿐입니다.');
       sum.push('값이 없을 수 있다면 orElse, orElseGet, map처럼 "없을 때 어떻게 할지"를 함께 적는 메서드를 씁니다.');
     } else if (c.take === 'orElse') {
-      sum.push('결과는 "' + res + '"이고, makeDefault()는 실행되었습니다.');
       sum.push(has ? '값이 있어서 기본값이 필요 없는데도 makeDefault()가 실행되었습니다. orElse의 괄호 안은 평범한 인자라서 orElse가 불리기 전에 항상 먼저 계산됩니다.' : '비어 있으므로 기본값이 쓰였습니다. 이 경우에는 orElseGet과 결과도, makeDefault()가 실행되는 것도 같습니다.');
       sum.push('기본값이 "없음" 같은 이미 만들어져 있는 값이면 orElse로 충분합니다. 기본값을 만드는 데 DB 조회나 객체 생성 같은 일이 따른다면 orElseGet을 씁니다.');
     } else if (c.take === 'orElseGet') {
-      sum.push('결과는 "' + res + '"이고, makeDefault()는 ' + (has ? '실행되지 않았습니다.' : '실행되었습니다.'));
-      sum.push(has ? 'orElseGet은 기본값이 아니라 "기본값을 만드는 코드"(람다)를 받습니다. 값이 있으면 그 코드를 실행하지 않습니다.' : '비어 있을 때에만 람다가 실행됩니다. name을 "kim"으로 바꾸면 makeDefault()가 실행되지 않는 것을 볼 수 있습니다.');
-      sum.push('같은 설정에서 꺼내는 방법만 orElse로 바꿔, makeDefault()가 실행되는지 비교해 보세요.');
+      sum.push(has ? 'orElseGet은 기본값이 아니라 "기본값을 만드는 코드"(람다)를 받습니다. 값이 있으면 그 코드를 실행하지 않습니다.' : '비어 있을 때에만 람다가 실행됩니다.');
     } else {
-      sum.push('결과는 "' + res + '"입니다.');
       sum.push(has ? 'map은 값이 들어 있으면 함수를 적용한 결과를 다시 Optional에 담아 돌려줍니다. 그래서 map을 여러 번 이어 쓸 수 있습니다.' : 'map은 비어 있으면 함수를 실행하지 않고 빈 Optional을 그대로 넘깁니다. 중간에 if (x != null)을 적지 않아도 됩니다.');
       sum.push('값이 없을 때의 처리는 맨 끝의 orElse 한 곳에만 적으면 됩니다.');
     }
@@ -119,9 +113,6 @@ Lab.register({
     if (useMd) H.lane(ln, 'makeDefault()', s.md === 'run' ? '실행됨 → "손님"' : s.md === 'skip' ? '실행되지 않음' : s.md === 'wait' ? '람다로 넘겨짐 (아직 실행 전)' : '아직 실행 전', s.md === 'run' ? 'hot' : s.md === 'skip' ? 'good' : 'none');
     if (c.take === 'map') s.chain.forEach(function (x, i) { H.lane(ln, 'map ' + (i + 1) + '번째', x ? '함수 실행 → "' + x + '"' : '함수를 건너뜀 (비어 있음)', x ? 'good' : 'wait'); });
     H.lane(ln, 'result', s.res ? '"' + s.res + '"' : s.ex ? '예외로 값을 받지 못함' : '아직 없음', s.res ? 'good' : s.ex ? 'bad' : 'none');
-    if (s.ex) H.text(v, '예외: ' + s.ex);
-    H.title(v, '출력');
-    H.slots(v, s.out.map(function (x) { return [x, x === 'makeDefault 실행' ? 'b' : 'd']; }), s.ex ? '예외로 멈춰 출력 없음' : '아직 출력 없음');
   },
   // 그림: 왼쪽에서 오른쪽으로 name → Optional 상자 → 꺼낸 결과. Optional 아래에는 기본값을 만드는 makeDefault()(또는 map의 두 단계)가 실행됐는지를 둔다.
   draw: function (P, sim, shown) {

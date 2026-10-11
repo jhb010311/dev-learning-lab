@@ -57,27 +57,19 @@ Lab.register({
     }
     st.set = found ? '1' : '2';
     push('set.add(a), set.add(b): HashSet uses a HashMap internally, so it decides in the same order. ' + (found ? 'b is treated as the same element as a, which is already in the set, so b is not added. The size is 1.' : 'b is treated as a different element from a, so both are added. The size is 2.' + (same ? ' Objects with the same contents are now in the set as duplicates.' : '')), found ? 'good' : same ? 'bad' : '');
-    sum.push('a.equals(b) is ' + f.eq + ', the hashCode values are ' + (f.hs ? 'the same' : 'different') + ', map.get(b) is ' + st.got + ', and the size of set is ' + st.set + '.');
     if (same && f.eq && !f.hs) sum.push('If you override only equals, two objects that are equal according to equals go to different buckets. In a HashMap, a HashSet, or a cache that uses a HashMap, this becomes a bug in which you "put it in but cannot find it". When you override equals, override hashCode together with it, using the same fields.');
     if (same && !f.eq && f.hs) sum.push('If you override only hashCode, the lookup reaches the same bucket, but equals, which is the final check, is false. The two methods are a pair, so one alone is of no use.');
     if (same && !f.eqOver && !f.hashOver) sum.push('If you override nothing, an object is equal only to itself. For objects that should be treated as "the same thing if the values are the same", such as an order number or a coordinate, override both methods or declare the class as a record.');
     if (found) sum.push(c.how === 'record' ? 'A record automatically provides an equals that compares all the record components and a hashCode that matches it. It is a good fit for objects that hold values.' : c.how === 'const' ? 'Even if every object has the same hashCode, the contract is not broken and the results are correct. But all the keys end up in one bucket, so every lookup has to compare the keys in that bucket one by one with equals. As the number of keys grows, the HashMap gets slower.' : 'Two objects that are equal according to equals return the same hashCode, so HashMap and HashSet treat the two as the same key.');
     if (!same && c.how === 'const') sum.push('Two objects with different contents are allowed to have the same hashCode (a hash collision). They go into the same bucket and are then told apart with equals. However, the more collisions there are, the slower the lookups get, so it is better to write hashCode so that its values are spread evenly.');
-    if (!same && c.how !== 'const') sum.push('Two objects with different contents are treated as different keys whichever option you choose. Compare this with the case where the contents are the same (both id values set to 1).');
+    if (!same && c.how !== 'const') sum.push('Two objects with different contents are treated as different keys whichever option you choose.');
     return { events: ev, summary: sum, hs: f.hs, row: [String(f.eq), f.hs ? 'Same' : 'Different', st.got, st.set + ''] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    H.table(v, ['Object', 'id', 'hashCode'], [
-      { cells: ['a', '1', c.how === 'const' ? '42' : s.hs === '?' ? '?' : s.hs === 'true' ? '(same value as b)' : '(different value from b)'] },
-      { cells: ['b', c.same === 'same' ? '1' : '2', c.how === 'const' ? '42' : s.hs === '?' ? '?' : s.hs === 'true' ? '(same value as a)' : '(different value from a)'] },
-    ], 'Objects used as keys');
     var ln = H.lanes(v);
     H.lane(ln, 'equals', s.eq === '?' ? 'not compared yet' : 'a.equals(b) = ' + s.eq, s.eq === 'true' ? 'good' : s.eq === 'false' ? 'wait' : 'none');
-    H.lane(ln, 'hashCode', s.hs === '?' ? 'not compared yet' : s.hs === 'true' ? 'the two values are the same' : 'the two values are different', s.hs === 'true' ? 'good' : s.hs === 'false' ? 'wait' : 'none');
-    H.lane(ln, 'map.get(b)', !s.look ? (s.put ? 'a has been put in' : 'nothing put in yet') : s.look === 'same' ? 'looked in the bucket that holds a' + (s.got !== '?' ? ' → ' + s.got : '') : 'looked in another bucket, which does not hold a → null', s.got === 'order details' ? 'good' : s.got === 'null' ? 'bad' : 'none');
-    H.counters(v, [[s.got, 'map.get(b)'], [s.set === '?' ? '?' : s.set + '', 'Size of set']]);
   },
   // Diagram: the two key objects on the left, and the buckets of the HashMap on the right. hashCode decides the bucket, and equals checks the key in that bucket.
   draw: function (P, sim, shown) {
@@ -94,7 +86,7 @@ Lab.register({
     var res = function (x, good) { return x === '?' ? 'ghost' : x === good ? 'good' : 'bad'; };
     P.box('r1', 16, 232, 320, 36, { cls: res(s.got, 'order details'), title: 'map.get(b)', right: s.got });
     P.box('r2', 344, 232, 320, 36, { cls: s.set === '?' ? 'ghost' : s.set === '1' ? 'good' : c.same === 'same' ? 'bad' : 'plain', title: 'Size of set', right: s.set === '?' ? '?' : s.set + '' });
-    P.note('HashMap first uses hashCode to decide the bucket, and it compares with equals only against the keys in that bucket. So if two objects for which equals is true have different hashCode values, one cannot be found with the other. A bucket is actually a numbered slot in an array.');
+    P.note('A bucket is actually a numbered slot in an array.');
   },
   assume: 'The results of the 12 combinations (equals, whether the hashCode values are the same, map.get, and the size of set) were checked against the results of running the same code on JDK 21 on this PC. Saying that the values of two objects that do not override hashCode are "different" means that this is almost always the case. The hashCode of Object can also give the same value to different objects (this still does not break the contract), and in that case the key may be found, depending on the result of equals. Even within the same bucket, HashMap skips a key whose hashCode value is different, without calling equals. The specification does not define the exact value that the hashCode of a record returns, but it does guarantee that two records that are equal according to equals have the same hashCode.',
 });

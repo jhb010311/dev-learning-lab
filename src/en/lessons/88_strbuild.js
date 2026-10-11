@@ -75,23 +75,17 @@ Lab.register({
     if (c.op === 'loop') { st.out.push(String(st.ch)); push('System.out.println(changed): This prints ' + st.ch + '. ' + (sb ? 'Over the three iterations, the object that sb refers to never changed.' : 'On each of the three iterations, s came to refer to a new object.'), sb ? 'good' : 'bad'); }
     var last = cur();
     if (c.op === 'loop' && !sb) {
-      sum.push('s is java123, the first object is still java, and the object that s refers to changed three times over the three iterations.');
       sum.push('The contents of a String cannot be modified, so every concatenation with + creates a new string object, and s moves over to it. The strings "java1" and "java12", which were created along the way, are not used and are discarded.');
-      sum.push('For repeated concatenation, use a StringBuilder. Change the type to StringBuilder and compare how changed differs.');
+      sum.push('For repeated concatenation, use a StringBuilder.');
     } else if (c.op === 'loop') {
-      sum.push('sb is java123, and the object it refers to never changed over the three iterations.');
       sum.push('A StringBuilder keeps modifying the contents of one object, so it does not have to create a new string object every time something is appended. You get the finished string with sb.toString().');
       sum.push('first refers to the same object, so it shows java123 as well. When several places refer to an object whose contents can change, remember that a change made through one of them is visible through the others too.');
     } else if (sb) {
-      sum.push('Both sb and first are java!, and the two variables refer to the same object.');
       sum.push(c.op === 'assign' ? 'append modifies the contents and then returns the object itself. So assigning the return value back gives the same object, and you can also chain the calls, as in sb.append("a").append("b").' : 'A StringBuilder is an object whose contents can be changed. append modifies the object itself, so the result remains even if you ignore the return value.');
-      sum.push('Change the type to String and compare how the same operation differs with a String.');
     } else if (c.op === 'drop') {
-      sum.push('Both s and the first object are still java, and s == first is true.');
       sum.push('The methods of String do not modify the original. They return a new string. If you ignore the return value, the result is thrown away. There is no compile-time error and no exception, so this mistake is hard to notice.');
       sum.push('To use the result, you must assign the return value to a variable, as in s = ' + call.src + '.');
     } else {
-      sum.push('s is ' + last + ', the first object is still java, and s == first is false.');
       sum.push('What changed is not the contents of the string object but what s refers to. Seen through first, the first object is still there as it was.');
       sum.push('Because the contents of a String do not change, several variables can refer to the same string without any worry that one of them will change the contents.');
     }
@@ -102,14 +96,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, sb = c.type === 'sb', name = sb ? 'sb' : 's';
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    var by = this.refs(s, name), ln = H.lanes(v);
-    H.lane(ln, name, '→ object ' + s.s, 'wait');
-    H.lane(ln, 'first', s.f ? '→ object ' + s.f : 'not declared yet', s.f ? 'wait' : 'none');
+    var by = this.refs(s, name);
     H.table(v, ['Object', 'Type', 'Contents', 'Referenced by'], s.objs.map(function (o, i) { return { cls: by[i].length ? '' : 'gone', cells: ['Object ' + (i + 1), sb ? 'StringBuilder' : 'String', '"' + o + '"', { v: by[i].length ? by[i].join(', ') : 'none', cls: by[i].length > 1 ? 'good' : '' }] }; }), 'Objects in memory');
-    var cnt = [[s.eq, name + ' == first']]; if (s.ch >= 0) cnt.push([s.ch + '', 'changed']);
-    H.counters(v, cnt);
-    H.title(v, 'Output');
-    H.slots(v, s.out.map(function (x) { return [x, 'd']; }), 'no output yet');
   },
   // Diagram: variables on the left, objects on the right. Arrows go from the variables to the objects, and an object that no variable refers to is drawn with a dashed line.
   draw: function (P, sim, shown) {
@@ -127,7 +115,7 @@ Lab.register({
     if (s.f) P.arrow('ar_f', 'v_first:r', 'o' + s.f + ':l' + (s.s === s.f ? ':0.7' : ''), { cls: s.s === s.f ? 'good' : '' });
     P.box('r1', 16, 242, 250, 34, { cls: s.eq === '?' ? 'ghost' : 'plain', title: name + ' == first', right: s.eq });
     P.box('r2', 274, 242, 390, 34, { cls: s.out.length ? 'plain' : 'ghost', title: 'Output', right: s.out.length ? s.out.join(' / ') : 'none yet' });
-    P.note(sb ? 'A StringBuilder modifies the contents of a single object. So the changed contents are visible through every variable that refers to the same object.' : 'The contents of a String object do not change. A method or + creates a new object, and what changes is what the variable refers to. A dashed outline marks an object that no variable refers to.');
+    P.note(sb ? 'A StringBuilder modifies the contents of a single object. So the changed contents are visible through every variable that refers to the same object.' : 'A dashed outline marks an object that no variable refers to.');
   },
   assume: 'The output of the 18 combinations (10 distinct cases when the hidden setting is left out) was checked against the results of running the same code on JDK 21 on this PC. Saying that "a new object was created" means that a == comparison confirmed that the object is different from the previous one. How many objects are actually created in memory at run time can vary with the optimizations of the JVM, so no claim is made about it. The methods and values chosen here are all cases in which the contents change. For a call that does not change the contents (for example, replace when there is no character to replace), String sometimes returns itself without creating a new object. How a StringBuilder grows the internal space that holds its characters is not covered by this model.',
 });

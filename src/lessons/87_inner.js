@@ -58,15 +58,13 @@ Lab.register({
       st.cmp = 'err';
       push('new Outer.Inner(): 컴파일 오류입니다. main은 static 메서드라서 이 자리에는 Outer 객체가 없고, 코드에서 따로 정해 주지도 않았습니다. 어느 바깥 객체에 딸린 안쪽 객체인지 정할 수 없어 컴파일러가 막습니다.', 'bad');
       fail('an enclosing instance that contains Outer.Inner is required', 'Outer.Inner를 품을 바깥 객체가 있어야 한다는 뜻입니다.');
-      sum.push('컴파일 오류가 나서 실행되지 않습니다.');
       sum.push('static이 없는 내부 클래스의 객체는 바깥 객체를 가리키는 참조를 갖도록 만들어집니다. 그래서 바깥 객체가 먼저 있어야 하고, 바깥 객체 o가 있으면 o.new Inner()로 만듭니다.');
-      sum.push('안쪽 클래스가 바깥 객체의 필드나 메서드를 쓰지 않는다면 static을 붙여 중첩 클래스로 만드는 편이 낫습니다. 종류를 "static 중첩 클래스"로 바꿔 같은 코드를 실행해 보세요.');
+      sum.push('안쪽 클래스가 바깥 객체의 필드나 메서드를 쓰지 않는다면 static을 붙여 중첩 클래스로 만드는 편이 낫습니다.');
     } else if (member && c.use === 'field' && nested) {
       push('컴파일러가 Outer 클래스를 읽습니다: Nested에는 static이 붙어 있습니다. static 중첩 클래스의 객체는 어느 Outer 객체와도 이어져 있지 않습니다.');
       st.cmp = 'err';
       push('return name: 컴파일 오류입니다. name은 Outer 객체마다 따로 있는 필드입니다. Nested 객체는 가리키는 Outer 객체가 없으므로 누구의 name을 읽어야 하는지 정할 수 없습니다.', 'bad');
       fail('non-static variable name cannot be referenced from a static context', 'static인 곳에서는 static이 아닌 변수 name을 쓸 수 없다는 뜻입니다. main에서 Outer 객체 o를 만들더라도 Nested 객체는 그 o를 알지 못합니다.');
-      sum.push('컴파일 오류가 나서 실행되지 않습니다.');
       sum.push('static 중첩 클래스는 바깥 클래스 안에 자리만 빌린 독립된 클래스입니다. 바깥 객체를 가리키는 참조가 없으므로 바깥 객체의 필드를 그냥 쓸 수 없습니다.');
       sum.push('바깥 객체의 필드가 필요하면 static을 떼어 내부 클래스로 만들거나, 필요한 값을 생성자로 넘겨줍니다.');
     } else if (member && !nested) {
@@ -79,7 +77,6 @@ Lab.register({
       push('o.name = "B": 바깥 객체의 필드를 "B"로 바꿉니다. 안쪽 객체에는 아무 일도 하지 않았습니다.');
       st.out.push('B'); rel = '안쪽 객체가 바깥 객체 o를 가리킴';
       push('in.who(): Inner 안의 name은 "내가 가리키는 바깥 객체의 name"입니다. 값을 복사해 둔 것이 아니라 참조를 따라가 지금 값을 읽으므로 B가 출력됩니다.', 'good');
-      sum.push('B가 출력됩니다. 안쪽 객체를 만든 뒤에 바꾼 바깥 객체의 값이 보입니다.');
       sum.push('static이 없는 내부 클래스의 객체는 바깥 객체를 가리키는 참조를 갖고 있어서, 바깥 객체의 필드와 메서드를 자기 것처럼 쓸 수 있습니다.');
       sum.push('그 대신 안쪽 객체가 남아 있는 동안에는 바깥 객체도 가비지 컬렉션으로 치워지지 않습니다. 바깥 객체를 쓰지 않는 안쪽 클래스에는 static을 붙이는 이유입니다.');
     } else if (member) {
@@ -88,15 +85,12 @@ Lab.register({
       push('new Outer.Nested(): 안쪽 객체를 만듭니다. static 중첩 클래스는 바깥 객체가 없어도 만들 수 있습니다. 이 프로그램에서 Outer 객체는 하나도 만들어지지 않았습니다.', 'good');
       st.out.push('안쪽'); rel = '바깥 객체를 가리키지 않음';
       push('in.who(): 자기 안의 코드만 실행해 "안쪽"을 돌려주고, 그것이 출력됩니다. 이 객체에는 바깥 객체를 가리키는 참조가 없습니다.');
-      sum.push('안쪽이 출력됩니다. Outer 객체를 만들지 않고도 Nested 객체를 만들어 썼습니다.');
       sum.push('static 중첩 클래스는 이름만 Outer.Nested일 뿐, 따로 선언한 클래스와 같은 방식으로 만들어 씁니다. 바깥 객체를 가리키는 참조가 없습니다.');
-      sum.push('같은 코드에서 static만 떼면 어떻게 되는지, 종류를 "인스턴스 내부 클래스"로 바꿔 비교해 보세요.');
     } else if (c.loc === 'change') {
       push('컴파일러가 make()를 읽습니다: count에 1을 넣고, 아래에서 다시 2를 넣습니다. 값이 한 번이라도 바뀌는 지역 변수는 "사실상 final"이 아닙니다.');
       st.cmp = 'err';
       push((anon ? '익명 클래스' : '람다') + ' 안의 count: 컴파일 오류입니다. ' + (anon ? '익명 클래스' : '람다') + '는 지역 변수 자체가 아니라 그 값을 복사해 가져갑니다. 원본이 나중에 바뀌면 복사본과 서로 달라지므로, 자바는 값이 바뀌지 않는 지역 변수만 안에서 쓰게 합니다.', 'bad');
       fail('local variables referenced from ' + (anon ? 'an inner class' : 'a lambda expression') + ' must be final or effectively final', (anon ? '내부 클래스' : '람다') + '에서 쓰는 지역 변수는 final이거나 사실상 final이어야 한다는 뜻입니다.' + (anon ? ' 익명 클래스도 내부 클래스의 한 가지라서 메시지에 inner class라고 나옵니다.' : ''));
-      sum.push('컴파일 오류가 나서 실행되지 않습니다.');
       sum.push('"사실상 final"은 final을 적지 않았어도 처음 넣은 값이 한 번도 바뀌지 않는 변수를 말합니다. ' + (anon ? '익명 클래스' : '람다') + '를 만든 뒤에 바꾸든 그 전에 바꾸든, 다시 대입하는 줄이 하나라도 있으면 오류입니다.');
       sum.push('익명 클래스와 람다 모두 같은 규칙을 따릅니다. 값을 바꿔야 한다면 필드에 두거나, 지역 변수 설정의 "배열에 담아 두고 칸의 값만 바꿈"처럼 배열이나 객체에 담아 그 안의 값을 바꿉니다.');
     } else {
@@ -114,7 +108,6 @@ Lab.register({
       push('r.run()의 첫 줄: ' + (arr ? '복사해 둔 참조로 배열을 찾아가 칸의 값을 읽습니다. r을 만든 뒤에 바꾼 값이 보여 count = 2가 출력됩니다.' : '복사해 둔 값을 읽어 count = 1을 출력합니다.'), 'good');
       st.th = anon ? 'self' : 'outer'; st.out.push('this = ' + (anon ? 'Outer$1' : 'Outer')); rel = anon ? 'this는 익명 객체 자신' : 'this는 바깥 Outer 객체';
       push(anon ? 'this.getClass().getName(): 익명 클래스 안의 this는 그 익명 클래스로 만든 객체 자신입니다. 이름이 없는 클래스라서 컴파일러가 Outer$1이라는 이름을 붙였고, 그것이 출력됩니다.' : 'this.getClass().getName(): 람다는 자기만의 this를 갖지 않습니다. 람다 안의 this는 람다를 적은 메서드 make()의 this, 곧 바깥의 Outer 객체입니다. Outer가 출력됩니다.', anon ? '' : 'good');
-      sum.push('출력은 count = ' + (arr ? '2' : '1') + ', this = ' + (anon ? 'Outer$1' : 'Outer') + ' 두 줄입니다.');
       sum.push(anon ? '익명 클래스는 새 클래스를 하나 선언하는 것이라서 그 안의 this는 새로 만든 객체입니다. 바깥 객체를 가리키려면 Outer.this라고 적어야 합니다.' : '람다는 새 클래스의 선언이 아니라 코드 조각이라서, 그 안의 this는 람다 바깥의 this와 같습니다. 익명 클래스를 람다로 바꿀 때 this를 쓰는 코드가 있으면 뜻이 달라집니다.');
       sum.push(arr ? '배열에 담으면 변수 count는 바뀌지 않고 배열 안의 값만 바뀌므로 규칙을 통과합니다. 다만 여러 스레드가 함께 쓰는 코드에서는 값이 꼬일 수 있으니 조심해서 써야 합니다.' : 'make()가 끝나 지역 변수가 사라진 뒤에도 복사해 둔 값으로 실행됩니다. 값을 복사해 가기 때문에, 그 변수를 다른 곳에서 바꾸는 것은 허용되지 않습니다.');
     }
@@ -123,8 +116,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, member = c.kind === 'inner' || c.kind === 'nested', arr = c.loc === 'arr';
     if (!s) { H.text(v, '실행을 누르면 컴파일부터 한 단계씩 진행합니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '컴파일', s.cmp === '?' ? '검사하는 중' : s.cmp === 'ok' ? '성공' : '오류', s.cmp === '?' ? 'none' : s.cmp === 'ok' ? 'good' : 'bad');
     if (s.cmp === 'err') { H.text(v, '컴파일 오류가 나면 클래스 파일이 만들어지지 않아 실행할 수 없습니다.'); return; }
     var rows = [];
     if (member) {
@@ -135,10 +126,7 @@ Lab.register({
       if (s.cnt) rows.push({ cls: s.live ? '' : 'gone', cells: ['count', 'make()의 지역 변수', s.live ? (arr ? '배열 { ' + s.cnt + ' }을 가리킴' : s.cnt) : '사라짐 (메서드가 끝남)'] });
       if (s.r) rows.push({ cells: ['r', c.kind === 'anon' ? '익명 클래스의 객체' : '람다', arr ? '복사한 참조 → 배열 { ' + s.cnt + ' }' : '복사한 값 ' + s.cap] });
       H.table(v, ['이름', '무엇인가', '갖고 있는 것'], rows, 'make() 안에서 만들어진 것');
-      H.lane(ln, 'this', !s.th ? '아직 확인 전' : s.th === 'self' ? '익명 객체 자신 (Outer$1)' : '바깥의 Outer 객체', !s.th ? 'none' : s.th === 'self' ? 'wait' : 'good');
     }
-    H.title(v, '출력');
-    H.slots(v, s.out.map(function (x) { return [x, 'd']; }), '아직 출력 없음');
   },
   // 그림: 왼쪽에 바깥 객체(와 지역 변수), 오른쪽에 안쪽 객체. 안쪽 객체가 무엇을 가리키거나 복사해 갖는지를 화살표로 잇는다.
   draw: function (P, sim, shown) {

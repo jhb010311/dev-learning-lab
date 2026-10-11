@@ -1,7 +1,7 @@
 Lab.register({
   id: 'mq', nav: 'Message queue basics', cat: 'Message queues', mode: 'step',
   title: 'Leave a note instead of calling directly',
-  intro: 'When an order comes in, you must send a confirmation email. The order server can call the email server directly and wait until it finishes, or it can put a message that says "send the email" in a queue and respond right away. Compare the two approaches to see what happens to orders when the email server is slow or down.',
+  intro: 'When an order comes in, you must send a confirmation email. The order server can call the email server directly and wait until it finishes, or it can put a message that says "send the email" in a queue and respond right away.',
   terms: ['Message queue', 'Synchronous and asynchronous', 'Pub/Sub', 'Message delivery guarantees', 'Eventual consistency'], ranks: ['mq', 'msa'],
   controls: [
     { id: 'how', label: 'How the work is handed to the email server', type: 'select', value: 'direct', options: [['direct', 'Call it directly and wait until it finishes'], ['queue', 'Put it in a message queue and respond right away']] },
@@ -40,7 +40,6 @@ Lab.register({
       if (down) { push('The email server is down, so nothing takes messages out of the queue. They stay in the queue as they are (' + n + (n === 1 ? ' message' : ' messages') + '). All the orders were already answered as successful.', ''); S.mail = 'Recovered'; push('The email server has recovered. It starts taking the messages that piled up in the queue, from the front.', ''); }
       for (i = 1; i <= n; i++) { S.q.shift(); S.sent++; S.mail = 'Email for order ' + i + ' sent'; S.orders[i - 1] = ['Order ' + i, f(resp), 'Success', 'Email sent (after the response)']; push('The email server takes the "Order ' + i + '" message from the queue and sends the email (' + f(work) + '). It handles them one at a time, at its own pace.', ''); }
     }
-    sum.push('Orders succeeded: ' + okCount + ' of ' + n + '. Response time of one order: ' + f(resp) + '. Emails sent: ' + S.sent + '.');
     if (direct && down) sum.push('With a direct call, a failure in the service being called spreads to the caller. When the email server went down, orders could not be accepted either.');
     if (direct && !down) sum.push('With a direct call, the other side\'s processing time is added to your response time as it is. If email gets slow, orders get slow too. In return, when the response arrives, you can be sure the email is already sent.');
     if (!direct) sum.push('With a queue in between, the order server is responsible only for putting the message in. Even if the email server is slow or down, the response time and the success of the order stay the same. The queue works as a buffer between the two.');
@@ -50,10 +49,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { orders: [], q: [], mail: '', sent: 0 };
-    if (s.orders.length) H.table(v, ['Order', 'Time until the user gets a response', 'Order result', 'Email'], s.orders.map(function (r) { return { cells: [r[0], r[1], { v: r[2], cls: r[2] === 'Success' ? 'good' : 'bad' }, r[3]] }; }), 'Order server');
-    H.title(v, 'Messages waiting in the message queue');
-    H.slots(v, s.q.map(function (x) { return [x, 'q']; }), sim.row[3] === 'No queue' ? 'No queue is used' : 'Empty');
-    H.counters(v, [[s.mail || '-', 'Email server'], [s.sent, 'Emails sent']]);
+    H.counters(v, [[s.sent, 'Emails sent']]);
   },
   // Diagram: The order server and the email server. A direct call ties them together with an arrow, and with a queue, messages pile up between them.
   draw: function (P, sim, shown) {
@@ -70,7 +66,7 @@ Lab.register({
     }
     s.orders.forEach(function (r, i) { P.box('o' + i, 16, 226 + i * 30, 648, 26, { cls: r[2] === 'Success' ? 'good' : 'bad', title: r[0] + ' · response in ' + r[1], right: r[2] + ' · ' + r[3] }); });
     if (!s.orders.length) P.text('none', 340, 244, 'No orders have arrived yet', { cls: 'mut', anchor: 'middle' });
-    P.note(direct ? 'The two servers are tied together by one arrow. If the email server is slow, the order response is slow too, and if it goes down, the order fails too.' : 'The queue in the middle works as a buffer. The order server only puts in the message and responds right away, and even if the email server is down, the messages stay in the queue and wait.');
+    P.note(direct ? 'The two servers are tied together by one arrow.' : 'The queue in the middle works as a buffer.');
   },
   assume: 'This is a model to explain the concept, and it is not the result of running a real message queue. The time values (0.05s to save, 0.01s to put in the queue, 3s timeout) are examples. Even with a direct call, you can add a timeout and exception handling to keep the order from failing, and the cases where the queue itself goes down, message loss, duplicate delivery, and ordering problems are not covered here. @RabbitListener in the code is an example for when you use RabbitMQ.',
 });

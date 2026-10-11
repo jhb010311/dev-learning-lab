@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b88d80401a">
+<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>HTTP messages and status codes</h1>
 <p><b>This is what a request and a response look like as text</b></p>
-<p>The HTTP messages that a browser and a server exchange are text with a fixed shape. A request has &quot;what&quot; (the address) and &quot;how&quot; (the method) on its first line, and a response has &quot;how it went&quot; (the status code) on its first line. Change the situation, and look at the raw text of the request and the response and at what the status code means.</p>
+<p>The HTTP messages that a browser and a server exchange are text with a fixed shape. A request has &quot;what&quot; (the address) and &quot;how&quot; (the method) on its first line, and a response has &quot;how it went&quot; (the status code) on its first line.</p>
 <p>Partly checked against real execution · The message structure was checked against real raw text, and the status codes are based on the standard</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Response 200 OK (2xx Successful). Who has to fix it: None. What the receiver should do: Use the body that was received.</li>
 <li>The first digit of the status code alone tells you how to respond. With 4xx, sending the same request again does not help, and the request has to be fixed. 5xx is a problem on the server side, so you can try again after a short while. Monitoring also counts 4xx and 5xx separately.</li>
 <li>An HTTP message has four parts: the start line, the headers, an empty line, and the body. The start line of a request holds the method and the path, and the start line of a response holds the status code.</li>
 </ul>
@@ -159,6 +158,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b88d80401a"></script>
+<script src="../../app.js?v=df17f1edb0"></script>
 </body>
 </html>

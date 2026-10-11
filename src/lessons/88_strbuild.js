@@ -75,23 +75,17 @@ Lab.register({
     if (c.op === 'loop') { st.out.push(String(st.ch)); push('System.out.println(changed): ' + st.ch + '이 출력됩니다. ' + (sb ? '세 번 도는 동안 sb가 가리키는 객체는 한 번도 바뀌지 않았습니다.' : '세 번 돌 때마다 s가 새 객체를 가리키게 되었습니다.'), sb ? 'good' : 'bad'); }
     var last = cur();
     if (c.op === 'loop' && !sb) {
-      sum.push('s는 java123, 처음 객체는 java 그대로이고, 세 번 도는 동안 s가 가리키는 객체가 세 번 바뀌었습니다.');
       sum.push('String은 내용을 고칠 수 없으므로, +로 이어 붙일 때마다 새 문자열 객체가 만들어지고 s가 그쪽으로 옮겨 갑니다. 중간에 만들어진 "java1", "java12"는 쓰이지 않고 버려집니다.');
-      sum.push('반복해서 이어 붙일 때는 StringBuilder를 씁니다. 타입을 StringBuilder로 바꿔 changed가 어떻게 달라지는지 비교해 보세요.');
+      sum.push('반복해서 이어 붙일 때는 StringBuilder를 씁니다.');
     } else if (c.op === 'loop') {
-      sum.push('sb는 java123이고, 세 번 도는 동안 가리키는 객체가 한 번도 바뀌지 않았습니다.');
       sum.push('StringBuilder는 객체 하나의 내용을 계속 고쳐 쓰므로, 이어 붙일 때마다 새 문자열 객체를 만들지 않아도 됩니다. 완성된 문자열은 sb.toString()으로 얻습니다.');
       sum.push('first도 같은 객체를 가리키므로 java123이 보입니다. 내용이 바뀌는 객체를 여러 곳에서 함께 가리킬 때는 한쪽의 변경이 다른 쪽에도 보인다는 점을 기억해야 합니다.');
     } else if (sb) {
-      sum.push('sb와 first 모두 java!이고, 두 변수는 같은 객체를 가리킵니다.');
       sum.push(c.op === 'assign' ? 'append는 내용을 고친 뒤 자기 자신을 돌려줍니다. 그래서 다시 넣어도 같은 객체이고, sb.append("a").append("b")처럼 이어서 부를 수도 있습니다.' : 'StringBuilder는 내용을 바꿀 수 있는 객체입니다. append가 객체 자신을 고치므로, 돌려준 값을 받지 않아도 결과가 남습니다.');
-      sum.push('같은 일을 String으로 하면 어떻게 다른지, 타입을 String으로 바꿔 비교해 보세요.');
     } else if (c.op === 'drop') {
-      sum.push('s도 처음 객체도 java 그대로이고, s == first는 true입니다.');
       sum.push('String의 메서드는 원본을 고치지 않고 새 문자열을 돌려줍니다. 돌려준 값을 받지 않으면 결과가 버려집니다. 컴파일 오류도 예외도 나지 않아서 알아채기 어려운 실수입니다.');
       sum.push('결과를 쓰려면 s = ' + call.src + '처럼 돌려준 값을 변수에 받아야 합니다.');
     } else {
-      sum.push('s는 ' + last + ', 처음 객체는 java 그대로이고, s == first는 false입니다.');
       sum.push('바뀐 것은 문자열 객체의 내용이 아니라 s가 가리키는 곳입니다. 처음 객체는 first로 보면 그대로 남아 있습니다.');
       sum.push('String의 내용이 바뀌지 않기 때문에, 같은 문자열을 여러 변수가 함께 가리켜도 한쪽에서 내용을 바꿔 버릴 걱정이 없습니다.');
     }
@@ -102,14 +96,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, sb = c.type === 'sb', name = sb ? 'sb' : 's';
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    var by = this.refs(s, name), ln = H.lanes(v);
-    H.lane(ln, name, '→ 객체 ' + s.s, 'wait');
-    H.lane(ln, 'first', s.f ? '→ 객체 ' + s.f : '아직 없음', s.f ? 'wait' : 'none');
+    var by = this.refs(s, name);
     H.table(v, ['객체', '종류', '내용', '가리키는 변수'], s.objs.map(function (o, i) { return { cls: by[i].length ? '' : 'gone', cells: ['객체 ' + (i + 1), sb ? 'StringBuilder' : 'String', '"' + o + '"', { v: by[i].length ? by[i].join(', ') : '없음', cls: by[i].length > 1 ? 'good' : '' }] }; }), '메모리의 객체');
-    var cnt = [[s.eq, name + ' == first']]; if (s.ch >= 0) cnt.push([s.ch + '번', 'changed']);
-    H.counters(v, cnt);
-    H.title(v, '출력');
-    H.slots(v, s.out.map(function (x) { return [x, 'd']; }), '아직 출력 없음');
   },
   // 그림: 왼쪽에 변수, 오른쪽에 객체. 변수에서 객체로 화살표가 가고, 가리키는 변수가 없는 객체는 점선으로 그린다.
   draw: function (P, sim, shown) {
@@ -127,7 +115,7 @@ Lab.register({
     if (s.f) P.arrow('ar_f', 'v_first:r', 'o' + s.f + ':l' + (s.s === s.f ? ':0.7' : ''), { cls: s.s === s.f ? 'good' : '' });
     P.box('r1', 16, 242, 250, 34, { cls: s.eq === '?' ? 'ghost' : 'plain', title: name + ' == first', right: s.eq });
     P.box('r2', 274, 242, 390, 34, { cls: s.out.length ? 'plain' : 'ghost', title: '출력', right: s.out.length ? s.out.join(' / ') : '아직 없음' });
-    P.note(sb ? 'StringBuilder는 객체 하나의 내용을 고쳐 씁니다. 그래서 같은 객체를 가리키는 모든 변수에 바뀐 내용이 보입니다.' : 'String 객체의 내용은 바뀌지 않습니다. 메서드나 +는 새 객체를 만들고, 달라지는 것은 변수가 가리키는 곳입니다. 점선은 어느 변수도 가리키지 않는 객체입니다.');
+    P.note(sb ? 'StringBuilder는 객체 하나의 내용을 고쳐 씁니다. 그래서 같은 객체를 가리키는 모든 변수에 바뀐 내용이 보입니다.' : '점선은 어느 변수도 가리키지 않는 객체입니다.');
   },
   assume: '열여덟 가지 조합(숨겨진 설정을 빼면 서로 다른 경우는 열 가지)의 출력을 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. "새 객체가 만들어졌다"는 것은 == 비교로 직전 객체와 다른 객체임을 확인한 것입니다. 실행 중에 실제로 몇 개의 객체가 메모리에 만들어지는지는 JVM의 최적화에 따라 달라질 수 있어 단정하지 않았습니다. 여기서 고른 메서드와 값은 모두 내용이 달라지는 경우입니다. 내용이 달라지지 않는 호출(예: 바꿀 글자가 없는 replace)에서는 String이 새 객체를 만들지 않고 자기 자신을 돌려주기도 합니다. StringBuilder가 안에서 글자를 담는 공간을 어떻게 늘리는지는 이 모형에서 다루지 않습니다.',
 });

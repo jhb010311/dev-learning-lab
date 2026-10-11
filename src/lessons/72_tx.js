@@ -1,7 +1,7 @@
 Lab.register({
   id: 'tx', nav: '트랜잭션 기본', cat: '데이터베이스', mode: 'step',
   title: '출금은 됐는데 입금이 안 됐다면',
-  intro: 'A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다. 두 문장을 트랜잭션으로 묶었을 때와 아닐 때, 중간에 문제가 생기면 DB에 무엇이 남는지 보세요.',
+  intro: 'A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다.',
   terms: ['트랜잭션', 'ACID', 'Undo 로그와 Redo 로그', '@Transactional'], ranks: ['dbengine', 'txspring', 'isolation'],
   controls: [
     { id: 'mode', label: '실행 방식', type: 'select', value: 'auto', options: [['auto', '트랜잭션 없이 (문장마다 바로 확정)'], ['tx', '두 문장을 트랜잭션으로 묶음']] },
@@ -43,7 +43,6 @@ Lab.register({
       else { S.pA = null; S.tx = c.fail === 'ex' ? '롤백됨' : '롤백됨 (재시작 후 DB가 취소)'; push(what + (c.fail === 'ex' ? ' 애플리케이션이 ROLLBACK을 보냅니다.' : ' 커밋에 도달하지 못했으므로, DB는 다시 시작할 때 끝나지 않은 트랜잭션을 찾아 취소합니다.') + ' 출금이 없던 일이 됩니다. A는 5,000원 그대로입니다.', 'good'); }
     }
     var total = S.A + S.B;
-    sum.push('최종 A ' + S.A + '원, B ' + S.B + '원, 합계 ' + total + '원.' + (total !== 6000 ? ' 1,000원이 사라졌습니다.' : ''));
     if (auto && c.fail !== 'none') sum.push('여러 문장이 "전부 되거나 전부 안 되거나"여야 하는데 일부만 반영됐습니다. 트랜잭션은 이것을 보장하는 장치입니다(원자성).');
     if (!auto && c.fail !== 'none') sum.push('트랜잭션으로 묶으면 중간에 무슨 일이 생겨도 커밋 전의 변경은 남지 않습니다. 오류면 롤백하고, 서버가 꺼졌으면 DB가 복구하면서 취소합니다.');
     if (c.peek) sum.push(auto ? '묶지 않으면 중간 상태가 다른 사용자에게 그대로 보입니다.' : '커밋 전의 변경은 다른 트랜잭션에 보이지 않습니다(격리성). 얼마나 엄격하게 가릴지는 격리 수준으로 정하며, 그 내용은 "격리 수준" 실습에서 다룹니다.');
@@ -52,9 +51,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { A: 5000, B: 1000, pA: null, pB: null, tx: '', seen: '' };
-    H.table(v, ['계좌', 'DB에 확정된 잔액', '이 트랜잭션 안에서만 보이는 값 (커밋 전)'], [['A', s.A, s.pA], ['B', s.B, s.pB]].map(function (r) { return { cells: [r[0], r[1] + '원', { v: r[2] === null ? '-' : r[2] + '원', cls: r[2] === null ? '' : 'hot' }] }; }), 'account 테이블');
-    H.counters(v, [[(s.A + s.B) + '원', 'DB에 확정된 합계 (처음 6,000원)'], [s.tx || '-', '트랜잭션 상태']]);
-    if (s.seen) H.text(v, s.seen);
+    H.counters(v, [[s.tx || '-', '트랜잭션 상태']]);
   },
   // 그림: 왼쪽은 DB에 확정되어 모두가 보는 값, 오른쪽은 이 트랜잭션 안에서만 보이는 아직 확정되지 않은 값.
   draw: function (P, sim, shown) {

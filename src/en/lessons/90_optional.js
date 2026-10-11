@@ -43,9 +43,8 @@ Lab.register({
       st.opt = 'npe'; st.ex = ex = 'NullPointerException';
       push('Optional.of(name): of is the method to use when the value is certain to be present. When it receives null, it does not create an Optional and throws a NullPointerException on the spot.', 'bad');
       push('The exception stops the program. No Optional was created, so none of the lines below run.' + (useMd ? ' makeDefault() does not run either.' : ''), 'bad');
-      sum.push('Optional.of(null) throws a NullPointerException, so nothing is printed.');
       sum.push('Wrapping a value in an Optional does not make null safe by itself. of does not accept null.');
-      sum.push('Wrap a value that may be null with Optional.ofNullable. Change the way the Optional is created to ofNullable and compare.');
+      sum.push('Wrap a value that may be null with Optional.ofNullable.');
       return { events: ev, summary: sum, ex: ex, out: [], row: ['Exception: NullPointerException', '(not run)', useMd ? 'Did not run' : '(not used)'] };
     }
     st.opt = has ? 'kim' : 'empty';
@@ -92,19 +91,14 @@ Lab.register({
     }
     if (!ex) { st.out.push(res); push('System.out.println(result): This prints one line, ' + res + '.'); }
     if (c.take === 'get') {
-      sum.push(has ? 'kim is printed.' : 'get() throws a NoSuchElementException, so the result is not printed.');
-      sum.push(has ? 'get() is safe only when a value is present. Change name to null, or create the Optional with Optional.empty(), and run the same code.' : 'Calling get() on an Optional without checking is no different from using a value without checking for null. Only the name of the exception changes.');
+      sum.push(has ? 'get() is safe only when a value is present.' : 'Calling get() on an Optional without checking is no different from using a value without checking for null. Only the name of the exception changes.');
       sum.push('If the value may be absent, use a method that also states "what to do when there is no value", such as orElse, orElseGet, or map.');
     } else if (c.take === 'orElse') {
-      sum.push('The result is "' + res + '", and makeDefault() ran.');
       sum.push(has ? 'A value is present, so no default value is needed, and yet makeDefault() ran. What is inside the parentheses of orElse is an ordinary argument, so it is always evaluated before orElse is called.' : 'The Optional is empty, so the default value was used. In this case, both the result and the fact that makeDefault() runs are the same as with orElseGet.');
       sum.push('When the default value is a value that already exists, such as "none", orElse is enough. When creating the default value involves work such as a database query or creating an object, use orElseGet.');
     } else if (c.take === 'orElseGet') {
-      sum.push('The result is "' + res + '", and makeDefault() ' + (has ? 'did not run.' : 'ran.'));
-      sum.push(has ? 'orElseGet takes not a default value but "code that creates the default value" (a lambda expression). When a value is present, it does not run that code.' : 'The lambda expression runs only when the Optional is empty. Change name to "kim", and you can see that makeDefault() does not run.');
-      sum.push('With the same settings, change only the way the value is taken out to orElse, and compare whether makeDefault() runs.');
+      sum.push(has ? 'orElseGet takes not a default value but "code that creates the default value" (a lambda expression). When a value is present, it does not run that code.' : 'The lambda expression runs only when the Optional is empty.');
     } else {
-      sum.push('The result is "' + res + '".');
       sum.push(has ? 'When a value is present, map applies the function and returns the result in a new Optional. That is why you can chain several map calls.' : 'When the Optional is empty, map does not run the function and passes the empty Optional along. You do not have to write if (x != null) in between.');
       sum.push('You write what to do when there is no value in only one place, the orElse at the end.');
     }
@@ -119,9 +113,6 @@ Lab.register({
     if (useMd) H.lane(ln, 'makeDefault()', s.md === 'run' ? 'ran → "guest"' : s.md === 'skip' ? 'did not run' : s.md === 'wait' ? 'passed as a lambda expression (not run yet)' : 'not run yet', s.md === 'run' ? 'hot' : s.md === 'skip' ? 'good' : 'none');
     if (c.take === 'map') s.chain.forEach(function (x, i) { H.lane(ln, 'map (call ' + (i + 1) + ')', x ? 'function ran → "' + x + '"' : 'function skipped (empty)', x ? 'good' : 'wait'); });
     H.lane(ln, 'result', s.res ? '"' + s.res + '"' : s.ex ? 'no value because of the exception' : 'not declared yet', s.res ? 'good' : s.ex ? 'bad' : 'none');
-    if (s.ex) H.text(v, 'Exception: ' + s.ex);
-    H.title(v, 'Output');
-    H.slots(v, s.out.map(function (x) { return [x, x === 'makeDefault ran' ? 'b' : 'd']; }), s.ex ? 'Stopped by the exception, no output' : 'No output yet');
   },
   // Diagram: from left to right, name → the Optional box → the value taken out. Below the Optional, it shows whether makeDefault(), which creates the default value, has run (or the two map steps).
   draw: function (P, sim, shown) {

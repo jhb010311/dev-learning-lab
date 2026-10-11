@@ -45,7 +45,7 @@ Lab.register({
       if (noarg) push('컴파일: new Order()에 맞는, 인자를 받지 않는 생성자를 찾습니다. 이 클래스에는 Order(int extra)밖에 없습니다. 맞는 생성자가 없어 컴파일 오류입니다. 프로그램은 실행되지 않습니다.', 'bad');
       else push('컴파일: new Order(3)에 맞는, int 하나를 받는 생성자를 찾습니다. 이 클래스에는 컴파일러가 넣어 준 Order()밖에 없습니다. 맞는 생성자가 없어 컴파일 오류입니다. 프로그램은 실행되지 않습니다.', 'bad');
       sum.push('컴파일 오류입니다. javac의 메시지는 "' + ERR + '"이고, "Order의 생성자를 이 인자들로는 부를 수 없다"는 뜻입니다.');
-      if (noarg) { sum.push('기본 생성자는 생성자를 하나도 적지 않았을 때만 생깁니다. 인자 있는 생성자를 추가하는 순간, 그전까지 되던 new Order()가 컴파일되지 않습니다.'); sum.push('new Order()도 계속 쓰려면 인자 없는 생성자 Order() { }를 직접 적어 줍니다. 설정에서 "Order()와 Order(int extra)"를 골라 비교해 보세요.'); }
+      if (noarg) { sum.push('기본 생성자는 생성자를 하나도 적지 않았을 때만 생깁니다. 인자 있는 생성자를 추가하는 순간, 그전까지 되던 new Order()가 컴파일되지 않습니다.'); sum.push('new Order()도 계속 쓰려면 인자 없는 생성자 Order() { }를 직접 적어 줍니다.'); }
       else sum.push('컴파일러가 넣어 주는 기본 생성자는 인자를 받지 않습니다. 값을 받아서 객체를 만들고 싶으면 그 인자를 받는 생성자를 직접 적어야 합니다.');
       return { events: ev, summary: sum, row: ['오류: ' + ERR, '실행되지 않음', '실행되지 않음'] };
     }
@@ -87,27 +87,22 @@ Lab.register({
     push('Order o = ' + callTxt + ': 생성자가 끝났습니다. new는 완성된 객체를 가리키는 참조를 돌려주고, 변수 o가 그 참조를 담습니다.');
     var out = st.qty + ', ' + st.memo.replace(/"/g, ''); st.out = out;
     push('System.out.println(o.qty + ", " + o.memo): o가 가리키는 객체의 qty와 memo를 읽어 출력합니다. 출력은 ' + out + '입니다.', 'good');
-    sum.push('출력은 ' + out + '입니다. 실행된 순서는 기본값 채우기 → ' + order.join(' → ') + '입니다.');
     sum.push(c.first === 'field' ? '초기화식(10)이 먼저, 그 아래의 블록(20)이 나중에 실행되어 생성자 본문이 시작될 때 qty는 20이었습니다.' : '블록(20)이 먼저, 그 아래의 초기화식(10)이 나중에 실행되어 생성자 본문이 시작될 때 qty는 10이었습니다. 필드 초기화식과 초기화 블록은 위에 적힌 것부터 실행되므로, 둘이 같은 필드를 건드리면 적는 위치가 결과를 바꿉니다.');
     if (c.ctors === 'none') sum.push('생성자를 적지 않아도 new Order()가 되는 것은 컴파일러가 기본 생성자를 넣어 주기 때문입니다. 값을 넣지 않은 필드는 기본값(숫자는 0, 참조 타입은 null)으로 남습니다. 지역 변수와 달리 필드는(final이 붙지 않았다면) 초기화하지 않아도 컴파일 오류가 아닙니다.');
     if (chained) sum.push('this(...)는 생성자의 첫 문장으로만 쓸 수 있고, 같은 클래스의 다른 생성자를 먼저 실행합니다. 공통으로 할 일을 한 생성자에 모아 둘 때 씁니다. 초기화식과 블록은 한 번만 실행됩니다.');
-    if (c.ctors === 'both' && noarg) sum.push('Order()와 Order(int extra)는 서로 다른 생성자입니다. new에 넘긴 인자에 맞는 것 하나만 실행됩니다. 설정에서 this(1)을 넣은 경우와 비교해 보세요.');
+    if (c.ctors === 'both' && noarg) sum.push('Order()와 Order(int extra)는 서로 다른 생성자입니다. new에 넘긴 인자에 맞는 것 하나만 실행됩니다.');
     if (!noarg) sum.push('new Order(3)은 넘긴 인자에 맞는 Order(int extra)를 실행합니다. Order() 생성자가 있든 없든 이 호출에서는 실행되지 않습니다.');
     return { events: ev, summary: sum, row: ['성공', order.join(' → '), out] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 컴파일 단계부터 한 단계씩 진행합니다.'); return; }
-    if (s.err) { H.title(v, '컴파일 오류'); H.text(v, 'javac: ' + s.err); H.text(v, '프로그램이 만들어지지 않아 객체도 출력도 없습니다.'); return; }
+    if (s.err) { H.title(v, '컴파일 오류'); H.text(v, 'javac: ' + s.err); return; }
     H.table(v, ['필드', '타입', '지금 값', '이 값을 넣은 곳'], s.made ? [
       { cells: ['qty', 'int', { v: s.qty, cls: s.tgt === 'fq' ? 'hot' : '' }, s.qtyBy] },
       { cells: ['memo', 'String', { v: s.memo, cls: s.tgt === 'fm' ? 'hot' : '' }, s.memoBy] },
     ] : [], '힙의 Order 객체');
     if (!s.made) H.text(v, '아직 객체가 만들어지지 않았습니다.');
-    var ln = H.lanes(v);
-    H.lane(ln, '실행 중인 생성자', s.stack.length ? s.stack.join(' → ') : s.o ? '모두 끝남' : '아직 시작 전', s.stack.length ? 'hot' : s.o ? 'good' : 'none');
-    H.lane(ln, '지금까지의 순서', s.made ? ['기본값 채우기'].concat(s.order).join(' → ') : '아직 없음', s.made ? 'wait' : 'none');
-    H.counters(v, [[s.out || '?', '출력']]);
   },
   // 그림: 왼쪽에 클래스에 적힌 조각들(위에서 아래로 적힌 순서), 오른쪽에 힙의 객체와 필드 값. 지금 실행 중인 조각에서 그것이 바꾸는 필드로 화살표가 간다.
   draw: function (P, sim, shown) {
@@ -139,7 +134,7 @@ Lab.register({
     if (s.o) P.arrow('ao', 'vo:t', 'fm:b', {});
     if (s.cur && s.tgt) P.arrow('wr', s.cur + ':r', s.tgt + ':l', { cls: 'hot' });
     P.box('out', 16, 266, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? '컴파일 오류' : '콘솔 출력', right: s.err ? '맞는 생성자가 없음' : s.out || (s.made ? (noarg ? 'new Order()' : 'new Order(3)') + ' 진행 중' : '아직 실행 전') });
-    P.note('왼쪽 상자의 "1번째, 2번째"는 실제로 실행된 순서입니다. 필드는 먼저 기본값(int는 0, 참조 타입은 null)으로 채워지고, 초기화식과 블록이 위에 적힌 것부터 실행된 뒤, 생성자 본문이 실행됩니다.');
+    P.note('왼쪽 상자의 "1번째, 2번째"는 실제로 실행된 순서입니다.');
   },
   assume: '열여섯 가지 조합을 이 PC의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 초기화식과 블록과 생성자 본문이 실행된 순서, 출력을 대조했습니다. 실행된 순서는 같은 코드에 기록하는 줄만 끼워 넣어 확인했고, 필드가 초기화식보다 먼저 기본값(0, null)으로 채워져 있다는 것도 실행으로 확인했습니다. 단순화한 점: 모든 생성자는 본문보다 먼저 부모 클래스(여기서는 Object)의 생성자를 부르는데, 이 단계는 그림에서 뺐습니다("상속과 오버라이딩" 실습에서 다룹니다). 초기화 블록은 실무에서 자주 쓰지는 않으며, 순서를 보이려고 넣었습니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다. this(...)를 생성자의 첫 문장으로만 쓸 수 있다는 것은 JDK 21 기준이며 이 PC에서 컴파일로 확인했습니다. 더 새로운 JDK에서는 this(...) 앞에 일부 문장을 둘 수 있게 바뀌었다고 알려져 있으나 이 PC에서는 확인하지 못했습니다.',
 });

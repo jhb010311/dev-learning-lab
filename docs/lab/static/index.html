@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
+<link rel="stylesheet" href="../../app.css?v=b3ddaad4fd">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,10 +67,9 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>a.count와 b.count의 출력은 3 3입니다.</li>
 <li>static 필드는 클래스에 하나뿐이라 모든 객체가 같은 값을 봅니다. a.hit() 2번과 b.hit() 1번이 같은 count를 올려서, 어느 객체로 읽어도 합계인 3입니다.</li>
 <li>a.count처럼 객체 변수로 static 필드를 쓰면 객체마다 따로 있는 값처럼 보여 헷갈립니다. static 멤버는 Counter.count처럼 클래스 이름으로 쓰는 것이 원칙입니다.</li>
-<li>객체마다 달라야 하는 값(이름, 수량)은 인스턴스 필드로, 클래스 전체에 하나면 되는 값(상수, 만들어진 객체 수)은 static 필드로 둡니다. 선언에서 static을 떼고 결과를 비교해 보세요.</li>
+<li>객체마다 달라야 하는 값(이름, 수량)은 인스턴스 필드로, 클래스 전체에 하나면 되는 값(상수, 만들어진 객체 수)은 static 필드로 둡니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>class Counter {
@@ -172,6 +171,6 @@ System.out.println(a.count + &quot; &quot; + b.count);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=28e3eacea2"></script>
+<script src="../../app.js?v=b3ddaad4fd"></script>
 </body>
 </html>

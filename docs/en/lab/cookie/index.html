@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b88d80401a">
+<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>Cookies</h1>
 <p><b>Showing a name tag, every time, to a server that cannot remember you</b></p>
-<p>An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site. Change the attributes of the cookie, and see which requests get the cookie and which do not.</p>
+<p>An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site.</p>
 <p>Partly checked against real execution · Checked with a browser and a test server (deletion when the browser is closed was not verified)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The cookie is alive, and it is attached automatically to requests going to every path of the site. It is not attached to requests going to another site.</li>
 <li>A cookie with no lifetime specified is deleted when the browser is closed. &quot;Stay logged in&quot; is a cookie whose lifetime is specified with Max-Age or Expires.</li>
 <li>A cookie is stored in the user's browser, so the user can see and change its contents. That is why you do not put a value such as the member number directly into a cookie, but an identifier that cannot be guessed (a session ID) or a signed token. This continues in the &quot;Sessions and JWT&quot; lab.</li>
 </ul>
@@ -168,6 +167,6 @@ ResponseEntity&lt;Void&gt; login(@RequestBody LoginRequest req) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b88d80401a"></script>
+<script src="../../app.js?v=df17f1edb0"></script>
 </body>
 </html>

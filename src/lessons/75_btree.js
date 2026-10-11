@@ -1,7 +1,7 @@
 Lab.register({
   id: 'btree', nav: '이진 탐색과 B-트리', cat: '자료구조', mode: 'step',
   title: '정렬돼 있으면 절반씩 버릴 수 있다',
-  intro: '값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다. 찾는 방식과 찾는 값을 바꿔 가며 몇 번 만에 찾는지 보고, 데이터가 훨씬 많아지면 그 차이가 어떻게 벌어지는지 보세요.',
+  intro: '값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다.',
   terms: ['이진 탐색', '시간 복잡도(Big-O)', 'B-트리 인덱스', '풀 테이블 스캔', '인덱스'], ranks: ['ds', 'index'],
   controls: [
     { id: 'how', label: '찾는 방식', type: 'select', value: 'scan', options: [['scan', '처음부터 하나씩 (정렬 안 된 데이터)'], ['binary', '이진 탐색 (정렬된 배열)'], ['btree', 'B-트리 (노드 하나에 여러 값)']] },
@@ -73,8 +73,6 @@ Lab.register({
     var N = +c.n, worst = { scan: N, binary: self.depth(N + 1, 2), b3: self.depth(N, 3), b500: self.depth(N, 500) };
     var fmtN = function (x) { return x >= 100000000 ? (x / 100000000) + '억' : x >= 10000 ? (x / 10000) + '만' : String(x); };
     var unit = c.how === 'btree' ? '노드 ' + T.count + '개 읽음' : T.count + '번 확인';
-    sum.push('27건에서 값(' + tg + ') 찾기: ' + unit + ', ' + (T.found ? '찾음' : '없음을 확인') + '.');
-    sum.push(fmtN(N) + ' 건이라면 가장 오래 걸릴 때: 하나씩 ' + fmtN(worst.scan) + '번, 이진 탐색 ' + worst.binary + '번, 노드당 3갈래 B-트리 ' + worst.b3 + '단계, 노드당 500갈래 B-트리 ' + worst.b500 + '단계.');
     if (c.how === 'scan') sum.push('하나씩 찾는 방식은 데이터가 10배가 되면 확인 횟수도 10배가 됩니다(O(n)). 없는 값은 끝까지 봐야 합니다. 인덱스가 없는 컬럼으로 조회하면 DB가 하는 일이 이것입니다.');
     if (c.how === 'binary') sum.push('한 번 확인할 때마다 후보가 절반으로 줄어듭니다(O(log n)). 데이터가 1천 배가 되어도 확인은 10번쯤만 늘어납니다. 단, 데이터가 정렬돼 있어야 하고, 정렬된 배열은 중간에 값을 끼워 넣기가 비쌉니다.');
     if (c.how === 'btree') sum.push('B-트리는 한 번에 둘이 아니라 여러 갈래로 나눕니다. 갈래가 많을수록 트리가 낮아지고, 읽어야 할 노드(디스크 페이지)가 줄어듭니다. 실제 DB 인덱스는 노드 하나에 수백 개의 값을 담아 수억 건도 서너 단계로 찾습니다.');
@@ -82,18 +80,13 @@ Lab.register({
     return { events: ev, summary: sum, row: [unit, T.found ? '찾음' : '없음', { scan: fmtN(worst.scan) + '번', binary: worst.binary + '번', btree: '500갈래 기준 ' + worst.b500 + '단계' }[c.how]], worst: worst, big: fmtN(N) };
   },
   render: function (v, sim, t, H, shown) {
-    var a = this.keys(), last = shown[shown.length - 1], s = last ? last.snap : null;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 탐색을 한 단계씩 보여 줍니다.'); return; }
     if (s.how !== 'btree') {
-      H.title(v, s.how === 'scan' ? '값 27개 (실제로는 정렬되지 않은 순서라고 가정)' : '정렬된 값 27개');
-      H.slots(v, a.map(function (k, i) { var cand = s.how === 'binary' ? (i >= s.lo && i <= s.hi && s.seen.indexOf(i) < 0) : s.seen.indexOf(i) < 0, cls = i === s.cur ? (s.done ? (s.found ? 'd now' : 'r now') : 'b now') : cand ? 'q' : ''; return [String(k), cls]; }), '', true);
-      H.text(v, '파란 칸은 아직 후보, 흐린 칸은 후보에서 빠진 칸, 굵은 테두리는 지금 확인하는 칸입니다.'); H.counters(v, [[s.seen.length + '번', '확인한 횟수'], [s.how === 'binary' ? (s.found ? '-' : Math.max(0, s.hi - s.lo + 1) + '칸') : (27 - s.seen.length) + '칸', s.how === 'binary' ? '아직 후보로 남은 칸' : '아직 안 본 칸']]);
+      H.counters(v, [[s.how === 'binary' ? (s.found ? '-' : Math.max(0, s.hi - s.lo + 1) + '칸') : (27 - s.seen.length) + '칸', s.how === 'binary' ? '아직 후보로 남은 칸' : '아직 안 본 칸']]);
     } else {
-      var p = s.path, br = p.length > 1 ? p[1].branch : -1, lf = p.length > 2 ? p[2].leaf : -1;
-      H.title(v, '뿌리 노드'); H.slots(v, [['100', p.length ? 'b' + (p.length === 1 ? ' now' : '') : 'q'], ['190', p.length ? 'b' + (p.length === 1 ? ' now' : '') : 'q']], '', true);
-      H.title(v, '가지 노드 3개 (구분값)'); H.slots(v, [0, 1, 2].map(function (i) { return ['가지 ' + (i + 1) + ': ' + a[i * 9 + 3] + ', ' + a[i * 9 + 6], i === br ? 'b' + (p.length === 2 ? ' now' : '') : p.length > 1 ? '' : 'q']; }), '', true);
-      H.title(v, '잎 노드 9개 (실제 값)'); H.slots(v, [0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (i) { return [a.slice(i * 3, i * 3 + 3).join(' '), i === lf ? (s.found ? 'd now' : 'r now') : p.length > 2 ? '' : 'q']; }), '', true);
-      H.text(v, '노란 칸은 읽은 노드, 흐린 칸은 읽지 않고 건너뛴 노드입니다.'); H.counters(v, [[p.length + '개', '읽은 노드 (디스크 읽기 횟수)'], [(13 - p.length) + '개', '읽지 않은 노드']]);
+      var p = s.path;
+      H.counters(v, [[p.length + '개', '읽은 노드 (디스크 읽기 횟수)'], [(13 - p.length) + '개', '읽지 않은 노드']]);
     }
     if (s.done) { var w = sim.worst; H.table(v, ['방식', sim.big + ' 건에서 가장 오래 걸릴 때', '늘어나는 모양'], [['처음부터 하나씩', sim.big + '번 확인', 'O(n): 데이터에 비례'], ['이진 탐색', w.binary + '번 확인', 'O(log n): 절반씩 줄임'], ['B-트리 (노드당 3갈래)', w.b3 + '단계', 'O(log n): 3분의 1씩 줄임'], ['B-트리 (노드당 500갈래)', w.b500 + '단계', 'O(log n): 500분의 1씩 줄임']].map(function (r, i) { var on = (s.how === 'scan' && i === 0) || (s.how === 'binary' && i === 1) || (s.how === 'btree' && i >= 2); return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2]] }; }), '데이터가 많아지면'); }
   },

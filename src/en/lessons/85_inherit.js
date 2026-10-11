@@ -44,7 +44,7 @@ Lab.register({
       push('Compilation: The compiler looks for the constructor ' + pName + ' in the Animal class. Animal has only ' + (c.pctor === 'arg' ? 'Animal(String name)' : 'Animal()') + '. ' + (c.pctor === 'arg' ? 'This is because a class that declares a constructor itself does not get a default constructor. ' : '') + 'There is no superclass constructor to call, so this is a compile-time error. The program does not run.', 'bad');
       sum.push('This is a compile-time error. The javac message is "' + ERR + '", which means "the constructor of Animal cannot be called with these arguments".');
       if (c.pctor === 'arg') { sum.push('A subclass constructor always calls one superclass constructor first. ' + (c.sup === 'omit' ? 'If you do not write super(...), super() is inserted automatically' : 'super() looks for the no-argument constructor') + ', and if the superclass has no no-argument constructor, there is nothing to call.'); sum.push('When the superclass has only Animal(String name), you must call it yourself by passing an argument on the first line of the subclass constructor, as in super("Buddy"). The same error occurs even if Dog declares no constructors at all, because the default constructor that is created automatically also calls super().'); }
-      else sum.push('The superclass must have a constructor that matches the arguments passed to super(...). Animal has no constructor that takes a string. Change the constructors of the superclass in the settings and compare.');
+      else sum.push('The superclass must have a constructor that matches the arguments passed to super(...). Animal has no constructor that takes a string.');
       return { events: ev, summary: sum, row: ['Error: ' + ERR, 'Not run', 'Not run'] };
     }
     push(e1 + ' Animal has this constructor, so the code compiles.');
@@ -83,7 +83,6 @@ Lab.register({
     push('Dog d = new Dog(): All the constructors have finished. The reference to the completed object is stored in the variable d.');
     describe(); st.cur = ''; st.stack = [];
     var o1 = st.out1.join(' / '), o2 = st.out2.join(' / ');
-    sum.push('The output during new Dog() is ' + o1 + ', and the output of d.describe() is ' + o2 + '.');
     sum.push('The order of execution is: the superclass constructor ' + pName + ' → the field initializer of Dog → the body of the Dog() constructor. The subclass constructor starts first, but on its first line it passes control to the superclass constructor, so the superclass side finishes first.');
     if (c.sup === 'omit') sum.push('The superclass constructor runs even if you do not write super(...), because the compiler inserts super() on the first line of Dog().' + (c.pctor === 'both' ? ' Animal has two constructors, but the one that matches super() is the no-argument Animal().' : ''));
     if (c.sup !== 'omit' && c.pctor === 'both') sum.push('When the superclass has several constructors, the one that matches the arguments passed to super(...) is selected. The call is ' + supTxt + ', so the constructor ' + pName + ' ran.');
@@ -95,18 +94,12 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go one step at a time, starting from compilation.'); return; }
-    if (s.err) { H.title(v, 'Compile-time error'); H.text(v, 'javac: ' + s.err); H.text(v, 'No program is produced, so there is no object and no output.'); return; }
+    if (s.err) { H.title(v, 'Compile-time error'); H.text(v, 'javac: ' + s.err); return; }
     H.table(v, ['Field', 'Declared in', 'Current value'], s.made ? [
       { cells: ['name', 'Animal (inherited)', { v: s.name, cls: s.name === 'null' ? '' : 'good' }] },
       { cells: ['sound', 'Dog', { v: s.sound, cls: s.sound === 'null' ? (String(s.stack[s.stack.length - 1]).indexOf('describe') >= 0 ? 'bad' : '') : 'good' }] },
     ] : [], 'Dog object on the heap (one)');
     if (!s.made) H.text(v, 'No object has been created yet.');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Running code', s.stack.length ? s.stack.join(' → ') : s.d ? 'none (object complete)' : 'not started yet', s.stack.length ? 'hot' : s.d ? 'good' : 'none');
-    H.title(v, 'Output during new Dog()');
-    H.slots(v, s.out1.map(function (x) { return [x, x === 'sound=null' ? 'r' : 'q']; }), 'none yet');
-    H.title(v, 'Output of d.describe()');
-    H.slots(v, s.out2.map(function (x) { return [x, 'd']; }), 'none yet');
   },
   // Diagram: pieces of code of the subclass Dog on the left, pieces of code of the superclass Animal in the middle, and one object on the heap on the right (the inherited name and its own sound). Arrows show the call passing from Dog to Animal and then back to describe() in Dog.
   draw: function (P, sim, shown) {
@@ -139,7 +132,7 @@ Lab.register({
     var o1 = s.out1.join(' / '), o2 = s.out2.join(' / ');
     P.box('o1', 16, 222, 648, 34, { cls: s.err ? 'bad' : !o1 ? 'ghost' : s.out1.indexOf('sound=null') >= 0 ? 'bad' : 'plain', title: s.err ? 'Compile-time error' : 'Output during new Dog()', right: s.err ? 'no superclass constructor to call' : o1 || 'none yet' });
     P.box('o2', 16, 264, 648, 34, { cls: s.err ? 'ghost' : o2 ? 'good' : 'ghost', title: 'Output of d.describe()', right: s.err ? 'not run' : o2 || 'none yet' });
-    P.note('There is one object, and it contains both name, inherited from the superclass, and sound, which belongs to the subclass. A yellow box is the code that is running now, and a blue box is code that made a call and is waiting. The red arrow shows the describe() call made by the superclass constructor going to the one in the subclass Dog. Until the superclass constructor finishes, sound in the subclass is null.');
+    P.note('There is one object, and it contains both name, inherited from the superclass, and sound, which belongs to the subclass. A yellow box is the code that is running now, and a blue box is code that made a call and is waiting. The red arrow shows the describe() call made by the superclass constructor going to the one in the subclass Dog.');
   },
   assume: 'All 36 combinations were actually compiled and run with the same code on JDK 21 on this PC, and the compilation result, the error message, the output while the object is being created, and the output of d.describe() were checked against the results. It was also confirmed by compiling that the same error occurs when the subclass declares no constructor and the superclass has no no-argument constructor, and that super(...) must be the first statement of a constructor (as of JDK 21). In newer JDKs this is said to have changed so that some statements can come before super(...), but this was not verified on this PC. Simplifications: the constructor of Animal also calls the constructor of its own superclass, Object, before anything else, and this step is left out. The detailed rules for which method is selected are covered in the "Polymorphism and method selection" lab. The error message is the first line of the English message from javac.',
 });

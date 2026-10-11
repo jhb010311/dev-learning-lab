@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b88d80401a">
+<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>This is a compile-time error. The javac message is &quot;balance has protected access in bank.Account&quot;. Reason for the decision: not allowed through a superclass-type variable.</li>
 <li>Even inside a subclass in a different package, a protected member cannot be used through a variable of the superclass type. This is because a variable of type Account might hold an object of some other subclass that has nothing to do with SavingAccount.</li>
 <li>this.balance and the balance of a variable of type SavingAccount are allowed. Just changing the type of the variable from Account to SavingAccount makes the code compile.</li>
 <li>Access widens in this order: private (the same class) → no modifier (up to the same package) → protected (up to subclasses in other packages) → public (anywhere).</li>
@@ -176,6 +175,6 @@ public class SavingAccount extends Account {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b88d80401a"></script>
+<script src="../../app.js?v=df17f1edb0"></script>
 </body>
 </html>

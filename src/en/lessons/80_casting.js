@@ -1,7 +1,7 @@
 Lab.register({
   id: 'casting', nav: 'Operators and type conversion', cat: 'Java language', mode: 'step',
   title: 'Why is 7 / 2 equal to 3 and not 3.5?',
-  intro: 'In Java, the result of a calculation is determined not only by the numbers but also by the types. A calculation between two int values gives an int, so the fractional part, or the part that goes beyond the range, is lost, and when the types are mixed, the narrower type is automatically converted to the wider type before the calculation. With +, if either side is a string, the operation is concatenation, not addition. Pick an expression and follow at which moment something is lost or changed.',
+  intro: 'In Java, the result of a calculation is determined not only by the numbers but also by the types. A calculation between two int values gives an int, so the fractional part, or the part that goes beyond the range, is lost, and when the types are mixed, the narrower type is automatically converted to the wider type before the calculation. With +, if either side is a string, the operation is concatenation, not addition.',
   terms: ['Type conversion', 'Integer division and remainder', 'Integer overflow', 'String concatenation'],
   controls: [
     { id: 'topic', label: 'What to look at', type: 'select', value: 'ints', options: [['ints', 'Calculations between integers (division, remainder, range)'], ['conv', 'When types are mixed or changed (type conversion)'], ['str', 'Strings and +']] },
@@ -146,7 +146,7 @@ Lab.register({
       } catch (e) { if (!(e instanceof Stop)) throw e; result = e.msg; }
     }
     var tips = {
-      div: ['Dividing an int by an int gives an int. The fractional part is discarded without rounding.', 'To get the fractional part too, you must make one side a double before dividing. Change "What to look at" to type conversion and run 7 / 2.0.'],
+      div: ['Dividing an int by an int gives an int. The fractional part is discarded without rounding.', 'To get the fractional part too, you must make one side a double before dividing.'],
       mod: ['% gives the remainder. It is used often, for example to see whether a number is even (n % 2 == 0) or to do something only once in every 10 times (i % 10 == 0).'],
       ndiv: ['Integer division does not round down. It truncates toward zero. For positive numbers the two are the same, so the difference does not show, and it appears only with negative numbers.'],
       nmod: ['The sign of the remainder follows the number on the left (the dividend). So if you write the test for an odd number as n % 2 == 1, it is false for negative odd numbers. Write n % 2 != 0.'],
@@ -154,7 +154,7 @@ Lab.register({
       over: ['An int holds only values from about -2.1 billion to 2.1 billion. When the range is exceeded, the value wraps around to the opposite end without an exception or a warning, so it is hard to notice.', 'Use long for calculations that can produce large numbers (amounts of money, times in milliseconds, products of counts). If you want to learn of the overflow through an exception at the moment it happens, use Math.addExact.'],
       late: ['The type is determined when the calculation is done, not when the value is stored in a variable. 7 / 2 is a calculation between two int values, so it has already become 3, and storing it in a double variable only makes it 3.0.', 'The same thing happens when you compute an average and write double avg = sum / count;. Convert one side to double before dividing, as in (double) sum / count.'],
       mix: ['In a calculation with mixed types, the narrower type is automatically converted to the wider type before the calculation (long is wider than int, and double is wider than long). The conversion goes in the direction of a wider range of values, so you do not have to write anything for it.'],
-      longlate: ['Storing the result in a long variable is not enough to prevent overflow. big + 1 is a calculation between two int values, so it has already overflowed, and that result is merely widened to long.', 'The calculation itself must be done in long. Change the code to long r = big + 1L and run it.'],
+      longlate: ['Storing the result in a long variable is not enough to prevent overflow. big + 1 is a calculation between two int values, so it has already overflowed, and that result is merely widened to long.', 'The calculation itself must be done in long.'],
       longmix: ['If even one long is involved in a calculation, the calculation is done in long. Add L after the number, as in 1L, or convert one side first, as in (long) big.'],
       narrow: ['Storing a value of a wider type in a variable of a narrower type can lose information, so it is not done automatically. The compiler stops it before the program runs.', 'If you write (int) yourself, meaning that it is acceptable to lose information, the code compiles. This is called a cast.'],
       trunc: ['(int) discards the fractional part. Even 3.99 becomes 3. If you need rounding to the nearest integer, use Math.round.'],
@@ -165,8 +165,6 @@ Lab.register({
       paren: ['To add the numbers first, put them in parentheses. The part in parentheses is calculated first and becomes 5, and only then is it joined to the string.'],
       mixed: ['Once the value has become a string, every + after it is concatenation. The 4 and the 5 at the end are not added to make 9. They are joined on one after the other.'],
     }[p.key];
-    var types = 'The type of the right-hand expression ' + st.forms[0].x + ' is ' + et + ', and the type of the variable r is ' + T + '.';
-    sum.push(result === 'Compile-time error' ? 'A compile-time error occurs, so the program does not run. ' + types : st.bad ? 'At run time the exception ' + result + ' is thrown, so nothing is printed. ' + types : 'Printing r gives ' + result + '. ' + types);
     tips.forEach(function (x) { sum.push(x); });
     return { events: ev, summary: sum, T: T, first: st.forms[0], msg: msgText, row: [et, T, result] };
   },
@@ -174,10 +172,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the calculation one step at a time.'); return; }
     H.table(v, ['Order', 'Expression', 'Type'], s.forms.map(function (f, i) { return { cells: [i === 0 ? 'At the start' : 'After step ' + i, { v: f.x, cls: i === s.forms.length - 1 ? 'hot' : '' }, f.t || '(not evaluated yet)'] }; }), 'Order in which the right-hand expression is evaluated');
-    var ln = H.lanes(v), h = s.hi;
-    if (h && h.rule) H.lane(ln, 'Meaning of +', h.rule === 'concat' ? 'One side is a string: concatenation' : 'Both sides are numbers: addition', h.rule === 'concat' ? 'hot' : 'wait');
-    else if (h) H.lane(ln, 'Type', h.kind === 'same' ? h.from + ' calculation: the result is also ' + h.to : h.kind === 'widen' ? h.from + ' → ' + h.to + ': widening (automatic)' : h.kind === 'narrow' ? h.from + ' → ' + h.to + ': narrowing (a cast, may lose information)' : h.from + ' → ' + h.to + ': narrowing is not done automatically', h.kind === 'widen' ? 'good' : h.kind === 'same' ? 'wait' : 'bad');
-    H.counters(v, [[s.r === null ? '?' : s.r, 'Variable r (' + sim.T + ')'], [s.out === null ? '?' : s.out, s.bad ? 'Error' : 'Output']]);
   },
   // Diagram: on the left, the right-hand expression getting shorter one step at a time; on the right, the types in order of width (for the strings topic, the two meanings of +); at the bottom, the variable r and the output.
   draw: function (P, sim, shown) {

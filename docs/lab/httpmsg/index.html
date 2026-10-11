@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HTTP 메시지와 상태 코드: 요청과 응답은 이렇게 생긴 글자다 · 개발 학습 실습실</title>
-<meta name="description" content="브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다. 상황을 바꿔 가며 요청과 응답의 원문, 그리고 상태 코드가 무엇을 뜻하는지 보세요.">
+<meta name="description" content="브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/httpmsg/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/httpmsg/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/httpmsg/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="HTTP 메시지와 상태 코드: 요청과 응답은 이렇게 생긴 글자다 · 개발 학습 실습실">
-<meta property="og:description" content="브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다. 상황을 바꿔 가며 요청과 응답의 원문, 그리고 상태 코드가 무엇을 뜻하는지 보세요.">
+<meta property="og:description" content="브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/httpmsg/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
+<link rel="stylesheet" href="../../app.css?v=b3ddaad4fd">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>HTTP 메시지와 상태 코드</h1>
 <p><b>요청과 응답은 이렇게 생긴 글자다</b></p>
-<p>브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다. 상황을 바꿔 가며 요청과 응답의 원문, 그리고 상태 코드가 무엇을 뜻하는지 보세요.</p>
+<p>브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다.</p>
 <p>일부만 실행으로 확인 · 메시지 구조는 실제 원문과 대조, 상태 코드는 표준 기준</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>응답 200 OK (2xx 성공). 고쳐야 하는 쪽: 없음. 받은 쪽이 할 일: 받은 본문을 사용.</li>
 <li>상태 코드의 첫 자리만 봐도 대응이 갈립니다. 4xx는 같은 요청을 다시 보내도 소용없고 요청을 고쳐야 합니다. 5xx는 서버 쪽 문제라서 잠시 뒤 다시 시도해 볼 수 있습니다. 모니터링에서도 4xx와 5xx를 따로 셉니다.</li>
 <li>HTTP 메시지는 시작 줄, 헤더, 빈 줄, 본문의 네 부분입니다. 요청의 시작 줄에는 메서드와 경로가, 응답의 시작 줄에는 상태 코드가 들어갑니다.</li>
 </ul>
@@ -159,6 +158,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=28e3eacea2"></script>
+<script src="../../app.js?v=b3ddaad4fd"></script>
 </body>
 </html>

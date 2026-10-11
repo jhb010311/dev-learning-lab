@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cicd', nav: 'CI/CD pipelines', cat: 'Deployment and operations', mode: 'step',
   title: 'You push code, and a machine checks and deploys it for you',
-  intro: 'Between changing code and getting it onto the production server, there are steps: build, test, package, and deploy. When people do these steps by hand, they skip some, or each person does them differently. Compare doing it by hand, automating only the checks (CI), and automating the deployment as well (CD), and see where code with a problem gets caught.',
+  intro: 'Between changing code and getting it onto the production server, there are steps: build, test, package, and deploy. When people do these steps by hand, they skip some, or each person does them differently.',
   terms: ['CI/CD', 'Unit tests and integration tests', 'Code review and pull requests', 'Health check (liveness, readiness)', 'Rolling, blue-green, and canary deployments'], ranks: ['deploy', 'test'],
   controls: [
     { id: 'pipe', label: 'How changes reach production', type: 'select', value: 'manual', options: [['manual', 'By hand: build on my PC and copy to the server'], ['ci', 'CI: build and test automatically on push, a person deploys'], ['cicd', 'CI/CD: if everything passes, deploy automatically too']] },
@@ -71,7 +71,6 @@ Lab.register({
         }
       }
     }
-    sum.push('Where the problem was found: ' + R.where + '. Impact on production users: ' + R.impact + '.');
     if (!auto && R.impact === 'Outage') sum.push('When you do it by hand, you can skip the checking steps, and nobody knows they were skipped. The problem is found in the most expensive place, production.');
     if (auto && (R.stop === 'build' || R.stop === 'test')) sum.push('CI (continuous integration) automatically runs the build and tests in a clean environment every time code is pushed, so it finds problems before the merge. The earlier you find a problem, the cheaper it is to fix.');
     if (p === 'ci' && b === 'runtime') sum.push('CI protects only up to the merge. Deployment and the checks after it are still left as work for people.');
@@ -83,7 +82,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { stages: [] };
     if (!s.stages.length) { H.text(v, 'Click Run to go through the steps one at a time.'); return; }
-    H.slots(v, s.stages.map(function (r, i) { var bad = r[1] === 'Failed' || r[1] === 'Outage', skip = r[1] === 'Skipped'; return [r[0], (bad ? 'r' : skip ? 'q' : 'd') + (i === s.stages.length - 1 ? ' now' : '')]; }), '');
     H.table(v, ['Step', 'Result', 'Done by'], s.stages.map(function (r, i) { var bad = r[1] === 'Failed' || r[1] === 'Outage'; return { cells: [{ v: r[0], cls: i === s.stages.length - 1 ? 'hot' : '' }, { v: r[1], cls: bad ? 'bad' : r[1] === 'Skipped' ? '' : 'good' }, r[2]] }; }), 'Until the code reaches production');
   },
   // Diagram: the steps the code goes through before it reaches production, joined from left to right. You can see where it stopped.

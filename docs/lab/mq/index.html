@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>메시지 큐 기본: 직접 부르지 않고 쪽지를 남긴다 · 개발 학습 실습실</title>
-<meta name="description" content="주문이 들어오면 확인 메일을 보내야 합니다. 주문 서버가 메일 서버를 직접 호출해 끝날 때까지 기다릴 수도 있고, &quot;메일 보내 주세요&quot;라는 메시지를 큐에 넣어 두고 바로 응답할 수도 있습니다. 메일 서버가 느리거나 죽어 있을 때 주문이 어떻게 되는지 두 방식을 비교해 보세요.">
+<meta name="description" content="주문이 들어오면 확인 메일을 보내야 합니다. 주문 서버가 메일 서버를 직접 호출해 끝날 때까지 기다릴 수도 있고, &quot;메일 보내 주세요&quot;라는 메시지를 큐에 넣어 두고 바로 응답할 수도 있습니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/mq/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/mq/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/mq/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="메시지 큐 기본: 직접 부르지 않고 쪽지를 남긴다 · 개발 학습 실습실">
-<meta property="og:description" content="주문이 들어오면 확인 메일을 보내야 합니다. 주문 서버가 메일 서버를 직접 호출해 끝날 때까지 기다릴 수도 있고, &quot;메일 보내 주세요&quot;라는 메시지를 큐에 넣어 두고 바로 응답할 수도 있습니다. 메일 서버가 느리거나 죽어 있을 때 주문이 어떻게 되는지 두 방식을 비교해 보세요.">
+<meta property="og:description" content="주문이 들어오면 확인 메일을 보내야 합니다. 주문 서버가 메일 서버를 직접 호출해 끝날 때까지 기다릴 수도 있고, &quot;메일 보내 주세요&quot;라는 메시지를 큐에 넣어 두고 바로 응답할 수도 있습니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/mq/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
+<link rel="stylesheet" href="../../app.css?v=b3ddaad4fd">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 메시지와 비동기</p>
 <h1>메시지 큐 기본</h1>
 <p><b>직접 부르지 않고 쪽지를 남긴다</b></p>
-<p>주문이 들어오면 확인 메일을 보내야 합니다. 주문 서버가 메일 서버를 직접 호출해 끝날 때까지 기다릴 수도 있고, &quot;메일 보내 주세요&quot;라는 메시지를 큐에 넣어 두고 바로 응답할 수도 있습니다. 메일 서버가 느리거나 죽어 있을 때 주문이 어떻게 되는지 두 방식을 비교해 보세요.</p>
+<p>주문이 들어오면 확인 메일을 보내야 합니다. 주문 서버가 메일 서버를 직접 호출해 끝날 때까지 기다릴 수도 있고, &quot;메일 보내 주세요&quot;라는 메시지를 큐에 넣어 두고 바로 응답할 수도 있습니다.</p>
 <p>개념 모형 · 개념 모형(실제 메시지 큐로 확인하지 않음)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -63,7 +63,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>주문 3건 중 3건 성공. 주문 한 건의 응답 시간 1.05초. 보낸 메일 3통.</li>
 <li>직접 호출하면 응답 시간에 상대의 처리 시간이 그대로 더해집니다. 메일이 느려지면 주문도 느려집니다. 대신 응답을 받은 시점에 메일까지 끝났다는 것이 확실합니다.</li>
 <li>큐가 어울리는 일은 &quot;응답에 결과가 필요 없고 조금 늦어도 되는 일&quot;입니다. 메일, 알림, 통계 집계가 대표적입니다. 결제 승인처럼 결과를 받아야 다음으로 갈 수 있는 일은 직접 호출합니다.</li>
 </ul>
@@ -159,6 +158,6 @@ OrderDto order(@RequestBody OrderRequest req) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=28e3eacea2"></script>
+<script src="../../app.js?v=b3ddaad4fd"></script>
 </body>
 </html>

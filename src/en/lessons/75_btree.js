@@ -1,7 +1,7 @@
 Lab.register({
   id: 'btree', nav: 'Binary search and B-trees', cat: 'Data structures', mode: 'step',
   title: 'If the data is sorted, you can discard half at a time',
-  intro: 'You look for one value among 27 values. You can check them one by one from the start. If they are sorted, you can look at the middle and discard half. Or you can use a B-tree, which splits the search into many branches at once. Change the search method and the value you look for, see how many steps it takes, and then see how the gap widens when there is much more data.',
+  intro: 'You look for one value among 27 values. You can check them one by one from the start. If they are sorted, you can look at the middle and discard half. Or you can use a B-tree, which splits the search into many branches at once.',
   terms: ['Binary search', 'Time complexity (big-O notation)', 'B-tree index', 'Full table scan', 'Index'], ranks: ['ds', 'index'],
   controls: [
     { id: 'how', label: 'Search method', type: 'select', value: 'scan', options: [['scan', 'One by one from the start (unsorted data)'], ['binary', 'Binary search (sorted array)'], ['btree', 'B-tree (several values in one node)']] },
@@ -73,8 +73,6 @@ Lab.register({
     var N = +c.n, worst = { scan: N, binary: self.depth(N + 1, 2), b3: self.depth(N, 3), b500: self.depth(N, 500) };
     var fmtN = function (x) { return x >= 1000000000 ? (x / 1000000000) + ' billion' : x >= 1000000 ? (x / 1000000) + ' million' : String(x); };
     var unit = c.how === 'btree' ? 'Nodes read: ' + T.count : 'Checks: ' + T.count;
-    sum.push('Finding ' + tg + ' among 27 values. ' + unit + '. ' + (T.found ? 'Found.' : 'Confirmed that it is not there.'));
-    sum.push('With ' + fmtN(N) + ' rows, in the worst case: one by one, ' + fmtN(worst.scan) + ' checks; binary search, ' + worst.binary + ' checks; a B-tree with 3 children per node, ' + worst.b3 + ' levels; a B-tree with 500 children per node, ' + worst.b500 + ' levels.');
     if (c.how === 'scan') sum.push('Checking one by one takes 10 times as many checks when the data is 10 times as large (O(n)). To find out that a value is missing, you have to look at all of them. This is what the database does when you query by a column that has no index.');
     if (c.how === 'binary') sum.push('Each check cuts the candidates in half (O(log n)). Even if the data becomes 1,000 times larger, the number of checks grows by only about 10. But the data must be sorted, and inserting a value into the middle of a sorted array is expensive.');
     if (c.how === 'btree') sum.push('A B-tree splits the search not in two but into many branches at a time. The more children each node has, the lower the tree is and the fewer nodes (disk pages) you have to read. In a real database index, one node holds hundreds of values, so even hundreds of millions of rows can be found in three or four levels.');
@@ -82,18 +80,13 @@ Lab.register({
     return { events: ev, summary: sum, row: [unit, T.found ? 'Found' : 'Not found', { scan: 'Checks: ' + fmtN(worst.scan), binary: 'Checks: ' + worst.binary, btree: 'Levels: ' + worst.b500 + ' (500 children per node)' }[c.how]], worst: worst, big: fmtN(N) };
   },
   render: function (v, sim, t, H, shown) {
-    var a = this.keys(), last = shown[shown.length - 1], s = last ? last.snap : null;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to see the search one step at a time.'); return; }
     if (s.how !== 'btree') {
-      H.title(v, s.how === 'scan' ? '27 values (assumed to be in unsorted order in reality)' : '27 sorted values');
-      H.slots(v, a.map(function (k, i) { var cand = s.how === 'binary' ? (i >= s.lo && i <= s.hi && s.seen.indexOf(i) < 0) : s.seen.indexOf(i) < 0, cls = i === s.cur ? (s.done ? (s.found ? 'd now' : 'r now') : 'b now') : cand ? 'q' : ''; return [String(k), cls]; }), '', true);
-      H.text(v, 'Blue slots are still candidates, faded slots are no longer candidates, and the thick border is the slot being checked now.'); H.counters(v, [[String(s.seen.length), 'Checks so far'], [s.how === 'binary' ? (s.found ? '-' : String(Math.max(0, s.hi - s.lo + 1))) : String(27 - s.seen.length), s.how === 'binary' ? 'Slots still candidates' : 'Slots not yet checked']]);
+      H.counters(v, [[s.how === 'binary' ? (s.found ? '-' : String(Math.max(0, s.hi - s.lo + 1))) : String(27 - s.seen.length), s.how === 'binary' ? 'Slots still candidates' : 'Slots not yet checked']]);
     } else {
-      var p = s.path, br = p.length > 1 ? p[1].branch : -1, lf = p.length > 2 ? p[2].leaf : -1;
-      H.title(v, 'Root node'); H.slots(v, [['100', p.length ? 'b' + (p.length === 1 ? ' now' : '') : 'q'], ['190', p.length ? 'b' + (p.length === 1 ? ' now' : '') : 'q']], '', true);
-      H.title(v, 'Internal nodes (3): keys that show the way down'); H.slots(v, [0, 1, 2].map(function (i) { return ['Internal ' + (i + 1) + ': ' + a[i * 9 + 3] + ', ' + a[i * 9 + 6], i === br ? 'b' + (p.length === 2 ? ' now' : '') : p.length > 1 ? '' : 'q']; }), '', true);
-      H.title(v, 'Leaf nodes (9): the actual values'); H.slots(v, [0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (i) { return [a.slice(i * 3, i * 3 + 3).join(' '), i === lf ? (s.found ? 'd now' : 'r now') : p.length > 2 ? '' : 'q']; }), '', true);
-      H.text(v, 'Yellow slots are nodes that were read, and faded slots are nodes that were skipped without being read.'); H.counters(v, [[String(p.length), 'Nodes read (disk reads)'], [String(13 - p.length), 'Nodes not read']]);
+      var p = s.path;
+      H.counters(v, [[String(p.length), 'Nodes read (disk reads)'], [String(13 - p.length), 'Nodes not read']]);
     }
     if (s.done) { var w = sim.worst; H.table(v, ['Method', 'Worst case with ' + sim.big + ' rows', 'How it grows'], [['One by one from the start', sim.big + ' checks', 'O(n): in proportion to the data'], ['Binary search', w.binary + ' checks', 'O(log n): halved each time'], ['B-tree (3 children per node)', w.b3 + ' levels', 'O(log n): cut to 1/3 at each level'], ['B-tree (500 children per node)', w.b500 + ' levels', 'O(log n): cut to 1/500 at each level']].map(function (r, i) { var on = (s.how === 'scan' && i === 0) || (s.how === 'binary' && i === 1) || (s.how === 'btree' && i >= 2); return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2]] }; }), 'As the data grows'); }
   },
