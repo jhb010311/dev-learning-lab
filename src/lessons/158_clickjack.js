@@ -90,7 +90,6 @@ Lab.register({
     else if (who === 'attacker') { res = '클릭재킹을 막음'; row('사용자', '"경품 받기"를 누름', '프레임이 비어 있어 아무 일도 없음', 'good'); push('사용자가 "경품 받기"를 누릅니다: 그 위에 겹쳐 둔 프레임이 비어 있으므로 shop.example의 단추는 눌리지 않습니다. 클릭재킹이 성립하지 않습니다.', 'good'); }
     else if (on) { res = who === 'self' ? '내 페이지의 프레임이 보임' : '협력 사이트의 프레임이 보임'; row('사용자', '페이지를 봄', '프레임 안에 결제 화면이 보임', 'good'); push((who === 'self' ? '장바구니 페이지' : '협력 사이트의 페이지') + ' 안에 결제 화면이 보입니다. 의도한 대로 동작합니다.', 'good'); }
     else { res = who === 'self' ? '내 페이지의 프레임까지 막힘' : '협력 사이트의 프레임까지 막힘'; row('사용자', '페이지를 봄', '프레임 자리가 비어 있음', 'bad'); push((who === 'self' ? '장바구니 페이지' : '협력 사이트의 페이지') + '에서 프레임 자리가 비어 보입니다. 공격을 막으려고 붙인 헤더가 ' + (who === 'self' ? '내 사이트의 기능까지' : '허용하려던 사이트까지') + ' 막았습니다.', 'bad'); }
-    sum.push((hs.length ? '응답에 붙은 헤더는 ' + hsText + '이고' : '응답에 프레임에 관한 헤더가 없고') + ', 브라우저는 결제 화면을 프레임 안에 ' + (on ? '그렸습니다.' : '그리지 않았습니다.') + ' 결과: ' + res + '.');
     if (c.hdr === 'off') sum.push('프레임에 넣지 말라는 헤더가 없으면 브라우저는 어느 사이트의 프레임에든 화면을 그립니다. 프레임을 쓰는 화면 하나(예: H2 콘솔)를 띄우려고 frameOptions를 통째로 끄면 모든 화면이 이 상태가 됩니다. 끄지 말고 sameOrigin으로 바꾸는 편이 안전합니다.');
     if (c.hdr === 'default') sum.push('스프링 시큐리티는 아무 설정을 하지 않아도 X-Frame-Options: DENY를 붙입니다. 가장 안전한 값이지만 같은 사이트의 프레임까지 막으므로, 내 사이트 안에서 프레임을 쓴다면 sameOrigin으로 바꿉니다.');
     if (c.hdr === 'same') sum.push('SAMEORIGIN은 출처(프로토콜, 호스트, 포트)가 같은 페이지의 프레임만 허용합니다. X-Frame-Options로는 "이 사이트 하나만 더 허용"을 적을 수 없습니다. 다른 사이트를 골라 허용하려면 Content-Security-Policy의 frame-ancestors를 씁니다.');
@@ -127,11 +126,10 @@ Lab.register({
     if (!atk) push('브라우저가 Location에 적힌 주소로 이동합니다. 도착한 곳은 ' + r.loc + ' 입니다. 로그인 전에 보려던 주문 내역이 열립니다. 이 기능이 원래 하려던 일입니다.', 'good');
     else if (r.away) push('브라우저가 Location에 적힌 주소로 이동합니다. 도착한 곳은 ' + r.loc + ' 입니다. 사용자는 방금 진짜 shop.example에서 로그인했으므로 의심하지 않습니다. 도착한 페이지가 shop.example과 똑같이 생긴 채 "비밀번호를 다시 입력하세요"라고 하면 그대로 입력하기 쉽습니다.', 'bad');
     else push('브라우저가 Location에 적힌 주소로 이동합니다. 도착한 곳은 ' + r.loc + ' 입니다. 공격자가 넣은 주소는 버려졌고 사용자는 shop.example의 첫 화면에 있습니다.', 'good');
-    sum.push('서버가 응답한 Location은 ' + r.loc + ' 이며, 브라우저는 ' + (r.away ? 'attacker.example로 넘어갔습니다.' : 'shop.example에 머물렀습니다.') + ' 결과: ' + res + '.');
     if (r.away && c.check === 'none') sum.push('요청에서 받은 주소로 그대로 보내 주면, 내 사이트의 주소로 시작하는 링크가 어디로든 가는 통로가 됩니다. 사용자는 주소의 앞부분만 보고 믿기 때문에 가짜 로그인 화면으로 끌어들이는 데 쓰입니다.');
     if (r.away && c.check === 'slash') sum.push('"/"로 시작하면 내 사이트의 경로라고 생각하기 쉽지만, //로 시작하는 주소는 다른 호스트를 가리킵니다. 브라우저는 /\\로 시작하는 주소도 //처럼 다루므로 둘째 글자까지 확인해야 합니다.');
-    if (atk && !r.away) sum.push((c.check === 'slash' ? '이 값은 막았지만 "/"로 시작하는지만 보는 검사에는 빈틈이 있습니다. next를 //attacker.example/login으로 바꿔 보세요. ' : '') + '막는 방법은 "받아도 되는 것만 받는다"입니다. 같은 사이트의 경로만 받거나, 더 확실하게는 주소 대신 미리 정해 둔 이름(예: next=orders)을 받아 서버가 가진 목록에서 주소를 찾습니다.');
-    if (!atk) sum.push('정상적인 값은 어떤 검사에서든 같은 결과입니다. 차이는 다른 사이트의 주소가 들어왔을 때 드러납니다. next 값을 바꿔 보세요.');
+    if (atk && !r.away) sum.push((c.check === 'slash' ? '이 값은 막았지만 "/"로 시작하는지만 보는 검사에는 빈틈이 있습니다. ' : '') + '막는 방법은 "받아도 되는 것만 받는다"입니다. 같은 사이트의 경로만 받거나, 더 확실하게는 주소 대신 미리 정해 둔 이름(예: next=orders)을 받아 서버가 가진 목록에서 주소를 찾습니다.');
+    if (!atk) sum.push('정상적인 값은 어떤 검사에서든 같은 결과입니다. 차이는 다른 사이트의 주소가 들어왔을 때 드러납니다.');
     if (atk) sum.push('스프링 시큐리티의 기본 로그인은 돌아갈 주소를 요청의 값이 아니라 서버의 세션에 저장해 둔 것에서 꺼내므로 이 문제가 없습니다. 돌아갈 주소를 요청의 값으로 직접 받도록 만들 때 검사가 필요합니다.');
     return { events: ev, summary: sum, row: ['Location: ' + r.loc, r.away ? 'attacker.example로 이동' : 'shop.example에 머무름', res], away: r.away, loc: r.loc };
   },
@@ -139,8 +137,6 @@ Lab.register({
     var last = shown[shown.length - 1], rows = last ? last.snap.rows : [], c = sim.c;
     if (!rows.length) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     H.table(v, ['누가', '무엇을', '결과'], rows, c.topic === 'frame' ? '브라우저와 shop.example 사이에 일어난 일' : '링크를 연 뒤 일어난 일');
-    var done = last.snap.phase === 5;
-    H.counters(v, [[sim.row[0], '서버의 응답 헤더'], [done ? sim.row[2] : '진행 중', '결과']]);
     if (c.topic === 'frame') H.text(v, '기본 설정의 스프링 시큐리티가 응답에 붙이는 헤더는 Cache-Control, Pragma, Expires, X-Content-Type-Options: nosniff, X-Frame-Options: DENY, X-XSS-Protection: 0입니다(http로 보낸 요청의 실제 응답에서 확인. 스프링 시큐리티 문서에 따르면 https 요청에는 Strict-Transport-Security도 붙습니다). 이 가운데 프레임에 관한 것이 X-Frame-Options입니다.');
   },
   // 그림: 클릭재킹은 왼쪽에 브라우저에 열린 페이지와 그 안의 프레임, 오른쪽에 내 서버와 응답 헤더. 리다이렉트는 링크 → 내 서버의 검사 → 도착한 곳.

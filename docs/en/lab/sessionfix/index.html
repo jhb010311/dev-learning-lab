@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=af2da63956">
+<link rel="stylesheet" href="../../app.css?v=70c86af090">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Authentication</p>
 <h1>Session hijacking and session fixation</h1>
 <p><b>Whoever knows the session ID is that user</b></p>
-<p>The server decides &quot;whose request this is&quot; only from the session ID that arrives in the request's cookie. So anyone who knows the session ID of a logged-in session can act as that user without knowing the password (session hijacking). Session fixation reverses the order. If the session ID used before login stays the same after login, a person who already knew that ID gets to use the logged-in session. Change what the server does to the session at login, and check what happens to a request sent with an ID that another person knows.</p>
+<p>The server decides &quot;whose request this is&quot; only from the session ID that arrives in the request's cookie. So anyone who knows the session ID of a logged-in session can act as that user without knowing the password (session hijacking). Session fixation reverses the order. If the session ID used before login stays the same after login, a person who already knew that ID gets to use the logged-in session.</p>
 <p>Checked against real execution · A Spring Boot 4.1.1 and Spring Security 7.1.1 server was started on 127.0.0.1, and the session ID before and after login and the responses were checked for all 12 combinations</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The session ID after login is the same as before login, and the request that another user sent with that ID was handled as the request of kim (200).</li>
 <li>Session fixation: if the session ID is the same before and after login, a person who already knew that ID gets to use the logged-in session without knowing the password. You can prevent this by changing the session ID at the moment login succeeds, and Spring Security does that even if you configure nothing.</li>
 </ul>
 <h2>Code</h2>
@@ -181,6 +180,6 @@ String add(@RequestParam String item, HttpSession session) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=af2da63956"></script>
+<script src="../../app.js?v=70c86af090"></script>
 </body>
 </html>

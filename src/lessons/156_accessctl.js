@@ -1,7 +1,7 @@
 Lab.register({
   id: 'accessctl', nav: '접근 제어', cat: '인증', mode: 'step',
   title: '로그인한 사용자가 주소의 번호만 바꾸면 남의 주문이 보이나',
-  intro: '로그인했다는 것은 "누구인지 확인됐다"(인증)는 뜻일 뿐, "이 자원을 봐도 된다"(인가)는 뜻이 아닙니다. kim이 로그인한 뒤 주소의 주문 번호만 바꿔 lee의 주문을 요청하면 어떻게 될까요. 서버가 무엇을 확인하느냐에 따라 그대로 보이기도 하고 거절되기도 합니다. 서버의 확인 방식과 요청하는 사람, 주문 번호를 바꿔 가며 응답을 비교합니다.',
+  intro: '로그인했다는 것은 "누구인지 확인됐다"(인증)는 뜻일 뿐, "이 자원을 봐도 된다"(인가)는 뜻이 아닙니다. kim이 로그인한 뒤 주소의 주문 번호만 바꿔 lee의 주문을 요청하면 어떻게 될까요. 서버가 무엇을 확인하느냐에 따라 그대로 보이기도 하고 거절되기도 합니다.',
   terms: ['인증과 인가', '접근 제어와 소유자 확인', '역할 기반 접근 제어(RBAC)', 'HTTP 상태 코드', 'Spring Security와 SecurityFilterChain'],
   controls: [
     { id: 'check', label: '서버가 확인하는 것', type: 'select', value: 'login', options: [['login', '로그인했는지만 확인한다'], ['role', 'URL 규칙으로 역할(USER)만 확인한다'], ['owner403', '주문의 주인인지 확인하고, 아니면 403'], ['owner404', '내 주문 가운데에서만 찾고, 없으면 404'], ['ownerAdmin', '주인이거나 ADMIN 역할이면 허용, 아니면 403']] },
@@ -89,7 +89,6 @@ Lab.register({
     }
     var WHY = { filter: 'URL 규칙 (컨트롤러 실행 전)', nocheck: '소유자 확인 없이 조회함', notfound: '조회해 보니 없는 주문', owner: '소유자 확인: 주인이 맞음', notowner: '소유자 확인: 주인이 아님', notmine: '내 주문 가운데 없음', admin: '주인은 아니지만 ADMIN 역할' };
     var bodyText = J.body ? J.body + '의 주문 (' + (J.body === me ? '본인' : '다른 회원') + ')' : '없음';
-    sum.push('응답은 ' + STATUS[J.st] + '이고, 본문에 담긴 주문은 "' + bodyText + '"입니다.');
     if (J.why === 'nocheck' && J.owner !== me && c.check === 'login') sum.push('인증(누구인지 확인)과 인가(이 자원을 봐도 되는지 확인)는 서로 다른 일입니다. 로그인만 확인하는 서버에서는 주소의 번호만 바꿔 남의 자원을 볼 수 있습니다. 번호가 1, 2, 3처럼 이어져 있으면 차례로 넣어 보는 것만으로 다른 사람의 주문이 모두 드러납니다. 자원을 돌려주기 전에 "이 자원의 주인이 지금 로그인한 사용자인가"를 서버 코드에서 확인해야 합니다.');
     if (J.why === 'nocheck' && J.owner !== me && c.check === 'role') sum.push(me === 'kim' ? '역할은 "USER인가 ADMIN인가"만 말해 줍니다. kim과 lee는 둘 다 USER라서 역할 규칙으로는 둘을 구별할 수 없습니다. "자기 것만"은 역할이 아니라 소유자 비교로 막습니다.' : '역할 규칙은 통과했지만 누구의 주문인지는 확인하지 않았습니다.');
     if (J.why === 'filter') sum.push('URL 규칙은 컨트롤러보다 앞에서 주소와 역할만 보고 판단합니다. 주문을 조회하기 전이라 누구의 주문인지 알 수 없고, 없는 번호에도 같은 403이 나옵니다. "주인만" 같은 조건은 자원을 조회한 뒤의 코드에서만 판단할 수 있습니다.');
@@ -97,19 +96,14 @@ Lab.register({
     if (J.why === 'notmine' && J.owner) sum.push('남의 주문과 없는 주문에 똑같이 404로 답하면 요청한 사람은 둘을 구별할 수 없습니다. HTTP 표준도 자원이 있다는 사실을 숨기려 할 때 403 대신 404로 답해도 된다고 적고 있습니다. 대신 정당한 사용자도 권한 문제인지 주소를 잘못 쓴 것인지 응답만으로는 알기 어렵습니다.');
     if (J.why === 'admin') sum.push('고객센터 직원처럼 남의 주문을 봐야 하는 사람은 역할로 허용합니다. 실제 서비스의 규칙은 대개 "주인이거나, 그 일을 맡은 역할이거나"처럼 소유자 확인과 역할 확인을 함께 씁니다.');
     if (me === 'park' && (J.why === 'notowner' || (J.why === 'notmine' && J.owner))) sum.push('ADMIN이라고 저절로 허용되지는 않습니다. 서버는 코드에 적힌 규칙대로만 판단하고, 이 코드는 주인만 허용합니다.');
-    if (J.st === 200 && J.owner === me) sum.push('자기 주문은 어느 방식에서나 보입니다. 방식의 차이는 남의 주문을 요청할 때 드러납니다. 요청하는 주소를 /orders/2로 바꿔 보세요.');
+    if (J.st === 200 && J.owner === me) sum.push('자기 주문은 어느 방식에서나 보입니다. 방식의 차이는 남의 주문을 요청할 때 드러납니다.');
     if (J.why === 'notfound' || (J.why === 'notmine' && !J.owner)) sum.push('없는 주문에는 404로 답합니다. 같은 서버에서 lee의 주문(2번)을 요청했을 때의 응답과 비교해 보세요. 응답이 다르면 "그 번호의 주문이 있다"는 것이 드러납니다.');
     return { events: ev, summary: sum, j: J, same99: same99, row: [STATUS[J.st], bodyText, WHY[J.why]] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, J = sim.j, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null, J = sim.j;
     if (!s) { H.text(v, '실행을 누르면 요청이 서버의 확인을 차례로 지나갑니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '1. 인증 (누구인가)', s.auth ? '확인됨: ' + s.auth : '아직 확인 전', s.auth ? 'good' : 'none');
-    H.lane(ln, '2. URL 규칙', !s.url ? '아직 확인 전' : (c.check === 'role' ? 'USER 역할인가: ' : '로그인했는가: ') + (s.url === 'pass' ? '통과' : '거절 (403)'), s.url === 'pass' ? 'good' : s.url === 'deny' ? 'bad' : 'none');
-    H.lane(ln, '3. 컨트롤러의 코드', { '': s.resp && !J.ctl ? '실행되지 않음' : s.look ? '주문을 조회함' : '아직 실행 전', nocheck: '주인을 확인하지 않고 돌려줌', notfound: '없는 주문: 404', owner: '주인이 맞음: 허용', notowner: '주인이 아님: 403', notmine: '내 주문 가운데 없음: 404', admin: 'ADMIN 역할이라 허용' }[s.ctl], { '': 'none', nocheck: J.owner === J.me ? 'wait' : 'bad', notfound: 'wait', owner: 'good', notowner: 'good', notmine: 'good', admin: 'good' }[s.ctl]);
     H.table(v, ['주문 번호', '주인', '내용'], [['1', 'kim', '키보드 · 서울시 가나동 1'], ['2', 'lee', '노트북 · 부산시 다라동 2']].map(function (r) { return { cells: [{ v: r[0], cls: s.look === r[0] ? 'hot' : '' }, { v: r[1], cls: r[1] === J.me ? 'good' : '' }, r[2]] }; }), '서버에 저장된 주문 (99번은 없음)');
-    H.counters(v, [[s.resp || '처리 중', '응답'], [s.resp ? (s.body ? s.body + '의 주문' : '없음') : '아직 없음', '본문에 담긴 주문']]);
   },
   // 그림: 왼쪽의 요청이 가운데 서버의 세 확인(인증, URL 규칙, 컨트롤러의 코드)을 위에서 아래로 지나고, 컨트롤러가 오른쪽 저장소의 주문을 조회한다.
   draw: function (P, sim, shown) {
@@ -130,7 +124,7 @@ Lab.register({
     if (s.look) P.arrow('a2', 'g2:b', 'g3:t', {});
     if (s.look) P.arrow('a3', 'g3:r', 'o' + s.look + ':l', { cls: s.body ? (s.body === J.me || s.ctl === 'admin' ? 'good' : 'bad') : 'mut', label: '조회' });
     P.box('res', 16, 276, 648, 38, { cls: !s.resp ? 'ghost' : J.st === 200 ? (J.why === 'nocheck' && J.owner !== J.me ? 'bad' : 'good') : 'plain', title: '응답', right: !s.resp ? '처리 중' : s.resp + (s.body ? ' · ' + s.body + '의 주문이 ' + J.me + '에게 보임' : ' · 주문 내용 없음') });
-    P.note('요청은 서버 안에서 위에서 아래로 세 확인을 지납니다. 인증은 "누구인가"만, URL 규칙은 주소와 역할만 봅니다. "이 주문이 누구의 것인가"는 주문을 조회한 뒤에야 알 수 있으므로 컨트롤러(또는 서비스)의 코드에서 확인합니다. 빨간 주문 상자는 주인이 아닌 사람에게 보인 주문입니다.');
+    P.note('요청은 서버 안에서 위에서 아래로 세 확인을 지납니다. 빨간 주문 상자는 주인이 아닌 사람에게 보인 주문입니다.');
   },
   assume: '서른 가지 조합 모두를 이 PC에서 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버를 127.0.0.1에 띄우고 화면과 같은 구조의 코드로 실행해, 응답 코드와 본문에 담긴 주문의 주인, 컨트롤러가 실행됐는지, 코드의 어느 갈래에서 판단이 났는지를 대조했습니다. 주문 저장소는 데이터베이스 대신 메모리의 표로 만들었고, 로그인 방법은 HTTP Basic을 썼습니다(세션이나 토큰으로 로그인해도 인가의 결과는 같습니다). 로그인하지 않은 요청은 어느 방식에서나 401이 나오는 것을 같은 서버에서 확인했으며, 그 내용은 "시큐리티 필터 체인" 실습에서 다룹니다. 남의 자원에 403 대신 404로 답해 자원이 있다는 사실을 숨길 수 있다는 것은 RFC 9110 15.5.4절(403)과 15.5.5절(404)에 적힌 내용입니다. 403과 404 가운데 무엇이 옳은지는 정해져 있지 않고 서비스가 고르는 것입니다. 실제 서비스에서는 응답 코드 외에 응답 시간의 차이로도 자원이 있는지 드러날 수 있는데, 이 실습에서는 다루지 않았습니다. 소유자 확인을 컨트롤러에 적었지만 서비스 계층에 두거나 메서드 보안(@PreAuthorize, @PostAuthorize)으로 적기도 하며, 그 내용은 "메서드 보안" 실습에서 이어집니다. 주문 번호를 추측하기 어려운 값(UUID 등)으로 바꾸는 것은 번호를 짐작하기 어렵게 할 뿐 소유자 확인을 대신하지 못합니다. 이 문장은 일반적인 보안 권고(OWASP의 Broken Access Control 설명)를 따른 것이며 실행으로 확인한 내용이 아닙니다.',
 });

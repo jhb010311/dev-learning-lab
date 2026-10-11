@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=af2da63956">
+<link rel="stylesheet" href="../../app.css?v=70c86af090">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › In front of the web server</p>
 <h1>Proxies and reverse proxies</h1>
 <p><b>How does a server behind a proxy know who sent the request?</b></p>
-<p>A proxy is an intermediate server that receives requests on behalf of someone and passes them on somewhere else. A proxy that stands on the client side and acts for the client is a forward proxy, and a proxy that stands on the server side and acts for the server is a reverse proxy. Either way, it is the proxy that actually opens the connection to the server, so the address the server sees at the other end of the connection is the address of the proxy, not of the client. That is why a proxy passes on the original information in a header such as X-Forwarded-For, but this header is also one that a client can write with any value it likes. Change the settings and see whom the server decides the client is.</p>
+<p>A proxy is an intermediate server that receives requests on behalf of someone and passes them on somewhere else. A proxy that stands on the client side and acts for the client is a forward proxy, and a proxy that stands on the server side and acts for the server is a reverse proxy. Either way, it is the proxy that actually opens the connection to the server, so the address the server sees at the other end of the connection is the address of the proxy, not of the client. That is why a proxy passes on the original information in a header such as X-Forwarded-For, but this header is also one that a client can write with any value it likes.</p>
 <p>Checked against real execution · Proxy and server built with Node 24 on three loopback addresses (127.0.0.10, 20, 30); 42 combinations run with the Node http and https modules and curl 8.21 and checked. The proxy is a test one built for this purpose; the behavior of products such as nginx is based on the documentation</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The remote address the server saw is 10.0.0.5 (proxy), the X-Forwarded-For it received is 198.51.100.99, 203.0.113.7, and the client address it decided on is 198.51.100.99 (Fooled by a spoofed address).</li>
 <li>A reverse proxy stands on the server side and acts for the server. The client takes the proxy to be the server and does not know about the real server behind it. The proxy takes over jobs such as handling HTTPS, distributing requests across several servers, and keeping copies of responses, in front of the server.</li>
 <li>X-Forwarded-For is a header that a client can also write. When the proxy appends to it, the leftmost value may have been written by the client. The value you can trust is the rightmost one, which was appended by a proxy you manage.</li>
 <li>The connection the server received is HTTP, but thanks to X-Forwarded-Proto: https it knows that the user originally connected over HTTPS. Like X-Forwarded-For, this header should be used only when it was added by a trusted proxy.</li>
@@ -181,6 +180,6 @@ http.createServer((req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=af2da63956"></script>
+<script src="../../app.js?v=70c86af090"></script>
 </body>
 </html>

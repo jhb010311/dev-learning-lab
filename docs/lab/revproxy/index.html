@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
+<link rel="stylesheet" href="../../app.css?v=f117ff1ed2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 웹 서버 앞의 장비</p>
 <h1>프록시와 리버스 프록시</h1>
 <p><b>프록시 뒤의 서버는 누가 요청했는지 어떻게 아나</b></p>
-<p>프록시는 요청을 대신 받아 다른 곳으로 넘겨 주는 중간 서버입니다. 클라이언트 쪽에 서서 클라이언트를 대신하면 포워드 프록시, 서버 쪽에 서서 서버를 대신하면 리버스 프록시입니다. 어느 쪽이든 서버와 실제로 연결을 맺는 것은 프록시라서, 서버가 보는 상대 주소는 클라이언트가 아니라 프록시의 주소가 됩니다. 그래서 프록시가 X-Forwarded-For 같은 헤더로 원래 정보를 전해 주는데, 이 헤더는 클라이언트도 마음대로 써넣을 수 있습니다. 설정을 바꿔 가며 서버가 누구를 클라이언트로 판단하는지 보세요.</p>
+<p>프록시는 요청을 대신 받아 다른 곳으로 넘겨 주는 중간 서버입니다. 클라이언트 쪽에 서서 클라이언트를 대신하면 포워드 프록시, 서버 쪽에 서서 서버를 대신하면 리버스 프록시입니다. 어느 쪽이든 서버와 실제로 연결을 맺는 것은 프록시라서, 서버가 보는 상대 주소는 클라이언트가 아니라 프록시의 주소가 됩니다. 그래서 프록시가 X-Forwarded-For 같은 헤더로 원래 정보를 전해 주는데, 이 헤더는 클라이언트도 마음대로 써넣을 수 있습니다.</p>
 <p>실행으로 대조 · 루프백 주소 셋(127.0.0.10·20·30)에 Node 24로 만든 프록시와 서버를 띄우고 Node http·https와 curl 8.21로 42가지 조합을 실행해 대조. 프록시는 직접 만든 시험용이며 nginx 같은 제품의 동작은 문서 기준</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>서버가 본 연결 상대는 10.0.0.5(프록시), 받은 X-Forwarded-For는 198.51.100.99, 203.0.113.7, 서버가 판단한 클라이언트 주소는 198.51.100.99입니다(위조된 주소에 속음).</li>
 <li>리버스 프록시는 서버 쪽에 서서 서버를 대신합니다. 클라이언트는 프록시를 서버로 알고, 뒤에 있는 진짜 서버는 모릅니다. HTTPS 처리, 여러 서버로 나누기, 응답 보관 같은 일을 서버 앞에서 맡습니다.</li>
 <li>X-Forwarded-For는 클라이언트도 써넣을 수 있는 헤더입니다. 프록시가 덧붙이는 방식에서 맨 앞 값은 클라이언트가 쓴 것일 수 있습니다. 믿을 수 있는 것은 내가 관리하는 프록시가 붙인 맨 뒤 값입니다.</li>
 <li>서버가 받은 연결은 HTTP지만, X-Forwarded-Proto: https 덕분에 사용자가 원래 HTTPS로 접속했다는 것을 압니다. 이 헤더도 X-Forwarded-For처럼 믿을 수 있는 프록시가 붙인 것만 써야 합니다.</li>
@@ -181,6 +180,6 @@ http.createServer((req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=d45f9d1282"></script>
+<script src="../../app.js?v=f117ff1ed2"></script>
 </body>
 </html>

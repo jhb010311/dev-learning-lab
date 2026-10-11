@@ -137,7 +137,6 @@ Lab.register({
       verdict = evil ? (moved ? '악성 버전이 자동으로 들어옴' : '악성 버전이 들어오지 않음') : (moved ? '고친 버전을 자동으로 따라감' : '고친 버전이 나왔지만 예전 버전 그대로');
       st.verdict = verdict;
       push(evil ? (moved ? '빌드는 성공합니다. 오류도 경고도 없습니다. 악성 코드가 든 web-kit 2.1.0이 내 프로그램의 일부로 배포됩니다.' : '빌드에 들어온 것은 처음 빌드한 날과 똑같습니다. 악성 버전은 들어오지 않았습니다.') : (moved ? 'web-kit 2.0.1이 json-lite 1.2.1을 요구하므로 json-lite도 고친 버전으로 바뀌었습니다. 아무것도 하지 않았는데 취약점이 고쳐졌습니다.' : '빌드에 들어온 것은 처음 빌드한 날과 똑같습니다. 고친 버전이 나와 있지만 취약한 json-lite 1.2.0이 그대로 남아 있습니다.'), k);
-      sum.push('다시 빌드했을 때 들어온 것은 web-kit ' + wkNow + ', json-lite ' + jlNow + '입니다. 판정: ' + verdict + '.');
       if (c.ver === 'range') sum.push('버전을 범위로 적으면 같은 코드를 빌드해도 날마다 결과가 달라질 수 있습니다. 고친 버전을 자동으로 받는 것도, 악성 버전을 자동으로 받는 것도 같은 성질에서 나옵니다. 무엇이 들어올지를 저장소에 올리는 사람이 정하게 됩니다.');
       if (c.ver === 'fixed') sum.push('버전을 고정하면 내가 고쳐 적기 전에는 바뀌지 않습니다. 다만 직접 적은 것만 고정됩니다. web-kit의 설명 파일이 json-lite를 범위로 적어 두었다면 그쪽은 여전히 바뀔 수 있고, 그것까지 묶어 두는 것이 잠금 파일입니다.');
       if (c.ver === 'lock') sum.push('잠금 파일은 전이 의존성까지 모든 버전을 적어 두고 그대로만 받게 합니다. 누가 언제 빌드해도 같은 결과가 나옵니다. 새 버전은 내가 잠금 파일을 갱신할 때만 들어오므로, 그때 무엇이 바뀌는지 살펴볼 수 있습니다.');
@@ -160,10 +159,9 @@ Lab.register({
       else push('build.gradle의 constraints에 json-lite 1.2.1을 적습니다. web-kit ' + wkNow + '의 설명 파일은 여전히 json-lite ' + REG['web-kit'][wkNow]['json-lite'] + ' 버전을 요구하지만, 한 라이브러리에 요구가 둘이면 Gradle은 더 높은 버전을 고릅니다. web-kit은 그대로 두고 json-lite만 1.2.1 버전으로 바뀝니다.', 'good');
       verdict = fixed ? '취약점이 고쳐진 json-lite로 바뀜' : '취약한 json-lite가 그대로 남음'; st.verdict = verdict; k = fixed ? 'good' : 'bad';
       push('다시 빌드한 결과: web-kit ' + wkNow + ', json-lite ' + jlNow + '. ' + (fixed ? '취약한 버전이 빌드에서 빠졌습니다. 바꾼 뒤에는 테스트를 돌려 전과 같이 동작하는지 확인합니다.' : '취약한 버전이 여전히 내 프로그램 안에 있습니다.'), k);
-      sum.push('빌드에 들어온 것은 web-kit ' + wkNow + ', json-lite ' + jlNow + '입니다. 판정: ' + verdict + '.');
       sum.push('빌드에 들어온 라이브러리는 네 개인데 내가 적은 것은 둘뿐입니다. 취약점 공지는 내가 적지 않은 쪽에서도 나옵니다. 그래서 전이 의존성까지 포함한 전체 목록과 버전을 알고 있어야 하고, 의존성 나무(./gradlew dependencies)와 dependencyInsight로 경로를 찾습니다.');
       if (c.act === 'bump' && c.avail === 'yes') sum.push('직접 의존성이 고친 버전을 냈다면 그것을 올리는 것이 가장 깔끔합니다. web-kit을 만든 쪽이 json-lite 1.2.1과 함께 시험한 조합을 그대로 받기 때문입니다.');
-      if (c.act === 'bump' && c.avail === 'no') sum.push('직접 의존성이 아직 새 버전을 내지 않았다면 기다리는 동안 취약한 채로 남습니다. 이럴 때는 전이 의존성의 버전만 덮어쓰는 방법이 있습니다. 대응을 "json-lite의 버전만 덮어씀"으로 바꿔 보세요.');
+      if (c.act === 'bump' && c.avail === 'no') sum.push('직접 의존성이 아직 새 버전을 내지 않았다면 기다리는 동안 취약한 채로 남습니다. 이럴 때는 전이 의존성의 버전만 덮어쓰는 방법이 있습니다.');
       if (c.act === 'override') sum.push('덮어쓰기는 직접 의존성이 새 버전을 내기 전에도 쓸 수 있습니다. 대신 web-kit ' + wkNow + '을 만든 쪽이 시험해 보지 않은 조합일 수 있으므로 테스트로 확인하고, 필요 없어지면 덮어쓴 줄을 지웁니다.' + (c.avail === 'yes' ? ' 지금처럼 web-kit의 고친 버전이 나와 있다면 그것을 올리는 편이 낫습니다.' : ''));
       if (c.act === 'none') sum.push('취약점이 알려졌다는 사실을 Gradle이 빌드할 때 스스로 알려 주지는 않습니다. 의존성의 취약점을 찾아 주는 검사 도구를 빌드 과정에 넣어 두고 공지를 꾸준히 확인해야 알아챌 수 있습니다.');
     } else {
@@ -173,8 +171,7 @@ Lab.register({
       if (c.name === 'miss') {
         verdict = '빌드 실패로 오타를 알아챔'; st.verdict = verdict;
         push('빌드 도구는 적힌 이름 그대로 저장소에서 찾습니다. web-kitt라는 이름의 패키지는 저장소에 없습니다. "찾을 수 없다"는 오류로 빌드가 멈춥니다. 오류 덕분에 오타를 알아채고 고칠 수 있습니다.', 'good');
-        sum.push('빌드가 실패해 아무것도 들어오지 않았습니다. 판정: ' + verdict + '.');
-        sum.push('오타가 오류로 드러나는 것은 그 이름으로 올라온 패키지가 없을 때뿐입니다. 누군가 그 이름을 먼저 차지해 두었다면 오류 없이 다른 것이 들어옵니다. 이름을 web-kti로 바꿔 보세요.');
+        sum.push('오타가 오류로 드러나는 것은 그 이름으로 올라온 패키지가 없을 때뿐입니다. 누군가 그 이름을 먼저 차지해 두었다면 오류 없이 다른 것이 들어옵니다.');
         return { events: ev, summary: sum, row: ['없음 (빌드 실패)', '없음 (빌드 실패)', verdict], ver: now.ver, missing: now.missing, path: [] };
       }
       st.reg = regText(p.avail, true); st.libs = libs(now, true, [nm, 'mail-kit', 'text-util']);
@@ -183,9 +180,8 @@ Lab.register({
       push(c.name === 'ok' ? 'web-kit 2.0.0의 설명 파일(POM)을 읽습니다: json-lite 1.2.0이 필요하다고 적혀 있으므로 함께 들어옵니다.' : '가짜 web-kti의 설명 파일(POM)에는 진짜 web-kit 2.0.0이 의존성으로 적혀 있습니다. 그래서 진짜 web-kit과 json-lite도 함께 들어오고, 내 코드는 평소처럼 컴파일되고 동작합니다. 눈에 띄는 이상이 없습니다.', c.name === 'ok' ? '' : 'bad');
       verdict = c.name === 'ok' ? '의도한 라이브러리가 들어옴' : '가짜 패키지가 함께 들어옴'; st.verdict = verdict; k = c.name === 'ok' ? 'good' : 'bad';
       push(c.name === 'ok' ? '빌드에 들어온 것은 web-kit 2.0.0과 그것이 끌어온 json-lite 1.2.0입니다. 의도한 대로입니다.' : '빌드는 성공합니다. 가짜 web-kti 안에 든 코드도 내 프로그램의 일부가 되어 같은 권한으로 실행됩니다. 서버의 환경 변수나 파일을 읽어 밖으로 보내는 코드가 들어 있어도 막을 것이 없습니다.', k);
-      sum.push('빌드에 들어온 것은 ' + (c.name === 'typo' ? 'web-kti 2.0.0(가짜), ' : '') + 'web-kit ' + wkNow + ', json-lite ' + jlNow + '입니다. 판정: ' + verdict + '.');
       if (c.name === 'typo') sum.push('이름이 비슷한 가짜 패키지를 올려 두고 오타를 기다리는 수법을 타이포스쿼팅이라고 합니다. 진짜를 의존성으로 끌어와 정상 동작하게 만들면 알아채기 어렵습니다. 이름을 외워서 치지 말고 공식 문서나 저장소 페이지에서 복사하고, 새 의존성을 추가한 변경은 코드 리뷰에서 이름과 만든 곳을 확인합니다.');
-      if (c.name === 'ok') sum.push('바르게 적었을 때와 오타를 냈을 때 빌드 화면은 똑같이 성공으로 보입니다. 차이는 들어온 라이브러리의 목록에만 있습니다. 이름을 web-kti로 바꿔 비교해 보세요.');
+      if (c.name === 'ok') sum.push('바르게 적었을 때와 오타를 냈을 때 빌드 화면은 똑같이 성공으로 보입니다. 차이는 들어온 라이브러리의 목록에만 있습니다.');
     }
     var wkCol = (c.topic === 'typo' && c.name === 'typo' ? 'web-kti 2.0.0(가짜)과 ' : '') + 'web-kit ' + wkNow;
     return { events: ev, summary: sum, row: [wkCol, 'json-lite ' + jlNow, verdict], ver: now.ver, missing: now.missing, path: this.pathTo(now, 'json-lite') };
@@ -194,10 +190,8 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     H.table(v, ['라이브러리', '버전', '어떻게 들어왔나', '상태'], s.libs.map(function (l) { return { cells: [l.n, l.v, l.from === 'shop-api' ? '내가 build.gradle에 적음 (직접)' : l.from + '이 필요로 함 (전이)', { v: l.note || '-', cls: l.cls }] }; }), '지금 빌드에 들어와 있는 라이브러리 ' + s.libs.length + '개');
-    H.table(v, ['라이브러리', '저장소에 올라와 있는 버전'], s.reg.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[2] }] }; }), '패키지 저장소 (꾸민 것)');
     if (s.lock) H.text(v, '잠금 파일에 적힌 버전: ' + s.lock);
     if (s.path) H.text(v, 'json-lite가 들어온 길: ' + s.path);
-    H.counters(v, [[s.verdict || '진행 중', '판정']]);
   },
   // 그림: 위에 패키지 저장소에 올라와 있는 버전, 아래에 내 프로젝트에서 시작해 직접 의존성, 전이 의존성으로 뻗는 의존성 나무.
   draw: function (P, sim, shown) {
@@ -216,7 +210,7 @@ Lab.register({
     s.libs.forEach(function (l) { P.arrow('A_' + l.n, l.from === 'shop-api' ? 'root:r:' + (l.row ? 0.72 : 0.22) : 'L_' + l.from + ':r', 'L_' + l.n + ':l', { cls: l.cls === 'bad' ? 'bad' : l.cls === 'good' ? 'good' : '' }); });
     var bad = /남음|자동으로 들어옴|가짜|예전 버전/.test(s.verdict);
     P.box('res', 16, 264, 648, 36, { cls: !s.verdict ? 'ghost' : bad ? 'bad' : 'good', title: '판정', right: s.verdict || '진행 중' });
-    P.note('화살표는 "이것이 저것을 필요로 한다"는 뜻입니다. 내가 적은 것은 shop-api에서 바로 이어진 상자뿐이고, 그 오른쪽은 빌드 도구가 설명 파일을 따라가며 스스로 가져온 것입니다. 어느 상자든 내 프로그램 안에서 같은 권한으로 실행됩니다.');
+    P.note('화살표는 "이것이 저것을 필요로 한다"는 뜻입니다. 내가 적은 것은 shop-api에서 바로 이어진 상자뿐이고, 그 오른쪽은 빌드 도구가 설명 파일을 따라가며 스스로 가져온 것입니다.');
   },
   assume: '개념을 보이기 위한 모형이며, lab.demo로 시작하는 라이브러리와 그 버전, 취약점, 악성 버전, 가짜 패키지는 모두 꾸민 것입니다. 실제 라이브러리나 실제 취약점 번호와는 관계가 없습니다. 내용의 틀은 OWASP Top 10:2025의 A03(Software Supply Chain Failures, 소프트웨어 공급망 실패)이 다루는 범위를 따랐습니다: 직접 쓰는 것뿐 아니라 전이 의존성까지 버전을 파악할 것, 취약점 공지를 꾸준히 확인할 것, 믿을 수 있는 출처에서 받을 것. 버전이 정해지는 규칙은 Gradle을 기준으로 했고, 열다섯 가지 조합에서 어떤 버전이 들어오는지와 json-lite가 들어오는 길을, 꾸민 라이브러리의 설명 파일(POM)만 담은 이 PC 안의 저장소를 Gradle 8.14.3으로 실제 해석한 결과와 대조했습니다(네트워크 없이 실행). 실행으로 확인한 규칙: 2.+ 는 2.으로 시작하는 버전 가운데 가장 높은 것을 고른다, 잠금 파일이 있으면 거기 적힌 버전을 받는다, 한 라이브러리에 요구가 여럿이면 가장 높은 버전을 고른다, 없는 이름은 찾을 수 없다는 오류가 된다. 잠금 파일이 있는 채로 build.gradle의 버전만 고치면 잠금 파일과 맞지 않는다는 오류가 나므로 잠금 파일도 함께 갱신해야 한다는 것도 확인했습니다. 실행으로 확인하지 않은 것: "취약", "악성", "가짜"라는 판정은 꾸민 줄거리이고, 빌드에 들어온 코드가 실제로 실행되는 과정은 다루지 않았습니다. 버전 규칙은 도구마다 다릅니다. Maven은 요구가 여럿일 때 가장 높은 버전이 아니라 내 프로젝트에 가장 가까운 쪽의 버전을 고르고(Maven 문서의 의존성 중재), npm은 ^1.2.0처럼 범위를 기본으로 적고 package-lock.json으로 고정합니다. 이름이 비슷한 가짜 패키지는 이름만으로 패키지를 구분하는 저장소에서 주로 문제가 되며, Maven Central은 그룹 이름의 소유를 확인하므로 같은 그룹 아래에 가짜를 올리기는 어렵습니다. 여기서는 설명을 위해 같은 그룹에 둔 것으로 꾸몄습니다.',
 });

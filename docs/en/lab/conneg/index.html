@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=af2da63956">
+<link rel="stylesheet" href="../../app.css?v=70c86af090">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>Content negotiation and compression</h1>
 <p><b>Why do different people get different responses from the same address?</b></p>
-<p>Even for the same address, a server can give several representations of a response that differ in format, language, and compression method. When a client says what it wants with the Accept, Accept-Language, and Accept-Encoding headers, the server chooses among them. This is called content negotiation. Change the request headers and see what the server chooses, how much compression shrinks the body, and why the Vary header is needed so that a shared cache, which stores responses in the middle, does not give the wrong response to another person.</p>
+<p>Even for the same address, a server can give several representations of a response that differ in format, language, and compression method. When a client says what it wants with the Accept, Accept-Language, and Accept-Encoding headers, the server chooses among them. This is called content negotiation.</p>
 <p>Checked against real execution · Ran 88 combinations against a test server (Node http + negotiator 1.0 + zlib) and a caching proxy written for this purpose (http-cache-semantics 4.2), both started on 127.0.0.1, and checked them against the model. The compressed sizes are the real results of zlib and brotli in Node 24</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -69,7 +69,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>What the server chose: text/html, Korean version, compression br. Body size: 12,542 → 425 bytes (97% smaller). B received the response made for A, which it could not use.</li>
 <li>A body made of text, such as HTML, CSS, JavaScript, and JSON, has many repeated parts and compresses well. The HTML in this example repeats a table of the same shape for 120 lines, so it shrank a great deal. How much a body shrinks depends on its content. br usually makes the data smaller than gzip does, but it takes more time to compress.</li>
 <li>The response depends on request headers, but without Vary, a shared cache gives a response made for one person to another person as it is. The server must write in Vary the names of the request headers it looked at when it chose the response.</li>
 </ul>
@@ -181,6 +180,6 @@ http.createServer((req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=af2da63956"></script>
+<script src="../../app.js?v=70c86af090"></script>
 </body>
 </html>

@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>내용 협상과 압축: 같은 주소인데 왜 사람마다 다른 응답을 받나 · 개발 학습 실습실</title>
-<meta name="description" content="같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다. 요청 헤더를…">
+<meta name="description" content="같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/conneg/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/conneg/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/conneg/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="내용 협상과 압축: 같은 주소인데 왜 사람마다 다른 응답을 받나 · 개발 학습 실습실">
-<meta property="og:description" content="같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다. 요청 헤더를…">
+<meta property="og:description" content="같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/conneg/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
+<link rel="stylesheet" href="../../app.css?v=f117ff1ed2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>내용 협상과 압축</h1>
 <p><b>같은 주소인데 왜 사람마다 다른 응답을 받나</b></p>
-<p>같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다. 요청 헤더를 바꿔 가며 서버가 무엇을 고르는지, 압축하면 본문이 얼마나 줄어드는지, 그리고 중간에서 응답을 보관하는 공유 캐시가 다른 사람에게 엉뚱한 응답을 주지 않으려면 왜 Vary 헤더가 필요한지 보세요.</p>
+<p>같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다.</p>
 <p>실행으로 대조 · 시험 서버(Node http + negotiator 1.0 + zlib)와 직접 만든 캐싱 프록시(http-cache-semantics 4.2)를 127.0.0.1에 띄워 88가지 조합을 실행해 대조. 압축 크기는 Node 24의 zlib·brotli 실제 결과</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -69,7 +69,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>서버가 고른 것: text/html, 한국어판, 압축 br. 본문은 12,542 → 425바이트 (97% 줄어듦). B는 A에게 맞춘 응답을 받아 쓸 수 없었습니다.</li>
 <li>HTML, CSS, 자바스크립트, JSON 같은 글자로 된 본문은 되풀이되는 부분이 많아 압축이 잘 됩니다. 이 예시의 HTML은 같은 모양의 표가 120줄 되풀이되어 특히 많이 줄었습니다. 줄어드는 정도는 내용에 따라 다릅니다. br은 gzip보다 더 작게 줄이는 편이지만 압축에 시간이 더 걸립니다.</li>
 <li>응답이 요청 헤더에 따라 달라지는데 Vary가 없으면, 공유 캐시는 한 사람에게 맞춘 응답을 다른 사람에게 그대로 내줍니다. 서버는 응답을 고를 때 본 요청 헤더의 이름을 Vary에 적어야 합니다.</li>
 </ul>
@@ -181,6 +180,6 @@ http.createServer((req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=d45f9d1282"></script>
+<script src="../../app.js?v=f117ff1ed2"></script>
 </body>
 </html>

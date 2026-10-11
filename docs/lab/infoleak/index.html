@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
+<link rel="stylesheet" href="../../app.css?v=f117ff1ed2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 웹 공격과 방어</p>
 <h1>정보 누출</h1>
 <p><b>오류 응답과 로그인 실패 글귀는 무엇을 밖으로 알려 주나</b></p>
-<p>서버가 실패했을 때 돌려주는 응답에는 생각보다 많은 것이 실릴 수 있습니다. 예외 메시지에 든 SQL 문장, 스택 트레이스에 든 클래스 이름과 줄 번호는 서버 안의 모습을 그대로 보여 주어 공격하는 사람에게 단서가 됩니다. 로그인 실패 글귀가 &quot;없는 아이디&quot;와 &quot;틀린 비밀번호&quot;를 구별해 주면 어떤 아이디가 가입돼 있는지도 알려 주게 됩니다. 설정과 코드를 바꿔 가며 응답에 무엇이 담기는지 보세요.</p>
+<p>서버가 실패했을 때 돌려주는 응답에는 생각보다 많은 것이 실릴 수 있습니다. 예외 메시지에 든 SQL 문장, 스택 트레이스에 든 클래스 이름과 줄 번호는 서버 안의 모습을 그대로 보여 주어 공격하는 사람에게 단서가 됩니다. 로그인 실패 글귀가 &quot;없는 아이디&quot;와 &quot;틀린 비밀번호&quot;를 구별해 주면 어떤 아이디가 가입돼 있는지도 알려 주게 됩니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1(스프링 시큐리티 7.1.1) 서버의 실제 응답과 스무 가지 조합을 대조. 글귀가 아니라 항목이 들어 있는지와 두 응답이 같은지를 비교</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>응답은 500이고 본문의 항목은 timestamp, status, error, trace, message, path입니다. 새어 나간 내부 정보: SQL 문장, 클래스 이름과 줄 번호, DB 제품 이름.</li>
 <li>스택 트레이스는 가장 많은 것을 알려 줍니다. 쓰는 프레임워크와 DB, 내 코드의 클래스 이름과 구조가 보이고, 첫 줄에 예외 메시지가 들어 있어 include-message를 never로 두어도 SQL이 함께 나갑니다.</li>
 <li>이런 정보만으로 서버가 뚫리는 것은 아니지만, 공격하는 사람은 테이블과 컬럼 이름, 쓰는 제품과 코드의 구조를 알아낼수록 다음 시도를 정확하게 할 수 있습니다.</li>
 </ul>
@@ -169,6 +168,6 @@ public Map&lt;String, Object&gt; order(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=d45f9d1282"></script>
+<script src="../../app.js?v=f117ff1ed2"></script>
 </body>
 </html>

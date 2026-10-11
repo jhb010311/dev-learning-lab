@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=af2da63956">
+<link rel="stylesheet" href="../../app.css?v=70c86af090">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Authorization</p>
 <h1>Access control</h1>
 <p><b>If a logged-in user only changes the number in the URL, can they see someone else's order?</b></p>
-<p>Being logged in only means that &quot;who you are has been confirmed&quot; (authentication). It does not mean &quot;you may view this resource&quot; (authorization). What happens if kim logs in and then changes only the order number in the URL to request lee's order? Depending on what the server checks, the order is either shown as it is or the request is refused. Change what the server checks, who sends the request, and the order number, and compare the responses.</p>
+<p>Being logged in only means that &quot;who you are has been confirmed&quot; (authentication). It does not mean &quot;you may view this resource&quot; (authorization). What happens if kim logs in and then changes only the order number in the URL to request lee's order? Depending on what the server checks, the order is either shown as it is or the request is refused.</p>
 <p>Checked against real execution · A Spring Boot 4.1.1 and Spring Security 7.1.1 server was started on 127.0.0.1, and the response codes and bodies were checked for all 30 combinations</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The response is 200 OK, and the order in the body is &quot;lee's order (another member)&quot;.</li>
 <li>Authentication (confirming who the user is) and authorization (confirming that the user may view this resource) are different jobs. On a server that checks only for login, you can see someone else's resource just by changing the number in the URL. If the numbers run in sequence like 1, 2, 3, simply trying them one after another reveals every other person's order. Before returning a resource, the server code must check &quot;is the owner of this resource the user who is logged in now?&quot;.</li>
 </ul>
 <h2>Code</h2>
@@ -174,6 +173,6 @@ Order one(@PathVariable long id, Authentication auth) {     // auth: the user lo
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=af2da63956"></script>
+<script src="../../app.js?v=70c86af090"></script>
 </body>
 </html>

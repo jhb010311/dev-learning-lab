@@ -1,7 +1,7 @@
 Lab.register({
   id: 'sessionfix', nav: 'Session hijacking and session fixation', cat: 'Authentication', mode: 'step',
   title: 'Whoever knows the session ID is that user',
-  intro: 'The server decides "whose request this is" only from the session ID that arrives in the request\'s cookie. So anyone who knows the session ID of a logged-in session can act as that user without knowing the password (session hijacking). Session fixation reverses the order. If the session ID used before login stays the same after login, a person who already knew that ID gets to use the logged-in session. Change what the server does to the session at login, and check what happens to a request sent with an ID that another person knows.',
+  intro: 'The server decides "whose request this is" only from the session ID that arrives in the request\'s cookie. So anyone who knows the session ID of a logged-in session can act as that user without knowing the password (session hijacking). Session fixation reverses the order. If the session ID used before login stays the same after login, a person who already knew that ID gets to use the logged-in session.',
   terms: ['Session', 'Session hijacking', 'Session fixation', 'HttpOnly, Secure, and SameSite', 'Cookie'],
   controls: [
     { id: 'fix', label: 'What the server does to the session when login succeeds', type: 'select', value: 'none', options: [['default', 'Change the session ID to a new value (Spring Security default)'], ['newSession', 'Create a new session and discard the old contents (newSession)'], ['none', 'Do nothing (protection turned off: none)']] },
@@ -82,10 +82,9 @@ Lab.register({
       : !R.current ? 'The server has no session with that ID, because ' + (c.fix === 'default' ? 'the ID was changed to ' + B + ' at login.' : 'login switched to the new session ' + B + '.') + ' The server treats this as a request that is not logged in and sends it to the login page with a 302.'
         : 'The server has no session with that ID, because it was deleted at logout. The server treats this as a request that is not logged in and sends it to the login page with a 302.'), R.ok ? 'bad' : 'good');
     var row3 = R.ok ? '200 · handled as kim' : '302 · sent to the login page';
-    sum.push('The session ID after login ' + (R.changed ? 'changed to a new value' : 'is the same as before login') + ', and the request that another user sent with that ID ' + (R.ok ? 'was handled as the request of kim (200).' : 'was sent to the login page (302).'));
     if (c.when === 'before' && R.ok) sum.push('Session fixation: if the session ID is the same before and after login, a person who already knew that ID gets to use the logged-in session without knowing the password. You can prevent this by changing the session ID at the moment login succeeds, and Spring Security does that even if you configure nothing.');
-    if (c.when === 'before' && !R.changed && c.logout) sum.push('This time the request was blocked only because logout deleted the session. While the victim was logged in, anyone could get in with the ID known in advance. Turn logout off and compare.');
-    if (c.when === 'before' && R.changed) sum.push('The session ID changed at the moment of login, so the ID obtained in advance does not point to any session. Switch to the setting with protection turned off and compare.');
+    if (c.when === 'before' && !R.changed && c.logout) sum.push('This time the request was blocked only because logout deleted the session. While the victim was logged in, anyone could get in with the ID known in advance.');
+    if (c.when === 'before' && R.changed) sum.push('The session ID changed at the moment of login, so the ID obtained in advance does not point to any session.');
     if (c.when === 'after') sum.push('Session hijacking: anyone who knows the ID of a logged-in session is handled as that user. The protection that changes the ID at login does not help against an ID that leaks after login. That is why you add HttpOnly (so scripts cannot read it) and Secure (so it is sent only over https) to the cookie.');
     if (c.when === 'after' && c.logout) sum.push('When the user logs out, the server deletes the session, so the leaked ID no longer works. Keeping the session timeout short is done for the same reason: it reduces the time during which an ID is useful.');
     if (!R.kept) sum.push('The approach that creates a new session does not carry over the values put in the session before login (the cart). The default, "change only the ID", leaves the contents as they are.');
@@ -93,10 +92,9 @@ Lab.register({
   },
   sesText: function (x) { return !x.on ? ['Not created yet', ' '] : x.gone ? ['Gone', x.gone] : ['Logged-in user: ' + (x.user || 'none'), 'Cart: ' + (x.cart || 'empty')]; },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, self = this;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go step by step, starting from before login.'); return; }
-    H.counters(v, [[s.vc || 'None', 'Session ID in the victim\'s browser'], [s.known || 'Not known yet', 'Session ID that another user knows']]);
-    H.table(v, ['Session ID', 'State'], [['aaa111', s.s1], ['bbb222', s.s2]].filter(function (p) { return p[1].on; }).map(function (p) { var x = self.sesText(p[1]); return { cls: p[1].gone ? 'gone' : '', cells: [p[0], { v: x[0] + (x[1].trim() ? ' · ' + x[1] : ''), cls: p[1].gone ? '' : p[1].user ? 'good' : '' }] }; }), 'Sessions held by the server');
+    H.counters(v, [[s.vc || 'None', 'Session ID in the victim\'s browser']]);
     H.table(v, ['Who', 'Request', 'Cookie sent', 'Server response'], s.rows.map(function (r) { return { cells: [{ v: r[0], cls: r[0] === 'Another user' ? 'hot' : '' }, r[1], r[2], r[3]] }; }), 'Request log');
   },
   // Diagram: the upper part is the order of requests and responses between the attacker, the server, and the victim's browser. The lower part is the state of the two sessions the server holds.

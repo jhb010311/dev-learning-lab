@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
+<link rel="stylesheet" href="../../app.css?v=f117ff1ed2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 웹 서버 앞의 장비</p>
 <h1>CDN</h1>
 <p><b>원본을 바꿨는데 왜 사용자는 아직 옛 파일을 받나</b></p>
-<p>CDN은 원본 서버(오리진)가 가진 파일의 사본을 사용자와 가까운 서버(엣지)에 보관해 두고, 엣지가 대신 답하게 하는 방식입니다. 처음 요청은 엣지에 사본이 없어 오리진까지 다녀오지만(MISS), 그 뒤로는 엣지가 바로 답합니다(HIT). 대신 엣지는 정해진 유효 시간 동안 오리진에 다시 묻지 않으므로, 그사이 오리진의 파일을 바꿔도 사용자는 옛 사본을 받습니다. 80초 동안 들어오는 네 번의 요청을 따라가며 엣지가 언제 오리진에 가는지 보세요.</p>
+<p>CDN은 원본 서버(오리진)가 가진 파일의 사본을 사용자와 가까운 서버(엣지)에 보관해 두고, 엣지가 대신 답하게 하는 방식입니다. 처음 요청은 엣지에 사본이 없어 오리진까지 다녀오지만(MISS), 그 뒤로는 엣지가 바로 답합니다(HIT). 대신 엣지는 정해진 유효 시간 동안 오리진에 다시 묻지 않으므로, 그사이 오리진의 파일을 바꿔도 사용자는 옛 사본을 받습니다.</p>
 <p>일부만 실행으로 확인 · 오리진과 직접 만든 캐싱 서버(엣지 역할)를 127.0.0.1에 띄워 열여섯 가지 조합을 실행해 대조. 실제 CDN 서비스로는 확인하지 않음</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>요청 4번 가운데 엣지가 바로 답한 것이 3번, 오리진까지 간 것이 1번입니다. 내용을 바꾼 뒤의 요청 2번 가운데 2번은 옛 내용을 받았습니다.</li>
 <li>엣지가 바로 답하면 가까운 거리만 오가므로 빠르고(예시 20ms), 오리진까지 가면 먼 거리가 더해집니다(예시 220ms). 오리진이 받는 요청도 줄어듭니다. 이 시간은 차이를 보이기 위한 예시입니다.</li>
 <li>엣지는 유효 시간 동안 오리진에 다시 묻지 않습니다. 그래서 오리진의 파일을 바꿔도 유효 시간이 남은 사본이 계속 나갑니다. 유효 시간을 길게 잡을수록 빠르지만 바뀐 내용이 늦게 퍼집니다.</li>
 </ul>
@@ -182,6 +181,6 @@ http.createServer(async (req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=d45f9d1282"></script>
+<script src="../../app.js?v=f117ff1ed2"></script>
 </body>
 </html>

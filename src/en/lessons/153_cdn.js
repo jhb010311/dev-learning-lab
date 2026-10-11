@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cdn', nav: 'CDN', cat: 'Networking', mode: 'step',
   title: 'The origin was changed, so why do users still get the old file?',
-  intro: 'A CDN keeps copies of the files held by the origin server on servers close to the users (edge servers) and has the edge servers answer on its behalf. The first request finds no copy at the edge, so it goes all the way to the origin (MISS), but after that the edge answers right away (HIT). In exchange, the edge does not ask the origin again during the freshness lifetime of a copy, so if you change the file at the origin in the meantime, users still receive the old copy. Follow the four requests that arrive over 80 seconds and see when the edge goes to the origin.',
+  intro: 'A CDN keeps copies of the files held by the origin server on servers close to the users (edge servers) and has the edge servers answer on its behalf. The first request finds no copy at the edge, so it goes all the way to the origin (MISS), but after that the edge answers right away (HIT). In exchange, the edge does not ask the origin again during the freshness lifetime of a copy, so if you change the file at the origin in the meantime, users still receive the old copy.',
   terms: ['CDN', 'Origin server and edge server', 'Cache key', 'Cache invalidation (purge)', 'TTL (time to live)'],
   controls: [
     { id: 'ttl', label: 'How long the edge may use a copy (written by the origin in the response)', type: 'select', value: '300', options: [['60', 'Cache-Control: public, s-maxage=60 (60 seconds)'], ['300', 'Cache-Control: public, s-maxage=300 (300 seconds)']] },
@@ -64,8 +64,7 @@ Lab.register({
     var r4 = request(80, U3);
     if (r4.status === 'EXPIRED') push('80s: A user requests the address ' + U3 + '. There is a copy, but ' + r4.age + ' seconds have passed since it was fetched, which is over the freshness lifetime (' + ttl + ' seconds) (EXPIRED). The edge does not use this copy as it is and requests the file from the origin again.' + (c.chg ? ' What it fetched this time is the new content. Only now does the changed file reach the user.' : ' The content is the same, but the freshness lifetime of the copy starts over.'), c.chg ? 'good' : '');
     else push('80s: A user requests the address ' + U3 + '. There is a copy, and ' + r4.age + ' seconds have passed since it was fetched, which is within the freshness lifetime (' + ttl + ' seconds) (HIT). The edge answers right away.' + (r4.stale ? ' It has been 50 seconds since the file at the origin changed, but the user still gets the old content. This keeps happening until the freshness lifetime ends at ' + ttl + ' seconds.' : ''), r4.stale ? 'bad' : 'good');
-    var hits = st.reqs.filter(function (r) { return r.status === 'HIT'; }).length, stales = st.reqs.filter(function (r) { return r.stale; }).length;
-    sum.push('Of the 4 requests, ' + hits + ' were answered by the edge right away, and ' + st.oc + ' went all the way to the origin.' + (c.chg ? ' Of the 2 requests after the content was changed, ' + (stales ? stales + ' got the old content.' : 'none got the old content.') : ''));
+    var stales = st.reqs.filter(function (r) { return r.stale; }).length;
     sum.push('When the edge answers right away, only a short distance is traveled, so it is fast (' + NEAR + 'ms in the example), and going to the origin adds the long distance (' + (NEAR + FAR) + 'ms in the example). The number of requests the origin receives also goes down. These times are examples to show the difference.');
     if (stales) sum.push('The edge does not ask the origin again during the freshness lifetime. So even if you change the file at the origin, copies that still have freshness lifetime left continue to go out. The longer the freshness lifetime, the faster the responses, but the more slowly the changed content spreads.' + (c.ttl === '60' ? ' With this setting of 60 seconds, the new content went out from the request at 80s.' : ''));
     if (c.chg && c.after === 'purge') sum.push('Invalidation (purge) is a feature that forcibly deletes a copy that still has freshness lifetime left. The first request after the deletion is a MISS and fetches the new content from the origin. It deletes only the copy of the address you specify, and it cannot delete the copies that users\' browsers keep separately.');
@@ -75,12 +74,11 @@ Lab.register({
     return { events: ev, summary: sum, row: [cell(r1), cell(r2), cell(r3), cell(r4), st.oc + ''] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, ttl = +c.ttl;
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, 'Click Run to start with the first request at 0s.'); return; }
     var name = function (x) { return !c.chg ? 'Copy' : x === 'old' ? 'Old content' : 'New content'; };
-    H.counters(v, [[s.t + 's', 'Current time'], [s.reqs.filter(function (r) { return r.status === 'HIT'; }).length + '', 'Answered by the edge right away'], [s.oc + '', 'Requests that went to the origin'], [c.chg ? (s.origin === 'old' ? 'Old content' : 'New content') : 'Unchanged', 'app.css at the origin']]);
+    H.counters(v, [[s.reqs.filter(function (r) { return r.status === 'HIT'; }).length + '', 'Answered by the edge right away'], [s.oc + '', 'Requests that went to the origin']]);
     H.table(v, ['Time', 'Requested address', 'Edge decision', 'What the user got', 'Time taken (example)'], s.reqs.map(function (r) { return { cells: [r.t + 's', r.url, { v: r.status, cls: r.status === 'HIT' ? 'good' : 'hot' }, { v: name(r.ver) + (r.stale ? ' (the origin has already changed)' : ''), cls: r.stale ? 'bad' : '' }, r.ms + 'ms'] }; }), 'Requests from users');
-    H.table(v, ['Address (cache key of the copy)', 'Stored content', 'Fetched at', 'Current state'], s.entries.map(function (e) { var fresh = s.t - e.at < ttl; return { cls: fresh ? '' : 'gone', cells: [e.url, { v: name(e.ver), cls: e.ver !== s.origin ? 'bad' : '' }, e.at + 's', fresh ? 'Fresh (until ' + (e.at + ttl) + 's)' : 'Stale'] }; }), 'Copies stored at the edge');
   },
   // Diagram: user → edge → origin. The copies stored inside the edge are stacked by address. The arrow from the edge to the origin appears only for MISS or EXPIRED.
   draw: function (P, sim, shown) {

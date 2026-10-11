@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=af2da63956">
+<link rel="stylesheet" href="../../app.css?v=70c86af090">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › In front of the web server</p>
 <h1>CDN</h1>
 <p><b>The origin was changed, so why do users still get the old file?</b></p>
-<p>A CDN keeps copies of the files held by the origin server on servers close to the users (edge servers) and has the edge servers answer on its behalf. The first request finds no copy at the edge, so it goes all the way to the origin (MISS), but after that the edge answers right away (HIT). In exchange, the edge does not ask the origin again during the freshness lifetime of a copy, so if you change the file at the origin in the meantime, users still receive the old copy. Follow the four requests that arrive over 80 seconds and see when the edge goes to the origin.</p>
+<p>A CDN keeps copies of the files held by the origin server on servers close to the users (edge servers) and has the edge servers answer on its behalf. The first request finds no copy at the edge, so it goes all the way to the origin (MISS), but after that the edge answers right away (HIT). In exchange, the edge does not ask the origin again during the freshness lifetime of a copy, so if you change the file at the origin in the meantime, users still receive the old copy.</p>
 <p>Partly checked against real execution · Ran 16 combinations with an origin server and a self-built caching server (acting as the edge) started on 127.0.0.1, and checked. Not checked against a real CDN service</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Of the 4 requests, 3 were answered by the edge right away, and 1 went all the way to the origin. Of the 2 requests after the content was changed, 2 got the old content.</li>
 <li>When the edge answers right away, only a short distance is traveled, so it is fast (20ms in the example), and going to the origin adds the long distance (220ms in the example). The number of requests the origin receives also goes down. These times are examples to show the difference.</li>
 <li>The edge does not ask the origin again during the freshness lifetime. So even if you change the file at the origin, copies that still have freshness lifetime left continue to go out. The longer the freshness lifetime, the faster the responses, but the more slowly the changed content spreads.</li>
 </ul>
@@ -182,6 +181,6 @@ http.createServer(async (req, res) =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=af2da63956"></script>
+<script src="../../app.js?v=70c86af090"></script>
 </body>
 </html>

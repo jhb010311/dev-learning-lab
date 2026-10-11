@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=af2da63956">
+<link rel="stylesheet" href="../../app.css?v=70c86af090">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Web attacks and defenses</p>
 <h1>Information leakage</h1>
 <p><b>What do error responses and login failure messages tell the outside world?</b></p>
-<p>The response a server returns when something fails can carry more than you might expect. An SQL statement inside an exception message, or the class names and line numbers inside a stack trace, show what the inside of the server looks like and give an attacker clues. If a login failure message tells &quot;unknown user ID&quot; apart from &quot;wrong password&quot;, it also tells which IDs are registered. Change the settings and the code to see what goes into the response.</p>
+<p>The response a server returns when something fails can carry more than you might expect. An SQL statement inside an exception message, or the class names and line numbers inside a stack trace, show what the inside of the server looks like and give an attacker clues. If a login failure message tells &quot;unknown user ID&quot; apart from &quot;wrong password&quot;, it also tells which IDs are registered.</p>
 <p>Checked against real execution · Checked against the actual responses of a Spring Boot 4.1.1 (Spring Security 7.1.1) server for 20 combinations. What was compared is which items are in the response and whether the two responses are the same, not the message texts</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The response is 500 and the items in the body are timestamp, status, error, trace, message, path. Internal information leaked: SQL statement, class names and line numbers, database product name.</li>
 <li>A stack trace reveals the most. It shows the framework and database in use and the class names and structure of your code, and its first line contains the exception message, so the SQL goes out too even if include-message is never.</li>
 <li>This information alone does not break into the server, but the more an attacker learns about table and column names, the products in use, and the structure of the code, the more precisely the next attempt can be aimed.</li>
 </ul>
@@ -169,6 +168,6 @@ public Map&lt;String, Object&gt; order(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=af2da63956"></script>
+<script src="../../app.js?v=70c86af090"></script>
 </body>
 </html>

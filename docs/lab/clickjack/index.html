@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
+<link rel="stylesheet" href="../../app.css?v=f117ff1ed2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -66,7 +66,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>응답에 프레임에 관한 헤더가 없고, 브라우저는 결제 화면을 프레임 안에 그렸습니다. 결과: 클릭재킹 가능.</li>
 <li>프레임에 넣지 말라는 헤더가 없으면 브라우저는 어느 사이트의 프레임에든 화면을 그립니다. 프레임을 쓰는 화면 하나(예: H2 콘솔)를 띄우려고 frameOptions를 통째로 끄면 모든 화면이 이 상태가 됩니다. 끄지 말고 sameOrigin으로 바꾸는 편이 안전합니다.</li>
 <li>클릭재킹은 서버가 받은 요청만 보아서는 정상적인 클릭과 구별되지 않습니다. 그래서 서버가 응답 헤더로 &quot;이 화면을 프레임에 넣지 말라&quot;고 미리 알리고, 브라우저가 그것을 지키는 방식으로 막습니다.</li>
 </ul>
@@ -169,6 +168,6 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=d45f9d1282"></script>
+<script src="../../app.js?v=f117ff1ed2"></script>
 </body>
 </html>

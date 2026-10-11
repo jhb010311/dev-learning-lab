@@ -9708,7 +9708,7 @@ Lab.register({
 Lab.register({
   id: 'conneg', nav: '내용 협상과 압축', cat: 'HTTP', mode: 'step',
   title: '같은 주소인데 왜 사람마다 다른 응답을 받나',
-  intro: '같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다. 요청 헤더를 바꿔 가며 서버가 무엇을 고르는지, 압축하면 본문이 얼마나 줄어드는지, 그리고 중간에서 응답을 보관하는 공유 캐시가 다른 사람에게 엉뚱한 응답을 주지 않으려면 왜 Vary 헤더가 필요한지 보세요.',
+  intro: '같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다.',
   terms: ['콘텐츠 협상(Accept와 Content-Type)', 'q 값(선호도)', 'HTTP 압축과 Content-Encoding', 'Vary 헤더', '캐시'],
   controls: [
     { id: 'fmt', label: 'A의 Accept (원하는 형식)', type: 'select', value: 'html', options: [['html', 'text/html → 긴 HTML 문서'], ['json', 'application/json → 짧은 JSON'], ['png', 'image/png → 이미 압축된 PNG 그림']] },
@@ -9762,7 +9762,7 @@ Lab.register({
     var j = this.judge(c), T = this.TYPE[c.fmt], num = this.num, ev = [], sum = [];
     var st = { step: 0, type: '', lang: '', enc: '', wire: 0, sent: false, b: '', bres: '', bcls: '' };
     function push(s, k) { st.step++; ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
-    var langName = { ko: '한국어', en: '영어' }[j.lang], size = this.sizeText(j);
+    var size = this.sizeText(j);
     push('클라이언트 A가 GET /guide 요청을 보냅니다. 요청 헤더로 원하는 것을 알립니다. Accept는 받고 싶은 형식, Accept-Language는 언어, Accept-Encoding은 자신이 풀 수 있는 압축 방식입니다. 중간의 공유 캐시에는 아직 저장된 것이 없어 요청이 서버까지 갑니다.', '');
     st.type = T;
     push('서버가 Accept 헤더(' + T + ')를 보고 형식을 고릅니다. 이 서버는 /guide를 HTML, JSON, PNG 세 가지 형식으로 줄 수 있습니다. 그중 ' + this.WHAT[c.fmt] + ' 쪽을 고르고, 응답의 Content-Type 헤더에 고른 형식(' + T + ')을 적습니다.', '');
@@ -9798,27 +9798,19 @@ Lab.register({
       st.b = 'hit'; bres = 'A의 응답을 그대로 받음: ' + j.wrong.join(', ') + ' (B에게 맞지 않음)'; st.bres = bres; st.bcls = 'bad';
       push('캐시에 /guide의 응답이 있고 Vary 헤더가 없습니다. 캐시는 "이 주소의 응답은 누구에게나 같다"고 보고, A에게 맞춘 응답을 B에게 그대로 줍니다.' + (j.enc !== 'identity' ? ' B는 ' + j.enc + ' 압축을 풀 줄 몰라 본문을 읽지 못합니다.' : '') + (!j.png && j.lang !== 'en' ? ' B는 영어를 원했는데 한국어판을 받았습니다.' : ''), 'bad');
     }
-    sum.push('서버가 고른 것: ' + T + (j.png ? '' : ', ' + langName + '판') + ', 압축 ' + (j.enc === 'identity' ? '없음' : j.enc) + '. 본문은 ' + size + '. B는 ' + (j.hit ? (j.wrong.length ? 'A에게 맞춘 응답을 받아 쓸 수 없었습니다.' : 'A의 응답을 그대로 받았고 문제는 없었습니다.') : '서버에서 자기에게 맞는 응답을 새로 받았습니다.'));
     if (c.lang.indexOf('q=') >= 0 || c.enc.indexOf('q=') >= 0) sum.push('q 값은 0부터 1까지의 선호도이고, 적지 않으면 1입니다. 서버는 자신이 줄 수 있는 것 가운데 q가 가장 높은 것을 고릅니다. 헤더에 적힌 순서는 q가 같을 때에만 참고될 수 있습니다.');
     if (!j.png && !j.langMatched) sum.push('맞는 언어가 하나도 없을 때 서버는 기본 언어로 응답할 수도 있고 406 Not Acceptable로 거절할 수도 있습니다. 표준은 둘 다 허용합니다. 사용자에게는 무언가라도 보이는 편이 나아 기본 언어로 응답하는 쪽이 흔합니다.');
     if (j.enc !== 'identity' && j.wire < j.orig) sum.push('HTML, CSS, 자바스크립트, JSON 같은 글자로 된 본문은 되풀이되는 부분이 많아 압축이 잘 됩니다. 이 예시의 HTML은 같은 모양의 표가 120줄 되풀이되어 특히 많이 줄었습니다. 줄어드는 정도는 내용에 따라 다릅니다. br은 gzip보다 더 작게 줄이는 편이지만 압축에 시간이 더 걸립니다.');
     if (j.enc !== 'identity' && j.wire >= j.orig) sum.push('작은 본문과 이미 압축된 데이터(PNG, JPEG, 동영상, zip)는 압축해도 줄지 않고 CPU 시간만 씁니다. 그래서 실제 서버는 일정 크기보다 작은 응답과 이런 형식은 압축하지 않도록 설정합니다. 이 시험 서버는 차이를 보이려고 가리지 않고 압축했습니다.');
     if (j.enc === 'identity') sum.push('Accept-Encoding을 보내지 않으면 서버는 압축하지 않은 본문을 보냅니다. 브라우저는 이 헤더를 자동으로 붙여 보내고, curl은 --compressed 옵션을 줘야 보냅니다.');
-    if (!c.vary) sum.push(j.wrong.length ? '응답이 요청 헤더에 따라 달라지는데 Vary가 없으면, 공유 캐시는 한 사람에게 맞춘 응답을 다른 사람에게 그대로 내줍니다. 서버는 응답을 고를 때 본 요청 헤더의 이름을 Vary에 적어야 합니다.' : '이번에는 문제가 없었지만 우연입니다. Vary가 없으면 공유 캐시는 A의 요청 헤더가 무엇이었든 같은 응답을 B에게 줍니다. A의 언어나 압축 설정을 바꿔 보세요.');
+    if (!c.vary) sum.push(j.wrong.length ? '응답이 요청 헤더에 따라 달라지는데 Vary가 없으면, 공유 캐시는 한 사람에게 맞춘 응답을 다른 사람에게 그대로 내줍니다. 서버는 응답을 고를 때 본 요청 헤더의 이름을 Vary에 적어야 합니다.' : '이번에는 문제가 없었지만 우연입니다. Vary가 없으면 공유 캐시는 A의 요청 헤더가 무엇이었든 같은 응답을 B에게 줍니다.');
     else sum.push(j.hit ? 'Vary에 적힌 헤더의 값이 A와 B의 요청에서 모두 같아 캐시가 저장된 응답을 다시 썼습니다.' : 'Vary가 있으면 공유 캐시는 같은 주소라도 요청 헤더가 다른 응답을 따로 다룹니다. 대신 헤더의 글자가 조금만 달라도 다른 것으로 보므로, 캐시에서 바로 답하는 일이 줄어듭니다. 그래서 Vary에는 응답을 고를 때 실제로 본 헤더만 적습니다.');
     return { events: ev, summary: sum, j: j, size: size, row: [T + (j.png ? '' : ' · ' + j.lang), j.enc === 'identity' ? '없음' : j.enc, size, j.vary || '없음', bres] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, j = sim.j, num = this.num;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 서버가 요청 헤더를 하나씩 보고 응답을 고릅니다.'); return; }
-    H.table(v, ['A의 요청 헤더', '값', '서버가 고른 것 (응답 헤더)'], [
-      { cells: ['Accept', this.TYPE[c.fmt], s.type ? { v: 'Content-Type: ' + s.type, cls: 'good' } : '?'] },
-      { cells: ['Accept-Language', j.png ? '(그림에는 쓰이지 않음)' : c.lang, s.lang ? (j.png ? '(해당 없음)' : { v: 'Content-Language: ' + s.lang, cls: j.langMatched ? 'good' : 'hot' }) : '?'] },
-      { cells: ['Accept-Encoding', c.enc === 'none' ? '(헤더 없음)' : c.enc, s.enc ? (s.enc === '없음' ? '압축하지 않음 (Content-Encoding 없음)' : { v: 'Content-Encoding: ' + s.enc, cls: 'good' }) : '?'] },
-    ], '클라이언트 A와 서버의 내용 협상');
-    H.counters(v, [[num(j.orig) + '바이트', '원래 본문'], [s.wire ? num(s.wire) + '바이트' : '?', '전송된 본문'], [s.sent ? (j.vary || '없음') : '?', 'Vary']]);
     var ln = H.lanes(v);
-    H.lane(ln, '공유 캐시', s.sent ? '/guide의 응답을 보관 중' + (j.vary ? ' (Vary 있음)' : ' (Vary 없음)') : '비어 있음', s.sent ? 'wait' : 'none');
     H.lane(ln, '클라이언트 B', !s.b ? '아직 요청 전' : s.b === 'ask' ? '같은 주소를 요청함 (영어, 압축 못 풂)' : s.bres, !s.b || s.b === 'ask' ? 'none' : s.bcls === 'hot' ? 'hot' : s.bcls);
   },
   // 그림: 왼쪽에 A의 요청 헤더 셋, 오른쪽에 서버가 고른 응답 헤더 셋. 아래에 본문 크기와, 공유 캐시를 거친 B가 무엇을 받는지를 둔다.
@@ -9842,7 +9834,7 @@ Lab.register({
     P.box('b', 348, 230, 316, 50, { cls: !s.b ? 'ghost' : s.b === 'ask' ? 'wait' : s.bcls, title: '클라이언트 B (영어, 압축 못 풂)', sub: !s.b ? '아직 요청 전' : s.b === 'ask' ? '같은 주소 /guide를 요청' : s.b === 'miss' ? '서버에서 맞는 응답을 새로 받음' : j.wrong.length ? 'A의 응답을 받음: ' + j.wrong.join(', ') : 'A의 응답을 받음: B에게도 맞음' });
     if (s.b) P.arrow('bc', 'b:l', 'ca:r', { cls: s.b === 'ask' ? '' : s.bcls === 'hot' ? 'hot' : s.bcls, label: s.b === 'ask' ? '요청' : s.b === 'miss' ? '서버에 다시 물음' : '보관한 것을 줌' });
     P.text('sz', 340, 310, s.wire ? '본문 크기: ' + sim.size : '실행을 진행하면 압축 결과가 표시됩니다', { anchor: 'middle', cls: !s.wire ? 'mut' : j.enc === 'identity' ? 'mut' : j.wire < j.orig ? 'good' : 'bad', bold: !!s.wire });
-    P.note('요청 헤더 하나가 응답 헤더 하나를 정합니다. 공유 캐시는 여러 사용자의 요청이 함께 거쳐 가는 보관소입니다. 응답에 Vary가 없으면 캐시는 주소만 보고 같은 응답을 누구에게나 줍니다.');
+    P.note('요청 헤더 하나가 응답 헤더 하나를 정합니다. 공유 캐시는 여러 사용자의 요청이 함께 거쳐 가는 보관소입니다.');
   },
   assume: '본문 세 가지(긴 HTML, 짧은 JSON, PNG 그림)는 시험용으로 만든 예시이며, 크기는 그 본문을 이 PC의 Node.js 24에 든 zlib 1.3.1(gzip)과 brotli 1.2.0의 기본 설정으로 압축한 실제 값입니다. 압축 수준이나 라이브러리 버전이 다르면 몇 바이트씩 달라질 수 있습니다. 예시의 HTML은 같은 모양의 표가 되풀이되어 보통의 문서보다 훨씬 많이 줄어든 편입니다. 서로 다른 88가지 조합(그림에는 언어 설정이 쓰이지 않음)을 127.0.0.1에 띄운 시험 서버로 실행해 서버가 고른 형식, 언어, 압축, 전송된 크기, Vary, B가 받은 응답이 모형과 같은 것을 확인했습니다. 시험 서버는 Node의 http에 헤더 해석 라이브러리 negotiator 1.0(Express가 쓰는 것)과 zlib을 붙여 만들었고, 공유 캐시는 HTTP 캐시 규칙 구현인 http-cache-semantics 4.2로 판단하는 작은 캐싱 프록시를 직접 만들어 썼습니다. 실제 CDN이나 프록시 제품으로 확인한 것은 아닙니다. 추가로 fetch(기본값으로 Accept-Encoding: gzip, deflate를 보냄)와 curl --compressed가 압축된 응답을 스스로 풀어 돌려주는 것, 옵션 없는 curl은 Accept-Encoding을 보내지 않는 것, Vary 없는 캐시 뒤에서 옵션 없는 curl이 br로 압축된 한국어 응답을 그대로 받는 것을 실행으로 확인했습니다. q 값의 뜻과 생략하면 1이라는 것, 맞는 언어가 없을 때 무시하거나 406으로 응답할 수 있다는 것은 RFC 9110 12.4.2절과 12.5.4절, Vary의 뜻은 12.5.5절, 캐시가 Vary에 적힌 요청 헤더를 비교한다는 것은 RFC 9111 4.1절을 따랐습니다. 선호도가 같은 압축 방식 가운데 무엇을 고를지는 표준이 정하지 않아 서버마다 다릅니다(이 시험 서버는 br 우선). 표준(RFC 9110 12.5.3절)에 따르면 Accept-Encoding이 없는 요청에는 서버가 어떤 압축이든 써도 되지만, 이 시험 서버를 포함해 대부분의 서버는 압축하지 않고 보냅니다. B가 압축을 "풀지 못한다"는 것은 B를 압축을 지원하지 않는 프로그램으로 가정한 것입니다. 브라우저처럼 Content-Encoding을 보고 스스로 푸는 클라이언트라면 내용은 읽을 수 있지만, 원하지 않은 언어를 받는 문제는 그대로입니다.',
 });
@@ -9850,7 +9842,7 @@ Lab.register({
 Lab.register({
   id: 'revproxy', nav: '프록시와 리버스 프록시', cat: '네트워크', mode: 'step',
   title: '프록시 뒤의 서버는 누가 요청했는지 어떻게 아나',
-  intro: '프록시는 요청을 대신 받아 다른 곳으로 넘겨 주는 중간 서버입니다. 클라이언트 쪽에 서서 클라이언트를 대신하면 포워드 프록시, 서버 쪽에 서서 서버를 대신하면 리버스 프록시입니다. 어느 쪽이든 서버와 실제로 연결을 맺는 것은 프록시라서, 서버가 보는 상대 주소는 클라이언트가 아니라 프록시의 주소가 됩니다. 그래서 프록시가 X-Forwarded-For 같은 헤더로 원래 정보를 전해 주는데, 이 헤더는 클라이언트도 마음대로 써넣을 수 있습니다. 설정을 바꿔 가며 서버가 누구를 클라이언트로 판단하는지 보세요.',
+  intro: '프록시는 요청을 대신 받아 다른 곳으로 넘겨 주는 중간 서버입니다. 클라이언트 쪽에 서서 클라이언트를 대신하면 포워드 프록시, 서버 쪽에 서서 서버를 대신하면 리버스 프록시입니다. 어느 쪽이든 서버와 실제로 연결을 맺는 것은 프록시라서, 서버가 보는 상대 주소는 클라이언트가 아니라 프록시의 주소가 됩니다. 그래서 프록시가 X-Forwarded-For 같은 헤더로 원래 정보를 전해 주는데, 이 헤더는 클라이언트도 마음대로 써넣을 수 있습니다.',
   terms: ['포워드 프록시', '리버스 프록시', 'X-Forwarded-For', 'X-Forwarded-Proto와 TLS 종료', 'HTTPS와 TLS'],
   controls: [
     { id: 'path', label: '요청이 지나는 길', type: 'select', value: 'reverse', options: [['direct', '직접 연결 (프록시 없음)'], ['forward', '포워드 프록시를 거침 (클라이언트 쪽)'], ['reverse', '리버스 프록시를 거침 (서버 쪽)']] },
@@ -9919,13 +9911,12 @@ Lab.register({
     var res = j.verdict === 'ok' ? ' 결과는 ' + j.client + ', 실제 클라이언트의 주소입니다.' : j.verdict === 'forged' ? ' 결과는 ' + j.client + '입니다. 클라이언트가 직접 써넣은 가짜 주소입니다. 서버는 위조된 주소를 믿었습니다.' : ' 결과는 ' + j.client + ', 프록시의 주소입니다. 이 프록시를 거쳐 오는 모든 사용자가 같은 주소로 기록됩니다.';
     push(rule + res, j.verdict === 'ok' ? 'good' : 'bad');
     var vTxt = { ok: '맞음', forged: '위조된 주소에 속음', proxy: '프록시의 주소' }[j.verdict];
-    sum.push('서버가 본 연결 상대는 ' + j.remote + (j.direct ? '(클라이언트)' : '(프록시)') + ', 받은 X-Forwarded-For는 ' + xffStr + ', 서버가 판단한 클라이언트 주소는 ' + j.client + '입니다(' + vTxt + ').');
     if (fwd) sum.push('포워드 프록시는 클라이언트 쪽에 서서 클라이언트를 대신합니다. 클라이언트는 프록시가 있다는 것을 알고 일부러 거치며, 서버는 프록시만 보고 실제 클라이언트를 모릅니다.' + (c.xff === 'none' ? ' 프록시가 아무것도 붙이지 않으면 클라이언트의 주소는 서버에 전해지지 않습니다.' : ' 다만 프록시가 X-Forwarded-For를 붙이면 클라이언트의 주소가 서버에 전해집니다.'));
     if (rev) sum.push('리버스 프록시는 서버 쪽에 서서 서버를 대신합니다. 클라이언트는 프록시를 서버로 알고, 뒤에 있는 진짜 서버는 모릅니다. HTTPS 처리, 여러 서버로 나누기, 응답 보관 같은 일을 서버 앞에서 맡습니다.');
-    if (j.direct) sum.push('프록시가 없으면 연결 상대 주소가 곧 클라이언트의 주소입니다. 길을 포워드 프록시나 리버스 프록시로 바꿔 무엇이 달라지는지 비교해 보세요.');
+    if (j.direct) sum.push('프록시가 없으면 연결 상대 주소가 곧 클라이언트의 주소입니다.');
     if (j.verdict === 'forged') sum.push(j.direct ? '프록시 뒤에 있지 않은 서버가 X-Forwarded-For를 믿으면 누구나 자기 주소를 속일 수 있습니다. 이 헤더는 믿을 수 있는 프록시가 앞에 있을 때에만 읽어야 합니다.' : c.xff === 'none' ? 'X-Forwarded-For는 클라이언트도 써넣을 수 있는 헤더입니다. 프록시가 이 헤더에 손대지 않고 넘기면 서버에 도착한 값은 전부 클라이언트가 쓴 것입니다. 주소로 접속을 제한하거나 요청 수를 세는 서버라면 이 틈으로 우회당합니다.' : 'X-Forwarded-For는 클라이언트도 써넣을 수 있는 헤더입니다. 프록시가 덧붙이는 방식에서 맨 앞 값은 클라이언트가 쓴 것일 수 있습니다. 믿을 수 있는 것은 내가 관리하는 프록시가 붙인 맨 뒤 값입니다.');
     if (j.verdict === 'proxy') sum.push(fwd ? '서버는 프록시의 주소만 알게 됩니다. 포워드 프록시를 쓰는 쪽에서 보면 클라이언트의 주소가 가려진 것입니다.' : '모든 사용자가 프록시 한 대의 주소로 보이면 접속 기록, 주소별 요청 수 제한, 지역 판단이 모두 어긋납니다. 프록시가 원래 주소를 헤더로 전하고, 서버는 그 헤더를 읽어야 합니다.');
-    if (j.verdict === 'ok' && !j.direct) sum.push(c.xff === 'set' ? '프록시가 받은 값을 버리고 새로 쓰면 클라이언트가 써넣은 값이 서버까지 가지 못합니다. 바깥에서 오는 요청을 가장 먼저 받는 프록시에 맞는 설정입니다.' : c.read === 'last' ? '프록시가 한 대일 때 믿을 수 있는 값은 그 프록시가 직접 붙인 맨 뒤 값입니다. 프록시가 여러 대 이어져 있으면, 믿을 수 있는 프록시의 수만큼 뒤에서부터 세어 읽습니다.' : '이번에는 맞았지만 맨 앞 값은 클라이언트가 써넣을 수 있는 자리입니다. "클라이언트가 X-Forwarded-For를 직접 써넣는다"를 켜고 다시 실행해 보세요.');
+    if (j.verdict === 'ok' && !j.direct) sum.push(c.xff === 'set' ? '프록시가 받은 값을 버리고 새로 쓰면 클라이언트가 써넣은 값이 서버까지 가지 못합니다. 바깥에서 오는 요청을 가장 먼저 받는 프록시에 맞는 설정입니다.' : c.read === 'last' ? '프록시가 한 대일 때 믿을 수 있는 값은 그 프록시가 직접 붙인 맨 뒤 값입니다. 프록시가 여러 대 이어져 있으면, 믿을 수 있는 프록시의 수만큼 뒤에서부터 세어 읽습니다.' : '이번에는 맞았지만 맨 앞 값은 클라이언트가 써넣을 수 있는 자리입니다.');
     if (j.xfp === 'none') sum.push('프록시가 X-Forwarded-Proto를 주지 않으면 서버는 자신이 받은 HTTP 연결만 보고 사용자가 http로 접속했다고 여깁니다. 그래서 리다이렉트할 주소를 http://로 만들거나 "HTTPS로 온 요청만 허용" 같은 조건을 잘못 판단하게 됩니다.');
     if (j.xfp === 'https') sum.push('서버가 받은 연결은 HTTP지만, X-Forwarded-Proto: https 덕분에 사용자가 원래 HTTPS로 접속했다는 것을 압니다. 이 헤더도 X-Forwarded-For처럼 믿을 수 있는 프록시가 붙인 것만 써야 합니다.');
     var col0 = j.direct ? '서버 (직접 연결)' : fwd ? '포워드 프록시 (클라이언트가 설정함)' : '리버스 프록시 (서버인 줄 앎)';
@@ -9934,12 +9925,9 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, j = sim.j;
     if (!s) { H.text(v, '실행을 누르면 요청이 클라이언트에서 서버까지 한 구간씩 갑니다.'); return; }
-    var vTxt = { ok: '맞음', forged: '위조된 주소에 속음', proxy: '프록시의 주소', '': '' }[s.verdict];
-    H.counters(v, [[s.remote || '?', '서버가 본 연결 상대 주소'], [s.client ? s.client : '?', '서버가 판단한 클라이언트 주소'], [s.client ? vTxt : '?', '판단 결과']]);
     var ln = H.lanes(v);
     H.lane(ln, '클라이언트', this.CL + (c.spoof ? ' · X-Forwarded-For: ' + this.FG + '를 써넣어 보냄' : ' · 헤더를 써넣지 않음'), c.spoof ? 'bad' : 'wait');
     if (!j.direct) H.lane(ln, c.path === 'forward' ? '포워드 프록시' : '리버스 프록시', s.hop >= 2 ? j.px + ' · X-Forwarded-For를 ' + { none: '붙이지 않고 그대로 넘김', append: '뒤에 덧붙여 넘김', set: '새로 써서 넘김' }[c.xff] : j.px + ' · 요청을 받는 중', s.hop >= 2 ? (c.xff === 'none' ? 'hot' : 'good') : 'none');
-    H.lane(ln, '서버', !s.remote ? '아직 요청이 도착하지 않음' : '연결 상대 ' + s.remote + (s.xff ? ' · X-Forwarded-For ' + s.xff : ''), !s.client ? (s.remote ? 'wait' : 'none') : s.verdict === 'ok' ? 'good' : 'bad');
     H.table(v, ['서버가 받은 것', '값', '누가 정한 값인가'], [
       { cells: ['연결 상대 주소', s.remote || '?', 'TCP 연결 (요청으로 바꿀 수 없음)'] },
       { cells: ['X-Forwarded-For', s.xff || '?', !s.xff ? '?' : s.xff === '없음' ? '-' : '요청 헤더 (보내는 쪽이 적은 글자)'] },
@@ -9961,7 +9949,7 @@ Lab.register({
     P.box('v2', 16, 192, 648, 34, { cls: !s.xff ? 'ghost' : 'plain', title: '서버가 받은 X-Forwarded-For', right: s.xff || '?' });
     P.box('v3', 16, 234, 648, 34, { cls: !s.client ? 'ghost' : s.verdict === 'ok' ? 'good' : 'bad', title: '서버가 판단한 클라이언트 주소', right: s.client ? s.client + ' (' + { ok: '맞음', forged: '위조된 주소에 속음', proxy: '프록시의 주소' }[s.verdict] + ')' : '?' });
     P.box('v4', 16, 276, 648, 34, { cls: !s.xfp || s.xfp === 'na' ? 'ghost' : s.xfp === 'https' ? 'good' : 'bad', title: '서버가 받은 X-Forwarded-Proto', right: !s.xfp ? '?' : s.xfp === 'https' ? 'https' : s.xfp === 'none' ? '없음 (원래 https였는지 모름)' : '쓰이지 않음' });
-    P.note('서버와 직접 연결을 맺은 쪽의 주소만이 "연결 상대 주소"가 됩니다. 프록시가 끼면 그 자리에 프록시의 주소가 들어가고, 원래 클라이언트의 주소는 프록시가 헤더에 적어 줘야 전해집니다. 예시의 주소는 문서용으로 정해진 주소입니다.');
+    P.note('서버와 직접 연결을 맺은 쪽의 주소만이 "연결 상대 주소"가 됩니다. 프록시가 끼면 예시의 주소는 문서용으로 정해진 주소입니다.');
   },
   assume: '서로 다른 42가지 조합(직접 연결에는 프록시 설정이 쓰이지 않음)을 이 PC 안에서 실행해 다섯 열이 모두 모형과 같은 것을 확인했습니다. 클라이언트, 프록시, 서버를 이 PC의 루프백 주소 셋(127.0.0.10, 127.0.0.20, 127.0.0.30)에 나눠 띄우고, Node.js 24로 만든 작은 프록시와 서버에 두 가지 클라이언트(Node의 http·https 모듈, curl 8.21)로 요청해 서버가 실제로 본 연결 상대 주소와 헤더를 기록했습니다. 두 클라이언트의 결과는 모든 조합에서 같았습니다. 리버스 프록시는 시험용 인증서로 HTTPS를 받아 서버에는 HTTP로 넘겼고, 포워드 프록시에는 curl의 -x 옵션으로 요청해 요청 줄에 전체 주소가 실려 오는 것을 확인했습니다. 화면의 주소(203.0.113.7, 198.51.100.99, 192.0.2.50)는 문서 예시용으로 정해진 주소이고 10.0.0.x는 사설망 주소이며, 시험에 쓴 루프백 주소를 바꿔 적은 것입니다. 프록시는 시험용으로 직접 만든 것이라 실제 제품의 기본 동작과는 다를 수 있습니다. 예를 들어 nginx는 따로 설정하지 않으면 받은 헤더를 그대로 넘기고, proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for가 "덧붙이기", $remote_addr가 "새로 쓰기"에 해당합니다(nginx 문서 기준이며 실행으로 확인하지 않았습니다). X-Forwarded-For와 X-Forwarded-Proto는 표준이 아니라 널리 쓰이는 관례이고, 같은 정보를 담는 표준 헤더로 Forwarded(RFC 7239)가 있습니다. HTTPS 요청을 포워드 프록시로 보낼 때는 프록시가 내용을 볼 수 없는 통로(CONNECT)만 이어 주므로 헤더를 덧붙일 수 없는데, 이 실습의 포워드 프록시는 HTTP 요청만 다뤘습니다. 서버가 헤더가 없을 때 연결 상대 주소를 대신 쓰는 것은 이 모형에서 정한 규칙입니다. 프록시가 여러 대 이어진 경우와 로드밸런서의 분산은 다루지 않았습니다.',
 });
@@ -9969,7 +9957,7 @@ Lab.register({
 Lab.register({
   id: 'cdn', nav: 'CDN', cat: '네트워크', mode: 'step',
   title: '원본을 바꿨는데 왜 사용자는 아직 옛 파일을 받나',
-  intro: 'CDN은 원본 서버(오리진)가 가진 파일의 사본을 사용자와 가까운 서버(엣지)에 보관해 두고, 엣지가 대신 답하게 하는 방식입니다. 처음 요청은 엣지에 사본이 없어 오리진까지 다녀오지만(MISS), 그 뒤로는 엣지가 바로 답합니다(HIT). 대신 엣지는 정해진 유효 시간 동안 오리진에 다시 묻지 않으므로, 그사이 오리진의 파일을 바꿔도 사용자는 옛 사본을 받습니다. 80초 동안 들어오는 네 번의 요청을 따라가며 엣지가 언제 오리진에 가는지 보세요.',
+  intro: 'CDN은 원본 서버(오리진)가 가진 파일의 사본을 사용자와 가까운 서버(엣지)에 보관해 두고, 엣지가 대신 답하게 하는 방식입니다. 처음 요청은 엣지에 사본이 없어 오리진까지 다녀오지만(MISS), 그 뒤로는 엣지가 바로 답합니다(HIT). 대신 엣지는 정해진 유효 시간 동안 오리진에 다시 묻지 않으므로, 그사이 오리진의 파일을 바꿔도 사용자는 옛 사본을 받습니다.',
   terms: ['CDN', '오리진과 엣지', '캐시 키', '캐시 무효화(Purge)', 'TTL(Time To Live)'],
   controls: [
     { id: 'ttl', label: '엣지가 사본을 써도 되는 시간 (오리진이 응답에 적음)', type: 'select', value: '300', options: [['60', 'Cache-Control: public, s-maxage=60 (60초)'], ['300', 'Cache-Control: public, s-maxage=300 (300초)']] },
@@ -10032,8 +10020,7 @@ Lab.register({
     var r4 = request(80, U3);
     if (r4.status === 'EXPIRED') push('80초: 사용자가 ' + U3 + ' 주소를 요청합니다. 사본이 있지만 받아 온 지 ' + r4.age + '초가 지나 유효 시간(' + ttl + '초)을 넘겼습니다(EXPIRED). 엣지는 이 사본을 그대로 쓰지 않고 오리진에 다시 요청합니다.' + (c.chg ? ' 이번에 받아 온 것은 새 내용입니다. 이제야 사용자에게 바뀐 파일이 전달됩니다.' : ' 내용은 그대로지만 사본의 유효 시간이 다시 시작됩니다.'), c.chg ? 'good' : '');
     else push('80초: 사용자가 ' + U3 + ' 주소를 요청합니다. 사본은 받아 온 지 ' + r4.age + '초라 유효 시간(' + ttl + '초) 안입니다(HIT). 엣지가 바로 답합니다.' + (r4.stale ? ' 오리진의 파일이 바뀐 지 50초가 지났는데도 사용자는 여전히 옛 내용을 받습니다. 유효 시간이 끝나는 ' + ttl + '초까지 계속 이렇게 됩니다.' : ''), r4.stale ? 'bad' : 'good');
-    var hits = st.reqs.filter(function (r) { return r.status === 'HIT'; }).length, stales = st.reqs.filter(function (r) { return r.stale; }).length;
-    sum.push('요청 4번 가운데 엣지가 바로 답한 것이 ' + hits + '번, 오리진까지 간 것이 ' + st.oc + '번입니다.' + (c.chg ? ' 내용을 바꾼 뒤의 요청 2번 가운데 ' + (stales ? stales + '번은 옛 내용을 받았습니다.' : '옛 내용을 받은 요청은 없습니다.') : ''));
+    var stales = st.reqs.filter(function (r) { return r.stale; }).length;
     sum.push('엣지가 바로 답하면 가까운 거리만 오가므로 빠르고(예시 ' + NEAR + 'ms), 오리진까지 가면 먼 거리가 더해집니다(예시 ' + (NEAR + FAR) + 'ms). 오리진이 받는 요청도 줄어듭니다. 이 시간은 차이를 보이기 위한 예시입니다.');
     if (stales) sum.push('엣지는 유효 시간 동안 오리진에 다시 묻지 않습니다. 그래서 오리진의 파일을 바꿔도 유효 시간이 남은 사본이 계속 나갑니다. 유효 시간을 길게 잡을수록 빠르지만 바뀐 내용이 늦게 퍼집니다.' + (c.ttl === '60' ? ' 60초로 잡은 이 설정에서는 80초의 요청부터 새 내용이 나갔습니다.' : ''));
     if (c.chg && c.after === 'purge') sum.push('무효화(purge)는 유효 시간이 남은 사본을 강제로 지우는 기능입니다. 지운 뒤의 첫 요청은 MISS가 되어 오리진에서 새 내용을 받아 옵니다. 지우는 것은 지정한 주소의 사본뿐이고, 사용자의 브라우저가 따로 보관한 사본까지 지우지는 못합니다.');
@@ -10043,12 +10030,11 @@ Lab.register({
     return { events: ev, summary: sum, row: [cell(r1), cell(r2), cell(r3), cell(r4), st.oc + '번'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, ttl = +c.ttl;
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 0초의 첫 요청부터 시작합니다.'); return; }
     var name = function (x) { return !c.chg ? '사본' : x === 'old' ? '옛 내용' : '새 내용'; };
-    H.counters(v, [[s.t + '초', '지금 시각'], [s.reqs.filter(function (r) { return r.status === 'HIT'; }).length + '번', '엣지가 바로 답함'], [s.oc + '번', '오리진에 간 요청'], [c.chg ? (s.origin === 'old' ? '옛 내용' : '새 내용') : '그대로', '오리진의 app.css']]);
+    H.counters(v, [[s.reqs.filter(function (r) { return r.status === 'HIT'; }).length + '번', '엣지가 바로 답함'], [s.oc + '번', '오리진에 간 요청']]);
     H.table(v, ['시각', '요청한 주소', '엣지의 판단', '사용자가 받은 것', '걸린 시간 (예시)'], s.reqs.map(function (r) { return { cells: [r.t + '초', r.url, { v: r.status, cls: r.status === 'HIT' ? 'good' : 'hot' }, { v: name(r.ver) + (r.stale ? ' (오리진은 이미 바뀜)' : ''), cls: r.stale ? 'bad' : '' }, r.ms + 'ms'] }; }), '사용자의 요청');
-    H.table(v, ['주소 (사본의 이름표)', '보관한 내용', '받아 온 시각', '지금 상태'], s.entries.map(function (e) { var fresh = s.t - e.at < ttl; return { cls: fresh ? '' : 'gone', cells: [e.url, { v: name(e.ver), cls: e.ver !== s.origin ? 'bad' : '' }, e.at + '초', fresh ? '유효 (' + (e.at + ttl) + '초까지)' : '유효 시간 지남'] }; }), '엣지가 보관한 사본');
   },
   // 그림: 사용자 → 엣지 → 오리진. 엣지 안에 보관한 사본을 주소별로 쌓는다. 엣지에서 오리진으로 가는 화살표는 MISS나 EXPIRED일 때만 생긴다.
   draw: function (P, sim, shown) {
@@ -10074,7 +10060,7 @@ Lab.register({
 Lab.register({
   id: 'jwt', nav: 'JWT의 구조와 검증', cat: '인증', mode: 'step',
   title: '누구나 읽을 수 있는 토큰을 서버는 어떻게 믿나',
-  intro: 'JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 서버가 그래도 이 토큰을 믿을 수 있는 까닭은 셋째 부분인 서명을 직접 다시 계산해 보기 때문입니다. 토큰 한 개를 뜯어보고, 내용을 고치거나 머리말을 바꾼 토큰이 어디에서 걸리는지 확인합니다.',
+  intro: 'JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 서버가 그래도 이 토큰을 믿을 수 있는 까닭은 셋째 부분인 서명을 직접 다시 계산해 보기 때문입니다.',
   terms: ['JWT(JSON Web Token)', 'Base64URL 인코딩', '클레임(Claim)', 'HMAC과 전자서명', '알고리즘 고정(alg 검증)'],
   controls: [
     { id: 'tok', label: '서버에 도착한 토큰', type: 'select', value: 'payload', options: [['ok', '서버가 발급한 그대로'], ['payload', '내용의 role을 ADMIN으로 고침 (서명은 그대로)'], ['otherkey', '내용을 고치고 다른 키로 서명을 새로 만듦'], ['none', '머리말의 alg를 none으로 바꾸고 서명을 비움']] },
@@ -10163,14 +10149,13 @@ Lab.register({
     else if (J.ok) push('검증 통과: 서버가 서명이 없는 토큰의 내용을 믿고 이 요청을 회원 7, 권한 ADMIN의 요청으로 처리합니다. 서버의 키를 몰라도 만들 수 있는 토큰이 통과했습니다.', 'bad');
     else push('거절: 서버는 토큰의 내용을 쓰지 않고 요청을 거절합니다. 보통 401 Unauthorized로 답합니다.', c.tok === 'ok' ? '' : 'good');
     var row = [{ match: '일치', mismatch: '불일치', none: '건너뜀 (alg가 none)', alg: '하지 않음 (alg에서 거절)' }[J.sig], { valid: '만료 전', expired: '만료됨', skip: '하지 않음 (앞에서 거절)' }[J.exp], J.ok ? '통과' : '거절', J.ok ? T.role : '없음'];
-    sum.push('서명 확인은 "' + row[0] + '", 만료 확인은 "' + row[1] + '"이고, 서버의 판단은 ' + row[2] + '입니다.' + (J.ok ? ' 서버는 이 요청을 ' + T.role + ' 권한의 요청으로 처리합니다.' : ''));
     sum.push('머리말과 내용은 base64url로 적은 것이라 키 없이도 읽고 고칠 수 있습니다. 그래서 토큰에는 비밀번호 같은 것을 넣지 않습니다.');
-    if (J.sig === 'match' && J.ok) sum.push('서버는 붙어 온 서명을 믿는 것이 아니라, 앞의 두 부분과 자기 키로 서명을 다시 계산해 비교합니다. 값이 같다는 것은 발급한 뒤로 내용이 바뀌지 않았다는 뜻입니다. 내용을 고친 토큰으로 바꿔 비교해 보세요.');
+    if (J.sig === 'match' && J.ok) sum.push('서버는 붙어 온 서명을 믿는 것이 아니라, 앞의 두 부분과 자기 키로 서명을 다시 계산해 비교합니다. 값이 같다는 것은 발급한 뒤로 내용이 바뀌지 않았다는 뜻입니다.');
     if (J.sig === 'match' && !J.ok) sum.push('서명이 맞는 토큰이라도 exp가 지나면 거절합니다. 토큰은 발급한 뒤에는 서버가 회수하기 어렵기 때문에, 만료 시각을 짧게 두어 유출됐을 때의 피해 시간을 줄입니다.');
     if (J.sig === 'mismatch') sum.push(c.tok === 'payload' ? '내용을 한 글자라도 고치면 서버가 다시 계산한 서명이 달라집니다. 서명은 "이 내용 그대로"에 대해서만 맞습니다.' : '서명을 새로 만들어 붙여도, 서버의 키로 만든 것이 아니면 서버가 계산한 값과 다릅니다. 이 방식(HS256)의 안전은 서버의 키가 새지 않는 데 달려 있습니다.');
     if (J.sig === 'mismatch' && c.time === 'after') sum.push('서명에서 거절됐으므로 만료 시각은 확인하지도 않았습니다. 시각을 바꿔도 결과가 같습니다.');
     if (J.sig === 'alg') sum.push('검증에 쓸 알고리즘은 서버가 정합니다. 머리말의 alg는 누구나 고칠 수 있는 글자이므로, 서버가 정해 둔 것과 다르면 서명을 보기도 전에 거절합니다.');
-    if (J.sig === 'none') sum.push('머리말의 alg를 그대로 따르는 서버는, 보내는 쪽이 "서명 없음"을 고르면 서명 확인을 건너뜁니다.' + (J.ok ? ' 그 결과 서명이 없는 토큰이 ADMIN 권한으로 통과했습니다.' : ' 이번에는 만료 시각 때문에 거절됐을 뿐이고, 만료 전이라면 통과합니다.') + ' 서버가 알고리즘을 정해 두는 방식으로 바꿔 비교해 보세요.');
+    if (J.sig === 'none') sum.push('머리말의 alg를 그대로 따르는 서버는, 보내는 쪽이 "서명 없음"을 고르면 서명 확인을 건너뜁니다.' + (J.ok ? ' 그 결과 서명이 없는 토큰이 ADMIN 권한으로 통과했습니다.' : ' 이번에는 만료 시각 때문에 거절됐을 뿐이고, 만료 전이라면 통과합니다.'));
     if (c.tok !== 'none' && c.policy === 'trust') sum.push('이 토큰은 alg가 HS256이라서, 알고리즘을 정하는 두 방식의 결과가 같습니다. 차이는 alg를 none으로 바꾼 토큰에서 드러납니다.');
     return { events: ev, summary: sum, tk: T, row: row };
   },
@@ -10182,11 +10167,6 @@ Lab.register({
       { cells: ['내용', s.split ? T.part[1] : '', { v: s.payload || (s.split ? '아직 풀지 않음' : ''), cls: s.payload && T.role === 'ADMIN' ? 'bad' : '' }] },
       { cells: ['서명', s.split ? (T.part[2] || '(비어 있음)') : '', s.calc ? '서버가 다시 계산한 값: ' + s.calc : '글자로 풀어 볼 내용이 아님 (계산한 값)'] },
     ], s.split ? '세 부분으로 나눈 토큰' : '받은 토큰 (아직 나누기 전)');
-    var ln = H.lanes(v);
-    H.lane(ln, '1. 알고리즘', { '': '아직 확인 전', ok: 'HS256으로 검증', reject: 'none은 받지 않음: 거절', follow: '토큰이 말한 none을 따름' }[s.alg], s.alg === 'ok' ? 'good' : s.alg === 'reject' ? 'bad' : s.alg === 'follow' ? 'hot' : 'none');
-    H.lane(ln, '2. 서명', { '': s.calc ? '다시 계산함, 비교 전' : '아직 확인 전', match: '다시 계산한 값과 일치', mismatch: '다시 계산한 값과 다름: 거절', none: '확인하지 않고 건너뜀', alg: '확인하지 않음' }[s.sig], s.sig === 'match' ? 'good' : s.sig === 'mismatch' ? 'bad' : s.sig === 'none' ? 'hot' : 'none');
-    H.lane(ln, '3. 만료 시각', { '': s.res ? '확인하지 않음' : '아직 확인 전', valid: '만료 전: 유효', expired: '만료 시각이 지남: 거절' }[s.exp], s.exp === 'valid' ? 'good' : s.exp === 'expired' ? 'bad' : 'none');
-    H.counters(v, [[s.res === 'accept' ? '통과' : s.res === 'reject' ? '거절' : '검증 중', '서버의 판단'], [s.res === 'accept' ? T.role : s.res === 'reject' ? '없음' : '아직 없음', '서버가 믿은 권한']]);
   },
   // 그림: 위쪽 세 줄은 토큰의 세 부분(적힌 글자와 풀어 본 내용), 아래쪽은 서버가 차례로 하는 세 가지 확인과 최종 판단이다.
   draw: function (P, sim, shown) {
@@ -10202,7 +10182,7 @@ Lab.register({
     P.arrow('a1', 'c1:r', 'c2:l', { cls: s.alg === 'ok' || s.alg === 'follow' ? '' : 'mut' });
     P.arrow('a2', 'c2:r', 'c3:l', { cls: s.sig === 'match' || s.sig === 'none' ? '' : 'mut' });
     P.box('res', 16, 292, 648, 38, { cls: (s.res === 'accept' ? (s.sig === 'none' ? 'bad' : 'good') : s.res === 'reject' ? 'plain' : 'ghost') + cur(n === tot && n > 0), title: '서버의 판단', right: s.res === 'accept' ? '통과 · 회원 7을 ' + T.role + ' 권한으로 처리' : s.res === 'reject' ? '거절 · 토큰의 내용을 쓰지 않음' : '검증 중' });
-    P.note('위의 세 줄이 토큰의 세 부분입니다. 첫째와 둘째는 키 없이 풀어 읽을 수 있고, 셋째는 서버가 자기 키로 다시 계산해 비교합니다. 아래의 세 확인을 차례로 모두 지나야 서버가 내용을 믿습니다. 빨간 칸은 그 자리에서 거절된 곳입니다.');
+    P.note('위의 세 줄이 토큰의 세 부분입니다. 아래의 세 확인을 차례로 모두 지나야 서버가 내용을 믿습니다. 빨간 칸은 그 자리에서 거절된 곳입니다.');
   },
   assume: '화면의 토큰 글자, 서명 값, 열여섯 가지 조합의 검증 결과는 이 PC의 Node.js 24에 든 crypto(HMAC-SHA256)로 토큰을 실제로 만들고 검증해 본 결과와 대조했습니다. 화면의 자바 코드도 JDK 21에서 그대로 실행해 같은 토큰과 같은 결과가 나오는 것을 확인했습니다. 이 PC에는 JWT 라이브러리가 없어서, 검증 절차는 표준 문서를 보고 직접 적은 코드로 실행했습니다. 근거는 다음과 같습니다. 세 부분을 점으로 잇는 모양과 base64url 표기는 RFC 7515 3절과 2절, 서명을 계산하는 대상이 "첫째 부분.둘째 부분"이라는 것은 RFC 7515 5.1절, 검증 순서는 RFC 7515 5.2절과 RFC 7519 7.2절, 지금이 exp보다 앞이어야 한다는 것은 RFC 7519 4.1.4절, alg가 none이고 서명이 빈 토큰의 모양은 RFC 7519 6.1절입니다. 지금이 exp와 정확히 같을 때는 거절됩니다(직접 실행해 확인). 서버가 받을 알고리즘을 정해 두어야 한다는 것은 RFC 8725 3.1절의 권고이고, 널리 쓰이는 JWT 라이브러리가 none을 기본으로 거절한다는 것은 실행으로 확인하지 못했습니다. 실제 서버는 시계 오차를 감안해 exp에 몇 초에서 몇 분의 여유를 두기도 하고(RFC 7519 4.1.4절이 허용), iss, aud 같은 다른 클레임도 함께 확인합니다. 화면의 키와 토큰은 이 실습을 위해 만든 값입니다. 공개키 방식(RS256)을 쓰는 서버에서 alg를 HS256으로 바꿔 보내는 문제는 다루지 않았습니다.',
 });
@@ -10210,7 +10190,7 @@ Lab.register({
 Lab.register({
   id: 'sessionfix', nav: '세션 하이재킹과 세션 고정', cat: '인증', mode: 'step',
   title: '세션 ID를 아는 사람이 곧 그 사용자다',
-  intro: '서버는 요청의 쿠키에 실려 온 세션 ID만 보고 "누구의 요청인지"를 정합니다. 그래서 로그인된 세션의 ID를 아는 사람은 비밀번호를 몰라도 그 사용자로 행세할 수 있습니다(세션 하이재킹). 세션 고정은 순서를 뒤집은 것입니다. 로그인 전에 쓰던 세션 ID가 로그인 뒤에도 그대로이면, 그 ID를 미리 알고 있던 사람이 로그인된 세션을 쓰게 됩니다. 로그인할 때 서버가 세션을 어떻게 처리하는지 바꿔 가며, 다른 사람이 알고 있는 ID로 보낸 요청이 어떻게 되는지 확인합니다.',
+  intro: '서버는 요청의 쿠키에 실려 온 세션 ID만 보고 "누구의 요청인지"를 정합니다. 그래서 로그인된 세션의 ID를 아는 사람은 비밀번호를 몰라도 그 사용자로 행세할 수 있습니다(세션 하이재킹). 세션 고정은 순서를 뒤집은 것입니다. 로그인 전에 쓰던 세션 ID가 로그인 뒤에도 그대로이면, 그 ID를 미리 알고 있던 사람이 로그인된 세션을 쓰게 됩니다.',
   terms: ['세션', '세션 하이재킹', '세션 고정(Session Fixation)', 'HttpOnly, Secure, SameSite', '쿠키'],
   controls: [
     { id: 'fix', label: '로그인에 성공했을 때 서버가 세션에 하는 일', type: 'select', value: 'none', options: [['default', '세션 ID를 새 값으로 바꾼다 (스프링 시큐리티 기본값)'], ['newSession', '새 세션을 만들고 예전 내용은 버린다 (newSession)'], ['none', '아무것도 하지 않는다 (보호를 끔: none)']] },
@@ -10291,10 +10271,9 @@ Lab.register({
       : !R.current ? '서버에 그 ID의 세션은 없습니다. 로그인할 때 ' + (c.fix === 'default' ? 'ID가 ' + B + '로 바뀌었기' : '새 세션 ' + B + '로 갈아탔기') + ' 때문입니다. 서버는 로그인하지 않은 요청으로 보고 302로 로그인 화면에 보냅니다.'
         : '서버에 그 ID의 세션은 없습니다. 로그아웃할 때 지웠기 때문입니다. 서버는 로그인하지 않은 요청으로 보고 302로 로그인 화면에 보냅니다.'), R.ok ? 'bad' : 'good');
     var row3 = R.ok ? '200 · kim으로 처리됨' : '302 · 로그인 화면으로 보냄';
-    sum.push('로그인 뒤 세션 ID는 ' + (R.changed ? '새 값으로 바뀌었고' : '로그인 전과 같고') + ', 다른 사람이 그 ID로 보낸 요청은 ' + (R.ok ? 'kim의 요청으로 처리됐습니다(200).' : '로그인 화면으로 보내졌습니다(302).'));
     if (c.when === 'before' && R.ok) sum.push('세션 고정: 로그인 전후의 세션 ID가 같으면, 그 ID를 미리 알고 있던 사람은 비밀번호를 몰라도 로그인된 세션을 쓰게 됩니다. 로그인에 성공하는 순간 세션 ID를 바꾸면 막을 수 있고, 스프링 시큐리티는 따로 설정하지 않아도 그렇게 합니다.');
-    if (c.when === 'before' && !R.changed && c.logout) sum.push('이번에는 로그아웃으로 세션이 지워져 막혔을 뿐입니다. 피해자가 로그인해 있는 동안에는 미리 알려진 ID로 누구든 들어올 수 있었습니다. 로그아웃을 끄고 비교해 보세요.');
-    if (c.when === 'before' && R.changed) sum.push('로그인하는 순간 세션 ID가 바뀌었으므로, 미리 알아 둔 ID는 아무 세션도 가리키지 않습니다. 보호를 끈 설정으로 바꿔 비교해 보세요.');
+    if (c.when === 'before' && !R.changed && c.logout) sum.push('이번에는 로그아웃으로 세션이 지워져 막혔을 뿐입니다. 피해자가 로그인해 있는 동안에는 미리 알려진 ID로 누구든 들어올 수 있었습니다.');
+    if (c.when === 'before' && R.changed) sum.push('로그인하는 순간 세션 ID가 바뀌었으므로, 미리 알아 둔 ID는 아무 세션도 가리키지 않습니다.');
     if (c.when === 'after') sum.push('세션 하이재킹: 로그인된 세션의 ID를 아는 사람은 누구든 그 사용자로 처리됩니다. 로그인할 때 ID를 바꾸는 보호는 로그인 뒤에 새어 나간 ID에는 소용이 없습니다. 그래서 ID가 새지 않도록 쿠키에 HttpOnly(스크립트가 읽지 못하게)와 Secure(https로만 보내게)를 붙입니다.');
     if (c.when === 'after' && c.logout) sum.push('로그아웃하면 서버가 세션을 지우므로 새어 나간 ID가 더는 통하지 않습니다. 세션 만료 시간을 짧게 두는 것도 같은 까닭입니다. ID가 쓸모 있는 시간을 줄입니다.');
     if (!R.kept) sum.push('새 세션을 만드는 방식은 로그인 전에 세션에 넣어 둔 값(장바구니)을 옮기지 않습니다. 기본값인 "ID만 바꾸기"는 내용을 그대로 둡니다.');
@@ -10302,10 +10281,9 @@ Lab.register({
   },
   sesText: function (x) { return !x.on ? ['아직 없음', ' '] : x.gone ? ['없어짐', x.gone] : ['로그인한 사용자: ' + (x.user || '없음'), '장바구니: ' + (x.cart || '비어 있음')]; },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, self = this;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 로그인 전부터 차례로 진행합니다.'); return; }
-    H.counters(v, [[s.vc || '없음', '피해자의 브라우저에 있는 세션 ID'], [s.known || '아직 모름', '다른 사람이 알고 있는 세션 ID']]);
-    H.table(v, ['세션 ID', '상태'], [['aaa111', s.s1], ['bbb222', s.s2]].filter(function (p) { return p[1].on; }).map(function (p) { var x = self.sesText(p[1]); return { cls: p[1].gone ? 'gone' : '', cells: [p[0], { v: x[0] + (x[1].trim() ? ' · ' + x[1] : ''), cls: p[1].gone ? '' : p[1].user ? 'good' : '' }] }; }), '서버가 가지고 있는 세션');
+    H.counters(v, [[s.vc || '없음', '피해자의 브라우저에 있는 세션 ID']]);
     H.table(v, ['누가', '요청', '보낸 쿠키', '서버의 응답'], s.rows.map(function (r) { return { cells: [{ v: r[0], cls: r[0] === '다른 사람' ? 'hot' : '' }, r[1], r[2], r[3]] }; }), '요청 기록');
   },
   // 그림: 위쪽은 공격자, 서버, 피해자의 브라우저 사이를 오간 요청과 응답의 순서. 아래쪽은 서버가 가지고 있는 세션 두 개의 상태다.
@@ -10325,7 +10303,7 @@ Lab.register({
 Lab.register({
   id: 'accessctl', nav: '접근 제어', cat: '인증', mode: 'step',
   title: '로그인한 사용자가 주소의 번호만 바꾸면 남의 주문이 보이나',
-  intro: '로그인했다는 것은 "누구인지 확인됐다"(인증)는 뜻일 뿐, "이 자원을 봐도 된다"(인가)는 뜻이 아닙니다. kim이 로그인한 뒤 주소의 주문 번호만 바꿔 lee의 주문을 요청하면 어떻게 될까요. 서버가 무엇을 확인하느냐에 따라 그대로 보이기도 하고 거절되기도 합니다. 서버의 확인 방식과 요청하는 사람, 주문 번호를 바꿔 가며 응답을 비교합니다.',
+  intro: '로그인했다는 것은 "누구인지 확인됐다"(인증)는 뜻일 뿐, "이 자원을 봐도 된다"(인가)는 뜻이 아닙니다. kim이 로그인한 뒤 주소의 주문 번호만 바꿔 lee의 주문을 요청하면 어떻게 될까요. 서버가 무엇을 확인하느냐에 따라 그대로 보이기도 하고 거절되기도 합니다.',
   terms: ['인증과 인가', '접근 제어와 소유자 확인', '역할 기반 접근 제어(RBAC)', 'HTTP 상태 코드', 'Spring Security와 SecurityFilterChain'],
   controls: [
     { id: 'check', label: '서버가 확인하는 것', type: 'select', value: 'login', options: [['login', '로그인했는지만 확인한다'], ['role', 'URL 규칙으로 역할(USER)만 확인한다'], ['owner403', '주문의 주인인지 확인하고, 아니면 403'], ['owner404', '내 주문 가운데에서만 찾고, 없으면 404'], ['ownerAdmin', '주인이거나 ADMIN 역할이면 허용, 아니면 403']] },
@@ -10413,7 +10391,6 @@ Lab.register({
     }
     var WHY = { filter: 'URL 규칙 (컨트롤러 실행 전)', nocheck: '소유자 확인 없이 조회함', notfound: '조회해 보니 없는 주문', owner: '소유자 확인: 주인이 맞음', notowner: '소유자 확인: 주인이 아님', notmine: '내 주문 가운데 없음', admin: '주인은 아니지만 ADMIN 역할' };
     var bodyText = J.body ? J.body + '의 주문 (' + (J.body === me ? '본인' : '다른 회원') + ')' : '없음';
-    sum.push('응답은 ' + STATUS[J.st] + '이고, 본문에 담긴 주문은 "' + bodyText + '"입니다.');
     if (J.why === 'nocheck' && J.owner !== me && c.check === 'login') sum.push('인증(누구인지 확인)과 인가(이 자원을 봐도 되는지 확인)는 서로 다른 일입니다. 로그인만 확인하는 서버에서는 주소의 번호만 바꿔 남의 자원을 볼 수 있습니다. 번호가 1, 2, 3처럼 이어져 있으면 차례로 넣어 보는 것만으로 다른 사람의 주문이 모두 드러납니다. 자원을 돌려주기 전에 "이 자원의 주인이 지금 로그인한 사용자인가"를 서버 코드에서 확인해야 합니다.');
     if (J.why === 'nocheck' && J.owner !== me && c.check === 'role') sum.push(me === 'kim' ? '역할은 "USER인가 ADMIN인가"만 말해 줍니다. kim과 lee는 둘 다 USER라서 역할 규칙으로는 둘을 구별할 수 없습니다. "자기 것만"은 역할이 아니라 소유자 비교로 막습니다.' : '역할 규칙은 통과했지만 누구의 주문인지는 확인하지 않았습니다.');
     if (J.why === 'filter') sum.push('URL 규칙은 컨트롤러보다 앞에서 주소와 역할만 보고 판단합니다. 주문을 조회하기 전이라 누구의 주문인지 알 수 없고, 없는 번호에도 같은 403이 나옵니다. "주인만" 같은 조건은 자원을 조회한 뒤의 코드에서만 판단할 수 있습니다.');
@@ -10421,19 +10398,14 @@ Lab.register({
     if (J.why === 'notmine' && J.owner) sum.push('남의 주문과 없는 주문에 똑같이 404로 답하면 요청한 사람은 둘을 구별할 수 없습니다. HTTP 표준도 자원이 있다는 사실을 숨기려 할 때 403 대신 404로 답해도 된다고 적고 있습니다. 대신 정당한 사용자도 권한 문제인지 주소를 잘못 쓴 것인지 응답만으로는 알기 어렵습니다.');
     if (J.why === 'admin') sum.push('고객센터 직원처럼 남의 주문을 봐야 하는 사람은 역할로 허용합니다. 실제 서비스의 규칙은 대개 "주인이거나, 그 일을 맡은 역할이거나"처럼 소유자 확인과 역할 확인을 함께 씁니다.');
     if (me === 'park' && (J.why === 'notowner' || (J.why === 'notmine' && J.owner))) sum.push('ADMIN이라고 저절로 허용되지는 않습니다. 서버는 코드에 적힌 규칙대로만 판단하고, 이 코드는 주인만 허용합니다.');
-    if (J.st === 200 && J.owner === me) sum.push('자기 주문은 어느 방식에서나 보입니다. 방식의 차이는 남의 주문을 요청할 때 드러납니다. 요청하는 주소를 /orders/2로 바꿔 보세요.');
+    if (J.st === 200 && J.owner === me) sum.push('자기 주문은 어느 방식에서나 보입니다. 방식의 차이는 남의 주문을 요청할 때 드러납니다.');
     if (J.why === 'notfound' || (J.why === 'notmine' && !J.owner)) sum.push('없는 주문에는 404로 답합니다. 같은 서버에서 lee의 주문(2번)을 요청했을 때의 응답과 비교해 보세요. 응답이 다르면 "그 번호의 주문이 있다"는 것이 드러납니다.');
     return { events: ev, summary: sum, j: J, same99: same99, row: [STATUS[J.st], bodyText, WHY[J.why]] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, J = sim.j, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null, J = sim.j;
     if (!s) { H.text(v, '실행을 누르면 요청이 서버의 확인을 차례로 지나갑니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '1. 인증 (누구인가)', s.auth ? '확인됨: ' + s.auth : '아직 확인 전', s.auth ? 'good' : 'none');
-    H.lane(ln, '2. URL 규칙', !s.url ? '아직 확인 전' : (c.check === 'role' ? 'USER 역할인가: ' : '로그인했는가: ') + (s.url === 'pass' ? '통과' : '거절 (403)'), s.url === 'pass' ? 'good' : s.url === 'deny' ? 'bad' : 'none');
-    H.lane(ln, '3. 컨트롤러의 코드', { '': s.resp && !J.ctl ? '실행되지 않음' : s.look ? '주문을 조회함' : '아직 실행 전', nocheck: '주인을 확인하지 않고 돌려줌', notfound: '없는 주문: 404', owner: '주인이 맞음: 허용', notowner: '주인이 아님: 403', notmine: '내 주문 가운데 없음: 404', admin: 'ADMIN 역할이라 허용' }[s.ctl], { '': 'none', nocheck: J.owner === J.me ? 'wait' : 'bad', notfound: 'wait', owner: 'good', notowner: 'good', notmine: 'good', admin: 'good' }[s.ctl]);
     H.table(v, ['주문 번호', '주인', '내용'], [['1', 'kim', '키보드 · 서울시 가나동 1'], ['2', 'lee', '노트북 · 부산시 다라동 2']].map(function (r) { return { cells: [{ v: r[0], cls: s.look === r[0] ? 'hot' : '' }, { v: r[1], cls: r[1] === J.me ? 'good' : '' }, r[2]] }; }), '서버에 저장된 주문 (99번은 없음)');
-    H.counters(v, [[s.resp || '처리 중', '응답'], [s.resp ? (s.body ? s.body + '의 주문' : '없음') : '아직 없음', '본문에 담긴 주문']]);
   },
   // 그림: 왼쪽의 요청이 가운데 서버의 세 확인(인증, URL 규칙, 컨트롤러의 코드)을 위에서 아래로 지나고, 컨트롤러가 오른쪽 저장소의 주문을 조회한다.
   draw: function (P, sim, shown) {
@@ -10454,7 +10426,7 @@ Lab.register({
     if (s.look) P.arrow('a2', 'g2:b', 'g3:t', {});
     if (s.look) P.arrow('a3', 'g3:r', 'o' + s.look + ':l', { cls: s.body ? (s.body === J.me || s.ctl === 'admin' ? 'good' : 'bad') : 'mut', label: '조회' });
     P.box('res', 16, 276, 648, 38, { cls: !s.resp ? 'ghost' : J.st === 200 ? (J.why === 'nocheck' && J.owner !== J.me ? 'bad' : 'good') : 'plain', title: '응답', right: !s.resp ? '처리 중' : s.resp + (s.body ? ' · ' + s.body + '의 주문이 ' + J.me + '에게 보임' : ' · 주문 내용 없음') });
-    P.note('요청은 서버 안에서 위에서 아래로 세 확인을 지납니다. 인증은 "누구인가"만, URL 규칙은 주소와 역할만 봅니다. "이 주문이 누구의 것인가"는 주문을 조회한 뒤에야 알 수 있으므로 컨트롤러(또는 서비스)의 코드에서 확인합니다. 빨간 주문 상자는 주인이 아닌 사람에게 보인 주문입니다.');
+    P.note('요청은 서버 안에서 위에서 아래로 세 확인을 지납니다. 빨간 주문 상자는 주인이 아닌 사람에게 보인 주문입니다.');
   },
   assume: '서른 가지 조합 모두를 이 PC에서 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버를 127.0.0.1에 띄우고 화면과 같은 구조의 코드로 실행해, 응답 코드와 본문에 담긴 주문의 주인, 컨트롤러가 실행됐는지, 코드의 어느 갈래에서 판단이 났는지를 대조했습니다. 주문 저장소는 데이터베이스 대신 메모리의 표로 만들었고, 로그인 방법은 HTTP Basic을 썼습니다(세션이나 토큰으로 로그인해도 인가의 결과는 같습니다). 로그인하지 않은 요청은 어느 방식에서나 401이 나오는 것을 같은 서버에서 확인했으며, 그 내용은 "시큐리티 필터 체인" 실습에서 다룹니다. 남의 자원에 403 대신 404로 답해 자원이 있다는 사실을 숨길 수 있다는 것은 RFC 9110 15.5.4절(403)과 15.5.5절(404)에 적힌 내용입니다. 403과 404 가운데 무엇이 옳은지는 정해져 있지 않고 서비스가 고르는 것입니다. 실제 서비스에서는 응답 코드 외에 응답 시간의 차이로도 자원이 있는지 드러날 수 있는데, 이 실습에서는 다루지 않았습니다. 소유자 확인을 컨트롤러에 적었지만 서비스 계층에 두거나 메서드 보안(@PreAuthorize, @PostAuthorize)으로 적기도 하며, 그 내용은 "메서드 보안" 실습에서 이어집니다. 주문 번호를 추측하기 어려운 값(UUID 등)으로 바꾸는 것은 번호를 짐작하기 어렵게 할 뿐 소유자 확인을 대신하지 못합니다. 이 문장은 일반적인 보안 권고(OWASP의 Broken Access Control 설명)를 따른 것이며 실행으로 확인한 내용이 아닙니다.',
 });
@@ -10462,7 +10434,7 @@ Lab.register({
 Lab.register({
   id: 'methodsec', nav: '메서드 보안', cat: '인증', mode: 'step',
   title: '메서드에 붙인 권한 검사는 언제 실행되고 언제 빠지나',
-  intro: '주소(URL)가 아니라 메서드에 "누가 이 메서드를 실행해도 되는가"를 적어 두는 방법이 메서드 보안입니다. @PreAuthorize는 메서드를 실행하기 전에, @PostAuthorize는 메서드가 값을 돌려준 뒤에 식을 계산해 거짓이면 거부합니다. 그런데 이 애노테이션은 붙여 두기만 해서는 동작하지 않을 때가 있습니다. 설정과 부르는 방식, 로그인한 사용자를 바꿔 가며 검사가 실행되는지, 메서드 본문이 실행되는지 확인합니다.',
+  intro: '주소(URL)가 아니라 메서드에 "누가 이 메서드를 실행해도 되는가"를 적어 두는 방법이 메서드 보안입니다. @PreAuthorize는 메서드를 실행하기 전에, @PostAuthorize는 메서드가 값을 돌려준 뒤에 식을 계산해 거짓이면 거부합니다. 그런데 이 애노테이션은 붙여 두기만 해서는 동작하지 않을 때가 있습니다.',
   terms: ['메서드 보안(@PreAuthorize, @PostAuthorize)', '인증과 인가', '프록시(Proxy)', '자기 호출(Self-invocation)', 'SecurityContext'],
   controls: [
     { id: 'enable', label: '설정 클래스에 @EnableMethodSecurity를 붙였다', type: 'check', value: false },
@@ -10537,8 +10509,7 @@ Lab.register({
     st.got = J.denied ? '예외 AuthorizationDeniedException' : m.ret;
     push('부른 쪽(컨트롤러): ' + (J.denied ? 'AuthorizationDeniedException을 받습니다. 이것은 AccessDeniedException의 한 종류이고, 웹 요청을 처리하는 중이었다면 스프링 시큐리티가 403 응답으로 바꿉니다.' : m.ret + '을 받습니다.' + (!J.checked && !J.pass ? ' 거부됐어야 할 호출이 정상적으로 끝났습니다.' : '')), J.denied ? 'good' : !J.checked && !J.pass ? 'bad' : 'good');
     var checkText = J.checked ? (J.pass ? '실행됨: 통과' : '실행됨: 거부') : J.why === 'off' ? '실행되지 않음 (@EnableMethodSecurity 없음)' : '실행되지 않음 (프록시를 거치지 않음)';
-    sum.push('권한 검사는 "' + checkText + '", 메서드 본문은 ' + (J.body ? '실행됐고' : '실행되지 않았고') + ', 부른 쪽은 ' + st.got + '을 받았습니다.');
-    if (J.why === 'off') sum.push('@EnableMethodSecurity가 없으면 @PreAuthorize와 @PostAuthorize는 아무 일도 하지 않습니다. 오류도 나지 않으므로, 애노테이션을 붙였다는 것만으로 안심하면 안 됩니다. 권한이 없는 사용자로 실제로 불러 보는 테스트로 확인합니다.' + (J.pass ? ' 지금은 식이 참인 사용자라서 결과만 보면 차이가 없습니다. 로그인한 사용자를 바꿔 보세요.' : ''));
+    if (J.why === 'off') sum.push('@EnableMethodSecurity가 없으면 @PreAuthorize와 @PostAuthorize는 아무 일도 하지 않습니다. 오류도 나지 않으므로, 애노테이션을 붙였다는 것만으로 안심하면 안 됩니다. 권한이 없는 사용자로 실제로 불러 보는 테스트로 확인합니다.' + (J.pass ? ' 지금은 식이 참인 사용자라서 결과만 보면 차이가 없습니다.' : ''));
     if (J.why === 'self') sum.push('같은 클래스 안에서 부르면(자기 호출) 프록시를 거치지 않으므로 검사가 빠집니다. @Transactional이 같은 클래스 안의 호출에서 동작하지 않는 것과 같은 원리입니다. 검사가 필요한 메서드는 다른 빈에서 부르게 하거나, 바깥에서 불리는 메서드(' + m.wrap + ')에도 애노테이션을 붙입니다.' + (J.pass ? ' 지금은 식이 참인 사용자라서 결과만 보면 차이가 없습니다.' : ''));
     if (J.checked && c.m === 'role') sum.push('@PreAuthorize는 본문을 실행하기 전에 식을 계산하고, 거짓이면 본문을 한 줄도 실행하지 않습니다. 주소가 아니라 메서드에 걸어 두었으므로, 이 메서드를 어느 컨트롤러에서 부르든 같은 검사를 받습니다.');
     if (J.checked && c.m === 'arg') sum.push('#owner처럼 메서드의 인자를 식에 쓸 수 있어서 "자기 것만"이라는 규칙을 적을 수 있습니다. 주소와 역할만 보는 URL 규칙으로는 적기 어려운 조건입니다. ' + (c.who === 'admin' ? 'ADMIN인 park도 거부된 것은, 이 식이 역할을 묻지 않고 이름만 비교하기 때문입니다.' : '역할이 같은 kim과 lee가 이 식에서는 구별됩니다.'));
@@ -10548,16 +10519,11 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, J = sim.j, c = sim.c, m = this.M[c.m];
     if (!s) { H.text(v, '실행을 누르면 애플리케이션이 뜰 때부터 차례로 진행합니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '서비스 빈', J.proxy ? '프록시로 감싸 둠' : '프록시 없음 (실제 객체 그대로)', J.proxy ? 'good' : 'bad');
-    H.lane(ln, '권한 검사', { '': J.checked ? '아직 실행 전' : s.got ? '실행되지 않음' : '아직 실행 전', skip: '실행되지 않음 (프록시를 거치지 않음)', wait: '본문이 끝난 뒤에 실행할 예정', pass: '식이 참: 통과', deny: '식이 거짓: 거부' }[s.check], { '': s.got && !J.checked ? 'hot' : 'none', skip: 'hot', wait: 'wait', pass: 'good', deny: 'bad' }[s.check]);
-    H.lane(ln, '메서드 본문', s.body ? '실행됨' : s.got ? '실행되지 않음' : '아직 실행 전', s.body ? (J.pass ? 'good' : 'hot') : 'none');
     H.table(v, ['항목', '값'], [
       { cells: ['로그인한 사용자', sim.me + ' · 권한 ROLE_' + sim.role] },
       { cells: ['검사할 식', m.expr] },
       { cells: ['식의 결과', { v: J.pass ? '참 (허용해야 하는 호출)' : '거짓 (거부해야 하는 호출)', cls: J.pass ? 'good' : 'bad' }] },
     ], '이번 호출');
-    H.counters(v, [[s.got || '아직 실행 중', '부른 쪽이 받는 것']]);
   },
   // 그림: 위의 컨트롤러가 아래의 orderService 빈을 부른다. 빈 안의 윗줄이 프록시(권한 검사), 아랫줄이 실제 객체의 메서드다. 같은 클래스 안의 호출은 프록시를 지나지 않고 옆으로 넘어간다.
   draw: function (P, sim, shown) {
@@ -10573,7 +10539,7 @@ Lab.register({
     if (self && s.body) P.arrow('a3', 'wrap:r', 'target:l', { cls: J.pass ? 'mut' : 'bad', label: 'this' });
     if (!self && s.body) P.arrow('a4', 'proxy:b:' + px, 'target:t', { cls: J.proxy ? (J.pass ? 'good' : 'hot') : 'dash' });
     P.box('res', 16, 288, 648, 38, { cls: !s.got ? 'ghost' : J.denied ? 'plain' : !J.checked && !J.pass ? 'bad' : 'good', title: '부른 쪽이 받는 것', right: s.got || '아직 실행 중' });
-    P.note('호출은 위에서 아래로 내려갑니다. 프록시가 있고 호출이 프록시를 지나갈 때에만 권한 검사가 실행됩니다. 점선 화살표는 프록시가 없어 그대로 지나간 호출, "this" 화살표는 같은 클래스 안에서 프록시를 거치지 않고 넘어간 호출입니다. 프록시 상자가 빨간색이면 검사에서 거부한 것이고, 본문 상자가 빨간색이면 거부됐어야 하는데 실행된 것입니다.');
+    P.note('호출은 위에서 아래로 내려갑니다. 점선 화살표는 프록시가 없어 그대로 지나간 호출, "this" 화살표는 같은 클래스 안에서 프록시를 거치지 않고 넘어간 호출입니다. 프록시 상자가 빨간색이면 검사에서 거부한 것이고, 본문 상자가 빨간색이면 거부됐어야 하는데 실행된 것입니다.');
   },
   assume: '서른여섯 가지 조합 모두를 이 PC의 스프링 시큐리티 7.1.1(스프링 프레임워크 7.0.9, JDK 21)에서 화면과 같은 구조의 코드로 실행해 대조했습니다. 조합의 대조는 웹 서버 없이 스프링 컨텍스트에서 서비스 빈의 메서드를 직접 불러서 했으며, 로그인한 사용자는 SecurityContext에 직접 넣었습니다. 권한 검사가 실행됐는지는 검사할 때마다 불리는 AuthorizationEventPublisher 빈으로 세었고, 메서드 본문이 실행됐는지, 부른 쪽이 받은 값이나 예외의 종류, 빈이 프록시인지를 함께 확인했습니다. 거부될 때 던져지는 AuthorizationDeniedException이 AccessDeniedException의 한 종류라는 것도 실행으로 확인했습니다. 웹 요청에서 이 예외가 403 응답이 된다는 것은 스프링 부트 4.1.1 서버를 127.0.0.1에 띄워 따로 확인했습니다. 컨트롤러가 deleteAll()을 부르는 주소에 USER인 kim으로 요청하니 403이 나오고 본문은 실행되지 않았으며, ADMIN인 park으로 요청하니 200이 나왔습니다. 식에서 #owner처럼 인자의 이름을 쓰려면 컴파일할 때 -parameters 옵션이 필요합니다. 이 옵션 없이 컴파일해 실행했더니 #owner가 비어 있어 주인인 kim의 호출도 거부됐습니다(스프링 부트의 빌드 도구는 이 옵션을 기본으로 켠다고 문서에 나와 있으나 그 부분은 확인하지 않았습니다). 로그인 정보가 전혀 없는 상태에서 검사가 걸린 메서드를 부르면 AuthorizationDeniedException이 아니라 AuthenticationCredentialsNotFoundException이 나왔습니다. 화면의 본문 코드(orders.clear() 등)는 뜻을 보이려고 줄여 적은 것이며, 실행할 때는 본문이 실행된 횟수를 세었습니다. 스프링 부트가 이 설정을 대신 켜 주지는 않았습니다. 같은 스프링 부트 서버에서 @EnableMethodSecurity만 빼고 실행하니 USER인 kim의 요청에도 200이 나오고 본문이 실행됐습니다. 같은 클래스 안의 호출에서 검사가 빠지는 것은 프록시 방식의 일반적인 한계이고, "프록시와 자기 호출" 실습에서 자세히 다룹니다. @PreFilter, @PostFilter, @Secured, 직접 만든 빈을 식에서 부르는 방법은 다루지 않았습니다.',
 });
@@ -10670,7 +10636,6 @@ Lab.register({
     else if (who === 'attacker') { res = '클릭재킹을 막음'; row('사용자', '"경품 받기"를 누름', '프레임이 비어 있어 아무 일도 없음', 'good'); push('사용자가 "경품 받기"를 누릅니다: 그 위에 겹쳐 둔 프레임이 비어 있으므로 shop.example의 단추는 눌리지 않습니다. 클릭재킹이 성립하지 않습니다.', 'good'); }
     else if (on) { res = who === 'self' ? '내 페이지의 프레임이 보임' : '협력 사이트의 프레임이 보임'; row('사용자', '페이지를 봄', '프레임 안에 결제 화면이 보임', 'good'); push((who === 'self' ? '장바구니 페이지' : '협력 사이트의 페이지') + ' 안에 결제 화면이 보입니다. 의도한 대로 동작합니다.', 'good'); }
     else { res = who === 'self' ? '내 페이지의 프레임까지 막힘' : '협력 사이트의 프레임까지 막힘'; row('사용자', '페이지를 봄', '프레임 자리가 비어 있음', 'bad'); push((who === 'self' ? '장바구니 페이지' : '협력 사이트의 페이지') + '에서 프레임 자리가 비어 보입니다. 공격을 막으려고 붙인 헤더가 ' + (who === 'self' ? '내 사이트의 기능까지' : '허용하려던 사이트까지') + ' 막았습니다.', 'bad'); }
-    sum.push((hs.length ? '응답에 붙은 헤더는 ' + hsText + '이고' : '응답에 프레임에 관한 헤더가 없고') + ', 브라우저는 결제 화면을 프레임 안에 ' + (on ? '그렸습니다.' : '그리지 않았습니다.') + ' 결과: ' + res + '.');
     if (c.hdr === 'off') sum.push('프레임에 넣지 말라는 헤더가 없으면 브라우저는 어느 사이트의 프레임에든 화면을 그립니다. 프레임을 쓰는 화면 하나(예: H2 콘솔)를 띄우려고 frameOptions를 통째로 끄면 모든 화면이 이 상태가 됩니다. 끄지 말고 sameOrigin으로 바꾸는 편이 안전합니다.');
     if (c.hdr === 'default') sum.push('스프링 시큐리티는 아무 설정을 하지 않아도 X-Frame-Options: DENY를 붙입니다. 가장 안전한 값이지만 같은 사이트의 프레임까지 막으므로, 내 사이트 안에서 프레임을 쓴다면 sameOrigin으로 바꿉니다.');
     if (c.hdr === 'same') sum.push('SAMEORIGIN은 출처(프로토콜, 호스트, 포트)가 같은 페이지의 프레임만 허용합니다. X-Frame-Options로는 "이 사이트 하나만 더 허용"을 적을 수 없습니다. 다른 사이트를 골라 허용하려면 Content-Security-Policy의 frame-ancestors를 씁니다.');
@@ -10707,11 +10672,10 @@ Lab.register({
     if (!atk) push('브라우저가 Location에 적힌 주소로 이동합니다. 도착한 곳은 ' + r.loc + ' 입니다. 로그인 전에 보려던 주문 내역이 열립니다. 이 기능이 원래 하려던 일입니다.', 'good');
     else if (r.away) push('브라우저가 Location에 적힌 주소로 이동합니다. 도착한 곳은 ' + r.loc + ' 입니다. 사용자는 방금 진짜 shop.example에서 로그인했으므로 의심하지 않습니다. 도착한 페이지가 shop.example과 똑같이 생긴 채 "비밀번호를 다시 입력하세요"라고 하면 그대로 입력하기 쉽습니다.', 'bad');
     else push('브라우저가 Location에 적힌 주소로 이동합니다. 도착한 곳은 ' + r.loc + ' 입니다. 공격자가 넣은 주소는 버려졌고 사용자는 shop.example의 첫 화면에 있습니다.', 'good');
-    sum.push('서버가 응답한 Location은 ' + r.loc + ' 이며, 브라우저는 ' + (r.away ? 'attacker.example로 넘어갔습니다.' : 'shop.example에 머물렀습니다.') + ' 결과: ' + res + '.');
     if (r.away && c.check === 'none') sum.push('요청에서 받은 주소로 그대로 보내 주면, 내 사이트의 주소로 시작하는 링크가 어디로든 가는 통로가 됩니다. 사용자는 주소의 앞부분만 보고 믿기 때문에 가짜 로그인 화면으로 끌어들이는 데 쓰입니다.');
     if (r.away && c.check === 'slash') sum.push('"/"로 시작하면 내 사이트의 경로라고 생각하기 쉽지만, //로 시작하는 주소는 다른 호스트를 가리킵니다. 브라우저는 /\\로 시작하는 주소도 //처럼 다루므로 둘째 글자까지 확인해야 합니다.');
-    if (atk && !r.away) sum.push((c.check === 'slash' ? '이 값은 막았지만 "/"로 시작하는지만 보는 검사에는 빈틈이 있습니다. next를 //attacker.example/login으로 바꿔 보세요. ' : '') + '막는 방법은 "받아도 되는 것만 받는다"입니다. 같은 사이트의 경로만 받거나, 더 확실하게는 주소 대신 미리 정해 둔 이름(예: next=orders)을 받아 서버가 가진 목록에서 주소를 찾습니다.');
-    if (!atk) sum.push('정상적인 값은 어떤 검사에서든 같은 결과입니다. 차이는 다른 사이트의 주소가 들어왔을 때 드러납니다. next 값을 바꿔 보세요.');
+    if (atk && !r.away) sum.push((c.check === 'slash' ? '이 값은 막았지만 "/"로 시작하는지만 보는 검사에는 빈틈이 있습니다. ' : '') + '막는 방법은 "받아도 되는 것만 받는다"입니다. 같은 사이트의 경로만 받거나, 더 확실하게는 주소 대신 미리 정해 둔 이름(예: next=orders)을 받아 서버가 가진 목록에서 주소를 찾습니다.');
+    if (!atk) sum.push('정상적인 값은 어떤 검사에서든 같은 결과입니다. 차이는 다른 사이트의 주소가 들어왔을 때 드러납니다.');
     if (atk) sum.push('스프링 시큐리티의 기본 로그인은 돌아갈 주소를 요청의 값이 아니라 서버의 세션에 저장해 둔 것에서 꺼내므로 이 문제가 없습니다. 돌아갈 주소를 요청의 값으로 직접 받도록 만들 때 검사가 필요합니다.');
     return { events: ev, summary: sum, row: ['Location: ' + r.loc, r.away ? 'attacker.example로 이동' : 'shop.example에 머무름', res], away: r.away, loc: r.loc };
   },
@@ -10719,8 +10683,6 @@ Lab.register({
     var last = shown[shown.length - 1], rows = last ? last.snap.rows : [], c = sim.c;
     if (!rows.length) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     H.table(v, ['누가', '무엇을', '결과'], rows, c.topic === 'frame' ? '브라우저와 shop.example 사이에 일어난 일' : '링크를 연 뒤 일어난 일');
-    var done = last.snap.phase === 5;
-    H.counters(v, [[sim.row[0], '서버의 응답 헤더'], [done ? sim.row[2] : '진행 중', '결과']]);
     if (c.topic === 'frame') H.text(v, '기본 설정의 스프링 시큐리티가 응답에 붙이는 헤더는 Cache-Control, Pragma, Expires, X-Content-Type-Options: nosniff, X-Frame-Options: DENY, X-XSS-Protection: 0입니다(http로 보낸 요청의 실제 응답에서 확인. 스프링 시큐리티 문서에 따르면 https 요청에는 Strict-Transport-Security도 붙습니다). 이 가운데 프레임에 관한 것이 X-Frame-Options입니다.');
   },
   // 그림: 클릭재킹은 왼쪽에 브라우저에 열린 페이지와 그 안의 프레임, 오른쪽에 내 서버와 응답 헤더. 리다이렉트는 링크 → 내 서버의 검사 → 도착한 곳.
@@ -10759,7 +10721,7 @@ Lab.register({
 Lab.register({
   id: 'infoleak', nav: '정보 누출', cat: '인증', mode: 'step',
   title: '오류 응답과 로그인 실패 글귀는 무엇을 밖으로 알려 주나',
-  intro: '서버가 실패했을 때 돌려주는 응답에는 생각보다 많은 것이 실릴 수 있습니다. 예외 메시지에 든 SQL 문장, 스택 트레이스에 든 클래스 이름과 줄 번호는 서버 안의 모습을 그대로 보여 주어 공격하는 사람에게 단서가 됩니다. 로그인 실패 글귀가 "없는 아이디"와 "틀린 비밀번호"를 구별해 주면 어떤 아이디가 가입돼 있는지도 알려 주게 됩니다. 설정과 코드를 바꿔 가며 응답에 무엇이 담기는지 보세요.',
+  intro: '서버가 실패했을 때 돌려주는 응답에는 생각보다 많은 것이 실릴 수 있습니다. 예외 메시지에 든 SQL 문장, 스택 트레이스에 든 클래스 이름과 줄 번호는 서버 안의 모습을 그대로 보여 주어 공격하는 사람에게 단서가 됩니다. 로그인 실패 글귀가 "없는 아이디"와 "틀린 비밀번호"를 구별해 주면 어떤 아이디가 가입돼 있는지도 알려 주게 됩니다.',
   terms: ['오류 응답과 정보 누출', '스택 트레이스', '계정 열거', '@ControllerAdvice와 @ExceptionHandler', 'HTTP 상태 코드'],
   controls: [
     { id: 'topic', label: '살펴볼 응답', type: 'select', value: 'boot', options: [['boot', '스프링 부트의 기본 오류 응답'], ['handler', '직접 만든 오류 응답 (@ExceptionHandler)'], ['login', '로그인 실패 응답']] },
@@ -10849,7 +10811,6 @@ Lab.register({
     var leaked = this.leakText(leak), any = leaked !== '없음';
     st.phase = 6;
     push('서버가 500 응답을 보냅니다. 본문의 항목은 ' + keys.join(', ') + '입니다. ' + (any ? '요청을 보낸 사람이 누구든 ' + leaked + '을 읽을 수 있습니다.' : '서버 안의 모습을 알려 주는 내용은 없습니다.'), any ? 'bad' : 'good');
-    sum.push('응답은 500이고 본문의 항목은 ' + keys.join(', ') + '입니다. 새어 나간 내부 정보: ' + leaked + '.');
     if (boot && !any) sum.push('스프링 부트의 기본값은 예외 메시지와 스택 트레이스를 응답에 넣지 않습니다. 개발할 때 always로 바꿔 둔 설정이 운영 서버에 그대로 나가지 않게 하는 것이 중요합니다.');
     if (boot && f.msg && !f.trace) sum.push('메시지 한 줄뿐이지만 그 안에 SQL 문장이 있습니다. 예외 메시지는 개발자가 읽으라고 만든 것이어서 SQL, 파일 경로, 내부 주소 같은 것이 들어가기 쉽습니다.');
     if (boot && f.trace) sum.push('스택 트레이스는 가장 많은 것을 알려 줍니다. 쓰는 프레임워크와 DB, 내 코드의 클래스 이름과 구조가 보이고, 첫 줄에 예외 메시지가 들어 있어 include-message를 never로 두어도 SQL이 함께 나갑니다.');
@@ -10880,7 +10841,6 @@ Lab.register({
     st.learned = learned;
     if (f.same) push('공격자가 다른 아이디로 받은 응답과 비교합니다: 가입하지 않은 아이디든 비밀번호가 틀린 아이디든 상태 코드와 본문이 똑같습니다. 이 응답만으로는 그 아이디가 가입돼 있는지 알 수 없습니다.', 'good');
     else push('공격자가 다른 아이디로 받은 응답과 비교합니다: ' + (f.none ? '비밀번호가 틀렸을 때' : '가입하지 않은 아이디일 때') + '의 본문은 ' + f.otherBody + '로, 지금 받은 것과 다릅니다. 그래서 ' + id + (f.none ? '는 가입돼 있지 않다' : '은 가입돼 있다') + '는 것을 알게 됩니다. 아이디를 바꿔 가며 되풀이하면 가입된 아이디의 목록이 만들어집니다.', 'bad');
-    sum.push('응답은 401이고 본문에 담긴 것은 ' + f.body + ' 입니다. 공격자가 알게 된 것: ' + learned + '.');
     if (!f.same) sum.push('로그인에 실패한 이유를 친절하게 나눠 알려 주면 "이 아이디는 가입돼 있다"는 정보가 함께 나갑니다. 가입된 아이디의 목록은 비밀번호를 대입해 보거나 속이는 메일을 보낼 대상이 됩니다. 실패 글귀는 "아이디 또는 비밀번호가 올바르지 않습니다."처럼 하나로 합니다.');
     if (c.lg === 'sec') sum.push('스프링 시큐리티는 기본으로 두 경우를 같은 예외(BadCredentialsException)로 만들고, 아이디가 없을 때도 비밀번호 비교를 한 번 수행해 응답 시간으로 구별하기 어렵게 합니다.');
     if (c.lg === 'unhide') sum.push('hideUserNotFoundExceptions를 false로 바꾸면 두 예외가 구별됩니다. 서버의 로그에서 원인을 나눠 보려는 뜻이라도, 그 차이가 응답에 드러나지 않게 해야 합니다.');
@@ -10892,17 +10852,11 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     if (c.topic === 'login') {
-      var ln = H.lanes(v);
-      H.lane(ln, '아이디로 회원 찾기', s.found || '아직 찾기 전', s.found ? 'hot' : 'none');
-      H.lane(ln, '비밀번호 비교', s.pw || '아직 비교 전', s.pw ? 'hot' : 'none');
-      H.lane(ln, '응답', s.body ? '401 · ' + s.body : '아직 응답 전', s.body ? 'wait' : 'none');
-      H.counters(v, [[s.learned || '진행 중', '공격자가 알게 된 것']]);
       H.text(v, '글귀는 버전과 언어 설정에 따라 다릅니다. 이 PC의 스프링 시큐리티 7.1.1에서는 BadCredentialsException의 메시지가 "자격 증명에 실패하였습니다.", UsernameNotFoundException의 메시지가 "user not found"였습니다.');
       return;
     }
     if (s.items.length) H.table(v, ['항목', '담긴 값', '서버 안의 정보인가'], s.items.map(function (it) { return { cells: [it.k, it.v, { v: it.cls === 'bad' ? '예' : '아니오', cls: it.cls === 'bad' ? 'bad' : 'good' }] }; }), '응답 본문 (JSON)' + (s.made ? ' · 만든 곳: ' + s.made : ''));
     else H.text(v, '아직 응답을 만들기 전입니다.');
-    H.counters(v, [[s.phase === 6 ? '500' : '처리 중', '응답 상태'], [s.phase === 6 ? sim.row[2] : '진행 중', '새어 나간 내부 정보']]);
     if (c.topic === 'boot') H.text(v, '스프링 부트 3까지는 이 설정의 이름이 server.error.include-message, server.error.include-stacktrace였습니다. 스프링 부트 4.1.1에서 예전 이름으로 always를 주면 적용되지 않고 기본값(never)으로 동작했습니다.');
   },
   // 그림: 오류 응답은 왼쪽에 서버 안에서 일어난 일(요청, 예외, 응답을 만드는 곳), 오른쪽에 응답 본문의 항목. 로그인은 서버 안의 두 단계와 두 경우의 응답을 나란히 놓아 같은지 다른지를 보인다.
@@ -10922,7 +10876,7 @@ Lab.register({
       P.box('l_exist', 346, 176, 318, 68, { cls: (!f.none ? ph >= 4 : cmp) ? ((cmp ? (f.same ? 'good' : 'bad') : 'hot') + (!f.none ? ' now' : '')) : 'ghost', title: '비밀번호가 틀렸을 때의 응답', sub: (!f.none ? ph >= 4 : cmp) ? ['401', !f.none ? f.body : f.otherBody] : [!f.none ? '아직 응답 전' : '(다른 경우)', ' '] });
       if (ph >= 4) P.arrow('l_a3', (f.matches ? 'l_pw' : 'l_find') + ':b', mine + ':t', { cls: 'hot', label: '응답' });
       P.box('l_res', 16, 264, 648, 36, { cls: !cmp ? 'ghost' : f.same ? 'good' : 'bad', title: '공격자가 알게 된 것', right: cmp ? s.learned : '진행 중' });
-      P.note('굵은 테두리가 이번 시도에 대한 응답입니다. 두 경우의 응답이 서로 다르면, 공격자는 응답을 보고 그 아이디가 가입돼 있는지를 가려낼 수 있습니다.');
+      P.note('굵은 테두리가 이번 시도에 대한 응답입니다.');
       return;
     }
     var boot = c.topic === 'boot', q = boot && c.trace === 'on_param' && c.q, items = s.items;
@@ -10941,7 +10895,7 @@ Lab.register({
     });
     if (ph >= 3 && items.length) P.arrow('e_a3', 'e_mk:r', 'e_k_' + items[0].k.split(',')[0] + ':l', { cls: 'hot' });
     P.box('e_res', 16, 264, 648, 36, { cls: ph < 6 ? 'ghost' : sim.row[2] === '없음' ? 'good' : 'bad', title: '새어 나간 내부 정보', right: ph < 6 ? '진행 중' : sim.row[2] });
-    P.note('빨간 항목이 서버 안의 모습을 알려 주는 내용입니다. 예외는 개발자가 원인을 찾으라고 만든 것이라 자세할수록 좋지만, 그 자세한 내용이 갈 곳은 응답이 아니라 서버의 로그입니다.');
+    P.note('빨간 항목이 서버 안의 모습을 알려 주는 내용입니다.');
   },
   assume: '오류 응답 열두 가지(메시지 설정 2 × 스택 트레이스 설정 3 × trace 파라미터 유무)와 직접 만든 응답 두 가지, 로그인 실패 여섯 가지를 스프링 부트 4.1.1(스프링 시큐리티 7.1.1, 스프링 JDBC, H2) 서버를 127.0.0.1에 띄워 실제 응답과 대조했습니다. 응답의 글귀와 스택 트레이스의 줄 수는 버전과 환경에 따라 달라지므로, 대조한 것은 본문에 어떤 항목이 있는지, 본문에 SQL 문장과 스택 트레이스의 줄과 DB 드라이버의 이름이 보이는지, 두 로그인 실패 응답이 같은지, 어떤 예외가 났는지, 비밀번호 비교가 몇 번 불렸는지입니다. 화면의 message 값은 이 PC에서 본 것이고, errorId의 예는 꾸민 값입니다. JSON으로 받는 요청을 기준으로 했으며, 브라우저처럼 HTML을 받는 요청에는 같은 내용이 오류 화면에 실리는 것을 한 가지 설정에서 확인했습니다. 설정 이름은 스프링 부트 4.1.1의 spring.web.error.*를 썼습니다(스프링 부트 3까지는 server.error.*). include-exception, include-binding-errors와 message의 on_param 값은 다루지 않았습니다. 안전한 응답에서 예외 전체가 로그에 남는 것은 로그 기록을 모아 확인했습니다. 실행하지 않은 것: 응답 시간의 차이는 재지 않았고(비밀번호 비교가 불린 횟수만 확인), 회원 가입과 비밀번호 찾기 화면의 글귀는 OWASP의 인증 관련 안내를 따른 설명입니다. 새어 나간 정보가 실제 공격에 얼마나 쓰이는지는 서버마다 다릅니다.',
 });
@@ -11160,7 +11114,6 @@ Lab.register({
       verdict = evil ? (moved ? '악성 버전이 자동으로 들어옴' : '악성 버전이 들어오지 않음') : (moved ? '고친 버전을 자동으로 따라감' : '고친 버전이 나왔지만 예전 버전 그대로');
       st.verdict = verdict;
       push(evil ? (moved ? '빌드는 성공합니다. 오류도 경고도 없습니다. 악성 코드가 든 web-kit 2.1.0이 내 프로그램의 일부로 배포됩니다.' : '빌드에 들어온 것은 처음 빌드한 날과 똑같습니다. 악성 버전은 들어오지 않았습니다.') : (moved ? 'web-kit 2.0.1이 json-lite 1.2.1을 요구하므로 json-lite도 고친 버전으로 바뀌었습니다. 아무것도 하지 않았는데 취약점이 고쳐졌습니다.' : '빌드에 들어온 것은 처음 빌드한 날과 똑같습니다. 고친 버전이 나와 있지만 취약한 json-lite 1.2.0이 그대로 남아 있습니다.'), k);
-      sum.push('다시 빌드했을 때 들어온 것은 web-kit ' + wkNow + ', json-lite ' + jlNow + '입니다. 판정: ' + verdict + '.');
       if (c.ver === 'range') sum.push('버전을 범위로 적으면 같은 코드를 빌드해도 날마다 결과가 달라질 수 있습니다. 고친 버전을 자동으로 받는 것도, 악성 버전을 자동으로 받는 것도 같은 성질에서 나옵니다. 무엇이 들어올지를 저장소에 올리는 사람이 정하게 됩니다.');
       if (c.ver === 'fixed') sum.push('버전을 고정하면 내가 고쳐 적기 전에는 바뀌지 않습니다. 다만 직접 적은 것만 고정됩니다. web-kit의 설명 파일이 json-lite를 범위로 적어 두었다면 그쪽은 여전히 바뀔 수 있고, 그것까지 묶어 두는 것이 잠금 파일입니다.');
       if (c.ver === 'lock') sum.push('잠금 파일은 전이 의존성까지 모든 버전을 적어 두고 그대로만 받게 합니다. 누가 언제 빌드해도 같은 결과가 나옵니다. 새 버전은 내가 잠금 파일을 갱신할 때만 들어오므로, 그때 무엇이 바뀌는지 살펴볼 수 있습니다.');
@@ -11183,10 +11136,9 @@ Lab.register({
       else push('build.gradle의 constraints에 json-lite 1.2.1을 적습니다. web-kit ' + wkNow + '의 설명 파일은 여전히 json-lite ' + REG['web-kit'][wkNow]['json-lite'] + ' 버전을 요구하지만, 한 라이브러리에 요구가 둘이면 Gradle은 더 높은 버전을 고릅니다. web-kit은 그대로 두고 json-lite만 1.2.1 버전으로 바뀝니다.', 'good');
       verdict = fixed ? '취약점이 고쳐진 json-lite로 바뀜' : '취약한 json-lite가 그대로 남음'; st.verdict = verdict; k = fixed ? 'good' : 'bad';
       push('다시 빌드한 결과: web-kit ' + wkNow + ', json-lite ' + jlNow + '. ' + (fixed ? '취약한 버전이 빌드에서 빠졌습니다. 바꾼 뒤에는 테스트를 돌려 전과 같이 동작하는지 확인합니다.' : '취약한 버전이 여전히 내 프로그램 안에 있습니다.'), k);
-      sum.push('빌드에 들어온 것은 web-kit ' + wkNow + ', json-lite ' + jlNow + '입니다. 판정: ' + verdict + '.');
       sum.push('빌드에 들어온 라이브러리는 네 개인데 내가 적은 것은 둘뿐입니다. 취약점 공지는 내가 적지 않은 쪽에서도 나옵니다. 그래서 전이 의존성까지 포함한 전체 목록과 버전을 알고 있어야 하고, 의존성 나무(./gradlew dependencies)와 dependencyInsight로 경로를 찾습니다.');
       if (c.act === 'bump' && c.avail === 'yes') sum.push('직접 의존성이 고친 버전을 냈다면 그것을 올리는 것이 가장 깔끔합니다. web-kit을 만든 쪽이 json-lite 1.2.1과 함께 시험한 조합을 그대로 받기 때문입니다.');
-      if (c.act === 'bump' && c.avail === 'no') sum.push('직접 의존성이 아직 새 버전을 내지 않았다면 기다리는 동안 취약한 채로 남습니다. 이럴 때는 전이 의존성의 버전만 덮어쓰는 방법이 있습니다. 대응을 "json-lite의 버전만 덮어씀"으로 바꿔 보세요.');
+      if (c.act === 'bump' && c.avail === 'no') sum.push('직접 의존성이 아직 새 버전을 내지 않았다면 기다리는 동안 취약한 채로 남습니다. 이럴 때는 전이 의존성의 버전만 덮어쓰는 방법이 있습니다.');
       if (c.act === 'override') sum.push('덮어쓰기는 직접 의존성이 새 버전을 내기 전에도 쓸 수 있습니다. 대신 web-kit ' + wkNow + '을 만든 쪽이 시험해 보지 않은 조합일 수 있으므로 테스트로 확인하고, 필요 없어지면 덮어쓴 줄을 지웁니다.' + (c.avail === 'yes' ? ' 지금처럼 web-kit의 고친 버전이 나와 있다면 그것을 올리는 편이 낫습니다.' : ''));
       if (c.act === 'none') sum.push('취약점이 알려졌다는 사실을 Gradle이 빌드할 때 스스로 알려 주지는 않습니다. 의존성의 취약점을 찾아 주는 검사 도구를 빌드 과정에 넣어 두고 공지를 꾸준히 확인해야 알아챌 수 있습니다.');
     } else {
@@ -11196,8 +11148,7 @@ Lab.register({
       if (c.name === 'miss') {
         verdict = '빌드 실패로 오타를 알아챔'; st.verdict = verdict;
         push('빌드 도구는 적힌 이름 그대로 저장소에서 찾습니다. web-kitt라는 이름의 패키지는 저장소에 없습니다. "찾을 수 없다"는 오류로 빌드가 멈춥니다. 오류 덕분에 오타를 알아채고 고칠 수 있습니다.', 'good');
-        sum.push('빌드가 실패해 아무것도 들어오지 않았습니다. 판정: ' + verdict + '.');
-        sum.push('오타가 오류로 드러나는 것은 그 이름으로 올라온 패키지가 없을 때뿐입니다. 누군가 그 이름을 먼저 차지해 두었다면 오류 없이 다른 것이 들어옵니다. 이름을 web-kti로 바꿔 보세요.');
+        sum.push('오타가 오류로 드러나는 것은 그 이름으로 올라온 패키지가 없을 때뿐입니다. 누군가 그 이름을 먼저 차지해 두었다면 오류 없이 다른 것이 들어옵니다.');
         return { events: ev, summary: sum, row: ['없음 (빌드 실패)', '없음 (빌드 실패)', verdict], ver: now.ver, missing: now.missing, path: [] };
       }
       st.reg = regText(p.avail, true); st.libs = libs(now, true, [nm, 'mail-kit', 'text-util']);
@@ -11206,9 +11157,8 @@ Lab.register({
       push(c.name === 'ok' ? 'web-kit 2.0.0의 설명 파일(POM)을 읽습니다: json-lite 1.2.0이 필요하다고 적혀 있으므로 함께 들어옵니다.' : '가짜 web-kti의 설명 파일(POM)에는 진짜 web-kit 2.0.0이 의존성으로 적혀 있습니다. 그래서 진짜 web-kit과 json-lite도 함께 들어오고, 내 코드는 평소처럼 컴파일되고 동작합니다. 눈에 띄는 이상이 없습니다.', c.name === 'ok' ? '' : 'bad');
       verdict = c.name === 'ok' ? '의도한 라이브러리가 들어옴' : '가짜 패키지가 함께 들어옴'; st.verdict = verdict; k = c.name === 'ok' ? 'good' : 'bad';
       push(c.name === 'ok' ? '빌드에 들어온 것은 web-kit 2.0.0과 그것이 끌어온 json-lite 1.2.0입니다. 의도한 대로입니다.' : '빌드는 성공합니다. 가짜 web-kti 안에 든 코드도 내 프로그램의 일부가 되어 같은 권한으로 실행됩니다. 서버의 환경 변수나 파일을 읽어 밖으로 보내는 코드가 들어 있어도 막을 것이 없습니다.', k);
-      sum.push('빌드에 들어온 것은 ' + (c.name === 'typo' ? 'web-kti 2.0.0(가짜), ' : '') + 'web-kit ' + wkNow + ', json-lite ' + jlNow + '입니다. 판정: ' + verdict + '.');
       if (c.name === 'typo') sum.push('이름이 비슷한 가짜 패키지를 올려 두고 오타를 기다리는 수법을 타이포스쿼팅이라고 합니다. 진짜를 의존성으로 끌어와 정상 동작하게 만들면 알아채기 어렵습니다. 이름을 외워서 치지 말고 공식 문서나 저장소 페이지에서 복사하고, 새 의존성을 추가한 변경은 코드 리뷰에서 이름과 만든 곳을 확인합니다.');
-      if (c.name === 'ok') sum.push('바르게 적었을 때와 오타를 냈을 때 빌드 화면은 똑같이 성공으로 보입니다. 차이는 들어온 라이브러리의 목록에만 있습니다. 이름을 web-kti로 바꿔 비교해 보세요.');
+      if (c.name === 'ok') sum.push('바르게 적었을 때와 오타를 냈을 때 빌드 화면은 똑같이 성공으로 보입니다. 차이는 들어온 라이브러리의 목록에만 있습니다.');
     }
     var wkCol = (c.topic === 'typo' && c.name === 'typo' ? 'web-kti 2.0.0(가짜)과 ' : '') + 'web-kit ' + wkNow;
     return { events: ev, summary: sum, row: [wkCol, 'json-lite ' + jlNow, verdict], ver: now.ver, missing: now.missing, path: this.pathTo(now, 'json-lite') };
@@ -11217,10 +11167,8 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     H.table(v, ['라이브러리', '버전', '어떻게 들어왔나', '상태'], s.libs.map(function (l) { return { cells: [l.n, l.v, l.from === 'shop-api' ? '내가 build.gradle에 적음 (직접)' : l.from + '이 필요로 함 (전이)', { v: l.note || '-', cls: l.cls }] }; }), '지금 빌드에 들어와 있는 라이브러리 ' + s.libs.length + '개');
-    H.table(v, ['라이브러리', '저장소에 올라와 있는 버전'], s.reg.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[2] }] }; }), '패키지 저장소 (꾸민 것)');
     if (s.lock) H.text(v, '잠금 파일에 적힌 버전: ' + s.lock);
     if (s.path) H.text(v, 'json-lite가 들어온 길: ' + s.path);
-    H.counters(v, [[s.verdict || '진행 중', '판정']]);
   },
   // 그림: 위에 패키지 저장소에 올라와 있는 버전, 아래에 내 프로젝트에서 시작해 직접 의존성, 전이 의존성으로 뻗는 의존성 나무.
   draw: function (P, sim, shown) {
@@ -11239,7 +11187,7 @@ Lab.register({
     s.libs.forEach(function (l) { P.arrow('A_' + l.n, l.from === 'shop-api' ? 'root:r:' + (l.row ? 0.72 : 0.22) : 'L_' + l.from + ':r', 'L_' + l.n + ':l', { cls: l.cls === 'bad' ? 'bad' : l.cls === 'good' ? 'good' : '' }); });
     var bad = /남음|자동으로 들어옴|가짜|예전 버전/.test(s.verdict);
     P.box('res', 16, 264, 648, 36, { cls: !s.verdict ? 'ghost' : bad ? 'bad' : 'good', title: '판정', right: s.verdict || '진행 중' });
-    P.note('화살표는 "이것이 저것을 필요로 한다"는 뜻입니다. 내가 적은 것은 shop-api에서 바로 이어진 상자뿐이고, 그 오른쪽은 빌드 도구가 설명 파일을 따라가며 스스로 가져온 것입니다. 어느 상자든 내 프로그램 안에서 같은 권한으로 실행됩니다.');
+    P.note('화살표는 "이것이 저것을 필요로 한다"는 뜻입니다. 내가 적은 것은 shop-api에서 바로 이어진 상자뿐이고, 그 오른쪽은 빌드 도구가 설명 파일을 따라가며 스스로 가져온 것입니다.');
   },
   assume: '개념을 보이기 위한 모형이며, lab.demo로 시작하는 라이브러리와 그 버전, 취약점, 악성 버전, 가짜 패키지는 모두 꾸민 것입니다. 실제 라이브러리나 실제 취약점 번호와는 관계가 없습니다. 내용의 틀은 OWASP Top 10:2025의 A03(Software Supply Chain Failures, 소프트웨어 공급망 실패)이 다루는 범위를 따랐습니다: 직접 쓰는 것뿐 아니라 전이 의존성까지 버전을 파악할 것, 취약점 공지를 꾸준히 확인할 것, 믿을 수 있는 출처에서 받을 것. 버전이 정해지는 규칙은 Gradle을 기준으로 했고, 열다섯 가지 조합에서 어떤 버전이 들어오는지와 json-lite가 들어오는 길을, 꾸민 라이브러리의 설명 파일(POM)만 담은 이 PC 안의 저장소를 Gradle 8.14.3으로 실제 해석한 결과와 대조했습니다(네트워크 없이 실행). 실행으로 확인한 규칙: 2.+ 는 2.으로 시작하는 버전 가운데 가장 높은 것을 고른다, 잠금 파일이 있으면 거기 적힌 버전을 받는다, 한 라이브러리에 요구가 여럿이면 가장 높은 버전을 고른다, 없는 이름은 찾을 수 없다는 오류가 된다. 잠금 파일이 있는 채로 build.gradle의 버전만 고치면 잠금 파일과 맞지 않는다는 오류가 나므로 잠금 파일도 함께 갱신해야 한다는 것도 확인했습니다. 실행으로 확인하지 않은 것: "취약", "악성", "가짜"라는 판정은 꾸민 줄거리이고, 빌드에 들어온 코드가 실제로 실행되는 과정은 다루지 않았습니다. 버전 규칙은 도구마다 다릅니다. Maven은 요구가 여럿일 때 가장 높은 버전이 아니라 내 프로젝트에 가장 가까운 쪽의 버전을 고르고(Maven 문서의 의존성 중재), npm은 ^1.2.0처럼 범위를 기본으로 적고 package-lock.json으로 고정합니다. 이름이 비슷한 가짜 패키지는 이름만으로 패키지를 구분하는 저장소에서 주로 문제가 되며, Maven Central은 그룹 이름의 소유를 확인하므로 같은 그룹 아래에 가짜를 올리기는 어렵습니다. 여기서는 설명을 위해 같은 그룹에 둔 것으로 꾸몄습니다.',
 });

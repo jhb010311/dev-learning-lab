@@ -1,7 +1,7 @@
 Lab.register({
   id: 'infoleak', nav: '정보 누출', cat: '인증', mode: 'step',
   title: '오류 응답과 로그인 실패 글귀는 무엇을 밖으로 알려 주나',
-  intro: '서버가 실패했을 때 돌려주는 응답에는 생각보다 많은 것이 실릴 수 있습니다. 예외 메시지에 든 SQL 문장, 스택 트레이스에 든 클래스 이름과 줄 번호는 서버 안의 모습을 그대로 보여 주어 공격하는 사람에게 단서가 됩니다. 로그인 실패 글귀가 "없는 아이디"와 "틀린 비밀번호"를 구별해 주면 어떤 아이디가 가입돼 있는지도 알려 주게 됩니다. 설정과 코드를 바꿔 가며 응답에 무엇이 담기는지 보세요.',
+  intro: '서버가 실패했을 때 돌려주는 응답에는 생각보다 많은 것이 실릴 수 있습니다. 예외 메시지에 든 SQL 문장, 스택 트레이스에 든 클래스 이름과 줄 번호는 서버 안의 모습을 그대로 보여 주어 공격하는 사람에게 단서가 됩니다. 로그인 실패 글귀가 "없는 아이디"와 "틀린 비밀번호"를 구별해 주면 어떤 아이디가 가입돼 있는지도 알려 주게 됩니다.',
   terms: ['오류 응답과 정보 누출', '스택 트레이스', '계정 열거', '@ControllerAdvice와 @ExceptionHandler', 'HTTP 상태 코드'],
   controls: [
     { id: 'topic', label: '살펴볼 응답', type: 'select', value: 'boot', options: [['boot', '스프링 부트의 기본 오류 응답'], ['handler', '직접 만든 오류 응답 (@ExceptionHandler)'], ['login', '로그인 실패 응답']] },
@@ -91,7 +91,6 @@ Lab.register({
     var leaked = this.leakText(leak), any = leaked !== '없음';
     st.phase = 6;
     push('서버가 500 응답을 보냅니다. 본문의 항목은 ' + keys.join(', ') + '입니다. ' + (any ? '요청을 보낸 사람이 누구든 ' + leaked + '을 읽을 수 있습니다.' : '서버 안의 모습을 알려 주는 내용은 없습니다.'), any ? 'bad' : 'good');
-    sum.push('응답은 500이고 본문의 항목은 ' + keys.join(', ') + '입니다. 새어 나간 내부 정보: ' + leaked + '.');
     if (boot && !any) sum.push('스프링 부트의 기본값은 예외 메시지와 스택 트레이스를 응답에 넣지 않습니다. 개발할 때 always로 바꿔 둔 설정이 운영 서버에 그대로 나가지 않게 하는 것이 중요합니다.');
     if (boot && f.msg && !f.trace) sum.push('메시지 한 줄뿐이지만 그 안에 SQL 문장이 있습니다. 예외 메시지는 개발자가 읽으라고 만든 것이어서 SQL, 파일 경로, 내부 주소 같은 것이 들어가기 쉽습니다.');
     if (boot && f.trace) sum.push('스택 트레이스는 가장 많은 것을 알려 줍니다. 쓰는 프레임워크와 DB, 내 코드의 클래스 이름과 구조가 보이고, 첫 줄에 예외 메시지가 들어 있어 include-message를 never로 두어도 SQL이 함께 나갑니다.');
@@ -122,7 +121,6 @@ Lab.register({
     st.learned = learned;
     if (f.same) push('공격자가 다른 아이디로 받은 응답과 비교합니다: 가입하지 않은 아이디든 비밀번호가 틀린 아이디든 상태 코드와 본문이 똑같습니다. 이 응답만으로는 그 아이디가 가입돼 있는지 알 수 없습니다.', 'good');
     else push('공격자가 다른 아이디로 받은 응답과 비교합니다: ' + (f.none ? '비밀번호가 틀렸을 때' : '가입하지 않은 아이디일 때') + '의 본문은 ' + f.otherBody + '로, 지금 받은 것과 다릅니다. 그래서 ' + id + (f.none ? '는 가입돼 있지 않다' : '은 가입돼 있다') + '는 것을 알게 됩니다. 아이디를 바꿔 가며 되풀이하면 가입된 아이디의 목록이 만들어집니다.', 'bad');
-    sum.push('응답은 401이고 본문에 담긴 것은 ' + f.body + ' 입니다. 공격자가 알게 된 것: ' + learned + '.');
     if (!f.same) sum.push('로그인에 실패한 이유를 친절하게 나눠 알려 주면 "이 아이디는 가입돼 있다"는 정보가 함께 나갑니다. 가입된 아이디의 목록은 비밀번호를 대입해 보거나 속이는 메일을 보낼 대상이 됩니다. 실패 글귀는 "아이디 또는 비밀번호가 올바르지 않습니다."처럼 하나로 합니다.');
     if (c.lg === 'sec') sum.push('스프링 시큐리티는 기본으로 두 경우를 같은 예외(BadCredentialsException)로 만들고, 아이디가 없을 때도 비밀번호 비교를 한 번 수행해 응답 시간으로 구별하기 어렵게 합니다.');
     if (c.lg === 'unhide') sum.push('hideUserNotFoundExceptions를 false로 바꾸면 두 예외가 구별됩니다. 서버의 로그에서 원인을 나눠 보려는 뜻이라도, 그 차이가 응답에 드러나지 않게 해야 합니다.');
@@ -134,17 +132,11 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
     if (c.topic === 'login') {
-      var ln = H.lanes(v);
-      H.lane(ln, '아이디로 회원 찾기', s.found || '아직 찾기 전', s.found ? 'hot' : 'none');
-      H.lane(ln, '비밀번호 비교', s.pw || '아직 비교 전', s.pw ? 'hot' : 'none');
-      H.lane(ln, '응답', s.body ? '401 · ' + s.body : '아직 응답 전', s.body ? 'wait' : 'none');
-      H.counters(v, [[s.learned || '진행 중', '공격자가 알게 된 것']]);
       H.text(v, '글귀는 버전과 언어 설정에 따라 다릅니다. 이 PC의 스프링 시큐리티 7.1.1에서는 BadCredentialsException의 메시지가 "자격 증명에 실패하였습니다.", UsernameNotFoundException의 메시지가 "user not found"였습니다.');
       return;
     }
     if (s.items.length) H.table(v, ['항목', '담긴 값', '서버 안의 정보인가'], s.items.map(function (it) { return { cells: [it.k, it.v, { v: it.cls === 'bad' ? '예' : '아니오', cls: it.cls === 'bad' ? 'bad' : 'good' }] }; }), '응답 본문 (JSON)' + (s.made ? ' · 만든 곳: ' + s.made : ''));
     else H.text(v, '아직 응답을 만들기 전입니다.');
-    H.counters(v, [[s.phase === 6 ? '500' : '처리 중', '응답 상태'], [s.phase === 6 ? sim.row[2] : '진행 중', '새어 나간 내부 정보']]);
     if (c.topic === 'boot') H.text(v, '스프링 부트 3까지는 이 설정의 이름이 server.error.include-message, server.error.include-stacktrace였습니다. 스프링 부트 4.1.1에서 예전 이름으로 always를 주면 적용되지 않고 기본값(never)으로 동작했습니다.');
   },
   // 그림: 오류 응답은 왼쪽에 서버 안에서 일어난 일(요청, 예외, 응답을 만드는 곳), 오른쪽에 응답 본문의 항목. 로그인은 서버 안의 두 단계와 두 경우의 응답을 나란히 놓아 같은지 다른지를 보인다.
@@ -164,7 +156,7 @@ Lab.register({
       P.box('l_exist', 346, 176, 318, 68, { cls: (!f.none ? ph >= 4 : cmp) ? ((cmp ? (f.same ? 'good' : 'bad') : 'hot') + (!f.none ? ' now' : '')) : 'ghost', title: '비밀번호가 틀렸을 때의 응답', sub: (!f.none ? ph >= 4 : cmp) ? ['401', !f.none ? f.body : f.otherBody] : [!f.none ? '아직 응답 전' : '(다른 경우)', ' '] });
       if (ph >= 4) P.arrow('l_a3', (f.matches ? 'l_pw' : 'l_find') + ':b', mine + ':t', { cls: 'hot', label: '응답' });
       P.box('l_res', 16, 264, 648, 36, { cls: !cmp ? 'ghost' : f.same ? 'good' : 'bad', title: '공격자가 알게 된 것', right: cmp ? s.learned : '진행 중' });
-      P.note('굵은 테두리가 이번 시도에 대한 응답입니다. 두 경우의 응답이 서로 다르면, 공격자는 응답을 보고 그 아이디가 가입돼 있는지를 가려낼 수 있습니다.');
+      P.note('굵은 테두리가 이번 시도에 대한 응답입니다.');
       return;
     }
     var boot = c.topic === 'boot', q = boot && c.trace === 'on_param' && c.q, items = s.items;
@@ -183,7 +175,7 @@ Lab.register({
     });
     if (ph >= 3 && items.length) P.arrow('e_a3', 'e_mk:r', 'e_k_' + items[0].k.split(',')[0] + ':l', { cls: 'hot' });
     P.box('e_res', 16, 264, 648, 36, { cls: ph < 6 ? 'ghost' : sim.row[2] === '없음' ? 'good' : 'bad', title: '새어 나간 내부 정보', right: ph < 6 ? '진행 중' : sim.row[2] });
-    P.note('빨간 항목이 서버 안의 모습을 알려 주는 내용입니다. 예외는 개발자가 원인을 찾으라고 만든 것이라 자세할수록 좋지만, 그 자세한 내용이 갈 곳은 응답이 아니라 서버의 로그입니다.');
+    P.note('빨간 항목이 서버 안의 모습을 알려 주는 내용입니다.');
   },
   assume: '오류 응답 열두 가지(메시지 설정 2 × 스택 트레이스 설정 3 × trace 파라미터 유무)와 직접 만든 응답 두 가지, 로그인 실패 여섯 가지를 스프링 부트 4.1.1(스프링 시큐리티 7.1.1, 스프링 JDBC, H2) 서버를 127.0.0.1에 띄워 실제 응답과 대조했습니다. 응답의 글귀와 스택 트레이스의 줄 수는 버전과 환경에 따라 달라지므로, 대조한 것은 본문에 어떤 항목이 있는지, 본문에 SQL 문장과 스택 트레이스의 줄과 DB 드라이버의 이름이 보이는지, 두 로그인 실패 응답이 같은지, 어떤 예외가 났는지, 비밀번호 비교가 몇 번 불렸는지입니다. 화면의 message 값은 이 PC에서 본 것이고, errorId의 예는 꾸민 값입니다. JSON으로 받는 요청을 기준으로 했으며, 브라우저처럼 HTML을 받는 요청에는 같은 내용이 오류 화면에 실리는 것을 한 가지 설정에서 확인했습니다. 설정 이름은 스프링 부트 4.1.1의 spring.web.error.*를 썼습니다(스프링 부트 3까지는 server.error.*). include-exception, include-binding-errors와 message의 on_param 값은 다루지 않았습니다. 안전한 응답에서 예외 전체가 로그에 남는 것은 로그 기록을 모아 확인했습니다. 실행하지 않은 것: 응답 시간의 차이는 재지 않았고(비밀번호 비교가 불린 횟수만 확인), 회원 가입과 비밀번호 찾기 화면의 글귀는 OWASP의 인증 관련 안내를 따른 설명입니다. 새어 나간 정보가 실제 공격에 얼마나 쓰이는지는 서버마다 다릅니다.',
 });

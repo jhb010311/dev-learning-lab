@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
+<link rel="stylesheet" href="../../app.css?v=f117ff1ed2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 인증</p>
 <h1>세션 하이재킹과 세션 고정</h1>
 <p><b>세션 ID를 아는 사람이 곧 그 사용자다</b></p>
-<p>서버는 요청의 쿠키에 실려 온 세션 ID만 보고 &quot;누구의 요청인지&quot;를 정합니다. 그래서 로그인된 세션의 ID를 아는 사람은 비밀번호를 몰라도 그 사용자로 행세할 수 있습니다(세션 하이재킹). 세션 고정은 순서를 뒤집은 것입니다. 로그인 전에 쓰던 세션 ID가 로그인 뒤에도 그대로이면, 그 ID를 미리 알고 있던 사람이 로그인된 세션을 쓰게 됩니다. 로그인할 때 서버가 세션을 어떻게 처리하는지 바꿔 가며, 다른 사람이 알고 있는 ID로 보낸 요청이 어떻게 되는지 확인합니다.</p>
+<p>서버는 요청의 쿠키에 실려 온 세션 ID만 보고 &quot;누구의 요청인지&quot;를 정합니다. 그래서 로그인된 세션의 ID를 아는 사람은 비밀번호를 몰라도 그 사용자로 행세할 수 있습니다(세션 하이재킹). 세션 고정은 순서를 뒤집은 것입니다. 로그인 전에 쓰던 세션 ID가 로그인 뒤에도 그대로이면, 그 ID를 미리 알고 있던 사람이 로그인된 세션을 쓰게 됩니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버를 127.0.0.1에 띄워 열두 가지 조합의 로그인 전후 세션 ID와 응답을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>로그인 뒤 세션 ID는 로그인 전과 같고, 다른 사람이 그 ID로 보낸 요청은 kim의 요청으로 처리됐습니다(200).</li>
 <li>세션 고정: 로그인 전후의 세션 ID가 같으면, 그 ID를 미리 알고 있던 사람은 비밀번호를 몰라도 로그인된 세션을 쓰게 됩니다. 로그인에 성공하는 순간 세션 ID를 바꾸면 막을 수 있고, 스프링 시큐리티는 따로 설정하지 않아도 그렇게 합니다.</li>
 </ul>
 <h2>코드</h2>
@@ -181,6 +180,6 @@ String add(@RequestParam String item, HttpSession session) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=d45f9d1282"></script>
+<script src="../../app.js?v=f117ff1ed2"></script>
 </body>
 </html>

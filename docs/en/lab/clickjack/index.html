@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=af2da63956">
+<link rel="stylesheet" href="../../app.css?v=70c86af090">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The response has no frame-related headers, and the browser rendered the payment page inside the frame. Result: Clickjacking possible.</li>
 <li>Without a header that says not to frame the page, the browser renders it in a frame on any site. If you turn off frameOptions altogether to show one screen that uses frames (for example, the H2 console), every page ends up in this state. Changing it to sameOrigin instead of turning it off is safer.</li>
 <li>From the requests the server receives, clickjacking cannot be told apart from a normal click. So the server blocks it by announcing in advance, with a response header, that &quot;this page must not be put in a frame&quot;, and the browser obeys.</li>
 </ul>
@@ -169,6 +168,6 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=af2da63956"></script>
+<script src="../../app.js?v=70c86af090"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'infoleak', nav: 'Information leakage', cat: 'Authentication', mode: 'step',
   title: 'What do error responses and login failure messages tell the outside world?',
-  intro: 'The response a server returns when something fails can carry more than you might expect. An SQL statement inside an exception message, or the class names and line numbers inside a stack trace, show what the inside of the server looks like and give an attacker clues. If a login failure message tells "unknown user ID" apart from "wrong password", it also tells which IDs are registered. Change the settings and the code to see what goes into the response.',
+  intro: 'The response a server returns when something fails can carry more than you might expect. An SQL statement inside an exception message, or the class names and line numbers inside a stack trace, show what the inside of the server looks like and give an attacker clues. If a login failure message tells "unknown user ID" apart from "wrong password", it also tells which IDs are registered.',
   terms: ['Error responses and information leakage', 'Stack trace', 'Account enumeration', '@ControllerAdvice and @ExceptionHandler', 'HTTP status codes'],
   controls: [
     { id: 'topic', label: 'Response to look at', type: 'select', value: 'boot', options: [['boot', 'Spring Boot default error response'], ['handler', 'Error response I build myself (@ExceptionHandler)'], ['login', 'Login failure response']] },
@@ -91,7 +91,6 @@ Lab.register({
     var leaked = this.leakText(leak), any = leaked !== 'None';
     st.phase = 6;
     push('The server sends a 500 response. The items in the body are ' + keys.join(', ') + '. ' + (any ? 'Whoever sent the request can read the ' + leaked + '.' : 'Nothing in it shows what the inside of the server looks like.'), any ? 'bad' : 'good');
-    sum.push('The response is 500 and the items in the body are ' + keys.join(', ') + '. Internal information leaked: ' + leaked + '.');
     if (boot && !any) sum.push('The Spring Boot default does not put the exception message or the stack trace in the response. It is important that a setting changed to always during development does not go out to the production server.');
     if (boot && f.msg && !f.trace) sum.push('It is only one line of message, but the SQL statement is inside it. An exception message is written for developers to read, so it easily contains things such as SQL, file paths, and internal addresses.');
     if (boot && f.trace) sum.push('A stack trace reveals the most. It shows the framework and database in use and the class names and structure of your code, and its first line contains the exception message, so the SQL goes out too even if include-message is never.');
@@ -122,7 +121,6 @@ Lab.register({
     st.learned = learned;
     if (f.same) push('The attacker compares it with the response received for another ID: for an ID that is not registered and for an ID with a wrong password, the status code and the body are exactly the same. From this response alone, the attacker cannot tell whether the ID is registered.', 'good');
     else push('The attacker compares it with the response received for another ID: the body for ' + (f.none ? 'a wrong password' : 'an ID that is not registered') + ' is ' + f.otherBody + ', which differs from the one just received. So the attacker learns that ' + id + (f.none ? ' is not registered' : ' is registered') + '. Repeating this with different IDs builds a list of registered IDs.', 'bad');
-    sum.push('The response is 401 and the body contains ' + f.body + '. What the attacker learned: ' + learned + '.');
     if (!f.same) sum.push('If you explain helpfully why the login failed, the information that "this ID is registered" goes out with it. A list of registered IDs becomes the target of password guessing or of deceptive emails. Use a single failure message, such as "Invalid user ID or password."');
     if (c.lg === 'sec') sum.push('By default, Spring Security turns both cases into the same exception (BadCredentialsException), and it also performs one password comparison when the ID does not exist, which makes the two cases hard to tell apart by response time.');
     if (c.lg === 'unhide') sum.push('Setting hideUserNotFoundExceptions to false makes the two exceptions distinguishable. Even if the intent is to tell the causes apart in the server log, the difference must not show in the response.');
@@ -134,17 +132,11 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, 'Click Run to go one step at a time.'); return; }
     if (c.topic === 'login') {
-      var ln = H.lanes(v);
-      H.lane(ln, 'Look up the member by ID', s.found || 'Not looked up yet', s.found ? 'hot' : 'none');
-      H.lane(ln, 'Compare the password', s.pw || 'Not compared yet', s.pw ? 'hot' : 'none');
-      H.lane(ln, 'Response', s.body ? '401 · ' + s.body : 'No response yet', s.body ? 'wait' : 'none');
-      H.counters(v, [[s.learned || 'In progress', 'What the attacker learned']]);
       H.text(v, 'The message texts vary with the version and the language settings. With Spring Security 7.1.1 on the PC used to write this lab, the message of BadCredentialsException came out in Korean because of the language setting of that PC (the English text in the messages.properties file of the same library is "Bad credentials"), and the message of UsernameNotFoundException was "user not found".');
       return;
     }
     if (s.items.length) H.table(v, ['Item', 'Value', 'Is it information from inside the server?'], s.items.map(function (it) { return { cells: [it.k, it.v, { v: it.cls === 'bad' ? 'Yes' : 'No', cls: it.cls === 'bad' ? 'bad' : 'good' }] }; }), 'Response body (JSON)' + (s.made ? ' · Built by: ' + s.made : ''));
     else H.text(v, 'The response has not been built yet.');
-    H.counters(v, [[s.phase === 6 ? '500' : 'Handling', 'Response status'], [s.phase === 6 ? sim.row[2] : 'In progress', 'Internal information leaked']]);
     if (c.topic === 'boot') H.text(v, 'Up to Spring Boot 3, these settings were named server.error.include-message and server.error.include-stacktrace. In Spring Boot 4.1.1, giving always with the old names had no effect, and the default (never) applied.');
   },
   // Diagram: for error responses, what happens inside the server on the left (the request, the exception, the place that builds the response) and the items of the response body on the right. For login, the two steps inside the server and the responses of the two cases side by side, to show whether they are the same or different.
@@ -164,7 +156,7 @@ Lab.register({
       P.box('l_exist', 346, 176, 318, 68, { cls: (!f.none ? ph >= 4 : cmp) ? ((cmp ? (f.same ? 'good' : 'bad') : 'hot') + (!f.none ? ' now' : '')) : 'ghost', title: 'Response for a wrong password', sub: (!f.none ? ph >= 4 : cmp) ? ['401', !f.none ? f.body : f.otherBody] : [!f.none ? 'No response yet' : '(the other case)', ' '] });
       if (ph >= 4) P.arrow('l_a3', (f.matches ? 'l_pw' : 'l_find') + ':b', mine + ':t', { cls: 'hot', label: 'Response' });
       P.box('l_res', 16, 264, 648, 36, { cls: !cmp ? 'ghost' : f.same ? 'good' : 'bad', title: 'What the attacker learned', right: cmp ? s.learned : 'In progress' });
-      P.note('The thick outline is the response to this attempt. If the responses to the two cases differ, the attacker can tell from the response whether the ID is registered.');
+      P.note('The thick outline is the response to this attempt.');
       return;
     }
     var boot = c.topic === 'boot', q = boot && c.trace === 'on_param' && c.q, items = s.items;
@@ -183,7 +175,7 @@ Lab.register({
     });
     if (ph >= 3 && items.length) P.arrow('e_a3', 'e_mk:r', 'e_k_' + items[0].k.split(',')[0] + ':l', { cls: 'hot' });
     P.box('e_res', 16, 264, 648, 36, { cls: ph < 6 ? 'ghost' : sim.row[2] === 'None' ? 'good' : 'bad', title: 'Leaked info', right: ph < 6 ? 'In progress' : sim.row[2] });
-    P.note('The red items show what the inside of the server looks like. An exception is made so that developers can find the cause, so the more detail it has the better, but that detail belongs in the server log, not in the response.');
+    P.note('The red items show what the inside of the server looks like.');
   },
   assume: '12 error responses (2 message settings × 3 stack trace settings × whether the trace parameter is present), 2 responses built by hand, and 6 login failures were checked against the actual responses of a Spring Boot 4.1.1 (Spring Security 7.1.1, Spring JDBC, H2) server started on 127.0.0.1. The message texts and the number of stack trace lines vary with the version and the environment, so what was checked is which items are in the body, whether the SQL statement, the stack trace lines, and the name of the database driver are visible in the body, whether the two login failure responses are the same, which exception occurred, and how many times the password comparison was called. The message values on screen were seen on the PC used to write this lab, and the example errorId is a made-up value. The checks were based on requests that receive JSON; for a request that receives HTML, as a browser does, the same content appearing on the error page was confirmed for one setting. The setting names are the spring.web.error.* names of Spring Boot 4.1.1 (server.error.* up to Spring Boot 3). include-exception, include-binding-errors, and the on_param value of message are not covered. That the whole exception is written to the log in the safe response was confirmed by collecting the log output. Not run: the difference in response time was not measured (only the number of times the password comparison was called was checked), and the messages on the sign-up and password recovery screens are an explanation that follows the authentication guidance of OWASP. How much the leaked information helps in a real attack differs from server to server.',
 });

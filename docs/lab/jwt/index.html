@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=d45f9d1282">
+<link rel="stylesheet" href="../../app.css?v=f117ff1ed2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 인증</p>
 <h1>JWT의 구조와 검증</h1>
 <p><b>누구나 읽을 수 있는 토큰을 서버는 어떻게 믿나</b></p>
-<p>JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 서버가 그래도 이 토큰을 믿을 수 있는 까닭은 셋째 부분인 서명을 직접 다시 계산해 보기 때문입니다. 토큰 한 개를 뜯어보고, 내용을 고치거나 머리말을 바꾼 토큰이 어디에서 걸리는지 확인합니다.</p>
+<p>JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 서버가 그래도 이 토큰을 믿을 수 있는 까닭은 셋째 부분인 서명을 직접 다시 계산해 보기 때문입니다.</p>
 <p>실행으로 대조 · Node.js 24의 crypto(HMAC-SHA256)로 토큰을 실제로 만들어 열여섯 가지 조합의 검증 결과를 대조했고, 화면의 자바 코드도 JDK 21에서 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -68,7 +68,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>서명 확인은 &quot;불일치&quot;, 만료 확인은 &quot;하지 않음 (앞에서 거절)&quot;이고, 서버의 판단은 거절입니다.</li>
 <li>머리말과 내용은 base64url로 적은 것이라 키 없이도 읽고 고칠 수 있습니다. 그래서 토큰에는 비밀번호 같은 것을 넣지 않습니다.</li>
 <li>내용을 한 글자라도 고치면 서버가 다시 계산한 서명이 달라집니다. 서명은 &quot;이 내용 그대로&quot;에 대해서만 맞습니다.</li>
 </ul>
@@ -190,6 +189,6 @@ Claims verify(String token, long now) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=d45f9d1282"></script>
+<script src="../../app.js?v=f117ff1ed2"></script>
 </body>
 </html>

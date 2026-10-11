@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cdn', nav: 'CDN', cat: '네트워크', mode: 'step',
   title: '원본을 바꿨는데 왜 사용자는 아직 옛 파일을 받나',
-  intro: 'CDN은 원본 서버(오리진)가 가진 파일의 사본을 사용자와 가까운 서버(엣지)에 보관해 두고, 엣지가 대신 답하게 하는 방식입니다. 처음 요청은 엣지에 사본이 없어 오리진까지 다녀오지만(MISS), 그 뒤로는 엣지가 바로 답합니다(HIT). 대신 엣지는 정해진 유효 시간 동안 오리진에 다시 묻지 않으므로, 그사이 오리진의 파일을 바꿔도 사용자는 옛 사본을 받습니다. 80초 동안 들어오는 네 번의 요청을 따라가며 엣지가 언제 오리진에 가는지 보세요.',
+  intro: 'CDN은 원본 서버(오리진)가 가진 파일의 사본을 사용자와 가까운 서버(엣지)에 보관해 두고, 엣지가 대신 답하게 하는 방식입니다. 처음 요청은 엣지에 사본이 없어 오리진까지 다녀오지만(MISS), 그 뒤로는 엣지가 바로 답합니다(HIT). 대신 엣지는 정해진 유효 시간 동안 오리진에 다시 묻지 않으므로, 그사이 오리진의 파일을 바꿔도 사용자는 옛 사본을 받습니다.',
   terms: ['CDN', '오리진과 엣지', '캐시 키', '캐시 무효화(Purge)', 'TTL(Time To Live)'],
   controls: [
     { id: 'ttl', label: '엣지가 사본을 써도 되는 시간 (오리진이 응답에 적음)', type: 'select', value: '300', options: [['60', 'Cache-Control: public, s-maxage=60 (60초)'], ['300', 'Cache-Control: public, s-maxage=300 (300초)']] },
@@ -64,8 +64,7 @@ Lab.register({
     var r4 = request(80, U3);
     if (r4.status === 'EXPIRED') push('80초: 사용자가 ' + U3 + ' 주소를 요청합니다. 사본이 있지만 받아 온 지 ' + r4.age + '초가 지나 유효 시간(' + ttl + '초)을 넘겼습니다(EXPIRED). 엣지는 이 사본을 그대로 쓰지 않고 오리진에 다시 요청합니다.' + (c.chg ? ' 이번에 받아 온 것은 새 내용입니다. 이제야 사용자에게 바뀐 파일이 전달됩니다.' : ' 내용은 그대로지만 사본의 유효 시간이 다시 시작됩니다.'), c.chg ? 'good' : '');
     else push('80초: 사용자가 ' + U3 + ' 주소를 요청합니다. 사본은 받아 온 지 ' + r4.age + '초라 유효 시간(' + ttl + '초) 안입니다(HIT). 엣지가 바로 답합니다.' + (r4.stale ? ' 오리진의 파일이 바뀐 지 50초가 지났는데도 사용자는 여전히 옛 내용을 받습니다. 유효 시간이 끝나는 ' + ttl + '초까지 계속 이렇게 됩니다.' : ''), r4.stale ? 'bad' : 'good');
-    var hits = st.reqs.filter(function (r) { return r.status === 'HIT'; }).length, stales = st.reqs.filter(function (r) { return r.stale; }).length;
-    sum.push('요청 4번 가운데 엣지가 바로 답한 것이 ' + hits + '번, 오리진까지 간 것이 ' + st.oc + '번입니다.' + (c.chg ? ' 내용을 바꾼 뒤의 요청 2번 가운데 ' + (stales ? stales + '번은 옛 내용을 받았습니다.' : '옛 내용을 받은 요청은 없습니다.') : ''));
+    var stales = st.reqs.filter(function (r) { return r.stale; }).length;
     sum.push('엣지가 바로 답하면 가까운 거리만 오가므로 빠르고(예시 ' + NEAR + 'ms), 오리진까지 가면 먼 거리가 더해집니다(예시 ' + (NEAR + FAR) + 'ms). 오리진이 받는 요청도 줄어듭니다. 이 시간은 차이를 보이기 위한 예시입니다.');
     if (stales) sum.push('엣지는 유효 시간 동안 오리진에 다시 묻지 않습니다. 그래서 오리진의 파일을 바꿔도 유효 시간이 남은 사본이 계속 나갑니다. 유효 시간을 길게 잡을수록 빠르지만 바뀐 내용이 늦게 퍼집니다.' + (c.ttl === '60' ? ' 60초로 잡은 이 설정에서는 80초의 요청부터 새 내용이 나갔습니다.' : ''));
     if (c.chg && c.after === 'purge') sum.push('무효화(purge)는 유효 시간이 남은 사본을 강제로 지우는 기능입니다. 지운 뒤의 첫 요청은 MISS가 되어 오리진에서 새 내용을 받아 옵니다. 지우는 것은 지정한 주소의 사본뿐이고, 사용자의 브라우저가 따로 보관한 사본까지 지우지는 못합니다.');
@@ -75,12 +74,11 @@ Lab.register({
     return { events: ev, summary: sum, row: [cell(r1), cell(r2), cell(r3), cell(r4), st.oc + '번'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, ttl = +c.ttl;
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 0초의 첫 요청부터 시작합니다.'); return; }
     var name = function (x) { return !c.chg ? '사본' : x === 'old' ? '옛 내용' : '새 내용'; };
-    H.counters(v, [[s.t + '초', '지금 시각'], [s.reqs.filter(function (r) { return r.status === 'HIT'; }).length + '번', '엣지가 바로 답함'], [s.oc + '번', '오리진에 간 요청'], [c.chg ? (s.origin === 'old' ? '옛 내용' : '새 내용') : '그대로', '오리진의 app.css']]);
+    H.counters(v, [[s.reqs.filter(function (r) { return r.status === 'HIT'; }).length + '번', '엣지가 바로 답함'], [s.oc + '번', '오리진에 간 요청']]);
     H.table(v, ['시각', '요청한 주소', '엣지의 판단', '사용자가 받은 것', '걸린 시간 (예시)'], s.reqs.map(function (r) { return { cells: [r.t + '초', r.url, { v: r.status, cls: r.status === 'HIT' ? 'good' : 'hot' }, { v: name(r.ver) + (r.stale ? ' (오리진은 이미 바뀜)' : ''), cls: r.stale ? 'bad' : '' }, r.ms + 'ms'] }; }), '사용자의 요청');
-    H.table(v, ['주소 (사본의 이름표)', '보관한 내용', '받아 온 시각', '지금 상태'], s.entries.map(function (e) { var fresh = s.t - e.at < ttl; return { cls: fresh ? '' : 'gone', cells: [e.url, { v: name(e.ver), cls: e.ver !== s.origin ? 'bad' : '' }, e.at + '초', fresh ? '유효 (' + (e.at + ttl) + '초까지)' : '유효 시간 지남'] }; }), '엣지가 보관한 사본');
   },
   // 그림: 사용자 → 엣지 → 오리진. 엣지 안에 보관한 사본을 주소별로 쌓는다. 엣지에서 오리진으로 가는 화살표는 MISS나 EXPIRED일 때만 생긴다.
   draw: function (P, sim, shown) {

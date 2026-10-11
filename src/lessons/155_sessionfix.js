@@ -1,7 +1,7 @@
 Lab.register({
   id: 'sessionfix', nav: '세션 하이재킹과 세션 고정', cat: '인증', mode: 'step',
   title: '세션 ID를 아는 사람이 곧 그 사용자다',
-  intro: '서버는 요청의 쿠키에 실려 온 세션 ID만 보고 "누구의 요청인지"를 정합니다. 그래서 로그인된 세션의 ID를 아는 사람은 비밀번호를 몰라도 그 사용자로 행세할 수 있습니다(세션 하이재킹). 세션 고정은 순서를 뒤집은 것입니다. 로그인 전에 쓰던 세션 ID가 로그인 뒤에도 그대로이면, 그 ID를 미리 알고 있던 사람이 로그인된 세션을 쓰게 됩니다. 로그인할 때 서버가 세션을 어떻게 처리하는지 바꿔 가며, 다른 사람이 알고 있는 ID로 보낸 요청이 어떻게 되는지 확인합니다.',
+  intro: '서버는 요청의 쿠키에 실려 온 세션 ID만 보고 "누구의 요청인지"를 정합니다. 그래서 로그인된 세션의 ID를 아는 사람은 비밀번호를 몰라도 그 사용자로 행세할 수 있습니다(세션 하이재킹). 세션 고정은 순서를 뒤집은 것입니다. 로그인 전에 쓰던 세션 ID가 로그인 뒤에도 그대로이면, 그 ID를 미리 알고 있던 사람이 로그인된 세션을 쓰게 됩니다.',
   terms: ['세션', '세션 하이재킹', '세션 고정(Session Fixation)', 'HttpOnly, Secure, SameSite', '쿠키'],
   controls: [
     { id: 'fix', label: '로그인에 성공했을 때 서버가 세션에 하는 일', type: 'select', value: 'none', options: [['default', '세션 ID를 새 값으로 바꾼다 (스프링 시큐리티 기본값)'], ['newSession', '새 세션을 만들고 예전 내용은 버린다 (newSession)'], ['none', '아무것도 하지 않는다 (보호를 끔: none)']] },
@@ -82,10 +82,9 @@ Lab.register({
       : !R.current ? '서버에 그 ID의 세션은 없습니다. 로그인할 때 ' + (c.fix === 'default' ? 'ID가 ' + B + '로 바뀌었기' : '새 세션 ' + B + '로 갈아탔기') + ' 때문입니다. 서버는 로그인하지 않은 요청으로 보고 302로 로그인 화면에 보냅니다.'
         : '서버에 그 ID의 세션은 없습니다. 로그아웃할 때 지웠기 때문입니다. 서버는 로그인하지 않은 요청으로 보고 302로 로그인 화면에 보냅니다.'), R.ok ? 'bad' : 'good');
     var row3 = R.ok ? '200 · kim으로 처리됨' : '302 · 로그인 화면으로 보냄';
-    sum.push('로그인 뒤 세션 ID는 ' + (R.changed ? '새 값으로 바뀌었고' : '로그인 전과 같고') + ', 다른 사람이 그 ID로 보낸 요청은 ' + (R.ok ? 'kim의 요청으로 처리됐습니다(200).' : '로그인 화면으로 보내졌습니다(302).'));
     if (c.when === 'before' && R.ok) sum.push('세션 고정: 로그인 전후의 세션 ID가 같으면, 그 ID를 미리 알고 있던 사람은 비밀번호를 몰라도 로그인된 세션을 쓰게 됩니다. 로그인에 성공하는 순간 세션 ID를 바꾸면 막을 수 있고, 스프링 시큐리티는 따로 설정하지 않아도 그렇게 합니다.');
-    if (c.when === 'before' && !R.changed && c.logout) sum.push('이번에는 로그아웃으로 세션이 지워져 막혔을 뿐입니다. 피해자가 로그인해 있는 동안에는 미리 알려진 ID로 누구든 들어올 수 있었습니다. 로그아웃을 끄고 비교해 보세요.');
-    if (c.when === 'before' && R.changed) sum.push('로그인하는 순간 세션 ID가 바뀌었으므로, 미리 알아 둔 ID는 아무 세션도 가리키지 않습니다. 보호를 끈 설정으로 바꿔 비교해 보세요.');
+    if (c.when === 'before' && !R.changed && c.logout) sum.push('이번에는 로그아웃으로 세션이 지워져 막혔을 뿐입니다. 피해자가 로그인해 있는 동안에는 미리 알려진 ID로 누구든 들어올 수 있었습니다.');
+    if (c.when === 'before' && R.changed) sum.push('로그인하는 순간 세션 ID가 바뀌었으므로, 미리 알아 둔 ID는 아무 세션도 가리키지 않습니다.');
     if (c.when === 'after') sum.push('세션 하이재킹: 로그인된 세션의 ID를 아는 사람은 누구든 그 사용자로 처리됩니다. 로그인할 때 ID를 바꾸는 보호는 로그인 뒤에 새어 나간 ID에는 소용이 없습니다. 그래서 ID가 새지 않도록 쿠키에 HttpOnly(스크립트가 읽지 못하게)와 Secure(https로만 보내게)를 붙입니다.');
     if (c.when === 'after' && c.logout) sum.push('로그아웃하면 서버가 세션을 지우므로 새어 나간 ID가 더는 통하지 않습니다. 세션 만료 시간을 짧게 두는 것도 같은 까닭입니다. ID가 쓸모 있는 시간을 줄입니다.');
     if (!R.kept) sum.push('새 세션을 만드는 방식은 로그인 전에 세션에 넣어 둔 값(장바구니)을 옮기지 않습니다. 기본값인 "ID만 바꾸기"는 내용을 그대로 둡니다.');
@@ -93,10 +92,9 @@ Lab.register({
   },
   sesText: function (x) { return !x.on ? ['아직 없음', ' '] : x.gone ? ['없어짐', x.gone] : ['로그인한 사용자: ' + (x.user || '없음'), '장바구니: ' + (x.cart || '비어 있음')]; },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, self = this;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 로그인 전부터 차례로 진행합니다.'); return; }
-    H.counters(v, [[s.vc || '없음', '피해자의 브라우저에 있는 세션 ID'], [s.known || '아직 모름', '다른 사람이 알고 있는 세션 ID']]);
-    H.table(v, ['세션 ID', '상태'], [['aaa111', s.s1], ['bbb222', s.s2]].filter(function (p) { return p[1].on; }).map(function (p) { var x = self.sesText(p[1]); return { cls: p[1].gone ? 'gone' : '', cells: [p[0], { v: x[0] + (x[1].trim() ? ' · ' + x[1] : ''), cls: p[1].gone ? '' : p[1].user ? 'good' : '' }] }; }), '서버가 가지고 있는 세션');
+    H.counters(v, [[s.vc || '없음', '피해자의 브라우저에 있는 세션 ID']]);
     H.table(v, ['누가', '요청', '보낸 쿠키', '서버의 응답'], s.rows.map(function (r) { return { cells: [{ v: r[0], cls: r[0] === '다른 사람' ? 'hot' : '' }, r[1], r[2], r[3]] }; }), '요청 기록');
   },
   // 그림: 위쪽은 공격자, 서버, 피해자의 브라우저 사이를 오간 요청과 응답의 순서. 아래쪽은 서버가 가지고 있는 세션 두 개의 상태다.
