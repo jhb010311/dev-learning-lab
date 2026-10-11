@@ -21,7 +21,7 @@ module.exports = [
   ["Java language", "Abstract class",
    "This is a class that is declared abstract, so you cannot create an instance of it directly. It can have both abstract methods with no implementation and ordinary methods with an implementation, and it can also have fields (state) and constructors. It is used to gather the state and common logic that several subclasses share, and a class can extend only one class."],
   ["Java language", "Interface",
-   "This is a type that defines the list of methods (the contract) that a class must implement. It cannot have instance fields, and one class can implement several of them. If the calling code depends only on this type, it is easy to change the implementing class or to replace it with a fake implementation for testing."],
+   "This is a type that defines the list of methods (the contract) that a class must implement. It cannot have instance variables, and one class can implement several of them. If the calling code depends only on this type, it is easy to change the implementing class or to replace it with a fake implementation for testing."],
   ["Java language", "Default method",
    "This is a feature, available since Java 8, that lets an interface contain a method with an implementation. It was introduced so that adding a new method to an interface does not break the existing implementing classes. If such methods from several interfaces conflict, the implementing class must override the method itself."],
   ["Java language", "Identity and equality",

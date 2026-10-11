@@ -1,4 +1,4 @@
-// Quiz questions for the NoSQL and document model lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+// Quiz questions for the "NoSQL and the document model" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
 Lab.quiz([
   { lv: 1, id: 'nosql', q: 'In the document model, which way of storing an order and its items is correct?',
     a: ['Make one order one document, and put the items in it together as an array', 'Put the order and the items in different tables, and join them every time you read', 'Join all the values of the order into one string and store it under one key', 'Make a separate document for each order item, and do not store the order information'],

@@ -927,7 +927,7 @@ var Lab = (function () {
     return { by: by, entries: entries, names: names };
   }
   function glHangul(c) { return !!c && c >= '가' && c <= '힣'; }
-  function glAlnum(c) { return !!c && /[A-Za-z0-9]/.test(c); }
+  function glAlnum(c) { return !!c && /[A-Za-z0-9_]/.test(c); }
   function glScope(e, ctx) { if (e.only) return !!ctx && e.only.indexOf(ctx) >= 0; if (e.not) return !ctx || e.not.indexOf(ctx) < 0; return true; }
   // 낱말의 앞뒤 경계: 한글 낱말은 앞 글자가 한글이면 다른 낱말의 일부로 보고 건너뛴다. 영문은 앞뒤가 영문·숫자면 건너뛴다.
   function glEdge(text, at, w, e) {
@@ -954,7 +954,7 @@ var Lab = (function () {
         // 영어의 대문자 약어(CAS, GC 등)는 글자 그대로만 찾는다. 그러지 않으면 CAS가 "cases"의 앞부분에 걸린다.
         var ac = en && (e.cs || (c.w === c.w.toUpperCase() && /[A-Z]/.test(c.w)));
         if (!(en && !ac ? seg.toLowerCase() === c.lw : seg === c.w) || !glScope(e, ctx)) continue;
-        if (en) { var pl = (ac && !e.cs ? /^(s)(?![A-Za-z0-9])/ : /^(es|s)(?![A-Za-z0-9])/).exec(text.substr(i + seg.length, 3)); if (pl && glAlnum(seg.charAt(seg.length - 1))) seg += pl[1]; }
+        if (en) { var pl = (ac && !e.cs ? /^(s)(?![A-Za-z0-9_])/ : /^(es|s)(?![A-Za-z0-9_])/).exec(text.substr(i + seg.length, 3)); if (pl && glAlnum(seg.charAt(seg.length - 1))) seg += pl[1]; }
         if (glEdge(text, i, seg, e)) { hit = c; got = seg; break; }
       }
       if (!hit) { buf += text.charAt(i); i++; continue; }

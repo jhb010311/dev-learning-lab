@@ -16,7 +16,8 @@ else ko.forEach((k, i) => {
   const e = en[i], at = (i + 1) + '번째 (' + (k.kb || k.t) + ')';
   if (k.kb) { if (e.kb !== tb[k.kb]) errs.push(at + ': kb는 대조표의 ' + JSON.stringify(tb[k.kb]) + ' 이어야 함 (지금 ' + JSON.stringify(e.kb) + ')'); if (e.t || e.d) errs.push(at + ': kb 항목에는 t, d를 쓰지 않음'); }
   else { if (e.t !== tb[k.t]) errs.push(at + ': t는 대조표의 ' + JSON.stringify(tb[k.t]) + ' 이어야 함 (지금 ' + JSON.stringify(e.t) + ')'); if (!e.d || e.d.length < 40) errs.push(at + ': 풀이(d)가 없거나 너무 짧음'); if (!e.w || !e.w.length) errs.push(at + ': 기초 낱말에는 찾을 표현(w)이 하나 이상 필요'); }
-  if (JSON.stringify(k.only || null) !== JSON.stringify(e.only || null) || JSON.stringify(k.not || null) !== JSON.stringify(e.not || null)) errs.push(at + ': only / not은 원본과 같아야 함');
+  // 영어판은 원본보다 범위를 좁힐 수만 있다: only는 원본 only의 부분집합(원본에 only가 없으면 자유), not은 원본 not을 모두 포함
+  if ((k.only && (!e.only || e.only.some(x => k.only.indexOf(x) < 0))) || (k.not && !e.only && (!e.not || k.not.some(x => e.not.indexOf(x) < 0)))) errs.push(at + ': only / not이 원본보다 넓음(영어판은 좁힐 수만 있음)');
   if (e.tight || e.nx) errs.push(at + ': tight, nx는 한국어 전용이므로 쓰지 않음');
   (e.w || []).forEach(w => { if (!w || w.length < 2) errs.push(at + ': 너무 짧은 표현 ' + JSON.stringify(w)); });
 });

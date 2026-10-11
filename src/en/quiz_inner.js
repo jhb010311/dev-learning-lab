@@ -12,7 +12,7 @@ Lab.quiz([
     a: ['Outer$1', 'Outer', 'Runnable', 'Object'],
     why: 'Inside an anonymous class, this is the object created from that anonymous class itself. Because the class has no name, the compiler gives it the name Outer$1. If the same code is written as a lambda expression, this refers to the outer object and Outer is printed.',
     sim: { c: { kind: 'anon', use: 'alone', loc: 'keep' }, col: 1, has: 'this = Outer$1' } },
-  { lv: 3, id: 'inner', q: 'A method of the static nested class Nested tries to read name, an instance field of the outer class Outer, directly. What happens?',
+  { lv: 3, id: 'inner', q: 'A method of the static nested class Nested tries to read name, an instance variable of the outer class Outer, directly. What happens?',
     a: ['A compile-time error occurs and the program does not run', 'null is read, because the field is treated as having no value', 'The value of the most recently created Outer object is read', 'A NullPointerException is thrown at run time'],
     why: 'An object of a static nested class has no reference to an outer object. name is a field that each Outer object has separately, so there is no way to determine whose name it is, and the compiler rejects the code with an error.',
     sim: { c: { kind: 'nested', use: 'field', loc: 'keep' }, col: 0, has: 'Error' } },

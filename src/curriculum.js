@@ -9,6 +9,8 @@ Lab.site({
   feedback: 'https://github.com/jhb010311/dev-learning-lab/issues',
   // 처음 화면의 "처음이라면"에 보일 실습: 배경 지식이 적어도 따라갈 수 있는 것
   start: ['journey', 'stack', 'eq'],
+  // 다른 언어판으로 가는 링크: [보일 이름, 주소]
+  other: ['English', 'en/'],
 });
 Lab.curriculum([
   { id: 'java', name: 'Java', desc: '문법부터 객체 지향, 컬렉션, 스레드, JVM까지. 코드가 실행될 때 안에서 무슨 일이 일어나는지를 봅니다.',

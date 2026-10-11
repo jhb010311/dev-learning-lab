@@ -93,7 +93,7 @@ Lab.register({
       }
     }
     var sel = st.sent.filter(function (q) { return q.sql === selM; }).length;
-    sum.push('m is ' + (proxy ? 'a proxy' : 'a real Member entity') + '. Queries on the member table: ' + (sel ? sel + ' (' + when + ').' : '0.') + (st.err ? ' ' + st.err + ' was thrown on the last line.' : ''));
+    sum.push('m is ' + (proxy ? 'a proxy' : 'a real Member entity') + '. Queries on the member table: ' + (sel ? sel + ' (' + when.charAt(0).toLowerCase() + when.slice(1) + ').' : '0.') + (st.err ? ' ' + st.err + ' was thrown on the last line.' : ''));
     if (how === 'ref' || how === 'lazy') {
       if (use === 'id') sum.push('A proxy is born with its identifier, so getId() does not initialize it. When you need only the identifier (for example, when you set a relationship by supplying only the foreign key value), you do not have to query the DB.');
       if (use === 'name') sum.push('The query SQL is sent not at the moment you receive the object but at the moment you first use a value other than the identifier. This is lazy fetching.' + (how === 'lazy' ? ' If there are many orders and this happens for each order, it becomes the problem you saw in the "N+1" lab.' : ''));
