@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=18986cc1d9">
+<link rel="stylesheet" href="../../app.css?v=20346bd882">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -129,13 +129,15 @@ items.parallelStream().forEach(this::resize);</pre>
       <div class="view" id="view"></div>
       <div class="verdict" id="verdict"></div>
       <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
-      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
-      <ol class="log" id="log" hidden></ol>
     </div>
 
   </div>
 
   <div class="below labonly" id="below">
+    <div class="panel p-log" id="logpanel" hidden>
+      <h3 id="log-head">전체 단계 기록</h3>
+      <ol class="log" id="log"></ol>
+    </div>
     <div class="panel p-pre">
       <h3>이렇게 바꿔 보세요</h3>
       <div class="presets" id="presets"></div>
@@ -154,6 +156,6 @@ items.parallelStream().forEach(this::resize);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=18986cc1d9"></script>
+<script src="../../app.js?v=20346bd882"></script>
 </body>
 </html>

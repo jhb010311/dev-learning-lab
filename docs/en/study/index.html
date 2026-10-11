@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../app.css?v=22d51f4d4b">
+<link rel="stylesheet" href="../app.css?v=b94595c522">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -93,13 +93,15 @@
       <div class="view" id="view"></div>
       <div class="verdict" id="verdict"></div>
       <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
-      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
-      <ol class="log" id="log" hidden></ol>
     </div>
 
   </div>
 
   <div class="below labonly" id="below">
+    <div class="panel p-log" id="logpanel" hidden>
+      <h3 id="log-head">Step log</h3>
+      <ol class="log" id="log"></ol>
+    </div>
     <div class="panel p-pre">
       <h3>Try these</h3>
       <div class="presets" id="presets"></div>
@@ -118,6 +120,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../app.js?v=22d51f4d4b"></script>
+<script src="../app.js?v=b94595c522"></script>
 </body>
 </html>

@@ -237,7 +237,7 @@ select { border: 1px solid var(--line); background: var(--surface); border-radiu
 .slot.now { outline: 2px solid var(--ink); outline-offset: 1px; }
 .slots.mini { gap: 4px; }
 .slots.mini .slot { min-width: 30px; min-height: 26px; padding: 0 3px; }
-.log { margin: 0; padding: 0; list-style: none; max-height: 240px; overflow: auto; border: 1px solid var(--line); border-radius: 4px; font-size: .86rem; }
+.log { margin: 0; padding: 0; list-style: none; max-height: 340px; overflow: auto; border: 1px solid var(--line); border-radius: 4px; font-size: .86rem; }
 .log li { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); gap: 8px; padding: 5px 10px; border-bottom: 1px solid var(--line); }
 .log li:last-child { border-bottom: 0; }
 .log .tm { font-family: var(--font-code); font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -398,13 +398,15 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
       <div class="view" id="view"></div>
       <div class="verdict" id="verdict"></div>
       <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
-      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
-      <ol class="log" id="log" hidden></ol>
     </div>
 
   </div>
 
   <div class="below labonly" id="below">
+    <div class="panel p-log" id="logpanel" hidden>
+      <h3 id="log-head">전체 단계 기록</h3>
+      <ol class="log" id="log"></ol>
+    </div>
     <div class="panel p-pre">
       <h3>이렇게 바꿔 보세요</h3>
       <div class="presets" id="presets"></div>
@@ -428,7 +430,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 var Lab = (function () {
   var $ = function (id) { return document.getElementById(id); };
   var LANG = 'ko'; // 영어판을 만들 때는 build.js가 이 값을 바꾼다
-  var lessons = [], cur = null, sim = null, clock = 0, timer = null, hist = {}, tracks = [], seen = {}, running = false, paused = false, hold = 0, predOn = false, ask = null, isStale = false, verify = {}, logOpen = false, assumeOpen = false, codeOpen = true, curri = [], curCat = null, view = 'home', SITE = { name: '개발 학습 실습실', feedback: '' };
+  var lessons = [], cur = null, sim = null, clock = 0, timer = null, hist = {}, tracks = [], seen = {}, running = false, paused = false, hold = 0, predOn = false, ask = null, isStale = false, verify = {}, assumeOpen = false, codeOpen = true, curri = [], curCat = null, view = 'home', SITE = { name: '개발 학습 실습실', feedback: '' };
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   var fmt = function (x) { return (Math.round(x * 10) / 10).toFixed(1); };
@@ -543,7 +545,7 @@ var Lab = (function () {
       shown.forEach(function (e, i) { var li = el('li', e.k === 'bad' ? 'bad' : e.k === 'good' ? 'good' : ''); li.appendChild(el('span', 'tm', cur.mode === 'step' ? (i + 1) + '단계' : fmt(e.t) + '초')); li.appendChild(glossEl('span', 'tx', e.s, cur.id, seenLog)); lg.appendChild(li); });
       lg.scrollTop = lg.scrollHeight;
     }
-    $('log-toggle').textContent = (logOpen ? '전체 단계 기록 접기' : '전체 단계 기록 보기') + ' (' + shown.length + ')';
+    $('logpanel').hidden = !shown.length; $('log-head').textContent = '전체 단계 기록 (' + shown.length + ')';
   }
   function verdict() {
     var v = $('verdict'); v.textContent = ''; v.appendChild(el('b', null, '이번 실행 결과'));
@@ -765,7 +767,6 @@ var Lab = (function () {
   function start() {
     $('run').addEventListener('click', function () { if (ask) { askCancel(); run(true, false, null, true); return; } var stale = isStale, mid = !!sim && clock < sim.total - 1e-9; if (running && !stale) pause(); else if (paused && mid && !stale) { hold = 0; play(); } else run(true); });
     $('restart').addEventListener('click', function () { run(true); });
-    $('log-toggle').addEventListener('click', function () { logOpen = !logOpen; var lg = $('log'); lg.hidden = !logOpen; this.setAttribute('aria-expanded', String(logOpen)); this.textContent = (logOpen ? '전체 단계 기록 접기' : '전체 단계 기록 보기') + ' (' + lg.children.length + ')'; lg.scrollTop = lg.scrollHeight; });
     $('assume-more').addEventListener('click', function () { assumeOpen = !assumeOpen; drawAssume(); });
     $('code-toggle').addEventListener('click', function () { codeOpen = !codeOpen; try { localStorage.setItem('lab-code', codeOpen ? '1' : '0'); } catch (e) {} drawCode(); });
     $('ctl-toggle').addEventListener('click', function () { var p = $('ctlpanel'), shut = !p.classList.contains('shut'); p.classList.toggle('shut', shut); this.setAttribute('aria-expanded', String(!shut)); this.textContent = shut ? '설정 바꾸기' : '설정 접기'; });

@@ -233,7 +233,7 @@ select { border: 1px solid var(--line); background: var(--surface); border-radiu
 .slot.now { outline: 2px solid var(--ink); outline-offset: 1px; }
 .slots.mini { gap: 4px; }
 .slots.mini .slot { min-width: 30px; min-height: 26px; padding: 0 3px; }
-.log { margin: 0; padding: 0; list-style: none; max-height: 240px; overflow: auto; border: 1px solid var(--line); border-radius: 4px; font-size: .86rem; }
+.log { margin: 0; padding: 0; list-style: none; max-height: 340px; overflow: auto; border: 1px solid var(--line); border-radius: 4px; font-size: .86rem; }
 .log li { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); gap: 8px; padding: 5px 10px; border-bottom: 1px solid var(--line); }
 .log li:last-child { border-bottom: 0; }
 .log .tm { font-family: var(--font-code); font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }

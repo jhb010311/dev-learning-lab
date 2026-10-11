@@ -1,7 +1,7 @@
 var Lab = (function () {
   var $ = function (id) { return document.getElementById(id); };
   var LANG = 'en';
-  var lessons = [], cur = null, sim = null, clock = 0, timer = null, hist = {}, tracks = [], seen = {}, running = false, paused = false, hold = 0, predOn = false, ask = null, isStale = false, verify = {}, logOpen = false, assumeOpen = false, codeOpen = true, curri = [], curCat = null, view = 'home', SITE = { name: 'Dev Learning Lab', feedback: '' };
+  var lessons = [], cur = null, sim = null, clock = 0, timer = null, hist = {}, tracks = [], seen = {}, running = false, paused = false, hold = 0, predOn = false, ask = null, isStale = false, verify = {}, assumeOpen = false, codeOpen = true, curri = [], curCat = null, view = 'home', SITE = { name: 'Dev Learning Lab', feedback: '' };
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   var fmt = function (x) { return (Math.round(x * 10) / 10).toFixed(1); };
@@ -111,7 +111,7 @@ var Lab = (function () {
       shown.forEach(function (e, i) { var li = el('li', e.k === 'bad' ? 'bad' : e.k === 'good' ? 'good' : ''); li.appendChild(el('span', 'tm', cur.mode === 'step' ? 'Step ' + (i + 1) : fmt(e.t) + 's')); li.appendChild(glossEl('span', 'tx', e.s, cur.id, seenLog)); lg.appendChild(li); });
       lg.scrollTop = lg.scrollHeight;
     }
-    $('log-toggle').textContent = (logOpen ? 'Hide the full step log' : 'Show the full step log') + ' (' + shown.length + ')';
+    $('logpanel').hidden = !shown.length; $('log-head').textContent = 'Step log (' + shown.length + ')';
   }
   function verdict() {
     var v = $('verdict'); v.textContent = ''; v.appendChild(el('b', null, 'Result of this run'));
@@ -316,7 +316,6 @@ var Lab = (function () {
   function start() {
     $('run').addEventListener('click', function () { if (ask) { askCancel(); run(true, false, null, true); return; } var stale = isStale, mid = !!sim && clock < sim.total - 1e-9; if (running && !stale) pause(); else if (paused && mid && !stale) { hold = 0; play(); } else run(true); });
     $('restart').addEventListener('click', function () { run(true); });
-    $('log-toggle').addEventListener('click', function () { logOpen = !logOpen; var lg = $('log'); lg.hidden = !logOpen; this.setAttribute('aria-expanded', String(logOpen)); this.textContent = (logOpen ? 'Hide the full step log' : 'Show the full step log') + ' (' + lg.children.length + ')'; lg.scrollTop = lg.scrollHeight; });
     $('assume-more').addEventListener('click', function () { assumeOpen = !assumeOpen; drawAssume(); });
     $('code-toggle').addEventListener('click', function () { codeOpen = !codeOpen; try { localStorage.setItem('lab-code', codeOpen ? '1' : '0'); } catch (e) {} drawCode(); });
     $('ctl-toggle').addEventListener('click', function () { var p = $('ctlpanel'), shut = !p.classList.contains('shut'); p.classList.toggle('shut', shut); this.setAttribute('aria-expanded', String(!shut)); this.textContent = shut ? 'Change settings' : 'Hide settings'; });
