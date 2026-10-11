@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Composite and covering indexes: A composite index can be used only in column order · Dev Learning Lab</title>
+<meta name="description" content="An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/compidx/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/compidx/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/compidx/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Composite and covering indexes: A composite index can be used only in column order · Dev Learning Lab">
+<meta property="og:description" content="An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/compidx/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Indexes and execution plans</p>
+<h1>Composite and covering indexes</h1>
+<p><b>A composite index can be used only in column order</b></p>
+<p>An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to narrow the search range, and once a range condition is reached, the columns after it cannot be used to narrow the range. Change the conditions and the selected columns to see how far the index is used.</p>
+<p>Checked against documentation and standards · The official MySQL documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Composite index and leftmost prefix</dt>
+<dd>A composite index is an index built on two or more columns together. It is sorted by the first column first and then by the second column within that, so it can be used for a search only when the conditions use its columns in order, starting from the left. An index on (a, b, c) is used for a condition on a or on a and b, but not for a condition on b alone (as an exception, in MySQL 8.0.13 and later the optimizer can use this index with Skip Scan when the leading column has few distinct values).</dd>
+<dt>Covering index</dt>
+<dd>An index that contains every column a query needs, so the result can be produced from the index alone without reading the table rows. Skipping the table access makes the read faster. In a MySQL execution plan, it appears as Using index in the Extra column.</dd>
+<dt>Clustered index and secondary index</dt>
+<dd>A clustered index stores the row data itself at the bottom of the index (the leaf nodes), so the data of the table is stored in the order of its key. In MySQL InnoDB, the primary key is the clustered index. A secondary index holds the primary key value in its leaf nodes. After a lookup in the secondary index, that primary key is used for one more lookup in the clustered index to read the row.</dd>
+<dt>Cardinality and selectivity</dt>
+<dd>Cardinality is the number of distinct values in a column. The more distinct values there are (for example, a national ID number or an email address), the fewer rows one condition leaves and the more effective an index is. The fewer kinds of values there are (for example, gender), the more rows match a condition and the less effective an index is. Selectivity is the cardinality divided by the number of rows in the table; the closer it is to 1, the better a single condition narrows down the rows.</dd>
+<dt>Query execution plan (EXPLAIN)</dt>
+<dd>The plan that the database decides on for how to run a query. It shows which indexes are used, in what order the tables are joined, and how many rows the database expects to read. You view it by putting EXPLAIN in front of the query, and it is the starting point for finding the cause when a query is slow.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The three conditions match the index order, so all three columns narrow the range.</li>
+<li><b>Leaving out the first-column condition</b> — Without a member_id condition, this index cannot narrow the range.</li>
+<li><b>Leaving out the middle-column condition</b> — Only the first column is used, and the date condition filters entries while the index is being read.</li>
+<li><b>Range-condition column in the middle</b> — (member_id, created_at, status). The status after the range cannot narrow the range.</li>
+<li><b>Selecting only columns in the index</b> — The query reads only the index and never goes to the table (covering index).</li>
+<li><b>Selecting only index columns, with no first-column condition</b> — It cannot narrow the range, but it scans the whole index instead of the table.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The orders table has 1,000,000 rows. The index is sorted in the order member_id → status → created_at. Entries with the same first column are grouped together, within that group they are in order of the second column, and within that in order of the third column.</li>
+<li>Column #1 (member_id): there is the condition member_id = 7, and the columns before it are all fixed, so this condition narrows the range to read.</li>
+<li>Column #2 (status): there is the condition status = 'PAID', and the columns before it are all fixed, so this condition narrows the range to read.</li>
+<li>Column #3 (created_at): there is the condition created_at &gt;= '2026-09-01', and the columns before it are all fixed, so this condition narrows the range to read. But it is a range condition, so within this range the next column is not sorted. The columns after it cannot be used to narrow the range.</li>
+<li>50 index entries in the narrowed range are read.</li>
+<li>SELECT * needs columns that are not in the index too. For each of the remaining 50 entries, the query goes to the table (the clustered index) and reads the whole row.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Columns used to narrow the range: member_id, status, created_at. The query read 50 index entries and 50 table rows, and got about 50 results.</li>
+<li>The conditions continue in index order without a gap, so all three columns narrowed the range. The order in which you write the conditions in WHERE does not matter; the column order of the index decides.</li>
+</ul>
+<h2>Code</h2>
+<pre>CREATE INDEX idx_orders ON orders (member_id, status, created_at);
+
+SELECT *
+  FROM orders
+ WHERE member_id = 7
+   AND status = 'PAID'
+   AND created_at &gt;= '2026-09-01';</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a calculation that assumes that, in a table of 1,000,000 rows, member_id = 7 matches 0.1% of all rows, status = 'PAID' matches 50%, and the date condition matches 10%. The rules that index columns must be used from the left and that the columns after a range condition cannot narrow the search range follow the description of composite indexes in the official MySQL documentation. Filtering conditions at the index stage after the order has been broken (Using index condition) is the index condition pushdown behavior of MySQL. The real optimizer may choose a different plan depending on statistics, and here it is assumed that this index is used. This was not checked against the EXPLAIN output of a real database.</p>
+<p>Previous lab: <a href="../../lab/index/">Indexes and full table scans</a> · Next lab: <a href="../../lab/explainplan/">Reading the execution plan</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

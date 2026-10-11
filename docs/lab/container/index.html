@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>컨테이너와 가상 머신: 컨테이너는 왜 가볍고 빨리 뜨나 · 개발 학습 실습실</title>
+<meta name="description" content="같은 애플리케이션을 여러 개 띄울 때, 가상 머신은 인스턴스마다 운영체제를 통째로 올리고 컨테이너는 호스트의 커널을 함께 씁니다. 방식과 개수를 바꿔 가며 올라가는 것들과 메모리 사용을 비교하고, 컨테이너에 메모리 제한을 걸었을 때 무슨 일이 생기는지도 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/container/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/container/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/container/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="컨테이너와 가상 머신: 컨테이너는 왜 가볍고 빨리 뜨나 · 개발 학습 실습실">
+<meta property="og:description" content="같은 애플리케이션을 여러 개 띄울 때, 가상 머신은 인스턴스마다 운영체제를 통째로 올리고 컨테이너는 호스트의 커널을 함께 씁니다. 방식과 개수를 바꿔 가며 올라가는 것들과 메모리 사용을 비교하고, 컨테이너에 메모리 제한을 걸었을 때 무슨 일이 생기는지도 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/container/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 배포와 운영</p>
+<h1>컨테이너와 가상 머신</h1>
+<p><b>컨테이너는 왜 가볍고 빨리 뜨나</b></p>
+<p>같은 애플리케이션을 여러 개 띄울 때, 가상 머신은 인스턴스마다 운영체제를 통째로 올리고 컨테이너는 호스트의 커널을 함께 씁니다. 방식과 개수를 바꿔 가며 올라가는 것들과 메모리 사용을 비교하고, 컨테이너에 메모리 제한을 걸었을 때 무슨 일이 생기는지도 보세요.</p>
+<p>문서·표준 대조 · Docker와 리눅스 커널 문서</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>컨테이너와 이미지</dt>
+<dd>컨테이너는 애플리케이션과 그 실행에 필요한 것들을 묶어, 호스트 운영체제의 커널을 공유하면서 다른 프로세스와 격리된 환경에서 실행하는 기술이다. 이미지는 컨테이너를 만드는 데 쓰는 읽기 전용 템플릿으로 애플리케이션과 라이브러리, 설정이 들어 있다. 같은 이미지로 실행하면 어느 환경에서나 같은 결과를 얻는다.</dd>
+<dt>컨테이너와 가상 머신의 차이</dt>
+<dd>가상 머신은 하드웨어를 가상화해 그 위에 운영체제 전체를 따로 설치해 실행한다. 컨테이너는 호스트의 운영체제 커널을 공유하고 프로세스만 격리한다. 그래서 컨테이너는 가상 머신보다 가볍고 빨리 시작되지만 격리 수준은 가상 머신이 더 높다.</dd>
+<dt>네임스페이스와 cgroups</dt>
+<dd>컨테이너를 구현하는 리눅스 커널의 기능이다. 네임스페이스는 프로세스가 볼 수 있는 범위(프로세스 목록, 네트워크, 파일 시스템 등)를 분리해 서로 독립된 환경처럼 보이게 한다. cgroups는 프로세스 그룹이 사용할 수 있는 CPU와 메모리 같은 자원의 양을 제한한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 컨테이너 3개. 호스트의 커널을 함께 씁니다.</li>
+<li><b>같은 것을 가상 머신으로</b> — 인스턴스마다 운영체제가 하나씩 더 올라갑니다.</li>
+<li><b>6개로 늘리면</b> — 가상 머신. 운영체제가 차지하는 몫이 6배가 됩니다.</li>
+<li><b>컨테이너 6개</b> — 애플리케이션이 쓰는 만큼만 늘어납니다.</li>
+<li><b>메모리 제한을 256MB로</b> — 애플리케이션이 400MB를 쓰려다 강제 종료됩니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>물리 서버 한 대에 호스트 운영체제가 떠 있습니다. 여기에 애플리케이션 인스턴스 3개를 서로 격리해서 띄우려 합니다.</li>
+<li>컨테이너 런타임은 가상 하드웨어를 만들지 않습니다. 호스트 커널의 기능으로 프로세스를 격리해서 실행할 뿐입니다.</li>
+<li>컨테이너 1: 이미지(애플리케이션과 실행에 필요한 파일 묶음)를 읽기 전용으로 깔고, 그 위에서 프로세스를 시작합니다. 운영체제를 부팅하지 않으므로 프로세스 하나를 띄우는 시간이면 됩니다. 같은 이미지는 컨테이너끼리 공유합니다.</li>
+<li>컨테이너 1: 실행 중입니다. 네임스페이스 덕분에 이 프로세스는 자기만의 파일 시스템, 네트워크, 프로세스 목록을 가진 것처럼 보이지만, 실제로는 호스트 커널 위의 평범한 프로세스입니다.</li>
+<li>컨테이너 2: 이미지(애플리케이션과 실행에 필요한 파일 묶음)를 읽기 전용으로 깔고, 그 위에서 프로세스를 시작합니다. 운영체제를 부팅하지 않으므로 프로세스 하나를 띄우는 시간이면 됩니다. 같은 이미지는 컨테이너끼리 공유합니다.</li>
+<li>컨테이너 2: 실행 중입니다. 네임스페이스 덕분에 이 프로세스는 자기만의 파일 시스템, 네트워크, 프로세스 목록을 가진 것처럼 보이지만, 실제로는 호스트 커널 위의 평범한 프로세스입니다.</li>
+<li>컨테이너 3: 이미지(애플리케이션과 실행에 필요한 파일 묶음)를 읽기 전용으로 깔고, 그 위에서 프로세스를 시작합니다. 운영체제를 부팅하지 않으므로 프로세스 하나를 띄우는 시간이면 됩니다. 같은 이미지는 컨테이너끼리 공유합니다.</li>
+<li>컨테이너 3: 실행 중입니다. 네임스페이스 덕분에 이 프로세스는 자기만의 파일 시스템, 네트워크, 프로세스 목록을 가진 것처럼 보이지만, 실제로는 호스트 커널 위의 평범한 프로세스입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>운영체제(커널)는 호스트 1개뿐입니다. 전체 메모리 약 2224MB이며 컨테이너마다 애플리케이션이 쓰는 만큼만 더해졌습니다.</li>
+<li>컨테이너는 커널을 공유하므로 가볍고 빨리 뜹니다. 대신 격리는 가상 머신보다 약하고, 호스트와 같은 종류의 커널에서만 동작합니다. &quot;보이는 범위&quot;는 네임스페이스가, &quot;쓸 수 있는 자원량&quot;은 cgroups가 나눕니다.</li>
+</ul>
+<h2>코드</h2>
+<pre># Dockerfile
+FROM eclipse-temurin:21-jre           # JRE가 들어 있는 기본 이미지
+COPY build/libs/app.jar app.jar
+ENTRYPOINT [&quot;java&quot;, &quot;-jar&quot;, &quot;app.jar&quot;]
+
+# 실행 (컨테이너 3개)
+$ docker run -d --memory=1024m my-app:1.0</pre>
+<h2>이 모형의 전제</h2>
+<p>메모리 수치(게스트 운영체제 약 1GB, 애플리케이션 약 400MB)와 부팅 시간은 차이의 방향을 보이기 위한 대략적인 예시이며 실제 값은 구성에 따라 크게 다릅니다. 컨테이너가 호스트 커널을 공유하고 네임스페이스와 cgroups로 격리된다는 점, 제한을 넘으면 커널이 프로세스를 종료한다는 점은 Docker와 리눅스 커널 문서의 설명을 따랐습니다. 윈도우나 맥의 Docker Desktop은 내부에 리눅스 가상 머신을 하나 두고 그 안에서 컨테이너를 돌립니다.</p>
+<p>앞 실습: <a href="../../lab/deploy/">배포 전략</a> · 다음 실습: <a href="../../lab/k8s/">쿠버네티스 자가 치유</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sockets and ports: Of the several programs on one computer, which one receives this data? · Dev Learning Lab</title>
+<meta name="description" content="An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number. Change the port…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/socket/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/socket/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/socket/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Sockets and ports: Of the several programs on one computer, which one receives this data? · Dev Learning Lab">
+<meta property="og:description" content="An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number. Change the port…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/socket/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Transport layer</p>
+<h1>Sockets and ports</h1>
+<p><b>Of the several programs on one computer, which one receives this data?</b></p>
+<p>An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number. Change the port on which the servers start and the port to which the clients connect, and see when a connection is refused and how several clients can connect to one port at the same time.</p>
+<p>Checked against real execution · The 27 combinations were run on 127.0.0.1 with the net module of Node.js 24 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Port</dt>
+<dd>A port is a number from 0 to 65535 that tells apart which of the several programs running on one computer should receive the data. If an IP address points to the computer, a port points to the program inside that computer, so the place to connect to is written as &quot;IP address:port&quot;. A server program waits for connections on a port it has chosen, and some numbers are widely agreed upon, such as 80 (HTTP) and 443 (HTTPS) for web servers. Normally only one program can wait for connections on a port, so starting a server on a port that is already in use causes an &quot;address already in use&quot; error. The ports of TCP and the ports of UDP are managed separately, so the same number in each is a different thing.</dd>
+<dt>Socket</dt>
+<dd>A socket is the endpoint of communication that a program uses to send and receive data over a network, and the operating system creates it and hands it to the program. The program only writes to and reads from the socket, and the operating system does the actual work of splitting up, sending, and receiving the data. One TCP connection consists of a pair of sockets, one at each end, and the operating system tells connections apart by four values: the source IP address, the source port, the destination IP address, and the destination port. This is why a server can receive connections from several clients at once on a single port, with a separate socket created for each connection. If you do not close a socket after using it, the resources of the operating system stay tied up.</dd>
+<dt>Ephemeral port</dt>
+<dd>An ephemeral port is the source port number that the operating system chooses automatically when a client connects to a server. The client code writes only the port of the other side (the server), and the operating system lends a free number for its own side. When the connection ends, the number is given back and can be used again for another connection. The range from which numbers are picked depends on the operating system and its settings, so you must not assume that a particular number will come up. If a very large number of new connections are made in a short time, there may be no numbers left to lend, and a new connection can fail.</dd>
+<dt>TCP and UDP</dt>
+<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. The web and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Two servers cannot share one port, but three clients can connect to one port together.</li>
+<li><b>Choosing the program by port</b> — Same computer, but sending to port 9001 reaches Server B.</li>
+<li><b>A port with no server listening</b> — Even though the computer is on, the connection is refused.</li>
+<li><b>Port 9001 after Server B failed to start</b> — B did not get port 9000, and nobody is on port 9001.</li>
+<li><b>One server, one client</b> — Start with the simplest case.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>serverA.listen(9000): Server A registers with the operating system: &quot;Give me the connections that arrive on port 9000.&quot; Port 9000 was free, so this succeeds. Server A now waits for connections.</li>
+<li>serverB.listen(9000): Server B also tries to register port 9000. Server A is already using it, so the operating system refuses, and Server B receives an EADDRINUSE (address already in use) error. Only one program can receive the connections that arrive on a port, because otherwise the operating system could not decide whom to give them to.</li>
+<li>Client 1 calls net.connect(9000): The code gives only the destination port. The operating system picks one of the free numbers (here 50001) as the source port. Server A is listening on port 9000, so the connection is established.</li>
+<li>Client 2 calls net.connect(9000): This time the operating system picks 50002 as the source port. Server A is listening, so the connection is established. The destination port is the same 9000 as in the earlier connection, and only the source port differs. The operating system treats connections as different if even one of the four values (source IP, source port, destination IP, destination port) differs.</li>
+<li>Client 3 calls net.connect(9000): This time the operating system picks 50003 as the source port. Server A is listening, so the connection is established. The destination port is the same 9000 as in the earlier connection, and only the source port differs. The earlier two connections are not closed and stay open.</li>
+<li>socket.write: Each of the 3 clients sends its data. All of it goes to port 9000, but the operating system looks at the source port to tell which connection the data belongs to, and passes it to Server A separately for each connection.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>All 3 clients connected, and the data was received by Server A.</li>
+<li>Starting a server on a port that is already in use fails with EADDRINUSE. If you meet a &quot;port already in use&quot; error during development, most often the server you started earlier is still alive. End that program or use another port.</li>
+<li>Several clients can connect to one server port at the same time. Even when connections increase, the server side has only one port, 9000, and connections are told apart by the set of four values (source IP, source port, destination IP, destination port). A web server receiving many users on the single port 443 works on the same principle.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Node.js (net module). Both the servers and the clients run on this computer (127.0.0.1)
+const net = require('net');
+
+const serverA = net.createServer(conn =&gt; conn.on('data', d =&gt; conn.write('A')));
+serverA.listen(9000, '127.0.0.1');             // start listening on port 9000
+
+const serverB = net.createServer(conn =&gt; conn.on('data', d =&gt; conn.write('B')));
+serverB.on('error', e =&gt; console.log(e.code));  // if it fails, the error name is printed
+serverB.listen(9000, '127.0.0.1');             // the port that Server A already uses
+
+for (let i = 1; i &lt;= 3; i++) {
+  const socket = net.connect(9000, '127.0.0.1');   // write only the destination port. The source port is not written
+  socket.on('connect', () =&gt; {
+    console.log(socket.localPort);              // the source port chosen by the operating system
+    socket.write('c' + i);
+  });
+  socket.on('data', d =&gt; console.log(d.toString()));   // which server received it
+  socket.on('error', e =&gt; console.log(e.code));
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The 27 combinations were actually run with the net module on 127.0.0.1 of the PC used to write this lab (Windows, Node.js 24) and checked against the results. What was checked: the result of the listen call of Server B (success or EADDRINUSE), the number of successful and refused client connections (ECONNREFUSED), the server that received the data, the number of connections the server saw, whether the ports of the server-side sockets were all the same as the one listening port, and whether the client-side ports were different from each other. In the runs, three ports that were free at the time were used instead of 9000, 9001, and 9002, and because the client-side port numbers (such as 50001 on the screen) change on every run, only the fact that they are &quot;different from each other&quot; was used as a result. The range from which an operating system picks ephemeral ports depends on the operating system and its settings (the range that IANA recommends is 49152 to 65535, Section 6 of RFC 6335). That a connection is identified by the IP addresses and ports on both sides is the definition in the TCP specification (the entries for connection and socket in the glossary in Section 4 of RFC 9293). Not covered: clients on another computer, and special socket options (such as SO_REUSEPORT) that let several programs share the same port.</p>
+<p>Previous lab: <a href="../../lab/routing/">Switches and routers</a> · Next lab: <a href="../../lab/tcp/">TCP connections and retransmission</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

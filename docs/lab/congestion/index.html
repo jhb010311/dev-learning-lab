@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>흐름 제어와 혼잡 제어: TCP는 한 번에 얼마나 보낼지를 어떻게 정하나 · 개발 학습 실습실</title>
+<meta name="description" content="TCP는 보낼 데이터가 많아도 한꺼번에 쏟아 보내지 않습니다. 받는 쪽이 감당할 수 있는 양(수신 윈도)과 네트워크가 감당할 수 있다고 짐작한 양(혼잡 윈도) 가운데 작은 쪽까지만 보냅니다. 앞의 것을 지키는 일이 흐름 제어, 뒤의 것을 조절하는 일이 혼잡 제어입니다. 열두…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/congestion/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/congestion/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/congestion/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="흐름 제어와 혼잡 제어: TCP는 한 번에 얼마나 보낼지를 어떻게 정하나 · 개발 학습 실습실">
+<meta property="og:description" content="TCP는 보낼 데이터가 많아도 한꺼번에 쏟아 보내지 않습니다. 받는 쪽이 감당할 수 있는 양(수신 윈도)과 네트워크가 감당할 수 있다고 짐작한 양(혼잡 윈도) 가운데 작은 쪽까지만 보냅니다. 앞의 것을 지키는 일이 흐름 제어, 뒤의 것을 조절하는 일이 혼잡 제어입니다. 열두…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/congestion/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 전송 계층</p>
+<h1>흐름 제어와 혼잡 제어</h1>
+<p><b>TCP는 한 번에 얼마나 보낼지를 어떻게 정하나</b></p>
+<p>TCP는 보낼 데이터가 많아도 한꺼번에 쏟아 보내지 않습니다. 받는 쪽이 감당할 수 있는 양(수신 윈도)과 네트워크가 감당할 수 있다고 짐작한 양(혼잡 윈도) 가운데 작은 쪽까지만 보냅니다. 앞의 것을 지키는 일이 흐름 제어, 뒤의 것을 조절하는 일이 혼잡 제어입니다. 열두 번의 왕복 동안 보내는 양이 어떻게 늘고 줄어드는지 확인하세요.</p>
+<p>개념 모형 · RFC 5681의 규칙을 옮긴 개념 모형. 실제 TCP 실행과는 대조하지 못했고, 같은 규칙을 ACK 하나 단위로 따로 계산한 값과 153가지 설정에서 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>흐름 제어와 혼잡 제어</dt>
+<dd>둘 다 TCP가 전송 속도를 조절하는 기능이다. 흐름 제어는 받는 쪽이 처리할 수 있는 양에 맞춰 보내는 양을 조절해 받는 쪽이 넘치지 않게 한다. 혼잡 제어는 네트워크가 막히는 정도를 감지해 보내는 양을 줄이거나 늘려 네트워크 전체의 혼잡을 막는다.</dd>
+<dt>수신 윈도와 혼잡 윈도</dt>
+<dd>TCP가 한 번에 보낼 수 있는 양을 정하는 두 가지 한도다. 수신 윈도(rwnd)는 받는 쪽이 &quot;지금 이만큼 더 받을 수 있다&quot;고 확인 응답에 실어 알려 주는 값으로, 받는 쪽의 버퍼가 넘치지 않게 한다. 혼잡 윈도(cwnd)는 보내는 쪽이 &quot;네트워크가 이만큼은 감당한다&quot;고 스스로 짐작해 관리하는 값으로, 상대에게 알리지 않는다. 보내는 쪽은 아직 확인받지 못한 데이터가 두 값 가운데 작은 쪽을 넘지 않도록 보낸다. 수신 윈도를 지키는 일이 흐름 제어이고, 혼잡 윈도를 늘리고 줄이는 일이 혼잡 제어다.</dd>
+<dt>느린 시작과 혼잡 회피</dt>
+<dd>TCP가 혼잡 윈도를 늘려 가는 두 단계다. 느린 시작은 혼잡 윈도를 아주 작게 잡고 출발해 확인 응답이 하나 올 때마다 늘리는 단계로, 한 번 왕복할 때마다 윈도가 두 배가 된다. 이름과 달리 늘어나는 속도는 빠르며, 처음부터 많이 보내지 않는다는 뜻에서 느린 시작이라고 부른다. 혼잡 윈도가 문턱값(ssthresh)에 이르면 혼잡 회피로 넘어가 한 번 왕복에 한 조각씩만 늘린다. 유실을 알아채면 네트워크가 막혔다고 보고 문턱값을 낮추고 윈도를 줄이는데, 같은 확인 응답이 세 번 거듭 온 경우에는 절반쯤으로, 타임아웃인 경우에는 한 조각 크기까지 줄인다(연결을 시작할 때의 윈도가 이보다 컸더라도 그렇다). 이 설명은 표준(RFC 5681)의 기본 방식이며, 운영체제가 실제로 쓰는 알고리즘은 늘리고 줄이는 정도가 다를 수 있다.</dd>
+<dt>TCP와 UDP</dt>
+<dd>인터넷에서 데이터를 전송하는 두 가지 대표적인 방식이다. TCP는 통신 전에 연결을 맺고, 데이터가 빠짐없이 순서대로 도착하도록 보장하며, 문제가 생기면 다시 보낸다. UDP는 연결 없이 데이터를 보내며 도착 여부나 순서를 보장하지 않는 대신 가볍고 빠르다. 웹, 데이터베이스 연결은 TCP를, 실시간 영상·음성이나 DNS는 UDP를 주로 쓴다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 두 배씩 늘다가 문턱값부터는 하나씩 늘고, 유실을 알아채면 절반으로 줄입니다.</li>
+<li><b>같은 유실을 타임아웃으로</b> — 절반이 아니라 1조각부터 다시 시작합니다.</li>
+<li><b>유실이 없으면</b> — 문턱값까지는 두 배씩, 그 뒤로는 하나씩 계속 늘립니다.</li>
+<li><b>받는 쪽이 느리면</b> — 혼잡 윈도가 커져도 수신 윈도인 6조각까지만 보냅니다.</li>
+<li><b>문턱값이 아주 크면</b> — 느린 시작이 유실을 만날 때까지 두 배씩 이어집니다.</li>
+<li><b>수신 윈도 12조각에서 유실</b> — 절반의 기준은 혼잡 윈도가 아니라 실제로 보낸 양입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>왕복 1: 혼잡 윈도는 1조각, 수신 윈도는 64조각입니다. 둘 가운데 작은 쪽인 혼잡 윈도만큼, 1조각을 보냅니다. 연결을 막 맺었을 때는 네트워크가 얼마나 감당할지 모르므로 1조각부터 시작합니다. 혼잡 윈도가 문턱값 8조각보다 작으므로 느린 시작입니다. ACK가 하나 돌아올 때마다 1조각씩 늘립니다. ACK 1개를 받아 2조각이 됩니다. 한 왕복에 두 배입니다.</li>
+<li>왕복 2: 혼잡 윈도 2조각, 수신 윈도 64조각 가운데 작은 쪽인 혼잡 윈도만큼, 2조각을 보냅니다. 느린 시작이 이어집니다. ACK 2개를 받아 4조각이 됩니다. 한 왕복에 두 배입니다.</li>
+<li>왕복 3: 혼잡 윈도 4조각, 수신 윈도 64조각 가운데 작은 쪽인 혼잡 윈도만큼, 4조각을 보냅니다. 느린 시작이 이어집니다. ACK 4개를 받아 8조각이 됩니다. 한 왕복에 두 배입니다.</li>
+<li>왕복 4: 혼잡 윈도 8조각, 수신 윈도 64조각 가운데 작은 쪽인 혼잡 윈도만큼, 8조각을 보냅니다. 혼잡 윈도가 문턱값 8조각 이상이므로 혼잡 회피입니다. 이제는 ACK가 혼잡 윈도만큼 모여야 1조각을 늘립니다. 이번 왕복에서 9조각이 됩니다. 한 왕복에 1조각씩, 조심스럽게 늘립니다.</li>
+<li>왕복 5: 혼잡 윈도 9조각, 수신 윈도 64조각 가운데 작은 쪽인 혼잡 윈도만큼, 9조각을 보냅니다. 혼잡 회피가 이어집니다. 이번 왕복에서 10조각이 됩니다.</li>
+<li>왕복 6: 혼잡 윈도 10조각, 수신 윈도 64조각 가운데 작은 쪽인 혼잡 윈도만큼, 10조각을 보냅니다. 그런데 맨 앞 조각 하나가 가는 길에 사라졌습니다. 뒤따라 도착한 조각마다 받는 쪽은 &quot;아직 그 앞 조각을 기다린다&quot;는 같은 ACK를 되풀이해 보냅니다.</li>
+<li>같은 ACK가 세 번 왔습니다. 보내는 쪽은 타이머를 기다리지 않고 사라진 조각을 바로 다시 보냅니다(빠른 재전송). 유실은 네트워크가 막혔다는 신호로 봅니다. 문턱값을 방금 보낸 양 10조각의 절반인 5조각으로 낮추고, 혼잡 윈도도 5조각으로 줄입니다. ACK가 계속 오고 있으니 길이 완전히 막힌 것은 아니라고 보아, 1조각까지 내리지는 않습니다.</li>
+<li>왕복 7: 혼잡 윈도 5조각, 수신 윈도 64조각 가운데 작은 쪽인 혼잡 윈도만큼, 5조각을 보냅니다. 혼잡 윈도가 문턱값 5조각 이상이므로 혼잡 회피입니다. 이제는 ACK가 혼잡 윈도만큼 모여야 1조각을 늘립니다. 이번 왕복에서 6조각이 됩니다. 한 왕복에 1조각씩, 조심스럽게 늘립니다.</li>
+<li>왕복 8: 혼잡 윈도 6조각, 수신 윈도 64조각 가운데 작은 쪽인 혼잡 윈도만큼, 6조각을 보냅니다. 혼잡 회피가 이어집니다. 이번 왕복에서 7조각이 됩니다.</li>
+<li>왕복 9: 혼잡 윈도 7조각, 수신 윈도 64조각 가운데 작은 쪽인 혼잡 윈도만큼, 7조각을 보냅니다. 혼잡 회피가 이어집니다. 이번 왕복에서 8조각이 됩니다.</li>
+<li>왕복 10: 혼잡 윈도 8조각, 수신 윈도 64조각 가운데 작은 쪽인 혼잡 윈도만큼, 8조각을 보냅니다. 혼잡 회피가 이어집니다. 이번 왕복에서 9조각이 됩니다.</li>
+<li>왕복 11: 혼잡 윈도 9조각, 수신 윈도 64조각 가운데 작은 쪽인 혼잡 윈도만큼, 9조각을 보냅니다. 혼잡 회피가 이어집니다. 이번 왕복에서 10조각이 됩니다.</li>
+<li>왕복 12: 혼잡 윈도 10조각, 수신 윈도 64조각 가운데 작은 쪽인 혼잡 윈도만큼, 10조각을 보냅니다. 혼잡 회피가 이어집니다. 이번 왕복에서 11조각이 됩니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>열두 번의 왕복 동안 79조각을 보냈습니다. 왕복마다 보낸 양: 1, 2, 4, 8, 9, 10, 5, 6, 7, 8, 9, 10.</li>
+<li>같은 ACK 세 번으로 유실을 알아채면 문턱값과 혼잡 윈도를 보낸 양의 절반(5조각)으로 줄이고 거기서부터 하나씩 다시 늘립니다. 늘렸다가 유실을 만나면 줄이기를 되풀이하므로, 보내는 양을 그리면 톱니 모양이 됩니다.</li>
+<li>이 설정에서는 수신 윈도가 늘 넉넉해서 보내는 양을 혼잡 윈도가 정했습니다. 수신 윈도를 6조각으로 줄여 보면 받는 쪽이 한계가 되는 경우를 볼 수 있습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// RFC 5681의 규칙을 조각(세그먼트) 단위로 옮긴 것. 프로그램이 아니라 운영체제의 TCP가 하는 일이다
+let cwnd = 1;                  // 혼잡 윈도: 네트워크가 감당한다고 짐작한 양. 1조각에서 시작
+let ssthresh = 8;              // 문턱값: 여기까지는 빠르게, 넘으면 조심스럽게
+let acked = 0;                 // 혼잡 회피에서 센 ACK 수
+const rwnd = 64;               // 수신 윈도: 받는 쪽이 ACK에 실어 알려 준 여유
+
+function canSend() {           // 한 번에 보낼 수 있는 양
+  return Math.min(cwnd, rwnd); // 둘 가운데 작은 쪽
+}
+function onAck() {             // 새 데이터를 받았다는 ACK가 하나 올 때마다
+  if (cwnd &lt; ssthresh) cwnd += 1;                        // 느린 시작: 한 왕복에 두 배
+  else if (++acked &gt;= cwnd) { acked = 0; cwnd += 1; }    // 혼잡 회피: 한 왕복에 1조각
+}
+function onThreeDuplicateAcks(flight) {   // 같은 ACK가 세 번 = 한 조각이 사라짐
+  ssthresh = Math.max(Math.floor(flight / 2), 2);       // 보낸 양의 절반
+  cwnd = ssthresh;  acked = 0;                           // 절반에서 이어 간다
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>실제 TCP를 실행한 결과가 아니라 RFC 5681의 규칙을 옮긴 개념 모형입니다. 운영체제 안의 혼잡 윈도는 프로그램에서 들여다보거나 조작할 수 없어 실행으로 대조하지 못했습니다. 그 대신 모형의 수치를, 같은 규칙을 ACK 하나 단위로 따로 옮긴 계산과 153가지 설정에서 대조했습니다(모형은 왕복 단위의 식으로 계산합니다). 옮긴 규칙은 보낼 수 있는 양이 두 윈도 가운데 작은 쪽이라는 것(RFC 5681 3.1절), 느린 시작의 식 (2)와 혼잡 회피의 권장 방식(3.1절), 유실 뒤의 문턱값인 식 (4)(3.1절), 타임아웃 뒤 1조각(3.1절), 같은 ACK 세 번 뒤 빠른 회복을 마친 값(3.2절)입니다. 단순화한 것: 크기를 바이트가 아니라 조각 수로 세고 절반은 내림했습니다. 처음 혼잡 윈도는 1조각으로 두었습니다(표준이 허용하는 상한은 2~4조각이고 요즘 운영체제는 10조각을 쓰기도 합니다, RFC 6928). 조각마다 ACK가 하나씩 온다고 보았고(실제로는 두 조각에 하나씩 보내기도 합니다), 수신 윈도는 변하지 않는다고 보았으며(실제로는 받는 프로그램이 읽는 속도에 따라 ACK마다 달라집니다), 빠른 회복 도중에 윈도를 잠시 부풀리는 동작은 생략했습니다. 처음 문턱값은 충분히 크게 잡는 것이 표준의 권고이고, 8과 16은 변화를 보기 위한 값입니다. 수신 윈도에 막힌 동안에도 식대로 혼잡 윈도를 늘렸는데, 실제 구현은 혼잡 윈도를 다 쓰지 못하는 동안에는 늘리지 않기도 합니다(애플리케이션이 보낼 것이 적어 혼잡 윈도를 다 쓰지 않는 경우에 대해 RFC 7661이 그렇게 정합니다). 리눅스와 윈도의 기본 알고리즘은 CUBIC이어서(RFC 9438) 늘리는 곡선과 줄이는 비율이 이 모형과 다릅니다.</p>
+<p>앞 실습: <a href="../../lab/udp/">TCP와 UDP</a> · 다음 실습: <a href="../../lab/httpmsg/">HTTP 메시지와 상태 코드</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

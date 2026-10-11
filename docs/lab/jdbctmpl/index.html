@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JdbcTemplate과 예외 변환: JdbcTemplate은 무엇을 대신 해 주고, 예외를 무엇으로 바꾸나 · 개발 학습 실습실</title>
+<meta name="description" content="JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, DB가 던진 SQLException을 스프링의 예외(DataAccessException…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/jdbctmpl/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/jdbctmpl/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jdbctmpl/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="JdbcTemplate과 예외 변환: JdbcTemplate은 무엇을 대신 해 주고, 예외를 무엇으로 바꾸나 · 개발 학습 실습실">
+<meta property="og:description" content="JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, DB가 던진 SQLException을 스프링의 예외(DataAccessException…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/jdbctmpl/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 데이터 접근과 트랜잭션</p>
+<h1>JdbcTemplate과 예외 변환</h1>
+<p><b>JdbcTemplate은 무엇을 대신 해 주고, 예외를 무엇으로 바꾸나</b></p>
+<p>JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, DB가 던진 SQLException을 스프링의 예외(DataAccessException 계열)로 바꿔 줍니다. 같은 작업을 세 가지 방식으로 실행해, 호출한 쪽이 무엇을 받고 커넥션이 반납되는지 비교합니다.</p>
+<p>실행으로 대조 · 스프링 프레임워크 7.0.9의 JdbcTemplate과 H2에서 열여덟 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>JdbcTemplate</dt>
+<dd>스프링이 제공하는 JDBC 도우미 클래스로, SQL을 실행할 때마다 반복되는 일을 대신 한다. 커넥션을 얻고, PreparedStatement를 만들어 값을 넣고, 실행하고, 결과를 읽고, 예외가 나든 안 나든 자원을 닫는 일을 안에서 처리하므로, 개발자는 SQL과 넣을 값, 결과를 담을 방법만 넘기면 된다. update는 추가·수정·삭제에, queryForObject는 결과가 정확히 1건인 조회에, query는 여러 건을 목록으로 받는 조회에 쓴다. queryForObject는 결과가 0건이면 EmptyResultDataAccessException을, 2건 이상이면 IncorrectResultSizeDataAccessException을 던지므로, 0건이 정상일 수 있는 조회에는 주의해서 쓴다.</dd>
+<dt>예외 변환과 DataAccessException</dt>
+<dd>스프링이 데이터 접근 기술이 던지는 예외를 자신의 예외 계층으로 바꿔 주는 것이다. JDBC의 SQLException은 체크 예외이고 무슨 문제인지는 그 안의 코드(SQLState, 오류 번호)로만 알 수 있는데, 스프링은 이것을 DataAccessException의 하위 클래스로 바꿔 던진다. 중복 키는 DuplicateKeyException, 그 밖의 제약 조건 위반은 DataIntegrityViolationException, 잘못된 SQL은 BadSqlGrammarException이 된다. DataAccessException은 언체크 예외라서 throws를 적지 않아도 되고, 원래의 예외는 원인(cause)으로 보관된다. 예외 클래스의 이름으로 문제를 구분하므로, 서비스 코드가 특정 DB 제품의 오류 번호에 묶이지 않는다.</dd>
+<dt>커넥션 풀</dt>
+<dd>데이터베이스 연결을 미리 여러 개 만들어 두고 재사용하는 방식이다. 연결을 새로 맺는 것은 비용이 큰 작업이므로, 요청마다 연결을 맺고 끊는 대신 풀에서 빌려 쓰고 반납한다. 풀의 연결이 모두 사용 중이면 새 요청은 연결이 반납될 때까지 기다리고, 정해진 시간(HikariCP의 connectionTimeout, 기본 30초) 안에 얻지 못하면 예외가 발생한다. Spring Boot의 기본 구현은 HikariCP다. (50선 밖)</dd>
+<dt>Checked 예외와 Unchecked 예외</dt>
+<dd>Unchecked 예외는 RuntimeException과 그 하위 클래스로(명세상으로는 Error 계열도 unchecked에 속한다), 컴파일러가 처리 여부를 검사하지 않는다(NullPointerException, IllegalArgumentException 등). Checked 예외는 그 밖의 Exception으로, 반드시 catch로 처리하거나 throws로 선언해야 컴파일된다(IOException, SQLException 등). 스프링의 @Transactional은 기본적으로 RuntimeException과 Error에서만 롤백하고 Checked 예외에서는 커밋한다.</dd>
+<dt>템플릿 메서드 패턴</dt>
+<dd>작업의 전체 흐름은 상위 클래스에 정해 두고, 그 흐름 안에서 달라지는 일부 단계만 하위 클래스가 구현하게 하는 패턴이다. 공통된 절차의 중복을 없앤다. 스프링의 JdbcTemplate은 연결 획득, 예외 처리, 자원 정리의 흐름을 고정하고 달라지는 부분만 전달받는 같은 발상의 구조다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — JDBC를 직접 쓰고 close()를 마지막 줄에 뒀습니다. 예외가 나면 커넥션이 반납되지 않습니다.</li>
+<li><b>try-with-resources로 닫으면</b> — 커넥션은 반납됩니다. 하지만 받는 것은 여전히 SQLException과 코드입니다.</li>
+<li><b>JdbcTemplate으로 바꾸면</b> — 코드가 한 줄이 되고, 예외는 DuplicateKeyException으로 바뀝니다.</li>
+<li><b>SQL에 오타가 있으면</b> — BadSqlGrammarException으로 바뀝니다.</li>
+<li><b>queryForObject의 결과가 0건</b> — null이 아니라 예외가 나옵니다.</li>
+<li><b>결과가 2건인데 JDBC 직접</b> — 첫 행만 돌려주고 2건이었다는 사실은 사라집니다.</li>
+<li><b>결과가 2건인 queryForObject</b> — 바로 위와 비교해 보세요. 예외로 알려 줍니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>memberRepository.insert(1L, &quot;choi&quot;, &quot;대전&quot;) 호출: JDBC를 직접 쓰는 메서드입니다. 커넥션을 얻는 일부터 닫는 일까지 모두 이 메서드 안에 직접 적었습니다.</li>
+<li>dataSource.getConnection(): 커넥션 풀에서 커넥션 하나를 빌립니다. 빌린 커넥션은 다 쓴 뒤 반드시 닫아서(close) 풀에 돌려줘야 합니다.</li>
+<li>ps.executeUpdate(): DB가 오류를 냅니다. id 1인 행이 이미 있어 기본 키가 겹칩니다. JDBC 드라이버는 이것을 SQLException으로 던지며, 무슨 오류인지는 그 안의 SQLState 코드(23505)에 들어 있습니다.</li>
+<li>예외가 메서드 밖으로 나감: 예외가 난 줄 아래에 적은 ps.close(), con.close()는 실행되지 않습니다. 빌린 커넥션이 풀에 돌아가지 못합니다. 이런 일이 쌓이면 풀의 커넥션이 바닥나서 다른 요청이 커넥션을 얻지 못합니다.</li>
+<li>호출한 쪽: SQLException을 받습니다. 체크 예외이므로 이 메서드를 부르는 모든 메서드가 throws SQLException을 적거나 try-catch로 잡아야 합니다. 중복 키인지 알아내려면 SQLState 23505 같은 코드를 직접 비교해야 합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>호출한 쪽이 받은 것: SQLException (SQLState 23505) (체크 예외). 커넥션은 풀에 반납되지 않았습니다.</li>
+<li>close()를 메서드의 마지막에 두면 도중에 예외가 났을 때 닫지 못합니다. JDBC를 직접 쓸 때는 try-with-resources(또는 finally)로 닫아야 하고, 이것을 메서드마다 빠짐없이 써야 합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// member 테이블 (id는 기본 키, name은 NOT NULL)
+//   (1, kim, 서울), (2, lee, 부산), (3, park, 서울)
+// 호출: memberRepository.insert(1L, &quot;choi&quot;, &quot;대전&quot;);
+
+public int insert(Long id, String name, String city) throws SQLException {
+    Connection con = dataSource.getConnection();           // 커넥션 얻기
+    PreparedStatement ps = con.prepareStatement(
+        &quot;insert into member(id, name, city) values (?, ?, ?)&quot;);
+    ps.setLong(1, id);
+    ps.setString(2, name);
+    ps.setString(3, city);
+    int rows = ps.executeUpdate();                          // SQL 실행
+    ps.close();
+    con.close();                                            // 커넥션 반납
+    return rows;
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>열여덟 가지 조합 모두를 이 PC의 스프링 프레임워크 7.0.9(스프링 부트 4.1.1에 들어 있는 버전)의 JdbcTemplate, HikariCP 커넥션 풀, H2 2.4.240에서 화면과 같은 구조의 코드로 실행해, 호출한 쪽이 받는 것, 예외가 체크 예외인지, 호출이 끝난 뒤 풀에 반납되지 않은 커넥션이 있는지를 대조했습니다. DuplicateKeyException이 DataIntegrityViolationException의 하위 클래스라는 것, EmptyResultDataAccessException이 IncorrectResultSizeDataAccessException의 하위 클래스라는 것, 바뀐 예외의 원인(cause)에 원래의 SQLException이 들어 있다는 것, JdbcTemplate이 예외를 바꾸는 시점에는 커넥션이 이미 반납되어 있다는 것도 실행으로 확인했습니다. SQLState 값(23505, 23502, 42S22)은 H2가 준 값입니다. 다른 DB 제품에서 코드가 다를 수 있다는 것과, 그래도 스프링이 같은 예외로 바꿔 준다는 것은 이 PC에서 H2로만 실행했으므로 스프링 문서를 따른 설명입니다. queryForObject가 결과를 다 읽고 커넥션을 반납한 다음에 건수를 확인한다는 단계의 순서는 스프링의 소스 코드를 따랐습니다(실행으로는 호출이 끝난 뒤 커넥션이 반납되어 있다는 것만 확인했습니다). H2는 SQL의 오타를 PreparedStatement를 만들 때 알려 주지만, SQL을 실행할 때에야 알려 주는 DB도 있습니다. 화면에서는 이것을 구분하지 않고 &quot;SQL 실행&quot; 단계로 그렸습니다. 스프링이 관리하는 트랜잭션 안에서는 JdbcTemplate이 커넥션을 풀에 바로 반납하지 않고 트랜잭션이 끝날 때 반납합니다. 여기서는 트랜잭션이 없는 경우만 다뤘습니다.</p>
+<p>앞 실습: <a href="../../lab/txprop/">트랜잭션 전파</a> · 다음 실습: <a href="../../lab/connpool/">커넥션 풀과 OSIV</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

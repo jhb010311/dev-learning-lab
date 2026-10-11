@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conditionals and loops: How many times does a loop run, and where does it stop? · Dev Learning Lab</title>
+<meta name="description" content="A loop repeats &quot;check the condition → body → change the value&quot; until the condition becomes false. Whether you write &lt; or &lt;= in the condition changes the n…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/loops/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/loops/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/loops/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Conditionals and loops: How many times does a loop run, and where does it stop? · Dev Learning Lab">
+<meta property="og:description" content="A loop repeats &quot;check the condition → body → change the value&quot; until the condition becomes false. Whether you write &lt; or &lt;= in the condition changes the n…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/loops/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Basic syntax</p>
+<h1>Conditionals and loops</h1>
+<p><b>How many times does a loop run, and where does it stop?</b></p>
+<p>A loop repeats &quot;check the condition → body → change the value&quot; until the condition becomes false. Whether you write &lt; or &lt;= in the condition changes the number of iterations by one, and break and continue cut that flow short or skip part of it. switch is a statement that jumps to the case whose value matches, and if there is no break, execution continues into the cases below. Follow the code one line at a time and check where control goes.</p>
+<p>Checked against real execution · Checked by running 24 combinations on JDK 21 (the two combinations that never end were observed for 2 seconds)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>for statement and while statement</dt>
+<dd>These are loops, which execute the same code repeatedly while a condition is true. while (condition) { body } checks the condition, executes the body if it is true, and goes back to the condition, and it ends when the condition becomes false. for (initialization; condition; increment) { body } does the same thing, but gathers on one line the code that declares and changes the variable used for the loop. The order of execution of a for statement is initialization (once), condition, body, increment, and then the condition again. Starting from 0, writing i &lt; n makes the loop run n times and writing i &lt;= n makes it run n + 1 times, so a single comparison operator in the condition changes the count by one.</dd>
+<dt>break and continue</dt>
+<dd>These are statements that change the flow of a loop partway through. break ends, right there, the innermost loop or switch that encloses it. continue does not end the loop. It skips only the remaining code of the current iteration and then moves on to the next iteration. In a for statement, continue goes to the condition check after the increment part has been executed, but in a while statement it goes straight to the condition check. So in a while statement, if the code that changes the value is below the continue, the loop may never end.</dd>
+<dt>switch statement and fall through</dt>
+<dd>A switch is a statement that compares one value with several cases and jumps to the matching case to execute from there. If no case matches, control goes to default. In the form that uses a colon, as in case 1:, execution continues into the code of the cases below until it reaches a break, and this is called fall through. Leaving out a break does not cause a compile-time error, so it is an easy mistake to make. The case 1 -&gt; form (the arrow), which is available from Java 14, executes only the code of the matching case, so no break is needed.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A for statement written with i &lt;= 3. It runs four times, not three.</li>
+<li><b>Changing to &lt;</b> — i &lt; 3 runs three times, for 0, 1, and 2.</li>
+<li><b>Reaching a break</b> — The whole loop ends when i is 1.</li>
+<li><b>Reaching a continue</b> — Only the iteration in which i is 1 is skipped, and the loop goes on.</li>
+<li><b>continue in a while statement</b> — The code is the same, and yet it never ends.</li>
+<li><b>Removing break from a switch</b> — Execution starts at case 2 and goes through every case below it.</li>
+<li><b>A switch with arrows</b> — Only the matching case is executed, even though no break is written.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>int i = 0: This is the first part inside the parentheses of the for statement (the initialization). It is executed only once, at the very beginning, and i becomes 0.</li>
+<li>Checking i &lt;= 3: i is 0, and 0 &lt;= 3 is true. The body is entered.</li>
+<li>System.out.println(i): The value of i is printed. The output is 0.</li>
+<li>i++: When the body ends, the third part inside the parentheses of the for statement (the increment) is executed. The value of i is now 1. Control goes back to the condition check.</li>
+<li>Checking i &lt;= 3: i is 1, and 1 &lt;= 3 is true. The body is entered.</li>
+<li>System.out.println(i): The value of i is printed. The output is 1.</li>
+<li>i++: When the body ends, the third part inside the parentheses of the for statement (the increment) is executed. The value of i is now 2. Control goes back to the condition check.</li>
+<li>Checking i &lt;= 3: i is 2, and 2 &lt;= 3 is true. The body is entered.</li>
+<li>System.out.println(i): The value of i is printed. The output is 2.</li>
+<li>i++: When the body ends, the third part inside the parentheses of the for statement (the increment) is executed. The value of i is now 3. Control goes back to the condition check.</li>
+<li>Checking i &lt;= 3: i is 3, and 3 &lt;= 3 is true. &lt;= is true when the two are equal as well, so the body is entered one more time.</li>
+<li>System.out.println(i): The value of i is printed. The output is 3.</li>
+<li>i++: When the body ends, the third part inside the parentheses of the for statement (the increment) is executed. The value of i is now 4. Control goes back to the condition check.</li>
+<li>Checking i &lt;= 3: i is 4, and 4 &lt;= 3 is false. The body is not entered, and the loop ends.</li>
+<li>System.out.println(&quot;done&quot;): The line after the loop is executed. The body was entered 4 times in all.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The output is 0, 1, 2, 3, done. The body was entered 4 times, and the condition was checked 5 times (the last check was false).</li>
+<li>i &lt;= 3 is true when i is 3 as well, so it runs one more time than i &lt; 3. Starting from 0, i &lt; n runs n times and i &lt;= n runs n + 1 times. Mistakes like this, in which the count is off by one, are very common. To loop over an array with n elements, use i &lt; n.</li>
+<li>A for statement is a loop that gathers the initialization, the condition, and the increment on one line. The order of execution is initialization (once) → condition → body → increment → condition → ... .</li>
+</ul>
+<h2>Code</h2>
+<pre>for (int i = 0; i &lt;= 3; i++) {     // initialization; condition; increment
+    System.out.println(i);
+}
+System.out.println(&quot;done&quot;);</pre>
+<h2>Assumptions of this model</h2>
+<p>The output and the counts of the 24 combinations (12 loops and 12 switch statements) were checked against the result of running code with the same structure on JDK 21 on this PC. The number of times the body was entered was obtained by putting counting code on the first line of the body in the program used for the check. For the two combinations that use continue in a while statement, it was confirmed that the real program does not end after 2 seconds and keeps repeating only the body. That the program &quot;never ends&quot; cannot itself be proved by execution. It is a conclusion that follows from the structure of the code, in which i does not change. The model decides that there is an infinite loop, and stops, when control comes back to the condition check with the same value of i. It was also confirmed by execution that a switch without a default executes nothing when it is given a value that matches no case. The switch with arrows has been a standard part of the language since Java 14. The do-while statement, the enhanced for statement (for-each), switch expressions that produce a value, and the labeled break are not covered.</p>
+<p>Previous lab: <a href="../../lab/casting/">Operators and type conversion</a> · Next lab: <a href="../../lab/array/">Arrays</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

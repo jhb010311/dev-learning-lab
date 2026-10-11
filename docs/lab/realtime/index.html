@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>폴링·SSE·WebSocket: 서버에서 생긴 일을 브라우저에 알리는 네 가지 방법 · 개발 학습 실습실</title>
+<meta name="description" content="HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다.…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/realtime/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/realtime/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/realtime/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="폴링·SSE·WebSocket: 서버에서 생긴 일을 브라우저에 알리는 네 가지 방법 · 개발 학습 실습실">
+<meta property="og:description" content="HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다.…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/realtime/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
+<h1>폴링·SSE·WebSocket</h1>
+<p><b>서버에서 생긴 일을 브라우저에 알리는 네 가지 방법</b></p>
+<p>HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다. 30초 동안의 요청 수와 전달 지연을 비교하세요.</p>
+<p>문서·표준 대조 · HTML 표준, WebSocket 표준(RFC 6455), 스프링 문서</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>SSE(Server-Sent Events)와 폴링</dt>
+<dd>폴링은 클라이언트가 일정 간격으로 서버에 새 데이터가 있는지 반복해 묻는 방식이다. SSE는 하나의 HTTP 연결을 열어 두고 서버가 클라이언트 쪽으로 이벤트를 계속 보내는 방식으로, 서버에서 클라이언트로의 한 방향 전송만 가능하다. 알림처럼 서버가 보내기만 하면 되는 경우 WebSocket보다 단순하다.</dd>
+<dt>WebSocket</dt>
+<dd>클라이언트와 서버가 하나의 연결을 유지한 채 양쪽에서 자유롭게 메시지를 주고받을 수 있는 통신 규약이다. HTTP는 클라이언트가 요청해야 서버가 응답할 수 있지만, WebSocket은 서버가 먼저 데이터를 보낼 수 있어 채팅이나 실시간 알림에 쓰인다.</dd>
+<dt>HTTP와 무상태(Stateless)</dt>
+<dd>HTTP는 클라이언트가 요청을 보내면 서버가 응답하는 방식의 통신 규약이다. 무상태라는 것은 서버가 이전 요청의 내용을 기억하지 않아 각 요청이 그 자체로 처리에 필요한 정보를 모두 담고 있어야 한다는 뜻이다. 서버가 상태를 기억하지 않으므로 어느 서버가 요청을 받아도 되어 서버를 늘리기 쉽다. 로그인 상태처럼 이어져야 하는 정보는 쿠키, 세션, 토큰으로 유지한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 5초 간격 폴링. 대부분의 요청이 &quot;새 소식 없음&quot;으로 끝납니다.</li>
+<li><b>폴링 간격을 1초로</b> — 지연은 줄지만 요청이 30번으로 늘어납니다.</li>
+<li><b>롱 폴링</b> — 소식이 생기는 순간 응답합니다. 요청 수는 알림 수와 비슷합니다.</li>
+<li><b>SSE</b> — 연결 하나로 서버가 생기는 대로 보냅니다.</li>
+<li><b>양방향이 필요하면</b> — 채팅처럼 클라이언트도 자주 보낸다면 WebSocket이 맞습니다.</li>
+<li><b>SSE인데 클라이언트도 자주 보내면</b> — 보내는 쪽은 매번 별도의 HTTP 요청이 됩니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>브라우저가 5초마다 &quot;새 알림 있나요?&quot;라고 요청합니다. 서버는 그 시점까지 쌓인 알림을 주거나, 없으면 빈 응답을 줍니다.</li>
+<li>5초: 요청을 보냈습니다. 그 사이 생긴 알림 1건을 받았습니다. 알림은 3.7초에 생겼지만 다음 요청 때까지 기다려야 했습니다.</li>
+<li>10초: 요청을 보냈습니다. 새 알림이 없어 빈 응답을 받았습니다.</li>
+<li>15초: 요청을 보냈습니다. 그 사이 생긴 알림 1건을 받았습니다. 알림은 13.7초에 생겼지만 다음 요청 때까지 기다려야 했습니다.</li>
+<li>20초: 요청을 보냈습니다. 새 알림이 없어 빈 응답을 받았습니다.</li>
+<li>25초: 요청을 보냈습니다. 그 사이 생긴 알림 1건을 받았습니다. 알림은 23.7초에 생겼지만 다음 요청 때까지 기다려야 했습니다.</li>
+<li>30초: 요청을 보냈습니다. 새 알림이 없어 빈 응답을 받았습니다.</li>
+<li>30초 동안 요청 6번 중 3번이 빈손으로 끝났습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>30초 동안 HTTP 요청 6번(빈손 3번), 알림이 생긴 뒤 전달되기까지 평균 1.3초.</li>
+<li>폴링은 구현이 가장 단순합니다. 하지만 간격이 길면 알림이 늦고, 짧으면 소득 없는 요청이 서버에 쌓입니다. 사용자가 많으면 그 요청만으로 부하가 됩니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 브라우저
+setInterval(async () =&gt; {
+    const res = await fetch(&quot;/notifications?after=&quot; + lastId);
+    show(await res.json());              // 없으면 빈 배열
+}, 5000);</pre>
+<h2>이 모형의 전제</h2>
+<p>30초 구간에 알림이 고르게 생긴다고 가정했습니다. 전달 지연에서 네트워크 왕복 시간은 무시했습니다. 클라이언트가 보내는 메시지는 30초에 10건으로 고정했습니다. 롱 폴링의 제한 시간은 30초로 두었습니다. 네 방식의 동작은 HTML 표준(EventSource), WebSocket 표준(RFC 6455), 스프링 문서의 설명을 따랐습니다.</p>
+<p>앞 실습: <a href="../../lab/cors/">CORS</a> · 다음 실습: <a href="../../lab/tls/">TLS 핸드셰이크</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

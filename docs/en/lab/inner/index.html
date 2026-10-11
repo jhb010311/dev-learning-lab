@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inner classes and anonymous classes: How is a class declared inside a class connected to the outer object? · Dev Learning Lab</title>
+<meta name="description" content="You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object that cr…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inner/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inner/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/inner/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Inner classes and anonymous classes: How is a class declared inside a class connected to the outer object? · Dev Learning Lab">
+<meta property="og:description" content="You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object that cr…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/inner/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
+<h1>Inner classes and anonymous classes</h1>
+<p><b>How is a class declared inside a class connected to the outer object?</b></p>
+<p>You can declare a class inside another class. An object of an inner class, which is declared without static, holds a reference to the outer object that created it, so it cannot be created without an outer object. An anonymous class, which is created on the spot without a name, and a lambda expression can both use the local variables around them, but changing the value of such a variable is a compile-time error, and what this refers to inside them is different for the two.</p>
+<p>Checked against real execution · The code of the 24 combinations was compiled and run as it is on JDK 21 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Inner classes and nested classes</dt>
+<dd>These are classes declared inside another class. One declared without static is called an inner class (a non-static nested class), and one declared with static is called a static nested class. An object of an inner class is created in association with one outer object and holds a reference to that outer object, so it can use the fields and methods of the outer object directly. An object of a static nested class can be created without an outer object, and it cannot simply use the instance variables of an outer object. While an object of an inner class remains, that reference can also keep the outer object from being removed from memory, so it is better to add static to a class that does not use the outer object.</dd>
+<dt>Anonymous class</dt>
+<dd>This is a class that is given no name and from which one object is created right where the class is declared. You write its body in braces after the name of an interface or a class, as in new Runnable() { ... }, and the result is an object that implements that interface or extends that class. Its advantage is that you do not have to create a separate file for a small implementation that is used only once. Inside an anonymous class, this refers to that newly created object, which is different from a lambda expression, where this refers to the outer object. When the code is compiled, a separate class file is produced whose name is the name of the outer class followed by a number, such as Outer$1.</dd>
+<dt>Effectively final</dt>
+<dd>This describes a local variable that is not declared final but is never assigned again after it is given its first value. Of the local variables of the method that encloses them, an anonymous class and a lambda expression can use only those that are final or effectively final. This is because they take a copy of the value, not the variable itself, so if the original could be changed, it would differ from the copy and cause confusion. Even one line that assigns to the variable again causes a compile-time error. Changing the contents of the array or object that the variable refers to is not assigning to the variable again, so it is allowed.</dd>
+<dt>Lambda expression</dt>
+<dd>This is a syntax, introduced in Java 8, for writing a function with no name in a compact way. It has the form (parameters) -&gt; body, and it is used as the implementation of a functional interface, which has only one abstract method. It lets you pass behavior (code) to another method as if it were a value.</dd>
+<dt>static</dt>
+<dd>This keyword marks a member as belonging to the class, not to an instance. A static field exists only once per class and is shared by all instances, and a static method is called without creating an object. A static field whose value changes is effectively a global variable, so it easily causes problems when several threads access it at the same time.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Creating an inner class object without an outer object. This is a compile-time error.</li>
+<li><b>Creating it with an outer object</b> — The inner object follows its reference to the outer object and reads the field.</li>
+<li><b>A static nested class</b> — It can be created without an outer object.</li>
+<li><b>Reading an outer field from a static nested class</b> — There is no outer object that it refers to, so this is a compile-time error.</li>
+<li><b>this in an anonymous class</b> — this is the object created from the anonymous class itself.</li>
+<li><b>this in a lambda expression</b> — this is the outer object in which the lambda expression is written.</li>
+<li><b>Changing the value of a local variable</b> — Changing a local variable that is used inside a lambda expression is a compile-time error.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The compiler reads the Outer class: Inner has no static. An object of an inner class without static is always created in association with one particular Outer object.</li>
+<li>new Outer.Inner(): This is a compile-time error. main is a static method, so there is no Outer object at this point, and the code does not specify one either. The compiler rejects the code because it cannot determine which outer object the inner object belongs to.</li>
+<li>Error message: &quot;an enclosing instance that contains Outer.Inner is required&quot;. It means that there must be an outer object that contains Outer.Inner. Compilation failed, so not a single line of the program runs.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A compile-time error occurs, so the program does not run.</li>
+<li>An object of an inner class without static is created so that it holds a reference to an outer object. So the outer object must exist first, and when you have an outer object o, you create the inner object with o.new Inner().</li>
+<li>If the class inside does not use the fields or methods of the outer object, it is better to add static and make it a static nested class. Change the kind to &quot;static nested class&quot; and run the same code.</li>
+</ul>
+<h2>Code</h2>
+<pre>class Outer {
+    String name = &quot;A&quot;;
+
+    class Inner {                      // inner class (no static)
+        String who() { return &quot;inside&quot;; }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Outer.Inner in = new Outer.Inner();   // created without an outer object
+        System.out.println(in.who());
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The code of the 24 combinations (10 distinct cases when the hidden settings are excluded) was compiled and run as it is on JDK 21 on this PC, and whether compilation succeeded, the error messages, and the output were checked against the results. That an object of an inner class refers to the outer object, and that a static nested class has no such reference, was confirmed by looking at the hidden field with reflection. That an object of an anonymous class and a lambda expression keep a copy of the value of a local variable (the reference, for an array) was also confirmed through hidden fields on this JDK. However, the form in which a lambda expression keeps the value can differ depending on the JVM implementation. The wording of the error messages is that of javac in JDK 21 and can differ slightly by version. javac in JDK 21 does not create the hidden reference field when the class inside does not use the outer object at all (the anonymous class in this lab is such a case). Even so, the rule that an outer object is required to create an inner class without static is the same.</p>
+<p>Previous lab: <a href="../../lab/access/">Access modifiers and encapsulation</a> · Next lab: <a href="../../lab/immut/">Immutability and defensive copies</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

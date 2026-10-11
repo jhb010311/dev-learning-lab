@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Replication lag and CAP: I just saved it, but the query shows the old value · Dev Learning Lab</title>
+<meta name="description" content="If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/replica/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/replica/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/replica/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Replication lag and CAP: I just saved it, but the query shows the old value · Dev Learning Lab">
+<meta property="og:description" content="If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/replica/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Scaling and distribution</p>
+<h1>Replication lag and CAP</h1>
+<p><b>I just saved it, but the query shows the old value</b></p>
+<p>If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source to reach the replica. Change the replication lag and the time of the read, and also choose what to give up when the network between the two databases is cut.</p>
+<p>Conceptual model · A model that shows the principle</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Replication</dt>
+<dd>Continuously copying the changes of an original database (the source, also called the primary) to another database (a replica) so that both keep the same data. It reduces load by spreading read requests across replicas, and if the source fails, a replica can be promoted to take its place and keep the service running. There is a small delay in the copying, so data that was just written may not be visible on a replica right away. (Outside the top 50.)</dd>
+<dt>Eventual consistency</dt>
+<dd>The guarantee that, although some nodes may show the old value right after data changes, all nodes end up with the same value over time if no further changes are made. It gives up immediate consistency and gains availability and scalability in return. It is commonly adopted in distributed databases and for synchronizing data between microservices.</dd>
+<dt>CAP theorem</dt>
+<dd>The theorem that a distributed data store cannot guarantee all three of the following at the same time: consistency (every node shows the same data), availability (every request gets a response), and partition tolerance (the system keeps working even when communication between nodes is cut). Network partitions cannot be avoided, so the real choice is whether to put consistency or availability first when a partition happens.</dd>
+<dt>Read-only transaction (readOnly)</dt>
+<dd>@Transactional(readOnly = true) is a setting that declares that the transaction does not change data. With JPA (Hibernate), optimizations apply, such as skipping the flush that writes changes to the DB, and when you have separately configured one DB for reads and one for writes, it also serves as the criterion for routing to the DB for reads. Put it on query methods to make the intent clear.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Replication takes 1s, and the replica is queried 0.3s after the save. The old value comes back.</li>
+<li><b>Only the query right after saving goes to the source</b> — A user who has just written reads from the source.</li>
+<li><b>A query after some time has passed</b> — Once replication has finished, the replica also returns the new value.</li>
+<li><b>When replication falls 5s behind</b> — Even a read 2s later returns the old value.</li>
+<li><b>Network partition: keep responding</b> — The service keeps working, but it returns the old value.</li>
+<li><b>Network partition: refuse to respond</b> — It does not return a wrong value, but the query fails.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The member's nickname is &quot;Alice&quot;, and the source and the replica have the same value.</li>
+<li>0s: The user changes the nickname to &quot;Bob&quot;. It is saved on the source database and committed. The user gets a &quot;saved&quot; response. It has not yet been delivered to the replica.</li>
+<li>0.3s: The query is sent to the replica. Replication has not arrived yet, so the replica still has the old value &quot;Alice&quot;. The user sees a screen on which the nickname they just changed is unchanged.</li>
+<li>1s: Replication finally arrives, and the replica also becomes &quot;Bob&quot;. Later queries see the new value.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The result of a query to the replica 0.3s after the save is &quot;Alice&quot;. The save succeeded, but the screen showed the old value.</li>
+<li>Replication is usually asynchronous, so there is a time lag between the source and the replica. Given time they become the same, but before that they can differ (eventual consistency). Ways to handle this are to read the data a user has just written from the source, or, on the screen right after a write, to use the value received in the response as it is.</li>
+</ul>
+<h2>Code</h2>
+<pre>// A setting that sends readOnly transactions to the replica and everything else to the source
+@Transactional
+public void changeNickname(long id, String name) {     // -&gt; source
+    memberRepository.findById(id).orElseThrow().setNickname(name);
+}
+
+@Transactional(readOnly = true)
+public Member getMember(long id) {                      // -&gt; replica
+    return memberRepository.findById(id).orElseThrow();
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>This assumes one source and one replica with asynchronous replication. The replication time was treated as constant at the set value, but in practice it fluctuates with load: it is usually under 0.1 seconds, and it can momentarily widen to several seconds or more. The CAP theorem is about the choice to make during a network partition, and real systems mix different choices depending on the kind of data.</p>
+<p>Previous lab: <a href="../../lab/bufferpool/">Buffer pool and pages</a> · Next lab: <a href="../../lab/shard/">Sharding</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

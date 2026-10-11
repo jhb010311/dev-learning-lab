@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Value types and embeddable types: How is a class that groups an address stored in a table, and why make it immutable? · Dev Learning Lab</title>
+<meta name="description" content="Values that always go together, such as a city and a street, are easier to handle when you group them in a class like Address. A class like this has no id…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/embedded/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/embedded/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/embedded/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Value types and embeddable types: How is a class that groups an address stored in a table, and why make it immutable? · Dev Learning Lab">
+<meta property="og:description" content="Values that always go together, such as a city and a street, are easier to handle when you group them in a class like Address. A class like this has no id…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/embedded/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Entity mapping</p>
+<h1>Value types and embeddable types</h1>
+<p><b>How is a class that groups an address stored in a table, and why make it immutable?</b></p>
+<p>Values that always go together, such as a city and a street, are easier to handle when you group them in a class like Address. A class like this has no id, and the values it holds are all there is to it, so it is called a value type. Unlike an entity, a value type does not have its own table. It is stored as part of the entity that holds it. Here you see three scenes: what shape the table takes, what happens when two entities share the same Address object, and what SQL is sent when you change a collection that holds several value types.</p>
+<p>Checked against real execution · All 56 combinations were run on Hibernate 7.4.5 and H2, and the tables, the SQL that was sent, the values left, and the exception at startup were checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Value type</dt>
+<dd>This is a type whose meaning is decided only by the values it holds, without an identifier (id). It includes basic values such as numbers and strings, embeddable types that group several values like an address, and element collections that hold several of them. An entity is told apart by its id and is tracked as the same thing even when its values change, but a value type is stored as part of the entity that holds it, and it disappears together with that entity when the entity is deleted. If several entities point to the same value type object, a value changed through one of them is also seen through the others, so as a rule a value type should be made an immutable object.</dd>
+<dt>Embeddable type (@Embeddable)</dt>
+<dd>This is a value type that groups values used together, such as a city and a street, into one class and uses it as a field of an entity. You put @Embeddable on the class and @Embedded on the field that uses it. No separate table is created, and the fields inside it are spread out and stored as columns of the entity's table. So the table shape and the SQL are the same as when you keep the fields as they are, and only in the Java code are the related values and methods gathered in one place. If you use the same embeddable type twice in one entity, the column names collide, so you rename them with @AttributeOverride.</dd>
+<dt>Element collection (@ElementCollection)</dt>
+<dd>This is a List or Set that holds several value types, used as a field of an entity. You cannot put several values in the columns of one row, so each value is stored as one row in a separate table that has the id of the entity as a foreign key. A value type has no id, so it is hard to point to which row in the database changed. So when the collection changes, SQL that deletes all the rows of that entity and inserts them again may be sent. Use an element collection when there are only a few values and they rarely change. Otherwise, make them an entity and solve it with a one-to-many relationship.</dd>
+<dt>Immutable object</dt>
+<dd>This is an object whose state does not change after it is created. Because its value never changes, it is safe for several threads to use at the same time, you can pass it to other code without worrying that it will be changed, and it is well suited for caching or for use as a key in a hash collection. Declare the fields private final, provide no methods that change the state, and make the class final so that a subclass cannot change its behavior. If a field refers to a mutable object (such as a List or a Date), the constructor and the getters pass copies in and out (defensive copying) so that outside code cannot change the internals.</dd>
+<dt>Dirty checking</dt>
+<dd>The feature that automatically runs UPDATE statements for changed entities. When the values of an entity managed by the persistence context change, JPA compares the entity with the state it first read when the transaction commits, and it runs an UPDATE statement for each entity whose values differ. By default, Hibernate puts all columns in the UPDATE statement, not only the changed columns. To include only the changed columns, use @DynamicUpdate. So if you only change the values of an entity that you loaded, the change is applied to the database without calling a separate save method.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The city was changed only for Alice, but Bob's row is UPDATEd as well.</li>
+<li><b>Putting in a copy</b> — The objects are separate, so only Alice's row is UPDATEd.</li>
+<li><b>Making the value type immutable</b> — There is no setter, so there is no way to change the shared object.</li>
+<li><b>Table of an embeddable type</b> — No Address table is created. The fields become columns of the member table.</li>
+<li><b>Using the same value type twice</b> — The column names collide, so an exception is thrown at startup.</li>
+<li><b>Changing only one value in an element collection</b> — All the addresses of that member are deleted and inserted again.</li>
+<li><b>With a Set and all columns NOT NULL</b> — Only the changed row is deleted and inserted.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>new Address(&quot;Boston&quot;, &quot;Main St&quot;): Creates one Address object. The variable addr points to this object.</li>
+<li>new Member(&quot;Alice&quot;, addr): The address field of Alice points to the same object as addr. The object was not copied. There is just one more reference to the same object.</li>
+<li>new Member(&quot;Bob&quot;, addr): The address field of Bob also points to the same object. Now two members share one Address object.</li>
+<li>em.persist(member1): An INSERT is sent and the row of Alice is stored. The values of the address go into the city and street columns of the member table.</li>
+<li>em.persist(member2): An INSERT is sent and the row of Bob is stored. In the table, the two rows each hold their own city and street values. The fact that the object is shared is not recorded in the table.</li>
+<li>member1.getAddress().setCity(&quot;Denver&quot;): This is code that tries to change only Alice's address. But what it changes is the object that the two members share. member2.getAddress().getCity() is now &quot;Denver&quot; as well.</li>
+<li>Transaction commit, dirty checking: Just before commit, JPA compares the current values of the entities it manages with the values that were first stored. The city of Alice changed from Boston to Denver, so an UPDATE is sent for the row of Alice.</li>
+<li>It compares Bob too: The address of Bob points to the same object, so its city has changed to Denver as well. An UPDATE is sent for the row of Bob too. Only Alice's city was meant to change, but the address of Bob changed as well.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>After the 2 INSERTs, 2 UPDATEs were sent. The city left in the database is Denver for Alice and Denver for Bob.</li>
+<li>When two entities point to the same value type object, a value changed through one of them is also seen through the other. JPA sees both entities as changed and sends 2 UPDATEs. There is no compile error and no exception, so it becomes a bug that is hard to find.</li>
+<li>In Java, when you put an object in a variable or pass it on, the object is not copied. Only the reference is copied. So simply &quot;being careful not to share&quot; is hard to rely on.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Embeddable
+class Address {
+    String city;
+    String street;
+
+    void setCity(String city) { this.city = city; }   // the value can be changed
+}
+
+@Entity
+class Member {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+    String name;
+
+    @Embedded
+    Address address;
+}
+// Constructors and getters are omitted
+
+// Inside a transaction
+Address addr = new Address(&quot;Boston&quot;, &quot;Main St&quot;);
+Member member1 = new Member(&quot;Alice&quot;, addr);
+Member member2 = new Member(&quot;Bob&quot;, addr);
+em.persist(member1);
+em.persist(member2);
+member1.getAddress().setCity(&quot;Denver&quot;);
+// Transaction commit</pre>
+<h2>Assumptions of this model</h2>
+<p>All 56 combinations (5 table shapes, 3 ways of sharing, and for element collections 4 kinds x 3 operations x 2, 3, 4, or 5 addresses) were run on Hibernate 7.4.5 and an H2 database with code of the same structure. They were checked against the screen for the following: the tables and columns that were created, the kinds of SQL that were sent and the count per table, the SQL that was sent before commit, whether the DELETE is a statement that deletes all the rows of that member, the values left in the database, whether the address that was read back is null, and the exception at startup. The results for element collections are the behavior of Hibernate 7.4.5 and may differ by version. In particular, the fact that a Set whose columns allow null deletes everything and inserts it again, like a List, was confirmed by running it. Which row numbers are deleted and changed with @OrderColumn was confirmed from the conditions of the real SQL statements (member_id and idx) and the rows left after the run. The primary key uses the IDENTITY strategy, so the INSERT is sent as soon as persist is called. The sharing scene is what happens inside one transaction that saves two new members. Entities that are read from the database each get their own newly created value type objects, so this problem occurs only when the code itself puts in the same object. The SQL statements on the screen are shortened to be easy to read, so they are not letter for letter the same as the real statements. The order of the columns in the table may also differ from the real one.</p>
+<p>Previous lab: <a href="../../lab/mapping/">Entity mapping and primary keys</a> · Next lab: <a href="../../lab/owner/">The owning side of a relationship</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

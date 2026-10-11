@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Collecting a stream: Into what shape do you collect the result of a stream? · Dev Learning Lab</title>
+<meta name="description" content="The elements that come out of a stream must be collected at the end with collect before you can use them. Depending on which Collector you give it, the re…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/collect/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/collect/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/collect/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Collecting a stream: Into what shape do you collect the result of a stream? · Dev Learning Lab">
+<meta property="og:description" content="The elements that come out of a stream must be collected at the end with collect before you can use them. Depending on which Collector you give it, the re…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/collect/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Lambdas and streams</p>
+<h1>Collecting a stream</h1>
+<p><b>Into what shape do you collect the result of a stream?</b></p>
+<p>The elements that come out of a stream must be collected at the end with collect before you can use them. Depending on which Collector you give it, the result is a List, a Map grouped by key, or a single string. Collect the same list of orders in several ways, and see what happens in toMap when keys are duplicated.</p>
+<p>Checked against real execution · Checked by running 24 combinations on JDK 21</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Stream API</dt>
+<dd>This API expresses filtering, transformation, and aggregation over data such as collections in a declarative way. You chain intermediate operations such as filter and map, and finish with a terminal operation such as collect or forEach. Intermediate operations do not run until the terminal operation is called (lazy evaluation), and a stream does not modify its source data and can be used only once.</dd>
+<dt>Collector and collect</dt>
+<dd>collect is the terminal operation that gathers the elements that come out of a stream into a single result, and a Collector is the object that represents how they are gathered (which container is used and how the elements are put in). The Collectors class provides the Collectors that are used often. toList and toSet put the elements into a collection, joining concatenates them into a single string, and toMap puts them into a Map with the key and the value that you specify. toMap throws an IllegalStateException when the same key appears twice, so if keys can be duplicated, give a merge function that combines the two values as the third argument.</dd>
+<dt>groupingBy and partitioningBy</dt>
+<dd>These are Collectors that divide the elements of a stream into groups and collect them into a Map. groupingBy computes a key for each element and groups the elements that have the same key, and its default result is a Map&lt;key, List&lt;element&gt;&gt;. If you give a Collector such as counting or summingInt as the second argument, you get the count or the sum of each group instead of a list. partitioningBy divides the elements into two groups, a true group and a false group, by a single condition, and the two keys are always present even when no element belongs to a group. The Map that groupingBy returns does not guarantee an order, so if you need an order, specify separately that a Map such as TreeMap is to be used.</dd>
+<dt>Method reference</dt>
+<dd>This is a syntax that refers to an existing method by name in place of a lambda. You write it by joining a class (or an object) and a method name with ::, as in String::length or System.out::println. It is a shorter way to write a lambda that does nothing but call one method.</dd>
+<dt>List, Set, Map</dt>
+<dd>These are the three basic kinds of Java collections. A List is ordered, allows duplicates, and is accessed by index. A Set does not allow duplicates. A Map stores key-value pairs, and its keys cannot be duplicated. You choose among them by the nature of the data (whether order is needed, whether duplicates are allowed, and whether you look things up by key).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The same customer appears twice in toMap. An IllegalStateException is thrown.</li>
+<li><b>Supplying a merge function</b> — The values of the same key are added up into one.</li>
+<li><b>Collecting with toList</b> — The elements go into a List in the order in which they came out.</li>
+<li><b>Grouping with groupingBy</b> — A list of orders is built for each customer.</li>
+<li><b>Grouping and counting</b> — Only the count is kept instead of the list. The type of the values is Long.</li>
+<li><b>Splitting into two with partitioningBy</b> — The elements are split into those for which the condition is true and those for which it is false.</li>
+<li><b>Splitting into two when there are no orders</b> — Even with no elements, the two entries, false and true, are always present.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>orders.stream(): This creates a stream from which the 5 orders come out one at a time, in the order kim:300, han:100, kim:200, choi:400, han:500. Nothing has been collected yet.</li>
+<li>.collect(Collectors.toMap(Order::customer, Order::price)): collect is a terminal operation that receives the elements one at a time as they come out and puts them into a container, and the Collector in the parentheses decides which container is used and how the elements are put in. toMap prepares an empty Map. For each element, it puts in customer as the key and price as the value. A key can have only one value.</li>
+<li>Order kim:300: The key kim and the value 300 are put into the Map.</li>
+<li>Order han:100: The key han and the value 100 are put into the Map.</li>
+<li>Order kim:200: The same key (kim) is already in the Map. The code does not say which to keep, the existing value 300 or the new value 200, so an IllegalStateException is thrown and the program stops here. The exception message is &quot;Duplicate key kim (attempted merging values 300 and 200)&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>At element #3, IllegalStateException was thrown, so the program did not reach the output. Message: Duplicate key kim (attempted merging values 300 and 200)</li>
+<li>toMap holds only one value per key. If the data can have duplicate keys, you must either supply a merge function as the third argument or use groupingBy, which collects the duplicates into a list.</li>
+</ul>
+<h2>Code</h2>
+<pre>record Order(String customer, int price) {
+    @Override
+    public String toString() { return customer + &quot;:&quot; + price; }   // to keep the output short
+}
+
+List&lt;Order&gt; orders = List.of(
+    new Order(&quot;kim&quot;, 300), new Order(&quot;han&quot;, 100), new Order(&quot;kim&quot;, 200),
+    new Order(&quot;choi&quot;, 400), new Order(&quot;han&quot;, 500));
+
+Map&lt;String, Integer&gt; result = orders.stream()
+    .collect(Collectors.toMap(Order::customer, Order::price));
+System.out.println(result);</pre>
+<h2>Assumptions of this model</h2>
+<p>The output and the exceptions (kind and message) of the 24 combinations were checked against the result of running the same code on JDK 21 on this PC. The type of the result was confirmed by whether code that declares the result with that type actually compiles, and it was also confirmed that assigning the result of counting() to a Map&lt;String, Integer&gt; does not compile. The Map that groupingBy and toMap return does not guarantee an order (on JDK 21 it is a HashMap). This lab shows a Map sorted in lexicographic order of the keys, and for the customer names used here, the actual output order on JDK 21 was the same as that. With other names, the actual output order can differ. The wording of the exception message can differ between JDK versions. The lab covers only the case in which a stream handles its elements one at a time in order (a stream that is not parallel).</p>
+<p>Previous lab: <a href="../../lab/stream/">Lazy evaluation in streams</a> · Next lab: <a href="../../lab/parstream/">Parallel streams and the common pool</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

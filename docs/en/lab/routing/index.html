@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Switches and routers: If the destination IP is the server, why is the frame sent to the router's MAC address? · Dev Learning Lab</title>
+<meta name="description" content="A frame for a device on the same network is sent directly to that device's MAC address, and a switch uses that address to deliver it. A device on another…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/routing/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/routing/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/routing/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Switches and routers: If the destination IP is the server, why is the frame sent to the router's MAC address? · Dev Learning Lab">
+<meta property="og:description" content="A frame for a device on the same network is sent directly to that device's MAC address, and a switch uses that address to deliver it. A device on another…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/routing/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Addresses and names</p>
+<h1>Switches and routers</h1>
+<p><b>If the destination IP is the server, why is the frame sent to the router's MAC address?</b></p>
+<p>A frame for a device on the same network is sent directly to that device's MAC address, and a switch uses that address to deliver it. A device on another network cannot be reached directly, so the sender hands the frame to its gateway (a router). Each time the packet passes a router, the MAC addresses in the frame are written anew, but the IP addresses stay the same and the TTL goes down by 1. Change the destination and follow how the packet changes on each hop.</p>
+<p>Conceptual model · A conceptual model of the rules in RFC 826, 791, 1122, and 1812. It could not be checked against real equipment, so it was checked in 18 combinations against values calculated from the same rules by a different method</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>MAC address and ARP</dt>
+<dd>A MAC address is a 48-bit address attached to each network device, such as a network card, and it is used within a network to say to whom a frame should be handed. While an IP address points to the final destination, a MAC address points to the device that will take the frame over next. ARP is the protocol that finds the MAC address of the owner of an IP address from that IP address. A request that says &quot;whoever owns this IP address, tell me your MAC address&quot; is sent to every device on the network, only the owner answers, and the result is kept for a while in the ARP cache. An ARP request cannot cross a router, so the MAC address of a device on another network cannot be found.</dd>
+<dt>Switch and router</dt>
+<dd>A switch is a device that connects the devices in one network, and it sends a frame out only through the port to which the device with the destination MAC address of the frame is connected. It does not look at IP addresses and does not change the contents of the frame. A router is a device that connects different networks, and it decides where to hand a packet next by looking at the destination IP address of the packet and its routing table. When a packet passes a router, the frame is built anew and the MAC addresses change, but the IP addresses stay the same and the TTL goes down by 1. A home router combines a router, a switch, and a wireless access point in one machine.</dd>
+<dt>Default gateway</dt>
+<dd>The default gateway is the address of the router to which a computer hands the packets it sends outside its own network. The computer compares the destination IP address with its own IP address using the subnet mask. If they are on the same network, it sends the packet directly to the other device, and if not, it sends it to the default gateway. In that case, the destination IP address of the packet is left as the original destination, and only the destination MAC address of the frame is set to that of the gateway. If the default gateway is set wrong, the computer can communicate with devices on the same network but cannot get out to the internet.</dd>
+<dt>TTL of an IP packet</dt>
+<dd>The TTL of an IP packet is a number in the header that gives a limit on the number of routers the packet can pass. The sender sets the initial value, and a router decreases it by 1 each time it forwards the packet. When it reaches 0, the router discards the packet and sends an ICMP &quot;Time Exceeded&quot; message back to the sender. It exists to prevent a packet from circling between routers forever because of a wrong path setting. traceroute is a tool that sends packets with the TTL raised one at a time from 1 and checks the routers that respond, in order. It has the same name as the TTL (how long data is kept) in caches and DNS, but it is a different concept.</dd>
+<dt>OSI model</dt>
+<dd>A model that divides the process of network communication into seven layers by role. From the bottom, they are the physical, data link, network (IP), transport (TCP/UDP), session, presentation, and application (HTTP) layers. Each layer does its own job by using the functions of the layer directly below it. It is the reference for calling the location of a device or a problem &quot;Layer N&quot;.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Sends to Server C. The destination IP is Server C, but the destination MAC of the first frame is the router.</li>
+<li><b>Within the same network</b> — The frame is delivered by MAC address alone, without passing a router.</li>
+<li><b>Across two routers</b> — The MAC addresses change twice and the TTL goes down by 2.</li>
+<li><b>Not enough TTL</b> — With an initial TTL of 2, the packet is discarded at the second router.</li>
+<li><b>TTL 1 on the same network</b> — The packet passes no router, so it arrives even with a TTL of 1.</li>
+<li><b>MAC addresses already known</b> — The frame is sent right away, with no ARP request.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Decision of PC A: it compares the destination IP 192.168.2.30 with its own IP 192.168.1.10 using the subnet mask 255.255.255.0. The first three numbers, where the mask is 255, differ (PC A is on 192.168.1 and the destination is on 192.168.2), so they are on different networks. PC A cannot reach it directly, so it decides to hand the packet to the default gateway in its settings, 192.168.1.1 (router R1).</li>
+<li>ARP request from PC A: to send a frame, it needs the MAC address of the device that will take the frame over, but PC A does not know the MAC address of 192.168.1.1 yet. It sends an ARP request that says &quot;Whoever owns IP address 192.168.1.1, tell me your MAC address,&quot; with the destination MAC set to &quot;everyone&quot; (broadcast). The switch sends it out to every device on network A. The IP address being asked about is not that of Server C but that of the gateway. An ARP request cannot cross a router, so the MAC address of a device on another network cannot be found, and there is no need to find it.</li>
+<li>ARP reply: only Router R1, the owner of that IP address, answers PC A. The content of the answer is &quot;My MAC address is 00:00:5E:00:53:11.&quot; PC B also received the request, but it does not answer because the IP address is not its own. PC A writes the address it found in its ARP cache and does not ask again for a while.</li>
+<li>PC A sends the frame: in the frame header it writes the destination MAC …:11 (Router R1) and the source MAC …:0A (PC A), and inside the frame it puts the IP packet (source IP 192.168.1.10, destination IP 192.168.2.30, TTL 64). The destination IP is that of Server C, but the destination MAC is that of router R1. The IP address points to the final recipient, and the MAC address points to the device that takes the frame over on this hop.</li>
+<li>Switch: it looks only at the destination MAC address of the frame and sends it out only through the port to which that device (Router R1) is connected. It does not open the IP packet inside, and it does not modify the frame.</li>
+<li>Router R1 receives it: the destination MAC address of the frame is its own, so it accepts the frame and removes the outer part that holds the MAC addresses. The destination IP of the IP packet inside (192.168.2.30) is not its own address. This is a packet that has to be forwarded elsewhere. A switch passes frames on by looking only at the MAC address, but a router looks at the IP address like this to choose the path.</li>
+<li>Router R1 handles the TTL: before forwarding, it decreases the TTL by 1 (64 → 63). The TTL is a limit on the number of routers a packet can pass. Even if a wrong path setting makes a packet circle between routers, the TTL eventually reaches 0 and the packet disappears.</li>
+<li>Router R1 finds the way and uses ARP: In its routing table, the router finds that 192.168.2.0/24, which contains the destination IP, is network B, directly connected to this router. It can hand the packet straight to Server C. It sends an ARP request on network B to find the MAC address of 192.168.2.30 (…:0C).</li>
+<li>Router R1 forwards it: it puts the same IP packet in a new frame. In the frame header, both addresses have changed: the destination MAC is …:0C (Server C) and the source MAC is …:12 (R1, network B side). The source IP 192.168.1.10 and the destination IP 192.168.2.30 inside are unchanged, and only the TTL is now 63.</li>
+<li>Server C receives it: the destination MAC address of the frame is its own, and the destination IP of the packet inside is its own address too. The packet has arrived. The TTL on arrival is 63. After passing 1 router, the TTL went down by 1 from the initial value 64.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The packet arrived at Server C. Frames built: 2. TTL on arrival: 63.</li>
+<li>When sending to another network, what PC A asks about with ARP is not the receiving device but the MAC address of the gateway. This is why, if the default gateway setting is wrong, communication works inside the same network but cannot get out.</li>
+<li>Each router the packet passed built a new frame, so the MAC addresses changed 1 time. The source IP and the destination IP stayed the same from start to finish. A MAC address is used only within one hop, and an IP address is used all the way from the source to the destination.</li>
+<li>ARP requests: one on each hop, 2 in total. A MAC address that has been found stays in the cache, so the packets that follow are sent without asking. Turn on the &quot;ARP cache&quot; setting and compare.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Network settings of PC A
+const me      = '192.168.1.10';
+const mask    = '255.255.255.0';   // the first three numbers, where the mask is 255, identify the network
+const gateway = '192.168.1.1';     // the door to other networks (router R1)
+
+// The IP packet to send
+const packet = { from: '192.168.1.10', to: '192.168.2.30', ttl: 64 };   // sent to Server C
+
+// Rule of the sending computer: whose MAC address should this frame be sent to?
+const nextHop = sameNetwork(me, packet.to, mask) ? packet.to : gateway;
+const frame = { toMac: arp(nextHop), fromMac: myMac, payload: packet };
+
+// Rule of a router: when it receives a packet that is going somewhere else
+packet.ttl -= 1;
+if (packet.ttl === 0) discardAndReportTimeExceeded(packet);   // discard it and tell the sender
+else forwardInNewFrame(packet);    // write only new MAC addresses and send it on to the next hop. The IP addresses stay the same</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a conceptual model that puts the rules of the standards documents into code, not the result of running real equipment. This one PC cannot build a path through a switch and two routers, so it could not be checked by execution. Instead, the results of the model were checked against a calculation that applies the same rules in a different way (each device holds an IP address, a mask, a routing table, and an ARP table, and the packet is handed from device to device) in 18 combinations. The documents used as the basis: that the sending computer uses the mask to decide whether the destination is on the same network and then sends directly or via the gateway is Section 3.3.1.1 of RFC 1122; ARP, which finds a MAC address from an IP address, is RFC 826; the meaning of TTL is Section 3.2 of RFC 791; that a router decreases the TTL when it forwards a packet, discards the packet when it reaches 0, and sends an ICMP Time Exceeded message is Section 5.3.1 of RFC 1812 and RFC 792; and that a receiving computer accepts a packet even if its TTL is small is Section 3.2.1.7 of RFC 1122. The way a switch forwards by MAC address is what IEEE 802.1D describes. Simplifications: networks B and C also have switches, but they are not drawn; how a switch learns which MAC address is behind which port, the router recalculating the checksum of the IP header after it decreases the TTL, and network address translation (NAT) are not covered. When a packet passes a home router, the source IP address also changes because of NAT. The IP addresses are in the private range (192.168.x.x), and the MAC addresses are values from the range reserved for documentation (RFC 7042, now RFC 9542), not addresses of real devices. The initial TTL differs from one operating system to another.</p>
+<p>Previous lab: <a href="../../lab/subnet/">IP addresses and subnets</a> · Next lab: <a href="../../lab/socket/">Sockets and ports</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

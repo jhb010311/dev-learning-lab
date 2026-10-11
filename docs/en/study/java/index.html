@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Java · Dev Learning Lab</title>
+<meta name="description" content="From syntax to object-oriented programming, collections, threads, and the JVM. See what happens inside when code runs.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/study/java/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/study/java/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/study/java/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Java · Dev Learning Lab">
+<meta property="og:description" content="From syntax to object-oriented programming, collections, threads, and the JVM. See what happens inside when code runs.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/study/java/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a></p>
+<h1>Java</h1>
+<p>From syntax to object-oriented programming, collections, threads, and the JVM. See what happens inside when code runs.</p>
+<h2>Basic syntax</h2>
+<ul>
+<li><a href="../../lab/vars/">Variables and types</a> — What is copied when you assign one variable to another?</li>
+<li><a href="../../lab/casting/">Operators and type conversion</a> — Why is 7 / 2 equal to 3 and not 3.5?</li>
+<li><a href="../../lab/loops/">Conditionals and loops</a> — How many times does a loop run, and where does it stop?</li>
+<li><a href="../../lab/array/">Arrays</a> — Does assigning an array variable copy the array?</li>
+</ul>
+<h2>Classes and objects</h2>
+<ul>
+<li><a href="../../lab/ctor/">Classes, objects, and constructors</a> — What happens, and in what order, when you use new?</li>
+<li><a href="../../lab/static/">static and instance</a> — Why does the value of a change when only b was touched?</li>
+<li><a href="../../lab/inherit/">Inheritance and overriding</a> — When does the superclass constructor run when a subclass object is created?</li>
+<li><a href="../../lab/poly/">Polymorphism and method selection</a> — Who decides which method runs, and when?</li>
+<li><a href="../../lab/absint/">Interfaces and abstract classes</a> — Neither can be created with new, so how do they differ?</li>
+<li><a href="../../lab/access/">Access modifiers and encapsulation</a> — How far do private, protected, and public open up access?</li>
+<li><a href="../../lab/inner/">Inner classes and anonymous classes</a> — How is a class declared inside a class connected to the outer object?</li>
+<li><a href="../../lab/immut/">Immutability and defensive copies</a> — The field is final, but its value changed</li>
+<li><a href="../../lab/strategy/">Strategy pattern</a> — What you have to change when one more payment method is added</li>
+</ul>
+<h2>Commonly used classes</h2>
+<ul>
+<li><a href="../../lab/eq/">== and equals</a> — Why is == false when the values are the same?</li>
+<li><a href="../../lab/eqhash/">equals and hashCode</a> — Why can HashMap not find the key when you override only equals?</li>
+<li><a href="../../lab/strbuild/">String, StringBuilder</a> — Why is the original unchanged after you call a string method?</li>
+<li><a href="../../lab/datetime/">Dates and times</a> — What date do you get when you add one month to January 31?</li>
+<li><a href="../../lab/optional/">Optional</a> — Why does the default-value code in orElse run even when a value is present?</li>
+</ul>
+<h2>Exceptions</h2>
+<ul>
+<li><a href="../../lab/exflow/">Exceptions and finally</a> — When an exception is thrown, which blocks run, and in what order?</li>
+<li><a href="../../lab/chkex/">Checked and unchecked exceptions</a> — Why do some exceptions keep the code from even compiling unless you handle them?</li>
+</ul>
+<h2>Generics, enums, and annotations</h2>
+<ul>
+<li><a href="../../lab/generic/">Generics</a> — What does the &lt;Integer&gt; in List&lt;Integer&gt; protect you from?</li>
+<li><a href="../../lab/enumtype/">Enum classes</a> — Why does an enum saved as a number come back as a different constant?</li>
+<li><a href="../../lab/annot/">Annotations</a> — What really happens when you just add an annotation with @?</li>
+</ul>
+<h2>Collections</h2>
+<ul>
+<li><a href="../../lab/list/">ArrayList and LinkedList</a> — The same operation takes a different amount of work</li>
+<li><a href="../../lab/hashmap/">Inside HashMap</a> — Where does a HashMap put a key, and how does it find it?</li>
+<li><a href="../../lab/setmap/">Kinds of Set and Map</a> — Why do the same values come out in a different order?</li>
+<li><a href="../../lab/sqh/">Stack, queue, priority queue</a> — Insertion order and removal order</li>
+<li><a href="../../lab/cme/">Removing during iteration</a> — What happens when you remove elements inside a loop</li>
+<li><a href="../../lab/sorting/">Sorting and Comparator</a> — Who decides the sort order, and why is comparing by subtraction wrong?</li>
+</ul>
+<h2>Lambdas and streams</h2>
+<ul>
+<li><a href="../../lab/lambda/">Lambda expressions and functional interfaces</a> — When does the code in a lambda expression run?</li>
+<li><a href="../../lab/stream/">Lazy evaluation in streams</a> — A stream does not run in the order in which it is written</li>
+<li><a href="../../lab/collect/">Collecting a stream</a> — Into what shape do you collect the result of a stream?</li>
+<li><a href="../../lab/parstream/">Parallel streams and the common pool</a> — Someone else's parallel stream slows down my code</li>
+</ul>
+<h2>Threads and concurrency</h2>
+<ul>
+<li><a href="../../lab/process/">Processes and threads</a> — Two ways to add more workers</li>
+<li><a href="../../lab/thread/">Creating threads and thread states</a> — Why does calling run() directly not create a new thread?</li>
+<li><a href="../../lab/race/">Race condition</a> — Why does count++ lose increments?</li>
+<li><a href="../../lab/deadlock/">Deadlock</a> — Two threads wait for each other, and both stop</li>
+<li><a href="../../lab/threadpool/">Thread pool</a> — What changes when you add more threads</li>
+<li><a href="../../lab/ctx/">Thread count and context switching</a> — Adding threads does not keep making things faster</li>
+<li><a href="../../lab/parallel/">Sequential and parallel calls</a> — Several external calls: one after another, or all at once?</li>
+<li><a href="../../lab/blocking/">Blocking, non-blocking, and virtual threads</a> — What a thread does while it waits</li>
+</ul>
+<h2>JVM</h2>
+<ul>
+<li><a href="../../lab/stack/">Stack and heap</a> — What happens in memory each time a method is called</li>
+<li><a href="../../lab/gc/">GC and memory leaks</a> — Who reclaims discarded objects, and when?</li>
+<li><a href="../../lab/jit/">JIT warmup</a> — Why are the first requests right after a deployment slow?</li>
+<li><a href="../../lab/classload/">Class loading and initialization</a> — When does the static initializer of a class run?</li>
+</ul>
+<h2>I/O</h2>
+<ul>
+<li><a href="../../lab/iobuf/">I/O streams and buffers</a> — I called write, so why is the file empty?</li>
+<li><a href="../../lab/serial/">Serialization</a> — What comes back when you restore a saved object?</li>
+</ul>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스레드의 생성과 상태: run()을 직접 부르면 왜 새 스레드가 생기지 않나 · 개발 학습 실습실</title>
+<meta name="description" content="Thread 객체를 만드는 것과 스레드가 실제로 실행되는 것은 다른 일입니다. 스레드 하나가 만들어져서 끝날 때까지 어떤 상태를 거치는지를 t.getState()로 따라가 봅니다. start()와 run()의 차이, 기다리는 방법에 따라 달라지는 상태, 기다리는 스레드를 깨우…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/thread/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/thread/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/thread/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="스레드의 생성과 상태: run()을 직접 부르면 왜 새 스레드가 생기지 않나 · 개발 학습 실습실">
+<meta property="og:description" content="Thread 객체를 만드는 것과 스레드가 실제로 실행되는 것은 다른 일입니다. 스레드 하나가 만들어져서 끝날 때까지 어떤 상태를 거치는지를 t.getState()로 따라가 봅니다. start()와 run()의 차이, 기다리는 방법에 따라 달라지는 상태, 기다리는 스레드를 깨우…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/thread/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
+<h1>스레드의 생성과 상태</h1>
+<p><b>run()을 직접 부르면 왜 새 스레드가 생기지 않나</b></p>
+<p>Thread 객체를 만드는 것과 스레드가 실제로 실행되는 것은 다른 일입니다. 스레드 하나가 만들어져서 끝날 때까지 어떤 상태를 거치는지를 t.getState()로 따라가 봅니다. start()와 run()의 차이, 기다리는 방법에 따라 달라지는 상태, 기다리는 스레드를 깨우는 interrupt를 함께 확인합니다.</p>
+<p>실행으로 대조 · JDK 21에서 스물네 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>프로세스와 스레드</dt>
+<dd>프로세스는 실행 중인 프로그램으로, 운영체제로부터 독립된 메모리 공간을 할당받는다. 스레드는 프로세스 안에서 실제로 작업을 수행하는 실행 흐름으로, 같은 프로세스의 스레드들은 메모리(힙, 코드, 데이터)를 공유하고 스택만 따로 가진다. 그래서 스레드 간에는 데이터를 주고받기 쉽지만 동시에 같은 데이터를 건드리는 문제가 생긴다.</dd>
+<dt>스레드의 상태</dt>
+<dd>자바의 스레드는 만들어져서 끝날 때까지 여섯 가지 상태 가운데 하나에 있으며, t.getState()로 확인할 수 있다. NEW는 Thread 객체만 만들고 아직 시작하지 않은 상태, RUNNABLE은 실행 중이거나 실행할 차례를 기다리는 상태, TERMINATED는 실행이 끝난 상태다. 그 사이에 다른 스레드가 쥔 락을 기다리면 BLOCKED, 기한 없이 기다리면 WAITING, 시간을 정해 두고 기다리면 TIMED_WAITING이 된다. 한 번 TERMINATED가 된 스레드는 다른 상태로 돌아가지 않는다.</dd>
+<dt>start()와 run()</dt>
+<dd>start()는 새 스레드를 만들어 그 스레드가 run()을 실행하게 하는 메서드이고, run()은 스레드가 할 일을 담은 보통의 메서드다. 그래서 run()을 직접 부르면 새 스레드가 생기지 않고, 부른 스레드가 그 코드를 순서대로 실행한다. start()는 Thread 객체 하나에 한 번만 부를 수 있으며, 두 번째로 부르면 IllegalThreadStateException이 발생한다. 같은 작업을 다시 실행하려면 Thread 객체를 새로 만든다.</dd>
+<dt>join()</dt>
+<dd>다른 스레드가 끝날 때까지 지금 스레드를 기다리게 하는 메서드다. t.join()을 부른 스레드는 t가 끝날 때까지 다음 줄로 가지 않으므로, 다른 스레드가 만든 결과를 받아서 써야 할 때 쓴다. 기다리는 동안 부른 쪽 스레드의 상태는 WAITING이고, join(1000)처럼 시간을 주면 TIMED_WAITING이다. 이미 끝났거나 아직 시작하지 않은 스레드에 부르면 기다리지 않고 바로 돌아온다.</dd>
+<dt>인터럽트(interrupt)</dt>
+<dd>기다리고 있는 스레드에게 그만 기다리라고 보내는 신호다. t.interrupt()를 부르면 t에 &quot;interrupt를 받았다&quot;는 표시가 켜지고, t가 sleep이나 join, wait로 기다리는 중이었다면 그 메서드가 InterruptedException을 던지며 바로 깨어난다. 스레드를 강제로 멈추는 기능은 아니어서, 신호를 받은 뒤 어떻게 할지는 그 스레드의 코드가 정한다. synchronized의 락을 기다리는 BLOCKED 상태의 스레드는 interrupt로 깨어나지 않는다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — run()을 직접 호출. 작업은 실행되지만 실행한 스레드는 main이고, t는 끝까지 NEW입니다.</li>
+<li><b>start()로 시작</b> — 새 스레드 worker가 작업을 실행하고, 쉬는 동안 TIMED_WAITING입니다.</li>
+<li><b>join으로 기다리는 스레드</b> — 다른 스레드가 끝나기를 기한 없이 기다리면 WAITING입니다.</li>
+<li><b>lock을 기다리는 스레드</b> — 다른 스레드가 쥔 lock 앞에서 막히면 BLOCKED입니다.</li>
+<li><b>쉬는 스레드에 interrupt</b> — sleep이 InterruptedException을 던지며 바로 깨어납니다.</li>
+<li><b>lock을 기다리는 스레드에 interrupt</b> — 깨어나지 않습니다. 표시만 남습니다.</li>
+<li><b>끝난 스레드를 다시 start()</b> — IllegalThreadStateException이 발생합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>new Thread(task, &quot;worker&quot;): Thread 객체 t를 만듭니다. 아직 객체만 있을 뿐이고, 새 실행 흐름(스레드)은 시작되지 않았습니다. 그래서 t.getState()는 NEW입니다.</li>
+<li>t.run(): run()은 보통의 메서드 호출입니다. 새 스레드는 만들어지지 않고, main 스레드가 task의 코드를 직접 실행합니다. t의 상태는 NEW 그대로입니다.</li>
+<li>Thread.currentThread().getName(): task의 첫 줄을 실행하는 스레드의 이름은 main입니다. worker라는 이름의 스레드는 생긴 적이 없습니다.</li>
+<li>Thread.sleep(1000): main 스레드가 직접 1초 동안 쉽니다. 그동안 main은 t.run() 안에 머물러 다음 줄로 가지 못합니다. 1초 뒤에 task가 끝나고 t.run()이 돌아옵니다.</li>
+<li>Thread.sleep(100) 뒤 t.getState(): t는 start()가 불린 적이 없으므로 여전히 NEW입니다. 작업은 실행됐지만 t라는 스레드가 실행한 것이 아닙니다.</li>
+<li>t.join(): 시작된 적이 없는 스레드는 기다릴 것이 없으므로 join()은 바로 돌아옵니다.</li>
+<li>t.getState(): 마지막까지 NEW입니다. task는 실행됐지만 t는 한 번도 시작되지 않았습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>작업을 실행한 스레드는 main이고, 중간에 본 t의 상태는 NEW, join 뒤의 상태는 NEW입니다.</li>
+<li>run()을 직접 부르면 스레드가 늘어나지 않습니다. 부른 스레드가 그 코드를 순서대로 실행할 뿐이라서 동시에 실행되는 것이 없습니다. 새 스레드에서 실행하려면 start()를 부릅니다. start()가 새 스레드를 만들고, 그 스레드가 run()을 실행합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>Runnable task = () -&gt; {
+    System.out.println(Thread.currentThread().getName());   // 이 줄을 실행하는 스레드의 이름
+    try {
+        Thread.sleep(1000);                 // 1초 동안 쉰다
+    } catch (InterruptedException e) {
+        System.out.println(&quot;InterruptedException&quot;);
+    }
+};
+
+Thread t = new Thread(task, &quot;worker&quot;);
+System.out.println(t.getState());
+
+t.run();                                    // 메서드를 직접 호출
+Thread.sleep(100);                          // 작업이 진행되도록 잠깐 기다린다
+System.out.println(t.getState());
+t.join();                                   // t가 끝날 때까지 기다린다
+System.out.println(t.getState());</pre>
+<h2>이 모형의 전제</h2>
+<p>스물네 가지 조합의 결과(작업을 실행한 스레드 이름, 중간과 마지막의 t.getState(), 발생한 예외, 작업이 끝날 때의 interrupt 표시)를 이 PC의 JDK 21에서 실행한 결과와 대조했습니다. 화면의 코드는 main이 Thread.sleep(100)으로 잠깐 기다린 뒤 상태를 보지만, 이 100밀리초는 &quot;대개 충분한&quot; 시간일 뿐 보장된 것이 아닙니다. 대조할 때는 시간에 기대지 않도록 t의 상태가 RUNNABLE을 벗어나 그대로 머무를 때까지 되풀이해 확인했습니다. start() 바로 뒤에 t.getState()를 부르면 RUNNABLE일 수도, 이미 다른 상태일 수도 있어서 결과로 삼지 않았습니다. RUNNABLE은 &quot;실행 중&quot;과 &quot;CPU 차례를 기다리는 중&quot;을 구분하지 않으며, 자바는 이 둘을 따로 알려 주지 않습니다. WAITING은 join 말고도 Object.wait()나 LockSupport.park()로도 생기지만 여기서는 join만 다뤘습니다. 여러 스레드가 함께 쓰는 데이터의 문제는 &quot;경쟁 상태&quot; 실습에서, 스레드를 미리 만들어 두고 다시 쓰는 방법은 &quot;스레드 풀&quot; 실습에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/process/">프로세스와 스레드</a> · 다음 실습: <a href="../../lab/race/">경쟁 상태</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

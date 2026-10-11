@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>배포 전략: 서비스를 끊지 않고 새 버전으로 바꾸려면 · 개발 학습 실습실</title>
+<meta name="description" content="서버 4대가 v1으로 돌고 있습니다. 이것을 v2로 바꾸는 방법에 따라, 배포 중에 서비스가 끊기는지, 서버가 얼마나 더 필요한지, 새 버전에 문제가 있을 때 몇 명이 영향을 받는지가 달라집니다.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/deploy/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/deploy/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/deploy/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="배포 전략: 서비스를 끊지 않고 새 버전으로 바꾸려면 · 개발 학습 실습실">
+<meta property="og:description" content="서버 4대가 v1으로 돌고 있습니다. 이것을 v2로 바꾸는 방법에 따라, 배포 중에 서비스가 끊기는지, 서버가 얼마나 더 필요한지, 새 버전에 문제가 있을 때 몇 명이 영향을 받는지가 달라집니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/deploy/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 배포와 운영</p>
+<h1>배포 전략</h1>
+<p><b>서비스를 끊지 않고 새 버전으로 바꾸려면</b></p>
+<p>서버 4대가 v1으로 돌고 있습니다. 이것을 v2로 바꾸는 방법에 따라, 배포 중에 서비스가 끊기는지, 서버가 얼마나 더 필요한지, 새 버전에 문제가 있을 때 몇 명이 영향을 받는지가 달라집니다.</p>
+<p>문서·표준 대조 · Kubernetes와 스프링 부트 공식 문서</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>롤링, 블루-그린, 카나리 배포</dt>
+<dd>서비스 중단 없이 새 버전을 배포하는 방식들이다. 롤링은 서버를 일부씩 차례로 새 버전으로 교체한다. 블루-그린은 새 버전 환경을 통째로 따로 준비한 뒤 트래픽을 한 번에 전환한다. 카나리는 일부 사용자에게만 새 버전을 먼저 적용해 문제가 없는지 확인한 뒤 점차 확대한다.</dd>
+<dt>Graceful Shutdown</dt>
+<dd>애플리케이션을 종료할 때 새 요청은 받지 않고 이미 처리 중인 요청은 끝까지 처리한 뒤 종료하는 것이다. 배포 등으로 서버를 내릴 때 진행 중이던 요청이 중간에 끊겨 오류가 나는 것을 막는다.</dd>
+<dt>헬스 체크(Liveness, Readiness)</dt>
+<dd>서버가 정상인지 주기적으로 확인하는 것이다. Liveness는 프로세스가 살아 있는지를 확인해 문제가 있으면 재시작하게 한다. Readiness는 요청을 받을 준비가 되었는지를 확인해 준비되지 않은 서버로는 트래픽을 보내지 않게 한다. 서버가 시작 중이거나 종료 중일 때 요청이 들어가는 것을 막는다.</dd>
+<dt>로드밸런서</dt>
+<dd>들어오는 요청을 여러 서버에 나눠 보내는 장치다. 서버의 상태를 주기적으로 확인(헬스 체크)해 문제가 있는 서버로는 요청을 보내지 않는다. 한 서버에 부하가 몰리는 것을 막고, 일부 서버에 장애가 나도 서비스를 유지하게 한다.</dd>
+<dt>CI/CD</dt>
+<dd>CI(지속적 통합)는 코드 변경을 자주 합치고, 합칠 때마다 자동으로 빌드와 테스트를 실행해 문제를 일찍 발견하는 것이다. CD(지속적 전달·배포)는 검증된 코드를 자동화된 절차로 배포 가능한 상태로 만들거나 운영 환경까지 배포하는 것이다. 사람이 수동으로 하던 빌드·테스트·배포를 자동화해 실수를 줄이고 배포 주기를 짧게 한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 롤링 배포. 한 대씩 바꾸므로 서비스가 끊기지 않습니다.</li>
+<li><b>전부 내리고 올리기</b> — 가장 단순하지만 그동안 서비스가 멈춥니다.</li>
+<li><b>블루-그린</b> — 서버가 두 배 필요하지만 전환과 되돌리기가 한순간입니다.</li>
+<li><b>버그가 있는 버전을 롤링으로</b> — 문제를 알아챌 때까지 영향 범위가 점점 커집니다.</li>
+<li><b>버그가 있는 버전을 카나리로</b> — 일부 사용자만 영향을 받고 되돌립니다.</li>
+<li><b>Graceful Shutdown이 없으면</b> — 서버를 내릴 때 처리 중이던 요청이 끊깁니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>현재 상태: 서버 4대가 모두 v1이고, 로드밸런서가 요청을 고르게 나눠 보냅니다.</li>
+<li>서버 1: 로드밸런서가 이 서버로 새 요청을 보내지 않게 한 뒤 종료 신호를 보냅니다. 처리 중이던 요청을 끝까지 마친 다음 종료합니다.</li>
+<li>서버 1: v2로 올리는 중입니다. 준비 상태 확인을 통과하기 전까지 요청을 받지 않습니다. 그동안 3대로 버팁니다.</li>
+<li>서버 1: 준비 완료. 다시 요청을 받습니다. 지금은 v1과 v2가 함께 서비스 중이며 요청의 25%가 v2로 갑니다.</li>
+<li>서버 2: 로드밸런서가 이 서버로 새 요청을 보내지 않게 한 뒤 종료 신호를 보냅니다. 처리 중이던 요청을 끝까지 마친 다음 종료합니다.</li>
+<li>서버 2: v2로 올리는 중입니다. 준비 상태 확인을 통과하기 전까지 요청을 받지 않습니다. 그동안 3대로 버팁니다.</li>
+<li>서버 2: 준비 완료. 다시 요청을 받습니다. 지금은 v1과 v2가 함께 서비스 중이며 요청의 50%가 v2로 갑니다.</li>
+<li>서버 3: 로드밸런서가 이 서버로 새 요청을 보내지 않게 한 뒤 종료 신호를 보냅니다. 처리 중이던 요청을 끝까지 마친 다음 종료합니다.</li>
+<li>서버 3: v2로 올리는 중입니다. 준비 상태 확인을 통과하기 전까지 요청을 받지 않습니다. 그동안 3대로 버팁니다.</li>
+<li>서버 3: 준비 완료. 다시 요청을 받습니다. 지금은 v1과 v2가 함께 서비스 중이며 요청의 75%가 v2로 갑니다.</li>
+<li>서버 4: 로드밸런서가 이 서버로 새 요청을 보내지 않게 한 뒤 종료 신호를 보냅니다. 처리 중이던 요청을 끝까지 마친 다음 종료합니다.</li>
+<li>서버 4: v2로 올리는 중입니다. 준비 상태 확인을 통과하기 전까지 요청을 받지 않습니다. 그동안 3대로 버팁니다.</li>
+<li>서버 4: 준비 완료. 다시 요청을 받습니다. 지금은 v1과 v2가 함께 서비스 중이며 요청의 100%가 v2로 갑니다.</li>
+<li>4대 모두 v2가 됐습니다. 배포하는 동안 서비스는 끊기지 않았습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>추가 서버 없이 무중단으로 배포합니다. 배포 중에는 처리 용량이 줄고, v1과 v2가 동시에 요청을 받으므로 DB 스키마나 API가 두 버전 모두와 호환돼야 합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre># Kubernetes Deployment (replicas: 4)
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1           # 한 번에 1대까지만 내림
+    maxSurge: 0
+
+readinessProbe:                 # 준비됐을 때만 요청을 받음
+  httpGet: { path: /actuator/health/readiness, port: 8080 }
+
+# application.yml
+server.shutdown: graceful         # 처리 중인 요청을 끝내고 종료
+spring.lifecycle.timeout-per-shutdown-phase: 30s</pre>
+<h2>이 모형의 전제</h2>
+<p>서버 4대, 한 번에 한 대씩 교체하는 단순한 구성입니다. 버그는 헬스 체크로는 걸러지지 않고 실제 요청을 받아 봐야 드러나는 종류라고 가정했고, 롤링에서는 2대를 바꾼 시점에 발견한다고 보았습니다. 서버를 내릴 때 처리 중인 요청은 서버당 2건으로 두었습니다. 각 방식의 정의는 Kubernetes와 스프링 부트 공식 문서의 설명을 따랐습니다.</p>
+<p>앞 실습: <a href="../../lab/cicd/">CI/CD 파이프라인</a> · 다음 실습: <a href="../../lab/container/">컨테이너와 가상 머신</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

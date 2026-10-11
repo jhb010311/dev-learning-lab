@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dates and times: What date do you get when you add one month to January 31? · Dev Learning Lab</title>
+<meta name="description" content="Like a String, the date and time objects of java.time (LocalDate, ZonedDateTime, and so on) do not change their contents. A method such as plusMonths retu…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/datetime/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/datetime/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/datetime/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Dates and times: What date do you get when you add one month to January 31? · Dev Learning Lab">
+<meta property="og:description" content="Like a String, the date and time objects of java.time (LocalDate, ZonedDateTime, and so on) do not change their contents. A method such as plusMonths retu…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/datetime/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Commonly used classes</p>
+<h1>Dates and times</h1>
+<p><b>What date do you get when you add one month to January 31?</b></p>
+<p>Like a String, the date and time objects of java.time (LocalDate, ZonedDateTime, and so on) do not change their contents. A method such as plusMonths returns a new object, and because the months have different numbers of days, the result of &quot;one month later&quot; is sometimes not what you expect. The same instant is written as a different date and time in each time zone, and the amount of time between two points in time is measured separately in date-based units (Period) and in time-based units (Duration).</p>
+<p>Checked against real execution · The 135 combinations (11 distinct cases) were run on JDK 21 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>java.time (Date-Time API)</dt>
+<dd>This is the set of date and time classes that has been part of Java since Java 8. It includes LocalDate, which holds only a date; LocalDateTime, which holds a date and a time; ZonedDateTime, which holds a time zone as well; and Instant, which holds a single point in time that does not depend on any time zone. All of these objects are immutable, so methods such as plusDays and plusMonths do not change the original object. They return a new object. You therefore have to assign the return value to a variable to use the result. When the result of adding months is a date that is not in the calendar (for example, February 31), no exception is thrown, and the date is adjusted to the last day of that month.</dd>
+<dt>Time zone and UTC</dt>
+<dd>UTC is the time that the whole world uses as its reference, and a time zone is the set of rules for how far the time used in a region differs from UTC. Korea (Asia/Seoul) is 9 hours ahead of UTC. The same instant is written as a different time in each time zone, and sometimes the date is different as well. In a region that uses daylight saving time, the offset from UTC changes with the season, so it is safer to specify a time zone by a region name such as America/New_York than by a fixed offset. The usual practice is to store a point in time as a value that does not depend on a time zone (an Instant) and to convert it to the time zone of the viewer when it is displayed.</dd>
+<dt>Period and Duration</dt>
+<dd>These are the two classes in java.time that represent the amount of time between two points in time. A Period expresses the amount in calendar years, months, and days, as in &quot;1 year, 2 months, and 3 days&quot;, and a Duration expresses the length of the elapsed time in seconds, as in &quot;90 minutes&quot;. The length of a month differs from month to month, so a Period cannot be converted to a fixed length of time, and a Duration has no unit such as a month or a year. The getDays() method of Period returns only the value of the days part, not the total number of days, so get the total number of days with ChronoUnit.DAYS.between. Duration.between must be given values that have a time, and passing LocalDate values, which have only a date, throws an exception at run time.</dd>
+<dt>Immutable object</dt>
+<dd>This is an object whose state does not change after it is created. Because its value never changes, it is safe for several threads to use at the same time, you can pass it to other code without worrying that it will be changed, and it is well suited for caching or for use as a key in a hash collection. Declare the fields private final, provide no methods that change the state, and make the class final so that a subclass cannot change its behavior. If a field refers to a mutable object (such as a List or a Date), the constructor and the getters pass copies in and out (defensive copying) so that outside code cannot change the internals.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Adding one month to January 31 gives the last day of February.</li>
+<li><b>Adding and ignoring the return value</b> — plusMonths is called, but the date is unchanged.</li>
+<li><b>Adding one month, twice</b> — The result is March 29, not March 31.</li>
+<li><b>Adding two months at once</b> — The result is March 31. This differs from adding one month twice.</li>
+<li><b>New Year in Seoul, in New York time</b> — It is the same instant, but in New York it is still the previous day.</li>
+<li><b>An amount measured with Period</b> — 30 days have passed, but getDays() is 1.</li>
+<li><b>Measuring a Duration from dates only</b> — The code compiles, but an exception is thrown at run time.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>LocalDate d = LocalDate.of(2024, 1, 31): A date object that represents January 31, 2024 is created, and d refers to it. A LocalDate holds only a date, with no time and no time zone.</li>
+<li>LocalDate first = d: first refers to the same object as well. first is kept so that you can see later whether the first object changes.</li>
+<li>d = d.plusMonths(1): One month after January 31 should be February 31, but there is no such day. In this case the date is adjusted to the last day of that month. February 2024 has 29 days, so the result is 2024-02-29. d refers to this new object.</li>
+<li>System.out.println(d): The line 2024-02-29 is printed.</li>
+<li>System.out.println(first): The line 2024-01-31 is printed. The contents of the first object did not change.</li>
+<li>d == first: d refers to the newly created object and first refers to the first object, so the result is false.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>d is 2024-02-29, and the first object is still 2024-01-31.</li>
+<li>When the result of an addition is a date that is not in the calendar, no exception is thrown. The date is adjusted to the last day of that month.</li>
+<li>So adding months in several separate steps can give a different result. Compare &quot;One month, twice&quot; with &quot;Two months at once&quot;.</li>
+</ul>
+<h2>Code</h2>
+<pre>LocalDate d = LocalDate.of(2024, 1, 31);
+LocalDate first = d;                 // remember the first object
+
+d = d.plusMonths(1);
+
+System.out.println(d);
+System.out.println(first);
+System.out.println(d == first);      // same object?</pre>
+<h2>Assumptions of this model</h2>
+<p>The output of the 135 combinations (11 distinct cases, because each topic uses only one of the settings) was checked against the results of running the same code on JDK 21 on this PC. The code uses only fixed dates and time zones specified by name, so it gives the same result regardless of the current date or the time zone setting of the PC, and running it with the default time zone of the PC changed to other values confirmed that the output is the same. The time in each time zone follows the time zone data included in the JDK. New York being 5 hours behind UTC applies to this date (winter), and the difference is 4 hours during daylight saving time. Calculations for the days on which daylight saving time starts or ends are not covered by this model. Results for years that are not leap years (for example, February 28) are not within the range that was run and checked.</p>
+<p>Previous lab: <a href="../../lab/strbuild/">String, StringBuilder</a> · Next lab: <a href="../../lab/optional/">Optional</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

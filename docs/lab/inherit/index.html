@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>상속과 오버라이딩: 자식 객체를 만들 때 부모 생성자는 언제 실행되나 · 개발 학습 실습실</title>
+<meta name="description" content="자식 클래스의 객체 하나에는 부모에게서 물려받은 필드와 자식이 선언한 필드가 함께 들어 있습니다. new를 하면 부모 생성자가 먼저 끝나고, 그다음에야 자식의 필드 초기화식과 생성자 본문이 실행됩니다. 이 순서 때문에 super(...)를 꼭 써야 하는 경우가 생기고, 부모…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/inherit/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/inherit/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inherit/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="상속과 오버라이딩: 자식 객체를 만들 때 부모 생성자는 언제 실행되나 · 개발 학습 실습실">
+<meta property="og:description" content="자식 클래스의 객체 하나에는 부모에게서 물려받은 필드와 자식이 선언한 필드가 함께 들어 있습니다. new를 하면 부모 생성자가 먼저 끝나고, 그다음에야 자식의 필드 초기화식과 생성자 본문이 실행됩니다. 이 순서 때문에 super(...)를 꼭 써야 하는 경우가 생기고, 부모…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/inherit/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
+<h1>상속과 오버라이딩</h1>
+<p><b>자식 객체를 만들 때 부모 생성자는 언제 실행되나</b></p>
+<p>자식 클래스의 객체 하나에는 부모에게서 물려받은 필드와 자식이 선언한 필드가 함께 들어 있습니다. new를 하면 부모 생성자가 먼저 끝나고, 그다음에야 자식의 필드 초기화식과 생성자 본문이 실행됩니다. 이 순서 때문에 super(...)를 꼭 써야 하는 경우가 생기고, 부모 생성자가 오버라이딩된 메서드를 부르면 아직 비어 있는 자식 필드가 보입니다.</p>
+<p>실행으로 대조 · JDK 21에서 서른여섯 가지 조합을 컴파일하고 실행해 컴파일 결과와 출력을 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>상속</dt>
+<dd>기존 클래스(상위 클래스)의 필드와 메서드를 물려받아 새 클래스(하위 클래스)를 정의하는 것이다. 공통 코드를 재사용하고 하위 클래스에서 필요한 부분만 추가하거나 재정의한다. 자바의 클래스는 단일 상속만 가능하며, 상위 클래스 변경이 하위 클래스 전체에 영향을 주므로 &quot;is-a&quot; 관계가 분명할 때만 쓰는 것이 좋다.</dd>
+<dt>오버라이딩</dt>
+<dd>상위 클래스(또는 인터페이스)의 메서드를 하위 클래스에서 같은 시그니처로 다시 정의하는 것이다. 실행 시점에 실제 객체의 타입에 맞는 메서드가 호출되어 다형성을 구현한다. 접근 범위를 더 좁힐 수 없고, static·private·final 메서드는 오버라이딩할 수 없다.</dd>
+<dt>생성자</dt>
+<dd>객체를 new로 만들 때 한 번 실행되어 필드를 처음 상태로 맞추는 코드다. 이름이 클래스 이름과 같고 반환 타입을 적지 않는다. 받는 인자가 다르면 한 클래스에 여러 개를 둘 수 있으며, new에 넘긴 인자에 맞는 것이 선택된다. 생성자 본문은 필드가 기본값으로 채워지고 필드 초기화식과 초기화 블록이 실행된 뒤에 실행된다.</dd>
+<dt>super</dt>
+<dd>자식 클래스 안에서 부모 클래스의 것을 가리키는 키워드다. 생성자의 첫 문장으로 super(인자)를 쓰면 그 인자에 맞는 부모 생성자를 부르고, 쓰지 않으면 컴파일러가 인자 없는 super()를 자동으로 넣는다. 그래서 부모에 인자 없는 생성자가 없으면 자식 생성자에서 super(인자)를 직접 써야 하며, 쓰지 않으면 컴파일 오류가 난다. 메서드 안에서 super.메서드()라고 쓰면 오버라이딩으로 가려진 부모의 메서드를 부른다.</dd>
+<dt>필드의 기본값</dt>
+<dd>객체가 만들어질 때 값을 따로 주지 않은 필드에 자동으로 들어가는 값이다. int 같은 숫자 타입은 0, boolean은 false, String을 비롯한 참조 타입은 null이다. 필드 초기화식이나 생성자가 값을 넣기 전까지는 이 값이 보인다. 메서드 안의 지역 변수에는 기본값이 없어서, 값을 넣지 않고 읽으면 컴파일 오류가 난다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 부모 생성자가 describe()를 부릅니다. sound에 &quot;멍멍&quot;을 넣었는데 sound=null이 찍힙니다.</li>
+<li><b>실행 순서만 보기</b> — 부모 생성자, 자식의 필드 초기화식, 자식 생성자 본문 순서입니다.</li>
+<li><b>super를 쓰지 않으면</b> — 컴파일러가 super()를 넣어 부모의 Animal()을 부릅니다.</li>
+<li><b>부모에 Animal()이 없는데 super를 쓰지 않으면</b> — 자동으로 들어간 super()가 부를 생성자가 없어 컴파일 오류입니다.</li>
+<li><b>super.describe()로 부모 것도 부르기</b> — 오버라이딩한 메서드 안에서 부모의 원래 동작을 먼저 실행합니다.</li>
+<li><b>부모 생성자가 둘일 때</b> — super에 넘긴 인자에 맞는 부모 생성자가 선택됩니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>컴파일: Dog() 생성자의 첫 줄을 봅니다. super(&quot;바둑이&quot;)는 문자열 하나를 받는 부모 생성자 Animal(String name)을 부르겠다는 뜻입니다. Animal에 이 생성자가 있으므로 컴파일됩니다.</li>
+<li>new Dog() 실행: 힙에 Dog 객체 하나의 자리를 잡습니다. 이 객체 안에는 Animal에게서 물려받은 name과 Dog가 선언한 sound가 함께 들어 있고, 둘 다 기본값 null로 채워집니다.</li>
+<li>Dog() 생성자의 첫 줄 super(&quot;바둑이&quot;): Dog의 필드 초기화식과 생성자 본문을 실행하기 전에 부모 생성자인 Animal(String name) 쪽으로 먼저 넘어갑니다. 물려받은 부분이 먼저 준비되어야 자식이 그것을 쓸 수 있기 때문입니다.</li>
+<li>Animal(String name) 본문의 this.name = name: 넘겨받은 &quot;바둑이&quot;가 name에 들어갑니다. sound는 아직 null입니다.</li>
+<li>System.out.println(&quot;Animal(String) 실행&quot;): 부모 생성자의 본문이 실행 중입니다. Dog() 생성자의 본문은 아직 한 줄도 실행되지 않았습니다.</li>
+<li>Animal(String name) 본문의 describe(): 어느 describe()를 실행할지는 지금 만들고 있는 실제 객체의 타입으로 정해집니다. 실제 객체가 Dog이므로, 부모 생성자 안에서 불렀는데도 Dog가 오버라이딩한 describe()가 실행됩니다.</li>
+<li>Dog의 describe() 안의 println(&quot;sound=&quot; + sound): Dog의 필드 초기화식 sound = &quot;멍멍&quot;은 부모 생성자가 끝난 뒤에야 실행됩니다. 지금 sound는 기본값 null이어서 출력은 sound=null입니다.</li>
+<li>Dog의 필드 초기화식 String sound = &quot;멍멍&quot;: 부모 생성자가 끝나 Dog()로 돌아왔습니다. 이제야 Dog의 필드 초기화식이 실행되어 sound에 &quot;멍멍&quot;이 들어갑니다.</li>
+<li>System.out.println(&quot;Dog() 실행&quot;): Dog() 생성자의 본문이 실행됩니다. 자식 생성자의 본문이 가장 마지막입니다.</li>
+<li>Dog d = new Dog(): 생성자가 모두 끝났습니다. 완성된 객체의 참조가 변수 d에 담깁니다.</li>
+<li>d.describe()로 부른 Dog의 describe() 안의 println(&quot;sound=&quot; + sound): 객체가 다 만들어진 뒤이므로 sound에는 &quot;멍멍&quot;이 들어 있습니다. 출력은 sound=멍멍입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>new Dog() 동안의 출력은 Animal(String) 실행 / sound=null / Dog() 실행이고, d.describe()의 출력은 sound=멍멍입니다.</li>
+<li>실행 순서는 부모 생성자 Animal(String name) → Dog의 필드 초기화식 → Dog() 생성자의 본문입니다. 자식 생성자가 먼저 시작되지만, 첫 줄에서 부모 생성자로 넘어가 부모 쪽이 먼저 끝납니다.</li>
+<li>함정: 부모 생성자가 부른 describe()는 Dog가 오버라이딩한 것이고, 그 시점에 Dog의 sound는 아직 초기화 전이라 null입니다. 코드에는 sound = &quot;멍멍&quot;이라고 적혀 있는데도 sound=null이 찍혔습니다. null인 필드의 메서드를 불렀다면 NullPointerException이 났을 것입니다.</li>
+<li>그래서 생성자 안에서는 자식이 오버라이딩할 수 있는 메서드를 부르지 않는 것이 원칙입니다. 객체가 다 만들어진 뒤에 부른 d.describe()의 출력은 sound=멍멍으로 정상입니다.</li>
+<li>Dog가 describe()를 오버라이딩했으므로 Animal의 describe()는 실행되지 않습니다. name은 출력되지 않았습니다. 부모 것도 실행하려면 Dog의 describe() 안에서 super.describe()를 부릅니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>class Animal {
+    String name;
+
+    Animal(String name) {
+        this.name = name;
+        System.out.println(&quot;Animal(String) 실행&quot;);
+        describe();                // 오버라이딩된 메서드를 생성자에서 부른다
+    }
+
+    void describe() {
+        System.out.println(&quot;name=&quot; + name);
+    }
+}
+
+class Dog extends Animal {
+    String sound = &quot;멍멍&quot;;
+
+    Dog() {
+        super(&quot;바둑이&quot;);           // 부모의 Animal(String)을 부른다
+        System.out.println(&quot;Dog() 실행&quot;);
+    }
+
+    @Override
+    void describe() {
+        System.out.println(&quot;sound=&quot; + sound);
+    }
+}
+
+Dog d = new Dog();
+d.describe();</pre>
+<h2>이 모형의 전제</h2>
+<p>서른여섯 가지 조합을 이 PC의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 객체를 만드는 동안의 출력과 d.describe()의 출력을 대조했습니다. 자식에 생성자를 적지 않아도 부모에 인자 없는 생성자가 없으면 같은 오류가 난다는 것과, super(...)가 생성자의 첫 문장이어야 한다는 것(JDK 21 기준)도 컴파일로 확인했습니다. 더 새로운 JDK에서는 super(...) 앞에 일부 문장을 둘 수 있게 바뀌었다고 알려져 있으나 이 PC에서는 확인하지 못했습니다. 단순화한 점: Animal의 생성자도 맨 먼저 자기 부모인 Object의 생성자를 부르는데 이 단계는 뺐습니다. 어느 메서드가 선택되는지에 대한 자세한 규칙은 &quot;다형성과 메서드 선택&quot; 실습에서 다룹니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.</p>
+<p>앞 실습: <a href="../../lab/static/">static과 인스턴스</a> · 다음 실습: <a href="../../lab/poly/">다형성과 메서드 선택</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서블릿: HTTP 요청이 자바 코드에 닿기까지 · 개발 학습 실습실</title>
+<meta name="description" content="브라우저가 보내는 것은 글자로 된 HTTP 요청입니다. 톰캣 같은 서블릿 컨테이너가 그 글자를 읽어 자바 객체로 바꾸고, 주소에 맞는 서블릿의 메서드를 불러 줍니다. 서블릿은 &quot;요청 객체를 받아 응답 객체에 쓰는&quot; 자바 클래스입니다. 요청을 바꿔 보며 누가 어떤 일을 하는지,…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/servlet/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/servlet/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/servlet/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="서블릿: HTTP 요청이 자바 코드에 닿기까지 · 개발 학습 실습실">
+<meta property="og:description" content="브라우저가 보내는 것은 글자로 된 HTTP 요청입니다. 톰캣 같은 서블릿 컨테이너가 그 글자를 읽어 자바 객체로 바꾸고, 주소에 맞는 서블릿의 메서드를 불러 줍니다. 서블릿은 &quot;요청 객체를 받아 응답 객체에 쓰는&quot; 자바 클래스입니다. 요청을 바꿔 보며 누가 어떤 일을 하는지,…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/servlet/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 웹 MVC</p>
+<h1>서블릿</h1>
+<p><b>HTTP 요청이 자바 코드에 닿기까지</b></p>
+<p>브라우저가 보내는 것은 글자로 된 HTTP 요청입니다. 톰캣 같은 서블릿 컨테이너가 그 글자를 읽어 자바 객체로 바꾸고, 주소에 맞는 서블릿의 메서드를 불러 줍니다. 서블릿은 &quot;요청 객체를 받아 응답 객체에 쓰는&quot; 자바 클래스입니다. 요청을 바꿔 보며 누가 어떤 일을 하는지, 서블릿 객체가 언제 만들어지고 몇 번 쓰이는지 보세요.</p>
+<p>실행으로 대조 · 톰캣 11.0.24와 스프링 부트 4.1.1에 48가지 요청을 보내 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>서블릿과 서블릿 컨테이너</dt>
+<dd>서블릿은 HTTP 요청을 받아 처리하고 응답을 만드는 자바 표준 인터페이스다. 서블릿 컨테이너(톰캣 등)는 네트워크 연결을 받아 요청을 해석하고 알맞은 서블릿을 호출하며 서블릿의 생명주기와 요청 처리 스레드를 관리한다. Spring MVC는 DispatcherServlet이라는 서블릿 하나 위에서 동작한다.</dd>
+<dt>DispatcherServlet과 프론트 컨트롤러</dt>
+<dd>Spring MVC에서 모든 HTTP 요청을 가장 먼저 받는 서블릿이다. 요청을 처리할 컨트롤러를 찾아 호출하고 그 결과를 응답으로 만드는 전체 흐름을 조율한다. 이렇게 하나의 진입점이 모든 요청을 받아 공통 처리를 한 뒤 각 담당에게 넘기는 구조를 프론트 컨트롤러 패턴이라 한다.</dd>
+<dt>내장 서버</dt>
+<dd>Spring Boot 애플리케이션 안에 포함되어 함께 실행되는 웹 서버(기본은 톰캣)다. 별도로 서버를 설치하고 애플리케이션을 배포하는 과정 없이 java -jar 명령 하나로 실행할 수 있다.</dd>
+<dt>웹 서버와 WAS</dt>
+<dd>웹 서버는 HTTP 요청을 받아 이미지나 HTML 같은 정적인 파일을 응답하거나 요청을 다른 서버로 전달하는 프로그램이다(Nginx, Apache). WAS(웹 애플리케이션 서버)는 프로그램 코드를 실행해 요청마다 결과를 만들어 응답하는 프로그램이다(Tomcat). 웹 서버를 앞에 두고 WAS로 요청을 넘기는 구성이 흔하다.</dd>
+<dt>톰캣의 스레드 모델</dt>
+<dd>톰캣은 요청 처리용 스레드를 풀로 관리하며, 요청 하나를 스레드 하나가 맡아 응답이 끝날 때까지 처리한다. 동시에 처리할 수 있는 요청 수는 최대 스레드 수(기본 200)로 제한되고, 모든 스레드가 사용 중이면 새 요청은 대기한다. 요청 처리 중 데이터베이스나 외부 호출을 기다리는 동안에도 스레드는 점유된 상태다.</dd>
+<dt>HTTP 메서드</dt>
+<dd>요청이 자원에 대해 수행하려는 동작을 나타낸다. GET은 조회, POST는 생성이나 처리 요청, PUT은 전체 교체, PATCH는 일부 수정, DELETE는 삭제를 뜻한다. 메서드의 의미에 맞게 사용해야 캐시, 재시도 같은 HTTP의 동작이 기대대로 이뤄진다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — GET /hello를 두 번. 서블릿 객체는 첫 요청 때 한 번만 만들어집니다.</li>
+<li><b>서버가 뜰 때 미리 만들기</b> — 준비 작업을 첫 요청이 아니라 서버 시작 때 치릅니다.</li>
+<li><b>doGet만 있는데 POST가 오면</b> — 서블릿까지는 도착하지만 405로 거절됩니다.</li>
+<li><b>만들어 두지 않은 주소</b> — 맞는 서블릿이 없어 404가 됩니다.</li>
+<li><b>스프링 MVC에서는</b> — 서블릿은 DispatcherServlet 하나뿐이고, 그것이 컨트롤러를 불러 줍니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>서버가 뜹니다. 톰캣이 포트 8080에서 연결을 기다리고, &quot;어느 주소는 어느 서블릿이 맡는다&quot;는 표를 만듭니다. @WebServlet(&quot;/hello&quot;)가 붙은 HelloServlet을 /hello 담당으로 등록합니다. 서블릿 객체는 아직 만들지 않았습니다.</li>
+<li>1번째 요청: 브라우저가 서버에 연결해 HTTP 요청을 보냅니다. 보내는 내용은 화면에 보이는 것 같은 글자 몇 줄입니다.</li>
+<li>톰캣이 스레드 풀에서 스레드 하나를 배정하고, 받은 글자를 해석해 HttpServletRequest 객체로 만듭니다. 응답을 담을 빈 HttpServletResponse 객체도 함께 만듭니다. 서블릿은 글자를 직접 해석할 필요 없이 이 객체에서 값을 꺼내 쓰면 됩니다.</li>
+<li>톰캣이 주소 /hello 담당 서블릿을 표에서 찾습니다. HelloServlet입니다.</li>
+<li>첫 요청 때: 톰캣이 HelloServlet 객체를 만듭니다. 개발자가 new로 만드는 것이 아니라 컨테이너가 만듭니다. 이 객체 하나를 서버가 내려갈 때까지 계속 씁니다.</li>
+<li>HelloServlet의 init()을 한 번 호출합니다. 요청을 받기 전에 필요한 준비를 여기서 합니다.</li>
+<li>톰캣이 HelloServlet의 service(request, response)를 호출합니다. service()는 요청의 HTTP 메서드를 보고 doGet()을 부릅니다.</li>
+<li>doGet() 안의 우리 코드가 실행됩니다. request에서 name을 꺼내고, response에 상태와 본문을 씁니다.</li>
+<li>서블릿의 메서드가 끝났습니다. 톰캣이 HttpServletResponse에 담긴 내용을 HTTP 응답 글자로 바꿔 브라우저에 보냅니다. 이 요청에 쓴 request와 response 객체는 버리고, 스레드는 풀에 돌려줍니다. HelloServlet 객체는 그대로 남아 다음 요청을 기다립니다.</li>
+<li>2번째 요청: 브라우저가 서버에 연결해 HTTP 요청을 보냅니다. 보내는 내용은 화면에 보이는 것 같은 글자 몇 줄입니다.</li>
+<li>톰캣이 스레드 풀에서 스레드 하나를 배정하고, 받은 글자를 해석해 HttpServletRequest 객체로 만듭니다. 응답을 담을 빈 HttpServletResponse 객체도 함께 만듭니다. 서블릿은 글자를 직접 해석할 필요 없이 이 객체에서 값을 꺼내 쓰면 됩니다.</li>
+<li>톰캣이 주소 /hello 담당 서블릿을 표에서 찾습니다. HelloServlet입니다.</li>
+<li>이미 만들어 둔 HelloServlet 객체가 있습니다. 새로 만들지 않고 그 객체를 다시 씁니다. init()도 다시 부르지 않습니다.</li>
+<li>톰캣이 HelloServlet의 service(request, response)를 호출합니다. service()는 요청의 HTTP 메서드를 보고 doGet()을 부릅니다.</li>
+<li>doGet() 안의 우리 코드가 실행됩니다. request에서 name을 꺼내고, response에 상태와 본문을 씁니다.</li>
+<li>서블릿의 메서드가 끝났습니다. 톰캣이 HttpServletResponse에 담긴 내용을 HTTP 응답 글자로 바꿔 브라우저에 보냅니다. 이 요청에 쓴 request와 response 객체는 버리고, 스레드는 풀에 돌려줍니다. HelloServlet 객체는 그대로 남아 다음 요청을 기다립니다.</li>
+<li>서버를 내립니다. 톰캣이 HelloServlet의 destroy()를 한 번 호출한 뒤 객체를 버립니다. 열어 둔 자원을 정리할 기회입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>응답은 200 OK이고, 응답을 만든 곳은 HelloServlet.doGet입니다. HelloServlet 객체는 1번 만들어졌고(첫 요청 때), init 1번, 요청 처리 호출 2번이었습니다.</li>
+<li>서블릿은 HTTP 요청 하나를 받아 응답을 만드는 자바 클래스이고, 서블릿 컨테이너(톰캣)는 그 서블릿을 만들고 부르고 없애는 프로그램입니다. 연결을 받고, HTTP 글자를 객체로 바꾸고, 스레드를 배정하는 일은 컨테이너가 하므로 개발자는 &quot;요청에서 꺼내 응답에 쓰는&quot; 코드만 작성합니다.</li>
+<li>요청이 2번 왔지만 서블릿 객체는 하나뿐이었습니다. 요청마다 새로 만드는 것은 request와 response 객체입니다. 서블릿 객체 하나를 여러 스레드가 동시에 쓰므로, 서블릿의 필드에 요청별 값을 저장하면 안 됩니다(스프링의 싱글톤 빈과 같은 이유).</li>
+<li>미리 만들어 두지 않으면 객체 생성과 init()이 첫 요청 처리 중에 일어나 첫 요청만 느려집니다. 준비 작업이 무겁다면 서버 시작 때 미리 만들어 둡니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@WebServlet(urlPatterns = &quot;/hello&quot;)
+public class HelloServlet extends HttpServlet {
+
+    @Override
+    public void init() {                       // 객체가 만들어진 직후 한 번
+        // 준비 작업
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        String name = req.getParameter(&quot;name&quot;);   // 요청에서 꺼내고
+        resp.setContentType(&quot;text/plain; charset=UTF-8&quot;);
+        resp.getWriter().write(&quot;안녕하세요, &quot; + name);   // 응답에 쓴다
+    }
+
+    @Override
+    public void destroy() { }                  // 서버가 내려갈 때 한 번
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>서블릿 컨테이너는 톰캣, 요청은 한 번에 하나씩 차례로 온다고 가정했습니다. 서블릿 객체가 선언 하나당 하나만 만들어진다는 점, init과 destroy가 한 번씩 호출된다는 점, 재정의하지 않은 doPost가 405를 돌려준다는 점은 Jakarta Servlet 명세와 HttpServlet의 문서를 따랐습니다. HTTP 요청과 응답의 글자는 주요 줄만 보였습니다. 서블릿을 직접 작성한 36가지 조합은 실제 톰캣 11.0.24에, 스프링 MVC 쪽 12가지 조합은 실제 스프링 부트 4.1.1에 요청을 보내, 응답 코드와 객체 생성·init·요청 처리 호출 횟수, 객체가 만들어진 때가 화면과 일치하는 것을 확인했습니다. 이 과정에서 스프링 쪽 내용 두 가지를 실제에 맞게 고쳤습니다. DispatcherServlet 객체는 첫 요청 때가 아니라 서버가 뜰 때 만들어지고(첫 요청 때 일어나는 것은 init뿐입니다), 404와 405 응답은 /error로 한 번 더 넘어가므로 요청 처리 호출이 요청마다 두 번입니다. 응답을 만든 곳 가운데 &quot;톰캣의 기본 서블릿&quot;과 &quot;HttpServlet의 기본 doPost&quot;는 응답 코드로 미루어 본 것이고 직접 관찰한 것은 아닙니다.</p>
+<p>앞 실습: <a href="../../lab/connpool/">커넥션 풀과 OSIV</a> · 다음 실습: <a href="../../lab/mvc/">MVC 요청 흐름</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

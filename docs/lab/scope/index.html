@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>빈 스코프: 프로토타입 빈인데 왜 객체가 하나뿐인가 · 개발 학습 실습실</title>
+<meta name="description" content="스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/scope/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/scope/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/scope/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="빈 스코프: 프로토타입 빈인데 왜 객체가 하나뿐인가 · 개발 학습 실습실">
+<meta property="og:description" content="스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/scope/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › IoC 컨테이너와 DI</p>
+<h1>빈 스코프</h1>
+<p><b>프로토타입 빈인데 왜 객체가 하나뿐인가</b></p>
+<p>스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다. 요청을 두 번 보내고, 요청마다 장바구니(Cart)를 두 번 쓰면서 객체가 몇 개 만들어지는지 세어 보세요.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1 서버를 띄워 아홉 가지 조합에 HTTP 요청을 보내 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>빈 스코프</dt>
+<dd>빈 인스턴스가 만들어지고 유지되는 범위다. 기본값인 singleton은 컨테이너에 하나만 만들어 모두가 공유한다. prototype은 요청할 때마다 새로 만든다. 웹 환경에는 HTTP 요청마다 만드는 request, 세션마다 만드는 session 스코프가 있다.</dd>
+<dt>스프링 빈(Bean)</dt>
+<dd>스프링 IoC 컨테이너가 생성하고 관리하는 객체다. 개발자가 new로 직접 만든 객체와 달리 컨테이너가 의존성을 주입하고 초기화와 소멸을 관리하며, 프록시를 통해 트랜잭션이나 AOP 같은 부가 기능을 적용할 수 있다.</dd>
+<dt>ObjectProvider</dt>
+<dd>빈 객체를 바로 주입받지 않고, 필요한 시점에 컨테이너에서 꺼낼 수 있게 해 주는 스프링의 도구다. 생성자나 필드의 타입을 ObjectProvider&lt;Cart&gt;처럼 적으면 컨테이너가 넣어 주고, getObject()를 부를 때마다 컨테이너에 그 타입의 빈을 달라고 요청한다. 그래서 프로토타입 빈은 부를 때마다 새 객체가, request 스코프 빈은 지금 처리 중인 요청의 객체가 나온다. 싱글톤 빈이 자기보다 수명이 짧은 빈을 쓸 때 주로 쓴다. 한 번의 작업 안에서 같은 객체를 계속 써야 하면 한 번만 꺼내 지역 변수에 담아 둔다.</dd>
+<dt>스코프 프록시</dt>
+<dd>싱글톤이 아닌 스코프의 빈을 다른 빈에 주입할 때, 진짜 객체 대신 넣어 주는 대리 객체다. @Scope에 proxyMode = ScopedProxyMode.TARGET_CLASS를 적으면 컨테이너가 그 클래스를 상속한 프록시를 만들어 주입한다. 프록시는 메서드가 불릴 때마다 컨테이너에서 그 스코프에 맞는 진짜 객체를 찾아 호출을 넘긴다. request 스코프와 함께 쓰면 싱글톤 빈의 코드를 바꾸지 않고도 요청마다 다른 객체를 쓰게 되며, @RequestScope에는 이 설정이 들어 있다. 프로토타입 스코프와 함께 쓰면 메서드를 부를 때마다 새 객체가 만들어지므로 주의한다.</dd>
+<dt>프록시(Proxy)</dt>
+<dd>실제 객체를 대신해 호출을 받는 대리 객체다. 호출을 받으면 부가 작업을 수행한 뒤 실제 객체에 전달한다. 스프링은 AOP와 @Transactional 같은 기능을 적용할 빈을 프록시로 감싸 컨테이너에 등록하므로, 다른 빈이 주입받는 것은 실제 객체가 아니라 프록시다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 프로토타입 빈을 싱글톤 빈에 주입했습니다. 요청을 몇 번 보내도 같은 객체입니다.</li>
+<li><b>ObjectProvider로 꺼내면</b> — 꺼낼 때마다 새 객체가 만들어집니다.</li>
+<li><b>싱글톤이면</b> — 어떻게 얻든 컨테이너에 하나뿐인 객체입니다.</li>
+<li><b>request 스코프를 그대로 주입</b> — 기동할 때는 요청이 없어서 만들 수 없습니다. 기동이 실패합니다.</li>
+<li><b>request 스코프 + ObjectProvider</b> — 같은 요청 안에서는 같은 객체, 다른 요청에는 다른 객체입니다.</li>
+<li><b>request 스코프 + 프록시</b> — OrderService의 코드는 그대로 두고 요청마다 하나를 씁니다.</li>
+<li><b>프로토타입 + 프록시</b> — 메서드를 부를 때마다 새 객체가 만들어집니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>컨테이너 시작: orderController, orderService, cart 세 빈을 등록합니다. orderController와 orderService는 싱글톤이고, cart의 스코프는 프로토타입입니다.</li>
+<li>orderService 빈 만들기: 생성자가 Cart를 요구해 컨테이너에 Cart를 달라고 합니다. 프로토타입 빈은 달라고 할 때마다 새로 만들므로, 컨테이너가 Cart 1번을 새로 만들어 넘깁니다. OrderService는 이 객체를 필드에 넣어 둡니다.</li>
+<li>기동이 끝났습니다. 지금까지 만들어진 Cart 객체는 1개입니다.</li>
+<li>요청 1: GET /order가 들어옵니다. OrderController의 order()가 orderService.cartNo()를 두 번 부릅니다.</li>
+<li>cartNo() 1번째 호출: 필드에 들어 있는 Cart 1번의 no()를 부릅니다. 주입은 OrderService를 만들 때 한 번뿐이었으므로, 프로토타입이어도 새 객체가 만들어지지 않습니다.</li>
+<li>cartNo() 2번째 호출: 필드에 들어 있는 Cart 1번의 no()를 부릅니다. 주입은 OrderService를 만들 때 한 번뿐이었으므로, 프로토타입이어도 새 객체가 만들어지지 않습니다.</li>
+<li>요청 1의 응답은 &quot;1,1&quot;입니다.</li>
+<li>요청 2: GET /order가 들어옵니다. OrderController의 order()가 orderService.cartNo()를 두 번 부릅니다.</li>
+<li>cartNo() 1번째 호출: 필드에 들어 있는 Cart 1번의 no()를 부릅니다. 주입은 OrderService를 만들 때 한 번뿐이었으므로, 프로토타입이어도 새 객체가 만들어지지 않습니다.</li>
+<li>cartNo() 2번째 호출: 필드에 들어 있는 Cart 1번의 no()를 부릅니다. 주입은 OrderService를 만들 때 한 번뿐이었으므로, 프로토타입이어도 새 객체가 만들어지지 않습니다.</li>
+<li>요청 2의 응답은 &quot;1,1&quot;입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>기동 성공. 요청 두 번(요청마다 두 번 사용)에 Cart 객체는 모두 1개 만들어졌습니다. 요청 1은 1번, 1번을, 요청 2는 1번, 1번을 썼습니다.</li>
+<li>프로토타입은 &quot;컨테이너에 달라고 할 때마다&quot; 새로 만든다는 뜻입니다. 싱글톤 빈에 주입하는 일은 그 빈을 만들 때 한 번뿐이므로, 그때 받은 객체 하나를 계속 쓰게 됩니다. 쓸 때마다 새 객체를 기대했다면 버그입니다.</li>
+<li>쓸 때마다 새 객체가 필요하면 ObjectProvider를 주입받아 getObject()로 꺼냅니다. 프로토타입 빈을 주입받는 싱글톤 빈이 둘이면, 두 빈은 서로 다른 객체를 하나씩 받습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@Component
+@Scope(&quot;prototype&quot;)
+class Cart {
+    private static int created = 0;   // 지금까지 만들어진 Cart 객체 수
+    private final int no;             // 몇 번째로 만들어진 객체인가
+
+    Cart() {
+        created++;
+        no = created;
+    }
+
+    public int no() {
+        return no;
+    }
+}
+
+@Component
+class OrderService {                  // 스코프를 적지 않았으므로 싱글톤
+    private final Cart cart;
+
+    OrderService(Cart cart) {         // 주입은 OrderService가 만들어질 때 한 번뿐
+        this.cart = cart;
+    }
+
+    int cartNo() {
+        return cart.no();
+    }
+}
+
+@RestController
+class OrderController {
+    private final OrderService orderService;
+
+    OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @GetMapping(&quot;/order&quot;)
+    String order() {
+        int first = orderService.cartNo();
+        int second = orderService.cartNo();   // 한 요청 안에서 두 번 쓴다
+        return first + &quot;,&quot; + second;
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>아홉 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9, 내장 톰캣 11)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해 서버를 띄우고, 실제로 GET /order 요청을 두 번 보내 응답에 적힌 Cart 번호를 읽었습니다. Cart의 생성자가 불린 횟수(기동 직후, 요청 두 번 뒤), OrderService의 필드에 들어 있는 것(Cart, ObjectProvider, 프록시), 기동 실패의 예외 사슬(UnsatisfiedDependencyException → UnsatisfiedDependencyException → ScopeNotActiveException → IllegalStateException)을 비교했습니다. 요청 두 개는 하나가 끝난 뒤 다음 것을 보냈습니다(동시에 보낸 경우는 &quot;싱글톤 빈과 상태&quot; 실습에서 다룹니다). 다음도 실행으로 확인했습니다: 프로토타입 빈을 주입받는 싱글톤 빈이 둘이면 서로 다른 객체를 받는 것, 프로토타입에 프록시를 쓰면 add로 넣은 값이 바로 다음 size 호출에서 보이지 않는 것(0이 나옴), @RequestScope를 붙인 빈은 그대로 주입받아도 기동되고 요청마다 하나인 것, request 스코프 빈의 @PreDestroy가 요청이 끝날 때마다 불리는 것. 다루지 않은 것: session 스코프와 application 스코프, 프로토타입 빈을 꺼내는 다른 방법(@Lookup, jakarta.inject.Provider), 프록시 방식 가운데 인터페이스를 쓰는 것(ScopedProxyMode.INTERFACES). 화면의 Cart는 객체를 세려고 static 변수를 썼는데, 요청이 동시에 들어오는 실제 코드라면 이렇게 세면 안 됩니다.</p>
+<p>앞 실습: <a href="../../lab/singleton/">싱글톤 빈과 상태</a> · 다음 실습: <a href="../../lab/lifecycle/">빈 생명주기 콜백</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

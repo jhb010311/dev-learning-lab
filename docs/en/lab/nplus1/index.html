@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>N+1: Why are many queries sent when you load the order list only once? · Dev Learning Lab</title>
+<meta name="description" content="You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/nplus1/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/nplus1/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/nplus1/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="N+1: Why are many queries sent when you load the order list only once? · Dev Learning Lab">
+<meta property="og:description" content="You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/nplus1/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Proxies and fetching</p>
+<h1>N+1</h1>
+<p><b>Why are many queries sent when you load the order list only once?</b></p>
+<p>You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries sent to the DB changes. Change the fetching strategy and compare the query logs.</p>
+<p>Checked against real execution · The number of SQL statements for 112 combinations was checked against Hibernate 7.4.5 and H2</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>N+1 selects problem</dt>
+<dd>The problem where, after 1 query loads a list, 1 more query runs for each of the N results to load its associated data, so N more queries run in total. As the data grows, the number of queries grows in proportion and performance drops sharply. To solve it, load the associated data together in a single query (fetch join) or load several items in one batch (batch fetching).</dd>
+<dt>Lazy fetching and eager fetching</dt>
+<dd>Settings for when to load an associated entity. Eager fetching (EAGER) loads the associated entities together when the entity is loaded. Lazy fetching (LAZY) puts a proxy object in the place of the associated entity and loads it when its values are actually used. Eager fetching always loads data even when it is not needed and produces queries that are hard to predict, so using lazy fetching as the default is recommended.</dd>
+<dt>Fetch join</dt>
+<dd>A JPQL feature that loads an entity and its associated entities together in one go with a SQL join. Even an association configured for lazy fetching is loaded immediately in this query, which solves the N+1 selects problem. Be careful: if you load several collections together, the number of result rows multiplies.</dd>
+<dt>@EntityGraph</dt>
+<dd>A feature for specifying, with an annotation, which associations to load together in a query. When you put it on a Spring Data JPA repository method, you get the same effect as a fetch join without writing JPQL yourself.</dd>
+<dt>Batch fetching (batch size)</dt>
+<dd>A setting that loads lazy fetching targets several at a time, grouped in an IN condition, instead of one by one. For example, with a size of 100, 100 pieces of associated data are loaded in a single query, so a query that used to run N times runs N/100 times. In Hibernate 7.3 and earlier, where pagination is done in memory when you fetch join a collection, this is the solution that lets you use collection associations together with pagination (from 7.4, the combination of fetch join and pagination is also handled in the database).</dd>
+<dt>First-level cache</dt>
+<dd>The store inside the persistence context that keeps entities by identifier. If you load the same identifier again within the same transaction, it returns the stored entity without sending a query to the database. As a result, entities with the same identifier are always the same object within the same transaction. By default it disappears when the transaction ends (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends), so it is different from an application-wide cache.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Lazy fetching, 10 orders, 10 members. 1 + 10 queries are sent.</li>
+<li><b>Does switching to eager fetching solve it?</b> — The number of queries stays the same, and only the time they are sent moves earlier.</li>
+<li><b>Fetch join</b> — Fetches the orders and the members in one query.</li>
+<li><b>Batch size setting</b> — Fetches the members 5 at a time with an IN query.</li>
+<li><b>When one member has many orders</b> — 10 orders, 3 members. A member that has already been read is not queried again.</li>
+<li><b>When you do not use the member information</b> — Lazy fetching does not query a member you do not use. Compare it with eager fetching.</li>
+<li><b>Raise it to 30 orders</b> — With lazy fetching, the queries grow as the data grows.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Query 1: Fetches the order list (10 orders). The members were not fetched. JPQL becomes SQL that reads only the order table, exactly as written.</li>
+<li>Query 2: At the moment order 1 takes the name of member 1, a query is sent to fill the empty member object (the proxy).</li>
+<li>Query 3: At the moment order 2 takes the name of member 2, a query is sent to fill the empty member object (the proxy).</li>
+<li>Query 4: At the moment order 3 takes the name of member 3, a query is sent to fill the empty member object (the proxy).</li>
+<li>Query 5: At the moment order 4 takes the name of member 4, a query is sent to fill the empty member object (the proxy).</li>
+<li>Query 6: At the moment order 5 takes the name of member 5, a query is sent to fill the empty member object (the proxy).</li>
+<li>Query 7: At the moment order 6 takes the name of member 6, a query is sent to fill the empty member object (the proxy).</li>
+<li>Query 8: At the moment order 7 takes the name of member 7, a query is sent to fill the empty member object (the proxy).</li>
+<li>Query 9: At the moment order 8 takes the name of member 8, a query is sent to fill the empty member object (the proxy).</li>
+<li>Query 10: At the moment order 9 takes the name of member 9, a query is sent to fill the empty member object (the proxy).</li>
+<li>Query 11: At the moment order 10 takes the name of member 10, a query is sent to fill the empty member object (the proxy).</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Queries sent in total: 11 (order queries: 1, member queries: 10). The DB round trips took 55ms.</li>
+<li>On top of the 1 list query, as many queries as members followed. This is the N+1 selects problem. The number of extra queries is decided not by the number of orders but by the number of distinct members that have not been read yet (10).</li>
+</ul>
+<h2>Code</h2>
+<pre>@Entity class Order {
+    @ManyToOne(fetch = FetchType.LAZY)
+    Member member;
+}
+
+interface OrderRepository {
+    @Query(&quot;select o from Order o&quot;)
+    List&lt;Order&gt; findOrders();
+}
+
+// Service (inside a transaction)
+List&lt;Order&gt; orders = repo.findOrders();   // 10 orders
+for (Order o : orders) {
+    names.add(o.getMember().getName());  // uses the member name
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>This lab assumes that an order (Order) refers to a member (Member) with @ManyToOne, and that the loop runs while the transaction (persistence context) is open. If you touch a lazily fetched target after the persistence context is closed, the default setting throws a LazyInitializationException instead of sending a query. The number of queries was confirmed by running 112 combinations (5 methods, 1, 10, or 30 orders, 1, 3, 10, or 30 members, batch sizes 2, 5, or 20, and whether the name is used) on real Hibernate 7.4.5 and an H2 database, and the number of SQL statements actually sent matched the screen. @EntityGraph was run with the same JPA entity graph hint that Spring Data uses internally. The 1 + the number of members for eager fetching is the value when there is no batch setting. Batch fetching follows the way used since Hibernate 6, which splits the ids by the batch size; with the default way in Hibernate 5, more queries may be sent. The shape of the SQL depends on the DB: MySQL uses an IN list, and PostgreSQL uses an array parameter (= any(?)). The round-trip time is simplified to be the same for every query. In reality, one join query can be heavier than one simple query.</p>
+<p>Previous lab: <a href="../../lab/lazyproxy/">Proxies and lazy fetching</a> · Next lab: <a href="../../lab/fetchjoin/">JPQL and fetch joins</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

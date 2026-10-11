@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proxies and lazy fetching: Is an object received through lazy fetching a real entity? · Dev Learning Lab</title>
+<meta name="description" content="A member object you get from em.getReference or from lazy fetching may not be a real Member. It may be a proxy (a stand-in object) that knows only the ide…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lazyproxy/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lazyproxy/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lazyproxy/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Proxies and lazy fetching: Is an object received through lazy fetching a real entity? · Dev Learning Lab">
+<meta property="og:description" content="A member object you get from em.getReference or from lazy fetching may not be a real Member. It may be a proxy (a stand-in object) that knows only the ide…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/lazyproxy/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Proxies and fetching</p>
+<h1>Proxies and lazy fetching</h1>
+<p><b>Is an object received through lazy fetching a real entity?</b></p>
+<p>A member object you get from em.getReference or from lazy fetching may not be a real Member. It may be a proxy (a stand-in object) that knows only the identifier. A proxy queries the DB only at the moment the real data is needed. Change how you get the object and what you do with it, and see when the query SQL is sent and when an exception is thrown.</p>
+<p>Checked against real execution · 20 combinations were run on Hibernate 7.4.5 and H2, and whether m is a proxy, when the query SQL was sent, and the result values and exceptions were checked</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Entity proxy</dt>
+<dd>A stand-in object that is put in the place of a real entity. Hibernate creates a subclass of the entity class at run time and returns an object of it, and at first it knows only the identifier and the rest of its contents is empty. The moment you first read a value other than the identifier, it queries the DB and reads the real entity; this is called proxy initialization. The result of em.getReference and an association configured for lazy fetching come in as proxies. The class of a proxy is different from the entity class, so use instanceof instead of getClass() when you compare types.</dd>
+<dt>LazyInitializationException</dt>
+<dd>The exception that Hibernate throws when you try to use an uninitialized proxy or a lazily fetched collection after the persistence context has been closed. It occurs because initializing a proxy requires querying the DB through the persistence context, and that is already closed, so there is no way to query. You often meet it when you take an associated object in the controller or the view after the transaction has ended. You avoid it by reading the values you need in advance inside the transaction, by fetching them together from the start with a fetch join, or by converting the entity to an object that holds only the values you need before you return it.</dd>
+<dt>Lazy fetching and eager fetching</dt>
+<dd>Settings for when to load an associated entity. Eager fetching (EAGER) loads the associated entities together when the entity is loaded. Lazy fetching (LAZY) puts a proxy object in the place of the associated entity and loads it when its values are actually used. Eager fetching always loads data even when it is not needed and produces queries that are hard to predict, so using lazy fetching as the default is recommended.</dd>
+<dt>Persistence context</dt>
+<dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it. (It is outside the top 50, but it is a concept that always comes up as a follow-up question when you use JPA.)</dd>
+<dt>First-level cache</dt>
+<dd>The store inside the persistence context that keeps entities by identifier. If you load the same identifier again within the same transaction, it returns the stored entity without sending a query to the database. As a result, entities with the same identifier are always the same object within the same transaction. By default it disappears when the transaction ends (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends), so it is different from an application-wide cache.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — No SQL is sent when you get it with getReference, and a SELECT is sent when you read the name.</li>
+<li><b>Reading only the identifier</b> — The proxy already knows that value, so no SQL is sent.</li>
+<li><b>A member received through lazy fetching</b> — What order.getMember() returns is a proxy, too.</li>
+<li><b>After the persistence context is closed</b> — There is no way to fill the empty proxy, so an exception is thrown.</li>
+<li><b>Comparing with getClass()</b> — The class of the proxy is not Member, so the result is false.</li>
+<li><b>When a member was already read</b> — getReference returns the real entity, not a proxy.</li>
+<li><b>When you got the proxy first</b> — The em.find called later returns that proxy, too.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>em.getReference(Member.class, 1L): Does not query the DB and returns a proxy object that holds only the identifier 1. A proxy is an object of a class that Hibernate creates at run time as a subclass of Member, and the rest of its contents, such as the name, is still empty.</li>
+<li>m.getName(): The proxy holds only the identifier, so it cannot know the name. At this moment, it sends a SELECT to read the real Member (initializing the proxy), and the proxy is connected to that object.</li>
+<li>The proxy calls getName() of the real Member on its behalf and returns &quot;Alice&quot;. A proxy that has been initialized once does not query again.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>m is a proxy. Queries on the member table: 1 (when getName is called).</li>
+<li>The query SQL is sent not at the moment you receive the object but at the moment you first use a value other than the identifier. This is lazy fetching.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Entity
+class Member {
+    @Id Long id;
+    String name;
+    Long getId() { return id; }
+    String getName() { return name; }
+}
+
+// The DB has member 1 &quot;Alice&quot;
+Member m = em.getReference(Member.class, 1L);
+String name = m.getName();</pre>
+<h2>Assumptions of this model</h2>
+<p>All 20 combinations (5 ways to get the object and 4 things to do with it) were run on real Hibernate 7.4.5 and an H2 database, and whether m is a proxy, when and how many times the member table was queried, and the value or exception on the last line were confirmed to match the screen. This is based on an ordinary mapping where @Id is placed on the entity's field and getters are provided, and on a single persistence context. The name of the proxy class was Member$HibernateProxy in this environment, and depending on the version, a suffix may be added after it. The following were also confirmed in the same environment. If you read a field of the proxy directly without going through a getter (m.name), the proxy is not initialized and you get null. If you call getReference with an identifier that is not in the DB, there is no exception at that point, and an exception (ObjectNotFoundException) is thrown after the query is sent when you first read a value. Even after the persistence context is closed, getId() of a proxy returns its value. In a Spring Boot web request, the default OSIV setting keeps the persistence context open until the response ends, so this exception may show up late, but that part was not verified by execution. The documentation says that in an environment that uses bytecode enhancement, lazy fetching may work in another way instead of through proxies, but this was not run either.</p>
+<p>Previous lab: <a href="../../lab/cascade/">Cascade and orphan removal</a> · Next lab: <a href="../../lab/nplus1/">N+1</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

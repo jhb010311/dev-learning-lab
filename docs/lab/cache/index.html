@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>캐시와 TTL: 캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나 · 개발 학습 실습실</title>
+<meta name="description" content="인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다. TTL, 요청 빈도, DB 조회 시간을 바꿔 가며 적중률과 만료 순간에 DB로 몰리는 요…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/cache/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cache/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cache/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="캐시와 TTL: 캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나 · 개발 학습 실습실">
+<meta property="og:description" content="인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다. TTL, 요청 빈도, DB 조회 시간을 바꿔 가며 적중률과 만료 순간에 DB로 몰리는 요…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/cache/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 대용량 트래픽</p>
+<h1>캐시와 TTL</h1>
+<p><b>캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나</b></p>
+<p>인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다. TTL, 요청 빈도, DB 조회 시간을 바꿔 가며 적중률과 만료 순간에 DB로 몰리는 요청을 보세요.</p>
+<p>개념 모형 · 동작 방식을 보이는 모형</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>캐시</dt>
+<dd>자주 사용하는 데이터나 계산 결과를 빠르게 접근할 수 있는 곳에 미리 저장해 두고 재사용하는 것이다. 원본(주로 데이터베이스)을 매번 조회하지 않아 응답이 빨라지고 원본의 부하가 줄어든다. 대신 원본이 바뀌었을 때 캐시의 값이 오래된 상태로 남는 문제를 관리해야 한다.</dd>
+<dt>Cache-Aside 패턴</dt>
+<dd>애플리케이션이 캐시를 직접 관리하는 가장 일반적인 방식이다. 데이터를 조회할 때 먼저 캐시를 확인하고, 없으면 데이터베이스에서 읽어 캐시에 저장한 뒤 반환한다. 데이터를 변경할 때는 데이터베이스를 갱신하고 해당 캐시를 삭제한다.</dd>
+<dt>TTL(Time To Live)</dt>
+<dd>데이터가 유효한 시간이다. 캐시에 값을 넣을 때 TTL을 지정하면 그 시간이 지난 뒤 자동으로 삭제된다. 원본과 어긋난 값이 캐시에 무기한 남는 것을 막는 기본적인 안전장치다.</dd>
+<dt>캐시 스탬피드</dt>
+<dd>많이 조회되는 캐시 항목이 만료되는 순간, 동시에 들어온 다수의 요청이 모두 캐시에서 값을 찾지 못하고 한꺼번에 데이터베이스를 조회하는 현상이다. 순간적으로 데이터베이스에 부하가 몰려 장애로 이어질 수 있다. 한 요청만 원본을 조회하게 잠그거나 만료 시간을 분산하는 방법으로 완화한다.</dd>
+<dt>Redis</dt>
+<dd>데이터를 메모리에 저장하는 키-값 저장소다. 문자열뿐 아니라 리스트, 해시, 집합, 정렬된 집합 등의 자료구조를 제공한다. 메모리에서 동작해 매우 빠르며 캐시, 세션 저장소, 분산 락, 순위표, 요청 수 제한 등에 쓰인다. 명령을 하나의 스레드에서 차례로 실행한다.</dd>
+<dt>분산 락</dt>
+<dd>여러 서버에서 실행되는 프로세스들 사이에서 한 번에 하나만 특정 작업을 수행하도록 하는 잠금이다. 자바의 synchronized는 한 서버 안에서만 유효하므로, 서버가 여러 대일 때는 모두가 함께 접근하는 저장소(Redis 등)에 &quot;잠금 표시&quot;를 두는 방식으로 구현한다. 잠금을 건 쪽에 문제가 생겨도 풀리도록 만료 시간을 둔다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — TTL 10초. 만료될 때마다 여러 요청이 한꺼번에 DB로 갑니다.</li>
+<li><b>캐시가 없다면</b> — 모든 요청이 DB를 조회합니다.</li>
+<li><b>요청이 많고 DB가 느릴 때</b> — 만료 순간 수십 개의 요청이 동시에 DB를 때립니다(캐시 스탬피드).</li>
+<li><b>같은 상황에 락 적용</b> — 한 요청만 DB에 가고 나머지는 그 결과를 기다립니다.</li>
+<li><b>TTL을 5초로 줄이면</b> — 데이터는 더 최신이지만 DB 조회가 늘어납니다.</li>
+<li><b>TTL을 길게</b> — DB 조회는 처음 캐시를 채울 때뿐입니다. 대신 원본이 바뀌어도 오래 모릅니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>0.0초: 캐시에 값이 없습니다(첫 요청). 요청이 DB를 조회하러 갑니다. 결과가 오기까지 1초가 걸립니다.</li>
+<li>1.0초: DB에서 읽은 값을 캐시에 저장했습니다(TTL 10초). 저장되기 전까지 0.0초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다.</li>
+<li>11.8초: TTL이 지나 캐시의 값이 사라졌습니다. 이제부터 오는 요청은 캐시에서 값을 찾지 못합니다.</li>
+<li>11.8초: 캐시에 값이 없습니다(만료 직후). 요청이 DB를 조회하러 갑니다. 결과가 오기까지 1초가 걸립니다.</li>
+<li>12.8초: DB에서 읽은 값을 캐시에 저장했습니다(TTL 10초). 저장되기 전까지 11.8초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다.</li>
+<li>23.6초: TTL이 지나 캐시의 값이 사라졌습니다. 이제부터 오는 요청은 캐시에서 값을 찾지 못합니다.</li>
+<li>23.6초: 캐시에 값이 없습니다(만료 직후). 요청이 DB를 조회하러 갑니다. 결과가 오기까지 1초가 걸립니다.</li>
+<li>24.6초: DB에서 읽은 값을 캐시에 저장했습니다(TTL 10초). 저장되기 전까지 23.6초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>요청 150건 중 135건(90%)이 캐시에서 바로 응답했고, DB 조회는 15번 일어났습니다. 한순간에 겹친 DB 조회는 최대 5건, 평균 응답 시간은 0.11초입니다.</li>
+<li>만료 순간 캐시가 채워지기 전까지(1초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락, 만료 전에 미리 갱신하기, 키마다 TTL에 약간의 차이를 주는 방법으로 줄입니다.</li>
+<li>TTL이 길수록 DB 조회는 줄지만, 원본 데이터가 바뀌어도 최대 TTL만큼 옛 값을 돌려줍니다. 얼마나 오래된 값까지 허용할 수 있는지가 TTL을 정하는 기준입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>public Product getProduct(long id) {
+    String key = &quot;product:&quot; + id;
+    Product cached = redis.get(key);
+    if (cached != null) return cached;          // 캐시 적중
+
+    Product p = productRepository.findById(id); // DB 조회 (1초)
+    redis.set(key, p, Duration.ofSeconds(10));  // TTL 10초
+    return p;
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>한 개의 키(인기 상품 하나)만 다루고, 요청은 일정한 간격으로 들어온다고 가정했습니다. 캐시 응답 시간은 0.01초로 두었습니다. 캐시 크기가 가득 차서 오래된 키를 밀어내는 제거(eviction) 정책은 여기서 다루지 않습니다. 락을 건 경우 기다리는 요청은 조회가 끝나는 순간 캐시의 값을 받는다고 단순화했습니다. 숫자는 동작 방식을 보이기 위한 모형이며 실제 Redis를 측정한 값이 아닙니다.</p>
+<p>앞 실습: <a href="../../lab/scale/">로드밸런서와 스케일 아웃</a> · 다음 실습: <a href="../../lab/redis/">Redis의 한 줄 처리</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

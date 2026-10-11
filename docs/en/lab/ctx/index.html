@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thread count and context switching: Adding threads does not keep making things faster · Dev Learning Lab</title>
+<meta name="description" content="A CPU core runs only one thread at any given moment. When more threads want to run than there are cores, the operating system runs them in turn, each for…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ctx/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ctx/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ctx/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Thread count and context switching: Adding threads does not keep making things faster · Dev Learning Lab">
+<meta property="og:description" content="A CPU core runs only one thread at any given moment. When more threads want to run than there are cores, the operating system runs them in turn, each for…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/ctx/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
+<h1>Thread count and context switching</h1>
+<p><b>Adding threads does not keep making things faster</b></p>
+<p>A CPU core runs only one thread at any given moment. When more threads want to run than there are cores, the operating system runs them in turn, each for a short time (context switching). Throughput then stops growing, and only the time for one task to finish gets longer. The right number of threads is completely different depending on whether the tasks mostly compute or mostly wait.</p>
+<p>Partly checked against real execution · The trend is the same as in measurements on JDK 21 (the numbers come from the model)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Processes and threads</dt>
+<dd>A process is a running program, and the operating system gives it its own independent memory space. A thread is a flow of execution that does the actual work inside a process. The threads of one process share memory (heap, code, and data), and each has only its own stack. This makes it easy for threads to exchange data, but it also causes problems when they touch the same data at the same time.</dd>
+<dt>Context switching</dt>
+<dd>This is the process in which the CPU stops the thread (or process) it is running and switches to run another one. The state of the current work must be saved and the state of the next work must be loaded, and the switch itself takes time. When there are far more threads than CPU cores, the time spent on switching grows relative to the time spent on actual work.</dd>
+<dt>Thread pool</dt>
+<dd>This structure keeps a fixed number of threads and reuses them, so that threads are not created and destroyed every time they are needed. It reduces the cost of creating threads, and by limiting the number of threads that run at the same time, it prevents excessive memory use and context switching. Tasks to be processed pile up in a queue, and an idle thread takes one and runs it. Tomcat's request handling and a DB connection pool follow the same idea.</dd>
+<dt>Blocking and non-blocking</dt>
+<dd>Blocking means that the calling thread is stopped until the called task finishes and cannot do other work. Non-blocking means that the call returns right away even though the task has not finished, so the thread can do other work. A typical JDBC call is a blocking call: the thread is stopped until the DB response arrives.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — 4 cores and 16 threads that do computation. Throughput is the same as with 4 threads, and only the time for one task to finish becomes 4 times as long.</li>
+<li><b>Threads matched to the number of cores</b> — Throughput is the same, and every task finishes without waiting.</li>
+<li><b>Mostly waiting, 4 threads</b> — The threads are waiting most of the time, so the CPU sits idle.</li>
+<li><b>Mostly waiting, 40 threads</b> — While one thread waits, other threads use the CPU, so throughput becomes 10 times as high.</li>
+<li><b>Even more threads</b> — 80 threads. The CPU is already fully used, so throughput stays the same.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Cores: 4. Threads: 16. Each thread computes without a break.</li>
+<li>At any given moment, the average number of threads that want the CPU is 16 (16 × 100%). The number of cores is 4, so there are not enough cores. The operating system puts the threads on the cores in turn, each for a short time.</li>
+<li>Each time the operating system switches threads, it saves the state of the thread that was running and loads the state of the next one. About 4 threads share each core, so each thread is stopped whenever it is not its turn. The total amount of work done stays at what the cores (4) can do, and only the time for each task to finish gets longer.</li>
+<li>Result: CPU usage 100%, tasks handled per second: 40, time for one task to finish: 0.4s (0.1s when it runs alone). With the number of threads set to 4, the values become 40 per second and 0.1s per task.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Throughput per second: 40. CPU usage: 100%. Time for one task to finish: 0.4s.</li>
+<li>For tasks that mostly compute, having more threads than cores does not increase throughput. The threads share the cores, so each task just finishes later. Each thread also uses memory of its own (its stack), so a number of threads close to the number of cores is appropriate.</li>
+<li>A web server has far more threads for handling requests than it has cores (200 by default in Tomcat) because most of the time spent handling a request goes to waiting for a database or an external response.</li>
+</ul>
+<h2>Code</h2>
+<pre>int cores = Runtime.getRuntime().availableProcessors();   // 4
+
+// mostly computation: as many threads as cores is enough
+ExecutorService pool = Executors.newFixedThreadPool(16);
+
+for (Task task : tasks) {
+    pool.submit(() -&gt; resize(image));
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>This model assumes that one task uses the CPU for 0.1s. The trend is the same as in results actually measured on JDK 21 on this PC (12 logical cores). For tasks that mostly compute, throughput was 102 tasks per second with 1 thread, 562 with 6, 768 with 12, 820 with 24, and 826 with 48, so it stopped growing near the number of cores. For tasks that mostly wait (1ms of computation + 9ms of waiting), it was 1,104 with 12 threads, 4,417 with 48, 7,871 with 120, 8,202 with 240, and 8,144 with 480, so it grew up to about 10 times the number of cores and then stopped. Even with far more threads than cores, throughput did not drop noticeably. The cost of the switching itself was too small to show up in this measurement, which is why the model does not include a drop in throughput either. The measured throughput is not exactly proportional to the number of cores because the 12 logical cores share 6 physical cores. The formula for the suitable number of threads is a widely cited guideline in the field of Java concurrency.</p>
+<p>Previous lab: <a href="../../lab/threadpool/">Thread pool</a> · Next lab: <a href="../../lab/parallel/">Sequential and parallel calls</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

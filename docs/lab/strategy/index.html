@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>전략 패턴: 결제 수단이 하나 늘 때 고쳐야 하는 곳 · 개발 학습 실습실</title>
+<meta name="description" content="결제 수단(카드, 계좌이체, 카카오페이)마다 처리 방식이 다릅니다. if-else로 나누는 코드와, 수단별 구현을 따로 두고 갈아 끼우는 코드(전략 패턴)가 있습니다. 네이버페이를 추가할 때 각각 어디를 고쳐야 하는지, 실행할 때 어느 구현이 어떻게 선택되는지 비교하세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/strategy/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/strategy/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/strategy/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="전략 패턴: 결제 수단이 하나 늘 때 고쳐야 하는 곳 · 개발 학습 실습실">
+<meta property="og:description" content="결제 수단(카드, 계좌이체, 카카오페이)마다 처리 방식이 다릅니다. if-else로 나누는 코드와, 수단별 구현을 따로 두고 갈아 끼우는 코드(전략 패턴)가 있습니다. 네이버페이를 추가할 때 각각 어디를 고쳐야 하는지, 실행할 때 어느 구현이 어떻게 선택되는지 비교하세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/strategy/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
+<h1>전략 패턴</h1>
+<p><b>결제 수단이 하나 늘 때 고쳐야 하는 곳</b></p>
+<p>결제 수단(카드, 계좌이체, 카카오페이)마다 처리 방식이 다릅니다. if-else로 나누는 코드와, 수단별 구현을 따로 두고 갈아 끼우는 코드(전략 패턴)가 있습니다. 네이버페이를 추가할 때 각각 어디를 고쳐야 하는지, 실행할 때 어느 구현이 어떻게 선택되는지 비교하세요.</p>
+<p>실행으로 대조 · JDK 21에서 같은 구조의 코드로 확인</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>전략 패턴</dt>
+<dd>바뀔 수 있는 알고리즘이나 동작을 인터페이스로 정의하고 각각을 별도의 클래스로 구현해, 실행 중에 교체할 수 있게 하는 패턴이다. 사용하는 쪽은 인터페이스에만 의존하므로 새로운 방식을 추가해도 기존 코드를 수정하지 않는다.</dd>
+<dt>디자인 패턴</dt>
+<dd>소프트웨어 설계에서 반복적으로 나타나는 문제에 대한 검증된 해결 방법에 이름을 붙여 정리한 것이다. 개발자들 사이의 공통 용어 역할을 해 설계 의도를 짧게 전달할 수 있게 한다. 특정 문제를 해결하기 위한 수단이므로 필요 없는 곳에 적용하면 복잡도만 높아진다.</dd>
+<dt>다형성</dt>
+<dd>같은 타입의 참조로 같은 메서드를 호출해도 실제 객체의 종류에 따라 다른 동작이 실행되는 성질이다. 상위 타입(인터페이스나 상위 클래스) 변수에 여러 하위 타입 객체를 담을 수 있고, 어떤 구현이 실행될지는 실행 시점에 결정된다(동적 바인딩). 호출하는 코드를 바꾸지 않고 새로운 구현을 추가할 수 있게 해 준다.</dd>
+<dt>SOLID</dt>
+<dd>객체지향 설계의 다섯 가지 원칙이다. 단일 책임(SRP: 클래스의 변경 이유는 하나), 개방-폐쇄(OCP: 기존 코드 수정 없이 확장), 리스코프 치환(LSP: 하위 타입은 상위 타입을 대체할 수 있어야 함), 인터페이스 분리(ISP: 쓰지 않는 메서드에 의존하지 않게 인터페이스를 작게), 의존 역전(DIP: 구체 클래스가 아니라 추상화에 의존)을 말한다. 변경에 강한 구조를 만드는 것이 목적이다.</dd>
+<dt>인터페이스</dt>
+<dd>클래스가 구현해야 할 메서드의 목록(계약)을 정의한 타입이다. 인스턴스 필드를 가질 수 없고, 한 클래스가 여러 인터페이스를 구현할 수 있다. 사용하는 코드가 인터페이스에만 의존하면 구현 클래스를 바꾸거나 테스트용 가짜 구현으로 교체하기 쉽다.</dd>
+<dt>DI(의존성 주입)</dt>
+<dd>객체가 사용하는 다른 객체(의존성)를 스스로 만들지 않고 외부에서 전달받는 방식이다. 스프링에서는 컨테이너가 빈을 생성하면서 생성자, 세터, 필드를 통해 의존성을 넣어 준다. 구현 클래스를 바꾸거나 테스트에서 가짜 객체를 넣기 쉬워지고 클래스 사이의 결합도가 낮아진다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — if-else 방식에 네이버페이 추가. 기존 메서드를 고쳐야 합니다.</li>
+<li><b>전략 패턴에 네이버페이 추가</b> — 클래스 하나를 새로 만들면 끝입니다. 기존 코드는 그대로입니다.</li>
+<li><b>전략 패턴의 실행 과정</b> — 분기문 없이 맞는 구현이 선택됩니다.</li>
+<li><b>if-else의 실행 과정</b> — 조건을 위에서부터 차례로 비교합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>결제 수단별 처리가 PaymentService의 메서드 안에 if-else로 들어 있습니다. 환불과 취소 메서드에도 같은 모양의 분기가 있습니다.</li>
+<li>네이버페이 추가: pay(), refund(), cancel() 세 메서드에 각각 else if를 하나씩 끼워 넣어야 합니다. 이미 잘 돌아가던 메서드를 고치는 것이므로 카드와 카카오페이까지 다시 테스트해야 합니다. 한 곳이라도 빠뜨리면 그 기능만 실행 중에 예외가 납니다.</li>
+<li>카카오페이로 결제를 요청합니다: pay(&quot;KAKAO&quot;, order).</li>
+<li>type이 &quot;CARD&quot;인지 비교합니다. 아닙니다. 다음 조건으로 넘어갑니다.</li>
+<li>type이 &quot;BANK&quot;인지 비교합니다. 아닙니다. 다음 조건으로 넘어갑니다.</li>
+<li>type이 &quot;KAKAO&quot;인지 비교합니다. 맞습니다. 이 블록 안의 카카오페이 처리 코드를 실행합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>네이버페이 추가로 고친 기존 코드: 메서드 3개, 새로 만든 것: 없음. 실행할 때 비교한 횟수: 3번.</li>
+<li>if-else 방식은 수단이 두세 개이고 늘어날 일이 없다면 가장 단순하고 읽기 쉽습니다. 문제는 수단이 늘 때마다 같은 분기가 여러 메서드에 복사되고, 메서드 하나가 계속 길어지며, 한 수단을 고치다 다른 수단을 건드릴 위험이 커진다는 점입니다.</li>
+<li>스프링의 의존성 주입 자체가 전략 패턴의 활용입니다. 인터페이스 타입으로 주입받고 실제 구현은 설정에 따라 바뀝니다(운영에서는 실제 결제사, 테스트에서는 가짜 구현).</li>
+</ul>
+<h2>코드</h2>
+<pre>@Service
+class PaymentService {
+    void pay(String type, Order order) {
+        if (type.equals(&quot;CARD&quot;)) {
+            // 카드사 승인 요청 ... (30줄)
+        } else if (type.equals(&quot;BANK&quot;)) {
+            // 계좌이체 ... (25줄)
+        } else if (type.equals(&quot;KAKAO&quot;)) {
+            // 카카오페이 ... (40줄)
+        } else if (type.equals(&quot;NAVER&quot;)) {      // 추가: 기존 메서드를 수정
+            // 네이버페이 ... (35줄)
+        } else {
+            throw new IllegalArgumentException(type);
+        }
+    }
+    // refund(), cancel() 에도 같은 분기가 반복된다
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>결제 처리의 실제 내용은 생략하고 구조만 비교했습니다. if-else 방식에서 환불과 취소에도 같은 분기가 있다는 것은 흔한 상황을 가정한 것입니다. 전략 패턴의 정의는 GoF 디자인 패턴의 설명을 따랐고, 스프링이 같은 인터페이스의 구현체를 List로 한꺼번에 주입해 주는 것은 스프링의 표준 기능입니다. 맵에서 꺼낸 구현 객체의 메서드가 실제로 실행되는 것과 if-else의 비교 횟수는 이 PC의 JDK 21에서 같은 구조의 코드로 확인했습니다. 스프링이 구현체를 주입하는 부분은 실행하지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/immut/">불변과 방어적 복사</a> · 다음 실습: <a href="../../lab/eq/">==와 equals</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

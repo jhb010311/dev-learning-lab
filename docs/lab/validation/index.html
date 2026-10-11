@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>검증: 필드에 @NotBlank를 붙였는데 왜 빈 값이 그대로 들어오나 · 개발 학습 실습실</title>
+<meta name="description" content="입력값에는 &quot;이름은 비어 있으면 안 된다&quot; 같은 조건이 있습니다. Bean Validation은 이런 조건을 @NotBlank 같은 애노테이션으로 필드 위에 적어 두는 방법이고, 이렇게 적은 조건을 제약이라고 부릅니다. 그런데 제약은 적어 둔 것만으로는 아무 일도 하지 않습니…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/validation/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/validation/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/validation/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="검증: 필드에 @NotBlank를 붙였는데 왜 빈 값이 그대로 들어오나 · 개발 학습 실습실">
+<meta property="og:description" content="입력값에는 &quot;이름은 비어 있으면 안 된다&quot; 같은 조건이 있습니다. Bean Validation은 이런 조건을 @NotBlank 같은 애노테이션으로 필드 위에 적어 두는 방법이고, 이렇게 적은 조건을 제약이라고 부릅니다. 그런데 제약은 적어 둔 것만으로는 아무 일도 하지 않습니…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/validation/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 웹 MVC</p>
+<h1>검증</h1>
+<p><b>필드에 @NotBlank를 붙였는데 왜 빈 값이 그대로 들어오나</b></p>
+<p>입력값에는 &quot;이름은 비어 있으면 안 된다&quot; 같은 조건이 있습니다. Bean Validation은 이런 조건을 @NotBlank 같은 애노테이션으로 필드 위에 적어 두는 방법이고, 이렇게 적은 조건을 제약이라고 부릅니다. 그런데 제약은 적어 둔 것만으로는 아무 일도 하지 않습니다. 누군가 &quot;이 객체를 검사하라&quot;고 시켜야 하고, 스프링 MVC에서는 컨트롤러 파라미터에 붙인 @Valid가 그 신호입니다. 받는 방법과 제약, 보내는 값을 바꿔 가며 검증이 언제 일어나고, 어기면 어떤 응답이 되는지 보세요.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1 서버(Hibernate Validator 9.1.3)에 마흔여덟 가지 조합의 요청을 보내 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>Bean Validation과 @Valid</dt>
+<dd>Bean Validation은 &quot;이 값은 비어 있으면 안 된다&quot; 같은 조건을 @NotBlank, @Min 같은 애노테이션으로 필드에 적어 두고, 검증기가 객체를 받아 그 조건을 검사하게 하는 자바 표준이다. 이렇게 적은 조건을 제약이라고 부르며, 표준은 약속만 정하고 실제 검사는 Hibernate Validator 같은 구현 라이브러리가 한다. 제약은 적어 둔 것만으로는 동작하지 않는다. 스프링 MVC에서는 컨트롤러 파라미터에 @Valid(또는 스프링의 @Validated)를 붙여야 스프링이 그 객체를 검증기에 넘긴다. 객체 안에 다른 객체가 필드로 들어 있을 때는 그 필드에도 @Valid가 있어야 안쪽 객체의 제약까지 검사한다.</dd>
+<dt>@NotNull, @NotEmpty, @NotBlank</dt>
+<dd>값이 &quot;있어야 한다&quot;는 조건을 나타내는 세 가지 제약으로, 어디까지를 &quot;없다&quot;로 보는지가 서로 다르다. @NotNull은 null만 막고, @NotEmpty는 null과 길이가 0인 값(빈 문자열 &quot;&quot;)을 막으며, @NotBlank는 거기에 더해 빈칸만으로 된 문자열(&quot; &quot;)까지 막는다. 그래서 @NotNull만 붙인 문자열 필드는 빈 문자열을 그대로 통과시킨다. 사람이 입력하는 글자 값에는 보통 @NotBlank를 쓴다. @NotBlank는 문자열에 쓰는 제약이어서 Integer 같은 숫자 필드에 붙이면 검증할 때 오류가 난다.</dd>
+<dt>BindingResult</dt>
+<dd>BindingResult는 요청의 값을 객체에 담고 검증하는 과정에서 생긴 오류를 모아 두는 객체이다. 컨트롤러 메서드에서 @Valid가 붙은 파라미터 바로 뒤에 BindingResult 파라미터를 두면, 검증에 실패해도 스프링이 예외를 던지지 않고 오류를 여기에 담아 컨트롤러를 그대로 실행한다. 컨트롤러는 hasErrors()로 오류가 있는지 확인하고 어떻게 응답할지 직접 정한다. 확인하지 않으면 잘못된 값이 그대로 처리되므로, BindingResult를 받았다면 반드시 확인해야 한다. 자리도 중요해서, 검증할 파라미터의 바로 다음이 아닌 곳에 두면 요청을 처리할 때 오류가 난다.</dd>
+<dt>MethodArgumentNotValidException</dt>
+<dd>MethodArgumentNotValidException은 @Valid가 붙은 컨트롤러 파라미터의 객체가 검증에 실패했을 때 스프링 MVC가 던지는 예외이다. 이 예외가 나면 컨트롤러 메서드는 실행되지 않고, 따로 처리하지 않으면 400 Bad Request로 응답한다. 예외 안에는 어느 필드가 어느 제약을 어겼는지가 들어 있어서, @ExceptionHandler로 이 예외를 받아 오류 응답의 본문을 직접 만들 수 있다. 객체가 아니라 @RequestParam 같은 파라미터에 직접 붙인 제약이 실패하면 HandlerMethodValidationException이라는 다른 예외가 나온다. 예외의 이름은 스프링 버전에 따라 달라져 왔으므로, 쓰는 버전에서 확인하는 것이 안전하다.</dd>
+<dt>HTTP 상태 코드</dt>
+<dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — @NotBlank가 붙어 있는데도 빈 이름이 그대로 등록됩니다. 파라미터에 @Valid가 없기 때문입니다.</li>
+<li><b>@Valid를 붙이면</b> — 같은 요청이 컨트롤러에 닿기 전에 400으로 거절됩니다.</li>
+<li><b>@NotNull은 빈 문자열을 통과시킨다</b> — 빈 문자열은 null이 아닙니다. 검증을 했는데도 빈 이름이 등록됩니다.</li>
+<li><b>빈칸 한 글자는 @NotEmpty도 통과</b> — 빈칸도 한 글자로 셉니다. 빈칸뿐인 값까지 막는 것은 @NotBlank입니다.</li>
+<li><b>BindingResult를 받으면</b> — 검증에 실패해도 예외가 나지 않고 컨트롤러가 실행됩니다.</li>
+<li><b>파라미터에 직접 붙인 제약</b> — @Valid 없이도 검사됩니다. 실패하면 예외의 이름이 다릅니다.</li>
+<li><b>@RequestParam 값을 아예 안 보내면</b> — 제약을 검사하기 전에 &quot;필수 값이 없음&quot;으로 먼저 거절됩니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>요청이 도착합니다: POST /items, 본문은 {&quot;name&quot;: &quot;&quot;}입니다. name에 빈 문자열(글자가 하나도 없는 문자열)을 실어 보냈습니다.</li>
+<li>@RequestBody ItemForm form: 스프링이 JSON 본문을 읽어 ItemForm 객체를 만들고 name 필드를 채웁니다. name 필드는 &quot;&quot;입니다. 이 단계는 값을 옮겨 담기만 합니다. 필드 위의 @NotBlank 제약은 아직 아무 일도 하지 않습니다.</li>
+<li>검증할지 정하기: 스프링은 파라미터에 @Valid가 붙어 있을 때만 그 객체를 검증기에 넘깁니다. 이 파라미터에는 @Valid가 없으므로 검증을 건너뜁니다. ItemForm의 @NotBlank 제약은 &quot;이 필드는 이래야 한다&quot;고 적어 둔 표시일 뿐, 스스로 값을 막지 못합니다.</li>
+<li>add(form) 호출: 컨트롤러 메서드가 실행됩니다. form.getName()의 값은 &quot;&quot;입니다. 돌려주는 글은 &quot;등록: []&quot;이고, 200으로 응답합니다. @NotBlank 제약을 어긴 값이 아무 제지 없이 컨트롤러까지 들어왔습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>응답은 200 OK입니다. 검증은 하지 않았습니다. 컨트롤러 메서드가 실행됐고, 돌려준 글은 &quot;등록: []&quot;입니다.</li>
+<li>필드에 제약을 붙이는 것만으로는 검증되지 않습니다. 컨트롤러 파라미터에 @Valid를 붙여야 스프링이 검증기를 부릅니다. 받는 방법을 @Valid가 있는 것으로 바꿔 비교해 보세요.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 보내는 요청
+// POST /items
+// Content-Type: application/json
+//
+// {&quot;name&quot;: &quot;&quot;}
+
+class ItemForm {
+    @NotBlank
+    private String name;
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+}
+
+@RestController
+class ItemController {
+
+    @PostMapping(&quot;/items&quot;)
+    String add(@RequestBody ItemForm form) {
+        return &quot;등록: [&quot; + form.getName() + &quot;]&quot;;
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>받는 방법 네 가지, 제약 세 가지, 보내는 값 네 가지를 곱한 마흔여덟 조합을 모두 실제 스프링 부트 4.1.1 서버(스프링 프레임워크 7.0.9, 내장 톰캣 11, Hibernate Validator 9.1.3.Final, jakarta.validation-api 3.1.1, JDK 21)에 HTTP 요청으로 보내, 상태 코드와 검증기가 실제로 돌았는지, 어긴 제약, 컨트롤러 실행 여부와 돌려준 글, 스프링이 던진 예외의 이름이 화면과 일치하는 것을 확인했습니다. 검증기가 돌았는지는 항상 통과하는 제약을 하나 더 붙여 그것이 불렸는지로 확인했습니다(화면의 코드에는 없습니다). 화면의 주소는 모두 /items이지만 대조할 때는 조합마다 주소를 따로 두었습니다. 스프링 부트는 검증 라이브러리(spring-boot-starter-validation)가 있을 때 검증기를 자동으로 준비하며, 이 실습은 그 상태를 전제로 합니다. 라이브러리가 없을 때의 동작은 확인하지 않았습니다. 예외의 이름과 파라미터에 직접 붙인 제약의 동작은 스프링 버전에 따라 다릅니다. 여기 적은 것은 스프링 프레임워크 7.0.9에서 본 것이고, 6.1보다 앞선 버전은 다르다고 알려져 있으나 실행해 보지 못했습니다. 오류 응답의 본문과 오류 메시지의 글은 설정과 서버의 언어에 따라 달라 결과로 삼지 않았습니다. 이 PC에서 본 기본 오류 응답 본문에는 timestamp, status, error, path만 있었고 어느 필드가 틀렸는지는 들어 있지 않았습니다. 화면에 없는 경우도 같은 서버에서 확인했습니다. @Valid 대신 스프링의 @Validated를 파라미터에 붙여도 결과가 같습니다. @Valid @ModelAttribute로 폼 본문을 받아도 열두 가지(제약 셋, 값 넷) 결과가 @Valid @RequestBody와 같고 예외도 MethodArgumentNotValidException입니다. JSON에 &quot;name&quot;: null이라고 적어 보내도 보내지 않은 것과 같습니다. 객체 안에 다른 객체가 필드로 들어 있을 때는 그 필드에 @Valid가 있어야 안쪽 객체의 제약까지 검사하고(없으면 200), 안쪽 객체가 null이면 @Valid가 있어도 내려가지 않고 통과합니다. 제약에 groups를 지정하면 @Valid로는 검사되지 않고 @Validated(그 그룹)으로 받아야 검사되며, 반대로 groups가 없는 제약은 @Validated(그 그룹)으로 받으면 검사되지 않습니다. 필드 둘이 모두 어기면 오류는 2개로, 검증은 첫 오류에서 멈추지 않습니다. @Valid 객체와 제약이 직접 붙은 파라미터를 한 메서드에서 함께 받으면 객체 쪽 실패도 HandlerMethodValidationException으로 나옵니다. @RequestParam(required = false)로 받고 값을 보내지 않으면 null이 들어와 @NotNull과 @NotBlank에 걸립니다. 컨트롤러 클래스에 @Validated를 붙이면 파라미터 제약의 실패가 ConstraintViolationException과 500으로 바뀝니다. Integer 필드에 @NotBlank를 붙이면 검증할 때 UnexpectedTypeException으로 500이 됩니다. BindingResult를 @Valid 파라미터 앞에 두면 IllegalStateException으로 500이 됩니다. @ExceptionHandler로 MethodArgumentNotValidException을 받으면 어느 필드가 어느 제약을 어겼는지 꺼내 400 응답 본문에 직접 적을 수 있습니다. 화면은 필드 하나, 제약 하나인 경우로 단순화했고, 빈칸은 스페이스 한 글자만 확인했습니다.</p>
+<p>앞 실습: <a href="../../lab/binding/">요청 매핑과 파라미터 바인딩</a> · 다음 실습: <a href="../../lab/msgconv/">REST API와 메시지 컨버터</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

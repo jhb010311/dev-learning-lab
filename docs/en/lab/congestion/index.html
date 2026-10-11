@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow control and congestion control: How does TCP decide how much to send at a time? · Dev Learning Lab</title>
+<meta name="description" content="Even when TCP has a lot of data to send, it does not pour it all out at once. It sends only up to the smaller of two amounts: the amount the receiver can…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/congestion/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/congestion/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/congestion/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Flow control and congestion control: How does TCP decide how much to send at a time? · Dev Learning Lab">
+<meta property="og:description" content="Even when TCP has a lot of data to send, it does not pour it all out at once. It sends only up to the smaller of two amounts: the amount the receiver can…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/congestion/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Transport layer</p>
+<h1>Flow control and congestion control</h1>
+<p><b>How does TCP decide how much to send at a time?</b></p>
+<p>Even when TCP has a lot of data to send, it does not pour it all out at once. It sends only up to the smaller of two amounts: the amount the receiver can handle (the receive window) and the amount TCP estimates the network can handle (the congestion window). Respecting the first is flow control, and adjusting the second is congestion control. See how the amount sent grows and shrinks over twelve round trips.</p>
+<p>Conceptual model · A model of the concept that follows the rules of RFC 5681. It was not checked against a real TCP run; it was checked in 153 settings against a separate calculation of the same rules, one ACK at a time</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Flow control and congestion control</dt>
+<dd>Both are TCP functions that adjust the sending rate. Flow control adjusts the amount sent to match what the receiver can handle, so that the receiver does not overflow. Congestion control senses how congested the network is and decreases or increases the amount sent, to prevent congestion across the whole network.</dd>
+<dt>Receive window and congestion window</dt>
+<dd>These are the two limits that decide how much TCP can send at one time. The receive window (rwnd) is the value the receiver reports in its acknowledgments, saying &quot;I can receive this much more right now,&quot; and it keeps the buffer of the receiver from overflowing. The congestion window (cwnd) is the value the sender manages on its own, based on its estimate of &quot;the network can handle this much,&quot; and it is not reported to the other side. The sender sends so that the data not yet acknowledged does not exceed the smaller of the two values. Respecting the receive window is flow control, and raising and lowering the congestion window is congestion control.</dd>
+<dt>Slow start and congestion avoidance</dt>
+<dd>These are the two phases in which TCP grows the congestion window. Slow start begins with a very small congestion window and grows it each time an acknowledgment arrives, so the window doubles with every round trip. Despite the name, the window grows fast; it is called slow start because the sender does not send a lot from the beginning. When the congestion window reaches the slow start threshold (ssthresh), TCP moves to congestion avoidance and grows it by only one segment per round trip. When a loss is detected, TCP concludes that the network is congested, lowers the threshold, and reduces the window: by about half if the same acknowledgment arrived three times in a row, and down to one segment if it was a timeout (even if the window at the start of the connection was larger than that). This explanation is the basic method of the standard (RFC 5681), and the algorithm an operating system actually uses may differ in how much it grows and shrinks the window.</dd>
+<dt>TCP and UDP</dt>
+<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. The web and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The window doubles until it reaches the threshold, then grows by one, and when a loss is detected it is cut in half.</li>
+<li><b>The same loss, detected by a timeout</b> — It starts again from 1 segment, not from half.</li>
+<li><b>With no loss</b> — It doubles up to the threshold, and after that keeps growing by one.</li>
+<li><b>When the receiver is slow</b> — Even if the congestion window grows, it sends only up to the receive window of 6 segments.</li>
+<li><b>With a very large threshold</b> — Slow start keeps doubling until it meets a loss.</li>
+<li><b>A loss with a receive window of 12 segments</b> — Half is taken not of the congestion window but of the amount actually sent.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Round trip 1: the congestion window is 1 segment and the receive window is 64 segments. It sends 1 segment, the amount of the congestion window, which is the smaller of the two. Right after the connection is established, it does not know how much the network can handle, so it starts from 1 segment. The congestion window is smaller than the slow start threshold of 8 segments, so this is slow start. The window grows by 1 segment each time an ACK comes back. It receives 1 ACK, and the window becomes 2 segments. That is a doubling in one round trip.</li>
+<li>Round trip 2: the congestion window is 2 segments and the receive window is 64 segments. The smaller is the congestion window, so it sends 2 segments. Slow start continues. It receives 2 ACKs, and the window becomes 4 segments. That is a doubling in one round trip.</li>
+<li>Round trip 3: the congestion window is 4 segments and the receive window is 64 segments. The smaller is the congestion window, so it sends 4 segments. Slow start continues. It receives 4 ACKs, and the window becomes 8 segments. That is a doubling in one round trip.</li>
+<li>Round trip 4: the congestion window is 8 segments and the receive window is 64 segments. The smaller is the congestion window, so it sends 8 segments. The congestion window is at least the slow start threshold of 8 segments, so this is congestion avoidance. Now the window grows by 1 segment only after as many ACKs as the congestion window have arrived. In this round trip it becomes 9 segments. It grows by 1 segment per round trip, carefully.</li>
+<li>Round trip 5: the congestion window is 9 segments and the receive window is 64 segments. The smaller is the congestion window, so it sends 9 segments. Congestion avoidance continues. In this round trip it becomes 10 segments.</li>
+<li>Round trip 6: the congestion window is 10 segments and the receive window is 64 segments. The smaller is the congestion window, so it sends 10 segments. But the first segment was lost on the way. For every segment that arrives after it, the receiver repeats the same ACK, which says &quot;I am still waiting for the segment before this one.&quot;</li>
+<li>Three duplicate ACKs have arrived. The sender does not wait for the timer and sends the lost segment again right away (fast retransmit). It treats the loss as a sign that the network is congested. It lowers the slow start threshold to 5 segments, half of the 10 segments it just sent, and it also reduces the congestion window to 5 segments. ACKs are still arriving, so it concludes that the path is not completely blocked and does not lower the window all the way to 1 segment.</li>
+<li>Round trip 7: the congestion window is 5 segments and the receive window is 64 segments. The smaller is the congestion window, so it sends 5 segments. The congestion window is at least the slow start threshold of 5 segments, so this is congestion avoidance. Now the window grows by 1 segment only after as many ACKs as the congestion window have arrived. In this round trip it becomes 6 segments. It grows by 1 segment per round trip, carefully.</li>
+<li>Round trip 8: the congestion window is 6 segments and the receive window is 64 segments. The smaller is the congestion window, so it sends 6 segments. Congestion avoidance continues. In this round trip it becomes 7 segments.</li>
+<li>Round trip 9: the congestion window is 7 segments and the receive window is 64 segments. The smaller is the congestion window, so it sends 7 segments. Congestion avoidance continues. In this round trip it becomes 8 segments.</li>
+<li>Round trip 10: the congestion window is 8 segments and the receive window is 64 segments. The smaller is the congestion window, so it sends 8 segments. Congestion avoidance continues. In this round trip it becomes 9 segments.</li>
+<li>Round trip 11: the congestion window is 9 segments and the receive window is 64 segments. The smaller is the congestion window, so it sends 9 segments. Congestion avoidance continues. In this round trip it becomes 10 segments.</li>
+<li>Round trip 12: the congestion window is 10 segments and the receive window is 64 segments. The smaller is the congestion window, so it sends 10 segments. Congestion avoidance continues. In this round trip it becomes 11 segments.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>In twelve round trips, 79 segments were sent. Amount sent in each round trip: 1, 2, 4, 8, 9, 10, 5, 6, 7, 8, 9, 10.</li>
+<li>When the loss is detected by three duplicate ACKs, the slow start threshold and the congestion window are reduced to half of the amount sent (5 segments), and the window grows by one again from there. It grows, and when it meets a loss it is reduced, over and over, so if you draw the amount sent, it forms a sawtooth.</li>
+<li>In this setting, the receive window was always ample, so the congestion window decided the amount sent. If you reduce the receive window to 6 segments, you can see the case in which the receiver is the limit.</li>
+</ul>
+<h2>Code</h2>
+<pre>// The rules of RFC 5681, expressed in units of segments. This is done by TCP in the operating system, not by the program
+let cwnd = 1;                  // congestion window: the amount the sender estimates the network can handle. It starts at 1 segment
+let ssthresh = 8;              // slow start threshold: grow fast up to here, and carefully beyond it
+let acked = 0;                 // number of ACKs counted in congestion avoidance
+const rwnd = 64;               // receive window: the room the receiver reported in its ACKs
+
+function canSend() {           // the amount that can be sent at one time
+  return Math.min(cwnd, rwnd); // the smaller of the two
+}
+function onAck() {             // each time one ACK arrives for new data
+  if (cwnd &lt; ssthresh) cwnd += 1;                        // slow start: doubles in one round trip
+  else if (++acked &gt;= cwnd) { acked = 0; cwnd += 1; }    // congestion avoidance: 1 segment per round trip
+}
+function onThreeDuplicateAcks(flight) {   // the same ACK three times = one segment was lost
+  ssthresh = Math.max(Math.floor(flight / 2), 2);       // half of the amount sent
+  cwnd = ssthresh;  acked = 0;                           // continue from half
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a model of the concept that follows the rules of RFC 5681, not the result of running a real TCP. The congestion window inside an operating system cannot be inspected or controlled from a program, so it could not be checked against execution. Instead, the numbers of the model were checked in 153 settings against a separate calculation that applies the same rules one ACK at a time (the model calculates with formulas in units of round trips). The rules that were reproduced are: the amount that can be sent is the smaller of the two windows (RFC 5681 section 3.1); equation (2) for slow start and the recommended method for congestion avoidance (section 3.1); equation (4), which gives the slow start threshold after a loss (section 3.1); 1 segment after a timeout (section 3.1); and the value at the end of fast recovery after three duplicate ACKs (section 3.2). Simplifications: sizes are counted in segments, not in bytes, and halves are rounded down. The initial congestion window is set to 1 segment (the standard allows an upper limit of 2 to 4 segments, and recent operating systems sometimes use 10 segments, RFC 6928). It assumes that one ACK arrives for every segment (in practice, one ACK is sometimes sent for every two segments), it assumes that the receive window does not change (in practice, it changes with every ACK according to how fast the receiving program reads), and it omits the temporary inflation of the window during fast recovery. Setting the initial slow start threshold large enough is the recommendation of the standard, and 8 and 16 are values chosen to make the changes visible. While the sender was blocked by the receive window, the model still grew the congestion window by the formula, but real implementations sometimes do not grow it while they are not using all of it (RFC 7661 sets this rule for the case in which the application has little to send and does not use the whole congestion window). The default algorithm of Linux and Windows is CUBIC (RFC 9438), so its growth curve and its reduction ratio differ from this model.</p>
+<p>Previous lab: <a href="../../lab/udp/">TCP and UDP</a> · Next lab: <a href="../../lab/httpmsg/">HTTP messages and status codes</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

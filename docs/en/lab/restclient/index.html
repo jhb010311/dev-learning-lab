@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calling external APIs and timeouts: When a call to another server gets no answer, how long does it wait? · Dev Learning Lab</title>
+<meta name="description" content="The order server calls the API of the payment server. The calling thread stops and waits until the result comes back, and a timeout sets how long it waits…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/restclient/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/restclient/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/restclient/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Calling external APIs and timeouts: When a call to another server gets no answer, how long does it wait? · Dev Learning Lab">
+<meta property="og:description" content="The order server calls the API of the payment server. The calling thread stops and waits until the result comes back, and a timeout sets how long it waits…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/restclient/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Other features</p>
+<h1>Calling external APIs and timeouts</h1>
+<p><b>When a call to another server gets no answer, how long does it wait?</b></p>
+<p>The order server calls the API of the payment server. The calling thread stops and waits until the result comes back, and a timeout sets how long it waits before giving up. There are two timeouts. The connect timeout measures the time until the connection is established, and the read timeout measures the time until the response arrives after the connection is established. If you do not set them, the thread waits with no limit. Change the state of the remote server and the timeouts to see which timeout expires and when. The 2 seconds, 3 seconds, and 10 seconds on the screen are example values.</p>
+<p>Partly checked against real execution · All 24 combinations were actually called with the RestClient of Spring 7.0.9 and checked against the results. The 4 combinations with a connection that gets no answer can differ depending on the network environment</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Connect timeout and read timeout</dt>
+<dd>These are the two time limits that set how long a call to another server waits before giving up. The connect timeout is the limit on waiting until the TCP connection to the remote server is established, and the read timeout is the limit on waiting with no response data arriving after the connection is established. The two measure different intervals, so setting only the connect timeout does not protect against the case where the connection is made but the response is late. If no timeout is set, a slow remote server keeps the calling thread occupied, and when the thread pool runs out, the failure spreads to the calling side. A read timeout does not mean that the remote server did not handle the request, so you must watch out for duplicate handling when you send the same request again.</dd>
+<dt>RestClient</dt>
+<dd>This is the client that Spring provides for calling the HTTP API of another server. You build a request by chaining methods, as in client.get().uri(url).retrieve().body(type), and a message converter converts the response body to an object and returns it. It is synchronous, which means that the calling thread waits until the response arrives, and it is the successor to RestTemplate, which has been in use for a long time. A 4xx response is turned into an HttpClientErrorException, a 5xx response into an HttpServerErrorException, and a connection failure or a timeout into a ResourceAccessException, and that exception is thrown. The actual communication is done by a request factory, and timeouts are also set on the request factory.</dd>
+<dt>Tomcat's threading model</dt>
+<dd>Tomcat manages its request processing threads in a pool, and one thread takes one request and handles it until the response is finished. The number of requests it can handle at the same time is limited by the maximum number of threads (200 by default), and when all threads are in use, new requests wait. A thread stays occupied even while the request is waiting on a database or an external call.</dd>
+<dt>Three-way handshake</dt>
+<dd>The three-step process used to establish a TCP connection. The client sends a connection request (SYN), the server sends its acceptance together with its own connection request (SYN+ACK), and the client acknowledges it (ACK). After both sides have confirmed that they can send to and receive from each other, data transfer starts.</dd>
+<dt>HTTP status codes</dt>
+<dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Only the connect timeout is set. It does not cover a slow response, so the thread waits 10 seconds.</li>
+<li><b>Setting the read timeout as well</b> — If the response does not arrive within 3 seconds, the thread stops waiting.</li>
+<li><b>Server that does not answer, no timeouts</b> — The thread stays occupied until the operating system gives up.</li>
+<li><b>Server that does not answer, read timeout only</b> — The read timeout is of no use during the connection phase.</li>
+<li><b>Server that does not answer, connect timeout</b> — The call gives up after 2 seconds and releases the thread.</li>
+<li><b>When the server program is not running</b> — The refusal comes back right away, so the call does not wait for a timeout.</li>
+<li><b>When a 404 or 500 comes back</b> — The response arrived, but in the calling code it shows up as an exception.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Calling client.get() ... body(String.class): One thread of the order server starts calling the payment server. RestClient holds this thread until the result comes back, so during that time the thread cannot handle other requests.</li>
+<li>Connection attempt: Before the HTTP request can be sent, a TCP connection to the payment server must be established. The connection request is sent. The 2-second connect timeout starts counting from this point.</li>
+<li>Connection established: The payment server accepts the connection right away. The job of the connect timeout ends here. However long things take after this, the connect timeout does not expire.</li>
+<li>GET /payments/1 sent: The request is sent over the established connection, and the thread waits for the response. No read timeout is set.</li>
+<li>No read timeout: Nothing stops the wait. The job of the connect timeout (2 seconds) ended when the connection was established, so it is of no use here. The thread stays occupied for 10 seconds, until the response arrives.</li>
+<li>Response arrives: After 10 seconds, the payment server sends a 200 response. RestClient converts the body to a string and returns it. The result is a success, but one thread could do no other work for 10 seconds.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Result: 200 response received. The calling code received the response body without an exception, and the calling thread was occupied for 10s.</li>
+<li>If you do not set a read timeout, the wait has no limit. When the payment server slows down, the threads of the order server stay occupied for that long, and when many requests come in at once, all the threads in the thread pool become occupied and the order server itself can no longer respond. The connect timeout alone does not protect against a slow response. The two timeouts measure different intervals, so you must set both.</li>
+</ul>
+<h2>Code</h2>
+<pre>SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+factory.setConnectTimeout(Duration.ofSeconds(2));   // connect timeout
+// no read timeout is set (waits with no limit)
+
+RestClient client = RestClient.builder()
+        .requestFactory(factory)
+        .build();
+
+try {
+    String body = client.get()
+            .uri(&quot;http://pay-server/payments/1&quot;)
+            .retrieve()
+            .body(String.class);            // this thread waits here until the result comes back
+} catch (HttpClientErrorException e) {      // 4xx response
+} catch (HttpServerErrorException e) {      // 5xx response
+} catch (ResourceAccessException e) {       // connection failure, timeout
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>All 24 combinations were actually called with the RestClient of Spring Framework 7.0.9 (the request factory is SimpleClientHttpRequestFactory, on JDK 21), and it was confirmed that the result, the kind of exception, the cause of the exception, the time waited, and whether the remote server handled the request match the screen. The remote server is a Spring Boot 4.1.1 server (embedded Tomcat) started on 127.0.0.1 of the same PC, with a URL that responds late on purpose. The times on the screen are examples. The real check was run with the times reduced to one hundredth (connect timeout 200ms, read timeout 300ms, slow response 1000ms), and the time waited was checked to come out in that proportion. &quot;Connection refused&quot; was checked with a port on 127.0.0.1 that no program is listening on. &quot;No answer to the connection request&quot; cannot be produced with 127.0.0.1, so it was checked with 192.0.2.1 (RFC 5737), an address that is reserved for documentation and is not assigned to any machine. These 4 combinations can give different results depending on the network the PC is on (if the network is disconnected, the call fails right away). The roughly 21 seconds that the operating system took to give up when there was no connect timeout is the value seen on Windows 11, and it differs depending on the operating system and its settings. That the wait has no limit when no timeout is set follows the java.net.URLConnection documentation (a timeout of 0 means infinite), and execution confirmed only that the call waits until the response arrives. The read timeout is not a limit on the time the whole response takes but a limit on the time spent waiting with no data arriving, so it may not expire for a response that keeps arriving a little at a time (this follows the same documentation and was not verified by execution). How timeouts are set and what their defaults are differ depending on the kind of request factory. The check was done one call at a time, so the situation where requests pile up and the thread pool runs out was not verified by execution. The model is simplified to the case where a new connection is established for every call, and it does not cover a connection pool that reuses connections and its wait time, retries, or circuit breakers.</p>
+<p>Previous lab: <a href="../../lab/testing/">Testing</a> · Next lab: <a href="../../lab/cacheabs/">Cache abstraction</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

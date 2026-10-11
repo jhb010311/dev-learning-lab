@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CORS: Why a request works in Postman but is blocked only in the browser · Dev Learning Lab</title>
+<meta name="description" content="By default, a browser does not let a script on a web page read a response from a server at a different origin. The block is lifted only when the server sa…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cors/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cors/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cors/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="CORS: Why a request works in Postman but is blocked only in the browser · Dev Learning Lab">
+<meta property="og:description" content="By default, a browser does not let a script on a web page read a response from a server at a different origin. The block is lifted only when the server sa…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/cors/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
+<h1>CORS</h1>
+<p><b>Why a request works in Postman but is blocked only in the browser</b></p>
+<p>By default, a browser does not let a script on a web page read a response from a server at a different origin. The block is lifted only when the server says in a response header that this origin is allowed. Change the kind of request and the server settings, and see when a preflight request is sent and whether the request reaches the server at all.</p>
+<p>Checked against real execution · Ran 24 combinations with two test servers and a real browser</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>CORS and the same-origin policy</dt>
+<dd>The same-origin policy is a browser security policy that stops a script from one origin (the combination of scheme, host, and port) from reading responses from another origin. CORS is a way to relax this restriction: the server uses response headers to say that it allows access from specific origins. The browser applies this policy, so it does not apply to calls between servers or to calls made with tools.</dd>
+<dt>Preflight request</dt>
+<dd>A check request that the browser sends first, with the OPTIONS method, before it sends the actual request to another origin. It asks the server in advance whether the server allows that origin, method, and headers, and the browser sends the actual request only if it receives a response that allows them. It occurs for requests such as those that send a JSON body or carry custom headers.</dd>
+<dt>HTTP methods</dt>
+<dd>The part of an HTTP request that indicates the action the request wants to perform on a resource. GET means read, POST means create or a processing request, PUT means replace the whole resource, PATCH means modify part of it, and DELETE means delete. Use each one according to its meaning so that HTTP behavior such as caching and retries works as expected.</dd>
+<dt>Cookie</dt>
+<dd>A small piece of data that a server sends in a response. The browser stores it and automatically sends it back with every request to the same site. HTTP does not remember state between requests, so this data is used to keep information that must carry over, such as a login state. Because it is stored in the user's browser, you must use it on the assumption that the user can read or change its contents.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A JSON POST to a different origin. The server has no settings, so the request is blocked at the preflight request.</li>
+<li><b>When the server allows the origin</b> — The preflight request passes, and the actual request is sent.</li>
+<li><b>Simple GET, no server settings</b> — The request reaches the server and is handled. Only the response is not passed to the script.</li>
+<li><b>Allow all origins + cookies</b> — * and cookies cannot be used together.</li>
+<li><b>If the origin is the same</b> — There is no CORS check at all.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The origin of the page is https://shop.example, and the origin of the API is https://api.shop.example. The hosts differ, so the origins differ. The browser first decides whether this is a kind of request that it may simply send.</li>
+<li>This is not a simple request (the Content-Type is application/json). Before sending the actual request, the browser first asks the server with the OPTIONS method whether it may send a request like this. The script did not ask for this request. The browser sends it on its own.</li>
+<li>The server's response does not meet the conditions (The response has no Access-Control-Allow-Origin header). The browser does not send the actual request at all, and reports a network error to the script. The order-handling code on the server did not run.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Preflight request: sent. The actual request did not reach the server, and the script did not receive the response.</li>
+<li>CORS is a rule that the browser enforces, not the server. That is why the same request works from Postman or curl, and in calls between servers. The fix is for the API server to send the Allow headers, not for the front end to change.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Script on the page https://shop.example
+fetch('https://api.shop.example/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(order)
+});
+
+// Server: no CORS settings</pre>
+<h2>Assumptions of this model</h2>
+<p>Where the server allows the origin, it is assumed to allow all methods and headers as well. The conditions for a simple request (the method is GET, HEAD, or POST, there are no extra headers, and the Content-Type is a form submission type or text/plain), the preflight request, and the rules when cookies are included follow the explanations in the Fetch standard and the MDN documentation. The 24 combinations of requests to a different origin (4 kinds of request × cookies included or not × 3 server settings) were run with two local test servers and a real browser (Chromium-based). Whether a preflight request was sent, whether the actual request reached the server, and whether the script received the response all matched the model.</p>
+<p>Previous lab: <a href="../../lab/conneg/">Content negotiation and compression</a> · Next lab: <a href="../../lab/realtime/">Polling, SSE, and WebSocket</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

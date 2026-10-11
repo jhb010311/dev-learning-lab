@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>순차 호출과 병렬 호출: 외부 호출 여러 개를 차례로 할까 한꺼번에 할까 · 개발 학습 실습실</title>
+<meta name="description" content="상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다. 호출 개수와 방식을 바꿔 보고, 느린 호출에 제한 시간을 걸었을 때의 차이도 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/parallel/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/parallel/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/parallel/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="순차 호출과 병렬 호출: 외부 호출 여러 개를 차례로 할까 한꺼번에 할까 · 개발 학습 실습실">
+<meta property="og:description" content="상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다. 호출 개수와 방식을 바꿔 보고, 느린 호출에 제한 시간을 걸었을 때의 차이도 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/parallel/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
+<h1>순차 호출과 병렬 호출</h1>
+<p><b>외부 호출 여러 개를 차례로 할까 한꺼번에 할까</b></p>
+<p>상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다. 호출 개수와 방식을 바꿔 보고, 느린 호출에 제한 시간을 걸었을 때의 차이도 보세요.</p>
+<p>실행으로 대조 · JDK 21에서 실행해 확인</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>CompletableFuture</dt>
+<dd>비동기 작업의 결과를 나타내는 객체로, 작업이 끝났을 때 이어서 실행할 동작을 연결하거나 여러 비동기 작업의 결과를 조합할 수 있다. 결과를 기다리며 스레드를 멈추지 않고 &quot;끝나면 이것을 하라&quot;는 식으로 흐름을 구성한다.</dd>
+<dt>동기와 비동기</dt>
+<dd>동기는 작업을 요청한 쪽이 결과를 받을 때까지 기다린 뒤 다음으로 진행하는 방식이다. 비동기는 작업을 요청해 두고 결과를 기다리지 않고 다음 일을 진행하며, 결과는 나중에 콜백이나 Future 등으로 전달받는 방식이다.</dd>
+<dt>스레드 풀</dt>
+<dd>스레드를 필요할 때마다 만들고 없애는 대신 일정 수의 스레드를 유지하며 재사용하는 구조다. 스레드 생성 비용을 줄이고, 동시에 실행되는 스레드 수를 제한해 과도한 메모리 사용과 컨텍스트 스위칭을 막는다. 처리할 작업은 큐에 쌓이고 빈 스레드가 가져가 실행한다. 톰캣의 요청 처리, DB 커넥션 풀도 같은 발상이다.</dd>
+<dt>ForkJoinPool과 공용 풀</dt>
+<dd>큰 작업을 작은 작업으로 나눠 여러 스레드에서 처리하고 결과를 합치는 데 쓰는 스레드 풀이다. JVM에는 모두가 함께 쓰는 공용 풀(commonPool)이 있으며 병렬 스트림은 기본적으로 이 풀에서 실행된다. 여기서 오래 걸리는 작업을 실행하면 같은 풀을 쓰는 다른 작업까지 느려진다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 4개를 차례로 호출합니다. 시간이 전부 더해집니다.</li>
+<li><b>병렬로 바꾸면</b> — 가장 느린 호출 하나의 시간만 걸립니다.</li>
+<li><b>병렬인데 스레드가 2개뿐이면</b> — 동시에 2개까지만 진행됩니다.</li>
+<li><b>느린 호출에 제한 시간</b> — 1초를 넘는 호출은 기다리지 않고 기본값으로 대신합니다.</li>
+<li><b>5개를 순차로</b> — 호출이 하나 늘 때마다 그만큼 느려집니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>0.0초: 상품 정보 호출을 시작합니다(0.3초 걸리는 호출).</li>
+<li>0.3초: 상품 정보 응답 도착.</li>
+<li>0.3초: 재고 호출을 시작합니다(0.5초 걸리는 호출).</li>
+<li>0.8초: 재고 응답 도착.</li>
+<li>0.8초: 리뷰 호출을 시작합니다(0.8초 걸리는 호출).</li>
+<li>1.6초: 리뷰 응답 도착.</li>
+<li>1.6초: 추천 상품 호출을 시작합니다(1.6초 걸리는 호출).</li>
+<li>3.2초: 추천 상품 응답 도착.</li>
+<li>3.2초: 모든 결과가 모였습니다. 화면을 조립해 응답합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>전체 응답 시간은 3.2초입니다. 각 호출 시간의 합은 3.2초, 가장 느린 호출은 1.6초입니다.</li>
+<li>순차 호출의 응답 시간은 모든 호출 시간의 합입니다. 서로 결과에 의존하지 않는 호출이라면 차례로 부를 이유가 없습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>var product = productApi.get(id);
+var stock = stockApi.get(id);
+var reviews = reviewApi.list(id);
+var recommend = recommendApi.list(id);
+
+return new ProductPage(product, stock, reviews, recommend);</pre>
+<h2>이 모형의 전제</h2>
+<p>각 호출의 소요 시간(상품 0.3초, 재고 0.5초, 리뷰 0.8초, 추천 1.6초, 쿠폰 0.4초)은 고정된 예시이고, 호출들은 서로의 결과가 필요 없다고 가정했습니다. 한 호출의 결과가 다음 호출의 입력이라면 그 둘은 순차로 해야 합니다. 병렬 호출은 스레드 하나가 호출 하나를 맡아 기다리는 블로킹 호출을 가정했습니다. completeOnTimeout은 JDK 9부터 있는 메서드입니다. 이 PC의 JDK 21에서 실제로 실행해 확인했습니다. 같은 시간의 호출 4개로 순차 3,243ms, 병렬(스레드 5개) 1,603ms, 병렬(스레드 2개) 2,127ms, 제한 시간 1초 적용 시 1,011ms가 나와 모형의 값(3.2초, 1.6초, 2.1초, 1.0초)과 일치했습니다.</p>
+<p>앞 실습: <a href="../../lab/ctx/">스레드 수와 컨텍스트 스위칭</a> · 다음 실습: <a href="../../lab/blocking/">블로킹·논블로킹·가상 스레드</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

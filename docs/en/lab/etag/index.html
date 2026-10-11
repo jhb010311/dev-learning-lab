@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTP caching and ETag: Do we have to fetch the same file again? · Dev Learning Lab</title>
+<meta name="description" content="A browser keeps a response it has received and uses it again later. If the server tells it, in the response headers, &quot;how long it may use the response as…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/etag/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/etag/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/etag/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="HTTP caching and ETag: Do we have to fetch the same file again? · Dev Learning Lab">
+<meta property="og:description" content="A browser keeps a response it has received and uses it again later. If the server tells it, in the response headers, &quot;how long it may use the response as…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/etag/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
+<h1>HTTP caching and ETag</h1>
+<p><b>Do we have to fetch the same file again?</b></p>
+<p>A browser keeps a response it has received and uses it again later. If the server tells it, in the response headers, &quot;how long it may use the response as it is&quot; and &quot;a tag for the version of the content (the ETag)&quot;, the browser can skip the request altogether or ask only &quot;has it changed?&quot;. Change the settings and the timing, and watch what goes back and forth.</p>
+<p>Checked against real execution · Checked with a test server and a real browser</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Conditional requests and ETag</dt>
+<dd>A kind of request in which the client asks the server whether the data it already has is still current. An ETag is an identifier value that represents the version of a resource. When the client sends this value in a request, the server responds with 304 Not Modified and no body if the resource has not changed. This reduces network use because the same data is not sent again.</dd>
+<dt>HTTP status codes</dt>
+<dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
+<dt>Cache</dt>
+<dd>Storing frequently used data or computed results ahead of time in a place that can be accessed quickly, and reusing them. Responses get faster and the load on the source drops, because the source (usually a database) is not queried every time. In return, you must manage the problem of stale values that remain when the source changes.</dd>
+<dt>CDN</dt>
+<dd>A network that keeps copies of content on servers placed in many regions around the world and has a server close to the user respond. Static files such as images, video, and scripts are delivered faster, and fewer requests go to the origin server.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The request is made again after the freshness lifetime has passed. If nothing changed, only a 304 comes back, with no body.</li>
+<li><b>Open again within the freshness lifetime</b> — No request is sent to the server at all.</li>
+<li><b>If the content changed</b> — The ETag is different, so the new content arrives with 200.</li>
+<li><b>Content changes within the freshness lifetime</b> — The browser does not know, and it uses the old content.</li>
+<li><b>no-store</b> — Nothing is stored, so the whole response is received again every time.</li>
+<li><b>no-cache</b> — The response is stored, but the server is asked every time before it is used.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>This is the first time this address is opened. Nothing is stored in the browser, so it sends a request to the server.</li>
+<li>The server sends the 200KB body together with a cache directive. The browser stores the body together with the ETag (a tag that marks the version of the content).</li>
+<li>120s later, the same address is opened again. The freshness lifetime of 60s has passed. The browser does not throw away what it stored. It asks, &quot;What I have is v1. Is it still the same?&quot;</li>
+<li>The current ETag on the server is &quot;v1&quot; too. Nothing has changed, so the server answers with just 304 and no body. The browser uses the body it stored as it is and starts the freshness lifetime again. The 200KB was not sent again.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Request sent to the server the second time: GET + If-None-Match. Response: 304 Not Modified. Body transferred in total while the address was opened twice: 200KB.</li>
+<li>A 304 response has no body, so almost nothing is transferred. One round trip still takes place, though, and the server has to do some work to find out the current ETag.</li>
+</ul>
+<h2>Code</h2>
+<pre>@GetMapping(&quot;/products/{id}&quot;)
+ResponseEntity&lt;Product&gt; get(@PathVariable long id) {
+    Product p = productService.find(id);
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
+        .eTag(&quot;\&quot;v&quot; + p.getVersion() + &quot;\&quot;&quot;)     // a tag for the version of the content
+        .body(p);
+}
+
+// If the If-None-Match of the request equals the current ETag,
+// Spring responds with 304 Not Modified and no body</pre>
+<h2>Assumptions of this model</h2>
+<p>The body size of 200KB is an example. The meaning of the cache directives and of conditional requests follows the HTTP caching standard (RFC 9111) and the definition of conditional requests (RFC 9110). The same check can also be done with the last modified time (Last-Modified / If-Modified-Since) instead of the ETag. When the user clicks reload, the browser may send a validation request regardless of the freshness lifetime. It was checked with a local test server and a real browser (Chromium-based), with the freshness lifetime shortened to 2s for the test. A repeated request within the freshness lifetime did not reach the server; after it had passed, If-None-Match was attached and a 304 came back; and when the content had changed, a 200 and the new body came. With no-store, the whole response was received both times, and with no-cache, a conditional request was sent even when the request was repeated immediately. When the content on the server changed within the freshness lifetime, the browser kept using the old content.</p>
+<p>Previous lab: <a href="../../lab/cookie/">Cookies</a> · Next lab: <a href="../../lab/idem/">Retries and idempotency</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

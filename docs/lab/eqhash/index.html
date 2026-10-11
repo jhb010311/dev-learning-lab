@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>equals와 hashCode: equals만 고치면 왜 HashMap에서 못 찾나 · 개발 학습 실습실</title>
+<meta name="description" content="내용이 같은 두 객체를 같다고 취급하려면 equals를 재정의합니다. 그런데 HashMap과 HashSet은 equals를 부르기 전에 먼저 hashCode로 찾을 자리를 정합니다. 그래서 equals와 hashCode 가운데 하나만 재정의하면, 같다고 만든 객체를 컬렉션에서…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/eqhash/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/eqhash/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/eqhash/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="equals와 hashCode: equals만 고치면 왜 HashMap에서 못 찾나 · 개발 학습 실습실">
+<meta property="og:description" content="내용이 같은 두 객체를 같다고 취급하려면 equals를 재정의합니다. 그런데 HashMap과 HashSet은 equals를 부르기 전에 먼저 hashCode로 찾을 자리를 정합니다. 그래서 equals와 hashCode 가운데 하나만 재정의하면, 같다고 만든 객체를 컬렉션에서…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/eqhash/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 자주 쓰는 클래스</p>
+<h1>equals와 hashCode</h1>
+<p><b>equals만 고치면 왜 HashMap에서 못 찾나</b></p>
+<p>내용이 같은 두 객체를 같다고 취급하려면 equals를 재정의합니다. 그런데 HashMap과 HashSet은 equals를 부르기 전에 먼저 hashCode로 찾을 자리를 정합니다. 그래서 equals와 hashCode 가운데 하나만 재정의하면, 같다고 만든 객체를 컬렉션에서 찾지 못합니다.</p>
+<p>실행으로 대조 · JDK 21에서 열두 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>equals와 hashCode 규약</dt>
+<dd>equals()로 같다고 판단되는 두 객체는 반드시 같은 hashCode() 값을 반환해야 한다는 규칙이다. HashMap이나 HashSet은 먼저 해시 값으로 저장 위치를 찾고 그 안에서 equals로 비교하기 때문에, equals만 재정의하면 내용이 같은 객체를 찾지 못한다. 따라서 두 메서드는 항상 같은 필드를 기준으로 함께 재정의한다.</dd>
+<dt>동일성과 동등성</dt>
+<dd>동일성은 두 참조가 메모리상 같은 객체를 가리키는지를 뜻하며 == 연산자로 비교한다. 동등성은 두 객체가 논리적으로 같은 값을 가지는지를 뜻하며 equals() 메서드로 비교한다. 문자열이나 값 객체를 비교할 때 ==를 쓰면 내용이 같아도 false가 나올 수 있다.</dd>
+<dt>해시 테이블과 HashMap</dt>
+<dd>키를 해시 함수에 넣어 나온 값으로 저장 위치(버킷)를 정하는 자료구조다. 키만 알면 위치를 바로 계산할 수 있어 조회, 삽입, 삭제가 평균 O(1)이다. 자바의 HashMap이 이 구조이며, 순서를 보장하지 않고 스레드 안전하지 않다.</dd>
+<dt>해시 충돌</dt>
+<dd>서로 다른 키가 같은 버킷에 배정되는 현상이다. 버킷 수는 유한하므로 피할 수 없다. 자바의 HashMap은 같은 버킷의 엔트리들을 연결 리스트로 이어 두고, 한 버킷에 너무 많이 몰리면 레드-블랙 트리로 바꿔 탐색 시간을 줄인다. 충돌이 많을수록 성능이 떨어지므로 hashCode가 값을 고르게 분산해야 한다.</dd>
+<dt>record</dt>
+<dd>데이터를 담는 용도의 (얕은) 불변 클래스를 간결하게 선언하는 문법으로 Java 16에서 정식 도입되었다. 필드 목록만 적으면 생성자, 접근자 메서드, equals, hashCode, toString이 자동으로 만들어진다. 필드는 모두 final이지만, 필드가 가변 객체(List 등)를 가리키면 그 내용은 바뀔 수 있다. DTO나 값 객체를 정의할 때 쓴다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — equals만 재정의. equals는 true인데 map에서 꺼내면 null입니다.</li>
+<li><b>둘 다 재정의</b> — 내용이 같은 객체로 꺼낼 수 있습니다.</li>
+<li><b>아무것도 재정의하지 않으면</b> — 내용이 같아도 서로 다른 객체로 취급됩니다.</li>
+<li><b>hashCode만 재정의</b> — 같은 자리까지는 찾아가지만 equals가 false라서 못 찾습니다.</li>
+<li><b>record로 선언</b> — 둘 다 자동으로 만들어 줍니다.</li>
+<li><b>hashCode가 항상 같은 값</b> — 규약은 지키지만 모든 객체가 한 자리에 몰립니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>Order 객체 두 개를 만듭니다. a의 id는 1, b의 id는 1입니다. 내용은 같지만 메모리에서는 서로 다른 객체입니다.</li>
+<li>a.equals(b): 재정의한 equals가 id를 비교합니다. 1과 1이므로 true입니다.</li>
+<li>hashCode 비교: hashCode를 재정의하지 않았으므로 Object의 hashCode가 쓰입니다. 이 값은 객체마다 따로 정해지므로, 서로 다른 객체인 a와 b의 값은 (거의 항상) 다릅니다. equals가 true인 두 객체의 hashCode가 다른 상태입니다. &quot;equals가 같으면 hashCode도 같아야 한다&quot;는 규약을 어겼습니다.</li>
+<li>map.put(a, &quot;주문 내역&quot;): HashMap은 먼저 a.hashCode()로 넣을 자리(버킷)를 정하고, 그 자리에 키 a와 값을 함께 넣어 둡니다.</li>
+<li>map.get(b): 먼저 b.hashCode()로 찾을 자리를 정합니다. a와 hashCode가 다르므로 a가 들어 있는 자리를 보지 않습니다. equals는 불러 보지도 못하고 null을 돌려줍니다. equals로는 같은 객체인데도 꺼내지 못합니다.</li>
+<li>set.add(a), set.add(b): HashSet도 안에서 HashMap을 쓰므로 같은 순서로 판단합니다. b를 a와 다른 원소로 보아 둘 다 넣습니다. 크기는 2입니다. 내용이 같은 객체가 중복으로 들어갔습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>a.equals(b)는 true, hashCode는 다르고, map.get(b)는 null, set의 크기는 2입니다.</li>
+<li>equals만 재정의하면 equals로는 같은 두 객체가 서로 다른 자리로 갑니다. HashMap, HashSet, HashMap을 쓰는 캐시에서 &quot;넣었는데 못 찾는&quot; 버그가 됩니다. equals를 재정의할 때는 hashCode도 같은 필드로 함께 재정의합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>class Order {
+    final int id;
+    Order(int id) { this.id = id; }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof Order other &amp;&amp; id == other.id;
+    }
+}
+
+Order a = new Order(1);
+Order b = new Order(1);
+
+System.out.println(a.equals(b));
+System.out.println(a.hashCode() == b.hashCode());
+
+Map&lt;Order, String&gt; map = new HashMap&lt;&gt;();
+map.put(a, &quot;주문 내역&quot;);
+System.out.println(map.get(b));
+
+Set&lt;Order&gt; set = new HashSet&lt;&gt;();
+set.add(a);
+set.add(b);
+System.out.println(set.size());</pre>
+<h2>이 모형의 전제</h2>
+<p>열두 가지 조합의 결과(equals, hashCode가 같은지, map.get, set의 크기)를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. hashCode를 재정의하지 않은 두 객체의 값이 &quot;다르다&quot;는 것은 거의 항상 그렇다는 뜻입니다. Object의 hashCode는 서로 다른 객체에 같은 값을 줄 수도 있으며(그래도 규약에 어긋나지 않습니다), 그 경우에는 equals의 결과에 따라 찾을 수도 있습니다. HashMap은 같은 자리에 있더라도 hashCode 값이 다른 키와는 equals를 부르지 않고 넘어갑니다. record의 hashCode가 내는 구체적인 값은 명세가 정하지 않지만, equals가 같은 두 record의 hashCode가 같다는 것은 보장됩니다.</p>
+<p>앞 실습: <a href="../../lab/eq/">==와 equals</a> · 다음 실습: <a href="../../lab/strbuild/">String, StringBuilder</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

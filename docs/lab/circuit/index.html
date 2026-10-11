@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서킷 브레이커: 죽은 서비스를 계속 부르면 나까지 죽는다 · 개발 학습 실습실</title>
+<meta name="description" content="주문 서비스가 결제 서비스를 1초에 한 번씩 호출합니다. 도중에 결제 서비스가 한동안 응답하지 않습니다. 서킷 브레이커는 실패가 일정 비율을 넘으면 호출 자체를 막아서, 응답 없는 서비스를 기다리느라 스레드가 묶이는 것을 끊어 줍니다.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/circuit/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/circuit/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/circuit/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="서킷 브레이커: 죽은 서비스를 계속 부르면 나까지 죽는다 · 개발 학습 실습실">
+<meta property="og:description" content="주문 서비스가 결제 서비스를 1초에 한 번씩 호출합니다. 도중에 결제 서비스가 한동안 응답하지 않습니다. 서킷 브레이커는 실패가 일정 비율을 넘으면 호출 자체를 막아서, 응답 없는 서비스를 기다리느라 스레드가 묶이는 것을 끊어 줍니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/circuit/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 서비스 분리</p>
+<h1>서킷 브레이커</h1>
+<p><b>죽은 서비스를 계속 부르면 나까지 죽는다</b></p>
+<p>주문 서비스가 결제 서비스를 1초에 한 번씩 호출합니다. 도중에 결제 서비스가 한동안 응답하지 않습니다. 서킷 브레이커는 실패가 일정 비율을 넘으면 호출 자체를 막아서, 응답 없는 서비스를 기다리느라 스레드가 묶이는 것을 끊어 줍니다.</p>
+<p>실행으로 대조 · Resilience4j 2.4.0에 27가지 조합의 호출 순서를 넣어 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>서킷 브레이커</dt>
+<dd>호출 대상 서비스에 장애가 났을 때 계속 호출하며 기다리지 않도록 호출을 차단하는 장치다. 실패가 일정 수준을 넘으면 차단 상태가 되어 이후 호출을 즉시 실패 처리하고, 일정 시간이 지나면 일부 호출을 시험적으로 보내 회복되었는지 확인한다. 한 서비스의 장애가 호출하는 서비스들로 번지는 것을 막는다.</dd>
+<dt>모놀리식과 MSA(마이크로서비스)</dt>
+<dd>모놀리식은 모든 기능을 하나의 애플리케이션으로 만들어 함께 배포하는 구조다. MSA는 기능별로 작은 서비스로 나눠 각각 독립적으로 개발, 배포, 확장하는 구조다. MSA는 서비스별로 따로 배포하고 확장할 수 있고 장애가 격리되지만, 서비스 간 통신, 데이터 일관성, 운영의 복잡도가 크게 늘어난다.</dd>
+<dt>병목(Bottleneck)</dt>
+<dd>시스템 전체의 처리 성능을 제한하는 가장 느린 부분이다. 다른 부분을 아무리 개선해도 병목이 그대로면 전체 성능은 나아지지 않는다. 성능 개선은 측정으로 병목을 찾는 것에서 시작한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 장애 15초. 실패가 쌓이면 차단하고, 주기적으로 회복됐는지 떠봅니다.</li>
+<li><b>서킷 브레이커가 없다면</b> — 장애 내내 매 호출이 3초씩 기다리다 실패합니다.</li>
+<li><b>임계치를 낮추면</b> — 30%. 더 빨리 차단합니다.</li>
+<li><b>차단 시간을 길게</b> — 10초. 장애가 풀린 뒤에도 한동안 막혀 있습니다.</li>
+<li><b>짧은 장애</b> — 5초. 임계치에 닿는지 보세요.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>1초: 결제 서비스 호출 성공.</li>
+<li>2초: 결제 서비스 호출 성공.</li>
+<li>3초: 결제 서비스 호출 성공.</li>
+<li>4초: 결제 서비스 호출 성공.</li>
+<li>5초: 결제 서비스 호출 성공.</li>
+<li>6초: 결제 서비스 호출 성공.</li>
+<li>7초: 결제 서비스 호출 성공.</li>
+<li>8초: 결제 서비스 호출 성공.</li>
+<li>9초: 결제 서비스 호출 성공.</li>
+<li>10초: 결제 서비스 호출 성공. 최근 10번의 실패율 0%.</li>
+<li>11초: 결제 서비스가 응답하지 않습니다. 3초를 기다리다 타임아웃으로 실패합니다. 그동안 요청 스레드 하나가 묶여 있었습니다. 최근 10번의 실패율 10%.</li>
+<li>12초: 결제 서비스가 응답하지 않습니다. 3초를 기다리다 타임아웃으로 실패합니다. 그동안 요청 스레드 하나가 묶여 있었습니다. 최근 10번의 실패율 20%.</li>
+<li>13초: 결제 서비스가 응답하지 않습니다. 3초를 기다리다 타임아웃으로 실패합니다. 그동안 요청 스레드 하나가 묶여 있었습니다. 최근 10번의 실패율 30%.</li>
+<li>14초: 결제 서비스가 응답하지 않습니다. 3초를 기다리다 타임아웃으로 실패합니다. 그동안 요청 스레드 하나가 묶여 있었습니다. 최근 10번의 실패율 40%.</li>
+<li>15초: 결제 서비스가 응답하지 않습니다. 3초를 기다리다 타임아웃으로 실패합니다. 그동안 요청 스레드 하나가 묶여 있었습니다. 최근 10번 중 실패율이 50%로 임계치 50% 이상이 됐습니다. 서킷을 엽니다(OPEN). 이제부터 5초 동안 결제 서비스 호출을 막습니다.</li>
+<li>16초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
+<li>17초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
+<li>18초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
+<li>19초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
+<li>20초: 차단한 지 5초가 지났습니다. 회복됐는지 확인하려고 호출을 몇 번만 시험 삼아 통과시킵니다(HALF_OPEN). 결제 서비스가 응답하지 않습니다. 3초를 기다리다 타임아웃으로 실패합니다. 그동안 요청 스레드 하나가 묶여 있었습니다. 시험 호출 1/3.</li>
+<li>21초: 결제 서비스가 응답하지 않습니다. 3초를 기다리다 타임아웃으로 실패합니다. 그동안 요청 스레드 하나가 묶여 있었습니다. 시험 호출 2/3.</li>
+<li>22초: 결제 서비스가 응답하지 않습니다. 3초를 기다리다 타임아웃으로 실패합니다. 그동안 요청 스레드 하나가 묶여 있었습니다. 시험 호출 3번의 실패율이 100%로 임계치 이상입니다. 아직 회복되지 않았다고 보고 다시 차단합니다(OPEN).</li>
+<li>23초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
+<li>24초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
+<li>25초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
+<li>26초: 서킷이 열려 있습니다(OPEN). 결제 서비스를 호출하지 않고 즉시 대체 응답을 돌려줍니다. 기다리는 시간이 없습니다.</li>
+<li>27초: 차단한 지 5초가 지났습니다. 회복됐는지 확인하려고 호출을 몇 번만 시험 삼아 통과시킵니다(HALF_OPEN). 결제 서비스 호출 성공. 시험 호출 1/3.</li>
+<li>28초: 결제 서비스 호출 성공. 시험 호출 2/3.</li>
+<li>29초: 결제 서비스 호출 성공. 시험 호출 3번의 실패율이 0%로 임계치보다 낮습니다. 회복됐다고 보고 정상 상태로 돌아갑니다(CLOSED).</li>
+<li>30초: 결제 서비스 호출 성공.</li>
+<li>31초: 결제 서비스 호출 성공.</li>
+<li>32초: 결제 서비스 호출 성공.</li>
+<li>33초: 결제 서비스 호출 성공.</li>
+<li>34초: 결제 서비스 호출 성공.</li>
+<li>35초: 결제 서비스 호출 성공.</li>
+<li>36초: 결제 서비스 호출 성공.</li>
+<li>37초: 결제 서비스 호출 성공.</li>
+<li>38초: 결제 서비스 호출 성공.</li>
+<li>39초: 결제 서비스 호출 성공. 최근 10번의 실패율 0%.</li>
+<li>40초: 결제 서비스 호출 성공. 최근 10번의 실패율 0%.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>호출 40번 중 성공 24번, 3초씩 기다리다 실패 8번, 차단되어 즉시 대체 응답 8번. 응답 없는 서비스를 기다리는 데 쓴 시간은 합계 24초입니다.</li>
+<li>상태가 CLOSED → OPEN → HALF_OPEN → OPEN → HALF_OPEN → CLOSED 순으로 바뀌었습니다. 열려 있는 동안에는 호출하지 않고 바로 대체 응답을 주므로 스레드가 묶이지 않고, 장애 난 서비스에도 부하를 주지 않아 회복할 틈을 줍니다. 일정 시간 뒤에는 소수의 호출만 보내 회복 여부를 확인합니다.</li>
+<li>차단 시간이 길면 서비스가 회복된 뒤에도 한동안 정상 호출까지 막힙니다. 짧으면 회복되지 않은 서비스를 자주 떠보게 됩니다. 임계치와 차단 시간은 서비스 특성에 맞춰 조정합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre># application.yml (Resilience4j)
+resilience4j.circuitbreaker.instances.payment:
+  slidingWindowSize: 10                 # 최근 10번의 결과로 판단
+  minimumNumberOfCalls: 10
+  failureRateThreshold: 50              # 실패율이 이 값 이상이면 차단
+  waitDurationInOpenState: 5s          # 차단 유지 시간
+  permittedNumberOfCallsInHalfOpenState: 3
+
+@CircuitBreaker(name = &quot;payment&quot;, fallbackMethod = &quot;payLater&quot;)
+PaymentResult pay(Order order) {
+    return paymentClient.pay(order);     // 응답이 없으면 3초 뒤 타임아웃
+}
+
+PaymentResult payLater(Order order, Throwable t) {
+    return PaymentResult.pending();      // 차단됐을 때 대신 실행
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>호출 횟수 기준 슬라이딩 윈도(최근 10번)를 쓰는 Resilience4j의 동작을 따랐습니다. 서킷 브레이커를 쓰는 27가지 조합 모두를 실제 Resilience4j 2.4.0 서킷 브레이커에 같은 호출 순서로 넣어(시계를 1초씩 돌리는 방식), 성공·실패·차단 횟수와 상태 전환 순서가 화면과 일치하는 것을 확인했습니다. 한 가지 차이가 있습니다. Resilience4j는 차단 시간이 완전히 지난 뒤의 호출부터 시험 호출로 통과시키므로, 호출이 차단 시간과 정확히 같은 시각에 맞물리면 그 호출까지는 차단됩니다. 화면은 호출이 그 시각보다 아주 조금 뒤에 온다고 본 결과입니다. 실패율이 임계치 이상이면 열리고, 정해진 시간 뒤 시험 호출 3번의 결과로 닫을지 다시 열지 정합니다. 호출은 1초에 한 번, 장애 중인 서비스는 항상 3초 타임아웃으로 실패한다고 단순화했습니다. 실제로는 느린 응답 비율도 기준으로 삼을 수 있고, 시간 기준 윈도도 있습니다.</p>
+<p>앞 실습: <a href="../../lab/kafka/">Kafka 파티션과 컨슈머</a> · 다음 실습: <a href="../../lab/saga/">Saga와 Outbox</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

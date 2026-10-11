@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saga and outbox: When every service has its own database, how do you get &quot;all succeed or all cancel&quot;? · Dev Learning Lab</title>
+<meta name="description" content="When ordering, payment, inventory, and shipping are split into services that each have their own database, you cannot wrap them in one database transactio…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/saga/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/saga/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/saga/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Saga and outbox: When every service has its own database, how do you get &quot;all succeed or all cancel&quot;? · Dev Learning Lab">
+<meta property="og:description" content="When ordering, payment, inventory, and shipping are split into services that each have their own database, you cannot wrap them in one database transactio…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/saga/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Splitting into services</p>
+<h1>Saga and outbox</h1>
+<p><b>When every service has its own database, how do you get &quot;all succeed or all cancel&quot;?</b></p>
+<p>When ordering, payment, inventory, and shipping are split into services that each have their own database, you cannot wrap them in one database transaction. If a step fails partway through, you must run separate actions that undo the steps that already finished (the saga pattern). Also, if the server dies between saving to the database and publishing a message, the two get out of sync (the problem that the transactional outbox pattern solves).</p>
+<p>Checked against documentation and standards · Checked against the pattern descriptions on microservices.io</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Distributed transactions and the saga pattern</dt>
+<dd>The problem of handling work that spans several services (or databases) as if it were a single transaction. When each service has its own database, the work cannot be wrapped in one local transaction. Two-phase commit (2PC) can tie several databases together, but its burden on availability and coupling is heavy, so it is rarely used in microservices. In the saga pattern, each service commits its own work in turn, and if a step fails partway, compensating transactions that cancel the already completed work are run to restore consistency.</dd>
+<dt>Compensating transaction</dt>
+<dd>A separate operation that is run to undo the effect of work that has already been committed. Unlike a database rollback, it is a new transaction that performs the opposite action (for example, canceling a payment or restoring stock). In the saga pattern, it is used to cancel the earlier steps when a failure occurs.</dd>
+<dt>Transactional outbox pattern</dt>
+<dd>A pattern for making a database change and a message publication succeed together. Instead of publishing the message directly, the application saves the message to be sent in a separate table (the outbox) in the same transaction that changes the business data. Later, another process reads this table and publishes the messages to the message broker. This prevents the inconsistency where the change is in the database but the message was never published.</dd>
+<dt>Message delivery guarantees</dt>
+<dd>The level of guarantee about how many times a message is delivered. With at-most-once, a message is delivered at most one time, so there are no duplicates but messages can be lost. With at-least-once, a message is delivered at least one time, so nothing is lost but duplicates can occur. With exactly-once, a message is delivered exactly one time. In practice, systems often use at-least-once and make the consumer handle duplicates (idempotent).</dd>
+<dt>Eventual consistency</dt>
+<dd>The guarantee that, although some nodes may show the old value right after data changes, all nodes end up with the same value over time if no further changes are made. It gives up immediate consistency and gains availability and scalability in return. It is commonly adopted in distributed databases and for synchronizing data between microservices.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — It fails at the inventory deduction. Payment and the order are undone in reverse.</li>
+<li><b>Failure at the last step</b> — The shipping request fails. There are three things to undo.</li>
+<li><b>No failure</b> — The four steps succeed one after another.</li>
+<li><b>The server dies while publishing after the commit</b> — The order is saved, but the event is not sent.</li>
+<li><b>The server dies while committing after publishing</b> — The event is sent, but there is no order.</li>
+<li><b>Using an outbox table</b> — The order and the &quot;message to send&quot; are saved in one transaction.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The user places an order. Each of the four services commits its work to its own database, and when it finishes, it notifies the next service with an event. There is no single transaction that wraps the whole thing.</li>
+<li>Step 1 Order service: Create order completed. It commits to its own database and publishes an event for the next step.</li>
+<li>Step 2 Payment service: Approve payment completed. It commits to its own database and publishes an event for the next step.</li>
+<li>Step 3 Inventory service: Deduct inventory failed. The local transaction of this service is rolled back, but the earlier steps are already committed in their own databases. A database rollback cannot undo them.</li>
+<li>Compensation 1: Payment service receives the failure event and runs the compensation: Refund payment. This undoes the work that was already committed with a new action that cancels it. It proceeds in the reverse of the order in which the steps ran.</li>
+<li>Compensation 2: Order service receives the failure event and runs the compensation: Cancel order. This undoes the work that was already committed with a new action that cancels it. It proceeds in the reverse of the order in which the steps ran.</li>
+<li>All the compensations are finished. The order is in the canceled state, and the data is consistent again. But until the compensations finished, an inconsistent state such as &quot;payment went through but the order failed&quot; existed for a short time.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Inventory service failed, and the compensations were run in reverse order (2 in total). In the end, the order was canceled.</li>
+<li>A saga splits a long transaction into a sequence of local transactions, one per service, and when a step fails, it undoes the work with compensating transactions. Unlike a database rollback, this does not make the work &quot;never happen&quot;. It is a new action that leaves a record of the cancellation. So intermediate states can be visible from outside (there is no isolation), and a compensation can fail too, so retries and idempotency are needed.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Each step is committed as a local transaction of its own service
+1. Order service       Create order (PENDING)      Compensation: cancel the order
+2. Payment service     Approve payment             Compensation: cancel the payment (refund)
+3. Inventory service   Deduct inventory           Compensation: restore the inventory
+4. Shipping service    Request shipping            (last step)
+
+// When a step fails, it publishes a &quot;failed&quot; event,
+// and the earlier steps receive that event and run their own compensations</pre>
+<h2>Assumptions of this model</h2>
+<p>The saga is drawn in the style where the services exchange events to move forward (choreography). There is also a style where a central orchestrator tells each step what to do (orchestration), and the principle of the compensations is the same. It is simplified so that a compensation always succeeds. In the outbox example, the moment when the server dies is fixed at the most problematic point. The definitions of the patterns follow the explanations in the microservices pattern literature (microservices.io).</p>
+<p>Previous lab: <a href="../../lab/circuit/">Circuit breaker</a> · Next lab: <a href="../../lab/gateway/">Gateway and gradual migration</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

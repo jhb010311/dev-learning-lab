@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JdbcTemplate and exception translation: What does JdbcTemplate do for you, and what does it translate exceptions to? · Dev Learning Lab</title>
+<meta name="description" content="When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTem…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jdbctmpl/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jdbctmpl/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/jdbctmpl/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="JdbcTemplate and exception translation: What does JdbcTemplate do for you, and what does it translate exceptions to? · Dev Learning Lab">
+<meta property="og:description" content="When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTem…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/jdbctmpl/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Data access and transactions</p>
+<h1>JdbcTemplate and exception translation</h1>
+<p><b>What does JdbcTemplate do for you, and what does it translate exceptions to?</b></p>
+<p>When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTemplate does this repeated work for you, and it translates the SQLException thrown by the database into a Spring exception (one from the DataAccessException hierarchy). This lab runs the same operation in three ways and compares what the caller gets and whether the connection is returned.</p>
+<p>Checked against real execution · 18 combinations were run on the JdbcTemplate of Spring Framework 7.0.9 and H2 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>JdbcTemplate</dt>
+<dd>This is a JDBC helper class provided by Spring that does the work that is repeated every time SQL is run. It handles internally the work of getting a connection, creating a PreparedStatement and setting the values, running the statement, reading the result, and closing the resources whether or not an exception is thrown, so the developer only has to pass in the SQL, the values to put into it, and the way to hold the result. update is used for inserts, updates, and deletes, queryForObject for queries whose result is exactly 1 row, and query for queries that return multiple rows as a list. queryForObject throws EmptyResultDataAccessException when the result has 0 rows and IncorrectResultSizeDataAccessException when it has 2 or more rows, so use it with care for queries where 0 rows can be a normal result.</dd>
+<dt>Exception translation and DataAccessException</dt>
+<dd>This is what Spring does when it converts the exceptions thrown by a data access technology into its own exception hierarchy. The SQLException of JDBC is a checked exception, and what the problem is can be known only from the codes inside it (the SQLState and the error code), but Spring translates it to a subclass of DataAccessException and throws that. A duplicate key becomes DuplicateKeyException, any other constraint violation becomes DataIntegrityViolationException, and invalid SQL becomes BadSqlGrammarException. DataAccessException is an unchecked exception, so no throws clause is needed, and the original exception is kept as the cause. Problems are told apart by the name of the exception class, so the service code is not tied to the error codes of a particular database product.</dd>
+<dt>Connection pool</dt>
+<dd>A technique that creates several database connections in advance and reuses them. Opening a new connection is an expensive operation, so instead of opening and closing a connection for every request, the application borrows one and returns it. If every connection is in use, a new request waits until one is returned, and an exception is thrown if it cannot get one within a set time (connectionTimeout in HikariCP, 30 seconds by default). The default implementation in Spring Boot is HikariCP. (Outside the top 50.)</dd>
+<dt>Checked and unchecked exceptions</dt>
+<dd>Unchecked exceptions are RuntimeException and its subclasses (in the specification, the Error classes are also unchecked), and the compiler does not check whether they are handled (examples are NullPointerException and IllegalArgumentException). Checked exceptions are all other Exception classes, and the code compiles only if they are handled with catch or declared with throws (examples are IOException and SQLException). By default, Spring's @Transactional rolls back only on RuntimeException and Error, and commits on checked exceptions.</dd>
+<dt>Template Method pattern</dt>
+<dd>A pattern in which the superclass fixes the overall flow of a task and subclasses implement only the steps within that flow that differ. It removes duplication of the common procedure. Spring's JdbcTemplate is built on the same idea: it fixes the flow of getting a connection, handling exceptions, and cleaning up resources, and it takes only the varying part as an argument.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — JDBC is used directly, with close() on the last line. When an exception is thrown, the connection is not returned.</li>
+<li><b>Closing with try-with-resources</b> — The connection is returned. But what the caller gets is still an SQLException and a code.</li>
+<li><b>Switching to JdbcTemplate</b> — The code becomes one line, and the exception is translated to DuplicateKeyException.</li>
+<li><b>A typo in the SQL</b> — The exception is translated to BadSqlGrammarException.</li>
+<li><b>queryForObject with 0 rows</b> — You get an exception, not null.</li>
+<li><b>2 rows with JDBC directly</b> — Only the first row is returned, and the fact that there were 2 rows is lost.</li>
+<li><b>queryForObject with 2 rows</b> — Compare this with the example just above. An exception tells you about it.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>memberRepository.insert(1L, &quot;choi&quot;, &quot;Daejeon&quot;) is called: This method uses JDBC directly. Everything from getting a connection to closing it is written out in this method.</li>
+<li>dataSource.getConnection(): One connection is borrowed from the connection pool. A borrowed connection must be closed (close) after use so that it is returned to the pool.</li>
+<li>ps.executeUpdate(): The database reports an error. A row with id 1 already exists, so the primary key would be duplicated. The JDBC driver throws this as an SQLException, and what the error is can be found in the SQLState code inside it (23505).</li>
+<li>The exception leaves the method: The calls written below the line where the exception was thrown, ps.close(), con.close(), do not run. The borrowed connection does not go back to the pool. When this keeps happening, the pool runs out of connections and other requests cannot get one.</li>
+<li>The caller gets SQLException. It is a checked exception, so every method that calls this method must either declare throws SQLException or catch it with try-catch. To find out whether the problem is a duplicate key, you have to compare a code such as SQLState 23505 yourself.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>What the caller got: SQLException (SQLState 23505) (checked exception). The connection was not returned to the pool.</li>
+<li>When close() is at the end of the method, the connection cannot be closed if an exception is thrown partway through. When you use JDBC directly, you have to close with try-with-resources (or finally), and you have to write this in every method without missing one.</li>
+</ul>
+<h2>Code</h2>
+<pre>// member table (id is the primary key, name is NOT NULL)
+//   (1, kim, Seoul), (2, lee, Busan), (3, park, Seoul)
+// Call: memberRepository.insert(1L, &quot;choi&quot;, &quot;Daejeon&quot;);
+
+public int insert(Long id, String name, String city) throws SQLException {
+    Connection con = dataSource.getConnection();           // get a connection
+    PreparedStatement ps = con.prepareStatement(
+        &quot;insert into member(id, name, city) values (?, ?, ?)&quot;);
+    ps.setLong(1, id);
+    ps.setString(2, name);
+    ps.setString(3, city);
+    int rows = ps.executeUpdate();                          // run the SQL
+    ps.close();
+    con.close();                                            // return the connection
+    return rows;
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>All 18 combinations were run on this PC with code of the same structure as on the screen, using the JdbcTemplate of Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1), the HikariCP connection pool, and H2 2.4.240, and three things were checked against the results: what the caller gets, whether the exception is a checked exception, and whether any connection is left unreturned to the pool after the call ends. Execution also confirmed that DuplicateKeyException is a subclass of DataIntegrityViolationException, that EmptyResultDataAccessException is a subclass of IncorrectResultSizeDataAccessException, that the cause of the translated exception holds the original SQLException, and that the connection has already been returned at the point where JdbcTemplate translates the exception. The SQLState values (23505, 23502, 42S22) are the values that H2 gave. That the codes can differ in other database products, and that Spring still translates them to the same exceptions, are statements that follow the Spring documentation, because execution on this PC used only H2. The order of the steps, in which queryForObject checks the row count after it has read the whole result and returned the connection, follows the Spring source code (execution confirmed only that the connection has been returned after the call ends). H2 reports a typo in the SQL when the PreparedStatement is created, but some databases report it only when the SQL is run. The screen does not distinguish the two and draws this as the &quot;Run the SQL&quot; step. Inside a transaction managed by Spring, JdbcTemplate does not return the connection to the pool right away. It returns it when the transaction ends. Only the case without a transaction is covered here.</p>
+<p>Previous lab: <a href="../../lab/txprop/">Transaction propagation</a> · Next lab: <a href="../../lab/connpool/">Connection pool and OSIV</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

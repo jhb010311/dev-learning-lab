@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스프링 컨테이너와 빈: new를 쓰지 않았는데 객체는 누가 만들어 넣어 주나 · 개발 학습 실습실</title>
+<meta name="description" content="주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다. 등록한 빈이 하나일 때, 둘일 때, 없을 때 컨테…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/ioc/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ioc/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ioc/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="스프링 컨테이너와 빈: new를 쓰지 않았는데 객체는 누가 만들어 넣어 주나 · 개발 학습 실습실">
+<meta property="og:description" content="주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다. 등록한 빈이 하나일 때, 둘일 때, 없을 때 컨테…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/ioc/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › IoC 컨테이너와 DI</p>
+<h1>스프링 컨테이너와 빈</h1>
+<p><b>new를 쓰지 않았는데 객체는 누가 만들어 넣어 주나</b></p>
+<p>주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다. 등록한 빈이 하나일 때, 둘일 때, 없을 때 컨테이너가 어떻게 하는지 보세요.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1에서 서른 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>IoC(제어의 역전)</dt>
+<dd>객체의 생성과 객체 사이의 연결을 개발자의 코드가 아니라 프레임워크(컨테이너)가 맡는 설계 원칙이다. 일반적인 프로그램에서는 내 코드가 필요한 객체를 직접 만들고 호출하지만, IoC에서는 컨테이너가 객체를 만들어 필요한 곳에 넣어 주고 적절한 시점에 내 코드를 호출한다. 제어의 주체가 뒤바뀌었다는 뜻에서 붙은 이름이다.</dd>
+<dt>스프링 빈(Bean)</dt>
+<dd>스프링 IoC 컨테이너가 생성하고 관리하는 객체다. 개발자가 new로 직접 만든 객체와 달리 컨테이너가 의존성을 주입하고 초기화와 소멸을 관리하며, 프록시를 통해 트랜잭션이나 AOP 같은 부가 기능을 적용할 수 있다.</dd>
+<dt>@Configuration과 @Bean</dt>
+<dd>@Configuration은 빈 정의를 담은 설정 클래스임을 나타내고, 그 안의 @Bean 메서드가 반환하는 객체가 빈으로 등록된다. 직접 수정할 수 없는 외부 라이브러리의 클래스를 빈으로 만들거나 생성 과정을 직접 제어해야 할 때 쓴다. 내가 작성한 클래스는 보통 @Component 계열을 붙여 등록한다.</dd>
+<dt>@Primary와 @Qualifier</dt>
+<dd>같은 타입의 빈이 둘 이상일 때 어느 것을 주입할지 정하는 두 애너테이션이다. 스프링 컨테이너는 주입할 빈을 타입으로 찾는데, 맞는 빈이 여럿이면 고르지 못하고 NoUniqueBeanDefinitionException을 던져 애플리케이션이 뜨지 않는다. @Primary는 빈을 등록하는 쪽(클래스나 @Bean 메서드)에 붙여 &quot;여럿이면 이것을 먼저 쓴다&quot;고 표시한다. @Qualifier는 주입받는 쪽(생성자 파라미터나 필드)에 붙여 쓸 빈의 이름을 직접 적는다. 둘이 함께 있으면 @Qualifier로 지정한 빈이 들어간다.</dd>
+<dt>NoSuchBeanDefinitionException과 NoUniqueBeanDefinitionException</dt>
+<dd>컨테이너가 주입할 빈을 정하지 못했을 때 던지는 두 예외다. NoSuchBeanDefinitionException은 필요한 타입의 빈이 하나도 등록돼 있지 않을 때, NoUniqueBeanDefinitionException은 같은 타입의 빈이 둘 이상이라 하나를 고를 수 없을 때 발생한다. 싱글톤 빈은 애플리케이션이 뜰 때 만들어지므로, 이 예외들은 요청을 처리하는 도중이 아니라 기동 시점에 나타나 애플리케이션이 뜨지 않는다. 앞의 것은 빈 등록(@Component나 @Bean)이 빠졌는지, 뒤의 것은 같은 타입의 빈이 늘지 않았는지 확인한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 두 구현을 모두 @Component로 등록했습니다. 컨테이너가 고르지 못해 기동이 실패합니다.</li>
+<li><b>직접 new로 만들면</b> — 어떤 구현을 쓸지가 OrderService 안에 적힙니다. 바꾸려면 OrderService를 고칩니다.</li>
+<li><b>구현 하나만 등록</b> — 컨테이너가 하나뿐인 빈을 찾아 넣어 줍니다. OrderService에는 new가 없습니다.</li>
+<li><b>@Primary로 고르기</b> — 둘 다 등록하고 먼저 쓸 쪽에 표시를 붙입니다.</li>
+<li><b>@Qualifier로 고르기</b> — 주입받는 쪽에서 빈 이름을 지정합니다.</li>
+<li><b>@Bean 메서드로 등록</b> — 설정 클래스의 메서드가 돌려준 객체가 빈이 됩니다.</li>
+<li><b>빈을 등록하지 않으면</b> — 넣어 줄 빈이 없어 기동이 실패합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>컨테이너 시작: 컨테이너가 클래스들을 훑어 @Component가 붙은 것을 빈으로 등록합니다(컴포넌트 스캔). 등록된 빈은 orderService, fixedDiscountPolicy, rateDiscountPolicy입니다. 빈의 이름은 클래스 이름의 첫 글자를 소문자로 바꾼 것입니다.</li>
+<li>orderService 빈 만들기: OrderService의 생성자가 DiscountPolicy 타입의 인자를 요구합니다. 컨테이너가 등록된 빈 가운데 이 타입에 맞는 것을 찾습니다. 후보는 2개입니다(fixedDiscountPolicy, rateDiscountPolicy).</li>
+<li>후보가 둘인데 어느 쪽을 넣을지 정할 근거가 없습니다. 컨테이너는 임의로 하나를 고르지 않고 NoUniqueBeanDefinitionException을 던집니다. 애플리케이션 기동이 실패합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>기동 실패: NoUniqueBeanDefinitionException. DiscountPolicy 타입의 빈이 fixedDiscountPolicy와 rateDiscountPolicy 둘이라서 컨테이너가 고르지 못했습니다.</li>
+<li>컨테이너는 타입으로 빈을 찾습니다. 같은 타입의 빈이 둘 이상이면 무엇을 넣을지 알려 줘야 합니다. 먼저 쓸 빈에 @Primary를 붙이거나, 주입받는 곳에 @Qualifier로 빈 이름을 적습니다.</li>
+<li>구현 클래스를 하나 더 만들어 등록하기만 해도 이 오류가 납니다. 기존 코드를 고치지 않았는데 기동이 실패했다면 같은 타입의 빈이 늘지 않았는지 확인합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>interface DiscountPolicy {
+    int discount(int price);
+}
+
+@Component
+class FixedDiscountPolicy implements DiscountPolicy {
+    public int discount(int price) { return 1000; }   // 언제나 1000원
+}
+
+@Component
+class RateDiscountPolicy implements DiscountPolicy {
+    public int discount(int price) { return price / 10; }   // 10%
+}
+
+@Component
+class OrderService {
+    private final DiscountPolicy discountPolicy;
+
+    OrderService(DiscountPolicy discountPolicy) {   // 컨테이너가 넣어 준다
+        this.discountPolicy = discountPolicy;
+    }
+
+    int order(int price) {
+        return price - discountPolicy.discount(price);
+    }
+}
+
+// 쓰는 곳: 컨테이너에서 꺼낸다
+OrderService orderService = context.getBean(OrderService.class);
+int pay = orderService.order(20000);</pre>
+<h2>이 모형의 전제</h2>
+<p>서른 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해, 직접 new로 만드는 경우는 그대로 실행하고 컨테이너를 쓰는 경우는 컴포넌트 스캔으로 띄운 뒤, 기동 성공 여부와 예외 이름, OrderService에 들어간 구현, 할인 금액, 구현 객체의 생성자를 부른 쪽(호출 스택으로 확인), 만들어진 구현 객체의 수를 비교했습니다. &quot;구현을 바꿀 때 고치는 파일&quot;은 쓰려는 구현만 바꾼 두 소스에서 내용이 달라진 파일을 대조 프로그램이 직접 비교한 것입니다. 기동 실패에서 맨 안쪽 원인 예외의 이름을 적었으며, 바깥에는 UnsatisfiedDependencyException이 감싸고 있습니다. 화면에서 단순화한 것: 컨테이너가 빈 객체를 만드는 순서는 등록 순서에 따라 달라지므로 단정하지 않았습니다(순서는 &quot;빈 생성과 주입&quot; 실습에서 다룹니다). 두 구현을 모두 등록하고 고르는 표시가 없어도 생성자 파라미터의 이름이 빈 이름과 같으면(예: rateDiscountPolicy) 그 빈이 들어가 기동에 성공하는 것도 실행으로 확인했습니다. 이 실습의 파라미터 이름은 discountPolicy라서 어느 빈 이름과도 같지 않습니다. 필드 주입과 세터 주입, 같은 타입의 빈을 List로 모두 받는 방법은 다루지 않았습니다.</p>
+<p>다음 실습: <a href="../../lab/di/">빈 생성과 주입</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

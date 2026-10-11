@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>샤딩: 데이터를 여러 DB에 나누면 생기는 일 · 개발 학습 실습실</title>
+<meta name="description" content="테이블 하나가 DB 한 대로 감당할 수 없을 만큼 커지면, 행을 여러 DB(샤드)에 나눠 담습니다. 어느 행이 어느 샤드로 갈지는 샤드 키와 나누는 규칙이 정합니다. 주문 120건을 나눠 담으며 규칙에 따라 쏠림이 어떻게 달라지는지, 샤드를 늘릴 때 무슨 일이 생기는지 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/shard/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/shard/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/shard/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="샤딩: 데이터를 여러 DB에 나누면 생기는 일 · 개발 학습 실습실">
+<meta property="og:description" content="테이블 하나가 DB 한 대로 감당할 수 없을 만큼 커지면, 행을 여러 DB(샤드)에 나눠 담습니다. 어느 행이 어느 샤드로 갈지는 샤드 키와 나누는 규칙이 정합니다. 주문 120건을 나눠 담으며 규칙에 따라 쏠림이 어떻게 달라지는지, 샤드를 늘릴 때 무슨 일이 생기는지 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/shard/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 확장과 분산</p>
+<h1>샤딩</h1>
+<p><b>데이터를 여러 DB에 나누면 생기는 일</b></p>
+<p>테이블 하나가 DB 한 대로 감당할 수 없을 만큼 커지면, 행을 여러 DB(샤드)에 나눠 담습니다. 어느 행이 어느 샤드로 갈지는 샤드 키와 나누는 규칙이 정합니다. 주문 120건을 나눠 담으며 규칙에 따라 쏠림이 어떻게 달라지는지, 샤드를 늘릴 때 무슨 일이 생기는지 보세요.</p>
+<p>실행으로 대조 · 같은 데이터를 자바로 따로 계산해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>샤딩과 파티셔닝</dt>
+<dd>파티셔닝은 큰 테이블을 날짜 범위 등의 기준으로 여러 조각으로 나눠 관리하는 것이다. 샤딩은 데이터를 여러 데이터베이스 서버에 나눠 저장하는 것으로, 한 서버로 감당할 수 없는 쓰기 부하나 데이터 양을 분산한다. 샤딩을 하면 서버에 걸친 조인이나 트랜잭션이 어려워진다. (50선 밖)</dd>
+<dt>스케일 업과 스케일 아웃</dt>
+<dd>스케일 업은 서버 한 대의 사양(CPU, 메모리)을 높여 처리 능력을 키우는 것이고, 스케일 아웃은 서버의 수를 늘려 부하를 나누는 것이다. 스케일 업은 간단하지만 한계와 비용 문제가 있고, 스케일 아웃은 유연하게 확장할 수 있지만 서버가 상태를 갖지 않도록 설계하고 요청을 분산할 장치가 필요하다.</dd>
+<dt>레플리케이션(복제)</dt>
+<dd>원본 데이터베이스(source. primary라고도 부른다)의 변경 내용을 다른 데이터베이스(replica)에 계속 복사해 같은 데이터를 유지하는 것이다. 읽기 요청을 복제본으로 분산해 부하를 줄이고, 원본에 장애가 나면 복제본을 원본으로 승격해 서비스를 이어 갈 수 있다. 복제에는 약간의 지연이 있어 방금 쓴 데이터가 복제본에서 바로 보이지 않을 수 있다. (50선 밖)</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 회원 번호를 4로 나눈 나머지로 분배. 고르게 퍼집니다.</li>
+<li><b>주문 번호 구간으로 나누면</b> — 새 주문은 전부 마지막 샤드로 갑니다.</li>
+<li><b>특정 회원의 주문이 많으면</b> — 그 회원이 속한 샤드만 커집니다.</li>
+<li><b>해시 방식에서 샤드 추가</b> — 4개에서 5개로. 대부분의 데이터가 이사해야 합니다.</li>
+<li><b>범위 방식에서 샤드 추가</b> — 기존 데이터는 그대로 두고 새 구간만 받습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>주문 120건을 샤드 4개에 나눠 담습니다. 주문의 회원 번호를 샤드 수(4)로 나눈 나머지가 샤드 번호입니다. 같은 회원의 주문은 항상 같은 샤드에 모입니다.</li>
+<li>분배 결과입니다. 가장 많은 샤드 30건, 가장 적은 샤드 30건. 회원 번호가 고르게 퍼져 있어 샤드별 건수가 비슷합니다.</li>
+<li>새 주문은 주문한 회원의 번호에 따라 여러 샤드로 흩어집니다. 쓰기 부하가 분산됩니다.</li>
+<li>&quot;회원 7번의 주문 목록&quot; 조회: 7 % 4 = 3번 샤드만 보면 됩니다. 반대로 &quot;어제 주문 전체&quot;처럼 회원 번호 없이 찾는 조회는 모든 샤드에 질의해야 합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>샤드별 건수: 30, 30, 30, 30. 새 주문이 들어가는 곳: 회원에 따라 모든 샤드에 분산. 회원 한 명의 주문 조회: 샤드 1곳.</li>
+<li>샤드 키는 한 번 정하면 바꾸기 매우 어렵습니다. 가장 자주 쓰는 조회 조건이 샤드 키여야 한 샤드만 보고 끝납니다. 샤드 키가 없는 조회, 샤드에 걸친 조인과 트랜잭션은 어려워집니다.</li>
+<li>샤딩은 쓰기와 데이터 양을 나누는 마지막 수단입니다. 그 전에 인덱스와 쿼리 개선, 캐시, 읽기 전용 복제본, 오래된 데이터 분리를 먼저 검토합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 회원 번호를 샤드 수로 나눈 나머지로 샤드를 정한다
+int shardOf(long memberId) {
+    return (int) (memberId % 4);
+}
+
+// 조회할 때도 같은 계산으로 샤드를 찾는다
+DataSource ds = shards.get(shardOf(memberId));</pre>
+<h2>이 모형의 전제</h2>
+<p>주문 120건, 회원 40명의 작은 예입니다. 회원 번호는 주문에 고르게 배정했고, &quot;주문 많은 회원&quot; 설정에서는 주문 세 건 중 한 건을 회원 7번의 것으로 두었습니다. 샤드 수가 바뀔 때 이동하는 비율은 이 데이터로 실제 계산한 값입니다. 샤드마다 복제본을 두는 구성이나 샤드 위치를 관리하는 라우터는 생략했습니다. 샤드 수 2~6개에서 하나를 늘릴 때 옮겨야 하는 건수를 자바에서 따로 계산해 화면의 값과 일치하는 것을 확인했습니다.</p>
+<p>앞 실습: <a href="../../lab/replica/">복제 지연과 CAP</a> · 다음 실습: <a href="../../lab/partition/">파티셔닝</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>정보 누출: 오류 응답과 로그인 실패 글귀는 무엇을 밖으로 알려 주나 · 개발 학습 실습실</title>
+<meta name="description" content="서버가 실패했을 때 돌려주는 응답에는 생각보다 많은 것이 실릴 수 있습니다. 예외 메시지에 든 SQL 문장, 스택 트레이스에 든 클래스 이름과 줄 번호는 서버 안의 모습을 그대로 보여 주어 공격하는 사람에게 단서가 됩니다. 로그인 실패 글귀가 &quot;없는 아이디&quot;와 &quot;틀린 비밀번호…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/infoleak/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/infoleak/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/infoleak/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="정보 누출: 오류 응답과 로그인 실패 글귀는 무엇을 밖으로 알려 주나 · 개발 학습 실습실">
+<meta property="og:description" content="서버가 실패했을 때 돌려주는 응답에는 생각보다 많은 것이 실릴 수 있습니다. 예외 메시지에 든 SQL 문장, 스택 트레이스에 든 클래스 이름과 줄 번호는 서버 안의 모습을 그대로 보여 주어 공격하는 사람에게 단서가 됩니다. 로그인 실패 글귀가 &quot;없는 아이디&quot;와 &quot;틀린 비밀번호…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/infoleak/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 웹 공격과 방어</p>
+<h1>정보 누출</h1>
+<p><b>오류 응답과 로그인 실패 글귀는 무엇을 밖으로 알려 주나</b></p>
+<p>서버가 실패했을 때 돌려주는 응답에는 생각보다 많은 것이 실릴 수 있습니다. 예외 메시지에 든 SQL 문장, 스택 트레이스에 든 클래스 이름과 줄 번호는 서버 안의 모습을 그대로 보여 주어 공격하는 사람에게 단서가 됩니다. 로그인 실패 글귀가 &quot;없는 아이디&quot;와 &quot;틀린 비밀번호&quot;를 구별해 주면 어떤 아이디가 가입돼 있는지도 알려 주게 됩니다. 설정과 코드를 바꿔 가며 응답에 무엇이 담기는지 보세요.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1(스프링 시큐리티 7.1.1) 서버의 실제 응답과 스무 가지 조합을 대조. 글귀가 아니라 항목이 들어 있는지와 두 응답이 같은지를 비교</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>오류 응답과 정보 누출</dt>
+<dd>서버가 실패했을 때 돌려주는 응답에 서버 안의 정보가 실려 밖으로 나가는 것이다. 예외 메시지에는 실행하려던 SQL이나 파일 경로가, 스택 트레이스에는 쓰는 프레임워크와 코드의 구조가 들어 있어 공격하는 사람에게 다음 시도를 위한 단서가 된다. 스프링 부트의 기본 오류 응답은 예외 메시지와 스택 트레이스를 넣지 않으며, 설정을 always로 바꾸거나 코드에서 예외의 메시지를 그대로 응답에 넣을 때 새어 나간다. 응답에는 정해 둔 글귀와 오류 번호만 담고, 자세한 내용은 서버의 로그에 남기는 것이 기본이다.</dd>
+<dt>스택 트레이스</dt>
+<dd>예외가 생긴 순간에 어떤 메서드들이 어떤 순서로 불려 있었는지를 적은 기록이다. 첫 줄에 예외의 클래스 이름과 메시지가 있고, 그 아래로 메서드마다 클래스 이름, 메서드 이름, 파일 이름과 줄 번호가 한 줄씩 이어지며, 원인이 된 다른 예외가 있으면 Caused by로 덧붙는다. 개발자가 오류의 원인을 찾을 때 가장 먼저 보는 자료다. 그만큼 프로그램 안의 구조를 자세히 보여 주므로 사용자에게 가는 응답에는 넣지 않고 로그에만 남긴다.</dd>
+<dt>계정 열거</dt>
+<dd>서버의 응답 차이를 이용해 어떤 아이디나 이메일이 가입돼 있는지를 알아내는 것이다. 로그인 실패 글귀가 &quot;없는 아이디&quot;와 &quot;틀린 비밀번호&quot;를 구별해 주거나, 회원 가입과 비밀번호 찾기 화면이 가입 여부를 알려 주면, 아이디를 바꿔 가며 요청해 가입된 아이디의 목록을 만들 수 있다. 이 목록은 비밀번호를 대입해 보거나 속이는 메일을 보낼 대상이 된다. 막으려면 두 경우의 응답을 글귀와 상태 코드까지 같게 만들고, 응답 시간의 차이도 줄인다. 스프링 시큐리티는 기본으로 두 경우를 같은 예외로 다룬다.</dd>
+<dt>@ControllerAdvice와 @ExceptionHandler</dt>
+<dd>여러 컨트롤러에서 발생한 예외를 한곳에서 처리하게 하는 기능이다. @ControllerAdvice 클래스 안에 예외 종류별로 @ExceptionHandler 메서드를 두면, 컨트롤러 실행 중 발생한 예외가 그 메서드로 전달되어 일관된 형식의 오류 응답을 만들 수 있다.</dd>
+<dt>HTTP 상태 코드</dt>
+<dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 개발할 때 편하려고 둘 다 always로 둔 서버. SQL과 스택 트레이스가 응답에 실립니다.</li>
+<li><b>스프링 부트 기본값</b> — 둘 다 never. 오류가 났다는 사실만 나갑니다.</li>
+<li><b>on_param에 ?trace=true</b> — 파라미터는 누구나 붙일 수 있으므로 숨긴 것이 아닙니다.</li>
+<li><b>예외 메시지를 그대로 응답</b> — 설정이 기본값이어도 코드가 직접 내보내면 새어 나갑니다.</li>
+<li><b>정해 둔 글귀와 오류 번호만</b> — 자세한 내용은 서버의 로그에만 남깁니다.</li>
+<li><b>로그인 실패 글귀가 다르면</b> — 아이디가 가입돼 있는지를 알려 주게 됩니다.</li>
+<li><b>스프링 시큐리티 기본값의 로그인</b> — 없는 아이디와 틀린 비밀번호의 응답이 같습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>GET /orders/7 요청이 들어옵니다. 주문 7번을 조회하는 평범한 요청입니다.</li>
+<li>jdbc.queryForMap(SQL, id): SQL에 컬럼 이름 price가 pirce로 잘못 적혀 있습니다. DB가 이 SQL을 거절하고, 스프링이 그것을 BadSqlGrammarException으로 바꿔 던집니다. 이 예외의 메시지에는 실행하려던 SQL 문장이 통째로 들어 있습니다.</li>
+<li>예외를 잡는 코드가 없으므로 요청이 /error로 다시 넘겨지고, 스프링 부트의 BasicErrorController가 오류 응답을 만듭니다. 설정과 관계없이 들어가는 항목은 timestamp, status, error, path입니다. 여기까지는 &quot;오류가 났다&quot;는 사실만 알려 줍니다.</li>
+<li>include-message=always: message 항목에 예외의 메시지를 넣습니다. SQL 문장이 그대로 응답에 실리고, 테이블 이름(orders)과 컬럼 이름(id, item)이 드러납니다.</li>
+<li>include-stacktrace=always: trace 항목에 스택 트레이스를 넣습니다. 첫 줄에 예외의 클래스 이름과 메시지(SQL 포함)가 있고, 그 아래로 예외가 지나온 메서드가 클래스 이름과 줄 번호까지 나열됩니다. DB 드라이버의 클래스 이름(org.h2…)에서 어떤 DB를 쓰는지도 보입니다.</li>
+<li>서버가 500 응답을 보냅니다. 본문의 항목은 timestamp, status, error, trace, message, path입니다. 요청을 보낸 사람이 누구든 SQL 문장, 클래스 이름과 줄 번호, DB 제품 이름을 읽을 수 있습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>응답은 500이고 본문의 항목은 timestamp, status, error, trace, message, path입니다. 새어 나간 내부 정보: SQL 문장, 클래스 이름과 줄 번호, DB 제품 이름.</li>
+<li>스택 트레이스는 가장 많은 것을 알려 줍니다. 쓰는 프레임워크와 DB, 내 코드의 클래스 이름과 구조가 보이고, 첫 줄에 예외 메시지가 들어 있어 include-message를 never로 두어도 SQL이 함께 나갑니다.</li>
+<li>이런 정보만으로 서버가 뚫리는 것은 아니지만, 공격하는 사람은 테이블과 컬럼 이름, 쓰는 제품과 코드의 구조를 알아낼수록 다음 시도를 정확하게 할 수 있습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre># application.properties
+spring.web.error.include-message=always
+spring.web.error.include-stacktrace=always
+
+// 주문 조회. SQL의 컬럼 이름이 틀렸다 (price를 pirce로 적음)
+@GetMapping(&quot;/orders/{id}&quot;)
+public Map&lt;String, Object&gt; order(@PathVariable long id) {
+    return jdbc.queryForMap(
+        &quot;select id, item, pirce from orders where id = ?&quot;, id);
+}
+
+// 요청: GET /orders/7</pre>
+<h2>이 모형의 전제</h2>
+<p>오류 응답 열두 가지(메시지 설정 2 × 스택 트레이스 설정 3 × trace 파라미터 유무)와 직접 만든 응답 두 가지, 로그인 실패 여섯 가지를 스프링 부트 4.1.1(스프링 시큐리티 7.1.1, 스프링 JDBC, H2) 서버를 127.0.0.1에 띄워 실제 응답과 대조했습니다. 응답의 글귀와 스택 트레이스의 줄 수는 버전과 환경에 따라 달라지므로, 대조한 것은 본문에 어떤 항목이 있는지, 본문에 SQL 문장과 스택 트레이스의 줄과 DB 드라이버의 이름이 보이는지, 두 로그인 실패 응답이 같은지, 어떤 예외가 났는지, 비밀번호 비교가 몇 번 불렸는지입니다. 화면의 message 값은 이 PC에서 본 것이고, errorId의 예는 꾸민 값입니다. JSON으로 받는 요청을 기준으로 했으며, 브라우저처럼 HTML을 받는 요청에는 같은 내용이 오류 화면에 실리는 것을 한 가지 설정에서 확인했습니다. 설정 이름은 스프링 부트 4.1.1의 spring.web.error.*를 썼습니다(스프링 부트 3까지는 server.error.*). include-exception, include-binding-errors와 message의 on_param 값은 다루지 않았습니다. 안전한 응답에서 예외 전체가 로그에 남는 것은 로그 기록을 모아 확인했습니다. 실행하지 않은 것: 응답 시간의 차이는 재지 않았고(비밀번호 비교가 불린 횟수만 확인), 회원 가입과 비밀번호 찾기 화면의 글귀는 OWASP의 인증 관련 안내를 따른 설명입니다. 새어 나간 정보가 실제 공격에 얼마나 쓰이는지는 서버마다 다릅니다.</p>
+<p>앞 실습: <a href="../../lab/clickjack/">클릭재킹과 오픈 리다이렉트</a> · 다음 실습: <a href="../../lab/ratelimit/">요청 수 제한</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

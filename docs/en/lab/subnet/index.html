@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IP addresses and subnets: Are two IP addresses with the same first three numbers on the same network? · Dev Learning Lab</title>
+<meta name="description" content="An IP address is divided into a front part that shows &quot;which network&quot; and a back part that shows &quot;which device within it&quot;. A number after the address, suc…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/subnet/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/subnet/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/subnet/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="IP addresses and subnets: Are two IP addresses with the same first three numbers on the same network? · Dev Learning Lab">
+<meta property="og:description" content="An IP address is divided into a front part that shows &quot;which network&quot; and a back part that shows &quot;which device within it&quot;. A number after the address, suc…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/subnet/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Addresses and names</p>
+<h1>IP addresses and subnets</h1>
+<p><b>Are two IP addresses with the same first three numbers on the same network?</b></p>
+<p>An IP address is divided into a front part that shows &quot;which network&quot; and a back part that shows &quot;which device within it&quot;. A number after the address, such as /24, decides where the front part ends. A computer uses this number to judge whether the destination is on the same network, and so decides whether to send the data directly or to hand it to the default gateway (a home router or another router).</p>
+<p>Partly checked against real execution · The address calculation and the same-network judgment were checked for all 72 combinations against Node.js 24 net.BlockList and two other calculations. The NAT explanation follows RFC 3022</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>IP address (IPv4)</dt>
+<dd>This is a 32-bit numeric address used to find a device on the internet. To make it easy for people to read, it is cut into 8-bit groups and written as four decimal numbers from 0 to 255, such as 192.168.0.10. The front part of the address shows which network the device is on, and the back part shows which device it is within that network. Where the front part ends cannot be known from the address alone; it is decided only together with a subnet mask.</dd>
+<dt>Subnet mask and CIDR</dt>
+<dd>A subnet mask is a 32-bit number that shows where the network part of an IP address ends; the network part is 1s and the host part is 0s. CIDR notation gives the same information by writing the number of bits in the network part after the address, as in 192.168.0.10/24, and /24 means the same as the subnet mask 255.255.255.0. A computer applies the same mask to its own address and to the destination address. If the results are the same, it treats the destination as being on the same network and sends directly; if not, it sends to the default gateway. If the mask is entered wrongly, communication with even a nearby device may fail.</dd>
+<dt>Network address and broadcast address</dt>
+<dd>The network address is the address whose host-part bits are all 0, and the broadcast address is the address whose host-part bits are all 1. The network address is used to refer to the network itself, and the broadcast address is used to send to all devices on that network at once. Neither can be given to a device, so the number of host addresses usable on a network is the total number of addresses minus 2. For example, a /24 network has 256 addresses, but only 254 of them can be given to devices.</dd>
+<dt>Private IP address</dt>
+<dd>This is an address range set aside so that anyone can use it inside a home or company network without asking permission. There are three ranges, 10.0.0.0/8, 172.16.0.0/12, and 192.168.0.0/16, and they are defined by RFC 1918. Because the same addresses are used in many places at once, routers on the internet do not find a route to them. So a device with a private address must borrow a public address through NAT to communicate with the internet.</dd>
+<dt>NAT</dt>
+<dd>This is a function that replaces the IP address written in a packet with another address as the packet passes through a router. A home router replaces the private source address and port of a packet sent out by an internal device with its own public address and a new port, and records the pair in a translation table. When the response comes back, it looks at the table, changes the destination back to the original private address and port, and delivers the packet to that device. Devices are told apart by port number, so several devices can share one public address, but a host on the outside cannot start a connection to an inside device, because the translation table has no pair for it.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — From 192.168.0.10/25 to 192.168.0.200. The first three numbers are the same, but they are on different networks.</li>
+<li><b>Changing to /24</b> — The same two addresses are now on the same network, so the data is sent directly.</li>
+<li><b>Different third number, same network</b> — With /23, 192.168.0.x and 192.168.1.x are one network.</li>
+<li><b>To a server on the internet</b> — The gateway replaces the source address with a public address (NAT).</li>
+<li><b>A network of only two devices</b> — With /30, the host part is 2 bits, so there are 2 usable addresses.</li>
+<li><b>A big network, /16</b> — There are 65534 usable addresses.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The address of my PC is 192.168.0.10/25. An IP address (IPv4) is a 32-bit number, and to make it easy for people to read, it is cut into 8-bit groups and written as four decimal numbers. Written in binary, it is 11000000.10101000.00000000.00001010.</li>
+<li>/25: This means that the first 25 bits are the network part, also called the network prefix (CIDR notation). The remaining 7 bits are the host part. The number made by filling the network part with 1s and the host part with 0s is the subnet mask, and written in decimal it is 255.255.255.128.</li>
+<li>Network address: The address made by changing all 7 host-part bits of my address to 0, which is 192.168.0.0. It points to the network itself, so it is not given to a device.</li>
+<li>Broadcast address: The address made by changing the host part to all 1s, which is 192.168.0.127. It is used to send to all devices on this network at once, so it too is not given to a device.</li>
+<li>Usable hosts: The host part of 7 bits can make 2 to the power of 7 addresses, which is 128. Subtracting the network address and the broadcast address leaves 126. The range is 192.168.0.1 to 192.168.0.126.</li>
+<li>Is the destination (192.168.0.200) on the same network? Apply my subnet mask to the destination address too and keep only the first 25 bits, and the result is 192.168.0.128. Compared with my network address (192.168.0.0), it is different. It is a different network. In decimal, the first three numbers are the same, but what is compared is the first 25 bits, and there is a difference within them.</li>
+<li>Because it is a different network, the data cannot be sent directly. It is handed to the default gateway, the exit of my network (in this example 192.168.0.1, usually a home router or another router). The destination IP address stays as the final destination in the packet, and the gateway is only asked to deliver it.</li>
+<li>The destination is also a private address. In a place where several private networks are connected by routers, such as the internal network of a company, the gateway passes the packet on without changing the address. A private address does not work on the internet, so this destination can be reached only if it is inside the internal network of the same organization.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>192.168.0.10/25 has the network address 192.168.0.0, the broadcast address 192.168.0.127, and 126 usable hosts. The destination (192.168.0.200) is on a different network, and the way it is sent is &quot;Passed to the gateway (no address translation)&quot;.</li>
+<li>Whether two addresses are on the same network is decided not by the leading decimal numbers but by the first 25 bits that the subnet mask picks out. With a prefix longer than /24 (/25, /26, /30), the networks split even within the last number. If you enter the wrong subnet mask, data that should go to the device right next to you goes to the gateway, or the other way around.</li>
+<li>NAT is needed when data goes from a private address out to a public address. In an internal network where private addresses talk to each other, a router only forwards the data and does not change the addresses.</li>
+</ul>
+<h2>Code</h2>
+<pre>// JavaScript. Paste it into the console of the browser developer tools to run it.
+const toNumber = ip =&gt; ip.split('.').reduce((n, part) =&gt; n * 256 + Number(part), 0);   // the address as a 32-bit number
+const toText = n =&gt; [n &gt;&gt;&gt; 24, (n &gt;&gt;&gt; 16) &amp; 255, (n &gt;&gt;&gt; 8) &amp; 255, n &amp; 255].join('.');
+
+const prefix = 25;
+const mask = (0xFFFFFFFF &lt;&lt; (32 - prefix)) &gt;&gt;&gt; 0;                 // subnet mask in which only the first 25 bits are 1
+const network = (toNumber('192.168.0.10') &amp; mask) &gt;&gt;&gt; 0;          // host part all 0
+const broadcast = (network | ~mask) &gt;&gt;&gt; 0;                        // host part all 1
+
+console.log(toText(mask), toText(network), toText(broadcast));
+console.log(2 ** (32 - prefix) - 2);                              // number of usable hosts
+
+// apply the same mask to the destination and see whether the network addresses are the same
+console.log(((toNumber('192.168.0.200') &amp; mask) &gt;&gt;&gt; 0) === network);</pre>
+<h2>Assumptions of this model</h2>
+<p>The network address, the broadcast address, the number of usable hosts, and the judgment of whether two addresses are on the same network were recalculated and checked for all 72 combinations. Three methods different from the model were used for the check: the values from running the bit-operation code shown on the screen on Node.js 24, the values obtained by cutting and joining a 32-character binary string, and the two ends and the count of the range found by putting my address and the length into net.BlockList in Node.js and asking about the addresses one by one. The rule &quot;if the results of applying the same mask are the same, send directly; if not, send to the gateway&quot; follows RFC 1122 section 3.3.1.1, and the private address ranges follow RFC 1918 section 3. NAT was not verified by execution on the PC used to write this lab; it was written following the address and port translation (NAPT) described in RFC 3022 (sections 2.2 and 4.1). The public address 198.51.100.7, the ports 40001 and 40002, and placing the gateway at the first address of the network are examples for explanation. A destination that is a private address is assumed to be in the internal network of the same organization. 203.0.113.7 is an address reserved for documentation, and it is used here as an example of a public address. Prefix lengths such as /31 and /32, for which the rule &quot;subtract 2 addresses&quot; does not hold (RFC 3021), and IPv6 are not covered.</p>
+<p>Previous lab: <a href="../../lab/dns/">DNS</a> · Next lab: <a href="../../lab/routing/">Switches and routers</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

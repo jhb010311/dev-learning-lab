@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내용 협상과 압축: 같은 주소인데 왜 사람마다 다른 응답을 받나 · 개발 학습 실습실</title>
+<meta name="description" content="같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다. 요청 헤더를…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/conneg/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/conneg/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/conneg/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="내용 협상과 압축: 같은 주소인데 왜 사람마다 다른 응답을 받나 · 개발 학습 실습실">
+<meta property="og:description" content="같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다. 요청 헤더를…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/conneg/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
+<h1>내용 협상과 압축</h1>
+<p><b>같은 주소인데 왜 사람마다 다른 응답을 받나</b></p>
+<p>같은 주소라도 서버는 형식, 언어, 압축 방식이 다른 여러 모습의 응답을 줄 수 있습니다. 클라이언트가 Accept, Accept-Language, Accept-Encoding 헤더로 원하는 것을 알리면 서버가 그중에서 고릅니다. 이것을 내용 협상이라고 합니다. 요청 헤더를 바꿔 가며 서버가 무엇을 고르는지, 압축하면 본문이 얼마나 줄어드는지, 그리고 중간에서 응답을 보관하는 공유 캐시가 다른 사람에게 엉뚱한 응답을 주지 않으려면 왜 Vary 헤더가 필요한지 보세요.</p>
+<p>실행으로 대조 · 시험 서버(Node http + negotiator 1.0 + zlib)와 직접 만든 캐싱 프록시(http-cache-semantics 4.2)를 127.0.0.1에 띄워 88가지 조합을 실행해 대조. 압축 크기는 Node 24의 zlib·brotli 실제 결과</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>콘텐츠 협상(Accept와 Content-Type)</dt>
+<dd>응답 본문을 어떤 형식으로 받을지 클라이언트와 서버가 헤더로 맞추는 일이다. 클라이언트는 Accept 헤더로 받고 싶은 응답의 형식을 알리고, 서버는 그 가운데 만들 수 있는 형식을 골라 응답의 Content-Type 헤더에 적어 보낸다. 요청에 본문이 있을 때는 클라이언트가 그 본문의 형식을 요청의 Content-Type 헤더로 알리는데, 이것은 협상이 아니라 보내는 쪽이 알려 주는 것이다. 값은 application/json이나 text/html 같은 미디어 타입으로 적는다. 서버가 요청 본문의 형식을 읽지 못하면 415(Unsupported Media Type)로, 원하는 형식의 응답을 만들지 못하면 406(Not Acceptable)으로 응답한다. 스프링은 본문의 내용을 보고 형식을 짐작하지 않고 Content-Type 헤더를 따르므로, JSON을 보내면서 Content-Type을 다르게 적으면 읽지 못한다.</dd>
+<dt>q 값(선호도)</dt>
+<dd>Accept, Accept-Language, Accept-Encoding 같은 요청 헤더에서 여러 후보 가운데 무엇을 더 원하는지 나타내는 0부터 1까지의 숫자다. &quot;en;q=0.5, ko;q=0.9&quot;처럼 후보 뒤에 ;q=로 적고, 적지 않은 후보는 1로 본다. 서버는 자신이 줄 수 있는 것 가운데 q가 가장 높은 것을 고르므로, 헤더에 먼저 적혔다고 먼저 선택되는 것이 아니다. q=0은 &quot;이것은 받지 않겠다&quot;는 뜻이다. 선호도가 같은 후보 사이에서 무엇을 고를지는 서버가 정한다.</dd>
+<dt>HTTP 압축과 Content-Encoding</dt>
+<dd>서버가 응답 본문을 gzip이나 br(Brotli) 같은 방식으로 줄여서 보내는 것이다. 클라이언트가 요청의 Accept-Encoding 헤더로 자신이 풀 수 있는 방식을 알리면, 서버는 그중 하나로 압축하고 응답의 Content-Encoding 헤더에 쓴 방식을 적는다. 받는 쪽은 그 헤더를 보고 압축을 풀어 원래 본문을 얻으며, Content-Type은 압축과 상관없이 원래 형식 그대로다. HTML이나 JSON 같은 글자로 된 본문은 크게 줄지만, 아주 작은 본문이나 이미 압축된 그림과 동영상은 줄지 않고 오히려 조금 늘어난다. 그래서 서버는 보통 일정 크기 이상의 글자 형식만 압축하도록 설정한다.</dd>
+<dt>Vary 헤더</dt>
+<dd>이 응답이 요청의 어떤 헤더에 따라 달라지는지를 서버가 알려 주는 응답 헤더다. 예를 들어 Vary: Accept-Encoding은 같은 주소라도 요청의 Accept-Encoding 값에 따라 다른 응답이 나간다는 뜻이다. 응답을 보관했다가 다시 내주는 캐시는 주소가 같더라도 Vary에 적힌 헤더의 값이 처음 요청과 같을 때에만 보관한 응답을 쓴다. Vary가 빠지면 공유 캐시가 한 사용자에게 맞춘 응답(압축된 것, 다른 언어판)을 다른 사용자에게 그대로 줄 수 있다. 반대로 값이 사용자마다 제각각인 헤더를 Vary에 넣으면 캐시가 거의 쓰이지 못한다.</dd>
+<dt>캐시</dt>
+<dd>자주 사용하는 데이터나 계산 결과를 빠르게 접근할 수 있는 곳에 미리 저장해 두고 재사용하는 것이다. 원본(주로 데이터베이스)을 매번 조회하지 않아 응답이 빨라지고 원본의 부하가 줄어든다. 대신 원본이 바뀌었을 때 캐시의 값이 오래된 상태로 남는 문제를 관리해야 한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — Vary가 없습니다. 공유 캐시가 A에게 맞춘 응답(br 압축, 한국어)을 B에게 그대로 줍니다.</li>
+<li><b>Vary를 붙이면</b> — 캐시가 요청 헤더를 비교해, B의 요청은 서버에 다시 묻습니다.</li>
+<li><b>q 값이 적힌 순서를 이긴다</b> — en이 먼저 적혀 있어도 q가 높은 ko를, br보다 q가 높은 gzip을 고릅니다.</li>
+<li><b>서버에 없는 언어를 원하면</b> — 일본어판이 없어 다음 후보인 영어판을 줍니다.</li>
+<li><b>작은 본문을 압축하면</b> — 37바이트짜리 JSON은 압축하면 오히려 커집니다.</li>
+<li><b>이미 압축된 그림을 압축하면</b> — PNG는 한 번 더 압축해도 줄지 않습니다.</li>
+<li><b>압축을 요청하지 않으면</b> — Accept-Encoding이 없으면 서버는 본문을 그대로 보냅니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>클라이언트 A가 GET /guide 요청을 보냅니다. 요청 헤더로 원하는 것을 알립니다. Accept는 받고 싶은 형식, Accept-Language는 언어, Accept-Encoding은 자신이 풀 수 있는 압축 방식입니다. 중간의 공유 캐시에는 아직 저장된 것이 없어 요청이 서버까지 갑니다.</li>
+<li>서버가 Accept 헤더(text/html)를 보고 형식을 고릅니다. 이 서버는 /guide를 HTML, JSON, PNG 세 가지 형식으로 줄 수 있습니다. 그중 긴 HTML 문서 쪽을 고르고, 응답의 Content-Type 헤더에 고른 형식(text/html)을 적습니다.</li>
+<li>서버가 Accept-Language 헤더(ko)를 보고 언어를 고릅니다. 한국어판을 원한다는 뜻입니다. 서버에 한국어판이 있으므로 그것을 고릅니다. 고른 언어는 응답의 Content-Language 헤더에 적습니다.</li>
+<li>Accept-Encoding: gzip, br은 둘 다 풀 수 있다는 뜻이고, q를 적지 않아 선호도가 둘 다 1로 같습니다. 선호도가 같으면 서버가 정합니다. 이 서버는 br(Brotli)을 먼저 고르도록 설정돼 있습니다.</li>
+<li>본문 12,542바이트를 br 방식으로 압축하니 425바이트가 됐습니다. 응답에 Content-Encoding: br 헤더를 붙여, 받는 쪽이 어떤 방식으로 풀어야 하는지 알립니다. Content-Type은 그대로 text/html입니다. 압축은 내용을 바꾸지 않고 전송할 때의 포장만 바꿉니다.</li>
+<li>서버가 200 OK로 응답합니다. 응답에 Vary 헤더는 붙이지 않았습니다. 공유 캐시는 이 응답을 /guide의 응답으로 보관하고 A에게 전달합니다.</li>
+<li>이어서 다른 클라이언트 B가 같은 주소 /guide를 요청합니다. B는 영어를 원하고(Accept-Language: en), Accept-Encoding을 보내지 않습니다. 압축을 풀 줄 모르는 단순한 프로그램입니다. 이 요청은 먼저 공유 캐시에 도착합니다.</li>
+<li>캐시에 /guide의 응답이 있고 Vary 헤더가 없습니다. 캐시는 &quot;이 주소의 응답은 누구에게나 같다&quot;고 보고, A에게 맞춘 응답을 B에게 그대로 줍니다. B는 br 압축을 풀 줄 몰라 본문을 읽지 못합니다. B는 영어를 원했는데 한국어판을 받았습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>서버가 고른 것: text/html, 한국어판, 압축 br. 본문은 12,542 → 425바이트 (97% 줄어듦). B는 A에게 맞춘 응답을 받아 쓸 수 없었습니다.</li>
+<li>HTML, CSS, 자바스크립트, JSON 같은 글자로 된 본문은 되풀이되는 부분이 많아 압축이 잘 됩니다. 이 예시의 HTML은 같은 모양의 표가 120줄 되풀이되어 특히 많이 줄었습니다. 줄어드는 정도는 내용에 따라 다릅니다. br은 gzip보다 더 작게 줄이는 편이지만 압축에 시간이 더 걸립니다.</li>
+<li>응답이 요청 헤더에 따라 달라지는데 Vary가 없으면, 공유 캐시는 한 사람에게 맞춘 응답을 다른 사람에게 그대로 내줍니다. 서버는 응답을 고를 때 본 요청 헤더의 이름을 Vary에 적어야 합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 서버 (Node.js). Negotiator는 Accept 계열 헤더를 해석해 주는 라이브러리
+http.createServer((req, res) =&gt; {
+    const want = new Negotiator(req);
+    const type = want.mediaType(['text/html', 'application/json', 'image/png']);        // Accept
+    const lang = want.language(['ko', 'en']) || 'ko';                                    // Accept-Language, 맞는 것이 없으면 ko
+    const enc  = want.encoding(['br', 'gzip', 'identity'], { preferred: ['br', 'gzip'] });  // Accept-Encoding
+
+    let body = load(type, lang);                       // 고른 형식과 언어의 본문
+    if (enc === 'gzip') body = zlib.gzipSync(body);
+    if (enc === 'br')   body = zlib.brotliCompressSync(body);
+
+    res.writeHead(200, {
+        'Content-Type': type,
+        'Content-Language': lang,                      // 그림에는 붙이지 않는다
+        'Content-Encoding': enc,                       // 압축하지 않았으면 붙이지 않는다
+        'Cache-Control': 'public, max-age=60',         // 공유 캐시가 60초 동안 보관해도 된다
+    });
+    res.end(body);
+});
+
+// 클라이언트 A의 요청
+// curl -H 'Accept: text/html' -H 'Accept-Language: ko' -H 'Accept-Encoding: gzip, br' http://shop.example/guide</pre>
+<h2>이 모형의 전제</h2>
+<p>본문 세 가지(긴 HTML, 짧은 JSON, PNG 그림)는 시험용으로 만든 예시이며, 크기는 그 본문을 이 PC의 Node.js 24에 든 zlib 1.3.1(gzip)과 brotli 1.2.0의 기본 설정으로 압축한 실제 값입니다. 압축 수준이나 라이브러리 버전이 다르면 몇 바이트씩 달라질 수 있습니다. 예시의 HTML은 같은 모양의 표가 되풀이되어 보통의 문서보다 훨씬 많이 줄어든 편입니다. 서로 다른 88가지 조합(그림에는 언어 설정이 쓰이지 않음)을 127.0.0.1에 띄운 시험 서버로 실행해 서버가 고른 형식, 언어, 압축, 전송된 크기, Vary, B가 받은 응답이 모형과 같은 것을 확인했습니다. 시험 서버는 Node의 http에 헤더 해석 라이브러리 negotiator 1.0(Express가 쓰는 것)과 zlib을 붙여 만들었고, 공유 캐시는 HTTP 캐시 규칙 구현인 http-cache-semantics 4.2로 판단하는 작은 캐싱 프록시를 직접 만들어 썼습니다. 실제 CDN이나 프록시 제품으로 확인한 것은 아닙니다. 추가로 fetch(기본값으로 Accept-Encoding: gzip, deflate를 보냄)와 curl --compressed가 압축된 응답을 스스로 풀어 돌려주는 것, 옵션 없는 curl은 Accept-Encoding을 보내지 않는 것, Vary 없는 캐시 뒤에서 옵션 없는 curl이 br로 압축된 한국어 응답을 그대로 받는 것을 실행으로 확인했습니다. q 값의 뜻과 생략하면 1이라는 것, 맞는 언어가 없을 때 무시하거나 406으로 응답할 수 있다는 것은 RFC 9110 12.4.2절과 12.5.4절, Vary의 뜻은 12.5.5절, 캐시가 Vary에 적힌 요청 헤더를 비교한다는 것은 RFC 9111 4.1절을 따랐습니다. 선호도가 같은 압축 방식 가운데 무엇을 고를지는 표준이 정하지 않아 서버마다 다릅니다(이 시험 서버는 br 우선). 표준(RFC 9110 12.5.3절)에 따르면 Accept-Encoding이 없는 요청에는 서버가 어떤 압축이든 써도 되지만, 이 시험 서버를 포함해 대부분의 서버는 압축하지 않고 보냅니다. B가 압축을 &quot;풀지 못한다&quot;는 것은 B를 압축을 지원하지 않는 프로그램으로 가정한 것입니다. 브라우저처럼 Content-Encoding을 보고 스스로 푸는 클라이언트라면 내용은 읽을 수 있지만, 원하지 않은 언어를 받는 문제는 그대로입니다.</p>
+<p>앞 실습: <a href="../../lab/redirect/">리다이렉션</a> · 다음 실습: <a href="../../lab/cors/">CORS</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

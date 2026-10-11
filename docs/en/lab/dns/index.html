@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DNS: Who knows the IP address of a domain name, and when does a change show up? · Dev Learning Lab</title>
+<meta name="description" content="A computer cannot connect to a name like shop.example; it needs an IP address. DNS is what turns a name into an address. The servers that know the answer…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dns/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dns/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/dns/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="DNS: Who knows the IP address of a domain name, and when does a change show up? · Dev Learning Lab">
+<meta property="og:description" content="A computer cannot connect to a name like shop.example; it needs an IP address. DNS is what turns a name into an address. The servers that know the answer…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/dns/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Addresses and names</p>
+<h1>DNS</h1>
+<p><b>Who knows the IP address of a domain name, and when does a change show up?</b></p>
+<p>A computer cannot connect to a name like shop.example; it needs an IP address. DNS is what turns a name into an address. The servers that know the answer are not in one place but are divided into several levels, and an answer that has been received stays in a cache for a set time (the TTL) so that it is not asked for again. Follow the lookup process and see the difference the cache makes.</p>
+<p>Partly checked against real execution · 32 combinations were run as real DNS messages with a test name server and resolver started on 127.0.0.1, and checked. The parsing of records was checked against c-ares in Node.js 24, and the behavior of the resolver and the cache reproduces the procedures of RFC 1034 and 1035</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>DNS</dt>
+<dd>The system that translates a domain name (example.com) into the IP address that computers use to communicate. When you enter an address in a browser, the browser first asks this system for the IP address of that name and then connects to that IP address. Lookup results are cached for a certain time.</dd>
+<dt>DNS record</dt>
+<dd>One line of information that the name server of a domain holds for each name, made up of a name, a type, a value, and a TTL. An A record connects a name to an IPv4 address, and an AAAA record connects it to an IPv6 address. A CNAME record makes a name an alias of another name, and if you ask for the alias, you must look up the canonical name once more to get an address. An MX record gives the name and priority of the server that receives mail sent to the domain, and the server with the smaller number is tried first.</dd>
+<dt>Recursive resolver and authoritative name server</dt>
+<dd>An authoritative name server is a server that holds the original records of a domain and answers questions about that domain directly. A recursive resolver is a server that looks for the answer on behalf of the user's computer, starting from a root server and asking a TLD server and then the authoritative name server in that order. A root server and a TLD server give not the answer but the next server to ask, and this kind of response is called a referral. They can do this because the upper zone lists the name servers responsible for the lower zone, and handing a lower zone over to separate servers in this way is called delegation. The user's computer asks only one recursive resolver, and its address is usually given in the network settings by an internet provider or a home router.</dd>
+<dt>DNS cache and TTL</dt>
+<dd>A cache is where an answer received through DNS is remembered so that it is not asked for again, and the TTL is a number, written in seconds, that says how long the answer may be remembered. The side that manages the record decides the TTL and attaches it to the record. There are caches in the browser, in the operating system, and in the recursive resolver, and when the TTL passes, the answer is discarded and asked for again. So even if you change a record, an answer already in a cache is used until the TTL ends, and each user receives the new value at a different time.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A name asked for the first time. The resolver asks from the root server down, one server at a time, to find the answer.</li>
+<li><b>A name that was just asked for</b> — The answer is in this PC's cache, so no one is asked.</li>
+<li><b>Record changed, but traffic still goes to the old address</b> — The TTL has not run out in the resolver's cache, so it gets the old value.</li>
+<li><b>After the TTL has passed</b> — It asks again and gets the new value. It does not start from the root server.</li>
+<li><b>A name that goes through a CNAME</b> — It finds the canonical name of the alias, and then looks up that name once more.</li>
+<li><b>Finding the mail server</b> — An MX record gives the name of the mail server, not an address.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The browser needs an IP address to connect to shop.example. What to look up is the A record (IPv4 address) of shop.example. First it looks at the cache of this PC (the place where the operating system and the browser remember answers they received earlier). It is a name asked for the first time, so there is nothing.</li>
+<li>This PC asks the recursive resolver. A recursive resolver is a DNS server that looks for the answer on your behalf. It is usually run by an internet provider or a company, and its address is in the network settings. The resolver also looks at its own cache first. There is nothing. The only thing the resolver knows from the start is the addresses of the root servers.</li>
+<li>Resolver → root server: The resolver sends the same question to the root server. The root server does not have the answer. Instead, it looks at the end of the name (.example) and gives the addresses of the servers responsible for names ending in .example (the TLD servers). A response like this, which tells the resolver which server to ask next, is a referral. Handing a part of the name space down to the servers below is called delegation.</li>
+<li>Resolver → .example server: It sends the same question again. This server does not have the answer either, and it gives the addresses of the name servers responsible for shop.example.</li>
+<li>Resolver → authoritative name server of shop.example: This is the server that holds the original records of this domain. It gives the answer: shop.example A 203.0.113.10, TTL 300s.</li>
+<li>The resolver puts the records it received in its own cache and returns the answer to this PC. For the next 300s, it answers anyone who asks the same thing from its cache. It also remembers the delegation information it learned on the way. This PC also puts the answer it received in its cache for the TTL.</li>
+<li>The browser connects to the address it received (203.0.113.10).</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Answer received: 203.0.113.10. Where it came from: Authoritative name server. Queries from the PC to the resolver: 1. Queries from the resolver to name servers: 3.</li>
+<li>No server has the answer for every name. A root server tells you which servers handle the last part of a name (.example, .com, .kr), those servers tell you the name server for each domain, and only the authoritative name server of that domain has the answer. This PC asks only one resolver, and the resolver does the step-by-step asking on its behalf.</li>
+<li>An A record connects a name to an IPv4 address. It is the most basic record.</li>
+</ul>
+<h2>Code</h2>
+<pre>; Records held by the authoritative name server for shop.example (name, TTL, type, value)
+shop.example.        300  IN  A      203.0.113.10
+shop.example.        300  IN  AAAA   2001:db8::10
+shop.example.        300  IN  MX     10 mail.shop.example.
+www.shop.example.    300  IN  CNAME  shop.cdn.example.
+
+; Records held by the authoritative name server for cdn.example
+shop.cdn.example.    300  IN  A      203.0.113.80
+
+// The asking side (Node.js, file name ask.mjs). It asks the recursive resolver in the network settings and receives the answer
+import { Resolver } from 'node:dns/promises';
+console.log(await new Resolver().resolve4('shop.example', { ttl: true }));</pre>
+<h2>Assumptions of this model</h2>
+<p>A test program was started on 127.0.0.1 that plays the roles of a root server, a .example server, two authoritative name servers, and a recursive resolver, and real DNS messages were exchanged. For 32 combinations, the answer, the number of questions, the order of asking, and whether the changed value is reflected were checked. No outside DNS was queried. However, this test name server, resolver, and PC-side cache were built for this lab by following the standard procedures (RFC 1034 section 4.3.2 for name server responses, section 5.3.3 for resolver procedures, and RFC 1035 section 6.1.3 for the TTL of a cache). So the behaviors &quot;ask from the root server down in order&quot;, &quot;use the answer in the cache for the TTL&quot;, and &quot;if the delegation information remains after the TTL has passed, ask the authoritative name server directly&quot; were confirmed by reproducing the standard procedures, and were not checked against a resolver product that is actually operated or the cache of an operating system. What was confirmed with an independent implementation is the content of the records. For each combination, the same question was also sent with Node.js 24 dns.Resolver (c-ares), and the values of A, AAAA, CNAME, and MX that c-ares parsed from the response of the test server were checked to be the same. It was also confirmed that the Node.js dns.Resolver does not cache by itself and asks again every time. The time was made by really waiting. In the run, the TTL of the record was set to 4 seconds, and the question was asked again after 1.2 seconds (TTL remaining) and after 5.2 seconds (TTL passed). The 300s, 120s, and 400s on the screen and the 172800s of the delegation information are examples written as numbers of a size commonly seen in the same situation. The meaning of the records follows RFC 1035 sections 3.3 and 3.4.1 (A, CNAME, MX) and RFC 3596 (AAAA), and looking up the canonical name again when a CNAME is met follows RFC 1034 section 3.6.2. A real resolver does more, such as choosing one of several root servers and name servers, sending only part of the name in a query (RFC 9156), and caching negative answers, that is, answers saying that a name does not exist. There are also cases in which a browser and an operating system do not keep the TTL exactly and remember an answer for a shorter or longer time. All the addresses are in the ranges reserved for documentation.</p>
+<p>Previous lab: <a href="../../lab/url/">URL structure</a> · Next lab: <a href="../../lab/subnet/">IP addresses and subnets</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

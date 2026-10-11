@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spring · Dev Learning Lab</title>
+<meta name="description" content="The container and dependency injection, AOP and transactions, the path a web request takes, and what Spring Boot does for you.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/study/spring/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/study/spring/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/study/spring/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Spring · Dev Learning Lab">
+<meta property="og:description" content="The container and dependency injection, AOP and transactions, the path a web request takes, and what Spring Boot does for you.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/study/spring/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a></p>
+<h1>Spring</h1>
+<p>The container and dependency injection, AOP and transactions, the path a web request takes, and what Spring Boot does for you.</p>
+<h2>IoC container and DI</h2>
+<ul>
+<li><a href="../../lab/ioc/">The Spring container and beans</a> — You never wrote new, so who creates the object and passes it in?</li>
+<li><a href="../../lab/di/">Bean creation and injection</a> — In what order does Spring create objects and wire them together?</li>
+<li><a href="../../lab/singleton/">Singleton beans and state</a> — My order shows someone else's name</li>
+<li><a href="../../lab/scope/">Bean scopes</a> — It is a prototype bean, so why is there only one object?</li>
+<li><a href="../../lab/lifecycle/">Bean lifecycle callbacks</a> — Why is an injected field null when you use it in the constructor?</li>
+</ul>
+<h2>AOP and proxies</h2>
+<ul>
+<li><a href="../../lab/proxy/">Proxies and self-invocation</a> — Why does the annotation have no effect?</li>
+<li><a href="../../lab/aop/">AOP: advice and pointcuts</a> — Which methods does advice apply to, and in what order does it run?</li>
+</ul>
+<h2>Data access and transactions</h2>
+<ul>
+<li><a href="../../lab/tx/">Transaction basics</a> — What if the withdrawal went through but the deposit did not?</li>
+<li><a href="../../lab/txprop/">Transaction propagation</a> — How far does a rollback reach when an exception is thrown?</li>
+<li><a href="../../lab/jdbctmpl/">JdbcTemplate and exception translation</a> — What does JdbcTemplate do for you, and what does it translate exceptions to?</li>
+<li><a href="../../lab/connpool/">Connection pool and OSIV</a> — Why connections run short even though the queries finish quickly</li>
+</ul>
+<h2>Web MVC</h2>
+<ul>
+<li><a href="../../lab/servlet/">Servlets</a> — How an HTTP request reaches Java code</li>
+<li><a href="../../lab/mvc/">Spring MVC request flow</a> — How one request reaches the controller, and how it goes back</li>
+<li><a href="../../lab/binding/">Request mapping and parameter binding</a> — How does a value sent in a request become a method parameter?</li>
+<li><a href="../../lab/validation/">Validation</a> — The field has @NotBlank, so why does an empty value still get in?</li>
+<li><a href="../../lab/msgconv/">REST APIs and message converters</a> — Where does the object returned by a controller become JSON?</li>
+</ul>
+<h2>Spring Boot</h2>
+<ul>
+<li><a href="../../lab/autoconf/">Spring Boot auto-configuration</a> — Why do beans appear when all you did was add a dependency?</li>
+<li><a href="../../lab/config/">Configuration precedence</a> — When the same property is set in several places, which value wins?</li>
+<li><a href="../../lab/actuator/">Actuator and health checks</a> — What does the health check answer when the connection to the payment provider is lost?</li>
+</ul>
+<h2>Other features</h2>
+<ul>
+<li><a href="../../lab/testing/">Testing</a> — When tests run, what goes into the Spring context, and how many times is it created?</li>
+<li><a href="../../lab/restclient/">Calling external APIs and timeouts</a> — When a call to another server gets no answer, how long does it wait?</li>
+<li><a href="../../lab/cacheabs/">Cache abstraction</a> — With @Cacheable on a method, when does the method body not run?</li>
+<li><a href="../../lab/security/">Security filter chain</a> — Where is it decided whether the response is 401 or 403?</li>
+</ul>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

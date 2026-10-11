@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connection pool and OSIV: Why connections run short even though the queries finish quickly · Dev Learning Lab</title>
+<meta name="description" content="A request does its database work, then calls an external API, and then responds. Database connections are borrowed from a pool and returned to it. Dependi…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/connpool/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/connpool/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/connpool/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Connection pool and OSIV: Why connections run short even though the queries finish quickly · Dev Learning Lab">
+<meta property="og:description" content="A request does its database work, then calls an external API, and then responds. Database connections are borrowed from a pool and returned to it. Dependi…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/connpool/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Data access and transactions</p>
+<h1>Connection pool and OSIV</h1>
+<p><b>Why connections run short even though the queries finish quickly</b></p>
+<p>A request does its database work, then calls an external API, and then responds. Database connections are borrowed from a pool and returned to it. Depending on when a connection is returned (the Open Session in View setting, OSIV for short), the number of requests that a pool of the same size can withstand differs greatly.</p>
+<p>Checked against documentation and standards · The default behavior of HikariCP and Hibernate (the numbers are a model)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Connection pool</dt>
+<dd>A technique that creates several database connections in advance and reuses them. Opening a new connection is an expensive operation, so instead of opening and closing a connection for every request, the application borrows one and returns it. If every connection is in use, a new request waits until one is returned, and an exception is thrown if it cannot get one within a set time (connectionTimeout in HikariCP, 30 seconds by default). The default implementation in Spring Boot is HikariCP. (Outside the top 50.)</dd>
+<dt>Open Session in View</dt>
+<dd>A setting that keeps the persistence context open after the transaction ends, until request processing finishes (the response is written). It is convenient because lazy fetching also works in controllers and views. However, after the first database access during a request, the request keeps holding the database connection until the response is finished, so a service with many requests can run short of connections. It is on by default in Spring Boot. (Outside the top 50.)</dd>
+<dt>Persistence context</dt>
+<dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it. (It is outside the top 50, but it is a concept that always comes up as a follow-up question when you use JPA.)</dd>
+<dt>Bottleneck</dt>
+<dd>The slowest part of a system, which limits the processing performance of the whole. No matter how much you improve the other parts, overall performance does not improve while this part stays the same. Performance improvement starts with finding it by measurement.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — OSIV on. The database work takes 0.5s, but each request holds a connection for 2.5s.</li>
+<li><b>Turning OSIV off</b> — The connection is returned as soon as the database work ends.</li>
+<li><b>When more requests arrive</b> — OSIV on, 20 requests. Some requests wait 5s and then fail.</li>
+<li><b>Making the pool larger</b> — The same 20 requests with a pool of 10. The pool holds up, but there is a limit to the number of connections the database can accept.</li>
+<li><b>When the query itself is slow</b> — Even with OSIV off, a connection is in use for the 2s of database work.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>0.0s: Request 1 borrows connection 1 and starts its database work.</li>
+<li>0.1s: Request 2 borrows connection 2 and starts its database work.</li>
+<li>0.2s: Request 3 borrows connection 3 and starts its database work.</li>
+<li>0.3s: Request 4 arrives. All connections in the pool (3) are in use, so it waits.</li>
+<li>0.4s: Request 5 arrives. All connections in the pool (3) are in use, so it waits.</li>
+<li>0.5s: Request 1 finishes its database work and starts the external API call. OSIV is on, so it does not return connection 1 and holds it until the response is finished.</li>
+<li>0.5s: Request 6 arrives. All connections in the pool (3) are in use, so it waits.</li>
+<li>0.6s: Request 2 finishes its database work and starts the external API call. OSIV is on, so it does not return connection 2 and holds it until the response is finished.</li>
+<li>0.6s: Request 7 arrives. All connections in the pool (3) are in use, so it waits.</li>
+<li>0.7s: Request 3 finishes its database work and starts the external API call. OSIV is on, so it does not return connection 3 and holds it until the response is finished.</li>
+<li>0.7s: Request 8 arrives. All connections in the pool (3) are in use, so it waits.</li>
+<li>2.5s: Request 1 finishes its response. It now returns connection 1.</li>
+<li>2.5s: Request 4 borrows connection 1 and starts its database work. It waited 2.2s.</li>
+<li>2.6s: Request 2 finishes its response. It now returns connection 2.</li>
+<li>2.6s: Request 5 borrows connection 2 and starts its database work. It waited 2.2s.</li>
+<li>2.7s: Request 3 finishes its response. It now returns connection 3.</li>
+<li>2.7s: Request 6 borrows connection 3 and starts its database work. It waited 2.2s.</li>
+<li>3.0s: Request 4 finishes its database work and starts the external API call. OSIV is on, so it does not return connection 1 and holds it until the response is finished.</li>
+<li>3.1s: Request 5 finishes its database work and starts the external API call. OSIV is on, so it does not return connection 2 and holds it until the response is finished.</li>
+<li>3.2s: Request 6 finishes its database work and starts the external API call. OSIV is on, so it does not return connection 3 and holds it until the response is finished.</li>
+<li>5.0s: Request 4 finishes its response. It now returns connection 1.</li>
+<li>5.0s: Request 7 borrows connection 1 and starts its database work. It waited 4.4s.</li>
+<li>5.1s: Request 5 finishes its response. It now returns connection 2.</li>
+<li>5.1s: Request 8 borrows connection 2 and starts its database work. It waited 4.4s.</li>
+<li>5.2s: Request 6 finishes its response. It now returns connection 3.</li>
+<li>5.5s: Request 7 finishes its database work and starts the external API call. OSIV is on, so it does not return connection 1 and holds it until the response is finished.</li>
+<li>5.6s: Request 8 finishes its database work and starts the external API call. OSIV is on, so it does not return connection 2 and holds it until the response is finished.</li>
+<li>7.5s: Request 7 finishes its response. It now returns connection 1.</li>
+<li>7.6s: Request 8 finishes its response. It now returns connection 2.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Requests: 8. Succeeded: 8. Failed because they could not get a connection: 0. The requests that succeeded waited for a connection 1.9s on average and 4.4s at most.</li>
+<li>One request holds a connection for 2.5s (database work 0.5s + external API 2s).</li>
+<li>When OSIV is on, the persistence context stays open until the response is finished, and the database connection is held along with it for that time. The connection stays occupied even during the wait for the external API, which does not use the database, so on an API server with heavy traffic the connections soon run short. When OSIV is off, the connection is returned when the transaction ends.</li>
+</ul>
+<h2>Code</h2>
+<pre># application.yml
+spring.datasource.hikari.maximum-pool-size: 3
+spring.datasource.hikari.connection-timeout: 5000   # fail after waiting 5s
+spring.jpa.open-in-view: true
+
+// controller
+OrderDto get(long id) {
+    Order order = orderService.find(id);       // @Transactional, database work 0.5s
+    Delivery d = deliveryApi.track(order);     // external API 2s (no database use)
+    return OrderDto.of(order, d);
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The model assumes that requests arrive 0.1s apart and that there are enough server threads to handle them (200 by default in Tomcat). The limit on waiting for a connection is fixed at 5s (the HikariCP default is 30s). When OSIV is on, the model takes the connection to be borrowed at the first database access and returned when the response is finished, which follows the default behavior of Hibernate in a Spring environment, where it keeps the connection until the session is closed. The numbers are a model meant to show the relationships and are not real measurements.</p>
+<p>Previous lab: <a href="../../lab/jdbctmpl/">JdbcTemplate and exception translation</a> · Next lab: <a href="../../lab/servlet/">Servlets</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>엔티티의 생명주기: 같은 setName인데 왜 어떤 때는 DB에 반영되지 않나 · 개발 학습 실습실</title>
+<meta name="description" content="엔티티 객체는 비영속, 영속, 준영속, 삭제라는 네 가지 상태 가운데 하나에 있습니다. JPA가 값의 변화를 지켜보고 DB에 반영해 주는 것은 영속 상태일 때뿐입니다. 객체가 어느 줄에서 어떤 상태로 바뀌는지, 그 상태에서 바꾼 이름이 DB에 남는지 한 줄씩 따라가 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/entitylife/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/entitylife/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/entitylife/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="엔티티의 생명주기: 같은 setName인데 왜 어떤 때는 DB에 반영되지 않나 · 개발 학습 실습실">
+<meta property="og:description" content="엔티티 객체는 비영속, 영속, 준영속, 삭제라는 네 가지 상태 가운데 하나에 있습니다. JPA가 값의 변화를 지켜보고 DB에 반영해 주는 것은 영속 상태일 때뿐입니다. 객체가 어느 줄에서 어떤 상태로 바뀌는지, 그 상태에서 바꾼 이름이 DB에 남는지 한 줄씩 따라가 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/entitylife/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 영속성 관리</p>
+<h1>엔티티의 생명주기</h1>
+<p><b>같은 setName인데 왜 어떤 때는 DB에 반영되지 않나</b></p>
+<p>엔티티 객체는 비영속, 영속, 준영속, 삭제라는 네 가지 상태 가운데 하나에 있습니다. JPA가 값의 변화를 지켜보고 DB에 반영해 주는 것은 영속 상태일 때뿐입니다. 객체가 어느 줄에서 어떤 상태로 바뀌는지, 그 상태에서 바꾼 이름이 DB에 남는지 한 줄씩 따라가 보세요.</p>
+<p>실행으로 대조 · Hibernate 7.4.5와 H2에서 열네 가지 조합을 실행해 줄마다 나간 SQL까지 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>엔티티의 네 가지 상태</dt>
+<dd>엔티티 객체가 영속성 컨텍스트와 어떤 관계에 있는지를 나타내는 구분이며, 엔티티의 생명주기라고도 한다. 비영속은 new로 만들기만 해서 JPA가 모르는 상태이고, 영속은 em.persist로 맡겼거나 조회해 와서 영속성 컨텍스트가 관리하는 상태다. 준영속은 관리되다가 떨어져 나온 상태이고, 삭제는 em.remove로 지울 대상이 된 상태다. 값을 바꾸면 UPDATE가 나가는 변경 감지와 1차 캐시 같은 기능은 영속 상태인 엔티티에만 동작한다. 그래서 값이 DB에 반영되지 않을 때는 그 객체가 지금 어느 상태인지부터 확인한다.</dd>
+<dt>준영속 상태</dt>
+<dd>영속성 컨텍스트가 관리하다가 더는 관리하지 않게 된 엔티티의 상태다. em.detach로 떼어 내거나, em.clear로 영속성 컨텍스트를 비우거나, em.close로 닫으면 그 안에 있던 엔티티가 준영속이 된다. 식별자(id) 값은 가지고 있지만 평범한 자바 객체와 같아서, 값을 바꿔도 UPDATE가 나가지 않고 예외도 나지 않는다. 화면에서 받은 값으로 new 해서 만든 객체도, DB에 이미 있는 행의 id를 가지고 있으면 준영속으로 다룬다. 트랜잭션이 끝난 뒤에 엔티티를 고치는 코드에서 자주 만난다.</dd>
+<dt>영속성 컨텍스트</dt>
+<dd>엔티티를 보관하고 관리하는 JPA의 논리적 공간이다. 조회하거나 저장한 엔티티는 이곳에 보관되며, JPA는 이곳의 엔티티에 일어난 변화를 추적해 트랜잭션이 끝날 때 DB에 반영한다. 보통 트랜잭션 하나와 생명주기를 같이한다(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다). 1차 캐시, 변경 감지, 쓰기 지연 같은 기능이 이 위에서 동작한다. (50선 밖이지만 JPA를 쓰면 반드시 이어서 묻는 개념)</dd>
+<dt>변경 감지(Dirty Checking)</dt>
+<dd>영속성 컨텍스트가 관리하는 엔티티의 값이 바뀌면, 트랜잭션을 커밋할 때 JPA가 처음 읽었던 상태와 비교해 값이 달라진 엔티티에 대한 UPDATE 문을 자동으로 실행하는 기능이다. Hibernate는 기본적으로 바뀐 컬럼만이 아니라 전체 컬럼을 UPDATE 문에 넣으며, 바뀐 컬럼만 넣으려면 @DynamicUpdate를 쓴다. 따라서 조회한 엔티티의 값을 바꾸기만 하면 별도의 저장 메서드를 호출하지 않아도 DB에 반영된다.</dd>
+<dt>쓰기 지연과 flush</dt>
+<dd>쓰기 지연은 INSERT, UPDATE, DELETE 문을 바로 DB에 보내지 않고 모아 두었다가 한꺼번에 보내는 것이다. 단, 기본 키를 IDENTITY 전략(MySQL의 AUTO_INCREMENT 등)으로 생성하는 엔티티는 식별자를 얻기 위해 저장을 요청한 시점에 INSERT가 바로 실행된다. flush는 모아 둔 변경 내용을 DB에 보내는 동작으로, 트랜잭션 커밋 직전이나 JPQL 쿼리 실행 직전에 자동으로 일어난다. flush는 SQL을 DB에 전송할 뿐 트랜잭션을 커밋하는 것은 아니다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 떼어 낸(준영속) 객체의 이름을 바꿉니다. 오류 없이 반영되지 않습니다.</li>
+<li><b>영속 상태에서 바꾸면</b> — 조회한 객체의 이름만 바꿔도 커밋할 때 UPDATE가 나갑니다.</li>
+<li><b>바꾼 다음에 em.clear</b> — 영속일 때 바꿨는데도 사라집니다. 아직 DB로 보내기 전이었기 때문입니다.</li>
+<li><b>new만 하고 persist를 잊으면</b> — SQL이 하나도 나가지 않습니다.</li>
+<li><b>persist 한 뒤에 바꾸면</b> — INSERT에 이어 UPDATE가 한 번 더 나갑니다.</li>
+<li><b>em을 닫은 뒤에 바꾸면</b> — 트랜잭션 밖에서 엔티티를 고치는 흔한 실수입니다.</li>
+<li><b>remove 한 뒤에 바꾸면</b> — DELETE만 나갑니다. 그것도 커밋할 때 나갑니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>em.find(Member.class, 1L): SELECT로 1번 회원을 읽어 영속성 컨텍스트에 보관합니다. 이때부터 m은 영속 상태입니다. 영속성 컨텍스트가 처음 읽은 값(김철수)을 기억해 두고 m의 변화를 지켜봅니다.</li>
+<li>em.detach(m): m을 영속성 컨텍스트에서 떼어 냅니다. m은 영속에서 준영속으로 바뀌었습니다. SQL은 나가지 않습니다.</li>
+<li>m.setName(&quot;김영수&quot;): 준영속 상태인 객체의 이름을 바꿨습니다. 자바 객체의 값은 바뀌지만, 영속성 컨텍스트는 이 객체를 더는 지켜보지 않습니다. 오류도 나지 않습니다.</li>
+<li>em.contains(m): false입니다. 영속성 컨텍스트가 m을 더는 관리하지 않는다는 뜻입니다.</li>
+<li>commit: 커밋 직전에 flush가 일어나지만, m은 관리 대상이 아니라서 비교하지 않습니다. UPDATE가 나가지 않고 DB의 이름은 &quot;김철수&quot; 그대로입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>m의 마지막 상태는 준영속이고, DB로 나간 SQL은 SELECT 1번입니다. DB에는 1번 김철수 행이 남았습니다.</li>
+<li>준영속 객체는 평범한 자바 객체와 같습니다. 값을 바꿔도 예외가 나지 않고, DB에도 반영되지 않습니다. 떼어 낸 뒤 같은 id를 em.find로 다시 조회하면 SELECT가 다시 나가고 m과는 다른 새 객체가 옵니다.</li>
+<li>준영속 객체의 값을 DB에 반영하려면 다시 영속 상태로 만들어야 합니다. 그 방법이 병합(merge)이며 다음 실습에서 다룹니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>EntityManager em = emf.createEntityManager();
+em.getTransaction().begin();
+
+Member m = em.find(Member.class, 1L);
+em.detach(m);
+m.setName(&quot;김영수&quot;);
+System.out.println(em.contains(m));
+em.getTransaction().commit();</pre>
+<h2>이 모형의 전제</h2>
+<p>열네 가지 조합(일곱 가지 길 × 이름을 바꾸는 때)을 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 줄마다 나간 SQL의 종류, em.contains의 결과, DB에 남은 행이 화면과 일치하는 것을 확인했습니다. &quot;이름을 바꾸는 때&quot;는 new만 하는 길, 조회만 하는 길, remove에서는 결과에 영향이 없어 숨겨 두었습니다. 요약에 적은 다음 사실도 따로 실행해 확인했습니다: 값을 바꾼 뒤 em.flush()를 부르고 떼어 내면 반영된다, 떼어 낸 뒤 다시 조회하면 SELECT가 다시 나가고 다른 객체가 온다, remove 한 객체를 커밋 전에 다시 persist하면 DELETE가 나가지 않는다, 지워진 뒤에도 자바 객체의 값은 읽힌다, persist 뒤에 값을 바꾸면 INSERT에는 persist할 때의 값이 들어간다. 회원의 id는 코드에서 직접 넣는 방식으로 두었습니다. DB가 id를 정하는 IDENTITY 방식에서는 persist하는 줄에서 INSERT가 바로 나갑니다. 화면의 SQL 문장은 읽기 쉽게 줄여 적은 것입니다. 스프링에서는 @Transactional 메서드가 시작하고 끝날 때 여기의 begin, commit, close가 대신 일어납니다(OSIV를 켠 웹 요청에서는 em이 요청이 끝날 때 닫힙니다).</p>
+<p>앞 실습: <a href="../../lab/pc/">영속성 컨텍스트</a> · 다음 실습: <a href="../../lab/merge/">준영속과 병합</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

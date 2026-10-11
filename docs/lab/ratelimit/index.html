@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>요청 수 제한: 초당 5건까지만 받는다는 것의 세 가지 의미 · 개발 학습 실습실</title>
+<meta name="description" content="요청이 한꺼번에 몰리면 서버를 지키기 위해 일부를 거절합니다(429 Too Many Requests). &quot;초당 5건&quot;이라는 같은 제한도 세는 방법에 따라 통과하는 요청이 달라집니다. 알고리즘과 요청이 들어오는 모양을 바꿔 가며 비교하세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/ratelimit/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ratelimit/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ratelimit/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="요청 수 제한: 초당 5건까지만 받는다는 것의 세 가지 의미 · 개발 학습 실습실">
+<meta property="og:description" content="요청이 한꺼번에 몰리면 서버를 지키기 위해 일부를 거절합니다(429 Too Many Requests). &quot;초당 5건&quot;이라는 같은 제한도 세는 방법에 따라 통과하는 요청이 달라집니다. 알고리즘과 요청이 들어오는 모양을 바꿔 가며 비교하세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/ratelimit/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 웹 공격과 방어</p>
+<h1>요청 수 제한</h1>
+<p><b>초당 5건까지만 받는다는 것의 세 가지 의미</b></p>
+<p>요청이 한꺼번에 몰리면 서버를 지키기 위해 일부를 거절합니다(429 Too Many Requests). &quot;초당 5건&quot;이라는 같은 제한도 세는 방법에 따라 통과하는 요청이 달라집니다. 알고리즘과 요청이 들어오는 모양을 바꿔 가며 비교하세요.</p>
+<p>개념 모형 · 널리 쓰이는 알고리즘 정의대로 만든 모형</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>Rate Limiting</dt>
+<dd>일정 시간 동안 허용하는 요청의 수를 제한하는 것이다. 특정 사용자나 클라이언트가 과도한 요청을 보내 시스템 전체에 영향을 주는 것을 막고, 시스템이 감당할 수 있는 범위에서만 요청을 받도록 한다. 제한을 넘은 요청에는 보통 429 상태 코드로 응답한다.</dd>
+<dt>HTTP 상태 코드</dt>
+<dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
+<dt>API 게이트웨이</dt>
+<dd>클라이언트의 모든 요청을 가장 먼저 받아 알맞은 내부 서비스로 전달하는 단일 진입점이다. 인증, 요청 수 제한, 로깅 같은 공통 기능을 한곳에서 처리한다. 클라이언트는 내부 서비스의 구성과 주소를 알 필요가 없다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 고정 윈도. 경계를 사이에 두고 0.4초 안에 10건이 전부 통과합니다.</li>
+<li><b>같은 요청을 슬라이딩 윈도로</b> — 어느 1초 구간을 잡아도 5건을 넘지 않습니다.</li>
+<li><b>토큰 버킷에 순간 몰림</b> — 모아 둔 토큰만큼은 한 번에 통과시킵니다.</li>
+<li><b>고르게 초당 8건</b> — 초과분 3건씩이 거절됩니다.</li>
+<li><b>토큰 버킷에 고른 요청</b> — 채워지는 속도만큼 꾸준히 통과합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>0.80초에 요청 1: 0초대 카운터가 1입니다. 5 이하이므로 통과.</li>
+<li>0.84초에 요청 2: 0초대 카운터가 2입니다. 5 이하이므로 통과.</li>
+<li>0.88초에 요청 3: 0초대 카운터가 3입니다. 5 이하이므로 통과.</li>
+<li>0.92초에 요청 4: 0초대 카운터가 4입니다. 5 이하이므로 통과.</li>
+<li>0.96초에 요청 5: 0초대 카운터가 5입니다. 5 이하이므로 통과.</li>
+<li>1.02초에 요청 6: 1초대 카운터가 1입니다. 5 이하이므로 통과.</li>
+<li>1.06초에 요청 7: 1초대 카운터가 2입니다. 5 이하이므로 통과.</li>
+<li>1.10초에 요청 8: 1초대 카운터가 3입니다. 5 이하이므로 통과.</li>
+<li>1.14초에 요청 9: 1초대 카운터가 4입니다. 5 이하이므로 통과.</li>
+<li>1.18초에 요청 10: 1초대 카운터가 5입니다. 5 이하이므로 통과.</li>
+<li>2.20초에 요청 11: 2초대 카운터가 1입니다. 5 이하이므로 통과.</li>
+<li>2.40초에 요청 12: 2초대 카운터가 2입니다. 5 이하이므로 통과.</li>
+<li>2.60초에 요청 13: 2초대 카운터가 3입니다. 5 이하이므로 통과.</li>
+<li>2.80초에 요청 14: 2초대 카운터가 4입니다. 5 이하이므로 통과.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>요청 14건 중 14건 통과, 0건 거절. 임의의 1초 구간에서 통과한 요청은 최대 10건입니다.</li>
+<li>고정 윈도는 정각마다 카운터가 0으로 돌아가므로, 경계 직전과 직후에 몰리면 짧은 시간에 제한의 두 배까지 통과합니다. 구현이 가장 단순하고 메모리도 적게 쓰는 대신 이런 틈이 있습니다.</li>
+<li>거절할 때는 429 상태 코드와 함께 언제 다시 시도하면 되는지(Retry-After 헤더)를 알려 주는 것이 좋습니다. 서버가 여러 대면 카운터를 Redis 같은 공용 저장소에 둬야 제한이 서버 수만큼 늘어나지 않습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 고정 윈도: 키 = 사용자 + 현재 초
+String key = &quot;rate:&quot; + userId + &quot;:&quot; + (now / 1000);
+long count = redis.incr(key);            // 이번 초의 요청 수 +1
+if (count == 1) redis.expire(key, 1);    // 1초 뒤 사라짐
+if (count &gt; 5) return tooManyRequests(); // 429</pre>
+<h2>이 모형의 전제</h2>
+<p>제한은 초당 5건으로 고정했습니다. 세 알고리즘의 동작은 널리 쓰이는 정의를 따랐습니다. 슬라이딩 윈도는 요청 시각을 모두 기록하는 방식(슬라이딩 윈도 로그)으로 구현했고, 토큰 버킷은 시간이 흐른 만큼 연속적으로 토큰이 채워진다고 보았습니다. 실제 서비스에서는 사용자나 IP, API 키 단위로 따로 셉니다.</p>
+<p>앞 실습: <a href="../../lab/infoleak/">정보 누출</a> · 다음 실습: <a href="../../lab/supplychain/">의존성과 공급망</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

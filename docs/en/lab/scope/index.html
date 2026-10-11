@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bean scopes: It is a prototype bean, so why is there only one object? · Dev Learning Lab</title>
+<meta name="description" content="A scope determines how many objects of a bean the container creates and how long they are used. Singleton means one per container, prototype means a new o…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/scope/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/scope/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/scope/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Bean scopes: It is a prototype bean, so why is there only one object? · Dev Learning Lab">
+<meta property="og:description" content="A scope determines how many objects of a bean the container creates and how long they are used. Singleton means one per container, prototype means a new o…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/scope/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
+<h1>Bean scopes</h1>
+<p><b>It is a prototype bean, so why is there only one object?</b></p>
+<p>A scope determines how many objects of a bean the container creates and how long they are used. Singleton means one per container, prototype means a new one every time the container is asked for the bean, and request means one per HTTP request. But when a singleton bean has a bean of another scope injected into it, something unexpected happens. Send two requests, use the shopping cart (Cart) twice in each request, and count how many objects are created.</p>
+<p>Checked against real execution · A Spring Boot 4.1.1 server was started, and HTTP requests were sent for all 9 combinations and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Bean scope</dt>
+<dd>This is the range over which a bean instance is created and kept. The default, singleton, creates only one instance per container, and everyone shares it. prototype creates a new instance each time it is requested. In a web environment there are also the request scope, which creates one per HTTP request, and the session scope, which creates one per session.</dd>
+<dt>Spring bean</dt>
+<dd>This is an object that the Spring IoC container creates and manages. Unlike an object that a developer creates directly with new, the container injects its dependencies and manages its initialization and destruction, and additional features such as transactions and AOP can be applied to it through a proxy.</dd>
+<dt>ObjectProvider</dt>
+<dd>This is a Spring tool that lets you retrieve a bean object from the container at the moment you need it instead of having it injected right away. If you declare the type of a constructor parameter or a field as, for example, ObjectProvider&lt;Cart&gt;, the container injects it, and each call to getObject() asks the container for a bean of that type. So for a prototype bean each call returns a new object, and for a request-scoped bean it returns the object of the request that is being handled now. It is mainly used when a singleton bean uses a bean that is shorter-lived than itself. If you need to keep using the same object within one unit of work, retrieve it only once and keep it in a local variable.</dd>
+<dt>Scoped proxy</dt>
+<dd>This is a stand-in object that is injected in place of the real object when a bean of a scope other than singleton is injected into another bean. If you specify proxyMode = ScopedProxyMode.TARGET_CLASS in @Scope, the container creates a proxy that extends that class and injects it. Each time one of its methods is called, the proxy looks up the real object for that scope in the container and passes the call on to it. Used with the request scope, it lets a singleton bean use a different object for each request without any change to its code, and @RequestScope has this setting built in. Used with the prototype scope, it creates a new object every time a method is called, so take care.</dd>
+<dt>Proxy</dt>
+<dd>This is a stand-in object that receives calls in place of the real object. When it receives a call, it does some additional work and then passes the call on to the real object. Spring wraps a bean that needs a feature such as AOP or @Transactional in such an object and registers it in the container, so what other beans receive by injection is this stand-in, not the real object.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A prototype bean is injected into a singleton bean. However many requests you send, it is the same object.</li>
+<li><b>Retrieving with ObjectProvider</b> — A new object is created each time one is retrieved.</li>
+<li><b>With a singleton</b> — However you obtain it, it is the only object in the container.</li>
+<li><b>Injecting a request-scoped bean directly</b> — There is no request at startup, so the bean cannot be created. Startup fails.</li>
+<li><b>request scope + ObjectProvider</b> — Within the same request it is the same object, and a different request gets a different object.</li>
+<li><b>request scope + proxy</b> — The code of OrderService stays as it is, and one object is used per request.</li>
+<li><b>prototype + proxy</b> — A new object is created every time a method is called.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Container startup: The three beans orderController, orderService, and cart are registered. orderController and orderService are singletons, and the scope of cart is prototype.</li>
+<li>Creating the orderService bean: The constructor requires a Cart, so the container is asked for a Cart. A prototype bean is created anew each time it is asked for, so the container creates Cart #1 and passes it. OrderService stores this object in a field.</li>
+<li>Startup is finished. Cart objects created so far: 1.</li>
+<li>Request 1: GET /order comes in. The order() method of OrderController calls orderService.cartNo() twice.</li>
+<li>cartNo() call #1: It calls no() on Cart #1, the object held in the field. Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.</li>
+<li>cartNo() call #2: It calls no() on Cart #1, the object held in the field. Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.</li>
+<li>The response to request 1 is &quot;1,1&quot;.</li>
+<li>Request 2: GET /order comes in. The order() method of OrderController calls orderService.cartNo() twice.</li>
+<li>cartNo() call #1: It calls no() on Cart #1, the object held in the field. Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.</li>
+<li>cartNo() call #2: It calls no() on Cart #1, the object held in the field. Injection happened only once, when OrderService was created, so no new object is created even though the bean is a prototype.</li>
+<li>The response to request 2 is &quot;1,1&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Startup succeeded. Cart objects created in total over two requests (two uses per request): 1. Request 1 used Cart #1, #1, and request 2 used Cart #1, #1.</li>
+<li>Prototype means that a new object is created &quot;each time the container is asked for the bean&quot;. Injection into a singleton bean happens only once, when that bean is created, so the one object received then keeps being used. If you expected a new object on each use, this is a bug.</li>
+<li>If you need a new object on each use, have an ObjectProvider injected and retrieve the object with getObject(). If two singleton beans have a prototype bean injected, each of the two receives a different object.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Component
+@Scope(&quot;prototype&quot;)
+class Cart {
+    private static int created = 0;   // number of Cart objects created so far
+    private final int no;             // which object this is, in order of creation
+
+    Cart() {
+        created++;
+        no = created;
+    }
+
+    public int no() {
+        return no;
+    }
+}
+
+@Component
+class OrderService {                  // singleton, because no scope is specified
+    private final Cart cart;
+
+    OrderService(Cart cart) {         // injection happens only once, when OrderService is created
+        this.cart = cart;
+    }
+
+    int cartNo() {
+        return cart.no();
+    }
+}
+
+@RestController
+class OrderController {
+    private final OrderService orderService;
+
+    OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @GetMapping(&quot;/order&quot;)
+    String order() {
+        int first = orderService.cartNo();
+        int second = orderService.cartNo();   // used twice within one request
+        return first + &quot;,&quot; + second;
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>All 9 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9, embedded Tomcat 11) on this PC and checked against the results. For each combination, source code with the same structure as on the screen was compiled, the server was started, and two real GET /order requests were sent to read the Cart numbers in the responses. These were compared: the number of times the constructor of Cart was called (right after startup and after the two requests), what the field of OrderService holds (a Cart, an ObjectProvider, or a proxy), and the exception chain of the startup failure (UnsatisfiedDependencyException → UnsatisfiedDependencyException → ScopeNotActiveException → IllegalStateException). The second request was sent after the first one had finished (the &quot;Singleton beans and state&quot; lab covers requests sent at the same time). The following were also confirmed by execution: when two singleton beans have a prototype bean injected, they receive different objects; when a proxy is used with a prototype bean, a value stored with add is not visible in the size call right after it (the result is 0); a bean annotated with @RequestScope starts up even when it is injected directly and has one object per request; and the @PreDestroy method of a request-scoped bean is called each time a request ends. Not covered: the session scope and the application scope, other ways to retrieve a prototype bean (@Lookup, jakarta.inject.Provider), and the proxy mode that uses interfaces (ScopedProxyMode.INTERFACES). The Cart on the screen uses a static variable to count the objects, but real code that receives requests at the same time must not count this way.</p>
+<p>Previous lab: <a href="../../lab/singleton/">Singleton beans and state</a> · Next lab: <a href="../../lab/lifecycle/">Bean lifecycle callbacks</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

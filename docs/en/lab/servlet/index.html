@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Servlets: How an HTTP request reaches Java code · Dev Learning Lab</title>
+<meta name="description" content="What a browser sends is an HTTP request made of text. A servlet container such as Tomcat reads that text, turns it into Java objects, and calls the method…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/servlet/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/servlet/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/servlet/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Servlets: How an HTTP request reaches Java code · Dev Learning Lab">
+<meta property="og:description" content="What a browser sends is an HTTP request made of text. A servlet container such as Tomcat reads that text, turns it into Java objects, and calls the method…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/servlet/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
+<h1>Servlets</h1>
+<p><b>How an HTTP request reaches Java code</b></p>
+<p>What a browser sends is an HTTP request made of text. A servlet container such as Tomcat reads that text, turns it into Java objects, and calls the method of the servlet that is mapped to the path. A servlet is a Java class that &quot;receives a request object and writes to a response object&quot;. Change the request and see who does what, when the servlet object is created, and how many times it is used.</p>
+<p>Checked against real execution · 48 different requests were sent to Tomcat 11.0.24 and Spring Boot 4.1.1 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Servlet and servlet container</dt>
+<dd>A servlet is the Java standard interface that receives an HTTP request, processes it, and produces a response. A servlet container (such as Tomcat) accepts network connections, parses requests, calls the right servlet, and manages the servlet lifecycle and the request-handling threads. Spring MVC runs on top of a single servlet called DispatcherServlet.</dd>
+<dt>DispatcherServlet and the front controller pattern</dt>
+<dd>This is the servlet in Spring MVC that receives every HTTP request first. It coordinates the whole flow: it finds and calls the controller that handles the request, and it turns the result into a response. A structure like this, in which a single entry point receives all requests, does the common processing, and then hands each request to the part responsible for it, is called the front controller pattern.</dd>
+<dt>Embedded server</dt>
+<dd>This is a web server (Tomcat by default) that is included inside a Spring Boot application and runs together with it. You can run the application with a single java -jar command, without the steps of installing a server separately and deploying the application to it.</dd>
+<dt>Web server and application server</dt>
+<dd>A web server is a program that receives HTTP requests and either responds with static files such as images and HTML or forwards the requests to another server (Nginx, Apache). An application server (web application server) is a program that runs program code and builds a result for each request (Tomcat). A common setup puts a web server in front and passes requests on to the application server.</dd>
+<dt>Tomcat's threading model</dt>
+<dd>Tomcat manages its request processing threads in a pool, and one thread takes one request and handles it until the response is finished. The number of requests it can handle at the same time is limited by the maximum number of threads (200 by default), and when all threads are in use, new requests wait. A thread stays occupied even while the request is waiting on a database or an external call.</dd>
+<dt>HTTP methods</dt>
+<dd>The part of an HTTP request that indicates the action the request wants to perform on a resource. GET means read, POST means create or a processing request, PUT means replace the whole resource, PATCH means modify part of it, and DELETE means delete. Use each one according to its meaning so that HTTP behavior such as caching and retries works as expected.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — GET /hello twice. The servlet object is created only once, at the first request.</li>
+<li><b>Creating it at server startup</b> — The setup work is done at server startup, not at the first request.</li>
+<li><b>A POST arrives but there is only doGet</b> — The request reaches the servlet but is rejected with 405.</li>
+<li><b>A path that nothing is mapped to</b> — No servlet matches, so the response is 404.</li>
+<li><b>In Spring MVC</b> — There is only one servlet, DispatcherServlet, and it calls the controller.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The server starts. Tomcat listens for connections on port 8080 and builds a table of &quot;which servlet handles which path&quot;. It registers HelloServlet, which is annotated with @WebServlet(&quot;/hello&quot;), as the servlet for /hello. The servlet object has not been created yet.</li>
+<li>Request #1: The browser connects to the server and sends an HTTP request. What it sends is a few lines of text, like the ones shown on the screen.</li>
+<li>Tomcat assigns a thread from its thread pool and parses the text it received into an HttpServletRequest object. It also creates an empty HttpServletResponse object to hold the response. The servlet does not have to parse the text itself. It only has to read the values from this object.</li>
+<li>Tomcat looks in the table for the servlet mapped to the path /hello. It is HelloServlet.</li>
+<li>Tomcat creates the HelloServlet object at the first request. The developer does not create it with new. The container does. This one object is used until the server shuts down.</li>
+<li>HelloServlet.init() is called once. This is where the servlet does the setup it needs before it receives requests.</li>
+<li>Tomcat calls service(request, response) of HelloServlet. service() looks at the HTTP method of the request and calls doGet().</li>
+<li>doGet() runs the code that we wrote. It reads name from request and writes the status and the body to response.</li>
+<li>The method of the servlet has finished. Tomcat turns the content of the HttpServletResponse into the text of an HTTP response and sends it to the browser. It discards the request and response objects used for this request and returns the thread to the pool. The HelloServlet object stays as it is and waits for the next request.</li>
+<li>Request #2: The browser connects to the server and sends an HTTP request. What it sends is a few lines of text, like the ones shown on the screen.</li>
+<li>Tomcat assigns a thread from its thread pool and parses the text it received into an HttpServletRequest object. It also creates an empty HttpServletResponse object to hold the response. The servlet does not have to parse the text itself. It only has to read the values from this object.</li>
+<li>Tomcat looks in the table for the servlet mapped to the path /hello. It is HelloServlet.</li>
+<li>The HelloServlet object already exists. Tomcat does not create a new one and uses that object again. It does not call init() again either.</li>
+<li>Tomcat calls service(request, response) of HelloServlet. service() looks at the HTTP method of the request and calls doGet().</li>
+<li>doGet() runs the code that we wrote. It reads name from request and writes the status and the body to response.</li>
+<li>The method of the servlet has finished. Tomcat turns the content of the HttpServletResponse into the text of an HTTP response and sends it to the browser. It discards the request and response objects used for this request and returns the thread to the pool. The HelloServlet object stays as it is and waits for the next request.</li>
+<li>The server shuts down. Tomcat calls destroy() of HelloServlet once and then discards the object. This is the chance to clean up the resources that were opened.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Response: 200 OK. Response produced by: HelloServlet.doGet. HelloServlet objects created: 1 (at the first request). init calls: 1. Request handling calls: 2.</li>
+<li>A servlet is a Java class that receives one HTTP request and produces a response, and a servlet container (Tomcat) is the program that creates, calls, and destroys that servlet. The container accepts connections, turns the HTTP text into objects, and assigns threads, so the developer writes only the code that &quot;reads from the request and writes to the response&quot;.</li>
+<li>The number of requests was 2, but there was only one servlet object. What is created anew for each request is the request and response objects. Several threads use the one servlet object at the same time, so you must not store per-request values in the fields of the servlet (the same reason as for singleton beans in Spring).</li>
+<li>When the servlet is not created in advance, object creation and init() happen while the first request is being handled, so only the first request is slow. If the setup work is heavy, create the servlet in advance at server startup.</li>
+</ul>
+<h2>Code</h2>
+<pre>@WebServlet(urlPatterns = &quot;/hello&quot;)
+public class HelloServlet extends HttpServlet {
+
+    @Override
+    public void init() {                       // once, right after the object is created
+        // setup work
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        String name = req.getParameter(&quot;name&quot;);   // read from the request
+        resp.setContentType(&quot;text/plain; charset=UTF-8&quot;);
+        resp.getWriter().write(&quot;Hello, &quot; + name);   // write to the response
+    }
+
+    @Override
+    public void destroy() { }                  // once, when the server shuts down
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The model assumes that the servlet container is Tomcat and that requests arrive one at a time, in order. Three points follow the Jakarta Servlet specification and the documentation of HttpServlet: only one servlet object is created per servlet declaration, init and destroy are each called once, and a doPost that is not overridden returns 405. Only the main lines of the HTTP request and response text are shown. For the 36 combinations with a directly written servlet, requests were sent to a real Tomcat 11.0.24, and for the 12 combinations on the Spring MVC side, to a real Spring Boot 4.1.1, and it was confirmed that the response code, the counts of object creation, init, and request handling calls, and the time when the object was created match the screen. In this process, two points on the Spring side were corrected to match reality. The DispatcherServlet object is created when the server starts, not at the first request (only init happens at the first request), and the 404 and 405 responses are dispatched once more to /error, so there are two request handling calls per request. Among the entries for where the response was produced, &quot;Default servlet of Tomcat&quot; and &quot;Default doPost of HttpServlet&quot; were inferred from the response code and were not observed directly.</p>
+<p>Previous lab: <a href="../../lab/connpool/">Connection pool and OSIV</a> · Next lab: <a href="../../lab/mvc/">Spring MVC request flow</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>직렬화: 저장한 객체를 되살리면 무엇이 돌아오나 · 개발 학습 실습실</title>
+<meta name="description" content="자바의 기본 직렬화는 객체를 바이트로 바꿔 파일에 쓰고(writeObject), 그 바이트로 객체를 다시 만들어 냅니다(readObject). 그런데 객체의 모든 것이 저장되는 것은 아니고, 아무 객체나 저장할 수 있는 것도 아닙니다. point 값을 50으로 두고 저장한 다…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/serial/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/serial/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/serial/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="직렬화: 저장한 객체를 되살리면 무엇이 돌아오나 · 개발 학습 실습실">
+<meta property="og:description" content="자바의 기본 직렬화는 객체를 바이트로 바꿔 파일에 쓰고(writeObject), 그 바이트로 객체를 다시 만들어 냅니다(readObject). 그런데 객체의 모든 것이 저장되는 것은 아니고, 아무 객체나 저장할 수 있는 것도 아닙니다. point 값을 50으로 두고 저장한 다…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/serial/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 입출력</p>
+<h1>직렬화</h1>
+<p><b>저장한 객체를 되살리면 무엇이 돌아오나</b></p>
+<p>자바의 기본 직렬화는 객체를 바이트로 바꿔 파일에 쓰고(writeObject), 그 바이트로 객체를 다시 만들어 냅니다(readObject). 그런데 객체의 모든 것이 저장되는 것은 아니고, 아무 객체나 저장할 수 있는 것도 아닙니다. point 값을 50으로 두고 저장한 다음 70으로 바꾸고 나서 되살려 보면서, 무엇이 저장되고 무엇이 저장되지 않는지 확인합니다.</p>
+<p>실행으로 대조 · JDK 21에서 열다섯 가지 조합을 컴파일하고 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>직렬화와 역직렬화</dt>
+<dd>객체를 저장하거나 전송할 수 있는 형태(바이트열, JSON 등)로 바꾸는 것이 직렬화, 그것을 다시 객체로 복원하는 것이 역직렬화다. 웹 API에서는 객체와 JSON 사이의 변환(Jackson 등)이 대표적이다. 자바 기본 직렬화(Serializable)는 클래스 구조가 바뀌면 호환성 문제가 생기고 보안 위험이 있어 지금은 JSON 등의 형식을 주로 쓴다.</dd>
+<dt>Serializable</dt>
+<dd>자바의 기본 직렬화로 저장할 수 있는 클래스임을 표시하는 인터페이스다. 구현할 메서드가 하나도 없고, 클래스 선언에 implements Serializable을 붙이는 것만으로 표시가 된다. 이 표시가 없는 객체를 ObjectOutputStream으로 쓰려고 하면 NotSerializableException이 발생한다. 객체를 저장할 때는 그 객체가 필드로 가리키는 객체들도 함께 저장되므로, 그 객체들의 클래스도 모두 Serializable이어야 한다.</dd>
+<dt>transient</dt>
+<dd>직렬화할 때 이 필드는 저장하지 말라고 표시하는 키워드다. transient를 붙인 필드는 파일이나 네트워크로 나가는 바이트에 들어가지 않고, 되살린 객체에서는 그 타입의 기본값(숫자는 0, 참조형은 null)이 된다. 비밀번호처럼 밖에 남기면 안 되는 값, 다시 계산하면 되는 값, Serializable이 아니어서 저장할 수 없는 객체를 가리키는 필드에 쓴다. 되살린 뒤에 그 필드가 비어 있다는 점을 코드에서 고려해야 한다.</dd>
+<dt>serialVersionUID</dt>
+<dd>직렬화된 데이터가 어떤 버전의 클래스로 만들어졌는지를 나타내는 번호다. 객체를 저장할 때 이 번호가 함께 기록되고, 되살릴 때 지금 클래스의 번호와 다르면 InvalidClassException이 발생한다. 클래스에 private static final long serialVersionUID = 1L;처럼 직접 적지 않으면 자바가 클래스의 이름, 필드, 메서드 등으로부터 값을 계산하는데, 클래스를 조금만 고쳐도 이 값이 달라질 수 있다. 그래서 Serializable 클래스에는 이 번호를 직접 적어 두는 것이 권장된다.</dd>
+<dt>static</dt>
+<dd>인스턴스가 아니라 클래스에 속하는 멤버임을 나타내는 키워드다. static 필드는 클래스당 하나만 존재해 모든 인스턴스가 공유하고, static 메서드는 객체를 만들지 않고 호출한다. 값이 바뀌는 static 필드는 사실상 전역 변수이므로 여러 스레드가 동시에 접근할 때 문제가 되기 쉽다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — transient 필드. 50을 저장했는데 되살리면 0입니다.</li>
+<li><b>보통 필드</b> — 저장할 때의 값 50이 그대로 돌아옵니다.</li>
+<li><b>static 필드</b> — 저장된 값이 아니라 지금 클래스가 가진 값 70이 보입니다.</li>
+<li><b>Serializable을 구현하지 않으면</b> — 저장할 때 NotSerializableException이 발생합니다.</li>
+<li><b>필드로 가진 객체가 문제라면</b> — User가 아니라 Address 때문에 저장에 실패합니다.</li>
+<li><b>저장한 뒤 serialVersionUID를 바꾸면</b> — 되살릴 때 InvalidClassException이 발생합니다.</li>
+<li><b>serialVersionUID 없이 필드를 추가하면</b> — 자동으로 계산되는 값이 달라져 역시 되살리지 못합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>new User(&quot;kim&quot;): User 객체를 만듭니다. 생성자가 실행되어 &quot;생성자 실행&quot;이 한 번 출력됩니다.</li>
+<li>u.point = 50: 객체 u의 point 필드에 50을 넣습니다.</li>
+<li>out.writeObject(u): 객체 u의 필드 값을 바이트로 바꿔 파일에 씁니다. name = &quot;kim&quot;만 저장됩니다. point는 transient로 선언했으므로 건너뜁니다. 어떤 클래스의 객체인지 알 수 있도록 클래스 이름 User와 serialVersionUID(1)도 함께 기록됩니다.</li>
+<li>u.point = 70: 저장한 뒤에 메모리의 값을 70으로 바꿉니다. 이미 써 둔 파일의 내용은 바뀌지 않습니다.</li>
+<li>in.readObject(): 파일에 기록된 클래스 이름과 serialVersionUID가 지금의 User 클래스와 같은지 확인합니다. 같으므로 새 User 객체를 만들고 저장된 필드 값을 채워 넣습니다. 이때 User의 생성자는 실행되지 않습니다. &quot;생성자 실행&quot;은 다시 출력되지 않습니다.</li>
+<li>r.point: 0입니다. transient 필드는 파일에 저장되지 않았으므로 채워 넣을 값이 없습니다. 그 타입의 기본값(int는 0, 참조형이면 null)이 됩니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>저장은 성공, 되살리기는 성공했고 읽은 point는 0입니다. 생성자는 new로 만들 때 한 번만 실행됐습니다.</li>
+<li>transient를 붙인 필드는 저장되지 않고, 되살린 객체에서는 기본값이 됩니다. 비밀번호처럼 파일에 남기면 안 되는 값이나, 다시 계산하면 되는 값에 씁니다.</li>
+<li>되살릴 때는 Serializable 클래스의 생성자가 실행되지 않습니다. 생성자에서 하던 값 검사나 준비 작업이 건너뛰어진다는 뜻이므로, 믿을 수 없는 곳에서 온 데이터를 되살리는 것은 위험합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>class User implements Serializable {
+    private static final long serialVersionUID = 1L;
+    String name;
+    transient int point;                          // transient: 저장하지 않는다
+    User(String name) {
+        this.name = name;
+        System.out.println(&quot;생성자 실행&quot;);
+    }
+}
+
+User u = new User(&quot;kim&quot;);
+u.point = 50;
+try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(&quot;user.ser&quot;))) {
+    out.writeObject(u);                           // 객체를 바이트로 바꿔 파일에 쓴다
+}
+u.point = 70;                                     // 저장한 뒤에 값을 바꾼다
+
+try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;user.ser&quot;))) {
+    User r = (User) in.readObject();              // 파일의 바이트로 객체를 되살린다
+    System.out.println(r.name + &quot; &quot; + r.point);
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>열다섯 가지 조합마다 화면의 코드와 같은 소스를 이 PC의 JDK 21에서 컴파일하고 실행해, 저장과 되살리기의 성공 여부, 발생한 예외, 되살린 값, 생성자가 실행된 횟수를 대조했습니다. 저장한 뒤 클래스를 고치는 조합은 같은 이름의 User 클래스를 두 벌 따로 컴파일해, 한쪽으로 저장한 파일을 다른 쪽으로 읽었습니다. serialVersionUID를 적어 둔 채 필드를 추가하면 읽을 수 있고 새 필드가 null이라는 것, transient인 참조형 필드가 null이 된다는 것, static 필드를 다른 프로그램에서 읽으면 0이라는 것, Address 필드에 transient를 붙이면 저장된다는 것도 따로 실행해 확인했습니다. 파일에 실제로 기록되는 바이트의 형식은 그림에서 줄였습니다. 생성자가 실행되지 않는 것은 Serializable을 구현한 클래스의 이야기이며, 부모 클래스가 Serializable이 아닌 경우의 규칙, writeObject와 readObject를 직접 정의하는 방법, record의 직렬화는 다루지 않았습니다. 자바의 기본 직렬화는 보안 문제 때문에 새 코드에서는 잘 쓰지 않고 JSON 같은 형식을 주로 쓰지만, 기존 코드와 라이브러리를 이해하려면 이 규칙들을 알아야 합니다.</p>
+<p>앞 실습: <a href="../../lab/iobuf/">입출력 스트림과 버퍼</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

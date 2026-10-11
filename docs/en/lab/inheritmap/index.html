@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inheritance mapping: In how many tables, and how, are inherited classes stored? · Dev Learning Lab</title>
+<meta name="description" content="Java has inheritance, but the tables of a relational database do not. So you have to choose how to store a superclass Item and its subclasses Book, Album,…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inheritmap/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inheritmap/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/inheritmap/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Inheritance mapping: In how many tables, and how, are inherited classes stored? · Dev Learning Lab">
+<meta property="og:description" content="Java has inheritance, but the tables of a relational database do not. So you have to choose how to store a superclass Item and its subclasses Book, Album,…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/inheritmap/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Relationships</p>
+<h1>Inheritance mapping</h1>
+<p><b>In how many tables, and how, are inherited classes stored?</b></p>
+<p>Java has inheritance, but the tables of a relational database do not. So you have to choose how to store a superclass Item and its subclasses Book, Album, and Movie in tables. JPA has three strategies, and the one you choose changes the number and shape of the tables, the number of INSERTs when you save, and the shape of the queries when you load.</p>
+<p>Checked against real execution · 27 combinations were run on Hibernate 7.4.5 and H2, and the tables, the number of INSERTs, the numbers of joins and UNIONs in the find queries, and the rows left were checked</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Inheritance mapping</dt>
+<dd>The choice of how to store the inheritance structure of Java classes in tables. A relational database has no inheritance, so you have to choose which tables the fields of a superclass and its subclasses go into. In JPA, you put @Inheritance on the root entity and specify one of three strategies: joined subclass, single table, and table per concrete class. If you do not specify one, the single table strategy is used. The strategy changes the number of tables, the number of INSERTs when you save, and the shape of the query when you load.</dd>
+<dt>Joined subclass strategy (JOINED)</dt>
+<dd>An inheritance mapping strategy that creates a separate table for the superclass and for each subclass, and makes the primary key of a subclass table a foreign key that points to the primary key of the superclass table. The fields of the superclass are stored in the superclass table and the fields that only the subclass has are stored in the subclass table, so no value is repeated and no empty cells appear. In exchange, saving one object sends two INSERTs, and loading requires joins. If you find by the superclass type, it cannot tell which subclass the row belongs to, so it joins all the subclass tables.</dd>
+<dt>Single table per class hierarchy strategy (SINGLE_TABLE)</dt>
+<dd>An inheritance mapping strategy that puts the fields of the superclass and all the subclasses into one table. A discriminator column (named DTYPE by default) is created along with it, and it records which subclass each row belongs to. No join is needed, so the queries for saving and loading are simple. In exchange, the columns of the other subclasses are left as null, so the columns of the subclasses must allow null, and the table gets wider as subclasses are added.</dd>
+<dt>Table per concrete class strategy (TABLE_PER_CLASS)</dt>
+<dd>An inheritance mapping strategy that has no superclass table and creates one table for each subclass, repeating the superclass fields in every subclass table. It is simple when you save and load just one subclass type, because you need only that one table. But if you find by the superclass type, it cannot tell which table has the row, so it has to combine all the subclass tables with UNION. That is why this strategy is best avoided when you need to work with objects through the superclass type.</dd>
+<dt>JOIN (INNER, OUTER)</dt>
+<dd>The operation that combines rows of two tables according to a condition. INNER JOIN includes only the rows where the condition matches on both sides. LEFT OUTER JOIN includes every row of the left table and fills in NULL when there is no match on the right. Choose between them based on whether data without a match must stay in the result.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — You save one Book with the joined subclass strategy. There is one object, but 2 INSERTs are sent.</li>
+<li><b>Joined subclass: find by the superclass type</b> — It does not know which subclass the row belongs to, so it joins all the subclass tables.</li>
+<li><b>Single table: save</b> — One INSERT into one table. The columns of the other subclasses are left as null.</li>
+<li><b>Single table: find by the superclass type</b> — It reads only one table, with no join.</li>
+<li><b>Table per concrete class: save</b> — There is no superclass table, and one INSERT goes into the subclass table.</li>
+<li><b>Table per concrete class: find by the superclass type</b> — It combines all the subclass tables with UNION to search them.</li>
+<li><b>Joined subclass: find by the subclass type</b> — It joins only the subclass table and the superclass table.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>new Book(1L, &quot;Java&quot;, 20000, &quot;Alice&quot;): Creates one Book object. The id, name, and price inherited from the superclass Item and the author declared by Book are all together in this one object.</li>
+<li>em.persist(book): Hands the object to the persistence context. You set the id in the code yourself, so there is nothing to ask the DB, and the INSERT is not sent right away. It is postponed until commit.</li>
+<li>Transaction commit, first INSERT: With the joined subclass strategy, the fields of the superclass (id, name, price) go into the superclass table item. First, one row is inserted into item.</li>
+<li>Second INSERT: The field that only Book has (author) goes into the subclass table book. The id of book is both its primary key and a foreign key that points to the id of item. Saving one object took 2 INSERTs.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>4 tables are created (item, book, album, movie). SQL statements sent: 2 (INSERT). Tables that received rows: item, book.</li>
+<li>The joined subclass strategy creates a separate table for the superclass and for each subclass, and splits one object between two tables. The tables are tidy, because no value is written twice and there are no empty cells, but saving costs 2 INSERTs.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+abstract class Item {
+    @Id
+    Long id;
+    String name;
+    int price;
+}
+
+@Entity
+class Book extends Item {
+    String author;
+}
+
+@Entity
+class Album extends Item {
+    String artist;
+}
+
+@Entity
+class Movie extends Item {
+    String actor;
+}
+// Constructors are omitted
+
+// Inside a transaction
+Book book = new Book(1L, &quot;Java&quot;, 20000, &quot;Alice&quot;);
+em.persist(book);
+// Transaction commit</pre>
+<h2>Assumptions of this model</h2>
+<p>This lab assumes that the superclass Item is an abstract class and that each subclass has only one field. The primary key is set directly in the code, because the IDENTITY strategy cannot be used with the table per concrete class strategy (it was confirmed that Hibernate 7.4.5 throws a MappingException at startup). All 27 combinations (3 strategies, 3 things to do, and 1, 2, or 3 subclasses) were run on Hibernate 7.4.5 and an H2 database with code of the same structure, and the following were confirmed to match the screen: the tables and columns that were created, the foreign keys from the subclass tables to the superclass table, the kinds of SQL sent and how many times for each table, the tables read by the find query and the number of joins and UNIONs, whether a discriminator column condition is added, the type of the returned object, and the rows left in the DB. With the joined subclass strategy and the table per concrete class strategy, Hibernate also creates temporary tables (their names start with ht_ or hte_) for bulk update queries. They have nothing to do with the mapping, so they are left out of the screen. That the joined subclass strategy has no discriminator column (DTYPE) is Hibernate's default behavior, and it was also confirmed by running that adding @DiscriminatorColumn creates a dtype column in the item table. It was also confirmed that if you do not write @Inheritance at all, the same table as the single table strategy is created. The SQL statements on the screen are shortened to be easy to read, so they are not letter-for-letter the same as the actual statements. In the actual SQL, a find by the superclass type tells the subclasses apart with a CASE expression in the joined subclass strategy, and with a number attached to each subclass in the table per concrete class strategy. The order of the columns inside a table may also differ from the actual one.</p>
+<p>Previous lab: <a href="../../lab/relations/">Many-to-one, one-to-many, one-to-one, many-to-many</a> · Next lab: <a href="../../lab/cascade/">Cascade and orphan removal</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

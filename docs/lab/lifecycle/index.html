@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>빈 생명주기 콜백: 생성자에서 주입받은 필드를 썼더니 왜 null인가 · 개발 학습 실습실</title>
+<meta name="description" content="컨테이너는 빈을 정해진 순서로 다룹니다. 생성자로 객체를 만들고, 의존성을 넣고, 초기화 콜백을 부르고, 쓰다가, 컨테이너가 닫힐 때 소멸 콜백을 부릅니다. 가격표를 미리 읽어 두는 PriceCache 빈으로, 준비 작업을 어디에 두어야 하는지와 콜백이 어떤 순서로 불리는지…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/lifecycle/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lifecycle/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lifecycle/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="빈 생명주기 콜백: 생성자에서 주입받은 필드를 썼더니 왜 null인가 · 개발 학습 실습실">
+<meta property="og:description" content="컨테이너는 빈을 정해진 순서로 다룹니다. 생성자로 객체를 만들고, 의존성을 넣고, 초기화 콜백을 부르고, 쓰다가, 컨테이너가 닫힐 때 소멸 콜백을 부릅니다. 가격표를 미리 읽어 두는 PriceCache 빈으로, 준비 작업을 어디에 두어야 하는지와 콜백이 어떤 순서로 불리는지…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/lifecycle/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › IoC 컨테이너와 DI</p>
+<h1>빈 생명주기 콜백</h1>
+<p><b>생성자에서 주입받은 필드를 썼더니 왜 null인가</b></p>
+<p>컨테이너는 빈을 정해진 순서로 다룹니다. 생성자로 객체를 만들고, 의존성을 넣고, 초기화 콜백을 부르고, 쓰다가, 컨테이너가 닫힐 때 소멸 콜백을 부릅니다. 가격표를 미리 읽어 두는 PriceCache 빈으로, 준비 작업을 어디에 두어야 하는지와 콜백이 어떤 순서로 불리는지 확인해 보세요.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1에서 스무 가지 조합을 실행해 불린 순서를 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>빈 생명주기</dt>
+<dd>빈이 만들어져 사라지기까지의 과정이다. 객체 생성, 의존성 주입, 초기화 콜백 호출, 사용, 컨테이너 종료 시 소멸 콜백 호출의 순서로 진행된다. 의존성이 모두 주입된 뒤에 해야 하는 초기화 작업은 @PostConstruct에, 종료 전 정리 작업은 @PreDestroy에 둔다.</dd>
+<dt>@PostConstruct와 @PreDestroy</dt>
+<dd>빈의 초기화 시점과 소멸 시점에 불릴 메서드를 표시하는 애너테이션이다. 컨테이너는 객체를 만들고 의존성 주입을 끝낸 뒤에 @PostConstruct가 붙은 메서드를 부르고, 컨테이너가 닫힐 때 @PreDestroy가 붙은 메서드를 부른다. 그래서 주입받은 객체를 써야 하는 준비 작업은 생성자가 아니라 @PostConstruct 메서드에 둔다. 스프링의 것이 아니라 jakarta.annotation 패키지의 애너테이션이다. 프로토타입 스코프의 빈에서는 @PreDestroy가 불리지 않는다.</dd>
+<dt>InitializingBean과 DisposableBean</dt>
+<dd>빈의 초기화와 소멸 시점에 불릴 메서드를 정하는 스프링의 두 인터페이스다. InitializingBean을 구현하면 의존성 주입이 끝난 뒤에 afterPropertiesSet()이 불리고, DisposableBean을 구현하면 컨테이너가 닫힐 때 destroy()가 불린다. 클래스가 스프링의 인터페이스를 구현해야 하므로 코드가 스프링에 묶인다. 같은 일을 @PostConstruct와 @PreDestroy로, 또는 @Bean의 initMethod와 destroyMethod로도 할 수 있다. 세 가지를 함께 쓰면 애너테이션, 인터페이스, @Bean에 지정한 메서드의 순서로 불린다.</dd>
+<dt>생성자 주입, 세터 주입, 필드 주입</dt>
+<dd>의존성을 넣는 세 가지 방법이다. 생성자 주입은 객체 생성 시 의존성을 받으므로 필드를 final로 둘 수 있고 의존성이 빠진 채 객체가 만들어지는 일이 없어 스프링이 권장한다. 세터 주입은 선택적인 의존성에 쓴다. 필드 주입은 필드에 @Autowired를 붙이는 방식으로 코드는 짧지만 스프링 없이 객체를 만들어 테스트하기 어렵다.</dd>
+<dt>@Configuration과 @Bean</dt>
+<dd>@Configuration은 빈 정의를 담은 설정 클래스임을 나타내고, 그 안의 @Bean 메서드가 반환하는 객체가 빈으로 등록된다. 직접 수정할 수 없는 외부 라이브러리의 클래스를 빈으로 만들거나 생성 과정을 직접 제어해야 할 때 쓴다. 내가 작성한 클래스는 보통 @Component 계열을 붙여 등록한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 필드 주입인데 생성자 안에서 repository를 씁니다. 기동이 실패합니다.</li>
+<li><b>@PostConstruct로 옮기면</b> — 주입이 끝난 뒤에 불리므로 repository를 쓸 수 있습니다.</li>
+<li><b>생성자 주입이면</b> — 생성자 안에서 이미 repository가 들어 있습니다.</li>
+<li><b>세 가지 콜백을 모두 쓰면</b> — 어느 것이 먼저 불리는지 순서를 봅니다.</li>
+<li><b>@Bean의 initMethod</b> — 클래스에 애너테이션을 붙이지 않고 설정 쪽에서 메서드 이름을 지정합니다.</li>
+<li><b>프로토타입 빈이면</b> — 초기화 콜백은 불리지만 소멸 콜백은 불리지 않습니다.</li>
+<li><b>InitializingBean과 DisposableBean</b> — 스프링의 인터페이스를 구현하는 방법입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>컨테이너 시작: priceRepository와 priceCache 두 빈을 등록합니다. priceCache의 스코프는 싱글톤입니다. 싱글톤 빈은 기동하는 동안 만들어집니다.</li>
+<li>생성자: 컨테이너가 PriceCache의 생성자를 호출해 객체를 만듭니다. 필드 주입은 객체가 만들어진 뒤에 이루어지므로, 생성자 안에서 본 repository는 아직 null입니다.</li>
+<li>생성자 안의 this.repository.findAll(): repository가 null이므로 NullPointerException이 발생합니다. 생성자가 끝나지 못해 객체가 만들어지지 않았고, 컨테이너는 기동을 중단합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>기동 실패: NullPointerException. 생성자가 불리는 시점에는 @Autowired 필드가 아직 채워지지 않았습니다.</li>
+<li>컨테이너는 생성자로 객체를 만든 다음에 @Autowired 필드를 채웁니다. 생성자 안에서 그 필드를 쓰면 null입니다.</li>
+<li>고치는 방법은 두 가지입니다. 준비 작업을 @PostConstruct 같은 초기화 콜백으로 옮기거나, 생성자 주입으로 바꿔 생성자의 인자로 받습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@Component
+class PriceCache {
+    @Autowired
+    private PriceRepository repository;
+    private Map&lt;String, Integer&gt; prices;
+
+    PriceCache() {
+        System.out.println(&quot;생성자: repository = &quot; + this.repository);
+        prices = this.repository.findAll();   // 가격표를 미리 읽어 둔다
+    }
+
+    int price(String name) {
+        return prices.get(name);
+    }
+}
+
+@Component
+class PriceRepository {
+    Map&lt;String, Integer&gt; findAll() {
+        return new HashMap&lt;&gt;(Map.of(&quot;사과&quot;, 1000));
+    }
+}
+
+// 쓰는 곳
+PriceCache priceCache = context.getBean(PriceCache.class);
+int price = priceCache.price(&quot;사과&quot;);
+context.close();                              // 컨테이너를 닫는다</pre>
+<h2>이 모형의 전제</h2>
+<p>스무 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9, jakarta.annotation-api 3.0.0)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해 컨테이너를 띄우고, 빈을 꺼내 price(&quot;사과&quot;)를 한 번 부른 뒤 컨테이너를 닫으면서, 생성자와 각 콜백이 불린 순서와 그때 repository 필드가 null이었는지를 기록해 모형의 순서와 하나하나 비교했습니다. 기동 실패의 예외 사슬은 BeanCreationException → BeanInstantiationException → NullPointerException이었고, 화면에는 맨 안쪽 원인을 적었습니다. 화면에서 단순화한 것: &quot;의존성 주입&quot; 단계는 따로 기록할 수 없어, 생성자에서는 null이고 초기화 콜백에서는 들어 있었다는 것으로 그 사이에 주입이 일어났음을 확인했습니다. 세터 주입과, 컨테이너가 닫힐 때 여러 빈 사이의 소멸 순서는 다루지 않았습니다. @Bean에 destroyMethod를 적지 않아도 public close() 메서드가 있으면 컨테이너가 닫힐 때 불리는 것(프로토타입이면 불리지 않는 것)도 실행으로 확인했습니다. 실행으로 확인하지 않고 스프링 공식 문서의 설명을 따른 것은 두 가지입니다: @PostConstruct와 @PreDestroy가 권장되는 방법이라는 것, 프로세스가 강제로 종료되면 컨테이너가 닫히지 못해 소멸 콜백이 불리지 않는다는 것.</p>
+<p>앞 실습: <a href="../../lab/scope/">빈 스코프</a> · 다음 실습: <a href="../../lab/proxy/">프록시와 자기 호출</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Optional: 값이 있는데도 orElse의 기본값 코드는 왜 실행되나 · 개발 학습 실습실</title>
+<meta name="description" content="Optional은 값이 있을 수도 없을 수도 있다는 것을 나타내는 상자입니다. 만드는 방법(of, ofNullable, empty)과 꺼내는 방법(get, orElse, orElseGet, map)에 따라, 값이 없을 때 예외가 나기도 하고 기본값이 쓰이기도 합니다. orEl…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/optional/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/optional/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/optional/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="Optional: 값이 있는데도 orElse의 기본값 코드는 왜 실행되나 · 개발 학습 실습실">
+<meta property="og:description" content="Optional은 값이 있을 수도 없을 수도 있다는 것을 나타내는 상자입니다. 만드는 방법(of, ofNullable, empty)과 꺼내는 방법(get, orElse, orElseGet, map)에 따라, 값이 없을 때 예외가 나기도 하고 기본값이 쓰이기도 합니다. orEl…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/optional/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 자주 쓰는 클래스</p>
+<h1>Optional</h1>
+<p><b>값이 있는데도 orElse의 기본값 코드는 왜 실행되나</b></p>
+<p>Optional은 값이 있을 수도 없을 수도 있다는 것을 나타내는 상자입니다. 만드는 방법(of, ofNullable, empty)과 꺼내는 방법(get, orElse, orElseGet, map)에 따라, 값이 없을 때 예외가 나기도 하고 기본값이 쓰이기도 합니다. orElse와 orElseGet은 결과가 같아 보여도 기본값을 만드는 코드가 실행되는 때가 다릅니다.</p>
+<p>실행으로 대조 · JDK 21에서 스물네 가지 조합을 실행해 출력과 예외를 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>Optional</dt>
+<dd>값이 있을 수도 없을 수도 있음을 타입으로 표현하는 컨테이너 클래스다. 메서드가 null을 반환하는 대신 Optional을 반환하면 호출하는 쪽이 값이 없는 경우를 처리하도록 유도할 수 있다. 주로 메서드의 반환 타입으로 사용한다.</dd>
+<dt>orElse와 orElseGet</dt>
+<dd>Optional이 비어 있을 때 대신 쓸 기본값을 정하는 두 메서드다. orElse(값)은 기본값 자체를 인자로 받고, orElseGet(함수)는 기본값을 만들어 내는 함수(람다)를 받는다. 자바는 메서드를 호출하기 전에 인자를 먼저 계산하므로, orElse(makeDefault())라고 쓰면 Optional에 값이 들어 있어도 makeDefault()가 실행된다. orElseGet은 비어 있을 때에만 넘겨받은 함수를 실행한다. 그래서 기본값을 만드는 데 시간이 걸리거나 저장, 기록 같은 다른 일이 함께 일어난다면 orElseGet을 쓴다.</dd>
+<dt>NullPointerException</dt>
+<dd>null인 참조로 메서드를 부르거나 필드를 읽으려고 할 때 발생하는 예외다. null은 가리키는 객체가 없다는 뜻이므로, 없는 객체에게 일을 시킬 수 없어서 예외가 난다. 컴파일러가 미리 잡아 주지 않는 Unchecked 예외라서 실행해 봐야 드러난다. null을 받지 않도록 만든 메서드(Optional.of, Objects.requireNonNull 등)에 null을 넘겨도 이 예외가 발생한다. 값이 없을 수 있는 곳에서는 먼저 null인지 검사하거나, Optional로 값이 없을 수 있음을 타입에 드러내어 줄인다.</dd>
+<dt>지연 평가(Lazy Evaluation)</dt>
+<dd>결과가 실제로 필요해질 때까지 계산을 미루는 방식이다. 스트림의 중간 연산은 호출 즉시 실행되지 않고 최종 연산이 호출될 때 한꺼번에 처리되며, 필요한 만큼만 처리하고 멈출 수 있다. JPA의 지연 로딩도 같은 발상으로, 연관 데이터를 실제로 사용할 때 조회한다.</dd>
+<dt>람다 표현식</dt>
+<dd>이름 없는 함수를 간결하게 표현하는 문법으로 Java 8에서 도입되었다. (매개변수) -&gt; 실행문 형태로 쓰며, 추상 메서드가 하나뿐인 함수형 인터페이스의 구현으로 사용된다. 동작(코드)을 값처럼 다른 메서드에 전달할 수 있게 해 준다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 값이 있는데도 makeDefault()가 실행됩니다.</li>
+<li><b>orElseGet으로 바꾸면</b> — 값이 있으면 makeDefault()가 실행되지 않습니다.</li>
+<li><b>Optional.of에 null을 넣으면</b> — Optional을 만드는 순간 NullPointerException이 납니다.</li>
+<li><b>비어 있는데 get()</b> — null이 아니라 NoSuchElementException이 나옵니다.</li>
+<li><b>비어 있을 때의 orElseGet</b> — 이때에만 makeDefault()가 실행됩니다.</li>
+<li><b>map으로 이어 가기 (값 없음)</b> — null 검사를 하지 않아도 예외 없이 끝까지 갑니다.</li>
+<li><b>map으로 이어 가기 (값 있음)</b> — 값에 함수를 차례로 적용합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>String name = &quot;kim&quot;: name이 문자열 &quot;kim&quot;을 가리킵니다.</li>
+<li>Optional.ofNullable(name): name이 null이 아니므로 값 &quot;kim&quot;을 담은 Optional을 만듭니다.</li>
+<li>System.out.println(opt): Optional[kim] 한 줄이 출력됩니다. 대괄호 안이 들어 있는 값입니다.</li>
+<li>makeDefault(): orElse를 호출하기 전에 괄호 안의 인자부터 계산합니다. 자바는 메서드를 부르기 전에 넘길 값을 먼저 구하기 때문입니다. opt에 값이 있는지와 상관없이 makeDefault()가 실행되어 &quot;makeDefault 실행&quot;이 출력되고, &quot;손님&quot;이 만들어집니다.</li>
+<li>opt.orElse(&quot;손님&quot;): 값이 들어 있으므로 &quot;kim&quot;을 돌려줍니다. 방금 만든 &quot;손님&quot;은 쓰이지 않고 버려집니다.</li>
+<li>System.out.println(result): kim 한 줄이 출력됩니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>결과는 &quot;kim&quot;이고, makeDefault()는 실행되었습니다.</li>
+<li>값이 있어서 기본값이 필요 없는데도 makeDefault()가 실행되었습니다. orElse의 괄호 안은 평범한 인자라서 orElse가 불리기 전에 항상 먼저 계산됩니다.</li>
+<li>기본값이 &quot;없음&quot; 같은 이미 만들어져 있는 값이면 orElse로 충분합니다. 기본값을 만드는 데 DB 조회나 객체 생성 같은 일이 따른다면 orElseGet을 씁니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>import java.util.Optional;
+
+public class Main {
+    static String makeDefault() {                // 기본값을 만드는 메서드
+        System.out.println(&quot;makeDefault 실행&quot;);
+        return &quot;손님&quot;;
+    }
+
+    public static void main(String[] args) {
+        String name = &quot;kim&quot;;
+        Optional&lt;String&gt; opt = Optional.ofNullable(name);
+        System.out.println(opt);
+
+        String result = opt.orElse(makeDefault());
+        System.out.println(result);
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>스물네 가지 조합(Optional.empty()는 name을 쓰지 않으므로 서로 다른 경우는 스무 가지)에서 화면에 찍히는 줄과 예외를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. makeDefault()가 실행됐는지는 그 메서드가 찍는 줄이 출력에 있는지로 확인했습니다. map이 비어 있을 때 함수를 실행하지 않는다는 것은 Optional의 문서에 적힌 동작이며, 실행에서는 예외 없이 &quot;이름 없음&quot;이 나오는 것으로 확인했습니다. 예외 메시지 &quot;No value present&quot;는 JDK 21 기준입니다. Optional.of(null)의 NullPointerException에는 메시지가 없습니다.</p>
+<p>앞 실습: <a href="../../lab/datetime/">날짜와 시간</a> · 다음 실습: <a href="../../lab/exflow/">예외와 finally</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

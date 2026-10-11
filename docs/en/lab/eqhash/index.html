@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>equals and hashCode: Why can HashMap not find the key when you override only equals? · Dev Learning Lab</title>
+<meta name="description" content="To treat two objects with the same contents as equal, you override equals. But before HashMap and HashSet call equals, they first use hashCode to decide w…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/eqhash/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/eqhash/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/eqhash/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="equals and hashCode: Why can HashMap not find the key when you override only equals? · Dev Learning Lab">
+<meta property="og:description" content="To treat two objects with the same contents as equal, you override equals. But before HashMap and HashSet call equals, they first use hashCode to decide w…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/eqhash/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Commonly used classes</p>
+<h1>equals and hashCode</h1>
+<p><b>Why can HashMap not find the key when you override only equals?</b></p>
+<p>To treat two objects with the same contents as equal, you override equals. But before HashMap and HashSet call equals, they first use hashCode to decide which bucket to look in. So if you override only one of equals and hashCode, a collection cannot find an object that you meant to be equal.</p>
+<p>Checked against real execution · The 12 combinations were run on JDK 21 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>equals and hashCode contract</dt>
+<dd>This is the rule that two objects that are equal according to equals() must return the same hashCode() value. A HashMap or HashSet first uses the hash value to find the storage location and then compares with equals inside it, so if you override only equals, an object with the same contents cannot be found. For this reason, always override both methods together, based on the same fields.</dd>
+<dt>Identity and equality</dt>
+<dd>Identity means that two references point to the same object in memory, and you compare it with the == operator. Equality means that two objects logically have the same value, and you compare it with the equals() method. If you use == to compare strings or value objects, the result can be false even when the contents are the same.</dd>
+<dt>Hash table and HashMap</dt>
+<dd>This data structure decides the storage location (bucket) of a key from the value that a hash function produces for that key. The location can be computed directly from the key alone, so lookup, insertion, and removal are O(1) on average. Java's HashMap has this structure; it does not guarantee order and is not thread-safe.</dd>
+<dt>Hash collision</dt>
+<dd>This happens when different keys are assigned to the same bucket. It cannot be avoided because the number of buckets is finite. Java's HashMap links the entries of the same bucket in a linked list, and when too many entries gather in one bucket, it converts the list to a red-black tree to shorten the search time. More collisions mean lower performance, so hashCode must spread values evenly.</dd>
+<dt>record</dt>
+<dd>This is a syntax, which became a standard feature in Java 16, for compactly declaring a (shallowly) immutable class whose purpose is to hold data. You write only the list of fields, and the constructor, accessor methods, equals, hashCode, and toString are generated automatically. All fields are final, but if a field refers to a mutable object (such as a List), the contents of that object can change. It is used to define DTOs and value objects.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Only equals is overridden. equals is true, but getting the value from the map returns null.</li>
+<li><b>Both overridden</b> — You can get the value with an object that has the same contents.</li>
+<li><b>Nothing overridden</b> — The two are treated as different objects even though their contents are the same.</li>
+<li><b>Only hashCode overridden</b> — The lookup reaches the same bucket, but equals is false, so the key is not found.</li>
+<li><b>Declared as a record</b> — Both methods are generated for you automatically.</li>
+<li><b>hashCode always returns the same value</b> — The contract is kept, but every object ends up in one bucket.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Two Order objects are created. The id of a is 1, and the id of b is 1. Their contents are the same, but in memory they are two different objects.</li>
+<li>a.equals(b): The overridden equals compares the id values. They are 1 and 1, so the result is true.</li>
+<li>Comparing hashCode: hashCode is not overridden, so the hashCode of Object is used. This value is determined separately for each object, so the values of a and b, which are different objects, are (almost always) different. Two objects for which equals is true now have different hashCode values. This breaks the contract that &quot;equal objects must have equal hash codes&quot;.</li>
+<li>map.put(a, &quot;order details&quot;): HashMap first uses a.hashCode() to decide which bucket (storage location) the entry goes into, and then puts the key a together with the value in that bucket.</li>
+<li>map.get(b): First, b.hashCode() decides which bucket to look in. The hashCode is different from that of a, so the bucket that holds a is not examined. equals is never even called, and null is returned. The value cannot be retrieved even though the two objects are equal according to equals.</li>
+<li>set.add(a), set.add(b): HashSet uses a HashMap internally, so it decides in the same order. b is treated as a different element from a, so both are added. The size is 2. Objects with the same contents are now in the set as duplicates.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>a.equals(b) is true, the hashCode values are different, map.get(b) is null, and the size of set is 2.</li>
+<li>If you override only equals, two objects that are equal according to equals go to different buckets. In a HashMap, a HashSet, or a cache that uses a HashMap, this becomes a bug in which you &quot;put it in but cannot find it&quot;. When you override equals, override hashCode together with it, using the same fields.</li>
+</ul>
+<h2>Code</h2>
+<pre>class Order {
+    final int id;
+    Order(int id) { this.id = id; }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof Order other &amp;&amp; id == other.id;
+    }
+}
+
+Order a = new Order(1);
+Order b = new Order(1);
+
+System.out.println(a.equals(b));
+System.out.println(a.hashCode() == b.hashCode());
+
+Map&lt;Order, String&gt; map = new HashMap&lt;&gt;();
+map.put(a, &quot;order details&quot;);
+System.out.println(map.get(b));
+
+Set&lt;Order&gt; set = new HashSet&lt;&gt;();
+set.add(a);
+set.add(b);
+System.out.println(set.size());</pre>
+<h2>Assumptions of this model</h2>
+<p>The results of the 12 combinations (equals, whether the hashCode values are the same, map.get, and the size of set) were checked against the results of running the same code on JDK 21 on this PC. Saying that the values of two objects that do not override hashCode are &quot;different&quot; means that this is almost always the case. The hashCode of Object can also give the same value to different objects (this still does not break the contract), and in that case the key may be found, depending on the result of equals. Even within the same bucket, HashMap skips a key whose hashCode value is different, without calling equals. The specification does not define the exact value that the hashCode of a record returns, but it does guarantee that two records that are equal according to equals have the same hashCode.</p>
+<p>Previous lab: <a href="../../lab/eq/">== and equals</a> · Next lab: <a href="../../lab/strbuild/">String, StringBuilder</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

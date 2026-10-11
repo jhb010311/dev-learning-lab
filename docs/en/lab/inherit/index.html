@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inheritance and overriding: When does the superclass constructor run when a subclass object is created? · Dev Learning Lab</title>
+<meta name="description" content="A single object of a subclass contains both the fields inherited from the superclass and the fields that the subclass declares. When you use new, the supe…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inherit/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inherit/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/inherit/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Inheritance and overriding: When does the superclass constructor run when a subclass object is created? · Dev Learning Lab">
+<meta property="og:description" content="A single object of a subclass contains both the fields inherited from the superclass and the fields that the subclass declares. When you use new, the supe…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/inherit/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
+<h1>Inheritance and overriding</h1>
+<p><b>When does the superclass constructor run when a subclass object is created?</b></p>
+<p>A single object of a subclass contains both the fields inherited from the superclass and the fields that the subclass declares. When you use new, the superclass constructor finishes first, and only then do the field initializers and the constructor body of the subclass run. Because of this order, there are cases in which you must write super(...), and when the superclass constructor calls an overridden method, that method sees subclass fields that are still empty.</p>
+<p>Checked against real execution · All 36 combinations were compiled and run on JDK 21, and the compilation result and the output were checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Inheritance</dt>
+<dd>This means defining a new class (the subclass) that receives the fields and methods of an existing class (the superclass). It reuses common code, and the subclass adds or overrides only the parts it needs. A Java class supports single inheritance only, and a change to the superclass affects every subclass, so it is best used only when there is a clear &quot;is-a&quot; relationship.</dd>
+<dt>Overriding</dt>
+<dd>This means that a subclass redefines a method of its superclass (or of an interface) with the same signature. At run time, the method that matches the type of the actual object is called, and this is how polymorphism is implemented. The access level cannot be made narrower, and static, private, and final methods cannot be overridden.</dd>
+<dt>Constructor</dt>
+<dd>This is code that runs once when an object is created with new and puts the fields into their initial state. Its name is the same as the class name, and it has no return type. A class can have several of them as long as they take different arguments, and the one that matches the arguments passed to new is selected. Its body runs after the fields have been set to their default values and the field initializers and initializer blocks have run.</dd>
+<dt>super</dt>
+<dd>This keyword refers, inside a subclass, to things that belong to the superclass. Writing super(arguments) as the first statement of a constructor calls the superclass constructor that matches those arguments, and if you do not write it, the compiler automatically inserts super() with no arguments. So when the superclass has no no-argument constructor, you must write super(arguments) yourself in the subclass constructor, and not writing it is a compile-time error. Writing super.method() inside a method calls the overridden method of the superclass.</dd>
+<dt>Default values of fields</dt>
+<dd>These are the values that are automatically placed in the fields that are not given a value when an object is created. Numeric types such as int get 0, boolean gets false, and reference types such as String get null. These values are what you see until a field initializer or a constructor assigns a value. Local variables inside a method have no default value, so reading one without assigning a value to it is a compile-time error.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The superclass constructor calls describe(). sound is assigned &quot;Woof&quot;, yet sound=null is printed.</li>
+<li><b>Only the order of execution</b> — The order is the superclass constructor, the field initializer of the subclass, and then the body of the subclass constructor.</li>
+<li><b>Without super</b> — The compiler inserts super(), which calls Animal() of the superclass.</li>
+<li><b>Without super when the superclass has no Animal()</b> — The automatically inserted super() has no constructor to call, so this is a compile-time error.</li>
+<li><b>Calling the superclass method too, with super.describe()</b> — Inside the overriding method, the original behavior of the superclass runs first.</li>
+<li><b>When the superclass has two constructors</b> — The superclass constructor that matches the arguments passed to super is selected.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Compilation: The compiler looks at the first line of the constructor Dog(). super(&quot;Buddy&quot;) means that the superclass constructor Animal(String name), which takes one string, will be called. Animal has this constructor, so the code compiles.</li>
+<li>new Dog() runs: Memory for one Dog object is allocated on the heap. This object contains both name, inherited from Animal, and sound, declared by Dog, and both are set to their default value, null.</li>
+<li>The first line of the constructor Dog(), super(&quot;Buddy&quot;): Before the field initializer and the constructor body of Dog run, control first passes to the superclass constructor, Animal(String name). This is because the inherited part must be ready first for the subclass to be able to use it.</li>
+<li>this.name = name in the body of Animal(String name): The &quot;Buddy&quot; that was passed in is assigned to name. sound is still null.</li>
+<li>System.out.println(&quot;Animal(String) runs&quot;): The body of the superclass constructor is running. Not a single line of the body of the Dog() constructor has run yet.</li>
+<li>Animal(String name) calls describe() in its body: Which describe() runs is determined by the type of the actual object that is being created now. The actual object is a Dog, so the describe() that Dog overrides runs, even though the call is made inside the superclass constructor.</li>
+<li>println(&quot;sound=&quot; + sound) inside describe() in Dog: The field initializer of Dog, sound = &quot;Woof&quot;, runs only after the superclass constructor finishes. Right now sound has its default value, null, so the output is sound=null.</li>
+<li>The field initializer of Dog, String sound = &quot;Woof&quot;: The superclass constructor has finished, and control is back in Dog(). Only now does the field initializer of Dog run, and sound is set to &quot;Woof&quot;.</li>
+<li>System.out.println(&quot;Dog() runs&quot;): The body of the Dog() constructor runs. The body of the subclass constructor comes last of all.</li>
+<li>Dog d = new Dog(): All the constructors have finished. The reference to the completed object is stored in the variable d.</li>
+<li>Called through d.describe(), println(&quot;sound=&quot; + sound) inside describe() in Dog: The object has been fully created by now, so sound holds &quot;Woof&quot;. The output is sound=Woof.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The output during new Dog() is Animal(String) runs / sound=null / Dog() runs, and the output of d.describe() is sound=Woof.</li>
+<li>The order of execution is: the superclass constructor Animal(String name) → the field initializer of Dog → the body of the Dog() constructor. The subclass constructor starts first, but on its first line it passes control to the superclass constructor, so the superclass side finishes first.</li>
+<li>Pitfall: The describe() that the superclass constructor called is the one that Dog overrides, and at that point sound in Dog is not initialized yet, so it is null. Even though the code says sound = &quot;Woof&quot;, sound=null was printed. If a method had been called on the field that is null, a NullPointerException would have been thrown.</li>
+<li>For this reason, the rule is that a constructor does not call methods that a subclass can override. The output of d.describe(), called after the object was fully created, is sound=Woof, as it should be.</li>
+<li>Dog overrides describe(), so describe() of Animal does not run. name was not printed. To run the superclass method as well, call super.describe() inside describe() of Dog.</li>
+</ul>
+<h2>Code</h2>
+<pre>class Animal {
+    String name;
+
+    Animal(String name) {
+        this.name = name;
+        System.out.println(&quot;Animal(String) runs&quot;);
+        describe();                // calls an overridden method from the constructor
+    }
+
+    void describe() {
+        System.out.println(&quot;name=&quot; + name);
+    }
+}
+
+class Dog extends Animal {
+    String sound = &quot;Woof&quot;;
+
+    Dog() {
+        super(&quot;Buddy&quot;);            // calls Animal(String) of the superclass
+        System.out.println(&quot;Dog() runs&quot;);
+    }
+
+    @Override
+    void describe() {
+        System.out.println(&quot;sound=&quot; + sound);
+    }
+}
+
+Dog d = new Dog();
+d.describe();</pre>
+<h2>Assumptions of this model</h2>
+<p>All 36 combinations were actually compiled and run with the same code on JDK 21 on this PC, and the compilation result, the error message, the output while the object is being created, and the output of d.describe() were checked against the results. It was also confirmed by compiling that the same error occurs when the subclass declares no constructor and the superclass has no no-argument constructor, and that super(...) must be the first statement of a constructor (as of JDK 21). In newer JDKs this is said to have changed so that some statements can come before super(...), but this was not verified on this PC. Simplifications: the constructor of Animal also calls the constructor of its own superclass, Object, before anything else, and this step is left out. The detailed rules for which method is selected are covered in the &quot;Polymorphism and method selection&quot; lab. The error message is the first line of the English message from javac.</p>
+<p>Previous lab: <a href="../../lab/static/">static and instance</a> · Next lab: <a href="../../lab/poly/">Polymorphism and method selection</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>재시도와 멱등성: 응답을 못 받아서 다시 보냈더니 · 개발 학습 실습실</title>
+<meta name="description" content="네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다. 메서드와 유실 상황을 바꿔 가며 서버 상태를 비교해 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/idem/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/idem/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/idem/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="재시도와 멱등성: 응답을 못 받아서 다시 보냈더니 · 개발 학습 실습실">
+<meta property="og:description" content="네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다. 메서드와 유실 상황을 바꿔 가며 서버 상태를 비교해 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/idem/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
+<h1>재시도와 멱등성</h1>
+<p><b>응답을 못 받아서 다시 보냈더니</b></p>
+<p>네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다. 메서드와 유실 상황을 바꿔 가며 서버 상태를 비교해 보세요.</p>
+<p>문서·표준 대조 · HTTP 표준(RFC 9110)</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>안전한 메서드와 멱등한 메서드</dt>
+<dd>안전한 메서드는 서버의 상태를 바꾸지 않는 읽기 전용 메서드로 GET, HEAD, OPTIONS, TRACE가 해당한다. 멱등한 메서드는 같은 요청을 여러 번 보내도 서버에 미치는 효과가 한 번 보낸 것과 같은 메서드로, 안전한 메서드 전부와 PUT, DELETE가 해당한다. POST와 PATCH는 멱등이 보장되지 않아 두 번 보내면 두 번 처리될 수 있다. 응답을 받지 못했을 때 다시 보내도 되는지를 판단하는 기준이 된다.</dd>
+<dt>HTTP 메서드</dt>
+<dd>요청이 자원에 대해 수행하려는 동작을 나타낸다. GET은 조회, POST는 생성이나 처리 요청, PUT은 전체 교체, PATCH는 일부 수정, DELETE는 삭제를 뜻한다. 메서드의 의미에 맞게 사용해야 캐시, 재시도 같은 HTTP의 동작이 기대대로 이뤄진다.</dd>
+<dt>멱등성과 멱등키</dt>
+<dd>멱등성은 같은 요청을 여러 번 수행해도 결과가 한 번 수행한 것과 같은 성질이다. 네트워크 문제로 같은 요청이 다시 전송될 수 있으므로, 결제처럼 중복되면 안 되는 작업은 멱등하게 만들어야 한다. 멱등키는 클라이언트가 요청마다 붙이는 고유한 값으로, 서버는 이미 처리한 키의 요청이 다시 오면 다시 처리하지 않고 이전 결과를 돌려준다.</dd>
+<dt>HTTP 상태 코드</dt>
+<dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — POST의 응답이 한 번 사라집니다. 주문이 두 건 만들어집니다.</li>
+<li><b>같은 상황에서 PUT</b> — 두 번 실행돼도 결과는 한 번 실행한 것과 같습니다.</li>
+<li><b>DELETE를 다시 보내면</b> — 두 번째 응답 코드는 다르지만 서버 상태는 같습니다.</li>
+<li><b>증가시키는 PATCH</b> — 재시도한 만큼 수량이 더 올라갑니다.</li>
+<li><b>POST에 멱등키를 붙이면</b> — 서버가 같은 요청임을 알아보고 한 번만 처리합니다.</li>
+<li><b>요청이 사라진 경우</b> — 서버가 처리한 적이 없으므로 재시도해도 문제없습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>처음 서버 상태입니다. 주문 1(마우스, 수량 2)이 있습니다.</li>
+<li>첫 요청: 서버가 요청을 처리했습니다(201 Created (주문 2)). 그런데 응답이 돌아오는 길에 사라졌습니다. 클라이언트는 서버가 처리했는지 알 수 없어서 같은 요청을 다시 보냅니다.</li>
+<li>1번째 재시도: 서버가 요청을 처리하고 201 Created (주문 3) 응답을 돌려줍니다. 이번에는 응답이 클라이언트에 도착했습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>클라이언트는 요청을 2번 보냈고 서버는 2번 실행했습니다. 최종 서버 상태: 주문 1 수량 2, 주문 2 수량 2, 주문 3 수량 2.</li>
+<li>POST는 멱등하지 않습니다. 실행될 때마다 새 주문이 생겨서 같은 주문이 2건 만들어졌습니다. 결제나 주문에서 중복 처리가 생기는 전형적인 경로입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>POST /orders HTTP/1.1
+Content-Type: application/json
+
+{ &quot;item&quot;: &quot;키보드&quot;, &quot;quantity&quot;: 2 }
+
+// 클라이언트: 응답이 3초 안에 오지 않으면
+// 같은 요청을 그대로 다시 보낸다</pre>
+<h2>이 모형의 전제</h2>
+<p>멱등성의 정의는 HTTP 표준(RFC 9110)을 따랐습니다. 같은 요청을 여러 번 보냈을 때 서버에 의도한 효과가 한 번 보낸 것과 같으면 멱등이며, GET·HEAD·OPTIONS·TRACE(안전한 메서드)와 PUT·DELETE가 여기에 속합니다. POST와 PATCH는 표준상 멱등이 보장되지 않습니다(PATCH는 내용에 따라 멱등하게 설계할 수도 있습니다). Idempotency-Key 헤더는 결제 API 등에서 널리 쓰이는 관례이며, 아직 표준으로 확정된 것은 아닙니다.</p>
+<p>앞 실습: <a href="../../lab/etag/">HTTP 캐시와 ETag</a> · 다음 실습: <a href="../../lab/redirect/">리다이렉션</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

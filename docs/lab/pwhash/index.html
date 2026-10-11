@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>비밀번호 해시: DB가 털렸을 때 비밀번호는 얼마나 버티나 · 개발 학습 실습실</title>
+<meta name="description" content="회원 두 명이 우연히 같은 비밀번호(password123)를 씁니다. 비밀번호를 DB에 저장하는 방식에 따라, DB가 유출됐을 때 공격자가 원래 비밀번호를 알아내는 데 걸리는 시간이 크게 달라집니다.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/pwhash/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/pwhash/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pwhash/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="비밀번호 해시: DB가 털렸을 때 비밀번호는 얼마나 버티나 · 개발 학습 실습실">
+<meta property="og:description" content="회원 두 명이 우연히 같은 비밀번호(password123)를 씁니다. 비밀번호를 DB에 저장하는 방식에 따라, DB가 유출됐을 때 공격자가 원래 비밀번호를 알아내는 데 걸리는 시간이 크게 달라집니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/pwhash/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 인증</p>
+<h1>비밀번호 해시</h1>
+<p><b>DB가 털렸을 때 비밀번호는 얼마나 버티나</b></p>
+<p>회원 두 명이 우연히 같은 비밀번호(password123)를 씁니다. 비밀번호를 DB에 저장하는 방식에 따라, DB가 유출됐을 때 공격자가 원래 비밀번호를 알아내는 데 걸리는 시간이 크게 달라집니다.</p>
+<p>일부만 실행으로 확인 · SHA-256은 실제 계산, bcrypt는 재지 못함</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>해시 함수와 솔트</dt>
+<dd>해시 함수는 입력을 고정된 길이의 값으로 바꾸는 함수로, 결과에서 원래 입력을 되돌릴 수 없다. 비밀번호는 원문 대신 해시 값을 저장해 유출되더라도 원문이 드러나지 않게 한다. 솔트는 비밀번호마다 다르게 덧붙이는 무작위 값으로, 같은 비밀번호라도 다른 해시가 되게 해 미리 계산해 둔 해시 목록을 이용한 공격을 막는다.</dd>
+<dt>bcrypt</dt>
+<dd>비밀번호 저장용으로 설계된 해시 함수다. 솔트를 자동으로 생성해 결과에 포함하고, 연산 비용(cost)을 설정해 일부러 계산을 느리게 만든다. 계산이 느리면 공격자가 수많은 후보를 대입해 보는 데 드는 시간이 크게 늘어난다. Spring Security의 BCryptPasswordEncoder가 이를 사용한다.</dd>
+<dt>대칭키 암호화와 비대칭키 암호화</dt>
+<dd>대칭키 암호화는 암호화와 복호화에 같은 키를 쓰는 방식으로 빠르지만 키를 상대와 안전하게 공유해야 하는 문제가 있다(AES). 비대칭키 암호화는 공개키와 개인키의 쌍을 쓰는 방식으로, 공개키로 암호화한 것은 개인키로만 풀 수 있어 키 공유 문제가 없지만 느리다(RSA). 실제로는 비대칭키로 대칭키를 안전하게 교환한 뒤 대칭키로 데이터를 암호화한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — SHA-256. 같은 비밀번호는 같은 해시가 됩니다.</li>
+<li><b>평문 저장</b> — 유출 즉시 전부 노출됩니다.</li>
+<li><b>솔트를 추가하면</b> — 같은 비밀번호도 해시가 달라집니다. 하지만 해시 자체가 빠릅니다.</li>
+<li><b>bcrypt</b> — 일부러 느리게 만든 해시입니다. 대입에 걸리는 시간이 달라집니다.</li>
+<li><b>bcrypt cost 14</b> — 공격은 더 느려지지만 로그인 검증도 느려집니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>회원 김철수와 이영희가 가입하면서 둘 다 비밀번호를 password123으로 정했습니다. 서버가 SHA-256 방식으로 DB에 저장합니다.</li>
+<li>두 회원의 저장값이 완전히 같습니다. DB를 본 사람은 두 사람의 비밀번호가 같다는 것을 바로 알 수 있고, 하나를 알아내면 같은 값을 가진 모든 회원의 비밀번호를 알게 됩니다.</li>
+<li>사고: 공격자가 DB의 회원 테이블을 통째로 빼냈습니다.</li>
+<li>해시는 거꾸로 계산할 수 없지만, 흔한 비밀번호의 해시를 미리 계산해 둔 표가 이미 존재합니다. 공격자는 저장값을 표에서 찾기만 하면 됩니다. password123의 SHA-256은 누구에게나 같은 값이기 때문입니다.</li>
+<li>흔한 비밀번호 1억 개를 회원 한 명에게 모두 대입해 보는 데 걸리는 시간: 1초 미만. password123처럼 흔한 비밀번호는 사실상 즉시 찾아냅니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>저장값이 두 회원에서 같습니다. 미리 계산한 표로 역추적: 가능. 사전 1억 개 대입: 1초 미만. 정상 로그인 한 번의 검증 시간: 거의 0.</li>
+<li>SHA-256 같은 일반 해시 함수는 파일 검증처럼 빨라야 하는 용도로 만들어졌습니다. 비밀번호 저장에는 &quot;빠르다&quot;는 것이 약점입니다.</li>
+<li>비밀번호는 암호화가 아니라 해시로 저장합니다. 암호화는 열쇠가 있으면 원래 값으로 되돌릴 수 있지만, 해시는 되돌릴 방법이 없고 서버도 원래 비밀번호를 알 필요가 없습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>MessageDigest md = MessageDigest.getInstance(&quot;SHA-256&quot;);
+byte[] hash = md.digest(rawPassword.getBytes(UTF_8));
+member.setPassword(HexFormat.of().formatHex(hash));</pre>
+<h2>이 모형의 전제</h2>
+<p>SHA-256 값은 실제로 계산한 값입니다. bcrypt 저장값은 형식을 보이기 위한 예시 문자열입니다. 대입 속도는 대략적인 크기를 나타냅니다. 고성능 그래픽 카드 한 장 기준으로 SHA-256은 초당 수백억 번, bcrypt cost 10은 초당 수천 번 수준이라고 보았고, 공개된 벤치마크의 자릿수에 맞춘 값입니다. 로그인 검증 시간도 서버 CPU에 따라 달라지는 어림값입니다. 스프링 시큐리티의 BCryptPasswordEncoder 기본 cost는 10입니다. 이 PC에서 openssl로 잰 SHA-256 속도는 CPU 코어 하나로 초당 약 3,200만 번이었습니다(화면의 초당 수백억 번은 그래픽 카드 기준의 공개 수치입니다). bcrypt는 이 PC에 라이브러리가 없어 실제로 재지 못했습니다.</p>
+<p>앞 실습: <a href="../../lab/cookie/">쿠키</a> · 다음 실습: <a href="../../lab/jwt/">JWT의 구조와 검증</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

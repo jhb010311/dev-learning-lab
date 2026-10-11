@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>merge와 rebase: 두 브랜치를 합치는 세 가지 모양 · 개발 학습 실습실</title>
+<meta name="description" content="feature 브랜치에서 작업하는 동안 main에도 새 커밋이 생겼습니다. 이 둘을 합칠 때 merge를 쓰느냐 rebase를 쓰느냐에 따라 커밋 그래프의 모양이 달라지고, 같은 줄을 고쳤다면 충돌이 납니다. 조건을 바꿔 가며 그래프를 비교하세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/git/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/git/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/git/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="merge와 rebase: 두 브랜치를 합치는 세 가지 모양 · 개발 학습 실습실">
+<meta property="og:description" content="feature 브랜치에서 작업하는 동안 main에도 새 커밋이 생겼습니다. 이 둘을 합칠 때 merge를 쓰느냐 rebase를 쓰느냐에 따라 커밋 그래프의 모양이 달라지고, 같은 줄을 고쳤다면 충돌이 납니다. 조건을 바꿔 가며 그래프를 비교하세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/git/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 협업</p>
+<h1>merge와 rebase</h1>
+<p><b>두 브랜치를 합치는 세 가지 모양</b></p>
+<p>feature 브랜치에서 작업하는 동안 main에도 새 커밋이 생겼습니다. 이 둘을 합칠 때 merge를 쓰느냐 rebase를 쓰느냐에 따라 커밋 그래프의 모양이 달라지고, 같은 줄을 고쳤다면 충돌이 납니다. 조건을 바꿔 가며 그래프를 비교하세요.</p>
+<p>실행으로 대조 · git 2.55로 임시 저장소를 만들어 확인</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>merge와 rebase</dt>
+<dd>두 브랜치의 변경을 합치는 두 가지 방법이다. merge는 양쪽의 이력을 그대로 두고 합친다(이력이 갈라져 있으면 병합 커밋이 생기고, 갈라지지 않았으면 브랜치 포인터만 앞으로 옮긴다). rebase는 내 커밋들을 대상 브랜치의 최신 지점 뒤로 옮겨 다시 적용해 이력을 한 줄로 만든다. rebase는 기존 커밋을 새 커밋으로 다시 만드는 것이어서 이미 다른 사람과 공유한 커밋에는 사용하지 않는다.</dd>
+<dt>Git 충돌(Conflict)</dt>
+<dd>두 브랜치가 같은 파일의 같은 부분을 서로 다르게 수정해 Git이 자동으로 합치지 못하는 상황이다. 충돌이 표시된 부분을 확인해 어느 쪽을 반영할지 또는 둘을 어떻게 합칠지 사람이 직접 결정해 수정한 뒤 병합을 마무리한다.</dd>
+<dt>Git의 fetch, pull, push</dt>
+<dd>fetch는 원격 저장소의 새로운 변경 내용을 내려받되 내 작업 브랜치에는 반영하지 않는 것이다. pull은 fetch에 더해 내려받은 변경을 현재 브랜치에 합치는 것까지 수행한다. push는 내 로컬의 커밋을 원격 저장소로 올리는 것이다.</dd>
+<dt>Git Flow와 GitHub Flow</dt>
+<dd>브랜치를 운영하는 전략이다. Git Flow는 출시용 브랜치와 개발 통합 브랜치를 두고 기능, 출시 준비, 긴급 수정을 각각의 브랜치로 관리하는 방식으로, 정해진 주기로 버전을 출시하는 제품에 맞는다. GitHub Flow는 기준 브랜치 하나에서 짧은 작업 브랜치를 만들어 리뷰 후 합치고 바로 배포하는 단순한 방식으로, 수시로 배포하는 서비스에 맞는다.</dd>
+<dt>코드 리뷰와 Pull Request</dt>
+<dd>Pull Request(PR)는 작업한 브랜치의 변경을 기준 브랜치에 합쳐 달라고 요청하는 것이다. 코드 리뷰는 합치기 전에 다른 개발자가 변경 내용을 검토하는 과정으로, 결함을 일찍 발견하고 코드의 일관성을 유지하며 팀 안에서 지식을 공유하는 효과가 있다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — merge. 두 갈래를 잇는 병합 커밋이 생깁니다.</li>
+<li><b>rebase 후 합치기</b> — feature의 커밋을 main 끝으로 옮겨 붙입니다. 한 줄로 이어집니다.</li>
+<li><b>main에 새 커밋이 없으면</b> — 병합 커밋 없이 main이 앞으로 이동만 합니다(fast-forward).</li>
+<li><b>같은 줄을 고쳤다면</b> — 충돌이 납니다. 사람이 골라 줘야 합니다.</li>
+<li><b>이미 올린 브랜치를 rebase하면</b> — 원격의 커밋과 달라져 강제로 올려야 합니다.</li>
+<li><b>squash</b> — feature의 커밋 여러 개를 하나로 뭉쳐 main에 올립니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>시작 상태입니다. feature 브랜치는 커밋 B에서 갈라져 D, E 두 커밋을 쌓았습니다. 그 사이 main에는 다른 사람이 올린 커밋 C가 생겼습니다.</li>
+<li>C와 E의 내용을 합친 새 커밋 M이 만들어집니다. M은 부모가 둘(C와 E)인 병합 커밋입니다. 기존 커밋 D와 E는 그대로이고, 언제 갈라져 언제 합쳐졌는지가 그래프에 남습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>그래프 모양: 두 갈래 + 병합 커밋. 새로 생긴 커밋: 병합 커밋 M. 충돌 해결: 없음.</li>
+<li>merge는 기존 커밋을 건드리지 않고 병합 커밋을 하나 추가합니다. 이력이 사실 그대로 남지만, 브랜치가 많으면 그래프가 복잡해집니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>git switch main
+git merge feature</pre>
+<h2>이 모형의 전제</h2>
+<p>커밋 다섯 개짜리 작은 저장소 예시입니다. 충돌은 한 파일의 한 곳에서만 난다고 가정했습니다. 각 명령의 동작은 Git 공식 문서(git-merge, git-rebase)의 설명을 따랐습니다. 팀에 따라 병합 방식(merge commit, squash, rebase)을 정해 두고 쓰며, 어느 쪽이 옳다기보다 이력을 어떤 모양으로 남길지의 선택입니다. 이 PC의 git 2.55로 임시 저장소를 만들어 확인했습니다. merge는 부모가 둘인 병합 커밋을 만들고 기존 커밋의 해시를 유지했으며, main에 새 커밋이 없을 때는 fast-forward였습니다. rebase 뒤에는 D와 E의 해시가 바뀌고 병합 커밋 없이 한 줄이 됐으며, 이미 올린 브랜치는 일반 push가 거부되고 강제 push가 필요했습니다. squash 커밋은 부모가 하나였고 git은 feature가 합쳐졌다고 인식하지 않았습니다. 충돌 표시도 화면의 모양 그대로였습니다.</p>
+<p>앞 실습: <a href="../../lab/trace/">분산 추적</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

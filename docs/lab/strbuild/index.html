@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>String, StringBuilder: 문자열 메서드를 불렀는데 왜 원본이 그대로인가 · 개발 학습 실습실</title>
+<meta name="description" content="String은 한번 만들어지면 내용이 바뀌지 않는 객체입니다. concat, replace, toUpperCase 같은 메서드는 원본을 고치지 않고 새 문자열을 만들어 돌려주므로, 돌려준 값을 받지 않으면 아무 일도 없었던 것처럼 보입니다. 반대로 StringBuilder는…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/strbuild/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/strbuild/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/strbuild/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="String, StringBuilder: 문자열 메서드를 불렀는데 왜 원본이 그대로인가 · 개발 학습 실습실">
+<meta property="og:description" content="String은 한번 만들어지면 내용이 바뀌지 않는 객체입니다. concat, replace, toUpperCase 같은 메서드는 원본을 고치지 않고 새 문자열을 만들어 돌려주므로, 돌려준 값을 받지 않으면 아무 일도 없었던 것처럼 보입니다. 반대로 StringBuilder는…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/strbuild/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 자주 쓰는 클래스</p>
+<h1>String, StringBuilder</h1>
+<p><b>문자열 메서드를 불렀는데 왜 원본이 그대로인가</b></p>
+<p>String은 한번 만들어지면 내용이 바뀌지 않는 객체입니다. concat, replace, toUpperCase 같은 메서드는 원본을 고치지 않고 새 문자열을 만들어 돌려주므로, 돌려준 값을 받지 않으면 아무 일도 없었던 것처럼 보입니다. 반대로 StringBuilder는 객체 하나의 내용을 직접 고쳐 씁니다. 두 변수가 같은 객체를 가리키는지를 ==로 확인하면서 차이를 살펴봅니다.</p>
+<p>실행으로 대조 · JDK 21에서 열여덟 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>String의 불변성</dt>
+<dd>String 객체는 한번 만들어지면 그 안의 글자를 바꿀 수 없다는 성질이다. concat, replace, toUpperCase, trim 같은 메서드는 원본을 고치지 않고 결과를 담은 String을 돌려준다. 그래서 s.toUpperCase()처럼 호출만 하고 돌려준 값을 받지 않으면 s는 그대로이며, s = s.toUpperCase()처럼 다시 받아야 결과를 쓸 수 있다. 이때 바뀌는 것은 문자열 객체가 아니라 변수 s가 가리키는 대상이다. 내용이 바뀌지 않으므로 여러 곳에서 같은 문자열을 함께 가리켜도 안전하고, HashMap의 키로 쓰기에도 알맞다.</dd>
+<dt>불변 객체</dt>
+<dd>생성된 뒤에는 상태가 바뀌지 않는 객체다. 값이 바뀌지 않으므로 여러 스레드가 동시에 사용해도 안전하고, 다른 곳에 넘겨도 변경될 걱정이 없으며, 캐싱하거나 해시 컬렉션의 키로 쓰기에 적합하다. 필드를 private final로 선언하고 상태를 바꾸는 메서드를 두지 않으며, 클래스를 final로 해 하위 클래스가 동작을 바꾸지 못하게 한다. 필드가 가변 객체(List, Date 등)를 가리키면 생성자와 getter에서 복사본을 주고받아(방어적 복사) 밖에서 내부를 바꾸지 못하게 한다.</dd>
+<dt>StringBuilder와 StringBuffer</dt>
+<dd>내용을 바꿀 수 있는 가변 문자열 클래스다. String은 불변이라 연결할 때마다 새 객체가 만들어지지만, 이 둘은 내부 버퍼에 이어 붙여 객체 생성을 줄인다. StringBuffer는 메서드가 동기화되어 여러 스레드에서 안전하고, StringBuilder는 동기화가 없어 단일 스레드에서 더 빠르다.</dd>
+<dt>동일성과 동등성</dt>
+<dd>동일성은 두 참조가 메모리상 같은 객체를 가리키는지를 뜻하며 == 연산자로 비교한다. 동등성은 두 객체가 논리적으로 같은 값을 가지는지를 뜻하며 equals() 메서드로 비교한다. 문자열이나 값 객체를 비교할 때 ==를 쓰면 내용이 같아도 false가 나올 수 있다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — toUpperCase()를 불렀는데 s를 출력하면 그대로입니다.</li>
+<li><b>돌려준 값을 받으면</b> — s는 새 문자열을 가리키고, 처음 객체는 그대로 남습니다.</li>
+<li><b>concat도 마찬가지</b> — 이어 붙이는 메서드도 원본을 바꾸지 않습니다.</li>
+<li><b>반복문에서 +로 이어 붙이기</b> — 한 번 돌 때마다 s가 새 객체를 가리킵니다.</li>
+<li><b>StringBuilder로 이어 붙이기</b> — 끝까지 객체 하나를 고쳐 씁니다.</li>
+<li><b>StringBuilder의 append</b> — 돌려준 값을 받지 않아도 내용이 바뀝니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>String s = &quot;java&quot;: 내용이 &quot;java&quot;인 문자열 객체가 있고, 변수 s가 그 객체를 가리킵니다.</li>
+<li>String first = s: first에 s가 가리키는 곳을 그대로 넣습니다. 내용을 복사한 것이 아니라 두 변수가 같은 객체를 가리키게 된 것입니다. 처음 객체가 나중에 바뀌는지 보려고 둡니다.</li>
+<li>s.toUpperCase(): 원래 객체 &quot;java&quot;는 그대로 두고, 새 문자열 &quot;JAVA&quot; 객체를 만들어 돌려줍니다. 그런데 돌려준 것을 받는 변수가 없습니다. 새 문자열은 어느 변수에도 남지 않습니다.</li>
+<li>System.out.println(s): s가 가리키는 객체의 내용인 java 한 줄이 출력됩니다. 메서드를 불렀지만 s는 처음 객체를 그대로 가리키고 있어 아무 일도 없었던 것처럼 보입니다.</li>
+<li>System.out.println(first): first가 가리키는 처음 객체의 내용인 java 한 줄이 출력됩니다. 처음 객체의 내용은 바뀌지 않았습니다.</li>
+<li>s == first: 두 변수가 같은 객체를 가리키므로 true입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>s도 처음 객체도 java 그대로이고, s == first는 true입니다.</li>
+<li>String의 메서드는 원본을 고치지 않고 새 문자열을 돌려줍니다. 돌려준 값을 받지 않으면 결과가 버려집니다. 컴파일 오류도 예외도 나지 않아서 알아채기 어려운 실수입니다.</li>
+<li>결과를 쓰려면 s = s.toUpperCase()처럼 돌려준 값을 변수에 받아야 합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>String s = &quot;java&quot;;
+String first = s;                 // 처음 객체를 기억해 둔다
+
+s.toUpperCase();                 // 돌려준 값을 받지 않는다
+
+System.out.println(s);
+System.out.println(first);
+System.out.println(s == first);   // 같은 객체인가</pre>
+<h2>이 모형의 전제</h2>
+<p>열여덟 가지 조합(숨겨진 설정을 빼면 서로 다른 경우는 열 가지)의 출력을 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. &quot;새 객체가 만들어졌다&quot;는 것은 == 비교로 직전 객체와 다른 객체임을 확인한 것입니다. 실행 중에 실제로 몇 개의 객체가 메모리에 만들어지는지는 JVM의 최적화에 따라 달라질 수 있어 단정하지 않았습니다. 여기서 고른 메서드와 값은 모두 내용이 달라지는 경우입니다. 내용이 달라지지 않는 호출(예: 바꿀 글자가 없는 replace)에서는 String이 새 객체를 만들지 않고 자기 자신을 돌려주기도 합니다. StringBuilder가 안에서 글자를 담는 공간을 어떻게 늘리는지는 이 모형에서 다루지 않습니다.</p>
+<p>앞 실습: <a href="../../lab/eqhash/">equals와 hashCode</a> · 다음 실습: <a href="../../lab/datetime/">날짜와 시간</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

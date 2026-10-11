@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TCP와 UDP: 세 번에 나눠 보낸 데이터는 세 번에 나뉘어 도착하나 · 개발 학습 실습실</title>
+<meta name="description" content="TCP와 UDP는 프로그램의 데이터를 상대 프로그램까지 실어 나르는 두 가지 방식입니다. TCP는 먼저 연결을 맺고 바이트를 순서대로 빠짐없이 전하지만, 어디서 끊어 보냈는지는 전해 주지 않습니다. UDP는 연결 없이 덩어리째 그냥 보내고, 도착했는지는 책임지지 않습니다. 같…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/udp/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/udp/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/udp/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="TCP와 UDP: 세 번에 나눠 보낸 데이터는 세 번에 나뉘어 도착하나 · 개발 학습 실습실">
+<meta property="og:description" content="TCP와 UDP는 프로그램의 데이터를 상대 프로그램까지 실어 나르는 두 가지 방식입니다. TCP는 먼저 연결을 맺고 바이트를 순서대로 빠짐없이 전하지만, 어디서 끊어 보냈는지는 전해 주지 않습니다. UDP는 연결 없이 덩어리째 그냥 보내고, 도착했는지는 책임지지 않습니다. 같…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/udp/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 전송 계층</p>
+<h1>TCP와 UDP</h1>
+<p><b>세 번에 나눠 보낸 데이터는 세 번에 나뉘어 도착하나</b></p>
+<p>TCP와 UDP는 프로그램의 데이터를 상대 프로그램까지 실어 나르는 두 가지 방식입니다. TCP는 먼저 연결을 맺고 바이트를 순서대로 빠짐없이 전하지만, 어디서 끊어 보냈는지는 전해 주지 않습니다. UDP는 연결 없이 덩어리째 그냥 보내고, 도착했는지는 책임지지 않습니다. 같은 데이터를 두 방식으로 보내 보고 받는 쪽에서 무엇이 달라지는지 확인하세요.</p>
+<p>일부만 실행으로 확인 · Node.js 24의 net, dgram 모듈로 127.0.0.1에서 여덟 가지 조합 가운데 여섯 가지를 실행해 대조. TCP의 유실과 순서 바뀜 두 가지는 RFC 9293 기준</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>TCP와 UDP</dt>
+<dd>인터넷에서 데이터를 전송하는 두 가지 대표적인 방식이다. TCP는 통신 전에 연결을 맺고, 데이터가 빠짐없이 순서대로 도착하도록 보장하며, 문제가 생기면 다시 보낸다. UDP는 연결 없이 데이터를 보내며 도착 여부나 순서를 보장하지 않는 대신 가볍고 빠르다. 웹, 데이터베이스 연결은 TCP를, 실시간 영상·음성이나 DNS는 UDP를 주로 쓴다.</dd>
+<dt>바이트 스트림과 데이터그램</dt>
+<dd>데이터를 실어 나르는 두 가지 모양이다. 바이트 스트림은 바이트가 순서대로 끊김 없이 이어지는 흐름으로, TCP가 이 방식이다. 보내는 쪽이 몇 번에 나눠 썼는지는 전달되지 않아서, 세 번에 나눠 보낸 것이 한 번에 읽히거나 한 번에 보낸 것이 여러 번에 나뉘어 읽힐 수 있다. 데이터그램은 한 번에 보낸 덩어리가 그대로 하나의 단위로 전달되는 방식으로, UDP가 이 방식이며 덩어리끼리 합쳐지거나 쪼개져 읽히지 않는다. 그래서 TCP 위에서 메시지를 주고받는 프로그램은 길이를 먼저 적거나 구분 글자를 넣어 메시지의 끝을 스스로 표시해야 한다.</dd>
+<dt>소켓</dt>
+<dd>프로그램이 네트워크로 데이터를 주고받을 때 쓰는 통신의 끝점이며, 운영체제가 만들어 프로그램에 건네준다. 프로그램은 소켓에 쓰고 소켓에서 읽기만 하고, 실제로 데이터를 나누어 보내고 받는 일은 운영체제가 맡는다. TCP 연결 하나는 양쪽 끝의 소켓 한 쌍으로 이루어지고, 운영체제는 보내는 IP 주소, 보내는 포트, 받는 IP 주소, 받는 포트의 네 값으로 연결을 구분한다. 그래서 서버는 포트 하나로 여러 클라이언트의 연결을 함께 받을 수 있고, 연결마다 소켓이 하나씩 따로 생긴다. 다 쓴 소켓을 닫지 않으면 운영체제의 자원이 계속 묶인다.</dd>
+<dt>포트</dt>
+<dd>한 컴퓨터에서 돌고 있는 여러 프로그램 가운데 누가 데이터를 받을지 구분하는 0부터 65535까지의 번호다. IP 주소가 컴퓨터를 가리킨다면 포트는 그 컴퓨터 안의 프로그램을 가리키므로, 접속할 곳은 &quot;IP 주소:포트&quot;로 적는다. 서버 프로그램은 정해 둔 포트에서 연결을 기다리며, 웹 서버의 80번(HTTP)과 443번(HTTPS)처럼 널리 약속된 번호도 있다. 한 포트에서 연결을 기다릴 수 있는 프로그램은 보통 하나뿐이어서, 이미 쓰이는 포트에 서버를 또 띄우면 &quot;주소가 이미 사용 중&quot;이라는 오류가 난다. TCP의 포트와 UDP의 포트는 따로 관리되므로 번호가 같아도 서로 다른 것이다.</dd>
+<dt>3-way handshake</dt>
+<dd>TCP 연결을 맺을 때 거치는 세 단계의 과정이다. 클라이언트가 연결 요청(SYN)을 보내고, 서버가 수락과 함께 자신의 연결 요청(SYN+ACK)을 보내며, 클라이언트가 이를 확인(ACK)한다. 양쪽이 서로 보내고 받을 수 있는 상태임을 확인한 뒤 데이터 전송을 시작한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — TCP. 세 번에 나눠 보냈는데 받는 쪽은 한 덩어리로 읽습니다.</li>
+<li><b>같은 것을 UDP로</b> — 보낸 덩어리 그대로 세 개가 도착합니다.</li>
+<li><b>받는 프로그램 없이 UDP로</b> — 보내기는 세 번 다 성공합니다. 데이터는 사라집니다.</li>
+<li><b>받는 프로그램 없이 TCP로</b> — 연결부터 실패해서 아무것도 보내지 못합니다.</li>
+<li><b>UDP에서 하나가 사라지면</b> — 빠진 채로 받고, 보낸 쪽은 모릅니다.</li>
+<li><b>UDP에서 순서가 바뀌면</b> — 도착한 순서대로 받습니다.</li>
+<li><b>TCP에서 하나가 사라지면</b> — 운영체제가 다시 보내서 채웁니다. 프로그램은 모릅니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>net.connect(9000, '127.0.0.1'): TCP는 데이터를 보내기 전에 먼저 연결을 맺습니다(3-way handshake). 받는 프로그램이 9000번 포트에서 기다리고 있으므로 성공합니다. 이제 양쪽 운영체제가 이 연결로 오가는 바이트에 번호를 붙여 관리합니다.</li>
+<li>socket.write('AB'): 2바이트가 받는 쪽 운영체제에 도착해 수신 버퍼에 쌓입니다. 받는 프로그램은 아직 읽지 않았으므로 운영체제가 맡아 둡니다. TCP의 버퍼는 바이트가 차례로 쌓이는 한 줄입니다.</li>
+<li>socket.write('CD'): 2바이트가 받는 쪽 운영체제에 도착해 수신 버퍼에 쌓입니다. 앞의 바이트 바로 뒤에 이어 붙습니다. 어디까지가 한 번의 write였는지는 기록되지 않습니다.</li>
+<li>socket.write('EF'): 2바이트가 받는 쪽 운영체제에 도착해 수신 버퍼에 쌓입니다. 역시 앞의 바이트 뒤에 이어 붙어, 버퍼에는 6바이트가 한 줄로 놓입니다.</li>
+<li>받는 프로그램이 읽습니다: 'data' 이벤트 한 번에 6바이트 &quot;ABCDEF&quot;가 모두 나옵니다. 세 번에 나눠 보냈다는 흔적은 없습니다. TCP가 전하는 것은 순서가 맞는 바이트의 흐름이지, 덩어리의 경계가 아닙니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>TCP: 보낸 것은 &quot;AB&quot;, &quot;CD&quot;, &quot;EF&quot; 세 덩어리이고, 받는 프로그램이 읽은 것은 &quot;ABCDEF&quot;입니다.</li>
+<li>TCP는 바이트의 흐름(스트림)입니다. 순서와 내용은 지켜 주지만 write를 몇 번에 나눠 했는지는 전하지 않습니다. 그래서 TCP 위에서 메시지를 주고받는 프로그램은 &quot;어디까지가 메시지 하나인지&quot;를 스스로 정합니다. 길이를 먼저 적어 보내거나(HTTP의 Content-Length), 줄바꿈 같은 구분 글자를 씁니다.</li>
+<li>이 실습은 받는 프로그램이 늦게 읽는 경우입니다. 도착하자마자 읽으면 보낸 대로 세 번에 나뉘어 읽히기도 하지만, 그렇게 된다는 보장은 없습니다. &quot;write 한 번이 read 한 번&quot;이라고 가정한 코드는 내 컴퓨터에서는 돌다가 실제 환경에서 깨집니다.</li>
+<li>TCP는 하나라도 빠지거나 순서가 바뀌면 안 되는 곳에 씁니다. 웹(HTTP/1.1, HTTP/2), DB 연결, 파일 전송, 메일이 TCP 위에서 동작합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// Node.js (net 모듈): TCP
+const socket = net.connect(9000, '127.0.0.1');   // 먼저 연결을 맺는다
+socket.on('connect', async () =&gt; {               // 연결된 뒤에야 보낼 수 있다
+  socket.write('AB');  await sleep(50);           // 0.05초 간격으로 세 번
+  socket.write('CD');  await sleep(50);
+  socket.write('EF');
+});
+socket.on('error', e =&gt; console.log(e.code));    // 연결 실패는 여기로 온다
+
+// 받는 프로그램: 세 번이 다 도착한 뒤에 읽기 시작한다
+net.createServer({ pauseOnConnect: true }, conn =&gt; {
+  conn.on('data', d =&gt; console.log(d.toString()));
+  setTimeout(() =&gt; conn.resume(), 500);
+}).listen(9000, '127.0.0.1');</pre>
+<h2>이 모형의 전제</h2>
+<p>&quot;AB&quot;, &quot;CD&quot;, &quot;EF&quot;를 0.05초 간격으로 보내고 받는 프로그램은 세 번이 다 도착한 뒤에 읽는 상황입니다. 여덟 가지 조합 가운데 여섯 가지를 이 PC(윈도, Node.js 24)의 127.0.0.1에서 net과 dgram 모듈로 실제로 실행해 대조했습니다(조합마다 다섯 번 실행해 매번 같은 결과). UDP의 유실과 순서 바뀜은 보내는 쪽과 받는 쪽 사이에 데이터그램을 버리거나 늦게 넘기는 중계 프로그램을 두어 만들었고, 양 끝의 UDP 소켓이 이를 바로잡지 않는다는 것을 확인했습니다. TCP에서 유실과 순서 바뀜이 일어난 두 가지 조합은 이 PC에서 만들 수 없어 실행하지 않았으며, TCP 표준(RFC 9293 3.4절의 순서 번호, 3.8절의 확인 응답과 재전송)에 따라 &quot;프로그램이 읽는 결과는 아무 일 없을 때와 같다&quot;고 적었습니다. TCP에서 한 번의 읽기로 6바이트가 모두 나온 것은 이 PC에서 본 결과이고, 표준이 보장하는 것은 바이트의 순서와 내용뿐입니다. 읽기가 몇 번으로 나뉘는지는 상황에 따라 달라집니다. UDP가 데이터그램 단위로 전하고 도착을 보장하지 않는다는 것은 RFC 768과 RFC 1122 4.1절의 내용입니다. UDP 헤더에는 순서를 나타내는 번호가 없고(RFC 768), 그 아래의 IP도 순서를 지켜 주지 않습니다(RFC 791 1.2절). 받는 프로그램이 없을 때 운영체제가 ICMP 메시지로 알려 주기도 하지만, 이 실행에서 send의 결과나 오류 이벤트로 돌아온 것은 없었습니다. 운영체제의 버퍼가 가득 차서 버려지는 경우는 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/tcp/">TCP 연결과 재전송</a> · 다음 실습: <a href="../../lab/congestion/">흐름 제어와 혼잡 제어</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

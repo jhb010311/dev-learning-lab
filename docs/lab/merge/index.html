@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>준영속과 병합: merge로 이름만 고쳤는데 왜 다른 값이 지워지나 · 개발 학습 실습실</title>
+<meta name="description" content="영속성 컨텍스트 밖에 있는 준영속 객체는 값을 바꿔도 DB에 반영되지 않습니다. 반영하는 방법은 두 가지입니다. em.merge에 객체를 통째로 넘기는 병합과, 엔티티를 다시 조회해서 바꿀 값만 넣는 변경 감지입니다. 두 방법이 DB에 남기는 값이 어떻게 다른지 비교해 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/merge/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/merge/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/merge/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="준영속과 병합: merge로 이름만 고쳤는데 왜 다른 값이 지워지나 · 개발 학습 실습실">
+<meta property="og:description" content="영속성 컨텍스트 밖에 있는 준영속 객체는 값을 바꿔도 DB에 반영되지 않습니다. 반영하는 방법은 두 가지입니다. em.merge에 객체를 통째로 넘기는 병합과, 엔티티를 다시 조회해서 바꿀 값만 넣는 변경 감지입니다. 두 방법이 DB에 남기는 값이 어떻게 다른지 비교해 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/merge/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 영속성 관리</p>
+<h1>준영속과 병합</h1>
+<p><b>merge로 이름만 고쳤는데 왜 다른 값이 지워지나</b></p>
+<p>영속성 컨텍스트 밖에 있는 준영속 객체는 값을 바꿔도 DB에 반영되지 않습니다. 반영하는 방법은 두 가지입니다. em.merge에 객체를 통째로 넘기는 병합과, 엔티티를 다시 조회해서 바꿀 값만 넣는 변경 감지입니다. 두 방법이 DB에 남기는 값이 어떻게 다른지 비교해 보세요.</p>
+<p>실행으로 대조 · Hibernate 7.4.5와 H2에서 열여덟 가지 조합을 실행해 줄마다 나간 SQL과 DB에 남은 값을 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>준영속 상태</dt>
+<dd>영속성 컨텍스트가 관리하다가 더는 관리하지 않게 된 엔티티의 상태다. em.detach로 떼어 내거나, em.clear로 영속성 컨텍스트를 비우거나, em.close로 닫으면 그 안에 있던 엔티티가 준영속이 된다. 식별자(id) 값은 가지고 있지만 평범한 자바 객체와 같아서, 값을 바꿔도 UPDATE가 나가지 않고 예외도 나지 않는다. 화면에서 받은 값으로 new 해서 만든 객체도, DB에 이미 있는 행의 id를 가지고 있으면 준영속으로 다룬다. 트랜잭션이 끝난 뒤에 엔티티를 고치는 코드에서 자주 만난다.</dd>
+<dt>병합(merge)</dt>
+<dd>준영속 객체의 값을 영속 상태의 엔티티에 옮겨 담아 DB에 반영되게 하는 기능이며 em.merge로 부른다. 넘긴 객체의 id로 영속 엔티티를 찾고(영속성 컨텍스트에 없으면 SELECT로 읽고), 넘긴 객체의 모든 필드 값을 거기에 덮어쓴 뒤, 그 영속 엔티티를 돌려준다. 넘긴 객체 자체는 영속이 되지 않으므로 이후의 작업은 돌려받은 객체로 해야 한다. 준영속 객체뿐 아니라 새로 만든 객체도 넘길 수 있으며, 그때는 새 영속 엔티티가 만들어져 값이 복사된다. 모든 필드를 덮어쓰기 때문에 넘긴 객체에서 비워 둔 필드는 DB에서도 null이 된다. 일부 값만 바꾸려면 엔티티를 조회한 뒤 바꿀 값만 넣는 변경 감지 방식이 안전하다.</dd>
+<dt>변경 감지(Dirty Checking)</dt>
+<dd>영속성 컨텍스트가 관리하는 엔티티의 값이 바뀌면, 트랜잭션을 커밋할 때 JPA가 처음 읽었던 상태와 비교해 값이 달라진 엔티티에 대한 UPDATE 문을 자동으로 실행하는 기능이다. Hibernate는 기본적으로 바뀐 컬럼만이 아니라 전체 컬럼을 UPDATE 문에 넣으며, 바뀐 컬럼만 넣으려면 @DynamicUpdate를 쓴다. 따라서 조회한 엔티티의 값을 바꾸기만 하면 별도의 저장 메서드를 호출하지 않아도 DB에 반영된다.</dd>
+<dt>영속성 컨텍스트</dt>
+<dd>엔티티를 보관하고 관리하는 JPA의 논리적 공간이다. 조회하거나 저장한 엔티티는 이곳에 보관되며, JPA는 이곳의 엔티티에 일어난 변화를 추적해 트랜잭션이 끝날 때 DB에 반영한다. 보통 트랜잭션 하나와 생명주기를 같이한다(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다). 1차 캐시, 변경 감지, 쓰기 지연 같은 기능이 이 위에서 동작한다. (50선 밖이지만 JPA를 쓰면 반드시 이어서 묻는 개념)</dd>
+<dt>엔티티의 네 가지 상태</dt>
+<dd>엔티티 객체가 영속성 컨텍스트와 어떤 관계에 있는지를 나타내는 구분이며, 엔티티의 생명주기라고도 한다. 비영속은 new로 만들기만 해서 JPA가 모르는 상태이고, 영속은 em.persist로 맡겼거나 조회해 와서 영속성 컨텍스트가 관리하는 상태다. 준영속은 관리되다가 떨어져 나온 상태이고, 삭제는 em.remove로 지울 대상이 된 상태다. 값을 바꾸면 UPDATE가 나가는 변경 감지와 1차 캐시 같은 기능은 영속 상태인 엔티티에만 동작한다. 그래서 값이 DB에 반영되지 않을 때는 그 객체가 지금 어느 상태인지부터 확인한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 이름만 채운 객체를 merge합니다. city가 NULL이 됩니다.</li>
+<li><b>다시 조회해서 이름만 옮기면</b> — city는 그대로 남습니다(변경 감지).</li>
+<li><b>아무것도 하지 않으면</b> — 준영속 객체의 값만 바꿔서는 반영되지 않습니다.</li>
+<li><b>조회해 둔 객체를 merge</b> — 모든 필드가 채워져 있어 city가 유지됩니다.</li>
+<li><b>merge 뒤에 넘긴 객체를 고치면</b> — 넘긴 객체는 여전히 준영속이라 반영되지 않습니다.</li>
+<li><b>merge 뒤에 돌려받은 객체를 고치면</b> — 돌려받은 객체는 영속이라 반영됩니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>new Member()와 setId(1L): 화면에서 받은 값을 담을 객체를 새로 만들고, 고칠 회원의 id인 1을 넣었습니다. name과 city는 아직 null입니다. DB에 이미 있는 행의 id를 가졌지만 영속성 컨텍스트가 관리하지 않는 객체이므로 준영속으로 다룹니다.</li>
+<li>m.setName(&quot;김영수&quot;): 준영속 객체의 이름을 바꿨습니다. 메모리의 값만 바뀌고 SQL은 나가지 않습니다. 이 객체를 지켜보는 영속성 컨텍스트가 없습니다.</li>
+<li>em.merge(m)의 첫 단계: m의 id(1)로 영속 엔티티를 찾습니다. 새로 연 영속성 컨텍스트에는 아무것도 없으므로 SELECT로 DB에서 읽어 옵니다(김철수, 서울). 이것이 merge 때 나가는 SELECT입니다.</li>
+<li>em.merge(m)의 둘째 단계: m의 모든 필드 값을 그 영속 엔티티에 덮어씁니다. name은 김영수가 되고, city는 m에서 비어 있던 null로 덮어써집니다. merge는 이 영속 엔티티를 r로 돌려줍니다. 넘긴 객체 m은 준영속인 채로 남습니다.</li>
+<li>em.contains(m)의 결과는 false, em.contains(r)의 결과는 true입니다. 둘은 서로 다른 객체이고, 영속성 컨텍스트가 관리하는 것은 r 쪽입니다.</li>
+<li>commit: 커밋 직전의 flush에서 영속 엔티티 r의 값을 처음 읽은 값(김철수, 서울)과 비교해 UPDATE를 보냅니다. DB의 1번 행은 name이 김영수, city가 NULL이 됐습니다. 고치려던 것은 이름뿐인데 city가 지워졌습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>DB의 1번 회원은 name 김영수, city NULL입니다(처음에는 김철수, 서울). 이 트랜잭션에서 나간 SQL: SELECT 1번, UPDATE 1번.</li>
+<li>merge는 바뀐 필드만 골라 반영하지 않고, 넘긴 객체의 모든 필드로 덮어씁니다. 화면에서 이름만 받아 만든 객체에는 city가 null이므로 DB의 city도 NULL이 됩니다. 수정 화면에 없는 필드가 지워지는 사고가 이렇게 생깁니다.</li>
+<li>merge는 영속 엔티티를 얻으려고 SELECT를 한 번 보냅니다. 같은 id의 엔티티가 이미 영속성 컨텍스트에 있으면 SELECT 없이 그 엔티티에 덮어쓰고, DB에 없는 id이면 SELECT로 없음을 확인한 뒤 INSERT를 보냅니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 화면에서 받은 값으로 만든 객체. city는 받지 않았다
+Member m = new Member();
+m.setId(1L);
+m.setName(&quot;김영수&quot;);
+
+EntityManager em = emf.createEntityManager();
+em.getTransaction().begin();
+Member r = em.merge(m);
+System.out.println(em.contains(m) + &quot;, &quot; + em.contains(r));
+em.getTransaction().commit();</pre>
+<h2>이 모형의 전제</h2>
+<p>열여덟 가지 조합을 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 줄마다 나간 SQL의 종류, em.contains의 결과, merge가 돌려준 객체가 넘긴 객체와 다른지, DB에 남은 name과 city가 화면과 일치하는 것을 확인했습니다. &quot;merge 다음에 city를 바꾼다면&quot; 설정은 merge를 고른 때에만 뜻이 있습니다. &quot;이 트랜잭션에서 나간 SQL&quot;에는 앞선 요청에서 m을 조회한 SELECT를 넣지 않았습니다. 요약에 적은 다음 사실도 따로 실행해 확인했습니다: DB에 없는 id를 가진 객체를 merge하면 SELECT 뒤에 INSERT가 나간다, 조회해 둔 객체를 값을 바꾸지 않고 merge하면 SELECT만 나가고 UPDATE는 없다, 같은 id의 엔티티가 이미 영속 상태이면 merge는 SELECT를 보내지 않는다, 조회한 뒤에 DB의 city가 다른 값으로 바뀌었어도 merge는 m의 예전 값으로 덮어쓴다. 회원의 id는 코드에서 직접 넣는 방식이고 @Version 필드는 두지 않았습니다. @Version이 있으면 예전 값으로 덮어쓰려 할 때 예외로 막을 수 있습니다. Hibernate는 merge와 변경 감지 모두에서 기본으로 모든 컬럼을 UPDATE 문에 넣으므로, 두 방법의 차이는 UPDATE 문의 모양이 아니라 거기에 실려 가는 값에 있습니다. 화면의 SQL 문장은 읽기 쉽게 줄여 적은 것입니다. 스프링 데이터 JPA의 save는 새 엔티티가 아니라고 판단하면 내부에서 merge를 부릅니다(공식 문서 기준이며 여기서 실행해 보지는 않았습니다).</p>
+<p>앞 실습: <a href="../../lab/entitylife/">엔티티의 생명주기</a> · 다음 실습: <a href="../../lab/mapping/">엔티티 매핑과 기본 키</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

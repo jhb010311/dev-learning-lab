@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>조인 알고리즘: 조인 컬럼에 인덱스가 없으면 DB는 어떻게 짝을 찾나 · 개발 학습 실습실</title>
+<meta name="description" content="조인은 한 테이블을 먼저 읽고, 그 행마다 다른 테이블에서 짝이 되는 행을 찾는 일입니다. 짝을 찾을 때 인덱스를 쓸 수 있으면 필요한 행만 읽지만, 없으면 전체를 읽어야 합니다. MySQL 8은 그런 경우에 해시 조인이라는 다른 방법을 씁니다. 인덱스와 읽는 순서를 바꿔 가…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/joinalgo/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/joinalgo/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/joinalgo/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="조인 알고리즘: 조인 컬럼에 인덱스가 없으면 DB는 어떻게 짝을 찾나 · 개발 학습 실습실">
+<meta property="og:description" content="조인은 한 테이블을 먼저 읽고, 그 행마다 다른 테이블에서 짝이 되는 행을 찾는 일입니다. 짝을 찾을 때 인덱스를 쓸 수 있으면 필요한 행만 읽지만, 없으면 전체를 읽어야 합니다. MySQL 8은 그런 경우에 해시 조인이라는 다른 방법을 씁니다. 인덱스와 읽는 순서를 바꿔 가…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/joinalgo/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 인덱스와 실행 계획</p>
+<h1>조인 알고리즘</h1>
+<p><b>조인 컬럼에 인덱스가 없으면 DB는 어떻게 짝을 찾나</b></p>
+<p>조인은 한 테이블을 먼저 읽고, 그 행마다 다른 테이블에서 짝이 되는 행을 찾는 일입니다. 짝을 찾을 때 인덱스를 쓸 수 있으면 필요한 행만 읽지만, 없으면 전체를 읽어야 합니다. MySQL 8은 그런 경우에 해시 조인이라는 다른 방법을 씁니다. 인덱스와 읽는 순서를 바꿔 가며 MySQL이 고르는 방식을 보세요.</p>
+<p>실행으로 대조 · MySQL 8.4에서 일곱 가지 조합을 EXPLAIN, EXPLAIN FORMAT=TREE, EXPLAIN ANALYZE로 실행해 조인 방식과 읽은 횟수를 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>중첩 루프 조인</dt>
+<dd>한 테이블의 행을 하나씩 읽으면서, 그 행마다 다른 테이블에서 짝이 되는 행을 찾는 조인 방식이다. 프로그램의 이중 반복문과 같은 모양이라 이런 이름이 붙었으며, 영어로는 Nested Loop Join이다. 읽는 양은 먼저 읽는 테이블의 행 수에 한 번 찾을 때 읽는 행 수를 곱한 만큼이다. 나중에 읽는 테이블의 조인 컬럼에 인덱스가 있으면 필요한 행만 읽지만, 없으면 찾을 때마다 테이블 전체를 읽어야 한다.</dd>
+<dt>해시 조인</dt>
+<dd>한 테이블의 행으로 조인 컬럼 값을 열쇠로 하는 해시 테이블을 메모리에 만든 뒤, 다른 테이블을 한 번 읽으면서 그 해시 테이블에서 짝을 찾는 조인 방식이다. 두 테이블을 한 번씩만 읽으므로, 인덱스 없이 중첩 루프로 조인할 때보다 읽는 양이 훨씬 적다. MySQL은 8.0.18부터 지원하며, 조인 컬럼에 쓸 인덱스가 없을 때 선택한다. 해시 테이블이 메모리를 차지하고, 일부 행만 필요할 때에도 테이블을 통째로 읽는다는 점은 인덱스를 쓰는 조인보다 불리하다.</dd>
+<dt>구동 테이블</dt>
+<dd>조인에서 먼저 읽는 테이블이다. 영어로는 driving table이라고 하며, 중첩 루프 조인에서는 이 테이블의 행 하나마다 나머지 테이블을 찾아간다. 어느 테이블을 구동 테이블로 삼을지는 FROM에 적은 순서가 아니라 옵티마이저가 비용을 계산해 정한다. 보통 조건으로 걸러낸 뒤의 행이 적고, 상대 테이블을 인덱스로 찾아갈 수 있게 되는 쪽이 선택된다. MySQL에서는 EXPLAIN 결과의 윗줄에 나오는 테이블이 구동 테이블이다.</dd>
+<dt>옵티마이저</dt>
+<dd>SQL을 실행할 수 있는 여러 방법 가운데 비용이 가장 적을 것으로 예상되는 방법을 고르는 데이터베이스의 구성 요소다. 테이블의 행 수와 값의 분포 같은 통계 정보를 바탕으로 판단한다. 통계가 실제와 다르면 비효율적인 방법을 고를 수 있다.</dd>
+<dt>실행 계획(EXPLAIN)</dt>
+<dd>데이터베이스가 쿼리를 어떤 방법으로 실행할지 정한 계획이다. 어떤 인덱스를 쓰는지, 테이블을 어떤 순서로 조인하는지, 몇 행을 읽을 것으로 예상하는지를 보여 준다. 쿼리 앞에 EXPLAIN을 붙여 확인하며, 쿼리가 느릴 때 원인을 찾는 출발점이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 조인 컬럼에 인덱스가 없습니다. 중첩 루프가 아니라 해시 조인이 선택됩니다.</li>
+<li><b>조인 컬럼에 인덱스를 만들면</b> — 중첩 루프 조인으로, 행마다 인덱스로 찾아갑니다.</li>
+<li><b>인덱스도 해시 조인도 없으면</b> — member의 행마다 orders 전체를 읽습니다. 1,000만 행입니다.</li>
+<li><b>orders를 먼저 읽으면</b> — member는 기본 키로 한 행씩 찾습니다.</li>
+<li><b>옵티마이저에게 맡기면 (인덱스 없음)</b> — 인덱스로 찾아갈 수 있는 쪽을 나중에 읽도록 순서를 정합니다.</li>
+<li><b>옵티마이저에게 맡기면 (인덱스 있음)</b> — 행이 적은 member를 먼저 읽습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>쿼리: member와 orders를 회원 번호로 짝지어 회원 이름과 주문 금액을 조회합니다. member는 1,000행, orders는 10,000행이고 회원 한 명에 주문이 10건씩 있습니다. 결과는 10,000행입니다.</li>
+<li>먼저 읽을 테이블 정하기: STRAIGHT_JOIN으로 적은 순서대로 읽게 했으므로 member를 먼저 읽습니다. 먼저 읽는 테이블을 구동 테이블이라고 부릅니다.</li>
+<li>짝을 찾는 방법 정하기: 나중에 읽는 orders의 조인 컬럼 member_id에 인덱스가 없습니다. 중첩 루프로 하면 member의 행마다 orders 10,000행을 모두 읽어야 합니다. MySQL 8은 이런 경우에 해시 조인을 고릅니다. EXPLAIN FORMAT=TREE의 첫 줄이 Inner hash join으로 나옵니다.</li>
+<li>해시 조인 1단계, 해시 테이블 만들기: member 1,000행을 한 번 읽어, id를 열쇠로 하는 해시 테이블을 메모리에 만듭니다. 해시 테이블은 열쇠 값으로 계산한 자리에 바로 넣고 바로 찾는 구조입니다.</li>
+<li>해시 조인 2단계, 짝 찾기: orders 10,000행을 처음부터 끝까지 한 번 읽으면서, 행마다 member_id를 해시 테이블에서 찾습니다. 찾을 때마다 테이블을 훑지 않고 계산한 자리만 확인합니다. orders를 읽은 횟수는 1번입니다.</li>
+<li>결과 10,000행이 나옵니다. 두 테이블에서 읽은 행은 member 1,000행과 orders 10,000행, 합쳐서 11,000행입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>member를 먼저 읽고 해시 조인으로 짝을 찾았습니다. orders를 1번, 한 번에 10,000행씩 읽어 두 테이블에서 모두 11,000행을 읽었습니다.</li>
+<li>해시 조인은 한 테이블로 해시 테이블을 만들고 다른 테이블을 한 번만 읽습니다. 인덱스 없는 중첩 루프라면 1,000 × 10,000 = 1,000만 행을 읽었을 것을 11,000행으로 끝냅니다. EXPLAIN의 Extra에는 Using join buffer (hash join)이라고 나옵니다.</li>
+<li>그래도 인덱스가 필요 없어지는 것은 아닙니다. 해시 조인은 orders를 통째로 읽으므로, 회원 10명의 주문만 찾을 때에도 orders 10,000행을 다 읽습니다. 인덱스가 있으면 10번 찾아가 100행만 읽습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>-- member: 1,000행 (기본 키 id)
+-- orders: 10,000행 (회원 한 명에 주문 10건)
+-- orders.member_id에 인덱스 없음
+
+EXPLAIN FORMAT=TREE
+SELECT m.name, o.amount
+  FROM member m
+  STRAIGHT_JOIN orders o ON o.member_id = m.id;   -- 적은 순서대로 읽게 한다</pre>
+<h2>이 모형의 전제</h2>
+<p>화면에서 고를 수 있는 일곱 가지 조합 모두, 같은 테이블(member 1,000행, orders 10,000행)을 이 PC의 MySQL 8.4에 만들고 ANALYZE TABLE을 한 뒤 대조했습니다. 먼저 읽는 테이블과 나중 테이블의 type, key, Extra는 EXPLAIN으로, 조인 방식은 EXPLAIN FORMAT=TREE의 첫 줄로, 나중 테이블을 읽은 횟수와 한 번에 읽은 행 수는 실제로 실행하며 세어 주는 EXPLAIN ANALYZE의 loops와 rows로 확인했습니다. 해시 조인 설정이 숨겨지는 다섯 가지 경우에는 NO_BNL 힌트를 붙여도 계획이 바뀌지 않는 것도 확인했습니다. 옵티마이저에게 맡겼을 때의 순서는 비용 계산의 결과라서 데이터의 양과 분포에 따라 달라질 수 있습니다. &quot;읽은 행&quot;은 테이블이나 인덱스에서 꺼낸 행의 수이며, 인덱스를 타고 내려가는 비용, 해시 테이블을 만들고 찾는 비용, 걸린 시간은 넣지 않았습니다. 해시 조인은 MySQL 8.0.18에 들어왔고 8.0.20부터 인덱스 없는 조인에 쓰이던 블록 중첩 루프를 대신합니다. 해시 테이블이 메모리(join_buffer_size)에 다 들어가지 않으면 디스크를 함께 씁니다. 이 두 가지는 실행으로 확인한 것이 아니라 MySQL 문서의 해시 조인 최적화 설명을 따른 것입니다. 그림은 회원 3명, 주문 6건으로 줄인 것입니다.</p>
+<p>앞 실습: <a href="../../lab/explainplan/">실행 계획 읽기</a> · 다음 실습: <a href="../../lab/tx/">트랜잭션 기본</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

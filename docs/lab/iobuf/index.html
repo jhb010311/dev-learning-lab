@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>입출력 스트림과 버퍼: write를 했는데 왜 파일이 비어 있나 · 개발 학습 실습실</title>
+<meta name="description" content="파일에 쓸 때 out.write를 불렀다고 해서 그 데이터가 곧바로 파일에 들어가는 것은 아닙니다. 버퍼를 쓰는 스트림은 데이터를 메모리에 모아 두었다가 한꺼번에 내려보냅니다. &quot;가나다&quot; 9바이트를 한 바이트씩 쓰면서 아래 스트림으로 실제로 몇 번 내려가는지 세어 보고, 그…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/iobuf/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/iobuf/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/iobuf/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="입출력 스트림과 버퍼: write를 했는데 왜 파일이 비어 있나 · 개발 학습 실습실">
+<meta property="og:description" content="파일에 쓸 때 out.write를 불렀다고 해서 그 데이터가 곧바로 파일에 들어가는 것은 아닙니다. 버퍼를 쓰는 스트림은 데이터를 메모리에 모아 두었다가 한꺼번에 내려보냅니다. &quot;가나다&quot; 9바이트를 한 바이트씩 쓰면서 아래 스트림으로 실제로 몇 번 내려가는지 세어 보고, 그…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/iobuf/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 입출력</p>
+<h1>입출력 스트림과 버퍼</h1>
+<p><b>write를 했는데 왜 파일이 비어 있나</b></p>
+<p>파일에 쓸 때 out.write를 불렀다고 해서 그 데이터가 곧바로 파일에 들어가는 것은 아닙니다. 버퍼를 쓰는 스트림은 데이터를 메모리에 모아 두었다가 한꺼번에 내려보냅니다. &quot;가나다&quot; 9바이트를 한 바이트씩 쓰면서 아래 스트림으로 실제로 몇 번 내려가는지 세어 보고, 그 파일을 바이트 단위와 글자 단위로 다시 읽어 봅니다.</p>
+<p>실행으로 대조 · JDK 21에서 마흔여덟 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>바이트 스트림과 문자 스트림</dt>
+<dd>스트림은 데이터를 한쪽에서 다른 쪽으로 차례로 흘려보내는 통로이고, 자바에는 바이트 단위로 다루는 것과 글자 단위로 다루는 것 두 종류가 있다. InputStream과 OutputStream 계열이 바이트 스트림으로, 이미지나 압축 파일처럼 내용을 그대로 옮길 때 쓴다. Reader와 Writer 계열이 문자 스트림으로, 바이트를 정해진 인코딩에 따라 글자로 바꾸어 준다. 한글처럼 한 글자가 여러 바이트인 글을 바이트 스트림으로 한 바이트씩 글자로 바꾸면 깨지므로, 글을 읽고 쓸 때는 인코딩을 지정한 문자 스트림을 쓴다.</dd>
+<dt>버퍼와 flush</dt>
+<dd>버퍼는 데이터를 바로 내보내지 않고 잠시 모아 두는 메모리 공간이다. BufferedOutputStream이나 BufferedWriter는 write로 받은 데이터를 버퍼에 모았다가 버퍼가 가득 차면 한꺼번에 아래 스트림으로 내려보내, 파일이나 네트워크에 쓰는 횟수를 줄인다. flush는 버퍼가 차지 않았어도 지금 모인 것을 내려보내라는 요청이고, close는 닫기 전에 flush를 먼저 한다. 그래서 flush도 close도 하지 않으면 버퍼에 남아 있던 데이터는 목적지에 쓰이지 않는다.</dd>
+<dt>문자 인코딩과 UTF-8</dt>
+<dd>문자 인코딩은 글자를 어떤 바이트로 바꾸어 저장할지 정한 규칙이다. UTF-8은 가장 널리 쓰이는 인코딩으로, 글자에 따라 1바이트에서 4바이트까지 길이가 달라진다. 영문자와 숫자는 1바이트, 한글 한 글자는 3바이트다. 쓸 때와 읽을 때의 인코딩이 다르거나 글자의 중간에서 바이트를 끊어 읽으면 글자가 깨지므로, 글을 읽고 쓰는 코드에는 인코딩을 명시하는 것이 안전하다.</dd>
+<dt>finally와 try-with-resources</dt>
+<dd>finally는 try 블록이 정상적으로 끝나든 예외가 발생하든 실행되는 블록으로(try 도중 System.exit() 등으로 JVM이 종료되는 경우는 예외다) 자원 정리에 쓴다. try-with-resources는 AutoCloseable을 구현한 자원을 try 괄호 안에 선언하면 블록이 끝날 때 자동으로 close()를 호출해 주는 구문으로, finally에서 직접 닫는 것보다 누락과 예외 처리 실수를 줄인다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 버퍼로 감싸고 닫지 않음. write를 9번 했는데 파일은 0바이트입니다.</li>
+<li><b>close로 닫으면</b> — 버퍼에 모인 9바이트가 한 번에 내려가 파일에 쓰입니다.</li>
+<li><b>버퍼 없이 쓰면</b> — write 9번이 그대로 아래로 9번 내려갑니다.</li>
+<li><b>버퍼가 4바이트라면</b> — 가득 찰 때마다 내려가고, 닫지 않으면 마지막 1바이트가 남습니다.</li>
+<li><b>close 전에 예외가 나면</b> — close가 실행되지 못해 파일이 비어 있습니다.</li>
+<li><b>try-with-resources라면</b> — 예외가 나도 자동으로 닫혀 데이터가 파일에 쓰입니다.</li>
+<li><b>바이트 하나를 글자 하나로 읽으면</b> — 한글 세 글자가 깨진 글자 아홉 개가 됩니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>new FileOutputStream(&quot;out.txt&quot;): 파일을 쓰기용으로 엽니다. 그 위에 write 호출을 세는 CountingOutputStream을 씌웠습니다. 그 위에 다시 8192바이트짜리 버퍼를 가진 BufferedOutputStream을 씌웠으므로, out.write는 버퍼를 거쳐서 내려갑니다.</li>
+<li>&quot;가&quot;의 3바이트(EA B0 80)를 out.write(b)로 하나씩: 세 번 모두 버퍼에 담기기만 하고 아래로는 내려가지 않습니다. 버퍼에 3바이트가 모였고, 파일에는 0바이트가 있습니다.</li>
+<li>&quot;나&quot;의 3바이트(EB 82 98)를 out.write(b)로 하나씩: 세 번 모두 버퍼에 담기기만 하고 아래로는 내려가지 않습니다. 버퍼에 6바이트가 모였고, 파일에는 0바이트가 있습니다.</li>
+<li>&quot;다&quot;의 3바이트(EB 8B A4)를 out.write(b)로 하나씩: 세 번 모두 버퍼에 담기기만 하고 아래로는 내려가지 않습니다. 버퍼에 9바이트가 모였고, 파일에는 0바이트가 있습니다.</li>
+<li>(닫는 코드 없음): flush도 close도 부르지 않고 다음으로 넘어갑니다. 버퍼에 남은 9바이트는 메모리에만 있고 파일에는 없습니다. 프로그램이 이대로 끝나면 그 데이터는 사라집니다. 스트림은 열린 채로 남아 파일을 계속 붙잡고 있습니다.</li>
+<li>counting.calls와 Files.size: 아래 스트림으로 내려간 write는 0번이고, 파일 크기는 0바이트입니다. 9바이트를 썼지만 9바이트가 파일에 없습니다.</li>
+<li>파일 다시 읽기: 파일이 비어 있어서 in.read()가 처음부터 -1(끝)을 돌려줍니다. 읽은 글자가 없습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>write를 9번 불렀고, 아래 스트림으로는 0번 내려갔습니다. 파일에는 9바이트 가운데 0바이트가 쓰였고, 스트림은 열린 채로 남았습니다.</li>
+<li>BufferedOutputStream은 데이터를 메모리의 버퍼에 모았다가 한꺼번에 내려보냅니다. 내려가는 때는 버퍼가 가득 찼을 때와 flush 또는 close를 불렀을 때뿐입니다. 그래서 닫지 않으면 마지막에 버퍼에 남은 데이터가 파일에 쓰이지 않습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>class CountingOutputStream extends OutputStream {       // 아래로 내려온 write 호출을 세는 스트림
+    private final OutputStream out;
+    int calls = 0;
+    boolean closed = false;
+    CountingOutputStream(OutputStream out) { this.out = out; }
+    @Override public void write(int b) throws IOException { calls++; out.write(b); }
+    @Override public void write(byte[] b, int off, int len) throws IOException { calls++; out.write(b, off, len); }
+    @Override public void close() throws IOException { closed = true; out.close(); }
+}
+
+byte[] data = &quot;가나다&quot;.getBytes(StandardCharsets.UTF_8);    // 9바이트
+CountingOutputStream counting = new CountingOutputStream(new FileOutputStream(&quot;out.txt&quot;));
+OutputStream out = new BufferedOutputStream(counting);     // 버퍼로 감싼다
+for (byte b : data) out.write(b);                           // 한 바이트씩 9번
+
+System.out.println(counting.calls);                          // 아래로 내려간 write 횟수
+System.out.println(Files.size(Path.of(&quot;out.txt&quot;)));           // 파일 크기
+
+StringBuilder sb = new StringBuilder();                      // 파일을 다시 읽는다
+try (Reader in = new InputStreamReader(new FileInputStream(&quot;out.txt&quot;), StandardCharsets.UTF_8)) {
+    int ch;
+    while ((ch = in.read()) != -1) sb.append((char) ch);     // 글자 하나씩
+}
+System.out.println(sb);</pre>
+<h2>이 모형의 전제</h2>
+<p>마흔여덟 가지 조합의 결과(아래 스트림으로 내려간 write 횟수와 한 번에 내려간 바이트 수, 파일 크기, 닫혔는지, 다시 읽은 글자)를 이 PC의 JDK 21에서 실행한 결과와 대조했습니다. 크기를 주지 않은 BufferedOutputStream이 8192바이트를 모은 뒤에 내려보낸다는 것, 닫지 않고 프로그램이 정상 종료해도 버퍼에 남은 데이터가 파일에 쓰이지 않는다는 것, 영문 abc는 바이트 하나씩 글자로 바꿔도 그대로라는 것도 같은 PC에서 따로 실행해 확인했습니다. 8192는 이 JDK에서 본 값이며 자바 문서가 정해 둔 수치는 아닙니다. 그림의 &quot;파일&quot;은 프로그램이 운영체제에 쓰기를 넘긴 것까지를 뜻합니다. 운영체제도 자기 버퍼를 따로 가지고 있어서 디스크에 실제로 기록되는 때는 그보다 늦을 수 있는데, 이것은 다루지 않았습니다. 바이트 방식으로 읽은 결과에서 화면에 보일 수 없는 글자는 □로 표시했습니다. 버퍼가 있을 때와 없을 때의 속도 차이는 재지 않았습니다. 쓰는 쪽의 문자 스트림(Writer)과 큰 덩어리를 한 번에 쓰는 write(byte[])는 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/classload/">클래스 로딩과 초기화</a> · 다음 실습: <a href="../../lab/serial/">직렬화</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

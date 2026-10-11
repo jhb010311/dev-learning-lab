@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JWT의 구조와 검증: 누구나 읽을 수 있는 토큰을 서버는 어떻게 믿나 · 개발 학습 실습실</title>
+<meta name="description" content="JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 서버가 그래도 이 토큰을 믿을 수 있는 까닭은 셋째 부분인 서명을 직접 다시 계산해 보기 때문입니…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/jwt/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/jwt/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jwt/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="JWT의 구조와 검증: 누구나 읽을 수 있는 토큰을 서버는 어떻게 믿나 · 개발 학습 실습실">
+<meta property="og:description" content="JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 서버가 그래도 이 토큰을 믿을 수 있는 까닭은 셋째 부분인 서명을 직접 다시 계산해 보기 때문입니…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/jwt/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 인증</p>
+<h1>JWT의 구조와 검증</h1>
+<p><b>누구나 읽을 수 있는 토큰을 서버는 어떻게 믿나</b></p>
+<p>JWT는 점(.)으로 이어진 세 부분, 곧 머리말과 내용과 서명으로 된 글자입니다. 앞의 두 부분은 암호화한 것이 아니라 표기만 바꿔 적은 것이라 누구나 읽고 고칠 수 있습니다. 서버가 그래도 이 토큰을 믿을 수 있는 까닭은 셋째 부분인 서명을 직접 다시 계산해 보기 때문입니다. 토큰 한 개를 뜯어보고, 내용을 고치거나 머리말을 바꾼 토큰이 어디에서 걸리는지 확인합니다.</p>
+<p>실행으로 대조 · Node.js 24의 crypto(HMAC-SHA256)로 토큰을 실제로 만들어 열여섯 가지 조합의 검증 결과를 대조했고, 화면의 자바 코드도 JDK 21에서 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>JWT(JSON Web Token)</dt>
+<dd>사용자 정보 등의 내용(클레임)을 담고 서명을 붙인 토큰이다. 헤더, 페이로드, 서명의 세 부분으로 이뤄진다. 서버는 서명을 검증해 토큰이 위조되지 않았음을 확인하며, 별도의 저장소를 조회하지 않아도 된다. 페이로드는 암호화된 것이 아니라 인코딩된 것이어서 누구나 내용을 볼 수 있으므로 민감한 정보를 넣지 않는다.</dd>
+<dt>Base64URL 인코딩</dt>
+<dd>바이트를 영문 대소문자와 숫자, 그리고 -와 _만으로 옮겨 적는 표기법이다. 주소(URL)나 HTTP 헤더에 그대로 넣어도 깨지지 않도록 Base64에서 +와 /를 -와 _로 바꾸고 끝의 =를 뺀 것이다. JWT의 세 부분은 모두 이 표기로 적혀 있다. 키가 없어도 누구나 원래 내용으로 되돌릴 수 있으므로 암호화가 아니며, 내용을 숨기는 효과는 전혀 없다.</dd>
+<dt>클레임(Claim)</dt>
+<dd>토큰의 내용(payload)에 적힌 &quot;이름: 값&quot; 한 쌍을 가리키는 말이다. 누구에 관한 토큰인지를 적는 sub, 만료 시각을 적는 exp, 발급한 곳을 적는 iss처럼 표준이 이름을 정해 둔 것이 있고, role처럼 서비스가 필요해서 넣는 것도 있다. exp는 1970년 1월 1일 0시(UTC)부터 센 초로 적으며, 서버는 지금 시각이 exp보다 앞일 때만 토큰을 받는다. 클레임은 누구나 읽을 수 있으므로 비밀번호 같은 민감한 값은 넣지 않고, 서명을 확인하기 전에는 그 내용을 믿지 않는다.</dd>
+<dt>HMAC과 전자서명</dt>
+<dd>메시지가 중간에 바뀌지 않았고 정당한 상대가 보냈음을 확인하는 기술이다. HMAC은 양쪽이 공유한 비밀키와 메시지를 함께 해시해 인증 코드를 만든다. 전자서명은 보내는 쪽이 개인키로 서명하고 받는 쪽이 공개키로 검증하며, 서명한 쪽만 만들 수 있으므로 보낸 사실을 부인할 수 없다.</dd>
+<dt>알고리즘 고정(alg 검증)</dt>
+<dd>토큰을 검증할 때 쓸 서명 알고리즘을 토큰이 아니라 서버가 정해 두는 것이다. JWT의 머리말에는 alg라는 항목이 있어 어떤 알고리즘으로 서명했는지 적혀 있지만, 머리말은 누구나 고칠 수 있는 글자다. 서버가 이 값을 그대로 따르면, 보내는 쪽이 alg를 none(서명 없음)으로 바꿔 서명 확인을 건너뛰게 만들 수 있다. 그래서 서버는 받을 알고리즘의 목록을 미리 정하고, 머리말의 alg가 그 목록에 없으면 서명을 계산해 보기도 전에 거절한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 내용의 role을 ADMIN으로 고친 토큰입니다. 읽고 고칠 수는 있어도 서명에서 걸립니다.</li>
+<li><b>발급한 그대로</b> — 서명이 일치하고 만료 전이라 통과합니다.</li>
+<li><b>다른 키로 서명을 새로 만들면</b> — 서버의 키로 계산한 값과 달라 거절됩니다.</li>
+<li><b>만료 시각이 지나면</b> — 서명이 맞아도 거절됩니다.</li>
+<li><b>alg를 none으로 바꾼 토큰</b> — 알고리즘을 정해 둔 서버는 서명을 보기도 전에 거절합니다.</li>
+<li><b>토큰이 말하는 alg를 믿는 서버</b> — 서명이 없는 토큰이 ADMIN으로 통과합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>누군가 토큰의 가운데 부분을 고쳐서 보냈습니다. role을 USER에서 ADMIN으로 바꿔 다시 적었고, 끝의 서명은 원래 것을 그대로 두었습니다.</li>
+<li>token.split(&quot;\\.&quot;): 서버가 토큰을 점(.)에서 잘라 세 부분으로 나눕니다. 첫째가 머리말(header), 둘째가 내용(payload), 셋째가 서명(signature)입니다.</li>
+<li>dec.decode(part[0]): 첫째 부분을 base64url 디코더로 풉니다. 키는 필요 없습니다. 결과는 {&quot;alg&quot;:&quot;HS256&quot;,&quot;typ&quot;:&quot;JWT&quot;} 입니다. alg는 &quot;이 토큰은 이 알고리즘으로 서명했다&quot;는 토큰 쪽의 주장입니다.</li>
+<li>dec.decode(part[1]): 둘째 부분도 같은 방법으로 풉니다. 결과는 {&quot;sub&quot;:&quot;7&quot;,&quot;role&quot;:&quot;ADMIN&quot;,&quot;exp&quot;:1767225600} 입니다. 암호화한 것이 아니라 표기만 바꿔 적은 것이라, 토큰을 손에 넣은 사람은 누구나 읽습니다. 아직 서명을 확인하지 않았으므로 서버는 이 내용을 믿지 않습니다.</li>
+<li>알고리즘 확인: 이 서버는 HS256만 받기로 정해 두었습니다. 머리말의 alg가 HS256이므로 다음 확인으로 넘어갑니다.</li>
+<li>mac.doFinal(part[0] + &quot;.&quot; + part[1]): 받은 토큰의 앞 두 부분과 서버만 아는 키로 서명을 다시 계산합니다. 결과는 _Crl3waj… 입니다. 토큰에 붙어 온 서명을 그대로 믿지 않고, 서버가 직접 만들어 보는 것입니다.</li>
+<li>MessageDigest.isEqual: 다시 계산한 값(_Crl3waj…)과 토큰의 셋째 부분(5hho4Bt2…)을 비교합니다. 다릅니다. 붙어 온 서명은 고치기 전의 내용으로 만든 것이라, 고친 내용으로 계산한 값과 맞지 않습니다. &quot;서명 불일치&quot;로 거절합니다.</li>
+<li>거절: 서버는 토큰의 내용을 쓰지 않고 요청을 거절합니다. 보통 401 Unauthorized로 답합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>서명 확인은 &quot;불일치&quot;, 만료 확인은 &quot;하지 않음 (앞에서 거절)&quot;이고, 서버의 판단은 거절입니다.</li>
+<li>머리말과 내용은 base64url로 적은 것이라 키 없이도 읽고 고칠 수 있습니다. 그래서 토큰에는 비밀번호 같은 것을 넣지 않습니다.</li>
+<li>내용을 한 글자라도 고치면 서버가 다시 계산한 서명이 달라집니다. 서명은 &quot;이 내용 그대로&quot;에 대해서만 맞습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 요청 헤더  Authorization: Bearer &lt;토큰&gt;
+// 토큰  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+//       .eyJzdWIiOiI3Iiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY3MjI1NjAwfQ
+//       .5hho4Bt2LLsypoE43dqORdbPqUDkMlzinRCY-zDKmMc
+// 지금  now = 1767225000   (exp = 1767225600)
+
+Claims verify(String token, long now) throws Exception {
+    String[] part = token.split(&quot;\\.&quot;, -1);                 // 머리말 . 내용 . 서명
+    if (part.length != 3) throw new BadTokenException(&quot;형식 오류&quot;);
+    Base64.Decoder dec = Base64.getUrlDecoder();
+    String header  = new String(dec.decode(part[0]), UTF_8);   // 키 없이 풀린다
+    String payload = new String(dec.decode(part[1]), UTF_8);   // 키 없이 풀린다
+
+    // 1. 알고리즘: 서버가 정해 둔 HS256만 받는다
+    if (!&quot;HS256&quot;.equals(field(header, &quot;alg&quot;)))
+        throw new BadTokenException(&quot;허용하지 않는 알고리즘&quot;);
+
+    // 2. 서명: 앞의 두 부분으로 서버가 직접 다시 계산해 비교한다
+    Mac mac = Mac.getInstance(&quot;HmacSHA256&quot;);
+    mac.init(new SecretKeySpec(serverKey, &quot;HmacSHA256&quot;));  // 서버만 아는 키
+    byte[] expected = mac.doFinal((part[0] + &quot;.&quot; + part[1]).getBytes(US_ASCII));
+    if (!MessageDigest.isEqual(expected, dec.decode(part[2])))
+        throw new BadTokenException(&quot;서명 불일치&quot;);
+
+    // 3. 만료: 지금이 exp보다 앞이어야 한다
+    if (now &gt;= Long.parseLong(field(payload, &quot;exp&quot;)))
+        throw new BadTokenException(&quot;만료됨&quot;);
+    return new Claims(field(payload, &quot;sub&quot;), field(payload, &quot;role&quot;));   // 여기까지 와야 내용을 믿는다
+}
+
+// field(json, 이름)은 JSON에서 값 하나를 꺼내는 도우미다.
+// 원리를 보이려고 직접 적은 코드다. 실제 서비스에서는 검증된 JWT 라이브러리를 쓴다.</pre>
+<h2>이 모형의 전제</h2>
+<p>화면의 토큰 글자, 서명 값, 열여섯 가지 조합의 검증 결과는 이 PC의 Node.js 24에 든 crypto(HMAC-SHA256)로 토큰을 실제로 만들고 검증해 본 결과와 대조했습니다. 화면의 자바 코드도 JDK 21에서 그대로 실행해 같은 토큰과 같은 결과가 나오는 것을 확인했습니다. 이 PC에는 JWT 라이브러리가 없어서, 검증 절차는 표준 문서를 보고 직접 적은 코드로 실행했습니다. 근거는 다음과 같습니다. 세 부분을 점으로 잇는 모양과 base64url 표기는 RFC 7515 3절과 2절, 서명을 계산하는 대상이 &quot;첫째 부분.둘째 부분&quot;이라는 것은 RFC 7515 5.1절, 검증 순서는 RFC 7515 5.2절과 RFC 7519 7.2절, 지금이 exp보다 앞이어야 한다는 것은 RFC 7519 4.1.4절, alg가 none이고 서명이 빈 토큰의 모양은 RFC 7519 6.1절입니다. 지금이 exp와 정확히 같을 때는 거절됩니다(직접 실행해 확인). 서버가 받을 알고리즘을 정해 두어야 한다는 것은 RFC 8725 3.1절의 권고이고, 널리 쓰이는 JWT 라이브러리가 none을 기본으로 거절한다는 것은 실행으로 확인하지 못했습니다. 실제 서버는 시계 오차를 감안해 exp에 몇 초에서 몇 분의 여유를 두기도 하고(RFC 7519 4.1.4절이 허용), iss, aud 같은 다른 클레임도 함께 확인합니다. 화면의 키와 토큰은 이 실습을 위해 만든 값입니다. 공개키 방식(RS256)을 쓰는 서버에서 alg를 HS256으로 바꿔 보내는 문제는 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/pwhash/">비밀번호 해시</a> · 다음 실습: <a href="../../lab/oauth/">OAuth 로그인 흐름</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

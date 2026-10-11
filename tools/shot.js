@@ -17,7 +17,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const js = expr => send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true });
     await send('Page.enable'); await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 1180, deviceScaleFactor: 1, mobile: false });
     fs.mkdirSync(path.join(root, 'docs', 'img'), { recursive: true });
-    for (const [lang, url, run, skip, close] of [['ko', BASE + '#' + lab, '실행', '결과만 보기', '다시 보지'], ['en', BASE + 'en/#' + lab, 'Run', 'Skip the animation', "don't show again"]]) {
+    for (const [lang, url, run, skip, close] of [['ko', BASE + 'lab/' + lab + '/', '실행', '결과만 보기', '다시 보지'], ['en', BASE + 'en/lab/' + lab + '/', 'Run', 'Skip the animation', "don't show again"]]) {
       await send('Page.navigate', { url: 'about:blank' }); await sleep(300);
       await send('Page.navigate', { url }); await sleep(1500);
       const r = await js(`(async () => { const w = ms => new Promise(r => setTimeout(r, ms)), B = t => [...document.querySelectorAll('button')].find(x => x.offsetParent && x.textContent.indexOf(t) >= 0), E = t => [...document.querySelectorAll('button')].find(x => x.offsetParent && x.textContent.trim() === t);

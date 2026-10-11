@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>뷰, 프로시저, 트리거: INSERT 한 줄을 실행했는데 왜 재고가 줄었나 · 개발 학습 실습실</title>
+<meta name="description" content="DB 안에는 테이블 말고도 저장해 둘 수 있는 것이 있습니다. 뷰는 저장해 둔 SELECT 문이고, 프로시저는 이름으로 부르는 여러 문장이며, 트리거는 INSERT나 UPDATE가 일어날 때 DB가 자동으로 실행하는 문장입니다. 주문 하나를 넣으면서 애플리케이션 코드에 보이지…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/viewproc/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/viewproc/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/viewproc/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="뷰, 프로시저, 트리거: INSERT 한 줄을 실행했는데 왜 재고가 줄었나 · 개발 학습 실습실">
+<meta property="og:description" content="DB 안에는 테이블 말고도 저장해 둘 수 있는 것이 있습니다. 뷰는 저장해 둔 SELECT 문이고, 프로시저는 이름으로 부르는 여러 문장이며, 트리거는 INSERT나 UPDATE가 일어날 때 DB가 자동으로 실행하는 문장입니다. 주문 하나를 넣으면서 애플리케이션 코드에 보이지…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/viewproc/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › SQL</p>
+<h1>뷰, 프로시저, 트리거</h1>
+<p><b>INSERT 한 줄을 실행했는데 왜 재고가 줄었나</b></p>
+<p>DB 안에는 테이블 말고도 저장해 둘 수 있는 것이 있습니다. 뷰는 저장해 둔 SELECT 문이고, 프로시저는 이름으로 부르는 여러 문장이며, 트리거는 INSERT나 UPDATE가 일어날 때 DB가 자동으로 실행하는 문장입니다. 주문 하나를 넣으면서 애플리케이션 코드에 보이지 않는 곳에서 무슨 일이 일어나는지 따라가 보세요.</p>
+<p>실행으로 대조 · MySQL 8.4에 같은 뷰, 프로시저, 트리거를 만들고 열두 가지 조합의 주문을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>뷰(View)</dt>
+<dd>SELECT 문에 이름을 붙여 저장해 두고 테이블처럼 조회할 수 있게 한 것이다. 데이터를 따로 저장하지 않으며 조회할 때마다 정의된 쿼리가 실행된다. 복잡한 쿼리를 단순하게 쓰거나 일부 컬럼만 보여 주어 접근을 제한하는 데 쓴다.</dd>
+<dt>저장 프로시저</dt>
+<dd>여러 SQL 문장을 하나로 묶어 이름을 붙이고 DB 안에 저장해 둔 것이다. 애플리케이션은 CALL 이름(값)으로 부르기만 하면 되고, 안에 든 문장들은 DB 서버에서 차례로 실행된다. 여러 문장을 한 번의 호출로 처리할 수 있지만, 업무 규칙이 애플리케이션 코드가 아니라 DB 안에 놓이게 되어 코드만 읽어서는 동작을 알 수 없고 버전 관리와 테스트가 어려워진다. 프로시저라고 해서 안의 문장들이 자동으로 한 트랜잭션이 되지는 않으므로, 함께 성공하거나 함께 취소되어야 하면 트랜잭션으로 묶어야 한다.</dd>
+<dt>트리거</dt>
+<dd>테이블에 INSERT, UPDATE, DELETE가 일어날 때 DB가 자동으로 실행하도록 걸어 둔 문장이다. 어느 테이블의 어떤 변경에, 변경 전(BEFORE)과 후(AFTER) 가운데 언제 실행할지를 정해 만들며, 안에서는 NEW와 OLD로 바뀌는 행의 값을 읽을 수 있다. 변경 기록을 남기는 일처럼 빠뜨리면 안 되는 처리를 맡길 수 있지만, 문장을 보낸 쪽의 코드에는 전혀 드러나지 않는다. 그래서 왜 다른 테이블이 바뀌었는지, 왜 오류가 났는지 찾기 어렵게 만들 수 있고, 트리거가 실패하면 그것을 일으킨 원래 문장도 실패한다.</dd>
+<dt>CHECK 제약</dt>
+<dd>컬럼에 들어갈 수 있는 값의 조건을 테이블에 적어 두는 제약이다. 예를 들어 CHECK (stock &gt;= 0)을 걸어 두면 재고를 음수로 만드는 INSERT나 UPDATE는 오류와 함께 거절된다. 어느 프로그램이 값을 바꾸든 DB가 마지막에 한 번 더 막아 준다는 점이 장점이다. MySQL은 8.0.16부터 이 제약을 실제로 검사하며, 그 전 버전은 문법만 받아들이고 검사하지 않았다.</dd>
+<dt>트랜잭션</dt>
+<dd>여러 데이터 변경 작업을 하나의 단위로 묶어, 전부 반영되거나(커밋) 전부 취소되게(롤백) 하는 것이다. 계좌 이체에서 출금과 입금 중 하나만 반영되는 중간 상태를 막는다. 데이터베이스가 정합성을 지키는 가장 기본적인 수단이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — INSERT 한 문장인데 재고가 줄고 로그가 생깁니다.</li>
+<li><b>트리거가 없으면</b> — 같은 INSERT인데 재고는 그대로입니다.</li>
+<li><b>프로시저로 주문</b> — CALL 한 번으로 DB 안의 세 문장이 실행됩니다.</li>
+<li><b>프로시저와 트리거가 둘 다</b> — 서로를 모르면 재고가 두 번 줄어듭니다.</li>
+<li><b>재고보다 많이 주문</b> — orders에 넣었는데 product의 제약 오류가 납니다.</li>
+<li><b>둘 다 있고 6개 주문</b> — 주문은 실패했는데 재고만 줄어듭니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>준비: product 테이블에 키보드 한 행이 있고 재고는 10개입니다. v_stock 뷰와 stock_copy 복사본 테이블을 만들어 두었습니다. 뷰에는 SELECT 문만 저장되고, 복사본에는 지금의 결과(재고 10개)가 행으로 저장됩니다.</li>
+<li>INSERT INTO orders ... VALUES (1, 3): 애플리케이션이 실행한 문장은 이것 하나입니다. orders에 주문 한 행(수량 3개)이 들어갑니다.</li>
+<li>트리거 trg_order_stock: orders에 INSERT가 일어났으므로 DB가 트리거를 자동으로 실행합니다. 트리거의 UPDATE가 재고를 10개에서 7개로 줄입니다. 애플리케이션 코드에는 이 UPDATE가 어디에도 없습니다.</li>
+<li>트리거의 둘째 문장: stock_log에 &quot;트리거&quot;라는 메모와 함께 변경 기록 한 행을 넣습니다. 여기까지가 INSERT 한 문장 안에서 일어난 일입니다.</li>
+<li>SELECT stock FROM v_stock: 뷰에는 데이터가 없고 SELECT 문만 저장돼 있습니다. 조회하는 지금 product를 읽어 7개를 돌려줍니다. 뷰를 고친 적은 없지만 원본 테이블이 바뀌었으므로 결과도 바뀌었습니다.</li>
+<li>SELECT stock FROM stock_copy: 복사본 테이블은 만들 때의 결과를 자기 행으로 저장해 두었습니다. product가 바뀌어도 따라 바뀌지 않으므로 10개 그대로입니다. 실제 재고와 어긋난 값입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>주문 문장은 성공했습니다. orders 1행, 실제 재고 7개, stock_log 1행입니다. 뷰로 본 재고는 7개, 복사본의 재고는 10개입니다.</li>
+<li>애플리케이션 코드에는 INSERT 한 줄뿐인데 테이블 세 개가 바뀌었습니다. 트리거는 빠뜨릴 수 없다는 점에서 편리하지만 코드를 읽는 사람에게 보이지 않습니다. 재고가 왜 줄었는지 찾으려면 DB에 걸려 있는 트리거까지 알아야 합니다.</li>
+<li>뷰는 데이터를 따로 저장하지 않는 &quot;저장해 둔 쿼리&quot;입니다. 조회할 때마다 원본 테이블을 읽으므로 재고가 바뀌자 뷰의 결과도 7개로 바뀌었습니다. 결과를 테이블로 복사해 둔 쪽은 10개에 머물러 있습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>-- product 테이블: (1, '키보드', stock 10)
+-- stock 컬럼에는 CHECK (stock &gt;= 0) 제약이 있다
+
+CREATE VIEW v_stock AS            -- 뷰: SELECT 문만 저장
+  SELECT name, stock FROM product;
+CREATE TABLE stock_copy AS        -- 복사본: 지금의 결과를 행으로 저장
+  SELECT name, stock FROM product;
+
+CREATE TRIGGER trg_order_stock AFTER INSERT ON orders FOR EACH ROW
+BEGIN
+  UPDATE product SET stock = stock - NEW.qty WHERE id = NEW.product_id;
+  INSERT INTO stock_log (product_id, change_qty, memo)
+    VALUES (NEW.product_id, -NEW.qty, '트리거');
+END;
+
+-- 애플리케이션이 실행하는 문장은 이것 하나
+INSERT INTO orders (product_id, qty) VALUES (1, 3);
+
+SELECT stock FROM v_stock;        -- 뷰로 조회
+SELECT stock FROM stock_copy;     -- 복사본으로 조회</pre>
+<h2>이 모형의 전제</h2>
+<p>열두 가지 조합 모두, 화면의 SQL과 같은 테이블, 뷰, 프로시저, 트리거를 이 PC의 MySQL 8.4(InnoDB, 자동 커밋 켜짐)에 만들고 주문 문장을 실행해 오류 여부, 각 테이블의 행 수, 재고, 뷰와 복사본의 값을 대조했습니다. 뷰가 데이터를 저장하지 않는다는 것은 information_schema에서 v_stock이 저장 엔진이 없는 VIEW로, stock_copy가 InnoDB 테이블로 나오는 것으로 확인했습니다. &quot;트랜잭션으로 묶고 ROLLBACK하면 재고가 돌아온다&quot;는 것도 같은 DB에서 한 번 실행해 확인했습니다. 트리거가 실패했을 때 원래 문장이 함께 취소되는 것은 InnoDB처럼 트랜잭션을 지원하는 엔진에서의 동작입니다. 프로시저 안에서 오류가 났을 때 어디까지 남는지는 자동 커밋 설정, 프로시저 안의 START TRANSACTION과 오류 처리기(HANDLER)에 따라 달라지며, 여기서는 그런 장치가 없는 가장 단순한 프로시저를 썼습니다. 재고가 모자랄 때의 오류는 CHECK 제약(MySQL 8.0.16부터 실제로 검사)에서 나오게 했습니다.</p>
+<p>앞 실습: <a href="../../lab/paging/">OFFSET과 키셋 페이징</a> · 다음 실습: <a href="../../lab/btree/">이진 탐색과 B-트리</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

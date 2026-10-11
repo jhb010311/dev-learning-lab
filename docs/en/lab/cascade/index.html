@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cascade and orphan removal: What happens to the children when you save or delete only the parent? · Dev Learning Lab</title>
+<meta name="description" content="A post (the parent) has two comments (the children). Whether the comments are saved and deleted together when you persist or remove only the post is decid…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cascade/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cascade/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cascade/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Cascade and orphan removal: What happens to the children when you save or delete only the parent? · Dev Learning Lab">
+<meta property="og:description" content="A post (the parent) has two comments (the children). Whether the comments are saved and deleted together when you persist or remove only the post is decid…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/cascade/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Relationships</p>
+<h1>Cascade and orphan removal</h1>
+<p><b>What happens to the children when you save or delete only the parent?</b></p>
+<p>A post (the parent) has two comments (the children). Whether the comments are saved and deleted together when you persist or remove only the post is decided by cascade and orphanRemoval on @OneToMany. Change the settings and see which SQL is sent and what is left in the DB.</p>
+<p>Checked against real execution · 24 combinations were run on Hibernate 7.4.5 and H2, and the number and order of the SQL statements, the exceptions, and the rows left in the DB were checked</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Cascade</dt>
+<dd>A setting that passes an operation performed on a parent entity on to its associated child entities in the same way. You write it in the cascade attribute of an association annotation such as @OneToMany or @OneToOne. CascadeType.PERSIST passes on saving, REMOVE passes on deletion, and ALL passes on every operation. Without it, persisting only the parent does not save the children, and removing a parent that still has children fails because of the foreign key constraint. It is a convenience that passes operations on, not a feature that sets up the relationship, and you use it when only that one parent owns the children.</dd>
+<dt>Orphan removal (orphanRemoval)</dt>
+<dd>A setting that also deletes from the DB a child entity that has been disconnected from its parent entity. You write it as orphanRemoval = true on @OneToMany or @OneToOne. If you take a child out of the parent's collection, a DELETE for that child is sent when the transaction commits. Without this setting, the row in the DB stays even if you take the child out of the collection. Children are also deleted when the parent is deleted, so you can think of it as including the behavior of CascadeType.REMOVE. Do not use it for a child that other entities also refer to.</dd>
+<dt>Persistence context</dt>
+<dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it. (It is outside the top 50, but it is a concept that always comes up as a follow-up question when you use JPA.)</dd>
+<dt>Transactional write-behind and flush</dt>
+<dd>Transactional write-behind means that INSERT, UPDATE, and DELETE statements are not sent to the database right away. They are collected and sent together. However, for an entity whose primary key is generated with the IDENTITY strategy (such as AUTO_INCREMENT in MySQL), the INSERT runs immediately when you request the save, because the identifier must be obtained. A flush sends the collected changes to the database. It happens automatically just before the transaction commits and just before a JPQL query runs. A flush only sends SQL to the database. It does not commit the transaction.</dd>
+<dt>Entity</dt>
+<dd>A Java object that corresponds to a row of a database table. It is defined as a class annotated with @Entity and has an identifier (@Id). JPA tracks the state changes of these objects and runs the matching SQL.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Persist only the post, with no cascade. There is no exception, but only the comments are left out of the save.</li>
+<li><b>CascadeType.PERSIST</b> — The persist is passed on to the comments, so 3 INSERTs are sent.</li>
+<li><b>Remove the post without cascade</b> — The comments point to the post, so the DB refuses the deletion.</li>
+<li><b>Remove with CascadeType.REMOVE</b> — It deletes the comments first and then the post.</li>
+<li><b>ALL, but you only take one out of the list</b> — Even with CascadeType.ALL, no DELETE is sent.</li>
+<li><b>orphanRemoval = true</b> — A DELETE is sent for the comment you took out of the list.</li>
+<li><b>Only orphanRemoval on, and remove the post</b> — The comments are deleted together even though you did not write cascade.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>new Post, addComment twice: Created one post object and two comment objects and connected them to each other. They are still ordinary Java objects that JPA does not know about (New). The DB has nothing.</li>
+<li>em.persist(post): The post comes under the management of the persistence context. The primary key uses the IDENTITY strategy, so the INSERT is sent right away to get the id.</li>
+<li>Because cascade does not have PERSIST, the persist stops at the post. The two comments in the list are still New objects that JPA does not know about.</li>
+<li>Method ends, commit: It commits without an exception. comments is the side with mappedBy, so it does not manage the foreign key, and Hibernate does not complain even if this list holds objects that have not been saved. The comment INSERTs were never sent.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Read SQL sent: 0. Write SQL sent: INSERT: 1. After it ended, the DB has 1 post and 0 comments.</li>
+<li>Without PERSIST (or ALL) in cascade, the persist you call on the parent is not passed on to the children. As in this example, with a list that has mappedBy, no exception is thrown either, so it is easy to miss that the comments were not saved.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Entity
+class Post {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+    String title;
+
+    @OneToMany(mappedBy = &quot;post&quot;)
+    List&lt;Comment&gt; comments = new ArrayList&lt;&gt;();
+
+    void addComment(String text) {     // sets both sides together
+        Comment c = new Comment(text);
+        c.post = this;
+        comments.add(c);
+    }
+}
+
+@Entity
+class Comment {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+    String text;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    Post post;                         // foreign key post_id
+}
+
+// Runs inside a transaction
+Post post = new Post(&quot;Notice&quot;);
+post.addComment(&quot;First comment&quot;);
+post.addComment(&quot;Second comment&quot;);
+em.persist(post);                      // persists only the post
+// The commit happens when the method ends</pre>
+<h2>Assumptions of this model</h2>
+<p>This lab assumes a bidirectional relationship (@OneToMany(mappedBy) and @ManyToOne), a primary key with the IDENTITY strategy, and execution inside a single transaction. All 24 combinations (4 cascade settings, 2 orphanRemoval settings, and 3 actions) were run on real Hibernate 7.4.5 and an H2 database, and the number and order of the SQL statements sent, the exception, and the number of rows left in the DB after it ended were confirmed to match the screen. The SQL statements on the screen are shortened to be easy to read and are not letter-for-letter the same as the actual statements. The result that &quot;if you persist only the parent without cascade, the children are left out without an exception&quot; holds for this mapping, where the comment list has mappedBy. In the same environment, it was confirmed that if you change it to a unidirectional @OneToMany(@JoinColumn), where the list side manages the foreign key directly, and run the same code, a TransientPropertyValueException is thrown at commit and the post is not saved either. The opposite case, persisting only a comment that points to a post that has not been saved, is not covered in this lab. If the primary key uses the SEQUENCE strategy, the INSERTs are sent at commit, not when you call persist (this is covered in the &quot;Persistence context&quot; lab). Setting ON DELETE CASCADE on the foreign key in the DB is a different feature from cascade in JPA and is not covered here.</p>
+<p>Previous lab: <a href="../../lab/inheritmap/">Inheritance mapping</a> · Next lab: <a href="../../lab/lazyproxy/">Proxies and lazy fetching</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>String, StringBuilder: Why is the original unchanged after you call a string method? · Dev Learning Lab</title>
+<meta name="description" content="A String is an object whose contents do not change once it has been created. Methods such as concat, replace, and toUpperCase do not modify the original.…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/strbuild/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/strbuild/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/strbuild/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="String, StringBuilder: Why is the original unchanged after you call a string method? · Dev Learning Lab">
+<meta property="og:description" content="A String is an object whose contents do not change once it has been created. Methods such as concat, replace, and toUpperCase do not modify the original.…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/strbuild/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Commonly used classes</p>
+<h1>String, StringBuilder</h1>
+<p><b>Why is the original unchanged after you call a string method?</b></p>
+<p>A String is an object whose contents do not change once it has been created. Methods such as concat, replace, and toUpperCase do not modify the original. They create a new string and return it, so if you ignore the return value, it looks as if nothing happened. A StringBuilder, in contrast, modifies the contents of a single object directly. Look at the difference while using == to check whether two variables refer to the same object.</p>
+<p>Checked against real execution · The 18 combinations were run on JDK 21 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>String immutability</dt>
+<dd>This is the property that the characters inside a String object cannot be changed once the object has been created. Methods such as concat, replace, toUpperCase, and trim do not modify the original. They return a String that holds the result. So if you only call the method, as in s.toUpperCase(), and ignore the return value, s stays as it was, and you have to assign the return value back, as in s = s.toUpperCase(), to use the result. What changes in that case is not the string object but the object that the variable s refers to. Because the contents do not change, it is safe for several places to refer to the same string, and a String is well suited for use as a key in a HashMap.</dd>
+<dt>Immutable object</dt>
+<dd>This is an object whose state does not change after it is created. Because its value never changes, it is safe for several threads to use at the same time, you can pass it to other code without worrying that it will be changed, and it is well suited for caching or for use as a key in a hash collection. Declare the fields private final, provide no methods that change the state, and make the class final so that a subclass cannot change its behavior. If a field refers to a mutable object (such as a List or a Date), the constructor and the getters pass copies in and out (defensive copying) so that outside code cannot change the internals.</dd>
+<dt>StringBuilder and StringBuffer</dt>
+<dd>These are mutable string classes whose contents can be changed. String is immutable, so every concatenation creates a new object, but these two append to an internal buffer and so create fewer objects. StringBuffer has synchronized methods and is safe to use from several threads, while StringBuilder has no synchronization and is faster in a single thread.</dd>
+<dt>Identity and equality</dt>
+<dd>Identity means that two references point to the same object in memory, and you compare it with the == operator. Equality means that two objects logically have the same value, and you compare it with the equals() method. If you use == to compare strings or value objects, the result can be false even when the contents are the same.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — toUpperCase() is called, but printing s shows that it is unchanged.</li>
+<li><b>Assigning the return value</b> — s refers to the new string, and the first object stays as it was.</li>
+<li><b>concat works the same way</b> — A method that concatenates does not change the original either.</li>
+<li><b>Concatenating with + in a loop</b> — On every iteration, s refers to a new object.</li>
+<li><b>Appending with a StringBuilder</b> — A single object is modified from start to finish.</li>
+<li><b>append of StringBuilder</b> — The contents change even if you ignore the return value.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>String s = &quot;java&quot;: There is a string object with the contents &quot;java&quot;, and the variable s refers to that object.</li>
+<li>String first = s: first is given the same reference that s holds. The contents are not copied. Instead, the two variables now refer to the same object. first is kept so that you can see later whether the first object changes.</li>
+<li>s.toUpperCase(): The original object &quot;java&quot; is left as it is, and a new string object &quot;JAVA&quot; is created and returned. But there is no variable to receive the return value. The new string is not kept in any variable.</li>
+<li>System.out.println(s): The contents of the object that s refers to are printed as one line: java. A method was called, but s still refers to the first object, so it looks as if nothing happened.</li>
+<li>System.out.println(first): The contents of the first object, which first refers to, are printed as one line: java. The contents of the first object did not change.</li>
+<li>s == first: The two variables refer to the same object, so the result is true.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Both s and the first object are still java, and s == first is true.</li>
+<li>The methods of String do not modify the original. They return a new string. If you ignore the return value, the result is thrown away. There is no compile-time error and no exception, so this mistake is hard to notice.</li>
+<li>To use the result, you must assign the return value to a variable, as in s = s.toUpperCase().</li>
+</ul>
+<h2>Code</h2>
+<pre>String s = &quot;java&quot;;
+String first = s;                 // remember the first object
+
+s.toUpperCase();                 // the return value is ignored
+
+System.out.println(s);
+System.out.println(first);
+System.out.println(s == first);   // same object?</pre>
+<h2>Assumptions of this model</h2>
+<p>The output of the 18 combinations (10 distinct cases when the hidden setting is left out) was checked against the results of running the same code on JDK 21 on this PC. Saying that &quot;a new object was created&quot; means that a == comparison confirmed that the object is different from the previous one. How many objects are actually created in memory at run time can vary with the optimizations of the JVM, so no claim is made about it. The methods and values chosen here are all cases in which the contents change. For a call that does not change the contents (for example, replace when there is no character to replace), String sometimes returns itself without creating a new object. How a StringBuilder grows the internal space that holds its characters is not covered by this model.</p>
+<p>Previous lab: <a href="../../lab/eqhash/">equals and hashCode</a> · Next lab: <a href="../../lab/datetime/">Dates and times</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

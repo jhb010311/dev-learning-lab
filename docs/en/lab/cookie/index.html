@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cookies: Showing a name tag, every time, to a server that cannot remember you · Dev Learning Lab</title>
+<meta name="description" content="An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and t…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cookie/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cookie/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cookie/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Cookies: Showing a name tag, every time, to a server that cannot remember you · Dev Learning Lab">
+<meta property="og:description" content="An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and t…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/cookie/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
+<h1>Cookies</h1>
+<p><b>Showing a name tag, every time, to a server that cannot remember you</b></p>
+<p>An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site. Change the attributes of the cookie, and see which requests get the cookie and which do not.</p>
+<p>Partly checked against real execution · Checked with a browser and a test server (deletion when the browser is closed was not verified)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Cookie</dt>
+<dd>A small piece of data that a server sends in a response. The browser stores it and automatically sends it back with every request to the same site. HTTP does not remember state between requests, so this data is used to keep information that must carry over, such as a login state. Because it is stored in the user's browser, you must use it on the assumption that the user can read or change its contents.</dd>
+<dt>HTTP as a stateless protocol</dt>
+<dd>HTTP is a communication protocol in which a client sends a request and a server responds. Stateless means that the server does not remember the content of earlier requests, so each request must carry all the information needed to process it. Because the server keeps no state, any server can take a request, which makes it easy to add servers. Information that must carry over, such as a login state, is kept with cookies, sessions, or tokens.</dd>
+<dt>HttpOnly, Secure, and SameSite</dt>
+<dd>Attributes that protect cookies. HttpOnly stops JavaScript from reading the cookie, which prevents the cookie from being stolen by a script injection attack. Secure makes the browser send the cookie only over HTTPS connections. SameSite restricts sending the cookie with requests that start from another site, which reduces CSRF attacks.</dd>
+<dt>Session</dt>
+<dd>A way to store a user's state on the server side and give the client only an identifier (the session ID) that points to that stored state, delivered in a cookie. The actual information is on the server, so the client cannot tamper with it. When there are several servers, a common setup keeps this state in a shared store such as Redis so that any server that receives a request can find the same state.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The cookie is attached automatically to every request to the same site.</li>
+<li><b>Without a cookie</b> — Even for a request right after the login, the server does not know who sent it.</li>
+<li><b>Narrow the path to /shop</b> — The cookie is not attached to a request for /orders.</li>
+<li><b>Turn off HttpOnly</b> — JavaScript on the page can read the value of the cookie.</li>
+<li><b>Lifetime of 3s, request after 10s</b> — The browser deletes an expired cookie.</li>
+<li><b>Close the browser and open it again</b> — A cookie with no lifetime specified disappears. Change it to 1 hour and compare.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>This is the login request. It is the first request, so the browser has no cookie for this site. The server checks the ID and the password in the body.</li>
+<li>The server sends Set-Cookie: sid=abc123; Path=/; HttpOnly in the response header. The browser stores this value as a cookie of shop.example. The server writes down on its own side that &quot;abc123 is member 7&quot;.</li>
+<li>This is the request for shop.example/orders. The browser attached sid to the Cookie header automatically. It is attached even though the code does not add it anywhere. The server looks up abc123 and knows that the request is from member 7.</li>
+<li>This is the request for shop.example/shop/cart. This path falls under Path=/, so the cookie is attached.</li>
+<li>This is a request going to another site, other.example. The cookie that shop.example gave is not attached. A cookie is attached only to requests going to the site that sent it.</li>
+<li>JavaScript on the shop.example/shop/cart page reads document.cookie. A cookie with HttpOnly is not visible to scripts. It is still attached to requests automatically.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The cookie is alive, and it is attached automatically to requests going to every path of the site. It is not attached to requests going to another site.</li>
+<li>A cookie with no lifetime specified is deleted when the browser is closed. &quot;Stay logged in&quot; is a cookie whose lifetime is specified with Max-Age or Expires.</li>
+<li>A cookie is stored in the user's browser, so the user can see and change its contents. That is why you do not put a value such as the member number directly into a cookie, but an identifier that cannot be guessed (a session ID) or a signed token. This continues in the &quot;Sessions and JWT&quot; lab.</li>
+</ul>
+<h2>Code</h2>
+<pre>@PostMapping(&quot;/login&quot;)
+ResponseEntity&lt;Void&gt; login(@RequestBody LoginRequest req) {
+    Member m = memberService.check(req.id(), req.password());
+    String sid = sessionStore.create(m.getId());        // &quot;abc123&quot; → member 7
+
+    ResponseCookie cookie = ResponseCookie.from(&quot;sid&quot;, sid)
+        .path(&quot;/&quot;)
+        .httpOnly(true)
+        .build();
+    return ResponseEntity.ok()
+        .header(HttpHeaders.SET_COOKIE, cookie.toString())
+        .build();
+}
+// Response header: Set-Cookie: sid=abc123; Path=/; HttpOnly</pre>
+<h2>Assumptions of this model</h2>
+<p>The paths that a cookie is attached to according to Path, the fact that an HttpOnly cookie is not visible in document.cookie, the disappearance of a cookie after its Max-Age has passed, and the fact that a cookie is not sent to an address on a different host are the same as the results checked with a real browser and a test server. That a session cookie is deleted when the browser is closed follows the standard behavior, and it was not checked by running it. A browser with the &quot;restore previous tabs&quot; feature turned on may bring session cookies back. The Secure, SameSite, and Domain attributes are not covered in this lab.</p>
+<p>Previous lab: <a href="../../lab/httpver/">HTTP/1.1, 2, 3</a> · Next lab: <a href="../../lab/etag/">HTTP caching and ETag</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

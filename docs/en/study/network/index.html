@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Networking · Dev Learning Lab</title>
+<meta name="description" content="From typing an address to receiving the response: DNS, TCP, HTTP, TLS, and the machines in between.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/study/network/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/study/network/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/study/network/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Networking · Dev Learning Lab">
+<meta property="og:description" content="From typing an address to receiving the response: DNS, TCP, HTTP, TLS, and the machines in between.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/study/network/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a></p>
+<h1>Networking</h1>
+<p>From typing an address to receiving the response: DNS, TCP, HTTP, TLS, and the machines in between.</p>
+<h2>The big picture</h2>
+<ul>
+<li><a href="../../lab/journey/">From URL to response</a> — What happens when you type a URL in the address bar and press Enter</li>
+<li><a href="../../lab/layers/">Layers and encapsulation</a> — You send 1500 bytes, so why do 1616 bytes cross the wire?</li>
+</ul>
+<h2>Addresses and names</h2>
+<ul>
+<li><a href="../../lab/url/">URL structure</a> — After I added the search term &quot;A&amp;B&quot; to the URL, the server received only &quot;A&quot;</li>
+<li><a href="../../lab/dns/">DNS</a> — Who knows the IP address of a domain name, and when does a change show up?</li>
+<li><a href="../../lab/subnet/">IP addresses and subnets</a> — Are two IP addresses with the same first three numbers on the same network?</li>
+<li><a href="../../lab/routing/">Switches and routers</a> — If the destination IP is the server, why is the frame sent to the router's MAC address?</li>
+</ul>
+<h2>Transport layer</h2>
+<ul>
+<li><a href="../../lab/socket/">Sockets and ports</a> — Of the several programs on one computer, which one receives this data?</li>
+<li><a href="../../lab/tcp/">TCP connections and retransmission</a> — When a packet is lost, who notices and sends it again?</li>
+<li><a href="../../lab/udp/">TCP and UDP</a> — If you send data in three pieces, does it arrive in three pieces?</li>
+<li><a href="../../lab/congestion/">Flow control and congestion control</a> — How does TCP decide how much to send at a time?</li>
+</ul>
+<h2>HTTP</h2>
+<ul>
+<li><a href="../../lab/httpmsg/">HTTP messages and status codes</a> — This is what a request and a response look like as text</li>
+<li><a href="../../lab/httpver/">HTTP/1.1, 2, 3</a> — What differs between the versions when you fetch 30 files</li>
+<li><a href="../../lab/cookie/">Cookies</a> — Showing a name tag, every time, to a server that cannot remember you</li>
+<li><a href="../../lab/etag/">HTTP caching and ETag</a> — Do we have to fetch the same file again?</li>
+<li><a href="../../lab/idem/">Retries and idempotency</a> — No response came back, so the request was sent again</li>
+<li><a href="../../lab/redirect/">Redirection</a> — When a server says &quot;go to another address&quot;, how does the next request go out?</li>
+<li><a href="../../lab/conneg/">Content negotiation and compression</a> — Why do different people get different responses from the same address?</li>
+<li><a href="../../lab/cors/">CORS</a> — Why a request works in Postman but is blocked only in the browser</li>
+<li><a href="../../lab/realtime/">Polling, SSE, and WebSocket</a> — Four ways to tell the browser what happened on the server</li>
+</ul>
+<h2>Secure connections</h2>
+<ul>
+<li><a href="../../lab/tls/">TLS handshake</a> — What happens before the https padlock locks</li>
+</ul>
+<h2>In front of the web server</h2>
+<ul>
+<li><a href="../../lab/scale/">Load balancers and scale out</a> — How far does adding servers get you?</li>
+<li><a href="../../lab/revproxy/">Proxies and reverse proxies</a> — How does a server behind a proxy know who sent the request?</li>
+<li><a href="../../lab/cdn/">CDN</a> — The origin was changed, so why do users still get the old file?</li>
+</ul>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

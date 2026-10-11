@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>From URL to response: What happens when you type a URL in the address bar and press Enter · Dev Learning Lab</title>
+<meta name="description" content="While a browser opens a single URL, a DNS lookup, a TCP connection, a TLS handshake, an HTTP request, a reverse proxy, an application server, and a databa…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/journey/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/journey/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/journey/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="From URL to response: What happens when you type a URL in the address bar and press Enter · Dev Learning Lab">
+<meta property="og:description" content="While a browser opens a single URL, a DNS lookup, a TCP connection, a TLS handshake, an HTTP request, a reverse proxy, an application server, and a databa…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/journey/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › The big picture</p>
+<h1>From URL to response</h1>
+<p><b>What happens when you type a URL in the address bar and press Enter</b></p>
+<p>While a browser opens a single URL, a DNS lookup, a TCP connection, a TLS handshake, an HTTP request, a reverse proxy, an application server, and a database take part one after another. Some steps can be skipped thanks to a cache or connection reuse. Change the conditions and compare the steps taken and the time they take.</p>
+<p>Partly checked against real execution · The order of the steps and connection reuse were checked with curl; the part behind the proxy was not verified</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>DNS</dt>
+<dd>The system that translates a domain name (example.com) into the IP address that computers use to communicate. When you enter an address in a browser, the browser first asks this system for the IP address of that name and then connects to that IP address. Lookup results are cached for a certain time.</dd>
+<dt>Web server and application server</dt>
+<dd>A web server is a program that receives HTTP requests and either responds with static files such as images and HTML or forwards the requests to another server (Nginx, Apache). An application server (web application server) is a program that runs program code and builds a result for each request (Tomcat). A common setup puts a web server in front and passes requests on to the application server.</dd>
+<dt>Reverse proxy</dt>
+<dd>A server that receives client requests on behalf of internal servers, forwards them to those servers, and returns their responses to the client. The client does not know the actual servers directly. Its roles include distributing requests across several servers, handling TLS, caching, and protecting the internal servers.</dd>
+<dt>CDN</dt>
+<dd>A network that keeps copies of content on servers placed in many regions around the world and has a server close to the user respond. Static files such as images, video, and scripts are delivered faster, and fewer requests go to the origin server.</dd>
+<dt>HTTPS and TLS</dt>
+<dd>HTTPS is HTTP communication encrypted with TLS. TLS keeps third parties from seeing the content (confidentiality), keeps it from being changed on the way (integrity), and uses a certificate to check that the server you connected to is the real one (authentication). SSL is the protocol that came before TLS. It is now deprecated and only TLS is actually used, but the name SSL is still used alongside it by habit.</dd>
+<dt>Three-way handshake</dt>
+<dd>The three-step process used to establish a TCP connection. The client sends a connection request (SYN), the server sends its acceptance together with its own connection request (SYN+ACK), and the client acknowledges it (ACK). After both sides have confirmed that they can send to and receive from each other, data transfer starts.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A first visit. The request goes through every step.</li>
+<li><b>Second request to the same site</b> — The DNS lookup and the connection setup are skipped.</li>
+<li><b>Static file</b> — The web server (nginx) responds directly. The request does not reach the application server.</li>
+<li><b>Static file from a CDN</b> — A server close to the user responds.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The browser splits the URL https://shop.example/orders into the scheme (https), the host (shop.example), and the path. Because the scheme is https, the browser will connect to port 443.</li>
+<li>The browser does not know the IP address of shop.example. It asks a DNS server and gets the IP address back. The result is kept in the cache for a set time (the TTL).</li>
+<li>The browser opens a TCP connection to port 443 of that IP address (the three-way handshake). This takes one round trip to the server.</li>
+<li>In the TLS handshake, the browser verifies the certificate of the server and the two sides agree on the encryption keys. This takes one more round trip.</li>
+<li>The browser sends the HTTP request over the encrypted connection. The request line and the headers (Host, Cookie, User-Agent, and so on) go to the server.</li>
+<li>nginx is the first to receive the request. It decrypts the TLS traffic, looks at the path, and decides where the request will be handled.</li>
+<li>nginx passes the request to Tomcat behind it (port 8080). Tomcat assigns a thread from its thread pool, runs the request through the filters, and hands it to the Spring DispatcherServlet.</li>
+<li>DispatcherServlet finds the controller that handles /orders and runs it. The controller calls a service, and the service calls a repository.</li>
+<li>The application borrows a connection from the connection pool, runs the SQL, and receives the result. This is the part of the request that takes the most time.</li>
+<li>The application turns the query result into JSON or HTML and builds the response. The response travels back through Tomcat and nginx.</li>
+<li>The response arrives at the browser. If it is HTML, the browser parses it, finds the URLs of the CSS, scripts, and images in it, and repeats the same process for each of them.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Total: about 191ms. Every step was taken. Response produced by: Application server (Spring).</li>
+<li>On a first request, the DNS lookup, the TCP connection, and the TLS handshake all happen before the actual request. However fast the server is, these round trips do not go away, so keeping a connection open and reusing it (keep-alive, HTTP/2) has a large effect on how fast the site feels.</li>
+<li>In a dynamic request, the database query takes most of the time. This is why, when you look into a performance problem, you start by breaking the request down to see which part takes the time.</li>
+</ul>
+<h2>Code</h2>
+<pre># nginx (reverse proxy)
+server {
+    listen 443 ssl;
+    server_name shop.example;
+
+    location /static/ {                  # serve static files directly
+        root /var/www;
+    }
+    location / {                         # pass everything else to the application server
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header X-Forwarded-For $remote_addr;
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The times are examples chosen to show relative sizes (30ms to reach the server once, 5ms with a CDN, 40ms for a DNS lookup, 20ms for a database query). Real values vary widely with the distance, the network, and the query. The setup assumes a common arrangement in which nginx handles TLS in front and passes requests to Spring Boot (embedded Tomcat) behind it. That the steps really happen in this order, and that the first three steps disappear when a connection is reused, was checked by sending two requests in a row to a public site with curl. In the first request, the DNS lookup was done at 27ms, the TCP connection at 60ms, and TLS at 156ms, and the first byte arrived at 194ms. The second request, sent over the same connection, showed 0 for DNS, TCP, and TLS and took 40ms in total. The part behind the reverse proxy was not verified directly.</p>
+<p>Next lab: <a href="../../lab/layers/">Layers and encapsulation</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

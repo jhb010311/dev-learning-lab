@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>테스트: 테스트를 실행할 때 스프링 컨텍스트에는 무엇이 들어가고, 몇 번 만들어지나 · 개발 학습 실습실</title>
+<meta name="description" content="컨트롤러 하나를 테스트하는 방법은 여러 가지입니다. 스프링 없이 new로 객체를 만들어 부를 수도 있고, @SpringBootTest로 빈을 전부 띄울 수도 있고, @WebMvcTest로 웹 계층만 띄울 수도 있습니다. 방식에 따라 컨텍스트(빈을 만들어 담아 두는 컨테이너)에…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/testing/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/testing/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/testing/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="테스트: 테스트를 실행할 때 스프링 컨텍스트에는 무엇이 들어가고, 몇 번 만들어지나 · 개발 학습 실습실">
+<meta property="og:description" content="컨트롤러 하나를 테스트하는 방법은 여러 가지입니다. 스프링 없이 new로 객체를 만들어 부를 수도 있고, @SpringBootTest로 빈을 전부 띄울 수도 있고, @WebMvcTest로 웹 계층만 띄울 수도 있습니다. 방식에 따라 컨텍스트(빈을 만들어 담아 두는 컨테이너)에…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/testing/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 그 밖의 기능</p>
+<h1>테스트</h1>
+<p><b>테스트를 실행할 때 스프링 컨텍스트에는 무엇이 들어가고, 몇 번 만들어지나</b></p>
+<p>컨트롤러 하나를 테스트하는 방법은 여러 가지입니다. 스프링 없이 new로 객체를 만들어 부를 수도 있고, @SpringBootTest로 빈을 전부 띄울 수도 있고, @WebMvcTest로 웹 계층만 띄울 수도 있습니다. 방식에 따라 컨텍스트(빈을 만들어 담아 두는 컨테이너)에 들어가는 빈이 다르고, 빠진 빈을 가짜 객체로 채우지 않으면 테스트가 시작도 못 합니다. OrderController → OrderService → OrderRepository 순서로 의존하는 코드를 두 테스트 클래스로 실행하면서, 각 테스트의 결과와 컨텍스트가 만들어진 횟수를 확인합니다.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1, spring-test 7.0.9, JUnit Jupiter 6.0.3, Mockito 5.23.0에서 서른여섯 가지 조합을 조합마다 새 JVM으로 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>단위 테스트와 통합 테스트</dt>
+<dd>단위 테스트는 메서드나 클래스 하나의 동작을 다른 부분과 분리해 검증하는 테스트로, 빠르게 실행되고 실패 원인을 찾기 쉽다. 통합 테스트는 여러 구성 요소(스프링 컨테이너, 데이터베이스 등)를 실제로 연결해 함께 동작하는지 검증하는 테스트로, 실제에 가깝지만 느리다. 단위 테스트를 많이, 통합 테스트를 핵심 흐름 위주로 두는 것이 일반적이다.</dd>
+<dt>테스트 대역(Mock, Stub)</dt>
+<dd>테스트 대상이 의존하는 실제 객체를 대신하는 테스트용 객체다. Stub은 정해진 값을 돌려주도록 만든 것이고, Mock은 어떤 메서드가 어떻게 호출되었는지까지 검증할 수 있는 것이다. 데이터베이스나 외부 API 없이 테스트 대상의 로직만 빠르고 일관되게 검증할 수 있게 한다.</dd>
+<dt>@SpringBootTest와 @WebMvcTest</dt>
+<dd>스프링 부트가 테스트에 쓸 스프링 컨텍스트를 만들어 주는 두 애노테이션이다. @SpringBootTest는 애플리케이션을 띄울 때와 같이 빈을 전부 등록하므로 여러 계층이 이어져 동작하는 것을 확인할 수 있지만, 등록되는 빈이 많아 컨텍스트가 크다. @WebMvcTest는 컨트롤러 같은 웹 계층의 빈만 등록하고 @Service나 @Repository가 붙은 클래스는 등록하지 않는다. 그래서 컨트롤러가 의존하는 서비스를 @MockitoBean으로 직접 넣어 주지 않으면 컨텍스트가 뜨지 못하고, 테스트 메서드는 실행되기도 전에 실패한다. 스프링 부트 4에서 @WebMvcTest는 spring-boot-webmvc-test 모듈의 org.springframework.boot.webmvc.test.autoconfigure 패키지에 있다.</dd>
+<dt>@MockitoBean</dt>
+<dd>테스트용 스프링 컨텍스트의 빈을 Mockito가 만든 가짜 객체로 바꾸는 애노테이션이다. 테스트 클래스의 필드에 붙이면, 그 타입의 빈이 컨텍스트에 있을 때는 가짜가 그 자리를 대신하고 없을 때는 가짜가 새 빈으로 추가된다. 가짜 객체의 메서드는 when(...).thenReturn(...)으로 돌려줄 값을 정해 주지 않으면 null 같은 기본값을 돌려준다. 스프링 부트 4에는 예전의 @MockBean이 없고, 스프링 프레임워크에 들어 있는 이 애노테이션을 쓴다. 테스트 클래스마다 @MockitoBean을 붙인 필드의 구성이 다르면 서로 다른 컨텍스트가 필요해져, 컨텍스트를 그만큼 여러 번 만들게 된다.</dd>
+<dt>테스트 컨텍스트 캐시</dt>
+<dd>스프링의 테스트 지원 기능이 한 번 만든 컨텍스트를 보관해 두었다가, 설정이 같은 다른 테스트 클래스에 다시 내주는 저장소이다. 설정 클래스, 활성 프로필, @MockitoBean을 붙인 필드의 구성 같은 것이 모두 같아야 같은 컨텍스트로 보고, 하나라도 다르면 새로 만든다. 캐시는 테스트를 실행하는 JVM 안에 있으며, @DirtiesContext를 붙이면 해당 컨텍스트를 닫고 캐시에서 뺀다. 같은 설정의 컨텍스트가 기동에 실패하면 기본으로는 다시 만들어 보지 않고 뒤의 테스트를 바로 실패시킨다. 테스트 클래스마다 설정이 조금씩 다르면 컨텍스트를 여러 번 띄우게 되어 전체 테스트가 느려진다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — @WebMvcTest만 붙였습니다. 컨텍스트가 뜨지 않아 테스트가 시작도 못 합니다.</li>
+<li><b>서비스를 가짜로 채우면</b> — @MockitoBean OrderService를 넣으면 컨텍스트가 뜨고 테스트가 통과합니다.</li>
+<li><b>리포지토리만 가짜로 채우면</b> — 컨트롤러가 요구하는 것은 서비스라서 여전히 뜨지 않습니다.</li>
+<li><b>가짜에 돌려줄 값을 정하지 않으면</b> — 컨텍스트는 뜨지만 가짜가 null을 돌려주어, 값을 확인하는 줄에서 실패합니다.</li>
+<li><b>@SpringBootTest로 전부 띄우면</b> — 세 빈이 모두 진짜로 등록되어 가짜 없이도 통과합니다.</li>
+<li><b>@MockitoBean이 서로 다르면</b> — 두 번째 클래스는 캐시의 컨텍스트를 못 쓰고 새로 만듭니다.</li>
+<li><b>스프링 없이 new로</b> — 컨텍스트를 한 번도 만들지 않고 컨트롤러의 메서드를 직접 부릅니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>OrderControllerTest 실행 시작: JUnit이 첫 번째 테스트 클래스를 실행합니다. 클래스에 @WebMvcTest(OrderController.class)가 붙어 있으므로, 테스트 메서드를 부르기 전에 스프링이 이 클래스가 쓸 컨텍스트를 준비합니다.</li>
+<li>컨텍스트 캐시 조회: 스프링은 테스트용 컨텍스트를 한 번 만들면 캐시에 보관해 두고, 설정이 같은 테스트 클래스가 오면 다시 내줍니다. 지금은 첫 클래스라 캐시가 비어 있습니다. 컨텍스트를 새로 만들기 시작합니다(1번째).</li>
+<li>빈 등록 (@WebMvcTest): 웹 계층에 속한 것만 등록합니다. @RestController가 붙은 OrderController는 빈이 되고, @Service가 붙은 OrderService와 @Repository가 붙은 OrderRepository는 등록되지 않습니다.</li>
+<li>OrderController 생성 실패: 스프링이 컨트롤러를 만들려면 생성자가 요구하는 OrderService 빈이 있어야 하는데 컨텍스트에 없습니다. NoSuchBeanDefinitionException이 나고 컨텍스트 기동이 중단됩니다.</li>
+<li>returnsOrderName 실패 처리: 컨텍스트가 없으니 @Autowired MockMvc 필드를 채울 수 없습니다. 테스트 메서드의 본문은 한 줄도 실행되지 않고, &quot;Failed to load ApplicationContext&quot;라는 IllegalStateException으로 실패가 기록됩니다.</li>
+<li>OrderControllerSecondTest 실행 시작: 같은 JVM에서 두 번째 테스트 클래스가 이어서 실행됩니다. 애노테이션과 필드가 첫 번째 클래스와 같습니다. 이 클래스에도 컨텍스트가 필요합니다.</li>
+<li>컨텍스트 캐시 조회: 설정이 첫 번째 클래스와 같은데, 그 설정의 컨텍스트는 기동에 실패해서 캐시에 없습니다. 스프링은 같은 설정으로 한 번 실패한 컨텍스트를 다시 만들어 보지 않습니다(기본 한도 1번). 만들기를 시작하지도 않고 &quot;failure threshold (1) exceeded&quot;라는 IllegalStateException으로 테스트를 바로 실패시킵니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>첫 번째 클래스: 컨텍스트 기동 실패. 두 번째 클래스: 컨텍스트 기동 실패 (다시 시도하지 않음). 스프링 컨텍스트를 만든 횟수: 1번 (그 가운데 1번은 기동 실패).</li>
+<li>@WebMvcTest는 컨트롤러 같은 웹 계층의 빈만 등록합니다. 컨트롤러가 의존하는 OrderService는 @MockitoBean으로 직접 채워 주어야 컨텍스트가 뜹니다.</li>
+<li>같은 설정으로 한 번 기동에 실패하면, 스프링은 그 설정의 컨텍스트를 다시 만들어 보지 않고 뒤의 테스트를 바로 실패시킵니다. 실패한 테스트가 여러 개로 보여도 원인은 하나일 수 있으므로, 맨 처음 실패의 메시지를 봅니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 첫 번째 테스트 클래스
+@WebMvcTest(OrderController.class)
+class OrderControllerTest {
+
+    @Autowired
+    MockMvc mockMvc;                      // 서버 없이 요청을 보내는 도구
+
+    @Test
+    void returnsOrderName() throws Exception {
+        mockMvc.perform(get(&quot;/orders/1&quot;))
+               .andExpect(status().isOk())
+               .andExpect(content().string(&quot;키보드&quot;));
+    }
+}
+
+// 이어서 실행되는 두 번째 테스트 클래스
+@WebMvcTest(OrderController.class)
+class OrderControllerSecondTest {
+    // 필드와 returnsOrderName()이 OrderControllerTest와 같다
+}
+
+// ---- 테스트 대상: 컨트롤러 → 서비스 → 리포지토리 ----
+@RestController
+class OrderController {
+    private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @GetMapping(&quot;/orders/{id}&quot;)
+    public String name(@PathVariable Long id) {
+        return orderService.findName(id);
+    }
+}
+
+@Service
+class OrderService {
+    private final OrderRepository orderRepository;
+
+    public OrderService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    public String findName(Long id) {
+        return orderRepository.findName(id);
+    }
+}
+
+@Repository
+class OrderRepository {
+    // DB 대신 쓰는 맵
+    private final Map&lt;Long, String&gt; db = Map.of(1L, &quot;키보드&quot;);
+
+    public String findName(Long id) {
+        return db.get(id);
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>서른여섯 가지 조합 모두를 이 PC에서 실제로 실행해 대조했습니다(테스트 방식 셋 × 가짜 객체 넷 × 두 번째 클래스 넷. 스프링 없는 테스트는 두 번째 클래스 설정이 뜻이 없어 네 가지만). 버전은 스프링 부트 4.1.1, 스프링 프레임워크와 spring-test 7.0.9, JUnit Jupiter 6.0.3, Mockito 5.23.0, JDK 21입니다. Gradle이나 Maven 없이 JUnit Platform Launcher로 두 테스트 클래스를 차례로 실행했고, 컨텍스트 캐시가 JVM 안에 있으므로 조합마다 자바 프로세스를 새로 띄웠습니다. 대조한 것은 두 클래스의 결과(통과, 단언 실패, 컨텍스트 기동 실패, 다시 시도하지 않은 실패), 각 클래스가 쓴 컨트롤러·서비스·리포지토리가 진짜인지 Mockito의 가짜인지 없는지, 컨텍스트 만들기를 시작한 횟수(설정 클래스의 생성자가 불린 횟수로 셌고 기동에 실패한 것도 포함), 기동에 성공한 횟수, 두 클래스가 같은 컨텍스트 객체를 받았는지입니다. 스프링 부트 4에서는 @MockBean이 없고(4.1.1의 spring-boot-test jar에 그 클래스가 없음을 확인) 스프링 프레임워크의 @MockitoBean(org.springframework.test.context.bean.override.mockito)을 씁니다. @WebMvcTest와 @AutoConfigureMockMvc는 spring-boot-webmvc-test 모듈의 org.springframework.boot.webmvc.test.autoconfigure 패키지에 있습니다. 3.x의 패키지 이름과 다르므로 import 문을 옮겨 적을 때 주의합니다. 자동 설정의 통제: 이 PC의 클래스패스에는 스프링 시큐리티, H2와 HikariCP, Hibernate, 스프링 데이터 JPA, 액추에이터가 함께 있습니다. 대조 실행에서는 @SpringBootApplication의 exclude로 시큐리티 자동 설정 다섯 개와 DataSource, Hibernate JPA, 스프링 데이터 JPA 리포지토리 자동 설정을 뺐습니다. 빼지 않고 실행했을 때는 @SpringBootTest의 요청이 시큐리티에 막혀 401이 되었고 @WebMvcTest는 그대로 통과했습니다(실습을 만들면서 따로 실행해 본 결과이며, 저장해 둔 대조 출력에는 들어 있지 않습니다. 이 클래스패스에서 @WebMvcTest가 불러오는 자동 설정 목록에는 시큐리티가 없었습니다. spring-boot-security-test 모듈이 있을 때의 동작은 확인하지 않았습니다). 화면의 @SpringBootApplication 클래스는 생략했습니다. 화면의 코드와 대조용 코드의 차이: 대조용 코드는 테스트 클래스의 이름이 다르고, 같은 본문을 abstract 클래스에서 물려받으며, 객체가 진짜인지 가짜인지 적어 두는 줄과 컨텍스트 횟수를 세는 코드가 더 있습니다. &quot;@MockitoBean이 하나 더 있다&quot;는 첫 번째 클래스가 바꾸지 않은 것 하나(OrderRepository, 이미 바꿨으면 OrderService)를 더 바꾼 경우입니다. DB는 화면과 실행 모두 메모리의 맵으로 대신했습니다. 같은 설정의 컨텍스트가 한 번 실패하면 다시 만들지 않는 한도는 spring.test.context.failure.threshold이고 기본값이 1입니다(spring-test 7.0.9의 상수로 확인). @DirtiesContext는 클래스에 붙였을 때의 기본 동작(클래스의 테스트가 끝난 뒤 닫음)만 다뤘습니다. 이 PC에서 컨텍스트의 빈 정의 수는 @SpringBootTest가 303개, @WebMvcTest가 130개였고(가짜 빈이 추가되면 131개), 이 수는 클래스패스와 위의 exclude에 따라 달라집니다. 걸린 시간은 실행할 때마다 달라서 결과 표에 넣지 않았습니다. 이 PC의 한 번 실행에서 첫 번째 클래스는 스프링 없는 테스트가 약 0.7~0.9초(Mockito 준비 포함), @WebMvcTest가 약 2.7초, @SpringBootTest가 약 3.4~4.4초였고, 컨텍스트를 다시 쓴 두 번째 클래스는 0.05초 이하였습니다. Mockito는 JDK 21에서 가짜 객체를 만들기 위해 실행 중에 스스로 에이전트를 붙이며 경고를 내는데, 동작에는 지장이 없어 그대로 두었습니다. 테스트 메서드의 @Transactional 롤백, @DataJpaTest 같은 다른 슬라이스, @MockitoSpyBean, 캐시의 최대 크기, 빌드 도구가 테스트를 여러 프로세스로 나눠 실행하는 경우(캐시는 프로세스마다 따로입니다)는 다루지 않았고 실행으로 확인하지도 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/actuator/">액추에이터와 헬스 체크</a> · 다음 실습: <a href="../../lab/restclient/">외부 API 호출과 타임아웃</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

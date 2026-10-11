@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>프록시와 자기 호출: 애노테이션을 붙였는데 왜 동작하지 않나 · 개발 학습 실습실</title>
+<meta name="description" content="@Transactional이나 @Async는 메서드 자체를 바꾸지 않습니다. 스프링이 빈을 프록시(대리 객체)로 감싸 두고, 프록시를 거쳐 들어오는 호출에만 부가 기능을 끼워 넣습니다. 그래서 어디서 어떻게 호출하느냐에 따라 같은 애노테이션이 적용되기도 하고 무시되기도 합니다.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/proxy/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/proxy/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/proxy/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="프록시와 자기 호출: 애노테이션을 붙였는데 왜 동작하지 않나 · 개발 학습 실습실">
+<meta property="og:description" content="@Transactional이나 @Async는 메서드 자체를 바꾸지 않습니다. 스프링이 빈을 프록시(대리 객체)로 감싸 두고, 프록시를 거쳐 들어오는 호출에만 부가 기능을 끼워 넣습니다. 그래서 어디서 어떻게 호출하느냐에 따라 같은 애노테이션이 적용되기도 하고 무시되기도 합니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/proxy/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › AOP와 프록시</p>
+<h1>프록시와 자기 호출</h1>
+<p><b>애노테이션을 붙였는데 왜 동작하지 않나</b></p>
+<p>@Transactional이나 @Async는 메서드 자체를 바꾸지 않습니다. 스프링이 빈을 프록시(대리 객체)로 감싸 두고, 프록시를 거쳐 들어오는 호출에만 부가 기능을 끼워 넣습니다. 그래서 어디서 어떻게 호출하느냐에 따라 같은 애노테이션이 적용되기도 하고 무시되기도 합니다.</p>
+<p>실행으로 대조 · 스프링 7.0.9에서 열 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>프록시(Proxy)</dt>
+<dd>실제 객체를 대신해 호출을 받는 대리 객체다. 호출을 받으면 부가 작업을 수행한 뒤 실제 객체에 전달한다. 스프링은 AOP와 @Transactional 같은 기능을 적용할 빈을 프록시로 감싸 컨테이너에 등록하므로, 다른 빈이 주입받는 것은 실제 객체가 아니라 프록시다.</dd>
+<dt>자기 호출(Self-invocation)</dt>
+<dd>같은 객체 안에서 자신의 다른 메서드를 직접 호출하는 것이다. 프록시 기반의 기능은 외부에서 프록시를 거쳐 들어오는 호출에만 적용되므로, 내부에서 this로 호출한 메서드에는 @Transactional, @Async, @Cacheable 같은 설정이 적용되지 않는다. 해당 메서드를 다른 빈으로 분리하는 것이 일반적인 해결책이다.</dd>
+<dt>AOP(관점 지향 프로그래밍)</dt>
+<dd>로깅, 트랜잭션, 권한 검사처럼 여러 곳에 반복해서 나타나는 부가 기능(횡단 관심사)을 핵심 비즈니스 코드에서 분리해 한곳에 모아 두는 프로그래밍 기법이다. 부가 기능을 한 번만 작성하고 &quot;어디에 적용할지&quot;를 따로 지정하므로, 핵심 코드가 깔끔해지고 부가 기능의 수정이 한곳에서 끝난다.</dd>
+<dt>JDK 동적 프록시와 CGLIB</dt>
+<dd>스프링이 프록시를 만드는 두 가지 방식이다. JDK 동적 프록시는 대상 객체가 구현한 인터페이스를 구현하는 프록시를 만든다. CGLIB는 대상 클래스를 상속한 하위 클래스를 실행 중에 만들어 프록시로 쓴다. Spring Boot는 기본적으로 CGLIB를 사용한다. 상속 방식이므로 final 클래스와 final·private 메서드에는 적용할 수 없다.</dd>
+<dt>@Async</dt>
+<dd>메서드를 호출한 스레드가 아닌 별도의 스레드 풀에서 실행하게 하는 애노테이션이다. 호출한 쪽은 결과를 기다리지 않고 바로 다음으로 진행한다. 프록시 기반이므로 같은 클래스 안에서 호출하면 적용되지 않고, 다른 스레드에서 실행되므로 호출한 쪽의 트랜잭션이 이어지지 않는다.</dd>
+<dt>@Transactional</dt>
+<dd>메서드나 클래스에 붙여 그 범위를 하나의 트랜잭션으로 실행하게 하는 애노테이션이다. 프록시가 메서드 실행 전에 트랜잭션을 시작하고, 정상적으로 끝나면 커밋, 예외가 발생하면 규칙에 따라 롤백한다. 트랜잭션을 시작하고 끝내는 코드를 직접 쓰지 않아도 되어 선언적 트랜잭션이라고 한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 같은 클래스 안에서 @Transactional 메서드를 부릅니다. 트랜잭션이 걸리지 않습니다.</li>
+<li><b>다른 빈에서 호출하면</b> — 프록시를 거치므로 트랜잭션이 적용됩니다.</li>
+<li><b>메서드를 다른 빈으로 분리</b> — 내부 호출 문제를 푸는 가장 흔한 방법입니다.</li>
+<li><b>private 메서드에 붙이면</b> — 프록시가 가로챌 수 없습니다.</li>
+<li><b>@Async를 내부에서 호출</b> — 비동기로 실행되지 않고 호출한 스레드가 끝까지 기다립니다.</li>
+<li><b>@Async를 다른 빈에서 호출</b> — 별도 스레드에서 실행되고 호출한 쪽은 바로 돌아갑니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>애플리케이션이 뜰 때 스프링은 @Transactional이 붙은 메서드를 가진 빈을 발견하고, 원래 객체 대신 그것을 감싼 프록시를 빈으로 등록합니다. 다른 빈이 주입받는 것은 이 프록시입니다.</li>
+<li>컨트롤러가 orderService.placeOrder()를 호출합니다. 프록시가 받지만 placeOrder()에는 애노테이션이 없으므로 그대로 실제 객체에 넘깁니다.</li>
+<li>실제 객체 안에서 saveAll()를 호출합니다. 이 호출은 this.saveAll()입니다. this는 프록시가 아니라 실제 객체 자신이므로 프록시를 거치지 않습니다.</li>
+<li>트랜잭션을 시작해 줄 프록시가 없습니다. 주문 A를 INSERT합니다. 트랜잭션이 없으므로 이 INSERT는 실행되자마자 커밋됩니다(자동 커밋).</li>
+<li>주문 B를 INSERT합니다. 이것도 바로 커밋됩니다.</li>
+<li>예외가 발생했지만 롤백해 줄 트랜잭션이 없습니다. 이미 커밋된 주문 A와 B는 DB에 그대로 남습니다. 실패한 작업의 데이터가 반쯤 저장된 상태가 됩니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>프록시를 거치지 않았으므로 @Transactional이 무시됐습니다. 결과: 롤백 안 됨 (A, B가 DB에 남음).</li>
+<li>같은 클래스 안에서의 호출은 프록시를 지나지 않습니다. 예외도 경고도 없이 조용히 무시되기 때문에 놓치기 쉽습니다. 해법은 그 메서드를 다른 빈으로 옮기는 것이 가장 일반적이고, 자기 자신의 프록시를 주입받아 호출하는 방법도 있습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@Service class OrderService {
+    public void placeOrder() {                 // 컨트롤러가 호출
+        saveAll();                             // this.saveAll()와 같다
+    }
+
+    @Transactional
+    public void saveAll() {
+        orderDao.insert(a);
+        orderDao.insert(b);
+        throw new IllegalStateException();   // 도중에 실패
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>스프링의 기본 방식인 프록시 기반 AOP를 기준으로 했습니다(AspectJ 위빙을 쓰면 내부 호출에도 적용할 수 있지만 흔하지 않습니다). @Async는 @EnableAsync가 켜져 있다고 가정했습니다. 트랜잭션이 없을 때 INSERT가 각각 바로 커밋된다는 것은 JDBC 커넥션의 자동 커밋 기본값을 따른 것입니다. 열 가지 조합 모두를 실제 스프링(스프링 프레임워크 7.0.9)의 @Transactional, @Async 빈으로 실행해 확인했습니다. 프록시를 거친 호출에서만 메서드 안에 트랜잭션이 열려 있었고 예외 뒤에 남은 행이 없었으며, 내부 호출과 private 메서드에서는 두 행이 그대로 남았습니다. @Async도 프록시를 거친 호출만 별도 스레드(task-1)에서 실행됐고, 내부 호출은 호출한 스레드에서 끝까지 실행됐습니다(메일 발송 3초는 0.3초로 줄여 시험).</p>
+<p>앞 실습: <a href="../../lab/lifecycle/">빈 생명주기 콜백</a> · 다음 실습: <a href="../../lab/aop/">AOP: 어드바이스와 포인트컷</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

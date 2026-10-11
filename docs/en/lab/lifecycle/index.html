@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bean lifecycle callbacks: Why is an injected field null when you use it in the constructor? · Dev Learning Lab</title>
+<meta name="description" content="The container handles a bean in a fixed order. It creates the object with the constructor, injects the dependencies, calls the initialization callbacks, l…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lifecycle/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lifecycle/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lifecycle/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Bean lifecycle callbacks: Why is an injected field null when you use it in the constructor? · Dev Learning Lab">
+<meta property="og:description" content="The container handles a bean in a fixed order. It creates the object with the constructor, injects the dependencies, calls the initialization callbacks, l…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/lifecycle/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
+<h1>Bean lifecycle callbacks</h1>
+<p><b>Why is an injected field null when you use it in the constructor?</b></p>
+<p>The container handles a bean in a fixed order. It creates the object with the constructor, injects the dependencies, calls the initialization callbacks, lets the bean be used, and calls the destruction callbacks when the container is closed. With a PriceCache bean that reads a price list in advance, see where setup work belongs and in what order the callbacks are called.</p>
+<p>Checked against real execution · All 20 combinations were run on Spring Boot 4.1.1 and the order of the calls was checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Bean lifecycle</dt>
+<dd>This is the process from the creation of a bean to its end. It proceeds in this order: object creation, dependency injection, the initialization callback, use, and the destruction callback when the container shuts down. Put initialization work that must run after all dependencies are injected in @PostConstruct, and put cleanup work before shutdown in @PreDestroy.</dd>
+<dt>@PostConstruct and @PreDestroy</dt>
+<dd>These are annotations that mark the methods to be called when a bean is initialized and when it is destroyed. The container calls the method annotated with @PostConstruct after it creates the object and finishes dependency injection, and it calls the method annotated with @PreDestroy when the container is closed. So setup work that needs an injected object belongs in a @PostConstruct method, not in the constructor. They are not annotations of Spring but annotations from the jakarta.annotation package. For a prototype-scoped bean, @PreDestroy is not called.</dd>
+<dt>InitializingBean and DisposableBean</dt>
+<dd>These are two interfaces of Spring that define the methods to be called when a bean is initialized and when it is destroyed. If a class implements InitializingBean, afterPropertiesSet() is called after dependency injection finishes, and if it implements DisposableBean, destroy() is called when the container is closed. Because the class must implement interfaces of Spring, the code is coupled to Spring. The same work can also be done with @PostConstruct and @PreDestroy, or with initMethod and destroyMethod of @Bean. When all three are used together, they are called in this order: the annotations, the interfaces, and then the methods specified in @Bean.</dd>
+<dt>Constructor injection, setter injection, and field injection</dt>
+<dd>These are three ways to supply a dependency. Constructor injection receives the dependencies when the object is created, so the fields can be final and an object is never created with a dependency missing; Spring recommends it. Setter injection is used for optional dependencies. Field injection puts @Autowired on a field; the code is short, but it is hard to create the object without Spring in order to test it.</dd>
+<dt>@Configuration and @Bean</dt>
+<dd>@Configuration marks a configuration class that contains bean definitions, and the object returned by each @Bean method inside it is registered as a bean. Use them when you need to make a bean from a class in an external library that you cannot modify, or when you need to control the creation process yourself. Classes that you write yourself are usually registered with @Component or a related annotation.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Field injection, but the constructor uses repository. Startup fails.</li>
+<li><b>Moving the work to @PostConstruct</b> — It is called after injection finishes, so repository can be used.</li>
+<li><b>With constructor injection</b> — Inside the constructor, repository is already set.</li>
+<li><b>Using all three kinds of callbacks</b> — See the order to find out which one is called first.</li>
+<li><b>initMethod of @Bean</b> — The method name is specified in the configuration, with no annotation on the class.</li>
+<li><b>With a prototype bean</b> — The initialization callback is called, but the destruction callback is not.</li>
+<li><b>InitializingBean and DisposableBean</b> — This approach implements interfaces of Spring.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Container startup: The container registers two beans, priceRepository and priceCache. The scope of priceCache is singleton. Singleton beans are created during startup.</li>
+<li>Constructor: The container calls the constructor of PriceCache to create the object. Field injection happens after the object is created, so repository as seen inside the constructor is still null.</li>
+<li>this.repository.findAll() inside the constructor: repository is null, so a NullPointerException is thrown. The constructor could not finish, so the object was not created, and the container aborts startup.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Startup failed: NullPointerException. At the time the constructor is called, the @Autowired field has not been set yet.</li>
+<li>The container creates the object with the constructor and then sets the @Autowired field. If the constructor uses that field, it is null.</li>
+<li>There are two ways to fix this. Move the setup work to an initialization callback such as @PostConstruct, or switch to constructor injection and receive the dependency as a constructor argument.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Component
+class PriceCache {
+    @Autowired
+    private PriceRepository repository;
+    private Map&lt;String, Integer&gt; prices;
+
+    PriceCache() {
+        System.out.println(&quot;constructor: repository = &quot; + this.repository);
+        prices = this.repository.findAll();   // reads the price list in advance
+    }
+
+    int price(String name) {
+        return prices.get(name);
+    }
+}
+
+@Component
+class PriceRepository {
+    Map&lt;String, Integer&gt; findAll() {
+        return new HashMap&lt;&gt;(Map.of(&quot;apple&quot;, 1000));
+    }
+}
+
+// Where it is used
+PriceCache priceCache = context.getBean(PriceCache.class);
+int price = priceCache.price(&quot;apple&quot;);
+context.close();                              // closes the container</pre>
+<h2>Assumptions of this model</h2>
+<p>All 20 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9, jakarta.annotation-api 3.0.0) on this PC and checked against the results. For each combination, source code with the same structure as on the screen was compiled, the container was started, the bean was retrieved and price(&quot;apple&quot;) was called once, and the container was closed. Along the way, the order in which the constructor and each callback were called, and whether the repository field was null at that moment, were recorded and compared one by one with the order in the model. The exception chain of the startup failure was BeanCreationException → BeanInstantiationException → NullPointerException, and the screen shows the innermost cause. Simplifications on the screen: the &quot;dependency injection&quot; stage cannot be recorded separately, so the fact that the field was null in the constructor and set in the initialization callback was taken as confirmation that injection happened in between. Setter injection, and the destruction order among several beans when the container is closed, are not covered. It was also confirmed by execution that, even when destroyMethod is not written in @Bean, a public close() method is called when the container is closed (and is not called for a prototype bean). Two things were not confirmed by execution and follow the official Spring documentation: that @PostConstruct and @PreDestroy are the recommended approach, and that when the process is forcibly terminated, the container cannot close and the destruction callbacks are not called.</p>
+<p>Previous lab: <a href="../../lab/scope/">Bean scopes</a> · Next lab: <a href="../../lab/proxy/">Proxies and self-invocation</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

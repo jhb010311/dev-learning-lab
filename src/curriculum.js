@@ -9,6 +9,8 @@ Lab.site({
   feedback: 'https://github.com/jhb010311/dev-learning-lab/issues',
   // 저장소 주소: 머리말의 GitHub 링크와 처음 화면 아래쪽의 Star 안내에 쓴다
   repo: 'https://github.com/jhb010311/dev-learning-lab',
+  // 공개 주소: 페이지의 대표 주소(canonical), 링크 미리보기 그림, sitemap.xml에 쓴다. 영어판은 이 주소 아래의 en/
+  url: 'https://jhb010311.github.io/dev-learning-lab/',
   // 처음 화면의 "처음이라면"에 보일 실습: 배경 지식이 적어도 따라갈 수 있는 것
   start: ['journey', 'stack', 'eq'],
   // 다른 언어판으로 가는 링크: [보일 이름, 주소]

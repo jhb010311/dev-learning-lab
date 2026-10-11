@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generics: What does the &lt;Integer&gt; in List&lt;Integer&gt; protect you from? · Dev Learning Lab</title>
+<meta name="description" content="Generics are the syntax for writing &quot;what this list holds&quot; in the type, as in List&lt;Integer&gt;. When you write it, the compiler rejects code that adds a valu…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/generic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/generic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/generic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Generics: What does the &lt;Integer&gt; in List&lt;Integer&gt; protect you from? · Dev Learning Lab">
+<meta property="og:description" content="Generics are the syntax for writing &quot;what this list holds&quot; in the type, as in List&lt;Integer&gt;. When you write it, the compiler rejects code that adds a valu…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/generic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Generics, enums, and annotations</p>
+<h1>Generics</h1>
+<p><b>What does the &lt;Integer&gt; in List&lt;Integer&gt; protect you from?</b></p>
+<p>Generics are the syntax for writing &quot;what this list holds&quot; in the type, as in List&lt;Integer&gt;. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out. Change the declaration of the variable list, which refers to the same list, and check what compiles and what is rejected.</p>
+<p>Checked against real execution · All 20 combinations were actually compiled and run on JDK 21 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Generics</dt>
+<dd>This feature lets a class or method take the type it works with as a parameter. When you specify a type, as in List&lt;String&gt;, the type is checked at compile time, which prevents the mistake of adding a value of the wrong type and removes the need for casts. The type information is erased after compilation (type erasure), so at run time List&lt;String&gt; and List&lt;Integer&gt; cannot be told apart.</dd>
+<dt>Raw type</dt>
+<dd>This is a generic class, one that lets you write a type as in List&lt;String&gt;, written as just List, without &lt;...&gt;. It is a form that was kept so that code from before Java 5, when there were no generics, can still be used. The compiler cannot check what is added through a raw type variable and gives only an unchecked warning, so even code that adds a String to the list that a List&lt;Integer&gt; refers to compiles. That mistake shows up later as a ClassCastException at the place where the value is taken out. It is not used in newly written code, and when the element type is unknown, List&lt;?&gt; is used.</dd>
+<dt>Type erasure</dt>
+<dd>This is what the compiler does when it uses the type arguments of generics (the Integer in List&lt;Integer&gt;) only for the checks at compile time and does not keep them in the code that runs. As a result, at run time a List&lt;String&gt; and a List&lt;Integer&gt; are objects of the same class, and a list object does not remember what type it was meant to hold. At the places where values are taken out, the compiler inserts the casts for you. Because of this, you cannot ask a list for its element type at run time, and you cannot create an object from a type parameter, as in new T(). If you bypass the check of the compiler with a raw type and add a wrong value, nothing stops it at run time.</dd>
+<dt>Wildcard (? extends and ? super)</dt>
+<dd>This is the syntax that uses ? inside the &lt;&gt; of a generic type to express that &quot;the type is not fixed&quot;. List&lt;? extends Number&gt; accepts a list of Number or of any subtype of Number, and a value taken out of it can be used as a Number, but no value can be added to it. List&lt;? super Integer&gt; accepts a list of Integer or of any supertype of Integer, and an Integer can be added to it, but a value taken out of it can be received only as an Object. Because a List&lt;Integer&gt; cannot be assigned to a List&lt;Number&gt; variable, wildcards are needed when you write a method that accepts lists of several types. Use extends for a parameter that only has values taken out of it, and super for a parameter that only has values put into it.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A string is added without generics. The code compiles, and an exception is thrown later, when the value is taken out.</li>
+<li><b>With generics</b> — The same mistake is caught in advance as a compile-time error.</li>
+<li><b>Assigning to List&lt;Number&gt;</b> — Integer is a subtype of Number, and yet the assignment itself does not compile.</li>
+<li><b>Adding to ? extends</b> — You can get values, but you cannot add even an Integer.</li>
+<li><b>Getting from ? extends</b> — Getting a value as a Number works.</li>
+<li><b>Adding to ? super</b> — You can add an Integer.</li>
+<li><b>Getting from ? super</b> — The value cannot be received as a Number. It can be received only as an Object.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>List&lt;Integer&gt; ints is created, and 1 and 2 are added: &lt;Integer&gt; is a type argument that says &quot;this list holds only Integer&quot;. The compiler reads this type argument and checks the code that adds values to ints and gets values from it.</li>
+<li>List list = ints is checked: The same list is now also referred to by the variable list, which is declared without a type argument (&lt;...&gt;). A generic type used this way, without type arguments, is called a raw type. It is a form that was kept so that code from the time before generics can still be used, so the assignment compiles. In return, the compiler cannot check what is added to list.</li>
+<li>list.add(&quot;three&quot;) is checked: list is a raw type, so the compiler cannot check the type of the value that is added. It gives only a warning, not an error (&quot;unchecked call to add(E) as a member of the raw type List&quot;). This code adds a String to a list of Integer, and yet it compiles.</li>
+<li>Compilation succeeded: A warning does not stop compilation. The program now runs.</li>
+<li>list.add(&quot;three&quot;) runs: The list object at run time does not remember that it is meant for Integer. Nothing is checked when a value is added, so the String value (three) goes in as it is. list and ints are the same object, so a String has gone into ints, which is meant to hold only Integer.</li>
+<li>System.out.println(ints) runs: It prints the contents of the list. The output is [1, 2, three]. Printing does not care what type the elements are, so nothing happens yet.</li>
+<li>ints.getClass() == strs.getClass() runs: It prints true. At run time, a List&lt;Integer&gt; and a List&lt;String&gt; are objects of the very same ArrayList class. &lt;Integer&gt; and &lt;String&gt; are used only for the checks at compile time and do not remain in the code that runs (type erasure).</li>
+<li>Integer last = ints.get(ints.size() - 1) runs: A ClassCastException is thrown. ints is a List&lt;Integer&gt;, so the compiler inserted a cast on this line that &quot;converts the value taken out to an Integer&quot;. But the value that actually comes out is a String. The failure happens not on the line that added the wrong value but much later, on the line that takes it out, so the cause is hard to find.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Compilation: Success (with a warning). Output: [1, 2, three] / true. How it ended: Stopped by exception: ClassCastException (String cannot be cast to Integer).</li>
+<li>Without generics (a raw type), code that adds a value of the wrong type compiles, nothing happens at the moment the value is added, and then a ClassCastException is thrown on a different line, the one that takes the value out. Change the declaration to List&lt;Integer&gt;, and the same code becomes a compile-time error.</li>
+<li>The true in the output shows type erasure. A list at run time does not remember its element type, so all the protection that generics give happens at compile time. If you bypass that check with a raw type, nothing is left to stop the mistake.</li>
+</ul>
+<h2>Code</h2>
+<pre>List&lt;Integer&gt; ints = new ArrayList&lt;&gt;();
+ints.add(1);
+ints.add(2);
+
+List list = ints;
+list.add(&quot;three&quot;);
+
+System.out.println(ints);
+List&lt;String&gt; strs = new ArrayList&lt;&gt;();
+System.out.println(ints.getClass() == strs.getClass());
+Integer last = ints.get(ints.size() - 1);
+System.out.println(&quot;last value: &quot; + last);</pre>
+<h2>Assumptions of this model</h2>
+<p>All 20 combinations were actually compiled on JDK 21 on this PC (javac -Xlint:unchecked) from a source file that places the code on the screen inside a main method, and those that compiled were run, and the compilation result, the line and the message of each error, the warning message, the output, the kind of exception, and the line where the exception was thrown were checked against the results. The compiler messages are written in the form that the command-line javac shows (class names only, and CAP#1 for an unknown type). The code on the screen omits import java.util.ArrayList, import java.util.List, and the declaration of the main method. When you compile without -Xlint:unchecked, you get only the note &quot;uses unchecked or unsafe operations&quot; in place of the details of the warning. null can be added even to a list declared with ? extends, but the model does not cover this. Even though type erasure happens, the generic information written in the declarations of fields and methods remains in the class file and can be read through reflection. What is erased is the information that an object has at run time.</p>
+<p>Previous lab: <a href="../../lab/chkex/">Checked and unchecked exceptions</a> · Next lab: <a href="../../lab/enumtype/">Enum classes</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

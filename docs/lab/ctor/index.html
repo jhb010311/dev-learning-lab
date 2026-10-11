@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>클래스, 객체, 생성자: new를 하면 어떤 순서로 무슨 일이 일어나나 · 개발 학습 실습실</title>
+<meta name="description" content="클래스는 설계도이고, new는 그 설계도로 객체를 하나 만듭니다. 이때 필드는 먼저 기본값으로 채워지고, 그다음 필드 초기화식과 초기화 블록이 적힌 순서대로 실행되고, 마지막에 생성자 본문이 실행됩니다. 어떤 생성자를 적었는지에 따라 new Order()가 아예 컴파일되지 않…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/ctor/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ctor/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ctor/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="클래스, 객체, 생성자: new를 하면 어떤 순서로 무슨 일이 일어나나 · 개발 학습 실습실">
+<meta property="og:description" content="클래스는 설계도이고, new는 그 설계도로 객체를 하나 만듭니다. 이때 필드는 먼저 기본값으로 채워지고, 그다음 필드 초기화식과 초기화 블록이 적힌 순서대로 실행되고, 마지막에 생성자 본문이 실행됩니다. 어떤 생성자를 적었는지에 따라 new Order()가 아예 컴파일되지 않…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/ctor/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
+<h1>클래스, 객체, 생성자</h1>
+<p><b>new를 하면 어떤 순서로 무슨 일이 일어나나</b></p>
+<p>클래스는 설계도이고, new는 그 설계도로 객체를 하나 만듭니다. 이때 필드는 먼저 기본값으로 채워지고, 그다음 필드 초기화식과 초기화 블록이 적힌 순서대로 실행되고, 마지막에 생성자 본문이 실행됩니다. 어떤 생성자를 적었는지에 따라 new Order()가 아예 컴파일되지 않기도 합니다.</p>
+<p>실행으로 대조 · JDK 21에서 열여섯 가지 조합을 컴파일하고 실행해 컴파일 결과, 실행 순서, 출력을 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>클래스와 객체</dt>
+<dd>클래스는 어떤 필드(데이터)와 메서드(동작)를 가질지 적어 둔 설계도이고, 객체는 그 설계도로 new를 해서 메모리(힙)에 실제로 만든 것이다. 객체를 인스턴스라고도 부른다. 클래스 하나로 객체를 여러 개 만들 수 있고, 객체마다 필드 값을 따로 가진다. 변수에는 객체 자체가 아니라 객체가 있는 곳을 가리키는 참조가 담긴다.</dd>
+<dt>생성자</dt>
+<dd>객체를 new로 만들 때 한 번 실행되어 필드를 처음 상태로 맞추는 코드다. 이름이 클래스 이름과 같고 반환 타입을 적지 않는다. 받는 인자가 다르면 한 클래스에 여러 개를 둘 수 있으며, new에 넘긴 인자에 맞는 것이 선택된다. 생성자 본문은 필드가 기본값으로 채워지고 필드 초기화식과 초기화 블록이 실행된 뒤에 실행된다.</dd>
+<dt>기본 생성자</dt>
+<dd>클래스에 생성자를 하나도 적지 않았을 때 컴파일러가 자동으로 넣어 주는, 인자가 없고 본문이 빈 생성자다. 이것 덕분에 생성자를 적지 않은 클래스도 new 클래스이름()으로 객체를 만들 수 있다. 생성자를 하나라도 직접 적으면 만들어지지 않는다. 그래서 인자 있는 생성자만 적은 클래스는 인자 없이 new를 하면 컴파일 오류가 난다.</dd>
+<dt>필드의 기본값</dt>
+<dd>객체가 만들어질 때 값을 따로 주지 않은 필드에 자동으로 들어가는 값이다. int 같은 숫자 타입은 0, boolean은 false, String을 비롯한 참조 타입은 null이다. 필드 초기화식이나 생성자가 값을 넣기 전까지는 이 값이 보인다. 메서드 안의 지역 변수에는 기본값이 없어서, 값을 넣지 않고 읽으면 컴파일 오류가 난다.</dd>
+<dt>this</dt>
+<dd>인스턴스 메서드나 생성자 안에서 지금 다루고 있는 객체 자신을 가리키는 참조다. this.name처럼 써서 같은 이름의 매개변수와 필드를 구분한다. 생성자의 첫 문장으로 this(인자)를 쓰면 같은 클래스의 다른 생성자를 먼저 실행한다. static 메서드에는 대상 객체가 없으므로 this를 쓸 수 없다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — Order()가 this(1)로 다른 생성자를 먼저 부릅니다. 출력은 21, 기본입니다.</li>
+<li><b>생성자를 하나도 적지 않으면</b> — 컴파일러가 기본 생성자를 넣어 줍니다. memo는 null로 남습니다.</li>
+<li><b>인자 있는 생성자만 적고 new Order()</b> — 기본 생성자가 생기지 않아 컴파일 오류입니다.</li>
+<li><b>초기화 블록을 위에 적으면</b> — 초기화식이 나중에 실행되어 qty가 10이 됩니다.</li>
+<li><b>new Order(3)</b> — 인자에 맞는 생성자 Order(int extra)가 선택됩니다.</li>
+<li><b>생성자가 없는데 new Order(3)</b> — 기본 생성자는 인자를 받지 않으므로 컴파일 오류입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>컴파일: Order 클래스에 생성자 Order()와 Order(int extra)를 직접 적었습니다. 생성자는 받는 인자가 다르면 여러 개 둘 수 있습니다.</li>
+<li>컴파일: new Order()에 맞는 생성자를 찾습니다. 인자가 없으므로 Order()가 선택됩니다. 이제 프로그램을 실행합니다.</li>
+<li>new Order() 실행: 가장 먼저 힙에 Order 객체의 자리를 잡고 모든 필드를 기본값으로 채웁니다. int인 qty는 0, 참조 타입인 memo는 null입니다. 초기화식도 생성자 본문도 아직 실행되지 않았습니다.</li>
+<li>생성자 Order()의 첫 줄 this(1): 같은 클래스의 다른 생성자 Order(int extra)를 먼저 부릅니다. extra에는 1이 들어갑니다. Order()의 나머지 본문은 그 생성자가 끝난 뒤에 실행됩니다.</li>
+<li>int qty = 10: 필드 초기화식이 실행되어 qty가 0에서 10이 됩니다. 필드 초기화식과 초기화 블록은 어느 생성자가 불리든 생성자 본문보다 먼저, 클래스에 적힌 순서대로 실행됩니다.</li>
+<li>초기화 블록의 qty = 20: qty가 10에서 20이 됩니다. 블록이 초기화식보다 아래에 적혀 있어 나중에 실행되었습니다.</li>
+<li>Order(int extra) 본문의 qty = qty + extra: 초기화가 끝난 뒤에야 생성자 본문이 실행됩니다. 지금 qty인 20에 extra 1을 더해 qty가 21이 됩니다.</li>
+<li>Order(int extra) 본문의 memo = &quot;추가 &quot; + extra: null이던 memo에 &quot;추가 1&quot;이 들어갑니다.</li>
+<li>Order()의 나머지 본문 memo = &quot;기본&quot;: this(1)로 부른 생성자가 끝나 Order()로 돌아왔습니다. memo가 &quot;추가 1&quot;에서 &quot;기본&quot;으로 바뀝니다. 초기화식과 블록은 다시 실행되지 않습니다.</li>
+<li>Order o = new Order(): 생성자가 끝났습니다. new는 완성된 객체를 가리키는 참조를 돌려주고, 변수 o가 그 참조를 담습니다.</li>
+<li>System.out.println(o.qty + &quot;, &quot; + o.memo): o가 가리키는 객체의 qty와 memo를 읽어 출력합니다. 출력은 21, 기본입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>출력은 21, 기본입니다. 실행된 순서는 기본값 채우기 → 필드 초기화식 → 초기화 블록 → Order(int) 본문 → Order() 본문입니다.</li>
+<li>초기화식(10)이 먼저, 그 아래의 블록(20)이 나중에 실행되어 생성자 본문이 시작될 때 qty는 20이었습니다.</li>
+<li>this(...)는 생성자의 첫 문장으로만 쓸 수 있고, 같은 클래스의 다른 생성자를 먼저 실행합니다. 공통으로 할 일을 한 생성자에 모아 둘 때 씁니다. 초기화식과 블록은 한 번만 실행됩니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>class Order {
+    int qty = 10;                  // 필드 초기화식
+    String memo;                   // 초기화식이 없는 필드
+
+    {                              // 초기화 블록
+        qty = 20;
+    }
+
+    Order() {
+        this(1);                   // 같은 클래스의 다른 생성자를 먼저 부른다
+        memo = &quot;기본&quot;;
+    }
+
+    Order(int extra) {
+        qty = qty + extra;
+        memo = &quot;추가 &quot; + extra;
+    }
+}
+
+Order o = new Order();
+System.out.println(o.qty + &quot;, &quot; + o.memo);</pre>
+<h2>이 모형의 전제</h2>
+<p>열여섯 가지 조합을 이 PC의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 초기화식과 블록과 생성자 본문이 실행된 순서, 출력을 대조했습니다. 실행된 순서는 같은 코드에 기록하는 줄만 끼워 넣어 확인했고, 필드가 초기화식보다 먼저 기본값(0, null)으로 채워져 있다는 것도 실행으로 확인했습니다. 단순화한 점: 모든 생성자는 본문보다 먼저 부모 클래스(여기서는 Object)의 생성자를 부르는데, 이 단계는 그림에서 뺐습니다(&quot;상속과 오버라이딩&quot; 실습에서 다룹니다). 초기화 블록은 실무에서 자주 쓰지는 않으며, 순서를 보이려고 넣었습니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다. this(...)를 생성자의 첫 문장으로만 쓸 수 있다는 것은 JDK 21 기준이며 이 PC에서 컴파일로 확인했습니다. 더 새로운 JDK에서는 this(...) 앞에 일부 문장을 둘 수 있게 바뀌었다고 알려져 있으나 이 PC에서는 확인하지 못했습니다.</p>
+<p>앞 실습: <a href="../../lab/array/">배열</a> · 다음 실습: <a href="../../lab/static/">static과 인스턴스</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

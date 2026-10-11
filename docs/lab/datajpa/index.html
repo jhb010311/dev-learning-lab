@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스프링 데이터 JPA: 구현 클래스가 없는데 리포지토리는 어떻게 동작하나 · 개발 학습 실습실</title>
+<meta name="description" content="스프링 데이터 JPA에서는 리포지토리를 인터페이스로만 선언합니다. 구현은 애플리케이션이 뜰 때 스프링 데이터가 만들어 주고, findByName 같은 메서드는 이름을 읽어 쿼리로 바꿉니다. 메서드 이름이 어떤 쿼리가 되는지, 페이지를 요청하면 쿼리가 몇 번 나가는지, save…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/datajpa/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/datajpa/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/datajpa/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="스프링 데이터 JPA: 구현 클래스가 없는데 리포지토리는 어떻게 동작하나 · 개발 학습 실습실">
+<meta property="og:description" content="스프링 데이터 JPA에서는 리포지토리를 인터페이스로만 선언합니다. 구현은 애플리케이션이 뜰 때 스프링 데이터가 만들어 주고, findByName 같은 메서드는 이름을 읽어 쿼리로 바꿉니다. 메서드 이름이 어떤 쿼리가 되는지, 페이지를 요청하면 쿼리가 몇 번 나가는지, save…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/datajpa/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 쿼리</p>
+<h1>스프링 데이터 JPA</h1>
+<p><b>구현 클래스가 없는데 리포지토리는 어떻게 동작하나</b></p>
+<p>스프링 데이터 JPA에서는 리포지토리를 인터페이스로만 선언합니다. 구현은 애플리케이션이 뜰 때 스프링 데이터가 만들어 주고, findByName 같은 메서드는 이름을 읽어 쿼리로 바꿉니다. 메서드 이름이 어떤 쿼리가 되는지, 페이지를 요청하면 쿼리가 몇 번 나가는지, save()가 INSERT 앞에 SELECT를 먼저 보내는 때가 언제인지 실행해 보세요.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1 자동 설정으로 스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, H2를 띄워 열아홉 가지 장면의 기동 결과와 나간 SQL을 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>JPA, Hibernate, Spring Data JPA</dt>
+<dd>JPA는 자바의 ORM 표준 명세로, 어떤 기능을 어떻게 사용할지 정한 규칙(인터페이스)이다. Hibernate는 그 명세를 실제로 구현한 라이브러리다. Spring Data JPA는 JPA를 더 쉽게 쓰도록 리포지토리 인터페이스를 제공하는 스프링의 모듈이며 내부적으로 JPA(Hibernate)를 사용한다.</dd>
+<dt>쿼리 메서드</dt>
+<dd>스프링 데이터 리포지토리 인터페이스에 선언한 메서드의 이름을 읽어 쿼리를 만들어 주는 기능이다. findByName처럼 find…By 뒤에 엔티티의 프로퍼티 이름을 쓰고, GreaterThan이나 Containing 같은 키워드를 프로퍼티 이름 뒤에 붙여 조건의 종류를 정하며, 여러 조건은 And나 Or로 잇는다. 이름을 쿼리로 바꾸는 일은 애플리케이션이 뜰 때 하므로, 엔티티에 없는 프로퍼티 이름을 쓰면 PropertyReferenceException이 나고 애플리케이션이 뜨지 않는다. 조건이 많아지면 이름이 지나치게 길어지므로 그때는 @Query에 JPQL을 직접 적는다.</dd>
+<dt>Pageable과 Page</dt>
+<dd>Pageable은 몇 번째 페이지를 몇 건씩 어떤 순서로 달라는 요청을 담는 객체이고, 보통 PageRequest.of(페이지 번호, 크기)로 만든다. 페이지 번호는 0부터 센다. 반환 타입을 Page로 하면 스프링 데이터가 내용을 읽는 쿼리와 전체 건수를 세는 count 쿼리를 보내고, 이 페이지의 내용과 전체 건수, 전체 페이지 수를 함께 돌려준다. 반환 타입을 Slice로 하면 count 쿼리 없이 한 건을 더 읽어 다음 페이지가 있는지만 알려 준다. 데이터가 많은 테이블에서는 count 쿼리가 느릴 수 있으므로 전체 건수가 꼭 필요한지 먼저 따져 본다.</dd>
+<dt>save()와 merge</dt>
+<dd>스프링 데이터 JPA의 save()는 넘겨받은 엔티티가 새것이면 em.persist를, 아니면 em.merge를 부른다. 새것인지는 기본적으로 id가 null인지로 판단하며, @Version 필드가 있고 그 타입이 Long 같은 객체 타입이면 그 값이 null인지로 판단한다(long 같은 기본형이면 id로 판단한다). merge는 같은 id의 행을 SELECT로 먼저 조회한 뒤 넘겨받은 객체의 값을 관리되는 객체에 덮어쓰고, 그 관리되는 객체를 돌려준다. 그래서 id를 코드에서 직접 정하는 엔티티는 처음 저장할 때도 SELECT가 한 번 더 나간다. 이를 피하려면 엔티티가 Persistable 인터페이스를 구현해 새것인지를 직접 알려 준다.</dd>
+<dt>엔티티</dt>
+<dd>데이터베이스 테이블의 행에 대응하는 자바 객체다. @Entity를 붙인 클래스로 정의하며 식별자(@Id)를 가진다. JPA는 엔티티의 상태 변화를 추적해 그에 맞는 SQL을 실행한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 본문이 없는 메서드인데 이름만으로 조건 두 개짜리 쿼리가 나갑니다.</li>
+<li><b>엔티티에 없는 이름을 쓰면</b> — 메서드를 부르기도 전에, 애플리케이션이 뜨다가 실패합니다.</li>
+<li><b>키워드를 잘못 쓰면</b> — GreaterThen은 키워드가 아니라서 프로퍼티 이름으로 읽힙니다.</li>
+<li><b>페이지 요청: 쿼리 두 번</b> — 내용을 읽는 쿼리와 전체 건수를 세는 쿼리가 따로 나갑니다.</li>
+<li><b>마지막 페이지에서는</b> — 전체 건수를 계산할 수 있어서 개수 쿼리를 보내지 않습니다.</li>
+<li><b>Slice로 받으면</b> — 개수 쿼리가 없는 대신 한 건을 더 읽어 다음이 있는지 봅니다.</li>
+<li><b>save: 새 엔티티인데 SELECT가 먼저</b> — id를 직접 정하는 엔티티는 INSERT 앞에 SELECT가 한 번 더 나갑니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>애플리케이션 시작: 스프링 데이터 JPA가 JpaRepository를 상속한 인터페이스 MemberRepository를 찾습니다. 구현 클래스를 만든 적이 없지만, 스프링 데이터가 이 인터페이스의 구현 객체(프록시)를 대신 만들어 빈으로 등록합니다.</li>
+<li>메서드 이름 해석: findByNameAndAgeGreaterThan 메서드에는 사람이 쓴 본문이 없습니다. 스프링 데이터가 이름을 잘라 읽어 쿼리를 만듭니다. 맨 앞의 find…By는 &quot;조건에 맞는 것을 조회한다&quot;는 뜻이고, By 뒤가 조건입니다.</li>
+<li>Name: 키워드가 붙지 않았으므로 &quot;같다&quot;는 조건입니다. Member 엔티티에 이 이름(name)의 프로퍼티가 있는지 확인합니다. 있으므로 쿼리의 조건은 &quot;name = ?&quot;입니다. 물음표는 호출할 때 넘기는 값이 들어갈 자리입니다.</li>
+<li>And AgeGreaterThan: And는 앞의 조건과 and로 잇는다는 뜻입니다. 끝에 붙은 키워드(GreaterThan)는 &quot;보다 크다&quot;는 뜻입니다. Member 엔티티에 이 이름(age)의 프로퍼티가 있는지 확인합니다. 있으므로 쿼리의 조건은 &quot;age &gt; ?&quot;입니다. 물음표는 호출할 때 넘기는 값이 들어갈 자리입니다.</li>
+<li>애플리케이션 기동 완료: 이름 해석이 끝나 쿼리가 준비됐습니다. 이 해석과 프로퍼티 검사는 메서드를 부를 때가 아니라 애플리케이션이 뜰 때 미리 합니다.</li>
+<li>memberRepository.findByNameAndAgeGreaterThan(&quot;김철수&quot;, 20) 호출: 구현 객체가 준비해 둔 쿼리의 물음표 자리에 넘긴 값을 넣어 SELECT를 한 번 보냅니다.</li>
+<li>결과: 조건에 맞는 회원 1건을 Member 객체의 목록으로 돌려줍니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>애플리케이션 기동은 성공, DB로 나간 SQL은 1번입니다 (select … where name = ? and age &gt; ?).</li>
+<li>본문이 없는 메서드를 불렀는데 &quot;select … where name = ? and age &gt; ?&quot; 쿼리가 한 번 나갔습니다. 메서드 이름이 곧 쿼리입니다.</li>
+<li>규칙: find…By나 count…By 뒤에 엔티티의 프로퍼티 이름을 쓰고, 조건의 종류(GreaterThan, Containing 등)는 프로퍼티 이름 뒤에 붙이며, 여러 조건은 And나 Or로 잇습니다. 매개변수는 이름이 아니라 순서대로 조건에 들어갑니다.</li>
+<li>조건이 서너 개를 넘으면 이름이 너무 길어집니다. 그때는 @Query에 JPQL을 직접 적는 편이 읽기 쉽습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@Entity
+class Member {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+    String name;
+    int age;
+    // 생성자와 getter는 줄였다
+}
+
+// 구현 클래스는 만들지 않는다. 인터페이스만 선언한다
+interface MemberRepository extends JpaRepository&lt;Member, Long&gt; {
+    List&lt;Member&gt; findByNameAndAgeGreaterThan(String name, int age);
+}
+
+// 서비스
+List&lt;Member&gt; result = memberRepository.findByNameAndAgeGreaterThan(&quot;김철수&quot;, 20);</pre>
+<h2>이 모형의 전제</h2>
+<p>모든 장면(메서드 이름 여섯 가지, 페이지 요청 여덟 가지, save 다섯 가지)을 이 PC에서 스프링 부트 4.1.1의 자동 설정으로 스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, H2 데이터베이스를 실제로 띄워 실행하고, 기동 성공 여부와 예외 이름과 메시지, DB로 나간 SQL의 수와 종류, where와 order by의 모양, 건너뛴 건수와 요청한 건수, 돌려받은 결과를 화면과 대조했습니다. 리포지토리의 구현이 프록시이고 그 뒤에 SimpleJpaRepository가 있다는 것도 실행으로 확인했습니다. 화면의 SQL은 읽기 쉽게 줄인 것입니다. 실제 SQL에는 테이블 별칭이 붙고 like 조건에는 escape 절이 덧붙으며, 문장의 모양은 Hibernate 버전과 DB에 따라 다릅니다. 잘못된 메서드 이름 두 가지는 그 메서드만 가진 리포지토리를 따로 띄워 확인했습니다. 결과 요약에서 말한 Or 같은 다른 키워드는 스프링 데이터 JPA 문서의 키워드 표를 따른 것이고 실행해 보지는 않았습니다. save의 &quot;새 엔티티인가&quot; 판단은 스프링 데이터 JPA 문서의 Entity State-detection Strategies 절을 따랐고, @Version 필드가 있는 엔티티는 id가 아니라 그 필드가 null인지로 판단합니다. id 999의 예에서 SELECT가 두 번 나가고 예외가 나는 것은 Hibernate 7.4.5에서 본 결과이며 버전에 따라 다릅니다. id를 직접 정하는 엔티티가 Persistable을 구현해 새 엔티티라고 알려 주면 SELECT 없이 INSERT 한 번만 나가는 것도 실행으로 확인했습니다(@Version 필드를 두는 방법은 실행해 보지 않았습니다). save는 바깥에 트랜잭션이 없는 상태에서 불렀으므로 save 자신의 트랜잭션이 끝날 때 UPDATE와 INSERT가 나갑니다. 바깥에 @Transactional이 있으면 그 트랜잭션이 커밋될 때 나갑니다.</p>
+<p>앞 실습: <a href="../../lab/bulk/">벌크 연산</a> · 다음 실습: <a href="../../lab/dynquery/">동적 쿼리와 Querydsl</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

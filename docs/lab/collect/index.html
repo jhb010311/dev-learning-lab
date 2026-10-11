@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스트림으로 모으기: 스트림의 결과를 어떤 모양으로 모으나 · 개발 학습 실습실</title>
+<meta name="description" content="스트림에서 흘러나온 원소들은 마지막에 collect로 모아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다. 같은 주문 목록을 여러 방법으로 모아 보고, toMap에서 키가 겹…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/collect/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/collect/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/collect/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="스트림으로 모으기: 스트림의 결과를 어떤 모양으로 모으나 · 개발 학습 실습실">
+<meta property="og:description" content="스트림에서 흘러나온 원소들은 마지막에 collect로 모아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다. 같은 주문 목록을 여러 방법으로 모아 보고, toMap에서 키가 겹…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/collect/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 람다와 스트림</p>
+<h1>스트림으로 모으기</h1>
+<p><b>스트림의 결과를 어떤 모양으로 모으나</b></p>
+<p>스트림에서 흘러나온 원소들은 마지막에 collect로 모아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다. 같은 주문 목록을 여러 방법으로 모아 보고, toMap에서 키가 겹치면 무슨 일이 생기는지 확인해 보세요.</p>
+<p>실행으로 대조 · JDK 21에서 스물네 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>Stream API</dt>
+<dd>컬렉션 등의 데이터에 대해 필터링, 변환, 집계를 선언적으로 표현하는 API다. filter, map 같은 중간 연산을 이어 붙이고 collect, forEach 같은 최종 연산으로 마무리한다. 중간 연산은 최종 연산이 호출될 때까지 실행되지 않으며(지연 평가), 스트림은 원본 데이터를 변경하지 않고 한 번만 사용할 수 있다.</dd>
+<dt>Collector와 collect</dt>
+<dd>collect는 스트림에서 흘러나온 원소들을 하나의 결과로 모으는 최종 연산이고, Collector는 그 모으는 방법(어떤 그릇에 어떻게 담을지)을 나타내는 객체다. Collectors 클래스에 자주 쓰는 Collector가 준비되어 있다. toList와 toSet은 컬렉션에 담고, joining은 문자열 하나로 잇고, toMap은 키와 값을 정해 Map에 담는다. toMap은 같은 키가 두 번 나오면 IllegalStateException을 던지므로, 키가 겹칠 수 있으면 두 값을 합치는 병합 함수를 세 번째 인자로 준다.</dd>
+<dt>groupingBy와 partitioningBy</dt>
+<dd>스트림의 원소를 무리로 나누어 Map으로 모으는 Collector다. groupingBy는 원소마다 키를 계산해 키가 같은 원소끼리 묶으며, 기본 결과는 Map&lt;키, List&lt;원소&gt;&gt;이다. 두 번째 인자로 counting, summingInt 같은 Collector를 주면 목록 대신 무리별 개수나 합계를 얻는다. partitioningBy는 조건 하나로 true 무리와 false 무리 둘로 나누며, 해당하는 원소가 없어도 두 키가 항상 들어 있다. groupingBy가 돌려주는 Map은 순서를 보장하지 않으므로, 순서가 필요하면 TreeMap 같은 Map을 쓰도록 따로 지정한다.</dd>
+<dt>메서드 참조</dt>
+<dd>이미 있는 메서드를 람다 대신 이름으로 가리키는 문법이다. String::length, System.out::println처럼 클래스(또는 객체)와 메서드 이름을 ::로 연결해 쓴다. 람다가 단순히 메서드 하나를 호출하기만 할 때 더 짧게 표현할 수 있다.</dd>
+<dt>List, Set, Map</dt>
+<dd>자바 컬렉션의 세 가지 기본 유형이다. List는 순서가 있고 중복을 허용하며 인덱스로 접근한다. Set은 중복을 허용하지 않는다. Map은 키와 값의 쌍을 저장하며 키는 중복될 수 없다. 데이터의 성격(순서 필요 여부, 중복 허용 여부, 키로 찾는지)에 따라 고른다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — toMap에 같은 고객이 두 번 나옵니다. IllegalStateException이 납니다.</li>
+<li><b>병합 함수를 주면</b> — 같은 키의 값을 더해서 하나로 만듭니다.</li>
+<li><b>toList로 모으기</b> — 흘러나온 순서 그대로 List에 담습니다.</li>
+<li><b>groupingBy로 묶기</b> — 고객별로 주문 목록이 만들어집니다.</li>
+<li><b>묶어서 개수 세기</b> — 목록 대신 개수만 남깁니다. 값의 타입이 Long입니다.</li>
+<li><b>partitioningBy로 둘로 나누기</b> — 조건이 true인 것과 false인 것으로 나눕니다.</li>
+<li><b>주문이 없을 때 둘로 나누기</b> — 원소가 없어도 false와 true 두 칸은 항상 있습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>orders.stream(): 주문 다섯 개가 kim:300, han:100, kim:200, choi:400, han:500 순서로 하나씩 흘러나오는 스트림을 만듭니다. 아직 아무것도 모으지 않았습니다.</li>
+<li>.collect(Collectors.toMap(Order::customer, Order::price)): collect는 흘러나오는 원소를 하나씩 받아 그릇에 담는 최종 연산이고, 어떤 그릇에 어떻게 담을지는 괄호 안의 Collector가 정합니다. toMap은 빈 Map을 준비합니다. 원소마다 customer를 키로, price를 값으로 넣습니다. 한 키에 값은 하나만 들어갑니다.</li>
+<li>kim:300 주문: 키 kim, 값 300을 Map에 넣습니다.</li>
+<li>han:100 주문: 키 han, 값 100을 Map에 넣습니다.</li>
+<li>kim:200 주문: 같은 키(kim)가 이미 Map에 있습니다. 이미 있는 값 300과 새 값 200 가운데 무엇을 남길지 정해 주지 않았으므로 IllegalStateException이 나고 프로그램이 여기서 멈춥니다. 예외 메시지는 &quot;Duplicate key kim (attempted merging values 300 and 200)&quot;입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>3번째 원소에서 IllegalStateException이 나서 출력까지 가지 못했습니다. 메시지: Duplicate key kim (attempted merging values 300 and 200)</li>
+<li>toMap은 한 키에 값 하나만 담습니다. 키가 겹칠 수 있는 데이터라면 세 번째 인자로 병합 함수를 주거나, 겹치는 것을 목록으로 모으는 groupingBy를 써야 합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>record Order(String customer, int price) {
+    @Override
+    public String toString() { return customer + &quot;:&quot; + price; }   // 짧게 출력하려고
+}
+
+List&lt;Order&gt; orders = List.of(
+    new Order(&quot;kim&quot;, 300), new Order(&quot;han&quot;, 100), new Order(&quot;kim&quot;, 200),
+    new Order(&quot;choi&quot;, 400), new Order(&quot;han&quot;, 500));
+
+Map&lt;String, Integer&gt; result = orders.stream()
+    .collect(Collectors.toMap(Order::customer, Order::price));
+System.out.println(result);</pre>
+<h2>이 모형의 전제</h2>
+<p>스물네 가지 조합의 출력과 예외(종류와 메시지)를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. 결과의 타입은 그 타입으로 선언한 코드가 실제로 컴파일되는지로 확인했고, counting()의 결과를 Map&lt;String, Integer&gt;로 받으면 컴파일되지 않는 것도 확인했습니다. groupingBy와 toMap이 돌려주는 Map은 순서를 보장하지 않습니다(JDK 21에서는 HashMap). 이 실습은 Map을 키의 사전 순서로 정리해 보여 주며, 여기에 쓴 고객 이름들은 JDK 21의 실제 출력 순서도 그와 같았습니다. 다른 이름을 쓰면 실제 출력 순서는 달라질 수 있습니다. 예외 메시지의 글귀는 JDK 버전에 따라 다를 수 있습니다. 스트림은 원소를 하나씩 차례로 처리하는 경우(병렬이 아닌 스트림)만 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/stream/">스트림 지연 평가</a> · 다음 실습: <a href="../../lab/parstream/">병렬 스트림과 공용 풀</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

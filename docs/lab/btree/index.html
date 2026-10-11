@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>이진 탐색과 B-트리: 정렬돼 있으면 절반씩 버릴 수 있다 · 개발 학습 실습실</title>
+<meta name="description" content="값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다. 찾는 방식과 찾는 값을 바꿔 가며 몇 번 만에 찾는지 보고, 데이터가 훨씬 많아지면 그 차이가…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/btree/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/btree/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/btree/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="이진 탐색과 B-트리: 정렬돼 있으면 절반씩 버릴 수 있다 · 개발 학습 실습실">
+<meta property="og:description" content="값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다. 찾는 방식과 찾는 값을 바꿔 가며 몇 번 만에 찾는지 보고, 데이터가 훨씬 많아지면 그 차이가…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/btree/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 인덱스와 실행 계획</p>
+<h1>이진 탐색과 B-트리</h1>
+<p><b>정렬돼 있으면 절반씩 버릴 수 있다</b></p>
+<p>값 27개 중에서 하나를 찾습니다. 처음부터 하나씩 볼 수도 있고, 정렬돼 있다면 가운데를 보고 절반을 버릴 수도 있고, 한 번에 여러 갈래로 나누는 B-트리를 쓸 수도 있습니다. 찾는 방식과 찾는 값을 바꿔 가며 몇 번 만에 찾는지 보고, 데이터가 훨씬 많아지면 그 차이가 어떻게 벌어지는지 보세요.</p>
+<p>실행으로 대조 · 화면의 탐색은 알고리즘을 실제로 실행한 결과</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>이진 탐색</dt>
+<dd>정렬된 데이터에서 가운데 값과 비교해 찾는 범위를 절반씩 줄여 나가는 탐색 방법이다. 시간 복잡도는 O(log n)이다. 데이터가 정렬되어 있어야만 사용할 수 있다. 데이터베이스의 B-트리 인덱스도 정렬된 상태에서 범위를 좁혀 가는 같은 원리를 이용한다.</dd>
+<dt>시간 복잡도(Big-O)</dt>
+<dd>입력 크기 n이 커질 때 알고리즘의 연산 횟수가 얼마나 빠르게 늘어나는지를 나타내는 표기다. O(1)은 크기와 무관하게 일정, O(log n)은 크기가 두 배가 되어도 한 단계만 늘어남, O(n)은 크기에 비례, O(n²)은 크기의 제곱에 비례함을 뜻한다. 데이터가 많아질 때 어떤 방식이 버티는지 판단하는 기준이다.</dd>
+<dt>B-트리 인덱스</dt>
+<dd>대부분의 관계형 데이터베이스가 기본으로 쓰는 인덱스 구조다. 값이 정렬된 상태로 유지되는 균형 잡힌 트리이며, 한 노드에 많은 키를 담아 트리의 높이가 낮다. 루트에서 몇 단계만 내려가면 원하는 값을 찾을 수 있고, 값이 정렬되어 있어 같은 값 조회뿐 아니라 범위 조회와 정렬에도 사용된다.</dd>
+<dt>풀 테이블 스캔</dt>
+<dd>조건에 맞는 행을 찾기 위해 테이블의 모든 행을 처음부터 끝까지 읽는 방식이다. 조건에 쓸 인덱스가 없거나, 인덱스가 있어도 조건에 해당하는 행이 너무 많아 전체를 읽는 편이 낫다고 옵티마이저가 판단할 때 선택된다. 큰 테이블에서 소수의 행을 찾는데 이 방식이 쓰이면 성능 문제의 원인이 된다.</dd>
+<dt>인덱스</dt>
+<dd>테이블에서 원하는 행을 빨리 찾기 위해 특정 컬럼의 값을 정렬된 형태로 따로 유지하는 자료구조다. 인덱스가 없으면 조건에 맞는 행을 찾기 위해 테이블 전체를 읽어야 한다. 조회는 빨라지지만 데이터를 추가, 수정, 삭제할 때마다 인덱스도 갱신해야 하므로 쓰기 성능과 저장 공간에 비용이 든다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 처음부터 하나씩. 뒤쪽 값까지 23번 봅니다.</li>
+<li><b>이진 탐색으로</b> — 같은 값을 5번 만에 찾습니다.</li>
+<li><b>B-트리로</b> — 노드 3개만 읽으면 어떤 값이든 찾습니다.</li>
+<li><b>없는 값을 하나씩 찾으면</b> — 끝까지 다 봐야 없다는 것을 압니다.</li>
+<li><b>없는 값을 B-트리로</b> — 없다는 것도 노드 3개로 확인합니다.</li>
+<li><b>10억 건이라면</b> — 아래 표에서 방식별 횟수 차이를 보세요.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>값 27개가 정렬되지 않은 채 쌓여 있다고 봅니다(화면에는 보기 쉽게 크기 순으로 놓았습니다). 어디에 있는지 알 단서가 없으므로 앞에서부터 하나씩 확인합니다.</li>
+<li>1번째 확인: 10 → 아닙니다. 다음 칸으로 갑니다.</li>
+<li>2번째 확인: 20 → 아닙니다. 다음 칸으로 갑니다.</li>
+<li>6번째 확인: 60 → 아닙니다. 다음 칸으로 갑니다.</li>
+<li>12번째 확인: 120 → 아닙니다. 다음 칸으로 갑니다.</li>
+<li>18번째 확인: 180 → 아닙니다. 다음 칸으로 갑니다.</li>
+<li>23번째 확인: 230 → 찾았습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>27건에서 값(230) 찾기: 23번 확인, 찾음.</li>
+<li>100만 건이라면 가장 오래 걸릴 때: 하나씩 100만번, 이진 탐색 20번, 노드당 3갈래 B-트리 13단계, 노드당 500갈래 B-트리 3단계.</li>
+<li>하나씩 찾는 방식은 데이터가 10배가 되면 확인 횟수도 10배가 됩니다(O(n)). 없는 값은 끝까지 봐야 합니다. 인덱스가 없는 컬럼으로 조회하면 DB가 하는 일이 이것입니다.</li>
+<li>세 방식의 차이는 &quot;정렬해 두었는가&quot;와 &quot;한 번에 얼마나 많이 버리는가&quot;입니다. DB 인덱스는 값을 정렬해 B-트리로 저장해 두는 것이고, 그 대가로 넣고 고칠 때마다 트리도 함께 고쳐야 합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 정렬돼 있지 않으면 앞에서부터 전부 확인하는 수밖에 없다
+for (int i = 0; i &lt; rows.length; i++) {
+    if (rows[i] == target) return i;
+}
+return -1;                              // 끝까지 봐야 &quot;없다&quot;를 안다
+
+-- DB에서는 인덱스가 없는 컬럼으로 찾는 것과 같다 (풀 테이블 스캔)
+SELECT * FROM orders WHERE amount = 230;</pre>
+<h2>이 모형의 전제</h2>
+<p>27건에서의 탐색 과정과 횟수는 이 페이지가 알고리즘을 실제로 실행한 결과입니다. 큰 건수의 횟수는 &quot;한 번에 몇 갈래로 나누는가&quot;로 계산한 최대 단계 수입니다. 화면의 B-트리는 값이 잎 노드에만 있는 B+트리 모양으로, MySQL InnoDB의 인덱스가 이 구조입니다. 실제 인덱스에서 노드 하나에 몇 개의 값이 들어가는지는 키의 크기에 따라 달라지며 500은 예시로 든 값입니다. 뿌리와 가지 노드는 보통 메모리에 올라와 있어 실제 디스크 읽기는 더 적습니다.</p>
+<p>앞 실습: <a href="../../lab/viewproc/">뷰, 프로시저, 트리거</a> · 다음 실습: <a href="../../lab/index/">인덱스와 풀 스캔</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

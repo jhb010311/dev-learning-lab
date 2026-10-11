@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>빈 생성과 주입: 스프링은 객체를 어떤 순서로 만들고 연결하나 · 개발 학습 실습실</title>
+<meta name="description" content="애플리케이션이 뜰 때 스프링 컨테이너가 빈을 하나씩 만들고 서로 연결합니다. 주입 방식에 따라 객체가 만들어지는 순서가 달라지고, 두 빈이 서로를 필요로 하면(순환 참조) 기동이 실패하기도 합니다.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/di/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/di/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/di/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="빈 생성과 주입: 스프링은 객체를 어떤 순서로 만들고 연결하나 · 개발 학습 실습실">
+<meta property="og:description" content="애플리케이션이 뜰 때 스프링 컨테이너가 빈을 하나씩 만들고 서로 연결합니다. 주입 방식에 따라 객체가 만들어지는 순서가 달라지고, 두 빈이 서로를 필요로 하면(순환 참조) 기동이 실패하기도 합니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/di/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › IoC 컨테이너와 DI</p>
+<h1>빈 생성과 주입</h1>
+<p><b>스프링은 객체를 어떤 순서로 만들고 연결하나</b></p>
+<p>애플리케이션이 뜰 때 스프링 컨테이너가 빈을 하나씩 만들고 서로 연결합니다. 주입 방식에 따라 객체가 만들어지는 순서가 달라지고, 두 빈이 서로를 필요로 하면(순환 참조) 기동이 실패하기도 합니다.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1로 열두 가지 조합을 띄워 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>IoC(제어의 역전)</dt>
+<dd>객체의 생성과 객체 사이의 연결을 개발자의 코드가 아니라 프레임워크(컨테이너)가 맡는 설계 원칙이다. 일반적인 프로그램에서는 내 코드가 필요한 객체를 직접 만들고 호출하지만, IoC에서는 컨테이너가 객체를 만들어 필요한 곳에 넣어 주고 적절한 시점에 내 코드를 호출한다. 제어의 주체가 뒤바뀌었다는 뜻에서 붙은 이름이다.</dd>
+<dt>DI(의존성 주입)</dt>
+<dd>객체가 사용하는 다른 객체(의존성)를 스스로 만들지 않고 외부에서 전달받는 방식이다. 스프링에서는 컨테이너가 빈을 생성하면서 생성자, 세터, 필드를 통해 의존성을 넣어 준다. 구현 클래스를 바꾸거나 테스트에서 가짜 객체를 넣기 쉬워지고 클래스 사이의 결합도가 낮아진다.</dd>
+<dt>생성자 주입, 세터 주입, 필드 주입</dt>
+<dd>의존성을 넣는 세 가지 방법이다. 생성자 주입은 객체 생성 시 의존성을 받으므로 필드를 final로 둘 수 있고 의존성이 빠진 채 객체가 만들어지는 일이 없어 스프링이 권장한다. 세터 주입은 선택적인 의존성에 쓴다. 필드 주입은 필드에 @Autowired를 붙이는 방식으로 코드는 짧지만 스프링 없이 객체를 만들어 테스트하기 어렵다.</dd>
+<dt>스프링 빈(Bean)</dt>
+<dd>스프링 IoC 컨테이너가 생성하고 관리하는 객체다. 개발자가 new로 직접 만든 객체와 달리 컨테이너가 의존성을 주입하고 초기화와 소멸을 관리하며, 프록시를 통해 트랜잭션이나 AOP 같은 부가 기능을 적용할 수 있다.</dd>
+<dt>빈 생명주기</dt>
+<dd>빈이 만들어져 사라지기까지의 과정이다. 객체 생성, 의존성 주입, 초기화 콜백 호출, 사용, 컨테이너 종료 시 소멸 콜백 호출의 순서로 진행된다. 의존성이 모두 주입된 뒤에 해야 하는 초기화 작업은 @PostConstruct에, 종료 전 정리 작업은 @PreDestroy에 둔다.</dd>
+<dt>순환 참조</dt>
+<dd>빈 A가 B를 필요로 하고 B가 다시 A를 필요로 하는 상태다. 생성자 주입에서는 어느 쪽도 먼저 만들 수 없어 애플리케이션이 시작되지 못한다. Spring Boot 2.6부터는 주입 방식과 관계없이 기본적으로 금지된다. 두 빈의 공통 책임을 별도의 빈으로 분리하는 등 설계를 바꿔 해결하는 것이 원칙이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 생성자 주입. 의존 대상이 먼저 완성돼야 다음 객체를 만들 수 있습니다.</li>
+<li><b>필드 주입으로 바꾸면</b> — 객체를 먼저 만들고 나중에 채웁니다. 잠깐 동안 필드가 비어 있습니다.</li>
+<li><b>생성자 주입 + 순환 참조</b> — 어느 쪽도 먼저 만들 수 없어 기동이 실패합니다.</li>
+<li><b>필드 주입 + 순환 참조</b> — 스프링 부트 기본 설정에서는 이것도 기동 실패입니다.</li>
+<li><b>순환 참조를 허용하면</b> — 필드 주입은 덜 만들어진 객체를 미리 넘겨서 통과합니다.</li>
+<li><b>허용해도 생성자 주입은 실패</b> — 생성자를 호출하려면 인자가 먼저 있어야 하기 때문입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>컴포넌트 스캔: @RestController, @Service, @Repository가 붙은 클래스를 찾아 빈 정의 3개를 등록했습니다. 아직 객체는 하나도 만들지 않았습니다.</li>
+<li>OrderController를 만들기 시작합니다. 생성자가 OrderService를 요구하므로, 그것부터 준비해야 생성자를 호출할 수 있습니다.</li>
+<li>OrderService를 만들기 시작합니다. 생성자가 OrderRepository를 요구하므로, 그것부터 준비해야 생성자를 호출할 수 있습니다.</li>
+<li>OrderRepository를 만들기 시작합니다. 생성자에 인자가 없습니다.</li>
+<li>OrderRepository의 생성자를 호출해 객체를 만들었습니다. 만들어지는 순간 의존성이 모두 채워져 있습니다. 이어서 초기화 콜백(@PostConstruct)이 있으면 호출되고, 빈이 완성됩니다.</li>
+<li>OrderService의 생성자를 호출해 객체를 만들었습니다. 인자로 OrderRepository를 넘겼습니다. 만들어지는 순간 의존성이 모두 채워져 있습니다. 이어서 초기화 콜백(@PostConstruct)이 있으면 호출되고, 빈이 완성됩니다.</li>
+<li>OrderController의 생성자를 호출해 객체를 만들었습니다. 인자로 OrderService를 넘겼습니다. 만들어지는 순간 의존성이 모두 채워져 있습니다. 이어서 초기화 콜백(@PostConstruct)이 있으면 호출되고, 빈이 완성됩니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>기동 성공. 객체가 만들어진 순서는 OrderRepository → OrderService → OrderController, 완성된 순서는 OrderRepository → OrderService → OrderController입니다.</li>
+<li>생성자 주입에서는 의존 대상이 완성된 뒤에야 객체를 만들 수 있습니다. 그래서 객체가 존재하는 순간부터 의존성이 빠짐없이 채워져 있고, 필드를 final로 둘 수 있습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@RestController
+class OrderController {
+    private final OrderService orderService;
+
+    OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+}
+
+@Service
+class OrderService {
+    private final OrderRepository orderRepository;
+
+    OrderService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+}
+
+@Repository
+class OrderRepository {
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>빈 네 개만 있는 작은 애플리케이션이며, 컨테이너는 스캔한 순서대로 빈을 만들기 시작한다고 가정했습니다(실제 순서는 클래스 경로와 설정에 따라 달라질 수 있지만, 의존 대상이 먼저 준비돼야 한다는 규칙은 같습니다). 순환 참조를 기본으로 금지하는 것은 스프링 부트 2.6 이후의 동작입니다. 순환 참조를 푸는 다른 방법(@Lazy로 주입 시점 늦추기)은 다루지 않았습니다. 열두 가지 조합 모두를 실제 스프링 부트 4.1.1로 띄워, 기동 성공 여부와 객체가 만들어진 순서(생성자가 불린 순서), 완성된 순서(주입이 끝난 순서)가 화면과 일치하는 것을 확인했습니다. 기동 실패는 모두 BeanCurrentlyInCreationException이었습니다.</p>
+<p>앞 실습: <a href="../../lab/ioc/">스프링 컨테이너와 빈</a> · 다음 실습: <a href="../../lab/singleton/">싱글톤 빈과 상태</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

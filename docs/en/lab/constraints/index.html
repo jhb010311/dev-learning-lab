@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tables, keys, and constraints: What data gets in when there are no constraints? · Dev Learning Lab</title>
+<meta name="description" content="Insert wrong values into the member table and the orders table, or delete a member who still has orders. A table that has constraints rejects those statem…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/constraints/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/constraints/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/constraints/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Tables, keys, and constraints: What data gets in when there are no constraints? · Dev Learning Lab">
+<meta property="og:description" content="Insert wrong values into the member table and the orders table, or delete a member who still has orders. A table that has constraints rejects those statem…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/constraints/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Relational model and design</p>
+<h1>Tables, keys, and constraints</h1>
+<p><b>What data gets in when there are no constraints?</b></p>
+<p>Insert wrong values into the member table and the orders table, or delete a member who still has orders. A table that has constraints rejects those statements with an error, and a table without constraints accepts them as they are. Run the same statement on both and check how the data differs afterwards.</p>
+<p>Checked against real execution · The SQL of all 48 combinations was run as it is on MySQL 8.4.11, and the error numbers, the number of rows changed, and all the rows of both tables afterwards were checked</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Constraint</dt>
+<dd>This is a rule about the values that can go into a table, written in the definition of the table. A primary key, a unique constraint, NOT NULL, CHECK, and a foreign key are typical examples. When an INSERT, UPDATE, or DELETE breaks a rule, the database rejects that statement with an error, and the table does not change. If you check only in the application code, wrong values can get in through code that skips the check or through SQL that someone runs directly, but a constraint blocks a value in the same way whatever route it comes through. Without constraints, wrong values are saved without an error, and the problem only becomes visible when you query the data later.</dd>
+<dt>Primary key, unique key, foreign key</dt>
+<dd>A primary key (PK) is the column that uniquely identifies each row of a table. Its values cannot be duplicated or empty, and a table has only one. A unique key is a unique constraint, which prevents duplicate values, and a table can have several. A foreign key (FK) is a column that references the primary key (or a unique key) of another table. It guarantees that the referenced row really exists.</dd>
+<dt>NOT NULL and CHECK</dt>
+<dd>These are constraints that limit the values that can go into a single column. NOT NULL does not allow the column to be left empty (NULL), and CHECK does not accept a value that makes the condition written in the parentheses false. For example, CHECK (age &gt;= 0) blocks a negative age. If the result of the condition is NULL (unknown), CHECK lets the value pass, so if a value must exist, add NOT NULL as well. MySQL actually enforces CHECK from 8.0.16, and versions before that ignored a CHECK even if you wrote one.</dd>
+<dt>Foreign key referential actions (ON DELETE)</dt>
+<dd>These are the actions that you set on a foreign key to decide what happens to the child rows that point to a parent row when that parent row is deleted. RESTRICT rejects the deletion of the parent if child rows remain. CASCADE deletes the child rows along with the parent, and SET NULL keeps the child rows and changes only the foreign key column to NULL. If you write nothing, the default is NO ACTION, which behaves the same as RESTRICT in MySQL's InnoDB. One statement with CASCADE can also delete rows of another table, so use it only for data that may disappear together, and SET NULL can be used only when the foreign key column can accept NULL. What happens when the key value of the parent is changed is set in the same way with ON UPDATE.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A member is deleted with no constraints. 2 orders with no owner remain.</li>
+<li><b>Foreign key RESTRICT</b> — A member who still has orders cannot be deleted (error 1451).</li>
+<li><b>Foreign key CASCADE</b> — When you delete the member, the orders of that member are deleted too.</li>
+<li><b>Foreign key SET NULL</b> — The orders remain, and only the column that pointed to the member becomes NULL.</li>
+<li><b>The same id twice</b> — Without a primary key, there are two members with id 1.</li>
+<li><b>An order for a missing member</b> — A foreign key blocks an order that points to a parent that does not exist (error 1452).</li>
+<li><b>Unique and NULL</b> — Even with a unique constraint, NULL can go into several rows.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>CREATE TABLE, INSERT: Two tables are created, and 3 members and 3 orders are inserted. Only the names and types of the columns are defined, and no constraint is applied at all. That member_id in orders is a member number is known only to people, and the DB does not know it.</li>
+<li>DELETE FROM member WHERE id = 1: Tries to delete member 1 (Kim). In orders, there are 2 orders (101 and 102) that point to member 1.</li>
+<li>There is no constraint to check: The DB only looks at whether the values fit the types, and runs the statement as it is. 1 row was deleted from member. orders was not touched.</li>
+<li>SELECT COUNT(*) FROM orders o LEFT JOIN member m ON m.id = o.member_id WHERE o.member_id IS NOT NULL AND m.id IS NULL (check query). Orders without a member: 2. Orders 101 and 102 still have member_id 1, but member 1 no longer exists. 2 orders without an owner remain.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The statement ran, and 1 row was changed. Afterwards, member has 2 rows and orders has 3 rows. Orders without a member: 2.</li>
+<li>Without constraints, the DB accepts even wrong values without an error. The statement &quot;succeeded&quot; but the data is wrong, and that only becomes visible when you query it later. Constraints stop such values at the moment they try to enter the table.</li>
+</ul>
+<h2>Code</h2>
+<pre>-- Tables without constraints
+CREATE TABLE member (
+  id    INT,
+  email VARCHAR(50),
+  name  VARCHAR(20),
+  age   INT
+);
+CREATE TABLE orders (
+  id        INT,
+  member_id INT,
+  item      VARCHAR(30)
+);
+
+-- Initial data
+INSERT INTO member (id, email, name, age) VALUES
+  (1, 'kim@lab.example', 'Kim', 30),
+  (2, 'lee@lab.example', 'Lee', 25),
+  (3, NULL, 'Park', 41);
+INSERT INTO orders (id, member_id, item) VALUES
+  (101, 1, 'desk'),
+  (102, 1, 'mouse'),
+  (103, 2, 'monitor');
+
+-- Statement to run
+DELETE FROM member WHERE id = 1;
+
+-- Check query
+SELECT COUNT(*)
+  FROM orders o
+  LEFT JOIN member m ON m.id = o.member_id
+ WHERE o.member_id IS NOT NULL AND m.id IS NULL;</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a small example with 3 members and 3 orders. For all 48 combinations (8 statements × with or without constraints × 3 ON DELETE actions), the SQL on the screen was run as it is on a real MySQL 8.4.11 (InnoDB, default sql_mode), and the error number and error message, the number of rows changed, all the rows of the two tables afterwards, and the result of the check query were checked to be the same as in the model. The error numbers and messages are those of MySQL, and they differ in other databases. That an UPDATE that changes a NOT NULL column to NULL is rejected with error 1048 holds in strict SQL mode (the default in MySQL 8), and when the same UPDATE is run in a session with strict mode turned off, it saves an empty string without an error. That NULL can go into a unique column several times is behavior that was confirmed by running it on MySQL, and some databases, such as SQL Server, allow NULL only once (this comparison followed the documentation and was not checked by execution). When you do not write ON DELETE, MySQL behaves the same as RESTRICT (NO ACTION), and in InnoDB there is no difference between the two. That the child rows deleted together by CASCADE are not included in the number of rows changed is also MySQL behavior that was confirmed by running it. It was also confirmed by running it that when you write only REFERENCES right after a column definition (member_id INT REFERENCES member(id)), MySQL accepts it without an error but does not create a foreign key. That is why the screen writes a separate FOREIGN KEY clause. The foreign keys are for InnoDB, and this lab covers only the case where one statement is run at a time.</p>
+<p>Next lab: <a href="../../lab/ermodel/">ER modeling</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

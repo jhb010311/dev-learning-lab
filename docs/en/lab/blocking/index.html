@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blocking, non-blocking, and virtual threads: What a thread does while it waits · Dev Learning Lab</title>
+<meta name="description" content="Every request spends some time waiting for a response from a database or an external API. Compare three approaches: holding on to the thread during that t…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/blocking/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/blocking/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/blocking/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Blocking, non-blocking, and virtual threads: What a thread does while it waits · Dev Learning Lab">
+<meta property="og:description" content="Every request spends some time waiting for a response from a database or an external API. Compare three approaches: holding on to the thread during that t…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/blocking/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
+<h1>Blocking, non-blocking, and virtual threads</h1>
+<p><b>What a thread does while it waits</b></p>
+<p>Every request spends some time waiting for a response from a database or an external API. Compare three approaches: holding on to the thread during that time (blocking), releasing the thread and continuing when the response arrives (non-blocking), and virtual threads, where you write the code in the blocking style but the operating system thread is released while the code waits.</p>
+<p>Checked against real execution · Checked against values actually measured on JDK 21</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Blocking and non-blocking</dt>
+<dd>Blocking means that the calling thread is stopped until the called task finishes and cannot do other work. Non-blocking means that the call returns right away even though the task has not finished, so the thread can do other work. A typical JDBC call is a blocking call: the thread is stopped until the DB response arrives.</dd>
+<dt>Synchronous and asynchronous</dt>
+<dd>Synchronous means that the side that requests a task waits until it receives the result and only then moves on. Asynchronous means that the requester starts the task and moves on to the next work without waiting for the result, and the result is delivered later through a callback, a Future, or a similar means.</dd>
+<dt>Virtual thread</dt>
+<dd>This is a lightweight thread that became a standard feature in JDK 21. An existing thread is tied one-to-one to an operating system thread, so you cannot create many of them, but this kind is managed by the JVM and takes turns running on a small number of operating system threads. While it waits in most blocking calls, it gives up the operating system thread, so even the existing simple coding style can handle many concurrent requests. However, in JDK 21 through 23, blocking inside synchronized held on to the operating system thread (pinning), and this was resolved in JDK 24.</dd>
+<dt>Spring WebFlux and the reactive stack</dt>
+<dd>This is Spring's non-blocking web framework for handling many concurrent requests with a small number of threads. Unlike Spring MVC, which uses one thread per request, it does not hold a thread while waiting for I/O and continues processing when the data is ready. It pays off only when the whole call path is non-blocking, so it does not fit blocking technologies such as JPA.</dd>
+<dt>Event loop</dt>
+<dd>This is a structure in which a small number of threads detect the I/O events that occur on many connections and process them in turn. There is no thread per connection, so one thread takes care of many connections. If you run a long task or a blocking call on such a thread, processing stops for every connection that the thread is responsible for.</dd>
+<dt>Tomcat's threading model</dt>
+<dd>Tomcat manages its request processing threads in a pool, and one thread takes one request and handles it until the response is finished. The number of requests it can handle at the same time is limited by the maximum number of threads (200 by default), and when all threads are in use, new requests wait. A thread stays occupied even while the request is waiting on a database or an external call.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — 4 threads and 12 requests. The threads are tied up waiting, so the later requests wait in line.</li>
+<li><b>With an event loop</b> — 2 threads keep all 12 requests in progress at the same time.</li>
+<li><b>Blocking calls on the event loop</b> — When the 2 threads are tied up, everything stops. This is the worst combination.</li>
+<li><b>Virtual threads</b> — The code stays in the blocking style, yet the requests are in progress at the same time.</li>
+<li><b>A larger thread pool</b> — 10 threads. Things improve, but when there are more requests, they wait in line again.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>0.0s: Requests arrive (12 in total). 4 threads take one request each. The rest (8) wait until a thread is free.</li>
+<li>0.1s: Each thread waits for an external response. While it waits, the thread does no work, but it cannot take another request either (blocking).</li>
+<li>2.0s: The responses arrive. Requests finished: 4. The freed threads take requests that were waiting (still waiting: 4).</li>
+<li>4.0s: The responses arrive. Requests finished: 4. The freed threads take requests that were waiting (still waiting: 0).</li>
+<li>6.0s: The responses arrive. Requests finished: 4.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Requests handled: 12. OS threads used: 4. Total time: 6.0s. Peak number of requests in progress at the same time: 4.</li>
+<li>In the blocking style, the number of requests that can be handled at the same time cannot exceed the number of threads. The longer the wait, the longer the threads are tied up. The code is simple and easy to debug, which is why most services use this style.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Spring MVC: one thread handles each request from start to finish
+// server.tomcat.threads.max=4
+@GetMapping(&quot;/orders/{id}&quot;)
+OrderDto get(@PathVariable long id) {
+    Order order = orderRepository.findById(id);   // the thread stops and waits until the response arrives
+    Delivery d = deliveryClient.track(order);     // (2s)
+    return OrderDto.of(order, d);
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>This model ignores the CPU time spent in handling a request and assumes that a request consists only of waiting for an external response. The number of OS threads that run the event loop and that carry the virtual threads is fixed at 2 (the real default follows the number of CPU cores). Virtual threads were finalized in JDK 21. In JDK 21 to 23 there was a limitation that a virtual thread waiting inside a synchronized block could not release its OS thread, and this was resolved in JDK 24. The times were actually measured on JDK 21 on this PC, with the wait shortened to 0.2s. With 12 requests, a pool of 4 threads took 619ms (handled in three rounds), blocking on 2 threads took 1,227ms, virtual threads took 216ms on 2 OS threads, and the approach that only registers the wait took 201ms on 2 threads. These are the same ratios as in the model (6s, 12s, 2s, 2s). The measurement did not run Spring WebFlux itself. It reproduced the same principle with the JDK alone.</p>
+<p>Previous lab: <a href="../../lab/parallel/">Sequential and parallel calls</a> · Next lab: <a href="../../lab/stack/">Stack and heap</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

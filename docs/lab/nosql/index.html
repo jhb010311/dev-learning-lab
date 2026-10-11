@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoSQL과 문서 모델: 주문을 테이블 셋에 나눌까, 문서 하나에 담을까 · 개발 학습 실습실</title>
+<meta name="description" content="같은 데이터(주문과 주문 항목)를 두 가지 방식으로 저장해 봅니다. 관계형은 상품, 주문, 주문 항목을 테이블 셋에 나눠 두고 읽을 때 조인합니다. 문서 모델은 MongoDB 같은 문서 DB가 쓰는 방식으로, 주문 하나를 문서 하나로 보고 그 안에 항목 배열과 상품 이름까지…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/nosql/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/nosql/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/nosql/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="NoSQL과 문서 모델: 주문을 테이블 셋에 나눌까, 문서 하나에 담을까 · 개발 학습 실습실">
+<meta property="og:description" content="같은 데이터(주문과 주문 항목)를 두 가지 방식으로 저장해 봅니다. 관계형은 상품, 주문, 주문 항목을 테이블 셋에 나눠 두고 읽을 때 조인합니다. 문서 모델은 MongoDB 같은 문서 DB가 쓰는 방식으로, 주문 하나를 문서 하나로 보고 그 안에 항목 배열과 상품 이름까지…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/nosql/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 확장과 분산</p>
+<h1>NoSQL과 문서 모델</h1>
+<p><b>주문을 테이블 셋에 나눌까, 문서 하나에 담을까</b></p>
+<p>같은 데이터(주문과 주문 항목)를 두 가지 방식으로 저장해 봅니다. 관계형은 상품, 주문, 주문 항목을 테이블 셋에 나눠 두고 읽을 때 조인합니다. 문서 모델은 MongoDB 같은 문서 DB가 쓰는 방식으로, 주문 하나를 문서 하나로 보고 그 안에 항목 배열과 상품 이름까지 함께 담습니다. 읽기, 이름 바꾸기, 새 항목 넣기를 해 보면서 무엇이 쉬워지고 무엇이 어려워지는지 보세요.</p>
+<p>일부만 실행으로 확인 · MySQL 8.4.11의 JSON 컬럼으로 문서 모델을 재현해 스무 가지 조합을 실행으로 대조. 전용 문서 DB는 실행하지 못함</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>NoSQL</dt>
+<dd>관계형 모델을 쓰지 않는 데이터베이스를 통틀어 부르는 말이다. 키-값 저장소(Redis), 문서 저장소(MongoDB), 와이드 컬럼 저장소(Cassandra), 그래프 데이터베이스 등이 있다. 정해진 스키마 없이 유연하게 저장하고 여러 서버로 확장하기 쉽게 설계된 것이 많지만, 조인과 복잡한 트랜잭션은 관계형 데이터베이스보다 제한적이다.</dd>
+<dt>문서 모델(문서 데이터베이스)</dt>
+<dd>데이터를 행과 컬럼이 아니라 문서라는 단위로 저장하는 방식이다. 문서는 보통 JSON과 비슷한 모양으로, 값 안에 배열이나 또 다른 객체를 품을 수 있다. 그래서 주문과 그 주문의 항목처럼 함께 읽는 데이터를 문서 하나에 담아 두고 조인 없이 한 번에 읽는다. MongoDB가 대표적인 문서 데이터베이스다. 여러 문서에 같은 값을 복사해 넣었다면 그 값이 바뀔 때 복사본을 모두 고쳐야 하므로, 무엇을 문서 안에 넣고 무엇을 따로 둘지가 설계의 핵심이 된다.</dd>
+<dt>고정 스키마와 유연한 스키마</dt>
+<dd>스키마는 데이터가 어떤 항목들로 이루어지고 각 항목이 어떤 자료형인지를 정한 구조다. 관계형 데이터베이스는 테이블을 만들 때 컬럼을 먼저 정하고 그 구조에 맞는 행만 받아들이며, 구조를 바꾸려면 ALTER TABLE을 실행해야 한다. 문서 데이터베이스는 대체로 문서마다 항목이 달라도 저장할 수 있는데, 이것을 유연한 스키마라고 한다. 구조를 바꾸기 쉬운 대신 잘못된 이름이나 빠진 항목도 그대로 저장되므로, 모양을 지키는 일을 애플리케이션 코드나 따로 켜는 검사 기능이 맡아야 한다.</dd>
+<dt>정규화와 반정규화</dt>
+<dd>정규화는 같은 데이터가 여러 곳에 중복 저장되지 않도록 테이블을 나누는 설계 과정이다. 중복이 있으면 한 곳만 수정되어 데이터가 서로 어긋나는 문제가 생긴다. 반정규화는 조회 성능을 위해 의도적으로 중복을 허용하거나 테이블을 합치는 것으로, 조인이 줄어드는 대신 중복된 데이터를 함께 갱신해야 하는 부담이 생긴다.</dd>
+<dt>JOIN (INNER, OUTER)</dt>
+<dd>두 테이블의 행을 조건에 따라 결합하는 연산이다. INNER JOIN은 양쪽에서 조건이 맞는 행만 결과에 포함한다. LEFT OUTER JOIN은 왼쪽 테이블의 모든 행을 포함하고 오른쪽에 짝이 없으면 NULL로 채운다. 짝이 없는 데이터도 결과에 남겨야 하는지에 따라 선택한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 문서 모델에서 상품 이름을 바꾸려면 그 상품이 든 문서를 모두 고쳐야 합니다.</li>
+<li><b>관계형에서 이름을 바꾸면</b> — 주문이 몇 건이든 product 테이블의 한 행만 고칩니다.</li>
+<li><b>문서로 주문 하나 읽기</b> — 조인 없이 문서 하나로 끝납니다.</li>
+<li><b>관계형으로 주문 하나 읽기</b> — 테이블 셋을 조인해야 주문 하나가 완성됩니다.</li>
+<li><b>문서에 새 항목 넣기</b> — 구조를 바꾸지 않고 바로 저장됩니다. 대신 문서마다 모양이 달라집니다.</li>
+<li><b>관계형에 없는 컬럼을 넣으면</b> — 오류 1054로 거절됩니다. 먼저 테이블 구조를 바꿔야 합니다.</li>
+<li><b>문서에서 필드 이름을 틀리면</b> — 오류 없이 저장되고, 수량 합계가 조용히 틀려집니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>문서 모델로 저장한 상태입니다. order_doc 테이블에 문서 3개가 있고, 문서 하나가 주문 한 건입니다. 문서 안에 주문한 사람과 항목 배열(items)이 통째로 들어 있으며, 항목마다 상품 이름이 복사되어 있습니다.</li>
+<li>UPDATE order_doc SET doc = JSON_SET(…) WHERE …: items 배열에 '키보드'가 든 문서를 모두 찾아, 문서마다 그 자리의 이름을 바꿉니다. 고친 문서는 3개입니다. 상품 이름이 주문 문서마다 복사되어 있기 때문에, 그 상품이 든 문서 수만큼 고쳐야 합니다.</li>
+<li>이번에는 3개를 모두 고쳤으므로 모든 주문이 새 이름으로 보입니다. 하지만 일부만 고치고 멈추면 같은 상품이 문서마다 다른 이름으로 남습니다. 이 값들이 서로 같아야 한다는 것을 DB는 알지 못합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>DB의 반응: 성공. 문서 3개 수정. 새 이름으로 보이는 주문: 3건 중 3건.</li>
+<li>문서에 복사해 둔 값은 바뀔 때마다 복사본을 모두 찾아 고쳐야 합니다. 읽기를 쉽게 만든 대가입니다. 그래서 문서 모델에서는 잘 바뀌지 않는 값만 복사해 넣거나, 상품 번호만 넣어 두고 이름은 따로 조회합니다.</li>
+<li>다만 주문 당시의 상품 이름과 가격을 기록으로 남겨야 한다면, 복사해 둔 값이 나중에 바뀌지 않는 것이 오히려 맞는 동작입니다. 복사가 늘 나쁜 것은 아닙니다.</li>
+<li>NoSQL은 관계형이 아닌 DB를 통틀어 부르는 말이고, 문서 모델은 그 가운데 하나입니다. 어느 쪽이 더 좋다기보다, 무엇을 자주 함께 읽고 무엇이 자주 바뀌는지에 따라 고릅니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>-- 문서 모델을 MySQL의 JSON 컬럼으로 재현한 것. 행 하나가 문서 하나다
+CREATE TABLE order_doc (id INT PRIMARY KEY, doc JSON NOT NULL);
+-- 문서의 예 (주문 1번)
+-- {&quot;member&quot;: &quot;kim&quot;,
+--  &quot;items&quot;: [{&quot;product_id&quot;: 1, &quot;name&quot;: &quot;키보드&quot;, &quot;qty&quot;: 1},
+--            {&quot;product_id&quot;: 2, &quot;name&quot;: &quot;마우스&quot;, &quot;qty&quot;: 2}]}
+
+-- 문서마다 items 배열에서 '키보드'가 있는 자리를 찾아 그 자리의 name을 바꾼다
+UPDATE order_doc
+SET doc = JSON_SET(doc, JSON_UNQUOTE(JSON_SEARCH(doc, 'one', '키보드', NULL, '$.items[*].name')), '기계식 키보드')
+WHERE JSON_SEARCH(doc, 'one', '키보드', NULL, '$.items[*].name') IS NOT NULL;</pre>
+<h2>이 모형의 전제</h2>
+<p>문서 모델은 MySQL의 JSON 컬럼으로 재현했습니다. 스무 가지 조합(저장 방식 둘, 하는 일 넷, 주문 수 2건, 3건, 5건)을 이 PC의 MySQL 8.4.11에서 화면과 같은 문장으로 실행해, 오류 코드, EXPLAIN에 나오는 테이블 수와 결과 행 수, UPDATE가 고친 행(문서) 수, gift가 있는 문서 수, 수량 합계가 화면과 일치하는 것을 확인했습니다. 설명에 쓴 다음 사실도 실행으로 확인했습니다. 조인 없이 읽으면 테이블마다 한 번씩 쿼리 세 번이 필요합니다. ALTER TABLE로 컬럼을 추가한 뒤에는 같은 INSERT가 들어가고 기존 행에도 그 칸이 생깁니다. 문서 하나만 고치면 같은 상품의 이름이 두 가지로 남습니다. JSON_SCHEMA_VALID 제약을 건 뒤에는 필드 이름을 틀린 문서가 오류 3819로 거절됩니다. 전용 문서 DB(MongoDB 등)는 이 PC에 없어 실행하지 못했습니다. 그래서 여기서 보인 것은 &quot;주문을 문서 하나로 담았을 때의 읽기와 쓰기의 모양&quot;이며, 문서 DB 제품의 동작 그대로는 아닙니다. 쿼리 문법, 배열 안의 값을 고치는 방법, 스키마 검사 기능, 여러 문서에 걸친 트랜잭션과 조인 지원은 제품과 버전에 따라 다릅니다. 어느 방식이 더 빠른지는 데이터의 양과 인덱스, 제품에 따라 달라지므로 다루지 않았고, 화면의 결과는 속도가 아니라 읽거나 고치는 곳의 수입니다. 키-값 저장소, 와이드 컬럼 저장소, 그래프 DB 같은 다른 종류의 NoSQL은 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/redis/">Redis의 한 줄 처리</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MVC 요청 흐름: 요청 하나가 컨트롤러에 닿기까지, 그리고 돌아가기까지 · 개발 학습 실습실</title>
+<meta name="description" content="HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다. 중간에 거절되거나 예외가 나면 어느 단계가 건너뛰어지고 누가 응답을 만드는지 단계별로 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/mvc/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/mvc/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/mvc/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="MVC 요청 흐름: 요청 하나가 컨트롤러에 닿기까지, 그리고 돌아가기까지 · 개발 학습 실습실">
+<meta property="og:description" content="HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다. 중간에 거절되거나 예외가 나면 어느 단계가 건너뛰어지고 누가 응답을 만드는지 단계별로 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/mvc/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 웹 MVC</p>
+<h1>MVC 요청 흐름</h1>
+<p><b>요청 하나가 컨트롤러에 닿기까지, 그리고 돌아가기까지</b></p>
+<p>HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다. 중간에 거절되거나 예외가 나면 어느 단계가 건너뛰어지고 누가 응답을 만드는지 단계별로 보세요.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1 서버에 열여섯 가지 요청을 보내 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>DispatcherServlet과 프론트 컨트롤러</dt>
+<dd>Spring MVC에서 모든 HTTP 요청을 가장 먼저 받는 서블릿이다. 요청을 처리할 컨트롤러를 찾아 호출하고 그 결과를 응답으로 만드는 전체 흐름을 조율한다. 이렇게 하나의 진입점이 모든 요청을 받아 공통 처리를 한 뒤 각 담당에게 넘기는 구조를 프론트 컨트롤러 패턴이라 한다.</dd>
+<dt>HandlerMapping과 HandlerAdapter</dt>
+<dd>DispatcherServlet이 요청을 처리할 때 쓰는 구성 요소다. HandlerMapping은 요청 URL과 메서드에 맞는 핸들러(컨트롤러 메서드)를 찾는다. HandlerAdapter는 찾은 핸들러를 실제로 실행하며, 요청 데이터를 메서드의 매개변수에 맞게 변환해 넣고 반환값을 처리한다.</dd>
+<dt>ArgumentResolver</dt>
+<dd>컨트롤러 메서드의 매개변수에 넣을 값을 요청에서 꺼내 만들어 주는 구성 요소다. @RequestParam, @PathVariable, @RequestBody 등이 붙은 매개변수가 이를 통해 채워진다. 직접 구현하면 로그인한 사용자 정보처럼 반복되는 값을 컨트롤러 매개변수로 바로 받을 수 있다.</dd>
+<dt>HttpMessageConverter</dt>
+<dd>HTTP 요청 본문을 자바 객체로, 자바 객체를 HTTP 응답 본문으로 변환하는 구성 요소다. @RequestBody와 @ResponseBody가 이를 사용한다. JSON의 경우 Jackson 라이브러리를 이용한 컨버터가 변환을 맡는다.</dd>
+<dt>필터(Filter)</dt>
+<dd>서블릿 컨테이너 수준에서 요청과 응답을 가로채 처리하는 구성 요소로 서블릿 표준에 속한다. 요청이 DispatcherServlet에 도달하기 전과 응답이 돌아가는 길에 동작하며, 인코딩 설정, CORS 처리, 인증 같은 모든 요청에 걸친 작업에 쓴다. Spring Security도 필터들의 묶음으로 동작한다.</dd>
+<dt>인터셉터(HandlerInterceptor)</dt>
+<dd>Spring MVC 안에서 컨트롤러 실행 전후에 동작하는 구성 요소다. 컨트롤러 실행 전(preHandle), 실행 후(postHandle), 요청 처리 완료 후(afterCompletion)의 세 시점에 끼어들 수 있고, 어떤 컨트롤러 메서드가 실행될지 알 수 있다. 필터가 서블릿 컨테이너의 기능이라면 인터셉터는 스프링의 기능이다.</dd>
+<dt>@ControllerAdvice와 @ExceptionHandler</dt>
+<dd>여러 컨트롤러에서 발생한 예외를 한곳에서 처리하게 하는 기능이다. @ControllerAdvice 클래스 안에 예외 종류별로 @ExceptionHandler 메서드를 두면, 컨트롤러 실행 중 발생한 예외가 그 메서드로 전달되어 일관된 형식의 오류 응답을 만들 수 있다.</dd>
+<dt>ViewResolver</dt>
+<dd>컨트롤러가 반환한 뷰 이름(문자열)을 실제 화면을 그릴 뷰 객체로 바꿔 주는 구성 요소다. 서버에서 HTML을 만들어 응답하는 방식에서 사용하며, JSON을 직접 응답하는 REST API에서는 사용되지 않는다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — JSON API 요청이 정상 처리되는 전체 경로입니다.</li>
+<li><b>화면을 돌려주는 컨트롤러</b> — ViewResolver와 뷰 렌더링 단계가 추가됩니다.</li>
+<li><b>컨트롤러에서 예외</b> — @ExceptionHandler가 응답을 만듭니다. postHandle은 건너뜁니다.</li>
+<li><b>예외를 처리할 곳이 없으면</b> — 예외가 서블릿 컨테이너까지 올라가 500 응답이 됩니다.</li>
+<li><b>필터에서 거절</b> — DispatcherServlet에 닿지도 못합니다. @ControllerAdvice도 관여하지 못합니다.</li>
+<li><b>인터셉터에서 중단</b> — 컨트롤러를 부르지 않고 돌아갑니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>POST /orders 요청이 서블릿 컨테이너(톰캣)에 도착해 필터 체인을 탑니다. 필터는 스프링 MVC 바깥, 서블릿 수준에서 동작합니다. 인코딩, 인증, 로깅 필터가 차례로 chain.doFilter를 호출해 다음으로 넘깁니다.</li>
+<li>DispatcherServlet이 요청을 받습니다. 모든 요청이 이 서블릿 하나로 들어오고, 여기서 알맞은 컨트롤러로 나눠 보냅니다(프론트 컨트롤러).</li>
+<li>HandlerMapping이 POST /orders를 처리할 핸들러를 찾습니다. @PostMapping(&quot;/orders&quot;)가 붙은 create 메서드와, 이 경로에 적용할 인터셉터 목록을 묶어 돌려줍니다.</li>
+<li>HandlerAdapter를 고릅니다. 애노테이션 기반 컨트롤러 메서드를 실행할 줄 아는 RequestMappingHandlerAdapter가 선택됩니다.</li>
+<li>인터셉터의 preHandle이 실행되고 true를 반환합니다. 필터와 달리 어떤 컨트롤러 메서드가 실행될지 아는 상태에서 동작합니다.</li>
+<li>ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. @RequestBody가 붙은 파라미터는 HttpMessageConverter(Jackson)가 요청 본문의 JSON을 OrderRequest 객체로 바꿔서 채웁니다.</li>
+<li>컨트롤러 메서드가 실행됩니다. 서비스 계층을 호출해 실제 업무를 처리합니다.</li>
+<li>반환값을 처리합니다. @RestController이므로 화면을 찾지 않고, HttpMessageConverter(Jackson)가 OrderResponse 객체를 JSON으로 바꿔 응답 본문에 바로 씁니다.</li>
+<li>인터셉터의 postHandle이 호출됩니다. 응답 본문은 앞 단계에서 이미 쓰였으므로, 여기서 응답 내용을 바꾸기에는 늦습니다.</li>
+<li>인터셉터의 afterCompletion이 호출됩니다. 응답 작성이 끝난 뒤이며 예외 여부와 관계없이 호출됩니다.</li>
+<li>응답이 필터 체인을 거꾸로 지나 클라이언트로 나갑니다. chain.doFilter 호출 뒤에 적어 둔 필터 코드가 이때 실행됩니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>최종 응답은 200 OK + JSON이고, 응답을 만든 곳은 컨트롤러 반환값입니다.</li>
+<li>컨트롤러 메서드는 실행됨, postHandle은 실행됨, afterCompletion은 실행됨.</li>
+<li>@RestController에서는 ViewResolver를 거치지 않습니다. 반환 객체가 HttpMessageConverter를 통해 곧바로 응답 본문이 됩니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@RestController
+class OrderController {
+    @PostMapping(&quot;/orders&quot;)
+    OrderResponse create(@RequestBody OrderRequest req) {
+        return orderService.create(req);
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>인터셉터와 필터가 각각 하나씩 있는 단순한 구성으로 그렸습니다. 열여섯 가지 조합 모두를 실제 스프링 부트 4.1.1 서버(내장 톰캣)에 HTTP 요청을 보내, 응답 코드와 컨트롤러·postHandle·afterCompletion의 실행 여부, 응답을 만든 곳이 화면과 일치하는 것을 확인했습니다(화면 응답은 템플릿 엔진 대신 같은 이름의 뷰 객체로 그려서 확인). 처리되지 않은 예외가 /error로 다시 전달되어 500 응답이 되는 부분은 스프링 부트의 기본 오류 처리 동작이며, 그 재전달 과정은 한 단계로 줄여서 표현했습니다. 매핑되는 컨트롤러가 없는 경우(404)는 버전과 정적 리소스 설정에 따라 경로가 달라서 넣지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/servlet/">서블릿</a> · 다음 실습: <a href="../../lab/binding/">요청 매핑과 파라미터 바인딩</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

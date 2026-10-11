@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>갭 락과 넥스트 키 락: 없는 행을 조회했는데 왜 INSERT가 막히나 · 개발 학습 실습실</title>
+<meta name="description" content="트랜잭션 A가 SELECT ... FOR UPDATE로 행을 잠급니다. MySQL InnoDB는 행만 잠그는 것이 아니라, 조건에 따라 행과 행 사이의 빈 구간까지 잠가서 다른 트랜잭션이 그 사이에 새 행을 끼워 넣지 못하게 합니다. 조회 조건과 격리 수준을 바꿔 가며 어디까…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/gaplock/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/gaplock/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/gaplock/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="갭 락과 넥스트 키 락: 없는 행을 조회했는데 왜 INSERT가 막히나 · 개발 학습 실습실">
+<meta property="og:description" content="트랜잭션 A가 SELECT ... FOR UPDATE로 행을 잠급니다. MySQL InnoDB는 행만 잠그는 것이 아니라, 조건에 따라 행과 행 사이의 빈 구간까지 잠가서 다른 트랜잭션이 그 사이에 새 행을 끼워 넣지 못하게 합니다. 조회 조건과 격리 수준을 바꿔 가며 어디까…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/gaplock/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 트랜잭션과 잠금</p>
+<h1>갭 락과 넥스트 키 락</h1>
+<p><b>없는 행을 조회했는데 왜 INSERT가 막히나</b></p>
+<p>트랜잭션 A가 SELECT ... FOR UPDATE로 행을 잠급니다. MySQL InnoDB는 행만 잠그는 것이 아니라, 조건에 따라 행과 행 사이의 빈 구간까지 잠가서 다른 트랜잭션이 그 사이에 새 행을 끼워 넣지 못하게 합니다. 조회 조건과 격리 수준을 바꿔 가며 어디까지 잠기는지 보세요.</p>
+<p>실행으로 대조 · MySQL 8.4.11에서 열두 가지 조합의 실제 락과 대기를 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>레코드 락, 갭 락, 넥스트 키 락</dt>
+<dd>MySQL InnoDB가 인덱스에 거는 잠금의 종류다. 레코드 락은 인덱스의 한 항목을 잠근다. 갭 락은 인덱스 항목 사이의 빈 구간을 잠가 그 사이에 새 행이 삽입되지 못하게 한다. 넥스트 키 락은 레코드 락과 그 앞 구간의 갭 락을 합친 것이다. 갭 락과 넥스트 키 락은 범위 조건으로 잠근 구간에 새 행이 끼어드는 것(팬텀)을 막기 위한 것이다.</dd>
+<dt>공유 락과 배타 락</dt>
+<dd>공유 락(S)은 읽기를 위한 잠금으로 여러 트랜잭션이 동시에 가질 수 있다. 배타 락(X)은 쓰기를 위한 잠금으로 한 트랜잭션만 가질 수 있으며, 배타 락이 걸린 데이터에는 다른 트랜잭션이 공유 락도 배타 락도 걸 수 없다.</dd>
+<dt>트랜잭션 격리 수준</dt>
+<dd>동시에 실행되는 트랜잭션들이 서로의 변경을 어디까지 볼 수 있게 할지 정하는 단계다. READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE의 네 단계가 있으며, 뒤로 갈수록 서로의 영향을 더 많이 차단하지만 동시에 처리할 수 있는 양은 줄어든다. MySQL(InnoDB)의 기본값은 REPEATABLE READ, PostgreSQL과 Oracle의 기본값은 READ COMMITTED다.</dd>
+<dt>Phantom Read</dt>
+<dd>한 트랜잭션 안에서 같은 조건으로 두 번 조회했는데, 그 사이에 다른 트랜잭션이 행을 추가하거나 삭제해서 결과의 행 수가 달라지는 현상이다. 값이 바뀌는 것이 아니라 없던 행이 나타나거나 있던 행이 사라진다는 점에서 Non-repeatable Read와 구분된다.</dd>
+<dt>비관적 락</dt>
+<dd>충돌이 일어날 것이라고 가정하고 데이터를 읽는 시점에 먼저 잠그는 방식이다. SELECT ... FOR UPDATE로 행을 잠그면 다른 트랜잭션은 그 행을 수정하려 할 때 잠금이 풀릴 때까지 기다린다. 충돌이 잦은 경우에 확실하지만 대기와 교착 상태의 가능성이 있다.</dd>
+<dt>교착 상태(Deadlock)</dt>
+<dd>둘 이상의 스레드(또는 트랜잭션)가 서로 상대가 가진 자원을 기다리느라 영원히 진행하지 못하는 상태다. A가 자원 1을 잡고 2를 기다리는데 B가 자원 2를 잡고 1을 기다리는 경우가 전형적이다. 자원을 항상 같은 순서로 잡도록 하면 예방할 수 있다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 범위 조회. 20과 30 사이에 끼워 넣으려는 INSERT가 기다립니다.</li>
+<li><b>없는 행을 조회했을 때</b> — 잠글 행이 없는데도 그 자리의 빈 구간이 잠깁니다.</li>
+<li><b>있는 행 하나를 정확히 조회</b> — 그 행만 잠깁니다. 옆 구간은 자유롭습니다.</li>
+<li><b>READ COMMITTED로 낮추면</b> — 빈 구간을 잠그지 않습니다. INSERT가 바로 됩니다.</li>
+<li><b>범위 밖에 넣으면</b> — 잠긴 구간이 아니므로 기다리지 않습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>coupon 테이블에는 id가 10, 20, 30, 40인 행이 있습니다. 인덱스에서 보면 행과 행 사이에 (10~20), (20~30), (30~40), (40 이후) 같은 빈 구간이 있습니다.</li>
+<li>트랜잭션 A가 id 20부터 30까지를 FOR UPDATE로 조회합니다. 조건에 맞는 행 20과 30에 락을 겁니다. 그리고 그 사이의 빈 구간 (20~30)도 함께 잠급니다. 행에 건 락과 그 앞 구간에 건 락을 합쳐 넥스트 키 락이라고 부릅니다.</li>
+<li>트랜잭션 B가 id = 25인 행을 넣으려 합니다. INSERT는 새 행이 들어갈 자리의 빈 구간이 잠겨 있는지 확인합니다.</li>
+<li>id 25가 들어갈 자리는 (20~30) 구간이고, A가 이 구간을 잠그고 있습니다. B의 INSERT는 A가 커밋하거나 롤백할 때까지 기다립니다. 너무 오래 기다리면 락 대기 시간 초과 오류가 납니다.</li>
+<li>A가 커밋하면 락이 풀리고, 기다리던 B의 INSERT가 그제야 실행됩니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>잠긴 행: 20, 30. 잠긴 빈 구간: (20~30). B의 INSERT는 기다렸습니다.</li>
+<li>REPEATABLE READ에서 InnoDB는 범위 안에 새 행이 끼어드는 것(Phantom)을 막으려고 빈 구간을 잠급니다. 그 대가로 서로 다른 행을 넣으려는 INSERT끼리도 막힐 수 있습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>-- 테이블의 id(기본 키): 10, 20, 30, 40, 그리고 멀리 떨어진 행들
+-- (조회 범위가 테이블의 일부라서 그 범위만 훑는 경우)
+
+-- 트랜잭션 A
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+START TRANSACTION;
+SELECT * FROM coupon WHERE id BETWEEN 20 AND 30 FOR UPDATE;
+
+-- 트랜잭션 B (A가 아직 커밋하지 않은 상태)
+INSERT INTO coupon (id) VALUES (25);</pre>
+<h2>이 모형의 전제</h2>
+<p>MySQL InnoDB에서 기본 키(유니크 인덱스)로 조회하는 경우를 기준으로 했습니다. 유니크 인덱스로 존재하는 한 행을 찾으면 레코드 락만, 없는 행이나 범위를 찾으면 갭 락이 함께 걸린다는 점, READ COMMITTED에서는 조회에 갭 락을 쓰지 않는다는 점은 MySQL 공식 문서(InnoDB Locking)의 설명을 따랐습니다. 범위 조회에서 실제로 잠기는 구간의 경계는 인덱스 종류와 MySQL 버전에 따라 이보다 넓을 수 있습니다(범위 끝 다음 구간까지 잠기기도 합니다). 열두 가지 조합 모두를 실제 MySQL 8.4.11에서 세션 두 개로 실행해, A가 잡은 락(performance_schema.data_locks에 기록된 레코드 락, 갭 락, 넥스트 키 락)과 B의 INSERT가 기다리는지가 화면과 일치하는 것을 확인했습니다. 단, 이 결과는 범위 조회가 인덱스의 그 범위만 훑는 경우의 것입니다. InnoDB는 조건에 맞는 행이 아니라 조회하면서 훑은 인덱스 레코드를 잠급니다. 실제로 행이 10, 20, 30, 40 네 개뿐인 테이블로 시험했을 때는 MySQL이 인덱스 전체를 훑는 계획을 골라 모든 행과 모든 빈 구간이 잠겼고, 범위 밖인 id = 45의 INSERT도 기다렸습니다. 화면과 같은 결과는 멀리 떨어진 행 500개를 더 넣어 조회 범위가 테이블의 일부가 되게 한 뒤에 나왔습니다.</p>
+<p>앞 실습: <a href="../../lab/iso/">격리 수준</a> · 다음 실습: <a href="../../lab/stock/">재고 차감과 락</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>파티셔닝: 테이블을 조각내면 조회는 어느 조각을 읽나 · 개발 학습 실습실</title>
+<meta name="description" content="파티셔닝은 큰 테이블 하나를 같은 서버 안에서 여러 조각(파티션)으로 나눠 저장하는 것입니다. 주문 날짜의 연도처럼 범위로 나누거나(RANGE), 회원 번호를 나눈 나머지처럼 계산으로 나눕니다(HASH). 조건을 어떻게 쓰느냐에 따라 필요한 파티션만 읽기도 하고 전부 읽기도…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/partition/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/partition/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/partition/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="파티셔닝: 테이블을 조각내면 조회는 어느 조각을 읽나 · 개발 학습 실습실">
+<meta property="og:description" content="파티셔닝은 큰 테이블 하나를 같은 서버 안에서 여러 조각(파티션)으로 나눠 저장하는 것입니다. 주문 날짜의 연도처럼 범위로 나누거나(RANGE), 회원 번호를 나눈 나머지처럼 계산으로 나눕니다(HASH). 조건을 어떻게 쓰느냐에 따라 필요한 파티션만 읽기도 하고 전부 읽기도…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/partition/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 확장과 분산</p>
+<h1>파티셔닝</h1>
+<p><b>테이블을 조각내면 조회는 어느 조각을 읽나</b></p>
+<p>파티셔닝은 큰 테이블 하나를 같은 서버 안에서 여러 조각(파티션)으로 나눠 저장하는 것입니다. 주문 날짜의 연도처럼 범위로 나누거나(RANGE), 회원 번호를 나눈 나머지처럼 계산으로 나눕니다(HASH). 조건을 어떻게 쓰느냐에 따라 필요한 파티션만 읽기도 하고 전부 읽기도 합니다. 테이블을 만들고, 행을 넣고, 조회하면서 MySQL이 어느 파티션을 고르는지 보세요.</p>
+<p>실행으로 대조 · MySQL 8.4.11에서 서른두 가지 조합을 실행해 오류 코드와 EXPLAIN의 partitions를 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>샤딩과 파티셔닝</dt>
+<dd>파티셔닝은 큰 테이블을 날짜 범위 등의 기준으로 여러 조각으로 나눠 관리하는 것이다. 샤딩은 데이터를 여러 데이터베이스 서버에 나눠 저장하는 것으로, 한 서버로 감당할 수 없는 쓰기 부하나 데이터 양을 분산한다. 샤딩을 하면 서버에 걸친 조인이나 트랜잭션이 어려워진다. (50선 밖)</dd>
+<dt>RANGE 파티션과 HASH 파티션</dt>
+<dd>테이블을 파티션으로 나누는 대표적인 두 가지 방법이다. 행이 어느 파티션으로 갈지를 정하는 컬럼(또는 식)을 파티션 키라고 한다. RANGE는 파티션마다 값의 범위를 정해 두는 방식으로, 날짜처럼 이어진 범위로 조회하거나 오래된 데이터를 파티션째 지울 때 알맞다. 정해 둔 어느 범위에도 속하지 않는 값은 넣을 수 없으므로 다음 기간의 파티션을 미리 추가해야 한다. HASH는 파티션 키를 파티션 수로 나눈 나머지로 파티션을 정하는 방식으로, 행을 고르게 흩어 놓지만 범위 조건으로는 읽을 파티션을 줄이기 어렵다.</dd>
+<dt>파티션 프루닝</dt>
+<dd>조회 조건을 보고 해당 행이 있을 수 없는 파티션을 아예 읽지 않는 최적화다. 프루닝은 가지치기라는 뜻이다. 조건에 파티션 키 컬럼이 값이나 범위와 그대로 비교되는 형태로 들어 있어야 동작하며, MySQL에서는 EXPLAIN의 partitions 칸에서 실제로 읽는 파티션을 확인할 수 있다. 조건에 파티션 키가 없거나 파티션 키 컬럼에 함수나 계산을 씌우면 모든 파티션을 읽는다. 파티션을 나눠서 얻는 조회 성능의 이득은 대부분 이 프루닝에서 나온다.</dd>
+<dt>실행 계획(EXPLAIN)</dt>
+<dd>데이터베이스가 쿼리를 어떤 방법으로 실행할지 정한 계획이다. 어떤 인덱스를 쓰는지, 테이블을 어떤 순서로 조인하는지, 몇 행을 읽을 것으로 예상하는지를 보여 준다. 쿼리 앞에 EXPLAIN을 붙여 확인하며, 쿼리가 느릴 때 원인을 찾는 출발점이다.</dd>
+<dt>기본 키, 유니크 키, 외래 키</dt>
+<dd>기본 키(PK)는 테이블의 각 행을 유일하게 식별하는 컬럼으로 값이 중복되거나 비어 있을 수 없고 테이블에 하나만 둔다. 유니크 키는 값의 중복을 막는 제약으로 여러 개 둘 수 있다. 외래 키(FK)는 다른 테이블의 기본 키(또는 유니크 키)를 참조하는 컬럼으로, 참조 대상이 실제로 존재하도록 보장한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 연도로 나눴는데 YEAR(ordered_at) = 2024로 찾으면 세 파티션을 모두 읽습니다.</li>
+<li><b>컬럼을 그대로 비교하면</b> — 그 날짜가 들어 있을 파티션 하나만 읽습니다.</li>
+<li><b>두 해에 걸친 범위</b> — 걸쳐 있는 두 파티션만 읽고 나머지는 건너뜁니다.</li>
+<li><b>파티션 키가 없는 조건</b> — 기본 키의 첫 컬럼으로 찾는데도 모든 파티션을 읽습니다.</li>
+<li><b>범위 밖의 날짜를 넣으면</b> — 받아 줄 파티션이 없어 INSERT가 오류 1526으로 실패합니다.</li>
+<li><b>기본 키에 파티션 키가 없으면</b> — 테이블을 만들 때 오류 1503이 납니다.</li>
+<li><b>해시로 나누면</b> — 어떤 값이든 들어갈 곳이 있지만, 범위 조회는 모든 파티션을 읽습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>CREATE TABLE … PARTITION BY RANGE (YEAR(ordered_at)): orders 테이블을 주문 날짜의 연도에 따라 세 조각(p2023, p2024, p2025)으로 나눠 만듭니다. 이 조각 하나하나가 파티션입니다. 쿼리를 쓰는 쪽에서는 여전히 orders 테이블 하나로 보이고, 세 파티션은 모두 같은 MySQL 서버 안에 있습니다.</li>
+<li>주문 300건을 넣어 둡니다. 넣는 쪽은 파티션을 지정하지 않습니다. MySQL이 행마다 주문 날짜의 연도를 보고 들어갈 파티션을 고릅니다. 파티션별 행 수는 p2023 121건, p2024 122건, p2025 57건입니다.</li>
+<li>INSERT … VALUES (1001, 7, '2025-06-01', 5000): 주문 날짜의 연도가 2025이므로 &quot;2026 미만&quot;을 받는 p2025 파티션에 들어갑니다.</li>
+<li>EXPLAIN SELECT * FROM orders WHERE YEAR(ordered_at) = 2024: 조건이 ordered_at 컬럼 자체가 아니라 YEAR(ordered_at)에 걸려 있습니다. 파티션을 나눈 식과 똑같은데도, MySQL은 컬럼에 함수를 씌운 조건으로는 파티션을 골라내지 못해 세 파티션을 모두 읽습니다. ordered_at &gt;= '2024-01-01' AND ordered_at &lt; '2025-01-01'처럼 컬럼을 그대로 두고 범위로 쓰면 p2024 파티션만 읽습니다. EXPLAIN의 partitions 칸: p2023,p2024,p2025.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>테이블은 만들어졌고, INSERT는 p2025 파티션에 들어갔고, 조회는 파티션 3개 중 3개를 읽습니다.</li>
+<li>파티셔닝은 서버 한 대 안에서 테이블 하나를 나눠 저장하는 것입니다. 데이터를 여러 서버에 나누는 샤딩과 달리 조인과 트랜잭션, 쿼리는 그대로 쓸 수 있습니다. 대신 서버 한 대의 한계를 넘게 해 주지는 않습니다. 한 번에 읽고 지울 범위를 줄이는 것이 목적입니다.</li>
+<li>파티션 키 컬럼에 함수나 계산을 씌우면 프루닝이 되지 않습니다. 인덱스가 걸린 컬럼에 함수를 씌우면 인덱스를 못 쓰는 것과 같은 이치입니다. 컬럼은 그대로 두고 비교할 값 쪽을 바꿉니다.</li>
+<li>RANGE 파티션의 큰 장점은 오래된 데이터를 통째로 지울 수 있다는 것입니다. ALTER TABLE orders DROP PARTITION p2023은 그 파티션의 행을 하나씩 지우지 않고 조각째로 없앱니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>CREATE TABLE orders (
+  id BIGINT NOT NULL,
+  member_id INT NOT NULL,
+  ordered_at DATE NOT NULL,
+  amount INT NOT NULL,
+  PRIMARY KEY (id, ordered_at)
+)
+PARTITION BY RANGE (YEAR(ordered_at)) (
+  PARTITION p2023 VALUES LESS THAN (2024),
+  PARTITION p2024 VALUES LESS THAN (2025),
+  PARTITION p2025 VALUES LESS THAN (2026)
+);
+
+-- 주문 300건이 들어 있는 상태에서 한 건을 더 넣는다
+-- 컬럼 순서: id, member_id, ordered_at, amount
+INSERT INTO orders VALUES (1001, 7, '2025-06-01', 5000);
+
+-- 이 조회가 어느 파티션을 읽는지는 EXPLAIN의 partitions 칸에 나온다
+EXPLAIN SELECT * FROM orders WHERE YEAR(ordered_at) = 2024;</pre>
+<h2>이 모형의 전제</h2>
+<p>서른두 가지 조합 모두를 이 PC의 MySQL 8.4.11(InnoDB)에서 화면과 같은 문장으로 실행해 대조했습니다. 조합마다 테이블을 새로 만들어 CREATE TABLE의 성공 여부와 오류 코드, 주문 300건이 파티션마다 들어간 건수(SELECT COUNT(*) … PARTITION (이름)), 새 행이 들어간 파티션 또는 INSERT의 오류 코드, EXPLAIN의 partitions 칸이 화면과 일치하는 것을 확인했습니다. 화면에 적은 오류 메시지도 실제 메시지입니다. 설명에 쓴 다음 사실도 실행으로 확인했습니다. 유니크 키에 파티션 키가 없어도 오류 1503이 납니다. 기본 키와 유니크 키가 모두 없는 테이블은 제약에 걸리지 않습니다. 날짜 조건을 컬럼의 범위(&gt;= 와 &lt;)로 쓰면 p2024만 읽습니다. HASH에서 BETWEEN 5 AND 6은 p1, p2만 읽습니다. ADD PARTITION으로 2026년 파티션을 추가한 뒤에는 같은 INSERT가 성공합니다. DROP PARTITION p2023은 그 파티션의 121행을 없앱니다. 기본 키가 (id, ordered_at)일 때 id가 같고 날짜만 다른 두 행이 들어갑니다. 어느 파티션을 읽는지는 조건에서 정해지며 행 수나 통계와 무관하지만, 파티션 안에서 인덱스를 쓰는지와 예상 행 수는 데이터에 따라 달라지므로 결과로 삼지 않았습니다. 파티션 키와 기본 키의 제약, 프루닝이 되는 조건의 형태는 MySQL 8.4 참조 설명서 26.6.1 Partitioning Keys, Primary Keys, and Unique Keys와 26.4 Partition Pruning의 설명과도 맞습니다. 파티션마다 인덱스를 따로 가진다는 것은, 파티션 셋이 InnoDB 안에서 별도의 테이블과 데이터 파일로 저장되고 인덱스 통계(mysql.innodb_index_stats)에도 파티션마다 PRIMARY 인덱스가 따로 올라 있는 것을 보고 확인했습니다. LIST와 KEY 파티션, 서브파티션, 파티션 수가 아주 많을 때의 비용은 다루지 않았습니다. 다른 DB 제품은 파티션 키가 없는 유니크 인덱스를 허용하기도 하므로, 이 제약은 MySQL 기준입니다.</p>
+<p>앞 실습: <a href="../../lab/shard/">샤딩</a> · 다음 실습: <a href="../../lab/redis/">Redis의 한 줄 처리</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

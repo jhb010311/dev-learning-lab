@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>클래스 로딩과 초기화: 클래스의 static 블록은 언제 실행되나 · 개발 학습 실습실</title>
+<meta name="description" content="클래스에 적어 둔 static 초기화 블록은 프로그램이 시작될 때 실행되는 것이 아니라, 그 클래스가 처음으로 &quot;제대로&quot; 쓰일 때 한 번 실행됩니다. 그런데 클래스 이름이 코드에 나온다고 해서 모두 그런 사용은 아닙니다. 같은 일을 두 번씩 해 보면서 static 블록이 언제…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/classload/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/classload/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/classload/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="클래스 로딩과 초기화: 클래스의 static 블록은 언제 실행되나 · 개발 학습 실습실">
+<meta property="og:description" content="클래스에 적어 둔 static 초기화 블록은 프로그램이 시작될 때 실행되는 것이 아니라, 그 클래스가 처음으로 &quot;제대로&quot; 쓰일 때 한 번 실행됩니다. 그런데 클래스 이름이 코드에 나온다고 해서 모두 그런 사용은 아닙니다. 같은 일을 두 번씩 해 보면서 static 블록이 언제…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/classload/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › JVM</p>
+<h1>클래스 로딩과 초기화</h1>
+<p><b>클래스의 static 블록은 언제 실행되나</b></p>
+<p>클래스에 적어 둔 static 초기화 블록은 프로그램이 시작될 때 실행되는 것이 아니라, 그 클래스가 처음으로 &quot;제대로&quot; 쓰일 때 한 번 실행됩니다. 그런데 클래스 이름이 코드에 나온다고 해서 모두 그런 사용은 아닙니다. 같은 일을 두 번씩 해 보면서 static 블록이 언제, 몇 번 실행되는지 확인합니다.</p>
+<p>실행으로 대조 · JDK 21에서 열여덟 가지 조합을 새로 컴파일하고 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>클래스 로더</dt>
+<dd>클래스 파일을 찾아 메모리로 읽어 들이는 JVM의 구성 요소다. 클래스는 프로그램 시작 때 전부 읽는 것이 아니라 처음 필요해지는 시점에 로딩된다. 읽어 들인 클래스는 JVM이 링킹(검증, 준비, 그리고 심볼릭 참조의 해석)과 초기화(static 초기화 실행)를 거쳐 사용할 수 있게 만든다.</dd>
+<dt>클래스 초기화</dt>
+<dd>클래스의 static 필드에 처음 값을 넣고 static 초기화 블록을 실행하는 단계다. 클래스를 읽어 들이는 로딩과는 다른 단계이며, 그 클래스의 객체를 만들거나 static 메서드를 부르거나 상수가 아닌 static 필드를 쓸 때처럼 클래스가 처음으로 실제 쓰이는 순간에 일어난다. 클래스 하나에 한 번만 일어나고, 자식 클래스를 초기화할 때는 부모 클래스가 먼저 초기화된다. 배열을 만들거나 클래스이름.class를 쓰는 것, 컴파일 시점 상수를 읽는 것은 초기화를 일으키지 않는다.</dd>
+<dt>static 초기화 블록</dt>
+<dd>클래스 안에 static { ... } 모양으로 적는 코드 블록으로, 클래스가 초기화될 때 한 번 실행된다. static 필드에 넣을 값을 여러 줄의 코드로 계산해야 할 때 쓴다. static 필드의 초기화 식과 static 블록은 소스에 적힌 순서대로 위에서 아래로 실행된다. 객체를 만들 때마다 실행되는 생성자와 달리, 객체를 몇 개 만들든 다시 실행되지 않는다.</dd>
+<dt>컴파일 시점 상수</dt>
+<dd>static final int MAX = 10처럼 final이고, 기본형이나 String 타입이며, 값이 리터럴 같은 상수식으로 정해지는 변수다. 컴파일러는 이런 상수를 쓰는 곳에 값을 직접 넣어 두므로, 실행할 때는 그 상수를 선언한 클래스를 찾아가지 않고 그 클래스의 초기화도 일어나지 않는다. final이더라도 메서드를 호출해야 값이 나오는 필드는 컴파일할 때 값을 알 수 없으므로 상수가 아니다. 값을 직접 넣어 두기 때문에, 상수의 값을 바꾸면 그것을 쓰는 코드도 다시 컴파일해야 새 값이 반영된다.</dd>
+<dt>static</dt>
+<dd>인스턴스가 아니라 클래스에 속하는 멤버임을 나타내는 키워드다. static 필드는 클래스당 하나만 존재해 모든 인스턴스가 공유하고, static 메서드는 객체를 만들지 않고 호출한다. 값이 바뀌는 static 필드는 사실상 전역 변수이므로 여러 스레드가 동시에 접근할 때 문제가 되기 쉽다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 상수 읽기. static 블록이 실행되지 않고, 클래스를 읽어 들이지도 않습니다.</li>
+<li><b>new로 객체 만들기</b> — 처음 만들 때 한 번만 static 블록이 실행됩니다.</li>
+<li><b>static final인데 상수가 아닌 필드</b> — 실행해야 값이 정해지므로 초기화가 일어납니다.</li>
+<li><b>배열만 만들면</b> — 클래스를 읽어 들이기만 하고 초기화하지 않습니다.</li>
+<li><b>자식 클래스의 객체 만들기</b> — 부모가 먼저, 그다음 자식이 초기화됩니다.</li>
+<li><b>부모의 static 필드를 자식 이름으로</b> — Child.count라고 썼지만 Child는 초기화되지 않습니다.</li>
+<li><b>클래스이름.class 쓰기</b> — 클래스 정보만 가리킬 뿐 초기화하지 않습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>System.out.println(&quot;main 시작&quot;): 프로그램이 시작됐습니다. Parent와 Child를 쓰는 코드를 아직 만나지 않았으므로, JVM은 두 클래스를 읽어 들이지도 않았고 static 블록도 실행하지 않았습니다.</li>
+<li>int a = Parent.MAX: MAX는 컴파일할 때 값이 정해지는 상수입니다. 컴파일러가 이 줄을 int a = 10;과 같게 바꿔 놓았기 때문에, 실행할 때는 Parent 클래스를 찾아갈 일이 없습니다. 클래스를 읽어 들이지 않고 static 블록도 실행되지 않습니다.</li>
+<li>System.out.println(&quot;첫 번째 사용 끝&quot;): 여기까지 static 블록은 Parent에서 0번, Child에서 0번 실행됐습니다.</li>
+<li>int b = Parent.MAX: 이번에도 값 10을 바로 씁니다. 몇 번을 읽어도 클래스는 초기화되지 않습니다.</li>
+<li>System.out.println(&quot;두 번째 사용 끝&quot;): 프로그램이 끝납니다. static 블록이 실행된 횟수는 Parent 0번, Child 0번입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>같은 일을 두 번 했을 때 static 블록은 Parent에서 0번, Child에서 0번 실행됐습니다. 읽어 들인 클래스: 없음.</li>
+<li>static final이고 값이 숫자나 문자열 리터럴처럼 컴파일할 때 정해지는 필드는 &quot;컴파일 시점 상수&quot;입니다. 컴파일러가 쓰는 쪽 코드에 값을 직접 넣어 두므로, 실행할 때 그 클래스는 쓰이지 않습니다. 그래서 상수만 바꾸고 그 클래스만 다시 컴파일하면, 쓰는 쪽에는 옛 값이 남습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>class Parent {
+    static final int MAX = 10;                        // 컴파일할 때 값이 정해지는 상수
+    static { System.out.println(&quot;Parent 초기화&quot;); }    // static 초기화 블록
+}
+
+class Child extends Parent {
+    static { System.out.println(&quot;Child 초기화&quot;); }
+}
+
+System.out.println(&quot;main 시작&quot;);
+int a = Parent.MAX;
+System.out.println(&quot;첫 번째 사용 끝&quot;);
+int b = Parent.MAX;
+System.out.println(&quot;두 번째 사용 끝&quot;);</pre>
+<h2>이 모형의 전제</h2>
+<p>열여덟 가지 조합마다 화면의 코드와 같은 소스를 이 PC의 JDK 21에서 새로 컴파일해 실행하고, 출력된 줄의 순서와 읽어 들인 클래스를 대조했습니다. 클래스를 읽어 들인 시점은 -Xlog:class+load 옵션으로 얻은 JVM의 기록과 대조했습니다. 초기화가 언제 일어나는지는 자바 언어 명세가 정해 둔 것이라 어느 JVM에서나 같습니다. 반면 클래스를 언제 읽어 들이는지는 JVM 구현에 맡겨져 있어서, &quot;처음 쓰일 때 읽는다&quot;와 &quot;상수만 읽으면 읽지도 않는다&quot;는 이 PC의 JVM(HotSpot)에서 확인한 동작입니다. 상수 읽기가 값 10으로 바뀌어 컴파일된다는 것은 javap로 바이트코드를 보고 확인했습니다. 읽어 들인 뒤 초기화 전에 거치는 검증, 준비 같은 세부 단계와, Class.forName이나 인터페이스의 초기화 규칙은 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/jit/">JIT 워밍업</a> · 다음 실습: <a href="../../lab/iobuf/">입출력 스트림과 버퍼</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

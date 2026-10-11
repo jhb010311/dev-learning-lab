@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gap locks and next-key locks: Why is an INSERT blocked when I queried a row that does not exist? · Dev Learning Lab</title>
+<meta name="description" content="Transaction A locks rows with SELECT ... FOR UPDATE. MySQL InnoDB does not lock only the rows. Depending on the condition, it also locks the gaps between…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/gaplock/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/gaplock/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/gaplock/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Gap locks and next-key locks: Why is an INSERT blocked when I queried a row that does not exist? · Dev Learning Lab">
+<meta property="og:description" content="Transaction A locks rows with SELECT ... FOR UPDATE. MySQL InnoDB does not lock only the rows. Depending on the condition, it also locks the gaps between…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/gaplock/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Transactions and locking</p>
+<h1>Gap locks and next-key locks</h1>
+<p><b>Why is an INSERT blocked when I queried a row that does not exist?</b></p>
+<p>Transaction A locks rows with SELECT ... FOR UPDATE. MySQL InnoDB does not lock only the rows. Depending on the condition, it also locks the gaps between rows, so that other transactions cannot insert a new row in between. Change the query condition and the isolation level, and see how far the locking reaches.</p>
+<p>Checked against real execution · Checked the actual locks and waits of 12 combinations against MySQL 8.4.11</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Record locks, gap locks, and next-key locks</dt>
+<dd>The kinds of locks that MySQL InnoDB sets on indexes. A record lock locks one index record. A gap lock locks the empty gap between index records so that no new row can be inserted there. A next-key lock combines a record lock with a gap lock on the gap before that record. Gap locks and next-key locks exist to stop new rows (phantoms) from slipping into a range that was locked with a range condition.</dd>
+<dt>Shared locks and exclusive locks</dt>
+<dd>A shared lock (S) is a lock for reading, and several transactions can hold it at the same time. An exclusive lock (X) is a lock for writing, and only one transaction can hold it. While data has an exclusive lock, no other transaction can take a shared lock or an exclusive lock on it.</dd>
+<dt>Transaction isolation level</dt>
+<dd>A level that sets how much of each other's changes concurrent transactions can see. There are four levels: READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, and SERIALIZABLE. The later levels block more of the effects that transactions have on each other, but the amount of work that can be handled at the same time goes down. The default is REPEATABLE READ in MySQL (InnoDB) and READ COMMITTED in PostgreSQL and Oracle.</dd>
+<dt>Phantom read</dt>
+<dd>A situation in which a transaction runs a query with the same condition twice and gets a different number of rows, because another transaction inserted or deleted rows in between. It differs from a non-repeatable read in that values do not change. Instead, rows that did not exist appear, or rows that existed disappear.</dd>
+<dt>Pessimistic locking</dt>
+<dd>An approach that assumes a conflict will happen and locks the data first, at the time it is read. When you lock a row with SELECT ... FOR UPDATE, another transaction that tries to modify the row waits until the lock is released. It is reliable when conflicts are frequent, but it brings waiting and the possibility of deadlock.</dd>
+<dt>Deadlock</dt>
+<dd>This is a state in which two or more threads (or transactions) can never make progress, because each is waiting for a resource that the other holds. The typical case is that A holds resource 1 and waits for 2 while B holds resource 2 and waits for 1. It can be prevented by always acquiring resources in the same order.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A range query. An INSERT that tries to squeeze in between 20 and 30 waits.</li>
+<li><b>Querying a row that does not exist</b> — There is no row to lock, yet the gap at that place is locked.</li>
+<li><b>Querying exactly one existing row</b> — Only that row is locked. The gaps next to it are free.</li>
+<li><b>Lowering it to READ COMMITTED</b> — The gaps are not locked. The INSERT goes through right away.</li>
+<li><b>Inserting outside the range</b> — That place is not locked, so B does not wait.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The coupon table has rows with ids 10, 20, 30, and 40. In the index, there are gaps between the rows, such as (10~20), (20~30), (30~40), and (after 40).</li>
+<li>Transaction A queries ids 20 through 30 using FOR UPDATE. It locks rows 20 and 30, which match the condition. It also locks the gap (20~30) between them. A lock on a row together with the lock on the gap before it is called a next-key lock.</li>
+<li>Transaction B tries to insert the row with id = 25. An INSERT checks whether the gap where the new row would go is locked.</li>
+<li>The place where id 25 goes is the gap (20~30), and A has locked that gap. The INSERT of B waits until A commits or rolls back. If it waits too long, it fails with a lock wait timeout error.</li>
+<li>When A commits, its locks are released, and only then does the INSERT of B that was waiting run.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Locked rows: 20, 30. Locked gaps: (20~30). The INSERT of B waited.</li>
+<li>At REPEATABLE READ, InnoDB locks the gap to stop new rows from slipping into the range (phantoms). As a cost, INSERTs of different rows can end up blocking each other.</li>
+</ul>
+<h2>Code</h2>
+<pre>-- The ids (primary key) in the table: 10, 20, 30, 40, and rows far away from them
+-- (the queried range is a small part of the table, so only that range is scanned)
+
+-- Transaction A
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+START TRANSACTION;
+SELECT * FROM coupon WHERE id BETWEEN 20 AND 30 FOR UPDATE;
+
+-- Transaction B (A has not committed yet)
+INSERT INTO coupon (id) VALUES (25);</pre>
+<h2>Assumptions of this model</h2>
+<p>The lab is based on queries by primary key (a unique index) in MySQL InnoDB. The following follow the explanation in the MySQL documentation (InnoDB Locking): when a unique index finds exactly one existing row, only a record lock is placed, and when the query looks for a row that does not exist or for a range, a gap lock is placed as well; and at READ COMMITTED, queries do not use gap locks. The boundary of the gap that is actually locked by a range query can be wider than shown here, depending on the index type and the MySQL version (the gap after the end of the range may also be locked). All 12 combinations were run on a real MySQL 8.4.11 with two sessions, and the locks that A held (the record locks, gap locks, and next-key locks recorded in performance_schema.data_locks) and whether the INSERT of B waits were confirmed to match the screen. However, this result is for the case where the range query scans only that range of the index. InnoDB locks the index records that it scans while it searches, not the rows that match the condition. When the test was run with a table that had only the four rows 10, 20, 30, and 40, MySQL chose a plan that scans the entire index, so all the rows and all the gaps were locked, and even the INSERT of id = 45, which is outside the range, waited. The same result as on the screen appeared only after 500 more rows far away from these were inserted, so that the queried range became a small part of the table.</p>
+<p>Previous lab: <a href="../../lab/iso/">Isolation levels</a> · Next lab: <a href="../../lab/stock/">Stock decrement and locks</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

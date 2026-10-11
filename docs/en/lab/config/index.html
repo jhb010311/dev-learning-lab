@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration precedence: When the same property is set in several places, which value wins? · Dev Learning Lab</title>
+<meta name="description" content="Spring Boot reads property values from several places, such as files, environment variables, and command-line arguments. When the same key is set in more…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/config/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/config/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/config/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Configuration precedence: When the same property is set in several places, which value wins? · Dev Learning Lab">
+<meta property="og:description" content="Spring Boot reads property values from several places, such as files, environment variables, and command-line arguments. When the same key is set in more…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/config/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Spring Boot</p>
+<h1>Configuration precedence</h1>
+<p><b>When the same property is set in several places, which value wins?</b></p>
+<p>Spring Boot reads property values from several places, such as files, environment variables, and command-line arguments. When the same key is set in more than one place, the place with the higher precedence wins. Add and remove a property named app.timeout in several places and check the final value.</p>
+<p>Checked against real execution · 32 combinations were run on Spring Boot 4.1.1 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Externalized configuration and profiles</dt>
+<dd>Externalized configuration means supplying setting values such as a DB address through configuration files, environment variables, command-line arguments, and so on, without putting them in the code. It lets you run the same build artifact with different settings in different environments. A profile is a feature that keeps groups of settings separated by environment, such as development and production, and lets you select one at run time.</dd>
+<dt>Spring Boot auto-configuration</dt>
+<dd>This Spring Boot feature looks at the libraries on the classpath and at the configuration values, and automatically registers the beans that are needed. For example, if a JDBC driver and connection details are present, it configures a DataSource automatically. Each auto-configuration has conditions for when it applies, and if the developer registers a bean of the same kind directly, the auto-configuration does not apply.</dd>
+<dt>CI/CD</dt>
+<dd>CI (continuous integration) means merging code changes often and automatically running a build and tests on every merge to find problems early. CD (continuous delivery or continuous deployment) means using an automated process to get verified code into a deployable state or to deploy it all the way to production. Automating the build, test, and deployment work that people used to do by hand reduces mistakes and shortens the release cycle.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Both application.yml and the prod file have the value. The prod file wins.</li>
+<li><b>Adding an environment variable</b> — An environment variable takes precedence over the files. This is a common approach in container deployments.</li>
+<li><b>Adding a command-line argument too</b> — Command-line arguments have the highest precedence.</li>
+<li><b>application.yml only</b> — When no other place has the value, the value in application.yml is used.</li>
+<li><b>Not set anywhere</b> — The default value written in the code is used.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>As the application starts, it looks for the value of app.timeout. Spring Boot checks several places in a fixed order and uses the value found in the place with the highest precedence. The steps go through the places from the highest precedence down.</li>
+<li>1. Command-line argument: This key is not set here. The search moves on to the next place.</li>
+<li>2. JVM system property: This key is not set here. The search moves on to the next place.</li>
+<li>3. OS environment variable: This key is not set here. The search moves on to the next place.</li>
+<li>4. application-prod.yml: The value 5000 is found here. No place with a higher precedence had a value, so this is the final value.</li>
+<li>5. application.yml: The value 3000 is set here, but the value was already decided at a higher precedence. This value is not used.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The final value of app.timeout is 5000. Where the value came from: application-prod.yml. Overridden values: 3000.</li>
+<li>From highest to lowest, the precedence is command-line arguments → JVM system properties → environment variables → the profile-specific file → application.yml. The closer a place is to the side that runs the application, the higher its precedence.</li>
+<li>Thanks to this order, you can run the same build artifact (a jar or an image) with different values in each environment without modifying it. Values that differ from one environment to another, or that must not be put in the code repository, such as a database URL or a password, are passed in through environment variables or injected at run time.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Value(&quot;${app.timeout:1000}&quot;)          // 1000 if not set anywhere
+private int timeout;
+
+# application.yml
+app.timeout: 3000
+
+# application-prod.yml
+app.timeout: 5000
+
+# Run
+java -jar app.jar --spring.profiles.active=prod</pre>
+<h2>Assumptions of this model</h2>
+<p>This lab picks only five commonly used places from the externalized configuration order in the official Spring Boot documentation. The real list has more, such as SPRING_APPLICATION_JSON and configuration files outside the jar (which take precedence over the files inside the jar). A profile-specific file is read only when that profile is active. All 32 combinations were run on real Spring Boot 4.1.1, with a new process started for each combination, and the final value and the place it came from were confirmed to match the screen.</p>
+<p>Previous lab: <a href="../../lab/autoconf/">Spring Boot auto-configuration</a> · Next lab: <a href="../../lab/actuator/">Actuator and health checks</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

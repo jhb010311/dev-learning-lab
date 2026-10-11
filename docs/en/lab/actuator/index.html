@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Actuator and health checks: What does the health check answer when the connection to the payment provider is lost? · Dev Learning Lab</title>
+<meta name="description" content="Actuator is a library that creates paths through which you can ask, from outside, about the state of a running Spring Boot application. Among them, /actua…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/actuator/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/actuator/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/actuator/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Actuator and health checks: What does the health check answer when the connection to the payment provider is lost? · Dev Learning Lab">
+<meta property="og:description" content="Actuator is a library that creates paths through which you can ask, from outside, about the state of a running Spring Boot application. Among them, /actua…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/actuator/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Spring Boot</p>
+<h1>Actuator and health checks</h1>
+<p><b>What does the health check answer when the connection to the payment provider is lost?</b></p>
+<p>Actuator is a library that creates paths through which you can ask, from outside, about the state of a running Spring Boot application. Among them, /actuator/health answers the question &quot;is this server healthy?&quot;. The answer is decided by combining the statuses that several components inside the application each report, and which components are asked depends on the path that you request. Change the status of pay, the component that checks the connection to the payment provider, and the requested path, and compare the responses.</p>
+<p>Checked against real execution · Requests for 96 combinations were sent to a Spring Boot 4.1.1 server and checked against the responses</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Actuator</dt>
+<dd>This module provides endpoints for checking the state of a Spring Boot application that is running in production. You can query health checks, various metrics (memory, threads, request counts, and so on), configuration information, and more, so it is connected to monitoring systems and to the health checks of load balancers.</dd>
+<dt>HealthIndicator and the overall health status</dt>
+<dd>A HealthIndicator is an object that checks whether one component of an application is healthy and answers with a status. Its health() method returns one of UP (healthy), DOWN (failed), OUT_OF_SERVICE (taken down on purpose), and UNKNOWN (not known), and the bean name with HealthIndicator removed becomes the name of the component. /actuator/health collects the answers of the components and takes the most severe one as the overall status, and the severity order is DOWN, OUT_OF_SERVICE, UP, UNKNOWN. When the overall status is DOWN or OUT_OF_SERVICE, the response has the HTTP status code 503, and when it is UP or UNKNOWN, it has 200. Even a single component that is DOWN makes the overall status DOWN, so decide which checks to add by asking whether the whole server should be treated as unhealthy when that check fails.</dd>
+<dt>Health group</dt>
+<dd>This is a named selection of only some of the components that are registered with the health endpoint. A request to /actuator/health/{group name} asks only the components in that group for their status and decides the overall status and the HTTP status code from those alone. Spring Boot 4 creates groups named liveness and readiness by default, and each contains only one component, livenessState or readinessState, which reports the state of the application itself. You decide what goes into a group by writing component names in management.endpoint.health.group.{group name}.include. A component that is not in a group is not reflected in the response of that group even when it is DOWN.</dd>
+<dt>Health check (liveness, readiness)</dt>
+<dd>A periodic check of whether a server is healthy. Liveness checks whether the process is alive, so that it is restarted if there is a problem. Readiness checks whether the server is ready to take requests, so that traffic is not sent to a server that is not ready. This keeps requests from reaching a server while it is starting up or shutting down.</dd>
+<dt>Exposing Actuator endpoints and controlling access</dt>
+<dd>These are the two conditions that must both be met before an Actuator endpoint (a feature in charge of one kind of information, such as health, env, or beans) can be used from outside. Exposure decides whether a web path is created for the endpoint, and the default of management.endpoints.web.exposure.include is health alone. Access decides whether the endpoint itself can be used, and you change it with management.endpoint.{name}.access. If either of the two is blocked, no path is created and the response is 404. For shutdown, which shuts the server down, and heapdump, which lets the whole contents of memory be downloaded, access is not permitted by default, so no path appears even when the exposure setting exposes everything.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — pay is DOWN. The response is 503, but the body says only DOWN, so you cannot see what is wrong.</li>
+<li><b>show-details set to always</b> — The status and details of each component appear in the body.</li>
+<li><b>when-authorized without login</b> — For a request with no login information, the content is hidden exactly as with never.</li>
+<li><b>Asking liveness</b> — Even though pay is DOWN, the response is 200 UP. The liveness group does not ask pay.</li>
+<li><b>Asking readiness</b> — By default, the readiness group does not ask pay either. The response is again 200 UP.</li>
+<li><b>Adding pay to the readiness group</b> — Now, when pay is DOWN, readiness also becomes 503.</li>
+<li><b>UP wins over UNKNOWN</b> — Even when pay answers &quot;not known&quot;, the overall status is UP and the response is 200.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>GET /actuator/health: A request without login arrives. Paths that start with /actuator are created by Actuator. Unless you configure it otherwise, health is the only one exposed over the web.</li>
+<li>/actuator/health: The path ends at health, so every registered component is asked. Three components are registered in this application: livenessState, readinessState, and pay. The first two are added by Spring Boot, and pay is the custom PayHealthIndicator.</li>
+<li>livenessState is asked: The answer is UP. This means that the application is running and has not failed. It looks only at the application itself, not at external servers.</li>
+<li>readinessState is asked: The answer is UP. This means that the application has finished starting and is ready to handle requests.</li>
+<li>PayHealthIndicator.health() runs: The answer is DOWN. This means that the payment provider server cannot be reached.</li>
+<li>Combining the statuses: The statuses collected are livenessState UP, readinessState UP, pay DOWN. The most severe one among them becomes the overall status. The severity order is DOWN, OUT_OF_SERVICE, UP, UNKNOWN. One of them is DOWN, so the overall status is DOWN.</li>
+<li>Choosing the HTTP status code: The code that matches the overall status DOWN is 503 Service Unavailable. DOWN and OUT_OF_SERVICE are answered with 503, and UP and UNKNOWN with 200. Whoever checks the health can tell whether the server is healthy from this number alone, without reading the body.</li>
+<li>Building the response body: show-details is not set, so the default, never, applies. The content of each component is hidden, and only the overall status is sent. The body is {&quot;groups&quot;:[&quot;liveness&quot;,&quot;readiness&quot;],&quot;status&quot;:&quot;DOWN&quot;}. groups holds the names of the groups that this application has.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The response to GET /actuator/health is 503 Service Unavailable, and the status in the body is DOWN. The body shows only the overall status.</li>
+<li>Even when only one component is DOWN, the overall status becomes DOWN and the response is 503. Whoever checks the health through this path treats this server as unhealthy.</li>
+<li>The default of show-details is never. From the body alone, you cannot tell which component has the problem. Change the setting to always or when-authorized and compare.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Request sent (not logged in)
+// GET /actuator/health
+
+# application.properties
+# Turns off the components that are added automatically (diskSpace, ping, ssl, db). This setting keeps the lab simple
+management.health.defaults.enabled=false
+# show-details is not set (the default is never)
+
+// A custom component. Removing HealthIndicator from the bean name
+// payHealthIndicator gives &quot;pay&quot;, which becomes the name of the component
+@Component
+class PayHealthIndicator implements HealthIndicator {
+
+    @Override
+    public Health health() {
+        // Returns the result of trying to connect to the payment provider server as a status. Here it is DOWN
+        return Health.down().withDetail(&quot;target&quot;, &quot;pay.example&quot;).build();
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>All 96 combinations (4 statuses of pay × 3 paths × 4 choices of show-details and requester × 2 choices of whether pay is added to the readiness group) were sent as HTTP requests to a real Spring Boot 4.1.1 server (Spring Framework 7.0.9, embedded Tomcat 11, 127.0.0.1), and the HTTP status code, the entire text of the body, the list of components that the path asks, and whether PayHealthIndicator ran were confirmed to match the screen. That the entries in the body come out in the order components, groups, status is also exactly as in the real response of this version, and the order may differ in other versions. How the components were controlled: the environment used for the check also contains H2 and the DataSource auto-configuration, so starting it with no configuration adds db, diskSpace, ping, and ssl automatically (confirmed by execution). These were turned off with management.health.defaults.enabled=false, which left only three components: livenessState, readinessState, and pay. In a real application, these components are combined into the overall status as well. Spring Security was set to permit all requests. In an application where Spring Security blocks the /actuator paths, a request without login can be rejected before it reaches the health endpoint, and that case is not covered. The &quot;request from a logged-in user&quot; was made not by logging in with a password but with a test filter that fills in the Spring Security authentication for the request. That leaving management.endpoint.health.roles empty shows the content to every logged-in user is consistent between the property description included in the library and the result of this run. The PayHealthIndicator on the screen is a @Component class, but in the check it was registered as a @Bean with the same bean name (payHealthIndicator), and the status that it answers was changed while the server was running. What changed from Spring Boot 3: in 4.1.1 the default of management.endpoint.health.probes.enabled is true, so the liveness and readiness groups exist even with no configuration (confirmed by execution; in Spring Boot 3 they are said to be turned on automatically only in environments such as Kubernetes, but that version was not run). HealthIndicator and Health are in the org.springframework.boot.health.contributor package of the spring-boot-health module. Cases that are not on the screen were confirmed in the same way. With no configuration, the list at /actuator contains only health, and /actuator/env, /actuator/beans, and /actuator/info return 404. Exposing everything with management.endpoints.web.exposure.include=* makes env and beans return 200, but shutdown still returns 404. This is because its access is not permitted, which is separate from exposure, and conversely, setting only management.endpoint.shutdown.access=unrestricted without exposing it also returns 404 (with both, the path appears; the POST request that actually shuts the application down was not sent). Adding management.endpoint.env.access=none to exposure.include=* makes only env return 404. Writing exposure.include=env replaces the default, so health returns 404. Turning the probes off with probes.enabled=false makes the liveness and readiness paths return 404, and groups also disappears from the body. If pay is added to the liveness group, liveness also returns 503 when pay is DOWN. The order of the statuses was confirmed with the 16 pairs of statuses of two components, and when every component is UNKNOWN, the overall status is also UNKNOWN, but the response is 200. A path that asks a single component, such as /actuator/health/pay, responds only under a setting that shows the content of each component, and returns 404 under a setting that hides it. Not verified: how livenessState and readinessState change while the application is starting or shutting down, what a load balancer or Kubernetes does on receiving this response (the lab follows the widely known explanation), management.server.port for a separate management port, the settings that change the status order and the mapping from statuses to HTTP status codes, the show-components setting, and the caching of health responses.</p>
+<p>Previous lab: <a href="../../lab/config/">Configuration precedence</a> · Next lab: <a href="../../lab/testing/">Testing</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

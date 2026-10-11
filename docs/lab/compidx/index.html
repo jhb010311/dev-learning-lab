@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>복합·커버링 인덱스: 복합 인덱스는 컬럼 순서대로만 쓸 수 있다 · 개발 학습 실습실</title>
+<meta name="description" content="여러 컬럼을 묶은 인덱스는 첫 컬럼부터 차례로 정렬돼 있습니다. 그래서 WHERE 조건이 앞 컬럼부터 채워져야 탐색 범위를 좁힐 수 있고, 범위 조건을 만나면 그 뒤 컬럼은 범위를 좁히는 데 쓰이지 못합니다. 조건과 조회 컬럼을 바꿔 가며 인덱스가 어디까지 쓰이는지 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/compidx/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/compidx/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/compidx/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="복합·커버링 인덱스: 복합 인덱스는 컬럼 순서대로만 쓸 수 있다 · 개발 학습 실습실">
+<meta property="og:description" content="여러 컬럼을 묶은 인덱스는 첫 컬럼부터 차례로 정렬돼 있습니다. 그래서 WHERE 조건이 앞 컬럼부터 채워져야 탐색 범위를 좁힐 수 있고, 범위 조건을 만나면 그 뒤 컬럼은 범위를 좁히는 데 쓰이지 못합니다. 조건과 조회 컬럼을 바꿔 가며 인덱스가 어디까지 쓰이는지 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/compidx/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 인덱스와 실행 계획</p>
+<h1>복합·커버링 인덱스</h1>
+<p><b>복합 인덱스는 컬럼 순서대로만 쓸 수 있다</b></p>
+<p>여러 컬럼을 묶은 인덱스는 첫 컬럼부터 차례로 정렬돼 있습니다. 그래서 WHERE 조건이 앞 컬럼부터 채워져야 탐색 범위를 좁힐 수 있고, 범위 조건을 만나면 그 뒤 컬럼은 범위를 좁히는 데 쓰이지 못합니다. 조건과 조회 컬럼을 바꿔 가며 인덱스가 어디까지 쓰이는지 보세요.</p>
+<p>문서·표준 대조 · MySQL 공식 문서</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>복합 인덱스와 Leftmost Prefix</dt>
+<dd>복합 인덱스는 두 개 이상의 컬럼을 묶어 만든 인덱스다. 첫 번째 컬럼으로 먼저 정렬하고 그 안에서 두 번째 컬럼으로 정렬하는 식으로 구성되므로, 인덱스의 왼쪽 컬럼부터 차례로 조건에 사용될 때만 탐색에 쓸 수 있다. (a, b, c) 인덱스는 a 조건이나 a와 b 조건에는 쓰이지만 b만 있는 조건에는 쓰이지 않는다(예외적으로 MySQL 8.0.13 이상은 선두 컬럼의 값 종류가 적을 때 옵티마이저가 Skip Scan으로 이 인덱스를 쓸 수 있다).</dd>
+<dt>커버링 인덱스</dt>
+<dd>쿼리가 필요로 하는 모든 컬럼이 인덱스에 포함되어 있어, 테이블의 행을 읽지 않고 인덱스만으로 결과를 만들 수 있는 경우를 말한다. 테이블 접근이 생략되어 조회가 빨라진다. MySQL의 실행 계획에서는 Extra 항목에 Using index로 표시된다.</dd>
+<dt>클러스터드 인덱스와 세컨더리 인덱스</dt>
+<dd>클러스터드 인덱스는 인덱스의 끝(리프)에 행 데이터 자체가 저장된 인덱스로, 테이블의 데이터가 그 키 순서대로 저장된다. MySQL InnoDB에서는 기본 키가 클러스터드 인덱스다. 세컨더리(보조) 인덱스는 리프에 기본 키 값을 가지고 있어, 세컨더리 인덱스로 찾은 뒤 그 기본 키로 클러스터드 인덱스를 한 번 더 찾아 행을 읽는다.</dd>
+<dt>카디널리티와 선택도</dt>
+<dd>카디널리티는 컬럼에 들어 있는 서로 다른 값의 개수다. 서로 다른 값이 많을수록(예: 주민번호, 이메일) 조건 하나로 걸러지는 행이 적어 인덱스의 효과가 크고, 값의 종류가 적을수록(예: 성별) 조건에 해당하는 행이 많아 인덱스의 효과가 작다. 선택도는 카디널리티를 테이블의 행 수로 나눈 값으로, 1에 가까울수록 조건 하나로 행이 잘 걸러진다.</dd>
+<dt>실행 계획(EXPLAIN)</dt>
+<dd>데이터베이스가 쿼리를 어떤 방법으로 실행할지 정한 계획이다. 어떤 인덱스를 쓰는지, 테이블을 어떤 순서로 조인하는지, 몇 행을 읽을 것으로 예상하는지를 보여 준다. 쿼리 앞에 EXPLAIN을 붙여 확인하며, 쿼리가 느릴 때 원인을 찾는 출발점이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 세 조건이 인덱스 순서와 맞아 세 컬럼 모두 범위를 좁힙니다.</li>
+<li><b>첫 컬럼 조건을 빼면</b> — member_id 조건이 없으면 이 인덱스로는 범위를 좁힐 수 없습니다.</li>
+<li><b>가운데 컬럼 조건을 빼면</b> — 첫 컬럼까지만 쓰이고, 날짜 조건은 인덱스를 읽으면서 걸러냅니다.</li>
+<li><b>범위 조건 컬럼이 가운데 있으면</b> — (member_id, created_at, status). 범위 뒤의 status는 범위를 좁히지 못합니다.</li>
+<li><b>인덱스에 있는 컬럼만 조회</b> — 테이블에 가지 않고 인덱스만 읽고 끝납니다(커버링 인덱스).</li>
+<li><b>첫 컬럼 조건 없이 인덱스 컬럼만 조회</b> — 범위는 못 좁히지만 테이블 대신 인덱스 전체를 훑습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>orders 테이블에는 100만 행이 있습니다. 인덱스는 member_id → status → created_at 순서로 정렬돼 있습니다. 첫 컬럼이 같은 것끼리 모여 있고, 그 안에서 둘째 컬럼 순, 다시 그 안에서 셋째 컬럼 순입니다.</li>
+<li>1번째 컬럼 member_id: 조건 member_id = 7이 있고, 앞 컬럼들이 모두 정해져 있으므로 이 조건으로 읽을 범위를 좁힙니다.</li>
+<li>2번째 컬럼 status: 조건 status = 'PAID'이 있고, 앞 컬럼들이 모두 정해져 있으므로 이 조건으로 읽을 범위를 좁힙니다.</li>
+<li>3번째 컬럼 created_at: 조건 created_at &gt;= '2026-09-01'이 있고, 앞 컬럼들이 모두 정해져 있으므로 이 조건으로 읽을 범위를 좁힙니다. 다만 범위 조건이라서, 이 범위 안에서는 다음 컬럼이 정렬돼 있지 않습니다. 뒤 컬럼은 범위를 좁히는 데 쓸 수 없습니다.</li>
+<li>인덱스에서 좁혀진 범위의 항목 50개를 읽습니다.</li>
+<li>SELECT *는 인덱스에 없는 컬럼도 필요합니다. 남은 50건마다 테이블(클러스터드 인덱스)로 가서 행 전체를 읽어 옵니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>범위를 좁히는 데 쓰인 컬럼: member_id, status, created_at. 인덱스 항목 50개, 테이블 행 50개를 읽어 결과 약 50건을 얻었습니다.</li>
+<li>조건이 인덱스 순서대로 빠짐없이 이어져 세 컬럼 모두 범위를 좁혔습니다. WHERE에 적는 순서는 상관없고, 인덱스의 컬럼 순서가 기준입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>CREATE INDEX idx_orders ON orders (member_id, status, created_at);
+
+SELECT *
+  FROM orders
+ WHERE member_id = 7
+   AND status = 'PAID'
+   AND created_at &gt;= '2026-09-01';</pre>
+<h2>이 모형의 전제</h2>
+<p>100만 행 테이블에서 member_id = 7은 전체의 0.1%, status = 'PAID'는 50%, 날짜 조건은 10%가 해당한다고 가정한 계산입니다. 인덱스 컬럼을 왼쪽부터 써야 하고 범위 조건 뒤의 컬럼은 탐색 범위를 좁히지 못한다는 규칙은 MySQL 공식 문서의 복합 인덱스 설명을 따랐습니다. 순서가 끊긴 뒤의 조건을 인덱스 단계에서 걸러내는 것(Using index condition)은 MySQL의 인덱스 컨디션 푸시다운 동작입니다. 실제 옵티마이저는 통계에 따라 다른 계획을 고를 수 있으며, 여기서는 이 인덱스를 쓴다고 전제했습니다. 실제 DB의 EXPLAIN 결과와 대조한 것은 아닙니다.</p>
+<p>앞 실습: <a href="../../lab/index/">인덱스와 풀 스캔</a> · 다음 실습: <a href="../../lab/explainplan/">실행 계획 읽기</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

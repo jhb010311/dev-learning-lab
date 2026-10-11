@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stack and heap: What happens in memory each time a method is called · Dev Learning Lab</title>
+<meta name="description" content="When a method is called, a frame is pushed onto the stack of that thread, and when the method returns, the frame is removed. An object created with new is…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/stack/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/stack/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/stack/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Stack and heap: What happens in memory each time a method is called · Dev Learning Lab">
+<meta property="og:description" content="When a method is called, a frame is pushed onto the stack of that thread, and when the method returns, the frame is removed. An object created with new is…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/stack/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › JVM</p>
+<h1>Stack and heap</h1>
+<p><b>What happens in memory each time a method is called</b></p>
+<p>When a method is called, a frame is pushed onto the stack of that thread, and when the method returns, the frame is removed. An object created with new is placed on the heap, not on the stack, and a local variable in the frame refers to it. Change the recursion depth and the stack size to watch frames being pushed and removed, and to see a StackOverflowError.</p>
+<p>Checked against real execution · Checked by running code on JDK 21</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Run-time data areas</dt>
+<dd>These are the memory areas that the JVM uses while it runs a program. The areas that each thread has for itself are the pc register, the Java Virtual Machine stack, and the native method stack, and the areas shared by all threads are the heap and the method area. They are the basis for understanding which data is shared between threads.</dd>
+<dt>Java Virtual Machine stack</dt>
+<dd>This is a memory area that is created once for each thread. Each time a method is called, a frame that holds the method's local variables and intermediate values is pushed, and the frame is removed when the method ends. Because it is separate for each thread, local variables are not shared with other threads. If recursive calls go too deep, a StackOverflowError occurs.</dd>
+<dt>Heap memory</dt>
+<dd>This is the memory area where every object and array created with new is stored, and it is shared by all threads. The garbage collector manages it and reclaims objects that are no longer used. Its size is set with the -Xms (initial) and -Xmx (maximum) options, and an OutOfMemoryError occurs when it runs out of space.</dd>
+<dt>StackOverflowError and OutOfMemoryError</dt>
+<dd>A StackOverflowError occurs when method calls go so deep that they exceed the thread's stack space, and the usual cause is recursion with a wrong termination condition. An OutOfMemoryError occurs when memory such as the heap runs short and no more objects can be allocated, and common causes are a memory leak or loading too much data at once.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — factorial(4). The frames pile up to 5 and are then removed in reverse order.</li>
+<li><b>Without the base case</b> — The method keeps calling itself until the stack overflows.</li>
+<li><b>With a base case, but too deep</b> — factorial(10) needs 11 frames. The stack holds only 8.</li>
+<li><b>With a larger stack</b> — The same factorial(10) finishes normally.</li>
+<li><b>An object created on each call</b> — The objects are created on the heap, and once a frame is removed, nothing refers to its object anymore.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The program starts. A frame for main() is placed on the stack of the main thread. A frame holds the local variables of its method and the place to return to.</li>
+<li>factorial(4) is called. A new frame is pushed onto the top of the stack. The local variable n (value 4) exists only inside this frame.</li>
+<li>factorial(3) is called. A new frame is pushed onto the top of the stack. The local variable n (value 3) exists only inside this frame.</li>
+<li>factorial(2) is called. A new frame is pushed onto the top of the stack. The local variable n (value 2) exists only inside this frame.</li>
+<li>factorial(1) is called. A new frame is pushed onto the top of the stack. The local variable n (value 1) exists only inside this frame.</li>
+<li>The call to factorial(1) has finished. The return value is 1, because the base case applies. The frame is removed from the stack, and the local variables in it go away with it.</li>
+<li>The call to factorial(2) has finished. The return value is 2 × 1 = 2. The frame is removed from the stack, and the local variables in it go away with it.</li>
+<li>The call to factorial(3) has finished. The return value is 3 × 2 = 6. The frame is removed from the stack, and the local variables in it go away with it.</li>
+<li>The call to factorial(4) has finished. The return value is 4 × 6 = 24. The frame is removed from the stack, and the local variables in it go away with it.</li>
+<li>main() prints the result: 24. The frame that was pushed last was the first to leave the stack (last-in-first-out).</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A frame is pushed when a method is called and removed when it returns. At the deepest point there were 5 frames. A local variable lives exactly as long as its frame, so it needs no separate cleanup.</li>
+</ul>
+<h2>Code</h2>
+<pre>static long factorial(int n) {
+    if (n &lt;= 1) return 1;             // base case
+    return n * factorial(n - 1);
+}
+
+public static void main(String[] args) {
+    System.out.println(factorial(4));
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>This model simplifies the stack size to a number of frames. In reality the size is measured in bytes (-Xss, about 1MB by default on 64-bit Linux), and the size of a frame depends on how many local variables it has, so the number of frames that fit is not fixed. It also depends on whether the code has been JIT-compiled. That each thread has its own stack while the heap is shared, and that a frame is pushed on a call and removed on a return, matches the definitions in the JVM specification. This was checked by actually running code on JDK 21 on this PC. Recursion without a base case threw a StackOverflowError at a depth of about 17,000. Even with a base case, a depth of 200,000 threw a StackOverflowError with the default stack, and the same code finished normally once the stack was enlarged to 64MB (-Xss64m). After the stack of one thread overflowed, the other threads kept running.</p>
+<p>Previous lab: <a href="../../lab/blocking/">Blocking, non-blocking, and virtual threads</a> · Next lab: <a href="../../lab/gc/">GC and memory leaks</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

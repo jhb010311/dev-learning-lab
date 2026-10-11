@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layers and encapsulation: You send 1500 bytes, so why do 1616 bytes cross the wire? · Dev Learning Lab</title>
+<meta name="description" content="A network divides its work into layers. On the sending side, data moves down from the upper layers to the lower layers, and each layer adds a header in fr…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/layers/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/layers/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/layers/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Layers and encapsulation: You send 1500 bytes, so why do 1616 bytes cross the wire? · Dev Learning Lab">
+<meta property="og:description" content="A network divides its work into layers. On the sending side, data moves down from the upper layers to the lower layers, and each layer adds a header in fr…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/layers/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › The big picture</p>
+<h1>Layers and encapsulation</h1>
+<p><b>You send 1500 bytes, so why do 1616 bytes cross the wire?</b></p>
+<p>A network divides its work into layers. On the sending side, data moves down from the upper layers to the lower layers, and each layer adds a header in front of the data that holds the information that layer needs for its own job. This is called encapsulation. The receiving side removes the headers one at a time in the reverse order. Follow one HTTP message to see how it is wrapped and, if it is large, how it is split.</p>
+<p>Partly checked against real execution · The number of pieces and their sizes for 10 combinations were checked on Node.js 24 by building the real header bytes, attaching them, and unpacking them. The header sizes and the correspondence between layers are explanations based on RFC 9293, 791, 894, and 1122</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>OSI model</dt>
+<dd>A model that divides the process of network communication into seven layers by role. From the bottom, they are the physical, data link, network (IP), transport (TCP/UDP), session, presentation, and application (HTTP) layers. Each layer does its own job by using the functions of the layer directly below it. It is the reference for calling the location of a device or a problem &quot;Layer N&quot;.</dd>
+<dt>TCP/IP model</dt>
+<dd>A model that divides the protocols the internet actually uses into four layers by role. From the top, they are the application layer (HTTP, DNS), the transport layer (TCP, UDP), the internet layer (IP), and the link layer (Ethernet, Wi-Fi). Compared with the OSI model, the application, presentation, and session layers are combined into the one application layer, and the data link and physical layers are combined into the one link layer. Each layer leaves delivery to the layer directly below it and does only its own job, so if the technology of one layer changes, the other layers can be used as they are.</dd>
+<dt>Encapsulation and decapsulation</dt>
+<dd>Encapsulation is the process, on the sending side, of adding the header of a layer in front of the data every time the data moves down to a lower layer. An HTTP message gets a TCP header, an IP header, and an Ethernet header in that order, and each layer treats what it received from above as content and does not look inside it. Decapsulation is the reverse on the receiving side: the headers are checked and removed in the opposite order as the data moves up to the upper layers. The name is the same as encapsulation in object-oriented programming, but it is a different concept.</dd>
+<dt>Segment, packet, and frame</dt>
+<dd>These are the names that the same data is given at each layer. Application data with a TCP header added is called a segment, a segment with an IP header added is called a packet (an IP datagram), and a packet with an Ethernet header and a frame check sequence at the end added is called a frame. The TCP header contains a port number that identifies a program, the IP header contains an IP address that identifies a computer, and the Ethernet header contains a MAC address that identifies a device on the same network. In everyday speech, people often call all of them packets without distinguishing the layer.</dd>
+<dt>MTU and MSS</dt>
+<dd>The MTU is the largest IP packet that the link layer can carry in one frame, and on Ethernet it is 1500 bytes. The MSS is the largest amount of data that fits in one TCP segment, which is the MTU minus the IP header and the TCP header. When both headers are the default 20 bytes, the MSS on Ethernet is 1460 bytes. If the data to send is larger than the MSS, TCP splits it into several pieces, and TCP on the receiving side joins them again using the sequence numbers.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — 1500 bytes with an MTU of 1500. Even though the size equals the MTU, the message becomes two pieces.</li>
+<li><b>Exactly one piece</b> — 1460 bytes become exactly 1500 bytes once the headers are added.</li>
+<li><b>Short request</b> — 300 bytes. It is not split; only the headers are added.</li>
+<li><b>Long data</b> — 10000 bytes is split into 7 pieces, and each piece gets its own headers.</li>
+<li><b>A smaller MTU</b> — The same 1460 bytes now become two pieces.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Application layer (HTTP): The browser creates the HTTP message to send to the server. Its size is 1500 bytes. This layer only decides &quot;what content is exchanged&quot; and leaves how it reaches the other side to the layers below.</li>
+<li>Transport layer (TCP): First, work out how much can be sent at one time. The MTU, the largest size the link layer carries in one frame, is 1500 bytes, and the 20-byte IP header and the 20-byte TCP header must fit inside it, so one piece can carry up to 1460 bytes of data (the MSS). The 1500 bytes of data to send are larger than that, so the data is split into 2 pieces (1460, 40 bytes).</li>
+<li>Transport layer (TCP): The first piece gets a 20-byte TCP header in front. The header holds the port numbers that identify the sending program and the receiving program (51000 → 80) and a sequence number that tells which byte of the whole data this piece starts at. Data wrapped like this is called a segment. It is now 1480 bytes.</li>
+<li>Internet layer (IP): A 20-byte IP header is placed in front of the segment. The header holds the IP addresses of the sending computer and the receiving computer (192.168.0.10 → 192.168.0.20). Data wrapped like this is called a packet. It is now 1500 bytes. This fills the MTU of 1500 bytes exactly.</li>
+<li>Link layer (Ethernet): A 14-byte Ethernet header is placed in front of the packet, and a 4-byte frame check sequence (FCS) for error checking is placed after it. The header holds the MAC addresses of the two devices that exchange this data within the same network (00:00:5e:00:53:0a → 00:00:5e:00:53:14). Data wrapped like this is called a frame. 1518 bytes go out on the wire.</li>
+<li>The remaining pieces are wrapped in the same order. The headers are added to each piece separately. With 2 frames and 58 bytes added to each, 116 bytes were added in all. Counting the 1500 bytes of data, 1616 bytes went out on the wire.</li>
+<li>Receiving side, link layer: It takes in the frame and checks that the destination MAC address is its own and that the check value in the FCS is correct. If both are fine, it removes the Ethernet header and the FCS and passes the packet inside up to the next layer. What was added last when sending is removed first.</li>
+<li>Receiving side, internet layer: It checks that the destination IP address in the IP header (192.168.0.20) is its own. If it is, it removes the IP header and passes the segment inside up to TCP.</li>
+<li>Receiving side, transport layer: It looks at the destination port 80 in the TCP header to decide which program (the web server) the data is for. It uses the sequence numbers to join the 2 pieces in order and then removes the header.</li>
+<li>Receiving side, application layer: The web server receives the original HTTP message of 1500 bytes exactly as it was. It does not know how many pieces the message was split into on the way, or which headers were added and removed.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>HTTP message: 1500 bytes. Pieces sent: 2. Each piece got TCP 20 + IP 20 + Ethernet 14 + FCS 4 = 58 bytes, so 1616 bytes crossed the wire.</li>
+<li>The MTU is a limit on the size of the packet, which includes the IP header and the TCP header, not on the size of the data. So one piece carries only up to 1460 bytes of data (the MSS), which is the MTU minus 40 bytes. This is why data that is equal to the MTU, or slightly smaller, still becomes two pieces.</li>
+<li>Each layer looks at a different address. The transport layer uses a port number to identify a program, the internet layer uses an IP address to identify a computer, and the link layer uses a MAC address to identify the next device on the same network. Each layer reads only its own header and treats everything inside it as content, so you can change the technology of one layer (wired to wireless, or HTTP to another protocol) and keep using the other layers as they are.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Node.js. Build each header as a chunk of bytes of that size and attach them in order (the content is left empty; only the sizes matter).
+const mtu = 1500;
+const message = Buffer.alloc(1500);                     // HTTP message (application layer)
+const tcpHeader = Buffer.alloc(20);                     // port numbers, sequence number, and so on
+const ipHeader = Buffer.alloc(20);                      // IP addresses, and so on
+const ethHeader = Buffer.alloc(14);                     // MAC addresses, and so on
+const fcs = Buffer.alloc(4);                            // frame check sequence (at the end of the frame)
+
+const mss = mtu - ipHeader.length - tcpHeader.length;   // data that fits in one piece
+let total = 0;
+for (let at = 0; at &lt; message.length; at += mss) {
+    const data = message.subarray(at, at + mss);                // one piece
+    const segment = Buffer.concat([tcpHeader, data]);           // transport layer: segment
+    const packet = Buffer.concat([ipHeader, segment]);          // internet layer: packet
+    const frame = Buffer.concat([ethHeader, packet, fcs]);      // link layer: frame
+    console.log(data.length, segment.length, packet.length, frame.length);
+    total += frame.length;
+}
+console.log(total);                                     // total size that went out on the wire</pre>
+<h2>Assumptions of this model</h2>
+<p>The header sizes are the default sizes without options. The 20-byte TCP header follows RFC 9293 section 3.1, the 20-byte IPv4 header follows RFC 791 section 3.1, the 14-byte Ethernet header (destination MAC 6 + source MAC 6 + type 2) and the 4-byte FCS follow IEEE 802.3, the Ethernet MTU of 1500 bytes follows RFC 894, and the rule that the MSS is the MTU minus 40 bytes follows RFC 9293 section 3.7.1. The four layers of TCP/IP and the names segment, packet (IP datagram), and frame are in RFC 1122 sections 1.1.3 and 1.3.3. The correspondence with the seven OSI layers is not set by a standard; it is a pairing widely used in textbooks. What was checked by execution is the calculation: for each of 10 combinations, on Node.js 24, the text of a real HTTP request was built, the TCP, IPv4, and Ethernet headers and the check value were built as bytes in the positions the standards specify and attached, and the number of pieces and their sizes were measured and checked against the model. The frames were also unpacked and joined again to confirm that the result equals the original message, and the same message was sent over a TCP connection on 127.0.0.1 to confirm that the receiving program gets the same bytes. The frames that the operating system actually puts on the wire were not captured and inspected. In practice, the two sides tell each other their MSS when the connection is set up; when TCP options (such as a 12-byte timestamp) are present, the data in one piece shrinks by that amount; and in settings where the network card does the splitting instead, packet capture tools may show the large block from before the split. Packet capture tools usually show frames without the FCS, so the largest frame appears as 1514 bytes. The 8 bytes of synchronization signal before a frame and the gaps between frames are not counted. A piece with fewer than 6 bytes of data would get extra padding bytes to reach the Ethernet minimum frame size, and only sizes that do not produce such a piece were chosen. The two computers are assumed to be on the same network. If they were on different networks, the destination MAC address would be that of the default gateway, and at each router only the Ethernet header would be replaced. With HTTPS, the HTTP message is encrypted with TLS before TCP carries it. Port 51000 and the addresses in the MAC address range 00-00-5E-00-53-xx reserved for documentation (RFC 7042, now RFC 9542) are examples.</p>
+<p>Previous lab: <a href="../../lab/journey/">From URL to response</a> · Next lab: <a href="../../lab/url/">URL structure</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

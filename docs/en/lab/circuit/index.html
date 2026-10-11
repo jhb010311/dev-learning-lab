@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circuit breaker: If you keep calling a dead service, you go down too · Dev Learning Lab</title>
+<meta name="description" content="The order service calls the payment service once per second. Partway through, the payment service stops responding for a while. When the failure rate goes…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/circuit/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/circuit/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/circuit/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Circuit breaker: If you keep calling a dead service, you go down too · Dev Learning Lab">
+<meta property="og:description" content="The order service calls the payment service once per second. Partway through, the payment service stops responding for a while. When the failure rate goes…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/circuit/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Splitting into services</p>
+<h1>Circuit breaker</h1>
+<p><b>If you keep calling a dead service, you go down too</b></p>
+<p>The order service calls the payment service once per second. Partway through, the payment service stops responding for a while. When the failure rate goes over a set level, a circuit breaker blocks the calls themselves. This stops threads from being tied up waiting for a service that does not respond.</p>
+<p>Checked against real execution · The call sequences of the 27 combinations were fed to Resilience4j 2.4.0 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Circuit breaker</dt>
+<dd>A mechanism that blocks calls to a service that has failed, so that callers do not keep calling it and waiting. When failures pass a certain level, it moves to the open state, which blocks calls, and makes later calls fail immediately. After a certain time, it lets some calls through as a trial to check whether the service has recovered. It stops a failure in one service from spreading to the services that call it.</dd>
+<dt>Monolithic architecture and microservice architecture</dt>
+<dd>A monolithic architecture builds all features as one application and deploys them together. A microservice architecture splits the features into small services, and each one is developed, deployed, and scaled independently. With microservices, each service can be deployed and scaled separately and failures are isolated, but the complexity of communication between services, data consistency, and operations grows a lot.</dd>
+<dt>Bottleneck</dt>
+<dd>The slowest part of a system, which limits the processing performance of the whole. No matter how much you improve the other parts, overall performance does not improve while this part stays the same. Performance improvement starts with finding it by measurement.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A 15s outage. When failures pile up, calls are blocked, and the circuit periodically tests whether the service has recovered.</li>
+<li><b>Without a circuit breaker</b> — For the whole outage, every call waits 3s and then fails.</li>
+<li><b>Lower the threshold</b> — 30%. It blocks calls sooner.</li>
+<li><b>A long open duration</b> — 10s. Calls stay blocked for a while even after the outage ends.</li>
+<li><b>A short outage</b> — 5s. See whether it reaches the threshold.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>1s: The call to the payment service succeeded.</li>
+<li>2s: The call to the payment service succeeded.</li>
+<li>3s: The call to the payment service succeeded.</li>
+<li>4s: The call to the payment service succeeded.</li>
+<li>5s: The call to the payment service succeeded.</li>
+<li>6s: The call to the payment service succeeded.</li>
+<li>7s: The call to the payment service succeeded.</li>
+<li>8s: The call to the payment service succeeded.</li>
+<li>9s: The call to the payment service succeeded.</li>
+<li>10s: The call to the payment service succeeded. Calls in the window: 10, failure rate 0%.</li>
+<li>11s: The payment service does not respond. The call waits 3s and fails with a timeout. During that time, one request thread was tied up. Calls in the window: 10, failure rate 10%.</li>
+<li>12s: The payment service does not respond. The call waits 3s and fails with a timeout. During that time, one request thread was tied up. Calls in the window: 10, failure rate 20%.</li>
+<li>13s: The payment service does not respond. The call waits 3s and fails with a timeout. During that time, one request thread was tied up. Calls in the window: 10, failure rate 30%.</li>
+<li>14s: The payment service does not respond. The call waits 3s and fails with a timeout. During that time, one request thread was tied up. Calls in the window: 10, failure rate 40%.</li>
+<li>15s: The payment service does not respond. The call waits 3s and fails with a timeout. During that time, one request thread was tied up. Among the last 10 calls, the failure rate became 50%, at or above the threshold of 50%. The circuit opens (OPEN). For the next 5s, calls to the payment service are blocked.</li>
+<li>16s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
+<li>17s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
+<li>18s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
+<li>19s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
+<li>20s: It has been 5s since the calls were blocked. To check whether the service has recovered, a few calls are let through as a trial (HALF_OPEN). The payment service does not respond. The call waits 3s and fails with a timeout. During that time, one request thread was tied up. Trial call 1/3.</li>
+<li>21s: The payment service does not respond. The call waits 3s and fails with a timeout. During that time, one request thread was tied up. Trial call 2/3.</li>
+<li>22s: The payment service does not respond. The call waits 3s and fails with a timeout. During that time, one request thread was tied up. The failure rate of the 3 trial calls is 100%, at or above the threshold. The service is judged not recovered yet, so calls are blocked again (OPEN).</li>
+<li>23s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
+<li>24s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
+<li>25s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
+<li>26s: The circuit is open (OPEN). The call is not sent to the payment service, and a fallback response is returned immediately. There is no waiting time.</li>
+<li>27s: It has been 5s since the calls were blocked. To check whether the service has recovered, a few calls are let through as a trial (HALF_OPEN). The call to the payment service succeeded. Trial call 1/3.</li>
+<li>28s: The call to the payment service succeeded. Trial call 2/3.</li>
+<li>29s: The call to the payment service succeeded. The failure rate of the 3 trial calls is 0%, below the threshold. The service is judged recovered, and the circuit returns to the normal state (CLOSED).</li>
+<li>30s: The call to the payment service succeeded.</li>
+<li>31s: The call to the payment service succeeded.</li>
+<li>32s: The call to the payment service succeeded.</li>
+<li>33s: The call to the payment service succeeded.</li>
+<li>34s: The call to the payment service succeeded.</li>
+<li>35s: The call to the payment service succeeded.</li>
+<li>36s: The call to the payment service succeeded.</li>
+<li>37s: The call to the payment service succeeded.</li>
+<li>38s: The call to the payment service succeeded.</li>
+<li>39s: The call to the payment service succeeded. Calls in the window: 10, failure rate 0%.</li>
+<li>40s: The call to the payment service succeeded. Calls in the window: 10, failure rate 0%.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Of the 40 calls, 24 succeeded, 8 waited 3s each and then failed, and 8 were blocked and got an immediate fallback response. The total time spent waiting for a service that did not respond was 24s.</li>
+<li>The state changed in the order CLOSED → OPEN → HALF_OPEN → OPEN → HALF_OPEN → CLOSED. While the circuit is open, calls are not made and a fallback response is returned right away, so no threads are tied up. The failing service is not put under extra load either, which gives it room to recover. After a set time, only a few calls are sent to check whether it has recovered.</li>
+<li>If the open duration is long, normal calls stay blocked for a while even after the service has recovered. If it is short, you test a service that has not recovered too often. Adjust the threshold and the open duration to the characteristics of the service.</li>
+</ul>
+<h2>Code</h2>
+<pre># application.yml (Resilience4j)
+resilience4j.circuitbreaker.instances.payment:
+  slidingWindowSize: 10                 # decide from the results of the last 10 calls
+  minimumNumberOfCalls: 10
+  failureRateThreshold: 50              # open the circuit when the failure rate is at or above this value
+  waitDurationInOpenState: 5s          # how long the circuit stays open
+  permittedNumberOfCallsInHalfOpenState: 3
+
+@CircuitBreaker(name = &quot;payment&quot;, fallbackMethod = &quot;payLater&quot;)
+PaymentResult pay(Order order) {
+    return paymentClient.pay(order);     // times out after 3s if there is no response
+}
+
+PaymentResult payLater(Order order, Throwable t) {
+    return PaymentResult.pending();      // runs instead when calls are blocked
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>This follows the behavior of Resilience4j with a count-based sliding window (the last 10 calls). All 27 combinations that use the circuit breaker were fed, in the same call order, to a real Resilience4j 2.4.0 circuit breaker (advancing the clock by 1 second at a time), and the numbers of successes, failures, and blocked calls and the order of state transitions were confirmed to match the screen. There is one difference. Resilience4j lets calls through as trial calls only after the wait duration has fully passed, so a call that arrives at exactly the same moment as the end of the wait duration is still blocked. The screen shows the result of treating the call as arriving a tiny bit after that moment. The circuit opens when the failure rate is at or above the threshold, and after the set time, the results of 3 trial calls decide whether to close it or open it again. It is simplified so that calls are made once per second and a service in an outage always fails with a 3s timeout. In real use, you can also use the slow call rate as a criterion, and there is a time-based sliding window too.</p>
+<p>Previous lab: <a href="../../lab/kafka/">Kafka partitions and consumers</a> · Next lab: <a href="../../lab/saga/">Saga and outbox</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

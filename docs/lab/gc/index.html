@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GC와 메모리 누수: 버려진 객체는 누가 언제 치우나 · 개발 학습 실습실</title>
+<meta name="description" content="새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다. 생성 속도, 오래 사는 객체의 비율, 힙 크기를 바꿔 보고 누수가 있으면…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/gc/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/gc/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/gc/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="GC와 메모리 누수: 버려진 객체는 누가 언제 치우나 · 개발 학습 실습실">
+<meta property="og:description" content="새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다. 생성 속도, 오래 사는 객체의 비율, 힙 크기를 바꿔 보고 누수가 있으면…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/gc/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › JVM</p>
+<h1>GC와 메모리 누수</h1>
+<p><b>버려진 객체는 누가 언제 치우나</b></p>
+<p>새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다. 생성 속도, 오래 사는 객체의 비율, 힙 크기를 바꿔 보고 누수가 있으면 어떻게 끝나는지 보세요.</p>
+<p>일부만 실행으로 확인 · JDK 21에서 방향만 확인(수치는 모형)</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>가비지 컬렉션(GC)</dt>
+<dd>프로그램이 더 이상 사용하지 않는 객체를 찾아 그 메모리를 자동으로 회수하는 JVM의 기능이다. 개발자가 직접 메모리를 해제하지 않아도 되어 해제 실수로 인한 오류를 막아 준다. 대신 수집하는 동안 애플리케이션이 잠시 멈출 수 있고, 참조가 남아 있는 객체는 회수하지 못한다.</dd>
+<dt>도달 가능성과 GC 루트</dt>
+<dd>GC는 어떤 객체가 아직 쓰이는지를 &quot;도달 가능한가&quot;로 판단한다. 실행 중인 스레드의 지역 변수, static 변수처럼 항상 살아 있는 출발점(GC 루트)에서 참조를 따라갈 수 있는 객체는 살아 있는 것으로 보고, 따라갈 수 없는 객체는 회수 대상으로 본다.</dd>
+<dt>Young 세대와 Old 세대</dt>
+<dd>대부분의 객체는 만들어진 직후 금방 쓸모없어진다는 관찰에 따라 힙을 나눈 구조다. 새 객체는 Young 세대(Eden 영역)에 만들어지고, Young 세대의 수집에서 여러 번 살아남은 객체는 Old 세대로 옮겨진다. 금방 죽는 객체가 모인 Young 세대만 자주 수집하면 적은 비용으로 많은 메모리를 회수할 수 있다.</dd>
+<dt>Minor GC와 Full GC</dt>
+<dd>Minor GC(Young GC)는 Young 세대만 수집하는 것으로 자주 일어나지만 보통 빨리 끝난다. Full GC는 힙 전체를 수집하는 것으로 시간이 오래 걸리고 애플리케이션 멈춤도 길다. Full GC가 자주 일어나거나 Full GC 후에도 메모리가 줄지 않으면 메모리 누수나 힙 크기 부족을 의심한다.</dd>
+<dt>Stop-the-world(STW)</dt>
+<dd>가비지 컬렉션을 안전하게 수행하기 위해 애플리케이션의 모든 스레드를 일시 정지시키는 것이다. 이 시간 동안은 요청 처리가 멈추므로 응답 지연으로 나타난다. 최신 수집기(G1, ZGC)는 이 멈춤 시간을 짧게 유지하는 것을 목표로 설계되었다.</dd>
+<dt>메모리 누수</dt>
+<dd>더 이상 필요 없는 객체가 어딘가에서 계속 참조되고 있어 가비지 컬렉터가 회수하지 못하는 상태다. 시간이 지날수록 사용 메모리가 늘다가 결국 OutOfMemoryError로 이어진다. static 컬렉션에 계속 쌓이는 데이터, 만료가 없는 캐시, 스레드 풀에서 정리하지 않은 ThreadLocal이 대표적인 원인이다.</dd>
+<dt>StackOverflowError와 OutOfMemoryError</dt>
+<dd>StackOverflowError는 메서드 호출이 너무 깊어져 스레드의 스택 공간을 넘었을 때 발생하며 주로 종료 조건이 잘못된 재귀가 원인이다. OutOfMemoryError는 힙 등의 메모리가 부족해 객체를 더 할당할 수 없을 때 발생하며 메모리 누수나 한 번에 너무 많은 데이터를 올리는 것이 흔한 원인이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 대부분의 객체가 금방 버려집니다. Minor GC만으로 유지됩니다.</li>
+<li><b>오래 사는 객체가 많으면</b> — Old로 올라가는 객체가 늘어 Full GC가 돌기 시작합니다.</li>
+<li><b>객체를 더 빨리 만들면</b> — Eden이 빨리 차서 Minor GC가 잦아집니다.</li>
+<li><b>힙을 키우면</b> — GC 횟수가 줄어듭니다.</li>
+<li><b>메모리 누수</b> — GC가 돌아도 Old가 비지 않다가 OutOfMemoryError로 끝납니다.</li>
+<li><b>누수 상태에서 힙만 키우면</b> — 죽는 시점이 늦춰질 뿐입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>1틱: 객체 5개를 만들었습니다. Eden 5/20칸 사용 중.</li>
+<li>2틱: 객체 5개를 만들었습니다. Eden 10/20칸 사용 중.</li>
+<li>3틱: 객체 5개를 만들었습니다. Eden 15/20칸 사용 중.</li>
+<li>4틱: 객체 5개를 만들었습니다. Eden 20/20칸 사용 중.</li>
+<li>5틱: Eden이 가득 찼습니다. Minor GC가 Young 영역(20개)만 검사해서, 참조되지 않는 18개를 버리고 살아 있는 2개를 옮겼습니다(Survivor로 2개, Old로 승격 0개). Eden은 비었습니다. 잠깐 멈춥니다(1만큼 멈춤).</li>
+<li>5틱: 객체 5개를 만들었습니다. Eden 5/20칸 사용 중.</li>
+<li>6틱: 객체 5개를 만들었습니다. Eden 10/20칸 사용 중.</li>
+<li>7틱: 객체 5개를 만들었습니다. Eden 15/20칸 사용 중.</li>
+<li>8틱: 객체 5개를 만들었습니다. Eden 20/20칸 사용 중.</li>
+<li>9틱: Eden이 가득 찼습니다. Minor GC가 Young 영역(22개)만 검사해서, 참조되지 않는 18개를 버리고 살아 있는 4개를 옮겼습니다(Survivor로 2개, Old로 승격 2개). Eden은 비었습니다. 잠깐 멈춥니다(1만큼 멈춤).</li>
+<li>9틱: 객체 5개를 만들었습니다. Eden 5/20칸 사용 중.</li>
+<li>10틱: 객체 5개를 만들었습니다. Eden 10/20칸 사용 중.</li>
+<li>11틱: 객체 5개를 만들었습니다. Eden 15/20칸 사용 중.</li>
+<li>12틱: 객체 5개를 만들었습니다. Eden 20/20칸 사용 중.</li>
+<li>13틱: Eden이 가득 찼습니다. Minor GC가 Young 영역(22개)만 검사해서, 참조되지 않는 18개를 버리고 살아 있는 4개를 옮겼습니다(Survivor로 2개, Old로 승격 2개). Eden은 비었습니다. 잠깐 멈춥니다(1만큼 멈춤).</li>
+<li>13틱: 객체 5개를 만들었습니다. Eden 5/20칸 사용 중.</li>
+<li>14틱: 객체 5개를 만들었습니다. Eden 10/20칸 사용 중.</li>
+<li>15틱: 객체 5개를 만들었습니다. Eden 15/20칸 사용 중.</li>
+<li>16틱: 객체 5개를 만들었습니다. Eden 20/20칸 사용 중.</li>
+<li>17틱: Eden이 가득 찼습니다. Minor GC가 Young 영역(22개)만 검사해서, 참조되지 않는 18개를 버리고 살아 있는 4개를 옮겼습니다(Survivor로 2개, Old로 승격 2개). Eden은 비었습니다. 잠깐 멈춥니다(1만큼 멈춤).</li>
+<li>17틱: 객체 5개를 만들었습니다. Eden 5/20칸 사용 중.</li>
+<li>18틱: 객체 5개를 만들었습니다. Eden 10/20칸 사용 중.</li>
+<li>19틱: 객체 5개를 만들었습니다. Eden 15/20칸 사용 중.</li>
+<li>20틱: 객체 5개를 만들었습니다. Eden 20/20칸 사용 중.</li>
+<li>21틱: Eden이 가득 찼습니다. Minor GC가 Young 영역(22개)만 검사해서, 참조되지 않는 18개를 버리고 살아 있는 4개를 옮겼습니다(Survivor로 2개, Old로 승격 2개). Eden은 비었습니다. 잠깐 멈춥니다(1만큼 멈춤).</li>
+<li>21틱: 객체 5개를 만들었습니다. Eden 5/20칸 사용 중.</li>
+<li>22틱: 객체 5개를 만들었습니다. Eden 10/20칸 사용 중.</li>
+<li>23틱: 객체 5개를 만들었습니다. Eden 15/20칸 사용 중.</li>
+<li>24틱: 객체 5개를 만들었습니다. Eden 20/20칸 사용 중.</li>
+<li>25틱: Eden이 가득 찼습니다. Minor GC가 Young 영역(22개)만 검사해서, 참조되지 않는 18개를 버리고 살아 있는 4개를 옮겼습니다(Survivor로 2개, Old로 승격 2개). Eden은 비었습니다. 잠깐 멈춥니다(1만큼 멈춤).</li>
+<li>25틱: 객체 5개를 만들었습니다. Eden 5/20칸 사용 중.</li>
+<li>26틱: 객체 5개를 만들었습니다. Eden 10/20칸 사용 중.</li>
+<li>27틱: 객체 5개를 만들었습니다. Eden 15/20칸 사용 중.</li>
+<li>28틱: 객체 5개를 만들었습니다. Eden 20/20칸 사용 중.</li>
+<li>29틱: Eden이 가득 찼습니다. Minor GC가 Young 영역(22개)만 검사해서, 참조되지 않는 18개를 버리고 살아 있는 4개를 옮겼습니다(Survivor로 2개, Old로 승격 2개). Eden은 비었습니다. 잠깐 멈춥니다(1만큼 멈춤).</li>
+<li>29틱: 객체 5개를 만들었습니다. Eden 5/20칸 사용 중.</li>
+<li>30틱: 객체 5개를 만들었습니다. Eden 10/20칸 사용 중.</li>
+<li>31틱: 객체 5개를 만들었습니다. Eden 15/20칸 사용 중.</li>
+<li>32틱: 객체 5개를 만들었습니다. Eden 20/20칸 사용 중.</li>
+<li>33틱: Eden이 가득 찼습니다. Minor GC가 Young 영역(22개)만 검사해서, 참조되지 않는 18개를 버리고 살아 있는 4개를 옮겼습니다(Survivor로 2개, Old로 승격 2개). Eden은 비었습니다. 잠깐 멈춥니다(1만큼 멈춤).</li>
+<li>33틱: 객체 5개를 만들었습니다. Eden 5/20칸 사용 중.</li>
+<li>34틱: 객체 5개를 만들었습니다. Eden 10/20칸 사용 중.</li>
+<li>35틱: 객체 5개를 만들었습니다. Eden 15/20칸 사용 중.</li>
+<li>36틱: 객체 5개를 만들었습니다. Eden 20/20칸 사용 중.</li>
+<li>37틱: Eden이 가득 찼습니다. Minor GC가 Young 영역(22개)만 검사해서, 참조되지 않는 18개를 버리고 살아 있는 4개를 옮겼습니다(Survivor로 2개, Old로 승격 2개). Eden은 비었습니다. 잠깐 멈춥니다(1만큼 멈춤).</li>
+<li>37틱: 객체 5개를 만들었습니다. Eden 5/20칸 사용 중.</li>
+<li>38틱: 객체 5개를 만들었습니다. Eden 10/20칸 사용 중.</li>
+<li>39틱: 객체 5개를 만들었습니다. Eden 15/20칸 사용 중.</li>
+<li>40틱: 객체 5개를 만들었습니다. Eden 20/20칸 사용 중.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>객체 200개를 만드는 동안 Minor GC 9번, Full GC 0번이 돌았고 애플리케이션은 합계 9만큼 멈췄습니다.</li>
+<li>대부분의 객체가 금방 버려져서 Minor GC만으로 충분했습니다. &quot;대부분의 객체는 일찍 죽는다&quot;는 가정이 맞을 때 세대를 나누는 방식이 효율적입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 힙: Eden 20칸, Survivor 5칸, Old 40칸
+
+while (running) {                       // 한 바퀴 = 한 틱
+    for (int i = 0; i &lt; 5; i++) {
+        Event e = new Event();           // Eden에 생성
+        if (keepForAWhile(e)) {          // 10%
+            recent.put(e.id(), e);       // 10틱 뒤 제거됨
+        }
+    }                                    // 나머지는 여기서 버려짐
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>객체 크기가 모두 같고 힙을 칸 수로 센 단순한 세대별 GC 모형입니다. 승격 기준을 &quot;Minor GC에서 두 번 살아남으면&quot;으로 낮췄습니다(실제 기본 최대치는 15이며 GC가 상황에 따라 조정합니다). 멈춤 시간 1과 10은 Minor GC가 Full GC보다 훨씬 짧다는 관계만 나타내는 값입니다. G1이나 ZGC 같은 실제 수집기는 힙을 더 잘게 나누고 애플리케이션과 동시에 일하는 등 방식이 다르지만, 새 객체 영역과 오래된 객체 영역을 나누어 다루고 참조가 남은 객체는 치우지 못한다는 원리는 같습니다. 칸 수와 횟수는 모형의 값입니다. 다만 같은 상황을 이 PC의 JDK 21에서 64MB 힙으로 실제로 돌려 방향을 확인했습니다. 금방 버려지는 객체만 만들면 Young GC 24번에 Full GC 0번, 오래 붙잡는 객체가 섞이면 Full GC가 7번 돌았고(평균 멈춤 Young 2.1ms, Full 11.5ms), 지우지 않는 목록에 계속 담으면 Full GC를 37번 반복한 끝에 OutOfMemoryError로 끝났습니다. 힙을 128MB로 키우면 같은 누수가 약 두 배의 객체를 만든 뒤에 같은 오류로 끝났습니다.</p>
+<p>앞 실습: <a href="../../lab/stack/">스택과 힙</a> · 다음 실습: <a href="../../lab/jit/">JIT 워밍업</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

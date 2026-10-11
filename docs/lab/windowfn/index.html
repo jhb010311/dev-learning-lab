@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>윈도우 함수: 행을 줄이지 않고 순위와 누계를 붙이려면 · 개발 학습 실습실</title>
+<meta name="description" content="GROUP BY는 여러 행을 한 행으로 합쳐서 합계를 냅니다. 윈도우 함수는 행을 그대로 둔 채, 행마다 순위나 누계 같은 값을 하나씩 옆에 붙입니다. 함수와 데이터를 바꿔 가며 동점인 행에 어떤 값이 붙는지 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/windowfn/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/windowfn/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/windowfn/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="윈도우 함수: 행을 줄이지 않고 순위와 누계를 붙이려면 · 개발 학습 실습실">
+<meta property="og:description" content="GROUP BY는 여러 행을 한 행으로 합쳐서 합계를 냅니다. 윈도우 함수는 행을 그대로 둔 채, 행마다 순위나 누계 같은 값을 하나씩 옆에 붙입니다. 함수와 데이터를 바꿔 가며 동점인 행에 어떤 값이 붙는지 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/windowfn/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › SQL</p>
+<h1>윈도우 함수</h1>
+<p><b>행을 줄이지 않고 순위와 누계를 붙이려면</b></p>
+<p>GROUP BY는 여러 행을 한 행으로 합쳐서 합계를 냅니다. 윈도우 함수는 행을 그대로 둔 채, 행마다 순위나 누계 같은 값을 하나씩 옆에 붙입니다. 함수와 데이터를 바꿔 가며 동점인 행에 어떤 값이 붙는지 보세요.</p>
+<p>실행으로 대조 · MySQL 8.4에서 스물네 가지 조합의 SQL을 실행해 행 수와 행마다 붙은 값을 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>윈도우 함수</dt>
+<dd>행을 합치지 않고, 각 행마다 &quot;그 행과 관련된 여러 행&quot;을 보고 계산한 값을 하나씩 붙여 주는 함수다. 함수 뒤에 OVER (...)를 적어 어떤 행들을 어떤 순서로 놓고 계산할지 정한다. GROUP BY가 묶음 하나를 결과 한 행으로 줄이는 것과 달리 결과의 행 수가 그대로이므로, 각 행의 원래 값과 순위나 누계를 한 줄에서 함께 볼 수 있다. MySQL에서는 8.0부터 쓸 수 있다. SELECT 절과 ORDER BY 절에만 쓸 수 있어, 윈도우 함수의 결과로 걸러내려면 서브쿼리로 한 번 감싸야 한다.</dd>
+<dt>ROW_NUMBER, RANK, DENSE_RANK</dt>
+<dd>OVER 안의 ORDER BY 순서대로 행에 번호나 순위를 붙이는 윈도우 함수들이다. 세 함수의 차이는 정렬 값이 같은 행(동점)을 다루는 방법이다. ROW_NUMBER는 동점이어도 서로 다른 번호를 주고, RANK는 같은 순위를 준 뒤 그만큼 다음 순위를 건너뛰며(1, 1, 3), DENSE_RANK는 같은 순위를 주고 건너뛰지 않는다(1, 1, 2). ROW_NUMBER에서 동점인 행 가운데 누가 앞 번호를 받는지는 정해져 있지 않으므로, 결과가 항상 같아야 하면 정렬 기준에 겹치지 않는 컬럼을 더한다.</dd>
+<dt>PARTITION BY</dt>
+<dd>윈도우 함수의 OVER 안에 적어, 계산할 범위를 지정한 컬럼의 값이 같은 행끼리 나누는 구문이다. 나뉜 묶음 하나를 파티션이라고 하며, 번호와 순위와 누계는 파티션마다 처음부터 다시 계산된다. GROUP BY와 비슷해 보이지만 행을 합치지 않는다는 점이 다르다. PARTITION BY를 적지 않으면 결과 전체가 하나의 파티션이 된다.</dd>
+<dt>LAG와 LEAD</dt>
+<dd>정렬된 줄에서 지금 행의 앞이나 뒤에 있는 행의 값을 가져오는 윈도우 함수다. LAG는 앞 행의 값을, LEAD는 뒤 행의 값을 가져온다. 어제와 오늘의 차이처럼 이웃한 행끼리 비교하는 계산을, 같은 테이블을 한 번 더 조인하지 않고 쓸 수 있게 해 준다. 가져올 행이 없는 파티션의 첫 행(LAG)이나 마지막 행(LEAD)에서는 NULL이 된다.</dd>
+<dt>GROUP BY, WHERE, HAVING</dt>
+<dd>GROUP BY는 지정한 컬럼의 값이 같은 행들을 묶어 그룹별 집계(합계, 개수 등)를 구한다. WHERE는 그룹으로 묶기 전에 개별 행을 걸러내고, HAVING은 묶은 뒤에 그룹을 걸러낸다. 따라서 집계 결과에 대한 조건은 HAVING에, 그 외의 조건은 WHERE에 쓴다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — RANK. 90점이 두 명이면 둘 다 1위이고 2위는 없습니다.</li>
+<li><b>DENSE_RANK로 바꾸면</b> — 동점 다음 순위를 건너뛰지 않습니다.</li>
+<li><b>ROW_NUMBER로 바꾸면</b> — 동점이어도 번호가 겹치지 않습니다.</li>
+<li><b>GROUP BY와 비교</b> — 6행이 팀별 2행으로 줄고 이름이 사라집니다.</li>
+<li><b>팀별 순위</b> — PARTITION BY team. 팀마다 1위부터 다시 매깁니다.</li>
+<li><b>누계인데 동점이 있으면</b> — 동점인 두 행의 누계가 같게 나옵니다.</li>
+<li><b>앞 행의 값 가져오기</b> — LAG. 팀의 첫 행은 앞 행이 없어 NULL입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>FROM score: score 테이블에서 6행을 읽습니다. 한 행이 한 사람의 점수입니다. 90점이 두 명(가은, 나래), 70점이 두 명(다솜, 마루) 있습니다.</li>
+<li>OVER (ORDER BY pts DESC): 값을 계산할 때 행들을 어떻게 놓고 볼지 정합니다. 전체 6행을 점수가 높은 순으로 줄을 세웁니다. 줄만 세울 뿐 행을 합치지 않습니다.</li>
+<li>가은(90점): RANK()는 자기보다 점수가 높은 행의 수에 1을 더합니다. 자기보다 높은 행이 없으므로 1입니다.</li>
+<li>나래(90점): 자기보다 점수가 높은 행이 없으므로 1입니다. 앞 행과 동점이라 순위가 같습니다.</li>
+<li>라온(80점): 자기보다 점수가 높은 행이 2개이므로 3입니다. 앞의 동점 두 행이 자리를 둘 차지했으므로 2위는 건너뜁니다.</li>
+<li>다솜(70점): 자기보다 점수가 높은 행이 3개이므로 4입니다.</li>
+<li>마루(70점): 자기보다 점수가 높은 행이 3개이므로 4입니다. 앞 행과 동점이라 순위가 같습니다.</li>
+<li>바다(60점): 자기보다 점수가 높은 행이 5개이므로 6입니다. 앞의 동점 두 행이 자리를 둘 차지했으므로 5위는 건너뜁니다.</li>
+<li>ORDER BY pts DESC: 결과를 내보냅니다. 6행이 그대로 6행이고, 행마다 rnk 컬럼의 값이 하나씩 붙었습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>6행이 그대로 6행으로 나왔습니다. RANK()로 붙은 값은 1, 1, 3, 4, 4, 6입니다.</li>
+<li>동점을 다루는 방법이 세 함수의 차이입니다. 90, 90, 80점에 ROW_NUMBER는 1, 2, 3(동점이어도 다른 번호), RANK는 1, 1, 3(같은 순위를 주고 다음 순위를 건너뜀), DENSE_RANK는 1, 1, 2(같은 순위를 주고 건너뛰지 않음)를 붙입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>-- score 테이블 (6행)
+-- name  team  pts
+-- 가은   A     90
+-- 나래   A     90
+-- 다솜   A     70
+-- 라온   B     80
+-- 마루   B     70
+-- 바다   B     60
+
+SELECT name, team, pts,
+       RANK() OVER (ORDER BY pts DESC) AS rnk
+  FROM score
+ ORDER BY pts DESC;</pre>
+<h2>이 모형의 전제</h2>
+<p>스물네 가지 조합 모두, 화면의 SQL과 같은 문장을 이 PC의 MySQL 8.4에서 실행해 결과 행 수와 행마다 붙은 값을 대조했습니다. 누계에 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW를 적었을 때의 값도 같은 방법으로 확인했습니다. 동점인 행 가운데 어느 행이 먼저 놓이는지는 SQL이 정하지 않으므로(MySQL 문서의 ROW_NUMBER 설명), 화면에서 동점인 두 사람의 순서는 한 가지 예이며 대조는 이름이 아니라 팀, 점수, 붙은 값으로 했습니다. 윈도우 함수는 MySQL 8.0부터 쓸 수 있습니다. 단계 문장의 계산 방법(자기보다 높은 행의 수에 1을 더함 등)은 함수의 정의를 풀어 쓴 것이고, 실제 DB는 정렬한 뒤 한 번 훑으며 값을 구합니다.</p>
+<p>앞 실습: <a href="../../lab/subquery/">서브쿼리</a> · 다음 실습: <a href="../../lab/paging/">OFFSET과 키셋 페이징</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

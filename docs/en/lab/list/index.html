@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ArrayList and LinkedList: The same operation takes a different amount of work · Dev Learning Lab</title>
+<meta name="description" content="An ArrayList stores its elements next to each other in a single array, and a LinkedList creates a node for each element and links each node to the ones be…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/list/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/list/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/list/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="ArrayList and LinkedList: The same operation takes a different amount of work · Dev Learning Lab">
+<meta property="og:description" content="An ArrayList stores its elements next to each other in a single array, and a LinkedList creates a node for each element and links each node to the ones be…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/list/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Collections</p>
+<h1>ArrayList and LinkedList</h1>
+<p><b>The same operation takes a different amount of work</b></p>
+<p>An ArrayList stores its elements next to each other in a single array, and a LinkedList creates a node for each element and links each node to the ones before and after it. Try getting, inserting, and removing at different positions, and you see that one does its work shifting elements and the other does its work following nodes.</p>
+<p>Checked against real execution · Checked against the internal array of a real ArrayList on JDK 21</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>ArrayList</dt>
+<dd>This is a list that keeps an array inside and moves the elements to a larger array when the array is full. Access to an element by index is fast at O(1), and adding at the end is also O(1) amortized. Inserting or removing in the middle takes O(n), because the elements after that position must each be shifted by one position.</dd>
+<dt>LinkedList</dt>
+<dd>This is a list in which each element (node) is linked by pointing to the locations of the elements before and after it. If the position is already known, insertion and removal are O(1), but finding the nth element is O(n) because you must follow the links from the start. Each node needs extra memory and the nodes are scattered in memory, so real traversal performance is often worse than that of an array-based list.</dd>
+<dt>Time complexity (big-O notation)</dt>
+<dd>This notation shows how fast the number of operations of an algorithm grows as the input size n grows. O(1) means constant regardless of size, O(log n) means only one more step when the size doubles, O(n) means proportional to the size, and O(n²) means proportional to the square of the size. It is the basis for judging which approach holds up as the amount of data grows.</dd>
+<dt>Amortized analysis</dt>
+<dd>This method evaluates cost as an average: the total cost of a whole sequence of operations divided by the number of operations, even if an expensive operation occurs now and then. Adding at the end of an ArrayList causes an O(n) copy when the array is full, but that is rare, so the average cost per operation is O(1).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Insert at the beginning of an ArrayList. Every element is shifted one position to the right.</li>
+<li><b>The same insertion into a LinkedList</b> — Only the links have to be changed. No element is shifted.</li>
+<li><b>Insert in the middle of a LinkedList</b> — The insertion itself is fast, but the nodes have to be followed up to that position.</li>
+<li><b>Get from the middle of a LinkedList</b> — It cannot go directly to an index, so it follows the nodes one by one.</li>
+<li><b>Get from the middle of an ArrayList</b> — The element is accessed in one step, however many elements there are.</li>
+<li><b>Append 40 elements to an ArrayList</b> — The elements are moved to a larger array only when the array is full. Look at the average cost.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>add(0, 99): To store the element at index 0, that position has to be freed. From index 0 to the end, 10 elements have to be shifted.</li>
+<li>The 10 elements were each copied one position to the right, and then 99 was stored at index 0, which is now empty.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Nodes traversed: 0. Elements shifted: 10. The time complexity is O(n).</li>
+<li>Inserting an element at the beginning of the ArrayList required shifting the 10 elements from that position on. The closer to the beginning and the more elements there are, the more there is to shift.</li>
+</ul>
+<h2>Code</h2>
+<pre>List&lt;Integer&gt; list = new ArrayList&lt;&gt;();
+// ... the list now holds 10 elements (indexes 0 to 9)
+
+list.add(0, 99);        // beginning</pre>
+<h2>Assumptions of this model</h2>
+<p>For a single insertion, the model assumes that the internal array of the ArrayList still has an empty position. The case in which the array is full is shown separately under &quot;Keep appending to an empty list&quot;. The capacity of an ArrayList starting at 10 and growing to 1.5 times each time (10 → 15 → 22 → 33 → 49), and a LinkedList starting from the beginning or the end, whichever is closer to the index, are the same as in the JDK implementation. The points at which the capacity grows and the number of elements copied match the values that were checked by taking out the internal array of a real ArrayList on JDK 21 on this PC (adding 40 elements grows the array 4 times and copies 80 elements). Actual speed is not determined by the number of positions alone. An array is contiguous in memory, which favors the CPU cache, so an ArrayList is often faster than a LinkedList even when it has many elements to shift.</p>
+<p>Previous lab: <a href="../../lab/annot/">Annotations</a> · Next lab: <a href="../../lab/hashmap/">Inside HashMap</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

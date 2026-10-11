@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entity mapping and primary keys: How do the annotations on an entity change the table and the values that are stored? · Dev Learning Lab</title>
+<meta name="description" content="JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping. Change the annotations and see…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/mapping/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/mapping/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/mapping/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Entity mapping and primary keys: How do the annotations on an entity change the table and the values that are stored? · Dev Learning Lab">
+<meta property="og:description" content="JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping. Change the annotations and see…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/mapping/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Entity mapping</p>
+<h1>Entity mapping and primary keys</h1>
+<p><b>How do the annotations on an entity change the table and the values that are stored?</b></p>
+<p>JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping. Change the annotations and see how the table that Hibernate creates (the create table statement) and the values that are actually stored in the database change.</p>
+<p>Checked against real execution · All 96 combinations of entities were compiled and run on Hibernate 7.4.5 and H2, and the create table statements and the stored values were checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>@Column</dt>
+<dd>This annotation specifies in detail which column of the table an entity field is paired with. name sets the column name, nullable = false forbids null, unique = true forbids duplicates, and length sets the maximum length of a string. A field is paired with a column even without it, and in that case a string has a length of 255 and allows null and duplicates. nullable, unique, and length are information that is applied when JPA creates the table (the create table statement). If you use a table that already exists as it is, unique and length prevent nothing at run time.</dd>
+<dt>@Enumerated</dt>
+<dd>This annotation specifies what value an enum field is stored as in the database. EnumType.ORDINAL stores the ordinal of the constant (its position in the enum declaration, counting from 0) as a number, and EnumType.STRING stores the name of the constant as text. The default when you do not add it is ORDINAL. If you add a constant at the front or in the middle of the enum after saving with ORDINAL, the numbers shift, and values that are already stored are read back as different constants. No exception is thrown, so it is hard to notice, and using STRING is the safer choice.</dd>
+<dt>@Transient</dt>
+<dd>This annotation leaves a field of an entity out of the mapping. No column is created for this field, and it is not used when saving or when reading. Every field of an entity is paired with a column unless you mark it otherwise, so add this to temporary values and values used only for calculation that do not need to be in the database. In an object that is read back from the database, this field is empty (null if it is a reference type). The Java transient keyword has a different purpose: it leaves a field out of serialization.</dd>
+<dt>Primary key generation strategy (@GeneratedValue)</dt>
+<dd>This is the setting that decides who creates the value of the primary key (@Id) of an entity, and how. If you add only @Id, the code must set the value itself, and saving without a value throws an exception. If you add @GeneratedValue as well, the value is created automatically. IDENTITY leaves it to an auto-increment column of the database and is commonly used with MySQL, and SEQUENCE takes the number from a sequence of the database. If you set it to automatic generation and then save with a value that you set yourself, that also causes an exception.</dd>
+<dt>Entity</dt>
+<dd>A Java object that corresponds to a row of a database table. It is defined as a class annotated with @Entity and has an identifier (@Id). JPA tracks the state changes of these objects and runs the matching SQL.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Almost no annotations are used. VIP is stored as the number 1.</li>
+<li><b>Adding a value at the front of the enum</b> — The VIP member that was saved is read back as BASIC.</li>
+<li><b>Storing as STRING</b> — Even if the order of the enum changes, the member is still read back as VIP.</li>
+<li><b>nullable = false on name</b> — The table that is created gets not null.</li>
+<li><b>@Transient on memo</b> — No memo column is created, and the value is not stored.</li>
+<li><b>Letting the database choose the primary key</b> — Even if you do not set id, the database assigns 1.</li>
+<li><b>Without setting id</b> — If you leave a field that has only @Id empty, saving throws an exception.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>When the application starts: Hibernate reads the Member class and generates the create table statement (when the application is set to create tables automatically). The id field marked with @Id becomes the primary key column. Because there is only @Id, it is an ordinary not null column. The code must supply the value.</li>
+<li>name field: There is no @Column, so the column is created with the default settings. The length is 255 characters, and both null and duplicates are allowed.</li>
+<li>grade field: ORDINAL stores the ordinal of the constant (its position in the enum declaration, counting from 0), so the column becomes a small integer column (tinyint). BASIC is 0 and VIP is 1. A condition (check) that the number is between 0 and 1 is also added.</li>
+<li>memo field: There is no annotation, but a column is still created. Every field of an entity is paired with a column unless you leave it out with @Transient.</li>
+<li>em.persist(m) and commit: An INSERT is sent and one row is saved. id is 100, exactly as the code set it.</li>
+<li>Values stored in the database: the grade column contains the number 1. This is because Grade.VIP is the second constant in the enum (ordinal 1). The text &quot;VIP&quot; does not appear anywhere in the database. The memo column contains &quot;joined today&quot;.</li>
+<li>em2.find(Member.class, 100L): It is read from the database again. When the 1 in the grade column is converted to the constant whose ordinal is 1 in the current enum, the result is VIP. memo is &quot;joined today&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The name column was created as &quot;varchar(255)&quot;. The value stored in the grade column is 1, and the grade read back is VIP. The memo column exists, and the saved id is 100.</li>
+<li>ORDINAL stores the ordinal of the constant, that is, its position in the enum declaration. A number takes little space, but what the number means depends on the order in which the constants are written in the enum. Change the setting to &quot;ORDINAL + after saving, add a value at the front of the enum&quot;.</li>
+<li>A string field without @Column is varchar(255) and allows null and duplicates. If a value is required or has a length limit, write it in @Column so that it appears as a constraint on the table.</li>
+<li>A field without any annotation also becomes a column. Add @Transient to a field that you do not want to store.</li>
+</ul>
+<h2>Code</h2>
+<pre>enum Grade { BASIC, VIP }
+
+@Entity
+class Member {
+    @Id
+    Long id;
+
+    String name;
+
+    @Enumerated(EnumType.ORDINAL)
+    Grade grade;
+
+    String memo;
+}
+
+// Save one member
+Member m = new Member();
+m.setId(100L);
+m.setName(&quot;Alice&quot;);
+m.setGrade(Grade.VIP);
+m.setMemo(&quot;joined today&quot;);
+em.persist(m);
+em.getTransaction().commit();
+
+// Read it from the database again with a new em
+Member r = em2.find(Member.class, 100L);
+System.out.println(r.getGrade() + &quot;, &quot; + r.getMemo());</pre>
+<h2>Assumptions of this model</h2>
+<p>For each of the 96 combinations, an entity class was generated as source code, compiled, run on real Hibernate 7.4.5 with an H2 database, and checked against the results. What was checked: all the column definitions in the create table statement that Hibernate generated, the values in the row stored in the database, grade and memo read back with a new em, and the saved id or the kind of exception. The following facts stated in the summary were also run and confirmed separately: an enum field without @Enumerated is created and stored exactly like ORDINAL; whether saving succeeds or fails for a member whose name is null, a duplicate name, or 21 characters (the kind of exception, and whether the INSERT reached the database); that unique and length do nothing when Hibernate does not create the table; and that an exception is thrown when you set the id yourself with the automatic generation strategy. Column definitions differ by database type (dialect) and Hibernate version. The tinyint and check condition, the enum type column, and &quot;generated by default as identity&quot; shown here were generated by Hibernate 7.4.5 for H2. On MySQL, for example, the automatic increment is written as auto_increment. The MySQL notation, and the fact that older Hibernate (5.x) created STRING as varchar(255), follow the documentation and were not run here. Even so, the point that &quot;ORDINAL stores the ordinal and STRING stores the name&quot; is the same. In the real create table statement, the columns appear in a different order from the screen, and unless you use Spring Boot, the table name is written exactly as the class name (Member). Only IDENTITY was covered for automatic generation, and the difference in when the INSERT is sent is covered in the persistence context lab. In production, the setting that creates tables automatically is usually not used, and then unique and length in @Column serve only as documentation.</p>
+<p>Previous lab: <a href="../../lab/merge/">Detached entities and merge</a> · Next lab: <a href="../../lab/embedded/">Value types and embeddable types</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>변수와 타입: 변수를 다른 변수에 대입하면 무엇이 복사되나 · 개발 학습 실습실</title>
+<meta name="description" content="변수는 무언가를 담아 두는 칸입니다. int 같은 기본형 변수의 칸에는 값 자체가 들어 있고, 클래스 타입 같은 참조형 변수의 칸에는 객체가 있는 곳을 가리키는 참조가 들어 있습니다. 대입할 때도 메서드에 넘길 때도 복사되는 것은 언제나 &quot;칸에 들어 있는 것&quot;입니다. 그래서…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/vars/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/vars/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/vars/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="변수와 타입: 변수를 다른 변수에 대입하면 무엇이 복사되나 · 개발 학습 실습실">
+<meta property="og:description" content="변수는 무언가를 담아 두는 칸입니다. int 같은 기본형 변수의 칸에는 값 자체가 들어 있고, 클래스 타입 같은 참조형 변수의 칸에는 객체가 있는 곳을 가리키는 참조가 들어 있습니다. 대입할 때도 메서드에 넘길 때도 복사되는 것은 언제나 &quot;칸에 들어 있는 것&quot;입니다. 그래서…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/vars/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 기본 문법</p>
+<h1>변수와 타입</h1>
+<p><b>변수를 다른 변수에 대입하면 무엇이 복사되나</b></p>
+<p>변수는 무언가를 담아 두는 칸입니다. int 같은 기본형 변수의 칸에는 값 자체가 들어 있고, 클래스 타입 같은 참조형 변수의 칸에는 객체가 있는 곳을 가리키는 참조가 들어 있습니다. 대입할 때도 메서드에 넘길 때도 복사되는 것은 언제나 &quot;칸에 들어 있는 것&quot;입니다. 그래서 기본형은 복사본을 바꿔도 원래 변수가 그대로이고, 참조형은 두 변수가 같은 객체 하나를 함께 보게 됩니다.</p>
+<p>실행으로 대조 · JDK 21에서 열다섯 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>기본형과 참조형</dt>
+<dd>자바의 타입은 기본형과 참조형 두 가지로 나뉜다. 기본형은 byte, short, int, long, float, double, char, boolean의 여덟 가지이며, 변수가 값 자체를 담는다. 참조형은 클래스, 인터페이스, 배열처럼 그 밖의 모든 타입이며, 변수가 객체 자체가 아니라 객체를 가리키는 참조를 담는다. 그래서 기본형 변수를 대입하면 값이 복사되어 두 변수가 서로 영향을 주지 않지만, 참조형 변수를 대입하면 참조가 복사되어 두 변수가 같은 객체를 가리키게 된다. 참조형 변수는 아무 객체도 가리키지 않는다는 뜻의 null을 담을 수 있고, 기본형 변수는 null을 담을 수 없다.</dd>
+<dt>값에 의한 전달</dt>
+<dd>메서드를 호출할 때 인자로 적은 변수 자체가 아니라 그 변수에 들어 있는 것을 복사해 매개변수에 넣어 주는 방식이다. 영어로는 pass by value 또는 call by value라고 하며, 자바는 언제나 이 방식으로만 인자를 넘긴다. 기본형이면 값이 복사되고, 참조형이면 참조가 복사되어 매개변수와 호출한 쪽 변수가 같은 객체를 가리킨다. 그래서 메서드 안에서 넘겨받은 객체의 내용을 바꾸면 호출한 쪽에서도 바뀐 내용이 보이지만, 매개변수에 다른 객체를 대입해도 호출한 쪽 변수는 바뀌지 않는다.</dd>
+<dt>불변 객체</dt>
+<dd>생성된 뒤에는 상태가 바뀌지 않는 객체다. 값이 바뀌지 않으므로 여러 스레드가 동시에 사용해도 안전하고, 다른 곳에 넘겨도 변경될 걱정이 없으며, 캐싱하거나 해시 컬렉션의 키로 쓰기에 적합하다. 필드를 private final로 선언하고 상태를 바꾸는 메서드를 두지 않으며, 클래스를 final로 해 하위 클래스가 동작을 바꾸지 못하게 한다. 필드가 가변 객체(List, Date 등)를 가리키면 생성자와 getter에서 복사본을 주고받아(방어적 복사) 밖에서 내부를 바꾸지 못하게 한다.</dd>
+<dt>힙(Heap) 메모리</dt>
+<dd>new로 만든 모든 객체와 배열이 저장되는 메모리 영역으로, 모든 스레드가 공유한다. 가비지 컬렉터가 관리하며 더 이상 쓰이지 않는 객체를 회수한다. 크기는 -Xms(초기), -Xmx(최대) 옵션으로 정하고, 공간이 부족하면 OutOfMemoryError가 발생한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — Point 변수를 b에 대입하고 b로 내용을 바꿉니다. a에서 읽어도 99입니다.</li>
+<li><b>기본형이면</b> — 값이 복사되므로 b를 바꿔도 a는 1 그대로입니다.</li>
+<li><b>메서드에 객체를 넘기면</b> — 메서드 안에서 바꾼 내용이 메서드 밖에서도 보입니다.</li>
+<li><b>메서드 안에서 새 객체를 대입하면</b> — 매개변수만 다른 객체를 가리키게 되고 a는 그대로입니다.</li>
+<li><b>기본형을 메서드에 넘기면</b> — 메서드가 매개변수를 바꿔도 a는 그대로입니다.</li>
+<li><b>결과를 돌려받아 대입하면</b> — return으로 받은 값을 a에 다시 넣어야 a가 바뀝니다.</li>
+<li><b>String에 이어 붙이면</b> — 참조형인데도 a는 그대로입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>Point a = new Point(1): new가 힙에 Point 객체를 하나 만듭니다(x는 1). 변수 a의 칸에는 객체 자체가 아니라 그 객체가 있는 곳을 가리키는 참조가 들어갑니다.</li>
+<li>Point b = a: a의 칸에 들어 있는 참조를 복사해 b의 칸에 넣습니다. 객체는 복사되지 않습니다. 객체는 여전히 하나이고, a와 b가 같은 객체를 가리킵니다.</li>
+<li>b.x = 99: b의 칸에 든 참조를 따라가서, 그 객체의 x를 99로 바꿉니다. b의 칸 자체는 바뀌지 않습니다. a도 바로 이 객체를 가리키고 있습니다.</li>
+<li>System.out.println(b.x): b가 가리키는 객체의 x를 읽습니다. 출력은 99입니다.</li>
+<li>System.out.println(a.x): a가 가리키는 객체의 x를 읽습니다. 출력은 99입니다. b로 바꾼 객체가 a가 가리키는 바로 그 객체이기 때문입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>b에서 읽은 값은 99, a에서 읽은 값은 99입니다. a에서 읽은 값은 처음과 달라졌습니다.</li>
+<li>참조형 변수의 칸에는 객체가 아니라 참조가 들어 있습니다. 복사된 것이 참조이므로 두 변수가 같은 객체 하나를 가리키고, 한쪽에서 내용을 바꾸면 다른 쪽에서도 바뀐 내용이 보입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>class Point {
+    int x;
+    Point(int x) { this.x = x; }
+}
+
+Point a = new Point(1);
+Point b = a;                        // a에 든 참조가 복사된다
+b.x = 99;                           // 가리키는 객체의 내용을 바꾼다
+
+System.out.println(b.x);
+System.out.println(a.x);</pre>
+<h2>이 모형의 전제</h2>
+<p>열다섯 가지 조합의 출력(복사본에서 읽은 값, a에서 읽은 값)을 이 PC의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. &quot;참조&quot;는 객체가 있는 곳을 가리키는 값이라는 뜻으로 썼습니다. 자바에서는 이 값을 숫자로 꺼내 볼 수 없고, 실제로 메모리 주소 그대로인지도 JVM마다 다릅니다. 변수의 칸이 스택에, 객체가 힙에 놓인다는 그림은 지역 변수에 대한 일반적인 설명이며, JIT 컴파일러가 최적화하면 객체를 힙에 만들지 않을 수도 있지만 프로그램의 결과는 같습니다. 문자열 &quot;hi&quot;는 실제로는 String Pool에 있는 객체인데, 여기서는 힙의 객체 하나로만 그렸습니다. 메서드에 넘길 때 생기는 호출 프레임은 &quot;스택과 힙&quot; 실습에서, ==와 equals의 차이는 &quot;==와 equals&quot; 실습에서 다룹니다.</p>
+<p>다음 실습: <a href="../../lab/casting/">연산자와 형변환</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

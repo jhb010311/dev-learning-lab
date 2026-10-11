@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enum classes: Why does an enum saved as a number come back as a different constant? · Dev Learning Lab</title>
+<meta name="description" content="An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the p…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/enumtype/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/enumtype/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/enumtype/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Enum classes: Why does an enum saved as a number come back as a different constant? · Dev Learning Lab">
+<meta property="og:description" content="An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the p…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/enumtype/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Generics, enums, and annotations</p>
+<h1>Enum classes</h1>
+<p><b>Why does an enum saved as a number come back as a different constant?</b></p>
+<p>An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the program, so constants can be compared with ==, and they can also have fields and methods. But if you save a constant to a database by writing down its position in the declaration (its ordinal), the same number refers to a different constant once the enum declaration is changed later. Change how the value is saved and how the declaration is changed, and see what is read back.</p>
+<p>Checked against real execution · 45 combinations were actually compiled and run on JDK 21 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Enum class</dt>
+<dd>This is the syntax for creating a type that can have only a few fixed values. When you declare enum Status { ORDERED, PAID }, ORDERED and PAID each become an object of type Status, and these objects are created only once and no more can be created with new. There is only one object for each constant, so constants can be compared with == and can also be used in a switch. An enum is also a class, so it can have fields, constructors, and methods, which lets you attach a display name or a code value to each constant. Unlike representing a state with a string or a number, using a value that is not defined is a compile-time error, so enums are used to represent states and kinds.</dd>
+<dt>ordinal() and name()</dt>
+<dd>These are two methods that every enum constant has. ordinal() returns the position of the constant in the declaration, counted from 0, and name() returns the name of the constant, as written in the declaration, as a string. ordinal() is determined by the declaration order, so its value changes when a constant is inserted in the middle or the order is changed. For this reason, if you save ordinal() values in a database or a file, the same number can later be read as a different constant. When saving, use name() or the value of a field that you define separately in the enum.</dd>
+<dt>valueOf method of an enum class</dt>
+<dd>This is a static method that takes a name string and returns the enum constant with that name, and it is declared automatically in every enum. Status.valueOf(&quot;PAID&quot;) returns Status.PAID. The name must match exactly, including case, and when there is no such constant, the method does not return null but throws an IllegalArgumentException. So when you pass a value that cannot be trusted, such as a string entered by a user, you must be prepared for the exception. values(), which returns an array containing all the constants in declaration order, is declared together with it.</dd>
+<dt>Identity and equality</dt>
+<dd>Identity means that two references point to the same object in memory, and you compare it with the == operator. Equality means that two objects logically have the same value, and you compare it with the equals() method. If you use == to compare strings or value objects, the result can be false even when the contents are the same.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The ordinal is saved, and then a constant is inserted in the middle. &quot;Payment completed&quot; is read as &quot;Order canceled&quot;.</li>
+<li><b>Changing only the order</b> — Even if no constant is added, changing only the order makes the number refer to a different constant.</li>
+<li><b>Adding at the very end</b> — The ordinals of the existing constants stay the same, so nothing goes wrong.</li>
+<li><b>A constant that is safe by luck</b> — The change is the same, but the ordinal of the first constant does not change.</li>
+<li><b>Saving by name</b> — The same constant comes back even after a constant is inserted in the middle.</li>
+<li><b>Saved by name, then renamed</b> — valueOf receives a name that does not exist and throws an IllegalArgumentException.</li>
+<li><b>Saving a code you define yourself</b> — The same constant comes back whether the order is changed or the name is changed.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The old enum declaration listed ORDERED, PAID, SHIPPED in that order: Each enum constant is one object. PAID(&quot;Payment completed&quot;) is a Status object created by passing &quot;Payment completed&quot; to the constructor, and it is the only PAID object in the whole program. You cannot create another one with new.</li>
+<li>An order with the status PAID was saved to the database: An enum object cannot be stored as it is, so a value that stands for the constant is written instead. Here that value is PAID.ordinal(), which is 1. ordinal() returns the position of the constant in the declaration, counted from 0.</li>
+<li>After that, the enum declaration was changed: The new constant CANCELED was inserted between ORDERED and PAID. The ordinals are now ORDERED(0), CANCELED(1), PAID(2), SHIPPED(3). The value written in the database (1) is not updated and stays as it was.</li>
+<li>Status.values()[1] runs: values() returns an array that contains the constants in the order of the current declaration. The element at index 1 is CANCELED. The saved constant was PAID, but a different constant came back. There is no exception and no warning.</li>
+<li>System.out.println(s + &quot; (&quot; + s.label() + &quot;)&quot;) runs: The output is &quot;CANCELED (Order canceled)&quot;. label() is a method that you write yourself inside the enum, and it returns the label value that the constant received when it was created. An enum is also a class, so it can have fields and methods like this.</li>
+<li>s == Status.PAID runs: The result is false. There is only one object for each enum constant, so the same constant is the same object no matter how it was obtained. That is why you can compare with == instead of equals. The result is false not because of how the comparison is done, but because s really is a different constant (CANCELED). The program ends normally.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The saved constant is PAID, and the constant read back is CANCELED (Order canceled). They are different constants, and yet the program ended normally.</li>
+<li>ordinal() is only the position in the declaration, so when a constant is inserted in the middle or the order is changed, a number that was already saved refers to a different constant. No exception is thrown, so wrong data is used silently: an order that is &quot;Payment completed&quot; is shown as &quot;Order canceled&quot;. Do not save ordinal() values.</li>
+<li>Use == to compare enum constants. There is only one object for each constant, so the result is the same as with equals, no exception is thrown even when one side is null, and comparing constants of different enum classes is reported as a compile-time error.</li>
+</ul>
+<h2>Code</h2>
+<pre>enum Status {
+    ORDERED(&quot;Order received&quot;),
+    CANCELED(&quot;Order canceled&quot;),
+    PAID(&quot;Payment completed&quot;),
+    SHIPPED(&quot;Shipping started&quot;);
+
+    private final String label;
+
+    Status(String label) {
+        this.label = label;
+    }
+
+    String label() {
+        return label;
+    }
+}
+
+// The value of PAID.ordinal(), saved under the old declaration (order: ORDERED, PAID, SHIPPED)
+int saved = 1;
+Status s = Status.values()[saved];
+System.out.println(s + &quot; (&quot; + s.label() + &quot;)&quot;);
+System.out.println(s == Status.PAID);</pre>
+<h2>Assumptions of this model</h2>
+<p>All 45 combinations were checked by actually compiling and running the code shown on the screen (the enum declaration after the change and the code below it) on JDK 21 on this PC, and comparing the saved value, the two lines of output, the exit code, and the exception message. The saved values were obtained by actually getting ordinal(), name(), and code from the enum with the old declaration. In the code on the screen, the five lines below the enum declaration are inside the main method, and the declaration of main is omitted. The following were also checked in the same way: the same constant is the same object no matter how it is obtained, valueOf also throws an exception for a name that differs only in case, == does not throw an exception even when one side is null, and comparing constants of different enum classes with == is a compile-time error. No real database was used. The saved value was written directly in the code to imitate one. A change that removes a constant is not included in the settings. If a constant is removed, reading by ordinal returns a later constant that has moved up or throws an exception because the index is outside the array (ArrayIndexOutOfBoundsException), and reading by name makes valueOf throw an exception (this was also checked by running it separately).</p>
+<p>Previous lab: <a href="../../lab/generic/">Generics</a> · Next lab: <a href="../../lab/annot/">Annotations</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

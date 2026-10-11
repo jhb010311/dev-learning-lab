@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TLS handshake: What happens before the https padlock locks · Dev Learning Lab</title>
+<meta name="description" content="HTTPS is HTTP wrapped in TLS. Before any data is sent, the browser and the server check that &quot;the other side really is that server&quot; and create &quot;an encrypt…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tls/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tls/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/tls/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="TLS handshake: What happens before the https padlock locks · Dev Learning Lab">
+<meta property="og:description" content="HTTPS is HTTP wrapped in TLS. Before any data is sent, the browser and the server check that &quot;the other side really is that server&quot; and create &quot;an encrypt…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/tls/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Secure connections</p>
+<h1>TLS handshake</h1>
+<p><b>What happens before the https padlock locks</b></p>
+<p>HTTPS is HTTP wrapped in TLS. Before any data is sent, the browser and the server check that &quot;the other side really is that server&quot; and create &quot;an encryption key that only the two of them know&quot;. Watch where public-key cryptography and symmetric-key cryptography are each used in this process, and where the handshake stops when something is wrong with the certificate.</p>
+<p>Checked against real execution · Checked by making real TLS 1.3 connections with openssl</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>HTTPS and TLS</dt>
+<dd>HTTPS is HTTP communication encrypted with TLS. TLS keeps third parties from seeing the content (confidentiality), keeps it from being changed on the way (integrity), and uses a certificate to check that the server you connected to is the real one (authentication). SSL is the protocol that came before TLS. It is now deprecated and only TLS is actually used, but the name SSL is still used alongside it by habit.</dd>
+<dt>TLS handshake and certificates</dt>
+<dd>The TLS handshake is the process, before encrypted communication starts, in which the client and the server agree on the cryptographic algorithms to use, verify the identity of the server, and agree on the keys that will encrypt the data. A certificate is a document that contains the server's public key and domain information and is signed and vouched for by a trusted certificate authority (CA). The client validates it to confirm that the server it connected to is the real one.</dd>
+<dt>Symmetric-key cryptography and public-key cryptography</dt>
+<dd>Symmetric-key cryptography uses the same key to encrypt and to decrypt. It is fast, but it has the problem that the key must be shared safely with the other party (AES). Public-key cryptography uses a pair of keys, a public key and a private key. Data encrypted with the public key can be decrypted only with the private key, so there is no key-sharing problem, but it is slow (RSA). In practice, public-key cryptography is used to exchange a symmetric key safely, and then the symmetric key encrypts the data.</dd>
+<dt>HMAC and digital signatures</dt>
+<dd>Techniques for confirming that a message was not changed on the way and that the legitimate party sent it. HMAC hashes the message together with a secret key that both sides share to produce an authentication code. With a digital signature, the sender signs with a private key and the receiver verifies with the public key. Only the signer can create the signature, so the sender cannot deny having sent the message.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A normal TLS 1.3 handshake.</li>
+<li><b>If the certificate has expired</b> — The browser shows a warning and stops the connection.</li>
+<li><b>If the domain is different</b> — The certificate is genuine, but it does not belong to this server.</li>
+<li><b>Self-signed certificate</b> — A certificate that no one vouches for.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The browser connects to https://shop.example. After the TCP connection is established, it sends the list of cipher suites it can use and a public value (key share) to be used for the key exchange. This message is not encrypted.</li>
+<li>The server picks one cipher suite and sends its own public value for the key exchange. Each side combines the other side's public value with its own secret value and computes the same result. Someone who only watched the public values in the middle cannot compute this result.</li>
+<li>Each side derives a symmetric key from this result. The key itself was never sent over the network. The handshake messages from here on are encrypted.</li>
+<li>The server sends its certificate. The certificate contains the domain name, the server's public key, the validity period, and a signature that a certificate authority (CA) made over this content with its own private key.</li>
+<li>The browser validates the certificate. The signature comes from a trusted certificate authority, the certificate is within its validity period, and the domain matches shop.example. You can trust that this public key belongs to the real shop.example.</li>
+<li>The server signs everything exchanged so far with its private key and sends the signature. The browser checks this signature with the public key in the certificate. Anyone can copy a certificate, but only the real server that holds the matching private key can create the signature.</li>
+<li>Both sides exchange a verification value over the entire handshake, to check that no one changed a message in the middle.</li>
+<li>Now the HTTP request and the response travel encrypted with the agreed symmetric key. Someone watching in the middle can see only roughly which server you are talking to, and cannot see the content (the path of the address, the headers, cookies, and the body).</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The handshake is finished and encrypted communication has started.</li>
+<li>Public-key cryptography (a public key and a private key) is used only for the signatures that confirm the other side is genuine and for agreeing on a key safely. The reason is that its computation is slow. The actual data is encrypted with the fast symmetric key. The two methods share the work, each doing what it is good at.</li>
+<li>TLS 1.3 completes this process in one round trip (earlier versions need two). Even so, every connection has a cost, so it is important to reuse a connection once it has been made.</li>
+</ul>
+<h2>Code</h2>
+<pre># application.yml (server-side settings)
+server:
+  port: 443
+  ssl:
+    enabled: true
+    key-store: classpath:shop.p12       # certificate + private key
+    key-store-password: ********
+    protocol: TLS
+    enabled-protocols: TLSv1.3
+
+# In production, a load balancer or nginx in front usually handles TLS,
+# and the application server receives plain HTTP behind it</pre>
+<h2>Assumptions of this model</h2>
+<p>This simplifies the basic TLS 1.3 handshake (in a real handshake, several of the server's reply messages are sent bundled together). The key exchange is the kind in which both sides exchange public values and compute the same secret (ECDHE); it does not encrypt a symmetric key with the server's public key and send it, as the older method did. The certificate checks follow the standard procedure of TLS and the web PKI. On the PC used to write this lab, openssl was used to create a test certificate authority and four kinds of certificate, and real TLS 1.3 connections were made with them to check. The valid certificate passed validation, and each of the others was rejected with the error certificate has expired, hostname mismatch, or self-signed certificate. It was also confirmed that the handshake messages are exchanged in the order ClientHello, ServerHello, EncryptedExtensions, Certificate, CertificateVerify, Finished.</p>
+<p>Previous lab: <a href="../../lab/realtime/">Polling, SSE, and WebSocket</a> · Next lab: <a href="../../lab/scale/">Load balancers and scale out</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

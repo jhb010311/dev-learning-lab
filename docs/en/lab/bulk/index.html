@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bulk update and delete operations: After one UPDATE changes many rows, why does the entity still have the old value? · Dev Learning Lab</title>
+<meta name="description" content="An UPDATE or DELETE run with executeUpdate (a bulk update or delete operation) changes many rows with one SQL statement. But this SQL runs directly on the…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/bulk/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/bulk/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/bulk/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Bulk update and delete operations: After one UPDATE changes many rows, why does the entity still have the old value? · Dev Learning Lab">
+<meta property="og:description" content="An UPDATE or DELETE run with executeUpdate (a bulk update or delete operation) changes many rows with one SQL statement. But this SQL runs directly on the…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/bulk/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Queries</p>
+<h1>Bulk update and delete operations</h1>
+<p><b>After one UPDATE changes many rows, why does the entity still have the old value?</b></p>
+<p>An UPDATE or DELETE run with executeUpdate (a bulk update or delete operation) changes many rows with one SQL statement. But this SQL runs directly on the database without going through the persistence context. So an entity that you already loaded does not know that the database has changed. See what you get depending on how you read the value after the bulk operation.</p>
+<p>Checked against real execution · 66 combinations were run on Hibernate 7.4.5 and H2, and the kind and order of the SQL, the value read, the value in the DB, and the exceptions were checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Bulk update and delete operations</dt>
+<dd>A way to change or delete many rows at once with a single UPDATE or DELETE statement, instead of changing entities one by one. You build the query in JPQL and run it with executeUpdate(), and the number of rows changed is returned. Changing entities one by one with dirty checking sends as many SQL statements as there are rows, but a bulk operation needs only one. However, this SQL runs directly on the database without going through the persistence context, so entities you already loaded keep their old values. So you run the bulk operation before you load the entities, or you empty the persistence context with em.clear() after it.</dd>
+<dt>em.clear and em.refresh</dt>
+<dd>Two ways to bring the persistence context back in line with the database when they disagree. em.clear() empties the whole persistence context, so later queries read fresh values from the database. The entity objects you held before emptying become detached, so changing their values is not applied to the database. em.refresh(entity) reads only the entity you specify again from the database and overwrites the values of that object. If you call clear while there are changes that have not been sent to the database, those changes are lost.</dd>
+<dt>Persistence context</dt>
+<dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it. (It is outside the top 50, but it is a concept that always comes up as a follow-up question when you use JPA.)</dd>
+<dt>First-level cache</dt>
+<dd>The store inside the persistence context that keeps entities by identifier. If you load the same identifier again within the same transaction, it returns the stored entity without sending a query to the database. As a result, entities with the same identifier are always the same object within the same transaction. By default it disappears when the transaction ends (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends), so it is different from an application-wide cache.</dd>
+<dt>Transactional write-behind and flush</dt>
+<dd>Transactional write-behind means that INSERT, UPDATE, and DELETE statements are not sent to the database right away. They are collected and sent together. However, for an entity whose primary key is generated with the IDENTITY strategy (such as AUTO_INCREMENT in MySQL), the INSERT runs immediately when you request the save, because the identifier must be obtained. A flush sends the collected changes to the database. It happens automatically just before the transaction commits and just before a JPQL query runs. A flush only sends SQL to the database. It does not commit the transaction.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — After a bulk UPDATE, reading the entity gives the old value, 1000.</li>
+<li><b>Old value even after querying again</b> — Even if you read it again with JPQL, the entity you already hold is returned as it is.</li>
+<li><b>Query after em.clear()</b> — If you empty the persistence context, you read the new value from the database.</li>
+<li><b>em.refresh</b> — It overwrites only that one entity with the value in the database.</li>
+<li><b>With an unflushed change</b> — The change is sent to the database first, just before the bulk operation.</li>
+<li><b>Changing them one by one</b> — With 8 items, 8 UPDATEs are sent. A bulk operation sends 1.</li>
+<li><b>em.find after a bulk DELETE</b> — An item that was deleted from the database still comes back from em.find.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>getResultList(): One SELECT reads 3 items and keeps them in the persistence context. The price of item 1 is 1000.</li>
+<li>executeUpdate(): One UPDATE statement raises the price of 3 rows in the database by 500 at once. The return value is the number of rows changed, 3. This SQL does not go through the persistence context, so the entities it holds stay as they are. Item 1 is 1500 in the database and 1000 in memory.</li>
+<li>first.getPrice(): Reads 1000 from the entity you already hold. It differs from the value in the database, 1500.</li>
+<li>The method ends and commits: There is no more SQL to send. It commits as it is.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Write SQL sent: UPDATE: 1 (bulk). The value read is 1000 (the DB has 1500). After it ended, item 1 is 1500 in the DB.</li>
+<li>A bulk operation does not go through the persistence context, so an entity you already loaded keeps its old value. If you keep calculating with this value, the result will be wrong.</li>
+<li>After a bulk operation, empty the persistence context with em.clear(), or run the bulk operation before you load the entities. In Spring Data JPA, @Modifying(clearAutomatically = true) does this for you.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Entity
+class Item {
+    @Id Long id;
+    String name;
+    int price;
+    int getPrice() { return price; }
+    void setPrice(int price) { this.price = price; }
+}
+
+// Inside a transaction. The DB has 3 items (item 1 costs 1000, item 2 costs 2000, ...)
+List&lt;Item&gt; items = em.createQuery(&quot;select i from Item i order by i.id&quot;, Item.class).getResultList();
+Item first = items.get(0);                 // item 1
+
+int count = em.createQuery(&quot;update Item i set i.price = i.price + 500&quot;)
+        .executeUpdate();                  // bulk UPDATE
+
+System.out.println(first.getPrice());
+// commit when the method ends</pre>
+<h2>Assumptions of this model</h2>
+<p>This lab assumes one simple entity, Item, whose id is set directly in the code, run in one transaction and one persistence context. All 66 combinations of 3 methods, 5 ways of reading, whether there is an unflushed change, and the item counts 2, 3, and 8 (the &quot;read&quot; setting is not used for &quot;Change the entities one by one&quot;) were run on real Hibernate 7.4.5 and an H2 database, and the kind and order of the SQL sent, the return value of executeUpdate, the value read, the value in the DB after it ended, and the exception were confirmed to match the screen. The SQL on the screen is shortened to be easy to read. The flush just before the bulk operation is the behavior under the default setting (FlushMode AUTO). The exception when refreshing a deleted row was Hibernate's UnresolvableObjectException in this environment (the JPA documentation lists EntityNotFoundException for this case). Spring Data JPA's @Modifying(clearAutomatically = true) was not run in this environment, and the explanation follows the documentation. A bulk UPDATE on an entity with @Version, the relationship between bulk operations and the second-level cache, and bulk operations run as native SQL are not covered.</p>
+<p>Previous lab: <a href="../../lab/fetchjoin/">JPQL and fetch joins</a> · Next lab: <a href="../../lab/datajpa/">Spring Data JPA</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

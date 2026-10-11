@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Querying directly into a DTO: What is the difference between querying entities and copying them, and querying directly into a DTO? · Dev Learning Lab</title>
+<meta name="description" content="To show only the name and age of each member on a screen, querying entities reads every column of the member and then copies only the values you need into…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dtoquery/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dtoquery/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/dtoquery/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Querying directly into a DTO: What is the difference between querying entities and copying them, and querying directly into a DTO? · Dev Learning Lab">
+<meta property="og:description" content="To show only the name and age of each member on a screen, querying entities reads every column of the member and then copies only the values you need into…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/dtoquery/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Web applications and performance</p>
+<h1>Querying directly into a DTO</h1>
+<p><b>What is the difference between querying entities and copying them, and querying directly into a DTO?</b></p>
+<p>To show only the name and age of each member on a screen, querying entities reads every column of the member and then copies only the values you need into a DTO. With new in JPQL, you can pick only the values you need and receive them directly as a DTO. Compare the two approaches: the number of columns in the SELECT clause, the extra queries that are sent, the objects the persistence context manages, and the UPDATE that is sent when you change a value.</p>
+<p>Checked against real execution · Twelve combinations were run on Hibernate 7.4.5 and H2, and the number of SELECT statements, the number of columns, the number of managed entities, and the number of UPDATE statements were checked</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>DTO</dt>
+<dd>This is short for Data Transfer Object, a simple object made to carry values between layers or to a screen. Unlike an entity, it has no @Entity and is not connected to a table, so the persistence context does not manage it, and changing its values does not change the DB. If you put only the values the screen needs into it, the shape of the response does not change along with the structure of the entity, and you can also prevent values that must not be sent out from slipping out. You can query an entity and then copy its values into a DTO, or you can have the query pick only the values you need and receive them directly as a DTO.</dd>
+<dt>JPQL constructor expression</dt>
+<dd>This is the syntax in which you write new package.Class(value, value) in the select clause of JPQL to receive the query result directly as objects of a class that is not an entity. The SELECT clause of the SQL contains only the columns that correspond to the values passed to the constructor, and the constructor of that class is called for each row. The result is not an entity, so the persistence context does not manage it, and it is not a target of dirty checking. The JPA standard requires the class name to be written including the package, and the class must have a constructor whose number and types of parameters match the values you pass.</dd>
+<dt>Persistence context</dt>
+<dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it. (It is outside the top 50, but it is a concept that always comes up as a follow-up question when you use JPA.)</dd>
+<dt>Dirty checking</dt>
+<dd>The feature that automatically runs UPDATE statements for changed entities. When the values of an entity managed by the persistence context change, JPA compares the entity with the state it first read when the transaction commits, and it runs an UPDATE statement for each entity whose values differ. By default, Hibernate puts all columns in the UPDATE statement, not only the changed columns. To include only the changed columns, use @DynamicUpdate. So if you only change the values of an entity that you loaded, the change is applied to the database without calling a separate save method.</dd>
+<dt>N+1 selects problem</dt>
+<dd>The problem where, after 1 query loads a list, 1 more query runs for each of the N results to load its associated data, so N more queries run in total. As the data grows, the number of queries grows in proportion and performance drops sharply. To solve it, load the associated data together in a single query (fetch join) or load several items in one batch (batch fetching).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Query entities and copy them, including the team name. 3 SELECT statements are sent.</li>
+<li><b>Query directly into a DTO</b> — One SELECT that reads only 3 columns.</li>
+<li><b>When only name and age are needed: entity</b> — Only 2 values are used, but all 6 columns are read.</li>
+<li><b>When only name and age are needed: DTO</b> — Only 2 columns are read, and no entities are managed.</li>
+<li><b>Changing a value of the entity</b> — Even without calling save, an UPDATE is sent at commit.</li>
+<li><b>Changing a value of the DTO</b> — The same setName, but no UPDATE is sent.</li>
+<li><b>Query with a fetch join</b> — There is one SELECT, but it reads 8 columns, including the team columns.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>em.createQuery(&quot;select m from Member m&quot;): The whole Member entity is queried. The SELECT clause has all 6 columns of the member (id, name, age, email, city, team_id). The 4 members that were read are made into entity objects and kept in the persistence context, and their initial values are saved as snapshots. The team uses lazy fetching, so it has not been read yet.</li>
+<li>Copying member 1 into a DTO: At the moment m.getTeam().getName() gets the team name, a separate SELECT is sent for team 1, which has not been read yet (lazy fetching). The team that was read is also managed by the persistence context.</li>
+<li>Copying member 2 into a DTO: Team 1 of this member was read earlier and is in the persistence context, so no query is sent.</li>
+<li>Copying member 3 into a DTO: At the moment m.getTeam().getName() gets the team name, a separate SELECT is sent for team 2, which has not been read yet (lazy fetching). The team that was read is also managed by the persistence context.</li>
+<li>Copying member 4 into a DTO: Team 2 of this member was read earlier and is in the persistence context, so no query is sent.</li>
+<li>End of the method, commit: Just before the commit, the 6 managed entities are compared with their snapshots. Nothing differs, so there is no SQL to send. Even for a screen that only displays data, the work of making snapshots and comparing them still happens.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>SELECT statements sent: 3 (1 for members + 2 for teams). Columns in the first SELECT: 6. Entities managed by the persistence context: 6. UPDATE statements sent: 0.</li>
+<li>The list was queried once, but as many extra SELECT statements as there are teams were sent to read the teams. This is the N+1 selects problem. It often occurs when you query entities and then put associated values into a DTO.</li>
+<li>The entity you queried is managed by the persistence context. When you change a value, an UPDATE is sent at commit, so when the goal is to modify data, this approach is the right one. When you only display data, making snapshots and comparing them is wasted work.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Entity
+class Member {
+    @Id Long id;
+    String name;
+    int age;
+    String email;
+    String city;
+    @ManyToOne(fetch = FetchType.LAZY)
+    Team team;             // Team has id, name, and region
+}
+
+// A class that holds only the values to send to the screen. It is not an entity (the package is dtoquery)
+public class MemberDto {
+    private String name;
+    private int age;
+    private String teamName;
+    public MemberDto(String name, int age, String teamName) {
+        this.name = name; this.age = age; this.teamName = teamName;
+    }
+    public void setName(String name) { this.name = name; }
+}
+
+@Transactional
+public List&lt;MemberDto&gt; list() {
+    List&lt;Member&gt; members = em.createQuery(
+        &quot;select m from Member m&quot;, Member.class)
+        .getResultList();
+
+    List&lt;MemberDto&gt; dtos = new ArrayList&lt;&gt;();
+    for (Member m : members) {
+        dtos.add(new MemberDto(m.getName(), m.getAge(), m.getTeam().getName()));
+    }
+    return dtos;
+}   // commit when the method ends</pre>
+<h2>Assumptions of this model</h2>
+<p>Twelve combinations were actually run on the PC used to write this lab, with Hibernate 7.4.5 and an H2 database, using code with the same structure as the screen, and the number of SELECT statements sent and their target tables, the number of columns in the first SELECT, the number of entities managed by the persistence context, the number of UPDATE statements sent at commit, and the name left in the DB were checked against the screen. All the code was assumed to run inside one transaction (one persistence context). The SQL on the screen is shortened to be easier to read, and the actual shape of the statements and the order of the columns differ depending on the Hibernate version. The fetch join reads 8 columns, not 9, because Hibernate 7.4.5 did not read the member's team_id separately, and this may differ depending on the version. The number of extra queries that read the teams equals the number of different teams that had not been read yet (2 in this example), and this is the value when no batch size is set. The JPA standard requires the class name after new to include the package name. When I ran it on Hibernate 7.4.5, passing MemberDto.class as the result type to createQuery made it work even without the package name, and writing only the class name without a result type made it fail to find the class and throw an exception (SemanticException). Leaving out the package name is not behavior that the standard guarantees. The feature of Spring Data JPA that lets you receive only the values you need through an interface or a record (projections) is not covered in this lab.</p>
+<p>Previous lab: <a href="../../lab/stock/">Stock decrement and locks</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

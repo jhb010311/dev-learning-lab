@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proxies and reverse proxies: How does a server behind a proxy know who sent the request? · Dev Learning Lab</title>
+<meta name="description" content="A proxy is an intermediate server that receives requests on behalf of someone and passes them on somewhere else. A proxy that stands on the client side an…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/revproxy/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/revproxy/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/revproxy/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Proxies and reverse proxies: How does a server behind a proxy know who sent the request? · Dev Learning Lab">
+<meta property="og:description" content="A proxy is an intermediate server that receives requests on behalf of someone and passes them on somewhere else. A proxy that stands on the client side an…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/revproxy/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › In front of the web server</p>
+<h1>Proxies and reverse proxies</h1>
+<p><b>How does a server behind a proxy know who sent the request?</b></p>
+<p>A proxy is an intermediate server that receives requests on behalf of someone and passes them on somewhere else. A proxy that stands on the client side and acts for the client is a forward proxy, and a proxy that stands on the server side and acts for the server is a reverse proxy. Either way, it is the proxy that actually opens the connection to the server, so the address the server sees at the other end of the connection is the address of the proxy, not of the client. That is why a proxy passes on the original information in a header such as X-Forwarded-For, but this header is also one that a client can write with any value it likes. Change the settings and see whom the server decides the client is.</p>
+<p>Checked against real execution · Proxy and server built with Node 24 on three loopback addresses (127.0.0.10, 20, 30); 42 combinations run with the Node http and https modules and curl 8.21 and checked. The proxy is a test one built for this purpose; the behavior of products such as nginx is based on the documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Forward proxy</dt>
+<dd>A forward proxy is an intermediate server that stands on the client side and sends the client's requests on to outside servers on its behalf. The client sets the address of the proxy and goes through it on purpose, and the remote address that a server sees is the proxy, not the client. It is used to collect and log or block the requests that go out from a company or a school in one place, or to hide the address of the client. It is the opposite of a reverse proxy, which stands on the server side and acts for the server, in terms of whom it acts for.</dd>
+<dt>Reverse proxy</dt>
+<dd>A server that receives client requests on behalf of internal servers, forwards them to those servers, and returns their responses to the client. The client does not know the actual servers directly. Its roles include distributing requests across several servers, handling TLS, caching, and protecting the internal servers.</dd>
+<dt>X-Forwarded-For</dt>
+<dd>X-Forwarded-For is a request header in which a proxy writes the address of the original client when it passes a request on. The remote address that a server behind a proxy sees is the proxy, so the address of the real client is passed on only through this header. When a request goes through several proxies, each proxy appends the address of whoever connected to it at the end, separated by a comma. It is a request header, so a client can also write any value into it; a server must use only the values added by a trusted proxy that it manages (the values on the right), and must not read it at all if it is not behind a proxy. It is a widely used convention, not a standard, and the standard header that does the same job is Forwarded.</dd>
+<dt>X-Forwarded-Proto and TLS termination</dt>
+<dd>TLS termination is a setup in which a reverse proxy or a load balancer receives the HTTPS connection of the client, removes the encryption, and passes the request on to the server behind it as unencrypted HTTP. Certificate management and encryption work can be gathered in one place. In this setup the server behind sees only an HTTP connection, so the proxy tells it the protocol the client originally used with the X-Forwarded-Proto: https header. If the server does not read this header, it may build redirect addresses with http:// or misjudge the conditions for secure cookies. Like X-Forwarded-For, use only the values added by a trusted proxy.</dd>
+<dt>HTTPS and TLS</dt>
+<dd>HTTPS is HTTP communication encrypted with TLS. TLS keeps third parties from seeing the content (confidentiality), keeps it from being changed on the way (integrity), and uses a certificate to check that the server you connected to is the real one (authentication). SSL is the protocol that came before TLS. It is now deprecated and only TLS is actually used, but the name SSL is still used alongside it by habit.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The fake address that the client wrote stays leftmost, and the server trusts it.</li>
+<li><b>If the server reads the rightmost value</b> — The proxy added this value itself, so the server is not fooled by the spoofing.</li>
+<li><b>If the proxy writes a new value</b> — The value that the client wrote never reaches the server.</li>
+<li><b>If the server looks only at the remote address</b> — Every user appears as the address of the one proxy.</li>
+<li><b>If the proxy adds nothing</b> — The server cannot know the original address, or that the request was originally HTTPS.</li>
+<li><b>Forward proxy</b> — A proxy that the client goes through on purpose. The server sees only the proxy.</li>
+<li><b>If a server with no proxy trusts the header</b> — Even with a direct connection, it is fooled by a fake address.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The client (203.0.113.7) requests https://shop.example/whoami. What the name shop.example points to is actually a reverse proxy. The client has not configured anything, and it takes whatever it just connected to as the server. It does not know that the real server is behind it. This client wrote an X-Forwarded-For: 198.51.100.99 header into the request itself. A request header is just text that the sender can fill in however it likes.</li>
+<li>The reverse proxy decrypts the HTTPS traffic, opens a new TCP connection to the real server on the internal network (10.0.0.9), and passes the request on as HTTP. This proxy writes the address of whoever connected to it (203.0.113.7) into X-Forwarded-For and passes it on. There is already a value, so it appends the address after it, separated by a comma. It also writes the protocol the client originally used as X-Forwarded-Proto: https.</li>
+<li>The server checks the remote address of the connection. It is 10.0.0.5, the address of the proxy, because it is the proxy that opened the TCP connection to the server. The connection alone does not tell who the real client is. The connection it received is also plain HTTP, not encrypted.</li>
+<li>The X-Forwarded-For of the request the server received is &quot;198.51.100.99, 203.0.113.7&quot;. The left value was written by the client, and the right value was appended by the proxy. You cannot tell the two apart from the header alone; you can tell only by their positions. X-Forwarded-Proto: https also arrived.</li>
+<li>The server takes the leftmost value of X-Forwarded-For as the client address. The result is 198.51.100.99. This is a fake address that the client wrote itself. The server trusted a spoofed address.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The remote address the server saw is 10.0.0.5 (proxy), the X-Forwarded-For it received is 198.51.100.99, 203.0.113.7, and the client address it decided on is 198.51.100.99 (Fooled by a spoofed address).</li>
+<li>A reverse proxy stands on the server side and acts for the server. The client takes the proxy to be the server and does not know about the real server behind it. The proxy takes over jobs such as handling HTTPS, distributing requests across several servers, and keeping copies of responses, in front of the server.</li>
+<li>X-Forwarded-For is a header that a client can also write. When the proxy appends to it, the leftmost value may have been written by the client. The value you can trust is the rightmost one, which was appended by a proxy you manage.</li>
+<li>The connection the server received is HTTP, but thanks to X-Forwarded-Proto: https it knows that the user originally connected over HTTPS. Like X-Forwarded-For, this header should be used only when it was added by a trusted proxy.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Reverse proxy: receives HTTPS and passes requests on to the server behind it (10.0.0.9)
+https.createServer(tls, (req, res) =&gt; {
+    const headers = { ...req.headers };
+    const peer = req.socket.remoteAddress;               // address of whoever connected to this proxy
+    const old = headers['x-forwarded-for'];
+    headers['x-forwarded-for'] = old ? old + ', ' + peer : peer;   // appends it after the received value
+    headers['x-forwarded-proto'] = 'https';                  // the original protocol the client used
+    const to = { host: '10.0.0.9', port: 8080, path: req.url };
+    http.request({ ...to, method: req.method, headers }, up =&gt; {
+        res.writeHead(up.statusCode, up.headers);
+        up.pipe(res);                                      // sends the response of the server back to the client as it is
+    }).end();
+});
+
+// Server: decides who made the request
+http.createServer((req, res) =&gt; {
+    const xff = req.headers['x-forwarded-for'];
+    const client = xff ? xff.split(',')[0].trim()             // leftmost value
+                       : req.socket.remoteAddress;
+    res.end(client);
+});
+
+// Client
+// curl -H 'X-Forwarded-For: 198.51.100.99' https://shop.example/whoami</pre>
+<h2>Assumptions of this model</h2>
+<p>All 42 distinct combinations (proxy settings are not used for a direct connection) were run on the PC used to write this lab, and all five columns were confirmed to match the model. The client, the proxy, and the server were started on three loopback addresses of this PC (127.0.0.10, 127.0.0.20, 127.0.0.30), requests were sent to a small proxy and server built with Node.js 24 by two kinds of client (the http and https modules of Node, and curl 8.21), and the remote address and the headers that the server actually saw were recorded. The results of the two clients were the same in every combination. The reverse proxy received HTTPS with a test certificate and passed requests on to the server as HTTP, and the forward proxy was sent requests with the -x option of curl, which confirmed that the full address is carried in the request line. The addresses on the screen (203.0.113.7, 198.51.100.99, 192.0.2.50) are addresses set aside for documentation examples, and 10.0.0.x are private network addresses; they are written in place of the loopback addresses used in the test. The proxy is a test one built for this purpose, so it may differ from the default behavior of real products. For example, unless you configure it otherwise, nginx passes the received headers on as they are, and in proxy_set_header X-Forwarded-For, $proxy_add_x_forwarded_for corresponds to &quot;appending&quot; and $remote_addr corresponds to &quot;writing a new value&quot; (based on the nginx documentation; not confirmed by execution). X-Forwarded-For and X-Forwarded-Proto are not standards but widely used conventions, and the standard header that carries the same information is Forwarded (RFC 7239). When an HTTPS request is sent through a forward proxy, the proxy only connects a tunnel (CONNECT) whose content it cannot see, so it cannot add headers; the forward proxy in this lab handled only HTTP requests. That the server uses the remote address of the connection instead when there is no header is a rule set in this model. Chains of several proxies and the distribution by a load balancer were not covered.</p>
+<p>Previous lab: <a href="../../lab/scale/">Load balancers and scale out</a> · Next lab: <a href="../../lab/cdn/">CDN</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

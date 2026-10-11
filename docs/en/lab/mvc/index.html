@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spring MVC request flow: How one request reaches the controller, and how it goes back · Dev Learning Lab</title>
+<meta name="description" content="An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/mvc/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/mvc/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/mvc/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Spring MVC request flow: How one request reaches the controller, and how it goes back · Dev Learning Lab">
+<meta property="og:description" content="An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/mvc/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
+<h1>Spring MVC request flow</h1>
+<p><b>How one request reaches the controller, and how it goes back</b></p>
+<p>An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse. Go through the steps to see which steps are skipped and what produces the response when the request is rejected along the way or an exception is thrown.</p>
+<p>Checked against real execution · Checked by sending 16 kinds of requests to a Spring Boot 4.1.1 server</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>DispatcherServlet and the front controller pattern</dt>
+<dd>This is the servlet in Spring MVC that receives every HTTP request first. It coordinates the whole flow: it finds and calls the controller that handles the request, and it turns the result into a response. A structure like this, in which a single entry point receives all requests, does the common processing, and then hands each request to the part responsible for it, is called the front controller pattern.</dd>
+<dt>HandlerMapping and HandlerAdapter</dt>
+<dd>These are components that DispatcherServlet uses when it processes a request. HandlerMapping finds the handler (controller method) that matches the request URL and method. HandlerAdapter actually runs the handler that was found: it converts the request data to fit the method's parameters, passes it in, and processes the return value.</dd>
+<dt>HandlerMethodArgumentResolver</dt>
+<dd>This component takes a value out of the request and builds it so that it can be passed to a parameter of a controller method. Parameters annotated with @RequestParam, @PathVariable, @RequestBody, and so on are filled in through it. If you implement your own, a controller can receive a recurring value, such as the logged-in user's information, directly as a parameter.</dd>
+<dt>HttpMessageConverter</dt>
+<dd>This component converts an HTTP request body to a Java object, and a Java object to an HTTP response body. @RequestBody and @ResponseBody use it. For JSON, a converter that uses the Jackson library does the conversion.</dd>
+<dt>Servlet filter</dt>
+<dd>This component intercepts and processes requests and responses at the servlet container level, and it is part of the Servlet standard. It acts before a request reaches DispatcherServlet and on the way back of the response, and it is used for work that spans all requests, such as setting the encoding, handling CORS, and authentication. Spring Security also works as a group of these components.</dd>
+<dt>Interceptor (HandlerInterceptor)</dt>
+<dd>This component runs before and after controller execution, inside Spring MVC. It can step in at three points: before the controller runs (preHandle), after it runs (postHandle), and after request processing is complete (afterCompletion). It can also know which controller method will run. A filter is a feature of the servlet container, while this component is a feature of Spring.</dd>
+<dt>@ControllerAdvice and @ExceptionHandler</dt>
+<dd>This feature lets you handle the exceptions raised in several controllers in one place. If you put an @ExceptionHandler method for each kind of exception inside an @ControllerAdvice class, an exception raised while a controller runs is passed to that method, which can build an error response in a consistent format.</dd>
+<dt>ViewResolver</dt>
+<dd>This component turns the view name (a string) returned by a controller into the view object that actually renders the page. It is used when the server builds HTML and sends it as the response, and it is not used in a REST API that responds with JSON directly.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The full path of a JSON API request that is handled normally.</li>
+<li><b>A controller that returns a view</b> — The ViewResolver and view rendering step is added.</li>
+<li><b>Exception in the controller</b> — An @ExceptionHandler produces the response. postHandle is skipped.</li>
+<li><b>With nothing to handle the exception</b> — The exception propagates up to the servlet container and becomes a 500 response.</li>
+<li><b>Rejected by a filter</b> — The request does not even reach DispatcherServlet. @ControllerAdvice cannot take part either.</li>
+<li><b>Stopped by the interceptor</b> — The request goes back without the controller being called.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>POST /orders arrives at the servlet container (Tomcat) and enters the filter chain. Filters work outside Spring MVC, at the servlet level. The encoding, authentication, and logging filters each call chain.doFilter in turn to pass the request on.</li>
+<li>DispatcherServlet receives the request. Every request comes in through this one servlet, which sends each request to the right controller (the front controller pattern).</li>
+<li>HandlerMapping looks for the handler for POST /orders. It returns the create method annotated with @PostMapping(&quot;/orders&quot;) together with the list of interceptors that apply to this path.</li>
+<li>A HandlerAdapter is chosen. RequestMappingHandlerAdapter, which knows how to run annotated controller methods, is selected.</li>
+<li>The preHandle method of the interceptor runs and returns true. Unlike a filter, an interceptor works knowing which controller method is going to run.</li>
+<li>HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter annotated with @RequestBody, HttpMessageConverter (Jackson) converts the JSON in the request body into an OrderRequest object and fills it in.</li>
+<li>The controller method runs. It calls the service layer to do the actual business work.</li>
+<li>The return value is handled. Because this is an @RestController, no view is looked up, and HttpMessageConverter (Jackson) converts the OrderResponse object into JSON and writes it directly to the response body.</li>
+<li>The postHandle method of the interceptor is called. The response body was already written in the previous step, so it is too late to change the response here.</li>
+<li>The afterCompletion method of the interceptor is called. This is after the response has been written, and it is called whether or not an exception was thrown.</li>
+<li>The response goes out to the client back through the filter chain. Filter code written after the chain.doFilter call runs at this point.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The final response is 200 OK + JSON. Response produced by: Controller return value.</li>
+<li>Controller method: ran, postHandle: ran, afterCompletion: ran.</li>
+<li>An @RestController does not go through ViewResolver. The returned object becomes the response body directly through HttpMessageConverter.</li>
+</ul>
+<h2>Code</h2>
+<pre>@RestController
+class OrderController {
+    @PostMapping(&quot;/orders&quot;)
+    OrderResponse create(@RequestBody OrderRequest req) {
+        return orderService.create(req);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The lab shows a simple setup with one interceptor and one filter. For all 16 combinations, HTTP requests were sent to a real Spring Boot 4.1.1 server (embedded Tomcat), and the response code, whether the controller, postHandle, and afterCompletion ran, and what produced the response were confirmed to match the screen (the view response was checked by rendering with a view object of the same name instead of a template engine). That an unhandled exception is forwarded again to /error and becomes a 500 response is the default error handling behavior of Spring Boot, and that forwarding is shown as a single step. The case where no controller is mapped to the request (404) is not included, because the path differs depending on the version and the static resource configuration.</p>
+<p>Previous lab: <a href="../../lab/servlet/">Servlets</a> · Next lab: <a href="../../lab/binding/">Request mapping and parameter binding</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

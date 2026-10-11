@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTP 캐시와 ETag: 같은 파일을 또 받을 필요가 있을까 · 개발 학습 실습실</title>
+<meta name="description" content="브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 &quot;얼마 동안 그대로 써도 되는지&quot;와 &quot;내용의 버전 표시(ETag)&quot;를 알려 주면, 브라우저는 요청을 아예 생략하거나 &quot;바뀌었느냐&quot;만 물어볼 수 있습니다. 설정과 시점을 바꿔 가며 오가는 것을 보세…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/etag/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/etag/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/etag/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="HTTP 캐시와 ETag: 같은 파일을 또 받을 필요가 있을까 · 개발 학습 실습실">
+<meta property="og:description" content="브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 &quot;얼마 동안 그대로 써도 되는지&quot;와 &quot;내용의 버전 표시(ETag)&quot;를 알려 주면, 브라우저는 요청을 아예 생략하거나 &quot;바뀌었느냐&quot;만 물어볼 수 있습니다. 설정과 시점을 바꿔 가며 오가는 것을 보세…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/etag/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
+<h1>HTTP 캐시와 ETag</h1>
+<p><b>같은 파일을 또 받을 필요가 있을까</b></p>
+<p>브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 &quot;얼마 동안 그대로 써도 되는지&quot;와 &quot;내용의 버전 표시(ETag)&quot;를 알려 주면, 브라우저는 요청을 아예 생략하거나 &quot;바뀌었느냐&quot;만 물어볼 수 있습니다. 설정과 시점을 바꿔 가며 오가는 것을 보세요.</p>
+<p>실행으로 대조 · 시험 서버와 실제 브라우저로 확인</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>조건부 요청과 ETag</dt>
+<dd>클라이언트가 이미 가지고 있는 데이터가 여전히 최신인지 서버에 확인하는 요청 방식이다. ETag는 자원의 버전을 나타내는 식별 값으로, 클라이언트가 이 값을 요청에 실어 보내면 서버는 자원이 바뀌지 않은 경우 본문 없이 304 Not Modified로 응답한다. 같은 데이터를 다시 전송하지 않아 네트워크 사용을 줄인다.</dd>
+<dt>HTTP 상태 코드</dt>
+<dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
+<dt>캐시</dt>
+<dd>자주 사용하는 데이터나 계산 결과를 빠르게 접근할 수 있는 곳에 미리 저장해 두고 재사용하는 것이다. 원본(주로 데이터베이스)을 매번 조회하지 않아 응답이 빨라지고 원본의 부하가 줄어든다. 대신 원본이 바뀌었을 때 캐시의 값이 오래된 상태로 남는 문제를 관리해야 한다.</dd>
+<dt>CDN</dt>
+<dd>전 세계 여러 지역에 배치된 서버에 콘텐츠의 복사본을 두고, 사용자와 가까운 서버가 응답하게 하는 네트워크다. 이미지, 영상, 스크립트 같은 정적 파일의 전송이 빨라지고 원본 서버로 가는 요청이 줄어든다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 유효 시간이 지난 뒤 다시 요청. 안 바뀌었으면 본문 없이 304만 옵니다.</li>
+<li><b>유효 시간 안에 다시 열면</b> — 서버에 요청조차 보내지 않습니다.</li>
+<li><b>내용이 바뀌었다면</b> — ETag가 달라 새 내용을 200으로 받습니다.</li>
+<li><b>유효 시간 안인데 내용이 바뀌면</b> — 브라우저는 모르고 옛 내용을 씁니다.</li>
+<li><b>no-store</b> — 저장하지 않으므로 매번 전부 다시 받습니다.</li>
+<li><b>no-cache</b> — 저장은 하되 쓸 때마다 서버에 확인합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>처음 여는 주소입니다. 브라우저에 저장된 것이 없으므로 서버에 요청합니다.</li>
+<li>서버가 본문 200KB와 함께 캐시 지시를 내려 줍니다. 브라우저는 본문과 ETag(내용의 버전을 나타내는 표시)를 함께 보관합니다.</li>
+<li>120초 뒤 같은 주소를 다시 엽니다. 유효 시간 60초가 지났습니다. 브라우저는 저장해 둔 것을 버리지 않고, &quot;내가 가진 것은 v1인데 아직 그대로인가?&quot;라고 묻습니다.</li>
+<li>서버의 현재 ETag도 &quot;v1&quot;입니다. 바뀐 것이 없으므로 본문 없이 304만 응답합니다. 브라우저는 저장해 둔 본문을 그대로 쓰고 유효 시간을 다시 시작합니다. 200KB를 다시 보내지 않았습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>두 번째에 서버로 간 요청: GET + If-None-Match. 응답: 304 Not Modified. 두 번 여는 동안 전송된 본문은 합계 200KB입니다.</li>
+<li>304 응답은 본문이 없어 전송량이 거의 없습니다. 다만 요청과 응답의 왕복은 한 번 일어나고, 서버는 현재 ETag를 알기 위해 일을 해야 합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@GetMapping(&quot;/products/{id}&quot;)
+ResponseEntity&lt;Product&gt; get(@PathVariable long id) {
+    Product p = productService.find(id);
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
+        .eTag(&quot;\&quot;v&quot; + p.getVersion() + &quot;\&quot;&quot;)     // 내용의 버전 표시
+        .body(p);
+}
+
+// 요청의 If-None-Match가 현재 ETag와 같으면
+// 스프링이 본문 없이 304 Not Modified로 응답한다</pre>
+<h2>이 모형의 전제</h2>
+<p>본문 크기 200KB는 예시입니다. 캐시 지시와 조건부 요청의 의미는 HTTP 캐시 표준(RFC 9111)과 조건부 요청 정의(RFC 9110)를 따랐습니다. ETag 대신 최종 수정 시각(Last-Modified / If-Modified-Since)으로도 같은 확인을 할 수 있습니다. 사용자가 새로 고침을 누르면 브라우저가 유효 시간과 무관하게 확인 요청을 보내기도 합니다. 로컬 시험 서버와 실제 브라우저(크로미움 기반)로 확인했습니다(유효 시간은 2초로 줄여 시험). 유효 시간 안의 재요청은 서버에 도착하지 않았고, 지난 뒤에는 If-None-Match가 붙어 304가 돌아왔으며, 내용이 바뀐 경우에는 200과 새 본문이 왔습니다. no-store는 두 번 모두 전체를 받았고, no-cache는 바로 다시 요청해도 조건부 요청이 나갔습니다. 유효 시간 안에 서버 내용이 바뀐 경우 브라우저는 옛 내용을 그대로 썼습니다.</p>
+<p>앞 실습: <a href="../../lab/cookie/">쿠키</a> · 다음 실습: <a href="../../lab/idem/">재시도와 멱등성</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

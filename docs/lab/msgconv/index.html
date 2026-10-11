@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REST API와 메시지 컨버터: 컨트롤러가 돌려준 객체는 어디서 JSON이 되나 · 개발 학습 실습실</title>
+<meta name="description" content="컨트롤러 메서드는 자바 객체를 받고 자바 객체를 돌려주는데, 네트워크로 오가는 것은 JSON 같은 글자입니다. 그 사이에서 글자를 객체로, 객체를 글자로 바꾸는 것이 메시지 컨버터입니다. 요청의 Content-Type과 Accept 헤더가 어느 컨버터를 쓸지 정하고, 맞는 컨…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/msgconv/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/msgconv/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/msgconv/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="REST API와 메시지 컨버터: 컨트롤러가 돌려준 객체는 어디서 JSON이 되나 · 개발 학습 실습실">
+<meta property="og:description" content="컨트롤러 메서드는 자바 객체를 받고 자바 객체를 돌려주는데, 네트워크로 오가는 것은 JSON 같은 글자입니다. 그 사이에서 글자를 객체로, 객체를 글자로 바꾸는 것이 메시지 컨버터입니다. 요청의 Content-Type과 Accept 헤더가 어느 컨버터를 쓸지 정하고, 맞는 컨…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/msgconv/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 웹 MVC</p>
+<h1>REST API와 메시지 컨버터</h1>
+<p><b>컨트롤러가 돌려준 객체는 어디서 JSON이 되나</b></p>
+<p>컨트롤러 메서드는 자바 객체를 받고 자바 객체를 돌려주는데, 네트워크로 오가는 것은 JSON 같은 글자입니다. 그 사이에서 글자를 객체로, 객체를 글자로 바꾸는 것이 메시지 컨버터입니다. 요청의 Content-Type과 Accept 헤더가 어느 컨버터를 쓸지 정하고, 맞는 컨버터가 없으면 415나 406이 됩니다. 컨트롤러의 종류와 요청을 바꿔 가며 변환이 어디서 일어나고 어디서 실패하는지 보세요.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1 서버에 열여섯 가지 조합의 요청을 보내 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>HttpMessageConverter</dt>
+<dd>HTTP 요청 본문을 자바 객체로, 자바 객체를 HTTP 응답 본문으로 변환하는 구성 요소다. @RequestBody와 @ResponseBody가 이를 사용한다. JSON의 경우 Jackson 라이브러리를 이용한 컨버터가 변환을 맡는다.</dd>
+<dt>@Controller와 @RestController</dt>
+<dd>@Controller의 메서드가 반환한 문자열은 기본적으로 뷰 이름으로 해석된다. @RestController는 @Controller에 @ResponseBody를 더한 것으로, 메서드가 반환한 객체가 JSON 등으로 변환되어 응답 본문에 바로 쓰인다.</dd>
+<dt>콘텐츠 협상(Accept와 Content-Type)</dt>
+<dd>응답 본문을 어떤 형식으로 받을지 클라이언트와 서버가 헤더로 맞추는 일이다. 클라이언트는 Accept 헤더로 받고 싶은 응답의 형식을 알리고, 서버는 그 가운데 만들 수 있는 형식을 골라 응답의 Content-Type 헤더에 적어 보낸다. 요청에 본문이 있을 때는 클라이언트가 그 본문의 형식을 요청의 Content-Type 헤더로 알리는데, 이것은 협상이 아니라 보내는 쪽이 알려 주는 것이다. 값은 application/json이나 text/html 같은 미디어 타입으로 적는다. 서버가 요청 본문의 형식을 읽지 못하면 415(Unsupported Media Type)로, 원하는 형식의 응답을 만들지 못하면 406(Not Acceptable)으로 응답한다. 스프링은 본문의 내용을 보고 형식을 짐작하지 않고 Content-Type 헤더를 따르므로, JSON을 보내면서 Content-Type을 다르게 적으면 읽지 못한다.</dd>
+<dt>ResponseEntity</dt>
+<dd>응답의 상태 코드와 헤더, 본문을 한꺼번에 담아 컨트롤러가 돌려주는 객체다. 객체만 돌려주면 상태 코드는 200으로 정해지지만, ResponseEntity.status(201).body(객체)나 ResponseEntity.created(주소).body(객체)처럼 쓰면 상태 코드와 헤더를 컨트롤러가 직접 정할 수 있다. 본문으로 담은 객체는 그냥 돌려줄 때와 똑같이 메시지 컨버터가 JSON 등으로 바꾼다. 경우에 따라 다른 상태 코드를 돌려줘야 하는 메서드나 @ExceptionHandler에서 주로 쓴다.</dd>
+<dt>ViewResolver</dt>
+<dd>컨트롤러가 반환한 뷰 이름(문자열)을 실제 화면을 그릴 뷰 객체로 바꿔 주는 구성 요소다. 서버에서 HTML을 만들어 응답하는 방식에서 사용하며, JSON을 직접 응답하는 REST API에서는 사용되지 않는다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 응답을 XML로 달라는 요청입니다. 406으로 거절되지만 컨트롤러는 이미 실행된 뒤입니다.</li>
+<li><b>올바른 JSON 요청</b> — JSON이 객체가 되고, 돌려준 객체가 다시 JSON이 됩니다.</li>
+<li><b>ResponseEntity로 201과 헤더 정하기</b> — 상태 코드와 Location 헤더를 컨트롤러가 직접 정합니다.</li>
+<li><b>@Controller가 문자열을 돌려주면</b> — 본문이 아니라 화면 이름으로 해석됩니다.</li>
+<li><b>@RestController가 문자열을 돌려주면</b> — 같은 문자열이 글자 그대로 본문이 됩니다. JSON으로 바뀌지 않습니다.</li>
+<li><b>Content-Type을 잘못 적으면</b> — 본문 내용이 JSON이어도 415로 거절됩니다.</li>
+<li><b>JSON이 깨져 있으면</b> — 컨버터가 읽다가 실패해 400이 됩니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>요청이 도착합니다: POST /orders. Content-Type 헤더(application/json)는 &quot;내가 보내는 본문의 형식&quot;을, Accept 헤더(application/xml)는 &quot;내가 받고 싶은 응답의 형식&quot;을 알려 줍니다.</li>
+<li>@RequestBody OrderRequest req: 컨트롤러를 부르기 전에 요청 본문을 OrderRequest 객체로 바꿔야 합니다. 스프링은 Content-Type 헤더를 보고 읽을 컨버터를 고릅니다. application/json이므로 JSON 메시지 컨버터(Jackson)가 맡습니다.</li>
+<li>JSON 읽기: Jackson이 본문의 JSON에서 이름이 같은 값을 찾아 OrderRequest 객체(item은 &quot;book&quot;, qty는 2)를 만듭니다. 글자가 자바 객체가 됐습니다.</li>
+<li>create(req) 실행: 컨트롤러 메서드가 주문을 만들고 OrderResponse 객체를 돌려줍니다.</li>
+<li>@RestController: 이 애노테이션은 @Controller에 @ResponseBody를 더한 것입니다. @ResponseBody가 있으면 돌려준 값을 화면 이름으로 보지 않고, 메시지 컨버터로 응답 본문에 직접 씁니다.</li>
+<li>응답 형식 고르기: 클라이언트는 Accept로 application/xml을 원합니다. 이 서버에는 OrderResponse 객체를 XML로 만들 줄 아는 컨버터가 없습니다. &quot;원하는 형식으로는 줄 수 없다&quot;는 뜻의 406으로 응답합니다(HttpMediaTypeNotAcceptableException). 컨트롤러 메서드는 이미 실행된 뒤이므로 주문은 만들어진 상태입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>응답은 406 Not Acceptable이고, 컨트롤러 메서드는 실행됐습니다.</li>
+<li>406은 &quot;원하는 응답 형식(Accept)으로는 줄 수 없다&quot;는 뜻입니다. 응답을 쓰는 단계에서 정해지므로, 응답은 실패인데 주문은 이미 만들어져 있습니다. @PostMapping에 produces = &quot;application/json&quot;을 적어 두면 Accept가 맞지 않는 요청을 컨트롤러를 고르는 단계에서 걸러 내, 컨트롤러가 실행되지 않습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 보내는 요청
+// POST /orders
+// Content-Type: application/json
+// Accept: application/xml
+//
+// {&quot;item&quot;: &quot;book&quot;, &quot;qty&quot;: 2}
+
+record OrderRequest(String item, int qty) { }
+record OrderResponse(long id, String item, int qty) { }
+
+@RestController                        // @Controller + @ResponseBody
+class OrderController {
+
+    @PostMapping(&quot;/orders&quot;)
+    OrderResponse create(@RequestBody OrderRequest req) {
+        return new OrderResponse(1, req.item(), req.qty());
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>컨트롤러 네 가지와 요청 네 가지를 곱한 열여섯 조합을 모두 실제 스프링 부트 4.1.1 서버(스프링 프레임워크 7.0.9, 내장 톰캣 11, Jackson 3)에 HTTP 요청으로 보내, 상태 코드와 컨트롤러 실행 여부, 스프링이 던진 예외의 이름, 요청 본문을 읽은 컨버터와 응답 본문을 쓴 컨버터, 성공한 응답의 Content-Type과 Location 헤더가 화면과 일치하는 것을 확인했습니다. 오류 응답(400, 406, 415)의 본문과 Content-Type은 버전과 설정에 따라 달라서 결과로 삼지 않았습니다. 대조한 서버에는 XML을 만드는 라이브러리가 없습니다. jackson-dataformat-xml 같은 라이브러리를 넣으면 Accept: application/xml 요청에 XML로 응답하므로 406이 되지 않습니다. 컨버터의 클래스 이름(JacksonJsonHttpMessageConverter)은 스프링 7 기준이고, 그 전 버전에서는 이름이 다릅니다. 응답의 Content-Type은 형식 이름만 보였습니다(실제로는 뒤에 charset이 붙기도 합니다). @Controller가 돌려준 화면 이름은 템플릿 엔진 대신 같은 이름의 뷰 객체를 등록해 확인했습니다. 화면을 돌려주는 요청이 Accept와 관계없이 200이 된 것은 이 구성에서 본 결과이며, 뷰 설정에 따라 다를 수 있습니다. 화면에 없는 경우도 같은 서버에서 확인했습니다. 그 이름의 화면이 없으면 404였고(템플릿 엔진을 쓰면 다른 오류가 될 수 있으며 그것은 확인하지 않았습니다), @Controller의 메서드에 @ResponseBody를 붙이면 @RestController와 같은 결과였고, produces = &quot;application/json&quot;을 적은 메서드는 Accept: application/xml 요청에 컨트롤러를 실행하지 않고 406으로 응답했습니다. Accept 헤더 없이 보내면 객체는 JSON으로, 문자열은 text/plain으로 나갔습니다. ResponseEntity를 돌려주고 406이 된 조합에서는 응답에 Location 헤더가 남아 있었는데, 이것은 버전에 따라 다를 수 있어 화면에 넣지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/validation/">검증</a> · 다음 실습: <a href="../../lab/autoconf/">스프링 부트 자동 설정</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

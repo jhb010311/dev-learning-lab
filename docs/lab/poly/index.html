@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>다형성과 메서드 선택: 어느 메서드가 실행될지는 누가, 언제 정하나 · 개발 학습 실습실</title>
+<meta name="description" content="변수의 선언 타입과 실제 들어 있는 객체의 타입이 다를 수 있습니다. 오버라이딩한 메서드는 실행 시점에 실제 객체를 보고 고르지만, 오버로딩, static 메서드, 필드는 컴파일 시점에 선언 타입만 보고 정해집니다. 조합을 바꿔 가며 결과를 예상해 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/poly/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/poly/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/poly/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="다형성과 메서드 선택: 어느 메서드가 실행될지는 누가, 언제 정하나 · 개발 학습 실습실">
+<meta property="og:description" content="변수의 선언 타입과 실제 들어 있는 객체의 타입이 다를 수 있습니다. 오버라이딩한 메서드는 실행 시점에 실제 객체를 보고 고르지만, 오버로딩, static 메서드, 필드는 컴파일 시점에 선언 타입만 보고 정해집니다. 조합을 바꿔 가며 결과를 예상해 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/poly/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
+<h1>다형성과 메서드 선택</h1>
+<p><b>어느 메서드가 실행될지는 누가, 언제 정하나</b></p>
+<p>변수의 선언 타입과 실제 들어 있는 객체의 타입이 다를 수 있습니다. 오버라이딩한 메서드는 실행 시점에 실제 객체를 보고 고르지만, 오버로딩, static 메서드, 필드는 컴파일 시점에 선언 타입만 보고 정해집니다. 조합을 바꿔 가며 결과를 예상해 보세요.</p>
+<p>실행으로 대조 · JDK 21에서 모든 조합을 컴파일·실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>다형성</dt>
+<dd>같은 타입의 참조로 같은 메서드를 호출해도 실제 객체의 종류에 따라 다른 동작이 실행되는 성질이다. 상위 타입(인터페이스나 상위 클래스) 변수에 여러 하위 타입 객체를 담을 수 있고, 어떤 구현이 실행될지는 실행 시점에 결정된다(동적 바인딩). 호출하는 코드를 바꾸지 않고 새로운 구현을 추가할 수 있게 해 준다.</dd>
+<dt>오버라이딩</dt>
+<dd>상위 클래스(또는 인터페이스)의 메서드를 하위 클래스에서 같은 시그니처로 다시 정의하는 것이다. 실행 시점에 실제 객체의 타입에 맞는 메서드가 호출되어 다형성을 구현한다. 접근 범위를 더 좁힐 수 없고, static·private·final 메서드는 오버라이딩할 수 없다.</dd>
+<dt>오버로딩</dt>
+<dd>같은 이름의 메서드를 매개변수의 개수나 타입을 다르게 해서 여러 개 정의하는 것이다. 어떤 메서드가 호출될지는 컴파일 시점에 인자의 타입을 보고 결정된다. 반환 타입만 다른 것은 오버로딩이 아니며 컴파일 오류다.</dd>
+<dt>static</dt>
+<dd>인스턴스가 아니라 클래스에 속하는 멤버임을 나타내는 키워드다. static 필드는 클래스당 하나만 존재해 모든 인스턴스가 공유하고, static 메서드는 객체를 만들지 않고 호출한다. 값이 바뀌는 static 필드는 사실상 전역 변수이므로 여러 스레드가 동시에 접근할 때 문제가 되기 쉽다.</dd>
+<dt>상속</dt>
+<dd>기존 클래스(상위 클래스)의 필드와 메서드를 물려받아 새 클래스(하위 클래스)를 정의하는 것이다. 공통 코드를 재사용하고 하위 클래스에서 필요한 부분만 추가하거나 재정의한다. 자바의 클래스는 단일 상속만 가능하며, 상위 클래스 변경이 하위 클래스 전체에 영향을 주므로 &quot;is-a&quot; 관계가 분명할 때만 쓰는 것이 좋다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — Animal 변수에 Dog 객체. 오버라이딩된 메서드는 Dog 것이 실행됩니다.</li>
+<li><b>같은 변수를 오버로딩 메서드에 넘기면</b> — 실제 객체가 Dog인데도 print(Animal)이 선택됩니다.</li>
+<li><b>static 메서드는</b> — 오버라이딩되지 않습니다. 선언 타입의 것이 불립니다.</li>
+<li><b>필드는</b> — 필드도 다형성이 적용되지 않습니다.</li>
+<li><b>선언 타입을 Dog로 바꾸면</b> — 오버로딩에서 print(Dog)가 선택됩니다.</li>
+<li><b>Dog 변수에 Animal 객체</b> — 컴파일되지 않습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>컴파일 시점: Animal a = new Dog(). 변수 a의 선언 타입은 Animal이고, 실행되면 힙에 Dog 객체가 만들어집니다. 둘이 다릅니다.</li>
+<li>컴파일 시점: 컴파일러는 선언 타입 Animal에 sound()가 있는지만 확인합니다. 어느 클래스의 sound()를 실행할지는 정하지 않고 &quot;sound()를 호출하라&quot;는 지시만 남깁니다.</li>
+<li>실행 시점: JVM이 a가 가리키는 실제 객체의 클래스(Dog)를 확인하고, 그 클래스의 sound()를 찾아 실행합니다(동적 바인딩).</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>출력: Dog.sound. 실행 시점에 실제 객체 (Dog)을 기준으로 정해졌습니다.</li>
+<li>오버라이딩된 인스턴스 메서드는 변수의 선언 타입이 아니라 실제 객체의 타입으로 정해집니다. 이것이 다형성이며, 스프링이 인터페이스 타입으로 주입받은 구현체를 실행할 수 있는 원리입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>class Animal {
+    String name = &quot;동물&quot;;
+    void sound()       { System.out.println(&quot;Animal.sound&quot;); }
+    static void info() { System.out.println(&quot;Animal.info&quot;); }
+}
+class Dog extends Animal {
+    String name = &quot;개&quot;;                 // 같은 이름의 필드
+    @Override
+    void sound()       { System.out.println(&quot;Dog.sound&quot;); }
+    static void info() { System.out.println(&quot;Dog.info&quot;); }
+}
+class Printer {
+    void print(Animal x) { System.out.println(&quot;print(Animal)&quot;); }
+    void print(Dog x)    { System.out.println(&quot;print(Dog)&quot;); }
+}
+
+Animal a = new Dog();
+a.sound();</pre>
+<h2>이 모형의 전제</h2>
+<p>모든 조합의 출력은 이 PC의 JDK 21에서 같은 코드를 실제로 컴파일·실행한 결과와 대조했습니다. 변수를 통해 static 메서드를 호출하는 a.info()는 문법상 가능하지만 권장되지 않는 방식이며, 선언 타입 기준으로 정해진다는 점을 보이려고 넣었습니다.</p>
+<p>앞 실습: <a href="../../lab/inherit/">상속과 오버라이딩</a> · 다음 실습: <a href="../../lab/absint/">인터페이스와 추상 클래스</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

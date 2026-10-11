@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detached entities and merge: Why were other values erased when I only fixed the name with merge? · Dev Learning Lab</title>
+<meta name="description" content="A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One i…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/merge/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/merge/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/merge/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Detached entities and merge: Why were other values erased when I only fixed the name with merge? · Dev Learning Lab">
+<meta property="og:description" content="A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One i…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/merge/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Persistence context</p>
+<h1>Detached entities and merge</h1>
+<p><b>Why were other values erased when I only fixed the name with merge?</b></p>
+<p>A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change. Compare how the values left in the DB differ between the two ways.</p>
+<p>Checked against real execution · 18 combinations were run on Hibernate 7.4.5 and H2, and the SQL of each line and the values left in the DB were checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Detached entity</dt>
+<dd>The state of an entity that the persistence context managed but no longer manages. When you detach an entity with em.detach, empty the persistence context with em.clear, or close it with em.close, the entities that were in it become detached. A detached entity still has its identifier (id) value, but it is like an ordinary Java object, so even if you change its values, no UPDATE is sent and no exception is thrown. An object created with new from the values received from a screen is also treated as detached if it has the id of a row that already exists in the DB. You often meet it in code that modifies an entity after the transaction has ended.</dd>
+<dt>Merge operation</dt>
+<dd>The feature that copies the values of a detached object onto a managed entity so that they are applied to the DB, called with em.merge. It finds the managed entity with the id of the object you passed (reading it with a SELECT if it is not in the persistence context), overwrites it with the values of all the fields of the object you passed, and then returns that managed entity. The object you passed does not become managed, so you must do the later work with the returned object. You can pass a newly created object as well as a detached one, and in that case a new managed entity is created and the values are copied. Because it overwrites all the fields, a field left empty in the object you passed also becomes null in the DB. To change only some values, it is safer to load the entity and put in only the values to change, which is the dirty checking approach.</dd>
+<dt>Dirty checking</dt>
+<dd>The feature that automatically runs UPDATE statements for changed entities. When the values of an entity managed by the persistence context change, JPA compares the entity with the state it first read when the transaction commits, and it runs an UPDATE statement for each entity whose values differ. By default, Hibernate puts all columns in the UPDATE statement, not only the changed columns. To include only the changed columns, use @DynamicUpdate. So if you only change the values of an entity that you loaded, the change is applied to the database without calling a separate save method.</dd>
+<dt>Persistence context</dt>
+<dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it. (It is outside the top 50, but it is a concept that always comes up as a follow-up question when you use JPA.)</dd>
+<dt>The four entity states</dt>
+<dd>The classification of how an entity object relates to the persistence context, also called the entity lifecycle. New means that the object was only created with new and JPA does not know about it (Hibernate calls this state transient). Managed means that the persistence context manages the object, because you handed it over with em.persist or loaded it. Detached means that the object was managed and then came off. Removed means that the object was made a target to delete with em.remove. Features such as dirty checking, where changing a value sends an UPDATE, and the first-level cache work only for entities in the managed state. So when a value is not applied to the DB, first check which state the object is in now.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — You merge an object with only the name filled in. city becomes NULL.</li>
+<li><b>Load again and move only the name</b> — city stays as it is (dirty checking).</li>
+<li><b>Do nothing</b> — Changing only the values of a detached object does not apply them.</li>
+<li><b>Merge a loaded object</b> — All fields are filled in, so city is kept.</li>
+<li><b>Fix the passed object after merge</b> — The passed object is still detached, so the change is not applied.</li>
+<li><b>Fix the returned object after merge</b> — The returned object is managed, so the change is applied.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>new Member() and setId(1L): You created a new object to hold the values received from the screen, and put in 1, the id of the member to fix. name and city are still null. It has the id of a row that already exists in the DB, but the persistence context does not manage it, so it is treated as detached.</li>
+<li>m.setName(&quot;Bob&quot;): Changed the name of the detached object. Only the value in memory changes, and no SQL is sent. No persistence context is watching this object.</li>
+<li>First step of em.merge(m): It looks for a managed entity with the id of m (1). The newly opened persistence context has nothing, so it reads the entity from the DB with a SELECT (Alice, Seoul). This is the SELECT that is sent during merge.</li>
+<li>Second step of em.merge(m): It overwrites that managed entity with the values of all the fields of m. name becomes Bob, and city is overwritten with the null that m had left empty. merge returns this managed entity as r. The object m that you passed stays detached.</li>
+<li>The result of em.contains(m) is false, and the result of em.contains(r) is true. They are different objects, and what the persistence context manages is r.</li>
+<li>commit: In the flush just before the commit, the values of the managed entity r are compared with the values first read (Alice, Seoul), and an UPDATE is sent. In row 1 of the DB, name is Bob and city became NULL. You meant to fix only the name, but city was erased.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Member 1 in the DB has name Bob and city NULL (at first, Alice and Seoul). SQL sent in this transaction: SELECT: 1, UPDATE: 1.</li>
+<li>merge does not pick only the changed fields. It overwrites with all the fields of the object you passed. An object built from just the name received from the screen has a null city, so the city in the DB becomes NULL too. This is how accidents happen where fields that are not on the edit screen get erased.</li>
+<li>merge sends one SELECT to get a managed entity. If an entity with the same id is already in the persistence context, it overwrites that entity without a SELECT, and if the id is not in the DB, it confirms with a SELECT that there is none and then sends an INSERT.</li>
+</ul>
+<h2>Code</h2>
+<pre>// An object built from the values received from the screen. city was not received
+Member m = new Member();
+m.setId(1L);
+m.setName(&quot;Bob&quot;);
+
+EntityManager em = emf.createEntityManager();
+em.getTransaction().begin();
+Member r = em.merge(m);
+System.out.println(em.contains(m) + &quot;, &quot; + em.contains(r));
+em.getTransaction().commit();</pre>
+<h2>Assumptions of this model</h2>
+<p>All 18 combinations were run on real Hibernate 7.4.5 and an H2 database, and the kind of SQL sent on each line, the result of em.contains, whether the object returned by merge is different from the one you passed, and the name and city left in the DB were confirmed to match the screen. The setting &quot;If you change city to Busan after the merge&quot; has meaning only when merge is chosen. The &quot;SQL sent in this transaction&quot; does not include the SELECT that loaded m in the earlier request. The following facts stated in the summaries were also run separately and confirmed: if you merge an object whose id is not in the DB, an INSERT is sent after the SELECT; if you merge a loaded object without changing its values, only the SELECT is sent and there is no UPDATE; if an entity with the same id is already managed, merge does not send a SELECT; even if city in the DB was changed to another value after you loaded the object, merge overwrites it with the old value of m. The id of the member is set directly in the code, and no @Version field is used. With @Version, an attempt to overwrite with an old value can be stopped by an exception. By default, Hibernate puts all the columns in the UPDATE statement for both merge and dirty checking, so the difference between the two ways is not in the shape of the UPDATE statement but in the values it carries. The SQL statements on the screen are shortened to be easy to read. The save method of Spring Data JPA calls merge internally when it decides that the entity is not new (this is based on the official documentation and was not run here).</p>
+<p>Previous lab: <a href="../../lab/entitylife/">The lifecycle of an entity</a> · Next lab: <a href="../../lab/mapping/">Entity mapping and primary keys</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

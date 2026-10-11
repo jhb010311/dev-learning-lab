@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GC and memory leaks: Who reclaims discarded objects, and when? · Dev Learning Lab</title>
+<meta name="description" content="New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/gc/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/gc/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/gc/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="GC and memory leaks: Who reclaims discarded objects, and when? · Dev Learning Lab">
+<meta property="og:description" content="New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/gc/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › JVM</p>
+<h1>GC and memory leaks</h1>
+<p><b>Who reclaims discarded objects, and when?</b></p>
+<p>New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are promoted to the old generation, and when the old generation fills up, a full GC runs, which takes much longer. Change the rate at which objects are created, the share of long-lived objects, and the heap size, and see how the run ends when there is a memory leak.</p>
+<p>Partly checked against real execution · Only the direction was checked on JDK 21 (the numbers are from the model)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Garbage collection (GC)</dt>
+<dd>This JVM feature finds objects that the program no longer uses and reclaims their memory automatically. Developers do not have to free memory themselves, which prevents errors caused by mistakes in freeing it. In return, the application may pause briefly during a collection, and objects that are still referenced cannot be reclaimed.</dd>
+<dt>Reachability and GC roots</dt>
+<dd>The GC decides whether an object is still in use by asking &quot;is it reachable?&quot;. An object that can be reached by following references from starting points that are always alive (GC roots), such as the local variables of running threads and static variables, is treated as live, and an object that cannot be reached is treated as a candidate for reclamation.</dd>
+<dt>Young generation and old generation</dt>
+<dd>This structure divides the heap based on the observation that most objects become useless soon after they are created. New objects are created in the young generation (in eden), and objects that survive several collections of the young generation are moved to the old generation. Collecting only the young generation often, where short-lived objects gather, reclaims a lot of memory at low cost.</dd>
+<dt>Minor GC and full GC</dt>
+<dd>A minor GC (young GC) collects only the young generation; it happens often but usually finishes quickly. A full GC collects the whole heap; it takes a long time and also pauses the application for longer. If full GCs happen often, or memory use does not go down even after a full GC, suspect a memory leak or a heap that is too small.</dd>
+<dt>Stop-the-world (STW)</dt>
+<dd>This means pausing all threads of the application so that garbage collection can be done safely. Request handling stops during this time, so it shows up as response delays. Recent collectors (G1, ZGC) are designed with the goal of keeping these pauses short.</dd>
+<dt>Memory leak</dt>
+<dd>This is a state in which objects that are no longer needed are still referenced from somewhere, so the garbage collector cannot reclaim them. Memory use grows over time and eventually leads to an OutOfMemoryError. Typical causes are data that keeps piling up in a static collection, a cache with no expiration, and ThreadLocal values that are not cleaned up in a thread pool.</dd>
+<dt>StackOverflowError and OutOfMemoryError</dt>
+<dd>A StackOverflowError occurs when method calls go so deep that they exceed the thread's stack space, and the usual cause is recursion with a wrong termination condition. An OutOfMemoryError occurs when memory such as the heap runs short and no more objects can be allocated, and common causes are a memory leak or loading too much data at once.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Most objects are discarded quickly. Minor GCs alone keep the program going.</li>
+<li><b>With many long-lived objects</b> — More objects are promoted to the old generation, and full GCs start to run.</li>
+<li><b>Creating objects faster</b> — Eden fills up sooner, so minor GCs become more frequent.</li>
+<li><b>With a larger heap</b> — The number of GCs goes down.</li>
+<li><b>Memory leak</b> — Even though GCs run, the old generation does not empty, and the run ends with an OutOfMemoryError.</li>
+<li><b>A leak with only a larger heap</b> — This only delays the point of failure.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Tick 1: 5 objects are created. Eden: 5/20 slots in use.</li>
+<li>Tick 2: 5 objects are created. Eden: 10/20 slots in use.</li>
+<li>Tick 3: 5 objects are created. Eden: 15/20 slots in use.</li>
+<li>Tick 4: 5 objects are created. Eden: 20/20 slots in use.</li>
+<li>Tick 5: Eden is full. A minor GC examines only the young generation (20 objects). It discards the objects that are not referenced (18) and moves the live objects (2). Moved to the survivor space: 2. Promoted to the old generation: 0. Eden is now empty. The application pauses briefly (a pause of 1).</li>
+<li>Tick 5: 5 objects are created. Eden: 5/20 slots in use.</li>
+<li>Tick 6: 5 objects are created. Eden: 10/20 slots in use.</li>
+<li>Tick 7: 5 objects are created. Eden: 15/20 slots in use.</li>
+<li>Tick 8: 5 objects are created. Eden: 20/20 slots in use.</li>
+<li>Tick 9: Eden is full. A minor GC examines only the young generation (22 objects). It discards the objects that are not referenced (18) and moves the live objects (4). Moved to the survivor space: 2. Promoted to the old generation: 2. Eden is now empty. The application pauses briefly (a pause of 1).</li>
+<li>Tick 9: 5 objects are created. Eden: 5/20 slots in use.</li>
+<li>Tick 10: 5 objects are created. Eden: 10/20 slots in use.</li>
+<li>Tick 11: 5 objects are created. Eden: 15/20 slots in use.</li>
+<li>Tick 12: 5 objects are created. Eden: 20/20 slots in use.</li>
+<li>Tick 13: Eden is full. A minor GC examines only the young generation (22 objects). It discards the objects that are not referenced (18) and moves the live objects (4). Moved to the survivor space: 2. Promoted to the old generation: 2. Eden is now empty. The application pauses briefly (a pause of 1).</li>
+<li>Tick 13: 5 objects are created. Eden: 5/20 slots in use.</li>
+<li>Tick 14: 5 objects are created. Eden: 10/20 slots in use.</li>
+<li>Tick 15: 5 objects are created. Eden: 15/20 slots in use.</li>
+<li>Tick 16: 5 objects are created. Eden: 20/20 slots in use.</li>
+<li>Tick 17: Eden is full. A minor GC examines only the young generation (22 objects). It discards the objects that are not referenced (18) and moves the live objects (4). Moved to the survivor space: 2. Promoted to the old generation: 2. Eden is now empty. The application pauses briefly (a pause of 1).</li>
+<li>Tick 17: 5 objects are created. Eden: 5/20 slots in use.</li>
+<li>Tick 18: 5 objects are created. Eden: 10/20 slots in use.</li>
+<li>Tick 19: 5 objects are created. Eden: 15/20 slots in use.</li>
+<li>Tick 20: 5 objects are created. Eden: 20/20 slots in use.</li>
+<li>Tick 21: Eden is full. A minor GC examines only the young generation (22 objects). It discards the objects that are not referenced (18) and moves the live objects (4). Moved to the survivor space: 2. Promoted to the old generation: 2. Eden is now empty. The application pauses briefly (a pause of 1).</li>
+<li>Tick 21: 5 objects are created. Eden: 5/20 slots in use.</li>
+<li>Tick 22: 5 objects are created. Eden: 10/20 slots in use.</li>
+<li>Tick 23: 5 objects are created. Eden: 15/20 slots in use.</li>
+<li>Tick 24: 5 objects are created. Eden: 20/20 slots in use.</li>
+<li>Tick 25: Eden is full. A minor GC examines only the young generation (22 objects). It discards the objects that are not referenced (18) and moves the live objects (4). Moved to the survivor space: 2. Promoted to the old generation: 2. Eden is now empty. The application pauses briefly (a pause of 1).</li>
+<li>Tick 25: 5 objects are created. Eden: 5/20 slots in use.</li>
+<li>Tick 26: 5 objects are created. Eden: 10/20 slots in use.</li>
+<li>Tick 27: 5 objects are created. Eden: 15/20 slots in use.</li>
+<li>Tick 28: 5 objects are created. Eden: 20/20 slots in use.</li>
+<li>Tick 29: Eden is full. A minor GC examines only the young generation (22 objects). It discards the objects that are not referenced (18) and moves the live objects (4). Moved to the survivor space: 2. Promoted to the old generation: 2. Eden is now empty. The application pauses briefly (a pause of 1).</li>
+<li>Tick 29: 5 objects are created. Eden: 5/20 slots in use.</li>
+<li>Tick 30: 5 objects are created. Eden: 10/20 slots in use.</li>
+<li>Tick 31: 5 objects are created. Eden: 15/20 slots in use.</li>
+<li>Tick 32: 5 objects are created. Eden: 20/20 slots in use.</li>
+<li>Tick 33: Eden is full. A minor GC examines only the young generation (22 objects). It discards the objects that are not referenced (18) and moves the live objects (4). Moved to the survivor space: 2. Promoted to the old generation: 2. Eden is now empty. The application pauses briefly (a pause of 1).</li>
+<li>Tick 33: 5 objects are created. Eden: 5/20 slots in use.</li>
+<li>Tick 34: 5 objects are created. Eden: 10/20 slots in use.</li>
+<li>Tick 35: 5 objects are created. Eden: 15/20 slots in use.</li>
+<li>Tick 36: 5 objects are created. Eden: 20/20 slots in use.</li>
+<li>Tick 37: Eden is full. A minor GC examines only the young generation (22 objects). It discards the objects that are not referenced (18) and moves the live objects (4). Moved to the survivor space: 2. Promoted to the old generation: 2. Eden is now empty. The application pauses briefly (a pause of 1).</li>
+<li>Tick 37: 5 objects are created. Eden: 5/20 slots in use.</li>
+<li>Tick 38: 5 objects are created. Eden: 10/20 slots in use.</li>
+<li>Tick 39: 5 objects are created. Eden: 15/20 slots in use.</li>
+<li>Tick 40: 5 objects are created. Eden: 20/20 slots in use.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>While 200 objects were created, the counts were: minor GCs 9, full GCs 0. The application was paused for a total of 9.</li>
+<li>Most objects were discarded quickly, so minor GCs alone were enough. Dividing the heap into generations is efficient when the assumption that &quot;most objects die young&quot; holds.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Heap: eden 20 slots, survivor 5 slots, old 40 slots
+
+while (running) {                       // one pass = one tick
+    for (int i = 0; i &lt; 5; i++) {
+        Event e = new Event();           // created in eden
+        if (keepForAWhile(e)) {          // 10%
+            recent.put(e.id(), e);       // removed 10 ticks later
+        }
+    }                                    // the rest are discarded here
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a simple model of generational garbage collection in which all objects have the same size and the heap is counted in slots. The condition for promotion is lowered to &quot;survives two minor GCs&quot; (the real default maximum is 15, and the garbage collector adjusts it to the situation). The pause times 1 and 10 only express the relationship that a minor GC is much shorter than a full GC. Real collectors such as G1 and ZGC work differently, for example by dividing the heap into smaller parts and working concurrently with the application, but the principle is the same: the area for new objects and the area for old objects are handled separately, and objects that are still referenced cannot be reclaimed. The slot counts and GC counts are values of the model. However, the same situations were actually run on JDK 21 on this PC with a 64MB heap to check the direction. Creating only objects that are discarded quickly gave 24 young collections and 0 full GCs. Mixing in objects that are held for a long time gave 7 full GCs (average pause: young 2.1ms, full 11.5ms). Continually adding objects to a list that is never cleared ended with an OutOfMemoryError after 37 repeated full GCs. With the heap enlarged to 128MB, the same leak ended with the same error after creating about twice as many objects.</p>
+<p>Previous lab: <a href="../../lab/stack/">Stack and heap</a> · Next lab: <a href="../../lab/jit/">JIT warmup</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

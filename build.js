@@ -1,6 +1,6 @@
 // src의 공통 틀과 실습 파일을 합쳐 사이트를 만든다.
-//   docs/index.html      그대로 웹에 올리는 완성된 문서 (GitHub Pages가 이 폴더를 보여 준다)
-//   dist/fragment.html   머리 부분이 없는 조각 (미리보기용)
+//   docs/                그대로 웹에 올리는 사이트. 실습마다 한 페이지로 나뉜다 (build_pages.js, GitHub Pages가 이 폴더를 보여 준다)
+//   dist/fragment.html   모든 것을 파일 하나에 담은 조각 (미리보기용)
 // 설명 버튼의 내용은 설명집(kb/kb*.js)에서 가져온다.
 const fs = require('fs');
 const path = require('path');
@@ -144,17 +144,23 @@ if (require.main === module) {
   const js = (files.map(f => fs.readFileSync(path.join(dir, 'lessons', f), 'utf8')).join('\n') + '\n' + tracksSrc + '\n' + quizSrc + '\n' + glossOut + '\n' + verSrc + '\n' + curOut).replace(/<(?=!--|\/?script)/gi, '\\x3c');
   let html = fs.readFileSync(path.join(__dirname, 'src', 'framework.html'), 'utf8');
   if (EN) html = toEnglish(html);
+  const shell = html; // 데이터를 넣기 전의 틀 (여러 페이지로 나눠 쓸 때 쓴다)
   html = html.replace('/*__EXPLAIN__*/{}', () => JSON.stringify(explain).replace(/</g, '\\u003c')).replace('/*__TERMS__*/[]', () => JSON.stringify(terms).replace(/</g, '\\u003c')).replace('/*__LESSONS__*/', () => js);
   // 합친 스크립트가 문법상 유효한지 확인
   html.split('<script>').slice(1).forEach(s => new Function(s.split('</script>')[0]));
   const preview = process.env.LAB_OUT_DIR;
   if (!preview) { fs.mkdirSync(path.join(__dirname, 'dist'), { recursive: true }); fs.mkdirSync(path.join(__dirname, 'docs'), { recursive: true });
-  fs.writeFileSync(path.join(__dirname, 'dist', EN ? 'fragment.en.html' : 'fragment.html'), html); }
+  fs.writeFileSync(path.join(__dirname, 'dist', EN ? 'fragment.en.html' : 'fragment.html'), html);
+    // 공개 사이트는 여러 페이지로 만든다(실습마다 주소가 따로 있고, 스크립트 없이도 읽을 글이 들어간다). build_pages.js 참고.
+    const r = require('./build_pages.js')({ EN, shell, js, explain, terms, list, kb, curri, site, ver });
+    console.log(EN ? 'docs/en/' : 'docs/', '페이지 ' + r.pages + '개(' + r.pageKB + 'KB) + app.js ' + r.appKB + 'KB + app.css ' + r.cssKB + 'KB', '| 개념', list.length + '개:', list.map(l => l.nav).join(', '));
+    return; }
+  // 미리보기(LAB_OUT_DIR): 파일 하나로 만든다
   const name = site.name || '개발 학습 실습실', desc = site.desc || '';
-  const outFile = preview ? path.join(preview, 'index.html') : EN ? path.join(__dirname, 'docs', 'en', 'index.html') : path.join(__dirname, 'docs', 'index.html');
+  const outFile = path.join(preview, 'index.html');
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   const esc = x => String(x).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
   const head = '<!doctype html>\n<html lang="' + (EN ? 'en' : 'ko') + '">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<meta name="description" content="' + esc(desc) + '">\n<meta property="og:title" content="' + esc(name) + '">\n<meta property="og:description" content="' + esc(desc) + '">\n<meta property="og:type" content="website">\n<style>html, body { margin: 0; }</style>\n';
   fs.writeFileSync(outFile, head + html.replace('</style>', '</style>\n</head>\n<body>') + '\n</body>\n</html>\n');
-  console.log(EN ? 'docs/en/index.html' : 'docs/index.html', (html.length / 1024).toFixed(0) + 'KB', '| 개념', list.length + '개:', list.map(l => l.nav).join(', '));
+  console.log(path.join(preview, 'index.html'), (html.length / 1024).toFixed(0) + 'KB', '| 개념', list.length + '개:', list.map(l => l.nav).join(', '));
 }

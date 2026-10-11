@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TCP connections and retransmission: When a packet is lost, who notices and sends it again? · Dev Learning Lab</title>
+<meta name="description" content="TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sen…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tcp/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tcp/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/tcp/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="TCP connections and retransmission: When a packet is lost, who notices and sends it again? · Dev Learning Lab">
+<meta property="og:description" content="TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sen…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/tcp/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Transport layer</p>
+<h1>TCP connections and retransmission</h1>
+<p><b>When a packet is lost, who notices and sends it again?</b></p>
+<p>TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure. Make a packet get lost on purpose and see how the two protocols differ.</p>
+<p>Checked against documentation and standards · Checked against the TCP specification (RFC 9293)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>TCP and UDP</dt>
+<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. The web and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
+<dt>Three-way handshake</dt>
+<dd>The three-step process used to establish a TCP connection. The client sends a connection request (SYN), the server sends its acceptance together with its own connection request (SYN+ACK), and the client acknowledges it (ACK). After both sides have confirmed that they can send to and receive from each other, data transfer starts.</dd>
+<dt>Flow control and congestion control</dt>
+<dd>Both are TCP functions that adjust the sending rate. Flow control adjusts the amount sent to match what the receiver can handle, so that the receiver does not overflow. Congestion control senses how congested the network is and decreases or increases the amount sent, to prevent congestion across the whole network.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — TCP, no loss. It establishes a connection, sends the data, and receives acknowledgments.</li>
+<li><b>A lost data packet</b> — No acknowledgment arrives, so the data is sent again.</li>
+<li><b>A lost connection request</b> — With no reply, the sender waits and then tries again.</li>
+<li><b>The same loss with UDP</b> — The lost datagram stays lost.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Step 1: the client sends a SYN, which says &quot;I want to connect.&quot; It announces the starting number (100) that it will use.</li>
+<li>Step 2: the server answers, &quot;Received (ACK), and I will connect too (SYN).&quot; ack=101 means &quot;I have received up to 100, so send 101 next.&quot;</li>
+<li>Step 3: the client acknowledges the SYN of the server. Both sides have now confirmed that &quot;what I send arrives, and what the other side sends reaches me.&quot; The connection is established.</li>
+<li>It splits the data into segments, numbers them, and sends them.</li>
+<li>The server acknowledges: &quot;I have received up to 106, so send 107 next.&quot;</li>
+<li>It sends the second segment.</li>
+<li>It sends the third segment.</li>
+<li>The server acknowledges: &quot;I have received everything up to 115.&quot;</li>
+<li>When there is nothing left to send, each side sends &quot;I am finished (FIN),&quot; has it acknowledged, and closes the connection.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Data that reached the receiver: &quot;Hello, world!!!&quot;. Retransmissions: 0.</li>
+<li>TCP detects a loss from the sequence numbers and acknowledgments and sends the data again, and even if segments arrive in the wrong order, it puts them in order by number before passing them to the application. The application never learns about the loss. The price is the round trip to establish the connection and, when a loss happens, the delay of also waiting for the data that follows.</li>
+<li>Flow control adjusts the sending so that it does not exceed what the receiver can handle, and congestion control slows the sending down when the network is congested. When a loss occurs, TCP assumes the network is congested and lowers its sending rate.</li>
+</ul>
+<h2>Code</h2>
+<pre>// TCP: connect first, then send
+Socket socket = new Socket(&quot;shop.example&quot;, 443);   // the three-way handshake happens here
+OutputStream out = socket.getOutputStream();
+out.write(data);                               // the operating system splits it into segments and
+                                               // handles acknowledgment, retransmission, and ordering
+socket.close();                                // close the connection</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a small example in which &quot;Hello, world!!!&quot; is split into three pieces and sent. The numbers (seq, ack) are arbitrary values chosen to make the example easier to follow, and each character is counted as 1 byte (ASCII text), so the three pieces are 6, 6, and 3 bytes. The timing of retransmission is simplified. Besides the timer expiring, real TCP also retransmits right away when the same acknowledgment arrives three times in a row (three duplicate ACKs). The principles of the three-way handshake and of retransmission follow the TCP specification (RFC 9293).</p>
+<p>Previous lab: <a href="../../lab/socket/">Sockets and ports</a> · Next lab: <a href="../../lab/udp/">TCP and UDP</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

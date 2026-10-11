@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bean creation and injection: In what order does Spring create objects and wire them together? · Dev Learning Lab</title>
+<meta name="description" content="When an application starts, the Spring container creates the beans one by one and wires them together. The order in which the objects are created depends…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/di/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/di/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/di/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Bean creation and injection: In what order does Spring create objects and wire them together? · Dev Learning Lab">
+<meta property="og:description" content="When an application starts, the Spring container creates the beans one by one and wires them together. The order in which the objects are created depends…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/di/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
+<h1>Bean creation and injection</h1>
+<p><b>In what order does Spring create objects and wire them together?</b></p>
+<p>When an application starts, the Spring container creates the beans one by one and wires them together. The order in which the objects are created depends on the injection style, and when two beans need each other (a circular dependency), startup can fail.</p>
+<p>Checked against real execution · All 12 combinations were started on Spring Boot 4.1.1 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Inversion of Control (IoC)</dt>
+<dd>This is a design principle in which a framework (the container), not the developer's code, takes charge of creating objects and connecting them to each other. In an ordinary program, your code creates and calls the objects it needs, but here the container creates the objects, puts them where they are needed, and calls your code at the right time. The name comes from the fact that the party in control is reversed.</dd>
+<dt>Dependency injection (DI)</dt>
+<dd>This is an approach in which an object does not create the other objects it uses (its dependencies) but receives them from outside. In Spring, the container supplies the dependencies through a constructor, a setter, or a field as it creates a bean. It becomes easier to change the implementing class or to put in a fake object in a test, and the coupling between classes becomes lower.</dd>
+<dt>Constructor injection, setter injection, and field injection</dt>
+<dd>These are three ways to supply a dependency. Constructor injection receives the dependencies when the object is created, so the fields can be final and an object is never created with a dependency missing; Spring recommends it. Setter injection is used for optional dependencies. Field injection puts @Autowired on a field; the code is short, but it is hard to create the object without Spring in order to test it.</dd>
+<dt>Spring bean</dt>
+<dd>This is an object that the Spring IoC container creates and manages. Unlike an object that a developer creates directly with new, the container injects its dependencies and manages its initialization and destruction, and additional features such as transactions and AOP can be applied to it through a proxy.</dd>
+<dt>Bean lifecycle</dt>
+<dd>This is the process from the creation of a bean to its end. It proceeds in this order: object creation, dependency injection, the initialization callback, use, and the destruction callback when the container shuts down. Put initialization work that must run after all dependencies are injected in @PostConstruct, and put cleanup work before shutdown in @PreDestroy.</dd>
+<dt>Circular dependency</dt>
+<dd>This is a state in which bean A needs B and B in turn needs A. With constructor injection, neither can be created first, so the application fails to start. Since Spring Boot 2.6, it is prohibited by default regardless of the injection style. The proper fix is to change the design, for example by moving the responsibility that the two beans share into a separate bean.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Constructor injection. A dependency must be fully initialized before the next object can be created.</li>
+<li><b>Switching to field injection</b> — The object is created first and filled in later. For a short time, its fields are empty.</li>
+<li><b>Constructor injection + circular dependency</b> — Neither bean can be created first, so startup fails.</li>
+<li><b>Field injection + circular dependency</b> — With the default settings of Spring Boot, this also fails at startup.</li>
+<li><b>Allowing circular dependencies</b> — Field injection gets through by handing over an object early, before it is fully initialized.</li>
+<li><b>Constructor injection fails even when allowed</b> — This is because the arguments must exist before a constructor can be called.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Component scanning: The container finds the classes annotated with @RestController, @Service, and @Repository and registers 3 bean definitions. No object has been created yet.</li>
+<li>OrderController starts to be created. The constructor requires OrderService, so the container must prepare that first before it can call the constructor.</li>
+<li>OrderService starts to be created. The constructor requires OrderRepository, so the container must prepare that first before it can call the constructor.</li>
+<li>OrderRepository starts to be created. The constructor takes no arguments.</li>
+<li>OrderRepository is created as an object by calling its constructor. All of its dependencies are in place from the moment it is created. Next, the initialization callback (@PostConstruct) is called if there is one, and the bean is fully initialized.</li>
+<li>OrderService is created as an object by calling its constructor. Passed as arguments: OrderRepository. All of its dependencies are in place from the moment it is created. Next, the initialization callback (@PostConstruct) is called if there is one, and the bean is fully initialized.</li>
+<li>OrderController is created as an object by calling its constructor. Passed as arguments: OrderService. All of its dependencies are in place from the moment it is created. Next, the initialization callback (@PostConstruct) is called if there is one, and the bean is fully initialized.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Startup succeeded. The objects were created in the order OrderRepository → OrderService → OrderController, and the beans were fully initialized in the order OrderRepository → OrderService → OrderController.</li>
+<li>With constructor injection, an object can be created only after its dependencies are fully initialized. So from the moment the object exists, all of its dependencies are in place, and the fields can be final.</li>
+</ul>
+<h2>Code</h2>
+<pre>@RestController
+class OrderController {
+    private final OrderService orderService;
+
+    OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+}
+
+@Service
+class OrderService {
+    private final OrderRepository orderRepository;
+
+    OrderService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+}
+
+@Repository
+class OrderRepository {
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a small application with only four beans, and the model assumes that the container starts creating the beans in the order in which they were scanned (the real order can vary with the classpath and the configuration, but the rule that a dependency must be ready first is the same). Prohibiting circular dependencies by default is the behavior of Spring Boot 2.6 and later. Another way to resolve a circular dependency (delaying the injection with @Lazy) is not covered. All 12 combinations were started on a real Spring Boot 4.1.1, and it was confirmed that whether startup succeeds, the order in which the objects are created (the order in which the constructors are called), and the order in which the beans are fully initialized (the order in which injection finishes) match the screen. Every startup failure was a BeanCurrentlyInCreationException.</p>
+<p>Previous lab: <a href="../../lab/ioc/">The Spring container and beans</a> · Next lab: <a href="../../lab/singleton/">Singleton beans and state</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

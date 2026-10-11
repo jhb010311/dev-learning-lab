@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Normalization: What happens if you do not split the table? · Dev Learning Lab</title>
+<meta name="description" content="Here are two designs. In one, the member name and address are stored in the orders table as well. In the other, members and orders are split into separate…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/normal/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/normal/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/normal/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Normalization: What happens if you do not split the table? · Dev Learning Lab">
+<meta property="og:description" content="Here are two designs. In one, the member name and address are stored in the orders table as well. In the other, members and orders are split into separate…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/normal/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Relational model and design</p>
+<h1>Normalization</h1>
+<p><b>What happens if you do not split the table?</b></p>
+<p>Here are two designs. In one, the member name and address are stored in the orders table as well. In the other, members and orders are split into separate tables. Do the same operations on both, and you will see that data goes out of step or is lost only when everything is packed into one table.</p>
+<p>Checked against real execution · The same tables were created in SQLite and the results were checked</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Normalization and denormalization</dt>
+<dd>Normalization is the design process of splitting tables so that the same data is not stored redundantly in several places. With redundancy, a change may be made in only one place, and the data then becomes inconsistent. Denormalization intentionally allows redundancy or merges tables for read performance. It reduces joins, but it adds the burden of updating the redundant data together.</dd>
+<dt>Functional dependency</dt>
+<dd>A relationship in which the value of one column (or set of columns) determines exactly one value of another column. For example, a member number determines the member's name. Normal forms are defined in terms of this relationship. Depending on only part of the primary key is called a partial dependency, and depending through a non-key column is called a transitive dependency. They are removed in second normal form and third normal form, respectively.</dd>
+<dt>Primary key, unique key, foreign key</dt>
+<dd>A primary key (PK) is the column that uniquely identifies each row of a table. Its values cannot be duplicated or empty, and a table has only one. A unique key is a unique constraint, which prevents duplicate values, and a table can have several. A foreign key (FK) is a column that references the primary key (or a unique key) of another table. It guarantees that the referenced row really exists.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Changing an address in the table before normalization. You must change as many rows as there are orders.</li>
+<li><b>A mistake that changes only one row</b> — The same member ends up with two different addresses (an update anomaly).</li>
+<li><b>The same change after normalization</b> — The address is stored in only one place, so changing one row is enough.</li>
+<li><b>A member with no orders</b> — Before normalization, there is no place to put the member (an insertion anomaly).</li>
+<li><b>Deleting the last order</b> — Before normalization, the member information is lost as well (a deletion anomaly).</li>
+<li><b>The cost of normalization</b> — After normalization, reading the data needs a join.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>This is the initial state. Every order row also holds the member name and address. Alice has 3 orders, so the address &quot;Seoul&quot; is stored 3 times. The order ID determines the member ID, and the member ID determines the name and address (a chain of functional dependencies).</li>
+<li>Found every row whose member ID is 1 and changed its address. Rows changed: 3. The more orders there are, the more rows you have to change.</li>
+<li>Querying Alice's address again shows &quot;Busan&quot; in every row. This time no row was missed, so nothing went out of step.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Changing the address of one member meant changing 3 rows. This is because the same fact is stored in several rows. If even one row is missed, the data goes out of step.</li>
+<li>No problem showed up this time, but that is not because the structure prevents it. The person doing the work avoided it by being careful.</li>
+</ul>
+<h2>Code</h2>
+<pre>-- Before normalization: order and member data in one table
+CREATE TABLE orders (
+  order_id    INT PRIMARY KEY,
+  member_id   INT,
+  member_name VARCHAR(20),   -- determined by member_id
+  member_addr VARCHAR(50),   -- determined by member_id
+  item        VARCHAR(30),
+  amount      INT
+);
+
+UPDATE orders SET member_addr = 'Busan'
+ WHERE member_id = 1;</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a small example reduced to 3 members and a few orders. The table before normalization has a chain of functional dependencies, order ID → member ID → member name and address, so it does not satisfy third normal form. After normalization, orders refer to members through a foreign key. The definitions of the anomalies follow the standard explanation in relational database theory. Tables with the same structure were created in a real SQL engine (SQLite) and checked. When only one row was changed, the same member's address was returned as two different values; an INSERT of a member without an order ID was rejected; and after the last order was deleted, the number of rows still holding that member's information was 0. With the tables split, none of the three cases caused a problem.</p>
+<p>Previous lab: <a href="../../lab/ermodel/">ER modeling</a> · Next lab: <a href="../../lab/selectorder/">SELECT processing order</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

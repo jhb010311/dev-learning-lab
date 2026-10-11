@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Serialization: What comes back when you restore a saved object? · Dev Learning Lab</title>
+<meta name="description" content="The default serialization mechanism in Java converts an object to bytes and writes them to a file (writeObject), and then creates the object again from th…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/serial/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/serial/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/serial/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Serialization: What comes back when you restore a saved object? · Dev Learning Lab">
+<meta property="og:description" content="The default serialization mechanism in Java converts an object to bytes and writes them to a file (writeObject), and then creates the object again from th…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/serial/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › I/O</p>
+<h1>Serialization</h1>
+<p><b>What comes back when you restore a saved object?</b></p>
+<p>The default serialization mechanism in Java converts an object to bytes and writes them to a file (writeObject), and then creates the object again from those bytes (readObject). But not everything in an object is saved, and not every object can be saved. Set point to 50, save the object, change point to 70, and then restore the object to see what is saved and what is not.</p>
+<p>Checked against real execution · The 15 combinations were compiled and run on JDK 21 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Serialization and deserialization</dt>
+<dd>Serialization converts an object into a form that can be stored or sent (such as a sequence of bytes or JSON), and deserialization restores an object from that form. In web APIs, the typical case is conversion between objects and JSON (for example with Jackson). Java's built-in serialization (Serializable) has compatibility problems when the class structure changes and carries security risks, so formats such as JSON are mostly used today.</dd>
+<dt>Serializable</dt>
+<dd>This is the interface that marks a class as one whose objects can be saved with the default serialization mechanism in Java. It has no methods to implement, and adding implements Serializable to the class declaration is all it takes to mark the class. If you try to write an object that does not have this mark with ObjectOutputStream, a NotSerializableException is thrown. When an object is saved, the objects that its fields refer to are saved with it, so the classes of those objects must all be Serializable as well.</dd>
+<dt>transient</dt>
+<dd>This is the keyword that marks a field as one that must not be saved during serialization. A field marked with it is not included in the bytes that go out to a file or the network, and in the restored object it has the default value of its type (0 for a number, null for a reference type). It is used for values that must not be left outside the program, such as a password, for values that can simply be computed again, and for fields that refer to an object that cannot be saved because it is not Serializable. Your code has to take into account that the field is empty after the object is restored.</dd>
+<dt>serialVersionUID</dt>
+<dd>This is a number that indicates which version of a class a piece of serialized data was created with. The number is recorded together with the object when the object is saved, and if it differs from the number of the current class when the object is restored, an InvalidClassException is thrown. If you do not declare it yourself in the class, as in private static final long serialVersionUID = 1L;, Java computes a value from the name, fields, methods, and other details of the class, and even a small change to the class can change this value. For this reason, it is recommended that a Serializable class declare this number explicitly.</dd>
+<dt>static</dt>
+<dd>This keyword marks a member as belonging to the class, not to an instance. A static field exists only once per class and is shared by all instances, and a static method is called without creating an object. A static field whose value changes is effectively a global variable, so it easily causes problems when several threads access it at the same time.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A transient field. 50 was saved, but the restored value is 0.</li>
+<li><b>An ordinary field</b> — The value at the time of saving, 50, comes back as it was.</li>
+<li><b>A static field</b> — What you see is not a saved value but 70, the value the class has now.</li>
+<li><b>Without implementing Serializable</b> — A NotSerializableException is thrown when the object is saved.</li>
+<li><b>When an object held in a field is the problem</b> — Saving fails because of Address, not User.</li>
+<li><b>Changing serialVersionUID after saving</b> — An InvalidClassException is thrown when the object is restored.</li>
+<li><b>Adding a field without a serialVersionUID</b> — The automatically computed value changes, so again the object cannot be restored.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>new User(&quot;kim&quot;): This creates a User object. The constructor runs, and &quot;constructor ran&quot; is printed once.</li>
+<li>u.point = 50: This puts 50 into the point field of the object u.</li>
+<li>out.writeObject(u): This converts the field values of the object u to bytes and writes them to the file. Only name = &quot;kim&quot; is saved. point is declared transient, so it is skipped. So that the class of the object can be identified, the class name User and the serialVersionUID (1) are recorded as well.</li>
+<li>u.point = 70: After saving, the value in memory is changed to 70. The contents of the file that was already written do not change.</li>
+<li>in.readObject(): This checks whether the class name and the serialVersionUID recorded in the file are the same as those of the current User class. They are the same, so it creates a new User object and fills in the saved field values. The constructor of User does not run at this point. &quot;constructor ran&quot; is not printed again.</li>
+<li>r.point: It is 0. The transient field was not saved in the file, so there is no value to fill in. It gets the default value of its type (0 for int, null for a reference type).</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Saving succeeded. Restoring succeeded, and the value of point that was read is 0. The constructor ran only once, when the object was created with new.</li>
+<li>A field marked transient is not saved, and in the restored object it has the default value. Use it for values that must not be left in a file, such as a password, and for values that can simply be computed again.</li>
+<li>When an object is restored, the constructor of the Serializable class does not run. This means that the value checks and the setup work done in the constructor are skipped, so restoring data that comes from a source you cannot trust is dangerous.</li>
+</ul>
+<h2>Code</h2>
+<pre>class User implements Serializable {
+    private static final long serialVersionUID = 1L;
+    String name;
+    transient int point;                          // transient: not saved
+    User(String name) {
+        this.name = name;
+        System.out.println(&quot;constructor ran&quot;);
+    }
+}
+
+User u = new User(&quot;kim&quot;);
+u.point = 50;
+try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(&quot;user.ser&quot;))) {
+    out.writeObject(u);                           // convert the object to bytes and write them to the file
+}
+u.point = 70;                                     // change the value after saving
+
+try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;user.ser&quot;))) {
+    User r = (User) in.readObject();              // restore the object from the bytes in the file
+    System.out.println(r.name + &quot; &quot; + r.point);
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>For each of the 15 combinations, source code identical to the code on the screen was compiled and run on JDK 21 on this PC, and whether saving and restoring succeeded, the exception that was thrown, the restored value, and the number of times the constructor ran were checked against the model. For the combinations that modify the class after saving, two separate copies of a User class with the same name were compiled, and a file saved with one was read with the other. The following were also confirmed by separate runs: when a field is added to a class that declares serialVersionUID, the file can be read and the new field is null, a transient field of a reference type becomes null, a static field read from a different program is 0, and the object is saved when the Address field is marked transient. The format of the bytes that are actually recorded in the file is simplified in the diagram. That the constructor does not run applies to a class that implements Serializable. The rules for the case where the superclass is not Serializable, how to define writeObject and readObject yourself, and the serialization of records are not covered. Because of security problems, the default serialization mechanism in Java is rarely used in new code, and formats such as JSON are mostly used, but you need to know these rules to understand existing code and libraries.</p>
+<p>Previous lab: <a href="../../lab/iobuf/">I/O streams and buffers</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

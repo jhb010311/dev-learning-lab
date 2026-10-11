@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OAuth 로그인 흐름: &quot;카카오로 로그인&quot;을 누르면 오가는 것들 · 개발 학습 실습실</title>
+<meta name="description" content="소셜 로그인은 우리 서비스가 사용자의 비밀번호를 받지 않고도, 사용자의 동의 아래 그 사람의 정보에 접근할 권한을 얻는 절차입니다. 브라우저를 거쳐 오가는 것과 서버끼리 직접 주고받는 것이 나뉘어 있습니다. 정상 흐름과 문제가 생기는 경우를 단계별로 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/oauth/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/oauth/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/oauth/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="OAuth 로그인 흐름: &quot;카카오로 로그인&quot;을 누르면 오가는 것들 · 개발 학습 실습실">
+<meta property="og:description" content="소셜 로그인은 우리 서비스가 사용자의 비밀번호를 받지 않고도, 사용자의 동의 아래 그 사람의 정보에 접근할 권한을 얻는 절차입니다. 브라우저를 거쳐 오가는 것과 서버끼리 직접 주고받는 것이 나뉘어 있습니다. 정상 흐름과 문제가 생기는 경우를 단계별로 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/oauth/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 인증</p>
+<h1>OAuth 로그인 흐름</h1>
+<p><b>&quot;카카오로 로그인&quot;을 누르면 오가는 것들</b></p>
+<p>소셜 로그인은 우리 서비스가 사용자의 비밀번호를 받지 않고도, 사용자의 동의 아래 그 사람의 정보에 접근할 권한을 얻는 절차입니다. 브라우저를 거쳐 오가는 것과 서버끼리 직접 주고받는 것이 나뉘어 있습니다. 정상 흐름과 문제가 생기는 경우를 단계별로 보세요.</p>
+<p>문서·표준 대조 · OAuth 2.0 표준(RFC 6749)</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>OAuth 2.0</dt>
+<dd>사용자가 비밀번호를 알려 주지 않고도 제3의 애플리케이션이 자신의 자원에 제한적으로 접근하도록 허락할 수 있게 하는 인가 프레임워크다. 사용자가 인가 서버(구글, 카카오 등)에서 로그인하고 동의하면, 애플리케이션은 그 결과로 액세스 토큰을 받아 자원에 접근한다. 소셜 로그인이 이 흐름을 이용한다.</dd>
+<dt>인증과 인가</dt>
+<dd>인증(Authentication)은 사용자가 누구인지 확인하는 것이고, 인가(Authorization)는 확인된 사용자가 특정 자원이나 기능을 사용할 권한이 있는지 판단하는 것이다. 인증이 먼저 이뤄지고 그 결과를 바탕으로 인가를 판단한다. HTTP 상태 코드로는 인증 실패가 401, 인가 실패가 403에 해당한다.</dd>
+<dt>액세스 토큰과 리프레시 토큰</dt>
+<dd>액세스 토큰은 API를 호출할 때 제시하는 토큰으로, 탈취되었을 때의 피해를 줄이기 위해 유효 기간을 짧게 둔다. 리프레시 토큰은 액세스 토큰이 만료되었을 때 새 액세스 토큰을 발급받는 데 쓰는 토큰으로, 유효 기간이 길고 더 안전하게 보관한다. 서버는 리프레시 토큰을 폐기해 재발급을 막을 수 있다.</dd>
+<dt>CSRF(사이트 간 요청 위조)</dt>
+<dd>사용자가 로그인된 상태임을 이용해, 공격자가 만든 페이지에서 사용자의 브라우저가 의도하지 않은 요청을 대상 사이트로 보내게 하는 공격이다. 브라우저가 쿠키를 자동으로 붙여 보내기 때문에 서버는 정상 요청으로 판단한다. 서버가 발급한 예측 불가능한 토큰을 요청에 포함하게 하거나 쿠키의 SameSite 속성으로 막는다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 인가 코드 방식의 전체 흐름입니다.</li>
+<li><b>사용자가 동의를 취소하면</b> — 코드 대신 오류가 돌아옵니다.</li>
+<li><b>state 값이 다르면</b> — 우리 서비스가 시작하지 않은 요청이므로 거부합니다.</li>
+<li><b>인가 코드를 가로채 다시 쓰면</b> — 코드는 한 번만, 그리고 클라이언트 비밀값과 함께만 쓸 수 있습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>사용자가 우리 서비스(shop.example)에서 &quot;카카오로 로그인&quot; 버튼을 누릅니다.</li>
+<li>우리 서비스가 브라우저를 카카오의 인가 주소로 보냅니다. 누가 요청하는지(client_id), 끝나면 돌아올 주소(redirect_uri), 원하는 정보의 범위(scope), 그리고 이 요청을 식별할 임의의 값(state)을 함께 붙입니다. state는 세션에 기억해 둡니다.</li>
+<li>사용자가 카카오의 화면에서 로그인하고 정보 제공에 동의합니다. 아이디와 비밀번호는 카카오에만 입력됩니다. 우리 서비스는 이것을 볼 수 없습니다.</li>
+<li>카카오가 브라우저를 우리 서비스의 redirect_uri로 돌려보내며 인가 코드를 붙입니다. 이 코드는 수명이 매우 짧은 일회용 교환권입니다. 브라우저 주소창을 거치므로 노출될 수 있다고 가정하고 설계돼 있습니다.</li>
+<li>우리 서버가 돌아온 state를 세션에 기억해 둔 값과 비교합니다. 같으므로 진행합니다.</li>
+<li>우리 서버가 카카오의 토큰 주소로 직접 요청합니다. 인가 코드와 함께, 우리 서버만 아는 client_secret을 보냅니다. 이 통신은 브라우저를 거치지 않습니다.</li>
+<li>카카오가 코드와 비밀값을 확인하고 액세스 토큰을 발급합니다. 토큰은 브라우저에 노출되지 않고 우리 서버에만 전달됩니다. 인가 코드는 이 순간 폐기됩니다.</li>
+<li>우리 서버가 액세스 토큰으로 카카오의 사용자 정보 API를 호출합니다. 토큰에 허용된 범위(scope)의 정보만 받을 수 있습니다.</li>
+<li>사용자 정보를 받았습니다. 우리 서비스는 카카오 회원 번호로 우리 회원을 찾거나 새로 가입시킵니다.</li>
+<li>마지막으로 우리 서비스 자체의 로그인 처리를 합니다. 이후의 요청은 카카오와 무관하게 우리 서비스의 세션이나 토큰으로 인증합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>결과: 로그인 성공. 사용자의 카카오 비밀번호는 카카오에만 입력됐고 우리 서비스는 본 적이 없습니다.</li>
+<li>인가 코드는 브라우저를 거쳐 오고, 토큰은 서버끼리 직접 주고받습니다. 노출되기 쉬운 길로는 그것만으로 쓸모없는 값(코드)만 지나가게 하려는 구조입니다.</li>
+<li>OAuth 2.0은 원래 &quot;권한을 위임받는&quot; 절차(인가)입니다. 로그인(인증)에 쓸 때는 받은 토큰으로 사용자 정보를 조회해 신원을 확인하며, 이를 표준화한 것이 OpenID Connect입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre># application.yml (스프링 시큐리티 OAuth2 클라이언트)
+spring.security.oauth2.client.registration.kakao:
+  client-id: abc123                     # 공개돼도 되는 값
+  client-secret: ********               # 서버만 아는 값
+  authorization-grant-type: authorization_code
+  redirect-uri: https://shop.example/login/oauth2/code/kakao
+  scope: profile_nickname, account_email
+
+// 아래 과정은 스프링 시큐리티가 대신 처리한다</pre>
+<h2>이 모형의 전제</h2>
+<p>OAuth 2.0의 인가 코드 방식(Authorization Code Grant)을 표준 문서(RFC 6749)의 흐름대로 옮겼습니다. 카카오는 예시일 뿐이며 구글, 네이버 등 다른 제공자도 흐름이 같습니다. 코드와 토큰 값은 설명을 위한 가짜 값입니다.</p>
+<p>앞 실습: <a href="../../lab/jwt/">JWT의 구조와 검증</a> · 다음 실습: <a href="../../lab/sessionfix/">세션 하이재킹과 세션 고정</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

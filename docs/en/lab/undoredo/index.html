@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Undo and redo logs: Why does the data survive even if the power goes out right after a commit? · Dev Learning Lab</title>
+<meta name="description" content="When a database changes data, it does not modify the data file right away. It changes the data in memory first and leaves two records: one needed to undo…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/undoredo/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/undoredo/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/undoredo/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Undo and redo logs: Why does the data survive even if the power goes out right after a commit? · Dev Learning Lab">
+<meta property="og:description" content="When a database changes data, it does not modify the data file right away. It changes the data in memory first and leaves two records: one needed to undo…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/undoredo/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Storage and recovery</p>
+<h1>Undo and redo logs</h1>
+<p><b>Why does the data survive even if the power goes out right after a commit?</b></p>
+<p>When a database changes data, it does not modify the data file right away. It changes the data in memory first and leaves two records: one needed to undo the change (undo) and one needed to apply it again (redo). Roll back a transaction that changes a balance from 1000 to 500, or cause a failure in it, and see what each of the two logs does.</p>
+<p>Checked against documentation and standards · Checked against the MySQL documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Undo log and redo log</dt>
+<dd>An undo log records data as it was before a change. It is used to roll back a transaction and to show past versions to other transactions (MVCC). A redo log records the changes themselves. If a failure occurs before committed changes are fully written to the data files, the changes are applied again at restart to recover them.</dd>
+<dt>ACID</dt>
+<dd>The four properties that a transaction must guarantee. Atomicity means everything succeeds or everything fails. Consistency means the data satisfies the defined rules before and after the transaction. Isolation means transactions that run at the same time do not interfere with each other. Durability means committed results are kept even if a failure occurs.</dd>
+<dt>MVCC (multiversion concurrency control)</dt>
+<dd>A method that keeps earlier versions of data when the data changes, so that a reading transaction can see the version that matches the time of its snapshot. The snapshot time depends on the isolation level: in MySQL, REPEATABLE READ takes it at the first read of the transaction, and READ COMMITTED takes a new one each time a statement runs. Reads do not wait for writes and writes do not wait for reads, so concurrent performance is high. MySQL InnoDB, PostgreSQL, and Oracle all use this method.</dd>
+<dt>Transaction</dt>
+<dd>A way to group several data changes into a single unit so that either all of them are applied (commit) or all of them are canceled (rollback). In a bank transfer, it prevents an intermediate state where only one of the withdrawal and the deposit is applied. It is the most basic means a database has for keeping data consistent.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A failure right after the commit. The data file holds the old value, but after a restart the value is the new one.</li>
+<li><b>A failure before the commit</b> — After a restart, the change is as if it never happened.</li>
+<li><b>Rollback</b> — The data is returned to the earlier value that was kept in the undo log.</li>
+<li><b>A normal commit</b> — At commit time, only the log is written to disk.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The balance of account 1 is 1000. This value is in the data file on disk, and the same value is also loaded in memory (the buffer pool).</li>
+<li>The UPDATE starts. First, the value before the change, 1000, is recorded in the undo log. It is used when the change has to be undone, and when another transaction has to read the value from before the commit (MVCC).</li>
+<li>The data held in memory is changed to 500. The data file on disk is still 1000. Changing the data file right away every time would require writes to many places on the disk, which is slow, so the changes are written later in a batch.</li>
+<li>What was changed, and how, is recorded in the redo log. A log only needs to be appended to the end of a file, so this is much faster than changing the data file.</li>
+<li>COMMIT: The redo log is written to disk for certain (fsync). Only after this is done does the server reply &quot;commit succeeded&quot; to the user. Even at this point the data file is still 1000. What is written to disk at commit time is only the log.</li>
+<li>The server went down right after the commit reply, before the changes were written to the data file. The 500 in memory is lost, and the data file still holds 1000. The user has already received &quot;success&quot;.</li>
+<li>The server starts again. Recovery reads the redo log on disk from the beginning.</li>
+<li>The redo log has &quot;account 1 set to 500&quot; and the record that it committed. This change is applied again. The balance is recovered as 500. No committed data was lost.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The final balance is 500.</li>
+<li>A committed change is recovered from the redo log even if it was not yet written to the data file. The redo log supports &quot;what is committed remains even after a failure&quot; (durability).</li>
+<li>Writing the log to disk before the data in this way is called write-ahead logging (WAL). Undo is in charge of &quot;rolling back&quot; and &quot;showing earlier versions&quot;, and redo is in charge of &quot;reapplying&quot;.</li>
+</ul>
+<h2>Code</h2>
+<pre>START TRANSACTION;
+UPDATE account SET balance = 500 WHERE id = 1;   -- it was 1000
+COMMIT;
+-- (the server goes down right after the commit reply)</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a simplified version of the structure of MySQL InnoDB. Details are left out, such as the fact that changes to the undo log are themselves protected by the redo log, and the log buffer and the several stages of writing to disk. Writing the redo log to disk at every commit is the behavior of the default setting (innodb_flush_log_at_trx_commit=1). These results were not confirmed by causing failures in a real database; the lab restates what the MySQL documentation explains.</p>
+<p>Previous lab: <a href="../../lab/dbdeadlock/">Deadlocks in the database</a> · Next lab: <a href="../../lab/bufferpool/">Buffer pool and pages</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

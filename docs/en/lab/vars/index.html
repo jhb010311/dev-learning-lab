@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Variables and types: What is copied when you assign one variable to another? · Dev Learning Lab</title>
+<meta name="description" content="A variable is a storage location that holds something. A variable of a primitive type such as int holds the value itself, and a variable of a reference ty…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/vars/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/vars/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/vars/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Variables and types: What is copied when you assign one variable to another? · Dev Learning Lab">
+<meta property="og:description" content="A variable is a storage location that holds something. A variable of a primitive type such as int holds the value itself, and a variable of a reference ty…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/vars/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Basic syntax</p>
+<h1>Variables and types</h1>
+<p><b>What is copied when you assign one variable to another?</b></p>
+<p>A variable is a storage location that holds something. A variable of a primitive type such as int holds the value itself, and a variable of a reference type such as a class type holds a reference that points to where an object is. Whether you assign a variable or pass it to a method, what is copied is always &quot;what the variable holds&quot;. So with a primitive type the original variable stays the same when you change the copy, and with a reference type the two variables end up looking at the same single object.</p>
+<p>Checked against real execution · Checked by running 15 combinations on JDK 21</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Primitive types and reference types</dt>
+<dd>These are the two kinds into which the types of Java are divided. There are eight primitive types, byte, short, int, long, float, double, char, and boolean, and a variable of one of them holds the value itself. Reference types are all the other types, such as classes, interfaces, and arrays, and a variable of one of them holds a reference to an object, not the object itself. So assigning a variable of a primitive type copies the value, and the two variables do not affect each other, but assigning a variable of a reference type copies the reference, and the two variables come to refer to the same object. A variable of a reference type can hold null, which means that it refers to no object, and a variable of a primitive type cannot hold null.</dd>
+<dt>Pass by value</dt>
+<dd>This is a way of calling a method in which what is copied into the parameter is not the variable written as the argument but what that variable holds. It is also called call by value, and Java always passes arguments this way and in no other way. For a primitive type the value is copied, and for a reference type the reference is copied, so the parameter and the variable of the caller refer to the same object. That is why a change that the method makes to the contents of the passed object is visible to the caller, but assigning a different object to the parameter does not change the variable of the caller.</dd>
+<dt>Immutable object</dt>
+<dd>This is an object whose state does not change after it is created. Because its value never changes, it is safe for several threads to use at the same time, you can pass it to other code without worrying that it will be changed, and it is well suited for caching or for use as a key in a hash collection. Declare the fields private final, provide no methods that change the state, and make the class final so that a subclass cannot change its behavior. If a field refers to a mutable object (such as a List or a Date), the constructor and the getters pass copies in and out (defensive copying) so that outside code cannot change the internals.</dd>
+<dt>Heap memory</dt>
+<dd>This is the memory area where every object and array created with new is stored, and it is shared by all threads. The garbage collector manages it and reclaims objects that are no longer used. Its size is set with the -Xms (initial) and -Xmx (maximum) options, and an OutOfMemoryError occurs when it runs out of space.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A Point variable is assigned to b, and the contents are changed through b. Reading through a also gives 99.</li>
+<li><b>With a primitive type</b> — The value is copied, so a is still 1 after b is changed.</li>
+<li><b>Passing an object to a method</b> — A change made inside the method is visible outside the method too.</li>
+<li><b>Assigning a new object inside the method</b> — Only the parameter comes to refer to a different object, and a stays the same.</li>
+<li><b>Passing a primitive value to a method</b> — a stays the same even when the method changes the parameter.</li>
+<li><b>Getting the result back and assigning it</b> — a changes only when the value received through return is stored back in a.</li>
+<li><b>Concatenating onto a String</b> — String is a reference type, and yet a stays the same.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Point a = new Point(1): new creates one Point object on the heap (x is 1). The variable a holds a reference that points to where that object is, not the object itself.</li>
+<li>Point b = a: The reference that a holds is copied and stored in b. The object is not copied. There is still only one object, and a and b refer to the same object.</li>
+<li>b.x = 99: Java follows the reference in b and changes the x of that object to 99. What b itself holds does not change. a refers to this very object too.</li>
+<li>System.out.println(b.x): b refers to an object, and the x of that object is read. The output is 99.</li>
+<li>System.out.println(a.x): The x of the object that a refers to is read. The output is 99. b was used to change the very object that a refers to.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>b gives 99 when it is read, and a gives 99. The value read from a is different from what it was at first.</li>
+<li>A variable of a reference type holds a reference, not an object. What is copied is the reference, so the two variables refer to the same single object, and a change made through one is visible through the other.</li>
+</ul>
+<h2>Code</h2>
+<pre>class Point {
+    int x;
+    Point(int x) { this.x = x; }
+}
+
+Point a = new Point(1);
+Point b = a;                        // the reference in a is copied
+b.x = 99;                           // changes the contents of the object it refers to
+
+System.out.println(b.x);
+System.out.println(a.x);</pre>
+<h2>Assumptions of this model</h2>
+<p>The output of the 15 combinations (the value read from the copy and the value read from a) was checked against the result of running code with the same structure on JDK 21 on this PC. &quot;Reference&quot; is used here to mean a value that points to where an object is. In Java you cannot take this value out and look at it as a number, and whether it is actually a plain memory address differs from one JVM to another. The picture in which variables are placed on the stack and objects on the heap is the usual explanation for local variables, and when the JIT compiler optimizes the code, an object may not be created on the heap at all, but the result of the program is the same. The string &quot;hi&quot; is actually an object in the string pool, but here it is drawn simply as one object on the heap. The frame that is created when a variable is passed to a method is covered in the &quot;Stack and heap&quot; lab, and the difference between == and equals is covered in the &quot;== and equals&quot; lab.</p>
+<p>Next lab: <a href="../../lab/casting/">Operators and type conversion</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Classes, objects, and constructors: What happens, and in what order, when you use new? · Dev Learning Lab</title>
+<meta name="description" content="A class is a blueprint, and new creates one object from that blueprint. When it does, the fields are first set to their default values, then the field ini…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ctor/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ctor/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ctor/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Classes, objects, and constructors: What happens, and in what order, when you use new? · Dev Learning Lab">
+<meta property="og:description" content="A class is a blueprint, and new creates one object from that blueprint. When it does, the fields are first set to their default values, then the field ini…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/ctor/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
+<h1>Classes, objects, and constructors</h1>
+<p><b>What happens, and in what order, when you use new?</b></p>
+<p>A class is a blueprint, and new creates one object from that blueprint. When it does, the fields are first set to their default values, then the field initializers and initializer blocks run in the order in which they are written, and finally the constructor body runs. Depending on which constructors you declare, new Order() may not compile at all.</p>
+<p>Checked against real execution · All 16 combinations were compiled and run on JDK 21, and the compilation result, the order of execution, and the output were checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Classes and objects</dt>
+<dd>A class is a blueprint that states which fields (data) and methods (behavior) something has, and an object is the actual thing that is created in memory (on the heap) by using new with that blueprint. An object is also called an instance. You can create many objects from one class, and each object has its own field values. A variable holds not the object itself but a reference to where the object is.</dd>
+<dt>Constructor</dt>
+<dd>This is code that runs once when an object is created with new and puts the fields into their initial state. Its name is the same as the class name, and it has no return type. A class can have several of them as long as they take different arguments, and the one that matches the arguments passed to new is selected. Its body runs after the fields have been set to their default values and the field initializers and initializer blocks have run.</dd>
+<dt>Default constructor</dt>
+<dd>This is the constructor with no arguments and an empty body that the compiler automatically provides when a class declares no constructors at all. Thanks to it, even a class that declares no constructor can create objects with new ClassName(). It is not provided once you write even one constructor yourself. So a class that declares only a constructor with arguments gets a compile-time error when new is used without arguments.</dd>
+<dt>Default values of fields</dt>
+<dd>These are the values that are automatically placed in the fields that are not given a value when an object is created. Numeric types such as int get 0, boolean gets false, and reference types such as String get null. These values are what you see until a field initializer or a constructor assigns a value. Local variables inside a method have no default value, so reading one without assigning a value to it is a compile-time error.</dd>
+<dt>this</dt>
+<dd>This keyword is a reference to the current object: inside an instance method or a constructor, it refers to the very object that is being worked on. Writing this.name tells a field apart from a parameter with the same name. Writing this(arguments) as the first statement of a constructor runs another constructor of the same class first. A static method has no target object, so this cannot be used in it.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Order() first calls the other constructor with this(1). The output is 21, standard.</li>
+<li><b>With no constructors declared</b> — The compiler provides a default constructor. memo stays null.</li>
+<li><b>Only a constructor with an argument, then new Order()</b> — No default constructor is provided, so this is a compile-time error.</li>
+<li><b>With the initializer block written first</b> — The field initializer runs later, so qty becomes 10.</li>
+<li><b>new Order(3)</b> — The constructor that matches the argument, Order(int extra), is selected.</li>
+<li><b>No constructors, then new Order(3)</b> — The default constructor takes no arguments, so this is a compile-time error.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Compilation: The Order class declares the constructors Order() and Order(int extra). A class can have several constructors as long as they take different arguments.</li>
+<li>Compilation: The compiler looks for a constructor that matches new Order(). There are no arguments, so Order() is selected. Now the program runs.</li>
+<li>new Order() runs: First of all, memory for an Order object is allocated on the heap, and every field is set to its default value. qty, which is an int, is 0, and memo, which is a reference type, is null. Neither the initializers nor the constructor body has run yet.</li>
+<li>this(1), the first line of the constructor Order(): This calls another constructor of the same class, Order(int extra), first. extra receives 1. The rest of the body of Order() runs after that constructor finishes.</li>
+<li>int qty = 10: The field initializer runs, and qty changes from 0 to 10. Field initializers and initializer blocks run before the constructor body, in the order in which they are written in the class, no matter which constructor is called.</li>
+<li>qty = 20 in the initializer block: qty changes from 10 to 20. The block is written below the initializer, so it ran later.</li>
+<li>qty = qty + extra in the body of Order(int extra): A constructor body runs only after initialization has finished. The current value of qty is 20, and adding extra, which is 1, makes qty 21.</li>
+<li>memo = &quot;extra &quot; + extra in the body of Order(int extra): memo, which was null, is set to &quot;extra 1&quot;.</li>
+<li>memo = &quot;standard&quot;, the rest of the body of Order(): The constructor called with this(1) has finished, and control is back in Order(). memo changes from &quot;extra 1&quot; to &quot;standard&quot;. The initializer and the block do not run again.</li>
+<li>Order o = new Order(): The constructor has finished. new returns a reference to the completed object, and the variable o holds that reference.</li>
+<li>System.out.println(o.qty + &quot;, &quot; + o.memo): This reads qty and memo of the object that o refers to and prints them. The output is 21, standard.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The output is 21, standard. The order of execution is: default values → field initializer → initializer block → Order(int) body → Order() body.</li>
+<li>The initializer (10) ran first and the block below it (20) ran later, so qty was 20 when the constructor body started.</li>
+<li>this(...) can be used only as the first statement of a constructor, and it runs another constructor of the same class first. Use it to gather the common work in one constructor. The initializer and the block run only once.</li>
+</ul>
+<h2>Code</h2>
+<pre>class Order {
+    int qty = 10;                  // field initializer
+    String memo;                   // field without an initializer
+
+    {                              // initializer block
+        qty = 20;
+    }
+
+    Order() {
+        this(1);                   // calls another constructor of the same class first
+        memo = &quot;standard&quot;;
+    }
+
+    Order(int extra) {
+        qty = qty + extra;
+        memo = &quot;extra &quot; + extra;
+    }
+}
+
+Order o = new Order();
+System.out.println(o.qty + &quot;, &quot; + o.memo);</pre>
+<h2>Assumptions of this model</h2>
+<p>All 16 combinations were actually compiled and run with the same code on JDK 21 on this PC, and the compilation result, the error message, the order in which the initializer, the block, and the constructor bodies ran, and the output were checked against the results. The order of execution was confirmed by inserting only logging lines into the same code, and it was also confirmed by execution that the fields already hold their default values (0, null) before the initializers run. Simplifications: every constructor calls a constructor of its superclass (here, Object) before its own body, and the diagram leaves this step out (the &quot;Inheritance and overriding&quot; lab covers it). Initializer blocks are not used often in practice, and they are included here to show the order. The error message is the first line of the English message from javac. That this(...) can be used only as the first statement of a constructor is as of JDK 21 and was confirmed by compiling on this PC. In newer JDKs this is said to have changed so that some statements can come before this(...), but this was not verified on this PC.</p>
+<p>Previous lab: <a href="../../lab/array/">Arrays</a> · Next lab: <a href="../../lab/static/">static and instance</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

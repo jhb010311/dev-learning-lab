@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CDN: 원본을 바꿨는데 왜 사용자는 아직 옛 파일을 받나 · 개발 학습 실습실</title>
+<meta name="description" content="CDN은 원본 서버(오리진)가 가진 파일의 사본을 사용자와 가까운 서버(엣지)에 보관해 두고, 엣지가 대신 답하게 하는 방식입니다. 처음 요청은 엣지에 사본이 없어 오리진까지 다녀오지만(MISS), 그 뒤로는 엣지가 바로 답합니다(HIT). 대신 엣지는 정해진 유효 시간 동안…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/cdn/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cdn/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cdn/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="CDN: 원본을 바꿨는데 왜 사용자는 아직 옛 파일을 받나 · 개발 학습 실습실">
+<meta property="og:description" content="CDN은 원본 서버(오리진)가 가진 파일의 사본을 사용자와 가까운 서버(엣지)에 보관해 두고, 엣지가 대신 답하게 하는 방식입니다. 처음 요청은 엣지에 사본이 없어 오리진까지 다녀오지만(MISS), 그 뒤로는 엣지가 바로 답합니다(HIT). 대신 엣지는 정해진 유효 시간 동안…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/cdn/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 웹 서버 앞의 장비</p>
+<h1>CDN</h1>
+<p><b>원본을 바꿨는데 왜 사용자는 아직 옛 파일을 받나</b></p>
+<p>CDN은 원본 서버(오리진)가 가진 파일의 사본을 사용자와 가까운 서버(엣지)에 보관해 두고, 엣지가 대신 답하게 하는 방식입니다. 처음 요청은 엣지에 사본이 없어 오리진까지 다녀오지만(MISS), 그 뒤로는 엣지가 바로 답합니다(HIT). 대신 엣지는 정해진 유효 시간 동안 오리진에 다시 묻지 않으므로, 그사이 오리진의 파일을 바꿔도 사용자는 옛 사본을 받습니다. 80초 동안 들어오는 네 번의 요청을 따라가며 엣지가 언제 오리진에 가는지 보세요.</p>
+<p>일부만 실행으로 확인 · 오리진과 직접 만든 캐싱 서버(엣지 역할)를 127.0.0.1에 띄워 열여섯 가지 조합을 실행해 대조. 실제 CDN 서비스로는 확인하지 않음</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>CDN</dt>
+<dd>전 세계 여러 지역에 배치된 서버에 콘텐츠의 복사본을 두고, 사용자와 가까운 서버가 응답하게 하는 네트워크다. 이미지, 영상, 스크립트 같은 정적 파일의 전송이 빨라지고 원본 서버로 가는 요청이 줄어든다.</dd>
+<dt>오리진과 엣지</dt>
+<dd>오리진은 파일의 원본을 가진 서버이고, 엣지는 사용자와 가까운 곳에 놓여 그 사본을 보관했다가 대신 답하는 CDN의 서버다. 사용자의 요청은 먼저 엣지에 도착하며, 엣지에 쓸 수 있는 사본이 있으면 바로 답하고(HIT) 없으면 오리진에서 받아 와 전달하면서 보관한다(MISS). 엣지는 오리진이 응답 헤더로 정해 준 유효 시간 동안에는 오리진에 다시 묻지 않는다. 그래서 응답이 빨라지고 오리진의 부하가 줄지만, 그동안 오리진에서 바뀐 내용은 엣지에 반영되지 않는다.</dd>
+<dt>캐시 키</dt>
+<dd>캐시가 보관한 사본을 찾을 때 쓰는 이름표다. HTTP 캐시는 기본적으로 요청 메서드와 주소 전체(호스트, 경로, 쿼리 문자열)를 캐시 키로 쓴다. CDN은 제품과 설정에 따라 캐시 키에 넣는 값이 다르며, 쿼리 문자열을 기본으로는 넣지 않는 CDN도 있다(CloudFront의 기본 캐시 키는 도메인 이름과 경로다). 쿼리 문자열이 캐시 키에 들어가면 같은 파일이라도 쿼리 문자열이 한 글자만 달라도 다른 사본으로 취급되어 원본 서버에 다시 다녀온다. 이 성질을 거꾸로 이용해 파일이 바뀔 때마다 주소의 버전 값을 바꾸면 옛 사본을 지우지 않고도 새 내용을 내보낼 수 있다. 내용과 무관한 쿼리 문자열 때문에 사본이 잘게 나뉘지 않도록, CDN에는 캐시 키에 넣을 값과 뺄 값을 정하는 설정이 있다.</dd>
+<dt>캐시 무효화(Purge)</dt>
+<dd>유효 시간이 아직 남은 사본을 캐시에서 강제로 지우는 일이다. 원본을 바꿨는데 CDN의 엣지가 옛 사본을 계속 내보낼 때, 해당 주소의 무효화를 요청하면 다음 요청부터 원본에서 새로 받아 온다. HTTP 표준에 정해진 기능이 아니라 CDN이나 프록시 제품이 저마다 제공하는 기능이며, 주소 하나 단위나 경로 묶음 단위로 지운다. 엣지의 사본만 지울 뿐 사용자의 브라우저가 따로 보관한 사본은 지우지 못한다. 그래서 자주 바뀌는 파일은 무효화에 기대기보다 주소에 버전이나 해시를 넣는 방식을 함께 쓴다.</dd>
+<dt>TTL(Time To Live)</dt>
+<dd>데이터가 유효한 시간이다. 캐시에 값을 넣을 때 TTL을 지정하면 그 시간이 지난 뒤 자동으로 삭제된다. 원본과 어긋난 값이 캐시에 무기한 남는 것을 막는 기본적인 안전장치다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 유효 시간 300초. 오리진을 바꿨는데 40초와 80초의 사용자 모두 옛 내용을 받습니다.</li>
+<li><b>유효 시간이 60초라면</b> — 40초에는 옛 내용, 80초에는 엣지가 다시 물어 새 내용을 받습니다.</li>
+<li><b>무효화(purge)를 하면</b> — 엣지의 사본을 지워, 다음 요청이 오리진에서 새 내용을 받아 옵니다.</li>
+<li><b>주소를 바꾸면</b> — ?v=2는 다른 주소라서 엣지에 사본이 없고, 새 내용을 받아 옵니다.</li>
+<li><b>쿼리 문자열이 더 붙으면</b> — 같은 파일인데도 다른 사본으로 취급되어 오리진에 한 번 더 갑니다.</li>
+<li><b>파일을 바꾸지 않을 때</b> — 오리진에는 한 번만 가고 나머지는 모두 엣지가 답합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>0초: 사용자가 GET /app.css?v=1 요청을 보냅니다. 요청은 오리진이 아니라 사용자와 가까운 엣지 서버에 도착합니다. 엣지에는 이 주소의 사본이 없습니다(MISS). 엣지가 멀리 있는 오리진에서 파일을 받아 와 사용자에게 주고, 사본을 보관합니다. 오리진이 응답에 적은 s-maxage=300에 따라 이 사본은 300초 동안 그대로 써도 됩니다.</li>
+<li>10초: 다른 사용자가 같은 주소를 요청합니다. 엣지에 사본이 있고 받아 온 지 10초라 유효 시간 안입니다(HIT). 엣지가 오리진에 묻지 않고 바로 답합니다. 오리진은 이 요청이 있었는지도 모릅니다. 여러 사용자가 한 사본을 함께 쓰기 때문에 공유 캐시라고 부릅니다.</li>
+<li>30초: 개발자가 오리진의 app.css를 새 내용으로 바꿔 배포합니다. 오리진은 이 사실을 엣지에 알리지 않습니다. 엣지가 보관한 사본은 옛 내용 그대로입니다.</li>
+<li>40초: 사용자가 /app.css?v=1 주소를 요청합니다. 엣지의 사본은 받아 온 지 40초라 유효 시간(300초) 안입니다(HIT). 엣지가 보관한 사본을 그대로 줍니다. 오리진의 파일은 10초 전에 바뀌었지만 엣지는 알지 못합니다. 사용자는 옛 내용을 받습니다.</li>
+<li>80초: 사용자가 /app.css?v=1 주소를 요청합니다. 사본은 받아 온 지 80초라 유효 시간(300초) 안입니다(HIT). 엣지가 바로 답합니다. 오리진의 파일이 바뀐 지 50초가 지났는데도 사용자는 여전히 옛 내용을 받습니다. 유효 시간이 끝나는 300초까지 계속 이렇게 됩니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>요청 4번 가운데 엣지가 바로 답한 것이 3번, 오리진까지 간 것이 1번입니다. 내용을 바꾼 뒤의 요청 2번 가운데 2번은 옛 내용을 받았습니다.</li>
+<li>엣지가 바로 답하면 가까운 거리만 오가므로 빠르고(예시 20ms), 오리진까지 가면 먼 거리가 더해집니다(예시 220ms). 오리진이 받는 요청도 줄어듭니다. 이 시간은 차이를 보이기 위한 예시입니다.</li>
+<li>엣지는 유효 시간 동안 오리진에 다시 묻지 않습니다. 그래서 오리진의 파일을 바꿔도 유효 시간이 남은 사본이 계속 나갑니다. 유효 시간을 길게 잡을수록 빠르지만 바뀐 내용이 늦게 퍼집니다.</li>
+</ul>
+<h2>코드</h2>
+<pre># 오리진이 app.css를 줄 때 붙이는 응답 헤더
+Cache-Control: public, s-maxage=300     # 공유 캐시(엣지)는 300초 동안 사본을 그대로 써도 된다
+
+// 엣지: 사본을 보관했다가 대신 답하는 서버 (Node.js로 줄여 쓴 모습)
+const store = new Map();                              // 주소(경로 + 쿼리 문자열) → 보관한 사본
+http.createServer(async (req, res) =&gt; {
+    if (req.method === 'PURGE') {                     // 무효화: 그 주소의 사본을 지운다
+        store.delete(req.url);
+        return res.end('purged');
+    }
+    const copy = store.get(req.url);
+    if (copy &amp;&amp; age(copy) &lt; copy.ttl) {               // 사본이 있고 유효 시간 안
+        res.setHeader('X-Cache', 'HIT');
+        return res.end(copy.body);                    // 오리진에 묻지 않고 바로 답한다
+    }
+    const fresh = await fetchFromOrigin(req.url);     // 없거나 유효 시간이 지났으면 오리진으로
+    store.set(req.url, fresh);
+    res.setHeader('X-Cache', copy ? 'EXPIRED' : 'MISS');
+    res.end(fresh.body);
+});
+
+// 요청 순서
+//  0초  curl https://cdn.shop.example/app.css?v=1
+// 10초  curl https://cdn.shop.example/app.css?v=1
+// 30초  오리진의 app.css를 새 내용으로 배포
+// 40초  curl https://cdn.shop.example/app.css?v=1
+// 80초  curl https://cdn.shop.example/app.css?v=1</pre>
+<h2>이 모형의 전제</h2>
+<p>열여섯 가지 조합(파일을 바꾸지 않으면 &quot;바꾼 뒤에 하는 일&quot;은 쓰이지 않음)을 127.0.0.1에 띄운 오리진 서버와 엣지 역할의 작은 캐싱 프록시로 실행해, 네 번의 요청이 각각 MISS, HIT, EXPIRED 가운데 무엇이었는지와 받은 내용, 오리진에 도착한 요청 수가 모형과 같은 것을 확인했습니다. 엣지는 Node.js 24로 직접 만든 시험용이며, 사본을 보관해도 되는지와 유효 시간이 남았는지는 HTTP 캐시 규칙 구현인 http-cache-semantics 4.2(공유 캐시 모드)에 맡겼습니다. 80초를 기다리지 않도록 엣지의 시계를 빠르게 돌려(모형의 1초를 실제 30ms로) 시험했고, 사용자 역할은 Node의 fetch와 curl 8.21이 번갈아 맡았습니다. 실제 CDN 서비스에서 확인한 것은 아닙니다. 걸린 시간(20ms, 220ms)과 &quot;가깝다, 멀다&quot;는 측정값이 아니라 차이를 보이기 위한 예시입니다. s-maxage가 공유 캐시의 유효 시간을 정한다는 것과 유효 시간이 지난 사본을 그대로 쓰지 않는다는 것은 RFC 9111 4.2절과 5.2.2.10절, 사본을 요청 메서드와 주소로 찾는다는 것은 2절을 따랐습니다. HIT, MISS, EXPIRED라는 이름과 X-Cache 헤더는 표준이 아니라 여러 CDN과 프록시가 쓰는 관례이고 제품마다 표기가 다릅니다. 무효화(purge)도 표준에 없는 제품별 기능이며, 여기서는 PURGE 메서드로 한 주소의 사본을 지우는 흔한 방식을 따랐습니다. 유효 시간이 지났을 때 이 모형의 엣지는 파일 전체를 다시 받지만, 실제 CDN은 대개 조건부 요청으로 &quot;바뀌었는지&quot;만 먼저 묻습니다(HTTP 캐시와 ETag 실습 참고). 엣지가 여러 지역에 여러 대 있고 저마다 사본을 따로 보관한다는 것, 브라우저가 따로 보관하는 사본, 사본을 미리 채워 두는 기능은 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/revproxy/">프록시와 리버스 프록시</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

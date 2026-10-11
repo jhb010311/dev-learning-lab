@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The owning side of a relationship: You added a member to the team's list, so why is the foreign key in the database empty? · Dev Learning Lab</title>
+<meta name="description" content="When a team and a member point to each other, the Java objects have two references (the team of the member, and the members of the team). In the database,…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/owner/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/owner/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/owner/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="The owning side of a relationship: You added a member to the team's list, so why is the foreign key in the database empty? · Dev Learning Lab">
+<meta property="og:description" content="When a team and a member point to each other, the Java objects have two references (the team of the member, and the members of the team). In the database,…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/owner/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Relationships</p>
+<h1>The owning side of a relationship</h1>
+<p><b>You added a member to the team's list, so why is the foreign key in the database empty?</b></p>
+<p>When a team and a member point to each other, the Java objects have two references (the team of the member, and the members of the team). In the database, however, the only thing that links them is one foreign key, team_id in the member table. JPA looks at only one of the two references when it writes the foreign key. That side is called the owning side of the relationship. Follow it line by line to see what is left in the database depending on which side you set the value on.</p>
+<p>Checked against real execution · All 12 combinations were run on Hibernate 7.4.5 and H2, and the tables, the SQL that was sent, the foreign key values, and the size of the list were checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Owning side and mappedBy</dt>
+<dd>In a bidirectional relationship, the side that actually manages the foreign key is called the owning side. JPA inserts or updates the foreign key by looking only at the value in the reference on the owning side. On the other side, which is not the owning side (the inverse side), you write the name of the field on the owning side in mappedBy to mark it as read-only, and values you put there are not reflected in the database. The owning side is the entity that corresponds to the table that holds the foreign key, that is, the &quot;many&quot; side of a many-to-one relationship. (The JPA specification says that the &quot;many&quot; side of a bidirectional one-to-many or many-to-one relationship must be the owning side, which is why @ManyToOne has no mappedBy.) If you leave out mappedBy in a bidirectional relationship, the two references are treated as different relationships, and an unintended join table is created.</dd>
+<dt>Unidirectional and bidirectional relationships</dt>
+<dd>These words describe the direction in which one entity refers to another entity. If only the member has the team as a field, the relationship is unidirectional. If the team also has a list of members as a field, so that they point to each other, it is bidirectional. In tables, a single foreign key allows a join from either side, so a table has no direction. An object, however, can reach the other one only from the side that holds the reference. So a bidirectional relationship in objects is really two different unidirectional references, and you have to decide which of the two manages the foreign key.</dd>
+<dt>Primary key, unique key, foreign key</dt>
+<dd>A primary key (PK) is the column that uniquely identifies each row of a table. Its values cannot be duplicated or empty, and a table has only one. A unique key is a unique constraint, which prevents duplicate values, and a table can have several. A foreign key (FK) is a column that references the primary key (or a unique key) of another table. It guarantees that the referenced row really exists.</dd>
+<dt>First-level cache</dt>
+<dd>The store inside the persistence context that keeps entities by identifier. If you load the same identifier again within the same transaction, it returns the stored entity without sending a query to the database. As a result, entities with the same identifier are always the same object within the same transaction. By default it disappears when the transaction ends (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends), so it is different from an application-wide cache.</dd>
+<dt>Transactional write-behind and flush</dt>
+<dd>Transactional write-behind means that INSERT, UPDATE, and DELETE statements are not sent to the database right away. They are collected and sent together. However, for an entity whose primary key is generated with the IDENTITY strategy (such as AUTO_INCREMENT in MySQL), the INSERT runs immediately when you request the save, because the identifier must be obtained. A flush sends the collected changes to the database. It happens automatically just before the transaction commits and just before a JPQL query runs. A flush only sends SQL to the database. It does not commit the transaction.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — You add the member only to the team's list. There is no exception, but team_id in the database is null.</li>
+<li><b>Setting the member side only</b> — team_id is stored, but the list of the team that is read in the same transaction is empty.</li>
+<li><b>Setting both sides</b> — The foreign key in the database and the list in memory are both correct.</li>
+<li><b>Setting the team side only, then reading again from the database</b> — The list had 1 member in memory, but when it is read again from the database, it has 0.</li>
+<li><b>Setting the member side only, then reading again from the database</b> — The foreign key was stored, so the list that is read again has 1 member.</li>
+<li><b>Leaving out mappedBy</b> — A separate join table team_member is created, and one more INSERT is sent.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>new Team(&quot;Engineering&quot;): Creates a team object. It exists only in Java memory so far, and the members list is empty.</li>
+<li>em.persist(team): The primary key is created with the IDENTITY strategy, so the INSERT is sent right away and the id 1 chosen by the database comes back.</li>
+<li>new Member(&quot;Alice&quot;): Creates a member object. Its team field is still null.</li>
+<li>team.getMembers().add(member): The member goes into the members list of the team object. But this list has mappedBy = &quot;team&quot;. It means &quot;the foreign key is managed by the team field of Member, and I only read&quot;, so JPA does not look at this list when it builds SQL.</li>
+<li>em.persist(member): An INSERT is sent right away. The team_id column gets the value that is read from the team field of the member object. The team field is null, so team_id is null too. Adding the member to the list of the team had no effect on this value.</li>
+<li>em.find(Team.class, team.getId()): The first-level cache has the team with id 1, so it returns that object without going to the database. found and team are the same object.</li>
+<li>found.getMembers().size(): found is the team object that was created first, so it returns the number of elements in the Java list as it is. It does not ask the database. A member was put in the list, so the result is 1. In the database, team_id is null, but in memory it looks as if the team has a member.</li>
+<li>Commit: There is no more SQL to send. The member that was added to the list of the team never reached the database. No exception is thrown either.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>member.team_id in the database is null, and team.getMembers().size() is 1. The SQL sent was INSERT: 2.</li>
+<li>If you set the value only on the side that is not the owning side (Team.members, which has mappedBy), the foreign key is not stored. No exception is thrown, so it is easy to think it was saved. Inside the same transaction, the member is visible in the list in memory, so it is even harder to notice.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Entity
+class Team {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+    String name;
+
+    @OneToMany(mappedBy = &quot;team&quot;)          // not the owning side. It is read-only
+    List&lt;Member&gt; members = new ArrayList&lt;&gt;();
+}
+
+@Entity
+class Member {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+    String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;team_id&quot;)          // the owning side. It manages the foreign key team_id
+    Team team;
+}
+// Constructors, getters, and setters are omitted
+
+// Inside a transaction
+Team team = new Team(&quot;Engineering&quot;);
+em.persist(team);
+Member member = new Member(&quot;Alice&quot;);
+team.getMembers().add(member);        // set on the side that is not the owning side
+em.persist(member);
+Team found = em.find(Team.class, team.getId());
+int size = found.getMembers().size();
+// Transaction commit</pre>
+<h2>Assumptions of this model</h2>
+<p>This lab covers only the case of saving one new team and one new member. The case of changing the team of a member that is already saved (the case in which an UPDATE is sent) is not covered. The primary key uses the IDENTITY strategy, so the INSERT is sent as soon as persist is called. All 12 combinations were run on Hibernate 7.4.5 and an H2 database with code of the same structure, and the following were checked to match the screen: the tables and columns that were created, the kinds of SQL that were sent and the count per table, whether that SQL was sent at persist or just before commit, the value of member.team_id in the database, the number of rows in the join table, and team.getMembers().size(). The names of the join table and its columns (team_member, team_id, members_id) were chosen by Hibernate 7.4.5 by its default rules, and they can be changed with @JoinTable. The SQL statements on the screen are shortened to be easy to read, so they are not letter for letter the same as the real statements. In the SQL log, an alias follows each table name, and question marks stand in the place of values.</p>
+<p>Previous lab: <a href="../../lab/embedded/">Value types and embeddable types</a> · Next lab: <a href="../../lab/relations/">Many-to-one, one-to-many, one-to-one, many-to-many</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>평균과 백분위: 평균 응답 시간은 멀쩡한데 왜 느리다는 불만이 오나 · 개발 학습 실습실</title>
+<meta name="description" content="요청 1,000건의 응답 시간을 모았습니다. 대부분은 0.1초 안팎이지만 일부가 아주 느립니다. 느린 요청의 비율과 정도를 바꿔 가며, 평균과 백분위(p50, p95, p99)가 각각 무엇을 보여 주고 무엇을 숨기는지 확인하세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/pct/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/pct/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pct/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="평균과 백분위: 평균 응답 시간은 멀쩡한데 왜 느리다는 불만이 오나 · 개발 학습 실습실">
+<meta property="og:description" content="요청 1,000건의 응답 시간을 모았습니다. 대부분은 0.1초 안팎이지만 일부가 아주 느립니다. 느린 요청의 비율과 정도를 바꿔 가며, 평균과 백분위(p50, p95, p99)가 각각 무엇을 보여 주고 무엇을 숨기는지 확인하세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/pct/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 관측</p>
+<h1>평균과 백분위</h1>
+<p><b>평균 응답 시간은 멀쩡한데 왜 느리다는 불만이 오나</b></p>
+<p>요청 1,000건의 응답 시간을 모았습니다. 대부분은 0.1초 안팎이지만 일부가 아주 느립니다. 느린 요청의 비율과 정도를 바꿔 가며, 평균과 백분위(p50, p95, p99)가 각각 무엇을 보여 주고 무엇을 숨기는지 확인하세요.</p>
+<p>실행으로 대조 · 같은 데이터를 자바로 따로 계산해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>TPS와 응답 시간 백분위</dt>
+<dd>TPS는 시스템이 1초에 처리하는 요청(트랜잭션)의 수다. 응답 시간은 평균만 보면 일부 느린 요청이 가려지므로 백분위로 본다. p95가 1초라는 것은 요청의 95%가 1초 안에 처리된다는 뜻이고, p99는 99%를 기준으로 한 값이다. 느린 일부 요청이 사용자 경험을 좌우하므로 p95, p99를 함께 관리한다.</dd>
+<dt>부하 테스트</dt>
+<dd>실제와 비슷한 양의 요청을 인위적으로 보내 시스템이 어느 정도까지 견디는지, 한계에 이르렀을 때 어디가 먼저 문제가 되는지(병목) 확인하는 테스트다. 운영 전에 처리 가능한 용량을 파악하고 개선 효과를 측정하는 데 쓴다. JMeter, nGrinder, k6 같은 도구를 사용한다.</dd>
+<dt>APM</dt>
+<dd>애플리케이션의 성능을 모니터링하는 도구다. 요청별 응답 시간, 어느 메서드나 쿼리에서 시간이 걸렸는지, 오류 발생 현황 등을 수집해 보여 준다. 자바에서는 주로 에이전트 방식으로 코드 수정 없이 적용한다. Pinpoint, Scouter, Datadog 등이 있다.</dd>
+<dt>관측성(로그, 지표, 추적)</dt>
+<dd>시스템의 외부 출력만으로 내부 상태를 파악할 수 있는 능력이다. 로그는 개별 사건의 기록, 지표(메트릭)는 요청 수나 응답 시간처럼 수치로 집계한 값, 추적은 하나의 요청이 여러 서비스를 거쳐 가는 경로와 구간별 소요 시간의 기록이다. 세 가지를 함께 갖춰야 문제를 감지하고 원인을 찾을 수 있다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 2%가 3초. 평균은 0.16초로 괜찮아 보이지만 p99는 3초입니다.</li>
+<li><b>느린 요청이 없을 때</b> — 평균, 중앙값, p99가 거의 같습니다.</li>
+<li><b>0.5%만 느릴 때</b> — p99에도 잡히지 않습니다. 최댓값이나 p99.9를 봐야 보입니다.</li>
+<li><b>6%가 느릴 때</b> — p95부터 튀어 오릅니다.</li>
+<li><b>20%가 10초</b> — 평균이 2초가 됐지만, 그런 응답을 받은 사용자는 한 명도 없습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>요청 1,000건의 응답 시간을 모았습니다. 980건은 0.08~0.12초, 20건은 3초입니다.</li>
+<li>평균: 모든 응답 시간을 더해 1,000으로 나누면 0.16초입니다. 빠른 요청이 훨씬 많아서 느린 요청의 존재가 평균에 묻힙니다. 그리고 실제로 0.16초만에 응답받은 요청은 하나도 없습니다.</li>
+<li>p50(중앙값): 응답 시간을 빠른 순으로 줄 세웠을 때 500번째 값은 0.10초입니다. &quot;절반의 요청은 이 시간 안에 끝났다&quot;는 뜻입니다. 보통의 사용자가 겪는 속도입니다.</li>
+<li>p95: 950번째 값은 0.12초입니다. &quot;95%의 요청은 이 시간 안에 끝났고, 나머지 5%는 이보다 느렸다&quot;는 뜻입니다.</li>
+<li>p99: 990번째 값은 3.00초입니다. &quot;99%의 요청은 이 시간 안에 끝났고, 가장 느린 1%만 이보다 느렸다&quot;는 뜻입니다. 평균으로는 보이지 않던 느린 요청이 여기서 드러납니다.</li>
+<li>최댓값은 3.00초, p99.9(999번째 값)는 3.00초입니다. 하루 요청이 100만 건이라면 이 비율로 약 20,000건이 3초씩 걸린다는 뜻입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>평균 0.16초, p50 0.10초, p95 0.12초, p99 3.00초, 최댓값 3.00초.</li>
+<li>평균은 소수의 느린 요청을 가립니다. 응답 시간은 대부분 빠르고 일부만 매우 느린 치우친 분포라서, 평균이 &quot;대표적인 경험&quot;을 나타내지 못합니다. 그래서 성능 목표는 &quot;평균 0.2초&quot;가 아니라 &quot;p99가 1초 이하&quot;처럼 백분위로 정합니다.</li>
+<li>사용자 한 명이 화면 하나를 볼 때 여러 API를 호출하므로, 그중 하나라도 느린 쪽에 걸릴 확률은 개별 요청의 비율보다 높습니다. 꼬리 쪽 지연이 체감 속도를 좌우하는 이유입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// Micrometer: 응답 시간의 백분위를 함께 기록
+Timer.builder(&quot;http.server.requests&quot;)
+    .publishPercentiles(0.5, 0.95, 0.99)
+    .register(registry);
+
+# application.yml
+management.metrics.distribution.percentiles:
+  http.server.requests: 0.5, 0.95, 0.99</pre>
+<h2>이 모형의 전제</h2>
+<p>요청 1,000건의 고정된 가상 데이터입니다. 백분위는 값을 작은 순으로 줄 세워 해당 순번의 값을 취하는 방식(최근접 순위법)으로 계산했습니다. 실제 모니터링 도구는 모든 값을 저장하지 않고 구간별 개수로 근사하므로 약간의 오차가 있고, 여러 서버의 백분위를 평균 내는 것은 올바른 계산이 아닙니다. 같은 데이터로 평균과 백분위를 자바에서 따로 계산해 화면의 값과 일치하는 것을 확인했습니다.</p>
+<p>앞 실습: <a href="../../lab/k8s/">쿠버네티스 자가 치유</a> · 다음 실습: <a href="../../lab/trace/">분산 추적</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

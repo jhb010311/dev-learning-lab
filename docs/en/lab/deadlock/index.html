@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deadlock: Two threads wait for each other, and both stop · Dev Learning Lab</title>
+<meta name="description" content="Thread 1 transfers money from account A to B, and thread 2 transfers from B to A. To make a transfer, a thread must acquire the locks of both accounts. De…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/deadlock/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/deadlock/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/deadlock/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Deadlock: Two threads wait for each other, and both stop · Dev Learning Lab">
+<meta property="og:description" content="Thread 1 transfers money from account A to B, and thread 2 transfers from B to A. To make a transfer, a thread must acquire the locks of both accounts. De…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/deadlock/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
+<h1>Deadlock</h1>
+<p><b>Two threads wait for each other, and both stop</b></p>
+<p>Thread 1 transfers money from account A to B, and thread 2 transfers from B to A. To make a transfer, a thread must acquire the locks of both accounts. Depending on the order in which the locks are acquired and on the timing, the two threads can stop forever, each waiting for the lock that the other holds.</p>
+<p>Checked against real execution · Checked by running it on JDK 21</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Deadlock</dt>
+<dd>This is a state in which two or more threads (or transactions) can never make progress, because each is waiting for a resource that the other holds. The typical case is that A holds resource 1 and waits for 2 while B holds resource 2 and waits for 1. It can be prevented by always acquiring resources in the same order.</dd>
+<dt>Critical section and mutual exclusion</dt>
+<dd>A critical section is a section of code that causes problems if several threads run it at the same time. Mutual exclusion guarantees that only one thread at a time runs that section, and it is implemented with a lock. While one thread holds the lock, the other threads wait.</dd>
+<dt>synchronized</dt>
+<dd>This Java keyword marks a critical section. Only one thread at a time can run a method or block marked with it, and a thread that wants to run it must first acquire the monitor lock of the object involved. It is simple, but a thread that waits for the lock is stopped, so keep the scope only as large as needed.</dd>
+<dt>Heap dump and thread dump</dt>
+<dd>A heap dump is a file that saves information about every object in the heap at a certain moment. You analyze which objects take up a lot of memory and what refers to them, to find the cause of a memory leak. A thread dump records what every thread is running at that moment (its stack), and it is used to find the cause of an unresponsive application or a deadlock.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The threads acquire the locks in opposite orders and start at the same time. The result is a deadlock.</li>
+<li><b>Using the same lock order</b> — Both threads acquire A first. One waits, and they finish one after the other.</li>
+<li><b>When the timing does not overlap</b> — The orders are opposite, but both threads finish without a problem. That is why tests do not catch it.</li>
+<li><b>Limiting the waiting time</b> — A thread that cannot acquire a lock releases the lock it holds and tries again.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Thread 1: It acquired the lock of the sending account, A.</li>
+<li>Thread 2: It acquired the lock of the sending account, B.</li>
+<li>Thread 1: It tries to acquire the lock of the receiving account, B. Thread 2 holds it, so thread 1 waits. It keeps holding the lock of A.</li>
+<li>Thread 2: It tries to acquire the lock of the receiving account, A. Thread 1 holds it, so thread 2 waits. Thread 1 waits for thread 2, and thread 2 waits for thread 1. Neither releases its lock first, so the wait never ends. This is a deadlock.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Result: deadlock. Transfers completed: 0.</li>
+<li>A deadlock occurred. Neither transfer finishes, and the two threads are stopped without even an exception. If you take a thread dump, you can see them as threads in the BLOCKED state, each waiting for the lock that the other holds.</li>
+<li>A deadlock occurs when four conditions all hold: a resource that only one thread can use at a time, holding one resource while waiting for another, no way to take a resource away from its holder, and waits that form a cycle. It is enough to break just one of them. Using the same lock order breaks the cycle, and tryLock breaks &quot;holding while waiting&quot;.</li>
+</ul>
+<h2>Code</h2>
+<pre>void transfer(Account from, Account to, long amount) {
+    synchronized (from) {                 // lock the sending account first
+        synchronized (to) {
+            from.withdraw(amount);
+            to.deposit(amount);
+        }
+    }
+}
+
+// Thread 1: transfer(A, B, 100)
+// Thread 2: transfer(B, A, 50)</pre>
+<h2>Assumptions of this model</h2>
+<p>The model assumes the worst order, in which the two threads interleave exactly: each acquires its first lock and then requests its second lock. In reality, the timing more often lets the threads pass without a problem, and that is why a deadlock is hard to reproduce. synchronized cannot limit the waiting time, so when a limit is needed, use tryLock of ReentrantLock. In a database too, the same thing happens when two transactions lock rows in opposite orders, and the database detects it and forces one of them to roll back. This was checked by actually running it on JDK 21 on this PC. When the locks were acquired in opposite orders at the same time, the two threads stopped in the BLOCKED state and the JVM detected 2 deadlocked threads. When the locks were acquired in the same order, or the threads ran one after the other, both finished, and with tryLock both finished after 1 retry.</p>
+<p>Previous lab: <a href="../../lab/race/">Race condition</a> · Next lab: <a href="../../lab/threadpool/">Thread pool</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transaction propagation: How far does a rollback reach when an exception is thrown? · Dev Learning Lab</title>
+<meta name="description" content="A method that saves an order calls a method of another bean that saves a log. Both are @Transactional. Which of the two, the order and the log, stays in t…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/txprop/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/txprop/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/txprop/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Transaction propagation: How far does a rollback reach when an exception is thrown? · Dev Learning Lab">
+<meta property="og:description" content="A method that saves an order calls a method of another bean that saves a log. Both are @Transactional. Which of the two, the order and the log, stays in t…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/txprop/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Data access and transactions</p>
+<h1>Transaction propagation</h1>
+<p><b>How far does a rollback reach when an exception is thrown?</b></p>
+<p>A method that saves an order calls a method of another bean that saves a log. Both are @Transactional. Which of the two, the order and the log, stays in the database depends on the propagation setting, on where the exception is thrown and what kind it is, and on whether the exception is caught.</p>
+<p>Checked against real execution · 72 combinations were run on Spring 7.0.9 and H2 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>@Transactional</dt>
+<dd>This annotation is placed on a method or a class so that its scope runs as one transaction. The proxy starts a transaction before the method runs, commits if the method ends normally, and rolls back according to the rules if an exception occurs. You do not have to write the code that starts and ends the transaction yourself, so this is called a declarative transaction.</dd>
+<dt>Transaction propagation</dt>
+<dd>This setting decides what happens when a @Transactional method is called while a transaction is already in progress. The default, REQUIRED, joins the transaction in progress and starts a new one if there is none. REQUIRES_NEW suspends the existing transaction and always starts a separate new transaction. NESTED sets a savepoint inside the same transaction, which makes a partial rollback possible.</dd>
+<dt>Rollback rules and rollbackFor</dt>
+<dd>By default, @Transactional rolls back only when a RuntimeException or an Error is thrown out of the method, and it commits when a checked exception is thrown. To roll back on a checked exception too, specify that exception in the rollbackFor attribute. Also, if you catch and handle an exception inside the method, the proxy cannot know about it, so no rollback happens. However, if that exception was thrown from another @Transactional method that joined the same transaction, the transaction is already marked rollback-only, so even if you catch and handle the exception, an UnexpectedRollbackException occurs at commit time.</dd>
+<dt>Savepoint</dt>
+<dd>This is an intermediate point that you mark while a transaction is in progress. If a problem occurs later, you can roll back only to that point and not the whole transaction. Spring's NESTED propagation uses this feature.</dd>
+<dt>Checked and unchecked exceptions</dt>
+<dd>Unchecked exceptions are RuntimeException and its subclasses (in the specification, the Error classes are also unchecked), and the compiler does not check whether they are handled (examples are NullPointerException and IllegalArgumentException). Checked exceptions are all other Exception classes, and the code compiles only if they are handled with catch or declared with throws (examples are IOException and SQLException). By default, Spring's @Transactional rolls back only on RuntimeException and Error, and commits on checked exceptions.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — REQUIRED, with an unchecked exception in the inner method. The order and the log are rolled back together.</li>
+<li><b>Rolled back even though the exception is caught</b> — With REQUIRED, catch the exception from the inner method.</li>
+<li><b>Keeping a log failure from ruining the order</b> — Separate the log with REQUIRES_NEW and catch the exception.</li>
+<li><b>Keeping the log even when the order fails</b> — With REQUIRES_NEW, the outer method fails.</li>
+<li><b>How NESTED differs</b> — When the outer method fails, the inner work is rolled back with it. Compare this with the example just above.</li>
+<li><b>A checked exception does not cause a rollback</b> — The exception leaves the method, yet the order and the log are committed.</li>
+<li><b>Specifying rollbackFor</b> — The transaction is rolled back on a checked exception too.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>placeOrder() is called. Before running the method, the proxy starts transaction A (using 1 connection).</li>
+<li>The order is inserted with an INSERT. It is not committed yet, so it is visible only inside transaction A.</li>
+<li>saveLog() is called. Its propagation setting is REQUIRED and transaction A is already active, so it does not start a new transaction and joins A.</li>
+<li>The log is inserted with an INSERT. It belongs to transaction A.</li>
+<li>Inside saveLog(), an IllegalStateException is thrown and propagates out of the method.</li>
+<li>Proxy of saveLog(): An unchecked exception results in a rollback. But this method only joined A, so it cannot roll back by itself. Instead, it marks A as rollback-only and rethrows the exception.</li>
+<li>placeOrder() does not catch the exception, so the IllegalStateException propagates out as it is. Proxy of placeOrder(): An unchecked exception results in a rollback. The proxy rolls back transaction A. All the work done in A is undone.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Order: not saved. Log: not saved. The caller got an IllegalStateException.</li>
+<li>REQUIRED ties both into one transaction, so the order and the log are rolled back together no matter which side fails.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Service class OrderService {
+    @Transactional
+    public void placeOrder() {
+        orderDao.insert(order);            // save the order
+        logService.saveLog();
+    }
+}
+
+@Service class LogService {
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void saveLog() {
+        logDao.insert(log);                // save the log
+        throw new IllegalStateException();
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>saveLog() is a method of another bean, so it is called through the proxy (when it is called from inside the same class, the inner @Transactional does not apply; the &quot;Proxies and self-invocation&quot; lab covers that case). The rules follow the default behavior of the Spring Framework. A transaction is rolled back only on unchecked exceptions and Error, and when an exception that results in a rollback leaves a participating transaction, the whole transaction is marked rollback-only. NESTED is implemented with JDBC savepoints and works with DataSourceTransactionManager, which JdbcTemplate and MyBatis use. With JPA (JpaTransactionManager + Hibernate), using NESTED throws a NestedTransactionNotSupportedException. This is because a savepoint applies only to the JDBC connection and not to the persistence context. All 72 combinations were run on a real Spring setup (Spring Framework 7.0.9, DataSourceTransactionManager, the H2 database), and it was confirmed that whether the order and the log stay in the database, what the caller gets, and the number of connections in use at once match the screen.</p>
+<p>Previous lab: <a href="../../lab/tx/">Transaction basics</a> · Next lab: <a href="../../lab/jdbctmpl/">JdbcTemplate and exception translation</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

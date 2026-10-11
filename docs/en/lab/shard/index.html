@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sharding: What happens when you split data across several databases · Dev Learning Lab</title>
+<meta name="description" content="When one table grows too big for one database server, the rows are divided among several databases (shards). The shard key and the rule for dividing decid…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/shard/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/shard/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/shard/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Sharding: What happens when you split data across several databases · Dev Learning Lab">
+<meta property="og:description" content="When one table grows too big for one database server, the rows are divided among several databases (shards). The shard key and the rule for dividing decid…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/shard/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Scaling and distribution</p>
+<h1>Sharding</h1>
+<p><b>What happens when you split data across several databases</b></p>
+<p>When one table grows too big for one database server, the rows are divided among several databases (shards). The shard key and the rule for dividing decide which row goes to which shard. Divide 120 orders among shards and see how the rule changes the skew, and what happens when you add a shard.</p>
+<p>Checked against real execution · The same data was calculated separately in Java and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Sharding and partitioning</dt>
+<dd>Partitioning divides a large table into several pieces by a criterion such as a date range and manages it that way. Sharding stores data across several database servers. It spreads out a write load or a data volume that one server cannot handle. With sharding, joins and transactions that span servers become difficult. (Outside the top 50.)</dd>
+<dt>Scale up and scale out</dt>
+<dd>Scaling up means raising the specifications (CPU, memory) of a single server to increase its capacity, and scaling out means adding more servers to share the load. Scaling up is simple but has limits and cost problems. Scaling out can grow flexibly, but the servers must be designed to hold no state, and you need something that distributes the requests.</dd>
+<dt>Replication</dt>
+<dd>Continuously copying the changes of an original database (the source, also called the primary) to another database (a replica) so that both keep the same data. It reduces load by spreading read requests across replicas, and if the source fails, a replica can be promoted to take its place and keep the service running. There is a small delay in the copying, so data that was just written may not be visible on a replica right away. (Outside the top 50.)</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Orders are distributed by the remainder of the member number divided by 4. They spread evenly.</li>
+<li><b>Dividing by order number range</b> — All new orders go to the last shard.</li>
+<li><b>When a particular member has many orders</b> — Only the shard that member belongs to grows.</li>
+<li><b>Adding a shard with hashing</b> — From 4 shards to 5. Most of the data has to move.</li>
+<li><b>Adding a shard with ranges</b> — The existing data stays where it is, and the new shard receives only the new range.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Divide 120 orders among 4 shards. The remainder of the member number of the order divided by the number of shards (4) is the shard number. The orders of the same member always end up on the same shard.</li>
+<li>Distribution result. Largest shard: 30 orders. Smallest shard: 30 orders. The member numbers are spread evenly, so the number of orders per shard is similar.</li>
+<li>New orders are scattered over several shards depending on the member number of the member who ordered. The write load is spread out.</li>
+<li>&quot;Orders of member 7&quot; query: 7 % 4 = 3. Only that shard needs to be looked at. Conversely, a query that finds orders without a member number, such as &quot;all orders from yesterday&quot;, has to query every shard.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Orders per shard: 30, 30, 30, 30. Where new orders go: Spread over all shards by member. Query for the orders of one member: 1 shard.</li>
+<li>Once chosen, a shard key is very hard to change. The most frequently used query condition should be the shard key, so that a query needs to look at only one shard. Queries without the shard key, and joins and transactions that span shards, become difficult.</li>
+<li>Sharding is the last resort for dividing writes and data volume. Before it, first consider improving indexes and queries, caching, read-only replicas, and separating old data.</li>
+</ul>
+<h2>Code</h2>
+<pre>// The shard is chosen by the remainder of the member number divided by the number of shards
+int shardOf(long memberId) {
+    return (int) (memberId % 4);
+}
+
+// The same calculation finds the shard when querying
+DataSource ds = shards.get(shardOf(memberId));</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a small example with 120 orders and 40 members. Member numbers were assigned evenly to the orders, and with the &quot;many orders&quot; setting, one in every three orders was given to member 7. The ratio of data that moves when the number of shards changes is a value actually calculated from this data. A setup with replicas for each shard and the router that manages shard locations are left out. For 2 to 6 shards, the number of orders that must move when one shard is added was calculated separately in Java, and it matched the values on the screen.</p>
+<p>Previous lab: <a href="../../lab/replica/">Replication lag and CAP</a> · Next lab: <a href="../../lab/partition/">Partitioning</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

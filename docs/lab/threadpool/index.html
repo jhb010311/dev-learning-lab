@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스레드 풀: 스레드를 늘리면 무엇이 달라지나 · 개발 학습 실습실</title>
+<meta name="description" content="요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 숫자를 바꿔 가며 대기와 거절이 어떻게 변하는지 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/threadpool/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/threadpool/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/threadpool/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="스레드 풀: 스레드를 늘리면 무엇이 달라지나 · 개발 학습 실습실">
+<meta property="og:description" content="요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 숫자를 바꿔 가며 대기와 거절이 어떻게 변하는지 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/threadpool/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
+<h1>스레드 풀</h1>
+<p><b>스레드를 늘리면 무엇이 달라지나</b></p>
+<p>요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 숫자를 바꿔 가며 대기와 거절이 어떻게 변하는지 보세요.</p>
+<p>실행으로 대조 · ThreadPoolExecutor의 실제 실행 결과와 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>스레드 풀</dt>
+<dd>스레드를 필요할 때마다 만들고 없애는 대신 일정 수의 스레드를 유지하며 재사용하는 구조다. 스레드 생성 비용을 줄이고, 동시에 실행되는 스레드 수를 제한해 과도한 메모리 사용과 컨텍스트 스위칭을 막는다. 처리할 작업은 큐에 쌓이고 빈 스레드가 가져가 실행한다. 톰캣의 요청 처리, DB 커넥션 풀도 같은 발상이다.</dd>
+<dt>ThreadPoolExecutor의 동작 순서</dt>
+<dd>자바의 스레드 풀 구현은 작업이 들어오면 다음 순서로 처리한다. 실행 중인 스레드가 corePoolSize보다 적으면 새 스레드를 만든다. 그 이상이면 작업을 큐에 넣는다. 큐가 가득 차면 maximumPoolSize까지 스레드를 더 만든다. 그것도 넘으면 작업을 거부한다. 큐가 가득 찬 뒤에야 스레드가 늘어난다는 점이 직관과 다르다.</dd>
+<dt>톰캣의 스레드 모델</dt>
+<dd>톰캣은 요청 처리용 스레드를 풀로 관리하며, 요청 하나를 스레드 하나가 맡아 응답이 끝날 때까지 처리한다. 동시에 처리할 수 있는 요청 수는 최대 스레드 수(기본 200)로 제한되고, 모든 스레드가 사용 중이면 새 요청은 대기한다. 요청 처리 중 데이터베이스나 외부 호출을 기다리는 동안에도 스레드는 점유된 상태다.</dd>
+<dt>블로킹과 논블로킹</dt>
+<dd>블로킹은 호출한 작업이 끝날 때까지 호출한 스레드가 멈춰서 다른 일을 하지 못하는 것이다. 논블로킹은 작업이 끝나지 않았어도 호출이 바로 반환되어 스레드가 다른 일을 할 수 있는 것이다. 일반적인 JDBC 호출은 DB 응답이 올 때까지 스레드가 멈추는 블로킹 호출이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 기본 2, 최대 4, 큐 2칸에 요청 10개. 일부가 거절됩니다.</li>
+<li><b>스레드만 늘려 보기</b> — 기본 4, 최대 8로. 거절과 대기가 어떻게 변하는지 봅니다.</li>
+<li><b>대기 줄만 늘려 보기</b> — 스레드는 그대로, 큐만 10칸으로. 거절은 줄지만 기다림이 길어집니다.</li>
+<li><b>대기 줄을 무제한으로</b> — 최대 스레드 수가 쓰이지 않는 것을 확인합니다.</li>
+<li><b>요청이 빨리 끝나게</b> — 처리 시간을 0.5초로. 같은 스레드 수로도 버팁니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>요청 1 도착. 스레드가 기본 수(2개)보다 적으므로 스레드 1을 새로 만들어 바로 처리합니다.</li>
+<li>요청 2 도착. 스레드가 기본 수(2개)보다 적으므로 스레드 2을 새로 만들어 바로 처리합니다.</li>
+<li>요청 3 도착. 스레드 2개가 모두 일하는 중입니다. 스레드를 늘리지 않고 대기 줄에 세웁니다(대기 1/2).</li>
+<li>요청 4 도착. 스레드 2개가 모두 일하는 중입니다. 스레드를 늘리지 않고 대기 줄에 세웁니다(대기 2/2).</li>
+<li>요청 5 도착. 대기 줄이 꽉 찼습니다. 이제서야 스레드 3을 추가로 만들어 처리합니다(최대 4개까지).</li>
+<li>요청 6 도착. 대기 줄이 꽉 찼습니다. 이제서야 스레드 4을 추가로 만들어 처리합니다(최대 4개까지).</li>
+<li>요청 7 도착. 스레드 4개가 모두 일하는 중이고 대기 줄도 꽉 찼습니다. 요청을 거절합니다.</li>
+<li>요청 8 도착. 스레드 4개가 모두 일하는 중이고 대기 줄도 꽉 찼습니다. 요청을 거절합니다.</li>
+<li>요청 9 도착. 스레드 4개가 모두 일하는 중이고 대기 줄도 꽉 찼습니다. 요청을 거절합니다.</li>
+<li>요청 10 도착. 스레드 4개가 모두 일하는 중이고 대기 줄도 꽉 찼습니다. 요청을 거절합니다.</li>
+<li>스레드 1이 요청 1을 끝내고, 대기 줄 맨 앞의 요청 3을 꺼내 처리하기 시작합니다. 요청 3은 1.6초를 기다렸습니다.</li>
+<li>스레드 2이 요청 2을 끝내고, 대기 줄 맨 앞의 요청 4을 꺼내 처리하기 시작합니다. 요청 4은 1.6초를 기다렸습니다.</li>
+<li>스레드 3이 요청 5을 끝냈습니다. 대기 중인 요청이 없어 쉽니다.</li>
+<li>스레드 4이 요청 6을 끝냈습니다. 대기 중인 요청이 없어 쉽니다.</li>
+<li>스레드 1이 요청 3을 끝냈습니다. 대기 중인 요청이 없어 쉽니다.</li>
+<li>스레드 2이 요청 4을 끝냈습니다. 대기 중인 요청이 없어 쉽니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>요청 10개 중 6개를 처리하고 4개를 거절했습니다. 전체 4.2초가 걸렸습니다.</li>
+<li>처리된 요청은 평균 0.5초, 가장 오래 기다린 요청은 1.6초를 대기 줄에서 보냈습니다.</li>
+<li>스레드는 4개까지 만들어졌습니다(기본 2, 최대 4).</li>
+<li>거절을 없애려면 스레드를 늘리거나, 대기 줄을 늘리거나(대신 기다리는 시간이 길어짐), 요청 처리 시간을 줄여야 합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>ExecutorService pool = new ThreadPoolExecutor(
+    2,                        // 기본 스레드 수
+    4,                        // 최대 스레드 수
+    60, TimeUnit.SECONDS,
+    new ArrayBlockingQueue&lt;&gt;(2));     // 대기 큐 2칸
+
+for (int i = 1; i &lt;= 10; i++) {
+    pool.execute(() -&gt; handle());   // 요청 하나에 2.0초
+    Thread.sleep(200);            // 0.2초마다 도착
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>요청 하나를 처리하는 동안 스레드 하나가 처리 시간만큼 통째로 묶입니다(응답이 느린 DB나 외부 API를 기다리는 요청). 스레드를 늘려도 비용이 들지 않는다고 가정했습니다. 실제로는 스레드마다 메모리를 쓰고, CPU를 쓰려는 스레드가 코어 수보다 많아지면 교대하는 비용이 늘어납니다. 스레드를 배정하는 순서(기본 스레드 → 대기 큐 → 최대 스레드 → 거절)는 자바 ThreadPoolExecutor의 실제 규칙과 같고, 실제 실행 결과와 대조했습니다.</p>
+<p>앞 실습: <a href="../../lab/deadlock/">교착 상태</a> · 다음 실습: <a href="../../lab/ctx/">스레드 수와 컨텍스트 스위칭</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

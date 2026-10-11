@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stock decrement and locks: What if many orders arrive at once for 3 items in stock? · Dev Learning Lab</title>
+<meta name="description" content="Several requests run &quot;check the stock, subtract 1, create an order&quot; at the same time. With no safeguard, more items are sold than are in stock, or the sto…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/stock/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/stock/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/stock/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Stock decrement and locks: What if many orders arrive at once for 3 items in stock? · Dev Learning Lab">
+<meta property="og:description" content="Several requests run &quot;check the stock, subtract 1, create an order&quot; at the same time. With no safeguard, more items are sold than are in stock, or the sto…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/stock/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Web applications and performance</p>
+<h1>Stock decrement and locks</h1>
+<p><b>What if many orders arrive at once for 3 items in stock?</b></p>
+<p>Several requests run &quot;check the stock, subtract 1, create an order&quot; at the same time. With no safeguard, more items are sold than are in stock, or the stock number no longer matches reality. Change the way concurrent updates are handled, and compare the results and the cost (waiting and retrying).</p>
+<p>Checked against real execution · All five methods were run in 45 combinations on MySQL 8.4.11 and Redis and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Pessimistic locking</dt>
+<dd>An approach that assumes a conflict will happen and locks the data first, at the time it is read. When you lock a row with SELECT ... FOR UPDATE, another transaction that tries to modify the row waits until the lock is released. It is reliable when conflicts are frequent, but it brings waiting and the possibility of deadlock.</dd>
+<dt>Optimistic locking (@Version)</dt>
+<dd>An approach that assumes conflicts are rare and takes no database lock. Instead, at update time, it uses a version number to check whether another transaction updated the data first in the meantime. If you put a @Version field on an entity, the version is compared on update, and an exception is thrown if it has already changed. When conflicts are not frequent, it keeps data consistent without lock waits.</dd>
+<dt>Shared locks and exclusive locks</dt>
+<dd>A shared lock (S) is a lock for reading, and several transactions can hold it at the same time. An exclusive lock (X) is a lock for writing, and only one transaction can hold it. While data has an exclusive lock, no other transaction can take a shared lock or an exclusive lock on it.</dd>
+<dt>Distributed lock</dt>
+<dd>A lock that lets only one process at a time perform a specific task among processes that run on several servers. Java's synchronized is valid only inside one server, so with several servers it is implemented by placing a &quot;lock marker&quot; in a store that all of them access (such as Redis). It is given an expiration time so that it is released even if the side that took it runs into a problem.</dd>
+<dt>Race condition</dt>
+<dd>This is a situation in which two or more threads read and write the same data at the same time, and the result depends on the order of execution. count++ consists of three steps: read the value, add 1, and write it back. If the steps of two threads are interleaved, one of the increments is lost. It typically stays hidden in tests and appears under load.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — No safeguard. With 3 items in stock, all 4 orders succeed.</li>
+<li><b>Pessimistic locking</b> — Only one request at a time reads and changes the stock row. The others wait in line.</li>
+<li><b>Optimistic locking</b> — Everyone goes ahead, and when saving, a request fails if someone else changed the row first.</li>
+<li><b>UPDATE with a condition</b> — The check and the decrement are combined into one SQL statement.</li>
+<li><b>Many orders with optimistic locking</b> — 6 requests compete. Look at the number of retries.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Request 1: Reads the stock. It is 3. This is greater than 0, so the request goes ahead with the order.</li>
+<li>Request 2: Reads the stock. It is 3. This is greater than 0, so the request goes ahead with the order. The earlier requests had not saved yet, so this one read the same value.</li>
+<li>Request 3: Reads the stock. It is 3. This is greater than 0, so the request goes ahead with the order. The earlier requests had not saved yet, so this one read the same value.</li>
+<li>Request 4: Reads the stock. It is 3. This is greater than 0, so the request goes ahead with the order. The earlier requests had not saved yet, so this one read the same value.</li>
+<li>Request 1: Saves the value it read (3) minus 1 (2) as the stock, and creates the order.</li>
+<li>Request 2: Saves the value it read (3) minus 1 (2) as the stock, and creates the order. It overwrote the value that an earlier request saved with the same value. The stock did not go down, but one more order was created.</li>
+<li>Request 3: Saves the value it read (3) minus 1 (2) as the stock, and creates the order. It overwrote the value that an earlier request saved with the same value. The stock did not go down, but one more order was created.</li>
+<li>Request 4: Saves the value it read (3) minus 1 (2) as the stock, and creates the order. It overwrote the value that an earlier request saved with the same value. The stock did not go down, but one more order was created.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>4 orders were created, but the stock in the DB went down by only 1, from 3 to 2. 1 order was sold beyond the stock.</li>
+<li>This happens because another request can cut in between the read and the update. @Transactional alone does not prevent it. When requests that read the same value overwrite each other's changes, some of the changes are lost.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Transactional
+public void order(long productId) {
+    Product p = productRepository.findById(productId).orElseThrow();
+    if (p.getStock() &lt;= 0) throw new SoldOutException();
+    p.setStock(p.getStock() - 1);        // subtract 1 from the value that was read
+    orderRepository.save(new Order(productId));
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The model assumes the worst possible overlap of the requests (the order in which everyone reads first and then writes). In practice, only some requests overlap, so how far the result goes wrong is different every time. For optimistic locking, the retries assume that the requests that failed all try again at the same time. All five methods were run on a real MySQL 8.4.11, with a separate session opened for each order, in 45 combinations (stock of 1, 3, and 5 items; 2, 4, and 6 orders), and the number of orders created, the stock left, and the numbers of waits and retries were confirmed to match the screen (the execution order was arranged to produce the same &quot;worst order&quot; as the screen). The distributed lock was run with SET NX on a real Redis. The optimistic locking was run without going through JPA, using the same SQL that @Version produces (WHERE version = ?).</p>
+<p>Previous lab: <a href="../../lab/connpool/">Connection pool and OSIV</a> · Next lab: <a href="../../lab/dtoquery/">Querying directly into a DTO</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

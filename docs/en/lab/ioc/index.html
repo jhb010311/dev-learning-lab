@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Spring container and beans: You never wrote new, so who creates the object and passes it in? · Dev Learning Lab</title>
+<meta name="description" content="For the order service to use a discount policy object, someone has to create that object. If the order service creates it directly with new, the choice of…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ioc/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ioc/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ioc/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="The Spring container and beans: You never wrote new, so who creates the object and passes it in? · Dev Learning Lab">
+<meta property="og:description" content="For the order service to use a discount policy object, someone has to create that object. If the order service creates it directly with new, the choice of…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/ioc/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
+<h1>The Spring container and beans</h1>
+<p><b>You never wrote new, so who creates the object and passes it in?</b></p>
+<p>For the order service to use a discount policy object, someone has to create that object. If the order service creates it directly with new, the choice of implementation is fixed in the code of the order service. In Spring, the container creates the objects (beans), picks the right one, and injects it wherever it is needed. See what the container does when one bean is registered, when two are registered, and when none is registered.</p>
+<p>Checked against real execution · All 30 combinations were run on Spring Boot 4.1.1 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Inversion of Control (IoC)</dt>
+<dd>This is a design principle in which a framework (the container), not the developer's code, takes charge of creating objects and connecting them to each other. In an ordinary program, your code creates and calls the objects it needs, but here the container creates the objects, puts them where they are needed, and calls your code at the right time. The name comes from the fact that the party in control is reversed.</dd>
+<dt>Spring bean</dt>
+<dd>This is an object that the Spring IoC container creates and manages. Unlike an object that a developer creates directly with new, the container injects its dependencies and manages its initialization and destruction, and additional features such as transactions and AOP can be applied to it through a proxy.</dd>
+<dt>@Configuration and @Bean</dt>
+<dd>@Configuration marks a configuration class that contains bean definitions, and the object returned by each @Bean method inside it is registered as a bean. Use them when you need to make a bean from a class in an external library that you cannot modify, or when you need to control the creation process yourself. Classes that you write yourself are usually registered with @Component or a related annotation.</dd>
+<dt>@Primary and @Qualifier</dt>
+<dd>These are two annotations that determine which bean is injected when there are two or more beans of the same type. The Spring container looks up the bean to inject by type, and when several beans match, it cannot choose, so it throws a NoUniqueBeanDefinitionException and the application does not start. @Primary goes on the side that registers the bean (a class or a @Bean method) and marks it as &quot;the one to prefer when there are several&quot;. @Qualifier goes on the side that receives the injection (a constructor parameter or a field) and names the bean to use directly. When both are present, the bean specified with @Qualifier is injected.</dd>
+<dt>NoSuchBeanDefinitionException and NoUniqueBeanDefinitionException</dt>
+<dd>These are two exceptions that the container throws when it cannot determine which bean to inject. NoSuchBeanDefinitionException is thrown when no bean of the required type is registered at all, and NoUniqueBeanDefinitionException is thrown when there are two or more beans of the same type and the container cannot choose one. Singleton beans are created when the application starts, so these exceptions appear at startup, not while a request is being handled, and the application does not start. For the former, check whether a bean registration (@Component or @Bean) is missing, and for the latter, check whether another bean of the same type has been added.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Both implementations are registered with @Component. The container cannot choose between them, so startup fails.</li>
+<li><b>Creating it directly with new</b> — The choice of implementation is written inside OrderService. To change it, you edit OrderService.</li>
+<li><b>Only one implementation registered</b> — The container finds the only bean and injects it. OrderService contains no new.</li>
+<li><b>Choosing with @Primary</b> — Both are registered, and the one to prefer is marked.</li>
+<li><b>Choosing with @Qualifier</b> — The bean name is specified at the injection point.</li>
+<li><b>Registering with a @Bean method</b> — The object returned by a method of a configuration class becomes a bean.</li>
+<li><b>With no bean registered</b> — There is no bean to inject, so startup fails.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Container startup: The container scans the classes and registers those annotated with @Component as beans (component scanning). The registered beans are orderService, fixedDiscountPolicy, rateDiscountPolicy. The name of a bean is the class name with its first letter changed to lowercase.</li>
+<li>Creating the orderService bean: The constructor of OrderService requires an argument of type DiscountPolicy. The container looks among the registered beans for those that match this type. Number of candidates: 2 (fixedDiscountPolicy, rateDiscountPolicy).</li>
+<li>There are two candidates, and nothing tells the container which one to inject. The container does not pick one arbitrarily and throws a NoUniqueBeanDefinitionException. The application fails to start.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Startup failed: NoUniqueBeanDefinitionException. There are two beans of type DiscountPolicy, fixedDiscountPolicy and rateDiscountPolicy, so the container could not choose.</li>
+<li>The container looks up beans by type. When there are two or more beans of the same type, you must tell it which one to inject. Either put @Primary on the bean to prefer, or write the bean name with @Qualifier at the injection point.</li>
+<li>Just creating and registering one more implementation class causes this error. If startup fails although you did not change the existing code, check whether another bean of the same type has been added.</li>
+</ul>
+<h2>Code</h2>
+<pre>interface DiscountPolicy {
+    int discount(int price);
+}
+
+@Component
+class FixedDiscountPolicy implements DiscountPolicy {
+    public int discount(int price) { return 1000; }   // always 1000 won
+}
+
+@Component
+class RateDiscountPolicy implements DiscountPolicy {
+    public int discount(int price) { return price / 10; }   // 10%
+}
+
+@Component
+class OrderService {
+    private final DiscountPolicy discountPolicy;
+
+    OrderService(DiscountPolicy discountPolicy) {   // the container passes it in
+        this.discountPolicy = discountPolicy;
+    }
+
+    int order(int price) {
+        return price - discountPolicy.discount(price);
+    }
+}
+
+// Where it is used: retrieved from the container
+OrderService orderService = context.getBean(OrderService.class);
+int pay = orderService.order(20000);</pre>
+<h2>Assumptions of this model</h2>
+<p>All 30 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9) on this PC and checked against the results. For each combination, source code with the same structure as on the screen was compiled. The cases that create the object directly with new were run as they are, and the cases that use the container were started with component scanning. Then these were compared: whether startup succeeded, the name of the exception, the implementation injected into OrderService, the discount amount, who called the constructor of the implementation object (confirmed from the call stack), and the number of implementation objects created. The &quot;File to edit to change the implementation&quot; column is what the checking program found by directly comparing which files differ between two sources in which only the implementation to use was changed. For a startup failure, the name shown is that of the innermost cause, and an UnsatisfiedDependencyException wraps it on the outside. Simplifications on the screen: the order in which the container creates the bean objects depends on the registration order, so the lab does not state it (the &quot;Bean creation and injection&quot; lab covers the order). It was also confirmed by execution that, even when both implementations are registered and nothing marks which to choose, startup succeeds if the name of the constructor parameter is the same as a bean name (for example, rateDiscountPolicy), and that bean is injected. The parameter name in this lab is discountPolicy, which is not the same as either bean name. Field injection, setter injection, and receiving all beans of the same type as a List are not covered.</p>
+<p>Next lab: <a href="../../lab/di/">Bean creation and injection</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

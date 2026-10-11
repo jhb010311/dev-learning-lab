@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retries and idempotency: No response came back, so the request was sent again · Dev Learning Lab</title>
+<meta name="description" content="On a network, a request or a response can be lost, and when no response arrives, the client sends the same request again. Depending on the HTTP method, ru…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/idem/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/idem/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/idem/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Retries and idempotency: No response came back, so the request was sent again · Dev Learning Lab">
+<meta property="og:description" content="On a network, a request or a response can be lost, and when no response arrives, the client sends the same request again. Depending on the HTTP method, ru…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/idem/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
+<h1>Retries and idempotency</h1>
+<p><b>No response came back, so the request was sent again</b></p>
+<p>On a network, a request or a response can be lost, and when no response arrives, the client sends the same request again. Depending on the HTTP method, running a request several times either gives the same result (the method is idempotent) or it does not. Change the method and what is lost, and compare the state of the server.</p>
+<p>Checked against documentation and standards · Checked against the HTTP standard (RFC 9110)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Safe methods and idempotent methods</dt>
+<dd>Safe methods are read-only methods that do not change the state of the server: GET, HEAD, OPTIONS, and TRACE. Idempotent methods are methods for which sending the same request several times has the same effect on the server as sending it once: all the safe methods plus PUT and DELETE. POST and PATCH are not guaranteed to be idempotent, so sending one twice can cause it to be processed twice. This is the basis for deciding whether a request may be sent again when no response arrives.</dd>
+<dt>HTTP methods</dt>
+<dd>The part of an HTTP request that indicates the action the request wants to perform on a resource. GET means read, POST means create or a processing request, PUT means replace the whole resource, PATCH means modify part of it, and DELETE means delete. Use each one according to its meaning so that HTTP behavior such as caching and retries works as expected.</dd>
+<dt>Idempotency and idempotency keys</dt>
+<dd>Idempotency is the property that performing the same request several times gives the same result as performing it once. A network problem can cause the same request to be sent again, so operations that must not be duplicated, such as payments, must be made idempotent. An idempotency key is a unique value that the client attaches to each request. When a request arrives with a key that the server has already processed, the server does not process it again and returns the earlier result.</dd>
+<dt>HTTP status codes</dt>
+<dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The response to the POST is lost once. Two orders are created.</li>
+<li><b>PUT in the same situation</b> — Even when it runs twice, the result is the same as running it once.</li>
+<li><b>Sending DELETE again</b> — The response code of the second request is different, but the state of the server is the same.</li>
+<li><b>A PATCH that increases a value</b> — The quantity goes up once for every retry.</li>
+<li><b>Adding an idempotency key to the POST</b> — The server recognizes the repeated request and handles it only once.</li>
+<li><b>When the request is lost</b> — The server never handled it, so retrying causes no problem.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>This is the initial server state. Order 1 (mouse, quantity 2) exists.</li>
+<li>First request: The server handled the request (201 Created (order 2)). But the response was lost on its way back. The client cannot tell whether the server handled the request, so it sends the same request again.</li>
+<li>Retry #1: The server handles the request and returns the response 201 Created (order 3). This time the response reached the client.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Requests sent by the client: 2. Times the server executed the request: 2. Final server state: order 1 quantity 2, order 2 quantity 2, order 3 quantity 2.</li>
+<li>POST is not idempotent. Every execution creates a new order, so the same order was created 2 times. This is the typical way duplicate processing happens in payments and orders.</li>
+</ul>
+<h2>Code</h2>
+<pre>POST /orders HTTP/1.1
+Content-Type: application/json
+
+{ &quot;item&quot;: &quot;keyboard&quot;, &quot;quantity&quot;: 2 }
+
+// Client: if no response arrives within 3 seconds,
+// send the same request again, unchanged</pre>
+<h2>Assumptions of this model</h2>
+<p>The definition of idempotency follows the HTTP standard (RFC 9110). A method is idempotent if the intended effect on the server of sending the same request several times is the same as that of sending it once, and GET, HEAD, OPTIONS, and TRACE (the safe methods) and PUT and DELETE belong here. The standard does not guarantee that POST and PATCH are idempotent (a PATCH can be designed to be idempotent, depending on its content). The Idempotency-Key header is a convention widely used in payment APIs and similar services, and it has not been finalized as a standard.</p>
+<p>Previous lab: <a href="../../lab/etag/">HTTP caching and ETag</a> · Next lab: <a href="../../lab/redirect/">Redirection</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

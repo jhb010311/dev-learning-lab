@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>정렬과 Comparator: 정렬 순서는 누가 정하고, 빼서 비교하면 왜 틀리나 · 개발 학습 실습실</title>
+<meta name="description" content="정렬은 &quot;둘 가운데 어느 것이 앞인가&quot;를 묻는 비교를 되풀이하는 일입니다. 그 답은 클래스가 스스로 정해 둘 수도 있고(Comparable), 정렬할 때 바깥에서 줄 수도 있습니다(Comparator). 정렬 기준을 바꿔 가며 결과가 어떻게 달라지는지, 그리고 두 수를 빼서…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/sorting/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/sorting/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/sorting/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="정렬과 Comparator: 정렬 순서는 누가 정하고, 빼서 비교하면 왜 틀리나 · 개발 학습 실습실">
+<meta property="og:description" content="정렬은 &quot;둘 가운데 어느 것이 앞인가&quot;를 묻는 비교를 되풀이하는 일입니다. 그 답은 클래스가 스스로 정해 둘 수도 있고(Comparable), 정렬할 때 바깥에서 줄 수도 있습니다(Comparator). 정렬 기준을 바꿔 가며 결과가 어떻게 달라지는지, 그리고 두 수를 빼서…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/sorting/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 컬렉션</p>
+<h1>정렬과 Comparator</h1>
+<p><b>정렬 순서는 누가 정하고, 빼서 비교하면 왜 틀리나</b></p>
+<p>정렬은 &quot;둘 가운데 어느 것이 앞인가&quot;를 묻는 비교를 되풀이하는 일입니다. 그 답은 클래스가 스스로 정해 둘 수도 있고(Comparable), 정렬할 때 바깥에서 줄 수도 있습니다(Comparator). 정렬 기준을 바꿔 가며 결과가 어떻게 달라지는지, 그리고 두 수를 빼서 비교하는 흔한 코드가 큰 수에서 왜 틀린 순서를 내는지 확인해 보세요.</p>
+<p>실행으로 대조 · JDK 21에서 열여섯 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>Comparable과 Comparator</dt>
+<dd>객체의 순서를 정하는 두 가지 방법이다. Comparable은 클래스가 스스로 구현하는 인터페이스로, compareTo 메서드 하나에 그 클래스의 기본 순서를 정해 둔다. Comparator는 클래스 바깥에서 따로 만드는 비교 방법으로, 같은 객체들을 그때그때 다른 기준으로 정렬할 수 있게 해 준다. 둘 다 앞의 것이 먼저면 음수, 순서를 가릴 수 없으면 0, 나중이면 양수를 돌려준다. 두 수를 뺀 값을 그대로 돌려주면 오버플로로 부호가 뒤집힐 수 있으므로 Integer.compare나 Comparator.comparingInt를 쓴다.</dd>
+<dt>안정 정렬</dt>
+<dd>비교 결과가 같은(0인) 원소들의 원래 순서를 정렬한 뒤에도 그대로 지키는 정렬이다. 예를 들어 이름순으로 놓인 목록을 점수순으로 안정 정렬하면, 점수가 같은 사람끼리는 여전히 이름순이다. 자바에서 객체를 정렬하는 List.sort, Collections.sort, 객체 배열의 Arrays.sort는 안정 정렬이라고 문서에 적혀 있다. 그래서 여러 기준으로 차례차례 정렬하거나, 같은 값끼리의 순서가 바뀌면 안 되는 화면 목록을 정렬할 때 믿고 쓸 수 있다.</dd>
+<dt>정수 오버플로</dt>
+<dd>계산 결과가 그 타입이 담을 수 있는 범위를 넘어 엉뚱한 값이 되는 현상이다. 자바의 int는 -2147483648부터 2147483647까지 담을 수 있고, 이 범위를 넘으면 예외 없이 반대쪽 끝으로 넘어가 이어진다. 예를 들어 2147483647에 1을 더하면 -2147483648이 된다. 오류가 나지 않고 틀린 값이 조용히 쓰이므로 찾기 어렵다. 범위를 넘을 수 있는 계산에는 long을 쓰거나, 넘칠 때 예외를 던지는 Math.addExact 같은 메서드를 쓴다.</dd>
+<dt>메서드 참조</dt>
+<dd>이미 있는 메서드를 람다 대신 이름으로 가리키는 문법이다. String::length, System.out::println처럼 클래스(또는 객체)와 메서드 이름을 ::로 연결해 쓴다. 람다가 단순히 메서드 하나를 호출하기만 할 때 더 짧게 표현할 수 있다.</dd>
+<dt>람다 표현식</dt>
+<dd>이름 없는 함수를 간결하게 표현하는 문법으로 Java 8에서 도입되었다. (매개변수) -&gt; 실행문 형태로 쓰며, 추상 메서드가 하나뿐인 함수형 인터페이스의 구현으로 사용된다. 동작(코드)을 값처럼 다른 메서드에 전달할 수 있게 해 준다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 빼서 비교하는 Comparator에 큰 수를 넣습니다. 예외 없이 틀린 순서가 나옵니다.</li>
+<li><b>같은 코드에 작은 수</b> — 맞게 정렬됩니다. 그래서 테스트에서는 드러나지 않습니다.</li>
+<li><b>comparingInt로 고치면</b> — 큰 수에서도 맞게 정렬됩니다.</li>
+<li><b>Comparable이 정한 순서</b> — 클래스의 compareTo대로 이름순이 됩니다. 잔액은 보지 않습니다.</li>
+<li><b>잔액이 같은 사람끼리</b> — 잔액순으로 정렬해도 같은 잔액끼리는 원래 순서를 지킵니다.</li>
+<li><b>같으면 이름순으로</b> — thenComparing으로 두 번째 기준을 줍니다.</li>
+<li><b>거꾸로 정렬</b> — 잔액이 큰 것부터. 잔액이 같은 사람끼리는 여전히 원래 순서입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>List&lt;Account&gt; list = new ArrayList&lt;&gt;(List.of(...)): 계좌 다섯 개를 park, choi, kim, lee, han 순서로 담습니다. park와 kim의 잔액이 20억으로 같고, choi와 lee의 잔액이 -20억으로 같습니다.</li>
+<li>Comparator&lt;Account&gt; order = (a, b) -&gt; a.balance() - b.balance(): 두 잔액을 뺀 값을 비교 결과로 씁니다. a가 작으면 음수, 같으면 0, 크면 양수가 나올 것이라고 생각하고 쓴 코드입니다.</li>
+<li>order.compare(park, choi): 2000000000 - (-2000000000)을 계산합니다. 수학으로는 4000000000이지만, int는 -2147483648부터 2147483647까지만 담을 수 있어 범위를 넘칩니다(오버플로). 실제로 나오는 값은 -294967296입니다. 음수이므로 park가 choi보다 앞에 놓입니다. 잔액이 더 큰 park를 앞에 놓으라는 틀린 답입니다.</li>
+<li>order.compare(park, kim): 두 잔액이 같으므로 결과는 0입니다. 0은 &quot;순서를 가릴 수 없다&quot;는 뜻이고, 정렬은 이런 둘의 순서를 바꾸지 않습니다.</li>
+<li>list.sort(order): order.compare를 여러 번 불러 가며 자리를 정합니다. 정렬된 순서는 park(20억), kim(20억), choi(-20억), lee(-20억), han(0)입니다. 잔액이 작은 것부터여야 하는데 그렇지 않습니다. 비교가 틀린 답을 냈기 때문입니다.</li>
+<li>System.out.println(list): 정렬된 목록을 출력합니다. 예외는 나지 않았습니다. 틀린 순서가 아무 경고 없이 나온 것입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>정렬 결과는 park, kim, choi, lee, han입니다.</li>
+<li>빼서 비교하면 두 수의 차이가 int 범위(약 -21억 ~ 21억)를 넘을 때 부호가 뒤집힙니다. 예외가 나지 않고 틀린 순서가 조용히 나옵니다. Integer.compare(a, b)나 Comparator.comparingInt를 쓰면 빼지 않고 크기를 비교하므로 안전합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>record Account(String owner, int balance) implements Comparable&lt;Account&gt; {
+    @Override
+    public int compareTo(Account other) {        // 클래스가 스스로 정한 순서: 이름순
+        return owner.compareTo(other.owner);
+    }
+}
+
+List&lt;Account&gt; list = new ArrayList&lt;&gt;(List.of(
+    new Account(&quot;park&quot;, 2_000_000_000), new Account(&quot;choi&quot;, -2_000_000_000),
+    new Account(&quot;kim&quot;, 2_000_000_000), new Account(&quot;lee&quot;, -2_000_000_000),
+    new Account(&quot;han&quot;, 0)));
+
+Comparator&lt;Account&gt; order = (a, b) -&gt; a.balance() - b.balance();   // 빼서 비교
+System.out.println(order.compare(list.get(0), list.get(1)));   // park와 choi
+System.out.println(order.compare(list.get(0), list.get(2)));   // park와 kim
+
+list.sort(order);
+System.out.println(list);</pre>
+<h2>이 모형의 전제</h2>
+<p>열여섯 가지 조합의 정렬 결과, 두 번의 compare가 돌려준 값, 잔액 순서가 맞는지를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. compare가 돌려주는 값 가운데 명세가 정한 것은 부호(음수, 0, 양수)뿐입니다. comparingInt의 1과 -1, 문자열 비교의 13과 5 같은 구체적인 숫자는 JDK 21에서 나온 값입니다. 빼서 비교하는 Comparator처럼 규칙을 어기는 비교를 주면 정렬 결과는 정렬 알고리즘의 내부 동작에 따라 달라집니다. 이 실습의 틀린 순서는 원소가 다섯 개일 때 JDK 21의 List.sort가 내는 결과입니다. List.sort의 문서에는 Comparator가 규약을 어긴 것이 발견되면 IllegalArgumentException을 던질 수 있다고 적혀 있습니다(이 경우는 실행해 보지 않았습니다). 정렬 과정의 비교는 여러 번 일어나지만, 화면에는 그 가운데 두 번만 따로 실행해 보여 줍니다.</p>
+<p>앞 실습: <a href="../../lab/cme/">순회 중 삭제</a> · 다음 실습: <a href="../../lab/lambda/">람다와 함수형 인터페이스</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CDN: The origin was changed, so why do users still get the old file? · Dev Learning Lab</title>
+<meta name="description" content="A CDN keeps copies of the files held by the origin server on servers close to the users (edge servers) and has the edge servers answer on its behalf. The…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cdn/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cdn/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cdn/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="CDN: The origin was changed, so why do users still get the old file? · Dev Learning Lab">
+<meta property="og:description" content="A CDN keeps copies of the files held by the origin server on servers close to the users (edge servers) and has the edge servers answer on its behalf. The…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/cdn/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › In front of the web server</p>
+<h1>CDN</h1>
+<p><b>The origin was changed, so why do users still get the old file?</b></p>
+<p>A CDN keeps copies of the files held by the origin server on servers close to the users (edge servers) and has the edge servers answer on its behalf. The first request finds no copy at the edge, so it goes all the way to the origin (MISS), but after that the edge answers right away (HIT). In exchange, the edge does not ask the origin again during the freshness lifetime of a copy, so if you change the file at the origin in the meantime, users still receive the old copy. Follow the four requests that arrive over 80 seconds and see when the edge goes to the origin.</p>
+<p>Partly checked against real execution · Ran 16 combinations with an origin server and a self-built caching server (acting as the edge) started on 127.0.0.1, and checked. Not checked against a real CDN service</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>CDN</dt>
+<dd>A network that keeps copies of content on servers placed in many regions around the world and has a server close to the user respond. Static files such as images, video, and scripts are delivered faster, and fewer requests go to the origin server.</dd>
+<dt>Origin server and edge server</dt>
+<dd>The origin server is the server that holds the original of a file, and an edge server is a server of the CDN, placed close to users, that keeps copies of it and answers on its behalf. A request from a user arrives at the edge first. If the edge has a usable copy, it answers right away (HIT), and if not, it fetches the file from the origin, passes it on, and keeps a copy (MISS). The edge does not ask the origin again during the freshness lifetime that the origin set in the response header. That makes responses faster and reduces the load on the origin, but changes made at the origin in the meantime are not reflected at the edge.</dd>
+<dt>Cache key</dt>
+<dd>The cache key is the information a cache uses to look up a stored copy. An HTTP cache by default uses the request method and the whole address (host, path, and query string) as the cache key. What a CDN puts in the cache key differs by product and setting, and some CDNs do not include the query string by default (the default cache key of CloudFront is the domain name and the path). When the query string is in the cache key, even a one-character difference in the query string of the same file makes it a different copy, and the request goes to the origin server again. Using this the other way around, if you change the version value in the address each time the file changes, you can send out the new content without deleting the old copy. So that query strings unrelated to the content do not split the copies into small pieces, CDNs have settings that decide which values go into the cache key and which are left out.</dd>
+<dt>Cache invalidation (purge)</dt>
+<dd>Cache invalidation (purge) is the act of forcibly deleting a copy from the cache while it still has freshness lifetime left. If the edge of a CDN keeps sending out an old copy after you changed the origin, requesting invalidation of that address makes the next request fetch the new content from the origin. It is not a function defined in the HTTP standards; each CDN or proxy product offers its own, and it deletes by a single address or by a group of paths. It deletes only the copy at the edge, and it cannot delete the copy that a user's browser keeps separately. So for files that change often, rather than relying on invalidation, it is also common to use a version or a hash in the address.</dd>
+<dt>TTL (time to live)</dt>
+<dd>The length of time for which data is valid. If you set it when you put a value in a cache, the value is deleted automatically after that time passes. It is a basic safeguard that stops a value that no longer matches the source from staying in the cache forever.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Freshness lifetime of 300 seconds. Although the origin was changed, the users at 40s and at 80s both get the old content.</li>
+<li><b>If the freshness lifetime is 60 seconds</b> — At 40s the user gets the old content, and at 80s the edge asks again and the user gets the new content.</li>
+<li><b>Invalidation (purge)</b> — The copy at the edge is deleted, and the next request fetches the new content from the origin.</li>
+<li><b>Change the address</b> — ?v=2 is a different address, so the edge has no copy of it and fetches the new content.</li>
+<li><b>If a query string is added</b> — Even though it is the same file, it is treated as a different copy, and the request goes to the origin one more time.</li>
+<li><b>When the file is not changed</b> — The request goes to the origin only once, and the edge answers all the rest.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>0s: A user sends GET /app.css?v=1. The request does not go to the origin; it arrives at the edge server close to the user. The edge has no copy of this address (MISS). The edge fetches the file from the faraway origin, gives it to the user, and keeps a copy. According to the s-maxage=300 that the origin wrote in the response, this copy may be used as it is for 300 seconds.</li>
+<li>10s: Another user requests the same address. The edge has a copy, and it was fetched 10 seconds ago, so it is within its freshness lifetime (HIT). The edge answers right away without asking the origin. The origin does not even know that this request happened. Because many users share one copy, this is called a shared cache.</li>
+<li>30s: A developer changes the app.css at the origin to new content and deploys it. The origin does not tell the edge about this. The copy the edge has stored is still the old content.</li>
+<li>40s: A user requests the address /app.css?v=1. The copy at the edge was fetched 40 seconds ago, so it is within the freshness lifetime (300 seconds) (HIT). The edge gives the stored copy as it is. The file at the origin was changed 10 seconds ago, but the edge does not know. The user gets the old content.</li>
+<li>80s: A user requests the address /app.css?v=1. There is a copy, and 80 seconds have passed since it was fetched, which is within the freshness lifetime (300 seconds) (HIT). The edge answers right away. It has been 50 seconds since the file at the origin changed, but the user still gets the old content. This keeps happening until the freshness lifetime ends at 300 seconds.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Of the 4 requests, 3 were answered by the edge right away, and 1 went all the way to the origin. Of the 2 requests after the content was changed, 2 got the old content.</li>
+<li>When the edge answers right away, only a short distance is traveled, so it is fast (20ms in the example), and going to the origin adds the long distance (220ms in the example). The number of requests the origin receives also goes down. These times are examples to show the difference.</li>
+<li>The edge does not ask the origin again during the freshness lifetime. So even if you change the file at the origin, copies that still have freshness lifetime left continue to go out. The longer the freshness lifetime, the faster the responses, but the more slowly the changed content spreads.</li>
+</ul>
+<h2>Code</h2>
+<pre># Response header that the origin adds when it serves app.css
+Cache-Control: public, s-maxage=300     # a shared cache (the edge) may use the copy as it is for 300 seconds
+
+// Edge: a server that keeps copies and answers on their behalf (a shortened version in Node.js)
+const store = new Map();                              // address (path + query string) → stored copy
+http.createServer(async (req, res) =&gt; {
+    if (req.method === 'PURGE') {                     // invalidation: deletes the copy of that address
+        store.delete(req.url);
+        return res.end('purged');
+    }
+    const copy = store.get(req.url);
+    if (copy &amp;&amp; age(copy) &lt; copy.ttl) {               // there is a copy and it is within the freshness lifetime
+        res.setHeader('X-Cache', 'HIT');
+        return res.end(copy.body);                    // answers right away without asking the origin
+    }
+    const fresh = await fetchFromOrigin(req.url);     // if there is none or the freshness lifetime has passed, go to the origin
+    store.set(req.url, fresh);
+    res.setHeader('X-Cache', copy ? 'EXPIRED' : 'MISS');
+    res.end(fresh.body);
+});
+
+// Order of requests
+//  0s  curl https://cdn.shop.example/app.css?v=1
+// 10s  curl https://cdn.shop.example/app.css?v=1
+// 30s  deploy the new content of app.css to the origin
+// 40s  curl https://cdn.shop.example/app.css?v=1
+// 80s  curl https://cdn.shop.example/app.css?v=1</pre>
+<h2>Assumptions of this model</h2>
+<p>All 16 combinations (if the file is not changed, &quot;What is done after the change&quot; is not used) were run using an origin server and a small caching proxy acting as the edge, both started on 127.0.0.1, and it was confirmed that for each of the four requests whether it was a MISS, HIT, or EXPIRED, the content received, and the number of requests that reached the origin all matched the model. The edge is a test one built with Node.js 24; deciding whether a response may be stored and whether its freshness lifetime remains was left to http-cache-semantics 4.2 (shared cache mode), an implementation of the HTTP caching rules. To avoid waiting 80 seconds, the clock of the edge was run fast (1 second of the model as 30ms in real time), and the part of the user was played alternately by fetch of Node and curl 8.21. This was not checked on a real CDN service. The times taken (20ms, 220ms) and &quot;close&quot; and &quot;far&quot; are not measurements but examples to show the difference. That s-maxage sets the freshness lifetime of a shared cache and that a copy past its freshness lifetime is not used as it is follows sections 4.2 and 5.2.2.10 of RFC 9111, and that a copy is looked up by the request method and the address follows section 2. The names HIT, MISS, and EXPIRED and the X-Cache header are not standards but conventions used by many CDNs and proxies, and the spelling differs by product. Invalidation (purge) is also a product-specific feature that is not in the standards, and here it follows the common approach of deleting the copy of one address with a PURGE method. When the freshness lifetime has passed, the edge in this model fetches the whole file again, but real CDNs usually first ask with a conditional request only whether the file &quot;has changed&quot; (see the HTTP caching and ETag lab). Not covered: that there are several edges in several regions, each keeping its own copies; the copies that browsers keep separately; and a feature that fills in copies in advance.</p>
+<p>Previous lab: <a href="../../lab/revproxy/">Proxies and reverse proxies</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

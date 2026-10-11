@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>==와 equals: 같은 값인데 ==는 왜 false가 나오나 · 개발 학습 실습실</title>
+<meta name="description" content="==는 두 변수가 같은 객체를 가리키는지를, equals는 내용이 같은지를 비교합니다. 문자열과 Integer는 만드는 방법에 따라 같은 객체를 재사용하기도 하고 새로 만들기도 해서, 값이 같아도 ==의 결과가 달라집니다.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/eq/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/eq/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/eq/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="==와 equals: 같은 값인데 ==는 왜 false가 나오나 · 개발 학습 실습실">
+<meta property="og:description" content="==는 두 변수가 같은 객체를 가리키는지를, equals는 내용이 같은지를 비교합니다. 문자열과 Integer는 만드는 방법에 따라 같은 객체를 재사용하기도 하고 새로 만들기도 해서, 값이 같아도 ==의 결과가 달라집니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/eq/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 자주 쓰는 클래스</p>
+<h1>==와 equals</h1>
+<p><b>같은 값인데 ==는 왜 false가 나오나</b></p>
+<p>==는 두 변수가 같은 객체를 가리키는지를, equals는 내용이 같은지를 비교합니다. 문자열과 Integer는 만드는 방법에 따라 같은 객체를 재사용하기도 하고 새로 만들기도 해서, 값이 같아도 ==의 결과가 달라집니다.</p>
+<p>실행으로 대조 · JDK 21에서 모든 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>동일성과 동등성</dt>
+<dd>동일성은 두 참조가 메모리상 같은 객체를 가리키는지를 뜻하며 == 연산자로 비교한다. 동등성은 두 객체가 논리적으로 같은 값을 가지는지를 뜻하며 equals() 메서드로 비교한다. 문자열이나 값 객체를 비교할 때 ==를 쓰면 내용이 같아도 false가 나올 수 있다.</dd>
+<dt>String Pool(문자열 상수 풀)</dt>
+<dd>JVM이 문자열 리터럴을 저장해 두고 같은 내용의 리터럴이 다시 나오면 기존 객체를 재사용하는 저장소다. 같은 문자열을 여러 번 만들지 않아 메모리를 아낀다. 이런 공유가 가능한 것은 String이 불변이기 때문이다. new String(&quot;a&quot;)처럼 생성하면 풀과 별개의 새 객체가 만들어진다.</dd>
+<dt>박싱과 언박싱</dt>
+<dd>기본형(int 등)을 래퍼 객체(Integer 등)로 바꾸는 것이 박싱, 그 반대가 언박싱이다. 컬렉션은 객체만 담을 수 있어 기본형을 넣으면 자동으로 박싱된다. 객체 생성과 변환 비용이 들고, null인 래퍼를 언박싱하면 NullPointerException이 발생한다.</dd>
+<dt>불변 객체</dt>
+<dd>생성된 뒤에는 상태가 바뀌지 않는 객체다. 값이 바뀌지 않으므로 여러 스레드가 동시에 사용해도 안전하고, 다른 곳에 넘겨도 변경될 걱정이 없으며, 캐싱하거나 해시 컬렉션의 키로 쓰기에 적합하다. 필드를 private final로 선언하고 상태를 바꾸는 메서드를 두지 않으며, 클래스를 final로 해 하위 클래스가 동작을 바꾸지 못하게 한다. 필드가 가변 객체(List, Date 등)를 가리키면 생성자와 getter에서 복사본을 주고받아(방어적 복사) 밖에서 내부를 바꾸지 못하게 한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 리터럴과 new String. 내용은 같지만 ==는 false입니다.</li>
+<li><b>리터럴끼리</b> — 같은 리터럴은 String Pool의 같은 객체를 씁니다.</li>
+<li><b>변수와 결합한 문자열</b> — 실행 중에 만들어진 문자열은 풀에 있는 것과 다른 객체입니다.</li>
+<li><b>intern()을 부르면</b> — 풀에 있는 객체를 돌려받아 ==가 true가 됩니다.</li>
+<li><b>Integer 127</b> — ==가 true입니다.</li>
+<li><b>Integer 128</b> — 값만 1 늘렸는데 ==가 false가 됩니다.</li>
+<li><b>Integer와 int 비교</b> — 한쪽이 기본형이면 값으로 비교합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>String a = &quot;hello&quot;: 문자열 리터럴은 String Pool에 하나만 만들어 둡니다. a는 풀에 있는 &quot;hello&quot; 객체를 가리킵니다.</li>
+<li>String b = new String(&quot;hello&quot;): new는 무조건 새 객체를 만듭니다. 풀의 &quot;hello&quot;와 내용은 같지만 힙의 다른 자리에 있는 별개의 객체입니다.</li>
+<li>a == b: 두 변수가 가리키는 대상이 같은지 비교합니다. a는 객체 1, b는 객체 2를 가리키므로 false입니다.</li>
+<li>a.equals(b): 객체 안의 값을 비교합니다. 내용이 같으므로 true입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>a == b는 false, a.equals(b)는 true입니다.</li>
+<li>내용은 같지만 서로 다른 객체라서 ==는 false입니다.</li>
+<li>문자열 내용을 비교할 때는 항상 equals를 씁니다. DB나 요청에서 읽어 온 문자열은 리터럴이 아니므로 ==로 비교하면 대부분 false가 됩니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>String a = &quot;hello&quot;;
+String b = new String(&quot;hello&quot;);
+
+System.out.println(a == b);
+System.out.println(a.equals(b));</pre>
+<h2>이 모형의 전제</h2>
+<p>모든 조합의 == 결과는 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. Integer 캐시 범위 -128 ~ 127은 자바 언어 명세가 보장하는 최소 범위이며, JVM 옵션으로 상한을 늘릴 수 있습니다. String Pool의 위치는 JDK 7부터 힙 안이지만, 그림에서는 구분을 위해 따로 표시했습니다.</p>
+<p>앞 실습: <a href="../../lab/strategy/">전략 패턴</a> · 다음 실습: <a href="../../lab/eqhash/">equals와 hashCode</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

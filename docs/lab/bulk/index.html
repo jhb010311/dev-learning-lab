@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>벌크 연산: 한 번에 고치는 UPDATE 뒤에 엔티티는 왜 옛 값인가 · 개발 학습 실습실</title>
+<meta name="description" content="executeUpdate로 실행하는 UPDATE와 DELETE(벌크 연산)는 SQL 한 번으로 여러 행을 고칩니다. 그런데 이 SQL은 영속성 컨텍스트를 거치지 않고 DB에 바로 실행됩니다. 그래서 이미 조회해 둔 엔티티는 DB가 바뀐 것을 모릅니다. 벌크 연산 뒤에 값을 어…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/bulk/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/bulk/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/bulk/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="벌크 연산: 한 번에 고치는 UPDATE 뒤에 엔티티는 왜 옛 값인가 · 개발 학습 실습실">
+<meta property="og:description" content="executeUpdate로 실행하는 UPDATE와 DELETE(벌크 연산)는 SQL 한 번으로 여러 행을 고칩니다. 그런데 이 SQL은 영속성 컨텍스트를 거치지 않고 DB에 바로 실행됩니다. 그래서 이미 조회해 둔 엔티티는 DB가 바뀐 것을 모릅니다. 벌크 연산 뒤에 값을 어…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/bulk/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 쿼리</p>
+<h1>벌크 연산</h1>
+<p><b>한 번에 고치는 UPDATE 뒤에 엔티티는 왜 옛 값인가</b></p>
+<p>executeUpdate로 실행하는 UPDATE와 DELETE(벌크 연산)는 SQL 한 번으로 여러 행을 고칩니다. 그런데 이 SQL은 영속성 컨텍스트를 거치지 않고 DB에 바로 실행됩니다. 그래서 이미 조회해 둔 엔티티는 DB가 바뀐 것을 모릅니다. 벌크 연산 뒤에 값을 어떻게 읽느냐에 따라 무엇이 보이는지 확인해 보세요.</p>
+<p>실행으로 대조 · Hibernate 7.4.5와 H2에서 66가지 조합을 실행해 SQL의 종류와 순서, 읽은 값, DB의 값, 예외를 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>벌크 연산</dt>
+<dd>엔티티를 하나씩 고치지 않고, UPDATE나 DELETE 문 하나로 여러 행을 한꺼번에 고치거나 지우는 것이다. JPQL로 쿼리를 만들어 executeUpdate()로 실행하며, 고쳐진 행 수가 반환된다. 변경 감지로 하나씩 고치면 행 수만큼 SQL이 나가지만 벌크 연산은 SQL 한 번으로 끝난다. 다만 이 SQL은 영속성 컨텍스트를 거치지 않고 DB에 바로 실행되므로, 이미 조회해 둔 엔티티는 옛 값을 그대로 갖고 있게 된다. 그래서 벌크 연산을 엔티티 조회보다 먼저 실행하거나, 실행한 뒤 em.clear()로 영속성 컨텍스트를 비운다.</dd>
+<dt>em.clear와 em.refresh</dt>
+<dd>영속성 컨텍스트의 내용과 DB가 어긋났을 때 맞추는 두 가지 방법이다. em.clear()는 영속성 컨텍스트를 통째로 비워서, 그 뒤의 조회가 DB에서 새로 읽어 오게 한다. 비우기 전에 갖고 있던 엔티티 객체는 관리 대상에서 빠지므로 값을 바꿔도 DB에 반영되지 않는다. em.refresh(entity)는 지정한 엔티티 하나만 DB에서 다시 읽어 그 객체의 값을 덮어쓴다. 아직 DB로 보내지 않은 변경이 있는 상태에서 clear를 부르면 그 변경은 사라진다.</dd>
+<dt>영속성 컨텍스트</dt>
+<dd>엔티티를 보관하고 관리하는 JPA의 논리적 공간이다. 조회하거나 저장한 엔티티는 이곳에 보관되며, JPA는 이곳의 엔티티에 일어난 변화를 추적해 트랜잭션이 끝날 때 DB에 반영한다. 보통 트랜잭션 하나와 생명주기를 같이한다(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다). 1차 캐시, 변경 감지, 쓰기 지연 같은 기능이 이 위에서 동작한다. (50선 밖이지만 JPA를 쓰면 반드시 이어서 묻는 개념)</dd>
+<dt>1차 캐시</dt>
+<dd>영속성 컨텍스트 안에 엔티티를 식별자 기준으로 보관하는 저장소다. 같은 트랜잭션 안에서 같은 식별자로 다시 조회하면 DB에 쿼리를 보내지 않고 보관된 엔티티를 돌려준다. 그 결과 같은 트랜잭션 안에서 같은 식별자의 엔티티는 항상 같은 객체다. 기본적으로 트랜잭션이 끝나면 사라지므로(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다) 애플리케이션 전체의 캐시와는 다르다.</dd>
+<dt>쓰기 지연과 flush</dt>
+<dd>쓰기 지연은 INSERT, UPDATE, DELETE 문을 바로 DB에 보내지 않고 모아 두었다가 한꺼번에 보내는 것이다. 단, 기본 키를 IDENTITY 전략(MySQL의 AUTO_INCREMENT 등)으로 생성하는 엔티티는 식별자를 얻기 위해 저장을 요청한 시점에 INSERT가 바로 실행된다. flush는 모아 둔 변경 내용을 DB에 보내는 동작으로, 트랜잭션 커밋 직전이나 JPQL 쿼리 실행 직전에 자동으로 일어난다. flush는 SQL을 DB에 전송할 뿐 트랜잭션을 커밋하는 것은 아니다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 벌크 UPDATE 뒤에 엔티티를 읽으면 옛 값 1000원이 나옵니다.</li>
+<li><b>다시 조회해도 옛 값</b> — JPQL로 다시 읽어도 보관 중인 엔티티가 그대로 돌아옵니다.</li>
+<li><b>em.clear() 뒤에 조회</b> — 영속성 컨텍스트를 비우면 DB의 새 값을 읽습니다.</li>
+<li><b>em.refresh</b> — 그 엔티티 하나만 DB의 값으로 덮어씁니다.</li>
+<li><b>미뤄 둔 변경이 있으면</b> — 벌크 연산 직전에 그 변경이 먼저 DB로 나갑니다.</li>
+<li><b>하나씩 고치면</b> — 상품 8개에 UPDATE가 8번 나갑니다. 벌크 연산은 1번입니다.</li>
+<li><b>벌크 DELETE 뒤 em.find</b> — DB에서 지워진 상품이 em.find로 그대로 나옵니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>getResultList(): SELECT 1번으로 상품 3개를 읽어 영속성 컨텍스트에 보관합니다. 상품 1의 가격은 1000원입니다.</li>
+<li>executeUpdate(): UPDATE 한 문장이 DB에서 3개 행의 가격을 한꺼번에 500원씩 올립니다. 반환값은 고쳐진 행 수 3입니다. 이 SQL은 영속성 컨텍스트를 거치지 않으므로, 보관 중인 엔티티는 그대로입니다. 상품 1은 DB에서 1500원, 메모리에서 1000원입니다.</li>
+<li>first.getPrice(): 갖고 있던 엔티티에서 1000원을 읽습니다. DB의 값 1500원과 다릅니다.</li>
+<li>메서드 종료, 커밋: 더 보낼 SQL이 없습니다. 그대로 커밋합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>쓰기 SQL은 UPDATE 1번 (벌크)입니다. 읽은 값은 1000원 (DB는 1500원)입니다. 끝난 뒤 DB에서 상품 1은 1500원입니다.</li>
+<li>벌크 연산은 영속성 컨텍스트를 거치지 않으므로, 이미 조회해 둔 엔티티는 옛 값을 그대로 갖고 있습니다. 이 값으로 계산을 이어 가면 틀린 결과가 됩니다.</li>
+<li>벌크 연산 뒤에는 em.clear()로 영속성 컨텍스트를 비우거나, 벌크 연산을 엔티티를 조회하기 전에 먼저 실행합니다. 스프링 데이터 JPA에서는 @Modifying(clearAutomatically = true)가 이 일을 해 줍니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@Entity
+class Item {
+    @Id Long id;
+    String name;
+    int price;
+    int getPrice() { return price; }
+    void setPrice(int price) { this.price = price; }
+}
+
+// 트랜잭션 안. DB에는 상품 3개 (상품 1은 1000원, 상품 2는 2000원, …)
+List&lt;Item&gt; items = em.createQuery(&quot;select i from Item i order by i.id&quot;, Item.class).getResultList();
+Item first = items.get(0);                 // 상품 1
+
+int count = em.createQuery(&quot;update Item i set i.price = i.price + 500&quot;)
+        .executeUpdate();                  // 벌크 UPDATE
+
+System.out.println(first.getPrice());
+// 메서드가 끝나면 커밋</pre>
+<h2>이 모형의 전제</h2>
+<p>식별자를 직접 넣는 단순한 엔티티 Item 하나, 하나의 트랜잭션과 영속성 컨텍스트 안에서 실행한다고 보았습니다. 방법 셋, 읽는 방법 다섯, 미뤄 둔 변경 여부, 상품 수 2·3·8개를 조합한 66가지(&quot;하나씩 고치기&quot;에서는 읽는 방법 설정을 쓰지 않습니다)를 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 나간 SQL의 종류와 순서, executeUpdate의 반환값, 읽은 값, 끝난 뒤 DB의 값, 예외가 화면과 일치하는 것을 확인했습니다. 화면의 SQL은 읽기 쉽게 줄인 것입니다. 벌크 연산 직전의 flush는 기본 설정(FlushMode AUTO)에서의 동작입니다. 지워진 행을 refresh할 때의 예외는 이 환경에서 Hibernate의 UnresolvableObjectException이었습니다(JPA 문서는 이 경우의 예외를 EntityNotFoundException으로 적고 있습니다). 스프링 데이터 JPA의 @Modifying(clearAutomatically = true)는 이 환경에서 실행해 보지 않았고 문서를 따른 설명입니다. @Version이 있는 엔티티에 대한 벌크 UPDATE, 벌크 연산과 2차 캐시의 관계, 네이티브 SQL로 실행하는 벌크 연산은 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/fetchjoin/">JPQL과 페치 조인</a> · 다음 실습: <a href="../../lab/datajpa/">스프링 데이터 JPA</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

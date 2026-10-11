@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>조건문과 반복문: 반복문은 몇 번 돌고, 어디에서 멈추나 · 개발 학습 실습실</title>
+<meta name="description" content="반복문은 &quot;조건 검사 → 본문 → 값 바꾸기&quot;를 조건이 false가 될 때까지 되풀이합니다. 조건에 &lt;를 쓰느냐 &lt;=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 값이 일치하는 case로 건너…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/loops/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/loops/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/loops/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="조건문과 반복문: 반복문은 몇 번 돌고, 어디에서 멈추나 · 개발 학습 실습실">
+<meta property="og:description" content="반복문은 &quot;조건 검사 → 본문 → 값 바꾸기&quot;를 조건이 false가 될 때까지 되풀이합니다. 조건에 &lt;를 쓰느냐 &lt;=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 값이 일치하는 case로 건너…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/loops/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 기본 문법</p>
+<h1>조건문과 반복문</h1>
+<p><b>반복문은 몇 번 돌고, 어디에서 멈추나</b></p>
+<p>반복문은 &quot;조건 검사 → 본문 → 값 바꾸기&quot;를 조건이 false가 될 때까지 되풀이합니다. 조건에 &lt;를 쓰느냐 &lt;=를 쓰느냐에 따라 도는 횟수가 한 번 달라지고, break와 continue는 그 흐름을 중간에 끊거나 건너뜁니다. switch는 값이 일치하는 case로 건너뛰는 문장인데, break가 없으면 아래 case까지 이어서 실행됩니다. 한 줄씩 따라가며 어디로 가는지 확인해 보세요.</p>
+<p>실행으로 대조 · JDK 21에서 스물네 가지 조합을 실행해 대조 (끝나지 않는 두 조합은 2초 동안 관찰)</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>for문과 while문</dt>
+<dd>조건이 true인 동안 같은 코드를 되풀이해 실행하는 반복문이다. while (조건) { 본문 }은 조건을 검사해 true이면 본문을 실행하고 다시 조건으로 돌아가며, 조건이 false가 되면 끝난다. for (초기화; 조건; 증감) { 본문 }은 같은 일을 하되, 반복에 쓰는 변수를 만들고 바꾸는 코드를 한 줄에 모아 적는다. for문의 실행 순서는 초기화(한 번), 조건, 본문, 증감, 다시 조건이다. 0부터 시작해 i &lt; n으로 쓰면 n번, i &lt;= n으로 쓰면 n + 1번 돌기 때문에, 조건의 부등호 하나로 횟수가 한 번 달라진다.</dd>
+<dt>break와 continue</dt>
+<dd>반복문의 흐름을 중간에 바꾸는 문장이다. break는 자기를 감싼 가장 가까운 반복문이나 switch를 그 자리에서 끝낸다. continue는 반복문을 끝내지 않고 이번 회차의 남은 코드만 건너뛴 뒤 다음 회차로 넘어간다. for문에서 continue를 하면 증감 부분이 실행된 다음 조건 검사로 가지만, while문에서는 곧바로 조건 검사로 간다. 그래서 while문에서 값을 바꾸는 코드가 continue보다 아래에 있으면 끝나지 않는 반복이 될 수 있다.</dd>
+<dt>switch문과 fall-through</dt>
+<dd>switch는 하나의 값을 여러 case와 비교해, 일치하는 case의 자리로 건너뛰어 실행하는 문장이다. 일치하는 case가 없으면 default로 간다. case 1: 처럼 콜론을 쓰는 형태에서는 break를 만나기 전까지 아래 case의 코드까지 이어서 실행되는데, 이것을 fall-through(흘러내림)라고 한다. break를 빠뜨려도 컴파일 오류가 나지 않아 실수하기 쉽다. Java 14부터 쓸 수 있는 case 1 -&gt; 형태(화살표)는 일치한 case의 코드만 실행하므로 break가 필요 없다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — i &lt;= 3으로 쓴 for문. 세 번이 아니라 네 번 돕니다.</li>
+<li><b>&lt;로 바꾸면</b> — i &lt; 3은 0, 1, 2에서 세 번 돕니다.</li>
+<li><b>break를 만나면</b> — i가 1일 때 반복문 전체가 끝납니다.</li>
+<li><b>continue를 만나면</b> — i가 1인 회차만 건너뛰고 계속 돕니다.</li>
+<li><b>while문에서 continue</b> — 같은 코드인데 끝나지 않습니다.</li>
+<li><b>switch에서 break를 빼면</b> — case 2에서 시작해 아래 case까지 모두 실행됩니다.</li>
+<li><b>화살표 switch</b> — break를 적지 않아도 일치한 case만 실행됩니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>int i = 0: for문 괄호 안의 첫 부분(초기화)입니다. 맨 처음에 한 번만 실행되고, i는 0이 됩니다.</li>
+<li>i &lt;= 3 검사: i는 0이고, 0 &lt;= 3은 true입니다. 본문으로 들어갑니다.</li>
+<li>System.out.println(i): i의 값을 출력합니다. 출력은 0입니다.</li>
+<li>i++: 본문이 끝나면 for문 괄호 안의 셋째 부분(증감)이 실행됩니다. i의 값은 이제 1입니다. 다시 조건 검사로 돌아갑니다.</li>
+<li>i &lt;= 3 검사: i는 1이고, 1 &lt;= 3은 true입니다. 본문으로 들어갑니다.</li>
+<li>System.out.println(i): i의 값을 출력합니다. 출력은 1입니다.</li>
+<li>i++: 본문이 끝나면 for문 괄호 안의 셋째 부분(증감)이 실행됩니다. i의 값은 이제 2입니다. 다시 조건 검사로 돌아갑니다.</li>
+<li>i &lt;= 3 검사: i는 2이고, 2 &lt;= 3은 true입니다. 본문으로 들어갑니다.</li>
+<li>System.out.println(i): i의 값을 출력합니다. 출력은 2입니다.</li>
+<li>i++: 본문이 끝나면 for문 괄호 안의 셋째 부분(증감)이 실행됩니다. i의 값은 이제 3입니다. 다시 조건 검사로 돌아갑니다.</li>
+<li>i &lt;= 3 검사: i는 3이고, 3 &lt;= 3은 true입니다. &lt;=는 같을 때도 true이므로 한 번 더 본문으로 들어갑니다.</li>
+<li>System.out.println(i): i의 값을 출력합니다. 출력은 3입니다.</li>
+<li>i++: 본문이 끝나면 for문 괄호 안의 셋째 부분(증감)이 실행됩니다. i의 값은 이제 4입니다. 다시 조건 검사로 돌아갑니다.</li>
+<li>i &lt;= 3 검사: i는 4이고, 4 &lt;= 3은 false입니다. 본문에 들어가지 않고 반복문을 끝냅니다.</li>
+<li>System.out.println(&quot;끝&quot;): 반복문 다음 줄이 실행됩니다. 본문에는 모두 4번 들어갔습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>출력은 0, 1, 2, 3, 끝입니다. 본문에는 4번 들어갔고, 조건은 5번 검사했습니다(마지막 한 번이 false).</li>
+<li>i &lt;= 3은 i가 3일 때도 true라서 i &lt; 3보다 한 번 더 돕니다. 0부터 시작할 때 i &lt; n은 n번, i &lt;= n은 n + 1번입니다. 한 번 차이로 생기는 이런 실수는 아주 흔합니다. 원소가 n개인 배열을 돌 때는 i &lt; n을 씁니다.</li>
+<li>for문은 초기화, 조건, 증감을 한 줄에 모아 적는 반복문입니다. 실행 순서는 초기화(한 번) → 조건 → 본문 → 증감 → 조건 → ... 입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>for (int i = 0; i &lt;= 3; i++) {     // 초기화; 조건; 증감
+    System.out.println(i);
+}
+System.out.println(&quot;끝&quot;);</pre>
+<h2>이 모형의 전제</h2>
+<p>스물네 가지 조합(반복문 12, switch 12)의 출력과 횟수를 이 PC의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. 본문에 들어간 횟수는 대조용 프로그램의 본문 첫 줄에 세는 코드를 넣어 얻었습니다. while문에서 continue를 쓴 두 조합은 실제 프로그램이 2초가 지나도 끝나지 않고 본문만 계속 되풀이하는 것을 확인했습니다. &quot;영원히 끝나지 않는다&quot;는 것 자체는 실행으로 증명할 수 없고, i가 바뀌지 않는다는 코드의 구조에서 나오는 결론입니다. 모형은 같은 i 값으로 조건 검사에 다시 돌아오면 무한 반복으로 판단하고 멈춥니다. default가 없는 switch에 일치하는 case가 없는 값을 넣으면 아무것도 실행하지 않는다는 것도 실행해 확인했습니다. 화살표 switch는 Java 14부터 정식 문법입니다. do-while문, 향상된 for문(for-each), 값을 돌려주는 switch 식, 이름표를 붙인 break는 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/casting/">연산자와 형변환</a> · 다음 실습: <a href="../../lab/array/">배열</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

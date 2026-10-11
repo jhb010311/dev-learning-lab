@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AOP: advice and pointcuts: Which methods does advice apply to, and in what order does it run? · Dev Learning Lab</title>
+<meta name="description" content="When work that many methods need in the same way, such as logging, is written in one class (an aspect), Spring adds that code before and after the method…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/aop/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/aop/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/aop/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="AOP: advice and pointcuts: Which methods does advice apply to, and in what order does it run? · Dev Learning Lab">
+<meta property="og:description" content="When work that many methods need in the same way, such as logging, is written in one class (an aspect), Spring adds that code before and after the method…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/aop/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › AOP and proxies</p>
+<h1>AOP: advice and pointcuts</h1>
+<p><b>Which methods does advice apply to, and in what order does it run?</b></p>
+<p>When work that many methods need in the same way, such as logging, is written in one class (an aspect), Spring adds that code before and after the method calls. The code that is added is called advice, and the expression that selects which methods it is added to is called a pointcut. Change the pointcut, the method that is called, the outcome of the method, and the number of aspects to see what runs and in what order.</p>
+<p>Checked against real execution · All 72 combinations were run on Spring Framework 7.0.9 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Aspect-oriented programming (AOP)</dt>
+<dd>This programming technique separates additional behavior that appears repeatedly in many places (crosscutting concerns), such as logging, transactions, and permission checks, from the core business code and gathers it in one place. You write the additional behavior only once and specify separately &quot;where to apply it&quot;, so the core code stays clean and a change to that behavior is made in one place.</dd>
+<dt>Advice</dt>
+<dd>In AOP, this is the code to be added to a method call, defined together with when that code runs. In Spring, you create it by putting one of these annotations on a method of an aspect class: @Before (before the method runs), @AfterReturning (after it returns a value normally), @AfterThrowing (after an exception goes out), @After (after it finishes, whether normally or with an exception), or @Around (wraps the method execution before and after). With @Around, the target method runs only when proceed() of ProceedingJoinPoint is called, and when it is not called, the target method does not run. @AfterThrowing only observes the exception passing through and does not remove it, so the exception is passed on to the caller as it is.</dd>
+<dt>Pointcut</dt>
+<dd>This is the condition expression that selects which methods advice is applied to. The form execution(return-type package.class.method(parameters)) is used most often, where * means any single name and (..) means any number of parameters. Empty parentheses () match only a method that takes no parameters. @annotation(annotation type) matches the methods annotated with that annotation. When an expression matches no method at all, there is no error and the advice simply does not run, so after writing an expression you must check that it is actually applied.</dd>
+<dt>Aspect and @Order</dt>
+<dd>An aspect is a class that gathers pointcuts and advice in one place, and in Spring you create one by putting @Aspect on a class that is registered as a bean. When several aspects apply to one method, the aspect with the lower @Order value wraps on the outside. The outer aspect runs first on the way in and last on the way out. The order among aspects that have no @Order is undefined, so always specify it when the order affects the result.</dd>
+<dt>Proxy</dt>
+<dd>This is a stand-in object that receives calls in place of the real object. When it receives a call, it does some additional work and then passes the call on to the real object. Spring wraps a bean that needs a feature such as AOP or @Transactional in such an object and registers it in the container, so what other beans receive by injection is this stand-in, not the real object.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The method throws an exception. The second part of @Around does not run, and @After runs.</li>
+<li><b>When the method returns normally</b> — Four of the five kinds of advice run in a fixed order.</li>
+<li><b>A pointcut with empty parentheses</b> — The pointcut says cancel(), and the advice does not apply to cancel(Long).</li>
+<li><b>Selecting by annotation</b> — If a method is annotated with @Audit, the advice applies to it even in another class.</li>
+<li><b>A method in the same class that the advice does not apply to</b> — Nothing runs for order, which has no @Audit.</li>
+<li><b>With two aspects</b> — LogAspect, which has the lower @Order value, wraps on the outside.</li>
+<li><b>Swapping the @Order values</b> — TimeAspect becomes the outer aspect. &quot;Time end&quot; is printed even when an exception is thrown.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>When the application starts: Spring checks the pointcut against each method of the beans, one by one. execution(* shop.OrderService.*(..)) matches every method of the shop.OrderService class. The * at the front means any return type, the * in the position of the method name means any name, and (..) means any number of parameters.</li>
+<li>order(String) checked against the pointcut: order is a method of OrderService, so it is matched. The OrderService bean is wrapped in a proxy (a stand-in object).</li>
+<li>orderService.order(&quot;keyboard&quot;): Another bean calls the method. The call reaches the proxy first. The proxy runs the advice that applies to this method in order, starting from the outside.</li>
+<li>The first part of the @Around of LogAspect: Within one aspect, @Around starts first. The lines written above pjp.proceed() run.</li>
+<li>Call to pjp.proceed() → the @Before of LogAspect: When @Around passes the call inward, the @Before of the same aspect runs. After that comes the method body.</li>
+<li>order(String) body runs: It prints &quot;order body&quot; and throws an IllegalStateException. The exception goes out from the inside to the outside, back along the path by which the call came in.</li>
+<li>The @AfterThrowing of LogAspect: It runs only when an exception came out of the inside. It does not catch and remove the exception but only observes the exception passing through, so the exception keeps going outward. @AfterReturning does not run.</li>
+<li>The @After of LogAspect: It runs even though an exception was thrown. It is similar to finally in Java. Within the same aspect, it comes after @AfterThrowing.</li>
+<li>The second part of the @Around of LogAspect: pjp.proceed() threw an exception, so the &quot;Log @Around after&quot; line written below it does not run and the exception goes out unchanged. To run that line even on an exception, you must wrap the call in try-finally.</li>
+<li>The caller: It receives an IllegalStateException. No advice caught the exception, so the exception is passed on unchanged.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The pointcut matched the order(String) method, and the console printed 5 lines in this order: Log @Around before → Log @Before → order body → Log @AfterThrowing → Log @After. The caller received an IllegalStateException.</li>
+<li>When an exception is thrown, @AfterThrowing and @After run, and @AfterReturning and the lines written below pjp.proceed() in @Around do not run. Put work that must be done in every case in @After, or wrap the call in try-finally inside @Around.</li>
+</ul>
+<h2>Code</h2>
+<pre>// All the classes below are in the shop package
+// @Audit is an annotation written for this example (a marker put on methods)
+// Code that calls the method from another bean: orderService.order(&quot;keyboard&quot;);
+
+@Aspect
+@Component
+class LogAspect {
+    @Pointcut(&quot;execution(* shop.OrderService.*(..))&quot;)
+    void pick() { }                          // selects which methods the advice applies to
+
+    @Around(&quot;pick()&quot;)
+    Object around(ProceedingJoinPoint pjp) throws Throwable {
+        System.out.println(&quot;Log @Around before&quot;);
+        Object result = pjp.proceed();       // passes the call inward
+        System.out.println(&quot;Log @Around after&quot;);
+        return result;
+    }
+
+    @Before(&quot;pick()&quot;)
+    void before() { System.out.println(&quot;Log @Before&quot;); }
+
+    @AfterReturning(&quot;pick()&quot;)
+    void afterReturning() { System.out.println(&quot;Log @AfterReturning&quot;); }
+
+    @AfterThrowing(&quot;pick()&quot;)
+    void afterThrowing() { System.out.println(&quot;Log @AfterThrowing&quot;); }
+
+    @After(&quot;pick()&quot;)
+    void after() { System.out.println(&quot;Log @After&quot;); }
+}
+
+@Service
+class OrderService {
+    public String order(String item) {
+        System.out.println(&quot;order body&quot;);
+        throw new IllegalStateException(&quot;failed&quot;);
+    }
+
+    @Audit
+    public String cancel(Long id) {
+        System.out.println(&quot;cancel body&quot;);
+        return &quot;cancellation completed&quot;;
+    }
+}
+
+@Service
+class MemberService {
+    @Audit
+    public String join(String name) {
+        System.out.println(&quot;join body&quot;);
+        return &quot;sign-up completed&quot;;
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>All 72 combinations were run on Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1, with AspectJ weaver 1.9.25.1 and JDK 21) on this PC, using code with the same structure as on the screen, and these were checked against the results: whether the pointcut matches the method, the order of the lines printed on the console, what the caller receives, and whether the bean is a proxy. It was also confirmed by execution that all 72 results are the same when the advice methods are written in the class in the reverse order, and that the method body does not run when @Around does not call pjp.proceed(). Two things could not be confirmed by execution and follow the Spring documentation. First, the order of execution within one aspect has been defined as it is now since Spring Framework 5.2.7, and in older versions @After sometimes ran before @AfterReturning (this PC has no old version). Second, the order among aspects that have no @Order is undefined. The code on the screen assumes that @EnableAspectJAutoProxy is turned on (for the runs, it was put directly on the configuration class; the documentation says that in Spring Boot it is turned on automatically when the AOP starter is added, but this part was not confirmed by execution). The method is assumed to be called from another bean. When it is called from within the same class, the call does not go through the proxy and the advice does not run, which is covered in the &quot;Proxies and self-invocation&quot; lab. The pointcut method is named pick. On this PC, when it was named target, none of the advice of LogAspect ran, and there was no error (target is a word that has its own use in pointcut expressions).</p>
+<p>Previous lab: <a href="../../lab/proxy/">Proxies and self-invocation</a> · Next lab: <a href="../../lab/tx/">Transaction basics</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

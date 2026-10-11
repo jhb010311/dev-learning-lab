@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>상속 관계 매핑: 상속한 클래스는 테이블 몇 개에 어떻게 저장되나 · 개발 학습 실습실</title>
+<meta name="description" content="자바에는 상속이 있지만 관계형 데이터베이스의 테이블에는 상속이 없습니다. 그래서 부모 Item과 자식 Book, Album, Movie를 테이블에 담는 방법을 골라야 합니다. JPA에는 세 가지 전략이 있고, 어느 것을 고르느냐에 따라 테이블의 수와 모양, 저장할 때의 INS…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/inheritmap/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/inheritmap/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inheritmap/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="상속 관계 매핑: 상속한 클래스는 테이블 몇 개에 어떻게 저장되나 · 개발 학습 실습실">
+<meta property="og:description" content="자바에는 상속이 있지만 관계형 데이터베이스의 테이블에는 상속이 없습니다. 그래서 부모 Item과 자식 Book, Album, Movie를 테이블에 담는 방법을 골라야 합니다. JPA에는 세 가지 전략이 있고, 어느 것을 고르느냐에 따라 테이블의 수와 모양, 저장할 때의 INS…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/inheritmap/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 연관관계</p>
+<h1>상속 관계 매핑</h1>
+<p><b>상속한 클래스는 테이블 몇 개에 어떻게 저장되나</b></p>
+<p>자바에는 상속이 있지만 관계형 데이터베이스의 테이블에는 상속이 없습니다. 그래서 부모 Item과 자식 Book, Album, Movie를 테이블에 담는 방법을 골라야 합니다. JPA에는 세 가지 전략이 있고, 어느 것을 고르느냐에 따라 테이블의 수와 모양, 저장할 때의 INSERT 수, 조회할 때의 쿼리 모양이 달라집니다.</p>
+<p>실행으로 대조 · Hibernate 7.4.5와 H2에서 스물일곱 가지 조합을 실행해 테이블, INSERT 수, 조회 쿼리의 조인과 UNION 수, 남은 행을 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>상속 관계 매핑</dt>
+<dd>자바 클래스의 상속 구조를 테이블에 담는 방법을 정하는 것이다. 관계형 데이터베이스에는 상속이 없으므로, 부모와 자식의 필드를 어떤 테이블에 나눠 넣을지 골라야 한다. JPA에서는 부모 엔티티에 @Inheritance를 붙이고 조인, 단일 테이블, 구현 클래스마다 테이블의 세 전략 가운데 하나를 지정한다. 지정하지 않으면 단일 테이블 전략이 쓰인다. 전략에 따라 테이블의 수, 저장할 때의 INSERT 수, 조회 쿼리의 모양이 달라진다.</dd>
+<dt>조인 전략(JOINED)</dt>
+<dd>부모 테이블과 자식 테이블을 따로 만들고, 자식 테이블의 기본 키가 부모 테이블의 기본 키를 가리키는 외래 키가 되게 하는 상속 매핑 전략이다. 부모의 필드는 부모 테이블에, 자식만의 필드는 자식 테이블에 저장되므로 같은 값이 겹치지 않고 빈 칸도 생기지 않는다. 대신 객체 하나를 저장할 때 INSERT가 두 번 나가고, 조회할 때는 조인이 필요하다. 부모 타입으로 조회하면 어느 자식인지 알 수 없어서 자식 테이블을 모두 조인한다.</dd>
+<dt>단일 테이블 전략(SINGLE_TABLE)</dt>
+<dd>부모와 모든 자식의 필드를 테이블 하나에 넣는 상속 매핑 전략이다. 행마다 어느 자식인지 적어 두는 구분 컬럼(기본 이름은 DTYPE)이 함께 만들어진다. 조인이 필요 없어서 저장과 조회 쿼리가 단순하다. 대신 자기 것이 아닌 자식의 컬럼은 null로 남으므로 자식의 컬럼이 null을 허용해야 하고, 자식이 많아지면 테이블이 넓어진다.</dd>
+<dt>구현 클래스마다 테이블 전략(TABLE_PER_CLASS)</dt>
+<dd>부모 테이블 없이 자식 클래스마다 테이블을 하나씩 만들고, 부모의 필드까지 자식 테이블마다 되풀이해 넣는 상속 매핑 전략이다. 자식 타입 하나만 저장하고 조회할 때는 그 테이블 하나만 쓰면 되어 단순하다. 하지만 부모 타입으로 조회하면 찾는 행이 어느 테이블에 있는지 알 수 없어서 자식 테이블을 모두 UNION으로 합쳐야 한다. 그래서 부모 타입으로 다룰 일이 있을 때는 피하는 전략이다.</dd>
+<dt>JOIN (INNER, OUTER)</dt>
+<dd>두 테이블의 행을 조건에 따라 결합하는 연산이다. INNER JOIN은 양쪽에서 조건이 맞는 행만 결과에 포함한다. LEFT OUTER JOIN은 왼쪽 테이블의 모든 행을 포함하고 오른쪽에 짝이 없으면 NULL로 채운다. 짝이 없는 데이터도 결과에 남겨야 하는지에 따라 선택한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 조인 전략에서 Book 하나를 저장합니다. 객체는 하나인데 INSERT가 2번 나갑니다.</li>
+<li><b>조인 전략: 부모 타입으로 조회</b> — 어느 자식인지 모르므로 자식 테이블을 모두 조인합니다.</li>
+<li><b>단일 테이블 전략: 저장</b> — 테이블 하나에 INSERT 한 번. 다른 자식의 컬럼은 null로 남습니다.</li>
+<li><b>단일 테이블 전략: 부모 타입으로 조회</b> — 조인 없이 한 테이블만 읽습니다.</li>
+<li><b>구현 클래스마다 테이블: 저장</b> — 부모 테이블이 없고 자식 테이블에 INSERT 한 번입니다.</li>
+<li><b>구현 클래스마다 테이블: 부모 타입으로 조회</b> — 자식 테이블을 모두 UNION으로 합쳐서 찾습니다.</li>
+<li><b>조인 전략: 자식 타입으로 조회</b> — 자식 테이블과 부모 테이블 둘만 조인합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>new Book(1L, &quot;자바책&quot;, 20000, &quot;김저자&quot;): Book 객체 하나를 만듭니다. 부모 Item에게서 물려받은 id, name, price와 Book이 선언한 author가 한 객체 안에 함께 들어 있습니다.</li>
+<li>em.persist(book): 영속성 컨텍스트에 보관합니다. id를 코드에서 직접 넣었으므로 DB에 물어볼 것이 없어서, INSERT는 바로 나가지 않고 커밋 때까지 미뤄집니다.</li>
+<li>트랜잭션 커밋, 첫 번째 INSERT: 조인 전략에서는 부모의 필드(id, name, price)가 부모 테이블 item에 들어갑니다. 먼저 item에 한 행을 넣습니다.</li>
+<li>두 번째 INSERT: Book만의 필드(author)는 자식 테이블 book에 들어갑니다. book의 id는 기본 키이면서 item의 id를 가리키는 외래 키입니다. 객체 하나를 저장하는 데 INSERT가 2번 나갔습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>테이블은 4개(item, book, album, movie)가 만들어집니다. 나간 SQL은 INSERT 2번이고, 행이 들어간 테이블은 item, book입니다.</li>
+<li>조인 전략은 부모 테이블과 자식 테이블을 따로 만들고, 객체 하나를 두 테이블에 나눠 담습니다. 같은 값을 두 번 적지 않고 빈 칸도 없어서 테이블이 깔끔하지만, 저장할 때 INSERT가 2번 나갑니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+abstract class Item {
+    @Id
+    Long id;
+    String name;
+    int price;
+}
+
+@Entity
+class Book extends Item {
+    String author;
+}
+
+@Entity
+class Album extends Item {
+    String artist;
+}
+
+@Entity
+class Movie extends Item {
+    String actor;
+}
+// 생성자는 줄였습니다
+
+// 트랜잭션 안에서
+Book book = new Book(1L, &quot;자바책&quot;, 20000, &quot;김저자&quot;);
+em.persist(book);
+// 트랜잭션 커밋</pre>
+<h2>이 모형의 전제</h2>
+<p>부모 Item은 추상 클래스이고 자식은 필드를 하나씩만 가진다고 두었습니다. 기본 키는 코드에서 직접 넣었습니다. 구현 클래스마다 테이블 전략에서는 IDENTITY 전략을 쓸 수 없기 때문입니다(Hibernate 7.4.5에서 시작할 때 MappingException이 나는 것을 확인했습니다). 스물일곱 가지 조합(전략 세 가지, 해 볼 일 세 가지, 자식 클래스 1·2·3개) 모두를 Hibernate 7.4.5와 H2 데이터베이스에서 같은 구조의 코드로 실행해, 만들어진 테이블과 컬럼, 자식 테이블에서 부모 테이블로 가는 외래 키, 나간 SQL의 종류와 테이블별 횟수, 조회 쿼리가 읽은 테이블과 조인 수와 UNION 수, 구분 컬럼 조건이 붙는지, 돌려받은 객체의 타입, DB에 남은 행이 화면과 일치하는 것을 확인했습니다. Hibernate는 조인 전략과 구현 클래스마다 테이블 전략에서 대량 수정 쿼리에 쓸 임시 테이블(이름이 ht_, hte_로 시작)을 따로 만들어 두는데, 매핑과 상관없는 것이어서 화면에서는 뺐습니다. 조인 전략에 구분 컬럼(DTYPE)을 두지 않은 것은 Hibernate의 기본 동작이며, @DiscriminatorColumn을 붙이면 item 테이블에 dtype 컬럼이 생기는 것도 실행해서 확인했습니다. @Inheritance를 아예 적지 않으면 단일 테이블 전략과 같은 테이블이 만들어지는 것도 확인했습니다. 화면의 SQL 문장은 읽기 쉽게 줄여 쓴 것이어서 실제 문장과 글자가 같지는 않습니다. 실제 SQL에서는 조인 전략의 부모 타입 조회가 CASE 식으로, 구현 클래스마다 테이블 전략의 부모 타입 조회가 자식마다 붙인 번호로 어느 자식인지 구분합니다. 테이블 안의 컬럼 순서도 실제와 다를 수 있습니다.</p>
+<p>앞 실습: <a href="../../lab/relations/">다대일, 일대다, 일대일, 다대다</a> · 다음 실습: <a href="../../lab/cascade/">영속성 전이와 고아 객체</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

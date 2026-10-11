@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>해시·암호화·서명: 숨기는 것, 확인하는 것, 되돌릴 수 없는 것 · 개발 학습 실습실</title>
+<meta name="description" content="보안 이야기에 늘 나오는 해시, 대칭키 암호화, 비대칭키 암호화, 서명은 서로 다른 일을 합니다. &quot;주문 100원&quot;이라는 메시지에 다섯 가지 도구를 각각 써 보고, 내용을 바꾸거나 다른 키를 썼을 때 무슨 일이 생기는지 확인하세요. 화면의 값은 모두 실제로 계산한 값입니다.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/crypto/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/crypto/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/crypto/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="해시·암호화·서명: 숨기는 것, 확인하는 것, 되돌릴 수 없는 것 · 개발 학습 실습실">
+<meta property="og:description" content="보안 이야기에 늘 나오는 해시, 대칭키 암호화, 비대칭키 암호화, 서명은 서로 다른 일을 합니다. &quot;주문 100원&quot;이라는 메시지에 다섯 가지 도구를 각각 써 보고, 내용을 바꾸거나 다른 키를 썼을 때 무슨 일이 생기는지 확인하세요. 화면의 값은 모두 실제로 계산한 값입니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/crypto/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 암호 기술</p>
+<h1>해시·암호화·서명</h1>
+<p><b>숨기는 것, 확인하는 것, 되돌릴 수 없는 것</b></p>
+<p>보안 이야기에 늘 나오는 해시, 대칭키 암호화, 비대칭키 암호화, 서명은 서로 다른 일을 합니다. &quot;주문 100원&quot;이라는 메시지에 다섯 가지 도구를 각각 써 보고, 내용을 바꾸거나 다른 키를 썼을 때 무슨 일이 생기는지 확인하세요. 화면의 값은 모두 실제로 계산한 값입니다.</p>
+<p>실행으로 대조 · Node.js 암호 라이브러리로 실제 계산·검증</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>해시 함수와 솔트</dt>
+<dd>해시 함수는 입력을 고정된 길이의 값으로 바꾸는 함수로, 결과에서 원래 입력을 되돌릴 수 없다. 비밀번호는 원문 대신 해시 값을 저장해 유출되더라도 원문이 드러나지 않게 한다. 솔트는 비밀번호마다 다르게 덧붙이는 무작위 값으로, 같은 비밀번호라도 다른 해시가 되게 해 미리 계산해 둔 해시 목록을 이용한 공격을 막는다.</dd>
+<dt>대칭키 암호화와 비대칭키 암호화</dt>
+<dd>대칭키 암호화는 암호화와 복호화에 같은 키를 쓰는 방식으로 빠르지만 키를 상대와 안전하게 공유해야 하는 문제가 있다(AES). 비대칭키 암호화는 공개키와 개인키의 쌍을 쓰는 방식으로, 공개키로 암호화한 것은 개인키로만 풀 수 있어 키 공유 문제가 없지만 느리다(RSA). 실제로는 비대칭키로 대칭키를 안전하게 교환한 뒤 대칭키로 데이터를 암호화한다.</dd>
+<dt>HMAC과 전자서명</dt>
+<dd>메시지가 중간에 바뀌지 않았고 정당한 상대가 보냈음을 확인하는 기술이다. HMAC은 양쪽이 공유한 비밀키와 메시지를 함께 해시해 인증 코드를 만든다. 전자서명은 보내는 쪽이 개인키로 서명하고 받는 쪽이 공개키로 검증하며, 서명한 쪽만 만들 수 있으므로 보낸 사실을 부인할 수 없다.</dd>
+<dt>JWT(JSON Web Token)</dt>
+<dd>사용자 정보 등의 내용(클레임)을 담고 서명을 붙인 토큰이다. 헤더, 페이로드, 서명의 세 부분으로 이뤄진다. 서버는 서명을 검증해 토큰이 위조되지 않았음을 확인하며, 별도의 저장소를 조회하지 않아도 된다. 페이로드는 암호화된 것이 아니라 인코딩된 것이어서 누구나 내용을 볼 수 있으므로 민감한 정보를 넣지 않는다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 해시. 같은 입력은 항상 같은 값이 되고, 되돌릴 수 없습니다.</li>
+<li><b>해시: 한 글자만 바꾸면</b> — 결과가 전혀 다른 값이 됩니다.</li>
+<li><b>대칭키: 다른 키로 풀기</b> — 같은 키가 없으면 풀 수 없습니다.</li>
+<li><b>비대칭키: 공개키로 풀기</b> — 잠근 열쇠로는 열 수 없습니다. 짝이 되는 개인키만 엽니다.</li>
+<li><b>HMAC: 내용을 바꾸면</b> — 서명이 맞지 않아 변조가 드러납니다. JWT가 이 방식입니다.</li>
+<li><b>전자서명: 다른 사람의 키로 서명</b> — 공개키로 검증하면 가짜임이 드러납니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>보내려는 메시지는 &quot;주문 100원&quot;입니다.</li>
+<li>해시 함수에 넣으면 길이가 일정한 값이 나옵니다. 키는 쓰지 않습니다. 같은 메시지를 다시 넣으면 언제 누가 해도 똑같은 값이 나옵니다.</li>
+<li>이 값에서 &quot;주문 100원&quot;을 거꾸로 계산해 낼 방법은 없습니다. 해시는 한 방향으로만 갑니다. 그래서 비밀번호처럼 원래 값을 몰라도 되는 것을 저장할 때 씁니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>결과: 같은 입력 → 같은 해시.</li>
+<li>해시: 되돌릴 수 없고, 키가 없고, 같은 입력은 항상 같은 값입니다. 내용이 같은지 비교하거나 원래 값을 숨긴 채 저장하는 데 씁니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>MessageDigest md = MessageDigest.getInstance(&quot;SHA-256&quot;);
+byte[] digest = md.digest(message.getBytes(UTF_8));
+// 키가 없다. 누구나 같은 입력으로 같은 값을 얻는다.</pre>
+<h2>이 모형의 전제</h2>
+<p>화면의 해시, 암호문, 서명 값과 성공·실패 결과는 모두 Node.js의 암호 라이브러리로 실제 계산하고 검증한 것입니다(SHA-256, AES-256-GCM, RSA 2048비트, HMAC-SHA256). RSA 값은 길어서 앞부분만 보였고, 키를 새로 만들 때마다 값이 달라집니다. 실제 서비스에서는 직접 구현하지 않고 검증된 라이브러리와 프로토콜(TLS, JWT 라이브러리)을 씁니다.</p>
+<p>앞 실습: <a href="../../lab/supplychain/">의존성과 공급망</a> · 다음 실습: <a href="../../lab/tls/">TLS 핸드셰이크</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

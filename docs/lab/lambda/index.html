@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>람다와 함수형 인터페이스: 람다에 적은 코드는 언제 실행되나 · 개발 학습 실습실</title>
+<meta name="description" content="람다는 &quot;나중에 실행할 동작&quot;을 값처럼 변수에 담고 다른 메서드에 넘기는 문법입니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다. 같은 동작을 익명 클래스, 람다, 메서드 참조로 써 보고, 넘겨받은 쪽이 부르는 횟수를 바꿔…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/lambda/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lambda/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="람다와 함수형 인터페이스: 람다에 적은 코드는 언제 실행되나 · 개발 학습 실습실">
+<meta property="og:description" content="람다는 &quot;나중에 실행할 동작&quot;을 값처럼 변수에 담고 다른 메서드에 넘기는 문법입니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다. 같은 동작을 익명 클래스, 람다, 메서드 참조로 써 보고, 넘겨받은 쪽이 부르는 횟수를 바꿔…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/lambda/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 람다와 스트림</p>
+<h1>람다와 함수형 인터페이스</h1>
+<p><b>람다에 적은 코드는 언제 실행되나</b></p>
+<p>람다는 &quot;나중에 실행할 동작&quot;을 값처럼 변수에 담고 다른 메서드에 넘기는 문법입니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다. 같은 동작을 익명 클래스, 람다, 메서드 참조로 써 보고, 넘겨받은 쪽이 부르는 횟수를 바꿔 가며 본문이 언제 몇 번 실행되는지 확인해 보세요.</p>
+<p>실행으로 대조 · JDK 21에서 서른여섯 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>람다 표현식</dt>
+<dd>이름 없는 함수를 간결하게 표현하는 문법으로 Java 8에서 도입되었다. (매개변수) -&gt; 실행문 형태로 쓰며, 추상 메서드가 하나뿐인 함수형 인터페이스의 구현으로 사용된다. 동작(코드)을 값처럼 다른 메서드에 전달할 수 있게 해 준다.</dd>
+<dt>함수형 인터페이스</dt>
+<dd>추상 메서드가 하나뿐인 인터페이스로(equals처럼 Object의 메서드를 다시 선언한 것은 세지 않고, default·static 메서드는 여러 개 있어도 된다), 람다 표현식이나 메서드 참조를 대입할 수 있는 타입이다. java.util.function 패키지에 Function(입력을 받아 결과 반환), Supplier(값 공급), Consumer(값 소비), Predicate(조건 판별) 등이 미리 정의되어 있다.</dd>
+<dt>메서드 참조</dt>
+<dd>이미 있는 메서드를 람다 대신 이름으로 가리키는 문법이다. String::length, System.out::println처럼 클래스(또는 객체)와 메서드 이름을 ::로 연결해 쓴다. 람다가 단순히 메서드 하나를 호출하기만 할 때 더 짧게 표현할 수 있다.</dd>
+<dt>익명 클래스와 람다의 차이</dt>
+<dd>익명 클래스는 인터페이스나 클래스를 그 자리에서 구현하면서 이름 없이 객체를 만드는 문법으로, new 인터페이스이름() { 메서드 구현 } 형태로 쓴다. 람다는 추상 메서드가 하나뿐인 함수형 인터페이스에 한해 같은 일을 (매개변수) -&gt; 실행문 형태로 짧게 쓰는 문법이다. 함수형 인터페이스를 구현할 때는 둘 중 어느 것으로 써도 호출한 결과가 같다. 다만 익명 클래스는 메서드가 여러 개인 인터페이스도 구현할 수 있고 필드를 가질 수 있으며, 그 안의 this는 익명 클래스의 객체 자신을 가리킨다. 람다 안의 this는 람다를 적은 바깥 객체를 가리킨다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 람다를 만든 줄에서는 아무 일도 없고, run이 부를 때마다 본문이 실행됩니다.</li>
+<li><b>받기만 하고 부르지 않으면</b> — 람다를 만들고 넘겼는데도 본문은 한 번도 실행되지 않습니다.</li>
+<li><b>익명 클래스로 쓰면</b> — 코드는 길어지지만 결과는 람다와 같습니다.</li>
+<li><b>메서드 참조로 쓰면</b> — 이미 있는 메서드를 이름으로 가리킵니다. 결과는 같습니다.</li>
+<li><b>Supplier를 넘겨 두고 나중에 get</b> — 값을 만드는 일을 미뤄 두었다가 필요할 때 실행합니다.</li>
+<li><b>Predicate</b> — 조건 검사를 넘깁니다. true 또는 false가 돌아옵니다.</li>
+<li><b>Consumer</b> — 값을 받아 쓰기만 하고 돌려주는 것이 없습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>Function&lt;String, Integer&gt; f = s -&gt; length(s): 화살표(-&gt;) 오른쪽에 적은 동작을 담은 객체를 만들어 변수 f에 담습니다. length 메서드는 아직 불리지 않습니다. 아무것도 출력되지 않습니다.</li>
+<li>System.out.println(&quot;만든 뒤&quot;): &quot;만든 뒤&quot;가 출력됩니다. 동작을 만든 줄을 이미 지났지만 &quot;본문 실행&quot;은 아직 한 번도 출력되지 않았습니다.</li>
+<li>run(f): 변수 f에 담긴 동작을 run 메서드에 넘깁니다. 숫자나 문자열을 넘기듯이 동작을 넘기는 것입니다. 넘기는 것만으로는 실행되지 않습니다.</li>
+<li>System.out.println(&quot;run 시작&quot;): run 안으로 들어와 &quot;run 시작&quot;이 출력됩니다.</li>
+<li>f.apply(&quot;hello&quot;): 여기서 비로소 동작이 실행됩니다. length 메서드가 불려 &quot;본문 실행: length(hello)&quot;가 출력됩니다. 돌려받은 5가 &quot;결과 5&quot;로 출력됩니다.</li>
+<li>f.apply(&quot;hi&quot;): 같은 동작이 한 번 더 실행됩니다. length 메서드가 불려 &quot;본문 실행: length(hi)&quot;가 출력됩니다. 돌려받은 2가 &quot;결과 2&quot;로 출력됩니다.</li>
+<li>System.out.println(&quot;run 끝&quot;): &quot;run 끝&quot;이 출력됩니다. &quot;본문 실행&quot;은 모두 2번 출력되었습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>본문은 2번 실행되었습니다. 출력된 순서는 만든 뒤 → run 시작 → 본문 실행: length(hello) → 결과 5 → 본문 실행: length(hi) → 결과 2 → run 끝입니다.</li>
+<li>동작을 만든 줄에서는 아무것도 실행되지 않았고, run 안에서 apply 메서드를 부를 때마다 실행되었습니다. 람다 안의 코드는 만들 때가 아니라 불릴 때 실행됩니다.</li>
+<li>Function&lt;T, R&gt;은 T 타입 값 하나를 받아 R 타입 값을 돌려주는 동작이고, apply로 부릅니다. 값을 다른 값으로 바꾸는 일(변환)에 씁니다.</li>
+<li>익명 클래스, 람다, 메서드 참조 가운데 무엇으로 쓰든 결과는 같습니다. 방식을 바꿔 코드만 달라지는 것을 확인해 보세요.</li>
+</ul>
+<h2>코드</h2>
+<pre>class Demo {
+    static int length(String s) {                    // 넘길 동작이 하는 일
+        System.out.println(&quot;본문 실행: length(&quot; + s + &quot;)&quot;);
+        return s.length();
+    }
+
+    static void run(Function&lt;String, Integer&gt; f) {      // 동작을 받아서 부르는 쪽
+        System.out.println(&quot;run 시작&quot;);
+        System.out.println(&quot;결과 &quot; + f.apply(&quot;hello&quot;));
+        System.out.println(&quot;결과 &quot; + f.apply(&quot;hi&quot;));
+        System.out.println(&quot;run 끝&quot;);
+    }
+
+    public static void main(String[] args) {
+        Function&lt;String, Integer&gt; f = s -&gt; length(s);        // 동작을 만든다 (아직 실행되지 않는다)
+        System.out.println(&quot;만든 뒤&quot;);
+        run(f);                                   // 동작을 값처럼 넘긴다
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>서른여섯 가지 조합의 출력 순서, 본문 실행 횟수, 돌려받은 값을 이 PC의 JDK 21에서 같은 구조의 코드를 실행한 결과와 대조했습니다. 각 인터페이스가 부르는 메서드의 이름, 받는 값의 개수, 돌려주는 타입도 실제 인터페이스를 들여다본 값과 대조했습니다. 익명 클래스, 람다, 메서드 참조는 이 실습에서 보는 결과(출력과 돌려받은 값)가 같다는 뜻이며, 내부에서 객체가 만들어지는 방법과 this가 가리키는 대상은 서로 다릅니다. 람다 안에서 바깥의 지역 변수를 쓸 때는 값이 바뀌지 않는 변수만 쓸 수 있는데, 이 규칙은 &quot;내부 클래스와 익명 클래스&quot; 실습에서 설명합니다.</p>
+<p>앞 실습: <a href="../../lab/sorting/">정렬과 Comparator</a> · 다음 실습: <a href="../../lab/stream/">스트림 지연 평가</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

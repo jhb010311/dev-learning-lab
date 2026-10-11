@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spring Data JPA: How does a repository work when there is no implementation class? · Dev Learning Lab</title>
+<meta name="description" content="In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such a…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/datajpa/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/datajpa/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/datajpa/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Spring Data JPA: How does a repository work when there is no implementation class? · Dev Learning Lab">
+<meta property="og:description" content="In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such a…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/datajpa/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Queries</p>
+<h1>Spring Data JPA</h1>
+<p><b>How does a repository work when there is no implementation class?</b></p>
+<p>In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query. Run it to see what query a method name becomes, how many queries are sent when you request a page, and when save() sends a SELECT before the INSERT.</p>
+<p>Checked against real execution · 19 scenes were run by starting Spring Data JPA 4.1.1, Hibernate 7.4.5, and H2 with the auto-configuration of Spring Boot 4.1.1, and the startup result and the SQL sent were checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>JPA, Hibernate, Spring Data JPA</dt>
+<dd>JPA (Jakarta Persistence) is the standard ORM specification for Java: a set of rules (interfaces) that defines which features exist and how to use them. Hibernate is a library that actually implements that specification. Spring Data JPA is a Spring module that provides repository interfaces to make JPA easier to use, and it uses JPA (Hibernate) internally.</dd>
+<dt>Query method</dt>
+<dd>A feature of Spring Data repositories that reads the name of a method declared in the repository interface and derives a query from it (a derived query). As in findByName, you write the property name of the entity after find…By, attach a keyword such as GreaterThan or Containing after the property name to set the kind of condition, and join several conditions with And or Or. The name is turned into a query when the application starts, so if you use a property name that the entity does not have, a PropertyReferenceException is thrown and the application does not start. When there are many conditions, the name becomes too long, so write the JPQL directly in @Query then.</dd>
+<dt>Pageable and Page</dt>
+<dd>Pageable is an object that holds a request for &quot;which page, how many rows per page, and in what order&quot;, and it is usually created with PageRequest.of(page number, size). Page numbers start from 0. If the return type is Page, Spring Data sends a query that reads the content and a count query that counts the total, and returns the content of the page together with the total number of elements and the total number of pages. If the return type is Slice, it reads one extra row without a count query and tells you only whether a next slice exists. On a table with a lot of data the count query can be slow, so first think about whether you really need the total.</dd>
+<dt>save() and merge</dt>
+<dd>The save() of Spring Data JPA calls em.persist if the entity it receives is new, and em.merge otherwise. By default, whether an entity is new is decided by whether the id is null. If there is a @Version field and its type is an object type such as Long, it is decided by whether that value is null (for a primitive type such as long, the id decides). merge first queries the row with the same id with a SELECT, overwrites the managed object with the values of the object it received, and returns that managed object. So an entity whose id is set directly in code also sends one more SELECT the first time it is saved. To avoid this, let the entity implement the Persistable interface and tell Spring Data directly whether it is new.</dd>
+<dt>Entity</dt>
+<dd>A Java object that corresponds to a row of a database table. It is defined as a class annotated with @Entity and has an identifier (@Id). JPA tracks the state changes of these objects and runs the matching SQL.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The method has no body, yet a query with two conditions is sent from the name alone.</li>
+<li><b>A name the entity does not have</b> — It fails while the application is starting, before the method is even called.</li>
+<li><b>A misspelled keyword</b> — GreaterThen is not a keyword, so it is read as a property name.</li>
+<li><b>Page request: two queries</b> — The query that reads the content and the query that counts the total are sent separately.</li>
+<li><b>On the last page</b> — The total can be calculated, so no count query is sent.</li>
+<li><b>Receiving a Slice</b> — There is no count query, but it reads one extra row to see whether a next slice exists.</li>
+<li><b>save: a new entity, but a SELECT comes first</b> — For an entity whose id you set yourself, one more SELECT is sent before the INSERT.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Application start: Spring Data JPA finds the interface MemberRepository, which extends JpaRepository. You never wrote an implementation class, but Spring Data creates an implementation object (a proxy) of this interface on your behalf and registers it as a bean.</li>
+<li>Reading the method name: The method findByNameAndAgeGreaterThan has no body written by a person. Spring Data splits the name, reads it, and builds a query. The find…By at the beginning means &quot;select the matching rows&quot;, and what follows By is the condition.</li>
+<li>Name: No keyword is attached, so the condition is &quot;equals&quot;. It checks whether the Member entity has a property with this name (name). It does, so the condition in the query is &quot;name = ?&quot;. The question mark is where the value passed in the call goes.</li>
+<li>And AgeGreaterThan: And means joining with the previous condition by and. The keyword at the end (GreaterThan) means &quot;greater than&quot;. It checks whether the Member entity has a property with this name (age). It does, so the condition in the query is &quot;age &gt; ?&quot;. The question mark is where the value passed in the call goes.</li>
+<li>Application startup complete: Reading the name is finished and the query is ready. This reading and the property check are done in advance, when the application starts, not when the method is called.</li>
+<li>Call to memberRepository.findByNameAndAgeGreaterThan(&quot;Alice&quot;, 20): The implementation object puts the values you passed into the question mark positions of the prepared query and sends one SELECT.</li>
+<li>Result: It returns the 1 member that match the condition as a list of Member objects.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Application startup succeeded. SQL statements sent to the DB: 1 (select … where name = ? and age &gt; ?).</li>
+<li>A method with no body was called, and the query &quot;select … where name = ? and age &gt; ?&quot; was sent once. The method name is the query.</li>
+<li>The rule: write the property name of the entity after find…By or count…By, put the kind of condition (GreaterThan, Containing, and so on) after the property name, and join several conditions with And or Or. Parameters go into the conditions in order, not by name.</li>
+<li>When there are more than three or four conditions, the name becomes too long. Then it is easier to read if you write the JPQL directly in @Query.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Entity
+class Member {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+    String name;
+    int age;
+    // constructor and getters omitted
+}
+
+// Do not write an implementation class. Declare only the interface
+interface MemberRepository extends JpaRepository&lt;Member, Long&gt; {
+    List&lt;Member&gt; findByNameAndAgeGreaterThan(String name, int age);
+}
+
+// service
+List&lt;Member&gt; result = memberRepository.findByNameAndAgeGreaterThan(&quot;Alice&quot;, 20);</pre>
+<h2>Assumptions of this model</h2>
+<p>All the scenes (6 method names, 8 page requests, and 5 save cases) were run on the PC used to write this lab by actually starting Spring Data JPA 4.1.1, Hibernate 7.4.5, and an H2 database with the auto-configuration of Spring Boot 4.1.1, and whether startup succeeded, the exception name and message, the number and kind of SQL statements sent to the database, the shape of where and order by, the number of rows skipped and requested, and the results received were checked against the screen. It was also confirmed by execution that the implementation of the repository is a proxy and that SimpleJpaRepository is behind it. The SQL on the screen is shortened to be easy to read. The actual SQL has table aliases, and the like condition has an escape clause added to it, and the shape of the statement differs by Hibernate version and database. The two wrong method names were checked by starting a separate repository that has only that method. Other keywords mentioned in the result summaries, such as Or, follow the keyword table in the Spring Data JPA documentation and were not run. The decision of whether an entity is new in save follows the &quot;Entity State-detection Strategies&quot; section of the Spring Data JPA documentation, and for an entity with a @Version field, the decision is made by whether that field is null instead of the id. The SELECT being sent twice and the exception being thrown in the id 999 example are results seen with Hibernate 7.4.5, and they differ by version. It was also confirmed by execution that when an entity whose id is set directly implements Persistable and tells Spring Data that it is new, only one INSERT is sent without a SELECT (the way of adding a @Version field was not run). save was called with no transaction outside it, so the UPDATE and INSERT are sent when the transaction of save itself ends. If there is a @Transactional outside, they are sent when that transaction commits.</p>
+<p>Previous lab: <a href="../../lab/bulk/">Bulk update and delete operations</a> · Next lab: <a href="../../lab/dynquery/">Dynamic queries and Querydsl</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

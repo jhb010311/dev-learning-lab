@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caching and TTL: How much does a cache reduce database queries, and when do requests pile up again? · Dev Learning Lab</title>
+<meta name="description" content="One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the req…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cache/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cache/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cache/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Caching and TTL: How much does a cache reduce database queries, and when do requests pile up again? · Dev Learning Lab">
+<meta property="og:description" content="One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the req…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/cache/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › High traffic</p>
+<h1>Caching and TTL</h1>
+<p><b>How much does a cache reduce database queries, and when do requests pile up again?</b></p>
+<p>One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the request reads the value from the database and stores it in the cache (cache-aside). A value disappears from the cache when its TTL passes. Change the TTL, the request rate, and the database query time, and watch the cache hit rate and the requests that rush to the database at the moment the value expires.</p>
+<p>Conceptual model · A model that shows how the behavior works</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Cache</dt>
+<dd>Storing frequently used data or computed results ahead of time in a place that can be accessed quickly, and reusing them. Responses get faster and the load on the source drops, because the source (usually a database) is not queried every time. In return, you must manage the problem of stale values that remain when the source changes.</dd>
+<dt>Cache-aside pattern</dt>
+<dd>The most common approach, in which the application manages the cache directly. To read data, the application checks the cache first. If the data is not there, it reads from the database, stores the value in the cache, and returns it. To change data, it updates the database and deletes the matching cache entry.</dd>
+<dt>TTL (time to live)</dt>
+<dd>The length of time for which data is valid. If you set it when you put a value in a cache, the value is deleted automatically after that time passes. It is a basic safeguard that stops a value that no longer matches the source from staying in the cache forever.</dd>
+<dt>Cache stampede</dt>
+<dd>A situation in which, at the moment a heavily read cache entry expires, many requests that arrive at the same time all fail to find the value in the cache and query the database at once. The sudden load on the database can lead to an outage. It is mitigated by locking so that only one request queries the source, or by spreading out the expiration times.</dd>
+<dt>Redis</dt>
+<dd>A key-value store that keeps data in memory. It provides not only strings but also data structures such as lists, hashes, sets, and sorted sets. It is very fast because it works in memory, and it is used for caches, session stores, distributed locks, leaderboards, rate limiting, and more. It runs commands one after another on a single thread.</dd>
+<dt>Distributed lock</dt>
+<dd>A lock that lets only one process at a time perform a specific task among processes that run on several servers. Java's synchronized is valid only inside one server, so with several servers it is implemented by placing a &quot;lock marker&quot; in a store that all of them access (such as Redis). It is given an expiration time so that it is released even if the side that took it runs into a problem.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — TTL 10s. Each time the value expires, several requests go to the database at the same time.</li>
+<li><b>Without a cache</b> — Every request queries the database.</li>
+<li><b>Many requests and a slow database</b> — At the moment of expiration, dozens of requests hit the database at the same time (a cache stampede).</li>
+<li><b>Same situation with the lock</b> — Only one request goes to the database, and the others wait for its result.</li>
+<li><b>Shorten the TTL to 5s</b> — The data is fresher, but there are more database queries.</li>
+<li><b>A long TTL</b> — The database is queried only when the cache is first filled. But a change in the source goes unnoticed for a long time.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>0.0s: The cache has no value (the first request). The request goes to the database to query it. It takes 1s for the result to come back.</li>
+<li>1.0s: The value read from the database was stored in the cache (TTL 10s). Before it was stored, 5 requests, starting at 0.0s, all failed to find the value in the cache and each queried the database.</li>
+<li>11.8s: The TTL has passed, so the value in the cache was removed. From now on, requests that arrive will not find the value in the cache.</li>
+<li>11.8s: The cache has no value (right after expiration). The request goes to the database to query it. It takes 1s for the result to come back.</li>
+<li>12.8s: The value read from the database was stored in the cache (TTL 10s). Before it was stored, 5 requests, starting at 11.8s, all failed to find the value in the cache and each queried the database.</li>
+<li>23.6s: The TTL has passed, so the value in the cache was removed. From now on, requests that arrive will not find the value in the cache.</li>
+<li>23.6s: The cache has no value (right after expiration). The request goes to the database to query it. It takes 1s for the result to come back.</li>
+<li>24.6s: The value read from the database was stored in the cache (TTL 10s). Before it was stored, 5 requests, starting at 23.6s, all failed to find the value in the cache and each queried the database.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Of 150 requests, 135 (90%) were answered directly from the cache, and the database was queried 15 times. The most database queries in flight at one moment was 5, and the average response time was 0.11s.</li>
+<li>At the moment of expiration, all the requests that arrived before the cache was filled again (during 1s) went to the database. The more requests there are and the slower the database query is, the bigger the pile-up. This is a cache stampede. You reduce it with a lock that lets only one request query the database, by refreshing the value before it expires, or by giving each key a slightly different TTL.</li>
+<li>The longer the TTL, the fewer the database queries, but even when the source data changes, the cache keeps returning the old value for up to the TTL. How old a value you can accept is the criterion for choosing the TTL.</li>
+</ul>
+<h2>Code</h2>
+<pre>public Product getProduct(long id) {
+    String key = &quot;product:&quot; + id;
+    Product cached = redis.get(key);
+    if (cached != null) return cached;          // cache hit
+
+    Product p = productRepository.findById(id); // database query (1s)
+    redis.set(key, p, Duration.ofSeconds(10));  // TTL 10s
+    return p;
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>Only one key (one popular product) is handled, and requests are assumed to arrive at regular intervals. The cache response time is set to 0.01s. The eviction policy, which removes old keys when the cache is full, is not covered here. With the lock, a waiting request is simplified to receive the value from the cache at the moment the query finishes. The numbers are a model that shows how the behavior works, and they are not values measured on a real Redis.</p>
+<p>Previous lab: <a href="../../lab/scale/">Load balancers and scale out</a> · Next lab: <a href="../../lab/redis/">Redis single-threaded execution</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

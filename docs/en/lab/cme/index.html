@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Removing during iteration: What happens when you remove elements inside a loop · Dev Learning Lab</title>
+<meta name="description" content="The code iterates over the list [1, 2, 2, 3, 4] and tries to remove the elements whose value is 2. Depending on how it removes them, an exception is throw…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cme/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cme/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cme/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Removing during iteration: What happens when you remove elements inside a loop · Dev Learning Lab">
+<meta property="og:description" content="The code iterates over the list [1, 2, 2, 3, 4] and tries to remove the elements whose value is 2. Depending on how it removes them, an exception is throw…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/cme/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Collections</p>
+<h1>Removing during iteration</h1>
+<p><b>What happens when you remove elements inside a loop</b></p>
+<p>The code iterates over the list [1, 2, 2, 3, 4] and tries to remove the elements whose value is 2. Depending on how it removes them, an exception is thrown, or one element is skipped with no exception at all. Change the method and the kind of collection to see the results.</p>
+<p>Checked against real execution · Checked by running 10 combinations on JDK 21</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Fail-fast iterator</dt>
+<dd>This is an iterator that throws ConcurrentModificationException if the collection is structurally modified while it is being iterated (detection is on a best-effort basis, so the exception is not guaranteed to be thrown every time). The design fails immediately to expose the problem, which is better than continuing with a wrong result without knowing about the change. To remove elements during iteration, use the iterator's remove() or removeIf().</dd>
+<dt>ArrayList</dt>
+<dd>This is a list that keeps an array inside and moves the elements to a larger array when the array is full. Access to an element by index is fast at O(1), and adding at the end is also O(1) amortized. Inserting or removing in the middle takes O(n), because the elements after that position must each be shifted by one position.</dd>
+<dt>ConcurrentHashMap</dt>
+<dd>This is a hash map that is safe for several threads to use at the same time. It does not lock the whole map; it controls access per bucket, which gives high concurrency, and lookups run without a lock. It does not allow null keys or null values. For a compound action such as &quot;put if absent&quot;, you must use a method that guarantees atomicity, such as putIfAbsent or compute.</dd>
+<dt>Thread safety</dt>
+<dd>This is the property of working correctly even when several threads use something at the same time. Code is thread-safe if there is no shared state, if the state is immutable, or if access is properly synchronized. A Spring singleton bean is used by many request threads together, so it must be made thread-safe (usually by keeping no state).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Removal inside an enhanced for statement. An exception is thrown.</li>
+<li><b>for statement with an index, from the front</b> — No exception is thrown, but one 2 is left.</li>
+<li><b>Removing from the back</b> — The elements that shift are on the side that was already visited, so there is no problem.</li>
+<li><b>Iterator.remove()</b> — Removing through the iterator is safe.</li>
+<li><b>removeIf()</b> — This is the simplest and safest way.</li>
+<li><b>Removal in a for statement on a CopyOnWriteArrayList</b> — No exception is thrown. The loop iterates over a copy.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The list is [1, 2, 2, 3, 4]. The code tries to remove the two elements whose value is 2.</li>
+<li>An iterator is created (an enhanced for statement also uses an iterator internally). The iterator remembers the modification count of the list at this point (0).</li>
+<li>Element 1 is checked: it is not 2, so the loop moves on.</li>
+<li>The element 2 is read. list.remove() removes it directly from the list. The list is now [1, 2, 3, 4]. The modification count of the list has gone up to 1, but the iterator does not know that.</li>
+<li>The iterator is about to read the next element, but the modification count of the list (1) differs from the value the iterator remembered (0). This means that the list changed without the iterator knowing, so rather than produce a wrong result, the iterator throws a ConcurrentModificationException immediately (fail-fast).</li>
+<li>Final list: [1, 2, 3, 4] (stopped by an exception).</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Result: [1, 2, 3, 4]. Exception: ConcurrentModificationException. A 2 is still in the list.</li>
+<li>Despite its name, this exception is thrown even when there is only one thread. It occurs when a collection is modified during iteration without going through the iterator. The iterator detects the change by comparing modification counts and fails immediately.</li>
+</ul>
+<h2>Code</h2>
+<pre>List&lt;Integer&gt; list = new ArrayList&lt;&gt;(List.of(1, 2, 2, 3, 4));
+
+for (Integer x : list) {
+    if (x == 2) list.remove(x);          // modifies the list directly during iteration
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The final list and the exception were checked for all 10 combinations against the result of running the same code on JDK 21 on this PC. Removal inside an enhanced for statement sometimes ends without an exception, depending on the position of the element that is removed (when the second-to-last element is removed), but such code relies on luck and must not be used.</p>
+<p>Previous lab: <a href="../../lab/sqh/">Stack, queue, priority queue</a> · Next lab: <a href="../../lab/sorting/">Sorting and Comparator</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

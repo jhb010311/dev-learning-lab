@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>프록시와 리버스 프록시: 프록시 뒤의 서버는 누가 요청했는지 어떻게 아나 · 개발 학습 실습실</title>
+<meta name="description" content="프록시는 요청을 대신 받아 다른 곳으로 넘겨 주는 중간 서버입니다. 클라이언트 쪽에 서서 클라이언트를 대신하면 포워드 프록시, 서버 쪽에 서서 서버를 대신하면 리버스 프록시입니다. 어느 쪽이든 서버와 실제로 연결을 맺는 것은 프록시라서, 서버가 보는 상대 주소는 클라이언트가…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/revproxy/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/revproxy/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/revproxy/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="프록시와 리버스 프록시: 프록시 뒤의 서버는 누가 요청했는지 어떻게 아나 · 개발 학습 실습실">
+<meta property="og:description" content="프록시는 요청을 대신 받아 다른 곳으로 넘겨 주는 중간 서버입니다. 클라이언트 쪽에 서서 클라이언트를 대신하면 포워드 프록시, 서버 쪽에 서서 서버를 대신하면 리버스 프록시입니다. 어느 쪽이든 서버와 실제로 연결을 맺는 것은 프록시라서, 서버가 보는 상대 주소는 클라이언트가…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/revproxy/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 웹 서버 앞의 장비</p>
+<h1>프록시와 리버스 프록시</h1>
+<p><b>프록시 뒤의 서버는 누가 요청했는지 어떻게 아나</b></p>
+<p>프록시는 요청을 대신 받아 다른 곳으로 넘겨 주는 중간 서버입니다. 클라이언트 쪽에 서서 클라이언트를 대신하면 포워드 프록시, 서버 쪽에 서서 서버를 대신하면 리버스 프록시입니다. 어느 쪽이든 서버와 실제로 연결을 맺는 것은 프록시라서, 서버가 보는 상대 주소는 클라이언트가 아니라 프록시의 주소가 됩니다. 그래서 프록시가 X-Forwarded-For 같은 헤더로 원래 정보를 전해 주는데, 이 헤더는 클라이언트도 마음대로 써넣을 수 있습니다. 설정을 바꿔 가며 서버가 누구를 클라이언트로 판단하는지 보세요.</p>
+<p>실행으로 대조 · 루프백 주소 셋(127.0.0.10·20·30)에 Node 24로 만든 프록시와 서버를 띄우고 Node http·https와 curl 8.21로 42가지 조합을 실행해 대조. 프록시는 직접 만든 시험용이며 nginx 같은 제품의 동작은 문서 기준</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>포워드 프록시</dt>
+<dd>클라이언트 쪽에 서서 클라이언트의 요청을 대신 바깥 서버로 보내 주는 중간 서버다. 클라이언트는 프록시의 주소를 설정해 두고 일부러 그곳을 거치며, 서버가 보는 연결 상대는 클라이언트가 아니라 프록시가 된다. 회사나 학교에서 밖으로 나가는 요청을 한곳에 모아 기록하거나 막을 때, 또는 클라이언트의 주소를 가릴 때 쓴다. 서버 쪽에 서서 서버를 대신하는 리버스 프록시와는 누구를 대신하는지가 반대다.</dd>
+<dt>리버스 프록시</dt>
+<dd>클라이언트의 요청을 대신 받아 내부의 서버로 전달하고 그 응답을 클라이언트에 돌려주는 서버다. 클라이언트는 실제 서버를 직접 알지 못한다. 여러 서버로의 요청 분산, TLS 처리, 캐싱, 내부 서버 보호 등의 역할을 한다.</dd>
+<dt>X-Forwarded-For</dt>
+<dd>프록시가 요청을 넘길 때 원래 클라이언트의 주소를 적어 주는 요청 헤더다. 프록시 뒤의 서버가 보는 연결 상대는 프록시이므로, 실제 클라이언트의 주소는 이 헤더로만 전해진다. 프록시를 여러 대 거치면 각 프록시가 자신에게 연결한 상대의 주소를 쉼표로 뒤에 덧붙인다. 요청 헤더라서 클라이언트도 마음대로 써넣을 수 있으므로, 서버는 자신이 관리하는 믿을 수 있는 프록시가 붙인 값(뒤쪽 값)만 써야 하고 프록시 뒤에 있지 않다면 읽지 말아야 한다. 표준이 아닌 관례이며, 같은 일을 하는 표준 헤더로 Forwarded가 있다.</dd>
+<dt>X-Forwarded-Proto와 TLS 종료</dt>
+<dd>TLS 종료는 리버스 프록시나 로드밸런서가 클라이언트의 HTTPS 연결을 받아 암호화를 풀고, 뒤의 서버에는 암호화하지 않은 HTTP로 넘기는 구성이다. 인증서 관리와 암호화 연산을 한곳에 모을 수 있다. 이때 뒤의 서버는 HTTP 연결만 보게 되므로, 프록시가 X-Forwarded-Proto: https 헤더로 클라이언트가 원래 쓴 프로토콜을 알려 준다. 서버가 이 헤더를 읽지 않으면 리다이렉트할 주소를 http://로 만들거나 보안 쿠키 조건을 잘못 판단할 수 있다. X-Forwarded-For와 마찬가지로 믿을 수 있는 프록시가 붙인 값만 써야 한다.</dd>
+<dt>HTTPS와 TLS</dt>
+<dd>HTTPS는 HTTP 통신을 TLS로 암호화한 것이다. TLS는 통신 내용을 제3자가 볼 수 없게 하고(기밀성), 중간에서 바꿀 수 없게 하며(무결성), 접속한 서버가 진짜인지 인증서로 확인한다(인증). SSL은 TLS의 전신인 프로토콜로, 지금은 폐기되어 실제로는 TLS만 쓰이지만 관습적으로 SSL이라는 이름이 함께 불린다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 클라이언트가 써넣은 가짜 주소가 맨 앞에 남고, 서버가 그것을 믿습니다.</li>
+<li><b>맨 뒤 값을 읽으면</b> — 프록시가 직접 붙인 값이라 위조에 속지 않습니다.</li>
+<li><b>프록시가 새로 쓰면</b> — 클라이언트가 써넣은 값이 서버까지 가지 못합니다.</li>
+<li><b>연결 상대 주소만 보면</b> — 모든 사용자가 프록시 한 대의 주소로 보입니다.</li>
+<li><b>프록시가 아무것도 안 붙이면</b> — 서버는 원래 주소도, 원래 HTTPS였다는 것도 알 수 없습니다.</li>
+<li><b>포워드 프록시</b> — 클라이언트가 일부러 거치는 프록시. 서버는 프록시만 봅니다.</li>
+<li><b>프록시 없는 서버가 헤더를 믿으면</b> — 직접 연결인데도 가짜 주소에 속습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>클라이언트(203.0.113.7)가 https://shop.example/whoami를 요청합니다. shop.example이라는 이름이 가리키는 곳은 실제로는 리버스 프록시입니다. 클라이언트는 따로 설정한 것이 없고, 지금 연결한 상대를 서버라고 여깁니다. 그 뒤에 진짜 서버가 따로 있다는 것을 알지 못합니다. 이 클라이언트는 요청에 X-Forwarded-For: 198.51.100.99 헤더를 직접 써넣었습니다. 요청 헤더는 보내는 쪽이 마음대로 적을 수 있는 글자입니다.</li>
+<li>리버스 프록시가 HTTPS 암호화를 풀고, 내부망의 진짜 서버(10.0.0.9)에 새 TCP 연결을 맺어 요청을 HTTP로 넘깁니다. 이 프록시는 자신에게 연결한 상대의 주소(203.0.113.7)를 X-Forwarded-For에 적어 넘깁니다. 이미 값이 들어 있으므로 그 뒤에 쉼표로 이어 덧붙입니다. 클라이언트가 원래 쓴 프로토콜도 X-Forwarded-Proto: https로 함께 적습니다.</li>
+<li>서버가 연결 상대 주소를 확인합니다. 10.0.0.5, 프록시의 주소입니다. 서버와 TCP 연결을 맺은 것은 프록시이기 때문입니다. 연결만 봐서는 실제 클라이언트가 누구인지 알 수 없습니다. 받은 연결도 암호화되지 않은 HTTP입니다.</li>
+<li>서버가 받은 요청의 X-Forwarded-For는 &quot;198.51.100.99, 203.0.113.7&quot;입니다. 앞의 값은 클라이언트가 써넣은 것이고, 뒤의 값은 프록시가 덧붙인 것입니다. 헤더만 봐서는 둘을 구별할 수 없고, 위치로만 알 수 있습니다. X-Forwarded-Proto: https도 함께 왔습니다.</li>
+<li>서버는 X-Forwarded-For의 맨 앞 값을 클라이언트의 주소로 삼습니다. 결과는 198.51.100.99입니다. 클라이언트가 직접 써넣은 가짜 주소입니다. 서버는 위조된 주소를 믿었습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>서버가 본 연결 상대는 10.0.0.5(프록시), 받은 X-Forwarded-For는 198.51.100.99, 203.0.113.7, 서버가 판단한 클라이언트 주소는 198.51.100.99입니다(위조된 주소에 속음).</li>
+<li>리버스 프록시는 서버 쪽에 서서 서버를 대신합니다. 클라이언트는 프록시를 서버로 알고, 뒤에 있는 진짜 서버는 모릅니다. HTTPS 처리, 여러 서버로 나누기, 응답 보관 같은 일을 서버 앞에서 맡습니다.</li>
+<li>X-Forwarded-For는 클라이언트도 써넣을 수 있는 헤더입니다. 프록시가 덧붙이는 방식에서 맨 앞 값은 클라이언트가 쓴 것일 수 있습니다. 믿을 수 있는 것은 내가 관리하는 프록시가 붙인 맨 뒤 값입니다.</li>
+<li>서버가 받은 연결은 HTTP지만, X-Forwarded-Proto: https 덕분에 사용자가 원래 HTTPS로 접속했다는 것을 압니다. 이 헤더도 X-Forwarded-For처럼 믿을 수 있는 프록시가 붙인 것만 써야 합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 리버스 프록시: HTTPS로 받아 뒤의 서버(10.0.0.9)로 넘긴다
+https.createServer(tls, (req, res) =&gt; {
+    const headers = { ...req.headers };
+    const peer = req.socket.remoteAddress;               // 이 프록시에 연결한 상대의 주소
+    const old = headers['x-forwarded-for'];
+    headers['x-forwarded-for'] = old ? old + ', ' + peer : peer;   // 받은 값 뒤에 덧붙인다
+    headers['x-forwarded-proto'] = 'https';                  // 클라이언트가 쓴 원래 프로토콜
+    const to = { host: '10.0.0.9', port: 8080, path: req.url };
+    http.request({ ...to, method: req.method, headers }, up =&gt; {
+        res.writeHead(up.statusCode, up.headers);
+        up.pipe(res);                                      // 서버의 응답을 클라이언트에 그대로 돌려준다
+    }).end();
+});
+
+// 서버: 누가 요청했는지 판단한다
+http.createServer((req, res) =&gt; {
+    const xff = req.headers['x-forwarded-for'];
+    const client = xff ? xff.split(',')[0].trim()             // 맨 앞 값
+                       : req.socket.remoteAddress;
+    res.end(client);
+});
+
+// 클라이언트
+// curl -H 'X-Forwarded-For: 198.51.100.99' https://shop.example/whoami</pre>
+<h2>이 모형의 전제</h2>
+<p>서로 다른 42가지 조합(직접 연결에는 프록시 설정이 쓰이지 않음)을 이 PC 안에서 실행해 다섯 열이 모두 모형과 같은 것을 확인했습니다. 클라이언트, 프록시, 서버를 이 PC의 루프백 주소 셋(127.0.0.10, 127.0.0.20, 127.0.0.30)에 나눠 띄우고, Node.js 24로 만든 작은 프록시와 서버에 두 가지 클라이언트(Node의 http·https 모듈, curl 8.21)로 요청해 서버가 실제로 본 연결 상대 주소와 헤더를 기록했습니다. 두 클라이언트의 결과는 모든 조합에서 같았습니다. 리버스 프록시는 시험용 인증서로 HTTPS를 받아 서버에는 HTTP로 넘겼고, 포워드 프록시에는 curl의 -x 옵션으로 요청해 요청 줄에 전체 주소가 실려 오는 것을 확인했습니다. 화면의 주소(203.0.113.7, 198.51.100.99, 192.0.2.50)는 문서 예시용으로 정해진 주소이고 10.0.0.x는 사설망 주소이며, 시험에 쓴 루프백 주소를 바꿔 적은 것입니다. 프록시는 시험용으로 직접 만든 것이라 실제 제품의 기본 동작과는 다를 수 있습니다. 예를 들어 nginx는 따로 설정하지 않으면 받은 헤더를 그대로 넘기고, proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for가 &quot;덧붙이기&quot;, $remote_addr가 &quot;새로 쓰기&quot;에 해당합니다(nginx 문서 기준이며 실행으로 확인하지 않았습니다). X-Forwarded-For와 X-Forwarded-Proto는 표준이 아니라 널리 쓰이는 관례이고, 같은 정보를 담는 표준 헤더로 Forwarded(RFC 7239)가 있습니다. HTTPS 요청을 포워드 프록시로 보낼 때는 프록시가 내용을 볼 수 없는 통로(CONNECT)만 이어 주므로 헤더를 덧붙일 수 없는데, 이 실습의 포워드 프록시는 HTTP 요청만 다뤘습니다. 서버가 헤더가 없을 때 연결 상대 주소를 대신 쓰는 것은 이 모형에서 정한 규칙입니다. 프록시가 여러 대 이어진 경우와 로드밸런서의 분산은 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/scale/">로드밸런서와 스케일 아웃</a> · 다음 실습: <a href="../../lab/cdn/">CDN</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The lifecycle of an entity: Why is the same setName sometimes not applied to the DB? · Dev Learning Lab</title>
+<meta name="description" content="An entity object is in one of four states: new, managed, detached, or removed (Hibernate calls the new state transient). JPA watches the changes of values…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/entitylife/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/entitylife/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/entitylife/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="The lifecycle of an entity: Why is the same setName sometimes not applied to the DB? · Dev Learning Lab">
+<meta property="og:description" content="An entity object is in one of four states: new, managed, detached, or removed (Hibernate calls the new state transient). JPA watches the changes of values…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/entitylife/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Persistence context</p>
+<h1>The lifecycle of an entity</h1>
+<p><b>Why is the same setName sometimes not applied to the DB?</b></p>
+<p>An entity object is in one of four states: new, managed, detached, or removed (Hibernate calls the new state transient). JPA watches the changes of values and applies them to the DB only when the object is in the managed state. Follow the code one line at a time to see on which line the object changes to which state, and whether a name changed in that state is kept in the DB.</p>
+<p>Checked against real execution · 14 combinations were run on Hibernate 7.4.5 and H2, and even the SQL sent on each line was checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>The four entity states</dt>
+<dd>The classification of how an entity object relates to the persistence context, also called the entity lifecycle. New means that the object was only created with new and JPA does not know about it (Hibernate calls this state transient). Managed means that the persistence context manages the object, because you handed it over with em.persist or loaded it. Detached means that the object was managed and then came off. Removed means that the object was made a target to delete with em.remove. Features such as dirty checking, where changing a value sends an UPDATE, and the first-level cache work only for entities in the managed state. So when a value is not applied to the DB, first check which state the object is in now.</dd>
+<dt>Detached entity</dt>
+<dd>The state of an entity that the persistence context managed but no longer manages. When you detach an entity with em.detach, empty the persistence context with em.clear, or close it with em.close, the entities that were in it become detached. A detached entity still has its identifier (id) value, but it is like an ordinary Java object, so even if you change its values, no UPDATE is sent and no exception is thrown. An object created with new from the values received from a screen is also treated as detached if it has the id of a row that already exists in the DB. You often meet it in code that modifies an entity after the transaction has ended.</dd>
+<dt>Persistence context</dt>
+<dd>The logical space in JPA that holds and manages entities. Entities that you load or save are kept here, and JPA tracks the changes made to them and applies those changes to the database when the transaction ends. It usually shares its lifecycle with one transaction (in a web request with Open Session in View (OSIV) turned on, it lasts until the request ends). Features such as the first-level cache, dirty checking, and transactional write-behind work on top of it. (It is outside the top 50, but it is a concept that always comes up as a follow-up question when you use JPA.)</dd>
+<dt>Dirty checking</dt>
+<dd>The feature that automatically runs UPDATE statements for changed entities. When the values of an entity managed by the persistence context change, JPA compares the entity with the state it first read when the transaction commits, and it runs an UPDATE statement for each entity whose values differ. By default, Hibernate puts all columns in the UPDATE statement, not only the changed columns. To include only the changed columns, use @DynamicUpdate. So if you only change the values of an entity that you loaded, the change is applied to the database without calling a separate save method.</dd>
+<dt>Transactional write-behind and flush</dt>
+<dd>Transactional write-behind means that INSERT, UPDATE, and DELETE statements are not sent to the database right away. They are collected and sent together. However, for an entity whose primary key is generated with the IDENTITY strategy (such as AUTO_INCREMENT in MySQL), the INSERT runs immediately when you request the save, because the identifier must be obtained. A flush sends the collected changes to the database. It happens automatically just before the transaction commits and just before a JPQL query runs. A flush only sends SQL to the database. It does not commit the transaction.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — You change the name of a detached object. It is not applied, and there is no error.</li>
+<li><b>Changing it while managed</b> — Even if you only change the name of a loaded object, an UPDATE is sent at commit.</li>
+<li><b>em.clear after the change</b> — You changed it while the object was managed, yet the change is lost. This is because it had not been sent to the DB yet.</li>
+<li><b>Forgetting persist after new</b> — No SQL is sent at all.</li>
+<li><b>Changing it after persist</b> — An UPDATE is sent once more after the INSERT.</li>
+<li><b>Changing it after closing em</b> — This is a common mistake: modifying an entity outside the transaction.</li>
+<li><b>Changing it after remove</b> — Only a DELETE is sent, and it is sent at commit.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>em.find(Member.class, 1L): A SELECT reads member 1 and keeps it in the persistence context. From now on, m is in the managed state. The persistence context remembers the value it first read (Alice) and watches m for changes.</li>
+<li>em.detach(m): Takes m out of the persistence context. m changed from managed to detached. No SQL is sent.</li>
+<li>m.setName(&quot;Bob&quot;): Changed the name of a detached object. The value of the Java object changes, but the persistence context no longer watches this object. No error occurs either.</li>
+<li>em.contains(m) is false. It means that the persistence context no longer manages m.</li>
+<li>commit: A flush happens just before the commit, but m is not managed, so it is not compared. No UPDATE is sent, and the name in the DB is still &quot;Alice&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Final state of m: Detached. SQL sent to the DB: SELECT: 1. Rows left in the DB: id 1 (Alice).</li>
+<li>A detached object is like an ordinary Java object. If you change its values, no exception is thrown, and the change is not applied to the DB. If you load the same id again with em.find after detaching, the SELECT is sent again and you get a new object that is different from m.</li>
+<li>To apply the values of a detached object to the DB, you have to make it managed again. The way to do that is the merge operation, covered in the next lab.</li>
+</ul>
+<h2>Code</h2>
+<pre>EntityManager em = emf.createEntityManager();
+em.getTransaction().begin();
+
+Member m = em.find(Member.class, 1L);
+em.detach(m);
+m.setName(&quot;Bob&quot;);
+System.out.println(em.contains(m));
+em.getTransaction().commit();</pre>
+<h2>Assumptions of this model</h2>
+<p>All 14 combinations (7 paths, each with two choices for when the name is changed) were run on real Hibernate 7.4.5 and an H2 database, and the kind of SQL sent on each line, the result of em.contains, and the rows left in the DB were confirmed to match the screen. The setting &quot;When the name is changed&quot; is hidden for the paths where it does not affect the result: only new, load only, and remove. The following facts stated in the summaries were also run separately and confirmed: if you call em.flush() after changing a value and then detach, the change is applied; if you load the same id again after detaching, the SELECT is sent again and a different object comes back; if you call persist again on a removed object before the commit, no DELETE is sent; the values of the Java object can still be read after it was deleted; if you change a value after persist, the INSERT contains the value from the time of persist. The id of the member is set directly in the code. With the IDENTITY strategy, where the DB decides the id, the INSERT is sent right on the persist line. The SQL statements on the screen are shortened to be easy to read. In Spring, the begin, commit, and close here happen on your behalf when a @Transactional method starts and ends (in a web request with Open Session in View (OSIV) turned on, em is closed when the request ends).</p>
+<p>Previous lab: <a href="../../lab/pc/">Persistence context</a> · Next lab: <a href="../../lab/merge/">Detached entities and merge</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

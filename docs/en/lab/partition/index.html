@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partitioning: When a table is cut into pieces, which pieces does a query read? · Dev Learning Lab</title>
+<meta name="description" content="Partitioning stores one big table in several pieces (partitions) inside the same server. You can divide it by a range, such as the year of the order date…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/partition/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/partition/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/partition/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Partitioning: When a table is cut into pieces, which pieces does a query read? · Dev Learning Lab">
+<meta property="og:description" content="Partitioning stores one big table in several pieces (partitions) inside the same server. You can divide it by a range, such as the year of the order date…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/partition/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Scaling and distribution</p>
+<h1>Partitioning</h1>
+<p><b>When a table is cut into pieces, which pieces does a query read?</b></p>
+<p>Partitioning stores one big table in several pieces (partitions) inside the same server. You can divide it by a range, such as the year of the order date (RANGE), or by a calculation, such as the remainder of the member number divided by 4 (HASH). Depending on how you write the condition, a query reads only the partitions it needs or reads all of them. Create the table, insert a row, and query it, and see which partitions MySQL chooses.</p>
+<p>Checked against real execution · On MySQL 8.4.11, 32 combinations were run, and the error codes and the partitions in EXPLAIN were checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Sharding and partitioning</dt>
+<dd>Partitioning divides a large table into several pieces by a criterion such as a date range and manages it that way. Sharding stores data across several database servers. It spreads out a write load or a data volume that one server cannot handle. With sharding, joins and transactions that span servers become difficult. (Outside the top 50.)</dd>
+<dt>RANGE partitioning and HASH partitioning</dt>
+<dd>The two main ways to divide a table into partitions. The column (or expression) that decides which partition a row goes to is called the partitioning key. RANGE assigns a range of values to each partition. It suits queries that look for a continuous range such as dates, and it suits dropping old data one partition at a time. A value that does not belong to any of the ranges cannot be inserted, so you must add the partition for the next period in advance. HASH decides the partition by the remainder of the partitioning key divided by the number of partitions. It spreads rows evenly, but a range condition can hardly reduce the partitions to read.</dd>
+<dt>Partition pruning</dt>
+<dd>An optimization that does not read a partition at all when the condition shows that the row cannot be in it. Pruning means cutting away what is not needed. It works only when the condition compares the partitioning key column as it is with a value or a range, and in MySQL you can check the partitions actually read in the partitions column of EXPLAIN. If the condition has no partitioning key, or if a function or a calculation is applied to the partitioning key column, all the partitions are read. Most of the query performance gained by partitioning comes from this pruning.</dd>
+<dt>Query execution plan (EXPLAIN)</dt>
+<dd>The plan that the database decides on for how to run a query. It shows which indexes are used, in what order the tables are joined, and how many rows the database expects to read. You view it by putting EXPLAIN in front of the query, and it is the starting point for finding the cause when a query is slow.</dd>
+<dt>Primary key, unique key, foreign key</dt>
+<dd>A primary key (PK) is the column that uniquely identifies each row of a table. Its values cannot be duplicated or empty, and a table has only one. A unique key is a unique constraint, which prevents duplicate values, and a table can have several. A foreign key (FK) is a column that references the primary key (or a unique key) of another table. It guarantees that the referenced row really exists.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The table is divided by year, but a search with YEAR(ordered_at) = 2024 reads all three partitions.</li>
+<li><b>Comparing the column as it is</b> — It reads only the one partition that the date would be in.</li>
+<li><b>A range that spans two years</b> — It reads only the two partitions it spans and skips the rest.</li>
+<li><b>A condition without the partitioning key</b> — Even though it searches by the first column of the primary key, it reads all the partitions.</li>
+<li><b>Inserting a date outside the range</b> — There is no partition to accept it, so the INSERT fails with error 1526.</li>
+<li><b>When the primary key lacks the partitioning key</b> — Error 1503 occurs when the table is created.</li>
+<li><b>Dividing with a hash</b> — Any value has a place to go, but a range query reads all the partitions.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>CREATE TABLE … PARTITION BY RANGE (YEAR(ordered_at)): The orders table is created in three pieces (p2023, p2024, p2025) according to the year of the order date. Each of these pieces is a partition. To whoever writes queries, it still looks like one orders table, and all three partitions are in the same MySQL server.</li>
+<li>300 orders are inserted. The inserting side does not specify a partition. For each row, MySQL chooses the partition it goes into by looking at the year of the order date. Rows per partition: p2023: 121, p2024: 122, p2025: 57.</li>
+<li>INSERT … VALUES (1001, 7, '2025-06-01', 5000): The year of the order date is 2025, so the row goes into partition p2025, which accepts &quot;less than 2026&quot;.</li>
+<li>EXPLAIN SELECT * FROM orders WHERE YEAR(ordered_at) = 2024: The condition is applied not to the ordered_at column itself but to YEAR(ordered_at). Even though this is exactly the expression the table is partitioned by, MySQL cannot pick partitions from a condition that wraps the column in a function, so it reads all three partitions. If you leave the column as it is and write a range, as in ordered_at &gt;= '2024-01-01' AND ordered_at &lt; '2025-01-01', it reads only partition p2024. The partitions column of EXPLAIN: p2023,p2024,p2025.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The table was created, the INSERT went into partition p2025, and the query reads 3 of the 3 partitions.</li>
+<li>Partitioning stores one table in pieces inside a single server. Unlike sharding, which divides data among several servers, it lets you use joins, transactions, and queries as they are. In return, it does not let you go past the limit of one server. Its purpose is to reduce the range that is read and deleted at one time.</li>
+<li>If you apply a function or a calculation to the partitioning key column, pruning does not happen. It is the same principle as an index not being usable when a function is applied to the indexed column. Leave the column as it is and change the value you compare it with.</li>
+<li>A big advantage of a RANGE partition is that old data can be dropped as a whole. ALTER TABLE orders DROP PARTITION p2023 removes that partition as a piece, instead of deleting its rows one by one.</li>
+</ul>
+<h2>Code</h2>
+<pre>CREATE TABLE orders (
+  id BIGINT NOT NULL,
+  member_id INT NOT NULL,
+  ordered_at DATE NOT NULL,
+  amount INT NOT NULL,
+  PRIMARY KEY (id, ordered_at)
+)
+PARTITION BY RANGE (YEAR(ordered_at)) (
+  PARTITION p2023 VALUES LESS THAN (2024),
+  PARTITION p2024 VALUES LESS THAN (2025),
+  PARTITION p2025 VALUES LESS THAN (2026)
+);
+
+-- 300 orders are already in the table, and one more is inserted
+-- Column order: id, member_id, ordered_at, amount
+INSERT INTO orders VALUES (1001, 7, '2025-06-01', 5000);
+
+-- Which partitions this query reads appears in the partitions column of EXPLAIN
+EXPLAIN SELECT * FROM orders WHERE YEAR(ordered_at) = 2024;</pre>
+<h2>Assumptions of this model</h2>
+<p>All 32 combinations were run with the same statements as on the screen on MySQL 8.4.11 (InnoDB) on the PC used to write this lab, and checked against the screen. For each combination I created the table anew and confirmed that the following matched the screen: whether CREATE TABLE succeeded and its error code; the number of rows of the 300 orders in each partition (SELECT COUNT(*) … PARTITION (name)); the partition that the new row went into, or the error code of the INSERT; and the partitions column of EXPLAIN. The error messages written on the screen are the real messages too. I also confirmed the following facts used in the explanations by execution. Error 1503 occurs even when a unique key does not have the partitioning key. A table with neither a primary key nor a unique key is not subject to the restriction. If the date condition is written as a range on the column (&gt;= and &lt;), only p2024 is read. In HASH, BETWEEN 5 AND 6 reads only p1 and p2. After a 2026 partition is added with ADD PARTITION, the same INSERT succeeds. DROP PARTITION p2023 removes the 121 rows of that partition. When the primary key is (id, ordered_at), two rows with the same id and different dates can be inserted. Which partitions are read is decided by the condition and has nothing to do with the number of rows or statistics, but whether an index is used inside a partition and the estimated number of rows depend on the data, so I did not treat them as results. The restriction on the partitioning key and the primary key and the form of conditions that allow pruning also agree with the explanations in the MySQL 8.4 Reference Manual, 26.6.1 Partitioning Keys, Primary Keys, and Unique Keys and 26.4 Partition Pruning. That each partition has its own indexes was confirmed by seeing that the partition set is stored in InnoDB as separate tables and data files, and that a separate PRIMARY index is listed for each partition in the index statistics (mysql.innodb_index_stats). LIST and KEY partitioning, subpartitions, and the cost when there are a very large number of partitions are not covered. Other database products sometimes allow a unique index without the partitioning key, so this restriction is MySQL-specific.</p>
+<p>Previous lab: <a href="../../lab/shard/">Sharding</a> · Next lab: <a href="../../lab/redis/">Redis single-threaded execution</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

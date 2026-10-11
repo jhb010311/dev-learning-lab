@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>실행 계획 읽기: EXPLAIN 한 줄에서 무엇을 읽어야 하나 · 개발 학습 실습실</title>
+<meta name="description" content="쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다. 쿼리의 모양을 바꿔 가며 각 칸이 어떻게…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/explainplan/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/explainplan/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/explainplan/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="실행 계획 읽기: EXPLAIN 한 줄에서 무엇을 읽어야 하나 · 개발 학습 실습실">
+<meta property="og:description" content="쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다. 쿼리의 모양을 바꿔 가며 각 칸이 어떻게…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/explainplan/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 인덱스와 실행 계획</p>
+<h1>실행 계획 읽기</h1>
+<p><b>EXPLAIN 한 줄에서 무엇을 읽어야 하나</b></p>
+<p>쿼리 앞에 EXPLAIN을 붙이면 DB가 그 쿼리를 어떻게 실행할지 세운 계획을 보여 줍니다. 한 줄에 칸이 여러 개인데, type과 key와 rows와 Extra 네 칸만 읽을 줄 알아도 느린 쿼리의 원인을 대부분 찾을 수 있습니다. 쿼리의 모양을 바꿔 가며 각 칸이 어떻게 달라지는지 보세요.</p>
+<p>실행으로 대조 · MySQL 8.4에서 쉰 가지 조합을 EXPLAIN으로 실행해 type, possible_keys, key, Extra를 대조 (rows는 크기만)</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>실행 계획(EXPLAIN)</dt>
+<dd>데이터베이스가 쿼리를 어떤 방법으로 실행할지 정한 계획이다. 어떤 인덱스를 쓰는지, 테이블을 어떤 순서로 조인하는지, 몇 행을 읽을 것으로 예상하는지를 보여 준다. 쿼리 앞에 EXPLAIN을 붙여 확인하며, 쿼리가 느릴 때 원인을 찾는 출발점이다.</dd>
+<dt>EXPLAIN의 type</dt>
+<dd>MySQL의 EXPLAIN 결과에서 그 테이블을 어떤 방법으로 읽는지를 나타내는 칸이다. 읽는 양이 적은 것부터 대략 const(기본 키나 유니크 인덱스로 한 행), eq_ref(조인에서 앞 테이블의 행마다 한 행), ref(유니크가 아닌 인덱스에서 값이 같은 행들), range(인덱스의 한 구간), index(인덱스 전체), ALL(테이블 전체) 순이다. index는 이름과 달리 인덱스를 처음부터 끝까지 읽는다는 뜻이므로 ALL과 마찬가지로 전부 읽는 접근이다. 어떤 값이 나오는지는 옵티마이저가 통계를 보고 정하므로, 같은 쿼리라도 데이터의 양과 분포에 따라 달라질 수 있다.</dd>
+<dt>EXPLAIN의 Extra</dt>
+<dd>MySQL의 EXPLAIN 결과에서 읽는 방법 말고 덧붙여 하는 일을 적어 주는 칸이다. Using where는 읽어 온 행을 조건으로 다시 걸러낸다는 뜻이고, Using index는 테이블에 가지 않고 인덱스만 읽어 끝낸다는 뜻이다. Using filesort는 ORDER BY를 위해 따로 정렬한다는 뜻이며, Using temporary는 GROUP BY 등을 위해 임시 테이블을 만든다는 뜻이다. 비어 있으면 덧붙은 작업이 없다는 것이다. Using filesort와 Using temporary는 읽는 행이 많을 때 느려지는 원인이 되므로, rows 칸의 값과 함께 본다.</dd>
+<dt>풀 테이블 스캔</dt>
+<dd>조건에 맞는 행을 찾기 위해 테이블의 모든 행을 처음부터 끝까지 읽는 방식이다. 조건에 쓸 인덱스가 없거나, 인덱스가 있어도 조건에 해당하는 행이 너무 많아 전체를 읽는 편이 낫다고 옵티마이저가 판단할 때 선택된다. 큰 테이블에서 소수의 행을 찾는데 이 방식이 쓰이면 성능 문제의 원인이 된다.</dd>
+<dt>커버링 인덱스</dt>
+<dd>쿼리가 필요로 하는 모든 컬럼이 인덱스에 포함되어 있어, 테이블의 행을 읽지 않고 인덱스만으로 결과를 만들 수 있는 경우를 말한다. 테이블 접근이 생략되어 조회가 빨라진다. MySQL의 실행 계획에서는 Extra 항목에 Using index로 표시된다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 인덱스가 있는 컬럼인데 함수를 씌웠더니 type이 ALL입니다.</li>
+<li><b>같은 뜻을 LIKE로 쓰면</b> — LIKE 'user001%'. type이 range로 바뀝니다.</li>
+<li><b>기본 키로 한 행</b> — type const. 가장 적게 읽는 경우입니다.</li>
+<li><b>앞에 %가 붙은 LIKE, 인덱스 컬럼만 조회</b> — type index. 이름과 달리 인덱스 전체를 읽습니다.</li>
+<li><b>찾기는 인덱스로, 정렬은 따로</b> — type ref인데 Extra에 Using filesort가 붙습니다.</li>
+<li><b>GROUP BY</b> — Extra에 Using temporary가 나옵니다.</li>
+<li><b>조인</b> — 두 줄이 나오고, 둘째 줄의 type이 eq_ref입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>EXPLAIN을 붙여 실행합니다: 쿼리를 실제로 실행하지 않고 실행 계획만 돌려줍니다. 테이블 하나를 읽는 쿼리라 한 줄이 나옵니다. member 테이블은 2만 행이고 이 조건에 실제로 맞는 행은 200행입니다.</li>
+<li>type 칸은 ALL입니다: 테이블의 모든 행을 처음부터 끝까지 읽습니다(풀 테이블 스캔). 행이 많은 테이블에서 몇 행만 찾는데 ALL이 나오면 가장 먼저 의심할 곳입니다. name에 인덱스가 있지만 범위를 좁히는 데 쓰지 못했습니다. 인덱스에는 name의 원래 값이 정렬돼 있을 뿐, LEFT(name, 7)을 계산한 결과는 들어 있지 않습니다. 행마다 함수를 계산해 봐야 하므로 읽을 구간을 정할 수 없습니다.</li>
+<li>possible_keys 칸과 key 칸: possible_keys는 조건에 쓸 수 있다고 본 인덱스 후보이고, key는 실제로 고른 인덱스입니다. 둘 다 NULL이므로 인덱스를 쓰지 않습니다. name에 인덱스가 있는데도 후보에조차 오르지 못했습니다.</li>
+<li>rows 칸은 약 20,000입니다: 읽어야 할 것으로 예상한 행 수입니다. 실제로 세어 본 값이 아니라 통계로 추정한 값이라 조금씩 다를 수 있습니다. 결과는 200행인데 테이블 전체를 읽는다는 뜻입니다. 읽고 나서 버리는 행이 대부분입니다.</li>
+<li>Extra 칸의 Using where: 읽어 온 행을 WHERE 조건으로 하나씩 확인해 걸러낸다는 뜻입니다. 인덱스로 범위를 좁히지 못한 조건이 있다는 표시입니다. type이 ALL인데 이 표시가 있으면 &quot;전부 읽은 뒤 조건에 맞지 않는 행을 버린다&quot;는 뜻입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>type ALL, key NULL, rows 약 20,000, Extra Using where입니다. 조건에 실제로 맞는 행은 200행입니다.</li>
+<li>인덱스가 있는 컬럼이라도 함수나 계산을 씌우면 인덱스로 범위를 좁히지 못합니다. 컬럼은 그대로 두고 비교할 값 쪽을 바꿔 쓰는 것이 원칙입니다. 여기서는 name LIKE 'user001%'가 같은 뜻이면서 type range가 됩니다.</li>
+<li>읽는 순서: type으로 얼마나 넓게 읽는지 보고, key로 어떤 인덱스를 쓰는지 확인하고, rows로 읽는 양을 가늠한 뒤, Extra에서 걸러내기, 정렬, 임시 테이블 같은 덧붙은 작업을 봅니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>-- member 테이블: 2만 행
+-- 기본 키 id, 인덱스 idx_name (name)
+-- age 컬럼에는 인덱스가 없다
+
+EXPLAIN
+SELECT *
+  FROM member
+ WHERE LEFT(name, 7) = 'user001';</pre>
+<h2>이 모형의 전제</h2>
+<p>쉰 가지 조합 모두, 화면의 SQL을 이 PC의 MySQL 8.4에서 EXPLAIN으로 실행해 type, possible_keys, key, Extra를 글자 그대로 대조했습니다. 테이블에는 member 2만 행(이름 하나에 두 행)과 orders 2만 행을 넣고 ANALYZE TABLE을 한 뒤에 실행했습니다. rows는 통계로 추정하는 값이라 실행할 때마다 조금씩 다르므로(이 PC에서는 전체 스캔일 때 19,700에서 20,400 사이), 1행인지, 일부인지, 테이블 전체에 가까운지만 대조했습니다. 조건에 실제로 맞는 행 수도 같은 데이터에서 세어 확인했습니다. 실행 계획은 옵티마이저가 비용을 계산해 고르는 것이어서, 행 수나 값의 분포가 다르면 같은 쿼리라도 다른 계획이 나올 수 있습니다. 예를 들어 행이 몇 개뿐인 테이블이나 조건에 맞는 행이 아주 많은 경우에는 인덱스가 있어도 ALL이 선택될 수 있습니다(MySQL 문서의 풀 테이블 스캔 설명). Extra에 표시가 없는 이유를 설명한 문장(한 값으로 정해져 있어 정렬이 필요 없다 등)은 MySQL 문서의 ORDER BY 최적화 설명을 따른 풀이입니다. 화면에서는 id, select_type, partitions, key_len, filtered 칸을 뺐습니다.</p>
+<p>앞 실습: <a href="../../lab/compidx/">복합·커버링 인덱스</a> · 다음 실습: <a href="../../lab/joinalgo/">조인 알고리즘</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>테이블, 키, 제약 조건: 제약 조건이 없으면 어떤 데이터가 들어가 버리나 · 개발 학습 실습실</title>
+<meta name="description" content="회원(member) 테이블과 주문(orders) 테이블에 잘못된 값을 넣거나, 주문이 남아 있는 회원을 지워 봅니다. 제약 조건을 걸어 둔 테이블은 그 문장을 오류로 거부하고, 걸지 않은 테이블은 그대로 받아들입니다. 같은 문장을 양쪽에서 실행해 끝난 뒤의 데이터가 어떻게 달…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/constraints/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/constraints/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/constraints/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="테이블, 키, 제약 조건: 제약 조건이 없으면 어떤 데이터가 들어가 버리나 · 개발 학습 실습실">
+<meta property="og:description" content="회원(member) 테이블과 주문(orders) 테이블에 잘못된 값을 넣거나, 주문이 남아 있는 회원을 지워 봅니다. 제약 조건을 걸어 둔 테이블은 그 문장을 오류로 거부하고, 걸지 않은 테이블은 그대로 받아들입니다. 같은 문장을 양쪽에서 실행해 끝난 뒤의 데이터가 어떻게 달…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/constraints/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 관계형 모델과 설계</p>
+<h1>테이블, 키, 제약 조건</h1>
+<p><b>제약 조건이 없으면 어떤 데이터가 들어가 버리나</b></p>
+<p>회원(member) 테이블과 주문(orders) 테이블에 잘못된 값을 넣거나, 주문이 남아 있는 회원을 지워 봅니다. 제약 조건을 걸어 둔 테이블은 그 문장을 오류로 거부하고, 걸지 않은 테이블은 그대로 받아들입니다. 같은 문장을 양쪽에서 실행해 끝난 뒤의 데이터가 어떻게 달라지는지 확인하세요.</p>
+<p>실행으로 대조 · MySQL 8.4.11에서 마흔여덟 가지 조합의 SQL을 그대로 실행해 오류 번호, 바뀐 행 수, 끝난 뒤 두 테이블의 모든 행을 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>제약 조건</dt>
+<dd>테이블에 들어갈 수 있는 값의 규칙을 테이블 정의에 적어 두는 것이다. 기본 키, 유니크, NOT NULL, CHECK, 외래 키가 대표적이다. 규칙에 어긋나는 INSERT, UPDATE, DELETE가 오면 데이터베이스가 그 문장을 오류로 거부하고 테이블은 바뀌지 않는다. 애플리케이션 코드에서만 검사하면 검사를 빠뜨린 코드나 직접 실행한 SQL로 잘못된 값이 들어갈 수 있지만, 제약 조건은 어떤 경로로 들어오는 값이든 똑같이 막는다. 제약이 없으면 잘못된 값도 오류 없이 저장되고, 문제는 나중에 조회할 때에야 드러난다.</dd>
+<dt>기본 키, 유니크 키, 외래 키</dt>
+<dd>기본 키(PK)는 테이블의 각 행을 유일하게 식별하는 컬럼으로 값이 중복되거나 비어 있을 수 없고 테이블에 하나만 둔다. 유니크 키는 값의 중복을 막는 제약으로 여러 개 둘 수 있다. 외래 키(FK)는 다른 테이블의 기본 키(또는 유니크 키)를 참조하는 컬럼으로, 참조 대상이 실제로 존재하도록 보장한다.</dd>
+<dt>NOT NULL과 CHECK</dt>
+<dd>컬럼 하나에 들어갈 값을 제한하는 제약이다. NOT NULL은 그 컬럼을 비워 둘(NULL) 수 없게 하고, CHECK는 괄호 안에 적은 조건이 거짓이 되는 값을 받지 않는다. 예를 들어 CHECK (age &gt;= 0)은 음수 나이를 막는다. 조건의 결과가 NULL(알 수 없음)이면 CHECK는 통과시키므로, 값이 꼭 있어야 한다면 NOT NULL을 함께 건다. MySQL은 8.0.16부터 CHECK를 실제로 검사하며, 그 이전 버전은 CHECK를 적어도 무시했다.</dd>
+<dt>외래 키의 참조 동작(ON DELETE)</dt>
+<dd>부모 테이블의 행을 지울 때, 그 행을 가리키는 자식 행을 어떻게 할지 외래 키에 정해 두는 것이다. RESTRICT는 자식 행이 남아 있으면 부모의 삭제를 거부한다. CASCADE는 부모를 지우면서 자식 행도 함께 지우고, SET NULL은 자식 행은 남긴 채 외래 키 컬럼만 NULL로 바꾼다. 아무것도 적지 않으면 기본값은 NO ACTION이며, MySQL의 InnoDB에서는 RESTRICT와 같이 동작한다. CASCADE는 문장 하나가 다른 테이블의 행까지 지우므로 함께 사라져도 되는 데이터에만 쓰고, SET NULL은 외래 키 컬럼이 NULL을 받을 수 있을 때만 쓸 수 있다. 부모의 키 값을 바꿀 때의 동작은 ON UPDATE로 같은 방식으로 정한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 제약 없이 회원을 삭제합니다. 주인이 없는 주문 2건이 남습니다.</li>
+<li><b>외래 키 RESTRICT</b> — 주문이 남아 있는 회원은 지울 수 없습니다(오류 1451).</li>
+<li><b>외래 키 CASCADE</b> — 회원을 지우면 그 회원의 주문도 함께 지워집니다.</li>
+<li><b>외래 키 SET NULL</b> — 주문은 남고, 회원을 가리키던 칸만 NULL이 됩니다.</li>
+<li><b>같은 id가 두 번</b> — 기본 키가 없으면 id 1인 회원이 두 명이 됩니다.</li>
+<li><b>없는 회원의 주문</b> — 외래 키가 없는 부모를 가리키는 주문을 막습니다(오류 1452).</li>
+<li><b>유니크와 NULL</b> — 유니크를 걸어도 NULL은 여러 행에 들어갑니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>CREATE TABLE, INSERT: 테이블 두 개를 만들고 회원 3명과 주문 3건을 넣었습니다. 컬럼의 이름과 타입만 정했고 제약 조건은 하나도 걸지 않았습니다. orders의 member_id가 회원 번호라는 것은 사람만 알고 DB는 모릅니다.</li>
+<li>DELETE FROM member WHERE id = 1: 회원 1(김철수)을 지우려 합니다. orders에는 회원 1을 가리키는 주문이 2건(101, 102) 있습니다.</li>
+<li>검사할 제약 조건이 없습니다: DB는 값이 타입에 맞는지만 보고 문장을 그대로 실행합니다. member에서 1행이 지워졌습니다. orders는 건드리지 않았습니다.</li>
+<li>SELECT COUNT(*) FROM orders o LEFT JOIN member m ON m.id = o.member_id WHERE o.member_id IS NOT NULL AND m.id IS NULL: 회원이 없는 주문의 수를 셉니다. 2건입니다. 주문 101과 102에는 member_id 1이 그대로 적혀 있는데 회원 1은 이제 없습니다. 주인이 없는 주문 2건이 남았습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>문장이 실행되어 1행이 바뀌었습니다. 끝난 뒤 member는 2행, orders는 3행이고 회원이 없는 주문의 수는 2건입니다.</li>
+<li>제약 조건이 없으면 DB는 잘못된 값도 오류 없이 받아들입니다. 문장은 &quot;성공&quot;했는데 데이터는 어긋났고, 그 사실은 나중에 조회했을 때에야 드러납니다. 제약 조건은 이런 값이 테이블에 들어오는 순간에 막아 줍니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>-- 제약 조건을 걸지 않은 테이블
+CREATE TABLE member (
+  id    INT,
+  email VARCHAR(50),
+  name  VARCHAR(20),
+  age   INT
+);
+CREATE TABLE orders (
+  id        INT,
+  member_id INT,
+  item      VARCHAR(30)
+);
+
+-- 처음 데이터
+INSERT INTO member (id, email, name, age) VALUES
+  (1, 'kim@lab.example', '김철수', 30),
+  (2, 'lee@lab.example', '이영희', 25),
+  (3, NULL, '박민수', 41);
+INSERT INTO orders (id, member_id, item) VALUES
+  (101, 1, '키보드'),
+  (102, 1, '마우스'),
+  (103, 2, '모니터');
+
+-- 실행할 문장
+DELETE FROM member WHERE id = 1;
+
+-- 확인 조회
+SELECT COUNT(*)
+  FROM orders o
+  LEFT JOIN member m ON m.id = o.member_id
+ WHERE o.member_id IS NOT NULL AND m.id IS NULL;</pre>
+<h2>이 모형의 전제</h2>
+<p>회원 3명, 주문 3건의 작은 예입니다. 마흔여덟 가지 조합(문장 여덟 가지 × 제약 유무 × ON DELETE 세 가지) 모두, 화면의 SQL을 실제 MySQL 8.4.11(InnoDB, 기본 sql_mode)에서 그대로 실행해 오류 번호와 오류 메시지, 바뀐 행 수, 끝난 뒤 두 테이블의 모든 행, 확인 조회의 결과가 모형과 같은 것을 대조했습니다. 오류 번호와 메시지는 MySQL의 것이며 다른 DB에서는 다릅니다. NOT NULL 컬럼을 NULL로 바꾸는 UPDATE가 오류 1048로 거부되는 것은 엄격 모드(MySQL 8의 기본값)일 때이고, 엄격 모드를 끈 세션에서 같은 UPDATE를 실행해 보면 오류 없이 빈 문자열이 저장됩니다. 유니크 컬럼에 NULL이 여러 번 들어가는 것은 MySQL에서 실행해 확인한 동작이고, SQL Server처럼 NULL을 한 번만 허용하는 DB도 있습니다(이 비교는 실행이 아니라 문서를 따랐습니다). MySQL은 ON DELETE를 적지 않으면 RESTRICT와 같게(NO ACTION) 동작하고, InnoDB에서는 둘의 차이가 없습니다. CASCADE로 함께 지워진 자식 행이 &quot;바뀐 행 수&quot;에 들어가지 않는 것도 실행으로 확인한 MySQL의 동작입니다. 컬럼 정의 바로 뒤에 REFERENCES만 적는 방식(member_id INT REFERENCES member(id))은 MySQL이 오류 없이 받아들이지만 외래 키를 만들지 않는다는 것도 함께 실행해 확인했습니다. 그래서 화면에서는 FOREIGN KEY 절을 따로 적었습니다. 외래 키는 InnoDB 기준이며, 이 실습은 한 번에 한 문장만 실행하는 경우만 다룹니다.</p>
+<p>다음 실습: <a href="../../lab/ermodel/">ER 모델링</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

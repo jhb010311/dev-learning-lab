@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>교착 상태: 서로 기다리다 둘 다 멈춘다 · 개발 학습 실습실</title>
+<meta name="description" content="스레드 1은 계좌 A에서 B로, 스레드 2는 B에서 A로 이체합니다. 이체하려면 두 계좌의 락을 모두 잡아야 합니다. 락을 잡는 순서와 타이밍에 따라 두 스레드가 서로의 락을 기다리며 영원히 멈출 수 있습니다.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/deadlock/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/deadlock/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/deadlock/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="교착 상태: 서로 기다리다 둘 다 멈춘다 · 개발 학습 실습실">
+<meta property="og:description" content="스레드 1은 계좌 A에서 B로, 스레드 2는 B에서 A로 이체합니다. 이체하려면 두 계좌의 락을 모두 잡아야 합니다. 락을 잡는 순서와 타이밍에 따라 두 스레드가 서로의 락을 기다리며 영원히 멈출 수 있습니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/deadlock/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
+<h1>교착 상태</h1>
+<p><b>서로 기다리다 둘 다 멈춘다</b></p>
+<p>스레드 1은 계좌 A에서 B로, 스레드 2는 B에서 A로 이체합니다. 이체하려면 두 계좌의 락을 모두 잡아야 합니다. 락을 잡는 순서와 타이밍에 따라 두 스레드가 서로의 락을 기다리며 영원히 멈출 수 있습니다.</p>
+<p>실행으로 대조 · JDK 21에서 실행해 확인</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>교착 상태(Deadlock)</dt>
+<dd>둘 이상의 스레드(또는 트랜잭션)가 서로 상대가 가진 자원을 기다리느라 영원히 진행하지 못하는 상태다. A가 자원 1을 잡고 2를 기다리는데 B가 자원 2를 잡고 1을 기다리는 경우가 전형적이다. 자원을 항상 같은 순서로 잡도록 하면 예방할 수 있다.</dd>
+<dt>임계 영역과 상호 배제</dt>
+<dd>임계 영역은 여러 스레드가 동시에 실행하면 문제가 생기는 코드 구간이다. 상호 배제는 그 구간을 한 번에 하나의 스레드만 실행하도록 보장하는 것으로, 락(잠금)을 이용해 구현한다. 한 스레드가 락을 가진 동안 다른 스레드는 기다린다.</dd>
+<dt>synchronized</dt>
+<dd>자바에서 임계 영역을 지정하는 키워드다. synchronized가 붙은 메서드나 블록은 한 번에 한 스레드만 실행할 수 있으며, 실행하려는 스레드는 해당 객체의 모니터 락을 얻어야 한다. 간단하지만 락을 기다리는 스레드는 멈춰 있게 되므로 범위를 필요한 만큼만 잡아야 한다.</dd>
+<dt>힙 덤프와 스레드 덤프</dt>
+<dd>힙 덤프는 특정 시점에 힙에 있는 모든 객체의 정보를 파일로 저장한 것으로, 어떤 객체가 메모리를 많이 차지하고 무엇이 그것을 참조하는지 분석해 메모리 누수의 원인을 찾는 데 쓴다. 스레드 덤프는 그 시점의 모든 스레드가 무엇을 실행 중인지(스택)를 기록한 것으로, 응답 없음이나 교착 상태의 원인을 찾는 데 쓴다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 서로 반대 순서로 락을 잡고 동시에 시작합니다. 교착 상태가 됩니다.</li>
+<li><b>락 순서를 통일하면</b> — 둘 다 A부터 잡습니다. 한쪽이 기다렸다가 차례로 끝납니다.</li>
+<li><b>타이밍이 어긋나면</b> — 반대 순서인데도 문제없이 끝납니다. 그래서 테스트에서 안 잡힙니다.</li>
+<li><b>기다리는 시간에 제한을 두면</b> — 못 잡으면 가진 락을 내려놓고 다시 시도합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>스레드 1: 보내는 계좌 A의 락을 잡았습니다.</li>
+<li>스레드 2: 보내는 계좌 B의 락을 잡았습니다.</li>
+<li>스레드 1: 받는 계좌 B의 락을 잡으려 합니다. 스레드 2가 쥐고 있어 기다립니다. A의 락은 쥔 채입니다.</li>
+<li>스레드 2: 받는 계좌 A의 락을 잡으려 합니다. 스레드 1이 쥐고 있어 기다립니다. 스레드 1은 스레드 2를, 스레드 2는 스레드 1을 기다립니다. 어느 쪽도 먼저 락을 내려놓지 않으므로 영원히 풀리지 않습니다. 교착 상태입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>결과: 교착 상태. 완료된 이체 0건.</li>
+<li>교착 상태가 됐습니다. 두 이체 모두 끝나지 않고, 두 스레드는 예외도 없이 멈춰 있습니다. 스레드 덤프를 뜨면 서로의 락을 기다리는 BLOCKED 상태의 스레드로 확인할 수 있습니다.</li>
+<li>교착 상태는 네 조건이 모두 맞을 때 생깁니다: 한 번에 하나만 쓸 수 있는 자원, 가진 채로 다른 것을 기다림, 남의 것을 뺏을 수 없음, 기다림이 고리를 이룸. 이 중 하나만 깨면 됩니다. 락 순서 통일은 고리를, tryLock은 &quot;가진 채로 기다림&quot;을 깹니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>void transfer(Account from, Account to, long amount) {
+    synchronized (from) {                 // 보내는 계좌부터 잠근다
+        synchronized (to) {
+            from.withdraw(amount);
+            to.deposit(amount);
+        }
+    }
+}
+
+// 스레드 1: transfer(A, B, 100)
+// 스레드 2: transfer(B, A, 50)</pre>
+<h2>이 모형의 전제</h2>
+<p>두 스레드가 정확히 엇갈리는 가장 나쁜 순서(각자 첫 번째 락을 잡은 뒤 두 번째 락을 요청)를 가정했습니다. 실제로는 타이밍에 따라 문제없이 지나가는 경우가 더 많고, 그래서 재현이 어렵습니다. synchronized는 기다리는 시간에 제한을 둘 수 없어서, 제한이 필요하면 ReentrantLock의 tryLock을 씁니다. DB에서도 두 트랜잭션이 행을 서로 반대 순서로 잠그면 같은 일이 생기며, DB는 이를 감지해 한쪽을 강제로 롤백시킵니다. 이 PC의 JDK 21에서 실제로 실행해 확인했습니다. 반대 순서로 동시에 잡으면 두 스레드가 BLOCKED 상태로 멈췄고 JVM이 교착 스레드 2개를 감지했습니다. 같은 순서로 잡거나 차례로 실행하면 끝났고, tryLock을 쓰면 재시도 1번 뒤에 둘 다 끝났습니다.</p>
+<p>앞 실습: <a href="../../lab/race/">경쟁 상태</a> · 다음 실습: <a href="../../lab/threadpool/">스레드 풀</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>영속성 전이와 고아 객체: 부모만 저장하거나 지우면 자식은 어떻게 되나 · 개발 학습 실습실</title>
+<meta name="description" content="게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다. 설정을 바꿔 가며 어떤 SQL이 나가고 DB에 무엇이 남…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/cascade/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cascade/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cascade/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="영속성 전이와 고아 객체: 부모만 저장하거나 지우면 자식은 어떻게 되나 · 개발 학습 실습실">
+<meta property="og:description" content="게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다. 설정을 바꿔 가며 어떤 SQL이 나가고 DB에 무엇이 남…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/cascade/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 연관관계</p>
+<h1>영속성 전이와 고아 객체</h1>
+<p><b>부모만 저장하거나 지우면 자식은 어떻게 되나</b></p>
+<p>게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다. 설정을 바꿔 가며 어떤 SQL이 나가고 DB에 무엇이 남는지 보세요.</p>
+<p>실행으로 대조 · Hibernate 7.4.5와 H2에서 스물네 가지 조합을 실행해 SQL의 수와 순서, 예외, DB에 남은 행을 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>영속성 전이(cascade)</dt>
+<dd>부모 엔티티에 한 작업을 연관된 자식 엔티티에게도 똑같이 전달하는 설정이다. @OneToMany나 @OneToOne 같은 연관관계 애노테이션의 cascade 속성에 적는다. CascadeType.PERSIST는 저장을, REMOVE는 삭제를 전달하고, ALL은 모든 작업을 전달한다. 설정이 없으면 부모만 persist해도 자식은 저장되지 않고, 자식이 남아 있는 부모를 remove하면 외래 키 제약 때문에 실패한다. 연관관계를 맺어 주는 기능이 아니라 작업을 전달해 주는 편의 기능이며, 자식을 그 부모 하나만 소유할 때 쓴다.</dd>
+<dt>고아 객체 제거(orphanRemoval)</dt>
+<dd>부모 엔티티와 연결이 끊긴 자식 엔티티를 DB에서도 지우는 설정이다. @OneToMany나 @OneToOne에 orphanRemoval = true로 적는다. 부모의 컬렉션에서 자식을 빼면 트랜잭션을 커밋할 때 그 자식에 대한 DELETE가 나간다. 이 설정이 없으면 컬렉션에서 빼도 DB의 행은 그대로 남는다. 부모가 지워질 때도 자식이 함께 지워지므로, CascadeType.REMOVE의 동작을 포함한다고 볼 수 있다. 다른 엔티티가 함께 참조하는 자식에는 쓰지 않는다.</dd>
+<dt>영속성 컨텍스트</dt>
+<dd>엔티티를 보관하고 관리하는 JPA의 논리적 공간이다. 조회하거나 저장한 엔티티는 이곳에 보관되며, JPA는 이곳의 엔티티에 일어난 변화를 추적해 트랜잭션이 끝날 때 DB에 반영한다. 보통 트랜잭션 하나와 생명주기를 같이한다(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다). 1차 캐시, 변경 감지, 쓰기 지연 같은 기능이 이 위에서 동작한다. (50선 밖이지만 JPA를 쓰면 반드시 이어서 묻는 개념)</dd>
+<dt>쓰기 지연과 flush</dt>
+<dd>쓰기 지연은 INSERT, UPDATE, DELETE 문을 바로 DB에 보내지 않고 모아 두었다가 한꺼번에 보내는 것이다. 단, 기본 키를 IDENTITY 전략(MySQL의 AUTO_INCREMENT 등)으로 생성하는 엔티티는 식별자를 얻기 위해 저장을 요청한 시점에 INSERT가 바로 실행된다. flush는 모아 둔 변경 내용을 DB에 보내는 동작으로, 트랜잭션 커밋 직전이나 JPQL 쿼리 실행 직전에 자동으로 일어난다. flush는 SQL을 DB에 전송할 뿐 트랜잭션을 커밋하는 것은 아니다.</dd>
+<dt>엔티티</dt>
+<dd>데이터베이스 테이블의 행에 대응하는 자바 객체다. @Entity를 붙인 클래스로 정의하며 식별자(@Id)를 가진다. JPA는 엔티티의 상태 변화를 추적해 그에 맞는 SQL을 실행한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — cascade 없이 게시글만 persist. 예외도 없이 댓글만 저장에서 빠집니다.</li>
+<li><b>CascadeType.PERSIST</b> — persist가 댓글에게 전달되어 INSERT가 3번 나갑니다.</li>
+<li><b>cascade 없이 게시글 삭제</b> — 댓글이 게시글을 가리키고 있어서 DB가 삭제를 거절합니다.</li>
+<li><b>CascadeType.REMOVE로 삭제</b> — 댓글을 먼저 지우고 게시글을 지웁니다.</li>
+<li><b>ALL인데 목록에서 빼기만 하면</b> — CascadeType.ALL이어도 DELETE가 나가지 않습니다.</li>
+<li><b>orphanRemoval = true</b> — 목록에서 뺀 댓글에 DELETE가 나갑니다.</li>
+<li><b>orphanRemoval만 켜고 게시글 삭제</b> — cascade를 적지 않았는데도 댓글이 함께 지워집니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>new Post, addComment 두 번: 게시글 객체 하나와 댓글 객체 둘을 만들고 서로 연결했습니다. 아직 JPA가 모르는 보통의 자바 객체입니다(비영속). DB에는 아무것도 없습니다.</li>
+<li>em.persist(post): 게시글이 영속성 컨텍스트의 관리를 받게 됩니다. 기본 키가 IDENTITY 전략이라 id를 받아 오려고 INSERT가 바로 나갑니다.</li>
+<li>cascade에 PERSIST가 없으므로 persist는 게시글에서 멈춥니다. 목록에 담겨 있는 댓글 둘은 여전히 JPA가 모르는 비영속 객체입니다.</li>
+<li>메서드 종료, 커밋: 예외 없이 커밋됩니다. comments는 mappedBy가 붙은 쪽이라 외래 키를 관리하지 않으므로, Hibernate는 이 목록에 저장되지 않은 객체가 들어 있어도 문제 삼지 않습니다. 댓글 INSERT는 끝내 나가지 않았습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>조회 SQL이 0번, 쓰기 SQL이 INSERT 1번 나갔습니다. 끝난 뒤 DB에는 게시글 1개와 댓글 0개가 있습니다.</li>
+<li>cascade에 PERSIST(또는 ALL)가 없으면 부모에게 한 persist가 자식에게 전달되지 않습니다. 이 예처럼 mappedBy가 붙은 목록에서는 예외도 나지 않아서, 댓글이 저장되지 않은 것을 놓치기 쉽습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@Entity
+class Post {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+    String title;
+
+    @OneToMany(mappedBy = &quot;post&quot;)
+    List&lt;Comment&gt; comments = new ArrayList&lt;&gt;();
+
+    void addComment(String text) {     // 양쪽을 함께 맞춘다
+        Comment c = new Comment(text);
+        c.post = this;
+        comments.add(c);
+    }
+}
+
+@Entity
+class Comment {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+    String text;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    Post post;                         // 외래 키 post_id
+}
+
+// 트랜잭션 안에서 실행
+Post post = new Post(&quot;공지&quot;);
+post.addComment(&quot;첫째 댓글&quot;);
+post.addComment(&quot;둘째 댓글&quot;);
+em.persist(post);                      // 게시글만 persist한다
+// 메서드가 끝나면 커밋</pre>
+<h2>이 모형의 전제</h2>
+<p>양방향 연관관계(@OneToMany(mappedBy)와 @ManyToOne), 기본 키는 IDENTITY 전략, 하나의 트랜잭션 안에서 실행한다고 보았습니다. 스물네 가지 조합(cascade 넷, orphanRemoval 둘, 동작 셋)을 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 나간 SQL의 수와 순서, 예외, 끝난 뒤 DB에 남은 행 수가 화면과 일치하는 것을 확인했습니다. 화면의 SQL 문장은 읽기 쉽게 줄인 것이며 실제 문장의 글자와는 다릅니다. &quot;cascade 없이 부모만 persist하면 예외 없이 자식이 빠진다&quot;는 결과는 댓글 목록에 mappedBy가 붙은 이 매핑에서의 결과입니다. 목록 쪽이 외래 키를 직접 관리하는 단방향 @OneToMany(@JoinColumn)로 바꿔 같은 코드를 실행하면 커밋할 때 TransientPropertyValueException이 나고 게시글도 저장되지 않는 것을 같은 환경에서 확인했습니다. 반대로 저장되지 않은 게시글을 가리키는 댓글만 persist하는 경우는 이 실습에서 다루지 않았습니다. 기본 키가 SEQUENCE 전략이면 INSERT가 persist를 부를 때가 아니라 커밋할 때 나갑니다(이 부분은 &quot;영속성 컨텍스트&quot; 실습에서 다룹니다). DB의 외래 키에 ON DELETE CASCADE를 걸어 두는 방법은 JPA의 cascade와 다른 기능이며 여기서는 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/inheritmap/">상속 관계 매핑</a> · 다음 실습: <a href="../../lab/lazyproxy/">프록시와 지연 로딩</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

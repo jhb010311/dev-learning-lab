@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>URL structure: After I added the search term &quot;A&amp;B&quot; to the URL, the server received only &quot;A&quot; · Dev Learning Lab</title>
+<meta name="description" content="A URL is divided into the scheme, host, port, path, query, and fragment at fixed symbols (://, :, /, ?, #, &amp;, =). These symbols act as separators within a…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/url/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/url/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/url/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="URL structure: After I added the search term &quot;A&amp;B&quot; to the URL, the server received only &quot;A&quot; · Dev Learning Lab">
+<meta property="og:description" content="A URL is divided into the scheme, host, port, path, query, and fragment at fixed symbols (://, :, /, ?, #, &amp;, =). These symbols act as separators within a…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/url/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Addresses and names</p>
+<h1>URL structure</h1>
+<p><b>After I added the search term &quot;A&amp;B&quot; to the URL, the server received only &quot;A&quot;</b></p>
+<p>A URL is divided into the scheme, host, port, path, query, and fragment at fixed symbols (://, :, /, ?, #, &amp;, =). These symbols act as separators within a URL, so if you put the same character directly into a value, the URL gets cut at the wrong place. Follow how a URL is split, which parts of it go to the server, and how to insert a value so that it arrives intact.</p>
+<p>Checked against real execution · All 300 combinations were run and checked against Node.js 24 URL, URLSearchParams, and the HTTP client (received by a test server on 127.0.0.1)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>URI and URL</dt>
+<dd>A URI is a string that identifies a resource, and a URL is a URI that identifies the resource by its location (how to access it and its address). Most addresses used on the web are URLs, and every URL is a URI.</dd>
+<dt>URL components</dt>
+<dd>A URL is divided into several parts at fixed symbols. In https://shop.example:8443/shop/list?q=a#review, https is the scheme, shop.example is the host, 8443 is the port, /shop/list is the path, q=a is the query, and review is the fragment. If the port is not written, the connection uses the default port of the scheme (80 for http, 443 for https). The host and port decide where to connect, and the path and the query are carried in the request line to the server. The fragment is used only by the browser to find a position in the document it received, and it is not sent to the server.</dd>
+<dt>Percent-encoding</dt>
+<dd>A way of writing a character that has a special meaning in a URL, or that cannot be used in a URL, as % followed by two hexadecimal digits. The character is converted to UTF-8 bytes and each byte is written as %XX, so &amp; becomes %26 and one Korean character becomes three %XX groups. If you put a character such as &amp;, =, #, or + directly into a query value, it is read as a separator and the value is cut off or changed, so you must encode a value before you insert it. In a query, a space is sometimes written as +, which is why the + character itself must be written as %2B.</dd>
+<dt>Query string and form data</dt>
+<dd>The query string is the part of a URL after the ? in which name=value pairs are joined with &amp;, and form data is text of the same shape sent in the request body. When form data is sent, the Content-Type header is set to application/x-www-form-urlencoded. When an HTML form is submitted with GET, the values are carried in the query string, and when it is submitted with POST, they are carried as form data in the body. The servlet container combines the two and provides them as &quot;request parameters&quot;, so server code takes the values in the same way without telling which of the two they came from. A JSON body is not included in the request parameters.</dd>
+<dt>Relative URL</dt>
+<dd>A URL that leaves out the scheme and the host and gives only part of a URL. The browser fills in the missing parts from the URL of the current document, which is the base URL, to make a complete URL. If it starts with /, it replaces the whole path; otherwise it replaces the last segment of the base path, and .. means one level up. The result depends on whether the base path ends with /. The URL detail relative to /shop/list is /shop/detail, but relative to /shop/list/ it is /shop/list/detail.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The search term A&amp;B is appended as it is. The server receives only A as the value of q.</li>
+<li><b>With encoding</b> — &amp; becomes %26, and the value arrives intact.</li>
+<li><b>A # in the search term</b> — Everything after # becomes the fragment and is not sent to the server.</li>
+<li><b>A + in the search term</b> — The server reads + as a space.</li>
+<li><b>Korean text and a space</b> — See which characters the browser converts for you, and what they look like.</li>
+<li><b>A URL with a port</b> — It connects to port 8443, which is not the default port, and the port is also added to the Host header.</li>
+<li><b>Writing the default port anyway</b> — :443 is the same as leaving the port out, so it disappears from the normalized URL.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Building the URL: The search term (&quot;A&amp;B&quot;) was appended to the URL exactly as the characters are. The resulting text is https://shop.example/shop/list?q=A&amp;B&amp;sort=price#review.</li>
+<li>Scheme: The part from the start up to ://, which is https. It decides which protocol is used to connect.</li>
+<li>Host and port: The part after :// up to the first / is where to connect. The host is shop.example. No port is written, so it connects to port 443, the default port of https.</li>
+<li>Path: The part after the host and port, which is /shop/list. It points to what is being requested inside the server, and it ends before the first ?.</li>
+<li>Query: The part after ? up to the first #, which is q=A&amp;B&amp;sort=price. This is where the name=value pairs for the server are written, joined with &amp;.</li>
+<li>Fragment: Everything after the first #, which is review. It marks a position inside the document that was received, and only the browser uses it. It is not sent to the server.</li>
+<li>What goes to the server: The browser connects to shop.example on port 443 and sends the request line (GET /shop/list?q=A&amp;B&amp;sort=price HTTP/1.1) and the Host header (Host: shop.example). The request line contains only the path and the query. The fragment is not carried anywhere.</li>
+<li>Server query parsing: The query is split at &amp;, each piece is split into a name and a value at the first =, and then + is turned back into a space and %XX into the original character. The result is q=&quot;A&quot;, B=&quot;&quot;, sort=&quot;price&quot;. The &amp; inside the search term was read as the symbol that separates pairs. The value of q was cut off at &quot;A&quot;, and an unrelated name, B, was created.</li>
+<li>Resolving the relative URL: The link on this page (href=&quot;detail&quot;) gives only part of a URL, so the browser fills in the missing parts using the current URL as the base. It does not start with /, so the last segment of the current path (/shop/list) is replaced with detail. The query and the fragment are not inherited. The result is https://shop.example/shop/detail.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Sent to shop.example on port 443: the request line (GET /shop/list?q=A&amp;B&amp;sort=price HTTP/1.1). Value of q received by the server: &quot;A&quot;. It differs from the search term that was sent (&quot;A&amp;B&quot;).</li>
+<li>&amp;, =, #, +, %, and ? are characters that act as separators within a URL. If a value can contain such characters, you must always encode it before inserting it. In JavaScript, URLSearchParams or encodeURIComponent does this, and in Java, URLEncoder.encode does. Code that builds a URL by joining characters by hand usually works, and then fails on the day such a value arrives.</li>
+<li>The fragment (the part after #) does not go to the server. It is not in the server log, and server code cannot read it. The query, on the other hand, goes to the server and may be kept in its access log, so do not put values such as passwords in the query.</li>
+</ul>
+<h2>Code</h2>
+<pre>// JavaScript. Paste it into the console of the browser developer tools to run it.
+const keyword = 'A&amp;B';
+
+// Append the search term as the characters are
+const url = new URL('https://shop.example/shop/list?q=' + keyword + '&amp;sort=price#review');
+
+console.log(url.href);                                   // the URL as the browser normalized it
+console.log(url.protocol, url.hostname, url.port, url.pathname, url.search, url.hash);
+console.log([...url.searchParams]);                      // the query read as names and values (the same rules as the server uses)
+console.log(new URL('detail', url).href);                // the URL that the link (href=&quot;detail&quot;) points to</pre>
+<h2>Assumptions of this model</h2>
+<p>All 300 combinations were run on Node.js 24 and checked. The result of splitting the URL, the normalized URL, and the resolution of relative URLs were checked against the values produced by the Node.js URL (an implementation of the WHATWG URL standard, which browsers follow). The connection port, the request line, and the Host header were checked by sending a request to that URL with the Node.js HTTP client, redirecting only the connection to a test server on 127.0.0.1, and receiving the characters that were actually sent (no DNS lookup for shop.example and no outside connection was made, and even the https URLs were received without encryption). The values the server received are the query of that request line parsed with URLSearchParams. Other servers such as Tomcat use the same rules (application/x-www-form-urlencoded), which split at &amp; and = and turn + and %XX back, but this lab did not run them separately. Parts that differ from server to server, such as whether a malformed %XX is treated as an error, are not covered. encodeURIComponent turns a space into %20, not +, and in a query both are read as a space (this difference was also confirmed by execution). The rules for splitting a URL are in RFC 3986 section 3, removing the fragment before making the request is in section 3.5, resolving relative URLs is in section 5.2, and the request line and the Host header are in RFC 9112 section 3.2 and RFC 9110 section 7.2. That clicking a link that starts with # does not send a new request to the server was written down from the behavior of browsers (fragment navigation in the HTML standard) and was not run. URLs that contain a user name, IPv6 addresses, and domain names written in Korean are not covered.</p>
+<p>Previous lab: <a href="../../lab/layers/">Layers and encapsulation</a> · Next lab: <a href="../../lab/dns/">DNS</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

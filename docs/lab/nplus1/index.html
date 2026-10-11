@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>N+1: 주문 목록 한 번 조회했는데 쿼리는 왜 여러 번 나가나 · 개발 학습 실습실</title>
+<meta name="description" content="주문 목록을 조회한 뒤 주문마다 회원 이름을 꺼냅니다. 연관된 회원을 언제, 어떻게 가져오느냐에 따라 DB로 나가는 쿼리 수가 달라집니다. 로딩 전략을 바꿔 가며 쿼리 로그를 비교해 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/nplus1/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/nplus1/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/nplus1/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="N+1: 주문 목록 한 번 조회했는데 쿼리는 왜 여러 번 나가나 · 개발 학습 실습실">
+<meta property="og:description" content="주문 목록을 조회한 뒤 주문마다 회원 이름을 꺼냅니다. 연관된 회원을 언제, 어떻게 가져오느냐에 따라 DB로 나가는 쿼리 수가 달라집니다. 로딩 전략을 바꿔 가며 쿼리 로그를 비교해 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/nplus1/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 프록시와 로딩</p>
+<h1>N+1</h1>
+<p><b>주문 목록 한 번 조회했는데 쿼리는 왜 여러 번 나가나</b></p>
+<p>주문 목록을 조회한 뒤 주문마다 회원 이름을 꺼냅니다. 연관된 회원을 언제, 어떻게 가져오느냐에 따라 DB로 나가는 쿼리 수가 달라집니다. 로딩 전략을 바꿔 가며 쿼리 로그를 비교해 보세요.</p>
+<p>실행으로 대조 · Hibernate 7.4.5와 H2에서 112가지 조합의 SQL 수를 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>N+1 문제</dt>
+<dd>목록을 조회하는 쿼리 1번이 실행된 뒤, 조회된 N개의 결과마다 연관 데이터를 가져오는 쿼리가 1번씩 총 N번 더 실행되는 문제다. 데이터가 많아질수록 쿼리 수가 비례해 늘어 성능이 크게 떨어진다. 연관 데이터를 한 번의 쿼리로 함께 가져오거나(fetch join) 여러 건을 묶어 가져오는(배치 조회) 방식으로 해결한다.</dd>
+<dt>지연 로딩과 즉시 로딩</dt>
+<dd>연관된 엔티티를 언제 조회할지에 대한 설정이다. 즉시 로딩(EAGER)은 엔티티를 조회할 때 연관된 엔티티도 함께 가져온다. 지연 로딩(LAZY)은 연관된 엔티티 자리에 프록시 객체를 넣어 두고 실제로 그 값을 사용할 때 조회한다. 즉시 로딩은 필요 없는 데이터까지 항상 가져오고 예상하기 어려운 쿼리를 만들기 때문에 지연 로딩을 기본으로 쓰는 것이 권장된다.</dd>
+<dt>fetch join</dt>
+<dd>JPQL에서 엔티티를 조회하면서 연관된 엔티티를 SQL 조인으로 한 번에 함께 가져오게 하는 기능이다. 지연 로딩으로 설정된 연관 관계라도 이 쿼리에서는 즉시 함께 조회되어 N+1 문제를 해결한다. 컬렉션을 여러 개 함께 가져오면 결과 행이 곱으로 늘어나는 점에 주의한다.</dd>
+<dt>@EntityGraph</dt>
+<dd>조회할 때 함께 가져올 연관 관계를 애노테이션으로 지정하는 기능이다. Spring Data JPA의 리포지토리 메서드에 붙이면 JPQL을 직접 쓰지 않고도 fetch join과 같은 효과를 얻는다.</dd>
+<dt>배치 페치(Batch Size)</dt>
+<dd>지연 로딩 대상을 하나씩 조회하지 않고 여러 개를 IN 조건으로 묶어 한 번에 조회하게 하는 설정이다. 예를 들어 크기를 100으로 두면 100개의 연관 데이터를 한 번의 쿼리로 가져와, N번 실행되던 쿼리가 N/100번으로 줄어든다. 컬렉션을 fetch join하면 페이징을 메모리에서 처리하던 Hibernate 7.3 이하에서, 컬렉션 연관 관계를 페이징과 함께 쓸 수 있는 해결책이다(7.4부터는 fetch join과 페이징의 조합도 DB에서 처리된다).</dd>
+<dt>1차 캐시</dt>
+<dd>영속성 컨텍스트 안에 엔티티를 식별자 기준으로 보관하는 저장소다. 같은 트랜잭션 안에서 같은 식별자로 다시 조회하면 DB에 쿼리를 보내지 않고 보관된 엔티티를 돌려준다. 그 결과 같은 트랜잭션 안에서 같은 식별자의 엔티티는 항상 같은 객체다. 기본적으로 트랜잭션이 끝나면 사라지므로(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다) 애플리케이션 전체의 캐시와는 다르다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 지연 로딩, 주문 10건, 회원 10명. 쿼리가 1 + 10번 나갑니다.</li>
+<li><b>즉시 로딩으로 바꾸면 해결될까</b> — 쿼리 수는 그대로이고 나가는 시점만 앞당겨집니다.</li>
+<li><b>fetch join</b> — 주문과 회원을 한 쿼리로 가져옵니다.</li>
+<li><b>배치 크기 설정</b> — 회원을 5명씩 묶어서 IN 쿼리로 가져옵니다.</li>
+<li><b>같은 회원의 주문이 많을 때</b> — 주문 10건, 회원 3명. 이미 읽은 회원은 다시 조회하지 않습니다.</li>
+<li><b>회원 정보를 쓰지 않을 때</b> — 지연 로딩은 쓰지 않는 회원을 조회하지 않습니다. 즉시 로딩과 비교해 보세요.</li>
+<li><b>주문 30건으로 늘리면</b> — 지연 로딩에서는 데이터가 늘어난 만큼 쿼리도 늘어납니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>쿼리 1번: 주문 10건을 가져왔습니다. 회원은 가져오지 않았습니다. JPQL은 적힌 그대로 주문 테이블만 조회하는 SQL이 됩니다.</li>
+<li>쿼리 2번: 주문 1에서 회원 1의 이름을 꺼내는 순간, 비어 있던 회원 객체(프록시)를 채우려고 조회 쿼리가 나갑니다.</li>
+<li>쿼리 3번: 주문 2에서 회원 2의 이름을 꺼내는 순간, 비어 있던 회원 객체(프록시)를 채우려고 조회 쿼리가 나갑니다.</li>
+<li>쿼리 4번: 주문 3에서 회원 3의 이름을 꺼내는 순간, 비어 있던 회원 객체(프록시)를 채우려고 조회 쿼리가 나갑니다.</li>
+<li>쿼리 5번: 주문 4에서 회원 4의 이름을 꺼내는 순간, 비어 있던 회원 객체(프록시)를 채우려고 조회 쿼리가 나갑니다.</li>
+<li>쿼리 6번: 주문 5에서 회원 5의 이름을 꺼내는 순간, 비어 있던 회원 객체(프록시)를 채우려고 조회 쿼리가 나갑니다.</li>
+<li>쿼리 7번: 주문 6에서 회원 6의 이름을 꺼내는 순간, 비어 있던 회원 객체(프록시)를 채우려고 조회 쿼리가 나갑니다.</li>
+<li>쿼리 8번: 주문 7에서 회원 7의 이름을 꺼내는 순간, 비어 있던 회원 객체(프록시)를 채우려고 조회 쿼리가 나갑니다.</li>
+<li>쿼리 9번: 주문 8에서 회원 8의 이름을 꺼내는 순간, 비어 있던 회원 객체(프록시)를 채우려고 조회 쿼리가 나갑니다.</li>
+<li>쿼리 10번: 주문 9에서 회원 9의 이름을 꺼내는 순간, 비어 있던 회원 객체(프록시)를 채우려고 조회 쿼리가 나갑니다.</li>
+<li>쿼리 11번: 주문 10에서 회원 10의 이름을 꺼내는 순간, 비어 있던 회원 객체(프록시)를 채우려고 조회 쿼리가 나갑니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>쿼리가 모두 11번 나갔습니다(주문 조회 1번 + 회원 조회 10번). DB 왕복에 55ms를 썼습니다.</li>
+<li>목록 1번에 더해 회원 수만큼 쿼리가 따라 나갔습니다. 이것이 N+1 문제입니다. 추가 쿼리 수는 주문 건수가 아니라 아직 읽지 않은 서로 다른 회원 수(10명)로 정해집니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@Entity class Order {
+    @ManyToOne(fetch = FetchType.LAZY)
+    Member member;
+}
+
+interface OrderRepository {
+    @Query(&quot;select o from Order o&quot;)
+    List&lt;Order&gt; findOrders();
+}
+
+// 서비스 (트랜잭션 안)
+List&lt;Order&gt; orders = repo.findOrders();   // 주문 10건
+for (Order o : orders) {
+    names.add(o.getMember().getName());  // 회원 이름 사용
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>주문(Order)이 회원(Member)을 @ManyToOne으로 참조하고, 반복문은 트랜잭션(영속성 컨텍스트)이 열려 있는 동안 실행된다고 가정했습니다. 영속성 컨텍스트가 닫힌 뒤에 지연 로딩 대상을 건드리면 기본 설정에서는 쿼리 대신 LazyInitializationException이 납니다. 쿼리 수는 실제 Hibernate 7.4.5와 H2 데이터베이스로 112가지 조합(다섯 가지 방법, 주문 1·10·30건, 회원 1·3·10·30명, 배치 크기 2·5·20, 이름 사용 여부)을 실행해, 실제로 나간 SQL의 수가 화면과 일치하는 것을 확인했습니다. @EntityGraph는 스프링 데이터가 내부에서 쓰는 것과 같은 JPA 엔티티 그래프 힌트로 실행했습니다. 즉시 로딩의 1 + 회원 수는 배치 설정이 없을 때의 값입니다. 배치 로딩은 묶음 크기대로 나누는 Hibernate 6 이후의 방식 기준이며, Hibernate 5의 기본 방식에서는 쿼리가 더 나갈 수 있습니다. SQL 모양은 DB에 따라 달라서 MySQL은 IN 목록을, PostgreSQL은 배열 파라미터(= any(?))를 씁니다. 왕복 시간은 쿼리마다 같다고 단순화했습니다. 실제로는 조인 쿼리 한 번이 단순 조회 한 번보다 무거울 수 있습니다.</p>
+<p>앞 실습: <a href="../../lab/lazyproxy/">프록시와 지연 로딩</a> · 다음 실습: <a href="../../lab/fetchjoin/">JPQL과 페치 조인</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

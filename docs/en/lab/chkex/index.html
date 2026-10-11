@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checked and unchecked exceptions: Why do some exceptions keep the code from even compiling unless you handle them? · Dev Learning Lab</title>
+<meta name="description" content="Java exceptions fall into two groups. With a checked exception (such as IOException), the compiler refuses to compile the code unless you catch the except…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/chkex/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/chkex/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/chkex/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Checked and unchecked exceptions: Why do some exceptions keep the code from even compiling unless you handle them? · Dev Learning Lab">
+<meta property="og:description" content="Java exceptions fall into two groups. With a checked exception (such as IOException), the compiler refuses to compile the code unless you catch the except…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/chkex/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Exceptions</p>
+<h1>Checked and unchecked exceptions</h1>
+<p><b>Why do some exceptions keep the code from even compiling unless you handle them?</b></p>
+<p>Java exceptions fall into two groups. With a checked exception (such as IOException), the compiler refuses to compile the code unless you catch the exception (try-catch) or declare that it is thrown (throws). An unchecked exception (typically RuntimeException or one of its subclasses) has no such requirement, so the code compiles with no handling at all. Change the kind of exception and the way it is handled, and check whether the code compiles and how the program ends when it runs.</p>
+<p>Checked against real execution · All 24 combinations were actually compiled and run on JDK 21 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Checked and unchecked exceptions</dt>
+<dd>Unchecked exceptions are RuntimeException and its subclasses (in the specification, the Error classes are also unchecked), and the compiler does not check whether they are handled (examples are NullPointerException and IllegalArgumentException). Checked exceptions are all other Exception classes, and the code compiles only if they are handled with catch or declared with throws (examples are IOException and SQLException). By default, Spring's @Transactional rolls back only on RuntimeException and Error, and commits on checked exceptions.</dd>
+<dt>Exception and Error</dt>
+<dd>Both are subtypes of Throwable that represent abnormal situations while a program runs. An Exception is a situation that the application can catch and handle (such as invalid input or a missing file). An Error is a serious problem at the JVM level, such as running out of memory or a stack overflow, and applications usually do not try to recover from it.</dd>
+<dt>throws clause</dt>
+<dd>This is the syntax, written at the end of a method declaration as in throws IOException, that announces that the method can throw that exception to its caller. You must write it if you do not catch a checked exception inside the method, and the code then compiles only if the caller of that method in turn catches the exception or declares it with throws. It does not handle the exception. It passes the obligation to handle it on to the caller. For an unchecked exception you do not have to write it, and even if you do, it creates no obligation for the caller. It is a different word from throw, the statement that actually throws an exception.</dd>
+<dt>Wrapped exception</dt>
+<dd>This means putting an exception that was caught inside an exception of another kind and throwing that one. If you catch a checked exception and throw it again as an unchecked exception, as in throw new RuntimeException(e), the code compiles without a throws clause on every method that the exception passes through. When you pass the original exception to the constructor, it is kept as the cause and appears in the error output under Caused by. If you do not pass the original exception, there is no way to tell what went wrong in the first place, so always pass it. Wrapping does not make the exception go away, so if nothing catches it anywhere, execution stops.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A checked exception is thrown with no handling. The code does not compile.</li>
+<li><b>An unchecked exception just compiles</b> — Only the exception changes in the same code. The code compiles, and the program stops at run time.</li>
+<li><b>Even when no exception is thrown</b> — The code would not throw an exception if it ran, and yet it is a compile-time error.</li>
+<li><b>Adding only throws</b> — The error does not go away. It moves to main, which calls read.</li>
+<li><b>throws all the way up to main</b> — The code compiles, but nothing catches the exception, so the program stops.</li>
+<li><b>Catching in the caller</b> — read announces that it throws, and main catches the exception and handles it.</li>
+<li><b>Wrapping in a RuntimeException</b> — The code compiles without throws, but the exception has not gone away.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The compiler checks the read method: It contains throw new IOException(...). IOException is a checked exception. A line that can throw a checked exception compiles only if it is enclosed in a try-catch or the declaration of its method has a throws clause.</li>
+<li>read has neither a try-catch nor a throws clause: This is a compile-time error. The compiler reports &quot;unreported exception IOException; must be caught or declared to be thrown&quot;. In other words, the code can throw an IOException without saying so, and the exception must be either caught or declared as thrown.</li>
+<li>Compilation failed: No class file is produced, so the program cannot run. A problem that would occur at run time was stopped in advance, before the program ran.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>This is a compile-time error. The line with the error is the throw line inside read, and the program does not run.</li>
+<li>With a checked exception, the code compiles only if it does one of two things: &quot;catch it, or declare that it is thrown&quot;. This mechanism keeps you from overlooking problems that arise from circumstances outside the program and that you can prepare for, such as a missing file or a dropped network connection.</li>
+</ul>
+<h2>Code</h2>
+<pre>import java.io.IOException;
+
+public class Main {
+    static String read(boolean missing) {
+        if (missing) throw new IOException(&quot;file not found&quot;);
+        return &quot;content&quot;;
+    }
+
+    public static void main(String[] args) {
+        String s = read(true);
+        System.out.println(&quot;read: &quot; + s);
+        System.out.println(&quot;end of main&quot;);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>All 24 combinations were actually compiled on JDK 21 on this PC from the same source as the code on the screen, and those that compiled were run, and the compilation result, the line with the error, the compiler message, the output, the exit status, and the first line of standard error were checked against the results. The compiler messages are written in the form that the command-line javac shows (class names only). It was confirmed in the same way that throwing an Error with no handling also compiles and that throwing Exception itself is treated as a checked exception. The model covers only the case with two methods (read and main). The rule is the same when the calls go deeper: every method that a checked exception passes through must catch it or declare it. An uncaught exception ending the program applies to the case where main is the only thread.</p>
+<p>Previous lab: <a href="../../lab/exflow/">Exceptions and finally</a> · Next lab: <a href="../../lab/generic/">Generics</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

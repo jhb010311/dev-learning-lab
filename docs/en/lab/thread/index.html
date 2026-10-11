@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creating threads and thread states: Why does calling run() directly not create a new thread? · Dev Learning Lab</title>
+<meta name="description" content="Creating a Thread object and having a thread actually run are two different things. This lab uses t.getState() to follow the states that one thread goes t…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/thread/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/thread/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/thread/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Creating threads and thread states: Why does calling run() directly not create a new thread? · Dev Learning Lab">
+<meta property="og:description" content="Creating a Thread object and having a thread actually run are two different things. This lab uses t.getState() to follow the states that one thread goes t…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/thread/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
+<h1>Creating threads and thread states</h1>
+<p><b>Why does calling run() directly not create a new thread?</b></p>
+<p>Creating a Thread object and having a thread actually run are two different things. This lab uses t.getState() to follow the states that one thread goes through from the time it is created until it terminates. Along the way, you see the difference between start() and run(), how the state depends on the way the thread waits, and interrupt, which wakes up a waiting thread.</p>
+<p>Checked against real execution · The 24 combinations were run on JDK 21 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Processes and threads</dt>
+<dd>A process is a running program, and the operating system gives it its own independent memory space. A thread is a flow of execution that does the actual work inside a process. The threads of one process share memory (heap, code, and data), and each has only its own stack. This makes it easy for threads to exchange data, but it also causes problems when they touch the same data at the same time.</dd>
+<dt>Thread states</dt>
+<dd>These are the six states that a Java thread can be in from the time it is created until it terminates. A thread is in exactly one of them at any moment, and you can check which one with t.getState(). NEW is the state in which only the Thread object has been created and the thread has not started yet, RUNNABLE is the state in which it is running or waiting for its turn to run, and TERMINATED is the state in which it has completed execution. In between, a thread becomes BLOCKED when it waits for a lock that another thread holds, WAITING when it waits with no time limit, and TIMED_WAITING when it waits for a specified time. A thread that has become TERMINATED never returns to another state.</dd>
+<dt>start() and run()</dt>
+<dd>These are two methods of Thread: start() creates a new thread and has that thread execute run(), and run() is an ordinary method that holds the work the thread is to do. So if you call run() directly, no new thread is created, and the calling thread runs that code in order. start() can be called only once on a Thread object, and a second call throws an IllegalThreadStateException. To run the same task again, create a new Thread object.</dd>
+<dt>join()</dt>
+<dd>This method makes the current thread wait until another thread terminates. A thread that calls t.join() does not go on to the next line until t terminates, so it is used when the caller needs to receive and use a result that another thread produces. While it waits, the state of the calling thread is WAITING, and when a time is given, as in join(1000), it is TIMED_WAITING. When it is called on a thread that has already terminated or has not started yet, it returns right away without waiting.</dd>
+<dt>Interrupt</dt>
+<dd>This is a signal sent to a waiting thread to tell it to stop waiting. When t.interrupt() is called, the interrupt status of t, the mark that says &quot;this thread was interrupted&quot;, is set, and if t was waiting in sleep, join, or wait, that method throws an InterruptedException and the thread wakes up right away. It is not a feature that forces a thread to stop, so what to do after receiving the signal is decided by the code of that thread. A thread in the BLOCKED state, waiting for the lock of synchronized, is not woken up by an interrupt.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — run() is called directly. The task runs, but the thread that runs it is main, and t stays NEW to the end.</li>
+<li><b>Starting with start()</b> — A new thread, worker, runs the task, and t is TIMED_WAITING while worker sleeps.</li>
+<li><b>A thread that waits with join</b> — A thread that waits, with no time limit, for another thread to terminate is WAITING.</li>
+<li><b>A thread that waits for a lock</b> — A thread that is blocked at a lock held by another thread is BLOCKED.</li>
+<li><b>Interrupting a sleeping thread</b> — sleep throws an InterruptedException, and the thread wakes up right away.</li>
+<li><b>Interrupting a thread that waits for a lock</b> — The thread does not wake up. Only its interrupt status is set.</li>
+<li><b>Calling start() again on a terminated thread</b> — An IllegalThreadStateException is thrown.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>new Thread(task, &quot;worker&quot;): This creates the Thread object t. So far only the object exists, and no new flow of execution (thread) has started. That is why t.getState() is NEW.</li>
+<li>t.run(): run() is an ordinary method call. No new thread is created, and the main thread runs the code of the task directly. The state of t stays NEW.</li>
+<li>Thread.currentThread().getName(): The name of the thread that runs the first line of the task is main. No thread named worker has ever come into being.</li>
+<li>Thread.sleep(1000): The main thread itself sleeps for 1 second. During that time main stays inside t.run() and cannot go on to the next line. After 1 second the task ends and t.run() returns.</li>
+<li>t.getState() after Thread.sleep(100): start() has never been called on t, so t is still NEW. The task ran, but it was not the thread t that ran it.</li>
+<li>t.join(): With a thread that was never started, there is nothing to wait for, so join() returns right away.</li>
+<li>t.getState(): The state is NEW to the very end. The task ran, but t was never started.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The thread that ran the task is main, the state of t seen partway is NEW, and the state after join is NEW.</li>
+<li>Calling run() directly does not add a thread. The calling thread simply runs that code in order, so nothing runs concurrently. To run the code in a new thread, call start(). start() creates a new thread, and that thread runs run().</li>
+</ul>
+<h2>Code</h2>
+<pre>Runnable task = () -&gt; {
+    System.out.println(Thread.currentThread().getName());   // the name of the thread that runs this line
+    try {
+        Thread.sleep(1000);                 // sleeps for 1 second
+    } catch (InterruptedException e) {
+        System.out.println(&quot;InterruptedException&quot;);
+    }
+};
+
+Thread t = new Thread(task, &quot;worker&quot;);
+System.out.println(t.getState());
+
+t.run();                                    // calls the method directly
+Thread.sleep(100);                          // waits briefly so that the task can make progress
+System.out.println(t.getState());
+t.join();                                   // waits until t terminates
+System.out.println(t.getState());</pre>
+<h2>Assumptions of this model</h2>
+<p>The results of the 24 combinations (the name of the thread that ran the task, t.getState() partway and at the end, the exceptions thrown, and the interrupt status when the task ends) were checked against the results of running them on JDK 21 on this PC. In the code on the screen, main waits briefly with Thread.sleep(100) and then looks at the state, but these 100 milliseconds are only a time that is &quot;usually enough&quot;, not a guaranteed one. So that the check would not depend on timing, the state of t was checked repeatedly until it had left RUNNABLE and stayed where it was. If t.getState() is called right after start(), the state can be RUNNABLE or already another state, so that value was not used as a result. RUNNABLE does not distinguish &quot;running&quot; from &quot;waiting for a turn on the CPU&quot;, and Java does not report the two separately. WAITING also results from Object.wait() or LockSupport.park() besides join, but this lab covers only join. The problems of data that several threads share are covered in the &quot;Race condition&quot; lab, and how to create threads in advance and reuse them is covered in the &quot;Thread pool&quot; lab.</p>
+<p>Previous lab: <a href="../../lab/process/">Processes and threads</a> · Next lab: <a href="../../lab/race/">Race condition</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

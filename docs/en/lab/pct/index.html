@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Averages and percentiles: The average response time looks fine, so why do users complain that it is slow? · Dev Learning Lab</title>
+<meta name="description" content="The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow. Change the share of slow requests and how slow…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pct/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pct/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/pct/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Averages and percentiles: The average response time looks fine, so why do users complain that it is slow? · Dev Learning Lab">
+<meta property="og:description" content="The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow. Change the share of slow requests and how slow…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/pct/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Observability</p>
+<h1>Averages and percentiles</h1>
+<p><b>The average response time looks fine, so why do users complain that it is slow?</b></p>
+<p>The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow. Change the share of slow requests and how slow they are, and see what the average and the percentiles (p50, p95, p99) each show and hide.</p>
+<p>Checked against real execution · Checked against a separate calculation of the same data in Java</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>TPS and response time percentiles</dt>
+<dd>TPS is the number of requests (transactions) a system handles in 1 second. For response time, the average hides the few slow requests, so you look at percentiles. A p95 of 1 second means that 95% of requests are handled within 1 second, and p99 is the same measure taken at 99%. The few slow requests shape the user experience, so manage p95 and p99 together.</dd>
+<dt>Load testing</dt>
+<dd>Testing that artificially sends a volume of requests similar to real traffic to find out how much the system can withstand and which part becomes the problem first when it reaches its limit (the bottleneck). It is used before going live to learn the capacity the system can handle and to measure the effect of improvements. Tools such as JMeter, nGrinder, and k6 are used.</dd>
+<dt>APM</dt>
+<dd>A tool that monitors the performance of an application. It collects and shows the response time of each request, which methods or queries took the time, the errors that occurred, and more. In Java, it is usually applied as an agent, with no code changes. Examples are Pinpoint, Scouter, and Datadog.</dd>
+<dt>Observability (logs, metrics, traces)</dt>
+<dd>The ability to understand the internal state of a system from its external outputs alone. Logs are records of individual events, metrics are values aggregated as numbers, such as request counts and response times, and traces are records of the path one request takes through several services and the time spent in each segment. You need all three together to detect problems and find their causes.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — 2% take 3s. The average looks fine at 0.16s, but p99 is 3s.</li>
+<li><b>When there are no slow requests</b> — The average, the median, and p99 are almost the same.</li>
+<li><b>When only 0.5% are slow</b> — Not even p99 catches them. You have to look at the maximum or p99.9 to see them.</li>
+<li><b>When 6% are slow</b> — p95 is the first to jump.</li>
+<li><b>20% take 10s</b> — The average becomes 2s, but not a single user received a response like that.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The response times of 1,000 requests were collected. Of these, 980 took 0.08s to 0.12s, and 20 took 3s.</li>
+<li>Average: adding up all the response times and dividing by 1,000 gives 0.16s. There are far more fast requests, so the slow ones are buried in the average. And not a single request actually got its response in 0.16s.</li>
+<li>p50 (median): when the response times are lined up from fastest to slowest, the 500th value is 0.10s. It means &quot;half of the requests finished within this time&quot;. This is the speed a typical user experiences.</li>
+<li>p95: the 950th value is 0.12s. It means &quot;95% of the requests finished within this time, and the other 5% were slower&quot;.</li>
+<li>p99: the 990th value is 3.00s. It means &quot;99% of the requests finished within this time, and only the slowest 1% were slower&quot;. The slow requests that the average could not show appear here.</li>
+<li>The maximum is 3.00s, and p99.9 (the 999th value) is 3.00s. If there are 1,000,000 requests a day, about 20,000 of them would take 3s each at this ratio.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Average 0.16s, p50 0.10s, p95 0.12s, p99 3.00s, maximum 3.00s.</li>
+<li>The average hides a small number of slow requests. Response times follow a skewed distribution, where most are fast and only a few are very slow, so the average does not represent the &quot;typical experience&quot;. That is why performance goals are set with percentiles, such as &quot;p99 is 1s or less&quot;, instead of &quot;an average of 0.2s&quot;.</li>
+<li>A user looking at one screen triggers several API calls, so the chance of hitting a slow one among them is higher than the share of slow individual requests. That is why the delay in the tail decides how fast the service feels.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Micrometer: also record percentiles of the response time
+Timer.builder(&quot;http.server.requests&quot;)
+    .publishPercentiles(0.5, 0.95, 0.99)
+    .register(registry);
+
+# application.yml
+management.metrics.distribution.percentiles:
+  http.server.requests: 0.5, 0.95, 0.99</pre>
+<h2>Assumptions of this model</h2>
+<p>This is fixed, made-up data of 1,000 requests. Percentiles were calculated by lining the values up from smallest to largest and taking the value at that rank (the nearest-rank method). Real monitoring tools do not store every value but approximate with counts per range, so there is a small error, and averaging the percentiles of several servers is not a correct calculation. The average and the percentiles were calculated separately in Java from the same data, and they were confirmed to match the values on the screen.</p>
+<p>Previous lab: <a href="../../lab/k8s/">Kubernetes self-healing</a> · Next lab: <a href="../../lab/trace/">Distributed tracing</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

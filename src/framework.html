@@ -119,6 +119,7 @@ button, input, select { font: inherit; color: inherit; }
 /* 처음 화면과 분야 목록 */
 .brand { font-family: var(--font-head); font-size: 1.2rem; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: -.01em; }
 .brand:hover, .brand:focus-visible { color: var(--accent); outline: none; }
+#pre { display: none; }
 .langsw { font-size: .88rem; color: var(--muted); text-underline-offset: 3px; }
 .toplinks { display: flex; gap: 14px; align-items: center; }
 .notice { max-width: 70ch; padding: 8px 12px; border: 1px solid var(--line); border-radius: 3px; }
@@ -594,7 +595,8 @@ var Lab = (function () {
   }
   function pause() { stop(); paused = true; render(clock); syncBar(); }
   // ── 화면 이동: 주소의 # 뒤를 보고 처음 화면, 분야 목록, 실습, 테스트 가운데 하나를 보여 준다.
-  //    #home 처음 · #study 공부(분야 고르기) · #study/java 분야의 목차 · #poly 실습 · #quiz 테스트(분야 고르기) · #quiz/java 테스트
+  //    home 처음 · study 공부(분야 고르기) · study/java 분야의 목차 · poly 실습 · quiz 테스트(분야 고르기) · quiz/java 테스트
+  //    공개 사이트의 주소는 lab/poly/, study/java/ 같은 경로이고, 파일 하나짜리 미리보기에서는 #poly, #study/java다.
   function loadState() { try { seen = JSON.parse(localStorage.getItem('lab-seen') || '{}') || {}; } catch (e) { seen = {}; } }
   function markSeen() { if (seen[cur.id]) return; seen[cur.id] = 1; try { localStorage.setItem('lab-seen', JSON.stringify(seen)); } catch (e) {} }
   function byId(id) { return lessons.filter(function (l) { return l.id === id; })[0]; }
@@ -604,26 +606,41 @@ var Lab = (function () {
   function todoOf(cat) { var n = 0; cat.groups.forEach(function (g) { g.items.forEach(function (it) { if (!it.id) n++; }); }); return n; }
   function groupOf(cat, id) { return cat.groups.filter(function (g) { return g.items.some(function (it) { return it.id === id; }); })[0]; }
   function placeOf(id) { for (var i = 0; i < curri.length; i++) { var g = groupOf(curri[i], id); if (g) return { cat: curri[i], group: g }; } return null; }
-  function nav(hash) { if (location.hash === '#' + hash) route(); else location.hash = hash; }
+  // 여러 페이지로 빌드한 사이트는 <html data-root="사이트 뿌리까지의 상대 경로">를 달고 있다. BASE는 그 뿌리의 경로(끝이 /)이고, 없으면 null이다.
+  var ROOT = document.documentElement.getAttribute('data-root'), BASE = ROOT === null ? null : new URL(ROOT || './', location.href).pathname;
+  function pathOf(r) { return BASE + (!r || r === 'home' ? '' : /^(study|quiz)(\/|$)/.test(r) ? r + '/' : 'lab/' + r + '/'); }
+  // 지금 주소가 가리키는 화면. # 뒤에 글자가 있으면 그것을 먼저 본다(예전 주소와 페이지 안의 #링크).
+  function routeOf() {
+    var h = ''; try { h = decodeURIComponent((location.hash || '').slice(1)); } catch (e) {}
+    if (BASE === null) return h;
+    if (h) { history.replaceState(null, '', pathOf(h)); return h; }
+    var p = ''; try { p = decodeURIComponent(location.pathname); } catch (e) {}
+    p = p.slice(BASE.length).replace(/index\.html$/, '').replace(/\/$/, '');
+    return p.indexOf('lab/') === 0 ? p.slice(4) : p;
+  }
+  function nav(r) {
+    if (BASE === null) { if (location.hash === '#' + r) route(); else location.hash = r; return; }
+    if (location.pathname !== pathOf(r) || location.hash) history.pushState(null, '', pathOf(r));
+    route();
+  }
   function setView(v) {
     glHide(); if (v !== 'lab' && timer) pause(); view = v; tab = v;
     $('wrap').className = 'wrap v-' + v;
     $('t-home').setAttribute('aria-pressed', v === 'home'); $('t-lab').setAttribute('aria-pressed', v === 'study' || v === 'cat' || v === 'lab'); $('t-quiz').setAttribute('aria-pressed', v === 'quizpick' || v === 'quiz');
   }
   function route() {
-    var h = ''; try { h = decodeURIComponent((location.hash || '').slice(1)); } catch (e) {}
-    var p = h.split('/'), title = SITE.name;
+    var h = routeOf(), p = h.split('/'), title = SITE.name;
     if (p[0] === 'quiz') {
       if (p[1] === 'all' || catById(p[1])) { var qc = p[1] === 'all' ? '' : p[1]; if (qz.cat !== qc) { qz.cat = qc; qz.run = null; } setView('quiz'); drawQuiz(); title = (qc ? catById(qc).name + ' ' : '') + '테스트 · ' + SITE.name; }
       else { setView('quizpick'); drawHome('quizpick'); title = '테스트 · ' + SITE.name; }
     } else if (p[0] === 'study') {
       if (catById(p[1])) { curCat = catById(p[1]); setView('cat'); drawCat(); title = curCat.name + ' · ' + SITE.name; }
       else { setView('study'); drawHome('study'); title = '공부 · ' + SITE.name; }
-    } else if (byId(p[0])) { setView('lab'); if (!cur || cur.id !== p[0]) open(p[0]); else drawPath(); title = cur.nav + ' · ' + SITE.name; }
+    } else if (byId(p[0])) { setView('lab'); if (!cur || cur.id !== p[0]) open(p[0]); else drawPath(); title = cur.nav + ': ' + cur.title + ' · ' + SITE.name; }
     else { setView('home'); drawHome('home'); }
     document.title = title; window.scrollTo(0, 0);
     if (SITE.repo) { var rl = $('repolink'); rl.hidden = false; rl.href = SITE.repo; }
-    if (SITE.other) { var sw = $('langsw'); sw.hidden = false; sw.textContent = SITE.other[0]; sw.href = SITE.other[1] + (location.hash || ''); }
+    if (SITE.other) { var sw = $('langsw'); sw.hidden = false; sw.textContent = SITE.other[0]; sw.href = BASE === null ? SITE.other[1] + (location.hash || '') : new URL(SITE.other[1], location.origin + BASE).pathname + pathOf(h).slice(BASE.length); }
   }
   function crumbs(box, parts) {
     var d = el('div', 'crumbs');
@@ -771,7 +788,9 @@ var Lab = (function () {
     $('t-lab').addEventListener('click', function () { nav('study'); });
     $('t-quiz').addEventListener('click', function () { nav('quiz'); });
     loadState(); startGloss(); startQuizTab();
-    window.addEventListener('hashchange', route);
+    window.addEventListener('hashchange', route); window.addEventListener('popstate', route);
+    // 스크립트 없이 읽는 프로그램을 위해 페이지에 미리 적어 둔 글(#pre)은 화면이 그려지면 필요 없다
+    var pre = $('pre'); if (pre) pre.parentNode.removeChild(pre);
     route();
   }
   // ── 그림: 실습이 draw(P, sim, shown, t)로 장면(영역, 상자, 글자, 화살표)을 적으면,

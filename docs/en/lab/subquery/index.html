@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subqueries: Why does NOT IN return no rows at all? · Dev Learning Lab</title>
+<meta name="description" content="A subquery is another SELECT placed inside a SELECT statement, in parentheses. There are several kinds: one that returns a single value, one that returns…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/subquery/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/subquery/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/subquery/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Subqueries: Why does NOT IN return no rows at all? · Dev Learning Lab">
+<meta property="og:description" content="A subquery is another SELECT placed inside a SELECT statement, in parentheses. There are several kinds: one that returns a single value, one that returns…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/subquery/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › SQL</p>
+<h1>Subqueries</h1>
+<p><b>Why does NOT IN return no rows at all?</b></p>
+<p>A subquery is another SELECT placed inside a SELECT statement, in parentheses. There are several kinds: one that returns a single value, one that returns a list (IN), one that only checks whether a row exists (EXISTS), and one that is run again for every outer row (a correlated subquery). Run each one on the member and orders tables, and see how NOT IN and NOT EXISTS differ when one of the orders has a NULL.</p>
+<p>Checked against real execution · The SQL for the 36 combinations was run as is on MySQL 8.4.11, and the error numbers, every row of the results, the select_type in EXPLAIN, and the number of times a correlated subquery was run (EXPLAIN ANALYZE) were checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Subquery</dt>
+<dd>A SELECT statement that is contained inside another SQL statement. It can be used in the SELECT clause to compute a single value, in the FROM clause like a temporary table, and in the WHERE clause as the thing a condition compares against. A correlated subquery, which refers to columns of the outer query, can run once for each outer row, so watch its performance.</dd>
+<dt>Scalar subquery</dt>
+<dd>A subquery that returns a single value (one row and one column). You can use it where a value is expected, as in WHERE id = (SELECT ...), and also where a column goes in the SELECT list. If it returns two or more rows, MySQL rejects the statement with error 1242 (Subquery returns more than 1 row). If it returns 0 rows, the result is NULL, not an error, so a comparison is never true and the result quietly becomes empty. Even if the current data gives one row, there is no guarantee that it always will, so write the condition so that only one row comes out, or use IN.</dd>
+<dt>Correlated subquery</dt>
+<dd>A subquery that uses a column of the outer query. The value of that column differs for each outer row, so the subquery cannot be run by itself. It is run again with that value every time an outer row is fixed. In MySQL EXPLAIN, its select_type is shown as DEPENDENT SUBQUERY. When there are many outer rows, the subquery is also run that many times and can be slow. However, the optimizer sometimes rewrites an EXISTS or IN subquery as a join, so a statement that has the shape of a correlated subquery is not necessarily run once for every row.</dd>
+<dt>IN and EXISTS</dt>
+<dd>Both are conditions that filter the outer rows by the result of a subquery. IN compares an outer value with the list that the subquery returns, and EXISTS only looks at whether the subquery returns even one row. Their negations, NOT IN and NOT EXISTS, handle NULL differently. If the list has even one NULL, NOT IN cannot be true for any row, so the result is 0 rows. NOT EXISTS only asks whether a row exists, so a NULL does not affect it. So for &quot;finding what is missing&quot;, use NOT EXISTS, or filter out the NULLs in the subquery of NOT IN.</dd>
+<dt>NULL and three-valued logic</dt>
+<dd>NULL stands for &quot;no value&quot; or &quot;unknown&quot;, not for 0 or an empty string. A comparison with NULL (=, &lt;&gt;, &lt;, and so on) is neither true nor false but &quot;unknown&quot; (UNKNOWN), so a condition in SQL has three values: true, false, and unknown. WHERE and HAVING keep only the rows for which the condition is true, so a row for which it is unknown is removed, just like a row for which it is false. NOT applied to unknown is still unknown. To check for NULL, use IS NULL and IS NOT NULL, not = NULL.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The NOT IN list contains a NULL. The result is 0 rows.</li>
+<li><b>The same thing with NOT EXISTS</b> — Even with the NULL, the members with no orders come out correctly.</li>
+<li><b>NOT IN when there is no NULL</b> — As expected, the 1 member with no orders comes out.</li>
+<li><b>Two rows where one value is expected</b> — The subquery returns 2 rows, so error 1242 occurs.</li>
+<li><b>Zero rows where one value is expected</b> — It becomes NULL without an error, so the result is 0 rows.</li>
+<li><b>Correlated subquery</b> — The subquery is run again for each of the 4 outer rows.</li>
+<li><b>IN and NULL</b> — With IN, the result is the same even if the list contains a NULL.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>CREATE TABLE, INSERT: There are 4 members and 5 orders. Alice placed 2 orders, Bob and Carol placed 1 each, and Dave has no orders. Order 105 is a guest order, so its member_id is NULL.</li>
+<li>(SELECT member_id FROM orders): The subquery in parentheses does not use any value from the outer query, so it can be run by itself. It returns the list 1, 1, 2, 3, NULL, which is the member_id of each order. The list contains a NULL because of the guest order.</li>
+<li>Alice (id 1) NOT IN (1, 1, 2, 3, NULL): The list contains 1, so IN is true and NOT IN is false. The row is removed.</li>
+<li>Bob (id 2) NOT IN (1, 1, 2, 3, NULL): The list contains 2, so IN is true and NOT IN is false. The row is removed.</li>
+<li>Carol (id 3) NOT IN (1, 1, 2, 3, NULL): The list contains 3, so IN is true and NOT IN is false. The row is removed.</li>
+<li>Dave (id 4) NOT IN (1, 1, 2, 3, NULL): NOT IN means &quot;different from every value in the list&quot;. The value 4 is different from 1, 2, and 3, but it is not known whether it is different from NULL. If even one comparison is unknown, the whole condition becomes &quot;unknown&quot;, and WHERE keeps only the rows for which it is true, so Dave, who has no orders, is removed too.</li>
+<li>EXPLAIN: The select_type of the subquery row is SUBQUERY. It does not depend on the outer row, so the list is built only once, and each outer row is compared with that list.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Result: Rows: 0. The select_type in EXPLAIN is SUBQUERY.</li>
+<li>If the NOT IN list contains even one NULL, the result is always 0 rows. An empty result comes out with no error and no warning, so it is hard to notice. Add WHERE member_id IS NOT NULL to the subquery (then Dave comes out), or rewrite the statement with NOT EXISTS.</li>
+</ul>
+<h2>Code</h2>
+<pre>CREATE TABLE member (
+  id   INT PRIMARY KEY,
+  name VARCHAR(20) NOT NULL
+);
+CREATE TABLE orders (
+  id        INT PRIMARY KEY,
+  member_id INT,
+  item      VARCHAR(30) NOT NULL
+);
+
+INSERT INTO member (id, name) VALUES
+  (1, 'Alice'),
+  (2, 'Bob'),
+  (3, 'Carol'),
+  (4, 'Dave');
+INSERT INTO orders (id, member_id, item) VALUES
+  (101, 1, 'keyboard'),
+  (102, 1, 'mouse'),
+  (103, 2, 'keyboard'),
+  (104, 3, 'monitor'),
+  (105, NULL, 'chair');
+
+SELECT name
+  FROM member
+ WHERE id NOT IN (SELECT member_id
+                    FROM orders)
+ ORDER BY id;</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a small example with 4 members and 4 or 5 orders. For all 36 combinations (6 shapes × with or without the NULL order × 3 items to look for; the item to look for changes the statement only in the &quot;single value&quot; shape), the SQL shown on the screen was run as is on a real MySQL 8.4.11, and the error numbers and messages, every row of the result, the result of running only the subquery in parentheses on its own, and the select_type in EXPLAIN were checked against the model and matched. That a correlated subquery is run for every outer row was confirmed by the loops of the subquery part in EXPLAIN ANALYZE being equal to the number of outer rows (4), and that the subquery of NOT IN is run only once was confirmed by &quot;run only once&quot; being shown in EXPLAIN ANALYZE. The steps on the screen are a logical explanation that follows the meaning of the condition, and they may differ from how MySQL actually runs the statement. The MySQL 8.4 optimizer ran IN and EXISTS subqueries as semijoins and NOT EXISTS as an antijoin, which is why select_type came out as SIMPLE. This rewriting depends on the version, the settings (optimizer_switch), and the amount of data, and the EXPLAIN of the same statement sometimes also showed a MATERIALIZED row. When the members and orders were increased to 1,000 rows each, the select_type classification was the same. Versions before MySQL 8.0.16 do not rewrite EXISTS subqueries as semijoins, so they may show DEPENDENT SUBQUERY (this part follows the MySQL documentation, not execution). NOT IN came out as SUBQUERY instead of being rewritten as a join because member_id is a column that allows NULL. For a table where member_id was declared NOT NULL, the same NOT IN statement came out as SIMPLE (antijoin), which was confirmed by running it. Apart from select_type, the result rows and errors follow the definition of SQL, so they are the same in other databases. Among the contents of the summary, &quot;if you use IN instead of =, Alice and Bob come out&quot;, &quot;LEFT JOIN and GROUP BY give the same result&quot;, and &quot;if you add IS NOT NULL to the subquery, Dave comes out&quot; were also run separately on the same MySQL and confirmed. That a subquery in the place of a single value becomes NULL when it returns 0 rows agrees between the explanation in the MySQL documentation and the execution result (0 rows, no error).</p>
+<p>Previous lab: <a href="../../lab/join/">JOIN and GROUP BY</a> · Next lab: <a href="../../lab/windowfn/">Window functions</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

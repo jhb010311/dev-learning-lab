@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI/CD pipelines: You push code, and a machine checks and deploys it for you · Dev Learning Lab</title>
+<meta name="description" content="Between changing code and getting it onto the production server, there are steps: build, test, package, and deploy. When people do these steps by hand, th…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cicd/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cicd/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cicd/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="CI/CD pipelines: You push code, and a machine checks and deploys it for you · Dev Learning Lab">
+<meta property="og:description" content="Between changing code and getting it onto the production server, there are steps: build, test, package, and deploy. When people do these steps by hand, th…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/cicd/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Deployment and operations</p>
+<h1>CI/CD pipelines</h1>
+<p><b>You push code, and a machine checks and deploys it for you</b></p>
+<p>Between changing code and getting it onto the production server, there are steps: build, test, package, and deploy. When people do these steps by hand, they skip some, or each person does them differently. Compare doing it by hand, automating only the checks (CI), and automating the deployment as well (CD), and see where code with a problem gets caught.</p>
+<p>Conceptual model · A conceptual model (not checked against real tools)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>CI/CD</dt>
+<dd>CI (continuous integration) means merging code changes often and automatically running a build and tests on every merge to find problems early. CD (continuous delivery or continuous deployment) means using an automated process to get verified code into a deployable state or to deploy it all the way to production. Automating the build, test, and deployment work that people used to do by hand reduces mistakes and shortens the release cycle.</dd>
+<dt>Unit tests and integration tests</dt>
+<dd>A unit test verifies the behavior of a single method or class in isolation from other parts. It runs fast and makes the cause of a failure easy to find. An integration test actually connects several components (such as the Spring container and a database) and verifies that they work together. It is closer to reality but slow. The usual approach is to have many unit tests and to keep integration tests focused on the core flows.</dd>
+<dt>Code review and pull requests</dt>
+<dd>A pull request (PR) is a request to merge the changes on a working branch into the base branch. Code review is the process in which other developers examine the changes before they are merged. It finds defects early, keeps the code consistent, and shares knowledge within the team.</dd>
+<dt>Health check (liveness, readiness)</dt>
+<dd>A periodic check of whether a server is healthy. Liveness checks whether the process is alive, so that it is restarted if there is a problem. Readiness checks whether the server is ready to take requests, so that traffic is not sent to a server that is not ready. This keeps requests from reaching a server while it is starting up or shutting down.</dd>
+<dt>Rolling, blue-green, and canary deployments</dt>
+<dd>Ways to deploy a new version without interrupting the service. A rolling deployment replaces servers with the new version a few at a time, in turn. A blue-green deployment prepares a complete, separate environment for the new version and then switches the traffic all at once. A canary deployment applies the new version to only some users first, checks that there are no problems, and then expands it gradually.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Deploying by hand. The tests are skipped, and an outage occurs in production.</li>
+<li><b>With CI</b> — The same change is stopped at the test stage.</li>
+<li><b>Code that works only on my PC</b> — It shows up only when you run it in a clean environment.</li>
+<li><b>A problem the tests cannot catch, CI only</b> — A person deploys, and a person rolls back.</li>
+<li><b>A problem the tests cannot catch, CI/CD</b> — The health check after deployment catches it, and it is rolled back automatically.</li>
+<li><b>When there is no problem</b> — Compare how much work is left for people.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The developer builds on their own PC.</li>
+<li>The developer was in a hurry and did not run the tests. Whether the tests get run depends on a person's memory and effort.</li>
+<li>The built file is copied to the production server and the server is restarted. Only that developer knows what code was uploaded.</li>
+<li>An existing feature went to production broken. You find out from reports from users. The developer has to find the cause, find the previous file, and upload it again.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Where the problem was found: Production (reported by users). Impact on production users: Outage.</li>
+<li>When you do it by hand, you can skip the checking steps, and nobody knows they were skipped. The problem is found in the most expensive place, production.</li>
+<li>What a pipeline filters out is limited to problems that tests and checks can confirm. A bug in a feature that has no tests passes even with CI.</li>
+</ul>
+<h2>Code</h2>
+<pre># The developer types this directly on their own PC
+./gradlew build -x test      # skips the tests because of a rush
+scp build/libs/app.jar prod-server:/app/
+ssh prod-server &quot;systemctl restart app&quot;
+
+# No record is left of who uploaded what code, or when</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a model made to explain the concept, and it is not a result checked by running real CI/CD tools. In &quot;By hand&quot;, skipping the tests assumes a common accident; if you run the tests when working by hand, you can catch the same problem. The automatic rollback when the health check fails is the behavior you get when the pipeline and the deployment tool are configured that way. The workflow in the code is an example to show the structure; steps that real use needs, such as authentication and caching, are left out.</p>
+<p>Previous lab: <a href="../../lab/gateway/">Gateway and gradual migration</a> · Next lab: <a href="../../lab/deploy/">Deployment strategies</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

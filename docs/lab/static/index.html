@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>static과 인스턴스: b만 건드렸는데 왜 a의 값도 바뀌나 · 개발 학습 실습실</title>
+<meta name="description" content="필드 앞에 static을 붙이면 그 필드는 객체가 아니라 클래스에 하나만 생기고, 모든 객체가 그 하나를 함께 씁니다. static을 붙이지 않은 인스턴스 필드는 객체마다 따로 생깁니다. static 메서드는 객체 없이 불리므로, 그 안에서는 인스턴스 필드와 this를 쓸 수…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/static/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/static/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/static/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="static과 인스턴스: b만 건드렸는데 왜 a의 값도 바뀌나 · 개발 학습 실습실">
+<meta property="og:description" content="필드 앞에 static을 붙이면 그 필드는 객체가 아니라 클래스에 하나만 생기고, 모든 객체가 그 하나를 함께 씁니다. static을 붙이지 않은 인스턴스 필드는 객체마다 따로 생깁니다. static 메서드는 객체 없이 불리므로, 그 안에서는 인스턴스 필드와 this를 쓸 수…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/static/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
+<h1>static과 인스턴스</h1>
+<p><b>b만 건드렸는데 왜 a의 값도 바뀌나</b></p>
+<p>필드 앞에 static을 붙이면 그 필드는 객체가 아니라 클래스에 하나만 생기고, 모든 객체가 그 하나를 함께 씁니다. static을 붙이지 않은 인스턴스 필드는 객체마다 따로 생깁니다. static 메서드는 객체 없이 불리므로, 그 안에서는 인스턴스 필드와 this를 쓸 수 없습니다.</p>
+<p>실행으로 대조 · JDK 21에서 서른 가지 조합을 컴파일하고 실행해 컴파일 결과와 출력을 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>static</dt>
+<dd>인스턴스가 아니라 클래스에 속하는 멤버임을 나타내는 키워드다. static 필드는 클래스당 하나만 존재해 모든 인스턴스가 공유하고, static 메서드는 객체를 만들지 않고 호출한다. 값이 바뀌는 static 필드는 사실상 전역 변수이므로 여러 스레드가 동시에 접근할 때 문제가 되기 쉽다.</dd>
+<dt>클래스와 객체</dt>
+<dd>클래스는 어떤 필드(데이터)와 메서드(동작)를 가질지 적어 둔 설계도이고, 객체는 그 설계도로 new를 해서 메모리(힙)에 실제로 만든 것이다. 객체를 인스턴스라고도 부른다. 클래스 하나로 객체를 여러 개 만들 수 있고, 객체마다 필드 값을 따로 가진다. 변수에는 객체 자체가 아니라 객체가 있는 곳을 가리키는 참조가 담긴다.</dd>
+<dt>인스턴스 멤버와 static 멤버</dt>
+<dd>인스턴스 멤버는 static을 붙이지 않은 필드와 메서드로, 객체에 속한다. 인스턴스 필드는 객체마다 따로 생기고, 인스턴스 메서드는 a.hit()처럼 객체를 대상으로 불러야 한다. static 멤버는 클래스에 속해서 객체 없이 클래스이름.멤버로 쓴다. static 메서드 안에는 대상 객체가 없으므로 인스턴스 필드, 인스턴스 메서드, this를 이름만으로 쓸 수 없고, 쓰면 컴파일 오류가 난다. 반대로 인스턴스 메서드 안에서는 static 멤버를 자유롭게 쓸 수 있다.</dd>
+<dt>this</dt>
+<dd>인스턴스 메서드나 생성자 안에서 지금 다루고 있는 객체 자신을 가리키는 참조다. this.name처럼 써서 같은 이름의 매개변수와 필드를 구분한다. 생성자의 첫 문장으로 this(인자)를 쓰면 같은 클래스의 다른 생성자를 먼저 실행한다. static 메서드에는 대상 객체가 없으므로 this를 쓸 수 없다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — count가 static입니다. a.hit() 2번, b.hit() 1번인데 둘 다 3이 나옵니다.</li>
+<li><b>static을 떼면</b> — 객체마다 자기 count를 가집니다. 2와 1이 나옵니다.</li>
+<li><b>static 메서드에서 인스턴스 필드를 쓰면</b> — 어느 객체의 count인지 알 수 없어 컴파일 오류입니다.</li>
+<li><b>static 메서드에서 static 필드를 쓰면</b> — 객체 없이 Counter.report()로 값을 읽습니다.</li>
+<li><b>static 메서드에서 this를 쓰면</b> — count가 static이어도 this는 쓸 수 없습니다.</li>
+<li><b>객체를 만들기 전에 Counter.count</b> — 객체가 하나도 없어도 static 필드는 있습니다.</li>
+<li><b>객체 없이 Counter.hit()</b> — 인스턴스 메서드는 클래스 이름으로 부를 수 없습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>컴파일: Counter의 선언을 읽습니다. count는 static 필드라서 클래스에 하나만 있고, hit()은 static이 붙지 않은 인스턴스 메서드라서 a.hit()처럼 객체를 대상으로 부릅니다.</li>
+<li>실행 시작: Counter 클래스가 처음 쓰일 때 클래스가 준비됩니다. static 필드 count가 클래스에 하나 만들어지고 기본값 0이 들어갑니다. 아직 객체는 하나도 없습니다.</li>
+<li>Counter a = new Counter(): 힙에 객체가 하나 만들어지고 a가 그것을 가리킵니다. count는 static이라 객체 안에 들어가지 않습니다. 이 객체에는 자기만의 count가 없습니다.</li>
+<li>Counter b = new Counter(): 두 번째 객체가 만들어지고 b가 그것을 가리킵니다. b에도 자기만의 count는 없습니다. count는 여전히 클래스에 하나뿐입니다.</li>
+<li>a.hit(): hit() 안의 count++가 실행됩니다. count는 static 필드이므로 클래스에 하나뿐인 count가 1 늘어납니다. 이제 값은 1입니다.</li>
+<li>a.hit(): hit() 안의 count++가 실행됩니다. count는 static 필드이므로 클래스에 하나뿐인 count가 1 늘어납니다. 이제 값은 2입니다.</li>
+<li>b.hit(): hit() 안의 count++가 실행됩니다. b를 대상으로 불렀지만 count는 static 필드이므로, a.hit()이 올려 둔 바로 그 count가 이어서 올라갑니다. 이제 값은 3입니다.</li>
+<li>System.out.println(a.count + &quot; &quot; + b.count): a.count와 b.count는 적힌 모양만 다를 뿐 둘 다 클래스에 하나뿐인 count를 읽습니다. 객체 변수로 static 필드를 읽으면 변수의 타입인 Counter의 static 필드가 읽힙니다. 출력은 3 3입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>a.count와 b.count의 출력은 3 3입니다.</li>
+<li>static 필드는 클래스에 하나뿐이라 모든 객체가 같은 값을 봅니다. a.hit() 2번과 b.hit() 1번이 같은 count를 올려서, 어느 객체로 읽어도 합계인 3입니다.</li>
+<li>a.count처럼 객체 변수로 static 필드를 쓰면 객체마다 따로 있는 값처럼 보여 헷갈립니다. static 멤버는 Counter.count처럼 클래스 이름으로 쓰는 것이 원칙입니다.</li>
+<li>객체마다 달라야 하는 값(이름, 수량)은 인스턴스 필드로, 클래스 전체에 하나면 되는 값(상수, 만들어진 객체 수)은 static 필드로 둡니다. 선언에서 static을 떼고 결과를 비교해 보세요.</li>
+</ul>
+<h2>코드</h2>
+<pre>class Counter {
+    static int count;              // static 필드: 클래스에 하나
+
+    void hit() {                   // 인스턴스 메서드
+        count++;
+    }
+}
+
+Counter a = new Counter();
+Counter b = new Counter();
+a.hit();
+a.hit();
+b.hit();
+System.out.println(a.count + &quot; &quot; + b.count);</pre>
+<h2>이 모형의 전제</h2>
+<p>서른 가지 조합을 이 PC의 JDK 21에서 같은 코드로 실제로 컴파일하고 실행해, 컴파일 결과와 오류 메시지, 출력을 대조했습니다. 요약에서 고치는 방법으로 든 &quot;객체를 인자로 받는 static 메서드&quot;가 컴파일되고 실행된다는 것, 객체 변수로 static 필드를 읽을 때 객체가 쓰이지 않는다는 것(null인 변수로 읽어도 예외가 나지 않음)도 실행으로 확인했습니다. 단순화한 점: 그림의 &quot;클래스&quot; 영역은 JVM이 클래스 정보를 두는 곳을 뭉뚱그린 것이며, static 필드가 메모리의 정확히 어디에 놓이는지는 JVM 구현에 따라 다릅니다. 클래스가 준비되는 정확한 시점(처음으로 객체를 만들거나 static 멤버를 쓸 때)은 &quot;실행 시작&quot; 한 단계로 줄였습니다. a.count처럼 객체 변수로 static 필드를 쓰는 코드는 컴파일되지만 권장되지 않으며, 공유된다는 것을 보이려고 넣었습니다. 오류 메시지는 javac의 영어 메시지 첫 줄입니다.</p>
+<p>앞 실습: <a href="../../lab/ctor/">클래스, 객체, 생성자</a> · 다음 실습: <a href="../../lab/inherit/">상속과 오버라이딩</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

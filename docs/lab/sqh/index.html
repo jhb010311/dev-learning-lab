@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스택·큐·우선순위 큐: 넣은 순서와 꺼내는 순서 · 개발 학습 실습실</title>
+<meta name="description" content="같은 숫자 다섯 개를 같은 순서로 넣어도, 자료구조에 따라 꺼내지는 순서가 다릅니다. 스택은 나중에 넣은 것부터, 큐는 먼저 넣은 것부터, 우선순위 큐는 가장 작은 것부터 나옵니다. 우선순위 큐는 내부 배열(힙)이 어떻게 바뀌는지도 함께 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/sqh/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/sqh/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/sqh/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="스택·큐·우선순위 큐: 넣은 순서와 꺼내는 순서 · 개발 학습 실습실">
+<meta property="og:description" content="같은 숫자 다섯 개를 같은 순서로 넣어도, 자료구조에 따라 꺼내지는 순서가 다릅니다. 스택은 나중에 넣은 것부터, 큐는 먼저 넣은 것부터, 우선순위 큐는 가장 작은 것부터 나옵니다. 우선순위 큐는 내부 배열(힙)이 어떻게 바뀌는지도 함께 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/sqh/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 컬렉션</p>
+<h1>스택·큐·우선순위 큐</h1>
+<p><b>넣은 순서와 꺼내는 순서</b></p>
+<p>같은 숫자 다섯 개를 같은 순서로 넣어도, 자료구조에 따라 꺼내지는 순서가 다릅니다. 스택은 나중에 넣은 것부터, 큐는 먼저 넣은 것부터, 우선순위 큐는 가장 작은 것부터 나옵니다. 우선순위 큐는 내부 배열(힙)이 어떻게 바뀌는지도 함께 보세요.</p>
+<p>실행으로 대조 · JDK 21의 실제 ArrayDeque·PriorityQueue와 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>스택, 큐, 덱</dt>
+<dd>스택은 나중에 넣은 것을 먼저 꺼내는(LIFO) 구조, 큐는 먼저 넣은 것을 먼저 꺼내는(FIFO) 구조, 덱은 양쪽 끝에서 넣고 뺄 수 있는 구조다. 자바에서는 스택과 큐 모두 ArrayDeque로 구현하는 것이 권장된다.</dd>
+<dt>힙과 우선순위 큐</dt>
+<dd>힙은 부모 노드가 자식 노드보다 항상 작거나 같은(최소 힙), 또는 크거나 같은(최대 힙) 완전 이진 트리다. 가장 작은(큰) 값을 O(1)에 확인하고 O(log n)에 꺼낼 수 있어 우선순위 큐를 구현하는 데 쓰인다. 자바의 PriorityQueue가 힙으로 구현되어 있다. JVM의 메모리 영역인 힙과는 이름만 같다.</dd>
+<dt>시간 복잡도(Big-O)</dt>
+<dd>입력 크기 n이 커질 때 알고리즘의 연산 횟수가 얼마나 빠르게 늘어나는지를 나타내는 표기다. O(1)은 크기와 무관하게 일정, O(log n)은 크기가 두 배가 되어도 한 단계만 늘어남, O(n)은 크기에 비례, O(n²)은 크기의 제곱에 비례함을 뜻한다. 데이터가 많아질 때 어떤 방식이 버티는지 판단하는 기준이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 우선순위 큐. 넣은 순서와 상관없이 작은 것부터 나옵니다.</li>
+<li><b>스택</b> — 마지막에 넣은 9가 가장 먼저 나옵니다.</li>
+<li><b>큐</b> — 넣은 순서 그대로 나옵니다.</li>
+<li><b>우선순위 큐에 내림차순으로</b> — 넣을 때마다 새 값이 맨 위까지 올라갑니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>offer(5): 배열 맨 끝에 넣은 뒤, 부모보다 작으면 자리를 바꾸며 위로 올라갑니다. 첫 값이라 맨 위에 그대로 놓입니다.</li>
+<li>offer(2): 배열 맨 끝에 넣은 뒤, 부모보다 작으면 자리를 바꾸며 위로 올라갑니다. 1번 올라가 맨 위(가장 작은 값의 자리)에 도착했습니다.</li>
+<li>offer(8): 배열 맨 끝에 넣은 뒤, 부모보다 작으면 자리를 바꾸며 위로 올라갑니다. 부모보다 작지 않아 그 자리에 머뭅니다.</li>
+<li>offer(1): 배열 맨 끝에 넣은 뒤, 부모보다 작으면 자리를 바꾸며 위로 올라갑니다. 2번 올라가 맨 위(가장 작은 값의 자리)에 도착했습니다.</li>
+<li>offer(9): 배열 맨 끝에 넣은 뒤, 부모보다 작으면 자리를 바꾸며 위로 올라갑니다. 부모보다 작지 않아 그 자리에 머뭅니다.</li>
+<li>poll(): 맨 위의 가장 작은 값 1 꺼냄. 빈 맨 위에 배열의 마지막 값을 올린 뒤, 두 자식 중 작은 쪽과 자리를 바꾸며 내려갑니다(2번 내려감).</li>
+<li>poll(): 맨 위의 가장 작은 값 2 꺼냄. 빈 맨 위에 배열의 마지막 값을 올린 뒤, 두 자식 중 작은 쪽과 자리를 바꾸며 내려갑니다(1번 내려감).</li>
+<li>poll(): 맨 위의 가장 작은 값 5 꺼냄. 빈 맨 위에 배열의 마지막 값을 올린 뒤, 두 자식 중 작은 쪽과 자리를 바꾸며 내려갑니다(0번 내려감).</li>
+<li>poll(): 맨 위의 가장 작은 값 8 꺼냄. 빈 맨 위에 배열의 마지막 값을 올린 뒤, 두 자식 중 작은 쪽과 자리를 바꾸며 내려갑니다(0번 내려감).</li>
+<li>poll(): 맨 위의 가장 작은 값 9 꺼냄. 빈 맨 위에 배열의 마지막 값을 올린 뒤, 두 자식 중 작은 쪽과 자리를 바꾸며 내려갑니다(0번 내려감).</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>넣은 순서 5, 2, 8, 1, 9 → 꺼낸 순서 1, 2, 5, 8, 9.</li>
+<li>우선순위 큐는 넣은 순서와 무관하게 가장 작은 값이 먼저 나옵니다. 내부 배열은 완전히 정렬돼 있지 않고, &quot;부모는 자식보다 작거나 같다&quot;는 조건만 지킵니다(힙). 그래서 맨 위가 항상 최솟값입니다.</li>
+<li>넣기와 꺼내기는 트리의 높이만큼만 자리를 바꾸므로 O(log n)입니다. 전체를 매번 정렬하는 것보다 훨씬 쌉니다. 작업 스케줄링, 상위 N개 구하기, 최단 경로 알고리즘에 씁니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>PriorityQueue&lt;Integer&gt; pq = new PriorityQueue&lt;&gt;();   // 작은 값이 먼저
+for (int x : List.of(5, 2, 8, 1, 9)) pq.offer(x);
+
+while (!pq.isEmpty()) System.out.print(pq.poll() + &quot; &quot;);</pre>
+<h2>이 모형의 전제</h2>
+<p>꺼낸 순서와 우선순위 큐 내부 배열의 변화는 이 PC의 JDK 21에서 실제 ArrayDeque와 PriorityQueue를 실행해 대조했습니다(내부 배열은 넣을 때마다, 꺼낼 때마다 모두 일치). PriorityQueue는 기본적으로 작은 값이 먼저 나오며, Comparator를 주면 기준을 바꿀 수 있습니다.</p>
+<p>앞 실습: <a href="../../lab/setmap/">Set과 Map의 종류</a> · 다음 실습: <a href="../../lab/cme/">순회 중 삭제</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

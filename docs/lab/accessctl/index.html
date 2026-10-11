@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>접근 제어: 로그인한 사용자가 주소의 번호만 바꾸면 남의 주문이 보이나 · 개발 학습 실습실</title>
+<meta name="description" content="로그인했다는 것은 &quot;누구인지 확인됐다&quot;(인증)는 뜻일 뿐, &quot;이 자원을 봐도 된다&quot;(인가)는 뜻이 아닙니다. kim이 로그인한 뒤 주소의 주문 번호만 바꿔 lee의 주문을 요청하면 어떻게 될까요. 서버가 무엇을 확인하느냐에 따라 그대로 보이기도 하고 거절되기도 합니다. 서버의…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/accessctl/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/accessctl/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/accessctl/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="접근 제어: 로그인한 사용자가 주소의 번호만 바꾸면 남의 주문이 보이나 · 개발 학습 실습실">
+<meta property="og:description" content="로그인했다는 것은 &quot;누구인지 확인됐다&quot;(인증)는 뜻일 뿐, &quot;이 자원을 봐도 된다&quot;(인가)는 뜻이 아닙니다. kim이 로그인한 뒤 주소의 주문 번호만 바꿔 lee의 주문을 요청하면 어떻게 될까요. 서버가 무엇을 확인하느냐에 따라 그대로 보이기도 하고 거절되기도 합니다. 서버의…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/accessctl/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 인가</p>
+<h1>접근 제어</h1>
+<p><b>로그인한 사용자가 주소의 번호만 바꾸면 남의 주문이 보이나</b></p>
+<p>로그인했다는 것은 &quot;누구인지 확인됐다&quot;(인증)는 뜻일 뿐, &quot;이 자원을 봐도 된다&quot;(인가)는 뜻이 아닙니다. kim이 로그인한 뒤 주소의 주문 번호만 바꿔 lee의 주문을 요청하면 어떻게 될까요. 서버가 무엇을 확인하느냐에 따라 그대로 보이기도 하고 거절되기도 합니다. 서버의 확인 방식과 요청하는 사람, 주문 번호를 바꿔 가며 응답을 비교합니다.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버를 127.0.0.1에 띄워 서른 가지 조합의 응답 코드와 본문을 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>인증과 인가</dt>
+<dd>인증(Authentication)은 사용자가 누구인지 확인하는 것이고, 인가(Authorization)는 확인된 사용자가 특정 자원이나 기능을 사용할 권한이 있는지 판단하는 것이다. 인증이 먼저 이뤄지고 그 결과를 바탕으로 인가를 판단한다. HTTP 상태 코드로는 인증 실패가 401, 인가 실패가 403에 해당한다.</dd>
+<dt>접근 제어와 소유자 확인</dt>
+<dd>접근 제어는 확인된 사용자가 어떤 자원을 보거나 바꿔도 되는지를 서버가 정하고 지키게 하는 일이다. 로그인했는지만 확인하고 자원의 주인을 확인하지 않으면, 주소나 요청에 든 번호만 바꿔 다른 사람의 자원을 볼 수 있다. 이런 취약점을 IDOR(안전하지 않은 직접 객체 참조)라고 부른다. 막으려면 자원을 조회한 뒤 그 자원의 주인과 지금 로그인한 사용자를 서버 코드에서 비교하거나, 처음부터 &quot;내 것 가운데에서만&quot; 조회한다. 화면에서 버튼이나 링크를 숨기는 것은 접근 제어가 아니며, 확인은 반드시 서버에서 요청마다 한다.</dd>
+<dt>역할 기반 접근 제어(RBAC)</dt>
+<dd>사용자에게 USER, ADMIN 같은 역할을 주고, 역할마다 할 수 있는 일을 정해 두는 방식이다. 스프링 시큐리티에서는 hasRole(&quot;ADMIN&quot;)처럼 주소나 메서드에 필요한 역할을 적는다. 규칙이 단순하고 한곳에서 관리하기 쉽지만, 역할은 &quot;어떤 종류의 사용자인가&quot;만 말해 주므로 같은 역할을 가진 두 사용자를 구별하지 못한다. 그래서 &quot;자기 주문만 볼 수 있다&quot; 같은 규칙은 역할만으로는 표현할 수 없고, 자원의 주인을 비교하는 확인을 함께 써야 한다.</dd>
+<dt>HTTP 상태 코드</dt>
+<dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
+<dt>Spring Security와 SecurityFilterChain</dt>
+<dd>Spring Security는 인증과 인가를 처리하는 스프링의 보안 프레임워크로, 서블릿 필터들의 묶음으로 동작한다. SecurityFilterChain은 어떤 요청에 어떤 보안 필터들을 어떤 순서로 적용할지 정의한 것이다. 요청이 컨트롤러에 도달하기 전에 필터들이 차례로 인증 정보 확인, 권한 검사 등을 수행한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 로그인만 확인하는 서버입니다. 번호만 바꿨는데 lee의 주문이 그대로 보입니다.</li>
+<li><b>역할로 막아 보면</b> — kim도 USER라서 통과합니다. 역할은 누구의 주문인지 모릅니다.</li>
+<li><b>주인인지 확인하면</b> — 주문의 주인과 로그인한 사용자가 달라 403으로 거절됩니다.</li>
+<li><b>없는 번호를 넣으면</b> — 404입니다. 2번은 403이었으니, 2번 주문이 있다는 것은 드러납니다.</li>
+<li><b>남의 것도 404로 답하면</b> — 없는 주문과 구별되지 않아, 있는지조차 알 수 없습니다.</li>
+<li><b>고객센터 직원이 조회하면</b> — 주인이 아니어도 ADMIN 역할로 허용됩니다.</li>
+<li><b>역할 규칙이 직원을 막는 경우</b> — 컨트롤러가 실행되기도 전에 403입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>kim이 로그인한 상태로 GET /orders/2 요청을 보냅니다. kim의 주문은 1번이고 2번은 lee의 주문입니다. 주소의 번호만 2로 바꿔 본 것입니다.</li>
+<li>인증: 서버가 요청에 실린 로그인 정보를 확인해, 보낸 사람이 kim이고 역할이 USER임을 알아냅니다. 여기까지는 &quot;누구인가&quot;만 확인한 것입니다. 2번 주문을 봐도 되는지는 아직 아무도 따지지 않았습니다.</li>
+<li>.anyRequest().authenticated(): URL 규칙은 로그인한 사용자인지만 봅니다. kim은 로그인했으므로 통과합니다. 이 규칙은 주소 끝의 2번이 누구의 주문인지 알지 못합니다.</li>
+<li>orders.findById(2): 컨트롤러가 번호로 주문을 조회합니다. lee의 주문이 나옵니다.</li>
+<li>return o: 조회한 주문을 그대로 돌려줍니다. 주문의 주인(lee)과 로그인한 사용자(kim)를 비교하는 코드가 어디에도 없습니다.</li>
+<li>응답은 200 OK이고, 본문에 lee의 주문(상품과 배송지 주소)이 담겨 kim에게 갑니다. 로그인은 정상적으로 했고 서버의 모든 규칙을 통과했는데, 남의 주문이 보였습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>응답은 200 OK이고, 본문에 담긴 주문은 &quot;lee의 주문 (다른 회원)&quot;입니다.</li>
+<li>인증(누구인지 확인)과 인가(이 자원을 봐도 되는지 확인)는 서로 다른 일입니다. 로그인만 확인하는 서버에서는 주소의 번호만 바꿔 남의 자원을 볼 수 있습니다. 번호가 1, 2, 3처럼 이어져 있으면 차례로 넣어 보는 것만으로 다른 사람의 주문이 모두 드러납니다. 자원을 돌려주기 전에 &quot;이 자원의 주인이 지금 로그인한 사용자인가&quot;를 서버 코드에서 확인해야 합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 주문 1번의 주인은 kim, 2번의 주인은 lee다. 99번 주문은 없다.
+// kim과 lee의 역할은 USER, park의 역할은 ADMIN이다.
+
+@Bean
+SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    return http
+        .authorizeHttpRequests(a -&gt; a
+            .anyRequest().authenticated())                 // 로그인했는지만 본다
+        .httpBasic(Customizer.withDefaults())              // 로그인 방법 (무엇이든 결과는 같다)
+        .build();
+}
+
+@GetMapping(&quot;/orders/{id}&quot;)
+Order one(@PathVariable long id, Authentication auth) {     // auth: 지금 로그인한 사용자
+    Order o = orders.findById(id)
+        .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND));
+    return o;                                 // 누구의 주문인지 확인하지 않는다
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>서른 가지 조합 모두를 이 PC에서 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버를 127.0.0.1에 띄우고 화면과 같은 구조의 코드로 실행해, 응답 코드와 본문에 담긴 주문의 주인, 컨트롤러가 실행됐는지, 코드의 어느 갈래에서 판단이 났는지를 대조했습니다. 주문 저장소는 데이터베이스 대신 메모리의 표로 만들었고, 로그인 방법은 HTTP Basic을 썼습니다(세션이나 토큰으로 로그인해도 인가의 결과는 같습니다). 로그인하지 않은 요청은 어느 방식에서나 401이 나오는 것을 같은 서버에서 확인했으며, 그 내용은 &quot;시큐리티 필터 체인&quot; 실습에서 다룹니다. 남의 자원에 403 대신 404로 답해 자원이 있다는 사실을 숨길 수 있다는 것은 RFC 9110 15.5.4절(403)과 15.5.5절(404)에 적힌 내용입니다. 403과 404 가운데 무엇이 옳은지는 정해져 있지 않고 서비스가 고르는 것입니다. 실제 서비스에서는 응답 코드 외에 응답 시간의 차이로도 자원이 있는지 드러날 수 있는데, 이 실습에서는 다루지 않았습니다. 소유자 확인을 컨트롤러에 적었지만 서비스 계층에 두거나 메서드 보안(@PreAuthorize, @PostAuthorize)으로 적기도 하며, 그 내용은 &quot;메서드 보안&quot; 실습에서 이어집니다. 주문 번호를 추측하기 어려운 값(UUID 등)으로 바꾸는 것은 번호를 짐작하기 어렵게 할 뿐 소유자 확인을 대신하지 못합니다. 이 문장은 일반적인 보안 권고(OWASP의 Broken Access Control 설명)를 따른 것이며 실행으로 확인한 내용이 아닙니다.</p>
+<p>앞 실습: <a href="../../lab/security/">시큐리티 필터 체인</a> · 다음 실습: <a href="../../lab/methodsec/">메서드 보안</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

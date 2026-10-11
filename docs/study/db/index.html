@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DB · 개발 학습 실습실</title>
+<meta name="description" content="테이블 설계와 SQL, 인덱스와 실행 계획, 트랜잭션과 잠금, 복제와 분산까지. 데이터가 저장되고 조회되는 과정을 봅니다.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/study/db/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/study/db/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/study/db/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="DB · 개발 학습 실습실">
+<meta property="og:description" content="테이블 설계와 SQL, 인덱스와 실행 계획, 트랜잭션과 잠금, 복제와 분산까지. 데이터가 저장되고 조회되는 과정을 봅니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/study/db/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a></p>
+<h1>DB</h1>
+<p>테이블 설계와 SQL, 인덱스와 실행 계획, 트랜잭션과 잠금, 복제와 분산까지. 데이터가 저장되고 조회되는 과정을 봅니다.</p>
+<h2>관계형 모델과 설계</h2>
+<ul>
+<li><a href="../../lab/constraints/">테이블, 키, 제약 조건</a> — 제약 조건이 없으면 어떤 데이터가 들어가 버리나</li>
+<li><a href="../../lab/ermodel/">ER 모델링</a> — 개체 사이의 관계를 테이블로 어떻게 옮기나</li>
+<li><a href="../../lab/normal/">정규화</a> — 테이블을 나누지 않으면 무슨 일이 생기나</li>
+</ul>
+<h2>SQL</h2>
+<ul>
+<li><a href="../../lab/selectorder/">SELECT가 처리되는 순서</a> — WHERE에서는 왜 별칭과 집계 함수를 쓸 수 없나</li>
+<li><a href="../../lab/join/">JOIN과 GROUP BY</a> — 조건을 ON에 쓰느냐 WHERE에 쓰느냐</li>
+<li><a href="../../lab/subquery/">서브쿼리</a> — NOT IN의 결과가 왜 한 행도 없나</li>
+<li><a href="../../lab/windowfn/">윈도우 함수</a> — 행을 줄이지 않고 순위와 누계를 붙이려면</li>
+<li><a href="../../lab/paging/">OFFSET과 키셋 페이징</a> — 뒤쪽 페이지일수록 느려지는 이유</li>
+<li><a href="../../lab/viewproc/">뷰, 프로시저, 트리거</a> — INSERT 한 줄을 실행했는데 왜 재고가 줄었나</li>
+</ul>
+<h2>인덱스와 실행 계획</h2>
+<ul>
+<li><a href="../../lab/btree/">이진 탐색과 B-트리</a> — 정렬돼 있으면 절반씩 버릴 수 있다</li>
+<li><a href="../../lab/index/">인덱스와 풀 스캔</a> — 인덱스가 있는데 왜 안 탈까</li>
+<li><a href="../../lab/compidx/">복합·커버링 인덱스</a> — 복합 인덱스는 컬럼 순서대로만 쓸 수 있다</li>
+<li><a href="../../lab/explainplan/">실행 계획 읽기</a> — EXPLAIN 한 줄에서 무엇을 읽어야 하나</li>
+<li><a href="../../lab/joinalgo/">조인 알고리즘</a> — 조인 컬럼에 인덱스가 없으면 DB는 어떻게 짝을 찾나</li>
+</ul>
+<h2>트랜잭션과 잠금</h2>
+<ul>
+<li><a href="../../lab/tx/">트랜잭션 기본</a> — 출금은 됐는데 입금이 안 됐다면</li>
+<li><a href="../../lab/iso/">격리 수준</a> — 다른 트랜잭션이 바꾸는 중인 데이터가 내게 어떻게 보이나</li>
+<li><a href="../../lab/gaplock/">갭 락과 넥스트 키 락</a> — 없는 행을 조회했는데 왜 INSERT가 막히나</li>
+<li><a href="../../lab/stock/">재고 차감과 락</a> — 재고 3개에 주문이 동시에 몰리면</li>
+<li><a href="../../lab/dbdeadlock/">DB의 교착 상태</a> — 두 트랜잭션이 서로를 기다리면 DB는 어떻게 끝내나</li>
+</ul>
+<h2>저장과 복구</h2>
+<ul>
+<li><a href="../../lab/undoredo/">Undo와 Redo 로그</a> — 커밋 직후 전원이 꺼져도 데이터가 남는 이유</li>
+<li><a href="../../lab/bufferpool/">버퍼 풀과 페이지</a> — 행 하나를 읽는데 왜 16KB를 통째로 읽나</li>
+</ul>
+<h2>확장과 분산</h2>
+<ul>
+<li><a href="../../lab/replica/">복제 지연과 CAP</a> — 방금 저장했는데 조회하니 옛날 값이 나온다</li>
+<li><a href="../../lab/shard/">샤딩</a> — 데이터를 여러 DB에 나누면 생기는 일</li>
+<li><a href="../../lab/partition/">파티셔닝</a> — 테이블을 조각내면 조회는 어느 조각을 읽나</li>
+<li><a href="../../lab/redis/">키-값 저장소 Redis</a> — 명령 하나가 느리면 모두가 기다린다</li>
+<li><a href="../../lab/nosql/">NoSQL과 문서 모델</a> — 주문을 테이블 셋에 나눌까, 문서 하나에 담을까</li>
+</ul>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

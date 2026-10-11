@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Load balancers and scale out: How far does adding servers get you? · Dev Learning Lab</title>
+<meta name="description" content="A load balancer distributes requests across several servers, and each request uses the database once. Change the request rate, the number of servers, the…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/scale/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/scale/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/scale/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Load balancers and scale out: How far does adding servers get you? · Dev Learning Lab">
+<meta property="og:description" content="A load balancer distributes requests across several servers, and each request uses the database once. Change the request rate, the number of servers, the…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/scale/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › In front of the web server</p>
+<h1>Load balancers and scale out</h1>
+<p><b>How far does adding servers get you?</b></p>
+<p>A load balancer distributes requests across several servers, and each request uses the database once. Change the request rate, the number of servers, the server performance, and the database limit, and see which part reaches its limit first (the bottleneck). You can also kill one of the servers.</p>
+<p>Conceptual model · Example numbers chosen to show the relationships</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Scale up and scale out</dt>
+<dd>Scaling up means raising the specifications (CPU, memory) of a single server to increase its capacity, and scaling out means adding more servers to share the load. Scaling up is simple but has limits and cost problems. Scaling out can grow flexibly, but the servers must be designed to hold no state, and you need something that distributes the requests.</dd>
+<dt>Load balancer</dt>
+<dd>A device that distributes incoming requests across several servers. It checks the state of the servers periodically (health check) and does not send requests to a server that has a problem. It keeps load from piling up on one server and keeps the service running even when some servers fail.</dd>
+<dt>Bottleneck</dt>
+<dd>The slowest part of a system, which limits the processing performance of the whole. No matter how much you improve the other parts, overall performance does not improve while this part stays the same. Performance improvement starts with finding it by measurement.</dd>
+<dt>Autoscaling</dt>
+<dd>A feature that automatically increases or decreases the number of servers according to metrics such as CPU utilization or request count. It adds servers when load is high and removes them when load is low to save cost. It takes time for an added server to become able to take requests, so for a surge that is known in advance it is safer to add servers ahead of time.</dd>
+<dt>TPS and response time percentiles</dt>
+<dd>TPS is the number of requests (transactions) a system handles in 1 second. For response time, the average hides the few slow requests, so you look at percentiles. A p95 of 1 second means that 95% of requests are handled within 1 second, and p99 is the same measure taken at 99%. The few slow requests shape the user experience, so manage p95 and p99 together.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — 1,000 requests per second with 2 servers. The servers cannot keep up.</li>
+<li><b>Go to 3 servers (scale out)</b> — Add one more server of the same spec.</li>
+<li><b>Double the server spec (scale up)</b> — The number of servers stays at 2; the performance of each one goes up.</li>
+<li><b>Keep adding servers</b> — 3,000 requests per second with 8 servers. This time the database becomes the bottleneck.</li>
+<li><b>1 of 3 servers fails</b> — The remaining 2 share the requests. If they have no spare capacity, they overflow together.</li>
+<li><b>Failure with only 1 server</b> — There is no server left to accept requests, so the whole service stops.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Requests arrive at the load balancer at 1000 per second. Users do not know how many servers there are; they know only the one address of the load balancer.</li>
+<li>The load balancer divides the requests evenly among the 2 live servers. Each server receives 500 requests per second. One server can handle 400 requests per second, so its load is 125%. This is over its capacity. The overflowing requests wait and then time out or are rejected.</li>
+<li>The 800 requests per second that the servers handled go on to the database. The database can handle 2000 requests per second, so its load is 40%.</li>
+<li>Result: 800 requests per second are handled and 200 are not. Bottleneck: Application server.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Of 1000 requests per second, 800 were handled (200 over the limit). The load on one server is 125%, and the load on the database is 40%.</li>
+<li>The application servers are the bottleneck. Adding more servers (scale out) or raising their spec (scale up) fixes it. Scale out keeps working when one server dies and can be continued as far as you like, but the servers must not keep things such as login state in their own memory. Scale up needs no change in structure, but it has a limit and the cost rises quickly.</li>
+</ul>
+<h2>Code</h2>
+<pre># Load balancer settings (nginx example)
+upstream app {
+    server 10.0.0.1:8080;
+    server 10.0.0.2:8080;
+}
+server {
+    listen 80;
+    location / { proxy_pass http://app; }   # passes requests to the servers in turn
+}
+
+# One server: handles 400 requests per second
+# DB: handles 2000 requests per second (1 query per request)</pre>
+<h2>Assumptions of this model</h2>
+<p>This model simplifies things: every request weighs the same, and one request uses one database query. The load balancer is assumed to divide requests evenly and to have no limit of its own (in practice, load balancers are also made redundant). Requests beyond capacity are only counted as &quot;not handled&quot;; in practice, as the load gets closer to the limit, the waiting time grows sharply first. The numbers are examples to show the relationships, not measured values.</p>
+<p>Previous lab: <a href="../../lab/tls/">TLS handshake</a> · Next lab: <a href="../../lab/revproxy/">Proxies and reverse proxies</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

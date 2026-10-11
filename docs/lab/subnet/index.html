@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IP 주소와 서브넷: 앞의 세 숫자가 같은 두 IP 주소는 같은 네트워크일까 · 개발 학습 실습실</title>
+<meta name="description" content="IP 주소는 &quot;어느 네트워크인지&quot;를 나타내는 앞부분과 &quot;그 안의 어느 기기인지&quot;를 나타내는 뒷부분으로 나뉩니다. 어디까지가 앞부분인지는 주소 뒤에 붙는 /24 같은 숫자가 정합니다. 컴퓨터는 이 숫자로 목적지가 같은 네트워크에 있는지 판단해, 직접 보낼지 게이트웨이(공유기나…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/subnet/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/subnet/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/subnet/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="IP 주소와 서브넷: 앞의 세 숫자가 같은 두 IP 주소는 같은 네트워크일까 · 개발 학습 실습실">
+<meta property="og:description" content="IP 주소는 &quot;어느 네트워크인지&quot;를 나타내는 앞부분과 &quot;그 안의 어느 기기인지&quot;를 나타내는 뒷부분으로 나뉩니다. 어디까지가 앞부분인지는 주소 뒤에 붙는 /24 같은 숫자가 정합니다. 컴퓨터는 이 숫자로 목적지가 같은 네트워크에 있는지 판단해, 직접 보낼지 게이트웨이(공유기나…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/subnet/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 주소와 이름</p>
+<h1>IP 주소와 서브넷</h1>
+<p><b>앞의 세 숫자가 같은 두 IP 주소는 같은 네트워크일까</b></p>
+<p>IP 주소는 &quot;어느 네트워크인지&quot;를 나타내는 앞부분과 &quot;그 안의 어느 기기인지&quot;를 나타내는 뒷부분으로 나뉩니다. 어디까지가 앞부분인지는 주소 뒤에 붙는 /24 같은 숫자가 정합니다. 컴퓨터는 이 숫자로 목적지가 같은 네트워크에 있는지 판단해, 직접 보낼지 게이트웨이(공유기나 라우터)에 맡길지를 정합니다.</p>
+<p>일부만 실행으로 확인 · 주소 계산과 같은 네트워크 판단 일흔두 가지 조합을 Node.js 24의 net.BlockList와 두 가지 다른 계산으로 대조. NAT는 RFC 3022에 따른 설명</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>IP 주소(IPv4)</dt>
+<dd>인터넷에서 기기를 찾아가는 데 쓰는 32비트 숫자 주소다. 사람이 읽기 쉽게 8비트씩 끊어 192.168.0.10처럼 0부터 255까지의 10진수 네 개로 적는다. 주소의 앞부분은 어느 네트워크인지를, 뒷부분은 그 네트워크 안의 어느 기기인지를 나타낸다. 어디까지가 앞부분인지는 주소만 보아서는 알 수 없고 서브넷 마스크가 함께 있어야 정해진다.</dd>
+<dt>서브넷 마스크와 CIDR</dt>
+<dd>서브넷 마스크는 IP 주소에서 네트워크 부분이 어디까지인지 알려 주는 32비트 숫자로, 네트워크 부분은 1이고 호스트 부분은 0이다. CIDR 표기는 같은 정보를 192.168.0.10/24처럼 주소 뒤에 네트워크 부분의 비트 수로 적는 방법이며, /24는 서브넷 마스크 255.255.255.0과 같은 뜻이다. 컴퓨터는 자기 주소와 목적지 주소에 같은 마스크를 적용해, 결과가 같으면 같은 네트워크로 보고 직접 보내며 다르면 게이트웨이로 보낸다. 마스크를 잘못 넣으면 가까운 기기와도 통신이 되지 않을 수 있다.</dd>
+<dt>네트워크 주소와 브로드캐스트 주소</dt>
+<dd>네트워크 주소는 호스트 부분의 비트가 모두 0인 주소이고, 브로드캐스트 주소는 호스트 부분의 비트가 모두 1인 주소다. 네트워크 주소는 그 네트워크 자체를 가리키는 데 쓰이고, 브로드캐스트 주소는 그 네트워크의 모든 기기에게 한꺼번에 보낼 때 쓰인다. 두 주소는 기기에 줄 수 없으므로 한 네트워크에서 쓸 수 있는 호스트 주소는 전체 개수에서 2를 뺀 만큼이다. 예를 들어 /24 네트워크에는 주소가 256개 있지만 기기에 줄 수 있는 것은 254개다.</dd>
+<dt>사설 IP 주소</dt>
+<dd>집이나 회사의 내부 네트워크에서 누구나 허락 없이 쓸 수 있도록 따로 떼어 둔 주소 대역이다. 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16의 세 대역이며 RFC 1918이 정했다. 여러 곳에서 같은 주소를 동시에 쓰기 때문에 인터넷의 라우터는 이 주소로 가는 길을 찾아 주지 않는다. 그래서 사설 주소를 가진 기기가 인터넷과 통신하려면 NAT로 공인 주소를 빌려야 한다.</dd>
+<dt>NAT</dt>
+<dd>패킷이 라우터를 지날 때 그 안에 적힌 IP 주소를 다른 주소로 바꿔 주는 기능이다. 가정의 공유기는 내부 기기가 내보낸 패킷의 출발지 사설 주소와 포트를 자신의 공인 주소와 새 포트로 바꾸고, 그 짝을 변환표에 적어 둔다. 응답이 돌아오면 표를 보고 원래의 사설 주소와 포트로 되돌려 해당 기기에 전달한다. 포트 번호로 기기를 구분하므로 여러 기기가 공인 주소 하나를 함께 쓸 수 있지만, 변환표에 짝이 없는 바깥쪽에서 안쪽 기기로 먼저 연결을 시작할 수는 없다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 192.168.0.10/25에서 192.168.0.200으로. 앞의 세 숫자가 같은데도 다른 네트워크입니다.</li>
+<li><b>/24로 바꾸면</b> — 같은 두 주소가 이번에는 같은 네트워크가 되어 직접 보냅니다.</li>
+<li><b>세 번째 숫자가 달라도 같은 네트워크</b> — /23이면 192.168.0.x와 192.168.1.x가 한 네트워크입니다.</li>
+<li><b>인터넷의 서버로</b> — 게이트웨이가 출발지 주소를 공인 주소로 바꿉니다 (NAT).</li>
+<li><b>기기 두 대뿐인 네트워크</b> — /30은 호스트 부분이 2비트라 쓸 수 있는 주소가 2개입니다.</li>
+<li><b>큰 네트워크 /16</b> — 쓸 수 있는 주소가 65534개입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>내 PC의 주소는 192.168.0.10/25입니다. IP 주소(IPv4)는 32비트 숫자이고, 사람이 읽기 쉽게 8비트씩 끊어 10진수 네 개로 적습니다. 2진수로 쓰면 11000000.10101000.00000000.00001010입니다.</li>
+<li>/25: 앞에서부터 25비트가 네트워크 부분이라는 뜻입니다(CIDR 표기). 남은 7비트가 호스트 부분입니다. 네트워크 부분을 1로, 호스트 부분을 0으로 채운 숫자가 서브넷 마스크이고, 10진수로 적으면 255.255.255.128입니다.</li>
+<li>네트워크 주소: 내 주소에서 호스트 부분 7비트를 모두 0으로 바꾼 192.168.0.0입니다. 이 네트워크 자체를 가리키는 주소라서 기기에는 주지 않습니다.</li>
+<li>브로드캐스트 주소: 호스트 부분을 모두 1로 바꾼 192.168.0.127입니다. 이 네트워크의 모든 기기에게 한꺼번에 보낼 때 쓰는 주소라서 역시 기기에는 주지 않습니다.</li>
+<li>쓸 수 있는 호스트 수: 호스트 부분 7비트로 만들 수 있는 주소는 2를 7번 곱한 128개입니다. 여기서 네트워크 주소와 브로드캐스트 주소를 빼면 126개가 남습니다. 범위는 192.168.0.1부터 192.168.0.126까지입니다.</li>
+<li>목적지(192.168.0.200)가 같은 네트워크에 있는지 봅니다. 목적지 주소에도 내 서브넷 마스크를 적용해 앞 25비트만 남기면 결과는 192.168.0.128입니다. 내 네트워크 주소(192.168.0.0)와 다릅니다. 다른 네트워크입니다. 10진수로 보면 앞의 세 숫자가 같지만, 비교하는 것은 앞 25비트이고 그 안에서 차이가 납니다.</li>
+<li>다른 네트워크이므로 직접 보낼 수 없습니다. 내 네트워크의 출구인 게이트웨이에 맡깁니다(이 예에서는 192.168.0.1, 보통 공유기나 라우터입니다). 받는 쪽 IP 주소는 목적지 그대로 적어 두고, 전달만 게이트웨이에 부탁하는 것입니다.</li>
+<li>목적지도 사설 주소입니다. 회사 내부망처럼 사설 네트워크 여러 개가 라우터로 이어진 곳이라면, 게이트웨이는 주소를 바꾸지 않고 그대로 넘깁니다. 사설 주소는 인터넷에서는 통하지 않으므로, 이 목적지는 같은 조직의 내부망 안에 있을 때만 닿습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>192.168.0.10/25의 네트워크 주소는 192.168.0.0, 브로드캐스트 주소는 192.168.0.127, 쓸 수 있는 호스트는 126개입니다. 목적지(192.168.0.200)는 다른 네트워크이고, 보내는 방법은 &quot;게이트웨이로 전달 (주소 변환 없음)&quot;입니다.</li>
+<li>두 주소가 같은 네트워크인지는 10진수의 앞자리가 아니라 서브넷 마스크가 가리는 앞 25비트로 정해집니다. /24보다 긴 길이(/25, /26, /30)에서는 마지막 숫자 안에서도 네트워크가 갈립니다. 서브넷 마스크를 잘못 넣으면 바로 옆 기기에 보낼 것을 게이트웨이로 보내거나, 그 반대가 됩니다.</li>
+<li>NAT는 사설 주소에서 공인 주소로 나갈 때 필요합니다. 사설 주소끼리 오가는 내부망에서는 라우터가 주소를 바꾸지 않고 전달만 합니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 자바스크립트입니다. 브라우저 개발자 도구의 콘솔에 붙여 넣으면 실행됩니다.
+const toNumber = ip =&gt; ip.split('.').reduce((n, part) =&gt; n * 256 + Number(part), 0);   // 주소를 32비트 숫자로
+const toText = n =&gt; [n &gt;&gt;&gt; 24, (n &gt;&gt;&gt; 16) &amp; 255, (n &gt;&gt;&gt; 8) &amp; 255, n &amp; 255].join('.');
+
+const prefix = 25;
+const mask = (0xFFFFFFFF &lt;&lt; (32 - prefix)) &gt;&gt;&gt; 0;                 // 앞 25비트만 1인 서브넷 마스크
+const network = (toNumber('192.168.0.10') &amp; mask) &gt;&gt;&gt; 0;          // 호스트 부분을 모두 0으로
+const broadcast = (network | ~mask) &gt;&gt;&gt; 0;                        // 호스트 부분을 모두 1로
+
+console.log(toText(mask), toText(network), toText(broadcast));
+console.log(2 ** (32 - prefix) - 2);                              // 쓸 수 있는 호스트 수
+
+// 목적지에도 같은 마스크를 적용해 네트워크 주소가 같은지 본다
+console.log(((toNumber('192.168.0.200') &amp; mask) &gt;&gt;&gt; 0) === network);</pre>
+<h2>이 모형의 전제</h2>
+<p>네트워크 주소, 브로드캐스트 주소, 쓸 수 있는 호스트 수, 같은 네트워크인지의 판단은 일흔두 가지 조합을 모두 다시 계산해 대조했습니다. 대조에는 모형과 다른 세 가지 방법을 썼습니다: 화면에 보이는 비트 연산 코드를 Node.js 24에서 실행한 값, 32글자 2진수 문자열을 잘라 붙여 구한 값, 그리고 Node.js의 net.BlockList에 내 주소와 길이를 넣고 주소를 하나씩 물어 찾은 범위의 양 끝과 개수입니다. &quot;같은 마스크를 적용한 결과가 같으면 직접, 다르면 게이트웨이로&quot;라는 규칙은 RFC 1122 3.3.1.1절, 사설 주소 대역은 RFC 1918 3절을 따랐습니다. NAT는 이 PC에서 실행해 확인하지 못했고 RFC 3022(2.2절, 4.1절)가 설명하는 주소와 포트 변환(NAPT)을 따라 적었습니다. 공인 주소 198.51.100.7과 포트 40001, 40002, 게이트웨이를 네트워크의 첫 번째 주소로 둔 것은 설명을 위한 예입니다. 사설 주소인 목적지는 같은 조직의 내부망에 있다고 가정했습니다. 203.0.113.7은 문서용으로 예약된 주소이며 여기서는 공인 주소의 예로 썼습니다. /31과 /32처럼 &quot;주소 2개를 뺀다&quot;는 규칙이 맞지 않는 길이(RFC 3021)와 IPv6는 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/dns/">DNS</a> · 다음 실습: <a href="../../lab/routing/">스위치와 라우터</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 ### ▶ 바로 써 보기: https://jhb010311.github.io/dev-learning-lab/
 ### ▶ Try it in English: https://jhb010311.github.io/dev-learning-lab/en/
 
-[![실습 화면: 트랜잭션 전파](docs/img/lab-ko.png)](https://jhb010311.github.io/dev-learning-lab/#txprop)
+[![실습 화면: 트랜잭션 전파](docs/img/lab-ko.png)](https://jhb010311.github.io/dev-learning-lab/lab/txprop/)
 
 자바, 스프링, JPA, 데이터베이스, 네트워크, 보안의 개념을 **설정을 바꾸고 실행을 눌러** 익히는 무료 실습실입니다.
 글로 읽는 대신, 개념 하나가 어떤 순서로 움직이고 어떤 결과를 만드는지를 그림과 함께 단계별로 봅니다.
@@ -22,7 +22,7 @@
 2. **실행**을 누릅니다. 그림과 설명이 한 단계씩 넘어갑니다.
 3. 결과 아래의 "이렇게 바꿔 보세요"에서 다른 예시를 누르거나 설정을 직접 바꿔, 결과가 어떻게 달라지는지 비교합니다.
 
-예를 들어 위 그림의 [트랜잭션 전파](https://jhb010311.github.io/dev-learning-lab/#txprop) 실습에서는 전파 속성과 예외가 나는 위치를 바꿔 가며, 주문과 로그 가운데 무엇이 DB에 남는지를 봅니다.
+예를 들어 위 그림의 [트랜잭션 전파](https://jhb010311.github.io/dev-learning-lab/lab/txprop/) 실습에서는 전파 속성과 예외가 나는 위치를 바꿔 가며, 주문과 로그 가운데 무엇이 DB에 남는지를 봅니다.
 
 ## 이것은 무엇이고 무엇이 아닌가
 
@@ -48,7 +48,7 @@
 ## 폴더
 
 ```
-docs/index.html     웹에 올리는 완성된 페이지 (빌드 결과). docs/en/은 영어판
+docs/               웹에 올리는 빌드 결과. 실습마다 한 페이지(docs/lab/<id>/), docs/en/은 영어판
 src/framework.html  화면의 공통 틀
 src/lessons/        실습 하나에 파일 하나
 src/curriculum.js   분야와 목차
@@ -59,7 +59,7 @@ src/en/             영어판의 글 (실습, 문제, 용어 풀이, 용어 대�
 kb/                 개념 설명 (kb/en/은 영어)
 verify/             모형을 실제 실행과 대조한 프로그램과 출력
 tools/              검사 도구 (tools/i18n/은 영어판 검사)
-build.js, test.js   빌드와 검사
+build.js, test.js   빌드와 검사 (build_pages.js가 페이지들을 만든다)
 ```
 
 ## 직접 빌드하기
@@ -78,7 +78,7 @@ node test.js
 node serve.js
 ```
 
-`build.js`는 형식과 목차, 테스트 문제를 검사한 뒤 `docs/index.html`을 만들고, `test.js`는 모든 실습을 모든 설정 조합으로 돌려 봅니다.
+`build.js`는 형식과 목차, 테스트 문제를 검사한 뒤 `docs/` 아래에 페이지들을 만들고, `test.js`는 모든 실습을 모든 설정 조합으로 돌려 봅니다.
 `serve.js`를 실행하면 http://127.0.0.1:4173 에서 미리 볼 수 있습니다. 영어판은 `LAB_LANG=en node build.js`로 만듭니다.
 
 ---
@@ -89,7 +89,7 @@ node serve.js
 
 ### ▶ Try it: https://jhb010311.github.io/dev-learning-lab/en/
 
-[![A lab screen: Transaction propagation](docs/img/lab-en.png)](https://jhb010311.github.io/dev-learning-lab/en/#txprop)
+[![A lab screen: Transaction propagation](docs/img/lab-en.png)](https://jhb010311.github.io/dev-learning-lab/en/lab/txprop/)
 
 Dev Learning Lab is a free site for learning Java, Spring, JPA, database, networking, and security concepts **by changing settings and clicking Run**.
 Instead of only reading about a concept, you watch step by step, with a diagram, how it behaves and what result it produces.

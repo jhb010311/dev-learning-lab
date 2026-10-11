@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dependencies and the supply chain: How do libraries I never wrote down get into my program, and who decides their versions? · Dev Learning Lab</title>
+<meta name="description" content="When you write one line for a library in the build file, the other libraries that library needs (its transitive dependencies) come in with it and run as p…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/supplychain/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/supplychain/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/supplychain/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Dependencies and the supply chain: How do libraries I never wrote down get into my program, and who decides their versions? · Dev Learning Lab">
+<meta property="og:description" content="When you write one line for a library in the build file, the other libraries that library needs (its transitive dependencies) come in with it and run as p…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/supplychain/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Web attacks and defenses</p>
+<h1>Dependencies and the supply chain</h1>
+<p><b>How do libraries I never wrote down get into my program, and who decides their versions?</b></p>
+<p>When you write one line for a library in the build file, the other libraries that library needs (its transitive dependencies) come in with it and run as part of your program. That is why a vulnerability in a library you never chose becomes your problem too. Depending on whether you wrote a version as a range or pinned it, a newly published version may come in automatically, and if you misspell a name by one letter, a completely different package may come in. The library names and vulnerabilities shown here are all made up for the explanation.</p>
+<p>Partly checked against real execution · A concept model built with made-up libraries. Which versions come in was checked against the result of actually resolving 15 combinations with Gradle 8.14.3, and the verdicts &quot;vulnerable&quot;, &quot;malicious&quot;, and &quot;fake&quot; are a made-up storyline</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Transitive dependency</dt>
+<dd>A transitive dependency is a library that comes in because a library I wrote directly in the build file (a direct dependency) needs it. The build tool reads the POM that comes with each library and follows what is needed one step after another, so writing one line brings in far more libraries than that. A transitive dependency runs inside my program in exactly the same way as a direct dependency, so its vulnerability becomes a vulnerability of my program. Its name is not visible in the build file, so you have to use a command that prints the dependency tree to check what came in and by which path.</dd>
+<dt>Version ranges and lock files</dt>
+<dd>If you write the version of a dependency not as one fixed version but as a range, such as &quot;the highest version among 2.x&quot;, the newest version in that range is chosen every time you build. This has the advantage of receiving fixed versions automatically, but building the same code can bring in different code on different days, and a new version that has a problem also comes in automatically. A lock file is a file that records the versions once decided, including transitive dependencies, and makes later builds download only those versions. If you manage the lock file together with the code, anyone building at any time gets the same result, and a new version comes in only when you update the lock file.</dd>
+<dt>Supply chain attacks and typosquatting</dt>
+<dd>A supply chain attack is an attack that does not hit a program directly but slips bad code into the libraries the program uses or into its build process. One way is to take over the account that publishes a library and upload a new version containing malicious code. Typosquatting is another way: publishing a fake package under a name that differs by one or two letters from a widely used name and waiting for someone to make a typo. The code that comes in runs with the same permissions as my program, so the damage is large. You prepare by pinning versions, checking the names and sources of dependencies, and putting a tool that checks for known vulnerabilities into the build.</dd>
+<dt>CI/CD</dt>
+<dd>CI (continuous integration) means merging code changes often and automatically running a build and tests on every merge to find problems early. CD (continuous delivery or continuous deployment) means using an automated process to get verified code into a deployable state or to deploy it all the way to production. Automating the build, test, and deployment work that people used to do by hand reduces mistakes and shortens the release cycle.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A build with the version written as 2.+. The malicious version comes in even though the code did not change.</li>
+<li><b>With a lock file</b> — Even if you write 2.+, only the version recorded in the lock file is downloaded.</li>
+<li><b>When a range helps</b> — When a version that fixes the vulnerability is published, the build follows it automatically.</li>
+<li><b>Vulnerability in a transitive dependency</b> — A vulnerability became known in json-lite, which I never wrote down. If I leave things as they are, it stays.</li>
+<li><b>Raise the version</b> — When you raise web-kit, json-lite changes along with it.</li>
+<li><b>When there is no version to raise to yet</b> — Override only the version of the transitive dependency.</li>
+<li><b>If the name is off by one letter</b> — A fake package comes in without any error.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>It is the day of the first build. In build.gradle, the version of web-kit is written as 2.+. This means &quot;the highest version among the 2.x versions&quot; (2.0.0, 2.0.1, and 2.1.0 are all 2.x). The only web-kit in the repository right now is 2.0.0, so version 2.0.0 comes in, and json-lite 1.2.0, which web-kit needs, comes in with it.</li>
+<li>A few days later, web-kit 2.1.0 is published to the repository. (A made-up situation.) It is a version that someone who took over the publishing account uploaded with malicious code in it. In the repository, it looks like an ordinary new version.</li>
+<li>My code is built again without changing a single character: a version that matches 2.+ is looked up in the repository again. Of 2.0.0 and 2.1.0, it picks the higher one, version 2.1.0. Different code from last time has come into my program.</li>
+<li>The build succeeds. There is no error and no warning. web-kit 2.1.0, which contains malicious code, is shipped as part of my program.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>What came in when the build was run again is web-kit 2.1.0 and json-lite 1.2.0. Verdict: Malicious version came in automatically.</li>
+<li>If you write a version as a range, the same code can give a different result from day to day. Receiving a fixed version automatically and receiving a malicious version automatically come from the same property. Whoever publishes to the repository decides what comes in.</li>
+</ul>
+<h2>Code</h2>
+<pre>// build.gradle (my project, shop-api)
+dependencies {
+    implementation 'lab.demo:web-kit:2.+'
+    implementation 'lab.demo:mail-kit:1.4.0'
+}
+
+// All libraries that start with lab.demo are made up for the explanation</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a model for showing the concept. The libraries that start with lab.demo, their versions, the vulnerabilities, the malicious version, and the fake package are all made up. They have nothing to do with real libraries or real vulnerability numbers. The framing follows the scope of A03 (Software Supply Chain Failures) in the OWASP Top 10:2025: know the versions of not only what you use directly but also the transitive dependencies, keep checking vulnerability advisories, and download from trustworthy sources. The rules that decide versions follow Gradle. For 15 combinations, which versions come in and the path by which json-lite comes in were checked against the result of actually resolving the dependencies with Gradle 8.14.3, using a repository on the PC used to write this lab that holds only the POMs of the made-up libraries (run without a network). The rules confirmed by execution: 2.+ picks the highest of the versions that start with 2., if there is a lock file the version recorded there is downloaded, if a library has several requests the highest version is chosen, and a name that does not exist becomes a &quot;could not be found&quot; error. It was also confirmed that if you change only the version in build.gradle while a lock file exists, an error says it does not match the lock file, so the lock file has to be updated too. Not confirmed by execution: the verdicts &quot;vulnerable&quot;, &quot;malicious&quot;, and &quot;fake&quot; are a made-up storyline, and the process by which code that came into the build actually runs is not covered. Version rules differ from tool to tool. When there are several requests, Maven picks not the highest version but the version nearest to my project (dependency mediation in the Maven documentation), and npm writes ranges such as ^1.2.0 by default and pins them with package-lock.json. Fake packages with similar names are mainly a problem in repositories that tell packages apart by name alone, and Maven Central verifies ownership of group names, so it is hard to publish a fake under the same group. Here, for the sake of the explanation, the fake is made up to be in the same group.</p>
+<p>Previous lab: <a href="../../lab/ratelimit/">Rate limiting</a> · Next lab: <a href="../../lab/crypto/">Hashing, encryption, and signatures</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서브쿼리: NOT IN의 결과가 왜 한 행도 없나 · 개발 학습 실습실</title>
+<meta name="description" content="SELECT 문 안에 괄호로 넣은 또 하나의 SELECT를 서브쿼리라고 합니다. 값 하나를 돌려주는 것, 목록을 돌려주는 것(IN), 행이 있는지만 보는 것(EXISTS), 바깥 행마다 다시 실행되는 것(상관 서브쿼리)이 있습니다. 회원과 주문 테이블로 하나씩 실행해 보고,…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/subquery/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/subquery/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/subquery/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="서브쿼리: NOT IN의 결과가 왜 한 행도 없나 · 개발 학습 실습실">
+<meta property="og:description" content="SELECT 문 안에 괄호로 넣은 또 하나의 SELECT를 서브쿼리라고 합니다. 값 하나를 돌려주는 것, 목록을 돌려주는 것(IN), 행이 있는지만 보는 것(EXISTS), 바깥 행마다 다시 실행되는 것(상관 서브쿼리)이 있습니다. 회원과 주문 테이블로 하나씩 실행해 보고,…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/subquery/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › SQL</p>
+<h1>서브쿼리</h1>
+<p><b>NOT IN의 결과가 왜 한 행도 없나</b></p>
+<p>SELECT 문 안에 괄호로 넣은 또 하나의 SELECT를 서브쿼리라고 합니다. 값 하나를 돌려주는 것, 목록을 돌려주는 것(IN), 행이 있는지만 보는 것(EXISTS), 바깥 행마다 다시 실행되는 것(상관 서브쿼리)이 있습니다. 회원과 주문 테이블로 하나씩 실행해 보고, 주문에 NULL이 한 건 섞였을 때 NOT IN과 NOT EXISTS가 어떻게 달라지는지 확인하세요.</p>
+<p>실행으로 대조 · MySQL 8.4.11에서 서른여섯 가지 조합의 SQL을 그대로 실행해 오류 번호, 결과의 모든 행, EXPLAIN의 select_type, 상관 서브쿼리의 실행 횟수(EXPLAIN ANALYZE)를 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>서브쿼리</dt>
+<dd>다른 SQL 문 안에 포함된 SELECT 문이다. SELECT 절에서 값 하나를 구하는 데, FROM 절에서 임시 테이블처럼, WHERE 절에서 조건의 비교 대상으로 쓸 수 있다. 바깥 쿼리의 컬럼을 참조하는 상관 서브쿼리는 바깥 행마다 실행될 수 있어 성능에 주의가 필요하다.</dd>
+<dt>스칼라 서브쿼리</dt>
+<dd>값 하나(한 행, 한 컬럼)를 돌려주는 서브쿼리이다. WHERE id = (SELECT ...)처럼 값이 올 자리에 쓸 수 있고 SELECT 절의 컬럼 자리에도 쓸 수 있다. 실행했을 때 두 행 이상이 나오면 MySQL은 오류 1242(Subquery returns more than 1 row)로 문장을 거부한다. 0행이 나오면 오류가 아니라 NULL이 되므로, 비교 조건이 참이 되지 않아 결과가 조용히 비게 된다. 지금 데이터에서 한 행이 나온다고 해서 앞으로도 그렇다는 보장은 없으므로, 한 행만 나오도록 조건을 적거나 IN을 쓴다.</dd>
+<dt>상관 서브쿼리</dt>
+<dd>서브쿼리 안에서 바깥 쿼리의 컬럼을 쓰는 서브쿼리이다. 바깥 행마다 그 컬럼의 값이 다르므로 서브쿼리만 떼어서는 실행할 수 없고, 바깥 행 하나가 정해질 때마다 그 값을 넣어 다시 실행된다. MySQL의 EXPLAIN에서는 select_type이 DEPENDENT SUBQUERY로 나온다. 바깥 행이 많으면 서브쿼리도 그만큼 여러 번 실행되어 느려질 수 있다. 다만 옵티마이저가 EXISTS나 IN 서브쿼리를 조인으로 바꿔 실행하는 경우가 있어서, 문장의 모양이 상관 서브쿼리라고 해서 반드시 행마다 실행되는 것은 아니다.</dd>
+<dt>IN과 EXISTS</dt>
+<dd>둘 다 서브쿼리의 결과로 바깥 행을 거르는 조건이다. IN은 바깥의 값이 서브쿼리가 돌려준 목록 안에 있는지를 비교하고, EXISTS는 서브쿼리가 한 행이라도 돌려주는지만 본다. 부정인 NOT IN과 NOT EXISTS는 NULL을 다루는 방식이 다르다. NOT IN은 목록에 NULL이 하나라도 있으면 어느 행에서도 참이 되지 못해 결과가 0행이 되고, NOT EXISTS는 행이 있는지만 따지므로 NULL의 영향을 받지 않는다. 그래서 &quot;없는 것 찾기&quot;에는 NOT EXISTS를 쓰거나, NOT IN의 서브쿼리에서 NULL을 걸러 낸다.</dd>
+<dt>NULL과 3값 논리</dt>
+<dd>NULL은 0이나 빈 문자열이 아니라 &quot;값이 없음&quot; 또는 &quot;알 수 없음&quot;을 뜻한다. NULL과의 비교(=, &lt;&gt;, &lt; 등)는 참도 거짓도 아닌 &quot;알 수 없음(UNKNOWN)&quot;이 되어, SQL의 조건은 참, 거짓, 알 수 없음의 세 가지 값을 가진다. WHERE와 HAVING은 조건이 참인 행만 남기므로 알 수 없음인 행은 거짓인 행과 마찬가지로 빠진다. 알 수 없음은 NOT을 붙여도 알 수 없음이다. NULL인지 확인할 때는 = NULL이 아니라 IS NULL, IS NOT NULL을 쓴다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — NOT IN의 목록에 NULL이 섞여 있습니다. 결과가 0행입니다.</li>
+<li><b>같은 일을 NOT EXISTS로</b> — NULL이 있어도 주문 없는 회원이 제대로 나옵니다.</li>
+<li><b>NULL이 없을 때의 NOT IN</b> — 기대한 대로 주문 없는 회원 1명이 나옵니다.</li>
+<li><b>값 하나 자리에 두 행</b> — 서브쿼리가 2행을 돌려줘 오류 1242가 납니다.</li>
+<li><b>값 하나 자리에 0행</b> — 오류 없이 NULL이 되어 결과가 0행입니다.</li>
+<li><b>상관 서브쿼리</b> — 바깥 행 4개마다 서브쿼리가 다시 실행됩니다.</li>
+<li><b>IN과 NULL</b> — IN은 목록에 NULL이 있어도 결과가 같습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>CREATE TABLE, INSERT: 회원 4명과 주문 5건이 있습니다. 김철수는 2건, 이영희와 박민수는 1건씩 주문했고 최지우는 주문이 없습니다. 주문 105는 비회원 주문이라 member_id가 NULL입니다.</li>
+<li>(SELECT member_id FROM orders): 괄호 안의 서브쿼리는 바깥 쿼리의 값을 쓰지 않으므로 혼자서 실행할 수 있습니다. 주문들의 member_id를 모은 목록 1, 1, 2, 3, NULL을 돌려줍니다. 비회원 주문 때문에 목록에 NULL이 들어 있습니다.</li>
+<li>김철수 (id 1) NOT IN (1, 1, 2, 3, NULL): 목록에 1이 있으므로 IN이 참이고, NOT IN은 거짓입니다. 빠집니다.</li>
+<li>이영희 (id 2) NOT IN (1, 1, 2, 3, NULL): 목록에 2가 있으므로 IN이 참이고, NOT IN은 거짓입니다. 빠집니다.</li>
+<li>박민수 (id 3) NOT IN (1, 1, 2, 3, NULL): 목록에 3이 있으므로 IN이 참이고, NOT IN은 거짓입니다. 빠집니다.</li>
+<li>최지우 (id 4) NOT IN (1, 1, 2, 3, NULL): NOT IN은 &quot;목록의 모든 값과 다르다&quot;는 뜻입니다. 4는 1, 2, 3과는 다르지만, NULL과 다른지는 알 수 없습니다. 하나라도 알 수 없으면 전체가 &quot;알 수 없음&quot;이 되고, WHERE는 참인 행만 남기므로 주문이 없는 최지우도 빠집니다.</li>
+<li>EXPLAIN: 서브쿼리 줄의 select_type이 SUBQUERY입니다. 바깥 행의 값에 기대지 않으므로 목록을 한 번만 만들어 두고 바깥 행마다 그 목록과 비교합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>결과는 0행입니다. EXPLAIN의 select_type은 SUBQUERY입니다.</li>
+<li>NOT IN의 목록에 NULL이 하나라도 있으면 결과는 언제나 0행입니다. 오류도 경고도 없이 빈 결과가 나오므로 알아채기 어렵습니다. 서브쿼리에 WHERE member_id IS NOT NULL을 넣거나(그러면 최지우가 나옵니다) NOT EXISTS로 바꿔 씁니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>CREATE TABLE member (
+  id   INT PRIMARY KEY,
+  name VARCHAR(20) NOT NULL
+);
+CREATE TABLE orders (
+  id        INT PRIMARY KEY,
+  member_id INT,
+  item      VARCHAR(30) NOT NULL
+);
+
+INSERT INTO member (id, name) VALUES
+  (1, '김철수'),
+  (2, '이영희'),
+  (3, '박민수'),
+  (4, '최지우');
+INSERT INTO orders (id, member_id, item) VALUES
+  (101, 1, '키보드'),
+  (102, 1, '마우스'),
+  (103, 2, '키보드'),
+  (104, 3, '모니터'),
+  (105, NULL, '의자');
+
+SELECT name
+  FROM member
+ WHERE id NOT IN (SELECT member_id
+                    FROM orders)
+ ORDER BY id;</pre>
+<h2>이 모형의 전제</h2>
+<p>회원 4명, 주문 4~5건의 작은 예입니다. 서른여섯 가지 조합(모양 여섯 가지 × NULL 주문 유무 × 찾는 상품 세 가지, 찾는 상품은 &quot;값 하나&quot; 모양에서만 문장이 달라집니다) 모두, 화면의 SQL을 실제 MySQL 8.4.11에서 그대로 실행해 오류 번호와 메시지, 결과의 모든 행, 괄호 안의 서브쿼리만 따로 실행한 결과, EXPLAIN의 select_type이 모형과 같은 것을 대조했습니다. 상관 서브쿼리가 바깥 행마다 실행된다는 것은 EXPLAIN ANALYZE의 서브쿼리 부분 loops가 바깥 행 수(4)와 같은 것으로, NOT IN의 서브쿼리가 한 번만 실행된다는 것은 EXPLAIN ANALYZE에 &quot;run only once&quot;로 표시되는 것으로 확인했습니다. 화면의 단계는 조건의 뜻을 따라가는 논리적인 설명이며 MySQL이 실제로 실행하는 방법과는 다를 수 있습니다. MySQL 8.4의 옵티마이저는 IN과 EXISTS 서브쿼리를 세미조인으로, NOT EXISTS를 안티조인으로 바꿔 실행했고 그래서 select_type이 SIMPLE로 나왔습니다. 이 변환은 버전과 설정(optimizer_switch), 데이터의 양에 따라 달라지며, 같은 문장의 EXPLAIN에 MATERIALIZED 줄이 함께 나오기도 했습니다. 회원과 주문을 1,000행씩으로 늘려 실행했을 때도 select_type의 분류는 같았습니다. MySQL 8.0.16보다 앞선 버전은 EXISTS 서브쿼리를 세미조인으로 바꾸지 않으므로 DEPENDENT SUBQUERY로 나올 수 있습니다(이 부분은 실행이 아니라 MySQL 문서를 따랐습니다). NOT IN이 조인으로 바뀌지 않고 SUBQUERY로 나온 것은 member_id가 NULL을 허용하는 컬럼이기 때문이며, member_id를 NOT NULL로 선언한 테이블에서는 같은 NOT IN 문장이 SIMPLE(안티조인)로 나오는 것을 실행해 확인했습니다. select_type을 뺀 결과 행과 오류는 SQL의 정의에 따른 것이라 다른 DB에서도 같습니다. 요약에 적은 내용 가운데 &quot;= 대신 IN을 쓰면 김철수와 이영희가 나온다&quot;, &quot;LEFT JOIN과 GROUP BY로 같은 결과가 나온다&quot;, &quot;서브쿼리에 IS NOT NULL을 넣으면 최지우가 나온다&quot;도 같은 MySQL에서 따로 실행해 확인했습니다. 값 하나 자리의 서브쿼리가 0행일 때 NULL이 되는 것은 MySQL 문서의 설명과 실행 결과(0행, 오류 없음)가 일치합니다.</p>
+<p>앞 실습: <a href="../../lab/join/">JOIN과 GROUP BY</a> · 다음 실습: <a href="../../lab/windowfn/">윈도우 함수</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

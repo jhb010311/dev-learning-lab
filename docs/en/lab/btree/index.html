@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Binary search and B-trees: If the data is sorted, you can discard half at a time · Dev Learning Lab</title>
+<meta name="description" content="You look for one value among 27 values. You can check them one by one from the start. If they are sorted, you can look at the middle and discard half. Or…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/btree/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/btree/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/btree/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Binary search and B-trees: If the data is sorted, you can discard half at a time · Dev Learning Lab">
+<meta property="og:description" content="You look for one value among 27 values. You can check them one by one from the start. If they are sorted, you can look at the middle and discard half. Or…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/btree/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Indexes and execution plans</p>
+<h1>Binary search and B-trees</h1>
+<p><b>If the data is sorted, you can discard half at a time</b></p>
+<p>You look for one value among 27 values. You can check them one by one from the start. If they are sorted, you can look at the middle and discard half. Or you can use a B-tree, which splits the search into many branches at once. Change the search method and the value you look for, see how many steps it takes, and then see how the gap widens when there is much more data.</p>
+<p>Checked against real execution · The search on the screen is the result of actually running the algorithms</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Binary search</dt>
+<dd>This search method works on sorted data: it compares the target with the middle value and cuts the search range in half each time. Its time complexity is O(log n). It can be used only when the data is sorted. A B-tree index in a database uses the same principle of narrowing the range over sorted data.</dd>
+<dt>Time complexity (big-O notation)</dt>
+<dd>This notation shows how fast the number of operations of an algorithm grows as the input size n grows. O(1) means constant regardless of size, O(log n) means only one more step when the size doubles, O(n) means proportional to the size, and O(n²) means proportional to the square of the size. It is the basis for judging which approach holds up as the amount of data grows.</dd>
+<dt>B-tree index</dt>
+<dd>The index structure that most relational databases use by default. It is a balanced tree that keeps values sorted, and each node holds many keys, so the height of the tree is low. You can find a value by going down only a few levels from the root. Because the values are sorted, it is used not only for equality lookups but also for range lookups and sorting.</dd>
+<dt>Full table scan</dt>
+<dd>A way of finding the rows that match a condition by reading every row of the table from beginning to end. It is chosen when no index can be used for the condition, or when an index exists but the optimizer judges that reading everything is better because too many rows match the condition. When it is used to find a few rows in a large table, it causes performance problems.</dd>
+<dt>Index</dt>
+<dd>A data structure that keeps the values of specific columns separately, in sorted form, so that the wanted rows of a table can be found quickly. Without one, the whole table must be read to find the rows that match a condition. Reads get faster, but it must also be updated every time data is inserted, updated, or deleted, so it costs write performance and storage space.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — One by one from the start. It checks 23 times to reach a value near the end.</li>
+<li><b>With binary search</b> — It finds the same value in 5 checks.</li>
+<li><b>With a B-tree</b> — It reads only 3 nodes to find any value.</li>
+<li><b>Looking for a missing value one by one</b> — It has to check to the very end to know the value is not there.</li>
+<li><b>A missing value with a B-tree</b> — It confirms the value is not there with 3 nodes too.</li>
+<li><b>With 1 billion rows</b> — See the difference in the number of steps by method in the table below.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The 27 values are piled up unsorted (on the screen they are shown in order of size to make them easier to read). There is nothing to tell where the value is, so you check the values one by one from the start.</li>
+<li>Check #1: 10 → No. Move to the next slot.</li>
+<li>Check #2: 20 → No. Move to the next slot.</li>
+<li>Check #6: 60 → No. Move to the next slot.</li>
+<li>Check #12: 120 → No. Move to the next slot.</li>
+<li>Check #18: 180 → No. Move to the next slot.</li>
+<li>Check #23: 230 → Found.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Finding 230 among 27 values. Checks: 23. Found.</li>
+<li>With 1 million rows, in the worst case: one by one, 1 million checks; binary search, 20 checks; a B-tree with 3 children per node, 13 levels; a B-tree with 500 children per node, 3 levels.</li>
+<li>Checking one by one takes 10 times as many checks when the data is 10 times as large (O(n)). To find out that a value is missing, you have to look at all of them. This is what the database does when you query by a column that has no index.</li>
+<li>The difference among the three methods is &quot;whether the data is kept sorted&quot; and &quot;how much is discarded at a time&quot;. A database index keeps the values sorted and stored in a B-tree, and the price is that the tree must be updated every time you insert or change a value.</li>
+</ul>
+<h2>Code</h2>
+<pre>// If the data is not sorted, the only way is to check everything from the start
+for (int i = 0; i &lt; rows.length; i++) {
+    if (rows[i] == target) return i;
+}
+return -1;                              // you know it is missing only after checking to the end
+
+-- In a database, this is the same as searching by a column that has no index (full table scan)
+SELECT * FROM orders WHERE amount = 230;</pre>
+<h2>Assumptions of this model</h2>
+<p>The search steps and counts for 27 rows are the result of this page actually running the algorithms. The counts for large numbers of rows are the maximum number of steps, calculated from &quot;how many branches the search splits into at a time&quot;. The B-tree on the screen has the shape in which the values are only in the leaf nodes (a B+tree), and the index of MySQL InnoDB has this structure. How many values fit in one node of a real index depends on the size of the key, and 500 is just an example value. The root and internal nodes are usually already in memory, so the number of real disk reads is smaller.</p>
+<p>Previous lab: <a href="../../lab/viewproc/">Views, stored procedures, and triggers</a> · Next lab: <a href="../../lab/index/">Indexes and full table scans</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

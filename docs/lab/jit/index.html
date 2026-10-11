@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JIT 워밍업: 배포 직후의 첫 요청들은 왜 느린가 · 개발 학습 실습실</title>
+<meta name="description" content="자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다. 같은 메서드를 2,000번씩 열두 묶음 호출하며 묶음마다 걸린 시간을 실제로 잰 결과를 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/jit/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/jit/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jit/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="JIT 워밍업: 배포 직후의 첫 요청들은 왜 느린가 · 개발 학습 실습실">
+<meta property="og:description" content="자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다. 같은 메서드를 2,000번씩 열두 묶음 호출하며 묶음마다 걸린 시간을 실제로 잰 결과를 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/jit/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › JVM</p>
+<h1>JIT 워밍업</h1>
+<p><b>배포 직후의 첫 요청들은 왜 느린가</b></p>
+<p>자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다. 같은 메서드를 2,000번씩 열두 묶음 호출하며 묶음마다 걸린 시간을 실제로 잰 결과를 보세요.</p>
+<p>실행으로 대조 · JDK 21에서 실제로 잰 값</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>JIT 컴파일러</dt>
+<dd>프로그램 실행 중에 자주 실행되는 바이트코드를 기계어로 컴파일해 두고 이후에는 그 기계어를 직접 실행하는 JVM의 구성 요소다. 처음에는 인터프리터로 바이트코드 명령을 하나씩 해석해 실행하다가, 반복 실행되는 부분을 찾아 최적화한다. 그래서 자바 애플리케이션은 기동 직후보다 어느 정도 실행된 뒤에 더 빨라진다(워밍업).</dd>
+<dt>바이트코드</dt>
+<dd>자바 컴파일러(javac)가 소스 코드를 변환해 만든 중간 형태의 코드로 .class 파일에 담긴다. 특정 CPU나 운영체제의 기계어가 아니라 JVM이 이해하는 명령어라서 어느 플랫폼의 JVM에서든 실행된다.</dd>
+<dt>JVM(자바 가상 머신)</dt>
+<dd>자바 바이트코드를 읽어 실행하는 프로그램이다. 운영체제마다 그에 맞는 JVM이 있어서, 한 번 컴파일한 자바 프로그램을 수정 없이 여러 운영체제에서 실행할 수 있다. 클래스를 읽어 들이고, 메모리를 관리하고(가비지 컬렉션), 바이트코드를 기계어로 바꿔 실행하는 일을 맡는다.</dd>
+<dt>클래스 로더</dt>
+<dd>클래스 파일을 찾아 메모리로 읽어 들이는 JVM의 구성 요소다. 클래스는 프로그램 시작 때 전부 읽는 것이 아니라 처음 필요해지는 시점에 로딩된다. 읽어 들인 클래스는 JVM이 링킹(검증, 준비, 그리고 심볼릭 참조의 해석)과 초기화(static 초기화 실행)를 거쳐 사용할 수 있게 만든다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 첫 묶음은 5.8ms, 그다음부터는 1.4ms 안팎입니다.</li>
+<li><b>JIT를 끄면</b> — 끝까지 빨라지지 않습니다. 묶음마다 약 29ms.</li>
+<li><b>미리 워밍업하면</b> — 사용자의 첫 요청부터 빠릅니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>자바 컴파일러(javac)는 소스를 기계어가 아니라 바이트코드로 바꿉니다. 프로그램이 시작되면 JVM의 인터프리터가 이 바이트코드를 한 명령씩 해석해 실행합니다. 어떤 CPU에서든 돌아가지만, 기계어를 직접 실행하는 것보다 훨씬 느립니다.</li>
+<li>1번째 묶음: 5.8ms. 처음에는 인터프리터로 실행됩니다. JVM은 메서드가 몇 번 불렸는지, 반복문이 몇 번 돌았는지를 세고 있다가, 기준을 넘자 이 메서드를 기계어로 컴파일합니다. 이 묶음에는 해석 실행과 컴파일 시간이 모두 들어 있습니다.</li>
+<li>2번째 묶음: 1.7ms. 컴파일된 기계어로 실행되기 시작했습니다. 첫 묶음보다 3~4배 빠릅니다. JVM은 실행하면서 모은 정보(어느 분기가 자주 타는지 등)로 한 번 더 강하게 최적화합니다.</li>
+<li>3번째 묶음: 1.4ms.</li>
+<li>4번째 묶음: 1.7ms.</li>
+<li>5번째 묶음: 1.5ms.</li>
+<li>6번째 묶음: 1.4ms.</li>
+<li>7번째 묶음: 1.5ms.</li>
+<li>8번째 묶음: 1.4ms.</li>
+<li>9번째 묶음: 1.4ms.</li>
+<li>10번째 묶음: 1.4ms.</li>
+<li>11번째 묶음: 1.6ms.</li>
+<li>12번째 묶음: 1.7ms.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>첫 묶음 5.8ms, 마지막 묶음 1.7ms. 가장 느린 묶음은 가장 빠른 묶음의 4.2배입니다.</li>
+<li>같은 코드인데 처음과 나중의 속도가 다릅니다. JVM은 모든 코드를 미리 컴파일하지 않고, 실제로 자주 실행되는 부분만 골라 실행 중에 컴파일합니다(Just-In-Time). 실행 정보를 보고 최적화하므로 충분히 달궈진 뒤에는 미리 컴파일한 언어에 가까운 속도가 납니다.</li>
+<li>배포 직후에는 JIT 컴파일 전인 데다 클래스 로딩, 커넥션 풀 채우기, 캐시가 비어 있는 것까지 겹쳐 첫 요청들이 유독 느립니다. 새 서버에 트래픽을 한꺼번에 넘기지 않고 조금씩 늘리는 이유이기도 합니다. 성능을 잴 때도 처음 구간은 버리고 충분히 달궈진 뒤의 값을 봅니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>static long work(int n) {                  // 측정한 메서드
+    long s = 0;
+    for (int i = 0; i &lt; n; i++) s += (i * 31L) ^ (s &gt;&gt;&gt; 3);
+    return s;
+}
+
+for (int batch = 1; batch &lt;= 12; batch++) {
+    long t = System.nanoTime();
+    for (int k = 0; k &lt; 2000; k++) work(1000);          // 묶음 하나 = 2,000번 호출
+    print((System.nanoTime() - t) / 1000 + &quot;마이크로초&quot;);
+}
+
+// 실행: java JitWarmup.java</pre>
+<h2>이 모형의 전제</h2>
+<p>모든 숫자는 이 PC의 JDK 21에서 위 코드를 실제로 실행해 잰 값입니다(기본 설정 두 번 실행 중 첫 번째, -Xint 한 번). &quot;미리 워밍업&quot;은 기본 설정 측정값에서 첫 묶음을 워밍업으로 보고 그 뒤의 값을 보여 준 것입니다. 수치는 CPU와 실행 시점에 따라 달라지지만, 첫 구간이 느리고 그 뒤로 빨라지는 모양은 같습니다. 기본 설정의 JVM은 가벼운 컴파일(C1)과 강한 최적화 컴파일(C2)을 단계적으로 적용합니다.</p>
+<p>앞 실습: <a href="../../lab/gc/">GC와 메모리 누수</a> · 다음 실습: <a href="../../lab/classload/">클래스 로딩과 초기화</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

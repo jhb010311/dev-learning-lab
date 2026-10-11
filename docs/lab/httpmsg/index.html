@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTP 메시지와 상태 코드: 요청과 응답은 이렇게 생긴 글자다 · 개발 학습 실습실</title>
+<meta name="description" content="브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다. 상황을 바꿔 가며 요청과 응답의 원문, 그리고 상태 코드가 무엇을 뜻하는지 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/httpmsg/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/httpmsg/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/httpmsg/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="HTTP 메시지와 상태 코드: 요청과 응답은 이렇게 생긴 글자다 · 개발 학습 실습실">
+<meta property="og:description" content="브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다. 상황을 바꿔 가며 요청과 응답의 원문, 그리고 상태 코드가 무엇을 뜻하는지 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/httpmsg/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
+<h1>HTTP 메시지와 상태 코드</h1>
+<p><b>요청과 응답은 이렇게 생긴 글자다</b></p>
+<p>브라우저와 서버가 주고받는 HTTP 메시지는 정해진 모양의 글자입니다. 요청에는 &quot;무엇을(주소) 어떻게(메서드)&quot;가, 응답에는 &quot;어떻게 됐는지(상태 코드)&quot;가 첫 줄에 적힙니다. 상황을 바꿔 가며 요청과 응답의 원문, 그리고 상태 코드가 무엇을 뜻하는지 보세요.</p>
+<p>일부만 실행으로 확인 · 메시지 구조는 실제 원문과 대조, 상태 코드는 표준 기준</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>HTTP와 무상태(Stateless)</dt>
+<dd>HTTP는 클라이언트가 요청을 보내면 서버가 응답하는 방식의 통신 규약이다. 무상태라는 것은 서버가 이전 요청의 내용을 기억하지 않아 각 요청이 그 자체로 처리에 필요한 정보를 모두 담고 있어야 한다는 뜻이다. 서버가 상태를 기억하지 않으므로 어느 서버가 요청을 받아도 되어 서버를 늘리기 쉽다. 로그인 상태처럼 이어져야 하는 정보는 쿠키, 세션, 토큰으로 유지한다.</dd>
+<dt>HTTP 메서드</dt>
+<dd>요청이 자원에 대해 수행하려는 동작을 나타낸다. GET은 조회, POST는 생성이나 처리 요청, PUT은 전체 교체, PATCH는 일부 수정, DELETE는 삭제를 뜻한다. 메서드의 의미에 맞게 사용해야 캐시, 재시도 같은 HTTP의 동작이 기대대로 이뤄진다.</dd>
+<dt>HTTP 상태 코드</dt>
+<dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
+<dt>REST</dt>
+<dd>웹의 자원을 URI로 식별하고, 그 자원에 대한 행위를 HTTP 메서드로 표현하며, 자원의 표현(JSON 등)을 주고받는 아키텍처 스타일이다. 서버가 클라이언트의 상태를 저장하지 않는 무상태성과 일관된 인터페이스를 특징으로 한다. 실무에서는 이 원칙에 따라 설계한 HTTP API를 REST API라고 부른다.</dd>
+<dt>URI와 URL</dt>
+<dd>URI는 자원을 식별하는 문자열이고, URL은 그중 자원의 위치(접근 방법과 주소)로 식별하는 것이다. 웹에서 쓰는 주소는 대부분 URL이며 URL은 URI에 포함되는 개념이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 조회 성공. 200과 함께 본문이 옵니다.</li>
+<li><b>새 주문 등록</b> — 201과 함께 새로 만들어진 주소를 알려 줍니다.</li>
+<li><b>잘못된 요청</b> — 400. 보낸 쪽이 고쳐야 합니다.</li>
+<li><b>로그인 안 함 / 권한 없음</b> — 401과 403의 차이를 번갈아 보세요.</li>
+<li><b>없는 주문</b> — 404. 주소가 가리키는 대상이 없습니다.</li>
+<li><b>서버 오류</b> — 500. 보낸 쪽이 아니라 서버가 고쳐야 합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>요청의 첫 줄(시작 줄)입니다. 메서드 GET, 대상 경로 /orders/1, 프로토콜 버전 순서입니다. 메서드는 &quot;무엇을 하려는지&quot;, 경로는 &quot;무엇에 대해서인지&quot;를 나타냅니다.</li>
+<li>그다음 줄들은 헤더입니다. &quot;이름: 값&quot; 형태로 요청에 대한 부가 정보를 싣습니다. Host는 어느 사이트로 가는 요청인지, Authorization은 누가 보내는지,</li>
+<li>헤더가 끝났다는 표시로 빈 줄이 하나 들어갑니다. 이 요청은 보낼 데이터가 없어 본문이 없습니다. 서버는 이 요청 하나만 보고 처리할 수 있어야 합니다. 앞서 보낸 요청을 기억하지 않기 때문입니다(무상태).</li>
+<li>서버의 응답입니다. 첫 줄에 상태 코드 200 OK가 있습니다. 세 자리 숫자의 첫 자리가 큰 분류입니다: 2xx 성공.</li>
+<li>요청한 주문을 찾아 본문에 담아 돌려줍니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>응답 200 OK (2xx 성공). 고쳐야 하는 쪽: 없음. 받은 쪽이 할 일: 받은 본문을 사용.</li>
+<li>상태 코드의 첫 자리만 봐도 대응이 갈립니다. 4xx는 같은 요청을 다시 보내도 소용없고 요청을 고쳐야 합니다. 5xx는 서버 쪽 문제라서 잠시 뒤 다시 시도해 볼 수 있습니다. 모니터링에서도 4xx와 5xx를 따로 셉니다.</li>
+<li>HTTP 메시지는 시작 줄, 헤더, 빈 줄, 본문의 네 부분입니다. 요청의 시작 줄에는 메서드와 경로가, 응답의 시작 줄에는 상태 코드가 들어갑니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@GetMapping(&quot;/orders/{id}&quot;)
+OrderDto get(@PathVariable long id) {
+    return orderService.find(id);                 // 200 OK + JSON 본문
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>메시지의 구조(시작 줄, 헤더, 빈 줄, 본문)는 실제 HTTP 서버와 소켓으로 주고받은 원문에서 확인한 모양 그대로이며, 화면에서는 주요 헤더만 남겼습니다. 상황별 상태 코드는 HTTP 표준(RFC 9110)의 정의와 REST API에서 널리 쓰는 관례를 따랐습니다. 남의 자원에 대한 요청에 403 대신 404를 주어 자원의 존재를 숨기는 설계도 있습니다.</p>
+<p>앞 실습: <a href="../../lab/congestion/">흐름 제어와 혼잡 제어</a> · 다음 실습: <a href="../../lab/httpver/">HTTP/1.1, 2, 3</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

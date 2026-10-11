@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Undo와 Redo 로그: 커밋 직후 전원이 꺼져도 데이터가 남는 이유 · 개발 학습 실습실</title>
+<meta name="description" content="DB는 데이터를 바꿀 때 데이터 파일을 곧바로 고치지 않습니다. 메모리에서 먼저 바꾸고, &quot;되돌리는 데 필요한 기록(Undo)&quot;과 &quot;다시 적용하는 데 필요한 기록(Redo)&quot;을 남깁니다. 잔액을 1000에서 500으로 바꾸는 트랜잭션에 롤백이나 장애를 일으켜 보고, 두 로그가…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/undoredo/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/undoredo/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/undoredo/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="Undo와 Redo 로그: 커밋 직후 전원이 꺼져도 데이터가 남는 이유 · 개발 학습 실습실">
+<meta property="og:description" content="DB는 데이터를 바꿀 때 데이터 파일을 곧바로 고치지 않습니다. 메모리에서 먼저 바꾸고, &quot;되돌리는 데 필요한 기록(Undo)&quot;과 &quot;다시 적용하는 데 필요한 기록(Redo)&quot;을 남깁니다. 잔액을 1000에서 500으로 바꾸는 트랜잭션에 롤백이나 장애를 일으켜 보고, 두 로그가…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/undoredo/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 저장과 복구</p>
+<h1>Undo와 Redo 로그</h1>
+<p><b>커밋 직후 전원이 꺼져도 데이터가 남는 이유</b></p>
+<p>DB는 데이터를 바꿀 때 데이터 파일을 곧바로 고치지 않습니다. 메모리에서 먼저 바꾸고, &quot;되돌리는 데 필요한 기록(Undo)&quot;과 &quot;다시 적용하는 데 필요한 기록(Redo)&quot;을 남깁니다. 잔액을 1000에서 500으로 바꾸는 트랜잭션에 롤백이나 장애를 일으켜 보고, 두 로그가 각각 어떤 일을 하는지 보세요.</p>
+<p>문서·표준 대조 · MySQL 공식 문서</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>Undo 로그와 Redo 로그</dt>
+<dd>Undo 로그는 변경 전의 데이터를 기록한 것으로, 트랜잭션을 롤백할 때와 다른 트랜잭션에 과거 버전을 보여 줄 때(MVCC) 쓰인다. Redo 로그는 변경 내용을 기록한 것으로, 커밋된 변경이 데이터 파일에 완전히 쓰이기 전에 장애가 나더라도 재시작 시 이를 다시 적용해 복구하는 데 쓰인다.</dd>
+<dt>ACID</dt>
+<dd>트랜잭션이 보장해야 하는 네 가지 성질이다. 원자성(Atomicity)은 전부 성공하거나 전부 실패하는 것, 일관성(Consistency)은 트랜잭션 전후로 데이터가 정해진 규칙을 만족하는 것, 격리성(Isolation)은 동시에 실행되는 트랜잭션이 서로 간섭하지 않는 것, 지속성(Durability)은 커밋된 결과가 장애가 나도 유지되는 것이다.</dd>
+<dt>MVCC(다중 버전 동시성 제어)</dt>
+<dd>데이터를 변경할 때 이전 버전을 보존해 두어, 읽는 트랜잭션이 자신의 스냅샷 시점에 맞는 버전을 볼 수 있게 하는 방식이다. 스냅샷 시점은 격리 수준에 따라 달라서, MySQL의 REPEATABLE READ는 트랜잭션의 첫 읽기 시점, READ COMMITTED는 문장을 실행할 때마다 새로 잡는다. 읽기 작업이 쓰기 작업을 기다리지 않고 쓰기 작업도 읽기 작업을 기다리지 않아 동시 처리 성능이 높다. MySQL InnoDB, PostgreSQL, Oracle이 모두 이 방식을 쓴다.</dd>
+<dt>트랜잭션</dt>
+<dd>여러 데이터 변경 작업을 하나의 단위로 묶어, 전부 반영되거나(커밋) 전부 취소되게(롤백) 하는 것이다. 계좌 이체에서 출금과 입금 중 하나만 반영되는 중간 상태를 막는다. 데이터베이스가 정합성을 지키는 가장 기본적인 수단이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 커밋 직후 장애. 데이터 파일에는 옛 값인데 재시작하면 새 값입니다.</li>
+<li><b>커밋 전에 장애</b> — 재시작하면 변경이 없던 일이 됩니다.</li>
+<li><b>롤백</b> — Undo 로그에 남겨 둔 이전 값으로 되돌립니다.</li>
+<li><b>정상 커밋</b> — 커밋 시점에 디스크에 쓰는 것은 로그뿐입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>계좌 1의 잔액은 1000입니다. 이 값은 디스크의 데이터 파일에 있고, 메모리(버퍼 풀)에도 같은 값이 올라와 있습니다.</li>
+<li>UPDATE가 시작됩니다. 먼저 바꾸기 전의 값 1000을 Undo 로그에 기록합니다. 되돌려야 할 때와, 다른 트랜잭션이 커밋 전 값을 읽어야 할 때(MVCC) 쓰입니다.</li>
+<li>메모리에 올라와 있는 데이터를 500으로 바꿉니다. 디스크의 데이터 파일은 여전히 1000입니다. 데이터 파일을 매번 바로 고치면 디스크 이곳저곳에 써야 해서 느리기 때문에, 나중에 모아서 씁니다.</li>
+<li>무엇을 어떻게 바꿨는지를 Redo 로그에 기록합니다. 로그는 파일 끝에 이어 붙이기만 하면 되어서 데이터 파일을 고치는 것보다 훨씬 빠릅니다.</li>
+<li>COMMIT: Redo 로그를 디스크에 확실히 써 넣습니다(fsync). 이것이 끝나야 사용자에게 &quot;커밋 성공&quot;을 응답합니다. 이 시점에도 데이터 파일은 1000 그대로입니다. 커밋할 때 디스크에 쓰는 것은 로그뿐입니다.</li>
+<li>커밋 응답 직후, 데이터 파일에 옮겨 쓰기 전에 서버가 꺼졌습니다. 메모리의 500은 사라졌고 데이터 파일에는 1000이 남아 있습니다. 사용자는 이미 &quot;성공&quot;을 받았습니다.</li>
+<li>서버가 다시 시작됩니다. 복구 과정이 디스크의 Redo 로그를 처음부터 읽습니다.</li>
+<li>Redo 로그에 &quot;계좌 1을 500으로&quot;와 커밋 표시가 있습니다. 이 변경을 다시 적용합니다. 잔액은 500으로 복구됩니다. 커밋된 데이터는 잃지 않았습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>최종 잔액은 500입니다.</li>
+<li>커밋된 변경은 데이터 파일에 아직 쓰이지 않았더라도 Redo 로그에서 복구됩니다. &quot;커밋된 것은 장애가 나도 남는다&quot;(지속성)를 Redo 로그가 받쳐 줍니다.</li>
+<li>이렇게 데이터보다 로그를 먼저 디스크에 쓰는 방식을 WAL(Write-Ahead Logging)이라고 합니다. Undo는 &quot;되돌리기&quot;와 &quot;이전 버전 보여 주기&quot;, Redo는 &quot;다시 적용하기&quot;를 맡습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>START TRANSACTION;
+UPDATE account SET balance = 500 WHERE id = 1;   -- 원래 1000
+COMMIT;
+-- (커밋 응답 직후 서버가 꺼짐)</pre>
+<h2>이 모형의 전제</h2>
+<p>MySQL InnoDB의 구조를 단순화했습니다. Undo 로그의 변경 자체도 Redo 로그로 보호된다는 점, 로그 버퍼와 여러 단계의 디스크 쓰기 같은 세부는 생략했습니다. 커밋 때마다 Redo 로그를 디스크에 쓰는 것은 기본 설정(innodb_flush_log_at_trx_commit=1)의 동작입니다. 실제 DB에 장애를 일으켜 확인한 결과가 아니라 MySQL 공식 문서의 설명을 옮긴 것입니다.</p>
+<p>앞 실습: <a href="../../lab/dbdeadlock/">DB의 교착 상태</a> · 다음 실습: <a href="../../lab/bufferpool/">버퍼 풀과 페이지</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

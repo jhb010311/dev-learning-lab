@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ER 모델링: 개체 사이의 관계를 테이블로 어떻게 옮기나 · 개발 학습 실습실</title>
+<meta name="description" content="회원과 글(일대다), 글과 태그(다대다), 회원과 프로필(일대일)이라는 세 관계를 테이블로 옮깁니다. 관계마다 흔히 쓰는 설계와, 그럴듯해 보이지만 어긋나는 설계를 나란히 두었습니다. 양쪽에 같은 일(연결된 것 찾기, 하나 더 연결하기)을 시켜 보면 조회 결과가 달라집니다.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/ermodel/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ermodel/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ermodel/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="ER 모델링: 개체 사이의 관계를 테이블로 어떻게 옮기나 · 개발 학습 실습실">
+<meta property="og:description" content="회원과 글(일대다), 글과 태그(다대다), 회원과 프로필(일대일)이라는 세 관계를 테이블로 옮깁니다. 관계마다 흔히 쓰는 설계와, 그럴듯해 보이지만 어긋나는 설계를 나란히 두었습니다. 양쪽에 같은 일(연결된 것 찾기, 하나 더 연결하기)을 시켜 보면 조회 결과가 달라집니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/ermodel/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 관계형 모델과 설계</p>
+<h1>ER 모델링</h1>
+<p><b>개체 사이의 관계를 테이블로 어떻게 옮기나</b></p>
+<p>회원과 글(일대다), 글과 태그(다대다), 회원과 프로필(일대일)이라는 세 관계를 테이블로 옮깁니다. 관계마다 흔히 쓰는 설계와, 그럴듯해 보이지만 어긋나는 설계를 나란히 두었습니다. 양쪽에 같은 일(연결된 것 찾기, 하나 더 연결하기)을 시켜 보면 조회 결과가 달라집니다.</p>
+<p>실행으로 대조 · MySQL 8.4.11에서 열네 가지 조합의 SQL을 그대로 실행해 쓰기 문장의 결과, 조회 결과의 모든 행, 끝난 뒤 테이블의 모든 행을 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>ER 모델(개체, 속성, 관계)</dt>
+<dd>저장할 데이터를 개체(Entity), 속성(Attribute), 관계(Relationship)로 정리해 그림으로 나타내는 설계 방법이다. 개체는 회원이나 글처럼 따로 구별해서 저장할 대상이고, 속성은 이름이나 제목처럼 개체가 가진 값이며, 관계는 &quot;회원이 글을 쓴다&quot;처럼 개체 사이의 연결이다. 테이블을 만들기 전에 무엇을 저장하고 무엇끼리 이어지는지를 먼저 정하는 단계에서 쓴다. 테이블로 옮길 때 개체는 테이블이, 속성은 컬럼이, 관계는 외래 키나 연결 테이블이 된다. 이 그림을 ER 다이어그램(ERD)이라고 부른다.</dd>
+<dt>관계의 종류(일대일, 일대다, 다대다)</dt>
+<dd>두 개체가 서로 몇 개씩 이어질 수 있는지에 따라 관계를 나눈 것이다. 일대다는 회원 한 명이 글을 여러 개 쓰는 것처럼 한쪽 하나에 다른 쪽 여러 개가 이어지는 관계로, &quot;다&quot; 쪽 테이블에 외래 키를 둔다. 다대다는 글 하나에 태그가 여러 개 붙고 태그 하나가 여러 글에 붙는 것처럼 양쪽 모두 여러 개가 이어지는 관계로, 가운데에 연결 테이블을 둔다. 일대일은 양쪽 모두 하나씩만 이어지는 관계로, 외래 키에 유니크 제약을 더해 옮긴다. 한 칸에는 값이 하나만 들어간다는 점이 이 규칙들의 이유이다.</dd>
+<dt>연결 테이블</dt>
+<dd>다대다 관계를 테이블로 옮길 때 두 테이블 사이에 두는 테이블이다. 양쪽 테이블의 기본 키를 가리키는 외래 키 두 개를 가지며, 행 하나가 &quot;이 글에 이 태그가 붙어 있다&quot; 같은 연결 하나를 뜻한다. 보통 두 외래 키를 묶어 기본 키로 삼아 같은 연결이 두 번 들어가지 않게 한다. 연결이 늘어도 행만 늘어날 뿐 테이블의 모양은 바뀌지 않는다. 연결한 날짜나 순서처럼 연결 자체에 딸린 값이 생기면 이 테이블에 컬럼으로 추가한다. 교차 테이블, 매핑 테이블이라고도 부른다.</dd>
+<dt>기본 키, 유니크 키, 외래 키</dt>
+<dd>기본 키(PK)는 테이블의 각 행을 유일하게 식별하는 컬럼으로 값이 중복되거나 비어 있을 수 없고 테이블에 하나만 둔다. 유니크 키는 값의 중복을 막는 제약으로 여러 개 둘 수 있다. 외래 키(FK)는 다른 테이블의 기본 키(또는 유니크 키)를 참조하는 컬럼으로, 참조 대상이 실제로 존재하도록 보장한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 쉼표 문자열에서 java 태그를 찾습니다. javascript 글까지 나옵니다.</li>
+<li><b>연결 테이블에서 찾기</b> — java 태그가 붙은 글 2건만 정확히 나옵니다.</li>
+<li><b>tag1~tag3에 네 번째 태그</b> — 넣을 컬럼이 없어 오류가 납니다.</li>
+<li><b>연결 테이블에 태그 하나 더</b> — 연결 테이블에 행 하나를 넣으면 끝납니다.</li>
+<li><b>외래 키를 &quot;일&quot; 쪽에 두면</b> — 회원이 쓴 글 2건 가운데 1건만 조회됩니다.</li>
+<li><b>일대일에 유니크가 없으면</b> — 한 회원에 프로필이 2개 들어갑니다.</li>
+<li><b>일대일에 유니크를 걸면</b> — 두 번째 프로필이 오류 1062로 막힙니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>CREATE TABLE, INSERT: 글과 태그의 다대다 관계를 연결 테이블 없이, post 테이블의 tags 컬럼에 태그 이름을 쉼표로 이어 붙여 저장했습니다. DB가 보기에 tags는 글자들이 든 칸 하나일 뿐이고, 그 안에 태그가 몇 개 들어 있는지는 알지 못합니다.</li>
+<li>글 1의 tags 'java,spring,jpa' LIKE '%java%': 문자열 안에 java라는 글자가 있으므로 조건에 맞습니다. 이 글에는 실제로 java 태그가 붙어 있습니다.</li>
+<li>글 2의 tags 'java' LIKE '%java%': 문자열 안에 java라는 글자가 있으므로 조건에 맞습니다. 이 글에는 실제로 java 태그가 붙어 있습니다.</li>
+<li>글 3의 tags 'javascript' LIKE '%java%': 문자열 안에 java라는 글자가 있으므로 조건에 맞습니다. 하지만 이 글의 태그는 javascript입니다. LIKE는 글자가 들어 있는지만 보고, 쉼표로 나눈 태그 하나와 같은지는 보지 않습니다.</li>
+<li>SELECT id, title FROM post WHERE tags LIKE '%java%' ORDER BY id: 조건에 맞은 글은 3행입니다. 나와야 하는 것은 글 1, 2인데 결과가 다릅니다. java 태그가 붙지 않은 글 3이 섞여 나왔습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>조회 결과는 3행: 글 1, 2, 3입니다. 나와야 하는 것(글 1, 2)과 다릅니다.</li>
+<li>한 칸에 값을 여러 개 넣으면 DB가 그 값을 하나씩 다루지 못합니다. LIKE로 java를 찾으면 javascript도 걸립니다. MySQL의 FIND_IN_SET('java', tags)을 쓰면 쉼표로 나눈 조각과 비교해 글 1과 2만 나오지만, 컬럼을 함수에 넣은 조건이라 tags에 인덱스가 있어도 쓰지 못하고 모든 행을 읽습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>-- 테이블
+CREATE TABLE post (
+  id    INT PRIMARY KEY,
+  title VARCHAR(50) NOT NULL,
+  tags  VARCHAR(100)
+);
+
+-- 처음 데이터
+INSERT INTO post (id, title, tags) VALUES
+  (1, '스프링 입문', 'java,spring,jpa'),
+  (2, '자바 기초', 'java'),
+  (3, '화면 만들기', 'javascript');
+
+-- 연결된 것 찾기
+SELECT id, title
+  FROM post
+ WHERE tags LIKE '%java%'
+ ORDER BY id;</pre>
+<h2>이 모형의 전제</h2>
+<p>회원 3명, 글 3개, 태그 5개의 작은 예입니다. 열네 가지 조합(설계 일곱 가지 × 시켜 볼 일 두 가지) 모두, 화면의 SQL을 실제 MySQL 8.4.11(InnoDB)에서 그대로 실행해 쓰기 문장의 오류 번호와 바뀐 행 수, 조회 결과의 모든 행, 끝난 뒤 각 테이블의 모든 행이 모형과 같은 것을 대조했습니다. &quot;나와야 하는 것&quot;은 이 예에서 정한 사실(김철수가 글 1과 2를 썼다, java 태그는 글 1과 2에 붙어 있다, 회원의 프로필은 하나다)이며 DB가 알려 주는 값이 아닙니다. 요약에 적은 다음 내용도 같은 MySQL에서 따로 실행해 확인했습니다. 쉼표 문자열에 FIND_IN_SET을 쓰면 글 1과 2만 나오는 것, tags에 인덱스를 만들고 행을 2,000개 넣어도 FIND_IN_SET 조건의 실행 계획은 인덱스로 찾지 않고 모든 행을 읽는 것(type이 ALL), 쉼표 문자열에는 이미 있는 태그를 또 붙여도 그대로 들어가는 것, 연결 테이블에서는 같은 연결을 한 번 더 넣으면 오류 1062로, 없는 태그를 연결하면 오류 1452로 거부되는 것입니다. LIKE가 javascript까지 찾는 것은 어느 DB에서나 같지만 FIND_IN_SET은 MySQL의 함수입니다. 오류 번호와 메시지도 MySQL의 것입니다. 일대다의 외래 키를 &quot;일&quot; 쪽에 두는 설계는 잘못을 보이려고 만든 예입니다. 일대일에서 외래 키를 어느 테이블에 둘지, 테이블을 합칠지는 조회 방식에 따라 정하는 설계 판단이며 이 실습은 그 비교까지는 다루지 않습니다. 정규화와 이상 현상은 &quot;정규화&quot; 실습에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/constraints/">테이블, 키, 제약 조건</a> · 다음 실습: <a href="../../lab/normal/">정규화</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

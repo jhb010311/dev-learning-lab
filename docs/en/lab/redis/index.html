@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redis single-threaded execution: If one command is slow, everyone waits · Dev Learning Lab</title>
+<meta name="description" content="Redis runs commands one at a time, in order, on a single thread. That is why each command runs without anything cutting in, even without locks, but if one…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/redis/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/redis/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/redis/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Redis single-threaded execution: If one command is slow, everyone waits · Dev Learning Lab">
+<meta property="og:description" content="Redis runs commands one at a time, in order, on a single thread. That is why each command runs without anything cutting in, even without locks, but if one…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/redis/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Scaling and distribution</p>
+<h1>Redis single-threaded execution</h1>
+<p><b>If one command is slow, everyone waits</b></p>
+<p>Redis runs commands one at a time, in order, on a single thread. That is why each command runs without anything cutting in, even without locks, but if one command takes a long time, every command behind it has to wait in line. Mix in a slow command and check how long the other clients wait.</p>
+<p>Partly checked against real execution · The principle was measured and checked on Redis 8.10.2 (the time values are examples)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Redis</dt>
+<dd>A key-value store that keeps data in memory. It provides not only strings but also data structures such as lists, hashes, sets, and sorted sets. It is very fast because it works in memory, and it is used for caches, session stores, distributed locks, leaderboards, rate limiting, and more. It runs commands one after another on a single thread.</dd>
+<dt>Cache</dt>
+<dd>Storing frequently used data or computed results ahead of time in a place that can be accessed quickly, and reusing them. Responses get faster and the load on the source drops, because the source (usually a database) is not queried every time. In return, you must manage the problem of stale values that remain when the source changes.</dd>
+<dt>Atomicity and CAS (compare-and-swap)</dt>
+<dd>Atomicity is the property that an operation made of several steps runs as one, with no gap for anything to cut in. CAS (compare-and-swap) performs &quot;change to the new value only if the current value equals the value I read&quot; as a single atomic operation, which makes safe updates possible without locks. AtomicInteger and similar classes use it.</dd>
+<dt>Event loop</dt>
+<dd>This is a structure in which a small number of threads detect the I/O events that occur on many connections and process them in turn. There is no thread per connection, so one thread takes care of many connections. If you run a long task or a blocking call on such a thread, processing stops for every connection that the thread is responsible for.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — One KEYS command stops the other clients for 0.5s each.</li>
+<li><b>With fast commands only</b> — Every command finishes within 1ms.</li>
+<li><b>Switching to SCAN</b> — It runs in small pieces, so other commands can cut in between them.</li>
+<li><b>Reading a large collection whole</b> — Even without KEYS, the same thing happens when a value is large.</li>
+<li><b>INCR at the same time</b> — The commands run one at a time, so no increment is lost.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Redis receives the commands of several clients, puts them in a single line, and one thread runs them one by one from the front. The next command starts only after the current one has finished.</li>
+<li>Service A GET product:1: It ran for 0.1ms.</li>
+<li>Service B GET product:2: It ran for 0.1ms.</li>
+<li>Admin KEYS user:*: It ran for 500ms. While this command runs, Redis cannot process any other command.</li>
+<li>Service A GET product:3: After waiting 499.2ms for the preceding command to finish, it ran for 0.1ms.</li>
+<li>Service B SET cart:9 ...: After waiting 499.3ms for the preceding command to finish, it ran for 0.1ms.</li>
+<li>Service A GET product:4: After waiting 498.4ms for the preceding command to finish, it ran for 0.1ms.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The command that waited longest waited 499.3ms, and the whole processing took 500.5ms.</li>
+<li>A lookup that usually finishes in 0.1ms waited 499.3ms. All the services connected to Redis slow down at the same time, and if a timeout is set, cache lookups fail one after another. This is why you should avoid commands such as KEYS, reading a large collection whole, and deleting a large key (DEL) on a Redis that is in operation.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Services A and B: ordinary cache lookups
+String v = redis.opsForValue().get(&quot;product:1&quot;);   // 0.1ms
+
+// Admin script
+Set&lt;String&gt; keys = redis.keys(&quot;user:*&quot;);          // scans all the keys at once</pre>
+<h2>Assumptions of this model</h2>
+<p>The run times of the commands (GET 0.1ms, KEYS 500ms, reading a large list 300ms, one SCAN 0.5ms) are examples to show the difference in size. That Redis runs commands one after another in a single thread, and the recommendation to use SCAN instead of KEYS, follow the official Redis documentation. Since Redis 6, several threads can be used for network I/O, but running commands is still done by one thread. The principle was checked on a real Redis 8.10.2 (1 million keys, a list of 500,000 elements). While KEYS was running, a GET from another client waited up to 186ms, and during the large list query it waited 22ms (usually 3ms or less), and while SCAN walked through in pieces of 1,000, it never exceeded 1.5ms. The final value of INCR sent by two clients at the same time, 20,000 times each, was exactly 40,000. The time values on the screen are examples, not these measured values, and the real times vary with the data size and the hardware.</p>
+<p>Previous lab: <a href="../../lab/partition/">Partitioning</a> · Next lab: <a href="../../lab/nosql/">NoSQL and the document model</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

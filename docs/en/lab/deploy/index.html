@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deployment strategies: How to switch to a new version without interrupting the service · Dev Learning Lab</title>
+<meta name="description" content="Four servers are running v1. Depending on how you switch them to v2, it changes whether the service is interrupted during the deployment, how many more se…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/deploy/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/deploy/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/deploy/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Deployment strategies: How to switch to a new version without interrupting the service · Dev Learning Lab">
+<meta property="og:description" content="Four servers are running v1. Depending on how you switch them to v2, it changes whether the service is interrupted during the deployment, how many more se…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/deploy/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Deployment and operations</p>
+<h1>Deployment strategies</h1>
+<p><b>How to switch to a new version without interrupting the service</b></p>
+<p>Four servers are running v1. Depending on how you switch them to v2, it changes whether the service is interrupted during the deployment, how many more servers you need, and how many users are affected if the new version has a problem.</p>
+<p>Checked against documentation and standards · The official Kubernetes and Spring Boot documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Rolling, blue-green, and canary deployments</dt>
+<dd>Ways to deploy a new version without interrupting the service. A rolling deployment replaces servers with the new version a few at a time, in turn. A blue-green deployment prepares a complete, separate environment for the new version and then switches the traffic all at once. A canary deployment applies the new version to only some users first, checks that there are no problems, and then expands it gradually.</dd>
+<dt>Graceful shutdown</dt>
+<dd>Stopping an application by accepting no new requests, finishing the requests that are already in progress, and only then exiting. It prevents errors caused by in-progress requests being cut off when a server is taken down, for example for a deployment.</dd>
+<dt>Health check (liveness, readiness)</dt>
+<dd>A periodic check of whether a server is healthy. Liveness checks whether the process is alive, so that it is restarted if there is a problem. Readiness checks whether the server is ready to take requests, so that traffic is not sent to a server that is not ready. This keeps requests from reaching a server while it is starting up or shutting down.</dd>
+<dt>Load balancer</dt>
+<dd>A device that distributes incoming requests across several servers. It checks the state of the servers periodically (health check) and does not send requests to a server that has a problem. It keeps load from piling up on one server and keeps the service running even when some servers fail.</dd>
+<dt>CI/CD</dt>
+<dd>CI (continuous integration) means merging code changes often and automatically running a build and tests on every merge to find problems early. CD (continuous delivery or continuous deployment) means using an automated process to get verified code into a deployable state or to deploy it all the way to production. Automating the build, test, and deployment work that people used to do by hand reduces mistakes and shortens the release cycle.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Rolling deployment. Servers are replaced one at a time, so the service is not interrupted.</li>
+<li><b>Take everything down first</b> — The simplest way, but the service stops in the meantime.</li>
+<li><b>Blue-green</b> — You need twice the servers, but switching and rolling back are instant.</li>
+<li><b>A version with a bug, deployed by rolling</b> — Until you notice the problem, the range of impact keeps growing.</li>
+<li><b>A version with a bug, deployed as a canary</b> — Only some users are affected, and then you roll back.</li>
+<li><b>Without graceful shutdown</b> — Requests in progress are cut off when a server is taken down.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Current state: all 4 servers are v1, and the load balancer spreads the requests evenly.</li>
+<li>Server 1: The load balancer stops sending new requests to this server, then sends a termination signal. The server finishes the requests in progress and then exits.</li>
+<li>Server 1: Bringing it up as v2. It receives no requests until it passes the readiness check. In the meantime the other 3 servers carry the load.</li>
+<li>Server 1: Ready. It receives requests again. Now v1 and v2 are serving together, and 25% of requests go to v2.</li>
+<li>Server 2: The load balancer stops sending new requests to this server, then sends a termination signal. The server finishes the requests in progress and then exits.</li>
+<li>Server 2: Bringing it up as v2. It receives no requests until it passes the readiness check. In the meantime the other 3 servers carry the load.</li>
+<li>Server 2: Ready. It receives requests again. Now v1 and v2 are serving together, and 50% of requests go to v2.</li>
+<li>Server 3: The load balancer stops sending new requests to this server, then sends a termination signal. The server finishes the requests in progress and then exits.</li>
+<li>Server 3: Bringing it up as v2. It receives no requests until it passes the readiness check. In the meantime the other 3 servers carry the load.</li>
+<li>Server 3: Ready. It receives requests again. Now v1 and v2 are serving together, and 75% of requests go to v2.</li>
+<li>Server 4: The load balancer stops sending new requests to this server, then sends a termination signal. The server finishes the requests in progress and then exits.</li>
+<li>Server 4: Bringing it up as v2. It receives no requests until it passes the readiness check. In the meantime the other 3 servers carry the load.</li>
+<li>Server 4: Ready. It receives requests again. Now v1 and v2 are serving together, and 100% of requests go to v2.</li>
+<li>All 4 servers are now v2. The service was not interrupted during the deployment.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>This deploys with no downtime and no extra servers. During the deployment the processing capacity drops, and since v1 and v2 receive requests at the same time, the database schema and the API must be compatible with both versions.</li>
+</ul>
+<h2>Code</h2>
+<pre># Kubernetes Deployment (replicas: 4)
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1           # takes down at most 1 server at a time
+    maxSurge: 0
+
+readinessProbe:                 # receives requests only when ready
+  httpGet: { path: /actuator/health/readiness, port: 8080 }
+
+# application.yml
+server.shutdown: graceful         # finishes the requests in progress, then exits
+spring.lifecycle.timeout-per-shutdown-phase: 30s</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a simple setup with 4 servers, replaced one at a time. The bug is assumed to be of a kind that the health check does not filter out and that shows up only after the server receives real requests, and in the rolling deployment it is assumed to be found at the point when 2 servers have been replaced. The requests in progress when a server is taken down are set to 2 per server. The definition of each strategy follows the explanations in the official Kubernetes and Spring Boot documentation.</p>
+<p>Previous lab: <a href="../../lab/cicd/">CI/CD pipelines</a> · Next lab: <a href="../../lab/container/">Containers and virtual machines</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kubernetes self-healing: When a container dies, what starts it again? · Dev Learning Lab</title>
+<meta name="description" content="In Kubernetes, you write down the state you want, such as &quot;run 3 copies of this application&quot;. Kubernetes keeps watching the actual state, and when it diff…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/k8s/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/k8s/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/k8s/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Kubernetes self-healing: When a container dies, what starts it again? · Dev Learning Lab">
+<meta property="og:description" content="In Kubernetes, you write down the state you want, such as &quot;run 3 copies of this application&quot;. Kubernetes keeps watching the actual state, and when it diff…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/k8s/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Deployment and operations</p>
+<h1>Kubernetes self-healing</h1>
+<p><b>When a container dies, what starts it again?</b></p>
+<p>In Kubernetes, you write down the state you want, such as &quot;run 3 copies of this application&quot;. Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself. Trigger different events and follow how the system recovers.</p>
+<p>Checked against documentation and standards · The official Kubernetes documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Kubernetes</dt>
+<dd>A platform that automates placing and managing containers across several servers. You declare a desired state (for example, run 3 copies of this application), and it keeps adjusting so that the actual state matches it. It restarts containers that die, adjusts their number according to load, and replaces them with a new version step by step.</dd>
+<dt>Pod, Deployment, and Service</dt>
+<dd>The basic building blocks of Kubernetes. A Pod is a group of one or more containers that run together and is the smallest unit of deployment. A Deployment manages how many Pods to keep and how to replace them with a new version. A Service provides an unchanging access address for Pods that change often, and it distributes requests among them.</dd>
+<dt>Health check (liveness, readiness)</dt>
+<dd>A periodic check of whether a server is healthy. Liveness checks whether the process is alive, so that it is restarted if there is a problem. Readiness checks whether the server is ready to take requests, so that traffic is not sent to a server that is not ready. This keeps requests from reaching a server while it is starting up or shutting down.</dd>
+<dt>Autoscaling</dt>
+<dd>A feature that automatically increases or decreases the number of servers according to metrics such as CPU utilization or request count. It adds servers when load is high and removes them when load is low to save cost. It takes time for an added server to become able to take requests, so for a surge that is known in advance it is safer to add servers ahead of time.</dd>
+<dt>Containers and images</dt>
+<dd>A container is a technology that packages an application with the things it needs to run and runs it in an environment isolated from other processes, while sharing the kernel of the host operating system. An image is a read-only template used to create a container, and it holds the application, libraries, and configuration. Running the same image gives the same result in any environment.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — One Pod dies. A new Pod is created automatically.</li>
+<li><b>When a node dies</b> — The Pods that were on that node are created again on other nodes.</li>
+<li><b>When you increase the replicas</b> — You change only the number, and Kubernetes creates as many Pods as are missing.</li>
+<li><b>The process is alive but hung</b> — The liveness probe fails, so the container is restarted.</li>
+<li><b>It cannot take requests for a while</b> — The readiness probe fails, so only the requests are cut off. The container is not restarted.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>This is the normal state. The Deployment says &quot;3 replicas&quot;, and 3 Pods are actually running, spread across two nodes. The Service divides requests among the three Pods.</li>
+<li>The container in shop-b died because it ran out of memory. The Service stops sending requests to this Pod. The actual number of Pods is now 2.</li>
+<li>The controller compares the states. Desired: 3, actual: 2. One Pod is missing. No one has to tell it, because this comparison keeps repeating.</li>
+<li>A new Pod, shop-d, is created. The scheduler picks a node with room and places the Pod there, and the kubelet on that node starts the container. The dead Pod is not revived. It is replaced with a new one.</li>
+<li>shop-d passed its readiness probe. The Service starts sending requests to it. There are 3 Pods again.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>What Kubernetes did: Created 1 new Pod. What a person did: None. Pods now: 3.</li>
+<li>Treat a Pod as disposable: it can die and be replaced at any time. So do not keep state (files, sessions) inside a Pod, and reach Pods through the fixed name of a Service, not through a Pod's IP.</li>
+<li>The controller keeps comparing the desired state with the actual state and closes the gap. This loop is the basic principle of how Kubernetes works.</li>
+</ul>
+<h2>Code</h2>
+<pre>apiVersion: apps/v1
+kind: Deployment
+metadata: { name: shop }
+spec:
+  replicas: 3                 # desired state: always 3
+  template:
+    spec:
+      containers:
+        - name: app
+          image: shop:1.0
+          livenessProbe:        # if it fails, restart the container
+            httpGet: { path: /actuator/health/liveness, port: 8080 }
+          readinessProbe:       # if it fails, only exclude it from request targets
+            httpGet: { path: /actuator/health/readiness, port: 8080 }</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a simple setup with 3 replicas and three nodes. The time it takes to detect a failure and recover is not shown (after a node failure is detected, it takes several minutes with the default settings before the Pods are moved). The behavior of the Deployment, the controller, and the two kinds of probes follows the explanations in the official Kubernetes documentation. It is not the result of running on a real cluster.</p>
+<p>Previous lab: <a href="../../lab/container/">Containers and virtual machines</a> · Next lab: <a href="../../lab/pct/">Averages and percentiles</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

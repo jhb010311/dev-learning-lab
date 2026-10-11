@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spring · 개발 학습 실습실</title>
+<meta name="description" content="컨테이너와 의존성 주입, AOP와 트랜잭션, 웹 요청이 처리되는 길, 스프링 부트가 대신 해 주는 일을 봅니다.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/study/spring/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/study/spring/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/study/spring/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="Spring · 개발 학습 실습실">
+<meta property="og:description" content="컨테이너와 의존성 주입, AOP와 트랜잭션, 웹 요청이 처리되는 길, 스프링 부트가 대신 해 주는 일을 봅니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/study/spring/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a></p>
+<h1>Spring</h1>
+<p>컨테이너와 의존성 주입, AOP와 트랜잭션, 웹 요청이 처리되는 길, 스프링 부트가 대신 해 주는 일을 봅니다.</p>
+<h2>IoC 컨테이너와 DI</h2>
+<ul>
+<li><a href="../../lab/ioc/">스프링 컨테이너와 빈</a> — new를 쓰지 않았는데 객체는 누가 만들어 넣어 주나</li>
+<li><a href="../../lab/di/">빈 생성과 주입</a> — 스프링은 객체를 어떤 순서로 만들고 연결하나</li>
+<li><a href="../../lab/singleton/">싱글톤 빈과 상태</a> — 내 주문에 다른 사람 이름이 찍혔다</li>
+<li><a href="../../lab/scope/">빈 스코프</a> — 프로토타입 빈인데 왜 객체가 하나뿐인가</li>
+<li><a href="../../lab/lifecycle/">빈 생명주기 콜백</a> — 생성자에서 주입받은 필드를 썼더니 왜 null인가</li>
+</ul>
+<h2>AOP와 프록시</h2>
+<ul>
+<li><a href="../../lab/proxy/">프록시와 자기 호출</a> — 애노테이션을 붙였는데 왜 동작하지 않나</li>
+<li><a href="../../lab/aop/">AOP: 어드바이스와 포인트컷</a> — 어드바이스는 어느 메서드에, 어떤 순서로 끼어드나</li>
+</ul>
+<h2>데이터 접근과 트랜잭션</h2>
+<ul>
+<li><a href="../../lab/tx/">트랜잭션 기본</a> — 출금은 됐는데 입금이 안 됐다면</li>
+<li><a href="../../lab/txprop/">트랜잭션 전파</a> — 예외가 나면 어디까지 롤백되나</li>
+<li><a href="../../lab/jdbctmpl/">JdbcTemplate과 예외 변환</a> — JdbcTemplate은 무엇을 대신 해 주고, 예외를 무엇으로 바꾸나</li>
+<li><a href="../../lab/connpool/">커넥션 풀과 OSIV</a> — 쿼리는 금방 끝났는데 커넥션이 모자란 이유</li>
+</ul>
+<h2>웹 MVC</h2>
+<ul>
+<li><a href="../../lab/servlet/">서블릿</a> — HTTP 요청이 자바 코드에 닿기까지</li>
+<li><a href="../../lab/mvc/">MVC 요청 흐름</a> — 요청 하나가 컨트롤러에 닿기까지, 그리고 돌아가기까지</li>
+<li><a href="../../lab/binding/">요청 매핑과 파라미터 바인딩</a> — 요청에 실어 보낸 값은 어떻게 메서드의 파라미터가 되나</li>
+<li><a href="../../lab/validation/">검증</a> — 필드에 @NotBlank를 붙였는데 왜 빈 값이 그대로 들어오나</li>
+<li><a href="../../lab/msgconv/">REST API와 메시지 컨버터</a> — 컨트롤러가 돌려준 객체는 어디서 JSON이 되나</li>
+</ul>
+<h2>스프링 부트</h2>
+<ul>
+<li><a href="../../lab/autoconf/">스프링 부트 자동 설정</a> — 의존성만 추가했는데 왜 빈이 생기나</li>
+<li><a href="../../lab/config/">설정 우선순위</a> — 같은 설정이 여러 곳에 있으면 어느 값이 이기나</li>
+<li><a href="../../lab/actuator/">액추에이터와 헬스 체크</a> — 결제사 연결이 끊겼을 때 헬스 체크는 무엇이라고 답하나</li>
+</ul>
+<h2>그 밖의 기능</h2>
+<ul>
+<li><a href="../../lab/testing/">테스트</a> — 테스트를 실행할 때 스프링 컨텍스트에는 무엇이 들어가고, 몇 번 만들어지나</li>
+<li><a href="../../lab/restclient/">외부 API 호출과 타임아웃</a> — 다른 서버를 호출했는데 답이 오지 않으면 언제까지 기다리나</li>
+<li><a href="../../lab/cacheabs/">캐시 추상화</a> — @Cacheable을 붙이면 메서드 본문은 언제 실행되지 않나</li>
+<li><a href="../../lab/security/">시큐리티 필터 체인</a> — 401과 403은 어디에서 갈리나</li>
+</ul>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

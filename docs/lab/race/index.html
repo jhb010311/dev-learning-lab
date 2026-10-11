@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>경쟁 상태: count++는 왜 숫자를 잃어버리나 · 개발 학습 실습실</title>
+<meta name="description" content="여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다. 동기화 방식과 실행 순서를 바꿔 가며 최종 값이 어떻게 달라지는지 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/race/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/race/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/race/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="경쟁 상태: count++는 왜 숫자를 잃어버리나 · 개발 학습 실습실">
+<meta property="og:description" content="여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다. 동기화 방식과 실행 순서를 바꿔 가며 최종 값이 어떻게 달라지는지 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/race/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
+<h1>경쟁 상태</h1>
+<p><b>count++는 왜 숫자를 잃어버리나</b></p>
+<p>여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다. 동기화 방식과 실행 순서를 바꿔 가며 최종 값이 어떻게 달라지는지 보세요.</p>
+<p>실행으로 대조 · JDK 21에서 같은 코드를 실행</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>경쟁 상태(Race Condition)</dt>
+<dd>둘 이상의 스레드가 같은 데이터를 동시에 읽고 쓸 때 실행 순서에 따라 결과가 달라지는 상황이다. count++는 값을 읽고, 1을 더하고, 다시 쓰는 세 단계로 이뤄지는데 두 스레드의 단계가 섞이면 한쪽의 증가가 사라진다. 테스트에서는 잘 드러나지 않다가 부하가 걸릴 때 나타나는 것이 특징이다.</dd>
+<dt>임계 영역과 상호 배제</dt>
+<dd>임계 영역은 여러 스레드가 동시에 실행하면 문제가 생기는 코드 구간이다. 상호 배제는 그 구간을 한 번에 하나의 스레드만 실행하도록 보장하는 것으로, 락(잠금)을 이용해 구현한다. 한 스레드가 락을 가진 동안 다른 스레드는 기다린다.</dd>
+<dt>synchronized</dt>
+<dd>자바에서 임계 영역을 지정하는 키워드다. synchronized가 붙은 메서드나 블록은 한 번에 한 스레드만 실행할 수 있으며, 실행하려는 스레드는 해당 객체의 모니터 락을 얻어야 한다. 간단하지만 락을 기다리는 스레드는 멈춰 있게 되므로 범위를 필요한 만큼만 잡아야 한다.</dd>
+<dt>volatile</dt>
+<dd>변수에 붙이면 한 스레드가 쓴 값을 다른 스레드가 항상 최신으로 읽도록 보장하는 키워드다(가시성 보장). 그러나 읽고-수정하고-쓰는 복합 연산을 하나로 묶어 주지는 않으므로 count++ 같은 연산의 안전성은 보장하지 않는다. 한 스레드가 쓰고 여러 스레드가 읽는 상태 플래그에 적합하다.</dd>
+<dt>가시성(Visibility)</dt>
+<dd>한 스레드가 변경한 값이 다른 스레드에 보이는지를 뜻한다. 동기화가 없으면 CPU 캐시나 컴파일러 최적화 때문에 다른 스레드가 변경 전의 값을 계속 볼 수 있다. synchronized, volatile, java.util.concurrent의 도구들이 가시성을 보장한다.</dd>
+<dt>원자성(Atomicity)과 CAS</dt>
+<dd>원자성은 여러 단계로 이뤄진 연산이 중간에 끼어들 틈 없이 하나처럼 실행되는 성질이다. CAS(Compare-And-Swap)는 &quot;현재 값이 내가 읽었던 값과 같을 때만 새 값으로 바꾼다&quot;를 하나의 원자적 연산으로 수행하는 방법으로, 락 없이 안전한 갱신을 가능하게 한다. AtomicInteger 등이 이를 이용한다.</dd>
+<dt>스레드 안전(Thread-safe)</dt>
+<dd>여러 스레드가 동시에 사용해도 올바르게 동작하는 성질이다. 공유하는 상태가 없거나, 상태가 불변이거나, 접근이 적절히 동기화되어 있으면 스레드 안전하다. 스프링의 싱글톤 빈은 여러 요청 스레드가 함께 사용하므로 스레드 안전하게(보통 상태를 갖지 않게) 만들어야 한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 동기화 없이 번갈아 실행. 증가가 사라집니다.</li>
+<li><b>volatile만 붙여 보기</b> — 값은 최신으로 보이지만 단계가 섞이는 것은 막지 못합니다.</li>
+<li><b>synchronized로 묶기</b> — 한 스레드가 끝낼 때까지 다른 스레드가 기다립니다.</li>
+<li><b>AtomicInteger 쓰기</b> — 락 없이, 읽은 값이 그대로일 때만 씁니다(CAS). 아니면 다시 합니다.</li>
+<li><b>운 좋게 안 겹친 경우</b> — 동기화가 없는데도 결과가 맞습니다. 테스트에서 버그가 안 잡히는 이유입니다.</li>
+<li><b>스레드 4개가 무작위로</b> — 패턴 번호를 바꿔 가며 여러 번 실행해 보세요. 결과가 매번 다릅니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>스레드 A: count를 읽었습니다. 읽은 값은 0입니다.</li>
+<li>스레드 B: count를 읽었습니다. 읽은 값은 0입니다.</li>
+<li>스레드 A: 읽은 값 0에 1을 더해 1을 만들었습니다. 아직 count에 쓰지는 않았습니다.</li>
+<li>스레드 B: 읽은 값 0에 1을 더해 1을 만들었습니다. 아직 count에 쓰지는 않았습니다.</li>
+<li>스레드 A: count에 1을 썼습니다.</li>
+<li>스레드 B: count에 1을 썼습니다. 그런데 이 스레드가 읽은 뒤로 다른 스레드가 count를 1까지 올려 놓았습니다. 그 위에 1을 덮어써서 증가 1번이 사라졌습니다.</li>
+<li>스레드 A: count를 읽었습니다. 읽은 값은 1입니다.</li>
+<li>스레드 B: count를 읽었습니다. 읽은 값은 1입니다.</li>
+<li>스레드 A: 읽은 값 1에 1을 더해 2을 만들었습니다. 아직 count에 쓰지는 않았습니다.</li>
+<li>스레드 B: 읽은 값 1에 1을 더해 2을 만들었습니다. 아직 count에 쓰지는 않았습니다.</li>
+<li>스레드 A: count에 2을 썼습니다.</li>
+<li>스레드 B: count에 2을 썼습니다. 그런데 이 스레드가 읽은 뒤로 다른 스레드가 count를 2까지 올려 놓았습니다. 그 위에 2을 덮어써서 증가 1번이 사라졌습니다.</li>
+<li>스레드 A: count를 읽었습니다. 읽은 값은 2입니다.</li>
+<li>스레드 B: count를 읽었습니다. 읽은 값은 2입니다.</li>
+<li>스레드 A: 읽은 값 2에 1을 더해 3을 만들었습니다. 아직 count에 쓰지는 않았습니다.</li>
+<li>스레드 B: 읽은 값 2에 1을 더해 3을 만들었습니다. 아직 count에 쓰지는 않았습니다.</li>
+<li>스레드 A: count에 3을 썼습니다.</li>
+<li>스레드 B: count에 3을 썼습니다. 그런데 이 스레드가 읽은 뒤로 다른 스레드가 count를 3까지 올려 놓았습니다. 그 위에 3을 덮어써서 증가 1번이 사라졌습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>기대값은 6(스레드 2개 × 3번)이고 최종 값은 3입니다.</li>
+<li>증가 3번이 사라졌습니다. 한 스레드가 읽고 쓰는 사이에 다른 스레드가 끼어들어, 오래된 값을 기준으로 계산한 결과가 덮어써졌기 때문입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>static int count = 0;
+
+Runnable task = () -&gt; {
+    for (int i = 0; i &lt; 3; i++) {
+        count++;                    // 읽기 -&gt; 더하기 -&gt; 쓰기
+    }
+};
+
+// 스레드 2개가 같은 task를 동시에 실행
+for (int t = 0; t &lt; 2; t++) {
+    new Thread(task).start();
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>한 번에 한 스레드의 한 단계만 실행하는 것으로 단순화했습니다. 실제 멀티코어에서는 여러 스레드가 진짜로 동시에 실행됩니다. 또 읽을 때는 항상 최신 값이 보인다고 가정했는데, 실제 일반 변수는 다른 스레드가 쓴 값이 보이지 않을 수도 있습니다(가시성 문제). 이 PC에서 JDK 21로 스레드 2개가 100만 번씩 올리는 실제 코드를 돌렸을 때 동기화 없는 count++는 1,017,250 ~ 1,892,129로 매번 달랐고, volatile을 붙여도 모자랐으며, synchronized와 AtomicInteger는 항상 2,000,000이었습니다. AtomicInteger는 읽기 → CAS → 실패하면 재시도의 순서로 그렸는데, 실제 JVM은 CPU에 따라 이 증가를 명령 하나로 끝내기도 해서 재시도가 눈에 띄지 않을 수 있습니다.</p>
+<p>앞 실습: <a href="../../lab/thread/">스레드의 생성과 상태</a> · 다음 실습: <a href="../../lab/deadlock/">교착 상태</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

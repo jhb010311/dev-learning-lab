@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cache abstraction: With @Cacheable on a method, when does the method body not run? · Dev Learning Lab</title>
+<meta name="description" content="In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cacheabs/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cacheabs/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cacheabs/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Cache abstraction: With @Cacheable on a method, when does the method body not run? · Dev Learning Lab">
+<meta property="og:description" content="In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/cacheabs/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Other features</p>
+<h1>Cache abstraction</h1>
+<p><b>With @Cacheable on a method, when does the method body not run?</b></p>
+<p>In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that was returned before is taken from the cache. The code that looks up the cache and stores values in it is run by a proxy on your behalf. Call find twice, change what is done in between and how find is called, and check how many times the body runs and what the second call receives.</p>
+<p>Checked against real execution · All 40 combinations were run with @EnableCaching and ConcurrentMapCacheManager on Spring Framework 7.0.9 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>@Cacheable</dt>
+<dd>This annotation stores the result of a method in a cache so that, when the method is called again with the same arguments, the value in the cache is returned without running the body. A proxy receives the call and looks up the cache first, and only when the value is not there does it run the body and then store the result. By default, the cache key is the arguments of the method, and cacheNames sets which cache the result goes into. If you write a condition in unless, a result for which the condition is true is not stored (for example, when the result is null). Because this is the work of a proxy, it is not applied when the method is called with this from within the same class.</dd>
+<dt>@CacheEvict and @CachePut</dt>
+<dd>These are two annotations used to keep the values in a cache in step with the source data. @CacheEvict removes the value for the given key from the cache when the method is called, so that the next lookup runs the body again. Unlike @Cacheable, @CachePut does not skip the body. It always runs the body and puts the returned value in the cache, overwriting the existing value. If neither of them is on a method that changes data, the value from before the change remains in the cache, and the code that looks it up receives the stale value.</dd>
+<dt>Cache</dt>
+<dd>Storing frequently used data or computed results ahead of time in a place that can be accessed quickly, and reusing them. Responses get faster and the load on the source drops, because the source (usually a database) is not queried every time. In return, you must manage the problem of stale values that remain when the source changes.</dd>
+<dt>Proxy</dt>
+<dd>This is a stand-in object that receives calls in place of the real object. When it receives a call, it does some additional work and then passes the call on to the real object. Spring wraps a bean that needs a feature such as AOP or @Transactional in such an object and registers it in the container, so what other beans receive by injection is this stand-in, not the real object.</dd>
+<dt>Self-invocation</dt>
+<dd>This means that an object directly calls another of its own methods from inside the same object. Proxy-based features apply only to calls that come in from outside through the proxy, so settings such as @Transactional, @Async, and @Cacheable do not apply to a method that is called internally through this. The usual fix is to move that method to another bean.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — find is called twice with the same argument. The body runs only once.</li>
+<li><b>With a different argument</b> — The key is different, so the body runs again.</li>
+<li><b>Evicting with @CacheEvict</b> — The value was removed from the cache, so the body runs again.</li>
+<li><b>Replacing the value with @CachePut</b> — The body of rename always runs, and the cache is updated with the new value.</li>
+<li><b>Changing only the DB and leaving the cache as it is</b> — The second find returns the value from before the change.</li>
+<li><b>Calling from within the same class</b> — Caching is not applied, so the body runs every time.</li>
+<li><b>A null result is cached too</b> — A product that does not exist is looked up twice. Turn on unless and compare.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>productService.find(1L) call #1: Another bean makes the call. The call arrives at the proxy first. The proxy sees @Cacheable and, before running the body, looks up key 1 in the cache &quot;product&quot;.</li>
+<li>Cache lookup: Key 1 is not in the cache. Nothing has been put in the cache yet. The proxy calls find on the real object.</li>
+<li>find body runs (run #1): findCount becomes 1. The body finds the product with id 1 in the DB and returns &quot;Keyboard&quot;.</li>
+<li>The proxy stores the result in the cache: key 1 → Keyboard. The next call with the same argument uses this value.</li>
+<li>productService.find(1L) call #2: Another bean makes the call. The call arrives at the proxy first. The proxy sees @Cacheable and, before running the body, looks up key 1 in the cache &quot;product&quot;.</li>
+<li>Cache lookup: Key 1 is in the cache. The proxy does not run the body of find and returns what the cache holds: &quot;Keyboard&quot;. The number of times the body has run stays at 1.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Times the find body ran: 1. The value that the second call received is &quot;Keyboard&quot;. Cache contents at the end: 1=Keyboard.</li>
+<li>When the method is called again with the same argument, the proxy returns the value from the cache and does not run the body. The longer the body takes, as with a DB query or an external call, the larger the effect.</li>
+</ul>
+<h2>Code</h2>
+<pre>// another bean makes these calls in this order
+productService.find(1L);
+productService.find(1L);
+
+@Service
+class ProductService {
+    // a map used in place of a DB
+    private final Map&lt;Long, String&gt; db = new HashMap&lt;&gt;(
+        Map.of(1L, &quot;Keyboard&quot;, 2L, &quot;Mouse&quot;));
+    private int findCount;
+
+    @Cacheable(cacheNames = &quot;product&quot;)
+    public String find(Long id) {
+        findCount++;                 // number of times the body has run
+        return db.get(id);           // null if there is no such id
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>All 40 combinations were run on Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1) on this PC with @EnableCaching and ConcurrentMapCacheManager, and these were checked against the results: the number of times the find body ran, the value returned by the second find, and the cache contents at the end. The same runs also confirmed that the body of rename runs even when the cache has a value, and that removing a key that is not in the cache with @CacheEvict does not cause an error. ConcurrentMapCacheManager is the simplest cache manager, which stores values in maps in the memory of the application, and it has no expiration time (TTL) and no size limit. Expiration and requests that arrive at the same time are covered in the &quot;Caching and TTL&quot; lab. Whether null can be put in a cache depends on the settings of the cache implementation, and ConcurrentMapCacheManager stores null by default (the behavior of other cache implementations was not verified by execution). The DB was replaced with an in-memory map both on the screen and in the runs. The code on the screen assumes that @EnableCaching is turned on, and to use a parameter name as in key = &quot;#id&quot;, the code must be compiled with the -parameters option. When the code was compiled without this option and run on this PC, an IllegalArgumentException saying that the key is null was thrown at the moment rename was called (the build settings of a project created with Spring Boot include this option). The reason why proxy-based features are not applied to calls made from within the same class is covered in detail in the &quot;Proxies and self-invocation&quot; lab. This lab covers only the case where the calls are made one after another on a single thread. The case where several threads look up the same key for the first time at the same moment was not run.</p>
+<p>Previous lab: <a href="../../lab/restclient/">Calling external APIs and timeouts</a> · Next lab: <a href="../../lab/security/">Security filter chain</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

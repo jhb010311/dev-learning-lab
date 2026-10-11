@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clickjacking and open redirects: How do you stop your page from being hidden inside another site's page, or your URL from sending users to another site? · Dev Learning Lab</title>
+<meta name="description" content="Clickjacking is when another site puts a page of your site in an invisible frame, so that the user clicks a button on your page without knowing it. An ope…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/clickjack/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/clickjack/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/clickjack/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Clickjacking and open redirects: How do you stop your page from being hidden inside another site's page, or your URL from sending users to another site? · Dev Learning Lab">
+<meta property="og:description" content="Clickjacking is when another site puts a page of your site in an invisible frame, so that the user clicks a button on your page without knowing it. An ope…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/clickjack/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Web attacks and defenses</p>
+<h1>Clickjacking and open redirects</h1>
+<p><b>How do you stop your page from being hidden inside another site's page, or your URL from sending users to another site?</b></p>
+<p>Clickjacking is when another site puts a page of your site in an invisible frame, so that the user clicks a button on your page without knowing it. An open redirect is when your server takes the &quot;URL to return to after login&quot; from the request and redirects to it without checking, so a link that starts with your site's address ends up on another site. In both cases the server is not broken into. Instead, people's trust in your site is exploited, and the server defends with response headers and URL checks.</p>
+<p>Checked against real execution · Response headers were checked against the actual responses of a Spring Boot 4.1.1 (Spring Security 7.1.1) server for 24 combinations, and browser behavior was checked with Chromium 151. Other browsers follow the documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Clickjacking</dt>
+<dd>An attack in which another site puts a page of your site in a frame (iframe) and makes it invisible, so that the user believes they are clicking something else but actually clicks a button on your page. The click is made by the user's own browser, so the request the server receives cannot be told apart from a normal click. So instead of picking out requests, the server blocks the attack by telling the browser in a response header not to put the page in a frame. It is the browser that actually enforces this, so a page without the header can be put in a frame by anyone.</dd>
+<dt>X-Frame-Options and frame-ancestors</dt>
+<dd>Two ways to tell the browser that receives a response who may put the page in a frame. One is the X-Frame-Options header, and the other is the frame-ancestors directive written inside the Content-Security-Policy header. X-Frame-Options takes one of two values, DENY (no page may frame it) and SAMEORIGIN (only pages with the same origin may), while frame-ancestors lists the origins that may frame the page, so it can allow specific other sites. Spring Security adds X-Frame-Options: DENY even if you configure nothing. When both come together, current browsers follow frame-ancestors and ignore X-Frame-Options, so the two should be set so that they do not disagree.</dd>
+<dt>Open redirect</dt>
+<dd>A vulnerability in which the server redirects to an address taken from the request without checking it. It arises in features added for convenience, such as a &quot;URL to return to after login&quot;, and it makes a link that starts with your site's address a passage to another site. Users trust the first part of the address, so this is used to lure them to a fake login page. To prevent it, accept only values that are acceptable, such as paths on the same site, and also check that an address that starts with // points to a different host. A more reliable way is to accept a predefined name instead of an address and have the server look up the address in its own list.</dd>
+<dt>Spring Security and SecurityFilterChain</dt>
+<dd>Spring Security is Spring's security framework for handling authentication and authorization, and it works as a set of Servlet filters. A SecurityFilterChain defines which security filters apply to which requests and in what order. Before a request reaches the controller, the filters run one after another and do work such as checking the authentication information and checking permissions.</dd>
+<dt>CORS and the same-origin policy</dt>
+<dd>The same-origin policy is a browser security policy that stops a script from one origin (the combination of scheme, host, and port) from reading responses from another origin. CORS is a way to relax this restriction: the server uses response headers to say that it allows access from specific origins. The browser applies this policy, so it does not apply to calls between servers or to calls made with tools.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A server with the frame header turned off. An attacker can put my payment page in a hidden frame.</li>
+<li><b>Spring Security default</b> — Even with no configuration, X-Frame-Options: DENY is added, so the page is not rendered in a frame.</li>
+<li><b>Frame on my own page under the default</b> — DENY blocks frames from the same site too.</li>
+<li><b>Allow only the partner site</b> — The page is rendered only in frames from the origins listed in frame-ancestors.</li>
+<li><b>If the return URL is not checked</b> — A link that starts with my site's address ends up on the attacker's site.</li>
+<li><b>If only &quot;/&quot; is checked</b> — An address that starts with // passes the check.</li>
+<li><b>Allow only same-site paths</b> — A value that points to another site is replaced with the home page.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The user opens the page at https://attacker.example. Only a &quot;Claim prize&quot; button is visible. But this page overlays the shop.example payment page on that button as a frame (iframe) and makes it transparent so that it cannot be seen.</li>
+<li>The browser requests https://shop.example/pay to get the page to put in the frame. The page inside a frame is fetched from the server in the same way as when you type an address in the address bar.</li>
+<li>shop.example responds with the payment page. Because frameOptions is turned off in the settings, the response has no frame-related headers at all.</li>
+<li>The browser checks the response headers: nothing says the page must not be put in a frame. A page like this can be framed by any site, so the browser renders the payment page inside the frame.</li>
+<li>The user clicks &quot;Claim prize&quot;. What is visible is a button on the attacker's page, but a transparent payment page is overlaid on it. What was actually clicked is the [Pay] button of shop.example. If the user was logged in to shop.example, they have approved a payment without knowing it.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The response has no frame-related headers, and the browser rendered the payment page inside the frame. Result: Clickjacking possible.</li>
+<li>Without a header that says not to frame the page, the browser renders it in a frame on any site. If you turn off frameOptions altogether to show one screen that uses frames (for example, the H2 console), every page ends up in this state. Changing it to sameOrigin instead of turning it off is safer.</li>
+<li>From the requests the server receives, clickjacking cannot be told apart from a normal click. So the server blocks it by announcing in advance, with a response header, that &quot;this page must not be put in a frame&quot;, and the browser obeys.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Spring Security configuration of the shop.example server
+@Bean
+SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    // (settings about who may access what are omitted)
+    http.headers(h -&gt; h.frameOptions(f -&gt; f.disable()));
+    return http.build();
+}
+
+// Frame-related headers on the /pay response with this configuration
+//   (none)
+
+&lt;!-- Framing side: a page on https://attacker.example --&gt;
+&lt;iframe src=&quot;https://shop.example/pay&quot;&gt;&lt;/iframe&gt;</pre>
+<h2>Assumptions of this model</h2>
+<p>The 5 frame-related header cases and the 9 Location header cases were checked against the actual responses of a Spring Boot 4.1.1 (Spring Security 7.1.1, embedded Tomcat 11) server started on 127.0.0.1. Browser behavior (15 cases of whether the page is rendered inside the frame, and 9 cases of which server the browser reaches by following Location) was checked by running Chromium 151 in headless mode, with origins imitated by different ports on 127.0.0.1. Other browsers were not run, and the documentation was followed: RFC 7034 and the HTML Standard for X-Frame-Options, the W3C Content Security Policy Level 3 for frame-ancestors, RFC 3986 section 4.2 for addresses that start with //, and the WHATWG URL Standard for treating a backslash like a slash. Simplifications: only one level of framing is covered (with several levels, the browser checks all the outer pages). How a page is overlaid transparently is not included. Cookies with SameSite=Lax are not attached to requests sent from inside a frame on another site (RFC 6265bis draft), and Chromium-based browsers treat cookies with no SameSite attribute as Lax too. So clickjacking of a page that requires login mainly works when the session cookie is SameSite=None. This cookie part was not run. The ALLOW-FROM value of X-Frame-Options is not covered because current browsers do not support it. Location is converted to an absolute URL with the Spring Boot default (server.tomcat.use-relative-redirects=false), and a server with this value set to true sends the received value as it is. With that setting, a value of the form /\attacker.example also passed the check that only looks for &quot;/&quot;, and Chromium was confirmed to go to another server. The Location shown on screen is the address of the test server rewritten as https://shop.example.</p>
+<p>Previous lab: <a href="../../lab/cors/">CORS</a> · Next lab: <a href="../../lab/infoleak/">Information leakage</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Race condition: Why does count++ lose increments? · Dev Learning Lab</title>
+<meta name="description" content="Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threa…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/race/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/race/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/race/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Race condition: Why does count++ lose increments? · Dev Learning Lab">
+<meta property="og:description" content="Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threa…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/race/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
+<h1>Race condition</h1>
+<p><b>Why does count++ lose increments?</b></p>
+<p>Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost. Change the synchronization method and the execution order to see how the final value changes.</p>
+<p>Checked against real execution · The same code was run on JDK 21</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Race condition</dt>
+<dd>This is a situation in which two or more threads read and write the same data at the same time, and the result depends on the order of execution. count++ consists of three steps: read the value, add 1, and write it back. If the steps of two threads are interleaved, one of the increments is lost. It typically stays hidden in tests and appears under load.</dd>
+<dt>Critical section and mutual exclusion</dt>
+<dd>A critical section is a section of code that causes problems if several threads run it at the same time. Mutual exclusion guarantees that only one thread at a time runs that section, and it is implemented with a lock. While one thread holds the lock, the other threads wait.</dd>
+<dt>synchronized</dt>
+<dd>This Java keyword marks a critical section. Only one thread at a time can run a method or block marked with it, and a thread that wants to run it must first acquire the monitor lock of the object involved. It is simple, but a thread that waits for the lock is stopped, so keep the scope only as large as needed.</dd>
+<dt>volatile</dt>
+<dd>This keyword, when placed on a variable, guarantees that a value written by one thread is always read as the latest value by other threads (a visibility guarantee). However, it does not combine a read-modify-write compound operation into one, so it does not make an operation such as count++ safe. It suits a status flag that one thread writes and several threads read.</dd>
+<dt>Visibility</dt>
+<dd>This refers to whether a value changed by one thread can be seen by other threads. Without synchronization, CPU caches and compiler optimizations can let another thread keep seeing the value from before the change. synchronized, volatile, and the tools in java.util.concurrent guarantee it.</dd>
+<dt>Atomicity and CAS (compare-and-swap)</dt>
+<dd>Atomicity is the property that an operation made of several steps runs as one, with no gap for anything to cut in. CAS (compare-and-swap) performs &quot;change to the new value only if the current value equals the value I read&quot; as a single atomic operation, which makes safe updates possible without locks. AtomicInteger and similar classes use it.</dd>
+<dt>Thread safety</dt>
+<dd>This is the property of working correctly even when several threads use something at the same time. Code is thread-safe if there is no shared state, if the state is immutable, or if access is properly synchronized. A Spring singleton bean is used by many request threads together, so it must be made thread-safe (usually by keeping no state).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Alternating execution with no synchronization. Increments are lost.</li>
+<li><b>Adding only volatile</b> — The latest value is visible, but volatile cannot keep the steps from being interleaved.</li>
+<li><b>Guarding with synchronized</b> — The other threads wait until one thread is finished.</li>
+<li><b>Using AtomicInteger</b> — Without a lock, a thread writes only if the value it read is unchanged (CAS). Otherwise it tries again.</li>
+<li><b>A lucky run with no overlap</b> — The result is correct even though there is no synchronization. This is why tests do not catch the bug.</li>
+<li><b>4 threads at random</b> — Run it several times with different pattern numbers. The result is different each time.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Thread A: It read count. The value read is 0.</li>
+<li>Thread B: It read count. The value read is 0.</li>
+<li>Thread A: It added 1 to 0, the value it read, and got 1. It has not written the result to count yet.</li>
+<li>Thread B: It added 1 to 0, the value it read, and got 1. It has not written the result to count yet.</li>
+<li>Thread A: It wrote 1 to count.</li>
+<li>Thread B: It wrote 1 to count. But since this thread read the value, other threads had raised count to 1. The thread overwrote that value with 1. Increments lost by this write: 1.</li>
+<li>Thread A: It read count. The value read is 1.</li>
+<li>Thread B: It read count. The value read is 1.</li>
+<li>Thread A: It added 1 to 1, the value it read, and got 2. It has not written the result to count yet.</li>
+<li>Thread B: It added 1 to 1, the value it read, and got 2. It has not written the result to count yet.</li>
+<li>Thread A: It wrote 2 to count.</li>
+<li>Thread B: It wrote 2 to count. But since this thread read the value, other threads had raised count to 2. The thread overwrote that value with 2. Increments lost by this write: 1.</li>
+<li>Thread A: It read count. The value read is 2.</li>
+<li>Thread B: It read count. The value read is 2.</li>
+<li>Thread A: It added 1 to 2, the value it read, and got 3. It has not written the result to count yet.</li>
+<li>Thread B: It added 1 to 2, the value it read, and got 3. It has not written the result to count yet.</li>
+<li>Thread A: It wrote 3 to count.</li>
+<li>Thread B: It wrote 3 to count. But since this thread read the value, other threads had raised count to 3. The thread overwrote that value with 3. Increments lost by this write: 1.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The expected value is 6 (2 threads × 3), and the final value is 3.</li>
+<li>Increments lost: 3. Another thread cut in between the read and the write of one thread, so a result computed from a stale value overwrote the newer one.</li>
+</ul>
+<h2>Code</h2>
+<pre>static int count = 0;
+
+Runnable task = () -&gt; {
+    for (int i = 0; i &lt; 3; i++) {
+        count++;                    // read -&gt; add -&gt; write
+    }
+};
+
+// 2 threads run the same task at the same time
+for (int t = 0; t &lt; 2; t++) {
+    new Thread(task).start();
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The model is simplified so that only one step of one thread runs at a time. On a real machine with multiple cores, several threads truly run at the same time. The model also assumes that a read always sees the latest value, but with a real ordinary variable, a value written by another thread may not be visible (a visibility problem). When real code in which 2 threads each increment 1 million times was run with JDK 21 on this PC, count++ without synchronization gave a different result every time, from 1,017,250 to 1,892,129, the result still fell short with volatile, and synchronized and AtomicInteger always gave 2,000,000. AtomicInteger is drawn in the order read → CAS → retry on failure, but depending on the CPU, a real JVM sometimes completes this increment with a single instruction, so retries may not be noticeable.</p>
+<p>Previous lab: <a href="../../lab/thread/">Creating threads and thread states</a> · Next lab: <a href="../../lab/deadlock/">Deadlock</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

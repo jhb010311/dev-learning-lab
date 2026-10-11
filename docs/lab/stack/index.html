@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스택과 힙: 메서드를 부를 때마다 메모리에서는 무슨 일이 · 개발 학습 실습실</title>
+<meta name="description" content="메서드를 호출하면 그 스레드의 스택에 프레임이 하나 쌓이고, 반환하면 사라집니다. new로 만든 객체는 스택이 아니라 힙에 놓이고 프레임의 지역 변수가 그것을 가리킵니다. 재귀 깊이와 스택 크기를 바꿔 가며 프레임이 쌓이고 빠지는 모습과 StackOverflowError를 보…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/stack/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/stack/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/stack/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="스택과 힙: 메서드를 부를 때마다 메모리에서는 무슨 일이 · 개발 학습 실습실">
+<meta property="og:description" content="메서드를 호출하면 그 스레드의 스택에 프레임이 하나 쌓이고, 반환하면 사라집니다. new로 만든 객체는 스택이 아니라 힙에 놓이고 프레임의 지역 변수가 그것을 가리킵니다. 재귀 깊이와 스택 크기를 바꿔 가며 프레임이 쌓이고 빠지는 모습과 StackOverflowError를 보…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/stack/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › JVM</p>
+<h1>스택과 힙</h1>
+<p><b>메서드를 부를 때마다 메모리에서는 무슨 일이</b></p>
+<p>메서드를 호출하면 그 스레드의 스택에 프레임이 하나 쌓이고, 반환하면 사라집니다. new로 만든 객체는 스택이 아니라 힙에 놓이고 프레임의 지역 변수가 그것을 가리킵니다. 재귀 깊이와 스택 크기를 바꿔 가며 프레임이 쌓이고 빠지는 모습과 StackOverflowError를 보세요.</p>
+<p>실행으로 대조 · JDK 21에서 실행해 확인</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>런타임 데이터 영역</dt>
+<dd>JVM이 프로그램을 실행하면서 사용하는 메모리 영역이다. 스레드마다 따로 갖는 영역으로 PC 레지스터, JVM 스택, 네이티브 메서드 스택이 있고, 모든 스레드가 공유하는 영역으로 힙과 메서드 영역이 있다. 어떤 데이터가 스레드 간에 공유되는지를 이해하는 기준이 된다.</dd>
+<dt>JVM 스택</dt>
+<dd>스레드마다 하나씩 만들어지는 메모리 영역이다. 메서드가 호출될 때마다 그 메서드의 지역 변수와 중간 계산값을 담은 프레임이 쌓이고, 메서드가 끝나면 제거된다. 스레드별로 분리되어 있어 지역 변수는 다른 스레드와 공유되지 않는다. 재귀 호출이 너무 깊어지면 StackOverflowError가 발생한다.</dd>
+<dt>힙(Heap) 메모리</dt>
+<dd>new로 만든 모든 객체와 배열이 저장되는 메모리 영역으로, 모든 스레드가 공유한다. 가비지 컬렉터가 관리하며 더 이상 쓰이지 않는 객체를 회수한다. 크기는 -Xms(초기), -Xmx(최대) 옵션으로 정하고, 공간이 부족하면 OutOfMemoryError가 발생한다.</dd>
+<dt>StackOverflowError와 OutOfMemoryError</dt>
+<dd>StackOverflowError는 메서드 호출이 너무 깊어져 스레드의 스택 공간을 넘었을 때 발생하며 주로 종료 조건이 잘못된 재귀가 원인이다. OutOfMemoryError는 힙 등의 메모리가 부족해 객체를 더 할당할 수 없을 때 발생하며 메모리 누수나 한 번에 너무 많은 데이터를 올리는 것이 흔한 원인이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — factorial(4). 프레임이 5개까지 쌓였다가 거꾸로 빠집니다.</li>
+<li><b>종료 조건을 빼면</b> — 끝없이 자기를 부르다 스택이 넘칩니다.</li>
+<li><b>종료 조건이 있어도 너무 깊으면</b> — factorial(10)은 프레임 11개가 필요합니다. 스택은 8개까지입니다.</li>
+<li><b>스택을 키우면</b> — 같은 factorial(10)이 정상적으로 끝납니다.</li>
+<li><b>호출마다 객체 생성</b> — 객체는 힙에 생기고, 프레임이 사라지면 가리키는 곳이 없어집니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>프로그램 시작. main 스레드의 스택에 main() 프레임이 놓입니다. 프레임에는 그 메서드의 지역 변수와 &quot;어디로 돌아갈지&quot;가 들어 있습니다.</li>
+<li>factorial(4) 호출. 새 프레임이 스택 맨 위에 쌓입니다. 지역 변수 n(값 4)은 이 프레임 안에만 있습니다.</li>
+<li>factorial(3) 호출. 새 프레임이 스택 맨 위에 쌓입니다. 지역 변수 n(값 3)은 이 프레임 안에만 있습니다.</li>
+<li>factorial(2) 호출. 새 프레임이 스택 맨 위에 쌓입니다. 지역 변수 n(값 2)은 이 프레임 안에만 있습니다.</li>
+<li>factorial(1) 호출. 새 프레임이 스택 맨 위에 쌓입니다. 지역 변수 n(값 1)은 이 프레임 안에만 있습니다.</li>
+<li>factorial(1) 호출이 끝났습니다. 반환값은 종료 조건에 걸려 1입니다. 프레임이 스택에서 사라지고, 그 안의 지역 변수도 함께 없어집니다.</li>
+<li>factorial(2) 호출이 끝났습니다. 반환값은 2 × 1 = 2입니다. 프레임이 스택에서 사라지고, 그 안의 지역 변수도 함께 없어집니다.</li>
+<li>factorial(3) 호출이 끝났습니다. 반환값은 3 × 2 = 6입니다. 프레임이 스택에서 사라지고, 그 안의 지역 변수도 함께 없어집니다.</li>
+<li>factorial(4) 호출이 끝났습니다. 반환값은 4 × 6 = 24입니다. 프레임이 스택에서 사라지고, 그 안의 지역 변수도 함께 없어집니다.</li>
+<li>main()이 결과를 출력합니다: 24. 스택은 가장 나중에 쌓인 프레임부터 먼저 빠졌습니다(후입선출).</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>프레임은 호출할 때 쌓이고 반환할 때 사라집니다. 가장 깊을 때 5개였습니다. 지역 변수는 프레임과 수명이 같아서 따로 정리할 필요가 없습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>static long factorial(int n) {
+    if (n &lt;= 1) return 1;             // 종료 조건
+    return n * factorial(n - 1);
+}
+
+public static void main(String[] args) {
+    System.out.println(factorial(4));
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>스택 크기를 &quot;프레임 개수&quot;로 단순화했습니다. 실제로는 바이트 단위의 크기(-Xss, 64비트 리눅스 기본 1MB 안팎)이고, 프레임마다 지역 변수 수에 따라 크기가 달라서 들어가는 프레임 수가 일정하지 않습니다. JIT 컴파일 여부에 따라서도 달라집니다. 스택이 스레드마다 따로 있고 힙은 공유된다는 점, 프레임이 호출 시 쌓이고 반환 시 사라진다는 점은 JVM 명세의 정의와 같습니다. 이 PC의 JDK 21에서 실제로 실행해 확인했습니다. 종료 조건이 없는 재귀는 깊이 약 1만 7천에서 StackOverflowError가 났습니다. 종료 조건이 있어도 깊이 20만은 기본 스택에서 StackOverflowError가 났고, 스택을 64MB로 키우자(-Xss64m) 정상 종료했습니다. 한 스레드의 스택이 넘친 뒤에도 다른 스레드는 계속 실행됐습니다.</p>
+<p>앞 실습: <a href="../../lab/blocking/">블로킹·논블로킹·가상 스레드</a> · 다음 실습: <a href="../../lab/gc/">GC와 메모리 누수</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

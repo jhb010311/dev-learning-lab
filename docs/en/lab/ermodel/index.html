@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ER modeling: How do you turn the relationships between entities into tables? · Dev Learning Lab</title>
+<meta name="description" content="You turn three relationships into tables: members and posts (one-to-many), posts and tags (many-to-many), and members and profiles (one-to-one). For each…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ermodel/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ermodel/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ermodel/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="ER modeling: How do you turn the relationships between entities into tables? · Dev Learning Lab">
+<meta property="og:description" content="You turn three relationships into tables: members and posts (one-to-many), posts and tags (many-to-many), and members and profiles (one-to-one). For each…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/ermodel/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Relational model and design</p>
+<h1>ER modeling</h1>
+<p><b>How do you turn the relationships between entities into tables?</b></p>
+<p>You turn three relationships into tables: members and posts (one-to-many), posts and tags (many-to-many), and members and profiles (one-to-one). For each relationship, a common design is placed next to a design that looks plausible but goes wrong. Give both the same job (finding what is connected, or connecting one more), and the query results differ.</p>
+<p>Checked against real execution · The SQL of all 14 combinations was run as it is on MySQL 8.4.11, and the result of the write statement, all the rows of the query result, and all the rows of the tables afterwards were checked</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Entity-relationship model (entities, attributes, relationships)</dt>
+<dd>This is a design method in which you organize the data to be stored into entities, attributes, and relationships, and show them in a diagram. An entity is something you store as a separate thing, such as a member or a post. An attribute is a value that an entity has, such as a name or a title. A relationship is a connection between entities, such as &quot;a member writes a post&quot;. You use it in the step before creating tables, when you decide what to store and which things are connected. When you turn the model into tables, an entity becomes a table, an attribute becomes a column, and a relationship becomes a foreign key or an associative table. This diagram is called an entity-relationship diagram.</dd>
+<dt>Types of relationships (one-to-one, one-to-many, many-to-many)</dt>
+<dd>These are the kinds of relationships, divided by how many of one entity can be connected to how many of the other. One-to-many is a relationship in which one thing on one side connects to many on the other, such as one member writing many posts, and you put the foreign key in the table on the &quot;many&quot; side. Many-to-many is a relationship in which both sides connect to many, such as a post having many tags and a tag being attached to many posts, and you put an associative table in the middle. One-to-one is a relationship in which each side connects to only one, and you express it by adding a unique constraint to a foreign key. The reason for these rules is that a single cell can hold only one value.</dd>
+<dt>Associative table</dt>
+<dd>This is a table that you put between two tables when you turn a many-to-many relationship into tables. It has two foreign keys that point to the primary keys of the two tables, and one row means one connection, such as &quot;this tag is attached to this post&quot;. Usually the two foreign keys are combined into the primary key, so that the same connection cannot go in twice. When connections increase, only the rows increase, and the shape of the table does not change. If a value that belongs to the connection itself appears, such as the date it was connected or its order, you add it to this table as a column. It is also called a junction table.</dd>
+<dt>Primary key, unique key, foreign key</dt>
+<dd>A primary key (PK) is the column that uniquely identifies each row of a table. Its values cannot be duplicated or empty, and a table has only one. A unique key is a unique constraint, which prevents duplicate values, and a table can have several. A foreign key (FK) is a column that references the primary key (or a unique key) of another table. It guarantees that the referenced row really exists.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Finds the java tag in the comma-separated string. The javascript post comes back too.</li>
+<li><b>Finding with an associative table</b> — Exactly the 2 posts with the java tag come back.</li>
+<li><b>A fourth tag in tag1~tag3</b> — There is no column to put it in, so an error occurs.</li>
+<li><b>One more tag in the associative table</b> — Inserting one row into the associative table is all it takes.</li>
+<li><b>Foreign key on the &quot;one&quot; side</b> — Of the 2 posts that the member wrote, only 1 is found.</li>
+<li><b>One-to-one without a unique constraint</b> — Two profiles go in for one member.</li>
+<li><b>One-to-one with a unique constraint</b> — The second profile is blocked with error 1062.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>CREATE TABLE, INSERT: This stores the many-to-many relationship between posts and tags without an associative table, by joining the tag names with commas in the tags column of the post table. To the DB, tags is just one cell that holds characters, and it does not know how many tags are inside.</li>
+<li>Tags 'java,spring,jpa' of post 1 LIKE '%java%': The string contains the characters java, so it matches the condition. This post really does have the java tag.</li>
+<li>Tags 'java' of post 2 LIKE '%java%': The string contains the characters java, so it matches the condition. This post really does have the java tag.</li>
+<li>Tags 'javascript' of post 3 LIKE '%java%': The string contains the characters java, so it matches the condition. But the tag of this post is javascript. LIKE only looks at whether the characters are inside, and does not look at whether it equals one of the tags split at the commas.</li>
+<li>SELECT id, title FROM post WHERE tags LIKE '%java%' ORDER BY id: 3 rows matched the condition. What should come back is post IDs 1, 2, but the result is different. Post 3, which does not have the java tag, got mixed in.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The query result is 3 rows: post IDs 1, 2, 3. It is different from what should come back (post IDs 1, 2).</li>
+<li>When you put several values in one cell, the DB cannot handle them one by one. If you search for java with LIKE, javascript is matched too. If you use MySQL's FIND_IN_SET('java', tags), it compares with the pieces split at the commas, so only posts 1 and 2 come back, but because the condition puts the column into a function, even if tags has an index, it cannot be used, and every row is read.</li>
+</ul>
+<h2>Code</h2>
+<pre>-- Tables
+CREATE TABLE post (
+  id    INT PRIMARY KEY,
+  title VARCHAR(50) NOT NULL,
+  tags  VARCHAR(100)
+);
+
+-- Initial data
+INSERT INTO post (id, title, tags) VALUES
+  (1, 'Spring 101', 'java,spring,jpa'),
+  (2, 'Java Basics', 'java'),
+  (3, 'Building UIs', 'javascript');
+
+-- Find what is connected
+SELECT id, title
+  FROM post
+ WHERE tags LIKE '%java%'
+ ORDER BY id;</pre>
+<h2>Assumptions of this model</h2>
+<p>This is a small example with 3 members, 3 posts, and 5 tags. For all 14 combinations (7 designs × 2 tasks), the SQL on the screen was run as it is on a real MySQL 8.4.11 (InnoDB), and the error number and number of rows changed of the write statement, all the rows of the query result, and all the rows of each table afterwards were checked to be the same as in the model. &quot;What should come back&quot; is a fact decided in this example (Alice wrote posts 1 and 2, the java tag is on posts 1 and 2, and a member has one profile), and it is not a value the DB tells you. The following points in the summaries were also confirmed by running them separately on the same MySQL. With FIND_IN_SET on the comma-separated string, only posts 1 and 2 come back. Even when an index is created on tags and 2,000 rows are inserted, the execution plan of the FIND_IN_SET condition does not use the index and reads every row (type is ALL). In the comma-separated string, adding a tag that is already there is accepted as it is. In the associative table, inserting the same connection once more is rejected with error 1062, and connecting to a tag that does not exist is rejected with error 1452. That LIKE also matches javascript is the same in any database, but FIND_IN_SET is a MySQL function. The error numbers and messages are also MySQL's. The design that puts the foreign key of a one-to-many relationship on the &quot;one&quot; side is an example made to show a mistake. Which table to put the foreign key in for a one-to-one relationship, and whether to merge the tables, is a design decision that depends on how the data is queried, and this lab does not go as far as that comparison. Normalization and anomalies are covered in the &quot;Normalization&quot; lab.</p>
+<p>Previous lab: <a href="../../lab/constraints/">Tables, keys, and constraints</a> · Next lab: <a href="../../lab/normal/">Normalization</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

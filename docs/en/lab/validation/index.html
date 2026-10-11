@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Validation: The field has @NotBlank, so why does an empty value still get in? · Dev Learning Lab</title>
+<meta name="description" content="Input values come with conditions such as &quot;the name must not be empty&quot;. Bean Validation is a way of writing such conditions above the fields as annotation…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/validation/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/validation/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/validation/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Validation: The field has @NotBlank, so why does an empty value still get in? · Dev Learning Lab">
+<meta property="og:description" content="Input values come with conditions such as &quot;the name must not be empty&quot;. Bean Validation is a way of writing such conditions above the fields as annotation…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/validation/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
+<h1>Validation</h1>
+<p><b>The field has @NotBlank, so why does an empty value still get in?</b></p>
+<p>Input values come with conditions such as &quot;the name must not be empty&quot;. Bean Validation is a way of writing such conditions above the fields as annotations like @NotBlank, and a condition written this way is called a constraint. However, a constraint does nothing just by being written down. Something has to say &quot;validate this object&quot;, and in Spring MVC, the @Valid on a controller parameter is that signal. Change how the controller receives the value, the constraint, and the value sent, and see when validation happens and what the response is when a constraint is violated.</p>
+<p>Checked against real execution · Checked by sending requests for 48 combinations to a Spring Boot 4.1.1 server (Hibernate Validator 9.1.3)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Bean Validation and @Valid</dt>
+<dd>Bean Validation is a Java standard in which conditions such as &quot;this value must not be empty&quot; are written on fields as annotations like @NotBlank and @Min, and a validator takes an object and checks those conditions. A condition written this way is called a constraint, and the standard defines only the contract, while the actual checking is done by an implementation library such as Hibernate Validator. A constraint does not work just by being written down. In Spring MVC, Spring passes the object to the validator only when the controller parameter is annotated with @Valid (or the Spring annotation @Validated). When an object contains another object as a field, that field also needs @Valid for the constraints of the inner object to be checked.</dd>
+<dt>@NotNull, @NotEmpty, and @NotBlank</dt>
+<dd>These are three constraints that express the condition that a value &quot;must be present&quot;, and they differ from one another in what counts as &quot;not present&quot;. @NotNull blocks only null, @NotEmpty blocks null and a value of length 0 (the empty string &quot;&quot;), and @NotBlank additionally blocks a string made only of whitespace (&quot; &quot;). So a string field that has only @NotNull lets an empty string through. @NotBlank is usually used for text that a person types in. @NotBlank is a constraint for strings, so putting it on a numeric field such as an Integer causes an error at validation time.</dd>
+<dt>BindingResult</dt>
+<dd>BindingResult is an object that collects the errors that occur while the values of a request are put into an object and validated. In a controller method, when a BindingResult parameter is placed immediately after the parameter annotated with @Valid, Spring does not throw an exception even if validation fails. It puts the errors in this object and runs the controller as usual. The controller checks whether there are errors with hasErrors() and decides for itself how to respond. If it does not check, the invalid value is handled as it is, so when you receive a BindingResult, you must check it. Its position also matters: if it is placed anywhere other than immediately after the parameter to validate, an error occurs when the request is handled.</dd>
+<dt>MethodArgumentNotValidException</dt>
+<dd>MethodArgumentNotValidException is the exception that Spring MVC throws when the object of a controller parameter annotated with @Valid fails validation. When this exception is thrown, the controller method does not run, and unless the exception is handled separately, Spring responds with 400 Bad Request. The exception contains which field violated which constraint, so you can handle it with an @ExceptionHandler and build the body of the error response yourself. When what fails is not an object but a constraint declared directly on a parameter, such as an @RequestParam parameter, a different exception named HandlerMethodValidationException is thrown. The names of the exceptions have changed across Spring versions, so it is safest to check them in the version you use.</dd>
+<dt>HTTP status codes</dt>
+<dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The field has @NotBlank, but an empty name is registered as it is, because the parameter has no @Valid.</li>
+<li><b>With @Valid</b> — The same request is rejected with 400 before it reaches the controller.</li>
+<li><b>@NotNull lets an empty string through</b> — An empty string is not null. The empty name is registered even though validation ran.</li>
+<li><b>A single space passes even @NotEmpty</b> — A space also counts as one character. @NotBlank is the one that also blocks a value made only of whitespace.</li>
+<li><b>With a BindingResult</b> — Even when validation fails, no exception is thrown and the controller runs.</li>
+<li><b>A constraint directly on the parameter</b> — It is checked even without @Valid. When it fails, the name of the exception is different.</li>
+<li><b>Sending no @RequestParam value at all</b> — The request is rejected first as &quot;required value is missing&quot;, before the constraint is checked.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The request arrives: POST /items, and the body is {&quot;name&quot;: &quot;&quot;}. name was sent as an empty string (a string with no characters).</li>
+<li>@RequestBody ItemForm form: Spring reads the JSON body, creates an ItemForm object, and fills in the name field. The name field is &quot;&quot;. This step only copies the value in. The @NotBlank constraint above the field has not done anything yet.</li>
+<li>Deciding whether to validate: Spring passes the object to the validator only when the parameter is annotated with @Valid. This parameter has no @Valid, so validation is skipped. The @NotBlank constraint in ItemForm is only a mark that says &quot;this field must be like this&quot;, and it cannot block a value by itself.</li>
+<li>add(form) is called: The controller method runs. The value of form.getName() is &quot;&quot;. The text returned is &quot;Registered: []&quot;, and Spring responds with 200. A value that violates the @NotBlank constraint has come all the way into the controller with nothing stopping it.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The response is 200 OK. Validation was not done. The controller method ran, and the text it returned is &quot;Registered: []&quot;.</li>
+<li>Putting a constraint on a field is not enough for the field to be validated. Spring calls the validator only when the controller parameter is annotated with @Valid. Switch to a way of receiving the value that has @Valid and compare.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Request sent
+// POST /items
+// Content-Type: application/json
+//
+// {&quot;name&quot;: &quot;&quot;}
+
+class ItemForm {
+    @NotBlank
+    private String name;
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+}
+
+@RestController
+class ItemController {
+
+    @PostMapping(&quot;/items&quot;)
+    String add(@RequestBody ItemForm form) {
+        return &quot;Registered: [&quot; + form.getName() + &quot;]&quot;;
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>All 48 combinations of the 4 ways of receiving the value, the 3 constraints, and the 4 values sent were sent as HTTP requests to a real Spring Boot 4.1.1 server (Spring Framework 7.0.9, embedded Tomcat 11, Hibernate Validator 9.1.3.Final, jakarta.validation-api 3.1.1, JDK 21), and the status code, whether the validator actually ran, the violated constraint, whether the controller ran and the text it returned, and the name of the exception Spring threw were confirmed to match the screen. Whether the validator ran was confirmed by adding one more constraint that always passes and seeing whether it was called (it is not in the code on the screen). Every URL on the screen is /items, but for the check, each combination had its own URL. Spring Boot sets up a validator automatically when the validation library (spring-boot-starter-validation) is present, and this lab assumes that state. The behavior without the library was not verified. The names of the exceptions and the behavior of a constraint declared directly on a parameter depend on the Spring version. What is written here was observed on Spring Framework 7.0.9, and versions before 6.1 are known to behave differently, but they were not run. The body of an error response and the text of the error messages vary with the configuration and the language of the server, so they were not treated as results. The default error response body seen on this PC contained only timestamp, status, error, and path, and did not say which field was wrong. Cases that are not on the screen were also checked on the same server. Putting the Spring annotation @Validated on the parameter instead of @Valid gives the same results. Receiving form data with @Valid @ModelAttribute gives the same 12 results (3 constraints, 4 values) as @Valid @RequestBody, and the exception is also MethodArgumentNotValidException. Writing &quot;name&quot;: null in the JSON is the same as not sending name. When an object contains another object as a field, the constraints of the inner object are checked only if that field has @Valid (without it, the result is 200), and when the inner object is null, validation does not go into it even with @Valid, and it passes. A constraint that specifies groups is not checked with @Valid and is checked only when the parameter is received with @Validated(that group), and conversely, a constraint without groups is not checked when the parameter is received with @Validated(that group). When two fields both violate their constraints, there are 2 errors, so validation does not stop at the first error. When an @Valid object and a parameter with a constraint declared directly on it are received in the same method, a failure on the object side also comes out as HandlerMethodValidationException. When the value is received with @RequestParam(required = false) and is not sent, null comes in and is caught by @NotNull and @NotBlank. Putting @Validated on the controller class changes the failure of a parameter constraint into ConstraintViolationException and 500. Putting @NotBlank on an Integer field gives 500 with UnexpectedTypeException at validation time. Placing the BindingResult before the @Valid parameter gives 500 with IllegalStateException. If you handle MethodArgumentNotValidException with an @ExceptionHandler, you can get which field violated which constraint and write it in the body of the 400 response yourself. The screen is simplified to one field and one constraint, and for whitespace, only a single space character was checked.</p>
+<p>Previous lab: <a href="../../lab/binding/">Request mapping and parameter binding</a> · Next lab: <a href="../../lab/msgconv/">REST APIs and message converters</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Testing: When tests run, what goes into the Spring context, and how many times is it created? · Dev Learning Lab</title>
+<meta name="description" content="There are several ways to test a single controller. You can create the objects with new and call them without Spring, load all the beans with @SpringBootT…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/testing/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/testing/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/testing/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Testing: When tests run, what goes into the Spring context, and how many times is it created? · Dev Learning Lab">
+<meta property="og:description" content="There are several ways to test a single controller. You can create the objects with new and call them without Spring, load all the beans with @SpringBootT…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/testing/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0634b0c2e2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Other features</p>
+<h1>Testing</h1>
+<p><b>When tests run, what goes into the Spring context, and how many times is it created?</b></p>
+<p>There are several ways to test a single controller. You can create the objects with new and call them without Spring, load all the beans with @SpringBootTest, or load only the web layer with @WebMvcTest. Depending on the approach, different beans go into the context (the container that creates and holds the beans), and unless you fill in the missing beans with mocks, the test cannot even start. Run code in which OrderController → OrderService → OrderRepository depend on each other in that order with two test classes, and check the result of each test and the number of times a context was created.</p>
+<p>Checked against real execution · 36 combinations were run, each in a new JVM, on Spring Boot 4.1.1, spring-test 7.0.9, JUnit Jupiter 6.0.3, and Mockito 5.23.0 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Unit tests and integration tests</dt>
+<dd>A unit test verifies the behavior of a single method or class in isolation from other parts. It runs fast and makes the cause of a failure easy to find. An integration test actually connects several components (such as the Spring container and a database) and verifies that they work together. It is closer to reality but slow. The usual approach is to have many unit tests and to keep integration tests focused on the core flows.</dd>
+<dt>Test double (mock, stub)</dt>
+<dd>A test-only object that stands in for a real object that the code under test depends on. A stub is made to return fixed values, and a mock can also verify which methods were called and how. They let you verify only the logic of the code under test, quickly and consistently, without a database or an external API.</dd>
+<dt>@SpringBootTest and @WebMvcTest</dt>
+<dd>These are two annotations with which Spring Boot creates the Spring context that a test uses. @SpringBootTest registers all the beans, just as when the application is started, so you can check that several layers work together, but many beans are registered and the context is large. @WebMvcTest registers only the beans of the web layer, such as controllers, and does not register classes annotated with @Service or @Repository. So unless you add the service that a controller depends on yourself with @MockitoBean, the context cannot load, and the test method fails before it even runs. In Spring Boot 4, @WebMvcTest is in the org.springframework.boot.webmvc.test.autoconfigure package of the spring-boot-webmvc-test module.</dd>
+<dt>@MockitoBean</dt>
+<dd>This is an annotation that replaces a bean in the Spring context of a test with a mock created by Mockito. When you put it on a field of a test class, the mock takes the place of the bean of that type if the context has one, and the mock is added as a new bean if it does not. A method of the mock returns a default value such as null unless you set the value to return with when(...).thenReturn(...). Spring Boot 4 does not have the earlier @MockBean and uses this annotation, which is part of Spring Framework. When the set of @MockitoBean fields differs from one test class to another, different contexts are needed, and the context is created that many more times.</dd>
+<dt>Context cache (TestContext framework)</dt>
+<dd>This is the store in which the testing support of Spring keeps a context that it has created once, so that it can hand the context out again to other test classes with the same configuration. Things such as the configuration classes, the active profiles, and the set of @MockitoBean fields must all be the same for a context to count as the same one, and if even one of them differs, a new context is created. The cache is inside the JVM that runs the tests, and @DirtiesContext closes the context in question and removes it from the cache. When a context with the same configuration fails to load, by default Spring does not try to create it again and fails the later tests immediately. When the configuration differs a little from one test class to another, the context is started several times and the whole test run becomes slower.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Only @WebMvcTest is added. The context does not load, so the test cannot even start.</li>
+<li><b>Filling in the service with a mock</b> — With a @MockitoBean OrderService, the context loads and the test passes.</li>
+<li><b>Filling in only the repository with a mock</b> — What the controller requires is the service, so the context still does not load.</li>
+<li><b>Setting no return value on the mock</b> — The context loads, but the mock returns null, so the test fails on the line that checks the value.</li>
+<li><b>Loading everything with @SpringBootTest</b> — All three beans are registered as real ones, so the test passes even without a mock.</li>
+<li><b>Different @MockitoBean fields</b> — The second class cannot use the context in the cache and creates a new one.</li>
+<li><b>Without Spring, with new</b> — The test calls the controller method directly without ever creating a context.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>OrderControllerTest starts: JUnit runs the first test class. The class is annotated with @WebMvcTest(OrderController.class), so before the test method is called, Spring prepares the context that this class will use.</li>
+<li>Context cache lookup: Once Spring creates a context for tests, it keeps the context in a cache and hands it out again when a test class with the same configuration comes along. This is the first class, so the cache is empty. Spring starts creating a new context (#1).</li>
+<li>Bean registration (@WebMvcTest): Only what belongs to the web layer is registered. OrderController, which is annotated with @RestController, becomes a bean, and OrderService, which is annotated with @Service, and OrderRepository, which is annotated with @Repository, are not registered.</li>
+<li>OrderController cannot be created: To create the controller, Spring needs the OrderService bean that the constructor requires, but the context does not have one. A NoSuchBeanDefinitionException is thrown and the loading of the context stops.</li>
+<li>returnsOrderName is recorded as failed: There is no context, so the @Autowired MockMvc field cannot be filled. Not a single line of the test method body runs, and the failure is recorded as an IllegalStateException that says &quot;Failed to load ApplicationContext&quot;.</li>
+<li>OrderControllerSecondTest starts: The second test class runs next in the same JVM. Its annotations and fields are the same as those of the first class. This class needs a context too.</li>
+<li>Context cache lookup: The configuration is the same as that of the first class, but the context for that configuration failed to load, so it is not in the cache. Spring does not try again to create a context that has failed once with the same configuration (the default threshold is 1). Without even starting to create it, Spring fails the test immediately with an IllegalStateException that says &quot;failure threshold (1) exceeded&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>First class: Context failure. Second class: Context failure (not retried). Times a Spring context was created: 1 (of these, failed to load: 1).</li>
+<li>@WebMvcTest registers only the beans of the web layer, such as controllers. The OrderService that the controller depends on must be filled in by you with @MockitoBean for the context to load.</li>
+<li>Once a context fails to load with a given configuration, Spring does not try to create the context for that configuration again and fails the later tests immediately. Even when several tests appear to have failed, there may be a single cause, so look at the message of the very first failure.</li>
+</ul>
+<h2>Code</h2>
+<pre>// First test class
+@WebMvcTest(OrderController.class)
+class OrderControllerTest {
+
+    @Autowired
+    MockMvc mockMvc;                      // a tool that sends requests without a server
+
+    @Test
+    void returnsOrderName() throws Exception {
+        mockMvc.perform(get(&quot;/orders/1&quot;))
+               .andExpect(status().isOk())
+               .andExpect(content().string(&quot;keyboard&quot;));
+    }
+}
+
+// Second test class, which runs next
+@WebMvcTest(OrderController.class)
+class OrderControllerSecondTest {
+    // The fields and returnsOrderName() are the same as in OrderControllerTest
+}
+
+// ---- Code under test: controller → service → repository ----
+@RestController
+class OrderController {
+    private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @GetMapping(&quot;/orders/{id}&quot;)
+    public String name(@PathVariable Long id) {
+        return orderService.findName(id);
+    }
+}
+
+@Service
+class OrderService {
+    private final OrderRepository orderRepository;
+
+    public OrderService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    public String findName(Long id) {
+        return orderRepository.findName(id);
+    }
+}
+
+@Repository
+class OrderRepository {
+    // A map used in place of a database
+    private final Map&lt;Long, String&gt; db = Map.of(1L, &quot;keyboard&quot;);
+
+    public String findName(Long id) {
+        return db.get(id);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>All 36 combinations were actually run on this PC and checked against the results (3 testing approaches × 4 mock choices × 4 second-class choices; for a test without Spring, the second-class setting has no meaning, so only 4 are counted). The versions are Spring Boot 4.1.1, Spring Framework and spring-test 7.0.9, JUnit Jupiter 6.0.3, Mockito 5.23.0, and JDK 21. The two test classes were run one after the other with the JUnit Platform Launcher, without Gradle or Maven, and because the context cache lives inside the JVM, a new Java process was started for each combination. What was compared: the results of the two classes (passed, assertion failed, context failed to load, failure that was not retried), whether the controller, service, and repository that each class used were real, Mockito mocks, or absent, the number of times the creation of a context was started (counted as the number of times the constructor of the configuration class was called, including the ones that failed to load), the number of times loading succeeded, and whether the two classes received the same context object. Spring Boot 4 has no @MockBean (it was confirmed that the spring-boot-test jar of 4.1.1 does not contain that class) and uses @MockitoBean of Spring Framework (org.springframework.test.context.bean.override.mockito). @WebMvcTest and @AutoConfigureMockMvc are in the org.springframework.boot.webmvc.test.autoconfigure package of the spring-boot-webmvc-test module. The package names differ from those of 3.x, so take care when you copy import statements. How auto-configuration was controlled: the classpath of this PC also contains Spring Security, H2 and HikariCP, Hibernate, Spring Data JPA, and Actuator. In the check runs, the exclude attribute of @SpringBootApplication left out five Spring Security auto-configurations and the DataSource, Hibernate JPA, and Spring Data JPA repositories auto-configurations. When the lab was run without excluding them, the request of @SpringBootTest was blocked by Spring Security and became 401, and @WebMvcTest passed as before. (This is the result of a separate run made while the lab was being built, and it is not in the saved check output. On this classpath, the list of auto-configurations that @WebMvcTest loads did not include Spring Security. The behavior when the spring-boot-security-test module is present was not verified.) The @SpringBootApplication class is omitted on the screen. Differences between the code on the screen and the code used for the check: in the check code, the test classes have different names, they inherit the same body from an abstract class, and there are additional lines that record whether an object is real or a mock and additional code that counts the contexts. &quot;Has one more @MockitoBean&quot; is the case that replaces one more thing that the first class did not replace (OrderRepository, or OrderService if that is already replaced). The database is replaced with an in-memory map both on the screen and in the runs. The threshold after which a context that has failed once with the same configuration is not created again is spring.test.context.failure.threshold, and its default is 1 (confirmed from the constant in spring-test 7.0.9). For @DirtiesContext, only the default behavior when it is put on a class (the context is closed after the tests of the class finish) is covered. On this PC, the number of bean definitions in the context was 303 for @SpringBootTest and 130 for @WebMvcTest (131 when a mock bean is added), and these numbers change with the classpath and the exclude above. The time taken differs on every run, so it is not in the result table. In one run on this PC, the first class took about 0.7s to 0.9s for the test without Spring (including Mockito setup), about 2.7s for @WebMvcTest, and about 3.4s to 4.4s for @SpringBootTest, and the second class, which reused the context, took 0.05s or less. On JDK 21, Mockito attaches itself as an agent at run time in order to create mocks and prints a warning, but this does not affect the behavior, so it was left as it is. The @Transactional rollback of test methods, other slices such as @DataJpaTest, @MockitoSpyBean, the maximum size of the cache, and the case where a build tool splits the tests across several processes (the cache is separate for each process) are not covered and were not verified by execution either.</p>
+<p>Previous lab: <a href="../../lab/actuator/">Actuator and health checks</a> · Next lab: <a href="../../lab/restclient/">Calling external APIs and timeouts</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button><button class="btn ghost small" id="to-list" type="button">Back to list</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>Concepts in this lab</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">Speed <select id="speed"><option value="0.5">Slow</option><option value="1" selected>Normal</option><option value="2.5">Fast</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">Skip the animation and show the result</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show all assumptions</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">Show the full step log</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0634b0c2e2"></script>
+</body>
+</html>

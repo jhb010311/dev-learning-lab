@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>제네릭: List&lt;Integer&gt;의 &lt;Integer&gt;는 무엇을 막아 주나 · 개발 학습 실습실</title>
+<meta name="description" content="제네릭은 List&lt;Integer&gt;처럼 &quot;이 리스트에 무엇을 담는지&quot;를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastExcepti…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/generic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/generic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/generic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="제네릭: List&lt;Integer&gt;의 &lt;Integer&gt;는 무엇을 막아 주나 · 개발 학습 실습실">
+<meta property="og:description" content="제네릭은 List&lt;Integer&gt;처럼 &quot;이 리스트에 무엇을 담는지&quot;를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastExcepti…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/generic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 제네릭, 열거형, 애너테이션</p>
+<h1>제네릭</h1>
+<p><b>List&lt;Integer&gt;의 &lt;Integer&gt;는 무엇을 막아 주나</b></p>
+<p>제네릭은 List&lt;Integer&gt;처럼 &quot;이 리스트에 무엇을 담는지&quot;를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastException이 납니다. 같은 리스트를 가리키는 변수 list의 선언을 바꿔 가며 무엇이 컴파일되고 무엇이 막히는지 확인하세요.</p>
+<p>실행으로 대조 · JDK 21에서 스무 가지 조합을 실제로 컴파일하고 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>제네릭</dt>
+<dd>클래스나 메서드가 다룰 타입을 매개변수로 받는 기능이다. List&lt;String&gt;처럼 타입을 지정하면 컴파일 시점에 타입이 검사되어 잘못된 타입을 넣는 실수를 막고 형 변환 코드가 필요 없다. 타입 정보는 컴파일 후 지워지므로(타입 소거) 실행 중에는 List&lt;String&gt;과 List&lt;Integer&gt;를 구분할 수 없다.</dd>
+<dt>로 타입(raw type)</dt>
+<dd>List&lt;String&gt;처럼 타입을 적을 수 있는 제네릭 클래스를 &lt;...&gt; 없이 List라고만 쓴 것이다. 제네릭이 없던 Java 5 이전의 코드와 함께 쓸 수 있도록 남겨 둔 방식이다. 컴파일러는 로 타입 변수에 무엇을 넣는지 검사하지 못하고 unchecked 경고만 내므로, List&lt;Integer&gt;가 가리키는 리스트에 String을 넣는 코드도 컴파일된다. 그 잘못은 나중에 값을 꺼내는 자리에서 ClassCastException으로 드러난다. 새로 쓰는 코드에서는 쓰지 않으며, 원소 타입을 모를 때는 List&lt;?&gt;를 쓴다.</dd>
+<dt>타입 소거</dt>
+<dd>컴파일러가 제네릭의 타입 표시(List&lt;Integer&gt;의 Integer)를 컴파일할 때의 검사에만 쓰고, 실행되는 코드에는 남기지 않는 것이다. 그래서 실행 중에는 List&lt;String&gt;과 List&lt;Integer&gt;가 같은 클래스의 객체이고, 리스트 객체는 자신이 어떤 타입을 담기로 했는지 기억하지 않는다. 값을 꺼내는 자리에는 컴파일러가 형 변환 코드를 대신 넣어 둔다. 이 때문에 실행 중에 리스트의 원소 타입을 물어볼 수 없고, new T()처럼 타입 매개변수로 객체를 만들 수도 없다. 로 타입으로 컴파일러의 검사를 피해 잘못된 값을 넣으면 실행 중에는 막아 줄 것이 없다.</dd>
+<dt>와일드카드(? extends와 ? super)</dt>
+<dd>제네릭 타입의 &lt;&gt; 안에 ?를 써서 &quot;어떤 타입인지 정해 두지 않았다&quot;는 것을 나타내는 문법이다. List&lt;? extends Number&gt;는 Number나 그 하위 타입의 리스트를 모두 받을 수 있고, 꺼낸 값을 Number로 쓸 수 있지만 값을 넣을 수는 없다. List&lt;? super Integer&gt;는 Integer나 그 상위 타입의 리스트를 모두 받을 수 있고, Integer를 넣을 수 있지만 꺼낸 값은 Object로만 받을 수 있다. List&lt;Integer&gt;를 List&lt;Number&gt; 변수에 대입할 수 없기 때문에, 여러 타입의 리스트를 받는 메서드를 만들 때 필요하다. 값을 꺼내 쓰기만 하는 매개변수에는 extends를, 값을 넣기만 하는 매개변수에는 super를 쓴다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 제네릭 없이 문자열을 넣습니다. 컴파일은 되고, 나중에 꺼낼 때 예외가 납니다.</li>
+<li><b>제네릭을 쓰면</b> — 같은 실수가 컴파일 오류로 미리 잡힙니다.</li>
+<li><b>List&lt;Number&gt;에 대입</b> — Integer는 Number의 하위 타입인데도 대입 자체가 컴파일되지 않습니다.</li>
+<li><b>? extends에 넣기</b> — 꺼낼 수는 있지만 Integer조차 넣을 수 없습니다.</li>
+<li><b>? extends에서 꺼내기</b> — Number로 꺼내는 것은 됩니다.</li>
+<li><b>? super에 넣기</b> — Integer를 넣을 수 있습니다.</li>
+<li><b>? super에서 꺼내기</b> — Number로 받을 수 없습니다. Object로만 받을 수 있습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>List&lt;Integer&gt; ints를 만들고 1과 2를 넣습니다: &lt;Integer&gt;는 &quot;이 리스트에는 Integer만 담는다&quot;는 표시입니다. 컴파일러는 이 표시를 보고 ints에 넣고 꺼내는 코드를 검사합니다.</li>
+<li>List list = ints 검사: 같은 리스트를 &lt;...&gt; 표시 없이 선언한 변수 list로도 가리키게 합니다. 이렇게 제네릭 없이 쓰는 것을 로 타입이라고 합니다. 제네릭이 없던 시절의 코드와 함께 쓸 수 있도록 남겨 둔 방식이어서 대입은 컴파일됩니다. 그 대신 컴파일러는 list에 무엇을 넣는지 검사하지 못합니다.</li>
+<li>list.add(&quot;삼&quot;) 검사: list가 로 타입이라 컴파일러는 넣는 값의 타입을 확인할 수 없습니다. 오류가 아니라 경고만 냅니다(&quot;unchecked call to add(E) as a member of the raw type List&quot;). Integer 리스트에 String을 넣는 코드인데도 컴파일됩니다.</li>
+<li>컴파일에 성공했습니다: 경고는 컴파일을 막지 않습니다. 이제 프로그램을 실행합니다.</li>
+<li>list.add(&quot;삼&quot;) 실행: 실행 중의 리스트 객체는 자기가 Integer용이라는 것을 기억하지 않습니다. 넣을 때는 아무 검사도 하지 않으므로 String 값(삼)이 그대로 들어갑니다. list와 ints는 같은 객체이므로, Integer만 담기로 한 ints 안에 String이 들어간 것입니다.</li>
+<li>System.out.println(ints) 실행: 리스트의 내용을 출력합니다. 출력은 [1, 2, 삼]입니다. 출력만 할 때는 원소가 무슨 타입인지 따지지 않으므로 아직 아무 일도 일어나지 않습니다.</li>
+<li>ints.getClass() == strs.getClass() 실행: true를 출력합니다. List&lt;Integer&gt;와 List&lt;String&gt;은 실행 중에는 똑같은 ArrayList 클래스의 객체입니다. &lt;Integer&gt;와 &lt;String&gt;은 컴파일할 때의 검사에만 쓰이고 실행 코드에는 남지 않습니다(타입 소거).</li>
+<li>Integer last = ints.get(ints.size() - 1) 실행: ClassCastException이 납니다. ints는 List&lt;Integer&gt;이므로 컴파일러가 이 줄에 &quot;꺼낸 값을 Integer로 바꾸는&quot; 형 변환을 넣어 두었습니다. 그런데 실제로 나온 값은 String입니다. 잘못 넣은 줄이 아니라 한참 뒤 꺼내는 줄에서 터지므로 원인을 찾기 어렵습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>컴파일 성공 (경고 있음). 출력: [1, 2, 삼] / true. 끝난 모습: 예외로 중단: ClassCastException (String을 Integer로 바꿀 수 없음).</li>
+<li>제네릭 없이(로 타입) 쓰면 잘못된 타입을 넣는 코드가 컴파일되고, 넣는 순간에도 아무 일이 없다가, 값을 꺼내는 다른 줄에서 ClassCastException이 납니다. 선언을 List&lt;Integer&gt;로 바꾸면 같은 코드가 컴파일 오류가 됩니다.</li>
+<li>출력 가운데 true가 타입 소거를 보여 줍니다. 실행 중의 리스트는 원소 타입을 기억하지 않으므로, 제네릭의 보호는 전부 컴파일할 때 이루어집니다. 로 타입으로 그 검사를 피하면 막아 줄 것이 없습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>List&lt;Integer&gt; ints = new ArrayList&lt;&gt;();
+ints.add(1);
+ints.add(2);
+
+List list = ints;
+list.add(&quot;삼&quot;);
+
+System.out.println(ints);
+List&lt;String&gt; strs = new ArrayList&lt;&gt;();
+System.out.println(ints.getClass() == strs.getClass());
+Integer last = ints.get(ints.size() - 1);
+System.out.println(&quot;마지막 값: &quot; + last);</pre>
+<h2>이 모형의 전제</h2>
+<p>스무 가지 조합 모두를 이 PC의 JDK 21에서 화면의 코드를 main 메서드 안에 넣은 소스로 실제로 컴파일하고(javac -Xlint:unchecked), 컴파일된 것은 실행해서 컴파일 여부, 오류가 난 줄과 메시지, 경고 메시지, 출력, 예외의 종류와 예외가 난 줄을 대조했습니다. 컴파일러 메시지는 명령줄 javac가 보여 주는 모양(클래스 이름만, 정체 모를 타입은 CAP#1)으로 적었습니다. 화면의 코드에는 import java.util.ArrayList, import java.util.List와 main 메서드의 선언이 생략되어 있습니다. -Xlint:unchecked 없이 컴파일하면 경고의 자세한 내용 대신 &quot;uses unchecked or unsafe operations&quot;라는 안내만 나옵니다. ? extends로 선언한 리스트에도 null은 넣을 수 있지만 모형에서는 다루지 않았습니다. 타입 소거가 일어나도 필드나 메서드의 선언에 적힌 제네릭 정보는 class 파일에 남아 리플렉션으로 읽을 수 있습니다. 지워지는 것은 실행 중인 객체가 가진 정보입니다.</p>
+<p>앞 실습: <a href="../../lab/chkex/">체크 예외와 언체크 예외</a> · 다음 실습: <a href="../../lab/enumtype/">열거형(enum)</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>

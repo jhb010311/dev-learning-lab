@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>트랜잭션 기본: 출금은 됐는데 입금이 안 됐다면 · 개발 학습 실습실</title>
+<meta name="description" content="A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다. 두 문장을 트랜잭션으로 묶었을 때와 아닐 때, 중간에 문제가 생기면 DB에 무엇이 남는지 보세요.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/tx/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/tx/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tx/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="트랜잭션 기본: 출금은 됐는데 입금이 안 됐다면 · 개발 학습 실습실">
+<meta property="og:description" content="A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다. 두 문장을 트랜잭션으로 묶었을 때와 아닐 때, 중간에 문제가 생기면 DB에 무엇이 남는지 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/tx/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=21285d68c2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 데이터 접근과 트랜잭션</p>
+<h1>트랜잭션 기본</h1>
+<p><b>출금은 됐는데 입금이 안 됐다면</b></p>
+<p>A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다. 두 문장을 트랜잭션으로 묶었을 때와 아닐 때, 중간에 문제가 생기면 DB에 무엇이 남는지 보세요.</p>
+<p>실행으로 대조 · SQLite에서 연결 두 개로 열두 가지 조합 실행</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>트랜잭션</dt>
+<dd>여러 데이터 변경 작업을 하나의 단위로 묶어, 전부 반영되거나(커밋) 전부 취소되게(롤백) 하는 것이다. 계좌 이체에서 출금과 입금 중 하나만 반영되는 중간 상태를 막는다. 데이터베이스가 정합성을 지키는 가장 기본적인 수단이다.</dd>
+<dt>ACID</dt>
+<dd>트랜잭션이 보장해야 하는 네 가지 성질이다. 원자성(Atomicity)은 전부 성공하거나 전부 실패하는 것, 일관성(Consistency)은 트랜잭션 전후로 데이터가 정해진 규칙을 만족하는 것, 격리성(Isolation)은 동시에 실행되는 트랜잭션이 서로 간섭하지 않는 것, 지속성(Durability)은 커밋된 결과가 장애가 나도 유지되는 것이다.</dd>
+<dt>Undo 로그와 Redo 로그</dt>
+<dd>Undo 로그는 변경 전의 데이터를 기록한 것으로, 트랜잭션을 롤백할 때와 다른 트랜잭션에 과거 버전을 보여 줄 때(MVCC) 쓰인다. Redo 로그는 변경 내용을 기록한 것으로, 커밋된 변경이 데이터 파일에 완전히 쓰이기 전에 장애가 나더라도 재시작 시 이를 다시 적용해 복구하는 데 쓰인다.</dd>
+<dt>@Transactional</dt>
+<dd>메서드나 클래스에 붙여 그 범위를 하나의 트랜잭션으로 실행하게 하는 애노테이션이다. 프록시가 메서드 실행 전에 트랜잭션을 시작하고, 정상적으로 끝나면 커밋, 예외가 발생하면 규칙에 따라 롤백한다. 트랜잭션을 시작하고 끝내는 코드를 직접 쓰지 않아도 되어 선언적 트랜잭션이라고 한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 트랜잭션 없이 중간에 오류. 1,000원이 사라집니다.</li>
+<li><b>트랜잭션으로 묶으면</b> — 같은 오류에서 출금까지 취소됩니다.</li>
+<li><b>묶은 상태에서 서버가 꺼지면</b> — 커밋하지 않은 변경은 남지 않습니다.</li>
+<li><b>문제가 없을 때</b> — 어느 방식이든 결과는 같습니다.</li>
+<li><b>중간에 다른 사람이 조회하면</b> — 트랜잭션 없이: 합계가 1,000원 모자란 순간이 보입니다.</li>
+<li><b>묶은 상태에서 중간 조회</b> — 커밋 전의 변경은 다른 사람에게 보이지 않습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>A 계좌 5,000원, B 계좌 1,000원. 합계는 6,000원입니다. A에서 B로 1,000원을 이체합니다.</li>
+<li>출금: A를 4,000원으로 바꿉니다. 트랜잭션이 없으므로 이 문장은 실행되자마자 확정(커밋)됩니다. 되돌릴 수 없습니다.</li>
+<li>애플리케이션에서 오류가 발생해 입금 문장을 실행하지 못했습니다. 출금은 이미 확정돼 있습니다. A에서는 1,000원이 빠졌는데 B에는 들어가지 않았습니다. 1,000원이 사라졌습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>최종 A 4000원, B 1000원, 합계 5000원. 1,000원이 사라졌습니다.</li>
+<li>여러 문장이 &quot;전부 되거나 전부 안 되거나&quot;여야 하는데 일부만 반영됐습니다. 트랜잭션은 이것을 보장하는 장치입니다(원자성).</li>
+<li>트랜잭션의 네 가지 성질(ACID): 전부 아니면 전무(원자성), 규칙에 맞는 상태 유지(일관성), 진행 중인 변경은 서로 안 보임(격리성), 커밋된 것은 남음(지속성). 스프링의 @Transactional은 메서드 시작에 START TRANSACTION, 정상 종료에 COMMIT, 예외에 ROLLBACK을 대신 보내 주는 것입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>-- 자동 커밋: 문장 하나가 끝날 때마다 바로 확정된다
+UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- 출금
+-- (여기서 애플리케이션 오류 발생)
+-- 입금 문장은 실행되지 못함</pre>
+<h2>이 모형의 전제</h2>
+<p>열두 가지 조합의 최종 잔액과 중간 조회 결과를 실제 SQL 엔진(SQLite)에서 연결 두 개로 실행해 확인했습니다. &quot;서버가 꺼짐&quot;은 커밋하지 않은 채 연결을 끊는 것으로 재현했습니다. 중간 조회에서 커밋 전 값이 보이지 않는 것은 대부분의 DB 기본 설정에서의 동작이며, 가장 낮은 격리 수준에서는 보일 수 있습니다.</p>
+<p>앞 실습: <a href="../../lab/aop/">AOP: 어드바이스와 포인트컷</a> · 다음 실습: <a href="../../lab/txprop/">트랜잭션 전파</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <p class="question" id="question"></p>
+    <div class="vbadge" id="vbadge"></div>
+    <p id="intro"></p>
+    <div class="pathbar" id="pathbar"></div>
+  </section>
+
+  <section class="explain labonly" id="explain" hidden>
+    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
+    <div class="terms" id="terms"></div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+      <div class="runrow sub">
+        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
+        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
+      </div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <button class="btn ghost small fold" id="log-toggle" type="button" aria-expanded="false" aria-controls="log">전체 단계 기록 보기</button>
+      <ol class="log" id="log" hidden></ol>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-pre">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=21285d68c2"></script>
+</body>
+</html>
