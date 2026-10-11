@@ -1,7 +1,7 @@
 Lab.register({
   id: 'git', nav: 'merge와 rebase', cat: 'Git', mode: 'step',
   title: '두 브랜치를 합치는 세 가지 모양',
-  intro: 'feature 브랜치에서 작업하는 동안 main에도 새 커밋이 생겼습니다. 이 둘을 합칠 때 merge를 쓰느냐 rebase를 쓰느냐에 따라 커밋 그래프의 모양이 달라지고, 같은 줄을 고쳤다면 충돌이 납니다. 조건을 바꿔 가며 그래프를 비교하세요.',
+  intro: 'feature 브랜치에서 작업하는 동안 main에도 새 커밋이 생겼습니다. 이 둘을 합칠 때 merge를 쓰느냐 rebase를 쓰느냐에 따라 커밋 그래프의 모양이 달라지고, 같은 줄을 고쳤다면 충돌이 납니다.',
   terms: ['merge와 rebase', 'Git 충돌(Conflict)', 'Git의 fetch, pull, push', 'Git Flow와 GitHub Flow', '코드 리뷰와 Pull Request'], ranks: ['git'],
   controls: [
     { id: 'how', label: '합치는 방법', type: 'select', value: 'merge', options: [['merge', 'main에서 git merge feature'], ['rebase', 'feature에서 git rebase main 후 merge'], ['squash', 'git merge --squash feature']] },
@@ -58,7 +58,6 @@ Lab.register({
       warn = 'feature의 개별 커밋 이력이 main에 남지 않음';
       sum.push('squash는 "기능 하나 = 커밋 하나"로 main을 정리합니다. 작업 중의 자잘한 커밋(오타 수정, 리뷰 반영)이 main에 남지 않습니다. 대신 세부 이력이 사라지고, Git은 feature가 합쳐졌다는 사실을 모르므로 브랜치를 지워야 합니다.');
     }
-    sum.unshift('그래프 모양: ' + shape + '. 새로 생긴 커밋: ' + made + '. 충돌 해결: ' + fix + '.');
     if (conf) sum.push('충돌은 Git의 오류가 아니라 "두 사람이 같은 곳을 다르게 고쳤으니 사람이 정해 달라"는 요청입니다. 브랜치를 오래 끌수록, 한 번에 많이 고칠수록 충돌이 커집니다. 자주 main을 받아 오고 작게 나눠 합치는 것이 예방책입니다.');
     return { events: ev, summary: sum, row: [shape, made, fix, warn] };
   },
@@ -66,7 +65,6 @@ Lab.register({
     var last = shown[shown.length - 1];
     H.title(v, '커밋 그래프 (왼쪽이 오래된 커밋)');
     v.appendChild(H.el('pre', 'code', last ? last.snap.g : '실행을 누르면 시작합니다.'));
-    H.text(v, '알파벳 하나가 커밋 하나입니다. D\'처럼 작은따옴표가 붙은 것은 내용은 같지만 새로 만들어진 커밋입니다.');
   },
   // 그림: 글자로 그린 커밋 그래프를 읽어 상자와 화살표로 다시 그린다. 위 줄이 main, 아래 줄이 feature.
   draw: function (P, sim, shown) {

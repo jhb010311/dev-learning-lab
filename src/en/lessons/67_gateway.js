@@ -1,7 +1,7 @@
 Lab.register({
   id: 'gateway', nav: 'Gateway and gradual migration', cat: 'Microservices', mode: 'step',
   title: 'Breaking up a huge server piece by piece without stopping it',
-  intro: 'You put a gateway in front of an existing server (a monolith) that holds every feature in one lump, and hand requests over to new services one route at a time. The address that users see does not change. Change how much is handed over and in what share, and watch where the requests go.',
+  intro: 'You put a gateway in front of an existing server (a monolith) that holds every feature in one lump, and hand requests over to new services one route at a time. The address that users see does not change.',
   terms: ['API gateway', 'Strangler fig pattern', 'Monolithic architecture and microservice architecture', 'Reverse proxy', 'Rolling, blue-green, and canary deployments'], ranks: ['msa', 'design', 'deploy'],
   controls: [
     { id: 'stage', label: 'Migration stage', type: 'select', value: '1', options: [['0', 'Stage 0: everything on the existing server'], ['1', 'Stage 1: only orders on the new service'], ['2', 'Stage 2: orders and payments on new services'], ['3', 'Stage 3: everything on new services (existing server shut down)']] },
@@ -41,7 +41,6 @@ Lab.register({
       rows.push({ cells: [r[0], '/' + r[1] + '/**', { v: to, cls: moved ? 'good' : '' }] });
       push(r[0] + ': The path starts with /' + r[1] + '. ' + (why || (moved ? 'This path is configured to be passed to the new service.' : 'It is not a path with its own rule, so it goes to the existing server.')) + ' → ' + to, moved ? 'good' : '');
     });
-    sum.push('Requests: 10. To the existing server: ' + old + '. To the new service: ' + neu + '. Rejected at the gateway: ' + rej + '.');
     if (st === 0) sum.push('Nothing has been moved yet. Putting the gateway in place first is the first step of the migration. After that, you can hand routes over one at a time just by changing the configuration.');
     if (st === 1 || st === 2) sum.push('You do not move every feature at once; you split them off one route at a time. If something goes wrong with a new service, you can change the configuration back and send the requests to the existing server again. Because the new system gradually wraps around the existing one and replaces it, this approach is called the strangler fig pattern.');
     if (st === 1 && ratio < 100) sum.push('Even when you hand a route over, you first send only a share of the requests and verify the new service with real requests. During this time two servers work with the same data, so how to split the database is the hardest problem.');
@@ -51,7 +50,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], old: 0, neu: 0, rej: 0 };
-    H.counters(v, [[s.old, 'Requests to the existing server'], [s.neu, 'Requests to the new service'], [s.rej, 'Rejected at the gateway']]);
     if (s.rows.length) H.table(v, ['Request', 'Matching route rule', 'Sent to'], s.rows, 'Routing at the gateway'); else H.text(v, 'No requests have arrived yet.');
   },
   // Diagram: every request passes through the gateway and goes to the existing server or a new service.
@@ -63,7 +61,7 @@ Lab.register({
     P.box('cn', 236, end + 14, 208, 34, { cls: 'good', title: 'To new service', right: s.neu + '' });
     P.box('cr', 456, end + 14, 208, 34, { cls: s.rej ? 'bad' : 'ghost', title: 'Rejected at entrance', right: s.rej + '' });
     P.size(680, end + 64);
-    P.note('Every arrow passes through the line of the gateway. The gateway looks at the path and decides whether to send the request to the existing server or to a new service, and a request that fails authentication is turned away at the entrance instead of being passed on.');
+    P.note('Every arrow passes through the line of the gateway.');
   },
   assume: 'This is a fixed example of 10 requests. The ratio setting is assigned in a simple way so that the difference shows within the 10 requests (for 50%, order requests alternate; for 10%, only the fifth order request goes to the new service). The configuration example follows the path and weight predicates of Spring Cloud Gateway. Separating the data and synchronizing the two systems, which are the hardest parts of moving a feature, are not covered.',
 });

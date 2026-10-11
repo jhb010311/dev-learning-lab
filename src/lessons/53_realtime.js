@@ -1,7 +1,7 @@
 Lab.register({
   id: 'realtime', nav: '폴링·SSE·WebSocket', cat: 'HTTP', mode: 'step',
   title: '서버에서 생긴 일을 브라우저에 알리는 네 가지 방법',
-  intro: 'HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다. 30초 동안의 요청 수와 전달 지연을 비교하세요.',
+  intro: 'HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다.',
   terms: ['SSE(Server-Sent Events)와 폴링', 'WebSocket', 'HTTP와 무상태(Stateless)'], ranks: ['http', 'network', 'traffic'],
   controls: [
     { id: 'how', label: '방식', type: 'select', value: 'poll', options: [['poll', '폴링 (주기적으로 물어봄)'], ['long', '롱 폴링 (소식이 생길 때까지 응답을 미룸)'], ['sse', 'SSE (서버가 한 방향으로 계속 보냄)'], ['ws', 'WebSocket (양방향 통로)']] },
@@ -59,12 +59,10 @@ Lab.register({
       sum.push(c.how === 'sse' ? 'SSE는 서버가 일방적으로 알리는 용도(알림, 진행률, 시세)에 맞습니다. 평범한 HTTP라서 기존 인증, 프록시, 로드밸런서와 잘 맞고 끊기면 브라우저가 알아서 다시 연결합니다.' : 'WebSocket은 양쪽이 자주 주고받는 용도(채팅, 공동 편집, 게임)에 맞습니다. HTTP가 아닌 별도의 프로토콜이라 프록시와 로드밸런서 설정을 따로 확인해야 하고, 재연결과 인증을 직접 처리해야 합니다.');
       sum.push('연결을 열어 두는 방식은 사용자 수만큼 연결이 유지됩니다. 서버가 여러 대면 "이 사용자의 연결이 어느 서버에 있는가"를 해결해야 하고, 보통 Redis의 발행·구독 같은 중간 통로를 둡니다.');
     }
-    sum.unshift('30초 동안 HTTP 요청 ' + reqs + '번(빈손 ' + empty + '번), 알림이 생긴 뒤 전달되기까지 평균 ' + (delay < 0.1 ? '거의 0' : fmt(delay)) + '초.');
     return { events: ev, summary: sum, row: [reqs + '번', empty + '번', delay < 0.1 ? '거의 0초' : fmt(delay) + '초', conn] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], reqs: 0, empty: 0 };
-    H.counters(v, [[s.reqs, 'HTTP 요청 수'], [s.empty, '빈손으로 끝난 요청']]);
     if (s.rows.length) H.table(v, ['시각', '무엇을', '결과'], s.rows.slice(-14), '브라우저와 서버 사이' + (s.rows.length > 14 ? ' (최근 14줄)' : '')); else H.text(v, '아직 오간 것이 없습니다.');
   },
   // 그림: 브라우저와 서버 사이의 요청과 응답. 누가 먼저 말을 거는지, 빈손으로 돌아오는 요청이 얼마나 되는지가 보인다.

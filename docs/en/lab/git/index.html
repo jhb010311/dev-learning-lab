@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Collaboration</p>
 <h1>Merge and rebase</h1>
 <p><b>Three ways to combine two branches</b></p>
-<p>While you work on the feature branch, new commits also appear on main. Whether you combine the two with merge or with rebase changes the shape of the commit graph, and if both changed the same line, you get a merge conflict. Change the conditions and compare the graphs.</p>
+<p>While you work on the feature branch, new commits also appear on main. Whether you combine the two with merge or with rebase changes the shape of the commit graph, and if both changed the same line, you get a merge conflict.</p>
 <p>Checked against real execution · Checked by creating a temporary repository with git 2.55</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -62,7 +62,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Graph shape: Two lines + a merge commit. New commits: Merge commit M. Conflict resolution: None.</li>
 <li>merge does not touch existing commits and adds one merge commit. The history stays as it really happened, but the graph gets complicated when there are many branches.</li>
 </ul>
 <h2>Code</h2>
@@ -153,6 +152,6 @@ git merge feature</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

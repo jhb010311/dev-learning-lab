@@ -1,7 +1,7 @@
 Lab.register({
   id: 'jit', nav: 'JIT warmup', cat: 'JVM', mode: 'step',
   title: 'Why are the first requests right after a deployment slow?',
-  intro: 'Java code is compiled to bytecode, and the JVM runs it by interpreting it one bytecode instruction at a time. The JVM finds the methods that run often and compiles them again, this time to machine code (JIT), and from then on they run much faster. Look at the results of a real measurement: the same method was called in 12 batches of 2,000 calls each, and the time each batch took was measured.',
+  intro: 'Java code is compiled to bytecode, and the JVM runs it by interpreting it one bytecode instruction at a time. The JVM finds the methods that run often and compiles them again, this time to machine code (JIT), and from then on they run much faster.',
   terms: ['JIT compiler', 'Bytecode', 'Java Virtual Machine (JVM)', 'Class loader'], ranks: ['jvm', 'tuning', 'deploy'],
   controls: [
     { id: 'mode', label: 'How the code is run', type: 'select', value: 'jit', options: [['jit', 'Default settings (interpreted, then JIT-compiled)'], ['int', 'JIT turned off (-Xint, interpreted only)'], ['warm', 'Called in advance before requests arrive (warmup)']] },
@@ -32,7 +32,6 @@ Lab.register({
       push(s, c.mode === 'int' ? 'bad' : c.mode === 'jit' && i === 0 ? 'bad' : 'good', i + 1);
     });
     var mx = Math.max.apply(null, D), mn = Math.min.apply(null, D);
-    sum.push('First batch: ' + f(D[0]) + ', last batch: ' + f(D[11]) + '. The slowest batch took ' + (Math.round(mx / mn * 10) / 10) + ' times as long as the fastest batch.');
     if (c.mode === 'jit') sum.push('The code is the same, but its speed at the start and later is different. The JVM does not compile all the code in advance. It picks only the parts that actually run often and compiles them while the program is running (just-in-time). Because it optimizes based on information from the actual execution, once the code is fully warmed up it runs at a speed close to that of a language compiled in advance.');
     if (c.mode === 'int') sum.push('With interpretation only and no JIT, the code is about 20 times slower (about 29ms) than after compilation (about 1.4ms). The real performance of Java comes from the JIT compiler.');
     if (c.mode === 'warm') sum.push('A warmup means going through the slow period in advance, before user requests arrive. You apply it by calling the main APIs internally a few times right after a deployment, or by sending the ready signal (readiness) only after the warmup.');

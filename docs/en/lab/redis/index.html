@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Scaling and distribution</p>
 <h1>Redis single-threaded execution</h1>
 <p><b>If one command is slow, everyone waits</b></p>
-<p>Redis runs commands one at a time, in order, on a single thread. That is why each command runs without anything cutting in, even without locks, but if one command takes a long time, every command behind it has to wait in line. Mix in a slow command and check how long the other clients wait.</p>
+<p>Redis runs commands one at a time, in order, on a single thread. That is why each command runs without anything cutting in, even without locks, but if one command takes a long time, every command behind it has to wait in line.</p>
 <p>Partly checked against real execution · The principle was measured and checked on Redis 8.10.2 (the time values are examples)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The command that waited longest waited 499.3ms, and the whole processing took 500.5ms.</li>
 <li>A lookup that usually finishes in 0.1ms waited 499.3ms. All the services connected to Redis slow down at the same time, and if a timeout is set, cache lookups fail one after another. This is why you should avoid commands such as KEYS, reading a large collection whole, and deleting a large key (DEL) on a Redis that is in operation.</li>
 </ul>
 <h2>Code</h2>
@@ -158,6 +157,6 @@ Set&lt;String&gt; keys = redis.keys(&quot;user:*&quot;);          // scans all t
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

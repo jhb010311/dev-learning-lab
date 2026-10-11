@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>샤딩: 데이터를 여러 DB에 나누면 생기는 일 · 개발 학습 실습실</title>
-<meta name="description" content="테이블 하나가 DB 한 대로 감당할 수 없을 만큼 커지면, 행을 여러 DB(샤드)에 나눠 담습니다. 어느 행이 어느 샤드로 갈지는 샤드 키와 나누는 규칙이 정합니다. 주문 120건을 나눠 담으며 규칙에 따라 쏠림이 어떻게 달라지는지, 샤드를 늘릴 때 무슨 일이 생기는지 보세요.">
+<meta name="description" content="테이블 하나가 DB 한 대로 감당할 수 없을 만큼 커지면, 행을 여러 DB(샤드)에 나눠 담습니다. 어느 행이 어느 샤드로 갈지는 샤드 키와 나누는 규칙이 정합니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/shard/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/shard/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/shard/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="샤딩: 데이터를 여러 DB에 나누면 생기는 일 · 개발 학습 실습실">
-<meta property="og:description" content="테이블 하나가 DB 한 대로 감당할 수 없을 만큼 커지면, 행을 여러 DB(샤드)에 나눠 담습니다. 어느 행이 어느 샤드로 갈지는 샤드 키와 나누는 규칙이 정합니다. 주문 120건을 나눠 담으며 규칙에 따라 쏠림이 어떻게 달라지는지, 샤드를 늘릴 때 무슨 일이 생기는지 보세요.">
+<meta property="og:description" content="테이블 하나가 DB 한 대로 감당할 수 없을 만큼 커지면, 행을 여러 DB(샤드)에 나눠 담습니다. 어느 행이 어느 샤드로 갈지는 샤드 키와 나누는 규칙이 정합니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/shard/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
+<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 확장과 분산</p>
 <h1>샤딩</h1>
 <p><b>데이터를 여러 DB에 나누면 생기는 일</b></p>
-<p>테이블 하나가 DB 한 대로 감당할 수 없을 만큼 커지면, 행을 여러 DB(샤드)에 나눠 담습니다. 어느 행이 어느 샤드로 갈지는 샤드 키와 나누는 규칙이 정합니다. 주문 120건을 나눠 담으며 규칙에 따라 쏠림이 어떻게 달라지는지, 샤드를 늘릴 때 무슨 일이 생기는지 보세요.</p>
+<p>테이블 하나가 DB 한 대로 감당할 수 없을 만큼 커지면, 행을 여러 DB(샤드)에 나눠 담습니다. 어느 행이 어느 샤드로 갈지는 샤드 키와 나누는 규칙이 정합니다.</p>
 <p>실행으로 대조 · 같은 데이터를 자바로 따로 계산해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -59,7 +59,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>샤드별 건수: 30, 30, 30, 30. 새 주문이 들어가는 곳: 회원에 따라 모든 샤드에 분산. 회원 한 명의 주문 조회: 샤드 1곳.</li>
 <li>샤드 키는 한 번 정하면 바꾸기 매우 어렵습니다. 가장 자주 쓰는 조회 조건이 샤드 키여야 한 샤드만 보고 끝납니다. 샤드 키가 없는 조회, 샤드에 걸친 조인과 트랜잭션은 어려워집니다.</li>
 <li>샤딩은 쓰기와 데이터 양을 나누는 마지막 수단입니다. 그 전에 인덱스와 쿼리 개선, 캐시, 읽기 전용 복제본, 오래된 데이터 분리를 먼저 검토합니다.</li>
 </ul>
@@ -156,6 +155,6 @@ DataSource ds = shards.get(shardOf(memberId));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=acc6b404b6"></script>
+<script src="../../app.js?v=28e3eacea2"></script>
 </body>
 </html>

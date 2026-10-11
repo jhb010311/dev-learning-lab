@@ -1,7 +1,7 @@
 Lab.register({
   id: 'shard', nav: '샤딩', cat: '데이터베이스', mode: 'step',
   title: '데이터를 여러 DB에 나누면 생기는 일',
-  intro: '테이블 하나가 DB 한 대로 감당할 수 없을 만큼 커지면, 행을 여러 DB(샤드)에 나눠 담습니다. 어느 행이 어느 샤드로 갈지는 샤드 키와 나누는 규칙이 정합니다. 주문 120건을 나눠 담으며 규칙에 따라 쏠림이 어떻게 달라지는지, 샤드를 늘릴 때 무슨 일이 생기는지 보세요.',
+  intro: '테이블 하나가 DB 한 대로 감당할 수 없을 만큼 커지면, 행을 여러 DB(샤드)에 나눠 담습니다. 어느 행이 어느 샤드로 갈지는 샤드 키와 나누는 규칙이 정합니다.',
   terms: ['샤딩과 파티셔닝', '스케일 업과 스케일 아웃', '레플리케이션(복제)'], ranks: ['dbengine', 'traffic', 'nosql'],
   controls: [
     { id: 'n', label: '샤드 수', type: 'range', min: 2, max: 6, value: 4, fmt: function (v) { return v + '개'; } },
@@ -40,7 +40,6 @@ Lab.register({
       if (c.how === 'range') { var d2 = d1.concat([0]); moved = '0건 (0%)'; push('샤드를 하나 추가합니다. 기존 구간은 그대로 두고, ' + (TOTAL + 1) + '번 이후의 새 주문만 새 샤드가 받습니다. 옮길 데이터가 없습니다. 다만 쓰기가 한 샤드에 몰리는 문제는 그대로 새 샤드로 옮겨 갑니다.', 'good', d2); }
       else { var mv = orders.filter(function (o) { return o.mem % N !== o.mem % N2; }).length, d3 = dist(N2, per); moved = mv + '건 (' + Math.round(mv / TOTAL * 100) + '%)'; push('샤드를 하나 추가해 ' + N2 + '개가 됩니다. 규칙이 "% ' + N + '"에서 "% ' + N2 + '"로 바뀌면서 나머지 값이 대부분 달라집니다. ' + TOTAL + '건 중 ' + mv + '건(' + Math.round(mv / TOTAL * 100) + '%)이 다른 샤드로 이사해야 합니다. 운영 중에 하기에는 매우 큰 작업입니다.', 'bad', d3); }
     }
-    sum.push('샤드별 건수: ' + d1.join(', ') + '. 새 주문이 들어가는 곳: ' + newTo + '. 회원 한 명의 주문 조회: ' + q + '.' + (c.grow ? ' 샤드 추가 시 옮길 데이터: ' + moved + '.' : ''));
     sum.push('샤드 키는 한 번 정하면 바꾸기 매우 어렵습니다. 가장 자주 쓰는 조회 조건이 샤드 키여야 한 샤드만 보고 끝납니다. 샤드 키가 없는 조회, 샤드에 걸친 조인과 트랜잭션은 어려워집니다.');
     if (c.grow && c.how !== 'range') sum.push('나머지 연산 방식은 샤드 수가 바뀌면 거의 전부 재배치됩니다. 이를 줄이려고 일관된 해싱(샤드를 추가해도 그 샤드가 맡을 몫만 이동)이나, 키 범위를 미리 많은 조각으로 나눠 두고 조각 단위로 옮기는 방식을 씁니다.');
     sum.push('샤딩은 쓰기와 데이터 양을 나누는 마지막 수단입니다. 그 전에 인덱스와 쿼리 개선, 캐시, 읽기 전용 복제본, 오래된 데이터 분리를 먼저 검토합니다.');
@@ -51,7 +50,6 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 시작합니다.'); return; }
     var mx = Math.max.apply(null, s.d.concat([1])), ln = H.lanes(v);
     s.d.forEach(function (x, i) { H.lane(ln, '샤드 ' + i, x + '건', x === 0 ? 'none' : x > 120 / s.d.length * 1.5 ? 'bad' : '', x ? x / Math.max(mx, 60) : undefined); });
-    if (s.extra) H.text(v, s.extra);
   },
   // 그림: 위에 라우터, 아래에 샤드들. 샤드 안의 막대 높이가 담긴 주문 건수다.
   draw: function (P, sim, shown) {

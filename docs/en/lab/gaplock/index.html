@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Transactions and locking</p>
 <h1>Gap locks and next-key locks</h1>
 <p><b>Why is an INSERT blocked when I queried a row that does not exist?</b></p>
-<p>Transaction A locks rows with SELECT ... FOR UPDATE. MySQL InnoDB does not lock only the rows. Depending on the condition, it also locks the gaps between rows, so that other transactions cannot insert a new row in between. Change the query condition and the isolation level, and see how far the locking reaches.</p>
+<p>Transaction A locks rows with SELECT ... FOR UPDATE. MySQL InnoDB does not lock only the rows. Depending on the condition, it also locks the gaps between rows, so that other transactions cannot insert a new row in between.</p>
 <p>Checked against real execution · Checked the actual locks and waits of 12 combinations against MySQL 8.4.11</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Locked rows: 20, 30. Locked gaps: (20~30). The INSERT of B waited.</li>
 <li>At REPEATABLE READ, InnoDB locks the gap to stop new rows from slipping into the range (phantoms). As a cost, INSERTs of different rows can end up blocking each other.</li>
 </ul>
 <h2>Code</h2>
@@ -165,6 +164,6 @@ INSERT INTO coupon (id) VALUES (25);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>Immutability and defensive copies</h1>
 <p><b>The field is final, but its value changed</b></p>
-<p>An Order object holds its list of items in a final field. final means only that the field cannot be made to refer to a different list. It does not prevent the contents of that list from changing. See whether code outside the object can change its internal state, depending on how the constructor and the getter handle the list.</p>
+<p>An Order object holds its list of items in a final field. final means only that the field cannot be made to refer to a different list. It does not prevent the contents of that list from changing.</p>
 <p>Checked against real execution · The 6 combinations were run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -60,7 +60,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Items inside after (1): 3. Result of (2): no exception. Items inside at the end: 4 (2 at the start).</li>
 <li>final only prevents a variable from being made to refer to a different object. It does not prevent the contents of that object from changing. To make an object immutable, you must make sure that the mutable objects its fields refer to (lists, arrays, Date, and so on) are not shared with outside code.</li>
 <li>The internal state was changed from outside. You must copy the list when you receive it (in the constructor), and when you hand it out (in the getter) you must also copy it or wrap it so that it cannot be modified. Making such copies is called defensive copying.</li>
 <li>The same is true of a record. Its fields are final, but if a field holds a mutable object such as a list, the contents of that object can still change.</li>
@@ -167,6 +166,6 @@ order.getItems().add(&quot;chair&quot;);     // (2) modifies the list returned b
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

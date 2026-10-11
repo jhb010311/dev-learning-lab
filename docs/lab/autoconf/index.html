@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>스프링 부트 자동 설정: 의존성만 추가했는데 왜 빈이 생기나 · 개발 학습 실습실</title>
-<meta name="description" content="스프링 부트는 애플리케이션이 뜰 때 미리 준비된 설정 클래스들을 하나씩 살펴보며 &quot;이 조건이 맞으면 이 빈을 등록한다&quot;를 판단합니다. 조건은 주로 클래스패스에 어떤 라이브러리가 있는지와 개발자가 같은 빈을 직접 등록했는지입니다. 의존성과 직접 등록 여부를 바꿔 가며 최종 빈…">
+<meta name="description" content="스프링 부트는 애플리케이션이 뜰 때 미리 준비된 설정 클래스들을 하나씩 살펴보며 &quot;이 조건이 맞으면 이 빈을 등록한다&quot;를 판단합니다. 조건은 주로 클래스패스에 어떤 라이브러리가 있는지와 개발자가 같은 빈을 직접 등록했는지입니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/autoconf/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/autoconf/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/autoconf/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="스프링 부트 자동 설정: 의존성만 추가했는데 왜 빈이 생기나 · 개발 학습 실습실">
-<meta property="og:description" content="스프링 부트는 애플리케이션이 뜰 때 미리 준비된 설정 클래스들을 하나씩 살펴보며 &quot;이 조건이 맞으면 이 빈을 등록한다&quot;를 판단합니다. 조건은 주로 클래스패스에 어떤 라이브러리가 있는지와 개발자가 같은 빈을 직접 등록했는지입니다. 의존성과 직접 등록 여부를 바꿔 가며 최종 빈…">
+<meta property="og:description" content="스프링 부트는 애플리케이션이 뜰 때 미리 준비된 설정 클래스들을 하나씩 살펴보며 &quot;이 조건이 맞으면 이 빈을 등록한다&quot;를 판단합니다. 조건은 주로 클래스패스에 어떤 라이브러리가 있는지와 개발자가 같은 빈을 직접 등록했는지입니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/autoconf/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
+<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 스프링 부트</p>
 <h1>스프링 부트 자동 설정</h1>
 <p><b>의존성만 추가했는데 왜 빈이 생기나</b></p>
-<p>스프링 부트는 애플리케이션이 뜰 때 미리 준비된 설정 클래스들을 하나씩 살펴보며 &quot;이 조건이 맞으면 이 빈을 등록한다&quot;를 판단합니다. 조건은 주로 클래스패스에 어떤 라이브러리가 있는지와 개발자가 같은 빈을 직접 등록했는지입니다. 의존성과 직접 등록 여부를 바꿔 가며 최종 빈 목록을 보세요.</p>
+<p>스프링 부트는 애플리케이션이 뜰 때 미리 준비된 설정 클래스들을 하나씩 살펴보며 &quot;이 조건이 맞으면 이 빈을 등록한다&quot;를 판단합니다. 조건은 주로 클래스패스에 어떤 라이브러리가 있는지와 개발자가 같은 빈을 직접 등록했는지입니다.</p>
 <p>문서·표준 대조 · 스프링 부트 공식 문서</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -68,7 +68,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>기동 성공. 자동 설정이 등록한 빈 묶음 6개, 내가 등록해서 대신 쓰인 것 0개.</li>
 <li>자동 설정의 판단 기준은 두 가지입니다. 클래스패스에 그 라이브러리가 있는가(@ConditionalOnClass), 그리고 개발자가 같은 타입의 빈을 이미 등록했는가(@ConditionalOnMissingBean). 스타터는 필요한 라이브러리 묶음을 한 번에 가져와 첫 번째 조건을 만족시키는 역할입니다.</li>
 <li>내가 직접 등록한 빈이 항상 이깁니다. 기본값으로 시작하고, 바꾸고 싶은 부분만 직접 등록하면 됩니다. 어떤 자동 설정이 왜 적용됐고 왜 빠졌는지는 --debug 옵션으로 실행하면 조건 평가 보고서로 볼 수 있습니다.</li>
 </ul>
@@ -171,6 +170,6 @@ spring.datasource.url: jdbc:mysql://localhost:3306/shop
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=acc6b404b6"></script>
+<script src="../../app.js?v=28e3eacea2"></script>
 </body>
 </html>

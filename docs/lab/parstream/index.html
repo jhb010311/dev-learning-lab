@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>병렬 스트림과 공용 풀: 남의 병렬 스트림 때문에 내 코드가 느려진다 · 개발 학습 실습실</title>
-<meta name="description" content="parallelStream()은 스레드 풀을 따로 만들지 않고, JVM 전체가 함께 쓰는 공용 풀 하나에서 실행됩니다. 누군가 그 안에서 오래 기다리는 작업을 돌리면 공용 풀의 스레드가 모두 묶여, 전혀 상관없는 다른 병렬 스트림까지 느려집니다. 요청 A의 작업을 바꿔 가며…">
+<meta name="description" content="parallelStream()은 스레드 풀을 따로 만들지 않고, JVM 전체가 함께 쓰는 공용 풀 하나에서 실행됩니다. 누군가 그 안에서 오래 기다리는 작업을 돌리면 공용 풀의 스레드가 모두 묶여, 전혀 상관없는 다른 병렬 스트림까지 느려집니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/parstream/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/parstream/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/parstream/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="병렬 스트림과 공용 풀: 남의 병렬 스트림 때문에 내 코드가 느려진다 · 개발 학습 실습실">
-<meta property="og:description" content="parallelStream()은 스레드 풀을 따로 만들지 않고, JVM 전체가 함께 쓰는 공용 풀 하나에서 실행됩니다. 누군가 그 안에서 오래 기다리는 작업을 돌리면 공용 풀의 스레드가 모두 묶여, 전혀 상관없는 다른 병렬 스트림까지 느려집니다. 요청 A의 작업을 바꿔 가며…">
+<meta property="og:description" content="parallelStream()은 스레드 풀을 따로 만들지 않고, JVM 전체가 함께 쓰는 공용 풀 하나에서 실행됩니다. 누군가 그 안에서 오래 기다리는 작업을 돌리면 공용 풀의 스레드가 모두 묶여, 전혀 상관없는 다른 병렬 스트림까지 느려집니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/parstream/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
+<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 람다와 스트림</p>
 <h1>병렬 스트림과 공용 풀</h1>
 <p><b>남의 병렬 스트림 때문에 내 코드가 느려진다</b></p>
-<p>parallelStream()은 스레드 풀을 따로 만들지 않고, JVM 전체가 함께 쓰는 공용 풀 하나에서 실행됩니다. 누군가 그 안에서 오래 기다리는 작업을 돌리면 공용 풀의 스레드가 모두 묶여, 전혀 상관없는 다른 병렬 스트림까지 느려집니다. 요청 A의 작업을 바꿔 가며 요청 B가 받는 영향을 보세요.</p>
+<p>parallelStream()은 스레드 풀을 따로 만들지 않고, JVM 전체가 함께 쓰는 공용 풀 하나에서 실행됩니다. 누군가 그 안에서 오래 기다리는 작업을 돌리면 공용 풀의 스레드가 모두 묶여, 전혀 상관없는 다른 병렬 스트림까지 느려집니다.</p>
 <p>실행으로 대조 · JDK 21에서 실제로 잰 값</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -60,7 +60,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>B의 소요 시간: 862ms (이 PC에서 실제로 측정한 값).</li>
 <li>공용 풀은 JVM 전체가 공유합니다. 한 곳에서 오래 기다리는 작업을 병렬 스트림에 넣으면, 서로 모르는 다른 코드의 병렬 스트림과 CompletableFuture(풀을 지정하지 않은 경우)까지 함께 느려집니다. 원인이 되는 코드와 느려지는 코드가 달라서 찾기도 어렵습니다.</li>
 <li>병렬 스트림은 CPU를 쓰는 계산을 큰 데이터에 적용할 때만 이득입니다. 공용 풀의 크기가 코어 수에 맞춰져 있는 것도 그 용도이기 때문입니다. 원소가 적거나, 작업이 가볍거나, 기다림이 섞여 있으면 순차 스트림보다 느려질 수 있습니다. 웹 서버의 요청 처리 코드에서는 대부분 쓸 이유가 없습니다.</li>
 </ul>
@@ -156,6 +155,6 @@ items.parallelStream().forEach(this::resize);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=acc6b404b6"></script>
+<script src="../../app.js?v=28e3eacea2"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'config', nav: 'Configuration precedence', cat: 'Spring', mode: 'step',
   title: 'When the same property is set in several places, which value wins?',
-  intro: 'Spring Boot reads property values from several places, such as files, environment variables, and command-line arguments. When the same key is set in more than one place, the place with the higher precedence wins. Add and remove a property named app.timeout in several places and check the final value.',
+  intro: 'Spring Boot reads property values from several places, such as files, environment variables, and command-line arguments. When the same key is set in more than one place, the place with the higher precedence wins.',
   terms: ['Externalized configuration and profiles', 'Spring Boot auto-configuration', 'CI/CD'], ranks: ['boot', 'deploy'],
   controls: [
     { id: 'yml', label: 'app.timeout: 3000 in application.yml', type: 'check', value: true },
@@ -36,7 +36,6 @@ Lab.register({
     });
     var val = win ? SRC.filter(function (s) { return s[0] === win; })[0][2] : '1000', from = win ? SRC.filter(function (s) { return s[0] === win; })[0][1].split(' (')[0] : 'Default value in the code (after the : in @Value)';
     if (!win) { seen.push('def'); push('No place has a value. The default value 1000 written in @Value is used. If there were no default value either, the application would fail during startup.', ''); }
-    sum.push('The final value of app.timeout is ' + val + '. Where the value came from: ' + from + '.' + (hidden.length ? ' Overridden values: ' + hidden.join(', ') + '.' : ''));
     sum.push('From highest to lowest, the precedence is command-line arguments → JVM system properties → environment variables → the profile-specific file → application.yml. The closer a place is to the side that runs the application, the higher its precedence.');
     sum.push('Thanks to this order, you can run the same build artifact (a jar or an image) with different values in each environment without modifying it. Values that differ from one environment to another, or that must not be put in the code repository, such as a database URL or a password, are passed in through environment variables or injected at run time.');
     if (c.env && c.prof && win === 'env') sum.push('If you find that "I edited the file, but the value did not change", first check whether the same key is set in a place with a higher precedence (an environment variable, for example).');

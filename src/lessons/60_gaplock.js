@@ -1,7 +1,7 @@
 Lab.register({
   id: 'gaplock', nav: '갭 락과 넥스트 키 락', cat: '데이터베이스', mode: 'step',
   title: '없는 행을 조회했는데 왜 INSERT가 막히나',
-  intro: '트랜잭션 A가 SELECT ... FOR UPDATE로 행을 잠급니다. MySQL InnoDB는 행만 잠그는 것이 아니라, 조건에 따라 행과 행 사이의 빈 구간까지 잠가서 다른 트랜잭션이 그 사이에 새 행을 끼워 넣지 못하게 합니다. 조회 조건과 격리 수준을 바꿔 가며 어디까지 잠기는지 보세요.',
+  intro: '트랜잭션 A가 SELECT ... FOR UPDATE로 행을 잠급니다. MySQL InnoDB는 행만 잠그는 것이 아니라, 조건에 따라 행과 행 사이의 빈 구간까지 잠가서 다른 트랜잭션이 그 사이에 새 행을 끼워 넣지 못하게 합니다.',
   terms: ['레코드 락, 갭 락, 넥스트 키 락', '공유 락과 배타 락', '트랜잭션 격리 수준', 'Phantom Read', '비관적 락', '교착 상태(Deadlock)'], ranks: ['dbengine', 'isolation'],
   controls: [
     { id: 'q', label: '트랜잭션 A의 조회 조건', type: 'select', value: 'range', options: [['hit', 'id = 20 (있는 행 하나)'], ['miss', 'id = 25 (없는 행)'], ['range', 'id BETWEEN 20 AND 30 (범위)']] },
@@ -37,7 +37,6 @@ Lab.register({
     else push('id ' + ins + '가 들어갈 자리는 잠겨 있지 않습니다. B의 INSERT는 바로 실행됩니다.' + (!RR && ins > 20 && ins < 30 && c.q !== 'hit' ? ' A가 같은 조건으로 다시 조회하면, 처음에는 없던 id 25인 행이 나타납니다(Phantom Read).' : ''), !RR && ins === 25 && c.q !== 'hit' ? 'bad' : 'good', 3);
     if (blocked) push('A가 커밋하면 락이 풀리고, 기다리던 B의 INSERT가 그제야 실행됩니다.', '', 4);
     var phantom = !RR && c.q !== 'hit' && ins === 25;
-    sum.push('잠긴 행: ' + (rec.length ? rec.join(', ') : '없음') + '. 잠긴 빈 구간: ' + (gaps.length ? '(20~30)' : '없음') + '. B의 INSERT는 ' + (blocked ? '기다렸습니다.' : '바로 실행됐습니다.'));
     if (RR && gaps.length) sum.push('REPEATABLE READ에서 InnoDB는 범위 안에 새 행이 끼어드는 것(Phantom)을 막으려고 빈 구간을 잠급니다. 그 대가로 서로 다른 행을 넣으려는 INSERT끼리도 막힐 수 있습니다.');
     if (c.q === 'miss' && RR) sum.push('"없으면 INSERT" 패턴에서 자주 문제가 됩니다. 두 트랜잭션이 각각 없는 행을 FOR UPDATE로 조회하면 둘 다 같은 구간에 갭 락을 얻습니다(갭 락끼리는 서로 막지 않습니다). 그런 뒤 둘 다 INSERT하려 하면 서로의 갭 락에 막혀 교착 상태가 됩니다.');
     if (c.q === 'hit') sum.push('유니크 인덱스로 존재하는 한 행을 정확히 찾으면 레코드 락만 걸립니다. 락의 범위를 좁히려면 조건이 인덱스를 정확히 타는지가 중요합니다. 인덱스를 타지 못하면 훨씬 넓은 범위가 잠깁니다.');
@@ -52,9 +51,6 @@ Lab.register({
     ids.forEach(function (id, i) { var locked = st >= 1 && sim.rec.indexOf(id) >= 0; items.push(['행 ' + id + (locked ? ' [잠김]' : ''), locked ? 'b' : 'd']); var nx = ids[i + 1] || 999; items.push(gapCell(id, nx, nx === 999 ? '(40 이후)' : '(' + id + '~' + nx + ')')); });
     H.title(v, 'id 인덱스 (왼쪽이 작은 값)'); H.slots(v, items, '');
     H.text(v, '초록은 행, 노랑은 A가 잠근 행, 빨강은 A가 잠근 빈 구간, 점선은 잠기지 않은 빈 구간입니다.');
-    var ln = H.lanes(v);
-    H.lane(ln, '트랜잭션 A', st >= 1 ? 'SELECT ... FOR UPDATE 실행, 아직 커밋 전' + (st >= 4 ? ' → 커밋' : '') : '시작 전', st >= 1 ? 'hot' : 'none');
-    H.lane(ln, '트랜잭션 B', st >= 3 ? (sim.blocked ? (st >= 4 ? 'INSERT 실행됨 (A가 커밋한 뒤)' : 'INSERT 대기 중 (락을 기다림)') : 'INSERT 실행됨') : st >= 2 ? 'INSERT 시도' : '시작 전', st >= 3 ? (sim.blocked && st < 4 ? 'wait' : 'good') : 'none');
   },
   // 그림: id 인덱스를 수직선처럼 그린다. 행(상자)과 그 사이의 빈 구간(점선)이 번갈아 놓이고, A가 잠근 곳과 B가 넣으려는 곳이 표시된다.
   draw: function (P, sim, shown) {

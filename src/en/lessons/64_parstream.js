@@ -1,7 +1,7 @@
 Lab.register({
   id: 'parstream', nav: 'Parallel streams and the common pool', cat: 'Concurrency', mode: 'step',
   title: 'Someone else\'s parallel stream slows down my code',
-  intro: 'parallelStream() does not create a thread pool of its own. It runs in the single common pool that the whole JVM shares. If some code runs tasks that wait for a long time in it, all the threads of the common pool are occupied, and other parallel streams that have nothing to do with that code slow down too. Change what request A does to see the effect on request B.',
+  intro: 'parallelStream() does not create a thread pool of its own. It runs in the single common pool that the whole JVM shares. If some code runs tasks that wait for a long time in it, all the threads of the common pool are occupied, and other parallel streams that have nothing to do with that code slow down too.',
   terms: ['ForkJoinPool and the common pool', 'Stream API', 'Thread pool', 'Blocking and non-blocking'], ranks: ['stream', 'threadpool', 'concurrency'],
   controls: [
     { id: 'a', label: 'What request A does', type: 'select', value: 'block', options: [['none', 'Nothing (only B runs)'], ['block', '8 calls to an external API, 2 seconds each, inside a parallel stream'], ['own', 'The same work, run in a separate thread pool']] },
@@ -30,7 +30,6 @@ Lab.register({
     else { S.pool = ['B: running a task', 'B: running a task', 'B: running a task']; S.b = 'calling thread + 3 worker threads = 4 threads running at the same time'; push('The 3 worker threads of the common pool and the thread that called B, 4 threads in all, share the tasks. They finish the 8 tasks in two rounds.', 'good'); }
     S.b = 'done: ' + ms + 'ms'; if (c.a !== 'block') S.pool = ['idle', 'idle', 'idle'];
     push('B has finished. Time taken: ' + ms + 'ms.' + (c.a === 'block' ? ' That is about 4 times as long as when B runs alone (217ms). Not a single line of the code of B has changed.' : ''), c.a === 'block' ? 'bad' : 'good');
-    sum.push('Time B took: ' + ms + 'ms (a value actually measured on this PC).');
     if (c.a === 'block') sum.push('The common pool is shared by the whole JVM. If one place puts tasks that wait for a long time into a parallel stream, the parallel streams of other code that knows nothing about it slow down together with it, and so does CompletableFuture (when no pool is specified). The code that causes the problem and the code that slows down are different, so the cause is also hard to find.');
     if (c.a === 'own') sum.push('Run tasks that involve waiting (a database, an external API) in a separate thread pool to keep them apart from the common pool. This divides the resources so that when one side is blocked, the problem does not spread to the other side.');
     sum.push('A parallel stream pays off only when a computation that uses the CPU is applied to a large amount of data. That use is also why the size of the common pool is matched to the number of cores. When there are few elements, when the tasks are light, or when waiting is mixed in, a parallel stream can be slower than a sequential stream. In the request-handling code of a web server, there is almost never a reason to use one.');

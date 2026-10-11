@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>JIT 워밍업: 배포 직후의 첫 요청들은 왜 느린가 · 개발 학습 실습실</title>
-<meta name="description" content="자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다. 같은 메서드를 2,000번씩 열두 묶음 호출하며 묶음마다 걸린 시간을 실제로 잰 결과를 보세요.">
+<meta name="description" content="자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/jit/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/jit/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jit/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="JIT 워밍업: 배포 직후의 첫 요청들은 왜 느린가 · 개발 학습 실습실">
-<meta property="og:description" content="자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다. 같은 메서드를 2,000번씩 열두 묶음 호출하며 묶음마다 걸린 시간을 실제로 잰 결과를 보세요.">
+<meta property="og:description" content="자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/jit/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
+<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>JIT 워밍업</h1>
 <p><b>배포 직후의 첫 요청들은 왜 느린가</b></p>
-<p>자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다. 같은 메서드를 2,000번씩 열두 묶음 호출하며 묶음마다 걸린 시간을 실제로 잰 결과를 보세요.</p>
+<p>자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.</p>
 <p>실행으로 대조 · JDK 21에서 실제로 잰 값</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -68,7 +68,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>첫 묶음 5.8ms, 마지막 묶음 1.7ms. 가장 느린 묶음은 가장 빠른 묶음의 4.2배입니다.</li>
 <li>같은 코드인데 처음과 나중의 속도가 다릅니다. JVM은 모든 코드를 미리 컴파일하지 않고, 실제로 자주 실행되는 부분만 골라 실행 중에 컴파일합니다(Just-In-Time). 실행 정보를 보고 최적화하므로 충분히 달궈진 뒤에는 미리 컴파일한 언어에 가까운 속도가 납니다.</li>
 <li>배포 직후에는 JIT 컴파일 전인 데다 클래스 로딩, 커넥션 풀 채우기, 캐시가 비어 있는 것까지 겹쳐 첫 요청들이 유독 느립니다. 새 서버에 트래픽을 한꺼번에 넘기지 않고 조금씩 늘리는 이유이기도 합니다. 성능을 잴 때도 처음 구간은 버리고 충분히 달궈진 뒤의 값을 봅니다.</li>
 </ul>
@@ -171,6 +170,6 @@ for (int batch = 1; batch &lt;= 12; batch++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=acc6b404b6"></script>
+<script src="../../app.js?v=28e3eacea2"></script>
 </body>
 </html>

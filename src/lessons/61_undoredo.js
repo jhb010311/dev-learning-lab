@@ -1,7 +1,7 @@
 Lab.register({
   id: 'undoredo', nav: 'Undo와 Redo 로그', cat: '데이터베이스', mode: 'step',
   title: '커밋 직후 전원이 꺼져도 데이터가 남는 이유',
-  intro: 'DB는 데이터를 바꿀 때 데이터 파일을 곧바로 고치지 않습니다. 메모리에서 먼저 바꾸고, "되돌리는 데 필요한 기록(Undo)"과 "다시 적용하는 데 필요한 기록(Redo)"을 남깁니다. 잔액을 1000에서 500으로 바꾸는 트랜잭션에 롤백이나 장애를 일으켜 보고, 두 로그가 각각 어떤 일을 하는지 보세요.',
+  intro: 'DB는 데이터를 바꿀 때 데이터 파일을 곧바로 고치지 않습니다. 메모리에서 먼저 바꾸고, "되돌리는 데 필요한 기록(Undo)"과 "다시 적용하는 데 필요한 기록(Redo)"을 남깁니다.',
   terms: ['Undo 로그와 Redo 로그', 'ACID', 'MVCC(다중 버전 동시성 제어)', '트랜잭션'], ranks: ['dbengine', 'isolation'],
   controls: [
     { id: 'what', label: '일어나는 일', type: 'select', value: 'crashAfter', options: [['commit', '정상 커밋'], ['rollback', '커밋하지 않고 롤백'], ['crashAfter', '커밋 직후 서버가 꺼짐 (데이터 파일에 쓰기 전)'], ['crashBefore', '커밋 전에 서버가 꺼짐']] },
@@ -49,7 +49,6 @@ Lab.register({
         sum.push('커밋된 변경은 데이터 파일에 아직 쓰이지 않았더라도 Redo 로그에서 복구됩니다. "커밋된 것은 장애가 나도 남는다"(지속성)를 Redo 로그가 받쳐 줍니다.');
       }
     }
-    sum.unshift('최종 잔액은 ' + fin + '입니다.');
     sum.push('이렇게 데이터보다 로그를 먼저 디스크에 쓰는 방식을 WAL(Write-Ahead Logging)이라고 합니다. Undo는 "되돌리기"와 "이전 버전 보여 주기", Redo는 "다시 적용하기"를 맡습니다.');
     return { events: ev, summary: sum, row: [fin, usedU, usedR, prop] };
   },
@@ -62,7 +61,6 @@ Lab.register({
       { cells: ['디스크: Redo 로그', { v: s.redo, cls: s.redo.indexOf('커밋 표시 (') >= 0 ? 'good' : '' }] },
       { cells: ['Undo 로그', s.undo] },
     ], '계좌 1의 잔액이 저장된 곳');
-    H.counters(v, [[s.tx, '트랜잭션 상태']]);
   },
   // 그림: 위는 꺼지면 사라지는 메모리, 아래는 남는 디스크. 변경이 어디까지 기록됐는지가 커밋과 복구를 가른다.
   draw: function (P, sim, shown) {

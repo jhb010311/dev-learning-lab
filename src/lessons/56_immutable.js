@@ -1,7 +1,7 @@
 Lab.register({
   id: 'immut', nav: '불변과 방어적 복사', cat: '자바 언어', mode: 'step',
   title: 'final을 붙였는데 값이 바뀌었다',
-  intro: 'Order 객체가 상품 목록을 final 필드로 가지고 있습니다. final은 "다른 리스트로 바꿔 끼울 수 없다"는 뜻일 뿐, 그 리스트의 내용이 바뀌는 것은 막지 않습니다. 생성자와 getter에서 리스트를 어떻게 다루느냐에 따라 밖에서 내부 상태를 바꿀 수 있는지 확인하세요.',
+  intro: 'Order 객체가 상품 목록을 final 필드로 가지고 있습니다. final은 "다른 리스트로 바꿔 끼울 수 없다"는 뜻일 뿐, 그 리스트의 내용이 바뀌는 것은 막지 않습니다.',
   terms: ['불변 객체', 'final', '캡슐화', 'record'], ranks: ['string', 'oop', 'javaver'],
   controls: [
     { id: 'in', label: '생성자에서 받은 리스트를', type: 'select', value: 'ref', options: [['ref', '그대로 필드에 저장'], ['copy', '복사해서 저장']] },
@@ -31,7 +31,6 @@ Lab.register({
     if (c.out === 'copy') push('(2) order.getItems().add("의자"): getter가 복사본을 돌려줬습니다. "의자"는 그 복사본에 추가됐을 뿐 order 내부는 그대로 ' + inner.length + '개입니다.', 'good');
     if (c.out === 'unmod') push('(2) order.getItems().add("의자"): getter가 수정할 수 없는 뷰를 돌려줬습니다. add를 호출하는 순간 UnsupportedOperationException이 발생합니다. 내부는 그대로 ' + inner.length + '개입니다.', 'good', 'UnsupportedOperationException');
     var leak = r.fin !== 2;
-    sum.push('(1) 뒤 내부 상품 ' + r.a + '개, (2)의 결과 ' + (r.via === 'ok' ? '예외 없음' : r.via) + ', 최종 내부 상품 ' + r.fin + '개(처음 2개).');
     sum.push('final은 변수가 가리키는 대상을 바꾸지 못하게 할 뿐, 대상 객체의 내용 변경은 막지 않습니다. 객체를 불변으로 만들려면 필드가 가리키는 가변 객체(리스트, 배열, Date 등)가 밖과 공유되지 않도록 해야 합니다.');
     if (leak) sum.push('밖에서 내부 상태가 바뀌었습니다. 받을 때 복사하고(생성자), 내줄 때도 복사하거나 수정 불가로 감싸야(getter) 합니다. 이렇게 복사해 두는 것을 방어적 복사라고 합니다.');
     else sum.push('들어올 때와 나갈 때 모두 막아서 밖에서 내부를 바꿀 수 없습니다. 생성자에서 List.copyOf(items)를 쓰면 복사와 수정 불가를 한 번에 얻습니다.');
@@ -44,7 +43,6 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
     H.title(v, '변수 src가 가리키는 리스트'); H.slots(v, s.src.map(function (x) { return [x, 'q']; }), '');
     H.title(v, 'order.items가 가리키는 리스트' + (s.shared ? ' (위와 같은 객체)' : ' (별개의 객체)')); H.slots(v, s.inner.map(function (x, i) { return [x, i >= 2 ? 'r' : 'd']; }), '');
-    H.counters(v, [[s.inner.length + '개', 'Order 내부의 상품 수 (처음 2개)'], [s.note || '없음', '발생한 예외']]);
   },
   // 그림: 왼쪽에 변수 src와 필드 order.items, 오른쪽 힙에 리스트 객체. 둘이 같은 리스트를 가리키는지가 핵심.
   draw: function (P, sim, shown) {

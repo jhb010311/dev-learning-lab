@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Observability</p>
 <h1>Distributed tracing</h1>
 <p><b>One request is slow, but which service is to blame?</b></p>
-<p>One order request passes through the gateway, the order service, the payment service, and the external payment provider in turn. Logs pile up separately in each service, so without a common ID that ties together the logs of the same request, it is hard to find where the time went. Compare passing the trace ID along with not passing it, and move the slow span around.</p>
+<p>One order request passes through the gateway, the order service, the payment service, and the external payment provider in turn. Logs pile up separately in each service, so without a common ID that ties together the logs of the same request, it is hard to find where the time went.</p>
 <p>Checked against documentation and standards · The W3C Trace Context standard and the OpenTelemetry documentation</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Total response time: 2095ms. Own time per span: gateway 5, order service 20, DB 30, payment service 40, external payment provider 2000ms.</li>
 <li>A trace ID is a number attached to a whole request, and a span is one part of it (the processing of one service, one query, or one external call). Each span records its parent span, so the call relationships can be rebuilt as a tree.</li>
 <li>Logs tell you &quot;what happened&quot;, metrics tell you &quot;how much overall&quot;, and traces tell you &quot;where and for how long for this request&quot;. If you also print the trace ID in the logs, you can find the slow span on the tracing screen and then search the logs by that ID.</li>
 </ul>
@@ -163,6 +162,6 @@ logging.pattern.level: &quot;%5p [%X{traceId:-},%X{spanId:-}]&quot;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

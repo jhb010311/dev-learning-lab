@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>JIT warmup</h1>
 <p><b>Why are the first requests right after a deployment slow?</b></p>
-<p>Java code is compiled to bytecode, and the JVM runs it by interpreting it one bytecode instruction at a time. The JVM finds the methods that run often and compiles them again, this time to machine code (JIT), and from then on they run much faster. Look at the results of a real measurement: the same method was called in 12 batches of 2,000 calls each, and the time each batch took was measured.</p>
+<p>Java code is compiled to bytecode, and the JVM runs it by interpreting it one bytecode instruction at a time. The JVM finds the methods that run often and compiles them again, this time to machine code (JIT), and from then on they run much faster.</p>
 <p>Checked against real execution · Values actually measured on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -68,7 +68,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>First batch: 5.8ms, last batch: 1.7ms. The slowest batch took 4.2 times as long as the fastest batch.</li>
 <li>The code is the same, but its speed at the start and later is different. The JVM does not compile all the code in advance. It picks only the parts that actually run often and compiles them while the program is running (just-in-time). Because it optimizes based on information from the actual execution, once the code is fully warmed up it runs at a speed close to that of a language compiled in advance.</li>
 <li>Right after a deployment, the code has not been JIT-compiled yet, and on top of that, classes are still being loaded, the connection pool is still being filled, and the caches are empty, so the first requests are especially slow. This is also why traffic is moved to a new server a little at a time and not all at once. When you measure performance, too, discard the first period and look at the values after the code is fully warmed up.</li>
 </ul>
@@ -171,6 +170,6 @@ for (int batch = 1; batch &lt;= 12; batch++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

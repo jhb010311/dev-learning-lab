@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>분산 추적: 요청 하나가 느린데 어느 서비스 탓인가 · 개발 학습 실습실</title>
-<meta name="description" content="주문 요청 하나가 게이트웨이, 주문 서비스, 결제 서비스, 외부 결제사를 차례로 거칩니다. 로그는 서비스마다 따로 쌓이므로, 같은 요청의 로그를 묶을 공통 번호가 없으면 어디서 시간이 걸렸는지 찾기 어렵습니다. 추적 번호를 전달할 때와 아닐 때를 비교하고, 느린 구간을 옮겨…">
+<meta name="description" content="주문 요청 하나가 게이트웨이, 주문 서비스, 결제 서비스, 외부 결제사를 차례로 거칩니다. 로그는 서비스마다 따로 쌓이므로, 같은 요청의 로그를 묶을 공통 번호가 없으면 어디서 시간이 걸렸는지 찾기 어렵습니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/trace/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/trace/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/trace/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="분산 추적: 요청 하나가 느린데 어느 서비스 탓인가 · 개발 학습 실습실">
-<meta property="og:description" content="주문 요청 하나가 게이트웨이, 주문 서비스, 결제 서비스, 외부 결제사를 차례로 거칩니다. 로그는 서비스마다 따로 쌓이므로, 같은 요청의 로그를 묶을 공통 번호가 없으면 어디서 시간이 걸렸는지 찾기 어렵습니다. 추적 번호를 전달할 때와 아닐 때를 비교하고, 느린 구간을 옮겨…">
+<meta property="og:description" content="주문 요청 하나가 게이트웨이, 주문 서비스, 결제 서비스, 외부 결제사를 차례로 거칩니다. 로그는 서비스마다 따로 쌓이므로, 같은 요청의 로그를 묶을 공통 번호가 없으면 어디서 시간이 걸렸는지 찾기 어렵습니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/trace/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
+<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 관측</p>
 <h1>분산 추적</h1>
 <p><b>요청 하나가 느린데 어느 서비스 탓인가</b></p>
-<p>주문 요청 하나가 게이트웨이, 주문 서비스, 결제 서비스, 외부 결제사를 차례로 거칩니다. 로그는 서비스마다 따로 쌓이므로, 같은 요청의 로그를 묶을 공통 번호가 없으면 어디서 시간이 걸렸는지 찾기 어렵습니다. 추적 번호를 전달할 때와 아닐 때를 비교하고, 느린 구간을 옮겨 보세요.</p>
+<p>주문 요청 하나가 게이트웨이, 주문 서비스, 결제 서비스, 외부 결제사를 차례로 거칩니다. 로그는 서비스마다 따로 쌓이므로, 같은 요청의 로그를 묶을 공통 번호가 없으면 어디서 시간이 걸렸는지 찾기 어렵습니다.</p>
 <p>문서·표준 대조 · W3C Trace Context 표준과 OpenTelemetry 문서</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>전체 응답 시간 2095ms. 구간별 자체 소요 시간: 게이트웨이 5, 주문 서비스 20, DB 30, 결제 서비스 40, 외부 결제사 2000ms.</li>
 <li>Trace ID는 요청 하나 전체에 붙는 번호이고, 스팬은 그 안의 한 구간(서비스 하나의 처리, 쿼리 하나, 외부 호출 하나)입니다. 스팬마다 부모 스팬을 기록하므로 호출 관계가 트리로 복원됩니다.</li>
 <li>로그는 &quot;무슨 일이 있었나&quot;, 지표는 &quot;전체적으로 얼마나&quot;, 추적은 &quot;이 요청이 어디서 얼마나&quot;를 알려 줍니다. 로그에도 Trace ID를 찍어 두면 추적 화면에서 느린 구간을 찾은 뒤 그 번호로 로그를 검색할 수 있습니다.</li>
 </ul>
@@ -163,6 +162,6 @@ logging.pattern.level: &quot;%5p [%X{traceId:-},%X{spanId:-}]&quot;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=acc6b404b6"></script>
+<script src="../../app.js?v=28e3eacea2"></script>
 </body>
 </html>

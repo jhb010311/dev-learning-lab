@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Scaling and distribution</p>
 <h1>Sharding</h1>
 <p><b>What happens when you split data across several databases</b></p>
-<p>When one table grows too big for one database server, the rows are divided among several databases (shards). The shard key and the rule for dividing decide which row goes to which shard. Divide 120 orders among shards and see how the rule changes the skew, and what happens when you add a shard.</p>
+<p>When one table grows too big for one database server, the rows are divided among several databases (shards). The shard key and the rule for dividing decide which row goes to which shard.</p>
 <p>Checked against real execution · The same data was calculated separately in Java and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -59,7 +59,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Orders per shard: 30, 30, 30, 30. Where new orders go: Spread over all shards by member. Query for the orders of one member: 1 shard.</li>
 <li>Once chosen, a shard key is very hard to change. The most frequently used query condition should be the shard key, so that a query needs to look at only one shard. Queries without the shard key, and joins and transactions that span shards, become difficult.</li>
 <li>Sharding is the last resort for dividing writes and data volume. Before it, first consider improving indexes and queries, caching, read-only replicas, and separating old data.</li>
 </ul>
@@ -156,6 +155,6 @@ DataSource ds = shards.get(shardOf(memberId));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'trace', nav: 'Distributed tracing', cat: 'Monitoring', mode: 'step',
   title: 'One request is slow, but which service is to blame?',
-  intro: 'One order request passes through the gateway, the order service, the payment service, and the external payment provider in turn. Logs pile up separately in each service, so without a common ID that ties together the logs of the same request, it is hard to find where the time went. Compare passing the trace ID along with not passing it, and move the slow span around.',
+  intro: 'One order request passes through the gateway, the order service, the payment service, and the external payment provider in turn. Logs pile up separately in each service, so without a common ID that ties together the logs of the same request, it is hard to find where the time went.',
   terms: ['Distributed tracing (trace ID, span)', 'Observability (logs, metrics, traces)', 'MDC', 'APM', 'Monolithic architecture and microservice architecture'], ranks: ['monitor', 'msa'],
   controls: [
     { id: 'slow', label: 'Slow span', type: 'select', value: 'pg', options: [['none', 'None'], ['db', 'Database query in the order service'], ['pay', 'Processing inside the payment service'], ['pg', 'External payment provider API']] },
@@ -33,18 +33,13 @@ Lab.register({
     push('The payment service calls the external payment provider API (' + d.pg + 'ms). When the response comes back, the spans close in reverse order: the payment service, the order service, and the gateway. Total: ' + total + 'ms.', d.pg > 500 ? 'bad' : '', 5);
     if (c.prop) push('When you look up a single trace ID in the tracing system (Zipkin, Tempo, and so on), the five spans are drawn on a time axis in a staircase shape. ' + (c.slow === 'none' ? 'Every span is short.' : 'The longest bar is "' + spans[mi][0] + '". You can see right away where it is slow.'), 'good', 6);
     else push('The logs are in the three services separately. Hundreds of requests are mixed together at the same time, so you have to guess which logs belong to this request from the time and the order number. You also have to calculate the time per span yourself.', 'bad', 6);
-    sum.push('Total response time: ' + total + 'ms. Own time per span: gateway ' + d.gw + ', order service ' + d.order + ', DB ' + d.db + ', payment service ' + d.pay + ', external payment provider ' + d.pg + 'ms.');
     sum.push(c.prop ? 'A trace ID is a number attached to a whole request, and a span is one part of it (the processing of one service, one query, or one external call). Each span records its parent span, so the call relationships can be rebuilt as a tree.' : 'When services are split up, the traces of one request are scattered in many places. Passing a common ID in the headers and printing it in every log is the starting point of distributed tracing.');
     sum.push('Logs tell you "what happened", metrics tell you "how much overall", and traces tell you "where and for how long for this request". If you also print the trace ID in the logs, you can find the slow span on the tracing screen and then search the logs by that ID.');
     return { events: ev, summary: sum, spans: spans, total: total, ids: ids, logs: logs, mi: mi, row: [total + 'ms', spans[mi][0] + ' (' + own[mi] + 'ms)', c.prop ? 'Look up by a single trace ID' : 'Match the logs of each service by time'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0;
-    if (c.prop) { H.title(v, 'Tracing screen: Trace ' + (n ? '4bf92f35…' : '') + ' (bar = time taken by the span)'); var ln = H.lanes(v);
-      sim.spans.forEach(function (s, i) { if (i >= n) { H.lane(ln, 'Span ' + (i + 1), s[0], 'none'); return; } H.lane(ln, 'Span ' + (i + 1), s[0] + ' · total ' + s[2] + 'ms (own ' + s[3] + 'ms)', n >= 6 && i === sim.mi && c.slow !== 'none' ? 'bad' : '', Math.max(0.02, s[2] / sim.spans[0][2])); }); }
-    H.table(v, ['Service', 'Trace ID in the log', 'Log message'], sim.logs.slice(0, Math.min(n, 5)).map(function (l, i) { return { cells: [l[0], { v: sim.ids[i], cls: c.prop ? 'good' : 'bad' }, l[1]] }; }), 'Logs written by each service');
-    if (!c.prop && n >= 6) H.text(v, 'There is no trace ID, so the logs of the three services cannot be tied to one request.');
-  },
+    H.table(v, ['Service', 'Trace ID in the log', 'Log message'], sim.logs.slice(0, Math.min(n, 5)).map(function (l, i) { return { cells: [l[0], { v: sim.ids[i], cls: c.prop ? 'good' : 'bad' }, l[1]] }; }), 'Logs written by each service');  },
   // Diagram: the spans that one request passed through, drawn as bars in time order. The length of a bar is the time that the span took.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0, total = sim.spans[0][2];

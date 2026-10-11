@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Undo와 Redo 로그: 커밋 직후 전원이 꺼져도 데이터가 남는 이유 · 개발 학습 실습실</title>
-<meta name="description" content="DB는 데이터를 바꿀 때 데이터 파일을 곧바로 고치지 않습니다. 메모리에서 먼저 바꾸고, &quot;되돌리는 데 필요한 기록(Undo)&quot;과 &quot;다시 적용하는 데 필요한 기록(Redo)&quot;을 남깁니다. 잔액을 1000에서 500으로 바꾸는 트랜잭션에 롤백이나 장애를 일으켜 보고, 두 로그가…">
+<meta name="description" content="DB는 데이터를 바꿀 때 데이터 파일을 곧바로 고치지 않습니다. 메모리에서 먼저 바꾸고, &quot;되돌리는 데 필요한 기록(Undo)&quot;과 &quot;다시 적용하는 데 필요한 기록(Redo)&quot;을 남깁니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/undoredo/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/undoredo/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/undoredo/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="Undo와 Redo 로그: 커밋 직후 전원이 꺼져도 데이터가 남는 이유 · 개발 학습 실습실">
-<meta property="og:description" content="DB는 데이터를 바꿀 때 데이터 파일을 곧바로 고치지 않습니다. 메모리에서 먼저 바꾸고, &quot;되돌리는 데 필요한 기록(Undo)&quot;과 &quot;다시 적용하는 데 필요한 기록(Redo)&quot;을 남깁니다. 잔액을 1000에서 500으로 바꾸는 트랜잭션에 롤백이나 장애를 일으켜 보고, 두 로그가…">
+<meta property="og:description" content="DB는 데이터를 바꿀 때 데이터 파일을 곧바로 고치지 않습니다. 메모리에서 먼저 바꾸고, &quot;되돌리는 데 필요한 기록(Undo)&quot;과 &quot;다시 적용하는 데 필요한 기록(Redo)&quot;을 남깁니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/undoredo/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
+<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 저장과 복구</p>
 <h1>Undo와 Redo 로그</h1>
 <p><b>커밋 직후 전원이 꺼져도 데이터가 남는 이유</b></p>
-<p>DB는 데이터를 바꿀 때 데이터 파일을 곧바로 고치지 않습니다. 메모리에서 먼저 바꾸고, &quot;되돌리는 데 필요한 기록(Undo)&quot;과 &quot;다시 적용하는 데 필요한 기록(Redo)&quot;을 남깁니다. 잔액을 1000에서 500으로 바꾸는 트랜잭션에 롤백이나 장애를 일으켜 보고, 두 로그가 각각 어떤 일을 하는지 보세요.</p>
+<p>DB는 데이터를 바꿀 때 데이터 파일을 곧바로 고치지 않습니다. 메모리에서 먼저 바꾸고, &quot;되돌리는 데 필요한 기록(Undo)&quot;과 &quot;다시 적용하는 데 필요한 기록(Redo)&quot;을 남깁니다.</p>
 <p>문서·표준 대조 · MySQL 공식 문서</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>최종 잔액은 500입니다.</li>
 <li>커밋된 변경은 데이터 파일에 아직 쓰이지 않았더라도 Redo 로그에서 복구됩니다. &quot;커밋된 것은 장애가 나도 남는다&quot;(지속성)를 Redo 로그가 받쳐 줍니다.</li>
 <li>이렇게 데이터보다 로그를 먼저 디스크에 쓰는 방식을 WAL(Write-Ahead Logging)이라고 합니다. Undo는 &quot;되돌리기&quot;와 &quot;이전 버전 보여 주기&quot;, Redo는 &quot;다시 적용하기&quot;를 맡습니다.</li>
 </ul>
@@ -158,6 +157,6 @@ COMMIT;
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=acc6b404b6"></script>
+<script src="../../app.js?v=28e3eacea2"></script>
 </body>
 </html>

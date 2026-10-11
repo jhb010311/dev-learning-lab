@@ -1,7 +1,7 @@
 Lab.register({
   id: 'k8s', nav: '쿠버네티스 자가 치유', cat: '배포와 운영', mode: 'step',
   title: '컨테이너가 죽으면 누가 다시 띄우나',
-  intro: '쿠버네티스에는 "이 애플리케이션을 3개 띄워 둬라"처럼 원하는 상태를 적어 둡니다. 쿠버네티스는 실제 상태를 계속 지켜보다가 원하는 상태와 달라지면 스스로 맞춥니다. 여러 가지 사건을 일으켜 보고 어떻게 복구되는지 따라가 보세요.',
+  intro: '쿠버네티스에는 "이 애플리케이션을 3개 띄워 둬라"처럼 원하는 상태를 적어 둡니다. 쿠버네티스는 실제 상태를 계속 지켜보다가 원하는 상태와 달라지면 스스로 맞춥니다.',
   terms: ['Kubernetes', 'Pod, Deployment, Service', '헬스 체크(Liveness, Readiness)', '오토스케일링', '컨테이너와 이미지'], ranks: ['container', 'deploy', 'cloud'],
   controls: [
     { id: 'what', label: '일어나는 일', type: 'select', value: 'kill', options: [['kill', 'Pod 하나가 갑자기 죽는다'], ['node', '노드(서버) 한 대가 통째로 죽는다'], ['scale', '복제본 수를 3에서 5로 바꾼다'], ['hang', '애플리케이션이 멈췄다 (프로세스는 살아 있음)'], ['notready', '애플리케이션이 잠시 요청을 받을 수 없다 (DB 연결 끊김)']] },
@@ -56,15 +56,12 @@ Lab.register({
       pods[1].st = '실행 중'; pods[1].svc = true; push('shop-b가 DB에 다시 연결됐습니다. readiness 검사를 통과하자 Service가 다시 요청을 보냅니다.', 'good');
       did = '요청 대상에서 뺐다가 다시 포함'; sum.push('readiness 검사는 "잠깐 못 받을 뿐 곧 괜찮아지는 상태"를 다룹니다. 기동 직후 준비가 덜 됐을 때나 배포 중에도 같은 원리로 요청을 막습니다. liveness는 재시작, readiness는 요청 차단이라는 차이가 핵심입니다.');
     }
-    sum.unshift('쿠버네티스가 한 일: ' + did + '. 사람이 한 일: ' + human + '. 지금 Pod는 ' + pods.length + '개입니다.');
     sum.push('컨트롤러는 원하는 상태와 실제 상태를 끊임없이 비교해 차이를 메웁니다. 이 반복이 쿠버네티스의 기본 동작 원리입니다.');
     return { events: ev, summary: sum, row: [did, human, pods.length + '개'] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 시작합니다.'); return; }
-    var alive = s.pods.filter(function (p) { return p.st === '실행 중'; }).length;
-    H.counters(v, [[s.want, '원하는 Pod 수 (Deployment에 적힌 값)'], [alive, '정상 실행 중인 Pod'], [s.pods.filter(function (p) { return p.svc; }).length, '요청을 받는 Pod']]);
     H.table(v, ['Pod', '노드', '상태', 'Service가 요청을 보내는가'], s.pods.map(function (p) { return { cls: p.st === '죽음' ? 'gone' : '', cells: [p.n, p.node, { v: p.st, cls: p.st === '실행 중' ? 'good' : p.st === '죽음' || p.st.indexOf('실패') >= 0 || p.st.indexOf('멈춤') >= 0 ? 'bad' : 'hot' }, { v: p.svc ? '예' : '아니오', cls: p.svc ? '' : 'bad' }] }; }), 'Pod 목록');
   },
   // 그림: 위에 Deployment(원하는 상태)와 Service, 아래에 노드 세 대와 그 위의 Pod. Service의 화살표는 요청이 가는 Pod.
@@ -84,7 +81,7 @@ Lab.register({
         k++;
       });
     });
-    P.note('초록 화살표는 Service가 요청을 보내는 Pod입니다. 컨트롤러는 위의 "원하는 상태"와 아래의 실제 Pod 수를 계속 비교해서, 모자라면 새 Pod를 만듭니다. 새 Pod는 준비가 끝난 뒤에야 화살표가 연결됩니다.');
+    P.note('초록 화살표는 Service가 요청을 보내는 Pod입니다. 새 Pod는 준비가 끝난 뒤에야 화살표가 연결됩니다.');
   },
   assume: '복제본 3개, 노드 세 대의 단순한 구성입니다. 감지와 복구에 걸리는 시간은 표시하지 않았습니다(노드 장애는 감지 후 Pod를 옮기기까지 기본 설정으로 수 분이 걸립니다). Deployment, 컨트롤러, 두 가지 검사의 동작은 쿠버네티스 공식 문서의 설명을 따랐습니다. 실제 클러스터에서 실행한 결과는 아닙니다.',
 });

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'immut', nav: 'Immutability and defensive copies', cat: 'Java language', mode: 'step',
   title: 'The field is final, but its value changed',
-  intro: 'An Order object holds its list of items in a final field. final means only that the field cannot be made to refer to a different list. It does not prevent the contents of that list from changing. See whether code outside the object can change its internal state, depending on how the constructor and the getter handle the list.',
+  intro: 'An Order object holds its list of items in a final field. final means only that the field cannot be made to refer to a different list. It does not prevent the contents of that list from changing.',
   terms: ['Immutable object', 'final', 'Encapsulation', 'record'], ranks: ['string', 'oop', 'javaver'],
   controls: [
     { id: 'in', label: 'The list passed to the constructor is', type: 'select', value: 'ref', options: [['ref', 'stored in the field as it is'], ['copy', 'copied and then stored']] },
@@ -31,7 +31,6 @@ Lab.register({
     if (c.out === 'copy') push('(2) order.getItems().add("chair"): The getter returned a copy. "chair" was added only to that copy, and the order still has ' + inner.length + ' items inside.', 'good');
     if (c.out === 'unmod') push('(2) order.getItems().add("chair"): The getter returned an unmodifiable view. The moment add is called, an UnsupportedOperationException is thrown. The order still has ' + inner.length + ' items inside.', 'good', 'UnsupportedOperationException');
     var leak = r.fin !== 2;
-    sum.push('Items inside after (1): ' + r.a + '. Result of (2): ' + (r.via === 'ok' ? 'no exception' : r.via) + '. Items inside at the end: ' + r.fin + ' (2 at the start).');
     sum.push('final only prevents a variable from being made to refer to a different object. It does not prevent the contents of that object from changing. To make an object immutable, you must make sure that the mutable objects its fields refer to (lists, arrays, Date, and so on) are not shared with outside code.');
     if (leak) sum.push('The internal state was changed from outside. You must copy the list when you receive it (in the constructor), and when you hand it out (in the getter) you must also copy it or wrap it so that it cannot be modified. Making such copies is called defensive copying.');
     else sum.push('Both the way in and the way out are protected, so the internal state cannot be changed from outside. Using List.copyOf(items) in the constructor gives you a copy and an unmodifiable list in one step.');
@@ -44,7 +43,6 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
     H.title(v, 'The list that the variable src refers to'); H.slots(v, s.src.map(function (x) { return [x, 'q']; }), '');
     H.title(v, 'The list that order.items refers to' + (s.shared ? ' (the same object as above)' : ' (a separate object)')); H.slots(v, s.inner.map(function (x, i) { return [x, i >= 2 ? 'r' : 'd']; }), '');
-    H.counters(v, [[s.inner.length + ' items', 'Items inside the Order (2 at the start)'], [s.note || 'none', 'Exception thrown']]);
   },
   // Diagram: on the left, the variable src and the field order.items; on the right, the list objects on the heap. The key point is whether the two refer to the same list.
   draw: function (P, sim, shown) {

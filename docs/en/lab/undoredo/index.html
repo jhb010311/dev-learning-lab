@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Storage and recovery</p>
 <h1>Undo and redo logs</h1>
 <p><b>Why does the data survive even if the power goes out right after a commit?</b></p>
-<p>When a database changes data, it does not modify the data file right away. It changes the data in memory first and leaves two records: one needed to undo the change (undo) and one needed to apply it again (redo). Roll back a transaction that changes a balance from 1000 to 500, or cause a failure in it, and see what each of the two logs does.</p>
+<p>When a database changes data, it does not modify the data file right away. It changes the data in memory first and leaves two records: one needed to undo the change (undo) and one needed to apply it again (redo).</p>
 <p>Checked against documentation and standards · Checked against the MySQL documentation</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The final balance is 500.</li>
 <li>A committed change is recovered from the redo log even if it was not yet written to the data file. The redo log supports &quot;what is committed remains even after a failure&quot; (durability).</li>
 <li>Writing the log to disk before the data in this way is called write-ahead logging (WAL). Undo is in charge of &quot;rolling back&quot; and &quot;showing earlier versions&quot;, and redo is in charge of &quot;reapplying&quot;.</li>
 </ul>
@@ -158,6 +157,6 @@ COMMIT;
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

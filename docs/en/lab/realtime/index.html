@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>Polling, SSE, and WebSocket</h1>
 <p><b>Four ways to tell the browser what happened on the server</b></p>
-<p>HTTP works by the client asking and the server answering, so even when the server has a new notification, it cannot speak first. The options are to ask periodically (polling), to hold the answer back (long polling), to keep the connection open and stream data through it (SSE), or to switch to a two-way channel (WebSocket). Compare the number of requests and the delivery delay over 30 seconds.</p>
+<p>HTTP works by the client asking and the server answering, so even when the server has a new notification, it cannot speak first. The options are to ask periodically (polling), to hold the answer back (long polling), to keep the connection open and stream data through it (SSE), or to switch to a two-way channel (WebSocket).</p>
 <p>Checked against documentation and standards · Checked against the HTML standard, the WebSocket standard (RFC 6455), and the Spring documentation</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>In 30 seconds: 6 HTTP requests (3 empty-handed), and an average of 1.3 seconds from the creation of a notification to its delivery.</li>
 <li>Polling is the simplest to implement. But if the interval is long, notifications arrive late, and if it is short, requests that gain nothing pile up on the server. With many users, those requests alone become a load.</li>
 </ul>
 <h2>Code</h2>
@@ -158,6 +157,6 @@ setInterval(async () =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

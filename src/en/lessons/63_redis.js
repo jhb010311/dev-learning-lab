@@ -1,7 +1,7 @@
 Lab.register({
   id: 'redis', nav: 'Redis single-threaded execution', cat: 'High traffic', mode: 'step',
   title: 'If one command is slow, everyone waits',
-  intro: 'Redis runs commands one at a time, in order, on a single thread. That is why each command runs without anything cutting in, even without locks, but if one command takes a long time, every command behind it has to wait in line. Mix in a slow command and check how long the other clients wait.',
+  intro: 'Redis runs commands one at a time, in order, on a single thread. That is why each command runs without anything cutting in, even without locks, but if one command takes a long time, every command behind it has to wait in line.',
   terms: ['Redis', 'Cache', 'Atomicity and CAS (compare-and-swap)', 'Event loop'], ranks: ['nosql', 'cache'],
   controls: [
     { id: 'slow', label: 'Command that cuts in partway', type: 'select', value: 'keys', options: [['none', 'None (fast commands only)'], ['keys', 'KEYS user:* (scans all 1 million keys)'], ['scan', 'Scanning in pieces with SCAN (1,000 at a time)'], ['big', 'Reading a whole list of 500,000 elements (LRANGE 0 -1)']] },
@@ -42,7 +42,6 @@ Lab.register({
       rows.push({ cells: [x.who, x.cmd, { v: f(wait), cls: wait > 1 ? 'bad' : '' }, { v: f(x.dur), cls: x.dur > 10 ? 'bad' : '' }] });
       push(x.who + ' ' + x.cmd + ': ' + (wait > 1 ? 'After waiting ' + f(wait) + ' for the preceding command to finish, it ran for ' : 'It ran for ') + f(x.dur) + '.' + (x.dur > 10 ? ' While this command runs, Redis cannot process any other command.' : '') + note, x.dur > 10 || wait > 1 ? 'bad' : '');
     });
-    sum.push('The command that waited longest waited ' + f(maxWait) + ', and the whole processing took ' + f(t) + '.');
     if (c.slow === 'keys' || c.slow === 'big') sum.push('A lookup that usually finishes in 0.1ms waited ' + f(stall) + '. All the services connected to Redis slow down at the same time, and if a timeout is set, cache lookups fail one after another. This is why you should avoid commands such as KEYS, reading a large collection whole, and deleting a large key (DEL) on a Redis that is in operation.');
     if (c.slow === 'scan') sum.push('SCAN does not walk through everything at once, but runs in small pieces. Each run is short, so other commands can cut in between. Walking through everything takes longer, but it does not stop the other clients.');
     if (c.slow === 'none') sum.push('Each command finishes very quickly in memory, so even one thread handles tens of thousands of commands per second or more. Having a single thread, with no lock contention and no switching cost, is another reason it is fast.');
@@ -52,7 +51,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], val: 10 };
     if (s.rows.length) H.table(v, ['Sent by', 'Command', 'Wait time', 'Run time'], s.rows, 'Order in which Redis ran them'); else H.text(v, 'No command has run yet.');
-    if (sim.c.incr) H.counters(v, [[s.val, 'Value of view:1 (10 at first)']]);
   },
   // Diagram: the commands sent by several clients line up in a single line and are run one after another by one thread.
   draw: function (P, sim, shown) {
@@ -63,7 +61,7 @@ Lab.register({
     rows.forEach(function (r, i) { var run = P.c(r.cells[3]), waitc = P.c(r.cells[2]); P.box('cmd' + i, 28, 102 + i * 32, 624, 27, { cls: (run === 'bad' ? 'bad' : waitc === 'bad' ? 'hot' : 'good') + (i === n - 1 ? ' now' : ''), title: P.v(r.cells[0]) + ': ' + P.v(r.cells[1]), right: 'Wait ' + P.v(r.cells[2]) + ' · Run ' + P.v(r.cells[3]) }); });
     if (!n) P.text('none', 340, 124, 'No command has run yet', { cls: 'mut', anchor: 'middle' });
     if (sim.c.incr) P.box('val', 16, 128 + Math.max(1, n) * 32, 648, 34, { cls: 'plain', title: 'Value of view:1 (10 at first)', right: String(s.val) });
-    P.note('A red row is a command that took long, a yellow row is a command that was delayed because it was waiting for such a command to finish, and a bold border marks the command that just ran. Commands run only one at a time in order, so one slow command holds up every command behind it.');
+    P.note('A red row is a command that took long, a yellow row is a command that was delayed because it was waiting for such a command to finish, and a bold border marks the command that just ran.');
   },
   assume: 'The run times of the commands (GET 0.1ms, KEYS 500ms, reading a large list 300ms, one SCAN 0.5ms) are examples to show the difference in size. That Redis runs commands one after another in a single thread, and the recommendation to use SCAN instead of KEYS, follow the official Redis documentation. Since Redis 6, several threads can be used for network I/O, but running commands is still done by one thread. The principle was checked on a real Redis 8.10.2 (1 million keys, a list of 500,000 elements). While KEYS was running, a GET from another client waited up to 186ms, and during the large list query it waited 22ms (usually 3ms or less), and while SCAN walked through in pieces of 1,000, it never exceeded 1.5ms. The final value of INCR sent by two clients at the same time, 20,000 times each, was exactly 40,000. The time values on the screen are examples, not these measured values, and the real times vary with the data size and the hardware.',
 });

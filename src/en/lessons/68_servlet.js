@@ -1,7 +1,7 @@
 Lab.register({
   id: 'servlet', nav: 'Servlets', cat: 'Spring', mode: 'step',
   title: 'How an HTTP request reaches Java code',
-  intro: 'What a browser sends is an HTTP request made of text. A servlet container such as Tomcat reads that text, turns it into Java objects, and calls the method of the servlet that is mapped to the path. A servlet is a Java class that "receives a request object and writes to a response object". Change the request and see who does what, when the servlet object is created, and how many times it is used.',
+  intro: 'What a browser sends is an HTTP request made of text. A servlet container such as Tomcat reads that text, turns it into Java objects, and calls the method of the servlet that is mapped to the path. A servlet is a Java class that "receives a request object and writes to a response object".',
   terms: ['Servlet and servlet container', 'DispatcherServlet and the front controller pattern', 'Embedded server', 'Web server and application server', 'Tomcat\'s threading model', 'HTTP methods'], ranks: ['mvc', 'was'],
   controls: [
     { id: 'kind', label: 'How it is built', type: 'select', value: 'plain', options: [['plain', 'Write a servlet directly'], ['spring', 'Spring MVC (write a controller)']] },
@@ -68,24 +68,19 @@ Lab.register({
       push('The method of the servlet has finished. Tomcat turns the content of the HttpServletResponse into the text of an HTTP response and sends it to the browser. It discards the request and response objects used for this request and returns the thread to the pool. The ' + S + ' object stays as it is and waits for the next request.', '');
     }
     if (st.made) { st.destroy++; st.obj = 'gone'; st.reqText = ''; st.respText = ''; st.reqObj = ''; st.thread = ''; push('The server shuts down. Tomcat calls destroy() of ' + S + ' once and then discards the object. This is the chance to clean up the resources that were opened.', ''); }
-    sum.push('Response: ' + status + '. Response produced by: ' + maker + '. ' + S + ' objects created: ' + st.made + ' (' + whenMade + '). init calls: ' + st.init + '. Request handling calls: ' + st.svc + '.');
     sum.push('A servlet is a Java class that receives one HTTP request and produces a response, and a servlet container (Tomcat) is the program that creates, calls, and destroys that servlet. The container accepts connections, turns the HTTP text into objects, and assigns threads, so the developer writes only the code that "reads from the request and writes to the response".');
     if (st.made && c.n > 1 && st.svc > 1) sum.push('The number of requests was ' + c.n + ', but there was only one servlet object. What is created anew for each request is the request and response objects. Several threads use the one servlet object at the same time, so you must not store per-request values in the fields of the servlet (the same reason as for singleton beans in Spring).');
     if (!c.startup && st.made) sum.push(plain ? 'When the servlet is not created in advance, object creation and init() happen while the first request is being handled, so only the first request is slow. If the setup work is heavy, create the servlet in advance at server startup.' : 'In Spring Boot, the DispatcherServlet object itself is created when the server starts, but init() happens while the first request is being handled, so only the first request is slow. When you set spring.mvc.servlet.load-on-startup, the servlet is initialized in advance at server startup.');
     if (!plain && st.svc > c.n) sum.push('In Spring Boot, the 404 and 405 responses are produced by dispatching the request once more, to the /error path. That is why the number of requests was ' + c.n + ' but service() of DispatcherServlet was called ' + st.svc + ' times. This is also why filters and interceptors appear to run twice for an error response.');
     if (!plain) sum.push('In Spring MVC, a controller is not a servlet. There is one servlet, DispatcherServlet, and every request comes into this servlet and is then routed to a controller. A controller can take HttpServletRequest as a parameter for the same reason: there is a servlet underneath. The detailed flow after that is in the "Spring MVC request flow" lab.');
-    if (c.req === 'none' && plain) sum.push('404 means "nothing is mapped to that path", and 405 means "the path is right, but that HTTP method is not accepted". Set the handled methods to GET only, send a POST, and compare.');
+    if (c.req === 'none' && plain) sum.push('404 means "nothing is mapped to that path", and 405 means "the path is right, but that HTTP method is not accepted".');
     return { events: ev, summary: sum, row: [status, whenMade, st.made + '', st.init + '', st.svc + '', maker] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, name = sim.c.kind === 'plain' ? 'HelloServlet' : 'DispatcherServlet';
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to start from the point where the server starts.'); return; }
-    H.counters(v, [[s.made, name + ' objects created'], [s.init, 'init() calls'], [s.svc, 'service() calls'], [s.destroy, 'destroy() calls']]);
     var ln = H.lanes(v);
-    H.lane(ln, 'Browser', s.reqText ? 'request sent' + (s.respText ? ' → response received' : '') : 'idle', s.reqText ? 'wait' : 'none');
     H.lane(ln, 'Tomcat', s.thread ? 'thread ' + s.thread + ' assigned · ' + (s.who.indexOf('Tomcat') === 0 ? 'Tomcat is working' : 'handed to the servlet') : s.who === 'before server startup' ? 'not started' : 'waiting for a request', s.who.indexOf('Tomcat') === 0 && s.thread ? 'hot' : s.thread ? '' : 'none');
-    H.lane(ln, 'Servlet', s.obj + (s.who === name ? ' · running' : ''), s.obj === 'none yet' || s.obj === 'gone' ? 'none' : s.who === name ? 'hot' : 'good');
-    if (sim.c.kind === 'spring') H.lane(ln, 'Controller', s.who === 'HelloController' ? 'HelloController method running' : 'idle as a Spring bean', s.who === 'HelloController' ? 'hot' : 'none');
     if (s.reqText) { H.title(v, 'What the browser sent (the HTTP request, as raw text)'); v.appendChild(H.el('pre', 'code', s.reqText)); }
     if (s.reqObj) { H.title(v, 'Java objects that Tomcat creates and passes to the servlet'); H.text(v, s.reqObj); }
     if (s.respText) { H.title(v, 'What goes back to the browser (the HTTP response, as raw text)'); v.appendChild(H.el('pre', 'code', s.respText)); }
@@ -105,7 +100,7 @@ Lab.register({
     if (spring && inCtl) P.arrow('ctl', 'sv:r', 'ct:l', { cls: 'hot' });
     if (s.respText) P.arrow('rs', 'sv:l', 'br:b', { cls: 'good', label: 'response' });
     [['Objects created', s.made], ['init()', s.init], ['service()', s.svc], ['destroy()', s.destroy]].forEach(function (x, i) { P.box('cnt' + i, 16 + i * 164, 258, 156, 34, { cls: x[1] ? 'wait' : 'ghost', title: x[0], right: x[1] + '' }); });
-    P.note('Tomcat creates the servlet object only once, and each time a request arrives, a thread calls service() on that object. The developer does not create it with new or call it directly. The numbers at the bottom are the call counts so far.');
+    P.note('The numbers at the bottom are the call counts so far.');
   },
   assume: 'The model assumes that the servlet container is Tomcat and that requests arrive one at a time, in order. Three points follow the Jakarta Servlet specification and the documentation of HttpServlet: only one servlet object is created per servlet declaration, init and destroy are each called once, and a doPost that is not overridden returns 405. Only the main lines of the HTTP request and response text are shown. For the 36 combinations with a directly written servlet, requests were sent to a real Tomcat 11.0.24, and for the 12 combinations on the Spring MVC side, to a real Spring Boot 4.1.1, and it was confirmed that the response code, the counts of object creation, init, and request handling calls, and the time when the object was created match the screen. In this process, two points on the Spring side were corrected to match reality. The DispatcherServlet object is created when the server starts, not at the first request (only init happens at the first request), and the 404 and 405 responses are dispatched once more to /error, so there are two request handling calls per request. Among the entries for where the response was produced, "Default servlet of Tomcat" and "Default doPost of HttpServlet" were inferred from the response code and were not observed directly.',
 });

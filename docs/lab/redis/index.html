@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Redis의 한 줄 처리: 명령 하나가 느리면 모두가 기다린다 · 개발 학습 실습실</title>
-<meta name="description" content="Redis는 명령을 스레드 하나가 한 번에 하나씩 차례로 실행합니다. 그래서 락 없이도 명령 하나하나가 끼어들 틈 없이 실행되지만, 오래 걸리는 명령이 하나 끼면 그 뒤의 모든 명령이 줄을 섭니다. 느린 명령을 섞어 보고 다른 클라이언트의 대기 시간을 확인하세요.">
+<meta name="description" content="Redis는 명령을 스레드 하나가 한 번에 하나씩 차례로 실행합니다. 그래서 락 없이도 명령 하나하나가 끼어들 틈 없이 실행되지만, 오래 걸리는 명령이 하나 끼면 그 뒤의 모든 명령이 줄을 섭니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/redis/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/redis/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/redis/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="Redis의 한 줄 처리: 명령 하나가 느리면 모두가 기다린다 · 개발 학습 실습실">
-<meta property="og:description" content="Redis는 명령을 스레드 하나가 한 번에 하나씩 차례로 실행합니다. 그래서 락 없이도 명령 하나하나가 끼어들 틈 없이 실행되지만, 오래 걸리는 명령이 하나 끼면 그 뒤의 모든 명령이 줄을 섭니다. 느린 명령을 섞어 보고 다른 클라이언트의 대기 시간을 확인하세요.">
+<meta property="og:description" content="Redis는 명령을 스레드 하나가 한 번에 하나씩 차례로 실행합니다. 그래서 락 없이도 명령 하나하나가 끼어들 틈 없이 실행되지만, 오래 걸리는 명령이 하나 끼면 그 뒤의 모든 명령이 줄을 섭니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/redis/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
+<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 확장과 분산</p>
 <h1>Redis의 한 줄 처리</h1>
 <p><b>명령 하나가 느리면 모두가 기다린다</b></p>
-<p>Redis는 명령을 스레드 하나가 한 번에 하나씩 차례로 실행합니다. 그래서 락 없이도 명령 하나하나가 끼어들 틈 없이 실행되지만, 오래 걸리는 명령이 하나 끼면 그 뒤의 모든 명령이 줄을 섭니다. 느린 명령을 섞어 보고 다른 클라이언트의 대기 시간을 확인하세요.</p>
+<p>Redis는 명령을 스레드 하나가 한 번에 하나씩 차례로 실행합니다. 그래서 락 없이도 명령 하나하나가 끼어들 틈 없이 실행되지만, 오래 걸리는 명령이 하나 끼면 그 뒤의 모든 명령이 줄을 섭니다.</p>
 <p>일부만 실행으로 확인 · Redis 8.10.2에서 원리를 측정해 확인(시간 값은 예시)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>가장 오래 기다린 명령은 499.3ms 기다렸고, 전체 처리에 500.5ms가 걸렸습니다.</li>
 <li>평소 0.1ms에 끝나던 조회가 499.3ms를 기다렸습니다. Redis에 연결된 모든 서비스가 동시에 느려지고, 타임아웃이 걸려 있으면 캐시 조회가 줄줄이 실패합니다. 운영 중인 Redis에서 KEYS, 큰 컬렉션 통째 조회, 큰 키 삭제(DEL) 같은 명령을 피해야 하는 이유입니다.</li>
 </ul>
 <h2>코드</h2>
@@ -158,6 +157,6 @@ Set&lt;String&gt; keys = redis.keys(&quot;user:*&quot;);          // 전체 키�
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=acc6b404b6"></script>
+<script src="../../app.js?v=28e3eacea2"></script>
 </body>
 </html>

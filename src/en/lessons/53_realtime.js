@@ -1,7 +1,7 @@
 Lab.register({
   id: 'realtime', nav: 'Polling, SSE, and WebSocket', cat: 'HTTP', mode: 'step',
   title: 'Four ways to tell the browser what happened on the server',
-  intro: 'HTTP works by the client asking and the server answering, so even when the server has a new notification, it cannot speak first. The options are to ask periodically (polling), to hold the answer back (long polling), to keep the connection open and stream data through it (SSE), or to switch to a two-way channel (WebSocket). Compare the number of requests and the delivery delay over 30 seconds.',
+  intro: 'HTTP works by the client asking and the server answering, so even when the server has a new notification, it cannot speak first. The options are to ask periodically (polling), to hold the answer back (long polling), to keep the connection open and stream data through it (SSE), or to switch to a two-way channel (WebSocket).',
   terms: ['SSE (server-sent events) and polling', 'WebSocket', 'HTTP as a stateless protocol'], ranks: ['http', 'network', 'traffic'],
   controls: [
     { id: 'how', label: 'Method', type: 'select', value: 'poll', options: [['poll', 'Polling (asks periodically)'], ['long', 'Long polling (holds the response until there is news)'], ['sse', 'SSE (the server keeps sending in one direction)'], ['ws', 'WebSocket (two-way channel)']] },
@@ -59,12 +59,10 @@ Lab.register({
       sum.push(c.how === 'sse' ? 'SSE suits uses where the server announces things on its own (notifications, progress, price quotes). It is ordinary HTTP, so it works well with existing authentication, proxies, and load balancers, and if the connection drops, the browser reconnects by itself.' : 'WebSocket suits uses where both sides send back and forth often (chat, collaborative editing, games). It is a separate protocol, not HTTP, so you have to check the proxy and load balancer settings separately, and you have to handle reconnection and authentication yourself.');
       sum.push('A method that keeps connections open maintains as many connections as there are users. With several servers, you have to solve "which server holds this user\'s connection," and you usually add an intermediate channel such as Redis publish/subscribe.');
     }
-    sum.unshift('In 30 seconds: ' + reqs + ' HTTP requests (' + empty + ' empty-handed), and an average of ' + (delay < 0.1 ? 'almost 0' : fmt(delay)) + ' seconds from the creation of a notification to its delivery.');
     return { events: ev, summary: sum, row: [reqs + '', empty + '', delay < 0.1 ? 'Almost 0s' : fmt(delay) + 's', conn] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], reqs: 0, empty: 0 };
-    H.counters(v, [[s.reqs, 'HTTP requests'], [s.empty, 'Requests that ended empty-handed']]);
     if (s.rows.length) H.table(v, ['Time', 'What', 'Result'], s.rows.slice(-14), 'Between the browser and the server' + (s.rows.length > 14 ? ' (last 14 rows)' : '')); else H.text(v, 'Nothing has passed yet.');
   },
   // Diagram: requests and responses between the browser and the server. It shows who speaks first and how many requests come back empty-handed.

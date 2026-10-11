@@ -1,7 +1,7 @@
 Lab.register({
   id: 'autoconf', nav: '스프링 부트 자동 설정', cat: '스프링', mode: 'step',
   title: '의존성만 추가했는데 왜 빈이 생기나',
-  intro: '스프링 부트는 애플리케이션이 뜰 때 미리 준비된 설정 클래스들을 하나씩 살펴보며 "이 조건이 맞으면 이 빈을 등록한다"를 판단합니다. 조건은 주로 클래스패스에 어떤 라이브러리가 있는지와 개발자가 같은 빈을 직접 등록했는지입니다. 의존성과 직접 등록 여부를 바꿔 가며 최종 빈 목록을 보세요.',
+  intro: '스프링 부트는 애플리케이션이 뜰 때 미리 준비된 설정 클래스들을 하나씩 살펴보며 "이 조건이 맞으면 이 빈을 등록한다"를 판단합니다. 조건은 주로 클래스패스에 어떤 라이브러리가 있는지와 개발자가 같은 빈을 직접 등록했는지입니다.',
   terms: ['Spring Boot 자동 설정(Auto-configuration)', '스타터(Starter)', '내장 서버', '@Configuration과 @Bean', '컴포넌트 스캔'], ranks: ['boot', 'bean', 'di'],
   controls: [
     { id: 'web', label: 'spring-boot-starter-webmvc 의존성', type: 'check', value: true },
@@ -49,7 +49,6 @@ Lab.register({
         row('Spring Data JPA 설정', 'JpaRepository 인터페이스 발견', '리포지토리 구현체 등록', 'good'); push('Spring Data JPA 자동 설정: JpaRepository를 상속한 인터페이스를 찾아 구현 객체를 만들어 빈으로 등록합니다.', 'good'); }
     } else { row('DataSource / JPA 설정', '클래스패스에 JDBC, Hibernate 없음', '건너뜀', ''); push('DB 관련 자동 설정: 클래스패스에 관련 클래스가 없어 건너뜁니다.', ''); }
     if (!failed) { row('Redis, Kafka, Security 등 나머지', '클래스패스에 해당 라이브러리 없음', '건너뜀', ''); push('나머지 자동 설정들: 해당 라이브러리가 클래스패스에 없으므로 대부분 조건에서 탈락합니다. 준비된 설정은 많지만 실제로 적용되는 것은 추가한 의존성에 해당하는 것뿐입니다.', ''); }
-    sum.push(failed ? '기동 실패. DataSource를 구성할 정보가 부족합니다.' : '기동 성공. 자동 설정이 등록한 빈 묶음 ' + auto + '개, 내가 등록해서 대신 쓰인 것 ' + mine + '개.');
     sum.push('자동 설정의 판단 기준은 두 가지입니다. 클래스패스에 그 라이브러리가 있는가(@ConditionalOnClass), 그리고 개발자가 같은 타입의 빈을 이미 등록했는가(@ConditionalOnMissingBean). 스타터는 필요한 라이브러리 묶음을 한 번에 가져와 첫 번째 조건을 만족시키는 역할입니다.');
     sum.push('내가 직접 등록한 빈이 항상 이깁니다. 기본값으로 시작하고, 바꾸고 싶은 부분만 직접 등록하면 됩니다. 어떤 자동 설정이 왜 적용됐고 왜 빠졌는지는 --debug 옵션으로 실행하면 조건 평가 보고서로 볼 수 있습니다.');
     return { events: ev, summary: sum, row: [failed ? '실패' : '성공', auto + '묶음', mine + '개', skip + '개'] };

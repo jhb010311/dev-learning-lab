@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HTTP/1.1, 2, 3: 파일 30개를 받을 때 버전마다 무엇이 다른가 · 개발 학습 실습실</title>
-<meta name="description" content="웹 페이지 하나는 수십 개의 파일(스크립트, 스타일, 이미지)로 이뤄집니다. HTTP/1.1은 연결 하나로 한 번에 하나씩만 받아서 줄을 서야 하고, HTTP/2는 연결 하나에 여러 요청을 섞어 보냅니다. HTTP/3는 그 밑의 전송 계층까지 바꿨습니다. 파일 수와 패킷 유실…">
+<meta name="description" content="웹 페이지 하나는 수십 개의 파일(스크립트, 스타일, 이미지)로 이뤄집니다. HTTP/1.1은 연결 하나로 한 번에 하나씩만 받아서 줄을 서야 하고, HTTP/2는 연결 하나에 여러 요청을 섞어 보냅니다. HTTP/3는 그 밑의 전송 계층까지 바꿨습니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/httpver/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/httpver/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/httpver/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="HTTP/1.1, 2, 3: 파일 30개를 받을 때 버전마다 무엇이 다른가 · 개발 학습 실습실">
-<meta property="og:description" content="웹 페이지 하나는 수십 개의 파일(스크립트, 스타일, 이미지)로 이뤄집니다. HTTP/1.1은 연결 하나로 한 번에 하나씩만 받아서 줄을 서야 하고, HTTP/2는 연결 하나에 여러 요청을 섞어 보냅니다. HTTP/3는 그 밑의 전송 계층까지 바꿨습니다. 파일 수와 패킷 유실…">
+<meta property="og:description" content="웹 페이지 하나는 수십 개의 파일(스크립트, 스타일, 이미지)로 이뤄집니다. HTTP/1.1은 연결 하나로 한 번에 하나씩만 받아서 줄을 서야 하고, HTTP/2는 연결 하나에 여러 요청을 섞어 보냅니다. HTTP/3는 그 밑의 전송 계층까지 바꿨습니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/httpver/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
+<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>HTTP/1.1, 2, 3</h1>
 <p><b>파일 30개를 받을 때 버전마다 무엇이 다른가</b></p>
-<p>웹 페이지 하나는 수십 개의 파일(스크립트, 스타일, 이미지)로 이뤄집니다. HTTP/1.1은 연결 하나로 한 번에 하나씩만 받아서 줄을 서야 하고, HTTP/2는 연결 하나에 여러 요청을 섞어 보냅니다. HTTP/3는 그 밑의 전송 계층까지 바꿨습니다. 파일 수와 패킷 유실 여부를 바꿔 가며 비교하세요.</p>
+<p>웹 페이지 하나는 수십 개의 파일(스크립트, 스타일, 이미지)로 이뤄집니다. HTTP/1.1은 연결 하나로 한 번에 하나씩만 받아서 줄을 서야 하고, HTTP/2는 연결 하나에 여러 요청을 섞어 보냅니다. HTTP/3는 그 밑의 전송 계층까지 바꿨습니다.</p>
 <p>일부만 실행으로 확인 · HTTP/1.1·2는 브라우저로 확인, HTTP/3와 유실은 재현 못 함</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -62,7 +62,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>파일 30개를 받는 데 약 560ms, 연결 6개, 줄 선 횟수 4번.</li>
 <li>연결 6개로 5번에 나눠 받았습니다. 앞의 응답이 끝나야 다음 요청을 보낼 수 있어서 파일이 많을수록 줄 서는 시간이 깁니다. 그래서 예전에는 파일을 하나로 합치거나 도메인을 여러 개로 나누는 편법을 썼습니다.</li>
 </ul>
 <h2>코드</h2>
@@ -161,6 +160,6 @@ server {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=acc6b404b6"></script>
+<script src="../../app.js?v=28e3eacea2"></script>
 </body>
 </html>

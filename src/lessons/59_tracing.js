@@ -1,7 +1,7 @@
 Lab.register({
   id: 'trace', nav: '분산 추적', cat: '모니터링', mode: 'step',
   title: '요청 하나가 느린데 어느 서비스 탓인가',
-  intro: '주문 요청 하나가 게이트웨이, 주문 서비스, 결제 서비스, 외부 결제사를 차례로 거칩니다. 로그는 서비스마다 따로 쌓이므로, 같은 요청의 로그를 묶을 공통 번호가 없으면 어디서 시간이 걸렸는지 찾기 어렵습니다. 추적 번호를 전달할 때와 아닐 때를 비교하고, 느린 구간을 옮겨 보세요.',
+  intro: '주문 요청 하나가 게이트웨이, 주문 서비스, 결제 서비스, 외부 결제사를 차례로 거칩니다. 로그는 서비스마다 따로 쌓이므로, 같은 요청의 로그를 묶을 공통 번호가 없으면 어디서 시간이 걸렸는지 찾기 어렵습니다.',
   terms: ['분산 추적(Trace ID, Span)', '관측성(로그, 지표, 추적)', 'MDC', 'APM', '모놀리식과 MSA(마이크로서비스)'], ranks: ['monitor', 'msa'],
   controls: [
     { id: 'slow', label: '느린 구간', type: 'select', value: 'pg', options: [['none', '없음'], ['db', '주문 서비스의 DB 조회'], ['pay', '결제 서비스 내부 처리'], ['pg', '외부 결제사 API']] },
@@ -33,18 +33,13 @@ Lab.register({
     push('결제 서비스가 외부 결제사 API를 호출합니다(' + d.pg + 'ms). 응답이 돌아오면 거꾸로 결제 서비스, 주문 서비스, 게이트웨이 순으로 스팬이 닫힙니다. 전체 ' + total + 'ms.', d.pg > 500 ? 'bad' : '', 5);
     if (c.prop) push('추적 시스템(Zipkin, Tempo 등)에서 Trace ID 하나로 조회하면 다섯 구간이 시간 축 위에 계단 모양으로 그려집니다. ' + (c.slow === 'none' ? '모든 구간이 짧습니다.' : '가장 긴 막대가 "' + spans[mi][0] + '"입니다. 어디가 느린지 바로 보입니다.'), 'good', 6);
     else push('로그는 세 서비스에 각각 남아 있습니다. 같은 시각에 수백 건의 요청이 섞여 있어서, 이 요청의 로그가 어느 것인지 시각과 주문 번호로 짐작해 맞춰 봐야 합니다. 구간별 소요 시간도 직접 계산해야 합니다.', 'bad', 6);
-    sum.push('전체 응답 시간 ' + total + 'ms. 구간별 자체 소요 시간: 게이트웨이 ' + d.gw + ', 주문 서비스 ' + d.order + ', DB ' + d.db + ', 결제 서비스 ' + d.pay + ', 외부 결제사 ' + d.pg + 'ms.');
     sum.push(c.prop ? 'Trace ID는 요청 하나 전체에 붙는 번호이고, 스팬은 그 안의 한 구간(서비스 하나의 처리, 쿼리 하나, 외부 호출 하나)입니다. 스팬마다 부모 스팬을 기록하므로 호출 관계가 트리로 복원됩니다.' : '서비스가 나뉘면 요청 하나의 흔적도 여러 곳에 흩어집니다. 공통 번호를 헤더로 전달하고 모든 로그에 찍는 것이 분산 추적의 출발점입니다.');
     sum.push('로그는 "무슨 일이 있었나", 지표는 "전체적으로 얼마나", 추적은 "이 요청이 어디서 얼마나"를 알려 줍니다. 로그에도 Trace ID를 찍어 두면 추적 화면에서 느린 구간을 찾은 뒤 그 번호로 로그를 검색할 수 있습니다.');
     return { events: ev, summary: sum, spans: spans, total: total, ids: ids, logs: logs, mi: mi, row: [total + 'ms', spans[mi][0] + ' (' + own[mi] + 'ms)', c.prop ? 'Trace ID 하나로 조회' : '서비스별 로그를 시각으로 맞춰 봄'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0;
-    if (c.prop) { H.title(v, '추적 화면: Trace ' + (n ? '4bf92f35…' : '') + ' (막대 = 구간이 차지한 시간)'); var ln = H.lanes(v);
-      sim.spans.forEach(function (s, i) { if (i >= n) { H.lane(ln, '스팬 ' + (i + 1), s[0], 'none'); return; } H.lane(ln, '스팬 ' + (i + 1), s[0] + ' · 전체 ' + s[2] + 'ms (자체 ' + s[3] + 'ms)', n >= 6 && i === sim.mi && c.slow !== 'none' ? 'bad' : '', Math.max(0.02, s[2] / sim.spans[0][2])); }); }
-    H.table(v, ['서비스', '로그의 추적 번호', '로그 내용'], sim.logs.slice(0, Math.min(n, 5)).map(function (l, i) { return { cells: [l[0], { v: sim.ids[i], cls: c.prop ? 'good' : 'bad' }, l[1]] }; }), '각 서비스에 남은 로그');
-    if (!c.prop && n >= 6) H.text(v, '추적 번호가 없어 세 서비스의 로그를 하나의 요청으로 묶을 수 없습니다.');
-  },
+    H.table(v, ['서비스', '로그의 추적 번호', '로그 내용'], sim.logs.slice(0, Math.min(n, 5)).map(function (l, i) { return { cells: [l[0], { v: sim.ids[i], cls: c.prop ? 'good' : 'bad' }, l[1]] }; }), '각 서비스에 남은 로그');  },
   // 그림: 요청 하나가 거친 구간을 시간 순서의 막대로 그린다. 막대의 길이가 그 구간이 차지한 시간이다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0, total = sim.spans[0][2];

@@ -14198,7 +14198,6 @@ Lab.register({
     if (over) push('Each time the operating system switches threads, it saves the state of the thread that was running and loads the state of the next one. About ' + (Math.round(share * 10) / 10) + ' threads share each core, so each thread is stopped whenever it is not its turn. The total amount of work done stays at what the cores (' + C + ') can do, and only the time for each task to finish gets longer.', 'bad', 3);
     else push('The number of threads that want to run does not exceed the number of cores, so no thread has to wait for another.', 'good', 3);
     push('Result: CPU usage ' + util + '%, tasks handled per second: ' + tput + ', time for one task to finish: ' + lat + 's' + (over ? ' (' + baseLat + 's when it runs alone).' : '.') + (T !== best ? ' With the number of threads set to ' + best + ', the values become ' + Math.round(C / taskCpu) + ' per second and ' + baseLat + 's per task.' : ' This is the most suitable number of threads for this task.'), T === best ? 'good' : '', 4);
-    sum.push('Throughput per second: ' + tput + '. CPU usage: ' + util + '%. Time for one task to finish: ' + lat + 's.');
     if (!io) sum.push(over ? 'For tasks that mostly compute, having more threads than cores does not increase throughput. The threads share the cores, so each task just finishes later. Each thread also uses memory of its own (its stack), so a number of threads close to the number of cores is appropriate.' : T < C ? 'Some cores are left unused. Increasing the number of threads to the number of cores (' + C + ') increases throughput.' : 'The number of threads equals the number of cores, so every core is used and no thread waits.');
     else sum.push(want < C - 1e-9 ? 'With tasks that mostly wait, most of the threads are waiting, so the cores sit idle. You need far more threads than cores to use the whole CPU. The suitable number is roughly number of cores × (1 + wait time ÷ compute time), which here is ' + C + ' × (1 + 9) = ' + best + '.' : over ? 'The number of threads that want the CPU already exceeds the number of cores. Adding more threads from here leaves throughput unchanged, and only the memory used per thread and the response time grow.' : 'Other threads fill the time that a thread spends waiting, so every core is in use.');
     sum.push('A web server has far more threads for handling requests than it has cores (200 by default in Tomcat) because most of the time spent handling a request goes to waiting for a database or an external response.');
@@ -14220,7 +14219,7 @@ Lab.register({
 Lab.register({
   id: 'config', nav: 'Configuration precedence', cat: 'Spring', mode: 'step',
   title: 'When the same property is set in several places, which value wins?',
-  intro: 'Spring Boot reads property values from several places, such as files, environment variables, and command-line arguments. When the same key is set in more than one place, the place with the higher precedence wins. Add and remove a property named app.timeout in several places and check the final value.',
+  intro: 'Spring Boot reads property values from several places, such as files, environment variables, and command-line arguments. When the same key is set in more than one place, the place with the higher precedence wins.',
   terms: ['Externalized configuration and profiles', 'Spring Boot auto-configuration', 'CI/CD'], ranks: ['boot', 'deploy'],
   controls: [
     { id: 'yml', label: 'app.timeout: 3000 in application.yml', type: 'check', value: true },
@@ -14255,7 +14254,6 @@ Lab.register({
     });
     var val = win ? SRC.filter(function (s) { return s[0] === win; })[0][2] : '1000', from = win ? SRC.filter(function (s) { return s[0] === win; })[0][1].split(' (')[0] : 'Default value in the code (after the : in @Value)';
     if (!win) { seen.push('def'); push('No place has a value. The default value 1000 written in @Value is used. If there were no default value either, the application would fail during startup.', ''); }
-    sum.push('The final value of app.timeout is ' + val + '. Where the value came from: ' + from + '.' + (hidden.length ? ' Overridden values: ' + hidden.join(', ') + '.' : ''));
     sum.push('From highest to lowest, the precedence is command-line arguments → JVM system properties → environment variables → the profile-specific file → application.yml. The closer a place is to the side that runs the application, the higher its precedence.');
     sum.push('Thanks to this order, you can run the same build artifact (a jar or an image) with different values in each environment without modifying it. Values that differ from one environment to another, or that must not be put in the code repository, such as a database URL or a password, are passed in through environment variables or injected at run time.');
     if (c.env && c.prof && win === 'env') sum.push('If you find that "I edited the file, but the value did not change", first check whether the same key is set in a place with a higher precedence (an environment variable, for example).');
@@ -14273,7 +14271,7 @@ Lab.register({
 Lab.register({
   id: 'realtime', nav: 'Polling, SSE, and WebSocket', cat: 'HTTP', mode: 'step',
   title: 'Four ways to tell the browser what happened on the server',
-  intro: 'HTTP works by the client asking and the server answering, so even when the server has a new notification, it cannot speak first. The options are to ask periodically (polling), to hold the answer back (long polling), to keep the connection open and stream data through it (SSE), or to switch to a two-way channel (WebSocket). Compare the number of requests and the delivery delay over 30 seconds.',
+  intro: 'HTTP works by the client asking and the server answering, so even when the server has a new notification, it cannot speak first. The options are to ask periodically (polling), to hold the answer back (long polling), to keep the connection open and stream data through it (SSE), or to switch to a two-way channel (WebSocket).',
   terms: ['SSE (server-sent events) and polling', 'WebSocket', 'HTTP as a stateless protocol'], ranks: ['http', 'network', 'traffic'],
   controls: [
     { id: 'how', label: 'Method', type: 'select', value: 'poll', options: [['poll', 'Polling (asks periodically)'], ['long', 'Long polling (holds the response until there is news)'], ['sse', 'SSE (the server keeps sending in one direction)'], ['ws', 'WebSocket (two-way channel)']] },
@@ -14331,12 +14329,10 @@ Lab.register({
       sum.push(c.how === 'sse' ? 'SSE suits uses where the server announces things on its own (notifications, progress, price quotes). It is ordinary HTTP, so it works well with existing authentication, proxies, and load balancers, and if the connection drops, the browser reconnects by itself.' : 'WebSocket suits uses where both sides send back and forth often (chat, collaborative editing, games). It is a separate protocol, not HTTP, so you have to check the proxy and load balancer settings separately, and you have to handle reconnection and authentication yourself.');
       sum.push('A method that keeps connections open maintains as many connections as there are users. With several servers, you have to solve "which server holds this user\'s connection," and you usually add an intermediate channel such as Redis publish/subscribe.');
     }
-    sum.unshift('In 30 seconds: ' + reqs + ' HTTP requests (' + empty + ' empty-handed), and an average of ' + (delay < 0.1 ? 'almost 0' : fmt(delay)) + ' seconds from the creation of a notification to its delivery.');
     return { events: ev, summary: sum, row: [reqs + '', empty + '', delay < 0.1 ? 'Almost 0s' : fmt(delay) + 's', conn] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], reqs: 0, empty: 0 };
-    H.counters(v, [[s.reqs, 'HTTP requests'], [s.empty, 'Requests that ended empty-handed']]);
     if (s.rows.length) H.table(v, ['Time', 'What', 'Result'], s.rows.slice(-14), 'Between the browser and the server' + (s.rows.length > 14 ? ' (last 14 rows)' : '')); else H.text(v, 'Nothing has passed yet.');
   },
   // Diagram: requests and responses between the browser and the server. It shows who speaks first and how many requests come back empty-handed.
@@ -14360,7 +14356,7 @@ Lab.register({
 Lab.register({
   id: 'httpver', nav: 'HTTP/1.1, 2, 3', cat: 'HTTP', mode: 'step',
   title: 'What differs between the versions when you fetch 30 files',
-  intro: 'A single web page is made of dozens of files (scripts, styles, images). HTTP/1.1 receives only one file at a time on a connection, so requests have to wait in line, while HTTP/2 mixes several requests on one connection. HTTP/3 changes even the transport layer below it. Compare them while changing the number of files and whether a packet is lost.',
+  intro: 'A single web page is made of dozens of files (scripts, styles, images). HTTP/1.1 receives only one file at a time on a connection, so requests have to wait in line, while HTTP/2 mixes several requests on one connection. HTTP/3 changes even the transport layer below it.',
   terms: ['HTTP/1.1, HTTP/2, and HTTP/3', 'TCP and UDP', 'Three-way handshake'], ranks: ['http', 'network'],
   controls: [
     { id: 'ver', label: 'HTTP version', type: 'select', value: '1.1', options: [['1.1', 'HTTP/1.1'], ['2', 'HTTP/2'], ['3', 'HTTP/3']] },
@@ -14403,16 +14399,11 @@ Lab.register({
     }
     if (c.loss && c.ver === '3') sum.push('The total time looks similar to HTTP/2 because it is the moment the last file finishes, but the other ' + (n - 1) + ' files had already been received at about ' + (setup + T) + 'ms. In HTTP/2, all ' + n + ' waited until about ' + (30 + T + RT) + 'ms.');
     push('All the files have been received. About ' + total + 'ms in total.', 'good', { done: n, wave: waves, fin: true });
-    sum.unshift('Files: ' + n + '. Time to receive them: about ' + total + 'ms. Connections: ' + conns + '. Times waited in line: ' + (waves - 1) + '.' + (c.loss ? ' Files stopped by the loss: ' + (c.ver === '1.1' ? stalled + ' (those that go through that connection)' : stalled) + '.' : ''));
     return { events: ev, summary: sum, row: [total + 'ms', conns + '', (waves - 1) + '', c.loss ? stalled + '' : 'None'] };
   },
   render: function (v, sim, t, H, shown) {
-    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { done: 0, wave: 0 }, items = [];
-    H.counters(v, [[s.done + ' / ' + c.n, 'Files received'], [c.ver === '1.1' ? 6 : 1, 'Connections']]);
-    H.title(v, 'Files: ' + c.n);
-    for (var i = 0; i < c.n; i++) { var cls = i < s.done ? 'd' : ''; if (!cls && c.ver === '1.1' && s.wave && i < s.wave * 6) cls = 'b'; if (!cls && c.ver !== '1.1' && s.wave) cls = s.stall && (c.ver === '2' || i === c.n - 1) ? 'r' : 'b'; if (c.ver === '1.1' && s.loss && i % 6 === 0 && i < 6) cls = 'r'; items.push([String(i + 1), cls]); }
-    H.slots(v, items, null, true);
-    H.text(v, 'Green means a file has been received, yellow means it is being received, red means it is stopped by the loss, and a dotted outline means it is waiting for its turn.');
+    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { done: 0, wave: 0 };
+    H.counters(v, [[s.done + ' / ' + c.n, 'Files received']]);
   },
   // Diagram: draw the connections between the browser and the server as channels. HTTP/1.1 uses six channels with one file each, and HTTP/2 and 3 mix many files on one channel.
   draw: function (P, sim, shown) {
@@ -14430,7 +14421,7 @@ Lab.register({
       if (v1 && s.loss && i % 6 === 0 && i < 6) cls = 'bad';
       P.box('f' + i, 28 + (i % 30) * 20.8, 248 + Math.floor(i / 30) * 22, 18, 18, { cls: cls });
     }
-    P.note('The boxes in the middle are the connections. The small squares below are the files: green means received, yellow means being received, red means stopped by the loss, and dotted means waiting for its turn. An HTTP/1.1 connection carries only one file at a time, so the files are received six at a time.');
+    P.note('The boxes in the middle are the connections. The small squares below are the files: green means received, yellow means being received, red means stopped by the loss, and dotted means waiting for its turn.');
   },
   assume: 'This is a model that assumes it takes 100ms to receive one file, 200ms to retransmit a lost packet, and, to set up the connection, 60ms for HTTP/1.1 (the 6 connections at the same time), 30ms for HTTP/2, and 20ms for HTTP/3. The real numbers depend on the network and the file sizes, and the 6 HTTP/1.1 connections that a browser opens to the same server is the default of the major browsers. The characteristics of each version follow the descriptions in the standards (RFC 9112, 9113, 9114). The part about the number of connections was checked in practice. In a real browser (Chromium-based), 18 requests that each take 0.3s were sent at the same time to an HTTP/1.1 server, and they were handled on 6 connections, at most 6 at a time, which took 931ms; with HTTP/2 (the built-in Node implementation), 30 requests were handled at the same time on 1 TCP connection and finished in 324ms. The difference when a packet is lost, and HTTP/3, could not be reproduced on the PC used to write this lab.',
 });
@@ -14438,7 +14429,7 @@ Lab.register({
 Lab.register({
   id: 'git', nav: 'Merge and rebase', cat: 'Git', mode: 'step',
   title: 'Three ways to combine two branches',
-  intro: 'While you work on the feature branch, new commits also appear on main. Whether you combine the two with merge or with rebase changes the shape of the commit graph, and if both changed the same line, you get a merge conflict. Change the conditions and compare the graphs.',
+  intro: 'While you work on the feature branch, new commits also appear on main. Whether you combine the two with merge or with rebase changes the shape of the commit graph, and if both changed the same line, you get a merge conflict.',
   terms: ['Merge and rebase', 'Merge conflict', 'Git fetch, pull, and push', 'Git-flow and GitHub Flow', 'Code review and pull requests'], ranks: ['git'],
   controls: [
     { id: 'how', label: 'How to combine', type: 'select', value: 'merge', options: [['merge', 'git merge feature on main'], ['rebase', 'git rebase main on feature, then merge'], ['squash', 'git merge --squash feature']] },
@@ -14495,7 +14486,6 @@ Lab.register({
       warn = 'The individual commits of feature are not kept on main';
       sum.push('squash tidies main into "one feature = one commit". Small commits made along the way (typo fixes, changes after review) do not remain on main. In return, the detailed history is lost, and Git does not know that feature has been merged, so you have to delete the branch.');
     }
-    sum.unshift('Graph shape: ' + shape + '. New commits: ' + made + '. Conflict resolution: ' + fix + '.');
     if (conf) sum.push('A conflict is not an error of Git. It is a request that says "two people changed the same place in different ways, so a person has to decide". The longer a branch lives and the more you change at once, the bigger the conflict. To prevent it, bring in changes from main often and merge in small pieces.');
     return { events: ev, summary: sum, row: [shape, made, fix, warn] };
   },
@@ -14503,7 +14493,6 @@ Lab.register({
     var last = shown[shown.length - 1];
     H.title(v, 'Commit graph (older commits on the left)');
     v.appendChild(H.el('pre', 'code', last ? last.snap.g : 'Click Run to start.'));
-    H.text(v, 'One letter is one commit. A commit with an apostrophe, such as D\', has the same contents but is a newly created commit.');
   },
   // Diagram: reads the commit graph drawn in text and redraws it with boxes and arrows. The top row is main, and the bottom row is feature.
   draw: function (P, sim, shown) {
@@ -14537,7 +14526,7 @@ Lab.register({
 Lab.register({
   id: 'immut', nav: 'Immutability and defensive copies', cat: 'Java language', mode: 'step',
   title: 'The field is final, but its value changed',
-  intro: 'An Order object holds its list of items in a final field. final means only that the field cannot be made to refer to a different list. It does not prevent the contents of that list from changing. See whether code outside the object can change its internal state, depending on how the constructor and the getter handle the list.',
+  intro: 'An Order object holds its list of items in a final field. final means only that the field cannot be made to refer to a different list. It does not prevent the contents of that list from changing.',
   terms: ['Immutable object', 'final', 'Encapsulation', 'record'], ranks: ['string', 'oop', 'javaver'],
   controls: [
     { id: 'in', label: 'The list passed to the constructor is', type: 'select', value: 'ref', options: [['ref', 'stored in the field as it is'], ['copy', 'copied and then stored']] },
@@ -14567,7 +14556,6 @@ Lab.register({
     if (c.out === 'copy') push('(2) order.getItems().add("chair"): The getter returned a copy. "chair" was added only to that copy, and the order still has ' + inner.length + ' items inside.', 'good');
     if (c.out === 'unmod') push('(2) order.getItems().add("chair"): The getter returned an unmodifiable view. The moment add is called, an UnsupportedOperationException is thrown. The order still has ' + inner.length + ' items inside.', 'good', 'UnsupportedOperationException');
     var leak = r.fin !== 2;
-    sum.push('Items inside after (1): ' + r.a + '. Result of (2): ' + (r.via === 'ok' ? 'no exception' : r.via) + '. Items inside at the end: ' + r.fin + ' (2 at the start).');
     sum.push('final only prevents a variable from being made to refer to a different object. It does not prevent the contents of that object from changing. To make an object immutable, you must make sure that the mutable objects its fields refer to (lists, arrays, Date, and so on) are not shared with outside code.');
     if (leak) sum.push('The internal state was changed from outside. You must copy the list when you receive it (in the constructor), and when you hand it out (in the getter) you must also copy it or wrap it so that it cannot be modified. Making such copies is called defensive copying.');
     else sum.push('Both the way in and the way out are protected, so the internal state cannot be changed from outside. Using List.copyOf(items) in the constructor gives you a copy and an unmodifiable list in one step.');
@@ -14580,7 +14568,6 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
     H.title(v, 'The list that the variable src refers to'); H.slots(v, s.src.map(function (x) { return [x, 'q']; }), '');
     H.title(v, 'The list that order.items refers to' + (s.shared ? ' (the same object as above)' : ' (a separate object)')); H.slots(v, s.inner.map(function (x, i) { return [x, i >= 2 ? 'r' : 'd']; }), '');
-    H.counters(v, [[s.inner.length + ' items', 'Items inside the Order (2 at the start)'], [s.note || 'none', 'Exception thrown']]);
   },
   // Diagram: on the left, the variable src and the field order.items; on the right, the list objects on the heap. The key point is whether the two refer to the same list.
   draw: function (P, sim, shown) {
@@ -14607,7 +14594,7 @@ Lab.register({
 Lab.register({
   id: 'autoconf', nav: 'Spring Boot auto-configuration', cat: 'Spring', mode: 'step',
   title: 'Why do beans appear when all you did was add a dependency?',
-  intro: 'When an application starts, Spring Boot goes through a set of configuration classes prepared in advance, one by one, and decides "if this condition is met, register this bean". The conditions are mainly which libraries are on the classpath and whether the developer has registered the same bean. Change the dependencies and whether you register a bean yourself, and watch the final list of beans.',
+  intro: 'When an application starts, Spring Boot goes through a set of configuration classes prepared in advance, one by one, and decides "if this condition is met, register this bean". The conditions are mainly which libraries are on the classpath and whether the developer has registered the same bean.',
   terms: ['Spring Boot auto-configuration', 'Starter', 'Embedded server', '@Configuration and @Bean', 'Component scanning'], ranks: ['boot', 'bean', 'di'],
   controls: [
     { id: 'web', label: 'spring-boot-starter-webmvc dependency', type: 'check', value: true },
@@ -14655,7 +14642,6 @@ Lab.register({
         row('Spring Data JPA', 'JpaRepository interface found', 'Repository implementation registered', 'good'); push('Spring Data JPA auto-configuration: It finds the interfaces that extend JpaRepository, creates an implementation object for each of them, and registers it as a bean.', 'good'); }
     } else { row('DataSource / JPA', 'JDBC and Hibernate are not on the classpath', 'Skipped', ''); push('Database auto-configuration: The related classes are not on the classpath, so it is skipped.', ''); }
     if (!failed) { row('The rest (Redis, Kafka, Security, and so on)', 'The library is not on the classpath', 'Skipped', ''); push('The remaining auto-configurations: Their libraries are not on the classpath, so most of them fail their conditions. Many configurations are prepared, but the only ones actually applied are those that match the dependencies you added.', ''); }
-    sum.push(failed ? 'Startup failed. There is not enough information to configure a DataSource.' : 'Startup succeeded. Bean groups registered by auto-configuration: ' + auto + '. Your own beans used instead: ' + mine + '.');
     sum.push('Auto-configuration decides on two criteria: whether the library is on the classpath (@ConditionalOnClass), and whether the developer has already registered a bean of the same type (@ConditionalOnMissingBean). The role of a starter is to bring in the set of libraries that are needed all at once, which satisfies the first condition.');
     sum.push('A bean that you register yourself always wins. Start with the defaults, and register yourself only the parts that you want to change. To see which auto-configurations were applied or left out, and why, run the application with the --debug option, which prints a conditions report.');
     return { events: ev, summary: sum, row: [failed ? 'Failed' : 'Succeeded', auto + '', mine + '', skip + ''] };
@@ -14671,7 +14657,7 @@ Lab.register({
 Lab.register({
   id: 'k8s', nav: 'Kubernetes self-healing', cat: 'Deployment and operations', mode: 'step',
   title: 'When a container dies, what starts it again?',
-  intro: 'In Kubernetes, you write down the state you want, such as "run 3 copies of this application". Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself. Trigger different events and follow how the system recovers.',
+  intro: 'In Kubernetes, you write down the state you want, such as "run 3 copies of this application". Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself.',
   terms: ['Kubernetes', 'Pod, Deployment, and Service', 'Health check (liveness, readiness)', 'Autoscaling', 'Containers and images'], ranks: ['container', 'deploy', 'cloud'],
   controls: [
     { id: 'what', label: 'What happens', type: 'select', value: 'kill', options: [['kill', 'One Pod suddenly dies'], ['node', 'One node (server) dies completely'], ['scale', 'The number of replicas is changed from 3 to 5'], ['hang', 'The application hangs (the process is still alive)'], ['notready', 'The application cannot take requests for a while (database connection lost)']] },
@@ -14726,15 +14712,12 @@ Lab.register({
       pods[1].st = 'Running'; pods[1].svc = true; push('shop-b connected to the database again. When it passes the readiness probe, the Service starts sending requests to it again.', 'good');
       did = 'Removed the Pod from the request targets, then added it back'; sum.push('A readiness probe handles the state of "cannot take requests for a moment but will be fine soon". The same principle holds requests back right after startup, when the application is not fully ready, and during a deployment. The key difference is that a liveness failure means a restart, and a readiness failure means requests are blocked.');
     }
-    sum.unshift('What Kubernetes did: ' + did + '. What a person did: ' + human + '. Pods now: ' + pods.length + '.');
     sum.push('The controller keeps comparing the desired state with the actual state and closes the gap. This loop is the basic principle of how Kubernetes works.');
     return { events: ev, summary: sum, row: [did, human, pods.length + ''] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to start.'); return; }
-    var alive = s.pods.filter(function (p) { return p.st === 'Running'; }).length;
-    H.counters(v, [[s.want, 'Desired Pods (value written in the Deployment)'], [alive, 'Pods running normally'], [s.pods.filter(function (p) { return p.svc; }).length, 'Pods receiving requests']]);
     H.table(v, ['Pod', 'Node', 'Status', 'Does the Service send requests to it?'], s.pods.map(function (p) { return { cls: p.st === 'Dead' ? 'gone' : '', cells: [p.n, p.node, { v: p.st, cls: p.st === 'Running' ? 'good' : p.st === 'Dead' || p.st.indexOf('failed') >= 0 || p.st.indexOf('Hung') >= 0 ? 'bad' : 'hot' }, { v: p.svc ? 'Yes' : 'No', cls: p.svc ? '' : 'bad' }] }; }), 'Pod list');
   },
   // Diagram: the Deployment (desired state) and the Service on top, three nodes and their Pods below. The arrows from the Service point to the Pods that receive requests.
@@ -14754,7 +14737,7 @@ Lab.register({
         k++;
       });
     });
-    P.note('A green arrow points to a Pod that the Service sends requests to. The controller keeps comparing the "desired state" at the top with the number of actual Pods below, and creates new Pods when some are missing. A new Pod gets an arrow only after it is ready.');
+    P.note('A green arrow points to a Pod that the Service sends requests to. A new Pod gets an arrow only after it is ready.');
   },
   assume: 'This is a simple setup with 3 replicas and three nodes. The time it takes to detect a failure and recover is not shown (after a node failure is detected, it takes several minutes with the default settings before the Pods are moved). The behavior of the Deployment, the controller, and the two kinds of probes follows the explanations in the official Kubernetes documentation. It is not the result of running on a real cluster.',
 });
@@ -14762,7 +14745,7 @@ Lab.register({
 Lab.register({
   id: 'trace', nav: 'Distributed tracing', cat: 'Monitoring', mode: 'step',
   title: 'One request is slow, but which service is to blame?',
-  intro: 'One order request passes through the gateway, the order service, the payment service, and the external payment provider in turn. Logs pile up separately in each service, so without a common ID that ties together the logs of the same request, it is hard to find where the time went. Compare passing the trace ID along with not passing it, and move the slow span around.',
+  intro: 'One order request passes through the gateway, the order service, the payment service, and the external payment provider in turn. Logs pile up separately in each service, so without a common ID that ties together the logs of the same request, it is hard to find where the time went.',
   terms: ['Distributed tracing (trace ID, span)', 'Observability (logs, metrics, traces)', 'MDC', 'APM', 'Monolithic architecture and microservice architecture'], ranks: ['monitor', 'msa'],
   controls: [
     { id: 'slow', label: 'Slow span', type: 'select', value: 'pg', options: [['none', 'None'], ['db', 'Database query in the order service'], ['pay', 'Processing inside the payment service'], ['pg', 'External payment provider API']] },
@@ -14794,18 +14777,13 @@ Lab.register({
     push('The payment service calls the external payment provider API (' + d.pg + 'ms). When the response comes back, the spans close in reverse order: the payment service, the order service, and the gateway. Total: ' + total + 'ms.', d.pg > 500 ? 'bad' : '', 5);
     if (c.prop) push('When you look up a single trace ID in the tracing system (Zipkin, Tempo, and so on), the five spans are drawn on a time axis in a staircase shape. ' + (c.slow === 'none' ? 'Every span is short.' : 'The longest bar is "' + spans[mi][0] + '". You can see right away where it is slow.'), 'good', 6);
     else push('The logs are in the three services separately. Hundreds of requests are mixed together at the same time, so you have to guess which logs belong to this request from the time and the order number. You also have to calculate the time per span yourself.', 'bad', 6);
-    sum.push('Total response time: ' + total + 'ms. Own time per span: gateway ' + d.gw + ', order service ' + d.order + ', DB ' + d.db + ', payment service ' + d.pay + ', external payment provider ' + d.pg + 'ms.');
     sum.push(c.prop ? 'A trace ID is a number attached to a whole request, and a span is one part of it (the processing of one service, one query, or one external call). Each span records its parent span, so the call relationships can be rebuilt as a tree.' : 'When services are split up, the traces of one request are scattered in many places. Passing a common ID in the headers and printing it in every log is the starting point of distributed tracing.');
     sum.push('Logs tell you "what happened", metrics tell you "how much overall", and traces tell you "where and for how long for this request". If you also print the trace ID in the logs, you can find the slow span on the tracing screen and then search the logs by that ID.');
     return { events: ev, summary: sum, spans: spans, total: total, ids: ids, logs: logs, mi: mi, row: [total + 'ms', spans[mi][0] + ' (' + own[mi] + 'ms)', c.prop ? 'Look up by a single trace ID' : 'Match the logs of each service by time'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0;
-    if (c.prop) { H.title(v, 'Tracing screen: Trace ' + (n ? '4bf92f35…' : '') + ' (bar = time taken by the span)'); var ln = H.lanes(v);
-      sim.spans.forEach(function (s, i) { if (i >= n) { H.lane(ln, 'Span ' + (i + 1), s[0], 'none'); return; } H.lane(ln, 'Span ' + (i + 1), s[0] + ' · total ' + s[2] + 'ms (own ' + s[3] + 'ms)', n >= 6 && i === sim.mi && c.slow !== 'none' ? 'bad' : '', Math.max(0.02, s[2] / sim.spans[0][2])); }); }
-    H.table(v, ['Service', 'Trace ID in the log', 'Log message'], sim.logs.slice(0, Math.min(n, 5)).map(function (l, i) { return { cells: [l[0], { v: sim.ids[i], cls: c.prop ? 'good' : 'bad' }, l[1]] }; }), 'Logs written by each service');
-    if (!c.prop && n >= 6) H.text(v, 'There is no trace ID, so the logs of the three services cannot be tied to one request.');
-  },
+    H.table(v, ['Service', 'Trace ID in the log', 'Log message'], sim.logs.slice(0, Math.min(n, 5)).map(function (l, i) { return { cells: [l[0], { v: sim.ids[i], cls: c.prop ? 'good' : 'bad' }, l[1]] }; }), 'Logs written by each service');  },
   // Diagram: the spans that one request passed through, drawn as bars in time order. The length of a bar is the time that the span took.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0, total = sim.spans[0][2];
@@ -14825,7 +14803,7 @@ Lab.register({
 Lab.register({
   id: 'gaplock', nav: 'Gap locks and next-key locks', cat: 'Database', mode: 'step',
   title: 'Why is an INSERT blocked when I queried a row that does not exist?',
-  intro: 'Transaction A locks rows with SELECT ... FOR UPDATE. MySQL InnoDB does not lock only the rows. Depending on the condition, it also locks the gaps between rows, so that other transactions cannot insert a new row in between. Change the query condition and the isolation level, and see how far the locking reaches.',
+  intro: 'Transaction A locks rows with SELECT ... FOR UPDATE. MySQL InnoDB does not lock only the rows. Depending on the condition, it also locks the gaps between rows, so that other transactions cannot insert a new row in between.',
   terms: ['Record locks, gap locks, and next-key locks', 'Shared locks and exclusive locks', 'Transaction isolation level', 'Phantom read', 'Pessimistic locking', 'Deadlock'], ranks: ['dbengine', 'isolation'],
   controls: [
     { id: 'q', label: 'Query condition of transaction A', type: 'select', value: 'range', options: [['hit', 'id = 20 (one row that exists)'], ['miss', 'id = 25 (a row that does not exist)'], ['range', 'id BETWEEN 20 AND 30 (a range)']] },
@@ -14861,7 +14839,6 @@ Lab.register({
     else push('The place where id ' + ins + ' goes is not locked. The INSERT of B runs right away.' + (!RR && ins > 20 && ins < 30 && c.q !== 'hit' ? ' If A runs the query with the same condition again, the row with id 25, which did not exist at first, appears (a phantom read).' : ''), !RR && ins === 25 && c.q !== 'hit' ? 'bad' : 'good', 3);
     if (blocked) push('When A commits, its locks are released, and only then does the INSERT of B that was waiting run.', '', 4);
     var phantom = !RR && c.q !== 'hit' && ins === 25;
-    sum.push('Locked rows: ' + (rec.length ? rec.join(', ') : 'none') + '. Locked gaps: ' + (gaps.length ? '(20~30)' : 'none') + '. The INSERT of B ' + (blocked ? 'waited.' : 'ran right away.'));
     if (RR && gaps.length) sum.push('At REPEATABLE READ, InnoDB locks the gap to stop new rows from slipping into the range (phantoms). As a cost, INSERTs of different rows can end up blocking each other.');
     if (c.q === 'miss' && RR) sum.push('This often causes trouble in an "insert if it does not exist" pattern. If two transactions each query a row that does not exist with FOR UPDATE, both get a gap lock on the same gap (gap locks do not block each other). If both then try to INSERT, each is blocked by the gap lock of the other, and a deadlock occurs.');
     if (c.q === 'hit') sum.push('When a unique index finds exactly one existing row, only a record lock is placed. To keep the range of locks narrow, it is important that the condition uses an index precisely. If it cannot use an index, a much wider range is locked.');
@@ -14876,9 +14853,6 @@ Lab.register({
     ids.forEach(function (id, i) { var locked = st >= 1 && sim.rec.indexOf(id) >= 0; items.push(['Row ' + id + (locked ? ' [locked]' : ''), locked ? 'b' : 'd']); var nx = ids[i + 1] || 999; items.push(gapCell(id, nx, nx === 999 ? '(after 40)' : '(' + id + '~' + nx + ')')); });
     H.title(v, 'id index (smaller values on the left)'); H.slots(v, items, '');
     H.text(v, 'Green is a row, yellow is a row locked by A, red is a gap locked by A, and a dotted line is an unlocked gap.');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Transaction A', st >= 1 ? 'SELECT ... FOR UPDATE executed, not committed yet' + (st >= 4 ? ' → committed' : '') : 'Not started', st >= 1 ? 'hot' : 'none');
-    H.lane(ln, 'Transaction B', st >= 3 ? (sim.blocked ? (st >= 4 ? 'INSERT executed (after A committed)' : 'INSERT waiting (for a lock)') : 'INSERT executed') : st >= 2 ? 'INSERT attempted' : 'Not started', st >= 3 ? (sim.blocked && st < 4 ? 'wait' : 'good') : 'none');
   },
   // Diagram: The id index is drawn like a number line. Rows (boxes) and the gaps between them (dotted) alternate, and the places that A locked and the place that B tries to insert are marked.
   draw: function (P, sim, shown) {
@@ -14903,7 +14877,7 @@ Lab.register({
 Lab.register({
   id: 'undoredo', nav: 'Undo and redo logs', cat: 'Database', mode: 'step',
   title: 'Why does the data survive even if the power goes out right after a commit?',
-  intro: 'When a database changes data, it does not modify the data file right away. It changes the data in memory first and leaves two records: one needed to undo the change (undo) and one needed to apply it again (redo). Roll back a transaction that changes a balance from 1000 to 500, or cause a failure in it, and see what each of the two logs does.',
+  intro: 'When a database changes data, it does not modify the data file right away. It changes the data in memory first and leaves two records: one needed to undo the change (undo) and one needed to apply it again (redo).',
   terms: ['Undo log and redo log', 'ACID', 'MVCC (multiversion concurrency control)', 'Transaction'], ranks: ['dbengine', 'isolation'],
   controls: [
     { id: 'what', label: 'What happens', type: 'select', value: 'crashAfter', options: [['commit', 'A normal commit'], ['rollback', 'A rollback without committing'], ['crashAfter', 'The server goes down right after the commit (before the write to the data file)'], ['crashBefore', 'The server goes down before the commit']] },
@@ -14951,7 +14925,6 @@ Lab.register({
         sum.push('A committed change is recovered from the redo log even if it was not yet written to the data file. The redo log supports "what is committed remains even after a failure" (durability).');
       }
     }
-    sum.unshift('The final balance is ' + fin + '.');
     sum.push('Writing the log to disk before the data in this way is called write-ahead logging (WAL). Undo is in charge of "rolling back" and "showing earlier versions", and redo is in charge of "reapplying".');
     return { events: ev, summary: sum, row: [fin, usedU, usedR, prop] };
   },
@@ -14964,7 +14937,6 @@ Lab.register({
       { cells: ['Disk: redo log', { v: s.redo, cls: s.redo.indexOf('committed note (') >= 0 ? 'good' : '' }] },
       { cells: ['Undo log', s.undo] },
     ], 'Where the balance of account 1 is stored');
-    H.counters(v, [[s.tx, 'Transaction state']]);
   },
   // Diagram: The top is memory, which is lost when the server goes down, and the bottom is the disk, which stays. How far the change has been recorded decides the difference between a commit and recovery.
   draw: function (P, sim, shown) {
@@ -14986,7 +14958,7 @@ Lab.register({
 Lab.register({
   id: 'shard', nav: 'Sharding', cat: 'Database', mode: 'step',
   title: 'What happens when you split data across several databases',
-  intro: 'When one table grows too big for one database server, the rows are divided among several databases (shards). The shard key and the rule for dividing decide which row goes to which shard. Divide 120 orders among shards and see how the rule changes the skew, and what happens when you add a shard.',
+  intro: 'When one table grows too big for one database server, the rows are divided among several databases (shards). The shard key and the rule for dividing decide which row goes to which shard.',
   terms: ['Sharding and partitioning', 'Scale up and scale out', 'Replication'], ranks: ['dbengine', 'traffic', 'nosql'],
   controls: [
     { id: 'n', label: 'Number of shards', type: 'range', min: 2, max: 6, value: 4, fmt: function (v) { return v + ' shards'; } },
@@ -15025,7 +14997,6 @@ Lab.register({
       if (c.how === 'range') { var d2 = d1.concat([0]); moved = '0 (0%)'; push('Add one shard. The existing ranges are left as they are, and only the new orders after order ' + (TOTAL + 1) + ' go to the new shard. There is no data to move. However, the problem that writes pile up on one shard simply moves to the new shard.', 'good', d2); }
       else { var mv = orders.filter(function (o) { return o.mem % N !== o.mem % N2; }).length, d3 = dist(N2, per); moved = mv + ' (' + Math.round(mv / TOTAL * 100) + '%)'; push('Add one shard, making ' + N2 + ' shards. The rule changes from "% ' + N + '" to "% ' + N2 + '", and most of the remainder values change. Of the ' + TOTAL + ' orders, ' + mv + ' (' + Math.round(mv / TOTAL * 100) + '%) have to move to a different shard. That is a very large job to do while the system is running.', 'bad', d3); }
     }
-    sum.push('Orders per shard: ' + d1.join(', ') + '. Where new orders go: ' + newTo + '. Query for the orders of one member: ' + q + '.' + (c.grow ? ' Data to move when a shard is added: ' + moved + '.' : ''));
     sum.push('Once chosen, a shard key is very hard to change. The most frequently used query condition should be the shard key, so that a query needs to look at only one shard. Queries without the shard key, and joins and transactions that span shards, become difficult.');
     if (c.grow && c.how !== 'range') sum.push('With the remainder method, almost everything is relocated when the number of shards changes. To reduce this, people use consistent hashing (when a shard is added, only the share that the new shard takes over moves), or divide the key range in advance into many small pieces and move data one piece at a time.');
     sum.push('Sharding is the last resort for dividing writes and data volume. Before it, first consider improving indexes and queries, caching, read-only replicas, and separating old data.');
@@ -15036,7 +15007,6 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to start.'); return; }
     var mx = Math.max.apply(null, s.d.concat([1])), ln = H.lanes(v);
     s.d.forEach(function (x, i) { H.lane(ln, 'Shard ' + i, 'Orders: ' + x, x === 0 ? 'none' : x > 120 / s.d.length * 1.5 ? 'bad' : '', x ? x / Math.max(mx, 60) : undefined); });
-    if (s.extra) H.text(v, s.extra);
   },
   // Diagram: the router is on top, and the shards are below. The height of the bar inside a shard is the number of orders it holds.
   draw: function (P, sim, shown) {
@@ -15059,7 +15029,7 @@ Lab.register({
 Lab.register({
   id: 'redis', nav: 'Redis single-threaded execution', cat: 'High traffic', mode: 'step',
   title: 'If one command is slow, everyone waits',
-  intro: 'Redis runs commands one at a time, in order, on a single thread. That is why each command runs without anything cutting in, even without locks, but if one command takes a long time, every command behind it has to wait in line. Mix in a slow command and check how long the other clients wait.',
+  intro: 'Redis runs commands one at a time, in order, on a single thread. That is why each command runs without anything cutting in, even without locks, but if one command takes a long time, every command behind it has to wait in line.',
   terms: ['Redis', 'Cache', 'Atomicity and CAS (compare-and-swap)', 'Event loop'], ranks: ['nosql', 'cache'],
   controls: [
     { id: 'slow', label: 'Command that cuts in partway', type: 'select', value: 'keys', options: [['none', 'None (fast commands only)'], ['keys', 'KEYS user:* (scans all 1 million keys)'], ['scan', 'Scanning in pieces with SCAN (1,000 at a time)'], ['big', 'Reading a whole list of 500,000 elements (LRANGE 0 -1)']] },
@@ -15100,7 +15070,6 @@ Lab.register({
       rows.push({ cells: [x.who, x.cmd, { v: f(wait), cls: wait > 1 ? 'bad' : '' }, { v: f(x.dur), cls: x.dur > 10 ? 'bad' : '' }] });
       push(x.who + ' ' + x.cmd + ': ' + (wait > 1 ? 'After waiting ' + f(wait) + ' for the preceding command to finish, it ran for ' : 'It ran for ') + f(x.dur) + '.' + (x.dur > 10 ? ' While this command runs, Redis cannot process any other command.' : '') + note, x.dur > 10 || wait > 1 ? 'bad' : '');
     });
-    sum.push('The command that waited longest waited ' + f(maxWait) + ', and the whole processing took ' + f(t) + '.');
     if (c.slow === 'keys' || c.slow === 'big') sum.push('A lookup that usually finishes in 0.1ms waited ' + f(stall) + '. All the services connected to Redis slow down at the same time, and if a timeout is set, cache lookups fail one after another. This is why you should avoid commands such as KEYS, reading a large collection whole, and deleting a large key (DEL) on a Redis that is in operation.');
     if (c.slow === 'scan') sum.push('SCAN does not walk through everything at once, but runs in small pieces. Each run is short, so other commands can cut in between. Walking through everything takes longer, but it does not stop the other clients.');
     if (c.slow === 'none') sum.push('Each command finishes very quickly in memory, so even one thread handles tens of thousands of commands per second or more. Having a single thread, with no lock contention and no switching cost, is another reason it is fast.');
@@ -15110,7 +15079,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], val: 10 };
     if (s.rows.length) H.table(v, ['Sent by', 'Command', 'Wait time', 'Run time'], s.rows, 'Order in which Redis ran them'); else H.text(v, 'No command has run yet.');
-    if (sim.c.incr) H.counters(v, [[s.val, 'Value of view:1 (10 at first)']]);
   },
   // Diagram: the commands sent by several clients line up in a single line and are run one after another by one thread.
   draw: function (P, sim, shown) {
@@ -15121,7 +15089,7 @@ Lab.register({
     rows.forEach(function (r, i) { var run = P.c(r.cells[3]), waitc = P.c(r.cells[2]); P.box('cmd' + i, 28, 102 + i * 32, 624, 27, { cls: (run === 'bad' ? 'bad' : waitc === 'bad' ? 'hot' : 'good') + (i === n - 1 ? ' now' : ''), title: P.v(r.cells[0]) + ': ' + P.v(r.cells[1]), right: 'Wait ' + P.v(r.cells[2]) + ' · Run ' + P.v(r.cells[3]) }); });
     if (!n) P.text('none', 340, 124, 'No command has run yet', { cls: 'mut', anchor: 'middle' });
     if (sim.c.incr) P.box('val', 16, 128 + Math.max(1, n) * 32, 648, 34, { cls: 'plain', title: 'Value of view:1 (10 at first)', right: String(s.val) });
-    P.note('A red row is a command that took long, a yellow row is a command that was delayed because it was waiting for such a command to finish, and a bold border marks the command that just ran. Commands run only one at a time in order, so one slow command holds up every command behind it.');
+    P.note('A red row is a command that took long, a yellow row is a command that was delayed because it was waiting for such a command to finish, and a bold border marks the command that just ran.');
   },
   assume: 'The run times of the commands (GET 0.1ms, KEYS 500ms, reading a large list 300ms, one SCAN 0.5ms) are examples to show the difference in size. That Redis runs commands one after another in a single thread, and the recommendation to use SCAN instead of KEYS, follow the official Redis documentation. Since Redis 6, several threads can be used for network I/O, but running commands is still done by one thread. The principle was checked on a real Redis 8.10.2 (1 million keys, a list of 500,000 elements). While KEYS was running, a GET from another client waited up to 186ms, and during the large list query it waited 22ms (usually 3ms or less), and while SCAN walked through in pieces of 1,000, it never exceeded 1.5ms. The final value of INCR sent by two clients at the same time, 20,000 times each, was exactly 40,000. The time values on the screen are examples, not these measured values, and the real times vary with the data size and the hardware.',
 });
@@ -15129,7 +15097,7 @@ Lab.register({
 Lab.register({
   id: 'parstream', nav: 'Parallel streams and the common pool', cat: 'Concurrency', mode: 'step',
   title: 'Someone else\'s parallel stream slows down my code',
-  intro: 'parallelStream() does not create a thread pool of its own. It runs in the single common pool that the whole JVM shares. If some code runs tasks that wait for a long time in it, all the threads of the common pool are occupied, and other parallel streams that have nothing to do with that code slow down too. Change what request A does to see the effect on request B.',
+  intro: 'parallelStream() does not create a thread pool of its own. It runs in the single common pool that the whole JVM shares. If some code runs tasks that wait for a long time in it, all the threads of the common pool are occupied, and other parallel streams that have nothing to do with that code slow down too.',
   terms: ['ForkJoinPool and the common pool', 'Stream API', 'Thread pool', 'Blocking and non-blocking'], ranks: ['stream', 'threadpool', 'concurrency'],
   controls: [
     { id: 'a', label: 'What request A does', type: 'select', value: 'block', options: [['none', 'Nothing (only B runs)'], ['block', '8 calls to an external API, 2 seconds each, inside a parallel stream'], ['own', 'The same work, run in a separate thread pool']] },
@@ -15158,7 +15126,6 @@ Lab.register({
     else { S.pool = ['B: running a task', 'B: running a task', 'B: running a task']; S.b = 'calling thread + 3 worker threads = 4 threads running at the same time'; push('The 3 worker threads of the common pool and the thread that called B, 4 threads in all, share the tasks. They finish the 8 tasks in two rounds.', 'good'); }
     S.b = 'done: ' + ms + 'ms'; if (c.a !== 'block') S.pool = ['idle', 'idle', 'idle'];
     push('B has finished. Time taken: ' + ms + 'ms.' + (c.a === 'block' ? ' That is about 4 times as long as when B runs alone (217ms). Not a single line of the code of B has changed.' : ''), c.a === 'block' ? 'bad' : 'good');
-    sum.push('Time B took: ' + ms + 'ms (a value actually measured on this PC).');
     if (c.a === 'block') sum.push('The common pool is shared by the whole JVM. If one place puts tasks that wait for a long time into a parallel stream, the parallel streams of other code that knows nothing about it slow down together with it, and so does CompletableFuture (when no pool is specified). The code that causes the problem and the code that slows down are different, so the cause is also hard to find.');
     if (c.a === 'own') sum.push('Run tasks that involve waiting (a database, an external API) in a separate thread pool to keep them apart from the common pool. This divides the resources so that when one side is blocked, the problem does not spread to the other side.');
     sum.push('A parallel stream pays off only when a computation that uses the CPU is applied to a large amount of data. That use is also why the size of the common pool is matched to the number of cores. When there are few elements, when the tasks are light, or when waiting is mixed in, a parallel stream can be slower than a sequential stream. In the request-handling code of a web server, there is almost never a reason to use one.');
@@ -15178,7 +15145,7 @@ Lab.register({
 Lab.register({
   id: 'jit', nav: 'JIT warmup', cat: 'JVM', mode: 'step',
   title: 'Why are the first requests right after a deployment slow?',
-  intro: 'Java code is compiled to bytecode, and the JVM runs it by interpreting it one bytecode instruction at a time. The JVM finds the methods that run often and compiles them again, this time to machine code (JIT), and from then on they run much faster. Look at the results of a real measurement: the same method was called in 12 batches of 2,000 calls each, and the time each batch took was measured.',
+  intro: 'Java code is compiled to bytecode, and the JVM runs it by interpreting it one bytecode instruction at a time. The JVM finds the methods that run often and compiles them again, this time to machine code (JIT), and from then on they run much faster.',
   terms: ['JIT compiler', 'Bytecode', 'Java Virtual Machine (JVM)', 'Class loader'], ranks: ['jvm', 'tuning', 'deploy'],
   controls: [
     { id: 'mode', label: 'How the code is run', type: 'select', value: 'jit', options: [['jit', 'Default settings (interpreted, then JIT-compiled)'], ['int', 'JIT turned off (-Xint, interpreted only)'], ['warm', 'Called in advance before requests arrive (warmup)']] },
@@ -15209,7 +15176,6 @@ Lab.register({
       push(s, c.mode === 'int' ? 'bad' : c.mode === 'jit' && i === 0 ? 'bad' : 'good', i + 1);
     });
     var mx = Math.max.apply(null, D), mn = Math.min.apply(null, D);
-    sum.push('First batch: ' + f(D[0]) + ', last batch: ' + f(D[11]) + '. The slowest batch took ' + (Math.round(mx / mn * 10) / 10) + ' times as long as the fastest batch.');
     if (c.mode === 'jit') sum.push('The code is the same, but its speed at the start and later is different. The JVM does not compile all the code in advance. It picks only the parts that actually run often and compiles them while the program is running (just-in-time). Because it optimizes based on information from the actual execution, once the code is fully warmed up it runs at a speed close to that of a language compiled in advance.');
     if (c.mode === 'int') sum.push('With interpretation only and no JIT, the code is about 20 times slower (about 29ms) than after compilation (about 1.4ms). The real performance of Java comes from the JIT compiler.');
     if (c.mode === 'warm') sum.push('A warmup means going through the slow period in advance, before user requests arrive. You apply it by calling the main APIs internally a few times right after a deployment, or by sending the ready signal (readiness) only after the warmup.');
@@ -15227,7 +15193,7 @@ Lab.register({
 Lab.register({
   id: 'strategy', nav: 'Strategy pattern', cat: 'Design', mode: 'step',
   title: 'What you have to change when one more payment method is added',
-  intro: 'Each payment method (card, bank transfer, Kakao Pay) is processed in a different way. One way to write this is to branch with if-else. Another is to keep a separate implementation for each payment method and swap the implementations in and out (the Strategy pattern). Compare where each version has to be changed when Naver Pay is added, and which implementation is selected at run time and how.',
+  intro: 'Each payment method (card, bank transfer, Kakao Pay) is processed in a different way. One way to write this is to branch with if-else. Another is to keep a separate implementation for each payment method and swap the implementations in and out (the Strategy pattern).',
   terms: ['Strategy pattern', 'Design pattern', 'Polymorphism', 'SOLID', 'Interface', 'Dependency injection (DI)'], ranks: ['pattern', 'oop', 'di'],
   controls: [
     { id: 'how', label: 'Implementation approach', type: 'select', value: 'ifelse', options: [['ifelse', 'Branch with if-else'], ['strategy', 'Strategy pattern (interface + implementing classes)']] },
@@ -15260,7 +15226,6 @@ Lab.register({
     if (st) { cmp = 1; push('PaymentService gets the implementation object for "' + c.pay + '" from the map. It does not compare with a conditional statement.', '', c.pay); push('It calls pay() on the object it got. The type of the variable is PaymentStrategy, but what actually runs is the pay() in the class of that object (' + { CARD: 'CardPayment', KAKAO: 'KakaoPayment', NAVER: 'NaverPayment' }[c.pay] + '). Polymorphism takes over the role of the conditional statement.', 'good', c.pay); }
     else { for (var i = 0; i < types.length; i++) { cmp++; var hit = types[i] === c.pay; push('The code compares type with "' + types[i] + '". ' + (hit ? 'They match. The ' + name[c.pay] + ' handling code inside this block runs.' : 'They do not match. Execution moves on to the next condition.'), hit ? 'good' : '', 'PaymentService'); if (hit) break; } }
     var changed = c.add ? (st ? 'none' : '3 methods') : '-', made = c.add ? (st ? '1 class' : 'none') : '-';
-    sum.push((c.add ? 'Existing code changed to add Naver Pay: ' + changed + '. Newly created: ' + made + '. ' : '') + 'Comparisons at run time: ' + cmp + '.');
     if (st) sum.push('The Strategy pattern hides "the part that changes" (the handling of each payment method) behind an interface so that the implementation can be swapped. A new payment method is added as a new class, and the existing code is closed to modification (the Open-Closed Principle). Because each payment method has its own class, you can test each one separately, and it is also easy to swap in a fake implementation.');
     else sum.push('The if-else version is the simplest and the easiest to read if there are two or three payment methods and no more will be added. The problem is that every time a payment method is added, the same branches are copied into several methods, a single method keeps getting longer, and the risk of touching one payment method while modifying another grows.');
     sum.push('Dependency injection in Spring is itself an application of the Strategy pattern. A dependency is injected as an interface type, and the actual implementation changes with the configuration (the real payment provider in production, a fake implementation in tests).');
@@ -15277,7 +15242,7 @@ Lab.register({
 Lab.register({
   id: 'gateway', nav: 'Gateway and gradual migration', cat: 'Microservices', mode: 'step',
   title: 'Breaking up a huge server piece by piece without stopping it',
-  intro: 'You put a gateway in front of an existing server (a monolith) that holds every feature in one lump, and hand requests over to new services one route at a time. The address that users see does not change. Change how much is handed over and in what share, and watch where the requests go.',
+  intro: 'You put a gateway in front of an existing server (a monolith) that holds every feature in one lump, and hand requests over to new services one route at a time. The address that users see does not change.',
   terms: ['API gateway', 'Strangler fig pattern', 'Monolithic architecture and microservice architecture', 'Reverse proxy', 'Rolling, blue-green, and canary deployments'], ranks: ['msa', 'design', 'deploy'],
   controls: [
     { id: 'stage', label: 'Migration stage', type: 'select', value: '1', options: [['0', 'Stage 0: everything on the existing server'], ['1', 'Stage 1: only orders on the new service'], ['2', 'Stage 2: orders and payments on new services'], ['3', 'Stage 3: everything on new services (existing server shut down)']] },
@@ -15317,7 +15282,6 @@ Lab.register({
       rows.push({ cells: [r[0], '/' + r[1] + '/**', { v: to, cls: moved ? 'good' : '' }] });
       push(r[0] + ': The path starts with /' + r[1] + '. ' + (why || (moved ? 'This path is configured to be passed to the new service.' : 'It is not a path with its own rule, so it goes to the existing server.')) + ' → ' + to, moved ? 'good' : '');
     });
-    sum.push('Requests: 10. To the existing server: ' + old + '. To the new service: ' + neu + '. Rejected at the gateway: ' + rej + '.');
     if (st === 0) sum.push('Nothing has been moved yet. Putting the gateway in place first is the first step of the migration. After that, you can hand routes over one at a time just by changing the configuration.');
     if (st === 1 || st === 2) sum.push('You do not move every feature at once; you split them off one route at a time. If something goes wrong with a new service, you can change the configuration back and send the requests to the existing server again. Because the new system gradually wraps around the existing one and replaces it, this approach is called the strangler fig pattern.');
     if (st === 1 && ratio < 100) sum.push('Even when you hand a route over, you first send only a share of the requests and verify the new service with real requests. During this time two servers work with the same data, so how to split the database is the hardest problem.');
@@ -15327,7 +15291,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], old: 0, neu: 0, rej: 0 };
-    H.counters(v, [[s.old, 'Requests to the existing server'], [s.neu, 'Requests to the new service'], [s.rej, 'Rejected at the gateway']]);
     if (s.rows.length) H.table(v, ['Request', 'Matching route rule', 'Sent to'], s.rows, 'Routing at the gateway'); else H.text(v, 'No requests have arrived yet.');
   },
   // Diagram: every request passes through the gateway and goes to the existing server or a new service.
@@ -15339,7 +15302,7 @@ Lab.register({
     P.box('cn', 236, end + 14, 208, 34, { cls: 'good', title: 'To new service', right: s.neu + '' });
     P.box('cr', 456, end + 14, 208, 34, { cls: s.rej ? 'bad' : 'ghost', title: 'Rejected at entrance', right: s.rej + '' });
     P.size(680, end + 64);
-    P.note('Every arrow passes through the line of the gateway. The gateway looks at the path and decides whether to send the request to the existing server or to a new service, and a request that fails authentication is turned away at the entrance instead of being passed on.');
+    P.note('Every arrow passes through the line of the gateway.');
   },
   assume: 'This is a fixed example of 10 requests. The ratio setting is assigned in a simple way so that the difference shows within the 10 requests (for 50%, order requests alternate; for 10%, only the fifth order request goes to the new service). The configuration example follows the path and weight predicates of Spring Cloud Gateway. Separating the data and synchronizing the two systems, which are the hardest parts of moving a feature, are not covered.',
 });
@@ -15347,7 +15310,7 @@ Lab.register({
 Lab.register({
   id: 'servlet', nav: 'Servlets', cat: 'Spring', mode: 'step',
   title: 'How an HTTP request reaches Java code',
-  intro: 'What a browser sends is an HTTP request made of text. A servlet container such as Tomcat reads that text, turns it into Java objects, and calls the method of the servlet that is mapped to the path. A servlet is a Java class that "receives a request object and writes to a response object". Change the request and see who does what, when the servlet object is created, and how many times it is used.',
+  intro: 'What a browser sends is an HTTP request made of text. A servlet container such as Tomcat reads that text, turns it into Java objects, and calls the method of the servlet that is mapped to the path. A servlet is a Java class that "receives a request object and writes to a response object".',
   terms: ['Servlet and servlet container', 'DispatcherServlet and the front controller pattern', 'Embedded server', 'Web server and application server', 'Tomcat\'s threading model', 'HTTP methods'], ranks: ['mvc', 'was'],
   controls: [
     { id: 'kind', label: 'How it is built', type: 'select', value: 'plain', options: [['plain', 'Write a servlet directly'], ['spring', 'Spring MVC (write a controller)']] },
@@ -15414,24 +15377,19 @@ Lab.register({
       push('The method of the servlet has finished. Tomcat turns the content of the HttpServletResponse into the text of an HTTP response and sends it to the browser. It discards the request and response objects used for this request and returns the thread to the pool. The ' + S + ' object stays as it is and waits for the next request.', '');
     }
     if (st.made) { st.destroy++; st.obj = 'gone'; st.reqText = ''; st.respText = ''; st.reqObj = ''; st.thread = ''; push('The server shuts down. Tomcat calls destroy() of ' + S + ' once and then discards the object. This is the chance to clean up the resources that were opened.', ''); }
-    sum.push('Response: ' + status + '. Response produced by: ' + maker + '. ' + S + ' objects created: ' + st.made + ' (' + whenMade + '). init calls: ' + st.init + '. Request handling calls: ' + st.svc + '.');
     sum.push('A servlet is a Java class that receives one HTTP request and produces a response, and a servlet container (Tomcat) is the program that creates, calls, and destroys that servlet. The container accepts connections, turns the HTTP text into objects, and assigns threads, so the developer writes only the code that "reads from the request and writes to the response".');
     if (st.made && c.n > 1 && st.svc > 1) sum.push('The number of requests was ' + c.n + ', but there was only one servlet object. What is created anew for each request is the request and response objects. Several threads use the one servlet object at the same time, so you must not store per-request values in the fields of the servlet (the same reason as for singleton beans in Spring).');
     if (!c.startup && st.made) sum.push(plain ? 'When the servlet is not created in advance, object creation and init() happen while the first request is being handled, so only the first request is slow. If the setup work is heavy, create the servlet in advance at server startup.' : 'In Spring Boot, the DispatcherServlet object itself is created when the server starts, but init() happens while the first request is being handled, so only the first request is slow. When you set spring.mvc.servlet.load-on-startup, the servlet is initialized in advance at server startup.');
     if (!plain && st.svc > c.n) sum.push('In Spring Boot, the 404 and 405 responses are produced by dispatching the request once more, to the /error path. That is why the number of requests was ' + c.n + ' but service() of DispatcherServlet was called ' + st.svc + ' times. This is also why filters and interceptors appear to run twice for an error response.');
     if (!plain) sum.push('In Spring MVC, a controller is not a servlet. There is one servlet, DispatcherServlet, and every request comes into this servlet and is then routed to a controller. A controller can take HttpServletRequest as a parameter for the same reason: there is a servlet underneath. The detailed flow after that is in the "Spring MVC request flow" lab.');
-    if (c.req === 'none' && plain) sum.push('404 means "nothing is mapped to that path", and 405 means "the path is right, but that HTTP method is not accepted". Set the handled methods to GET only, send a POST, and compare.');
+    if (c.req === 'none' && plain) sum.push('404 means "nothing is mapped to that path", and 405 means "the path is right, but that HTTP method is not accepted".');
     return { events: ev, summary: sum, row: [status, whenMade, st.made + '', st.init + '', st.svc + '', maker] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, name = sim.c.kind === 'plain' ? 'HelloServlet' : 'DispatcherServlet';
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to start from the point where the server starts.'); return; }
-    H.counters(v, [[s.made, name + ' objects created'], [s.init, 'init() calls'], [s.svc, 'service() calls'], [s.destroy, 'destroy() calls']]);
     var ln = H.lanes(v);
-    H.lane(ln, 'Browser', s.reqText ? 'request sent' + (s.respText ? ' → response received' : '') : 'idle', s.reqText ? 'wait' : 'none');
     H.lane(ln, 'Tomcat', s.thread ? 'thread ' + s.thread + ' assigned · ' + (s.who.indexOf('Tomcat') === 0 ? 'Tomcat is working' : 'handed to the servlet') : s.who === 'before server startup' ? 'not started' : 'waiting for a request', s.who.indexOf('Tomcat') === 0 && s.thread ? 'hot' : s.thread ? '' : 'none');
-    H.lane(ln, 'Servlet', s.obj + (s.who === name ? ' · running' : ''), s.obj === 'none yet' || s.obj === 'gone' ? 'none' : s.who === name ? 'hot' : 'good');
-    if (sim.c.kind === 'spring') H.lane(ln, 'Controller', s.who === 'HelloController' ? 'HelloController method running' : 'idle as a Spring bean', s.who === 'HelloController' ? 'hot' : 'none');
     if (s.reqText) { H.title(v, 'What the browser sent (the HTTP request, as raw text)'); v.appendChild(H.el('pre', 'code', s.reqText)); }
     if (s.reqObj) { H.title(v, 'Java objects that Tomcat creates and passes to the servlet'); H.text(v, s.reqObj); }
     if (s.respText) { H.title(v, 'What goes back to the browser (the HTTP response, as raw text)'); v.appendChild(H.el('pre', 'code', s.respText)); }
@@ -15451,7 +15409,7 @@ Lab.register({
     if (spring && inCtl) P.arrow('ctl', 'sv:r', 'ct:l', { cls: 'hot' });
     if (s.respText) P.arrow('rs', 'sv:l', 'br:b', { cls: 'good', label: 'response' });
     [['Objects created', s.made], ['init()', s.init], ['service()', s.svc], ['destroy()', s.destroy]].forEach(function (x, i) { P.box('cnt' + i, 16 + i * 164, 258, 156, 34, { cls: x[1] ? 'wait' : 'ghost', title: x[0], right: x[1] + '' }); });
-    P.note('Tomcat creates the servlet object only once, and each time a request arrives, a thread calls service() on that object. The developer does not create it with new or call it directly. The numbers at the bottom are the call counts so far.');
+    P.note('The numbers at the bottom are the call counts so far.');
   },
   assume: 'The model assumes that the servlet container is Tomcat and that requests arrive one at a time, in order. Three points follow the Jakarta Servlet specification and the documentation of HttpServlet: only one servlet object is created per servlet declaration, init and destroy are each called once, and a doPost that is not overridden returns 405. Only the main lines of the HTTP request and response text are shown. For the 36 combinations with a directly written servlet, requests were sent to a real Tomcat 11.0.24, and for the 12 combinations on the Spring MVC side, to a real Spring Boot 4.1.1, and it was confirmed that the response code, the counts of object creation, init, and request handling calls, and the time when the object was created match the screen. In this process, two points on the Spring side were corrected to match reality. The DispatcherServlet object is created when the server starts, not at the first request (only init happens at the first request), and the 404 and 405 responses are dispatched once more to /error, so there are two request handling calls per request. Among the entries for where the response was produced, "Default servlet of Tomcat" and "Default doPost of HttpServlet" were inferred from the response code and were not observed directly.',
 });
@@ -15513,7 +15471,6 @@ Lab.register({
       P.forEach(function (p) { if (p.alive) { p.mem = 1; done++; p.th[0].st = 'Task ' + p.th[0].id + ' finished'; } });
       push('The processes that are still alive finish their tasks and each increment their own counter. counter is 1 in every process. No process can see the variables of another, so to find the total, the processes must exchange the values through a separate channel such as a file, a socket, or a message.', 'good'); time = '0.3 seconds'; cnt = '1 in each process (not combined)';
     }
-    sum.push('Tasks finished: ' + done + ' of 3, ' + time + '. counter: ' + cnt + '.');
     if (H === 'single') sum.push('One thread does only one thing at a time. This is simple and safe, but the times simply add up.');
     if (H === 'multi') sum.push('Threads share the memory of the same process. They are lightweight to create and can exchange data easily, but touching the same data at the same time causes problems, and when the process dies, all the threads die with it. A web server (Tomcat) that uses a thread for each request works this way.');
     if (H === 'proc') sum.push('Processes have separate memory, so when one dies, the problem does not spread to the others. In return, they cost more to create and to switch between, each uses its own memory, and sharing data requires inter-process communication. Running several servers (several processes) is an extension of this approach.');
@@ -15528,7 +15485,6 @@ Lab.register({
       var ln = H.lanes(v);
       p.th.forEach(function (th) { H.lane(ln, th.name || 'Thread ' + th.id, th.st, th.st.indexOf('finished') >= 0 || th.st === 'All tasks finished' ? 'good' : th.st.indexOf('Terminated') >= 0 ? 'bad' : th.st === 'Waiting to start' ? 'none' : 'hot'); });
     });
-    H.text(v, 'The threads under the same process heading share the memory (counter) of that process.');
   },
   // Diagram: a process is a large box that has memory, and a thread is a small box inside it. The threads of one process point to the same memory.
   draw: function (P, sim, shown) {
@@ -15545,7 +15501,7 @@ Lab.register({
         if (p.alive && st.indexOf('Terminated') < 0) P.arrow('a' + i + '_' + j, id + ':t', 'm' + i + ':b:' + (k === 1 ? 0.5 : 0.2 + j * 0.3), { cls: 'mut' });
       });
     });
-    P.note('Each dashed box is one process. An arrow means that the thread uses the memory of that process, and the threads in one process share the same memory (counter). Different processes have separate memory.');
+    P.note('Each dashed box is one process. An arrow means that the thread uses the memory of that process, and the threads in one process share the same memory (counter).');
   },
   assume: 'The 9 combinations were checked by actually running them on JDK 21 on this PC. With 3 threads it took 0.3 seconds and with 1 thread 0.9 seconds, and the threads incremented the same counter up to 3, whereas the 3 processes each had 1. An exception ended only the thread it was thrown in, System.exit ended every thread in the same process, and with separate processes, every process other than the one that died terminated normally. The time and memory it takes to create a process are not shown on the screen (in reality they are much larger, because a new JVM is started each time).',
 });
@@ -15553,7 +15509,7 @@ Lab.register({
 Lab.register({
   id: 'absint', nav: 'Interfaces and abstract classes', cat: 'Java language', mode: 'step',
   title: 'Neither can be created with new, so how do they differ?',
-  intro: 'An interface and an abstract class both define a contract that says "these methods must exist", and both leave the actual implementation to the class that implements them. But they differ in whether a class can inherit from several of them at once and in whether they can have state (fields). Try the same thing with each one and see what the compiler allows.',
+  intro: 'An interface and an abstract class both define a contract that says "these methods must exist", and both leave the actual implementation to the class that implements them. But they differ in whether a class can inherit from several of them at once and in whether they can have state (fields).',
   terms: ['Interface', 'Abstract class', 'Default method', 'Abstraction', 'Inheritance', 'Polymorphism'], ranks: ['absint', 'oop'],
   controls: [
     { id: 'kind', label: 'Kind', type: 'select', value: 'iface', options: [['iface', 'Interface (interface Payable)'], ['abs', 'Abstract class (abstract class Payment)']] },
@@ -15606,7 +15562,6 @@ Lab.register({
       sum.push('An abstract class can have state (fields) and constructors, and an interface can have only constants. When several implementations need to share the same fields and the same code, an abstract class is the right choice.');
     }
     if (W === 'default') { push('Card fills in only pay() and does not implement name(). ' + (I ? 'name() in Payable is a default method, so it has a body.' : 'name() in Payment is a regular method that has a body.'), '', 2); out = 'default name'; push('Calling new Card().name() runs the code written in ' + T + '. ' + (I ? 'Since Java 8, an interface can also provide a default implementation with a default method. This feature was added so that existing classes do not break when a method is added to an interface that many classes already implement.' : 'An abstract class has always been able to have regular methods.'), 'good', 3); sum.push('Both can pass down a method that has a body. The difference is whether that method can use the fields of the object. A default method of an interface has no state, so it can be written only in terms of calls to other methods.'); }
-    sum.unshift((ok ? 'The code compiles and runs. Result: ' : 'The code does not compile. ') + out);
     sum.push('How to choose: use an interface to attach the contract "provides this feature" to classes of different kinds, and use an abstract class when closely related classes need to share fields and code. In practice, interfaces are often the default choice.');
     var a = this.ok('iface', W), b = this.ok('abs', W);
     return { events: ev, summary: sum, row: [ok ? 'Success' : 'Error', out, a ? 'Allowed' : 'Not allowed', b ? 'Allowed' : 'Not allowed'] };

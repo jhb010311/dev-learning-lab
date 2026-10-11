@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
 <h1>Servlets</h1>
 <p><b>How an HTTP request reaches Java code</b></p>
-<p>What a browser sends is an HTTP request made of text. A servlet container such as Tomcat reads that text, turns it into Java objects, and calls the method of the servlet that is mapped to the path. A servlet is a Java class that &quot;receives a request object and writes to a response object&quot;. Change the request and see who does what, when the servlet object is created, and how many times it is used.</p>
+<p>What a browser sends is an HTTP request made of text. A servlet container such as Tomcat reads that text, turns it into Java objects, and calls the method of the servlet that is mapped to the path. A servlet is a Java class that &quot;receives a request object and writes to a response object&quot;.</p>
 <p>Checked against real execution · 48 different requests were sent to Tomcat 11.0.24 and Spring Boot 4.1.1 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -78,7 +78,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Response: 200 OK. Response produced by: HelloServlet.doGet. HelloServlet objects created: 1 (at the first request). init calls: 1. Request handling calls: 2.</li>
 <li>A servlet is a Java class that receives one HTTP request and produces a response, and a servlet container (Tomcat) is the program that creates, calls, and destroys that servlet. The container accepts connections, turns the HTTP text into objects, and assigns threads, so the developer writes only the code that &quot;reads from the request and writes to the response&quot;.</li>
 <li>The number of requests was 2, but there was only one servlet object. What is created anew for each request is the request and response objects. Several threads use the one servlet object at the same time, so you must not store per-request values in the fields of the servlet (the same reason as for singleton beans in Spring).</li>
 <li>When the servlet is not created in advance, object creation and init() happen while the first request is being handled, so only the first request is slow. If the setup work is heavy, create the servlet in advance at server startup.</li>
@@ -188,6 +187,6 @@ public class HelloServlet extends HttpServlet {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

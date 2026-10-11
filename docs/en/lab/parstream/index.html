@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Lambdas and streams</p>
 <h1>Parallel streams and the common pool</h1>
 <p><b>Someone else's parallel stream slows down my code</b></p>
-<p>parallelStream() does not create a thread pool of its own. It runs in the single common pool that the whole JVM shares. If some code runs tasks that wait for a long time in it, all the threads of the common pool are occupied, and other parallel streams that have nothing to do with that code slow down too. Change what request A does to see the effect on request B.</p>
+<p>parallelStream() does not create a thread pool of its own. It runs in the single common pool that the whole JVM shares. If some code runs tasks that wait for a long time in it, all the threads of the common pool are occupied, and other parallel streams that have nothing to do with that code slow down too.</p>
 <p>Checked against real execution · Values actually measured on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -60,7 +60,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Time B took: 862ms (a value actually measured on this PC).</li>
 <li>The common pool is shared by the whole JVM. If one place puts tasks that wait for a long time into a parallel stream, the parallel streams of other code that knows nothing about it slow down together with it, and so does CompletableFuture (when no pool is specified). The code that causes the problem and the code that slows down are different, so the cause is also hard to find.</li>
 <li>A parallel stream pays off only when a computation that uses the CPU is applied to a large amount of data. That use is also why the size of the common pool is matched to the number of cores. When there are few elements, when the tasks are light, or when waiting is mixed in, a parallel stream can be slower than a sequential stream. In the request-handling code of a web server, there is almost never a reason to use one.</li>
 </ul>
@@ -156,6 +155,6 @@ items.parallelStream().forEach(this::resize);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

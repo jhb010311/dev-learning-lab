@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>폴링·SSE·WebSocket: 서버에서 생긴 일을 브라우저에 알리는 네 가지 방법 · 개발 학습 실습실</title>
-<meta name="description" content="HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다.…">
+<meta name="description" content="HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/realtime/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/realtime/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/realtime/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="폴링·SSE·WebSocket: 서버에서 생긴 일을 브라우저에 알리는 네 가지 방법 · 개발 학습 실습실">
-<meta property="og:description" content="HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다.…">
+<meta property="og:description" content="HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/realtime/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
+<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>폴링·SSE·WebSocket</h1>
 <p><b>서버에서 생긴 일을 브라우저에 알리는 네 가지 방법</b></p>
-<p>HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다. 30초 동안의 요청 수와 전달 지연을 비교하세요.</p>
+<p>HTTP는 클라이언트가 물어야 서버가 답하는 구조라서, 서버에 새 알림이 생겨도 먼저 말을 걸 수 없습니다. 주기적으로 물어보거나(폴링), 대답을 미뤄 두거나(롱 폴링), 연결을 열어 두고 흘려보내거나(SSE), 아예 양방향 통로로 바꾸는(WebSocket) 방법이 있습니다.</p>
 <p>문서·표준 대조 · HTML 표준, WebSocket 표준(RFC 6455), 스프링 문서</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>30초 동안 HTTP 요청 6번(빈손 3번), 알림이 생긴 뒤 전달되기까지 평균 1.3초.</li>
 <li>폴링은 구현이 가장 단순합니다. 하지만 간격이 길면 알림이 늦고, 짧으면 소득 없는 요청이 서버에 쌓입니다. 사용자가 많으면 그 요청만으로 부하가 됩니다.</li>
 </ul>
 <h2>코드</h2>
@@ -158,6 +157,6 @@ setInterval(async () =&gt; {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=acc6b404b6"></script>
+<script src="../../app.js?v=28e3eacea2"></script>
 </body>
 </html>

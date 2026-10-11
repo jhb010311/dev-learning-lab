@@ -1,7 +1,7 @@
 Lab.register({
   id: 'servlet', nav: '서블릿', cat: '스프링', mode: 'step',
   title: 'HTTP 요청이 자바 코드에 닿기까지',
-  intro: '브라우저가 보내는 것은 글자로 된 HTTP 요청입니다. 톰캣 같은 서블릿 컨테이너가 그 글자를 읽어 자바 객체로 바꾸고, 주소에 맞는 서블릿의 메서드를 불러 줍니다. 서블릿은 "요청 객체를 받아 응답 객체에 쓰는" 자바 클래스입니다. 요청을 바꿔 보며 누가 어떤 일을 하는지, 서블릿 객체가 언제 만들어지고 몇 번 쓰이는지 보세요.',
+  intro: '브라우저가 보내는 것은 글자로 된 HTTP 요청입니다. 톰캣 같은 서블릿 컨테이너가 그 글자를 읽어 자바 객체로 바꾸고, 주소에 맞는 서블릿의 메서드를 불러 줍니다. 서블릿은 "요청 객체를 받아 응답 객체에 쓰는" 자바 클래스입니다.',
   terms: ['서블릿과 서블릿 컨테이너', 'DispatcherServlet과 프론트 컨트롤러', '내장 서버', '웹 서버와 WAS', '톰캣의 스레드 모델', 'HTTP 메서드'], ranks: ['mvc', 'was'],
   controls: [
     { id: 'kind', label: '만드는 방식', type: 'select', value: 'plain', options: [['plain', '서블릿을 직접 작성'], ['spring', '스프링 MVC (컨트롤러 작성)']] },
@@ -68,24 +68,19 @@ Lab.register({
       push('서블릿의 메서드가 끝났습니다. 톰캣이 HttpServletResponse에 담긴 내용을 HTTP 응답 글자로 바꿔 브라우저에 보냅니다. 이 요청에 쓴 request와 response 객체는 버리고, 스레드는 풀에 돌려줍니다. ' + S + ' 객체는 그대로 남아 다음 요청을 기다립니다.', '');
     }
     if (st.made) { st.destroy++; st.obj = '없어짐'; st.reqText = ''; st.respText = ''; st.reqObj = ''; st.thread = ''; push('서버를 내립니다. 톰캣이 ' + S + '의 destroy()를 한 번 호출한 뒤 객체를 버립니다. 열어 둔 자원을 정리할 기회입니다.', ''); }
-    sum.push('응답은 ' + status + '이고, 응답을 만든 곳은 ' + maker + '입니다. ' + S + ' 객체는 ' + st.made + '번 만들어졌고(' + whenMade + '), init ' + st.init + '번, 요청 처리 호출 ' + st.svc + '번이었습니다.');
     sum.push('서블릿은 HTTP 요청 하나를 받아 응답을 만드는 자바 클래스이고, 서블릿 컨테이너(톰캣)는 그 서블릿을 만들고 부르고 없애는 프로그램입니다. 연결을 받고, HTTP 글자를 객체로 바꾸고, 스레드를 배정하는 일은 컨테이너가 하므로 개발자는 "요청에서 꺼내 응답에 쓰는" 코드만 작성합니다.');
     if (st.made && c.n > 1 && st.svc > 1) sum.push('요청이 ' + c.n + '번 왔지만 서블릿 객체는 하나뿐이었습니다. 요청마다 새로 만드는 것은 request와 response 객체입니다. 서블릿 객체 하나를 여러 스레드가 동시에 쓰므로, 서블릿의 필드에 요청별 값을 저장하면 안 됩니다(스프링의 싱글톤 빈과 같은 이유).');
     if (!c.startup && st.made) sum.push(plain ? '미리 만들어 두지 않으면 객체 생성과 init()이 첫 요청 처리 중에 일어나 첫 요청만 느려집니다. 준비 작업이 무겁다면 서버 시작 때 미리 만들어 둡니다.' : '스프링 부트에서는 DispatcherServlet 객체 자체는 서버가 뜰 때 만들어지지만, init()은 첫 요청 처리 중에 일어나 첫 요청만 느려집니다. spring.mvc.servlet.load-on-startup을 설정하면 서버 시작 때 미리 초기화합니다.');
     if (!plain && st.svc > c.n) sum.push('스프링 부트의 404와 405 응답은 /error 주소로 한 번 더 넘어가 만들어집니다. 그래서 요청 ' + c.n + '번에 DispatcherServlet의 service()가 ' + st.svc + '번 불렸습니다. 필터나 인터셉터가 오류 응답에서 두 번 도는 것처럼 보이는 이유이기도 합니다.');
     if (!plain) sum.push('스프링 MVC에서는 컨트롤러가 서블릿이 아닙니다. 서블릿은 DispatcherServlet 하나이고, 모든 요청이 이 서블릿으로 들어온 뒤 컨트롤러로 나뉩니다. 컨트롤러에서 HttpServletRequest를 파라미터로 받을 수 있는 것도 밑에 서블릿이 있기 때문입니다. 그 뒤의 자세한 흐름은 "MVC 요청 흐름" 실습에 있습니다.');
-    if (c.req === 'none' && plain) sum.push('404는 "그 주소를 맡은 것이 없다"이고, 405는 "주소는 맞지만 그 HTTP 메서드는 받지 않는다"입니다. 처리 메서드를 GET만으로 두고 POST를 보내 비교해 보세요.');
+    if (c.req === 'none' && plain) sum.push('404는 "그 주소를 맡은 것이 없다"이고, 405는 "주소는 맞지만 그 HTTP 메서드는 받지 않는다"입니다.');
     return { events: ev, summary: sum, row: [status, whenMade, st.made + '번', st.init + '번', st.svc + '번', maker] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, name = sim.c.kind === 'plain' ? 'HelloServlet' : 'DispatcherServlet';
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 서버가 뜨는 것부터 시작합니다.'); return; }
-    H.counters(v, [[s.made, name + ' 객체 생성'], [s.init, 'init() 호출'], [s.svc, 'service() 호출'], [s.destroy, 'destroy() 호출']]);
     var ln = H.lanes(v);
-    H.lane(ln, '브라우저', s.reqText ? '요청을 보냄' + (s.respText ? ' → 응답을 받음' : '') : '대기', s.reqText ? 'wait' : 'none');
     H.lane(ln, '톰캣', s.thread ? '스레드 ' + s.thread + ' 배정 · ' + (s.who.indexOf('톰캣') === 0 ? '톰캣이 일하는 중' : '서블릿에 넘김') : s.who === '서버 시작 전' ? '시작 전' : '요청을 기다리는 중', s.who.indexOf('톰캣') === 0 && s.thread ? 'hot' : s.thread ? '' : 'none');
-    H.lane(ln, '서블릿', s.obj + (s.who === name ? ' · 실행 중' : ''), s.obj === '아직 없음' || s.obj === '없어짐' ? 'none' : s.who === name ? 'hot' : 'good');
-    if (sim.c.kind === 'spring') H.lane(ln, '컨트롤러', s.who === 'HelloController' ? 'HelloController 메서드 실행 중' : '스프링 빈으로 대기', s.who === 'HelloController' ? 'hot' : 'none');
     if (s.reqText) { H.title(v, '브라우저가 보낸 것 (HTTP 요청, 글자 그대로)'); v.appendChild(H.el('pre', 'code', s.reqText)); }
     if (s.reqObj) { H.title(v, '톰캣이 만들어 서블릿에 넘기는 자바 객체'); H.text(v, s.reqObj); }
     if (s.respText) { H.title(v, '브라우저에 돌아가는 것 (HTTP 응답, 글자 그대로)'); v.appendChild(H.el('pre', 'code', s.respText)); }
@@ -105,7 +100,7 @@ Lab.register({
     if (spring && inCtl) P.arrow('ctl', 'sv:r', 'ct:l', { cls: 'hot' });
     if (s.respText) P.arrow('rs', 'sv:l', 'br:b', { cls: 'good', label: 'HTTP 응답' });
     [['객체 생성', s.made], ['init()', s.init], ['service()', s.svc], ['destroy()', s.destroy]].forEach(function (x, i) { P.box('cnt' + i, 16 + i * 164, 258, 156, 34, { cls: x[1] ? 'wait' : 'ghost', title: x[0], right: x[1] + '번' }); });
-    P.note('서블릿 객체는 톰캣이 한 번만 만들고, 요청이 올 때마다 스레드가 그 객체의 service()를 호출합니다. 개발자가 new로 만들거나 직접 호출하지 않습니다. 맨 아래 숫자는 지금까지의 호출 횟수입니다.');
+    P.note('맨 아래 숫자는 지금까지의 호출 횟수입니다.');
   },
   assume: '서블릿 컨테이너는 톰캣, 요청은 한 번에 하나씩 차례로 온다고 가정했습니다. 서블릿 객체가 선언 하나당 하나만 만들어진다는 점, init과 destroy가 한 번씩 호출된다는 점, 재정의하지 않은 doPost가 405를 돌려준다는 점은 Jakarta Servlet 명세와 HttpServlet의 문서를 따랐습니다. HTTP 요청과 응답의 글자는 주요 줄만 보였습니다. 서블릿을 직접 작성한 36가지 조합은 실제 톰캣 11.0.24에, 스프링 MVC 쪽 12가지 조합은 실제 스프링 부트 4.1.1에 요청을 보내, 응답 코드와 객체 생성·init·요청 처리 호출 횟수, 객체가 만들어진 때가 화면과 일치하는 것을 확인했습니다. 이 과정에서 스프링 쪽 내용 두 가지를 실제에 맞게 고쳤습니다. DispatcherServlet 객체는 첫 요청 때가 아니라 서버가 뜰 때 만들어지고(첫 요청 때 일어나는 것은 init뿐입니다), 404와 405 응답은 /error로 한 번 더 넘어가므로 요청 처리 호출이 요청마다 두 번입니다. 응답을 만든 곳 가운데 "톰캣의 기본 서블릿"과 "HttpServlet의 기본 doPost"는 응답 코드로 미루어 본 것이고 직접 관찰한 것은 아닙니다.',
 });

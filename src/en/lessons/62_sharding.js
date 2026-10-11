@@ -1,7 +1,7 @@
 Lab.register({
   id: 'shard', nav: 'Sharding', cat: 'Database', mode: 'step',
   title: 'What happens when you split data across several databases',
-  intro: 'When one table grows too big for one database server, the rows are divided among several databases (shards). The shard key and the rule for dividing decide which row goes to which shard. Divide 120 orders among shards and see how the rule changes the skew, and what happens when you add a shard.',
+  intro: 'When one table grows too big for one database server, the rows are divided among several databases (shards). The shard key and the rule for dividing decide which row goes to which shard.',
   terms: ['Sharding and partitioning', 'Scale up and scale out', 'Replication'], ranks: ['dbengine', 'traffic', 'nosql'],
   controls: [
     { id: 'n', label: 'Number of shards', type: 'range', min: 2, max: 6, value: 4, fmt: function (v) { return v + ' shards'; } },
@@ -40,7 +40,6 @@ Lab.register({
       if (c.how === 'range') { var d2 = d1.concat([0]); moved = '0 (0%)'; push('Add one shard. The existing ranges are left as they are, and only the new orders after order ' + (TOTAL + 1) + ' go to the new shard. There is no data to move. However, the problem that writes pile up on one shard simply moves to the new shard.', 'good', d2); }
       else { var mv = orders.filter(function (o) { return o.mem % N !== o.mem % N2; }).length, d3 = dist(N2, per); moved = mv + ' (' + Math.round(mv / TOTAL * 100) + '%)'; push('Add one shard, making ' + N2 + ' shards. The rule changes from "% ' + N + '" to "% ' + N2 + '", and most of the remainder values change. Of the ' + TOTAL + ' orders, ' + mv + ' (' + Math.round(mv / TOTAL * 100) + '%) have to move to a different shard. That is a very large job to do while the system is running.', 'bad', d3); }
     }
-    sum.push('Orders per shard: ' + d1.join(', ') + '. Where new orders go: ' + newTo + '. Query for the orders of one member: ' + q + '.' + (c.grow ? ' Data to move when a shard is added: ' + moved + '.' : ''));
     sum.push('Once chosen, a shard key is very hard to change. The most frequently used query condition should be the shard key, so that a query needs to look at only one shard. Queries without the shard key, and joins and transactions that span shards, become difficult.');
     if (c.grow && c.how !== 'range') sum.push('With the remainder method, almost everything is relocated when the number of shards changes. To reduce this, people use consistent hashing (when a shard is added, only the share that the new shard takes over moves), or divide the key range in advance into many small pieces and move data one piece at a time.');
     sum.push('Sharding is the last resort for dividing writes and data volume. Before it, first consider improving indexes and queries, caching, read-only replicas, and separating old data.');
@@ -51,7 +50,6 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to start.'); return; }
     var mx = Math.max.apply(null, s.d.concat([1])), ln = H.lanes(v);
     s.d.forEach(function (x, i) { H.lane(ln, 'Shard ' + i, 'Orders: ' + x, x === 0 ? 'none' : x > 120 / s.d.length * 1.5 ? 'bad' : '', x ? x / Math.max(mx, 60) : undefined); });
-    if (s.extra) H.text(v, s.extra);
   },
   // Diagram: the router is on top, and the shards are below. The height of the bar inside a shard is the number of orders it holds.
   draw: function (P, sim, shown) {

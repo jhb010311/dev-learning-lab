@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>게이트웨이와 점진적 전환: 거대한 서버를 멈추지 않고 조금씩 떼어 내기 · 개발 학습 실습실</title>
-<meta name="description" content="모든 기능이 한 덩어리인 기존 서버(모놀리스) 앞에 게이트웨이를 두고, 경로별로 요청을 새 서비스로 조금씩 넘깁니다. 사용자가 보는 주소는 그대로입니다. 넘기는 범위와 비율을 바꿔 가며 요청이 어디로 가는지 보세요.">
+<meta name="description" content="모든 기능이 한 덩어리인 기존 서버(모놀리스) 앞에 게이트웨이를 두고, 경로별로 요청을 새 서비스로 조금씩 넘깁니다. 사용자가 보는 주소는 그대로입니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/gateway/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/gateway/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/gateway/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="게이트웨이와 점진적 전환: 거대한 서버를 멈추지 않고 조금씩 떼어 내기 · 개발 학습 실습실">
-<meta property="og:description" content="모든 기능이 한 덩어리인 기존 서버(모놀리스) 앞에 게이트웨이를 두고, 경로별로 요청을 새 서비스로 조금씩 넘깁니다. 사용자가 보는 주소는 그대로입니다. 넘기는 범위와 비율을 바꿔 가며 요청이 어디로 가는지 보세요.">
+<meta property="og:description" content="모든 기능이 한 덩어리인 기존 서버(모놀리스) 앞에 게이트웨이를 두고, 경로별로 요청을 새 서비스로 조금씩 넘깁니다. 사용자가 보는 주소는 그대로입니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/gateway/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
+<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 서비스 분리</p>
 <h1>게이트웨이와 점진적 전환</h1>
 <p><b>거대한 서버를 멈추지 않고 조금씩 떼어 내기</b></p>
-<p>모든 기능이 한 덩어리인 기존 서버(모놀리스) 앞에 게이트웨이를 두고, 경로별로 요청을 새 서비스로 조금씩 넘깁니다. 사용자가 보는 주소는 그대로입니다. 넘기는 범위와 비율을 바꿔 가며 요청이 어디로 가는지 보세요.</p>
+<p>모든 기능이 한 덩어리인 기존 서버(모놀리스) 앞에 게이트웨이를 두고, 경로별로 요청을 새 서비스로 조금씩 넘깁니다. 사용자가 보는 주소는 그대로입니다.</p>
 <p>문서·표준 대조 · Spring Cloud Gateway의 설정 조건</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -70,7 +70,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>요청 10건 중 기존 서버 4건, 새 서비스 6건, 게이트웨이에서 거절 0건.</li>
 <li>기능을 한 번에 다 옮기지 않고 경로 단위로 떼어 냅니다. 새 서비스에 문제가 생기면 설정을 되돌려 다시 기존 서버로 보내면 됩니다. 기존 시스템을 조금씩 감싸며 대체해 간다고 해서 Strangler Fig(교살자 무화과) 패턴이라고 부릅니다.</li>
 </ul>
 <h2>코드</h2>
@@ -172,6 +171,6 @@ spring.cloud.gateway:
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=acc6b404b6"></script>
+<script src="../../app.js?v=28e3eacea2"></script>
 </body>
 </html>

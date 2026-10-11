@@ -1,7 +1,7 @@
 Lab.register({
   id: 'undoredo', nav: 'Undo and redo logs', cat: 'Database', mode: 'step',
   title: 'Why does the data survive even if the power goes out right after a commit?',
-  intro: 'When a database changes data, it does not modify the data file right away. It changes the data in memory first and leaves two records: one needed to undo the change (undo) and one needed to apply it again (redo). Roll back a transaction that changes a balance from 1000 to 500, or cause a failure in it, and see what each of the two logs does.',
+  intro: 'When a database changes data, it does not modify the data file right away. It changes the data in memory first and leaves two records: one needed to undo the change (undo) and one needed to apply it again (redo).',
   terms: ['Undo log and redo log', 'ACID', 'MVCC (multiversion concurrency control)', 'Transaction'], ranks: ['dbengine', 'isolation'],
   controls: [
     { id: 'what', label: 'What happens', type: 'select', value: 'crashAfter', options: [['commit', 'A normal commit'], ['rollback', 'A rollback without committing'], ['crashAfter', 'The server goes down right after the commit (before the write to the data file)'], ['crashBefore', 'The server goes down before the commit']] },
@@ -49,7 +49,6 @@ Lab.register({
         sum.push('A committed change is recovered from the redo log even if it was not yet written to the data file. The redo log supports "what is committed remains even after a failure" (durability).');
       }
     }
-    sum.unshift('The final balance is ' + fin + '.');
     sum.push('Writing the log to disk before the data in this way is called write-ahead logging (WAL). Undo is in charge of "rolling back" and "showing earlier versions", and redo is in charge of "reapplying".');
     return { events: ev, summary: sum, row: [fin, usedU, usedR, prop] };
   },
@@ -62,7 +61,6 @@ Lab.register({
       { cells: ['Disk: redo log', { v: s.redo, cls: s.redo.indexOf('committed note (') >= 0 ? 'good' : '' }] },
       { cells: ['Undo log', s.undo] },
     ], 'Where the balance of account 1 is stored');
-    H.counters(v, [[s.tx, 'Transaction state']]);
   },
   // Diagram: The top is memory, which is lost when the server goes down, and the bottom is the disk, which stays. How far the change has been recorded decides the difference between a commit and recovery.
   draw: function (P, sim, shown) {

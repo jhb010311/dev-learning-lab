@@ -1,7 +1,7 @@
 Lab.register({
   id: 'gaplock', nav: 'Gap locks and next-key locks', cat: 'Database', mode: 'step',
   title: 'Why is an INSERT blocked when I queried a row that does not exist?',
-  intro: 'Transaction A locks rows with SELECT ... FOR UPDATE. MySQL InnoDB does not lock only the rows. Depending on the condition, it also locks the gaps between rows, so that other transactions cannot insert a new row in between. Change the query condition and the isolation level, and see how far the locking reaches.',
+  intro: 'Transaction A locks rows with SELECT ... FOR UPDATE. MySQL InnoDB does not lock only the rows. Depending on the condition, it also locks the gaps between rows, so that other transactions cannot insert a new row in between.',
   terms: ['Record locks, gap locks, and next-key locks', 'Shared locks and exclusive locks', 'Transaction isolation level', 'Phantom read', 'Pessimistic locking', 'Deadlock'], ranks: ['dbengine', 'isolation'],
   controls: [
     { id: 'q', label: 'Query condition of transaction A', type: 'select', value: 'range', options: [['hit', 'id = 20 (one row that exists)'], ['miss', 'id = 25 (a row that does not exist)'], ['range', 'id BETWEEN 20 AND 30 (a range)']] },
@@ -37,7 +37,6 @@ Lab.register({
     else push('The place where id ' + ins + ' goes is not locked. The INSERT of B runs right away.' + (!RR && ins > 20 && ins < 30 && c.q !== 'hit' ? ' If A runs the query with the same condition again, the row with id 25, which did not exist at first, appears (a phantom read).' : ''), !RR && ins === 25 && c.q !== 'hit' ? 'bad' : 'good', 3);
     if (blocked) push('When A commits, its locks are released, and only then does the INSERT of B that was waiting run.', '', 4);
     var phantom = !RR && c.q !== 'hit' && ins === 25;
-    sum.push('Locked rows: ' + (rec.length ? rec.join(', ') : 'none') + '. Locked gaps: ' + (gaps.length ? '(20~30)' : 'none') + '. The INSERT of B ' + (blocked ? 'waited.' : 'ran right away.'));
     if (RR && gaps.length) sum.push('At REPEATABLE READ, InnoDB locks the gap to stop new rows from slipping into the range (phantoms). As a cost, INSERTs of different rows can end up blocking each other.');
     if (c.q === 'miss' && RR) sum.push('This often causes trouble in an "insert if it does not exist" pattern. If two transactions each query a row that does not exist with FOR UPDATE, both get a gap lock on the same gap (gap locks do not block each other). If both then try to INSERT, each is blocked by the gap lock of the other, and a deadlock occurs.');
     if (c.q === 'hit') sum.push('When a unique index finds exactly one existing row, only a record lock is placed. To keep the range of locks narrow, it is important that the condition uses an index precisely. If it cannot use an index, a much wider range is locked.');
@@ -52,9 +51,6 @@ Lab.register({
     ids.forEach(function (id, i) { var locked = st >= 1 && sim.rec.indexOf(id) >= 0; items.push(['Row ' + id + (locked ? ' [locked]' : ''), locked ? 'b' : 'd']); var nx = ids[i + 1] || 999; items.push(gapCell(id, nx, nx === 999 ? '(after 40)' : '(' + id + '~' + nx + ')')); });
     H.title(v, 'id index (smaller values on the left)'); H.slots(v, items, '');
     H.text(v, 'Green is a row, yellow is a row locked by A, red is a gap locked by A, and a dotted line is an unlocked gap.');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Transaction A', st >= 1 ? 'SELECT ... FOR UPDATE executed, not committed yet' + (st >= 4 ? ' → committed' : '') : 'Not started', st >= 1 ? 'hot' : 'none');
-    H.lane(ln, 'Transaction B', st >= 3 ? (sim.blocked ? (st >= 4 ? 'INSERT executed (after A committed)' : 'INSERT waiting (for a lock)') : 'INSERT executed') : st >= 2 ? 'INSERT attempted' : 'Not started', st >= 3 ? (sim.blocked && st < 4 ? 'wait' : 'good') : 'none');
   },
   // Diagram: The id index is drawn like a number line. Rows (boxes) and the gaps between them (dotted) alternate, and the places that A locked and the place that B tries to insert are marked.
   draw: function (P, sim, shown) {

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'absint', nav: 'Interfaces and abstract classes', cat: 'Java language', mode: 'step',
   title: 'Neither can be created with new, so how do they differ?',
-  intro: 'An interface and an abstract class both define a contract that says "these methods must exist", and both leave the actual implementation to the class that implements them. But they differ in whether a class can inherit from several of them at once and in whether they can have state (fields). Try the same thing with each one and see what the compiler allows.',
+  intro: 'An interface and an abstract class both define a contract that says "these methods must exist", and both leave the actual implementation to the class that implements them. But they differ in whether a class can inherit from several of them at once and in whether they can have state (fields).',
   terms: ['Interface', 'Abstract class', 'Default method', 'Abstraction', 'Inheritance', 'Polymorphism'], ranks: ['absint', 'oop'],
   controls: [
     { id: 'kind', label: 'Kind', type: 'select', value: 'iface', options: [['iface', 'Interface (interface Payable)'], ['abs', 'Abstract class (abstract class Payment)']] },
@@ -54,7 +54,6 @@ Lab.register({
       sum.push('An abstract class can have state (fields) and constructors, and an interface can have only constants. When several implementations need to share the same fields and the same code, an abstract class is the right choice.');
     }
     if (W === 'default') { push('Card fills in only pay() and does not implement name(). ' + (I ? 'name() in Payable is a default method, so it has a body.' : 'name() in Payment is a regular method that has a body.'), '', 2); out = 'default name'; push('Calling new Card().name() runs the code written in ' + T + '. ' + (I ? 'Since Java 8, an interface can also provide a default implementation with a default method. This feature was added so that existing classes do not break when a method is added to an interface that many classes already implement.' : 'An abstract class has always been able to have regular methods.'), 'good', 3); sum.push('Both can pass down a method that has a body. The difference is whether that method can use the fields of the object. A default method of an interface has no state, so it can be written only in terms of calls to other methods.'); }
-    sum.unshift((ok ? 'The code compiles and runs. Result: ' : 'The code does not compile. ') + out);
     sum.push('How to choose: use an interface to attach the contract "provides this feature" to classes of different kinds, and use an abstract class when closely related classes need to share fields and code. In practice, interfaces are often the default choice.');
     var a = this.ok('iface', W), b = this.ok('abs', W);
     return { events: ev, summary: sum, row: [ok ? 'Success' : 'Error', out, a ? 'Allowed' : 'Not allowed', b ? 'Allowed' : 'Not allowed'] };

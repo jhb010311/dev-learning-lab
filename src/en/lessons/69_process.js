@@ -55,7 +55,6 @@ Lab.register({
       P.forEach(function (p) { if (p.alive) { p.mem = 1; done++; p.th[0].st = 'Task ' + p.th[0].id + ' finished'; } });
       push('The processes that are still alive finish their tasks and each increment their own counter. counter is 1 in every process. No process can see the variables of another, so to find the total, the processes must exchange the values through a separate channel such as a file, a socket, or a message.', 'good'); time = '0.3 seconds'; cnt = '1 in each process (not combined)';
     }
-    sum.push('Tasks finished: ' + done + ' of 3, ' + time + '. counter: ' + cnt + '.');
     if (H === 'single') sum.push('One thread does only one thing at a time. This is simple and safe, but the times simply add up.');
     if (H === 'multi') sum.push('Threads share the memory of the same process. They are lightweight to create and can exchange data easily, but touching the same data at the same time causes problems, and when the process dies, all the threads die with it. A web server (Tomcat) that uses a thread for each request works this way.');
     if (H === 'proc') sum.push('Processes have separate memory, so when one dies, the problem does not spread to the others. In return, they cost more to create and to switch between, each uses its own memory, and sharing data requires inter-process communication. Running several servers (several processes) is an extension of this approach.');
@@ -70,7 +69,6 @@ Lab.register({
       var ln = H.lanes(v);
       p.th.forEach(function (th) { H.lane(ln, th.name || 'Thread ' + th.id, th.st, th.st.indexOf('finished') >= 0 || th.st === 'All tasks finished' ? 'good' : th.st.indexOf('Terminated') >= 0 ? 'bad' : th.st === 'Waiting to start' ? 'none' : 'hot'); });
     });
-    H.text(v, 'The threads under the same process heading share the memory (counter) of that process.');
   },
   // Diagram: a process is a large box that has memory, and a thread is a small box inside it. The threads of one process point to the same memory.
   draw: function (P, sim, shown) {
@@ -87,7 +85,7 @@ Lab.register({
         if (p.alive && st.indexOf('Terminated') < 0) P.arrow('a' + i + '_' + j, id + ':t', 'm' + i + ':b:' + (k === 1 ? 0.5 : 0.2 + j * 0.3), { cls: 'mut' });
       });
     });
-    P.note('Each dashed box is one process. An arrow means that the thread uses the memory of that process, and the threads in one process share the same memory (counter). Different processes have separate memory.');
+    P.note('Each dashed box is one process. An arrow means that the thread uses the memory of that process, and the threads in one process share the same memory (counter).');
   },
   assume: 'The 9 combinations were checked by actually running them on JDK 21 on this PC. With 3 threads it took 0.3 seconds and with 1 thread 0.9 seconds, and the threads incremented the same counter up to 3, whereas the 3 processes each had 1. An exception ended only the thread it was thrown in, System.exit ended every thread in the same process, and with separate processes, every process other than the one that died terminated normally. The time and memory it takes to create a process are not shown on the screen (in reality they are much larger, because a new JVM is started each time).',
 });

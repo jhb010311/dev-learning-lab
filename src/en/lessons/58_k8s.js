@@ -1,7 +1,7 @@
 Lab.register({
   id: 'k8s', nav: 'Kubernetes self-healing', cat: 'Deployment and operations', mode: 'step',
   title: 'When a container dies, what starts it again?',
-  intro: 'In Kubernetes, you write down the state you want, such as "run 3 copies of this application". Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself. Trigger different events and follow how the system recovers.',
+  intro: 'In Kubernetes, you write down the state you want, such as "run 3 copies of this application". Kubernetes keeps watching the actual state, and when it differs from the desired state, it corrects it by itself.',
   terms: ['Kubernetes', 'Pod, Deployment, and Service', 'Health check (liveness, readiness)', 'Autoscaling', 'Containers and images'], ranks: ['container', 'deploy', 'cloud'],
   controls: [
     { id: 'what', label: 'What happens', type: 'select', value: 'kill', options: [['kill', 'One Pod suddenly dies'], ['node', 'One node (server) dies completely'], ['scale', 'The number of replicas is changed from 3 to 5'], ['hang', 'The application hangs (the process is still alive)'], ['notready', 'The application cannot take requests for a while (database connection lost)']] },
@@ -56,15 +56,12 @@ Lab.register({
       pods[1].st = 'Running'; pods[1].svc = true; push('shop-b connected to the database again. When it passes the readiness probe, the Service starts sending requests to it again.', 'good');
       did = 'Removed the Pod from the request targets, then added it back'; sum.push('A readiness probe handles the state of "cannot take requests for a moment but will be fine soon". The same principle holds requests back right after startup, when the application is not fully ready, and during a deployment. The key difference is that a liveness failure means a restart, and a readiness failure means requests are blocked.');
     }
-    sum.unshift('What Kubernetes did: ' + did + '. What a person did: ' + human + '. Pods now: ' + pods.length + '.');
     sum.push('The controller keeps comparing the desired state with the actual state and closes the gap. This loop is the basic principle of how Kubernetes works.');
     return { events: ev, summary: sum, row: [did, human, pods.length + ''] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to start.'); return; }
-    var alive = s.pods.filter(function (p) { return p.st === 'Running'; }).length;
-    H.counters(v, [[s.want, 'Desired Pods (value written in the Deployment)'], [alive, 'Pods running normally'], [s.pods.filter(function (p) { return p.svc; }).length, 'Pods receiving requests']]);
     H.table(v, ['Pod', 'Node', 'Status', 'Does the Service send requests to it?'], s.pods.map(function (p) { return { cls: p.st === 'Dead' ? 'gone' : '', cells: [p.n, p.node, { v: p.st, cls: p.st === 'Running' ? 'good' : p.st === 'Dead' || p.st.indexOf('failed') >= 0 || p.st.indexOf('Hung') >= 0 ? 'bad' : 'hot' }, { v: p.svc ? 'Yes' : 'No', cls: p.svc ? '' : 'bad' }] }; }), 'Pod list');
   },
   // Diagram: the Deployment (desired state) and the Service on top, three nodes and their Pods below. The arrows from the Service point to the Pods that receive requests.
@@ -84,7 +81,7 @@ Lab.register({
         k++;
       });
     });
-    P.note('A green arrow points to a Pod that the Service sends requests to. The controller keeps comparing the "desired state" at the top with the number of actual Pods below, and creates new Pods when some are missing. A new Pod gets an arrow only after it is ready.');
+    P.note('A green arrow points to a Pod that the Service sends requests to. A new Pod gets an arrow only after it is ready.');
   },
   assume: 'This is a simple setup with 3 replicas and three nodes. The time it takes to detect a failure and recover is not shown (after a node failure is detected, it takes several minutes with the default settings before the Pods are moved). The behavior of the Deployment, the controller, and the two kinds of probes follows the explanations in the official Kubernetes documentation. It is not the result of running on a real cluster.',
 });

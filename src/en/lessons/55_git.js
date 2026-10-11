@@ -1,7 +1,7 @@
 Lab.register({
   id: 'git', nav: 'Merge and rebase', cat: 'Git', mode: 'step',
   title: 'Three ways to combine two branches',
-  intro: 'While you work on the feature branch, new commits also appear on main. Whether you combine the two with merge or with rebase changes the shape of the commit graph, and if both changed the same line, you get a merge conflict. Change the conditions and compare the graphs.',
+  intro: 'While you work on the feature branch, new commits also appear on main. Whether you combine the two with merge or with rebase changes the shape of the commit graph, and if both changed the same line, you get a merge conflict.',
   terms: ['Merge and rebase', 'Merge conflict', 'Git fetch, pull, and push', 'Git-flow and GitHub Flow', 'Code review and pull requests'], ranks: ['git'],
   controls: [
     { id: 'how', label: 'How to combine', type: 'select', value: 'merge', options: [['merge', 'git merge feature on main'], ['rebase', 'git rebase main on feature, then merge'], ['squash', 'git merge --squash feature']] },
@@ -58,7 +58,6 @@ Lab.register({
       warn = 'The individual commits of feature are not kept on main';
       sum.push('squash tidies main into "one feature = one commit". Small commits made along the way (typo fixes, changes after review) do not remain on main. In return, the detailed history is lost, and Git does not know that feature has been merged, so you have to delete the branch.');
     }
-    sum.unshift('Graph shape: ' + shape + '. New commits: ' + made + '. Conflict resolution: ' + fix + '.');
     if (conf) sum.push('A conflict is not an error of Git. It is a request that says "two people changed the same place in different ways, so a person has to decide". The longer a branch lives and the more you change at once, the bigger the conflict. To prevent it, bring in changes from main often and merge in small pieces.');
     return { events: ev, summary: sum, row: [shape, made, fix, warn] };
   },
@@ -66,7 +65,6 @@ Lab.register({
     var last = shown[shown.length - 1];
     H.title(v, 'Commit graph (older commits on the left)');
     v.appendChild(H.el('pre', 'code', last ? last.snap.g : 'Click Run to start.'));
-    H.text(v, 'One letter is one commit. A commit with an apostrophe, such as D\', has the same contents but is a newly created commit.');
   },
   // Diagram: reads the commit graph drawn in text and redraws it with boxes and arrows. The top row is main, and the bottom row is feature.
   draw: function (P, sim, shown) {

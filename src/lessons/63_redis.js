@@ -1,7 +1,7 @@
 Lab.register({
   id: 'redis', nav: 'Redis의 한 줄 처리', cat: '대용량 트래픽', mode: 'step',
   title: '명령 하나가 느리면 모두가 기다린다',
-  intro: 'Redis는 명령을 스레드 하나가 한 번에 하나씩 차례로 실행합니다. 그래서 락 없이도 명령 하나하나가 끼어들 틈 없이 실행되지만, 오래 걸리는 명령이 하나 끼면 그 뒤의 모든 명령이 줄을 섭니다. 느린 명령을 섞어 보고 다른 클라이언트의 대기 시간을 확인하세요.',
+  intro: 'Redis는 명령을 스레드 하나가 한 번에 하나씩 차례로 실행합니다. 그래서 락 없이도 명령 하나하나가 끼어들 틈 없이 실행되지만, 오래 걸리는 명령이 하나 끼면 그 뒤의 모든 명령이 줄을 섭니다.',
   terms: ['Redis', '캐시', '원자성(Atomicity)과 CAS', '이벤트 루프'], ranks: ['nosql', 'cache'],
   controls: [
     { id: 'slow', label: '중간에 끼어드는 명령', type: 'select', value: 'keys', options: [['none', '없음 (빠른 명령만)'], ['keys', 'KEYS user:* (키 100만 개를 전부 훑음)'], ['scan', 'SCAN으로 나눠서 훑음 (한 번에 1,000개씩)'], ['big', '원소 50만 개짜리 리스트 통째로 조회 (LRANGE 0 -1)']] },
@@ -42,7 +42,6 @@ Lab.register({
       rows.push({ cells: [x.who, x.cmd, { v: f(wait), cls: wait > 1 ? 'bad' : '' }, { v: f(x.dur), cls: x.dur > 10 ? 'bad' : '' }] });
       push(x.who + '의 ' + x.cmd + ': ' + (wait > 1 ? '앞의 명령이 끝나기를 ' + f(wait) + ' 기다린 뒤 ' : '') + f(x.dur) + ' 동안 실행됐습니다.' + (x.dur > 10 ? ' 이 명령이 실행되는 동안 Redis는 다른 어떤 명령도 처리하지 못합니다.' : '') + note, x.dur > 10 || wait > 1 ? 'bad' : '');
     });
-    sum.push('가장 오래 기다린 명령은 ' + f(maxWait) + ' 기다렸고, 전체 처리에 ' + f(t) + '가 걸렸습니다.');
     if (c.slow === 'keys' || c.slow === 'big') sum.push('평소 0.1ms에 끝나던 조회가 ' + f(stall) + '를 기다렸습니다. Redis에 연결된 모든 서비스가 동시에 느려지고, 타임아웃이 걸려 있으면 캐시 조회가 줄줄이 실패합니다. 운영 중인 Redis에서 KEYS, 큰 컬렉션 통째 조회, 큰 키 삭제(DEL) 같은 명령을 피해야 하는 이유입니다.');
     if (c.slow === 'scan') sum.push('SCAN은 전체를 한 번에 훑지 않고 조금씩 나눠 실행합니다. 한 번의 실행이 짧아서 그 사이에 다른 명령이 끼어들 수 있습니다. 전체를 다 훑는 데는 더 오래 걸리지만 다른 클라이언트를 멈추게 하지 않습니다.');
     if (c.slow === 'none') sum.push('명령 하나하나가 메모리에서 아주 빠르게 끝나기 때문에, 스레드 하나로도 초당 수만 건 이상을 처리합니다. 스레드가 하나라서 락 경쟁과 교대 비용이 없는 것도 빠른 이유입니다.');
@@ -52,7 +51,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], val: 10 };
     if (s.rows.length) H.table(v, ['보낸 곳', '명령', '기다린 시간', '실행 시간'], s.rows, 'Redis가 실행한 순서'); else H.text(v, '아직 실행된 명령이 없습니다.');
-    if (sim.c.incr) H.counters(v, [[s.val, 'view:1의 값 (처음 10)']]);
   },
   // 그림: 여러 클라이언트가 보낸 명령이 한 줄로 서서 스레드 하나에 의해 차례로 실행된다.
   draw: function (P, sim, shown) {
@@ -63,7 +61,7 @@ Lab.register({
     rows.forEach(function (r, i) { var run = P.c(r.cells[3]), waitc = P.c(r.cells[2]); P.box('cmd' + i, 28, 102 + i * 32, 624, 27, { cls: (run === 'bad' ? 'bad' : waitc === 'bad' ? 'hot' : 'good') + (i === n - 1 ? ' now' : ''), title: P.v(r.cells[0]) + ': ' + P.v(r.cells[1]), right: '대기 ' + P.v(r.cells[2]) + ' · 실행 ' + P.v(r.cells[3]) }); });
     if (!n) P.text('none', 340, 124, '아직 실행된 명령이 없습니다', { cls: 'mut', anchor: 'middle' });
     if (sim.c.incr) P.box('val', 16, 128 + Math.max(1, n) * 32, 648, 34, { cls: 'plain', title: 'view:1의 값 (처음 10)', right: String(s.val) });
-    P.note('빨간 줄은 오래 걸린 명령, 노란 줄은 그 명령이 끝나기를 기다리느라 늦어진 명령, 굵은 테두리는 방금 실행된 명령입니다. 명령은 하나씩 차례로만 실행되므로 느린 명령 하나가 뒤의 모든 명령을 세워 둡니다.');
+    P.note('빨간 줄은 오래 걸린 명령, 노란 줄은 그 명령이 끝나기를 기다리느라 늦어진 명령, 굵은 테두리는 방금 실행된 명령입니다.');
   },
   assume: '명령의 실행 시간(GET 0.1ms, KEYS 500ms, 큰 리스트 조회 300ms, SCAN 한 번 0.5ms)은 크기의 차이를 보이기 위한 예시입니다. Redis가 명령을 한 스레드에서 차례로 실행한다는 점과 KEYS 대신 SCAN을 쓰라는 권고는 Redis 공식 문서를 따랐습니다. Redis 6부터 네트워크 입출력에는 여러 스레드를 쓸 수 있지만 명령 실행은 여전히 한 스레드입니다. 원리는 실제 Redis 8.10.2에서 확인했습니다(키 100만 개, 원소 50만 개짜리 리스트). KEYS가 도는 동안 다른 클라이언트의 GET이 최대 186ms, 큰 리스트 조회 동안 22ms를 기다렸고(평소에는 3ms 이하), SCAN으로 1,000개씩 나눠 훑는 동안에는 1.5ms를 넘지 않았습니다. 두 클라이언트가 같은 키에 20,000번씩 동시에 보낸 INCR의 최종 값은 정확히 40,000이었습니다. 화면의 시간 값은 이 측정값이 아니라 예시이며, 실제 시간은 데이터 크기와 장비에 따라 달라집니다.',
 });

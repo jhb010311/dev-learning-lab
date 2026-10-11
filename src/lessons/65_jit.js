@@ -1,7 +1,7 @@
 Lab.register({
   id: 'jit', nav: 'JIT 워밍업', cat: 'JVM', mode: 'step',
   title: '배포 직후의 첫 요청들은 왜 느린가',
-  intro: '자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다. 같은 메서드를 2,000번씩 열두 묶음 호출하며 묶음마다 걸린 시간을 실제로 잰 결과를 보세요.',
+  intro: '자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.',
   terms: ['JIT 컴파일러', '바이트코드', 'JVM(자바 가상 머신)', '클래스 로더'], ranks: ['jvm', 'tuning', 'deploy'],
   controls: [
     { id: 'mode', label: '실행 방식', type: 'select', value: 'jit', options: [['jit', '기본 설정 (해석하다가 JIT 컴파일)'], ['int', 'JIT를 끔 (-Xint, 계속 해석만)'], ['warm', '요청을 받기 전에 미리 호출해 둠 (워밍업)']] },
@@ -32,7 +32,6 @@ Lab.register({
       push(s, c.mode === 'int' ? 'bad' : c.mode === 'jit' && i === 0 ? 'bad' : 'good', i + 1);
     });
     var mx = Math.max.apply(null, D), mn = Math.min.apply(null, D);
-    sum.push('첫 묶음 ' + f(D[0]) + ', 마지막 묶음 ' + f(D[11]) + '. 가장 느린 묶음은 가장 빠른 묶음의 ' + (Math.round(mx / mn * 10) / 10) + '배입니다.');
     if (c.mode === 'jit') sum.push('같은 코드인데 처음과 나중의 속도가 다릅니다. JVM은 모든 코드를 미리 컴파일하지 않고, 실제로 자주 실행되는 부분만 골라 실행 중에 컴파일합니다(Just-In-Time). 실행 정보를 보고 최적화하므로 충분히 달궈진 뒤에는 미리 컴파일한 언어에 가까운 속도가 납니다.');
     if (c.mode === 'int') sum.push('JIT 없이 해석만 하면 컴파일된 뒤(약 1.4ms)보다 20배가량 느립니다(약 29ms). 자바의 실제 성능은 JIT 컴파일러에서 나옵니다.');
     if (c.mode === 'warm') sum.push('워밍업은 느린 구간을 사용자 요청이 오기 전에 미리 치르는 것입니다. 배포 직후 주요 API를 내부에서 몇 번 호출하거나, 준비 완료 신호(readiness)를 워밍업 뒤에 보내는 식으로 적용합니다.');

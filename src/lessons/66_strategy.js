@@ -1,7 +1,7 @@
 Lab.register({
   id: 'strategy', nav: '전략 패턴', cat: '설계', mode: 'step',
   title: '결제 수단이 하나 늘 때 고쳐야 하는 곳',
-  intro: '결제 수단(카드, 계좌이체, 카카오페이)마다 처리 방식이 다릅니다. if-else로 나누는 코드와, 수단별 구현을 따로 두고 갈아 끼우는 코드(전략 패턴)가 있습니다. 네이버페이를 추가할 때 각각 어디를 고쳐야 하는지, 실행할 때 어느 구현이 어떻게 선택되는지 비교하세요.',
+  intro: '결제 수단(카드, 계좌이체, 카카오페이)마다 처리 방식이 다릅니다. if-else로 나누는 코드와, 수단별 구현을 따로 두고 갈아 끼우는 코드(전략 패턴)가 있습니다.',
   terms: ['전략 패턴', '디자인 패턴', '다형성', 'SOLID', '인터페이스', 'DI(의존성 주입)'], ranks: ['pattern', 'oop', 'di'],
   controls: [
     { id: 'how', label: '구현 방식', type: 'select', value: 'ifelse', options: [['ifelse', 'if-else로 분기'], ['strategy', '전략 패턴 (인터페이스 + 구현 클래스)']] },
@@ -34,7 +34,6 @@ Lab.register({
     if (st) { cmp = 1; push('PaymentService가 맵에서 "' + c.pay + '"에 해당하는 구현 객체를 꺼냅니다. 조건문으로 비교하지 않습니다.', '', c.pay); push('꺼낸 객체의 pay()를 호출합니다. 변수의 타입은 PaymentStrategy이지만, 실제로 실행되는 것은 그 객체의 클래스(' + { CARD: 'CardPayment', KAKAO: 'KakaoPayment', NAVER: 'NaverPayment' }[c.pay] + ')에 있는 pay()입니다. 다형성이 분기문의 역할을 대신합니다.', 'good', c.pay); }
     else { for (var i = 0; i < types.length; i++) { cmp++; var hit = types[i] === c.pay; push('type이 "' + types[i] + '"인지 비교합니다. ' + (hit ? '맞습니다. 이 블록 안의 ' + name[c.pay] + ' 처리 코드를 실행합니다.' : '아닙니다. 다음 조건으로 넘어갑니다.'), hit ? 'good' : '', 'PaymentService'); if (hit) break; } }
     var changed = c.add ? (st ? '없음' : '메서드 3개') : '-', made = c.add ? (st ? '클래스 1개' : '없음') : '-';
-    sum.push((c.add ? '네이버페이 추가로 고친 기존 코드: ' + changed + ', 새로 만든 것: ' + made + '. ' : '') + '실행할 때 비교한 횟수: ' + cmp + '번.');
     if (st) sum.push('전략 패턴은 "바뀌는 부분(수단별 처리)"을 인터페이스 뒤로 숨기고 구현을 갈아 끼울 수 있게 합니다. 새 수단은 새 클래스로 추가되고 기존 코드는 닫혀 있습니다(개방-폐쇄 원칙). 수단마다 클래스가 따로라서 각각 따로 테스트하고, 가짜 구현으로 바꿔 끼우기도 쉽습니다.');
     else sum.push('if-else 방식은 수단이 두세 개이고 늘어날 일이 없다면 가장 단순하고 읽기 쉽습니다. 문제는 수단이 늘 때마다 같은 분기가 여러 메서드에 복사되고, 메서드 하나가 계속 길어지며, 한 수단을 고치다 다른 수단을 건드릴 위험이 커진다는 점입니다.');
     sum.push('스프링의 의존성 주입 자체가 전략 패턴의 활용입니다. 인터페이스 타입으로 주입받고 실제 구현은 설정에 따라 바뀝니다(운영에서는 실제 결제사, 테스트에서는 가짜 구현).');

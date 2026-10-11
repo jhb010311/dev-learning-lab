@@ -1,7 +1,7 @@
 Lab.register({
   id: 'autoconf', nav: 'Spring Boot auto-configuration', cat: 'Spring', mode: 'step',
   title: 'Why do beans appear when all you did was add a dependency?',
-  intro: 'When an application starts, Spring Boot goes through a set of configuration classes prepared in advance, one by one, and decides "if this condition is met, register this bean". The conditions are mainly which libraries are on the classpath and whether the developer has registered the same bean. Change the dependencies and whether you register a bean yourself, and watch the final list of beans.',
+  intro: 'When an application starts, Spring Boot goes through a set of configuration classes prepared in advance, one by one, and decides "if this condition is met, register this bean". The conditions are mainly which libraries are on the classpath and whether the developer has registered the same bean.',
   terms: ['Spring Boot auto-configuration', 'Starter', 'Embedded server', '@Configuration and @Bean', 'Component scanning'], ranks: ['boot', 'bean', 'di'],
   controls: [
     { id: 'web', label: 'spring-boot-starter-webmvc dependency', type: 'check', value: true },
@@ -49,7 +49,6 @@ Lab.register({
         row('Spring Data JPA', 'JpaRepository interface found', 'Repository implementation registered', 'good'); push('Spring Data JPA auto-configuration: It finds the interfaces that extend JpaRepository, creates an implementation object for each of them, and registers it as a bean.', 'good'); }
     } else { row('DataSource / JPA', 'JDBC and Hibernate are not on the classpath', 'Skipped', ''); push('Database auto-configuration: The related classes are not on the classpath, so it is skipped.', ''); }
     if (!failed) { row('The rest (Redis, Kafka, Security, and so on)', 'The library is not on the classpath', 'Skipped', ''); push('The remaining auto-configurations: Their libraries are not on the classpath, so most of them fail their conditions. Many configurations are prepared, but the only ones actually applied are those that match the dependencies you added.', ''); }
-    sum.push(failed ? 'Startup failed. There is not enough information to configure a DataSource.' : 'Startup succeeded. Bean groups registered by auto-configuration: ' + auto + '. Your own beans used instead: ' + mine + '.');
     sum.push('Auto-configuration decides on two criteria: whether the library is on the classpath (@ConditionalOnClass), and whether the developer has already registered a bean of the same type (@ConditionalOnMissingBean). The role of a starter is to bring in the set of libraries that are needed all at once, which satisfies the first condition.');
     sum.push('A bean that you register yourself always wins. Start with the defaults, and register yourself only the parts that you want to change. To see which auto-configurations were applied or left out, and why, run the application with the --debug option, which prints a conditions report.');
     return { events: ev, summary: sum, row: [failed ? 'Failed' : 'Succeeded', auto + '', mine + '', skip + ''] };

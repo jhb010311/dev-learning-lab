@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>인터페이스와 추상 클래스: 둘 다 new로 못 만드는데 무엇이 다른가 · 개발 학습 실습실</title>
-<meta name="description" content="인터페이스와 추상 클래스는 둘 다 &quot;이런 메서드가 있어야 한다&quot;는 약속을 정하고, 실제 내용은 구현하는 클래스에 맡깁니다. 하지만 여러 개를 동시에 물려받을 수 있는지, 상태(필드)를 가질 수 있는지가 다릅니다. 같은 일을 양쪽에서 시도해 보고 컴파일러가 무엇을 허용하는지 보…">
+<meta name="description" content="인터페이스와 추상 클래스는 둘 다 &quot;이런 메서드가 있어야 한다&quot;는 약속을 정하고, 실제 내용은 구현하는 클래스에 맡깁니다. 하지만 여러 개를 동시에 물려받을 수 있는지, 상태(필드)를 가질 수 있는지가 다릅니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/absint/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/absint/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/absint/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="인터페이스와 추상 클래스: 둘 다 new로 못 만드는데 무엇이 다른가 · 개발 학습 실습실">
-<meta property="og:description" content="인터페이스와 추상 클래스는 둘 다 &quot;이런 메서드가 있어야 한다&quot;는 약속을 정하고, 실제 내용은 구현하는 클래스에 맡깁니다. 하지만 여러 개를 동시에 물려받을 수 있는지, 상태(필드)를 가질 수 있는지가 다릅니다. 같은 일을 양쪽에서 시도해 보고 컴파일러가 무엇을 허용하는지 보…">
+<meta property="og:description" content="인터페이스와 추상 클래스는 둘 다 &quot;이런 메서드가 있어야 한다&quot;는 약속을 정하고, 실제 내용은 구현하는 클래스에 맡깁니다. 하지만 여러 개를 동시에 물려받을 수 있는지, 상태(필드)를 가질 수 있는지가 다릅니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/absint/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
+<link rel="stylesheet" href="../../app.css?v=28e3eacea2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 클래스와 객체</p>
 <h1>인터페이스와 추상 클래스</h1>
 <p><b>둘 다 new로 못 만드는데 무엇이 다른가</b></p>
-<p>인터페이스와 추상 클래스는 둘 다 &quot;이런 메서드가 있어야 한다&quot;는 약속을 정하고, 실제 내용은 구현하는 클래스에 맡깁니다. 하지만 여러 개를 동시에 물려받을 수 있는지, 상태(필드)를 가질 수 있는지가 다릅니다. 같은 일을 양쪽에서 시도해 보고 컴파일러가 무엇을 허용하는지 보세요.</p>
+<p>인터페이스와 추상 클래스는 둘 다 &quot;이런 메서드가 있어야 한다&quot;는 약속을 정하고, 실제 내용은 구현하는 클래스에 맡깁니다. 하지만 여러 개를 동시에 물려받을 수 있는지, 상태(필드)를 가질 수 있는지가 다릅니다.</p>
 <p>실행으로 대조 · JDK 21에서 열두 가지 조합을 컴파일·실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>컴파일되고 실행됩니다. 결과: 컴파일 성공. Card는 Payable이기도 하고 Refundable이기도 함</li>
 <li>클래스는 하나만 상속(extends)할 수 있고, 인터페이스는 여러 개를 구현(implements)할 수 있습니다. &quot;~을 할 수 있다&quot;는 능력을 여러 개 붙이려면 인터페이스를 씁니다.</li>
 <li>고르는 기준: 서로 다른 종류의 클래스들에게 &quot;이 기능을 제공한다&quot;는 약속을 붙이려면 인터페이스, 가까운 종류의 클래스들이 필드와 코드를 공유해야 하면 추상 클래스입니다. 실무에서는 인터페이스를 기본으로 쓰는 경우가 많습니다.</li>
 </ul>
@@ -166,6 +165,6 @@ class Card implements Payable, Refundable {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=acc6b404b6"></script>
+<script src="../../app.js?v=28e3eacea2"></script>
 </body>
 </html>

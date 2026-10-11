@@ -1,7 +1,7 @@
 Lab.register({
   id: 'httpver', nav: 'HTTP/1.1, 2, 3', cat: 'HTTP', mode: 'step',
   title: 'What differs between the versions when you fetch 30 files',
-  intro: 'A single web page is made of dozens of files (scripts, styles, images). HTTP/1.1 receives only one file at a time on a connection, so requests have to wait in line, while HTTP/2 mixes several requests on one connection. HTTP/3 changes even the transport layer below it. Compare them while changing the number of files and whether a packet is lost.',
+  intro: 'A single web page is made of dozens of files (scripts, styles, images). HTTP/1.1 receives only one file at a time on a connection, so requests have to wait in line, while HTTP/2 mixes several requests on one connection. HTTP/3 changes even the transport layer below it.',
   terms: ['HTTP/1.1, HTTP/2, and HTTP/3', 'TCP and UDP', 'Three-way handshake'], ranks: ['http', 'network'],
   controls: [
     { id: 'ver', label: 'HTTP version', type: 'select', value: '1.1', options: [['1.1', 'HTTP/1.1'], ['2', 'HTTP/2'], ['3', 'HTTP/3']] },
@@ -44,16 +44,11 @@ Lab.register({
     }
     if (c.loss && c.ver === '3') sum.push('The total time looks similar to HTTP/2 because it is the moment the last file finishes, but the other ' + (n - 1) + ' files had already been received at about ' + (setup + T) + 'ms. In HTTP/2, all ' + n + ' waited until about ' + (30 + T + RT) + 'ms.');
     push('All the files have been received. About ' + total + 'ms in total.', 'good', { done: n, wave: waves, fin: true });
-    sum.unshift('Files: ' + n + '. Time to receive them: about ' + total + 'ms. Connections: ' + conns + '. Times waited in line: ' + (waves - 1) + '.' + (c.loss ? ' Files stopped by the loss: ' + (c.ver === '1.1' ? stalled + ' (those that go through that connection)' : stalled) + '.' : ''));
     return { events: ev, summary: sum, row: [total + 'ms', conns + '', (waves - 1) + '', c.loss ? stalled + '' : 'None'] };
   },
   render: function (v, sim, t, H, shown) {
-    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { done: 0, wave: 0 }, items = [];
-    H.counters(v, [[s.done + ' / ' + c.n, 'Files received'], [c.ver === '1.1' ? 6 : 1, 'Connections']]);
-    H.title(v, 'Files: ' + c.n);
-    for (var i = 0; i < c.n; i++) { var cls = i < s.done ? 'd' : ''; if (!cls && c.ver === '1.1' && s.wave && i < s.wave * 6) cls = 'b'; if (!cls && c.ver !== '1.1' && s.wave) cls = s.stall && (c.ver === '2' || i === c.n - 1) ? 'r' : 'b'; if (c.ver === '1.1' && s.loss && i % 6 === 0 && i < 6) cls = 'r'; items.push([String(i + 1), cls]); }
-    H.slots(v, items, null, true);
-    H.text(v, 'Green means a file has been received, yellow means it is being received, red means it is stopped by the loss, and a dotted outline means it is waiting for its turn.');
+    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { done: 0, wave: 0 };
+    H.counters(v, [[s.done + ' / ' + c.n, 'Files received']]);
   },
   // Diagram: draw the connections between the browser and the server as channels. HTTP/1.1 uses six channels with one file each, and HTTP/2 and 3 mix many files on one channel.
   draw: function (P, sim, shown) {
@@ -71,7 +66,7 @@ Lab.register({
       if (v1 && s.loss && i % 6 === 0 && i < 6) cls = 'bad';
       P.box('f' + i, 28 + (i % 30) * 20.8, 248 + Math.floor(i / 30) * 22, 18, 18, { cls: cls });
     }
-    P.note('The boxes in the middle are the connections. The small squares below are the files: green means received, yellow means being received, red means stopped by the loss, and dotted means waiting for its turn. An HTTP/1.1 connection carries only one file at a time, so the files are received six at a time.');
+    P.note('The boxes in the middle are the connections. The small squares below are the files: green means received, yellow means being received, red means stopped by the loss, and dotted means waiting for its turn.');
   },
   assume: 'This is a model that assumes it takes 100ms to receive one file, 200ms to retransmit a lost packet, and, to set up the connection, 60ms for HTTP/1.1 (the 6 connections at the same time), 30ms for HTTP/2, and 20ms for HTTP/3. The real numbers depend on the network and the file sizes, and the 6 HTTP/1.1 connections that a browser opens to the same server is the default of the major browsers. The characteristics of each version follow the descriptions in the standards (RFC 9112, 9113, 9114). The part about the number of connections was checked in practice. In a real browser (Chromium-based), 18 requests that each take 0.3s were sent at the same time to an HTTP/1.1 server, and they were handled on 6 connections, at most 6 at a time, which took 931ms; with HTTP/2 (the built-in Node implementation), 30 requests were handled at the same time on 1 TCP connection and finished in 324ms. The difference when a packet is lost, and HTTP/3, could not be reproduced on the PC used to write this lab.',
 });

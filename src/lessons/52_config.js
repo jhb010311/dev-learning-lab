@@ -1,7 +1,7 @@
 Lab.register({
   id: 'config', nav: '설정 우선순위', cat: '스프링', mode: 'step',
   title: '같은 설정이 여러 곳에 있으면 어느 값이 이기나',
-  intro: '스프링 부트는 설정값을 파일, 환경 변수, 실행 옵션 등 여러 곳에서 읽습니다. 같은 키가 여러 곳에 있으면 우선순위가 높은 쪽이 이깁니다. app.timeout이라는 설정을 여러 곳에 넣었다 뺐다 하며 최종 값을 확인하세요.',
+  intro: '스프링 부트는 설정값을 파일, 환경 변수, 실행 옵션 등 여러 곳에서 읽습니다. 같은 키가 여러 곳에 있으면 우선순위가 높은 쪽이 이깁니다.',
   terms: ['외부화 설정과 프로파일', 'Spring Boot 자동 설정(Auto-configuration)', 'CI/CD'], ranks: ['boot', 'deploy'],
   controls: [
     { id: 'yml', label: 'application.yml에 app.timeout: 3000', type: 'check', value: true },
@@ -36,7 +36,6 @@ Lab.register({
     });
     var val = win ? SRC.filter(function (s) { return s[0] === win; })[0][2] : '1000', from = win ? SRC.filter(function (s) { return s[0] === win; })[0][1].split(' (')[0] : '코드의 기본값 (@Value의 : 뒤)';
     if (!win) { seen.push('def'); push('어디에도 값이 없습니다. @Value에 적어 둔 기본값 1000을 씁니다. 기본값도 없었다면 애플리케이션이 뜨다가 실패합니다.', ''); }
-    sum.push('app.timeout의 최종 값은 ' + val + '입니다. 값을 준 곳: ' + from + '.' + (hidden.length ? ' 가려진 값: ' + hidden.join(', ') + '.' : ''));
     sum.push('우선순위는 높은 쪽부터 실행 인자 → JVM 시스템 프로퍼티 → 환경 변수 → 프로파일 전용 파일 → 기본 파일입니다. 실행하는 쪽에 가까울수록 우선합니다.');
     sum.push('이 순서 덕분에 같은 빌드 결과물(jar, 이미지)을 고치지 않고 환경마다 다른 값으로 실행할 수 있습니다. DB 주소나 비밀번호처럼 환경마다 다르거나 코드 저장소에 넣으면 안 되는 값은 환경 변수나 실행 시 주입으로 넘깁니다.');
     if (c.env && c.prof && win === 'env') sum.push('"파일을 고쳤는데 값이 안 바뀐다"면 더 우선하는 곳(환경 변수 등)에 같은 키가 있는지 먼저 확인합니다.');

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'httpver', nav: 'HTTP/1.1, 2, 3', cat: 'HTTP', mode: 'step',
   title: '파일 30개를 받을 때 버전마다 무엇이 다른가',
-  intro: '웹 페이지 하나는 수십 개의 파일(스크립트, 스타일, 이미지)로 이뤄집니다. HTTP/1.1은 연결 하나로 한 번에 하나씩만 받아서 줄을 서야 하고, HTTP/2는 연결 하나에 여러 요청을 섞어 보냅니다. HTTP/3는 그 밑의 전송 계층까지 바꿨습니다. 파일 수와 패킷 유실 여부를 바꿔 가며 비교하세요.',
+  intro: '웹 페이지 하나는 수십 개의 파일(스크립트, 스타일, 이미지)로 이뤄집니다. HTTP/1.1은 연결 하나로 한 번에 하나씩만 받아서 줄을 서야 하고, HTTP/2는 연결 하나에 여러 요청을 섞어 보냅니다. HTTP/3는 그 밑의 전송 계층까지 바꿨습니다.',
   terms: ['HTTP/1.1, HTTP/2, HTTP/3', 'TCP와 UDP', '3-way handshake'], ranks: ['http', 'network'],
   controls: [
     { id: 'ver', label: 'HTTP 버전', type: 'select', value: '1.1', options: [['1.1', 'HTTP/1.1'], ['2', 'HTTP/2'], ['3', 'HTTP/3']] },
@@ -44,16 +44,11 @@ Lab.register({
     }
     if (c.loss && c.ver === '3') sum.push('전체 소요 시간은 마지막 파일이 끝나는 시점이라 HTTP/2와 비슷해 보이지만, 나머지 ' + (n - 1) + '개는 약 ' + (setup + T) + 'ms에 이미 다 받았습니다. HTTP/2에서는 ' + n + '개 모두가 약 ' + (30 + T + RT) + 'ms까지 기다렸습니다.');
     push('모든 파일을 받았습니다. 전체 약 ' + total + 'ms.', 'good', { done: n, wave: waves, fin: true });
-    sum.unshift('파일 ' + n + '개를 받는 데 약 ' + total + 'ms, 연결 ' + conns + '개, 줄 선 횟수 ' + (waves - 1) + '번.' + (c.loss ? ' 유실 때문에 멈춘 파일: ' + (c.ver === '1.1' ? '그 연결을 거치는 ' + stalled + '개' : stalled + '개') + '.' : ''));
     return { events: ev, summary: sum, row: [total + 'ms', conns + '개', (waves - 1) + '번', c.loss ? stalled + '개' : '없음'] };
   },
   render: function (v, sim, t, H, shown) {
-    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { done: 0, wave: 0 }, items = [];
-    H.counters(v, [[s.done + ' / ' + c.n, '받은 파일'], [c.ver === '1.1' ? 6 : 1, '연결 수']]);
-    H.title(v, '파일 ' + c.n + '개');
-    for (var i = 0; i < c.n; i++) { var cls = i < s.done ? 'd' : ''; if (!cls && c.ver === '1.1' && s.wave && i < s.wave * 6) cls = 'b'; if (!cls && c.ver !== '1.1' && s.wave) cls = s.stall && (c.ver === '2' || i === c.n - 1) ? 'r' : 'b'; if (c.ver === '1.1' && s.loss && i % 6 === 0 && i < 6) cls = 'r'; items.push([String(i + 1), cls]); }
-    H.slots(v, items, null, true);
-    H.text(v, '초록은 받은 파일, 노랑은 받는 중, 빨강은 유실 때문에 멈춘 파일, 점선은 차례를 기다리는 파일입니다.');
+    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { done: 0, wave: 0 };
+    H.counters(v, [[s.done + ' / ' + c.n, '받은 파일']]);
   },
   // 그림: 브라우저와 서버 사이의 연결을 통로로 그린다. HTTP/1.1은 통로 여섯 개에 하나씩, HTTP/2와 3은 통로 하나에 여러 개를 섞어 보낸다.
   draw: function (P, sim, shown) {
@@ -71,7 +66,7 @@ Lab.register({
       if (v1 && s.loss && i % 6 === 0 && i < 6) cls = 'bad';
       P.box('f' + i, 28 + (i % 30) * 20.8, 248 + Math.floor(i / 30) * 22, 18, 18, { cls: cls });
     }
-    P.note('가운데 상자가 연결입니다. 아래 칸은 파일로, 초록은 받은 것, 노랑은 받는 중, 빨강은 유실 때문에 멈춘 것, 점선은 차례를 기다리는 것입니다. HTTP/1.1은 연결 하나가 한 번에 파일 하나만 나르므로 여섯 개씩 끊어서 받습니다.');
+    P.note('가운데 상자가 연결입니다. 아래 칸은 파일로, 초록은 받은 것, 노랑은 받는 중, 빨강은 유실 때문에 멈춘 것, 점선은 차례를 기다리는 것입니다.');
   },
   assume: '파일 하나를 받는 데 100ms, 유실된 패킷의 재전송에 200ms, 연결 수립에 HTTP/1.1은 60ms(연결 6개가 동시에), HTTP/2는 30ms, HTTP/3는 20ms가 든다고 가정한 모형입니다. 실제 숫자는 네트워크와 파일 크기에 따라 다르며, 브라우저가 같은 서버에 맺는 HTTP/1.1 연결 수 6개는 주요 브라우저의 기본값입니다. 버전별 특징은 각 표준(RFC 9112, 9113, 9114)의 설명을 따랐습니다. 연결 수에 관한 부분은 실제로 확인했습니다. 실제 브라우저(크로미움 기반)에서 0.3초씩 걸리는 요청 18개를 HTTP/1.1 서버에 동시에 보내니 연결 6개로 최대 6개씩 처리되어 931ms가 걸렸고, HTTP/2(Node 내장 구현)로는 요청 30개가 TCP 연결 1개에서 동시에 처리되어 324ms에 끝났습니다. 패킷 유실 시의 차이와 HTTP/3는 이 PC에서 재현하지 못했습니다.',
 });

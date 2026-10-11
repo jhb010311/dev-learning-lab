@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Splitting into services</p>
 <h1>Gateway and gradual migration</h1>
 <p><b>Breaking up a huge server piece by piece without stopping it</b></p>
-<p>You put a gateway in front of an existing server (a monolith) that holds every feature in one lump, and hand requests over to new services one route at a time. The address that users see does not change. Change how much is handed over and in what share, and watch where the requests go.</p>
+<p>You put a gateway in front of an existing server (a monolith) that holds every feature in one lump, and hand requests over to new services one route at a time. The address that users see does not change.</p>
 <p>Checked against documentation and standards · The path and weight predicates of Spring Cloud Gateway</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -70,7 +70,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Requests: 10. To the existing server: 4. To the new service: 6. Rejected at the gateway: 0.</li>
 <li>You do not move every feature at once; you split them off one route at a time. If something goes wrong with a new service, you can change the configuration back and send the requests to the existing server again. Because the new system gradually wraps around the existing one and replaces it, this approach is called the strangler fig pattern.</li>
 </ul>
 <h2>Code</h2>
@@ -172,6 +171,6 @@ spring.cloud.gateway:
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>HTTP/1.1, 2, 3</h1>
 <p><b>What differs between the versions when you fetch 30 files</b></p>
-<p>A single web page is made of dozens of files (scripts, styles, images). HTTP/1.1 receives only one file at a time on a connection, so requests have to wait in line, while HTTP/2 mixes several requests on one connection. HTTP/3 changes even the transport layer below it. Compare them while changing the number of files and whether a packet is lost.</p>
+<p>A single web page is made of dozens of files (scripts, styles, images). HTTP/1.1 receives only one file at a time on a connection, so requests have to wait in line, while HTTP/2 mixes several requests on one connection. HTTP/3 changes even the transport layer below it.</p>
 <p>Partly checked against real execution · HTTP/1.1 and 2 were checked with a browser; HTTP/3 and packet loss could not be reproduced</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -62,7 +62,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Files: 30. Time to receive them: about 560ms. Connections: 6. Times waited in line: 4.</li>
 <li>The files were received in 5 batches over 6 connections. The next request can be sent only after the earlier response is finished, so the more files there are, the longer the time spent waiting in line. That is why people used to use workarounds such as combining files into one or spreading them over several domains.</li>
 </ul>
 <h2>Code</h2>
@@ -161,6 +160,6 @@ server {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>

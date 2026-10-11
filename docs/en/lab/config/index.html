@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
+<link rel="stylesheet" href="../../app.css?v=b88d80401a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Spring Boot</p>
 <h1>Configuration precedence</h1>
 <p><b>When the same property is set in several places, which value wins?</b></p>
-<p>Spring Boot reads property values from several places, such as files, environment variables, and command-line arguments. When the same key is set in more than one place, the place with the higher precedence wins. Add and remove a property named app.timeout in several places and check the final value.</p>
+<p>Spring Boot reads property values from several places, such as files, environment variables, and command-line arguments. When the same key is set in more than one place, the place with the higher precedence wins.</p>
 <p>Checked against real execution · 32 combinations were run on Spring Boot 4.1.1 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -61,7 +61,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The final value of app.timeout is 5000. Where the value came from: application-prod.yml. Overridden values: 3000.</li>
 <li>From highest to lowest, the precedence is command-line arguments → JVM system properties → environment variables → the profile-specific file → application.yml. The closer a place is to the side that runs the application, the higher its precedence.</li>
 <li>Thanks to this order, you can run the same build artifact (a jar or an image) with different values in each environment without modifying it. Values that differ from one environment to another, or that must not be put in the code repository, such as a database URL or a password, are passed in through environment variables or injected at run time.</li>
 </ul>
@@ -162,6 +161,6 @@ java -jar app.jar --spring.profiles.active=prod</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1e909b04d7"></script>
+<script src="../../app.js?v=b88d80401a"></script>
 </body>
 </html>
