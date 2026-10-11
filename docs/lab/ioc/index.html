@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>스프링 컨테이너와 빈: new를 쓰지 않았는데 객체는 누가 만들어 넣어 주나 · 개발 학습 실습실</title>
-<meta name="description" content="주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다. 등록한 빈이 하나일 때, 둘일 때, 없을 때 컨테…">
+<meta name="description" content="주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/ioc/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ioc/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ioc/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="스프링 컨테이너와 빈: new를 쓰지 않았는데 객체는 누가 만들어 넣어 주나 · 개발 학습 실습실">
-<meta property="og:description" content="주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다. 등록한 빈이 하나일 때, 둘일 때, 없을 때 컨테…">
+<meta property="og:description" content="주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/ioc/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b3ddaad4fd">
+<link rel="stylesheet" href="../../app.css?v=e557751983">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › IoC 컨테이너와 DI</p>
 <h1>스프링 컨테이너와 빈</h1>
 <p><b>new를 쓰지 않았는데 객체는 누가 만들어 넣어 주나</b></p>
-<p>주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다. 등록한 빈이 하나일 때, 둘일 때, 없을 때 컨테이너가 어떻게 하는지 보세요.</p>
+<p>주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1에서 서른 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>기동 실패: NoUniqueBeanDefinitionException. DiscountPolicy 타입의 빈이 fixedDiscountPolicy와 rateDiscountPolicy 둘이라서 컨테이너가 고르지 못했습니다.</li>
 <li>컨테이너는 타입으로 빈을 찾습니다. 같은 타입의 빈이 둘 이상이면 무엇을 넣을지 알려 줘야 합니다. 먼저 쓸 빈에 @Primary를 붙이거나, 주입받는 곳에 @Qualifier로 빈 이름을 적습니다.</li>
 <li>구현 클래스를 하나 더 만들어 등록하기만 해도 이 오류가 납니다. 기존 코드를 고치지 않았는데 기동이 실패했다면 같은 타입의 빈이 늘지 않았는지 확인합니다.</li>
 </ul>
@@ -184,6 +183,6 @@ int pay = orderService.order(20000);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b3ddaad4fd"></script>
+<script src="../../app.js?v=e557751983"></script>
 </body>
 </html>

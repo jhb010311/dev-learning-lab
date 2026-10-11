@@ -1,7 +1,7 @@
 Lab.register({
   id: 'aop', nav: 'AOP: advice and pointcuts', cat: 'Spring', mode: 'step',
   title: 'Which methods does advice apply to, and in what order does it run?',
-  intro: 'When work that many methods need in the same way, such as logging, is written in one class (an aspect), Spring adds that code before and after the method calls. The code that is added is called advice, and the expression that selects which methods it is added to is called a pointcut. Change the pointcut, the method that is called, the outcome of the method, and the number of aspects to see what runs and in what order.',
+  intro: 'When work that many methods need in the same way, such as logging, is written in one class (an aspect), Spring adds that code before and after the method calls. The code that is added is called advice, and the expression that selects which methods it is added to is called a pointcut.',
   terms: ['Aspect-oriented programming (AOP)', 'Advice', 'Pointcut', 'Aspect and @Order', 'Proxy'],
   controls: [
     { id: 'pc', label: 'Pointcut (the expression that selects which methods the advice applies to)', type: 'select', value: 'cls', options: [['cls', 'execution(* shop.OrderService.*(..))'], ['arg', 'execution(* shop.*.*(String))'], ['noarg', 'execution(* shop.OrderService.cancel())'], ['ann', '@annotation(shop.Audit)']] },
@@ -88,8 +88,6 @@ Lab.register({
     st.cur = ''; st.caller = ex ? 'IllegalStateException' : ret;
     push('The caller: ' + (ex ? 'It receives an IllegalStateException.' + (M.hit ? ' No advice caught the exception, so the exception is passed on unchanged.' : '') : 'It receives ' + ret + '.' + (M.hit ? ' Advice ran around the call, but the value that comes back is unchanged.' : '')), ex ? 'bad' : 'good');
     var seq = st.run.slice();
-    if (M.hit) sum.push('The pointcut matched the ' + sig + ' method, and the console printed ' + seq.length + ' lines in this order: ' + seq.join(' → ') + '. The caller received ' + (ex ? 'an ' : '') + st.caller + '.');
-    else sum.push('The pointcut did not match the ' + sig + ' method, so no advice ran at all. The only line printed on the console is "' + m + ' body", and the caller received ' + (ex ? 'an ' : '') + st.caller + '.');
     if (!M.hit && c.pc === 'noarg' && m === 'cancel') sum.push('cancel() with empty parentheses matches only "a cancel that takes no parameters". To match it regardless of the parameters, write cancel(..).');
     if (!M.hit) sum.push('A method that the pointcut does not match runs exactly like an ordinary method call. Even when a mistake in the expression makes it match nothing, there is no error, so you must check that the advice actually runs.');
     if (M.hit && ex) sum.push('When an exception is thrown, @AfterThrowing and @After run, and @AfterReturning and the lines written below pjp.proceed() in @Around do not run. Put work that must be done in every case in @After, or wrap the call in try-finally inside @Around.');
@@ -106,9 +104,7 @@ Lab.register({
     H.table(v, ['Order', 'Line printed on the console', 'Printed by'], s.run.map(function (x, i) {
       var who = x.indexOf('Log ') === 0 ? 'LogAspect' : x.indexOf('Time ') === 0 ? 'TimeAspect' : 'Method body';
       return { cells: [String(i + 1), { v: x, cls: x === s.cur ? 'hot' : '' }, who] };
-    }).concat(s.skip.map(function (x) { return { cls: 'gone', cells: ['-', { v: x + ' (did not run)', cls: 'bad' }, 'LogAspect'] }; })), 'Console output');
-    H.counters(v, [[s.run.length + '', 'Lines printed so far'], [s.caller || 'Still running', 'What the caller receives']]);
-  },
+    }).concat(s.skip.map(function (x) { return { cls: 'gone', cells: ['-', { v: x + ' (did not run)', cls: 'bad' }, 'LogAspect'] }; })), 'Console output');  },
   // Diagram: The aspects are drawn as nested boxes. The call enters from the outer box and reaches the method body in the middle, and on the way out it leaves from the inner box first. The left cells are the advice that runs on the way in, and the right cells are the advice that runs on the way out.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { pc: '', bean: '', run: [], cur: '', skip: [], body: '', caller: '' };

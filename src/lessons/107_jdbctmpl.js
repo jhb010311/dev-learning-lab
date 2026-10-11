@@ -1,7 +1,7 @@
 Lab.register({
   id: 'jdbctmpl', nav: 'JdbcTemplate과 예외 변환', cat: '스프링', mode: 'step',
   title: 'JdbcTemplate은 무엇을 대신 해 주고, 예외를 무엇으로 바꾸나',
-  intro: 'JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, DB가 던진 SQLException을 스프링의 예외(DataAccessException 계열)로 바꿔 줍니다. 같은 작업을 세 가지 방식으로 실행해, 호출한 쪽이 무엇을 받고 커넥션이 반납되는지 비교합니다.',
+  intro: 'JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, DB가 던진 SQLException을 스프링의 예외(DataAccessException 계열)로 바꿔 줍니다.',
   terms: ['JdbcTemplate', '예외 변환과 DataAccessException', '커넥션 풀', 'Checked 예외와 Unchecked 예외', '템플릿 메서드 패턴'],
   controls: [
     { id: 'how', label: 'DB에 접근하는 방식', type: 'select', value: 'plain', options: [['plain', 'JDBC 직접: close()를 마지막 줄에서 호출'], ['twr', 'JDBC 직접: try-with-resources로 닫기'], ['tmpl', 'JdbcTemplate']] },
@@ -88,7 +88,6 @@ Lab.register({
         push('호출한 쪽: ' + err[2] + '을 받습니다. 언체크 예외라서 throws를 적지 않아도 되고, 이 경우만 따로 처리하고 싶으면 코드 번호가 아니라 예외 클래스의 이름으로 잡으면 됩니다.', 'bad');
       }
     }
-    sum.push('호출한 쪽이 받은 것: ' + caller + ' (' + kind + '). 커넥션은 ' + (conn === '반납됨' ? '풀에 반납됐습니다.' : '풀에 반납되지 않았습니다.'));
     if (plain && err) sum.push('close()를 메서드의 마지막에 두면 도중에 예외가 났을 때 닫지 못합니다. JDBC를 직접 쓸 때는 try-with-resources(또는 finally)로 닫아야 하고, 이것을 메서드마다 빠짐없이 써야 합니다.');
     if (c.how === 'twr' && err) sum.push('try-with-resources를 쓰면 커넥션은 반납됩니다. 그래도 받는 예외는 체크 예외인 SQLException 하나뿐이라, 무슨 문제인지는 코드 번호로 구분해야 합니다. 이 번호는 DB 제품마다 다를 수 있습니다.');
     if (raw && !err && n !== 1) sum.push('JDBC를 직접 쓰면 0건이나 2건일 때 어떻게 할지도 직접 정해야 합니다. 정하지 않고 첫 행만 읽으면 문제가 조용히 지나갑니다. JdbcTemplate의 queryForObject는 같은 상황에서 예외를 던집니다.');
@@ -105,10 +104,7 @@ Lab.register({
     var q = sim.city !== undefined;
     H.table(v, ['id', 'name', 'city'], [['1', 'kim', '서울'], ['2', 'lee', '부산'], ['3', 'park', '서울']].map(function (r) { var hit = q && c.op !== 'bad' && r[2] === sim.city && s.db; return { cells: [r[0], r[1], { v: r[2], cls: hit ? 'hot' : '' }] }; }), 'member 테이블');
     H.title(v, sim.raw ? '직접 쓴 코드가 하는 일' : 'JdbcTemplate이 대신 하는 일'); var ln = H.lanes(v);
-    sim.steps.forEach(function (name, i) { var m = s.st[i]; H.lane(ln, name, m || '아직', m === '끝남' ? 'good' : m === '예외' || m === '건너뜀' ? 'bad' : m === '주의' ? 'hot' : 'none'); });
-    H.lane(ln, '커넥션', s.con, s.con === '반납됨' ? 'good' : s.con === '반납 안 됨' ? 'bad' : s.con === '빌려 쓰는 중' ? 'hot' : 'none');
-    H.counters(v, [[s.db || '아직 실행 전', 'DB의 응답'], [s.caller || '아직 실행 중', '호출한 쪽이 받는 것']]);
-  },
+    sim.steps.forEach(function (name, i) { var m = s.st[i]; H.lane(ln, name, m || '아직', m === '끝남' ? 'good' : m === '예외' || m === '건너뜀' ? 'bad' : m === '주의' ? 'hot' : 'none'); });  },
   // 그림: 가운데에 한 번의 DB 작업에 필요한 일을 위에서 아래로 놓는다(직접 쓴 코드 또는 JdbcTemplate이 대신 하는 일). 오른쪽은 커넥션 풀과 DB, 아래는 호출한 쪽이 받는 것이다.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { con: '풀에 있음', db: '', at: -1, st: sim.steps.map(function () { return ''; }), ex: '', caller: '' };
@@ -126,7 +122,7 @@ Lab.register({
     if (s.con === '빌려 쓰는 중' || s.con === '반납 안 됨') P.arrow('con', 's0:r', 'pool:l:0.4', { cls: s.con === '반납 안 됨' ? 'bad' : '', label: s.con === '반납 안 됨' ? '반납 안 됨' : '빌림' });
     if (s.st[1]) P.arrow('sql', 's1:r', 'db:l', { cls: s.st[1] === '예외' ? 'bad' : '', label: s.st[1] === '예외' ? '오류' : 'SQL' });
     P.box('res', 12, 274, 656, 36, { cls: !s.caller ? 'ghost' : s.caller.indexOf('Exception') >= 0 ? 'bad' : s.caller === 'null' || sim.n === 2 ? 'hot' : 'good', title: '호출한 쪽이 받는 것', right: s.caller || '아직 실행 중' });
-    P.note('커넥션 풀로 가는 화살표는 커넥션을 빌려 쓰는 동안에만 보입니다. 가운데 상자의 일은 SQL을 한 번 실행할 때마다 똑같이 반복됩니다. JDBC를 직접 쓰면 이것을 메서드마다 적어야 하고, 하나라도 빠뜨리면(특히 닫기) 문제가 됩니다. JdbcTemplate을 쓰면 이 일을 JdbcTemplate이 하고, 직접 적는 것은 SQL과 값뿐입니다.');
+    P.note('커넥션 풀로 가는 화살표는 커넥션을 빌려 쓰는 동안에만 보입니다. 가운데 상자의 일은 SQL을 한 번 실행할 때마다 똑같이 반복됩니다.');
   },
   assume: '열여덟 가지 조합 모두를 이 PC의 스프링 프레임워크 7.0.9(스프링 부트 4.1.1에 들어 있는 버전)의 JdbcTemplate, HikariCP 커넥션 풀, H2 2.4.240에서 화면과 같은 구조의 코드로 실행해, 호출한 쪽이 받는 것, 예외가 체크 예외인지, 호출이 끝난 뒤 풀에 반납되지 않은 커넥션이 있는지를 대조했습니다. DuplicateKeyException이 DataIntegrityViolationException의 하위 클래스라는 것, EmptyResultDataAccessException이 IncorrectResultSizeDataAccessException의 하위 클래스라는 것, 바뀐 예외의 원인(cause)에 원래의 SQLException이 들어 있다는 것, JdbcTemplate이 예외를 바꾸는 시점에는 커넥션이 이미 반납되어 있다는 것도 실행으로 확인했습니다. SQLState 값(23505, 23502, 42S22)은 H2가 준 값입니다. 다른 DB 제품에서 코드가 다를 수 있다는 것과, 그래도 스프링이 같은 예외로 바꿔 준다는 것은 이 PC에서 H2로만 실행했으므로 스프링 문서를 따른 설명입니다. queryForObject가 결과를 다 읽고 커넥션을 반납한 다음에 건수를 확인한다는 단계의 순서는 스프링의 소스 코드를 따랐습니다(실행으로는 호출이 끝난 뒤 커넥션이 반납되어 있다는 것만 확인했습니다). H2는 SQL의 오타를 PreparedStatement를 만들 때 알려 주지만, SQL을 실행할 때에야 알려 주는 DB도 있습니다. 화면에서는 이것을 구분하지 않고 "SQL 실행" 단계로 그렸습니다. 스프링이 관리하는 트랜잭션 안에서는 JdbcTemplate이 커넥션을 풀에 바로 반납하지 않고 트랜잭션이 끝날 때 반납합니다. 여기서는 트랜잭션이 없는 경우만 다뤘습니다.',
 });

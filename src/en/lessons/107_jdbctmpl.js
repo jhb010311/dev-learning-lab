@@ -1,7 +1,7 @@
 Lab.register({
   id: 'jdbctmpl', nav: 'JdbcTemplate and exception translation', cat: 'Spring', mode: 'step',
   title: 'What does JdbcTemplate do for you, and what does it translate exceptions to?',
-  intro: 'When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTemplate does this repeated work for you, and it translates the SQLException thrown by the database into a Spring exception (one from the DataAccessException hierarchy). This lab runs the same operation in three ways and compares what the caller gets and whether the connection is returned.',
+  intro: 'When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTemplate does this repeated work for you, and it translates the SQLException thrown by the database into a Spring exception (one from the DataAccessException hierarchy).',
   terms: ['JdbcTemplate', 'Exception translation and DataAccessException', 'Connection pool', 'Checked and unchecked exceptions', 'Template Method pattern'],
   controls: [
     { id: 'how', label: 'How the database is accessed', type: 'select', value: 'plain', options: [['plain', 'JDBC directly: close() called on the last line'], ['twr', 'JDBC directly: closed with try-with-resources'], ['tmpl', 'JdbcTemplate']] },
@@ -88,7 +88,6 @@ Lab.register({
         push('The caller gets ' + err[2] + '. It is an unchecked exception, so no throws clause is needed, and if you want to handle only this case separately, you catch it by the name of the exception class, not by a code number.', 'bad');
       }
     }
-    sum.push('What the caller got: ' + caller + ' (' + kind + '). The connection ' + (conn === 'returned' ? 'was returned to the pool.' : 'was not returned to the pool.'));
     if (plain && err) sum.push('When close() is at the end of the method, the connection cannot be closed if an exception is thrown partway through. When you use JDBC directly, you have to close with try-with-resources (or finally), and you have to write this in every method without missing one.');
     if (c.how === 'twr' && err) sum.push('With try-with-resources, the connection is returned. Even so, the only exception you get is SQLException, which is a checked exception, so you have to tell what the problem is by a code number. This number can differ from one database product to another.');
     if (raw && !err && n !== 1) sum.push('When you use JDBC directly, you also have to decide yourself what to do when there are 0 rows or 2 rows. If you read only the first row without deciding, the problem passes silently. The queryForObject method of JdbcTemplate throws an exception in the same situation.');
@@ -105,10 +104,7 @@ Lab.register({
     var q = sim.city !== undefined;
     H.table(v, ['id', 'name', 'city'], [['1', 'kim', 'Seoul'], ['2', 'lee', 'Busan'], ['3', 'park', 'Seoul']].map(function (r) { var hit = q && c.op !== 'bad' && r[2] === sim.city && s.db; return { cells: [r[0], r[1], { v: r[2], cls: hit ? 'hot' : '' }] }; }), 'member table');
     H.title(v, sim.raw ? 'What the hand-written code does' : 'What JdbcTemplate does for you'); var ln = H.lanes(v);
-    sim.steps.forEach(function (name, i) { var m = s.st[i]; H.lane(ln, name, m || 'not yet', m === 'done' ? 'good' : m === 'exception' || m === 'skipped' ? 'bad' : m === 'caution' ? 'hot' : 'none'); });
-    H.lane(ln, 'Connection', s.con, s.con === 'returned' ? 'good' : s.con === 'not returned' ? 'bad' : s.con === 'in use' ? 'hot' : 'none');
-    H.counters(v, [[s.db || 'not run yet', 'Response from the database'], [s.caller || 'still running', 'What the caller gets']]);
-  },
+    sim.steps.forEach(function (name, i) { var m = s.st[i]; H.lane(ln, name, m || 'not yet', m === 'done' ? 'good' : m === 'exception' || m === 'skipped' ? 'bad' : m === 'caution' ? 'hot' : 'none'); });  },
   // Diagram: in the middle, the work needed for one database operation is laid out from top to bottom (the hand-written code, or what JdbcTemplate does for you). On the right are the connection pool and the database, and at the bottom is what the caller gets.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { con: 'in the pool', db: '', at: -1, st: sim.steps.map(function () { return ''; }), ex: '', caller: '' };
@@ -126,7 +122,7 @@ Lab.register({
     if (s.con === 'in use' || s.con === 'not returned') P.arrow('con', 's0:r', 'pool:l:0.4', { cls: s.con === 'not returned' ? 'bad' : '', label: s.con === 'not returned' ? 'unreturned' : 'borrowed' });
     if (s.st[1]) P.arrow('sql', 's1:r', 'db:l', { cls: s.st[1] === 'exception' ? 'bad' : '', label: s.st[1] === 'exception' ? 'error' : 'SQL' });
     P.box('res', 12, 274, 656, 36, { cls: !s.caller ? 'ghost' : s.caller.indexOf('Exception') >= 0 ? 'bad' : s.caller === 'null' || sim.n === 2 ? 'hot' : 'good', title: 'What the caller gets', right: s.caller || 'still running' });
-    P.note('The arrow to the connection pool is shown only while the connection is borrowed. The work in the middle boxes is repeated in exactly the same way every time an SQL statement is run. When you use JDBC directly, you have to write it in every method, and leaving out even one part (closing, above all) causes a problem. With JdbcTemplate, JdbcTemplate does this work, and all you write is the SQL and the values.');
+    P.note('The arrow to the connection pool is shown only while the connection is borrowed. The work in the middle boxes is repeated in exactly the same way every time an SQL statement is run.');
   },
   assume: 'All 18 combinations were run on this PC with code of the same structure as on the screen, using the JdbcTemplate of Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1), the HikariCP connection pool, and H2 2.4.240, and three things were checked against the results: what the caller gets, whether the exception is a checked exception, and whether any connection is left unreturned to the pool after the call ends. Execution also confirmed that DuplicateKeyException is a subclass of DataIntegrityViolationException, that EmptyResultDataAccessException is a subclass of IncorrectResultSizeDataAccessException, that the cause of the translated exception holds the original SQLException, and that the connection has already been returned at the point where JdbcTemplate translates the exception. The SQLState values (23505, 23502, 42S22) are the values that H2 gave. That the codes can differ in other database products, and that Spring still translates them to the same exceptions, are statements that follow the Spring documentation, because execution on this PC used only H2. The order of the steps, in which queryForObject checks the row count after it has read the whole result and returned the connection, follows the Spring source code (execution confirmed only that the connection has been returned after the call ends). H2 reports a typo in the SQL when the PreparedStatement is created, but some databases report it only when the SQL is run. The screen does not distinguish the two and draws this as the "Run the SQL" step. Inside a transaction managed by Spring, JdbcTemplate does not return the connection to the pool right away. It returns it when the transaction ends. Only the case without a transaction is covered here.',
 });

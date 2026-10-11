@@ -1,7 +1,7 @@
 Lab.register({
   id: 'chkex', nav: '체크 예외와 언체크 예외', cat: '자바 언어', mode: 'step',
   title: '어떤 예외는 왜 처리하지 않으면 컴파일조차 안 되나',
-  intro: '자바의 예외는 두 갈래입니다. 체크 예외(IOException 등)는 잡거나(try-catch) 던진다고 선언(throws)하지 않으면 컴파일러가 컴파일을 거부합니다. 언체크 예외(대표적으로 RuntimeException 계열)는 그런 강제가 없어서 아무 처리 없이도 컴파일됩니다. 예외의 종류와 처리 방식을 바꿔 가며 컴파일이 되는지, 실행하면 어떻게 끝나는지 확인하세요.',
+  intro: '자바의 예외는 두 갈래입니다. 체크 예외(IOException 등)는 잡거나(try-catch) 던진다고 선언(throws)하지 않으면 컴파일러가 컴파일을 거부합니다. 언체크 예외(대표적으로 RuntimeException 계열)는 그런 강제가 없어서 아무 처리 없이도 컴파일됩니다.',
   terms: ['Checked 예외와 Unchecked 예외', '예외(Exception)와 Error', 'throws 선언', '예외 감싸기'],
   controls: [
     { id: 'ex', label: 'read 메서드가 던지는 예외', type: 'select', value: 'io', options: [['io', 'IOException (체크 예외)'], ['rt', 'IllegalStateException (언체크 예외)']] },
@@ -91,7 +91,6 @@ Lab.register({
     if (failAt) {
       st.end = '실행 못 함';
       push('컴파일이 실패했습니다: class 파일이 만들어지지 않으므로 프로그램을 실행할 수 없습니다.' + (occur ? ' 실행 중에 생길 문제를 실행 전에 미리 막은 것입니다.' : ' read(false)로 호출하므로 실행했다면 예외가 나지 않았을 코드입니다. 그래도 결과는 같습니다. 컴파일러는 "실제로 나는가"가 아니라 "날 수 있는가"를 보기 때문입니다.'), 'bad');
-      sum.push('컴파일 오류입니다. 오류가 난 줄은 ' + (failAt === 'read' ? 'read 안의 throw 줄' : 'main에서 read를 부른 줄') + '이고, 프로그램은 실행되지 않습니다.');
       if (failAt === 'read') sum.push('체크 예외는 "잡거나, 던진다고 선언하거나" 둘 중 하나를 해야 컴파일됩니다. 파일이 없거나 네트워크가 끊기는 일처럼 프로그램 바깥의 사정으로 생기고 대비할 수 있는 문제를 빠뜨리지 않게 하려는 장치입니다.');
       else sum.push('throws는 예외를 처리하는 것이 아니라 "부르는 쪽이 처리하라"고 넘기는 선언입니다. 그래서 부른 쪽(main)이 다시 잡거나 선언해야 합니다. 의무는 누군가 잡을 때까지 호출한 쪽으로 계속 올라갑니다.');
       if (!occur) sum.push('예외가 실제로 나지 않는 경우에도 컴파일 결과는 같습니다. 검사는 실행 전에 코드의 모양만 보고 이루어집니다.');
@@ -140,9 +139,8 @@ Lab.register({
       push('main의 마지막 줄을 실행합니다: "main 끝"을 출력하고 프로그램이 정상으로 끝납니다(종료 코드 0).', 'good');
     }
     var outText = st.out.length ? st.out.join(' / ') : '(없음)', endText = crashed ? '예외로 중단 (종료 코드 1): ' + crashed : '정상 종료 (종료 코드 0)';
-    sum.push('컴파일 성공. 출력: ' + outText + '. 끝난 모습: ' + endText + '.');
     if (!io && (h === 'none' || h === 'throws' || h === 'throws2')) sum.push('언체크 예외는 처리하지 않아도 컴파일됩니다. 컴파일러가 알려 주지 않으므로' + (occur ? ' 실행 중에 예외가 나서야 문제를 알게 됩니다.' : ', 예외가 나지 않는 동안에는 문제가 있는지 알 수 없습니다.') + ' 언체크 예외는 대개 null을 쓰거나 잘못된 값을 넘기는 것 같은 코드의 실수를 나타내므로, 잡기보다 코드를 고쳐서 없앱니다.');
-    if (!io && h === 'throws') sum.push('같은 모양의 코드가 IOException일 때는 main에서 컴파일 오류입니다. 예외의 종류만 바꿔 비교해 보세요.');
+    if (!io && h === 'throws') sum.push('같은 모양의 코드가 IOException일 때는 main에서 컴파일 오류입니다.');
     if (!io && (h === 'catch' || h === 'throwscatch')) sum.push('언체크 예외도 잡을 수 있습니다. 강제가 없을 뿐입니다. 어디서 잡을지는 개발자가 정합니다.');
     if (!io && h === 'wrap') sum.push('이미 언체크 예외인 것을 RuntimeException으로 다시 감싸면 얻는 것이 없습니다. 감싸기는 체크 예외를 언체크 예외로 바꿀 때 쓰는 방법입니다.');
     if (!io) sum.push('Error(OutOfMemoryError, StackOverflowError 등)는 메모리 부족처럼 프로그램이 스스로 복구하기 어려운 JVM 수준의 문제를 나타냅니다. 자바 언어 명세는 RuntimeException 계열과 Error 계열을 묶어 언체크 예외라고 부릅니다. 그래서 Error도 컴파일러가 처리를 강제하지 않으며, 보통 잡지 않습니다.');
@@ -156,19 +154,11 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 먼저 컴파일러의 검사를, 이어서 프로그램의 실행을 한 단계씩 보여 줍니다.'); return; }
-    var vc = function (x) { return x === '오류' ? 'bad' : x === '통과' ? 'good' : ''; };
-    H.table(v, ['메서드', '예외 처리', '컴파일러의 판단'], [
-      { cells: ['read', s.rh, { v: s.rv, cls: vc(s.rv) }] },
-      { cells: ['main', s.mh, { v: s.mv, cls: vc(s.mv) }] },
-    ], '컴파일러의 검사');
     var ln = H.lanes(v), WHERE = { main: 'main 실행 중', read: 'read 실행 중', jvm: 'JVM (프로그램 밖)' };
-    H.lane(ln, '컴파일', s.comp === '?' ? '검사 중' : s.comp, s.comp === '성공' ? 'good' : s.comp === '오류' ? 'bad' : 'hot');
     H.lane(ln, '실행 위치', s.comp === '오류' ? '실행 못 함' : s.at ? (s.end === '정상 종료' ? '끝남' : WHERE[s.at]) : '아직 실행 전', s.at ? 'wait' : 'none');
-    H.lane(ln, '예외', s.exc ? '던져진 상태: ' + s.exc : s.caught ? s.caught + '의 catch가 잡음' : '없음', s.exc ? 'bad' : s.caught ? 'good' : 'none');
     H.title(v, '콘솔 출력');
     var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (오류 출력)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(아직 없음)'));
-    H.counters(v, [[s.comp, '컴파일'], [s.end, '프로그램']]);
   },
   // 그림: 예외가 올라가는 길을 왼쪽에서 오른쪽으로 read, main, JVM 세 상자로 놓고, 상자마다 처리 방식과 컴파일러의 판단을 적는다. 실행 중에는 예외가 있는 상자와 잡은 상자에 색을 넣는다.
   draw: function (P, sim, shown) {

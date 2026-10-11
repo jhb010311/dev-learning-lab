@@ -1,7 +1,7 @@
 Lab.register({
   id: 'msgconv', nav: 'REST APIs and message converters', cat: 'Spring', mode: 'step',
   title: 'Where does the object returned by a controller become JSON?',
-  intro: 'A controller method receives Java objects and returns Java objects, but what travels over the network is text such as JSON. In between, message converters turn text into objects and objects into text. The Content-Type and Accept headers of the request decide which converter is used, and when no converter fits, the result is 415 or 406. Change the kind of controller and the request, and see where the conversion happens and where it fails.',
+  intro: 'A controller method receives Java objects and returns Java objects, but what travels over the network is text such as JSON. In between, message converters turn text into objects and objects into text. The Content-Type and Accept headers of the request decide which converter is used, and when no converter fits, the result is 415 or 406.',
   terms: ['HttpMessageConverter', '@Controller and @RestController', 'Content negotiation (Accept and Content-Type)', 'ResponseEntity', 'ViewResolver'],
   controls: [
     { id: 'kind', label: 'Kind of controller and what it returns', type: 'select', value: 'obj', options: [['obj', '@RestController, returns an object'], ['entity', '@RestController, returns a ResponseEntity'], ['str', '@RestController, returns a string'], ['view', '@Controller, returns a string']] },
@@ -86,7 +86,6 @@ Lab.register({
       }
     }
     var ran = st.ctrl;
-    sum.push('The response is ' + status + ', and the controller method ' + (ran ? 'ran.' : 'did not run.') + (st.fail ? '' : ' Response body produced by: ' + maker + '. Content-Type: ' + type + '.'));
     if (st.fail === 'rd') sum.push(c.req === 'text' ? '415 means "the format of the request body cannot be read". Spring does not look into the body to guess its format. It looks only at the Content-Type header. When you send JSON, you have to set the Content-Type to application/json.' : '400 means "the request is wrong". Even when the Content-Type is right, the converter cannot create an object if the body does not follow the JSON syntax. This is a problem that the side that sent the request has to fix.');
     if (st.fail === 'rd') sum.push('415 and 400 are decided in the step that reads the request body, so this is before the controller runs. 406 is decided in the step that writes the response body, so this is after the controller has run.');
     if (st.fail === 'wr') sum.push('406 means "the response cannot be given in the format you want (Accept)". It is decided in the step that writes the response, so the response is a failure but the order has already been created. If you write produces = "application/json" on @PostMapping, a request whose Accept does not match is filtered out in the step that chooses the controller method, and the controller does not run.');
@@ -105,12 +104,6 @@ Lab.register({
       { cells: ['Accept', q.accept, 'Format of the response wanted'] },
       { cells: ['Body', q.body, ''] },
     ], 'Request sent (POST /orders)');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Read body', s.rd || 'not yet', s.fail === 'rd' ? 'bad' : s.stage >= 3 && s.rd ? 'good' : s.rd ? 'hot' : 'none');
-    H.lane(ln, 'Controller', s.ctrl ? 'ran · returned value: ' + s.ret : s.fail ? 'did not run' : 'not yet', s.ctrl ? 'good' : s.fail ? 'bad' : 'none');
-    H.lane(ln, 'Write body', s.wr || (s.fail ? 'not done' : 'not yet'), s.fail === 'wr' ? 'bad' : s.stage === 7 ? 'good' : s.wr ? 'hot' : 'none');
-    H.counters(v, [[s.status || 'In progress', 'Response'], [s.type || '-', 'Content-Type of the response']]);
-    if (s.status) { H.title(v, 'Response body'); H.text(v, s.body + (s.loc ? ' · Location header: ' + s.loc : '')); }
   },
   // Diagram: the request at the top, the three places in Spring in the middle (reading the request body, the controller, writing the response body), and the response at the bottom. It shows the two places where conversion happens and the place where it failed.
   draw: function (P, sim, shown) {
@@ -127,7 +120,7 @@ Lab.register({
     if (s.stage >= 5) P.arrow('a3', 'ct:r', 'wr:l', { cls: s.fail === 'wr' ? 'bad' : 'good' });
     P.box('resp', 16, 244, 648, 62, { cls: !s.status ? 'ghost' : s.fail ? 'bad' : 'good', title: 'Response: ' + (s.status || 'In progress'), sub: s.status ? ['Content-Type: ' + (s.type || '-') + (s.loc ? ' · Location: ' + s.loc : ''), 'Body: ' + s.body] : [' ', ' '] });
     if (s.status) P.arrow('a4', (s.fail || 'wr') + ':b', s.fail === 'rd' ? 'resp:t:0.18' : 'resp:t:0.82', { cls: s.fail ? 'bad' : 'good' });
-    P.note('Message converters work in two places. Before the controller, a converter turns the request body into an object (it looks at Content-Type), and after the controller, a converter turns the returned value into the response body (it looks at Accept). If the conversion fails before the controller, the controller does not run, and if it fails after the controller, the controller has already run.');
+    P.note('Message converters work in two places. Before the controller, a converter turns the request body into an object (it looks at Content-Type), and after the controller, a converter turns the returned value into the response body (it looks at Accept).');
   },
   assume: 'All 16 combinations of the 4 kinds of controller and the 4 requests were sent as HTTP requests to a real Spring Boot 4.1.1 server (Spring Framework 7.0.9, embedded Tomcat 11, Jackson 3), and the status code, whether the controller ran, the name of the exception Spring threw, the converter that read the request body and the converter that wrote the response body, and the Content-Type and Location header of the successful responses were confirmed to match the screen. The body and the Content-Type of the error responses (400, 406, 415) vary with the version and the configuration, so they were not treated as results. The server used for the check has no library that produces XML. If you add a library such as jackson-dataformat-xml, the server responds to an Accept: application/xml request with XML, so the result is not 406. The class name of the converter (JacksonJsonHttpMessageConverter) is as of Spring 7, and the name is different in earlier versions. For the Content-Type of the response, only the format name is shown (in reality, a charset is sometimes appended). The view name returned by the @Controller was checked by registering a view object of the same name instead of using a template engine. That a request that returns a view gave 200 regardless of Accept is what was observed in this setup, and it can differ depending on the view configuration. Cases that are not on the screen were also checked on the same server. When no view with that name existed, the result was 404 (with a template engine, it can be a different error, and that was not verified), putting @ResponseBody on the method of the @Controller gave the same result as @RestController, and a method with produces = "application/json" responded to an Accept: application/xml request with 406 without running the controller. When the request was sent without an Accept header, an object went out as JSON and a string as text/plain. In the combination that returned a ResponseEntity and gave 406, the Location header remained in the response, but this can differ between versions, so it is not shown on the screen.',
 });

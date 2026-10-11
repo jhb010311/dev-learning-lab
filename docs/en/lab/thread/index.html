@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
 <h1>Creating threads and thread states</h1>
 <p><b>Why does calling run() directly not create a new thread?</b></p>
-<p>Creating a Thread object and having a thread actually run are two different things. This lab uses t.getState() to follow the states that one thread goes through from the time it is created until it terminates. Along the way, you see the difference between start() and run(), how the state depends on the way the thread waits, and interrupt, which wakes up a waiting thread.</p>
+<p>Creating a Thread object and having a thread actually run are two different things. This lab uses t.getState() to follow the states that one thread goes through from the time it is created until it terminates.</p>
 <p>Checked against real execution · The 24 combinations were run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -68,7 +68,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The thread that ran the task is main, the state of t seen partway is NEW, and the state after join is NEW.</li>
 <li>Calling run() directly does not add a thread. The calling thread simply runs that code in order, so nothing runs concurrently. To run the code in a new thread, call start(). start() creates a new thread, and that thread runs run().</li>
 </ul>
 <h2>Code</h2>
@@ -174,6 +173,6 @@ System.out.println(t.getState());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

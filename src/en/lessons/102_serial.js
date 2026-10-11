@@ -66,7 +66,6 @@ Lab.register({
         push('in.readObject(): This compares the serialVersionUID recorded in the file with the serialVersionUID of the current User class. ' + (auto ? 'The value computed at the time of saving and the value computed from the current class, which has the added field, are different.' : 'The file has 1, and the current class has 2.') + ' It treats the two as versions of the class that do not match and throws an InvalidClassException. The object is not restored.', 'bad');
       }
     }
-    sum.push('Saving ' + (st.save === 'Succeeded' ? 'succeeded' : 'failed with ' + st.save) + '. Restoring ' + (st.load === 'Succeeded' ? 'succeeded, and the value of point that was read is ' + st.val.split(' ')[0] + '.' : st.load === 'Not attempted' ? 'was not attempted.' : 'failed with ' + st.load + '.') + ' The constructor ran only once, when the object was created with new.');
     if (c.cls === 'no') sum.push('The default serialization mechanism in Java saves only objects of classes that implement Serializable. Serializable has no methods to implement and serves only as a mark that says "objects of this class may be saved".');
     if (c.cls === 'field') sum.push('When an object is saved, the objects that its fields refer to are saved with it. If even one of them is not Serializable, the whole save fails. Either make Address Serializable as well or, if the field does not need to be saved, mark it transient.');
     if (st.load === 'Succeeded') {
@@ -82,18 +81,9 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    var fileTxt = !s.file ? 'Not written yet' : s.file === 'fail' ? 'Save failed' : 'User (serialVersionUID ' + s.file.uid + ') · name = "kim"' + (s.file.point === null ? '' : ' · point = ' + s.file.point);
-    H.table(v, ['Where', 'What is there'], [
-      { cls: s.u ? '' : 'gone', cells: ['Original object u', s.u ? 'name = "kim"' + (s.u.point === null ? '' : ', point = ' + s.u.point) + (s.u.addr ? ', address → an Address object' : '') : 'Not created yet'] },
-      { cls: s.sp === null ? 'gone' : '', cells: ['User class (static)', s.sp === null ? 'No static field' : 'point = ' + s.sp] },
-      { cls: s.file ? '' : 'gone', cells: ['File user.ser', { v: fileTxt, cls: s.file === 'fail' ? 'bad' : s.file ? 'good' : '' }] },
-      { cls: s.r ? '' : 'gone', cells: ['Restored object r', s.r ? 'name = "kim"' + (s.r.point === null ? '' : ', point = ' + s.r.point) : s.load === 'InvalidClassException' ? { v: 'Could not be restored', cls: 'bad' } : 'Not created yet'] },
-    ], 'Where the values are');
     var ln = H.lanes(v);
     H.lane(ln, 'Save', s.save, s.save === 'Succeeded' ? 'good' : s.save === '?' ? 'none' : 'bad');
-    H.lane(ln, 'Restore', s.load, s.load === 'Succeeded' ? 'good' : s.load === '?' ? 'none' : s.load === 'Not attempted' ? 'wait' : 'bad');
-    H.counters(v, [[s.ctor + '', 'Constructor runs'], [s.val, 'point read after restoring']]);
-  },
+    H.lane(ln, 'Restore', s.load, s.load === 'Succeeded' ? 'good' : s.load === '?' ? 'none' : s.load === 'Not attempted' ? 'wait' : 'bad');  },
   // Diagram: on the left, the original object (and the static value of the class); in the middle, what is saved in the file; on the right, the restored object. The arrows are saving and restoring.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { ctor: 0, u: null, sp: null, file: null, ver: c.cls === 'no' ? '' : c.chg === 'auto' ? 'computed automatically' : '1', r: null, save: '?', load: '?', val: '?', ex: '' };
@@ -113,7 +103,7 @@ Lab.register({
     P.box('k1', 16, 226, 320, 36, { cls: 'plain', title: 'Constructor runs', right: s.ctor + '' });
     P.box('k2', 344, 226, 320, 36, { cls: s.ver === '2' || s.ver.indexOf('changed') >= 0 ? 'hot' : 'plain', title: 'UID of User now', right: s.ver ? P.fit(s.ver, 180) : 'none' });
     P.box('k3', 16, 272, 648, 36, { cls: s.ex ? 'bad' : s.val !== '?' ? 'good' : 'ghost', title: s.ex ? 'Exception thrown' : 'point read after restoring', right: s.ex || s.val });
-    P.note('The left arrow is writeObject (save), and the right arrow is readObject (restore). What goes into the file is the values of the instance variables of the object, together with the class name and the serialVersionUID (UID in the diagram), which tell which class the object belongs to. transient fields and static fields do not go into the file.');
+    P.note('The left arrow is writeObject (save), and the right arrow is readObject (restore). What goes into the file is the values of the instance variables of the object, together with the class name and the serialVersionUID (UID in the diagram), which tell which class the object belongs to.');
   },
   assume: 'For each of the 15 combinations, source code identical to the code on the screen was compiled and run on JDK 21 on this PC, and whether saving and restoring succeeded, the exception that was thrown, the restored value, and the number of times the constructor ran were checked against the model. For the combinations that modify the class after saving, two separate copies of a User class with the same name were compiled, and a file saved with one was read with the other. The following were also confirmed by separate runs: when a field is added to a class that declares serialVersionUID, the file can be read and the new field is null, a transient field of a reference type becomes null, a static field read from a different program is 0, and the object is saved when the Address field is marked transient. The format of the bytes that are actually recorded in the file is simplified in the diagram. That the constructor does not run applies to a class that implements Serializable. The rules for the case where the superclass is not Serializable, how to define writeObject and readObject yourself, and the serialization of records are not covered. Because of security problems, the default serialization mechanism in Java is rarely used in new code, and formats such as JSON are mostly used, but you need to know these rules to understand existing code and libraries.',
 });

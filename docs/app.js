@@ -1793,7 +1793,7 @@ Lab.register({
 Lab.register({
   id: 'classload', nav: '클래스 로딩과 초기화', cat: 'JVM', mode: 'step',
   title: '클래스의 static 블록은 언제 실행되나',
-  intro: '클래스에 적어 둔 static 초기화 블록은 프로그램이 시작될 때 실행되는 것이 아니라, 그 클래스가 처음으로 "제대로" 쓰일 때 한 번 실행됩니다. 그런데 클래스 이름이 코드에 나온다고 해서 모두 그런 사용은 아닙니다. 같은 일을 두 번씩 해 보면서 static 블록이 언제, 몇 번 실행되는지 확인합니다.',
+  intro: '클래스에 적어 둔 static 초기화 블록은 프로그램이 시작될 때 실행되는 것이 아니라, 그 클래스가 처음으로 "제대로" 쓰일 때 한 번 실행됩니다. 그런데 클래스 이름이 코드에 나온다고 해서 모두 그런 사용은 아닙니다.',
   terms: ['클래스 로더', '클래스 초기화', 'static 초기화 블록', '컴파일 시점 상수', 'static'],
   controls: [
     { id: 'cls', label: '사용하는 클래스', type: 'select', value: 'parent', options: [['parent', 'Parent (부모 클래스)'], ['child', 'Child (Parent를 상속한 자식 클래스)']] },
@@ -1870,7 +1870,6 @@ Lab.register({
     print('두 번째 사용 끝'); st.stmt = 'println("두 번째 사용 끝");'; st.eff = '끝'; st.to = '';
     push('System.out.println("두 번째 사용 끝"): 프로그램이 끝납니다. static 블록이 실행된 횟수는 Parent ' + st.pn + '번, Child ' + st.cn + '번입니다.');
     var word = function (n) { return n ? '1번 실행' : '실행 안 됨'; };
-    sum.push('같은 일을 두 번 했을 때 static 블록은 Parent에서 ' + st.pn + '번, Child에서 ' + st.cn + '번 실행됐습니다. 읽어 들인 클래스: ' + (f.loads.length ? f.loads.join(', ') : '없음') + '.');
     if (U === 'const') sum.push('static final이고 값이 숫자나 문자열 리터럴처럼 컴파일할 때 정해지는 필드는 "컴파일 시점 상수"입니다. 컴파일러가 쓰는 쪽 코드에 값을 직접 넣어 두므로, 실행할 때 그 클래스는 쓰이지 않습니다. 그래서 상수만 바꾸고 그 클래스만 다시 컴파일하면, 쓰는 쪽에는 옛 값이 남습니다.');
     if (U === 'finalrt') sum.push('static final이라고 모두 상수는 아닙니다. 메서드를 호출해야 값이 나오는 필드는 실행 중에 값이 정해지므로, 읽으려면 클래스가 초기화돼야 합니다.');
     if (U === 'array' || U === 'classlit') sum.push('클래스를 읽어 들이는 것(로딩)과 초기화하는 것은 다른 단계입니다. 배열을 만들거나 .class를 쓰는 것은 클래스 정보만 필요한 일이라서, 읽어 들이기만 하고 static 블록은 실행하지 않습니다.');
@@ -1888,11 +1887,6 @@ Lab.register({
       { cls: s.P === 'none' ? 'gone' : '', cells: ['Parent', { v: word[s.P], cls: cl[s.P] }, s.pn + '번'] },
       { cls: s.C === 'none' ? 'gone' : '', cells: ['Child', { v: word[s.C], cls: cl[s.C] }, s.cn + '번'] },
     ], 'JVM이 준비한 클래스');
-    var ln = H.lanes(v);
-    H.lane(ln, '지금 실행한 줄', s.stmt, 'hot');
-    H.lane(ln, '일어난 일', s.eff, s.eff.indexOf('초기화를 일으키지') >= 0 || s.eff.indexOf('바로 씀') >= 0 ? 'wait' : 'none');
-    H.title(v, '출력된 줄');
-    H.slots(v, s.out.map(function (x) { return [x, x.indexOf('초기화') >= 0 ? 'd' : 'q']; }), '아직 없음');
   },
   // 그림: 왼쪽에 지금 실행한 main의 한 줄, 오른쪽에 JVM이 준비한 두 클래스의 상태(읽지 않음, 읽어 들임, 초기화됨), 아래에 출력된 줄.
   draw: function (P, sim, shown) {
@@ -1911,7 +1905,7 @@ Lab.register({
       var k = s.out.indexOf(x);
       if (k >= 0) P.box('o_' + i, 16 + k * 131, 224, 124, 34, { cls: x.indexOf('초기화') >= 0 ? 'good' : 'plain', title: x, center: true });
     });
-    P.note('클래스는 "읽어 들임(로딩)"과 "초기화"의 두 단계를 따로 거칩니다. static 블록은 초기화 단계에서 한 번만 실행됩니다. 굵은 테두리는 지금 실행한 줄이 쓰는 클래스입니다.');
+    P.note('굵은 테두리는 지금 실행한 줄이 쓰는 클래스입니다.');
   },
   assume: '열여덟 가지 조합마다 화면의 코드와 같은 소스를 이 PC의 JDK 21에서 새로 컴파일해 실행하고, 출력된 줄의 순서와 읽어 들인 클래스를 대조했습니다. 클래스를 읽어 들인 시점은 -Xlog:class+load 옵션으로 얻은 JVM의 기록과 대조했습니다. 초기화가 언제 일어나는지는 자바 언어 명세가 정해 둔 것이라 어느 JVM에서나 같습니다. 반면 클래스를 언제 읽어 들이는지는 JVM 구현에 맡겨져 있어서, "처음 쓰일 때 읽는다"와 "상수만 읽으면 읽지도 않는다"는 이 PC의 JVM(HotSpot)에서 확인한 동작입니다. 상수 읽기가 값 10으로 바뀌어 컴파일된다는 것은 javap로 바이트코드를 보고 확인했습니다. 읽어 들인 뒤 초기화 전에 거치는 검증, 준비 같은 세부 단계와, Class.forName이나 인터페이스의 초기화 규칙은 다루지 않았습니다.',
 });
@@ -2000,24 +1994,19 @@ Lab.register({
       if (!rest) push('in.read()로 글자 하나씩: InputStreamReader는 바이트를 UTF-8 규칙에 따라 묶어 글자로 바꿉니다. 3바이트씩 묶여 "가", "나", "다" 세 글자가 그대로 나옵니다.', 'good');
       else push('in.read()로 글자 하나씩: InputStreamReader는 바이트를 UTF-8 규칙에 따라 묶어 글자로 바꿉니다. "가"와 "나"는 3바이트가 온전히 있어 그대로 나옵니다. 남은 ' + rest + '바이트(' + HEX.slice(full * 3, st.file).join(' ') + ')는 "다"의 앞부분뿐이라 글자를 이루지 못하고, 깨진 글자(�) 하나로 나옵니다.', 'bad');
     }
-    sum.push('write를 9번 불렀고, 아래 스트림으로는 ' + st.calls + '번 내려갔습니다. 파일에는 9바이트 가운데 ' + st.file + '바이트가 쓰였고, 스트림은 ' + (st.closed ? '닫혔습니다.' : '열린 채로 남았습니다.'));
     if (!cap) sum.push('버퍼가 없으면 write 한 번이 곧 아래 스트림 호출 한 번입니다. 데이터는 바로 파일에 들어가지만, 바이트 수만큼 파일 쓰기를 요청하게 되어 데이터가 많을수록 느려집니다.');
     else if (st.file < 9) sum.push('BufferedOutputStream은 데이터를 메모리의 버퍼에 모았다가 한꺼번에 내려보냅니다. 내려가는 때는 버퍼가 가득 찼을 때와 flush 또는 close를 불렀을 때뿐입니다. 그래서 닫지 않으면 마지막에 버퍼에 남은 데이터가 파일에 쓰이지 않습니다.');
     else sum.push(c.buf === 'buf' ? '9번의 write가 아래로는 1번으로 줄었습니다. 크기를 따로 주지 않은 BufferedOutputStream의 버퍼는 이 PC의 JDK 21에서 8192바이트였고, 그만큼 모이기 전에는 flush나 close를 불러야 내려갑니다.' : '버퍼가 4바이트라서 가득 찰 때마다 4바이트씩 내려가고, 마지막 1바이트는 flush나 close를 불렀을 때 내려갔습니다.');
     if (fail && E === 'twr') sum.push('try-with-resources는 예외가 발생해도 close를 불러 줍니다. 닫는 코드를 직접 쓰면 그 앞에서 예외가 났을 때 건너뛰게 되므로, 스트림처럼 닫아야 하는 자원은 try-with-resources로 여는 것이 안전합니다.');
-    if (fail && (E === 'close' || E === 'flush')) sum.push('닫는 코드를 맨 아래에 직접 써 두면, 그 앞에서 예외가 났을 때 실행되지 않습니다. "다 쓴 뒤에 하는 일"을 try-with-resources로 바꿔 비교해 보세요.');
+    if (fail && (E === 'close' || E === 'flush')) sum.push('닫는 코드를 맨 아래에 직접 써 두면, 그 앞에서 예외가 났을 때 실행되지 않습니다.');
     if (!fail && E === 'flush') sum.push('flush는 버퍼를 비울 뿐 스트림을 닫지 않습니다. 열린 스트림은 파일을 계속 붙잡고 있으므로, 다 쓴 스트림은 close로 닫습니다. close는 닫기 전에 버퍼도 비워 줍니다.');
     if (st.file && c.read === 'byte') sum.push('한글처럼 한 글자가 여러 바이트인 문자는 바이트 하나를 글자 하나로 바꾸면 깨집니다. 글자를 읽을 때는 InputStreamReader 같은 문자 스트림에 인코딩(UTF-8)을 알려 주고 읽습니다. 영문자 abc는 UTF-8에서 한 글자가 1바이트라서 이렇게 읽어도 그대로 보이므로, 영문으로만 시험하면 이 문제를 놓칩니다.');
     if (st.file && c.read === 'char' && !rest) sum.push('문자 스트림은 바이트 스트림 위에서 "몇 바이트가 글자 하나인지"를 인코딩 규칙으로 판단해 글자 단위로 돌려줍니다.');
     return { events: ev, summary: sum, lens: st.lens, codes: codes, closed: st.closed, row: [st.calls + '번', st.file + ' / 9바이트', st.closed ? '닫힘' : '열린 채로 남음', rowRead] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    var HEX = ['EA', 'B0', '80', 'EB', '82', '98', 'EB', '8B', 'A4'];
-    H.counters(v, [[s.calls + '번', '아래로 내려간 write'], [c.buf === 'raw' ? '없음' : s.pend + '바이트', '버퍼에 남은 것'], [s.file + ' / 9', '파일에 쓰인 바이트']]);
-    H.title(v, '쓴 바이트가 지금 있는 곳 (노랑: 버퍼, 초록: 파일)');
-    H.slots(v, HEX.filter(function (h, i) { return s.where[i]; }).map(function (h, i) { return [h, s.where[i] === 2 ? 'd' : 'b']; }), '아직 쓴 바이트 없음');
     var ln = H.lanes(v);
     H.lane(ln, '스트림', s.closed ? '닫힘' : '열려 있음', s.closed ? 'good' : 'wait');
     H.lane(ln, '예외', s.ex ? 'IllegalStateException 발생' : '없음', s.ex ? 'bad' : 'none');
@@ -2040,7 +2029,7 @@ Lab.register({
     P.box('r2', 344, 202, 320, 36, { cls: s.closed ? 'good' : s.open ? 'wait' : 'ghost', title: '스트림', right: s.closed ? '닫힘' : s.open ? '열려 있음' : '아직 열기 전' });
     P.box('r3', 16, 248, 648, 36, { cls: s.read ? s.readOk : 'ghost', title: '파일을 다시 읽은 결과', right: s.read || '아직 읽기 전' });
     P.box('r4', 16, 294, 648, 30, { cls: s.ex ? 'bad' : 'ghost', title: '예외', right: s.ex ? 'IllegalStateException (처리 중 오류)' : '없음' });
-    P.note('가운데 줄의 상자 하나가 1바이트입니다. 노란 상자는 메모리의 버퍼에만 있는 바이트, 초록 상자는 파일까지 내려간 바이트입니다. 버퍼에 있는 바이트는 버퍼가 가득 차거나 flush, close를 불러야 파일로 내려갑니다.');
+    P.note('가운데 줄의 상자 하나가 1바이트입니다. 노란 상자는 메모리의 버퍼에만 있는 바이트, 초록 상자는 파일까지 내려간 바이트입니다.');
   },
   assume: '마흔여덟 가지 조합의 결과(아래 스트림으로 내려간 write 횟수와 한 번에 내려간 바이트 수, 파일 크기, 닫혔는지, 다시 읽은 글자)를 이 PC의 JDK 21에서 실행한 결과와 대조했습니다. 크기를 주지 않은 BufferedOutputStream이 8192바이트를 모은 뒤에 내려보낸다는 것, 닫지 않고 프로그램이 정상 종료해도 버퍼에 남은 데이터가 파일에 쓰이지 않는다는 것, 영문 abc는 바이트 하나씩 글자로 바꿔도 그대로라는 것도 같은 PC에서 따로 실행해 확인했습니다. 8192는 이 JDK에서 본 값이며 자바 문서가 정해 둔 수치는 아닙니다. 그림의 "파일"은 프로그램이 운영체제에 쓰기를 넘긴 것까지를 뜻합니다. 운영체제도 자기 버퍼를 따로 가지고 있어서 디스크에 실제로 기록되는 때는 그보다 늦을 수 있는데, 이것은 다루지 않았습니다. 바이트 방식으로 읽은 결과에서 화면에 보일 수 없는 글자는 □로 표시했습니다. 버퍼가 있을 때와 없을 때의 속도 차이는 재지 않았습니다. 쓰는 쪽의 문자 스트림(Writer)과 큰 덩어리를 한 번에 쓰는 write(byte[])는 다루지 않았습니다.',
 });
@@ -2113,7 +2102,6 @@ Lab.register({
         push('in.readObject(): 파일에 기록된 serialVersionUID와 지금 User 클래스의 serialVersionUID를 비교합니다. ' + (auto ? '저장할 때 계산된 값과 필드를 추가한 지금의 클래스에서 계산한 값이 다릅니다.' : '파일은 1, 지금 클래스는 2입니다.') + ' 서로 맞지 않는 버전의 클래스로 보고 InvalidClassException을 던집니다. 객체는 되살아나지 않습니다.', 'bad');
       }
     }
-    sum.push('저장은 ' + (st.save === '성공' ? '성공' : st.save + '으로 실패') + ', 되살리기는 ' + (st.load === '성공' ? '성공했고 읽은 point는 ' + st.val.split(' ')[0] + '입니다.' : st.load === '하지 못함' ? '하지 못했습니다.' : st.load + '으로 실패했습니다.') + ' 생성자는 new로 만들 때 한 번만 실행됐습니다.');
     if (c.cls === 'no') sum.push('자바의 기본 직렬화는 Serializable을 구현한 클래스의 객체만 저장합니다. Serializable에는 구현할 메서드가 없고, "이 클래스의 객체는 저장해도 된다"는 표시 역할만 합니다.');
     if (c.cls === 'field') sum.push('객체를 저장하면 그 객체가 필드로 가리키는 객체들도 함께 저장됩니다. 그 가운데 하나라도 Serializable이 아니면 전체가 실패합니다. Address도 Serializable로 만들거나, 저장할 필요가 없는 필드라면 transient를 붙입니다.');
     if (st.load === '성공') {
@@ -2129,18 +2117,9 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    var fileTxt = !s.file ? '아직 쓰지 않음' : s.file === 'fail' ? '저장 실패' : 'User (serialVersionUID ' + s.file.uid + ') · name = "kim"' + (s.file.point === null ? '' : ' · point = ' + s.file.point);
-    H.table(v, ['어디에', '무엇이 있는가'], [
-      { cls: s.u ? '' : 'gone', cells: ['원래 객체 u', s.u ? 'name = "kim"' + (s.u.point === null ? '' : ', point = ' + s.u.point) + (s.u.addr ? ', address → Address 객체' : '') : '아직 없음'] },
-      { cls: s.sp === null ? 'gone' : '', cells: ['User 클래스 (static)', s.sp === null ? 'static 필드 없음' : 'point = ' + s.sp] },
-      { cls: s.file ? '' : 'gone', cells: ['파일 user.ser', { v: fileTxt, cls: s.file === 'fail' ? 'bad' : s.file ? 'good' : '' }] },
-      { cls: s.r ? '' : 'gone', cells: ['되살린 객체 r', s.r ? 'name = "kim"' + (s.r.point === null ? '' : ', point = ' + s.r.point) : s.load === 'InvalidClassException' ? { v: '되살리지 못함', cls: 'bad' } : '아직 없음'] },
-    ], '값이 있는 곳');
     var ln = H.lanes(v);
     H.lane(ln, '저장', s.save, s.save === '성공' ? 'good' : s.save === '?' ? 'none' : 'bad');
-    H.lane(ln, '되살리기', s.load, s.load === '성공' ? 'good' : s.load === '?' ? 'none' : s.load === '하지 못함' ? 'wait' : 'bad');
-    H.counters(v, [[s.ctor + '번', '생성자 실행'], [s.val, '되살린 뒤 읽은 point']]);
-  },
+    H.lane(ln, '되살리기', s.load, s.load === '성공' ? 'good' : s.load === '?' ? 'none' : s.load === '하지 못함' ? 'wait' : 'bad');  },
   // 그림: 왼쪽에 원래 객체(와 클래스의 static 값), 가운데에 파일에 저장된 내용, 오른쪽에 되살린 객체. 화살표가 저장과 되살리기다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { ctor: 0, u: null, sp: null, file: null, ver: c.cls === 'no' ? '' : c.chg === 'auto' ? '자동으로 계산한 값' : '1', r: null, save: '?', load: '?', val: '?', ex: '' };
@@ -2160,7 +2139,7 @@ Lab.register({
     P.box('k1', 16, 226, 320, 36, { cls: 'plain', title: '생성자 실행 횟수', right: s.ctor + '번' });
     P.box('k2', 344, 226, 320, 36, { cls: s.ver === '2' || s.ver.indexOf('달라짐') >= 0 ? 'hot' : 'plain', title: '지금 User의 UID', right: s.ver ? P.fit(s.ver, 180) : '없음' });
     P.box('k3', 16, 272, 648, 36, { cls: s.ex ? 'bad' : s.val !== '?' ? 'good' : 'ghost', title: s.ex ? '발생한 예외' : '되살린 뒤 읽은 point', right: s.ex || s.val });
-    P.note('왼쪽 화살표가 writeObject(저장), 오른쪽 화살표가 readObject(되살리기)입니다. 파일에 들어가는 것은 객체의 인스턴스 필드 값과, 어떤 클래스의 객체인지 알려 주는 클래스 이름과 serialVersionUID(그림의 UID)입니다. transient 필드와 static 필드는 파일에 들어가지 않습니다.');
+    P.note('왼쪽 화살표가 writeObject(저장), 오른쪽 화살표가 readObject(되살리기)입니다. 파일에 들어가는 것은 객체의 인스턴스 필드 값과, 어떤 클래스의 객체인지 알려 주는 클래스 이름과 serialVersionUID(그림의 UID)입니다.');
   },
   assume: '열다섯 가지 조합마다 화면의 코드와 같은 소스를 이 PC의 JDK 21에서 컴파일하고 실행해, 저장과 되살리기의 성공 여부, 발생한 예외, 되살린 값, 생성자가 실행된 횟수를 대조했습니다. 저장한 뒤 클래스를 고치는 조합은 같은 이름의 User 클래스를 두 벌 따로 컴파일해, 한쪽으로 저장한 파일을 다른 쪽으로 읽었습니다. serialVersionUID를 적어 둔 채 필드를 추가하면 읽을 수 있고 새 필드가 null이라는 것, transient인 참조형 필드가 null이 된다는 것, static 필드를 다른 프로그램에서 읽으면 0이라는 것, Address 필드에 transient를 붙이면 저장된다는 것도 따로 실행해 확인했습니다. 파일에 실제로 기록되는 바이트의 형식은 그림에서 줄였습니다. 생성자가 실행되지 않는 것은 Serializable을 구현한 클래스의 이야기이며, 부모 클래스가 Serializable이 아닌 경우의 규칙, writeObject와 readObject를 직접 정의하는 방법, record의 직렬화는 다루지 않았습니다. 자바의 기본 직렬화는 보안 문제 때문에 새 코드에서는 잘 쓰지 않고 JSON 같은 형식을 주로 쓰지만, 기존 코드와 라이브러리를 이해하려면 이 규칙들을 알아야 합니다.',
 });
@@ -2168,7 +2147,7 @@ Lab.register({
 Lab.register({
   id: 'ioc', nav: '스프링 컨테이너와 빈', cat: '스프링', mode: 'step',
   title: 'new를 쓰지 않았는데 객체는 누가 만들어 넣어 주나',
-  intro: '주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다. 등록한 빈이 하나일 때, 둘일 때, 없을 때 컨테이너가 어떻게 하는지 보세요.',
+  intro: '주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다.',
   terms: ['IoC(제어의 역전)', '스프링 빈(Bean)', '@Configuration과 @Bean', '@Primary와 @Qualifier', 'NoSuchBeanDefinitionException과 NoUniqueBeanDefinitionException'],
   controls: [
     { id: 'how', label: '할인 정책 객체를 만드는 쪽', type: 'select', value: 'comp', options: [['new', 'OrderService가 직접 new로 만든다'], ['comp', '컨테이너가 만든다 (@Component로 등록)'], ['bean', '컨테이너가 만든다 (@Bean 메서드로 등록)']] },
@@ -2241,9 +2220,8 @@ Lab.register({
       st.off = f.off + '원'; st.result = '정상 실행';
       push('orderService.order(20000): ' + f.cls + '의 discount가 ' + f.off + '원을 돌려주어, 낼 돈은 ' + (20000 - f.off) + '원입니다.', '');
       push('구현을 ' + f.other + '로 바꾸려면: OrderService.java를 열어 new 뒤의 클래스 이름을 고쳐야 합니다. 할인 정책을 쓰는 클래스가 여럿이면 그 클래스를 모두 고쳐야 합니다.', 'bad');
-      sum.push('정상 실행. OrderService가 ' + f.cls + ' 객체를 직접 만들어 씁니다. 20000원 주문의 할인은 ' + f.off + '원입니다.');
       sum.push('객체를 만드는 코드와 구현을 고르는 코드가 모두 OrderService 안에 있습니다. OrderService는 DiscountPolicy라는 인터페이스 타입으로 필드를 선언했지만, new 뒤에 구현 클래스 이름을 적는 순간 그 구현에 묶입니다.');
-      sum.push('구현을 바꿀 때마다 그것을 쓰는 클래스를 고쳐야 합니다. "컨테이너가 만든다"로 바꿔서, 같은 변경에 어느 파일이 달라지는지 비교해 보세요.');
+      sum.push('구현을 바꿀 때마다 그것을 쓰는 클래스를 고쳐야 합니다.');
       row = ['정상 실행 (컨테이너 없음)', f.cls + ' (' + f.off + '원 할인)', 'OrderService의 new', 'OrderService'];
     } else {
       var names = ['orderService'].concat(f.regFixed ? ['fixedDiscountPolicy'] : [], f.regRate ? ['rateDiscountPolicy'] : []), n = names.length - 1;
@@ -2257,13 +2235,11 @@ Lab.register({
       if (n === 0) {
         fail = 'NoSuchBeanDefinitionException'; st.svc = '실패'; st.result = '기동 실패';
         push('넣어 줄 빈이 하나도 없습니다. 컨테이너는 생성자를 호출할 수 없어 NoSuchBeanDefinitionException을 던지고, 애플리케이션 기동이 실패합니다. 구현 클래스가 소스에 있어도 빈으로 등록하지 않았다면 컨테이너에는 없는 것입니다.', 'bad');
-        sum.push('기동 실패: NoSuchBeanDefinitionException. DiscountPolicy 타입의 빈이 하나도 없어 OrderService를 만들 수 없습니다.');
         sum.push('필요한 빈이 없으면 주문이 들어왔을 때가 아니라 애플리케이션이 뜨는 시점에 바로 실패합니다. 빠진 등록을 일찍 알 수 있습니다.');
         sum.push(f.comp ? '구현 클래스에 @Component를 붙이면 컨테이너가 찾아 등록합니다.' : 'AppConfig에 @Bean 메서드를 추가하면 그 메서드가 돌려준 객체가 빈으로 등록됩니다.');
       } else if (c.reg === 'two') {
         fail = 'NoUniqueBeanDefinitionException'; st.svc = '실패'; st.result = '기동 실패';
         push('후보가 둘인데 어느 쪽을 넣을지 정할 근거가 없습니다. 컨테이너는 임의로 하나를 고르지 않고 NoUniqueBeanDefinitionException을 던집니다. 애플리케이션 기동이 실패합니다.', 'bad');
-        sum.push('기동 실패: NoUniqueBeanDefinitionException. DiscountPolicy 타입의 빈이 fixedDiscountPolicy와 rateDiscountPolicy 둘이라서 컨테이너가 고르지 못했습니다.');
         sum.push('컨테이너는 타입으로 빈을 찾습니다. 같은 타입의 빈이 둘 이상이면 무엇을 넣을지 알려 줘야 합니다. 먼저 쓸 빈에 @Primary를 붙이거나, 주입받는 곳에 @Qualifier로 빈 이름을 적습니다.');
         sum.push('구현 클래스를 하나 더 만들어 등록하기만 해도 이 오류가 납니다. 기존 코드를 고치지 않았는데 기동이 실패했다면 같은 타입의 빈이 늘지 않았는지 확인합니다.');
       } else {
@@ -2279,7 +2255,6 @@ Lab.register({
         push('orderService.order(20000): 주입받은 ' + f.cls + '의 discount가 ' + f.off + '원을 돌려주어, 낼 돈은 ' + (20000 - f.off) + '원입니다.', 'good');
         var where = c.reg === 'qualifier' ? 'OrderService' : f.comp ? 'FixedDiscountPolicy, RateDiscountPolicy' : 'AppConfig';
         push('구현을 ' + f.other + '로 바꾸려면: ' + (c.reg === 'qualifier' ? 'OrderService의 @Qualifier에 적은 빈 이름을 바꿉니다. 주입받는 쪽 파일을 고치게 됩니다.' : c.reg === 'primary' ? (f.comp ? '@Primary를 ' + f.other + ' 클래스로 옮깁니다.' : 'AppConfig에서 @Primary를 다른 @Bean 메서드로 옮깁니다.') + ' OrderService는 고치지 않습니다.' : (f.comp ? '@Component를 ' + f.other + ' 클래스로 옮깁니다.' : 'AppConfig의 @Bean 메서드를 ' + f.other + '를 돌려주는 것으로 바꿉니다.') + ' OrderService는 고치지 않습니다.'), c.reg === 'qualifier' ? '' : 'good');
-        sum.push('기동 성공. 컨테이너가 ' + f.cls + ' 빈을 OrderService에 넣어 주었습니다. 20000원 주문의 할인은 ' + f.off + '원입니다.');
         if (c.reg === 'one') sum.push('OrderService는 "DiscountPolicy가 필요하다"고 생성자에 적기만 합니다. 객체를 만들고, 어느 구현을 넣을지 정하는 일은 컨테이너가 합니다. 그래서 구현을 바꿔도 OrderService는 그대로입니다.');
         if (c.reg === 'primary') sum.push('@Primary는 등록하는 쪽에 붙이는 표시입니다. 주입받는 클래스가 몇 개든 한 곳만 바꾸면 모두 바뀝니다. 고르지 않은 구현도 빈이므로 객체는 만들어집니다.');
         if (c.reg === 'qualifier') sum.push('@Qualifier는 주입받는 쪽에서 빈 이름을 지정합니다. 주입받는 곳마다 다른 구현을 고를 수 있는 대신, 구현을 바꿀 때 그 클래스를 고쳐야 합니다. 기본으로 쓸 구현은 @Primary로 정하고, 다른 구현이 필요한 곳에만 @Qualifier를 붙일 수도 있습니다.');
@@ -2298,9 +2273,6 @@ Lab.register({
       var b = s.beans[k], st = { v: word[b.s], cls: b.s === 'in' ? 'good' : b.s === 'cand' ? 'hot' : '' };
       return { cls: b.s === 'none' ? 'gone' : '', cells: isNew ? [b.cls, st] : [b.cls + (b.mark ? ' (@Primary)' : ''), b.reg ? b.name : '-', st] };
     }), isNew ? 'DiscountPolicy의 구현 (컨테이너 없음)' : '스프링 컨테이너가 아는 DiscountPolicy 구현 (' + sim.regWord + '로 등록)');
-    var ln = H.lanes(v);
-    H.lane(ln, 'OrderService', s.svc + (s.pick ? ' · 쓰는 구현: ' + s.pick : ''), s.svc === '완성' ? 'good' : s.svc === '실패' ? 'bad' : s.svc === '만드는 중' ? 'hot' : 'none');
-    H.counters(v, [[s.result || '진행 중', '결과'], [s.off || '-', '20000원 주문의 할인']]);
   },
   // 그림: 왼쪽에 OrderService, 오른쪽에 할인 정책의 두 구현. 컨테이너가 후보를 찾고(점선) 고른 것을 넣어 준다(초록 실선). 직접 new일 때는 OrderService에서 구현으로 화살표가 나간다.
   draw: function (P, sim, shown) {
@@ -2319,7 +2291,7 @@ Lab.register({
     });
     P.box('r1', 16, 258, 320, 40, { cls: !s.result ? 'ghost' : s.result === '기동 실패' ? 'bad' : 'good', title: '결과', right: s.result ? (sim.fail ? sim.fail : s.result) : '진행 중' });
     P.box('r2', 344, 258, 320, 40, { cls: s.off ? 'good' : 'ghost', title: '20000원 주문의 할인', right: s.off || '-' });
-    P.note(isNew ? '화살표는 "OrderService가 이 객체를 직접 만들었다"는 뜻입니다. 어떤 구현을 쓸지가 OrderService의 코드에 적혀 있어, 구현을 바꾸려면 OrderService를 고쳐야 합니다.' : '점선은 컨테이너가 찾은 후보, 초록 실선은 컨테이너가 골라서 OrderService에 넣어 준 빈입니다. 흐린 상자는 빈으로 등록되지 않아 컨테이너가 모르는 클래스입니다.');
+    P.note(isNew ? '화살표는 "OrderService가 이 객체를 직접 만들었다"는 뜻입니다.' : '점선은 컨테이너가 찾은 후보, 초록 실선은 컨테이너가 골라서 OrderService에 넣어 준 빈입니다. 흐린 상자는 빈으로 등록되지 않아 컨테이너가 모르는 클래스입니다.');
   },
   assume: '서른 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해, 직접 new로 만드는 경우는 그대로 실행하고 컨테이너를 쓰는 경우는 컴포넌트 스캔으로 띄운 뒤, 기동 성공 여부와 예외 이름, OrderService에 들어간 구현, 할인 금액, 구현 객체의 생성자를 부른 쪽(호출 스택으로 확인), 만들어진 구현 객체의 수를 비교했습니다. "구현을 바꿀 때 고치는 파일"은 쓰려는 구현만 바꾼 두 소스에서 내용이 달라진 파일을 대조 프로그램이 직접 비교한 것입니다. 기동 실패에서 맨 안쪽 원인 예외의 이름을 적었으며, 바깥에는 UnsatisfiedDependencyException이 감싸고 있습니다. 화면에서 단순화한 것: 컨테이너가 빈 객체를 만드는 순서는 등록 순서에 따라 달라지므로 단정하지 않았습니다(순서는 "빈 생성과 주입" 실습에서 다룹니다). 두 구현을 모두 등록하고 고르는 표시가 없어도 생성자 파라미터의 이름이 빈 이름과 같으면(예: rateDiscountPolicy) 그 빈이 들어가 기동에 성공하는 것도 실행으로 확인했습니다. 이 실습의 파라미터 이름은 discountPolicy라서 어느 빈 이름과도 같지 않습니다. 필드 주입과 세터 주입, 같은 타입의 빈을 List로 모두 받는 방법은 다루지 않았습니다.',
 });
@@ -2327,7 +2299,7 @@ Lab.register({
 Lab.register({
   id: 'scope', nav: '빈 스코프', cat: '스프링', mode: 'step',
   title: '프로토타입 빈인데 왜 객체가 하나뿐인가',
-  intro: '스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다. 요청을 두 번 보내고, 요청마다 장바구니(Cart)를 두 번 쓰면서 객체가 몇 개 만들어지는지 세어 보세요.',
+  intro: '스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다.',
   terms: ['빈 스코프', '스프링 빈(Bean)', 'ObjectProvider', '스코프 프록시', '프록시(Proxy)'],
   controls: [
     { id: 'scope', label: 'Cart 빈의 스코프', type: 'select', value: 'prototype', options: [['singleton', '싱글톤 (적지 않으면 이것)'], ['prototype', '프로토타입'], ['request', 'request (HTTP 요청)']] },
@@ -2414,7 +2386,6 @@ Lab.register({
     }
     // 여기까지 왔으면 기동과 두 요청이 모두 끝났다. 그림의 상태 상자는 st.phase(진행 단계)를 보여 준다.
     var total = st.carts.length, u1 = st.used[0].map(function (n) { return n + '번'; }).join(', '), u2 = st.used[1].map(function (n) { return n + '번'; }).join(', ');
-    sum.push('기동 성공. 요청 두 번(요청마다 두 번 사용)에 Cart 객체는 모두 ' + total + '개 만들어졌습니다. 요청 1은 ' + u1 + '을, 요청 2는 ' + u2 + '을 썼습니다.');
     if (sc === 'singleton') {
       sum.push('싱글톤 빈은 컨테이너에 객체가 하나뿐이고, 기동할 때 만들어집니다. 그대로 주입받든, ObjectProvider로 꺼내든, 프록시를 거치든 언제나 같은 객체입니다.');
       sum.push('스코프를 따로 적지 않은 빈은 모두 싱글톤입니다. 모든 요청이 한 객체를 함께 쓰므로 요청마다 달라지는 값을 필드에 두면 안 됩니다.');
@@ -2440,10 +2411,6 @@ Lab.register({
       return { cls: x.gone ? 'gone' : '', cells: [{ v: 'Cart ' + x.no + '번', cls: s.cur === x.no ? 'hot' : '' }, x.when, x.users.length ? x.users.join(', ') + (x.gone ? ' (요청과 함께 끝남)' : '') : '-'] };
     }), '지금까지 만들어진 Cart 객체');
     if (!s.carts.length) H.text(v, s.svc === '실패' ? 'Cart 객체가 하나도 만들어지지 않았습니다.' : '아직 Cart 객체가 없습니다.');
-    var ln = H.lanes(v);
-    H.lane(ln, 'orderService', s.svc === '완성' ? '싱글톤 · 필드에 들어 있는 것: ' + s.holds : s.svc, s.svc === '완성' ? 'good' : s.svc === '실패' ? 'bad' : 'none');
-    [0, 1].forEach(function (i) { H.lane(ln, '요청 ' + (i + 1), s.used[i].length ? '쓴 Cart: ' + s.used[i].map(function (n) { return n + '번'; }).join(', ') : s.req === i + 1 ? '처리 중' : '아직 안 옴', s.req === i + 1 ? 'hot' : s.used[i].length ? 'wait' : 'none'); });
-    H.counters(v, [[s.carts.length + '개', '만들어진 Cart 객체'], [s.result || s.phase, '상태']]);
   },
   // 그림: 왼쪽에 HTTP 요청 둘, 가운데에 싱글톤 orderService, 오른쪽에 만들어진 Cart 객체들. 객체가 만들어질 때마다 상자가 하나씩 늘어난다.
   draw: function (P, sim, shown) {
@@ -2464,7 +2431,7 @@ Lab.register({
     if (s.req) P.arrow('call', 'rq' + s.req + ':r', 'svc:l', { label: 'cartNo()' });
     P.box('r1', 16, 294, 320, 38, { cls: s.carts.length ? 'plain' : 'ghost', title: '만들어진 Cart 객체', right: s.carts.length + '개' });
     P.box('r2', 344, 294, 320, 38, { cls: s.result ? 'bad' : s.phase ? 'plain' : 'ghost', title: '상태', right: s.result === '기동 실패' ? 'ScopeNotActiveException' : s.result || s.phase || '시작 전' });
-    P.note(g === 'inject' ? '초록 화살표는 OrderService의 필드가 붙잡고 있는 객체입니다. 주입은 OrderService를 만들 때 한 번뿐이라, 이 화살표는 기동 뒤에 바뀌지 않습니다.' : g === 'provider' ? '노란 화살표는 getObject()가 이번에 돌려준 객체입니다. 스코프에 따라 같은 객체를 돌려주기도 하고 새로 만들기도 합니다.' : '노란 화살표는 프록시가 이번 메서드 호출을 넘긴 진짜 객체입니다. OrderService의 필드에는 프록시만 들어 있습니다.');
+    P.note(g === 'inject' ? '초록 화살표는 OrderService의 필드가 붙잡고 있는 객체입니다.' : g === 'provider' ? '노란 화살표는 getObject()가 이번에 돌려준 객체입니다.' : '노란 화살표는 프록시가 이번 메서드 호출을 넘긴 진짜 객체입니다.');
   },
   assume: '아홉 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9, 내장 톰캣 11)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해 서버를 띄우고, 실제로 GET /order 요청을 두 번 보내 응답에 적힌 Cart 번호를 읽었습니다. Cart의 생성자가 불린 횟수(기동 직후, 요청 두 번 뒤), OrderService의 필드에 들어 있는 것(Cart, ObjectProvider, 프록시), 기동 실패의 예외 사슬(UnsatisfiedDependencyException → UnsatisfiedDependencyException → ScopeNotActiveException → IllegalStateException)을 비교했습니다. 요청 두 개는 하나가 끝난 뒤 다음 것을 보냈습니다(동시에 보낸 경우는 "싱글톤 빈과 상태" 실습에서 다룹니다). 다음도 실행으로 확인했습니다: 프로토타입 빈을 주입받는 싱글톤 빈이 둘이면 서로 다른 객체를 받는 것, 프로토타입에 프록시를 쓰면 add로 넣은 값이 바로 다음 size 호출에서 보이지 않는 것(0이 나옴), @RequestScope를 붙인 빈은 그대로 주입받아도 기동되고 요청마다 하나인 것, request 스코프 빈의 @PreDestroy가 요청이 끝날 때마다 불리는 것. 다루지 않은 것: session 스코프와 application 스코프, 프로토타입 빈을 꺼내는 다른 방법(@Lookup, jakarta.inject.Provider), 프록시 방식 가운데 인터페이스를 쓰는 것(ScopedProxyMode.INTERFACES). 화면의 Cart는 객체를 세려고 static 변수를 썼는데, 요청이 동시에 들어오는 실제 코드라면 이렇게 세면 안 됩니다.',
 });
@@ -2472,7 +2439,7 @@ Lab.register({
 Lab.register({
   id: 'lifecycle', nav: '빈 생명주기 콜백', cat: '스프링', mode: 'step',
   title: '생성자에서 주입받은 필드를 썼더니 왜 null인가',
-  intro: '컨테이너는 빈을 정해진 순서로 다룹니다. 생성자로 객체를 만들고, 의존성을 넣고, 초기화 콜백을 부르고, 쓰다가, 컨테이너가 닫힐 때 소멸 콜백을 부릅니다. 가격표를 미리 읽어 두는 PriceCache 빈으로, 준비 작업을 어디에 두어야 하는지와 콜백이 어떤 순서로 불리는지 확인해 보세요.',
+  intro: '컨테이너는 빈을 정해진 순서로 다룹니다. 생성자로 객체를 만들고, 의존성을 넣고, 초기화 콜백을 부르고, 쓰다가, 컨테이너가 닫힐 때 소멸 콜백을 부릅니다.',
   terms: ['빈 생명주기', '@PostConstruct와 @PreDestroy', 'InitializingBean과 DisposableBean', '생성자 주입, 세터 주입, 필드 주입', '@Configuration과 @Bean'],
   controls: [
     { id: 'inj', label: 'PriceRepository를 받는 방법', type: 'select', value: 'field', options: [['field', '필드 주입 (@Autowired)'], ['ctor', '생성자 주입']] },
@@ -2562,7 +2529,6 @@ Lab.register({
       done = create();
       if (!done) {
         st.result = '기동 실패'; st.phase = '기동 실패';
-        sum.push('기동 실패: NullPointerException. 생성자가 불리는 시점에는 @Autowired 필드가 아직 채워지지 않았습니다.');
       } else {
         st.cur = ''; st.phase = '기동 완료'; mark('STARTED', '기동 완료');
         push('기동이 끝났습니다. PriceCache 빈은 초기화까지 마친 상태로 컨테이너 안에 있습니다.', '');
@@ -2597,7 +2563,6 @@ Lab.register({
     var initCol = !k.inits.length || !done ? '콜백 없음' : k.inits.map(function (x) { return x[1]; }).join(' → ');
     var destCol = !k.dests.length || !done ? '콜백 없음' : proto ? '불리지 않음' : k.dests.map(function (x) { return x[1]; }).join(' → ');
     if (done) {
-      sum.push('성공. 불린 순서는 생성자 → ' + (field ? '의존성 주입 → ' : '') + (k.inits.length ? k.inits.map(function (x) { return x[1]; }).join(' → ') + ' → ' : '') + '사용' + (destCol !== '콜백 없음' && !proto ? ' → ' + destCol : '') + '입니다.' + (proto && k.dests.length ? ' 소멸 콜백은 불리지 않았습니다.' : ''));
       if (field) sum.push('필드 주입에서는 객체를 먼저 만들고 그 뒤에 필드를 채웁니다. 그래서 생성자 안에서는 주입받을 필드가 null입니다. 주입받은 것을 쓰는 준비 작업은 생성자가 아니라 초기화 콜백에 둡니다.');
       else sum.push('생성자 주입에서는 생성자 안에서 의존성을 바로 쓸 수 있습니다.' + (inCtor ? ' 이 설정에는 소멸 콜백을 두지 않았으므로 컨테이너가 닫힐 때 불리는 것이 없습니다.' : ' 초기화 콜백은 생성자 다음에 불립니다.'));
       if (c.cb === 'anno') sum.push('@PostConstruct와 @PreDestroy는 메서드에 붙이기만 하면 됩니다. 스프링의 인터페이스를 구현하지 않아도 되며, 스프링 공식 문서가 권하는 방법입니다.');
@@ -2615,14 +2580,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 컨테이너가 뜨고, 빈을 한 번 쓴 뒤 컨테이너를 닫습니다.'); return; }
-    var names = [['ctor', '1. 생성자'], ['inject', '2. 의존성 주입'], ['init', '3. 초기화 콜백'], ['use', '4. 사용'], ['destroy', '5. 소멸 콜백']];
-    H.table(v, ['단계', '일어난 일'], names.map(function (n) {
-      var x = s.stage[n[0]];
-      return { cells: [{ v: n[1], cls: s.cur === n[0] ? 'hot' : '' }, { v: x || '아직', cls: s.bad === n[0] ? 'bad' : x && x !== '콜백 없음' ? 'good' : '' }] };
-    }), 'PriceCache 빈의 생명주기');
     H.title(v, '불린 순서');
     H.slots(v, s.log.map(function (w, i) { return [w, w === '기동 완료' || w === '컨테이너 종료 시작' ? 'q' : i === s.log.length - 1 ? 'b' : 'd']; }), '아직 없음');
-    H.counters(v, [[s.repo || '-', 'repository 필드'], [s.prices || '없음', '가격표(prices)'], [s.result || s.phase, '상태']]);
   },
   // 그림: 왼쪽에 생명주기의 다섯 단계를 위에서 아래로, 오른쪽에 컨테이너 안의 PriceRepository 빈과 PriceCache 객체. 지금 단계가 굵은 테두리로 표시된다.
   draw: function (P, sim, shown) {
@@ -2640,7 +2599,7 @@ Lab.register({
     if (s.obj && s.repo === '주입됨') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'good', label: '주입' });
     if (s.obj && s.repo === 'null') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'dash mut', label: '아직 주입 전' });
     P.box('r1', 16, 292, 648, 36, { cls: !s.result ? 'ghost' : s.result === '성공' ? 'good' : 'bad', title: '상태', right: s.result ? (s.result === '성공' ? '성공' : s.result + ': NullPointerException') : s.phase || '시작 전' });
-    P.note('컨테이너는 빈 하나를 위에서 아래 순서로 다룹니다. 필드 주입에서는 1번과 2번 사이에 repository가 null인 구간이 있습니다. 프로토타입 빈은 4번까지만 컨테이너가 맡고, 5번은 불리지 않습니다.');
+    P.note('컨테이너는 빈 하나를 위에서 아래 순서로 다룹니다.');
   },
   assume: '스무 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9, jakarta.annotation-api 3.0.0)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해 컨테이너를 띄우고, 빈을 꺼내 price("사과")를 한 번 부른 뒤 컨테이너를 닫으면서, 생성자와 각 콜백이 불린 순서와 그때 repository 필드가 null이었는지를 기록해 모형의 순서와 하나하나 비교했습니다. 기동 실패의 예외 사슬은 BeanCreationException → BeanInstantiationException → NullPointerException이었고, 화면에는 맨 안쪽 원인을 적었습니다. 화면에서 단순화한 것: "의존성 주입" 단계는 따로 기록할 수 없어, 생성자에서는 null이고 초기화 콜백에서는 들어 있었다는 것으로 그 사이에 주입이 일어났음을 확인했습니다. 세터 주입과, 컨테이너가 닫힐 때 여러 빈 사이의 소멸 순서는 다루지 않았습니다. @Bean에 destroyMethod를 적지 않아도 public close() 메서드가 있으면 컨테이너가 닫힐 때 불리는 것(프로토타입이면 불리지 않는 것)도 실행으로 확인했습니다. 실행으로 확인하지 않고 스프링 공식 문서의 설명을 따른 것은 두 가지입니다: @PostConstruct와 @PreDestroy가 권장되는 방법이라는 것, 프로세스가 강제로 종료되면 컨테이너가 닫히지 못해 소멸 콜백이 불리지 않는다는 것.',
 });
@@ -2648,7 +2607,7 @@ Lab.register({
 Lab.register({
   id: 'aop', nav: 'AOP: 어드바이스와 포인트컷', cat: '스프링', mode: 'step',
   title: '어드바이스는 어느 메서드에, 어떤 순서로 끼어드나',
-  intro: '로그 남기기처럼 여러 메서드에 똑같이 필요한 일을 한 클래스(애스펙트)에 적어 두면, 스프링이 메서드 호출의 앞뒤에 그 코드를 끼워 넣습니다. 끼워 넣는 코드를 어드바이스, 어느 메서드에 끼울지 고르는 식을 포인트컷이라고 합니다. 포인트컷과 부르는 메서드, 메서드의 결과, 애스펙트의 수를 바꿔 가며 무엇이 어떤 순서로 실행되는지 확인합니다.',
+  intro: '로그 남기기처럼 여러 메서드에 똑같이 필요한 일을 한 클래스(애스펙트)에 적어 두면, 스프링이 메서드 호출의 앞뒤에 그 코드를 끼워 넣습니다. 끼워 넣는 코드를 어드바이스, 어느 메서드에 끼울지 고르는 식을 포인트컷이라고 합니다.',
   terms: ['AOP(관점 지향 프로그래밍)', '어드바이스(Advice)', '포인트컷(Pointcut)', '애스펙트(Aspect)와 @Order', '프록시(Proxy)'],
   controls: [
     { id: 'pc', label: '포인트컷 (어느 메서드에 끼어들지 고르는 식)', type: 'select', value: 'cls', options: [['cls', 'execution(* shop.OrderService.*(..))'], ['arg', 'execution(* shop.*.*(String))'], ['noarg', 'execution(* shop.OrderService.cancel())'], ['ann', '@annotation(shop.Audit)']] },
@@ -2735,8 +2694,6 @@ Lab.register({
     st.cur = ''; st.caller = ex ? 'IllegalStateException' : ret;
     push('호출한 쪽: ' + (ex ? 'IllegalStateException을 받습니다.' + (M.hit ? ' 어느 어드바이스도 예외를 잡지 않았으므로 예외가 그대로 전달됩니다.' : '') : ret + '를 받습니다.' + (M.hit ? ' 어드바이스가 끼어들었지만 돌려받는 값은 그대로입니다.' : '')), ex ? 'bad' : 'good');
     var seq = st.run.slice();
-    if (M.hit) sum.push('포인트컷이 ' + sig + ' 메서드를 골랐고, 콘솔에는 ' + seq.length + '줄이 이 순서로 찍혔습니다: ' + seq.join(' → ') + '. 호출한 쪽은 ' + st.caller + (ex ? '을' : '를') + ' 받았습니다.');
-    else sum.push('포인트컷이 ' + sig + ' 메서드를 고르지 않아 어드바이스가 하나도 실행되지 않았습니다. 콘솔에 찍힌 것은 "' + m + ' 본문" 한 줄뿐이고, 호출한 쪽은 ' + st.caller + (ex ? '을' : '를') + ' 받았습니다.');
     if (!M.hit && c.pc === 'noarg' && m === 'cancel') sum.push('괄호 안을 비운 cancel()은 "매개변수가 없는 cancel"만 고릅니다. 매개변수와 상관없이 고르려면 cancel(..)이라고 씁니다.');
     if (!M.hit) sum.push('포인트컷이 고르지 않은 메서드는 평범한 메서드 호출과 똑같이 실행됩니다. 식을 잘못 써서 아무것도 고르지 못해도 오류가 나지 않으므로, 어드바이스가 실제로 실행되는지 확인해야 합니다.');
     if (M.hit && ex) sum.push('예외가 나면 @AfterThrowing과 @After가 실행되고, @AfterReturning과 @Around에서 pjp.proceed() 아래에 적은 줄은 실행되지 않습니다. 어느 경우에나 해야 하는 일은 @After에 두거나, @Around 안에서 try-finally로 감쌉니다.');
@@ -2753,9 +2710,7 @@ Lab.register({
     H.table(v, ['순서', '콘솔에 찍힌 줄', '찍은 곳'], s.run.map(function (x, i) {
       var who = x.indexOf('Log ') === 0 ? 'LogAspect' : x.indexOf('Time ') === 0 ? 'TimeAspect' : '메서드 본문';
       return { cells: [String(i + 1), { v: x, cls: x === s.cur ? 'hot' : '' }, who] };
-    }).concat(s.skip.map(function (x) { return { cls: 'gone', cells: ['-', { v: x + ' (실행되지 않음)', cls: 'bad' }, 'LogAspect'] }; })), '콘솔 출력');
-    H.counters(v, [[s.run.length + '줄', '지금까지 찍힌 줄'], [s.caller || '아직 실행 중', '호출한 쪽이 받는 것']]);
-  },
+    }).concat(s.skip.map(function (x) { return { cls: 'gone', cells: ['-', { v: x + ' (실행되지 않음)', cls: 'bad' }, 'LogAspect'] }; })), '콘솔 출력');  },
   // 그림: 애스펙트를 겹겹의 상자로 그린다. 바깥 상자부터 들어가 가운데의 메서드 본문에 닿고, 나올 때는 안쪽부터 나온다. 왼쪽 칸은 들어갈 때, 오른쪽 칸은 나올 때 실행되는 어드바이스다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { pc: '', bean: '', run: [], cur: '', skip: [], body: '', caller: '' };
@@ -2790,7 +2745,7 @@ Lab.register({
 Lab.register({
   id: 'jdbctmpl', nav: 'JdbcTemplate과 예외 변환', cat: '스프링', mode: 'step',
   title: 'JdbcTemplate은 무엇을 대신 해 주고, 예외를 무엇으로 바꾸나',
-  intro: 'JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, DB가 던진 SQLException을 스프링의 예외(DataAccessException 계열)로 바꿔 줍니다. 같은 작업을 세 가지 방식으로 실행해, 호출한 쪽이 무엇을 받고 커넥션이 반납되는지 비교합니다.',
+  intro: 'JDBC를 직접 쓰면 SQL 한 줄을 실행하려고 커넥션을 얻고, 닫고, SQLException을 처리하는 코드를 매번 써야 합니다. JdbcTemplate은 이 반복되는 일을 대신 하고, DB가 던진 SQLException을 스프링의 예외(DataAccessException 계열)로 바꿔 줍니다.',
   terms: ['JdbcTemplate', '예외 변환과 DataAccessException', '커넥션 풀', 'Checked 예외와 Unchecked 예외', '템플릿 메서드 패턴'],
   controls: [
     { id: 'how', label: 'DB에 접근하는 방식', type: 'select', value: 'plain', options: [['plain', 'JDBC 직접: close()를 마지막 줄에서 호출'], ['twr', 'JDBC 직접: try-with-resources로 닫기'], ['tmpl', 'JdbcTemplate']] },
@@ -2877,7 +2832,6 @@ Lab.register({
         push('호출한 쪽: ' + err[2] + '을 받습니다. 언체크 예외라서 throws를 적지 않아도 되고, 이 경우만 따로 처리하고 싶으면 코드 번호가 아니라 예외 클래스의 이름으로 잡으면 됩니다.', 'bad');
       }
     }
-    sum.push('호출한 쪽이 받은 것: ' + caller + ' (' + kind + '). 커넥션은 ' + (conn === '반납됨' ? '풀에 반납됐습니다.' : '풀에 반납되지 않았습니다.'));
     if (plain && err) sum.push('close()를 메서드의 마지막에 두면 도중에 예외가 났을 때 닫지 못합니다. JDBC를 직접 쓸 때는 try-with-resources(또는 finally)로 닫아야 하고, 이것을 메서드마다 빠짐없이 써야 합니다.');
     if (c.how === 'twr' && err) sum.push('try-with-resources를 쓰면 커넥션은 반납됩니다. 그래도 받는 예외는 체크 예외인 SQLException 하나뿐이라, 무슨 문제인지는 코드 번호로 구분해야 합니다. 이 번호는 DB 제품마다 다를 수 있습니다.');
     if (raw && !err && n !== 1) sum.push('JDBC를 직접 쓰면 0건이나 2건일 때 어떻게 할지도 직접 정해야 합니다. 정하지 않고 첫 행만 읽으면 문제가 조용히 지나갑니다. JdbcTemplate의 queryForObject는 같은 상황에서 예외를 던집니다.');
@@ -2894,10 +2848,7 @@ Lab.register({
     var q = sim.city !== undefined;
     H.table(v, ['id', 'name', 'city'], [['1', 'kim', '서울'], ['2', 'lee', '부산'], ['3', 'park', '서울']].map(function (r) { var hit = q && c.op !== 'bad' && r[2] === sim.city && s.db; return { cells: [r[0], r[1], { v: r[2], cls: hit ? 'hot' : '' }] }; }), 'member 테이블');
     H.title(v, sim.raw ? '직접 쓴 코드가 하는 일' : 'JdbcTemplate이 대신 하는 일'); var ln = H.lanes(v);
-    sim.steps.forEach(function (name, i) { var m = s.st[i]; H.lane(ln, name, m || '아직', m === '끝남' ? 'good' : m === '예외' || m === '건너뜀' ? 'bad' : m === '주의' ? 'hot' : 'none'); });
-    H.lane(ln, '커넥션', s.con, s.con === '반납됨' ? 'good' : s.con === '반납 안 됨' ? 'bad' : s.con === '빌려 쓰는 중' ? 'hot' : 'none');
-    H.counters(v, [[s.db || '아직 실행 전', 'DB의 응답'], [s.caller || '아직 실행 중', '호출한 쪽이 받는 것']]);
-  },
+    sim.steps.forEach(function (name, i) { var m = s.st[i]; H.lane(ln, name, m || '아직', m === '끝남' ? 'good' : m === '예외' || m === '건너뜀' ? 'bad' : m === '주의' ? 'hot' : 'none'); });  },
   // 그림: 가운데에 한 번의 DB 작업에 필요한 일을 위에서 아래로 놓는다(직접 쓴 코드 또는 JdbcTemplate이 대신 하는 일). 오른쪽은 커넥션 풀과 DB, 아래는 호출한 쪽이 받는 것이다.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { con: '풀에 있음', db: '', at: -1, st: sim.steps.map(function () { return ''; }), ex: '', caller: '' };
@@ -2915,7 +2866,7 @@ Lab.register({
     if (s.con === '빌려 쓰는 중' || s.con === '반납 안 됨') P.arrow('con', 's0:r', 'pool:l:0.4', { cls: s.con === '반납 안 됨' ? 'bad' : '', label: s.con === '반납 안 됨' ? '반납 안 됨' : '빌림' });
     if (s.st[1]) P.arrow('sql', 's1:r', 'db:l', { cls: s.st[1] === '예외' ? 'bad' : '', label: s.st[1] === '예외' ? '오류' : 'SQL' });
     P.box('res', 12, 274, 656, 36, { cls: !s.caller ? 'ghost' : s.caller.indexOf('Exception') >= 0 ? 'bad' : s.caller === 'null' || sim.n === 2 ? 'hot' : 'good', title: '호출한 쪽이 받는 것', right: s.caller || '아직 실행 중' });
-    P.note('커넥션 풀로 가는 화살표는 커넥션을 빌려 쓰는 동안에만 보입니다. 가운데 상자의 일은 SQL을 한 번 실행할 때마다 똑같이 반복됩니다. JDBC를 직접 쓰면 이것을 메서드마다 적어야 하고, 하나라도 빠뜨리면(특히 닫기) 문제가 됩니다. JdbcTemplate을 쓰면 이 일을 JdbcTemplate이 하고, 직접 적는 것은 SQL과 값뿐입니다.');
+    P.note('커넥션 풀로 가는 화살표는 커넥션을 빌려 쓰는 동안에만 보입니다. 가운데 상자의 일은 SQL을 한 번 실행할 때마다 똑같이 반복됩니다.');
   },
   assume: '열여덟 가지 조합 모두를 이 PC의 스프링 프레임워크 7.0.9(스프링 부트 4.1.1에 들어 있는 버전)의 JdbcTemplate, HikariCP 커넥션 풀, H2 2.4.240에서 화면과 같은 구조의 코드로 실행해, 호출한 쪽이 받는 것, 예외가 체크 예외인지, 호출이 끝난 뒤 풀에 반납되지 않은 커넥션이 있는지를 대조했습니다. DuplicateKeyException이 DataIntegrityViolationException의 하위 클래스라는 것, EmptyResultDataAccessException이 IncorrectResultSizeDataAccessException의 하위 클래스라는 것, 바뀐 예외의 원인(cause)에 원래의 SQLException이 들어 있다는 것, JdbcTemplate이 예외를 바꾸는 시점에는 커넥션이 이미 반납되어 있다는 것도 실행으로 확인했습니다. SQLState 값(23505, 23502, 42S22)은 H2가 준 값입니다. 다른 DB 제품에서 코드가 다를 수 있다는 것과, 그래도 스프링이 같은 예외로 바꿔 준다는 것은 이 PC에서 H2로만 실행했으므로 스프링 문서를 따른 설명입니다. queryForObject가 결과를 다 읽고 커넥션을 반납한 다음에 건수를 확인한다는 단계의 순서는 스프링의 소스 코드를 따랐습니다(실행으로는 호출이 끝난 뒤 커넥션이 반납되어 있다는 것만 확인했습니다). H2는 SQL의 오타를 PreparedStatement를 만들 때 알려 주지만, SQL을 실행할 때에야 알려 주는 DB도 있습니다. 화면에서는 이것을 구분하지 않고 "SQL 실행" 단계로 그렸습니다. 스프링이 관리하는 트랜잭션 안에서는 JdbcTemplate이 커넥션을 풀에 바로 반납하지 않고 트랜잭션이 끝날 때 반납합니다. 여기서는 트랜잭션이 없는 경우만 다뤘습니다.',
 });
@@ -2923,7 +2874,7 @@ Lab.register({
 Lab.register({
   id: 'binding', nav: '요청 매핑과 파라미터 바인딩', cat: '스프링', mode: 'step',
   title: '요청에 실어 보낸 값은 어떻게 메서드의 파라미터가 되나',
-  intro: 'HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 "그 가운데 어느 자리에서 값을 꺼낼지"를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다. 받는 방법과 요청을 바꿔 가며 값이 어디서 와서 어디로 들어가는지 보세요.',
+  intro: 'HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 "그 가운데 어느 자리에서 값을 꺼낼지"를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다.',
   terms: ['@RequestParam과 @PathVariable', '@ModelAttribute와 @RequestBody', '쿼리 스트링과 폼 본문', 'ArgumentResolver', 'HTTP 상태 코드'],
   controls: [
     { id: 'how', label: '컨트롤러가 값을 받는 방법', type: 'select', value: 'param', options: [['param', '@RequestParam int qty'], ['opt', '@RequestParam(required = false) Integer qty'], ['def', '@RequestParam(defaultValue = "1") int qty'], ['path', '@PathVariable int qty'], ['model', '@ModelAttribute OrderForm form (객체로 묶어 받기)'], ['body', '@RequestBody OrderForm form (JSON 본문 받기)']] },
@@ -3021,20 +2972,19 @@ Lab.register({
       }
     }
     var ran = st.ctrl;
-    sum.push('응답은 ' + status + '이고, 컨트롤러 메서드는 ' + (ran ? '실행됐습니다. 컨트롤러가 받은 qty는 ' + got + '입니다.' : '실행되지 않았습니다. 거절한 이유는 "' + why + '"입니다.'));
     if (st.fail === 2) sum.push(isPath ? '@PathVariable을 쓰는 메서드는 주소의 모양 자체가 /orders/{qty}입니다. 그 칸이 없는 요청은 값이 빠진 요청(400)이 아니라 다른 주소로 온 요청(404)이 됩니다.' : '/orders/3처럼 경로에 값을 실어 보내려면 컨트롤러의 주소도 /orders/{qty} 모양이어야 하고, 파라미터에는 @PathVariable을 붙여야 합니다.');
     else if (R.where === 'json' && !isBody) sum.push(how === 'param' ? 'JSON 본문으로 보낸 값은 @RequestParam으로 받을 수 없습니다. 값을 실은 자리(본문)와 꺼내는 자리(요청 파라미터)가 다르기 때문입니다. JSON 본문은 @RequestBody로 받습니다.' : 'JSON 본문에 qty를 보냈지만 ' + annotEun + ' 본문을 보지 않으므로 컨트롤러가 받은 값은 ' + got + '입니다. 오류 없이 200으로 끝나서, 값이 안 들어온 것을 알아채기 어렵습니다. JSON 본문은 @RequestBody로 받습니다.');
     else if (isBody && !R.body) sum.push('@RequestBody는 본문만 봅니다. 쿼리 스트링으로 보낸 값은 @RequestParam이나 @ModelAttribute로 받습니다.');
     else if (isBody && R.where === 'form') sum.push('폼 형식의 본문은 @RequestBody가 아니라 @RequestParam이나 @ModelAttribute로 받습니다. @RequestBody로 받으려면 보내는 쪽이 JSON으로 보내고 Content-Type을 application/json으로 적어야 합니다.');
     else if (st.fail === 5) sum.push('요청에 실린 값은 모두 글자이고, 스프링이 파라미터의 타입에 맞게 바꿔 줍니다. 바꿀 수 없는 글자가 오면 컨트롤러를 실행하지 않고 400으로 응답합니다. 요청을 보낸 쪽의 잘못이라는 뜻입니다.');
-    else if (!R.where) sum.push({ param: '@RequestParam은 값이 없으면 400으로 거절합니다. 없어도 되는 값이라면 required = false나 defaultValue를 줍니다. 두 방법으로 바꿔서 비교해 보세요.', opt: 'required = false를 주면 값이 없을 때 null이 들어옵니다. 컨트롤러 안에서 null인 경우를 직접 처리해야 합니다.', def: 'defaultValue를 주면 값이 없을 때 그 값이 대신 들어옵니다. null을 걱정하지 않아도 되므로 타입을 int로 둘 수 있습니다.', model: '@ModelAttribute는 값이 없는 필드를 그대로 둡니다. 그래서 "보내지 않았다"와 "0을 보냈다"를 구분할 수 없습니다. 반드시 있어야 하는 값이라면 따로 검증해야 합니다.' }[how]);
+    else if (!R.where) sum.push({ param: '@RequestParam은 값이 없으면 400으로 거절합니다. 없어도 되는 값이라면 required = false나 defaultValue를 줍니다.', opt: 'required = false를 주면 값이 없을 때 null이 들어옵니다. 컨트롤러 안에서 null인 경우를 직접 처리해야 합니다.', def: 'defaultValue를 주면 값이 없을 때 그 값이 대신 들어옵니다. null을 걱정하지 않아도 되므로 타입을 int로 둘 수 있습니다.', model: '@ModelAttribute는 값이 없는 필드를 그대로 둡니다. 그래서 "보내지 않았다"와 "0을 보냈다"를 구분할 수 없습니다. 반드시 있어야 하는 값이라면 따로 검증해야 합니다.' }[how]);
     else if (R.where === 'form') sum.push('폼 형식(application/x-www-form-urlencoded)의 본문은 쿼리 스트링과 함께 "요청 파라미터"로 다뤄집니다. 그래서 본문에 실려 왔는데도 ' + annotRo + ' 받을 수 있습니다. 같은 본문이라도 JSON은 그렇지 않습니다.');
     else sum.push({ query: '쿼리 스트링의 값은 @RequestParam으로 하나씩 받거나, @ModelAttribute로 객체에 묶어 받습니다.', path: '경로의 한 칸을 값으로 쓰려면 주소에 {이름} 자리를 만들고 @PathVariable로 받습니다. 주문 번호처럼 "무엇을 가리키는지"를 나타내는 값에 주로 씁니다.', json: 'JSON 본문은 @RequestBody로 받습니다. 메시지 컨버터가 본문 전체를 객체 하나로 바꿔 줍니다.' }[R.where]);
     sum.push('애노테이션마다 보는 자리가 정해져 있습니다. @RequestParam과 @ModelAttribute는 요청 파라미터(쿼리 스트링과 폼 본문), @PathVariable은 경로, @RequestBody는 본문 전체입니다.');
     return { events: ev, summary: sum, ex: ex, row: [status, ran ? '실행됨' : '건너뜀', got, why] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, R = this.REQS[c.req];
+    var last = shown[shown.length - 1], s = last ? last.snap : null, R = this.REQS[sim.c.req];
     if (!s) { H.text(v, '실행을 누르면 요청 하나가 컨트롤러 메서드의 파라미터가 되기까지를 한 단계씩 보여 줍니다.'); return; }
     var looks = function (part) { return s.hit === part ? { v: '여기서 꺼냄', cls: 'good' } : s.look.indexOf(part) >= 0 ? { v: '보는 자리', cls: 'hot' } : s.stage >= 3 ? '보지 않음' : ''; };
     H.table(v, ['요청의 자리', '실린 내용', '이 방법이 보는가'], [
@@ -3043,12 +2993,6 @@ Lab.register({
       { cls: R.ct ? '' : 'gone', cells: ['Content-Type 헤더', R.ct || '없음', looks('ct')] },
       { cls: R.body ? '' : 'gone', cells: ['본문', R.body || '없음', looks('body')] },
     ], '보낸 요청');
-    var ln = H.lanes(v), failed = function (n) { return s.fail === n; };
-    H.lane(ln, '주소 찾기', s.map ? this.mapping(c) + ' ' + s.map : '아직', failed(2) ? 'bad' : s.map ? 'good' : 'none');
-    H.lane(ln, '값 꺼내기', s.stage < 4 ? (s.stage === 3 ? '꺼낼 자리를 정함' : failed(2) ? '하지 않음' : '아직') : '꺼낸 것: ' + s.raw, failed(4) ? 'bad' : s.stage < 3 ? 'none' : s.stage === 3 ? 'hot' : s.hit ? 'good' : 'wait');
-    H.lane(ln, '타입 변환', s.conv || (s.fail ? '하지 않음' : '아직'), failed(5) ? 'bad' : s.conv && s.conv !== '바꿀 값이 없음' ? 'good' : 'none');
-    H.lane(ln, '컨트롤러', s.ctrl ? '실행됨' : s.fail ? '실행되지 않음' : '아직', s.ctrl ? 'good' : s.fail ? 'bad' : 'none');
-    H.counters(v, [[s.status || '처리 중', '응답'], [s.val || (s.fail ? '-' : '?'), '컨트롤러가 받은 qty']]);
   },
   // 그림: 왼쪽에 HTTP 요청의 네 자리(경로, 쿼리 스트링, Content-Type, 본문), 오른쪽에 스프링이 파라미터를 채우는 순서. 값을 꺼내는 자리에서 화살표가 나온다.
   draw: function (P, sim, shown) {
@@ -3072,7 +3016,7 @@ Lab.register({
       P.arrow('take', from + ':r', toRaw ? 'raw:l' : 'src:l', { cls: s.fail === 4 ? 'bad' : s.hit ? 'good' : toRaw ? 'mut' : 'hot', label: !toRaw ? '여기를 봄' : s.hit ? '꺼냄' : s.fail === 4 && c.how === 'body' && R.body ? '읽지 못함' : '값이 없음' });
     }
     P.box('resp', 16, 264, 648, 34, { cls: !s.status ? 'ghost' : s.ctrl ? 'good' : 'bad', title: '응답', right: s.status || '처리 중' });
-    P.note('파란 칸은 요청에 값이 실린 자리, 노란 칸은 이 애노테이션이 보는 자리, 초록 칸은 실제로 값을 꺼낸 자리입니다. 파란 칸과 노란 칸이 어긋나면 값이 실려 있어도 들어오지 않습니다.');
+    P.note('파란 칸은 요청에 값이 실린 자리, 노란 칸은 이 애노테이션이 보는 자리, 초록 칸은 실제로 값을 꺼낸 자리입니다.');
   },
   assume: '받는 방법 여섯 가지와 요청 여덟 가지를 곱한 마흔여덟 조합을 모두 실제 스프링 부트 4.1.1 서버(스프링 프레임워크 7.0.9, 내장 톰캣 11)에 HTTP 요청으로 보내, 상태 코드와 컨트롤러 실행 여부, 컨트롤러가 받은 값, 스프링이 던진 예외의 이름이 화면과 일치하는 것을 확인했습니다. 예외의 이름은 스프링 버전에 따라 다릅니다(맞는 주소가 없을 때의 NoResourceFoundException, @ModelAttribute 변환 실패의 MethodArgumentNotValidException은 이 버전 기준입니다). 오류 응답의 본문은 버전과 설정에 따라 달라서 결과로 삼지 않았습니다. 컨트롤러에 메서드가 하나, 파라미터가 하나인 경우로 단순화했고, 매핑 애노테이션은 요청의 HTTP 메서드에 맞춰 @GetMapping과 @PostMapping 가운데 맞는 쪽을 보였습니다(메서드가 맞지 않을 때의 405는 "서블릿" 실습에 있습니다). OrderForm은 기본 생성자와 setter가 있는 클래스입니다. record처럼 생성자로 값을 받는 객체는 값이 없을 때의 동작이 다를 수 있고, 그것은 확인하지 않았습니다. @RequestParam int qty처럼 이름을 따로 적지 않고 파라미터 이름으로 값을 찾는 것은 -parameters 옵션으로 컴파일했을 때의 동작이며, 대조도 그렇게 했습니다. 화면에 없는 경우 네 가지도 같은 서버에서 확인했습니다. ?qty=처럼 빈 값을 보내면 @RequestParam int는 400, required = false는 null, defaultValue는 기본값이 됩니다. required = false인데 타입을 int로 두고 값을 보내지 않으면 null을 담을 수 없어 500이 됩니다. @ModelAttribute 파라미터 바로 뒤에 BindingResult 파라미터를 두면 변환에 실패해도 컨트롤러가 실행됩니다. 본문이 {}이면 @RequestBody로 받은 qty는 0입니다. 값의 범위를 검사하는 검증(@Valid)은 이 실습에서 다루지 않고, 다음 실습인 검증에서 따로 봅니다.',
 });
@@ -3080,7 +3024,7 @@ Lab.register({
 Lab.register({
   id: 'validation', nav: '검증', cat: '스프링', mode: 'step',
   title: '필드에 @NotBlank를 붙였는데 왜 빈 값이 그대로 들어오나',
-  intro: '입력값에는 "이름은 비어 있으면 안 된다" 같은 조건이 있습니다. Bean Validation은 이런 조건을 @NotBlank 같은 애노테이션으로 필드 위에 적어 두는 방법이고, 이렇게 적은 조건을 제약이라고 부릅니다. 그런데 제약은 적어 둔 것만으로는 아무 일도 하지 않습니다. 누군가 "이 객체를 검사하라"고 시켜야 하고, 스프링 MVC에서는 컨트롤러 파라미터에 붙인 @Valid가 그 신호입니다. 받는 방법과 제약, 보내는 값을 바꿔 가며 검증이 언제 일어나고, 어기면 어떤 응답이 되는지 보세요.',
+  intro: '입력값에는 "이름은 비어 있으면 안 된다" 같은 조건이 있습니다. Bean Validation은 이런 조건을 @NotBlank 같은 애노테이션으로 필드 위에 적어 두는 방법이고, 이렇게 적은 조건을 제약이라고 부릅니다. 그런데 제약은 적어 둔 것만으로는 아무 일도 하지 않습니다. 누군가 "이 객체를 검사하라"고 시켜야 하고, 스프링 MVC에서는 컨트롤러 파라미터에 붙인 @Valid가 그 신호입니다.',
   terms: ['Bean Validation과 @Valid', '@NotNull, @NotEmpty, @NotBlank', 'BindingResult', 'MethodArgumentNotValidException', 'HTTP 상태 코드'],
   controls: [
     { id: 'how', label: '컨트롤러가 값을 받는 방법', type: 'select', value: 'plain', options: [['plain', '@RequestBody ItemForm form (@Valid 없음)'], ['valid', '@Valid @RequestBody ItemForm form'], ['br', '@Valid @RequestBody ItemForm form, BindingResult errors'], ['param', '@RequestParam String name (제약을 파라미터에 직접 붙임)']] },
@@ -3175,25 +3119,17 @@ Lab.register({
       else push(call + ' 호출: 검증을 통과했으므로 컨트롤러 메서드가 실행됩니다. ' + holder + '의 값은 ' + V.lit + '입니다. 돌려주는 글은 "' + ret + '"이고, 200으로 응답합니다.', 'good');
     }
     var ran = st.ctrl;
-    sum.push('응답은 ' + status + '입니다. ' + (checked === '하지 않음' ? '검증은 하지 않았습니다.' : violates ? '검증은 실패했습니다(name이 ' + C.a + ' 제약을 어김).' : '검증은 통과했습니다.') + ' ' + (ran ? '컨트롤러 메서드가 실행됐고, 돌려준 글은 "' + ret + '"입니다.' : '컨트롤러 메서드는 실행되지 않았고, 스프링이 던진 예외는 ' + ex + '입니다.'));
-    if (how === 'plain') sum.push(violates ? '필드에 제약을 붙이는 것만으로는 검증되지 않습니다. 컨트롤러 파라미터에 @Valid를 붙여야 스프링이 검증기를 부릅니다. 받는 방법을 @Valid가 있는 것으로 바꿔 비교해 보세요.' : '이 값은 ' + C.a + ' 제약을 어기지 않지만, 검사해서 통과한 것이 아니라 검사를 아예 하지 않은 것입니다. @Valid가 없으면 어떤 값을 보내도 검증 없이 컨트롤러가 실행됩니다.');
+    if (how === 'plain') sum.push(violates ? '필드에 제약을 붙이는 것만으로는 검증되지 않습니다. 컨트롤러 파라미터에 @Valid를 붙여야 스프링이 검증기를 부릅니다.' : '이 값은 ' + C.a + ' 제약을 어기지 않지만, 검사해서 통과한 것이 아니라 검사를 아예 하지 않은 것입니다. @Valid가 없으면 어떤 값을 보내도 검증 없이 컨트롤러가 실행됩니다.');
     else if (st.fail === 2) sum.push('값이 아예 없으면 @RequestParam의 "필수 값" 검사에서 먼저 걸립니다. 제약 검사는 값을 꺼낸 다음의 일입니다. 같은 400이지만 예외가 다릅니다.');
-    else if (how === 'br') sum.push(violates ? '@Valid 파라미터 바로 뒤에 BindingResult를 받으면 검증에 실패해도 예외가 나지 않고 컨트롤러가 실행됩니다. 오류가 있는지 확인하고 어떻게 응답할지 정하는 일은 컨트롤러 코드의 몫입니다. hasErrors()를 확인하지 않으면 잘못된 값이 그대로 처리됩니다.' : 'BindingResult를 받아도 어긴 제약이 없으면 결과는 @Valid만 쓴 경우와 같습니다. 값을 제약에 걸리는 것으로 바꾸면 차이가 보입니다.');
+    else if (how === 'br') sum.push(violates ? '@Valid 파라미터 바로 뒤에 BindingResult를 받으면 검증에 실패해도 예외가 나지 않고 컨트롤러가 실행됩니다. 오류가 있는지 확인하고 어떻게 응답할지 정하는 일은 컨트롤러 코드의 몫입니다. hasErrors()를 확인하지 않으면 잘못된 값이 그대로 처리됩니다.' : 'BindingResult를 받아도 어긴 제약이 없으면 결과는 @Valid만 쓴 경우와 같습니다.');
     else if (violates) sum.push(isParam ? '파라미터에 직접 붙인 제약은 @Valid 없이도 검사됩니다. 실패하면 HandlerMethodValidationException이 나오고 응답은 400입니다. 이 실습이 대조한 스프링 프레임워크 7.0.9에서의 동작입니다.' : '@Valid가 붙은 객체가 제약을 어기면 컨트롤러는 실행되지 않고 400이 됩니다. 요청을 보낸 쪽의 잘못이라는 뜻입니다. 잘못된 값이 컨트롤러 안으로 들어오지 않으므로 컨트롤러는 값이 올바르다고 믿고 일할 수 있습니다.');
     else sum.push('검증을 통과하면 검증하지 않을 때와 똑같이 컨트롤러가 실행됩니다. 차이는 제약을 어긴 값이 왔을 때만 드러납니다.');
     if (how !== 'plain' && st.fail !== 2) sum.push({ notnull: '@NotNull은 null만 막습니다. 빈 문자열과 빈칸은 통과하므로, 사람이 입력하는 글자 값에는 보통 @NotBlank를 씁니다.', notempty: '@NotEmpty는 null과 빈 문자열을 막지만, 빈칸만 든 문자열은 길이가 있으므로 통과시킵니다.', notblank: '@NotBlank는 null, 빈 문자열, 빈칸만 든 문자열을 모두 막습니다. 세 제약 가운데 가장 엄격합니다.' }[c.con]);
     return { events: ev, summary: sum, row: [status, checked, ran ? '실행됨' : '건너뜀', ret, ex] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this, C = this.CONS[c.con], isParam = c.how === 'param';
-    var leaked = c.how === 'plain' && C.bad.indexOf(c.val) >= 0;   // 제약을 어긴 값이 검증 없이 컨트롤러에 들어온 경우
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this;
     if (!s) { H.text(v, '실행을 누르면 요청 하나가 검증을 거쳐(또는 거치지 않고) 컨트롤러에 닿기까지를 한 단계씩 보여 줍니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '값 준비', s.stage < 2 ? '아직' : (isParam ? 'name = ' : 'form의 name = ') + s.name, s.fail === 2 ? 'bad' : s.stage < 2 ? 'none' : 'good');
-    H.lane(ln, '검증할지', s.gate ? (c.how === 'plain' ? '@Valid 없음: 건너뜀' : isParam ? '파라미터에 제약이 있음: 검증함' : '@Valid 있음: 검증함') : s.fail ? '하지 않음' : '아직', !s.gate ? 'none' : c.how === 'plain' ? 'wait' : 'hot');
-    H.lane(ln, '제약 검사', s.check ? C.a + ': ' + s.check : s.gate === '건너뜀' || s.fail ? '하지 않음' : '아직', s.check === '어김' ? 'bad' : s.check ? 'good' : 'none');
-    H.lane(ln, '컨트롤러', s.ctrl ? '실행됨, 돌려준 글 "' + s.ret + '"' : s.fail ? '실행되지 않음 (' + s.after + ')' : '아직', s.ctrl ? (leaked ? 'bad' : s.errors === 1 ? 'hot' : 'good') : s.fail ? 'bad' : 'none');
-    H.counters(v, [[s.status || '처리 중', '응답'], [s.errors < 0 ? '-' : s.errors + '개', 'errors에 담긴 오류']]);
     var order = ['none', 'empty', 'blank', 'pen'];
     H.table(v, ['제약', 'null', '""', '" "', '"pen"'], ['notnull', 'notempty', 'notblank'].map(function (k) {
       var K = self.CONS[k];
@@ -3223,7 +3159,7 @@ Lab.register({
     if (s.stage >= 2) P.arrow('take', 'r_val:r', 'obj:l', { cls: s.fail === 2 ? 'bad' : 'good', label: s.fail === 2 ? '값이 없음' : '값을 담음' });
     if (s.gate) P.arrow('read', 'con:r', 'chk:l', { cls: skipped ? 'mut dash' : s.check === '어김' ? 'bad' : s.check ? 'good' : 'hot', label: skipped ? '읽지 않음' : '제약을 읽음' });
     P.box('resp', 16, 264, 648, 34, { cls: !s.status ? 'ghost' : s.ctrl ? (leaked || s.errors === 1 ? 'hot' : 'good') : 'bad', title: '응답', right: s.status || '처리 중' });
-    P.note('제약은 왼쪽 아래 칸에 적혀 있을 뿐입니다. 스프링이 검증하기로 정했을 때만 검증기가 그 제약을 읽어 값과 견줍니다. 초록 칸은 통과하거나 실행된 곳, 빨간 칸은 제약을 어겼거나 막힌 곳입니다. 제약을 어긴 값이 검증 없이 들어오면 컨트롤러 칸이 빨갛게 됩니다.');
+    P.note('초록 칸은 통과하거나 실행된 곳, 빨간 칸은 제약을 어겼거나 막힌 곳입니다. 제약을 어긴 값이 검증 없이 들어오면 컨트롤러 칸이 빨갛게 됩니다.');
   },
   assume: '받는 방법 네 가지, 제약 세 가지, 보내는 값 네 가지를 곱한 마흔여덟 조합을 모두 실제 스프링 부트 4.1.1 서버(스프링 프레임워크 7.0.9, 내장 톰캣 11, Hibernate Validator 9.1.3.Final, jakarta.validation-api 3.1.1, JDK 21)에 HTTP 요청으로 보내, 상태 코드와 검증기가 실제로 돌았는지, 어긴 제약, 컨트롤러 실행 여부와 돌려준 글, 스프링이 던진 예외의 이름이 화면과 일치하는 것을 확인했습니다. 검증기가 돌았는지는 항상 통과하는 제약을 하나 더 붙여 그것이 불렸는지로 확인했습니다(화면의 코드에는 없습니다). 화면의 주소는 모두 /items이지만 대조할 때는 조합마다 주소를 따로 두었습니다. 스프링 부트는 검증 라이브러리(spring-boot-starter-validation)가 있을 때 검증기를 자동으로 준비하며, 이 실습은 그 상태를 전제로 합니다. 라이브러리가 없을 때의 동작은 확인하지 않았습니다. 예외의 이름과 파라미터에 직접 붙인 제약의 동작은 스프링 버전에 따라 다릅니다. 여기 적은 것은 스프링 프레임워크 7.0.9에서 본 것이고, 6.1보다 앞선 버전은 다르다고 알려져 있으나 실행해 보지 못했습니다. 오류 응답의 본문과 오류 메시지의 글은 설정과 서버의 언어에 따라 달라 결과로 삼지 않았습니다. 이 PC에서 본 기본 오류 응답 본문에는 timestamp, status, error, path만 있었고 어느 필드가 틀렸는지는 들어 있지 않았습니다. 화면에 없는 경우도 같은 서버에서 확인했습니다. @Valid 대신 스프링의 @Validated를 파라미터에 붙여도 결과가 같습니다. @Valid @ModelAttribute로 폼 본문을 받아도 열두 가지(제약 셋, 값 넷) 결과가 @Valid @RequestBody와 같고 예외도 MethodArgumentNotValidException입니다. JSON에 "name": null이라고 적어 보내도 보내지 않은 것과 같습니다. 객체 안에 다른 객체가 필드로 들어 있을 때는 그 필드에 @Valid가 있어야 안쪽 객체의 제약까지 검사하고(없으면 200), 안쪽 객체가 null이면 @Valid가 있어도 내려가지 않고 통과합니다. 제약에 groups를 지정하면 @Valid로는 검사되지 않고 @Validated(그 그룹)으로 받아야 검사되며, 반대로 groups가 없는 제약은 @Validated(그 그룹)으로 받으면 검사되지 않습니다. 필드 둘이 모두 어기면 오류는 2개로, 검증은 첫 오류에서 멈추지 않습니다. @Valid 객체와 제약이 직접 붙은 파라미터를 한 메서드에서 함께 받으면 객체 쪽 실패도 HandlerMethodValidationException으로 나옵니다. @RequestParam(required = false)로 받고 값을 보내지 않으면 null이 들어와 @NotNull과 @NotBlank에 걸립니다. 컨트롤러 클래스에 @Validated를 붙이면 파라미터 제약의 실패가 ConstraintViolationException과 500으로 바뀝니다. Integer 필드에 @NotBlank를 붙이면 검증할 때 UnexpectedTypeException으로 500이 됩니다. BindingResult를 @Valid 파라미터 앞에 두면 IllegalStateException으로 500이 됩니다. @ExceptionHandler로 MethodArgumentNotValidException을 받으면 어느 필드가 어느 제약을 어겼는지 꺼내 400 응답 본문에 직접 적을 수 있습니다. 화면은 필드 하나, 제약 하나인 경우로 단순화했고, 빈칸은 스페이스 한 글자만 확인했습니다.',
 });
@@ -3340,7 +3276,7 @@ Lab.register({
 Lab.register({
   id: 'msgconv', nav: 'REST API와 메시지 컨버터', cat: '스프링', mode: 'step',
   title: '컨트롤러가 돌려준 객체는 어디서 JSON이 되나',
-  intro: '컨트롤러 메서드는 자바 객체를 받고 자바 객체를 돌려주는데, 네트워크로 오가는 것은 JSON 같은 글자입니다. 그 사이에서 글자를 객체로, 객체를 글자로 바꾸는 것이 메시지 컨버터입니다. 요청의 Content-Type과 Accept 헤더가 어느 컨버터를 쓸지 정하고, 맞는 컨버터가 없으면 415나 406이 됩니다. 컨트롤러의 종류와 요청을 바꿔 가며 변환이 어디서 일어나고 어디서 실패하는지 보세요.',
+  intro: '컨트롤러 메서드는 자바 객체를 받고 자바 객체를 돌려주는데, 네트워크로 오가는 것은 JSON 같은 글자입니다. 그 사이에서 글자를 객체로, 객체를 글자로 바꾸는 것이 메시지 컨버터입니다. 요청의 Content-Type과 Accept 헤더가 어느 컨버터를 쓸지 정하고, 맞는 컨버터가 없으면 415나 406이 됩니다.',
   terms: ['HttpMessageConverter', '@Controller와 @RestController', '콘텐츠 협상(Accept와 Content-Type)', 'ResponseEntity', 'ViewResolver'],
   controls: [
     { id: 'kind', label: '컨트롤러의 종류와 돌려주는 값', type: 'select', value: 'obj', options: [['obj', '@RestController, 객체를 돌려줌'], ['entity', '@RestController, ResponseEntity를 돌려줌'], ['str', '@RestController, 문자열을 돌려줌'], ['view', '@Controller, 문자열을 돌려줌']] },
@@ -3425,7 +3361,6 @@ Lab.register({
       }
     }
     var ran = st.ctrl;
-    sum.push('응답은 ' + status + '이고, 컨트롤러 메서드는 ' + (ran ? '실행됐습니다.' : '실행되지 않았습니다.') + (st.fail ? '' : ' 응답 본문을 만든 것은 ' + maker + '이고 Content-Type은 ' + type + '입니다.'));
     if (st.fail === 'rd') sum.push(c.req === 'text' ? '415는 "요청 본문의 형식을 읽지 못한다"는 뜻입니다. 스프링은 본문을 들여다보고 형식을 짐작하지 않고 Content-Type 헤더만 봅니다. JSON을 보낼 때는 Content-Type을 application/json으로 적어야 합니다.' : '400은 "요청이 잘못됐다"는 뜻입니다. Content-Type은 맞지만 본문이 JSON 문법에 맞지 않으면 컨버터가 객체를 만들지 못합니다. 요청을 보낸 쪽이 고쳐야 하는 문제입니다.');
     if (st.fail === 'rd') sum.push('415와 400은 요청 본문을 읽는 단계에서 정해지므로 컨트롤러가 실행되기 전입니다. 406은 응답 본문을 쓰는 단계에서 정해지므로 컨트롤러가 실행된 뒤입니다.');
     if (st.fail === 'wr') sum.push('406은 "원하는 응답 형식(Accept)으로는 줄 수 없다"는 뜻입니다. 응답을 쓰는 단계에서 정해지므로, 응답은 실패인데 주문은 이미 만들어져 있습니다. @PostMapping에 produces = "application/json"을 적어 두면 Accept가 맞지 않는 요청을 컨트롤러를 고르는 단계에서 걸러 내, 컨트롤러가 실행되지 않습니다.');
@@ -3444,12 +3379,6 @@ Lab.register({
       { cells: ['Accept', q.accept, '받고 싶은 응답의 형식'] },
       { cells: ['본문', q.body, ''] },
     ], '보낸 요청 (POST /orders)');
-    var ln = H.lanes(v);
-    H.lane(ln, '요청 본문 읽기', s.rd || '아직', s.fail === 'rd' ? 'bad' : s.stage >= 3 && s.rd ? 'good' : s.rd ? 'hot' : 'none');
-    H.lane(ln, '컨트롤러', s.ctrl ? '실행됨 · 돌려준 값: ' + s.ret : s.fail ? '실행되지 않음' : '아직', s.ctrl ? 'good' : s.fail ? 'bad' : 'none');
-    H.lane(ln, '응답 본문 쓰기', s.wr || (s.fail ? '하지 않음' : '아직'), s.fail === 'wr' ? 'bad' : s.stage === 7 ? 'good' : s.wr ? 'hot' : 'none');
-    H.counters(v, [[s.status || '처리 중', '응답'], [s.type || '-', '응답의 Content-Type']]);
-    if (s.status) { H.title(v, '응답 본문'); H.text(v, s.body + (s.loc ? ' · Location 헤더: ' + s.loc : '')); }
   },
   // 그림: 위에 요청, 가운데에 스프링의 세 자리(요청 본문 읽기, 컨트롤러, 응답 본문 쓰기), 아래에 응답. 변환이 일어나는 두 자리와 실패한 자리가 보인다.
   draw: function (P, sim, shown) {
@@ -3466,7 +3395,7 @@ Lab.register({
     if (s.stage >= 5) P.arrow('a3', 'ct:r', 'wr:l', { cls: s.fail === 'wr' ? 'bad' : 'good' });
     P.box('resp', 16, 244, 648, 62, { cls: !s.status ? 'ghost' : s.fail ? 'bad' : 'good', title: '응답: ' + (s.status || '처리 중'), sub: s.status ? ['Content-Type: ' + (s.type || '-') + (s.loc ? ' · Location: ' + s.loc : ''), '본문: ' + s.body] : [' ', ' '] });
     if (s.status) P.arrow('a4', (s.fail || 'wr') + ':b', s.fail === 'rd' ? 'resp:t:0.18' : 'resp:t:0.82', { cls: s.fail ? 'bad' : 'good' });
-    P.note('메시지 컨버터가 일하는 자리는 두 곳입니다. 컨트롤러 앞에서 요청 본문을 객체로 바꾸고(Content-Type을 봄), 컨트롤러 뒤에서 돌려준 값을 응답 본문으로 바꿉니다(Accept를 봄). 앞에서 실패하면 컨트롤러가 실행되지 않고, 뒤에서 실패하면 이미 실행된 뒤입니다.');
+    P.note('메시지 컨버터가 일하는 자리는 두 곳입니다. 컨트롤러 앞에서 요청 본문을 객체로 바꾸고(Content-Type을 봄), 컨트롤러 뒤에서 돌려준 값을 응답 본문으로 바꿉니다(Accept를 봄).');
   },
   assume: '컨트롤러 네 가지와 요청 네 가지를 곱한 열여섯 조합을 모두 실제 스프링 부트 4.1.1 서버(스프링 프레임워크 7.0.9, 내장 톰캣 11, Jackson 3)에 HTTP 요청으로 보내, 상태 코드와 컨트롤러 실행 여부, 스프링이 던진 예외의 이름, 요청 본문을 읽은 컨버터와 응답 본문을 쓴 컨버터, 성공한 응답의 Content-Type과 Location 헤더가 화면과 일치하는 것을 확인했습니다. 오류 응답(400, 406, 415)의 본문과 Content-Type은 버전과 설정에 따라 달라서 결과로 삼지 않았습니다. 대조한 서버에는 XML을 만드는 라이브러리가 없습니다. jackson-dataformat-xml 같은 라이브러리를 넣으면 Accept: application/xml 요청에 XML로 응답하므로 406이 되지 않습니다. 컨버터의 클래스 이름(JacksonJsonHttpMessageConverter)은 스프링 7 기준이고, 그 전 버전에서는 이름이 다릅니다. 응답의 Content-Type은 형식 이름만 보였습니다(실제로는 뒤에 charset이 붙기도 합니다). @Controller가 돌려준 화면 이름은 템플릿 엔진 대신 같은 이름의 뷰 객체를 등록해 확인했습니다. 화면을 돌려주는 요청이 Accept와 관계없이 200이 된 것은 이 구성에서 본 결과이며, 뷰 설정에 따라 다를 수 있습니다. 화면에 없는 경우도 같은 서버에서 확인했습니다. 그 이름의 화면이 없으면 404였고(템플릿 엔진을 쓰면 다른 오류가 될 수 있으며 그것은 확인하지 않았습니다), @Controller의 메서드에 @ResponseBody를 붙이면 @RestController와 같은 결과였고, produces = "application/json"을 적은 메서드는 Accept: application/xml 요청에 컨트롤러를 실행하지 않고 406으로 응답했습니다. Accept 헤더 없이 보내면 객체는 JSON으로, 문자열은 text/plain으로 나갔습니다. ResponseEntity를 돌려주고 406이 된 조합에서는 응답에 Location 헤더가 남아 있었는데, 이것은 버전에 따라 다를 수 있어 화면에 넣지 않았습니다.',
 });
@@ -18158,7 +18087,7 @@ Lab.register({
 Lab.register({
   id: 'chkex', nav: '체크 예외와 언체크 예외', cat: '자바 언어', mode: 'step',
   title: '어떤 예외는 왜 처리하지 않으면 컴파일조차 안 되나',
-  intro: '자바의 예외는 두 갈래입니다. 체크 예외(IOException 등)는 잡거나(try-catch) 던진다고 선언(throws)하지 않으면 컴파일러가 컴파일을 거부합니다. 언체크 예외(대표적으로 RuntimeException 계열)는 그런 강제가 없어서 아무 처리 없이도 컴파일됩니다. 예외의 종류와 처리 방식을 바꿔 가며 컴파일이 되는지, 실행하면 어떻게 끝나는지 확인하세요.',
+  intro: '자바의 예외는 두 갈래입니다. 체크 예외(IOException 등)는 잡거나(try-catch) 던진다고 선언(throws)하지 않으면 컴파일러가 컴파일을 거부합니다. 언체크 예외(대표적으로 RuntimeException 계열)는 그런 강제가 없어서 아무 처리 없이도 컴파일됩니다.',
   terms: ['Checked 예외와 Unchecked 예외', '예외(Exception)와 Error', 'throws 선언', '예외 감싸기'],
   controls: [
     { id: 'ex', label: 'read 메서드가 던지는 예외', type: 'select', value: 'io', options: [['io', 'IOException (체크 예외)'], ['rt', 'IllegalStateException (언체크 예외)']] },
@@ -18248,7 +18177,6 @@ Lab.register({
     if (failAt) {
       st.end = '실행 못 함';
       push('컴파일이 실패했습니다: class 파일이 만들어지지 않으므로 프로그램을 실행할 수 없습니다.' + (occur ? ' 실행 중에 생길 문제를 실행 전에 미리 막은 것입니다.' : ' read(false)로 호출하므로 실행했다면 예외가 나지 않았을 코드입니다. 그래도 결과는 같습니다. 컴파일러는 "실제로 나는가"가 아니라 "날 수 있는가"를 보기 때문입니다.'), 'bad');
-      sum.push('컴파일 오류입니다. 오류가 난 줄은 ' + (failAt === 'read' ? 'read 안의 throw 줄' : 'main에서 read를 부른 줄') + '이고, 프로그램은 실행되지 않습니다.');
       if (failAt === 'read') sum.push('체크 예외는 "잡거나, 던진다고 선언하거나" 둘 중 하나를 해야 컴파일됩니다. 파일이 없거나 네트워크가 끊기는 일처럼 프로그램 바깥의 사정으로 생기고 대비할 수 있는 문제를 빠뜨리지 않게 하려는 장치입니다.');
       else sum.push('throws는 예외를 처리하는 것이 아니라 "부르는 쪽이 처리하라"고 넘기는 선언입니다. 그래서 부른 쪽(main)이 다시 잡거나 선언해야 합니다. 의무는 누군가 잡을 때까지 호출한 쪽으로 계속 올라갑니다.');
       if (!occur) sum.push('예외가 실제로 나지 않는 경우에도 컴파일 결과는 같습니다. 검사는 실행 전에 코드의 모양만 보고 이루어집니다.');
@@ -18297,9 +18225,8 @@ Lab.register({
       push('main의 마지막 줄을 실행합니다: "main 끝"을 출력하고 프로그램이 정상으로 끝납니다(종료 코드 0).', 'good');
     }
     var outText = st.out.length ? st.out.join(' / ') : '(없음)', endText = crashed ? '예외로 중단 (종료 코드 1): ' + crashed : '정상 종료 (종료 코드 0)';
-    sum.push('컴파일 성공. 출력: ' + outText + '. 끝난 모습: ' + endText + '.');
     if (!io && (h === 'none' || h === 'throws' || h === 'throws2')) sum.push('언체크 예외는 처리하지 않아도 컴파일됩니다. 컴파일러가 알려 주지 않으므로' + (occur ? ' 실행 중에 예외가 나서야 문제를 알게 됩니다.' : ', 예외가 나지 않는 동안에는 문제가 있는지 알 수 없습니다.') + ' 언체크 예외는 대개 null을 쓰거나 잘못된 값을 넘기는 것 같은 코드의 실수를 나타내므로, 잡기보다 코드를 고쳐서 없앱니다.');
-    if (!io && h === 'throws') sum.push('같은 모양의 코드가 IOException일 때는 main에서 컴파일 오류입니다. 예외의 종류만 바꿔 비교해 보세요.');
+    if (!io && h === 'throws') sum.push('같은 모양의 코드가 IOException일 때는 main에서 컴파일 오류입니다.');
     if (!io && (h === 'catch' || h === 'throwscatch')) sum.push('언체크 예외도 잡을 수 있습니다. 강제가 없을 뿐입니다. 어디서 잡을지는 개발자가 정합니다.');
     if (!io && h === 'wrap') sum.push('이미 언체크 예외인 것을 RuntimeException으로 다시 감싸면 얻는 것이 없습니다. 감싸기는 체크 예외를 언체크 예외로 바꿀 때 쓰는 방법입니다.');
     if (!io) sum.push('Error(OutOfMemoryError, StackOverflowError 등)는 메모리 부족처럼 프로그램이 스스로 복구하기 어려운 JVM 수준의 문제를 나타냅니다. 자바 언어 명세는 RuntimeException 계열과 Error 계열을 묶어 언체크 예외라고 부릅니다. 그래서 Error도 컴파일러가 처리를 강제하지 않으며, 보통 잡지 않습니다.');
@@ -18313,19 +18240,11 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 먼저 컴파일러의 검사를, 이어서 프로그램의 실행을 한 단계씩 보여 줍니다.'); return; }
-    var vc = function (x) { return x === '오류' ? 'bad' : x === '통과' ? 'good' : ''; };
-    H.table(v, ['메서드', '예외 처리', '컴파일러의 판단'], [
-      { cells: ['read', s.rh, { v: s.rv, cls: vc(s.rv) }] },
-      { cells: ['main', s.mh, { v: s.mv, cls: vc(s.mv) }] },
-    ], '컴파일러의 검사');
     var ln = H.lanes(v), WHERE = { main: 'main 실행 중', read: 'read 실행 중', jvm: 'JVM (프로그램 밖)' };
-    H.lane(ln, '컴파일', s.comp === '?' ? '검사 중' : s.comp, s.comp === '성공' ? 'good' : s.comp === '오류' ? 'bad' : 'hot');
     H.lane(ln, '실행 위치', s.comp === '오류' ? '실행 못 함' : s.at ? (s.end === '정상 종료' ? '끝남' : WHERE[s.at]) : '아직 실행 전', s.at ? 'wait' : 'none');
-    H.lane(ln, '예외', s.exc ? '던져진 상태: ' + s.exc : s.caught ? s.caught + '의 catch가 잡음' : '없음', s.exc ? 'bad' : s.caught ? 'good' : 'none');
     H.title(v, '콘솔 출력');
     var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (오류 출력)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(아직 없음)'));
-    H.counters(v, [[s.comp, '컴파일'], [s.end, '프로그램']]);
   },
   // 그림: 예외가 올라가는 길을 왼쪽에서 오른쪽으로 read, main, JVM 세 상자로 놓고, 상자마다 처리 방식과 컴파일러의 판단을 적는다. 실행 중에는 예외가 있는 상자와 잡은 상자에 색을 넣는다.
   draw: function (P, sim, shown) {
@@ -18353,7 +18272,7 @@ Lab.register({
 Lab.register({
   id: 'generic', nav: '제네릭', cat: '자바 언어', mode: 'step',
   title: 'List<Integer>의 <Integer>는 무엇을 막아 주나',
-  intro: '제네릭은 List<Integer>처럼 "이 리스트에 무엇을 담는지"를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastException이 납니다. 같은 리스트를 가리키는 변수 list의 선언을 바꿔 가며 무엇이 컴파일되고 무엇이 막히는지 확인하세요.',
+  intro: '제네릭은 List<Integer>처럼 "이 리스트에 무엇을 담는지"를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastException이 납니다.',
   terms: ['제네릭', '로 타입(raw type)', '타입 소거', '와일드카드(? extends와 ? super)'],
   controls: [
     { id: 'decl', label: '변수 list의 선언 (ints와 같은 리스트를 가리킴)', type: 'select', value: 'raw', options: [['raw', 'List (제네릭 없이, 로 타입)'], ['int', 'List<Integer>'], ['num', 'List<Number>'], ['ext', 'List<? extends Number>'], ['sup', 'List<? super Integer>']] },
@@ -18427,7 +18346,6 @@ Lab.register({
     if (errLines.length) {
       st.comp = '오류'; st.end = '실행 못 함';
       push('컴파일이 실패했습니다: class 파일이 만들어지지 않으므로 프로그램을 실행할 수 없습니다. 잘못될 수 있는 코드가 실행되기 전에 걸러졌습니다.', 'bad');
-      sum.push('컴파일 오류입니다 (' + errLines.length + '곳). 프로그램은 실행되지 않습니다.');
       if (d === 'num') sum.push('List<Integer>를 List<Number> 변수에 대입할 수 없습니다. 원소끼리는 상위·하위 관계여도, 그것을 담는 리스트끼리는 아무 관계가 없습니다. 허용된다면 그 변수로 Double을 넣어 Integer 리스트를 망가뜨릴 수 있기 때문입니다. 여러 종류의 숫자 리스트를 받고 싶을 때는 List<? extends Number>를 씁니다.');
       if (d === 'int') sum.push('제네릭을 쓰면 잘못된 타입을 넣는 코드가 컴파일 오류가 됩니다. 로 타입(List)으로 바꿔 같은 코드를 실행해 보면, 같은 실수가 실행 중의 예외로 늦게 드러나는 것을 볼 수 있습니다.');
       if (d === 'ext') sum.push('? extends Number로 선언한 리스트는 "꺼내서 Number로 쓰기"만 됩니다. 실제 원소 타입을 모르므로 넣는 것은 막습니다. 값을 읽기만 하는 매개변수에 씁니다(예: 합계를 구하는 메서드).');
@@ -18463,12 +18381,11 @@ Lab.register({
       push('Integer last = ints.get(ints.size() - 1) 실행: 마지막 원소(' + lastVal + ')를 Integer로 꺼내 출력합니다. 출력은 "마지막 값: ' + lastVal + '"입니다. 프로그램이 정상으로 끝납니다.', 'good');
     }
     var endText = crash ? '예외로 중단: ClassCastException (' + j.box + '을 Integer로 바꿀 수 없음)' : '정상 종료';
-    sum.push('컴파일 ' + st.comp + '. 출력: ' + st.out.join(' / ') + '. 끝난 모습: ' + endText + '.');
     if (d === 'raw' && bad) sum.push('제네릭 없이(로 타입) 쓰면 잘못된 타입을 넣는 코드가 컴파일되고, 넣는 순간에도 아무 일이 없다가, 값을 꺼내는 다른 줄에서 ClassCastException이 납니다. 선언을 List<Integer>로 바꾸면 같은 코드가 컴파일 오류가 됩니다.');
     if (d === 'raw' && !bad) sum.push('이번에는 넣은 값이 정수라서 문제가 없었습니다. 하지만 컴파일러가 확인해 준 것이 아니라 운이 좋았던 것입니다. 경고(unchecked)는 "이 줄은 내가 검사하지 못했다"는 컴파일러의 알림입니다.');
     if (d === 'int') sum.push('제네릭을 쓰면 넣을 때는 컴파일러가 타입을 검사하고, 꺼낼 때는 형 변환을 적지 않아도 됩니다.');
-    if (d === 'ext') sum.push('? extends Number로 선언한 리스트에서는 값을 꺼내 Number로 쓸 수 있습니다. 넣는 쪽(add)을 골라 비교해 보세요.');
-    if (d === 'sup') sum.push('? super Integer로 선언한 리스트에는 Integer를 넣을 수 있습니다. 꺼내는 쪽(get)을 골라 비교해 보세요.');
+    if (d === 'ext') sum.push('? extends Number로 선언한 리스트에서는 값을 꺼내 Number로 쓸 수 있습니다.');
+    if (d === 'sup') sum.push('? super Integer로 선언한 리스트에는 Integer를 넣을 수 있습니다.');
     sum.push('출력 가운데 true가 타입 소거를 보여 줍니다. 실행 중의 리스트는 원소 타입을 기억하지 않으므로, 제네릭의 보호는 전부 컴파일할 때 이루어집니다. 로 타입으로 그 검사를 피하면 막아 줄 것이 없습니다.');
     return { events: ev, summary: sum, msgs: [], warn: j.res === 'warn' ? j.msg : '', crashLine: crash ? lastLine : '', row: [st.comp, '없음', st.out.join(' / '), endText] };
   },
@@ -18481,14 +18398,9 @@ Lab.register({
       { cells: ['ints', 'List<Integer>', 'Integer 넣기 · 꺼내면 Integer'] },
       { cls: s.link ? '' : 'gone', cells: ['list', TYPE[c.decl], { v: ALLOW[c.decl], cls: s.link === 'err' ? 'bad' : '' }] },
     ], '같은 리스트를 가리키는 두 변수');
-    var ln = H.lanes(v);
-    H.lane(ln, '검사', s.chk ? this.opLine(c) + '  →  ' + s.chk : '아직', s.chk === '오류' ? 'bad' : s.chk === '경고' ? 'hot' : s.chk === '통과' ? 'good' : 'none');
-    H.lane(ln, '컴파일', s.comp === '?' ? '검사 중' : s.comp, s.comp === '오류' ? 'bad' : s.comp === '?' ? 'hot' : 'good');
-    H.lane(ln, '리스트 내용', '[1, 2' + (s.added ? ', ' + s.added : '') + ']' + (s.added && s.addedType !== 'Integer' ? '  (' + s.addedType + '이 섞여 있음)' : ''), s.added && s.addedType !== 'Integer' ? 'bad' : 'wait');
     H.title(v, '콘솔 출력');
     var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (오류 출력)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(아직 없음)'));
-    H.counters(v, [[s.comp, '컴파일'], [s.end, '프로그램']]);
   },
   // 그림: 왼쪽에 변수 ints와 list, 오른쪽에 둘이 함께 가리키는 리스트 객체와 그 원소. 아래에는 컴파일러가 list로 하는 일을 통과시켰는지와 결과를 적는다.
   draw: function (P, sim, shown) {
@@ -18509,7 +18421,7 @@ Lab.register({
     P.box('chk', 16, 186, 648, 34, { cls: s.chk === '오류' || s.link === 'err' ? 'bad' : s.chk === '경고' ? 'hot' : s.chk === '통과' ? 'good' : 'ghost', title: '컴파일러의 검사:  ' + this.opLine(c), right: s.link === 'err' && !s.chk ? '앞 줄이 오류' : s.chk || '아직' });
     P.box('r1', 16, 230, 320, 34, { cls: s.comp === '?' ? 'ghost' : s.comp === '오류' ? 'bad' : 'good', title: '컴파일', right: s.comp });
     P.box('r2', 344, 230, 320, 34, { cls: s.end === '정상 종료' ? 'good' : s.end === '?' ? 'ghost' : 'bad', title: '프로그램', right: s.end });
-    P.note('<Integer> 같은 표시는 변수 쪽(컴파일러가 보는 쪽)에만 있습니다. 실행 중의 리스트 객체에는 그런 표시가 없어서, 넣을 때 스스로 걸러 내지 못합니다. 그래서 잘못된 타입을 막는 일은 컴파일러가 변수의 선언을 보고 합니다.');
+    P.note('<Integer> 같은 표시는 변수 쪽(컴파일러가 보는 쪽)에만 있습니다. 실행 중의 리스트 객체에는 그런 표시가 없어서, 넣을 때 스스로 걸러 내지 못합니다.');
   },
   assume: '스무 가지 조합 모두를 이 PC의 JDK 21에서 화면의 코드를 main 메서드 안에 넣은 소스로 실제로 컴파일하고(javac -Xlint:unchecked), 컴파일된 것은 실행해서 컴파일 여부, 오류가 난 줄과 메시지, 경고 메시지, 출력, 예외의 종류와 예외가 난 줄을 대조했습니다. 컴파일러 메시지는 명령줄 javac가 보여 주는 모양(클래스 이름만, 정체 모를 타입은 CAP#1)으로 적었습니다. 화면의 코드에는 import java.util.ArrayList, import java.util.List와 main 메서드의 선언이 생략되어 있습니다. -Xlint:unchecked 없이 컴파일하면 경고의 자세한 내용 대신 "uses unchecked or unsafe operations"라는 안내만 나옵니다. ? extends로 선언한 리스트에도 null은 넣을 수 있지만 모형에서는 다루지 않았습니다. 타입 소거가 일어나도 필드나 메서드의 선언에 적힌 제네릭 정보는 class 파일에 남아 리플렉션으로 읽을 수 있습니다. 지워지는 것은 실행 중인 객체가 가진 정보입니다.',
 });
@@ -18517,7 +18429,7 @@ Lab.register({
 Lab.register({
   id: 'enumtype', nav: '열거형(enum)', cat: '자바 언어', mode: 'step',
   title: 'enum을 숫자로 저장해 두면 왜 다른 상수가 되어 돌아오나',
-  intro: 'enum은 주문 상태처럼 정해진 몇 가지 값만 가질 수 있는 타입입니다. 상수 하나하나가 프로그램에 하나뿐인 객체여서 ==로 비교할 수 있고, 필드와 메서드도 가질 수 있습니다. 그런데 이 상수를 DB에 저장할 때 선언 순서 번호(ordinal)를 적어 두면, 나중에 enum 선언을 고쳤을 때 같은 숫자가 다른 상수를 가리키게 됩니다. 저장 방식과 선언의 변경을 바꿔 가며 무엇이 읽혀 나오는지 확인하세요.',
+  intro: 'enum은 주문 상태처럼 정해진 몇 가지 값만 가질 수 있는 타입입니다. 상수 하나하나가 프로그램에 하나뿐인 객체여서 ==로 비교할 수 있고, 필드와 메서드도 가질 수 있습니다. 그런데 이 상수를 DB에 저장할 때 선언 순서 번호(ordinal)를 적어 두면, 나중에 enum 선언을 고쳤을 때 같은 숫자가 다른 상수를 가리키게 됩니다.',
   terms: ['열거형(enum)', 'ordinal()과 name()', 'enum의 valueOf', '동일성과 동등성'],
   controls: [
     { id: 'store', label: '저장할 때 적어 둔 값', type: 'select', value: 'ordinal', options: [['ordinal', 'ordinal(): 선언 순서 번호'], ['name', 'name(): 상수의 이름'], ['code', '직접 만든 필드 code의 값']] },
@@ -18607,14 +18519,12 @@ Lab.register({
     }
     var endText = f.read ? '정상 종료' : '예외로 중단: java.lang.IllegalArgumentException: No enum constant Status.' + f.value;
     var row = [f.shown, f.read ? f.read[0] + ' (' + f.read[2] + ')' : '(읽지 못함)', f.read ? String(f.eq) : '(읽지 못함)', endText];
-    if (!f.read) sum.push('저장해 둔 값은 ' + f.shown + ' 그대로인데, 읽는 중에 IllegalArgumentException으로 프로그램이 멈췄습니다.');
-    else sum.push('저장한 상수는 ' + c.saved + ', 읽어 온 상수는 ' + f.read[0] + ' (' + f.read[2] + ')입니다. ' + (f.eq ? '같은 상수입니다.' : '다른 상수인데도 프로그램은 정상으로 끝났습니다.'));
     if (store === 'ordinal' && !f.eq) sum.push('ordinal()은 선언 순서일 뿐이어서, 상수를 중간에 끼워 넣거나 순서를 바꾸면 이미 저장해 둔 숫자가 다른 상수를 가리키게 됩니다. 예외가 나지 않으므로 "' + f.old[2] + '" 주문이 "' + f.read[2] + '" 주문으로 보이는 잘못된 데이터가 조용히 쓰입니다. ordinal() 값은 저장하지 않습니다.');
-    if (store === 'ordinal' && f.eq && shifted) sum.push('이 상수는 번호가 바뀌지 않아 무사했습니다. 같은 변경에서도 다른 상수를 저장해 둔 데이터는 틀어집니다. 저장해 둔 상수를 바꿔 확인해 보세요.');
+    if (store === 'ordinal' && f.eq && shifted) sum.push('이 상수는 번호가 바뀌지 않아 무사했습니다. 같은 변경에서도 다른 상수를 저장해 둔 데이터는 틀어집니다.');
     if (store === 'ordinal' && ch === 'append') sum.push('맨 끝에 추가하면 기존 상수의 번호는 바뀌지 않습니다. 하지만 "언제나 끝에만 추가한다"는 약속을 고치는 사람 모두가 계속 지켜야 하므로, ordinal()을 저장에 쓰는 방식 자체를 피합니다.');
     if (store === 'ordinal' && ch === 'rename') sum.push('이름을 바꾸는 것은 번호에 영향을 주지 않습니다. 번호로 저장한 데이터는 순서를 건드릴 때 틀어집니다.');
-    if (store === 'ordinal' && ch === 'same') sum.push('선언을 고치지 않는 동안에는 번호로 저장해도 문제가 드러나지 않습니다. 중간에 끼워 넣기나 순서 바꾸기를 골라 보세요.');
-    if (store === 'name' && f.read) sum.push('name()으로 저장하면 상수를 추가하거나 순서를 바꿔도 같은 상수가 읽힙니다.' + (ch === 'rename' ? ' 이번에 이름을 바꾼 것은 PAID뿐이라 ' + c.saved + '에는 영향이 없었습니다. PAID를 저장해 둔 경우를 확인해 보세요.' : ' 대신 상수의 이름을 바꾸면 안 됩니다.'));
+    if (store === 'ordinal' && ch === 'same') sum.push('선언을 고치지 않는 동안에는 번호로 저장해도 문제가 드러나지 않습니다.');
+    if (store === 'name' && f.read) sum.push('name()으로 저장하면 상수를 추가하거나 순서를 바꿔도 같은 상수가 읽힙니다.' + (ch === 'rename' ? ' 이번에 이름을 바꾼 것은 PAID뿐이라 ' + c.saved + '에는 영향이 없었습니다.' : ' 대신 상수의 이름을 바꾸면 안 됩니다.'));
     if (store === 'name' && !f.read) sum.push('valueOf는 없는 이름을 받으면 IllegalArgumentException을 던집니다. 대소문자만 달라도("paid") 마찬가지입니다. 이름으로 저장했다면 상수의 이름을 바꾸는 일이 곧 저장된 데이터를 못 읽게 만드는 일입니다. 그래도 조용히 다른 상수가 나오는 것보다는 예외로 바로 드러나는 쪽이 낫습니다.');
     if (store === 'code') sum.push('저장할 값을 enum의 필드로 따로 정해 두면 상수의 순서도 이름도 마음대로 고칠 수 있습니다. 대신 한번 정한 code 값은 바꾸지 않습니다. enum이 필드와 메서드를 가질 수 있어서 가능한 방법입니다.');
     if (f.read) sum.push('enum 상수의 비교에는 ==를 씁니다. 상수마다 객체가 하나뿐이라 결과가 equals와 같고, 한쪽이 null이어도 예외가 나지 않으며, 서로 다른 enum 타입을 비교하면 컴파일 오류로 알려 줍니다.');
@@ -18629,13 +18539,11 @@ Lab.register({
       return { cells: [String(i), { v: r[0], cls: hit ? (f.eq ? 'good' : 'bad') : '' }].concat(code ? [r[1]] : [], [r[2]]) };
     }), s.changed ? '지금의 enum 선언' : '예전의 enum 선언');
     var ln = H.lanes(v);
-    H.lane(ln, '저장해 둔 값', s.savedOn ? f.shown + '  (' + c.saved + ' 상수를 나타내려고 적은 값)' : '아직 저장 전', s.savedOn ? 'wait' : 'none');
     H.lane(ln, '읽는 방법', { ordinal: 'Status.values()[' + f.value + ']', name: 'Status.valueOf("' + f.value + '")', code: 'Status.fromCode("' + f.value + '")' }[c.store], 'none');
-    H.lane(ln, '읽어 온 상수', s.failed ? '없음 (IllegalArgumentException)' : s.read ? s.read : '아직 읽기 전', s.failed ? 'bad' : s.read ? (f.eq ? 'good' : 'bad') : 'none');
     H.title(v, '콘솔 출력');
     var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (오류 출력)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(아직 없음)'));
-    H.counters(v, [[s.eq, '저장한 상수와 =='], [s.end, '프로그램']]);
+    H.counters(v, [[s.end, '프로그램']]);
   },
   // 그림: 위에 예전 선언의 상수들, 아래에 지금 선언의 상수들을 순서대로 놓고, 가운데에 저장해 둔 값을 둔다. 저장한 상수에서 값으로, 값에서 읽어 온 상수로 화살표를 긋는다.
   draw: function (P, sim, shown) {
@@ -18662,7 +18570,7 @@ Lab.register({
 Lab.register({
   id: 'annot', nav: '애너테이션', cat: '자바 언어', mode: 'step',
   title: '@를 붙이기만 하면 정말 무슨 일이 일어나나',
-  intro: '애너테이션(@Override, @Timed처럼 @로 시작하는 표시)은 코드에 붙여 두는 꼬리표입니다. 꼬리표 자체는 아무 일도 하지 않습니다. 그것을 읽는 쪽, 곧 컴파일러나 실행 중에 리플렉션으로 읽는 프레임워크가 있어야 의미가 생깁니다. 그리고 실행 중에 읽으려면 꼬리표가 실행 중까지 남아 있어야 합니다. 설정을 바꿔 가며 표시가 어디까지 남고, 누가 읽고, 결과가 어떻게 달라지는지 확인하세요.',
+  intro: '애너테이션(@Override, @Timed처럼 @로 시작하는 표시)은 코드에 붙여 두는 꼬리표입니다. 꼬리표 자체는 아무 일도 하지 않습니다. 그것을 읽는 쪽, 곧 컴파일러나 실행 중에 리플렉션으로 읽는 프레임워크가 있어야 의미가 생깁니다. 그리고 실행 중에 읽으려면 꼬리표가 실행 중까지 남아 있어야 합니다.',
   terms: ['애노테이션', '리플렉션', '@Retention과 @Target', '@Override', '오버라이딩'],
   controls: [
     { id: 'topic', label: '무엇을 볼까', type: 'select', value: 'custom', options: [['custom', '직접 만든 @Timed를 실행 중에 읽기 (리플렉션)'], ['override', '@Override를 컴파일러가 읽기']] },
@@ -18713,8 +18621,7 @@ Lab.register({
         st.chk = '오류'; st.comp = '오류'; st.end = '실행 못 함';
         push('컴파일러가 sount() 위의 @Override를 읽습니다: @Override는 "바로 아래 메서드는 상위 타입의 메서드를 재정의한 것이다"라는 표시이고, 컴파일러는 그 말이 맞는지 확인합니다. Animal에는 sount()가 없습니다. 컴파일 오류이고, 컴파일러는 "' + MSG + '"(상위 타입의 메서드를 재정의하지도 구현하지도 않았다)라고 알립니다.', 'good');
         push('컴파일이 실패했습니다: class 파일이 만들어지지 않으므로 프로그램을 실행할 수 없습니다. 이름을 잘못 적은 실수가 실행 전에 드러났습니다.', 'bad');
-        sum.push('컴파일 오류입니다. 오류가 난 줄은 @Override이고, 프로그램은 실행되지 않습니다.');
-        sum.push('@Override를 읽는 쪽은 컴파일러입니다. 재정의하려던 메서드의 이름이나 매개변수를 잘못 적으면 컴파일 오류로 알려 줍니다. @Override를 떼고 같은 코드를 실행해 보면 이 실수가 어떻게 숨는지 볼 수 있습니다.');
+        sum.push('@Override를 읽는 쪽은 컴파일러입니다. 재정의하려던 메서드의 이름이나 매개변수를 잘못 적으면 컴파일 오류로 알려 줍니다.');
         return { events: ev, summary: sum, errLine: '@Override', msg: MSG, attr: '', row: NO };
       }
       if (has) { st.chk = '통과'; push('컴파일러가 sound() 위의 @Override를 읽습니다: 바로 아래 메서드가 상위 타입의 메서드를 정말로 재정의하는지 확인합니다. Animal에 sound()가 있으므로 통과합니다.', 'good'); }
@@ -18725,7 +18632,6 @@ Lab.register({
       var res = typo ? '...' : '멍멍';
       st.out.push(res); st.end = '정상 종료';
       push('a.sound() 실행: a가 가리키는 객체는 Dog입니다. ' + (typo ? 'Dog에는 sound()가 없습니다(sount()만 있습니다). 그래서 Animal에게서 물려받은 sound()가 실행되어 "..."를 출력합니다. 오류 없이 의도와 다른 메서드가 실행됐습니다.' : 'Dog가 재정의한 sound()가 실행되어 "멍멍"을 출력합니다.'), typo ? 'bad' : 'good');
-      sum.push('컴파일 성공. 출력은 "' + res + '"입니다.');
       if (typo) sum.push('@Override가 없으면 이름을 잘못 적은 메서드가 "새 메서드"로 조용히 컴파일되고, 재정의하려던 부모의 메서드가 그대로 실행됩니다. @Override를 붙이면 같은 실수가 컴파일 오류가 됩니다.');
       else if (has) sum.push('@Override는 동작을 바꾸지 않습니다. 붙이든 떼든 출력은 같습니다. 하는 일은 하나, "재정의가 맞는지 컴파일러에게 확인시키는 것"입니다. 그래서 재정의하는 메서드에는 항상 붙입니다.');
       else sum.push('이름을 맞게 적었으므로 @Override가 없어도 재정의가 됩니다. 다만 나중에 부모의 메서드 이름이 바뀌면, 이 메서드는 아무 알림 없이 재정의가 아니게 됩니다. @Override를 붙여 두면 그때 컴파일 오류로 알 수 있습니다.');
@@ -18740,7 +18646,6 @@ Lab.register({
       st.chk = '오류'; st.comp = '오류'; st.end = '실행 못 함';
       push('컴파일러가 work 메서드 위의 @Timed를 검사합니다: @Target(ElementType.TYPE)은 "클래스나 인터페이스 같은 타입 선언에만 붙일 수 있다"는 뜻인데, 메서드에 붙였습니다. 컴파일 오류이고, 컴파일러는 "' + TMSG + '"(이 종류의 선언에는 붙일 수 없는 애너테이션)라고 알립니다.', 'bad');
       push('컴파일이 실패했습니다: class 파일이 만들어지지 않으므로 프로그램을 실행할 수 없습니다. @Retention을 무엇으로 했든, 읽는 코드가 있든 없든 결과는 같습니다.', 'bad');
-      sum.push('컴파일 오류입니다. 오류가 난 줄은 work 메서드 위의 @Timed이고, 프로그램은 실행되지 않습니다.');
       sum.push('@Target은 애너테이션을 붙일 수 있는 곳을 정합니다. 이것을 읽고 지키게 하는 쪽은 컴파일러입니다. 맞지 않는 곳에 붙이면 컴파일 오류가 나므로, 잘못 붙인 채로 "왜 동작하지 않지" 하고 헤매는 일을 막아 줍니다.');
       return { events: ev, summary: sum, errLine: '@Timed', msg: TMSG, attr: '', row: NO };
     }
@@ -18765,29 +18670,20 @@ Lab.register({
         push('found가 false이므로 읽는 쪽은 아무것도 덧붙이지 않습니다: m.invoke(service)로 work만 실행합니다. 소스 코드에는 @Timed가 분명히 붙어 있는데도, 읽는 쪽에게는 표시가 없는 메서드와 같습니다. 오류도 나지 않습니다.', 'bad');
       }
     }
-    sum.push('컴파일 성공. @Timed 표시는 class 파일에 ' + (inClass ? '남고' : '남지 않고') + ', 실행 중 리플렉션으로는 ' + (visible ? '보입니다' : '보이지 않습니다') + '. 출력: ' + st.out.join(' / ') + '.');
     if (reader && visible) sum.push('표시가 실행 중까지 남아 있고(RUNTIME) 그것을 읽는 코드가 있을 때에만 무언가가 일어납니다. 스프링의 @Transactional이나 @Autowired도 같은 원리입니다. 애너테이션이 일을 하는 것이 아니라, 프레임워크가 리플렉션으로 표시를 찾아 그에 맞는 일을 합니다.');
     if (reader && !visible) sum.push('애너테이션을 붙였고 읽는 코드도 있는데 아무 일도 일어나지 않습니다. 표시가 실행 중까지 남지 않았기 때문입니다. 실행 중에 리플렉션으로 읽을 애너테이션을 만들 때는 @Retention(RetentionPolicy.RUNTIME)을 반드시 적습니다.' + (c.ret === 'none' ? ' 적지 않으면 기본값이 CLASS라서 오류 없이 조용히 무시됩니다.' : ''));
-    if (!reader) sum.push('애너테이션은 그 자체로는 아무 일도 하지 않습니다. 읽는 쪽이 없으면 붙어 있든 아니든 프로그램의 동작은 같습니다.' + (visible ? ' "읽는 코드가 있다"를 켜서 비교해 보세요.' : ''));
+    if (!reader) sum.push('애너테이션은 그 자체로는 아무 일도 하지 않습니다. 읽는 쪽이 없으면 붙어 있든 아니든 프로그램의 동작은 같습니다.');
     if (ret === 'SOURCE') sum.push('SOURCE는 컴파일러나, 컴파일할 때 코드를 만들어 내는 도구만 읽으면 되는 애너테이션에 씁니다. @Override가 그렇습니다.');
     if (ret === 'CLASS') sum.push('CLASS는 class 파일을 읽어 처리하는 도구를 위한 것으로, 실행 중인 프로그램이 스스로 읽을 수는 없습니다.');
     return { events: ev, summary: sum, errLine: '', msg: '', attr: attr, row: ['성공', st.cls, st.vis, st.out.join(' / ')] };
   },
   mark: function (c) { return c.topic === 'override' ? '@Override' : '@Timed'; },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, ov = c.topic === 'override', mark = this.mark(c);
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 소스 코드, class 파일, 실행 중의 순서로 표시가 어디까지 남고 누가 읽는지 보여 줍니다.'); return; }
-    var attached = ov ? (c.ov ? '붙어 있음' : '붙이지 않음') : '붙어 있음';
-    var compilerSays = ov ? '재정의가 맞는지 확인: ' + s.chk : '붙일 수 있는 곳인지 확인: ' + s.chk;
-    var readerSays = ov ? '없음' : !c.reader ? '없음' : s.rd === 'found' ? '리플렉션 코드: 표시를 찾음' : s.rd === 'notfound' ? '리플렉션 코드: 표시를 못 찾음' : '리플렉션 코드: 아직';
-    H.table(v, ['단계', mark + ' 표시', '읽는 쪽'], [
-      { cells: ['소스 코드 (.java)', attached, { v: '컴파일러: ' + compilerSays, cls: s.chk === '오류' ? 'bad' : s.chk === '통과' ? 'good' : '' }] },
-      { cells: ['class 파일 (.class)', { v: s.cls, cls: s.cls === '남음' ? 'good' : '' }, '(이 실습에서는 없음)'] },
-      { cells: ['실행 중 (JVM)', { v: s.vis, cls: s.vis === '보임' ? 'good' : '' }, { v: readerSays, cls: s.rd === 'found' ? 'good' : s.rd === 'notfound' ? 'bad' : '' }] },
-    ], '표시가 어디까지 남고, 누가 읽는가');
     H.title(v, '콘솔 출력');
     v.appendChild(H.el('pre', 'code', s.out.length ? s.out.join('\n') : '(아직 없음)'));
-    H.counters(v, [[s.comp, '컴파일'], [s.end, '프로그램']]);
+    H.counters(v, [[s.end, '프로그램']]);
   },
   // 그림: 소스 코드, class 파일, 실행 중의 세 단계를 왼쪽에서 오른쪽으로 놓고 단계마다 표시가 남아 있는지 적는다. 아래에는 그 표시를 읽는 쪽(컴파일러, 리플렉션 코드)을 놓고 읽는 단계로 화살표를 긋는다.
   draw: function (P, sim, shown) {
@@ -18810,7 +18706,7 @@ Lab.register({
     P.box('o1', 16, 238, 320, 36, { cls: s.comp === '성공' ? 'good' : s.comp === '오류' ? 'bad' : 'ghost', title: '컴파일', right: s.comp });
     var result = s.comp === '오류' ? '실행 못 함' : s.end !== '정상 종료' ? '?' : ov ? (c.typo ? 'Animal의 sound 실행' : 'Dog의 sound 실행') : s.rd === 'found' ? 'work 앞뒤에 일이 덧붙음' : 'work만 실행';
     P.box('o2', 344, 238, 320, 36, { cls: result === '?' ? 'ghost' : s.comp === '오류' ? 'bad' : (ov ? !c.typo : s.rd === 'found') ? 'good' : 'plain', title: '실행 결과', right: result });
-    P.note('애너테이션은 꼬리표입니다. 위 줄은 꼬리표가 어느 단계까지 남는지(@Retention이 정합니다), 아래 줄은 그 꼬리표를 누가 읽는지입니다. 읽는 쪽이 있는 단계까지 꼬리표가 남아 있어야 일이 일어납니다.');
+    P.note('위 줄은 꼬리표가 어느 단계까지 남는지(@Retention이 정합니다), 아래 줄은 그 꼬리표를 누가 읽는지입니다.');
   },
   assume: '스물여덟 가지 조합(@Timed 쪽 24가지, @Override 쪽 4가지)을 이 PC의 JDK 21에서 화면의 코드로 실제로 컴파일하고 실행해 대조했습니다. 컴파일 여부와 오류가 난 줄, 컴파일러 메시지, 출력뿐 아니라, 만들어진 class 파일의 바이트에 애너테이션이 적혀 있는지(적혀 있다면 RuntimeVisibleAnnotations와 RuntimeInvisibleAnnotations 가운데 어느 칸인지)와 리플렉션의 isAnnotationPresent 결과도 조합마다 직접 확인했습니다. 화면에서 숨겨진 설정은 결과에 영향을 주지 않습니다. 화면의 코드에는 import 문(java.lang.annotation의 것들과 java.lang.reflect.Method)과 main 메서드의 선언이 생략되어 있습니다. @Target(ElementType.TYPE)인 애너테이션을 클래스에 붙이면 컴파일된다는 것도 확인했습니다. 스프링 같은 프레임워크가 애너테이션을 읽는 방식은 이 모형의 "읽는 쪽" 코드와 원리가 같다는 설명이며, 프레임워크를 실제로 실행해 확인한 것은 아닙니다. 컴파일할 때 애너테이션을 읽어 코드를 만들어 내는 도구(애너테이션 프로세서)는 다루지 않았습니다.',
 });
@@ -18818,7 +18714,7 @@ Lab.register({
 Lab.register({
   id: 'setmap', nav: 'Set과 Map의 종류', cat: '자료구조', mode: 'step',
   title: '같은 값을 넣었는데 꺼내는 순서가 왜 다른가',
-  intro: 'Set은 같은 값을 한 번만 담는 컬렉션이고, Map은 키와 값을 짝지어 담는 컬렉션입니다. 둘 다 Hash, LinkedHash, Tree로 시작하는 세 가지 종류가 있고, 무엇을 고르느냐에 따라 꺼낼 때의 순서와 넣을 수 있는 값이 달라집니다. 같은 값들을 세 종류에 넣어 보고, 어떤 상황에 어떤 것을 골라야 하는지 확인해 보세요.',
+  intro: 'Set은 같은 값을 한 번만 담는 컬렉션이고, Map은 키와 값을 짝지어 담는 컬렉션입니다. 둘 다 Hash, LinkedHash, Tree로 시작하는 세 가지 종류가 있고, 무엇을 고르느냐에 따라 꺼낼 때의 순서와 넣을 수 있는 값이 달라집니다.',
   terms: ['List, Set, Map', '해시 테이블과 HashMap', 'LinkedHashSet과 LinkedHashMap', 'TreeSet과 TreeMap', '시간 복잡도(Big-O)'],
   controls: [
     { id: 'kind', label: '컬렉션의 종류', type: 'select', value: 'hash', options: [['hash', 'HashSet / HashMap'], ['linked', 'LinkedHashSet / LinkedHashMap'], ['tree', 'TreeSet / TreeMap']] },
@@ -18896,14 +18792,12 @@ Lab.register({
       push('System.out.println(' + n.v + '): 들어 있는 ' + (m ? '키와 값을' : '값을') + ' 처음부터 차례로 꺼내(순회) 출력합니다. ' + why + ' 출력은 ' + res + '입니다.', looksSorted ? 'bad' : kind === 'hash' ? '' : 'good', -1);
       out.push(String(items.length));
       push('System.out.println(' + n.v + '.size()): 다섯 번 넣었지만 같은 ' + what + ' 하나는 다시 들어가지 않았으므로 크기는 ' + items.length + '입니다.', '', -1);
-      sum.push(cls + '의 출력은 ' + res + ', 크기는 ' + items.length + '입니다.');
       if (kind === 'hash') sum.push(looksSorted ? 'HashSet과 HashMap은 정렬해 주지 않습니다. 작은 정수가 정렬된 것처럼 나온 것은 칸 번호가 숫자와 같아서입니다. 넣는 값을 40, 5, 17, 5, 100으로 바꾸면 17, 100, 5, 40 순서로 나옵니다.' : 'HashSet과 HashMap의 순회 순서는 hashCode가 정한 칸 번호 순서입니다. 사람이 보기에는 뒤섞인 순서이고, 자바 버전이나 들어 있는 개수에 따라 달라질 수 있으므로 이 순서에 기대는 코드를 쓰면 안 됩니다.');
       if (kind === 'linked') sum.push('넣은 순서를 지켜야 할 때는 LinkedHashSet과 LinkedHashMap을 씁니다. 화면에 보여 줄 목록의 순서, 설정 항목의 순서처럼 "넣은 대로 나와야 하는" 경우입니다.' + (m ? ' 이미 있는 키에 다시 put을 해도 그 키의 자리는 바뀌지 않습니다.' : ''));
       if (kind === 'tree') sum.push('정렬된 순서가 필요하거나 가장 작은 값, 어떤 값 이상인 것들을 찾아야 할 때는 TreeSet과 TreeMap을 씁니다. 그 대신 넣고 찾을 때마다 비교를 여러 번 하므로 Hash 종류보다 느립니다.');
       if (kind !== 'tree' && c.data === 'null') sum.push('Hash 종류와 LinkedHash 종류는 null을 하나 담을 수 있습니다. 컬렉션의 종류를 Tree로 바꾸면 같은 코드에서 예외가 납니다.');
       if (kind !== 'tree' && c.data === 'obj') sum.push('Hash 종류와 LinkedHash 종류는 equals와 hashCode만 있으면 어떤 객체든 담습니다. Tree 종류는 크기를 비교할 방법이 더 필요합니다.');
     } else {
-      sum.push(cls + '에 ' + done + '번째로 넣는 순간 ' + ex + '이 나서 출력까지 가지 못했습니다.');
       sum.push(ex === 'NullPointerException' ? 'TreeSet과 TreeMap은 값을 서로 비교해 자리를 정하므로 null을 담을 수 없습니다. HashSet, LinkedHashSet은 null을 하나 담을 수 있습니다.' : 'TreeSet과 TreeMap에 넣을 객체는 Comparable을 구현하거나, new TreeSet<>(Comparator.comparingInt(Task::id))처럼 비교 방법(Comparator)을 따로 주어야 합니다. 컴파일할 때는 걸러지지 않고 실행 중에 예외가 납니다.');
     }
     sum.push('고르는 기준: 순서가 필요 없으면 Hash 종류(가장 빠름), 넣은 순서가 필요하면 LinkedHash 종류, 정렬된 순서가 필요하면 Tree 종류입니다.');
@@ -18911,13 +18805,8 @@ Lab.register({
     return { events: ev, summary: sum, cells: cells, stopAt: ex ? done : 0, row: [ex ? '(출력 전에 멈춤)' : res, ex ? '-' : items.length + '개', dup, ex || '없음'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, n = this.names(c), m = c.shape === 'map';
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    var third = c.kind === 'hash' ? '칸 번호' : c.kind === 'linked' ? '넣은 차례' : '자리를 정한 방법';
-    H.table(v, ['꺼내는 순서', m ? '키' : '값'].concat(m ? ['값'] : [], [third]), s.items.map(function (it, i) { return { cells: [String(i + 1), it.s].concat(m ? [String(it.val)] : [], [c.kind === 'hash' ? it.cell + '번 칸' : c.kind === 'linked' ? it.seq + '번째' : 'compareTo로 비교']) }; }), n.cls + ' 안에 들어 있는 것');
-    var ln = H.lanes(v);
-    H.lane(ln, '출력', s.out.length ? s.out.join('  /  ') : '아직 없음', s.out.length ? 'good' : 'none');
-    H.lane(ln, '예외', s.ex ? s.ex + ' (프로그램이 멈춤)' : '없음', s.ex ? 'bad' : 'none');
     H.counters(v, [[s.done + ' / 5', '넣기를 시도한 횟수'], [s.items.length + '개', '들어 있는 개수']]);
   },
   // 그림: 위쪽에 코드에 적힌 순서대로 넣는 값 다섯 개, 아래쪽에 컬렉션이 꺼내 주는 순서대로 놓인 값. 넣을 때마다 아래쪽 자리가 정해진다.
@@ -18941,7 +18830,7 @@ Lab.register({
     if (!s.items.length) P.text('empty', 340, 190, s.ex ? '아무것도 넣지 못했습니다' : '비어 있음', { cls: s.ex ? 'bad' : 'mut', anchor: 'middle' });
     if (s.ex) P.box('r1', 16, 246, 648, 38, { cls: 'bad', title: '예외로 멈춤', right: s.ex });
     else P.box('r1', 16, 246, 648, 38, { cls: s.out.length ? 'good' : 'ghost', title: '출력', right: s.out.length ? s.out.join('   /   ') : '아직 없음' });
-    P.note(c.kind === 'hash' ? 'Hash 종류는 hashCode로 계산한 칸 번호가 작은 것부터 꺼냅니다. 그래서 넣은 순서와도, 크기 순서와도 상관없는 순서가 됩니다. 칸은 처음에 16개이고, 이 실습은 그 상태에서의 순서를 보여 줍니다.' : c.kind === 'linked' ? 'LinkedHash 종류는 넣은 순서대로 이어 둔 연결을 따라 꺼냅니다. 이미 있는 것을 다시 넣어도 자리는 바뀌지 않습니다.' : 'Tree 종류는 넣을 때마다 compareTo로 비교해 정렬된 자리에 둡니다. 그래서 비교할 수 없는 null이나 Comparable이 아닌 객체는 넣는 순간 예외가 납니다.');
+    P.note(c.kind === 'hash' ? 'Hash 종류는 hashCode로 계산한 칸 번호가 작은 것부터 꺼냅니다. 칸은 처음에 16개이고, 이 실습은 그 상태에서의 순서를 보여 줍니다.' : c.kind === 'linked' ? 'LinkedHash 종류는 넣은 순서대로 이어 둔 연결을 따라 꺼냅니다. 이미 있는 것을 다시 넣어도 자리는 바뀌지 않습니다.' : 'Tree 종류는 넣을 때마다 compareTo로 비교해 정렬된 자리에 둡니다.');
   },
   assume: '서른 가지 조합의 출력, 크기, 중복을 넣었을 때 돌려주는 값, 예외의 종류를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. HashSet과 HashMap의 칸 번호도 실제 객체의 내부 배열을 들여다본 값과 대조했습니다. 다만 Hash 종류의 순회 순서는 자바 명세가 보장하지 않습니다. 여기에 보이는 순서는 JDK 21에서 칸이 16개(원소 12개 이하)일 때의 것이며, 버전이나 원소 개수가 달라지면 바뀔 수 있습니다. record의 hashCode가 내는 구체적인 값도 명세가 정하지 않으며, JDK 21에서는 Task(int id)의 hashCode가 id와 같았습니다. TreeSet이 같은 값인지 판단하는 기준은 equals가 아니라 compareTo의 결과가 0인지입니다. 성능 차이(Hash 종류가 Tree 종류보다 빠름)는 측정하지 않았고 문서에 적힌 시간 복잡도를 따랐습니다.',
 });
@@ -18949,7 +18838,7 @@ Lab.register({
 Lab.register({
   id: 'sorting', nav: '정렬과 Comparator', cat: '자료구조', mode: 'step',
   title: '정렬 순서는 누가 정하고, 빼서 비교하면 왜 틀리나',
-  intro: '정렬은 "둘 가운데 어느 것이 앞인가"를 묻는 비교를 되풀이하는 일입니다. 그 답은 클래스가 스스로 정해 둘 수도 있고(Comparable), 정렬할 때 바깥에서 줄 수도 있습니다(Comparator). 정렬 기준을 바꿔 가며 결과가 어떻게 달라지는지, 그리고 두 수를 빼서 비교하는 흔한 코드가 큰 수에서 왜 틀린 순서를 내는지 확인해 보세요.',
+  intro: '정렬은 "둘 가운데 어느 것이 앞인가"를 묻는 비교를 되풀이하는 일입니다. 그 답은 클래스가 스스로 정해 둘 수도 있고(Comparable), 정렬할 때 바깥에서 줄 수도 있습니다(Comparator).',
   terms: ['Comparable과 Comparator', '안정 정렬', '정수 오버플로', '메서드 참조', '람다 표현식'],
   controls: [
     { id: 'by', label: '정렬 기준', type: 'select', value: 'sub', options: [['natural', 'Comparable: 클래스가 정해 둔 순서 (이름순)'], ['cmp', 'Comparator: 잔액순 (comparingInt)'], ['then', 'Comparator: 잔액순, 같으면 이름순 (thenComparing)'], ['sub', 'Comparator: 두 잔액을 빼서 비교 (a - b)']] },
@@ -19031,26 +18920,20 @@ Lab.register({
       : !okBal ? '예외는 나지 않았습니다. 틀린 순서가 아무 경고 없이 나온 것입니다.'
       : '잔액이 같은 park와 kim은 정렬 전의 순서 그대로 park가 앞이고, choi와 lee도 choi가 앞입니다. 비교 결과가 0인 둘의 순서를 바꾸지 않는 정렬을 안정 정렬이라고 합니다.' + (rev ? ' 거꾸로 정렬해도 0은 뒤집어도 0이므로 마찬가지입니다.' : '');
     push('System.out.println(list): 정렬된 목록을 출력합니다. ' + last, by !== 'natural' && !okBal ? 'bad' : '');
-    sum.push('정렬 결과는 ' + names.join(', ') + '입니다.');
     if (by === 'natural') sum.push('Comparable은 클래스 안에 순서를 하나 정해 두는 방법입니다(compareTo). 이름순처럼 그 클래스에 당연한 순서가 있을 때 씁니다. 다른 기준으로 정렬하고 싶으면 클래스를 고치지 않고 Comparator를 바깥에서 줍니다.');
     if (by === 'cmp') sum.push('Comparator는 정렬할 때 바깥에서 주는 순서입니다. 같은 목록을 잔액순, 이름순처럼 그때그때 다른 기준으로 정렬할 수 있습니다. comparingInt는 빼지 않고 크기를 비교하므로 큰 수에서도 안전합니다.');
     if (by === 'cmp' || (by === 'sub' && okBal)) sum.push('잔액이 같은 것끼리는 정렬 전의 순서를 지켰습니다(안정 정렬). List.sort와 Collections.sort는 안정 정렬입니다.' + (rev ? ' 거꾸로 정렬해도 같은 것끼리의 순서는 뒤집히지 않습니다.' : ''));
     if (by === 'then') sum.push('thenComparing은 앞의 기준으로 순서를 가릴 수 없을 때(비교 결과 0)만 쓰이는 다음 기준입니다.' + (rev ? ' reversed를 맨 뒤에 붙이면 앞에 적은 기준 전체가 뒤집힙니다. 잔액은 큰 것부터, 이름도 뒤에서부터입니다.' : ''));
     if (by === 'sub' && !okBal) sum.push('빼서 비교하면 두 수의 차이가 int 범위(약 -21억 ~ 21억)를 넘을 때 부호가 뒤집힙니다. 예외가 나지 않고 틀린 순서가 조용히 나옵니다. Integer.compare(a, b)나 Comparator.comparingInt를 쓰면 빼지 않고 크기를 비교하므로 안전합니다.');
-    if (by === 'sub' && okBal) sum.push('작은 수에서는 빼서 비교해도 맞는 결과가 나옵니다. 그래서 테스트는 통과하고, 값이 커진 뒤에야 틀린 정렬이 나타납니다. 잔액의 크기를 큰 수로 바꿔 보세요.');
+    if (by === 'sub' && okBal) sum.push('작은 수에서는 빼서 비교해도 맞는 결과가 나옵니다. 그래서 테스트는 통과하고, 값이 커진 뒤에야 틀린 정렬이 나타납니다.');
     function cell(v, other) { return v + (v < 0 ? ' (음수: park가 앞)' : v > 0 ? ' (양수: park가 뒤)' : ' (순서를 가리지 않음)'); }
     return { events: ev, summary: sum, names: names, c1: c1, c2: c2, row: [names.join(', '), cell(c1), cell(c2), okText] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this, D = this.DATA[c.data], bal = {};
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    D.forEach(function (x) { bal[x[0]] = x[1]; });
-    H.table(v, ['자리', '이름 (owner)', '잔액 (balance)'], s.order.map(function (o, i) { return { cells: [String(i + 1), o, { v: self.money(bal[o]), cls: o === 'park' || o === 'kim' ? 'hot' : '' }] }; }), s.sorted ? 'list (정렬한 뒤)' : 'list (정렬하기 전)');
-    var ln = H.lanes(v), sign = function (x) { return x === null ? '아직 비교 전' : x + (x < 0 ? ' → park가 앞' : x > 0 ? ' → park가 뒤' : ' → 순서를 가리지 않음'); };
+    var ln = H.lanes(v);
     H.lane(ln, 'order', !s.has ? '아직 없음' : { natural: '이름순 (compareTo)', cmp: '잔액순', then: '잔액순, 같으면 이름순', sub: '잔액을 뺀 값' }[c.by] + (s.rev ? '의 반대' : ''), s.has ? 'wait' : 'none');
-    H.lane(ln, 'compare(park, choi)', sign(s.c1), s.c1 === null ? 'none' : 'hot');
-    H.lane(ln, 'compare(park, kim)', sign(s.c2), s.c2 === null ? 'none' : 'hot');
-    H.counters(v, [[s.ok, '잔액 순서가 맞는가']]);
   },
   // 그림: 위쪽에 list의 계좌 다섯 개(정렬하면 자리가 바뀐다), 가운데에 두 번의 비교 결과, 아래에 잔액 순서가 맞는지.
   draw: function (P, sim, shown) {
@@ -19065,7 +18948,7 @@ Lab.register({
     P.box('k1', 28, 156, 306, 58, { cls: s.c1 === null ? 'ghost' : sim.row[3] === '틀림' ? 'bad' : 'good', title: 'compare(park, choi)', sub: what(s.c1), right: s.c1 === null ? '?' : String(s.c1) });
     P.box('k2', 346, 156, 306, 58, { cls: s.c2 === null ? 'ghost' : 'good', title: 'compare(park, kim)', sub: what(s.c2), right: s.c2 === null ? '?' : String(s.c2) });
     P.box('r1', 16, 246, 648, 38, { cls: !s.sorted ? 'ghost' : s.ok === '틀림' ? 'bad' : s.ok === '맞음' ? 'good' : 'plain', title: c.by === 'natural' ? '이름순으로 정렬됨' : '잔액이 ' + (c.rev ? '큰' : '작은') + ' 것부터 놓였는가', right: s.sorted ? s.ok : '아직 정렬 전' });
-    P.note('같은 색 상자는 잔액이 같은 계좌입니다. 정렬한 뒤에 같은 색끼리의 앞뒤가 정렬 전과 같은지 보세요. 정렬은 compare가 돌려주는 값의 부호만 보고 자리를 정하므로, compare가 틀린 부호를 내면 결과도 틀립니다.');
+    P.note('같은 색 상자는 잔액이 같은 계좌입니다. 정렬한 뒤에 같은 색끼리의 앞뒤가 정렬 전과 같은지 보세요.');
   },
   assume: '열여섯 가지 조합의 정렬 결과, 두 번의 compare가 돌려준 값, 잔액 순서가 맞는지를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. compare가 돌려주는 값 가운데 명세가 정한 것은 부호(음수, 0, 양수)뿐입니다. comparingInt의 1과 -1, 문자열 비교의 13과 5 같은 구체적인 숫자는 JDK 21에서 나온 값입니다. 빼서 비교하는 Comparator처럼 규칙을 어기는 비교를 주면 정렬 결과는 정렬 알고리즘의 내부 동작에 따라 달라집니다. 이 실습의 틀린 순서는 원소가 다섯 개일 때 JDK 21의 List.sort가 내는 결과입니다. List.sort의 문서에는 Comparator가 규약을 어긴 것이 발견되면 IllegalArgumentException을 던질 수 있다고 적혀 있습니다(이 경우는 실행해 보지 않았습니다). 정렬 과정의 비교는 여러 번 일어나지만, 화면에는 그 가운데 두 번만 따로 실행해 보여 줍니다.',
 });
@@ -19073,7 +18956,7 @@ Lab.register({
 Lab.register({
   id: 'lambda', nav: '람다와 함수형 인터페이스', cat: '자바 언어', mode: 'step',
   title: '람다에 적은 코드는 언제 실행되나',
-  intro: '람다는 "나중에 실행할 동작"을 값처럼 변수에 담고 다른 메서드에 넘기는 문법입니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다. 같은 동작을 익명 클래스, 람다, 메서드 참조로 써 보고, 넘겨받은 쪽이 부르는 횟수를 바꿔 가며 본문이 언제 몇 번 실행되는지 확인해 보세요.',
+  intro: '람다는 "나중에 실행할 동작"을 값처럼 변수에 담고 다른 메서드에 넘기는 문법입니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다.',
   terms: ['람다 표현식', '함수형 인터페이스', '메서드 참조', '익명 클래스와 람다의 차이'],
   controls: [
     { id: 'fi', label: '함수형 인터페이스 (동작의 모양)', type: 'select', value: 'function', options: [['function', 'Function<String, Integer> : 값을 받아 다른 값을 돌려준다'], ['predicate', 'Predicate<String> : 값을 받아 true 또는 false를 돌려준다'], ['supplier', 'Supplier<String> : 받는 것 없이 값을 돌려준다'], ['consumer', 'Consumer<String> : 값을 받고 아무것도 돌려주지 않는다']] },
@@ -19138,10 +19021,9 @@ Lab.register({
     st.out.push('run 끝'); st.end = true;
     push('System.out.println("run 끝"): "run 끝"이 출력됩니다. "본문 실행"은 모두 ' + n + '번 출력되었습니다.', '');
     var got = F.res.slice(0, n).filter(function (x) { return x !== null; });
-    sum.push('본문은 ' + n + '번 실행되었습니다. 출력된 순서는 ' + st.out.join(' → ') + '입니다.');
     sum.push(n ? '동작을 만든 줄에서는 아무것도 실행되지 않았고, run 안에서 ' + F.m + ' 메서드를 부를 때마다 실행되었습니다. 람다 안의 코드는 만들 때가 아니라 불릴 때 실행됩니다.' : '동작을 만들고 넘겼지만 받은 쪽이 부르지 않아 본문은 한 번도 실행되지 않았습니다. 람다는 "나중에 실행할 수 있는 코드"일 뿐이고, 실행할지 말지와 몇 번 실행할지는 받은 쪽이 정합니다.');
     sum.push({ 'function': 'Function<T, R>은 T 타입 값 하나를 받아 R 타입 값을 돌려주는 동작이고, apply로 부릅니다. 값을 다른 값으로 바꾸는 일(변환)에 씁니다.', predicate: 'Predicate<T>는 T 타입 값 하나를 받아 true 또는 false를 돌려주는 동작이고, test로 부릅니다. 조건 검사에 씁니다.', supplier: 'Supplier<T>는 받는 것 없이 T 타입 값을 돌려주는 동작이고, get으로 부릅니다. 값을 만드는 일을 미뤄 두었다가 정말 필요할 때만 실행하게 할 수 있습니다.', consumer: 'Consumer<T>는 T 타입 값 하나를 받고 아무것도 돌려주지 않는 동작이고, accept로 부릅니다. 출력이나 저장처럼 받아서 쓰기만 하는 일에 씁니다.' }[c.fi]);
-    sum.push(form === 'anon' ? '익명 클래스는 람다가 생기기 전(자바 7까지)에 동작을 넘기던 방식입니다. 방식을 람다로 바꾸면 같은 일이 한 줄이 됩니다.' : form === 'lambda' ? '익명 클래스, 람다, 메서드 참조 가운데 무엇으로 쓰든 결과는 같습니다. 방식을 바꿔 코드만 달라지는 것을 확인해 보세요.' : '람다가 이미 있는 메서드 하나를 부르기만 할 때는 메서드 참조(클래스이름::메서드이름)로 더 짧게 쓸 수 있습니다. 결과는 람다와 같습니다.');
+    sum.push(form === 'anon' ? '익명 클래스는 람다가 생기기 전(자바 7까지)에 동작을 넘기던 방식입니다. 방식을 람다로 바꾸면 같은 일이 한 줄이 됩니다.' : form === 'lambda' ? '익명 클래스, 람다, 메서드 참조 가운데 무엇으로 쓰든 결과는 같습니다.' : '람다가 이미 있는 메서드 하나를 부르기만 할 때는 메서드 참조(클래스이름::메서드이름)로 더 짧게 쓸 수 있습니다. 결과는 람다와 같습니다.');
     return { events: ev, summary: sum, out: st.out.slice(), row: [F.m, F.takes, F.gives, n + '번', !n ? '(부르지 않음)' : got.length ? got.join(', ') : '(돌려주는 값 없음)'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -19149,7 +19031,6 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
     H.table(v, ['인터페이스', '부르는 메서드', '받는 것', '돌려주는 것'], [{ cells: [F.type.replace(/<.*/, ''), F.m, F.takes, F.gives] }], '이 동작의 모양');
     H.table(v, ['순서', '출력된 줄'], s.out.map(function (o, i) { return { cells: [String(i + 1), { v: o, cls: o.indexOf('본문 실행') === 0 ? 'hot' : '' }] }; }), '지금까지의 출력');
-    H.counters(v, [[s.count + '번', '본문이 실행된 횟수'], [s.done + ' / ' + c.calls, 'run이 동작을 부른 횟수']]);
   },
   // 그림: 왼쪽은 동작을 만든 곳(변수), 가운데는 동작을 넘겨받아 부르는 run 메서드, 오른쪽은 본문이 되는 메서드. 부를 때에만 본문으로 화살표가 간다.
   draw: function (P, sim, shown) {
@@ -19176,7 +19057,7 @@ Lab.register({
 Lab.register({
   id: 'collect', nav: '스트림으로 모으기', cat: '자바 언어', mode: 'step',
   title: '스트림의 결과를 어떤 모양으로 모으나',
-  intro: '스트림에서 흘러나온 원소들은 마지막에 collect로 모아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다. 같은 주문 목록을 여러 방법으로 모아 보고, toMap에서 키가 겹치면 무슨 일이 생기는지 확인해 보세요.',
+  intro: '스트림에서 흘러나온 원소들은 마지막에 collect로 모아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다.',
   terms: ['Stream API', 'Collector와 collect', 'groupingBy와 partitioningBy', '메서드 참조', 'List, Set, Map'],
   controls: [
     { id: 'how', label: '모으는 방법 (Collector)', type: 'select', value: 'toMap', options: [['toList', 'toList() : 순서대로 List에 담기'], ['group', 'groupingBy(고객) : 고객별로 묶기'], ['count', 'groupingBy(고객, counting()) : 고객별 개수'], ['sum', 'groupingBy(고객, summingInt(가격)) : 고객별 합계'], ['part', 'partitioningBy(가격 >= 300) : 둘로 나누기'], ['join', 'joining(", ") : 문자열 하나로 잇기'], ['toMap', 'toMap(고객, 가격) : 키와 값으로 담기'], ['toMapMerge', 'toMap(고객, 가격, 병합 함수) : 겹치면 합치기']] },
@@ -19250,8 +19131,7 @@ Lab.register({
       out = shown;
       var tail = h === 'toList' ? ' 흘러나온 순서 그대로이고, 같은 이름도 나온 만큼 들어 있습니다.' : h === 'join' ? (res ? ' 결과는 컬렉션이 아니라 문자열 하나입니다.' : ' 원소가 없어서 빈 문자열이 되었고, 빈 줄이 출력됩니다.') : h === 'part' ? ' false 칸이 먼저, true 칸이 나중에 나옵니다.' + (D.length ? '' : ' 원소가 하나도 없었지만 두 칸은 그대로 있습니다.') : D.length ? ' Map에 담긴 순서는 원소가 흘러나온 순서(' + D[0][0] + '이 먼저)와 상관이 없습니다. 이 순서에 기대는 코드를 쓰면 안 됩니다.' : ' 원소가 없어서 키가 하나도 없는 빈 Map입니다.';
       push('System.out.println(result): 출력은 ' + shown + '입니다.' + tail, 'good', -1);
-      sum.push('결과의 타입은 ' + H.type + '이고, 출력은 ' + shown + '입니다.');
-    } else sum.push(done + '번째 원소에서 ' + ex + '이 나서 출력까지 가지 못했습니다. 메시지: ' + msg);
+    }
     if (h === 'toList') sum.push('collect(Collectors.toList())는 흘러나온 원소를 순서 그대로 List에 담습니다. 중복도 그대로 들어갑니다. 자바 16부터는 스트림에 .toList()를 바로 붙여 짧게 쓸 수도 있습니다.');
     if (h === 'group') sum.push('groupingBy는 키가 같은 원소끼리 묶어 Map<키, List<원소>>를 만듭니다. 고객별 주문, 분류별 상품처럼 "무엇별로" 나누는 일에 씁니다.');
     if (h === 'count') sum.push('groupingBy의 두 번째 인자는 묶인 원소들을 어떻게 정리할지 정합니다. counting()은 개수를 세며, 값의 타입은 Integer가 아니라 Long입니다. Map<String, Integer>로 받으면 컴파일 오류가 납니다.');
@@ -19264,16 +19144,12 @@ Lab.register({
     return { events: ev, summary: sum, msg: msg, keysAll: keys(), row: [H.type, ex ? '(출력 전에 멈춤)' : shown, ex || '없음'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, h = c.how, D = this.DATA[c.data];
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, h = c.how;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
     var ln = H.lanes(v);
-    H.lane(ln, '결과의 타입', this.HOW[h].type, 'wait');
     if (h === 'toList') { H.title(v, 'List에 담긴 것 (순서대로)'); H.slots(v, s.list.map(function (x) { return [x, 'd']; }), '비어 있음'); }
     else if (h === 'join') H.lane(ln, '이어 붙인 문자열', s.list.length ? '"' + s.list.join(', ') + '"' : '비어 있음', s.list.length ? 'good' : 'none');
     else H.table(v, ['키', h === 'count' ? '값 (개수)' : h === 'sum' ? '값 (합계)' : h === 'group' || h === 'part' ? '값 (주문 목록)' : '값 (가격)'], s.ents.map(function (e) { return { cells: [e[0], { v: e[1], cls: e[0] === s.hit ? (s.ex ? 'bad' : 'hot') : '' }] }; }), 'Map에 담긴 것 (키 순서로 정리해 표시)');
-    H.lane(ln, '출력', s.out === null ? '아직 없음' : s.out, s.out === null ? 'none' : 'good');
-    H.lane(ln, '예외', s.ex ? s.ex + ' (프로그램이 멈춤)' : '없음', s.ex ? 'bad' : 'none');
-    H.counters(v, [[s.done + ' / ' + D.length, '받은 원소']]);
   },
   // 그림: 위쪽에 스트림에서 흘러나오는 주문들, 아래쪽에 모으는 그릇(List, 문자열, 또는 키마다 한 칸인 Map). 원소 하나가 들어갈 때마다 화살표가 그 칸으로 간다.
   draw: function (P, sim, shown) {
@@ -19311,7 +19187,7 @@ Lab.register({
 Lab.register({
   id: 'thread', nav: '스레드의 생성과 상태', cat: '동시성', mode: 'step',
   title: 'run()을 직접 부르면 왜 새 스레드가 생기지 않나',
-  intro: 'Thread 객체를 만드는 것과 스레드가 실제로 실행되는 것은 다른 일입니다. 스레드 하나가 만들어져서 끝날 때까지 어떤 상태를 거치는지를 t.getState()로 따라가 봅니다. start()와 run()의 차이, 기다리는 방법에 따라 달라지는 상태, 기다리는 스레드를 깨우는 interrupt를 함께 확인합니다.',
+  intro: 'Thread 객체를 만드는 것과 스레드가 실제로 실행되는 것은 다른 일입니다. 스레드 하나가 만들어져서 끝날 때까지 어떤 상태를 거치는지를 t.getState()로 따라가 봅니다.',
   terms: ['프로세스와 스레드', '스레드의 상태', 'start()와 run()', 'join()', '인터럽트(interrupt)'],
   controls: [
     { id: 'call', label: '스레드를 실행시키는 방법', type: 'select', value: 'run', options: [['start', 't.start()'], ['run', 't.run()을 직접 호출'], ['twice', 't.start() 뒤, 끝나고 나서 한 번 더 t.start()']] },
@@ -19414,16 +19290,15 @@ Lab.register({
       st.again = 'IllegalThreadStateException'; st.ex.push('IllegalThreadStateException'); st.main = '두 번째 t.start()에서 예외';
       push('t.start() (두 번째): 스레드는 한 번만 시작할 수 있습니다. 끝난 뒤에도 다시 시작할 수 없어서 IllegalThreadStateException이 발생합니다. 같은 작업을 다시 실행하려면 Thread 객체를 새로 만들어야 합니다.', 'bad');
     } else st.again = '부르지 않음';
-    sum.push('작업을 실행한 스레드는 ' + st.ran + '이고, 중간에 본 t의 상태는 ' + st.mid + ', join 뒤의 상태는 ' + st.after + '입니다.' + (st.ex.length ? ' 발생한 예외: ' + st.ex.join(', ') + '.' : ''));
     if (!started) sum.push('run()을 직접 부르면 스레드가 늘어나지 않습니다. 부른 스레드가 그 코드를 순서대로 실행할 뿐이라서 동시에 실행되는 것이 없습니다. 새 스레드에서 실행하려면 start()를 부릅니다. start()가 새 스레드를 만들고, 그 스레드가 run()을 실행합니다.');
     else {
-      if (W === 'quick') sum.push('스레드는 NEW에서 시작해 start()로 RUNNABLE이 되고, run()의 코드가 끝나면 TERMINATED가 됩니다. 기다리는 일이 있는 작업으로 바꾸면 그 사이의 상태를 볼 수 있습니다.');
+      if (W === 'quick') sum.push('스레드는 NEW에서 시작해 start()로 RUNNABLE이 되고, run()의 코드가 끝나면 TERMINATED가 됩니다.');
       if (W === 'sleep') sum.push('시간을 정해 두고 기다리는 스레드는 TIMED_WAITING입니다. Thread.sleep(시간)이 대표적입니다. 시간이 지나면 RUNNABLE로 돌아옵니다.');
       if (W === 'join') sum.push('기한 없이 다른 쪽의 일이 끝나기를 기다리는 스레드는 WAITING입니다. join()은 상대 스레드가 끝날 때까지 부른 쪽을 멈춰 세웁니다. main이 t.join()으로 기다리는 동안에는 main의 상태도 WAITING입니다.');
       if (W === 'lock') sum.push('다른 스레드가 쥔 lock을 얻으려고 synchronized 앞에서 막힌 스레드는 BLOCKED입니다. lock을 쥔 쪽이 놓아야 RUNNABLE로 돌아옵니다.');
       if (ie) sum.push('sleep이나 join으로 기다리던 스레드는 interrupt를 받으면 InterruptedException과 함께 바로 깨어납니다. 오래 기다리는 작업을 중간에 멈추게 하는 방법이며, 그래서 이런 메서드는 InterruptedException을 처리하도록 코드를 쓰게 되어 있습니다.');
       else if (intr && W === 'lock') sum.push('interrupt는 스레드를 강제로 멈추는 것이 아니라 신호를 보내는 것입니다. sleep, join처럼 InterruptedException을 던지는 기다림은 그 신호로 깨어나지만, synchronized의 lock을 기다리는 스레드는 깨어나지 않습니다.');
-      else if (intr) sum.push('이미 끝난 스레드에 보낸 interrupt는 아무 일도 일으키지 않습니다. 기다리는 작업(sleep, join)으로 바꿔서 비교해 보세요.');
+      else if (intr) sum.push('이미 끝난 스레드에 보낸 interrupt는 아무 일도 일으키지 않습니다.');
     }
     if (c.call === 'twice') sum.push('Thread 객체는 한 번만 시작할 수 있습니다. 실행 중일 때 다시 불러도, 끝난 뒤에 불러도 IllegalThreadStateException입니다.');
     return { events: ev, summary: sum, row: [st.ran, st.mid, st.ir, st.after, st.again] };
@@ -19431,16 +19306,12 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    H.counters(v, [[s.t || '-', 't의 지금 상태'], [s.ran, '작업을 실행한 스레드']]);
-    H.title(v, '스레드마다 하고 있는 일'); var ln = H.lanes(v);
-    H.lane(ln, 'main', s.main, 'hot');
-    H.lane(ln, 'worker', s.worker || (c.call === 'run' ? '만들어지지 않음' : '아직 없음'), !s.worker ? 'none' : s.worker === '끝남' ? 'good' : s.t === 'RUNNABLE' ? 'hot' : 'wait');
+    var ln = c.work === 'join' || c.work === 'lock' ? H.lanes(v) : null;
     if (c.work === 'join') H.lane(ln, 'helper', s.helper || '아직 시작 전', !s.helper ? 'none' : s.helper === '끝남' ? 'good' : 'hot');
     if (c.work === 'lock') H.lane(ln, 'lock', s.lockBy ? s.lockBy + ' 스레드가 쥐고 있음' : '아무도 쥐고 있지 않음', s.lockBy ? 'wait' : 'none');
     H.table(v, ['확인한 것', '결과'], [
       { cells: ['중간에 본 t.getState()', { v: s.mid, cls: s.mid === '?' ? '' : s.mid === 'NEW' ? 'bad' : 'hot' }] },
       { cells: ['t.interrupt()의 결과', { v: s.ir, cls: s.ir === 'InterruptedException' ? 'bad' : '' }] },
-      { cells: ['join 뒤의 t.getState()', { v: s.after, cls: s.after === 'TERMINATED' ? 'good' : s.after === 'NEW' ? 'bad' : '' }] },
       { cells: ['다시 start()', { v: s.again, cls: s.again === 'IllegalThreadStateException' ? 'bad' : '' }] },
     ], '지금까지의 결과');
   },
@@ -19465,7 +19336,7 @@ Lab.register({
     P.box('r1', 16, 250, 320, 34, { cls: s.ran === '?' ? 'ghost' : s.ran === 'worker' ? 'good' : 'bad', title: '작업을 실행한 스레드', right: s.ran });
     P.box('r2', 344, 250, 320, 34, { cls: s.after === '?' ? 'ghost' : s.after === 'TERMINATED' ? 'good' : 'bad', title: 'join 뒤 t의 상태', right: s.after });
     P.box('r3', 16, 294, 648, 34, { cls: s.ex.length ? 'bad' : 'ghost', title: '발생한 예외', right: s.ex.length ? s.ex.join(', ') : '없음' });
-    P.note('굵은 테두리가 지금 t의 상태입니다. NEW는 객체만 만든 상태이고, start()를 불러야 RUNNABLE이 됩니다. 기다리는 방법에 따라 TIMED_WAITING, WAITING, BLOCKED 가운데 하나가 되었다가 RUNNABLE로 돌아오고, run()의 코드가 끝나면 TERMINATED가 됩니다.');
+    P.note('굵은 테두리가 지금 t의 상태입니다.');
   },
   assume: '스물네 가지 조합의 결과(작업을 실행한 스레드 이름, 중간과 마지막의 t.getState(), 발생한 예외, 작업이 끝날 때의 interrupt 표시)를 이 PC의 JDK 21에서 실행한 결과와 대조했습니다. 화면의 코드는 main이 Thread.sleep(100)으로 잠깐 기다린 뒤 상태를 보지만, 이 100밀리초는 "대개 충분한" 시간일 뿐 보장된 것이 아닙니다. 대조할 때는 시간에 기대지 않도록 t의 상태가 RUNNABLE을 벗어나 그대로 머무를 때까지 되풀이해 확인했습니다. start() 바로 뒤에 t.getState()를 부르면 RUNNABLE일 수도, 이미 다른 상태일 수도 있어서 결과로 삼지 않았습니다. RUNNABLE은 "실행 중"과 "CPU 차례를 기다리는 중"을 구분하지 않으며, 자바는 이 둘을 따로 알려 주지 않습니다. WAITING은 join 말고도 Object.wait()나 LockSupport.park()로도 생기지만 여기서는 join만 다뤘습니다. 여러 스레드가 함께 쓰는 데이터의 문제는 "경쟁 상태" 실습에서, 스레드를 미리 만들어 두고 다시 쓰는 방법은 "스레드 풀" 실습에서 다룹니다.',
 });

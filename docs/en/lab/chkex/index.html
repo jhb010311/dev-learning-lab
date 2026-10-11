@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Exceptions</p>
 <h1>Checked and unchecked exceptions</h1>
 <p><b>Why do some exceptions keep the code from even compiling unless you handle them?</b></p>
-<p>Java exceptions fall into two groups. With a checked exception (such as IOException), the compiler refuses to compile the code unless you catch the exception (try-catch) or declare that it is thrown (throws). An unchecked exception (typically RuntimeException or one of its subclasses) has no such requirement, so the code compiles with no handling at all. Change the kind of exception and the way it is handled, and check whether the code compiles and how the program ends when it runs.</p>
+<p>Java exceptions fall into two groups. With a checked exception (such as IOException), the compiler refuses to compile the code unless you catch the exception (try-catch) or declare that it is thrown (throws). An unchecked exception (typically RuntimeException or one of its subclasses) has no such requirement, so the code compiles with no handling at all.</p>
 <p>Checked against real execution · All 24 combinations were actually compiled and run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -62,7 +62,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>This is a compile-time error. The line with the error is the throw line inside read, and the program does not run.</li>
 <li>With a checked exception, the code compiles only if it does one of two things: &quot;catch it, or declare that it is thrown&quot;. This mechanism keeps you from overlooking problems that arise from circumstances outside the program and that you can prepare for, such as a missing file or a dropped network connection.</li>
 </ul>
 <h2>Code</h2>
@@ -165,6 +164,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

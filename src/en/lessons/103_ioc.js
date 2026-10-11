@@ -1,7 +1,7 @@
 Lab.register({
   id: 'ioc', nav: 'The Spring container and beans', cat: 'Spring', mode: 'step',
   title: 'You never wrote new, so who creates the object and passes it in?',
-  intro: 'For the order service to use a discount policy object, someone has to create that object. If the order service creates it directly with new, the choice of implementation is fixed in the code of the order service. In Spring, the container creates the objects (beans), picks the right one, and injects it wherever it is needed. See what the container does when one bean is registered, when two are registered, and when none is registered.',
+  intro: 'For the order service to use a discount policy object, someone has to create that object. If the order service creates it directly with new, the choice of implementation is fixed in the code of the order service. In Spring, the container creates the objects (beans), picks the right one, and injects it wherever it is needed.',
   terms: ['Inversion of Control (IoC)', 'Spring bean', '@Configuration and @Bean', '@Primary and @Qualifier', 'NoSuchBeanDefinitionException and NoUniqueBeanDefinitionException'],
   controls: [
     { id: 'how', label: 'Who creates the discount policy object', type: 'select', value: 'comp', options: [['new', 'OrderService creates it directly with new'], ['comp', 'The container creates it (registered with @Component)'], ['bean', 'The container creates it (registered with a @Bean method)']] },
@@ -74,9 +74,8 @@ Lab.register({
       st.off = f.off + ' won'; st.result = 'Ran normally';
       push('orderService.order(20000): The discount method of ' + f.cls + ' returns ' + f.off + ' won, so the amount to pay is ' + (20000 - f.off) + ' won.', '');
       push('To change the implementation to ' + f.other + ': You must open OrderService.java and change the class name after new. If several classes use the discount policy, you must change every one of them.', 'bad');
-      sum.push('Ran normally. OrderService creates a ' + f.cls + ' object itself and uses it. The discount on a 20000-won order is ' + f.off + ' won.');
       sum.push('Both the code that creates the object and the code that chooses the implementation are inside OrderService. OrderService declares the field with the interface type DiscountPolicy, but the moment it names an implementation class after new, it is tied to that implementation.');
-      sum.push('Every time the implementation changes, the classes that use it must be edited. Switch to "The container creates it" and compare which file changes for the same change.');
+      sum.push('Every time the implementation changes, the classes that use it must be edited.');
       row = ['Ran normally (no container)', f.cls + ' (' + f.off + ' won off)', 'new in OrderService', 'OrderService'];
     } else {
       var names = ['orderService'].concat(f.regFixed ? ['fixedDiscountPolicy'] : [], f.regRate ? ['rateDiscountPolicy'] : []), n = names.length - 1;
@@ -90,13 +89,11 @@ Lab.register({
       if (n === 0) {
         fail = 'NoSuchBeanDefinitionException'; st.svc = 'failed'; st.result = 'Startup failed';
         push('There is no bean to inject. The container cannot call the constructor, so it throws a NoSuchBeanDefinitionException and the application fails to start. Even when an implementation class exists in the source, it does not exist for the container unless it is registered as a bean.', 'bad');
-        sum.push('Startup failed: NoSuchBeanDefinitionException. There is no bean of type DiscountPolicy, so OrderService cannot be created.');
         sum.push('When a required bean is missing, the failure happens right when the application starts, not when an order comes in. You find out about a missing registration early.');
         sum.push(f.comp ? 'If you put @Component on an implementation class, the container finds it and registers it.' : 'If you add a @Bean method to AppConfig, the object that the method returns is registered as a bean.');
       } else if (c.reg === 'two') {
         fail = 'NoUniqueBeanDefinitionException'; st.svc = 'failed'; st.result = 'Startup failed';
         push('There are two candidates, and nothing tells the container which one to inject. The container does not pick one arbitrarily and throws a NoUniqueBeanDefinitionException. The application fails to start.', 'bad');
-        sum.push('Startup failed: NoUniqueBeanDefinitionException. There are two beans of type DiscountPolicy, fixedDiscountPolicy and rateDiscountPolicy, so the container could not choose.');
         sum.push('The container looks up beans by type. When there are two or more beans of the same type, you must tell it which one to inject. Either put @Primary on the bean to prefer, or write the bean name with @Qualifier at the injection point.');
         sum.push('Just creating and registering one more implementation class causes this error. If startup fails although you did not change the existing code, check whether another bean of the same type has been added.');
       } else {
@@ -112,7 +109,6 @@ Lab.register({
         push('orderService.order(20000): The discount method of the injected ' + f.cls + ' returns ' + f.off + ' won, so the amount to pay is ' + (20000 - f.off) + ' won.', 'good');
         var where = c.reg === 'qualifier' ? 'OrderService' : f.comp ? 'FixedDiscountPolicy, RateDiscountPolicy' : 'AppConfig';
         push('To change the implementation to ' + f.other + ': ' + (c.reg === 'qualifier' ? 'Change the bean name written in the @Qualifier of OrderService. You end up editing the file that receives the injection.' : c.reg === 'primary' ? (f.comp ? 'Move @Primary to the ' + f.other + ' class.' : 'In AppConfig, move @Primary to the other @Bean method.') + ' OrderService is not edited.' : (f.comp ? 'Move @Component to the ' + f.other + ' class.' : 'Change the @Bean method of AppConfig so that it returns a ' + f.other + '.') + ' OrderService is not edited.'), c.reg === 'qualifier' ? '' : 'good');
-        sum.push('Startup succeeded. The container injected the ' + f.cls + ' bean into OrderService. The discount on a 20000-won order is ' + f.off + ' won.');
         if (c.reg === 'one') sum.push('OrderService only says "I need a DiscountPolicy" in its constructor. The container does the work of creating the object and deciding which implementation to inject. That is why OrderService stays the same even when the implementation changes.');
         if (c.reg === 'primary') sum.push('@Primary is a mark that goes on the registering side. No matter how many classes receive the injection, changing one place changes all of them. The implementation that was not chosen is also a bean, so its object is still created.');
         if (c.reg === 'qualifier') sum.push('@Qualifier specifies the bean name at the injection point. Each injection point can choose a different implementation, but in return you must edit that class when the implementation changes. You can also set the default implementation with @Primary and put @Qualifier only where a different implementation is needed.');
@@ -131,9 +127,6 @@ Lab.register({
       var b = s.beans[k], st = { v: word[b.s], cls: b.s === 'in' ? 'good' : b.s === 'cand' ? 'hot' : '' };
       return { cls: b.s === 'none' ? 'gone' : '', cells: isNew ? [b.cls, st] : [b.cls + (b.mark ? ' (@Primary)' : ''), b.reg ? b.name : '-', st] };
     }), isNew ? 'Implementations of DiscountPolicy (no container)' : 'DiscountPolicy implementations that the Spring container knows about (registered with ' + sim.regWord + ')');
-    var ln = H.lanes(v);
-    H.lane(ln, 'OrderService', s.svc + (s.pick ? ' · implementation in use: ' + s.pick : ''), s.svc === 'created' ? 'good' : s.svc === 'failed' ? 'bad' : s.svc === 'being created' ? 'hot' : 'none');
-    H.counters(v, [[s.result || 'In progress', 'Result'], [s.off || '-', 'Discount on a 20000-won order']]);
   },
   // Diagram: OrderService on the left and the two implementations of the discount policy on the right. The container finds the candidates (dashed lines) and injects the one it chose (solid green line). With direct new, an arrow goes from OrderService to the implementation.
   draw: function (P, sim, shown) {
@@ -152,7 +145,7 @@ Lab.register({
     });
     P.box('r1', 16, 258, 320, 40, { cls: !s.result ? 'ghost' : s.result === 'Startup failed' ? 'bad' : 'good', title: 'Result', right: s.result ? (sim.fail ? sim.fail : s.result) : 'In progress' });
     P.box('r2', 344, 258, 320, 40, { cls: s.off ? 'good' : 'ghost', title: 'Discount on a 20000-won order', right: s.off || '-' });
-    P.note(isNew ? 'The arrow means "OrderService created this object itself". The choice of implementation is written in the code of OrderService, so to change the implementation you must edit OrderService.' : 'A dashed line marks a candidate that the container found, and the solid green line marks the bean that the container chose and injected into OrderService. A faded box is a class that the container does not know about because it is not registered as a bean.');
+    P.note(isNew ? 'The arrow means "OrderService created this object itself".' : 'A dashed line marks a candidate that the container found, and the solid green line marks the bean that the container chose and injected into OrderService. A faded box is a class that the container does not know about because it is not registered as a bean.');
   },
   assume: 'All 30 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9) on this PC and checked against the results. For each combination, source code with the same structure as on the screen was compiled. The cases that create the object directly with new were run as they are, and the cases that use the container were started with component scanning. Then these were compared: whether startup succeeded, the name of the exception, the implementation injected into OrderService, the discount amount, who called the constructor of the implementation object (confirmed from the call stack), and the number of implementation objects created. The "File to edit to change the implementation" column is what the checking program found by directly comparing which files differ between two sources in which only the implementation to use was changed. For a startup failure, the name shown is that of the innermost cause, and an UnsatisfiedDependencyException wraps it on the outside. Simplifications on the screen: the order in which the container creates the bean objects depends on the registration order, so the lab does not state it (the "Bean creation and injection" lab covers the order). It was also confirmed by execution that, even when both implementations are registered and nothing marks which to choose, startup succeeds if the name of the constructor parameter is the same as a bean name (for example, rateDiscountPolicy), and that bean is injected. The parameter name in this lab is discountPolicy, which is not the same as either bean name. Field injection, setter injection, and receiving all beans of the same type as a List are not covered.',
 });

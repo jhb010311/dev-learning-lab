@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
 <h1>Bean lifecycle callbacks</h1>
 <p><b>Why is an injected field null when you use it in the constructor?</b></p>
-<p>The container handles a bean in a fixed order. It creates the object with the constructor, injects the dependencies, calls the initialization callbacks, lets the bean be used, and calls the destruction callbacks when the container is closed. With a PriceCache bean that reads a price list in advance, see where setup work belongs and in what order the callbacks are called.</p>
+<p>The container handles a bean in a fixed order. It creates the object with the constructor, injects the dependencies, calls the initialization callbacks, lets the bean be used, and calls the destruction callbacks when the container is closed.</p>
 <p>Checked against real execution · All 20 combinations were run on Spring Boot 4.1.1 and the order of the calls was checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Startup failed: NullPointerException. At the time the constructor is called, the @Autowired field has not been set yet.</li>
 <li>The container creates the object with the constructor and then sets the @Autowired field. If the constructor uses that field, it is null.</li>
 <li>There are two ways to fix this. Move the setup work to an initialization callback such as @PostConstruct, or switch to constructor injection and receive the dependency as a constructor argument.</li>
 </ul>
@@ -181,6 +180,6 @@ context.close();                              // closes the container</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

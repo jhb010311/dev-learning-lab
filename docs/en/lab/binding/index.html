@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
 <h1>Request mapping and parameter binding</h1>
 <p><b>How does a value sent in a request become a method parameter?</b></p>
-<p>An HTTP request can carry a value in several places: the path of the URL, the query string after the ?, and the body. The annotation on a parameter of a controller method decides &quot;which of these places the value is taken from&quot;. If the place that carries the value and the place the value is taken from do not match, the value does not come in. Change how the controller receives the value and which request is sent, and see where the value comes from and where it goes.</p>
+<p>An HTTP request can carry a value in several places: the path of the URL, the query string after the ?, and the body. The annotation on a parameter of a controller method decides &quot;which of these places the value is taken from&quot;. If the place that carries the value and the place the value is taken from do not match, the value does not come in.</p>
 <p>Checked against real execution · Checked by sending requests for 48 combinations to a Spring Boot 4.1.1 server</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The response is 400 Bad Request, and the controller method did not run. The reason for rejection is &quot;required value is missing&quot;.</li>
 <li>A value sent in a JSON body cannot be received with @RequestParam, because the place that carries the value (the body) and the place the value is taken from (the request parameters) are different. Receive a JSON body with @RequestBody.</li>
 <li>Each annotation looks at a fixed place. @RequestParam and @ModelAttribute look at the request parameters (query string and form data), @PathVariable looks at the path, and @RequestBody looks at the whole body.</li>
 </ul>
@@ -169,6 +168,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

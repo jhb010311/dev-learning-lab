@@ -1,7 +1,7 @@
 Lab.register({
   id: 'lifecycle', nav: 'Bean lifecycle callbacks', cat: 'Spring', mode: 'step',
   title: 'Why is an injected field null when you use it in the constructor?',
-  intro: 'The container handles a bean in a fixed order. It creates the object with the constructor, injects the dependencies, calls the initialization callbacks, lets the bean be used, and calls the destruction callbacks when the container is closed. With a PriceCache bean that reads a price list in advance, see where setup work belongs and in what order the callbacks are called.',
+  intro: 'The container handles a bean in a fixed order. It creates the object with the constructor, injects the dependencies, calls the initialization callbacks, lets the bean be used, and calls the destruction callbacks when the container is closed.',
   terms: ['Bean lifecycle', '@PostConstruct and @PreDestroy', 'InitializingBean and DisposableBean', 'Constructor injection, setter injection, and field injection', '@Configuration and @Bean'],
   controls: [
     { id: 'inj', label: 'How PriceCache receives PriceRepository', type: 'select', value: 'field', options: [['field', 'Field injection (@Autowired)'], ['ctor', 'Constructor injection']] },
@@ -91,7 +91,6 @@ Lab.register({
       done = create();
       if (!done) {
         st.result = 'Startup failed'; st.phase = 'Startup failed';
-        sum.push('Startup failed: NullPointerException. At the time the constructor is called, the @Autowired field has not been set yet.');
       } else {
         st.cur = ''; st.phase = 'Startup complete'; mark('STARTED', 'Startup complete');
         push('Startup has finished. The PriceCache bean is in the container, fully initialized.', '');
@@ -126,7 +125,6 @@ Lab.register({
     var initCol = !k.inits.length || !done ? 'No callback' : k.inits.map(function (x) { return x[1]; }).join(' → ');
     var destCol = !k.dests.length || !done ? 'No callback' : proto ? 'Not called' : k.dests.map(function (x) { return x[1]; }).join(' → ');
     if (done) {
-      sum.push('Success. The order of the calls is constructor → ' + (field ? 'dependency injection → ' : '') + (k.inits.length ? k.inits.map(function (x) { return x[1]; }).join(' → ') + ' → ' : '') + 'use' + (destCol !== 'No callback' && !proto ? ' → ' + destCol : '') + '.' + (proto && k.dests.length ? ' The destruction callback was not called.' : ''));
       if (field) sum.push('With field injection, the object is created first and the field is set afterward. So inside the constructor, a field that is to be injected is null. Put setup work that uses an injected dependency in an initialization callback, not in the constructor.');
       else sum.push('With constructor injection, the dependency can be used right away inside the constructor.' + (inCtor ? ' These settings define no destruction callback, so nothing is called when the container is closed.' : ' The initialization callback is called after the constructor.'));
       if (c.cb === 'anno') sum.push('@PostConstruct and @PreDestroy only need to be put on a method. You do not have to implement an interface of Spring, and this is the approach that the official Spring documentation recommends.');
@@ -144,14 +142,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to start the container, use the bean once, and then close the container.'); return; }
-    var names = [['ctor', '1. Constructor'], ['inject', '2. Dependency injection'], ['init', '3. Initialization callback'], ['use', '4. Use'], ['destroy', '5. Destruction callback']];
-    H.table(v, ['Stage', 'What happened'], names.map(function (n) {
-      var x = s.stage[n[0]];
-      return { cells: [{ v: n[1], cls: s.cur === n[0] ? 'hot' : '' }, { v: x || 'Not yet', cls: s.bad === n[0] ? 'bad' : x && x !== 'No callback' ? 'good' : '' }] };
-    }), 'Lifecycle of the PriceCache bean');
     H.title(v, 'Order of the calls');
     H.slots(v, s.log.map(function (w, i) { return [w, w === 'Startup complete' || w === 'Container starts closing' ? 'q' : i === s.log.length - 1 ? 'b' : 'd']; }), 'None yet');
-    H.counters(v, [[s.repo || '-', 'repository field'], [s.prices || 'none', 'Price list (prices)'], [s.result || s.phase, 'State']]);
   },
   // Diagram: The five stages of the lifecycle run from top to bottom on the left, and the PriceRepository bean and the PriceCache object inside the container are on the right. The current stage is marked with a thick border.
   draw: function (P, sim, shown) {
@@ -169,7 +161,7 @@ Lab.register({
     if (s.obj && s.repo === 'injected') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'good', label: 'injected' });
     if (s.obj && s.repo === 'null') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'dash mut', label: 'not injected yet' });
     P.box('r1', 16, 292, 648, 36, { cls: !s.result ? 'ghost' : s.result === 'Success' ? 'good' : 'bad', title: 'State', right: s.result ? (s.result === 'Success' ? 'Success' : s.result + ': NullPointerException') : s.phase || 'Not started' });
-    P.note('The container handles one bean in order from top to bottom. With field injection, there is an interval between stages 1 and 2 in which repository is null. For a prototype bean, the container is responsible only up to stage 4, and stage 5 is not called.');
+    P.note('The container handles one bean in order from top to bottom.');
   },
   assume: 'All 20 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9, jakarta.annotation-api 3.0.0) on this PC and checked against the results. For each combination, source code with the same structure as on the screen was compiled, the container was started, the bean was retrieved and price("apple") was called once, and the container was closed. Along the way, the order in which the constructor and each callback were called, and whether the repository field was null at that moment, were recorded and compared one by one with the order in the model. The exception chain of the startup failure was BeanCreationException → BeanInstantiationException → NullPointerException, and the screen shows the innermost cause. Simplifications on the screen: the "dependency injection" stage cannot be recorded separately, so the fact that the field was null in the constructor and set in the initialization callback was taken as confirmation that injection happened in between. Setter injection, and the destruction order among several beans when the container is closed, are not covered. It was also confirmed by execution that, even when destroyMethod is not written in @Bean, a public close() method is called when the container is closed (and is not called for a prototype bean). Two things were not confirmed by execution and follow the official Spring documentation: that @PostConstruct and @PreDestroy are the recommended approach, and that when the process is forcibly terminated, the container cannot close and the destruction callbacks are not called.',
 });

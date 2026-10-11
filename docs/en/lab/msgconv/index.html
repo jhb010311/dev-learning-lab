@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
 <h1>REST APIs and message converters</h1>
 <p><b>Where does the object returned by a controller become JSON?</b></p>
-<p>A controller method receives Java objects and returns Java objects, but what travels over the network is text such as JSON. In between, message converters turn text into objects and objects into text. The Content-Type and Accept headers of the request decide which converter is used, and when no converter fits, the result is 415 or 406. Change the kind of controller and the request, and see where the conversion happens and where it fails.</p>
+<p>A controller method receives Java objects and returns Java objects, but what travels over the network is text such as JSON. In between, message converters turn text into objects and objects into text. The Content-Type and Accept headers of the request decide which converter is used, and when no converter fits, the result is 415 or 406.</p>
 <p>Checked against real execution · Checked by sending requests for 16 combinations to a Spring Boot 4.1.1 server</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The response is 406 Not Acceptable, and the controller method ran.</li>
 <li>406 means &quot;the response cannot be given in the format you want (Accept)&quot;. It is decided in the step that writes the response, so the response is a failure but the order has already been created. If you write produces = &quot;application/json&quot; on @PostMapping, a request whose Accept does not match is filtered out in the step that chooses the controller method, and the controller does not run.</li>
 </ul>
 <h2>Code</h2>
@@ -174,6 +173,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

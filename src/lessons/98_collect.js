@@ -1,7 +1,7 @@
 Lab.register({
   id: 'collect', nav: '스트림으로 모으기', cat: '자바 언어', mode: 'step',
   title: '스트림의 결과를 어떤 모양으로 모으나',
-  intro: '스트림에서 흘러나온 원소들은 마지막에 collect로 모아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다. 같은 주문 목록을 여러 방법으로 모아 보고, toMap에서 키가 겹치면 무슨 일이 생기는지 확인해 보세요.',
+  intro: '스트림에서 흘러나온 원소들은 마지막에 collect로 모아야 쓸 수 있습니다. 어떤 Collector를 주느냐에 따라 List가 되기도 하고, 키별로 묶인 Map이 되기도 하고, 문자열 하나가 되기도 합니다.',
   terms: ['Stream API', 'Collector와 collect', 'groupingBy와 partitioningBy', '메서드 참조', 'List, Set, Map'],
   controls: [
     { id: 'how', label: '모으는 방법 (Collector)', type: 'select', value: 'toMap', options: [['toList', 'toList() : 순서대로 List에 담기'], ['group', 'groupingBy(고객) : 고객별로 묶기'], ['count', 'groupingBy(고객, counting()) : 고객별 개수'], ['sum', 'groupingBy(고객, summingInt(가격)) : 고객별 합계'], ['part', 'partitioningBy(가격 >= 300) : 둘로 나누기'], ['join', 'joining(", ") : 문자열 하나로 잇기'], ['toMap', 'toMap(고객, 가격) : 키와 값으로 담기'], ['toMapMerge', 'toMap(고객, 가격, 병합 함수) : 겹치면 합치기']] },
@@ -75,8 +75,7 @@ Lab.register({
       out = shown;
       var tail = h === 'toList' ? ' 흘러나온 순서 그대로이고, 같은 이름도 나온 만큼 들어 있습니다.' : h === 'join' ? (res ? ' 결과는 컬렉션이 아니라 문자열 하나입니다.' : ' 원소가 없어서 빈 문자열이 되었고, 빈 줄이 출력됩니다.') : h === 'part' ? ' false 칸이 먼저, true 칸이 나중에 나옵니다.' + (D.length ? '' : ' 원소가 하나도 없었지만 두 칸은 그대로 있습니다.') : D.length ? ' Map에 담긴 순서는 원소가 흘러나온 순서(' + D[0][0] + '이 먼저)와 상관이 없습니다. 이 순서에 기대는 코드를 쓰면 안 됩니다.' : ' 원소가 없어서 키가 하나도 없는 빈 Map입니다.';
       push('System.out.println(result): 출력은 ' + shown + '입니다.' + tail, 'good', -1);
-      sum.push('결과의 타입은 ' + H.type + '이고, 출력은 ' + shown + '입니다.');
-    } else sum.push(done + '번째 원소에서 ' + ex + '이 나서 출력까지 가지 못했습니다. 메시지: ' + msg);
+    }
     if (h === 'toList') sum.push('collect(Collectors.toList())는 흘러나온 원소를 순서 그대로 List에 담습니다. 중복도 그대로 들어갑니다. 자바 16부터는 스트림에 .toList()를 바로 붙여 짧게 쓸 수도 있습니다.');
     if (h === 'group') sum.push('groupingBy는 키가 같은 원소끼리 묶어 Map<키, List<원소>>를 만듭니다. 고객별 주문, 분류별 상품처럼 "무엇별로" 나누는 일에 씁니다.');
     if (h === 'count') sum.push('groupingBy의 두 번째 인자는 묶인 원소들을 어떻게 정리할지 정합니다. counting()은 개수를 세며, 값의 타입은 Integer가 아니라 Long입니다. Map<String, Integer>로 받으면 컴파일 오류가 납니다.');
@@ -89,16 +88,12 @@ Lab.register({
     return { events: ev, summary: sum, msg: msg, keysAll: keys(), row: [H.type, ex ? '(출력 전에 멈춤)' : shown, ex || '없음'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, h = c.how, D = this.DATA[c.data];
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, h = c.how;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
     var ln = H.lanes(v);
-    H.lane(ln, '결과의 타입', this.HOW[h].type, 'wait');
     if (h === 'toList') { H.title(v, 'List에 담긴 것 (순서대로)'); H.slots(v, s.list.map(function (x) { return [x, 'd']; }), '비어 있음'); }
     else if (h === 'join') H.lane(ln, '이어 붙인 문자열', s.list.length ? '"' + s.list.join(', ') + '"' : '비어 있음', s.list.length ? 'good' : 'none');
     else H.table(v, ['키', h === 'count' ? '값 (개수)' : h === 'sum' ? '값 (합계)' : h === 'group' || h === 'part' ? '값 (주문 목록)' : '값 (가격)'], s.ents.map(function (e) { return { cells: [e[0], { v: e[1], cls: e[0] === s.hit ? (s.ex ? 'bad' : 'hot') : '' }] }; }), 'Map에 담긴 것 (키 순서로 정리해 표시)');
-    H.lane(ln, '출력', s.out === null ? '아직 없음' : s.out, s.out === null ? 'none' : 'good');
-    H.lane(ln, '예외', s.ex ? s.ex + ' (프로그램이 멈춤)' : '없음', s.ex ? 'bad' : 'none');
-    H.counters(v, [[s.done + ' / ' + D.length, '받은 원소']]);
   },
   // 그림: 위쪽에 스트림에서 흘러나오는 주문들, 아래쪽에 모으는 그릇(List, 문자열, 또는 키마다 한 칸인 Map). 원소 하나가 들어갈 때마다 화살표가 그 칸으로 간다.
   draw: function (P, sim, shown) {

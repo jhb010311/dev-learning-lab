@@ -66,7 +66,6 @@ Lab.register({
         push('in.readObject(): 파일에 기록된 serialVersionUID와 지금 User 클래스의 serialVersionUID를 비교합니다. ' + (auto ? '저장할 때 계산된 값과 필드를 추가한 지금의 클래스에서 계산한 값이 다릅니다.' : '파일은 1, 지금 클래스는 2입니다.') + ' 서로 맞지 않는 버전의 클래스로 보고 InvalidClassException을 던집니다. 객체는 되살아나지 않습니다.', 'bad');
       }
     }
-    sum.push('저장은 ' + (st.save === '성공' ? '성공' : st.save + '으로 실패') + ', 되살리기는 ' + (st.load === '성공' ? '성공했고 읽은 point는 ' + st.val.split(' ')[0] + '입니다.' : st.load === '하지 못함' ? '하지 못했습니다.' : st.load + '으로 실패했습니다.') + ' 생성자는 new로 만들 때 한 번만 실행됐습니다.');
     if (c.cls === 'no') sum.push('자바의 기본 직렬화는 Serializable을 구현한 클래스의 객체만 저장합니다. Serializable에는 구현할 메서드가 없고, "이 클래스의 객체는 저장해도 된다"는 표시 역할만 합니다.');
     if (c.cls === 'field') sum.push('객체를 저장하면 그 객체가 필드로 가리키는 객체들도 함께 저장됩니다. 그 가운데 하나라도 Serializable이 아니면 전체가 실패합니다. Address도 Serializable로 만들거나, 저장할 필요가 없는 필드라면 transient를 붙입니다.');
     if (st.load === '성공') {
@@ -82,18 +81,9 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    var fileTxt = !s.file ? '아직 쓰지 않음' : s.file === 'fail' ? '저장 실패' : 'User (serialVersionUID ' + s.file.uid + ') · name = "kim"' + (s.file.point === null ? '' : ' · point = ' + s.file.point);
-    H.table(v, ['어디에', '무엇이 있는가'], [
-      { cls: s.u ? '' : 'gone', cells: ['원래 객체 u', s.u ? 'name = "kim"' + (s.u.point === null ? '' : ', point = ' + s.u.point) + (s.u.addr ? ', address → Address 객체' : '') : '아직 없음'] },
-      { cls: s.sp === null ? 'gone' : '', cells: ['User 클래스 (static)', s.sp === null ? 'static 필드 없음' : 'point = ' + s.sp] },
-      { cls: s.file ? '' : 'gone', cells: ['파일 user.ser', { v: fileTxt, cls: s.file === 'fail' ? 'bad' : s.file ? 'good' : '' }] },
-      { cls: s.r ? '' : 'gone', cells: ['되살린 객체 r', s.r ? 'name = "kim"' + (s.r.point === null ? '' : ', point = ' + s.r.point) : s.load === 'InvalidClassException' ? { v: '되살리지 못함', cls: 'bad' } : '아직 없음'] },
-    ], '값이 있는 곳');
     var ln = H.lanes(v);
     H.lane(ln, '저장', s.save, s.save === '성공' ? 'good' : s.save === '?' ? 'none' : 'bad');
-    H.lane(ln, '되살리기', s.load, s.load === '성공' ? 'good' : s.load === '?' ? 'none' : s.load === '하지 못함' ? 'wait' : 'bad');
-    H.counters(v, [[s.ctor + '번', '생성자 실행'], [s.val, '되살린 뒤 읽은 point']]);
-  },
+    H.lane(ln, '되살리기', s.load, s.load === '성공' ? 'good' : s.load === '?' ? 'none' : s.load === '하지 못함' ? 'wait' : 'bad');  },
   // 그림: 왼쪽에 원래 객체(와 클래스의 static 값), 가운데에 파일에 저장된 내용, 오른쪽에 되살린 객체. 화살표가 저장과 되살리기다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { ctor: 0, u: null, sp: null, file: null, ver: c.cls === 'no' ? '' : c.chg === 'auto' ? '자동으로 계산한 값' : '1', r: null, save: '?', load: '?', val: '?', ex: '' };
@@ -113,7 +103,7 @@ Lab.register({
     P.box('k1', 16, 226, 320, 36, { cls: 'plain', title: '생성자 실행 횟수', right: s.ctor + '번' });
     P.box('k2', 344, 226, 320, 36, { cls: s.ver === '2' || s.ver.indexOf('달라짐') >= 0 ? 'hot' : 'plain', title: '지금 User의 UID', right: s.ver ? P.fit(s.ver, 180) : '없음' });
     P.box('k3', 16, 272, 648, 36, { cls: s.ex ? 'bad' : s.val !== '?' ? 'good' : 'ghost', title: s.ex ? '발생한 예외' : '되살린 뒤 읽은 point', right: s.ex || s.val });
-    P.note('왼쪽 화살표가 writeObject(저장), 오른쪽 화살표가 readObject(되살리기)입니다. 파일에 들어가는 것은 객체의 인스턴스 필드 값과, 어떤 클래스의 객체인지 알려 주는 클래스 이름과 serialVersionUID(그림의 UID)입니다. transient 필드와 static 필드는 파일에 들어가지 않습니다.');
+    P.note('왼쪽 화살표가 writeObject(저장), 오른쪽 화살표가 readObject(되살리기)입니다. 파일에 들어가는 것은 객체의 인스턴스 필드 값과, 어떤 클래스의 객체인지 알려 주는 클래스 이름과 serialVersionUID(그림의 UID)입니다.');
   },
   assume: '열다섯 가지 조합마다 화면의 코드와 같은 소스를 이 PC의 JDK 21에서 컴파일하고 실행해, 저장과 되살리기의 성공 여부, 발생한 예외, 되살린 값, 생성자가 실행된 횟수를 대조했습니다. 저장한 뒤 클래스를 고치는 조합은 같은 이름의 User 클래스를 두 벌 따로 컴파일해, 한쪽으로 저장한 파일을 다른 쪽으로 읽었습니다. serialVersionUID를 적어 둔 채 필드를 추가하면 읽을 수 있고 새 필드가 null이라는 것, transient인 참조형 필드가 null이 된다는 것, static 필드를 다른 프로그램에서 읽으면 0이라는 것, Address 필드에 transient를 붙이면 저장된다는 것도 따로 실행해 확인했습니다. 파일에 실제로 기록되는 바이트의 형식은 그림에서 줄였습니다. 생성자가 실행되지 않는 것은 Serializable을 구현한 클래스의 이야기이며, 부모 클래스가 Serializable이 아닌 경우의 규칙, writeObject와 readObject를 직접 정의하는 방법, record의 직렬화는 다루지 않았습니다. 자바의 기본 직렬화는 보안 문제 때문에 새 코드에서는 잘 쓰지 않고 JSON 같은 형식을 주로 쓰지만, 기존 코드와 라이브러리를 이해하려면 이 규칙들을 알아야 합니다.',
 });

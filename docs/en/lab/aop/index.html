@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › AOP and proxies</p>
 <h1>AOP: advice and pointcuts</h1>
 <p><b>Which methods does advice apply to, and in what order does it run?</b></p>
-<p>When work that many methods need in the same way, such as logging, is written in one class (an aspect), Spring adds that code before and after the method calls. The code that is added is called advice, and the expression that selects which methods it is added to is called a pointcut. Change the pointcut, the method that is called, the outcome of the method, and the number of aspects to see what runs and in what order.</p>
+<p>When work that many methods need in the same way, such as logging, is written in one class (an aspect), Spring adds that code before and after the method calls. The code that is added is called advice, and the expression that selects which methods it is added to is called a pointcut.</p>
 <p>Checked against real execution · All 72 combinations were run on Spring Framework 7.0.9 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -71,7 +71,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The pointcut matched the order(String) method, and the console printed 5 lines in this order: Log @Around before → Log @Before → order body → Log @AfterThrowing → Log @After. The caller received an IllegalStateException.</li>
 <li>When an exception is thrown, @AfterThrowing and @After run, and @AfterReturning and the lines written below pjp.proceed() in @Around do not run. Put work that must be done in every case in @After, or wrap the call in try-finally inside @Around.</li>
 </ul>
 <h2>Code</h2>
@@ -213,6 +212,6 @@ class MemberService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

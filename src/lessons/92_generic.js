@@ -1,7 +1,7 @@
 Lab.register({
   id: 'generic', nav: '제네릭', cat: '자바 언어', mode: 'step',
   title: 'List<Integer>의 <Integer>는 무엇을 막아 주나',
-  intro: '제네릭은 List<Integer>처럼 "이 리스트에 무엇을 담는지"를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastException이 납니다. 같은 리스트를 가리키는 변수 list의 선언을 바꿔 가며 무엇이 컴파일되고 무엇이 막히는지 확인하세요.',
+  intro: '제네릭은 List<Integer>처럼 "이 리스트에 무엇을 담는지"를 타입에 적어 두는 문법입니다. 적어 두면 잘못된 타입을 넣는 코드를 컴파일러가 실행 전에 막아 줍니다. 적지 않으면 그 코드가 그대로 컴파일되고, 한참 뒤 값을 꺼내는 자리에서 ClassCastException이 납니다.',
   terms: ['제네릭', '로 타입(raw type)', '타입 소거', '와일드카드(? extends와 ? super)'],
   controls: [
     { id: 'decl', label: '변수 list의 선언 (ints와 같은 리스트를 가리킴)', type: 'select', value: 'raw', options: [['raw', 'List (제네릭 없이, 로 타입)'], ['int', 'List<Integer>'], ['num', 'List<Number>'], ['ext', 'List<? extends Number>'], ['sup', 'List<? super Integer>']] },
@@ -75,7 +75,6 @@ Lab.register({
     if (errLines.length) {
       st.comp = '오류'; st.end = '실행 못 함';
       push('컴파일이 실패했습니다: class 파일이 만들어지지 않으므로 프로그램을 실행할 수 없습니다. 잘못될 수 있는 코드가 실행되기 전에 걸러졌습니다.', 'bad');
-      sum.push('컴파일 오류입니다 (' + errLines.length + '곳). 프로그램은 실행되지 않습니다.');
       if (d === 'num') sum.push('List<Integer>를 List<Number> 변수에 대입할 수 없습니다. 원소끼리는 상위·하위 관계여도, 그것을 담는 리스트끼리는 아무 관계가 없습니다. 허용된다면 그 변수로 Double을 넣어 Integer 리스트를 망가뜨릴 수 있기 때문입니다. 여러 종류의 숫자 리스트를 받고 싶을 때는 List<? extends Number>를 씁니다.');
       if (d === 'int') sum.push('제네릭을 쓰면 잘못된 타입을 넣는 코드가 컴파일 오류가 됩니다. 로 타입(List)으로 바꿔 같은 코드를 실행해 보면, 같은 실수가 실행 중의 예외로 늦게 드러나는 것을 볼 수 있습니다.');
       if (d === 'ext') sum.push('? extends Number로 선언한 리스트는 "꺼내서 Number로 쓰기"만 됩니다. 실제 원소 타입을 모르므로 넣는 것은 막습니다. 값을 읽기만 하는 매개변수에 씁니다(예: 합계를 구하는 메서드).');
@@ -111,12 +110,11 @@ Lab.register({
       push('Integer last = ints.get(ints.size() - 1) 실행: 마지막 원소(' + lastVal + ')를 Integer로 꺼내 출력합니다. 출력은 "마지막 값: ' + lastVal + '"입니다. 프로그램이 정상으로 끝납니다.', 'good');
     }
     var endText = crash ? '예외로 중단: ClassCastException (' + j.box + '을 Integer로 바꿀 수 없음)' : '정상 종료';
-    sum.push('컴파일 ' + st.comp + '. 출력: ' + st.out.join(' / ') + '. 끝난 모습: ' + endText + '.');
     if (d === 'raw' && bad) sum.push('제네릭 없이(로 타입) 쓰면 잘못된 타입을 넣는 코드가 컴파일되고, 넣는 순간에도 아무 일이 없다가, 값을 꺼내는 다른 줄에서 ClassCastException이 납니다. 선언을 List<Integer>로 바꾸면 같은 코드가 컴파일 오류가 됩니다.');
     if (d === 'raw' && !bad) sum.push('이번에는 넣은 값이 정수라서 문제가 없었습니다. 하지만 컴파일러가 확인해 준 것이 아니라 운이 좋았던 것입니다. 경고(unchecked)는 "이 줄은 내가 검사하지 못했다"는 컴파일러의 알림입니다.');
     if (d === 'int') sum.push('제네릭을 쓰면 넣을 때는 컴파일러가 타입을 검사하고, 꺼낼 때는 형 변환을 적지 않아도 됩니다.');
-    if (d === 'ext') sum.push('? extends Number로 선언한 리스트에서는 값을 꺼내 Number로 쓸 수 있습니다. 넣는 쪽(add)을 골라 비교해 보세요.');
-    if (d === 'sup') sum.push('? super Integer로 선언한 리스트에는 Integer를 넣을 수 있습니다. 꺼내는 쪽(get)을 골라 비교해 보세요.');
+    if (d === 'ext') sum.push('? extends Number로 선언한 리스트에서는 값을 꺼내 Number로 쓸 수 있습니다.');
+    if (d === 'sup') sum.push('? super Integer로 선언한 리스트에는 Integer를 넣을 수 있습니다.');
     sum.push('출력 가운데 true가 타입 소거를 보여 줍니다. 실행 중의 리스트는 원소 타입을 기억하지 않으므로, 제네릭의 보호는 전부 컴파일할 때 이루어집니다. 로 타입으로 그 검사를 피하면 막아 줄 것이 없습니다.');
     return { events: ev, summary: sum, msgs: [], warn: j.res === 'warn' ? j.msg : '', crashLine: crash ? lastLine : '', row: [st.comp, '없음', st.out.join(' / '), endText] };
   },
@@ -129,14 +127,9 @@ Lab.register({
       { cells: ['ints', 'List<Integer>', 'Integer 넣기 · 꺼내면 Integer'] },
       { cls: s.link ? '' : 'gone', cells: ['list', TYPE[c.decl], { v: ALLOW[c.decl], cls: s.link === 'err' ? 'bad' : '' }] },
     ], '같은 리스트를 가리키는 두 변수');
-    var ln = H.lanes(v);
-    H.lane(ln, '검사', s.chk ? this.opLine(c) + '  →  ' + s.chk : '아직', s.chk === '오류' ? 'bad' : s.chk === '경고' ? 'hot' : s.chk === '통과' ? 'good' : 'none');
-    H.lane(ln, '컴파일', s.comp === '?' ? '검사 중' : s.comp, s.comp === '오류' ? 'bad' : s.comp === '?' ? 'hot' : 'good');
-    H.lane(ln, '리스트 내용', '[1, 2' + (s.added ? ', ' + s.added : '') + ']' + (s.added && s.addedType !== 'Integer' ? '  (' + s.addedType + '이 섞여 있음)' : ''), s.added && s.addedType !== 'Integer' ? 'bad' : 'wait');
     H.title(v, '콘솔 출력');
     var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (오류 출력)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(아직 없음)'));
-    H.counters(v, [[s.comp, '컴파일'], [s.end, '프로그램']]);
   },
   // 그림: 왼쪽에 변수 ints와 list, 오른쪽에 둘이 함께 가리키는 리스트 객체와 그 원소. 아래에는 컴파일러가 list로 하는 일을 통과시켰는지와 결과를 적는다.
   draw: function (P, sim, shown) {
@@ -157,7 +150,7 @@ Lab.register({
     P.box('chk', 16, 186, 648, 34, { cls: s.chk === '오류' || s.link === 'err' ? 'bad' : s.chk === '경고' ? 'hot' : s.chk === '통과' ? 'good' : 'ghost', title: '컴파일러의 검사:  ' + this.opLine(c), right: s.link === 'err' && !s.chk ? '앞 줄이 오류' : s.chk || '아직' });
     P.box('r1', 16, 230, 320, 34, { cls: s.comp === '?' ? 'ghost' : s.comp === '오류' ? 'bad' : 'good', title: '컴파일', right: s.comp });
     P.box('r2', 344, 230, 320, 34, { cls: s.end === '정상 종료' ? 'good' : s.end === '?' ? 'ghost' : 'bad', title: '프로그램', right: s.end });
-    P.note('<Integer> 같은 표시는 변수 쪽(컴파일러가 보는 쪽)에만 있습니다. 실행 중의 리스트 객체에는 그런 표시가 없어서, 넣을 때 스스로 걸러 내지 못합니다. 그래서 잘못된 타입을 막는 일은 컴파일러가 변수의 선언을 보고 합니다.');
+    P.note('<Integer> 같은 표시는 변수 쪽(컴파일러가 보는 쪽)에만 있습니다. 실행 중의 리스트 객체에는 그런 표시가 없어서, 넣을 때 스스로 걸러 내지 못합니다.');
   },
   assume: '스무 가지 조합 모두를 이 PC의 JDK 21에서 화면의 코드를 main 메서드 안에 넣은 소스로 실제로 컴파일하고(javac -Xlint:unchecked), 컴파일된 것은 실행해서 컴파일 여부, 오류가 난 줄과 메시지, 경고 메시지, 출력, 예외의 종류와 예외가 난 줄을 대조했습니다. 컴파일러 메시지는 명령줄 javac가 보여 주는 모양(클래스 이름만, 정체 모를 타입은 CAP#1)으로 적었습니다. 화면의 코드에는 import java.util.ArrayList, import java.util.List와 main 메서드의 선언이 생략되어 있습니다. -Xlint:unchecked 없이 컴파일하면 경고의 자세한 내용 대신 "uses unchecked or unsafe operations"라는 안내만 나옵니다. ? extends로 선언한 리스트에도 null은 넣을 수 있지만 모형에서는 다루지 않았습니다. 타입 소거가 일어나도 필드나 메서드의 선언에 적힌 제네릭 정보는 class 파일에 남아 리플렉션으로 읽을 수 있습니다. 지워지는 것은 실행 중인 객체가 가진 정보입니다.',
 });

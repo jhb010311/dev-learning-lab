@@ -1,7 +1,7 @@
 Lab.register({
   id: 'ioc', nav: '스프링 컨테이너와 빈', cat: '스프링', mode: 'step',
   title: 'new를 쓰지 않았는데 객체는 누가 만들어 넣어 주나',
-  intro: '주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다. 등록한 빈이 하나일 때, 둘일 때, 없을 때 컨테이너가 어떻게 하는지 보세요.',
+  intro: '주문 서비스가 할인 정책 객체를 쓰려면 누군가 그 객체를 만들어야 합니다. 직접 new로 만들면 어떤 구현을 쓸지가 주문 서비스의 코드에 박힙니다. 스프링에서는 컨테이너가 객체(빈)를 만들고, 필요한 곳에 골라서 넣어 줍니다.',
   terms: ['IoC(제어의 역전)', '스프링 빈(Bean)', '@Configuration과 @Bean', '@Primary와 @Qualifier', 'NoSuchBeanDefinitionException과 NoUniqueBeanDefinitionException'],
   controls: [
     { id: 'how', label: '할인 정책 객체를 만드는 쪽', type: 'select', value: 'comp', options: [['new', 'OrderService가 직접 new로 만든다'], ['comp', '컨테이너가 만든다 (@Component로 등록)'], ['bean', '컨테이너가 만든다 (@Bean 메서드로 등록)']] },
@@ -74,9 +74,8 @@ Lab.register({
       st.off = f.off + '원'; st.result = '정상 실행';
       push('orderService.order(20000): ' + f.cls + '의 discount가 ' + f.off + '원을 돌려주어, 낼 돈은 ' + (20000 - f.off) + '원입니다.', '');
       push('구현을 ' + f.other + '로 바꾸려면: OrderService.java를 열어 new 뒤의 클래스 이름을 고쳐야 합니다. 할인 정책을 쓰는 클래스가 여럿이면 그 클래스를 모두 고쳐야 합니다.', 'bad');
-      sum.push('정상 실행. OrderService가 ' + f.cls + ' 객체를 직접 만들어 씁니다. 20000원 주문의 할인은 ' + f.off + '원입니다.');
       sum.push('객체를 만드는 코드와 구현을 고르는 코드가 모두 OrderService 안에 있습니다. OrderService는 DiscountPolicy라는 인터페이스 타입으로 필드를 선언했지만, new 뒤에 구현 클래스 이름을 적는 순간 그 구현에 묶입니다.');
-      sum.push('구현을 바꿀 때마다 그것을 쓰는 클래스를 고쳐야 합니다. "컨테이너가 만든다"로 바꿔서, 같은 변경에 어느 파일이 달라지는지 비교해 보세요.');
+      sum.push('구현을 바꿀 때마다 그것을 쓰는 클래스를 고쳐야 합니다.');
       row = ['정상 실행 (컨테이너 없음)', f.cls + ' (' + f.off + '원 할인)', 'OrderService의 new', 'OrderService'];
     } else {
       var names = ['orderService'].concat(f.regFixed ? ['fixedDiscountPolicy'] : [], f.regRate ? ['rateDiscountPolicy'] : []), n = names.length - 1;
@@ -90,13 +89,11 @@ Lab.register({
       if (n === 0) {
         fail = 'NoSuchBeanDefinitionException'; st.svc = '실패'; st.result = '기동 실패';
         push('넣어 줄 빈이 하나도 없습니다. 컨테이너는 생성자를 호출할 수 없어 NoSuchBeanDefinitionException을 던지고, 애플리케이션 기동이 실패합니다. 구현 클래스가 소스에 있어도 빈으로 등록하지 않았다면 컨테이너에는 없는 것입니다.', 'bad');
-        sum.push('기동 실패: NoSuchBeanDefinitionException. DiscountPolicy 타입의 빈이 하나도 없어 OrderService를 만들 수 없습니다.');
         sum.push('필요한 빈이 없으면 주문이 들어왔을 때가 아니라 애플리케이션이 뜨는 시점에 바로 실패합니다. 빠진 등록을 일찍 알 수 있습니다.');
         sum.push(f.comp ? '구현 클래스에 @Component를 붙이면 컨테이너가 찾아 등록합니다.' : 'AppConfig에 @Bean 메서드를 추가하면 그 메서드가 돌려준 객체가 빈으로 등록됩니다.');
       } else if (c.reg === 'two') {
         fail = 'NoUniqueBeanDefinitionException'; st.svc = '실패'; st.result = '기동 실패';
         push('후보가 둘인데 어느 쪽을 넣을지 정할 근거가 없습니다. 컨테이너는 임의로 하나를 고르지 않고 NoUniqueBeanDefinitionException을 던집니다. 애플리케이션 기동이 실패합니다.', 'bad');
-        sum.push('기동 실패: NoUniqueBeanDefinitionException. DiscountPolicy 타입의 빈이 fixedDiscountPolicy와 rateDiscountPolicy 둘이라서 컨테이너가 고르지 못했습니다.');
         sum.push('컨테이너는 타입으로 빈을 찾습니다. 같은 타입의 빈이 둘 이상이면 무엇을 넣을지 알려 줘야 합니다. 먼저 쓸 빈에 @Primary를 붙이거나, 주입받는 곳에 @Qualifier로 빈 이름을 적습니다.');
         sum.push('구현 클래스를 하나 더 만들어 등록하기만 해도 이 오류가 납니다. 기존 코드를 고치지 않았는데 기동이 실패했다면 같은 타입의 빈이 늘지 않았는지 확인합니다.');
       } else {
@@ -112,7 +109,6 @@ Lab.register({
         push('orderService.order(20000): 주입받은 ' + f.cls + '의 discount가 ' + f.off + '원을 돌려주어, 낼 돈은 ' + (20000 - f.off) + '원입니다.', 'good');
         var where = c.reg === 'qualifier' ? 'OrderService' : f.comp ? 'FixedDiscountPolicy, RateDiscountPolicy' : 'AppConfig';
         push('구현을 ' + f.other + '로 바꾸려면: ' + (c.reg === 'qualifier' ? 'OrderService의 @Qualifier에 적은 빈 이름을 바꿉니다. 주입받는 쪽 파일을 고치게 됩니다.' : c.reg === 'primary' ? (f.comp ? '@Primary를 ' + f.other + ' 클래스로 옮깁니다.' : 'AppConfig에서 @Primary를 다른 @Bean 메서드로 옮깁니다.') + ' OrderService는 고치지 않습니다.' : (f.comp ? '@Component를 ' + f.other + ' 클래스로 옮깁니다.' : 'AppConfig의 @Bean 메서드를 ' + f.other + '를 돌려주는 것으로 바꿉니다.') + ' OrderService는 고치지 않습니다.'), c.reg === 'qualifier' ? '' : 'good');
-        sum.push('기동 성공. 컨테이너가 ' + f.cls + ' 빈을 OrderService에 넣어 주었습니다. 20000원 주문의 할인은 ' + f.off + '원입니다.');
         if (c.reg === 'one') sum.push('OrderService는 "DiscountPolicy가 필요하다"고 생성자에 적기만 합니다. 객체를 만들고, 어느 구현을 넣을지 정하는 일은 컨테이너가 합니다. 그래서 구현을 바꿔도 OrderService는 그대로입니다.');
         if (c.reg === 'primary') sum.push('@Primary는 등록하는 쪽에 붙이는 표시입니다. 주입받는 클래스가 몇 개든 한 곳만 바꾸면 모두 바뀝니다. 고르지 않은 구현도 빈이므로 객체는 만들어집니다.');
         if (c.reg === 'qualifier') sum.push('@Qualifier는 주입받는 쪽에서 빈 이름을 지정합니다. 주입받는 곳마다 다른 구현을 고를 수 있는 대신, 구현을 바꿀 때 그 클래스를 고쳐야 합니다. 기본으로 쓸 구현은 @Primary로 정하고, 다른 구현이 필요한 곳에만 @Qualifier를 붙일 수도 있습니다.');
@@ -131,9 +127,6 @@ Lab.register({
       var b = s.beans[k], st = { v: word[b.s], cls: b.s === 'in' ? 'good' : b.s === 'cand' ? 'hot' : '' };
       return { cls: b.s === 'none' ? 'gone' : '', cells: isNew ? [b.cls, st] : [b.cls + (b.mark ? ' (@Primary)' : ''), b.reg ? b.name : '-', st] };
     }), isNew ? 'DiscountPolicy의 구현 (컨테이너 없음)' : '스프링 컨테이너가 아는 DiscountPolicy 구현 (' + sim.regWord + '로 등록)');
-    var ln = H.lanes(v);
-    H.lane(ln, 'OrderService', s.svc + (s.pick ? ' · 쓰는 구현: ' + s.pick : ''), s.svc === '완성' ? 'good' : s.svc === '실패' ? 'bad' : s.svc === '만드는 중' ? 'hot' : 'none');
-    H.counters(v, [[s.result || '진행 중', '결과'], [s.off || '-', '20000원 주문의 할인']]);
   },
   // 그림: 왼쪽에 OrderService, 오른쪽에 할인 정책의 두 구현. 컨테이너가 후보를 찾고(점선) 고른 것을 넣어 준다(초록 실선). 직접 new일 때는 OrderService에서 구현으로 화살표가 나간다.
   draw: function (P, sim, shown) {
@@ -152,7 +145,7 @@ Lab.register({
     });
     P.box('r1', 16, 258, 320, 40, { cls: !s.result ? 'ghost' : s.result === '기동 실패' ? 'bad' : 'good', title: '결과', right: s.result ? (sim.fail ? sim.fail : s.result) : '진행 중' });
     P.box('r2', 344, 258, 320, 40, { cls: s.off ? 'good' : 'ghost', title: '20000원 주문의 할인', right: s.off || '-' });
-    P.note(isNew ? '화살표는 "OrderService가 이 객체를 직접 만들었다"는 뜻입니다. 어떤 구현을 쓸지가 OrderService의 코드에 적혀 있어, 구현을 바꾸려면 OrderService를 고쳐야 합니다.' : '점선은 컨테이너가 찾은 후보, 초록 실선은 컨테이너가 골라서 OrderService에 넣어 준 빈입니다. 흐린 상자는 빈으로 등록되지 않아 컨테이너가 모르는 클래스입니다.');
+    P.note(isNew ? '화살표는 "OrderService가 이 객체를 직접 만들었다"는 뜻입니다.' : '점선은 컨테이너가 찾은 후보, 초록 실선은 컨테이너가 골라서 OrderService에 넣어 준 빈입니다. 흐린 상자는 빈으로 등록되지 않아 컨테이너가 모르는 클래스입니다.');
   },
   assume: '서른 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해, 직접 new로 만드는 경우는 그대로 실행하고 컨테이너를 쓰는 경우는 컴포넌트 스캔으로 띄운 뒤, 기동 성공 여부와 예외 이름, OrderService에 들어간 구현, 할인 금액, 구현 객체의 생성자를 부른 쪽(호출 스택으로 확인), 만들어진 구현 객체의 수를 비교했습니다. "구현을 바꿀 때 고치는 파일"은 쓰려는 구현만 바꾼 두 소스에서 내용이 달라진 파일을 대조 프로그램이 직접 비교한 것입니다. 기동 실패에서 맨 안쪽 원인 예외의 이름을 적었으며, 바깥에는 UnsatisfiedDependencyException이 감싸고 있습니다. 화면에서 단순화한 것: 컨테이너가 빈 객체를 만드는 순서는 등록 순서에 따라 달라지므로 단정하지 않았습니다(순서는 "빈 생성과 주입" 실습에서 다룹니다). 두 구현을 모두 등록하고 고르는 표시가 없어도 생성자 파라미터의 이름이 빈 이름과 같으면(예: rateDiscountPolicy) 그 빈이 들어가 기동에 성공하는 것도 실행으로 확인했습니다. 이 실습의 파라미터 이름은 discountPolicy라서 어느 빈 이름과도 같지 않습니다. 필드 주입과 세터 주입, 같은 타입의 빈을 List로 모두 받는 방법은 다루지 않았습니다.',
 });

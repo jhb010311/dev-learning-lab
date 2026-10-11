@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Collections</p>
 <h1>Sorting and Comparator</h1>
 <p><b>Who decides the sort order, and why is comparing by subtraction wrong?</b></p>
-<p>Sorting means asking &quot;which of these two comes first?&quot; over and over. The class can define the answer itself (Comparable), or the answer can be supplied from outside at the time of sorting (Comparator). Change the sort order to see how the result changes, and see why the common code that compares two numbers by subtracting them produces a wrong order for large numbers.</p>
+<p>Sorting means asking &quot;which of these two comes first?&quot; over and over. The class can define the answer itself (Comparable), or the answer can be supplied from outside at the time of sorting (Comparator).</p>
 <p>Checked against real execution · Checked by running 16 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The sorted result is park, kim, choi, lee, han.</li>
 <li>Comparing by subtraction flips the sign when the difference of the two numbers is outside the int range (about -2.1 billion to 2.1 billion). No exception is thrown, and a wrong order comes out silently. Integer.compare(a, b) and Comparator.comparingInt compare the two numbers without subtracting, so they are safe.</li>
 </ul>
 <h2>Code</h2>
@@ -174,6 +173,6 @@ System.out.println(list);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Lambdas and streams</p>
 <h1>Lambda expressions and functional interfaces</h1>
 <p><b>When does the code in a lambda expression run?</b></p>
-<p>A lambda expression is syntax that lets you store &quot;an action to run later&quot; in a variable like a value and pass it to another method. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it. Write the same action as an anonymous class, a lambda expression, and a method reference, and change how many times the receiving method calls it to see when and how many times the body runs.</p>
+<p>A lambda expression is syntax that lets you store &quot;an action to run later&quot; in a variable like a value and pass it to another method. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it.</p>
 <p>Checked against real execution · Checked by running 36 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,10 +66,9 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The body ran 2 times. The lines were printed in this order: after creation → run starts → body runs: length(hello) → result 5 → body runs: length(hi) → result 2 → run ends.</li>
 <li>Nothing ran on the line that creates the action. The body ran each time the apply method was called inside run. The code inside a lambda expression runs when it is called, not when it is created.</li>
 <li>Function&lt;T, R&gt; is an action that takes one value of type T and returns a value of type R, and it is called with apply. It is used to turn a value into another value (conversion).</li>
-<li>The result is the same whether you write the action as an anonymous class, a lambda expression, or a method reference. Change the setting and check that only the code changes.</li>
+<li>The result is the same whether you write the action as an anonymous class, a lambda expression, or a method reference.</li>
 </ul>
 <h2>Code</h2>
 <pre>class Demo {
@@ -176,6 +175,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

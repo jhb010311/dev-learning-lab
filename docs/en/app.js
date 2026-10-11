@@ -1744,7 +1744,7 @@ Lab.register({
 Lab.register({
   id: 'classload', nav: 'Class loading and initialization', cat: 'JVM', mode: 'step',
   title: 'When does the static initializer of a class run?',
-  intro: 'A static initializer written in a class does not run when the program starts. It runs once, when the class is first "really" used. But not every appearance of the class name in the code counts as that kind of use. Do the same thing twice in a row and check when the static initializer runs and how many times.',
+  intro: 'A static initializer written in a class does not run when the program starts. It runs once, when the class is first "really" used. But not every appearance of the class name in the code counts as that kind of use.',
   terms: ['Class loader', 'Class initialization', 'Static initializer', 'Compile-time constant', 'static'],
   controls: [
     { id: 'cls', label: 'Class to use', type: 'select', value: 'parent', options: [['parent', 'Parent (the superclass)'], ['child', 'Child (a subclass that extends Parent)']] },
@@ -1821,7 +1821,6 @@ Lab.register({
     print('second use done'); st.stmt = 'println("second use done");'; st.eff = 'Done'; st.to = '';
     push('System.out.println("second use done"): The program ends. Number of times the static initializers ran: Parent ' + st.pn + ', Child ' + st.cn + '.');
     var word = function (n) { return n ? 'Ran once' : 'Did not run'; };
-    sum.push('With the same thing done twice, the number of times the static initializers ran is: Parent ' + st.pn + ', Child ' + st.cn + '. Classes loaded: ' + (f.loads.length ? f.loads.join(', ') : 'none') + '.');
     if (U === 'const') sum.push('A field that is static final and whose value is fixed at compile time, as with a number or string literal, is a "compile-time constant". The compiler puts the value directly into the code that uses the constant, so the class is not used at run time. This is why, if you change only the constant and recompile only that class, the old value stays in the code that uses it.');
     if (U === 'finalrt') sum.push('Not every static final field is a constant. A field whose value comes from a method call gets its value at run time, so the class must be initialized before the field can be read.');
     if (U === 'array' || U === 'classlit') sum.push('Loading a class and initializing it are different stages. Creating an array or using .class needs only the information about the class, so the class is only loaded and its static initializer does not run.');
@@ -1839,11 +1838,6 @@ Lab.register({
       { cls: s.P === 'none' ? 'gone' : '', cells: ['Parent', { v: word[s.P], cls: cl[s.P] }, s.pn + ''] },
       { cls: s.C === 'none' ? 'gone' : '', cells: ['Child', { v: word[s.C], cls: cl[s.C] }, s.cn + ''] },
     ], 'Classes the JVM has prepared');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Line that just ran', s.stmt, 'hot');
-    H.lane(ln, 'What happened', s.eff, s.eff.indexOf('not trigger') >= 0 || s.eff.indexOf('directly') >= 0 ? 'wait' : 'none');
-    H.title(v, 'Lines printed');
-    H.slots(v, s.out.map(function (x) { return [x, x.indexOf('init') >= 0 ? 'd' : 'q']; }), 'None yet');
   },
   // Diagram: on the left, the line of main that just ran; on the right, the state of the two classes the JVM has prepared (not loaded, loaded, initialized); at the bottom, the lines printed.
   draw: function (P, sim, shown) {
@@ -1862,7 +1856,7 @@ Lab.register({
       var k = s.out.indexOf(x);
       if (k >= 0) P.box('o_' + i, 16 + k * 131, 224, 124, 34, { cls: x.indexOf('init') >= 0 ? 'good' : 'plain', title: x, center: true });
     });
-    P.note('A class goes through two separate stages: loading and initialization. The static initializer runs only once, in the initialization stage. The bold outline marks the class that the line that just ran uses.');
+    P.note('The bold outline marks the class that the line that just ran uses.');
   },
   assume: 'For each of the 18 combinations, source code identical to the code on the screen was newly compiled and run on JDK 21 on this PC, and the order of the printed lines and the classes that were loaded were checked against the model. The point at which each class was loaded was checked against the JVM log obtained with the -Xlog:class+load option. When initialization happens is defined by the Java Language Specification, so it is the same on every JVM. When a class is loaded, in contrast, is left to the JVM implementation, so "a class is loaded when it is first used" and "a class is not even loaded when only a constant is read" are behaviors confirmed on the JVM of this PC (HotSpot). That reading the constant is compiled into the value 10 was confirmed by looking at the bytecode with javap. The detailed steps that a class goes through after loading and before initialization, such as verification and preparation, and the initialization rules for Class.forName and for interfaces are not covered.',
 });
@@ -1951,24 +1945,19 @@ Lab.register({
       if (!rest) push('One character at a time with in.read(): InputStreamReader groups the bytes according to the rules of UTF-8 and converts them to characters. The bytes are grouped three at a time, and the three characters "가", "나", and "다" come out intact.', 'good');
       else push('One character at a time with in.read(): InputStreamReader groups the bytes according to the rules of UTF-8 and converts them to characters. "가" and "나" have all 3 of their bytes, so they come out intact. The remaining ' + rest + ' bytes (' + HEX.slice(full * 3, st.file).join(' ') + ') are only the first part of "다", so they do not make up a character and come out as one garbled character (�).', 'bad');
     }
-    sum.push('write was called 9 times, and the number of writes that reached the underlying stream is ' + st.calls + '. Of the 9 bytes, ' + st.file + ' were written to the file, and the stream ' + (st.closed ? 'was closed.' : 'was left open.'));
     if (!cap) sum.push('With no buffer, one call to write is one call to the underlying stream. The data goes into the file right away, but the program requests a file write for every byte, so it gets slower as the amount of data grows.');
     else if (st.file < 9) sum.push('BufferedOutputStream collects data in a buffer in memory and writes it out all at once. The data is written out only when the buffer becomes full or when flush or close is called. So if the stream is not closed, the data left in the buffer at the end is not written to the file.');
     else sum.push(c.buf === 'buf' ? 'The 9 calls to write were reduced to 1 write to the underlying stream. The buffer of a BufferedOutputStream created without a size was 8192 bytes on JDK 21 on this PC, and until that much data has collected, the data is written out only when flush or close is called.' : 'The buffer is 4 bytes, so 4 bytes were written out each time it filled up, and the last 1 byte was written out when flush or close was called.');
     if (fail && E === 'twr') sum.push('try-with-resources calls close even when an exception is thrown. If you write the closing code yourself, it is skipped when an exception is thrown before it, so it is safer to open a resource that must be closed, such as a stream, with try-with-resources.');
-    if (fail && (E === 'close' || E === 'flush')) sum.push('If you write the closing code yourself on the last line, it does not run when an exception is thrown before it. Change "What to do after all the writes" to try-with-resources and compare.');
+    if (fail && (E === 'close' || E === 'flush')) sum.push('If you write the closing code yourself on the last line, it does not run when an exception is thrown before it.');
     if (!fail && E === 'flush') sum.push('flush only empties the buffer and does not close the stream. An open stream keeps holding the file, so close a stream with close when you have finished writing. close also empties the buffer before it closes the stream.');
     if (st.file && c.read === 'byte') sum.push('Text in which one character takes several bytes, such as Korean, is garbled when each byte is converted to one character. To read characters, use a character stream such as InputStreamReader and tell it the encoding (UTF-8). The English letters abc take 1 byte per character in UTF-8 and look the same even when read this way, so you miss this problem if you test only with English text.');
     if (st.file && c.read === 'char' && !rest) sum.push('A character stream sits on top of a byte stream, uses the rules of the encoding to decide how many bytes make up one character, and returns the data one character at a time.');
     return { events: ev, summary: sum, lens: st.lens, codes: codes, closed: st.closed, row: [st.calls + '', st.file + ' / 9 bytes', st.closed ? 'Closed' : 'Left open', rowRead] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    var HEX = ['EA', 'B0', '80', 'EB', '82', '98', 'EB', '8B', 'A4'];
-    H.counters(v, [[s.calls + '', 'Writes to the underlying stream'], [c.buf === 'raw' ? 'None' : s.pend + '', 'Bytes left in the buffer'], [s.file + ' / 9', 'Bytes written to the file']]);
-    H.title(v, 'Where the written bytes are now (yellow: buffer, green: file)');
-    H.slots(v, HEX.filter(function (h, i) { return s.where[i]; }).map(function (h, i) { return [h, s.where[i] === 2 ? 'd' : 'b']; }), 'No bytes written yet');
     var ln = H.lanes(v);
     H.lane(ln, 'Stream', s.closed ? 'Closed' : 'Open', s.closed ? 'good' : 'wait');
     H.lane(ln, 'Exception', s.ex ? 'IllegalStateException thrown' : 'None', s.ex ? 'bad' : 'none');
@@ -1991,7 +1980,7 @@ Lab.register({
     P.box('r2', 344, 202, 320, 36, { cls: s.closed ? 'good' : s.open ? 'wait' : 'ghost', title: 'Stream', right: s.closed ? 'closed' : s.open ? 'open' : 'not opened yet' });
     P.box('r3', 16, 248, 648, 36, { cls: s.read ? s.readOk : 'ghost', title: 'Result of reading the file back', right: s.read || 'not read yet' });
     P.box('r4', 16, 294, 648, 30, { cls: s.ex ? 'bad' : 'ghost', title: 'Exception', right: s.ex ? 'IllegalStateException (error during handling)' : 'none' });
-    P.note('Each box in the middle row is 1 byte. A yellow box is a byte that is only in the buffer in memory, and a green box is a byte that has reached the file. A byte in the buffer reaches the file only when the buffer becomes full or when flush or close is called.');
+    P.note('Each box in the middle row is 1 byte. A yellow box is a byte that is only in the buffer in memory, and a green box is a byte that has reached the file.');
   },
   assume: 'The results of the 48 combinations (the number of writes that reached the underlying stream and the number of bytes in each one, the file size, whether the stream was closed, and the characters read back) were checked against the results of running the code on JDK 21 on this PC. The following were also confirmed by separate runs on the same PC: a BufferedOutputStream created without a size writes its data out after it has collected 8192 bytes, the data left in the buffer is not written to the file even when the program ends normally without closing the stream, and the English letters abc stay the same even when each byte is converted to a character. 8192 is the value seen on this JDK and is not a figure that the Java documentation fixes. "File" in the diagram means the point up to which the program has handed the write over to the operating system. The operating system has buffers of its own, so the data may actually be recorded on the disk later than that, and this is not covered. In the result of reading byte by byte, a character that cannot be shown on the screen is displayed as □. The difference in speed with and without a buffer was not measured. Character streams on the writing side (Writer) and write(byte[]), which writes a large chunk at once, are not covered.',
 });
@@ -2064,7 +2053,6 @@ Lab.register({
         push('in.readObject(): This compares the serialVersionUID recorded in the file with the serialVersionUID of the current User class. ' + (auto ? 'The value computed at the time of saving and the value computed from the current class, which has the added field, are different.' : 'The file has 1, and the current class has 2.') + ' It treats the two as versions of the class that do not match and throws an InvalidClassException. The object is not restored.', 'bad');
       }
     }
-    sum.push('Saving ' + (st.save === 'Succeeded' ? 'succeeded' : 'failed with ' + st.save) + '. Restoring ' + (st.load === 'Succeeded' ? 'succeeded, and the value of point that was read is ' + st.val.split(' ')[0] + '.' : st.load === 'Not attempted' ? 'was not attempted.' : 'failed with ' + st.load + '.') + ' The constructor ran only once, when the object was created with new.');
     if (c.cls === 'no') sum.push('The default serialization mechanism in Java saves only objects of classes that implement Serializable. Serializable has no methods to implement and serves only as a mark that says "objects of this class may be saved".');
     if (c.cls === 'field') sum.push('When an object is saved, the objects that its fields refer to are saved with it. If even one of them is not Serializable, the whole save fails. Either make Address Serializable as well or, if the field does not need to be saved, mark it transient.');
     if (st.load === 'Succeeded') {
@@ -2080,18 +2068,9 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    var fileTxt = !s.file ? 'Not written yet' : s.file === 'fail' ? 'Save failed' : 'User (serialVersionUID ' + s.file.uid + ') · name = "kim"' + (s.file.point === null ? '' : ' · point = ' + s.file.point);
-    H.table(v, ['Where', 'What is there'], [
-      { cls: s.u ? '' : 'gone', cells: ['Original object u', s.u ? 'name = "kim"' + (s.u.point === null ? '' : ', point = ' + s.u.point) + (s.u.addr ? ', address → an Address object' : '') : 'Not created yet'] },
-      { cls: s.sp === null ? 'gone' : '', cells: ['User class (static)', s.sp === null ? 'No static field' : 'point = ' + s.sp] },
-      { cls: s.file ? '' : 'gone', cells: ['File user.ser', { v: fileTxt, cls: s.file === 'fail' ? 'bad' : s.file ? 'good' : '' }] },
-      { cls: s.r ? '' : 'gone', cells: ['Restored object r', s.r ? 'name = "kim"' + (s.r.point === null ? '' : ', point = ' + s.r.point) : s.load === 'InvalidClassException' ? { v: 'Could not be restored', cls: 'bad' } : 'Not created yet'] },
-    ], 'Where the values are');
     var ln = H.lanes(v);
     H.lane(ln, 'Save', s.save, s.save === 'Succeeded' ? 'good' : s.save === '?' ? 'none' : 'bad');
-    H.lane(ln, 'Restore', s.load, s.load === 'Succeeded' ? 'good' : s.load === '?' ? 'none' : s.load === 'Not attempted' ? 'wait' : 'bad');
-    H.counters(v, [[s.ctor + '', 'Constructor runs'], [s.val, 'point read after restoring']]);
-  },
+    H.lane(ln, 'Restore', s.load, s.load === 'Succeeded' ? 'good' : s.load === '?' ? 'none' : s.load === 'Not attempted' ? 'wait' : 'bad');  },
   // Diagram: on the left, the original object (and the static value of the class); in the middle, what is saved in the file; on the right, the restored object. The arrows are saving and restoring.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { ctor: 0, u: null, sp: null, file: null, ver: c.cls === 'no' ? '' : c.chg === 'auto' ? 'computed automatically' : '1', r: null, save: '?', load: '?', val: '?', ex: '' };
@@ -2111,7 +2090,7 @@ Lab.register({
     P.box('k1', 16, 226, 320, 36, { cls: 'plain', title: 'Constructor runs', right: s.ctor + '' });
     P.box('k2', 344, 226, 320, 36, { cls: s.ver === '2' || s.ver.indexOf('changed') >= 0 ? 'hot' : 'plain', title: 'UID of User now', right: s.ver ? P.fit(s.ver, 180) : 'none' });
     P.box('k3', 16, 272, 648, 36, { cls: s.ex ? 'bad' : s.val !== '?' ? 'good' : 'ghost', title: s.ex ? 'Exception thrown' : 'point read after restoring', right: s.ex || s.val });
-    P.note('The left arrow is writeObject (save), and the right arrow is readObject (restore). What goes into the file is the values of the instance variables of the object, together with the class name and the serialVersionUID (UID in the diagram), which tell which class the object belongs to. transient fields and static fields do not go into the file.');
+    P.note('The left arrow is writeObject (save), and the right arrow is readObject (restore). What goes into the file is the values of the instance variables of the object, together with the class name and the serialVersionUID (UID in the diagram), which tell which class the object belongs to.');
   },
   assume: 'For each of the 15 combinations, source code identical to the code on the screen was compiled and run on JDK 21 on this PC, and whether saving and restoring succeeded, the exception that was thrown, the restored value, and the number of times the constructor ran were checked against the model. For the combinations that modify the class after saving, two separate copies of a User class with the same name were compiled, and a file saved with one was read with the other. The following were also confirmed by separate runs: when a field is added to a class that declares serialVersionUID, the file can be read and the new field is null, a transient field of a reference type becomes null, a static field read from a different program is 0, and the object is saved when the Address field is marked transient. The format of the bytes that are actually recorded in the file is simplified in the diagram. That the constructor does not run applies to a class that implements Serializable. The rules for the case where the superclass is not Serializable, how to define writeObject and readObject yourself, and the serialization of records are not covered. Because of security problems, the default serialization mechanism in Java is rarely used in new code, and formats such as JSON are mostly used, but you need to know these rules to understand existing code and libraries.',
 });
@@ -2119,7 +2098,7 @@ Lab.register({
 Lab.register({
   id: 'ioc', nav: 'The Spring container and beans', cat: 'Spring', mode: 'step',
   title: 'You never wrote new, so who creates the object and passes it in?',
-  intro: 'For the order service to use a discount policy object, someone has to create that object. If the order service creates it directly with new, the choice of implementation is fixed in the code of the order service. In Spring, the container creates the objects (beans), picks the right one, and injects it wherever it is needed. See what the container does when one bean is registered, when two are registered, and when none is registered.',
+  intro: 'For the order service to use a discount policy object, someone has to create that object. If the order service creates it directly with new, the choice of implementation is fixed in the code of the order service. In Spring, the container creates the objects (beans), picks the right one, and injects it wherever it is needed.',
   terms: ['Inversion of Control (IoC)', 'Spring bean', '@Configuration and @Bean', '@Primary and @Qualifier', 'NoSuchBeanDefinitionException and NoUniqueBeanDefinitionException'],
   controls: [
     { id: 'how', label: 'Who creates the discount policy object', type: 'select', value: 'comp', options: [['new', 'OrderService creates it directly with new'], ['comp', 'The container creates it (registered with @Component)'], ['bean', 'The container creates it (registered with a @Bean method)']] },
@@ -2192,9 +2171,8 @@ Lab.register({
       st.off = f.off + ' won'; st.result = 'Ran normally';
       push('orderService.order(20000): The discount method of ' + f.cls + ' returns ' + f.off + ' won, so the amount to pay is ' + (20000 - f.off) + ' won.', '');
       push('To change the implementation to ' + f.other + ': You must open OrderService.java and change the class name after new. If several classes use the discount policy, you must change every one of them.', 'bad');
-      sum.push('Ran normally. OrderService creates a ' + f.cls + ' object itself and uses it. The discount on a 20000-won order is ' + f.off + ' won.');
       sum.push('Both the code that creates the object and the code that chooses the implementation are inside OrderService. OrderService declares the field with the interface type DiscountPolicy, but the moment it names an implementation class after new, it is tied to that implementation.');
-      sum.push('Every time the implementation changes, the classes that use it must be edited. Switch to "The container creates it" and compare which file changes for the same change.');
+      sum.push('Every time the implementation changes, the classes that use it must be edited.');
       row = ['Ran normally (no container)', f.cls + ' (' + f.off + ' won off)', 'new in OrderService', 'OrderService'];
     } else {
       var names = ['orderService'].concat(f.regFixed ? ['fixedDiscountPolicy'] : [], f.regRate ? ['rateDiscountPolicy'] : []), n = names.length - 1;
@@ -2208,13 +2186,11 @@ Lab.register({
       if (n === 0) {
         fail = 'NoSuchBeanDefinitionException'; st.svc = 'failed'; st.result = 'Startup failed';
         push('There is no bean to inject. The container cannot call the constructor, so it throws a NoSuchBeanDefinitionException and the application fails to start. Even when an implementation class exists in the source, it does not exist for the container unless it is registered as a bean.', 'bad');
-        sum.push('Startup failed: NoSuchBeanDefinitionException. There is no bean of type DiscountPolicy, so OrderService cannot be created.');
         sum.push('When a required bean is missing, the failure happens right when the application starts, not when an order comes in. You find out about a missing registration early.');
         sum.push(f.comp ? 'If you put @Component on an implementation class, the container finds it and registers it.' : 'If you add a @Bean method to AppConfig, the object that the method returns is registered as a bean.');
       } else if (c.reg === 'two') {
         fail = 'NoUniqueBeanDefinitionException'; st.svc = 'failed'; st.result = 'Startup failed';
         push('There are two candidates, and nothing tells the container which one to inject. The container does not pick one arbitrarily and throws a NoUniqueBeanDefinitionException. The application fails to start.', 'bad');
-        sum.push('Startup failed: NoUniqueBeanDefinitionException. There are two beans of type DiscountPolicy, fixedDiscountPolicy and rateDiscountPolicy, so the container could not choose.');
         sum.push('The container looks up beans by type. When there are two or more beans of the same type, you must tell it which one to inject. Either put @Primary on the bean to prefer, or write the bean name with @Qualifier at the injection point.');
         sum.push('Just creating and registering one more implementation class causes this error. If startup fails although you did not change the existing code, check whether another bean of the same type has been added.');
       } else {
@@ -2230,7 +2206,6 @@ Lab.register({
         push('orderService.order(20000): The discount method of the injected ' + f.cls + ' returns ' + f.off + ' won, so the amount to pay is ' + (20000 - f.off) + ' won.', 'good');
         var where = c.reg === 'qualifier' ? 'OrderService' : f.comp ? 'FixedDiscountPolicy, RateDiscountPolicy' : 'AppConfig';
         push('To change the implementation to ' + f.other + ': ' + (c.reg === 'qualifier' ? 'Change the bean name written in the @Qualifier of OrderService. You end up editing the file that receives the injection.' : c.reg === 'primary' ? (f.comp ? 'Move @Primary to the ' + f.other + ' class.' : 'In AppConfig, move @Primary to the other @Bean method.') + ' OrderService is not edited.' : (f.comp ? 'Move @Component to the ' + f.other + ' class.' : 'Change the @Bean method of AppConfig so that it returns a ' + f.other + '.') + ' OrderService is not edited.'), c.reg === 'qualifier' ? '' : 'good');
-        sum.push('Startup succeeded. The container injected the ' + f.cls + ' bean into OrderService. The discount on a 20000-won order is ' + f.off + ' won.');
         if (c.reg === 'one') sum.push('OrderService only says "I need a DiscountPolicy" in its constructor. The container does the work of creating the object and deciding which implementation to inject. That is why OrderService stays the same even when the implementation changes.');
         if (c.reg === 'primary') sum.push('@Primary is a mark that goes on the registering side. No matter how many classes receive the injection, changing one place changes all of them. The implementation that was not chosen is also a bean, so its object is still created.');
         if (c.reg === 'qualifier') sum.push('@Qualifier specifies the bean name at the injection point. Each injection point can choose a different implementation, but in return you must edit that class when the implementation changes. You can also set the default implementation with @Primary and put @Qualifier only where a different implementation is needed.');
@@ -2249,9 +2224,6 @@ Lab.register({
       var b = s.beans[k], st = { v: word[b.s], cls: b.s === 'in' ? 'good' : b.s === 'cand' ? 'hot' : '' };
       return { cls: b.s === 'none' ? 'gone' : '', cells: isNew ? [b.cls, st] : [b.cls + (b.mark ? ' (@Primary)' : ''), b.reg ? b.name : '-', st] };
     }), isNew ? 'Implementations of DiscountPolicy (no container)' : 'DiscountPolicy implementations that the Spring container knows about (registered with ' + sim.regWord + ')');
-    var ln = H.lanes(v);
-    H.lane(ln, 'OrderService', s.svc + (s.pick ? ' · implementation in use: ' + s.pick : ''), s.svc === 'created' ? 'good' : s.svc === 'failed' ? 'bad' : s.svc === 'being created' ? 'hot' : 'none');
-    H.counters(v, [[s.result || 'In progress', 'Result'], [s.off || '-', 'Discount on a 20000-won order']]);
   },
   // Diagram: OrderService on the left and the two implementations of the discount policy on the right. The container finds the candidates (dashed lines) and injects the one it chose (solid green line). With direct new, an arrow goes from OrderService to the implementation.
   draw: function (P, sim, shown) {
@@ -2270,7 +2242,7 @@ Lab.register({
     });
     P.box('r1', 16, 258, 320, 40, { cls: !s.result ? 'ghost' : s.result === 'Startup failed' ? 'bad' : 'good', title: 'Result', right: s.result ? (sim.fail ? sim.fail : s.result) : 'In progress' });
     P.box('r2', 344, 258, 320, 40, { cls: s.off ? 'good' : 'ghost', title: 'Discount on a 20000-won order', right: s.off || '-' });
-    P.note(isNew ? 'The arrow means "OrderService created this object itself". The choice of implementation is written in the code of OrderService, so to change the implementation you must edit OrderService.' : 'A dashed line marks a candidate that the container found, and the solid green line marks the bean that the container chose and injected into OrderService. A faded box is a class that the container does not know about because it is not registered as a bean.');
+    P.note(isNew ? 'The arrow means "OrderService created this object itself".' : 'A dashed line marks a candidate that the container found, and the solid green line marks the bean that the container chose and injected into OrderService. A faded box is a class that the container does not know about because it is not registered as a bean.');
   },
   assume: 'All 30 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9) on this PC and checked against the results. For each combination, source code with the same structure as on the screen was compiled. The cases that create the object directly with new were run as they are, and the cases that use the container were started with component scanning. Then these were compared: whether startup succeeded, the name of the exception, the implementation injected into OrderService, the discount amount, who called the constructor of the implementation object (confirmed from the call stack), and the number of implementation objects created. The "File to edit to change the implementation" column is what the checking program found by directly comparing which files differ between two sources in which only the implementation to use was changed. For a startup failure, the name shown is that of the innermost cause, and an UnsatisfiedDependencyException wraps it on the outside. Simplifications on the screen: the order in which the container creates the bean objects depends on the registration order, so the lab does not state it (the "Bean creation and injection" lab covers the order). It was also confirmed by execution that, even when both implementations are registered and nothing marks which to choose, startup succeeds if the name of the constructor parameter is the same as a bean name (for example, rateDiscountPolicy), and that bean is injected. The parameter name in this lab is discountPolicy, which is not the same as either bean name. Field injection, setter injection, and receiving all beans of the same type as a List are not covered.',
 });
@@ -2278,7 +2250,7 @@ Lab.register({
 Lab.register({
   id: 'scope', nav: 'Bean scopes', cat: 'Spring', mode: 'step',
   title: 'It is a prototype bean, so why is there only one object?',
-  intro: 'A scope determines how many objects of a bean the container creates and how long they are used. Singleton means one per container, prototype means a new one every time the container is asked for the bean, and request means one per HTTP request. But when a singleton bean has a bean of another scope injected into it, something unexpected happens. Send two requests, use the shopping cart (Cart) twice in each request, and count how many objects are created.',
+  intro: 'A scope determines how many objects of a bean the container creates and how long they are used. Singleton means one per container, prototype means a new one every time the container is asked for the bean, and request means one per HTTP request. But when a singleton bean has a bean of another scope injected into it, something unexpected happens.',
   terms: ['Bean scope', 'Spring bean', 'ObjectProvider', 'Scoped proxy', 'Proxy'],
   controls: [
     { id: 'scope', label: 'Scope of the Cart bean', type: 'select', value: 'prototype', options: [['singleton', 'singleton (used when no scope is specified)'], ['prototype', 'prototype'], ['request', 'request (HTTP request)']] },
@@ -2365,7 +2337,6 @@ Lab.register({
     }
     // If we get here, startup and both requests have finished. The status box in the diagram shows st.phase (the current stage).
     var total = st.carts.length, u1 = st.used[0].map(function (n) { return '#' + n; }).join(', '), u2 = st.used[1].map(function (n) { return '#' + n; }).join(', ');
-    sum.push('Startup succeeded. Cart objects created in total over two requests (two uses per request): ' + total + '. Request 1 used Cart ' + u1 + ', and request 2 used Cart ' + u2 + '.');
     if (sc === 'singleton') {
       sum.push('A singleton bean has only one object in the container, and it is created at startup. Whether you have it injected directly, retrieve it with ObjectProvider, or go through a proxy, it is always the same object.');
       sum.push('Every bean with no scope specified is a singleton. All requests share one object, so you must not keep a value that differs per request in a field.');
@@ -2391,10 +2362,6 @@ Lab.register({
       return { cls: x.gone ? 'gone' : '', cells: [{ v: 'Cart #' + x.no, cls: s.cur === x.no ? 'hot' : '' }, x.when, x.users.length ? x.users.join(', ') + (x.gone ? ' (ended with the request)' : '') : '-'] };
     }), 'Cart objects created so far');
     if (!s.carts.length) H.text(v, s.svc === 'failed' ? 'No Cart object was created.' : 'There are no Cart objects yet.');
-    var ln = H.lanes(v);
-    H.lane(ln, 'orderService', s.svc === 'created' ? 'singleton · held in the field: ' + s.holds : s.svc, s.svc === 'created' ? 'good' : s.svc === 'failed' ? 'bad' : 'none');
-    [0, 1].forEach(function (i) { H.lane(ln, 'Request ' + (i + 1), s.used[i].length ? 'Cart used: ' + s.used[i].map(function (n) { return '#' + n; }).join(', ') : s.req === i + 1 ? 'being handled' : 'not received yet', s.req === i + 1 ? 'hot' : s.used[i].length ? 'wait' : 'none'); });
-    H.counters(v, [[s.carts.length + '', 'Cart objects created'], [s.result || s.phase, 'Status']]);
   },
   // Diagram: the two HTTP requests on the left, the singleton orderService in the middle, and the Cart objects created so far on the right. One more box appears each time an object is created.
   draw: function (P, sim, shown) {
@@ -2415,7 +2382,7 @@ Lab.register({
     if (s.req) P.arrow('call', 'rq' + s.req + ':r', 'svc:l', { label: 'cartNo()' });
     P.box('r1', 16, 294, 320, 38, { cls: s.carts.length ? 'plain' : 'ghost', title: 'Cart objects created', right: s.carts.length + '' });
     P.box('r2', 344, 294, 320, 38, { cls: s.result ? 'bad' : s.phase ? 'plain' : 'ghost', title: 'Status', right: s.result === 'Startup failed' ? 'ScopeNotActiveException' : s.result || s.phase || 'Not started' });
-    P.note(g === 'inject' ? 'The green arrow points to the object that the field of OrderService holds. Injection happens only once, when OrderService is created, so this arrow does not change after startup.' : g === 'provider' ? 'The yellow arrow points to the object that getObject() returned this time. Depending on the scope, it returns the same object or creates a new one.' : 'The yellow arrow points to the real object to which the proxy passed this method call. The field of OrderService holds only the proxy.');
+    P.note(g === 'inject' ? 'The green arrow points to the object that the field of OrderService holds.' : g === 'provider' ? 'The yellow arrow points to the object that getObject() returned this time.' : 'The yellow arrow points to the real object to which the proxy passed this method call.');
   },
   assume: 'All 9 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9, embedded Tomcat 11) on this PC and checked against the results. For each combination, source code with the same structure as on the screen was compiled, the server was started, and two real GET /order requests were sent to read the Cart numbers in the responses. These were compared: the number of times the constructor of Cart was called (right after startup and after the two requests), what the field of OrderService holds (a Cart, an ObjectProvider, or a proxy), and the exception chain of the startup failure (UnsatisfiedDependencyException → UnsatisfiedDependencyException → ScopeNotActiveException → IllegalStateException). The second request was sent after the first one had finished (the "Singleton beans and state" lab covers requests sent at the same time). The following were also confirmed by execution: when two singleton beans have a prototype bean injected, they receive different objects; when a proxy is used with a prototype bean, a value stored with add is not visible in the size call right after it (the result is 0); a bean annotated with @RequestScope starts up even when it is injected directly and has one object per request; and the @PreDestroy method of a request-scoped bean is called each time a request ends. Not covered: the session scope and the application scope, other ways to retrieve a prototype bean (@Lookup, jakarta.inject.Provider), and the proxy mode that uses interfaces (ScopedProxyMode.INTERFACES). The Cart on the screen uses a static variable to count the objects, but real code that receives requests at the same time must not count this way.',
 });
@@ -2423,7 +2390,7 @@ Lab.register({
 Lab.register({
   id: 'lifecycle', nav: 'Bean lifecycle callbacks', cat: 'Spring', mode: 'step',
   title: 'Why is an injected field null when you use it in the constructor?',
-  intro: 'The container handles a bean in a fixed order. It creates the object with the constructor, injects the dependencies, calls the initialization callbacks, lets the bean be used, and calls the destruction callbacks when the container is closed. With a PriceCache bean that reads a price list in advance, see where setup work belongs and in what order the callbacks are called.',
+  intro: 'The container handles a bean in a fixed order. It creates the object with the constructor, injects the dependencies, calls the initialization callbacks, lets the bean be used, and calls the destruction callbacks when the container is closed.',
   terms: ['Bean lifecycle', '@PostConstruct and @PreDestroy', 'InitializingBean and DisposableBean', 'Constructor injection, setter injection, and field injection', '@Configuration and @Bean'],
   controls: [
     { id: 'inj', label: 'How PriceCache receives PriceRepository', type: 'select', value: 'field', options: [['field', 'Field injection (@Autowired)'], ['ctor', 'Constructor injection']] },
@@ -2513,7 +2480,6 @@ Lab.register({
       done = create();
       if (!done) {
         st.result = 'Startup failed'; st.phase = 'Startup failed';
-        sum.push('Startup failed: NullPointerException. At the time the constructor is called, the @Autowired field has not been set yet.');
       } else {
         st.cur = ''; st.phase = 'Startup complete'; mark('STARTED', 'Startup complete');
         push('Startup has finished. The PriceCache bean is in the container, fully initialized.', '');
@@ -2548,7 +2514,6 @@ Lab.register({
     var initCol = !k.inits.length || !done ? 'No callback' : k.inits.map(function (x) { return x[1]; }).join(' → ');
     var destCol = !k.dests.length || !done ? 'No callback' : proto ? 'Not called' : k.dests.map(function (x) { return x[1]; }).join(' → ');
     if (done) {
-      sum.push('Success. The order of the calls is constructor → ' + (field ? 'dependency injection → ' : '') + (k.inits.length ? k.inits.map(function (x) { return x[1]; }).join(' → ') + ' → ' : '') + 'use' + (destCol !== 'No callback' && !proto ? ' → ' + destCol : '') + '.' + (proto && k.dests.length ? ' The destruction callback was not called.' : ''));
       if (field) sum.push('With field injection, the object is created first and the field is set afterward. So inside the constructor, a field that is to be injected is null. Put setup work that uses an injected dependency in an initialization callback, not in the constructor.');
       else sum.push('With constructor injection, the dependency can be used right away inside the constructor.' + (inCtor ? ' These settings define no destruction callback, so nothing is called when the container is closed.' : ' The initialization callback is called after the constructor.'));
       if (c.cb === 'anno') sum.push('@PostConstruct and @PreDestroy only need to be put on a method. You do not have to implement an interface of Spring, and this is the approach that the official Spring documentation recommends.');
@@ -2566,14 +2531,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to start the container, use the bean once, and then close the container.'); return; }
-    var names = [['ctor', '1. Constructor'], ['inject', '2. Dependency injection'], ['init', '3. Initialization callback'], ['use', '4. Use'], ['destroy', '5. Destruction callback']];
-    H.table(v, ['Stage', 'What happened'], names.map(function (n) {
-      var x = s.stage[n[0]];
-      return { cells: [{ v: n[1], cls: s.cur === n[0] ? 'hot' : '' }, { v: x || 'Not yet', cls: s.bad === n[0] ? 'bad' : x && x !== 'No callback' ? 'good' : '' }] };
-    }), 'Lifecycle of the PriceCache bean');
     H.title(v, 'Order of the calls');
     H.slots(v, s.log.map(function (w, i) { return [w, w === 'Startup complete' || w === 'Container starts closing' ? 'q' : i === s.log.length - 1 ? 'b' : 'd']; }), 'None yet');
-    H.counters(v, [[s.repo || '-', 'repository field'], [s.prices || 'none', 'Price list (prices)'], [s.result || s.phase, 'State']]);
   },
   // Diagram: The five stages of the lifecycle run from top to bottom on the left, and the PriceRepository bean and the PriceCache object inside the container are on the right. The current stage is marked with a thick border.
   draw: function (P, sim, shown) {
@@ -2591,7 +2550,7 @@ Lab.register({
     if (s.obj && s.repo === 'injected') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'good', label: 'injected' });
     if (s.obj && s.repo === 'null') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'dash mut', label: 'not injected yet' });
     P.box('r1', 16, 292, 648, 36, { cls: !s.result ? 'ghost' : s.result === 'Success' ? 'good' : 'bad', title: 'State', right: s.result ? (s.result === 'Success' ? 'Success' : s.result + ': NullPointerException') : s.phase || 'Not started' });
-    P.note('The container handles one bean in order from top to bottom. With field injection, there is an interval between stages 1 and 2 in which repository is null. For a prototype bean, the container is responsible only up to stage 4, and stage 5 is not called.');
+    P.note('The container handles one bean in order from top to bottom.');
   },
   assume: 'All 20 combinations were run on Spring Boot 4.1.1 (Spring Framework 7.0.9, jakarta.annotation-api 3.0.0) on this PC and checked against the results. For each combination, source code with the same structure as on the screen was compiled, the container was started, the bean was retrieved and price("apple") was called once, and the container was closed. Along the way, the order in which the constructor and each callback were called, and whether the repository field was null at that moment, were recorded and compared one by one with the order in the model. The exception chain of the startup failure was BeanCreationException → BeanInstantiationException → NullPointerException, and the screen shows the innermost cause. Simplifications on the screen: the "dependency injection" stage cannot be recorded separately, so the fact that the field was null in the constructor and set in the initialization callback was taken as confirmation that injection happened in between. Setter injection, and the destruction order among several beans when the container is closed, are not covered. It was also confirmed by execution that, even when destroyMethod is not written in @Bean, a public close() method is called when the container is closed (and is not called for a prototype bean). Two things were not confirmed by execution and follow the official Spring documentation: that @PostConstruct and @PreDestroy are the recommended approach, and that when the process is forcibly terminated, the container cannot close and the destruction callbacks are not called.',
 });
@@ -2599,7 +2558,7 @@ Lab.register({
 Lab.register({
   id: 'aop', nav: 'AOP: advice and pointcuts', cat: 'Spring', mode: 'step',
   title: 'Which methods does advice apply to, and in what order does it run?',
-  intro: 'When work that many methods need in the same way, such as logging, is written in one class (an aspect), Spring adds that code before and after the method calls. The code that is added is called advice, and the expression that selects which methods it is added to is called a pointcut. Change the pointcut, the method that is called, the outcome of the method, and the number of aspects to see what runs and in what order.',
+  intro: 'When work that many methods need in the same way, such as logging, is written in one class (an aspect), Spring adds that code before and after the method calls. The code that is added is called advice, and the expression that selects which methods it is added to is called a pointcut.',
   terms: ['Aspect-oriented programming (AOP)', 'Advice', 'Pointcut', 'Aspect and @Order', 'Proxy'],
   controls: [
     { id: 'pc', label: 'Pointcut (the expression that selects which methods the advice applies to)', type: 'select', value: 'cls', options: [['cls', 'execution(* shop.OrderService.*(..))'], ['arg', 'execution(* shop.*.*(String))'], ['noarg', 'execution(* shop.OrderService.cancel())'], ['ann', '@annotation(shop.Audit)']] },
@@ -2686,8 +2645,6 @@ Lab.register({
     st.cur = ''; st.caller = ex ? 'IllegalStateException' : ret;
     push('The caller: ' + (ex ? 'It receives an IllegalStateException.' + (M.hit ? ' No advice caught the exception, so the exception is passed on unchanged.' : '') : 'It receives ' + ret + '.' + (M.hit ? ' Advice ran around the call, but the value that comes back is unchanged.' : '')), ex ? 'bad' : 'good');
     var seq = st.run.slice();
-    if (M.hit) sum.push('The pointcut matched the ' + sig + ' method, and the console printed ' + seq.length + ' lines in this order: ' + seq.join(' → ') + '. The caller received ' + (ex ? 'an ' : '') + st.caller + '.');
-    else sum.push('The pointcut did not match the ' + sig + ' method, so no advice ran at all. The only line printed on the console is "' + m + ' body", and the caller received ' + (ex ? 'an ' : '') + st.caller + '.');
     if (!M.hit && c.pc === 'noarg' && m === 'cancel') sum.push('cancel() with empty parentheses matches only "a cancel that takes no parameters". To match it regardless of the parameters, write cancel(..).');
     if (!M.hit) sum.push('A method that the pointcut does not match runs exactly like an ordinary method call. Even when a mistake in the expression makes it match nothing, there is no error, so you must check that the advice actually runs.');
     if (M.hit && ex) sum.push('When an exception is thrown, @AfterThrowing and @After run, and @AfterReturning and the lines written below pjp.proceed() in @Around do not run. Put work that must be done in every case in @After, or wrap the call in try-finally inside @Around.');
@@ -2704,9 +2661,7 @@ Lab.register({
     H.table(v, ['Order', 'Line printed on the console', 'Printed by'], s.run.map(function (x, i) {
       var who = x.indexOf('Log ') === 0 ? 'LogAspect' : x.indexOf('Time ') === 0 ? 'TimeAspect' : 'Method body';
       return { cells: [String(i + 1), { v: x, cls: x === s.cur ? 'hot' : '' }, who] };
-    }).concat(s.skip.map(function (x) { return { cls: 'gone', cells: ['-', { v: x + ' (did not run)', cls: 'bad' }, 'LogAspect'] }; })), 'Console output');
-    H.counters(v, [[s.run.length + '', 'Lines printed so far'], [s.caller || 'Still running', 'What the caller receives']]);
-  },
+    }).concat(s.skip.map(function (x) { return { cls: 'gone', cells: ['-', { v: x + ' (did not run)', cls: 'bad' }, 'LogAspect'] }; })), 'Console output');  },
   // Diagram: The aspects are drawn as nested boxes. The call enters from the outer box and reaches the method body in the middle, and on the way out it leaves from the inner box first. The left cells are the advice that runs on the way in, and the right cells are the advice that runs on the way out.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { pc: '', bean: '', run: [], cur: '', skip: [], body: '', caller: '' };
@@ -2741,7 +2696,7 @@ Lab.register({
 Lab.register({
   id: 'jdbctmpl', nav: 'JdbcTemplate and exception translation', cat: 'Spring', mode: 'step',
   title: 'What does JdbcTemplate do for you, and what does it translate exceptions to?',
-  intro: 'When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTemplate does this repeated work for you, and it translates the SQLException thrown by the database into a Spring exception (one from the DataAccessException hierarchy). This lab runs the same operation in three ways and compares what the caller gets and whether the connection is returned.',
+  intro: 'When you use JDBC directly, running one line of SQL means writing the code that gets a connection, closes it, and handles SQLException every time. JdbcTemplate does this repeated work for you, and it translates the SQLException thrown by the database into a Spring exception (one from the DataAccessException hierarchy).',
   terms: ['JdbcTemplate', 'Exception translation and DataAccessException', 'Connection pool', 'Checked and unchecked exceptions', 'Template Method pattern'],
   controls: [
     { id: 'how', label: 'How the database is accessed', type: 'select', value: 'plain', options: [['plain', 'JDBC directly: close() called on the last line'], ['twr', 'JDBC directly: closed with try-with-resources'], ['tmpl', 'JdbcTemplate']] },
@@ -2828,7 +2783,6 @@ Lab.register({
         push('The caller gets ' + err[2] + '. It is an unchecked exception, so no throws clause is needed, and if you want to handle only this case separately, you catch it by the name of the exception class, not by a code number.', 'bad');
       }
     }
-    sum.push('What the caller got: ' + caller + ' (' + kind + '). The connection ' + (conn === 'returned' ? 'was returned to the pool.' : 'was not returned to the pool.'));
     if (plain && err) sum.push('When close() is at the end of the method, the connection cannot be closed if an exception is thrown partway through. When you use JDBC directly, you have to close with try-with-resources (or finally), and you have to write this in every method without missing one.');
     if (c.how === 'twr' && err) sum.push('With try-with-resources, the connection is returned. Even so, the only exception you get is SQLException, which is a checked exception, so you have to tell what the problem is by a code number. This number can differ from one database product to another.');
     if (raw && !err && n !== 1) sum.push('When you use JDBC directly, you also have to decide yourself what to do when there are 0 rows or 2 rows. If you read only the first row without deciding, the problem passes silently. The queryForObject method of JdbcTemplate throws an exception in the same situation.');
@@ -2845,10 +2799,7 @@ Lab.register({
     var q = sim.city !== undefined;
     H.table(v, ['id', 'name', 'city'], [['1', 'kim', 'Seoul'], ['2', 'lee', 'Busan'], ['3', 'park', 'Seoul']].map(function (r) { var hit = q && c.op !== 'bad' && r[2] === sim.city && s.db; return { cells: [r[0], r[1], { v: r[2], cls: hit ? 'hot' : '' }] }; }), 'member table');
     H.title(v, sim.raw ? 'What the hand-written code does' : 'What JdbcTemplate does for you'); var ln = H.lanes(v);
-    sim.steps.forEach(function (name, i) { var m = s.st[i]; H.lane(ln, name, m || 'not yet', m === 'done' ? 'good' : m === 'exception' || m === 'skipped' ? 'bad' : m === 'caution' ? 'hot' : 'none'); });
-    H.lane(ln, 'Connection', s.con, s.con === 'returned' ? 'good' : s.con === 'not returned' ? 'bad' : s.con === 'in use' ? 'hot' : 'none');
-    H.counters(v, [[s.db || 'not run yet', 'Response from the database'], [s.caller || 'still running', 'What the caller gets']]);
-  },
+    sim.steps.forEach(function (name, i) { var m = s.st[i]; H.lane(ln, name, m || 'not yet', m === 'done' ? 'good' : m === 'exception' || m === 'skipped' ? 'bad' : m === 'caution' ? 'hot' : 'none'); });  },
   // Diagram: in the middle, the work needed for one database operation is laid out from top to bottom (the hand-written code, or what JdbcTemplate does for you). On the right are the connection pool and the database, and at the bottom is what the caller gets.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { con: 'in the pool', db: '', at: -1, st: sim.steps.map(function () { return ''; }), ex: '', caller: '' };
@@ -2866,7 +2817,7 @@ Lab.register({
     if (s.con === 'in use' || s.con === 'not returned') P.arrow('con', 's0:r', 'pool:l:0.4', { cls: s.con === 'not returned' ? 'bad' : '', label: s.con === 'not returned' ? 'unreturned' : 'borrowed' });
     if (s.st[1]) P.arrow('sql', 's1:r', 'db:l', { cls: s.st[1] === 'exception' ? 'bad' : '', label: s.st[1] === 'exception' ? 'error' : 'SQL' });
     P.box('res', 12, 274, 656, 36, { cls: !s.caller ? 'ghost' : s.caller.indexOf('Exception') >= 0 ? 'bad' : s.caller === 'null' || sim.n === 2 ? 'hot' : 'good', title: 'What the caller gets', right: s.caller || 'still running' });
-    P.note('The arrow to the connection pool is shown only while the connection is borrowed. The work in the middle boxes is repeated in exactly the same way every time an SQL statement is run. When you use JDBC directly, you have to write it in every method, and leaving out even one part (closing, above all) causes a problem. With JdbcTemplate, JdbcTemplate does this work, and all you write is the SQL and the values.');
+    P.note('The arrow to the connection pool is shown only while the connection is borrowed. The work in the middle boxes is repeated in exactly the same way every time an SQL statement is run.');
   },
   assume: 'All 18 combinations were run on this PC with code of the same structure as on the screen, using the JdbcTemplate of Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1), the HikariCP connection pool, and H2 2.4.240, and three things were checked against the results: what the caller gets, whether the exception is a checked exception, and whether any connection is left unreturned to the pool after the call ends. Execution also confirmed that DuplicateKeyException is a subclass of DataIntegrityViolationException, that EmptyResultDataAccessException is a subclass of IncorrectResultSizeDataAccessException, that the cause of the translated exception holds the original SQLException, and that the connection has already been returned at the point where JdbcTemplate translates the exception. The SQLState values (23505, 23502, 42S22) are the values that H2 gave. That the codes can differ in other database products, and that Spring still translates them to the same exceptions, are statements that follow the Spring documentation, because execution on this PC used only H2. The order of the steps, in which queryForObject checks the row count after it has read the whole result and returned the connection, follows the Spring source code (execution confirmed only that the connection has been returned after the call ends). H2 reports a typo in the SQL when the PreparedStatement is created, but some databases report it only when the SQL is run. The screen does not distinguish the two and draws this as the "Run the SQL" step. Inside a transaction managed by Spring, JdbcTemplate does not return the connection to the pool right away. It returns it when the transaction ends. Only the case without a transaction is covered here.',
 });
@@ -2874,7 +2825,7 @@ Lab.register({
 Lab.register({
   id: 'binding', nav: 'Request mapping and parameter binding', cat: 'Spring', mode: 'step',
   title: 'How does a value sent in a request become a method parameter?',
-  intro: 'An HTTP request can carry a value in several places: the path of the URL, the query string after the ?, and the body. The annotation on a parameter of a controller method decides "which of these places the value is taken from". If the place that carries the value and the place the value is taken from do not match, the value does not come in. Change how the controller receives the value and which request is sent, and see where the value comes from and where it goes.',
+  intro: 'An HTTP request can carry a value in several places: the path of the URL, the query string after the ?, and the body. The annotation on a parameter of a controller method decides "which of these places the value is taken from". If the place that carries the value and the place the value is taken from do not match, the value does not come in.',
   terms: ['@RequestParam and @PathVariable', '@ModelAttribute and @RequestBody', 'Query string and form data', 'HandlerMethodArgumentResolver', 'HTTP status codes'],
   controls: [
     { id: 'how', label: 'How the controller receives the value', type: 'select', value: 'param', options: [['param', '@RequestParam int qty'], ['opt', '@RequestParam(required = false) Integer qty'], ['def', '@RequestParam(defaultValue = "1") int qty'], ['path', '@PathVariable int qty'], ['model', '@ModelAttribute OrderForm form (binds the values to an object)'], ['body', '@RequestBody OrderForm form (reads a JSON body)']] },
@@ -2972,20 +2923,19 @@ Lab.register({
       }
     }
     var ran = st.ctrl;
-    sum.push('The response is ' + status + ', and the controller method ' + (ran ? 'ran. The qty received by the controller is ' + got + '.' : 'did not run. The reason for rejection is "' + why + '".'));
     if (st.fail === 2) sum.push(isPath ? 'For a method that uses @PathVariable, the pattern of the URL itself is /orders/{qty}. A request without that segment is not a request with a missing value (400) but a request to a different URL (404).' : 'To send a value in the path, as in /orders/3, the URL of the controller method must also have the pattern /orders/{qty}, and the parameter must be annotated with @PathVariable.');
     else if (R.where === 'json' && !isBody) sum.push(how === 'param' ? 'A value sent in a JSON body cannot be received with @RequestParam, because the place that carries the value (the body) and the place the value is taken from (the request parameters) are different. Receive a JSON body with @RequestBody.' : 'qty was sent in the JSON body, but ' + annotEun + ' does not look at the body, so the value received by the controller is ' + got + '. The request ends with 200 and no error, so it is hard to notice that the value did not come in. Receive a JSON body with @RequestBody.');
     else if (isBody && !R.body) sum.push('@RequestBody looks only at the body. Receive a value sent in the query string with @RequestParam or @ModelAttribute.');
     else if (isBody && R.where === 'form') sum.push('Receive form data in the body with @RequestParam or @ModelAttribute, not with @RequestBody. To receive the value with @RequestBody, the sender has to send JSON and set the Content-Type to application/json.');
     else if (st.fail === 5) sum.push('Every value carried in a request is text, and Spring converts it to the type of the parameter. When text that cannot be converted arrives, Spring does not run the controller and responds with 400. This means that the side that sent the request is at fault.');
-    else if (!R.where) sum.push({ param: '@RequestParam rejects the request with 400 when the value is missing. If the value is optional, set required = false or a defaultValue. Switch to each of the two and compare.', opt: 'With required = false, null comes in when the value is missing. The controller has to handle the null case itself.', def: 'With a defaultValue, that value comes in instead when the value is missing. You do not have to worry about null, so the type can stay int.', model: '@ModelAttribute leaves a field with no value as it is. So "not sent" and "sent as 0" cannot be told apart. If the value is required, you have to validate it separately.' }[how]);
+    else if (!R.where) sum.push({ param: '@RequestParam rejects the request with 400 when the value is missing. If the value is optional, set required = false or a defaultValue.', opt: 'With required = false, null comes in when the value is missing. The controller has to handle the null case itself.', def: 'With a defaultValue, that value comes in instead when the value is missing. You do not have to worry about null, so the type can stay int.', model: '@ModelAttribute leaves a field with no value as it is. So "not sent" and "sent as 0" cannot be told apart. If the value is required, you have to validate it separately.' }[how]);
     else if (R.where === 'form') sum.push('Form data in the body (application/x-www-form-urlencoded) is handled as "request parameters" together with the query string. That is why it can be received ' + annotRo + ' even though it came in the body. JSON is also sent in the body, but it is not handled this way.');
     else sum.push({ query: 'Receive the values in the query string one at a time with @RequestParam, or bind them to an object with @ModelAttribute.', path: 'To use a segment of the path as a value, put a {name} placeholder in the URL and receive it with @PathVariable. This is mostly used for a value that tells "which one is meant", such as an order number.', json: 'Receive a JSON body with @RequestBody. A message converter converts the whole body into one object.' }[R.where]);
     sum.push('Each annotation looks at a fixed place. @RequestParam and @ModelAttribute look at the request parameters (query string and form data), @PathVariable looks at the path, and @RequestBody looks at the whole body.');
     return { events: ev, summary: sum, ex: ex, row: [status, ran ? 'ran' : 'skipped', got, why] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, R = this.REQS[c.req];
+    var last = shown[shown.length - 1], s = last ? last.snap : null, R = this.REQS[sim.c.req];
     if (!s) { H.text(v, 'Click Run to see, one step at a time, how a request becomes the parameter of a controller method.'); return; }
     var looks = function (part) { return s.hit === part ? { v: 'value taken here', cls: 'good' } : s.look.indexOf(part) >= 0 ? { v: 'looked at', cls: 'hot' } : s.stage >= 3 ? 'not looked at' : ''; };
     H.table(v, ['Part of the request', 'Content', 'Looked at?'], [
@@ -2994,12 +2944,6 @@ Lab.register({
       { cls: R.ct ? '' : 'gone', cells: ['Content-Type header', R.ct || 'none', looks('ct')] },
       { cls: R.body ? '' : 'gone', cells: ['Body', R.body || 'none', looks('body')] },
     ], 'Request sent');
-    var ln = H.lanes(v), failed = function (n) { return s.fail === n; };
-    H.lane(ln, 'URL matching', s.map ? this.mapping(c) + ' ' + s.map : 'not yet', failed(2) ? 'bad' : s.map ? 'good' : 'none');
-    H.lane(ln, 'Getting the value', s.stage < 4 ? (s.stage === 3 ? 'place decided' : failed(2) ? 'not done' : 'not yet') : 'taken: ' + s.raw, failed(4) ? 'bad' : s.stage < 3 ? 'none' : s.stage === 3 ? 'hot' : s.hit ? 'good' : 'wait');
-    H.lane(ln, 'Type conversion', s.conv || (s.fail ? 'not done' : 'not yet'), failed(5) ? 'bad' : s.conv && s.conv !== 'nothing to convert' ? 'good' : 'none');
-    H.lane(ln, 'Controller', s.ctrl ? 'ran' : s.fail ? 'did not run' : 'not yet', s.ctrl ? 'good' : s.fail ? 'bad' : 'none');
-    H.counters(v, [[s.status || 'In progress', 'Response'], [s.val || (s.fail ? '-' : '?'), 'qty received by the controller']]);
   },
   // Diagram: on the left, the four parts of the HTTP request (path, query string, Content-Type, body); on the right, the order in which Spring fills the parameter. An arrow starts from the part the value is taken from.
   draw: function (P, sim, shown) {
@@ -3023,7 +2967,7 @@ Lab.register({
       P.arrow('take', from + ':r', toRaw ? 'raw:l' : 'src:l', { cls: s.fail === 4 ? 'bad' : s.hit ? 'good' : toRaw ? 'mut' : 'hot', label: !toRaw ? 'looks here' : s.hit ? 'taken' : s.fail === 4 && c.how === 'body' && R.body ? 'cannot read' : 'no value' });
     }
     P.box('resp', 16, 264, 648, 34, { cls: !s.status ? 'ghost' : s.ctrl ? 'good' : 'bad', title: 'Response', right: s.status || 'In progress' });
-    P.note('A blue box is a part of the request that carries a value, a yellow box is a part that this annotation looks at, and a green box is the part the value was actually taken from. When the blue box and the yellow box do not line up, the value does not come in even though the request carries it.');
+    P.note('A blue box is a part of the request that carries a value, a yellow box is a part that this annotation looks at, and a green box is the part the value was actually taken from.');
   },
   assume: 'All 48 combinations of the 6 ways of receiving the value and the 8 requests were sent as HTTP requests to a real Spring Boot 4.1.1 server (Spring Framework 7.0.9, embedded Tomcat 11), and the status code, whether the controller ran, the value the controller received, and the name of the exception Spring threw were confirmed to match the screen. The names of the exceptions depend on the Spring version (NoResourceFoundException when no URL matches and MethodArgumentNotValidException for a failed @ModelAttribute conversion are as of this version). The body of an error response varies with the version and the configuration, so it was not treated as a result. The lab is simplified to a controller with one method and one parameter, and the mapping annotation shown is whichever of @GetMapping and @PostMapping matches the HTTP method of the request (the 405 for an HTTP method that does not match is in the "Servlets" lab). OrderForm is a class with a default constructor and a setter. For an object that receives its values through a constructor, such as a record, the behavior when the value is missing can be different, and that was not verified. Finding the value by the parameter name without writing the name separately, as in @RequestParam int qty, is the behavior when the code is compiled with the -parameters option, and the check was done that way too. Four cases that are not on the screen were also checked on the same server. When an empty value is sent, as in ?qty=, @RequestParam int gives 400, required = false gives null, and defaultValue gives the default value. When required = false is used with the type int and no value is sent, null cannot be stored and the result is 500. When a BindingResult parameter is placed immediately after the @ModelAttribute parameter, the controller runs even if the conversion fails. When the body is {}, the qty received with @RequestBody is 0. Validation that checks the range of a value (@Valid) is not covered in this lab and is covered separately in the next lab, "Validation".',
 });
@@ -3031,7 +2975,7 @@ Lab.register({
 Lab.register({
   id: 'validation', nav: 'Validation', cat: 'Spring', mode: 'step',
   title: 'The field has @NotBlank, so why does an empty value still get in?',
-  intro: 'Input values come with conditions such as "the name must not be empty". Bean Validation is a way of writing such conditions above the fields as annotations like @NotBlank, and a condition written this way is called a constraint. However, a constraint does nothing just by being written down. Something has to say "validate this object", and in Spring MVC, the @Valid on a controller parameter is that signal. Change how the controller receives the value, the constraint, and the value sent, and see when validation happens and what the response is when a constraint is violated.',
+  intro: 'Input values come with conditions such as "the name must not be empty". Bean Validation is a way of writing such conditions above the fields as annotations like @NotBlank, and a condition written this way is called a constraint. However, a constraint does nothing just by being written down. Something has to say "validate this object", and in Spring MVC, the @Valid on a controller parameter is that signal.',
   terms: ['Bean Validation and @Valid', '@NotNull, @NotEmpty, and @NotBlank', 'BindingResult', 'MethodArgumentNotValidException', 'HTTP status codes'],
   controls: [
     { id: 'how', label: 'How the controller receives the value', type: 'select', value: 'plain', options: [['plain', '@RequestBody ItemForm form (no @Valid)'], ['valid', '@Valid @RequestBody ItemForm form'], ['br', '@Valid @RequestBody ItemForm form, BindingResult errors'], ['param', '@RequestParam String name (constraint directly on the parameter)']] },
@@ -3126,25 +3070,17 @@ Lab.register({
       else push(call + ' is called: Validation passed, so the controller method runs. The value of ' + holder + ' is ' + V.lit + '. The text returned is "' + ret + '", and Spring responds with 200.', 'good');
     }
     var ran = st.ctrl;
-    sum.push('The response is ' + status + '. ' + (checked === 'not done' ? 'Validation was not done.' : violates ? 'Validation failed (name violates the ' + C.a + ' constraint).' : 'Validation passed.') + ' ' + (ran ? 'The controller method ran, and the text it returned is "' + ret + '".' : 'The controller method did not run, and the exception Spring threw is ' + ex + '.'));
-    if (how === 'plain') sum.push(violates ? 'Putting a constraint on a field is not enough for the field to be validated. Spring calls the validator only when the controller parameter is annotated with @Valid. Switch to a way of receiving the value that has @Valid and compare.' : 'This value does not violate the ' + C.a + ' constraint, but it was not checked and found valid. It was not checked at all. Without @Valid, the controller runs without validation whatever value is sent.');
+    if (how === 'plain') sum.push(violates ? 'Putting a constraint on a field is not enough for the field to be validated. Spring calls the validator only when the controller parameter is annotated with @Valid.' : 'This value does not violate the ' + C.a + ' constraint, but it was not checked and found valid. It was not checked at all. Without @Valid, the controller runs without validation whatever value is sent.');
     else if (st.fail === 2) sum.push('When the value is missing altogether, the request is caught first by the "required value" check of @RequestParam. The constraint check comes after the value is taken. Both give 400, but the exceptions are different.');
-    else if (how === 'br') sum.push(violates ? 'When a BindingResult comes immediately after the @Valid parameter, no exception is thrown even if validation fails, and the controller runs. Checking whether there are errors and deciding how to respond is the job of the controller code. If the code does not check hasErrors(), the invalid value is handled as it is.' : 'Even with a BindingResult, when no constraint is violated, the result is the same as with @Valid alone. Change the value to one that violates the constraint to see the difference.');
+    else if (how === 'br') sum.push(violates ? 'When a BindingResult comes immediately after the @Valid parameter, no exception is thrown even if validation fails, and the controller runs. Checking whether there are errors and deciding how to respond is the job of the controller code. If the code does not check hasErrors(), the invalid value is handled as it is.' : 'Even with a BindingResult, when no constraint is violated, the result is the same as with @Valid alone.');
     else if (violates) sum.push(isParam ? 'A constraint declared directly on a parameter is checked even without @Valid. When it fails, a HandlerMethodValidationException is thrown and the response is 400. This is the behavior in Spring Framework 7.0.9, which this lab was checked against.' : 'When an object annotated with @Valid violates a constraint, the controller does not run and the response is 400. This means that the side that sent the request is at fault. Invalid values do not get into the controller, so the controller can do its work trusting that the values are valid.');
     else sum.push('When validation passes, the controller runs exactly as it does without validation. The difference shows only when a value that violates the constraint arrives.');
     if (how !== 'plain' && st.fail !== 2) sum.push({ notnull: '@NotNull blocks only null. An empty string and whitespace pass, so @NotBlank is usually used for text that a person types in.', notempty: '@NotEmpty blocks null and the empty string, but it lets a string that contains only whitespace through, because the string has a length.', notblank: '@NotBlank blocks null, the empty string, and a string that contains only whitespace. It is the strictest of the three constraints.' }[c.con]);
     return { events: ev, summary: sum, row: [status, checked, ran ? 'ran' : 'skipped', ret, ex] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this, C = this.CONS[c.con], isParam = c.how === 'param';
-    var leaked = c.how === 'plain' && C.bad.indexOf(c.val) >= 0;   // a value that violates the constraint came into the controller without validation
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this;
     if (!s) { H.text(v, 'Click Run to see, one step at a time, how a request reaches the controller with (or without) validation.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'Preparing the value', s.stage < 2 ? 'not yet' : (isParam ? 'name = ' : 'name of form = ') + s.name, s.fail === 2 ? 'bad' : s.stage < 2 ? 'none' : 'good');
-    H.lane(ln, 'Validate?', s.gate ? (c.how === 'plain' ? 'no @Valid: skipped' : isParam ? 'constraint on the parameter: validated' : '@Valid present: validated') : s.fail ? 'not done' : 'not yet', !s.gate ? 'none' : c.how === 'plain' ? 'wait' : 'hot');
-    H.lane(ln, 'Constraint check', s.check ? C.a + ': ' + s.check : s.gate === 'skipped' || s.fail ? 'not done' : 'not yet', s.check === 'violated' ? 'bad' : s.check ? 'good' : 'none');
-    H.lane(ln, 'Controller', s.ctrl ? 'ran, returned "' + s.ret + '"' : s.fail ? 'did not run (' + s.after + ')' : 'not yet', s.ctrl ? (leaked ? 'bad' : s.errors === 1 ? 'hot' : 'good') : s.fail ? 'bad' : 'none');
-    H.counters(v, [[s.status || 'In progress', 'Response'], [s.errors < 0 ? '-' : s.errors + '', 'Errors held in errors']]);
     var order = ['none', 'empty', 'blank', 'pen'];
     H.table(v, ['Constraint', 'null', '""', '" "', '"pen"'], ['notnull', 'notempty', 'notblank'].map(function (k) {
       var K = self.CONS[k];
@@ -3174,7 +3110,7 @@ Lab.register({
     if (s.stage >= 2) P.arrow('take', 'r_val:r', 'obj:l', { cls: s.fail === 2 ? 'bad' : 'good', label: s.fail === 2 ? 'no value' : 'value set' });
     if (s.gate) P.arrow('read', 'con:r', 'chk:l', { cls: skipped ? 'mut dash' : s.check === 'violated' ? 'bad' : s.check ? 'good' : 'hot', label: skipped ? 'not read' : 'constraint read' });
     P.box('resp', 16, 264, 648, 34, { cls: !s.status ? 'ghost' : s.ctrl ? (leaked || s.errors === 1 ? 'hot' : 'good') : 'bad', title: 'Response', right: s.status || 'In progress' });
-    P.note('The constraint is only written in the bottom-left box. The validator reads that constraint and checks the value against it only when Spring decides to validate. A green box is a step that passed or ran, and a red box is where a constraint was violated or the request was stopped. When a value that violates the constraint comes in without validation, the controller box turns red.');
+    P.note('A green box is a step that passed or ran, and a red box is where a constraint was violated or the request was stopped. When a value that violates the constraint comes in without validation, the controller box turns red.');
   },
   assume: 'All 48 combinations of the 4 ways of receiving the value, the 3 constraints, and the 4 values sent were sent as HTTP requests to a real Spring Boot 4.1.1 server (Spring Framework 7.0.9, embedded Tomcat 11, Hibernate Validator 9.1.3.Final, jakarta.validation-api 3.1.1, JDK 21), and the status code, whether the validator actually ran, the violated constraint, whether the controller ran and the text it returned, and the name of the exception Spring threw were confirmed to match the screen. Whether the validator ran was confirmed by adding one more constraint that always passes and seeing whether it was called (it is not in the code on the screen). Every URL on the screen is /items, but for the check, each combination had its own URL. Spring Boot sets up a validator automatically when the validation library (spring-boot-starter-validation) is present, and this lab assumes that state. The behavior without the library was not verified. The names of the exceptions and the behavior of a constraint declared directly on a parameter depend on the Spring version. What is written here was observed on Spring Framework 7.0.9, and versions before 6.1 are known to behave differently, but they were not run. The body of an error response and the text of the error messages vary with the configuration and the language of the server, so they were not treated as results. The default error response body seen on this PC contained only timestamp, status, error, and path, and did not say which field was wrong. Cases that are not on the screen were also checked on the same server. Putting the Spring annotation @Validated on the parameter instead of @Valid gives the same results. Receiving form data with @Valid @ModelAttribute gives the same 12 results (3 constraints, 4 values) as @Valid @RequestBody, and the exception is also MethodArgumentNotValidException. Writing "name": null in the JSON is the same as not sending name. When an object contains another object as a field, the constraints of the inner object are checked only if that field has @Valid (without it, the result is 200), and when the inner object is null, validation does not go into it even with @Valid, and it passes. A constraint that specifies groups is not checked with @Valid and is checked only when the parameter is received with @Validated(that group), and conversely, a constraint without groups is not checked when the parameter is received with @Validated(that group). When two fields both violate their constraints, there are 2 errors, so validation does not stop at the first error. When an @Valid object and a parameter with a constraint declared directly on it are received in the same method, a failure on the object side also comes out as HandlerMethodValidationException. When the value is received with @RequestParam(required = false) and is not sent, null comes in and is caught by @NotNull and @NotBlank. Putting @Validated on the controller class changes the failure of a parameter constraint into ConstraintViolationException and 500. Putting @NotBlank on an Integer field gives 500 with UnexpectedTypeException at validation time. Placing the BindingResult before the @Valid parameter gives 500 with IllegalStateException. If you handle MethodArgumentNotValidException with an @ExceptionHandler, you can get which field violated which constraint and write it in the body of the 400 response yourself. The screen is simplified to one field and one constraint, and for whitespace, only a single space character was checked.',
 });
@@ -3291,7 +3227,7 @@ Lab.register({
 Lab.register({
   id: 'msgconv', nav: 'REST APIs and message converters', cat: 'Spring', mode: 'step',
   title: 'Where does the object returned by a controller become JSON?',
-  intro: 'A controller method receives Java objects and returns Java objects, but what travels over the network is text such as JSON. In between, message converters turn text into objects and objects into text. The Content-Type and Accept headers of the request decide which converter is used, and when no converter fits, the result is 415 or 406. Change the kind of controller and the request, and see where the conversion happens and where it fails.',
+  intro: 'A controller method receives Java objects and returns Java objects, but what travels over the network is text such as JSON. In between, message converters turn text into objects and objects into text. The Content-Type and Accept headers of the request decide which converter is used, and when no converter fits, the result is 415 or 406.',
   terms: ['HttpMessageConverter', '@Controller and @RestController', 'Content negotiation (Accept and Content-Type)', 'ResponseEntity', 'ViewResolver'],
   controls: [
     { id: 'kind', label: 'Kind of controller and what it returns', type: 'select', value: 'obj', options: [['obj', '@RestController, returns an object'], ['entity', '@RestController, returns a ResponseEntity'], ['str', '@RestController, returns a string'], ['view', '@Controller, returns a string']] },
@@ -3376,7 +3312,6 @@ Lab.register({
       }
     }
     var ran = st.ctrl;
-    sum.push('The response is ' + status + ', and the controller method ' + (ran ? 'ran.' : 'did not run.') + (st.fail ? '' : ' Response body produced by: ' + maker + '. Content-Type: ' + type + '.'));
     if (st.fail === 'rd') sum.push(c.req === 'text' ? '415 means "the format of the request body cannot be read". Spring does not look into the body to guess its format. It looks only at the Content-Type header. When you send JSON, you have to set the Content-Type to application/json.' : '400 means "the request is wrong". Even when the Content-Type is right, the converter cannot create an object if the body does not follow the JSON syntax. This is a problem that the side that sent the request has to fix.');
     if (st.fail === 'rd') sum.push('415 and 400 are decided in the step that reads the request body, so this is before the controller runs. 406 is decided in the step that writes the response body, so this is after the controller has run.');
     if (st.fail === 'wr') sum.push('406 means "the response cannot be given in the format you want (Accept)". It is decided in the step that writes the response, so the response is a failure but the order has already been created. If you write produces = "application/json" on @PostMapping, a request whose Accept does not match is filtered out in the step that chooses the controller method, and the controller does not run.');
@@ -3395,12 +3330,6 @@ Lab.register({
       { cells: ['Accept', q.accept, 'Format of the response wanted'] },
       { cells: ['Body', q.body, ''] },
     ], 'Request sent (POST /orders)');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Read body', s.rd || 'not yet', s.fail === 'rd' ? 'bad' : s.stage >= 3 && s.rd ? 'good' : s.rd ? 'hot' : 'none');
-    H.lane(ln, 'Controller', s.ctrl ? 'ran · returned value: ' + s.ret : s.fail ? 'did not run' : 'not yet', s.ctrl ? 'good' : s.fail ? 'bad' : 'none');
-    H.lane(ln, 'Write body', s.wr || (s.fail ? 'not done' : 'not yet'), s.fail === 'wr' ? 'bad' : s.stage === 7 ? 'good' : s.wr ? 'hot' : 'none');
-    H.counters(v, [[s.status || 'In progress', 'Response'], [s.type || '-', 'Content-Type of the response']]);
-    if (s.status) { H.title(v, 'Response body'); H.text(v, s.body + (s.loc ? ' · Location header: ' + s.loc : '')); }
   },
   // Diagram: the request at the top, the three places in Spring in the middle (reading the request body, the controller, writing the response body), and the response at the bottom. It shows the two places where conversion happens and the place where it failed.
   draw: function (P, sim, shown) {
@@ -3417,7 +3346,7 @@ Lab.register({
     if (s.stage >= 5) P.arrow('a3', 'ct:r', 'wr:l', { cls: s.fail === 'wr' ? 'bad' : 'good' });
     P.box('resp', 16, 244, 648, 62, { cls: !s.status ? 'ghost' : s.fail ? 'bad' : 'good', title: 'Response: ' + (s.status || 'In progress'), sub: s.status ? ['Content-Type: ' + (s.type || '-') + (s.loc ? ' · Location: ' + s.loc : ''), 'Body: ' + s.body] : [' ', ' '] });
     if (s.status) P.arrow('a4', (s.fail || 'wr') + ':b', s.fail === 'rd' ? 'resp:t:0.18' : 'resp:t:0.82', { cls: s.fail ? 'bad' : 'good' });
-    P.note('Message converters work in two places. Before the controller, a converter turns the request body into an object (it looks at Content-Type), and after the controller, a converter turns the returned value into the response body (it looks at Accept). If the conversion fails before the controller, the controller does not run, and if it fails after the controller, the controller has already run.');
+    P.note('Message converters work in two places. Before the controller, a converter turns the request body into an object (it looks at Content-Type), and after the controller, a converter turns the returned value into the response body (it looks at Accept).');
   },
   assume: 'All 16 combinations of the 4 kinds of controller and the 4 requests were sent as HTTP requests to a real Spring Boot 4.1.1 server (Spring Framework 7.0.9, embedded Tomcat 11, Jackson 3), and the status code, whether the controller ran, the name of the exception Spring threw, the converter that read the request body and the converter that wrote the response body, and the Content-Type and Location header of the successful responses were confirmed to match the screen. The body and the Content-Type of the error responses (400, 406, 415) vary with the version and the configuration, so they were not treated as results. The server used for the check has no library that produces XML. If you add a library such as jackson-dataformat-xml, the server responds to an Accept: application/xml request with XML, so the result is not 406. The class name of the converter (JacksonJsonHttpMessageConverter) is as of Spring 7, and the name is different in earlier versions. For the Content-Type of the response, only the format name is shown (in reality, a charset is sometimes appended). The view name returned by the @Controller was checked by registering a view object of the same name instead of using a template engine. That a request that returns a view gave 200 regardless of Accept is what was observed in this setup, and it can differ depending on the view configuration. Cases that are not on the screen were also checked on the same server. When no view with that name existed, the result was 404 (with a template engine, it can be a different error, and that was not verified), putting @ResponseBody on the method of the @Controller gave the same result as @RestController, and a method with produces = "application/json" responded to an Accept: application/xml request with 406 without running the controller. When the request was sent without an Accept header, an object went out as JSON and a string as text/plain. In the combination that returned a ResponseEntity and gave 406, the Location header remained in the response, but this can differ between versions, so it is not shown on the screen.',
 });
@@ -18109,7 +18038,7 @@ Lab.register({
 Lab.register({
   id: 'chkex', nav: 'Checked and unchecked exceptions', cat: 'Java language', mode: 'step',
   title: 'Why do some exceptions keep the code from even compiling unless you handle them?',
-  intro: 'Java exceptions fall into two groups. With a checked exception (such as IOException), the compiler refuses to compile the code unless you catch the exception (try-catch) or declare that it is thrown (throws). An unchecked exception (typically RuntimeException or one of its subclasses) has no such requirement, so the code compiles with no handling at all. Change the kind of exception and the way it is handled, and check whether the code compiles and how the program ends when it runs.',
+  intro: 'Java exceptions fall into two groups. With a checked exception (such as IOException), the compiler refuses to compile the code unless you catch the exception (try-catch) or declare that it is thrown (throws). An unchecked exception (typically RuntimeException or one of its subclasses) has no such requirement, so the code compiles with no handling at all.',
   terms: ['Checked and unchecked exceptions', 'Exception and Error', 'throws clause', 'Wrapped exception'],
   controls: [
     { id: 'ex', label: 'Exception that the read method throws', type: 'select', value: 'io', options: [['io', 'IOException (checked exception)'], ['rt', 'IllegalStateException (unchecked exception)']] },
@@ -18199,7 +18128,6 @@ Lab.register({
     if (failAt) {
       st.end = 'Cannot run';
       push('Compilation failed: No class file is produced, so the program cannot run.' + (occur ? ' A problem that would occur at run time was stopped in advance, before the program ran.' : ' The call is read(false), so this code would not have thrown an exception if it had run. The result is the same anyway, because the compiler looks at whether the exception "can be thrown", not at whether it "is actually thrown".'), 'bad');
-      sum.push('This is a compile-time error. The line with the error is ' + (failAt === 'read' ? 'the throw line inside read' : 'the line in main that calls read') + ', and the program does not run.');
       if (failAt === 'read') sum.push('With a checked exception, the code compiles only if it does one of two things: "catch it, or declare that it is thrown". This mechanism keeps you from overlooking problems that arise from circumstances outside the program and that you can prepare for, such as a missing file or a dropped network connection.');
       else sum.push('throws does not handle the exception. It is a declaration that passes the exception on, saying "the caller must handle it". So the caller (main) must in turn catch it or declare it. The obligation keeps moving up to the caller until some method catches the exception.');
       if (!occur) sum.push('The compilation result is the same even when the exception is not actually thrown. The check is made before the program runs, by looking only at the form of the code.');
@@ -18248,9 +18176,8 @@ Lab.register({
       push('The last line of main runs: It prints "end of main", and the program ends normally (exit status 0).', 'good');
     }
     var outText = st.out.length ? st.out.join(' / ') : '(none)', endText = crashed ? 'Stopped by exception (exit status 1): ' + crashed : 'Normal exit (exit status 0)';
-    sum.push('Compilation succeeded. Output: ' + outText + '. How it ended: ' + endText + '.');
     if (!io && (h === 'none' || h === 'throws' || h === 'throws2')) sum.push('An unchecked exception compiles even when it is not handled. The compiler does not tell you about it, so' + (occur ? ' you learn of the problem only when the exception is thrown at run time.' : ' as long as the exception is not thrown, you cannot tell whether there is a problem.') + ' Unchecked exceptions usually indicate mistakes in the code, such as using null or passing an invalid value, so you remove them by fixing the code rather than by catching them.');
-    if (!io && h === 'throws') sum.push('With IOException, code of the same form is a compile-time error in main. Change only the kind of exception and compare.');
+    if (!io && h === 'throws') sum.push('With IOException, code of the same form is a compile-time error in main.');
     if (!io && (h === 'catch' || h === 'throwscatch')) sum.push('Unchecked exceptions can be caught too. It is just not required. The developer decides where to catch them.');
     if (!io && h === 'wrap') sum.push('Wrapping something that is already an unchecked exception in a RuntimeException gains nothing. Wrapping is a technique for turning a checked exception into an unchecked exception.');
     if (!io) sum.push('Error (OutOfMemoryError, StackOverflowError, and so on) represents JVM-level problems that a program can hardly recover from by itself, such as running out of memory. The Java Language Specification groups RuntimeException and its subclasses together with Error and its subclasses as the unchecked exception classes. So the compiler does not force you to handle an Error either, and it is usually not caught.');
@@ -18264,19 +18191,11 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to see first the checks that the compiler makes and then the execution of the program, one step at a time.'); return; }
-    var vc = function (x) { return x === 'Error' ? 'bad' : x === 'Passed' ? 'good' : ''; };
-    H.table(v, ['Method', 'Exception handling', 'Compiler verdict'], [
-      { cells: ['read', s.rh, { v: s.rv, cls: vc(s.rv) }] },
-      { cells: ['main', s.mh, { v: s.mv, cls: vc(s.mv) }] },
-    ], 'Checks by the compiler');
     var ln = H.lanes(v), WHERE = { main: 'running main', read: 'running read', jvm: 'JVM (outside the program)' };
-    H.lane(ln, 'Compilation', s.comp === '?' ? 'checking' : s.comp, s.comp === 'Success' ? 'good' : s.comp === 'Error' ? 'bad' : 'hot');
     H.lane(ln, 'Execution point', s.comp === 'Error' ? 'Cannot run' : s.at ? (s.end === 'Normal exit' ? 'ended' : WHERE[s.at]) : 'not started yet', s.at ? 'wait' : 'none');
-    H.lane(ln, 'Exception', s.exc ? 'thrown: ' + s.exc : s.caught ? 'caught by the catch block in ' + s.caught : 'none', s.exc ? 'bad' : s.caught ? 'good' : 'none');
     H.title(v, 'Console output');
     var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (standard error)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(none yet)'));
-    H.counters(v, [[s.comp, 'Compilation'], [s.end, 'Program']]);
   },
   // Diagram: the path that the exception travels up is laid out from left to right as three boxes, read, main, and JVM, and each box shows how the exception is handled and the verdict of the compiler. During execution, the box where the exception is and the box that caught it are colored.
   draw: function (P, sim, shown) {
@@ -18304,7 +18223,7 @@ Lab.register({
 Lab.register({
   id: 'generic', nav: 'Generics', cat: 'Java language', mode: 'step',
   title: 'What does the <Integer> in List<Integer> protect you from?',
-  intro: 'Generics are the syntax for writing "what this list holds" in the type, as in List<Integer>. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out. Change the declaration of the variable list, which refers to the same list, and check what compiles and what is rejected.',
+  intro: 'Generics are the syntax for writing "what this list holds" in the type, as in List<Integer>. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out.',
   terms: ['Generics', 'Raw type', 'Type erasure', 'Wildcard (? extends and ? super)'],
   controls: [
     { id: 'decl', label: 'Declaration of the variable list (it refers to the same list as ints)', type: 'select', value: 'raw', options: [['raw', 'List (no generics, a raw type)'], ['int', 'List<Integer>'], ['num', 'List<Number>'], ['ext', 'List<? extends Number>'], ['sup', 'List<? super Integer>']] },
@@ -18378,7 +18297,6 @@ Lab.register({
     if (errLines.length) {
       st.comp = 'Error'; st.end = 'Cannot run';
       push('Compilation failed: No class file is produced, so the program cannot run. Code that could go wrong was filtered out before it ran.', 'bad');
-      sum.push('This is a compile-time error (lines with an error: ' + errLines.length + '). The program does not run.');
       if (d === 'num') sum.push('A List<Integer> cannot be assigned to a List<Number> variable. Even when the element types are subtype and supertype, the lists that hold them are not related at all. If it were allowed, a Double could be added through that variable and break the list of Integer. When you want to accept lists of several kinds of numbers, use List<? extends Number>.');
       if (d === 'int') sum.push('With generics, code that adds a value of the wrong type becomes a compile-time error. Change the declaration to the raw type (List) and run the same code, and you can see the same mistake show up late, as an exception at run time.');
       if (d === 'ext') sum.push('A list declared with ? extends Number allows only "getting a value and using it as a Number". The actual element type is unknown, so adding is rejected. Use it for a parameter whose values are only read (for example, a method that computes a sum).');
@@ -18414,12 +18332,11 @@ Lab.register({
       push('Integer last = ints.get(ints.size() - 1) runs: It takes out the last element (' + lastVal + ') as an Integer and prints it. The output is "last value: ' + lastVal + '". The program ends normally.', 'good');
     }
     var endText = crash ? 'Stopped by exception: ClassCastException (' + j.box + ' cannot be cast to Integer)' : 'Normal exit';
-    sum.push('Compilation: ' + st.comp + '. Output: ' + st.out.join(' / ') + '. How it ended: ' + endText + '.');
     if (d === 'raw' && bad) sum.push('Without generics (a raw type), code that adds a value of the wrong type compiles, nothing happens at the moment the value is added, and then a ClassCastException is thrown on a different line, the one that takes the value out. Change the declaration to List<Integer>, and the same code becomes a compile-time error.');
     if (d === 'raw' && !bad) sum.push('This time the value that was added is an integer, so there was no problem. But the compiler did not check it for you. It was luck. The warning (unchecked) is the compiler telling you "I could not check this line".');
     if (d === 'int') sum.push('With generics, the compiler checks the type when you add a value, and you do not have to write a cast when you take one out.');
-    if (d === 'ext') sum.push('From a list declared with ? extends Number, you can take a value out and use it as a Number. Select one of the operations that add a value (add) and compare.');
-    if (d === 'sup') sum.push('You can add an Integer to a list declared with ? super Integer. Select the operation that takes a value out (get) and compare.');
+    if (d === 'ext') sum.push('From a list declared with ? extends Number, you can take a value out and use it as a Number.');
+    if (d === 'sup') sum.push('You can add an Integer to a list declared with ? super Integer.');
     sum.push('The true in the output shows type erasure. A list at run time does not remember its element type, so all the protection that generics give happens at compile time. If you bypass that check with a raw type, nothing is left to stop the mistake.');
     return { events: ev, summary: sum, msgs: [], warn: j.res === 'warn' ? j.msg : '', crashLine: crash ? lastLine : '', row: [st.comp, 'None', st.out.join(' / '), endText] };
   },
@@ -18432,14 +18349,9 @@ Lab.register({
       { cells: ['ints', 'List<Integer>', 'add Integer · get gives Integer'] },
       { cls: s.link ? '' : 'gone', cells: ['list', TYPE[c.decl], { v: ALLOW[c.decl], cls: s.link === 'err' ? 'bad' : '' }] },
     ], 'Two variables that refer to the same list');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Check', s.chk ? this.opLine(c) + '  →  ' + s.chk : 'not yet', s.chk === 'Error' ? 'bad' : s.chk === 'Warning' ? 'hot' : s.chk === 'Passed' ? 'good' : 'none');
-    H.lane(ln, 'Compilation', s.comp === '?' ? 'checking' : s.comp, s.comp === 'Error' ? 'bad' : s.comp === '?' ? 'hot' : 'good');
-    H.lane(ln, 'List contents', '[1, 2' + (s.added ? ', ' + s.added : '') + ']' + (s.added && s.addedType !== 'Integer' ? '  (a ' + s.addedType + ' is mixed in)' : ''), s.added && s.addedType !== 'Integer' ? 'bad' : 'wait');
     H.title(v, 'Console output');
     var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (standard error)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(none yet)'));
-    H.counters(v, [[s.comp, 'Compilation'], [s.end, 'Program']]);
   },
   // Diagram: on the left, the variables ints and list; on the right, the list object that both refer to and its elements. Below, it shows whether the compiler let the operation on list pass, and the result.
   draw: function (P, sim, shown) {
@@ -18460,7 +18372,7 @@ Lab.register({
     P.box('chk', 16, 186, 648, 34, { cls: s.chk === 'Error' || s.link === 'err' ? 'bad' : s.chk === 'Warning' ? 'hot' : s.chk === 'Passed' ? 'good' : 'ghost', title: 'Compiler check:  ' + this.opLine(c), right: s.link === 'err' && !s.chk ? 'error on the previous line' : s.chk || 'not yet' });
     P.box('r1', 16, 230, 320, 34, { cls: s.comp === '?' ? 'ghost' : s.comp === 'Error' ? 'bad' : 'good', title: 'Compilation', right: s.comp });
     P.box('r2', 344, 230, 320, 34, { cls: s.end === 'Normal exit' ? 'good' : s.end === '?' ? 'ghost' : 'bad', title: 'Program', right: s.end });
-    P.note('A type argument such as <Integer> exists only on the variable side (the side that the compiler sees). The list object at run time has no such information, so it cannot filter out values by itself when they are added. That is why the compiler does the job of rejecting the wrong type, by looking at the declaration of the variable.');
+    P.note('A type argument such as <Integer> exists only on the variable side (the side that the compiler sees). The list object at run time has no such information, so it cannot filter out values by itself when they are added.');
   },
   assume: 'All 20 combinations were actually compiled on JDK 21 on this PC (javac -Xlint:unchecked) from a source file that places the code on the screen inside a main method, and those that compiled were run, and the compilation result, the line and the message of each error, the warning message, the output, the kind of exception, and the line where the exception was thrown were checked against the results. The compiler messages are written in the form that the command-line javac shows (class names only, and CAP#1 for an unknown type). The code on the screen omits import java.util.ArrayList, import java.util.List, and the declaration of the main method. When you compile without -Xlint:unchecked, you get only the note "uses unchecked or unsafe operations" in place of the details of the warning. null can be added even to a list declared with ? extends, but the model does not cover this. Even though type erasure happens, the generic information written in the declarations of fields and methods remains in the class file and can be read through reflection. What is erased is the information that an object has at run time.',
 });
@@ -18468,7 +18380,7 @@ Lab.register({
 Lab.register({
   id: 'enumtype', nav: 'Enum classes', cat: 'Java language', mode: 'step',
   title: 'Why does an enum saved as a number come back as a different constant?',
-  intro: 'An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the program, so constants can be compared with ==, and they can also have fields and methods. But if you save a constant to a database by writing down its position in the declaration (its ordinal), the same number refers to a different constant once the enum declaration is changed later. Change how the value is saved and how the declaration is changed, and see what is read back.',
+  intro: 'An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the program, so constants can be compared with ==, and they can also have fields and methods. But if you save a constant to a database by writing down its position in the declaration (its ordinal), the same number refers to a different constant once the enum declaration is changed later.',
   terms: ['Enum class', 'ordinal() and name()', 'valueOf method of an enum class', 'Identity and equality'],
   controls: [
     { id: 'store', label: 'Value written when saving', type: 'select', value: 'ordinal', options: [['ordinal', 'ordinal(): the position in the declaration'], ['name', 'name(): the name of the constant'], ['code', 'The value of code, a field you define yourself']] },
@@ -18558,14 +18470,12 @@ Lab.register({
     }
     var endText = f.read ? 'Ended normally' : 'Stopped by an exception: java.lang.IllegalArgumentException: No enum constant Status.' + f.value;
     var row = [f.shown, f.read ? f.read[0] + ' (' + f.read[2] + ')' : '(not read)', f.read ? String(f.eq) : '(not read)', endText];
-    if (!f.read) sum.push('The saved value is still ' + f.shown + ', but the program stopped with an IllegalArgumentException while reading it.');
-    else sum.push('The saved constant is ' + c.saved + ', and the constant read back is ' + f.read[0] + ' (' + f.read[2] + '). ' + (f.eq ? 'They are the same constant.' : 'They are different constants, and yet the program ended normally.'));
     if (store === 'ordinal' && !f.eq) sum.push('ordinal() is only the position in the declaration, so when a constant is inserted in the middle or the order is changed, a number that was already saved refers to a different constant. No exception is thrown, so wrong data is used silently: an order that is "' + f.old[2] + '" is shown as "' + f.read[2] + '". Do not save ordinal() values.');
-    if (store === 'ordinal' && f.eq && shifted) sum.push('This constant was safe because its ordinal did not change. With the same change, data that saved a different constant goes wrong. Change the saved constant to check this.');
+    if (store === 'ordinal' && f.eq && shifted) sum.push('This constant was safe because its ordinal did not change. With the same change, data that saved a different constant goes wrong.');
     if (store === 'ordinal' && ch === 'append') sum.push('Adding a constant at the very end does not change the ordinals of the existing constants. But everyone who edits the enum has to keep the promise "always add only at the end" from then on, so avoid saving ordinal() values in the first place.');
     if (store === 'ordinal' && ch === 'rename') sum.push('Renaming a constant does not affect the ordinals. Data saved by ordinal goes wrong when the order is touched.');
-    if (store === 'ordinal' && ch === 'same') sum.push('As long as the declaration is not changed, saving the ordinal does not reveal any problem. Try selecting the option that inserts a constant in the middle or the one that swaps the order.');
-    if (store === 'name' && f.read) sum.push('When you save with name(), the same constant is read back even if constants are added or the order is changed.' + (ch === 'rename' ? ' This time only PAID was renamed, so ' + c.saved + ' was not affected. Check the case in which PAID is the saved constant.' : ' In return, you must not rename the constants.'));
+    if (store === 'ordinal' && ch === 'same') sum.push('As long as the declaration is not changed, saving the ordinal does not reveal any problem.');
+    if (store === 'name' && f.read) sum.push('When you save with name(), the same constant is read back even if constants are added or the order is changed.' + (ch === 'rename' ? ' This time only PAID was renamed, so ' + c.saved + ' was not affected.' : ' In return, you must not rename the constants.'));
     if (store === 'name' && !f.read) sum.push('valueOf throws an IllegalArgumentException when it receives a name that does not exist. The same happens when only the case differs ("paid"). If you saved by name, renaming a constant amounts to making the saved data unreadable. Even so, an exception that shows the problem right away is better than silently getting a different constant.');
     if (store === 'code') sum.push('If you define the value to save as a separate field of the enum, you can change both the order and the names of the constants freely. In return, a code value must not be changed once it is set. This approach is possible because an enum can have fields and methods.');
     if (f.read) sum.push('Use == to compare enum constants. There is only one object for each constant, so the result is the same as with equals, no exception is thrown even when one side is null, and comparing constants of different enum classes is reported as a compile-time error.');
@@ -18580,13 +18490,11 @@ Lab.register({
       return { cells: [String(i), { v: r[0], cls: hit ? (f.eq ? 'good' : 'bad') : '' }].concat(code ? [r[1]] : [], [r[2]]) };
     }), s.changed ? 'The current enum declaration' : 'The old enum declaration');
     var ln = H.lanes(v);
-    H.lane(ln, 'Saved value', s.savedOn ? f.shown + '  (written to stand for the constant ' + c.saved + ')' : 'not saved yet', s.savedOn ? 'wait' : 'none');
     H.lane(ln, 'How it is read', { ordinal: 'Status.values()[' + f.value + ']', name: 'Status.valueOf("' + f.value + '")', code: 'Status.fromCode("' + f.value + '")' }[c.store], 'none');
-    H.lane(ln, 'Constant read back', s.failed ? 'none (IllegalArgumentException)' : s.read ? s.read : 'not read yet', s.failed ? 'bad' : s.read ? (f.eq ? 'good' : 'bad') : 'none');
     H.title(v, 'Console output');
     var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (error output)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(nothing yet)'));
-    H.counters(v, [[s.eq, '== the saved constant'], [s.end, 'Program']]);
+    H.counters(v, [[s.end, 'Program']]);
   },
   // Diagram: the constants of the old declaration in order at the top, the constants of the current declaration in order at the bottom, and the saved value in the middle. One arrow goes from the saved constant to the value, and another from the value to the constant that is read back.
   draw: function (P, sim, shown) {
@@ -18613,7 +18521,7 @@ Lab.register({
 Lab.register({
   id: 'annot', nav: 'Annotations', cat: 'Java language', mode: 'step',
   title: 'What really happens when you just add an annotation with @?',
-  intro: 'An annotation (a mark that starts with @, such as @Override or @Timed) is a label that you attach to code. The label itself does nothing. It takes on meaning only when something reads it, namely the compiler or a framework that reads it with reflection at run time. And to be read at run time, the label must still be there at run time. Change the settings and see how far the annotation is retained, what reads it, and how the result changes.',
+  intro: 'An annotation (a mark that starts with @, such as @Override or @Timed) is a label that you attach to code. The label itself does nothing. It takes on meaning only when something reads it, namely the compiler or a framework that reads it with reflection at run time. And to be read at run time, the label must still be there at run time.',
   terms: ['Annotation', 'Reflection', '@Retention and @Target', '@Override', 'Overriding'],
   controls: [
     { id: 'topic', label: 'What to look at', type: 'select', value: 'custom', options: [['custom', 'Reading your own @Timed at run time (reflection)'], ['override', 'The compiler reading @Override']] },
@@ -18664,8 +18572,7 @@ Lab.register({
         st.chk = 'error'; st.comp = 'Error'; st.end = 'Not run';
         push('The compiler reads the @Override above sount(): @Override is a mark that says "the method right below overrides a method of a supertype", and the compiler checks whether that is true. Animal has no sount(). This is a compile-time error, and the compiler reports "' + MSG + '".', 'good');
         push('Compilation failed: No class file is produced, so the program cannot run. The mistake of misspelling the name was revealed before the program ran.', 'bad');
-        sum.push('This is a compile-time error. The line with the error is @Override, and the program does not run.');
-        sum.push('It is the compiler that reads @Override. If you get the name or the parameters of the method you meant to override wrong, the compiler tells you with a compile-time error. Remove @Override and run the same code to see how this mistake stays hidden.');
+        sum.push('It is the compiler that reads @Override. If you get the name or the parameters of the method you meant to override wrong, the compiler tells you with a compile-time error.');
         return { events: ev, summary: sum, errLine: '@Override', msg: MSG, attr: '', row: NO };
       }
       if (has) { st.chk = 'passed'; push('The compiler reads the @Override above sound(): It checks whether the method right below really overrides a method of a supertype. Animal has sound(), so the check passes.', 'good'); }
@@ -18676,7 +18583,6 @@ Lab.register({
       var res = typo ? '...' : 'Woof';
       st.out.push(res); st.end = 'Ended normally';
       push('a.sound() runs: The object that a refers to is a Dog. ' + (typo ? 'Dog has no sound() (it has only sount()). So the sound() inherited from Animal runs and prints "...". A method other than the intended one ran, with no error.' : 'The sound() that Dog overrides runs and prints "Woof".'), typo ? 'bad' : 'good');
-      sum.push('Compilation succeeded. The output is "' + res + '".');
       if (typo) sum.push('Without @Override, a method with a misspelled name is silently compiled as a "new method", and the superclass method that you meant to override runs unchanged. With @Override, the same mistake becomes a compile-time error.');
       else if (has) sum.push('@Override does not change how the program behaves. The output is the same with or without it. It does one thing: it has the compiler check that the method really overrides. That is why you always put it on a method that overrides.');
       else sum.push('The name is written correctly, so the method overrides even without @Override. However, if the name of the superclass method is changed later, this method stops being an override without any notice. With @Override in place, a compile-time error tells you when that happens.');
@@ -18691,7 +18597,6 @@ Lab.register({
       st.chk = 'error'; st.comp = 'Error'; st.end = 'Not run';
       push('The compiler checks the @Timed above the work method: @Target(ElementType.TYPE) means "can be applied only to type declarations such as classes and interfaces", but the annotation is applied to a method. This is a compile-time error, and the compiler reports "' + TMSG + '".', 'bad');
       push('Compilation failed: No class file is produced, so the program cannot run. The result is the same whatever @Retention is, and whether or not there is code that reads the annotation.', 'bad');
-      sum.push('This is a compile-time error. The line with the error is the @Timed above the work method, and the program does not run.');
       sum.push('@Target decides where an annotation can be applied. It is the compiler that reads @Target and enforces it. Applying the annotation in a place that does not match is a compile-time error, which keeps you from leaving it in the wrong place and wondering "why does it not work".');
       return { events: ev, summary: sum, errLine: '@Timed', msg: TMSG, attr: '', row: NO };
     }
@@ -18716,29 +18621,20 @@ Lab.register({
         push('found is false, so the reading code adds nothing: It only runs work with m.invoke(service). @Timed is clearly there in the source code, and yet to the reading code this is the same as a method with no annotation. No error occurs either.', 'bad');
       }
     }
-    sum.push('Compilation succeeded. The @Timed annotation is ' + (inClass ? 'retained' : 'not retained') + ' in the class file and is ' + (visible ? 'visible' : 'not visible') + ' to reflection at run time. Output: ' + st.out.join(' / ') + '.');
     if (reader && visible) sum.push('Something happens only when the annotation is retained until run time (RUNTIME) and there is code that reads it. @Transactional and @Autowired in Spring work on the same principle. The annotation does not do the work. The framework finds the annotation with reflection and does the work that goes with it.');
     if (reader && !visible) sum.push('The annotation is applied and there is code that reads it, and yet nothing happens. The reason is that the annotation was not retained until run time. When you create an annotation that will be read with reflection at run time, always write @Retention(RetentionPolicy.RUNTIME).' + (c.ret === 'none' ? ' If you do not write it, the default is CLASS, so the annotation is silently ignored without an error.' : ''));
-    if (!reader) sum.push('An annotation does nothing by itself. If nothing reads it, the program behaves the same whether the annotation is there or not.' + (visible ? ' Turn on the setting "There is code that reads @Timed and acts on it" and compare.' : ''));
+    if (!reader) sum.push('An annotation does nothing by itself. If nothing reads it, the program behaves the same whether the annotation is there or not.');
     if (ret === 'SOURCE') sum.push('SOURCE is used for annotations that only the compiler, or a tool that generates code at compile time, needs to read. @Override is one of them.');
     if (ret === 'CLASS') sum.push('CLASS is for tools that read and process class files. A running program cannot read such an annotation itself.');
     return { events: ev, summary: sum, errLine: '', msg: '', attr: attr, row: ['Success', st.cls, st.vis, st.out.join(' / ')] };
   },
   mark: function (c) { return c.topic === 'override' ? '@Override' : '@Timed'; },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, ov = c.topic === 'override', mark = this.mark(c);
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to see, in the order of source code, class file, and run time, how far the annotation is retained and what reads it.'); return; }
-    var attached = ov ? (c.ov ? 'applied' : 'not applied') : 'applied';
-    var compilerSays = ov ? 'override check: ' + s.chk : 'target check: ' + s.chk;
-    var readerSays = ov ? 'none' : !c.reader ? 'none' : s.rd === 'found' ? 'Reflection code: found the annotation' : s.rd === 'notfound' ? 'Reflection code: did not find the annotation' : 'Reflection code: not yet';
-    H.table(v, ['Stage', mark + ' annotation', 'Read by'], [
-      { cells: ['Source code (.java)', attached, { v: 'Compiler: ' + compilerSays, cls: s.chk === 'error' ? 'bad' : s.chk === 'passed' ? 'good' : '' }] },
-      { cells: ['Class file (.class)', { v: s.cls, cls: s.cls === 'retained' ? 'good' : '' }, '(none in this lab)'] },
-      { cells: ['Run time (JVM)', { v: s.vis, cls: s.vis === 'visible' ? 'good' : '' }, { v: readerSays, cls: s.rd === 'found' ? 'good' : s.rd === 'notfound' ? 'bad' : '' }] },
-    ], 'How far the annotation is retained, and what reads it');
     H.title(v, 'Console output');
     v.appendChild(H.el('pre', 'code', s.out.length ? s.out.join('\n') : '(nothing yet)'));
-    H.counters(v, [[s.comp, 'Compilation'], [s.end, 'Program']]);
+    H.counters(v, [[s.end, 'Program']]);
   },
   // Diagram: the three stages (source code, class file, run time) are placed from left to right, and each one says whether the annotation is still there. Below them are the things that read the annotation (the compiler and the reflection code), with an arrow from each to the stage it reads.
   draw: function (P, sim, shown) {
@@ -18761,7 +18657,7 @@ Lab.register({
     P.box('o1', 16, 238, 320, 36, { cls: s.comp === 'Success' ? 'good' : s.comp === 'Error' ? 'bad' : 'ghost', title: 'Compilation', right: s.comp });
     var result = s.comp === 'Error' ? 'not run' : s.end !== 'Ended normally' ? '?' : ov ? (c.typo ? 'sound of Animal runs' : 'sound of Dog runs') : s.rd === 'found' ? 'steps added around work' : 'only work runs';
     P.box('o2', 344, 238, 320, 36, { cls: result === '?' ? 'ghost' : s.comp === 'Error' ? 'bad' : (ov ? !c.typo : s.rd === 'found') ? 'good' : 'plain', title: 'Run result', right: result });
-    P.note('An annotation is a label. The top row shows up to which stage the label is retained (@Retention decides this), and the bottom row shows what reads the label. Something happens only if the label is retained up to the stage where something reads it.');
+    P.note('The top row shows up to which stage the label is retained (@Retention decides this), and the bottom row shows what reads the label.');
   },
   assume: 'The 28 combinations (24 on the @Timed side and 4 on the @Override side) were checked by actually compiling and running the code shown on the screen on JDK 21 on this PC. For each combination, the following were checked directly: whether the code compiles, the line with the error, the compiler message, and the output, and also whether the annotation is recorded in the bytes of the generated class file (and if so, in which of the two attributes, RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations) and the result of isAnnotationPresent in reflection. Settings that are hidden on the screen do not affect the result. The code on the screen omits the import statements (those from java.lang.annotation, and java.lang.reflect.Method) and the declaration of the main method. It was also checked that an annotation with @Target(ElementType.TYPE) compiles when it is applied to a class. The statement that a framework such as Spring reads annotations on the same principle as the "reading" code in this model is an explanation, and it was not verified by actually running a framework. Tools that read annotations at compile time and generate code (annotation processors) are not covered.',
 });
@@ -18769,7 +18665,7 @@ Lab.register({
 Lab.register({
   id: 'setmap', nav: 'Kinds of Set and Map', cat: 'Data structures', mode: 'step',
   title: 'Why do the same values come out in a different order?',
-  intro: 'A Set is a collection that holds each value only once, and a Map is a collection that holds keys paired with values. Each comes in three kinds, whose names start with Hash, LinkedHash, and Tree, and the kind you choose determines the order in which things come out and which values can go in. Add the same values to all three kinds and see which one to choose in which situation.',
+  intro: 'A Set is a collection that holds each value only once, and a Map is a collection that holds keys paired with values. Each comes in three kinds, whose names start with Hash, LinkedHash, and Tree, and the kind you choose determines the order in which things come out and which values can go in.',
   terms: ['List, Set, Map', 'Hash table and HashMap', 'LinkedHashSet and LinkedHashMap', 'TreeSet and TreeMap', 'Time complexity (big-O notation)'],
   controls: [
     { id: 'kind', label: 'Kind of collection', type: 'select', value: 'hash', options: [['hash', 'HashSet / HashMap'], ['linked', 'LinkedHashSet / LinkedHashMap'], ['tree', 'TreeSet / TreeMap']] },
@@ -18847,14 +18743,12 @@ Lab.register({
       push('System.out.println(' + n.v + '): Prints the ' + (m ? 'keys and values' : 'elements') + ' by going through them one after another from the start (iteration). ' + why + ' The output is ' + res + '.', looksSorted ? 'bad' : kind === 'hash' ? '' : 'good', -1);
       out.push(String(items.length));
       push('System.out.println(' + n.v + '.size()): The code adds five times, but one ' + what + ' was a duplicate and did not go in again, so the size is ' + items.length + '.', '', -1);
-      sum.push(cls + ' prints ' + res + ', and its size is ' + items.length + '.');
       if (kind === 'hash') sum.push(looksSorted ? 'HashSet and HashMap do not sort. The small integers came out looking sorted because their bucket numbers are the same as the numbers. If you change the values to 40, 5, 17, 5, 100, they come out in the order 17, 100, 5, 40.' : 'The iteration order of HashSet and HashMap is the order of the bucket numbers that hashCode determines. To a person it looks scrambled, and it can change with the Java version or with the number of entries, so do not write code that relies on this order.');
       if (kind === 'linked') sum.push('Use LinkedHashSet and LinkedHashMap when insertion order must be kept. These are the cases where things must come out the way they went in, such as the order of a list shown on the screen or the order of configuration entries.' + (m ? ' Calling put again for a key that is already present does not change the position of that key.' : ''));
       if (kind === 'tree') sum.push('Use TreeSet and TreeMap when you need sorted order, or when you need to find the smallest value or the values greater than or equal to some value. In exchange, every addition and every lookup takes several comparisons, so they are slower than the Hash kind.');
       if (kind !== 'tree' && c.data === 'null') sum.push('The Hash kind and the LinkedHash kind can hold one null. If you change the kind of collection to Tree, the same code throws an exception.');
       if (kind !== 'tree' && c.data === 'obj') sum.push('The Hash kind and the LinkedHash kind can hold any object, as long as it has equals and hashCode. The Tree kind also needs a way to compare the objects for order.');
     } else {
-      sum.push(cls + ': addition #' + done + ' threw a ' + ex + ', so the program never reached the output.');
       sum.push(ex === 'NullPointerException' ? 'TreeSet and TreeMap decide positions by comparing values with each other, so they cannot hold null. HashSet and LinkedHashSet can hold one null.' : 'An object that goes into a TreeSet or a TreeMap must implement Comparable, or you must supply a way to compare (a Comparator) separately, as in new TreeSet<>(Comparator.comparingInt(Task::id)). The compiler does not catch this, and the exception is thrown at run time.');
     }
     sum.push('How to choose: the Hash kind if you do not need any order (the fastest), the LinkedHash kind if you need insertion order, and the Tree kind if you need sorted order.');
@@ -18862,13 +18756,8 @@ Lab.register({
     return { events: ev, summary: sum, cells: cells, stopAt: ex ? done : 0, row: [ex ? '(stopped before printing)' : res, ex ? '-' : items.length + '', dup, ex || 'none'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, n = this.names(c), m = c.shape === 'map';
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    var third = c.kind === 'hash' ? 'Bucket number' : c.kind === 'linked' ? 'Inserted' : 'How the position was decided';
-    H.table(v, ['Iteration order', m ? 'Key' : 'Element'].concat(m ? ['Value'] : [], [third]), s.items.map(function (it, i) { return { cells: [String(i + 1), it.s].concat(m ? [String(it.val)] : [], [c.kind === 'hash' ? 'bucket ' + it.cell : c.kind === 'linked' ? '#' + it.seq : 'compared with compareTo']) }; }), n.cls + ' contents');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Output', s.out.length ? s.out.join('  /  ') : 'nothing yet', s.out.length ? 'good' : 'none');
-    H.lane(ln, 'Exception', s.ex ? s.ex + ' (the program stops)' : 'none', s.ex ? 'bad' : 'none');
     H.counters(v, [[s.done + ' / 5', 'Additions attempted'], [s.items.length + '', 'Entries in the collection']]);
   },
   // Diagram: at the top, the five values in the order they are added in the code; at the bottom, the values in the order the collection returns them. Each addition fixes a position at the bottom.
@@ -18892,7 +18781,7 @@ Lab.register({
     if (!s.items.length) P.text('empty', 340, 190, s.ex ? 'Nothing could be added' : 'empty', { cls: s.ex ? 'bad' : 'mut', anchor: 'middle' });
     if (s.ex) P.box('r1', 16, 246, 648, 38, { cls: 'bad', title: 'Stopped by an exception', right: s.ex });
     else P.box('r1', 16, 246, 648, 38, { cls: s.out.length ? 'good' : 'ghost', title: 'Output', right: s.out.length ? s.out.join('   /   ') : 'nothing yet' });
-    P.note(c.kind === 'hash' ? 'The Hash kind iterates starting from the lowest bucket number computed from hashCode. So the order has nothing to do with the insertion order or with the order of the values. There are 16 buckets at first, and this lab shows the order in that state.' : c.kind === 'linked' ? 'The LinkedHash kind iterates by following the linked list that connects the entries in insertion order. Adding something that is already present does not change its position.' : 'The Tree kind compares with compareTo on every addition and puts the new entry in its sorted position. That is why null, which cannot be compared, or an object that is not Comparable causes an exception at the moment it is added.');
+    P.note(c.kind === 'hash' ? 'The Hash kind iterates starting from the lowest bucket number computed from hashCode. There are 16 buckets at first, and this lab shows the order in that state.' : c.kind === 'linked' ? 'The LinkedHash kind iterates by following the linked list that connects the entries in insertion order. Adding something that is already present does not change its position.' : 'The Tree kind compares with compareTo on every addition and puts the new entry in its sorted position.');
   },
   assume: 'The output, the size, the value returned when a duplicate is added, and the type of exception were checked for all 30 combinations against the result of running the same code on JDK 21 on this PC. The bucket numbers of HashSet and HashMap were also checked against values read from the internal array of real objects. However, the Java specification does not guarantee the iteration order of the Hash kind. The order shown here is the one on JDK 21 with 16 buckets (12 elements or fewer), and it can change with a different version or a different number of elements. The specific value that the hashCode of a record returns is not specified either, and on JDK 21 the hashCode of Task(int id) was equal to id. A TreeSet decides whether two values are the same by whether the result of compareTo is 0, not by equals. The difference in performance (the Hash kind is faster than the Tree kind) was not measured, and the lab follows the time complexity stated in the documentation.',
 });
@@ -18900,7 +18789,7 @@ Lab.register({
 Lab.register({
   id: 'sorting', nav: 'Sorting and Comparator', cat: 'Data structures', mode: 'step',
   title: 'Who decides the sort order, and why is comparing by subtraction wrong?',
-  intro: 'Sorting means asking "which of these two comes first?" over and over. The class can define the answer itself (Comparable), or the answer can be supplied from outside at the time of sorting (Comparator). Change the sort order to see how the result changes, and see why the common code that compares two numbers by subtracting them produces a wrong order for large numbers.',
+  intro: 'Sorting means asking "which of these two comes first?" over and over. The class can define the answer itself (Comparable), or the answer can be supplied from outside at the time of sorting (Comparator).',
   terms: ['Comparable and Comparator', 'Stable sort', 'Integer overflow', 'Method reference', 'Lambda expression'],
   controls: [
     { id: 'by', label: 'Sort order', type: 'select', value: 'sub', options: [['natural', 'Comparable: the order the class defines (by name)'], ['cmp', 'Comparator: by balance (comparingInt)'], ['then', 'Comparator: by balance, then by name when equal (thenComparing)'], ['sub', 'Comparator: subtracts the two balances (a - b)']] },
@@ -18982,26 +18871,20 @@ Lab.register({
       : !okBal ? 'No exception was thrown. The wrong order came out without any warning.'
       : 'park and kim, which have the same balance, keep the order they had before the sort, with park first, and choi also stays before lee. A sort that does not reorder two elements whose comparison result is 0 is called a stable sort.' + (rev ? ' The same holds when sorting in reverse, because reversing 0 still gives 0.' : '');
     push('System.out.println(list): Prints the sorted list. ' + last, by !== 'natural' && !okBal ? 'bad' : '');
-    sum.push('The sorted result is ' + names.join(', ') + '.');
     if (by === 'natural') sum.push('Comparable is a way to define one order inside the class (compareTo). Use it when the class has a natural order, such as by name. To sort by something else, supply a Comparator from outside without changing the class.');
     if (by === 'cmp') sum.push('A Comparator is an order supplied from outside at the time of sorting. It lets you sort the same list by a different sort key each time, such as by balance or by name. comparingInt compares the two numbers without subtracting, so it is safe for large numbers too.');
     if (by === 'cmp' || (by === 'sub' && okBal)) sum.push('Accounts with the same balance kept the order they had before the sort (stable sort). List.sort and Collections.sort are stable sorts.' + (rev ? ' Even when sorting in reverse, the order among equal elements is not reversed.' : ''));
     if (by === 'then') sum.push('thenComparing supplies the next sort key, which is used only when the previous one cannot decide the order (comparison result 0).' + (rev ? ' When reversed is added at the very end, everything written before it is reversed. The balances run from the largest, and the names run backward too.' : ''));
     if (by === 'sub' && !okBal) sum.push('Comparing by subtraction flips the sign when the difference of the two numbers is outside the int range (about -2.1 billion to 2.1 billion). No exception is thrown, and a wrong order comes out silently. Integer.compare(a, b) and Comparator.comparingInt compare the two numbers without subtracting, so they are safe.');
-    if (by === 'sub' && okBal) sum.push('With small numbers, comparing by subtraction gives the correct result. So the tests pass, and the wrong sort appears only after the values have grown large. Change the size of the balances to large numbers and see.');
+    if (by === 'sub' && okBal) sum.push('With small numbers, comparing by subtraction gives the correct result. So the tests pass, and the wrong sort appears only after the values have grown large.');
     function cell(v, other) { return v + (v < 0 ? ' (negative: park first)' : v > 0 ? ' (positive: park after)' : ' (order not decided)'); }
     return { events: ev, summary: sum, names: names, c1: c1, c2: c2, row: [names.join(', '), cell(c1), cell(c2), okText] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this, D = this.DATA[c.data], bal = {};
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    D.forEach(function (x) { bal[x[0]] = x[1]; });
-    H.table(v, ['Position', 'Name (owner)', 'Balance (balance)'], s.order.map(function (o, i) { return { cells: [String(i + 1), o, { v: self.money(bal[o]), cls: o === 'park' || o === 'kim' ? 'hot' : '' }] }; }), s.sorted ? 'list (after sorting)' : 'list (before sorting)');
-    var ln = H.lanes(v), sign = function (x) { return x === null ? 'not compared yet' : x + (x < 0 ? ' → park first' : x > 0 ? ' → park after' : ' → order not decided'); };
+    var ln = H.lanes(v);
     H.lane(ln, 'order', !s.has ? 'not set yet' : { natural: 'by name (compareTo)', cmp: 'by balance', then: 'by balance, then by name when equal', sub: 'difference of the balances' }[c.by] + (s.rev ? ', reversed' : ''), s.has ? 'wait' : 'none');
-    H.lane(ln, 'compare(park, choi)', sign(s.c1), s.c1 === null ? 'none' : 'hot');
-    H.lane(ln, 'compare(park, kim)', sign(s.c2), s.c2 === null ? 'none' : 'hot');
-    H.counters(v, [[s.ok, 'Balance order correct?']]);
   },
   // Diagram: at the top, the five accounts in list (their positions change when the list is sorted); in the middle, the results of the two comparisons; at the bottom, whether the balance order is correct.
   draw: function (P, sim, shown) {
@@ -19016,7 +18899,7 @@ Lab.register({
     P.box('k1', 28, 156, 306, 58, { cls: s.c1 === null ? 'ghost' : sim.row[3] === 'Wrong' ? 'bad' : 'good', title: 'compare(park, choi)', sub: what(s.c1), right: s.c1 === null ? '?' : String(s.c1) });
     P.box('k2', 346, 156, 306, 58, { cls: s.c2 === null ? 'ghost' : 'good', title: 'compare(park, kim)', sub: what(s.c2), right: s.c2 === null ? '?' : String(s.c2) });
     P.box('r1', 16, 246, 648, 38, { cls: !s.sorted ? 'ghost' : s.ok === 'Wrong' ? 'bad' : s.ok === 'Correct' ? 'good' : 'plain', title: c.by === 'natural' ? 'Sorted by name' : 'Ordered from the ' + (c.rev ? 'largest' : 'smallest') + ' balance?', right: s.sorted ? s.ok : 'not sorted yet' });
-    P.note('Boxes of the same color are accounts with the same balance. After the sort, check whether boxes of the same color are in the same relative order as before the sort. The sort decides positions by looking only at the sign of the value that compare returns, so if compare returns the wrong sign, the result is wrong too.');
+    P.note('Boxes of the same color are accounts with the same balance. After the sort, check whether boxes of the same color are in the same relative order as before the sort.');
   },
   assume: 'The sorted result, the values returned by the two calls to compare, and whether the balance order is correct were checked for all 16 combinations against the result of running the same code on JDK 21 on this PC. Of the value that compare returns, the specification defines only the sign (negative, zero, or positive). Specific numbers such as the 1 and -1 of comparingInt and the 13 and 5 of the string comparison are the values that came out on JDK 21. When you supply a comparison that breaks the rules, such as a Comparator that compares by subtraction, the sorted result depends on the internal behavior of the sorting algorithm. The wrong order in this lab is the result that List.sort on JDK 21 produces with five elements. The documentation of List.sort says that an IllegalArgumentException may be thrown if the comparator is found to violate the Comparator contract (this case was not run). The sort makes many comparisons, but the screen shows only two of them, run separately.',
 });
@@ -19024,7 +18907,7 @@ Lab.register({
 Lab.register({
   id: 'lambda', nav: 'Lambda expressions and functional interfaces', cat: 'Java language', mode: 'step',
   title: 'When does the code in a lambda expression run?',
-  intro: 'A lambda expression is syntax that lets you store "an action to run later" in a variable like a value and pass it to another method. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it. Write the same action as an anonymous class, a lambda expression, and a method reference, and change how many times the receiving method calls it to see when and how many times the body runs.',
+  intro: 'A lambda expression is syntax that lets you store "an action to run later" in a variable like a value and pass it to another method. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it.',
   terms: ['Lambda expression', 'Functional interface', 'Method reference', 'Differences between anonymous classes and lambda expressions'],
   controls: [
     { id: 'fi', label: 'Functional interface (the shape of the action)', type: 'select', value: 'function', options: [['function', 'Function<String, Integer>: takes a value and returns another value'], ['predicate', 'Predicate<String>: takes a value and returns true or false'], ['supplier', 'Supplier<String>: takes nothing and returns a value'], ['consumer', 'Consumer<String>: takes a value and returns nothing']] },
@@ -19089,10 +18972,9 @@ Lab.register({
     st.out.push('run ends'); st.end = true;
     push('System.out.println("run ends"): "run ends" is printed. "body runs" was printed ' + n + (n === 1 ? ' time' : ' times') + ' in all.', '');
     var got = F.res.slice(0, n).filter(function (x) { return x !== null; });
-    sum.push('The body ran ' + n + (n === 1 ? ' time' : ' times') + '. The lines were printed in this order: ' + st.out.join(' → ') + '.');
     sum.push(n ? 'Nothing ran on the line that creates the action. The body ran each time the ' + F.m + ' method was called inside run. The code inside a lambda expression runs when it is called, not when it is created.' : 'The action was created and passed, but the receiving method did not call it, so the body never ran. A lambda expression is only "code that can be run later". The receiving method decides whether to run it and how many times.');
     sum.push({ 'function': 'Function<T, R> is an action that takes one value of type T and returns a value of type R, and it is called with apply. It is used to turn a value into another value (conversion).', predicate: 'Predicate<T> is an action that takes one value of type T and returns true or false, and it is called with test. It is used for condition checks.', supplier: 'Supplier<T> is an action that takes nothing and returns a value of type T, and it is called with get. It lets you put off the work of creating a value and run it only when the value is really needed.', consumer: 'Consumer<T> is an action that takes one value of type T and returns nothing, and it is called with accept. It is used for work that takes a value and only uses it, such as printing or saving.' }[c.fi]);
-    sum.push(form === 'anon' ? 'An anonymous class is how an action was passed before lambda expressions existed (up to Java 7). If you change the setting to a lambda expression, the same work fits on one line.' : form === 'lambda' ? 'The result is the same whether you write the action as an anonymous class, a lambda expression, or a method reference. Change the setting and check that only the code changes.' : 'When a lambda expression does nothing but call one existing method, you can write it more briefly as a method reference (ClassName::methodName). The result is the same as with the lambda expression.');
+    sum.push(form === 'anon' ? 'An anonymous class is how an action was passed before lambda expressions existed (up to Java 7). If you change the setting to a lambda expression, the same work fits on one line.' : form === 'lambda' ? 'The result is the same whether you write the action as an anonymous class, a lambda expression, or a method reference.' : 'When a lambda expression does nothing but call one existing method, you can write it more briefly as a method reference (ClassName::methodName). The result is the same as with the lambda expression.');
     return { events: ev, summary: sum, out: st.out.slice(), row: [F.m, F.takes, F.gives, n + (n === 1 ? ' time' : ' times'), !n ? '(not called)' : got.length ? got.join(', ') : '(no value returned)'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -19100,7 +18982,6 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
     H.table(v, ['Interface', 'Method called', 'Takes', 'Returns'], [{ cells: [F.type.replace(/<.*/, ''), F.m, F.takes, F.gives] }], 'Shape of this action');
     H.table(v, ['#', 'Line printed'], s.out.map(function (o, i) { return { cells: [String(i + 1), { v: o, cls: o.indexOf('body runs') === 0 ? 'hot' : '' }] }; }), 'Output so far');
-    H.counters(v, [[s.count + (s.count === 1 ? ' time' : ' times'), 'The body ran'], [s.done + ' / ' + c.calls, 'Calls that run made to the action']]);
   },
   // Diagram: on the left, where the action is created (the variable); in the middle, the run method, which receives the action and calls it; on the right, the method that serves as the body. An arrow goes to the body only during a call.
   draw: function (P, sim, shown) {
@@ -19127,7 +19008,7 @@ Lab.register({
 Lab.register({
   id: 'collect', nav: 'Collecting a stream', cat: 'Java language', mode: 'step',
   title: 'Into what shape do you collect the result of a stream?',
-  intro: 'The elements that come out of a stream must be collected at the end with collect before you can use them. Depending on which Collector you give it, the result is a List, a Map grouped by key, or a single string. Collect the same list of orders in several ways, and see what happens in toMap when keys are duplicated.',
+  intro: 'The elements that come out of a stream must be collected at the end with collect before you can use them. Depending on which Collector you give it, the result is a List, a Map grouped by key, or a single string.',
   terms: ['Stream API', 'Collector and collect', 'groupingBy and partitioningBy', 'Method reference', 'List, Set, Map'],
   controls: [
     { id: 'how', label: 'How to collect (Collector)', type: 'select', value: 'toMap', options: [['toList', 'toList(): put into a List in order'], ['group', 'groupingBy(customer): group by customer'], ['count', 'groupingBy(customer, counting()): count per customer'], ['sum', 'groupingBy(customer, summingInt(price)): sum per customer'], ['part', 'partitioningBy(price >= 300): split into two'], ['join', 'joining(", "): join into a single string'], ['toMap', 'toMap(customer, price): put in as keys and values'], ['toMapMerge', 'toMap(customer, price, merge function): merge duplicates']] },
@@ -19201,8 +19082,7 @@ Lab.register({
       out = shown;
       var tail = h === 'toList' ? ' The names are in the order in which they came out, and a name that appears more than once is included as many times as it appears.' : h === 'join' ? (res ? ' The result is not a collection but a single string.' : ' There were no elements, so the result is an empty string, and an empty line is printed.') : h === 'part' ? ' The false entry comes first and the true entry comes second.' + (D.length ? '' : ' There was not a single element, but the two entries are still there.') : D.length ? ' The order of the entries in the Map has nothing to do with the order in which the elements came out (' + D[0][0] + ' first). Do not write code that relies on this order.' : ' There were no elements, so this is an empty Map with no keys.';
       push('System.out.println(result): The output is ' + shown + '.' + tail, 'good', -1);
-      sum.push('The type of the result is ' + H.type + ', and the output is ' + shown + '.');
-    } else sum.push('At element #' + done + ', ' + ex + ' was thrown, so the program did not reach the output. Message: ' + msg);
+    }
     if (h === 'toList') sum.push('collect(Collectors.toList()) puts the elements into a List in the order in which they came out. Duplicates go in as they are. Since Java 16, you can also write it more briefly by adding .toList() directly to the stream.');
     if (h === 'group') sum.push('groupingBy groups the elements that have the same key and builds a Map<key, List<element>>. It is used to divide things "by something", such as orders by customer or products by category.');
     if (h === 'count') sum.push('The second argument of groupingBy decides what to do with the grouped elements. counting() counts them, and the type of the values is Long, not Integer. Assigning the result to a Map<String, Integer> is a compile-time error.');
@@ -19215,16 +19095,12 @@ Lab.register({
     return { events: ev, summary: sum, msg: msg, keysAll: keys(), row: [H.type, ex ? '(stopped before the output)' : shown, ex || 'none'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, h = c.how, D = this.DATA[c.data];
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, h = c.how;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
     var ln = H.lanes(v);
-    H.lane(ln, 'Type of the result', this.HOW[h].type, 'wait');
     if (h === 'toList') { H.title(v, 'Contents of the List (in order)'); H.slots(v, s.list.map(function (x) { return [x, 'd']; }), 'empty'); }
     else if (h === 'join') H.lane(ln, 'Joined string', s.list.length ? '"' + s.list.join(', ') + '"' : 'empty', s.list.length ? 'good' : 'none');
     else H.table(v, ['Key', h === 'count' ? 'Value (count)' : h === 'sum' ? 'Value (sum)' : h === 'group' || h === 'part' ? 'Value (list of orders)' : 'Value (price)'], s.ents.map(function (e) { return { cells: [e[0], { v: e[1], cls: e[0] === s.hit ? (s.ex ? 'bad' : 'hot') : '' }] }; }), 'Contents of the Map (shown sorted by key)');
-    H.lane(ln, 'Output', s.out === null ? 'none yet' : s.out, s.out === null ? 'none' : 'good');
-    H.lane(ln, 'Exception', s.ex ? s.ex + ' (the program stops)' : 'none', s.ex ? 'bad' : 'none');
-    H.counters(v, [[s.done + ' / ' + D.length, 'Elements received']]);
   },
   // Diagram: at the top, the orders that come out of the stream; at the bottom, the container that they are collected into (a List, a string, or a Map with one box per key). Each time an element goes in, an arrow goes to its box.
   draw: function (P, sim, shown) {
@@ -19262,7 +19138,7 @@ Lab.register({
 Lab.register({
   id: 'thread', nav: 'Creating threads and thread states', cat: 'Concurrency', mode: 'step',
   title: 'Why does calling run() directly not create a new thread?',
-  intro: 'Creating a Thread object and having a thread actually run are two different things. This lab uses t.getState() to follow the states that one thread goes through from the time it is created until it terminates. Along the way, you see the difference between start() and run(), how the state depends on the way the thread waits, and interrupt, which wakes up a waiting thread.',
+  intro: 'Creating a Thread object and having a thread actually run are two different things. This lab uses t.getState() to follow the states that one thread goes through from the time it is created until it terminates.',
   terms: ['Processes and threads', 'Thread states', 'start() and run()', 'join()', 'Interrupt'],
   controls: [
     { id: 'call', label: 'How the thread is made to run', type: 'select', value: 'run', options: [['start', 't.start()'], ['run', 'Call t.run() directly'], ['twice', 't.start(), then t.start() once more after the thread has terminated']] },
@@ -19365,16 +19241,15 @@ Lab.register({
       st.again = 'IllegalThreadStateException'; st.ex.push('IllegalThreadStateException'); st.main = 'Exception at the second t.start()';
       push('t.start() (second call): A thread can be started only once. It cannot be started again even after it has terminated, so an IllegalThreadStateException is thrown. To run the same task again, you must create a new Thread object.', 'bad');
     } else st.again = 'Not called';
-    sum.push('The thread that ran the task is ' + st.ran + ', the state of t seen partway is ' + st.mid + ', and the state after join is ' + st.after + '.' + (st.ex.length ? ' Exceptions thrown: ' + st.ex.join(', ') + '.' : ''));
     if (!started) sum.push('Calling run() directly does not add a thread. The calling thread simply runs that code in order, so nothing runs concurrently. To run the code in a new thread, call start(). start() creates a new thread, and that thread runs run().');
     else {
-      if (W === 'quick') sum.push('A thread begins in NEW, becomes RUNNABLE with start(), and becomes TERMINATED when the code of run() ends. Change to a task that waits for something, and you can see the states in between.');
+      if (W === 'quick') sum.push('A thread begins in NEW, becomes RUNNABLE with start(), and becomes TERMINATED when the code of run() ends.');
       if (W === 'sleep') sum.push('A thread that waits for a specified time is TIMED_WAITING. Thread.sleep(time) is the typical example. When the time has passed, the thread returns to RUNNABLE.');
       if (W === 'join') sum.push('A thread that waits, with no time limit, for another party to finish its work is WAITING. join() stops the caller until the other thread terminates. While main waits in t.join(), the state of main is WAITING too.');
       if (W === 'lock') sum.push('A thread that is blocked at synchronized, trying to acquire a lock that another thread holds, is BLOCKED. It returns to RUNNABLE only when the holder releases the lock.');
       if (ie) sum.push('A thread that is waiting in sleep or join wakes up right away with an InterruptedException when it is interrupted. This is the way to make a long wait stop partway, and it is why code that calls these methods is required to handle InterruptedException.');
       else if (intr && W === 'lock') sum.push('An interrupt does not force a thread to stop. It sends a signal. A wait that throws InterruptedException, such as sleep or join, is woken up by that signal, but a thread that waits for the lock of synchronized is not.');
-      else if (intr) sum.push('An interrupt sent to a thread that has already terminated does nothing. Change to a task that waits (sleep, join) and compare.');
+      else if (intr) sum.push('An interrupt sent to a thread that has already terminated does nothing.');
     }
     if (c.call === 'twice') sum.push('A Thread object can be started only once. Calling start() again throws an IllegalThreadStateException, whether the thread is still running or has already terminated.');
     return { events: ev, summary: sum, row: [st.ran, st.mid, st.ir, st.after, st.again] };
@@ -19382,16 +19257,12 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    H.counters(v, [[s.t || '-', 'Current state of t'], [s.ran, 'Thread that ran the task']]);
-    H.title(v, 'What each thread is doing'); var ln = H.lanes(v);
-    H.lane(ln, 'main', s.main, 'hot');
-    H.lane(ln, 'worker', s.worker || (c.call === 'run' ? 'Never created' : 'Not created yet'), !s.worker ? 'none' : s.worker === 'Finished' ? 'good' : s.t === 'RUNNABLE' ? 'hot' : 'wait');
+    var ln = c.work === 'join' || c.work === 'lock' ? H.lanes(v) : null;
     if (c.work === 'join') H.lane(ln, 'helper', s.helper || 'Not started yet', !s.helper ? 'none' : s.helper === 'Finished' ? 'good' : 'hot');
     if (c.work === 'lock') H.lane(ln, 'lock', s.lockBy ? s.lockBy + ' thread holds it' : 'No thread holds it', s.lockBy ? 'wait' : 'none');
     H.table(v, ['What was checked', 'Result'], [
       { cells: ['t.getState() seen partway', { v: s.mid, cls: s.mid === '?' ? '' : s.mid === 'NEW' ? 'bad' : 'hot' }] },
       { cells: ['Result of t.interrupt()', { v: s.ir, cls: s.ir === 'InterruptedException' ? 'bad' : '' }] },
-      { cells: ['t.getState() after join', { v: s.after, cls: s.after === 'TERMINATED' ? 'good' : s.after === 'NEW' ? 'bad' : '' }] },
       { cells: ['start() again', { v: s.again, cls: s.again === 'IllegalThreadStateException' ? 'bad' : '' }] },
     ], 'Results so far');
   },
@@ -19416,7 +19287,7 @@ Lab.register({
     P.box('r1', 16, 250, 320, 34, { cls: s.ran === '?' ? 'ghost' : s.ran === 'worker' ? 'good' : 'bad', title: 'Thread that ran the task', right: s.ran });
     P.box('r2', 344, 250, 320, 34, { cls: s.after === '?' ? 'ghost' : s.after === 'TERMINATED' ? 'good' : 'bad', title: 'State of t after join', right: s.after });
     P.box('r3', 16, 294, 648, 34, { cls: s.ex.length ? 'bad' : 'ghost', title: 'Exceptions thrown', right: s.ex.length ? s.ex.join(', ') : 'None' });
-    P.note('The bold border marks the current state of t. NEW is the state in which only the object has been created, and t becomes RUNNABLE only when start() is called. Depending on how the thread waits, t becomes TIMED_WAITING, WAITING, or BLOCKED and then returns to RUNNABLE, and when the code of run() ends, it becomes TERMINATED.');
+    P.note('The bold border marks the current state of t.');
   },
   assume: 'The results of the 24 combinations (the name of the thread that ran the task, t.getState() partway and at the end, the exceptions thrown, and the interrupt status when the task ends) were checked against the results of running them on JDK 21 on this PC. In the code on the screen, main waits briefly with Thread.sleep(100) and then looks at the state, but these 100 milliseconds are only a time that is "usually enough", not a guaranteed one. So that the check would not depend on timing, the state of t was checked repeatedly until it had left RUNNABLE and stayed where it was. If t.getState() is called right after start(), the state can be RUNNABLE or already another state, so that value was not used as a result. RUNNABLE does not distinguish "running" from "waiting for a turn on the CPU", and Java does not report the two separately. WAITING also results from Object.wait() or LockSupport.park() besides join, but this lab covers only join. The problems of data that several threads share are covered in the "Race condition" lab, and how to create threads in advance and reuse them is covered in the "Thread pool" lab.',
 });

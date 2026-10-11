@@ -1,7 +1,7 @@
 Lab.register({
   id: 'annot', nav: 'Annotations', cat: 'Java language', mode: 'step',
   title: 'What really happens when you just add an annotation with @?',
-  intro: 'An annotation (a mark that starts with @, such as @Override or @Timed) is a label that you attach to code. The label itself does nothing. It takes on meaning only when something reads it, namely the compiler or a framework that reads it with reflection at run time. And to be read at run time, the label must still be there at run time. Change the settings and see how far the annotation is retained, what reads it, and how the result changes.',
+  intro: 'An annotation (a mark that starts with @, such as @Override or @Timed) is a label that you attach to code. The label itself does nothing. It takes on meaning only when something reads it, namely the compiler or a framework that reads it with reflection at run time. And to be read at run time, the label must still be there at run time.',
   terms: ['Annotation', 'Reflection', '@Retention and @Target', '@Override', 'Overriding'],
   controls: [
     { id: 'topic', label: 'What to look at', type: 'select', value: 'custom', options: [['custom', 'Reading your own @Timed at run time (reflection)'], ['override', 'The compiler reading @Override']] },
@@ -52,8 +52,7 @@ Lab.register({
         st.chk = 'error'; st.comp = 'Error'; st.end = 'Not run';
         push('The compiler reads the @Override above sount(): @Override is a mark that says "the method right below overrides a method of a supertype", and the compiler checks whether that is true. Animal has no sount(). This is a compile-time error, and the compiler reports "' + MSG + '".', 'good');
         push('Compilation failed: No class file is produced, so the program cannot run. The mistake of misspelling the name was revealed before the program ran.', 'bad');
-        sum.push('This is a compile-time error. The line with the error is @Override, and the program does not run.');
-        sum.push('It is the compiler that reads @Override. If you get the name or the parameters of the method you meant to override wrong, the compiler tells you with a compile-time error. Remove @Override and run the same code to see how this mistake stays hidden.');
+        sum.push('It is the compiler that reads @Override. If you get the name or the parameters of the method you meant to override wrong, the compiler tells you with a compile-time error.');
         return { events: ev, summary: sum, errLine: '@Override', msg: MSG, attr: '', row: NO };
       }
       if (has) { st.chk = 'passed'; push('The compiler reads the @Override above sound(): It checks whether the method right below really overrides a method of a supertype. Animal has sound(), so the check passes.', 'good'); }
@@ -64,7 +63,6 @@ Lab.register({
       var res = typo ? '...' : 'Woof';
       st.out.push(res); st.end = 'Ended normally';
       push('a.sound() runs: The object that a refers to is a Dog. ' + (typo ? 'Dog has no sound() (it has only sount()). So the sound() inherited from Animal runs and prints "...". A method other than the intended one ran, with no error.' : 'The sound() that Dog overrides runs and prints "Woof".'), typo ? 'bad' : 'good');
-      sum.push('Compilation succeeded. The output is "' + res + '".');
       if (typo) sum.push('Without @Override, a method with a misspelled name is silently compiled as a "new method", and the superclass method that you meant to override runs unchanged. With @Override, the same mistake becomes a compile-time error.');
       else if (has) sum.push('@Override does not change how the program behaves. The output is the same with or without it. It does one thing: it has the compiler check that the method really overrides. That is why you always put it on a method that overrides.');
       else sum.push('The name is written correctly, so the method overrides even without @Override. However, if the name of the superclass method is changed later, this method stops being an override without any notice. With @Override in place, a compile-time error tells you when that happens.');
@@ -79,7 +77,6 @@ Lab.register({
       st.chk = 'error'; st.comp = 'Error'; st.end = 'Not run';
       push('The compiler checks the @Timed above the work method: @Target(ElementType.TYPE) means "can be applied only to type declarations such as classes and interfaces", but the annotation is applied to a method. This is a compile-time error, and the compiler reports "' + TMSG + '".', 'bad');
       push('Compilation failed: No class file is produced, so the program cannot run. The result is the same whatever @Retention is, and whether or not there is code that reads the annotation.', 'bad');
-      sum.push('This is a compile-time error. The line with the error is the @Timed above the work method, and the program does not run.');
       sum.push('@Target decides where an annotation can be applied. It is the compiler that reads @Target and enforces it. Applying the annotation in a place that does not match is a compile-time error, which keeps you from leaving it in the wrong place and wondering "why does it not work".');
       return { events: ev, summary: sum, errLine: '@Timed', msg: TMSG, attr: '', row: NO };
     }
@@ -104,29 +101,20 @@ Lab.register({
         push('found is false, so the reading code adds nothing: It only runs work with m.invoke(service). @Timed is clearly there in the source code, and yet to the reading code this is the same as a method with no annotation. No error occurs either.', 'bad');
       }
     }
-    sum.push('Compilation succeeded. The @Timed annotation is ' + (inClass ? 'retained' : 'not retained') + ' in the class file and is ' + (visible ? 'visible' : 'not visible') + ' to reflection at run time. Output: ' + st.out.join(' / ') + '.');
     if (reader && visible) sum.push('Something happens only when the annotation is retained until run time (RUNTIME) and there is code that reads it. @Transactional and @Autowired in Spring work on the same principle. The annotation does not do the work. The framework finds the annotation with reflection and does the work that goes with it.');
     if (reader && !visible) sum.push('The annotation is applied and there is code that reads it, and yet nothing happens. The reason is that the annotation was not retained until run time. When you create an annotation that will be read with reflection at run time, always write @Retention(RetentionPolicy.RUNTIME).' + (c.ret === 'none' ? ' If you do not write it, the default is CLASS, so the annotation is silently ignored without an error.' : ''));
-    if (!reader) sum.push('An annotation does nothing by itself. If nothing reads it, the program behaves the same whether the annotation is there or not.' + (visible ? ' Turn on the setting "There is code that reads @Timed and acts on it" and compare.' : ''));
+    if (!reader) sum.push('An annotation does nothing by itself. If nothing reads it, the program behaves the same whether the annotation is there or not.');
     if (ret === 'SOURCE') sum.push('SOURCE is used for annotations that only the compiler, or a tool that generates code at compile time, needs to read. @Override is one of them.');
     if (ret === 'CLASS') sum.push('CLASS is for tools that read and process class files. A running program cannot read such an annotation itself.');
     return { events: ev, summary: sum, errLine: '', msg: '', attr: attr, row: ['Success', st.cls, st.vis, st.out.join(' / ')] };
   },
   mark: function (c) { return c.topic === 'override' ? '@Override' : '@Timed'; },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, ov = c.topic === 'override', mark = this.mark(c);
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to see, in the order of source code, class file, and run time, how far the annotation is retained and what reads it.'); return; }
-    var attached = ov ? (c.ov ? 'applied' : 'not applied') : 'applied';
-    var compilerSays = ov ? 'override check: ' + s.chk : 'target check: ' + s.chk;
-    var readerSays = ov ? 'none' : !c.reader ? 'none' : s.rd === 'found' ? 'Reflection code: found the annotation' : s.rd === 'notfound' ? 'Reflection code: did not find the annotation' : 'Reflection code: not yet';
-    H.table(v, ['Stage', mark + ' annotation', 'Read by'], [
-      { cells: ['Source code (.java)', attached, { v: 'Compiler: ' + compilerSays, cls: s.chk === 'error' ? 'bad' : s.chk === 'passed' ? 'good' : '' }] },
-      { cells: ['Class file (.class)', { v: s.cls, cls: s.cls === 'retained' ? 'good' : '' }, '(none in this lab)'] },
-      { cells: ['Run time (JVM)', { v: s.vis, cls: s.vis === 'visible' ? 'good' : '' }, { v: readerSays, cls: s.rd === 'found' ? 'good' : s.rd === 'notfound' ? 'bad' : '' }] },
-    ], 'How far the annotation is retained, and what reads it');
     H.title(v, 'Console output');
     v.appendChild(H.el('pre', 'code', s.out.length ? s.out.join('\n') : '(nothing yet)'));
-    H.counters(v, [[s.comp, 'Compilation'], [s.end, 'Program']]);
+    H.counters(v, [[s.end, 'Program']]);
   },
   // Diagram: the three stages (source code, class file, run time) are placed from left to right, and each one says whether the annotation is still there. Below them are the things that read the annotation (the compiler and the reflection code), with an arrow from each to the stage it reads.
   draw: function (P, sim, shown) {
@@ -149,7 +137,7 @@ Lab.register({
     P.box('o1', 16, 238, 320, 36, { cls: s.comp === 'Success' ? 'good' : s.comp === 'Error' ? 'bad' : 'ghost', title: 'Compilation', right: s.comp });
     var result = s.comp === 'Error' ? 'not run' : s.end !== 'Ended normally' ? '?' : ov ? (c.typo ? 'sound of Animal runs' : 'sound of Dog runs') : s.rd === 'found' ? 'steps added around work' : 'only work runs';
     P.box('o2', 344, 238, 320, 36, { cls: result === '?' ? 'ghost' : s.comp === 'Error' ? 'bad' : (ov ? !c.typo : s.rd === 'found') ? 'good' : 'plain', title: 'Run result', right: result });
-    P.note('An annotation is a label. The top row shows up to which stage the label is retained (@Retention decides this), and the bottom row shows what reads the label. Something happens only if the label is retained up to the stage where something reads it.');
+    P.note('The top row shows up to which stage the label is retained (@Retention decides this), and the bottom row shows what reads the label.');
   },
   assume: 'The 28 combinations (24 on the @Timed side and 4 on the @Override side) were checked by actually compiling and running the code shown on the screen on JDK 21 on this PC. For each combination, the following were checked directly: whether the code compiles, the line with the error, the compiler message, and the output, and also whether the annotation is recorded in the bytes of the generated class file (and if so, in which of the two attributes, RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations) and the result of isAnnotationPresent in reflection. Settings that are hidden on the screen do not affect the result. The code on the screen omits the import statements (those from java.lang.annotation, and java.lang.reflect.Method) and the declaration of the main method. It was also checked that an annotation with @Target(ElementType.TYPE) compiles when it is applied to a class. The statement that a framework such as Spring reads annotations on the same principle as the "reading" code in this model is an explanation, and it was not verified by actually running a framework. Tools that read annotations at compile time and generate code (annotation processors) are not covered.',
 });

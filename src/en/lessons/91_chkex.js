@@ -1,7 +1,7 @@
 Lab.register({
   id: 'chkex', nav: 'Checked and unchecked exceptions', cat: 'Java language', mode: 'step',
   title: 'Why do some exceptions keep the code from even compiling unless you handle them?',
-  intro: 'Java exceptions fall into two groups. With a checked exception (such as IOException), the compiler refuses to compile the code unless you catch the exception (try-catch) or declare that it is thrown (throws). An unchecked exception (typically RuntimeException or one of its subclasses) has no such requirement, so the code compiles with no handling at all. Change the kind of exception and the way it is handled, and check whether the code compiles and how the program ends when it runs.',
+  intro: 'Java exceptions fall into two groups. With a checked exception (such as IOException), the compiler refuses to compile the code unless you catch the exception (try-catch) or declare that it is thrown (throws). An unchecked exception (typically RuntimeException or one of its subclasses) has no such requirement, so the code compiles with no handling at all.',
   terms: ['Checked and unchecked exceptions', 'Exception and Error', 'throws clause', 'Wrapped exception'],
   controls: [
     { id: 'ex', label: 'Exception that the read method throws', type: 'select', value: 'io', options: [['io', 'IOException (checked exception)'], ['rt', 'IllegalStateException (unchecked exception)']] },
@@ -91,7 +91,6 @@ Lab.register({
     if (failAt) {
       st.end = 'Cannot run';
       push('Compilation failed: No class file is produced, so the program cannot run.' + (occur ? ' A problem that would occur at run time was stopped in advance, before the program ran.' : ' The call is read(false), so this code would not have thrown an exception if it had run. The result is the same anyway, because the compiler looks at whether the exception "can be thrown", not at whether it "is actually thrown".'), 'bad');
-      sum.push('This is a compile-time error. The line with the error is ' + (failAt === 'read' ? 'the throw line inside read' : 'the line in main that calls read') + ', and the program does not run.');
       if (failAt === 'read') sum.push('With a checked exception, the code compiles only if it does one of two things: "catch it, or declare that it is thrown". This mechanism keeps you from overlooking problems that arise from circumstances outside the program and that you can prepare for, such as a missing file or a dropped network connection.');
       else sum.push('throws does not handle the exception. It is a declaration that passes the exception on, saying "the caller must handle it". So the caller (main) must in turn catch it or declare it. The obligation keeps moving up to the caller until some method catches the exception.');
       if (!occur) sum.push('The compilation result is the same even when the exception is not actually thrown. The check is made before the program runs, by looking only at the form of the code.');
@@ -140,9 +139,8 @@ Lab.register({
       push('The last line of main runs: It prints "end of main", and the program ends normally (exit status 0).', 'good');
     }
     var outText = st.out.length ? st.out.join(' / ') : '(none)', endText = crashed ? 'Stopped by exception (exit status 1): ' + crashed : 'Normal exit (exit status 0)';
-    sum.push('Compilation succeeded. Output: ' + outText + '. How it ended: ' + endText + '.');
     if (!io && (h === 'none' || h === 'throws' || h === 'throws2')) sum.push('An unchecked exception compiles even when it is not handled. The compiler does not tell you about it, so' + (occur ? ' you learn of the problem only when the exception is thrown at run time.' : ' as long as the exception is not thrown, you cannot tell whether there is a problem.') + ' Unchecked exceptions usually indicate mistakes in the code, such as using null or passing an invalid value, so you remove them by fixing the code rather than by catching them.');
-    if (!io && h === 'throws') sum.push('With IOException, code of the same form is a compile-time error in main. Change only the kind of exception and compare.');
+    if (!io && h === 'throws') sum.push('With IOException, code of the same form is a compile-time error in main.');
     if (!io && (h === 'catch' || h === 'throwscatch')) sum.push('Unchecked exceptions can be caught too. It is just not required. The developer decides where to catch them.');
     if (!io && h === 'wrap') sum.push('Wrapping something that is already an unchecked exception in a RuntimeException gains nothing. Wrapping is a technique for turning a checked exception into an unchecked exception.');
     if (!io) sum.push('Error (OutOfMemoryError, StackOverflowError, and so on) represents JVM-level problems that a program can hardly recover from by itself, such as running out of memory. The Java Language Specification groups RuntimeException and its subclasses together with Error and its subclasses as the unchecked exception classes. So the compiler does not force you to handle an Error either, and it is usually not caught.');
@@ -156,19 +154,11 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to see first the checks that the compiler makes and then the execution of the program, one step at a time.'); return; }
-    var vc = function (x) { return x === 'Error' ? 'bad' : x === 'Passed' ? 'good' : ''; };
-    H.table(v, ['Method', 'Exception handling', 'Compiler verdict'], [
-      { cells: ['read', s.rh, { v: s.rv, cls: vc(s.rv) }] },
-      { cells: ['main', s.mh, { v: s.mv, cls: vc(s.mv) }] },
-    ], 'Checks by the compiler');
     var ln = H.lanes(v), WHERE = { main: 'running main', read: 'running read', jvm: 'JVM (outside the program)' };
-    H.lane(ln, 'Compilation', s.comp === '?' ? 'checking' : s.comp, s.comp === 'Success' ? 'good' : s.comp === 'Error' ? 'bad' : 'hot');
     H.lane(ln, 'Execution point', s.comp === 'Error' ? 'Cannot run' : s.at ? (s.end === 'Normal exit' ? 'ended' : WHERE[s.at]) : 'not started yet', s.at ? 'wait' : 'none');
-    H.lane(ln, 'Exception', s.exc ? 'thrown: ' + s.exc : s.caught ? 'caught by the catch block in ' + s.caught : 'none', s.exc ? 'bad' : s.caught ? 'good' : 'none');
     H.title(v, 'Console output');
     var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (standard error)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(none yet)'));
-    H.counters(v, [[s.comp, 'Compilation'], [s.end, 'Program']]);
   },
   // Diagram: the path that the exception travels up is laid out from left to right as three boxes, read, main, and JVM, and each box shows how the exception is handled and the verdict of the compiler. During execution, the box where the exception is and the box that caught it are colored.
   draw: function (P, sim, shown) {

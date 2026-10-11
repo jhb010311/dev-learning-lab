@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Lambdas and streams</p>
 <h1>Collecting a stream</h1>
 <p><b>Into what shape do you collect the result of a stream?</b></p>
-<p>The elements that come out of a stream must be collected at the end with collect before you can use them. Depending on which Collector you give it, the result is a List, a Map grouped by key, or a single string. Collect the same list of orders in several ways, and see what happens in toMap when keys are duplicated.</p>
+<p>The elements that come out of a stream must be collected at the end with collect before you can use them. Depending on which Collector you give it, the result is a List, a Map grouped by key, or a single string.</p>
 <p>Checked against real execution · Checked by running 24 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>At element #3, IllegalStateException was thrown, so the program did not reach the output. Message: Duplicate key kim (attempted merging values 300 and 200)</li>
 <li>toMap holds only one value per key. If the data can have duplicate keys, you must either supply a merge function as the third argument or use groupingBy, which collects the duplicates into a list.</li>
 </ul>
 <h2>Code</h2>
@@ -167,6 +166,6 @@ System.out.println(result);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

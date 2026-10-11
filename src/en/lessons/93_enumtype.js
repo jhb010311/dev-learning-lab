@@ -1,7 +1,7 @@
 Lab.register({
   id: 'enumtype', nav: 'Enum classes', cat: 'Java language', mode: 'step',
   title: 'Why does an enum saved as a number come back as a different constant?',
-  intro: 'An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the program, so constants can be compared with ==, and they can also have fields and methods. But if you save a constant to a database by writing down its position in the declaration (its ordinal), the same number refers to a different constant once the enum declaration is changed later. Change how the value is saved and how the declaration is changed, and see what is read back.',
+  intro: 'An enum is a type that can have only a fixed set of values, such as the status of an order. Each constant is an object of which there is only one in the program, so constants can be compared with ==, and they can also have fields and methods. But if you save a constant to a database by writing down its position in the declaration (its ordinal), the same number refers to a different constant once the enum declaration is changed later.',
   terms: ['Enum class', 'ordinal() and name()', 'valueOf method of an enum class', 'Identity and equality'],
   controls: [
     { id: 'store', label: 'Value written when saving', type: 'select', value: 'ordinal', options: [['ordinal', 'ordinal(): the position in the declaration'], ['name', 'name(): the name of the constant'], ['code', 'The value of code, a field you define yourself']] },
@@ -91,14 +91,12 @@ Lab.register({
     }
     var endText = f.read ? 'Ended normally' : 'Stopped by an exception: java.lang.IllegalArgumentException: No enum constant Status.' + f.value;
     var row = [f.shown, f.read ? f.read[0] + ' (' + f.read[2] + ')' : '(not read)', f.read ? String(f.eq) : '(not read)', endText];
-    if (!f.read) sum.push('The saved value is still ' + f.shown + ', but the program stopped with an IllegalArgumentException while reading it.');
-    else sum.push('The saved constant is ' + c.saved + ', and the constant read back is ' + f.read[0] + ' (' + f.read[2] + '). ' + (f.eq ? 'They are the same constant.' : 'They are different constants, and yet the program ended normally.'));
     if (store === 'ordinal' && !f.eq) sum.push('ordinal() is only the position in the declaration, so when a constant is inserted in the middle or the order is changed, a number that was already saved refers to a different constant. No exception is thrown, so wrong data is used silently: an order that is "' + f.old[2] + '" is shown as "' + f.read[2] + '". Do not save ordinal() values.');
-    if (store === 'ordinal' && f.eq && shifted) sum.push('This constant was safe because its ordinal did not change. With the same change, data that saved a different constant goes wrong. Change the saved constant to check this.');
+    if (store === 'ordinal' && f.eq && shifted) sum.push('This constant was safe because its ordinal did not change. With the same change, data that saved a different constant goes wrong.');
     if (store === 'ordinal' && ch === 'append') sum.push('Adding a constant at the very end does not change the ordinals of the existing constants. But everyone who edits the enum has to keep the promise "always add only at the end" from then on, so avoid saving ordinal() values in the first place.');
     if (store === 'ordinal' && ch === 'rename') sum.push('Renaming a constant does not affect the ordinals. Data saved by ordinal goes wrong when the order is touched.');
-    if (store === 'ordinal' && ch === 'same') sum.push('As long as the declaration is not changed, saving the ordinal does not reveal any problem. Try selecting the option that inserts a constant in the middle or the one that swaps the order.');
-    if (store === 'name' && f.read) sum.push('When you save with name(), the same constant is read back even if constants are added or the order is changed.' + (ch === 'rename' ? ' This time only PAID was renamed, so ' + c.saved + ' was not affected. Check the case in which PAID is the saved constant.' : ' In return, you must not rename the constants.'));
+    if (store === 'ordinal' && ch === 'same') sum.push('As long as the declaration is not changed, saving the ordinal does not reveal any problem.');
+    if (store === 'name' && f.read) sum.push('When you save with name(), the same constant is read back even if constants are added or the order is changed.' + (ch === 'rename' ? ' This time only PAID was renamed, so ' + c.saved + ' was not affected.' : ' In return, you must not rename the constants.'));
     if (store === 'name' && !f.read) sum.push('valueOf throws an IllegalArgumentException when it receives a name that does not exist. The same happens when only the case differs ("paid"). If you saved by name, renaming a constant amounts to making the saved data unreadable. Even so, an exception that shows the problem right away is better than silently getting a different constant.');
     if (store === 'code') sum.push('If you define the value to save as a separate field of the enum, you can change both the order and the names of the constants freely. In return, a code value must not be changed once it is set. This approach is possible because an enum can have fields and methods.');
     if (f.read) sum.push('Use == to compare enum constants. There is only one object for each constant, so the result is the same as with equals, no exception is thrown even when one side is null, and comparing constants of different enum classes is reported as a compile-time error.');
@@ -113,13 +111,11 @@ Lab.register({
       return { cells: [String(i), { v: r[0], cls: hit ? (f.eq ? 'good' : 'bad') : '' }].concat(code ? [r[1]] : [], [r[2]]) };
     }), s.changed ? 'The current enum declaration' : 'The old enum declaration');
     var ln = H.lanes(v);
-    H.lane(ln, 'Saved value', s.savedOn ? f.shown + '  (written to stand for the constant ' + c.saved + ')' : 'not saved yet', s.savedOn ? 'wait' : 'none');
     H.lane(ln, 'How it is read', { ordinal: 'Status.values()[' + f.value + ']', name: 'Status.valueOf("' + f.value + '")', code: 'Status.fromCode("' + f.value + '")' }[c.store], 'none');
-    H.lane(ln, 'Constant read back', s.failed ? 'none (IllegalArgumentException)' : s.read ? s.read : 'not read yet', s.failed ? 'bad' : s.read ? (f.eq ? 'good' : 'bad') : 'none');
     H.title(v, 'Console output');
     var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (error output)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(nothing yet)'));
-    H.counters(v, [[s.eq, '== the saved constant'], [s.end, 'Program']]);
+    H.counters(v, [[s.end, 'Program']]);
   },
   // Diagram: the constants of the old declaration in order at the top, the constants of the current declaration in order at the bottom, and the saved value in the middle. One arrow goes from the saved constant to the value, and another from the value to the constant that is read back.
   draw: function (P, sim, shown) {

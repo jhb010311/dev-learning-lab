@@ -1,7 +1,7 @@
 Lab.register({
   id: 'scope', nav: '빈 스코프', cat: '스프링', mode: 'step',
   title: '프로토타입 빈인데 왜 객체가 하나뿐인가',
-  intro: '스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다. 요청을 두 번 보내고, 요청마다 장바구니(Cart)를 두 번 쓰면서 객체가 몇 개 만들어지는지 세어 보세요.',
+  intro: '스코프는 컨테이너가 빈 객체를 몇 개 만들고 언제까지 쓰는지를 정합니다. 싱글톤은 컨테이너에 하나, 프로토타입은 컨테이너에 달라고 할 때마다 새로 하나, request는 HTTP 요청마다 하나입니다. 그런데 싱글톤 빈이 다른 스코프의 빈을 주입받으면 기대와 다른 일이 생깁니다.',
   terms: ['빈 스코프', '스프링 빈(Bean)', 'ObjectProvider', '스코프 프록시', '프록시(Proxy)'],
   controls: [
     { id: 'scope', label: 'Cart 빈의 스코프', type: 'select', value: 'prototype', options: [['singleton', '싱글톤 (적지 않으면 이것)'], ['prototype', '프로토타입'], ['request', 'request (HTTP 요청)']] },
@@ -88,7 +88,6 @@ Lab.register({
     }
     // 여기까지 왔으면 기동과 두 요청이 모두 끝났다. 그림의 상태 상자는 st.phase(진행 단계)를 보여 준다.
     var total = st.carts.length, u1 = st.used[0].map(function (n) { return n + '번'; }).join(', '), u2 = st.used[1].map(function (n) { return n + '번'; }).join(', ');
-    sum.push('기동 성공. 요청 두 번(요청마다 두 번 사용)에 Cart 객체는 모두 ' + total + '개 만들어졌습니다. 요청 1은 ' + u1 + '을, 요청 2는 ' + u2 + '을 썼습니다.');
     if (sc === 'singleton') {
       sum.push('싱글톤 빈은 컨테이너에 객체가 하나뿐이고, 기동할 때 만들어집니다. 그대로 주입받든, ObjectProvider로 꺼내든, 프록시를 거치든 언제나 같은 객체입니다.');
       sum.push('스코프를 따로 적지 않은 빈은 모두 싱글톤입니다. 모든 요청이 한 객체를 함께 쓰므로 요청마다 달라지는 값을 필드에 두면 안 됩니다.');
@@ -114,10 +113,6 @@ Lab.register({
       return { cls: x.gone ? 'gone' : '', cells: [{ v: 'Cart ' + x.no + '번', cls: s.cur === x.no ? 'hot' : '' }, x.when, x.users.length ? x.users.join(', ') + (x.gone ? ' (요청과 함께 끝남)' : '') : '-'] };
     }), '지금까지 만들어진 Cart 객체');
     if (!s.carts.length) H.text(v, s.svc === '실패' ? 'Cart 객체가 하나도 만들어지지 않았습니다.' : '아직 Cart 객체가 없습니다.');
-    var ln = H.lanes(v);
-    H.lane(ln, 'orderService', s.svc === '완성' ? '싱글톤 · 필드에 들어 있는 것: ' + s.holds : s.svc, s.svc === '완성' ? 'good' : s.svc === '실패' ? 'bad' : 'none');
-    [0, 1].forEach(function (i) { H.lane(ln, '요청 ' + (i + 1), s.used[i].length ? '쓴 Cart: ' + s.used[i].map(function (n) { return n + '번'; }).join(', ') : s.req === i + 1 ? '처리 중' : '아직 안 옴', s.req === i + 1 ? 'hot' : s.used[i].length ? 'wait' : 'none'); });
-    H.counters(v, [[s.carts.length + '개', '만들어진 Cart 객체'], [s.result || s.phase, '상태']]);
   },
   // 그림: 왼쪽에 HTTP 요청 둘, 가운데에 싱글톤 orderService, 오른쪽에 만들어진 Cart 객체들. 객체가 만들어질 때마다 상자가 하나씩 늘어난다.
   draw: function (P, sim, shown) {
@@ -138,7 +133,7 @@ Lab.register({
     if (s.req) P.arrow('call', 'rq' + s.req + ':r', 'svc:l', { label: 'cartNo()' });
     P.box('r1', 16, 294, 320, 38, { cls: s.carts.length ? 'plain' : 'ghost', title: '만들어진 Cart 객체', right: s.carts.length + '개' });
     P.box('r2', 344, 294, 320, 38, { cls: s.result ? 'bad' : s.phase ? 'plain' : 'ghost', title: '상태', right: s.result === '기동 실패' ? 'ScopeNotActiveException' : s.result || s.phase || '시작 전' });
-    P.note(g === 'inject' ? '초록 화살표는 OrderService의 필드가 붙잡고 있는 객체입니다. 주입은 OrderService를 만들 때 한 번뿐이라, 이 화살표는 기동 뒤에 바뀌지 않습니다.' : g === 'provider' ? '노란 화살표는 getObject()가 이번에 돌려준 객체입니다. 스코프에 따라 같은 객체를 돌려주기도 하고 새로 만들기도 합니다.' : '노란 화살표는 프록시가 이번 메서드 호출을 넘긴 진짜 객체입니다. OrderService의 필드에는 프록시만 들어 있습니다.');
+    P.note(g === 'inject' ? '초록 화살표는 OrderService의 필드가 붙잡고 있는 객체입니다.' : g === 'provider' ? '노란 화살표는 getObject()가 이번에 돌려준 객체입니다.' : '노란 화살표는 프록시가 이번 메서드 호출을 넘긴 진짜 객체입니다.');
   },
   assume: '아홉 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9, 내장 톰캣 11)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해 서버를 띄우고, 실제로 GET /order 요청을 두 번 보내 응답에 적힌 Cart 번호를 읽었습니다. Cart의 생성자가 불린 횟수(기동 직후, 요청 두 번 뒤), OrderService의 필드에 들어 있는 것(Cart, ObjectProvider, 프록시), 기동 실패의 예외 사슬(UnsatisfiedDependencyException → UnsatisfiedDependencyException → ScopeNotActiveException → IllegalStateException)을 비교했습니다. 요청 두 개는 하나가 끝난 뒤 다음 것을 보냈습니다(동시에 보낸 경우는 "싱글톤 빈과 상태" 실습에서 다룹니다). 다음도 실행으로 확인했습니다: 프로토타입 빈을 주입받는 싱글톤 빈이 둘이면 서로 다른 객체를 받는 것, 프로토타입에 프록시를 쓰면 add로 넣은 값이 바로 다음 size 호출에서 보이지 않는 것(0이 나옴), @RequestScope를 붙인 빈은 그대로 주입받아도 기동되고 요청마다 하나인 것, request 스코프 빈의 @PreDestroy가 요청이 끝날 때마다 불리는 것. 다루지 않은 것: session 스코프와 application 스코프, 프로토타입 빈을 꺼내는 다른 방법(@Lookup, jakarta.inject.Provider), 프록시 방식 가운데 인터페이스를 쓰는 것(ScopedProxyMode.INTERFACES). 화면의 Cart는 객체를 세려고 static 변수를 썼는데, 요청이 동시에 들어오는 실제 코드라면 이렇게 세면 안 됩니다.',
 });

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Saving succeeded. Restoring succeeded, and the value of point that was read is 0. The constructor ran only once, when the object was created with new.</li>
 <li>A field marked transient is not saved, and in the restored object it has the default value. Use it for values that must not be left in a file, such as a password, and for values that can simply be computed again.</li>
 <li>When an object is restored, the constructor of the Serializable class does not run. This means that the value checks and the setup work done in the constructor are skipped, so restoring data that comes from a source you cannot trust is dangerous.</li>
 </ul>
@@ -178,6 +177,6 @@ try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;user
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

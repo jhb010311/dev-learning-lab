@@ -1,7 +1,7 @@
 Lab.register({
   id: 'sorting', nav: '정렬과 Comparator', cat: '자료구조', mode: 'step',
   title: '정렬 순서는 누가 정하고, 빼서 비교하면 왜 틀리나',
-  intro: '정렬은 "둘 가운데 어느 것이 앞인가"를 묻는 비교를 되풀이하는 일입니다. 그 답은 클래스가 스스로 정해 둘 수도 있고(Comparable), 정렬할 때 바깥에서 줄 수도 있습니다(Comparator). 정렬 기준을 바꿔 가며 결과가 어떻게 달라지는지, 그리고 두 수를 빼서 비교하는 흔한 코드가 큰 수에서 왜 틀린 순서를 내는지 확인해 보세요.',
+  intro: '정렬은 "둘 가운데 어느 것이 앞인가"를 묻는 비교를 되풀이하는 일입니다. 그 답은 클래스가 스스로 정해 둘 수도 있고(Comparable), 정렬할 때 바깥에서 줄 수도 있습니다(Comparator).',
   terms: ['Comparable과 Comparator', '안정 정렬', '정수 오버플로', '메서드 참조', '람다 표현식'],
   controls: [
     { id: 'by', label: '정렬 기준', type: 'select', value: 'sub', options: [['natural', 'Comparable: 클래스가 정해 둔 순서 (이름순)'], ['cmp', 'Comparator: 잔액순 (comparingInt)'], ['then', 'Comparator: 잔액순, 같으면 이름순 (thenComparing)'], ['sub', 'Comparator: 두 잔액을 빼서 비교 (a - b)']] },
@@ -83,26 +83,20 @@ Lab.register({
       : !okBal ? '예외는 나지 않았습니다. 틀린 순서가 아무 경고 없이 나온 것입니다.'
       : '잔액이 같은 park와 kim은 정렬 전의 순서 그대로 park가 앞이고, choi와 lee도 choi가 앞입니다. 비교 결과가 0인 둘의 순서를 바꾸지 않는 정렬을 안정 정렬이라고 합니다.' + (rev ? ' 거꾸로 정렬해도 0은 뒤집어도 0이므로 마찬가지입니다.' : '');
     push('System.out.println(list): 정렬된 목록을 출력합니다. ' + last, by !== 'natural' && !okBal ? 'bad' : '');
-    sum.push('정렬 결과는 ' + names.join(', ') + '입니다.');
     if (by === 'natural') sum.push('Comparable은 클래스 안에 순서를 하나 정해 두는 방법입니다(compareTo). 이름순처럼 그 클래스에 당연한 순서가 있을 때 씁니다. 다른 기준으로 정렬하고 싶으면 클래스를 고치지 않고 Comparator를 바깥에서 줍니다.');
     if (by === 'cmp') sum.push('Comparator는 정렬할 때 바깥에서 주는 순서입니다. 같은 목록을 잔액순, 이름순처럼 그때그때 다른 기준으로 정렬할 수 있습니다. comparingInt는 빼지 않고 크기를 비교하므로 큰 수에서도 안전합니다.');
     if (by === 'cmp' || (by === 'sub' && okBal)) sum.push('잔액이 같은 것끼리는 정렬 전의 순서를 지켰습니다(안정 정렬). List.sort와 Collections.sort는 안정 정렬입니다.' + (rev ? ' 거꾸로 정렬해도 같은 것끼리의 순서는 뒤집히지 않습니다.' : ''));
     if (by === 'then') sum.push('thenComparing은 앞의 기준으로 순서를 가릴 수 없을 때(비교 결과 0)만 쓰이는 다음 기준입니다.' + (rev ? ' reversed를 맨 뒤에 붙이면 앞에 적은 기준 전체가 뒤집힙니다. 잔액은 큰 것부터, 이름도 뒤에서부터입니다.' : ''));
     if (by === 'sub' && !okBal) sum.push('빼서 비교하면 두 수의 차이가 int 범위(약 -21억 ~ 21억)를 넘을 때 부호가 뒤집힙니다. 예외가 나지 않고 틀린 순서가 조용히 나옵니다. Integer.compare(a, b)나 Comparator.comparingInt를 쓰면 빼지 않고 크기를 비교하므로 안전합니다.');
-    if (by === 'sub' && okBal) sum.push('작은 수에서는 빼서 비교해도 맞는 결과가 나옵니다. 그래서 테스트는 통과하고, 값이 커진 뒤에야 틀린 정렬이 나타납니다. 잔액의 크기를 큰 수로 바꿔 보세요.');
+    if (by === 'sub' && okBal) sum.push('작은 수에서는 빼서 비교해도 맞는 결과가 나옵니다. 그래서 테스트는 통과하고, 값이 커진 뒤에야 틀린 정렬이 나타납니다.');
     function cell(v, other) { return v + (v < 0 ? ' (음수: park가 앞)' : v > 0 ? ' (양수: park가 뒤)' : ' (순서를 가리지 않음)'); }
     return { events: ev, summary: sum, names: names, c1: c1, c2: c2, row: [names.join(', '), cell(c1), cell(c2), okText] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this, D = this.DATA[c.data], bal = {};
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    D.forEach(function (x) { bal[x[0]] = x[1]; });
-    H.table(v, ['자리', '이름 (owner)', '잔액 (balance)'], s.order.map(function (o, i) { return { cells: [String(i + 1), o, { v: self.money(bal[o]), cls: o === 'park' || o === 'kim' ? 'hot' : '' }] }; }), s.sorted ? 'list (정렬한 뒤)' : 'list (정렬하기 전)');
-    var ln = H.lanes(v), sign = function (x) { return x === null ? '아직 비교 전' : x + (x < 0 ? ' → park가 앞' : x > 0 ? ' → park가 뒤' : ' → 순서를 가리지 않음'); };
+    var ln = H.lanes(v);
     H.lane(ln, 'order', !s.has ? '아직 없음' : { natural: '이름순 (compareTo)', cmp: '잔액순', then: '잔액순, 같으면 이름순', sub: '잔액을 뺀 값' }[c.by] + (s.rev ? '의 반대' : ''), s.has ? 'wait' : 'none');
-    H.lane(ln, 'compare(park, choi)', sign(s.c1), s.c1 === null ? 'none' : 'hot');
-    H.lane(ln, 'compare(park, kim)', sign(s.c2), s.c2 === null ? 'none' : 'hot');
-    H.counters(v, [[s.ok, '잔액 순서가 맞는가']]);
   },
   // 그림: 위쪽에 list의 계좌 다섯 개(정렬하면 자리가 바뀐다), 가운데에 두 번의 비교 결과, 아래에 잔액 순서가 맞는지.
   draw: function (P, sim, shown) {
@@ -117,7 +111,7 @@ Lab.register({
     P.box('k1', 28, 156, 306, 58, { cls: s.c1 === null ? 'ghost' : sim.row[3] === '틀림' ? 'bad' : 'good', title: 'compare(park, choi)', sub: what(s.c1), right: s.c1 === null ? '?' : String(s.c1) });
     P.box('k2', 346, 156, 306, 58, { cls: s.c2 === null ? 'ghost' : 'good', title: 'compare(park, kim)', sub: what(s.c2), right: s.c2 === null ? '?' : String(s.c2) });
     P.box('r1', 16, 246, 648, 38, { cls: !s.sorted ? 'ghost' : s.ok === '틀림' ? 'bad' : s.ok === '맞음' ? 'good' : 'plain', title: c.by === 'natural' ? '이름순으로 정렬됨' : '잔액이 ' + (c.rev ? '큰' : '작은') + ' 것부터 놓였는가', right: s.sorted ? s.ok : '아직 정렬 전' });
-    P.note('같은 색 상자는 잔액이 같은 계좌입니다. 정렬한 뒤에 같은 색끼리의 앞뒤가 정렬 전과 같은지 보세요. 정렬은 compare가 돌려주는 값의 부호만 보고 자리를 정하므로, compare가 틀린 부호를 내면 결과도 틀립니다.');
+    P.note('같은 색 상자는 잔액이 같은 계좌입니다. 정렬한 뒤에 같은 색끼리의 앞뒤가 정렬 전과 같은지 보세요.');
   },
   assume: '열여섯 가지 조합의 정렬 결과, 두 번의 compare가 돌려준 값, 잔액 순서가 맞는지를 이 PC의 JDK 21에서 같은 코드를 실행한 결과와 대조했습니다. compare가 돌려주는 값 가운데 명세가 정한 것은 부호(음수, 0, 양수)뿐입니다. comparingInt의 1과 -1, 문자열 비교의 13과 5 같은 구체적인 숫자는 JDK 21에서 나온 값입니다. 빼서 비교하는 Comparator처럼 규칙을 어기는 비교를 주면 정렬 결과는 정렬 알고리즘의 내부 동작에 따라 달라집니다. 이 실습의 틀린 순서는 원소가 다섯 개일 때 JDK 21의 List.sort가 내는 결과입니다. List.sort의 문서에는 Comparator가 규약을 어긴 것이 발견되면 IllegalArgumentException을 던질 수 있다고 적혀 있습니다(이 경우는 실행해 보지 않았습니다). 정렬 과정의 비교는 여러 번 일어나지만, 화면에는 그 가운데 두 번만 따로 실행해 보여 줍니다.',
 });

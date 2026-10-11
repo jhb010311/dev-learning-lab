@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
 <h1>Bean scopes</h1>
 <p><b>It is a prototype bean, so why is there only one object?</b></p>
-<p>A scope determines how many objects of a bean the container creates and how long they are used. Singleton means one per container, prototype means a new one every time the container is asked for the bean, and request means one per HTTP request. But when a singleton bean has a bean of another scope injected into it, something unexpected happens. Send two requests, use the shopping cart (Cart) twice in each request, and count how many objects are created.</p>
+<p>A scope determines how many objects of a bean the container creates and how long they are used. Singleton means one per container, prototype means a new one every time the container is asked for the bean, and request means one per HTTP request. But when a singleton bean has a bean of another scope injected into it, something unexpected happens.</p>
 <p>Checked against real execution · A Spring Boot 4.1.1 server was started, and HTTP requests were sent for all 9 combinations and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -72,7 +72,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Startup succeeded. Cart objects created in total over two requests (two uses per request): 1. Request 1 used Cart #1, #1, and request 2 used Cart #1, #1.</li>
 <li>Prototype means that a new object is created &quot;each time the container is asked for the bean&quot;. Injection into a singleton bean happens only once, when that bean is created, so the one object received then keeps being used. If you expected a new object on each use, this is a bug.</li>
 <li>If you need a new object on each use, have an ObjectProvider injected and retrieve the object with getObject(). If two singleton beans have a prototype bean injected, each of the two receives a different object.</li>
 </ul>
@@ -206,6 +205,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'classload', nav: 'Class loading and initialization', cat: 'JVM', mode: 'step',
   title: 'When does the static initializer of a class run?',
-  intro: 'A static initializer written in a class does not run when the program starts. It runs once, when the class is first "really" used. But not every appearance of the class name in the code counts as that kind of use. Do the same thing twice in a row and check when the static initializer runs and how many times.',
+  intro: 'A static initializer written in a class does not run when the program starts. It runs once, when the class is first "really" used. But not every appearance of the class name in the code counts as that kind of use.',
   terms: ['Class loader', 'Class initialization', 'Static initializer', 'Compile-time constant', 'static'],
   controls: [
     { id: 'cls', label: 'Class to use', type: 'select', value: 'parent', options: [['parent', 'Parent (the superclass)'], ['child', 'Child (a subclass that extends Parent)']] },
@@ -78,7 +78,6 @@ Lab.register({
     print('second use done'); st.stmt = 'println("second use done");'; st.eff = 'Done'; st.to = '';
     push('System.out.println("second use done"): The program ends. Number of times the static initializers ran: Parent ' + st.pn + ', Child ' + st.cn + '.');
     var word = function (n) { return n ? 'Ran once' : 'Did not run'; };
-    sum.push('With the same thing done twice, the number of times the static initializers ran is: Parent ' + st.pn + ', Child ' + st.cn + '. Classes loaded: ' + (f.loads.length ? f.loads.join(', ') : 'none') + '.');
     if (U === 'const') sum.push('A field that is static final and whose value is fixed at compile time, as with a number or string literal, is a "compile-time constant". The compiler puts the value directly into the code that uses the constant, so the class is not used at run time. This is why, if you change only the constant and recompile only that class, the old value stays in the code that uses it.');
     if (U === 'finalrt') sum.push('Not every static final field is a constant. A field whose value comes from a method call gets its value at run time, so the class must be initialized before the field can be read.');
     if (U === 'array' || U === 'classlit') sum.push('Loading a class and initializing it are different stages. Creating an array or using .class needs only the information about the class, so the class is only loaded and its static initializer does not run.');
@@ -96,11 +95,6 @@ Lab.register({
       { cls: s.P === 'none' ? 'gone' : '', cells: ['Parent', { v: word[s.P], cls: cl[s.P] }, s.pn + ''] },
       { cls: s.C === 'none' ? 'gone' : '', cells: ['Child', { v: word[s.C], cls: cl[s.C] }, s.cn + ''] },
     ], 'Classes the JVM has prepared');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Line that just ran', s.stmt, 'hot');
-    H.lane(ln, 'What happened', s.eff, s.eff.indexOf('not trigger') >= 0 || s.eff.indexOf('directly') >= 0 ? 'wait' : 'none');
-    H.title(v, 'Lines printed');
-    H.slots(v, s.out.map(function (x) { return [x, x.indexOf('init') >= 0 ? 'd' : 'q']; }), 'None yet');
   },
   // Diagram: on the left, the line of main that just ran; on the right, the state of the two classes the JVM has prepared (not loaded, loaded, initialized); at the bottom, the lines printed.
   draw: function (P, sim, shown) {
@@ -119,7 +113,7 @@ Lab.register({
       var k = s.out.indexOf(x);
       if (k >= 0) P.box('o_' + i, 16 + k * 131, 224, 124, 34, { cls: x.indexOf('init') >= 0 ? 'good' : 'plain', title: x, center: true });
     });
-    P.note('A class goes through two separate stages: loading and initialization. The static initializer runs only once, in the initialization stage. The bold outline marks the class that the line that just ran uses.');
+    P.note('The bold outline marks the class that the line that just ran uses.');
   },
   assume: 'For each of the 18 combinations, source code identical to the code on the screen was newly compiled and run on JDK 21 on this PC, and the order of the printed lines and the classes that were loaded were checked against the model. The point at which each class was loaded was checked against the JVM log obtained with the -Xlog:class+load option. When initialization happens is defined by the Java Language Specification, so it is the same on every JVM. When a class is loaded, in contrast, is left to the JVM implementation, so "a class is loaded when it is first used" and "a class is not even loaded when only a constant is read" are behaviors confirmed on the JVM of this PC (HotSpot). That reading the constant is compiled into the value 10 was confirmed by looking at the bytecode with javap. The detailed steps that a class goes through after loading and before initialization, such as verification and preparation, and the initialization rules for Class.forName and for interfaces are not covered.',
 });

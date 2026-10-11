@@ -1,7 +1,7 @@
 Lab.register({
   id: 'sorting', nav: 'Sorting and Comparator', cat: 'Data structures', mode: 'step',
   title: 'Who decides the sort order, and why is comparing by subtraction wrong?',
-  intro: 'Sorting means asking "which of these two comes first?" over and over. The class can define the answer itself (Comparable), or the answer can be supplied from outside at the time of sorting (Comparator). Change the sort order to see how the result changes, and see why the common code that compares two numbers by subtracting them produces a wrong order for large numbers.',
+  intro: 'Sorting means asking "which of these two comes first?" over and over. The class can define the answer itself (Comparable), or the answer can be supplied from outside at the time of sorting (Comparator).',
   terms: ['Comparable and Comparator', 'Stable sort', 'Integer overflow', 'Method reference', 'Lambda expression'],
   controls: [
     { id: 'by', label: 'Sort order', type: 'select', value: 'sub', options: [['natural', 'Comparable: the order the class defines (by name)'], ['cmp', 'Comparator: by balance (comparingInt)'], ['then', 'Comparator: by balance, then by name when equal (thenComparing)'], ['sub', 'Comparator: subtracts the two balances (a - b)']] },
@@ -83,26 +83,20 @@ Lab.register({
       : !okBal ? 'No exception was thrown. The wrong order came out without any warning.'
       : 'park and kim, which have the same balance, keep the order they had before the sort, with park first, and choi also stays before lee. A sort that does not reorder two elements whose comparison result is 0 is called a stable sort.' + (rev ? ' The same holds when sorting in reverse, because reversing 0 still gives 0.' : '');
     push('System.out.println(list): Prints the sorted list. ' + last, by !== 'natural' && !okBal ? 'bad' : '');
-    sum.push('The sorted result is ' + names.join(', ') + '.');
     if (by === 'natural') sum.push('Comparable is a way to define one order inside the class (compareTo). Use it when the class has a natural order, such as by name. To sort by something else, supply a Comparator from outside without changing the class.');
     if (by === 'cmp') sum.push('A Comparator is an order supplied from outside at the time of sorting. It lets you sort the same list by a different sort key each time, such as by balance or by name. comparingInt compares the two numbers without subtracting, so it is safe for large numbers too.');
     if (by === 'cmp' || (by === 'sub' && okBal)) sum.push('Accounts with the same balance kept the order they had before the sort (stable sort). List.sort and Collections.sort are stable sorts.' + (rev ? ' Even when sorting in reverse, the order among equal elements is not reversed.' : ''));
     if (by === 'then') sum.push('thenComparing supplies the next sort key, which is used only when the previous one cannot decide the order (comparison result 0).' + (rev ? ' When reversed is added at the very end, everything written before it is reversed. The balances run from the largest, and the names run backward too.' : ''));
     if (by === 'sub' && !okBal) sum.push('Comparing by subtraction flips the sign when the difference of the two numbers is outside the int range (about -2.1 billion to 2.1 billion). No exception is thrown, and a wrong order comes out silently. Integer.compare(a, b) and Comparator.comparingInt compare the two numbers without subtracting, so they are safe.');
-    if (by === 'sub' && okBal) sum.push('With small numbers, comparing by subtraction gives the correct result. So the tests pass, and the wrong sort appears only after the values have grown large. Change the size of the balances to large numbers and see.');
+    if (by === 'sub' && okBal) sum.push('With small numbers, comparing by subtraction gives the correct result. So the tests pass, and the wrong sort appears only after the values have grown large.');
     function cell(v, other) { return v + (v < 0 ? ' (negative: park first)' : v > 0 ? ' (positive: park after)' : ' (order not decided)'); }
     return { events: ev, summary: sum, names: names, c1: c1, c2: c2, row: [names.join(', '), cell(c1), cell(c2), okText] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this, D = this.DATA[c.data], bal = {};
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    D.forEach(function (x) { bal[x[0]] = x[1]; });
-    H.table(v, ['Position', 'Name (owner)', 'Balance (balance)'], s.order.map(function (o, i) { return { cells: [String(i + 1), o, { v: self.money(bal[o]), cls: o === 'park' || o === 'kim' ? 'hot' : '' }] }; }), s.sorted ? 'list (after sorting)' : 'list (before sorting)');
-    var ln = H.lanes(v), sign = function (x) { return x === null ? 'not compared yet' : x + (x < 0 ? ' → park first' : x > 0 ? ' → park after' : ' → order not decided'); };
+    var ln = H.lanes(v);
     H.lane(ln, 'order', !s.has ? 'not set yet' : { natural: 'by name (compareTo)', cmp: 'by balance', then: 'by balance, then by name when equal', sub: 'difference of the balances' }[c.by] + (s.rev ? ', reversed' : ''), s.has ? 'wait' : 'none');
-    H.lane(ln, 'compare(park, choi)', sign(s.c1), s.c1 === null ? 'none' : 'hot');
-    H.lane(ln, 'compare(park, kim)', sign(s.c2), s.c2 === null ? 'none' : 'hot');
-    H.counters(v, [[s.ok, 'Balance order correct?']]);
   },
   // Diagram: at the top, the five accounts in list (their positions change when the list is sorted); in the middle, the results of the two comparisons; at the bottom, whether the balance order is correct.
   draw: function (P, sim, shown) {
@@ -117,7 +111,7 @@ Lab.register({
     P.box('k1', 28, 156, 306, 58, { cls: s.c1 === null ? 'ghost' : sim.row[3] === 'Wrong' ? 'bad' : 'good', title: 'compare(park, choi)', sub: what(s.c1), right: s.c1 === null ? '?' : String(s.c1) });
     P.box('k2', 346, 156, 306, 58, { cls: s.c2 === null ? 'ghost' : 'good', title: 'compare(park, kim)', sub: what(s.c2), right: s.c2 === null ? '?' : String(s.c2) });
     P.box('r1', 16, 246, 648, 38, { cls: !s.sorted ? 'ghost' : s.ok === 'Wrong' ? 'bad' : s.ok === 'Correct' ? 'good' : 'plain', title: c.by === 'natural' ? 'Sorted by name' : 'Ordered from the ' + (c.rev ? 'largest' : 'smallest') + ' balance?', right: s.sorted ? s.ok : 'not sorted yet' });
-    P.note('Boxes of the same color are accounts with the same balance. After the sort, check whether boxes of the same color are in the same relative order as before the sort. The sort decides positions by looking only at the sign of the value that compare returns, so if compare returns the wrong sign, the result is wrong too.');
+    P.note('Boxes of the same color are accounts with the same balance. After the sort, check whether boxes of the same color are in the same relative order as before the sort.');
   },
   assume: 'The sorted result, the values returned by the two calls to compare, and whether the balance order is correct were checked for all 16 combinations against the result of running the same code on JDK 21 on this PC. Of the value that compare returns, the specification defines only the sign (negative, zero, or positive). Specific numbers such as the 1 and -1 of comparingInt and the 13 and 5 of the string comparison are the values that came out on JDK 21. When you supply a comparison that breaks the rules, such as a Comparator that compares by subtraction, the sorted result depends on the internal behavior of the sorting algorithm. The wrong order in this lab is the result that List.sort on JDK 21 produces with five elements. The documentation of List.sort says that an IllegalArgumentException may be thrown if the comparator is found to violate the Comparator contract (this case was not run). The sort makes many comparisons, but the screen shows only two of them, run separately.',
 });

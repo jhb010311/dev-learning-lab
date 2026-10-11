@@ -1,7 +1,7 @@
 Lab.register({
   id: 'lifecycle', nav: '빈 생명주기 콜백', cat: '스프링', mode: 'step',
   title: '생성자에서 주입받은 필드를 썼더니 왜 null인가',
-  intro: '컨테이너는 빈을 정해진 순서로 다룹니다. 생성자로 객체를 만들고, 의존성을 넣고, 초기화 콜백을 부르고, 쓰다가, 컨테이너가 닫힐 때 소멸 콜백을 부릅니다. 가격표를 미리 읽어 두는 PriceCache 빈으로, 준비 작업을 어디에 두어야 하는지와 콜백이 어떤 순서로 불리는지 확인해 보세요.',
+  intro: '컨테이너는 빈을 정해진 순서로 다룹니다. 생성자로 객체를 만들고, 의존성을 넣고, 초기화 콜백을 부르고, 쓰다가, 컨테이너가 닫힐 때 소멸 콜백을 부릅니다.',
   terms: ['빈 생명주기', '@PostConstruct와 @PreDestroy', 'InitializingBean과 DisposableBean', '생성자 주입, 세터 주입, 필드 주입', '@Configuration과 @Bean'],
   controls: [
     { id: 'inj', label: 'PriceRepository를 받는 방법', type: 'select', value: 'field', options: [['field', '필드 주입 (@Autowired)'], ['ctor', '생성자 주입']] },
@@ -91,7 +91,6 @@ Lab.register({
       done = create();
       if (!done) {
         st.result = '기동 실패'; st.phase = '기동 실패';
-        sum.push('기동 실패: NullPointerException. 생성자가 불리는 시점에는 @Autowired 필드가 아직 채워지지 않았습니다.');
       } else {
         st.cur = ''; st.phase = '기동 완료'; mark('STARTED', '기동 완료');
         push('기동이 끝났습니다. PriceCache 빈은 초기화까지 마친 상태로 컨테이너 안에 있습니다.', '');
@@ -126,7 +125,6 @@ Lab.register({
     var initCol = !k.inits.length || !done ? '콜백 없음' : k.inits.map(function (x) { return x[1]; }).join(' → ');
     var destCol = !k.dests.length || !done ? '콜백 없음' : proto ? '불리지 않음' : k.dests.map(function (x) { return x[1]; }).join(' → ');
     if (done) {
-      sum.push('성공. 불린 순서는 생성자 → ' + (field ? '의존성 주입 → ' : '') + (k.inits.length ? k.inits.map(function (x) { return x[1]; }).join(' → ') + ' → ' : '') + '사용' + (destCol !== '콜백 없음' && !proto ? ' → ' + destCol : '') + '입니다.' + (proto && k.dests.length ? ' 소멸 콜백은 불리지 않았습니다.' : ''));
       if (field) sum.push('필드 주입에서는 객체를 먼저 만들고 그 뒤에 필드를 채웁니다. 그래서 생성자 안에서는 주입받을 필드가 null입니다. 주입받은 것을 쓰는 준비 작업은 생성자가 아니라 초기화 콜백에 둡니다.');
       else sum.push('생성자 주입에서는 생성자 안에서 의존성을 바로 쓸 수 있습니다.' + (inCtor ? ' 이 설정에는 소멸 콜백을 두지 않았으므로 컨테이너가 닫힐 때 불리는 것이 없습니다.' : ' 초기화 콜백은 생성자 다음에 불립니다.'));
       if (c.cb === 'anno') sum.push('@PostConstruct와 @PreDestroy는 메서드에 붙이기만 하면 됩니다. 스프링의 인터페이스를 구현하지 않아도 되며, 스프링 공식 문서가 권하는 방법입니다.');
@@ -144,14 +142,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 컨테이너가 뜨고, 빈을 한 번 쓴 뒤 컨테이너를 닫습니다.'); return; }
-    var names = [['ctor', '1. 생성자'], ['inject', '2. 의존성 주입'], ['init', '3. 초기화 콜백'], ['use', '4. 사용'], ['destroy', '5. 소멸 콜백']];
-    H.table(v, ['단계', '일어난 일'], names.map(function (n) {
-      var x = s.stage[n[0]];
-      return { cells: [{ v: n[1], cls: s.cur === n[0] ? 'hot' : '' }, { v: x || '아직', cls: s.bad === n[0] ? 'bad' : x && x !== '콜백 없음' ? 'good' : '' }] };
-    }), 'PriceCache 빈의 생명주기');
     H.title(v, '불린 순서');
     H.slots(v, s.log.map(function (w, i) { return [w, w === '기동 완료' || w === '컨테이너 종료 시작' ? 'q' : i === s.log.length - 1 ? 'b' : 'd']; }), '아직 없음');
-    H.counters(v, [[s.repo || '-', 'repository 필드'], [s.prices || '없음', '가격표(prices)'], [s.result || s.phase, '상태']]);
   },
   // 그림: 왼쪽에 생명주기의 다섯 단계를 위에서 아래로, 오른쪽에 컨테이너 안의 PriceRepository 빈과 PriceCache 객체. 지금 단계가 굵은 테두리로 표시된다.
   draw: function (P, sim, shown) {
@@ -169,7 +161,7 @@ Lab.register({
     if (s.obj && s.repo === '주입됨') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'good', label: '주입' });
     if (s.obj && s.repo === 'null') P.arrow('inj', 'repo:b', 'cache:t', { cls: 'dash mut', label: '아직 주입 전' });
     P.box('r1', 16, 292, 648, 36, { cls: !s.result ? 'ghost' : s.result === '성공' ? 'good' : 'bad', title: '상태', right: s.result ? (s.result === '성공' ? '성공' : s.result + ': NullPointerException') : s.phase || '시작 전' });
-    P.note('컨테이너는 빈 하나를 위에서 아래 순서로 다룹니다. 필드 주입에서는 1번과 2번 사이에 repository가 null인 구간이 있습니다. 프로토타입 빈은 4번까지만 컨테이너가 맡고, 5번은 불리지 않습니다.');
+    P.note('컨테이너는 빈 하나를 위에서 아래 순서로 다룹니다.');
   },
   assume: '스무 가지 조합을 이 PC의 스프링 부트 4.1.1(스프링 프레임워크 7.0.9, jakarta.annotation-api 3.0.0)에서 실행해 대조했습니다. 조합마다 화면과 같은 구조의 소스를 컴파일해 컨테이너를 띄우고, 빈을 꺼내 price("사과")를 한 번 부른 뒤 컨테이너를 닫으면서, 생성자와 각 콜백이 불린 순서와 그때 repository 필드가 null이었는지를 기록해 모형의 순서와 하나하나 비교했습니다. 기동 실패의 예외 사슬은 BeanCreationException → BeanInstantiationException → NullPointerException이었고, 화면에는 맨 안쪽 원인을 적었습니다. 화면에서 단순화한 것: "의존성 주입" 단계는 따로 기록할 수 없어, 생성자에서는 null이고 초기화 콜백에서는 들어 있었다는 것으로 그 사이에 주입이 일어났음을 확인했습니다. 세터 주입과, 컨테이너가 닫힐 때 여러 빈 사이의 소멸 순서는 다루지 않았습니다. @Bean에 destroyMethod를 적지 않아도 public close() 메서드가 있으면 컨테이너가 닫힐 때 불리는 것(프로토타입이면 불리지 않는 것)도 실행으로 확인했습니다. 실행으로 확인하지 않고 스프링 공식 문서의 설명을 따른 것은 두 가지입니다: @PostConstruct와 @PreDestroy가 권장되는 방법이라는 것, 프로세스가 강제로 종료되면 컨테이너가 닫히지 못해 소멸 콜백이 불리지 않는다는 것.',
 });

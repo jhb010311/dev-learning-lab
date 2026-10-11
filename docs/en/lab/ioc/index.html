@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
 <h1>The Spring container and beans</h1>
 <p><b>You never wrote new, so who creates the object and passes it in?</b></p>
-<p>For the order service to use a discount policy object, someone has to create that object. If the order service creates it directly with new, the choice of implementation is fixed in the code of the order service. In Spring, the container creates the objects (beans), picks the right one, and injects it wherever it is needed. See what the container does when one bean is registered, when two are registered, and when none is registered.</p>
+<p>For the order service to use a discount policy object, someone has to create that object. If the order service creates it directly with new, the choice of implementation is fixed in the code of the order service. In Spring, the container creates the objects (beans), picks the right one, and injects it wherever it is needed.</p>
 <p>Checked against real execution · All 30 combinations were run on Spring Boot 4.1.1 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Startup failed: NoUniqueBeanDefinitionException. There are two beans of type DiscountPolicy, fixedDiscountPolicy and rateDiscountPolicy, so the container could not choose.</li>
 <li>The container looks up beans by type. When there are two or more beans of the same type, you must tell it which one to inject. Either put @Primary on the bean to prefer, or write the bean name with @Qualifier at the injection point.</li>
 <li>Just creating and registering one more implementation class causes this error. If startup fails although you did not change the existing code, check whether another bean of the same type has been added.</li>
 </ul>
@@ -184,6 +183,6 @@ int pay = orderService.order(20000);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

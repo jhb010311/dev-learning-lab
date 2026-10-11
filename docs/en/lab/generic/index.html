@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Generics, enums, and annotations</p>
 <h1>Generics</h1>
 <p><b>What does the &lt;Integer&gt; in List&lt;Integer&gt; protect you from?</b></p>
-<p>Generics are the syntax for writing &quot;what this list holds&quot; in the type, as in List&lt;Integer&gt;. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out. Change the declaration of the variable list, which refers to the same list, and check what compiles and what is rejected.</p>
+<p>Generics are the syntax for writing &quot;what this list holds&quot; in the type, as in List&lt;Integer&gt;. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out.</p>
 <p>Checked against real execution · All 20 combinations were actually compiled and run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Compilation: Success (with a warning). Output: [1, 2, three] / true. How it ended: Stopped by exception: ClassCastException (String cannot be cast to Integer).</li>
 <li>Without generics (a raw type), code that adds a value of the wrong type compiles, nothing happens at the moment the value is added, and then a ClassCastException is thrown on a different line, the one that takes the value out. Change the declaration to List&lt;Integer&gt;, and the same code becomes a compile-time error.</li>
 <li>The true in the output shows type erasure. A list at run time does not remember its element type, so all the protection that generics give happens at compile time. If you bypass that check with a raw type, nothing is left to stop the mistake.</li>
 </ul>
@@ -169,6 +168,6 @@ System.out.println(&quot;last value: &quot; + last);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

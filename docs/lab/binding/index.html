@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b3ddaad4fd">
+<link rel="stylesheet" href="../../app.css?v=e557751983">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 웹 MVC</p>
 <h1>요청 매핑과 파라미터 바인딩</h1>
 <p><b>요청에 실어 보낸 값은 어떻게 메서드의 파라미터가 되나</b></p>
-<p>HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 &quot;그 가운데 어느 자리에서 값을 꺼낼지&quot;를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다. 받는 방법과 요청을 바꿔 가며 값이 어디서 와서 어디로 들어가는지 보세요.</p>
+<p>HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 &quot;그 가운데 어느 자리에서 값을 꺼낼지&quot;를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1 서버에 마흔여덟 가지 조합의 요청을 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>응답은 400 Bad Request이고, 컨트롤러 메서드는 실행되지 않았습니다. 거절한 이유는 &quot;필수 값이 없음&quot;입니다.</li>
 <li>JSON 본문으로 보낸 값은 @RequestParam으로 받을 수 없습니다. 값을 실은 자리(본문)와 꺼내는 자리(요청 파라미터)가 다르기 때문입니다. JSON 본문은 @RequestBody로 받습니다.</li>
 <li>애노테이션마다 보는 자리가 정해져 있습니다. @RequestParam과 @ModelAttribute는 요청 파라미터(쿼리 스트링과 폼 본문), @PathVariable은 경로, @RequestBody는 본문 전체입니다.</li>
 </ul>
@@ -169,6 +168,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b3ddaad4fd"></script>
+<script src="../../app.js?v=e557751983"></script>
 </body>
 </html>

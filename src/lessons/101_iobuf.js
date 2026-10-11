@@ -82,24 +82,19 @@ Lab.register({
       if (!rest) push('in.read()로 글자 하나씩: InputStreamReader는 바이트를 UTF-8 규칙에 따라 묶어 글자로 바꿉니다. 3바이트씩 묶여 "가", "나", "다" 세 글자가 그대로 나옵니다.', 'good');
       else push('in.read()로 글자 하나씩: InputStreamReader는 바이트를 UTF-8 규칙에 따라 묶어 글자로 바꿉니다. "가"와 "나"는 3바이트가 온전히 있어 그대로 나옵니다. 남은 ' + rest + '바이트(' + HEX.slice(full * 3, st.file).join(' ') + ')는 "다"의 앞부분뿐이라 글자를 이루지 못하고, 깨진 글자(�) 하나로 나옵니다.', 'bad');
     }
-    sum.push('write를 9번 불렀고, 아래 스트림으로는 ' + st.calls + '번 내려갔습니다. 파일에는 9바이트 가운데 ' + st.file + '바이트가 쓰였고, 스트림은 ' + (st.closed ? '닫혔습니다.' : '열린 채로 남았습니다.'));
     if (!cap) sum.push('버퍼가 없으면 write 한 번이 곧 아래 스트림 호출 한 번입니다. 데이터는 바로 파일에 들어가지만, 바이트 수만큼 파일 쓰기를 요청하게 되어 데이터가 많을수록 느려집니다.');
     else if (st.file < 9) sum.push('BufferedOutputStream은 데이터를 메모리의 버퍼에 모았다가 한꺼번에 내려보냅니다. 내려가는 때는 버퍼가 가득 찼을 때와 flush 또는 close를 불렀을 때뿐입니다. 그래서 닫지 않으면 마지막에 버퍼에 남은 데이터가 파일에 쓰이지 않습니다.');
     else sum.push(c.buf === 'buf' ? '9번의 write가 아래로는 1번으로 줄었습니다. 크기를 따로 주지 않은 BufferedOutputStream의 버퍼는 이 PC의 JDK 21에서 8192바이트였고, 그만큼 모이기 전에는 flush나 close를 불러야 내려갑니다.' : '버퍼가 4바이트라서 가득 찰 때마다 4바이트씩 내려가고, 마지막 1바이트는 flush나 close를 불렀을 때 내려갔습니다.');
     if (fail && E === 'twr') sum.push('try-with-resources는 예외가 발생해도 close를 불러 줍니다. 닫는 코드를 직접 쓰면 그 앞에서 예외가 났을 때 건너뛰게 되므로, 스트림처럼 닫아야 하는 자원은 try-with-resources로 여는 것이 안전합니다.');
-    if (fail && (E === 'close' || E === 'flush')) sum.push('닫는 코드를 맨 아래에 직접 써 두면, 그 앞에서 예외가 났을 때 실행되지 않습니다. "다 쓴 뒤에 하는 일"을 try-with-resources로 바꿔 비교해 보세요.');
+    if (fail && (E === 'close' || E === 'flush')) sum.push('닫는 코드를 맨 아래에 직접 써 두면, 그 앞에서 예외가 났을 때 실행되지 않습니다.');
     if (!fail && E === 'flush') sum.push('flush는 버퍼를 비울 뿐 스트림을 닫지 않습니다. 열린 스트림은 파일을 계속 붙잡고 있으므로, 다 쓴 스트림은 close로 닫습니다. close는 닫기 전에 버퍼도 비워 줍니다.');
     if (st.file && c.read === 'byte') sum.push('한글처럼 한 글자가 여러 바이트인 문자는 바이트 하나를 글자 하나로 바꾸면 깨집니다. 글자를 읽을 때는 InputStreamReader 같은 문자 스트림에 인코딩(UTF-8)을 알려 주고 읽습니다. 영문자 abc는 UTF-8에서 한 글자가 1바이트라서 이렇게 읽어도 그대로 보이므로, 영문으로만 시험하면 이 문제를 놓칩니다.');
     if (st.file && c.read === 'char' && !rest) sum.push('문자 스트림은 바이트 스트림 위에서 "몇 바이트가 글자 하나인지"를 인코딩 규칙으로 판단해 글자 단위로 돌려줍니다.');
     return { events: ev, summary: sum, lens: st.lens, codes: codes, closed: st.closed, row: [st.calls + '번', st.file + ' / 9바이트', st.closed ? '닫힘' : '열린 채로 남음', rowRead] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    var HEX = ['EA', 'B0', '80', 'EB', '82', '98', 'EB', '8B', 'A4'];
-    H.counters(v, [[s.calls + '번', '아래로 내려간 write'], [c.buf === 'raw' ? '없음' : s.pend + '바이트', '버퍼에 남은 것'], [s.file + ' / 9', '파일에 쓰인 바이트']]);
-    H.title(v, '쓴 바이트가 지금 있는 곳 (노랑: 버퍼, 초록: 파일)');
-    H.slots(v, HEX.filter(function (h, i) { return s.where[i]; }).map(function (h, i) { return [h, s.where[i] === 2 ? 'd' : 'b']; }), '아직 쓴 바이트 없음');
     var ln = H.lanes(v);
     H.lane(ln, '스트림', s.closed ? '닫힘' : '열려 있음', s.closed ? 'good' : 'wait');
     H.lane(ln, '예외', s.ex ? 'IllegalStateException 발생' : '없음', s.ex ? 'bad' : 'none');
@@ -122,7 +117,7 @@ Lab.register({
     P.box('r2', 344, 202, 320, 36, { cls: s.closed ? 'good' : s.open ? 'wait' : 'ghost', title: '스트림', right: s.closed ? '닫힘' : s.open ? '열려 있음' : '아직 열기 전' });
     P.box('r3', 16, 248, 648, 36, { cls: s.read ? s.readOk : 'ghost', title: '파일을 다시 읽은 결과', right: s.read || '아직 읽기 전' });
     P.box('r4', 16, 294, 648, 30, { cls: s.ex ? 'bad' : 'ghost', title: '예외', right: s.ex ? 'IllegalStateException (처리 중 오류)' : '없음' });
-    P.note('가운데 줄의 상자 하나가 1바이트입니다. 노란 상자는 메모리의 버퍼에만 있는 바이트, 초록 상자는 파일까지 내려간 바이트입니다. 버퍼에 있는 바이트는 버퍼가 가득 차거나 flush, close를 불러야 파일로 내려갑니다.');
+    P.note('가운데 줄의 상자 하나가 1바이트입니다. 노란 상자는 메모리의 버퍼에만 있는 바이트, 초록 상자는 파일까지 내려간 바이트입니다.');
   },
   assume: '마흔여덟 가지 조합의 결과(아래 스트림으로 내려간 write 횟수와 한 번에 내려간 바이트 수, 파일 크기, 닫혔는지, 다시 읽은 글자)를 이 PC의 JDK 21에서 실행한 결과와 대조했습니다. 크기를 주지 않은 BufferedOutputStream이 8192바이트를 모은 뒤에 내려보낸다는 것, 닫지 않고 프로그램이 정상 종료해도 버퍼에 남은 데이터가 파일에 쓰이지 않는다는 것, 영문 abc는 바이트 하나씩 글자로 바꿔도 그대로라는 것도 같은 PC에서 따로 실행해 확인했습니다. 8192는 이 JDK에서 본 값이며 자바 문서가 정해 둔 수치는 아닙니다. 그림의 "파일"은 프로그램이 운영체제에 쓰기를 넘긴 것까지를 뜻합니다. 운영체제도 자기 버퍼를 따로 가지고 있어서 디스크에 실제로 기록되는 때는 그보다 늦을 수 있는데, 이것은 다루지 않았습니다. 바이트 방식으로 읽은 결과에서 화면에 보일 수 없는 글자는 □로 표시했습니다. 버퍼가 있을 때와 없을 때의 속도 차이는 재지 않았습니다. 쓰는 쪽의 문자 스트림(Writer)과 큰 덩어리를 한 번에 쓰는 write(byte[])는 다루지 않았습니다.',
 });

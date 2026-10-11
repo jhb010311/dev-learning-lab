@@ -1,7 +1,7 @@
 Lab.register({
   id: 'generic', nav: 'Generics', cat: 'Java language', mode: 'step',
   title: 'What does the <Integer> in List<Integer> protect you from?',
-  intro: 'Generics are the syntax for writing "what this list holds" in the type, as in List<Integer>. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out. Change the declaration of the variable list, which refers to the same list, and check what compiles and what is rejected.',
+  intro: 'Generics are the syntax for writing "what this list holds" in the type, as in List<Integer>. When you write it, the compiler rejects code that adds a value of the wrong type, before the program runs. When you do not write it, that code compiles as it is, and a ClassCastException is thrown much later, at the place where the value is taken out.',
   terms: ['Generics', 'Raw type', 'Type erasure', 'Wildcard (? extends and ? super)'],
   controls: [
     { id: 'decl', label: 'Declaration of the variable list (it refers to the same list as ints)', type: 'select', value: 'raw', options: [['raw', 'List (no generics, a raw type)'], ['int', 'List<Integer>'], ['num', 'List<Number>'], ['ext', 'List<? extends Number>'], ['sup', 'List<? super Integer>']] },
@@ -75,7 +75,6 @@ Lab.register({
     if (errLines.length) {
       st.comp = 'Error'; st.end = 'Cannot run';
       push('Compilation failed: No class file is produced, so the program cannot run. Code that could go wrong was filtered out before it ran.', 'bad');
-      sum.push('This is a compile-time error (lines with an error: ' + errLines.length + '). The program does not run.');
       if (d === 'num') sum.push('A List<Integer> cannot be assigned to a List<Number> variable. Even when the element types are subtype and supertype, the lists that hold them are not related at all. If it were allowed, a Double could be added through that variable and break the list of Integer. When you want to accept lists of several kinds of numbers, use List<? extends Number>.');
       if (d === 'int') sum.push('With generics, code that adds a value of the wrong type becomes a compile-time error. Change the declaration to the raw type (List) and run the same code, and you can see the same mistake show up late, as an exception at run time.');
       if (d === 'ext') sum.push('A list declared with ? extends Number allows only "getting a value and using it as a Number". The actual element type is unknown, so adding is rejected. Use it for a parameter whose values are only read (for example, a method that computes a sum).');
@@ -111,12 +110,11 @@ Lab.register({
       push('Integer last = ints.get(ints.size() - 1) runs: It takes out the last element (' + lastVal + ') as an Integer and prints it. The output is "last value: ' + lastVal + '". The program ends normally.', 'good');
     }
     var endText = crash ? 'Stopped by exception: ClassCastException (' + j.box + ' cannot be cast to Integer)' : 'Normal exit';
-    sum.push('Compilation: ' + st.comp + '. Output: ' + st.out.join(' / ') + '. How it ended: ' + endText + '.');
     if (d === 'raw' && bad) sum.push('Without generics (a raw type), code that adds a value of the wrong type compiles, nothing happens at the moment the value is added, and then a ClassCastException is thrown on a different line, the one that takes the value out. Change the declaration to List<Integer>, and the same code becomes a compile-time error.');
     if (d === 'raw' && !bad) sum.push('This time the value that was added is an integer, so there was no problem. But the compiler did not check it for you. It was luck. The warning (unchecked) is the compiler telling you "I could not check this line".');
     if (d === 'int') sum.push('With generics, the compiler checks the type when you add a value, and you do not have to write a cast when you take one out.');
-    if (d === 'ext') sum.push('From a list declared with ? extends Number, you can take a value out and use it as a Number. Select one of the operations that add a value (add) and compare.');
-    if (d === 'sup') sum.push('You can add an Integer to a list declared with ? super Integer. Select the operation that takes a value out (get) and compare.');
+    if (d === 'ext') sum.push('From a list declared with ? extends Number, you can take a value out and use it as a Number.');
+    if (d === 'sup') sum.push('You can add an Integer to a list declared with ? super Integer.');
     sum.push('The true in the output shows type erasure. A list at run time does not remember its element type, so all the protection that generics give happens at compile time. If you bypass that check with a raw type, nothing is left to stop the mistake.');
     return { events: ev, summary: sum, msgs: [], warn: j.res === 'warn' ? j.msg : '', crashLine: crash ? lastLine : '', row: [st.comp, 'None', st.out.join(' / '), endText] };
   },
@@ -129,14 +127,9 @@ Lab.register({
       { cells: ['ints', 'List<Integer>', 'add Integer · get gives Integer'] },
       { cls: s.link ? '' : 'gone', cells: ['list', TYPE[c.decl], { v: ALLOW[c.decl], cls: s.link === 'err' ? 'bad' : '' }] },
     ], 'Two variables that refer to the same list');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Check', s.chk ? this.opLine(c) + '  →  ' + s.chk : 'not yet', s.chk === 'Error' ? 'bad' : s.chk === 'Warning' ? 'hot' : s.chk === 'Passed' ? 'good' : 'none');
-    H.lane(ln, 'Compilation', s.comp === '?' ? 'checking' : s.comp, s.comp === 'Error' ? 'bad' : s.comp === '?' ? 'hot' : 'good');
-    H.lane(ln, 'List contents', '[1, 2' + (s.added ? ', ' + s.added : '') + ']' + (s.added && s.addedType !== 'Integer' ? '  (a ' + s.addedType + ' is mixed in)' : ''), s.added && s.addedType !== 'Integer' ? 'bad' : 'wait');
     H.title(v, 'Console output');
     var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (standard error)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(none yet)'));
-    H.counters(v, [[s.comp, 'Compilation'], [s.end, 'Program']]);
   },
   // Diagram: on the left, the variables ints and list; on the right, the list object that both refer to and its elements. Below, it shows whether the compiler let the operation on list pass, and the result.
   draw: function (P, sim, shown) {
@@ -157,7 +150,7 @@ Lab.register({
     P.box('chk', 16, 186, 648, 34, { cls: s.chk === 'Error' || s.link === 'err' ? 'bad' : s.chk === 'Warning' ? 'hot' : s.chk === 'Passed' ? 'good' : 'ghost', title: 'Compiler check:  ' + this.opLine(c), right: s.link === 'err' && !s.chk ? 'error on the previous line' : s.chk || 'not yet' });
     P.box('r1', 16, 230, 320, 34, { cls: s.comp === '?' ? 'ghost' : s.comp === 'Error' ? 'bad' : 'good', title: 'Compilation', right: s.comp });
     P.box('r2', 344, 230, 320, 34, { cls: s.end === 'Normal exit' ? 'good' : s.end === '?' ? 'ghost' : 'bad', title: 'Program', right: s.end });
-    P.note('A type argument such as <Integer> exists only on the variable side (the side that the compiler sees). The list object at run time has no such information, so it cannot filter out values by itself when they are added. That is why the compiler does the job of rejecting the wrong type, by looking at the declaration of the variable.');
+    P.note('A type argument such as <Integer> exists only on the variable side (the side that the compiler sees). The list object at run time has no such information, so it cannot filter out values by itself when they are added.');
   },
   assume: 'All 20 combinations were actually compiled on JDK 21 on this PC (javac -Xlint:unchecked) from a source file that places the code on the screen inside a main method, and those that compiled were run, and the compilation result, the line and the message of each error, the warning message, the output, the kind of exception, and the line where the exception was thrown were checked against the results. The compiler messages are written in the form that the command-line javac shows (class names only, and CAP#1 for an unknown type). The code on the screen omits import java.util.ArrayList, import java.util.List, and the declaration of the main method. When you compile without -Xlint:unchecked, you get only the note "uses unchecked or unsafe operations" in place of the details of the warning. null can be added even to a list declared with ? extends, but the model does not cover this. Even though type erasure happens, the generic information written in the declarations of fields and methods remains in the class file and can be read through reflection. What is erased is the information that an object has at run time.',
 });

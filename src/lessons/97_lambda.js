@@ -1,7 +1,7 @@
 Lab.register({
   id: 'lambda', nav: '람다와 함수형 인터페이스', cat: '자바 언어', mode: 'step',
   title: '람다에 적은 코드는 언제 실행되나',
-  intro: '람다는 "나중에 실행할 동작"을 값처럼 변수에 담고 다른 메서드에 넘기는 문법입니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다. 같은 동작을 익명 클래스, 람다, 메서드 참조로 써 보고, 넘겨받은 쪽이 부르는 횟수를 바꿔 가며 본문이 언제 몇 번 실행되는지 확인해 보세요.',
+  intro: '람다는 "나중에 실행할 동작"을 값처럼 변수에 담고 다른 메서드에 넘기는 문법입니다. 람다를 적은 줄에서는 그 안의 코드가 실행되지 않고, 넘겨받은 쪽이 부를 때 비로소 실행됩니다.',
   terms: ['람다 표현식', '함수형 인터페이스', '메서드 참조', '익명 클래스와 람다의 차이'],
   controls: [
     { id: 'fi', label: '함수형 인터페이스 (동작의 모양)', type: 'select', value: 'function', options: [['function', 'Function<String, Integer> : 값을 받아 다른 값을 돌려준다'], ['predicate', 'Predicate<String> : 값을 받아 true 또는 false를 돌려준다'], ['supplier', 'Supplier<String> : 받는 것 없이 값을 돌려준다'], ['consumer', 'Consumer<String> : 값을 받고 아무것도 돌려주지 않는다']] },
@@ -66,10 +66,9 @@ Lab.register({
     st.out.push('run 끝'); st.end = true;
     push('System.out.println("run 끝"): "run 끝"이 출력됩니다. "본문 실행"은 모두 ' + n + '번 출력되었습니다.', '');
     var got = F.res.slice(0, n).filter(function (x) { return x !== null; });
-    sum.push('본문은 ' + n + '번 실행되었습니다. 출력된 순서는 ' + st.out.join(' → ') + '입니다.');
     sum.push(n ? '동작을 만든 줄에서는 아무것도 실행되지 않았고, run 안에서 ' + F.m + ' 메서드를 부를 때마다 실행되었습니다. 람다 안의 코드는 만들 때가 아니라 불릴 때 실행됩니다.' : '동작을 만들고 넘겼지만 받은 쪽이 부르지 않아 본문은 한 번도 실행되지 않았습니다. 람다는 "나중에 실행할 수 있는 코드"일 뿐이고, 실행할지 말지와 몇 번 실행할지는 받은 쪽이 정합니다.');
     sum.push({ 'function': 'Function<T, R>은 T 타입 값 하나를 받아 R 타입 값을 돌려주는 동작이고, apply로 부릅니다. 값을 다른 값으로 바꾸는 일(변환)에 씁니다.', predicate: 'Predicate<T>는 T 타입 값 하나를 받아 true 또는 false를 돌려주는 동작이고, test로 부릅니다. 조건 검사에 씁니다.', supplier: 'Supplier<T>는 받는 것 없이 T 타입 값을 돌려주는 동작이고, get으로 부릅니다. 값을 만드는 일을 미뤄 두었다가 정말 필요할 때만 실행하게 할 수 있습니다.', consumer: 'Consumer<T>는 T 타입 값 하나를 받고 아무것도 돌려주지 않는 동작이고, accept로 부릅니다. 출력이나 저장처럼 받아서 쓰기만 하는 일에 씁니다.' }[c.fi]);
-    sum.push(form === 'anon' ? '익명 클래스는 람다가 생기기 전(자바 7까지)에 동작을 넘기던 방식입니다. 방식을 람다로 바꾸면 같은 일이 한 줄이 됩니다.' : form === 'lambda' ? '익명 클래스, 람다, 메서드 참조 가운데 무엇으로 쓰든 결과는 같습니다. 방식을 바꿔 코드만 달라지는 것을 확인해 보세요.' : '람다가 이미 있는 메서드 하나를 부르기만 할 때는 메서드 참조(클래스이름::메서드이름)로 더 짧게 쓸 수 있습니다. 결과는 람다와 같습니다.');
+    sum.push(form === 'anon' ? '익명 클래스는 람다가 생기기 전(자바 7까지)에 동작을 넘기던 방식입니다. 방식을 람다로 바꾸면 같은 일이 한 줄이 됩니다.' : form === 'lambda' ? '익명 클래스, 람다, 메서드 참조 가운데 무엇으로 쓰든 결과는 같습니다.' : '람다가 이미 있는 메서드 하나를 부르기만 할 때는 메서드 참조(클래스이름::메서드이름)로 더 짧게 쓸 수 있습니다. 결과는 람다와 같습니다.');
     return { events: ev, summary: sum, out: st.out.slice(), row: [F.m, F.takes, F.gives, n + '번', !n ? '(부르지 않음)' : got.length ? got.join(', ') : '(돌려주는 값 없음)'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -77,7 +76,6 @@ Lab.register({
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
     H.table(v, ['인터페이스', '부르는 메서드', '받는 것', '돌려주는 것'], [{ cells: [F.type.replace(/<.*/, ''), F.m, F.takes, F.gives] }], '이 동작의 모양');
     H.table(v, ['순서', '출력된 줄'], s.out.map(function (o, i) { return { cells: [String(i + 1), { v: o, cls: o.indexOf('본문 실행') === 0 ? 'hot' : '' }] }; }), '지금까지의 출력');
-    H.counters(v, [[s.count + '번', '본문이 실행된 횟수'], [s.done + ' / ' + c.calls, 'run이 동작을 부른 횟수']]);
   },
   // 그림: 왼쪽은 동작을 만든 곳(변수), 가운데는 동작을 넘겨받아 부르는 run 메서드, 오른쪽은 본문이 되는 메서드. 부를 때에만 본문으로 화살표가 간다.
   draw: function (P, sim, shown) {

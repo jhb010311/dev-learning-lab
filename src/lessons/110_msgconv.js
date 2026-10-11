@@ -1,7 +1,7 @@
 Lab.register({
   id: 'msgconv', nav: 'REST API와 메시지 컨버터', cat: '스프링', mode: 'step',
   title: '컨트롤러가 돌려준 객체는 어디서 JSON이 되나',
-  intro: '컨트롤러 메서드는 자바 객체를 받고 자바 객체를 돌려주는데, 네트워크로 오가는 것은 JSON 같은 글자입니다. 그 사이에서 글자를 객체로, 객체를 글자로 바꾸는 것이 메시지 컨버터입니다. 요청의 Content-Type과 Accept 헤더가 어느 컨버터를 쓸지 정하고, 맞는 컨버터가 없으면 415나 406이 됩니다. 컨트롤러의 종류와 요청을 바꿔 가며 변환이 어디서 일어나고 어디서 실패하는지 보세요.',
+  intro: '컨트롤러 메서드는 자바 객체를 받고 자바 객체를 돌려주는데, 네트워크로 오가는 것은 JSON 같은 글자입니다. 그 사이에서 글자를 객체로, 객체를 글자로 바꾸는 것이 메시지 컨버터입니다. 요청의 Content-Type과 Accept 헤더가 어느 컨버터를 쓸지 정하고, 맞는 컨버터가 없으면 415나 406이 됩니다.',
   terms: ['HttpMessageConverter', '@Controller와 @RestController', '콘텐츠 협상(Accept와 Content-Type)', 'ResponseEntity', 'ViewResolver'],
   controls: [
     { id: 'kind', label: '컨트롤러의 종류와 돌려주는 값', type: 'select', value: 'obj', options: [['obj', '@RestController, 객체를 돌려줌'], ['entity', '@RestController, ResponseEntity를 돌려줌'], ['str', '@RestController, 문자열을 돌려줌'], ['view', '@Controller, 문자열을 돌려줌']] },
@@ -86,7 +86,6 @@ Lab.register({
       }
     }
     var ran = st.ctrl;
-    sum.push('응답은 ' + status + '이고, 컨트롤러 메서드는 ' + (ran ? '실행됐습니다.' : '실행되지 않았습니다.') + (st.fail ? '' : ' 응답 본문을 만든 것은 ' + maker + '이고 Content-Type은 ' + type + '입니다.'));
     if (st.fail === 'rd') sum.push(c.req === 'text' ? '415는 "요청 본문의 형식을 읽지 못한다"는 뜻입니다. 스프링은 본문을 들여다보고 형식을 짐작하지 않고 Content-Type 헤더만 봅니다. JSON을 보낼 때는 Content-Type을 application/json으로 적어야 합니다.' : '400은 "요청이 잘못됐다"는 뜻입니다. Content-Type은 맞지만 본문이 JSON 문법에 맞지 않으면 컨버터가 객체를 만들지 못합니다. 요청을 보낸 쪽이 고쳐야 하는 문제입니다.');
     if (st.fail === 'rd') sum.push('415와 400은 요청 본문을 읽는 단계에서 정해지므로 컨트롤러가 실행되기 전입니다. 406은 응답 본문을 쓰는 단계에서 정해지므로 컨트롤러가 실행된 뒤입니다.');
     if (st.fail === 'wr') sum.push('406은 "원하는 응답 형식(Accept)으로는 줄 수 없다"는 뜻입니다. 응답을 쓰는 단계에서 정해지므로, 응답은 실패인데 주문은 이미 만들어져 있습니다. @PostMapping에 produces = "application/json"을 적어 두면 Accept가 맞지 않는 요청을 컨트롤러를 고르는 단계에서 걸러 내, 컨트롤러가 실행되지 않습니다.');
@@ -105,12 +104,6 @@ Lab.register({
       { cells: ['Accept', q.accept, '받고 싶은 응답의 형식'] },
       { cells: ['본문', q.body, ''] },
     ], '보낸 요청 (POST /orders)');
-    var ln = H.lanes(v);
-    H.lane(ln, '요청 본문 읽기', s.rd || '아직', s.fail === 'rd' ? 'bad' : s.stage >= 3 && s.rd ? 'good' : s.rd ? 'hot' : 'none');
-    H.lane(ln, '컨트롤러', s.ctrl ? '실행됨 · 돌려준 값: ' + s.ret : s.fail ? '실행되지 않음' : '아직', s.ctrl ? 'good' : s.fail ? 'bad' : 'none');
-    H.lane(ln, '응답 본문 쓰기', s.wr || (s.fail ? '하지 않음' : '아직'), s.fail === 'wr' ? 'bad' : s.stage === 7 ? 'good' : s.wr ? 'hot' : 'none');
-    H.counters(v, [[s.status || '처리 중', '응답'], [s.type || '-', '응답의 Content-Type']]);
-    if (s.status) { H.title(v, '응답 본문'); H.text(v, s.body + (s.loc ? ' · Location 헤더: ' + s.loc : '')); }
   },
   // 그림: 위에 요청, 가운데에 스프링의 세 자리(요청 본문 읽기, 컨트롤러, 응답 본문 쓰기), 아래에 응답. 변환이 일어나는 두 자리와 실패한 자리가 보인다.
   draw: function (P, sim, shown) {
@@ -127,7 +120,7 @@ Lab.register({
     if (s.stage >= 5) P.arrow('a3', 'ct:r', 'wr:l', { cls: s.fail === 'wr' ? 'bad' : 'good' });
     P.box('resp', 16, 244, 648, 62, { cls: !s.status ? 'ghost' : s.fail ? 'bad' : 'good', title: '응답: ' + (s.status || '처리 중'), sub: s.status ? ['Content-Type: ' + (s.type || '-') + (s.loc ? ' · Location: ' + s.loc : ''), '본문: ' + s.body] : [' ', ' '] });
     if (s.status) P.arrow('a4', (s.fail || 'wr') + ':b', s.fail === 'rd' ? 'resp:t:0.18' : 'resp:t:0.82', { cls: s.fail ? 'bad' : 'good' });
-    P.note('메시지 컨버터가 일하는 자리는 두 곳입니다. 컨트롤러 앞에서 요청 본문을 객체로 바꾸고(Content-Type을 봄), 컨트롤러 뒤에서 돌려준 값을 응답 본문으로 바꿉니다(Accept를 봄). 앞에서 실패하면 컨트롤러가 실행되지 않고, 뒤에서 실패하면 이미 실행된 뒤입니다.');
+    P.note('메시지 컨버터가 일하는 자리는 두 곳입니다. 컨트롤러 앞에서 요청 본문을 객체로 바꾸고(Content-Type을 봄), 컨트롤러 뒤에서 돌려준 값을 응답 본문으로 바꿉니다(Accept를 봄).');
   },
   assume: '컨트롤러 네 가지와 요청 네 가지를 곱한 열여섯 조합을 모두 실제 스프링 부트 4.1.1 서버(스프링 프레임워크 7.0.9, 내장 톰캣 11, Jackson 3)에 HTTP 요청으로 보내, 상태 코드와 컨트롤러 실행 여부, 스프링이 던진 예외의 이름, 요청 본문을 읽은 컨버터와 응답 본문을 쓴 컨버터, 성공한 응답의 Content-Type과 Location 헤더가 화면과 일치하는 것을 확인했습니다. 오류 응답(400, 406, 415)의 본문과 Content-Type은 버전과 설정에 따라 달라서 결과로 삼지 않았습니다. 대조한 서버에는 XML을 만드는 라이브러리가 없습니다. jackson-dataformat-xml 같은 라이브러리를 넣으면 Accept: application/xml 요청에 XML로 응답하므로 406이 되지 않습니다. 컨버터의 클래스 이름(JacksonJsonHttpMessageConverter)은 스프링 7 기준이고, 그 전 버전에서는 이름이 다릅니다. 응답의 Content-Type은 형식 이름만 보였습니다(실제로는 뒤에 charset이 붙기도 합니다). @Controller가 돌려준 화면 이름은 템플릿 엔진 대신 같은 이름의 뷰 객체를 등록해 확인했습니다. 화면을 돌려주는 요청이 Accept와 관계없이 200이 된 것은 이 구성에서 본 결과이며, 뷰 설정에 따라 다를 수 있습니다. 화면에 없는 경우도 같은 서버에서 확인했습니다. 그 이름의 화면이 없으면 404였고(템플릿 엔진을 쓰면 다른 오류가 될 수 있으며 그것은 확인하지 않았습니다), @Controller의 메서드에 @ResponseBody를 붙이면 @RestController와 같은 결과였고, produces = "application/json"을 적은 메서드는 Accept: application/xml 요청에 컨트롤러를 실행하지 않고 406으로 응답했습니다. Accept 헤더 없이 보내면 객체는 JSON으로, 문자열은 text/plain으로 나갔습니다. ResponseEntity를 돌려주고 406이 된 조합에서는 응답에 Location 헤더가 남아 있었는데, 이것은 버전에 따라 다를 수 있어 화면에 넣지 않았습니다.',
 });

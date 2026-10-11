@@ -1,7 +1,7 @@
 Lab.register({
   id: 'annot', nav: '애너테이션', cat: '자바 언어', mode: 'step',
   title: '@를 붙이기만 하면 정말 무슨 일이 일어나나',
-  intro: '애너테이션(@Override, @Timed처럼 @로 시작하는 표시)은 코드에 붙여 두는 꼬리표입니다. 꼬리표 자체는 아무 일도 하지 않습니다. 그것을 읽는 쪽, 곧 컴파일러나 실행 중에 리플렉션으로 읽는 프레임워크가 있어야 의미가 생깁니다. 그리고 실행 중에 읽으려면 꼬리표가 실행 중까지 남아 있어야 합니다. 설정을 바꿔 가며 표시가 어디까지 남고, 누가 읽고, 결과가 어떻게 달라지는지 확인하세요.',
+  intro: '애너테이션(@Override, @Timed처럼 @로 시작하는 표시)은 코드에 붙여 두는 꼬리표입니다. 꼬리표 자체는 아무 일도 하지 않습니다. 그것을 읽는 쪽, 곧 컴파일러나 실행 중에 리플렉션으로 읽는 프레임워크가 있어야 의미가 생깁니다. 그리고 실행 중에 읽으려면 꼬리표가 실행 중까지 남아 있어야 합니다.',
   terms: ['애노테이션', '리플렉션', '@Retention과 @Target', '@Override', '오버라이딩'],
   controls: [
     { id: 'topic', label: '무엇을 볼까', type: 'select', value: 'custom', options: [['custom', '직접 만든 @Timed를 실행 중에 읽기 (리플렉션)'], ['override', '@Override를 컴파일러가 읽기']] },
@@ -52,8 +52,7 @@ Lab.register({
         st.chk = '오류'; st.comp = '오류'; st.end = '실행 못 함';
         push('컴파일러가 sount() 위의 @Override를 읽습니다: @Override는 "바로 아래 메서드는 상위 타입의 메서드를 재정의한 것이다"라는 표시이고, 컴파일러는 그 말이 맞는지 확인합니다. Animal에는 sount()가 없습니다. 컴파일 오류이고, 컴파일러는 "' + MSG + '"(상위 타입의 메서드를 재정의하지도 구현하지도 않았다)라고 알립니다.', 'good');
         push('컴파일이 실패했습니다: class 파일이 만들어지지 않으므로 프로그램을 실행할 수 없습니다. 이름을 잘못 적은 실수가 실행 전에 드러났습니다.', 'bad');
-        sum.push('컴파일 오류입니다. 오류가 난 줄은 @Override이고, 프로그램은 실행되지 않습니다.');
-        sum.push('@Override를 읽는 쪽은 컴파일러입니다. 재정의하려던 메서드의 이름이나 매개변수를 잘못 적으면 컴파일 오류로 알려 줍니다. @Override를 떼고 같은 코드를 실행해 보면 이 실수가 어떻게 숨는지 볼 수 있습니다.');
+        sum.push('@Override를 읽는 쪽은 컴파일러입니다. 재정의하려던 메서드의 이름이나 매개변수를 잘못 적으면 컴파일 오류로 알려 줍니다.');
         return { events: ev, summary: sum, errLine: '@Override', msg: MSG, attr: '', row: NO };
       }
       if (has) { st.chk = '통과'; push('컴파일러가 sound() 위의 @Override를 읽습니다: 바로 아래 메서드가 상위 타입의 메서드를 정말로 재정의하는지 확인합니다. Animal에 sound()가 있으므로 통과합니다.', 'good'); }
@@ -64,7 +63,6 @@ Lab.register({
       var res = typo ? '...' : '멍멍';
       st.out.push(res); st.end = '정상 종료';
       push('a.sound() 실행: a가 가리키는 객체는 Dog입니다. ' + (typo ? 'Dog에는 sound()가 없습니다(sount()만 있습니다). 그래서 Animal에게서 물려받은 sound()가 실행되어 "..."를 출력합니다. 오류 없이 의도와 다른 메서드가 실행됐습니다.' : 'Dog가 재정의한 sound()가 실행되어 "멍멍"을 출력합니다.'), typo ? 'bad' : 'good');
-      sum.push('컴파일 성공. 출력은 "' + res + '"입니다.');
       if (typo) sum.push('@Override가 없으면 이름을 잘못 적은 메서드가 "새 메서드"로 조용히 컴파일되고, 재정의하려던 부모의 메서드가 그대로 실행됩니다. @Override를 붙이면 같은 실수가 컴파일 오류가 됩니다.');
       else if (has) sum.push('@Override는 동작을 바꾸지 않습니다. 붙이든 떼든 출력은 같습니다. 하는 일은 하나, "재정의가 맞는지 컴파일러에게 확인시키는 것"입니다. 그래서 재정의하는 메서드에는 항상 붙입니다.');
       else sum.push('이름을 맞게 적었으므로 @Override가 없어도 재정의가 됩니다. 다만 나중에 부모의 메서드 이름이 바뀌면, 이 메서드는 아무 알림 없이 재정의가 아니게 됩니다. @Override를 붙여 두면 그때 컴파일 오류로 알 수 있습니다.');
@@ -79,7 +77,6 @@ Lab.register({
       st.chk = '오류'; st.comp = '오류'; st.end = '실행 못 함';
       push('컴파일러가 work 메서드 위의 @Timed를 검사합니다: @Target(ElementType.TYPE)은 "클래스나 인터페이스 같은 타입 선언에만 붙일 수 있다"는 뜻인데, 메서드에 붙였습니다. 컴파일 오류이고, 컴파일러는 "' + TMSG + '"(이 종류의 선언에는 붙일 수 없는 애너테이션)라고 알립니다.', 'bad');
       push('컴파일이 실패했습니다: class 파일이 만들어지지 않으므로 프로그램을 실행할 수 없습니다. @Retention을 무엇으로 했든, 읽는 코드가 있든 없든 결과는 같습니다.', 'bad');
-      sum.push('컴파일 오류입니다. 오류가 난 줄은 work 메서드 위의 @Timed이고, 프로그램은 실행되지 않습니다.');
       sum.push('@Target은 애너테이션을 붙일 수 있는 곳을 정합니다. 이것을 읽고 지키게 하는 쪽은 컴파일러입니다. 맞지 않는 곳에 붙이면 컴파일 오류가 나므로, 잘못 붙인 채로 "왜 동작하지 않지" 하고 헤매는 일을 막아 줍니다.');
       return { events: ev, summary: sum, errLine: '@Timed', msg: TMSG, attr: '', row: NO };
     }
@@ -104,29 +101,20 @@ Lab.register({
         push('found가 false이므로 읽는 쪽은 아무것도 덧붙이지 않습니다: m.invoke(service)로 work만 실행합니다. 소스 코드에는 @Timed가 분명히 붙어 있는데도, 읽는 쪽에게는 표시가 없는 메서드와 같습니다. 오류도 나지 않습니다.', 'bad');
       }
     }
-    sum.push('컴파일 성공. @Timed 표시는 class 파일에 ' + (inClass ? '남고' : '남지 않고') + ', 실행 중 리플렉션으로는 ' + (visible ? '보입니다' : '보이지 않습니다') + '. 출력: ' + st.out.join(' / ') + '.');
     if (reader && visible) sum.push('표시가 실행 중까지 남아 있고(RUNTIME) 그것을 읽는 코드가 있을 때에만 무언가가 일어납니다. 스프링의 @Transactional이나 @Autowired도 같은 원리입니다. 애너테이션이 일을 하는 것이 아니라, 프레임워크가 리플렉션으로 표시를 찾아 그에 맞는 일을 합니다.');
     if (reader && !visible) sum.push('애너테이션을 붙였고 읽는 코드도 있는데 아무 일도 일어나지 않습니다. 표시가 실행 중까지 남지 않았기 때문입니다. 실행 중에 리플렉션으로 읽을 애너테이션을 만들 때는 @Retention(RetentionPolicy.RUNTIME)을 반드시 적습니다.' + (c.ret === 'none' ? ' 적지 않으면 기본값이 CLASS라서 오류 없이 조용히 무시됩니다.' : ''));
-    if (!reader) sum.push('애너테이션은 그 자체로는 아무 일도 하지 않습니다. 읽는 쪽이 없으면 붙어 있든 아니든 프로그램의 동작은 같습니다.' + (visible ? ' "읽는 코드가 있다"를 켜서 비교해 보세요.' : ''));
+    if (!reader) sum.push('애너테이션은 그 자체로는 아무 일도 하지 않습니다. 읽는 쪽이 없으면 붙어 있든 아니든 프로그램의 동작은 같습니다.');
     if (ret === 'SOURCE') sum.push('SOURCE는 컴파일러나, 컴파일할 때 코드를 만들어 내는 도구만 읽으면 되는 애너테이션에 씁니다. @Override가 그렇습니다.');
     if (ret === 'CLASS') sum.push('CLASS는 class 파일을 읽어 처리하는 도구를 위한 것으로, 실행 중인 프로그램이 스스로 읽을 수는 없습니다.');
     return { events: ev, summary: sum, errLine: '', msg: '', attr: attr, row: ['성공', st.cls, st.vis, st.out.join(' / ')] };
   },
   mark: function (c) { return c.topic === 'override' ? '@Override' : '@Timed'; },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, ov = c.topic === 'override', mark = this.mark(c);
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 소스 코드, class 파일, 실행 중의 순서로 표시가 어디까지 남고 누가 읽는지 보여 줍니다.'); return; }
-    var attached = ov ? (c.ov ? '붙어 있음' : '붙이지 않음') : '붙어 있음';
-    var compilerSays = ov ? '재정의가 맞는지 확인: ' + s.chk : '붙일 수 있는 곳인지 확인: ' + s.chk;
-    var readerSays = ov ? '없음' : !c.reader ? '없음' : s.rd === 'found' ? '리플렉션 코드: 표시를 찾음' : s.rd === 'notfound' ? '리플렉션 코드: 표시를 못 찾음' : '리플렉션 코드: 아직';
-    H.table(v, ['단계', mark + ' 표시', '읽는 쪽'], [
-      { cells: ['소스 코드 (.java)', attached, { v: '컴파일러: ' + compilerSays, cls: s.chk === '오류' ? 'bad' : s.chk === '통과' ? 'good' : '' }] },
-      { cells: ['class 파일 (.class)', { v: s.cls, cls: s.cls === '남음' ? 'good' : '' }, '(이 실습에서는 없음)'] },
-      { cells: ['실행 중 (JVM)', { v: s.vis, cls: s.vis === '보임' ? 'good' : '' }, { v: readerSays, cls: s.rd === 'found' ? 'good' : s.rd === 'notfound' ? 'bad' : '' }] },
-    ], '표시가 어디까지 남고, 누가 읽는가');
     H.title(v, '콘솔 출력');
     v.appendChild(H.el('pre', 'code', s.out.length ? s.out.join('\n') : '(아직 없음)'));
-    H.counters(v, [[s.comp, '컴파일'], [s.end, '프로그램']]);
+    H.counters(v, [[s.end, '프로그램']]);
   },
   // 그림: 소스 코드, class 파일, 실행 중의 세 단계를 왼쪽에서 오른쪽으로 놓고 단계마다 표시가 남아 있는지 적는다. 아래에는 그 표시를 읽는 쪽(컴파일러, 리플렉션 코드)을 놓고 읽는 단계로 화살표를 긋는다.
   draw: function (P, sim, shown) {
@@ -149,7 +137,7 @@ Lab.register({
     P.box('o1', 16, 238, 320, 36, { cls: s.comp === '성공' ? 'good' : s.comp === '오류' ? 'bad' : 'ghost', title: '컴파일', right: s.comp });
     var result = s.comp === '오류' ? '실행 못 함' : s.end !== '정상 종료' ? '?' : ov ? (c.typo ? 'Animal의 sound 실행' : 'Dog의 sound 실행') : s.rd === 'found' ? 'work 앞뒤에 일이 덧붙음' : 'work만 실행';
     P.box('o2', 344, 238, 320, 36, { cls: result === '?' ? 'ghost' : s.comp === '오류' ? 'bad' : (ov ? !c.typo : s.rd === 'found') ? 'good' : 'plain', title: '실행 결과', right: result });
-    P.note('애너테이션은 꼬리표입니다. 위 줄은 꼬리표가 어느 단계까지 남는지(@Retention이 정합니다), 아래 줄은 그 꼬리표를 누가 읽는지입니다. 읽는 쪽이 있는 단계까지 꼬리표가 남아 있어야 일이 일어납니다.');
+    P.note('위 줄은 꼬리표가 어느 단계까지 남는지(@Retention이 정합니다), 아래 줄은 그 꼬리표를 누가 읽는지입니다.');
   },
   assume: '스물여덟 가지 조합(@Timed 쪽 24가지, @Override 쪽 4가지)을 이 PC의 JDK 21에서 화면의 코드로 실제로 컴파일하고 실행해 대조했습니다. 컴파일 여부와 오류가 난 줄, 컴파일러 메시지, 출력뿐 아니라, 만들어진 class 파일의 바이트에 애너테이션이 적혀 있는지(적혀 있다면 RuntimeVisibleAnnotations와 RuntimeInvisibleAnnotations 가운데 어느 칸인지)와 리플렉션의 isAnnotationPresent 결과도 조합마다 직접 확인했습니다. 화면에서 숨겨진 설정은 결과에 영향을 주지 않습니다. 화면의 코드에는 import 문(java.lang.annotation의 것들과 java.lang.reflect.Method)과 main 메서드의 선언이 생략되어 있습니다. @Target(ElementType.TYPE)인 애너테이션을 클래스에 붙이면 컴파일된다는 것도 확인했습니다. 스프링 같은 프레임워크가 애너테이션을 읽는 방식은 이 모형의 "읽는 쪽" 코드와 원리가 같다는 설명이며, 프레임워크를 실제로 실행해 확인한 것은 아닙니다. 컴파일할 때 애너테이션을 읽어 코드를 만들어 내는 도구(애너테이션 프로세서)는 다루지 않았습니다.',
 });

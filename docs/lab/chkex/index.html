@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b3ddaad4fd">
+<link rel="stylesheet" href="../../app.css?v=e557751983">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 예외</p>
 <h1>체크 예외와 언체크 예외</h1>
 <p><b>어떤 예외는 왜 처리하지 않으면 컴파일조차 안 되나</b></p>
-<p>자바의 예외는 두 갈래입니다. 체크 예외(IOException 등)는 잡거나(try-catch) 던진다고 선언(throws)하지 않으면 컴파일러가 컴파일을 거부합니다. 언체크 예외(대표적으로 RuntimeException 계열)는 그런 강제가 없어서 아무 처리 없이도 컴파일됩니다. 예외의 종류와 처리 방식을 바꿔 가며 컴파일이 되는지, 실행하면 어떻게 끝나는지 확인하세요.</p>
+<p>자바의 예외는 두 갈래입니다. 체크 예외(IOException 등)는 잡거나(try-catch) 던진다고 선언(throws)하지 않으면 컴파일러가 컴파일을 거부합니다. 언체크 예외(대표적으로 RuntimeException 계열)는 그런 강제가 없어서 아무 처리 없이도 컴파일됩니다.</p>
 <p>실행으로 대조 · JDK 21에서 스물네 가지 조합을 실제로 컴파일하고 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -62,7 +62,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>컴파일 오류입니다. 오류가 난 줄은 read 안의 throw 줄이고, 프로그램은 실행되지 않습니다.</li>
 <li>체크 예외는 &quot;잡거나, 던진다고 선언하거나&quot; 둘 중 하나를 해야 컴파일됩니다. 파일이 없거나 네트워크가 끊기는 일처럼 프로그램 바깥의 사정으로 생기고 대비할 수 있는 문제를 빠뜨리지 않게 하려는 장치입니다.</li>
 </ul>
 <h2>코드</h2>
@@ -165,6 +164,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b3ddaad4fd"></script>
+<script src="../../app.js?v=e557751983"></script>
 </body>
 </html>

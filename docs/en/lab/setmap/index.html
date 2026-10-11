@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Collections</p>
 <h1>Kinds of Set and Map</h1>
 <p><b>Why do the same values come out in a different order?</b></p>
-<p>A Set is a collection that holds each value only once, and a Map is a collection that holds keys paired with values. Each comes in three kinds, whose names start with Hash, LinkedHash, and Tree, and the kind you choose determines the order in which things come out and which values can go in. Add the same values to all three kinds and see which one to choose in which situation.</p>
+<p>A Set is a collection that holds each value only once, and a Map is a collection that holds keys paired with values. Each comes in three kinds, whose names start with Hash, LinkedHash, and Tree, and the kind you choose determines the order in which things come out and which values can go in.</p>
 <p>Checked against real execution · Checked by running 30 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -69,7 +69,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>HashSet prints [date, apple, fig, grape], and its size is 4.</li>
 <li>The iteration order of HashSet and HashMap is the order of the bucket numbers that hashCode determines. To a person it looks scrambled, and it can change with the Java version or with the number of entries, so do not write code that relies on this order.</li>
 <li>How to choose: the Hash kind if you do not need any order (the fastest), the LinkedHash kind if you need insertion order, and the Tree kind if you need sorted order.</li>
 </ul>
@@ -168,6 +167,6 @@ System.out.println(set.size());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

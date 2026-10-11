@@ -1,7 +1,7 @@
 Lab.register({
   id: 'thread', nav: '스레드의 생성과 상태', cat: '동시성', mode: 'step',
   title: 'run()을 직접 부르면 왜 새 스레드가 생기지 않나',
-  intro: 'Thread 객체를 만드는 것과 스레드가 실제로 실행되는 것은 다른 일입니다. 스레드 하나가 만들어져서 끝날 때까지 어떤 상태를 거치는지를 t.getState()로 따라가 봅니다. start()와 run()의 차이, 기다리는 방법에 따라 달라지는 상태, 기다리는 스레드를 깨우는 interrupt를 함께 확인합니다.',
+  intro: 'Thread 객체를 만드는 것과 스레드가 실제로 실행되는 것은 다른 일입니다. 스레드 하나가 만들어져서 끝날 때까지 어떤 상태를 거치는지를 t.getState()로 따라가 봅니다.',
   terms: ['프로세스와 스레드', '스레드의 상태', 'start()와 run()', 'join()', '인터럽트(interrupt)'],
   controls: [
     { id: 'call', label: '스레드를 실행시키는 방법', type: 'select', value: 'run', options: [['start', 't.start()'], ['run', 't.run()을 직접 호출'], ['twice', 't.start() 뒤, 끝나고 나서 한 번 더 t.start()']] },
@@ -104,16 +104,15 @@ Lab.register({
       st.again = 'IllegalThreadStateException'; st.ex.push('IllegalThreadStateException'); st.main = '두 번째 t.start()에서 예외';
       push('t.start() (두 번째): 스레드는 한 번만 시작할 수 있습니다. 끝난 뒤에도 다시 시작할 수 없어서 IllegalThreadStateException이 발생합니다. 같은 작업을 다시 실행하려면 Thread 객체를 새로 만들어야 합니다.', 'bad');
     } else st.again = '부르지 않음';
-    sum.push('작업을 실행한 스레드는 ' + st.ran + '이고, 중간에 본 t의 상태는 ' + st.mid + ', join 뒤의 상태는 ' + st.after + '입니다.' + (st.ex.length ? ' 발생한 예외: ' + st.ex.join(', ') + '.' : ''));
     if (!started) sum.push('run()을 직접 부르면 스레드가 늘어나지 않습니다. 부른 스레드가 그 코드를 순서대로 실행할 뿐이라서 동시에 실행되는 것이 없습니다. 새 스레드에서 실행하려면 start()를 부릅니다. start()가 새 스레드를 만들고, 그 스레드가 run()을 실행합니다.');
     else {
-      if (W === 'quick') sum.push('스레드는 NEW에서 시작해 start()로 RUNNABLE이 되고, run()의 코드가 끝나면 TERMINATED가 됩니다. 기다리는 일이 있는 작업으로 바꾸면 그 사이의 상태를 볼 수 있습니다.');
+      if (W === 'quick') sum.push('스레드는 NEW에서 시작해 start()로 RUNNABLE이 되고, run()의 코드가 끝나면 TERMINATED가 됩니다.');
       if (W === 'sleep') sum.push('시간을 정해 두고 기다리는 스레드는 TIMED_WAITING입니다. Thread.sleep(시간)이 대표적입니다. 시간이 지나면 RUNNABLE로 돌아옵니다.');
       if (W === 'join') sum.push('기한 없이 다른 쪽의 일이 끝나기를 기다리는 스레드는 WAITING입니다. join()은 상대 스레드가 끝날 때까지 부른 쪽을 멈춰 세웁니다. main이 t.join()으로 기다리는 동안에는 main의 상태도 WAITING입니다.');
       if (W === 'lock') sum.push('다른 스레드가 쥔 lock을 얻으려고 synchronized 앞에서 막힌 스레드는 BLOCKED입니다. lock을 쥔 쪽이 놓아야 RUNNABLE로 돌아옵니다.');
       if (ie) sum.push('sleep이나 join으로 기다리던 스레드는 interrupt를 받으면 InterruptedException과 함께 바로 깨어납니다. 오래 기다리는 작업을 중간에 멈추게 하는 방법이며, 그래서 이런 메서드는 InterruptedException을 처리하도록 코드를 쓰게 되어 있습니다.');
       else if (intr && W === 'lock') sum.push('interrupt는 스레드를 강제로 멈추는 것이 아니라 신호를 보내는 것입니다. sleep, join처럼 InterruptedException을 던지는 기다림은 그 신호로 깨어나지만, synchronized의 lock을 기다리는 스레드는 깨어나지 않습니다.');
-      else if (intr) sum.push('이미 끝난 스레드에 보낸 interrupt는 아무 일도 일으키지 않습니다. 기다리는 작업(sleep, join)으로 바꿔서 비교해 보세요.');
+      else if (intr) sum.push('이미 끝난 스레드에 보낸 interrupt는 아무 일도 일으키지 않습니다.');
     }
     if (c.call === 'twice') sum.push('Thread 객체는 한 번만 시작할 수 있습니다. 실행 중일 때 다시 불러도, 끝난 뒤에 불러도 IllegalThreadStateException입니다.');
     return { events: ev, summary: sum, row: [st.ran, st.mid, st.ir, st.after, st.again] };
@@ -121,16 +120,12 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    H.counters(v, [[s.t || '-', 't의 지금 상태'], [s.ran, '작업을 실행한 스레드']]);
-    H.title(v, '스레드마다 하고 있는 일'); var ln = H.lanes(v);
-    H.lane(ln, 'main', s.main, 'hot');
-    H.lane(ln, 'worker', s.worker || (c.call === 'run' ? '만들어지지 않음' : '아직 없음'), !s.worker ? 'none' : s.worker === '끝남' ? 'good' : s.t === 'RUNNABLE' ? 'hot' : 'wait');
+    var ln = c.work === 'join' || c.work === 'lock' ? H.lanes(v) : null;
     if (c.work === 'join') H.lane(ln, 'helper', s.helper || '아직 시작 전', !s.helper ? 'none' : s.helper === '끝남' ? 'good' : 'hot');
     if (c.work === 'lock') H.lane(ln, 'lock', s.lockBy ? s.lockBy + ' 스레드가 쥐고 있음' : '아무도 쥐고 있지 않음', s.lockBy ? 'wait' : 'none');
     H.table(v, ['확인한 것', '결과'], [
       { cells: ['중간에 본 t.getState()', { v: s.mid, cls: s.mid === '?' ? '' : s.mid === 'NEW' ? 'bad' : 'hot' }] },
       { cells: ['t.interrupt()의 결과', { v: s.ir, cls: s.ir === 'InterruptedException' ? 'bad' : '' }] },
-      { cells: ['join 뒤의 t.getState()', { v: s.after, cls: s.after === 'TERMINATED' ? 'good' : s.after === 'NEW' ? 'bad' : '' }] },
       { cells: ['다시 start()', { v: s.again, cls: s.again === 'IllegalThreadStateException' ? 'bad' : '' }] },
     ], '지금까지의 결과');
   },
@@ -155,7 +150,7 @@ Lab.register({
     P.box('r1', 16, 250, 320, 34, { cls: s.ran === '?' ? 'ghost' : s.ran === 'worker' ? 'good' : 'bad', title: '작업을 실행한 스레드', right: s.ran });
     P.box('r2', 344, 250, 320, 34, { cls: s.after === '?' ? 'ghost' : s.after === 'TERMINATED' ? 'good' : 'bad', title: 'join 뒤 t의 상태', right: s.after });
     P.box('r3', 16, 294, 648, 34, { cls: s.ex.length ? 'bad' : 'ghost', title: '발생한 예외', right: s.ex.length ? s.ex.join(', ') : '없음' });
-    P.note('굵은 테두리가 지금 t의 상태입니다. NEW는 객체만 만든 상태이고, start()를 불러야 RUNNABLE이 됩니다. 기다리는 방법에 따라 TIMED_WAITING, WAITING, BLOCKED 가운데 하나가 되었다가 RUNNABLE로 돌아오고, run()의 코드가 끝나면 TERMINATED가 됩니다.');
+    P.note('굵은 테두리가 지금 t의 상태입니다.');
   },
   assume: '스물네 가지 조합의 결과(작업을 실행한 스레드 이름, 중간과 마지막의 t.getState(), 발생한 예외, 작업이 끝날 때의 interrupt 표시)를 이 PC의 JDK 21에서 실행한 결과와 대조했습니다. 화면의 코드는 main이 Thread.sleep(100)으로 잠깐 기다린 뒤 상태를 보지만, 이 100밀리초는 "대개 충분한" 시간일 뿐 보장된 것이 아닙니다. 대조할 때는 시간에 기대지 않도록 t의 상태가 RUNNABLE을 벗어나 그대로 머무를 때까지 되풀이해 확인했습니다. start() 바로 뒤에 t.getState()를 부르면 RUNNABLE일 수도, 이미 다른 상태일 수도 있어서 결과로 삼지 않았습니다. RUNNABLE은 "실행 중"과 "CPU 차례를 기다리는 중"을 구분하지 않으며, 자바는 이 둘을 따로 알려 주지 않습니다. WAITING은 join 말고도 Object.wait()나 LockSupport.park()로도 생기지만 여기서는 join만 다뤘습니다. 여러 스레드가 함께 쓰는 데이터의 문제는 "경쟁 상태" 실습에서, 스레드를 미리 만들어 두고 다시 쓰는 방법은 "스레드 풀" 실습에서 다룹니다.',
 });

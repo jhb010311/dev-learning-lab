@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Generics, enums, and annotations</p>
 <h1>Annotations</h1>
 <p><b>What really happens when you just add an annotation with @?</b></p>
-<p>An annotation (a mark that starts with @, such as @Override or @Timed) is a label that you attach to code. The label itself does nothing. It takes on meaning only when something reads it, namely the compiler or a framework that reads it with reflection at run time. And to be read at run time, the label must still be there at run time. Change the settings and see how far the annotation is retained, what reads it, and how the result changes.</p>
+<p>An annotation (a mark that starts with @, such as @Override or @Timed) is a label that you attach to code. The label itself does nothing. It takes on meaning only when something reads it, namely the compiler or a framework that reads it with reflection at run time. And to be read at run time, the label must still be there at run time.</p>
 <p>Checked against real execution · 28 combinations were actually compiled and run on JDK 21 and checked against the results (including the contents of the class file and the result of reflection)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -68,7 +68,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Compilation succeeded. The @Timed annotation is retained in the class file and is not visible to reflection at run time. Output: @Timed visible: false / work runs.</li>
 <li>The annotation is applied and there is code that reads it, and yet nothing happens. The reason is that the annotation was not retained until run time. When you create an annotation that will be read with reflection at run time, always write @Retention(RetentionPolicy.RUNTIME). If you do not write it, the default is CLASS, so the annotation is silently ignored without an error.</li>
 <li>CLASS is for tools that read and process class files. A running program cannot read such an annotation itself.</li>
 </ul>
@@ -176,6 +175,6 @@ if (found) System.out.println(&quot;[timing finished]&quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'setmap', nav: 'Kinds of Set and Map', cat: 'Data structures', mode: 'step',
   title: 'Why do the same values come out in a different order?',
-  intro: 'A Set is a collection that holds each value only once, and a Map is a collection that holds keys paired with values. Each comes in three kinds, whose names start with Hash, LinkedHash, and Tree, and the kind you choose determines the order in which things come out and which values can go in. Add the same values to all three kinds and see which one to choose in which situation.',
+  intro: 'A Set is a collection that holds each value only once, and a Map is a collection that holds keys paired with values. Each comes in three kinds, whose names start with Hash, LinkedHash, and Tree, and the kind you choose determines the order in which things come out and which values can go in.',
   terms: ['List, Set, Map', 'Hash table and HashMap', 'LinkedHashSet and LinkedHashMap', 'TreeSet and TreeMap', 'Time complexity (big-O notation)'],
   controls: [
     { id: 'kind', label: 'Kind of collection', type: 'select', value: 'hash', options: [['hash', 'HashSet / HashMap'], ['linked', 'LinkedHashSet / LinkedHashMap'], ['tree', 'TreeSet / TreeMap']] },
@@ -79,14 +79,12 @@ Lab.register({
       push('System.out.println(' + n.v + '): Prints the ' + (m ? 'keys and values' : 'elements') + ' by going through them one after another from the start (iteration). ' + why + ' The output is ' + res + '.', looksSorted ? 'bad' : kind === 'hash' ? '' : 'good', -1);
       out.push(String(items.length));
       push('System.out.println(' + n.v + '.size()): The code adds five times, but one ' + what + ' was a duplicate and did not go in again, so the size is ' + items.length + '.', '', -1);
-      sum.push(cls + ' prints ' + res + ', and its size is ' + items.length + '.');
       if (kind === 'hash') sum.push(looksSorted ? 'HashSet and HashMap do not sort. The small integers came out looking sorted because their bucket numbers are the same as the numbers. If you change the values to 40, 5, 17, 5, 100, they come out in the order 17, 100, 5, 40.' : 'The iteration order of HashSet and HashMap is the order of the bucket numbers that hashCode determines. To a person it looks scrambled, and it can change with the Java version or with the number of entries, so do not write code that relies on this order.');
       if (kind === 'linked') sum.push('Use LinkedHashSet and LinkedHashMap when insertion order must be kept. These are the cases where things must come out the way they went in, such as the order of a list shown on the screen or the order of configuration entries.' + (m ? ' Calling put again for a key that is already present does not change the position of that key.' : ''));
       if (kind === 'tree') sum.push('Use TreeSet and TreeMap when you need sorted order, or when you need to find the smallest value or the values greater than or equal to some value. In exchange, every addition and every lookup takes several comparisons, so they are slower than the Hash kind.');
       if (kind !== 'tree' && c.data === 'null') sum.push('The Hash kind and the LinkedHash kind can hold one null. If you change the kind of collection to Tree, the same code throws an exception.');
       if (kind !== 'tree' && c.data === 'obj') sum.push('The Hash kind and the LinkedHash kind can hold any object, as long as it has equals and hashCode. The Tree kind also needs a way to compare the objects for order.');
     } else {
-      sum.push(cls + ': addition #' + done + ' threw a ' + ex + ', so the program never reached the output.');
       sum.push(ex === 'NullPointerException' ? 'TreeSet and TreeMap decide positions by comparing values with each other, so they cannot hold null. HashSet and LinkedHashSet can hold one null.' : 'An object that goes into a TreeSet or a TreeMap must implement Comparable, or you must supply a way to compare (a Comparator) separately, as in new TreeSet<>(Comparator.comparingInt(Task::id)). The compiler does not catch this, and the exception is thrown at run time.');
     }
     sum.push('How to choose: the Hash kind if you do not need any order (the fastest), the LinkedHash kind if you need insertion order, and the Tree kind if you need sorted order.');
@@ -94,13 +92,8 @@ Lab.register({
     return { events: ev, summary: sum, cells: cells, stopAt: ex ? done : 0, row: [ex ? '(stopped before printing)' : res, ex ? '-' : items.length + '', dup, ex || 'none'] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, n = this.names(c), m = c.shape === 'map';
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    var third = c.kind === 'hash' ? 'Bucket number' : c.kind === 'linked' ? 'Inserted' : 'How the position was decided';
-    H.table(v, ['Iteration order', m ? 'Key' : 'Element'].concat(m ? ['Value'] : [], [third]), s.items.map(function (it, i) { return { cells: [String(i + 1), it.s].concat(m ? [String(it.val)] : [], [c.kind === 'hash' ? 'bucket ' + it.cell : c.kind === 'linked' ? '#' + it.seq : 'compared with compareTo']) }; }), n.cls + ' contents');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Output', s.out.length ? s.out.join('  /  ') : 'nothing yet', s.out.length ? 'good' : 'none');
-    H.lane(ln, 'Exception', s.ex ? s.ex + ' (the program stops)' : 'none', s.ex ? 'bad' : 'none');
     H.counters(v, [[s.done + ' / 5', 'Additions attempted'], [s.items.length + '', 'Entries in the collection']]);
   },
   // Diagram: at the top, the five values in the order they are added in the code; at the bottom, the values in the order the collection returns them. Each addition fixes a position at the bottom.
@@ -124,7 +117,7 @@ Lab.register({
     if (!s.items.length) P.text('empty', 340, 190, s.ex ? 'Nothing could be added' : 'empty', { cls: s.ex ? 'bad' : 'mut', anchor: 'middle' });
     if (s.ex) P.box('r1', 16, 246, 648, 38, { cls: 'bad', title: 'Stopped by an exception', right: s.ex });
     else P.box('r1', 16, 246, 648, 38, { cls: s.out.length ? 'good' : 'ghost', title: 'Output', right: s.out.length ? s.out.join('   /   ') : 'nothing yet' });
-    P.note(c.kind === 'hash' ? 'The Hash kind iterates starting from the lowest bucket number computed from hashCode. So the order has nothing to do with the insertion order or with the order of the values. There are 16 buckets at first, and this lab shows the order in that state.' : c.kind === 'linked' ? 'The LinkedHash kind iterates by following the linked list that connects the entries in insertion order. Adding something that is already present does not change its position.' : 'The Tree kind compares with compareTo on every addition and puts the new entry in its sorted position. That is why null, which cannot be compared, or an object that is not Comparable causes an exception at the moment it is added.');
+    P.note(c.kind === 'hash' ? 'The Hash kind iterates starting from the lowest bucket number computed from hashCode. There are 16 buckets at first, and this lab shows the order in that state.' : c.kind === 'linked' ? 'The LinkedHash kind iterates by following the linked list that connects the entries in insertion order. Adding something that is already present does not change its position.' : 'The Tree kind compares with compareTo on every addition and puts the new entry in its sorted position.');
   },
   assume: 'The output, the size, the value returned when a duplicate is added, and the type of exception were checked for all 30 combinations against the result of running the same code on JDK 21 on this PC. The bucket numbers of HashSet and HashMap were also checked against values read from the internal array of real objects. However, the Java specification does not guarantee the iteration order of the Hash kind. The order shown here is the one on JDK 21 with 16 buckets (12 elements or fewer), and it can change with a different version or a different number of elements. The specific value that the hashCode of a record returns is not specified either, and on JDK 21 the hashCode of Task(int id) was equal to id. A TreeSet decides whether two values are the same by whether the result of compareTo is 0, not by equals. The difference in performance (the Hash kind is faster than the Tree kind) was not measured, and the lab follows the time complexity stated in the documentation.',
 });

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'aop', nav: 'AOP: 어드바이스와 포인트컷', cat: '스프링', mode: 'step',
   title: '어드바이스는 어느 메서드에, 어떤 순서로 끼어드나',
-  intro: '로그 남기기처럼 여러 메서드에 똑같이 필요한 일을 한 클래스(애스펙트)에 적어 두면, 스프링이 메서드 호출의 앞뒤에 그 코드를 끼워 넣습니다. 끼워 넣는 코드를 어드바이스, 어느 메서드에 끼울지 고르는 식을 포인트컷이라고 합니다. 포인트컷과 부르는 메서드, 메서드의 결과, 애스펙트의 수를 바꿔 가며 무엇이 어떤 순서로 실행되는지 확인합니다.',
+  intro: '로그 남기기처럼 여러 메서드에 똑같이 필요한 일을 한 클래스(애스펙트)에 적어 두면, 스프링이 메서드 호출의 앞뒤에 그 코드를 끼워 넣습니다. 끼워 넣는 코드를 어드바이스, 어느 메서드에 끼울지 고르는 식을 포인트컷이라고 합니다.',
   terms: ['AOP(관점 지향 프로그래밍)', '어드바이스(Advice)', '포인트컷(Pointcut)', '애스펙트(Aspect)와 @Order', '프록시(Proxy)'],
   controls: [
     { id: 'pc', label: '포인트컷 (어느 메서드에 끼어들지 고르는 식)', type: 'select', value: 'cls', options: [['cls', 'execution(* shop.OrderService.*(..))'], ['arg', 'execution(* shop.*.*(String))'], ['noarg', 'execution(* shop.OrderService.cancel())'], ['ann', '@annotation(shop.Audit)']] },
@@ -88,8 +88,6 @@ Lab.register({
     st.cur = ''; st.caller = ex ? 'IllegalStateException' : ret;
     push('호출한 쪽: ' + (ex ? 'IllegalStateException을 받습니다.' + (M.hit ? ' 어느 어드바이스도 예외를 잡지 않았으므로 예외가 그대로 전달됩니다.' : '') : ret + '를 받습니다.' + (M.hit ? ' 어드바이스가 끼어들었지만 돌려받는 값은 그대로입니다.' : '')), ex ? 'bad' : 'good');
     var seq = st.run.slice();
-    if (M.hit) sum.push('포인트컷이 ' + sig + ' 메서드를 골랐고, 콘솔에는 ' + seq.length + '줄이 이 순서로 찍혔습니다: ' + seq.join(' → ') + '. 호출한 쪽은 ' + st.caller + (ex ? '을' : '를') + ' 받았습니다.');
-    else sum.push('포인트컷이 ' + sig + ' 메서드를 고르지 않아 어드바이스가 하나도 실행되지 않았습니다. 콘솔에 찍힌 것은 "' + m + ' 본문" 한 줄뿐이고, 호출한 쪽은 ' + st.caller + (ex ? '을' : '를') + ' 받았습니다.');
     if (!M.hit && c.pc === 'noarg' && m === 'cancel') sum.push('괄호 안을 비운 cancel()은 "매개변수가 없는 cancel"만 고릅니다. 매개변수와 상관없이 고르려면 cancel(..)이라고 씁니다.');
     if (!M.hit) sum.push('포인트컷이 고르지 않은 메서드는 평범한 메서드 호출과 똑같이 실행됩니다. 식을 잘못 써서 아무것도 고르지 못해도 오류가 나지 않으므로, 어드바이스가 실제로 실행되는지 확인해야 합니다.');
     if (M.hit && ex) sum.push('예외가 나면 @AfterThrowing과 @After가 실행되고, @AfterReturning과 @Around에서 pjp.proceed() 아래에 적은 줄은 실행되지 않습니다. 어느 경우에나 해야 하는 일은 @After에 두거나, @Around 안에서 try-finally로 감쌉니다.');
@@ -106,9 +104,7 @@ Lab.register({
     H.table(v, ['순서', '콘솔에 찍힌 줄', '찍은 곳'], s.run.map(function (x, i) {
       var who = x.indexOf('Log ') === 0 ? 'LogAspect' : x.indexOf('Time ') === 0 ? 'TimeAspect' : '메서드 본문';
       return { cells: [String(i + 1), { v: x, cls: x === s.cur ? 'hot' : '' }, who] };
-    }).concat(s.skip.map(function (x) { return { cls: 'gone', cells: ['-', { v: x + ' (실행되지 않음)', cls: 'bad' }, 'LogAspect'] }; })), '콘솔 출력');
-    H.counters(v, [[s.run.length + '줄', '지금까지 찍힌 줄'], [s.caller || '아직 실행 중', '호출한 쪽이 받는 것']]);
-  },
+    }).concat(s.skip.map(function (x) { return { cls: 'gone', cells: ['-', { v: x + ' (실행되지 않음)', cls: 'bad' }, 'LogAspect'] }; })), '콘솔 출력');  },
   // 그림: 애스펙트를 겹겹의 상자로 그린다. 바깥 상자부터 들어가 가운데의 메서드 본문에 닿고, 나올 때는 안쪽부터 나온다. 왼쪽 칸은 들어갈 때, 오른쪽 칸은 나올 때 실행되는 어드바이스다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { pc: '', bean: '', run: [], cur: '', skip: [], body: '', caller: '' };

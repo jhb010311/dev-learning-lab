@@ -1,7 +1,7 @@
 Lab.register({
   id: 'lambda', nav: 'Lambda expressions and functional interfaces', cat: 'Java language', mode: 'step',
   title: 'When does the code in a lambda expression run?',
-  intro: 'A lambda expression is syntax that lets you store "an action to run later" in a variable like a value and pass it to another method. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it. Write the same action as an anonymous class, a lambda expression, and a method reference, and change how many times the receiving method calls it to see when and how many times the body runs.',
+  intro: 'A lambda expression is syntax that lets you store "an action to run later" in a variable like a value and pass it to another method. The code inside a lambda expression does not run on the line where you write it. It runs only when the method that receives it calls it.',
   terms: ['Lambda expression', 'Functional interface', 'Method reference', 'Differences between anonymous classes and lambda expressions'],
   controls: [
     { id: 'fi', label: 'Functional interface (the shape of the action)', type: 'select', value: 'function', options: [['function', 'Function<String, Integer>: takes a value and returns another value'], ['predicate', 'Predicate<String>: takes a value and returns true or false'], ['supplier', 'Supplier<String>: takes nothing and returns a value'], ['consumer', 'Consumer<String>: takes a value and returns nothing']] },
@@ -66,10 +66,9 @@ Lab.register({
     st.out.push('run ends'); st.end = true;
     push('System.out.println("run ends"): "run ends" is printed. "body runs" was printed ' + n + (n === 1 ? ' time' : ' times') + ' in all.', '');
     var got = F.res.slice(0, n).filter(function (x) { return x !== null; });
-    sum.push('The body ran ' + n + (n === 1 ? ' time' : ' times') + '. The lines were printed in this order: ' + st.out.join(' → ') + '.');
     sum.push(n ? 'Nothing ran on the line that creates the action. The body ran each time the ' + F.m + ' method was called inside run. The code inside a lambda expression runs when it is called, not when it is created.' : 'The action was created and passed, but the receiving method did not call it, so the body never ran. A lambda expression is only "code that can be run later". The receiving method decides whether to run it and how many times.');
     sum.push({ 'function': 'Function<T, R> is an action that takes one value of type T and returns a value of type R, and it is called with apply. It is used to turn a value into another value (conversion).', predicate: 'Predicate<T> is an action that takes one value of type T and returns true or false, and it is called with test. It is used for condition checks.', supplier: 'Supplier<T> is an action that takes nothing and returns a value of type T, and it is called with get. It lets you put off the work of creating a value and run it only when the value is really needed.', consumer: 'Consumer<T> is an action that takes one value of type T and returns nothing, and it is called with accept. It is used for work that takes a value and only uses it, such as printing or saving.' }[c.fi]);
-    sum.push(form === 'anon' ? 'An anonymous class is how an action was passed before lambda expressions existed (up to Java 7). If you change the setting to a lambda expression, the same work fits on one line.' : form === 'lambda' ? 'The result is the same whether you write the action as an anonymous class, a lambda expression, or a method reference. Change the setting and check that only the code changes.' : 'When a lambda expression does nothing but call one existing method, you can write it more briefly as a method reference (ClassName::methodName). The result is the same as with the lambda expression.');
+    sum.push(form === 'anon' ? 'An anonymous class is how an action was passed before lambda expressions existed (up to Java 7). If you change the setting to a lambda expression, the same work fits on one line.' : form === 'lambda' ? 'The result is the same whether you write the action as an anonymous class, a lambda expression, or a method reference.' : 'When a lambda expression does nothing but call one existing method, you can write it more briefly as a method reference (ClassName::methodName). The result is the same as with the lambda expression.');
     return { events: ev, summary: sum, out: st.out.slice(), row: [F.m, F.takes, F.gives, n + (n === 1 ? ' time' : ' times'), !n ? '(not called)' : got.length ? got.join(', ') : '(no value returned)'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -77,7 +76,6 @@ Lab.register({
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
     H.table(v, ['Interface', 'Method called', 'Takes', 'Returns'], [{ cells: [F.type.replace(/<.*/, ''), F.m, F.takes, F.gives] }], 'Shape of this action');
     H.table(v, ['#', 'Line printed'], s.out.map(function (o, i) { return { cells: [String(i + 1), { v: o, cls: o.indexOf('body runs') === 0 ? 'hot' : '' }] }; }), 'Output so far');
-    H.counters(v, [[s.count + (s.count === 1 ? ' time' : ' times'), 'The body ran'], [s.done + ' / ' + c.calls, 'Calls that run made to the action']]);
   },
   // Diagram: on the left, where the action is created (the variable); in the middle, the run method, which receives the action and calls it; on the right, the method that serves as the body. An arrow goes to the body only during a call.
   draw: function (P, sim, shown) {

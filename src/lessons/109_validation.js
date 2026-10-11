@@ -1,7 +1,7 @@
 Lab.register({
   id: 'validation', nav: '검증', cat: '스프링', mode: 'step',
   title: '필드에 @NotBlank를 붙였는데 왜 빈 값이 그대로 들어오나',
-  intro: '입력값에는 "이름은 비어 있으면 안 된다" 같은 조건이 있습니다. Bean Validation은 이런 조건을 @NotBlank 같은 애노테이션으로 필드 위에 적어 두는 방법이고, 이렇게 적은 조건을 제약이라고 부릅니다. 그런데 제약은 적어 둔 것만으로는 아무 일도 하지 않습니다. 누군가 "이 객체를 검사하라"고 시켜야 하고, 스프링 MVC에서는 컨트롤러 파라미터에 붙인 @Valid가 그 신호입니다. 받는 방법과 제약, 보내는 값을 바꿔 가며 검증이 언제 일어나고, 어기면 어떤 응답이 되는지 보세요.',
+  intro: '입력값에는 "이름은 비어 있으면 안 된다" 같은 조건이 있습니다. Bean Validation은 이런 조건을 @NotBlank 같은 애노테이션으로 필드 위에 적어 두는 방법이고, 이렇게 적은 조건을 제약이라고 부릅니다. 그런데 제약은 적어 둔 것만으로는 아무 일도 하지 않습니다. 누군가 "이 객체를 검사하라"고 시켜야 하고, 스프링 MVC에서는 컨트롤러 파라미터에 붙인 @Valid가 그 신호입니다.',
   terms: ['Bean Validation과 @Valid', '@NotNull, @NotEmpty, @NotBlank', 'BindingResult', 'MethodArgumentNotValidException', 'HTTP 상태 코드'],
   controls: [
     { id: 'how', label: '컨트롤러가 값을 받는 방법', type: 'select', value: 'plain', options: [['plain', '@RequestBody ItemForm form (@Valid 없음)'], ['valid', '@Valid @RequestBody ItemForm form'], ['br', '@Valid @RequestBody ItemForm form, BindingResult errors'], ['param', '@RequestParam String name (제약을 파라미터에 직접 붙임)']] },
@@ -96,25 +96,17 @@ Lab.register({
       else push(call + ' 호출: 검증을 통과했으므로 컨트롤러 메서드가 실행됩니다. ' + holder + '의 값은 ' + V.lit + '입니다. 돌려주는 글은 "' + ret + '"이고, 200으로 응답합니다.', 'good');
     }
     var ran = st.ctrl;
-    sum.push('응답은 ' + status + '입니다. ' + (checked === '하지 않음' ? '검증은 하지 않았습니다.' : violates ? '검증은 실패했습니다(name이 ' + C.a + ' 제약을 어김).' : '검증은 통과했습니다.') + ' ' + (ran ? '컨트롤러 메서드가 실행됐고, 돌려준 글은 "' + ret + '"입니다.' : '컨트롤러 메서드는 실행되지 않았고, 스프링이 던진 예외는 ' + ex + '입니다.'));
-    if (how === 'plain') sum.push(violates ? '필드에 제약을 붙이는 것만으로는 검증되지 않습니다. 컨트롤러 파라미터에 @Valid를 붙여야 스프링이 검증기를 부릅니다. 받는 방법을 @Valid가 있는 것으로 바꿔 비교해 보세요.' : '이 값은 ' + C.a + ' 제약을 어기지 않지만, 검사해서 통과한 것이 아니라 검사를 아예 하지 않은 것입니다. @Valid가 없으면 어떤 값을 보내도 검증 없이 컨트롤러가 실행됩니다.');
+    if (how === 'plain') sum.push(violates ? '필드에 제약을 붙이는 것만으로는 검증되지 않습니다. 컨트롤러 파라미터에 @Valid를 붙여야 스프링이 검증기를 부릅니다.' : '이 값은 ' + C.a + ' 제약을 어기지 않지만, 검사해서 통과한 것이 아니라 검사를 아예 하지 않은 것입니다. @Valid가 없으면 어떤 값을 보내도 검증 없이 컨트롤러가 실행됩니다.');
     else if (st.fail === 2) sum.push('값이 아예 없으면 @RequestParam의 "필수 값" 검사에서 먼저 걸립니다. 제약 검사는 값을 꺼낸 다음의 일입니다. 같은 400이지만 예외가 다릅니다.');
-    else if (how === 'br') sum.push(violates ? '@Valid 파라미터 바로 뒤에 BindingResult를 받으면 검증에 실패해도 예외가 나지 않고 컨트롤러가 실행됩니다. 오류가 있는지 확인하고 어떻게 응답할지 정하는 일은 컨트롤러 코드의 몫입니다. hasErrors()를 확인하지 않으면 잘못된 값이 그대로 처리됩니다.' : 'BindingResult를 받아도 어긴 제약이 없으면 결과는 @Valid만 쓴 경우와 같습니다. 값을 제약에 걸리는 것으로 바꾸면 차이가 보입니다.');
+    else if (how === 'br') sum.push(violates ? '@Valid 파라미터 바로 뒤에 BindingResult를 받으면 검증에 실패해도 예외가 나지 않고 컨트롤러가 실행됩니다. 오류가 있는지 확인하고 어떻게 응답할지 정하는 일은 컨트롤러 코드의 몫입니다. hasErrors()를 확인하지 않으면 잘못된 값이 그대로 처리됩니다.' : 'BindingResult를 받아도 어긴 제약이 없으면 결과는 @Valid만 쓴 경우와 같습니다.');
     else if (violates) sum.push(isParam ? '파라미터에 직접 붙인 제약은 @Valid 없이도 검사됩니다. 실패하면 HandlerMethodValidationException이 나오고 응답은 400입니다. 이 실습이 대조한 스프링 프레임워크 7.0.9에서의 동작입니다.' : '@Valid가 붙은 객체가 제약을 어기면 컨트롤러는 실행되지 않고 400이 됩니다. 요청을 보낸 쪽의 잘못이라는 뜻입니다. 잘못된 값이 컨트롤러 안으로 들어오지 않으므로 컨트롤러는 값이 올바르다고 믿고 일할 수 있습니다.');
     else sum.push('검증을 통과하면 검증하지 않을 때와 똑같이 컨트롤러가 실행됩니다. 차이는 제약을 어긴 값이 왔을 때만 드러납니다.');
     if (how !== 'plain' && st.fail !== 2) sum.push({ notnull: '@NotNull은 null만 막습니다. 빈 문자열과 빈칸은 통과하므로, 사람이 입력하는 글자 값에는 보통 @NotBlank를 씁니다.', notempty: '@NotEmpty는 null과 빈 문자열을 막지만, 빈칸만 든 문자열은 길이가 있으므로 통과시킵니다.', notblank: '@NotBlank는 null, 빈 문자열, 빈칸만 든 문자열을 모두 막습니다. 세 제약 가운데 가장 엄격합니다.' }[c.con]);
     return { events: ev, summary: sum, row: [status, checked, ran ? '실행됨' : '건너뜀', ret, ex] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this, C = this.CONS[c.con], isParam = c.how === 'param';
-    var leaked = c.how === 'plain' && C.bad.indexOf(c.val) >= 0;   // 제약을 어긴 값이 검증 없이 컨트롤러에 들어온 경우
+    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this;
     if (!s) { H.text(v, '실행을 누르면 요청 하나가 검증을 거쳐(또는 거치지 않고) 컨트롤러에 닿기까지를 한 단계씩 보여 줍니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '값 준비', s.stage < 2 ? '아직' : (isParam ? 'name = ' : 'form의 name = ') + s.name, s.fail === 2 ? 'bad' : s.stage < 2 ? 'none' : 'good');
-    H.lane(ln, '검증할지', s.gate ? (c.how === 'plain' ? '@Valid 없음: 건너뜀' : isParam ? '파라미터에 제약이 있음: 검증함' : '@Valid 있음: 검증함') : s.fail ? '하지 않음' : '아직', !s.gate ? 'none' : c.how === 'plain' ? 'wait' : 'hot');
-    H.lane(ln, '제약 검사', s.check ? C.a + ': ' + s.check : s.gate === '건너뜀' || s.fail ? '하지 않음' : '아직', s.check === '어김' ? 'bad' : s.check ? 'good' : 'none');
-    H.lane(ln, '컨트롤러', s.ctrl ? '실행됨, 돌려준 글 "' + s.ret + '"' : s.fail ? '실행되지 않음 (' + s.after + ')' : '아직', s.ctrl ? (leaked ? 'bad' : s.errors === 1 ? 'hot' : 'good') : s.fail ? 'bad' : 'none');
-    H.counters(v, [[s.status || '처리 중', '응답'], [s.errors < 0 ? '-' : s.errors + '개', 'errors에 담긴 오류']]);
     var order = ['none', 'empty', 'blank', 'pen'];
     H.table(v, ['제약', 'null', '""', '" "', '"pen"'], ['notnull', 'notempty', 'notblank'].map(function (k) {
       var K = self.CONS[k];
@@ -144,7 +136,7 @@ Lab.register({
     if (s.stage >= 2) P.arrow('take', 'r_val:r', 'obj:l', { cls: s.fail === 2 ? 'bad' : 'good', label: s.fail === 2 ? '값이 없음' : '값을 담음' });
     if (s.gate) P.arrow('read', 'con:r', 'chk:l', { cls: skipped ? 'mut dash' : s.check === '어김' ? 'bad' : s.check ? 'good' : 'hot', label: skipped ? '읽지 않음' : '제약을 읽음' });
     P.box('resp', 16, 264, 648, 34, { cls: !s.status ? 'ghost' : s.ctrl ? (leaked || s.errors === 1 ? 'hot' : 'good') : 'bad', title: '응답', right: s.status || '처리 중' });
-    P.note('제약은 왼쪽 아래 칸에 적혀 있을 뿐입니다. 스프링이 검증하기로 정했을 때만 검증기가 그 제약을 읽어 값과 견줍니다. 초록 칸은 통과하거나 실행된 곳, 빨간 칸은 제약을 어겼거나 막힌 곳입니다. 제약을 어긴 값이 검증 없이 들어오면 컨트롤러 칸이 빨갛게 됩니다.');
+    P.note('초록 칸은 통과하거나 실행된 곳, 빨간 칸은 제약을 어겼거나 막힌 곳입니다. 제약을 어긴 값이 검증 없이 들어오면 컨트롤러 칸이 빨갛게 됩니다.');
   },
   assume: '받는 방법 네 가지, 제약 세 가지, 보내는 값 네 가지를 곱한 마흔여덟 조합을 모두 실제 스프링 부트 4.1.1 서버(스프링 프레임워크 7.0.9, 내장 톰캣 11, Hibernate Validator 9.1.3.Final, jakarta.validation-api 3.1.1, JDK 21)에 HTTP 요청으로 보내, 상태 코드와 검증기가 실제로 돌았는지, 어긴 제약, 컨트롤러 실행 여부와 돌려준 글, 스프링이 던진 예외의 이름이 화면과 일치하는 것을 확인했습니다. 검증기가 돌았는지는 항상 통과하는 제약을 하나 더 붙여 그것이 불렸는지로 확인했습니다(화면의 코드에는 없습니다). 화면의 주소는 모두 /items이지만 대조할 때는 조합마다 주소를 따로 두었습니다. 스프링 부트는 검증 라이브러리(spring-boot-starter-validation)가 있을 때 검증기를 자동으로 준비하며, 이 실습은 그 상태를 전제로 합니다. 라이브러리가 없을 때의 동작은 확인하지 않았습니다. 예외의 이름과 파라미터에 직접 붙인 제약의 동작은 스프링 버전에 따라 다릅니다. 여기 적은 것은 스프링 프레임워크 7.0.9에서 본 것이고, 6.1보다 앞선 버전은 다르다고 알려져 있으나 실행해 보지 못했습니다. 오류 응답의 본문과 오류 메시지의 글은 설정과 서버의 언어에 따라 달라 결과로 삼지 않았습니다. 이 PC에서 본 기본 오류 응답 본문에는 timestamp, status, error, path만 있었고 어느 필드가 틀렸는지는 들어 있지 않았습니다. 화면에 없는 경우도 같은 서버에서 확인했습니다. @Valid 대신 스프링의 @Validated를 파라미터에 붙여도 결과가 같습니다. @Valid @ModelAttribute로 폼 본문을 받아도 열두 가지(제약 셋, 값 넷) 결과가 @Valid @RequestBody와 같고 예외도 MethodArgumentNotValidException입니다. JSON에 "name": null이라고 적어 보내도 보내지 않은 것과 같습니다. 객체 안에 다른 객체가 필드로 들어 있을 때는 그 필드에 @Valid가 있어야 안쪽 객체의 제약까지 검사하고(없으면 200), 안쪽 객체가 null이면 @Valid가 있어도 내려가지 않고 통과합니다. 제약에 groups를 지정하면 @Valid로는 검사되지 않고 @Validated(그 그룹)으로 받아야 검사되며, 반대로 groups가 없는 제약은 @Validated(그 그룹)으로 받으면 검사되지 않습니다. 필드 둘이 모두 어기면 오류는 2개로, 검증은 첫 오류에서 멈추지 않습니다. @Valid 객체와 제약이 직접 붙은 파라미터를 한 메서드에서 함께 받으면 객체 쪽 실패도 HandlerMethodValidationException으로 나옵니다. @RequestParam(required = false)로 받고 값을 보내지 않으면 null이 들어와 @NotNull과 @NotBlank에 걸립니다. 컨트롤러 클래스에 @Validated를 붙이면 파라미터 제약의 실패가 ConstraintViolationException과 500으로 바뀝니다. Integer 필드에 @NotBlank를 붙이면 검증할 때 UnexpectedTypeException으로 500이 됩니다. BindingResult를 @Valid 파라미터 앞에 두면 IllegalStateException으로 500이 됩니다. @ExceptionHandler로 MethodArgumentNotValidException을 받으면 어느 필드가 어느 제약을 어겼는지 꺼내 400 응답 본문에 직접 적을 수 있습니다. 화면은 필드 하나, 제약 하나인 경우로 단순화했고, 빈칸은 스페이스 한 글자만 확인했습니다.',
 });

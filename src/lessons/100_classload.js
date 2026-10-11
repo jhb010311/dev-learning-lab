@@ -1,7 +1,7 @@
 Lab.register({
   id: 'classload', nav: '클래스 로딩과 초기화', cat: 'JVM', mode: 'step',
   title: '클래스의 static 블록은 언제 실행되나',
-  intro: '클래스에 적어 둔 static 초기화 블록은 프로그램이 시작될 때 실행되는 것이 아니라, 그 클래스가 처음으로 "제대로" 쓰일 때 한 번 실행됩니다. 그런데 클래스 이름이 코드에 나온다고 해서 모두 그런 사용은 아닙니다. 같은 일을 두 번씩 해 보면서 static 블록이 언제, 몇 번 실행되는지 확인합니다.',
+  intro: '클래스에 적어 둔 static 초기화 블록은 프로그램이 시작될 때 실행되는 것이 아니라, 그 클래스가 처음으로 "제대로" 쓰일 때 한 번 실행됩니다. 그런데 클래스 이름이 코드에 나온다고 해서 모두 그런 사용은 아닙니다.',
   terms: ['클래스 로더', '클래스 초기화', 'static 초기화 블록', '컴파일 시점 상수', 'static'],
   controls: [
     { id: 'cls', label: '사용하는 클래스', type: 'select', value: 'parent', options: [['parent', 'Parent (부모 클래스)'], ['child', 'Child (Parent를 상속한 자식 클래스)']] },
@@ -78,7 +78,6 @@ Lab.register({
     print('두 번째 사용 끝'); st.stmt = 'println("두 번째 사용 끝");'; st.eff = '끝'; st.to = '';
     push('System.out.println("두 번째 사용 끝"): 프로그램이 끝납니다. static 블록이 실행된 횟수는 Parent ' + st.pn + '번, Child ' + st.cn + '번입니다.');
     var word = function (n) { return n ? '1번 실행' : '실행 안 됨'; };
-    sum.push('같은 일을 두 번 했을 때 static 블록은 Parent에서 ' + st.pn + '번, Child에서 ' + st.cn + '번 실행됐습니다. 읽어 들인 클래스: ' + (f.loads.length ? f.loads.join(', ') : '없음') + '.');
     if (U === 'const') sum.push('static final이고 값이 숫자나 문자열 리터럴처럼 컴파일할 때 정해지는 필드는 "컴파일 시점 상수"입니다. 컴파일러가 쓰는 쪽 코드에 값을 직접 넣어 두므로, 실행할 때 그 클래스는 쓰이지 않습니다. 그래서 상수만 바꾸고 그 클래스만 다시 컴파일하면, 쓰는 쪽에는 옛 값이 남습니다.');
     if (U === 'finalrt') sum.push('static final이라고 모두 상수는 아닙니다. 메서드를 호출해야 값이 나오는 필드는 실행 중에 값이 정해지므로, 읽으려면 클래스가 초기화돼야 합니다.');
     if (U === 'array' || U === 'classlit') sum.push('클래스를 읽어 들이는 것(로딩)과 초기화하는 것은 다른 단계입니다. 배열을 만들거나 .class를 쓰는 것은 클래스 정보만 필요한 일이라서, 읽어 들이기만 하고 static 블록은 실행하지 않습니다.');
@@ -96,11 +95,6 @@ Lab.register({
       { cls: s.P === 'none' ? 'gone' : '', cells: ['Parent', { v: word[s.P], cls: cl[s.P] }, s.pn + '번'] },
       { cls: s.C === 'none' ? 'gone' : '', cells: ['Child', { v: word[s.C], cls: cl[s.C] }, s.cn + '번'] },
     ], 'JVM이 준비한 클래스');
-    var ln = H.lanes(v);
-    H.lane(ln, '지금 실행한 줄', s.stmt, 'hot');
-    H.lane(ln, '일어난 일', s.eff, s.eff.indexOf('초기화를 일으키지') >= 0 || s.eff.indexOf('바로 씀') >= 0 ? 'wait' : 'none');
-    H.title(v, '출력된 줄');
-    H.slots(v, s.out.map(function (x) { return [x, x.indexOf('초기화') >= 0 ? 'd' : 'q']; }), '아직 없음');
   },
   // 그림: 왼쪽에 지금 실행한 main의 한 줄, 오른쪽에 JVM이 준비한 두 클래스의 상태(읽지 않음, 읽어 들임, 초기화됨), 아래에 출력된 줄.
   draw: function (P, sim, shown) {
@@ -119,7 +113,7 @@ Lab.register({
       var k = s.out.indexOf(x);
       if (k >= 0) P.box('o_' + i, 16 + k * 131, 224, 124, 34, { cls: x.indexOf('초기화') >= 0 ? 'good' : 'plain', title: x, center: true });
     });
-    P.note('클래스는 "읽어 들임(로딩)"과 "초기화"의 두 단계를 따로 거칩니다. static 블록은 초기화 단계에서 한 번만 실행됩니다. 굵은 테두리는 지금 실행한 줄이 쓰는 클래스입니다.');
+    P.note('굵은 테두리는 지금 실행한 줄이 쓰는 클래스입니다.');
   },
   assume: '열여덟 가지 조합마다 화면의 코드와 같은 소스를 이 PC의 JDK 21에서 새로 컴파일해 실행하고, 출력된 줄의 순서와 읽어 들인 클래스를 대조했습니다. 클래스를 읽어 들인 시점은 -Xlog:class+load 옵션으로 얻은 JVM의 기록과 대조했습니다. 초기화가 언제 일어나는지는 자바 언어 명세가 정해 둔 것이라 어느 JVM에서나 같습니다. 반면 클래스를 언제 읽어 들이는지는 JVM 구현에 맡겨져 있어서, "처음 쓰일 때 읽는다"와 "상수만 읽으면 읽지도 않는다"는 이 PC의 JVM(HotSpot)에서 확인한 동작입니다. 상수 읽기가 값 10으로 바뀌어 컴파일된다는 것은 javap로 바이트코드를 보고 확인했습니다. 읽어 들인 뒤 초기화 전에 거치는 검증, 준비 같은 세부 단계와, Class.forName이나 인터페이스의 초기화 규칙은 다루지 않았습니다.',
 });

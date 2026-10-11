@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df17f1edb0">
+<link rel="stylesheet" href="../../app.css?v=a563a23933">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>Class loading and initialization</h1>
 <p><b>When does the static initializer of a class run?</b></p>
-<p>A static initializer written in a class does not run when the program starts. It runs once, when the class is first &quot;really&quot; used. But not every appearance of the class name in the code counts as that kind of use. Do the same thing twice in a row and check when the static initializer runs and how many times.</p>
+<p>A static initializer written in a class does not run when the program starts. It runs once, when the class is first &quot;really&quot; used. But not every appearance of the class name in the code counts as that kind of use.</p>
 <p>Checked against real execution · The 18 combinations were newly compiled and run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>With the same thing done twice, the number of times the static initializers ran is: Parent 0, Child 0. Classes loaded: none.</li>
 <li>A field that is static final and whose value is fixed at compile time, as with a number or string literal, is a &quot;compile-time constant&quot;. The compiler puts the value directly into the code that uses the constant, so the class is not used at run time. This is why, if you change only the constant and recompile only that class, the old value stays in the code that uses it.</li>
 </ul>
 <h2>Code</h2>
@@ -169,6 +168,6 @@ System.out.println(&quot;second use done&quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df17f1edb0"></script>
+<script src="../../app.js?v=a563a23933"></script>
 </body>
 </html>

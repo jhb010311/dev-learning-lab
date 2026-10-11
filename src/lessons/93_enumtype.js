@@ -1,7 +1,7 @@
 Lab.register({
   id: 'enumtype', nav: '열거형(enum)', cat: '자바 언어', mode: 'step',
   title: 'enum을 숫자로 저장해 두면 왜 다른 상수가 되어 돌아오나',
-  intro: 'enum은 주문 상태처럼 정해진 몇 가지 값만 가질 수 있는 타입입니다. 상수 하나하나가 프로그램에 하나뿐인 객체여서 ==로 비교할 수 있고, 필드와 메서드도 가질 수 있습니다. 그런데 이 상수를 DB에 저장할 때 선언 순서 번호(ordinal)를 적어 두면, 나중에 enum 선언을 고쳤을 때 같은 숫자가 다른 상수를 가리키게 됩니다. 저장 방식과 선언의 변경을 바꿔 가며 무엇이 읽혀 나오는지 확인하세요.',
+  intro: 'enum은 주문 상태처럼 정해진 몇 가지 값만 가질 수 있는 타입입니다. 상수 하나하나가 프로그램에 하나뿐인 객체여서 ==로 비교할 수 있고, 필드와 메서드도 가질 수 있습니다. 그런데 이 상수를 DB에 저장할 때 선언 순서 번호(ordinal)를 적어 두면, 나중에 enum 선언을 고쳤을 때 같은 숫자가 다른 상수를 가리키게 됩니다.',
   terms: ['열거형(enum)', 'ordinal()과 name()', 'enum의 valueOf', '동일성과 동등성'],
   controls: [
     { id: 'store', label: '저장할 때 적어 둔 값', type: 'select', value: 'ordinal', options: [['ordinal', 'ordinal(): 선언 순서 번호'], ['name', 'name(): 상수의 이름'], ['code', '직접 만든 필드 code의 값']] },
@@ -91,14 +91,12 @@ Lab.register({
     }
     var endText = f.read ? '정상 종료' : '예외로 중단: java.lang.IllegalArgumentException: No enum constant Status.' + f.value;
     var row = [f.shown, f.read ? f.read[0] + ' (' + f.read[2] + ')' : '(읽지 못함)', f.read ? String(f.eq) : '(읽지 못함)', endText];
-    if (!f.read) sum.push('저장해 둔 값은 ' + f.shown + ' 그대로인데, 읽는 중에 IllegalArgumentException으로 프로그램이 멈췄습니다.');
-    else sum.push('저장한 상수는 ' + c.saved + ', 읽어 온 상수는 ' + f.read[0] + ' (' + f.read[2] + ')입니다. ' + (f.eq ? '같은 상수입니다.' : '다른 상수인데도 프로그램은 정상으로 끝났습니다.'));
     if (store === 'ordinal' && !f.eq) sum.push('ordinal()은 선언 순서일 뿐이어서, 상수를 중간에 끼워 넣거나 순서를 바꾸면 이미 저장해 둔 숫자가 다른 상수를 가리키게 됩니다. 예외가 나지 않으므로 "' + f.old[2] + '" 주문이 "' + f.read[2] + '" 주문으로 보이는 잘못된 데이터가 조용히 쓰입니다. ordinal() 값은 저장하지 않습니다.');
-    if (store === 'ordinal' && f.eq && shifted) sum.push('이 상수는 번호가 바뀌지 않아 무사했습니다. 같은 변경에서도 다른 상수를 저장해 둔 데이터는 틀어집니다. 저장해 둔 상수를 바꿔 확인해 보세요.');
+    if (store === 'ordinal' && f.eq && shifted) sum.push('이 상수는 번호가 바뀌지 않아 무사했습니다. 같은 변경에서도 다른 상수를 저장해 둔 데이터는 틀어집니다.');
     if (store === 'ordinal' && ch === 'append') sum.push('맨 끝에 추가하면 기존 상수의 번호는 바뀌지 않습니다. 하지만 "언제나 끝에만 추가한다"는 약속을 고치는 사람 모두가 계속 지켜야 하므로, ordinal()을 저장에 쓰는 방식 자체를 피합니다.');
     if (store === 'ordinal' && ch === 'rename') sum.push('이름을 바꾸는 것은 번호에 영향을 주지 않습니다. 번호로 저장한 데이터는 순서를 건드릴 때 틀어집니다.');
-    if (store === 'ordinal' && ch === 'same') sum.push('선언을 고치지 않는 동안에는 번호로 저장해도 문제가 드러나지 않습니다. 중간에 끼워 넣기나 순서 바꾸기를 골라 보세요.');
-    if (store === 'name' && f.read) sum.push('name()으로 저장하면 상수를 추가하거나 순서를 바꿔도 같은 상수가 읽힙니다.' + (ch === 'rename' ? ' 이번에 이름을 바꾼 것은 PAID뿐이라 ' + c.saved + '에는 영향이 없었습니다. PAID를 저장해 둔 경우를 확인해 보세요.' : ' 대신 상수의 이름을 바꾸면 안 됩니다.'));
+    if (store === 'ordinal' && ch === 'same') sum.push('선언을 고치지 않는 동안에는 번호로 저장해도 문제가 드러나지 않습니다.');
+    if (store === 'name' && f.read) sum.push('name()으로 저장하면 상수를 추가하거나 순서를 바꿔도 같은 상수가 읽힙니다.' + (ch === 'rename' ? ' 이번에 이름을 바꾼 것은 PAID뿐이라 ' + c.saved + '에는 영향이 없었습니다.' : ' 대신 상수의 이름을 바꾸면 안 됩니다.'));
     if (store === 'name' && !f.read) sum.push('valueOf는 없는 이름을 받으면 IllegalArgumentException을 던집니다. 대소문자만 달라도("paid") 마찬가지입니다. 이름으로 저장했다면 상수의 이름을 바꾸는 일이 곧 저장된 데이터를 못 읽게 만드는 일입니다. 그래도 조용히 다른 상수가 나오는 것보다는 예외로 바로 드러나는 쪽이 낫습니다.');
     if (store === 'code') sum.push('저장할 값을 enum의 필드로 따로 정해 두면 상수의 순서도 이름도 마음대로 고칠 수 있습니다. 대신 한번 정한 code 값은 바꾸지 않습니다. enum이 필드와 메서드를 가질 수 있어서 가능한 방법입니다.');
     if (f.read) sum.push('enum 상수의 비교에는 ==를 씁니다. 상수마다 객체가 하나뿐이라 결과가 equals와 같고, 한쪽이 null이어도 예외가 나지 않으며, 서로 다른 enum 타입을 비교하면 컴파일 오류로 알려 줍니다.');
@@ -113,13 +111,11 @@ Lab.register({
       return { cells: [String(i), { v: r[0], cls: hit ? (f.eq ? 'good' : 'bad') : '' }].concat(code ? [r[1]] : [], [r[2]]) };
     }), s.changed ? '지금의 enum 선언' : '예전의 enum 선언');
     var ln = H.lanes(v);
-    H.lane(ln, '저장해 둔 값', s.savedOn ? f.shown + '  (' + c.saved + ' 상수를 나타내려고 적은 값)' : '아직 저장 전', s.savedOn ? 'wait' : 'none');
     H.lane(ln, '읽는 방법', { ordinal: 'Status.values()[' + f.value + ']', name: 'Status.valueOf("' + f.value + '")', code: 'Status.fromCode("' + f.value + '")' }[c.store], 'none');
-    H.lane(ln, '읽어 온 상수', s.failed ? '없음 (IllegalArgumentException)' : s.read ? s.read : '아직 읽기 전', s.failed ? 'bad' : s.read ? (f.eq ? 'good' : 'bad') : 'none');
     H.title(v, '콘솔 출력');
     var lines = s.out.slice(); if (s.err) lines.push(s.err + '  (오류 출력)');
     v.appendChild(H.el('pre', 'code', lines.length ? lines.join('\n') : '(아직 없음)'));
-    H.counters(v, [[s.eq, '저장한 상수와 =='], [s.end, '프로그램']]);
+    H.counters(v, [[s.end, '프로그램']]);
   },
   // 그림: 위에 예전 선언의 상수들, 아래에 지금 선언의 상수들을 순서대로 놓고, 가운데에 저장해 둔 값을 둔다. 저장한 상수에서 값으로, 값에서 읽어 온 상수로 화살표를 긋는다.
   draw: function (P, sim, shown) {

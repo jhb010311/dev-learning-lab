@@ -1,7 +1,7 @@
 Lab.register({
   id: 'binding', nav: '요청 매핑과 파라미터 바인딩', cat: '스프링', mode: 'step',
   title: '요청에 실어 보낸 값은 어떻게 메서드의 파라미터가 되나',
-  intro: 'HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 "그 가운데 어느 자리에서 값을 꺼낼지"를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다. 받는 방법과 요청을 바꿔 가며 값이 어디서 와서 어디로 들어가는지 보세요.',
+  intro: 'HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 "그 가운데 어느 자리에서 값을 꺼낼지"를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다.',
   terms: ['@RequestParam과 @PathVariable', '@ModelAttribute와 @RequestBody', '쿼리 스트링과 폼 본문', 'ArgumentResolver', 'HTTP 상태 코드'],
   controls: [
     { id: 'how', label: '컨트롤러가 값을 받는 방법', type: 'select', value: 'param', options: [['param', '@RequestParam int qty'], ['opt', '@RequestParam(required = false) Integer qty'], ['def', '@RequestParam(defaultValue = "1") int qty'], ['path', '@PathVariable int qty'], ['model', '@ModelAttribute OrderForm form (객체로 묶어 받기)'], ['body', '@RequestBody OrderForm form (JSON 본문 받기)']] },
@@ -99,20 +99,19 @@ Lab.register({
       }
     }
     var ran = st.ctrl;
-    sum.push('응답은 ' + status + '이고, 컨트롤러 메서드는 ' + (ran ? '실행됐습니다. 컨트롤러가 받은 qty는 ' + got + '입니다.' : '실행되지 않았습니다. 거절한 이유는 "' + why + '"입니다.'));
     if (st.fail === 2) sum.push(isPath ? '@PathVariable을 쓰는 메서드는 주소의 모양 자체가 /orders/{qty}입니다. 그 칸이 없는 요청은 값이 빠진 요청(400)이 아니라 다른 주소로 온 요청(404)이 됩니다.' : '/orders/3처럼 경로에 값을 실어 보내려면 컨트롤러의 주소도 /orders/{qty} 모양이어야 하고, 파라미터에는 @PathVariable을 붙여야 합니다.');
     else if (R.where === 'json' && !isBody) sum.push(how === 'param' ? 'JSON 본문으로 보낸 값은 @RequestParam으로 받을 수 없습니다. 값을 실은 자리(본문)와 꺼내는 자리(요청 파라미터)가 다르기 때문입니다. JSON 본문은 @RequestBody로 받습니다.' : 'JSON 본문에 qty를 보냈지만 ' + annotEun + ' 본문을 보지 않으므로 컨트롤러가 받은 값은 ' + got + '입니다. 오류 없이 200으로 끝나서, 값이 안 들어온 것을 알아채기 어렵습니다. JSON 본문은 @RequestBody로 받습니다.');
     else if (isBody && !R.body) sum.push('@RequestBody는 본문만 봅니다. 쿼리 스트링으로 보낸 값은 @RequestParam이나 @ModelAttribute로 받습니다.');
     else if (isBody && R.where === 'form') sum.push('폼 형식의 본문은 @RequestBody가 아니라 @RequestParam이나 @ModelAttribute로 받습니다. @RequestBody로 받으려면 보내는 쪽이 JSON으로 보내고 Content-Type을 application/json으로 적어야 합니다.');
     else if (st.fail === 5) sum.push('요청에 실린 값은 모두 글자이고, 스프링이 파라미터의 타입에 맞게 바꿔 줍니다. 바꿀 수 없는 글자가 오면 컨트롤러를 실행하지 않고 400으로 응답합니다. 요청을 보낸 쪽의 잘못이라는 뜻입니다.');
-    else if (!R.where) sum.push({ param: '@RequestParam은 값이 없으면 400으로 거절합니다. 없어도 되는 값이라면 required = false나 defaultValue를 줍니다. 두 방법으로 바꿔서 비교해 보세요.', opt: 'required = false를 주면 값이 없을 때 null이 들어옵니다. 컨트롤러 안에서 null인 경우를 직접 처리해야 합니다.', def: 'defaultValue를 주면 값이 없을 때 그 값이 대신 들어옵니다. null을 걱정하지 않아도 되므로 타입을 int로 둘 수 있습니다.', model: '@ModelAttribute는 값이 없는 필드를 그대로 둡니다. 그래서 "보내지 않았다"와 "0을 보냈다"를 구분할 수 없습니다. 반드시 있어야 하는 값이라면 따로 검증해야 합니다.' }[how]);
+    else if (!R.where) sum.push({ param: '@RequestParam은 값이 없으면 400으로 거절합니다. 없어도 되는 값이라면 required = false나 defaultValue를 줍니다.', opt: 'required = false를 주면 값이 없을 때 null이 들어옵니다. 컨트롤러 안에서 null인 경우를 직접 처리해야 합니다.', def: 'defaultValue를 주면 값이 없을 때 그 값이 대신 들어옵니다. null을 걱정하지 않아도 되므로 타입을 int로 둘 수 있습니다.', model: '@ModelAttribute는 값이 없는 필드를 그대로 둡니다. 그래서 "보내지 않았다"와 "0을 보냈다"를 구분할 수 없습니다. 반드시 있어야 하는 값이라면 따로 검증해야 합니다.' }[how]);
     else if (R.where === 'form') sum.push('폼 형식(application/x-www-form-urlencoded)의 본문은 쿼리 스트링과 함께 "요청 파라미터"로 다뤄집니다. 그래서 본문에 실려 왔는데도 ' + annotRo + ' 받을 수 있습니다. 같은 본문이라도 JSON은 그렇지 않습니다.');
     else sum.push({ query: '쿼리 스트링의 값은 @RequestParam으로 하나씩 받거나, @ModelAttribute로 객체에 묶어 받습니다.', path: '경로의 한 칸을 값으로 쓰려면 주소에 {이름} 자리를 만들고 @PathVariable로 받습니다. 주문 번호처럼 "무엇을 가리키는지"를 나타내는 값에 주로 씁니다.', json: 'JSON 본문은 @RequestBody로 받습니다. 메시지 컨버터가 본문 전체를 객체 하나로 바꿔 줍니다.' }[R.where]);
     sum.push('애노테이션마다 보는 자리가 정해져 있습니다. @RequestParam과 @ModelAttribute는 요청 파라미터(쿼리 스트링과 폼 본문), @PathVariable은 경로, @RequestBody는 본문 전체입니다.');
     return { events: ev, summary: sum, ex: ex, row: [status, ran ? '실행됨' : '건너뜀', got, why] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, R = this.REQS[c.req];
+    var last = shown[shown.length - 1], s = last ? last.snap : null, R = this.REQS[sim.c.req];
     if (!s) { H.text(v, '실행을 누르면 요청 하나가 컨트롤러 메서드의 파라미터가 되기까지를 한 단계씩 보여 줍니다.'); return; }
     var looks = function (part) { return s.hit === part ? { v: '여기서 꺼냄', cls: 'good' } : s.look.indexOf(part) >= 0 ? { v: '보는 자리', cls: 'hot' } : s.stage >= 3 ? '보지 않음' : ''; };
     H.table(v, ['요청의 자리', '실린 내용', '이 방법이 보는가'], [
@@ -121,12 +120,6 @@ Lab.register({
       { cls: R.ct ? '' : 'gone', cells: ['Content-Type 헤더', R.ct || '없음', looks('ct')] },
       { cls: R.body ? '' : 'gone', cells: ['본문', R.body || '없음', looks('body')] },
     ], '보낸 요청');
-    var ln = H.lanes(v), failed = function (n) { return s.fail === n; };
-    H.lane(ln, '주소 찾기', s.map ? this.mapping(c) + ' ' + s.map : '아직', failed(2) ? 'bad' : s.map ? 'good' : 'none');
-    H.lane(ln, '값 꺼내기', s.stage < 4 ? (s.stage === 3 ? '꺼낼 자리를 정함' : failed(2) ? '하지 않음' : '아직') : '꺼낸 것: ' + s.raw, failed(4) ? 'bad' : s.stage < 3 ? 'none' : s.stage === 3 ? 'hot' : s.hit ? 'good' : 'wait');
-    H.lane(ln, '타입 변환', s.conv || (s.fail ? '하지 않음' : '아직'), failed(5) ? 'bad' : s.conv && s.conv !== '바꿀 값이 없음' ? 'good' : 'none');
-    H.lane(ln, '컨트롤러', s.ctrl ? '실행됨' : s.fail ? '실행되지 않음' : '아직', s.ctrl ? 'good' : s.fail ? 'bad' : 'none');
-    H.counters(v, [[s.status || '처리 중', '응답'], [s.val || (s.fail ? '-' : '?'), '컨트롤러가 받은 qty']]);
   },
   // 그림: 왼쪽에 HTTP 요청의 네 자리(경로, 쿼리 스트링, Content-Type, 본문), 오른쪽에 스프링이 파라미터를 채우는 순서. 값을 꺼내는 자리에서 화살표가 나온다.
   draw: function (P, sim, shown) {
@@ -150,7 +143,7 @@ Lab.register({
       P.arrow('take', from + ':r', toRaw ? 'raw:l' : 'src:l', { cls: s.fail === 4 ? 'bad' : s.hit ? 'good' : toRaw ? 'mut' : 'hot', label: !toRaw ? '여기를 봄' : s.hit ? '꺼냄' : s.fail === 4 && c.how === 'body' && R.body ? '읽지 못함' : '값이 없음' });
     }
     P.box('resp', 16, 264, 648, 34, { cls: !s.status ? 'ghost' : s.ctrl ? 'good' : 'bad', title: '응답', right: s.status || '처리 중' });
-    P.note('파란 칸은 요청에 값이 실린 자리, 노란 칸은 이 애노테이션이 보는 자리, 초록 칸은 실제로 값을 꺼낸 자리입니다. 파란 칸과 노란 칸이 어긋나면 값이 실려 있어도 들어오지 않습니다.');
+    P.note('파란 칸은 요청에 값이 실린 자리, 노란 칸은 이 애노테이션이 보는 자리, 초록 칸은 실제로 값을 꺼낸 자리입니다.');
   },
   assume: '받는 방법 여섯 가지와 요청 여덟 가지를 곱한 마흔여덟 조합을 모두 실제 스프링 부트 4.1.1 서버(스프링 프레임워크 7.0.9, 내장 톰캣 11)에 HTTP 요청으로 보내, 상태 코드와 컨트롤러 실행 여부, 컨트롤러가 받은 값, 스프링이 던진 예외의 이름이 화면과 일치하는 것을 확인했습니다. 예외의 이름은 스프링 버전에 따라 다릅니다(맞는 주소가 없을 때의 NoResourceFoundException, @ModelAttribute 변환 실패의 MethodArgumentNotValidException은 이 버전 기준입니다). 오류 응답의 본문은 버전과 설정에 따라 달라서 결과로 삼지 않았습니다. 컨트롤러에 메서드가 하나, 파라미터가 하나인 경우로 단순화했고, 매핑 애노테이션은 요청의 HTTP 메서드에 맞춰 @GetMapping과 @PostMapping 가운데 맞는 쪽을 보였습니다(메서드가 맞지 않을 때의 405는 "서블릿" 실습에 있습니다). OrderForm은 기본 생성자와 setter가 있는 클래스입니다. record처럼 생성자로 값을 받는 객체는 값이 없을 때의 동작이 다를 수 있고, 그것은 확인하지 않았습니다. @RequestParam int qty처럼 이름을 따로 적지 않고 파라미터 이름으로 값을 찾는 것은 -parameters 옵션으로 컴파일했을 때의 동작이며, 대조도 그렇게 했습니다. 화면에 없는 경우 네 가지도 같은 서버에서 확인했습니다. ?qty=처럼 빈 값을 보내면 @RequestParam int는 400, required = false는 null, defaultValue는 기본값이 됩니다. required = false인데 타입을 int로 두고 값을 보내지 않으면 null을 담을 수 없어 500이 됩니다. @ModelAttribute 파라미터 바로 뒤에 BindingResult 파라미터를 두면 변환에 실패해도 컨트롤러가 실행됩니다. 본문이 {}이면 @RequestBody로 받은 qty는 0입니다. 값의 범위를 검사하는 검증(@Valid)은 이 실습에서 다루지 않고, 다음 실습인 검증에서 따로 봅니다.',
 });

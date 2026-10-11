@@ -82,24 +82,19 @@ Lab.register({
       if (!rest) push('One character at a time with in.read(): InputStreamReader groups the bytes according to the rules of UTF-8 and converts them to characters. The bytes are grouped three at a time, and the three characters "가", "나", and "다" come out intact.', 'good');
       else push('One character at a time with in.read(): InputStreamReader groups the bytes according to the rules of UTF-8 and converts them to characters. "가" and "나" have all 3 of their bytes, so they come out intact. The remaining ' + rest + ' bytes (' + HEX.slice(full * 3, st.file).join(' ') + ') are only the first part of "다", so they do not make up a character and come out as one garbled character (�).', 'bad');
     }
-    sum.push('write was called 9 times, and the number of writes that reached the underlying stream is ' + st.calls + '. Of the 9 bytes, ' + st.file + ' were written to the file, and the stream ' + (st.closed ? 'was closed.' : 'was left open.'));
     if (!cap) sum.push('With no buffer, one call to write is one call to the underlying stream. The data goes into the file right away, but the program requests a file write for every byte, so it gets slower as the amount of data grows.');
     else if (st.file < 9) sum.push('BufferedOutputStream collects data in a buffer in memory and writes it out all at once. The data is written out only when the buffer becomes full or when flush or close is called. So if the stream is not closed, the data left in the buffer at the end is not written to the file.');
     else sum.push(c.buf === 'buf' ? 'The 9 calls to write were reduced to 1 write to the underlying stream. The buffer of a BufferedOutputStream created without a size was 8192 bytes on JDK 21 on this PC, and until that much data has collected, the data is written out only when flush or close is called.' : 'The buffer is 4 bytes, so 4 bytes were written out each time it filled up, and the last 1 byte was written out when flush or close was called.');
     if (fail && E === 'twr') sum.push('try-with-resources calls close even when an exception is thrown. If you write the closing code yourself, it is skipped when an exception is thrown before it, so it is safer to open a resource that must be closed, such as a stream, with try-with-resources.');
-    if (fail && (E === 'close' || E === 'flush')) sum.push('If you write the closing code yourself on the last line, it does not run when an exception is thrown before it. Change "What to do after all the writes" to try-with-resources and compare.');
+    if (fail && (E === 'close' || E === 'flush')) sum.push('If you write the closing code yourself on the last line, it does not run when an exception is thrown before it.');
     if (!fail && E === 'flush') sum.push('flush only empties the buffer and does not close the stream. An open stream keeps holding the file, so close a stream with close when you have finished writing. close also empties the buffer before it closes the stream.');
     if (st.file && c.read === 'byte') sum.push('Text in which one character takes several bytes, such as Korean, is garbled when each byte is converted to one character. To read characters, use a character stream such as InputStreamReader and tell it the encoding (UTF-8). The English letters abc take 1 byte per character in UTF-8 and look the same even when read this way, so you miss this problem if you test only with English text.');
     if (st.file && c.read === 'char' && !rest) sum.push('A character stream sits on top of a byte stream, uses the rules of the encoding to decide how many bytes make up one character, and returns the data one character at a time.');
     return { events: ev, summary: sum, lens: st.lens, codes: codes, closed: st.closed, row: [st.calls + '', st.file + ' / 9 bytes', st.closed ? 'Closed' : 'Left open', rowRead] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    var HEX = ['EA', 'B0', '80', 'EB', '82', '98', 'EB', '8B', 'A4'];
-    H.counters(v, [[s.calls + '', 'Writes to the underlying stream'], [c.buf === 'raw' ? 'None' : s.pend + '', 'Bytes left in the buffer'], [s.file + ' / 9', 'Bytes written to the file']]);
-    H.title(v, 'Where the written bytes are now (yellow: buffer, green: file)');
-    H.slots(v, HEX.filter(function (h, i) { return s.where[i]; }).map(function (h, i) { return [h, s.where[i] === 2 ? 'd' : 'b']; }), 'No bytes written yet');
     var ln = H.lanes(v);
     H.lane(ln, 'Stream', s.closed ? 'Closed' : 'Open', s.closed ? 'good' : 'wait');
     H.lane(ln, 'Exception', s.ex ? 'IllegalStateException thrown' : 'None', s.ex ? 'bad' : 'none');
@@ -122,7 +117,7 @@ Lab.register({
     P.box('r2', 344, 202, 320, 36, { cls: s.closed ? 'good' : s.open ? 'wait' : 'ghost', title: 'Stream', right: s.closed ? 'closed' : s.open ? 'open' : 'not opened yet' });
     P.box('r3', 16, 248, 648, 36, { cls: s.read ? s.readOk : 'ghost', title: 'Result of reading the file back', right: s.read || 'not read yet' });
     P.box('r4', 16, 294, 648, 30, { cls: s.ex ? 'bad' : 'ghost', title: 'Exception', right: s.ex ? 'IllegalStateException (error during handling)' : 'none' });
-    P.note('Each box in the middle row is 1 byte. A yellow box is a byte that is only in the buffer in memory, and a green box is a byte that has reached the file. A byte in the buffer reaches the file only when the buffer becomes full or when flush or close is called.');
+    P.note('Each box in the middle row is 1 byte. A yellow box is a byte that is only in the buffer in memory, and a green box is a byte that has reached the file.');
   },
   assume: 'The results of the 48 combinations (the number of writes that reached the underlying stream and the number of bytes in each one, the file size, whether the stream was closed, and the characters read back) were checked against the results of running the code on JDK 21 on this PC. The following were also confirmed by separate runs on the same PC: a BufferedOutputStream created without a size writes its data out after it has collected 8192 bytes, the data left in the buffer is not written to the file even when the program ends normally without closing the stream, and the English letters abc stay the same even when each byte is converted to a character. 8192 is the value seen on this JDK and is not a figure that the Java documentation fixes. "File" in the diagram means the point up to which the program has handed the write over to the operating system. The operating system has buffers of its own, so the data may actually be recorded on the disk later than that, and this is not covered. In the result of reading byte by byte, a character that cannot be shown on the screen is displayed as □. The difference in speed with and without a buffer was not measured. Character streams on the writing side (Writer) and write(byte[]), which writes a large chunk at once, are not covered.',
 });

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'thread', nav: 'Creating threads and thread states', cat: 'Concurrency', mode: 'step',
   title: 'Why does calling run() directly not create a new thread?',
-  intro: 'Creating a Thread object and having a thread actually run are two different things. This lab uses t.getState() to follow the states that one thread goes through from the time it is created until it terminates. Along the way, you see the difference between start() and run(), how the state depends on the way the thread waits, and interrupt, which wakes up a waiting thread.',
+  intro: 'Creating a Thread object and having a thread actually run are two different things. This lab uses t.getState() to follow the states that one thread goes through from the time it is created until it terminates.',
   terms: ['Processes and threads', 'Thread states', 'start() and run()', 'join()', 'Interrupt'],
   controls: [
     { id: 'call', label: 'How the thread is made to run', type: 'select', value: 'run', options: [['start', 't.start()'], ['run', 'Call t.run() directly'], ['twice', 't.start(), then t.start() once more after the thread has terminated']] },
@@ -104,16 +104,15 @@ Lab.register({
       st.again = 'IllegalThreadStateException'; st.ex.push('IllegalThreadStateException'); st.main = 'Exception at the second t.start()';
       push('t.start() (second call): A thread can be started only once. It cannot be started again even after it has terminated, so an IllegalThreadStateException is thrown. To run the same task again, you must create a new Thread object.', 'bad');
     } else st.again = 'Not called';
-    sum.push('The thread that ran the task is ' + st.ran + ', the state of t seen partway is ' + st.mid + ', and the state after join is ' + st.after + '.' + (st.ex.length ? ' Exceptions thrown: ' + st.ex.join(', ') + '.' : ''));
     if (!started) sum.push('Calling run() directly does not add a thread. The calling thread simply runs that code in order, so nothing runs concurrently. To run the code in a new thread, call start(). start() creates a new thread, and that thread runs run().');
     else {
-      if (W === 'quick') sum.push('A thread begins in NEW, becomes RUNNABLE with start(), and becomes TERMINATED when the code of run() ends. Change to a task that waits for something, and you can see the states in between.');
+      if (W === 'quick') sum.push('A thread begins in NEW, becomes RUNNABLE with start(), and becomes TERMINATED when the code of run() ends.');
       if (W === 'sleep') sum.push('A thread that waits for a specified time is TIMED_WAITING. Thread.sleep(time) is the typical example. When the time has passed, the thread returns to RUNNABLE.');
       if (W === 'join') sum.push('A thread that waits, with no time limit, for another party to finish its work is WAITING. join() stops the caller until the other thread terminates. While main waits in t.join(), the state of main is WAITING too.');
       if (W === 'lock') sum.push('A thread that is blocked at synchronized, trying to acquire a lock that another thread holds, is BLOCKED. It returns to RUNNABLE only when the holder releases the lock.');
       if (ie) sum.push('A thread that is waiting in sleep or join wakes up right away with an InterruptedException when it is interrupted. This is the way to make a long wait stop partway, and it is why code that calls these methods is required to handle InterruptedException.');
       else if (intr && W === 'lock') sum.push('An interrupt does not force a thread to stop. It sends a signal. A wait that throws InterruptedException, such as sleep or join, is woken up by that signal, but a thread that waits for the lock of synchronized is not.');
-      else if (intr) sum.push('An interrupt sent to a thread that has already terminated does nothing. Change to a task that waits (sleep, join) and compare.');
+      else if (intr) sum.push('An interrupt sent to a thread that has already terminated does nothing.');
     }
     if (c.call === 'twice') sum.push('A Thread object can be started only once. Calling start() again throws an IllegalThreadStateException, whether the thread is still running or has already terminated.');
     return { events: ev, summary: sum, row: [st.ran, st.mid, st.ir, st.after, st.again] };
@@ -121,16 +120,12 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    H.counters(v, [[s.t || '-', 'Current state of t'], [s.ran, 'Thread that ran the task']]);
-    H.title(v, 'What each thread is doing'); var ln = H.lanes(v);
-    H.lane(ln, 'main', s.main, 'hot');
-    H.lane(ln, 'worker', s.worker || (c.call === 'run' ? 'Never created' : 'Not created yet'), !s.worker ? 'none' : s.worker === 'Finished' ? 'good' : s.t === 'RUNNABLE' ? 'hot' : 'wait');
+    var ln = c.work === 'join' || c.work === 'lock' ? H.lanes(v) : null;
     if (c.work === 'join') H.lane(ln, 'helper', s.helper || 'Not started yet', !s.helper ? 'none' : s.helper === 'Finished' ? 'good' : 'hot');
     if (c.work === 'lock') H.lane(ln, 'lock', s.lockBy ? s.lockBy + ' thread holds it' : 'No thread holds it', s.lockBy ? 'wait' : 'none');
     H.table(v, ['What was checked', 'Result'], [
       { cells: ['t.getState() seen partway', { v: s.mid, cls: s.mid === '?' ? '' : s.mid === 'NEW' ? 'bad' : 'hot' }] },
       { cells: ['Result of t.interrupt()', { v: s.ir, cls: s.ir === 'InterruptedException' ? 'bad' : '' }] },
-      { cells: ['t.getState() after join', { v: s.after, cls: s.after === 'TERMINATED' ? 'good' : s.after === 'NEW' ? 'bad' : '' }] },
       { cells: ['start() again', { v: s.again, cls: s.again === 'IllegalThreadStateException' ? 'bad' : '' }] },
     ], 'Results so far');
   },
@@ -155,7 +150,7 @@ Lab.register({
     P.box('r1', 16, 250, 320, 34, { cls: s.ran === '?' ? 'ghost' : s.ran === 'worker' ? 'good' : 'bad', title: 'Thread that ran the task', right: s.ran });
     P.box('r2', 344, 250, 320, 34, { cls: s.after === '?' ? 'ghost' : s.after === 'TERMINATED' ? 'good' : 'bad', title: 'State of t after join', right: s.after });
     P.box('r3', 16, 294, 648, 34, { cls: s.ex.length ? 'bad' : 'ghost', title: 'Exceptions thrown', right: s.ex.length ? s.ex.join(', ') : 'None' });
-    P.note('The bold border marks the current state of t. NEW is the state in which only the object has been created, and t becomes RUNNABLE only when start() is called. Depending on how the thread waits, t becomes TIMED_WAITING, WAITING, or BLOCKED and then returns to RUNNABLE, and when the code of run() ends, it becomes TERMINATED.');
+    P.note('The bold border marks the current state of t.');
   },
   assume: 'The results of the 24 combinations (the name of the thread that ran the task, t.getState() partway and at the end, the exceptions thrown, and the interrupt status when the task ends) were checked against the results of running them on JDK 21 on this PC. In the code on the screen, main waits briefly with Thread.sleep(100) and then looks at the state, but these 100 milliseconds are only a time that is "usually enough", not a guaranteed one. So that the check would not depend on timing, the state of t was checked repeatedly until it had left RUNNABLE and stayed where it was. If t.getState() is called right after start(), the state can be RUNNABLE or already another state, so that value was not used as a result. RUNNABLE does not distinguish "running" from "waiting for a turn on the CPU", and Java does not report the two separately. WAITING also results from Object.wait() or LockSupport.park() besides join, but this lab covers only join. The problems of data that several threads share are covered in the "Race condition" lab, and how to create threads in advance and reuse them is covered in the "Thread pool" lab.',
 });
