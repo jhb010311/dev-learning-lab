@@ -1,7 +1,7 @@
 Lab.register({
   id: 'threadpool', nav: '스레드 풀', cat: '동시성', mode: 'time',
   title: '스레드를 늘리면 무엇이 달라지나',
-  intro: '스레드를 요청마다 새로 만들지 않고 정해진 수만큼 만들어 두고 돌려 쓰는 것이 스레드 풀입니다. 요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 스레드 수와 대기 줄의 크기에 따라 대기와 거절이 어떻게 달라지는지 봅니다.',
+  intro: '스레드를 요청마다 새로 만들고 버리는 대신, 한 번 만든 스레드를 정해진 수 안에서 돌려 쓰는 것이 스레드 풀입니다. 요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 기본 수만큼의 스레드가 모두 일하고 있으면 요청은 대기 줄에 서고, 줄이 꽉 차면 최대 수까지 스레드를 더 만들며, 그래도 넘치면 거절됩니다. 스레드 수와 대기 줄의 크기에 따라 대기와 거절이 어떻게 달라지는지 봅니다.',
   terms: ['스레드 풀', 'ThreadPoolExecutor의 동작 순서', '톰캣의 스레드 모델', '블로킹과 논블로킹'], ranks: ['threadpool', 'was'],
   controls: [
     { id: 'core', label: '기본 스레드 수', type: 'range', min: 1, max: 8, value: 2, fmt: function (v) { return v + '개'; } },
@@ -29,7 +29,7 @@ Lab.register({
   columns: ['완료', '거절', '평균 대기', '가장 긴 대기', '전체 소요', '만든 스레드'],
   // 자바 ThreadPoolExecutor와 같은 순서: 기본 스레드 -> 대기 큐 -> 최대 스레드 -> 거절
   simulate: function (c) {
-    var fmt = Lab.fmt, threads = [], queue = [], log = [], reqs = [], cap = c.unb ? Infinity : c.cap;
+    var fmt = Lab.fmt, threads = [], queue = [], log = [], reqs = [], cap = c.unb ? Infinity : c.cap; var J = function (n, a, b) { return n + ('013678'.indexOf(String(n).slice(-1)) >= 0 ? a : b); };   // 숫자 뒤에 붙일 조사를 고른다
     function start(th, r, t) { r.start = t; r.end = t + c.work; th.busyUntil = r.end; th.req = r; th.segs.push(r); }
     function finishUpTo(t) {
       for (;;) {
@@ -37,18 +37,18 @@ Lab.register({
         threads.forEach(function (x) { if (x.req && x.busyUntil <= t + 1e-9 && (!th || x.busyUntil < th.busyUntil)) th = x; });
         if (!th) return;
         var done = th.req, at = th.busyUntil; th.req = null;
-        if (queue.length) { var nx = queue.shift(); start(th, nx, at); log.push({ t: at, s: '스레드 ' + th.id + '이 요청 ' + done.id + '을 끝내고, 대기 줄 맨 앞의 요청 ' + nx.id + '을 꺼내 처리하기 시작합니다. 요청 ' + nx.id + '은 ' + fmt(at - nx.at) + '초를 기다렸습니다.' }); }
-        else log.push({ t: at, s: '스레드 ' + th.id + '이 요청 ' + done.id + '을 끝냈습니다. 대기 중인 요청이 없어 쉽니다.' });
+        if (queue.length) { var nx = queue.shift(); start(th, nx, at); log.push({ t: at, s: '스레드 ' + J(th.id, '이', '가') + ' 요청 ' + J(done.id, '을', '를') + ' 끝내고, 대기 줄 맨 앞의 요청 ' + J(nx.id, '을', '를') + ' 꺼내 처리하기 시작합니다. 요청 ' + J(nx.id, '은', '는') + ' ' + fmt(at - nx.at) + '초를 기다렸습니다.' }); }
+        else log.push({ t: at, s: '스레드 ' + J(th.id, '이', '가') + ' 요청 ' + J(done.id, '을', '를') + ' 끝냈습니다. 대기 중인 요청이 없어 쉽니다.' });
       }
     }
     for (var i = 1; i <= c.n; i++) {
       var t = Math.round((i - 1) * c.gap * 10) / 10, r = { id: i, at: t };
       reqs.push(r); finishUpTo(t);
       var idle = threads.filter(function (x) { return !x.req; })[0], busy = threads.filter(function (x) { return x.req; }).length, th;
-      if (threads.length < c.core) { th = { id: threads.length + 1, created: t, segs: [], req: null }; threads.push(th); start(th, r, t); log.push({ t: t, x: 'new', s: '요청 ' + i + ' 도착. 스레드가 기본 수(' + c.core + '개)보다 적으므로 스레드 ' + th.id + '을 새로 만들어 바로 처리합니다.' }); }
-      else if (idle) { start(idle, r, t); log.push({ t: t, x: 'reuse', s: '요청 ' + i + ' 도착. 쉬고 있던 스레드 ' + idle.id + '이 바로 처리합니다.' }); }
+      if (threads.length < c.core) { th = { id: threads.length + 1, created: t, segs: [], req: null }; threads.push(th); start(th, r, t); log.push({ t: t, x: 'new', s: '요청 ' + i + ' 도착. 스레드가 기본 수(' + c.core + '개)보다 적으므로 스레드 ' + J(th.id, '을', '를') + ' 새로 만들어 바로 처리합니다.' }); }
+      else if (idle) { start(idle, r, t); log.push({ t: t, x: 'reuse', s: '요청 ' + i + ' 도착. 쉬고 있던 스레드 ' + J(idle.id, '이', '가') + ' 바로 처리합니다.' }); }
       else if (queue.length < cap) { queue.push(r); r.queued = t; log.push({ t: t, x: 'queue', s: '요청 ' + i + ' 도착. 스레드 ' + busy + '개가 모두 일하는 중입니다. 스레드를 늘리지 않고 대기 줄에 세웁니다(대기 ' + queue.length + (c.unb ? '' : '/' + c.cap) + ').' }); }
-      else if (threads.length < c.max) { th = { id: threads.length + 1, created: t, segs: [], req: null }; threads.push(th); start(th, r, t); log.push({ t: t, x: 'grow', s: '요청 ' + i + ' 도착. 대기 줄이 꽉 찼습니다. 이제서야 스레드 ' + th.id + '을 추가로 만들어 처리합니다(최대 ' + c.max + '개까지).' }); }
+      else if (threads.length < c.max) { th = { id: threads.length + 1, created: t, segs: [], req: null }; threads.push(th); start(th, r, t); log.push({ t: t, x: 'grow', s: '요청 ' + i + ' 도착. 대기 줄이 꽉 찼습니다. 이제서야 스레드 ' + J(th.id, '을', '를') + ' 추가로 만들어 처리합니다(최대 ' + c.max + '개까지).' }); }
       else { r.rejected = true; log.push({ t: t, x: 'rej', k: 'bad', s: '요청 ' + i + ' 도착. 스레드 ' + c.max + '개가 모두 일하는 중이고 대기 줄도 꽉 찼습니다. 요청을 거절합니다.' }); }
     }
     finishUpTo(Infinity);
@@ -86,7 +86,7 @@ Lab.register({
     P.size(680, H + 32);
     P.region('qu', 16, 16, 290, 112, '대기 큐 ' + (c.unb ? '(무제한)' : c.cap + '칸') + ' · 숫자는 요청 번호');
     P.region('rej', 16, 140, 290, 238, '거절된 요청');
-    P.region('thr', 346, 16, 318, H, '스레드 (기본 ' + c.core + '개, 최대 ' + c.max + '개)');
+    P.region('thr', 346, 16, 318, H, '스레드 풀 (기본 ' + c.core + '개, 최대 ' + c.max + '개)');
     for (var j = 0; j < capN; j++) if (!q[j]) P.box('qe' + j, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'ghost' });
     q.slice(0, 10).forEach(function (r, j) { P.box('rq' + r.id, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'wait', sub: String(r.id), center: true }); });
     if (!capN) P.text('noq', 161, 80, '대기 칸이 없습니다', { cls: 'mut', anchor: 'middle' });

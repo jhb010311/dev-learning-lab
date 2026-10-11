@@ -55,7 +55,7 @@ Lab.register({
         return v;
       }
       reset('find(' + id + 'L)', 'find(' + id + ')'); st.px = 'Call received';
-      push('productService.find(' + id + 'L) call ' + ord + ': Another bean makes the call. The call arrives at the proxy first. The proxy sees @Cacheable and, before running the body, looks up key ' + id + (id === 2 ? '' : '') + ' in the cache "product".');
+      push('productService.find(' + id + 'L) call ' + ord + ': Another bean makes the call. The call arrives at the proxy first. The proxy sees @Cacheable and, before running the body, looks up key ' + id + (id === 2 ? '' : '') + ' in the cache "product".' + (nth === 1 ? ' The proxy does not know where the cache is actually stored. It only calls get and put on the Cache object that the CacheManager hands out, so this code and the annotations stay the same even if the store is changed from an in-memory map to Redis. Spring calls this structure the cache abstraction.' : ''));
       if (id in cache) {
         v = cache[id]; st.look = 'hit'; st.px = 'Key ' + id + ' found: returns cached value'; st.tg = 'Body not run';
         if (nth === 2) st.second = q(v);
@@ -124,6 +124,7 @@ Lab.register({
     P.box('px', 190, 20, 268, 212, { cls: s.px.indexOf('Does not see') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'plain', title: 'ProductService proxy', sub: s.px || 'Idle' });
     P.box('tg', 250, 122, 194, 96, { cls: s.tg.indexOf('not run') >= 0 ? 'ghost' : s.tg ? 'wait now' : 'plain', title: 'Real ProductService', sub: s.tg || 'Idle' });
     P.box('cache', 486, 20, 182, 92, { cls: s.look === 'hit' ? 'good' : s.look === 'store' ? 'hot' : s.look === 'evict' || s.look === 'miss' ? 'wait' : 'plain', title: 'Cache "product"', sub: lines(s.cache) });
+    P.text('store', 577, 130, 'Store: an in-memory map', { cls: 'mut', anchor: 'middle' });
     P.box('db', 486, 140, 182, 92, { cls: s.dbop ? 'hot' : 'plain', title: 'DB', sub: lines(s.db) });
     if (s.call) P.arrow('in', 'caller:r', 'px:l:0.37', { label: s.short });
     if (s.look) P.arrow('look', 'px:r:0.2', 'cache:l', { cls: s.look === 'hit' ? 'good' : s.look === 'miss' ? 'mut' : '', label: { hit: 'hit', miss: 'miss', store: 'put', evict: 'evict' }[s.look] });

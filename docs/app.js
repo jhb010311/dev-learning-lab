@@ -763,7 +763,7 @@ var Lab = (function () {
 Lab.register({
   id: 'threadpool', nav: '스레드 풀', cat: '동시성', mode: 'time',
   title: '스레드를 늘리면 무엇이 달라지나',
-  intro: '스레드를 요청마다 새로 만들지 않고 정해진 수만큼 만들어 두고 돌려 쓰는 것이 스레드 풀입니다. 요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 스레드 수와 대기 줄의 크기에 따라 대기와 거절이 어떻게 달라지는지 봅니다.',
+  intro: '스레드를 요청마다 새로 만들고 버리는 대신, 한 번 만든 스레드를 정해진 수 안에서 돌려 쓰는 것이 스레드 풀입니다. 요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 기본 수만큼의 스레드가 모두 일하고 있으면 요청은 대기 줄에 서고, 줄이 꽉 차면 최대 수까지 스레드를 더 만들며, 그래도 넘치면 거절됩니다. 스레드 수와 대기 줄의 크기에 따라 대기와 거절이 어떻게 달라지는지 봅니다.',
   terms: ['스레드 풀', 'ThreadPoolExecutor의 동작 순서', '톰캣의 스레드 모델', '블로킹과 논블로킹'], ranks: ['threadpool', 'was'],
   controls: [
     { id: 'core', label: '기본 스레드 수', type: 'range', min: 1, max: 8, value: 2, fmt: function (v) { return v + '개'; } },
@@ -791,7 +791,7 @@ Lab.register({
   columns: ['완료', '거절', '평균 대기', '가장 긴 대기', '전체 소요', '만든 스레드'],
   // 자바 ThreadPoolExecutor와 같은 순서: 기본 스레드 -> 대기 큐 -> 최대 스레드 -> 거절
   simulate: function (c) {
-    var fmt = Lab.fmt, threads = [], queue = [], log = [], reqs = [], cap = c.unb ? Infinity : c.cap;
+    var fmt = Lab.fmt, threads = [], queue = [], log = [], reqs = [], cap = c.unb ? Infinity : c.cap; var J = function (n, a, b) { return n + ('013678'.indexOf(String(n).slice(-1)) >= 0 ? a : b); };   // 숫자 뒤에 붙일 조사를 고른다
     function start(th, r, t) { r.start = t; r.end = t + c.work; th.busyUntil = r.end; th.req = r; th.segs.push(r); }
     function finishUpTo(t) {
       for (;;) {
@@ -799,18 +799,18 @@ Lab.register({
         threads.forEach(function (x) { if (x.req && x.busyUntil <= t + 1e-9 && (!th || x.busyUntil < th.busyUntil)) th = x; });
         if (!th) return;
         var done = th.req, at = th.busyUntil; th.req = null;
-        if (queue.length) { var nx = queue.shift(); start(th, nx, at); log.push({ t: at, s: '스레드 ' + th.id + '이 요청 ' + done.id + '을 끝내고, 대기 줄 맨 앞의 요청 ' + nx.id + '을 꺼내 처리하기 시작합니다. 요청 ' + nx.id + '은 ' + fmt(at - nx.at) + '초를 기다렸습니다.' }); }
-        else log.push({ t: at, s: '스레드 ' + th.id + '이 요청 ' + done.id + '을 끝냈습니다. 대기 중인 요청이 없어 쉽니다.' });
+        if (queue.length) { var nx = queue.shift(); start(th, nx, at); log.push({ t: at, s: '스레드 ' + J(th.id, '이', '가') + ' 요청 ' + J(done.id, '을', '를') + ' 끝내고, 대기 줄 맨 앞의 요청 ' + J(nx.id, '을', '를') + ' 꺼내 처리하기 시작합니다. 요청 ' + J(nx.id, '은', '는') + ' ' + fmt(at - nx.at) + '초를 기다렸습니다.' }); }
+        else log.push({ t: at, s: '스레드 ' + J(th.id, '이', '가') + ' 요청 ' + J(done.id, '을', '를') + ' 끝냈습니다. 대기 중인 요청이 없어 쉽니다.' });
       }
     }
     for (var i = 1; i <= c.n; i++) {
       var t = Math.round((i - 1) * c.gap * 10) / 10, r = { id: i, at: t };
       reqs.push(r); finishUpTo(t);
       var idle = threads.filter(function (x) { return !x.req; })[0], busy = threads.filter(function (x) { return x.req; }).length, th;
-      if (threads.length < c.core) { th = { id: threads.length + 1, created: t, segs: [], req: null }; threads.push(th); start(th, r, t); log.push({ t: t, x: 'new', s: '요청 ' + i + ' 도착. 스레드가 기본 수(' + c.core + '개)보다 적으므로 스레드 ' + th.id + '을 새로 만들어 바로 처리합니다.' }); }
-      else if (idle) { start(idle, r, t); log.push({ t: t, x: 'reuse', s: '요청 ' + i + ' 도착. 쉬고 있던 스레드 ' + idle.id + '이 바로 처리합니다.' }); }
+      if (threads.length < c.core) { th = { id: threads.length + 1, created: t, segs: [], req: null }; threads.push(th); start(th, r, t); log.push({ t: t, x: 'new', s: '요청 ' + i + ' 도착. 스레드가 기본 수(' + c.core + '개)보다 적으므로 스레드 ' + J(th.id, '을', '를') + ' 새로 만들어 바로 처리합니다.' }); }
+      else if (idle) { start(idle, r, t); log.push({ t: t, x: 'reuse', s: '요청 ' + i + ' 도착. 쉬고 있던 스레드 ' + J(idle.id, '이', '가') + ' 바로 처리합니다.' }); }
       else if (queue.length < cap) { queue.push(r); r.queued = t; log.push({ t: t, x: 'queue', s: '요청 ' + i + ' 도착. 스레드 ' + busy + '개가 모두 일하는 중입니다. 스레드를 늘리지 않고 대기 줄에 세웁니다(대기 ' + queue.length + (c.unb ? '' : '/' + c.cap) + ').' }); }
-      else if (threads.length < c.max) { th = { id: threads.length + 1, created: t, segs: [], req: null }; threads.push(th); start(th, r, t); log.push({ t: t, x: 'grow', s: '요청 ' + i + ' 도착. 대기 줄이 꽉 찼습니다. 이제서야 스레드 ' + th.id + '을 추가로 만들어 처리합니다(최대 ' + c.max + '개까지).' }); }
+      else if (threads.length < c.max) { th = { id: threads.length + 1, created: t, segs: [], req: null }; threads.push(th); start(th, r, t); log.push({ t: t, x: 'grow', s: '요청 ' + i + ' 도착. 대기 줄이 꽉 찼습니다. 이제서야 스레드 ' + J(th.id, '을', '를') + ' 추가로 만들어 처리합니다(최대 ' + c.max + '개까지).' }); }
       else { r.rejected = true; log.push({ t: t, x: 'rej', k: 'bad', s: '요청 ' + i + ' 도착. 스레드 ' + c.max + '개가 모두 일하는 중이고 대기 줄도 꽉 찼습니다. 요청을 거절합니다.' }); }
     }
     finishUpTo(Infinity);
@@ -848,7 +848,7 @@ Lab.register({
     P.size(680, H + 32);
     P.region('qu', 16, 16, 290, 112, '대기 큐 ' + (c.unb ? '(무제한)' : c.cap + '칸') + ' · 숫자는 요청 번호');
     P.region('rej', 16, 140, 290, 238, '거절된 요청');
-    P.region('thr', 346, 16, 318, H, '스레드 (기본 ' + c.core + '개, 최대 ' + c.max + '개)');
+    P.region('thr', 346, 16, 318, H, '스레드 풀 (기본 ' + c.core + '개, 최대 ' + c.max + '개)');
     for (var j = 0; j < capN; j++) if (!q[j]) P.box('qe' + j, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'ghost' });
     q.slice(0, 10).forEach(function (r, j) { P.box('rq' + r.id, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'wait', sub: String(r.id), center: true }); });
     if (!capN) P.text('noq', 161, 80, '대기 칸이 없습니다', { cls: 'mut', anchor: 'middle' });
@@ -2946,13 +2946,13 @@ Lab.register({
     st.stage = 2;
     if (isPath !== (R.where === 'path')) {
       st.map = '안 맞음'; stop('404 Not Found', '맞는 주소가 없음', 'NoResourceFoundException');
-      push(mapping + ': 스프링이 요청의 메서드와 경로로 실행할 컨트롤러 메서드를 찾습니다. ' + (isPath ? '요청의 경로(' + R.path + ')에는 {qty} 자리에 올 칸이 없어 /orders/{qty} 모양과 맞지 않습니다.' + (R.where ? ' 쿼리 스트링이나 본문에 실린 값은 경로 변수가 될 수 없습니다.' : '') : '요청의 경로(' + R.path + ')는 /orders와 다른 주소입니다.') + ' 맞는 컨트롤러 메서드가 없으므로 404로 응답합니다(스프링 7에서는 NoResourceFoundException).' + NOT_RUN, 'bad');
+      push(mapping + ': 스프링이 요청의 메서드와 경로로 실행할 컨트롤러 메서드를 찾습니다(요청 매핑). ' + (isPath ? '요청의 경로(' + R.path + ')에는 {qty} 자리에 올 칸이 없어 /orders/{qty} 모양과 맞지 않습니다.' + (R.where ? ' 쿼리 스트링이나 본문에 실린 값은 경로 변수가 될 수 없습니다.' : '') : '요청의 경로(' + R.path + ')는 /orders와 다른 주소입니다.') + ' 맞는 컨트롤러 메서드가 없으므로 404로 응답합니다(스프링 7에서는 NoResourceFoundException).' + NOT_RUN, 'bad');
     } else {
       st.map = '맞음';
-      push(mapping + ': 스프링이 요청의 메서드와 경로로 실행할 컨트롤러 메서드를 찾습니다. ' + (isPath ? '요청의 경로(' + R.path + ')가 /orders/{qty} 모양과 맞습니다.' : '메서드가 ' + R.m + '이고 경로가 /orders이므로 order 메서드로 정해집니다.') + ' 이 단계에서는 쿼리 스트링과 본문을 보지 않습니다.');
+      push(mapping + ': 스프링이 요청의 메서드와 경로로 실행할 컨트롤러 메서드를 찾습니다(요청 매핑). ' + (isPath ? '요청의 경로(' + R.path + ')가 /orders/{qty} 모양과 맞습니다.' : '메서드가 ' + R.m + '이고 경로가 /orders이므로 order 메서드로 정해집니다.') + ' 이 단계에서는 쿼리 스트링과 본문을 보지 않습니다.');
 
       st.stage = 3; st.look = isBody ? ['ct', 'body'] : isPath ? ['path'] : R.where === 'form' ? ['query', 'body'] : ['query'];
-      push(decl + ': 파라미터에 붙은 애노테이션이 값을 꺼낼 자리를 정합니다. ' + (isBody ? '@RequestBody는 본문 전체를 메시지 컨버터에 넘겨 OrderForm 객체로 바꿉니다. 쿼리 스트링과 경로는 보지 않습니다.' : isPath ? '@PathVariable은 경로에서 {qty} 자리에 해당하는 칸을 꺼냅니다.' : isModel ? '@ModelAttribute는 먼저 new OrderForm()으로 빈 객체를 만들고, "요청 파라미터" 가운데 필드와 이름이 같은 것을 setter로 넣습니다. 요청 파라미터는 쿼리 스트링과 폼 형식 본문을 합친 것입니다.' : '@RequestParam은 "요청 파라미터"에서 이름이 qty인 값을 찾습니다. 요청 파라미터는 쿼리 스트링과 폼 형식 본문을 합친 것입니다.'));
+      push(decl + ': 이제 요청에 실린 값을 메서드의 파라미터에 넣을 차례입니다(파라미터 바인딩). 파라미터에 붙은 애노테이션이 값을 꺼낼 자리를 정합니다. ' + (isBody ? '@RequestBody는 본문 전체를 메시지 컨버터에 넘겨 OrderForm 객체로 바꿉니다. 쿼리 스트링과 경로는 보지 않습니다.' : isPath ? '@PathVariable은 경로에서 {qty} 자리에 해당하는 칸을 꺼냅니다.' : isModel ? '@ModelAttribute는 먼저 new OrderForm()으로 빈 객체를 만들고, "요청 파라미터" 가운데 필드와 이름이 같은 것을 setter로 넣습니다. 요청 파라미터는 쿼리 스트링과 폼 형식 본문을 합친 것입니다.' : '@RequestParam은 "요청 파라미터"에서 이름이 qty인 값을 찾습니다. 요청 파라미터는 쿼리 스트링과 폼 형식 본문을 합친 것입니다.'));
 
       st.stage = 4;
       if (isBody) {
@@ -4000,7 +4000,7 @@ Lab.register({
         return v;
       }
       reset('find(' + id + 'L)', 'find(' + id + ')'); st.px = '호출을 받음';
-      push('productService.find(' + id + 'L) 호출 (' + ord + '): 다른 빈이 부릅니다. 호출은 프록시에 먼저 도착합니다. 프록시는 @Cacheable을 보고, 본문을 실행하기 전에 캐시 "product"에서 키 ' + id + (id === 2 ? '를' : '을') + ' 찾아봅니다.');
+      push('productService.find(' + id + 'L) 호출 (' + ord + '): 다른 빈이 부릅니다. 호출은 프록시에 먼저 도착합니다. 프록시는 @Cacheable을 보고, 본문을 실행하기 전에 캐시 "product"에서 키 ' + id + (id === 2 ? '를' : '을') + ' 찾아봅니다.' + (nth === 1 ? ' 프록시는 캐시가 실제로 어디에 저장되는지 모릅니다. CacheManager가 내준 Cache 객체에 get과 put을 부를 뿐이어서, 저장소를 메모리의 맵에서 Redis로 바꿔도 이 코드와 애노테이션은 그대로입니다. 스프링은 이 구조를 캐시 추상화라고 부릅니다.' : ''));
       if (id in cache) {
         v = cache[id]; st.look = 'hit'; st.px = '키 ' + id + ' 있음: 캐시의 값을 돌려줌'; st.tg = '본문을 실행하지 않음';
         if (nth === 2) st.second = q(v);
@@ -4069,6 +4069,7 @@ Lab.register({
     P.box('px', 190, 20, 268, 212, { cls: s.px.indexOf('보지 못함') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'plain', title: 'ProductService 프록시', sub: s.px || '대기' });
     P.box('tg', 250, 122, 194, 96, { cls: s.tg.indexOf('실행하지 않음') >= 0 ? 'ghost' : s.tg ? 'wait now' : 'plain', title: '실제 ProductService', sub: s.tg || '대기' });
     P.box('cache', 486, 20, 182, 92, { cls: s.look === 'hit' ? 'good' : s.look === 'store' ? 'hot' : s.look === 'evict' || s.look === 'miss' ? 'wait' : 'plain', title: '캐시 "product"', sub: lines(s.cache) });
+    P.text('store', 577, 130, '저장소: 메모리의 맵', { cls: 'mut', anchor: 'middle' });
     P.box('db', 486, 140, 182, 92, { cls: s.dbop ? 'hot' : 'plain', title: 'DB', sub: lines(s.db) });
     if (s.call) P.arrow('in', 'caller:r', 'px:l:0.37', { label: s.short });
     if (s.look) P.arrow('look', 'px:r:0.2', 'cache:l', { cls: s.look === 'hit' ? 'good' : s.look === 'miss' ? 'mut' : '', label: { hit: '있음', miss: '없음', store: '저장', evict: '지움' }[s.look] });
@@ -6028,7 +6029,7 @@ Lab.register({
 Lab.register({
   id: 'datajpa', nav: '스프링 데이터 JPA', cat: 'JPA', mode: 'step',
   title: '구현 클래스가 없는데 리포지토리는 어떻게 동작하나',
-  intro: '스프링 데이터 JPA는 JPA를 더 쉽게 쓰게 해 주는 스프링의 모듈이고, 리포지토리는 엔티티를 저장하고 조회하는 메서드를 모아 둔 인터페이스입니다. 스프링 데이터 JPA에서는 리포지토리를 인터페이스로만 선언합니다. 구현은 애플리케이션이 뜰 때 스프링 데이터가 만들어 주고, findByName 같은 메서드는 이름을 읽어 쿼리로 바꿉니다.',
+  intro: '스프링 데이터 JPA는 JPA를 더 쉽게 쓰게 해 주는 스프링의 모듈이고, 리포지토리는 엔티티를 저장하고 조회하는 메서드를 모아 둔 인터페이스입니다. 스프링 데이터 JPA에서는 리포지토리를 인터페이스로만 선언합니다. 구현은 애플리케이션이 뜰 때 스프링 데이터가 만들어 주고, findByName 같은 메서드는 이름을 읽어 쿼리로 바꿉니다. 메서드 이름이 쿼리로 바뀌는 과정과 함께, 페이지를 요청할 때와 save()를 부를 때 실제로 어떤 SQL이 나가는지도 봅니다.',
   terms: ['JPA, Hibernate, Spring Data JPA', '쿼리 메서드', 'Pageable과 Page', 'save()와 merge', '엔티티'],
   controls: [
     { id: 'sc', label: '해 볼 것', type: 'select', value: 'name', options: [['name', '메서드 이름으로 조회'], ['page', 'Pageable로 페이지 요청'], ['save', 'save() 호출']] },
@@ -9233,7 +9234,7 @@ Lab.register({
     var st = { ports: {}, b: '', conns: [], fails: [], sent: false };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
     st.ports[9000] = 'A';
-    push('serverA.listen(9000): 서버 A가 운영체제에 "9000번 포트로 들어오는 연결은 나에게 달라"고 등록합니다. 9000번이 비어 있었으므로 성공합니다. 이제 서버 A는 연결을 기다립니다.', '');
+    push('serverA.listen(9000): 서버 A가 소켓을 만들어 9000번 포트에 붙이고, 운영체제에 "9000번 포트로 들어오는 연결은 이 소켓으로 달라"고 등록합니다. 9000번이 비어 있었으므로 성공합니다. 이제 서버 A는 연결을 기다립니다.', '');
     if (c.srv === 'ab') { st.ports[9001] = 'B'; st.b = 'ok'; push('serverB.listen(9001): 서버 B는 다른 번호인 9001번을 등록합니다. 비어 있는 포트이므로 성공합니다. 한 컴퓨터에서 두 프로그램이 서로 다른 포트로 연결을 기다립니다.', 'good'); }
     if (c.srv === 'same') { st.b = 'EADDRINUSE'; push('serverB.listen(9000): 서버 B도 9000번을 등록하려 합니다. 이미 서버 A가 쓰고 있으므로 운영체제가 거절하고, 서버 B는 EADDRINUSE(주소가 이미 사용 중) 오류를 받습니다. 한 포트로 들어오는 연결을 받을 프로그램은 하나여야 누구에게 줄지 정할 수 있기 때문입니다.', 'bad'); }
     for (var i = 1; i <= n; i++) {
@@ -9248,7 +9249,7 @@ Lab.register({
     }
     if (who) {
       st.sent = true;
-      push('socket.write: ' + (n > 1 ? '클라이언트 ' + n + '개가 저마다 데이터를 보냅니다. 모두 ' + to + '번 포트로 가지만, 운영체제가 보내는 포트를 보고 어느 연결의 데이터인지 가려서 서버 ' + who + '에게 연결별로 따로 넘깁니다.' : '클라이언트가 데이터를 보냅니다. 받는 포트가 ' + to + '번이므로 운영체제가 서버 ' + who + '에게 넘깁니다.') + (c.srv === 'ab' ? ' 같은 컴퓨터의 서버 ' + (who === 'A' ? 'B' : 'A') + '에게는 아무것도 가지 않습니다.' : ''), 'good');
+      push('socket.write: ' + (n > 1 ? '클라이언트 ' + n + '개가 저마다 데이터를 보냅니다. 모두 ' + to + '번 포트로 가지만, 운영체제가 보내는 포트를 보고 어느 연결의 데이터인지 가려서 서버 ' + who + '에게 연결별로 따로 넘깁니다. 연결마다 소켓이 하나씩 있기 때문입니다.' : '클라이언트가 데이터를 보냅니다. 받는 포트가 ' + to + '번이므로 운영체제가 서버 ' + who + '의 소켓에 넘깁니다.') + (c.srv === 'ab' ? ' 같은 컴퓨터의 서버 ' + (who === 'A' ? 'B' : 'A') + '에게는 아무것도 가지 않습니다.' : ''), 'good');
     }
     var bRow = { ok: '성공 (9001번)', EADDRINUSE: '실패 (EADDRINUSE)', none: '띄우지 않음' }[o.b];
     if (c.srv === 'same') sum.push('이미 쓰이는 포트에 서버를 또 띄우면 EADDRINUSE로 실패합니다. 개발 중에 "포트가 이미 사용 중"이라는 오류를 만나면, 먼저 띄워 둔 서버가 아직 살아 있는 경우가 대부분입니다. 그 프로그램을 끝내거나 다른 포트를 씁니다.');
@@ -12372,7 +12373,7 @@ Lab.register({
 Lab.register({
   id: 'security', nav: '시큐리티 필터 체인', cat: '인증', mode: 'step',
   title: '401과 403은 어디에서 갈리나',
-  intro: '스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 "누구인지"를 확인해 기록해 두고, 뒤쪽 필터가 "이 경로에 들어와도 되는지"를 판단합니다. 누구인지 확인되지 않았으면 401, 누구인지는 알지만 권한이 없으면 403으로 응답합니다. 토큰과 경로에 따라 요청이 어느 필터에서 어떤 응답으로 끝나는지 봅니다.',
+  intro: '스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 "누구인지"를 확인해 기록해 두고, 뒤쪽 필터가 "이 경로에 들어와도 되는지"를 판단합니다. 누구인지 확인되지 않았으면 401, 누구인지는 알지만 권한이 없으면 403으로 응답합니다. 토큰과 경로에 따라 요청이 어디에서 막히고 어떤 응답으로 끝나는지 봅니다.',
   terms: ['인증과 인가', 'Spring Security와 SecurityFilterChain', 'SecurityContext', '필터(Filter)', 'HTTP 상태 코드'], ranks: ['auth', 'websec', 'filter'],
   controls: [
     { id: 'who', label: '요청에 실린 토큰', type: 'select', value: 'none', options: [['none', '토큰 없음'], ['bad', '만료되었거나 위조된 토큰'], ['user', '유효한 토큰 (권한: USER)'], ['admin', '유효한 토큰 (권한: ADMIN)']] },
@@ -13004,7 +13005,7 @@ Lab.register({
 Lab.register({
   id: 'pwhash', nav: '비밀번호 해시', cat: '인증', mode: 'step',
   title: 'DB가 털렸을 때 비밀번호는 얼마나 버티나',
-  intro: '회원 두 명이 우연히 같은 비밀번호(password123)를 씁니다. 비밀번호를 DB에 저장하는 방식에 따라, DB가 유출됐을 때 공격자가 원래 비밀번호를 알아내는 데 걸리는 시간이 크게 달라집니다. 해시는 원래 값으로 되돌릴 수 없게 계산해 낸 값입니다. 평문, 해시, 솔트를 넣은 해시, 일부러 느리게 만든 해시(bcrypt)를 차례로 비교합니다.',
+  intro: '회원 두 명이 우연히 같은 비밀번호(password123)를 씁니다. 비밀번호를 DB에 저장하는 방식에 따라, DB가 유출됐을 때 공격자가 원래 비밀번호를 알아내는 데 걸리는 시간이 크게 달라집니다. 해시는 원래 값으로 되돌릴 수 없게 계산해 낸 값입니다. 평문, 해시, 솔트를 넣은 해시, 일부러 느리게 만든 해시(bcrypt)를 비교합니다.',
   terms: ['해시 함수와 솔트', 'bcrypt', '대칭키 암호화와 비대칭키 암호화'], ranks: ['websec', 'auth'],
   controls: [
     { id: 'how', label: '저장 방식', type: 'select', value: 'sha', options: [['plain', '평문 그대로'], ['sha', 'SHA-256 해시'], ['salt', 'SHA-256 + 회원별 솔트'], ['bcrypt', 'bcrypt (솔트 포함, 느린 해시)']] },
@@ -13553,7 +13554,7 @@ Lab.register({
       var first = when < lag;
       if (!first) { S.r = '닉네임 = 민수'; push(lag + '초: 원본의 변경 기록이 복제본에 도착해 반영됐습니다.', 'good'); }
       if (c.from === 'primary') { got = '민수'; S.read = '원본에서 "민수"'; push(when + '초: 조회를 원본으로 보냅니다. 원본은 항상 최신 값을 가지고 있으므로 "민수"가 나옵니다.', 'good'); }
-      else if (first) { got = '철수'; S.read = '복제본에서 "철수"'; push(when + '초: 조회를 복제본으로 보냅니다. 복제가 아직 도착하지 않아 복제본에는 옛 값 "철수"가 있습니다. 사용자는 방금 바꾼 닉네임이 그대로인 화면을 봅니다.', 'bad'); }
+      else if (first) { got = '철수'; S.read = '복제본에서 "철수"'; push(when + '초: 조회를 복제본으로 보냅니다. 복제가 아직 도착하지 않아 복제본에는 옛 값 "철수"가 있습니다. 이 시차가 복제 지연입니다. 사용자는 방금 바꾼 닉네임이 그대로인 화면을 봅니다.', 'bad'); }
       else { got = '민수'; S.read = '복제본에서 "민수"'; push(when + '초: 조회를 복제본으로 보냅니다. 복제가 끝난 뒤라 "민수"가 나옵니다.', 'good'); }
       if (first) { S.r = '닉네임 = 민수'; push(lag + '초: 뒤늦게 복제가 도착해 복제본도 "민수"가 됩니다. 이후의 조회는 새 값을 봅니다.', ''); }
       fresh = got === '민수';
@@ -14314,7 +14315,7 @@ Lab.register({
     var leak = r.fin !== 2;
     sum.push('final은 변수가 가리키는 대상을 바꾸지 못하게 할 뿐, 대상 객체의 내용 변경은 막지 않습니다. 객체를 불변으로 만들려면 필드가 가리키는 가변 객체(리스트, 배열, Date 등)가 밖과 공유되지 않도록 해야 합니다.');
     if (leak) sum.push('밖에서 내부 상태가 바뀌었습니다. 받을 때 복사하고(생성자), 내줄 때도 복사하거나 수정 불가로 감싸야(getter) 합니다. 이렇게 복사해 두는 것을 방어적 복사라고 합니다.');
-    else sum.push('들어올 때와 나갈 때 모두 막아서 밖에서 내부를 바꿀 수 없습니다. 생성자에서 List.copyOf(items)를 쓰면 복사와 수정 불가를 한 번에 얻습니다.');
+    else sum.push('들어올 때와 나갈 때 모두 막아서 밖에서 내부를 바꿀 수 없습니다. 생성자에서 받은 리스트를 복사해 두었기 때문에(방어적 복사) 밖에서 src를 고쳐도 주문에는 영향이 없습니다. 생성자에서 List.copyOf(items)를 쓰면 복사와 수정 불가를 한 번에 얻습니다.');
     if (c.in === 'ref' && c.out === 'unmod') sum.push('수정 불가 뷰는 "이 뷰를 통해서는" 바꿀 수 없다는 뜻입니다. 원본 리스트를 쥔 쪽이 바꾸면 뷰에도 그대로 보입니다.');
     sum.push('record도 마찬가지입니다. 필드는 final이지만 리스트 같은 가변 객체를 담으면 그 내용은 바뀔 수 있습니다.');
     return { events: ev, summary: sum, res: r, row: [r.a + '개', r.via === 'ok' ? '추가됨(예외 없음)' : r.via, r.fin + '개', leak ? '예' : '아니오'] };

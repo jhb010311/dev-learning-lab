@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6d99e11f58">
+<link rel="stylesheet" href="../../app.css?v=b1476e72c4">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Queries</p>
 <h1>Spring Data JPA</h1>
 <p><b>How does a repository work when there is no implementation class?</b></p>
-<p>Spring Data JPA is a Spring module that makes JPA easier to use, and a repository is an interface that gathers the methods for saving and querying entities. In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query.</p>
+<p>Spring Data JPA is a Spring module that makes JPA easier to use, and a repository is an interface that gathers the methods for saving and querying entities. In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query. This lab shows how a method name becomes a query, and also which SQL is actually sent when a page is requested and when save() is called.</p>
 <p>Checked against real execution · 19 scenes were run by starting Spring Data JPA 4.1.1, Hibernate 7.4.5, and H2 with the auto-configuration of Spring Boot 4.1.1, and the startup result and the SQL sent were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -174,6 +174,6 @@ List&lt;Member&gt; result = memberRepository.findByNameAndAgeGreaterThan(&quot;A
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6d99e11f58"></script>
+<script src="../../app.js?v=b1476e72c4"></script>
 </body>
 </html>

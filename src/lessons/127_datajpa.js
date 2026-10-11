@@ -1,7 +1,7 @@
 Lab.register({
   id: 'datajpa', nav: '스프링 데이터 JPA', cat: 'JPA', mode: 'step',
   title: '구현 클래스가 없는데 리포지토리는 어떻게 동작하나',
-  intro: '스프링 데이터 JPA는 JPA를 더 쉽게 쓰게 해 주는 스프링의 모듈이고, 리포지토리는 엔티티를 저장하고 조회하는 메서드를 모아 둔 인터페이스입니다. 스프링 데이터 JPA에서는 리포지토리를 인터페이스로만 선언합니다. 구현은 애플리케이션이 뜰 때 스프링 데이터가 만들어 주고, findByName 같은 메서드는 이름을 읽어 쿼리로 바꿉니다.',
+  intro: '스프링 데이터 JPA는 JPA를 더 쉽게 쓰게 해 주는 스프링의 모듈이고, 리포지토리는 엔티티를 저장하고 조회하는 메서드를 모아 둔 인터페이스입니다. 스프링 데이터 JPA에서는 리포지토리를 인터페이스로만 선언합니다. 구현은 애플리케이션이 뜰 때 스프링 데이터가 만들어 주고, findByName 같은 메서드는 이름을 읽어 쿼리로 바꿉니다. 메서드 이름이 쿼리로 바뀌는 과정과 함께, 페이지를 요청할 때와 save()를 부를 때 실제로 어떤 SQL이 나가는지도 봅니다.',
   terms: ['JPA, Hibernate, Spring Data JPA', '쿼리 메서드', 'Pageable과 Page', 'save()와 merge', '엔티티'],
   controls: [
     { id: 'sc', label: '해 볼 것', type: 'select', value: 'name', options: [['name', '메서드 이름으로 조회'], ['page', 'Pageable로 페이지 요청'], ['save', 'save() 호출']] },

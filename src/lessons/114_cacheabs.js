@@ -55,7 +55,7 @@ Lab.register({
         return v;
       }
       reset('find(' + id + 'L)', 'find(' + id + ')'); st.px = '호출을 받음';
-      push('productService.find(' + id + 'L) 호출 (' + ord + '): 다른 빈이 부릅니다. 호출은 프록시에 먼저 도착합니다. 프록시는 @Cacheable을 보고, 본문을 실행하기 전에 캐시 "product"에서 키 ' + id + (id === 2 ? '를' : '을') + ' 찾아봅니다.');
+      push('productService.find(' + id + 'L) 호출 (' + ord + '): 다른 빈이 부릅니다. 호출은 프록시에 먼저 도착합니다. 프록시는 @Cacheable을 보고, 본문을 실행하기 전에 캐시 "product"에서 키 ' + id + (id === 2 ? '를' : '을') + ' 찾아봅니다.' + (nth === 1 ? ' 프록시는 캐시가 실제로 어디에 저장되는지 모릅니다. CacheManager가 내준 Cache 객체에 get과 put을 부를 뿐이어서, 저장소를 메모리의 맵에서 Redis로 바꿔도 이 코드와 애노테이션은 그대로입니다. 스프링은 이 구조를 캐시 추상화라고 부릅니다.' : ''));
       if (id in cache) {
         v = cache[id]; st.look = 'hit'; st.px = '키 ' + id + ' 있음: 캐시의 값을 돌려줌'; st.tg = '본문을 실행하지 않음';
         if (nth === 2) st.second = q(v);
@@ -124,6 +124,7 @@ Lab.register({
     P.box('px', 190, 20, 268, 212, { cls: s.px.indexOf('보지 못함') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'plain', title: 'ProductService 프록시', sub: s.px || '대기' });
     P.box('tg', 250, 122, 194, 96, { cls: s.tg.indexOf('실행하지 않음') >= 0 ? 'ghost' : s.tg ? 'wait now' : 'plain', title: '실제 ProductService', sub: s.tg || '대기' });
     P.box('cache', 486, 20, 182, 92, { cls: s.look === 'hit' ? 'good' : s.look === 'store' ? 'hot' : s.look === 'evict' || s.look === 'miss' ? 'wait' : 'plain', title: '캐시 "product"', sub: lines(s.cache) });
+    P.text('store', 577, 130, '저장소: 메모리의 맵', { cls: 'mut', anchor: 'middle' });
     P.box('db', 486, 140, 182, 92, { cls: s.dbop ? 'hot' : 'plain', title: 'DB', sub: lines(s.db) });
     if (s.call) P.arrow('in', 'caller:r', 'px:l:0.37', { label: s.short });
     if (s.look) P.arrow('look', 'px:r:0.2', 'cache:l', { cls: s.look === 'hit' ? 'good' : s.look === 'miss' ? 'mut' : '', label: { hit: '있음', miss: '없음', store: '저장', evict: '지움' }[s.look] });

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5a6de934d2">
+<link rel="stylesheet" href="../../app.css?v=d6d9d3a829">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 쿼리</p>
 <h1>스프링 데이터 JPA</h1>
 <p><b>구현 클래스가 없는데 리포지토리는 어떻게 동작하나</b></p>
-<p>스프링 데이터 JPA는 JPA를 더 쉽게 쓰게 해 주는 스프링의 모듈이고, 리포지토리는 엔티티를 저장하고 조회하는 메서드를 모아 둔 인터페이스입니다. 스프링 데이터 JPA에서는 리포지토리를 인터페이스로만 선언합니다. 구현은 애플리케이션이 뜰 때 스프링 데이터가 만들어 주고, findByName 같은 메서드는 이름을 읽어 쿼리로 바꿉니다.</p>
+<p>스프링 데이터 JPA는 JPA를 더 쉽게 쓰게 해 주는 스프링의 모듈이고, 리포지토리는 엔티티를 저장하고 조회하는 메서드를 모아 둔 인터페이스입니다. 스프링 데이터 JPA에서는 리포지토리를 인터페이스로만 선언합니다. 구현은 애플리케이션이 뜰 때 스프링 데이터가 만들어 주고, findByName 같은 메서드는 이름을 읽어 쿼리로 바꿉니다. 메서드 이름이 쿼리로 바뀌는 과정과 함께, 페이지를 요청할 때와 save()를 부를 때 실제로 어떤 SQL이 나가는지도 봅니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1 자동 설정으로 스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, H2를 띄워 열아홉 가지 장면의 기동 결과와 나간 SQL을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -174,6 +174,6 @@ List&lt;Member&gt; result = memberRepository.findByNameAndAgeGreaterThan(&quot;�
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5a6de934d2"></script>
+<script src="../../app.js?v=d6d9d3a829"></script>
 </body>
 </html>

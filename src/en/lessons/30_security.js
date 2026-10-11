@@ -1,7 +1,7 @@
 Lab.register({
   id: 'security', nav: 'Security filter chain', cat: 'Authentication', mode: 'step',
   title: 'Where is it decided whether the response is 401 or 403?',
-  intro: 'Spring Security is a line of filters placed in front of the controller. A filter near the front checks "who this is" and records it, and a filter near the back decides "whether this user may enter this path". The response is 401 when the user is not identified, and 403 when the user is identified but lacks the required authority. This lab shows at which filter, and with which response, a request ends, depending on its token and path.',
+  intro: 'Spring Security is a line of filters placed in front of the controller. A filter near the front checks "who this is" and records it, and a filter near the back decides "whether this user may enter this path". The response is 401 when the user is not identified, and 403 when the user is identified but lacks the required authority. This lab shows where a request is stopped, and with which response it ends, depending on its token and path.',
   terms: ['Authentication and authorization', 'Spring Security and SecurityFilterChain', 'SecurityContext', 'Servlet filter', 'HTTP status codes'], ranks: ['auth', 'websec', 'filter'],
   controls: [
     { id: 'who', label: 'Token carried by the request', type: 'select', value: 'none', options: [['none', 'No token'], ['bad', 'Expired or forged token'], ['user', 'Valid token (role: USER)'], ['admin', 'Valid token (role: ADMIN)']] },

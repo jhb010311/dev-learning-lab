@@ -53,13 +53,13 @@ Lab.register({
     st.stage = 2;
     if (isPath !== (R.where === 'path')) {
       st.map = '안 맞음'; stop('404 Not Found', '맞는 주소가 없음', 'NoResourceFoundException');
-      push(mapping + ': 스프링이 요청의 메서드와 경로로 실행할 컨트롤러 메서드를 찾습니다. ' + (isPath ? '요청의 경로(' + R.path + ')에는 {qty} 자리에 올 칸이 없어 /orders/{qty} 모양과 맞지 않습니다.' + (R.where ? ' 쿼리 스트링이나 본문에 실린 값은 경로 변수가 될 수 없습니다.' : '') : '요청의 경로(' + R.path + ')는 /orders와 다른 주소입니다.') + ' 맞는 컨트롤러 메서드가 없으므로 404로 응답합니다(스프링 7에서는 NoResourceFoundException).' + NOT_RUN, 'bad');
+      push(mapping + ': 스프링이 요청의 메서드와 경로로 실행할 컨트롤러 메서드를 찾습니다(요청 매핑). ' + (isPath ? '요청의 경로(' + R.path + ')에는 {qty} 자리에 올 칸이 없어 /orders/{qty} 모양과 맞지 않습니다.' + (R.where ? ' 쿼리 스트링이나 본문에 실린 값은 경로 변수가 될 수 없습니다.' : '') : '요청의 경로(' + R.path + ')는 /orders와 다른 주소입니다.') + ' 맞는 컨트롤러 메서드가 없으므로 404로 응답합니다(스프링 7에서는 NoResourceFoundException).' + NOT_RUN, 'bad');
     } else {
       st.map = '맞음';
-      push(mapping + ': 스프링이 요청의 메서드와 경로로 실행할 컨트롤러 메서드를 찾습니다. ' + (isPath ? '요청의 경로(' + R.path + ')가 /orders/{qty} 모양과 맞습니다.' : '메서드가 ' + R.m + '이고 경로가 /orders이므로 order 메서드로 정해집니다.') + ' 이 단계에서는 쿼리 스트링과 본문을 보지 않습니다.');
+      push(mapping + ': 스프링이 요청의 메서드와 경로로 실행할 컨트롤러 메서드를 찾습니다(요청 매핑). ' + (isPath ? '요청의 경로(' + R.path + ')가 /orders/{qty} 모양과 맞습니다.' : '메서드가 ' + R.m + '이고 경로가 /orders이므로 order 메서드로 정해집니다.') + ' 이 단계에서는 쿼리 스트링과 본문을 보지 않습니다.');
 
       st.stage = 3; st.look = isBody ? ['ct', 'body'] : isPath ? ['path'] : R.where === 'form' ? ['query', 'body'] : ['query'];
-      push(decl + ': 파라미터에 붙은 애노테이션이 값을 꺼낼 자리를 정합니다. ' + (isBody ? '@RequestBody는 본문 전체를 메시지 컨버터에 넘겨 OrderForm 객체로 바꿉니다. 쿼리 스트링과 경로는 보지 않습니다.' : isPath ? '@PathVariable은 경로에서 {qty} 자리에 해당하는 칸을 꺼냅니다.' : isModel ? '@ModelAttribute는 먼저 new OrderForm()으로 빈 객체를 만들고, "요청 파라미터" 가운데 필드와 이름이 같은 것을 setter로 넣습니다. 요청 파라미터는 쿼리 스트링과 폼 형식 본문을 합친 것입니다.' : '@RequestParam은 "요청 파라미터"에서 이름이 qty인 값을 찾습니다. 요청 파라미터는 쿼리 스트링과 폼 형식 본문을 합친 것입니다.'));
+      push(decl + ': 이제 요청에 실린 값을 메서드의 파라미터에 넣을 차례입니다(파라미터 바인딩). 파라미터에 붙은 애노테이션이 값을 꺼낼 자리를 정합니다. ' + (isBody ? '@RequestBody는 본문 전체를 메시지 컨버터에 넘겨 OrderForm 객체로 바꿉니다. 쿼리 스트링과 경로는 보지 않습니다.' : isPath ? '@PathVariable은 경로에서 {qty} 자리에 해당하는 칸을 꺼냅니다.' : isModel ? '@ModelAttribute는 먼저 new OrderForm()으로 빈 객체를 만들고, "요청 파라미터" 가운데 필드와 이름이 같은 것을 setter로 넣습니다. 요청 파라미터는 쿼리 스트링과 폼 형식 본문을 합친 것입니다.' : '@RequestParam은 "요청 파라미터"에서 이름이 qty인 값을 찾습니다. 요청 파라미터는 쿼리 스트링과 폼 형식 본문을 합친 것입니다.'));
 
       st.stage = 4;
       if (isBody) {

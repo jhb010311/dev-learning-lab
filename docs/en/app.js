@@ -714,7 +714,7 @@ var Lab = (function () {
 Lab.register({
   id: 'threadpool', nav: 'Thread pool', cat: 'Concurrency', mode: 'time',
   title: 'What changes when you add more threads',
-  intro: 'A thread pool keeps a set number of threads and reuses them instead of creating a new thread for every request. When a request comes in, one thread handles it from start to finish. If there are not enough threads, requests wait in a queue, and when the queue is also full, requests are rejected. This lab shows how waiting and rejection change with the number of threads and the size of the queue.',
+  intro: 'A thread pool reuses the threads it has created, up to a set number, instead of creating and discarding a thread for every request. When a request comes in, one thread handles it from start to finish. When all the core threads are busy, requests wait in a queue; when the queue is full, more threads are created up to the maximum; and requests beyond that are rejected. This lab shows how waiting and rejection change with the number of threads and the size of the queue.',
   terms: ['Thread pool', 'How ThreadPoolExecutor handles a new task', 'Tomcat\'s threading model', 'Blocking and non-blocking'], ranks: ['threadpool', 'was'],
   controls: [
     { id: 'core', label: 'Core pool size', type: 'range', min: 1, max: 8, value: 2, fmt: function (v) { return v + ''; } },
@@ -799,7 +799,7 @@ Lab.register({
     P.size(680, H + 32);
     P.region('qu', 16, 16, 290, 112, 'Queue ' + (c.unb ? '(unbounded)' : '(capacity ' + c.cap + ')') + ' · request numbers');
     P.region('rej', 16, 140, 290, 238, 'Rejected requests');
-    P.region('thr', 346, 16, 318, H, 'Threads (core ' + c.core + ', maximum ' + c.max + ')');
+    P.region('thr', 346, 16, 318, H, 'Thread pool (core ' + c.core + ', maximum ' + c.max + ')');
     for (var j = 0; j < capN; j++) if (!q[j]) P.box('qe' + j, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'ghost' });
     q.slice(0, 10).forEach(function (r, j) { P.box('rq' + r.id, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'wait', sub: String(r.id), center: true }); });
     if (!capN) P.text('noq', 161, 80, 'The queue has no capacity', { cls: 'mut', anchor: 'middle' });
@@ -2897,13 +2897,13 @@ Lab.register({
     st.stage = 2;
     if (isPath !== (R.where === 'path')) {
       st.map = 'fails'; stop('404 Not Found', 'no matching URL', 'NoResourceFoundException');
-      push(mapping + ': Spring uses the HTTP method and the path of the request to find the controller method to run. ' + (isPath ? 'The path of the request (' + R.path + ') has no segment for the {qty} position, so it does not match the pattern /orders/{qty}.' + (R.where ? ' A value carried in the query string or the body cannot become a URI variable.' : '') : 'The path of the request (' + R.path + ') is a different URL from /orders.') + ' No controller method matches, so Spring responds with 404 (NoResourceFoundException in Spring 7).' + NOT_RUN, 'bad');
+      push(mapping + ': Spring uses the HTTP method and the path of the request to find the controller method to run (request mapping). ' + (isPath ? 'The path of the request (' + R.path + ') has no segment for the {qty} position, so it does not match the pattern /orders/{qty}.' + (R.where ? ' A value carried in the query string or the body cannot become a URI variable.' : '') : 'The path of the request (' + R.path + ') is a different URL from /orders.') + ' No controller method matches, so Spring responds with 404 (NoResourceFoundException in Spring 7).' + NOT_RUN, 'bad');
     } else {
       st.map = 'matches';
-      push(mapping + ': Spring uses the HTTP method and the path of the request to find the controller method to run. ' + (isPath ? 'The path of the request (' + R.path + ') matches the pattern /orders/{qty}.' : 'The HTTP method is ' + R.m + ' and the path is /orders, so the order method is chosen.') + ' This step does not look at the query string or the body.');
+      push(mapping + ': Spring uses the HTTP method and the path of the request to find the controller method to run (request mapping). ' + (isPath ? 'The path of the request (' + R.path + ') matches the pattern /orders/{qty}.' : 'The HTTP method is ' + R.m + ' and the path is /orders, so the order method is chosen.') + ' This step does not look at the query string or the body.');
 
       st.stage = 3; st.look = isBody ? ['ct', 'body'] : isPath ? ['path'] : R.where === 'form' ? ['query', 'body'] : ['query'];
-      push(decl + ': The annotation on the parameter decides where the value is taken from. ' + (isBody ? '@RequestBody passes the whole body to a message converter, which converts it into an OrderForm object. It does not look at the query string or the path.' : isPath ? '@PathVariable takes the segment of the path at the {qty} position.' : isModel ? '@ModelAttribute first creates an empty object with new OrderForm(), and then uses the setters to set the "request parameters" whose names match the fields. The request parameters are the query string and the form data in the body combined.' : '@RequestParam looks in the "request parameters" for the value named qty. The request parameters are the query string and the form data in the body combined.'));
+      push(decl + ': Next, the values carried by the request are put into the parameters of the method (parameter binding). The annotation on the parameter decides where the value is taken from. ' + (isBody ? '@RequestBody passes the whole body to a message converter, which converts it into an OrderForm object. It does not look at the query string or the path.' : isPath ? '@PathVariable takes the segment of the path at the {qty} position.' : isModel ? '@ModelAttribute first creates an empty object with new OrderForm(), and then uses the setters to set the "request parameters" whose names match the fields. The request parameters are the query string and the form data in the body combined.' : '@RequestParam looks in the "request parameters" for the value named qty. The request parameters are the query string and the form data in the body combined.'));
 
       st.stage = 4;
       if (isBody) {
@@ -3951,7 +3951,7 @@ Lab.register({
         return v;
       }
       reset('find(' + id + 'L)', 'find(' + id + ')'); st.px = 'Call received';
-      push('productService.find(' + id + 'L) call ' + ord + ': Another bean makes the call. The call arrives at the proxy first. The proxy sees @Cacheable and, before running the body, looks up key ' + id + (id === 2 ? '' : '') + ' in the cache "product".');
+      push('productService.find(' + id + 'L) call ' + ord + ': Another bean makes the call. The call arrives at the proxy first. The proxy sees @Cacheable and, before running the body, looks up key ' + id + (id === 2 ? '' : '') + ' in the cache "product".' + (nth === 1 ? ' The proxy does not know where the cache is actually stored. It only calls get and put on the Cache object that the CacheManager hands out, so this code and the annotations stay the same even if the store is changed from an in-memory map to Redis. Spring calls this structure the cache abstraction.' : ''));
       if (id in cache) {
         v = cache[id]; st.look = 'hit'; st.px = 'Key ' + id + ' found: returns cached value'; st.tg = 'Body not run';
         if (nth === 2) st.second = q(v);
@@ -4020,6 +4020,7 @@ Lab.register({
     P.box('px', 190, 20, 268, 212, { cls: s.px.indexOf('Does not see') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'plain', title: 'ProductService proxy', sub: s.px || 'Idle' });
     P.box('tg', 250, 122, 194, 96, { cls: s.tg.indexOf('not run') >= 0 ? 'ghost' : s.tg ? 'wait now' : 'plain', title: 'Real ProductService', sub: s.tg || 'Idle' });
     P.box('cache', 486, 20, 182, 92, { cls: s.look === 'hit' ? 'good' : s.look === 'store' ? 'hot' : s.look === 'evict' || s.look === 'miss' ? 'wait' : 'plain', title: 'Cache "product"', sub: lines(s.cache) });
+    P.text('store', 577, 130, 'Store: an in-memory map', { cls: 'mut', anchor: 'middle' });
     P.box('db', 486, 140, 182, 92, { cls: s.dbop ? 'hot' : 'plain', title: 'DB', sub: lines(s.db) });
     if (s.call) P.arrow('in', 'caller:r', 'px:l:0.37', { label: s.short });
     if (s.look) P.arrow('look', 'px:r:0.2', 'cache:l', { cls: s.look === 'hit' ? 'good' : s.look === 'miss' ? 'mut' : '', label: { hit: 'hit', miss: 'miss', store: 'put', evict: 'evict' }[s.look] });
@@ -5979,7 +5980,7 @@ Lab.register({
 Lab.register({
   id: 'datajpa', nav: 'Spring Data JPA', cat: 'JPA', mode: 'step',
   title: 'How does a repository work when there is no implementation class?',
-  intro: 'Spring Data JPA is a Spring module that makes JPA easier to use, and a repository is an interface that gathers the methods for saving and querying entities. In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query.',
+  intro: 'Spring Data JPA is a Spring module that makes JPA easier to use, and a repository is an interface that gathers the methods for saving and querying entities. In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query. This lab shows how a method name becomes a query, and also which SQL is actually sent when a page is requested and when save() is called.',
   terms: ['JPA, Hibernate, Spring Data JPA', 'Query method', 'Pageable and Page', 'save() and merge', 'Entity'],
   controls: [
     { id: 'sc', label: 'What to try', type: 'select', value: 'name', options: [['name', 'Query by method name'], ['page', 'Request a page with Pageable'], ['save', 'Call save()']] },
@@ -9184,7 +9185,7 @@ Lab.register({
     var st = { ports: {}, b: '', conns: [], fails: [], sent: false };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
     st.ports[9000] = 'A';
-    push('serverA.listen(9000): Server A registers with the operating system: "Give me the connections that arrive on port 9000." Port 9000 was free, so this succeeds. Server A now waits for connections.', '');
+    push('serverA.listen(9000): Server A creates a socket, binds it to port 9000, and registers with the operating system: "Give the connections that arrive on port 9000 to this socket." Port 9000 was free, so this succeeds. Server A now waits for connections.', '');
     if (c.srv === 'ab') { st.ports[9001] = 'B'; st.b = 'ok'; push('serverB.listen(9001): Server B registers a different number, 9001. The port is free, so this succeeds. Two programs on one computer wait for connections on different ports.', 'good'); }
     if (c.srv === 'same') { st.b = 'EADDRINUSE'; push('serverB.listen(9000): Server B also tries to register port 9000. Server A is already using it, so the operating system refuses, and Server B receives an EADDRINUSE (address already in use) error. Only one program can receive the connections that arrive on a port, because otherwise the operating system could not decide whom to give them to.', 'bad'); }
     for (var i = 1; i <= n; i++) {
@@ -9199,7 +9200,7 @@ Lab.register({
     }
     if (who) {
       st.sent = true;
-      push('socket.write: ' + (n > 1 ? 'Each of the ' + n + ' clients sends its data. All of it goes to port ' + to + ', but the operating system looks at the source port to tell which connection the data belongs to, and passes it to Server ' + who + ' separately for each connection.' : 'The client sends its data. The destination port is ' + to + ', so the operating system passes it to Server ' + who + '.') + (c.srv === 'ab' ? ' Nothing goes to Server ' + (who === 'A' ? 'B' : 'A') + ' on the same computer.' : ''), 'good');
+      push('socket.write: ' + (n > 1 ? 'Each of the ' + n + ' clients sends its data. All of it goes to port ' + to + ', but the operating system looks at the source port to tell which connection the data belongs to, and passes it to Server ' + who + ' separately for each connection, because each connection has its own socket.' : 'The client sends its data. The destination port is ' + to + ', so the operating system passes it to the socket of Server ' + who + '.') + (c.srv === 'ab' ? ' Nothing goes to Server ' + (who === 'A' ? 'B' : 'A') + ' on the same computer.' : ''), 'good');
     }
     var bRow = { ok: 'Succeeded (port 9001)', EADDRINUSE: 'Failed (EADDRINUSE)', none: 'Not started' }[o.b];
     if (c.srv === 'same') sum.push('Starting a server on a port that is already in use fails with EADDRINUSE. If you meet a "port already in use" error during development, most often the server you started earlier is still alive. End that program or use another port.');
@@ -12323,7 +12324,7 @@ Lab.register({
 Lab.register({
   id: 'security', nav: 'Security filter chain', cat: 'Authentication', mode: 'step',
   title: 'Where is it decided whether the response is 401 or 403?',
-  intro: 'Spring Security is a line of filters placed in front of the controller. A filter near the front checks "who this is" and records it, and a filter near the back decides "whether this user may enter this path". The response is 401 when the user is not identified, and 403 when the user is identified but lacks the required authority. This lab shows at which filter, and with which response, a request ends, depending on its token and path.',
+  intro: 'Spring Security is a line of filters placed in front of the controller. A filter near the front checks "who this is" and records it, and a filter near the back decides "whether this user may enter this path". The response is 401 when the user is not identified, and 403 when the user is identified but lacks the required authority. This lab shows where a request is stopped, and with which response it ends, depending on its token and path.',
   terms: ['Authentication and authorization', 'Spring Security and SecurityFilterChain', 'SecurityContext', 'Servlet filter', 'HTTP status codes'], ranks: ['auth', 'websec', 'filter'],
   controls: [
     { id: 'who', label: 'Token carried by the request', type: 'select', value: 'none', options: [['none', 'No token'], ['bad', 'Expired or forged token'], ['user', 'Valid token (role: USER)'], ['admin', 'Valid token (role: ADMIN)']] },
@@ -13504,7 +13505,7 @@ Lab.register({
       var first = when < lag;
       if (!first) { S.r = 'Nickname = Bob'; push(lag + 's: The change record from the source reaches the replica and is applied.', 'good'); }
       if (c.from === 'primary') { got = 'Bob'; S.read = 'From source: "Bob"'; push(when + 's: The query is sent to the source. The source always has the latest value, so "Bob" is returned.', 'good'); }
-      else if (first) { got = 'Alice'; S.read = 'From replica: "Alice"'; push(when + 's: The query is sent to the replica. Replication has not arrived yet, so the replica still has the old value "Alice". The user sees a screen on which the nickname they just changed is unchanged.', 'bad'); }
+      else if (first) { got = 'Alice'; S.read = 'From replica: "Alice"'; push(when + 's: The query is sent to the replica. Replication has not arrived yet, so the replica still has the old value "Alice". This time difference is the replication lag. The user sees a screen on which the nickname they just changed is unchanged.', 'bad'); }
       else { got = 'Bob'; S.read = 'From replica: "Bob"'; push(when + 's: The query is sent to the replica. Replication has already finished, so "Bob" is returned.', 'good'); }
       if (first) { S.r = 'Nickname = Bob'; push(lag + 's: Replication finally arrives, and the replica also becomes "Bob". Later queries see the new value.', ''); }
       fresh = got === 'Bob';
@@ -14265,7 +14266,7 @@ Lab.register({
     var leak = r.fin !== 2;
     sum.push('final only prevents a variable from being made to refer to a different object. It does not prevent the contents of that object from changing. To make an object immutable, you must make sure that the mutable objects its fields refer to (lists, arrays, Date, and so on) are not shared with outside code.');
     if (leak) sum.push('The internal state was changed from outside. You must copy the list when you receive it (in the constructor), and when you hand it out (in the getter) you must also copy it or wrap it so that it cannot be modified. Making such copies is called defensive copying.');
-    else sum.push('Both the way in and the way out are protected, so the internal state cannot be changed from outside. Using List.copyOf(items) in the constructor gives you a copy and an unmodifiable list in one step.');
+    else sum.push('Both the way in and the way out are protected, so the internal state cannot be changed from outside. The constructor stored a copy of the list it received (a defensive copy), so changing src from outside does not affect the order. Using List.copyOf(items) in the constructor gives you a copy and an unmodifiable list in one step.');
     if (c.in === 'ref' && c.out === 'unmod') sum.push('An unmodifiable view means that the list cannot be changed "through this view". If the code that holds the original list changes it, the change is visible through the view as well.');
     sum.push('The same is true of a record. Its fields are final, but if a field holds a mutable object such as a list, the contents of that object can still change.');
     return { events: ev, summary: sum, res: r, row: [r.a + ' items', r.via === 'ok' ? 'Added (no exception)' : r.via, r.fin + ' items', leak ? 'Yes' : 'No'] };

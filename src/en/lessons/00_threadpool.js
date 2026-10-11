@@ -1,7 +1,7 @@
 Lab.register({
   id: 'threadpool', nav: 'Thread pool', cat: 'Concurrency', mode: 'time',
   title: 'What changes when you add more threads',
-  intro: 'A thread pool keeps a set number of threads and reuses them instead of creating a new thread for every request. When a request comes in, one thread handles it from start to finish. If there are not enough threads, requests wait in a queue, and when the queue is also full, requests are rejected. This lab shows how waiting and rejection change with the number of threads and the size of the queue.',
+  intro: 'A thread pool reuses the threads it has created, up to a set number, instead of creating and discarding a thread for every request. When a request comes in, one thread handles it from start to finish. When all the core threads are busy, requests wait in a queue; when the queue is full, more threads are created up to the maximum; and requests beyond that are rejected. This lab shows how waiting and rejection change with the number of threads and the size of the queue.',
   terms: ['Thread pool', 'How ThreadPoolExecutor handles a new task', 'Tomcat\'s threading model', 'Blocking and non-blocking'], ranks: ['threadpool', 'was'],
   controls: [
     { id: 'core', label: 'Core pool size', type: 'range', min: 1, max: 8, value: 2, fmt: function (v) { return v + ''; } },
@@ -86,7 +86,7 @@ Lab.register({
     P.size(680, H + 32);
     P.region('qu', 16, 16, 290, 112, 'Queue ' + (c.unb ? '(unbounded)' : '(capacity ' + c.cap + ')') + ' · request numbers');
     P.region('rej', 16, 140, 290, 238, 'Rejected requests');
-    P.region('thr', 346, 16, 318, H, 'Threads (core ' + c.core + ', maximum ' + c.max + ')');
+    P.region('thr', 346, 16, 318, H, 'Thread pool (core ' + c.core + ', maximum ' + c.max + ')');
     for (var j = 0; j < capN; j++) if (!q[j]) P.box('qe' + j, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'ghost' });
     q.slice(0, 10).forEach(function (r, j) { P.box('rq' + r.id, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'wait', sub: String(r.id), center: true }); });
     if (!capN) P.text('noq', 161, 80, 'The queue has no capacity', { cls: 'mut', anchor: 'middle' });

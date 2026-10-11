@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5a6de934d2">
+<link rel="stylesheet" href="../../app.css?v=d6d9d3a829">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -54,12 +54,12 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>serverA.listen(9000): 서버 A가 운영체제에 &quot;9000번 포트로 들어오는 연결은 나에게 달라&quot;고 등록합니다. 9000번이 비어 있었으므로 성공합니다. 이제 서버 A는 연결을 기다립니다.</li>
+<li>serverA.listen(9000): 서버 A가 소켓을 만들어 9000번 포트에 붙이고, 운영체제에 &quot;9000번 포트로 들어오는 연결은 이 소켓으로 달라&quot;고 등록합니다. 9000번이 비어 있었으므로 성공합니다. 이제 서버 A는 연결을 기다립니다.</li>
 <li>serverB.listen(9000): 서버 B도 9000번을 등록하려 합니다. 이미 서버 A가 쓰고 있으므로 운영체제가 거절하고, 서버 B는 EADDRINUSE(주소가 이미 사용 중) 오류를 받습니다. 한 포트로 들어오는 연결을 받을 프로그램은 하나여야 누구에게 줄지 정할 수 있기 때문입니다.</li>
 <li>클라이언트 1의 net.connect(9000): 코드에는 받는 포트만 적었습니다. 보내는 포트는 운영체제가 비어 있는 번호 가운데 하나(여기서는 50001번)를 골라 줍니다. 9000번에서 서버 A가 듣고 있으므로 연결이 맺어집니다.</li>
 <li>클라이언트 2의 net.connect(9000): 운영체제가 이번에는 보내는 포트로 50002번을 골라 줍니다. 서버 A가 듣고 있으므로 연결이 맺어집니다. 앞의 연결과 받는 포트는 똑같이 9000번이고, 보내는 포트만 다릅니다. 운영체제는 네 값(보내는 IP, 보내는 포트, 받는 IP, 받는 포트)이 하나라도 다르면 다른 연결로 봅니다.</li>
 <li>클라이언트 3의 net.connect(9000): 운영체제가 이번에는 보내는 포트로 50003번을 골라 줍니다. 서버 A가 듣고 있으므로 연결이 맺어집니다. 앞의 연결과 받는 포트는 똑같이 9000번이고, 보내는 포트만 다릅니다. 앞의 두 연결은 끊기지 않고 그대로 열려 있습니다.</li>
-<li>socket.write: 클라이언트 3개가 저마다 데이터를 보냅니다. 모두 9000번 포트로 가지만, 운영체제가 보내는 포트를 보고 어느 연결의 데이터인지 가려서 서버 A에게 연결별로 따로 넘깁니다.</li>
+<li>socket.write: 클라이언트 3개가 저마다 데이터를 보냅니다. 모두 9000번 포트로 가지만, 운영체제가 보내는 포트를 보고 어느 연결의 데이터인지 가려서 서버 A에게 연결별로 따로 넘깁니다. 연결마다 소켓이 하나씩 있기 때문입니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -171,6 +171,6 @@ for (let i = 1; i &lt;= 3; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5a6de934d2"></script>
+<script src="../../app.js?v=d6d9d3a829"></script>
 </body>
 </html>

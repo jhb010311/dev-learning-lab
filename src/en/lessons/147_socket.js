@@ -36,7 +36,7 @@ Lab.register({
     var st = { ports: {}, b: '', conns: [], fails: [], sent: false };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); }
     st.ports[9000] = 'A';
-    push('serverA.listen(9000): Server A registers with the operating system: "Give me the connections that arrive on port 9000." Port 9000 was free, so this succeeds. Server A now waits for connections.', '');
+    push('serverA.listen(9000): Server A creates a socket, binds it to port 9000, and registers with the operating system: "Give the connections that arrive on port 9000 to this socket." Port 9000 was free, so this succeeds. Server A now waits for connections.', '');
     if (c.srv === 'ab') { st.ports[9001] = 'B'; st.b = 'ok'; push('serverB.listen(9001): Server B registers a different number, 9001. The port is free, so this succeeds. Two programs on one computer wait for connections on different ports.', 'good'); }
     if (c.srv === 'same') { st.b = 'EADDRINUSE'; push('serverB.listen(9000): Server B also tries to register port 9000. Server A is already using it, so the operating system refuses, and Server B receives an EADDRINUSE (address already in use) error. Only one program can receive the connections that arrive on a port, because otherwise the operating system could not decide whom to give them to.', 'bad'); }
     for (var i = 1; i <= n; i++) {
@@ -51,7 +51,7 @@ Lab.register({
     }
     if (who) {
       st.sent = true;
-      push('socket.write: ' + (n > 1 ? 'Each of the ' + n + ' clients sends its data. All of it goes to port ' + to + ', but the operating system looks at the source port to tell which connection the data belongs to, and passes it to Server ' + who + ' separately for each connection.' : 'The client sends its data. The destination port is ' + to + ', so the operating system passes it to Server ' + who + '.') + (c.srv === 'ab' ? ' Nothing goes to Server ' + (who === 'A' ? 'B' : 'A') + ' on the same computer.' : ''), 'good');
+      push('socket.write: ' + (n > 1 ? 'Each of the ' + n + ' clients sends its data. All of it goes to port ' + to + ', but the operating system looks at the source port to tell which connection the data belongs to, and passes it to Server ' + who + ' separately for each connection, because each connection has its own socket.' : 'The client sends its data. The destination port is ' + to + ', so the operating system passes it to the socket of Server ' + who + '.') + (c.srv === 'ab' ? ' Nothing goes to Server ' + (who === 'A' ? 'B' : 'A') + ' on the same computer.' : ''), 'good');
     }
     var bRow = { ok: 'Succeeded (port 9001)', EADDRINUSE: 'Failed (EADDRINUSE)', none: 'Not started' }[o.b];
     if (c.srv === 'same') sum.push('Starting a server on a port that is already in use fails with EADDRINUSE. If you meet a "port already in use" error during development, most often the server you started earlier is still alive. End that program or use another port.');

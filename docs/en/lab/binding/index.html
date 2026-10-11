@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6d99e11f58">
+<link rel="stylesheet" href="../../app.css?v=b1476e72c4">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,8 +59,8 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>The request arrives: POST /orders. qty is carried in the body as JSON. The Content-Type header tells the format of the body. Wherever a value is carried, everything inside an HTTP request is text.</li>
-<li>@PostMapping(&quot;/orders&quot;): Spring uses the HTTP method and the path of the request to find the controller method to run. The HTTP method is POST and the path is /orders, so the order method is chosen. This step does not look at the query string or the body.</li>
-<li>@RequestParam int qty: The annotation on the parameter decides where the value is taken from. @RequestParam looks in the &quot;request parameters&quot; for the value named qty. The request parameters are the query string and the form data in the body combined.</li>
+<li>@PostMapping(&quot;/orders&quot;): Spring uses the HTTP method and the path of the request to find the controller method to run (request mapping). The HTTP method is POST and the path is /orders, so the order method is chosen. This step does not look at the query string or the body.</li>
+<li>@RequestParam int qty: Next, the values carried by the request are put into the parameters of the method (parameter binding). The annotation on the parameter decides where the value is taken from. @RequestParam looks in the &quot;request parameters&quot; for the value named qty. The request parameters are the query string and the form data in the body combined.</li>
 <li>Getting the value: A JSON body is not a request parameter. Even though qty is written inside the body, @RequestParam does not open the body. By default, @RequestParam requires the value to be present, so Spring responds with 400 (MissingServletRequestParameterException). The controller method does not run.</li>
 </ol>
 <h3>Result of this run</h3>
@@ -168,6 +168,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6d99e11f58"></script>
+<script src="../../app.js?v=b1476e72c4"></script>
 </body>
 </html>

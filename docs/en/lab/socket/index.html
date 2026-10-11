@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6d99e11f58">
+<link rel="stylesheet" href="../../app.css?v=b1476e72c4">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -54,12 +54,12 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>serverA.listen(9000): Server A registers with the operating system: &quot;Give me the connections that arrive on port 9000.&quot; Port 9000 was free, so this succeeds. Server A now waits for connections.</li>
+<li>serverA.listen(9000): Server A creates a socket, binds it to port 9000, and registers with the operating system: &quot;Give the connections that arrive on port 9000 to this socket.&quot; Port 9000 was free, so this succeeds. Server A now waits for connections.</li>
 <li>serverB.listen(9000): Server B also tries to register port 9000. Server A is already using it, so the operating system refuses, and Server B receives an EADDRINUSE (address already in use) error. Only one program can receive the connections that arrive on a port, because otherwise the operating system could not decide whom to give them to.</li>
 <li>Client 1 calls net.connect(9000): The code gives only the destination port. The operating system picks one of the free numbers (here 50001) as the source port. Server A is listening on port 9000, so the connection is established.</li>
 <li>Client 2 calls net.connect(9000): This time the operating system picks 50002 as the source port. Server A is listening, so the connection is established. The destination port is the same 9000 as in the earlier connection, and only the source port differs. The operating system treats connections as different if even one of the four values (source IP, source port, destination IP, destination port) differs.</li>
 <li>Client 3 calls net.connect(9000): This time the operating system picks 50003 as the source port. Server A is listening, so the connection is established. The destination port is the same 9000 as in the earlier connection, and only the source port differs. The earlier two connections are not closed and stay open.</li>
-<li>socket.write: Each of the 3 clients sends its data. All of it goes to port 9000, but the operating system looks at the source port to tell which connection the data belongs to, and passes it to Server A separately for each connection.</li>
+<li>socket.write: Each of the 3 clients sends its data. All of it goes to port 9000, but the operating system looks at the source port to tell which connection the data belongs to, and passes it to Server A separately for each connection, because each connection has its own socket.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
@@ -171,6 +171,6 @@ for (let i = 1; i &lt;= 3; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6d99e11f58"></script>
+<script src="../../app.js?v=b1476e72c4"></script>
 </body>
 </html>

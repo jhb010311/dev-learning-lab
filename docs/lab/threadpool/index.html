@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>스레드 풀: 스레드를 늘리면 무엇이 달라지나 · 개발 학습 실습실</title>
-<meta name="description" content="스레드를 요청마다 새로 만들지 않고 정해진 수만큼 만들어 두고 돌려 쓰는 것이 스레드 풀입니다. 요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 스레드 수와 대기 줄의 크기에 따라 대기와 거절이…">
+<meta name="description" content="스레드를 요청마다 새로 만들고 버리는 대신, 한 번 만든 스레드를 정해진 수 안에서 돌려 쓰는 것이 스레드 풀입니다. 요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 기본 수만큼의 스레드가 모두 일하고 있으면 요청은 대기 줄에 서고, 줄이 꽉 차면 최대 수까지 스레…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/threadpool/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/threadpool/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/threadpool/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="스레드 풀: 스레드를 늘리면 무엇이 달라지나 · 개발 학습 실습실">
-<meta property="og:description" content="스레드를 요청마다 새로 만들지 않고 정해진 수만큼 만들어 두고 돌려 쓰는 것이 스레드 풀입니다. 요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 스레드 수와 대기 줄의 크기에 따라 대기와 거절이…">
+<meta property="og:description" content="스레드를 요청마다 새로 만들고 버리는 대신, 한 번 만든 스레드를 정해진 수 안에서 돌려 쓰는 것이 스레드 풀입니다. 요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 기본 수만큼의 스레드가 모두 일하고 있으면 요청은 대기 줄에 서고, 줄이 꽉 차면 최대 수까지 스레…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/threadpool/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5a6de934d2">
+<link rel="stylesheet" href="../../app.css?v=d6d9d3a829">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
 <h1>스레드 풀</h1>
 <p><b>스레드를 늘리면 무엇이 달라지나</b></p>
-<p>스레드를 요청마다 새로 만들지 않고 정해진 수만큼 만들어 두고 돌려 쓰는 것이 스레드 풀입니다. 요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 스레드 수와 대기 줄의 크기에 따라 대기와 거절이 어떻게 달라지는지 봅니다.</p>
+<p>스레드를 요청마다 새로 만들고 버리는 대신, 한 번 만든 스레드를 정해진 수 안에서 돌려 쓰는 것이 스레드 풀입니다. 요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 기본 수만큼의 스레드가 모두 일하고 있으면 요청은 대기 줄에 서고, 줄이 꽉 차면 최대 수까지 스레드를 더 만들며, 그래도 넘치면 거절됩니다. 스레드 수와 대기 줄의 크기에 따라 대기와 거절이 어떻게 달라지는지 봅니다.</p>
 <p>실행으로 대조 · ThreadPoolExecutor의 실제 실행 결과와 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -55,21 +55,21 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>요청 1 도착. 스레드가 기본 수(2개)보다 적으므로 스레드 1을 새로 만들어 바로 처리합니다.</li>
-<li>요청 2 도착. 스레드가 기본 수(2개)보다 적으므로 스레드 2을 새로 만들어 바로 처리합니다.</li>
+<li>요청 2 도착. 스레드가 기본 수(2개)보다 적으므로 스레드 2를 새로 만들어 바로 처리합니다.</li>
 <li>요청 3 도착. 스레드 2개가 모두 일하는 중입니다. 스레드를 늘리지 않고 대기 줄에 세웁니다(대기 1/2).</li>
 <li>요청 4 도착. 스레드 2개가 모두 일하는 중입니다. 스레드를 늘리지 않고 대기 줄에 세웁니다(대기 2/2).</li>
 <li>요청 5 도착. 대기 줄이 꽉 찼습니다. 이제서야 스레드 3을 추가로 만들어 처리합니다(최대 4개까지).</li>
-<li>요청 6 도착. 대기 줄이 꽉 찼습니다. 이제서야 스레드 4을 추가로 만들어 처리합니다(최대 4개까지).</li>
+<li>요청 6 도착. 대기 줄이 꽉 찼습니다. 이제서야 스레드 4를 추가로 만들어 처리합니다(최대 4개까지).</li>
 <li>요청 7 도착. 스레드 4개가 모두 일하는 중이고 대기 줄도 꽉 찼습니다. 요청을 거절합니다.</li>
 <li>요청 8 도착. 스레드 4개가 모두 일하는 중이고 대기 줄도 꽉 찼습니다. 요청을 거절합니다.</li>
 <li>요청 9 도착. 스레드 4개가 모두 일하는 중이고 대기 줄도 꽉 찼습니다. 요청을 거절합니다.</li>
 <li>요청 10 도착. 스레드 4개가 모두 일하는 중이고 대기 줄도 꽉 찼습니다. 요청을 거절합니다.</li>
 <li>스레드 1이 요청 1을 끝내고, 대기 줄 맨 앞의 요청 3을 꺼내 처리하기 시작합니다. 요청 3은 1.6초를 기다렸습니다.</li>
-<li>스레드 2이 요청 2을 끝내고, 대기 줄 맨 앞의 요청 4을 꺼내 처리하기 시작합니다. 요청 4은 1.6초를 기다렸습니다.</li>
-<li>스레드 3이 요청 5을 끝냈습니다. 대기 중인 요청이 없어 쉽니다.</li>
-<li>스레드 4이 요청 6을 끝냈습니다. 대기 중인 요청이 없어 쉽니다.</li>
+<li>스레드 2가 요청 2를 끝내고, 대기 줄 맨 앞의 요청 4를 꺼내 처리하기 시작합니다. 요청 4는 1.6초를 기다렸습니다.</li>
+<li>스레드 3이 요청 5를 끝냈습니다. 대기 중인 요청이 없어 쉽니다.</li>
+<li>스레드 4가 요청 6을 끝냈습니다. 대기 중인 요청이 없어 쉽니다.</li>
 <li>스레드 1이 요청 3을 끝냈습니다. 대기 중인 요청이 없어 쉽니다.</li>
-<li>스레드 2이 요청 4을 끝냈습니다. 대기 중인 요청이 없어 쉽니다.</li>
+<li>스레드 2가 요청 4를 끝냈습니다. 대기 중인 요청이 없어 쉽니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -172,6 +172,6 @@ for (int i = 1; i &lt;= 10; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5a6de934d2"></script>
+<script src="../../app.js?v=d6d9d3a829"></script>
 </body>
 </html>

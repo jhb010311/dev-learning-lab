@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5a6de934d2">
+<link rel="stylesheet" href="../../app.css?v=d6d9d3a829">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,8 +59,8 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>요청이 도착합니다: POST /orders. qty는 본문에 JSON 형식으로 실려 있습니다. Content-Type 헤더가 본문의 형식을 알려 줍니다. 어느 자리에 실리든 HTTP 요청 안에서는 모두 글자입니다.</li>
-<li>@PostMapping(&quot;/orders&quot;): 스프링이 요청의 메서드와 경로로 실행할 컨트롤러 메서드를 찾습니다. 메서드가 POST이고 경로가 /orders이므로 order 메서드로 정해집니다. 이 단계에서는 쿼리 스트링과 본문을 보지 않습니다.</li>
-<li>@RequestParam int qty: 파라미터에 붙은 애노테이션이 값을 꺼낼 자리를 정합니다. @RequestParam은 &quot;요청 파라미터&quot;에서 이름이 qty인 값을 찾습니다. 요청 파라미터는 쿼리 스트링과 폼 형식 본문을 합친 것입니다.</li>
+<li>@PostMapping(&quot;/orders&quot;): 스프링이 요청의 메서드와 경로로 실행할 컨트롤러 메서드를 찾습니다(요청 매핑). 메서드가 POST이고 경로가 /orders이므로 order 메서드로 정해집니다. 이 단계에서는 쿼리 스트링과 본문을 보지 않습니다.</li>
+<li>@RequestParam int qty: 이제 요청에 실린 값을 메서드의 파라미터에 넣을 차례입니다(파라미터 바인딩). 파라미터에 붙은 애노테이션이 값을 꺼낼 자리를 정합니다. @RequestParam은 &quot;요청 파라미터&quot;에서 이름이 qty인 값을 찾습니다. 요청 파라미터는 쿼리 스트링과 폼 형식 본문을 합친 것입니다.</li>
 <li>값 꺼내기: JSON 본문은 요청 파라미터가 아닙니다. 본문 안에 qty가 적혀 있어도 @RequestParam은 본문을 열어 보지 않습니다. @RequestParam은 값이 반드시 있어야 하는 것이 기본이므로 400으로 응답합니다(MissingServletRequestParameterException). 컨트롤러 메서드는 실행되지 않습니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -168,6 +168,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5a6de934d2"></script>
+<script src="../../app.js?v=d6d9d3a829"></script>
 </body>
 </html>

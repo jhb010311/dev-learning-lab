@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6d99e11f58">
+<link rel="stylesheet" href="../../app.css?v=b1476e72c4">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -57,7 +57,7 @@
 <ol>
 <li>The member's nickname is &quot;Alice&quot;, and the source and the replica have the same value.</li>
 <li>0s: The user changes the nickname to &quot;Bob&quot;. It is saved on the source database and committed. The user gets a &quot;saved&quot; response. It has not yet been delivered to the replica.</li>
-<li>0.3s: The query is sent to the replica. Replication has not arrived yet, so the replica still has the old value &quot;Alice&quot;. The user sees a screen on which the nickname they just changed is unchanged.</li>
+<li>0.3s: The query is sent to the replica. Replication has not arrived yet, so the replica still has the old value &quot;Alice&quot;. This time difference is the replication lag. The user sees a screen on which the nickname they just changed is unchanged.</li>
 <li>1s: Replication finally arrives, and the replica also becomes &quot;Bob&quot;. Later queries see the new value.</li>
 </ol>
 <h3>Result of this run</h3>
@@ -160,6 +160,6 @@ public Member getMember(long id) {                      // -&gt; replica
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6d99e11f58"></script>
+<script src="../../app.js?v=b1476e72c4"></script>
 </body>
 </html>

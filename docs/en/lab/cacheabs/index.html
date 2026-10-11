@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6d99e11f58">
+<link rel="stylesheet" href="../../app.css?v=b1476e72c4">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,7 +58,7 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>productService.find(1L) call #1: Another bean makes the call. The call arrives at the proxy first. The proxy sees @Cacheable and, before running the body, looks up key 1 in the cache &quot;product&quot;.</li>
+<li>productService.find(1L) call #1: Another bean makes the call. The call arrives at the proxy first. The proxy sees @Cacheable and, before running the body, looks up key 1 in the cache &quot;product&quot;. The proxy does not know where the cache is actually stored. It only calls get and put on the Cache object that the CacheManager hands out, so this code and the annotations stay the same even if the store is changed from an in-memory map to Redis. Spring calls this structure the cache abstraction.</li>
 <li>Cache lookup: Key 1 is not in the cache. Nothing has been put in the cache yet. The proxy calls find on the real object.</li>
 <li>find body runs (run #1): findCount becomes 1. The body finds the product with id 1 in the DB and returns &quot;Keyboard&quot;.</li>
 <li>The proxy stores the result in the cache: key 1 → Keyboard. The next call with the same argument uses this value.</li>
@@ -172,6 +172,6 @@ class ProductService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6d99e11f58"></script>
+<script src="../../app.js?v=b1476e72c4"></script>
 </body>
 </html>

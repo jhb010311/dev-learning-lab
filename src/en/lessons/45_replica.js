@@ -35,7 +35,7 @@ Lab.register({
       var first = when < lag;
       if (!first) { S.r = 'Nickname = Bob'; push(lag + 's: The change record from the source reaches the replica and is applied.', 'good'); }
       if (c.from === 'primary') { got = 'Bob'; S.read = 'From source: "Bob"'; push(when + 's: The query is sent to the source. The source always has the latest value, so "Bob" is returned.', 'good'); }
-      else if (first) { got = 'Alice'; S.read = 'From replica: "Alice"'; push(when + 's: The query is sent to the replica. Replication has not arrived yet, so the replica still has the old value "Alice". The user sees a screen on which the nickname they just changed is unchanged.', 'bad'); }
+      else if (first) { got = 'Alice'; S.read = 'From replica: "Alice"'; push(when + 's: The query is sent to the replica. Replication has not arrived yet, so the replica still has the old value "Alice". This time difference is the replication lag. The user sees a screen on which the nickname they just changed is unchanged.', 'bad'); }
       else { got = 'Bob'; S.read = 'From replica: "Bob"'; push(when + 's: The query is sent to the replica. Replication has already finished, so "Bob" is returned.', 'good'); }
       if (first) { S.r = 'Nickname = Bob'; push(lag + 's: Replication finally arrives, and the replica also becomes "Bob". Later queries see the new value.', ''); }
       fresh = got === 'Bob';
