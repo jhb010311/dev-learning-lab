@@ -89,7 +89,6 @@ button, input, select { font: inherit; color: inherit; }
 .p-bar .stale { font-size: .86rem; font-weight: 600; color: var(--busy-edge); margin-left: auto; }
 .p-bar.isstale #run { box-shadow: 0 0 0 3px color-mix(in srgb, var(--busy-edge) 45%, transparent); }
 .p-bar .now { min-height: 3.1em; padding: 8px 2px 0; display: flex; align-items: center; }
-.p-ctl .sub { border-top: 1px solid var(--line); padding-top: 10px; }
 .ask { border: 1px dashed var(--queue-edge); background: var(--bg); padding: 10px 12px; border-radius: 3px; display: flex; flex-direction: column; gap: 8px; }
 .askopts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 6px 18px; }
 .askopts .check { font-weight: 400; align-items: baseline; }
@@ -322,7 +321,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
   .presets { display: flex; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
   .preset { flex: 0 0 min(230px, 72vw); scroll-snap-align: start; }
   .ctlsum { display: block; }
-  .p-ctl.shut .ctls, .p-ctl.shut .sub { display: none; }
+  .p-ctl.shut .ctls { display: none; }
   .panel.p-bar { padding: 8px 12px 10px; gap: 6px; }
   .p-bar .btn { padding: 6px 11px; font-size: .9rem; }
   .p-bar .lng { display: none; }

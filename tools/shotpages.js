@@ -8,7 +8,7 @@ const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe', PORT = 9
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const RUN = `(async () => { const w = ms => new Promise(r => setTimeout(r, ms)), B = t => [...document.querySelectorAll('button')].find(x => x.offsetParent && x.textContent.indexOf(t) >= 0), E = t => [...document.querySelectorAll('button')].find(x => x.offsetParent && x.textContent.trim() === t);
   const c = B('다시 보지') || B("don't show again"); if (c) { c.click(); await w(300); }
-  const run = E('실행') || E('Run'); if (run) { run.click(); await w(400); const sk = B('결과만 보기') || B('Skip the animation'); if (sk) { sk.click(); await w(900); } }
+  const run = E('실행') || E('Run'); if (run) { run.click(); await w(400); const nx = document.querySelector('#next'); for (let i = 0; i < 150 && nx && !nx.disabled; i++) { nx.click(); await w(12); } await w(700); }
   window.scrollTo(0, 0); await w(400); return document.title; })()`;
 const PAGES = [
   ['home', '#home', 1280, 1500, false], ['study', '#study/spring', 1280, 1300, false], ['lab', '#txprop', 1280, 1700, true], ['lab2', '#threadpool', 1280, 1500, true], ['quiz', '#quiz/db', 1280, 1100, false],

@@ -23,7 +23,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       const r = await js(`(async () => { const w = ms => new Promise(r => setTimeout(r, ms)), B = t => [...document.querySelectorAll('button')].find(x => x.offsetParent && x.textContent.indexOf(t) >= 0), E = t => [...document.querySelectorAll('button')].find(x => x.offsetParent && x.textContent.trim() === t);
         const c = B(${JSON.stringify(close)}); if (c) { c.click(); await w(300); }
         const run = E(${JSON.stringify(run)}); if (!run) return 'no run button'; run.click(); await w(400);
-        const sk = B(${JSON.stringify(skip)}); if (sk) { sk.click(); await w(900); }
+        const nx = document.querySelector('#next'); for (let i = 0; i < 150 && nx && !nx.disabled; i++) { nx.click(); await w(12); } await w(700);
         document.querySelector('#title').scrollIntoView({ block: 'start' }); window.scrollBy(0, -70); await w(500); return document.querySelector('#title').textContent + ' / ' + scrollY; })()`);
       console.log(lang + ': ' + JSON.stringify(r.result && r.result.value));
       const shot = await send('Page.captureScreenshot', { format: 'png' });

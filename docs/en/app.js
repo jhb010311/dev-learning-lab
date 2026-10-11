@@ -149,7 +149,8 @@ var Lab = (function () {
   function finish() { stop(); paused = false; clock = sim.total; render(clock); record(); verdict(); syncBar(); }
   function play() {
     var prev = Date.now(), sp = cur.mode === 'step' ? 1 / 1.5 : 1.6; running = true; paused = false; sim._want = true;
-    timer = setInterval(function () { var now = Date.now(); if (now < hold) { prev = now; return; } clock += (now - prev) / 1000 * (+$('speed').value) * sp; prev = now; if (clock >= sim.total) finish(); else render(clock); }, 60);
+    var SPEED = 0.5;
+    timer = setInterval(function () { var now = Date.now(); if (now < hold) { prev = now; return; } clock += (now - prev) / 1000 * SPEED * sp; prev = now; if (clock >= sim.total) finish(); else render(clock); }, 60);
     render(clock); syncBar();
   }
   function pause() { stop(); paused = true; render(clock); syncBar(); }
@@ -315,7 +316,6 @@ var Lab = (function () {
   function start() {
     $('run').addEventListener('click', function () { if (ask) { askCancel(); run(true, false, null, true); return; } var stale = isStale, mid = !!sim && clock < sim.total - 1e-9; if (running && !stale) pause(); else if (paused && mid && !stale) { hold = 0; play(); } else run(true); });
     $('restart').addEventListener('click', function () { run(true); });
-    $('skip').addEventListener('click', function () { run(false); });
     $('log-toggle').addEventListener('click', function () { logOpen = !logOpen; var lg = $('log'); lg.hidden = !logOpen; this.setAttribute('aria-expanded', String(logOpen)); this.textContent = (logOpen ? 'Hide the full step log' : 'Show the full step log') + ' (' + lg.children.length + ')'; lg.scrollTop = lg.scrollHeight; });
     $('assume-more').addEventListener('click', function () { assumeOpen = !assumeOpen; drawAssume(); });
     $('code-toggle').addEventListener('click', function () { codeOpen = !codeOpen; try { localStorage.setItem('lab-code', codeOpen ? '1' : '0'); } catch (e) {} drawCode(); });

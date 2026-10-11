@@ -31,3 +31,4 @@ tools/patch_design*.js
 tools/design_fix_*.js
 tools/patch_repo*.js
 tools/patch_pages*.js
+tools/patch_speed*.js

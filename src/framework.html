@@ -93,7 +93,6 @@ button, input, select { font: inherit; color: inherit; }
 .p-bar .stale { font-size: .86rem; font-weight: 600; color: var(--busy-edge); margin-left: auto; }
 .p-bar.isstale #run { box-shadow: 0 0 0 3px color-mix(in srgb, var(--busy-edge) 45%, transparent); }
 .p-bar .now { min-height: 3.1em; padding: 8px 2px 0; display: flex; align-items: center; }
-.p-ctl .sub { border-top: 1px solid var(--line); padding-top: 10px; }
 .ask { border: 1px dashed var(--queue-edge); background: var(--bg); padding: 10px 12px; border-radius: 3px; display: flex; flex-direction: column; gap: 8px; }
 .askopts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 6px 18px; }
 .askopts .check { font-weight: 400; align-items: baseline; }
@@ -326,7 +325,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
   .presets { display: flex; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
   .preset { flex: 0 0 min(230px, 72vw); scroll-snap-align: start; }
   .ctlsum { display: block; }
-  .p-ctl.shut .ctls, .p-ctl.shut .sub { display: none; }
+  .p-ctl.shut .ctls { display: none; }
   .panel.p-bar { padding: 8px 12px 10px; gap: 6px; }
   .p-bar .btn { padding: 6px 11px; font-size: .9rem; }
   .p-bar .lng { display: none; }
@@ -368,10 +367,6 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
       <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
       <p class="ctlsum" id="ctlsum"></p>
       <div id="controls" class="ctls"></div>
-      <div class="runrow sub">
-        <label class="check" for="speed" style="font-weight:400">진행 속도 <select id="speed"><option value="0.5">느리게</option><option value="1" selected>보통</option><option value="2.5">빠르게</option></select></label>
-        <button class="btn ghost small" id="skip" type="button">움직임 없이 결과만 보기</button>
-      </div>
     </div>
 
     <div class="panel p-bar" id="runbar">
@@ -590,7 +585,9 @@ var Lab = (function () {
   function finish() { stop(); paused = false; clock = sim.total; render(clock); record(); verdict(); syncBar(); }
   function play() {
     var prev = Date.now(), sp = cur.mode === 'step' ? 1 / 1.5 : 1.6; running = true; paused = false; sim._want = true;
-    timer = setInterval(function () { var now = Date.now(); if (now < hold) { prev = now; return; } clock += (now - prev) / 1000 * (+$('speed').value) * sp; prev = now; if (clock >= sim.total) finish(); else render(clock); }, 60);
+    // 진행 속도는 느리게(0.5배)로 고정한다. 한 단계씩 읽으며 따라가기에 맞춘 값이다.
+    var SPEED = 0.5;
+    timer = setInterval(function () { var now = Date.now(); if (now < hold) { prev = now; return; } clock += (now - prev) / 1000 * SPEED * sp; prev = now; if (clock >= sim.total) finish(); else render(clock); }, 60);
     render(clock); syncBar();
   }
   function pause() { stop(); paused = true; render(clock); syncBar(); }
@@ -768,7 +765,6 @@ var Lab = (function () {
   function start() {
     $('run').addEventListener('click', function () { if (ask) { askCancel(); run(true, false, null, true); return; } var stale = isStale, mid = !!sim && clock < sim.total - 1e-9; if (running && !stale) pause(); else if (paused && mid && !stale) { hold = 0; play(); } else run(true); });
     $('restart').addEventListener('click', function () { run(true); });
-    $('skip').addEventListener('click', function () { run(false); });
     $('log-toggle').addEventListener('click', function () { logOpen = !logOpen; var lg = $('log'); lg.hidden = !logOpen; this.setAttribute('aria-expanded', String(logOpen)); this.textContent = (logOpen ? '전체 단계 기록 접기' : '전체 단계 기록 보기') + ' (' + lg.children.length + ')'; lg.scrollTop = lg.scrollHeight; });
     $('assume-more').addEventListener('click', function () { assumeOpen = !assumeOpen; drawAssume(); });
     $('code-toggle').addEventListener('click', function () { codeOpen = !codeOpen; try { localStorage.setItem('lab-code', codeOpen ? '1' : '0'); } catch (e) {} drawCode(); });
