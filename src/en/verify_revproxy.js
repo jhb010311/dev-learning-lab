@@ -1,0 +1,1 @@
+Lab.verify({ revproxy: ['run', 'Proxy and server built with Node 24 on three loopback addresses (127.0.0.10, 20, 30); 42 combinations run with the Node http and https modules and curl 8.21 and checked. The proxy is a test one built for this purpose; the behavior of products such as nginx is based on the documentation'] });

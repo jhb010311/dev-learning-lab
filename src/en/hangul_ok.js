@@ -3,4 +3,6 @@
 // UTF-8 bytes the I/O lab writes and reads). Everything else in the English files must be English.
 module.exports = {
   iobuf: ['가나다', '가', '나', '다'],
+  // the URL lab percent-encodes a Korean search term
+  url: ['겨울 옷', '겨울', '옷'],
 };

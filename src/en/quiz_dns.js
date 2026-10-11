@@ -1,0 +1,22 @@
+// Quiz questions for the dns lab. The first entry of a is the correct answer; when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'dns', q: 'When looking for the IP address of a domain name you have not seen before, where does your PC send its question directly?',
+    a: ['To one recursive resolver, which does the step-by-step asking on its behalf', 'To the root server, the TLD server, and the authoritative name server in turn, directly', 'Directly to one authoritative name server of that domain', 'To one root server, which gives the answer for every name'],
+    why: 'The PC asks only one recursive resolver, the one in its network settings. The resolver asks the root server, the TLD server, and the authoritative name server in that order, finds the answer, and returns it. A root server gives not the answer but the next server to ask.',
+    sim: { c: { q: 'a', cache: 'none', changed: false }, col: 2, has: '1' } },
+  { lv: 1, id: 'dns', q: 'What does a CNAME record connect a name to?',
+    a: ['Another name. It means this name is an alias of that name', 'An IPv6 address. It is the IPv6 version of the A record', 'The name and priority of the server that receives mail', 'The IP address of the name server responsible for the domain'],
+    why: 'A CNAME points to another name, not to an address. So a resolver that gets a CNAME must look up the canonical name once more to get an address. An IPv6 address is in an AAAA record, and a mail server is in an MX record.' },
+  { lv: 2, id: 'dns', q: 'You changed the address of an A record with a TTL of 300 seconds to a new server, but some users keep connecting to the old server for a while. Why?',
+    a: ['Because an answer left in the cache of a resolver or a PC is used without asking again until the TTL ends', 'Because it takes time for the changed record to be copied to the root server', 'Because the authoritative name server alternates between the old and the new value during the TTL', 'Because the browser tries to connect to the old server, and only after failing does it ask for the address again'],
+    why: 'When you change a record, only the value on the authoritative name server changes. A resolver or PC that has already received the answer does not ask again while the TTL remains, so it keeps using the old value. A root server does not hold the records of individual domains.',
+    sim: { c: { q: 'a', cache: 'resolver', changed: true }, col: 4, has: 'old value' } },
+  { lv: 3, id: 'dns', q: 'The A record of shop.example has a TTL of 300 seconds. My PC looked up this name 400 seconds ago, and the resolver still remembers which name server is responsible for shop.example. If I look it up again now, what does the resolver do?',
+    a: ['It skips the root server and the TLD server and asks the authoritative name server again', 'It returns the answer from 400 seconds ago that is still in the cache', 'It asks again in order, from the root server through the TLD server to the authoritative name server', 'Because the TTL of the answer has passed, it returns an error saying it cannot be found'],
+    why: 'The TTL of 300 seconds has passed, so the old answer must be discarded and asked for again. But the delegation information about which name server is responsible for the domain stays in the cache separately, with a longer TTL, so there is no need to start from the root server again.',
+    sim: { c: { q: 'a', cache: 'expired', changed: false }, col: 3, has: '1 (shop.example)' } },
+  { lv: 3, id: 'dns', q: 'www.shop.example is a CNAME that points to the CDN company\'s name shop.cdn.example. The CDN company changed the address in the A record of shop.cdn.example. What does a user with no answer in any cache get when looking up www.shop.example?',
+    a: ['The new address. A CNAME points only to a name, and the address is looked up on the side of the canonical name', 'The old address. It stays so until the administrator of shop.example fixes the CNAME record', 'An error. When the address that a CNAME points to changes, the alias breaks', 'Both the old address and the new address. The resolver returns both values'],
+    why: 'A CNAME record has no address, only the canonical name. The resolver looks up the canonical name once more and gets the current value from the name server on that side, so the new address is delivered without anything being fixed on the shop.example side.',
+    sim: { c: { q: 'cname', cache: 'none', changed: true }, col: 0, has: '203.0.113.81' } },
+]);

@@ -1,0 +1,1 @@
+Lab.verify({ routing: ['model', 'A conceptual model of the rules in RFC 826, 791, 1122, and 1812. It could not be checked against real equipment, so it was checked in 18 combinations against values calculated from the same rules by a different method'] });

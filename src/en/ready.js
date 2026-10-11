@@ -24,4 +24,7 @@ module.exports = [
   'fetchjoin', 'bulk', 'datajpa', 'dynquery',
   'bufferpool', 'replica', 'shard', 'partition', 'redis', 'nosql',
   'stock', 'dtoquery', 'constraints', 'ermodel',
+  'httpmsg', 'httpver', 'cookie', 'etag',
+  'layers', 'dns', 'routing', 'socket', 'idem', 'redirect', 'conneg', 'scale', 'revproxy', 'cdn', 'pwhash', 'sessionfix', 
+  'url',
 ];

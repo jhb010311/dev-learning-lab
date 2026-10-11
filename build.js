@@ -49,12 +49,15 @@ if (require.main === module) {
       ['quiz_', 'verify_'].forEach(p => { if (!fs.existsSync(path.join(dir, p + l.id + '.js'))) why.push(p + l.id + '.js 없음'); });
       if (why.length) { skipEn.add(l.id); console.log('영어판에서 제외(아직 다 옮기지 않음): ' + l.id + ' — ' + why.join(', ')); } });
     files = files.filter((x, i) => !skipEn.has(list[i].id)); list = list.filter(l => !skipEn.has(l.id)); }
-  const enReady = x => !EN || !skipEn.has(x.replace(/^(quiz|verify)_/, '').replace(/\.js$/, ''));
+  // 문제·검증 수준 파일은 이번 빌드에 들어가는 실습의 것만 읽는다(실습 파일보다 먼저 만들어진 것도 건너뛴다)
+  const enIn = new Set(list.map(l => l.id)), enReady = x => !EN || enIn.has(x.replace(/^(quiz|verify)_/, '').replace(/\.js$/, ''));
   // 영어판의 글에는 한글이 남아 있으면 안 된다 (목차 파일의 책 이름과 언어 바꾸기 글자는 예외라서 따로 본다)
   // 영어판에도 남아야 하는 한글 데이터(src/en/hangul_ok.js)는 이 검사에서 뺀다
   const okhList = EN && fs.existsSync(path.join(dir, 'hangul_ok.js')) ? Object.values(require(path.join(dir, 'hangul_ok.js'))).flat().sort((a, b) => b.length - a.length) : [], okh = s => okhList.reduce((a, w) => a.split(w).join(''), s);
   if (EN) { const bad = []; const scan = (d, re) => ls(d).filter(x => re.test(x)).forEach(x => fs.readFileSync(path.join(d, x), 'utf8').split('\n').forEach((l, i) => { if (HAN.test(okh(l))) bad.push(x + ':' + (i + 1) + ' ' + l.trim().slice(0, 70)); }));
-    scan(path.join(dir, 'lessons'), /\.js$/); scan(dir, /^(quiz|verify|glossary).*\.js$/); scan(kbDir, /^kb.*\.js$/);
+    // 이번 빌드에 들어가는 실습의 파일만 본다(옮기는 중인 실습의 파일에는 아직 한글이 남아 있을 수 있다)
+    const inIds = new Set(list.map(l => l.id)), inFiles = new Set(files), mine = x => { const m = /^(?:quiz|verify|kb)_(.+)\.js$/.exec(x); return !m || inIds.has(m[1]); };
+    scan(path.join(dir, 'lessons'), { test: x => /\.js$/.test(x) && inFiles.has(x) }); scan(dir, { test: x => /^(quiz|verify|glossary).*\.js$/.test(x) && mine(x) }); scan(kbDir, { test: x => /^kb.*\.js$/.test(x) && mine(x) });
     if (bad.length) throw new Error('영어판 글에 한글이 ' + bad.length + '줄 남음:\n  ' + bad.slice(0, 30).join('\n  ')); }
   const explain = {};
   list.forEach(l => {

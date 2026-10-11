@@ -1,0 +1,1 @@
+Lab.verify({ dns: ['part', '32 combinations were run as real DNS messages with a test name server and resolver started on 127.0.0.1, and checked. The parsing of records was checked against c-ares in Node.js 24, and the behavior of the resolver and the cache reproduces the procedures of RFC 1034 and 1035'] });

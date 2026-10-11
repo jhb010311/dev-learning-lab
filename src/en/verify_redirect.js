@@ -1,0 +1,1 @@
+Lab.verify({ redirect: ['run', 'Ran 30 combinations against a test server (127.0.0.1) with fetch in Node 24 and curl 8.21 (-L) and checked them against the model. The permanent and temporary distinction and the wording of the standard follow RFC 9110 section 15.4'] });

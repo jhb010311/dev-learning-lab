@@ -1,0 +1,1 @@
+Lab.verify({ conneg: ['run', 'Ran 88 combinations against a test server (Node http + negotiator 1.0 + zlib) and a caching proxy written for this purpose (http-cache-semantics 4.2), both started on 127.0.0.1, and checked them against the model. The compressed sizes are the real results of zlib and brotli in Node 24'] });

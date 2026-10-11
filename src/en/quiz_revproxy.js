@@ -1,0 +1,21 @@
+// Quiz questions for the revproxy lab. The first entry of a is the correct answer; if sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'revproxy', q: 'Which statement correctly describes the difference between a forward proxy and a reverse proxy?',
+    a: ['A forward proxy acts for the client, and a reverse proxy acts for the server', 'A forward proxy passes on only requests, and a reverse proxy passes on only responses', 'A forward proxy handles only HTTP, and a reverse proxy handles only HTTPS', 'A forward proxy is installed by the server, and a reverse proxy is installed by the user'],
+    why: 'A forward proxy stands on the client side, and the client knows about it and goes through it on purpose. A reverse proxy stands on the server side, and the client takes it to be the server and does not know about the real server behind it.' },
+  { lv: 1, id: 'revproxy', q: 'A server is behind a reverse proxy. Whose address is the remote address that the server sees on the TCP connection?',
+    a: ['The address of the reverse proxy', 'The address of the real client', 'The address of the server itself', 'The address of the DNS server'],
+    why: 'It is the proxy that opened the TCP connection to the server. So the remote address is the address of the proxy, and the address of the real client can be known only if the proxy writes it in the X-Forwarded-For header.',
+    sim: { c: { path: 'reverse', xff: 'append', spoof: false, read: 'remote' }, col: 1, has: 'proxy' } },
+  { lv: 2, id: 'revproxy', q: 'Why must a server not trust the value of X-Forwarded-For unconditionally?',
+    a: ['Because it is a request header, and a client can write any value it likes into it', 'Because the value of this header is encrypted when it passes through a proxy and cannot be read', 'Because this header always contains only the address of the proxy', 'Because this header is removed automatically in HTTPS'],
+    why: 'X-Forwarded-For is an ordinary request header. A client can send it with a fake address written in, so the server must use only the values added by a proxy that it manages. The remote address comes from the TCP connection, so it cannot be changed with a header.' },
+  { lv: 3, id: 'revproxy', q: 'A reverse proxy appends the address of the client after the X-Forwarded-For it received and passes the request on. The client sent the request with X-Forwarded-For: 198.51.100.99 written in, and the server reads the leftmost value. Whom does the server decide the client is?',
+    a: ['198.51.100.99 (the fake address the client wrote)', '203.0.113.7 (the address of the real client)', '10.0.0.5 (the address of the reverse proxy)', 'It cannot decide, and it rejects the request'],
+    why: 'The proxy appended to the received value, so the header becomes "fake address, real address" in that order. The leftmost value is the one the client wrote. When there is one proxy, the value you can trust is the rightmost one, which the proxy added itself.',
+    sim: { c: { path: 'reverse', xff: 'append', spoof: true, read: 'first' }, col: 3, has: '198.51.100.99' } },
+  { lv: 3, id: 'revproxy', q: 'A reverse proxy decrypts HTTPS and passes requests to the server behind it as HTTP, but it does not add X-Forwarded-Proto. What protocol does the server think the user connected with?',
+    a: ['It sees only the connection it received, so it thinks the user connected with http', 'Because there is a proxy, it always thinks the user connected with https', 'It finds out that it is https from the Host header of the request', 'It finds out that it is https from the port number of the TCP connection'],
+    why: 'All the server received directly is the HTTP connection that the proxy sent. The proxy has to tell it the original protocol with the X-Forwarded-Proto header, and without it, mistakes happen, such as building redirect addresses with http://.',
+    sim: { c: { path: 'reverse', xff: 'none', spoof: false, read: 'first' }, col: 4, has: 'None' } },
+]);

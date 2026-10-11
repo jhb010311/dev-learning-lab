@@ -1,0 +1,21 @@
+// Quiz questions for the "Sockets and ports" lab. The first entry of a is the correct answer, and when sim is present the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'socket', q: 'What is a port number used to tell apart?',
+    a: ['Which of the programs running on one computer should receive the data', 'Which of the computers connected to the internet is meant', 'Which hole of the router the network cable is plugged into', 'Which of the pieces of data sent by one program it is'],
+    why: 'The IP address finds the computer, and the port number decides which program inside that computer receives the data. This is why the place to connect to is written as an IP address and a port together.' },
+  { lv: 1, id: 'socket', q: 'The server of a computer is listening on port 9000. You tried a TCP connection to port 9002 of that computer, on which no program is listening. What happens to the client?',
+    a: ['The connection is refused and it receives an ECONNREFUSED error', 'It is connected to the server on the nearest number, 9000', 'It keeps waiting until the server opens port 9002', 'The connection is established, and an error occurs when it sends data'],
+    why: 'If no program is listening on that port, the operating system on the receiving side refuses the connection. A server on another port does not receive it instead. This is true even if the computer is on and the IP address is correct.',
+    sim: { c: { srv: 'ab', to: '9002', n: '1' }, col: 1, has: 'ECONNREFUSED' } },
+  { lv: 2, id: 'socket', q: 'Why can a server receive connections from several clients at the same time on a single port?',
+    a: ['Because connections are told apart by the four values: the IP addresses and ports of the sending side and the receiving side', 'Because the server opens one more new port number each time a connection is made', 'Because the clients take turns and connect only one at a time', 'Because the server calls listen on the same port as many times as there are clients'],
+    why: 'The operating system treats connections as different if even one of (source IP, source port, destination IP, destination port) differs. Each client has a different source IP or source port, so the connections can be told apart even though the server side has only one port. Even when the connections increase, the server-side port stays the same.',
+    sim: { c: { srv: 'a', to: '9000', n: '3' }, col: 3, has: 'One server-side port (9000)' } },
+  { lv: 2, id: 'socket', q: 'In the client code, only the destination port was written, as in net.connect(9000, \'127.0.0.1\'). How is the client\'s own port decided?',
+    a: ['The operating system picks one of the free numbers temporarily', 'The same number as the destination, 9000, is also used by the client', 'The client communicates with the IP address alone, without a port', 'The server decides the number when it accepts the connection and tells the client'],
+    why: 'If you do not write the source port, the operating system lends you a free number temporarily. A different number can come up on each run, so you must not expect a particular number. The response of the server comes back to this number.' },
+  { lv: 3, id: 'socket', q: 'During development, you started a server and it ended right away with EADDRINUSE ("Address already in use" in Java). What should you suspect first?',
+    a: ['A program that uses the same port is already running', 'So many clients connected that the ports are full', 'The IP address of the server computer was written wrongly', 'A firewall blocked connections coming in on that port'],
+    why: 'Only one program can wait for connections on a port, so calling listen again on a port that is already in use causes this error. The most common case is that a server you started earlier is still alive. The number of clients and the firewall have nothing to do with whether listen succeeds.',
+    sim: { c: { srv: 'same', to: '9000', n: '1' }, col: 0, has: 'EADDRINUSE' } },
+]);

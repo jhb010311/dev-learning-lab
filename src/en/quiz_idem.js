@@ -1,0 +1,5 @@
+// Quiz questions for the idem lab. The first entry of a is the correct answer.
+Lab.quiz([
+  { lv: 2, id: 'idem', q: 'Which method does the HTTP standard define as idempotent (sending the same request several times leaves the server in the same state as sending it once)?', a: ['PUT', 'POST', 'PATCH', 'Both POST and PATCH'], why: 'PUT replaces the target with the content you send, so repeating it gives the same result. POST can create something new every time it is sent, so it is not idempotent.' },
+  { lv: 3, id: 'idem', q: 'You sent a payment request, but it timed out before a response arrived. How can you make sure that sending it again does not charge the customer twice?', a: ['Put a unique idempotency key in the request, and have the server return the first result when a request with the same key arrives again', 'Never send the request again after a timeout', 'Change the method to GET when you send it again', 'Send the request twice in a row and use only the later response'], why: 'A timeout does not mean "failed". It means "the result is unknown". With an idempotency key, the server can tell whether it has already handled the request.' },
+]);

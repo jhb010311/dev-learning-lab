@@ -1,0 +1,17 @@
+// Quiz questions for the "Session hijacking and session fixation" lab. The first entry of a is the correct answer. When sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'sessionfix', q: 'When nothing is configured, how does Spring Security handle the session of a user who has just logged in successfully?',
+    a: ['It keeps the contents of the session and changes the session ID to a new value', 'It keeps both the session ID and the contents, and only records the login', 'It stops using a session and writes the login information directly into a cookie', 'It keeps the session ID and clears all the contents of the session'],
+    why: 'The default is to change the session ID to a new value at the moment login succeeds (changeSessionId). The contents of the session are kept. The goal is that a person who knew that ID before login cannot use the logged-in session.' },
+  { lv: 2, id: 'sessionfix', q: 'Even with the protection that changes the session ID at login turned on, a request sent with a session ID that leaked after login still gets through. Why?',
+    a: ['The server decides the user only from the session ID in the cookie, so it cannot tell apart a person who knows the ID currently in use', 'The protection that changes the session ID is built to work only at logout', 'After login, the server checks the password again on every request instead of using the session ID', 'The new session ID is made from a value that can be calculated from the old session ID'],
+    why: 'The protection that changes the session ID only makes an "ID known before login" useless. If the ID used after login leaks, the server cannot tell the person who sent that ID from the original user. That is why you also need HttpOnly and Secure on the cookie, deleting the session at logout, and a short session timeout.' },
+  { lv: 3, id: 'sessionfix', q: 'The server sets sessionFixation to none. The victim\'s browser has come to use a session ID that the attacker obtained in advance, and the victim logs in in that state. What happens when the attacker puts that ID in the cookie and sends GET /me?',
+    a: ['The server answers 200 with the victim\'s information', 'The request is sent to the login page with a 302', 'The server asks for the password again with a 401', 'Access is refused with a 403'],
+    why: 'none leaves the session as it is at login. The ID used before login becomes the ID of the logged-in session, so a request from the attacker who knew that ID in advance is handled as the victim\'s request.',
+    sim: { c: { fix: 'none', when: 'before', logout: false }, col: 2, has: '200' } },
+  { lv: 3, id: 'sessionfix', q: 'In the same situation, what happens to a request sent with the session ID the attacker obtained in advance if the server was using the Spring Security default settings?',
+    a: ['No session has that ID, so the request is sent to the login page', 'The contents of the session were kept, so the request is handled as the victim\'s', 'The victim\'s session is deleted along with it, and both are logged out', 'The server tells the attacker a new session ID as well'],
+    why: 'With the default settings, the session ID changes to a new value at the moment of login. The ID obtained in advance does not point to any session on the server, so the request is handled as one that is not logged in.',
+    sim: { c: { fix: 'default', when: 'before', logout: false }, col: 2, has: '302' } },
+]);

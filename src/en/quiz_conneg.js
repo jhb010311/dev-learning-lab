@@ -1,0 +1,21 @@
+// Quiz questions for the conneg lab. The first entry of a is the correct answer. If sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'conneg', q: 'What does the request header Accept-Encoding: gzip, br tell the server?',
+    a: ['That the client can decompress responses compressed with gzip and br', 'That the client compressed the request body with gzip and br', 'That the server must apply both gzip and br', 'That the client asks for the character encoding of the response body to be gzip or br'],
+    why: 'Accept-Encoding is the list of compression methods that the client can decompress. The server chooses one of them to compress with and writes the one it used in the Content-Encoding header of the response. It is different from the character encoding (charset).' },
+  { lv: 1, id: 'conneg', q: 'A server that has both a Korean version and an English version receives the request header Accept-Language: en;q=0.5, ko;q=0.9. Which version does it choose?',
+    a: ['The Korean version, which has the higher qvalue', 'The English version, which is written first in the header', 'Both languages in one response', 'Neither, because it cannot choose, and it refuses with 406'],
+    why: 'q is a number from 0 to 1 that shows preference. The server chooses the one with the highest qvalue among the things it can give, and the written order does not take priority.',
+    sim: { c: { fmt: 'html', lang: 'en;q=0.5, ko;q=0.9', enc: 'gzip', vary: true }, col: 0, has: 'ko' } },
+  { lv: 2, id: 'conneg', q: 'Why are servers usually set not to compress PNG images or responses of a few dozen bytes?',
+    a: ['Because they do not shrink, or even grow, and compression only uses CPU time', 'Because compressing images and small responses damages the content', 'Because browsers do not send Accept-Encoding for images', 'Because the HTTP standard says to compress only text formats'],
+    why: 'PNG and JPEG are already compressed data, so there is no repetition left to remove, and for a very small body the information added by compression is larger than the amount saved. In the lab, the 37-byte JSON became 58 bytes with gzip.',
+    sim: { c: { fmt: 'json', lang: 'ko', enc: 'gzip', vary: true }, col: 2, has: 'larger' } },
+  { lv: 2, id: 'conneg', q: 'Why must a server that gives different responses depending on the request headers add a Vary header?',
+    a: ['So that a shared cache does not give a response made for one user to another user', 'So that the browser does not forget to send the Accept header', 'So that the server can change the compression method at random for each request', 'So that the receiver can check that the response body was not changed during transfer'],
+    why: 'Vary marks that "this response depends on these headers of the request". A cache reuses the stored response only when the values of the headers listed in Vary are the same. Without it, the cache looks only at the address and gives the same response to everyone.' },
+  { lv: 3, id: 'conneg', q: 'A received a Korean HTML document with Accept-Encoding: gzip, br, and the response had no Vary. Next, B, who wants English and cannot decompress anything, requests the same address through the same shared cache. What does B receive?',
+    a: ['The Korean response compressed with br, which A received, as it is', 'The cache decompresses it, changes it to English, and gives it', 'The uncompressed English version, which the server chose again', 'The cache refuses with 406 Not Acceptable'],
+    why: 'Without Vary, the cache does not compare the request headers and gives the response for the same address as it is. The cache does not change the content, so B receives a compression it cannot decompress and a language it did not want.',
+    sim: { c: { fmt: 'html', lang: 'ko', enc: 'gzip, br', vary: false }, col: 4, has: 'does not suit B' } },
+]);

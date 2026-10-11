@@ -82,15 +82,17 @@ function runAll(l, c) {
   if (l.mode === 'step') { sim.events.forEach((e, i) => e.t = i + 1); sim.total = sim.events.length; }
   const calls = [], stub = () => new Proxy(function () {}, { get: (t, k) => k === 'appendChild' ? (x => x) : k === 'style' ? {} : stub(), apply: () => stub() });
   const H = new Proxy({}, { get: (t, k) => k === 'fmt' ? fmt : (() => { calls.push(String(k)); return stub(); }) });
-  const scenes = [];
+  const scenes = [], cuts = [];
   [0].concat(sim.events.map(e => e.t), [sim.total]).forEach(t => {
     const shown = sim.events.filter(e => e.t <= t + 1e-9);
     l.render(stub(), sim, t, H, shown);
-    if (l.draw) { const P = pic.picScene(); l.draw(P, sim, shown, t); scenes.push(P.items.map(it => ({ k: it.k, id: it.id, cls: it.cls || '' }))); }
+    if (l.draw) { const P = pic.picScene(); l.draw(P, sim, shown, t); scenes.push(P.items.map(it => ({ k: it.k, id: it.id, cls: it.cls || '' })));
+      // 순서 그림의 화살표 글자와 P.fit으로 줄인 글자는 길면 끝이 "…"로 잘린다(test.js는 상자의 제목만 본다)
+      P.items.forEach(it => [it.label, it.title, it.right, it.str].concat(it.sub || []).forEach(x => { if (typeof x === 'string' && /…$/.test(x)) cuts.push(x); })); }
   });
-  return { sim, calls, scenes, code: String(l.code(c)), label: String(l.label(c)) };
+  return { sim, calls, scenes, cuts, code: String(l.code(c)), label: String(l.label(c)) };
 }
-let ran = 0, sceneDiff = 0;
+let ran = 0, sceneDiff = 0; const cutSeen = new Set();
 if (!errs.length) for (const c of combos(ko)) {
   const before = errs.length, at = JSON.stringify(c);
   let a, b; try { a = runAll(ko, c); b = runAll(en, c); } catch (e) { err('실행 오류 ' + at + ': ' + e.message); break; }
@@ -99,12 +101,15 @@ if (!errs.length) for (const c of combos(ko)) {
   // 상자의 id가 한글 데이터(상품 이름 등)로 만들어지는 실습이 있다. 그런 id는 영어판에서 달라질 수밖에 없으므로, 한글이 없는 글자이기만 하면 같은 것으로 본다.
   const norm = (sc, ref) => JSON.stringify(sc.map((items, i) => items.map((it, j) => { const r = ref[i] && ref[i][j]; return { k: it.k, cls: it.cls, id: r && HAN.test(r.id) && !HANEN(it.id) ? '§' : HAN.test(it.id) ? '§' : it.id }; })));
   if (norm(a.scenes, a.scenes) !== norm(b.scenes, a.scenes)) sceneDiff++;
+  // 한국어판에서는 잘리지 않던 글자가 영어판에서 "…"로 잘리면 글자를 줄여야 한다
+  if (b.cuts.length > a.cuts.length) b.cuts.forEach(x => cutSeen.add(x));
   const ac = a.code.split('\n'), bc = b.code.split('\n');
   if (ac.length !== bc.length) err('code의 줄 수가 다름'); else ac.forEach((l, i) => { if (!HAN.test(l) && l !== bc[i]) err('code에서 한글이 없던 줄이 바뀜: ' + bc[i].trim().slice(0, 60)); });
   [b.code, b.label].concat(b.sim.summary, b.sim.row.map(String), b.sim.events.map(e => e.s)).forEach(x => { if (HANEN(x)) err('결과에 한글이 남음: ' + String(x).slice(0, 60)); });
   if (errs.length > before) { errs.splice(before, 0, '── 설정 ' + at + ' 에서:'); break; }
   ran++;
 }
+if (cutSeen.size) err('그림에서 끝이 "…"로 잘리는 글자가 ' + cutSeen.size + '개 (한국어판보다 많음). 뜻이 달라지지 않게 줄일 것: ' + [...cutSeen].slice(0, 8).map(x => JSON.stringify(x)).join(', '));
 if (sceneDiff) err('그림(draw)의 장면이 다른 조합이 ' + sceneDiff + '개 (상자·화살표의 id, 종류, 색이 원본과 같아야 함)');
 
 // 4. 용어
@@ -144,6 +149,9 @@ else { let v = {}; try { new Function('Lab', read(vf))({ verify: o => { v = o; }
 // 7. 영어 실습의 조합 실행과 그림 검사
 let out = ''; try { out = cp.execFileSync(process.execPath, [path.join(root, 'test.js'), id], { env: Object.assign({}, process.env, { LAB_LANG: 'en', LAB_ONLY_FILE: file }), encoding: 'utf8' }); } catch (e) { out = (e.stdout || '') + (e.stderr || ''); err('test.js 실패'); }
 if (/FAIL/.test(out)) err('영어 실습의 조합 실행 실패');
+// 상자 안에서 잘리는 글자가 한국어판보다 많으면 안 된다
+{ const n = s => +((/잘리는 글자 (\d+)개/.exec(s) || [])[1] || 0); let koOut = ''; try { koOut = cp.execFileSync(process.execPath, [path.join(root, 'test.js'), id], { env: Object.assign({}, process.env, { LAB_LANG: '', LAB_ONLY_FILE: file }), encoding: 'utf8' }); } catch (e) { koOut = e.stdout || ''; }
+  if (n(out) > n(koOut)) err('그림의 상자에서 잘리는 글자가 ' + n(out) + '개 (한국어판은 ' + n(koOut) + '개). 아래 목록의 글자를 줄일 것'); }
 console.log(out.trim().split('\n').slice(0, 60).join('\n'));
 console.log('한국어 원본과 뼈대를 대조한 조합: ' + ran + '개');
 warns.forEach(w => console.log('주의: ' + w));

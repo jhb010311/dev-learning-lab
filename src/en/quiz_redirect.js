@@ -1,0 +1,20 @@
+// Quiz questions for the redirect lab. The first entry of a is the correct answer. If sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'redirect', q: 'When a server responds with a 3xx status code, where is the next address to request written?',
+    a: ['In the Location header of the response', 'In the Content-Type header of the response', 'In the Host header that was in the request', 'In the Set-Cookie header of the response'],
+    why: 'A redirection response writes the next address to request in the Location header. The client reads this header and sends the request again to that address by itself. The server does not make the request on its behalf.' },
+  { lv: 1, id: 'redirect', q: 'Which statement about the difference between 301 and 302 is correct?',
+    a: ['301 is a permanent redirect and 302 is a temporary redirect', '301 is only for GET and 302 is only for POST', '301 is a server error and 302 is a client error', '301 has a body and 302 has no body'],
+    why: '301 Moved Permanently means that the address has changed for good, and 302 Found means "go to another address just this time". A client can remember the new address of a permanent redirect, so it is hard to undo.' },
+  { lv: 2, id: 'redirect', q: 'A 302 already exists. Why was 307 Temporary Redirect created as a separate code?',
+    a: ['With 302, a POST was often changed to GET, so a code that guarantees the method is kept was needed', '302 is only for HTTP/1.0, so it could no longer be used in HTTP/1.1', '302 can send only within the same site, and 307 can send only to other sites', '302 can be used only by browsers, and 307 only for calls between servers'],
+    why: 'The standard allows changing POST to GET on 301 and 302, and most real clients do so. 307 (temporary) and 308 (permanent) were added for the cases in which the method and the body must be kept.' },
+  { lv: 3, id: 'redirect', q: 'You sent POST /order with fetch, and the server responded with 302 and Location: /orders. Which request does fetch send next?',
+    a: ['GET /orders (no body)', 'POST /orders (with the same body)', 'POST /order (retrying the same address)', 'It sends nothing and throws an error'],
+    why: 'On a 301 or 302, a POST is changed to GET and the body is lost. The standard allows this, and fetch, curl, and browsers do it. To keep the POST, the server must respond with 307 or 308.',
+    sim: { c: { code: '302', m: 'POST', dest: 'ok' }, col: 2, has: 'GET /orders' } },
+  { lv: 3, id: 'redirect', q: '/order is wrongly set to redirect to /orders, and /orders is set to redirect back to /order. What happens when a client requests /order?',
+    a: ['The client follows the redirects up to a limit it has set, then reports an error and stops', 'The server notices on the second round trip and responds with 200', 'The client keeps sending requests until it gets a response, with no end', 'The Location of the first response is ignored and the request ends after one request'],
+    why: 'A server only responds to each request, so it does not know about the repetition. It is the client that stops, and the limit differs from client to client. On the PC used to write this lab, fetch reported an error after following 20 redirects and curl after following 50.',
+    sim: { c: { code: '302', m: 'GET', dest: 'loop' }, col: 4, has: 'Stopped with an error' } },
+]);

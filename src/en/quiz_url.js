@@ -1,0 +1,22 @@
+// Quiz questions for the url lab. The first entry of a is the correct answer; when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'url', q: 'When a browser opens https://shop.example/shop/list?q=a#review, which part does it not send to the server?',
+    a: ['The fragment after # (review)', 'The query after ? (q=a)', 'The path after the host (/shop/list)', 'Both the query and the fragment'],
+    why: 'The fragment points to a position inside the document that was received, and only the browser uses it. The request line carries only the path and the query, so the server cannot know what came after #.' },
+  { lv: 1, id: 'url', q: 'To which port does a URL that does not write a port, such as https://shop.example/shop/list, connect?',
+    a: ['Port 443 (the default port of https)', 'Port 80 (the default port of every web URL)', 'Port 8080 (the default port of web servers)', 'The port that the server announces in its response'],
+    why: 'If no port is written, the default port of the scheme is used: port 80 for http and port 443 for https. A default port is the same whether it is written or not, so it does not appear in the normalized URL or in the Host header.',
+    sim: { c: { origin: 'https://shop.example', q: 'keyboard', enc: true, rel: 'detail' }, col: 0, has: '443' } },
+  { lv: 2, id: 'url', q: 'I appended the search term A&B to ?q=A&B&sort=price without encoding it, and the value of q that the server received was A. Why?',
+    a: ['Because the server splits the query at & first, so the B after & was read as another parameter', 'Because the browser removed &, which cannot be used in a URL, and the characters after it before sending', 'Because everything after & is treated as the fragment and is not sent to the server', 'Because the value in a query is length-limited so that only the part before a special character can be sent'],
+    why: '& is the symbol that separates name=value pairs in a query. The server splits at & first, so it reads three pieces: q=A, B, and sort=price. If you encode the & inside the value as %26, it turns back into the original character after the split, so the value stays intact.',
+    sim: { c: { origin: 'https://shop.example', q: 'A&B', enc: false, rel: 'detail' }, col: 2, has: '"A" (sent: ' } },
+  { lv: 3, id: 'url', q: 'The search term C# was appended without encoding, as /shop/list?q=C#&sort=price, and requested. What parameters does the server receive?',
+    a: ['Only q="C"', 'q="C#" and sort="price"', 'q="C" and sort="price"', 'Only q="C#&sort=price"'],
+    why: 'Everything after the first # becomes the fragment and is not sent to the server. The query ends at q=C, so not only is the search term cut off, but the sort that came after it disappears too. The # must be encoded as %23 to be passed as part of the value.',
+    sim: { c: { origin: 'https://shop.example', q: 'C#', enc: false, rel: 'detail' }, col: 2, has: '"C" (sent: ' } },
+  { lv: 3, id: 'url', q: 'A page at https://shop.example/shop/list has a link with href="detail". What URL does this link point to?',
+    a: ['https://shop.example/shop/detail', 'https://shop.example/shop/list/detail', 'https://shop.example/detail', 'https://detail/shop/list'],
+    why: 'A relative URL that does not start with / replaces the last segment of the base path. In /shop/list, list is replaced with detail, which gives /shop/detail. If the base were /shop/list/, ending in /, the result would be /shop/list/detail.',
+    sim: { c: { origin: 'https://shop.example', q: 'keyboard', enc: true, rel: 'detail' }, col: 4, has: 'https://shop.example/shop/detail' } },
+]);

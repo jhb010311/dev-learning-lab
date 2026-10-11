@@ -1,0 +1,1 @@
+Lab.verify({ cdn: ['part', 'Ran 16 combinations with an origin server and a self-built caching server (acting as the edge) started on 127.0.0.1, and checked. Not checked against a real CDN service'] });
