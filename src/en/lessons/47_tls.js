@@ -1,0 +1,57 @@
+Lab.register({
+  id: 'tls', nav: 'TLS handshake', cat: 'Networking', mode: 'step',
+  title: 'What happens before the https padlock locks',
+  intro: 'HTTPS is HTTP wrapped in TLS. Before any data is sent, the browser and the server check that "the other side really is that server" and create "an encryption key that only the two of them know". Watch where public-key cryptography and symmetric-key cryptography are each used in this process, and where the handshake stops when something is wrong with the certificate.',
+  terms: ['HTTPS and TLS', 'TLS handshake and certificates', 'Symmetric-key cryptography and public-key cryptography', 'HMAC and digital signatures'], ranks: ['network', 'websec', 'http'],
+  controls: [
+    { id: 'cert', label: 'State of the server certificate', type: 'select', value: 'ok', options: [['ok', 'Valid'], ['expired', 'Past its validity period'], ['name', 'Certificate for a different domain'], ['self', 'Issued by an untrusted source (self-signed)']] },
+  ],
+  presets: [
+    { t: 'Default settings', d: 'A normal TLS 1.3 handshake.', v: { cert: 'ok' } },
+    { t: 'If the certificate has expired', d: 'The browser shows a warning and stops the connection.', v: { cert: 'expired' } },
+    { t: 'If the domain is different', d: 'The certificate is genuine, but it does not belong to this server.', v: { cert: 'name' } },
+    { t: 'Self-signed certificate', d: 'A certificate that no one vouches for.', v: { cert: 'self' } },
+  ],
+  code: function () {
+    return '# application.yml (server-side settings)\nserver:\n  port: 443\n  ssl:\n    enabled: true\n    key-store: classpath:shop.p12       # certificate + private key\n    key-store-password: ********\n    protocol: TLS\n    enabled-protocols: TLSv1.3\n\n# In production, a load balancer or nginx in front usually handles TLS,\n# and the application server receives plain HTTP behind it';
+  },
+  label: function (c) { return 'Certificate: ' + { ok: 'valid', expired: 'expired', name: 'domain mismatch', self: 'untrusted issuer' }[c.cert]; },
+  columns: ['Result', 'Stopped at', 'Key used to encrypt data'],
+  simulate: function (c) {
+    var ev = [], rows = [], sum = [], S = { key: 'None', lock: 'Not yet encrypted' };
+    function step(dir, what, s, k) { rows.push({ cells: [dir, { v: what, cls: k === 'bad' ? 'bad' : k === 'good' ? 'good' : '' }] }); ev.push({ s: s, k: k, snap: { rows: rows.slice(), key: S.key, lock: S.lock } }); }
+    step('Browser → Server', 'ClientHello: TLS versions, cipher suites, key share', 'The browser connects to https://shop.example. After the TCP connection is established, it sends the list of cipher suites it can use and a public value (key share) to be used for the key exchange. This message is not encrypted.', '');
+    step('Server → Browser', 'ServerHello: chosen cipher suite, server key share', 'The server picks one cipher suite and sends its own public value for the key exchange. Each side combines the other side\'s public value with its own secret value and computes the same result. Someone who only watched the public values in the middle cannot compute this result.', '');
+    S.key = 'Same symmetric key on both sides'; step('(inside both sides)', 'Key exchange complete: each side computes the same symmetric key', 'Each side derives a symmetric key from this result. The key itself was never sent over the network. The handshake messages from here on are encrypted.', 'good');
+    step('Server → Browser', 'Certificate (shop.example public key + CA signature)', 'The server sends its certificate. The certificate contains the domain name, the server\'s public key, the validity period, and a signature that a certificate authority (CA) made over this content with its own private key.', '');
+    var fail = c.cert !== 'ok';
+    if (c.cert === 'self') step('(inside Browser)', 'Validation failed: the signing authority is not trusted', 'The browser follows the signatures in the certificate upward and checks whether they reach an authority on its list of trusted certificate authorities (built into the operating system and the browser). This certificate was signed by the server itself, so no authority vouches for it. Anyone can create a certificate that says "I am shop.example" for themselves, so it cannot be trusted.', 'bad');
+    else if (c.cert === 'expired') step('(inside Browser)', 'Validation failed: the validity period has passed', 'The signature of the certificate authority is correct, but the validity period of the certificate has passed. The browser rejects an expired certificate because it is no longer guaranteed, for example, that the private key has not been leaked.', 'bad');
+    else if (c.cert === 'name') step('(inside Browser)', 'Validation failed: certificate is not for shop.example', 'The signature and the validity period are fine, but the domain written in the certificate is different from the shop.example that the browser is trying to reach. Someone may have taken a genuine certificate from another site and used it here.', 'bad');
+    else step('(inside Browser)', 'Certificate valid: signature, validity period, domain', 'The browser validates the certificate. The signature comes from a trusted certificate authority, the certificate is within its validity period, and the domain matches shop.example. You can trust that this public key belongs to the real shop.example.', 'good');
+    if (fail) { S.lock = 'Connection aborted'; step('Browser → User', 'Warning page: "Your connection is not private"', 'The browser aborts the handshake and shows a warning page. The HTTP request was never sent.', 'bad'); sum.push('The connection stopped at certificate validation. Encryption alone is not enough; you also have to confirm who is on the other end of the encrypted channel. Otherwise you end up having a securely encrypted conversation with an attacker who has stepped in between.'); return { events: ev, summary: sum, row: ['Connection failed', 'Certificate validation', 'Not used'] }; }
+    step('Server → Browser', 'CertificateVerify: signature over everything so far', 'The server signs everything exchanged so far with its private key and sends the signature. The browser checks this signature with the public key in the certificate. Anyone can copy a certificate, but only the real server that holds the matching private key can create the signature.', 'good');
+    step('Both sides', 'Finished: confirms that the whole handshake was not tampered with', 'Both sides exchange a verification value over the entire handshake, to check that no one changed a message in the middle.', '');
+    S.lock = 'Encrypted with the symmetric key'; step('Browser ↔ Server', 'HTTP request and response (symmetric-key encrypted)', 'Now the HTTP request and the response travel encrypted with the agreed symmetric key. Someone watching in the middle can see only roughly which server you are talking to, and cannot see the content (the path of the address, the headers, cookies, and the body).', 'good');
+    sum.push('The handshake is finished and encrypted communication has started.');
+    sum.push('Public-key cryptography (a public key and a private key) is used only for the signatures that confirm the other side is genuine and for agreeing on a key safely. The reason is that its computation is slow. The actual data is encrypted with the fast symmetric key. The two methods share the work, each doing what it is good at.');
+    sum.push('TLS 1.3 completes this process in one round trip (earlier versions need two). Even so, every connection has a cost, so it is important to reuse a connection once it has been made.');
+    return { events: ev, summary: sum, row: ['Connection succeeded', '-', 'Symmetric key created by the key exchange'] };
+  },
+  render: function (v, sim, t, H, shown) {
+    var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], key: 'None', lock: 'Not yet encrypted' };
+    H.counters(v, [[s.key, 'Encryption key'], [s.lock, 'Connection state']]);
+    if (s.rows.length) H.table(v, ['Direction', 'Content'], s.rows, 'Handshake sequence'); else H.text(v, 'Click Run to start.');
+  },
+  // Diagram: the handshake messages exchanged between the browser and the server. The calculations and checks each side makes are drawn as boxes.
+  draw: function (P, sim, shown) {
+    var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], key: 'None', lock: 'Not yet encrypted' }, ids = { 'Browser': 'b', 'Server': 's' };
+    var msgs = s.rows.map(function (r) { var m = P.dir(P.v(r.cells[0]), ids); m.s = P.v(r.cells[1]); m.cls = P.c(r.cells[1]); return m; });
+    var end = P.seq([['b', 'Browser', 'wait'], ['s', 'Server (shop.example)', 'wait']], msgs), enc = s.lock.indexOf('Encrypted with') >= 0;
+    P.box('key', 16, end + 14, 318, 48, { cls: s.key === 'None' ? 'ghost' : 'good', title: 'Encryption key', sub: s.key });
+    P.box('lock', 346, end + 14, 318, 48, { cls: enc ? 'good' : s.lock.indexOf('Not yet') === 0 ? 'ghost' : 'bad', title: 'Connection state', sub: s.lock });
+    P.size(680, end + 78);
+    P.note('An arrow is a message sent between the two sides, and a box on one side\'s line is work done inside that side (a calculation or a check). If certificate validation fails, nothing below it happens.');
+  },
+  assume: 'This simplifies the basic TLS 1.3 handshake (in a real handshake, several of the server\'s reply messages are sent bundled together). The key exchange is the kind in which both sides exchange public values and compute the same secret (ECDHE); it does not encrypt a symmetric key with the server\'s public key and send it, as the older method did. The certificate checks follow the standard procedure of TLS and the web PKI. On the PC used to write this lab, openssl was used to create a test certificate authority and four kinds of certificate, and real TLS 1.3 connections were made with them to check. The valid certificate passed validation, and each of the others was rejected with the error certificate has expired, hostname mismatch, or self-signed certificate. It was also confirmed that the handshake messages are exchanged in the order ClientHello, ServerHello, EncryptedExtensions, Certificate, CertificateVerify, Finished.',
+});

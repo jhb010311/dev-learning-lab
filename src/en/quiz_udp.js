@@ -1,0 +1,21 @@
+// Quiz questions for the "TCP and UDP" lab. The first entry of a is the correct answer, and when sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'udp', q: 'Which statement correctly describes the difference between TCP and UDP?',
+    a: ['TCP first establishes a connection and guarantees order and delivery, while UDP sends without a connection and guarantees neither', 'TCP sends quickly without a connection, while UDP establishes a connection and then guarantees order and delivery', 'TCP is used only inside one computer, while UDP is used only between different computers', 'TCP can send only text data, while UDP can send only video and audio data'],
+    why: 'TCP establishes a connection before sending, and it uses numbers and acknowledgments to send again what is missing and to put the data in order. UDP has no such procedure, so it is lightweight, but it takes no responsibility for delivery or order.' },
+  { lv: 1, id: 'udp', q: 'You send a UDP datagram three times to a port where no receiving program is running. What result does the sending program see?',
+    a: ['All three sends are reported as sent without an error', 'The first send fails with a connection refused error', 'Sending blocks until the receiving program starts', 'The third send fails with a timeout error'],
+    why: 'UDP does not establish a connection and does not receive an acknowledgment. A send succeeding means only that the operating system sent the data out, so no error occurs even when there is no receiving program.',
+    sim: { c: { proto: 'udp', recv: false, net: 'ok' }, col: 1, has: 'no error' } },
+  { lv: 2, id: 'udp', q: 'You wrote "AB", "CD", and "EF" to a TCP connection in three separate writes. When the receiving program read a little later, "ABCDEF" came out at once. Why?',
+    a: ['TCP delivers a stream of bytes in the correct order, but it does not tell the receiver where the data was split when it was sent', 'There is a bug in the sending program, and the three writes were merged into one', 'TCP compressed the data and reduced the three pieces to one', 'Two of the three pieces were lost, and TCP sent them all again at once'],
+    why: 'TCP is a byte stream. In the receive buffer, the bytes pile up in one line, and a read returns whatever has piled up by then. The program has to mark the end of a message itself, with a length or a delimiter.',
+    sim: { c: { proto: 'tcp', recv: true, net: 'ok' }, col: 2, has: '"ABCDEF" (1 piece)' } },
+  { lv: 2, id: 'udp', q: 'You sent three pieces with UDP, and the second one was lost on the way. What happens?',
+    a: ['The receiving program receives only two pieces, and the sender does not know that one was lost', 'The operating system notices the loss and sends the second piece again', 'The receiving program cannot read the third piece until it receives the second', 'The sending program gets an error when it sends the third piece and stops'],
+    why: 'UDP has neither numbers nor acknowledgments. What is lost stays lost, and what arrives later is delivered at once without waiting. If a resend feature is needed, the program has to build it itself.',
+    sim: { c: { proto: 'udp', recv: true, net: 'loss' }, col: 3, has: 'One is missing' } },
+  { lv: 3, id: 'udp', q: 'You built a chat server on TCP and assumed that "the client sends one message per write, so the server gets one message per read." It worked on your computer, but in a real environment messages were read stuck together or cut in the middle. How should you fix it?',
+    a: ['Write the length in front of each message or put a delimiter at the end, and have the server split the messages by looking at it', 'Have the client pause briefly after each message so that the server has time to read it separately', 'Make the read buffer of the server very large so that messages are not cut', 'Call the write of the client one more time to send the missing part again'],
+    why: 'TCP does not keep the boundaries of writes, so one read can return several messages stuck together, or one message split into parts. Pauses and buffer sizes give no guarantee. The right way is to decide the end of a message yourself, with a length or a delimiter.' },
+]);

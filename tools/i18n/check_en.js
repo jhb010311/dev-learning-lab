@@ -69,7 +69,10 @@ if (!!ko.draw !== !!en.draw) err('draw의 유무가 다름');
 
 // 3. 모든 조합 실행
 const fw = read(path.join(root, 'src', 'framework.html'));
-const pic = new Function(fw.split('/*PIC-BEGIN*/')[1].split('/*PIC-END*/')[0] + '; return { picScene: picScene };')();
+const picSrc = fw.split('/*PIC-BEGIN*/')[1].split('/*PIC-END*/')[0];
+// 영어 실습의 그림은 실제 영어 빌드와 같은 그림 코드로 만든다(src/en/ui.js가 '유실' → 'lost' 같은 약속된 글자를 바꾼다)
+const picEnSrc = (src => { const map = require(require('path').join(root, 'src', 'en', 'ui.js')); map.slice().sort((a, b) => b[0].length - a[0].length).forEach(p => { src = src.split(p[0]).join(p[1]); }); return src; })(picSrc);
+const pic = new Function(picSrc + '; return { picScene: picScene };')(), picEn = new Function(picEnSrc + '; return { picScene: picScene };')();
 function combos(l) {
   const vals = l.controls.map(d => d.type === 'check' ? [false, true] : d.type === 'select' ? d.options.map(o => o[0]) : [...new Set([d.min, d.value, d.max])]);
   let out = [{}]; l.controls.forEach((d, i) => { out = out.flatMap(c => vals[i].map(v => Object.assign({}, c, { [d.id]: v }))); });
@@ -86,7 +89,7 @@ function runAll(l, c) {
   [0].concat(sim.events.map(e => e.t), [sim.total]).forEach(t => {
     const shown = sim.events.filter(e => e.t <= t + 1e-9);
     l.render(stub(), sim, t, H, shown);
-    if (l.draw) { const P = pic.picScene(); l.draw(P, sim, shown, t); scenes.push(P.items.map(it => ({ k: it.k, id: it.id, cls: it.cls || '' })));
+    if (l.draw) { const P = (l === en ? picEn : pic).picScene(); l.draw(P, sim, shown, t); scenes.push(P.items.map(it => ({ k: it.k, id: it.id, cls: it.cls || '' })));
       // 순서 그림의 화살표 글자와 P.fit으로 줄인 글자는 길면 끝이 "…"로 잘린다(test.js는 상자의 제목만 본다)
       P.items.forEach(it => [it.label, it.title, it.right, it.str].concat(it.sub || []).forEach(x => { if (typeof x === 'string' && /…$/.test(x)) cuts.push(x); })); }
   });

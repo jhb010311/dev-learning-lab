@@ -1,0 +1,17 @@
+// Quiz questions for the "JWT structure and verification" lab. The first entry of a is the correct answer. If sim is present, the answer is checked against the result of the lab model.
+Lab.quiz([
+  { lv: 1, id: 'jwt', q: 'Which statement about the second part (the payload) of a JWT is correct?',
+    a: ['It is only written in base64url notation, so anyone can read it without a key', 'It is encrypted with the server\'s key, so only the server can read it', 'It is a hash value, so it cannot be turned back into the original contents', 'The browser stores it encrypted, so even the user cannot see the contents'],
+    why: 'The header and the payload are written in base64url notation, not encrypted. Anyone who gets hold of the token can decode and read them without a key, so you do not put things like passwords in them. The signature is used not to hide the contents but to confirm that they have not been changed.' },
+  { lv: 2, id: 'jwt', q: 'Why does the server recalculate the signature itself and compare, instead of trusting the signature that came with the token?',
+    a: ['Someone who does not know the server\'s key cannot make a signature that matches changed contents', 'The contents can be read only after the signature is recalculated', 'The signature of a token changes a little each time it is sent', 'Recalculating the signature extends the expiration time of the token'],
+    why: 'The signature is a value calculated from the header, the payload, and a key only the server knows. If the contents are changed, the value the server recalculates changes, and without the server\'s key no one can make a signature that matches it. So a matching value means the token is exactly as the server issued it.' },
+  { lv: 3, id: 'jwt', q: 'Someone changed the role in a token to ADMIN and sent it with the original signature still attached. How does a server that verifies with HS256 handle this request?',
+    a: ['It rejects the request, because the recalculated signature differs from the attached one', 'It handles the request as ADMIN, because the signature is the original one', 'It handles the request as USER, because the contents can no longer be decoded', 'It handles the request as ADMIN until the expiration time passes'],
+    why: 'The attached signature is a value calculated from the contents before the change. When the server recalculates the signature from the changed contents, a different value comes out, so it rejects the token as a mismatch.',
+    sim: { c: { tok: 'payload', time: 'before', policy: 'fixed' }, col: 2, has: 'Rejected' } },
+  { lv: 3, id: 'jwt', q: 'A server verifies with whatever algorithm the alg in the token header says. A token arrives before its expiration time with alg changed to none, the role changed to ADMIN, and an empty signature. What happens?',
+    a: ['It skips the signature check and passes with the ADMIN role', 'It rejects the token with a format error, because the signature is empty', 'It calculates a signature with the server\'s key and rejects the token as a mismatch', 'It ignores the role and lets the token pass only as USER'],
+    why: 'The header is text that anyone can change. If the server follows that value, the sender can choose "no signature" and make the server skip the signature check. So the server decides the algorithm used for verification in advance, and rejects any other value.',
+    sim: { c: { tok: 'none', time: 'before', policy: 'trust' }, col: 3, has: 'ADMIN' } },
+]);

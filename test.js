@@ -13,7 +13,9 @@ function combos(l) {
 // 그림(draw)이 적어 내는 장면을 검사한다: id 중복, 숫자, 그림 밖으로 나간 상자, 없는 상자를 가리키는 화살표, 이상한 글자
 // 장면을 만드는 도구는 공통 틀(framework.html)의 코드를 그대로 가져다 쓴다
 const fwSrc = require('fs').readFileSync(require('path').join(__dirname, 'src', 'framework.html'), 'utf8');
-const pic = new Function(fwSrc.split('/*PIC-BEGIN*/')[1].split('/*PIC-END*/')[0] + '; return { picScene: picScene, picWidth: picWidth };')();
+// 영어 실습(LAB_LANG=en)을 검사할 때는 실제 영어 빌드와 같은 그림 코드를 쓴다(src/en/ui.js의 표로 바꾼 것)
+const picSrc0 = fwSrc.split('/*PIC-BEGIN*/')[1].split('/*PIC-END*/')[0], picSrc = process.env.LAB_LANG === 'en' ? (src => { const map = require(require('path').join(__dirname, 'src', 'en', 'ui.js')); map.slice().sort((a, b) => b[0].length - a[0].length).forEach(p => { src = src.split(p[0]).join(p[1]); }); return src; })(picSrc0) : picSrc0;
+const pic = new Function(picSrc + '; return { picScene: picScene, picWidth: picWidth };')();
 const cut = {};
 function checkScene(l, sim, t) {
   const P = pic.picScene(), tw = pic.picWidth;

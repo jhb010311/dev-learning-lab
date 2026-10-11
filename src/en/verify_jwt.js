@@ -1,0 +1,1 @@
+Lab.verify({ jwt: ['run', 'Tokens were actually created with crypto (HMAC-SHA256) in Node.js 24 and the verification results of all 16 combinations were checked, and the Java code on the screen was also run on JDK 21 and checked'] });

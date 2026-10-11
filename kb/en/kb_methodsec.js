@@ -1,0 +1,4 @@
+// Terms added together with the "Method security" lab
+module.exports = [
+  ['Security', 'Method security (@PreAuthorize, @PostAuthorize)', 'A Spring Security feature that puts authorization conditions on methods instead of on URLs. @PreAuthorize evaluates its expression before the method runs and, if the result is false, does not run the body. @PostAuthorize evaluates its expression after the body has run, looking at the value to be returned, and, if the result is false, does not return the value. The expression can use not only a role check such as hasRole(\'ADMIN\') but also the arguments of the method (#name), the value to be returned (returnObject), and the logged-in user (authentication). It works only when the configuration class has @EnableMethodSecurity. Without it, the annotations are ignored without any error. The check is done by the proxy that wraps the bean, so it does not apply to a call made inside the same class.'],
+];

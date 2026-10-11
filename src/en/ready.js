@@ -27,4 +27,7 @@ module.exports = [
   'httpmsg', 'httpver', 'cookie', 'etag',
   'layers', 'dns', 'routing', 'socket', 'idem', 'redirect', 'conneg', 'scale', 'revproxy', 'cdn', 'pwhash', 'sessionfix', 
   'url',
+  'cors', 'realtime', 'tls', 'oauth', 'accessctl',
+  'tcp', 'subnet', 'udp', 'congestion',
+  'auth', 'jwt', 'methodsec', 'webattack',
 ];

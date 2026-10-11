@@ -1,0 +1,1 @@
+Lab.verify({ subnet: ['part', 'The address calculation and the same-network judgment were checked for all 72 combinations against Node.js 24 net.BlockList and two other calculations. The NAT explanation follows RFC 3022'] });

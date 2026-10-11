@@ -1,0 +1,1 @@
+Lab.verify({ udp: ['part', 'Six of the eight combinations were run on 127.0.0.1 with the net and dgram modules of Node.js 24 and checked. The two combinations of TCP with a loss or a reordering are based on RFC 9293'] });
