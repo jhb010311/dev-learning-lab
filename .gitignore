@@ -25,3 +25,8 @@ tools/patch_preview.js
 
 # 영어판 준비용 일회용 스크립트
 tools/i18n/patch_*.js
+
+# 디자인을 손볼 때 쓴 일회용 스크립트
+tools/patch_design*.js
+tools/design_fix_*.js
+tools/patch_repo*.js
