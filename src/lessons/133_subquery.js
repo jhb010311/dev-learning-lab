@@ -1,7 +1,7 @@
 Lab.register({
   id: 'subquery', nav: '서브쿼리', cat: '데이터베이스', mode: 'step',
   title: 'NOT IN의 결과가 왜 한 행도 없나',
-  intro: 'SELECT 문 안에 괄호로 넣은 또 하나의 SELECT를 서브쿼리라고 합니다. 값 하나를 돌려주는 것, 목록을 돌려주는 것(IN), 행이 있는지만 보는 것(EXISTS), 바깥 행마다 다시 실행되는 것(상관 서브쿼리)이 있습니다.',
+  intro: 'SELECT 문 안에 괄호로 넣은 또 하나의 SELECT를 서브쿼리라고 합니다. 값 하나를 돌려주는 것, 목록을 돌려주는 것(IN), 행이 있는지만 보는 것(EXISTS), 바깥 행마다 다시 실행되는 것(상관 서브쿼리)이 있습니다. 종류마다 결과가 어떻게 나오는지, 그리고 서브쿼리 결과에 NULL이 섞였을 때 NOT IN과 NOT EXISTS가 어떻게 달라지는지 봅니다.',
   terms: ['서브쿼리', '스칼라 서브쿼리', '상관 서브쿼리', 'IN과 EXISTS', 'NULL과 3값 논리'],
   controls: [
     { id: 'kind', label: '서브쿼리의 모양', type: 'select', value: 'notin', options: [['scalar', '값 하나: WHERE id = (SELECT ...)'], ['corr', '상관 서브쿼리: 회원마다 주문 수 세기'], ['in', 'IN (SELECT ...): 주문이 있는 회원'], ['exists', 'EXISTS (SELECT ...): 주문이 있는 회원'], ['notin', 'NOT IN (SELECT ...): 주문이 없는 회원'], ['notexists', 'NOT EXISTS (SELECT ...): 주문이 없는 회원']] },

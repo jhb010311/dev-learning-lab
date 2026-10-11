@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Thread pool: What changes when you add more threads · Dev Learning Lab</title>
-<meta name="description" content="When a request comes in, one thread handles it from start to finish. If there are not enough threads, requests wait in a queue, and when the queue is also…">
+<meta name="description" content="A thread pool keeps a set number of threads and reuses them instead of creating a new thread for every request. When a request comes in, one thread handle…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/threadpool/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/threadpool/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/threadpool/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Thread pool: What changes when you add more threads · Dev Learning Lab">
-<meta property="og:description" content="When a request comes in, one thread handles it from start to finish. If there are not enough threads, requests wait in a queue, and when the queue is also…">
+<meta property="og:description" content="A thread pool keeps a set number of threads and reuses them instead of creating a new thread for every request. When a request comes in, one thread handle…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/threadpool/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c746fa638d">
+<link rel="stylesheet" href="../../app.css?v=bb647a5317">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
 <h1>Thread pool</h1>
 <p><b>What changes when you add more threads</b></p>
-<p>When a request comes in, one thread handles it from start to finish. If there are not enough threads, requests wait in a queue, and when the queue is also full, requests are rejected.</p>
+<p>A thread pool keeps a set number of threads and reuses them instead of creating a new thread for every request. When a request comes in, one thread handles it from start to finish. If there are not enough threads, requests wait in a queue, and when the queue is also full, requests are rejected. This lab shows how waiting and rejection change with the number of threads and the size of the queue.</p>
 <p>Checked against real execution · Checked against the results of actually running a ThreadPoolExecutor</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -172,6 +172,6 @@ for (int i = 1; i &lt;= 10; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c746fa638d"></script>
+<script src="../../app.js?v=bb647a5317"></script>
 </body>
 </html>

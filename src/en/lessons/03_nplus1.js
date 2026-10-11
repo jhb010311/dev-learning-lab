@@ -1,7 +1,7 @@
 Lab.register({
   id: 'nplus1', nav: 'N+1', cat: 'JPA', mode: 'step',
   title: 'Why are many queries sent when you load the order list only once?',
-  intro: 'You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries sent to the DB changes.',
+  intro: 'You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries sent to the DB changes. When one query loads the list and N more queries are then sent to load the associated data, it is called the N+1 selects problem.',
   terms: ['N+1 selects problem', 'Lazy fetching and eager fetching', 'Fetch join', '@EntityGraph', 'Batch fetching (batch size)', 'First-level cache'], ranks: ['nplus1', 'jpaorm'],
   controls: [
     { id: 'n', label: 'Number of orders loaded', type: 'range', min: 1, max: 30, value: 10, fmt: function (v) { return v + (v === 1 ? ' order' : ' orders'); } },

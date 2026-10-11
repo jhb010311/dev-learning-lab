@@ -257,4 +257,7 @@ module.exports = [
     src: 'API, ConcurrentMap — https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ConcurrentMap.html ; API, StringBuffer — https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StringBuffer.html ; JLS 17.5 — https://docs.oracle.com/javase/specs/jls/se21/html/jls-17.html',
     also: ['thread-safe'],
     note: '용어 풀이의 제목은 명사 thread safety("A Map providing thread safety and atomicity guarantees."), 본문의 형용사는 하이픈이 있는 thread-safe("A thread-safe, mutable sequence of characters.", "final fields also allow programmers to implement thread-safe immutable objects without synchronization.").' },
+  { ko: '방어적 복사', en: 'Defensive copy', how: 'descriptive',
+    src: 'The Java Tutorials, "A Strategy for Defining Immutable Objects" ("Never store references to external, mutable objects passed to the constructor; if necessary, create copies, and store references to the copies. Similarly, create copies of your internal mutable objects when necessary to avoid returning the originals in your methods.") — https://docs.oracle.com/javase/tutorial/essential/concurrency/imstrat.html',
+    note: '튜토리얼은 하는 일을 설명할 뿐 이름을 붙이지 않는다. "defensive copy"라는 이름은 Effective Java(3판 아이템 50)에서 널리 알려진 것인데 책은 열어 보지 못했다.' },
 ];

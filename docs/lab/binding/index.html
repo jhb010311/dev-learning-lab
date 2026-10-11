@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>요청 매핑과 파라미터 바인딩: 요청에 실어 보낸 값은 어떻게 메서드의 파라미터가 되나 · 개발 학습 실습실</title>
-<meta name="description" content="HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 &quot;그 가운데 어느 자리에서 값을 꺼낼지&quot;를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습…">
+<meta name="description" content="요청 매핑은 주소와 HTTP 메서드를 보고 어느 컨트롤러 메서드가 요청을 받을지 정하는 일이고, 파라미터 바인딩은 요청에 실린 값을 그 메서드의 파라미터에 넣어 주는 일입니다. HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/binding/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/binding/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/binding/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="요청 매핑과 파라미터 바인딩: 요청에 실어 보낸 값은 어떻게 메서드의 파라미터가 되나 · 개발 학습 실습실">
-<meta property="og:description" content="HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 &quot;그 가운데 어느 자리에서 값을 꺼낼지&quot;를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습…">
+<meta property="og:description" content="요청 매핑은 주소와 HTTP 메서드를 보고 어느 컨트롤러 메서드가 요청을 받을지 정하는 일이고, 파라미터 바인딩은 요청에 실린 값을 그 메서드의 파라미터에 넣어 주는 일입니다. HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/binding/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f715b2aa7e">
+<link rel="stylesheet" href="../../app.css?v=b70504e9c7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 웹 MVC</p>
 <h1>요청 매핑과 파라미터 바인딩</h1>
 <p><b>요청에 실어 보낸 값은 어떻게 메서드의 파라미터가 되나</b></p>
-<p>HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 &quot;그 가운데 어느 자리에서 값을 꺼낼지&quot;를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다.</p>
+<p>요청 매핑은 주소와 HTTP 메서드를 보고 어느 컨트롤러 메서드가 요청을 받을지 정하는 일이고, 파라미터 바인딩은 요청에 실린 값을 그 메서드의 파라미터에 넣어 주는 일입니다. HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 &quot;그 가운데 어느 자리에서 값을 꺼낼지&quot;를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1 서버에 마흔여덟 가지 조합의 요청을 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -168,6 +168,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f715b2aa7e"></script>
+<script src="../../app.js?v=b70504e9c7"></script>
 </body>
 </html>

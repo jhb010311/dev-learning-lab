@@ -1,7 +1,7 @@
 Lab.register({
   id: 'datajpa', nav: 'Spring Data JPA', cat: 'JPA', mode: 'step',
   title: 'How does a repository work when there is no implementation class?',
-  intro: 'In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query.',
+  intro: 'Spring Data JPA is a Spring module that makes JPA easier to use, and a repository is an interface that gathers the methods for saving and querying entities. In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query.',
   terms: ['JPA, Hibernate, Spring Data JPA', 'Query method', 'Pageable and Page', 'save() and merge', 'Entity'],
   controls: [
     { id: 'sc', label: 'What to try', type: 'select', value: 'name', options: [['name', 'Query by method name'], ['page', 'Request a page with Pageable'], ['save', 'Call save()']] },

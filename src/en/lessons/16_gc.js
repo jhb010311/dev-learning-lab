@@ -1,7 +1,7 @@
 Lab.register({
   id: 'gc', nav: 'GC and memory leaks', cat: 'JVM', mode: 'step',
   title: 'Who reclaims discarded objects, and when?',
-  intro: 'New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are promoted to the old generation, and when the old generation fills up, a full GC runs, which takes much longer.',
+  intro: 'Garbage collection (GC) is the JVM automatically reclaiming the memory of objects that are no longer used. New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are promoted to the old generation, and when the old generation fills up, a full GC runs, which takes much longer. A memory leak is the buildup of objects that are no longer needed but cannot be collected because something still refers to them, and this lab also shows what happens to the heap when there is a leak.',
   terms: ['Garbage collection (GC)', 'Reachability and GC roots', 'Young generation and old generation', 'Minor GC and full GC', 'Stop-the-world (STW)', 'Memory leak', 'StackOverflowError and OutOfMemoryError'], ranks: ['gc', 'jvm'],
   controls: [
     { id: 'rate', label: 'Objects created per tick', type: 'range', min: 2, max: 10, value: 5, fmt: function (v) { return v + ' objects'; } },

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cacheabs', nav: 'Cache abstraction', cat: 'Spring', mode: 'step',
   title: 'With @Cacheable on a method, when does the method body not run?',
-  intro: 'In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that was returned before is taken from the cache. The code that looks up the cache and stores values in it is run by a proxy on your behalf.',
+  intro: 'In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that was returned before is taken from the cache. The code that looks up the cache and stores values in it is run by a proxy on your behalf. The layer that Spring puts in between, so that the same annotations work with whatever cache store is used, is called the cache abstraction.',
   terms: ['@Cacheable', '@CacheEvict and @CachePut', 'Cache', 'Proxy', 'Self-invocation'],
   controls: [
     { id: 'mid', label: 'What is done after find(1) is called', type: 'select', value: 'none', options: [['none', 'Call find(1) again right away'], ['other', 'Call find(2), with a different argument'], ['evict', 'Call evict(1), then find(1) · @CacheEvict'], ['put', 'Call rename(1, "New keyboard"), then find(1) · @CachePut'], ['plain', 'Call renamePlain(1, "New keyboard"), then find(1) · no annotation']] },

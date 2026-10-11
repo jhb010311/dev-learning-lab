@@ -1,7 +1,7 @@
 Lab.register({
   id: 'binding', nav: 'Request mapping and parameter binding', cat: 'Spring', mode: 'step',
   title: 'How does a value sent in a request become a method parameter?',
-  intro: 'An HTTP request can carry a value in several places: the path of the URL, the query string after the ?, and the body. The annotation on a parameter of a controller method decides "which of these places the value is taken from". If the place that carries the value and the place the value is taken from do not match, the value does not come in.',
+  intro: 'Request mapping decides which controller method receives a request, based on its URL and HTTP method, and parameter binding puts the values carried by the request into the parameters of that method. An HTTP request can carry a value in several places: the path of the URL, the query string after the ?, and the body. The annotation on a parameter of a controller method decides "which of these places the value is taken from". If the place that carries the value and the place the value is taken from do not match, the value does not come in.',
   terms: ['@RequestParam and @PathVariable', '@ModelAttribute and @RequestBody', 'Query string and form data', 'HandlerMethodArgumentResolver', 'HTTP status codes'],
   controls: [
     { id: 'how', label: 'How the controller receives the value', type: 'select', value: 'param', options: [['param', '@RequestParam int qty'], ['opt', '@RequestParam(required = false) Integer qty'], ['def', '@RequestParam(defaultValue = "1") int qty'], ['path', '@PathVariable int qty'], ['model', '@ModelAttribute OrderForm form (binds the values to an object)'], ['body', '@RequestBody OrderForm form (reads a JSON body)']] },

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c746fa638d">
+<link rel="stylesheet" href="../../app.css?v=bb647a5317">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Web applications and performance</p>
 <h1>Stock decrement and locks</h1>
 <p><b>What if many orders arrive at once for 3 items in stock?</b></p>
-<p>Several requests run &quot;check the stock, subtract 1, create an order&quot; at the same time. With no safeguard, more items are sold than are in stock, or the stock number no longer matches reality.</p>
+<p>Several requests run &quot;check the stock, subtract 1, create an order&quot; at the same time. With no safeguard, more items are sold than are in stock, or the stock number no longer matches reality. A lock is the typical safeguard against such concurrent changes, and this lab compares the results of several ways of locking and of preventing the problem without a lock.</p>
 <p>Checked against real execution · All five methods were run in 45 combinations on MySQL 8.4.11 and Redis and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -163,6 +163,6 @@ public void order(long productId) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c746fa638d"></script>
+<script src="../../app.js?v=bb647a5317"></script>
 </body>
 </html>

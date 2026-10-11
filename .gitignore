@@ -39,3 +39,4 @@ tools/patch_trim*.js
 tools/patch_ct.js
 tools/patch_mvc*.js
 tools/patch_tb*.js
+tools/patch_intro*.js

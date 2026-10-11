@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c746fa638d">
+<link rel="stylesheet" href="../../app.css?v=bb647a5317">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › SQL</p>
 <h1>Subqueries</h1>
 <p><b>Why does NOT IN return no rows at all?</b></p>
-<p>A subquery is another SELECT placed inside a SELECT statement, in parentheses. There are several kinds: one that returns a single value, one that returns a list (IN), one that only checks whether a row exists (EXISTS), and one that is run again for every outer row (a correlated subquery).</p>
+<p>A subquery is another SELECT placed inside a SELECT statement, in parentheses. There are several kinds: one that returns a single value, one that returns a list (IN), one that only checks whether a row exists (EXISTS), and one that is run again for every outer row (a correlated subquery). This lab shows the result of each kind, and how NOT IN and NOT EXISTS differ when the result of the subquery contains a NULL.</p>
 <p>Checked against real execution · The SQL for the 36 combinations was run as is on MySQL 8.4.11, and the error numbers, every row of the results, the select_type in EXPLAIN, and the number of times a correlated subquery was run (EXPLAIN ANALYZE) were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -183,6 +183,6 @@ SELECT name
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c746fa638d"></script>
+<script src="../../app.js?v=bb647a5317"></script>
 </body>
 </html>

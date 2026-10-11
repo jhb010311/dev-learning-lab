@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GC and memory leaks: Who reclaims discarded objects, and when? · Dev Learning Lab</title>
-<meta name="description" content="New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are…">
+<meta name="description" content="Garbage collection (GC) is the JVM automatically reclaiming the memory of objects that are no longer used. New objects are created in eden, and when eden…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/gc/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/gc/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/gc/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="GC and memory leaks: Who reclaims discarded objects, and when? · Dev Learning Lab">
-<meta property="og:description" content="New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are…">
+<meta property="og:description" content="Garbage collection (GC) is the JVM automatically reclaiming the memory of objects that are no longer used. New objects are created in eden, and when eden…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/gc/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c746fa638d">
+<link rel="stylesheet" href="../../app.css?v=bb647a5317">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>GC and memory leaks</h1>
 <p><b>Who reclaims discarded objects, and when?</b></p>
-<p>New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are promoted to the old generation, and when the old generation fills up, a full GC runs, which takes much longer.</p>
+<p>Garbage collection (GC) is the JVM automatically reclaiming the memory of objects that are no longer used. New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are promoted to the old generation, and when the old generation fills up, a full GC runs, which takes much longer. A memory leak is the buildup of objects that are no longer needed but cannot be collected because something still refers to them, and this lab also shows what happens to the heap when there is a leak.</p>
 <p>Partly checked against real execution · Only the direction was checked on JDK 21 (the numbers are from the model)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -211,6 +211,6 @@ while (running) {                       // one pass = one tick
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c746fa638d"></script>
+<script src="../../app.js?v=bb647a5317"></script>
 </body>
 </html>

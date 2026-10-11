@@ -1,7 +1,7 @@
 Lab.register({
   id: 'threadpool', nav: 'Thread pool', cat: 'Concurrency', mode: 'time',
   title: 'What changes when you add more threads',
-  intro: 'When a request comes in, one thread handles it from start to finish. If there are not enough threads, requests wait in a queue, and when the queue is also full, requests are rejected.',
+  intro: 'A thread pool keeps a set number of threads and reuses them instead of creating a new thread for every request. When a request comes in, one thread handles it from start to finish. If there are not enough threads, requests wait in a queue, and when the queue is also full, requests are rejected. This lab shows how waiting and rejection change with the number of threads and the size of the queue.',
   terms: ['Thread pool', 'How ThreadPoolExecutor handles a new task', 'Tomcat\'s threading model', 'Blocking and non-blocking'], ranks: ['threadpool', 'was'],
   controls: [
     { id: 'core', label: 'Core pool size', type: 'range', min: 1, max: 8, value: 2, fmt: function (v) { return v + ''; } },

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'threadpool', nav: '스레드 풀', cat: '동시성', mode: 'time',
   title: '스레드를 늘리면 무엇이 달라지나',
-  intro: '요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다.',
+  intro: '스레드를 요청마다 새로 만들지 않고 정해진 수만큼 만들어 두고 돌려 쓰는 것이 스레드 풀입니다. 요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 스레드 수와 대기 줄의 크기에 따라 대기와 거절이 어떻게 달라지는지 봅니다.',
   terms: ['스레드 풀', 'ThreadPoolExecutor의 동작 순서', '톰캣의 스레드 모델', '블로킹과 논블로킹'], ranks: ['threadpool', 'was'],
   controls: [
     { id: 'core', label: '기본 스레드 수', type: 'range', min: 1, max: 8, value: 2, fmt: function (v) { return v + '개'; } },

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'security', nav: '시큐리티 필터 체인', cat: '인증', mode: 'step',
   title: '401과 403은 어디에서 갈리나',
-  intro: '스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 "누구인지"를 확인해 기록해 두고, 뒤쪽 필터가 "이 경로에 들어와도 되는지"를 판단합니다.',
+  intro: '스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 "누구인지"를 확인해 기록해 두고, 뒤쪽 필터가 "이 경로에 들어와도 되는지"를 판단합니다. 누구인지 확인되지 않았으면 401, 누구인지는 알지만 권한이 없으면 403으로 응답합니다. 토큰과 경로에 따라 요청이 어느 필터에서 어떤 응답으로 끝나는지 봅니다.',
   terms: ['인증과 인가', 'Spring Security와 SecurityFilterChain', 'SecurityContext', '필터(Filter)', 'HTTP 상태 코드'], ranks: ['auth', 'websec', 'filter'],
   controls: [
     { id: 'who', label: '요청에 실린 토큰', type: 'select', value: 'none', options: [['none', '토큰 없음'], ['bad', '만료되었거나 위조된 토큰'], ['user', '유효한 토큰 (권한: USER)'], ['admin', '유효한 토큰 (권한: ADMIN)']] },

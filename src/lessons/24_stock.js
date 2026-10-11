@@ -1,7 +1,7 @@
 Lab.register({
   id: 'stock', nav: '재고 차감과 락', cat: '데이터베이스', mode: 'step',
   title: '재고 3개에 주문이 동시에 몰리면',
-  intro: '여러 요청이 동시에 "재고 확인 → 1 감소 → 주문 생성"을 합니다. 아무 장치가 없으면 재고보다 많이 팔리거나 재고 숫자가 실제와 어긋납니다.',
+  intro: '여러 요청이 동시에 "재고 확인 → 1 감소 → 주문 생성"을 합니다. 아무 장치가 없으면 재고보다 많이 팔리거나 재고 숫자가 실제와 어긋납니다. 이런 동시 수정을 막는 대표적인 장치가 락이며, 락을 거는 여러 방법과 락 없이 막는 방법의 결과를 비교합니다.',
   terms: ['비관적 락', '낙관적 락(@Version)', '공유 락과 배타 락', '분산 락', '경쟁 상태(Race Condition)'], ranks: ['concurrency', 'traffic', 'dbengine'],
   controls: [
     { id: 'how', label: '동시 수정을 다루는 방법', type: 'select', value: 'none', options: [['none', '아무것도 안 함 (조회 후 수정)'], ['pess', '비관적 락 (SELECT ... FOR UPDATE)'], ['opt', '낙관적 락 (@Version)'], ['atomic', '조건을 넣은 UPDATE 한 문장'], ['dist', '분산 락 (Redis)']] },

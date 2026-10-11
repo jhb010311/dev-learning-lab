@@ -1,7 +1,7 @@
 Lab.register({
   id: 'binding', nav: '요청 매핑과 파라미터 바인딩', cat: '스프링', mode: 'step',
   title: '요청에 실어 보낸 값은 어떻게 메서드의 파라미터가 되나',
-  intro: 'HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 "그 가운데 어느 자리에서 값을 꺼낼지"를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다.',
+  intro: '요청 매핑은 주소와 HTTP 메서드를 보고 어느 컨트롤러 메서드가 요청을 받을지 정하는 일이고, 파라미터 바인딩은 요청에 실린 값을 그 메서드의 파라미터에 넣어 주는 일입니다. HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 "그 가운데 어느 자리에서 값을 꺼낼지"를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다.',
   terms: ['@RequestParam과 @PathVariable', '@ModelAttribute와 @RequestBody', '쿼리 스트링과 폼 본문', 'ArgumentResolver', 'HTTP 상태 코드'],
   controls: [
     { id: 'how', label: '컨트롤러가 값을 받는 방법', type: 'select', value: 'param', options: [['param', '@RequestParam int qty'], ['opt', '@RequestParam(required = false) Integer qty'], ['def', '@RequestParam(defaultValue = "1") int qty'], ['path', '@PathVariable int qty'], ['model', '@ModelAttribute OrderForm form (객체로 묶어 받기)'], ['body', '@RequestBody OrderForm form (JSON 본문 받기)']] },

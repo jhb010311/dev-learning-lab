@@ -1,7 +1,7 @@
 Lab.register({
   id: 'stock', nav: 'Stock decrement and locks', cat: 'Database', mode: 'step',
   title: 'What if many orders arrive at once for 3 items in stock?',
-  intro: 'Several requests run "check the stock, subtract 1, create an order" at the same time. With no safeguard, more items are sold than are in stock, or the stock number no longer matches reality.',
+  intro: 'Several requests run "check the stock, subtract 1, create an order" at the same time. With no safeguard, more items are sold than are in stock, or the stock number no longer matches reality. A lock is the typical safeguard against such concurrent changes, and this lab compares the results of several ways of locking and of preventing the problem without a lock.',
   terms: ['Pessimistic locking', 'Optimistic locking (@Version)', 'Shared locks and exclusive locks', 'Distributed lock', 'Race condition'], ranks: ['concurrency', 'traffic', 'dbengine'],
   controls: [
     { id: 'how', label: 'How concurrent updates are handled', type: 'select', value: 'none', options: [['none', 'Nothing (read, then update)'], ['pess', 'Pessimistic locking (SELECT ... FOR UPDATE)'], ['opt', 'Optimistic locking (@Version)'], ['atomic', 'One UPDATE statement with a condition'], ['dist', 'Distributed lock (Redis)']] },

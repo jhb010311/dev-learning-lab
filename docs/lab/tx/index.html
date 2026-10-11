@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>트랜잭션 기본: 출금은 됐는데 입금이 안 됐다면 · 개발 학습 실습실</title>
-<meta name="description" content="A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다.">
+<meta name="description" content="A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다. 여러 문장을 하나로 묶어 전부 반영하거나 전부 취소하게 하는 것이 트랜잭션입니다. 두 문장을 묶지 않았을 때…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/tx/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/tx/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tx/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="트랜잭션 기본: 출금은 됐는데 입금이 안 됐다면 · 개발 학습 실습실">
-<meta property="og:description" content="A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다.">
+<meta property="og:description" content="A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다. 여러 문장을 하나로 묶어 전부 반영하거나 전부 취소하게 하는 것이 트랜잭션입니다. 두 문장을 묶지 않았을 때…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/tx/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f715b2aa7e">
+<link rel="stylesheet" href="../../app.css?v=b70504e9c7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 데이터 접근과 트랜잭션</p>
 <h1>트랜잭션 기본</h1>
 <p><b>출금은 됐는데 입금이 안 됐다면</b></p>
-<p>A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다.</p>
+<p>A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다. 여러 문장을 하나로 묶어 전부 반영하거나 전부 취소하게 하는 것이 트랜잭션입니다. 두 문장을 묶지 않았을 때와 묶었을 때의 결과를 비교합니다.</p>
 <p>실행으로 대조 · SQLite에서 연결 두 개로 열두 가지 조합 실행</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -154,6 +154,6 @@ UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- 출금
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f715b2aa7e"></script>
+<script src="../../app.js?v=b70504e9c7"></script>
 </body>
 </html>

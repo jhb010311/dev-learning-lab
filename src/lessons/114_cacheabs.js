@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cacheabs', nav: '캐시 추상화', cat: '스프링', mode: 'step',
   title: '@Cacheable을 붙이면 메서드 본문은 언제 실행되지 않나',
-  intro: '스프링에서는 메서드에 @Cacheable을 붙이기만 하면, 같은 인자로 다시 부를 때 본문을 실행하지 않고 전에 돌려준 값을 캐시에서 꺼내 줍니다. 캐시를 조회하고 저장하는 코드는 프록시가 대신 실행합니다.',
+  intro: '스프링에서는 메서드에 @Cacheable을 붙이기만 하면, 같은 인자로 다시 부를 때 본문을 실행하지 않고 전에 돌려준 값을 캐시에서 꺼내 줍니다. 캐시를 조회하고 저장하는 코드는 프록시가 대신 실행합니다. 어떤 캐시 저장소를 쓰든 같은 애노테이션으로 다룰 수 있게 스프링이 중간에 둔 층을 캐시 추상화라고 합니다.',
   terms: ['@Cacheable', '@CacheEvict와 @CachePut', '캐시', '프록시(Proxy)', '자기 호출(Self-invocation)'],
   controls: [
     { id: 'mid', label: 'find(1)을 부른 다음에 하는 일', type: 'select', value: 'none', options: [['none', '바로 find(1)을 다시 부른다'], ['other', '인자를 바꿔 find(2)를 부른다'], ['evict', 'evict(1)을 부르고 find(1) · @CacheEvict'], ['put', 'rename(1, "새 키보드")를 부르고 find(1) · @CachePut'], ['plain', 'renamePlain(1, "새 키보드")를 부르고 find(1) · 애노테이션 없음']] },

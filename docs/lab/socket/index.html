@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>소켓과 포트: 한 컴퓨터의 여러 프로그램 가운데 누가 이 데이터를 받나 · 개발 학습 실습실</title>
-<meta name="description" content="IP 주소는 컴퓨터 한 대까지만 찾아갑니다. 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 누가 데이터를 받을지는 포트 번호가 정합니다.">
+<meta name="description" content="IP 주소는 컴퓨터 한 대까지만 찾아갑니다. 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 누가 데이터를 받을지는 포트 번호가 정합니다. 프로그램은 소켓을 만들어 포트 번호를 붙이고, 운영체제는 그 포트로 온 데이터를 그 소켓에 넘깁니다. 서버가 여는 포트와 클라이언트가 연결…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/socket/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/socket/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/socket/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="소켓과 포트: 한 컴퓨터의 여러 프로그램 가운데 누가 이 데이터를 받나 · 개발 학습 실습실">
-<meta property="og:description" content="IP 주소는 컴퓨터 한 대까지만 찾아갑니다. 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 누가 데이터를 받을지는 포트 번호가 정합니다.">
+<meta property="og:description" content="IP 주소는 컴퓨터 한 대까지만 찾아갑니다. 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 누가 데이터를 받을지는 포트 번호가 정합니다. 프로그램은 소켓을 만들어 포트 번호를 붙이고, 운영체제는 그 포트로 온 데이터를 그 소켓에 넘깁니다. 서버가 여는 포트와 클라이언트가 연결…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/socket/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f715b2aa7e">
+<link rel="stylesheet" href="../../app.css?v=b70504e9c7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 전송 계층</p>
 <h1>소켓과 포트</h1>
 <p><b>한 컴퓨터의 여러 프로그램 가운데 누가 이 데이터를 받나</b></p>
-<p>IP 주소는 컴퓨터 한 대까지만 찾아갑니다. 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 누가 데이터를 받을지는 포트 번호가 정합니다.</p>
+<p>IP 주소는 컴퓨터 한 대까지만 찾아갑니다. 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 누가 데이터를 받을지는 포트 번호가 정합니다. 프로그램은 소켓을 만들어 포트 번호를 붙이고, 운영체제는 그 포트로 온 데이터를 그 소켓에 넘깁니다. 서버가 여는 포트와 클라이언트가 연결하는 포트에 따라 연결이 어느 프로그램에 닿는지 봅니다.</p>
 <p>실행으로 대조 · Node.js 24의 net 모듈로 127.0.0.1에서 스물일곱 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -171,6 +171,6 @@ for (let i = 1; i &lt;= 3; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f715b2aa7e"></script>
+<script src="../../app.js?v=b70504e9c7"></script>
 </body>
 </html>

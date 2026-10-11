@@ -1,7 +1,7 @@
 Lab.register({
   id: 'pct', nav: 'Averages and percentiles', cat: 'Monitoring', mode: 'step',
   title: 'The average response time looks fine, so why do users complain that it is slow?',
-  intro: 'The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow.',
+  intro: 'The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow. The average is the sum of all the values divided by their number, and a percentile is the value at a given percentage point when the values are lined up in order (p99 is the value at the 99% point). This lab shows the same data as an average and as percentiles, and which of them reveals the slow requests.',
   terms: ['TPS and response time percentiles', 'Load testing', 'APM', 'Observability (logs, metrics, traces)'], ranks: ['monitor', 'tuning', 'traffic'],
   controls: [
     { id: 'ratio', label: 'Share of slow requests', type: 'select', value: '2', options: [['0', 'None'], ['0.5', '0.5% (5 of 1,000 requests)'], ['2', '2% (20 requests)'], ['6', '6% (60 requests)'], ['20', '20% (200 requests)']] },

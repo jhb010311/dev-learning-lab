@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Request mapping and parameter binding: How does a value sent in a request become a method parameter? · Dev Learning Lab</title>
-<meta name="description" content="An HTTP request can carry a value in several places: the path of the URL, the query string after the ?, and the body. The annotation on a parameter of a c…">
+<meta name="description" content="Request mapping decides which controller method receives a request, based on its URL and HTTP method, and parameter binding puts the values carried by the…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/binding/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/binding/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/binding/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Request mapping and parameter binding: How does a value sent in a request become a method parameter? · Dev Learning Lab">
-<meta property="og:description" content="An HTTP request can carry a value in several places: the path of the URL, the query string after the ?, and the body. The annotation on a parameter of a c…">
+<meta property="og:description" content="Request mapping decides which controller method receives a request, based on its URL and HTTP method, and parameter binding puts the values carried by the…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/binding/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c746fa638d">
+<link rel="stylesheet" href="../../app.css?v=bb647a5317">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
 <h1>Request mapping and parameter binding</h1>
 <p><b>How does a value sent in a request become a method parameter?</b></p>
-<p>An HTTP request can carry a value in several places: the path of the URL, the query string after the ?, and the body. The annotation on a parameter of a controller method decides &quot;which of these places the value is taken from&quot;. If the place that carries the value and the place the value is taken from do not match, the value does not come in.</p>
+<p>Request mapping decides which controller method receives a request, based on its URL and HTTP method, and parameter binding puts the values carried by the request into the parameters of that method. An HTTP request can carry a value in several places: the path of the URL, the query string after the ?, and the body. The annotation on a parameter of a controller method decides &quot;which of these places the value is taken from&quot;. If the place that carries the value and the place the value is taken from do not match, the value does not come in.</p>
 <p>Checked against real execution · Checked by sending requests for 48 combinations to a Spring Boot 4.1.1 server</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -168,6 +168,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c746fa638d"></script>
+<script src="../../app.js?v=bb647a5317"></script>
 </body>
 </html>

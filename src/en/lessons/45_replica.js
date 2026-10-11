@@ -1,7 +1,7 @@
 Lab.register({
   id: 'replica', nav: 'Replication lag and CAP', cat: 'Database', mode: 'step',
   title: 'I just saved it, but the query shows the old value',
-  intro: 'If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source to reach the replica.',
+  intro: 'If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source to reach the replica. This time difference is called replication lag. The CAP theorem says that when the network is partitioned, a system has to choose between continuing to respond (availability) and refusing to respond with data that may be stale (consistency), and this lab shows both cases.',
   terms: ['Replication', 'Eventual consistency', 'CAP theorem', 'Read-only transaction (readOnly)'], ranks: ['dbengine', 'nosql', 'traffic'],
   controls: [
     { id: 'part', label: 'What to look at', type: 'select', value: 'lag', options: [['lag', 'Replication lag'], ['cut', 'Network partition between the source and the replica']] },

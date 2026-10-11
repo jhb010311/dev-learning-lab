@@ -1,7 +1,7 @@
 Lab.register({
   id: 'nplus1', nav: 'N+1', cat: 'JPA', mode: 'step',
   title: '주문 목록 한 번 조회했는데 쿼리는 왜 여러 번 나가나',
-  intro: '주문 목록을 조회한 뒤 주문마다 회원 이름을 꺼냅니다. 연관된 회원을 언제, 어떻게 가져오느냐에 따라 DB로 나가는 쿼리 수가 달라집니다.',
+  intro: '주문 목록을 조회한 뒤 주문마다 회원 이름을 꺼냅니다. 연관된 회원을 언제, 어떻게 가져오느냐에 따라 DB로 나가는 쿼리 수가 달라집니다. 목록을 가져오는 쿼리 1번에 더해, 연관된 데이터를 가져오는 쿼리가 N번 더 나가는 것을 N+1 문제라고 합니다.',
   terms: ['N+1 문제', '지연 로딩과 즉시 로딩', 'fetch join', '@EntityGraph', '배치 페치(Batch Size)', '1차 캐시'], ranks: ['nplus1', 'jpaorm'],
   controls: [
     { id: 'n', label: '조회되는 주문 건수', type: 'range', min: 1, max: 30, value: 10, fmt: function (v) { return v + '건'; } },

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'socket', nav: 'Sockets and ports', cat: 'Networking', mode: 'step',
   title: 'Of the several programs on one computer, which one receives this data?',
-  intro: 'An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number.',
+  intro: 'An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number. A program creates a socket and binds it to a port number, and the operating system passes data that arrives for that port to that socket. This lab shows which program a connection reaches, depending on the ports the servers listen on and the port the client connects to.',
   terms: ['Port', 'Socket', 'Ephemeral port', 'TCP and UDP'],
   controls: [
     { id: 'srv', label: 'Servers to start', type: 'select', value: 'same', options: [['ab', 'Server A on port 9000, Server B on port 9001'], ['same', 'Server A on port 9000, Server B also on port 9000'], ['a', 'Only Server A, on port 9000']] },

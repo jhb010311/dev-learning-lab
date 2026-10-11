@@ -1,7 +1,7 @@
 Lab.register({
   id: 'scale', nav: 'Load balancers and scale out', cat: 'High traffic', mode: 'step',
   title: 'How far does adding servers get you?',
-  intro: 'A load balancer distributes requests across several servers, and each request uses the database once.',
+  intro: 'Scaling out means adding more servers to share the load instead of making one server bigger. A load balancer distributes requests across several servers, and each request uses the database once. This lab shows how far the throughput grows as you add servers, and which part becomes the bottleneck first.',
   terms: ['Scale up and scale out', 'Load balancer', 'Bottleneck', 'Autoscaling', 'TPS and response time percentiles'], ranks: ['traffic', 'cloud'],
   controls: [
     { id: 'rps', label: 'Requests arriving per second', type: 'range', min: 100, max: 4000, step: 100, value: 1000, fmt: function (v) { return v + ' requests'; } },

@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sockets and ports: Of the several programs on one computer, which one receives this data? · Dev Learning Lab</title>
-<meta name="description" content="An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number.">
+<meta name="description" content="An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number. A program create…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/socket/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/socket/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/socket/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Sockets and ports: Of the several programs on one computer, which one receives this data? · Dev Learning Lab">
-<meta property="og:description" content="An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number.">
+<meta property="og:description" content="An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number. A program create…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/socket/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c746fa638d">
+<link rel="stylesheet" href="../../app.css?v=bb647a5317">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Transport layer</p>
 <h1>Sockets and ports</h1>
 <p><b>Of the several programs on one computer, which one receives this data?</b></p>
-<p>An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number.</p>
+<p>An IP address leads only to one computer. Which of the programs running on that computer receives the data is decided by the port number. A program creates a socket and binds it to a port number, and the operating system passes data that arrives for that port to that socket. This lab shows which program a connection reaches, depending on the ports the servers listen on and the port the client connects to.</p>
 <p>Checked against real execution · The 27 combinations were run on 127.0.0.1 with the net module of Node.js 24 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -171,6 +171,6 @@ for (let i = 1; i &lt;= 3; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c746fa638d"></script>
+<script src="../../app.js?v=bb647a5317"></script>
 </body>
 </html>

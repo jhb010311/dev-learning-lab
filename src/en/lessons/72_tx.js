@@ -1,7 +1,7 @@
 Lab.register({
   id: 'tx', nav: 'Transaction basics', cat: 'Database', mode: 'step',
   title: 'What if the withdrawal went through but the deposit did not?',
-  intro: 'A transfer that takes 1,000 won out of account A and adds 1,000 won to account B is two SQL statements. If an error occurs or the server crashes between the two statements, money can disappear.',
+  intro: 'A transfer that takes 1,000 won out of account A and adds 1,000 won to account B is two SQL statements. If an error occurs or the server crashes between the two statements, money can disappear. A transaction groups several statements so that either all of them take effect or none of them do. This lab compares the result when the two statements are not grouped with the result when they are.',
   terms: ['Transaction', 'ACID', 'Undo log and redo log', '@Transactional'], ranks: ['dbengine', 'txspring', 'isolation'],
   controls: [
     { id: 'mode', label: 'How the statements are run', type: 'select', value: 'auto', options: [['auto', 'Without a transaction (each statement is made permanent right away)'], ['tx', 'The two statements are grouped in a transaction']] },

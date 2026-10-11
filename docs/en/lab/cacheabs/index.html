@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c746fa638d">
+<link rel="stylesheet" href="../../app.css?v=bb647a5317">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Other features</p>
 <h1>Cache abstraction</h1>
 <p><b>With @Cacheable on a method, when does the method body not run?</b></p>
-<p>In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that was returned before is taken from the cache. The code that looks up the cache and stores values in it is run by a proxy on your behalf.</p>
+<p>In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that was returned before is taken from the cache. The code that looks up the cache and stores values in it is run by a proxy on your behalf. The layer that Spring puts in between, so that the same annotations work with whatever cache store is used, is called the cache abstraction.</p>
 <p>Checked against real execution · All 40 combinations were run with @EnableCaching and ConcurrentMapCacheManager on Spring Framework 7.0.9 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -172,6 +172,6 @@ class ProductService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c746fa638d"></script>
+<script src="../../app.js?v=bb647a5317"></script>
 </body>
 </html>

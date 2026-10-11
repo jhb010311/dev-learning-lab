@@ -1,7 +1,7 @@
 Lab.register({
   id: 'gc', nav: 'GC와 메모리 누수', cat: 'JVM', mode: 'step',
   title: '버려진 객체는 누가 언제 치우나',
-  intro: '새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다.',
+  intro: '더 이상 쓰이지 않는 객체의 메모리를 JVM이 알아서 되찾는 일이 GC(가비지 컬렉션)입니다. 새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다. 쓰지 않는데도 어딘가에서 계속 참조하고 있어 GC가 치우지 못하는 객체가 쌓이는 것이 메모리 누수이며, 누수가 있을 때 힙이 어떻게 되는지도 봅니다.',
   terms: ['가비지 컬렉션(GC)', '도달 가능성과 GC 루트', 'Young 세대와 Old 세대', 'Minor GC와 Full GC', 'Stop-the-world(STW)', '메모리 누수', 'StackOverflowError와 OutOfMemoryError'], ranks: ['gc', 'jvm'],
   controls: [
     { id: 'rate', label: '한 틱에 만드는 객체 수', type: 'range', min: 2, max: 10, value: 5, fmt: function (v) { return v + '개'; } },

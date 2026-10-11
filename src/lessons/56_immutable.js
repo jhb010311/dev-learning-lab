@@ -1,8 +1,8 @@
 Lab.register({
   id: 'immut', nav: '불변과 방어적 복사', cat: '자바 언어', mode: 'step',
   title: 'final을 붙였는데 값이 바뀌었다',
-  intro: 'Order 객체가 상품 목록을 final 필드로 가지고 있습니다. final은 "다른 리스트로 바꿔 끼울 수 없다"는 뜻일 뿐, 그 리스트의 내용이 바뀌는 것은 막지 않습니다.',
-  terms: ['불변 객체', 'final', '캡슐화', 'record'], ranks: ['string', 'oop', 'javaver'],
+  intro: 'Order 객체가 상품 목록을 final 필드로 가지고 있습니다. final은 "다른 리스트로 바꿔 끼울 수 없다"는 뜻일 뿐, 그 리스트의 내용이 바뀌는 것은 막지 않습니다. 밖에서 받은 리스트나 안에 가진 리스트를 그대로 주고받지 않고 복사본을 만들어 주고받는 것을 방어적 복사라고 합니다. 생성자와 getter에서 복사를 하느냐에 따라 밖의 코드가 주문의 내용을 바꿀 수 있는지를 봅니다.',
+  terms: ['불변 객체', '방어적 복사', 'final', '캡슐화', 'record'], ranks: ['string', 'oop', 'javaver'],
   controls: [
     { id: 'in', label: '생성자에서 받은 리스트를', type: 'select', value: 'ref', options: [['ref', '그대로 필드에 저장'], ['copy', '복사해서 저장']] },
     { id: 'out', label: 'getter가 돌려주는 것', type: 'select', value: 'none', options: [['none', '내부 리스트 그대로'], ['copy', '내부 리스트의 복사본'], ['unmod', '수정할 수 없는 뷰']] },

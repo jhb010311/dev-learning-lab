@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GC와 메모리 누수: 버려진 객체는 누가 언제 치우나 · 개발 학습 실습실</title>
-<meta name="description" content="새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다.">
+<meta name="description" content="더 이상 쓰이지 않는 객체의 메모리를 JVM이 알아서 되찾는 일이 GC(가비지 컬렉션)입니다. 새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 F…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/gc/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/gc/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/gc/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="GC와 메모리 누수: 버려진 객체는 누가 언제 치우나 · 개발 학습 실습실">
-<meta property="og:description" content="새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다.">
+<meta property="og:description" content="더 이상 쓰이지 않는 객체의 메모리를 JVM이 알아서 되찾는 일이 GC(가비지 컬렉션)입니다. 새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 F…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/gc/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f715b2aa7e">
+<link rel="stylesheet" href="../../app.css?v=b70504e9c7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>GC와 메모리 누수</h1>
 <p><b>버려진 객체는 누가 언제 치우나</b></p>
-<p>새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다.</p>
+<p>더 이상 쓰이지 않는 객체의 메모리를 JVM이 알아서 되찾는 일이 GC(가비지 컬렉션)입니다. 새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다. 쓰지 않는데도 어딘가에서 계속 참조하고 있어 GC가 치우지 못하는 객체가 쌓이는 것이 메모리 누수이며, 누수가 있을 때 힙이 어떻게 되는지도 봅니다.</p>
 <p>일부만 실행으로 확인 · JDK 21에서 방향만 확인(수치는 모형)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -211,6 +211,6 @@ while (running) {                       // 한 바퀴 = 한 틱
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f715b2aa7e"></script>
+<script src="../../app.js?v=b70504e9c7"></script>
 </body>
 </html>

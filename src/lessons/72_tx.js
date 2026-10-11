@@ -1,7 +1,7 @@
 Lab.register({
   id: 'tx', nav: '트랜잭션 기본', cat: '데이터베이스', mode: 'step',
   title: '출금은 됐는데 입금이 안 됐다면',
-  intro: 'A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다.',
+  intro: 'A 계좌에서 1,000원을 빼고 B 계좌에 1,000원을 더하는 이체는 SQL 두 문장입니다. 두 문장 사이에서 오류가 나거나 서버가 꺼지면 돈이 사라질 수 있습니다. 여러 문장을 하나로 묶어 전부 반영하거나 전부 취소하게 하는 것이 트랜잭션입니다. 두 문장을 묶지 않았을 때와 묶었을 때의 결과를 비교합니다.',
   terms: ['트랜잭션', 'ACID', 'Undo 로그와 Redo 로그', '@Transactional'], ranks: ['dbengine', 'txspring', 'isolation'],
   controls: [
     { id: 'mode', label: '실행 방식', type: 'select', value: 'auto', options: [['auto', '트랜잭션 없이 (문장마다 바로 확정)'], ['tx', '두 문장을 트랜잭션으로 묶음']] },

@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>시큐리티 필터 체인: 401과 403은 어디에서 갈리나 · 개발 학습 실습실</title>
-<meta name="description" content="스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 기록해 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다.">
+<meta name="description" content="스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 기록해 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다. 누구인지 확인되지 않았으면 401, 누구인지는 알지만 권한이 없으면 403으로 응답합니다. 토큰과 경로에 따라 요…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/security/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/security/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/security/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="시큐리티 필터 체인: 401과 403은 어디에서 갈리나 · 개발 학습 실습실">
-<meta property="og:description" content="스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 기록해 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다.">
+<meta property="og:description" content="스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 기록해 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다. 누구인지 확인되지 않았으면 401, 누구인지는 알지만 권한이 없으면 403으로 응답합니다. 토큰과 경로에 따라 요…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/security/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f715b2aa7e">
+<link rel="stylesheet" href="../../app.css?v=b70504e9c7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 그 밖의 기능</p>
 <h1>시큐리티 필터 체인</h1>
 <p><b>401과 403은 어디에서 갈리나</b></p>
-<p>스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 기록해 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다.</p>
+<p>스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 &quot;누구인지&quot;를 확인해 기록해 두고, 뒤쪽 필터가 &quot;이 경로에 들어와도 되는지&quot;를 판단합니다. 누구인지 확인되지 않았으면 401, 누구인지는 알지만 권한이 없으면 403으로 응답합니다. 토큰과 경로에 따라 요청이 어느 필터에서 어떤 응답으로 끝나는지 봅니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1과 시큐리티 7.1.1 서버에 열두 가지 요청을 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -174,6 +174,6 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f715b2aa7e"></script>
+<script src="../../app.js?v=b70504e9c7"></script>
 </body>
 </html>

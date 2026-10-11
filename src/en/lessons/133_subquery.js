@@ -1,7 +1,7 @@
 Lab.register({
   id: 'subquery', nav: 'Subqueries', cat: 'Database', mode: 'step',
   title: 'Why does NOT IN return no rows at all?',
-  intro: 'A subquery is another SELECT placed inside a SELECT statement, in parentheses. There are several kinds: one that returns a single value, one that returns a list (IN), one that only checks whether a row exists (EXISTS), and one that is run again for every outer row (a correlated subquery).',
+  intro: 'A subquery is another SELECT placed inside a SELECT statement, in parentheses. There are several kinds: one that returns a single value, one that returns a list (IN), one that only checks whether a row exists (EXISTS), and one that is run again for every outer row (a correlated subquery). This lab shows the result of each kind, and how NOT IN and NOT EXISTS differ when the result of the subquery contains a NULL.',
   terms: ['Subquery', 'Scalar subquery', 'Correlated subquery', 'IN and EXISTS', 'NULL and three-valued logic'],
   controls: [
     { id: 'kind', label: 'Shape of the subquery', type: 'select', value: 'notin', options: [['scalar', 'A single value: WHERE id = (SELECT ...)'], ['corr', 'Correlated subquery: count the orders of each member'], ['in', 'IN (SELECT ...): members who have orders'], ['exists', 'EXISTS (SELECT ...): members who have orders'], ['notin', 'NOT IN (SELECT ...): members who have no orders'], ['notexists', 'NOT EXISTS (SELECT ...): members who have no orders']] },

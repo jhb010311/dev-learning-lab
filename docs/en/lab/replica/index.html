@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c746fa638d">
+<link rel="stylesheet" href="../../app.css?v=bb647a5317">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Scaling and distribution</p>
 <h1>Replication lag and CAP</h1>
 <p><b>I just saved it, but the query shows the old value</b></p>
-<p>If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source to reach the replica.</p>
+<p>If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source to reach the replica. This time difference is called replication lag. The CAP theorem says that when the network is partitioned, a system has to choose between continuing to respond (availability) and refusing to respond with data that may be stale (consistency), and this lab shows both cases.</p>
 <p>Conceptual model · A model that shows the principle</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -160,6 +160,6 @@ public Member getMember(long id) {                      // -&gt; replica
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c746fa638d"></script>
+<script src="../../app.js?v=bb647a5317"></script>
 </body>
 </html>

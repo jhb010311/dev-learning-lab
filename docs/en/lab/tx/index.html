@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c746fa638d">
+<link rel="stylesheet" href="../../app.css?v=bb647a5317">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Data access and transactions</p>
 <h1>Transaction basics</h1>
 <p><b>What if the withdrawal went through but the deposit did not?</b></p>
-<p>A transfer that takes 1,000 won out of account A and adds 1,000 won to account B is two SQL statements. If an error occurs or the server crashes between the two statements, money can disappear.</p>
+<p>A transfer that takes 1,000 won out of account A and adds 1,000 won to account B is two SQL statements. If an error occurs or the server crashes between the two statements, money can disappear. A transaction groups several statements so that either all of them take effect or none of them do. This lab compares the result when the two statements are not grouped with the result when they are.</p>
 <p>Checked against real execution · All 12 combinations were run on SQLite with two connections</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -154,6 +154,6 @@ UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- withdrawal
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c746fa638d"></script>
+<script src="../../app.js?v=bb647a5317"></script>
 </body>
 </html>

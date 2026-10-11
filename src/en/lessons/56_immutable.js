@@ -1,8 +1,8 @@
 Lab.register({
   id: 'immut', nav: 'Immutability and defensive copies', cat: 'Java language', mode: 'step',
   title: 'The field is final, but its value changed',
-  intro: 'An Order object holds its list of items in a final field. final means only that the field cannot be made to refer to a different list. It does not prevent the contents of that list from changing.',
-  terms: ['Immutable object', 'final', 'Encapsulation', 'record'], ranks: ['string', 'oop', 'javaver'],
+  intro: 'An Order object holds its list of items in a final field. final means only that the field cannot be made to refer to a different list. It does not prevent the contents of that list from changing. Making a copy instead of storing or returning the original list is called a defensive copy. This lab shows whether outside code can change the contents of the order, depending on whether the constructor and the getter make a copy.',
+  terms: ['Immutable object', 'Defensive copy', 'final', 'Encapsulation', 'record'], ranks: ['string', 'oop', 'javaver'],
   controls: [
     { id: 'in', label: 'The list passed to the constructor is', type: 'select', value: 'ref', options: [['ref', 'stored in the field as it is'], ['copy', 'copied and then stored']] },
     { id: 'out', label: 'What the getter returns', type: 'select', value: 'none', options: [['none', 'The internal list itself'], ['copy', 'A copy of the internal list'], ['unmod', 'An unmodifiable view']] },

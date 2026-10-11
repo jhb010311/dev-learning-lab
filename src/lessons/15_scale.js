@@ -1,7 +1,7 @@
 Lab.register({
   id: 'scale', nav: '로드밸런서와 스케일 아웃', cat: '대용량 트래픽', mode: 'step',
   title: '서버를 늘리면 어디까지 버티나',
-  intro: '로드밸런서가 요청을 여러 서버에 나눠 주고, 서버는 요청마다 DB를 한 번씩 씁니다.',
+  intro: '서버를 더 크게 바꾸는 대신 서버 수를 늘려 부하를 나누는 것이 스케일 아웃입니다. 로드밸런서가 요청을 여러 서버에 나눠 주고, 서버는 요청마다 DB를 한 번씩 씁니다. 서버를 늘려 갈 때 처리량이 어디까지 늘고 어디가 먼저 막히는지 봅니다.',
   terms: ['스케일 업과 스케일 아웃', '로드밸런서', '병목(Bottleneck)', '오토스케일링', 'TPS와 응답 시간 백분위'], ranks: ['traffic', 'cloud'],
   controls: [
     { id: 'rps', label: '초당 들어오는 요청', type: 'range', min: 100, max: 4000, step: 100, value: 1000, fmt: function (v) { return v + '건'; } },

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'pwhash', nav: 'Password hashing', cat: 'Authentication', mode: 'step',
   title: 'How well do passwords hold up when the database leaks?',
-  intro: 'Two members happen to use the same password (password123). How the passwords are stored in the database greatly changes how long an attacker needs to recover the original passwords after the database leaks.',
+  intro: 'Two members happen to use the same password (password123). How the passwords are stored in the database greatly changes how long an attacker needs to recover the original passwords after the database leaks. A hash is a value computed from the original in a way that cannot be reversed. This lab compares plain text, a hash, a salted hash, and a deliberately slow hash (bcrypt).',
   terms: ['Hash function and salt', 'bcrypt', 'Symmetric-key cryptography and public-key cryptography'], ranks: ['websec', 'auth'],
   controls: [
     { id: 'how', label: 'Storage method', type: 'select', value: 'sha', options: [['plain', 'Plain text'], ['sha', 'SHA-256 hash'], ['salt', 'SHA-256 + a salt for each member'], ['bcrypt', 'bcrypt (includes a salt, slow hash)']] },

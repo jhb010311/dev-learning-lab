@@ -1,0 +1,4 @@
+// Term added to the "Immutability and defensive copies" lab (nothing on the page said what a defensive copy is)
+module.exports = [
+  ['Java language', 'Defensive copy', 'When an object has a field that refers to a mutable object, such as a list, an array, or a Date, this means storing a copy of what was passed in rather than the original, and returning a copy of what it holds rather than the original. If the originals are stored and returned, outside code and this object refer to the same list, and changing that list from outside changes the internal state of this object. If copies are exchanged, the internal state stays the same whatever the outside code does. When returning, instead of a copy you can also return an unmodifiable view such as Collections.unmodifiableList, but a view changes when the underlying list changes.'],
+];
