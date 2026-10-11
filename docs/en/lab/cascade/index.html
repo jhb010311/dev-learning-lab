@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Relationships</p>
 <h1>Cascade and orphan removal</h1>
 <p><b>What happens to the children when you save or delete only the parent?</b></p>
-<p>A post (the parent) has two comments (the children). Whether the comments are saved and deleted together when you persist or remove only the post is decided by cascade and orphanRemoval on @OneToMany. Change the settings and see which SQL is sent and what is left in the DB.</p>
+<p>A post (the parent) has two comments (the children). Whether the comments are saved and deleted together when you persist or remove only the post is decided by cascade and orphanRemoval on @OneToMany.</p>
 <p>Checked against real execution · 24 combinations were run on Hibernate 7.4.5 and H2, and the number and order of the SQL statements, the exceptions, and the rows left in the DB were checked</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Read SQL sent: 0. Write SQL sent: INSERT: 1. After it ended, the DB has 1 post and 0 comments.</li>
 <li>Without PERSIST (or ALL) in cascade, the persist you call on the parent is not passed on to the children. As in this example, with a list that has mappedBy, no exception is thrown either, so it is easy to miss that the comments were not saved.</li>
 </ul>
 <h2>Code</h2>
@@ -186,6 +185,6 @@ em.persist(post);                      // persists only the post
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

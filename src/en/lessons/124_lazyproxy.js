@@ -1,7 +1,7 @@
 Lab.register({
   id: 'lazyproxy', nav: 'Proxies and lazy fetching', cat: 'JPA', mode: 'step',
   title: 'Is an object received through lazy fetching a real entity?',
-  intro: 'A member object you get from em.getReference or from lazy fetching may not be a real Member. It may be a proxy (a stand-in object) that knows only the identifier. A proxy queries the DB only at the moment the real data is needed. Change how you get the object and what you do with it, and see when the query SQL is sent and when an exception is thrown.',
+  intro: 'A member object you get from em.getReference or from lazy fetching may not be a real Member. It may be a proxy (a stand-in object) that knows only the identifier. A proxy queries the DB only at the moment the real data is needed.',
   terms: ['Entity proxy', 'LazyInitializationException', 'Lazy fetching and eager fetching', 'Persistence context', 'First-level cache'],
   controls: [
     { id: 'how', label: 'How to get the member object m', type: 'select', value: 'ref', options: [['ref', 'em.getReference(Member.class, 1L)'], ['lazy', 'Load an order, then order.getMember() (lazy fetching)'], ['find', 'em.find(Member.class, 1L)'], ['findref', 'Read with em.find first, then em.getReference'], ['reffind', 'Call em.getReference first, then em.find']] },
@@ -93,14 +93,13 @@ Lab.register({
       }
     }
     var sel = st.sent.filter(function (q) { return q.sql === selM; }).length;
-    sum.push('m is ' + (proxy ? 'a proxy' : 'a real Member entity') + '. Queries on the member table: ' + (sel ? sel + ' (' + when.charAt(0).toLowerCase() + when.slice(1) + ').' : '0.') + (st.err ? ' ' + st.err + ' was thrown on the last line.' : ''));
     if (how === 'ref' || how === 'lazy') {
       if (use === 'id') sum.push('A proxy is born with its identifier, so getId() does not initialize it. When you need only the identifier (for example, when you set a relationship by supplying only the foreign key value), you do not have to query the DB.');
       if (use === 'name') sum.push('The query SQL is sent not at the moment you receive the object but at the moment you first use a value other than the identifier. This is lazy fetching.' + (how === 'lazy' ? ' If there are many orders and this happens for each order, it becomes the problem you saw in the "N+1" lab.' : ''));
       if (use === 'cls') sum.push('If you write your own equals and compare types with getClass() != o.getClass(), a proxy and a real entity are judged to be different objects. Use instanceof to compare the types of entities, and read fields through getters.');
       if (use === 'closed') sum.push('An uninitialized proxy can be filled only while the persistence context is open. Read the values you need outside the transaction in advance inside the transaction, or fetch them together from the start with a fetch join.');
     }
-    if (how === 'find') sum.push('em.find queries the DB as soon as you call it and returns a real entity. ' + (use === 'closed' ? 'It already has the data, so you can read the values even after the persistence context is closed.' : use === 'cls' ? 'So the getClass() comparison is true as well. Compare it with what you get from getReference or lazy fetching.' : 'Compare when the SQL is sent with the case where you got it with getReference.'));
+    if (how === 'find') sum.push('em.find queries the DB as soon as you call it and returns a real entity.' + (use === 'closed' ? ' It already has the data, so you can read the values even after the persistence context is closed.' : use === 'cls' ? ' So the getClass() comparison is true as well.' : ''));
     if (how === 'findref') sum.push('If the persistence context already has a real entity, getReference returns that entity, not a proxy. The result of getReference is not always a proxy.');
     if (how === 'reffind') sum.push('If a proxy was created first, the em.find after it returns the same proxy. You cannot assume that what you got from em.find is an object of the real Member class.' + (use === 'cls' ? ' That is why the getClass() comparison is false even though it is the result of em.find.' : use === 'closed' ? ' However, em.find sent a SELECT and initialized the proxy, so you can read the values even after the close.' : ''));
     return { events: ev, summary: sum, L: L, proxy: proxy, same: same, init: st.m === 'entity' || st.init, row: [proxy ? 'Proxy' : 'Real entity', sel ? sel + ' (' + when + ')' : '0', res] };
@@ -109,12 +108,9 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : this.blank(), cur = Math.min(s.line, sim.L.length - 1);   // One line can be split into two steps (proxy initialization)
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { return { cells: [String(i + 1), { v: l, cls: i === cur ? 'hot' : '' }, i === cur ? '← now' : ''] }; }), 'Running code');
-    H.counters(v, [[s.sent.filter(function (q) { return q.sql.indexOf('from member') > 0; }).length, 'Queries on the member table'], [s.m === 'none' ? '-' : s.m === 'proxy' ? 'Proxy' : 'Real entity', 'What m is']]);
+    H.counters(v, [[s.sent.filter(function (q) { return q.sql.indexOf('from member') > 0; }).length, 'Queries on the member table']]);
     var ln = H.lanes(v);
     H.lane(ln, 'Class of m', s.m === 'none' ? 'None yet' : s.m === 'proxy' ? 'Member$HibernateProxy (a proxy that extends Member)' : 'Member', s.m === 'proxy' ? 'hot' : s.m === 'entity' ? 'good' : 'none');
-    H.lane(ln, 'Contents', s.m === 'none' ? 'None yet' : s.m === 'entity' || s.init ? 'id 1, name Alice' : 'Knows only id 1 (not initialized)', s.m === 'none' ? 'none' : s.m === 'entity' || s.init ? 'good' : 'wait');
-    H.lane(ln, 'Persistence context', s.open ? 'Open' : 'Closed', s.open ? 'good' : 'bad');
-    H.lane(ln, 'Result', s.err ? 'Exception: ' + s.err : s.out || 'None yet', s.err ? 'bad' : s.out ? 'good' : 'none');
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i >= s.sent.length - s.fresh ? 'hot' : '' }, q.at] }; }), 'SQL sent to the DB'); else { H.title(v, 'SQL sent to the DB'); H.text(v, 'None yet.'); }
   },
   // Diagram: on the left, inside the persistence context, are the proxy and the real Member (and the order if it is lazy fetching), and on the right is the DB. When the proxy is initialized, an arrow to the real object appears.

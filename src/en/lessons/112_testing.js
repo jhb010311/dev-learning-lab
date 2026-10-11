@@ -92,7 +92,7 @@ Lab.register({
     var st = { now: 0, s1: 'Not run yet', s2: 'Not run yet', k1: '', k2: '', ctxs: [], made: 0, got: '', use1: -1, use2: -1, how1: '', how2: '' };
     function push(s, k) { ev.push({ s: s, k: k || '', snap: JSON.parse(JSON.stringify(st)) }); }
     function set(n, text, k) { st['s' + n] = text; st['k' + n] = k || ''; }
-    var res = ['', ''], used = [null, null], cache = {}, failed = {}, okCount = 0, failCount = 0;
+    var res = ['', ''], used = [null, null], cache = {}, failed = {}, okCount = 0;
 
     // ---- Unit test without Spring ----
     function runUnit(n, f) {
@@ -171,7 +171,7 @@ Lab.register({
         register(2, f, w);
       }
       if (!loads(f)) {
-        w.cx.state = 'fail'; failed[k] = true; failCount++; st.got = 'Not run'; set(n, DOWN, 'bad');
+        w.cx.state = 'fail'; failed[k] = true; st.got = 'Not run'; set(n, DOWN, 'bad');
         push('OrderController cannot be created: To create the controller, Spring needs the OrderService bean that the constructor requires, but the context does not have one. A NoSuchBeanDefinitionException is thrown and the loading of the context stops.' + (f.repo ? ' A mock OrderRepository was added, but what the controller requires is OrderService, so it does not help.' : ''), 'bad');
         push('returnsOrderName is recorded as failed: There is no context, so the @Autowired MockMvc field cannot be filled. Not a single line of the test method body runs, and the failure is recorded as an IllegalStateException that says "Failed to load ApplicationContext".', 'bad');
         return DOWN;
@@ -211,7 +211,6 @@ Lab.register({
     var loaded1 = unit || used[0] !== null, loaded2 = unit || used[1] !== null;
     var b1 = loaded1 ? beans(A).join(' · ') : 'not created', b2 = loaded2 ? beans(B).join(' · ') : 'not created';
     var shared = unit || used[0] === null || used[1] === null ? '-' : used[0] === used[1] ? 'same context' : 'different contexts';
-    sum.push('First class: ' + res[0] + '. Second class: ' + res[1] + '. Times a Spring context was created: ' + st.made + '' + (failCount ? ' (of these, failed to load: ' + failCount + ')' : '') + '.');
     if (unit) {
       if (c.mock === 'bare') sum.push('A mock created with mock() returns null from a method that has not been given a value to return (here, a method whose return type is String). You must set the value with when(...).thenReturn(...).');
       sum.push('A test that uses only new and Mockito, without Spring, does not start a context, so it has the least to prepare. In return, this test does not check the things that Spring does for you, such as request mapping (@GetMapping) and bean injection.');
@@ -234,15 +233,10 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the steps one at a time.'); return; }
-    H.title(v, s.now === 1 ? 'First test class (OrderControllerTest)' : 'Second test class (OrderControllerSecondTest)');
-    var ln = H.lanes(v);
-    H.lane(ln, 'First', s.s1, s.k1 || 'none');
-    H.lane(ln, 'Second', s.s2, s.k2 || 'none');
     var cell = function (x) { return { v: x, cls: x === 'mock' ? 'hot' : x === 'real' ? 'good' : '' }; };
     var stateText = { build: 'Being created', up: 'In the cache', fail: 'Failed to load', closed: 'Closed', obj: '' };
     if (sim.unit) H.table(v, ['Created by', 'Controller', 'Service', 'Repository'], s.ctxs.map(function (x) { return { cells: [x.n === 1 ? 'First test' : 'Second test', cell(x.beans[0]), cell(x.beans[1]), cell(x.beans[2])] }; }), 'Objects that the test methods created directly (no Spring context)');
     else H.table(v, ['Context', 'Controller', 'Service', 'Repository', 'State'], s.ctxs.map(function (x) { return { cls: x.state === 'closed' ? 'gone' : '', cells: ['#' + x.n, cell(x.beans[0]), cell(x.beans[1]), cell(x.beans[2]), { v: stateText[x.state], cls: x.state === 'fail' ? 'bad' : x.state === 'up' ? 'good' : '' }] }; }), 'Contexts created by Spring' + (s.ctxs.length ? '' : ' (none yet)'));
-    H.counters(v, [[s.made + '', 'Times a Spring context was created'], [s.got || 'None yet', 'Value this test received']]);
   },
   // Diagram: on the left are the two test classes, which run one after the other, and the dashed region on the right is the context cache. Each long box in the cache is one context, and the three boxes inside it are the controller, service, and repository beans (green for real, yellow for a mock, dashed for absent). The arrow from a test class points to the context that the class uses.
   draw: function (P, sim, shown) {
@@ -267,7 +261,7 @@ Lab.register({
     if (s.use2 >= 0 && s.how2) P.arrow('a2', 't2:r', 'ctx' + (s.use2 + 1) + ':l' + (s.use2 === 0 ? ':0.8' : ''), { cls: s.how2 === 'reused' ? 'good' : s.ctxs[s.use2].state === 'fail' ? 'bad' : '', label: s.how2 });
     P.box('cnt', 10, 254, 326, 38, { cls: s.made ? 'hot' : 'ghost', title: 'Times a Spring context was created', right: s.made + '' });
     P.box('got', 344, 254, 326, 38, { cls: s.got === '"keyboard"' ? 'good' : s.got ? 'bad' : 'ghost', title: 'Value this test received', right: s.got || 'None yet' });
-    P.note(unit ? 'A test without Spring has no context. On the right are the objects that the test method created directly with new and mock(...). Green is a real object, yellow is a mock created by Mockito, and a dashed box is one that was not created.'
+    P.note(unit ? 'On the right are the objects that the test method created directly with new and mock(...). Green is a real object, yellow is a mock created by Mockito, and a dashed box is one that was not created.'
       : 'Each long box on the right is one Spring context, and the three boxes inside it are beans. Green is a real bean, yellow is a mock added with @MockitoBean, and a dashed box is one that is not registered. If the arrow from the second class goes to the first context, the context was reused, and if it goes to a new box, a context was created once more.');
   },
   assume: 'All 36 combinations were actually run on this PC and checked against the results (3 testing approaches × 4 mock choices × 4 second-class choices; for a test without Spring, the second-class setting has no meaning, so only 4 are counted). The versions are Spring Boot 4.1.1, Spring Framework and spring-test 7.0.9, JUnit Jupiter 6.0.3, Mockito 5.23.0, and JDK 21. The two test classes were run one after the other with the JUnit Platform Launcher, without Gradle or Maven, and because the context cache lives inside the JVM, a new Java process was started for each combination. What was compared: the results of the two classes (passed, assertion failed, context failed to load, failure that was not retried), whether the controller, service, and repository that each class used were real, Mockito mocks, or absent, the number of times the creation of a context was started (counted as the number of times the constructor of the configuration class was called, including the ones that failed to load), the number of times loading succeeded, and whether the two classes received the same context object. ' +

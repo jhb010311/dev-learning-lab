@@ -1,7 +1,7 @@
 Lab.register({
   id: 'dynquery', nav: '동적 쿼리와 Querydsl', cat: 'JPA', mode: 'step',
   title: '검색 조건이 있을 때만 where에 붙이려면',
-  intro: '회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다. JPQL 문자열을 이어 붙여 만들 때 어떤 조합에서 문법 오류가 나는지, 코드로 조립하면 왜 그런 실수가 없는지 조건을 켜고 꺼 가며 비교해 보세요.',
+  intro: '회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다.',
   terms: ['동적 쿼리', 'JPQL', 'Criteria API', 'Querydsl', 'SQL Injection'],
   controls: [
     { id: 'how', label: '쿼리를 만드는 방법', type: 'select', value: 'fixed', options: [['fixed', '문자열 잇기: where를 미리 붙여 둠'], ['nospace', '문자열 잇기: 띄어쓰기를 빠뜨림'], ['join', '문자열 잇기: 조건을 모아서 and로 이음'], ['criteria', 'JPA Criteria API (코드로 조립)'], ['querydsl', 'Querydsl (코드로 조립, 실행은 못 함)']] },
@@ -126,7 +126,6 @@ Lab.register({
       }
       // 이 방법이 네 가지 조합 가운데 어디에서 실패하는지
       var fails = [[false, false, '둘 다 없을 때'], [true, false, '이름만 있을 때'], [false, true, '나이만 있을 때'], [true, true, '둘 다 있을 때']].filter(function (x) { return self.check(self.build(c.how, x[0], x[1])[0]); }).map(function (x) { return x[2]; });
-      sum.push('조립된 문자열은 "' + jpql + '"입니다. ' + (err ? 'JPQL 문법에 맞지 않아 실행되지 않았습니다.' : '문법에 맞아 실행됐고 ' + hit + '명이 조회됐습니다.'));
       if (fails.length) sum.push('이 코드는 네 가지 조합 가운데 ' + fails.join(', ') + ' 실패하고 나머지에서는 정상입니다. 컴파일러는 문자열 안을 검사하지 않고, 오류는 그 조합의 요청이 실제로 들어왔을 때에야 납니다. 모든 조합을 시험해 보지 않으면 운영 중에 드러납니다.');
       else sum.push('조건을 목록에 모은 뒤 사이에만 and를 넣으면 네 가지 조합이 모두 바르게 조립됩니다. 다만 여전히 문자열이라서 오타나 빠진 띄어쓰기를 컴파일러가 잡아 주지 못하고, 조건이 늘수록 코드를 읽기 어려워집니다.');
       sum.push('어느 방식이든 값은 문자열에 직접 이어 붙이지 않고 :name 같은 자리를 두고 setParameter로 넣습니다. 사용자가 입력한 값을 문장에 그대로 이어 붙이면 SQL Injection 공격에 노출됩니다.');
@@ -184,10 +183,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, '실행을 누르면 쿼리를 조립하는 코드를 한 줄씩 따라갑니다.'); return; }
     H.table(v, ['줄', '코드', ''], sim.L.map(function (l, i) { var on = i === s.line || (c.how === 'join' && s.line === 4 && i === 3); return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← 지금' : ''] }; }).concat([{ cells: ['', { v: c.how === 'querydsl' ? '(조립 끝)' : '(쿼리 실행)', cls: s.line === 90 ? 'hot' : '' }, s.line === 90 ? '← 지금' : ''] }]), '쿼리를 조립하는 코드');
-    var ln = H.lanes(v);
-    H.lane(ln, '검색 조건', '이름 ' + s.name + ' · 나이 ' + s.age, 'wait');
-    H.lane(ln, s.full.t || '조립된 쿼리', s.full.s || '아직 없음', s.full.cls === 'bad' ? 'bad' : s.full.cls === 'ghost' ? 'none' : 'hot');
-    H.lane(ln, '실행 결과', s.run.s, s.run.cls === 'bad' ? 'bad' : s.run.cls === 'good' ? 'good' : s.run.cls === 'wait' ? 'wait' : 'none');
     H.counters(v, [[s.sql, 'DB로 나간 SQL']]);
   },
   // 그림: 위에 검색 조건 두 개, 가운데에 쿼리로 조립되는 조각 셋과 지금까지 조립된 결과, 아래에 실행 결과. 건너뛴 조각은 점선이다.

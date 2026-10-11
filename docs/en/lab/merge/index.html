@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Persistence context</p>
 <h1>Detached entities and merge</h1>
 <p><b>Why were other values erased when I only fixed the name with merge?</b></p>
-<p>A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change. Compare how the values left in the DB differ between the two ways.</p>
+<p>A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change.</p>
 <p>Checked against real execution · 18 combinations were run on Hibernate 7.4.5 and H2, and the SQL of each line and the values left in the DB were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Member 1 in the DB has name Bob and city NULL (at first, Alice and Seoul). SQL sent in this transaction: SELECT: 1, UPDATE: 1.</li>
 <li>merge does not pick only the changed fields. It overwrites with all the fields of the object you passed. An object built from just the name received from the screen has a null city, so the city in the DB becomes NULL too. This is how accidents happen where fields that are not on the edit screen get erased.</li>
 <li>merge sends one SELECT to get a managed entity. If an entity with the same id is already in the persistence context, it overwrites that entity without a SELECT, and if the id is not in the DB, it confirms with a SELECT that there is none and then sends an INSERT.</li>
 </ul>
@@ -166,6 +165,6 @@ em.getTransaction().commit();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

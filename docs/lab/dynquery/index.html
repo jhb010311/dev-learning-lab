@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>동적 쿼리와 Querydsl: 검색 조건이 있을 때만 where에 붙이려면 · 개발 학습 실습실</title>
-<meta name="description" content="회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다. JPQL 문자열을 이어 붙여 만들 때 어떤 조합에서 문법 오류가 나는지, 코드로 조립하…">
+<meta name="description" content="회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/dynquery/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/dynquery/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dynquery/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="동적 쿼리와 Querydsl: 검색 조건이 있을 때만 where에 붙이려면 · 개발 학습 실습실">
-<meta property="og:description" content="회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다. JPQL 문자열을 이어 붙여 만들 때 어떤 조합에서 문법 오류가 나는지, 코드로 조립하…">
+<meta property="og:description" content="회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/dynquery/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e557751983">
+<link rel="stylesheet" href="../../app.css?v=247ede25a6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 쿼리</p>
 <h1>동적 쿼리와 Querydsl</h1>
 <p><b>검색 조건이 있을 때만 where에 붙이려면</b></p>
-<p>회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다. JPQL 문자열을 이어 붙여 만들 때 어떤 조합에서 문법 오류가 나는지, 코드로 조립하면 왜 그런 실수가 없는지 조건을 켜고 꺼 가며 비교해 보세요.</p>
+<p>회원 검색 화면에서 이름과 나이는 입력할 수도 있고 비워 둘 수도 있습니다. 입력된 조건만 where에 넣어야 하므로 쿼리의 모양이 요청마다 달라집니다. 이런 쿼리를 동적 쿼리라고 합니다.</p>
 <p>일부만 실행으로 확인 · 문자열 방식과 Criteria API의 열여섯 조합은 Hibernate 7.4.5와 H2에서 실행해 대조. Querydsl의 네 조합은 라이브러리가 없어 공식 문서 기준</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>조립된 문자열은 &quot;select m from Member m where and m.age &gt;= :age&quot;입니다. JPQL 문법에 맞지 않아 실행되지 않았습니다.</li>
 <li>이 코드는 네 가지 조합 가운데 둘 다 없을 때, 나이만 있을 때 실패하고 나머지에서는 정상입니다. 컴파일러는 문자열 안을 검사하지 않고, 오류는 그 조합의 요청이 실제로 들어왔을 때에야 납니다. 모든 조합을 시험해 보지 않으면 운영 중에 드러납니다.</li>
 <li>어느 방식이든 값은 문자열에 직접 이어 붙이지 않고 :name 같은 자리를 두고 setParameter로 넣습니다. 사용자가 입력한 값을 문장에 그대로 이어 붙이면 SQL Injection 공격에 노출됩니다.</li>
 </ul>
@@ -169,6 +168,6 @@ search(null, 20);   // 이름은 입력 안 함, 나이는 20 이상</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e557751983"></script>
+<script src="../../app.js?v=247ede25a6"></script>
 </body>
 </html>

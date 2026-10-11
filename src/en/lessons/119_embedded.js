@@ -78,7 +78,7 @@ Lab.register({
       push(0, 'Application startup, reading the mapping: Both homeAddress and workAddress are of type Address. The fields of an embeddable type are spread out as columns of the entity\'s table, so both of them try to create columns named city and street in the member table.', '');
       st.err = 'MappingException';
       push(0, 'The column names collide: a table cannot have two columns named city. Hibernate throws MappingException, and the application cannot start. The table is not created either, and the code below does not run.', 'bad');
-      sum.push('MappingException is thrown at startup. The table is not created.', 'An embeddable type brings its column names with it. To use the same value type twice in one entity, you have to rename the columns of one of them with @AttributeOverride. Change the setting to "Use Address twice and rename the columns".');
+      sum.push('An embeddable type brings its column names with it. To use the same value type twice in one entity, you have to rename the columns of one of them with @AttributeOverride.');
       return { events: ev, summary: sum, L: L, tables: [], sent: [], readSent: [], error: 'MappingException', loaded: '-', dbRow: [], cols: cols, row: ['Not created', 'None', 'MappingException at startup (the city column is duplicated)'] };
     }
     st.made = true;
@@ -100,7 +100,6 @@ Lab.register({
       loaded = tb === 'nul' ? 'null' : 'Boston/Main St'; st.read = tb === 'nul' ? 'null' : 'Boston, Main St';
       push(5, tb === 'nul' ? 'found.getAddress(): In the row that was read, the columns of the embeddable type (city, street) are all null. In that case, Hibernate does not create an empty Address object, and it leaves the address field itself null. If you call a method on the result right away, as in found.getAddress().getCity(), NullPointerException is thrown.' : 'found.getAddress(): Creates an Address object again from the city and street values of the row that was read, and puts it in the address field. It holds Boston and Main St.', tb === 'nul' ? 'bad' : 'good');
     }
-    sum.push('One member table with ' + cols.length + ' columns (' + cols.join(', ') + ') is created, and a single INSERT stores one row.');
     if (tb === 'emb') sum.push('An embeddable type is a class that is grouped only on the Java side. In the table, it is just columns of the entity. If you change the setting to "Do not group it; keep the city and street fields as they are", the table and the SQL are exactly the same. In code, you can gather the values and methods related to the address in one place, which makes the code easier to read.');
     if (tb === 'plain') sum.push('This is the case where the fields are kept as they are. Compare it with "Group the address into the embeddable type Address": the table shape and the SQL that is sent are the same. An embeddable type tidies up only the Java code and does not change the table.');
     if (tb === 'nul') sum.push('If a field of an embeddable type is null, all of its columns are stored as null. When the row is read again, all the columns are null, so the address field comes back as null. For an entity whose address may be absent, check whether the result of getAddress() is null.');
@@ -143,8 +142,6 @@ Lab.register({
       st.db[1][2] = 'Denver'; st.hot = [1]; st.sent.push({ kind: 'update', table: 'member', sql: "update member set city = 'Denver', street = 'Main St' where id = 2", at: 'just before commit' });
       push(6, 'It compares Bob too: The address of Bob points to the same object, so its city has changed to Denver as well. An UPDATE is sent for the row of Bob too. Only Alice\'s city was meant to change, but the address of Bob changed as well.', 'bad');
     } else push(6, 'It compares Bob too: The address of Bob still has the same values (Boston). Nothing changed, so no UPDATE is sent.', 'good');
-    var upd = sh === 'same' ? 2 : 1;
-    sum.push('After the 2 INSERTs, ' + upd + ' UPDATE' + (upd === 1 ? ' was' : 's were') + ' sent. The city left in the database is Denver for Alice and ' + st.db[1][2] + ' for Bob.');
     if (sh === 'same') sum.push('When two entities point to the same value type object, a value changed through one of them is also seen through the other. JPA sees both entities as changed and sends 2 UPDATEs. There is no compile error and no exception, so it becomes a bug that is hard to find.', 'In Java, when you put an object in a variable or pass it on, the object is not copied. Only the reference is copied. So simply "being careful not to share" is hard to rely on.');
     if (sh === 'copy') sum.push('If you copy the values into a new object, the two members point to different objects, so this is safe. But if someone forgets to copy and passes in the same object, the compiler does not stop it. To make the mistake impossible, make the value type immutable.');
     if (sh === 'fixed') sum.push('If a value type has no setters (an immutable object), there is no problem even if several entities point to the same object, because nobody can change it. To change a value, you create a new object and swap it in, and only the row of the entity that was swapped is UPDATEd.', 'This is why a value type should be immutable as a rule. Set the values only through the constructor, and do not write setters.');
@@ -215,9 +212,8 @@ Lab.register({
       }
     }
     var wr = this.kinds(st.sent), tables = [{ name: 'member', cols: ['id', 'name'] }, { name: 'address_history', cols: cols }];
-    sum.push('The write SQL sent was ' + wr + '. The database was left with ' + size + ' addresses (' + list.map(function (a) { return a.city; }).join(', ') + ').');
     if (recreate) sum.push('An element collection held as a ' + (ct === 'list' ? 'List' : 'Set') + ' deletes all the rows of that entity (DELETE: 1) and inserts everything that exists now again (INSERT: ' + size + '), even if only one element changed. If you increase the number of addresses, the INSERTs increase by the same amount.' + (ct === 'set' ? ' Even if you change to a Set, the result is the same as with a List when the columns allow null.' : ''), 'Use an element collection when there are only a few values and they rarely change. If they change often or there are many of them, make the address an entity that has an id and solve it with a one-to-many relationship.');
-    if (ct === 'setnn') sum.push('With a Set whose value type has all columns NOT NULL, a row can be pinpointed by the values of all the columns, so only the rows that changed are deleted and inserted. Compare it with a List, or with a Set whose columns allow null.');
+    if (ct === 'setnn') sum.push('With a Set whose value type has all columns NOT NULL, a row can be pinpointed by the values of all the columns, so only the rows that changed are deleted and inserted.');
     if (order) sum.push(op === 'add' ? 'With @OrderColumn, rows can be told apart by (member_id, idx), so adding at the end takes just one INSERT.' : 'With @OrderColumn, the rows are not all deleted. But if you remove the address at the front, all the later addresses shift forward by one place, and an UPDATE is sent for every row whose contents changed (this time: ' + st.sent.filter(function (q) { return q.kind === 'update'; }).length + '). If you increase the number of addresses, the UPDATEs increase too.');
     return { events: ev, summary: sum, L: L, init: init, tables: tables, seed: [{ kind: 'insert', table: 'member', n: 1 }, { kind: 'insert', table: 'address_history', n: n }], sent: st.sent, afterFind: 1, before: before, order: order, final: st.db, cols: cols,
       row: ['member (id, name), address_history (' + cols.join(', ') + ')', wr, list.map(function (a) { return a.city; }).join(', ')] };
@@ -233,32 +229,23 @@ Lab.register({
     if (c.sc === 'table') {
       s = last ? last.snap : { line: -2, made: false, err: '', obj: false, db: [], sent: [], read: '' };
       this.codeTable(v, H, sim.L, s.line);
-      H.counters(v, [[s.err ? 'Failed' : s.made ? '1' : '?', 'Tables created'], [s.sent.filter(function (q) { return q.kind === 'insert'; }).length, 'INSERT'], [s.read || '?', 'address read back']].slice(0, c.tb === 'emb' || c.tb === 'nul' ? 3 : 2));
-      if (s.err) { H.title(v, 'Application failed to start'); H.text(v, 'MappingException: the city column was mapped twice in the member table.'); return; }
+      if (c.tb === 'emb' || c.tb === 'nul') H.counters(v, [[s.sent.filter(function (q) { return q.kind === 'insert'; }).length, 'INSERT']]);
+      if (s.err) return;
       this.sqlTable(v, H, s.sent);
-      if (s.made) H.table(v, sim.cols, s.db.map(function (r) { return { cells: r.map(function (x) { return x === 'null' ? { v: 'null', cls: 'bad' } : x; }) }; }), 'member table in the database');
-      else H.text(v, 'Click Run to go step by step, starting with the creation of the table.');
+      if (!s.made) H.text(v, 'Click Run to go step by step, starting with the creation of the table.');
       return;
     }
     if (c.sc === 'share') {
       s = last ? last.snap : { line: -2, objs: [], m1: '', m2: '', has1: false, has2: false, db: [], sent: [], hot: [] };
       this.codeTable(v, H, sim.L, s.line);
       var ups = s.sent.filter(function (q) { return q.kind === 'update'; }).length;
-      H.counters(v, [[s.sent.length - ups, 'INSERT'], [ups, 'UPDATE'], [s.db[1] ? s.db[1][2] : '?', 'city of Bob in the database']]);
-      var val = function (n) { var o = s.objs.filter(function (x) { return x.n === n; })[0]; return o ? 'Object ' + n + ' (' + o.city + ', ' + o.street + ')' : '(not yet)'; };
-      H.table(v, ['Reference', 'Address object it points to'], [{ cells: ['member1.address', s.has1 ? val(s.m1) : '(not yet)'] }, { cells: ['member2.address', s.has2 ? { v: val(s.m2), cls: s.m1 === s.m2 && s.has2 ? 'hot' : '' } : '(not yet)'] }], 'Java objects (the same object name means the object is shared)');
+      H.counters(v, [[s.sent.length - ups, 'INSERT']]);
       this.sqlTable(v, H, s.sent);
-      H.table(v, sim.cols, s.db.map(function (r, i) { return { cells: r.map(function (x, j) { return j === 2 && s.hot.indexOf(i) >= 0 ? { v: x, cls: 'hot' } : x; }) }; }), 'member table in the database');
       return;
     }
     s = last ? last.snap : sim.init;
     this.codeTable(v, H, sim.L, s.line);
-    var cnt = function (k) { return s.sent.filter(function (q) { return q.kind === k; }).length; };
-    H.counters(v, [[cnt('delete'), 'DELETE'], [cnt('insert'), 'INSERT'], [cnt('update'), 'UPDATE']]);
-    H.title(v, 'Collection in memory: member.getHistory()');
-    H.slots(v, s.mem ? s.mem.map(function (a) { return [a.city + ' ' + a.street, a.k === 'v9' ? 'b' : 'q']; }) : [], 'Not read yet (lazy fetching).');
     this.sqlTable(v, H, s.sent);
-    H.table(v, sim.cols, s.db.map(function (r) { var hot = s.hot.indexOf(r.k) >= 0, cells = ['1']; if (sim.order) cells.push(String(r.idx)); cells.push(hot ? { v: r.city, cls: 'hot' } : r.city, hot ? { v: r.street, cls: 'hot' } : r.street); return { cells: cells }; }), 'address_history table in the database (yellow cells are rows that were inserted or changed in this step)');
   },
   // Diagram: it differs by scene. The left side is Java objects and the right side is the database. (1) Address spread out as columns of the member table (2) The Address objects that the two members point to, and the rows that are UPDATEd (3) The collection in memory and the rows of address_history
   draw: function (P, sim, shown) {
@@ -302,7 +289,7 @@ Lab.register({
       var ups = s.sent.filter(function (q) { return q.kind === 'update'; }).length, c2 = s.db[1] ? s.db[1][2] : '?';
       P.box('r1', 16, 232, 320, 38, { cls: ups > 1 ? 'bad' : ups ? 'good' : 'ghost', title: 'UPDATEs sent', right: ups + '' });
       P.box('r2', 344, 232, 320, 38, { cls: c2 === '?' ? 'ghost' : c2 === 'Denver' ? 'bad' : 'good', title: 'city of Bob in the database', right: c2 });
-      P.note('The arrows show which Address object the address field of each member points to. If the two arrows meet at one object, that object is shared. In the database, the two rows each hold their own address values, so when the shared object changes, both rows are UPDATEd.');
+      P.note('The arrows show which Address object the address field of each member points to. If the two arrows meet at one object, that object is shared.');
       return;
     }
     s = last ? last.snap : sim.init;
@@ -319,7 +306,7 @@ Lab.register({
     P.box('q_del', 16, 268, 210, 36, { cls: del ? 'bad' : 'ghost', title: 'DELETE', right: del + '' });
     P.box('q_ins', 236, 268, 210, 36, { cls: ins > 1 ? 'bad' : ins ? 'plain' : 'ghost', title: 'INSERT', right: ins + '' });
     P.box('q_upd', 456, 268, 208, 36, { cls: upd ? 'bad' : 'ghost', title: 'UPDATE', right: upd + '' });
-    P.note('The left side is the collection in memory, and the right side is the rows of the table where it is stored. An element collection is stored not in the member table but in a separately created address_history table. Yellow rows are rows that were inserted or changed in this step.');
+    P.note('The left side is the collection in memory, and the right side is the rows of the table where it is stored. Yellow rows are rows that were inserted or changed in this step.');
   },
   assume: 'All 56 combinations (5 table shapes, 3 ways of sharing, and for element collections 4 kinds x 3 operations x 2, 3, 4, or 5 addresses) were run on Hibernate 7.4.5 and an H2 database with code of the same structure. They were checked against the screen for the following: the tables and columns that were created, the kinds of SQL that were sent and the count per table, the SQL that was sent before commit, whether the DELETE is a statement that deletes all the rows of that member, the values left in the database, whether the address that was read back is null, and the exception at startup. The results for element collections are the behavior of Hibernate 7.4.5 and may differ by version. In particular, the fact that a Set whose columns allow null deletes everything and inserts it again, like a List, was confirmed by running it. Which row numbers are deleted and changed with @OrderColumn was confirmed from the conditions of the real SQL statements (member_id and idx) and the rows left after the run. The primary key uses the IDENTITY strategy, so the INSERT is sent as soon as persist is called. The sharing scene is what happens inside one transaction that saves two new members. Entities that are read from the database each get their own newly created value type objects, so this problem occurs only when the code itself puts in the same object. The SQL statements on the screen are shortened to be easy to read, so they are not letter for letter the same as the real statements. The order of the columns in the table may also differ from the real one.',
 });

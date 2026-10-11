@@ -1,7 +1,7 @@
 Lab.register({
   id: 'merge', nav: '준영속과 병합', cat: 'JPA', mode: 'step',
   title: 'merge로 이름만 고쳤는데 왜 다른 값이 지워지나',
-  intro: '영속성 컨텍스트 밖에 있는 준영속 객체는 값을 바꿔도 DB에 반영되지 않습니다. 반영하는 방법은 두 가지입니다. em.merge에 객체를 통째로 넘기는 병합과, 엔티티를 다시 조회해서 바꿀 값만 넣는 변경 감지입니다. 두 방법이 DB에 남기는 값이 어떻게 다른지 비교해 보세요.',
+  intro: '영속성 컨텍스트 밖에 있는 준영속 객체는 값을 바꿔도 DB에 반영되지 않습니다. 반영하는 방법은 두 가지입니다. em.merge에 객체를 통째로 넘기는 병합과, 엔티티를 다시 조회해서 바꿀 값만 넣는 변경 감지입니다.',
   terms: ['준영속 상태', '병합(merge)', '변경 감지(Dirty Checking)', '영속성 컨텍스트', '엔티티의 네 가지 상태'],
   controls: [
     { id: 'src', label: '준영속 객체 m을 얻은 방법', type: 'select', value: 'form', options: [['form', '화면에서 받은 값으로 new (id와 name만 채움)'], ['loaded', '앞선 요청에서 조회해 둔 객체 (모든 필드가 채워짐)']] },
@@ -86,7 +86,6 @@ Lab.register({
     var cnt = {}, order = [];
     trace.forEach(function (t) { if (PRE[t[0]]) return; t[1].forEach(function (k) { var w = k.toUpperCase(); if (!cnt[w]) { cnt[w] = 0; order.push(w); } cnt[w]++; }); });
     var sqlText = order.length ? order.map(function (w) { return w + ' ' + cnt[w] + '번'; }).join(', ') : '없음', dbText = st.db.name + ' · ' + (st.db.city === null ? 'NULL' : st.db.city);
-    sum.push('DB의 1번 회원은 name ' + st.db.name + ', city ' + (st.db.city === null ? 'NULL' : st.db.city) + '입니다(처음에는 김철수, 서울). 이 트랜잭션에서 나간 SQL: ' + sqlText + '.');
     if (c.how === 'none') sum.push('준영속 객체는 값을 바꾸고 트랜잭션을 커밋해도 반영되지 않습니다. 반영하려면 em.merge에 넘기거나, 엔티티를 다시 조회해 값을 옮겨야 합니다.');
     if (c.how === 'merge') {
       if (c.src === 'form' && st.db.city === null) sum.push('merge는 바뀐 필드만 골라 반영하지 않고, 넘긴 객체의 모든 필드로 덮어씁니다. 화면에서 이름만 받아 만든 객체에는 city가 null이므로 DB의 city도 NULL이 됩니다. 수정 화면에 없는 필드가 지워지는 사고가 이렇게 생깁니다.');
@@ -95,20 +94,14 @@ Lab.register({
       if (c.after === 'ret') sum.push('merge가 돌려준 객체 r은 영속 상태이므로 값을 바꾸면 변경 감지로 반영됩니다.' + (c.src === 'form' ? ' merge가 null로 덮어쓴 city도 그 뒤에 r에서 "부산"으로 바꿨기 때문에 부산으로 저장됐습니다.' : ''));
       sum.push('merge는 영속 엔티티를 얻으려고 SELECT를 한 번 보냅니다. 같은 id의 엔티티가 이미 영속성 컨텍스트에 있으면 SELECT 없이 그 엔티티에 덮어쓰고, DB에 없는 id이면 SELECT로 없음을 확인한 뒤 INSERT를 보냅니다.');
     }
-    if (c.how === 'dirty') sum.push('다시 조회한 영속 엔티티에 바꿀 값만 넣었으므로 나머지 필드는 처음 읽은 값 그대로입니다. 나간 SQL은 merge와 같이 SELECT 한 번, UPDATE 한 번입니다. 일부 필드만 고칠 때는 이 방식이 안전합니다.', c.src === 'form' ? '"em.merge(m)으로 병합"으로 바꿔서 city가 어떻게 되는지 비교해 보세요.' : '조회해 둔 객체가 있더라도, 새 트랜잭션에서는 다시 조회한 엔티티에 값을 옮기는 것이 기본입니다.');
+    if (c.how === 'dirty') { sum.push('다시 조회한 영속 엔티티에 바꿀 값만 넣었으므로 나머지 필드는 처음 읽은 값 그대로입니다. 나간 SQL은 merge와 같이 SELECT 한 번, UPDATE 한 번입니다. 일부 필드만 고칠 때는 이 방식이 안전합니다.'); if (c.src !== 'form') sum.push('조회해 둔 객체가 있더라도, 새 트랜잭션에서는 다시 조회한 엔티티에 값을 옮기는 것이 기본입니다.'); }
     return { events: ev, summary: sum, L: L, trace: trace.map(function (t) { return t[0] + ':' + t[1].join(','); }).join(' '), row: [st.cm, st.r ? st.rName + ' (m과 다른 객체)' : '없음', sqlText, dbText] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { line: -1, m: null, r: null, sent: [], db: { name: '김철수', city: '서울' }, cm: '?', cr: '?' };
-    function show(x) { return x === null ? 'null' : x; }
     H.table(v, ['줄', '코드', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l.code, cls: on ? 'hot' : '' }, on ? '← 지금' : ''] }; }), '실행 중인 코드');
-    H.counters(v, [[s.cm, 'em.contains(m)'], [s.sent.filter(function (q) { return !q.pre; }).length + '번', '이 트랜잭션에서 나간 SQL']]);
-    var rows = [];
-    if (s.m) rows.push({ cells: ['m', s.mState, show(s.m.name), { v: show(s.m.city), cls: s.m.city === null ? 'bad' : '' }] });
-    if (s.r) rows.push({ cells: [s.rName, '영속', { v: show(s.r.name), cls: s.snap && s.r.name !== s.snap.name ? 'hot' : '' }, { v: show(s.r.city), cls: s.r.city === null ? 'bad' : s.snap && s.r.city !== s.snap.city ? 'hot' : '' }] });
-    if (rows.length) H.table(v, ['객체', '상태', 'name', 'city'], rows, '자바 객체'); else { H.title(v, '자바 객체'); H.text(v, '아직 없습니다.'); }
+    H.counters(v, [[s.sent.filter(function (q) { return !q.pre; }).length + '번', '이 트랜잭션에서 나간 SQL']]);
     if (s.sent.length) H.table(v, ['#', 'SQL', '나간 때'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'DB로 나간 SQL');
-    H.table(v, ['id', 'name', 'city'], [{ cells: ['1', { v: s.db.name, cls: s.db.name !== '김철수' ? 'hot' : '' }, { v: s.db.city === null ? 'NULL' : s.db.city, cls: s.db.city === null ? 'bad' : s.db.city !== '서울' ? 'hot' : '' }] }], 'DB의 member 테이블');
   },
   // 그림: 왼쪽에 준영속 객체 m, 가운데에 이 트랜잭션의 영속성 컨텍스트와 영속 엔티티, 오른쪽에 DB의 행. SELECT, 값 옮기기, UPDATE가 일어나는 단계에 그 화살표가 생긴다.
   draw: function (P, sim, shown) {
@@ -128,7 +121,7 @@ Lab.register({
     P.box('c1', 16, 186, 320, 36, { cls: s.cm === '?' ? 'ghost' : 'plain', title: 'em.contains(m)', right: s.cm });
     P.box('c2', 344, 186, 320, 36, { cls: s.cr === '?' || s.cr === '-' ? 'ghost' : 'good', title: 'em.contains(' + (s.rName || 'r') + ')', right: s.cr === '-' ? '해당 없음' : s.cr });
     P.box('c3', 16, 230, 648, 36, { cls: s.dbCls === 'bad' ? 'bad' : s.dbCls === 'good' ? 'good' : 'plain', title: 'DB에 남은 값 (name · city)', right: s.db.name + ' · ' + (s.db.city === null ? 'NULL' : s.db.city) });
-    P.note('값의 변화를 DB로 보내 주는 것은 가운데 영속성 컨텍스트 안의 객체뿐입니다. merge는 왼쪽 객체의 모든 필드를 가운데 객체에 덮어쓰고, 변경 감지 방식은 바꿀 값만 옮깁니다. 왼쪽 객체 m은 어느 방법에서도 영속이 되지 않습니다.');
+    P.note('merge는 왼쪽 객체의 모든 필드를 가운데 객체에 덮어쓰고, 변경 감지 방식은 바꿀 값만 옮깁니다.');
   },
   assume: '열여덟 가지 조합을 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 줄마다 나간 SQL의 종류, em.contains의 결과, merge가 돌려준 객체가 넘긴 객체와 다른지, DB에 남은 name과 city가 화면과 일치하는 것을 확인했습니다. "merge 다음에 city를 바꾼다면" 설정은 merge를 고른 때에만 뜻이 있습니다. "이 트랜잭션에서 나간 SQL"에는 앞선 요청에서 m을 조회한 SELECT를 넣지 않았습니다. 요약에 적은 다음 사실도 따로 실행해 확인했습니다: DB에 없는 id를 가진 객체를 merge하면 SELECT 뒤에 INSERT가 나간다, 조회해 둔 객체를 값을 바꾸지 않고 merge하면 SELECT만 나가고 UPDATE는 없다, 같은 id의 엔티티가 이미 영속 상태이면 merge는 SELECT를 보내지 않는다, 조회한 뒤에 DB의 city가 다른 값으로 바뀌었어도 merge는 m의 예전 값으로 덮어쓴다. 회원의 id는 코드에서 직접 넣는 방식이고 @Version 필드는 두지 않았습니다. @Version이 있으면 예전 값으로 덮어쓰려 할 때 예외로 막을 수 있습니다. Hibernate는 merge와 변경 감지 모두에서 기본으로 모든 컬럼을 UPDATE 문에 넣으므로, 두 방법의 차이는 UPDATE 문의 모양이 아니라 거기에 실려 가는 값에 있습니다. 화면의 SQL 문장은 읽기 쉽게 줄여 적은 것입니다. 스프링 데이터 JPA의 save는 새 엔티티가 아니라고 판단하면 내부에서 merge를 부릅니다(공식 문서 기준이며 여기서 실행해 보지는 않았습니다).',
 });

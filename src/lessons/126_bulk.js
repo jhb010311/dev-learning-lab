@@ -1,7 +1,7 @@
 Lab.register({
   id: 'bulk', nav: '벌크 연산', cat: 'JPA', mode: 'step',
   title: '한 번에 고치는 UPDATE 뒤에 엔티티는 왜 옛 값인가',
-  intro: 'executeUpdate로 실행하는 UPDATE와 DELETE(벌크 연산)는 SQL 한 번으로 여러 행을 고칩니다. 그런데 이 SQL은 영속성 컨텍스트를 거치지 않고 DB에 바로 실행됩니다. 그래서 이미 조회해 둔 엔티티는 DB가 바뀐 것을 모릅니다. 벌크 연산 뒤에 값을 어떻게 읽느냐에 따라 무엇이 보이는지 확인해 보세요.',
+  intro: 'executeUpdate로 실행하는 UPDATE와 DELETE(벌크 연산)는 SQL 한 번으로 여러 행을 고칩니다. 그런데 이 SQL은 영속성 컨텍스트를 거치지 않고 DB에 바로 실행됩니다. 그래서 이미 조회해 둔 엔티티는 DB가 바뀐 것을 모릅니다.',
   terms: ['벌크 연산', 'em.clear와 em.refresh', '영속성 컨텍스트', '1차 캐시', '쓰기 지연과 flush'],
   controls: [
     { id: 'op', label: '가격을 고치는 방법', type: 'select', value: 'update', options: [['update', '벌크 UPDATE (모든 상품의 가격 + 500)'], ['delete', '벌크 DELETE (모든 상품 삭제)'], ['each', '엔티티를 하나씩 setPrice (변경 감지)']] },
@@ -103,7 +103,6 @@ Lab.register({
     var dbText = first.db === null ? '행 없음' : first.db + '원';
     var readText = st.read;
     if (/^\d+원$/.test(st.read)) readText += first.db === null ? ' (DB에는 없는 행)' : st.read === dbText ? ' (DB와 같음)' : ' (DB는 ' + dbText + ')';
-    sum.push('쓰기 SQL은 ' + write + '입니다. ' + (st.err ? '상품 1을 읽으려는 순간 ' + st.err + '이 났습니다.' : st.read === '조회 결과 0건' ? '다시 조회한 결과는 0건입니다.' : '읽은 값은 ' + readText + '입니다.') + ' 끝난 뒤 DB에' + (first.db === null ? '는 상품 1의 행이 없습니다.' : '서 상품 1은 ' + dbText + '입니다.'));
     if (op === 'each') sum.push('엔티티를 하나씩 고치면 메모리와 DB가 어긋날 일이 없지만, UPDATE가 상품 수만큼 나갑니다. 상품이 ' + n + '개면 ' + n + '번, 만 개면 만 번입니다. 같은 일을 벌크 UPDATE는 SQL 1번으로 끝냅니다.' + (dirty ? ' 먼저 5000원으로 고쳐 둔 상품 1은 거기에 500원이 더해져 5500원이 되고, UPDATE는 한 번만 나갑니다.' : ''));
     if (op !== 'each' && dirty) sum.push('벌크 연산을 실행하기 전에 미뤄 둔 변경이 먼저 flush됐습니다. 그래서 DB에서는 5000원으로 고친 뒤에 ' + (op === 'update' ? '500원이 더해져 5500원이 됐습니다. 순서가 반대였다면 5000원이 남았을 것입니다.' : '행이 지워졌습니다.'));
     if (op === 'update' && (after === 'none' || after === 'find' || after === 'jpql')) sum.push('벌크 연산은 영속성 컨텍스트를 거치지 않으므로, 이미 조회해 둔 엔티티는 옛 값을 그대로 갖고 있습니다. ' + (after === 'find' ? 'em.find는 1차 캐시를 먼저 보기 때문에 다시 불러도 소용이 없습니다.' : after === 'jpql' ? 'JPQL로 다시 조회해 DB에서 새 값을 읽어 와도, 같은 식별자의 엔티티가 이미 있으면 그 엔티티가 우선합니다.' : '이 값으로 계산을 이어 가면 틀린 결과가 됩니다.'), '벌크 연산 뒤에는 em.clear()로 영속성 컨텍스트를 비우거나, 벌크 연산을 엔티티를 조회하기 전에 먼저 실행합니다. 스프링 데이터 JPA에서는 @Modifying(clearAutomatically = true)가 이 일을 해 줍니다.');
@@ -116,13 +115,12 @@ Lab.register({
   blank: function (c) { var items = []; for (var i = 1; i <= +c.n; i++) items.push({ id: i, mem: null, db: 1000 * i }); return { items: items, sent: [], fresh: [], hot: {}, read: '', err: '', cleared: false }; },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : this.blank(sim.c);
-    H.counters(v, [[s.sent.length, 'DB로 나간 SQL'], [s.sent.filter(function (x) { return x.sql.indexOf('select') !== 0; }).length, '그 가운데 쓰기 SQL'], [s.err ? '예외' : s.read || '-', '읽은 상품 1의 가격']]);
+    H.counters(v, [[s.sent.length, 'DB로 나간 SQL'], [s.sent.filter(function (x) { return x.sql.indexOf('select') !== 0; }).length, '그 가운데 쓰기 SQL']]);
     H.table(v, ['상품', '엔티티 (메모리)', 'DB의 행', '상태'], s.items.map(function (it) {
       var diff = it.mem !== null && it.mem !== it.db;
       return { cells: ['상품 ' + it.id, { v: it.mem === null ? '(없음)' : it.mem + '원', cls: it.pend ? 'hot' : diff ? 'bad' : it.mem === null ? '' : 'good' }, it.db === null ? '(행 없음)' : it.db + '원', it.mem === null ? '' : it.pend ? '보내기 전' : diff ? '옛 값' : '같음'] };
     }), '메모리와 DB');
     if (s.sent.length) H.table(v, ['#', 'SQL', '나간 때'], s.sent.map(function (x, i) { return { cells: [String(i + 1), { v: x.sql, cls: i >= s.sent.length - s.fresh.length ? 'hot' : '' }, x.at] }; }), 'DB로 나간 SQL'); else { H.title(v, 'DB로 나간 SQL'); H.text(v, '아직 없습니다.'); }
-    if (s.err) H.text(v, '예외: ' + s.err);
   },
   // 그림: 왼쪽에 영속성 컨텍스트가 보관 중인 상품 엔티티, 오른쪽에 DB의 행을 같은 높이로 나란히 둔다. DB가 바뀐 줄 모르는 엔티티는 빨강, 아직 보내지 않은 변경은 노랑.
   draw: function (P, sim, shown) {

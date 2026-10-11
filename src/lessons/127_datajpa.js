@@ -1,7 +1,7 @@
 Lab.register({
   id: 'datajpa', nav: '스프링 데이터 JPA', cat: 'JPA', mode: 'step',
   title: '구현 클래스가 없는데 리포지토리는 어떻게 동작하나',
-  intro: '스프링 데이터 JPA에서는 리포지토리를 인터페이스로만 선언합니다. 구현은 애플리케이션이 뜰 때 스프링 데이터가 만들어 주고, findByName 같은 메서드는 이름을 읽어 쿼리로 바꿉니다. 메서드 이름이 어떤 쿼리가 되는지, 페이지를 요청하면 쿼리가 몇 번 나가는지, save()가 INSERT 앞에 SELECT를 먼저 보내는 때가 언제인지 실행해 보세요.',
+  intro: '스프링 데이터 JPA에서는 리포지토리를 인터페이스로만 선언합니다. 구현은 애플리케이션이 뜰 때 스프링 데이터가 만들어 주고, findByName 같은 메서드는 이름을 읽어 쿼리로 바꿉니다.',
   terms: ['JPA, Hibernate, Spring Data JPA', '쿼리 메서드', 'Pageable과 Page', 'save()와 merge', '엔티티'],
   controls: [
     { id: 'sc', label: '해 볼 것', type: 'select', value: 'name', options: [['name', '메서드 이름으로 조회'], ['page', 'Pageable로 페이지 요청'], ['save', 'save() 호출']] },
@@ -196,7 +196,6 @@ Lab.register({
         st.out = { t: '돌려준 객체', s: '넘긴 객체 그대로 (id 8이 채워짐)', cls: 'good' };
         push('결과: save가 돌려준 객체는 넘긴 객체와 같은 객체입니다. 회원은 8명이 됐습니다.', 'good');
         row = ['성공', '1번', 'INSERT', '회원 8명이 됨 · 돌려준 객체는 넘긴 객체와 같음'];
-        sum.push('새 엔티티(id가 null)는 SELECT 없이 INSERT 한 번으로 저장됩니다.');
         sum.push('save는 "새 엔티티면 persist, 아니면 merge"로 나뉩니다. 새 엔티티인지는 기본적으로 id가 null인지로 판단합니다.');
       } else {
         var found = e === 'change' || e === 'same', key = coupon ? 'code = SUMMER' : 'id = ' + (e === 'gone' ? 999 : 1);
@@ -242,20 +241,13 @@ Lab.register({
         }
       }
     }
-    sum.unshift('애플리케이션 기동은 ' + (row[0] === '성공' ? '성공' : '실패') + ', DB로 나간 SQL은 ' + row[1] + '입니다' + (row[2] !== '없음' ? ' (' + row[2] + ').' : '.'));
     return { events: ev, summary: sum, row: row, msg: msg, order: order };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 애플리케이션이 뜨는 것부터 한 단계씩 진행합니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '애플리케이션', s.boot === 'fail' ? '기동 실패' : s.boot === 'ok' ? '기동 완료' : '시작하는 중', s.boot === 'fail' ? 'bad' : s.boot === 'ok' ? 'good' : 'wait');
-    H.lane(ln, '호출', s.called ? s.call : s.boot === 'fail' ? '부를 수 없음' : '아직 부르기 전', s.called ? 'hot' : 'none');
-    H.table(v, ['단계', '내용'], s.steps.map(function (x) { return { cells: [x.t, { v: x.r || '아직', cls: x.cls === 'bad' ? 'bad' : x.cls === 'hot' ? 'hot' : x.cls === 'good' ? 'good' : '' }] }; }), c.sc === 'name' ? '메서드 이름을 조각으로 읽기' : c.sc === 'page' ? '페이지 요청을 처리하는 순서' : 'save가 하는 일');
-    H.counters(v, [[s.sent.length, 'DB로 나간 SQL'], [s.out.cls === 'ghost' ? '아직 없음' : s.out.s, s.out.t]]);
-    if (s.sent.length) H.table(v, ['#', 'SQL', '이유'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i === s.sent.length - 1 ? 'hot' : '' }, q.why] }; }), 'DB로 나간 SQL');
-    H.table(v, s.tbl === 'coupon' ? ['code', 'title'] : ['id', '이름 · 나이'], s.rows.map(function (r) { return { cells: [r.k.replace('id ', ''), { v: r.v, cls: r.cls === 'wait' ? '' : r.cls }] }; }), 'DB의 ' + s.tbl + ' 테이블');
-  },
+    H.counters(v, [[s.sent.length, 'DB로 나간 SQL']]);
+    if (s.sent.length) H.table(v, ['#', 'SQL', '이유'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i === s.sent.length - 1 ? 'hot' : '' }, q.why] }; }), 'DB로 나간 SQL');  },
   // 그림: 위에 호출한 메서드와 기동 상태, 왼쪽에 스프링 데이터가 만든 구현이 거치는 단계, 오른쪽에 DB의 행. SQL이 나간 단계에만 화살표가 생긴다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], prev = shown[shown.length - 2], first = sim.events[0].snap;

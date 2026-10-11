@@ -1,7 +1,7 @@
 Lab.register({
   id: 'dtoquery', nav: 'Querying directly into a DTO', cat: 'JPA', mode: 'step',
   title: 'What is the difference between querying entities and copying them, and querying directly into a DTO?',
-  intro: 'To show only the name and age of each member on a screen, querying entities reads every column of the member and then copies only the values you need into a DTO. With new in JPQL, you can pick only the values you need and receive them directly as a DTO. Compare the two approaches: the number of columns in the SELECT clause, the extra queries that are sent, the objects the persistence context manages, and the UPDATE that is sent when you change a value.',
+  intro: 'To show only the name and age of each member on a screen, querying entities reads every column of the member and then copies only the values you need into a DTO. With new in JPQL, you can pick only the values you need and receive them directly as a DTO.',
   terms: ['DTO', 'JPQL constructor expression', 'Persistence context', 'Dirty checking', 'N+1 selects problem'],
   controls: [
     { id: 'how', label: 'How to query', type: 'select', value: 'entity', options: [['entity', 'Query entities, then copy them into DTOs'], ['fetch', 'Query entities with a fetch join, then copy them into DTOs'], ['dto', 'Query directly into DTOs with new in JPQL']] },
@@ -80,7 +80,6 @@ Lab.register({
       else push('End of the method, commit: Just before the commit, the ' + st.managed + ' managed entities are compared with their snapshots. Nothing differs, so there is no SQL to send. Even for a screen that only displays data, the work of making snapshots and comparing them still happens.');
     }
     var row = [st.sel + (teamQ ? ' (1 for members + ' + teamQ + ' for teams)' : ''), st.cols + '', st.managed + '', !c.mod ? '0 (no value was changed)' : st.upd ? '1 (the name in the DB changed to Erin)' : '0 (only the DTO changed; the DB is unchanged)'];
-    sum.push('SELECT statements sent: ' + row[0] + '. Columns in the first SELECT: ' + st.cols + '. Entities managed by the persistence context: ' + st.managed + '. UPDATE statements sent: ' + st.upd + '.');
     if (isDto) {
       sum.push('When you query with new in JPQL, only the columns you need are read, and the results are plain objects, not entities. The persistence context does not manage them, so there is no snapshot and no comparison at commit. This suits screens that only display data, such as lists and statistics.');
       sum.push(c.mod ? 'Changing a value of the DTO does not change the DB. To modify data, you have to query entities and change those.' : 'On the other hand, if the goal is to modify data, you have to query entities. Changing a DTO does not change the DB.');
@@ -96,12 +95,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go step by step from the query to the commit.'); return; }
-    H.counters(v, [[s.sel + '', 'SELECT statements'], [s.cols + '', 'Columns in the first SELECT'], [s.managed + '', 'Managed entities'], [s.upd + '', 'UPDATE statements']]);
+    H.counters(v, [[s.cols + '', 'Columns in the first SELECT'], [s.managed + '', 'Managed entities']]);
     H.table(v, ['#', 'SQL sent to the DB', 'Reason'], s.sqls.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i === s.sqls.length - 1 ? 'hot' : '' }, q.why] }; }), 'SQL log');
-    if (s.members.length) H.table(v, ['Entity', 'Current value', 'State'], s.members.map(function (m, i) { return { cells: ['Member ' + (i + 1), { v: m.name, cls: m.cls === 'hot' ? 'hot' : '' }, 'Managed'] }; }).concat(s.teams.map(function (tm, i) { return { cls: tm.loaded ? '' : 'gone', cells: ['Team ' + (i + 1), tm.loaded ? tm.name : '(not read yet)', tm.loaded ? 'Managed' : 'Proxy'] }; })), 'Persistence context');
-    else { H.title(v, 'Persistence context'); H.text(v, 'It is empty. No entities are managed.'); }
-    if (s.dtos.length) H.table(v, ['Name · age', 'Team name'], s.dtos.map(function (d) { return { cells: [{ v: d.t, cls: d.cls === 'hot' ? 'hot' : '' }, d.r || '(not included)'] }; }), 'DTO list (values to send to the screen)');
-    H.text(v, 'Name of member 1 in the DB: ' + s.dbName);
   },
   // Diagram: On the left is the DB, in the middle is the persistence context (managed entities), and on the right is the DTO list. An entity query goes through the middle, and a DTO query goes straight from the DB to the DTOs.
   draw: function (P, sim, shown) {
@@ -127,7 +122,7 @@ Lab.register({
     if (s.arrow === 'conv' || s.arrow === 'lazy') P.arrow('a2', 'pc:r', 'dto:l', { cls: 'mut', label: 'copy' });
     if (s.arrow === 'direct') P.arrow('a1', 'db:r:0.08', 'dto:l:0.08', { cls: 'good', label: 'SELECT ' + s.cols + ' columns → DTO' });
     P.box('q', 16, 264, 648, 46, { cls: s.sql ? 'plain' : 'ghost', title: 'Last SQL sent to the DB', sub: s.sql || 'None yet', mono: true });
-    P.note('Only the objects that enter the middle area are managed by the persistence context. For a managed object, changing a value causes an UPDATE at commit. A DTO exists only in the right area, so changing it does not change the DB. A dashed team is one that has not been read yet (a proxy).');
+    P.note('Only the objects that enter the middle area are managed by the persistence context. A DTO exists only in the right area, so changing it does not change the DB. A dashed team is one that has not been read yet (a proxy).');
   },
   assume: 'Twelve combinations were actually run on the PC used to write this lab, with Hibernate 7.4.5 and an H2 database, using code with the same structure as the screen, and the number of SELECT statements sent and their target tables, the number of columns in the first SELECT, the number of entities managed by the persistence context, the number of UPDATE statements sent at commit, and the name left in the DB were checked against the screen. All the code was assumed to run inside one transaction (one persistence context). The SQL on the screen is shortened to be easier to read, and the actual shape of the statements and the order of the columns differ depending on the Hibernate version. The fetch join reads 8 columns, not 9, because Hibernate 7.4.5 did not read the member\'s team_id separately, and this may differ depending on the version. The number of extra queries that read the teams equals the number of different teams that had not been read yet (2 in this example), and this is the value when no batch size is set. The JPA standard requires the class name after new to include the package name. When I ran it on Hibernate 7.4.5, passing MemberDto.class as the result type to createQuery made it work even without the package name, and writing only the class name without a result type made it fail to find the class and throw an exception (SemanticException). Leaving out the package name is not behavior that the standard guarantees. The feature of Spring Data JPA that lets you receive only the values you need through an interface or a record (projections) is not covered in this lab.',
 });

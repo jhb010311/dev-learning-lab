@@ -123,24 +123,19 @@ Lab.register({
         s.found = 'Book';
         push(0, 'Checking the result: ' + (kids > 1 ? 'Among the chained rows, the one that came from book has id 1. ' : '') + 'It creates a Book object and returns it. The type of the variable is Item, but the actual object is a Book.', '');
         touched = kidNames;
-        sum.push(kids > 1 ? 'When you find by the superclass type with the table per concrete class strategy, all ' + kids + ' subclass tables have to be combined with UNION ALL. If you add subclasses, the number of tables to combine grows by the same amount. If you ever need to find by the superclass type, it is better to avoid this strategy.' : 'With only one subclass, no UNION is needed. Raise the number of subclasses to 2 or more.');
+        sum.push(kids > 1 ? 'When you find by the superclass type with the table per concrete class strategy, all ' + kids + ' subclass tables have to be combined with UNION ALL. If you add subclasses, the number of tables to combine grows by the same amount. If you ever need to find by the superclass type, it is better to avoid this strategy.' : 'With only one subclass, no UNION is needed.');
       }
     }
     var kindText = op === 'save' ? 'INSERT: ' + s.sent.length : 'SELECT: ' + s.sent.length;
     var shapeText = op === 'save' ? 'Not applicable' : joins ? 'Joins: ' + joins : unions ? 'UNION ALL: ' + unions + ' (' + kids + ' tables)' : 'None';
-    sum.unshift(names.length + (names.length === 1 ? ' table is' : ' tables are') + ' created (' + names.join(', ') + '). SQL statements sent: ' + s.sent.length + ' (' + (op === 'save' ? 'INSERT' : 'SELECT') + '). Tables ' + (op === 'save' ? 'that received rows' : 'that were read') + ': ' + touched.join(', ') + '.' + (op === 'save' ? '' : ' The actual type of the returned object is Book.'));
     return { events: ev, summary: sum, L: L, init: init, tables: tables, sent: s.sent, before: before, touched: touched, joins: joins, innerJoins: innerJoins, unions: unions, dtypeInWhere: dtypeInWhere, found: op === 'save' ? '-' : 'Book', rows: full, kidList: ks, fks: st === 'JOINED' ? kidNames.map(function (k) { return [k, 'id', 'item']; }) : [],
       row: [names.join(', ') + ' (' + names.length + (names.length === 1 ? ' table' : ' tables') + (st === 'SINGLE_TABLE' ? ', ' + tables[0].cols.length + ' columns' : '') + ')', kindText, touched.join(', '), shapeText] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : sim.init, c = sim.c;
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }).concat(c.op === 'save' ? [{ cells: ['', { v: '(transaction commit)', cls: s.line === -1 ? 'hot' : '' }, s.line === -1 ? '← now' : ''] }] : []), 'Running code');
-    H.counters(v, [[sim.tables.length, 'Tables created'], [s.sent.length, 'SQL sent to the DB'], [s.found || '?', c.op === 'save' ? 'Object loaded (not applicable)' : 'Type of the returned object']].slice(0, c.op === 'save' ? 2 : 3));
+    if (c.op !== 'save') H.counters(v, [[s.found || '?', 'Type of the returned object']]);
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'SQL sent to the DB');
-    sim.tables.forEach(function (tb) {
-      var hot = s.hot.indexOf(tb.name) >= 0;
-      H.table(v, tb.cols, (s.rows[tb.name] || []).map(function (r) { return { cells: r.map(function (x) { return x === 'null' ? { v: 'null', cls: 'bad' } : hot ? { v: x, cls: 'hot' } : x; }) }; }), 'The ' + tb.name + ' table in the DB' + (hot ? (c.op === 'save' ? ' (just inserted)' : ' (read by this SELECT)') : ''));
-    });
   },
   // Diagram: at the top is the Java inheritance (the superclass Item and its subclasses), and at the bottom are the tables created for the strategy. The tables that SQL touched are shown in yellow.
   draw: function (P, sim, shown) {
@@ -165,7 +160,7 @@ Lab.register({
     var how = { join: 'Joins ' + s.hot.length + ' yellow tables on id', union: 'Combines ' + s.hot.length + ' yellow tables with UNION ALL', one: 'Reads one yellow table only' }[s.how] || '';
     var ins = s.sent.filter(function (q) { return q.kind === 'insert'; }).length;
     P.box('res', 16, 258, 648, 38, c.op === 'save' ? { cls: ins > 1 ? 'bad' : ins ? 'good' : 'ghost', title: 'INSERTs sent when saving one Book', right: String(ins) } : { cls: !how ? 'ghost' : s.how === 'one' ? 'good' : s.hot.length > 2 ? 'bad' : 'plain', title: c.op === 'findc' ? 'Query for em.find(Book.class, 1L)' : 'Query for em.find(Item.class, 1L)', right: how || 'Not run yet' });
-    P.note('The top shows the Java class inheritance and the bottom shows the tables created to store it. If you change the strategy, the number and the columns of the tables at the bottom change. A yellow table is one where the SQL of this step inserted or read rows.');
+    P.note('The top shows the Java class inheritance and the bottom shows the tables created to store it. A yellow table is one where the SQL of this step inserted or read rows.');
   },
   assume: 'This lab assumes that the superclass Item is an abstract class and that each subclass has only one field. The primary key is set directly in the code, because the IDENTITY strategy cannot be used with the table per concrete class strategy (it was confirmed that Hibernate 7.4.5 throws a MappingException at startup). All 27 combinations (3 strategies, 3 things to do, and 1, 2, or 3 subclasses) were run on Hibernate 7.4.5 and an H2 database with code of the same structure, and the following were confirmed to match the screen: the tables and columns that were created, the foreign keys from the subclass tables to the superclass table, the kinds of SQL sent and how many times for each table, the tables read by the find query and the number of joins and UNIONs, whether a discriminator column condition is added, the type of the returned object, and the rows left in the DB. With the joined subclass strategy and the table per concrete class strategy, Hibernate also creates temporary tables (their names start with ht_ or hte_) for bulk update queries. They have nothing to do with the mapping, so they are left out of the screen. That the joined subclass strategy has no discriminator column (DTYPE) is Hibernate\'s default behavior, and it was also confirmed by running that adding @DiscriminatorColumn creates a dtype column in the item table. It was also confirmed that if you do not write @Inheritance at all, the same table as the single table strategy is created. The SQL statements on the screen are shortened to be easy to read, so they are not letter-for-letter the same as the actual statements. In the actual SQL, a find by the superclass type tells the subclasses apart with a CASE expression in the joined subclass strategy, and with a number attached to each subclass in the table per concrete class strategy. The order of the columns inside a table may also differ from the actual one.',
 });

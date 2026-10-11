@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -68,7 +68,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>First class: Context failure. Second class: Context failure (not retried). Times a Spring context was created: 1 (of these, failed to load: 1).</li>
 <li>@WebMvcTest registers only the beans of the web layer, such as controllers. The OrderService that the controller depends on must be filled in by you with @MockitoBean for the context to load.</li>
 <li>Once a context fails to load with a given configuration, Spring does not try to create the context for that configuration again and fails the later tests immediately. Even when several tests appear to have failed, there may be a single cause, so look at the message of the very first failure.</li>
 </ul>
@@ -216,6 +215,6 @@ class OrderRepository {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

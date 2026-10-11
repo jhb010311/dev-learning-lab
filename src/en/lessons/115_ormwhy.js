@@ -1,7 +1,7 @@
 Lab.register({
   id: 'ormwhy', nav: 'What JPA solves', cat: 'JPA', mode: 'step',
   title: 'When you write the SQL yourself, what do you have to fill in by hand?',
-  intro: 'Java objects are linked to each other by references, while the rows of a table are linked by numbers (foreign keys). Because the shapes differ, someone has to write the code that moves the rows of a table into objects. Do the same job by writing the SQL yourself (JDBC) and with JPA (Jakarta Persistence), and compare where the two differ.',
+  intro: 'Java objects are linked to each other by references, while the rows of a table are linked by numbers (foreign keys). Because the shapes differ, someone has to write the code that moves the rows of a table into objects.',
   terms: ['ORM', 'JDBC', 'Object/relational impedance mismatch', 'JPA, Hibernate, Spring Data JPA', 'First-level cache'],
   controls: [
     { id: 'sc', label: 'Task to try', type: 'select', value: 'nav', options: [['same', 'Load the same order twice'], ['nav', 'Go from the order to its member'], ['field', 'Add one field (grade) to the member']] },
@@ -118,17 +118,13 @@ Lab.register({
     var cnt = {}, order = [];
     trace.forEach(function (t) { t[1].forEach(function (k) { var w = k.split(' ')[0].toUpperCase(); if (!cnt[w]) { cnt[w] = 0; order.push(w); } cnt[w]++; }); });
     var sentText = order.map(function (w) { return w + ': ' + cnt[w]; }).join(', ');
-    sum.unshift('SQL statements written in the code: ' + written + '. SQL statements sent to the DB: ' + sentText + '. Result of ' + check + ': ' + res + '.');
     return { events: ev, summary: sum, written: written, trace: trace.map(function (t) { return t[0] + ':' + t[1].join(','); }).join('; '), row: [String(written), sentText, check, res] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Press Run to go one line at a time.'); return; }
-    H.counters(v, [[sim.written, 'SQL written in the code'], [s.sent.length, 'SQL sent to the DB'], [s.res, sim.row[2]]]);
-    H.table(v, ['Variable → object', 'Value it holds'], s.objs.map(function (o) { return { cells: [o.t, { v: o.s, cls: o.cls === 'bad' ? 'bad' : o.cls === 'good' ? 'good' : '' }] }; }), 'Java objects in memory');
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Written by'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i === s.sent.length - 1 && s.flow ? 'hot' : '' }, q.by] }; }), 'SQL sent to the DB');
     else { H.title(v, 'SQL sent to the DB'); H.text(v, 'None yet.'); }
-    H.table(v, ['Row', 'Value'], s.rows.map(function (r) { return { cells: [r.t, { v: r.r, cls: r.cls || '' }] }; }), 'Tables in the DB');
   },
   // Diagram: the Java objects in memory on the left, the rows of the DB tables on the right. An arrow appears in the middle only in a step where SQL is sent, and it says who wrote that SQL.
   draw: function (P, sim, shown) {
@@ -143,7 +139,7 @@ Lab.register({
     if (s.flow) P.arrow('sql', s.flow.write ? 'heap:r' : 'row_' + s.flow.to + ':l', s.flow.write ? 'row_' + s.flow.to + ':l' : 'heap:r', { cls: 'hot', label: s.flow.label });
     P.box('r1', 16, 236, 210, 40, { cls: sim.written ? 'hot' : 'good', title: 'SQL you wrote', right: String(sim.written) });
     P.box('r2', 234, 236, 430, 40, { cls: s.res === '?' ? 'ghost' : /^(false|null|NullPointerException)$/.test(s.res) ? 'bad' : 'good', title: sim.row[2], right: s.res });
-    P.note('The arrow in the middle means that SQL was sent to the DB in this step, and it also says who wrote that SQL. A row in a table points to another row by a number (member_id), and an object points to another object by a reference. The difference between the two approaches is whether you write the code that bridges this gap yourself or leave it to JPA.');
+    P.note('The arrow in the middle means that SQL was sent to the DB in this step, and it also says who wrote that SQL.');
   },
   assume: 'All 12 combinations were actually run and checked on the PC used to write this lab (the JDBC side ran DAO code with the same structure as on the screen against an H2 database, and the JPA side ran on Hibernate 7.4.5 and H2). What was checked: the number of SQL statements written in the code, the kind and the table of the SQL sent on each line, the value of a == b, the member name or the exception, and the grade read back and the grade left in the DB. The "filled in by hand" setting has meaning only for JDBC, and for JPA it does not affect the result. The SQL statements on the screen are shortened to be easy to read, and the statements that Hibernate actually builds differ in column order and aliases. The @ManyToOne of JPA was set to lazy fetching (LAZY). With the default, eager fetching (EAGER), a single em.find reads the order and the member together. The amount of JDBC code is based on the DAO in this example. If you use Spring\'s JdbcTemplate or MyBatis, the repeated code shrinks, but it stays the same that you write the SQL yourself and have to change the SQL together when a field changes. "Four places to change" is counted in the code on the screen.',
 });

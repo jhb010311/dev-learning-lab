@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>프록시와 지연 로딩: 지연 로딩으로 받은 객체는 진짜 엔티티인가 · 개발 학습 실습실</title>
-<meta name="description" content="em.getReference나 지연 로딩으로 받은 회원 객체는 진짜 Member가 아니라, 식별자만 알고 있는 프록시(대리 객체)일 수 있습니다. 프록시는 진짜 데이터가 필요해지는 순간에야 DB를 조회합니다. 객체를 얻는 방법과 그 객체로 하는 일을 바꿔 가며, 조회 SQL이…">
+<meta name="description" content="em.getReference나 지연 로딩으로 받은 회원 객체는 진짜 Member가 아니라, 식별자만 알고 있는 프록시(대리 객체)일 수 있습니다. 프록시는 진짜 데이터가 필요해지는 순간에야 DB를 조회합니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/lazyproxy/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lazyproxy/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lazyproxy/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="프록시와 지연 로딩: 지연 로딩으로 받은 객체는 진짜 엔티티인가 · 개발 학습 실습실">
-<meta property="og:description" content="em.getReference나 지연 로딩으로 받은 회원 객체는 진짜 Member가 아니라, 식별자만 알고 있는 프록시(대리 객체)일 수 있습니다. 프록시는 진짜 데이터가 필요해지는 순간에야 DB를 조회합니다. 객체를 얻는 방법과 그 객체로 하는 일을 바꿔 가며, 조회 SQL이…">
+<meta property="og:description" content="em.getReference나 지연 로딩으로 받은 회원 객체는 진짜 Member가 아니라, 식별자만 알고 있는 프록시(대리 객체)일 수 있습니다. 프록시는 진짜 데이터가 필요해지는 순간에야 DB를 조회합니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/lazyproxy/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e557751983">
+<link rel="stylesheet" href="../../app.css?v=247ede25a6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 프록시와 로딩</p>
 <h1>프록시와 지연 로딩</h1>
 <p><b>지연 로딩으로 받은 객체는 진짜 엔티티인가</b></p>
-<p>em.getReference나 지연 로딩으로 받은 회원 객체는 진짜 Member가 아니라, 식별자만 알고 있는 프록시(대리 객체)일 수 있습니다. 프록시는 진짜 데이터가 필요해지는 순간에야 DB를 조회합니다. 객체를 얻는 방법과 그 객체로 하는 일을 바꿔 가며, 조회 SQL이 언제 나가고 언제 예외가 나는지 보세요.</p>
+<p>em.getReference나 지연 로딩으로 받은 회원 객체는 진짜 Member가 아니라, 식별자만 알고 있는 프록시(대리 객체)일 수 있습니다. 프록시는 진짜 데이터가 필요해지는 순간에야 DB를 조회합니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 스무 가지 조합을 실행해 프록시 여부, 조회 SQL이 나간 시점, 결과 값과 예외를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>m은 프록시입니다. 회원 테이블 조회는 1번(getName을 부를 때) 나갔습니다.</li>
 <li>조회 SQL은 객체를 받는 순간이 아니라, 식별자가 아닌 값을 처음 쓰는 순간에 나갑니다. 이것이 지연 로딩입니다.</li>
 </ul>
 <h2>코드</h2>
@@ -164,6 +163,6 @@ String name = m.getName();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e557751983"></script>
+<script src="../../app.js?v=247ede25a6"></script>
 </body>
 </html>

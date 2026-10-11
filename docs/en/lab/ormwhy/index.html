@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Getting started</p>
 <h1>What JPA solves</h1>
 <p><b>When you write the SQL yourself, what do you have to fill in by hand?</b></p>
-<p>Java objects are linked to each other by references, while the rows of a table are linked by numbers (foreign keys). Because the shapes differ, someone has to write the code that moves the rows of a table into objects. Do the same job by writing the SQL yourself (JDBC) and with JPA (Jakarta Persistence), and compare where the two differ.</p>
+<p>Java objects are linked to each other by references, while the rows of a table are linked by numbers (foreign keys). Because the shapes differ, someone has to write the code that moves the rows of a table into objects.</p>
 <p>Checked against real execution · JDBC code and Hibernate 7.4.5 were run on H2 in 12 combinations and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -63,7 +63,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>SQL statements written in the code: 1. SQL statements sent to the DB: SELECT: 1. Result of order.getMember().getName(): NullPointerException.</li>
 <li>Objects are navigated by references such as order.getMember(), while tables are linked by numbers such as member_id. When you write the SQL yourself, an object is filled in only as far as the SQL you read. To use the member too, you have to write more SQL that reads the member and more code that moves the values.</li>
 </ul>
 <h2>Code</h2>
@@ -178,6 +177,6 @@ System.out.println(order.getMember().getName());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

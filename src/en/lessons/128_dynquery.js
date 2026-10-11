@@ -1,7 +1,7 @@
 Lab.register({
   id: 'dynquery', nav: 'Dynamic queries and Querydsl', cat: 'JPA', mode: 'step',
   title: 'How do you add a search condition to where only when it is given?',
-  intro: 'On a member search screen, the name and the age may be filled in or left blank. Only the conditions that were filled in must go into where, so the shape of the query differs from request to request. A query built at run time from whichever conditions were supplied is called a dynamic query. Turn the conditions on and off to compare which combinations cause a syntax error when you build the JPQL by joining strings, and why building it with code does not have that mistake.',
+  intro: 'On a member search screen, the name and the age may be filled in or left blank. Only the conditions that were filled in must go into where, so the shape of the query differs from request to request. A query built at run time from whichever conditions were supplied is called a dynamic query.',
   terms: ['Dynamic query', 'JPQL', 'Criteria API', 'Querydsl', 'SQL injection'],
   controls: [
     { id: 'how', label: 'How the query is built', type: 'select', value: 'fixed', options: [['fixed', 'String concatenation: where is attached in advance'], ['nospace', 'String concatenation: a space is missing'], ['join', 'String concatenation: collect the conditions and join them with and'], ['criteria', 'JPA Criteria API (assembled with code)'], ['querydsl', 'Querydsl (assembled with code, cannot be run here)']] },
@@ -126,7 +126,6 @@ Lab.register({
       }
       // Which of the four combinations this method fails in
       var fails = [[false, false, 'when neither is given'], [true, false, 'when only the name is given'], [false, true, 'when only the age is given'], [true, true, 'when both are given']].filter(function (x) { return self.check(self.build(c.how, x[0], x[1])[0]); }).map(function (x) { return x[2]; });
-      sum.push('The built string is "' + jpql + '". ' + (err ? 'It does not match the JPQL syntax, so it was not run.' : 'It matches the syntax and was run. Members found: ' + hit + '.'));
       if (fails.length) sum.push('Of the four combinations, this code fails ' + fails.join(', ') + ', and works normally in the rest. The compiler does not check inside strings, and an error appears only when a request with that combination actually arrives. If you do not test every combination, the error shows up in production.');
       else sum.push('If you collect the conditions in a list and put and only between them, all four combinations are built correctly. But it is still a string, so the compiler cannot catch a typo or a missing space, and the code gets harder to read as the conditions increase.');
       sum.push('With any approach, do not append values to the string directly; leave a placeholder such as :name and put the value in with setParameter. If you append a value entered by a user to the statement as it is, you are exposed to a SQL injection attack.');
@@ -184,10 +183,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, 'Click Run to follow the code that builds the query one line at a time.'); return; }
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line || (c.how === 'join' && s.line === 4 && i === 3); return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }).concat([{ cells: ['', { v: c.how === 'querydsl' ? '(assembly done)' : '(run the query)', cls: s.line === 90 ? 'hot' : '' }, s.line === 90 ? '← now' : ''] }]), 'Code that builds the query');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Search conditions', 'name ' + s.name + ' · age ' + s.age, 'wait');
-    H.lane(ln, s.full.t || 'Assembled query', s.full.s || 'None yet', s.full.cls === 'bad' ? 'bad' : s.full.cls === 'ghost' ? 'none' : 'hot');
-    H.lane(ln, 'Execution result', s.run.s, s.run.cls === 'bad' ? 'bad' : s.run.cls === 'good' ? 'good' : s.run.cls === 'wait' ? 'wait' : 'none');
     H.counters(v, [[s.sql, 'SQL sent to the DB']]);
   },
   // Diagram: at the top, the two search conditions; in the middle, the three pieces assembled into the query and the result built so far; at the bottom, the execution result. A skipped piece is a dashed box.

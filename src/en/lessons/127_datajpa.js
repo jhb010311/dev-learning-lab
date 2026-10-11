@@ -1,7 +1,7 @@
 Lab.register({
   id: 'datajpa', nav: 'Spring Data JPA', cat: 'JPA', mode: 'step',
   title: 'How does a repository work when there is no implementation class?',
-  intro: 'In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query. Run it to see what query a method name becomes, how many queries are sent when you request a page, and when save() sends a SELECT before the INSERT.',
+  intro: 'In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query.',
   terms: ['JPA, Hibernate, Spring Data JPA', 'Query method', 'Pageable and Page', 'save() and merge', 'Entity'],
   controls: [
     { id: 'sc', label: 'What to try', type: 'select', value: 'name', options: [['name', 'Query by method name'], ['page', 'Request a page with Pageable'], ['save', 'Call save()']] },
@@ -196,7 +196,6 @@ Lab.register({
         st.out = { t: 'Returned object', s: 'The object you passed (id 8 filled in)', cls: 'good' };
         push('Result: The object that save returned is the same object you passed. There are now 8 members.', 'good');
         row = ['Success', '1', 'INSERT', '8 members now · the returned object is the same as the one passed'];
-        sum.push('A new entity (null id) is saved with one INSERT and no SELECT.');
         sum.push('save branches into "persist if the entity is new, merge otherwise". Whether it is new is decided by default by whether the id is null.');
       } else {
         var found = e === 'change' || e === 'same', key = coupon ? 'code = SUMMER' : 'id = ' + (e === 'gone' ? 999 : 1);
@@ -242,20 +241,13 @@ Lab.register({
         }
       }
     }
-    sum.unshift('Application startup ' + (row[0] === 'Success' ? 'succeeded' : 'failed') + '. SQL statements sent to the DB: ' + row[1] + (row[2] !== 'none' ? ' (' + row[2] + ').' : '.'));
     return { events: ev, summary: sum, row: row, msg: msg, order: order };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go step by step, starting with the application starting up.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'Application', s.boot === 'fail' ? 'Startup failed' : s.boot === 'ok' ? 'Startup complete' : 'Starting', s.boot === 'fail' ? 'bad' : s.boot === 'ok' ? 'good' : 'wait');
-    H.lane(ln, 'Call', s.called ? s.call : s.boot === 'fail' ? 'Cannot be called' : 'Not called yet', s.called ? 'hot' : 'none');
-    H.table(v, ['Step', 'Details'], s.steps.map(function (x) { return { cells: [x.t, { v: x.r || 'Not yet', cls: x.cls === 'bad' ? 'bad' : x.cls === 'hot' ? 'hot' : x.cls === 'good' ? 'good' : '' }] }; }), c.sc === 'name' ? 'Reading the method name piece by piece' : c.sc === 'page' ? 'The order in which the page request is handled' : 'What save does');
-    H.counters(v, [[s.sent.length, 'SQL sent to the DB'], [s.out.cls === 'ghost' ? 'None yet' : s.out.s, s.out.t]]);
-    if (s.sent.length) H.table(v, ['#', 'SQL', 'Reason'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i === s.sent.length - 1 ? 'hot' : '' }, q.why] }; }), 'SQL sent to the DB');
-    H.table(v, s.tbl === 'coupon' ? ['code', 'title'] : ['id', 'Name · age'], s.rows.map(function (r) { return { cells: [r.k.replace('id ', ''), { v: r.v, cls: r.cls === 'wait' ? '' : r.cls }] }; }), 'The ' + s.tbl + ' table in the DB');
-  },
+    H.counters(v, [[s.sent.length, 'SQL sent to the DB']]);
+    if (s.sent.length) H.table(v, ['#', 'SQL', 'Reason'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i === s.sent.length - 1 ? 'hot' : '' }, q.why] }; }), 'SQL sent to the DB');  },
   // Diagram: at the top, the method that was called and the startup state; on the left, the steps that the implementation made by Spring Data goes through; on the right, the rows of the DB. An arrow appears only in the steps where SQL is sent.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], prev = shown[shown.length - 2], first = sim.events[0].snap;

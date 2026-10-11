@@ -123,24 +123,19 @@ Lab.register({
         s.found = 'Book';
         push(0, '결과 확인: ' + (kids > 1 ? '이어 붙인 결과 가운데 book에서 온 행이 id 1입니다. ' : '') + 'Book 객체를 만들어 돌려줍니다. 변수의 타입은 Item이지만 실제 객체는 Book입니다.', '');
         touched = kidNames;
-        sum.push(kids > 1 ? '구현 클래스마다 테이블 전략에서 부모 타입으로 조회하면 자식 테이블 ' + kids + '개를 UNION ALL로 합쳐야 합니다. 자식 클래스가 늘어나면 합쳐야 할 테이블도 그만큼 늘어납니다. 부모 타입으로 조회할 일이 있다면 이 전략은 피하는 편이 좋습니다.' : '자식 클래스가 하나뿐이면 UNION이 필요 없습니다. 자식 클래스의 수를 2개 이상으로 올려 보세요.');
+        sum.push(kids > 1 ? '구현 클래스마다 테이블 전략에서 부모 타입으로 조회하면 자식 테이블 ' + kids + '개를 UNION ALL로 합쳐야 합니다. 자식 클래스가 늘어나면 합쳐야 할 테이블도 그만큼 늘어납니다. 부모 타입으로 조회할 일이 있다면 이 전략은 피하는 편이 좋습니다.' : '자식 클래스가 하나뿐이면 UNION이 필요 없습니다.');
       }
     }
     var kindText = op === 'save' ? 'INSERT ' + s.sent.length + '번' : 'SELECT ' + s.sent.length + '번';
     var shapeText = op === 'save' ? '해당 없음' : joins ? '조인 ' + joins + '번' : unions ? 'UNION ALL ' + unions + '번 (테이블 ' + kids + '개)' : '없음';
-    sum.unshift('테이블은 ' + names.length + '개(' + names.join(', ') + ')가 만들어집니다. 나간 SQL은 ' + kindText + '이고, ' + (op === 'save' ? '행이 들어간' : '읽은') + ' 테이블은 ' + touched.join(', ') + '입니다.' + (op === 'save' ? '' : ' 돌려받은 객체의 실제 타입은 Book입니다.'));
     return { events: ev, summary: sum, L: L, init: init, tables: tables, sent: s.sent, before: before, touched: touched, joins: joins, innerJoins: innerJoins, unions: unions, dtypeInWhere: dtypeInWhere, found: op === 'save' ? '-' : 'Book', rows: full, kidList: ks, fks: st === 'JOINED' ? kidNames.map(function (k) { return [k, 'id', 'item']; }) : [],
       row: [names.join(', ') + ' (' + names.length + '개' + (st === 'SINGLE_TABLE' ? ', 컬럼 ' + tables[0].cols.length + '개' : '') + ')', kindText, touched.join(', '), shapeText] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : sim.init, c = sim.c;
     H.table(v, ['줄', '코드', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← 지금' : ''] }; }).concat(c.op === 'save' ? [{ cells: ['', { v: '(트랜잭션 커밋)', cls: s.line === -1 ? 'hot' : '' }, s.line === -1 ? '← 지금' : ''] }] : []), '실행 중인 코드');
-    H.counters(v, [[sim.tables.length, '만들어진 테이블'], [s.sent.length, 'DB로 나간 SQL'], [s.found || '?', c.op === 'save' ? '조회한 객체 (해당 없음)' : '돌려받은 객체의 타입']].slice(0, c.op === 'save' ? 2 : 3));
+    if (c.op !== 'save') H.counters(v, [[s.found || '?', '돌려받은 객체의 타입']]);
     if (s.sent.length) H.table(v, ['#', 'SQL', '나간 시점'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'DB로 나간 SQL');
-    sim.tables.forEach(function (tb) {
-      var hot = s.hot.indexOf(tb.name) >= 0;
-      H.table(v, tb.cols, (s.rows[tb.name] || []).map(function (r) { return { cells: r.map(function (x) { return x === 'null' ? { v: 'null', cls: 'bad' } : hot ? { v: x, cls: 'hot' } : x; }) }; }), 'DB의 ' + tb.name + ' 테이블' + (hot ? (c.op === 'save' ? ' (방금 INSERT)' : ' (이번 SELECT가 읽음)') : ''));
-    });
   },
   // 그림: 위에는 자바의 상속(부모 Item과 자식들), 아래에는 그 전략으로 만들어진 테이블. SQL이 건드린 테이블이 노랗게 표시된다.
   draw: function (P, sim, shown) {
@@ -165,7 +160,7 @@ Lab.register({
     var how = { join: '노란 테이블 ' + s.hot.length + '개를 id로 조인해서 읽음', union: '노란 테이블 ' + s.hot.length + '개를 UNION ALL로 합쳐서 읽음', one: '노란 테이블 하나만 읽음' }[s.how] || '';
     var ins = s.sent.filter(function (q) { return q.kind === 'insert'; }).length;
     P.box('res', 16, 258, 648, 38, c.op === 'save' ? { cls: ins > 1 ? 'bad' : ins ? 'good' : 'ghost', title: 'Book 하나를 저장할 때 나간 INSERT', right: ins + '번' } : { cls: !how ? 'ghost' : s.how === 'one' ? 'good' : s.hot.length > 2 ? 'bad' : 'plain', title: c.op === 'findc' ? 'em.find(Book.class, 1L)의 쿼리' : 'em.find(Item.class, 1L)의 쿼리', right: how || '아직 실행 전' });
-    P.note('위쪽은 자바 클래스의 상속이고 아래쪽은 그것을 담으려고 만든 테이블입니다. 전략을 바꾸면 아래쪽 테이블의 수와 컬럼이 달라집니다. 노란 테이블은 이번 단계의 SQL이 행을 넣거나 읽은 곳입니다.');
+    P.note('위쪽은 자바 클래스의 상속이고 아래쪽은 그것을 담으려고 만든 테이블입니다. 노란 테이블은 이번 단계의 SQL이 행을 넣거나 읽은 곳입니다.');
   },
   assume: '부모 Item은 추상 클래스이고 자식은 필드를 하나씩만 가진다고 두었습니다. 기본 키는 코드에서 직접 넣었습니다. 구현 클래스마다 테이블 전략에서는 IDENTITY 전략을 쓸 수 없기 때문입니다(Hibernate 7.4.5에서 시작할 때 MappingException이 나는 것을 확인했습니다). 스물일곱 가지 조합(전략 세 가지, 해 볼 일 세 가지, 자식 클래스 1·2·3개) 모두를 Hibernate 7.4.5와 H2 데이터베이스에서 같은 구조의 코드로 실행해, 만들어진 테이블과 컬럼, 자식 테이블에서 부모 테이블로 가는 외래 키, 나간 SQL의 종류와 테이블별 횟수, 조회 쿼리가 읽은 테이블과 조인 수와 UNION 수, 구분 컬럼 조건이 붙는지, 돌려받은 객체의 타입, DB에 남은 행이 화면과 일치하는 것을 확인했습니다. Hibernate는 조인 전략과 구현 클래스마다 테이블 전략에서 대량 수정 쿼리에 쓸 임시 테이블(이름이 ht_, hte_로 시작)을 따로 만들어 두는데, 매핑과 상관없는 것이어서 화면에서는 뺐습니다. 조인 전략에 구분 컬럼(DTYPE)을 두지 않은 것은 Hibernate의 기본 동작이며, @DiscriminatorColumn을 붙이면 item 테이블에 dtype 컬럼이 생기는 것도 실행해서 확인했습니다. @Inheritance를 아예 적지 않으면 단일 테이블 전략과 같은 테이블이 만들어지는 것도 확인했습니다. 화면의 SQL 문장은 읽기 쉽게 줄여 쓴 것이어서 실제 문장과 글자가 같지는 않습니다. 실제 SQL에서는 조인 전략의 부모 타입 조회가 CASE 식으로, 구현 클래스마다 테이블 전략의 부모 타입 조회가 자식마다 붙인 번호로 어느 자식인지 구분합니다. 테이블 안의 컬럼 순서도 실제와 다를 수 있습니다.',
 });

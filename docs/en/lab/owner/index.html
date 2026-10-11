@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Relationships</p>
 <h1>The owning side of a relationship</h1>
 <p><b>You added a member to the team's list, so why is the foreign key in the database empty?</b></p>
-<p>When a team and a member point to each other, the Java objects have two references (the team of the member, and the members of the team). In the database, however, the only thing that links them is one foreign key, team_id in the member table. JPA looks at only one of the two references when it writes the foreign key. That side is called the owning side of the relationship. Follow it line by line to see what is left in the database depending on which side you set the value on.</p>
+<p>When a team and a member point to each other, the Java objects have two references (the team of the member, and the members of the team). In the database, however, the only thing that links them is one foreign key, team_id in the member table. JPA looks at only one of the two references when it writes the foreign key. That side is called the owning side of the relationship.</p>
 <p>Checked against real execution · All 12 combinations were run on Hibernate 7.4.5 and H2, and the tables, the SQL that was sent, the foreign key values, and the size of the list were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -68,7 +68,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>member.team_id in the database is null, and team.getMembers().size() is 1. The SQL sent was INSERT: 2.</li>
 <li>If you set the value only on the side that is not the owning side (Team.members, which has mappedBy), the foreign key is not stored. No exception is thrown, so it is easy to think it was saved. Inside the same transaction, the member is visible in the list in memory, so it is even harder to notice.</li>
 </ul>
 <h2>Code</h2>
@@ -188,6 +187,6 @@ int size = found.getMembers().size();
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

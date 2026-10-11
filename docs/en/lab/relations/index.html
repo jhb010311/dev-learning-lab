@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Relationships</p>
 <h1>Many-to-one, one-to-many, one-to-one, many-to-many</h1>
 <p><b>How do the tables and foreign keys change depending on the kind of relationship?</b></p>
-<p>The relationships between entities include many-to-one, one-to-many, one-to-one, and many-to-many. Which one you choose changes the number of tables that are created, the table that holds the foreign key, and the SQL that is sent when you save. Change the kind of relationship, save the same data, and compare the table diagrams and the number of SQL statements.</p>
+<p>The relationships between entities include many-to-one, one-to-many, one-to-one, and many-to-many. Which one you choose changes the number of tables that are created, the table that holds the foreign key, and the SQL that is sent when you save.</p>
 <p>Checked against real execution · All 14 combinations were run on Hibernate 7.4.5 and H2, and the tables, the foreign key and unique constraints, the SQL that was sent, and the values left were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -69,7 +69,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Tables created: 2 (team, member). The foreign key is in member.team_id. The SQL sent when saving was INSERT: 3, UPDATE: 2.</li>
 <li>In a unidirectional one-to-many, the foreign key is in the member table too. This is because in a table, the foreign key always sits on the &quot;many&quot; side. But what manages it is the list in the entity on the other side, Team. When Member is INSERTed, it cannot know the team, so the foreign key is filled in later with an UPDATE. One more UPDATE was sent for each member (2 in all).</li>
 <li>The table shape is exactly the same as in a many-to-one, but more SQL is sent. So a common approach is to use many-to-one first, and if the team needs a list of its members, to make the relationship bidirectional by adding mappedBy.</li>
 </ul>
@@ -187,6 +186,6 @@ for (int i = 1; i &lt;= 2; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'owner', nav: 'The owning side of a relationship', cat: 'JPA', mode: 'step',
   title: 'You added a member to the team\'s list, so why is the foreign key in the database empty?',
-  intro: 'When a team and a member point to each other, the Java objects have two references (the team of the member, and the members of the team). In the database, however, the only thing that links them is one foreign key, team_id in the member table. JPA looks at only one of the two references when it writes the foreign key. That side is called the owning side of the relationship. Follow it line by line to see what is left in the database depending on which side you set the value on.',
+  intro: 'When a team and a member point to each other, the Java objects have two references (the team of the member, and the members of the team). In the database, however, the only thing that links them is one foreign key, team_id in the member table. JPA looks at only one of the two references when it writes the foreign key. That side is called the owning side of the relationship.',
   terms: ['Owning side and mappedBy', 'Unidirectional and bidirectional relationships', 'Primary key, unique key, foreign key', 'First-level cache', 'Transactional write-behind and flush'],
   controls: [
     { id: 'set', label: 'Which side do you set', type: 'select', value: 'inverse', options: [['inverse', 'The team side only: team.getMembers().add(member)'], ['owner', 'The member side only: member.setTeam(team)'], ['both', 'Both sides']] },
@@ -99,7 +99,6 @@ Lab.register({
     var sqlText = order.map(function (k) { return k + ': ' + kinds[k]; }).join(', ');
     var tables = [{ name: 'member', cols: ['id', 'name', 'team_id'] }, { name: 'team', cols: ['id', 'name'] }];
     if (!mp) tables.push({ name: 'team_member', cols: ['members_id', 'team_id'] });
-    sum.push('member.team_id in the database is ' + st.fk + ', and team.getMembers().size() is ' + st.size + '. The SQL sent was ' + sqlText + '.');
     if (mp && !own) sum.push('If you set the value only on the side that is not the owning side (Team.members, which has mappedBy), the foreign key is not stored. No exception is thrown, so it is easy to think it was saved.' + (clear ? ' If you read it again from the database, the list of the team is empty.' : ' Inside the same transaction, the member is visible in the list in memory, so it is even harder to notice.'));
     if (mp && own && !inv) sum.push('You set the value on the owning side (Member.team), so the foreign key is stored.' + (clear ? ' If you read it again from the database, the list of the team is filled in correctly too. But code does not always go through flush and clear, so it is safer to set both sides.' : ' But you did not add the member to the list of the team object, so if you read team.getMembers() in the same transaction, it is empty. The database and memory are in different states.'));
     if (mp && own && inv) sum.push('If you set both sides, the foreign key in the database and the list in memory are both correct. What stores the foreign key is member.setTeam(team), and team.getMembers().add(member) is for reading the objects inside the same transaction.', 'Many people write a helper method that also calls team.getMembers().add(this) inside setTeam, so that they do not forget either one of the two.');
@@ -109,17 +108,10 @@ Lab.register({
   },
   blank: function () { return { line: -2, team: '', teamList: '', member: '', ref: false, link: false, sent: [], dbTeam: false, dbMember: false, fk: '?', join: 0, size: '?' }; },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : this.blank(), mp = !!sim.c.mp;
+    var last = shown[shown.length - 1], s = last ? last.snap : this.blank();
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }).concat([{ cells: ['', { v: '(Transaction commit)', cls: s.line === -1 ? 'hot' : '' }, s.line === -1 ? '← now' : ''] }]), 'Code being run');
-    H.counters(v, [[s.fk, 'member.team_id in the database'], [s.size === '?' ? '?' : s.size, 'team.getMembers().size()'], [s.sent.length, 'SQL statements sent']]);
-    H.table(v, ['Reference', 'Value', 'When JPA writes the foreign key'], [
-      { cells: ['member.team', s.member === 'gone' ? '(detached)' : s.ref ? 'team' : s.member ? 'null' : '(not yet)', { v: 'Puts this value into team_id (owning side)', cls: 'good' }] },
-      { cells: ['team.members', s.team ? s.teamList : '(not yet)', mp ? 'Does not look at it (mappedBy)' : { v: 'Stores it separately in the join table team_member', cls: 'hot' }] },
-    ], 'The two references of the Java objects');
+    H.counters(v, [[s.sent.length, 'SQL statements sent']]);
     if (s.sent.length) H.table(v, ['#', 'SQL', 'When it was sent'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'SQL sent to the database');
-    H.table(v, ['id', 'name'], s.dbTeam ? [{ cells: ['1', 'Engineering'] }] : [], 'team table in the database');
-    H.table(v, ['id', 'name', 'team_id'], s.dbMember ? [{ cells: ['1', 'Alice', { v: s.fk, cls: s.fk === 'null' ? 'bad' : 'good' }] }] : [], 'member table in the database');
-    if (!mp) H.table(v, ['team_id', 'members_id'], s.join ? [{ cells: ['1', '1'] }] : [], 'team_member table in the database (join table)');
   },
   // Diagram: the two Java objects and the two references that point to each other are on the left, and the tables of the database are on the right. Only the reference on the owning side is connected to the foreign key.
   draw: function (P, sim, shown) {

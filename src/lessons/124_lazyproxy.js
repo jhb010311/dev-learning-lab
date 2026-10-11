@@ -1,7 +1,7 @@
 Lab.register({
   id: 'lazyproxy', nav: '프록시와 지연 로딩', cat: 'JPA', mode: 'step',
   title: '지연 로딩으로 받은 객체는 진짜 엔티티인가',
-  intro: 'em.getReference나 지연 로딩으로 받은 회원 객체는 진짜 Member가 아니라, 식별자만 알고 있는 프록시(대리 객체)일 수 있습니다. 프록시는 진짜 데이터가 필요해지는 순간에야 DB를 조회합니다. 객체를 얻는 방법과 그 객체로 하는 일을 바꿔 가며, 조회 SQL이 언제 나가고 언제 예외가 나는지 보세요.',
+  intro: 'em.getReference나 지연 로딩으로 받은 회원 객체는 진짜 Member가 아니라, 식별자만 알고 있는 프록시(대리 객체)일 수 있습니다. 프록시는 진짜 데이터가 필요해지는 순간에야 DB를 조회합니다.',
   terms: ['엔티티 프록시', 'LazyInitializationException', '지연 로딩과 즉시 로딩', '영속성 컨텍스트', '1차 캐시'],
   controls: [
     { id: 'how', label: '회원 객체 m을 얻는 방법', type: 'select', value: 'ref', options: [['ref', 'em.getReference(Member.class, 1L)'], ['lazy', '주문을 조회한 뒤 order.getMember() (지연 로딩)'], ['find', 'em.find(Member.class, 1L)'], ['findref', 'em.find로 먼저 읽은 뒤 em.getReference'], ['reffind', 'em.getReference를 먼저 한 뒤 em.find']] },
@@ -93,14 +93,13 @@ Lab.register({
       }
     }
     var sel = st.sent.filter(function (q) { return q.sql === selM; }).length;
-    sum.push('m은 ' + (proxy ? '프록시' : '진짜 Member 엔티티') + '입니다. 회원 테이블 조회는 ' + (sel ? sel + '번(' + when + ') 나갔습니다.' : '한 번도 나가지 않았습니다.') + (st.err ? ' 마지막 줄에서 ' + st.err + '이 났습니다.' : ''));
     if (how === 'ref' || how === 'lazy') {
       if (use === 'id') sum.push('프록시는 식별자를 갖고 태어나므로 getId()로는 초기화되지 않습니다. 식별자만 필요할 때(예: 외래 키 값만 넣어 연관관계를 맺을 때)는 DB를 조회하지 않아도 됩니다.');
       if (use === 'name') sum.push('조회 SQL은 객체를 받는 순간이 아니라, 식별자가 아닌 값을 처음 쓰는 순간에 나갑니다. 이것이 지연 로딩입니다.' + (how === 'lazy' ? ' 주문이 여러 건이고 주문마다 이 일이 일어나면 "N+1" 실습에서 본 문제가 됩니다.' : ''));
       if (use === 'cls') sum.push('equals를 직접 만들 때 getClass() != o.getClass()로 타입을 비교하면, 프록시와 진짜 엔티티가 서로 다른 객체로 판정됩니다. 엔티티의 타입 비교에는 instanceof를 쓰고, 필드는 게터로 읽습니다.');
       if (use === 'closed') sum.push('초기화되지 않은 프록시는 영속성 컨텍스트가 열려 있는 동안에만 채울 수 있습니다. 트랜잭션 밖에서 쓸 값은 트랜잭션 안에서 미리 읽어 두거나, 처음부터 fetch join으로 함께 가져옵니다.');
     }
-    if (how === 'find') sum.push('em.find는 부르는 즉시 DB를 조회해 진짜 엔티티를 돌려줍니다. ' + (use === 'closed' ? '데이터를 이미 갖고 있으므로 영속성 컨텍스트가 닫힌 뒤에도 값을 읽을 수 있습니다.' : use === 'cls' ? '그래서 getClass() 비교도 true입니다. getReference나 지연 로딩으로 받았을 때와 비교해 보세요.' : 'getReference로 받았을 때와 SQL이 나가는 시점을 비교해 보세요.'));
+    if (how === 'find') sum.push('em.find는 부르는 즉시 DB를 조회해 진짜 엔티티를 돌려줍니다.' + (use === 'closed' ? ' 데이터를 이미 갖고 있으므로 영속성 컨텍스트가 닫힌 뒤에도 값을 읽을 수 있습니다.' : use === 'cls' ? ' 그래서 getClass() 비교도 true입니다.' : ''));
     if (how === 'findref') sum.push('영속성 컨텍스트에 이미 진짜 엔티티가 있으면 getReference도 프록시가 아니라 그 엔티티를 돌려줍니다. getReference의 결과가 언제나 프록시인 것은 아닙니다.');
     if (how === 'reffind') sum.push('프록시가 먼저 만들어졌다면 그 뒤의 em.find도 같은 프록시를 돌려줍니다. em.find로 받았다고 해서 진짜 Member 클래스의 객체라고 단정할 수 없습니다.' + (use === 'cls' ? ' 그래서 em.find의 결과인데도 getClass() 비교가 false입니다.' : use === 'closed' ? ' 다만 em.find가 SELECT를 보내면서 프록시를 초기화했으므로, 닫힌 뒤에도 값을 읽을 수 있습니다.' : ''));
     return { events: ev, summary: sum, L: L, proxy: proxy, same: same, init: st.m === 'entity' || st.init, row: [proxy ? '프록시' : '진짜 엔티티', sel ? sel + '번 (' + when + ')' : '0번', res] };
@@ -109,12 +108,9 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : this.blank(), cur = Math.min(s.line, sim.L.length - 1);   // 한 줄이 두 단계로 나뉘는 경우(프록시 초기화)가 있다
     H.table(v, ['줄', '코드', ''], sim.L.map(function (l, i) { return { cells: [String(i + 1), { v: l, cls: i === cur ? 'hot' : '' }, i === cur ? '← 지금' : ''] }; }), '실행 중인 코드');
-    H.counters(v, [[s.sent.filter(function (q) { return q.sql.indexOf('from member') > 0; }).length, '회원 테이블 조회'], [s.m === 'none' ? '-' : s.m === 'proxy' ? '프록시' : '진짜 엔티티', 'm의 정체']]);
+    H.counters(v, [[s.sent.filter(function (q) { return q.sql.indexOf('from member') > 0; }).length, '회원 테이블 조회']]);
     var ln = H.lanes(v);
     H.lane(ln, 'm의 클래스', s.m === 'none' ? '아직 없음' : s.m === 'proxy' ? 'Member$HibernateProxy (Member를 상속한 프록시)' : 'Member', s.m === 'proxy' ? 'hot' : s.m === 'entity' ? 'good' : 'none');
-    H.lane(ln, '내용', s.m === 'none' ? '아직 없음' : s.m === 'entity' || s.init ? 'id 1, name 김철수' : 'id 1만 알고 있음 (초기화 전)', s.m === 'none' ? 'none' : s.m === 'entity' || s.init ? 'good' : 'wait');
-    H.lane(ln, '영속성 컨텍스트', s.open ? '열려 있음' : '닫힘', s.open ? 'good' : 'bad');
-    H.lane(ln, '결과', s.err ? '예외: ' + s.err : s.out || '아직 없음', s.err ? 'bad' : s.out ? 'good' : 'none');
     if (s.sent.length) H.table(v, ['#', 'SQL', '나간 때'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i >= s.sent.length - s.fresh ? 'hot' : '' }, q.at] }; }), 'DB로 나간 SQL'); else { H.title(v, 'DB로 나간 SQL'); H.text(v, '아직 없습니다.'); }
   },
   // 그림: 왼쪽 영속성 컨텍스트 안에 프록시와 진짜 Member(지연 로딩이면 주문도), 오른쪽에 DB. 프록시가 초기화되면 진짜 객체로 가는 화살표가 생긴다.

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'owner', nav: '연관관계의 주인', cat: 'JPA', mode: 'step',
   title: '팀의 목록에 회원을 넣었는데 왜 DB의 외래 키는 비어 있나',
-  intro: '팀과 회원이 서로를 가리키면 자바 객체에는 참조가 두 개(회원의 team, 팀의 members) 생깁니다. 하지만 DB에서 둘을 잇는 것은 member 테이블의 외래 키 team_id 하나뿐입니다. JPA는 두 참조 가운데 한쪽만 보고 외래 키를 씁니다. 그쪽을 연관관계의 주인이라고 합니다. 어느 쪽에 값을 넣느냐에 따라 DB에 무엇이 남는지 한 줄씩 따라가 보세요.',
+  intro: '팀과 회원이 서로를 가리키면 자바 객체에는 참조가 두 개(회원의 team, 팀의 members) 생깁니다. 하지만 DB에서 둘을 잇는 것은 member 테이블의 외래 키 team_id 하나뿐입니다. JPA는 두 참조 가운데 한쪽만 보고 외래 키를 씁니다. 그쪽을 연관관계의 주인이라고 합니다.',
   terms: ['연관관계의 주인과 mappedBy', '단방향과 양방향 연관관계', '기본 키, 유니크 키, 외래 키', '1차 캐시', '쓰기 지연과 flush'],
   controls: [
     { id: 'set', label: '어느 쪽에 값을 넣는가', type: 'select', value: 'inverse', options: [['inverse', '팀 쪽에만: team.getMembers().add(member)'], ['owner', '회원 쪽에만: member.setTeam(team)'], ['both', '양쪽 모두']] },
@@ -99,7 +99,6 @@ Lab.register({
     var sqlText = order.map(function (k) { return k + ' ' + kinds[k] + '번'; }).join(', ');
     var tables = [{ name: 'member', cols: ['id', 'name', 'team_id'] }, { name: 'team', cols: ['id', 'name'] }];
     if (!mp) tables.push({ name: 'team_member', cols: ['members_id', 'team_id'] });
-    sum.push('DB의 member.team_id는 ' + st.fk + '이고, team.getMembers().size()는 ' + st.size + '입니다. 나간 SQL은 ' + sqlText + '입니다.');
     if (mp && !own) sum.push('주인이 아닌 쪽(mappedBy가 붙은 Team.members)에만 넣으면 외래 키가 저장되지 않습니다. 예외가 나지 않아서 저장된 줄 알기 쉽습니다.' + (clear ? ' DB에서 다시 읽어 보면 팀의 목록이 비어 있습니다.' : ' 같은 트랜잭션 안에서는 메모리의 목록에 회원이 보이기 때문에 더 알아차리기 어렵습니다.'));
     if (mp && own && !inv) sum.push('주인 쪽(Member.team)에 넣었으므로 외래 키가 저장됩니다.' + (clear ? ' DB에서 다시 읽으면 팀의 목록도 맞게 채워집니다. 하지만 코드가 늘 flush와 clear를 거치는 것은 아니므로, 양쪽에 다 넣어 두는 편이 안전합니다.' : ' 하지만 팀 객체의 목록에는 넣지 않았기 때문에, 같은 트랜잭션 안에서 team.getMembers()를 읽으면 비어 있습니다. DB와 메모리가 서로 다른 상태입니다.'));
     if (mp && own && inv) sum.push('양쪽에 다 넣으면 DB의 외래 키도, 메모리의 목록도 맞습니다. 외래 키를 저장하는 것은 member.setTeam(team)이고, team.getMembers().add(member)는 같은 트랜잭션 안에서 객체를 읽을 때를 위한 것입니다.', '둘 중 하나를 빠뜨리지 않도록, setTeam 안에서 team.getMembers().add(this)까지 함께 하는 메서드를 만들어 두는 방법을 많이 씁니다(연관관계 편의 메서드).');
@@ -109,17 +108,10 @@ Lab.register({
   },
   blank: function () { return { line: -2, team: '', teamList: '', member: '', ref: false, link: false, sent: [], dbTeam: false, dbMember: false, fk: '?', join: 0, size: '?' }; },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : this.blank(), mp = !!sim.c.mp;
+    var last = shown[shown.length - 1], s = last ? last.snap : this.blank();
     H.table(v, ['줄', '코드', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← 지금' : ''] }; }).concat([{ cells: ['', { v: '(트랜잭션 커밋)', cls: s.line === -1 ? 'hot' : '' }, s.line === -1 ? '← 지금' : ''] }]), '실행 중인 코드');
-    H.counters(v, [[s.fk, 'DB의 member.team_id'], [s.size === '?' ? '?' : s.size + '명', 'team.getMembers().size()'], [s.sent.length, 'DB로 나간 SQL']]);
-    H.table(v, ['참조', '값', 'JPA가 외래 키를 쓸 때'], [
-      { cells: ['member.team', s.member === 'gone' ? '(관리 끝남)' : s.ref ? 'team' : s.member ? 'null' : '(아직 없음)', { v: '이 값을 team_id에 넣는다 (주인)', cls: 'good' }] },
-      { cells: ['team.members', s.team ? s.teamList : '(아직 없음)', mp ? '보지 않는다 (mappedBy)' : { v: '연결 테이블 team_member에 따로 넣는다', cls: 'hot' }] },
-    ], '자바 객체의 두 참조');
+    H.counters(v, [[s.sent.length, 'DB로 나간 SQL']]);
     if (s.sent.length) H.table(v, ['#', 'SQL', '나간 시점'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'DB로 나간 SQL');
-    H.table(v, ['id', 'name'], s.dbTeam ? [{ cells: ['1', '개발팀'] }] : [], 'DB의 team 테이블');
-    H.table(v, ['id', 'name', 'team_id'], s.dbMember ? [{ cells: ['1', '김철수', { v: s.fk, cls: s.fk === 'null' ? 'bad' : 'good' }] }] : [], 'DB의 member 테이블');
-    if (!mp) H.table(v, ['team_id', 'members_id'], s.join ? [{ cells: ['1', '1'] }] : [], 'DB의 team_member 테이블 (연결 테이블)');
   },
   // 그림: 왼쪽에 자바 객체 둘과 서로를 가리키는 두 참조, 오른쪽에 DB의 테이블. 주인 쪽 참조만 외래 키로 이어진다.
   draw: function (P, sim, shown) {

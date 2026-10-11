@@ -1,7 +1,7 @@
 Lab.register({
   id: 'fetchjoin', nav: 'JPQL과 페치 조인', cat: 'JPA', mode: 'step',
   title: 'join과 join fetch는 무엇이 다른가',
-  intro: 'JPQL은 테이블이 아니라 엔티티를 대상으로 쓰는 쿼리입니다. 게시글을 조회하면서 댓글을 그냥 join할 때와 join fetch할 때, DB에서 읽어 오는 컬럼과 그 뒤에 따라 나가는 조회가 달라집니다. 컬렉션을 페치 조인하면 결과가 몇 개가 되는지, 페이징을 걸면 어디에서 자르는지도 함께 보세요.',
+  intro: 'JPQL은 테이블이 아니라 엔티티를 대상으로 쓰는 쿼리입니다. 게시글을 조회하면서 댓글을 그냥 join할 때와 join fetch할 때, DB에서 읽어 오는 컬럼과 그 뒤에 따라 나가는 조회가 달라집니다.',
   terms: ['JPQL', 'fetch join', '컬렉션 페치 조인과 페이징', 'MultipleBagFetchException', '카테시안 곱'],
   controls: [
     { id: 'q', label: '실행할 JPQL', type: 'select', value: 'join', options: [['plain', 'select p from Post p (조인 없음)'], ['table', 'select p from posts p (테이블 이름을 씀)'], ['join', '… join p.comments c (그냥 조인)'], ['fetch', '… join fetch p.comments (페치 조인)'], ['fetchsort', '… join fetch p.comments c order by c.id desc (댓글 기준 정렬)'], ['two', '… join fetch p.comments join fetch p.files (컬렉션 두 개)']] },
@@ -38,7 +38,7 @@ Lab.register({
     if (q === 'table') {
       st.err = 'UnknownEntityException';
       push('em.createQuery("… from posts p …"): JPQL의 from 뒤에는 테이블 이름이 아니라 엔티티 이름이 와야 합니다. posts는 @Table에 적은 테이블 이름이고, 그런 이름의 엔티티는 없습니다. 쿼리를 만드는 단계에서 IllegalArgumentException(원인은 UnknownEntityException)이 납니다. DB에는 아무것도 가지 않았습니다.', 'bad');
-      sum.push('SQL이 한 번도 나가지 않고 예외로 끝났습니다.', 'JPQL은 엔티티 이름(Post)과 필드 이름(p.title, p.comments)으로 씁니다. 테이블 이름(posts)과 컬럼 이름은 Hibernate가 SQL로 바꿀 때 채워 넣습니다. 그래서 테이블 이름을 그대로 쓰면 이 쿼리처럼 거절됩니다.' + (page ? ' 페이징 설정은 쿼리가 만들어진 뒤의 일이라 결과에 영향이 없습니다.' : ''));
+      sum.push('JPQL은 엔티티 이름(Post)과 필드 이름(p.title, p.comments)으로 씁니다. 테이블 이름(posts)과 컬럼 이름은 Hibernate가 SQL로 바꿀 때 채워 넣습니다. 그래서 테이블 이름을 그대로 쓰면 이 쿼리처럼 거절됩니다.' + (page ? ' 페이징 설정은 쿼리가 만들어진 뒤의 일이라 결과에 영향이 없습니다.' : ''));
       return fail('UnknownEntityException', 'createQuery');
     }
     push('em.createQuery(…): JPQL은 테이블이 아니라 엔티티를 대상으로 씁니다. from Post p의 Post는 클래스 이름이고' + (q === 'plain' ? '' : ', p.comments는 Post의 필드 이름') + '입니다. Hibernate가 이것을 posts' + (q === 'plain' ? ' 테이블을' : q === 'two' ? ', comments, files 테이블을' : '와 comments 테이블을') + ' 조회하는 SQL로 바꿉니다.', '');
@@ -46,7 +46,7 @@ Lab.register({
     if (q === 'two') {
       st.err = 'MultipleBagFetchException';
       push('getResultList(): 실행하려는 순간 Hibernate가 거절합니다. comments와 files가 둘 다 List이고, List 두 개를 한 SQL로 함께 가져오면 행이 두 목록 크기의 곱으로 늘어나 어느 행이 중복인지 가려낼 수 없기 때문입니다. IllegalArgumentException(원인은 MultipleBagFetchException)이 나고 SQL은 나가지 않습니다.', 'bad');
-      sum.push('SQL이 한 번도 나가지 않고 예외로 끝났습니다.', 'List로 선언한 컬렉션 두 개는 함께 페치 조인할 수 없습니다. 한쪽을 Set으로 바꾸면 예외는 사라지지만, 같은 환경에서 실행해 보니 DB가 8행(게시글 1은 댓글 3 × 첨부 2 = 6행)을 돌려주었고 게시글 1의 comments 목록에는 같은 댓글이 겹쳐 6개가 들어 있었습니다.', '컬렉션은 하나만 페치 조인하고, 나머지는 지연 로딩에 배치 크기 설정을 더해 따로 가져오는 방법을 씁니다.' + (page ? ' 페이징을 걸었는지와 상관없이 같은 예외입니다.' : ''));
+      sum.push('List로 선언한 컬렉션 두 개는 함께 페치 조인할 수 없습니다. 한쪽을 Set으로 바꾸면 예외는 사라지지만, 같은 환경에서 실행해 보니 DB가 8행(게시글 1은 댓글 3 × 첨부 2 = 6행)을 돌려주었고 게시글 1의 comments 목록에는 같은 댓글이 겹쳐 6개가 들어 있었습니다.', '컬렉션은 하나만 페치 조인하고, 나머지는 지연 로딩에 배치 크기 설정을 더해 따로 가져오는 방법을 씁니다.' + (page ? ' 페이징을 걸었는지와 상관없이 같은 예외입니다.' : ''));
       return fail('MultipleBagFetchException', 'getResultList');
     }
     // 어디에서 자르는가: sql 바깥 쿼리 끝, sub 서브쿼리, mem 메모리
@@ -76,12 +76,11 @@ Lab.register({
       extra++; p.n = count[p.id]; p.how = 'lazy'; send('select * from comments where post_id = ' + p.id, '게시글 ' + p.id + '의 댓글 (지연 로딩)');
       push('반복문, 게시글 ' + p.id + ': p.getComments().size()를 부르는 순간 비어 있던 목록을 채우려고 댓글 조회 SQL이 따로 나갑니다.', 'bad');
     });
-    sum.push('결과 목록은 ' + ids.length + '개입니다. SQL은 목록 조회 1번' + (extra ? '에 댓글 조회 ' + extra + '번이 더 나가 모두 ' + (1 + extra) + '번입니다.' : '으로 끝났습니다.') + (st.warn ? ' 경고 ' + st.warn + '가 로그에 남았습니다.' : ''));
     if (q === 'plain') sum.push('연관된 댓글은 가져오지 않았으므로 게시글마다 댓글 조회가 따로 나갑니다. 게시글이 많아지면 조회도 그만큼 늘어납니다("N+1" 실습 참고).' + (page ? ' 컬렉션을 페치 조인하지 않은 쿼리의 페이징은 SQL에서 그대로 처리됩니다.' : ''));
     if (q === 'join') sum.push('그냥 join은 SQL에 조인을 넣을 뿐, 연관 엔티티의 컬럼을 읽어 오지 않습니다. 댓글로 조건을 걸 때는 쓸모가 있지만, 댓글을 쓰려면 다시 조회해야 합니다. 함께 가져오려면 join fetch를 씁니다.', page ? '행 수 제한이 조인으로 늘어난 행에 걸린다는 점에 주의합니다. 같은 환경에서 두 번째 페이지(setFirstResult(1))를 요청했더니 게시글 2가 아니라 게시글 1이 또 나왔습니다. 두 번째 행도 게시글 1의 행이기 때문입니다.' : 'DB는 5행을 돌려주었지만 결과 목록은 2개였습니다. Hibernate 7.4.5는 엔티티 하나를 조회하는 쿼리에서 같은 엔티티를 한 번만 담습니다. 엔티티가 아니라 값(p.title)을 조회하면 5개가 그대로 나오는 것도 같은 환경에서 확인했습니다.');
     if (q === 'fetch' && !page) sum.push('join fetch는 연관된 댓글의 컬럼까지 한 SQL로 읽어 와 comments 목록을 채워 둡니다. 그래서 뒤따르는 조회가 없습니다.', '컬렉션을 조인하면 행은 5개로 늘지만 결과 목록은 게시글 2개입니다. Hibernate 5까지는 같은 게시글이 댓글 수만큼 결과에 들어 있어 select distinct를 붙여야 했다고 문서에 나와 있습니다(이 환경에서 예전 버전을 실행해 보지는 못했습니다).');
-    if (q === 'fetch' && page) sum.push('Hibernate 7.4.5는 컬렉션 페치 조인에 페이징을 걸면, 서브쿼리에서 게시글을 먼저 자르고 그 게시글의 댓글만 조인하는 SQL을 만듭니다. DB에서 자르므로 필요한 3행만 읽어 옵니다.', '예전 버전(스프링 부트 3이 쓰는 Hibernate 6 등)은 이 경우 행 수 제한 없이 전부 읽어 와 메모리에서 잘랐다고 문서에 나와 있습니다. 지금 버전에서도 그렇게 되는 경우가 남아 있습니다. "메모리에서 자르는 경우" 예시와 비교해 보세요.');
-    if (q === 'fetchsort' && !page) sum.push('정렬 기준을 댓글로 바꿔도 페치 조인의 결과는 같습니다. 댓글 id가 큰 행이 먼저 오므로 결과 목록의 순서만 게시글 2, 게시글 1로 바뀌었습니다. 여기에 페이징을 걸면 어떻게 되는지 보세요.');
+    if (q === 'fetch' && page) sum.push('Hibernate 7.4.5는 컬렉션 페치 조인에 페이징을 걸면, 서브쿼리에서 게시글을 먼저 자르고 그 게시글의 댓글만 조인하는 SQL을 만듭니다. DB에서 자르므로 필요한 3행만 읽어 옵니다.', '예전 버전(스프링 부트 3이 쓰는 Hibernate 6 등)은 이 경우 행 수 제한 없이 전부 읽어 와 메모리에서 잘랐다고 문서에 나와 있습니다. 지금 버전에서도 그렇게 되는 경우가 남아 있습니다.');
+    if (q === 'fetchsort' && !page) sum.push('정렬 기준을 댓글로 바꿔도 페치 조인의 결과는 같습니다. 댓글 id가 큰 행이 먼저 오므로 결과 목록의 순서만 게시글 2, 게시글 1로 바뀌었습니다.');
     if (lim === 'mem') sum.push('컬렉션 페치 조인에 페이징을 걸었는데 SQL에 행 수 제한이 없으면, 조건에 맞는 행을 전부 읽어 온 뒤 메모리에서 자른 것입니다. 지금은 5행이지만 게시글이 수십만 건이면 전부 메모리에 올라옵니다.', 'Hibernate 7.4.5는 게시글 기준 정렬처럼 가능한 경우에는 DB에서 자르지만, 이 예처럼 정렬 기준이 컬렉션 쪽이면 메모리에서 자릅니다. 예전 버전은 컬렉션 페치 조인의 페이징을 늘 이 방식으로 처리했다고 문서에 나와 있습니다. 경고 HHH90003004가 보이면 컬렉션은 페치 조인하지 말고 배치 크기 설정으로 가져오도록 바꿉니다.');
     var limText = { none: '페이징 안 함', sql: 'SQL 끝에 있음', sub: '서브쿼리 안에 있음', mem: 'SQL에 없음 (메모리에서 자름)' }[lim];
     return { events: ev, summary: sum, jp: jp, facts: { exAt: 'none', loaded: fetch, firstN: count[ids[0]] }, row: [ids.length + '개 (게시글 ' + ids.join(', ') + ')', (fetch ? '게시글 + 댓글 컬럼' : '게시글 컬럼만') + ' · ' + rows.length + '행', limText, extra + '번', st.warn ? st.warn + ' 경고' : '없음'] };
@@ -89,10 +88,6 @@ Lab.register({
   blank: function () { return { rows: [], list: [], sent: [], fresh: 0, warn: '', err: '', made: false, cut: false }; },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : this.blank();
-    H.title(v, '실행하는 JPQL'); H.text(v, sim.jp);
-    H.counters(v, [[s.sent.length, 'DB로 나간 SQL'], [s.rows.length ? s.rows.length + '행' : '-', '목록 조회가 돌려준 행'], [s.made ? s.list.length + '개' : '-', '결과 목록']]);
-    if (s.rows.length) H.table(v, ['#', '게시글', '댓글'], s.rows.map(function (r, i) { return { cls: r.off ? 'gone' : '', cells: [String(i + 1), '게시글 ' + r.p, r.c ? '댓글 ' + r.c + (sim.facts.loaded ? '' : ' (조인만, 읽지 않음)') : '-'] }; }), 'DB가 돌려준 행');
-    if (s.made) H.table(v, ['게시글', 'comments 목록'], s.list.map(function (p) { return { cells: ['게시글 ' + p.id + ' "' + p.title + '"', { v: p.n < 0 ? '아직 읽지 않음' : '댓글 ' + p.n + '개 (' + (p.how === 'fetch' ? '목록 조회 때 함께 읽음' : '추가 조회로 읽음') + ')', cls: p.n < 0 ? '' : p.how === 'fetch' ? 'good' : 'hot' }] }; }), '결과 목록 List<Post>');
     if (s.sent.length) H.table(v, ['#', 'SQL', '이유'], s.sent.map(function (x, i) { return { cells: [String(i + 1), { v: x.sql, cls: i >= s.sent.length - s.fresh ? 'hot' : '' }, x.why] }; }), 'DB로 나간 SQL');
     if (s.warn) H.text(v, '경고 ' + s.warn + ': firstResult/maxResults specified with collection fetch; applying in memory');
     if (s.err) H.text(v, '예외: IllegalArgumentException (원인 ' + s.err + ')');

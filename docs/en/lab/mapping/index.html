@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Entity mapping and primary keys: How do the annotations on an entity change the table and the values that are stored? · Dev Learning Lab</title>
-<meta name="description" content="JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping. Change the annotations and see…">
+<meta name="description" content="JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/mapping/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/mapping/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/mapping/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Entity mapping and primary keys: How do the annotations on an entity change the table and the values that are stored? · Dev Learning Lab">
-<meta property="og:description" content="JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping. Change the annotations and see…">
+<meta property="og:description" content="JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/mapping/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Entity mapping</p>
 <h1>Entity mapping and primary keys</h1>
 <p><b>How do the annotations on an entity change the table and the values that are stored?</b></p>
-<p>JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping. Change the annotations and see how the table that Hibernate creates (the create table statement) and the values that are actually stored in the database change.</p>
+<p>JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping.</p>
 <p>Checked against real execution · All 96 combinations of entities were compiled and run on Hibernate 7.4.5 and H2, and the create table statements and the stored values were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -68,8 +68,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The name column was created as &quot;varchar(255)&quot;. The value stored in the grade column is 1, and the grade read back is VIP. The memo column exists, and the saved id is 100.</li>
-<li>ORDINAL stores the ordinal of the constant, that is, its position in the enum declaration. A number takes little space, but what the number means depends on the order in which the constants are written in the enum. Change the setting to &quot;ORDINAL + after saving, add a value at the front of the enum&quot;.</li>
+<li>ORDINAL stores the ordinal of the constant, that is, its position in the enum declaration. A number takes little space, but what the number means depends on the order in which the constants are written in the enum.</li>
 <li>A string field without @Column is varchar(255) and allows null and duplicates. If a value is required or has a length limit, write it in @Column so that it appears as a constraint on the table.</li>
 <li>A field without any annotation also becomes a column. Add @Transient to a field that you do not want to store.</li>
 </ul>
@@ -186,6 +185,6 @@ System.out.println(r.getGrade() + &quot;, &quot; + r.getMemo());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

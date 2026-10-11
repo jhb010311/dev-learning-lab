@@ -1,7 +1,7 @@
 Lab.register({
   id: 'mapping', nav: '엔티티 매핑과 기본 키', cat: 'JPA', mode: 'step',
   title: '엔티티에 붙인 애노테이션은 테이블과 저장되는 값을 어떻게 바꾸나',
-  intro: 'JPA는 엔티티 클래스의 필드와 애노테이션을 읽어 테이블의 컬럼과 짝을 짓습니다. 이것을 매핑이라고 합니다. 애노테이션을 바꿔 가며 Hibernate가 만드는 테이블(create table 문)과 DB에 실제로 저장되는 값이 어떻게 달라지는지 확인해 보세요.',
+  intro: 'JPA는 엔티티 클래스의 필드와 애노테이션을 읽어 테이블의 컬럼과 짝을 짓습니다. 이것을 매핑이라고 합니다.',
   terms: ['@Column', '@Enumerated', '@Transient', '기본 키 생성 전략(@GeneratedValue)', '엔티티'],
   controls: [
     { id: 'col', label: 'name 필드', type: 'select', value: 'none', options: [['none', '@Column을 붙이지 않음'], ['nn', '@Column(nullable = false)'], ['uq', '@Column(unique = true)'], ['len', '@Column(length = 20)']] },
@@ -73,10 +73,9 @@ Lab.register({
       st.read = { grade: readGrade, memo: readMemo };
       push('em2.find(Member.class, ' + id + 'L): DB에서 다시 읽습니다. grade 컬럼의 ' + (ord ? '1을 지금 enum의 순서 번호 1인 상수로 바꾸면 ' + readGrade + '입니다.' + (add ? ' VIP로 저장한 회원이 BASIC으로 읽혔습니다. 오류는 나지 않습니다.' : '') : '"VIP"를 이름이 같은 상수로 바꾸면 VIP입니다.' + (add ? ' enum의 순서가 바뀌었어도 영향이 없습니다.' : '')) + ' memo는 ' + (c.tr ? '저장된 적이 없으므로 null입니다.' : '"오늘 가입"입니다.'), ord && add ? 'bad' : 'good');
     }
-    sum.push('만들어진 name 컬럼은 "' + ddl.name + '"입니다. ' + (saved ? 'grade 컬럼에 저장된 값은 ' + raw + ', 다시 읽은 grade는 ' + readGrade + '입니다. memo 컬럼은 ' + (c.tr ? '없고' : '있고') + ', 저장된 id는 ' + id + '입니다.' : 'id를 넣지 않아 저장할 때 예외가 났고, 저장된 행이 없습니다.'));
     var tips = [];
     if (!saved) tips.push('@Id만 붙이면 기본 키 값을 코드에서 직접 넣어야 합니다. DB가 번호를 매기게 하려면 @GeneratedValue를 함께 붙입니다. 반대로 @GeneratedValue를 붙여 놓고 id를 직접 넣어 persist하면 그때도 예외가 납니다(EntityExistsException).');
-    if (saved && c.en === 'ORDINAL') tips.push('ORDINAL은 enum에 적힌 순서 번호를 저장합니다. 숫자라서 자리를 적게 쓰지만, 그 번호의 뜻은 enum에 적힌 순서에 달려 있습니다. "ORDINAL + 저장한 뒤 enum 맨 앞에 값을 추가"로 바꿔 보세요.');
+    if (saved && c.en === 'ORDINAL') tips.push('ORDINAL은 enum에 적힌 순서 번호를 저장합니다. 숫자라서 자리를 적게 쓰지만, 그 번호의 뜻은 enum에 적힌 순서에 달려 있습니다.');
     if (saved && c.en === 'ORDINAL_ADD') tips.push('ORDINAL로 저장한 뒤에 enum의 순서가 바뀌면, DB의 숫자는 그대로인데 그 숫자가 가리키는 상수가 달라집니다. 예외 없이 잘못된 등급으로 읽히므로 알아차리기 어렵습니다. 그래서 @Enumerated는 STRING으로 쓰는 것을 권합니다. @Enumerated를 붙이지 않았을 때의 기본값이 ORDINAL이라는 점도 기억해 둡니다.');
     if (saved && c.en === 'STRING') tips.push('STRING은 상수의 이름을 저장합니다. 글자 수만큼 자리를 더 쓰지만, DB의 값만 보고도 뜻을 알 수 있고 enum의 순서와 관계가 없습니다.');
     if (saved && c.en === 'STRING_ADD') tips.push('STRING은 이름으로 저장하므로 enum에 값을 추가하거나 순서를 바꿔도 이미 저장된 값이 그대로 읽힙니다. 같은 일을 ORDINAL로 하면 VIP가 BASIC으로 읽힙니다.');
@@ -94,11 +93,8 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 필드를 하나씩 테이블의 컬럼으로 옮겨 봅니다.'); return; }
     H.table(v, ['필드에 붙인 애노테이션', '컬럼', 'Hibernate가 만든 컬럼 정의'], s.cols.map(function (k) { return { cls: k.d ? '' : 'gone', cells: [{ v: k.from, cls: k.hot ? 'hot' : '' }, k.n, k.d ? { v: k.d + (k.pk ? ' · primary key (id)' : ''), cls: k.hot ? 'hot' : '' } : '(컬럼 없음)'] }; }), 'create table member (...)');
-    var names = s.cols.filter(function (k) { return k.d; }).map(function (k) { return k.n; });
-    if (s.row) H.table(v, names, [{ cells: names.map(function (n) { return n === 'grade' ? { v: s.row[n], cls: 'hot' } : s.row[n] === undefined ? '' : s.row[n]; }) }], 'DB에 저장된 행');
-    else if (s.err) { H.title(v, 'DB에 저장된 행'); H.text(v, '없습니다. ' + s.err + '이 났습니다.'); }
+    if (s.err) { H.title(v, 'DB에 저장된 행'); H.text(v, '없습니다. ' + s.err + '이 났습니다.'); }
     var ln = H.lanes(v);
-    H.lane(ln, 'enum Grade', s.en.map(function (g, i) { return g + '(' + i + ')'; }).join(', '), s.en.length === 3 ? 'hot' : 'none');
     H.lane(ln, '다시 읽은 객체', s.read ? 'grade = ' + s.read.grade + ', memo = ' + s.read.memo : s.err ? '저장된 행이 없음' : '아직 읽기 전', s.read ? (s.read.grade === 'VIP' ? 'good' : 'bad') : s.err ? 'bad' : 'none');
   },
   // 그림: 왼쪽에 엔티티의 필드 넷, 오른쪽에 테이블의 컬럼. 필드마다 어떤 컬럼이 만들어지는지(또는 만들어지지 않는지)와 그 컬럼에 저장된 값을 잇는다.
@@ -125,7 +121,7 @@ Lab.register({
     });
     P.box('r1', 16, 284, 300, 40, { cls: s.en.length === 3 ? 'hot' : 'plain', title: 'enum Grade', right: s.en.map(function (g, i) { return g + ' ' + i; }).join(', ') });
     P.box('r2', 324, 284, 340, 40, { cls: s.read ? (s.read.grade === 'VIP' ? 'good' : 'bad') : s.err ? 'bad' : 'ghost', title: '다시 읽은 grade', right: s.read ? s.read.grade : s.err ? '저장 실패 (예외)' : '?' });
-    P.note('왼쪽 필드 하나가 오른쪽 컬럼 하나와 짝지어집니다. 애노테이션은 그 컬럼이 어떤 모양으로 만들어지고 어떤 값으로 저장될지를 정합니다. 그림의 컬럼 정의는 줄여 적은 것이며, 실제로 만들어진 정의는 오른쪽 표에 있습니다.');
+    P.note('왼쪽 필드 하나가 오른쪽 컬럼 하나와 짝지어집니다. 그림의 컬럼 정의는 줄여 적은 것이며, 실제로 만들어진 정의는 오른쪽 표에 있습니다.');
   },
   assume: '아흔여섯 가지 조합마다 엔티티 클래스의 소스를 만들어 컴파일하고 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해 대조했습니다. 대조한 것은 Hibernate가 만든 create table 문의 컬럼 정의 전부, DB에 저장된 행의 값, 새 em으로 다시 읽은 grade와 memo, 저장된 id 또는 예외의 종류입니다. 요약에 적은 다음 사실도 따로 실행해 확인했습니다: @Enumerated를 붙이지 않은 enum 필드가 ORDINAL과 똑같이 만들어지고 저장된다는 것, name이 null, 같은 이름, 21자인 회원을 저장했을 때의 성공과 실패(예외의 종류와 INSERT가 DB까지 나갔는지), 테이블을 Hibernate가 만들지 않았을 때 unique와 length가 아무 일도 하지 않는다는 것, 자동 생성 방식에서 id를 직접 넣으면 예외가 난다는 것. 컬럼 정의는 DB 종류(방언)와 Hibernate 버전에 따라 다릅니다. 여기 적힌 tinyint와 check 조건, enum 타입 컬럼, "generated by default as identity"는 Hibernate 7.4.5가 H2용으로 만든 것이며, MySQL에서는 자동 증가가 auto_increment로 적히는 식으로 달라집니다. MySQL의 표기와, 예전 Hibernate(5.x)가 STRING을 varchar(255)로 만들었다는 것은 문서를 따른 것이며 여기서 실행해 보지는 않았습니다. 그래도 "ORDINAL은 순서 번호를, STRING은 이름을 저장한다"는 점은 같습니다. 실제 create table 문에서는 컬럼이 화면과 다른 순서로 나오고, 스프링 부트를 쓰지 않으면 테이블 이름이 클래스 이름 그대로(Member) 적힙니다. 자동 생성은 IDENTITY 하나만 다루었고, INSERT가 나가는 시점의 차이는 영속성 컨텍스트 실습에 있습니다. 운영 환경에서는 테이블을 자동으로 만드는 설정을 쓰지 않는 것이 보통이며, 그때 @Column의 unique와 length는 문서 구실만 합니다.',
 });

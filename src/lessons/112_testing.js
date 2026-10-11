@@ -92,7 +92,7 @@ Lab.register({
     var st = { now: 0, s1: '아직 실행 전', s2: '아직 실행 전', k1: '', k2: '', ctxs: [], made: 0, got: '', use1: -1, use2: -1, how1: '', how2: '' };
     function push(s, k) { ev.push({ s: s, k: k || '', snap: JSON.parse(JSON.stringify(st)) }); }
     function set(n, text, k) { st['s' + n] = text; st['k' + n] = k || ''; }
-    var res = ['', ''], used = [null, null], cache = {}, failed = {}, okCount = 0, failCount = 0;
+    var res = ['', ''], used = [null, null], cache = {}, failed = {}, okCount = 0;
 
     // ---- 스프링 없이 하는 단위 테스트 ----
     function runUnit(n, f) {
@@ -171,7 +171,7 @@ Lab.register({
         register(2, f, w);
       }
       if (!loads(f)) {
-        w.cx.state = 'fail'; failed[k] = true; failCount++; st.got = '실행되지 않음'; set(n, DOWN, 'bad');
+        w.cx.state = 'fail'; failed[k] = true; st.got = '실행되지 않음'; set(n, DOWN, 'bad');
         push('OrderController 생성 실패: 스프링이 컨트롤러를 만들려면 생성자가 요구하는 OrderService 빈이 있어야 하는데 컨텍스트에 없습니다. NoSuchBeanDefinitionException이 나고 컨텍스트 기동이 중단됩니다.' + (f.repo ? ' 가짜 OrderRepository를 넣어 두었지만, 컨트롤러가 요구하는 것은 OrderService라서 도움이 되지 않습니다.' : ''), 'bad');
         push('returnsOrderName 실패 처리: 컨텍스트가 없으니 @Autowired MockMvc 필드를 채울 수 없습니다. 테스트 메서드의 본문은 한 줄도 실행되지 않고, "Failed to load ApplicationContext"라는 IllegalStateException으로 실패가 기록됩니다.', 'bad');
         return DOWN;
@@ -211,7 +211,6 @@ Lab.register({
     var loaded1 = unit || used[0] !== null, loaded2 = unit || used[1] !== null;
     var b1 = loaded1 ? beans(A).join(' · ') : '만들어지지 않음', b2 = loaded2 ? beans(B).join(' · ') : '만들어지지 않음';
     var shared = unit || used[0] === null || used[1] === null ? '-' : used[0] === used[1] ? '같은 컨텍스트' : '다른 컨텍스트';
-    sum.push('첫 번째 클래스: ' + res[0] + '. 두 번째 클래스: ' + res[1] + '. 스프링 컨텍스트를 만든 횟수: ' + st.made + '번' + (failCount ? ' (그 가운데 ' + failCount + '번은 기동 실패)' : '') + '.');
     if (unit) {
       if (c.mock === 'bare') sum.push('mock()으로 만든 가짜 객체는 돌려줄 값을 정해 주지 않은 메서드에서 null을 돌려줍니다(여기서는 반환 타입이 String인 메서드). when(...).thenReturn(...)으로 값을 정해 주어야 합니다.');
       sum.push('스프링 없이 new와 Mockito만으로 하는 테스트는 컨텍스트를 띄우지 않아 준비할 것이 가장 적습니다. 대신 주소 매핑(@GetMapping)이나 빈 주입처럼 스프링이 해 주는 일은 이 테스트로 확인되지 않습니다.');
@@ -234,15 +233,10 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
-    H.title(v, s.now === 1 ? '첫 번째 테스트 클래스 (OrderControllerTest)' : '두 번째 테스트 클래스 (OrderControllerSecondTest)');
-    var ln = H.lanes(v);
-    H.lane(ln, '첫 번째', s.s1, s.k1 || 'none');
-    H.lane(ln, '두 번째', s.s2, s.k2 || 'none');
     var cell = function (x) { return { v: x, cls: x === '가짜' ? 'hot' : x === '진짜' ? 'good' : '' }; };
     var stateText = { build: '만드는 중', up: '캐시에 있음', fail: '기동 실패', closed: '닫힘', obj: '' };
     if (sim.unit) H.table(v, ['만든 곳', '컨트롤러', '서비스', '리포지토리'], s.ctxs.map(function (x) { return { cells: [x.n === 1 ? '첫 번째 테스트' : '두 번째 테스트', cell(x.beans[0]), cell(x.beans[1]), cell(x.beans[2])] }; }), '테스트 메서드가 직접 만든 객체 (스프링 컨텍스트 없음)');
     else H.table(v, ['컨텍스트', '컨트롤러', '서비스', '리포지토리', '상태'], s.ctxs.map(function (x) { return { cls: x.state === 'closed' ? 'gone' : '', cells: [x.n + '번째', cell(x.beans[0]), cell(x.beans[1]), cell(x.beans[2]), { v: stateText[x.state], cls: x.state === 'fail' ? 'bad' : x.state === 'up' ? 'good' : '' }] }; }), '스프링이 만든 컨텍스트' + (s.ctxs.length ? '' : ' (아직 없음)'));
-    H.counters(v, [[s.made + '번', '스프링 컨텍스트를 만든 횟수'], [s.got || '아직 없음', '지금 테스트가 받은 값']]);
   },
   // 그림: 왼쪽이 차례로 실행되는 두 테스트 클래스, 오른쪽 점선 영역이 컨텍스트 캐시다. 캐시 안의 긴 상자 하나가 컨텍스트 하나이고, 그 안의 세 칸이 컨트롤러·서비스·리포지토리 빈(초록 진짜, 노랑 가짜, 점선 없음)이다. 테스트 클래스에서 나온 화살표가 어느 컨텍스트를 쓰는지 가리킨다.
   draw: function (P, sim, shown) {
@@ -267,7 +261,7 @@ Lab.register({
     if (s.use2 >= 0 && s.how2) P.arrow('a2', 't2:r', 'ctx' + (s.use2 + 1) + ':l' + (s.use2 === 0 ? ':0.8' : ''), { cls: s.how2 === '다시 씀' ? 'good' : s.ctxs[s.use2].state === 'fail' ? 'bad' : '', label: s.how2 });
     P.box('cnt', 10, 254, 326, 38, { cls: s.made ? 'hot' : 'ghost', title: '스프링 컨텍스트를 만든 횟수', right: s.made + '번' });
     P.box('got', 344, 254, 326, 38, { cls: s.got === '"키보드"' ? 'good' : s.got ? 'bad' : 'ghost', title: '지금 테스트가 받은 값', right: s.got || '아직 없음' });
-    P.note(unit ? '스프링 없는 테스트에는 컨텍스트가 없습니다. 오른쪽은 테스트 메서드가 new와 mock(...)으로 직접 만든 객체입니다. 초록은 진짜 객체, 노랑은 Mockito가 만든 가짜, 점선은 만들지 않은 것입니다.'
+    P.note(unit ? '오른쪽은 테스트 메서드가 new와 mock(...)으로 직접 만든 객체입니다. 초록은 진짜 객체, 노랑은 Mockito가 만든 가짜, 점선은 만들지 않은 것입니다.'
       : '오른쪽의 긴 상자 하나가 스프링 컨텍스트 하나이고, 그 안의 세 칸이 빈입니다. 초록은 진짜 빈, 노랑은 @MockitoBean으로 넣은 가짜, 점선은 등록되지 않은 것입니다. 두 번째 클래스의 화살표가 첫 번째 컨텍스트로 가면 다시 쓴 것이고, 새 상자로 가면 한 번 더 만든 것입니다.');
   },
   assume: '서른여섯 가지 조합 모두를 이 PC에서 실제로 실행해 대조했습니다(테스트 방식 셋 × 가짜 객체 넷 × 두 번째 클래스 넷. 스프링 없는 테스트는 두 번째 클래스 설정이 뜻이 없어 네 가지만). 버전은 스프링 부트 4.1.1, 스프링 프레임워크와 spring-test 7.0.9, JUnit Jupiter 6.0.3, Mockito 5.23.0, JDK 21입니다. Gradle이나 Maven 없이 JUnit Platform Launcher로 두 테스트 클래스를 차례로 실행했고, 컨텍스트 캐시가 JVM 안에 있으므로 조합마다 자바 프로세스를 새로 띄웠습니다. 대조한 것은 두 클래스의 결과(통과, 단언 실패, 컨텍스트 기동 실패, 다시 시도하지 않은 실패), 각 클래스가 쓴 컨트롤러·서비스·리포지토리가 진짜인지 Mockito의 가짜인지 없는지, 컨텍스트 만들기를 시작한 횟수(설정 클래스의 생성자가 불린 횟수로 셌고 기동에 실패한 것도 포함), 기동에 성공한 횟수, 두 클래스가 같은 컨텍스트 객체를 받았는지입니다. ' +

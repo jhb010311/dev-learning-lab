@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e557751983">
+<link rel="stylesheet" href="../../app.css?v=247ede25a6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>결과: 200 응답을 받음. 호출한 코드는 예외 없이 응답 본문을 받았고, 호출한 스레드는 10초 동안 묶여 있었습니다.</li>
 <li>읽기 타임아웃을 정하지 않으면 제한 없이 기다립니다. 결제 서버가 느려지면 주문 서버의 스레드가 그만큼 묶이고, 요청이 몰리면 스레드 풀의 스레드가 모두 묶여 주문 서버까지 응답하지 못하게 됩니다. 연결 타임아웃만으로는 느린 응답을 막지 못합니다. 두 타임아웃은 재는 구간이 다르므로 둘 다 정해야 합니다.</li>
 </ul>
 <h2>코드</h2>
@@ -173,6 +172,6 @@ try {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e557751983"></script>
+<script src="../../app.js?v=247ede25a6"></script>
 </body>
 </html>

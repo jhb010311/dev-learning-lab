@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Persistence context</p>
 <h1>The lifecycle of an entity</h1>
 <p><b>Why is the same setName sometimes not applied to the DB?</b></p>
-<p>An entity object is in one of four states: new, managed, detached, or removed (Hibernate calls the new state transient). JPA watches the changes of values and applies them to the DB only when the object is in the managed state. Follow the code one line at a time to see on which line the object changes to which state, and whether a name changed in that state is kept in the DB.</p>
+<p>An entity object is in one of four states: new, managed, detached, or removed (Hibernate calls the new state transient). JPA watches the changes of values and applies them to the DB only when the object is in the managed state.</p>
 <p>Checked against real execution · 14 combinations were run on Hibernate 7.4.5 and H2, and even the SQL sent on each line was checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Final state of m: Detached. SQL sent to the DB: SELECT: 1. Rows left in the DB: id 1 (Alice).</li>
 <li>A detached object is like an ordinary Java object. If you change its values, no exception is thrown, and the change is not applied to the DB. If you load the same id again with em.find after detaching, the SELECT is sent again and you get a new object that is different from m.</li>
 <li>To apply the values of a detached object to the DB, you have to make it managed again. The way to do that is the merge operation, covered in the next lab.</li>
 </ul>
@@ -164,6 +163,6 @@ em.getTransaction().commit();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

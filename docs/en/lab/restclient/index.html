@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Result: 200 response received. The calling code received the response body without an exception, and the calling thread was occupied for 10s.</li>
 <li>If you do not set a read timeout, the wait has no limit. When the payment server slows down, the threads of the order server stay occupied for that long, and when many requests come in at once, all the threads in the thread pool become occupied and the order server itself can no longer respond. The connect timeout alone does not protect against a slow response. The two timeouts measure different intervals, so you must set both.</li>
 </ul>
 <h2>Code</h2>
@@ -173,6 +172,6 @@ try {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

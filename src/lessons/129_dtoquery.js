@@ -1,7 +1,7 @@
 Lab.register({
   id: 'dtoquery', nav: 'DTO로 바로 조회하기', cat: 'JPA', mode: 'step',
   title: '엔티티로 조회해 옮기는 것과 DTO로 바로 조회하는 것은 무엇이 다른가',
-  intro: '화면에 회원의 이름과 나이만 보여 주면 되는데, 엔티티로 조회하면 회원의 모든 컬럼을 읽어 온 뒤 필요한 값만 DTO로 옮기게 됩니다. JPQL의 new를 쓰면 필요한 값만 골라 DTO로 바로 받을 수 있습니다. 두 방식에서 SELECT 절의 컬럼 수, 추가로 나가는 쿼리, 영속성 컨텍스트가 관리하는 객체, 값을 바꿨을 때의 UPDATE가 어떻게 다른지 비교해 보세요.',
+  intro: '화면에 회원의 이름과 나이만 보여 주면 되는데, 엔티티로 조회하면 회원의 모든 컬럼을 읽어 온 뒤 필요한 값만 DTO로 옮기게 됩니다. JPQL의 new를 쓰면 필요한 값만 골라 DTO로 바로 받을 수 있습니다.',
   terms: ['DTO', 'JPQL 생성자 표현식', '영속성 컨텍스트', '변경 감지(Dirty Checking)', 'N+1 문제'],
   controls: [
     { id: 'how', label: '조회하는 방법', type: 'select', value: 'entity', options: [['entity', '엔티티로 조회한 뒤 DTO로 옮김'], ['fetch', '엔티티를 fetch join으로 조회한 뒤 DTO로 옮김'], ['dto', 'JPQL의 new로 DTO를 바로 조회']] },
@@ -80,7 +80,6 @@ Lab.register({
       else push('메서드 종료, 커밋: 커밋 직전에 관리 중인 엔티티 ' + st.managed + '개를 스냅샷과 비교합니다. 달라진 것이 없어 보낼 SQL이 없습니다. 조회만 하는 화면인데도 스냅샷을 만들어 두고 비교하는 일은 일어납니다.');
     }
     var row = [st.sel + '번' + (teamQ ? ' (회원 1 + 팀 ' + teamQ + ')' : ''), st.cols + '개', st.managed + '개', !c.mod ? '0번 (값을 바꾸지 않음)' : st.upd ? '1번 (DB의 이름이 김영수로 바뀜)' : '0번 (DTO만 바뀌고 DB는 그대로)'];
-    sum.push('SELECT는 ' + row[0] + ', 첫 SELECT의 컬럼은 ' + st.cols + '개, 영속성 컨텍스트가 관리하는 엔티티는 ' + st.managed + '개, UPDATE는 ' + st.upd + '번입니다.');
     if (isDto) {
       sum.push('JPQL의 new로 조회하면 필요한 컬럼만 읽고, 결과는 엔티티가 아니라 보통 객체입니다. 영속성 컨텍스트가 관리하지 않으므로 스냅샷도, 커밋할 때의 비교도 없습니다. 목록이나 통계처럼 보여 주기만 하는 화면에 맞습니다.');
       sum.push(c.mod ? 'DTO의 값을 바꿔도 DB에는 반영되지 않습니다. 데이터를 수정하려면 엔티티로 조회해서 바꿔야 합니다.' : '반대로, 데이터를 수정하는 것이 목적이라면 엔티티로 조회해야 합니다. DTO는 바꿔도 DB에 반영되지 않습니다.');
@@ -96,12 +95,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 조회부터 커밋까지 한 단계씩 진행합니다.'); return; }
-    H.counters(v, [[s.sel + '번', 'SELECT'], [s.cols + '개', '첫 SELECT의 컬럼'], [s.managed + '개', '관리 중인 엔티티'], [s.upd + '번', 'UPDATE']]);
+    H.counters(v, [[s.cols + '개', '첫 SELECT의 컬럼'], [s.managed + '개', '관리 중인 엔티티']]);
     H.table(v, ['#', 'DB로 나간 SQL', '이유'], s.sqls.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i === s.sqls.length - 1 ? 'hot' : '' }, q.why] }; }), 'SQL 로그');
-    if (s.members.length) H.table(v, ['엔티티', '현재 값', '상태'], s.members.map(function (m, i) { return { cells: ['회원 ' + (i + 1), { v: m.name, cls: m.cls === 'hot' ? 'hot' : '' }, '관리 중'] }; }).concat(s.teams.map(function (tm, i) { return { cls: tm.loaded ? '' : 'gone', cells: ['팀 ' + (i + 1), tm.loaded ? tm.name : '(아직 읽지 않음)', tm.loaded ? '관리 중' : '프록시'] }; })), '영속성 컨텍스트');
-    else { H.title(v, '영속성 컨텍스트'); H.text(v, '비어 있습니다. 관리하는 엔티티가 없습니다.'); }
-    if (s.dtos.length) H.table(v, ['이름 · 나이', '팀 이름'], s.dtos.map(function (d) { return { cells: [{ v: d.t, cls: d.cls === 'hot' ? 'hot' : '' }, d.r || '(담지 않음)'] }; }), 'DTO 목록 (화면에 내보낼 값)');
-    H.text(v, 'DB의 회원 1 이름: ' + s.dbName);
   },
   // 그림: 왼쪽에 DB, 가운데에 영속성 컨텍스트(관리 중인 엔티티), 오른쪽에 DTO 목록. 엔티티 조회는 가운데를 거치고, DTO 조회는 DB에서 DTO로 바로 간다.
   draw: function (P, sim, shown) {
@@ -127,7 +122,7 @@ Lab.register({
     if (s.arrow === 'conv' || s.arrow === 'lazy') P.arrow('a2', 'pc:r', 'dto:l', { cls: 'mut', label: '옮김' });
     if (s.arrow === 'direct') P.arrow('a1', 'db:r:0.08', 'dto:l:0.08', { cls: 'good', label: 'SELECT ' + s.cols + '개 컬럼 → DTO' });
     P.box('q', 16, 264, 648, 46, { cls: s.sql ? 'plain' : 'ghost', title: '마지막으로 DB에 나간 SQL', sub: s.sql || '아직 없음', mono: true });
-    P.note('가운데 영역에 들어온 객체만 영속성 컨텍스트가 관리합니다. 관리되는 객체는 값을 바꾸면 커밋할 때 UPDATE가 나갑니다. DTO는 오른쪽 영역에만 있으므로 바꿔도 DB에 반영되지 않습니다. 점선으로 된 팀은 아직 읽지 않은 것(프록시)입니다.');
+    P.note('가운데 영역에 들어온 객체만 영속성 컨텍스트가 관리합니다. DTO는 오른쪽 영역에만 있으므로 바꿔도 DB에 반영되지 않습니다. 점선으로 된 팀은 아직 읽지 않은 것(프록시)입니다.');
   },
   assume: '열두 가지 조합을 이 PC의 Hibernate 7.4.5와 H2 데이터베이스에서 화면과 같은 구조의 코드로 실제 실행해, 나간 SELECT의 수와 대상 테이블, 첫 SELECT의 컬럼 수, 영속성 컨텍스트가 관리하는 엔티티의 수, 커밋할 때 나간 UPDATE의 수, DB에 남은 이름을 화면과 대조했습니다. 코드 전체가 하나의 트랜잭션(영속성 컨텍스트) 안에서 실행된다고 보았습니다. 화면의 SQL은 읽기 쉽게 줄인 것이고, 실제 문장의 모양과 컬럼 순서는 Hibernate 버전에 따라 다릅니다. fetch join에서 컬럼이 9개가 아니라 8개인 것은 Hibernate 7.4.5가 회원의 team_id를 따로 읽지 않았기 때문이며, 버전에 따라 달라질 수 있습니다. 팀을 읽는 추가 쿼리의 수는 아직 읽지 않은 서로 다른 팀의 수(이 예에서는 2)이고, 배치 크기 설정이 없을 때의 값입니다. JPA 표준은 new 뒤에 패키지 이름까지 포함한 클래스 이름을 적도록 정합니다. Hibernate 7.4.5에서 실행해 보니, createQuery에 결과 타입으로 MemberDto.class를 함께 넘기면 패키지 이름을 빼도 실행됐고, 결과 타입 없이 클래스 이름만 적으면 클래스를 찾지 못해 예외(SemanticException)가 났습니다. 패키지 이름을 빼도 되는 것은 표준이 보장하는 동작이 아닙니다. 스프링 데이터 JPA가 인터페이스나 record로 필요한 값만 받게 해 주는 기능(프로젝션)은 이 실습에서 다루지 않았습니다.',
 });

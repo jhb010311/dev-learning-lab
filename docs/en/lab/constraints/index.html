@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Relational model and design</p>
 <h1>Tables, keys, and constraints</h1>
 <p><b>What data gets in when there are no constraints?</b></p>
-<p>Insert wrong values into the member table and the orders table, or delete a member who still has orders. A table that has constraints rejects those statements with an error, and a table without constraints accepts them as they are. Run the same statement on both and check how the data differs afterwards.</p>
+<p>Insert wrong values into the member table and the orders table, or delete a member who still has orders. A table that has constraints rejects those statements with an error, and a table without constraints accepts them as they are.</p>
 <p>Checked against real execution · The SQL of all 48 combinations was run as it is on MySQL 8.4.11, and the error numbers, the number of rows changed, and all the rows of both tables afterwards were checked</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -63,7 +63,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The statement ran, and 1 row was changed. Afterwards, member has 2 rows and orders has 3 rows. Orders without a member: 2.</li>
 <li>Without constraints, the DB accepts even wrong values without an error. The statement &quot;succeeded&quot; but the data is wrong, and that only becomes visible when you query it later. Constraints stop such values at the moment they try to enter the table.</li>
 </ul>
 <h2>Code</h2>
@@ -183,6 +182,6 @@ SELECT COUNT(*)
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

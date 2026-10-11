@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cacheabs', nav: 'Cache abstraction', cat: 'Spring', mode: 'step',
   title: 'With @Cacheable on a method, when does the method body not run?',
-  intro: 'In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that was returned before is taken from the cache. The code that looks up the cache and stores values in it is run by a proxy on your behalf. Call find twice, change what is done in between and how find is called, and check how many times the body runs and what the second call receives.',
+  intro: 'In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that was returned before is taken from the cache. The code that looks up the cache and stores values in it is run by a proxy on your behalf.',
   terms: ['@Cacheable', '@CacheEvict and @CachePut', 'Cache', 'Proxy', 'Self-invocation'],
   controls: [
     { id: 'mid', label: 'What is done after find(1) is called', type: 'select', value: 'none', options: [['none', 'Call find(1) again right away'], ['other', 'Call find(2), with a different argument'], ['evict', 'Call evict(1), then find(1) · @CacheEvict'], ['put', 'Call rename(1, "New keyboard"), then find(1) · @CachePut'], ['plain', 'Call renamePlain(1, "New keyboard"), then find(1) · no annotation']] },
@@ -96,7 +96,6 @@ Lab.register({
     }
     var second = find(mid === 'other' ? 2 : 1, 2);
     var ck = Object.keys(cache).sort(), cstr = ck.length ? ck.map(function (k2) { return k2 + '=' + (cache[k2] === null ? 'null' : cache[k2]); }).join(', ') : 'empty';
-    sum.push('Times the find body ran: ' + count + '. The value that the second call received is ' + q(second) + '. Cache contents at the end: ' + cstr + '.');
     if (self) {
       sum.push('A find that is called from within the same class does not go through the proxy, so @Cacheable is not applied. The body runs every time, with no error and no warning. To apply caching, call find from another bean or move find to another bean.');
       if (mid === 'put') sum.push('rename was called from another bean, so @CachePut was applied and the value went into the cache. But find does not look at the cache, so that value was not used.');
@@ -114,12 +113,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the calls one step at a time.'); return; }
-    H.title(v, 'Call being handled now: ' + s.call); var ln = H.lanes(v);
-    H.lane(ln, 'Proxy', s.px || 'Idle', s.px.indexOf('Does not see') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'none');
-    H.lane(ln, 'Real object', s.tg || 'Idle', s.tg.indexOf('not run') >= 0 ? 'good' : s.tg ? 'wait' : 'none');
     H.table(v, ['Key', 'Value'], s.cache.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[1] === 'null' ? 'hot' : '' }] }; }), 'Cache "product"' + (s.cache.length ? '' : ' (empty)'));
-    H.table(v, ['id', 'Name'], s.db.map(function (r) { return { cells: [r[0], r[1]] }; }), 'DB');
-    H.counters(v, [[s.count + '', 'Times the find body ran'], [s.second || 'Not called yet', 'Value returned by the second find']]);
   },
   // Diagram: the outer box is the proxy and the inner box is the real object. The proxy looks at the cache at the upper right first, and if the value is there, the call does not go into the inner box. The call goes to the DB at the lower right only when the body runs.
   draw: function (P, sim, shown) {
@@ -138,7 +132,7 @@ Lab.register({
     if (s.dbop) P.arrow('dbq', 'tg:r', 'db:l', { label: s.dbop });
     P.box('cnt', 12, 252, 324, 38, { cls: s.count ? 'hot' : 'ghost', title: 'Times the find body ran', right: s.count + '' });
     P.box('res', 344, 252, 324, 38, { cls: s.second ? 'good' : 'ghost', title: 'Second find returned', right: s.second || 'Not called yet' });
-    P.note('The outer box is the proxy, and the inner box is the real object. When a method annotated with @Cacheable is called, the proxy looks at the cache first, and if the value is there, the call does not go into the inner box. The red arrow, where the inner object calls its own method with this, does not go through the proxy, so the body runs regardless of the cache.');
+    P.note('The outer box is the proxy, and the inner box is the real object. The red arrow, where the inner object calls its own method with this, does not go through the proxy, so the body runs regardless of the cache.');
   },
   assume: 'All 40 combinations were run on Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1) on this PC with @EnableCaching and ConcurrentMapCacheManager, and these were checked against the results: the number of times the find body ran, the value returned by the second find, and the cache contents at the end. The same runs also confirmed that the body of rename runs even when the cache has a value, and that removing a key that is not in the cache with @CacheEvict does not cause an error. ConcurrentMapCacheManager is the simplest cache manager, which stores values in maps in the memory of the application, and it has no expiration time (TTL) and no size limit. Expiration and requests that arrive at the same time are covered in the "Caching and TTL" lab. Whether null can be put in a cache depends on the settings of the cache implementation, and ConcurrentMapCacheManager stores null by default (the behavior of other cache implementations was not verified by execution). The DB was replaced with an in-memory map both on the screen and in the runs. The code on the screen assumes that @EnableCaching is turned on, and to use a parameter name as in key = "#id", the code must be compiled with the -parameters option. When the code was compiled without this option and run on this PC, an IllegalArgumentException saying that the key is null was thrown at the moment rename was called (the build settings of a project created with Spring Boot include this option). The reason why proxy-based features are not applied to calls made from within the same class is covered in detail in the "Proxies and self-invocation" lab. This lab covers only the case where the calls are made one after another on a single thread. The case where several threads look up the same key for the first time at the same moment was not run.',
 });

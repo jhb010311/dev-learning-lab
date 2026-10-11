@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>영속성 전이와 고아 객체: 부모만 저장하거나 지우면 자식은 어떻게 되나 · 개발 학습 실습실</title>
-<meta name="description" content="게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다. 설정을 바꿔 가며 어떤 SQL이 나가고 DB에 무엇이 남…">
+<meta name="description" content="게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/cascade/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cascade/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cascade/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="영속성 전이와 고아 객체: 부모만 저장하거나 지우면 자식은 어떻게 되나 · 개발 학습 실습실">
-<meta property="og:description" content="게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다. 설정을 바꿔 가며 어떤 SQL이 나가고 DB에 무엇이 남…">
+<meta property="og:description" content="게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/cascade/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e557751983">
+<link rel="stylesheet" href="../../app.css?v=247ede25a6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 연관관계</p>
 <h1>영속성 전이와 고아 객체</h1>
 <p><b>부모만 저장하거나 지우면 자식은 어떻게 되나</b></p>
-<p>게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다. 설정을 바꿔 가며 어떤 SQL이 나가고 DB에 무엇이 남는지 보세요.</p>
+<p>게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 스물네 가지 조합을 실행해 SQL의 수와 순서, 예외, DB에 남은 행을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>조회 SQL이 0번, 쓰기 SQL이 INSERT 1번 나갔습니다. 끝난 뒤 DB에는 게시글 1개와 댓글 0개가 있습니다.</li>
 <li>cascade에 PERSIST(또는 ALL)가 없으면 부모에게 한 persist가 자식에게 전달되지 않습니다. 이 예처럼 mappedBy가 붙은 목록에서는 예외도 나지 않아서, 댓글이 저장되지 않은 것을 놓치기 쉽습니다.</li>
 </ul>
 <h2>코드</h2>
@@ -186,6 +185,6 @@ em.persist(post);                      // 게시글만 persist한다
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e557751983"></script>
+<script src="../../app.js?v=247ede25a6"></script>
 </body>
 </html>

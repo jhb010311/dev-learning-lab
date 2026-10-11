@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Queries</p>
 <h1>Spring Data JPA</h1>
 <p><b>How does a repository work when there is no implementation class?</b></p>
-<p>In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query. Run it to see what query a method name becomes, how many queries are sent when you request a page, and when save() sends a SELECT before the INSERT.</p>
+<p>In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query.</p>
 <p>Checked against real execution · 19 scenes were run by starting Spring Data JPA 4.1.1, Hibernate 7.4.5, and H2 with the auto-configuration of Spring Boot 4.1.1, and the startup result and the SQL sent were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -68,7 +68,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Application startup succeeded. SQL statements sent to the DB: 1 (select … where name = ? and age &gt; ?).</li>
 <li>A method with no body was called, and the query &quot;select … where name = ? and age &gt; ?&quot; was sent once. The method name is the query.</li>
 <li>The rule: write the property name of the entity after find…By or count…By, put the kind of condition (GreaterThan, Containing, and so on) after the property name, and join several conditions with And or Or. Parameters go into the conditions in order, not by name.</li>
 <li>When there are more than three or four conditions, the name becomes too long. Then it is easier to read if you write the JPQL directly in @Query.</li>
@@ -175,6 +174,6 @@ List&lt;Member&gt; result = memberRepository.findByNameAndAgeGreaterThan(&quot;A
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

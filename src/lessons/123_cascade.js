@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cascade', nav: '영속성 전이와 고아 객체', cat: 'JPA', mode: 'step',
   title: '부모만 저장하거나 지우면 자식은 어떻게 되나',
-  intro: '게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다. 설정을 바꿔 가며 어떤 SQL이 나가고 DB에 무엇이 남는지 보세요.',
+  intro: '게시글(부모) 하나에 댓글(자식) 둘이 달려 있습니다. 게시글만 persist하거나 remove했을 때 댓글까지 함께 저장되고 지워지는지는 @OneToMany에 적는 cascade와 orphanRemoval이 정합니다.',
   terms: ['영속성 전이(cascade)', '고아 객체 제거(orphanRemoval)', '영속성 컨텍스트', '쓰기 지연과 flush', '엔티티'],
   controls: [
     { id: 'act', label: '해 볼 동작', type: 'select', value: 'persist', options: [['persist', '댓글 둘을 담은 게시글만 persist'], ['remove', '게시글을 remove'], ['orphan', '댓글 목록에서 댓글 하나를 뺌']] },
@@ -87,7 +87,6 @@ Lab.register({
     var sel = call.concat(commit).filter(function (t) { return t.charAt(0) === 'S'; }).length, ins = call.concat(commit).filter(function (t) { return t.charAt(0) === 'I'; }).length, del = call.concat(commit).filter(function (t) { return t.charAt(0) === 'D'; }).length;
     var np = st.db.post ? 1 : 0, nc = (st.db.c1 ? 1 : 0) + (st.db.c2 ? 1 : 0);
     var write = ins ? 'INSERT ' + ins + '번' : del ? 'DELETE ' + del + '번' + (ex ? ' (실패)' : '') : '없음';
-    sum.push('조회 SQL이 ' + sel + '번, 쓰기 SQL이 ' + (ins ? 'INSERT ' + ins + '번' : del ? 'DELETE ' + del + '번' : '0번') + ' 나갔습니다.' + (ex ? ' DELETE는 ' + ex + '으로 실패했습니다.' : '') + ' 끝난 뒤 DB에는 게시글 ' + np + '개와 댓글 ' + nc + '개가 있습니다.');
     if (c.act === 'persist' && !cp) sum.push('cascade에 PERSIST(또는 ALL)가 없으면 부모에게 한 persist가 자식에게 전달되지 않습니다. 이 예처럼 mappedBy가 붙은 목록에서는 예외도 나지 않아서, 댓글이 저장되지 않은 것을 놓치기 쉽습니다.' + (c.cas === 'REMOVE' ? ' CascadeType.REMOVE는 삭제만 전달하므로 저장에는 영향이 없습니다.' : '') + (orph ? ' orphanRemoval도 저장과는 관계가 없습니다.' : ''));
     if (c.act === 'persist' && cp) sum.push('CascadeType.PERSIST' + (c.cas === 'ALL' ? '를 포함하는 ALL' : '') + ' 덕분에 em.persist를 게시글에 한 번만 불러도 댓글까지 저장됩니다. 영속성 전이는 "부모에게 한 일을 자식에게도 똑같이 해 준다"는 편의 기능일 뿐, 연관관계를 맺어 주는 기능은 아닙니다. 외래 키 값은 댓글의 post 필드가 정합니다.');
     if (c.act === 'remove' && ex) sum.push('자식이 남아 있는 부모는 DB가 지우지 못하게 막습니다(외래 키 제약). 부모와 자식을 함께 지우려면 cascade에 REMOVE(또는 ALL)를 넣거나 orphanRemoval = true를 켭니다.' + (c.cas === 'PERSIST' ? ' CascadeType.PERSIST는 저장만 전달하므로 삭제에는 영향이 없습니다.' : ''));
@@ -100,12 +99,8 @@ Lab.register({
   stName: function (k) { return { none: '아직 없음', 'new': '비영속 (JPA가 모름)', lazy: '아직 읽지 않음', managed: '관리 중', removed: '삭제 예정', out: '목록에서 빠짐', deleted: '삭제됨' }[k]; },
   blank: function (c) { var s = c.act !== 'persist'; return { post: 'none', c1: s ? 'lazy' : 'none', c2: s ? 'lazy' : 'none', db: { post: s, c1: s, c2: s }, hot: {}, sent: [], fresh: [], ex: '' }; },
   render: function (v, sim, t, H, shown) {
-    var self = this, last = shown[shown.length - 1], s = last ? last.snap : this.blank(sim.c);
-    function cell(k) { return { v: self.stName(k), cls: k === 'managed' ? 'good' : k === 'removed' || k === 'out' ? 'hot' : '' }; }
-    H.counters(v, [[s.sent.length, 'DB로 나간 SQL'], [(s.db.post ? 1 : 0), 'DB의 게시글'], [(s.db.c1 ? 1 : 0) + (s.db.c2 ? 1 : 0), 'DB의 댓글']]);
-    H.table(v, ['객체', '메모리에서의 상태'], [{ cells: ['게시글 "공지"', cell(s.post)] }, { cells: ['첫째 댓글', cell(s.c1)] }, { cells: ['둘째 댓글', cell(s.c2)] }], '자바 객체');
+    var last = shown[shown.length - 1], s = last ? last.snap : this.blank(sim.c);
     if (s.sent.length) H.table(v, ['#', 'SQL', '나간 때'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i >= s.sent.length - s.fresh.length ? 'hot' : '' }, q.at] }; }), 'DB로 나간 SQL'); else { H.title(v, 'DB로 나간 SQL'); H.text(v, '아직 없습니다.'); }
-    H.table(v, ['테이블', '행'], [{ cells: ['post', s.db.post ? 'id 1 "공지"' : '(비어 있음)'] }, { cells: ['comment', [s.db.c1 ? 'id 1 "첫째 댓글"' : '', s.db.c2 ? 'id 2 "둘째 댓글"' : ''].filter(Boolean).join(', ') || '(비어 있음)'] }], 'DB');
     if (s.ex) H.text(v, '예외: ' + s.ex + ' (외래 키 제약 위반). 트랜잭션이 롤백되어 DB는 처음 그대로입니다.');
   },
   // 그림: 왼쪽에 자바 객체(게시글과 그 목록에 담긴 댓글 둘)와 상태, 오른쪽에 DB의 행. SQL이 나간 단계에만 가운데 화살표가 생긴다.

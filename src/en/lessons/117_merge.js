@@ -1,7 +1,7 @@
 Lab.register({
   id: 'merge', nav: 'Detached entities and merge', cat: 'JPA', mode: 'step',
   title: 'Why were other values erased when I only fixed the name with merge?',
-  intro: 'A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change. Compare how the values left in the DB differ between the two ways.',
+  intro: 'A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change.',
   terms: ['Detached entity', 'Merge operation', 'Dirty checking', 'Persistence context', 'The four entity states'],
   controls: [
     { id: 'src', label: 'How the detached object m was obtained', type: 'select', value: 'form', options: [['form', 'new from the values received from the screen (only id and name filled in)'], ['loaded', 'An object loaded in an earlier request (all fields filled in)']] },
@@ -86,7 +86,6 @@ Lab.register({
     var cnt = {}, order = [];
     trace.forEach(function (t) { if (PRE[t[0]]) return; t[1].forEach(function (k) { var w = k.toUpperCase(); if (!cnt[w]) { cnt[w] = 0; order.push(w); } cnt[w]++; }); });
     var sqlText = order.length ? order.map(function (w) { return w + ': ' + cnt[w]; }).join(', ') : 'none', dbText = st.db.name + ' · ' + (st.db.city === null ? 'NULL' : st.db.city);
-    sum.push('Member 1 in the DB has name ' + st.db.name + ' and city ' + (st.db.city === null ? 'NULL' : st.db.city) + ' (at first, Alice and Seoul). SQL sent in this transaction: ' + sqlText + '.');
     if (c.how === 'none') sum.push('Committing the transaction after changing the values of a detached object does not apply them. To apply them, pass the object to em.merge, or load the entity again and move the values.');
     if (c.how === 'merge') {
       if (c.src === 'form' && st.db.city === null) sum.push('merge does not pick only the changed fields. It overwrites with all the fields of the object you passed. An object built from just the name received from the screen has a null city, so the city in the DB becomes NULL too. This is how accidents happen where fields that are not on the edit screen get erased.');
@@ -95,20 +94,14 @@ Lab.register({
       if (c.after === 'ret') sum.push('The object r that merge returned is managed, so if you change its values, they are applied by dirty checking.' + (c.src === 'form' ? ' The city that merge overwrote with null was changed to "Busan" on r afterward, so it was saved as Busan.' : ''));
       sum.push('merge sends one SELECT to get a managed entity. If an entity with the same id is already in the persistence context, it overwrites that entity without a SELECT, and if the id is not in the DB, it confirms with a SELECT that there is none and then sends an INSERT.');
     }
-    if (c.how === 'dirty') sum.push('You put only the values to change into the reloaded managed entity, so the other fields keep the values first read. The SQL sent is the same as with merge: one SELECT and one UPDATE. When you fix only some fields, this approach is safer.', c.src === 'form' ? 'Switch to "Merge with em.merge(m)" and compare what happens to city.' : 'Even if you have a loaded object, in a new transaction the basic approach is to load the entity again and move the values onto it.');
+    if (c.how === 'dirty') { sum.push('You put only the values to change into the reloaded managed entity, so the other fields keep the values first read. The SQL sent is the same as with merge: one SELECT and one UPDATE. When you fix only some fields, this approach is safer.'); if (c.src !== 'form') sum.push('Even if you have a loaded object, in a new transaction the basic approach is to load the entity again and move the values onto it.'); }
     return { events: ev, summary: sum, L: L, trace: trace.map(function (t) { return t[0] + ':' + t[1].join(','); }).join(' '), row: [st.cm, st.r ? st.rName + ' (a different object from m)' : 'none', sqlText, dbText] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { line: -1, m: null, r: null, sent: [], db: { name: 'Alice', city: 'Seoul' }, cm: '?', cr: '?' };
-    function show(x) { return x === null ? 'null' : x; }
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l.code, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }), 'Running code');
-    H.counters(v, [[s.cm, 'em.contains(m)'], [s.sent.filter(function (q) { return !q.pre; }).length, 'SQL sent in this transaction']]);
-    var rows = [];
-    if (s.m) rows.push({ cells: ['m', s.mState, show(s.m.name), { v: show(s.m.city), cls: s.m.city === null ? 'bad' : '' }] });
-    if (s.r) rows.push({ cells: [s.rName, 'Managed', { v: show(s.r.name), cls: s.snap && s.r.name !== s.snap.name ? 'hot' : '' }, { v: show(s.r.city), cls: s.r.city === null ? 'bad' : s.snap && s.r.city !== s.snap.city ? 'hot' : '' }] });
-    if (rows.length) H.table(v, ['Object', 'State', 'name', 'city'], rows, 'Java objects'); else { H.title(v, 'Java objects'); H.text(v, 'None yet.'); }
+    H.counters(v, [[s.sent.filter(function (q) { return !q.pre; }).length, 'SQL sent in this transaction']]);
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'SQL sent to the DB');
-    H.table(v, ['id', 'name', 'city'], [{ cells: ['1', { v: s.db.name, cls: s.db.name !== 'Alice' ? 'hot' : '' }, { v: s.db.city === null ? 'NULL' : s.db.city, cls: s.db.city === null ? 'bad' : s.db.city !== 'Seoul' ? 'hot' : '' }] }], 'The member table in the DB');
   },
   // Diagram: the detached object m on the left, the persistence context of this transaction and its managed entity in the middle, the row of the DB on the right. In a step where a SELECT, a copy of values, or an UPDATE happens, that arrow appears.
   draw: function (P, sim, shown) {
@@ -128,7 +121,7 @@ Lab.register({
     P.box('c1', 16, 186, 320, 36, { cls: s.cm === '?' ? 'ghost' : 'plain', title: 'em.contains(m)', right: s.cm });
     P.box('c2', 344, 186, 320, 36, { cls: s.cr === '?' || s.cr === '-' ? 'ghost' : 'good', title: 'em.contains(' + (s.rName || 'r') + ')', right: s.cr === '-' ? 'Not applicable' : s.cr });
     P.box('c3', 16, 230, 648, 36, { cls: s.dbCls === 'bad' ? 'bad' : s.dbCls === 'good' ? 'good' : 'plain', title: 'Value left in the DB (name · city)', right: s.db.name + ' · ' + (s.db.city === null ? 'NULL' : s.db.city) });
-    P.note('Only an object inside the persistence context in the middle can have its value changes sent to the DB. Merge overwrites the object in the middle with all the fields of the object on the left, and the dirty checking approach moves only the value to change. The object m on the left does not become managed in either way.');
+    P.note('Merge overwrites the object in the middle with all the fields of the object on the left, and the dirty checking approach moves only the value to change.');
   },
   assume: 'All 18 combinations were run on real Hibernate 7.4.5 and an H2 database, and the kind of SQL sent on each line, the result of em.contains, whether the object returned by merge is different from the one you passed, and the name and city left in the DB were confirmed to match the screen. The setting "If you change city to Busan after the merge" has meaning only when merge is chosen. The "SQL sent in this transaction" does not include the SELECT that loaded m in the earlier request. The following facts stated in the summaries were also run separately and confirmed: if you merge an object whose id is not in the DB, an INSERT is sent after the SELECT; if you merge a loaded object without changing its values, only the SELECT is sent and there is no UPDATE; if an entity with the same id is already managed, merge does not send a SELECT; even if city in the DB was changed to another value after you loaded the object, merge overwrites it with the old value of m. The id of the member is set directly in the code, and no @Version field is used. With @Version, an attempt to overwrite with an old value can be stopped by an exception. By default, Hibernate puts all the columns in the UPDATE statement for both merge and dirty checking, so the difference between the two ways is not in the shape of the UPDATE statement but in the values it carries. The SQL statements on the screen are shortened to be easy to read. The save method of Spring Data JPA calls merge internally when it decides that the entity is not new (this is based on the official documentation and was not run here).',
 });

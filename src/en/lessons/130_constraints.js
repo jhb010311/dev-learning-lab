@@ -1,7 +1,7 @@
 Lab.register({
   id: 'constraints', nav: 'Tables, keys, and constraints', cat: 'Database', mode: 'step',
   title: 'What data gets in when there are no constraints?',
-  intro: 'Insert wrong values into the member table and the orders table, or delete a member who still has orders. A table that has constraints rejects those statements with an error, and a table without constraints accepts them as they are. Run the same statement on both and check how the data differs afterwards.',
+  intro: 'Insert wrong values into the member table and the orders table, or delete a member who still has orders. A table that has constraints rejects those statements with an error, and a table without constraints accepts them as they are.',
   terms: ['Constraint', 'Primary key, unique key, foreign key', 'NOT NULL and CHECK', 'Foreign key referential actions (ON DELETE)'],
   controls: [
     { id: 'op', label: 'Statement to run', type: 'select', value: 'fkdel', options: [['pkdup', 'INSERT: add a member with an id that already exists'], ['pknull', 'INSERT: add a member whose id is NULL'], ['uqdup', 'INSERT: add a member with an email that already exists'], ['uqnull', 'INSERT: add one more member whose email is NULL'], ['nnull', 'UPDATE: change the name of a member to NULL'], ['check', 'UPDATE: change the age of a member to -5'], ['fkins', 'INSERT: add an order for a member that does not exist (member 99)'], ['fkdel', 'DELETE: delete a member who has 2 orders']] },
@@ -143,7 +143,6 @@ Lab.register({
     else if (c.op === 'fkdel' && !r.err) mean = c.act === 'cascade' ? 'No order points to a missing member. Instead, 2 orders disappeared together.' : 'No order points to a missing member. An order whose member_id is NULL is regarded as an "order that points to no member", and it does not violate the foreign key.';
     else mean = 'The statement was rejected, so the data is exactly as it was at first.';
     push(ck[0].replace(/\s*\n\s*/g, ' ') + ' (check query). ' + ck[1] + ' ' + n + ck[2] + '. ' + mean, bad ? 'bad' : c.op === 'uqnull' ? '' : 'good', 2);
-    sum.push((r.err ? 'The statement was rejected with error ' + r.err.no + '.' : 'The statement ran, and ' + r.affected + (r.affected === 1 ? ' row was' : ' rows were') + ' changed.') + ' Afterwards, member has ' + r.liveM.length + (r.liveM.length === 1 ? ' row' : ' rows') + ' and orders has ' + r.liveO.length + (r.liveO.length === 1 ? ' row' : ' rows') + '. ' + ck[1] + ' ' + n + ck[2] + '.');
     if (!on && c.op !== 'uqnull') sum.push('Without constraints, the DB accepts even wrong values without an error. The statement "succeeded" but the data is wrong, and that only becomes visible when you query it later. Constraints stop such values at the moment they try to enter the table.');
     if (on && r.err) sum.push({ pkdup: 'A primary key is a promise that "this value can point to exactly one row". So it accepts neither duplicates nor NULL.', pknull: 'A primary key combines a unique constraint and NOT NULL. It accepts neither duplicates nor NULL, and a table can have only one.', uqdup: 'A unique constraint keeps values from overlapping even in a column that is not the primary key. You put it on values that must differ for every person, such as an email or a national ID number.', nnull: 'NOT NULL stops a value that must exist from being saved as missing.', check: 'CHECK is a constraint where you write down a range or condition for values that a type alone cannot express.', fkins: 'A foreign key makes sure that a child row points only to a parent row that really exists. It rejects an INSERT or UPDATE that points to a missing parent.', fkdel: 'RESTRICT is the safest choice. As long as children remain, the parent cannot be deleted, so you have to clean up the orders first before you can delete the member. In MySQL, the behavior when you do not write ON DELETE is the same.' }[c.op]);
     if (c.op === 'uqnull') sum.push('"It may be empty, but if it has a value, it must not overlap" is what a unique constraint means. To block NULL as well, you also need NOT NULL, and a primary key is exactly the combination of the two.');
@@ -159,8 +158,6 @@ Lab.register({
     function rows(list) { return list.map(function (r) { return { cls: r.gone ? 'gone' : '', cells: r.cells.map(function (x, j) { return { v: x, cls: r.hot[j] || r.isNew ? 'hot' : '' }; }) }; }); }
     var ln = H.lanes(v);
     H.lane(ln, 'Statement', this.STMT[c.op].replace(/\n/g, ' '), s.stmt === 'ok' ? 'hot' : s.stmt === 'err' ? 'wait' : 'none');
-    H.lane(ln, 'Constraint check', s.gate || 'Not run yet', s.gateK === 'block' ? 'good' : s.gateK === 'pass' ? 'hot' : 'none');
-    H.lane(ln, 'Check query', s.chk || 'Not queried yet', !s.chk ? 'none' : s.chkBad ? 'bad' : 'good');
     H.table(v, ['id', 'email', 'name', 'age'], rows(s.m), 'member table');
     H.table(v, ['id', 'member_id', 'item'], rows(s.o), 'orders table');
     H.text(v, 'Yellow cells are values that just went in or changed, and a row with a line through it is a deleted row.');

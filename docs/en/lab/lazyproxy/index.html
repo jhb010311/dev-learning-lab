@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Proxies and fetching</p>
 <h1>Proxies and lazy fetching</h1>
 <p><b>Is an object received through lazy fetching a real entity?</b></p>
-<p>A member object you get from em.getReference or from lazy fetching may not be a real Member. It may be a proxy (a stand-in object) that knows only the identifier. A proxy queries the DB only at the moment the real data is needed. Change how you get the object and what you do with it, and see when the query SQL is sent and when an exception is thrown.</p>
+<p>A member object you get from em.getReference or from lazy fetching may not be a real Member. It may be a proxy (a stand-in object) that knows only the identifier. A proxy queries the DB only at the moment the real data is needed.</p>
 <p>Checked against real execution · 20 combinations were run on Hibernate 7.4.5 and H2, and whether m is a proxy, when the query SQL was sent, and the result values and exceptions were checked</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>m is a proxy. Queries on the member table: 1 (when getName is called).</li>
 <li>The query SQL is sent not at the moment you receive the object but at the moment you first use a value other than the identifier. This is lazy fetching.</li>
 </ul>
 <h2>Code</h2>
@@ -164,6 +163,6 @@ String name = m.getName();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Queries</p>
 <h1>Dynamic queries and Querydsl</h1>
 <p><b>How do you add a search condition to where only when it is given?</b></p>
-<p>On a member search screen, the name and the age may be filled in or left blank. Only the conditions that were filled in must go into where, so the shape of the query differs from request to request. A query built at run time from whichever conditions were supplied is called a dynamic query. Turn the conditions on and off to compare which combinations cause a syntax error when you build the JPQL by joining strings, and why building it with code does not have that mistake.</p>
+<p>On a member search screen, the name and the age may be filled in or left blank. Only the conditions that were filled in must go into where, so the shape of the query differs from request to request. A query built at run time from whichever conditions were supplied is called a dynamic query.</p>
 <p>Partly checked against real execution · The 16 combinations of the string methods and the Criteria API were run on Hibernate 7.4.5 and H2 and checked against the results. The 4 Querydsl combinations follow the official documentation because the library is not available</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The built string is &quot;select m from Member m where and m.age &gt;= :age&quot;. It does not match the JPQL syntax, so it was not run.</li>
 <li>Of the four combinations, this code fails when neither is given, when only the age is given, and works normally in the rest. The compiler does not check inside strings, and an error appears only when a request with that combination actually arrives. If you do not test every combination, the error shows up in production.</li>
 <li>With any approach, do not append values to the string directly; leave a placeholder such as :name and put the value in with setParameter. If you append a value entered by a user to the statement as it is, you are exposed to a SQL injection attack.</li>
 </ul>
@@ -169,6 +168,6 @@ search(null, 20);   // the name is not entered, the age is 20 or older</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

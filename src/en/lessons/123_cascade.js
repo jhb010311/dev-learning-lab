@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cascade', nav: 'Cascade and orphan removal', cat: 'JPA', mode: 'step',
   title: 'What happens to the children when you save or delete only the parent?',
-  intro: 'A post (the parent) has two comments (the children). Whether the comments are saved and deleted together when you persist or remove only the post is decided by cascade and orphanRemoval on @OneToMany. Change the settings and see which SQL is sent and what is left in the DB.',
+  intro: 'A post (the parent) has two comments (the children). Whether the comments are saved and deleted together when you persist or remove only the post is decided by cascade and orphanRemoval on @OneToMany.',
   terms: ['Cascade', 'Orphan removal (orphanRemoval)', 'Persistence context', 'Transactional write-behind and flush', 'Entity'],
   controls: [
     { id: 'act', label: 'Action to try', type: 'select', value: 'persist', options: [['persist', 'Persist only the post, which holds two comments'], ['remove', 'Remove the post'], ['orphan', 'Take one comment out of the comment list']] },
@@ -87,7 +87,6 @@ Lab.register({
     var sel = call.concat(commit).filter(function (t) { return t.charAt(0) === 'S'; }).length, ins = call.concat(commit).filter(function (t) { return t.charAt(0) === 'I'; }).length, del = call.concat(commit).filter(function (t) { return t.charAt(0) === 'D'; }).length;
     var np = st.db.post ? 1 : 0, nc = (st.db.c1 ? 1 : 0) + (st.db.c2 ? 1 : 0);
     var write = ins ? 'INSERT: ' + ins : del ? 'DELETE: ' + del + (ex ? ' (failed)' : '') : 'None';
-    sum.push('Read SQL sent: ' + sel + '. Write SQL sent: ' + (ins ? 'INSERT: ' + ins : del ? 'DELETE: ' + del : '0') + '.' + (ex ? ' The DELETE failed with ' + ex + '.' : '') + ' After it ended, the DB has ' + np + (np === 1 ? ' post' : ' posts') + ' and ' + nc + (nc === 1 ? ' comment' : ' comments') + '.');
     if (c.act === 'persist' && !cp) sum.push('Without PERSIST (or ALL) in cascade, the persist you call on the parent is not passed on to the children. As in this example, with a list that has mappedBy, no exception is thrown either, so it is easy to miss that the comments were not saved.' + (c.cas === 'REMOVE' ? ' CascadeType.REMOVE passes on only deletion, so it has no effect on saving.' : '') + (orph ? ' orphanRemoval has nothing to do with saving either.' : ''));
     if (c.act === 'persist' && cp) sum.push('Thanks to CascadeType.PERSIST' + (c.cas === 'ALL' ? ' (which ALL includes)' : '') + ', calling em.persist once on the post saves the comments as well. Cascade is just a convenience that does to the children what you did to the parent. It is not a feature that sets up the relationship. The value of the foreign key is decided by the post field of the comment.');
     if (c.act === 'remove' && ex) sum.push('The DB does not let you delete a parent that still has children (foreign key constraint). To delete the parent and the children together, put REMOVE (or ALL) in cascade, or turn on orphanRemoval = true.' + (c.cas === 'PERSIST' ? ' CascadeType.PERSIST passes on only saving, so it has no effect on deletion.' : ''));
@@ -100,12 +99,8 @@ Lab.register({
   stName: function (k) { return { none: 'None yet', 'new': 'New (unknown to JPA)', lazy: 'Not read yet', managed: 'Managed', removed: 'Removed', out: 'Taken out of the list', deleted: 'Deleted' }[k]; },
   blank: function (c) { var s = c.act !== 'persist'; return { post: 'none', c1: s ? 'lazy' : 'none', c2: s ? 'lazy' : 'none', db: { post: s, c1: s, c2: s }, hot: {}, sent: [], fresh: [], ex: '' }; },
   render: function (v, sim, t, H, shown) {
-    var self = this, last = shown[shown.length - 1], s = last ? last.snap : this.blank(sim.c);
-    function cell(k) { return { v: self.stName(k), cls: k === 'managed' ? 'good' : k === 'removed' || k === 'out' ? 'hot' : '' }; }
-    H.counters(v, [[s.sent.length, 'SQL sent to the DB'], [(s.db.post ? 1 : 0), 'Posts in the DB'], [(s.db.c1 ? 1 : 0) + (s.db.c2 ? 1 : 0), 'Comments in the DB']]);
-    H.table(v, ['Object', 'State in memory'], [{ cells: ['Post "Notice"', cell(s.post)] }, { cells: ['First comment', cell(s.c1)] }, { cells: ['Second comment', cell(s.c2)] }], 'Java objects');
+    var last = shown[shown.length - 1], s = last ? last.snap : this.blank(sim.c);
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i >= s.sent.length - s.fresh.length ? 'hot' : '' }, q.at] }; }), 'SQL sent to the DB'); else { H.title(v, 'SQL sent to the DB'); H.text(v, 'None yet.'); }
-    H.table(v, ['Table', 'Rows'], [{ cells: ['post', s.db.post ? 'id 1 "Notice"' : '(empty)'] }, { cells: ['comment', [s.db.c1 ? 'id 1 "First comment"' : '', s.db.c2 ? 'id 2 "Second comment"' : ''].filter(Boolean).join(', ') || '(empty)'] }], 'DB');
     if (s.ex) H.text(v, 'Exception: ' + s.ex + ' (foreign key constraint violation). The transaction was rolled back, so the DB is as it was at the start.');
   },
   // Diagram: on the left are the Java objects (the post and the two comments in its list) and their states, and on the right are the rows in the DB. The arrow in the middle appears only in a step where SQL is sent.

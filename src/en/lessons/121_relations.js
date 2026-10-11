@@ -1,7 +1,7 @@
 Lab.register({
   id: 'relations', nav: 'Many-to-one, one-to-many, one-to-one, many-to-many', cat: 'JPA', mode: 'step',
   title: 'How do the tables and foreign keys change depending on the kind of relationship?',
-  intro: 'The relationships between entities include many-to-one, one-to-many, one-to-one, and many-to-many. Which one you choose changes the number of tables that are created, the table that holds the foreign key, and the SQL that is sent when you save. Change the kind of relationship, save the same data, and compare the table diagrams and the number of SQL statements.',
+  intro: 'The relationships between entities include many-to-one, one-to-many, one-to-one, and many-to-many. Which one you choose changes the number of tables that are created, the table that holds the foreign key, and the SQL that is sent when you save.',
   terms: ['Many-to-one and one-to-many relationships', 'One-to-one relationship', 'Many-to-many relationships and join tables', 'Owning side and mappedBy', 'Primary key, unique key, foreign key'],
   controls: [
     { id: 'rel', label: 'Kind of relationship', type: 'select', value: 'o2m', options: [['m2o', 'Many-to-one: the member points to the team (@ManyToOne)'], ['o2m', 'Unidirectional one-to-many: the team holds a list of members (@OneToMany + @JoinColumn)'], ['o2mjt', 'Unidirectional one-to-many without @JoinColumn'], ['o2o', 'One-to-one: a member and a locker (@OneToOne)'], ['m2m', 'Many-to-many: members and products (@ManyToMany)']] },
@@ -121,7 +121,6 @@ Lab.register({
     var sqlText = 'INSERT: ' + ins + (upd ? ', UPDATE: ' + upd : '');
     var fkText = sp.fks.map(function (f) { return f[0] + '.' + f[1] + (f[3] ? ' (unique)' : ''); }).join(', ');
     var names = sp.tables.map(function (t) { return t[0]; });
-    sum.push('Tables created: ' + names.length + ' (' + names.join(', ') + '). The foreign key is in ' + fkText + '. The SQL sent when saving was ' + sqlText + '.');
     if (key === 'm2o') sum.push('In a many-to-one, the foreign key is in the table of the "many" side (member), and the field that manages that foreign key (Member.team) is in the same entity. So the foreign key goes in together with a single INSERT. This is the most basic mapping.');
     if (key === 'o2m') sum.push('In a unidirectional one-to-many, the foreign key is in the member table too. This is because in a table, the foreign key always sits on the "many" side. But what manages it is the list in the entity on the other side, Team. When Member is INSERTed, it cannot know the team, so the foreign key is filled in later with an UPDATE. One more UPDATE was sent for each member (' + n + ' in all).', 'The table shape is exactly the same as in a many-to-one, but more SQL is sent. So a common approach is to use many-to-one first, and if the team needs a list of its members, to make the relationship bidirectional by adding mappedBy.');
     if (key === 'o2mjt') sum.push('If you leave out @JoinColumn in a unidirectional one-to-many, a join table (team_member) is created instead of a foreign key. One more table is created, and for each member, one more INSERT is sent to the join table.', 'The members_id column of the join table has a unique constraint, so one member cannot belong to two teams. Thanks to this constraint, it stays one-to-many even though it uses a join table.');
@@ -135,17 +134,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { line: -2, rows: {}, sent: [], hot: '' };
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }).concat([{ cells: ['', { v: '(Transaction commit)', cls: s.line === -1 ? 'hot' : '' }, s.line === -1 ? '← now' : ''] }]), 'Code being run');
-    var ins = s.sent.filter(function (q) { return q.kind === 'insert'; }).length;
-    H.counters(v, [[ins, 'INSERT'], [s.sent.length - ins, 'UPDATE'], [sim.tables.length, 'Tables created']]);
-    H.table(v, ['Table', 'Columns', 'Foreign key'], sim.tables.map(function (tb) {
-      var f = sim.fks.filter(function (x) { return x[0] === tb.name; }).map(function (x) { return x[1] + ' → ' + x[2] + (x[3] ? ' (unique)' : ''); });
-      return { cells: [tb.name, tb.cols.join(', '), f.length ? { v: f.join(', '), cls: 'hot' } : 'None'] };
-    }), 'Tables created');
     if (s.sent.length) H.table(v, ['#', 'SQL', 'When it was sent'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: q.kind === 'update' ? 'bad' : '' }, q.at] }; }), 'SQL sent to the database');
-    sim.tables.forEach(function (tb) {
-      var rows = s.rows[tb.name] || [];
-      H.table(v, tb.cols, rows.map(function (r) { return { cells: r.map(function (x) { return x === 'null' ? { v: 'null', cls: 'bad' } : x; }) }; }), tb.name + ' table in the database');
-    });
   },
   // Diagram: it draws the tables that were created as boxes, and draws an arrow from the table that holds a foreign key to the table that it points to. Below are the numbers of SQL statements that were sent.
   draw: function (P, sim, shown) {
@@ -165,7 +154,7 @@ Lab.register({
     P.box('q_ins', 16, 178, 150, 40, { cls: ins ? 'plain' : 'ghost', title: 'INSERT', right: ins + '' });
     P.box('q_upd', 176, 178, 150, 40, { cls: upd ? 'bad' : 'ghost', title: 'UPDATE', right: upd + '' });
     P.box('q_own', 336, 178, 328, 40, { cls: 'plain', title: 'Manages the foreign key', right: sim.owner });
-    P.note('The blue boxes are the tables that have a foreign key (FK), and the green arrows point to the tables that the foreign keys refer to. The yellow box is the table to which SQL was sent in this step. If you change the kind of relationship, the table that holds the foreign key and the number of boxes change.');
+    P.note('The blue boxes are the tables that have a foreign key (FK), and the green arrows point to the tables that the foreign keys refer to. The yellow box is the table to which SQL was sent in this step.');
   },
   assume: 'Each entity has only the fields id and name, and the primary key uses the IDENTITY strategy, so the INSERT is sent as soon as persist is called. The one-to-many and many-to-many relationships were made unidirectional, in which only one side points to the other. All 14 combinations (many-to-one, one-to-many, one-to-many without @JoinColumn, and many-to-many, each with 1, 2, or 3 counterparts, and one-to-one with two positions of the foreign key) were run on Hibernate 7.4.5 and an H2 database with code of the same structure, and the following were checked to match the screen: the tables and columns that were created, the columns that have a foreign key constraint and the unique constraints, the kinds of SQL that were sent and the count per table, the SQL that was sent before commit, and the values left in the foreign key columns. It was also confirmed from the real SQL that team_id is not in the INSERT statement of a unidirectional one-to-many. The names of the join tables and their columns (team_member, members_id, member_product, products_id) were chosen by Hibernate 7.4.5 by its default rules, and they can be changed with @JoinTable. The SQL statements on the screen are shortened to be easy to read, so they are not letter for letter the same as the real statements. The order of the columns in the table may also differ from the real one.',
 });

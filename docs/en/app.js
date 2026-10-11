@@ -3354,7 +3354,7 @@ Lab.register({
 Lab.register({
   id: 'actuator', nav: 'Actuator and health checks', cat: 'Spring', mode: 'step',
   title: 'What does the health check answer when the connection to the payment provider is lost?',
-  intro: 'Actuator is a library that creates paths through which you can ask, from outside, about the state of a running Spring Boot application. Among them, /actuator/health answers the question "is this server healthy?". The answer is decided by combining the statuses that several components inside the application each report, and which components are asked depends on the path that you request. Change the status of pay, the component that checks the connection to the payment provider, and the requested path, and compare the responses.',
+  intro: 'Actuator is a library that creates paths through which you can ask, from outside, about the state of a running Spring Boot application. Among them, /actuator/health answers the question "is this server healthy?". The answer is decided by combining the statuses that several components inside the application each report, and which components are asked depends on the path that you request.',
   terms: ['Actuator', 'HealthIndicator and the overall health status', 'Health group', 'Health check (liveness, readiness)', 'Exposing Actuator endpoints and controlling access'],
   controls: [
     { id: 'pay', label: 'Status that the pay component returns', type: 'select', value: 'DOWN', hint: 'This is the value that the custom PayHealthIndicator returns.', options: [['UP', 'UP (connected to the payment provider normally)'], ['DOWN', 'DOWN (cannot connect to the payment provider)'], ['OUT_OF_SERVICE', 'OUT_OF_SERVICE (the payment feature was taken down on purpose)'], ['UNKNOWN', 'UNKNOWN (not known)']] },
@@ -3436,12 +3436,11 @@ Lab.register({
     if (builtin) push('Building the response body: The body is ' + body + '. The ' + c.path + ' group that Spring Boot creates returns only the overall status.' + (c.details === 'always' || login ? ' Even with show-details set to ' + showName + ', the body of this group does not change.' : ''));
     else push('Building the response body: ' + { never: 'show-details is not set, so the default, never, applies. The content of each component is hidden, and only the overall status is sent.', auth_anon: 'show-details is when-authorized, but this request has no login information. Exactly as with never, the content of each component is hidden, and only the overall status is sent.', auth_user: 'show-details is when-authorized, and the request comes from a logged-in user. The status and details of each component are sent as well.', always: 'show-details is always, so the status and details of each component are sent as well, no matter who sent the request.' }[c.details] + ' The body is ' + body + '.' + (grouped ? '' : ' groups holds the names of the groups that this application has.'));
 
-    sum.push('The response to GET ' + url + ' is ' + code + ', and the status in the body is ' + overall + '. The body shows ' + (visible ? 'the status and details of each component as well.' : 'only the overall status.'));
     if (c.path === 'liveness') {
       sum.push('The liveness group asks only livenessState. The result is the same whatever pay answers.');
       sum.push('liveness is for asking "does this process need to be restarted?". A lost connection to the payment provider is not fixed by restarting your own server, so the status of external servers is not put into liveness.');
     } else if (c.path === 'readiness' && !c.ready) {
-      sum.push('By default, the readiness group also asks only readinessState. ' + (c.pay === 'UP' ? 'Even if pay answered a different status, this response would not change.' : 'Although the status of pay is ' + c.pay + ', readiness answers UP.') + ' To reflect the status of pay, you must add it to the group yourself. Turn on "Add pay to the readiness group" and compare.');
+      sum.push('By default, the readiness group also asks only readinessState. ' + (c.pay === 'UP' ? 'Even if pay answered a different status, this response would not change.' : 'Although the status of pay is ' + c.pay + ', readiness answers UP.') + ' To reflect the status of pay, you must add it to the group yourself.');
     } else if (c.path === 'readiness') {
       sum.push('pay was added to the readiness group, so the status of pay is reflected in the readiness response.' + (bad ? ' When readiness is 503, this server has answered that it is "not ready to handle requests".' : ''));
       sum.push('Decide carefully whether to put an external server into readiness. If every server looks at the same payment provider, then when the payment provider has a problem, all the servers become not ready at the same time.');
@@ -3449,23 +3448,13 @@ Lab.register({
       sum.push({ UP: 'Every component that was asked is UP, so the overall status is also UP and the response is 200.', DOWN: 'Even when only one component is DOWN, the overall status becomes DOWN and the response is 503. Whoever checks the health through this path treats this server as unhealthy.', OUT_OF_SERVICE: 'OUT_OF_SERVICE is the most severe status after DOWN. It comes before UP, so it becomes the overall status, and like DOWN it is answered with 503.', UNKNOWN: 'UNKNOWN is last in the order. If the other components are UP, the overall status is UP and the response is 200. "Not known" is not counted as a failure.' }[c.pay]);
     }
     if (builtin && (c.details === 'always' || login)) sum.push('show-details applies to the body of /actuator/health and of groups that you wrote in the configuration yourself. The liveness and readiness groups that are exactly as Spring Boot created them return only the overall status.');
-    else if (!builtin) sum.push({ never: 'The default of show-details is never. From the body alone, you cannot tell which component has the problem. Change the setting to always or when-authorized and compare.', auth_anon: 'when-authorized shows the content of each component only to logged-in requests. Requests that check the health usually come without login, so they receive only the overall status. The HTTP status code is the same with or without login.', auth_user: 'when-authorized shows the content of each component only to logged-in requests. If you call the same path without logging in, only the overall status is shown.', always: 'always shows the content of each component to everyone. The details can contain things such as the address of an internal server, so use it with care on a server that anyone can call from outside.' }[c.details]);
+    else if (!builtin) sum.push({ never: 'The default of show-details is never. From the body alone, you cannot tell which component has the problem.', auth_anon: 'when-authorized shows the content of each component only to logged-in requests. Requests that check the health usually come without login, so they receive only the overall status. The HTTP status code is the same with or without login.', auth_user: 'when-authorized shows the content of each component only to logged-in requests. If you call the same path without logging in, only the overall status is shown.', always: 'always shows the content of each component to everyone. The details can contain things such as the address of an internal server, so use it with care on a server that anyone can call from outside.' }[c.details]);
     if (c.ready && c.path !== 'readiness') sum.push('The setting that adds pay to the readiness group changes only the response of the readiness path. It does not affect the result of this path.');
     return { events: ev, summary: sum, body: body, members: mem.slice().sort(), payCalled: hasPay, row: [code, overall, mem.join(', '), vis] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c, self = this;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to see, one step at a time, how a single request becomes a response.'); return; }
-    H.table(v, ['Component', 'What it tells you', 'Does this request ask it?', 'Status answered'], this.COMPS.map(function (x) {
-      var mem = s.members.indexOf(x[0]) >= 0, got = s.asked[x[0]];
-      return { cls: s.stage >= 2 && !mem ? 'gone' : '', cells: [x[0], x[1], s.stage < 2 ? '' : mem ? { v: 'Asked', cls: 'hot' } : 'Not asked', got ? { v: got, cls: self.cls(got) } : ''] };
-    }), 'Registered components');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Components asked', s.stage < 2 ? 'Not yet' : c.path === 'health' ? 'All registered components' : c.path + ' group', s.stage < 2 ? 'none' : s.stage === 2 ? 'hot' : 'wait');
-    H.lane(ln, 'Overall status', s.overall || 'Not yet', s.overall ? this.cls(s.overall) : 'none');
-    H.lane(ln, 'HTTP status code', s.code || 'Not yet', !s.code ? 'none' : s.code.indexOf('503') === 0 ? 'bad' : 'good');
-    H.lane(ln, 'What the body shows', s.vis || 'Not yet', s.vis ? 'wait' : 'none');
-    H.counters(v, [[s.code ? s.code.split(' ')[0] : '?', 'HTTP status code'], [s.overall || '?', 'status in the body']]);
     if (s.body) H.text(v, 'Response body: ' + s.body);
   },
   // Diagram: the request at the top, the three registered components in the middle (arrows go only to the ones that this request asks), and below them the combined overall status, the HTTP status code, and what the body shows.
@@ -3483,7 +3472,7 @@ Lab.register({
     P.box('agg', 16, 196, 648, 30, { cls: s.overall ? this.cls(s.overall) : 'ghost', title: 'Overall status (the most severe of those asked)', right: s.overall });
     P.box('http', 16, 240, 316, 30, { cls: !s.code ? 'ghost' : s.code.indexOf('503') === 0 ? 'bad now' : 'good now', title: 'HTTP status', right: s.code });
     P.box('bodyb', 348, 240, 316, 30, { cls: s.vis ? 'wait' : 'ghost', title: 'Body', right: s.vis });
-    P.note('A dashed box is a component that this request does not ask. The overall status and the HTTP status code are decided only from the answers of the components that were asked.');
+    P.note('A dashed box is a component that this request does not ask.');
   },
   assume: 'All 96 combinations (4 statuses of pay × 3 paths × 4 choices of show-details and requester × 2 choices of whether pay is added to the readiness group) were sent as HTTP requests to a real Spring Boot 4.1.1 server (Spring Framework 7.0.9, embedded Tomcat 11, 127.0.0.1), and the HTTP status code, the entire text of the body, the list of components that the path asks, and whether PayHealthIndicator ran were confirmed to match the screen. That the entries in the body come out in the order components, groups, status is also exactly as in the real response of this version, and the order may differ in other versions. How the components were controlled: the environment used for the check also contains H2 and the DataSource auto-configuration, so starting it with no configuration adds db, diskSpace, ping, and ssl automatically (confirmed by execution). These were turned off with management.health.defaults.enabled=false, which left only three components: livenessState, readinessState, and pay. In a real application, these components are combined into the overall status as well. Spring Security was set to permit all requests. In an application where Spring Security blocks the /actuator paths, a request without login can be rejected before it reaches the health endpoint, and that case is not covered. The "request from a logged-in user" was made not by logging in with a password but with a test filter that fills in the Spring Security authentication for the request. That leaving management.endpoint.health.roles empty shows the content to every logged-in user is consistent between the property description included in the library and the result of this run. The PayHealthIndicator on the screen is a @Component class, but in the check it was registered as a @Bean with the same bean name (payHealthIndicator), and the status that it answers was changed while the server was running. What changed from Spring Boot 3: in 4.1.1 the default of management.endpoint.health.probes.enabled is true, so the liveness and readiness groups exist even with no configuration (confirmed by execution; in Spring Boot 3 they are said to be turned on automatically only in environments such as Kubernetes, but that version was not run). HealthIndicator and Health are in the org.springframework.boot.health.contributor package of the spring-boot-health module. Cases that are not on the screen were confirmed in the same way. With no configuration, the list at /actuator contains only health, and /actuator/env, /actuator/beans, and /actuator/info return 404. Exposing everything with management.endpoints.web.exposure.include=* makes env and beans return 200, but shutdown still returns 404. This is because its access is not permitted, which is separate from exposure, and conversely, setting only management.endpoint.shutdown.access=unrestricted without exposing it also returns 404 (with both, the path appears; the POST request that actually shuts the application down was not sent). Adding management.endpoint.env.access=none to exposure.include=* makes only env return 404. Writing exposure.include=env replaces the default, so health returns 404. Turning the probes off with probes.enabled=false makes the liveness and readiness paths return 404, and groups also disappears from the body. If pay is added to the liveness group, liveness also returns 503 when pay is DOWN. The order of the statuses was confirmed with the 16 pairs of statuses of two components, and when every component is UNKNOWN, the overall status is also UNKNOWN, but the response is 200. A path that asks a single component, such as /actuator/health/pay, responds only under a setting that shows the content of each component, and returns 404 under a setting that hides it. Not verified: how livenessState and readinessState change while the application is starting or shutting down, what a load balancer or Kubernetes does on receiving this response (the lab follows the widely known explanation), management.server.port for a separate management port, the settings that change the status order and the mapping from statuses to HTTP status codes, the show-components setting, and the caching of health responses.',
 });
@@ -3582,7 +3571,7 @@ Lab.register({
     var st = { now: 0, s1: 'Not run yet', s2: 'Not run yet', k1: '', k2: '', ctxs: [], made: 0, got: '', use1: -1, use2: -1, how1: '', how2: '' };
     function push(s, k) { ev.push({ s: s, k: k || '', snap: JSON.parse(JSON.stringify(st)) }); }
     function set(n, text, k) { st['s' + n] = text; st['k' + n] = k || ''; }
-    var res = ['', ''], used = [null, null], cache = {}, failed = {}, okCount = 0, failCount = 0;
+    var res = ['', ''], used = [null, null], cache = {}, failed = {}, okCount = 0;
 
     // ---- Unit test without Spring ----
     function runUnit(n, f) {
@@ -3661,7 +3650,7 @@ Lab.register({
         register(2, f, w);
       }
       if (!loads(f)) {
-        w.cx.state = 'fail'; failed[k] = true; failCount++; st.got = 'Not run'; set(n, DOWN, 'bad');
+        w.cx.state = 'fail'; failed[k] = true; st.got = 'Not run'; set(n, DOWN, 'bad');
         push('OrderController cannot be created: To create the controller, Spring needs the OrderService bean that the constructor requires, but the context does not have one. A NoSuchBeanDefinitionException is thrown and the loading of the context stops.' + (f.repo ? ' A mock OrderRepository was added, but what the controller requires is OrderService, so it does not help.' : ''), 'bad');
         push('returnsOrderName is recorded as failed: There is no context, so the @Autowired MockMvc field cannot be filled. Not a single line of the test method body runs, and the failure is recorded as an IllegalStateException that says "Failed to load ApplicationContext".', 'bad');
         return DOWN;
@@ -3701,7 +3690,6 @@ Lab.register({
     var loaded1 = unit || used[0] !== null, loaded2 = unit || used[1] !== null;
     var b1 = loaded1 ? beans(A).join(' · ') : 'not created', b2 = loaded2 ? beans(B).join(' · ') : 'not created';
     var shared = unit || used[0] === null || used[1] === null ? '-' : used[0] === used[1] ? 'same context' : 'different contexts';
-    sum.push('First class: ' + res[0] + '. Second class: ' + res[1] + '. Times a Spring context was created: ' + st.made + '' + (failCount ? ' (of these, failed to load: ' + failCount + ')' : '') + '.');
     if (unit) {
       if (c.mock === 'bare') sum.push('A mock created with mock() returns null from a method that has not been given a value to return (here, a method whose return type is String). You must set the value with when(...).thenReturn(...).');
       sum.push('A test that uses only new and Mockito, without Spring, does not start a context, so it has the least to prepare. In return, this test does not check the things that Spring does for you, such as request mapping (@GetMapping) and bean injection.');
@@ -3724,15 +3712,10 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the steps one at a time.'); return; }
-    H.title(v, s.now === 1 ? 'First test class (OrderControllerTest)' : 'Second test class (OrderControllerSecondTest)');
-    var ln = H.lanes(v);
-    H.lane(ln, 'First', s.s1, s.k1 || 'none');
-    H.lane(ln, 'Second', s.s2, s.k2 || 'none');
     var cell = function (x) { return { v: x, cls: x === 'mock' ? 'hot' : x === 'real' ? 'good' : '' }; };
     var stateText = { build: 'Being created', up: 'In the cache', fail: 'Failed to load', closed: 'Closed', obj: '' };
     if (sim.unit) H.table(v, ['Created by', 'Controller', 'Service', 'Repository'], s.ctxs.map(function (x) { return { cells: [x.n === 1 ? 'First test' : 'Second test', cell(x.beans[0]), cell(x.beans[1]), cell(x.beans[2])] }; }), 'Objects that the test methods created directly (no Spring context)');
     else H.table(v, ['Context', 'Controller', 'Service', 'Repository', 'State'], s.ctxs.map(function (x) { return { cls: x.state === 'closed' ? 'gone' : '', cells: ['#' + x.n, cell(x.beans[0]), cell(x.beans[1]), cell(x.beans[2]), { v: stateText[x.state], cls: x.state === 'fail' ? 'bad' : x.state === 'up' ? 'good' : '' }] }; }), 'Contexts created by Spring' + (s.ctxs.length ? '' : ' (none yet)'));
-    H.counters(v, [[s.made + '', 'Times a Spring context was created'], [s.got || 'None yet', 'Value this test received']]);
   },
   // Diagram: on the left are the two test classes, which run one after the other, and the dashed region on the right is the context cache. Each long box in the cache is one context, and the three boxes inside it are the controller, service, and repository beans (green for real, yellow for a mock, dashed for absent). The arrow from a test class points to the context that the class uses.
   draw: function (P, sim, shown) {
@@ -3757,7 +3740,7 @@ Lab.register({
     if (s.use2 >= 0 && s.how2) P.arrow('a2', 't2:r', 'ctx' + (s.use2 + 1) + ':l' + (s.use2 === 0 ? ':0.8' : ''), { cls: s.how2 === 'reused' ? 'good' : s.ctxs[s.use2].state === 'fail' ? 'bad' : '', label: s.how2 });
     P.box('cnt', 10, 254, 326, 38, { cls: s.made ? 'hot' : 'ghost', title: 'Times a Spring context was created', right: s.made + '' });
     P.box('got', 344, 254, 326, 38, { cls: s.got === '"keyboard"' ? 'good' : s.got ? 'bad' : 'ghost', title: 'Value this test received', right: s.got || 'None yet' });
-    P.note(unit ? 'A test without Spring has no context. On the right are the objects that the test method created directly with new and mock(...). Green is a real object, yellow is a mock created by Mockito, and a dashed box is one that was not created.'
+    P.note(unit ? 'On the right are the objects that the test method created directly with new and mock(...). Green is a real object, yellow is a mock created by Mockito, and a dashed box is one that was not created.'
       : 'Each long box on the right is one Spring context, and the three boxes inside it are beans. Green is a real bean, yellow is a mock added with @MockitoBean, and a dashed box is one that is not registered. If the arrow from the second class goes to the first context, the context was reused, and if it goes to a new box, a context was created once more.');
   },
   assume: 'All 36 combinations were actually run on this PC and checked against the results (3 testing approaches × 4 mock choices × 4 second-class choices; for a test without Spring, the second-class setting has no meaning, so only 4 are counted). The versions are Spring Boot 4.1.1, Spring Framework and spring-test 7.0.9, JUnit Jupiter 6.0.3, Mockito 5.23.0, and JDK 21. The two test classes were run one after the other with the JUnit Platform Launcher, without Gradle or Maven, and because the context cache lives inside the JVM, a new Java process was started for each combination. What was compared: the results of the two classes (passed, assertion failed, context failed to load, failure that was not retried), whether the controller, service, and repository that each class used were real, Mockito mocks, or absent, the number of times the creation of a context was started (counted as the number of times the constructor of the configuration class was called, including the ones that failed to load), the number of times loading succeeded, and whether the two classes received the same context object. ' +
@@ -3857,30 +3840,21 @@ Lab.register({
         }
       }
     }
-    sum.push('Result: ' + result + '. ' + (ex === 'None' ? 'The calling code received the response body without an exception' : 'The exception that the calling code received is ' + ex) + ', and the calling thread ' + (wait === 'right away' ? 'was released right away.' : 'was occupied ' + (/\ds$/.test(wait) ? 'for ' : '') + wait + '.'));
     if (S === 'slow' && !rt) sum.push('If you do not set a read timeout, the wait has no limit. When the payment server slows down, the threads of the order server stay occupied for that long, and when many requests come in at once, all the threads in the thread pool become occupied and the order server itself can no longer respond.' + (ct ? ' The connect timeout alone does not protect against a slow response. The two timeouts measure different intervals, so you must set both.' : ''));
     if (S === 'slow' && rt) sum.push('The read timeout released the thread after 3 seconds. However, the payment server handled that request to the end. If you send the same request again because a timeout occurred, it can be handled twice (the "Retries and idempotency" lab covers this).');
     if (S === 'noanswer' && ct) sum.push('The connect timeout expires when the connection is not established. Normally a connection is established very quickly, so the connect timeout is usually set shorter than the read timeout.');
     if (S === 'noanswer' && !ct) sum.push('If you do not set a connect timeout, the thread stays occupied until the operating system gives up.' + (rt ? ' Even if a read timeout is set, it is not used during the connection phase.' : '') + ' Because of one server that does not answer, a thread becomes unavailable for that long on every call.');
     if (S === 'refused') sum.push('When the server program is not running, the refusal comes back right away, so the call fails immediately without waiting for a timeout. A timeout expires when there is no answer at all (connect timeout) or when the response is late (read timeout).');
     if (S === 'e404' || S === 'e500') sum.push('4xx and 5xx mean that a response arrived, so they have nothing to do with timeouts. RestClient turns such a response into an exception and throws it, so the calling code catches it with try-catch and handles it. 4xx is an HttpClientErrorException (a problem with the request that was sent), and 5xx is an HttpServerErrorException (a problem on the remote server).');
-    if (S === 'ok') sum.push('When the remote server is normal, the result is the same whether or not you set timeouts. Timeouts are a safeguard for when the remote server is slow or does not answer. Change the server state to "Slow" or "No answer".');
+    if (S === 'ok') sum.push('When the remote server is normal, the result is the same whether or not you set timeouts. Timeouts are a safeguard for when the remote server is slow or does not answer.');
     return { events: ev, summary: sum, cause: cause, ms: ms, status: status, row: [result, ex, wait, served] };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to see, one step at a time, how a thread of the order server calls the payment server and receives the result.'); return; }
-    H.counters(v, [[s.waited, 'Time the thread waited'], [s.result || 'In progress', 'Result']]);
     var ln = H.lanes(v), connText = { '': 'Not yet', try: 'Connection request sent', ok: 'Connected', refused: 'Refused by the remote server', silent: 'No answer', timeout: 'Gave up: connect timeout', osfail: 'The operating system gave up' }[s.conn];
-    H.lane(ln, 'Calling thread', s.thread, s.thread === 'Released' ? 'good' : s.thread === 'Before the call' ? 'none' : 'hot');
     H.lane(ln, 'Connection', connText, s.conn === 'ok' ? 'good' : s.conn === 'try' || s.conn === 'silent' ? 'wait' : s.conn ? 'bad' : 'none');
     H.lane(ln, 'Response', !s.req ? (s.result ? 'Request could not be sent' : 'Not yet') : s.resp === 'none' ? 'Not received' : s.resp ? s.resp + ' response received' : 'Waiting', !s.req ? 'none' : s.resp === 'none' ? 'bad' : s.resp === '200' ? 'good' : s.resp ? 'bad' : 'wait');
-    H.lane(ln, 'Payment server', s.srv, 'none');
-    H.table(v, ['Timeout', 'Setting', 'In this call'], [
-      { cls: c.ct ? '' : 'gone', cells: ['Connect timeout', c.ct ? '2s' : 'Not set', { v: s.ctS, cls: s.ctK === 'bad' ? 'bad' : s.ctK === 'hot now' ? 'hot' : '' }] },
-      { cls: c.rt ? '' : 'gone', cells: ['Read timeout', c.rt ? '3s' : 'Not set', { v: s.rtS, cls: s.rtK === 'bad' ? 'bad' : s.rtK === 'hot now' ? 'hot' : '' }] },
-    ], 'The interval that each timeout measures');
-    if (s.ex) H.text(v, 'Exception the calling code received: ' + s.ex);
   },
   // Diagram: the thread of the calling order server on the left and the payment server on the right. Between them are the connection, request, and response arrows. Below are when each of the two timeouts counts time, and the result.
   draw: function (P, sim, shown) {
@@ -3895,7 +3869,7 @@ Lab.register({
     P.box('tc', 16, 122, 320, 46, { cls: s.ctK, title: 'Connect timeout', right: c.ct ? '2s' : 'None', sub: s.ctS });
     P.box('tr', 344, 122, 320, 46, { cls: s.rtK, title: 'Read timeout', right: c.rt ? '3s' : 'None', sub: s.rtS });
     P.box('out', 16, 182, 648, 58, { cls: !s.result ? 'ghost' : s.ex === 'None' ? 'good' : 'bad', title: 'What the calling code received', sub: s.result ? [s.result, 'Exception: ' + s.ex] : ['No result yet', ' '], right: s.result ? 'Waited: ' + s.waited : '' });
-    P.note('The connect timeout counts time only until "1. Connection" is established, and the read timeout counts time only while the caller waits for the response after "2. Request" is sent. They are different intervals, so one cannot stand in for the other. The 2 seconds, 3 seconds, and 10 seconds are example values.');
+    P.note('The connect timeout counts time only until "1. Connection" is established, and the read timeout counts time only while the caller waits for the response after "2. Request" is sent.');
   },
   assume: 'All 24 combinations were actually called with the RestClient of Spring Framework 7.0.9 (the request factory is SimpleClientHttpRequestFactory, on JDK 21), and it was confirmed that the result, the kind of exception, the cause of the exception, the time waited, and whether the remote server handled the request match the screen. The remote server is a Spring Boot 4.1.1 server (embedded Tomcat) started on 127.0.0.1 of the same PC, with a URL that responds late on purpose. The times on the screen are examples. The real check was run with the times reduced to one hundredth (connect timeout 200ms, read timeout 300ms, slow response 1000ms), and the time waited was checked to come out in that proportion. "Connection refused" was checked with a port on 127.0.0.1 that no program is listening on. "No answer to the connection request" cannot be produced with 127.0.0.1, so it was checked with 192.0.2.1 (RFC 5737), an address that is reserved for documentation and is not assigned to any machine. These 4 combinations can give different results depending on the network the PC is on (if the network is disconnected, the call fails right away). The roughly 21 seconds that the operating system took to give up when there was no connect timeout is the value seen on Windows 11, and it differs depending on the operating system and its settings. That the wait has no limit when no timeout is set follows the java.net.URLConnection documentation (a timeout of 0 means infinite), and execution confirmed only that the call waits until the response arrives. The read timeout is not a limit on the time the whole response takes but a limit on the time spent waiting with no data arriving, so it may not expire for a response that keeps arriving a little at a time (this follows the same documentation and was not verified by execution). How timeouts are set and what their defaults are differ depending on the kind of request factory. The check was done one call at a time, so the situation where requests pile up and the thread pool runs out was not verified by execution. The model is simplified to the case where a new connection is established for every call, and it does not cover a connection pool that reuses connections and its wait time, retries, or circuit breakers.',
 });
@@ -3903,7 +3877,7 @@ Lab.register({
 Lab.register({
   id: 'cacheabs', nav: 'Cache abstraction', cat: 'Spring', mode: 'step',
   title: 'With @Cacheable on a method, when does the method body not run?',
-  intro: 'In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that was returned before is taken from the cache. The code that looks up the cache and stores values in it is run by a proxy on your behalf. Call find twice, change what is done in between and how find is called, and check how many times the body runs and what the second call receives.',
+  intro: 'In Spring, you only need to put @Cacheable on a method. When the method is called again with the same arguments, the body does not run, and the value that was returned before is taken from the cache. The code that looks up the cache and stores values in it is run by a proxy on your behalf.',
   terms: ['@Cacheable', '@CacheEvict and @CachePut', 'Cache', 'Proxy', 'Self-invocation'],
   controls: [
     { id: 'mid', label: 'What is done after find(1) is called', type: 'select', value: 'none', options: [['none', 'Call find(1) again right away'], ['other', 'Call find(2), with a different argument'], ['evict', 'Call evict(1), then find(1) · @CacheEvict'], ['put', 'Call rename(1, "New keyboard"), then find(1) · @CachePut'], ['plain', 'Call renamePlain(1, "New keyboard"), then find(1) · no annotation']] },
@@ -3998,7 +3972,6 @@ Lab.register({
     }
     var second = find(mid === 'other' ? 2 : 1, 2);
     var ck = Object.keys(cache).sort(), cstr = ck.length ? ck.map(function (k2) { return k2 + '=' + (cache[k2] === null ? 'null' : cache[k2]); }).join(', ') : 'empty';
-    sum.push('Times the find body ran: ' + count + '. The value that the second call received is ' + q(second) + '. Cache contents at the end: ' + cstr + '.');
     if (self) {
       sum.push('A find that is called from within the same class does not go through the proxy, so @Cacheable is not applied. The body runs every time, with no error and no warning. To apply caching, call find from another bean or move find to another bean.');
       if (mid === 'put') sum.push('rename was called from another bean, so @CachePut was applied and the value went into the cache. But find does not look at the cache, so that value was not used.');
@@ -4016,12 +3989,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the calls one step at a time.'); return; }
-    H.title(v, 'Call being handled now: ' + s.call); var ln = H.lanes(v);
-    H.lane(ln, 'Proxy', s.px || 'Idle', s.px.indexOf('Does not see') >= 0 ? 'bad' : s.look === 'hit' ? 'good' : s.px ? 'hot' : 'none');
-    H.lane(ln, 'Real object', s.tg || 'Idle', s.tg.indexOf('not run') >= 0 ? 'good' : s.tg ? 'wait' : 'none');
     H.table(v, ['Key', 'Value'], s.cache.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[1] === 'null' ? 'hot' : '' }] }; }), 'Cache "product"' + (s.cache.length ? '' : ' (empty)'));
-    H.table(v, ['id', 'Name'], s.db.map(function (r) { return { cells: [r[0], r[1]] }; }), 'DB');
-    H.counters(v, [[s.count + '', 'Times the find body ran'], [s.second || 'Not called yet', 'Value returned by the second find']]);
   },
   // Diagram: the outer box is the proxy and the inner box is the real object. The proxy looks at the cache at the upper right first, and if the value is there, the call does not go into the inner box. The call goes to the DB at the lower right only when the body runs.
   draw: function (P, sim, shown) {
@@ -4040,7 +4008,7 @@ Lab.register({
     if (s.dbop) P.arrow('dbq', 'tg:r', 'db:l', { label: s.dbop });
     P.box('cnt', 12, 252, 324, 38, { cls: s.count ? 'hot' : 'ghost', title: 'Times the find body ran', right: s.count + '' });
     P.box('res', 344, 252, 324, 38, { cls: s.second ? 'good' : 'ghost', title: 'Second find returned', right: s.second || 'Not called yet' });
-    P.note('The outer box is the proxy, and the inner box is the real object. When a method annotated with @Cacheable is called, the proxy looks at the cache first, and if the value is there, the call does not go into the inner box. The red arrow, where the inner object calls its own method with this, does not go through the proxy, so the body runs regardless of the cache.');
+    P.note('The outer box is the proxy, and the inner box is the real object. The red arrow, where the inner object calls its own method with this, does not go through the proxy, so the body runs regardless of the cache.');
   },
   assume: 'All 40 combinations were run on Spring Framework 7.0.9 (the version included in Spring Boot 4.1.1) on this PC with @EnableCaching and ConcurrentMapCacheManager, and these were checked against the results: the number of times the find body ran, the value returned by the second find, and the cache contents at the end. The same runs also confirmed that the body of rename runs even when the cache has a value, and that removing a key that is not in the cache with @CacheEvict does not cause an error. ConcurrentMapCacheManager is the simplest cache manager, which stores values in maps in the memory of the application, and it has no expiration time (TTL) and no size limit. Expiration and requests that arrive at the same time are covered in the "Caching and TTL" lab. Whether null can be put in a cache depends on the settings of the cache implementation, and ConcurrentMapCacheManager stores null by default (the behavior of other cache implementations was not verified by execution). The DB was replaced with an in-memory map both on the screen and in the runs. The code on the screen assumes that @EnableCaching is turned on, and to use a parameter name as in key = "#id", the code must be compiled with the -parameters option. When the code was compiled without this option and run on this PC, an IllegalArgumentException saying that the key is null was thrown at the moment rename was called (the build settings of a project created with Spring Boot include this option). The reason why proxy-based features are not applied to calls made from within the same class is covered in detail in the "Proxies and self-invocation" lab. This lab covers only the case where the calls are made one after another on a single thread. The case where several threads look up the same key for the first time at the same moment was not run.',
 });
@@ -4048,7 +4016,7 @@ Lab.register({
 Lab.register({
   id: 'ormwhy', nav: 'What JPA solves', cat: 'JPA', mode: 'step',
   title: 'When you write the SQL yourself, what do you have to fill in by hand?',
-  intro: 'Java objects are linked to each other by references, while the rows of a table are linked by numbers (foreign keys). Because the shapes differ, someone has to write the code that moves the rows of a table into objects. Do the same job by writing the SQL yourself (JDBC) and with JPA (Jakarta Persistence), and compare where the two differ.',
+  intro: 'Java objects are linked to each other by references, while the rows of a table are linked by numbers (foreign keys). Because the shapes differ, someone has to write the code that moves the rows of a table into objects.',
   terms: ['ORM', 'JDBC', 'Object/relational impedance mismatch', 'JPA, Hibernate, Spring Data JPA', 'First-level cache'],
   controls: [
     { id: 'sc', label: 'Task to try', type: 'select', value: 'nav', options: [['same', 'Load the same order twice'], ['nav', 'Go from the order to its member'], ['field', 'Add one field (grade) to the member']] },
@@ -4165,17 +4133,13 @@ Lab.register({
     var cnt = {}, order = [];
     trace.forEach(function (t) { t[1].forEach(function (k) { var w = k.split(' ')[0].toUpperCase(); if (!cnt[w]) { cnt[w] = 0; order.push(w); } cnt[w]++; }); });
     var sentText = order.map(function (w) { return w + ': ' + cnt[w]; }).join(', ');
-    sum.unshift('SQL statements written in the code: ' + written + '. SQL statements sent to the DB: ' + sentText + '. Result of ' + check + ': ' + res + '.');
     return { events: ev, summary: sum, written: written, trace: trace.map(function (t) { return t[0] + ':' + t[1].join(','); }).join('; '), row: [String(written), sentText, check, res] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Press Run to go one line at a time.'); return; }
-    H.counters(v, [[sim.written, 'SQL written in the code'], [s.sent.length, 'SQL sent to the DB'], [s.res, sim.row[2]]]);
-    H.table(v, ['Variable → object', 'Value it holds'], s.objs.map(function (o) { return { cells: [o.t, { v: o.s, cls: o.cls === 'bad' ? 'bad' : o.cls === 'good' ? 'good' : '' }] }; }), 'Java objects in memory');
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Written by'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i === s.sent.length - 1 && s.flow ? 'hot' : '' }, q.by] }; }), 'SQL sent to the DB');
     else { H.title(v, 'SQL sent to the DB'); H.text(v, 'None yet.'); }
-    H.table(v, ['Row', 'Value'], s.rows.map(function (r) { return { cells: [r.t, { v: r.r, cls: r.cls || '' }] }; }), 'Tables in the DB');
   },
   // Diagram: the Java objects in memory on the left, the rows of the DB tables on the right. An arrow appears in the middle only in a step where SQL is sent, and it says who wrote that SQL.
   draw: function (P, sim, shown) {
@@ -4190,7 +4154,7 @@ Lab.register({
     if (s.flow) P.arrow('sql', s.flow.write ? 'heap:r' : 'row_' + s.flow.to + ':l', s.flow.write ? 'row_' + s.flow.to + ':l' : 'heap:r', { cls: 'hot', label: s.flow.label });
     P.box('r1', 16, 236, 210, 40, { cls: sim.written ? 'hot' : 'good', title: 'SQL you wrote', right: String(sim.written) });
     P.box('r2', 234, 236, 430, 40, { cls: s.res === '?' ? 'ghost' : /^(false|null|NullPointerException)$/.test(s.res) ? 'bad' : 'good', title: sim.row[2], right: s.res });
-    P.note('The arrow in the middle means that SQL was sent to the DB in this step, and it also says who wrote that SQL. A row in a table points to another row by a number (member_id), and an object points to another object by a reference. The difference between the two approaches is whether you write the code that bridges this gap yourself or leave it to JPA.');
+    P.note('The arrow in the middle means that SQL was sent to the DB in this step, and it also says who wrote that SQL.');
   },
   assume: 'All 12 combinations were actually run and checked on the PC used to write this lab (the JDBC side ran DAO code with the same structure as on the screen against an H2 database, and the JPA side ran on Hibernate 7.4.5 and H2). What was checked: the number of SQL statements written in the code, the kind and the table of the SQL sent on each line, the value of a == b, the member name or the exception, and the grade read back and the grade left in the DB. The "filled in by hand" setting has meaning only for JDBC, and for JPA it does not affect the result. The SQL statements on the screen are shortened to be easy to read, and the statements that Hibernate actually builds differ in column order and aliases. The @ManyToOne of JPA was set to lazy fetching (LAZY). With the default, eager fetching (EAGER), a single em.find reads the order and the member together. The amount of JDBC code is based on the DAO in this example. If you use Spring\'s JdbcTemplate or MyBatis, the repeated code shrinks, but it stays the same that you write the SQL yourself and have to change the SQL together when a field changes. "Four places to change" is counted in the code on the screen.',
 });
@@ -4198,7 +4162,7 @@ Lab.register({
 Lab.register({
   id: 'entitylife', nav: 'The lifecycle of an entity', cat: 'JPA', mode: 'step',
   title: 'Why is the same setName sometimes not applied to the DB?',
-  intro: 'An entity object is in one of four states: new, managed, detached, or removed (Hibernate calls the new state transient). JPA watches the changes of values and applies them to the DB only when the object is in the managed state. Follow the code one line at a time to see on which line the object changes to which state, and whether a name changed in that state is kept in the DB.',
+  intro: 'An entity object is in one of four states: new, managed, detached, or removed (Hibernate calls the new state transient). JPA watches the changes of values and applies them to the DB only when the object is in the managed state.',
   terms: ['The four entity states', 'Detached entity', 'Persistence context', 'Dirty checking', 'Transactional write-behind and flush'],
   controls: [
     { id: 'st', label: 'Path the entity takes', type: 'select', value: 'detach', options: [['new', 'Only new (state: new)'], ['persist', 'new, then em.persist (state: managed)'], ['find', 'Load with em.find (state: managed)'], ['detach', 'Load, then em.detach (state: detached)'], ['clear', 'Load, then em.clear (state: detached)'], ['close', 'Load, commit, then em.close (state: detached)'], ['remove', 'Load, then em.remove (state: removed)']] },
@@ -4230,7 +4194,7 @@ Lab.register({
   columns: ['em.contains(m)', 'SQL sent to the DB', 'When the write SQL was sent', 'Value left in the DB'],
   stateName: { none: 'None yet', 'new': 'New', managed: 'Managed', detached: 'Detached', removed: 'Removed' },
   simulate: function (c) {
-    var L = this.lines(c), SN = this.stateName, ev = [], sum = [], trace = [];
+    var L = this.lines(c), ev = [], sum = [], trace = [];
     // o: the Java object m. snap: the value the persistence context remembers (the value when it was first read or persisted). ins: whether there is an INSERT that has not been sent yet. open: whether em is open
     var st = { line: -1, o: null, snap: null, ins: false, open: true, sent: [], db: [{ id: 1, name: 'Alice' }], contains: '?', moved: '', flow: '' };
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(st)) }); st.moved = ''; st.flow = ''; }
@@ -4291,12 +4255,11 @@ Lab.register({
     var whenText = !wr.length ? 'Not sent' : wr.every(function (k) { return k === 'commit'; }) ? 'At commit' : 'Right on that line';
     var left = st.db.filter(function (r) { return r.cls !== 'gone'; }), dbText = left.length ? left.map(function (r) { return 'id ' + r.id + ' (' + r.name + ')'; }).join(', ') : 'no rows';
     var o = st.o, changed = o.id === 1 ? left.length && left[0].name === 'Bob' : left.length === 2;
-    sum.push('Final state of m: ' + SN[o.state] + '. SQL sent to the DB: ' + sqlText + '. ' + (left.length ? 'Rows left in the DB: ' + dbText + '.' : 'No rows are left in the DB.'));
     if (c.st === 'new') sum.push('An object created with new has nothing to do with JPA until you pass it to em.persist. No matter how often you change its values or commit the transaction, no SQL is sent. When something is not saved, first check whether you called persist (or save, if you use Spring Data JPA).');
-    if (c.st === 'persist') sum.push(cnt.UPDATE ? 'If you change the value after persist, dirty checking kicks in, and one more UPDATE is sent after the INSERT. The result is correct, but it costs one more SQL statement. If you persist after filling in all the values, one INSERT is enough (change "When the name is changed" to just before).' : 'You persisted after filling in all the values, so one INSERT was enough. If you change the value after persist, one more UPDATE is sent.', 'The INSERT was not sent on the line that called persist because the id was set directly in the code. With the IDENTITY strategy, where the DB decides the id, the INSERT is sent right on the persist line (see the "Persistence context" lab).');
+    if (c.st === 'persist') sum.push(cnt.UPDATE ? 'If you change the value after persist, dirty checking kicks in, and one more UPDATE is sent after the INSERT. The result is correct, but it costs one more SQL statement. If you persist after filling in all the values, one INSERT is enough.' : 'You persisted after filling in all the values, so one INSERT was enough. If you change the value after persist, one more UPDATE is sent.', 'The INSERT was not sent on the line that called persist because the id was set directly in the code. With the IDENTITY strategy, where the DB decides the id, the INSERT is sent right on the persist line (see the "Persistence context" lab).');
     if (c.st === 'find') sum.push('In the managed state, you only need to change the value. At commit, the persistence context compares it with the remembered value and builds the UPDATE for you. Compare it with the other states, and you will see that this happens only in the managed state.');
     if ((c.st === 'detach' || c.st === 'clear') && !lost) sum.push('A detached object is like an ordinary Java object. If you change its values, no exception is thrown, and the change is not applied to the DB. If you load the same id again with em.find after detaching, the SELECT is sent again and you get a new object that is different from m.', c.st === 'clear' ? 'em.clear() makes all the entities in the persistence context detached at once. em.detach(m) detaches only m.' : 'To apply the values of a detached object to the DB, you have to make it managed again. The way to do that is the merge operation, covered in the next lab.');
-    if ((c.st === 'detach' || c.st === 'clear') && lost) sum.push('Even a value changed while the object was managed disappears if you detach the object before the value is sent to the DB (flush). Recall that no SQL was sent on the line that called setName.', 'If you call em.flush() before detaching, the UPDATE is sent at that time, so the change is applied. When you call em.clear() to free memory while processing a lot of data, put em.flush() before it.');
+    if ((c.st === 'detach' || c.st === 'clear') && lost) sum.push('Even a value changed while the object was managed disappears if you detach the object before the value is sent to the DB (flush).', 'If you call em.flush() before detaching, the UPDATE is sent at that time, so the change is applied. When you call em.clear() to free memory while processing a lot of data, put em.flush() before it.');
     if (c.st === 'close' && !changed) sum.push('An entity after the transaction has ended and em is closed is detached. This is the case when the controller modifies an entity returned by a service method. The value changes, but it is not applied to the DB, and no exception is thrown.');
     if (c.st === 'close' && changed) sum.push('A commit causes a flush just before it. So a value changed before the commit is sent as an UPDATE, and then em is closed. Compare this with detach or clear, where the same "change just before" makes the value disappear. Those detach the object without a flush.');
     if (c.st === 'remove') sum.push('em.remove does not send a DELETE on that line. It only marks the entity as "to be deleted". The DELETE is sent at commit. Even if you change a value in the removed state, no UPDATE is sent.', 'Even after the row in the DB is deleted, the Java object m stays in memory, and you can read its values. If you call em.persist(m) again before the commit, the deletion is canceled and the object returns to the managed state.');
@@ -4305,11 +4268,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { line: -1, o: null, snap: null, sent: [], db: [{ id: 1, name: 'Alice' }], contains: '?' }, SN = this.stateName;
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l.code, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }), 'Running code');
-    H.counters(v, [[s.o ? SN[s.o.state] : 'None yet', 'State of m'], [s.contains, 'em.contains(m)'], [s.sent.length, 'SQL sent to the DB']]);
     if (s.o) H.table(v, ['Object', 'Current value', 'Value remembered by the persistence context', 'State'], [{ cells: ['m (member ' + s.o.id + ')', { v: s.o.name, cls: s.snap !== null && s.o.name !== s.snap ? 'hot' : '' }, s.snap === null || s.o.state !== 'managed' ? '(not watched)' : s.snap, { v: SN[s.o.state], cls: s.o.state === 'managed' ? 'good' : s.o.state === 'new' ? '' : 'bad' }] }], 'Java object m');
-    if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'SQL sent to the DB');
-    H.table(v, ['id', 'name'], s.db.map(function (r) { return { cls: r.cls === 'gone' ? 'gone' : '', cells: [String(r.id), { v: r.name, cls: r.cls === 'hot' ? 'hot' : '' }] }; }), 'The member table in the DB');
-  },
+    if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'SQL sent to the DB');  },
   // Diagram: the four states are boxes, and the state where the object m is now is shown in bold. In a step that changes the state, that arrow is highlighted, and in a step where SQL is sent, the arrow to the DB is highlighted.
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { o: null, sent: [], db: [{ id: 1, name: 'Alice' }], contains: '?', moved: '', flow: '' };
@@ -4330,7 +4290,7 @@ Lab.register({
     else if (s.flow) P.arrow('sql', cur === 'removed' ? 'sRem:r' : 'sMan:r', 'db:l', { cls: 'hot', label: s.flow });
     P.box('c1', 16, 278, 300, 36, { cls: s.contains === '?' ? 'ghost' : s.contains === 'true' ? 'good' : 'plain', title: 'em.contains(m)', right: s.contains });
     P.box('c2', 324, 278, 340, 36, { cls: s.sent.length ? 'plain' : 'ghost', title: 'SQL sent to the DB', right: String(s.sent.length) });
-    P.note('The bold border is the current state of the object m. JPA watches the changes of values and turns them into SQL only while m is in the Managed box. In a step without an arrow to the DB, no SQL was sent.');
+    P.note('The bold border is the current state of the object m. In a step without an arrow to the DB, no SQL was sent.');
   },
   assume: 'All 14 combinations (7 paths, each with two choices for when the name is changed) were run on real Hibernate 7.4.5 and an H2 database, and the kind of SQL sent on each line, the result of em.contains, and the rows left in the DB were confirmed to match the screen. The setting "When the name is changed" is hidden for the paths where it does not affect the result: only new, load only, and remove. The following facts stated in the summaries were also run separately and confirmed: if you call em.flush() after changing a value and then detach, the change is applied; if you load the same id again after detaching, the SELECT is sent again and a different object comes back; if you call persist again on a removed object before the commit, no DELETE is sent; the values of the Java object can still be read after it was deleted; if you change a value after persist, the INSERT contains the value from the time of persist. The id of the member is set directly in the code. With the IDENTITY strategy, where the DB decides the id, the INSERT is sent right on the persist line. The SQL statements on the screen are shortened to be easy to read. In Spring, the begin, commit, and close here happen on your behalf when a @Transactional method starts and ends (in a web request with Open Session in View (OSIV) turned on, em is closed when the request ends).',
 });
@@ -4338,7 +4298,7 @@ Lab.register({
 Lab.register({
   id: 'merge', nav: 'Detached entities and merge', cat: 'JPA', mode: 'step',
   title: 'Why were other values erased when I only fixed the name with merge?',
-  intro: 'A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change. Compare how the values left in the DB differ between the two ways.',
+  intro: 'A detached object, which is outside the persistence context, is not applied to the DB even if you change its values. There are two ways to apply it. One is the merge operation, where you pass the whole object to em.merge. The other is dirty checking, where you load the entity again and put in only the values to change.',
   terms: ['Detached entity', 'Merge operation', 'Dirty checking', 'Persistence context', 'The four entity states'],
   controls: [
     { id: 'src', label: 'How the detached object m was obtained', type: 'select', value: 'form', options: [['form', 'new from the values received from the screen (only id and name filled in)'], ['loaded', 'An object loaded in an earlier request (all fields filled in)']] },
@@ -4423,7 +4383,6 @@ Lab.register({
     var cnt = {}, order = [];
     trace.forEach(function (t) { if (PRE[t[0]]) return; t[1].forEach(function (k) { var w = k.toUpperCase(); if (!cnt[w]) { cnt[w] = 0; order.push(w); } cnt[w]++; }); });
     var sqlText = order.length ? order.map(function (w) { return w + ': ' + cnt[w]; }).join(', ') : 'none', dbText = st.db.name + ' · ' + (st.db.city === null ? 'NULL' : st.db.city);
-    sum.push('Member 1 in the DB has name ' + st.db.name + ' and city ' + (st.db.city === null ? 'NULL' : st.db.city) + ' (at first, Alice and Seoul). SQL sent in this transaction: ' + sqlText + '.');
     if (c.how === 'none') sum.push('Committing the transaction after changing the values of a detached object does not apply them. To apply them, pass the object to em.merge, or load the entity again and move the values.');
     if (c.how === 'merge') {
       if (c.src === 'form' && st.db.city === null) sum.push('merge does not pick only the changed fields. It overwrites with all the fields of the object you passed. An object built from just the name received from the screen has a null city, so the city in the DB becomes NULL too. This is how accidents happen where fields that are not on the edit screen get erased.');
@@ -4432,20 +4391,14 @@ Lab.register({
       if (c.after === 'ret') sum.push('The object r that merge returned is managed, so if you change its values, they are applied by dirty checking.' + (c.src === 'form' ? ' The city that merge overwrote with null was changed to "Busan" on r afterward, so it was saved as Busan.' : ''));
       sum.push('merge sends one SELECT to get a managed entity. If an entity with the same id is already in the persistence context, it overwrites that entity without a SELECT, and if the id is not in the DB, it confirms with a SELECT that there is none and then sends an INSERT.');
     }
-    if (c.how === 'dirty') sum.push('You put only the values to change into the reloaded managed entity, so the other fields keep the values first read. The SQL sent is the same as with merge: one SELECT and one UPDATE. When you fix only some fields, this approach is safer.', c.src === 'form' ? 'Switch to "Merge with em.merge(m)" and compare what happens to city.' : 'Even if you have a loaded object, in a new transaction the basic approach is to load the entity again and move the values onto it.');
+    if (c.how === 'dirty') { sum.push('You put only the values to change into the reloaded managed entity, so the other fields keep the values first read. The SQL sent is the same as with merge: one SELECT and one UPDATE. When you fix only some fields, this approach is safer.'); if (c.src !== 'form') sum.push('Even if you have a loaded object, in a new transaction the basic approach is to load the entity again and move the values onto it.'); }
     return { events: ev, summary: sum, L: L, trace: trace.map(function (t) { return t[0] + ':' + t[1].join(','); }).join(' '), row: [st.cm, st.r ? st.rName + ' (a different object from m)' : 'none', sqlText, dbText] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { line: -1, m: null, r: null, sent: [], db: { name: 'Alice', city: 'Seoul' }, cm: '?', cr: '?' };
-    function show(x) { return x === null ? 'null' : x; }
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l.code, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }), 'Running code');
-    H.counters(v, [[s.cm, 'em.contains(m)'], [s.sent.filter(function (q) { return !q.pre; }).length, 'SQL sent in this transaction']]);
-    var rows = [];
-    if (s.m) rows.push({ cells: ['m', s.mState, show(s.m.name), { v: show(s.m.city), cls: s.m.city === null ? 'bad' : '' }] });
-    if (s.r) rows.push({ cells: [s.rName, 'Managed', { v: show(s.r.name), cls: s.snap && s.r.name !== s.snap.name ? 'hot' : '' }, { v: show(s.r.city), cls: s.r.city === null ? 'bad' : s.snap && s.r.city !== s.snap.city ? 'hot' : '' }] });
-    if (rows.length) H.table(v, ['Object', 'State', 'name', 'city'], rows, 'Java objects'); else { H.title(v, 'Java objects'); H.text(v, 'None yet.'); }
+    H.counters(v, [[s.sent.filter(function (q) { return !q.pre; }).length, 'SQL sent in this transaction']]);
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'SQL sent to the DB');
-    H.table(v, ['id', 'name', 'city'], [{ cells: ['1', { v: s.db.name, cls: s.db.name !== 'Alice' ? 'hot' : '' }, { v: s.db.city === null ? 'NULL' : s.db.city, cls: s.db.city === null ? 'bad' : s.db.city !== 'Seoul' ? 'hot' : '' }] }], 'The member table in the DB');
   },
   // Diagram: the detached object m on the left, the persistence context of this transaction and its managed entity in the middle, the row of the DB on the right. In a step where a SELECT, a copy of values, or an UPDATE happens, that arrow appears.
   draw: function (P, sim, shown) {
@@ -4465,7 +4418,7 @@ Lab.register({
     P.box('c1', 16, 186, 320, 36, { cls: s.cm === '?' ? 'ghost' : 'plain', title: 'em.contains(m)', right: s.cm });
     P.box('c2', 344, 186, 320, 36, { cls: s.cr === '?' || s.cr === '-' ? 'ghost' : 'good', title: 'em.contains(' + (s.rName || 'r') + ')', right: s.cr === '-' ? 'Not applicable' : s.cr });
     P.box('c3', 16, 230, 648, 36, { cls: s.dbCls === 'bad' ? 'bad' : s.dbCls === 'good' ? 'good' : 'plain', title: 'Value left in the DB (name · city)', right: s.db.name + ' · ' + (s.db.city === null ? 'NULL' : s.db.city) });
-    P.note('Only an object inside the persistence context in the middle can have its value changes sent to the DB. Merge overwrites the object in the middle with all the fields of the object on the left, and the dirty checking approach moves only the value to change. The object m on the left does not become managed in either way.');
+    P.note('Merge overwrites the object in the middle with all the fields of the object on the left, and the dirty checking approach moves only the value to change.');
   },
   assume: 'All 18 combinations were run on real Hibernate 7.4.5 and an H2 database, and the kind of SQL sent on each line, the result of em.contains, whether the object returned by merge is different from the one you passed, and the name and city left in the DB were confirmed to match the screen. The setting "If you change city to Busan after the merge" has meaning only when merge is chosen. The "SQL sent in this transaction" does not include the SELECT that loaded m in the earlier request. The following facts stated in the summaries were also run separately and confirmed: if you merge an object whose id is not in the DB, an INSERT is sent after the SELECT; if you merge a loaded object without changing its values, only the SELECT is sent and there is no UPDATE; if an entity with the same id is already managed, merge does not send a SELECT; even if city in the DB was changed to another value after you loaded the object, merge overwrites it with the old value of m. The id of the member is set directly in the code, and no @Version field is used. With @Version, an attempt to overwrite with an old value can be stopped by an exception. By default, Hibernate puts all the columns in the UPDATE statement for both merge and dirty checking, so the difference between the two ways is not in the shape of the UPDATE statement but in the values it carries. The SQL statements on the screen are shortened to be easy to read. The save method of Spring Data JPA calls merge internally when it decides that the entity is not new (this is based on the official documentation and was not run here).',
 });
@@ -4473,7 +4426,7 @@ Lab.register({
 Lab.register({
   id: 'mapping', nav: 'Entity mapping and primary keys', cat: 'JPA', mode: 'step',
   title: 'How do the annotations on an entity change the table and the values that are stored?',
-  intro: 'JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping. Change the annotations and see how the table that Hibernate creates (the create table statement) and the values that are actually stored in the database change.',
+  intro: 'JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping.',
   terms: ['@Column', '@Enumerated', '@Transient', 'Primary key generation strategy (@GeneratedValue)', 'Entity'],
   controls: [
     { id: 'col', label: 'name field', type: 'select', value: 'none', options: [['none', 'No @Column'], ['nn', '@Column(nullable = false)'], ['uq', '@Column(unique = true)'], ['len', '@Column(length = 20)']] },
@@ -4545,10 +4498,9 @@ Lab.register({
       st.read = { grade: readGrade, memo: readMemo };
       push('em2.find(Member.class, ' + id + 'L): It is read from the database again. ' + (ord ? 'When the 1 in the grade column is converted to the constant whose ordinal is 1 in the current enum, the result is ' + readGrade + '.' + (add ? ' The member that was saved as VIP is read back as BASIC. No error is raised.' : '') : 'When "VIP" is converted to the constant that has the same name, the result is VIP.' + (add ? ' Changing the order of the enum has no effect.' : '')) + ' memo is ' + (c.tr ? 'null, because it was never stored.' : '"joined today".'), ord && add ? 'bad' : 'good');
     }
-    sum.push('The name column was created as "' + ddl.name + '". ' + (saved ? 'The value stored in the grade column is ' + raw + ', and the grade read back is ' + readGrade + '. The memo column ' + (c.tr ? 'does not exist' : 'exists') + ', and the saved id is ' + id + '.' : 'Because id was not set, an exception was thrown when saving, and no row was saved.'));
     var tips = [];
     if (!saved) tips.push('If you add only @Id, the code must set the primary key value itself. To let the database assign the number, add @GeneratedValue as well. Conversely, if you add @GeneratedValue and then call persist with an id that you set yourself, an exception is thrown in that case too (EntityExistsException).');
-    if (saved && c.en === 'ORDINAL') tips.push('ORDINAL stores the ordinal of the constant, that is, its position in the enum declaration. A number takes little space, but what the number means depends on the order in which the constants are written in the enum. Change the setting to "ORDINAL + after saving, add a value at the front of the enum".');
+    if (saved && c.en === 'ORDINAL') tips.push('ORDINAL stores the ordinal of the constant, that is, its position in the enum declaration. A number takes little space, but what the number means depends on the order in which the constants are written in the enum.');
     if (saved && c.en === 'ORDINAL_ADD') tips.push('If the order of the enum changes after you save with ORDINAL, the number in the database stays the same, but the constant that the number points to changes. The member is read back with the wrong grade and no exception is thrown, so the problem is hard to notice. This is why STRING is recommended for @Enumerated. Also remember that the default when you do not add @Enumerated is ORDINAL.');
     if (saved && c.en === 'STRING') tips.push('STRING stores the name of the constant. It takes more space because it stores the letters of the name, but you can tell what a value means just by looking at it in the database, and the order of the enum does not matter.');
     if (saved && c.en === 'STRING_ADD') tips.push('STRING stores the name, so values that are already stored are read back correctly even if you add a value to the enum or change the order. If you do the same thing with ORDINAL, VIP is read back as BASIC.');
@@ -4566,11 +4518,8 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to move the fields into columns of the table, one at a time.'); return; }
     H.table(v, ['Annotation on the field', 'Column', 'Column definition created by Hibernate'], s.cols.map(function (k) { return { cls: k.d ? '' : 'gone', cells: [{ v: k.from, cls: k.hot ? 'hot' : '' }, k.n, k.d ? { v: k.d + (k.pk ? ' · primary key (id)' : ''), cls: k.hot ? 'hot' : '' } : '(no column)'] }; }), 'create table member (...)');
-    var names = s.cols.filter(function (k) { return k.d; }).map(function (k) { return k.n; });
-    if (s.row) H.table(v, names, [{ cells: names.map(function (n) { return n === 'grade' ? { v: s.row[n], cls: 'hot' } : s.row[n] === undefined ? '' : s.row[n]; }) }], 'Row stored in the database');
-    else if (s.err) { H.title(v, 'Row stored in the database'); H.text(v, 'There is none. ' + s.err + ' was thrown.'); }
+    if (s.err) { H.title(v, 'Row stored in the database'); H.text(v, 'There is none. ' + s.err + ' was thrown.'); }
     var ln = H.lanes(v);
-    H.lane(ln, 'enum Grade', s.en.map(function (g, i) { return g + '(' + i + ')'; }).join(', '), s.en.length === 3 ? 'hot' : 'none');
     H.lane(ln, 'Object read back', s.read ? 'grade = ' + s.read.grade + ', memo = ' + s.read.memo : s.err ? 'No row was saved' : 'Not read yet', s.read ? (s.read.grade === 'VIP' ? 'good' : 'bad') : s.err ? 'bad' : 'none');
   },
   // Diagram: the four fields of the entity are on the left and the columns of the table are on the right. For each field, it connects the column that is created (or not created) with the value stored in that column.
@@ -4597,7 +4546,7 @@ Lab.register({
     });
     P.box('r1', 16, 284, 300, 40, { cls: s.en.length === 3 ? 'hot' : 'plain', title: 'enum Grade', right: s.en.map(function (g, i) { return g + ' ' + i; }).join(', ') });
     P.box('r2', 324, 284, 340, 40, { cls: s.read ? (s.read.grade === 'VIP' ? 'good' : 'bad') : s.err ? 'bad' : 'ghost', title: 'grade read back', right: s.read ? s.read.grade : s.err ? 'Save failed (exception)' : '?' });
-    P.note('Each field on the left is paired with one column on the right. The annotations decide what shape the column is created in and what value is stored in it. The column definitions in the diagram are shortened. The definitions that were actually created are in the table on the right.');
+    P.note('Each field on the left is paired with one column on the right. The column definitions in the diagram are shortened. The definitions that were actually created are in the table on the right.');
   },
   assume: 'For each of the 96 combinations, an entity class was generated as source code, compiled, run on real Hibernate 7.4.5 with an H2 database, and checked against the results. What was checked: all the column definitions in the create table statement that Hibernate generated, the values in the row stored in the database, grade and memo read back with a new em, and the saved id or the kind of exception. The following facts stated in the summary were also run and confirmed separately: an enum field without @Enumerated is created and stored exactly like ORDINAL; whether saving succeeds or fails for a member whose name is null, a duplicate name, or 21 characters (the kind of exception, and whether the INSERT reached the database); that unique and length do nothing when Hibernate does not create the table; and that an exception is thrown when you set the id yourself with the automatic generation strategy. Column definitions differ by database type (dialect) and Hibernate version. The tinyint and check condition, the enum type column, and "generated by default as identity" shown here were generated by Hibernate 7.4.5 for H2. On MySQL, for example, the automatic increment is written as auto_increment. The MySQL notation, and the fact that older Hibernate (5.x) created STRING as varchar(255), follow the documentation and were not run here. Even so, the point that "ORDINAL stores the ordinal and STRING stores the name" is the same. In the real create table statement, the columns appear in a different order from the screen, and unless you use Spring Boot, the table name is written exactly as the class name (Member). Only IDENTITY was covered for automatic generation, and the difference in when the INSERT is sent is covered in the persistence context lab. In production, the setting that creates tables automatically is usually not used, and then unique and length in @Column serve only as documentation.',
 });
@@ -4682,7 +4631,7 @@ Lab.register({
       push(0, 'Application startup, reading the mapping: Both homeAddress and workAddress are of type Address. The fields of an embeddable type are spread out as columns of the entity\'s table, so both of them try to create columns named city and street in the member table.', '');
       st.err = 'MappingException';
       push(0, 'The column names collide: a table cannot have two columns named city. Hibernate throws MappingException, and the application cannot start. The table is not created either, and the code below does not run.', 'bad');
-      sum.push('MappingException is thrown at startup. The table is not created.', 'An embeddable type brings its column names with it. To use the same value type twice in one entity, you have to rename the columns of one of them with @AttributeOverride. Change the setting to "Use Address twice and rename the columns".');
+      sum.push('An embeddable type brings its column names with it. To use the same value type twice in one entity, you have to rename the columns of one of them with @AttributeOverride.');
       return { events: ev, summary: sum, L: L, tables: [], sent: [], readSent: [], error: 'MappingException', loaded: '-', dbRow: [], cols: cols, row: ['Not created', 'None', 'MappingException at startup (the city column is duplicated)'] };
     }
     st.made = true;
@@ -4704,7 +4653,6 @@ Lab.register({
       loaded = tb === 'nul' ? 'null' : 'Boston/Main St'; st.read = tb === 'nul' ? 'null' : 'Boston, Main St';
       push(5, tb === 'nul' ? 'found.getAddress(): In the row that was read, the columns of the embeddable type (city, street) are all null. In that case, Hibernate does not create an empty Address object, and it leaves the address field itself null. If you call a method on the result right away, as in found.getAddress().getCity(), NullPointerException is thrown.' : 'found.getAddress(): Creates an Address object again from the city and street values of the row that was read, and puts it in the address field. It holds Boston and Main St.', tb === 'nul' ? 'bad' : 'good');
     }
-    sum.push('One member table with ' + cols.length + ' columns (' + cols.join(', ') + ') is created, and a single INSERT stores one row.');
     if (tb === 'emb') sum.push('An embeddable type is a class that is grouped only on the Java side. In the table, it is just columns of the entity. If you change the setting to "Do not group it; keep the city and street fields as they are", the table and the SQL are exactly the same. In code, you can gather the values and methods related to the address in one place, which makes the code easier to read.');
     if (tb === 'plain') sum.push('This is the case where the fields are kept as they are. Compare it with "Group the address into the embeddable type Address": the table shape and the SQL that is sent are the same. An embeddable type tidies up only the Java code and does not change the table.');
     if (tb === 'nul') sum.push('If a field of an embeddable type is null, all of its columns are stored as null. When the row is read again, all the columns are null, so the address field comes back as null. For an entity whose address may be absent, check whether the result of getAddress() is null.');
@@ -4747,8 +4695,6 @@ Lab.register({
       st.db[1][2] = 'Denver'; st.hot = [1]; st.sent.push({ kind: 'update', table: 'member', sql: "update member set city = 'Denver', street = 'Main St' where id = 2", at: 'just before commit' });
       push(6, 'It compares Bob too: The address of Bob points to the same object, so its city has changed to Denver as well. An UPDATE is sent for the row of Bob too. Only Alice\'s city was meant to change, but the address of Bob changed as well.', 'bad');
     } else push(6, 'It compares Bob too: The address of Bob still has the same values (Boston). Nothing changed, so no UPDATE is sent.', 'good');
-    var upd = sh === 'same' ? 2 : 1;
-    sum.push('After the 2 INSERTs, ' + upd + ' UPDATE' + (upd === 1 ? ' was' : 's were') + ' sent. The city left in the database is Denver for Alice and ' + st.db[1][2] + ' for Bob.');
     if (sh === 'same') sum.push('When two entities point to the same value type object, a value changed through one of them is also seen through the other. JPA sees both entities as changed and sends 2 UPDATEs. There is no compile error and no exception, so it becomes a bug that is hard to find.', 'In Java, when you put an object in a variable or pass it on, the object is not copied. Only the reference is copied. So simply "being careful not to share" is hard to rely on.');
     if (sh === 'copy') sum.push('If you copy the values into a new object, the two members point to different objects, so this is safe. But if someone forgets to copy and passes in the same object, the compiler does not stop it. To make the mistake impossible, make the value type immutable.');
     if (sh === 'fixed') sum.push('If a value type has no setters (an immutable object), there is no problem even if several entities point to the same object, because nobody can change it. To change a value, you create a new object and swap it in, and only the row of the entity that was swapped is UPDATEd.', 'This is why a value type should be immutable as a rule. Set the values only through the constructor, and do not write setters.');
@@ -4819,9 +4765,8 @@ Lab.register({
       }
     }
     var wr = this.kinds(st.sent), tables = [{ name: 'member', cols: ['id', 'name'] }, { name: 'address_history', cols: cols }];
-    sum.push('The write SQL sent was ' + wr + '. The database was left with ' + size + ' addresses (' + list.map(function (a) { return a.city; }).join(', ') + ').');
     if (recreate) sum.push('An element collection held as a ' + (ct === 'list' ? 'List' : 'Set') + ' deletes all the rows of that entity (DELETE: 1) and inserts everything that exists now again (INSERT: ' + size + '), even if only one element changed. If you increase the number of addresses, the INSERTs increase by the same amount.' + (ct === 'set' ? ' Even if you change to a Set, the result is the same as with a List when the columns allow null.' : ''), 'Use an element collection when there are only a few values and they rarely change. If they change often or there are many of them, make the address an entity that has an id and solve it with a one-to-many relationship.');
-    if (ct === 'setnn') sum.push('With a Set whose value type has all columns NOT NULL, a row can be pinpointed by the values of all the columns, so only the rows that changed are deleted and inserted. Compare it with a List, or with a Set whose columns allow null.');
+    if (ct === 'setnn') sum.push('With a Set whose value type has all columns NOT NULL, a row can be pinpointed by the values of all the columns, so only the rows that changed are deleted and inserted.');
     if (order) sum.push(op === 'add' ? 'With @OrderColumn, rows can be told apart by (member_id, idx), so adding at the end takes just one INSERT.' : 'With @OrderColumn, the rows are not all deleted. But if you remove the address at the front, all the later addresses shift forward by one place, and an UPDATE is sent for every row whose contents changed (this time: ' + st.sent.filter(function (q) { return q.kind === 'update'; }).length + '). If you increase the number of addresses, the UPDATEs increase too.');
     return { events: ev, summary: sum, L: L, init: init, tables: tables, seed: [{ kind: 'insert', table: 'member', n: 1 }, { kind: 'insert', table: 'address_history', n: n }], sent: st.sent, afterFind: 1, before: before, order: order, final: st.db, cols: cols,
       row: ['member (id, name), address_history (' + cols.join(', ') + ')', wr, list.map(function (a) { return a.city; }).join(', ')] };
@@ -4837,32 +4782,23 @@ Lab.register({
     if (c.sc === 'table') {
       s = last ? last.snap : { line: -2, made: false, err: '', obj: false, db: [], sent: [], read: '' };
       this.codeTable(v, H, sim.L, s.line);
-      H.counters(v, [[s.err ? 'Failed' : s.made ? '1' : '?', 'Tables created'], [s.sent.filter(function (q) { return q.kind === 'insert'; }).length, 'INSERT'], [s.read || '?', 'address read back']].slice(0, c.tb === 'emb' || c.tb === 'nul' ? 3 : 2));
-      if (s.err) { H.title(v, 'Application failed to start'); H.text(v, 'MappingException: the city column was mapped twice in the member table.'); return; }
+      if (c.tb === 'emb' || c.tb === 'nul') H.counters(v, [[s.sent.filter(function (q) { return q.kind === 'insert'; }).length, 'INSERT']]);
+      if (s.err) return;
       this.sqlTable(v, H, s.sent);
-      if (s.made) H.table(v, sim.cols, s.db.map(function (r) { return { cells: r.map(function (x) { return x === 'null' ? { v: 'null', cls: 'bad' } : x; }) }; }), 'member table in the database');
-      else H.text(v, 'Click Run to go step by step, starting with the creation of the table.');
+      if (!s.made) H.text(v, 'Click Run to go step by step, starting with the creation of the table.');
       return;
     }
     if (c.sc === 'share') {
       s = last ? last.snap : { line: -2, objs: [], m1: '', m2: '', has1: false, has2: false, db: [], sent: [], hot: [] };
       this.codeTable(v, H, sim.L, s.line);
       var ups = s.sent.filter(function (q) { return q.kind === 'update'; }).length;
-      H.counters(v, [[s.sent.length - ups, 'INSERT'], [ups, 'UPDATE'], [s.db[1] ? s.db[1][2] : '?', 'city of Bob in the database']]);
-      var val = function (n) { var o = s.objs.filter(function (x) { return x.n === n; })[0]; return o ? 'Object ' + n + ' (' + o.city + ', ' + o.street + ')' : '(not yet)'; };
-      H.table(v, ['Reference', 'Address object it points to'], [{ cells: ['member1.address', s.has1 ? val(s.m1) : '(not yet)'] }, { cells: ['member2.address', s.has2 ? { v: val(s.m2), cls: s.m1 === s.m2 && s.has2 ? 'hot' : '' } : '(not yet)'] }], 'Java objects (the same object name means the object is shared)');
+      H.counters(v, [[s.sent.length - ups, 'INSERT']]);
       this.sqlTable(v, H, s.sent);
-      H.table(v, sim.cols, s.db.map(function (r, i) { return { cells: r.map(function (x, j) { return j === 2 && s.hot.indexOf(i) >= 0 ? { v: x, cls: 'hot' } : x; }) }; }), 'member table in the database');
       return;
     }
     s = last ? last.snap : sim.init;
     this.codeTable(v, H, sim.L, s.line);
-    var cnt = function (k) { return s.sent.filter(function (q) { return q.kind === k; }).length; };
-    H.counters(v, [[cnt('delete'), 'DELETE'], [cnt('insert'), 'INSERT'], [cnt('update'), 'UPDATE']]);
-    H.title(v, 'Collection in memory: member.getHistory()');
-    H.slots(v, s.mem ? s.mem.map(function (a) { return [a.city + ' ' + a.street, a.k === 'v9' ? 'b' : 'q']; }) : [], 'Not read yet (lazy fetching).');
     this.sqlTable(v, H, s.sent);
-    H.table(v, sim.cols, s.db.map(function (r) { var hot = s.hot.indexOf(r.k) >= 0, cells = ['1']; if (sim.order) cells.push(String(r.idx)); cells.push(hot ? { v: r.city, cls: 'hot' } : r.city, hot ? { v: r.street, cls: 'hot' } : r.street); return { cells: cells }; }), 'address_history table in the database (yellow cells are rows that were inserted or changed in this step)');
   },
   // Diagram: it differs by scene. The left side is Java objects and the right side is the database. (1) Address spread out as columns of the member table (2) The Address objects that the two members point to, and the rows that are UPDATEd (3) The collection in memory and the rows of address_history
   draw: function (P, sim, shown) {
@@ -4906,7 +4842,7 @@ Lab.register({
       var ups = s.sent.filter(function (q) { return q.kind === 'update'; }).length, c2 = s.db[1] ? s.db[1][2] : '?';
       P.box('r1', 16, 232, 320, 38, { cls: ups > 1 ? 'bad' : ups ? 'good' : 'ghost', title: 'UPDATEs sent', right: ups + '' });
       P.box('r2', 344, 232, 320, 38, { cls: c2 === '?' ? 'ghost' : c2 === 'Denver' ? 'bad' : 'good', title: 'city of Bob in the database', right: c2 });
-      P.note('The arrows show which Address object the address field of each member points to. If the two arrows meet at one object, that object is shared. In the database, the two rows each hold their own address values, so when the shared object changes, both rows are UPDATEd.');
+      P.note('The arrows show which Address object the address field of each member points to. If the two arrows meet at one object, that object is shared.');
       return;
     }
     s = last ? last.snap : sim.init;
@@ -4923,7 +4859,7 @@ Lab.register({
     P.box('q_del', 16, 268, 210, 36, { cls: del ? 'bad' : 'ghost', title: 'DELETE', right: del + '' });
     P.box('q_ins', 236, 268, 210, 36, { cls: ins > 1 ? 'bad' : ins ? 'plain' : 'ghost', title: 'INSERT', right: ins + '' });
     P.box('q_upd', 456, 268, 208, 36, { cls: upd ? 'bad' : 'ghost', title: 'UPDATE', right: upd + '' });
-    P.note('The left side is the collection in memory, and the right side is the rows of the table where it is stored. An element collection is stored not in the member table but in a separately created address_history table. Yellow rows are rows that were inserted or changed in this step.');
+    P.note('The left side is the collection in memory, and the right side is the rows of the table where it is stored. Yellow rows are rows that were inserted or changed in this step.');
   },
   assume: 'All 56 combinations (5 table shapes, 3 ways of sharing, and for element collections 4 kinds x 3 operations x 2, 3, 4, or 5 addresses) were run on Hibernate 7.4.5 and an H2 database with code of the same structure. They were checked against the screen for the following: the tables and columns that were created, the kinds of SQL that were sent and the count per table, the SQL that was sent before commit, whether the DELETE is a statement that deletes all the rows of that member, the values left in the database, whether the address that was read back is null, and the exception at startup. The results for element collections are the behavior of Hibernate 7.4.5 and may differ by version. In particular, the fact that a Set whose columns allow null deletes everything and inserts it again, like a List, was confirmed by running it. Which row numbers are deleted and changed with @OrderColumn was confirmed from the conditions of the real SQL statements (member_id and idx) and the rows left after the run. The primary key uses the IDENTITY strategy, so the INSERT is sent as soon as persist is called. The sharing scene is what happens inside one transaction that saves two new members. Entities that are read from the database each get their own newly created value type objects, so this problem occurs only when the code itself puts in the same object. The SQL statements on the screen are shortened to be easy to read, so they are not letter for letter the same as the real statements. The order of the columns in the table may also differ from the real one.',
 });
@@ -5034,7 +4970,7 @@ Lab.register({
 Lab.register({
   id: 'owner', nav: 'The owning side of a relationship', cat: 'JPA', mode: 'step',
   title: 'You added a member to the team\'s list, so why is the foreign key in the database empty?',
-  intro: 'When a team and a member point to each other, the Java objects have two references (the team of the member, and the members of the team). In the database, however, the only thing that links them is one foreign key, team_id in the member table. JPA looks at only one of the two references when it writes the foreign key. That side is called the owning side of the relationship. Follow it line by line to see what is left in the database depending on which side you set the value on.',
+  intro: 'When a team and a member point to each other, the Java objects have two references (the team of the member, and the members of the team). In the database, however, the only thing that links them is one foreign key, team_id in the member table. JPA looks at only one of the two references when it writes the foreign key. That side is called the owning side of the relationship.',
   terms: ['Owning side and mappedBy', 'Unidirectional and bidirectional relationships', 'Primary key, unique key, foreign key', 'First-level cache', 'Transactional write-behind and flush'],
   controls: [
     { id: 'set', label: 'Which side do you set', type: 'select', value: 'inverse', options: [['inverse', 'The team side only: team.getMembers().add(member)'], ['owner', 'The member side only: member.setTeam(team)'], ['both', 'Both sides']] },
@@ -5132,7 +5068,6 @@ Lab.register({
     var sqlText = order.map(function (k) { return k + ': ' + kinds[k]; }).join(', ');
     var tables = [{ name: 'member', cols: ['id', 'name', 'team_id'] }, { name: 'team', cols: ['id', 'name'] }];
     if (!mp) tables.push({ name: 'team_member', cols: ['members_id', 'team_id'] });
-    sum.push('member.team_id in the database is ' + st.fk + ', and team.getMembers().size() is ' + st.size + '. The SQL sent was ' + sqlText + '.');
     if (mp && !own) sum.push('If you set the value only on the side that is not the owning side (Team.members, which has mappedBy), the foreign key is not stored. No exception is thrown, so it is easy to think it was saved.' + (clear ? ' If you read it again from the database, the list of the team is empty.' : ' Inside the same transaction, the member is visible in the list in memory, so it is even harder to notice.'));
     if (mp && own && !inv) sum.push('You set the value on the owning side (Member.team), so the foreign key is stored.' + (clear ? ' If you read it again from the database, the list of the team is filled in correctly too. But code does not always go through flush and clear, so it is safer to set both sides.' : ' But you did not add the member to the list of the team object, so if you read team.getMembers() in the same transaction, it is empty. The database and memory are in different states.'));
     if (mp && own && inv) sum.push('If you set both sides, the foreign key in the database and the list in memory are both correct. What stores the foreign key is member.setTeam(team), and team.getMembers().add(member) is for reading the objects inside the same transaction.', 'Many people write a helper method that also calls team.getMembers().add(this) inside setTeam, so that they do not forget either one of the two.');
@@ -5142,17 +5077,10 @@ Lab.register({
   },
   blank: function () { return { line: -2, team: '', teamList: '', member: '', ref: false, link: false, sent: [], dbTeam: false, dbMember: false, fk: '?', join: 0, size: '?' }; },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : this.blank(), mp = !!sim.c.mp;
+    var last = shown[shown.length - 1], s = last ? last.snap : this.blank();
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }).concat([{ cells: ['', { v: '(Transaction commit)', cls: s.line === -1 ? 'hot' : '' }, s.line === -1 ? '← now' : ''] }]), 'Code being run');
-    H.counters(v, [[s.fk, 'member.team_id in the database'], [s.size === '?' ? '?' : s.size, 'team.getMembers().size()'], [s.sent.length, 'SQL statements sent']]);
-    H.table(v, ['Reference', 'Value', 'When JPA writes the foreign key'], [
-      { cells: ['member.team', s.member === 'gone' ? '(detached)' : s.ref ? 'team' : s.member ? 'null' : '(not yet)', { v: 'Puts this value into team_id (owning side)', cls: 'good' }] },
-      { cells: ['team.members', s.team ? s.teamList : '(not yet)', mp ? 'Does not look at it (mappedBy)' : { v: 'Stores it separately in the join table team_member', cls: 'hot' }] },
-    ], 'The two references of the Java objects');
+    H.counters(v, [[s.sent.length, 'SQL statements sent']]);
     if (s.sent.length) H.table(v, ['#', 'SQL', 'When it was sent'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'SQL sent to the database');
-    H.table(v, ['id', 'name'], s.dbTeam ? [{ cells: ['1', 'Engineering'] }] : [], 'team table in the database');
-    H.table(v, ['id', 'name', 'team_id'], s.dbMember ? [{ cells: ['1', 'Alice', { v: s.fk, cls: s.fk === 'null' ? 'bad' : 'good' }] }] : [], 'member table in the database');
-    if (!mp) H.table(v, ['team_id', 'members_id'], s.join ? [{ cells: ['1', '1'] }] : [], 'team_member table in the database (join table)');
   },
   // Diagram: the two Java objects and the two references that point to each other are on the left, and the tables of the database are on the right. Only the reference on the owning side is connected to the foreign key.
   draw: function (P, sim, shown) {
@@ -5181,7 +5109,7 @@ Lab.register({
 Lab.register({
   id: 'relations', nav: 'Many-to-one, one-to-many, one-to-one, many-to-many', cat: 'JPA', mode: 'step',
   title: 'How do the tables and foreign keys change depending on the kind of relationship?',
-  intro: 'The relationships between entities include many-to-one, one-to-many, one-to-one, and many-to-many. Which one you choose changes the number of tables that are created, the table that holds the foreign key, and the SQL that is sent when you save. Change the kind of relationship, save the same data, and compare the table diagrams and the number of SQL statements.',
+  intro: 'The relationships between entities include many-to-one, one-to-many, one-to-one, and many-to-many. Which one you choose changes the number of tables that are created, the table that holds the foreign key, and the SQL that is sent when you save.',
   terms: ['Many-to-one and one-to-many relationships', 'One-to-one relationship', 'Many-to-many relationships and join tables', 'Owning side and mappedBy', 'Primary key, unique key, foreign key'],
   controls: [
     { id: 'rel', label: 'Kind of relationship', type: 'select', value: 'o2m', options: [['m2o', 'Many-to-one: the member points to the team (@ManyToOne)'], ['o2m', 'Unidirectional one-to-many: the team holds a list of members (@OneToMany + @JoinColumn)'], ['o2mjt', 'Unidirectional one-to-many without @JoinColumn'], ['o2o', 'One-to-one: a member and a locker (@OneToOne)'], ['m2m', 'Many-to-many: members and products (@ManyToMany)']] },
@@ -5301,7 +5229,6 @@ Lab.register({
     var sqlText = 'INSERT: ' + ins + (upd ? ', UPDATE: ' + upd : '');
     var fkText = sp.fks.map(function (f) { return f[0] + '.' + f[1] + (f[3] ? ' (unique)' : ''); }).join(', ');
     var names = sp.tables.map(function (t) { return t[0]; });
-    sum.push('Tables created: ' + names.length + ' (' + names.join(', ') + '). The foreign key is in ' + fkText + '. The SQL sent when saving was ' + sqlText + '.');
     if (key === 'm2o') sum.push('In a many-to-one, the foreign key is in the table of the "many" side (member), and the field that manages that foreign key (Member.team) is in the same entity. So the foreign key goes in together with a single INSERT. This is the most basic mapping.');
     if (key === 'o2m') sum.push('In a unidirectional one-to-many, the foreign key is in the member table too. This is because in a table, the foreign key always sits on the "many" side. But what manages it is the list in the entity on the other side, Team. When Member is INSERTed, it cannot know the team, so the foreign key is filled in later with an UPDATE. One more UPDATE was sent for each member (' + n + ' in all).', 'The table shape is exactly the same as in a many-to-one, but more SQL is sent. So a common approach is to use many-to-one first, and if the team needs a list of its members, to make the relationship bidirectional by adding mappedBy.');
     if (key === 'o2mjt') sum.push('If you leave out @JoinColumn in a unidirectional one-to-many, a join table (team_member) is created instead of a foreign key. One more table is created, and for each member, one more INSERT is sent to the join table.', 'The members_id column of the join table has a unique constraint, so one member cannot belong to two teams. Thanks to this constraint, it stays one-to-many even though it uses a join table.');
@@ -5315,17 +5242,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { line: -2, rows: {}, sent: [], hot: '' };
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }).concat([{ cells: ['', { v: '(Transaction commit)', cls: s.line === -1 ? 'hot' : '' }, s.line === -1 ? '← now' : ''] }]), 'Code being run');
-    var ins = s.sent.filter(function (q) { return q.kind === 'insert'; }).length;
-    H.counters(v, [[ins, 'INSERT'], [s.sent.length - ins, 'UPDATE'], [sim.tables.length, 'Tables created']]);
-    H.table(v, ['Table', 'Columns', 'Foreign key'], sim.tables.map(function (tb) {
-      var f = sim.fks.filter(function (x) { return x[0] === tb.name; }).map(function (x) { return x[1] + ' → ' + x[2] + (x[3] ? ' (unique)' : ''); });
-      return { cells: [tb.name, tb.cols.join(', '), f.length ? { v: f.join(', '), cls: 'hot' } : 'None'] };
-    }), 'Tables created');
     if (s.sent.length) H.table(v, ['#', 'SQL', 'When it was sent'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: q.kind === 'update' ? 'bad' : '' }, q.at] }; }), 'SQL sent to the database');
-    sim.tables.forEach(function (tb) {
-      var rows = s.rows[tb.name] || [];
-      H.table(v, tb.cols, rows.map(function (r) { return { cells: r.map(function (x) { return x === 'null' ? { v: 'null', cls: 'bad' } : x; }) }; }), tb.name + ' table in the database');
-    });
   },
   // Diagram: it draws the tables that were created as boxes, and draws an arrow from the table that holds a foreign key to the table that it points to. Below are the numbers of SQL statements that were sent.
   draw: function (P, sim, shown) {
@@ -5345,7 +5262,7 @@ Lab.register({
     P.box('q_ins', 16, 178, 150, 40, { cls: ins ? 'plain' : 'ghost', title: 'INSERT', right: ins + '' });
     P.box('q_upd', 176, 178, 150, 40, { cls: upd ? 'bad' : 'ghost', title: 'UPDATE', right: upd + '' });
     P.box('q_own', 336, 178, 328, 40, { cls: 'plain', title: 'Manages the foreign key', right: sim.owner });
-    P.note('The blue boxes are the tables that have a foreign key (FK), and the green arrows point to the tables that the foreign keys refer to. The yellow box is the table to which SQL was sent in this step. If you change the kind of relationship, the table that holds the foreign key and the number of boxes change.');
+    P.note('The blue boxes are the tables that have a foreign key (FK), and the green arrows point to the tables that the foreign keys refer to. The yellow box is the table to which SQL was sent in this step.');
   },
   assume: 'Each entity has only the fields id and name, and the primary key uses the IDENTITY strategy, so the INSERT is sent as soon as persist is called. The one-to-many and many-to-many relationships were made unidirectional, in which only one side points to the other. All 14 combinations (many-to-one, one-to-many, one-to-many without @JoinColumn, and many-to-many, each with 1, 2, or 3 counterparts, and one-to-one with two positions of the foreign key) were run on Hibernate 7.4.5 and an H2 database with code of the same structure, and the following were checked to match the screen: the tables and columns that were created, the columns that have a foreign key constraint and the unique constraints, the kinds of SQL that were sent and the count per table, the SQL that was sent before commit, and the values left in the foreign key columns. It was also confirmed from the real SQL that team_id is not in the INSERT statement of a unidirectional one-to-many. The names of the join tables and their columns (team_member, members_id, member_product, products_id) were chosen by Hibernate 7.4.5 by its default rules, and they can be changed with @JoinTable. The SQL statements on the screen are shortened to be easy to read, so they are not letter for letter the same as the real statements. The order of the columns in the table may also differ from the real one.',
 });
@@ -5475,24 +5392,19 @@ Lab.register({
         s.found = 'Book';
         push(0, 'Checking the result: ' + (kids > 1 ? 'Among the chained rows, the one that came from book has id 1. ' : '') + 'It creates a Book object and returns it. The type of the variable is Item, but the actual object is a Book.', '');
         touched = kidNames;
-        sum.push(kids > 1 ? 'When you find by the superclass type with the table per concrete class strategy, all ' + kids + ' subclass tables have to be combined with UNION ALL. If you add subclasses, the number of tables to combine grows by the same amount. If you ever need to find by the superclass type, it is better to avoid this strategy.' : 'With only one subclass, no UNION is needed. Raise the number of subclasses to 2 or more.');
+        sum.push(kids > 1 ? 'When you find by the superclass type with the table per concrete class strategy, all ' + kids + ' subclass tables have to be combined with UNION ALL. If you add subclasses, the number of tables to combine grows by the same amount. If you ever need to find by the superclass type, it is better to avoid this strategy.' : 'With only one subclass, no UNION is needed.');
       }
     }
     var kindText = op === 'save' ? 'INSERT: ' + s.sent.length : 'SELECT: ' + s.sent.length;
     var shapeText = op === 'save' ? 'Not applicable' : joins ? 'Joins: ' + joins : unions ? 'UNION ALL: ' + unions + ' (' + kids + ' tables)' : 'None';
-    sum.unshift(names.length + (names.length === 1 ? ' table is' : ' tables are') + ' created (' + names.join(', ') + '). SQL statements sent: ' + s.sent.length + ' (' + (op === 'save' ? 'INSERT' : 'SELECT') + '). Tables ' + (op === 'save' ? 'that received rows' : 'that were read') + ': ' + touched.join(', ') + '.' + (op === 'save' ? '' : ' The actual type of the returned object is Book.'));
     return { events: ev, summary: sum, L: L, init: init, tables: tables, sent: s.sent, before: before, touched: touched, joins: joins, innerJoins: innerJoins, unions: unions, dtypeInWhere: dtypeInWhere, found: op === 'save' ? '-' : 'Book', rows: full, kidList: ks, fks: st === 'JOINED' ? kidNames.map(function (k) { return [k, 'id', 'item']; }) : [],
       row: [names.join(', ') + ' (' + names.length + (names.length === 1 ? ' table' : ' tables') + (st === 'SINGLE_TABLE' ? ', ' + tables[0].cols.length + ' columns' : '') + ')', kindText, touched.join(', '), shapeText] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : sim.init, c = sim.c;
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }).concat(c.op === 'save' ? [{ cells: ['', { v: '(transaction commit)', cls: s.line === -1 ? 'hot' : '' }, s.line === -1 ? '← now' : ''] }] : []), 'Running code');
-    H.counters(v, [[sim.tables.length, 'Tables created'], [s.sent.length, 'SQL sent to the DB'], [s.found || '?', c.op === 'save' ? 'Object loaded (not applicable)' : 'Type of the returned object']].slice(0, c.op === 'save' ? 2 : 3));
+    if (c.op !== 'save') H.counters(v, [[s.found || '?', 'Type of the returned object']]);
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'SQL sent to the DB');
-    sim.tables.forEach(function (tb) {
-      var hot = s.hot.indexOf(tb.name) >= 0;
-      H.table(v, tb.cols, (s.rows[tb.name] || []).map(function (r) { return { cells: r.map(function (x) { return x === 'null' ? { v: 'null', cls: 'bad' } : hot ? { v: x, cls: 'hot' } : x; }) }; }), 'The ' + tb.name + ' table in the DB' + (hot ? (c.op === 'save' ? ' (just inserted)' : ' (read by this SELECT)') : ''));
-    });
   },
   // Diagram: at the top is the Java inheritance (the superclass Item and its subclasses), and at the bottom are the tables created for the strategy. The tables that SQL touched are shown in yellow.
   draw: function (P, sim, shown) {
@@ -5517,7 +5429,7 @@ Lab.register({
     var how = { join: 'Joins ' + s.hot.length + ' yellow tables on id', union: 'Combines ' + s.hot.length + ' yellow tables with UNION ALL', one: 'Reads one yellow table only' }[s.how] || '';
     var ins = s.sent.filter(function (q) { return q.kind === 'insert'; }).length;
     P.box('res', 16, 258, 648, 38, c.op === 'save' ? { cls: ins > 1 ? 'bad' : ins ? 'good' : 'ghost', title: 'INSERTs sent when saving one Book', right: String(ins) } : { cls: !how ? 'ghost' : s.how === 'one' ? 'good' : s.hot.length > 2 ? 'bad' : 'plain', title: c.op === 'findc' ? 'Query for em.find(Book.class, 1L)' : 'Query for em.find(Item.class, 1L)', right: how || 'Not run yet' });
-    P.note('The top shows the Java class inheritance and the bottom shows the tables created to store it. If you change the strategy, the number and the columns of the tables at the bottom change. A yellow table is one where the SQL of this step inserted or read rows.');
+    P.note('The top shows the Java class inheritance and the bottom shows the tables created to store it. A yellow table is one where the SQL of this step inserted or read rows.');
   },
   assume: 'This lab assumes that the superclass Item is an abstract class and that each subclass has only one field. The primary key is set directly in the code, because the IDENTITY strategy cannot be used with the table per concrete class strategy (it was confirmed that Hibernate 7.4.5 throws a MappingException at startup). All 27 combinations (3 strategies, 3 things to do, and 1, 2, or 3 subclasses) were run on Hibernate 7.4.5 and an H2 database with code of the same structure, and the following were confirmed to match the screen: the tables and columns that were created, the foreign keys from the subclass tables to the superclass table, the kinds of SQL sent and how many times for each table, the tables read by the find query and the number of joins and UNIONs, whether a discriminator column condition is added, the type of the returned object, and the rows left in the DB. With the joined subclass strategy and the table per concrete class strategy, Hibernate also creates temporary tables (their names start with ht_ or hte_) for bulk update queries. They have nothing to do with the mapping, so they are left out of the screen. That the joined subclass strategy has no discriminator column (DTYPE) is Hibernate\'s default behavior, and it was also confirmed by running that adding @DiscriminatorColumn creates a dtype column in the item table. It was also confirmed that if you do not write @Inheritance at all, the same table as the single table strategy is created. The SQL statements on the screen are shortened to be easy to read, so they are not letter-for-letter the same as the actual statements. In the actual SQL, a find by the superclass type tells the subclasses apart with a CASE expression in the joined subclass strategy, and with a number attached to each subclass in the table per concrete class strategy. The order of the columns inside a table may also differ from the actual one.',
 });
@@ -5525,7 +5437,7 @@ Lab.register({
 Lab.register({
   id: 'cascade', nav: 'Cascade and orphan removal', cat: 'JPA', mode: 'step',
   title: 'What happens to the children when you save or delete only the parent?',
-  intro: 'A post (the parent) has two comments (the children). Whether the comments are saved and deleted together when you persist or remove only the post is decided by cascade and orphanRemoval on @OneToMany. Change the settings and see which SQL is sent and what is left in the DB.',
+  intro: 'A post (the parent) has two comments (the children). Whether the comments are saved and deleted together when you persist or remove only the post is decided by cascade and orphanRemoval on @OneToMany.',
   terms: ['Cascade', 'Orphan removal (orphanRemoval)', 'Persistence context', 'Transactional write-behind and flush', 'Entity'],
   controls: [
     { id: 'act', label: 'Action to try', type: 'select', value: 'persist', options: [['persist', 'Persist only the post, which holds two comments'], ['remove', 'Remove the post'], ['orphan', 'Take one comment out of the comment list']] },
@@ -5611,7 +5523,6 @@ Lab.register({
     var sel = call.concat(commit).filter(function (t) { return t.charAt(0) === 'S'; }).length, ins = call.concat(commit).filter(function (t) { return t.charAt(0) === 'I'; }).length, del = call.concat(commit).filter(function (t) { return t.charAt(0) === 'D'; }).length;
     var np = st.db.post ? 1 : 0, nc = (st.db.c1 ? 1 : 0) + (st.db.c2 ? 1 : 0);
     var write = ins ? 'INSERT: ' + ins : del ? 'DELETE: ' + del + (ex ? ' (failed)' : '') : 'None';
-    sum.push('Read SQL sent: ' + sel + '. Write SQL sent: ' + (ins ? 'INSERT: ' + ins : del ? 'DELETE: ' + del : '0') + '.' + (ex ? ' The DELETE failed with ' + ex + '.' : '') + ' After it ended, the DB has ' + np + (np === 1 ? ' post' : ' posts') + ' and ' + nc + (nc === 1 ? ' comment' : ' comments') + '.');
     if (c.act === 'persist' && !cp) sum.push('Without PERSIST (or ALL) in cascade, the persist you call on the parent is not passed on to the children. As in this example, with a list that has mappedBy, no exception is thrown either, so it is easy to miss that the comments were not saved.' + (c.cas === 'REMOVE' ? ' CascadeType.REMOVE passes on only deletion, so it has no effect on saving.' : '') + (orph ? ' orphanRemoval has nothing to do with saving either.' : ''));
     if (c.act === 'persist' && cp) sum.push('Thanks to CascadeType.PERSIST' + (c.cas === 'ALL' ? ' (which ALL includes)' : '') + ', calling em.persist once on the post saves the comments as well. Cascade is just a convenience that does to the children what you did to the parent. It is not a feature that sets up the relationship. The value of the foreign key is decided by the post field of the comment.');
     if (c.act === 'remove' && ex) sum.push('The DB does not let you delete a parent that still has children (foreign key constraint). To delete the parent and the children together, put REMOVE (or ALL) in cascade, or turn on orphanRemoval = true.' + (c.cas === 'PERSIST' ? ' CascadeType.PERSIST passes on only saving, so it has no effect on deletion.' : ''));
@@ -5624,12 +5535,8 @@ Lab.register({
   stName: function (k) { return { none: 'None yet', 'new': 'New (unknown to JPA)', lazy: 'Not read yet', managed: 'Managed', removed: 'Removed', out: 'Taken out of the list', deleted: 'Deleted' }[k]; },
   blank: function (c) { var s = c.act !== 'persist'; return { post: 'none', c1: s ? 'lazy' : 'none', c2: s ? 'lazy' : 'none', db: { post: s, c1: s, c2: s }, hot: {}, sent: [], fresh: [], ex: '' }; },
   render: function (v, sim, t, H, shown) {
-    var self = this, last = shown[shown.length - 1], s = last ? last.snap : this.blank(sim.c);
-    function cell(k) { return { v: self.stName(k), cls: k === 'managed' ? 'good' : k === 'removed' || k === 'out' ? 'hot' : '' }; }
-    H.counters(v, [[s.sent.length, 'SQL sent to the DB'], [(s.db.post ? 1 : 0), 'Posts in the DB'], [(s.db.c1 ? 1 : 0) + (s.db.c2 ? 1 : 0), 'Comments in the DB']]);
-    H.table(v, ['Object', 'State in memory'], [{ cells: ['Post "Notice"', cell(s.post)] }, { cells: ['First comment', cell(s.c1)] }, { cells: ['Second comment', cell(s.c2)] }], 'Java objects');
+    var last = shown[shown.length - 1], s = last ? last.snap : this.blank(sim.c);
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i >= s.sent.length - s.fresh.length ? 'hot' : '' }, q.at] }; }), 'SQL sent to the DB'); else { H.title(v, 'SQL sent to the DB'); H.text(v, 'None yet.'); }
-    H.table(v, ['Table', 'Rows'], [{ cells: ['post', s.db.post ? 'id 1 "Notice"' : '(empty)'] }, { cells: ['comment', [s.db.c1 ? 'id 1 "First comment"' : '', s.db.c2 ? 'id 2 "Second comment"' : ''].filter(Boolean).join(', ') || '(empty)'] }], 'DB');
     if (s.ex) H.text(v, 'Exception: ' + s.ex + ' (foreign key constraint violation). The transaction was rolled back, so the DB is as it was at the start.');
   },
   // Diagram: on the left are the Java objects (the post and the two comments in its list) and their states, and on the right are the rows in the DB. The arrow in the middle appears only in a step where SQL is sent.
@@ -5657,7 +5564,7 @@ Lab.register({
 Lab.register({
   id: 'lazyproxy', nav: 'Proxies and lazy fetching', cat: 'JPA', mode: 'step',
   title: 'Is an object received through lazy fetching a real entity?',
-  intro: 'A member object you get from em.getReference or from lazy fetching may not be a real Member. It may be a proxy (a stand-in object) that knows only the identifier. A proxy queries the DB only at the moment the real data is needed. Change how you get the object and what you do with it, and see when the query SQL is sent and when an exception is thrown.',
+  intro: 'A member object you get from em.getReference or from lazy fetching may not be a real Member. It may be a proxy (a stand-in object) that knows only the identifier. A proxy queries the DB only at the moment the real data is needed.',
   terms: ['Entity proxy', 'LazyInitializationException', 'Lazy fetching and eager fetching', 'Persistence context', 'First-level cache'],
   controls: [
     { id: 'how', label: 'How to get the member object m', type: 'select', value: 'ref', options: [['ref', 'em.getReference(Member.class, 1L)'], ['lazy', 'Load an order, then order.getMember() (lazy fetching)'], ['find', 'em.find(Member.class, 1L)'], ['findref', 'Read with em.find first, then em.getReference'], ['reffind', 'Call em.getReference first, then em.find']] },
@@ -5749,14 +5656,13 @@ Lab.register({
       }
     }
     var sel = st.sent.filter(function (q) { return q.sql === selM; }).length;
-    sum.push('m is ' + (proxy ? 'a proxy' : 'a real Member entity') + '. Queries on the member table: ' + (sel ? sel + ' (' + when.charAt(0).toLowerCase() + when.slice(1) + ').' : '0.') + (st.err ? ' ' + st.err + ' was thrown on the last line.' : ''));
     if (how === 'ref' || how === 'lazy') {
       if (use === 'id') sum.push('A proxy is born with its identifier, so getId() does not initialize it. When you need only the identifier (for example, when you set a relationship by supplying only the foreign key value), you do not have to query the DB.');
       if (use === 'name') sum.push('The query SQL is sent not at the moment you receive the object but at the moment you first use a value other than the identifier. This is lazy fetching.' + (how === 'lazy' ? ' If there are many orders and this happens for each order, it becomes the problem you saw in the "N+1" lab.' : ''));
       if (use === 'cls') sum.push('If you write your own equals and compare types with getClass() != o.getClass(), a proxy and a real entity are judged to be different objects. Use instanceof to compare the types of entities, and read fields through getters.');
       if (use === 'closed') sum.push('An uninitialized proxy can be filled only while the persistence context is open. Read the values you need outside the transaction in advance inside the transaction, or fetch them together from the start with a fetch join.');
     }
-    if (how === 'find') sum.push('em.find queries the DB as soon as you call it and returns a real entity. ' + (use === 'closed' ? 'It already has the data, so you can read the values even after the persistence context is closed.' : use === 'cls' ? 'So the getClass() comparison is true as well. Compare it with what you get from getReference or lazy fetching.' : 'Compare when the SQL is sent with the case where you got it with getReference.'));
+    if (how === 'find') sum.push('em.find queries the DB as soon as you call it and returns a real entity.' + (use === 'closed' ? ' It already has the data, so you can read the values even after the persistence context is closed.' : use === 'cls' ? ' So the getClass() comparison is true as well.' : ''));
     if (how === 'findref') sum.push('If the persistence context already has a real entity, getReference returns that entity, not a proxy. The result of getReference is not always a proxy.');
     if (how === 'reffind') sum.push('If a proxy was created first, the em.find after it returns the same proxy. You cannot assume that what you got from em.find is an object of the real Member class.' + (use === 'cls' ? ' That is why the getClass() comparison is false even though it is the result of em.find.' : use === 'closed' ? ' However, em.find sent a SELECT and initialized the proxy, so you can read the values even after the close.' : ''));
     return { events: ev, summary: sum, L: L, proxy: proxy, same: same, init: st.m === 'entity' || st.init, row: [proxy ? 'Proxy' : 'Real entity', sel ? sel + ' (' + when + ')' : '0', res] };
@@ -5765,12 +5671,9 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : this.blank(), cur = Math.min(s.line, sim.L.length - 1);   // One line can be split into two steps (proxy initialization)
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { return { cells: [String(i + 1), { v: l, cls: i === cur ? 'hot' : '' }, i === cur ? '← now' : ''] }; }), 'Running code');
-    H.counters(v, [[s.sent.filter(function (q) { return q.sql.indexOf('from member') > 0; }).length, 'Queries on the member table'], [s.m === 'none' ? '-' : s.m === 'proxy' ? 'Proxy' : 'Real entity', 'What m is']]);
+    H.counters(v, [[s.sent.filter(function (q) { return q.sql.indexOf('from member') > 0; }).length, 'Queries on the member table']]);
     var ln = H.lanes(v);
     H.lane(ln, 'Class of m', s.m === 'none' ? 'None yet' : s.m === 'proxy' ? 'Member$HibernateProxy (a proxy that extends Member)' : 'Member', s.m === 'proxy' ? 'hot' : s.m === 'entity' ? 'good' : 'none');
-    H.lane(ln, 'Contents', s.m === 'none' ? 'None yet' : s.m === 'entity' || s.init ? 'id 1, name Alice' : 'Knows only id 1 (not initialized)', s.m === 'none' ? 'none' : s.m === 'entity' || s.init ? 'good' : 'wait');
-    H.lane(ln, 'Persistence context', s.open ? 'Open' : 'Closed', s.open ? 'good' : 'bad');
-    H.lane(ln, 'Result', s.err ? 'Exception: ' + s.err : s.out || 'None yet', s.err ? 'bad' : s.out ? 'good' : 'none');
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i >= s.sent.length - s.fresh ? 'hot' : '' }, q.at] }; }), 'SQL sent to the DB'); else { H.title(v, 'SQL sent to the DB'); H.text(v, 'None yet.'); }
   },
   // Diagram: on the left, inside the persistence context, are the proxy and the real Member (and the order if it is lazy fetching), and on the right is the DB. When the proxy is initialized, an arrow to the real object appears.
@@ -5800,7 +5703,7 @@ Lab.register({
 Lab.register({
   id: 'fetchjoin', nav: 'JPQL and fetch joins', cat: 'JPA', mode: 'step',
   title: 'What is the difference between join and join fetch?',
-  intro: 'JPQL is a query language written against entities, not tables. When you load posts together with their comments, a plain join and a join fetch differ in which columns are read from the database and in which queries are sent afterward. Also see how many results you get when you fetch join a collection, and where the results are cut when you add pagination.',
+  intro: 'JPQL is a query language written against entities, not tables. When you load posts together with their comments, a plain join and a join fetch differ in which columns are read from the database and in which queries are sent afterward.',
   terms: ['JPQL', 'Fetch join', 'Collection fetch joins and pagination', 'MultipleBagFetchException', 'Cartesian product'],
   controls: [
     { id: 'q', label: 'JPQL to run', type: 'select', value: 'join', options: [['plain', 'select p from Post p (no join)'], ['table', 'select p from posts p (uses the table name)'], ['join', '… join p.comments c (plain join)'], ['fetch', '… join fetch p.comments (fetch join)'], ['fetchsort', '… join fetch p.comments c order by c.id desc (sorted by comment)'], ['two', '… join fetch p.comments join fetch p.files (two collections)']] },
@@ -5837,7 +5740,7 @@ Lab.register({
     if (q === 'table') {
       st.err = 'UnknownEntityException';
       push('em.createQuery("… from posts p …"): In JPQL, an entity name must follow from, not a table name. posts is the table name written in @Table, and there is no entity with that name. When the query is created, an IllegalArgumentException (cause: UnknownEntityException) is thrown. Nothing was sent to the database.', 'bad');
-      sum.push('The lab ended with an exception, and no SQL was sent.', 'JPQL is written with entity names (Post) and field names (p.title, p.comments). Hibernate fills in the table names (posts) and column names when it translates the query into SQL. So a table name written as is gets rejected, as in this query.' + (page ? ' The pagination setting applies after the query is created, so it does not affect the result.' : ''));
+      sum.push('JPQL is written with entity names (Post) and field names (p.title, p.comments). Hibernate fills in the table names (posts) and column names when it translates the query into SQL. So a table name written as is gets rejected, as in this query.' + (page ? ' The pagination setting applies after the query is created, so it does not affect the result.' : ''));
       return fail('UnknownEntityException', 'createQuery');
     }
     push('em.createQuery(…): JPQL is written against entities, not tables. Post in from Post p is a class name' + (q === 'plain' ? '' : ', and p.comments is a field name of Post') + '. Hibernate translates this into SQL that queries the posts' + (q === 'plain' ? ' table' : q === 'two' ? ', comments, and files tables' : ' and comments tables') + '.', '');
@@ -5845,7 +5748,7 @@ Lab.register({
     if (q === 'two') {
       st.err = 'MultipleBagFetchException';
       push('getResultList(): Hibernate rejects the query at the moment it tries to run it. comments and files are both Lists, and if you fetch two Lists with one SQL statement, the rows multiply to the product of the two list sizes, so you cannot tell which rows are duplicates. An IllegalArgumentException (cause: MultipleBagFetchException) is thrown, and no SQL is sent.', 'bad');
-      sum.push('The lab ended with an exception, and no SQL was sent.', 'You cannot fetch join two collections declared as List together. If you change one of them to a Set, the exception goes away, but when this was run in the same environment, the database returned 8 rows (post 1 has 3 comments × 2 attachments = 6 rows), and the comments list of post 1 contained the same comments repeated, 6 in total.', 'Fetch join only one collection, and fetch the rest separately by using lazy fetching together with a batch size setting.' + (page ? ' It is the same exception whether or not you add pagination.' : ''));
+      sum.push('You cannot fetch join two collections declared as List together. If you change one of them to a Set, the exception goes away, but when this was run in the same environment, the database returned 8 rows (post 1 has 3 comments × 2 attachments = 6 rows), and the comments list of post 1 contained the same comments repeated, 6 in total.', 'Fetch join only one collection, and fetch the rest separately by using lazy fetching together with a batch size setting.' + (page ? ' It is the same exception whether or not you add pagination.' : ''));
       return fail('MultipleBagFetchException', 'getResultList');
     }
     // Where the results are cut: sql = the end of the outer query, sub = a subquery, mem = memory
@@ -5875,12 +5778,11 @@ Lab.register({
       extra++; p.n = count[p.id]; p.how = 'lazy'; send('select * from comments where post_id = ' + p.id, 'Comments of post ' + p.id + ' (lazy fetching)');
       push('Loop, post ' + p.id + ': The moment p.getComments().size() is called, a separate comment query is sent to fill in the empty list.', 'bad');
     });
-    sum.push('The result list has ' + ids.length + (ids.length === 1 ? ' post. ' : ' posts. ') + (extra ? 'In addition to 1 list query, ' + extra + (extra === 1 ? ' comment query was' : ' comment queries were') + ' sent, ' + (1 + extra) + ' SQL statements in all.' : 'The SQL ended with 1 list query.') + (st.warn ? ' The warning ' + st.warn + ' was written to the log.' : ''));
     if (q === 'plain') sum.push('The related comments were not fetched, so a comment query is sent separately for each post. As the number of posts grows, the number of queries grows with it (see the "N+1" lab).' + (page ? ' Pagination on a query that does not fetch join a collection is handled in the SQL as it is.' : ''));
     if (q === 'join') sum.push('A plain join only puts a join into the SQL. It does not read the columns of the associated entity. It is useful when you filter by comments, but you have to query again to use the comments. To fetch them together, use join fetch.', page ? 'Note that the row limit applies to the rows multiplied by the join. When the second page (setFirstResult(1)) was requested in the same environment, post 1 came again instead of post 2, because the second row is also a row of post 1.' : 'The database returned 5 rows, but the result list had 2 posts. For a query that returns a single entity, Hibernate 7.4.5 holds the same entity only once. It was also confirmed in the same environment that if you query values (p.title) instead of entities, 5 items come out as they are.');
     if (q === 'fetch' && !page) sum.push('join fetch reads even the columns of the associated comments with one SQL statement and fills in the comments list. So no queries follow.', 'If you join a collection, the rows grow to 5, but the result list is 2 posts. The documentation says that up to Hibernate 5, the same post appeared in the result as many times as it had comments, so you had to add select distinct (an older version could not be run in this environment).');
-    if (q === 'fetch' && page) sum.push('When you add pagination to a collection fetch join, Hibernate 7.4.5 builds SQL that first cuts the posts in a subquery and joins only the comments of that post. It cuts in the database, so it reads only the 3 rows it needs.', 'The documentation says that older versions (such as Hibernate 6, which Spring Boot 3 uses) read everything without a row limit and cut in memory in this case. Even in the current version, there are cases where this still happens. Compare with the "A case that cuts in memory" example.');
-    if (q === 'fetchsort' && !page) sum.push('Even if you change the sort key to the comment, the result of the fetch join is the same. The rows with a larger comment id come first, so only the order of the result list changed, to post 2 and then post 1. See what happens when you add pagination to this.');
+    if (q === 'fetch' && page) sum.push('When you add pagination to a collection fetch join, Hibernate 7.4.5 builds SQL that first cuts the posts in a subquery and joins only the comments of that post. It cuts in the database, so it reads only the 3 rows it needs.', 'The documentation says that older versions (such as Hibernate 6, which Spring Boot 3 uses) read everything without a row limit and cut in memory in this case. Even in the current version, there are cases where this still happens.');
+    if (q === 'fetchsort' && !page) sum.push('Even if you change the sort key to the comment, the result of the fetch join is the same. The rows with a larger comment id come first, so only the order of the result list changed, to post 2 and then post 1.');
     if (lim === 'mem') sum.push('If you add pagination to a collection fetch join and the SQL has no row limit, it read all the matching rows and then cut them in memory. Here it is 5 rows, but if there were hundreds of thousands of posts, all of them would be loaded into memory.', 'Hibernate 7.4.5 cuts in the database when it can, such as when sorting by post, but it cuts in memory when the sort key is on the collection side, as in this example. The documentation says that older versions always handled the pagination of a collection fetch join this way. If you see the warning HHH90003004, stop fetch joining the collection and change it to fetch the collection with a batch size setting.');
     var limText = { none: 'No pagination', sql: 'At the end of the SQL', sub: 'Inside the subquery', mem: 'Not in the SQL (cut in memory)' }[lim];
     return { events: ev, summary: sum, jp: jp, facts: { exAt: 'none', loaded: fetch, firstN: count[ids[0]] }, row: [ids.length + (ids.length === 1 ? ' post' : ' posts') + ' (ids ' + ids.join(', ') + ')', (fetch ? 'Posts + comment columns' : 'Post columns only') + ' · ' + rows.length + (rows.length === 1 ? ' row' : ' rows'), limText, extra + '', st.warn ? st.warn + ' warning' : 'none'] };
@@ -5888,10 +5790,6 @@ Lab.register({
   blank: function () { return { rows: [], list: [], sent: [], fresh: 0, warn: '', err: '', made: false, cut: false }; },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : this.blank();
-    H.title(v, 'JPQL being run'); H.text(v, sim.jp);
-    H.counters(v, [[s.sent.length, 'SQL sent to the DB'], [s.rows.length ? s.rows.length : '-', 'Rows returned by the list query'], [s.made ? s.list.length : '-', 'Posts in the result list']]);
-    if (s.rows.length) H.table(v, ['#', 'Post', 'Comment'], s.rows.map(function (r, i) { return { cls: r.off ? 'gone' : '', cells: [String(i + 1), 'Post ' + r.p, r.c ? 'Comment ' + r.c + (sim.facts.loaded ? '' : ' (join only, not read)') : '-'] }; }), 'Rows returned by the DB');
-    if (s.made) H.table(v, ['Post', 'comments list'], s.list.map(function (p) { return { cells: ['Post ' + p.id + ' "' + p.title + '"', { v: p.n < 0 ? 'Not loaded yet' : p.n + (p.n === 1 ? ' comment' : ' comments') + ' (' + (p.how === 'fetch' ? 'loaded together with the list query' : 'loaded by an additional query') + ')', cls: p.n < 0 ? '' : p.how === 'fetch' ? 'good' : 'hot' }] }; }), 'Result list List<Post>');
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Reason'], s.sent.map(function (x, i) { return { cells: [String(i + 1), { v: x.sql, cls: i >= s.sent.length - s.fresh ? 'hot' : '' }, x.why] }; }), 'SQL sent to the DB');
     if (s.warn) H.text(v, 'Warning ' + s.warn + ': firstResult/maxResults specified with collection fetch; applying in memory');
     if (s.err) H.text(v, 'Exception: IllegalArgumentException (cause: ' + s.err + ')');
@@ -5918,7 +5816,7 @@ Lab.register({
 Lab.register({
   id: 'bulk', nav: 'Bulk update and delete operations', cat: 'JPA', mode: 'step',
   title: 'After one UPDATE changes many rows, why does the entity still have the old value?',
-  intro: 'An UPDATE or DELETE run with executeUpdate (a bulk update or delete operation) changes many rows with one SQL statement. But this SQL runs directly on the database without going through the persistence context. So an entity that you already loaded does not know that the database has changed. See what you get depending on how you read the value after the bulk operation.',
+  intro: 'An UPDATE or DELETE run with executeUpdate (a bulk update or delete operation) changes many rows with one SQL statement. But this SQL runs directly on the database without going through the persistence context. So an entity that you already loaded does not know that the database has changed.',
   terms: ['Bulk update and delete operations', 'em.clear and em.refresh', 'Persistence context', 'First-level cache', 'Transactional write-behind and flush'],
   controls: [
     { id: 'op', label: 'How to change the price', type: 'select', value: 'update', options: [['update', 'Bulk UPDATE (price + 500 for all items)'], ['delete', 'Bulk DELETE (delete all items)'], ['each', 'Change the entities one by one with setPrice (dirty checking)']] },
@@ -6020,7 +5918,6 @@ Lab.register({
     var dbText = first.db === null ? 'no row' : first.db + '';
     var readText = st.read;
     if (/^\d+$/.test(st.read)) readText += first.db === null ? ' (no such row in the DB)' : st.read === dbText ? ' (same as the DB)' : ' (the DB has ' + dbText + ')';
-    sum.push('Write SQL sent: ' + write + '. ' + (st.err ? 'The moment it tried to read item 1, ' + st.err + ' was thrown.' : st.read === 'Query returned 0 rows' ? 'Querying again returned 0 rows.' : 'The value read is ' + readText + '.') + ' After it ended, ' + (first.db === null ? 'the DB has no row for item 1.' : 'item 1 is ' + dbText + ' in the DB.'));
     if (op === 'each') sum.push('When you change the entities one by one, memory and the database never disagree, but as many UPDATEs are sent as there are items. With ' + n + ' items, ' + n + ' UPDATEs are sent, and with 10000 items, 10000 are sent. A bulk UPDATE does the same job with 1 SQL statement.' + (dirty ? ' Item 1, which was first changed to 5000, gets 500 added to become 5500, and only one UPDATE is sent for it.' : ''));
     if (op !== 'each' && dirty) sum.push('The unflushed change was flushed before the bulk operation ran. So in the database, item 1 was changed to 5000 first, and then ' + (op === 'update' ? '500 was added to make 5500. If the order had been reversed, 5000 would have remained.' : 'the row was deleted.'));
     if (op === 'update' && (after === 'none' || after === 'find' || after === 'jpql')) sum.push('A bulk operation does not go through the persistence context, so an entity you already loaded keeps its old value. ' + (after === 'find' ? 'em.find looks in the first-level cache first, so calling it again does not help.' : after === 'jpql' ? 'Even if you query again with JPQL and read the new value from the database, an entity with the same identifier that already exists takes priority.' : 'If you keep calculating with this value, the result will be wrong.'), 'After a bulk operation, empty the persistence context with em.clear(), or run the bulk operation before you load the entities. In Spring Data JPA, @Modifying(clearAutomatically = true) does this for you.');
@@ -6033,13 +5930,12 @@ Lab.register({
   blank: function (c) { var items = []; for (var i = 1; i <= +c.n; i++) items.push({ id: i, mem: null, db: 1000 * i }); return { items: items, sent: [], fresh: [], hot: {}, read: '', err: '', cleared: false }; },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : this.blank(sim.c);
-    H.counters(v, [[s.sent.length, 'SQL sent to the DB'], [s.sent.filter(function (x) { return x.sql.indexOf('select') !== 0; }).length, 'Of those, write SQL'], [s.err ? 'Exception' : s.read || '-', 'Price of item 1 that was read']]);
+    H.counters(v, [[s.sent.length, 'SQL sent to the DB'], [s.sent.filter(function (x) { return x.sql.indexOf('select') !== 0; }).length, 'Of those, write SQL']]);
     H.table(v, ['Item', 'Entity price (memory)', 'Price in the DB row', 'Status'], s.items.map(function (it) {
       var diff = it.mem !== null && it.mem !== it.db;
       return { cells: ['Item ' + it.id, { v: it.mem === null ? '(none)' : it.mem + '', cls: it.pend ? 'hot' : diff ? 'bad' : it.mem === null ? '' : 'good' }, it.db === null ? '(no row)' : it.db + '', it.mem === null ? '' : it.pend ? 'Not sent yet' : diff ? 'Old value' : 'Same'] };
     }), 'Memory and DB');
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (x, i) { return { cells: [String(i + 1), { v: x.sql, cls: i >= s.sent.length - s.fresh.length ? 'hot' : '' }, x.at] }; }), 'SQL sent to the DB'); else { H.title(v, 'SQL sent to the DB'); H.text(v, 'None yet.'); }
-    if (s.err) H.text(v, 'Exception: ' + s.err);
   },
   // Diagram: on the left, the item entities held by the persistence context, and on the right, the rows of the DB at the same height. An entity that does not know the DB changed is red, and a change not yet sent is yellow.
   draw: function (P, sim, shown) {
@@ -6063,7 +5959,7 @@ Lab.register({
 Lab.register({
   id: 'datajpa', nav: 'Spring Data JPA', cat: 'JPA', mode: 'step',
   title: 'How does a repository work when there is no implementation class?',
-  intro: 'In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query. Run it to see what query a method name becomes, how many queries are sent when you request a page, and when save() sends a SELECT before the INSERT.',
+  intro: 'In Spring Data JPA, you declare a repository only as an interface. Spring Data creates the implementation when the application starts, and a method such as findByName is read by its name and turned into a query.',
   terms: ['JPA, Hibernate, Spring Data JPA', 'Query method', 'Pageable and Page', 'save() and merge', 'Entity'],
   controls: [
     { id: 'sc', label: 'What to try', type: 'select', value: 'name', options: [['name', 'Query by method name'], ['page', 'Request a page with Pageable'], ['save', 'Call save()']] },
@@ -6258,7 +6154,6 @@ Lab.register({
         st.out = { t: 'Returned object', s: 'The object you passed (id 8 filled in)', cls: 'good' };
         push('Result: The object that save returned is the same object you passed. There are now 8 members.', 'good');
         row = ['Success', '1', 'INSERT', '8 members now · the returned object is the same as the one passed'];
-        sum.push('A new entity (null id) is saved with one INSERT and no SELECT.');
         sum.push('save branches into "persist if the entity is new, merge otherwise". Whether it is new is decided by default by whether the id is null.');
       } else {
         var found = e === 'change' || e === 'same', key = coupon ? 'code = SUMMER' : 'id = ' + (e === 'gone' ? 999 : 1);
@@ -6304,20 +6199,13 @@ Lab.register({
         }
       }
     }
-    sum.unshift('Application startup ' + (row[0] === 'Success' ? 'succeeded' : 'failed') + '. SQL statements sent to the DB: ' + row[1] + (row[2] !== 'none' ? ' (' + row[2] + ').' : '.'));
     return { events: ev, summary: sum, row: row, msg: msg, order: order };
   },
   render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
+    var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go step by step, starting with the application starting up.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'Application', s.boot === 'fail' ? 'Startup failed' : s.boot === 'ok' ? 'Startup complete' : 'Starting', s.boot === 'fail' ? 'bad' : s.boot === 'ok' ? 'good' : 'wait');
-    H.lane(ln, 'Call', s.called ? s.call : s.boot === 'fail' ? 'Cannot be called' : 'Not called yet', s.called ? 'hot' : 'none');
-    H.table(v, ['Step', 'Details'], s.steps.map(function (x) { return { cells: [x.t, { v: x.r || 'Not yet', cls: x.cls === 'bad' ? 'bad' : x.cls === 'hot' ? 'hot' : x.cls === 'good' ? 'good' : '' }] }; }), c.sc === 'name' ? 'Reading the method name piece by piece' : c.sc === 'page' ? 'The order in which the page request is handled' : 'What save does');
-    H.counters(v, [[s.sent.length, 'SQL sent to the DB'], [s.out.cls === 'ghost' ? 'None yet' : s.out.s, s.out.t]]);
-    if (s.sent.length) H.table(v, ['#', 'SQL', 'Reason'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i === s.sent.length - 1 ? 'hot' : '' }, q.why] }; }), 'SQL sent to the DB');
-    H.table(v, s.tbl === 'coupon' ? ['code', 'title'] : ['id', 'Name · age'], s.rows.map(function (r) { return { cells: [r.k.replace('id ', ''), { v: r.v, cls: r.cls === 'wait' ? '' : r.cls }] }; }), 'The ' + s.tbl + ' table in the DB');
-  },
+    H.counters(v, [[s.sent.length, 'SQL sent to the DB']]);
+    if (s.sent.length) H.table(v, ['#', 'SQL', 'Reason'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i === s.sent.length - 1 ? 'hot' : '' }, q.why] }; }), 'SQL sent to the DB');  },
   // Diagram: at the top, the method that was called and the startup state; on the left, the steps that the implementation made by Spring Data goes through; on the right, the rows of the DB. An arrow appears only in the steps where SQL is sent.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], prev = shown[shown.length - 2], first = sim.events[0].snap;
@@ -6340,7 +6228,7 @@ Lab.register({
 Lab.register({
   id: 'dynquery', nav: 'Dynamic queries and Querydsl', cat: 'JPA', mode: 'step',
   title: 'How do you add a search condition to where only when it is given?',
-  intro: 'On a member search screen, the name and the age may be filled in or left blank. Only the conditions that were filled in must go into where, so the shape of the query differs from request to request. A query built at run time from whichever conditions were supplied is called a dynamic query. Turn the conditions on and off to compare which combinations cause a syntax error when you build the JPQL by joining strings, and why building it with code does not have that mistake.',
+  intro: 'On a member search screen, the name and the age may be filled in or left blank. Only the conditions that were filled in must go into where, so the shape of the query differs from request to request. A query built at run time from whichever conditions were supplied is called a dynamic query.',
   terms: ['Dynamic query', 'JPQL', 'Criteria API', 'Querydsl', 'SQL injection'],
   controls: [
     { id: 'how', label: 'How the query is built', type: 'select', value: 'fixed', options: [['fixed', 'String concatenation: where is attached in advance'], ['nospace', 'String concatenation: a space is missing'], ['join', 'String concatenation: collect the conditions and join them with and'], ['criteria', 'JPA Criteria API (assembled with code)'], ['querydsl', 'Querydsl (assembled with code, cannot be run here)']] },
@@ -6465,7 +6353,6 @@ Lab.register({
       }
       // Which of the four combinations this method fails in
       var fails = [[false, false, 'when neither is given'], [true, false, 'when only the name is given'], [false, true, 'when only the age is given'], [true, true, 'when both are given']].filter(function (x) { return self.check(self.build(c.how, x[0], x[1])[0]); }).map(function (x) { return x[2]; });
-      sum.push('The built string is "' + jpql + '". ' + (err ? 'It does not match the JPQL syntax, so it was not run.' : 'It matches the syntax and was run. Members found: ' + hit + '.'));
       if (fails.length) sum.push('Of the four combinations, this code fails ' + fails.join(', ') + ', and works normally in the rest. The compiler does not check inside strings, and an error appears only when a request with that combination actually arrives. If you do not test every combination, the error shows up in production.');
       else sum.push('If you collect the conditions in a list and put and only between them, all four combinations are built correctly. But it is still a string, so the compiler cannot catch a typo or a missing space, and the code gets harder to read as the conditions increase.');
       sum.push('With any approach, do not append values to the string directly; leave a placeholder such as :name and put the value in with setParameter. If you append a value entered by a user to the statement as it is, you are exposed to a SQL injection attack.');
@@ -6523,10 +6410,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null, c = sim.c;
     if (!s) { H.text(v, 'Click Run to follow the code that builds the query one line at a time.'); return; }
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line || (c.how === 'join' && s.line === 4 && i === 3); return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }).concat([{ cells: ['', { v: c.how === 'querydsl' ? '(assembly done)' : '(run the query)', cls: s.line === 90 ? 'hot' : '' }, s.line === 90 ? '← now' : ''] }]), 'Code that builds the query');
-    var ln = H.lanes(v);
-    H.lane(ln, 'Search conditions', 'name ' + s.name + ' · age ' + s.age, 'wait');
-    H.lane(ln, s.full.t || 'Assembled query', s.full.s || 'None yet', s.full.cls === 'bad' ? 'bad' : s.full.cls === 'ghost' ? 'none' : 'hot');
-    H.lane(ln, 'Execution result', s.run.s, s.run.cls === 'bad' ? 'bad' : s.run.cls === 'good' ? 'good' : s.run.cls === 'wait' ? 'wait' : 'none');
     H.counters(v, [[s.sql, 'SQL sent to the DB']]);
   },
   // Diagram: at the top, the two search conditions; in the middle, the three pieces assembled into the query and the result built so far; at the bottom, the execution result. A skipped piece is a dashed box.
@@ -6549,7 +6432,7 @@ Lab.register({
 Lab.register({
   id: 'dtoquery', nav: 'Querying directly into a DTO', cat: 'JPA', mode: 'step',
   title: 'What is the difference between querying entities and copying them, and querying directly into a DTO?',
-  intro: 'To show only the name and age of each member on a screen, querying entities reads every column of the member and then copies only the values you need into a DTO. With new in JPQL, you can pick only the values you need and receive them directly as a DTO. Compare the two approaches: the number of columns in the SELECT clause, the extra queries that are sent, the objects the persistence context manages, and the UPDATE that is sent when you change a value.',
+  intro: 'To show only the name and age of each member on a screen, querying entities reads every column of the member and then copies only the values you need into a DTO. With new in JPQL, you can pick only the values you need and receive them directly as a DTO.',
   terms: ['DTO', 'JPQL constructor expression', 'Persistence context', 'Dirty checking', 'N+1 selects problem'],
   controls: [
     { id: 'how', label: 'How to query', type: 'select', value: 'entity', options: [['entity', 'Query entities, then copy them into DTOs'], ['fetch', 'Query entities with a fetch join, then copy them into DTOs'], ['dto', 'Query directly into DTOs with new in JPQL']] },
@@ -6628,7 +6511,6 @@ Lab.register({
       else push('End of the method, commit: Just before the commit, the ' + st.managed + ' managed entities are compared with their snapshots. Nothing differs, so there is no SQL to send. Even for a screen that only displays data, the work of making snapshots and comparing them still happens.');
     }
     var row = [st.sel + (teamQ ? ' (1 for members + ' + teamQ + ' for teams)' : ''), st.cols + '', st.managed + '', !c.mod ? '0 (no value was changed)' : st.upd ? '1 (the name in the DB changed to Erin)' : '0 (only the DTO changed; the DB is unchanged)'];
-    sum.push('SELECT statements sent: ' + row[0] + '. Columns in the first SELECT: ' + st.cols + '. Entities managed by the persistence context: ' + st.managed + '. UPDATE statements sent: ' + st.upd + '.');
     if (isDto) {
       sum.push('When you query with new in JPQL, only the columns you need are read, and the results are plain objects, not entities. The persistence context does not manage them, so there is no snapshot and no comparison at commit. This suits screens that only display data, such as lists and statistics.');
       sum.push(c.mod ? 'Changing a value of the DTO does not change the DB. To modify data, you have to query entities and change those.' : 'On the other hand, if the goal is to modify data, you have to query entities. Changing a DTO does not change the DB.');
@@ -6644,12 +6526,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go step by step from the query to the commit.'); return; }
-    H.counters(v, [[s.sel + '', 'SELECT statements'], [s.cols + '', 'Columns in the first SELECT'], [s.managed + '', 'Managed entities'], [s.upd + '', 'UPDATE statements']]);
+    H.counters(v, [[s.cols + '', 'Columns in the first SELECT'], [s.managed + '', 'Managed entities']]);
     H.table(v, ['#', 'SQL sent to the DB', 'Reason'], s.sqls.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i === s.sqls.length - 1 ? 'hot' : '' }, q.why] }; }), 'SQL log');
-    if (s.members.length) H.table(v, ['Entity', 'Current value', 'State'], s.members.map(function (m, i) { return { cells: ['Member ' + (i + 1), { v: m.name, cls: m.cls === 'hot' ? 'hot' : '' }, 'Managed'] }; }).concat(s.teams.map(function (tm, i) { return { cls: tm.loaded ? '' : 'gone', cells: ['Team ' + (i + 1), tm.loaded ? tm.name : '(not read yet)', tm.loaded ? 'Managed' : 'Proxy'] }; })), 'Persistence context');
-    else { H.title(v, 'Persistence context'); H.text(v, 'It is empty. No entities are managed.'); }
-    if (s.dtos.length) H.table(v, ['Name · age', 'Team name'], s.dtos.map(function (d) { return { cells: [{ v: d.t, cls: d.cls === 'hot' ? 'hot' : '' }, d.r || '(not included)'] }; }), 'DTO list (values to send to the screen)');
-    H.text(v, 'Name of member 1 in the DB: ' + s.dbName);
   },
   // Diagram: On the left is the DB, in the middle is the persistence context (managed entities), and on the right is the DTO list. An entity query goes through the middle, and a DTO query goes straight from the DB to the DTOs.
   draw: function (P, sim, shown) {
@@ -6675,7 +6553,7 @@ Lab.register({
     if (s.arrow === 'conv' || s.arrow === 'lazy') P.arrow('a2', 'pc:r', 'dto:l', { cls: 'mut', label: 'copy' });
     if (s.arrow === 'direct') P.arrow('a1', 'db:r:0.08', 'dto:l:0.08', { cls: 'good', label: 'SELECT ' + s.cols + ' columns → DTO' });
     P.box('q', 16, 264, 648, 46, { cls: s.sql ? 'plain' : 'ghost', title: 'Last SQL sent to the DB', sub: s.sql || 'None yet', mono: true });
-    P.note('Only the objects that enter the middle area are managed by the persistence context. For a managed object, changing a value causes an UPDATE at commit. A DTO exists only in the right area, so changing it does not change the DB. A dashed team is one that has not been read yet (a proxy).');
+    P.note('Only the objects that enter the middle area are managed by the persistence context. A DTO exists only in the right area, so changing it does not change the DB. A dashed team is one that has not been read yet (a proxy).');
   },
   assume: 'Twelve combinations were actually run on the PC used to write this lab, with Hibernate 7.4.5 and an H2 database, using code with the same structure as the screen, and the number of SELECT statements sent and their target tables, the number of columns in the first SELECT, the number of entities managed by the persistence context, the number of UPDATE statements sent at commit, and the name left in the DB were checked against the screen. All the code was assumed to run inside one transaction (one persistence context). The SQL on the screen is shortened to be easier to read, and the actual shape of the statements and the order of the columns differ depending on the Hibernate version. The fetch join reads 8 columns, not 9, because Hibernate 7.4.5 did not read the member\'s team_id separately, and this may differ depending on the version. The number of extra queries that read the teams equals the number of different teams that had not been read yet (2 in this example), and this is the value when no batch size is set. The JPA standard requires the class name after new to include the package name. When I ran it on Hibernate 7.4.5, passing MemberDto.class as the result type to createQuery made it work even without the package name, and writing only the class name without a result type made it fail to find the class and throw an exception (SemanticException). Leaving out the package name is not behavior that the standard guarantees. The feature of Spring Data JPA that lets you receive only the values you need through an interface or a record (projections) is not covered in this lab.',
 });
@@ -6774,7 +6652,7 @@ Lab.register({
 Lab.register({
   id: 'constraints', nav: 'Tables, keys, and constraints', cat: 'Database', mode: 'step',
   title: 'What data gets in when there are no constraints?',
-  intro: 'Insert wrong values into the member table and the orders table, or delete a member who still has orders. A table that has constraints rejects those statements with an error, and a table without constraints accepts them as they are. Run the same statement on both and check how the data differs afterwards.',
+  intro: 'Insert wrong values into the member table and the orders table, or delete a member who still has orders. A table that has constraints rejects those statements with an error, and a table without constraints accepts them as they are.',
   terms: ['Constraint', 'Primary key, unique key, foreign key', 'NOT NULL and CHECK', 'Foreign key referential actions (ON DELETE)'],
   controls: [
     { id: 'op', label: 'Statement to run', type: 'select', value: 'fkdel', options: [['pkdup', 'INSERT: add a member with an id that already exists'], ['pknull', 'INSERT: add a member whose id is NULL'], ['uqdup', 'INSERT: add a member with an email that already exists'], ['uqnull', 'INSERT: add one more member whose email is NULL'], ['nnull', 'UPDATE: change the name of a member to NULL'], ['check', 'UPDATE: change the age of a member to -5'], ['fkins', 'INSERT: add an order for a member that does not exist (member 99)'], ['fkdel', 'DELETE: delete a member who has 2 orders']] },
@@ -6916,7 +6794,6 @@ Lab.register({
     else if (c.op === 'fkdel' && !r.err) mean = c.act === 'cascade' ? 'No order points to a missing member. Instead, 2 orders disappeared together.' : 'No order points to a missing member. An order whose member_id is NULL is regarded as an "order that points to no member", and it does not violate the foreign key.';
     else mean = 'The statement was rejected, so the data is exactly as it was at first.';
     push(ck[0].replace(/\s*\n\s*/g, ' ') + ' (check query). ' + ck[1] + ' ' + n + ck[2] + '. ' + mean, bad ? 'bad' : c.op === 'uqnull' ? '' : 'good', 2);
-    sum.push((r.err ? 'The statement was rejected with error ' + r.err.no + '.' : 'The statement ran, and ' + r.affected + (r.affected === 1 ? ' row was' : ' rows were') + ' changed.') + ' Afterwards, member has ' + r.liveM.length + (r.liveM.length === 1 ? ' row' : ' rows') + ' and orders has ' + r.liveO.length + (r.liveO.length === 1 ? ' row' : ' rows') + '. ' + ck[1] + ' ' + n + ck[2] + '.');
     if (!on && c.op !== 'uqnull') sum.push('Without constraints, the DB accepts even wrong values without an error. The statement "succeeded" but the data is wrong, and that only becomes visible when you query it later. Constraints stop such values at the moment they try to enter the table.');
     if (on && r.err) sum.push({ pkdup: 'A primary key is a promise that "this value can point to exactly one row". So it accepts neither duplicates nor NULL.', pknull: 'A primary key combines a unique constraint and NOT NULL. It accepts neither duplicates nor NULL, and a table can have only one.', uqdup: 'A unique constraint keeps values from overlapping even in a column that is not the primary key. You put it on values that must differ for every person, such as an email or a national ID number.', nnull: 'NOT NULL stops a value that must exist from being saved as missing.', check: 'CHECK is a constraint where you write down a range or condition for values that a type alone cannot express.', fkins: 'A foreign key makes sure that a child row points only to a parent row that really exists. It rejects an INSERT or UPDATE that points to a missing parent.', fkdel: 'RESTRICT is the safest choice. As long as children remain, the parent cannot be deleted, so you have to clean up the orders first before you can delete the member. In MySQL, the behavior when you do not write ON DELETE is the same.' }[c.op]);
     if (c.op === 'uqnull') sum.push('"It may be empty, but if it has a value, it must not overlap" is what a unique constraint means. To block NULL as well, you also need NOT NULL, and a primary key is exactly the combination of the two.');
@@ -6932,8 +6809,6 @@ Lab.register({
     function rows(list) { return list.map(function (r) { return { cls: r.gone ? 'gone' : '', cells: r.cells.map(function (x, j) { return { v: x, cls: r.hot[j] || r.isNew ? 'hot' : '' }; }) }; }); }
     var ln = H.lanes(v);
     H.lane(ln, 'Statement', this.STMT[c.op].replace(/\n/g, ' '), s.stmt === 'ok' ? 'hot' : s.stmt === 'err' ? 'wait' : 'none');
-    H.lane(ln, 'Constraint check', s.gate || 'Not run yet', s.gateK === 'block' ? 'good' : s.gateK === 'pass' ? 'hot' : 'none');
-    H.lane(ln, 'Check query', s.chk || 'Not queried yet', !s.chk ? 'none' : s.chkBad ? 'bad' : 'good');
     H.table(v, ['id', 'email', 'name', 'age'], rows(s.m), 'member table');
     H.table(v, ['id', 'member_id', 'item'], rows(s.o), 'orders table');
     H.text(v, 'Yellow cells are values that just went in or changed, and a row with a line through it is a deleted row.');

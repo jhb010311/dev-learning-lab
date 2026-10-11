@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Spring Boot</p>
 <h1>Actuator and health checks</h1>
 <p><b>What does the health check answer when the connection to the payment provider is lost?</b></p>
-<p>Actuator is a library that creates paths through which you can ask, from outside, about the state of a running Spring Boot application. Among them, /actuator/health answers the question &quot;is this server healthy?&quot;. The answer is decided by combining the statuses that several components inside the application each report, and which components are asked depends on the path that you request. Change the status of pay, the component that checks the connection to the payment provider, and the requested path, and compare the responses.</p>
+<p>Actuator is a library that creates paths through which you can ask, from outside, about the state of a running Spring Boot application. Among them, /actuator/health answers the question &quot;is this server healthy?&quot;. The answer is decided by combining the statuses that several components inside the application each report, and which components are asked depends on the path that you request.</p>
 <p>Checked against real execution · Requests for 96 combinations were sent to a Spring Boot 4.1.1 server and checked against the responses</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -69,9 +69,8 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The response to GET /actuator/health is 503 Service Unavailable, and the status in the body is DOWN. The body shows only the overall status.</li>
 <li>Even when only one component is DOWN, the overall status becomes DOWN and the response is 503. Whoever checks the health through this path treats this server as unhealthy.</li>
-<li>The default of show-details is never. From the body alone, you cannot tell which component has the problem. Change the setting to always or when-authorized and compare.</li>
+<li>The default of show-details is never. From the body alone, you cannot tell which component has the problem.</li>
 </ul>
 <h2>Code</h2>
 <pre>// Request sent (not logged in)
@@ -178,6 +177,6 @@ class PayHealthIndicator implements HealthIndicator {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

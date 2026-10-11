@@ -1,7 +1,7 @@
 Lab.register({
   id: 'ormwhy', nav: 'JPA가 푸는 문제', cat: 'JPA', mode: 'step',
   title: 'SQL을 직접 쓰면 무엇을 손으로 채워야 하나',
-  intro: '자바 객체는 참조로 서로 이어지고, 테이블의 행은 번호(외래 키)로 이어집니다. 모양이 다르므로 테이블의 행을 객체로 옮겨 담는 코드를 누군가는 써야 합니다. 같은 일을 SQL을 직접 쓰는 방식(JDBC)과 JPA로 해 보고, 어디에서 차이가 나는지 비교해 보세요.',
+  intro: '자바 객체는 참조로 서로 이어지고, 테이블의 행은 번호(외래 키)로 이어집니다. 모양이 다르므로 테이블의 행을 객체로 옮겨 담는 코드를 누군가는 써야 합니다.',
   terms: ['ORM', 'JDBC', '객체와 테이블의 불일치', 'JPA, Hibernate, Spring Data JPA', '1차 캐시'],
   controls: [
     { id: 'sc', label: '해 볼 일', type: 'select', value: 'nav', options: [['same', '같은 주문을 두 번 조회'], ['nav', '주문에서 회원으로 넘어가기'], ['field', '회원에 필드(grade) 하나 추가']] },
@@ -118,17 +118,13 @@ Lab.register({
     var cnt = {}, order = [];
     trace.forEach(function (t) { t[1].forEach(function (k) { var w = k.split(' ')[0].toUpperCase(); if (!cnt[w]) { cnt[w] = 0; order.push(w); } cnt[w]++; }); });
     var sentText = order.map(function (w) { return w + ' ' + cnt[w] + '번'; }).join(', ');
-    sum.unshift('코드에 직접 쓴 SQL은 ' + written + '개, DB로 나간 SQL은 ' + sentText + '입니다. ' + check + '의 결과는 ' + res + '입니다.');
     return { events: ev, summary: sum, written: written, trace: trace.map(function (t) { return t[0] + ':' + t[1].join(','); }).join('; '), row: [written + '개', sentText, check, res] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    H.counters(v, [[sim.written + '개', '코드에 직접 쓴 SQL'], [s.sent.length + '번', 'DB로 나간 SQL'], [s.res, sim.row[2]]]);
-    H.table(v, ['변수 → 객체', '들어 있는 값'], s.objs.map(function (o) { return { cells: [o.t, { v: o.s, cls: o.cls === 'bad' ? 'bad' : o.cls === 'good' ? 'good' : '' }] }; }), '메모리의 자바 객체');
     if (s.sent.length) H.table(v, ['#', 'SQL', '누가 썼나'], s.sent.map(function (q, i) { return { cells: [String(i + 1), { v: q.sql, cls: i === s.sent.length - 1 && s.flow ? 'hot' : '' }, q.by] }; }), 'DB로 나간 SQL');
     else { H.title(v, 'DB로 나간 SQL'); H.text(v, '아직 없습니다.'); }
-    H.table(v, ['행', '값'], s.rows.map(function (r) { return { cells: [r.t, { v: r.r, cls: r.cls || '' }] }; }), 'DB의 테이블');
   },
   // 그림: 왼쪽에 메모리의 자바 객체, 오른쪽에 DB 테이블의 행. SQL이 나간 단계에만 가운데 화살표가 생기고, 누가 쓴 SQL인지 적힌다.
   draw: function (P, sim, shown) {
@@ -143,7 +139,7 @@ Lab.register({
     if (s.flow) P.arrow('sql', s.flow.write ? 'heap:r' : 'row_' + s.flow.to + ':l', s.flow.write ? 'row_' + s.flow.to + ':l' : 'heap:r', { cls: 'hot', label: s.flow.label });
     P.box('r1', 16, 236, 210, 40, { cls: sim.written ? 'hot' : 'good', title: '코드에 직접 쓴 SQL', right: sim.written + '개' });
     P.box('r2', 234, 236, 430, 40, { cls: s.res === '?' ? 'ghost' : /^(false|null|NullPointerException)$/.test(s.res) ? 'bad' : 'good', title: sim.row[2], right: s.res });
-    P.note('가운데 화살표는 이번 단계에서 DB로 SQL이 나갔다는 뜻이고, 그 SQL을 누가 썼는지가 함께 적힙니다. 테이블의 행은 번호(member_id)로 다른 행을 가리키고, 객체는 참조로 다른 객체를 가리킵니다. 이 차이를 메우는 코드를 직접 쓰느냐, JPA에 맡기느냐가 두 방식의 차이입니다.');
+    P.note('가운데 화살표는 이번 단계에서 DB로 SQL이 나갔다는 뜻이고, 그 SQL을 누가 썼는지가 함께 적힙니다.');
   },
   assume: '열두 가지 조합을 이 PC에서 실제로 실행해 대조했습니다(JDBC 쪽은 화면과 같은 구조의 DAO 코드를 H2 데이터베이스에, JPA 쪽은 Hibernate 7.4.5와 H2에 실행). 대조한 것은 코드에 적은 SQL 문장의 수, 줄마다 나간 SQL의 종류와 테이블, a == b의 값, 회원 이름 또는 예외, 다시 읽은 grade와 DB에 남은 grade입니다. "직접 채웠다"는 설정은 JDBC에서만 뜻이 있고, JPA에서는 결과에 영향이 없습니다. 화면의 SQL 문장은 읽기 쉽게 줄여 적은 것이며, Hibernate가 실제로 만드는 문장은 컬럼 순서와 별칭이 다릅니다. JPA의 @ManyToOne은 지연 로딩(LAZY)으로 두었습니다. 기본값인 즉시 로딩(EAGER)이면 em.find 한 번에 주문과 회원을 함께 읽습니다. JDBC 쪽의 코드 양은 이 예제의 DAO를 기준으로 한 것입니다. 스프링의 JdbcTemplate이나 MyBatis를 쓰면 반복되는 코드는 줄지만, SQL을 직접 쓰고 필드가 바뀔 때 SQL을 함께 고쳐야 한다는 점은 같습니다. "고친 곳 네 곳"은 화면의 코드에서 센 것입니다.',
 });

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'bulk', nav: 'Bulk update and delete operations', cat: 'JPA', mode: 'step',
   title: 'After one UPDATE changes many rows, why does the entity still have the old value?',
-  intro: 'An UPDATE or DELETE run with executeUpdate (a bulk update or delete operation) changes many rows with one SQL statement. But this SQL runs directly on the database without going through the persistence context. So an entity that you already loaded does not know that the database has changed. See what you get depending on how you read the value after the bulk operation.',
+  intro: 'An UPDATE or DELETE run with executeUpdate (a bulk update or delete operation) changes many rows with one SQL statement. But this SQL runs directly on the database without going through the persistence context. So an entity that you already loaded does not know that the database has changed.',
   terms: ['Bulk update and delete operations', 'em.clear and em.refresh', 'Persistence context', 'First-level cache', 'Transactional write-behind and flush'],
   controls: [
     { id: 'op', label: 'How to change the price', type: 'select', value: 'update', options: [['update', 'Bulk UPDATE (price + 500 for all items)'], ['delete', 'Bulk DELETE (delete all items)'], ['each', 'Change the entities one by one with setPrice (dirty checking)']] },
@@ -103,7 +103,6 @@ Lab.register({
     var dbText = first.db === null ? 'no row' : first.db + '';
     var readText = st.read;
     if (/^\d+$/.test(st.read)) readText += first.db === null ? ' (no such row in the DB)' : st.read === dbText ? ' (same as the DB)' : ' (the DB has ' + dbText + ')';
-    sum.push('Write SQL sent: ' + write + '. ' + (st.err ? 'The moment it tried to read item 1, ' + st.err + ' was thrown.' : st.read === 'Query returned 0 rows' ? 'Querying again returned 0 rows.' : 'The value read is ' + readText + '.') + ' After it ended, ' + (first.db === null ? 'the DB has no row for item 1.' : 'item 1 is ' + dbText + ' in the DB.'));
     if (op === 'each') sum.push('When you change the entities one by one, memory and the database never disagree, but as many UPDATEs are sent as there are items. With ' + n + ' items, ' + n + ' UPDATEs are sent, and with 10000 items, 10000 are sent. A bulk UPDATE does the same job with 1 SQL statement.' + (dirty ? ' Item 1, which was first changed to 5000, gets 500 added to become 5500, and only one UPDATE is sent for it.' : ''));
     if (op !== 'each' && dirty) sum.push('The unflushed change was flushed before the bulk operation ran. So in the database, item 1 was changed to 5000 first, and then ' + (op === 'update' ? '500 was added to make 5500. If the order had been reversed, 5000 would have remained.' : 'the row was deleted.'));
     if (op === 'update' && (after === 'none' || after === 'find' || after === 'jpql')) sum.push('A bulk operation does not go through the persistence context, so an entity you already loaded keeps its old value. ' + (after === 'find' ? 'em.find looks in the first-level cache first, so calling it again does not help.' : after === 'jpql' ? 'Even if you query again with JPQL and read the new value from the database, an entity with the same identifier that already exists takes priority.' : 'If you keep calculating with this value, the result will be wrong.'), 'After a bulk operation, empty the persistence context with em.clear(), or run the bulk operation before you load the entities. In Spring Data JPA, @Modifying(clearAutomatically = true) does this for you.');
@@ -116,13 +115,12 @@ Lab.register({
   blank: function (c) { var items = []; for (var i = 1; i <= +c.n; i++) items.push({ id: i, mem: null, db: 1000 * i }); return { items: items, sent: [], fresh: [], hot: {}, read: '', err: '', cleared: false }; },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : this.blank(sim.c);
-    H.counters(v, [[s.sent.length, 'SQL sent to the DB'], [s.sent.filter(function (x) { return x.sql.indexOf('select') !== 0; }).length, 'Of those, write SQL'], [s.err ? 'Exception' : s.read || '-', 'Price of item 1 that was read']]);
+    H.counters(v, [[s.sent.length, 'SQL sent to the DB'], [s.sent.filter(function (x) { return x.sql.indexOf('select') !== 0; }).length, 'Of those, write SQL']]);
     H.table(v, ['Item', 'Entity price (memory)', 'Price in the DB row', 'Status'], s.items.map(function (it) {
       var diff = it.mem !== null && it.mem !== it.db;
       return { cells: ['Item ' + it.id, { v: it.mem === null ? '(none)' : it.mem + '', cls: it.pend ? 'hot' : diff ? 'bad' : it.mem === null ? '' : 'good' }, it.db === null ? '(no row)' : it.db + '', it.mem === null ? '' : it.pend ? 'Not sent yet' : diff ? 'Old value' : 'Same'] };
     }), 'Memory and DB');
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (x, i) { return { cells: [String(i + 1), { v: x.sql, cls: i >= s.sent.length - s.fresh.length ? 'hot' : '' }, x.at] }; }), 'SQL sent to the DB'); else { H.title(v, 'SQL sent to the DB'); H.text(v, 'None yet.'); }
-    if (s.err) H.text(v, 'Exception: ' + s.err);
   },
   // Diagram: on the left, the item entities held by the persistence context, and on the right, the rows of the DB at the same height. An entity that does not know the DB changed is red, and a change not yet sent is yellow.
   draw: function (P, sim, shown) {

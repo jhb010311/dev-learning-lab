@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Queries</p>
 <h1>JPQL and fetch joins</h1>
 <p><b>What is the difference between join and join fetch?</b></p>
-<p>JPQL is a query language written against entities, not tables. When you load posts together with their comments, a plain join and a join fetch differ in which columns are read from the database and in which queries are sent afterward. Also see how many results you get when you fetch join a collection, and where the results are cut when you add pagination.</p>
+<p>JPQL is a query language written against entities, not tables. When you load posts together with their comments, a plain join and a join fetch differ in which columns are read from the database and in which queries are sent afterward.</p>
 <p>Checked against real execution · 12 combinations were run on Hibernate 7.4.5 and H2, and the result list, the number of rows returned, the position of the row limit in the SQL, the follow-up queries, and the warnings and exceptions were checked against the results (the behavior of older versions follows the documentation)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The result list has 2 posts. In addition to 1 list query, 2 comment queries were sent, 3 SQL statements in all.</li>
 <li>A plain join only puts a join into the SQL. It does not read the columns of the associated entity. It is useful when you filter by comments, but you have to query again to use the comments. To fetch them together, use join fetch.</li>
 <li>The database returned 5 rows, but the result list had 2 posts. For a query that returns a single entity, Hibernate 7.4.5 holds the same entity only once. It was also confirmed in the same environment that if you query values (p.title) instead of entities, 5 items come out as they are.</li>
 </ul>
@@ -188,6 +187,6 @@ for (Post p : posts) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

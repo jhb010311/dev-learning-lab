@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Queries</p>
 <h1>Bulk update and delete operations</h1>
 <p><b>After one UPDATE changes many rows, why does the entity still have the old value?</b></p>
-<p>An UPDATE or DELETE run with executeUpdate (a bulk update or delete operation) changes many rows with one SQL statement. But this SQL runs directly on the database without going through the persistence context. So an entity that you already loaded does not know that the database has changed. See what you get depending on how you read the value after the bulk operation.</p>
+<p>An UPDATE or DELETE run with executeUpdate (a bulk update or delete operation) changes many rows with one SQL statement. But this SQL runs directly on the database without going through the persistence context. So an entity that you already loaded does not know that the database has changed.</p>
 <p>Checked against real execution · 66 combinations were run on Hibernate 7.4.5 and H2, and the kind and order of the SQL, the value read, the value in the DB, and the exceptions were checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Write SQL sent: UPDATE: 1 (bulk). The value read is 1000 (the DB has 1500). After it ended, item 1 is 1500 in the DB.</li>
 <li>A bulk operation does not go through the persistence context, so an entity you already loaded keeps its old value. If you keep calculating with this value, the result will be wrong.</li>
 <li>After a bulk operation, empty the persistence context with em.clear(), or run the bulk operation before you load the entities. In Spring Data JPA, @Modifying(clearAutomatically = true) does this for you.</li>
 </ul>
@@ -173,6 +172,6 @@ System.out.println(first.getPrice());
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

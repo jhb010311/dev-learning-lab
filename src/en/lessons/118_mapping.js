@@ -1,7 +1,7 @@
 Lab.register({
   id: 'mapping', nav: 'Entity mapping and primary keys', cat: 'JPA', mode: 'step',
   title: 'How do the annotations on an entity change the table and the values that are stored?',
-  intro: 'JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping. Change the annotations and see how the table that Hibernate creates (the create table statement) and the values that are actually stored in the database change.',
+  intro: 'JPA reads the fields and annotations of an entity class and pairs them with the columns of a table. This is called mapping.',
   terms: ['@Column', '@Enumerated', '@Transient', 'Primary key generation strategy (@GeneratedValue)', 'Entity'],
   controls: [
     { id: 'col', label: 'name field', type: 'select', value: 'none', options: [['none', 'No @Column'], ['nn', '@Column(nullable = false)'], ['uq', '@Column(unique = true)'], ['len', '@Column(length = 20)']] },
@@ -73,10 +73,9 @@ Lab.register({
       st.read = { grade: readGrade, memo: readMemo };
       push('em2.find(Member.class, ' + id + 'L): It is read from the database again. ' + (ord ? 'When the 1 in the grade column is converted to the constant whose ordinal is 1 in the current enum, the result is ' + readGrade + '.' + (add ? ' The member that was saved as VIP is read back as BASIC. No error is raised.' : '') : 'When "VIP" is converted to the constant that has the same name, the result is VIP.' + (add ? ' Changing the order of the enum has no effect.' : '')) + ' memo is ' + (c.tr ? 'null, because it was never stored.' : '"joined today".'), ord && add ? 'bad' : 'good');
     }
-    sum.push('The name column was created as "' + ddl.name + '". ' + (saved ? 'The value stored in the grade column is ' + raw + ', and the grade read back is ' + readGrade + '. The memo column ' + (c.tr ? 'does not exist' : 'exists') + ', and the saved id is ' + id + '.' : 'Because id was not set, an exception was thrown when saving, and no row was saved.'));
     var tips = [];
     if (!saved) tips.push('If you add only @Id, the code must set the primary key value itself. To let the database assign the number, add @GeneratedValue as well. Conversely, if you add @GeneratedValue and then call persist with an id that you set yourself, an exception is thrown in that case too (EntityExistsException).');
-    if (saved && c.en === 'ORDINAL') tips.push('ORDINAL stores the ordinal of the constant, that is, its position in the enum declaration. A number takes little space, but what the number means depends on the order in which the constants are written in the enum. Change the setting to "ORDINAL + after saving, add a value at the front of the enum".');
+    if (saved && c.en === 'ORDINAL') tips.push('ORDINAL stores the ordinal of the constant, that is, its position in the enum declaration. A number takes little space, but what the number means depends on the order in which the constants are written in the enum.');
     if (saved && c.en === 'ORDINAL_ADD') tips.push('If the order of the enum changes after you save with ORDINAL, the number in the database stays the same, but the constant that the number points to changes. The member is read back with the wrong grade and no exception is thrown, so the problem is hard to notice. This is why STRING is recommended for @Enumerated. Also remember that the default when you do not add @Enumerated is ORDINAL.');
     if (saved && c.en === 'STRING') tips.push('STRING stores the name of the constant. It takes more space because it stores the letters of the name, but you can tell what a value means just by looking at it in the database, and the order of the enum does not matter.');
     if (saved && c.en === 'STRING_ADD') tips.push('STRING stores the name, so values that are already stored are read back correctly even if you add a value to the enum or change the order. If you do the same thing with ORDINAL, VIP is read back as BASIC.');
@@ -94,11 +93,8 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to move the fields into columns of the table, one at a time.'); return; }
     H.table(v, ['Annotation on the field', 'Column', 'Column definition created by Hibernate'], s.cols.map(function (k) { return { cls: k.d ? '' : 'gone', cells: [{ v: k.from, cls: k.hot ? 'hot' : '' }, k.n, k.d ? { v: k.d + (k.pk ? ' · primary key (id)' : ''), cls: k.hot ? 'hot' : '' } : '(no column)'] }; }), 'create table member (...)');
-    var names = s.cols.filter(function (k) { return k.d; }).map(function (k) { return k.n; });
-    if (s.row) H.table(v, names, [{ cells: names.map(function (n) { return n === 'grade' ? { v: s.row[n], cls: 'hot' } : s.row[n] === undefined ? '' : s.row[n]; }) }], 'Row stored in the database');
-    else if (s.err) { H.title(v, 'Row stored in the database'); H.text(v, 'There is none. ' + s.err + ' was thrown.'); }
+    if (s.err) { H.title(v, 'Row stored in the database'); H.text(v, 'There is none. ' + s.err + ' was thrown.'); }
     var ln = H.lanes(v);
-    H.lane(ln, 'enum Grade', s.en.map(function (g, i) { return g + '(' + i + ')'; }).join(', '), s.en.length === 3 ? 'hot' : 'none');
     H.lane(ln, 'Object read back', s.read ? 'grade = ' + s.read.grade + ', memo = ' + s.read.memo : s.err ? 'No row was saved' : 'Not read yet', s.read ? (s.read.grade === 'VIP' ? 'good' : 'bad') : s.err ? 'bad' : 'none');
   },
   // Diagram: the four fields of the entity are on the left and the columns of the table are on the right. For each field, it connects the column that is created (or not created) with the value stored in that column.
@@ -125,7 +121,7 @@ Lab.register({
     });
     P.box('r1', 16, 284, 300, 40, { cls: s.en.length === 3 ? 'hot' : 'plain', title: 'enum Grade', right: s.en.map(function (g, i) { return g + ' ' + i; }).join(', ') });
     P.box('r2', 324, 284, 340, 40, { cls: s.read ? (s.read.grade === 'VIP' ? 'good' : 'bad') : s.err ? 'bad' : 'ghost', title: 'grade read back', right: s.read ? s.read.grade : s.err ? 'Save failed (exception)' : '?' });
-    P.note('Each field on the left is paired with one column on the right. The annotations decide what shape the column is created in and what value is stored in it. The column definitions in the diagram are shortened. The definitions that were actually created are in the table on the right.');
+    P.note('Each field on the left is paired with one column on the right. The column definitions in the diagram are shortened. The definitions that were actually created are in the table on the right.');
   },
   assume: 'For each of the 96 combinations, an entity class was generated as source code, compiled, run on real Hibernate 7.4.5 with an H2 database, and checked against the results. What was checked: all the column definitions in the create table statement that Hibernate generated, the values in the row stored in the database, grade and memo read back with a new em, and the saved id or the kind of exception. The following facts stated in the summary were also run and confirmed separately: an enum field without @Enumerated is created and stored exactly like ORDINAL; whether saving succeeds or fails for a member whose name is null, a duplicate name, or 21 characters (the kind of exception, and whether the INSERT reached the database); that unique and length do nothing when Hibernate does not create the table; and that an exception is thrown when you set the id yourself with the automatic generation strategy. Column definitions differ by database type (dialect) and Hibernate version. The tinyint and check condition, the enum type column, and "generated by default as identity" shown here were generated by Hibernate 7.4.5 for H2. On MySQL, for example, the automatic increment is written as auto_increment. The MySQL notation, and the fact that older Hibernate (5.x) created STRING as varchar(255), follow the documentation and were not run here. Even so, the point that "ORDINAL stores the ordinal and STRING stores the name" is the same. In the real create table statement, the columns appear in a different order from the screen, and unless you use Spring Boot, the table name is written exactly as the class name (Member). Only IDENTITY was covered for automatic generation, and the difference in when the INSERT is sent is covered in the persistence context lab. In production, the setting that creates tables automatically is usually not used, and then unique and length in @Column serve only as documentation.',
 });

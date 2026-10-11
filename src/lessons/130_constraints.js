@@ -1,7 +1,7 @@
 Lab.register({
   id: 'constraints', nav: '테이블, 키, 제약 조건', cat: '데이터베이스', mode: 'step',
   title: '제약 조건이 없으면 어떤 데이터가 들어가 버리나',
-  intro: '회원(member) 테이블과 주문(orders) 테이블에 잘못된 값을 넣거나, 주문이 남아 있는 회원을 지워 봅니다. 제약 조건을 걸어 둔 테이블은 그 문장을 오류로 거부하고, 걸지 않은 테이블은 그대로 받아들입니다. 같은 문장을 양쪽에서 실행해 끝난 뒤의 데이터가 어떻게 달라지는지 확인하세요.',
+  intro: '회원(member) 테이블과 주문(orders) 테이블에 잘못된 값을 넣거나, 주문이 남아 있는 회원을 지워 봅니다. 제약 조건을 걸어 둔 테이블은 그 문장을 오류로 거부하고, 걸지 않은 테이블은 그대로 받아들입니다.',
   terms: ['제약 조건', '기본 키, 유니크 키, 외래 키', 'NOT NULL과 CHECK', '외래 키의 참조 동작(ON DELETE)'],
   controls: [
     { id: 'op', label: '실행할 문장', type: 'select', value: 'fkdel', options: [['pkdup', 'INSERT: 이미 있는 id로 회원 추가'], ['pknull', 'INSERT: id가 NULL인 회원 추가'], ['uqdup', 'INSERT: 이미 있는 email로 회원 추가'], ['uqnull', 'INSERT: email이 NULL인 회원을 한 명 더 추가'], ['nnull', 'UPDATE: 회원의 name을 NULL로 변경'], ['check', 'UPDATE: 회원의 age를 -5로 변경'], ['fkins', 'INSERT: 없는 회원(99번)의 주문 추가'], ['fkdel', 'DELETE: 주문이 2건 있는 회원 삭제']] },
@@ -143,7 +143,6 @@ Lab.register({
     else if (c.op === 'fkdel' && !r.err) mean = c.act === 'cascade' ? '없는 회원을 가리키는 주문은 남지 않았습니다. 대신 주문 2건이 함께 사라졌습니다.' : '없는 회원을 가리키는 주문은 없습니다. member_id가 NULL인 주문은 "가리키는 회원이 없는 주문"으로 보며 외래 키에 어긋나지 않습니다.';
     else mean = '문장이 거부되어 데이터는 처음 그대로입니다.';
     push(ck[0].replace(/\s*\n\s*/g, ' ') + ': ' + ck[1] + '의 수를 셉니다. ' + n + ck[2] + '입니다. ' + mean, bad ? 'bad' : c.op === 'uqnull' ? '' : 'good', 2);
-    sum.push((r.err ? '문장이 오류 ' + r.err.no + '로 거부됐습니다.' : '문장이 실행되어 ' + r.affected + '행이 바뀌었습니다.') + ' 끝난 뒤 member는 ' + r.liveM.length + '행, orders는 ' + r.liveO.length + '행이고 ' + ck[1] + '의 수는 ' + n + ck[2] + '입니다.');
     if (!on && c.op !== 'uqnull') sum.push('제약 조건이 없으면 DB는 잘못된 값도 오류 없이 받아들입니다. 문장은 "성공"했는데 데이터는 어긋났고, 그 사실은 나중에 조회했을 때에야 드러납니다. 제약 조건은 이런 값이 테이블에 들어오는 순간에 막아 줍니다.');
     if (on && r.err) sum.push({ pkdup: '기본 키는 "이 값으로 행 하나를 정확히 가리킬 수 있다"는 약속입니다. 그래서 중복도 NULL도 받지 않습니다.', pknull: '기본 키는 유니크와 NOT NULL을 합친 것입니다. 중복도 NULL도 받지 않으며 테이블에 하나만 둘 수 있습니다.', uqdup: '유니크는 기본 키가 아닌 컬럼에서도 값이 겹치지 않게 해 줍니다. email이나 주민 번호처럼 사람마다 달라야 하는 값에 겁니다.', nnull: 'NOT NULL은 반드시 있어야 하는 값이 빠진 채 저장되는 것을 막습니다.', check: 'CHECK는 타입만으로는 표현할 수 없는 값의 범위나 조건을 적어 두는 제약입니다.', fkins: '외래 키는 자식 행이 실제로 있는 부모 행만 가리키게 해 줍니다. 없는 부모를 가리키는 INSERT와 UPDATE를 거부합니다.', fkdel: 'RESTRICT는 가장 안전한 선택입니다. 자식이 남아 있는 한 부모를 지울 수 없으므로, 주문을 먼저 정리해야 회원을 지울 수 있습니다. MySQL에서 ON DELETE를 적지 않았을 때의 동작도 이와 같습니다.' }[c.op]);
     if (c.op === 'uqnull') sum.push('"비어 있어도 되지만, 값이 있다면 겹치면 안 된다"가 유니크 제약의 뜻입니다. NULL까지 막으려면 NOT NULL을 함께 걸어야 하며, 기본 키가 바로 그 둘을 합친 것입니다.');
@@ -159,8 +158,6 @@ Lab.register({
     function rows(list) { return list.map(function (r) { return { cls: r.gone ? 'gone' : '', cells: r.cells.map(function (x, j) { return { v: x, cls: r.hot[j] || r.isNew ? 'hot' : '' }; }) }; }); }
     var ln = H.lanes(v);
     H.lane(ln, '문장', this.STMT[c.op].replace(/\n/g, ' '), s.stmt === 'ok' ? 'hot' : s.stmt === 'err' ? 'wait' : 'none');
-    H.lane(ln, '제약 검사', s.gate || '아직 실행 전', s.gateK === 'block' ? 'good' : s.gateK === 'pass' ? 'hot' : 'none');
-    H.lane(ln, '확인 조회', s.chk || '아직 조회 전', !s.chk ? 'none' : s.chkBad ? 'bad' : 'good');
     H.table(v, ['id', 'email', 'name', 'age'], rows(s.m), 'member 테이블');
     H.table(v, ['id', 'member_id', 'item'], rows(s.o), 'orders 테이블');
     H.text(v, '노란 칸은 방금 들어오거나 바뀐 값이고, 줄이 그어진 행은 지워진 행입니다.');

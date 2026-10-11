@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a563a23933">
+<link rel="stylesheet" href="../../app.css?v=b5ed67da09">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Web applications and performance</p>
 <h1>Querying directly into a DTO</h1>
 <p><b>What is the difference between querying entities and copying them, and querying directly into a DTO?</b></p>
-<p>To show only the name and age of each member on a screen, querying entities reads every column of the member and then copies only the values you need into a DTO. With new in JPQL, you can pick only the values you need and receive them directly as a DTO. Compare the two approaches: the number of columns in the SELECT clause, the extra queries that are sent, the objects the persistence context manages, and the UPDATE that is sent when you change a value.</p>
+<p>To show only the name and age of each member on a screen, querying entities reads every column of the member and then copies only the values you need into a DTO. With new in JPQL, you can pick only the values you need and receive them directly as a DTO.</p>
 <p>Checked against real execution · Twelve combinations were run on Hibernate 7.4.5 and H2, and the number of SELECT statements, the number of columns, the number of managed entities, and the number of UPDATE statements were checked</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -67,7 +67,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>SELECT statements sent: 3 (1 for members + 2 for teams). Columns in the first SELECT: 6. Entities managed by the persistence context: 6. UPDATE statements sent: 0.</li>
 <li>The list was queried once, but as many extra SELECT statements as there are teams were sent to read the teams. This is the N+1 selects problem. It often occurs when you query entities and then put associated values into a DTO.</li>
 <li>The entity you queried is managed by the persistence context. When you change a value, an UPDATE is sent at commit, so when the goal is to modify data, this approach is the right one. When you only display data, making snapshots and comparing them is wasted work.</li>
 </ul>
@@ -191,6 +190,6 @@ public List&lt;MemberDto&gt; list() {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a563a23933"></script>
+<script src="../../app.js?v=b5ed67da09"></script>
 </body>
 </html>

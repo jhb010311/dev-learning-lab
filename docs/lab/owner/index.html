@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e557751983">
+<link rel="stylesheet" href="../../app.css?v=247ede25a6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 연관관계</p>
 <h1>연관관계의 주인</h1>
 <p><b>팀의 목록에 회원을 넣었는데 왜 DB의 외래 키는 비어 있나</b></p>
-<p>팀과 회원이 서로를 가리키면 자바 객체에는 참조가 두 개(회원의 team, 팀의 members) 생깁니다. 하지만 DB에서 둘을 잇는 것은 member 테이블의 외래 키 team_id 하나뿐입니다. JPA는 두 참조 가운데 한쪽만 보고 외래 키를 씁니다. 그쪽을 연관관계의 주인이라고 합니다. 어느 쪽에 값을 넣느냐에 따라 DB에 무엇이 남는지 한 줄씩 따라가 보세요.</p>
+<p>팀과 회원이 서로를 가리키면 자바 객체에는 참조가 두 개(회원의 team, 팀의 members) 생깁니다. 하지만 DB에서 둘을 잇는 것은 member 테이블의 외래 키 team_id 하나뿐입니다. JPA는 두 참조 가운데 한쪽만 보고 외래 키를 씁니다. 그쪽을 연관관계의 주인이라고 합니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 열두 가지 조합을 실행해 테이블, 나간 SQL, 외래 키 값, 목록의 크기를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -68,7 +68,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>DB의 member.team_id는 null이고, team.getMembers().size()는 1입니다. 나간 SQL은 INSERT 2번입니다.</li>
 <li>주인이 아닌 쪽(mappedBy가 붙은 Team.members)에만 넣으면 외래 키가 저장되지 않습니다. 예외가 나지 않아서 저장된 줄 알기 쉽습니다. 같은 트랜잭션 안에서는 메모리의 목록에 회원이 보이기 때문에 더 알아차리기 어렵습니다.</li>
 </ul>
 <h2>코드</h2>
@@ -188,6 +187,6 @@ int size = found.getMembers().size();
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e557751983"></script>
+<script src="../../app.js?v=247ede25a6"></script>
 </body>
 </html>
