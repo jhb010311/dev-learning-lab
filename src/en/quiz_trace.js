@@ -1,0 +1,5 @@
+// Quiz questions for the trace lab. The first entry of a is the correct answer.
+Lab.quiz([
+  { lv: 1, id: 'trace', q: 'In distributed tracing, what is a trace ID?', a: ['An identifier that stays attached to one request from start to finish as it passes through several services', 'A unique number given to each service', 'The session number of a user\'s login', 'The number of a database transaction'], why: 'If you connect the logs and the span records of each service by the same trace ID, you can see the whole flow of one request.' },
+  { lv: 3, id: 'trace', q: 'One request that passes through several services is slow, but you do not know which service the time goes to. What do you use to find out?', a: ['Use distributed tracing to see the time taken by each span of that request', 'Look at the disk usage of each server', 'Look at the average response time of all requests', 'Look at the commit history of the repository'], why: 'If you look at the start and end times of the spans tied together by the trace ID, you can see which call the time was spent in.' },
+]);

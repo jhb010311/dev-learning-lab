@@ -30,4 +30,7 @@ module.exports = [
   'cors', 'realtime', 'tls', 'oauth', 'accessctl',
   'tcp', 'subnet', 'udp', 'congestion',
   'auth', 'jwt', 'methodsec', 'webattack',
+  'k8s', 'pct', 'trace', 'git',
+  'cache', 'mq', 'kafka', 'circuit', 'saga',
+  'gateway', 'cicd', 'deploy', 'container',
 ];

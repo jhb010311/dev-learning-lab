@@ -1,0 +1,5 @@
+// Quiz questions for the pct lab. The first entry of a is the correct answer.
+Lab.quiz([
+  { lv: 1, id: 'pct', q: 'What does it mean that the p99 of the response time is 2 seconds?', a: ['99% of all requests finished within 2 seconds, and the slowest 1% took longer', '99% of the requests took longer than 2 seconds', 'The average response time is 2 seconds', 'The fastest request took 2 seconds'], why: 'A percentile is a position when the requests are lined up from fastest to slowest. p99 is the value at the 99th position out of 100.' },
+  { lv: 2, id: 'pct', q: 'Why do you look at p99 as well as the average of the response time?', a: ['A small number of very slow requests are buried in the average and cannot be seen', 'Because p99 is faster to calculate than the average', 'Because the average cannot be calculated when there are 100 or more requests', 'Because p99 is always smaller than the average'], why: 'Even if most requests take 0.1 seconds and a few take 10 seconds, the average can still look fine. The users who experience the slow requests show up in the percentiles.' },
+]);
