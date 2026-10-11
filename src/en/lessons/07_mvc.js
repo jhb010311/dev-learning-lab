@@ -1,16 +1,16 @@
 Lab.register({
   id: 'mvc', nav: 'Spring MVC request flow', cat: 'Spring', mode: 'step',
   title: 'How one request reaches the controller, and how it goes back',
-  intro: 'MVC is a pattern that divides a program into the model (the data), the view (the display), and the controller (the part that receives and handles a request), and Spring MVC handles web requests in this way. An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse. This lab follows the path of one request and shows at which step the controller, the model, and the view each do their work.',
+  intro: 'MVC is a pattern that divides a program into the model (the data), the view (the display), and the controller (the part that receives and handles a request), and Spring MVC handles web requests in this way. An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse. This lab shows at which step along the path of one request the controller, the model, and the view each do their work, and which of them are absent with an @RestController that returns JSON.',
   terms: ['MVC (Model-View-Controller)', 'DispatcherServlet and the front controller pattern', 'HandlerMapping and HandlerAdapter', 'HandlerMethodArgumentResolver', 'HttpMessageConverter', 'Servlet filter', 'Interceptor (HandlerInterceptor)', '@ControllerAdvice and @ExceptionHandler', 'ViewResolver'], ranks: ['mvc', 'filter'],
   controls: [
-    { id: 'kind', label: 'Kind of controller', type: 'select', value: 'rest', options: [['rest', '@RestController (JSON response)'], ['view', '@Controller (returns a view name)']] },
+    { id: 'kind', label: 'Kind of controller', type: 'select', value: 'view', options: [['view', '@Controller (returns a view name)'], ['rest', '@RestController (JSON response)']] },
     { id: 'what', label: 'What happens along the way', type: 'select', value: 'none', options: [['none', 'Nothing (handled normally)'], ['filter', 'A filter rejects the request (authentication failure)'], ['pre', 'The interceptor preHandle returns false'], ['ex', 'The controller throws an exception']] },
     { id: 'advice', label: 'An @ControllerAdvice has an @ExceptionHandler that handles this exception', type: 'check', value: true, show: function (c) { return c.what === 'ex'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'The full path of a JSON API request that is handled normally.', v: { kind: 'rest', what: 'none', advice: true } },
-    { t: 'A controller that returns a view', d: 'The ViewResolver and view rendering step is added.', v: { kind: 'view', what: 'none', advice: true } },
+    { t: 'Default settings', d: 'The full path of a request that returns a page and is handled normally. The controller, the model, and the view all appear.', v: { kind: 'view', what: 'none', advice: true } },
+    { t: 'A controller that returns JSON', d: 'The returned object becomes the response body directly, without a model or a view.', v: { kind: 'rest', what: 'none', advice: true } },
     { t: 'Exception in the controller', d: 'An @ExceptionHandler produces the response. postHandle is skipped.', v: { kind: 'rest', what: 'ex', advice: true } },
     { t: 'With nothing to handle the exception', d: 'The exception propagates up to the servlet container and becomes a 500 response.', v: { kind: 'rest', what: 'ex', advice: false } },
     { t: 'Rejected by a filter', d: 'The request does not even reach DispatcherServlet. @ControllerAdvice cannot take part either.', v: { kind: 'rest', what: 'filter', advice: true } },
@@ -46,7 +46,7 @@ Lab.register({
         go('F2', 'The afterCompletion method of the interceptor that returned false is not called either (if other interceptors had returned true before it, only theirs are called). The response goes out back through the filter chain.', '');
       } else {
         go('IP', 'The preHandle method of the interceptor runs and returns true. Unlike a filter, an interceptor works knowing which controller method is going to run.', '');
-        go('AR', rest ? 'HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter annotated with @RequestBody, HttpMessageConverter (Jackson) converts the JSON in the request body into an OrderRequest object and fills it in.' : 'HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter of type Model, it passes in an empty model object that will hold the data for the view.', '');
+        go('AR', rest ? 'HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter annotated with @RequestBody, HttpMessageConverter (Jackson) converts the JSON in the request body into an OrderRequest object and fills it in.' : 'HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter of type Model, it passes in an empty model object that will hold the data for the view. This is where the model (M) of MVC is created.', '');
         if (c.what === 'ex') {
           go('CT', 'The controller method throws an OutOfStockException while it runs. Return value handling and postHandle are skipped.', 'bad');
           if (c.advice) {
@@ -61,14 +61,14 @@ Lab.register({
             go('F2', 'The exception passes through the filters and propagates up to the servlet container. In Spring Boot, the container sends the request again to the /error path, and the default error controller produces a 500 response.', 'bad');
           }
         } else {
-          go('CT', 'The controller method runs. It calls the service layer to do the actual business work.', '');
+          go('CT', rest ? 'The controller method runs. This is the step where the controller (C) of MVC does its work. It calls the service layer to do the actual business work and returns the result as an OrderResponse object.' : 'The controller method runs. This is the step where the controller (C) of MVC does its work. It calls the service layer to get the list of orders, puts the list into the model under the name orders, and returns the view name "orders/list".', '');
           if (rest) { resp = '200 OK + JSON'; maker = 'Controller return value';
-            go('RV', 'The return value is handled. Because this is an @RestController, no view is looked up, and HttpMessageConverter (Jackson) converts the OrderResponse object into JSON and writes it directly to the response body.', '');
+            go('RV', 'The return value is handled. Because this is an @RestController, no view is looked up, and HttpMessageConverter (Jackson) converts the OrderResponse object into JSON and writes it directly to the response body. Nothing is put into a model and handed to a view, so on this path there is no step where a view (V) does its work.', '');
             go('PO', 'The postHandle method of the interceptor is called. The response body was already written in the previous step, so it is too late to change the response here.', '');
           } else { resp = '200 OK + HTML'; maker = 'View (template)';
             go('RV', 'The return value is handled. The string "orders/list" returned by the @Controller is interpreted as a view name and is bundled with the model into a ModelAndView.', '');
             go('PO', 'The postHandle method of the interceptor is called. The view has not been rendered yet, so common data can still be added to the model.', '');
-            go('VR', 'ViewResolver resolves the view name "orders/list" to an actual template file, and the view renders the HTML with the model data and writes it to the response.', '');
+            go('VR', 'ViewResolver resolves the view name "orders/list" to an actual template file, and the view renders the HTML with the model data and writes it to the response. This is the step where the view (V) of MVC does its work, and it reads the orders that the controller put into the model.', '');
           }
           go('AC', 'The afterCompletion method of the interceptor is called. This is after the response has been written, and it is called whether or not an exception was thrown.', '');
           go('F2', 'The response goes out to the client back through the filter chain. Filter code written after the chain.doFilter call runs at this point.', 'end');
@@ -80,24 +80,44 @@ Lab.register({
     if (c.what === 'filter') sum.push('Filters come before DispatcherServlet, so an exception thrown in a filter or a rejection by a filter cannot be handled with @ControllerAdvice.');
     if (c.what === 'ex') sum.push('When the controller throws an exception, postHandle is not called but afterCompletion is. That is why "cleanup work that must always run" goes in afterCompletion.');
     if (c.what === 'none' && rest) sum.push('An @RestController does not go through ViewResolver. The returned object becomes the response body directly through HttpMessageConverter.');
+    if (c.what === 'none' && !rest) sum.push('The controller handles the request, puts the data into the model, and returns only a view name. The view receives that model and renders the HTML. DispatcherServlet is what connects the two.');
     if (!sum.length) sum.push('The final response is ' + resp + '. Response produced by: ' + maker + '.');
     return { events: ev, summary: sum, rest: rest, row: [resp, yn(has('CT')), yn(has('PO')), yn(has('AC')), maker] };
   },
-  render: function (v, sim, t, H, shown) {
-    var last = shown[shown.length - 1], s = last ? last.snap : { seen: [], cur: null, end: null, resp: '' }, done = shown.length === sim.events.length, c = sim.c;
-    var rows = this.STAGES.filter(function (st) { return !(st[0] === 'VR' && sim.rest) && !(st[0] === 'EX' && c.what !== 'ex'); }).map(function (st, i) {
-      var id = st[0], seen = s.seen.indexOf(id) >= 0, state = id === s.cur ? 'now here' : seen ? (id === s.end ? 'problem occurred here' : 'passed') : done ? 'skipped' : '';
-      return { cls: !seen && done ? 'gone' : '', cells: [String(i + 1), st[1], { v: state, cls: id === s.cur ? 'hot' : id === s.end ? 'bad' : seen ? 'good' : '' }] };
-    });
-    H.table(v, ['Order', 'Component', 'State'], rows, 'The path of the request (it goes in from top to bottom, and the response goes out at the last row)');
+// The steps where the three roles of MVC (M model, V view, C controller) do their work. When a page is returned, the model is created (AR), filled (CT), and used by the view (VR). When JSON is returned, only the controller does its work.
+  ROLE: function (id, c) {
+    if (c.kind === 'rest') return id === 'CT' ? 'C' : '';
+    return (c.what === 'ex' ? { AR: 'M', CT: 'C', VR: 'V' } : { AR: 'M', CT: 'C, M', VR: 'V, M' })[id] || '';
   },
-  // Diagram: the components the request passes through, laid out from top to bottom. It shows how far the request got and which components were skipped.
+  render: function (v, sim, t, H, shown) {
+    var last = shown[shown.length - 1], s = last ? last.snap : { seen: [], cur: null, end: null, resp: '' }, done = shown.length === sim.events.length, c = sim.c, self = this;
+    var rows = this.STAGES.filter(function (st) { return !(st[0] === 'VR' && sim.rest) && !(st[0] === 'EX' && c.what !== 'ex'); }).map(function (st, i) {
+      var id = st[0], seen = s.seen.indexOf(id) >= 0, state = id === s.cur ? 'now here' : seen ? (id === s.end ? 'problem here' : 'passed') : done ? 'skipped' : '';
+      return { cls: !seen && done ? 'gone' : '', cells: [String(i + 1), st[1], self.ROLE(id, c), { v: state, cls: id === s.cur ? 'hot' : id === s.end ? 'bad' : seen ? 'good' : '' }] };
+    });
+    H.table(v, ['Order', 'Component', 'MVC', 'State'], rows, 'The path of the request (it goes in from top to bottom, and the response goes out at the last row)');
+  },
+  // Diagram: on the left, the components the request passes through, laid out from top to bottom; on the right, the three roles of MVC.
+  // Each arrow starts at the step where that role does its work, and the role box lights up when the request reaches that step.
   draw: function (P, sim, shown) {
-    var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { seen: [], cur: null, end: null, resp: '' }, done = shown.length === sim.events.length && shown.length > 0;
+    var c = sim.c, rest = sim.rest, ex = c.what === 'ex', last = shown[shown.length - 1], s = last ? last.snap : { seen: [], cur: null, end: null, resp: '' }, done = shown.length === sim.events.length && shown.length > 0;
     var stages = this.STAGES.filter(function (st) { return !(st[0] === 'VR' && sim.rest) && !(st[0] === 'EX' && c.what !== 'ex'); }), group = { F1: 'Tomcat', DS: 'Spring MVC', F2: 'Tomcat' };
+    var at = function (id) { return s.seen.indexOf(id) >= 0; }, num = function (id) { for (var i = 0; i < stages.length; i++) if (stages[i][0] === id) return 'Step ' + (i + 1) + ': '; return ''; };
     P.size(680, 60 + stages.length * 29 + 62);
-    P.region('path', 16, 16, 648, 42 + stages.length * 29, 'The path of the request (top to bottom)');
-    stages.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0; P.box('st_' + id, 28, 50 + i * 29, 624, 25, { cls: id === s.cur ? 'hot now' : id === s.end ? 'bad' : seen ? 'good' : 'ghost', title: (i + 1) + '. ' + st[1], right: id === s.cur ? 'now here' : id === s.end ? 'problem occurred here' : seen ? 'passed' : done ? 'skipped' : (group[id] || '') }); });
+    P.region('path', 16, 16, 396, 42 + stages.length * 29, 'The path of the request (top to bottom)');
+    stages.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0; P.box('st_' + id, 28, 50 + i * 29, 372, 25, { cls: id === s.cur ? 'hot now' : id === s.end ? 'bad' : seen ? 'good' : 'ghost', title: (i + 1) + '. ' + st[1], right: id === s.cur ? 'now here' : id === s.end ? 'problem here' : seen ? 'passed' : done ? 'skipped' : (group[id] || '') }); });
+    P.region('roles', 440, 114, 224, 246, 'The three roles of MVC');
+    var mSub = rest ? ['Not used', 'Return value becomes JSON'] : !at('AR') ? [done ? 'Not created' : 'Not created yet'] : [num('AR') + 'created empty'].concat(!at('CT') ? [] : ex ? [num('CT') + 'exception first'] : [num('CT') + 'orders added']).concat(at('VR') ? [num('VR') + 'read by view'] : []);
+    var cSub = [rest ? 'OrderController.create()' : 'OrderController.list()', !at('CT') ? (done ? 'Not called' : 'Not called yet') : num('CT') + (ex ? 'exception thrown' : s.cur === 'CT' ? 'running' : 'finished')];
+    var vSub = rest ? ['None', at('RV') ? num('RV') + 'JSON, no view' : 'Not used for JSON'] : ['orders/list template', at('VR') ? num('VR') + 'renders the HTML' : done ? 'Not rendered' : at('RV') ? 'View name decided' : 'Not used yet'];
+    var on = function (ids) { return ids.indexOf(s.cur) >= 0 ? 'hot' : ids.filter(at).length ? 'good' : 'ghost'; };
+    P.box('role_M', 450, 146, 204, 72, { cls: rest ? 'ghost' : on(ex ? ['AR'] : ['AR', 'CT', 'VR']), title: 'Model', sub: mSub });
+    P.box('role_C', 450, 226, 204, 58, { cls: s.end === 'CT' ? 'bad' : on(['CT']), title: 'Controller', sub: cSub });
+    P.box('role_V', 450, 292, 204, 58, { cls: rest ? 'ghost' : on(['VR']), title: 'View', sub: vSub });
+    var link = function (id, to) { P.arrow('ar_' + id, 'st_' + id + ':r', to, { cls: id === s.cur ? 'hot' : at(id) ? (id === s.end ? 'bad' : 'good') : done ? 'mut dash' : 'mut' }); };
+    if (!rest) link('AR', 'role_M:l:0.85');
+    link('CT', 'role_C:l:0.18');
+    if (!rest) link('VR', 'role_V:l:0.54');
     P.box('resp', 16, 70 + stages.length * 29, 648, 34, { cls: !done ? 'ghost' : /^2/.test(s.resp) ? 'good' : 'bad', title: 'Response the client receives', right: done ? s.resp : 'In progress' });
     P.note('Green marks a component the request has passed, yellow marks where it is now, red marks where a problem occurred, and a dashed outline marks a skipped component.');
   },

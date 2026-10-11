@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=bb647a5317">
+<link rel="stylesheet" href="../../app.css?v=6d99e11f58">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
 <h1>Spring MVC request flow</h1>
 <p><b>How one request reaches the controller, and how it goes back</b></p>
-<p>MVC is a pattern that divides a program into the model (the data), the view (the display), and the controller (the part that receives and handles a request), and Spring MVC handles web requests in this way. An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse. This lab follows the path of one request and shows at which step the controller, the model, and the view each do their work.</p>
+<p>MVC is a pattern that divides a program into the model (the data), the view (the display), and the controller (the part that receives and handles a request), and Spring MVC handles web requests in this way. An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse. This lab shows at which step along the path of one request the controller, the model, and the view each do their work, and which of them are absent with an @RestController that returns JSON.</p>
 <p>Checked against real execution · Checked by sending 16 kinds of requests to a Spring Boot 4.1.1 server</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -56,8 +56,8 @@
 </dl>
 <h2>Try these</h2>
 <ul>
-<li><b>Default settings</b> — The full path of a JSON API request that is handled normally.</li>
-<li><b>A controller that returns a view</b> — The ViewResolver and view rendering step is added.</li>
+<li><b>Default settings</b> — The full path of a request that returns a page and is handled normally. The controller, the model, and the view all appear.</li>
+<li><b>A controller that returns JSON</b> — The returned object becomes the response body directly, without a model or a view.</li>
 <li><b>Exception in the controller</b> — An @ExceptionHandler produces the response. postHandle is skipped.</li>
 <li><b>With nothing to handle the exception</b> — The exception propagates up to the servlet container and becomes a 500 response.</li>
 <li><b>Rejected by a filter</b> — The request does not even reach DispatcherServlet. @ControllerAdvice cannot take part either.</li>
@@ -65,28 +65,30 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>POST /orders arrives at the servlet container (Tomcat) and enters the filter chain. Filters work outside Spring MVC, at the servlet level. The encoding, authentication, and logging filters each call chain.doFilter in turn to pass the request on.</li>
+<li>GET /orders arrives at the servlet container (Tomcat) and enters the filter chain. Filters work outside Spring MVC, at the servlet level. The encoding, authentication, and logging filters each call chain.doFilter in turn to pass the request on.</li>
 <li>DispatcherServlet receives the request. Every request comes in through this one servlet, which sends each request to the right controller (the front controller pattern).</li>
-<li>HandlerMapping looks for the handler for POST /orders. It returns the create method annotated with @PostMapping(&quot;/orders&quot;) together with the list of interceptors that apply to this path.</li>
+<li>HandlerMapping looks for the handler for GET /orders. It returns the list method annotated with @GetMapping(&quot;/orders&quot;) together with the list of interceptors that apply to this path.</li>
 <li>A HandlerAdapter is chosen. RequestMappingHandlerAdapter, which knows how to run annotated controller methods, is selected.</li>
 <li>The preHandle method of the interceptor runs and returns true. Unlike a filter, an interceptor works knowing which controller method is going to run.</li>
-<li>HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter annotated with @RequestBody, HttpMessageConverter (Jackson) converts the JSON in the request body into an OrderRequest object and fills it in.</li>
-<li>The controller method runs. It calls the service layer to do the actual business work.</li>
-<li>The return value is handled. Because this is an @RestController, no view is looked up, and HttpMessageConverter (Jackson) converts the OrderResponse object into JSON and writes it directly to the response body.</li>
-<li>The postHandle method of the interceptor is called. The response body was already written in the previous step, so it is too late to change the response here.</li>
+<li>HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter of type Model, it passes in an empty model object that will hold the data for the view. This is where the model (M) of MVC is created.</li>
+<li>The controller method runs. This is the step where the controller (C) of MVC does its work. It calls the service layer to get the list of orders, puts the list into the model under the name orders, and returns the view name &quot;orders/list&quot;.</li>
+<li>The return value is handled. The string &quot;orders/list&quot; returned by the @Controller is interpreted as a view name and is bundled with the model into a ModelAndView.</li>
+<li>The postHandle method of the interceptor is called. The view has not been rendered yet, so common data can still be added to the model.</li>
+<li>ViewResolver resolves the view name &quot;orders/list&quot; to an actual template file, and the view renders the HTML with the model data and writes it to the response. This is the step where the view (V) of MVC does its work, and it reads the orders that the controller put into the model.</li>
 <li>The afterCompletion method of the interceptor is called. This is after the response has been written, and it is called whether or not an exception was thrown.</li>
 <li>The response goes out to the client back through the filter chain. Filter code written after the chain.doFilter call runs at this point.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>An @RestController does not go through ViewResolver. The returned object becomes the response body directly through HttpMessageConverter.</li>
+<li>The controller handles the request, puts the data into the model, and returns only a view name. The view receives that model and renders the HTML. DispatcherServlet is what connects the two.</li>
 </ul>
 <h2>Code</h2>
-<pre>@RestController
+<pre>@Controller
 class OrderController {
-    @PostMapping(&quot;/orders&quot;)
-    OrderResponse create(@RequestBody OrderRequest req) {
-        return orderService.create(req);
+    @GetMapping(&quot;/orders&quot;)
+    String list(Model model) {
+        model.addAttribute(&quot;orders&quot;, orderService.findAll());
+        return &quot;orders/list&quot;;              // view name
     }
 }</pre>
 <h2>Assumptions of this model</h2>
@@ -174,6 +176,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=bb647a5317"></script>
+<script src="../../app.js?v=6d99e11f58"></script>
 </body>
 </html>

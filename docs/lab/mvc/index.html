@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=b70504e9c7">
+<link rel="stylesheet" href="../../app.css?v=5a6de934d2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 웹 MVC</p>
 <h1>MVC 요청 흐름</h1>
 <p><b>요청 하나가 컨트롤러에 닿기까지, 그리고 돌아가기까지</b></p>
-<p>MVC는 프로그램을 모델(Model, 데이터), 뷰(View, 화면), 컨트롤러(Controller, 요청을 받아 처리하는 곳)로 나누는 방식이고, 스프링 MVC는 이 방식으로 웹 요청을 처리합니다. HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다. 요청 하나가 지나가는 길을 따라가며 컨트롤러, 모델, 뷰가 각각 어느 단계에서 일하는지 봅니다.</p>
+<p>MVC는 프로그램을 모델(Model, 데이터), 뷰(View, 화면), 컨트롤러(Controller, 요청을 받아 처리하는 곳)로 나누는 방식이고, 스프링 MVC는 이 방식으로 웹 요청을 처리합니다. HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다. 요청 하나가 지나가는 길에서 컨트롤러, 모델, 뷰가 각각 몇 번째 단계에서 일하는지, JSON을 돌려주는 @RestController에서는 그중 무엇이 빠지는지 봅니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1 서버에 열여섯 가지 요청을 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -56,8 +56,8 @@
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — JSON API 요청이 정상 처리되는 전체 경로입니다.</li>
-<li><b>화면을 돌려주는 컨트롤러</b> — ViewResolver와 뷰 렌더링 단계가 추가됩니다.</li>
+<li><b>처음 설정으로</b> — 화면을 돌려주는 요청이 정상 처리되는 전체 경로입니다. 컨트롤러, 모델, 뷰가 모두 나옵니다.</li>
+<li><b>JSON을 돌려주는 컨트롤러</b> — 모델과 뷰를 거치지 않고 반환 객체가 바로 응답 본문이 됩니다.</li>
 <li><b>컨트롤러에서 예외</b> — @ExceptionHandler가 응답을 만듭니다. postHandle은 건너뜁니다.</li>
 <li><b>예외를 처리할 곳이 없으면</b> — 예외가 서블릿 컨테이너까지 올라가 500 응답이 됩니다.</li>
 <li><b>필터에서 거절</b> — DispatcherServlet에 닿지도 못합니다. @ControllerAdvice도 관여하지 못합니다.</li>
@@ -65,28 +65,30 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>POST /orders 요청이 서블릿 컨테이너(톰캣)에 도착해 필터 체인을 탑니다. 필터는 스프링 MVC 바깥, 서블릿 수준에서 동작합니다. 인코딩, 인증, 로깅 필터가 차례로 chain.doFilter를 호출해 다음으로 넘깁니다.</li>
+<li>GET /orders 요청이 서블릿 컨테이너(톰캣)에 도착해 필터 체인을 탑니다. 필터는 스프링 MVC 바깥, 서블릿 수준에서 동작합니다. 인코딩, 인증, 로깅 필터가 차례로 chain.doFilter를 호출해 다음으로 넘깁니다.</li>
 <li>DispatcherServlet이 요청을 받습니다. 모든 요청이 이 서블릿 하나로 들어오고, 여기서 알맞은 컨트롤러로 나눠 보냅니다(프론트 컨트롤러).</li>
-<li>HandlerMapping이 POST /orders를 처리할 핸들러를 찾습니다. @PostMapping(&quot;/orders&quot;)가 붙은 create 메서드와, 이 경로에 적용할 인터셉터 목록을 묶어 돌려줍니다.</li>
+<li>HandlerMapping이 GET /orders를 처리할 핸들러를 찾습니다. @GetMapping(&quot;/orders&quot;)가 붙은 list 메서드와, 이 경로에 적용할 인터셉터 목록을 묶어 돌려줍니다.</li>
 <li>HandlerAdapter를 고릅니다. 애노테이션 기반 컨트롤러 메서드를 실행할 줄 아는 RequestMappingHandlerAdapter가 선택됩니다.</li>
 <li>인터셉터의 preHandle이 실행되고 true를 반환합니다. 필터와 달리 어떤 컨트롤러 메서드가 실행될지 아는 상태에서 동작합니다.</li>
-<li>ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. @RequestBody가 붙은 파라미터는 HttpMessageConverter(Jackson)가 요청 본문의 JSON을 OrderRequest 객체로 바꿔서 채웁니다.</li>
-<li>컨트롤러 메서드가 실행됩니다. 서비스 계층을 호출해 실제 업무를 처리합니다.</li>
-<li>반환값을 처리합니다. @RestController이므로 화면을 찾지 않고, HttpMessageConverter(Jackson)가 OrderResponse 객체를 JSON으로 바꿔 응답 본문에 바로 씁니다.</li>
-<li>인터셉터의 postHandle이 호출됩니다. 응답 본문은 앞 단계에서 이미 쓰였으므로, 여기서 응답 내용을 바꾸기에는 늦습니다.</li>
+<li>ArgumentResolver가 컨트롤러 메서드의 파라미터를 준비합니다. Model 타입 파라미터에는 화면에 넘길 데이터를 담을 빈 모델 객체를 넣어 줍니다. MVC의 모델(M)이 여기서 만들어집니다.</li>
+<li>컨트롤러 메서드가 실행됩니다. MVC의 컨트롤러(C)가 일하는 단계입니다. 서비스 계층을 호출해 주문 목록을 가져오고, 그것을 모델에 orders라는 이름으로 담은 뒤 화면 이름 &quot;orders/list&quot;를 돌려줍니다.</li>
+<li>반환값을 처리합니다. @Controller가 돌려준 문자열 &quot;orders/list&quot;는 화면 이름으로 해석되고, 모델과 함께 ModelAndView로 묶입니다.</li>
+<li>인터셉터의 postHandle이 호출됩니다. 아직 화면을 그리기 전이라 모델에 공통 데이터를 추가할 수 있습니다.</li>
+<li>ViewResolver가 화면 이름 &quot;orders/list&quot;를 실제 템플릿 파일로 바꾸고, 뷰가 모델 데이터를 넣어 HTML을 그려 응답에 씁니다. MVC의 뷰(V)가 일하는 단계이고, 컨트롤러가 모델에 담아 둔 orders를 여기서 꺼내 씁니다.</li>
 <li>인터셉터의 afterCompletion이 호출됩니다. 응답 작성이 끝난 뒤이며 예외 여부와 관계없이 호출됩니다.</li>
 <li>응답이 필터 체인을 거꾸로 지나 클라이언트로 나갑니다. chain.doFilter 호출 뒤에 적어 둔 필터 코드가 이때 실행됩니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>@RestController에서는 ViewResolver를 거치지 않습니다. 반환 객체가 HttpMessageConverter를 통해 곧바로 응답 본문이 됩니다.</li>
+<li>컨트롤러는 요청을 처리해 모델에 데이터를 담고 화면 이름만 돌려줍니다. 뷰는 그 모델을 받아 HTML을 그립니다. 둘을 이어 주는 것은 DispatcherServlet입니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>@RestController
+<pre>@Controller
 class OrderController {
-    @PostMapping(&quot;/orders&quot;)
-    OrderResponse create(@RequestBody OrderRequest req) {
-        return orderService.create(req);
+    @GetMapping(&quot;/orders&quot;)
+    String list(Model model) {
+        model.addAttribute(&quot;orders&quot;, orderService.findAll());
+        return &quot;orders/list&quot;;              // 화면 이름
     }
 }</pre>
 <h2>이 모형의 전제</h2>
@@ -174,6 +176,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=b70504e9c7"></script>
+<script src="../../app.js?v=5a6de934d2"></script>
 </body>
 </html>
