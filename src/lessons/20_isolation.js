@@ -55,7 +55,7 @@ Lab.register({
       } else {
         ver = ph ? [['커밋된 행', 'amount ≥ 100인 주문 3건', ''], ['B가 추가한 행', '주문 1건 (amount 200, 커밋 전)', 'hot']] : [['최신 버전', '500 (B가 수정, 커밋 전)', 'hot'], ['이전 버전 (Undo 로그)', '1000', '']];
         push('', ph ? 'INSERT ... amount = 200' : 'UPDATE ... balance = 500', 'B가 ' + (ph ? '금액 200짜리 주문을 새로 넣습니다.' : '잔액을 500으로 바꿉니다.') + ' A의 조회는 락을 걸지 않았으므로 B는 기다리지 않습니다.', '');
-        ver = ph ? [['커밋된 행', 'amount ≥ 100인 주문 4건', 'hot']] : [['최신 버전', '500 (커밋됨)', 'hot'], ['이전 버전 (Undo 로그)', '1000 (A의 스냅샷 시점 값)', '']];
+        ver = ph ? [['커밋된 행', 'amount ≥ 100인 주문 4건', 'hot']] : [['최신 버전', '500 (커밋됨)', 'hot'], ['이전 버전 (Undo 로그)', L === 'RR' ? '1000 (A의 스냅샷 시점 값)' : '1000 (A가 처음 읽은 값)', '']];
         push('', 'COMMIT', 'B가 커밋합니다. 이제 DB의 확정된 ' + (ph ? '건수는 4건' : '잔액은 500') + '입니다.', '');
         if (L === 'RR') { second = committed; push('SELECT → ' + committed, '', 'A의 두 번째 조회입니다. A는 첫 조회 때의 스냅샷을 기준으로 읽으므로, 그 뒤에 커밋된 B의 변경은 보이지 않습니다. ' + (ph ? '여전히 3건입니다.' : 'Undo 로그의 이전 버전을 따라가 1000을 읽습니다.'), 'good'); }
         else { second = changed; anomaly = ph ? 'Phantom Read' : 'Non-repeatable Read'; push('SELECT → ' + changed, '', 'A의 두 번째 조회입니다. ' + (L === 'RC' ? 'READ COMMITTED는 조회할 때마다 그 시점에 커밋된 최신 데이터를 읽습니다.' : 'READ UNCOMMITTED는 최신 버전을 그대로 읽습니다.') + ' 같은 트랜잭션 안에서 같은 조회를 했는데 ' + (ph ? '없던 행이 나타나 3건이 4건이 됐습니다. 이것이 Phantom Read입니다.' : '1000이 500으로 달라졌습니다. 이것이 Non-repeatable Read입니다.'), 'bad'); }

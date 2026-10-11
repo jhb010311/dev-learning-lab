@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f8d2d8a24c">
+<link rel="stylesheet" href="../../app.css?v=cb6bd5c114">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -60,13 +60,13 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>0.0초: 캐시에 값이 없습니다(첫 요청). 요청이 DB를 조회하러 갑니다. 결과가 오기까지 1초가 걸립니다.</li>
-<li>1.0초: DB에서 읽은 값을 캐시에 저장했습니다(TTL 10초). 저장되기 전까지 0.0초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다.</li>
+<li>1.0초: DB에서 읽은 값을 캐시에 저장했습니다(TTL 10초). 저장되기 전까지 0.0초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다. 나머지 요청도 조회가 끝나는 대로 같은 값을 다시 저장하므로, TTL은 마지막 저장(1.8초)부터 셉니다.</li>
 <li>11.8초: TTL이 지나 캐시의 값이 사라졌습니다. 이제부터 오는 요청은 캐시에서 값을 찾지 못합니다.</li>
 <li>11.8초: 캐시에 값이 없습니다(만료 직후). 요청이 DB를 조회하러 갑니다. 결과가 오기까지 1초가 걸립니다.</li>
-<li>12.8초: DB에서 읽은 값을 캐시에 저장했습니다(TTL 10초). 저장되기 전까지 11.8초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다.</li>
+<li>12.8초: DB에서 읽은 값을 캐시에 저장했습니다(TTL 10초). 저장되기 전까지 11.8초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다. 나머지 요청도 조회가 끝나는 대로 같은 값을 다시 저장하므로, TTL은 마지막 저장(13.6초)부터 셉니다.</li>
 <li>23.6초: TTL이 지나 캐시의 값이 사라졌습니다. 이제부터 오는 요청은 캐시에서 값을 찾지 못합니다.</li>
 <li>23.6초: 캐시에 값이 없습니다(만료 직후). 요청이 DB를 조회하러 갑니다. 결과가 오기까지 1초가 걸립니다.</li>
-<li>24.6초: DB에서 읽은 값을 캐시에 저장했습니다(TTL 10초). 저장되기 전까지 23.6초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다.</li>
+<li>24.6초: DB에서 읽은 값을 캐시에 저장했습니다(TTL 10초). 저장되기 전까지 23.6초부터 요청 5건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다. 나머지 요청도 조회가 끝나는 대로 같은 값을 다시 저장하므로, TTL은 마지막 저장(25.4초)부터 셉니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -168,6 +168,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f8d2d8a24c"></script>
+<script src="../../app.js?v=cb6bd5c114"></script>
 </body>
 </html>

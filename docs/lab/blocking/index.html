@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f8d2d8a24c">
+<link rel="stylesheet" href="../../app.css?v=cb6bd5c114">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -52,9 +52,9 @@
 <ul>
 <li><b>처음 설정으로</b> — 스레드 4개에 요청 12건. 스레드가 기다리느라 묶여 뒤 요청이 줄을 섭니다.</li>
 <li><b>이벤트 루프로</b> — 스레드 2개로 12건을 동시에 진행합니다.</li>
-<li><b>이벤트 루프에서 블로킹 호출</b> — 스레드 2개가 묶이면 전체가 멈춥니다. 가장 나쁜 조합입니다.</li>
+<li><b>이벤트 루프에서 블로킹 호출</b> — 스레드 2개가 묶여 한 번에 2건씩만 진행됩니다. 가장 나쁜 조합입니다.</li>
 <li><b>가상 스레드</b> — 코드는 블로킹 방식 그대로인데 동시에 진행됩니다.</li>
-<li><b>스레드 풀을 키우면</b> — 스레드 10개. 나아지지만 요청이 더 늘면 다시 줄을 섭니다.</li>
+<li><b>스레드 풀을 키우면</b> — 스레드 10개에 요청 30건. 스레드를 늘려도 요청이 그만큼 늘면 똑같이 줄을 섭니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
@@ -162,6 +162,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f8d2d8a24c"></script>
+<script src="../../app.js?v=cb6bd5c114"></script>
 </body>
 </html>

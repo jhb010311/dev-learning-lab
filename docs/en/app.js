@@ -11464,7 +11464,7 @@ Lab.register({
   columns: ['Requests', 'Cache hit rate', 'Database queries', 'Peak simultaneous database queries', 'Average response time'],
   simulate: function (c) {
     var ttl = +c.ttl, dbt = +c.dbt, lock = c.lock && ttl > 0, DUR = 30, fmt = Lab.fmt, reqs = [], ev = [], sets = [], expireAt = -1, has = false, loadDone = -1, grp = null, queries = [];
-    function applySets(t) { while (sets.length && sets[0] <= t + 1e-9) { var f = sets.shift(); has = true; expireAt = f + ttl; if (grp) { ev.push({ t: f, k: grp.n > 1 ? 'bad' : '', s: fmt(f) + 's: The value read from the database was stored in the cache (TTL ' + ttl + 's). ' + (grp.n > 1 ? 'Before it was stored, ' + grp.n + ' requests, starting at ' + fmt(grp.start) + 's, all failed to find the value in the cache and each queried the database.' : 'One request queried the database to fill this value.') + (grp.w ? ' Because of the lock, ' + grp.w + (grp.w === 1 ? ' request' : ' requests') + ' did not go to the database and waited for this result.' : '') }); grp = null; } } }
+    function applySets(t) { while (sets.length && sets[0] <= t + 1e-9) { var f = sets.shift(); has = true; expireAt = f + ttl; if (grp) { ev.push({ t: f, k: grp.n > 1 ? 'bad' : '', s: fmt(f) + 's: The value read from the database was stored in the cache (TTL ' + ttl + 's). ' + (grp.n > 1 ? 'Before it was stored, ' + grp.n + ' requests, starting at ' + fmt(grp.start) + 's, all failed to find the value in the cache and each queried the database.' : 'One request queried the database to fill this value.') + (sets.length ? ' The other requests store the same value again as their queries finish, so the TTL is counted from the last store (' + fmt(sets[sets.length - 1]) + 's).' : '') + (grp.w ? ' Because of the lock, ' + grp.w + (grp.w === 1 ? ' request' : ' requests') + ' did not go to the database and waited for this result.' : '') }); grp = null; } } }
     var total = DUR * c.rps;
     for (var i = 0; i < total; i++) {
       var t = Math.round(i / c.rps * 1000) / 1000, r = { t: t }; reqs.push(r);
@@ -11566,7 +11566,7 @@ Lab.register({
       } else {
         ver = ph ? [['Committed rows', 'orders with amount ≥ 100: 3', ''], ['Row added by B', '1 order (amount 200, not committed)', 'hot']] : [['Latest version', '500 (changed by B, not committed)', 'hot'], ['Earlier version (undo log)', '1000', '']];
         push('', ph ? 'INSERT ... amount = 200' : 'UPDATE ... balance = 500', 'B ' + (ph ? 'inserts a new order with an amount of 200.' : 'changes the balance to 500.') + ' The query of A took no locks, so B does not have to wait.', '');
-        ver = ph ? [['Committed rows', 'orders with amount ≥ 100: 4', 'hot']] : [['Latest version', '500 (committed)', 'hot'], ['Earlier version (undo log)', '1000 (the value at the time of the snapshot of A)', '']];
+        ver = ph ? [['Committed rows', 'orders with amount ≥ 100: 4', 'hot']] : [['Latest version', '500 (committed)', 'hot'], ['Earlier version (undo log)', L === 'RR' ? '1000 (the value at the time of the snapshot of A)' : '1000 (the value A read first)', '']];
         push('', 'COMMIT', 'B commits. ' + (ph ? 'The committed count in the DB is now 4' : 'The committed balance in the DB is now 500') + '.', '');
         if (L === 'RR') { second = committed; push('SELECT → ' + committed, '', 'This is the second query of A. A reads from the snapshot taken at the first query, so it does not see the change that B committed afterward. ' + (ph ? 'The count is still 3.' : 'It follows the earlier version in the undo log and reads 1000.'), 'good'); }
         else { second = changed; anomaly = ph ? 'Phantom Read' : 'Non-repeatable Read'; push('SELECT → ' + changed, '', 'This is the second query of A. ' + (L === 'RC' ? 'READ COMMITTED reads the latest data committed at the time of each query.' : 'READ UNCOMMITTED reads the latest version as it is.') + ' The same query in the same transaction ' + (ph ? 'now shows a row that did not exist before, and the count went from 3 to 4. This is a phantom read.' : 'now returns 500 instead of 1000. This is a non-repeatable read.'), 'bad'); }
@@ -12100,8 +12100,8 @@ Lab.register({
     { t: 'Default settings', d: 'A 15s outage. When failures pile up, calls are blocked, and the circuit periodically tests whether the service has recovered.', v: { use: true, th: '50', wait: '5', dur: '15' } },
     { t: 'Without a circuit breaker', d: 'For the whole outage, every call waits 3s and then fails.', v: { use: false, th: '50', wait: '5', dur: '15' } },
     { t: 'Lower the threshold', d: '30%. It blocks calls sooner.', v: { use: true, th: '30', wait: '5', dur: '15' } },
-    { t: 'A long open duration', d: '10s. Calls stay blocked for a while even after the outage ends.', v: { use: true, th: '50', wait: '10', dur: '15' } },
-    { t: 'A short outage', d: '5s. See whether it reaches the threshold.', v: { use: true, th: '80', wait: '5', dur: '5' } },
+    { t: 'A long open duration', d: '10s. Fewer trial calls are made during the outage.', v: { use: true, th: '50', wait: '10', dur: '15' } },
+    { t: 'A short outage', d: 'A 5s outage with an 80% threshold. The failure rate does not reach the threshold, so the circuit never opens.', v: { use: true, th: '80', wait: '5', dur: '5' } },
   ],
   code: function (c) {
     if (!c.use) return 'PaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // times out after 3s if there is no response\n}';
@@ -12631,9 +12631,9 @@ Lab.register({
   presets: [
     { t: 'Default settings', d: '4 threads and 12 requests. The threads are tied up waiting, so the later requests wait in line.', v: { model: 'pool', th: 4, n: 12, w: '2', block: false } },
     { t: 'With an event loop', d: '2 threads keep all 12 requests in progress at the same time.', v: { model: 'loop', th: 4, n: 12, w: '2', block: false } },
-    { t: 'Blocking calls on the event loop', d: 'When the 2 threads are tied up, everything stops. This is the worst combination.', v: { model: 'loop', th: 4, n: 12, w: '2', block: true } },
+    { t: 'Blocking calls on the event loop', d: 'The 2 threads are tied up, so only 2 requests make progress at a time. This is the worst combination.', v: { model: 'loop', th: 4, n: 12, w: '2', block: true } },
     { t: 'Virtual threads', d: 'The code stays in the blocking style, yet the requests are in progress at the same time.', v: { model: 'virtual', th: 4, n: 12, w: '2', block: false } },
-    { t: 'A larger thread pool', d: '10 threads. Things improve, but when there are more requests, they wait in line again.', v: { model: 'pool', th: 10, n: 30, w: '2', block: false } },
+    { t: 'A larger thread pool', d: '10 threads and 30 requests. Even with more threads, requests wait in line just the same when their number grows as much.', v: { model: 'pool', th: 10, n: 30, w: '2', block: false } },
   ],
   code: function (c) {
     if (c.model === 'pool') return '// Spring MVC: one thread handles each request from start to finish\n// server.tomcat.threads.max=' + c.th + '\n@GetMapping("/orders/{id}")\nOrderDto get(@PathVariable long id) {\n    Order order = orderRepository.findById(id);   // the thread stops and waits until the response arrives\n    Delivery d = deliveryClient.track(order);     // (' + c.w + 's)\n    return OrderDto.of(order, d);\n}';
@@ -13783,7 +13783,7 @@ Lab.register({
       else { maker = 'Application server (Spring)';
         step('Application server (Tomcat)', 2, 'nginx passes the request to Tomcat behind it (port 8080). Tomcat assigns a thread from its thread pool, runs the request through the filters, and hands it to the Spring DispatcherServlet.', '');
         step('Spring (controller → service)', 5, 'DispatcherServlet finds the controller that handles /orders and runs it. The controller calls a service, and the service calls a repository.', '');
-        step('Database query', 20, 'The application borrows a connection from the connection pool, runs the SQL, and receives the result. This is the part of the request that takes the most time.', '');
+        step('Database query', 20, 'The application borrows a connection from the connection pool, runs the SQL, and receives the result. Of the time spent inside the server, this is the largest part.', '');
         step('Response built', 3, 'The application turns the query result into JSON or HTML and builds the response. The response travels back through Tomcat and nginx.', '');
       }
     }
@@ -13791,7 +13791,7 @@ Lab.register({
     if (!c.dns || !c.conn) sum.push('On a first request, the DNS lookup, the TCP connection, and the TLS handshake all happen before the actual request. However fast the server is, these round trips do not go away, so keeping a connection open and reusing it (keep-alive, HTTP/2) has a large effect on how fast the site feels.');
     if (c.what === 'static' && !cdn) sum.push('The web server serves static files directly. The application server handles only the requests whose result has to be produced by running code. Putting a reverse proxy in front lets you handle TLS, static files, load balancing, and hiding the internal servers in one place.');
     if (cdn) sum.push('A CDN keeps copies of static files in many places around the world and responds from a place close to the user. The round trips get shorter, and fewer requests reach the origin server.');
-    if (c.what === 'api') sum.push('In a dynamic request, the database query takes most of the time. This is why, when you look into a performance problem, you start by breaking the request down to see which part takes the time.');
+    if (c.what === 'api') sum.push('In a dynamic request, most of the time the server spends goes to the database query (here, 20ms out of 31ms). This is why, when you look into a performance problem, you start by breaking the request down to see which part takes the time.');
     return { events: ev, summary: sum, row: [total + 'ms', (rows.length - skipped) + '', skipped + '', maker] };
   },
   render: function (v, sim, t, H, shown) {
@@ -13899,17 +13899,17 @@ Lab.register({
   simulate: function (c) {
     var C = c.core, T = c.th, io = c.kind === 'io', cpuFrac = io ? 0.1 : 1, taskCpu = 0.1, waitT = io ? 0.9 : 0, ev = [], sum = [];
     var want = T * cpuFrac, over = want > C + 1e-9, used = Math.min(want, C), tput = Math.round(used / taskCpu), best = Math.round(C / cpuFrac), util = Math.round(used / C * 100);
-    var share = over ? want / C : 1, lat = Math.round((taskCpu * share + waitT) * 100) / 100, baseLat = Math.round((taskCpu + waitT) * 100) / 100;
+    var busy = over ? T - tput * waitT : want, share = over ? busy / C : 1, lat = Math.round((taskCpu * share + waitT) * 100) / 100, baseLat = Math.round((taskCpu + waitT) * 100) / 100;
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
     push('Cores: ' + C + '. Threads: ' + T + '. ' + (io ? 'Each thread computes for only 10% of the time and waits for an external response for the other 90%. A waiting thread does not use the CPU.' : 'Each thread computes without a break.'), '', 1);
-    push('At any given moment, the average number of threads that want the CPU is ' + (Math.round(want * 10) / 10) + ' (' + T + ' × ' + (cpuFrac * 100) + '%). The number of cores is ' + C + ', so ' + (over ? 'there are not enough cores. The operating system puts the threads on the cores in turn, each for a short time.' : want < C - 1e-9 ? 'some cores are left over. They have nothing to do and sit idle.' : 'the two match exactly.'), over ? 'bad' : '', 2);
-    if (over) push('Each time the operating system switches threads, it saves the state of the thread that was running and loads the state of the next one. About ' + (Math.round(share * 10) / 10) + ' threads share each core, so each thread is stopped whenever it is not its turn. The total amount of work done stays at what the cores (' + C + ') can do, and only the time for each task to finish gets longer.', 'bad', 3);
+    push((io && over ? 'If there were enough cores, the average number of threads that want the CPU at any given moment would be ' : 'At any given moment, the average number of threads that want the CPU is ') + (Math.round(want * 10) / 10) + ' (' + T + ' × ' + (cpuFrac * 100) + '%). The number of cores is ' + C + ', so ' + (over ? 'there are not enough cores. The operating system puts the threads on the cores in turn, each for a short time.' : want < C - 1e-9 ? 'some cores are left over. They have nothing to do and sit idle.' : 'the two match exactly.'), over ? 'bad' : '', 2);
+    if (over) push('Each time the operating system switches threads, it saves the state of the thread that was running and loads the state of the next one. ' + (io ? 'Threads that do not get their turn on a core pile up, until ' + Math.round(busy) + ' threads want the CPU. ' : '') + 'About ' + (Math.round(share * 10) / 10) + ' threads share each core, so each thread is stopped whenever it is not its turn. The total amount of work done stays at what the cores (' + C + ') can do, and only the time for each task to finish gets longer.', 'bad', 3);
     else push('The number of threads that want to run does not exceed the number of cores, so no thread has to wait for another.', 'good', 3);
     push('Result: CPU usage ' + util + '%, tasks handled per second: ' + tput + ', time for one task to finish: ' + lat + 's' + (over ? ' (' + baseLat + 's when it runs alone).' : '.') + (T !== best ? ' With the number of threads set to ' + best + ', the values become ' + Math.round(C / taskCpu) + ' per second and ' + baseLat + 's per task.' : ' This is the most suitable number of threads for this task.'), T === best ? 'good' : '', 4);
     if (!io) sum.push(over ? 'For tasks that mostly compute, having more threads than cores does not increase throughput. The threads share the cores, so each task just finishes later. Each thread also uses memory of its own (its stack), so a number of threads close to the number of cores is appropriate.' : T < C ? 'Some cores are left unused. Increasing the number of threads to the number of cores (' + C + ') increases throughput.' : 'The number of threads equals the number of cores, so every core is used and no thread waits.');
     else sum.push(want < C - 1e-9 ? 'With tasks that mostly wait, most of the threads are waiting, so the cores sit idle. You need far more threads than cores to use the whole CPU. The suitable number is roughly number of cores × (1 + wait time ÷ compute time), which here is ' + C + ' × (1 + 9) = ' + best + '.' : over ? 'The number of threads that want the CPU already exceeds the number of cores. Adding more threads from here leaves throughput unchanged, and only the memory used per thread and the response time grow.' : 'Other threads fill the time that a thread spends waiting, so every core is in use.');
     sum.push('A web server has far more threads for handling requests than it has cores (200 by default in Tomcat) because most of the time spent handling a request goes to waiting for a database or an external response.');
-    return { events: ev, summary: sum, k: { want: want, over: over, share: share, used: used, tput: tput, util: util, best: best, lat: lat }, row: [tput + '', util + '%', lat + 's', best + ''] };
+    return { events: ev, summary: sum, k: { want: busy, over: over, share: share, used: used, tput: tput, util: util, best: best, lat: lat }, row: [tput + '', util + '%', lat + 's', best + ''] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, k = sim.k, last = shown[shown.length - 1], st = last ? last.snap.stage : 0;

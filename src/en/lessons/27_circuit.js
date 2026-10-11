@@ -13,8 +13,8 @@ Lab.register({
     { t: 'Default settings', d: 'A 15s outage. When failures pile up, calls are blocked, and the circuit periodically tests whether the service has recovered.', v: { use: true, th: '50', wait: '5', dur: '15' } },
     { t: 'Without a circuit breaker', d: 'For the whole outage, every call waits 3s and then fails.', v: { use: false, th: '50', wait: '5', dur: '15' } },
     { t: 'Lower the threshold', d: '30%. It blocks calls sooner.', v: { use: true, th: '30', wait: '5', dur: '15' } },
-    { t: 'A long open duration', d: '10s. Calls stay blocked for a while even after the outage ends.', v: { use: true, th: '50', wait: '10', dur: '15' } },
-    { t: 'A short outage', d: '5s. See whether it reaches the threshold.', v: { use: true, th: '80', wait: '5', dur: '5' } },
+    { t: 'A long open duration', d: '10s. Fewer trial calls are made during the outage.', v: { use: true, th: '50', wait: '10', dur: '15' } },
+    { t: 'A short outage', d: 'A 5s outage with an 80% threshold. The failure rate does not reach the threshold, so the circuit never opens.', v: { use: true, th: '80', wait: '5', dur: '5' } },
   ],
   code: function (c) {
     if (!c.use) return 'PaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // times out after 3s if there is no response\n}';

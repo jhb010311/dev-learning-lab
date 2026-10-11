@@ -13,8 +13,8 @@ Lab.register({
     { t: '처음 설정으로', d: '장애 15초. 실패가 쌓이면 차단하고, 주기적으로 회복됐는지 떠봅니다.', v: { use: true, th: '50', wait: '5', dur: '15' } },
     { t: '서킷 브레이커가 없다면', d: '장애 내내 매 호출이 3초씩 기다리다 실패합니다.', v: { use: false, th: '50', wait: '5', dur: '15' } },
     { t: '임계치를 낮추면', d: '30%. 더 빨리 차단합니다.', v: { use: true, th: '30', wait: '5', dur: '15' } },
-    { t: '차단 시간을 길게', d: '10초. 장애가 풀린 뒤에도 한동안 막혀 있습니다.', v: { use: true, th: '50', wait: '10', dur: '15' } },
-    { t: '짧은 장애', d: '5초. 임계치에 닿는지 보세요.', v: { use: true, th: '80', wait: '5', dur: '5' } },
+    { t: '차단 시간을 길게', d: '10초. 장애 중에 회복됐는지 떠보는 횟수가 줄어듭니다.', v: { use: true, th: '50', wait: '10', dur: '15' } },
+    { t: '짧은 장애', d: '장애 5초에 임계치 80%. 실패율이 임계치에 닿지 않아 서킷이 열리지 않습니다.', v: { use: true, th: '80', wait: '5', dur: '5' } },
   ],
   code: function (c) {
     if (!c.use) return 'PaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // 응답이 없으면 3초 뒤 타임아웃\n}';

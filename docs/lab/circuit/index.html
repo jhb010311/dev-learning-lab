@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f8d2d8a24c">
+<link rel="stylesheet" href="../../app.css?v=cb6bd5c114">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -47,8 +47,8 @@
 <li><b>처음 설정으로</b> — 장애 15초. 실패가 쌓이면 차단하고, 주기적으로 회복됐는지 떠봅니다.</li>
 <li><b>서킷 브레이커가 없다면</b> — 장애 내내 매 호출이 3초씩 기다리다 실패합니다.</li>
 <li><b>임계치를 낮추면</b> — 30%. 더 빨리 차단합니다.</li>
-<li><b>차단 시간을 길게</b> — 10초. 장애가 풀린 뒤에도 한동안 막혀 있습니다.</li>
-<li><b>짧은 장애</b> — 5초. 임계치에 닿는지 보세요.</li>
+<li><b>차단 시간을 길게</b> — 10초. 장애 중에 회복됐는지 떠보는 횟수가 줄어듭니다.</li>
+<li><b>짧은 장애</b> — 장애 5초에 임계치 80%. 실패율이 임계치에 닿지 않아 서킷이 열리지 않습니다.</li>
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
@@ -200,6 +200,6 @@ PaymentResult payLater(Order order, Throwable t) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f8d2d8a24c"></script>
+<script src="../../app.js?v=cb6bd5c114"></script>
 </body>
 </html>

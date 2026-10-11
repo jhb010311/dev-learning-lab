@@ -13,9 +13,9 @@ Lab.register({
   presets: [
     { t: 'Default settings', d: '4 threads and 12 requests. The threads are tied up waiting, so the later requests wait in line.', v: { model: 'pool', th: 4, n: 12, w: '2', block: false } },
     { t: 'With an event loop', d: '2 threads keep all 12 requests in progress at the same time.', v: { model: 'loop', th: 4, n: 12, w: '2', block: false } },
-    { t: 'Blocking calls on the event loop', d: 'When the 2 threads are tied up, everything stops. This is the worst combination.', v: { model: 'loop', th: 4, n: 12, w: '2', block: true } },
+    { t: 'Blocking calls on the event loop', d: 'The 2 threads are tied up, so only 2 requests make progress at a time. This is the worst combination.', v: { model: 'loop', th: 4, n: 12, w: '2', block: true } },
     { t: 'Virtual threads', d: 'The code stays in the blocking style, yet the requests are in progress at the same time.', v: { model: 'virtual', th: 4, n: 12, w: '2', block: false } },
-    { t: 'A larger thread pool', d: '10 threads. Things improve, but when there are more requests, they wait in line again.', v: { model: 'pool', th: 10, n: 30, w: '2', block: false } },
+    { t: 'A larger thread pool', d: '10 threads and 30 requests. Even with more threads, requests wait in line just the same when their number grows as much.', v: { model: 'pool', th: 10, n: 30, w: '2', block: false } },
   ],
   code: function (c) {
     if (c.model === 'pool') return '// Spring MVC: one thread handles each request from start to finish\n// server.tomcat.threads.max=' + c.th + '\n@GetMapping("/orders/{id}")\nOrderDto get(@PathVariable long id) {\n    Order order = orderRepository.findById(id);   // the thread stops and waits until the response arrives\n    Delivery d = deliveryClient.track(order);     // (' + c.w + 's)\n    return OrderDto.of(order, d);\n}';

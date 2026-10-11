@@ -11513,7 +11513,7 @@ Lab.register({
   columns: ['요청', '캐시 적중률', 'DB 조회', '동시에 몰린 DB 조회', '평균 응답 시간'],
   simulate: function (c) {
     var ttl = +c.ttl, dbt = +c.dbt, lock = c.lock && ttl > 0, DUR = 30, fmt = Lab.fmt, reqs = [], ev = [], sets = [], expireAt = -1, has = false, loadDone = -1, grp = null, queries = [];
-    function applySets(t) { while (sets.length && sets[0] <= t + 1e-9) { var f = sets.shift(); has = true; expireAt = f + ttl; if (grp) { ev.push({ t: f, k: grp.n > 1 ? 'bad' : '', s: fmt(f) + '초: DB에서 읽은 값을 캐시에 저장했습니다(TTL ' + ttl + '초). ' + (grp.n > 1 ? '저장되기 전까지 ' + fmt(grp.start) + '초부터 요청 ' + grp.n + '건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다.' : '이 값을 채우려고 요청 1건이 DB를 조회했습니다.') + (grp.w ? ' 락 때문에 ' + grp.w + '건은 DB에 가지 않고 이 결과를 기다렸습니다.' : '') }); grp = null; } } }
+    function applySets(t) { while (sets.length && sets[0] <= t + 1e-9) { var f = sets.shift(); has = true; expireAt = f + ttl; if (grp) { ev.push({ t: f, k: grp.n > 1 ? 'bad' : '', s: fmt(f) + '초: DB에서 읽은 값을 캐시에 저장했습니다(TTL ' + ttl + '초). ' + (grp.n > 1 ? '저장되기 전까지 ' + fmt(grp.start) + '초부터 요청 ' + grp.n + '건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다.' : '이 값을 채우려고 요청 1건이 DB를 조회했습니다.') + (sets.length ? ' 나머지 요청도 조회가 끝나는 대로 같은 값을 다시 저장하므로, TTL은 마지막 저장(' + fmt(sets[sets.length - 1]) + '초)부터 셉니다.' : '') + (grp.w ? ' 락 때문에 ' + grp.w + '건은 DB에 가지 않고 이 결과를 기다렸습니다.' : '') }); grp = null; } } }
     var total = DUR * c.rps;
     for (var i = 0; i < total; i++) {
       var t = Math.round(i / c.rps * 1000) / 1000, r = { t: t }; reqs.push(r);
@@ -11615,7 +11615,7 @@ Lab.register({
       } else {
         ver = ph ? [['커밋된 행', 'amount ≥ 100인 주문 3건', ''], ['B가 추가한 행', '주문 1건 (amount 200, 커밋 전)', 'hot']] : [['최신 버전', '500 (B가 수정, 커밋 전)', 'hot'], ['이전 버전 (Undo 로그)', '1000', '']];
         push('', ph ? 'INSERT ... amount = 200' : 'UPDATE ... balance = 500', 'B가 ' + (ph ? '금액 200짜리 주문을 새로 넣습니다.' : '잔액을 500으로 바꿉니다.') + ' A의 조회는 락을 걸지 않았으므로 B는 기다리지 않습니다.', '');
-        ver = ph ? [['커밋된 행', 'amount ≥ 100인 주문 4건', 'hot']] : [['최신 버전', '500 (커밋됨)', 'hot'], ['이전 버전 (Undo 로그)', '1000 (A의 스냅샷 시점 값)', '']];
+        ver = ph ? [['커밋된 행', 'amount ≥ 100인 주문 4건', 'hot']] : [['최신 버전', '500 (커밋됨)', 'hot'], ['이전 버전 (Undo 로그)', L === 'RR' ? '1000 (A의 스냅샷 시점 값)' : '1000 (A가 처음 읽은 값)', '']];
         push('', 'COMMIT', 'B가 커밋합니다. 이제 DB의 확정된 ' + (ph ? '건수는 4건' : '잔액은 500') + '입니다.', '');
         if (L === 'RR') { second = committed; push('SELECT → ' + committed, '', 'A의 두 번째 조회입니다. A는 첫 조회 때의 스냅샷을 기준으로 읽으므로, 그 뒤에 커밋된 B의 변경은 보이지 않습니다. ' + (ph ? '여전히 3건입니다.' : 'Undo 로그의 이전 버전을 따라가 1000을 읽습니다.'), 'good'); }
         else { second = changed; anomaly = ph ? 'Phantom Read' : 'Non-repeatable Read'; push('SELECT → ' + changed, '', 'A의 두 번째 조회입니다. ' + (L === 'RC' ? 'READ COMMITTED는 조회할 때마다 그 시점에 커밋된 최신 데이터를 읽습니다.' : 'READ UNCOMMITTED는 최신 버전을 그대로 읽습니다.') + ' 같은 트랜잭션 안에서 같은 조회를 했는데 ' + (ph ? '없던 행이 나타나 3건이 4건이 됐습니다. 이것이 Phantom Read입니다.' : '1000이 500으로 달라졌습니다. 이것이 Non-repeatable Read입니다.'), 'bad'); }
@@ -12149,8 +12149,8 @@ Lab.register({
     { t: '처음 설정으로', d: '장애 15초. 실패가 쌓이면 차단하고, 주기적으로 회복됐는지 떠봅니다.', v: { use: true, th: '50', wait: '5', dur: '15' } },
     { t: '서킷 브레이커가 없다면', d: '장애 내내 매 호출이 3초씩 기다리다 실패합니다.', v: { use: false, th: '50', wait: '5', dur: '15' } },
     { t: '임계치를 낮추면', d: '30%. 더 빨리 차단합니다.', v: { use: true, th: '30', wait: '5', dur: '15' } },
-    { t: '차단 시간을 길게', d: '10초. 장애가 풀린 뒤에도 한동안 막혀 있습니다.', v: { use: true, th: '50', wait: '10', dur: '15' } },
-    { t: '짧은 장애', d: '5초. 임계치에 닿는지 보세요.', v: { use: true, th: '80', wait: '5', dur: '5' } },
+    { t: '차단 시간을 길게', d: '10초. 장애 중에 회복됐는지 떠보는 횟수가 줄어듭니다.', v: { use: true, th: '50', wait: '10', dur: '15' } },
+    { t: '짧은 장애', d: '장애 5초에 임계치 80%. 실패율이 임계치에 닿지 않아 서킷이 열리지 않습니다.', v: { use: true, th: '80', wait: '5', dur: '5' } },
   ],
   code: function (c) {
     if (!c.use) return 'PaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // 응답이 없으면 3초 뒤 타임아웃\n}';
@@ -12680,9 +12680,9 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', d: '스레드 4개에 요청 12건. 스레드가 기다리느라 묶여 뒤 요청이 줄을 섭니다.', v: { model: 'pool', th: 4, n: 12, w: '2', block: false } },
     { t: '이벤트 루프로', d: '스레드 2개로 12건을 동시에 진행합니다.', v: { model: 'loop', th: 4, n: 12, w: '2', block: false } },
-    { t: '이벤트 루프에서 블로킹 호출', d: '스레드 2개가 묶이면 전체가 멈춥니다. 가장 나쁜 조합입니다.', v: { model: 'loop', th: 4, n: 12, w: '2', block: true } },
+    { t: '이벤트 루프에서 블로킹 호출', d: '스레드 2개가 묶여 한 번에 2건씩만 진행됩니다. 가장 나쁜 조합입니다.', v: { model: 'loop', th: 4, n: 12, w: '2', block: true } },
     { t: '가상 스레드', d: '코드는 블로킹 방식 그대로인데 동시에 진행됩니다.', v: { model: 'virtual', th: 4, n: 12, w: '2', block: false } },
-    { t: '스레드 풀을 키우면', d: '스레드 10개. 나아지지만 요청이 더 늘면 다시 줄을 섭니다.', v: { model: 'pool', th: 10, n: 30, w: '2', block: false } },
+    { t: '스레드 풀을 키우면', d: '스레드 10개에 요청 30건. 스레드를 늘려도 요청이 그만큼 늘면 똑같이 줄을 섭니다.', v: { model: 'pool', th: 10, n: 30, w: '2', block: false } },
   ],
   code: function (c) {
     if (c.model === 'pool') return '// 스프링 MVC: 요청마다 스레드 하나가 끝까지 맡는다\n// server.tomcat.threads.max=' + c.th + '\n@GetMapping("/orders/{id}")\nOrderDto get(@PathVariable long id) {\n    Order order = orderRepository.findById(id);   // 응답이 올 때까지 스레드가 멈춰 기다림\n    Delivery d = deliveryClient.track(order);     // (' + c.w + '초)\n    return OrderDto.of(order, d);\n}';
@@ -13832,7 +13832,7 @@ Lab.register({
       else { maker = '애플리케이션 서버 (스프링)';
         step('애플리케이션 서버 (톰캣)', 2, 'nginx가 요청을 뒤쪽의 톰캣(8080 포트)으로 넘깁니다. 톰캣이 스레드 풀에서 스레드 하나를 배정하고, 필터를 거쳐 스프링의 DispatcherServlet으로 전달합니다.', '');
         step('스프링 (컨트롤러 → 서비스)', 5, 'DispatcherServlet이 /orders를 처리할 컨트롤러를 찾아 실행합니다. 컨트롤러는 서비스를, 서비스는 리포지토리를 호출합니다.', '');
-        step('DB 조회', 20, '커넥션 풀에서 커넥션을 빌려 SQL을 실행하고 결과를 받습니다. 이 요청에서 시간이 가장 많이 드는 구간입니다.', '');
+        step('DB 조회', 20, '커넥션 풀에서 커넥션을 빌려 SQL을 실행하고 결과를 받습니다. 서버 안에서 쓰는 시간 가운데 가장 큰 부분입니다.', '');
         step('응답 생성', 3, '조회 결과를 JSON이나 HTML로 바꿔 응답을 만듭니다. 응답은 톰캣, nginx를 거쳐 되돌아갑니다.', '');
       }
     }
@@ -13840,7 +13840,7 @@ Lab.register({
     if (!c.dns || !c.conn) sum.push('첫 요청에서는 DNS 조회, TCP 연결, TLS 핸드셰이크가 실제 요청보다 먼저 일어납니다. 서버가 아무리 빨라도 이 왕복들은 줄지 않으므로, 연결을 유지해 재사용하는 것(keep-alive, HTTP/2)이 체감 속도에 큰 영향을 줍니다.');
     if (c.what === 'static' && !cdn) sum.push('정적 파일은 웹 서버가 직접 내어 줍니다. 애플리케이션 서버(WAS)는 실행해야 결과가 나오는 요청만 맡습니다. 리버스 프록시를 앞에 두면 TLS 처리, 정적 파일, 부하 분산, 내부 서버 숨기기를 한곳에서 할 수 있습니다.');
     if (cdn) sum.push('CDN은 정적 파일의 사본을 세계 여러 곳에 두고 가까운 곳에서 응답합니다. 왕복 시간이 짧아지고, 원래 서버로 오는 요청이 줄어듭니다.');
-    if (c.what === 'api') sum.push('동적 요청에서는 DB 조회가 대부분의 시간을 차지합니다. 성능 문제를 볼 때 어느 구간에서 시간이 드는지부터 나눠 보는 이유입니다.');
+    if (c.what === 'api') sum.push('동적 요청에서 서버가 쓰는 시간은 대부분 DB 조회입니다(여기서는 31ms 가운데 20ms). 성능 문제를 볼 때 어느 구간에서 시간이 드는지부터 나눠 보는 이유입니다.');
     return { events: ev, summary: sum, row: [total + 'ms', (rows.length - skipped) + '개', skipped + '개', maker] };
   },
   render: function (v, sim, t, H, shown) {
@@ -13948,17 +13948,17 @@ Lab.register({
   simulate: function (c) {
     var C = c.core, T = c.th, io = c.kind === 'io', cpuFrac = io ? 0.1 : 1, taskCpu = 0.1, waitT = io ? 0.9 : 0, ev = [], sum = [];
     var want = T * cpuFrac, over = want > C + 1e-9, used = Math.min(want, C), tput = Math.round(used / taskCpu), best = Math.round(C / cpuFrac), util = Math.round(used / C * 100);
-    var share = over ? want / C : 1, lat = Math.round((taskCpu * share + waitT) * 100) / 100, baseLat = Math.round((taskCpu + waitT) * 100) / 100;
+    var busy = over ? T - tput * waitT : want, share = over ? busy / C : 1, lat = Math.round((taskCpu * share + waitT) * 100) / 100, baseLat = Math.round((taskCpu + waitT) * 100) / 100;
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
     push('코어 ' + C + '개, 스레드 ' + T + '개입니다. ' + (io ? '각 스레드는 시간의 10%만 계산하고 90%는 외부 응답을 기다립니다. 기다리는 스레드는 CPU를 쓰지 않습니다.' : '각 스레드는 쉬지 않고 계산합니다.'), '', 1);
-    push('어느 순간에 CPU를 쓰려는 스레드는 평균 ' + (Math.round(want * 10) / 10) + '개입니다(' + T + '개 × ' + (cpuFrac * 100) + '%). 코어는 ' + C + '개이므로 ' + (over ? '코어가 모자랍니다. 운영체제가 스레드들을 짧은 시간씩 번갈아 코어에 올립니다.' : want < C - 1e-9 ? '코어가 남습니다. 남은 코어는 할 일이 없어 놉니다.' : '딱 맞습니다.'), over ? 'bad' : '', 2);
-    if (over) push('스레드를 교대할 때마다 운영체제는 하던 스레드의 상태를 저장하고 다음 스레드의 상태를 불러옵니다. 코어 하나를 스레드 약 ' + (Math.round(share * 10) / 10) + '개가 나눠 쓰므로, 각 스레드는 자기 차례가 아닌 동안 멈춰 있습니다. 전체가 하는 일의 양은 코어 ' + C + '개 분량 그대로이고, 각자의 작업이 끝나는 시간만 길어집니다.', 'bad', 3);
+    push((io && over ? '코어가 넉넉하다면 ' : '') + '어느 순간에 CPU를 쓰려는 스레드는 평균 ' + (Math.round(want * 10) / 10) + '개입니다(' + T + '개 × ' + (cpuFrac * 100) + '%). 코어는 ' + C + '개이므로 ' + (over ? '코어가 모자랍니다. 운영체제가 스레드들을 짧은 시간씩 번갈아 코어에 올립니다.' : want < C - 1e-9 ? '코어가 남습니다. 남은 코어는 할 일이 없어 놉니다.' : '딱 맞습니다.'), over ? 'bad' : '', 2);
+    if (over) push('스레드를 교대할 때마다 운영체제는 하던 스레드의 상태를 저장하고 다음 스레드의 상태를 불러옵니다. ' + (io ? 'CPU 차례를 받지 못한 스레드가 밀려 CPU를 쓰려는 스레드가 ' + Math.round(busy) + '개까지 쌓입니다. ' : '') + '코어 하나를 스레드 약 ' + (Math.round(share * 10) / 10) + '개가 나눠 쓰므로, 각 스레드는 자기 차례가 아닌 동안 멈춰 있습니다. 전체가 하는 일의 양은 코어 ' + C + '개 분량 그대로이고, 각자의 작업이 끝나는 시간만 길어집니다.', 'bad', 3);
     else push('실행하려는 스레드가 코어 수 이하라서 서로 기다릴 일이 없습니다.', 'good', 3);
     push('결과: CPU 사용률 ' + util + '%, 초당 ' + tput + '건 처리, 작업 하나는 ' + lat + '초 만에 끝납니다' + (over ? '(혼자 실행하면 ' + baseLat + '초).' : '.') + (T !== best ? ' 스레드를 ' + best + '개로 맞추면 초당 ' + Math.round(C / taskCpu) + '건, 작업 하나 ' + baseLat + '초입니다.' : ' 이 작업에 가장 알맞은 스레드 수입니다.'), T === best ? 'good' : '', 4);
     if (!io) sum.push(over ? '계산 위주 작업은 코어 수보다 스레드를 많이 둬도 처리량이 늘지 않습니다. 코어를 나눠 쓰느라 작업 하나하나가 늦게 끝날 뿐입니다. 스레드마다 메모리(스택)도 따로 쓰므로, 스레드 수는 코어 수 근처가 적당합니다.' : T < C ? '코어가 남아 있습니다. 스레드를 코어 수(' + C + '개)까지 늘리면 처리량이 늘어납니다.' : '스레드 수가 코어 수와 같아 모든 코어를 기다림 없이 씁니다.');
     else sum.push(want < C - 1e-9 ? '기다림 위주 작업에서는 스레드가 대부분 대기 중이라 코어가 놉니다. 스레드를 코어 수보다 훨씬 많이 둬야 CPU를 다 씁니다. 적정 수는 대략 코어 수 × (1 + 대기 시간 ÷ 계산 시간), 여기서는 ' + C + ' × (1 + 9) = ' + best + '개입니다.' : over ? 'CPU를 쓰려는 스레드가 이미 코어 수를 넘었습니다. 여기서 더 늘려도 처리량은 그대로이고 스레드당 메모리와 응답 시간만 늘어납니다.' : '기다리는 시간을 다른 스레드가 채워 모든 코어가 쓰이고 있습니다.');
     sum.push('웹 서버의 요청 처리 스레드가 코어 수보다 훨씬 많은(톰캣 기본 200개) 이유는 요청 처리의 대부분이 DB나 외부 응답을 기다리는 시간이기 때문입니다.');
-    return { events: ev, summary: sum, k: { want: want, over: over, share: share, used: used, tput: tput, util: util, best: best, lat: lat }, row: [tput + '건', util + '%', lat + '초', best + '개'] };
+    return { events: ev, summary: sum, k: { want: busy, over: over, share: share, used: used, tput: tput, util: util, best: best, lat: lat }, row: [tput + '건', util + '%', lat + '초', best + '개'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, k = sim.k, last = shown[shown.length - 1], st = last ? last.snap.stage : 0;

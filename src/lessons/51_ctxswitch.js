@@ -23,17 +23,17 @@ Lab.register({
   simulate: function (c) {
     var C = c.core, T = c.th, io = c.kind === 'io', cpuFrac = io ? 0.1 : 1, taskCpu = 0.1, waitT = io ? 0.9 : 0, ev = [], sum = [];
     var want = T * cpuFrac, over = want > C + 1e-9, used = Math.min(want, C), tput = Math.round(used / taskCpu), best = Math.round(C / cpuFrac), util = Math.round(used / C * 100);
-    var share = over ? want / C : 1, lat = Math.round((taskCpu * share + waitT) * 100) / 100, baseLat = Math.round((taskCpu + waitT) * 100) / 100;
+    var busy = over ? T - tput * waitT : want, share = over ? busy / C : 1, lat = Math.round((taskCpu * share + waitT) * 100) / 100, baseLat = Math.round((taskCpu + waitT) * 100) / 100;
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
     push('코어 ' + C + '개, 스레드 ' + T + '개입니다. ' + (io ? '각 스레드는 시간의 10%만 계산하고 90%는 외부 응답을 기다립니다. 기다리는 스레드는 CPU를 쓰지 않습니다.' : '각 스레드는 쉬지 않고 계산합니다.'), '', 1);
-    push('어느 순간에 CPU를 쓰려는 스레드는 평균 ' + (Math.round(want * 10) / 10) + '개입니다(' + T + '개 × ' + (cpuFrac * 100) + '%). 코어는 ' + C + '개이므로 ' + (over ? '코어가 모자랍니다. 운영체제가 스레드들을 짧은 시간씩 번갈아 코어에 올립니다.' : want < C - 1e-9 ? '코어가 남습니다. 남은 코어는 할 일이 없어 놉니다.' : '딱 맞습니다.'), over ? 'bad' : '', 2);
-    if (over) push('스레드를 교대할 때마다 운영체제는 하던 스레드의 상태를 저장하고 다음 스레드의 상태를 불러옵니다. 코어 하나를 스레드 약 ' + (Math.round(share * 10) / 10) + '개가 나눠 쓰므로, 각 스레드는 자기 차례가 아닌 동안 멈춰 있습니다. 전체가 하는 일의 양은 코어 ' + C + '개 분량 그대로이고, 각자의 작업이 끝나는 시간만 길어집니다.', 'bad', 3);
+    push((io && over ? '코어가 넉넉하다면 ' : '') + '어느 순간에 CPU를 쓰려는 스레드는 평균 ' + (Math.round(want * 10) / 10) + '개입니다(' + T + '개 × ' + (cpuFrac * 100) + '%). 코어는 ' + C + '개이므로 ' + (over ? '코어가 모자랍니다. 운영체제가 스레드들을 짧은 시간씩 번갈아 코어에 올립니다.' : want < C - 1e-9 ? '코어가 남습니다. 남은 코어는 할 일이 없어 놉니다.' : '딱 맞습니다.'), over ? 'bad' : '', 2);
+    if (over) push('스레드를 교대할 때마다 운영체제는 하던 스레드의 상태를 저장하고 다음 스레드의 상태를 불러옵니다. ' + (io ? 'CPU 차례를 받지 못한 스레드가 밀려 CPU를 쓰려는 스레드가 ' + Math.round(busy) + '개까지 쌓입니다. ' : '') + '코어 하나를 스레드 약 ' + (Math.round(share * 10) / 10) + '개가 나눠 쓰므로, 각 스레드는 자기 차례가 아닌 동안 멈춰 있습니다. 전체가 하는 일의 양은 코어 ' + C + '개 분량 그대로이고, 각자의 작업이 끝나는 시간만 길어집니다.', 'bad', 3);
     else push('실행하려는 스레드가 코어 수 이하라서 서로 기다릴 일이 없습니다.', 'good', 3);
     push('결과: CPU 사용률 ' + util + '%, 초당 ' + tput + '건 처리, 작업 하나는 ' + lat + '초 만에 끝납니다' + (over ? '(혼자 실행하면 ' + baseLat + '초).' : '.') + (T !== best ? ' 스레드를 ' + best + '개로 맞추면 초당 ' + Math.round(C / taskCpu) + '건, 작업 하나 ' + baseLat + '초입니다.' : ' 이 작업에 가장 알맞은 스레드 수입니다.'), T === best ? 'good' : '', 4);
     if (!io) sum.push(over ? '계산 위주 작업은 코어 수보다 스레드를 많이 둬도 처리량이 늘지 않습니다. 코어를 나눠 쓰느라 작업 하나하나가 늦게 끝날 뿐입니다. 스레드마다 메모리(스택)도 따로 쓰므로, 스레드 수는 코어 수 근처가 적당합니다.' : T < C ? '코어가 남아 있습니다. 스레드를 코어 수(' + C + '개)까지 늘리면 처리량이 늘어납니다.' : '스레드 수가 코어 수와 같아 모든 코어를 기다림 없이 씁니다.');
     else sum.push(want < C - 1e-9 ? '기다림 위주 작업에서는 스레드가 대부분 대기 중이라 코어가 놉니다. 스레드를 코어 수보다 훨씬 많이 둬야 CPU를 다 씁니다. 적정 수는 대략 코어 수 × (1 + 대기 시간 ÷ 계산 시간), 여기서는 ' + C + ' × (1 + 9) = ' + best + '개입니다.' : over ? 'CPU를 쓰려는 스레드가 이미 코어 수를 넘었습니다. 여기서 더 늘려도 처리량은 그대로이고 스레드당 메모리와 응답 시간만 늘어납니다.' : '기다리는 시간을 다른 스레드가 채워 모든 코어가 쓰이고 있습니다.');
     sum.push('웹 서버의 요청 처리 스레드가 코어 수보다 훨씬 많은(톰캣 기본 200개) 이유는 요청 처리의 대부분이 DB나 외부 응답을 기다리는 시간이기 때문입니다.');
-    return { events: ev, summary: sum, k: { want: want, over: over, share: share, used: used, tput: tput, util: util, best: best, lat: lat }, row: [tput + '건', util + '%', lat + '초', best + '개'] };
+    return { events: ev, summary: sum, k: { want: busy, over: over, share: share, used: used, tput: tput, util: util, best: best, lat: lat }, row: [tput + '건', util + '%', lat + '초', best + '개'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, k = sim.k, last = shown[shown.length - 1], st = last ? last.snap.stage : 0;

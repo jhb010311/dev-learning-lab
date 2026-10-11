@@ -25,7 +25,7 @@ Lab.register({
   columns: ['요청', '캐시 적중률', 'DB 조회', '동시에 몰린 DB 조회', '평균 응답 시간'],
   simulate: function (c) {
     var ttl = +c.ttl, dbt = +c.dbt, lock = c.lock && ttl > 0, DUR = 30, fmt = Lab.fmt, reqs = [], ev = [], sets = [], expireAt = -1, has = false, loadDone = -1, grp = null, queries = [];
-    function applySets(t) { while (sets.length && sets[0] <= t + 1e-9) { var f = sets.shift(); has = true; expireAt = f + ttl; if (grp) { ev.push({ t: f, k: grp.n > 1 ? 'bad' : '', s: fmt(f) + '초: DB에서 읽은 값을 캐시에 저장했습니다(TTL ' + ttl + '초). ' + (grp.n > 1 ? '저장되기 전까지 ' + fmt(grp.start) + '초부터 요청 ' + grp.n + '건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다.' : '이 값을 채우려고 요청 1건이 DB를 조회했습니다.') + (grp.w ? ' 락 때문에 ' + grp.w + '건은 DB에 가지 않고 이 결과를 기다렸습니다.' : '') }); grp = null; } } }
+    function applySets(t) { while (sets.length && sets[0] <= t + 1e-9) { var f = sets.shift(); has = true; expireAt = f + ttl; if (grp) { ev.push({ t: f, k: grp.n > 1 ? 'bad' : '', s: fmt(f) + '초: DB에서 읽은 값을 캐시에 저장했습니다(TTL ' + ttl + '초). ' + (grp.n > 1 ? '저장되기 전까지 ' + fmt(grp.start) + '초부터 요청 ' + grp.n + '건이 모두 캐시에서 값을 찾지 못해 각자 DB를 조회했습니다.' : '이 값을 채우려고 요청 1건이 DB를 조회했습니다.') + (sets.length ? ' 나머지 요청도 조회가 끝나는 대로 같은 값을 다시 저장하므로, TTL은 마지막 저장(' + fmt(sets[sets.length - 1]) + '초)부터 셉니다.' : '') + (grp.w ? ' 락 때문에 ' + grp.w + '건은 DB에 가지 않고 이 결과를 기다렸습니다.' : '') }); grp = null; } } }
     var total = DUR * c.rps;
     for (var i = 0; i < total; i++) {
       var t = Math.round(i / c.rps * 1000) / 1000, r = { t: t }; reqs.push(r);

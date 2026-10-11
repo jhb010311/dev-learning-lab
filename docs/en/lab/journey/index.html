@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a06cbaab2c">
+<link rel="stylesheet" href="../../app.css?v=11b50606e7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -65,14 +65,14 @@
 <li>nginx is the first to receive the request. It decrypts the TLS traffic, looks at the path, and decides where the request will be handled.</li>
 <li>nginx passes the request to Tomcat behind it (port 8080). Tomcat assigns a thread from its thread pool, runs the request through the filters, and hands it to the Spring DispatcherServlet.</li>
 <li>DispatcherServlet finds the controller that handles /orders and runs it. The controller calls a service, and the service calls a repository.</li>
-<li>The application borrows a connection from the connection pool, runs the SQL, and receives the result. This is the part of the request that takes the most time.</li>
+<li>The application borrows a connection from the connection pool, runs the SQL, and receives the result. Of the time spent inside the server, this is the largest part.</li>
 <li>The application turns the query result into JSON or HTML and builds the response. The response travels back through Tomcat and nginx.</li>
 <li>The response arrives at the browser. If it is HTML, the browser parses it, finds the URLs of the CSS, scripts, and images in it, and repeats the same process for each of them.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
 <li>On a first request, the DNS lookup, the TCP connection, and the TLS handshake all happen before the actual request. However fast the server is, these round trips do not go away, so keeping a connection open and reusing it (keep-alive, HTTP/2) has a large effect on how fast the site feels.</li>
-<li>In a dynamic request, the database query takes most of the time. This is why, when you look into a performance problem, you start by breaking the request down to see which part takes the time.</li>
+<li>In a dynamic request, most of the time the server spends goes to the database query (here, 20ms out of 31ms). This is why, when you look into a performance problem, you start by breaking the request down to see which part takes the time.</li>
 </ul>
 <h2>Code</h2>
 <pre># nginx (reverse proxy)
@@ -173,6 +173,6 @@ server {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a06cbaab2c"></script>
+<script src="../../app.js?v=11b50606e7"></script>
 </body>
 </html>
