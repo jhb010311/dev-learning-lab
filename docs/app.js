@@ -331,7 +331,7 @@ var Lab = (function () {
     $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
     $('explain').hidden = true; $('explain-btn').setAttribute('aria-expanded', 'false'); $('explain-btn').textContent = '개념 설명 보기';
     drawPath();
-    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); (cur.draw ? $('below') : grid).appendChild($('codepanel')); picReset();
+    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); (cur.draw ? $('below') : grid).appendChild($('codepanel')); $('below').appendChild($('prepanel')); picReset();
     buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
     try { localStorage.setItem('lab-last', cur.id); } catch (e) {}
   }

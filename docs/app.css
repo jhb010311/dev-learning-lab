@@ -73,7 +73,7 @@ button, input, select { font: inherit; color: inherit; }
 .term .no { font-family: var(--font-code); font-size: .74rem; color: var(--muted); font-weight: 400; }
 .term p { font-size: .92rem; max-width: 70ch; }
 
-/* 위에서부터: 설정 → 실행 띠(스크롤해도 따라옴) → 왼쪽 그림과 오른쪽 실행표 → 예시("이렇게 바꿔 보세요") → 실행 비교 → 코드.
+/* 위에서부터: 설정 → 실행 띠(스크롤해도 따라옴) → 왼쪽 그림과 오른쪽 실행표 → 전체 단계 기록 → 실행 비교 → 코드 → 예시("이렇게 바꿔 보세요").
    그림이 없는 실습은 그림 자리에 코드가 온다. 한 번의 실험(설정 → 실행 → 관찰 → 비교)이 한 화면 안에서 이어지게 한다. */
 .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); grid-template-areas: "ctl ctl" "bar bar" "code stage"; gap: 16px 22px; align-items: start; }
 .p-ctl { grid-area: ctl; } .p-stage { grid-area: stage; } .p-code { grid-area: code; } .p-pic { grid-area: pic; } .p-bar { grid-area: bar; }

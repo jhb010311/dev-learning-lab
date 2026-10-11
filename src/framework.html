@@ -75,7 +75,7 @@ button, input, select { font: inherit; color: inherit; }
 .term .no { font-family: var(--font-code); font-size: .74rem; color: var(--muted); font-weight: 400; }
 .term p { font-size: .92rem; max-width: 70ch; }
 
-/* 위에서부터: 설정 → 실행 띠(스크롤해도 따라옴) → 왼쪽 그림과 오른쪽 실행표 → 예시("이렇게 바꿔 보세요") → 실행 비교 → 코드.
+/* 위에서부터: 설정 → 실행 띠(스크롤해도 따라옴) → 왼쪽 그림과 오른쪽 실행표 → 전체 단계 기록 → 실행 비교 → 코드 → 예시("이렇게 바꿔 보세요").
    그림이 없는 실습은 그림 자리에 코드가 온다. 한 번의 실험(설정 → 실행 → 관찰 → 비교)이 한 화면 안에서 이어지게 한다. */
 .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); grid-template-areas: "ctl ctl" "bar bar" "code stage"; gap: 16px 22px; align-items: start; }
 .p-ctl { grid-area: ctl; } .p-stage { grid-area: stage; } .p-code { grid-area: code; } .p-pic { grid-area: pic; } .p-bar { grid-area: bar; }
@@ -407,14 +407,14 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
       <h3 id="log-head">전체 단계 기록</h3>
       <ol class="log" id="log"></ol>
     </div>
-    <div class="panel p-pre">
-      <h3>이렇게 바꿔 보세요</h3>
-      <div class="presets" id="presets"></div>
-    </div>
     <div class="panel p-hist" id="histpanel">
       <h3>실행 비교</h3>
       <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
       <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
     </div>
   </div>
 
@@ -760,7 +760,7 @@ var Lab = (function () {
     $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
     $('explain').hidden = true; $('explain-btn').setAttribute('aria-expanded', 'false'); $('explain-btn').textContent = '개념 설명 보기';
     drawPath();
-    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); (cur.draw ? $('below') : grid).appendChild($('codepanel')); picReset();
+    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); (cur.draw ? $('below') : grid).appendChild($('codepanel')); $('below').appendChild($('prepanel')); picReset();
     buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
     try { localStorage.setItem('lab-last', cur.id); } catch (e) {}
   }
