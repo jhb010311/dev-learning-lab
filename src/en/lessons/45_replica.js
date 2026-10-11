@@ -1,7 +1,7 @@
 Lab.register({
   id: 'replica', nav: 'Replication lag and CAP', cat: 'Database', mode: 'step',
   title: 'I just saved it, but the query shows the old value',
-  intro: 'If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source to reach the replica. Change the replication lag and the time of the read, and also choose what to give up when the network between the two databases is cut.',
+  intro: 'If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source to reach the replica.',
   terms: ['Replication', 'Eventual consistency', 'CAP theorem', 'Read-only transaction (readOnly)'], ranks: ['dbengine', 'nosql', 'traffic'],
   controls: [
     { id: 'part', label: 'What to look at', type: 'select', value: 'lag', options: [['lag', 'Replication lag'], ['cut', 'Network partition between the source and the replica']] },
@@ -39,7 +39,6 @@ Lab.register({
       else { got = 'Bob'; S.read = 'From replica: "Bob"'; push(when + 's: The query is sent to the replica. Replication has already finished, so "Bob" is returned.', 'good'); }
       if (first) { S.r = 'Nickname = Bob'; push(lag + 's: Replication finally arrives, and the replica also becomes "Bob". Later queries see the new value.', ''); }
       fresh = got === 'Bob';
-      sum.push('The result of a query to the ' + (c.from === 'replica' ? 'replica' : 'source') + ' ' + when + 's after the save is "' + got + '".' + (fresh ? '' : ' The save succeeded, but the screen showed the old value.'));
       sum.push('Replication is usually asynchronous, so there is a time lag between the source and the replica. Given time they become the same, but before that they can differ (eventual consistency). Ways to handle this are to read the data a user has just written from the source, or, on the screen right after a write, to use the value received in the response as it is.');
       if (c.from === 'primary') sum.push('If every query is sent to the source, there is no problem, but the benefit of spreading out the reads is lost. Send only the queries that must be current to the source.');
     } else {
@@ -48,7 +47,6 @@ Lab.register({
       if (c.choice === 'ap') { got = 'Alice'; fresh = false; S.read = 'From replica: "Alice" (old value)'; push('A query from another user comes to the replica. The replica responds with the value it has, "Alice". The service continues, but a value that is not the latest was returned.', 'bad'); }
       else { got = 'Error'; fresh = true; answered = false; S.read = 'Replica refused to respond'; push('A query from another user comes to the replica. The replica cannot guarantee that its data is the latest, so it returns an error. No wrong value was returned, but the query failed.', 'bad'); }
       S.link = 'Restored'; S.r = 'Nickname = Bob'; push('The network is restored. The changes that were held back are delivered to the replica, and the two databases are the same again.', 'good');
-      sum.push('Replica response during the partition: ' + (answered ? '"Alice" (old value)' : 'error') + '.');
       sum.push('In a system split across several machines, a network partition will happen sooner or later. When it does, you cannot keep both "respond to every request (availability)" and "give the same latest value wherever you read (consistency)"; you have to choose one. This is what the CAP theorem says. In normal times, without a partition, both can be kept.');
       sum.push(c.choice === 'ap' ? 'Data that is fine to be an old value for a short time, such as a product list or a like count, chooses availability.' : 'Data that must never return a wrong value, such as an account balance or stock, chooses consistency and accepts the errors.');
     }
@@ -60,8 +58,6 @@ Lab.register({
     H.lane(ln, 'Source', s.p + '  (receives writes)', s.p.indexOf('Bob') >= 0 ? 'good' : '');
     H.lane(ln, 'Replication link', s.link, s.link === 'Disconnected' ? 'bad' : 'none');
     H.lane(ln, 'Replica', s.r + '  (serves reads)', s.r === s.p ? (s.r.indexOf('Bob') >= 0 ? 'good' : '') : 'bad');
-    H.counters(v, [[s.read, 'What the query received']]);
-    if (s.r !== s.p) H.text(v, 'The source and the replica have different values now.');
   },
   // Diagram: the source and the replica, with a replication arrow between them. A write goes to the source, and a query goes to the side that is set.
   draw: function (P, sim, shown) {

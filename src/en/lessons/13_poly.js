@@ -1,7 +1,7 @@
 Lab.register({
   id: 'poly', nav: 'Polymorphism and method selection', cat: 'Java language', mode: 'step',
   title: 'Who decides which method runs, and when?',
-  intro: 'The declared type of a variable and the type of the object that it actually holds can be different. An overridden method is chosen at run time by looking at the actual object, but overloading, static methods, and fields are decided at compile time from the declared type alone. Change the combination and try to predict the result.',
+  intro: 'The declared type of a variable and the type of the object that it actually holds can be different. An overridden method is chosen at run time by looking at the actual object, but overloading, static methods, and fields are decided at compile time from the declared type alone.',
   terms: ['Polymorphism', 'Overriding', 'Overloading', 'static', 'Inheritance'], ranks: ['oop', 'absint'],
   controls: [
     { id: 'v', label: 'Declared type of the variable', type: 'select', value: 'Animal', options: [['Animal', 'Animal a'], ['Dog', 'Dog a']] },
@@ -50,7 +50,6 @@ Lab.register({
       if (c.w === 'static') { push('Compile time: info() is a static method. A static method belongs to the class, not to an object, so the compiler turns a.info() into ' + c.v + '.info(), according to the declared type.', '', { decl: c.v, obj: c.o, stage: 'Compile', pick: c.v + '.info()', out: '' }); push('Run time: ' + c.v + '.info() runs. Dog also has info(), but this is not overriding. It is a separate method with the same name that hides the one in the superclass (hiding).', c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: 'Run', pick: c.v + '.info()', out: out }); sum.push('Static methods are not overridden. Calling a static method through a variable is therefore confusing, and the rule is to call it with the class name.'); }
       if (c.w === 'field') { push('Compile time: Unlike a method call, a field access is decided by the declared type. The compiler resolves a.name to the name field of the ' + c.v + ' class.', '', { decl: c.v, obj: c.o, stage: 'Compile', pick: c.v + '\'s name field', out: '' }); push('Run time: The value of name in ' + c.v + ', "' + out + '", is read.' + (c.o === 'Dog' ? ' A Dog object contains both the name of Animal and the name of Dog, and the declared type determines which one is read.' : ''), c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: 'Run', pick: c.v + '\'s name field', out: out }); sum.push('Polymorphism does not apply to fields. This is one of the reasons to access a field through a method (a getter) instead of exposing it directly.'); }
     }
-    sum.unshift('Output: ' + out + '. ' + when + ', this was decided based on the ' + basis + '.');
     return { events: ev, summary: sum, row: [out, when, basis] };
   },
   render: function (v, sim, t, H, shown) {
@@ -60,7 +59,6 @@ Lab.register({
     H.lane(ln, 'Declared type', s.decl + ' (what the compiler knows)', 'wait');
     H.lane(ln, 'Actual object', s.obj + (s.obj.indexOf('(') < 0 ? ' (known only when the code runs)' : ''), s.obj.indexOf('(') === 0 ? 'bad' : 'good');
     H.table(v, ['Stage', 'Selected target'], [{ cells: [s.stage + ' time', { v: s.pick || 'not decided yet', cls: s.pick.indexOf('error') >= 0 ? 'bad' : s.pick ? 'hot' : '' }] }], 'Current stage');
-    H.counters(v, [[s.out || '(not run yet)', 'Console output']]);
   },
   // Diagram: the variable (declared type) and the object (actual type) at the top, and two candidates at the bottom. The key point is which side the arrow that selects a candidate starts from.
   draw: function (P, sim, shown) {

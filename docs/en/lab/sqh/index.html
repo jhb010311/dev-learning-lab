@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Collections</p>
 <h1>Stack, queue, priority queue</h1>
 <p><b>Insertion order and removal order</b></p>
-<p>Even when you insert the same five numbers in the same order, the order in which they come out depends on the data structure. A stack returns the most recently inserted value first, a queue returns the earliest inserted value first, and a priority queue returns the smallest value first. For the priority queue, also watch how the internal array (the heap) changes.</p>
+<p>Even when you insert the same five numbers in the same order, the order in which they come out depends on the data structure. A stack returns the most recently inserted value first, a queue returns the earliest inserted value first, and a priority queue returns the smallest value first.</p>
 <p>Checked against real execution · Checked against the real ArrayDeque and PriorityQueue on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Insertion order 5, 2, 8, 1, 9 → removal order 1, 2, 5, 8, 9.</li>
 <li>A priority queue returns the smallest value first, regardless of the insertion order. The internal array is not fully sorted. It keeps only the condition that a parent is less than or equal to its children (a heap). That is why the top is always the minimum value.</li>
 <li>Insertion and removal swap places only as many times as the height of the tree, so they are O(log n). This is much cheaper than sorting everything every time. A priority queue is used for task scheduling, finding the top N items, and shortest-path algorithms.</li>
 </ul>
@@ -158,6 +157,6 @@ while (!pq.isEmpty()) System.out.print(pq.poll() + &quot; &quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

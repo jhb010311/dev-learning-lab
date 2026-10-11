@@ -1,7 +1,7 @@
 Lab.register({
   id: 'security', nav: 'Security filter chain', cat: 'Authentication', mode: 'step',
   title: 'Where is it decided whether the response is 401 or 403?',
-  intro: 'Spring Security is a line of filters placed in front of the controller. A filter near the front checks "who this is" and records it, and a filter near the back decides "whether this user may enter this path". Change the token state and the request path to see at which filter the request ends and with which response.',
+  intro: 'Spring Security is a line of filters placed in front of the controller. A filter near the front checks "who this is" and records it, and a filter near the back decides "whether this user may enter this path".',
   terms: ['Authentication and authorization', 'Spring Security and SecurityFilterChain', 'SecurityContext', 'Servlet filter', 'HTTP status codes'], ranks: ['auth', 'websec', 'filter'],
   controls: [
     { id: 'who', label: 'Token carried by the request', type: 'select', value: 'none', options: [['none', 'No token'], ['bad', 'Expired or forged token'], ['user', 'Valid token (role: USER)'], ['admin', 'Valid token (role: ADMIN)']] },
@@ -46,7 +46,7 @@ Lab.register({
       else { resp = '403 Forbidden'; end = 'AccessDeniedHandler'; push('ETF', 'ExceptionTranslationFilter: The filter catches the exception and checks the user. The user is authenticated but does not have enough authority, so the filter calls the AccessDeniedHandler to respond with 403.', 'bad'); }
     }
     ctx = 'Cleared'; push('OUT', 'The response goes out, and the SecurityContext that was used for this request is cleared. The information is bound to the thread, so it must be removed before the thread is reused for the next request.', '');
-    sum.push('The response is ' + resp + '. ' + (res === 200 ? 'The request passed the filter chain and the controller ran.' : 'The controller did not run, and ' + end + ' produced the response.'));
+    if (res === 200 && c.path !== 'public') sum.push('The response is ' + resp + '. ' + (res === 200 ? 'The request passed the filter chain and the controller ran.' : 'The controller did not run, and ' + end + ' produced the response.'));
     if (res === 401) sum.push('401 means "it has not been confirmed who this is" (authentication failed). A request for an admin path without a token gets 401, not 403, because permissions cannot be checked while it is not known who the user is.');
     if (res === 403) sum.push('403 means "it is known who this is, but this user has no permission to do this" (authorization failed). Logging in again gives the same result.');
     if (res !== 200) sum.push('This response is produced in a filter before the request reaches DispatcherServlet, so it cannot be changed with @ControllerAdvice. To change the format of the response, register your own AuthenticationEntryPoint and AccessDeniedHandler.');
@@ -58,7 +58,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : { seen: [], cur: null, ctx: 'Empty', resp: '' }, done = shown.length === sim.events.length;
     var bads = shown.filter(function (e) { return e.snap.bad; }).map(function (e) { return e.snap.bad; });
     H.table(v, ['Filter chain (in order from top to bottom)', 'Status'], this.STAGES.map(function (st) { var id = st[0], seen = s.seen.indexOf(id) >= 0; return { cls: !seen && done ? 'gone' : '', cells: [st[1], { v: id === s.cur ? 'Now here' : seen ? (bads.indexOf(id) >= 0 ? 'Blocked here' : 'Passed') : done ? 'Not reached' : '', cls: id === s.cur ? 'hot' : bads.indexOf(id) >= 0 ? 'bad' : seen ? 'good' : '' }] }; }));
-    H.counters(v, [[s.ctx, 'What the SecurityContext holds'], [s.resp || 'In progress', 'Response']]);
     H.text(v, 'ExceptionTranslationFilter comes before AuthorizationFilter, so it catches and handles the exception that is thrown behind it.');
   },
   // Diagram: a passage in which the filters are lined up from top to bottom. Colors show how far the request went in and where it was blocked.
@@ -69,7 +68,7 @@ Lab.register({
     this.STAGES.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0, blocked = bads.indexOf(id) >= 0; P.box('st_' + id, 26, 50 + i * 37, 420, 30, { cls: id === s.cur ? 'hot now' : blocked ? 'bad' : seen ? 'good' : 'ghost', title: st[1], right: blocked ? 'Blocked' : '' }); });
     P.box('ctx', 472, 50, 192, 64, { cls: s.ctx === 'Empty' || s.ctx === 'Cleared' ? 'ghost' : 'good', title: 'SecurityContext', sub: ['Contains:', s.ctx] });
     P.box('resp', 472, 130, 192, 64, { cls: !s.resp ? 'ghost' : /^2/.test(s.resp) ? 'good' : 'bad', title: 'Response', sub: [s.resp || 'In progress', ' '] });
-    P.note('Green is a filter that the request has passed, yellow is where the request is now, red is where the request was blocked, and a dashed outline is a place that the request did not reach. The authentication filter puts "who this is" into the SecurityContext, and the authorization filter behind it looks at that to decide whether to let the request in.');
+    P.note('Green is a filter that the request has passed, yellow is where the request is now, red is where the request was blocked, and a dashed outline is a place that the request did not reach.');
   },
   assume: 'The model assumes a common JWT-based setup that does not use sessions. The custom JwtAuthenticationFilter is assumed to pass the request on without rejecting it when the token is missing or invalid (some implementations make this filter return 401 right away for an invalid token). For all 12 combinations, HTTP requests were sent to a real server running Spring Boot 4.1.1 and Spring Security 7.1.1, and it was confirmed that the response code, the place that produced the response (AuthenticationEntryPoint, AccessDeniedHandler), and whether the controller ran match the screen. Two things were learned while doing this. First, if the response for an authentication failure is not specified (that is, if there is no exceptionHandling configuration), a request without a token gets 403, not 401. That is why the exceptionHandling configuration was put in the code on the screen. Second, when insufficient authority was left to the default handler of Spring Security, 401, not 403, came back when USER requested the admin path. This is because the default handler passes the request on again to the error page (/error), and that request has no authentication information, so it is handled as an authentication failure once more. To get 403 as on the screen, the handler must respond with the status code directly, or the /error path must be permitted. A real chain has more filters that are not listed here.',
 });

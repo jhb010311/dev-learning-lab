@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>스레드 풀: 스레드를 늘리면 무엇이 달라지나 · 개발 학습 실습실</title>
-<meta name="description" content="요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 숫자를 바꿔 가며 대기와 거절이 어떻게 변하는지 보세요.">
+<meta name="description" content="요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/threadpool/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/threadpool/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/threadpool/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="스레드 풀: 스레드를 늘리면 무엇이 달라지나 · 개발 학습 실습실">
-<meta property="og:description" content="요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 숫자를 바꿔 가며 대기와 거절이 어떻게 변하는지 보세요.">
+<meta property="og:description" content="요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/threadpool/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
 <h1>스레드 풀</h1>
 <p><b>스레드를 늘리면 무엇이 달라지나</b></p>
-<p>요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 숫자를 바꿔 가며 대기와 거절이 어떻게 변하는지 보세요.</p>
+<p>요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다.</p>
 <p>실행으로 대조 · ThreadPoolExecutor의 실제 실행 결과와 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -73,9 +73,7 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>요청 10개 중 6개를 처리하고 4개를 거절했습니다. 전체 4.2초가 걸렸습니다.</li>
 <li>처리된 요청은 평균 0.5초, 가장 오래 기다린 요청은 1.6초를 대기 줄에서 보냈습니다.</li>
-<li>스레드는 4개까지 만들어졌습니다(기본 2, 최대 4).</li>
 <li>거절을 없애려면 스레드를 늘리거나, 대기 줄을 늘리거나(대신 기다리는 시간이 길어짐), 요청 처리 시간을 줄여야 합니다.</li>
 </ul>
 <h2>코드</h2>
@@ -174,6 +172,6 @@ for (int i = 1; i &lt;= 10; i++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

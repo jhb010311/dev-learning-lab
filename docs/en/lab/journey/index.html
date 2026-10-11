@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › The big picture</p>
 <h1>From URL to response</h1>
 <p><b>What happens when you type a URL in the address bar and press Enter</b></p>
-<p>While a browser opens a single URL, a DNS lookup, a TCP connection, a TLS handshake, an HTTP request, a reverse proxy, an application server, and a database take part one after another. Some steps can be skipped thanks to a cache or connection reuse. Change the conditions and compare the steps taken and the time they take.</p>
+<p>While a browser opens a single URL, a DNS lookup, a TCP connection, a TLS handshake, an HTTP request, a reverse proxy, an application server, and a database take part one after another. Some steps can be skipped thanks to a cache or connection reuse.</p>
 <p>Partly checked against real execution · The order of the steps and connection reuse were checked with curl; the part behind the proxy was not verified</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -71,7 +71,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Total: about 191ms. Every step was taken. Response produced by: Application server (Spring).</li>
 <li>On a first request, the DNS lookup, the TCP connection, and the TLS handshake all happen before the actual request. However fast the server is, these round trips do not go away, so keeping a connection open and reusing it (keep-alive, HTTP/2) has a large effect on how fast the site feels.</li>
 <li>In a dynamic request, the database query takes most of the time. This is why, when you look into a performance problem, you start by breaking the request down to see which part takes the time.</li>
 </ul>
@@ -174,6 +173,6 @@ server {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Collections</p>
 <h1>Inside HashMap</h1>
 <p><b>Where does a HashMap put a key, and how does it find it?</b></p>
-<p>A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled. Change the hashCode implementation and whether equals is overridden, and see how the buckets fill up and whether a key that was put can be found again.</p>
+<p>A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled.</p>
 <p>Checked against real execution · Checked against the internals of a real HashMap on JDK 21 over 360 steps</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -76,7 +76,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Keys put: 13. Meanwhile the number of buckets went from 16 to 32 (number of resizes: 1), and the number of entries in the longest bucket is 2.</li>
 <li>Both equals and hashCode are overridden, so a new object created with the same id could also be used to replace the value and to find it.</li>
 </ul>
 <h2>Code</h2>
@@ -186,6 +185,6 @@ map.get(new MemberKey(ids[0]));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

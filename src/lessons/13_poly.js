@@ -1,7 +1,7 @@
 Lab.register({
   id: 'poly', nav: '다형성과 메서드 선택', cat: '자바 언어', mode: 'step',
   title: '어느 메서드가 실행될지는 누가, 언제 정하나',
-  intro: '변수의 선언 타입과 실제 들어 있는 객체의 타입이 다를 수 있습니다. 오버라이딩한 메서드는 실행 시점에 실제 객체를 보고 고르지만, 오버로딩, static 메서드, 필드는 컴파일 시점에 선언 타입만 보고 정해집니다. 조합을 바꿔 가며 결과를 예상해 보세요.',
+  intro: '변수의 선언 타입과 실제 들어 있는 객체의 타입이 다를 수 있습니다. 오버라이딩한 메서드는 실행 시점에 실제 객체를 보고 고르지만, 오버로딩, static 메서드, 필드는 컴파일 시점에 선언 타입만 보고 정해집니다.',
   terms: ['다형성', '오버라이딩', '오버로딩', 'static', '상속'], ranks: ['oop', 'absint'],
   controls: [
     { id: 'v', label: '변수의 선언 타입', type: 'select', value: 'Animal', options: [['Animal', 'Animal a'], ['Dog', 'Dog a']] },
@@ -50,7 +50,6 @@ Lab.register({
       if (c.w === 'static') { push('컴파일 시점: info()는 static 메서드입니다. static 메서드는 객체가 아니라 클래스에 속하므로, 컴파일러가 a.info()를 선언 타입에 따라 ' + c.v + '.info()로 바꿔 놓습니다.', '', { decl: c.v, obj: c.o, stage: '컴파일', pick: c.v + '.info()', out: '' }); push('실행 시점: ' + c.v + '.info()가 실행됩니다. Dog에도 info()가 있지만 이것은 오버라이딩이 아니라, 같은 이름의 별개 메서드로 부모 것을 가린 것(하이딩)입니다.', c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: '실행', pick: c.v + '.info()', out: out }); sum.push('static 메서드는 오버라이딩되지 않습니다. 그래서 변수로 static 메서드를 부르는 것은 혼란을 주므로, 클래스 이름으로 호출하는 것이 원칙입니다.'); }
       if (c.w === 'field') { push('컴파일 시점: 필드 접근은 메서드 호출과 달리 선언 타입으로 정해집니다. 컴파일러가 a.name을 ' + c.v + ' 클래스의 name 필드로 확정합니다.', '', { decl: c.v, obj: c.o, stage: '컴파일', pick: c.v + '의 name 필드', out: '' }); push('실행 시점: ' + c.v + '의 name 값 "' + out + '"을 읽습니다.' + (c.o === 'Dog' ? ' Dog 객체 안에는 Animal의 name과 Dog의 name이 둘 다 들어 있고, 어느 쪽을 읽을지가 선언 타입으로 갈립니다.' : ''), c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: '실행', pick: c.v + '의 name 필드', out: out }); sum.push('필드에는 다형성이 적용되지 않습니다. 필드를 직접 노출하지 않고 메서드(getter)로 접근하게 하는 이유 중 하나입니다.'); }
     }
-    sum.unshift('출력: ' + out + '. ' + when + '에 ' + basis + '을 기준으로 정해졌습니다.');
     return { events: ev, summary: sum, row: [out, when, basis] };
   },
   render: function (v, sim, t, H, shown) {
@@ -60,7 +59,6 @@ Lab.register({
     H.lane(ln, '선언 타입', s.decl + ' (컴파일러가 아는 것)', 'wait');
     H.lane(ln, '실제 객체', s.obj + (s.obj.indexOf('(') < 0 ? ' (실행해 봐야 아는 것)' : ''), s.obj.indexOf('(') === 0 ? 'bad' : 'good');
     H.table(v, ['단계', '선택된 대상'], [{ cells: [s.stage + ' 시점', { v: s.pick || '아직 정하지 않음', cls: s.pick.indexOf('오류') >= 0 ? 'bad' : s.pick ? 'hot' : '' }] }], '지금 단계');
-    H.counters(v, [[s.out || '(아직 실행 전)', '콘솔 출력']]);
   },
   // 그림: 위에 변수(선언 타입)와 객체(실제 타입), 아래에 후보 둘. 어느 쪽에서 출발한 화살표가 후보를 고르는지가 핵심.
   draw: function (P, sim, shown) {

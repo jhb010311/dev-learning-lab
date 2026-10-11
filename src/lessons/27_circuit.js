@@ -46,7 +46,7 @@ Lab.register({
       if (win.length >= 10 && rate >= th) { state = 'OPEN'; openedAt = t; trans.push('OPEN'); push(msg + ' 최근 10번 중 실패율이 ' + Math.round(rate) + '%로 임계치 ' + th + '% 이상이 됐습니다. 서킷을 엽니다(OPEN). 이제부터 ' + wait + '초 동안 결제 서비스 호출을 막습니다.', 'bad'); }
       else push(msg + (win.length >= 10 || !ok ? ' 최근 ' + win.length + '번의 실패율 ' + Math.round(rate) + '%.' : ''), ok ? '' : 'bad');
     }
-    var waitT = failN * 3, sum = ['호출 40번 중 성공 ' + okN + '번, 3초씩 기다리다 실패 ' + failN + '번, 차단되어 즉시 대체 응답 ' + blockN + '번. 응답 없는 서비스를 기다리는 데 쓴 시간은 합계 ' + waitT + '초입니다.'];
+    var waitT = failN * 3, sum = [];
     if (!c.use) sum.push('장애가 이어지는 동안 모든 호출이 3초씩 스레드를 붙잡았습니다. 요청이 많으면 스레드 풀이 금방 바닥나고, 결제와 무관한 기능까지 응답하지 못하게 됩니다. 한 서비스의 장애가 호출하는 쪽으로 번지는 것입니다.');
     else if (!trans.length) sum.push('실패율이 임계치에 닿지 않아 서킷이 한 번도 열리지 않았습니다. 장애가 짧거나 임계치가 높으면 이렇게 됩니다.');
     else sum.push('상태가 ' + ['CLOSED'].concat(trans).join(' → ') + ' 순으로 바뀌었습니다. 열려 있는 동안에는 호출하지 않고 바로 대체 응답을 주므로 스레드가 묶이지 않고, 장애 난 서비스에도 부하를 주지 않아 회복할 틈을 줍니다. 일정 시간 뒤에는 소수의 호출만 보내 회복 여부를 확인합니다.');
@@ -60,9 +60,6 @@ Lab.register({
     var ln = H.lanes(v), down = n >= sim.downFrom && n <= sim.downTo;
     H.lane(ln, '결제 서비스', n === 0 ? '정상' : down ? '장애 (응답 없음)' : '정상', down ? 'bad' : 'good');
     if (c.use) H.lane(ln, '서킷', s.state === 'CLOSED' ? 'CLOSED: 호출을 그대로 통과시킴 · 최근 ' + s.wn + '번 실패율 ' + s.rate + '%' : s.state === 'OPEN' ? 'OPEN: 호출을 막고 즉시 대체 응답' : 'HALF_OPEN: 시험 호출 몇 번만 통과', s.state === 'OPEN' ? 'bad' : s.state === 'HALF_OPEN' ? 'hot' : '', s.state === 'CLOSED' ? s.rate / 100 : undefined);
-    H.title(v, '호출 40번의 결과 (1칸 = 1초에 1번)'); var items = [];
-    for (var i = 0; i < 40; i++) items.push([String(i + 1), (s.calls[i] || '') + (i === n - 1 ? ' now' : '')]);
-    H.slots(v, items, null, true);
     H.text(v, '초록은 성공, 빨강은 3초를 기다리다 실패, 파랑은 서킷이 막아서 즉시 대체 응답. 장애 구간은 ' + sim.downFrom + '초부터 ' + sim.downTo + '초까지입니다.');
   },
   // 그림: 주문 서비스와 결제 서비스 사이에 놓인 서킷. 닫혀 있으면 호출이 지나가고, 열리면 서킷에서 바로 되돌아온다.

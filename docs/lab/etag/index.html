@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HTTP 캐시와 ETag: 같은 파일을 또 받을 필요가 있을까 · 개발 학습 실습실</title>
-<meta name="description" content="브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 &quot;얼마 동안 그대로 써도 되는지&quot;와 &quot;내용의 버전 표시(ETag)&quot;를 알려 주면, 브라우저는 요청을 아예 생략하거나 &quot;바뀌었느냐&quot;만 물어볼 수 있습니다. 설정과 시점을 바꿔 가며 오가는 것을 보세…">
+<meta name="description" content="브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 &quot;얼마 동안 그대로 써도 되는지&quot;와 &quot;내용의 버전 표시(ETag)&quot;를 알려 주면, 브라우저는 요청을 아예 생략하거나 &quot;바뀌었느냐&quot;만 물어볼 수 있습니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/etag/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/etag/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/etag/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="HTTP 캐시와 ETag: 같은 파일을 또 받을 필요가 있을까 · 개발 학습 실습실">
-<meta property="og:description" content="브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 &quot;얼마 동안 그대로 써도 되는지&quot;와 &quot;내용의 버전 표시(ETag)&quot;를 알려 주면, 브라우저는 요청을 아예 생략하거나 &quot;바뀌었느냐&quot;만 물어볼 수 있습니다. 설정과 시점을 바꿔 가며 오가는 것을 보세…">
+<meta property="og:description" content="브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 &quot;얼마 동안 그대로 써도 되는지&quot;와 &quot;내용의 버전 표시(ETag)&quot;를 알려 주면, 브라우저는 요청을 아예 생략하거나 &quot;바뀌었느냐&quot;만 물어볼 수 있습니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/etag/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>HTTP 캐시와 ETag</h1>
 <p><b>같은 파일을 또 받을 필요가 있을까</b></p>
-<p>브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 &quot;얼마 동안 그대로 써도 되는지&quot;와 &quot;내용의 버전 표시(ETag)&quot;를 알려 주면, 브라우저는 요청을 아예 생략하거나 &quot;바뀌었느냐&quot;만 물어볼 수 있습니다. 설정과 시점을 바꿔 가며 오가는 것을 보세요.</p>
+<p>브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 &quot;얼마 동안 그대로 써도 되는지&quot;와 &quot;내용의 버전 표시(ETag)&quot;를 알려 주면, 브라우저는 요청을 아예 생략하거나 &quot;바뀌었느냐&quot;만 물어볼 수 있습니다.</p>
 <p>실행으로 대조 · 시험 서버와 실제 브라우저로 확인</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -62,7 +62,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>두 번째에 서버로 간 요청: GET + If-None-Match. 응답: 304 Not Modified. 두 번 여는 동안 전송된 본문은 합계 200KB입니다.</li>
 <li>304 응답은 본문이 없어 전송량이 거의 없습니다. 다만 요청과 응답의 왕복은 한 번 일어나고, 서버는 현재 ETag를 알기 위해 일을 해야 합니다.</li>
 </ul>
 <h2>코드</h2>
@@ -162,6 +161,6 @@ ResponseEntity&lt;Product&gt; get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

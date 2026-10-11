@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>순차 호출과 병렬 호출: 외부 호출 여러 개를 차례로 할까 한꺼번에 할까 · 개발 학습 실습실</title>
-<meta name="description" content="상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다. 호출 개수와 방식을 바꿔 보고, 느린 호출에 제한 시간을 걸었을 때의 차이도 보세요.">
+<meta name="description" content="상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/parallel/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/parallel/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/parallel/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="순차 호출과 병렬 호출: 외부 호출 여러 개를 차례로 할까 한꺼번에 할까 · 개발 학습 실습실">
-<meta property="og:description" content="상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다. 호출 개수와 방식을 바꿔 보고, 느린 호출에 제한 시간을 걸었을 때의 차이도 보세요.">
+<meta property="og:description" content="상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/parallel/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
 <h1>순차 호출과 병렬 호출</h1>
 <p><b>외부 호출 여러 개를 차례로 할까 한꺼번에 할까</b></p>
-<p>상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다. 호출 개수와 방식을 바꿔 보고, 느린 호출에 제한 시간을 걸었을 때의 차이도 보세요.</p>
+<p>상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다.</p>
 <p>실행으로 대조 · JDK 21에서 실행해 확인</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>전체 응답 시간은 3.2초입니다. 각 호출 시간의 합은 3.2초, 가장 느린 호출은 1.6초입니다.</li>
 <li>순차 호출의 응답 시간은 모든 호출 시간의 합입니다. 서로 결과에 의존하지 않는 호출이라면 차례로 부를 이유가 없습니다.</li>
 </ul>
 <h2>코드</h2>
@@ -161,6 +160,6 @@ return new ProductPage(product, stock, reviews, recommend);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

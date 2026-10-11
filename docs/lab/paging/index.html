@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OFFSET과 키셋 페이징: 뒤쪽 페이지일수록 느려지는 이유 · 개발 학습 실습실</title>
-<meta name="description" content="게시글 목록을 최신순으로 페이지마다 나눠 보여 줍니다. OFFSET 방식은 앞 페이지의 행을 전부 읽고 버린 뒤에야 원하는 페이지에 도착합니다. 키셋(커서) 방식은 &quot;마지막으로 본 글 다음부터&quot;를 인덱스로 바로 찾아갑니다. 페이지 번호를 키워 가며 읽는 행 수를 비교하세요.">
+<meta name="description" content="게시글 목록을 최신순으로 페이지마다 나눠 보여 줍니다. OFFSET 방식은 앞 페이지의 행을 전부 읽고 버린 뒤에야 원하는 페이지에 도착합니다. 키셋(커서) 방식은 &quot;마지막으로 본 글 다음부터&quot;를 인덱스로 바로 찾아갑니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/paging/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/paging/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/paging/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="OFFSET과 키셋 페이징: 뒤쪽 페이지일수록 느려지는 이유 · 개발 학습 실습실">
-<meta property="og:description" content="게시글 목록을 최신순으로 페이지마다 나눠 보여 줍니다. OFFSET 방식은 앞 페이지의 행을 전부 읽고 버린 뒤에야 원하는 페이지에 도착합니다. 키셋(커서) 방식은 &quot;마지막으로 본 글 다음부터&quot;를 인덱스로 바로 찾아갑니다. 페이지 번호를 키워 가며 읽는 행 수를 비교하세요.">
+<meta property="og:description" content="게시글 목록을 최신순으로 페이지마다 나눠 보여 줍니다. OFFSET 방식은 앞 페이지의 행을 전부 읽고 버린 뒤에야 원하는 페이지에 도착합니다. 키셋(커서) 방식은 &quot;마지막으로 본 글 다음부터&quot;를 인덱스로 바로 찾아갑니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/paging/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › SQL</p>
 <h1>OFFSET과 키셋 페이징</h1>
 <p><b>뒤쪽 페이지일수록 느려지는 이유</b></p>
-<p>게시글 목록을 최신순으로 페이지마다 나눠 보여 줍니다. OFFSET 방식은 앞 페이지의 행을 전부 읽고 버린 뒤에야 원하는 페이지에 도착합니다. 키셋(커서) 방식은 &quot;마지막으로 본 글 다음부터&quot;를 인덱스로 바로 찾아갑니다. 페이지 번호를 키워 가며 읽는 행 수를 비교하세요.</p>
+<p>게시글 목록을 최신순으로 페이지마다 나눠 보여 줍니다. OFFSET 방식은 앞 페이지의 행을 전부 읽고 버린 뒤에야 원하는 페이지에 도착합니다. 키셋(커서) 방식은 &quot;마지막으로 본 글 다음부터&quot;를 인덱스로 바로 찾아갑니다.</p>
 <p>일부만 실행으로 확인 · 결과 내용은 SQLite로 확인, 읽는 행 수는 문서 기준</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -152,6 +152,6 @@ SELECT id, title, created_at
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

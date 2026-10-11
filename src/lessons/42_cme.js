@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cme', nav: '순회 중 삭제', cat: '자료구조', mode: 'step',
   title: '반복문 안에서 원소를 지우면',
-  intro: '리스트 [1, 2, 2, 3, 4]를 돌면서 값이 2인 원소를 지우려 합니다. 지우는 방법에 따라 예외가 나기도 하고, 예외 없이 원소 하나를 건너뛰어 버리기도 합니다. 방법과 컬렉션 종류를 바꿔 가며 결과를 보세요.',
+  intro: '리스트 [1, 2, 2, 3, 4]를 돌면서 값이 2인 원소를 지우려 합니다. 지우는 방법에 따라 예외가 나기도 하고, 예외 없이 원소 하나를 건너뛰어 버리기도 합니다.',
   terms: ['fail-fast 반복자', 'ArrayList', 'ConcurrentHashMap', '스레드 안전(Thread-safe)'], ranks: ['collection', 'exception'],
   controls: [
     { id: 'how', label: '지우는 방법', type: 'select', value: 'foreach', options: [['foreach', '향상된 for문 안에서 list.remove()'], ['indexfwd', '인덱스 for문 (앞에서 뒤로)'], ['indexback', '인덱스 for문 (뒤에서 앞으로)'], ['iterator', 'Iterator의 remove()'], ['removeIf', 'removeIf()']] },
@@ -52,11 +52,11 @@ Lab.register({
     if (c.how === 'removeIf') { list = list.filter(function (x2) { return x2 !== 2; }); push('removeIf가 조건에 맞는 원소를 내부에서 한 번에 걸러 냅니다. 반복을 직접 돌리지 않으므로 순회 중 수정 문제가 생기지 않습니다. 리스트는 ' + JSON.stringify(list).replace(/,/g, ', ') + '.', 'good', -1); }
     var res = '[' + list.join(', ') + ']', clean = list.indexOf(2) < 0;
     push('최종 리스트: ' + res + (ex ? ' (예외로 중단됨)' : '') + '.', clean && !ex ? 'good' : 'bad', -1);
-    sum.push('결과: ' + res + '. 예외: ' + (ex || '없음') + '. 2가 ' + (clean ? '모두 지워졌습니다.' : '남아 있습니다.'));
     if (ex === 'ConcurrentModificationException') sum.push('이 예외는 이름과 달리 스레드가 하나여도 납니다. 순회 중에 반복자를 거치지 않고 컬렉션을 바꾸면 발생합니다. 반복자는 수정 횟수를 비교해 변화를 감지하는 즉시 실패합니다.');
     if (c.how === 'indexfwd') sum.push('예외는 없지만 결과가 틀렸습니다. 지운 자리로 당겨져 온 원소를 건너뛰기 때문입니다. 조용히 틀리는 쪽이 예외보다 더 위험합니다.');
     if (cow && c.how === 'foreach') sum.push('CopyOnWriteArrayList는 수정할 때마다 배열을 통째로 복사해 새로 만들고, 반복자는 예전 배열을 돕니다. 그래서 순회 중 수정이 안전하지만 수정 비용이 큽니다. 읽기가 압도적으로 많고 수정이 드문 경우(리스너 목록 등)에 맞습니다. ConcurrentHashMap도 순회 중 수정에 예외를 던지지 않도록 설계돼 있습니다.');
     if (!ex && clean && c.how !== 'foreach') sum.push('순회하며 지울 때는 removeIf()나 Iterator.remove()를 씁니다.');
+    if (!sum.length) sum.push('결과: ' + res + '. 예외: ' + (ex || '없음') + '. 2가 ' + (clean ? '모두 지워졌습니다.' : '남아 있습니다.'));
     return { events: ev, summary: sum, res: res + (ex ? '|' + ex : ''), row: [res, ex || '없음', clean ? '예' : '아니오'] };
   },
   render: function (v, sim, t, H, shown) {

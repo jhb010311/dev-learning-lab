@@ -66,11 +66,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { S: ['v1', 'v1', 'v1', 'v1'], G: [], lb: 'v1 servers: 4', cut: 0 };
     var cls = function (x) { return x === 'v1' ? 'q' : x === 'v2' ? 'd' : x === 'None' ? '' : 'b'; };
-    var ln = H.lanes(v); H.lane(ln, 'Load balancer', 'Sending requests to: ' + s.lb, s.lb.indexOf('No server') >= 0 ? 'bad' : 'wait');
     H.title(v, sim.c.st === 'bluegreen' ? 'Existing environment (blue)' : 'Servers'); H.slots(v, s.S.map(function (x, i) { return ['Server ' + (i + 1) + ': ' + x, cls(x)]; }), '');
     if (s.G.length) { H.title(v, 'New environment (green)'); H.slots(v, s.G.map(function (x, i) { return ['Server ' + (i + 5) + ': ' + x, cls(x)]; }), ''); }
-    H.text(v, 'Blue is v1, green is v2, and yellow is a server that is being taken down or brought up.');
-    H.counters(v, [[s.cut, 'Requests cut off']]);
   },
   // Diagram: the load balancer and the servers. The color of a server is its version, and the server an arrow reaches is the one that receives requests now.
   draw: function (P, sim, shown) {

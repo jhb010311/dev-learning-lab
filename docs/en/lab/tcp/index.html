@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Transport layer</p>
 <h1>TCP connections and retransmission</h1>
 <p><b>When a packet is lost, who notices and sends it again?</b></p>
-<p>TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure. Make a packet get lost on purpose and see how the two protocols differ.</p>
+<p>TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure.</p>
 <p>Checked against documentation and standards · Checked against the TCP specification (RFC 9293)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -63,7 +63,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Data that reached the receiver: &quot;Hello, world!!!&quot;. Retransmissions: 0.</li>
 <li>TCP detects a loss from the sequence numbers and acknowledgments and sends the data again, and even if segments arrive in the wrong order, it puts them in order by number before passing them to the application. The application never learns about the loss. The price is the round trip to establish the connection and, when a loss happens, the delay of also waiting for the data that follows.</li>
 <li>Flow control adjusts the sending so that it does not exceed what the receiver can handle, and congestion control slows the sending down when the network is congested. When a loss occurs, TCP assumes the network is congested and lowers its sending rate.</li>
 </ul>
@@ -159,6 +158,6 @@ socket.close();                                // close the connection</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

@@ -66,22 +66,19 @@ Lab.register({
         }
       }
     });
-    var sum = ['Out of 5 requests, handled as logged in: ' + ok + ', 401 responses: ' + fail + ', shared store accesses: ' + look + '.'];
+    var sum = [];
     if (M === 'local' && S > 1 && !c.kick) sum.push('The session exists only in the memory of the one server where the user logged in, so requests that went to other servers lost the login. To add more servers, you must either always send the same user to the same server (sticky sessions) or move the session to a shared store.');
-    if (M === 'local' && S === 1) sum.push('With one server there is no problem. Increase the number of servers to 2 or more.');
+    if (M === 'local' && S === 1) sum.push('With one server there is no problem.');
     if (M === 'redis') sum.push('If the session is kept in a shared store, the login stays valid no matter how many servers there are, and you can log a user out immediately just by deleting the session. In exchange, every request queries the store, and if the store goes down, everyone is logged out.');
     if (M === 'jwt') sum.push('With a JWT the server stores nothing, so it is easy to add servers and there is no lookup cost.' + (c.kick ? ' In exchange, a token that has been issued cannot be invalidated before it expires. Requests that passed even after the forced logout: ' + leaked + '. You can block tokens by keeping a list of blocked tokens on the server, but then every request queries a store again.' : ' After the expiration time passes, the user has to log in again.'));
-    if (M === 'refresh') sum.push('If you keep the access token short and reissue it with the refresh token, ordinary requests are handled without a lookup, while the damage from a stolen token or a forced logout is limited to the expiration time of the access token.' + (c.kick ? ' Requests that passed after the forced logout: ' + leaked + '. Shorten the expiration time and compare again.' : ''));
+    if (M === 'refresh') sum.push('If you keep the access token short and reissue it with the refresh token, ordinary requests are handled without a lookup, while the damage from a stolen token or a forced logout is limited to the expiration time of the access token.');
+    if (!sum.length) sum.push('Out of 5 requests, handled as logged in: ' + ok + ', 401 responses: ' + fail + ', shared store accesses: ' + look + '.');
     return { events: ev, summary: sum, row: [ok + '', fail + '', look + '', c.kick ? leaked + '' : 'N/A'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to start with the login at 0 min.'); return; }
     H.counters(v, [[s.ok, 'Successful requests'], [s.fail, '401 responses'], [s.look, 'Shared store accesses']]);
-    H.title(v, 'Who holds what'); var ln = H.lanes(v);
-    H.lane(ln, 'User', s.client, s.client === 'None' ? 'none' : 'good');
-    s.sv.forEach(function (x, i) { H.lane(ln, 'Server ' + (i + 1), x, i === s.hot ? 'hot' : x.indexOf('No session') === 0 ? 'none' : ''); });
-    if (s.shared !== null) H.lane(ln, c.mode === 'redis' ? 'Redis' : 'Token store', s.shared, s.shared === 'Empty' ? 'none' : 'wait');
     H.table(v, ['Time', 'Server that received it', 'What the user sent', 'Result'], s.rows, 'Request log');
   },
   // Diagram: the request from the browser goes through the load balancer to one of the servers. The boxes below show where the login state is kept.
@@ -94,7 +91,7 @@ Lab.register({
     s.sv.forEach(function (t, i) { var p = t.split(' ('); P.box('mem' + i, 16 + i * (w + 8), y + 54, w, 62, { cls: (/no session|nothing/i.test(t) || t === '-' ? 'ghost' : 'good') + (i === s.hot ? ' now' : ''), title: 'Server ' + (i + 1) + ' memory', sub: [p[0], p[1] ? '(' + p[1] : ' '] }); });
     if (s.shared !== null) P.box('sh', 16, y + 124, 648, 46, { cls: s.shared === 'Empty' ? 'ghost' : 'good', title: 'Store shared by the servers (Redis)', sub: s.shared });
     P.size(680, y + 124 + (s.shared !== null ? 46 + 16 : 8));
-    P.note('The top shows the order of requests and responses, and the bottom shows where the login state is kept. If a session is only in the memory of one server, a request that goes to another server is treated as not logged in. The thick outline marks the server that just received a request.');
+    P.note('The top shows the order of requests and responses, and the bottom shows where the login state is kept. The thick outline marks the server that just received a request.');
   },
   assume: 'It assumes that the load balancer sends requests to the servers in turn (the login goes to Server 1, the next request to Server 2, and so on). The session expiration time and the refresh token expiration (usually days to weeks) are assumed not to be reached within these 50 minutes. Verifying a JWT signature uses only the key the server holds, with no store. Keeping the refresh token in a server store and checking it there is a widely used setup, but no standard requires it.',
 });

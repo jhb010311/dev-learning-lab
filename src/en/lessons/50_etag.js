@@ -1,7 +1,7 @@
 Lab.register({
   id: 'etag', nav: 'HTTP caching and ETag', cat: 'HTTP', mode: 'step',
   title: 'Do we have to fetch the same file again?',
-  intro: 'A browser keeps a response it has received and uses it again later. If the server tells it, in the response headers, "how long it may use the response as it is" and "a tag for the version of the content (the ETag)", the browser can skip the request altogether or ask only "has it changed?". Change the settings and the timing, and watch what goes back and forth.',
+  intro: 'A browser keeps a response it has received and uses it again later. If the server tells it, in the response headers, "how long it may use the response as it is" and "a tag for the version of the content (the ETag)", the browser can skip the request altogether or ask only "has it changed?".',
   terms: ['Conditional requests and ETag', 'HTTP status codes', 'Cache', 'CDN'], ranks: ['http', 'cache', 'rest'],
   controls: [
     { id: 'cc', label: 'Cache directive sent by the server', type: 'select', value: 'max', options: [['nostore', 'Cache-Control: no-store (do not store)'], ['max', 'Cache-Control: max-age=60 (use as it is for 60s)'], ['nocache', 'Cache-Control: no-cache (check every time before use)']] },
@@ -41,12 +41,10 @@ Lab.register({
       sum.push(c.chg ? 'The content changed, so the new body was received. Thanks to the ETag, the whole body is received only when it has changed.' : 'A 304 response has no body, so almost nothing is transferred. One round trip still takes place, though, and the server has to do some work to find out the current ETag.');
       if (c.cc === 'nocache') sum.push('Despite its name, no-cache does not mean "do not store". It means "store it, but check with the server every time before using it". The directive that prevents storing is no-store.');
     }
-    sum.unshift('Request sent to the server the second time: ' + req2 + '. Response: ' + res2 + '. Body transferred in total while the address was opened twice: ' + sent + 'KB.');
     return { events: ev, summary: sum, row: [req2, res2, body2, shown] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], cache: 'None', sent: 0 };
-    H.counters(v, [[s.cache, 'Stored in the browser'], [(s.rows.length > 1 ? s.sent : 0) + 'KB', 'Body transferred so far']]);
     if (s.rows.length) H.table(v, ['Direction', 'What was sent', 'Header / result'], s.rows, 'Between the browser and the server'); else H.text(v, 'Click Run to start.');
   },
   // Diagram: requests and responses between the browser and the server. When the browser uses the cache directly, no arrow to the server appears.

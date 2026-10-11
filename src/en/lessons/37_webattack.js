@@ -1,7 +1,7 @@
 Lab.register({
   id: 'webattack', nav: 'Three web attacks', cat: 'Authentication', mode: 'step',
   title: 'What happens when you trust input as it is',
-  intro: 'SQL injection, cross-site scripting (XSS), and cross-site request forgery (CSRF) work on different principles. In one, the input becomes part of the SQL. In another, the input runs as a script in another user\'s browser. In the third, a logged-in user\'s browser is made to send a request on the attacker\'s behalf. For each attack, turn the defenses on and off and see what changes.',
+  intro: 'SQL injection, cross-site scripting (XSS), and cross-site request forgery (CSRF) work on different principles. In one, the input becomes part of the SQL. In another, the input runs as a script in another user\'s browser. In the third, a logged-in user\'s browser is made to send a request on the attacker\'s behalf.',
   terms: ['SQL injection', 'Cross-site scripting (XSS)', 'Cross-site request forgery (CSRF)', 'HttpOnly, Secure, and SameSite', 'Cookie'], ranks: ['websec', 'auth'],
   controls: [
     { id: 'atk', label: 'Attack type', type: 'select', value: 'sqli', options: [['sqli', 'SQL injection'], ['xss', 'XSS (stored)'], ['csrf', 'CSRF']] },
@@ -73,7 +73,6 @@ Lab.register({
       else { box.push(['Request bank.example received', 'POST /transfer\nCookie: session ID (attached automatically by the browser)\nto=attacker account, amount=1000000\n→ judged a normal request → transfer executed']); push('This session cookie is set to be attached even to requests sent from other sites (SameSite=None). The browser automatically attaches the session cookie to a request going to bank.example. To the bank server, it cannot be told apart from a normal transfer request sent by the logged-in user. The transfer is executed.', 'bad'); res = 'Succeeded'; harm = 'Transfer executed from the victim\'s account'; sum.push('CSRF abuses the fact that cookies are attached to requests automatically. Without stealing the cookie value, the attacker makes the victim\'s browser send the request on their behalf.'); }
       if (c.d3 !== 'none') sum.push('An API that sends authentication information in the Authorization header (such as a JWT) instead of in a cookie is hard to target with CSRF, because the browser does not attach the header automatically. That is why CSRF protection is sometimes turned off on such API servers.');
     }
-    sum.unshift('Attack result: ' + res + '. Harm: ' + harm + '.');
     return { events: ev, summary: sum, row: [res, harm, where] };
   },
   render: function (v, sim, t, H, shown) {

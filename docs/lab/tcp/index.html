@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TCP 연결과 재전송: 패킷이 사라지면 누가 알아채고 다시 보내나 · 개발 학습 실습실</title>
-<meta name="description" content="TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다. 패킷을 일부러 잃어버리게 해 보고 두 프로토콜의 차이를 확인하세요.">
+<meta name="description" content="TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/tcp/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/tcp/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tcp/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="TCP 연결과 재전송: 패킷이 사라지면 누가 알아채고 다시 보내나 · 개발 학습 실습실">
-<meta property="og:description" content="TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다. 패킷을 일부러 잃어버리게 해 보고 두 프로토콜의 차이를 확인하세요.">
+<meta property="og:description" content="TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/tcp/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › 전송 계층</p>
 <h1>TCP 연결과 재전송</h1>
 <p><b>패킷이 사라지면 누가 알아채고 다시 보내나</b></p>
-<p>TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다. 패킷을 일부러 잃어버리게 해 보고 두 프로토콜의 차이를 확인하세요.</p>
+<p>TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.</p>
 <p>문서·표준 대조 · TCP 표준(RFC 9293)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -63,7 +63,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>받은 쪽에 도착한 데이터: &quot;안녕하세요&quot;. 재전송 0번.</li>
 <li>TCP는 번호와 확인 응답으로 유실을 감지해 다시 보내고, 순서가 뒤바뀌어 도착해도 번호대로 맞춰서 애플리케이션에 넘깁니다. 애플리케이션은 유실을 전혀 모릅니다. 그 대가로 연결을 맺는 왕복과, 유실 시 뒤따르는 데이터까지 기다리게 되는 지연이 있습니다.</li>
 <li>받는 쪽이 처리할 수 있는 만큼만 보내도록 조절하는 것이 흐름 제어, 네트워크가 막히면 보내는 속도를 줄이는 것이 혼잡 제어입니다. 유실이 생기면 TCP는 네트워크가 막혔다고 보고 속도를 낮춥니다.</li>
 </ul>
@@ -159,6 +158,6 @@ socket.close();                                // 연결 종료</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

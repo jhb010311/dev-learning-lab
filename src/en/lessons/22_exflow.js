@@ -1,7 +1,7 @@
 Lab.register({
   id: 'exflow', nav: 'Exceptions and finally', cat: 'Java language', mode: 'step',
   title: 'When an exception is thrown, which blocks run, and in what order?',
-  intro: 'When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs in every case. The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block. Change the conditions and check the execution order and the final result.',
+  intro: 'When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs in every case. The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block.',
   terms: ['finally and try-with-resources', 'Exception and Error', 'Checked and unchecked exceptions'], ranks: ['exception'],
   controls: [
     { id: 'ex', label: 'Exception', type: 'select', value: 'match', options: [['none', 'No exception'], ['match', 'Thrown in try, a type that the catch block catches'], ['nomatch', 'Thrown in try, a type that the catch block does not catch'], ['incatch', 'Thrown in try and caught, then another one thrown inside catch']] },
@@ -56,7 +56,6 @@ Lab.register({
     else if (tr.out.indexOf('throw') === 0) push(null, 'After the finally block finishes, the unhandled ' + tr.out.slice(6) + ' leaves the method. The "after the block" line does not run.', 'bad');
     else push(null, 'The method ends here. The return value is ' + tr.out.slice(7) + '. The "after the block" line does not run.', c.fret && before ? 'bad' : 'good');
     var res = tr.out.indexOf('throw') === 0 ? tr.out.slice(6) + ' thrown' : tr.out.slice(7) + ' returned';
-    sum.push('Execution order: ' + seen.join(' → ') + '. Final result: ' + res + '.');
     sum.push('The finally block runs in every case: normal completion, a return, or an exception. That is why releasing locks and cleaning up resources are placed in the finally block.');
     if (c.fret && before) sum.push('A return inside the finally block silently discards the exception or the return value that was in progress. The fact that an exception was thrown disappears, so do not write a return in a finally block.');
     if (c.res) sum.push('A resource of try-with-resources is closed at the point where the try block ends, so it is already closed when the catch and finally blocks run. This is safer than calling close() yourself in the finally block.');

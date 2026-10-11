@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Lambdas and streams</p>
 <h1>Lazy evaluation in streams</h1>
 <p><b>A stream does not run in the order in which it is written</b></p>
-<p>Intermediate operations such as filter and map do nothing at the moment they are called. They run only when the terminal operation is called. Even then, the stream does not finish one operation for all the elements before it starts the next. It sends the elements through to the end one at a time. Change the terminal operation and the intermediate operations to see the actual order of execution.</p>
+<p>Intermediate operations such as filter and map do nothing at the moment they are called. They run only when the terminal operation is called. Even then, the stream does not finish one operation for all the elements before it starts the next. It sends the elements through to the end one at a time.</p>
 <p>Checked against real execution · Checked by running 12 combinations on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -70,7 +70,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>filter ran 6 times and map ran 4 times. The result is [50, 80, 90, 40].</li>
 <li>The stream does not &quot;run filter on everything and then map on everything&quot;. One element goes all the way through filter → map, and only then does the next element set off. That is why the stream can stop partway.</li>
 </ul>
 <h2>Code</h2>
@@ -163,6 +162,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

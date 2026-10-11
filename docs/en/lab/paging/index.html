@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › SQL</p>
 <h1>Offset and keyset pagination</h1>
 <p><b>Why later pages get slower</b></p>
-<p>A list of posts is shown page by page, newest first. The OFFSET method reads and discards all the rows of the earlier pages before it reaches the page you want. The keyset (cursor) method uses the index to go straight to &quot;right after the last post you saw&quot;. Increase the page number and compare the number of rows read.</p>
+<p>A list of posts is shown page by page, newest first. The OFFSET method reads and discards all the rows of the earlier pages before it reaches the page you want. The keyset (cursor) method uses the index to go straight to &quot;right after the last post you saw&quot;.</p>
 <p>Partly checked against real execution · The content of the results was checked with SQLite, and the number of rows read follows the documentation</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -152,6 +152,6 @@ SELECT id, title, created_at
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

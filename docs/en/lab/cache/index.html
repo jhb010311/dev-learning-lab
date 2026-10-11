@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › High traffic</p>
 <h1>Caching and TTL</h1>
 <p><b>How much does a cache reduce database queries, and when do requests pile up again?</b></p>
-<p>One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the request reads the value from the database and stores it in the cache (cache-aside). A value disappears from the cache when its TTL passes. Change the TTL, the request rate, and the database query time, and watch the cache hit rate and the requests that rush to the database at the moment the value expires.</p>
+<p>One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the request reads the value from the database and stores it in the cache (cache-aside). A value disappears from the cache when its TTL passes.</p>
 <p>Conceptual model · A model that shows how the behavior works</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -70,7 +70,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Of 150 requests, 135 (90%) were answered directly from the cache, and the database was queried 15 times. The most database queries in flight at one moment was 5, and the average response time was 0.11s.</li>
 <li>At the moment of expiration, all the requests that arrived before the cache was filled again (during 1s) went to the database. The more requests there are and the slower the database query is, the bigger the pile-up. This is a cache stampede. You reduce it with a lock that lets only one request query the database, by refreshing the value before it expires, or by giving each key a slightly different TTL.</li>
 <li>The longer the TTL, the fewer the database queries, but even when the source data changes, the cache keeps returning the old value for up to the TTL. How old a value you can accept is the criterion for choosing the TTL.</li>
 </ul>
@@ -169,6 +168,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

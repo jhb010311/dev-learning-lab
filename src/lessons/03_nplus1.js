@@ -1,7 +1,7 @@
 Lab.register({
   id: 'nplus1', nav: 'N+1', cat: 'JPA', mode: 'step',
   title: '주문 목록 한 번 조회했는데 쿼리는 왜 여러 번 나가나',
-  intro: '주문 목록을 조회한 뒤 주문마다 회원 이름을 꺼냅니다. 연관된 회원을 언제, 어떻게 가져오느냐에 따라 DB로 나가는 쿼리 수가 달라집니다. 로딩 전략을 바꿔 가며 쿼리 로그를 비교해 보세요.',
+  intro: '주문 목록을 조회한 뒤 주문마다 회원 이름을 꺼냅니다. 연관된 회원을 언제, 어떻게 가져오느냐에 따라 DB로 나가는 쿼리 수가 달라집니다.',
   terms: ['N+1 문제', '지연 로딩과 즉시 로딩', 'fetch join', '@EntityGraph', '배치 페치(Batch Size)', '1차 캐시'], ranks: ['nplus1', 'jpaorm'],
   controls: [
     { id: 'n', label: '조회되는 주문 건수', type: 'range', min: 1, max: 30, value: 10, fmt: function (v) { return v + '건'; } },
@@ -67,7 +67,7 @@ Lab.register({
       }
     });
     if (c.use && (joined || c.st === 'eager')) push('반복문에서 주문 ' + c.n + '건의 회원 이름을 꺼냈습니다. 회원이 이미 전부 로딩돼 있어서 추가 쿼리는 없습니다.', '');
-    var total = qs.length, mq = total - 1, sum = ['쿼리가 모두 ' + total + '번 나갔습니다(주문 조회 1번 + 회원 조회 ' + mq + '번). DB 왕복에 ' + total * c.rt + 'ms를 썼습니다.'];
+    var total = qs.length, mq = total - 1, sum = [];
     if (c.st === 'lazy' && c.use) sum.push('목록 1번에 더해 회원 수만큼 쿼리가 따라 나갔습니다. 이것이 N+1 문제입니다. 추가 쿼리 수는 주문 건수가 아니라 아직 읽지 않은 서로 다른 회원 수(' + c.m + '명)로 정해집니다.');
     if (c.st === 'lazy' && !c.use) sum.push('지연 로딩은 실제로 쓸 때만 조회하므로, 회원을 쓰지 않는 화면에서는 쿼리 1번으로 끝납니다. 지연 로딩을 기본으로 두는 이유입니다.');
     if (c.st === 'eager') sum.push('즉시 로딩으로 바꿔도 JPQL 조회에서는 N+1이 그대로 발생합니다. 시점만 조회 직후로 당겨지고' + (c.use ? '' : ', 회원을 쓰지 않는데도 ' + mq + '번을 더 조회했습니다') + '. 즉시 로딩은 N+1의 해법이 아닙니다.');

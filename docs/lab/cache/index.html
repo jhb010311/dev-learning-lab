@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>캐시와 TTL: 캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나 · 개발 학습 실습실</title>
-<meta name="description" content="인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다. TTL, 요청 빈도, DB 조회 시간을 바꿔 가며 적중률과 만료 순간에 DB로 몰리는 요…">
+<meta name="description" content="인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/cache/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cache/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cache/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="캐시와 TTL: 캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나 · 개발 학습 실습실">
-<meta property="og:description" content="인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다. TTL, 요청 빈도, DB 조회 시간을 바꿔 가며 적중률과 만료 순간에 DB로 몰리는 요…">
+<meta property="og:description" content="인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/cache/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 대용량 트래픽</p>
 <h1>캐시와 TTL</h1>
 <p><b>캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나</b></p>
-<p>인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다. TTL, 요청 빈도, DB 조회 시간을 바꿔 가며 적중률과 만료 순간에 DB로 몰리는 요청을 보세요.</p>
+<p>인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다.</p>
 <p>개념 모형 · 동작 방식을 보이는 모형</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -70,7 +70,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>요청 150건 중 135건(90%)이 캐시에서 바로 응답했고, DB 조회는 15번 일어났습니다. 한순간에 겹친 DB 조회는 최대 5건, 평균 응답 시간은 0.11초입니다.</li>
 <li>만료 순간 캐시가 채워지기 전까지(1초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락, 만료 전에 미리 갱신하기, 키마다 TTL에 약간의 차이를 주는 방법으로 줄입니다.</li>
 <li>TTL이 길수록 DB 조회는 줄지만, 원본 데이터가 바뀌어도 최대 TTL만큼 옛 값을 돌려줍니다. 얼마나 오래된 값까지 허용할 수 있는지가 TTL을 정하는 기준입니다.</li>
 </ul>
@@ -169,6 +168,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

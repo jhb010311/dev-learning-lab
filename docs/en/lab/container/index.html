@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -63,7 +63,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>There is only one operating system (kernel), the host's. The total memory is about 2224MB, and for each container only the amount that the application uses was added.</li>
 <li>Containers share the kernel, so they are lightweight and start quickly. In return, the isolation is weaker than that of a virtual machine, and they work only with the same kind of kernel as the host. Namespaces divide &quot;what you can see,&quot; and cgroups divide &quot;how many resources you can use.&quot;</li>
 </ul>
 <h2>Code</h2>
@@ -159,6 +158,6 @@ $ docker run -d --memory=1024m my-app:1.0</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

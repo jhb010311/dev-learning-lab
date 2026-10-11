@@ -1,7 +1,7 @@
 Lab.register({
   id: 'tls', nav: 'TLS 핸드셰이크', cat: '네트워크', mode: 'step',
   title: 'https의 자물쇠가 잠기기까지',
-  intro: 'HTTPS는 HTTP를 TLS로 감싼 것입니다. 데이터를 보내기 전에 브라우저와 서버는 "상대가 진짜 그 서버인지" 확인하고 "둘만 아는 암호화 키"를 만듭니다. 이 과정에서 비대칭키와 대칭키가 각각 어디에 쓰이는지, 인증서에 문제가 있으면 어디서 멈추는지 보세요.',
+  intro: 'HTTPS는 HTTP를 TLS로 감싼 것입니다. 데이터를 보내기 전에 브라우저와 서버는 "상대가 진짜 그 서버인지" 확인하고 "둘만 아는 암호화 키"를 만듭니다.',
   terms: ['HTTPS와 TLS', 'TLS 핸드셰이크와 인증서', '대칭키 암호화와 비대칭키 암호화', 'HMAC과 전자서명'], ranks: ['network', 'websec', 'http'],
   controls: [
     { id: 'cert', label: '서버 인증서의 상태', type: 'select', value: 'ok', options: [['ok', '정상'], ['expired', '유효 기간이 지남'], ['name', '다른 도메인의 인증서'], ['self', '신뢰할 수 없는 곳에서 발급 (자체 서명)']] },
@@ -33,14 +33,12 @@ Lab.register({
     step('서버 → 브라우저', 'CertificateVerify: 지금까지의 대화를 서버 개인키로 서명', '서버가 지금까지 주고받은 내용을 자신의 개인키로 서명해 보냅니다. 브라우저는 인증서의 공개키로 이 서명을 확인합니다. 인증서는 누구나 복사할 수 있지만, 서명은 짝이 되는 개인키를 가진 진짜 서버만 만들 수 있습니다.', 'good');
     step('양쪽', 'Finished: 핸드셰이크 전체가 변조되지 않았음을 확인', '양쪽이 핸드셰이크 내용 전체의 확인값을 주고받아, 중간에 누가 메시지를 바꾸지 않았는지 확인합니다.', '');
     S.lock = '대칭키로 암호화 중'; step('브라우저 ↔ 서버', 'HTTP 요청과 응답 (대칭키로 암호화)', '이제 HTTP 요청과 응답이 합의한 대칭키로 암호화되어 오갑니다. 중간에서 보는 사람에게는 어느 서버와 통신하는지 정도만 보이고 내용(주소의 경로, 헤더, 쿠키, 본문)은 보이지 않습니다.', 'good');
-    sum.push('핸드셰이크가 끝나고 암호화 통신이 시작됐습니다.');
     sum.push('비대칭키(공개키와 개인키)는 "상대가 진짜인지 확인"하는 서명과 "키를 안전하게 합의"하는 데만 쓰입니다. 계산이 느리기 때문입니다. 실제 데이터는 빠른 대칭키로 암호화합니다. 두 방식의 장점을 나눠 쓰는 구조입니다.');
     sum.push('TLS 1.3은 이 과정을 왕복 한 번으로 끝냅니다(이전 버전은 두 번). 그래도 연결마다 비용이 들기 때문에 한 번 맺은 연결을 재사용하는 것이 중요합니다.');
     return { events: ev, summary: sum, row: ['연결 성공', '-', '키 합의로 만든 대칭키'] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], key: '없음', lock: '아직 암호화되지 않음' };
-    H.counters(v, [[s.key, '암호화 키'], [s.lock, '통신 상태']]);
     if (s.rows.length) H.table(v, ['방향', '내용'], s.rows, '핸드셰이크 순서'); else H.text(v, '실행을 누르면 시작합니다.');
   },
   // 그림: 브라우저와 서버가 주고받는 핸드셰이크 메시지. 각자 안에서 하는 계산과 검증은 상자로 그린다.
@@ -51,7 +49,7 @@ Lab.register({
     P.box('key', 16, end + 14, 318, 48, { cls: s.key === '없음' ? 'ghost' : 'good', title: '암호화 키', sub: s.key });
     P.box('lock', 346, end + 14, 318, 48, { cls: enc ? 'good' : s.lock.indexOf('아직') === 0 ? 'ghost' : 'bad', title: '통신 상태', sub: s.lock });
     P.size(680, end + 78);
-    P.note('화살표는 주고받는 메시지이고, 한쪽 선 위의 상자는 그쪽 안에서 하는 일(계산, 검증)입니다. 인증서 검증에서 막히면 그 아래로 진행하지 않습니다.');
+    P.note('화살표는 주고받는 메시지이고, 한쪽 선 위의 상자는 그쪽 안에서 하는 일(계산, 검증)입니다.');
   },
   assume: 'TLS 1.3의 기본 핸드셰이크를 단순화했습니다(실제로는 서버의 응답 메시지 여러 개가 한 번에 묶여 전송됩니다). 키 합의는 양쪽이 공개값을 교환해 같은 비밀을 계산하는 방식(ECDHE)이며, 예전 방식처럼 대칭키를 서버 공개키로 암호화해 보내지 않습니다. 인증서 검증 항목은 TLS와 웹 PKI의 표준 절차를 따랐습니다. 이 PC에서 openssl로 시험용 인증 기관과 인증서 네 가지를 만들어 실제 TLS 1.3 연결을 맺어 확인했습니다. 정상 인증서는 검증을 통과했고, 나머지는 각각 certificate has expired, hostname mismatch, self-signed certificate 오류로 거부됐습니다. 핸드셰이크 메시지도 ClientHello, ServerHello, EncryptedExtensions, Certificate, CertificateVerify, Finished 순서로 오가는 것을 확인했습니다.',
 });

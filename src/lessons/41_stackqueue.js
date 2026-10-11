@@ -1,7 +1,7 @@
 Lab.register({
   id: 'sqh', nav: '스택·큐·우선순위 큐', cat: '자료구조', mode: 'step',
   title: '넣은 순서와 꺼내는 순서',
-  intro: '같은 숫자 다섯 개를 같은 순서로 넣어도, 자료구조에 따라 꺼내지는 순서가 다릅니다. 스택은 나중에 넣은 것부터, 큐는 먼저 넣은 것부터, 우선순위 큐는 가장 작은 것부터 나옵니다. 우선순위 큐는 내부 배열(힙)이 어떻게 바뀌는지도 함께 보세요.',
+  intro: '같은 숫자 다섯 개를 같은 순서로 넣어도, 자료구조에 따라 꺼내지는 순서가 다릅니다. 스택은 나중에 넣은 것부터, 큐는 먼저 넣은 것부터, 우선순위 큐는 가장 작은 것부터 나옵니다.',
   terms: ['스택, 큐, 덱', '힙과 우선순위 큐', '시간 복잡도(Big-O)'], ranks: ['ds', 'collection'],
   controls: [
     { id: 'ds', label: '자료구조', type: 'select', value: 'pq', options: [['stack', '스택 (ArrayDeque의 push / pop)'], ['queue', '큐 (ArrayDeque의 offer / poll)'], ['pq', '우선순위 큐 (PriorityQueue)']] },
@@ -50,8 +50,6 @@ Lab.register({
       else s = st.op === 'in' ? 'offer(' + st.x + '): 배열 맨 끝에 넣은 뒤, 부모보다 작으면 자리를 바꾸며 위로 올라갑니다. ' + (st.moves ? st.moves + '번 올라가 ' + (st.at === 0 ? '맨 위(가장 작은 값의 자리)에 도착했습니다.' : '멈췄습니다.') : (st.at === 0 ? '첫 값이라 맨 위에 그대로 놓입니다.' : '부모보다 작지 않아 그 자리에 머뭅니다.')) : 'poll(): 맨 위의 가장 작은 값 ' + st.x + ' 꺼냄. 빈 맨 위에 배열의 마지막 값을 올린 뒤, 두 자식 중 작은 쪽과 자리를 바꾸며 내려갑니다(' + st.moves + '번 내려감).';
       ev.push({ s: s, k: st.op === 'out' ? 'good' : '', snap: { a: st.a, outs: outs.slice(), op: st.op, x: st.x } });
     });
-    var inp = this.INPUTS[c.inp];
-    sum.push('넣은 순서 ' + inp.join(', ') + ' → 꺼낸 순서 ' + r.out.join(', ') + '.');
     if (c.ds === 'stack') sum.push('스택은 후입선출(LIFO)입니다. 메서드 호출 스택, 되돌리기(undo), 괄호 짝 검사처럼 "가장 최근 것부터" 처리할 때 씁니다. 넣기와 꺼내기 모두 O(1)입니다. 자바에서는 오래된 Stack 클래스 대신 ArrayDeque를 씁니다.');
     if (c.ds === 'queue') sum.push('큐는 선입선출(FIFO)입니다. 작업 대기열, 메시지 큐, 너비 우선 탐색처럼 "먼저 온 것부터" 처리할 때 씁니다. 넣기와 꺼내기 모두 O(1)입니다.');
     if (c.ds === 'pq') { sum.push('우선순위 큐는 넣은 순서와 무관하게 가장 작은 값이 먼저 나옵니다. 내부 배열은 완전히 정렬돼 있지 않고, "부모는 자식보다 작거나 같다"는 조건만 지킵니다(힙). 그래서 맨 위가 항상 최솟값입니다.'); sum.push('넣기와 꺼내기는 트리의 높이만큼만 자리를 바꾸므로 O(log n)입니다. 전체를 매번 정렬하는 것보다 훨씬 쌉니다. 작업 스케줄링, 상위 N개 구하기, 최단 경로 알고리즘에 씁니다.'); }
@@ -61,8 +59,6 @@ Lab.register({
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { a: [], outs: [] };
     H.title(v, c.ds === 'stack' ? '스택 (오른쪽이 맨 위)' : c.ds === 'queue' ? '큐 (왼쪽이 맨 앞, 오른쪽이 맨 뒤)' : '내부 배열 (0번 칸이 맨 위 = 가장 작은 값)');
     H.slots(v, s.a.map(function (x, i) { var hot = c.ds === 'stack' ? i === s.a.length - 1 : i === 0; return [String(x), hot ? 'b' : 'q']; }), '비어 있음');
-    if (c.ds === 'pq' && s.a.length) { H.title(v, '같은 배열을 트리로 보면 (i번 칸의 자식은 2i+1, 2i+2번 칸)'); var lv = [s.a.slice(0, 1), s.a.slice(1, 3), s.a.slice(3, 7)]; lv.forEach(function (row, i) { if (row.length) H.slots(v, row.map(function (x) { return [String(x), i === 0 ? 'b' : 'q']; }), ''); }); }
-    H.title(v, '꺼낸 순서'); H.slots(v, s.outs.map(function (x) { return [String(x), 'd']; }), '아직 없음');
   },
   // 그림: 스택은 위로 쌓고, 큐는 옆으로 줄 세우고, 우선순위 큐는 트리(힙)로 그린다. 꺼낸 값은 아래 줄로 옮겨 간다.
   draw: function (P, sim, shown) {
@@ -84,7 +80,7 @@ Lab.register({
     }
     if (!n && !s.outs.length) P.text('hint', 340, 130, '실행을 누르면 값을 하나씩 넣습니다', { cls: 'mut', anchor: 'middle' });
     s.outs.forEach(function (x, k) { P.box('v' + x, 28 + k * 54, 280, 46, 26, { cls: 'good', sub: String(x), center: true }); });
-    P.note(c.ds === 'pq' ? '노란 칸이 맨 위(가장 작은 값)입니다. 트리는 아래의 내부 배열을 다르게 본 모습이며, i번 칸의 자식은 2i+1번과 2i+2번 칸입니다. 값을 넣거나 꺼낼 때 부모와 자식이 자리를 바꾸는 것이 보입니다.' : '노란 칸이 다음에 꺼낼 값입니다. 꺼낸 값은 아래 줄로 옮겨 갑니다.');
+    P.note(c.ds === 'pq' ? '노란 칸이 맨 위(가장 작은 값)입니다. 트리는 아래의 내부 배열을 다르게 본 모습이며, i번 칸의 자식은 2i+1번과 2i+2번 칸입니다.' : '노란 칸이 다음에 꺼낼 값입니다. 꺼낸 값은 아래 줄로 옮겨 갑니다.');
   },
   assume: '꺼낸 순서와 우선순위 큐 내부 배열의 변화는 이 PC의 JDK 21에서 실제 ArrayDeque와 PriorityQueue를 실행해 대조했습니다(내부 배열은 넣을 때마다, 꺼낼 때마다 모두 일치). PriorityQueue는 기본적으로 작은 값이 먼저 나오며, Comparator를 주면 기준을 바꿀 수 있습니다.',
 });

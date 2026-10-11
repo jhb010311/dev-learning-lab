@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -95,7 +95,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Of the 40 calls, 24 succeeded, 8 waited 3s each and then failed, and 8 were blocked and got an immediate fallback response. The total time spent waiting for a service that did not respond was 24s.</li>
 <li>The state changed in the order CLOSED → OPEN → HALF_OPEN → OPEN → HALF_OPEN → CLOSED. While the circuit is open, calls are not made and a fallback response is returned right away, so no threads are tied up. The failing service is not put under extra load either, which gives it room to recover. After a set time, only a few calls are sent to check whether it has recovered.</li>
 <li>If the open duration is long, normal calls stay blocked for a while even after the service has recovered. If it is short, you test a service that has not recovered too often. Adjust the threshold and the open duration to the characteristics of the service.</li>
 </ul>
@@ -201,6 +200,6 @@ PaymentResult payLater(Order order, Throwable t) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

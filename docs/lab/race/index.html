@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>경쟁 상태: count++는 왜 숫자를 잃어버리나 · 개발 학습 실습실</title>
-<meta name="description" content="여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다. 동기화 방식과 실행 순서를 바꿔 가며 최종 값이 어떻게 달라지는지 보세요.">
+<meta name="description" content="여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/race/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/race/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/race/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="경쟁 상태: count++는 왜 숫자를 잃어버리나 · 개발 학습 실습실">
-<meta property="og:description" content="여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다. 동기화 방식과 실행 순서를 바꿔 가며 최종 값이 어떻게 달라지는지 보세요.">
+<meta property="og:description" content="여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/race/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 스레드와 동시성</p>
 <h1>경쟁 상태</h1>
 <p><b>count++는 왜 숫자를 잃어버리나</b></p>
-<p>여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다. 동기화 방식과 실행 순서를 바꿔 가며 최종 값이 어떻게 달라지는지 보세요.</p>
+<p>여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다.</p>
 <p>실행으로 대조 · JDK 21에서 같은 코드를 실행</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -82,7 +82,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>기대값은 6(스레드 2개 × 3번)이고 최종 값은 3입니다.</li>
 <li>증가 3번이 사라졌습니다. 한 스레드가 읽고 쓰는 사이에 다른 스레드가 끼어들어, 오래된 값을 기준으로 계산한 결과가 덮어써졌기 때문입니다.</li>
 </ul>
 <h2>코드</h2>
@@ -183,6 +182,6 @@ for (int t = 0; t &lt; 2; t++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

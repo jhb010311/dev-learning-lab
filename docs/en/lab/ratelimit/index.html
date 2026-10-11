@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Web attacks and defenses</p>
 <h1>Rate limiting</h1>
 <p><b>Three meanings of &quot;accept only 5 requests per second&quot;</b></p>
-<p>When requests arrive all at once, the server rejects some of them to protect itself (429 Too Many Requests). Even the same limit of &quot;5 requests per second&quot; lets different requests through, depending on how you count. Compare them by changing the algorithm and the shape of the incoming requests.</p>
+<p>When requests arrive all at once, the server rejects some of them to protect itself (429 Too Many Requests). Even the same limit of &quot;5 requests per second&quot; lets different requests through, depending on how you count.</p>
 <p>Conceptual model · A model built to the widely used definitions of the algorithms</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -69,7 +69,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Requests: 14. Passed: 14. Rejected: 0. Most requests passed in any 1-second span: 10.</li>
 <li>A fixed window resets its counter to 0 at every whole second, so if requests pile up just before and just after a boundary, up to twice the limit passes in a short time. It is the simplest to implement and uses little memory, but it has this gap.</li>
 <li>When you reject a request, it is good to send the 429 status code together with when the client may try again (the Retry-After header). If there are several servers, keep the counter in a shared store such as Redis so that the limit does not grow with the number of servers.</li>
 </ul>
@@ -164,6 +163,6 @@ if (count &gt; 5) return tooManyRequests(); // 429</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

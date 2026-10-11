@@ -31,16 +31,16 @@ Lab.register({
     function push(s, k, snap) { ev.push({ s: s, k: k, snap: snap }); }
     function cells(count, mark) { var a = []; for (var j = 0; j < count; j++) a.push([String(j), mark(j) || 'd']); return a; }
     if (c.op === 'append') {
-      var cap = 0, size = 0, copies = 0, grows = 0;
+      var cap = 0, size = 0, copies = 0;
       for (var x = 1; x <= n; x++) {
         if (arr && size === cap) {
-          var nc = cap === 0 ? 10 : cap + Math.max(1, cap >> 1), cp = size; copies += cp; if (cap > 0) grows++;
+          var nc = cap === 0 ? 10 : cap + Math.max(1, cap >> 1), cp = size; copies += cp;
           push(cap === 0 ? 'add(' + x + '): 첫 추가라서 10칸짜리 배열을 만듭니다.' : 'add(' + x + '): 배열 ' + cap + '칸이 꽉 찼습니다. 1.5배인 ' + nc + '칸짜리 새 배열을 만들고 기존 원소 ' + cp + '개를 전부 복사한 뒤 넣습니다.', cap === 0 ? '' : 'bad', { size: size + 1, cap: nc, copies: copies, last: size });
           cap = nc; size++;
         } else { size++; push('add(' + x + '): ' + (arr ? '빈 칸이 있어 바로 넣습니다. 복사 없음.' : '새 노드를 만들어 마지막 노드 뒤에 연결합니다. 마지막 노드의 위치를 따로 기억하고 있어서 따라갈 필요가 없습니다.'), '', { size: size, cap: arr ? cap : size, copies: copies, last: size - 1 }); }
       }
       moved = copies; big = arr ? 'O(1) (분할 상환)' : 'O(1)';
-      if (arr) { sum.push(n + '개를 추가하는 동안 배열을 ' + grows + '번 늘렸고, 그때 복사한 원소는 모두 ' + copies + '개입니다. 추가 한 번당 평균 ' + (Math.round(copies / n * 100) / 100) + '개를 복사한 셈입니다.'); sum.push('가끔 비싼 복사가 있어도 대부분의 추가는 복사 없이 끝나므로, 평균으로 보면 추가 한 번의 비용은 일정합니다. 이것을 분할 상환 O(1)이라고 합니다. 개수를 미리 알면 new ArrayList<>(' + n + ')처럼 용량을 정해 복사를 없앨 수 있습니다.'); }
+      if (arr) { sum.push('가끔 비싼 복사가 있어도 대부분의 추가는 복사 없이 끝나므로, 평균으로 보면 추가 한 번의 비용은 일정합니다. 이것을 분할 상환 O(1)이라고 합니다. 개수를 미리 알면 new ArrayList<>(' + n + ')처럼 용량을 정해 복사를 없앨 수 있습니다.'); }
       else sum.push('LinkedList는 복사가 없습니다. 대신 원소마다 노드 객체를 하나씩 만들고(' + n + '개), 노드마다 앞뒤 참조 두 개를 더 저장하므로 메모리를 더 씁니다.');
       return { events: ev, summary: sum, row: ['0개', copies + '개', big], kind: 'append' };
     }
@@ -67,7 +67,6 @@ Lab.register({
       if (c.op === 'add') { last = cells(n + 1, function (j) { return j === i ? 'b now' : ''; }); last[i][0] = '99'; push('새 노드를 만들고 앞뒤 노드의 연결만 바꿔 끼워 넣었습니다. 다른 원소는 하나도 옮기지 않았습니다.', 'good', { cells: last, linked: true }); big = hops ? 'O(n) (탐색) + O(1) (연결)' : 'O(1)'; sum.push(hops ? 'LinkedList의 삽입 자체는 연결만 바꾸면 되지만, 그 자리를 찾는 데 ' + hops + '번을 따라갔습니다. "LinkedList는 삽입이 빠르다"는 말은 위치를 이미 알고 있을 때(양 끝, 또는 반복자가 가리키는 곳)에만 맞습니다.' : 'LinkedList의 ' + where + ' 삽입은 따라갈 것도 옮길 것도 없습니다.'); }
       if (c.op === 'remove') { push('앞 노드와 뒤 노드를 서로 직접 연결해 ' + i + '번 노드를 빼냈습니다. 다른 원소는 옮기지 않았습니다.', 'good', { cells: cells(n - 1, function () { return ''; }), linked: true }); big = hops ? 'O(n) (탐색) + O(1) (연결)' : 'O(1)'; sum.push(hops ? 'LinkedList의 삭제도 연결만 바꾸면 되지만, 지울 노드를 찾는 데 ' + hops + '번을 따라갔습니다.' : 'LinkedList의 ' + where + ' 삭제는 따라갈 것도 옮길 것도 없습니다.'); }
     }
-    sum.unshift('따라간 노드 ' + hops + '개, 옮긴 원소 ' + moved + '개. 시간 복잡도는 ' + big + '입니다.');
     return { events: ev, summary: sum, row: [hops + '개', moved + '개', big], kind: 'one' };
   },
   render: function (v, sim, t, H, shown) {
@@ -81,7 +80,6 @@ Lab.register({
     } else {
       H.title(v, arr ? '내부 배열 (칸 번호 = 인덱스)' : '노드 (왼쪽이 첫 노드, 오른쪽이 마지막 노드)');
       H.slots(v, s.cells, '비어 있음', true);
-      H.text(v, arr ? '파란 칸은 옮겨진 원소, 노란 칸은 대상 위치입니다.' : '파란 칸은 따라가며 지나친 노드, 노란 칸은 대상 노드입니다.');
     }
   },
   // 그림: 배열은 칸이 나란히 붙어 있고, 연결 리스트는 떨어진 노드가 화살표로 이어진다.
@@ -98,7 +96,7 @@ Lab.register({
       if (arr) P.box('c' + j, 28 + col * 31, 52 + row * pitch, 31, 28, { cls: x[1], sub: x[0], center: true });
       else { var back = row % 2 === 1, cx = back ? per - 1 - col : col; P.box('c' + j, 28 + cx * 62, 52 + row * pitch, 42, 28, { cls: x[1], sub: x[0], center: true }); if (j) P.arrow('l' + j, 'c' + (j - 1) + (!col ? ':b' : back ? ':l' : ':r'), 'c' + j + (!col ? ':t' : back ? ':r' : ':l'), { cls: 'mut' }); }
     });
-    P.note(arr ? '칸 안의 숫자는 인덱스입니다. 노란 칸은 대상 위치, 파란 칸은 한 칸씩 옮겨진 원소, 점선은 빈 칸입니다. 칸이 붙어 있어서 중간에 끼워 넣으려면 뒤의 원소를 모두 밀어야 합니다.' : '노란 노드는 대상, 파란 노드는 그 자리까지 가느라 지나친 노드입니다. 실제 LinkedList는 앞뒤 양쪽으로 이어져 있고, 인덱스로 위치를 계산할 수 없어 화살표를 따라가야 합니다.');
+    P.note(arr ? '칸 안의 숫자는 인덱스입니다. 노란 칸은 대상 위치, 파란 칸은 한 칸씩 옮겨진 원소, 점선은 빈 칸입니다.' :'노란 노드는 대상, 파란 노드는 그 자리까지 가느라 지나친 노드입니다. 실제 LinkedList는 앞뒤 양쪽으로 이어져 있고, 인덱스로 위치를 계산할 수 없어 화살표를 따라가야 합니다.');
   },
   assume: '삽입 한 번을 볼 때는 ArrayList 내부 배열에 빈 칸이 남아 있다고 가정했습니다. 꽉 찬 경우는 "맨 뒤로 계속 추가"에서 따로 보여 줍니다. ArrayList의 용량이 10에서 시작해 1.5배씩(10 → 15 → 22 → 33 → 49) 늘어나는 것과, LinkedList가 인덱스 위치에 따라 앞이나 뒤 중 가까운 쪽에서 출발하는 것은 JDK 구현과 같습니다. 용량이 늘어나는 시점과 복사량은 이 PC의 JDK 21에서 실제 ArrayList 내부 배열을 꺼내 확인한 값과 일치합니다(40개 추가 시 4번 늘리고 80개 복사). 실제 속도는 칸 수만으로 정해지지 않습니다. 배열은 메모리에 연속으로 있어 CPU 캐시에 유리하므로, 옮기는 양이 많아도 LinkedList보다 빠른 경우가 흔합니다.',
 });

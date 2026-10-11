@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kafka 파티션과 컨슈머: 컨슈머를 늘렸는데 왜 처리량이 그대로인가 · 개발 학습 실습실</title>
-<meta name="description" content="토픽은 여러 파티션으로 나뉘고, 같은 그룹의 컨슈머들이 파티션을 나눠 맡습니다. 파티션 하나는 그룹 안에서 한 컨슈머만 읽을 수 있습니다. 파티션 수, 컨슈머 수, 속도를 바꿔 가며 밀리는 메시지를 보고, 컨슈머가 죽었을 때 커밋 시점에 따라 중복이나 유실이 생기는 것도 확인…">
+<meta name="description" content="토픽은 여러 파티션으로 나뉘고, 같은 그룹의 컨슈머들이 파티션을 나눠 맡습니다. 파티션 하나는 그룹 안에서 한 컨슈머만 읽을 수 있습니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/kafka/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/kafka/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/kafka/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="Kafka 파티션과 컨슈머: 컨슈머를 늘렸는데 왜 처리량이 그대로인가 · 개발 학습 실습실">
-<meta property="og:description" content="토픽은 여러 파티션으로 나뉘고, 같은 그룹의 컨슈머들이 파티션을 나눠 맡습니다. 파티션 하나는 그룹 안에서 한 컨슈머만 읽을 수 있습니다. 파티션 수, 컨슈머 수, 속도를 바꿔 가며 밀리는 메시지를 보고, 컨슈머가 죽었을 때 커밋 시점에 따라 중복이나 유실이 생기는 것도 확인…">
+<meta property="og:description" content="토픽은 여러 파티션으로 나뉘고, 같은 그룹의 컨슈머들이 파티션을 나눠 맡습니다. 파티션 하나는 그룹 안에서 한 컨슈머만 읽을 수 있습니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/kafka/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/arch/">아키텍처와 운영</a> › 메시지와 비동기</p>
 <h1>Kafka 파티션과 컨슈머</h1>
 <p><b>컨슈머를 늘렸는데 왜 처리량이 그대로인가</b></p>
-<p>토픽은 여러 파티션으로 나뉘고, 같은 그룹의 컨슈머들이 파티션을 나눠 맡습니다. 파티션 하나는 그룹 안에서 한 컨슈머만 읽을 수 있습니다. 파티션 수, 컨슈머 수, 속도를 바꿔 가며 밀리는 메시지를 보고, 컨슈머가 죽었을 때 커밋 시점에 따라 중복이나 유실이 생기는 것도 확인하세요.</p>
+<p>토픽은 여러 파티션으로 나뉘고, 같은 그룹의 컨슈머들이 파티션을 나눠 맡습니다. 파티션 하나는 그룹 안에서 한 컨슈머만 읽을 수 있습니다.</p>
 <p>문서·표준 대조 · Kafka 공식 문서</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>그룹의 처리량은 초당 90건(유입 120건), 10초 뒤 밀린 메시지는 300건입니다.</li>
 <li>랙이 쌓입니다. 컨슈머를 파티션 수까지 늘리거나, 컨슈머 하나의 처리 속도를 올려야 합니다. 랙은 컨슈머가 따라가고 있는지를 보여 주는 핵심 지표입니다.</li>
 <li>순서는 같은 파티션 안에서만 보장됩니다. 같은 주문의 이벤트를 순서대로 처리해야 하면 주문 ID를 키로 줘서 같은 파티션에 들어가게 합니다.</li>
 </ul>
@@ -165,6 +164,6 @@ while (true) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

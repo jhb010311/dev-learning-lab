@@ -1,7 +1,7 @@
 Lab.register({
   id: 'parallel', nav: 'Sequential and parallel calls', cat: 'Concurrency', mode: 'time',
   title: 'Several external calls: one after another, or all at once?',
-  intro: 'To build a single product detail page, the application calls several services. If it calls them one after another, all the times add up. If it calls them at the same time, the page takes only as long as the slowest call. Change the number of calls and the way they are made, and see what difference a timeout on a slow call makes.',
+  intro: 'To build a single product detail page, the application calls several services. If it calls them one after another, all the times add up. If it calls them at the same time, the page takes only as long as the slowest call.',
   terms: ['CompletableFuture', 'Synchronous and asynchronous', 'Thread pool', 'ForkJoinPool and the common pool'], ranks: ['concurrency', 'threadpool', 'javaver'],
   controls: [
     { id: 'how', label: 'How the calls are made', type: 'select', value: 'seq', options: [['seq', 'Sequential (the next one starts when one finishes)'], ['par', 'Parallel (at the same time, with CompletableFuture)']] },
@@ -36,7 +36,6 @@ Lab.register({
     ev.sort(function (a, b) { return a.t - b.t; });
     var total = calls.reduce(function (m, x) { return Math.max(m, x.end); }, 0), add = calls.reduce(function (a, x) { return a + x.eff; }, 0), slow = calls.reduce(function (m, x) { return Math.max(m, x.eff); }, 0);
     ev.push({ t: total, k: 'good', s: fmt(total) + 's: All the results have arrived. The application assembles the page and responds.' });
-    sum.push('The total response time is ' + fmt(total) + 's. The call times add up to ' + fmt(add) + 's, and the slowest call takes ' + fmt(slow) + 's.');
     if (c.how === 'seq') sum.push('With sequential calls, the response time is the sum of all the call times. If the calls do not depend on each other\'s results, there is no reason to make them one after another.');
     else if (total <= slow + 1e-9) sum.push('With parallel calls, the response time is the time of the single slowest call. Adding more calls does not increase the response time as long as they are faster than the slowest one.');
     else sum.push('The calls were requested in parallel, but the number of threads for the asynchronous tasks is only ' + c.pool + ', so the number of calls in progress at a time was limited to ' + c.pool + '. To run blocking calls in parallel, you need as many threads as the number of calls you want to run at the same time. If you do not specify a thread pool, the tasks run in the common pool that all code shares, and that pool is small, about the number of CPU cores, so it is not suited to blocking calls.');

@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OAuth 로그인 흐름: &quot;카카오로 로그인&quot;을 누르면 오가는 것들 · 개발 학습 실습실</title>
-<meta name="description" content="소셜 로그인은 우리 서비스가 사용자의 비밀번호를 받지 않고도, 사용자의 동의 아래 그 사람의 정보에 접근할 권한을 얻는 절차입니다. 브라우저를 거쳐 오가는 것과 서버끼리 직접 주고받는 것이 나뉘어 있습니다. 정상 흐름과 문제가 생기는 경우를 단계별로 보세요.">
+<meta name="description" content="소셜 로그인은 우리 서비스가 사용자의 비밀번호를 받지 않고도, 사용자의 동의 아래 그 사람의 정보에 접근할 권한을 얻는 절차입니다. 브라우저를 거쳐 오가는 것과 서버끼리 직접 주고받는 것이 나뉘어 있습니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/oauth/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/oauth/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/oauth/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="OAuth 로그인 흐름: &quot;카카오로 로그인&quot;을 누르면 오가는 것들 · 개발 학습 실습실">
-<meta property="og:description" content="소셜 로그인은 우리 서비스가 사용자의 비밀번호를 받지 않고도, 사용자의 동의 아래 그 사람의 정보에 접근할 권한을 얻는 절차입니다. 브라우저를 거쳐 오가는 것과 서버끼리 직접 주고받는 것이 나뉘어 있습니다. 정상 흐름과 문제가 생기는 경우를 단계별로 보세요.">
+<meta property="og:description" content="소셜 로그인은 우리 서비스가 사용자의 비밀번호를 받지 않고도, 사용자의 동의 아래 그 사람의 정보에 접근할 권한을 얻는 절차입니다. 브라우저를 거쳐 오가는 것과 서버끼리 직접 주고받는 것이 나뉘어 있습니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/oauth/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 인증</p>
 <h1>OAuth 로그인 흐름</h1>
 <p><b>&quot;카카오로 로그인&quot;을 누르면 오가는 것들</b></p>
-<p>소셜 로그인은 우리 서비스가 사용자의 비밀번호를 받지 않고도, 사용자의 동의 아래 그 사람의 정보에 접근할 권한을 얻는 절차입니다. 브라우저를 거쳐 오가는 것과 서버끼리 직접 주고받는 것이 나뉘어 있습니다. 정상 흐름과 문제가 생기는 경우를 단계별로 보세요.</p>
+<p>소셜 로그인은 우리 서비스가 사용자의 비밀번호를 받지 않고도, 사용자의 동의 아래 그 사람의 정보에 접근할 권한을 얻는 절차입니다. 브라우저를 거쳐 오가는 것과 서버끼리 직접 주고받는 것이 나뉘어 있습니다.</p>
 <p>문서·표준 대조 · OAuth 2.0 표준(RFC 6749)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>결과: 로그인 성공. 사용자의 카카오 비밀번호는 카카오에만 입력됐고 우리 서비스는 본 적이 없습니다.</li>
 <li>인가 코드는 브라우저를 거쳐 오고, 토큰은 서버끼리 직접 주고받습니다. 노출되기 쉬운 길로는 그것만으로 쓸모없는 값(코드)만 지나가게 하려는 구조입니다.</li>
 <li>OAuth 2.0은 원래 &quot;권한을 위임받는&quot; 절차(인가)입니다. 로그인(인증)에 쓸 때는 받은 토큰으로 사용자 정보를 조회해 신원을 확인하며, 이를 표준화한 것이 OpenID Connect입니다.</li>
 </ul>
@@ -165,6 +164,6 @@ spring.security.oauth2.client.registration.kakao:
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

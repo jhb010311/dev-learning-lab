@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -86,8 +86,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Requests: 8. Succeeded: 8. Failed because they could not get a connection: 0. The requests that succeeded waited for a connection 1.9s on average and 4.4s at most.</li>
-<li>One request holds a connection for 2.5s (database work 0.5s + external API 2s).</li>
 <li>When OSIV is on, the persistence context stays open until the response is finished, and the database connection is held along with it for that time. The connection stays occupied even during the wait for the external API, which does not use the database, so on an API server with heavy traffic the connections soon run short. When OSIV is off, the connection is returned when the transaction ends.</li>
 </ul>
 <h2>Code</h2>
@@ -187,6 +185,6 @@ OrderDto get(long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

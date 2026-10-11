@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cache', nav: 'Caching and TTL', cat: 'High traffic', mode: 'time',
   title: 'How much does a cache reduce database queries, and when do requests pile up again?',
-  intro: 'One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the request reads the value from the database and stores it in the cache (cache-aside). A value disappears from the cache when its TTL passes. Change the TTL, the request rate, and the database query time, and watch the cache hit rate and the requests that rush to the database at the moment the value expires.',
+  intro: 'One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the request reads the value from the database and stores it in the cache (cache-aside). A value disappears from the cache when its TTL passes.',
   terms: ['Cache', 'Cache-aside pattern', 'TTL (time to live)', 'Cache stampede', 'Redis', 'Distributed lock'], ranks: ['cache', 'traffic', 'nosql'],
   controls: [
     { id: 'ttl', label: 'Cache TTL', type: 'select', value: '10', options: [['0', 'No cache'], ['5', '5s'], ['10', '10s'], ['30', '30s or more (never expires)']] },
@@ -43,7 +43,7 @@ Lab.register({
     var avg = reqs.reduce(function (a, r) { return a + (r.done - r.t); }, 0) / reqs.length, rate = Math.round(hits / reqs.length * 100);
     if (ttl === 0) ev.push({ t: 0, s: '0.0s: There is no cache. Every request queries the database.' });
     ev.sort(function (a, b) { return a.t - b.t; });
-    var sum = ['Of ' + reqs.length + ' requests, ' + hits + ' (' + rate + '%) were answered directly from the cache, and the database was queried ' + dbq + (dbq === 1 ? ' time' : ' times') + '. The most database queries in flight at one moment was ' + peak + ', and the average response time was ' + (Math.round(avg * 100) / 100) + 's.'];
+    var sum = [];
     if (ttl === 0) sum.push('The same product was requested ' + reqs.length + ' times, and the database was read ' + dbq + ' times. The more often data is read and the less often it changes, the more a cache helps.');
     else if (peak > 1 && !lock) sum.push('At the moment of expiration, all the requests that arrived before the cache was filled again (during ' + dbt + 's) went to the database. The more requests there are and the slower the database query is, the bigger the pile-up. This is a cache stampede. You reduce it with a lock that lets only one request query the database, by refreshing the value before it expires, or by giving each key a slightly different TTL.');
     else if (lock) sum.push('With the lock, only one request queried the database each time the cache became empty. This protected the database from the load, but ' + waits + (waits === 1 ? ' request' : ' requests') + ' had to wait until that query finished. With several servers, you need a distributed lock that all the servers share.');
@@ -52,16 +52,7 @@ Lab.register({
   },
   render: function (v, sim, t, H) {
     var c = sim.c, done = sim.reqs.filter(function (r) { return r.t <= t + 1e-9; }), hits = done.filter(function (r) { return r.kind === 'hit'; }).length, dbq = sim.queries.filter(function (q) { return q[0] <= t + 1e-9; }).length;
-    var flying = sim.queries.filter(function (q) { return q[0] <= t + 1e-9 && q[1] > t + 1e-9; }).length;
     H.counters(v, [[done.length, 'Requests received'], [hits, 'Cache hits'], [dbq, 'Database queries'], [done.length ? Math.round(hits / done.length * 100) + '%' : '-', 'Hit rate']]);
-    var ln = H.lanes(v), lastHit = done.filter(function (r) { return r.kind === 'hit'; }).pop(), lastReq = done[done.length - 1];
-    var cached = lastReq && lastReq.kind === 'hit';
-    H.lane(ln, 'Cache', sim.ttl === 0 ? 'Not used' : cached ? 'Has the value · answering requests right away' : flying ? 'No value · waiting for the database result' : done.length ? 'No value' : 'Empty', sim.ttl === 0 ? 'none' : cached ? 'good' : 'bad');
-    H.lane(ln, 'DB', flying ? 'Queries in progress: ' + flying : 'Idle', flying > 3 ? 'bad' : flying ? 'hot' : '');
-    H.title(v, 'Database queries per second (1 box = 1 second)');
-    var items = []; for (var s = 0; s < 30; s++) { var n = sim.queries.filter(function (q) { return q[0] >= s - 1e-9 && q[0] < s + 1 - 1e-9 && q[0] <= t + 1e-9; }).length; items.push([s < t ? String(n) : '', s >= t ? '' : n === 0 ? 'd' : n === 1 ? 'q' : 'r']); }
-    H.slots(v, items, null, true);
-    H.text(v, 'Green is a second with no database query (all answered from the cache), blue is a second with 1 query, and red is a second when 2 or more queries piled up.');
   },
   // Diagram: A request looks at the cache first and goes to the database only when the value is missing. The row below shows the number of queries that reached the database in each second.
   draw: function (P, sim, shown, t) {

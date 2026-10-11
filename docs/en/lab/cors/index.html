@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>CORS</h1>
 <p><b>Why a request works in Postman but is blocked only in the browser</b></p>
-<p>By default, a browser does not let a script on a web page read a response from a server at a different origin. The block is lifted only when the server says in a response header that this origin is allowed. Change the kind of request and the server settings, and see when a preflight request is sent and whether the request reaches the server at all.</p>
+<p>By default, a browser does not let a script on a web page read a response from a server at a different origin. The block is lifted only when the server says in a response header that this origin is allowed.</p>
 <p>Checked against real execution · Ran 24 combinations with two test servers and a real browser</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -60,7 +60,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Preflight request: sent. The actual request did not reach the server, and the script did not receive the response.</li>
 <li>CORS is a rule that the browser enforces, not the server. That is why the same request works from Postman or curl, and in calls between servers. The fix is for the API server to send the Allow headers, not for the front end to change.</li>
 </ul>
 <h2>Code</h2>
@@ -157,6 +156,6 @@ fetch('https://api.shop.example/orders', {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

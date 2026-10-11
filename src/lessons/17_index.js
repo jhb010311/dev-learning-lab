@@ -1,7 +1,7 @@
 Lab.register({
   id: 'index', nav: '인덱스와 풀 스캔', cat: '데이터베이스', mode: 'step',
   title: '인덱스가 있는데 왜 안 탈까',
-  intro: '조건에 맞는 행을 찾는 방법은 두 가지입니다. 테이블을 처음부터 끝까지 읽거나(풀 스캔), 인덱스에서 위치를 찾아 그 행만 읽거나. 어느 쪽이 싼지는 조건에 걸리는 행의 비율에 달려 있고, 옵티마이저가 통계를 보고 고릅니다. 행 수와 비율을 바꿔 가며 선택이 바뀌는 지점을 찾아보세요.',
+  intro: '조건에 맞는 행을 찾는 방법은 두 가지입니다. 테이블을 처음부터 끝까지 읽거나(풀 스캔), 인덱스에서 위치를 찾아 그 행만 읽거나. 어느 쪽이 싼지는 조건에 걸리는 행의 비율에 달려 있고, 옵티마이저가 통계를 보고 고릅니다.',
   terms: ['인덱스', 'B-트리 인덱스', '풀 테이블 스캔', '실행 계획(EXPLAIN)', '옵티마이저', '카디널리티와 선택도'], ranks: ['index', 'tuning', 'dbengine'],
   controls: [
     { id: 'rows', label: '테이블 행 수', type: 'select', value: '100000', options: [['1000', '1천 행'], ['100000', '10만 행'], ['10000000', '1천만 행']] },
@@ -40,7 +40,6 @@ Lab.register({
       push('테이블의 첫 행부터 마지막 행까지 ' + num(N) + '행을 모두 읽습니다. 행마다 status를 확인해 ' + num(matched) + '행만 남기고 ' + num(N - matched) + '행은 읽고 나서 버립니다.', c.idx ? '' : 'bad', 6);
     }
     var read = useIdx ? matched : N, cost = useIdx ? costIdx : costFull, sum = [];
-    sum.push((useIdx ? '인덱스' : '풀 스캔') + '로 실행했습니다. ' + num(read) + '행을 읽어 ' + num(matched) + '행을 돌려줬고, 읽고 버린 행은 ' + num(read - matched) + '행입니다.');
     if (!c.idx) sum.push('인덱스가 없으면 결과가 몇 건이든 테이블 전체를 읽어야 합니다. 행이 10배가 되면 읽는 양도 10배가 됩니다. 인덱스가 있었다면 예상 비용은 ' + num(costIdx) + '로 ' + (costIdx < costFull ? '풀 스캔의 약 ' + (Math.round(costFull / costIdx) >= 2 ? Math.round(costFull / costIdx) + '분의 1' : '절반 수준') + '이었을 것입니다.' : '오히려 풀 스캔보다 비쌌을 것입니다. 이 조건에는 인덱스가 도움이 되지 않습니다.'));
     else if (useIdx && !(c.force && costIdx >= costFull)) sum.push('조건에 걸리는 비율이 낮을수록(선택도가 좋을수록) 인덱스의 효과가 큽니다. 풀 스캔이었다면 비용은 ' + num(costFull) + '로 약 ' + Math.max(1, Math.round(costFull / costIdx)) + '배였습니다.');
     else if (useIdx) sum.push('인덱스를 강제했더니 비용이 ' + num(costIdx) + '로, 풀 스캔(' + num(costFull) + ')보다 비쌉니다. 옵티마이저의 판단이 맞았습니다. 힌트는 통계가 틀렸다는 근거가 있을 때만 씁니다.');

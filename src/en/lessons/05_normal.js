@@ -108,7 +108,7 @@ Lab.register({
         if (!gone) P.arrow('fk' + val(c[0]), id + ':l', 'm' + val(c[1]) + ':r', { cls: 'mut' });
       });
     }
-    P.note(flat ? 'The blue boxes are member data. The name and address of the same member are stored once for every order. Yellow boxes are values that just changed, and red boxes are values that went out of step or cannot be inserted.' : 'Each arrow shows an order pointing to a member row by member ID. The member data is in only one place, so there is only one place to change, however many orders there are.');
+    P.note(flat ? 'The blue boxes are member data. Yellow boxes are values that just changed, and red boxes are values that went out of step or cannot be inserted.' : 'Each arrow shows an order pointing to a member row by member ID.');
   },
   assume: 'This is a small example reduced to 3 members and a few orders. The table before normalization has a chain of functional dependencies, order ID → member ID → member name and address, so it does not satisfy third normal form. After normalization, orders refer to members through a foreign key. The definitions of the anomalies follow the standard explanation in relational database theory. Tables with the same structure were created in a real SQL engine (SQLite) and checked. When only one row was changed, the same member\'s address was returned as two different values; an INSERT of a member without an order ID was rejected; and after the last order was deleted, the number of rows still holding that member\'s information was 0. With the tables split, none of the three cases caused a problem.',
 });

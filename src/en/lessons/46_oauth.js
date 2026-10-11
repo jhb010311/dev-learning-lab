@@ -1,7 +1,7 @@
 Lab.register({
   id: 'oauth', nav: 'OAuth login flow', cat: 'Authentication', mode: 'step',
   title: 'What is exchanged when you click "Log in with Kakao"',
-  intro: 'Social login is a procedure in which our service gets permission to access a user\'s information, with the user\'s consent, without ever receiving the user\'s password. Some things travel through the browser, and others are exchanged directly between servers. Step through the normal flow and the cases where something goes wrong.',
+  intro: 'Social login is a procedure in which our service gets permission to access a user\'s information, with the user\'s consent, without ever receiving the user\'s password. Some things travel through the browser, and others are exchanged directly between servers.',
   terms: ['OAuth 2.0', 'Authentication and authorization', 'Access token and refresh token', 'Cross-site request forgery (CSRF)'], ranks: ['auth', 'websec'],
   controls: [
     { id: 'sc', label: 'Scenario', type: 'select', value: 'ok', options: [['ok', 'Normal login'], ['deny', 'The user cancels on the consent screen'], ['state', 'The state value in the returning request is different (forged request)'], ['reuse', 'An attempt to reuse an intercepted authorization code']] },
@@ -49,7 +49,6 @@ Lab.register({
         if (c.sc === 'reuse') sum.push('An authorization code can be used only once and has a short lifetime, and exchanging it for a token requires the client_secret that only the server knows. Mobile apps and SPAs, which cannot keep a secret, use a supplementary procedure called PKCE.');
       }
     }
-    sum.unshift('Result: ' + res + '. The user\'s Kakao password was entered only at Kakao, and our service never saw it.');
     sum.push('OAuth 2.0 is, at its core, a procedure for being delegated permission (authorization). When it is used for login (authentication), the received token is used to look up user information and confirm who the user is, and OpenID Connect standardizes this.');
     return { events: ev, summary: sum, row: [res, got, 'Kakao only'] };
   },
@@ -64,7 +63,7 @@ Lab.register({
     var msgs = rows.map(function (r) { var m = P.dir(P.v(r.cells[0]), ids); m.s = P.v(r.cells[2]); m.cls = P.c(r.cells[2]); return m; });
     var end = P.seq([['u', 'User (browser)', 'wait'], ['w', 'Our service', 'wait'], ['k', 'Kakao auth server', 'plain'], ['a', 'Kakao API server', 'plain']], msgs, { keep: 8 });
     P.size(680, end + 16);
-    P.note('The user\'s ID and password go only to the Kakao authorization server. Our service receives the authorization code and exchanges it for a token by communicating directly server to server. Long text may look cut off, so check the full content in the table on the right.');
+    P.note('Long text may look cut off, so check the full content in the table on the right.');
   },
   assume: 'The authorization code grant of OAuth 2.0 is transcribed following the flow in the standard document (RFC 6749). Kakao is only an example, and other providers such as Google and Naver have the same flow. The code and token values are fake values for explanation.',
 });

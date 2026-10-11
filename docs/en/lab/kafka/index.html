@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Messaging and asynchronous processing</p>
 <h1>Kafka partitions and consumers</h1>
 <p><b>I added consumers, so why is the throughput the same?</b></p>
-<p>A topic is split into partitions, and the consumers of a consumer group divide the partitions among themselves. Within a group, a partition can be read by only one consumer. Change the number of partitions, the number of consumers, and the speeds to see the messages pile up. Also see how a consumer that dies produces duplicates or losses, depending on when it commits.</p>
+<p>A topic is split into partitions, and the consumers of a consumer group divide the partitions among themselves. Within a group, a partition can be read by only one consumer.</p>
 <p>Checked against documentation and standards · Checked against the official Apache Kafka documentation</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -65,7 +65,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The group processes 90 messages per second (inflow: 120), and 300 messages are waiting after 10 seconds.</li>
 <li>Lag builds up. You must increase the consumers up to the number of partitions, or make each consumer process faster. Lag is the key metric that shows whether the consumers are keeping up.</li>
 <li>Order is guaranteed only within the same partition. If the events of the same order must be processed in order, give the order ID as the key so that they go to the same partition.</li>
 </ul>
@@ -165,6 +164,6 @@ while (true) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

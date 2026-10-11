@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -66,7 +66,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>요청 5번 중 2번이 로그인 상태로 처리됐고, 401 응답은 3번이었습니다. 공용 저장소에는 0번 접근했습니다.</li>
 <li>세션이 로그인한 서버 한 대의 메모리에만 있어서, 다른 서버로 간 요청은 로그인이 풀렸습니다. 서버를 여러 대로 늘리려면 같은 사용자를 항상 같은 서버로 보내거나(스티키 세션), 세션을 공용 저장소로 옮겨야 합니다.</li>
 </ul>
 <h2>코드</h2>
@@ -165,6 +164,6 @@ if (session == null) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

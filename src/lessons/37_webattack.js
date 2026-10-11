@@ -1,7 +1,7 @@
 Lab.register({
   id: 'webattack', nav: '웹 공격 세 가지', cat: '인증', mode: 'step',
   title: '입력값을 그대로 믿으면 생기는 일',
-  intro: 'SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다. 공격별로 방어를 켜고 끄며 무엇이 달라지는지 보세요.',
+  intro: 'SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다.',
   terms: ['SQL Injection', 'XSS(크로스 사이트 스크립팅)', 'CSRF(사이트 간 요청 위조)', 'HttpOnly, Secure, SameSite', '쿠키'], ranks: ['websec', 'auth'],
   controls: [
     { id: 'atk', label: '공격 종류', type: 'select', value: 'sqli', options: [['sqli', 'SQL Injection'], ['xss', 'XSS (저장형)'], ['csrf', 'CSRF']] },
@@ -73,7 +73,6 @@ Lab.register({
       else { box.push(['bank.example이 받은 요청', 'POST /transfer\nCookie: 세션 ID (브라우저가 자동으로 붙임)\nto=공격자 계좌, amount=1000000\n→ 정상 요청으로 판단 → 이체 실행']); push('이 세션 쿠키는 다른 사이트에서 보낸 요청에도 붙도록(SameSite=None) 설정돼 있습니다. 브라우저는 bank.example으로 가는 요청에 세션 쿠키를 자동으로 붙입니다. 은행 서버 입장에서는 로그인한 사용자가 보낸 정상적인 이체 요청과 구별할 수 없습니다. 이체가 실행됩니다.', 'bad'); res = '성공'; harm = '피해자 계좌에서 이체 실행'; sum.push('CSRF는 쿠키가 요청에 자동으로 붙는다는 점을 악용합니다. 공격자는 쿠키 값을 훔치지 않고도, 피해자의 브라우저가 대신 요청을 보내게 만듭니다.'); }
       if (c.d3 !== 'none') sum.push('인증 정보를 쿠키가 아니라 Authorization 헤더로 보내는 API(JWT 등)는 브라우저가 자동으로 붙여 주지 않으므로 CSRF의 대상이 되기 어렵습니다. 그래서 그런 API 서버에서는 CSRF 보호를 끄기도 합니다.');
     }
-    sum.unshift('공격 결과: ' + res + '. 피해: ' + harm + '.');
     return { events: ev, summary: sum, row: [res, harm, where] };
   },
   render: function (v, sim, t, H, shown) {

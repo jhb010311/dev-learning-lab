@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -63,7 +63,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>운영체제(커널)는 호스트 1개뿐입니다. 전체 메모리 약 2224MB이며 컨테이너마다 애플리케이션이 쓰는 만큼만 더해졌습니다.</li>
 <li>컨테이너는 커널을 공유하므로 가볍고 빨리 뜹니다. 대신 격리는 가상 머신보다 약하고, 호스트와 같은 종류의 커널에서만 동작합니다. &quot;보이는 범위&quot;는 네임스페이스가, &quot;쓸 수 있는 자원량&quot;은 cgroups가 나눕니다.</li>
 </ul>
 <h2>코드</h2>
@@ -159,6 +158,6 @@ $ docker run -d --memory=1024m my-app:1.0</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

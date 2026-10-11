@@ -38,17 +38,17 @@ Lab.register({
     ev.sort(function (a, b) { return a.t - b.t; });
     var ok = reqs.filter(function (x) { return !x.fail; }), waits = ok.map(function (x) { return x.start - x.at; }), fails = reqs.length - ok.length;
     var avg = waits.length ? waits.reduce(function (a, b) { return a + b; }, 0) / waits.length : 0, mx = waits.length ? Math.max.apply(null, waits) : 0, total = reqs.reduce(function (m, x) { return Math.max(m, x.fail || x.done); }, 0);
-    var sum = ['Requests: ' + c.n + '. Succeeded: ' + ok.length + '. Failed because they could not get a connection: ' + fails + '. The requests that succeeded waited for a connection ' + fmt(avg) + 's on average and ' + fmt(mx) + 's at most.', 'One request holds a connection for ' + fmt(hold) + 's (database work ' + c.q + 's' + (c.osiv && ext > 0 ? ' + external API ' + c.ext + 's' : '') + ').'];
+    var sum = ext > 0 || fails ? [] : ['Requests: ' + c.n + '. Succeeded: ' + ok.length + '. Failed because they could not get a connection: ' + fails + '. The requests that succeeded waited for a connection ' + fmt(avg) + 's on average and ' + fmt(mx) + 's at most.'];
     if (c.osiv && ext > 0) sum.push('When OSIV is on, the persistence context stays open until the response is finished, and the database connection is held along with it for that time. The connection stays occupied even during the wait for the external API, which does not use the database, so on an API server with heavy traffic the connections soon run short. When OSIV is off, the connection is returned when the transaction ends.');
     if (!c.osiv && ext > 0) sum.push('When OSIV is off, the connection is returned as soon as the transaction ends. In exchange, lazy fetching cannot be used outside the transaction (in the controller or the view), so the service layer has to read all the data that is needed in advance.');
     if (fails) sum.push('Simply making the pool larger is not the solution. There is a limit to the number of connections the database can handle, and with more connections they compete with each other on the database side, which makes things slower instead. Reducing the time a connection is held (turning OSIV off, narrowing the transaction scope, improving slow queries) comes first.');
     return { total: total, events: ev, summary: sum, conns: conns, reqs: reqs, hold: hold, row: [ok.length + '', fails + '', fmt(avg) + 's', fmt(mx) + 's', fmt(hold) + 's'] };
   },
   render: function (v, sim, t, H) {
-    var c = sim.c, e = 1e-9, done = sim.reqs.filter(function (r) { return r.done !== undefined && r.done <= t + e; }).length, failed = sim.reqs.filter(function (r) { return r.fail !== undefined && r.fail <= t + e; }).length;
+    var c = sim.c, e = 1e-9;
     var waiting = sim.reqs.filter(function (r) { return r.at <= t + e && (r.fail !== undefined ? r.fail > t + e : r.start > t + e); });
     var busy = sim.conns.filter(function (cn) { return cn.segs.some(function (r) { return r.start <= t + e && r.rel > t + e; }); }).length;
-    H.counters(v, [[busy + ' / ' + c.pool, 'Connections in use'], [waiting.length, 'Requests waiting for a connection'], [done, 'Responses finished'], [failed, 'Failed on wait timeout']]);
+    H.counters(v, [[busy + ' / ' + c.pool, 'Connections in use'], [waiting.length, 'Requests waiting for a connection']]);
     H.title(v, 'Connection pool'); var ln = H.lanes(v);
     sim.conns.forEach(function (cn) { var r = cn.segs.filter(function (x) { return x.start <= t + e && x.rel > t + e; })[0];
       if (!r) H.lane(ln, 'Connection ' + cn.id, 'idle in the pool (available to borrow)', 'none');

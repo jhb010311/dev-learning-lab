@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Scaling and distribution</p>
 <h1>Replication lag and CAP</h1>
 <p><b>I just saved it, but the query shows the old value</b></p>
-<p>If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source to reach the replica. Change the replication lag and the time of the read, and also choose what to give up when the network between the two databases is cut.</p>
+<p>If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source to reach the replica.</p>
 <p>Conceptual model · A model that shows the principle</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -62,7 +62,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The result of a query to the replica 0.3s after the save is &quot;Alice&quot;. The save succeeded, but the screen showed the old value.</li>
 <li>Replication is usually asynchronous, so there is a time lag between the source and the replica. Given time they become the same, but before that they can differ (eventual consistency). Ways to handle this are to read the data a user has just written from the source, or, on the screen right after a write, to use the value received in the response as it is.</li>
 </ul>
 <h2>Code</h2>
@@ -161,6 +160,6 @@ public Member getMember(long id) {                      // -&gt; replica
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

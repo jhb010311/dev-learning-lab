@@ -1,7 +1,7 @@
 Lab.register({
   id: 'singleton', nav: 'Singleton beans and state', cat: 'Spring', mode: 'step',
   title: 'My order shows someone else\'s name',
-  intro: 'By default, only one instance of a Spring bean is created, and all requests share it. If you store a value that differs per request in a field of that bean, another request that comes in at the same time overwrites the value. See what happens depending on where you keep the value.',
+  intro: 'By default, only one instance of a Spring bean is created, and all requests share it. If you store a value that differs per request in a field of that bean, another request that comes in at the same time overwrites the value.',
   terms: ['Stateless singleton beans', 'Bean scope', 'ThreadLocal', 'Thread safety', 'Race condition'], ranks: ['bean', 'di', 'concurrency'],
   controls: [
     { id: 'where', label: 'Where the current user information is kept', type: 'select', value: 'field', options: [['field', 'A field of the service bean'], ['local', 'A local variable of the method (passed as a parameter)'], ['tl', 'ThreadLocal (not cleared at the end of the request)'], ['tlc', 'ThreadLocal (remove at the end of the request)']] },
@@ -50,16 +50,11 @@ Lab.register({
       }
     }
     var ok = a === 'Alice' && b === 'Bob' && (g === '-' || g.indexOf('none') === 0);
-    sum.unshift('Alice\'s order shows "' + a + '", and Bob\'s order shows "' + b + '".' + (g !== '-' ? ' User value seen by the next request, which is not logged in: ' + g + '.' : ''));
     return { events: ev, summary: sum, row: [a, b, g, ok ? 'Correct' : 'Values mixed up'] };
   },
   render: function (v, sim, t, H, shown) {
     var W = sim.c.where, last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to send two requests at the same time.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'Thread 1', s.t1 || 'waiting', s.t1 ? 'hot' : 'none'); H.lane(ln, 'Thread 2', s.t2 || 'waiting', s.t2 && s.t2 !== '(waiting)' ? 'wait' : 'none');
-    if (W === 'field') H.table(v, ['What is shared', 'Current value'], [{ cells: ['OrderService.currentUser (field, only one)', { v: s.field, cls: s.field === 'Bob' ? 'bad' : s.field === 'Alice' ? 'hot' : '' }] }], 'Singleton bean');
-    if (W === 'tl' || W === 'tlc') H.table(v, ['Copy for each thread', 'Current value'], [{ cells: ['ThreadLocal of thread 1', { v: s.tl1, cls: s.tl1 === 'Alice' ? 'hot' : '' }] }, { cells: ['ThreadLocal of thread 2', { v: s.tl2, cls: s.tl2 === 'Bob' ? 'hot' : '' }] }], 'ThreadLocal');
     H.table(v, ['Request', 'Recorded user'], [{ cells: ['Alice\'s order', { v: s.o1, cls: s.o1 === '-' ? '' : s.o1 === 'Alice' ? 'good' : 'bad' }] }, { cells: ['Bob\'s order', { v: s.o2, cls: s.o2 === '-' ? '' : s.o2 === 'Bob' ? 'good' : 'bad' }] }].concat(W === 'tl' || W === 'tlc' ? [{ cells: ['Next request, not logged in', { v: s.o3, cls: s.o3 === '-' ? '' : s.o3.indexOf('none') === 0 ? 'good' : 'bad' }] }] : []), 'Result');
   },
   // Diagram: the single bean at the top and the two threads below. Both threads call the same object. The key point is where the value is placed.

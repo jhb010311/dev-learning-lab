@@ -1,7 +1,7 @@
 Lab.register({
   id: 'singleton', nav: '싱글톤 빈과 상태', cat: '스프링', mode: 'step',
   title: '내 주문에 다른 사람 이름이 찍혔다',
-  intro: '스프링 빈은 기본적으로 하나만 만들어져 모든 요청이 함께 씁니다. 그 빈의 필드에 요청마다 달라지는 값을 저장하면, 동시에 들어온 다른 요청이 그 값을 덮어씁니다. 값을 어디에 두느냐에 따라 무슨 일이 생기는지 보세요.',
+  intro: '스프링 빈은 기본적으로 하나만 만들어져 모든 요청이 함께 씁니다. 그 빈의 필드에 요청마다 달라지는 값을 저장하면, 동시에 들어온 다른 요청이 그 값을 덮어씁니다.',
   terms: ['싱글톤 빈과 무상태(Stateless)', '빈 스코프', 'ThreadLocal', '스레드 안전(Thread-safe)', '경쟁 상태(Race Condition)'], ranks: ['bean', 'di', 'concurrency'],
   controls: [
     { id: 'where', label: '현재 사용자 정보를 두는 곳', type: 'select', value: 'field', options: [['field', '서비스 빈의 필드'], ['local', '메서드의 지역 변수 (파라미터로 전달)'], ['tl', 'ThreadLocal (요청 끝에 지우지 않음)'], ['tlc', 'ThreadLocal (요청 끝에 remove)']] },
@@ -50,16 +50,11 @@ Lab.register({
       }
     }
     var ok = a === '철수' && b === '영희' && (g === '-' || g.indexOf('없음') === 0);
-    sum.unshift('철수의 주문에는 "' + a + '", 영희의 주문에는 "' + b + '"가 찍혔습니다.' + (g !== '-' ? ' 로그인하지 않은 다음 요청이 본 사용자 값: ' + g + '.' : ''));
     return { events: ev, summary: sum, row: [a, b, g, ok ? '정상' : '값이 섞임'] };
   },
   render: function (v, sim, t, H, shown) {
     var W = sim.c.where, last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 두 요청이 동시에 들어옵니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '스레드 1', s.t1 || '대기', s.t1 ? 'hot' : 'none'); H.lane(ln, '스레드 2', s.t2 || '대기', s.t2 && s.t2 !== '(대기)' ? 'wait' : 'none');
-    if (W === 'field') H.table(v, ['공유되는 것', '지금 값'], [{ cells: ['OrderService.currentUser (필드, 하나뿐)', { v: s.field, cls: s.field === '영희' ? 'bad' : s.field === '철수' ? 'hot' : '' }] }], '싱글톤 빈');
-    if (W === 'tl' || W === 'tlc') H.table(v, ['스레드별 보관함', '지금 값'], [{ cells: ['스레드 1의 ThreadLocal', { v: s.tl1, cls: s.tl1 === '철수' ? 'hot' : '' }] }, { cells: ['스레드 2의 ThreadLocal', { v: s.tl2, cls: s.tl2 === '영희' ? 'hot' : '' }] }], 'ThreadLocal');
     H.table(v, ['요청', '기록된 사용자'], [{ cells: ['철수의 주문', { v: s.o1, cls: s.o1 === '-' ? '' : s.o1 === '철수' ? 'good' : 'bad' }] }, { cells: ['영희의 주문', { v: s.o2, cls: s.o2 === '-' ? '' : s.o2 === '영희' ? 'good' : 'bad' }] }].concat(W === 'tl' || W === 'tlc' ? [{ cells: ['로그인 안 한 다음 요청', { v: s.o3, cls: s.o3 === '-' ? '' : s.o3.indexOf('없음') === 0 ? 'good' : 'bad' }] }] : []), '결과');
   },
   // 그림: 위에 하나뿐인 빈, 아래에 두 스레드. 두 스레드가 같은 객체를 부른다. 값이 어디에 놓이는지가 핵심.

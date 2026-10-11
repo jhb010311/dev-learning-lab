@@ -1,7 +1,7 @@
 Lab.register({
   id: 'stack', nav: 'Stack and heap', cat: 'JVM', mode: 'step',
   title: 'What happens in memory each time a method is called',
-  intro: 'When a method is called, a frame is pushed onto the stack of that thread, and when the method returns, the frame is removed. An object created with new is placed on the heap, not on the stack, and a local variable in the frame refers to it. Change the recursion depth and the stack size to watch frames being pushed and removed, and to see a StackOverflowError.',
+  intro: 'When a method is called, a frame is pushed onto the stack of that thread, and when the method returns, the frame is removed. An object created with new is placed on the heap, not on the stack, and a local variable in the frame refers to it.',
   terms: ['Run-time data areas', 'Java Virtual Machine stack', 'Heap memory', 'StackOverflowError and OutOfMemoryError'], ranks: ['jvm'],
   controls: [
     { id: 'n', label: 'Value passed to factorial', type: 'range', min: 1, max: 10, value: 4, fmt: function (v) { return 'factorial(' + v + ')'; } },
@@ -62,10 +62,8 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { frames: [], heap: [] };
-    H.counters(v, [[s.frames.length + ' / ' + c.limit, 'Frames on the stack'], [s.heap.filter(function (h) { return h.live; }).length, 'Heap: referenced objects'], [s.heap.filter(function (h) { return !h.live; }).length, 'Heap: unreferenced objects']]);
     H.title(v, 'Stack of the main thread (the top is the method that is running now)'); var ln = H.lanes(v);
     for (var i = c.limit - 1; i >= 0; i--) { var f = s.frames[i]; if (f) H.lane(ln, '#' + (i + 1), f.name + '  |  ' + f.vars + '  |  ' + f.st, i === s.frames.length - 1 ? 'hot' : 'wait'); else H.lane(ln, '#' + (i + 1), 'empty', 'none'); }
-    if (c.obj) { H.title(v, 'Heap (area shared by all threads)'); H.slots(v, s.heap.map(function (h) { return ['Object ' + h.id, h.live ? 'd' : '']; }), 'No objects yet.'); H.text(v, 'Green marks an object that a variable on the stack refers to. A dashed outline marks an object that is no longer referenced and is eligible for garbage collection.'); }
   },
   // Diagram: the stack on the left (filled from the bottom up) and the heap on the right. Arrows go from the variables in the frames to the objects on the heap.
   draw: function (P, sim, shown) {

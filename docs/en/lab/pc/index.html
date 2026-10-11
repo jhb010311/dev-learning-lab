@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Persistence context</p>
 <h1>Persistence context</h1>
 <p><b>When does JPA send SQL?</b></p>
-<p>JPA keeps entities in an in-memory space called the persistence context. It does not send SQL at the moment a line of code runs. It collects the SQL and sends it when it is needed. Follow the code one line at a time and see on which lines SQL is sent and on which lines it is not.</p>
+<p>JPA keeps entities in an in-memory space called the persistence context. It does not send SQL at the moment a line of code runs. It collects the SQL and sends it when it is needed.</p>
 <p>Checked against real execution · The SQL of 6 scenarios was checked against Hibernate 7.4.5 and H2</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>SQL statements sent: 2 (SELECT, UPDATE).</li>
 <li>An UPDATE was sent even though no update method or save was called. For an entity managed by the persistence context, if you only change a value, JPA compares it with the snapshot at commit time and builds the SQL for you.</li>
 </ul>
 <h2>Code</h2>
@@ -159,6 +158,6 @@ public void run() {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

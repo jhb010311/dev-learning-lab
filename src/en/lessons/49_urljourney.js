@@ -1,7 +1,7 @@
 Lab.register({
   id: 'journey', nav: 'From URL to response', cat: 'Networking', mode: 'step',
   title: 'What happens when you type a URL in the address bar and press Enter',
-  intro: 'While a browser opens a single URL, a DNS lookup, a TCP connection, a TLS handshake, an HTTP request, a reverse proxy, an application server, and a database take part one after another. Some steps can be skipped thanks to a cache or connection reuse. Change the conditions and compare the steps taken and the time they take.',
+  intro: 'While a browser opens a single URL, a DNS lookup, a TCP connection, a TLS handshake, an HTTP request, a reverse proxy, an application server, and a database take part one after another. Some steps can be skipped thanks to a cache or connection reuse.',
   terms: ['DNS', 'Web server and application server', 'Reverse proxy', 'CDN', 'HTTPS and TLS', 'Three-way handshake'], ranks: ['network', 'was', 'http'],
   controls: [
     { id: 'what', label: 'What is requested', type: 'select', value: 'api', options: [['api', 'Dynamic page (/orders, needs a database query)'], ['static', 'Static file (/logo.png)']] },
@@ -41,7 +41,6 @@ Lab.register({
       }
     }
     step('Response received and displayed', rtt, 'The response arrives at the browser. If it is HTML, the browser parses it, finds the URLs of the CSS, scripts, and images in it, and repeats the same process for each of them.', 'good');
-    sum.push('Total: about ' + total + 'ms. ' + (skipped ? 'Steps skipped: ' + skipped + '.' : 'Every step was taken.') + ' Response produced by: ' + maker + '.');
     if (!c.dns || !c.conn) sum.push('On a first request, the DNS lookup, the TCP connection, and the TLS handshake all happen before the actual request. However fast the server is, these round trips do not go away, so keeping a connection open and reusing it (keep-alive, HTTP/2) has a large effect on how fast the site feels.');
     if (c.what === 'static' && !cdn) sum.push('The web server serves static files directly. The application server handles only the requests whose result has to be produced by running code. Putting a reverse proxy in front lets you handle TLS, static files, load balancing, and hiding the internal servers in one place.');
     if (cdn) sum.push('A CDN keeps copies of static files in many places around the world and responds from a place close to the user. The round trips get shorter, and fewer requests reach the origin server.');
@@ -50,7 +49,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], total: 0 };
-    H.counters(v, [[s.total + 'ms', 'Time so far']]);
     if (s.rows.length) H.table(v, ['Step', 'Time', 'Cumulative'], s.rows, 'Steps taken'); else H.text(v, 'Click Run to start.');
   },
   // Diagram: the order in which a request leaves the browser and passes through DNS, the proxy, the application server, and the database.
@@ -62,7 +60,7 @@ Lab.register({
     var end = P.seq(actors, msgs, { keep: 11 });
     P.box('tot', 16, end + 14, 648, 34, { cls: 'plain', title: 'Time so far', right: s.total + 'ms' });
     P.size(680, end + 64);
-    P.note('An arrow shows who contacted whom in that step, and the number is the time it took. If you turn on the DNS cache or connection reuse in the settings, the arrows near the top disappear.');
+    P.note('An arrow shows who contacted whom in that step, and the number is the time it took.');
   },
   assume: 'The times are examples chosen to show relative sizes (30ms to reach the server once, 5ms with a CDN, 40ms for a DNS lookup, 20ms for a database query). Real values vary widely with the distance, the network, and the query. The setup assumes a common arrangement in which nginx handles TLS in front and passes requests to Spring Boot (embedded Tomcat) behind it. That the steps really happen in this order, and that the first three steps disappear when a connection is reused, was checked by sending two requests in a row to a public site with curl. In the first request, the DNS lookup was done at 27ms, the TCP connection at 60ms, and TLS at 156ms, and the first byte arrived at 194ms. The second request, sent over the same connection, showed 0 for DNS, TCP, and TLS and took 40ms in total. The part behind the reverse proxy was not verified directly.',
 });

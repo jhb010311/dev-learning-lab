@@ -1,7 +1,7 @@
 Lab.register({
   id: 'stock', nav: 'Stock decrement and locks', cat: 'Database', mode: 'step',
   title: 'What if many orders arrive at once for 3 items in stock?',
-  intro: 'Several requests run "check the stock, subtract 1, create an order" at the same time. With no safeguard, more items are sold than are in stock, or the stock number no longer matches reality. Change the way concurrent updates are handled, and compare the results and the cost (waiting and retrying).',
+  intro: 'Several requests run "check the stock, subtract 1, create an order" at the same time. With no safeguard, more items are sold than are in stock, or the stock number no longer matches reality.',
   terms: ['Pessimistic locking', 'Optimistic locking (@Version)', 'Shared locks and exclusive locks', 'Distributed lock', 'Race condition'], ranks: ['concurrency', 'traffic', 'dbengine'],
   controls: [
     { id: 'how', label: 'How concurrent updates are handled', type: 'select', value: 'none', options: [['none', 'Nothing (read, then update)'], ['pess', 'Pessimistic locking (SELECT ... FOR UPDATE)'], ['opt', 'Optimistic locking (@Version)'], ['atomic', 'One UPDATE statement with a condition'], ['dist', 'Distributed lock (Redis)']] },
@@ -57,7 +57,6 @@ Lab.register({
         push('Request ' + (win + 1) + ': Sends an UPDATE that changes the row "only if the version is ' + readVer + '". The version is unchanged, so it succeeds. The stock is ' + stock + ', and the new version is ' + ver + '.', 'good', win);
         if (left.length) { retries += left.length; left.forEach(function (r) { st[r] = 'Save failed → retry'; }); push('The other requests (' + left.length + '): They sent the same UPDATE, but the version had already changed (it is now ' + ver + '), so no row matches the condition (0 rows changed). The request is treated as a conflict, an exception is thrown, and it tries again from the start.', 'bad', -1); }
       }
-      sum.push('The stock is accurate. Orders created: ' + orders + ', stock left: ' + stock + '. Along the way, save failures and retries: ' + retries + '.');
       sum.push('Optimistic locking does not wait for locks, so it works well when conflicts are rare (for example, one person editing their own information). When requests pile up on the same row, as in this example, most of them fail and retry, so the system actually does more work. You have to write the retry code yourself.');
     }
     if (c.how === 'atomic') {
@@ -65,7 +64,6 @@ Lab.register({
         if (stock > 0) { stock--; orders++; sold++; st[u] = 'Order placed'; push('Request ' + (u + 1) + ': Sends the UPDATE "decrease by 1 if the stock is greater than 0". The DB locks the row only while it runs this one statement. 1 row was changed, so the request creates the order. Stock: ' + stock + '.', 'good', u); }
         else { st[u] = 'Rejected (sold out)'; push('Request ' + (u + 1) + ': Sends the same UPDATE, but the stock is 0, so the condition does not match. 0 rows were changed, so the request is handled as sold out.', '', u); }
       }
-      sum.push('The stock is accurate. Orders created: ' + orders + ', stock left: ' + stock + '. There was no waiting and no retrying.');
       sum.push('If you put "read, check, and write" into one SQL statement instead of splitting it up in the application, there is no gap for another request to cut into. For a simple increase or decrease, this is the lightest and most reliable method. It is hard to use when the condition to check is complex and spans several tables.');
     }
     var match = orders === S - stock;
@@ -73,7 +71,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { stock: c.s, ver: 0, st: [], orders: 0, hot: -1, waits: 0, retries: 0 };
-    H.counters(v, [[s.stock + (c.how === 'opt' ? ' (version ' + s.ver + ')' : ''), 'Stock in the DB'], [s.orders, 'Orders created'], [c.s - s.orders, 'Initial stock minus orders (what should be left)'], [s.waits, 'Lock waits'], [s.retries, 'Retries']]);
+    H.counters(v, [[c.s - s.orders, 'Initial stock minus orders (what should be left)']]);
     H.title(v, 'Requests'); var ln = H.lanes(v);
     for (var i = 0; i < c.n; i++) { var x = s.st[i] || 'Not arrived'; H.lane(ln, 'Request ' + (i + 1), x, x === 'Order placed' ? 'good' : x.indexOf('Waiting') >= 0 ? 'wait' : x.indexOf('failed') >= 0 ? 'bad' : i === s.hot ? 'hot' : x === 'Not arrived' ? 'none' : ''); }
   },

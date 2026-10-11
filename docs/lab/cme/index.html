@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>순회 중 삭제: 반복문 안에서 원소를 지우면 · 개발 학습 실습실</title>
-<meta name="description" content="리스트 [1, 2, 2, 3, 4]를 돌면서 값이 2인 원소를 지우려 합니다. 지우는 방법에 따라 예외가 나기도 하고, 예외 없이 원소 하나를 건너뛰어 버리기도 합니다. 방법과 컬렉션 종류를 바꿔 가며 결과를 보세요.">
+<meta name="description" content="리스트 [1, 2, 2, 3, 4]를 돌면서 값이 2인 원소를 지우려 합니다. 지우는 방법에 따라 예외가 나기도 하고, 예외 없이 원소 하나를 건너뛰어 버리기도 합니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/cme/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cme/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cme/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="순회 중 삭제: 반복문 안에서 원소를 지우면 · 개발 학습 실습실">
-<meta property="og:description" content="리스트 [1, 2, 2, 3, 4]를 돌면서 값이 2인 원소를 지우려 합니다. 지우는 방법에 따라 예외가 나기도 하고, 예외 없이 원소 하나를 건너뛰어 버리기도 합니다. 방법과 컬렉션 종류를 바꿔 가며 결과를 보세요.">
+<meta property="og:description" content="리스트 [1, 2, 2, 3, 4]를 돌면서 값이 2인 원소를 지우려 합니다. 지우는 방법에 따라 예외가 나기도 하고, 예외 없이 원소 하나를 건너뛰어 버리기도 합니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/cme/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 컬렉션</p>
 <h1>순회 중 삭제</h1>
 <p><b>반복문 안에서 원소를 지우면</b></p>
-<p>리스트 [1, 2, 2, 3, 4]를 돌면서 값이 2인 원소를 지우려 합니다. 지우는 방법에 따라 예외가 나기도 하고, 예외 없이 원소 하나를 건너뛰어 버리기도 합니다. 방법과 컬렉션 종류를 바꿔 가며 결과를 보세요.</p>
+<p>리스트 [1, 2, 2, 3, 4]를 돌면서 값이 2인 원소를 지우려 합니다. 지우는 방법에 따라 예외가 나기도 하고, 예외 없이 원소 하나를 건너뛰어 버리기도 합니다.</p>
 <p>실행으로 대조 · JDK 21에서 열 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>결과: [1, 2, 3, 4]. 예외: ConcurrentModificationException. 2가 남아 있습니다.</li>
 <li>이 예외는 이름과 달리 스레드가 하나여도 납니다. 순회 중에 반복자를 거치지 않고 컬렉션을 바꾸면 발생합니다. 반복자는 수정 횟수를 비교해 변화를 감지하는 즉시 실패합니다.</li>
 </ul>
 <h2>코드</h2>
@@ -158,6 +157,6 @@ for (Integer x : list) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'mvc', nav: 'MVC 요청 흐름', cat: '스프링', mode: 'step',
   title: '요청 하나가 컨트롤러에 닿기까지, 그리고 돌아가기까지',
-  intro: 'HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다. 중간에 거절되거나 예외가 나면 어느 단계가 건너뛰어지고 누가 응답을 만드는지 단계별로 보세요.',
+  intro: 'HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다.',
   terms: ['DispatcherServlet과 프론트 컨트롤러', 'HandlerMapping과 HandlerAdapter', 'ArgumentResolver', 'HttpMessageConverter', '필터(Filter)', '인터셉터(HandlerInterceptor)', '@ControllerAdvice와 @ExceptionHandler', 'ViewResolver'], ranks: ['mvc', 'filter'],
   controls: [
     { id: 'kind', label: '컨트롤러 종류', type: 'select', value: 'rest', options: [['rest', '@RestController (JSON 응답)'], ['view', '@Controller (화면 이름 반환)']] },
@@ -76,10 +76,11 @@ Lab.register({
       }
     }
     var has = function (id) { return seen.indexOf(id) >= 0; }, yn = function (b) { return b ? '실행됨' : '건너뜀'; };
-    var sum = ['최종 응답은 ' + resp + '이고, 응답을 만든 곳은 ' + maker + '입니다.', '컨트롤러 메서드는 ' + yn(has('CT')) + ', postHandle은 ' + yn(has('PO')) + ', afterCompletion은 ' + yn(has('AC')) + '.'];
+    var sum = [];
     if (c.what === 'filter') sum.push('필터는 DispatcherServlet 앞에 있으므로, 필터에서 던진 예외나 거절은 @ControllerAdvice로 처리할 수 없습니다.');
     if (c.what === 'ex') sum.push('컨트롤러에서 예외가 나면 postHandle은 호출되지 않고 afterCompletion은 호출됩니다. 그래서 "반드시 실행돼야 하는 정리 작업"은 afterCompletion에 둡니다.');
     if (c.what === 'none' && rest) sum.push('@RestController에서는 ViewResolver를 거치지 않습니다. 반환 객체가 HttpMessageConverter를 통해 곧바로 응답 본문이 됩니다.');
+    if (!sum.length) sum.push('최종 응답은 ' + resp + '이고, 응답을 만든 곳은 ' + maker + '입니다.');
     return { events: ev, summary: sum, rest: rest, row: [resp, yn(has('CT')), yn(has('PO')), yn(has('AC')), maker] };
   },
   render: function (v, sim, t, H, shown) {
@@ -89,7 +90,6 @@ Lab.register({
       return { cls: !seen && done ? 'gone' : '', cells: [String(i + 1), st[1], { v: state, cls: id === s.cur ? 'hot' : id === s.end ? 'bad' : seen ? 'good' : '' }] };
     });
     H.table(v, ['순서', '구성 요소', '상태'], rows, '요청이 지나는 길 (위에서 아래로 들어가고, 응답은 마지막 줄에서 나갑니다)');
-    H.counters(v, [[done ? s.resp : '처리 중', '클라이언트가 받는 응답']]);
   },
   // 그림: 요청이 지나는 구성 요소를 위에서 아래로 늘어놓는다. 어디까지 갔고 어디를 건너뛰었는지가 보인다.
   draw: function (P, sim, shown) {
@@ -99,7 +99,7 @@ Lab.register({
     P.region('path', 16, 16, 648, 42 + stages.length * 29, '요청이 지나는 길 (위에서 아래로)');
     stages.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0; P.box('st_' + id, 28, 50 + i * 29, 624, 25, { cls: id === s.cur ? 'hot now' : id === s.end ? 'bad' : seen ? 'good' : 'ghost', title: (i + 1) + '. ' + st[1], right: id === s.cur ? '지금 여기' : id === s.end ? '여기서 문제 발생' : seen ? '지나감' : done ? '건너뜀' : (group[id] || '') }); });
     P.box('resp', 16, 70 + stages.length * 29, 648, 34, { cls: !done ? 'ghost' : /^2/.test(s.resp) ? 'good' : 'bad', title: '클라이언트가 받는 응답', right: done ? s.resp : '처리 중' });
-    P.note('초록은 지나간 곳, 노랑은 지금 있는 곳, 빨강은 문제가 생긴 곳, 점선은 건너뛴 곳입니다. 앞쪽에서 막히면 그 뒤의 구성 요소는 실행되지 않습니다.');
+    P.note('초록은 지나간 곳, 노랑은 지금 있는 곳, 빨강은 문제가 생긴 곳, 점선은 건너뛴 곳입니다.');
   },
   assume: '인터셉터와 필터가 각각 하나씩 있는 단순한 구성으로 그렸습니다. 열여섯 가지 조합 모두를 실제 스프링 부트 4.1.1 서버(내장 톰캣)에 HTTP 요청을 보내, 응답 코드와 컨트롤러·postHandle·afterCompletion의 실행 여부, 응답을 만든 곳이 화면과 일치하는 것을 확인했습니다(화면 응답은 템플릿 엔진 대신 같은 이름의 뷰 객체로 그려서 확인). 처리되지 않은 예외가 /error로 다시 전달되어 500 응답이 되는 부분은 스프링 부트의 기본 오류 처리 동작이며, 그 재전달 과정은 한 단계로 줄여서 표현했습니다. 매핑되는 컨트롤러가 없는 경우(404)는 버전과 정적 리소스 설정에 따라 경로가 달라서 넣지 않았습니다.',
 });

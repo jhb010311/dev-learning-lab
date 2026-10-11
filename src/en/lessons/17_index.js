@@ -1,7 +1,7 @@
 Lab.register({
   id: 'index', nav: 'Indexes and full table scans', cat: 'Database', mode: 'step',
   title: 'Why is the index not used even though it exists?',
-  intro: 'There are two ways to find the rows that match a condition: read the table from beginning to end (a full table scan), or find the positions in an index and read only those rows. Which one is cheaper depends on the share of rows the condition matches, and the optimizer chooses by looking at statistics. Change the number of rows and the share, and find the point where the choice changes.',
+  intro: 'There are two ways to find the rows that match a condition: read the table from beginning to end (a full table scan), or find the positions in an index and read only those rows. Which one is cheaper depends on the share of rows the condition matches, and the optimizer chooses by looking at statistics.',
   terms: ['Index', 'B-tree index', 'Full table scan', 'Query execution plan (EXPLAIN)', 'Optimizer', 'Cardinality and selectivity'], ranks: ['index', 'tuning', 'dbengine'],
   controls: [
     { id: 'rows', label: 'Rows in the table', type: 'select', value: '100000', options: [['1000', '1,000 rows'], ['100000', '100,000 rows'], ['10000000', '10,000,000 rows']] },
@@ -40,7 +40,6 @@ Lab.register({
       push('It reads all ' + num(N) + ' rows, from the first row of the table to the last. For each row it checks status, keeps only ' + num(matched) + ' rows, and discards the other ' + num(N - matched) + ' rows after reading them.', c.idx ? '' : 'bad', 6);
     }
     var read = useIdx ? matched : N, cost = useIdx ? costIdx : costFull, sum = [];
-    sum.push((useIdx ? 'The query used the index' : 'The query used a full table scan') + '. It read ' + num(read) + ' rows and returned ' + num(matched) + ' rows, so the number of rows read and then discarded is ' + num(read - matched) + '.');
     if (!c.idx) sum.push('Without an index, the whole table must be read however many rows match. If the number of rows grows 10 times, the amount read grows 10 times. If there had been an index, the estimated cost would have been ' + num(costIdx) + ', ' + (costIdx < costFull ? 'about ' + (Math.round(costFull / costIdx) >= 2 ? '1/' + Math.round(costFull / costIdx) : 'half') + ' of the full table scan.' : 'which is higher than the full table scan. An index does not help with this condition.'));
     else if (useIdx && !(c.force && costIdx >= costFull)) sum.push('The lower the share of matching rows (the better the selectivity), the greater the benefit of the index. A full table scan would have cost ' + num(costFull) + ', about ' + Math.max(1, Math.round(costFull / costIdx)) + ' times as much.');
     else if (useIdx) sum.push('Forcing the index made the cost ' + num(costIdx) + ', which is higher than the full table scan (' + num(costFull) + '). The optimizer\'s judgment was right. Use a hint only when you have evidence that the statistics are wrong.');

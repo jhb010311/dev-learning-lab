@@ -763,7 +763,7 @@ var Lab = (function () {
 Lab.register({
   id: 'threadpool', nav: '스레드 풀', cat: '동시성', mode: 'time',
   title: '스레드를 늘리면 무엇이 달라지나',
-  intro: '요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 숫자를 바꿔 가며 대기와 거절이 어떻게 변하는지 보세요.',
+  intro: '요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다.',
   terms: ['스레드 풀', 'ThreadPoolExecutor의 동작 순서', '톰캣의 스레드 모델', '블로킹과 논블로킹'], ranks: ['threadpool', 'was'],
   controls: [
     { id: 'core', label: '기본 스레드 수', type: 'range', min: 1, max: 8, value: 2, fmt: function (v) { return v + '개'; } },
@@ -817,9 +817,7 @@ Lab.register({
     var ok = reqs.filter(function (r) { return !r.rejected; }), waits = ok.map(function (r) { return r.start - r.at; });
     var total = ok.reduce(function (m, r) { return Math.max(m, r.end); }, 0), rej = reqs.length - ok.length;
     var avg = waits.length ? waits.reduce(function (a, b) { return a + b; }, 0) / waits.length : 0, mx = waits.length ? Math.max.apply(null, waits) : 0;
-    var sum = ['요청 ' + c.n + '개 중 ' + ok.length + '개를 처리하고 ' + rej + '개를 거절했습니다. 전체 ' + fmt(total) + '초가 걸렸습니다.',
-      '처리된 요청은 평균 ' + fmt(avg) + '초, 가장 오래 기다린 요청은 ' + fmt(mx) + '초를 대기 줄에서 보냈습니다.',
-      '스레드는 ' + threads.length + '개까지 만들어졌습니다(기본 ' + c.core + ', 최대 ' + c.max + ').'];
+    var sum = ['처리된 요청은 평균 ' + fmt(avg) + '초, 가장 오래 기다린 요청은 ' + fmt(mx) + '초를 대기 줄에서 보냈습니다.'];
     if (c.unb && threads.length <= c.core && c.max > c.core) sum.push('대기 줄이 무제한이라 꽉 찰 일이 없었고, 그래서 최대 스레드 수 ' + c.max + '개는 한 번도 쓰이지 않았습니다.');
     if (rej > 0) sum.push('거절을 없애려면 스레드를 늘리거나, 대기 줄을 늘리거나(대신 기다리는 시간이 길어짐), 요청 처리 시간을 줄여야 합니다.');
     if (rej === 0 && mx === 0) sum.push('모든 요청이 기다리지 않고 바로 처리됐습니다. 이 부하에는 스레드가 충분합니다.');
@@ -827,26 +825,21 @@ Lab.register({
       row: [ok.length + '개', rej + '개', fmt(avg) + '초', fmt(mx) + '초', fmt(total) + '초', threads.length + '개'] };
   },
   render: function (v, sim, t, H) {
-    var c = sim.c, slots = Math.max(c.max, sim.threads.length), busyN = 0, made = 0, rows = [];
+    var c = sim.c, slots = Math.max(c.max, sim.threads.length), rows = [];
     for (var i = 0; i < slots; i++) {
       var th = sim.threads[i];
       if (!th || th.created > t + 1e-9) { rows.push(['스레드 ' + (i + 1), i < c.core ? '아직 만들지 않음(기본)' : '아직 만들지 않음(큐가 꽉 차야 만듦)', 'none']); continue; }
-      made++;
       var cur = th.segs.filter(function (r) { return r.start <= t + 1e-9 && r.end > t + 1e-9; })[0];
-      if (cur) { busyN++; rows.push(['스레드 ' + (i + 1), '요청 ' + cur.id + ' 처리 중 · ' + H.fmt(cur.end - t) + '초 남음', '', (t - cur.start) / c.work]); }
+      if (cur) { rows.push(['스레드 ' + (i + 1), '요청 ' + cur.id + ' 처리 중 · ' + H.fmt(cur.end - t) + '초 남음', '', (t - cur.start) / c.work]); }
       else rows.push(['스레드 ' + (i + 1), '쉬는 중', '']);
     }
     var q = sim.reqs.filter(function (r) { return r.queued !== undefined && r.queued <= t + 1e-9 && r.start > t + 1e-9; });
-    var rj = sim.reqs.filter(function (r) { return r.rejected && r.at <= t + 1e-9; });
-    var doneN = sim.reqs.filter(function (r) { return !r.rejected && r.end <= t + 1e-9; }).length;
-    H.counters(v, [[made, '만들어진 스레드'], [busyN, '일하는 스레드'], [q.length, '대기 중인 요청'], [doneN, '처리 완료'], [rj.length, '거절됨']]);
     H.title(v, '스레드'); var ln = H.lanes(v); rows.forEach(function (r) { H.lane(ln, r[0], r[1], r[2], r[3]); });
     H.title(v, '대기 큐');
     var items = [], capN = c.unb ? Math.max(q.length, 1) : c.cap;
     for (var j = 0; j < capN; j++) items.push(q[j] ? ['요청 ' + q[j].id, 'q'] : [c.unb ? '비어 있음' : '빈 칸', '']);
     if (c.unb) items.push(['… 무제한', '']);
     H.slots(v, items, '대기 칸이 없습니다. 쉬는 스레드가 없으면 바로 스레드를 늘리거나 거절합니다.');
-    H.title(v, '거절된 요청'); H.slots(v, rj.map(function (r) { return ['요청 ' + r.id, 'r']; }), '없음');
   },
   // 그림: 왼쪽에 대기 큐와 거절된 요청, 오른쪽에 스레드. 요청(번호 상자)이 큐에서 스레드로 옮겨 가고, 자리가 없으면 거절 칸으로 간다.
   draw: function (P, sim, shown, t) {
@@ -867,7 +860,7 @@ Lab.register({
       if (cur) P.box('rq' + cur.id, 540, y + 3, 104, 18, { cls: 'wait', sub: '요청 ' + cur.id + ' 처리 중', center: true, from: 'th' + i });
     }
     P.text('done', 358, H + 8, '처리 완료 ' + doneN + '개', { cls: 'good' });
-    P.note('번호가 적힌 파란 상자가 요청입니다. 스레드가 모두 바쁘면 요청은 먼저 대기 큐에 들어가고, 큐가 꽉 찬 뒤에야 스레드가 최대 수까지 늘어납니다. 그래도 자리가 없으면 거절 칸으로 갑니다.');
+    P.note('번호가 적힌 파란 상자가 요청입니다.');
   },
   assume: '요청 하나를 처리하는 동안 스레드 하나가 처리 시간만큼 통째로 묶입니다(응답이 느린 DB나 외부 API를 기다리는 요청). 스레드를 늘려도 비용이 들지 않는다고 가정했습니다. 실제로는 스레드마다 메모리를 쓰고, CPU를 쓰려는 스레드가 코어 수보다 많아지면 교대하는 비용이 늘어납니다. 스레드를 배정하는 순서(기본 스레드 → 대기 큐 → 최대 스레드 → 거절)는 자바 ThreadPoolExecutor의 실제 규칙과 같고, 실제 실행 결과와 대조했습니다.',
 });
@@ -875,7 +868,7 @@ Lab.register({
 Lab.register({
   id: 'race', nav: '경쟁 상태', cat: '동시성', mode: 'step',
   title: 'count++는 왜 숫자를 잃어버리나',
-  intro: '여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다. 동기화 방식과 실행 순서를 바꿔 가며 최종 값이 어떻게 달라지는지 보세요.',
+  intro: '여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다.',
   terms: ['경쟁 상태(Race Condition)', '임계 영역과 상호 배제', 'synchronized', 'volatile', '가시성(Visibility)', '원자성(Atomicity)과 CAS', '스레드 안전(Thread-safe)'], ranks: ['javasync', 'concurrency'],
   controls: [
     { id: 'threads', label: '스레드 수', type: 'range', min: 2, max: 4, value: 2, fmt: function (v) { return v + '개'; } },
@@ -948,17 +941,16 @@ Lab.register({
         if (c.sync === 'sync') lock = null;
       }
     }
-    var expect = c.threads * c.loops, sum = ['기대값은 ' + expect + '(스레드 ' + c.threads + '개 × ' + c.loops + '번)이고 최종 값은 ' + count + '입니다.'];
+    var expect = c.threads * c.loops, sum = [];
     if (lost > 0) sum.push('증가 ' + lost + '번이 사라졌습니다. 한 스레드가 읽고 쓰는 사이에 다른 스레드가 끼어들어, 오래된 값을 기준으로 계산한 결과가 덮어써졌기 때문입니다.');
     if (c.sync === 'volatile') sum.push('volatile은 다른 스레드가 쓴 값이 보이도록 해 줄 뿐입니다. 읽기-더하기-쓰기 세 단계를 하나로 묶어 주지 않아서 결과는 동기화가 없을 때와 같습니다.');
     if (c.sync === 'sync') sum.push('synchronized 블록 안에는 한 번에 한 스레드만 들어갈 수 있어서 세 단계가 끊기지 않았습니다. 대신 다른 스레드가 ' + waits + '번 기다렸습니다.');
-    if (c.sync === 'atomic') sum.push('AtomicInteger는 락을 잡지 않습니다. 대신 "내가 읽은 값 그대로일 때만 쓴다"(CAS)를 지켜서, 다른 스레드가 먼저 바꿨으면 덮어쓰지 않고 다시 시도합니다. 이번에는 ' + retries + '번 다시 시도했고 사라진 증가는 없습니다.');
+    if (c.sync === 'atomic') sum.push('AtomicInteger는 락을 잡지 않습니다. 대신 "내가 읽은 값 그대로일 때만 쓴다"(CAS)를 지켜서, 다른 스레드가 먼저 바꿨으면 덮어쓰지 않고 다시 시도합니다.');
     if ((c.sync === 'none' || c.sync === 'volatile') && lost === 0) sum.push('이번에는 단계가 겹치지 않아 값이 맞았습니다. 코드가 안전해서가 아니라 순서가 우연히 좋았던 것입니다. 부하가 작은 테스트에서 이 버그가 드러나지 않는 이유입니다.');
     return { events: ev, summary: sum, expect: expect, row: [expect, count, lost + '번', c.sync === 'sync' ? '대기 ' + waits + '번' : c.sync === 'atomic' ? '재시도 ' + retries + '번' : '없음'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { count: 0, lost: 0, lock: null, ths: [] };
-    H.counters(v, [[sim.expect, '기대값'], [s.count, '지금 count'], [s.lost, '사라진 증가']]);
     H.title(v, '스레드');
     var ln = H.lanes(v), ph = c.sync === 'atomic' ? ['읽을 차례', 'CAS 할 차례'] : ['읽을 차례', '더할 차례', '쓸 차례'];
     for (var i = 0; i < c.threads; i++) {
@@ -967,7 +959,6 @@ Lab.register({
       var txt = th.left === 0 ? '끝' : th.blocked ? '락을 기다리는 중' : th.note + ' · ' + ph[th.phase];
       H.lane(ln, name, txt, th.left === 0 ? 'good' : th.blocked ? 'wait' : s.actor === th.id ? 'hot' : '');
     }
-    if (c.sync === 'sync') { H.title(v, '락'); H.slots(v, s.lock ? [['스레드 ' + s.lock + '가 잡고 있음', 'b']] : [['비어 있음', '']]); }
     H.text(v, '노란색은 방금 움직인 스레드, 파란색은 락을 기다리는 스레드입니다.');
   },
   // 그림: 가운데 위에 모두가 함께 쓰는 변수, 아래에 스레드들. 스레드는 값을 읽어 가서 자기 자리에서 더한 뒤 다시 쓴다.
@@ -986,7 +977,7 @@ Lab.register({
     P.box('exp', 16, 240, 208, 40, { cls: 'plain', title: '기대값', right: String(sim.expect) });
     P.box('now', 236, 240, 208, 40, { cls: 'plain', title: '지금 count', right: String(s.count) });
     P.box('lost', 456, 240, 208, 40, { cls: s.lost ? 'bad' : 'good', title: '사라진 증가', right: s.lost + '번' });
-    P.note('스레드는 count를 읽어 가서(아래로 가는 화살표) 자기 자리에서 1을 더한 뒤 다시 씁니다(위로 가는 화살표). 두 스레드가 같은 값을 읽어 간 뒤 각자 쓰면 한 번의 증가가 사라집니다.');
+    P.note('스레드는 count를 읽어 가서(아래로 가는 화살표) 자기 자리에서 1을 더한 뒤 다시 씁니다(위로 가는 화살표).');
   },
   assume: '한 번에 한 스레드의 한 단계만 실행하는 것으로 단순화했습니다. 실제 멀티코어에서는 여러 스레드가 진짜로 동시에 실행됩니다. 또 읽을 때는 항상 최신 값이 보인다고 가정했는데, 실제 일반 변수는 다른 스레드가 쓴 값이 보이지 않을 수도 있습니다(가시성 문제). 이 PC에서 JDK 21로 스레드 2개가 100만 번씩 올리는 실제 코드를 돌렸을 때 동기화 없는 count++는 1,017,250 ~ 1,892,129로 매번 달랐고, volatile을 붙여도 모자랐으며, synchronized와 AtomicInteger는 항상 2,000,000이었습니다. AtomicInteger는 읽기 → CAS → 실패하면 재시도의 순서로 그렸는데, 실제 JVM은 CPU에 따라 이 증가를 명령 하나로 끝내기도 해서 재시도가 눈에 띄지 않을 수 있습니다.',
 });
@@ -994,7 +985,7 @@ Lab.register({
 Lab.register({
   id: 'hashmap', nav: 'HashMap 내부', cat: '자료구조', mode: 'step',
   title: 'HashMap은 키를 어디에 넣고 어떻게 찾나',
-  intro: '키의 hashCode로 버킷 번호를 정해 넣습니다. hashCode가 겹치면 한 버킷에 줄줄이 달리고, 항목이 많아지면 버킷을 두 배로 늘립니다. hashCode 구현과 equals 재정의 여부를 바꿔 가며 버킷이 어떻게 차는지, 넣은 키를 다시 찾을 수 있는지 보세요.',
+  intro: '키의 hashCode로 버킷 번호를 정해 넣습니다. hashCode가 겹치면 한 버킷에 줄줄이 달리고, 항목이 많아지면 버킷을 두 배로 늘립니다.',
   terms: ['해시 테이블과 HashMap', '해시 충돌', '로드 팩터와 리사이즈', '레드-블랙 트리', 'equals와 hashCode 규약'], ranks: ['collection', 'equals', 'ds'],
   controls: [
     { id: 'n', label: '넣는 키 개수', type: 'range', min: 1, max: 40, value: 13, fmt: function (v) { return v + '개'; } },
@@ -1067,7 +1058,7 @@ Lab.register({
     else if (!hcOn) gs += '넣을 때의 객체와 해시가 달라 엉뚱한 버킷을 봤습니다. ' + (qb.nodes.length ? '그 버킷의 노드 ' + qb.nodes.length + '개는 해시부터 달라 equals를 부르지도 않습니다. ' : '그 버킷은 비어 있습니다. ') + 'null을 돌려줍니다. 값은 맵 안에 있는데 꺼낼 수 없습니다.';
     else gs += '맞는 버킷을 찾아갔고 해시도 같습니다. 하지만 equals가 재정의되지 않아 "같은 객체인가"만 비교하고, 새로 만든 객체는 다른 객체이므로 전부 false입니다. 노드 ' + qb.nodes.length + '개를 다 비교하고 null을 돌려줍니다.';
     push(gs, found ? 'good' : 'bad', qi);
-    var sum = ['키 ' + c.n + '개를 넣는 동안 버킷은 16개에서 ' + afterFill.cap + '개가 됐고(' + afterFill.resizes + '번 늘림), 가장 긴 버킷에는 ' + afterFill.longest + '개가 달렸습니다.'];
+    var sum = [];
     if (hcOn && c.hash !== 'good' && afterFill.longest > 2) sum.push('hashCode 값의 종류가 적으면 버킷을 아무리 늘려도 같은 버킷에 쌓입니다. 한 버킷이 길어질수록 put과 get이 그 안을 하나씩 비교하므로 느려집니다.');
     if (afterFill.trees) sum.push('버킷 ' + afterFill.trees + '개가 레드-블랙 트리로 바뀌었습니다. 트리는 해시 값이 서로 다르거나 키가 Comparable일 때 탐색을 빠르게 합니다. 이 예처럼 한 버킷의 hashCode가 전부 같고 Comparable도 아니면 트리로 바꿔도 탐색은 빨라지지 않습니다. 결국 hashCode를 고르게 만드는 것이 해법입니다.');
     if (c.eq === 'both') sum.push('equals와 hashCode를 둘 다 재정의해서, 같은 id로 만든 새 객체로도 값을 바꾸고 찾을 수 있었습니다.');
@@ -1079,11 +1070,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { cap: 16, thr: Math.floor(16 * +sim.c.lf), size: 0, resizes: 0, touch: -1, longest: 0, B: [] };
     H.counters(v, [[s.cap, '버킷 수'], [s.size, '저장된 항목'], [s.thr + ' 초과', '늘리는 기준'], [s.resizes, '늘린 횟수'], [s.longest, '가장 긴 버킷']]);
-    H.title(v, '버킷 ' + s.cap + '개 (숫자는 그 버킷에 달린 항목 수)');
-    var items = [];
-    for (var i = 0; i < s.cap; i++) { var b = s.B[i] || { n: 0 }; items.push([b.n ? String(b.n) + (b.tree ? 'T' : '') : '', (b.n === 0 ? '' : b.n === 1 ? 'd' : b.n < 8 ? 'q' : 'r') + (i === s.touch ? ' now' : '')]); }
-    H.slots(v, items, null, true);
-    H.text(v, '초록은 1개, 파랑은 2~7개(충돌), 빨강은 8개 이상, T는 트리로 바뀐 버킷입니다. 굵은 테두리는 방금 건드린 버킷입니다.');
     var rows = [];
     s.B.forEach(function (b, i) { if (b.n >= 2 || (i === s.touch && b.n)) rows.push({ cells: [{ v: i + '번', cls: i === s.touch ? 'hot' : '' }, b.tree ? '레드-블랙 트리' : b.n > 1 ? '연결 리스트' : '노드 1개', b.n + '개', b.ids.slice(0, 12).join(' → ') + (b.n > 12 ? ' → …' : '')] }); });
     if (rows.length) H.table(v, ['버킷', '구조', '개수', '들어 있는 키의 id (넣은 순서)'], rows, '방금 건드린 버킷과 충돌이 난 버킷');
@@ -1115,7 +1101,7 @@ Lab.register({
 Lab.register({
   id: 'nplus1', nav: 'N+1', cat: 'JPA', mode: 'step',
   title: '주문 목록 한 번 조회했는데 쿼리는 왜 여러 번 나가나',
-  intro: '주문 목록을 조회한 뒤 주문마다 회원 이름을 꺼냅니다. 연관된 회원을 언제, 어떻게 가져오느냐에 따라 DB로 나가는 쿼리 수가 달라집니다. 로딩 전략을 바꿔 가며 쿼리 로그를 비교해 보세요.',
+  intro: '주문 목록을 조회한 뒤 주문마다 회원 이름을 꺼냅니다. 연관된 회원을 언제, 어떻게 가져오느냐에 따라 DB로 나가는 쿼리 수가 달라집니다.',
   terms: ['N+1 문제', '지연 로딩과 즉시 로딩', 'fetch join', '@EntityGraph', '배치 페치(Batch Size)', '1차 캐시'], ranks: ['nplus1', 'jpaorm'],
   controls: [
     { id: 'n', label: '조회되는 주문 건수', type: 'range', min: 1, max: 30, value: 10, fmt: function (v) { return v + '건'; } },
@@ -1181,7 +1167,7 @@ Lab.register({
       }
     });
     if (c.use && (joined || c.st === 'eager')) push('반복문에서 주문 ' + c.n + '건의 회원 이름을 꺼냈습니다. 회원이 이미 전부 로딩돼 있어서 추가 쿼리는 없습니다.', '');
-    var total = qs.length, mq = total - 1, sum = ['쿼리가 모두 ' + total + '번 나갔습니다(주문 조회 1번 + 회원 조회 ' + mq + '번). DB 왕복에 ' + total * c.rt + 'ms를 썼습니다.'];
+    var total = qs.length, mq = total - 1, sum = [];
     if (c.st === 'lazy' && c.use) sum.push('목록 1번에 더해 회원 수만큼 쿼리가 따라 나갔습니다. 이것이 N+1 문제입니다. 추가 쿼리 수는 주문 건수가 아니라 아직 읽지 않은 서로 다른 회원 수(' + c.m + '명)로 정해집니다.');
     if (c.st === 'lazy' && !c.use) sum.push('지연 로딩은 실제로 쓸 때만 조회하므로, 회원을 쓰지 않는 화면에서는 쿼리 1번으로 끝납니다. 지연 로딩을 기본으로 두는 이유입니다.');
     if (c.st === 'eager') sum.push('즉시 로딩으로 바꿔도 JPQL 조회에서는 N+1이 그대로 발생합니다. 시점만 조회 직후로 당겨지고' + (c.use ? '' : ', 회원을 쓰지 않는데도 ' + mq + '번을 더 조회했습니다') + '. 즉시 로딩은 N+1의 해법이 아닙니다.');
@@ -1273,18 +1259,12 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { A: '없음', ro: false, B: null, SP: null, order: '없음', log: '없음', caller: '아직 호출 전' };
-    var cls = function (x) { return x === '커밋됨' ? 'good' : x === '롤백됨' ? 'bad' : x === '진행 중' ? 'hot' : x === '잠시 멈춤' ? 'wait' : 'none'; };
-    H.title(v, '트랜잭션'); var ln = H.lanes(v);
-    H.lane(ln, '트랜잭션 A', s.A + (s.ro ? ' · "롤백만 가능" 표시 붙음' : '') + ' (placeOrder가 시작)', s.ro && s.A === '진행 중' ? 'bad' : cls(s.A));
-    if (c.prop === 'REQUIRES_NEW') H.lane(ln, '트랜잭션 B', s.B ? s.B + ' (saveLog가 시작, 별도 커넥션)' : '아직 없음', s.B ? cls(s.B) : 'none');
-    if (c.prop === 'NESTED') H.lane(ln, '세이브포인트', s.SP ? s.SP + ' (A 안의 되돌아올 지점)' : '아직 없음', s.SP === '여기로 되돌림' ? 'bad' : s.SP === '만들어 둠' ? 'wait' : 'none');
     var st = function (x) { return x === '없음' ? '아직 없음' : x === '미커밋' ? 'INSERT함 (커밋 전)' : x === '커밋됨' ? '커밋됨 (DB에 남음)' : '롤백됨 (사라짐)'; };
     var cc = function (x) { return x === '커밋됨' ? 'good' : x === '롤백됨' ? 'bad' : x === '미커밋' ? 'hot' : ''; };
     H.table(v, ['데이터', '속한 트랜잭션', '상태'], [
       { cells: ['주문 1건', 'A', { v: st(s.order), cls: cc(s.order) }] },
       { cells: ['로그 1건', c.prop === 'REQUIRES_NEW' ? 'B' : c.prop === 'NESTED' ? 'A (세이브포인트 뒤)' : 'A', { v: st(s.log), cls: cc(s.log) }] },
     ], 'DB 테이블');
-    H.counters(v, [[s.caller, 'placeOrder()를 호출한 쪽이 받는 것']]);
   },
   // 그림: 트랜잭션을 상자로 그리고 그 안에 그 트랜잭션에 속한 데이터를 놓는다. 상자의 색이 곧 그 안 데이터의 운명이다.
   draw: function (P, sim, shown) {
@@ -1298,7 +1278,7 @@ Lab.register({
     if (ne) P.box('SP', 340, 82, 310, 112, { cls: s.SP === '여기로 되돌림' ? 'bad' : s.SP ? 'wait' : 'ghost', title: '세이브포인트 뒤 (A 안의 한 구간)', sub: s.SP || '아직 없음' });
     P.box('log', rn ? 368 : ne ? 354 : 342, ne ? 128 : 100, rn ? 280 : ne ? 282 : 306, ne ? 54 : 60, { cls: dc(s.log), title: '로그 1건', sub: st(s.log) });
     P.box('caller', 16, 232, 648, 40, { cls: s.caller === '아직 호출 전' ? 'ghost' : s.caller.indexOf('Exception') >= 0 ? 'bad' : 'good', title: 'placeOrder()를 호출한 쪽이 받는 것', right: s.caller });
-    P.note('큰 상자가 트랜잭션이고, 그 안의 작은 상자가 그 트랜잭션에 속한 데이터입니다. 트랜잭션이 롤백되면 안에 든 데이터가 함께 사라집니다. 로그가 어느 상자 안에 있는지가 전파 속성의 차이입니다.');
+    P.note('큰 상자가 트랜잭션이고, 그 안의 작은 상자가 그 트랜잭션에 속한 데이터입니다. 트랜잭션이 롤백되면 안에 든 데이터가 함께 사라집니다.');
   },
   assume: 'saveLog()는 다른 빈의 메서드라서 프록시를 거쳐 호출됩니다(같은 클래스 안에서 부르면 안쪽 @Transactional이 적용되지 않습니다. 이 내용은 "프록시와 자기 호출" 실습에서 다룹니다). 규칙은 스프링 프레임워크의 기본 동작을 따랐습니다. 언체크 예외와 Error에만 롤백하고, 참여한 트랜잭션에서 롤백 대상 예외가 나가면 전체에 rollback-only 표시를 남깁니다. NESTED는 JDBC 세이브포인트로 구현되며 JdbcTemplate이나 MyBatis가 쓰는 DataSourceTransactionManager에서 동작합니다. JPA(JpaTransactionManager + Hibernate)에서는 NESTED를 쓰면 NestedTransactionNotSupportedException이 납니다. 세이브포인트가 JDBC 커넥션에만 적용되고 영속성 컨텍스트에는 적용되지 않기 때문입니다. 72가지 조합 모두를 실제 스프링(스프링 프레임워크 7.0.9, DataSourceTransactionManager, H2 데이터베이스)에서 실행해, 주문과 로그가 DB에 남는지, 호출한 쪽이 받는 것, 동시에 쓴 커넥션 수가 화면과 일치하는 것을 확인했습니다.',
 });
@@ -1413,7 +1393,7 @@ Lab.register({
         if (!gone) P.arrow('fk' + val(c[0]), id + ':l', 'm' + val(c[1]) + ':r', { cls: 'mut' });
       });
     }
-    P.note(flat ? '파란 상자가 회원 정보입니다. 같은 회원의 이름과 주소가 주문 수만큼 반복해서 저장돼 있습니다. 노란 상자는 방금 바뀐 값, 빨간 상자는 어긋나거나 넣을 수 없는 값입니다.' : '화살표는 주문이 회원ID로 회원 행을 가리키는 것입니다. 회원 정보는 한 곳에만 있어서, 주문이 몇 건이든 고칠 곳도 하나입니다.');
+    P.note(flat ? '파란 상자가 회원 정보입니다. 노란 상자는 방금 바뀐 값, 빨간 상자는 어긋나거나 넣을 수 없는 값입니다.' : '화살표는 주문이 회원ID로 회원 행을 가리키는 것입니다.');
   },
   assume: '회원 3명과 주문 몇 건으로 줄인 예입니다. 정규화 전 테이블은 주문번호 → 회원ID → 회원이름·주소로 이어지는 이행 함수 종속이 있어 제3정규형을 만족하지 못합니다. 정규화 후에는 외래 키로 회원을 참조합니다. 이상 현상의 정의는 관계형 데이터베이스 이론의 표준 설명을 따랐습니다. 같은 구조의 테이블을 실제 SQL 엔진(SQLite)에 만들어 확인했습니다. 한 행만 고치자 같은 회원의 주소가 두 가지로 조회됐고, 주문 번호 없이 회원만 넣는 INSERT는 거부됐으며, 마지막 주문을 지우자 그 회원의 정보가 남은 행이 0건이 됐습니다. 테이블을 나눈 쪽에서는 세 경우 모두 문제가 없었습니다.',
 });
@@ -1486,22 +1466,19 @@ Lab.register({
         }
       }
     });
-    var sum = ['요청 5번 중 ' + ok + '번이 로그인 상태로 처리됐고, 401 응답은 ' + fail + '번이었습니다. 공용 저장소에는 ' + look + '번 접근했습니다.'];
+    var sum = [];
     if (M === 'local' && S > 1 && !c.kick) sum.push('세션이 로그인한 서버 한 대의 메모리에만 있어서, 다른 서버로 간 요청은 로그인이 풀렸습니다. 서버를 여러 대로 늘리려면 같은 사용자를 항상 같은 서버로 보내거나(스티키 세션), 세션을 공용 저장소로 옮겨야 합니다.');
-    if (M === 'local' && S === 1) sum.push('서버가 한 대일 때는 문제가 없습니다. 서버를 2대 이상으로 늘려 보세요.');
+    if (M === 'local' && S === 1) sum.push('서버가 한 대일 때는 문제가 없습니다.');
     if (M === 'redis') sum.push('세션을 공용 저장소에 두면 서버가 몇 대든 로그인이 유지되고, 세션을 지우는 것만으로 즉시 로그아웃시킬 수 있습니다. 대신 요청마다 저장소를 조회하고, 저장소가 죽으면 전원이 로그아웃됩니다.');
     if (M === 'jwt') sum.push('JWT는 서버가 아무것도 저장하지 않아 서버를 늘리기 쉽고 조회 비용도 없습니다.' + (c.kick ? ' 대신 한 번 발급한 토큰은 만료 전까지 무효화할 수 없습니다. 강제 로그아웃 뒤에도 요청 ' + leaked + '번이 통과했습니다. 차단 목록을 서버에 두면 막을 수 있지만, 그러면 다시 요청마다 저장소를 조회하게 됩니다.' : ' 만료 시간이 지나면 다시 로그인해야 합니다.'));
-    if (M === 'refresh') sum.push('액세스 토큰을 짧게 두고 리프레시 토큰으로 재발급하면, 평소 요청은 조회 없이 처리하면서도 탈취나 강제 로그아웃의 피해를 액세스 토큰 만료 시간 안으로 줄일 수 있습니다.' + (c.kick ? ' 강제 로그아웃 뒤 통과한 요청은 ' + leaked + '번입니다. 만료 시간을 줄여서 다시 비교해 보세요.' : ''));
+    if (M === 'refresh') sum.push('액세스 토큰을 짧게 두고 리프레시 토큰으로 재발급하면, 평소 요청은 조회 없이 처리하면서도 탈취나 강제 로그아웃의 피해를 액세스 토큰 만료 시간 안으로 줄일 수 있습니다.');
+    if (!sum.length) sum.push('요청 5번 중 ' + ok + '번이 로그인 상태로 처리됐고, 401 응답은 ' + fail + '번이었습니다. 공용 저장소에는 ' + look + '번 접근했습니다.');
     return { events: ev, summary: sum, row: [ok + '번', fail + '번', look + '번', c.kick ? leaked + '번' : '해당 없음'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 0분에 로그인부터 시작합니다.'); return; }
     H.counters(v, [[s.ok, '성공한 요청'], [s.fail, '401 응답'], [s.look, '공용 저장소 접근']]);
-    H.title(v, '누가 무엇을 가지고 있나'); var ln = H.lanes(v);
-    H.lane(ln, '사용자', s.client, s.client === '없음' ? 'none' : 'good');
-    s.sv.forEach(function (x, i) { H.lane(ln, '서버 ' + (i + 1), x, i === s.hot ? 'hot' : x.indexOf('세션 없음') === 0 ? 'none' : ''); });
-    if (s.shared !== null) H.lane(ln, c.mode === 'redis' ? 'Redis' : '토큰 저장소', s.shared, s.shared === '비어 있음' ? 'none' : 'wait');
     H.table(v, ['시각', '받은 서버', '사용자가 보낸 것', '결과'], s.rows, '요청 기록');
   },
   // 그림: 브라우저의 요청이 로드밸런서를 거쳐 서버 중 한 대로 간다. 로그인 상태를 어디에 두었는지가 아래 상자에 보인다.
@@ -1514,7 +1491,7 @@ Lab.register({
     s.sv.forEach(function (t, i) { var p = t.split(' ('); P.box('mem' + i, 16 + i * (w + 8), y + 54, w, 62, { cls: (t.indexOf('없음') >= 0 || t === '-' ? 'ghost' : 'good') + (i === s.hot ? ' now' : ''), title: '서버 ' + (i + 1) + '의 메모리', sub: [p[0], p[1] ? '(' + p[1] : ' '] }); });
     if (s.shared !== null) P.box('sh', 16, y + 124, 648, 46, { cls: s.shared === '비어 있음' ? 'ghost' : 'good', title: '서버들이 함께 쓰는 저장소 (Redis)', sub: s.shared });
     P.size(680, y + 124 + (s.shared !== null ? 46 + 16 : 8));
-    P.note('위쪽은 요청과 응답의 순서, 아래쪽은 로그인 상태가 놓인 곳입니다. 세션이 한 서버의 메모리에만 있으면 다른 서버로 간 요청은 로그인하지 않은 것으로 처리됩니다. 굵은 테두리는 방금 요청을 받은 서버입니다.');
+    P.note('위쪽은 요청과 응답의 순서, 아래쪽은 로그인 상태가 놓인 곳입니다. 굵은 테두리는 방금 요청을 받은 서버입니다.');
   },
   assume: '로드밸런서는 요청을 서버에 차례로 돌아가며 보낸다고 가정했습니다(로그인은 서버 1, 그다음 요청은 서버 2 …). 세션 만료 시간과 리프레시 토큰 만료(보통 며칠에서 몇 주)는 이 50분 안에 닿지 않는다고 보았습니다. JWT의 서명 검증은 저장소 없이 서버가 가진 키만으로 이루어집니다. 리프레시 토큰을 서버 저장소에 두고 확인하는 것은 널리 쓰이는 구성이지만 표준이 강제하는 것은 아닙니다.',
 });
@@ -1522,7 +1499,7 @@ Lab.register({
 Lab.register({
   id: 'mvc', nav: 'MVC 요청 흐름', cat: '스프링', mode: 'step',
   title: '요청 하나가 컨트롤러에 닿기까지, 그리고 돌아가기까지',
-  intro: 'HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다. 중간에 거절되거나 예외가 나면 어느 단계가 건너뛰어지고 누가 응답을 만드는지 단계별로 보세요.',
+  intro: 'HTTP 요청은 필터, DispatcherServlet, 인터셉터를 차례로 거쳐 컨트롤러에 도착하고, 같은 길을 거꾸로 돌아 응답이 됩니다.',
   terms: ['DispatcherServlet과 프론트 컨트롤러', 'HandlerMapping과 HandlerAdapter', 'ArgumentResolver', 'HttpMessageConverter', '필터(Filter)', '인터셉터(HandlerInterceptor)', '@ControllerAdvice와 @ExceptionHandler', 'ViewResolver'], ranks: ['mvc', 'filter'],
   controls: [
     { id: 'kind', label: '컨트롤러 종류', type: 'select', value: 'rest', options: [['rest', '@RestController (JSON 응답)'], ['view', '@Controller (화면 이름 반환)']] },
@@ -1597,10 +1574,11 @@ Lab.register({
       }
     }
     var has = function (id) { return seen.indexOf(id) >= 0; }, yn = function (b) { return b ? '실행됨' : '건너뜀'; };
-    var sum = ['최종 응답은 ' + resp + '이고, 응답을 만든 곳은 ' + maker + '입니다.', '컨트롤러 메서드는 ' + yn(has('CT')) + ', postHandle은 ' + yn(has('PO')) + ', afterCompletion은 ' + yn(has('AC')) + '.'];
+    var sum = [];
     if (c.what === 'filter') sum.push('필터는 DispatcherServlet 앞에 있으므로, 필터에서 던진 예외나 거절은 @ControllerAdvice로 처리할 수 없습니다.');
     if (c.what === 'ex') sum.push('컨트롤러에서 예외가 나면 postHandle은 호출되지 않고 afterCompletion은 호출됩니다. 그래서 "반드시 실행돼야 하는 정리 작업"은 afterCompletion에 둡니다.');
     if (c.what === 'none' && rest) sum.push('@RestController에서는 ViewResolver를 거치지 않습니다. 반환 객체가 HttpMessageConverter를 통해 곧바로 응답 본문이 됩니다.');
+    if (!sum.length) sum.push('최종 응답은 ' + resp + '이고, 응답을 만든 곳은 ' + maker + '입니다.');
     return { events: ev, summary: sum, rest: rest, row: [resp, yn(has('CT')), yn(has('PO')), yn(has('AC')), maker] };
   },
   render: function (v, sim, t, H, shown) {
@@ -1610,7 +1588,6 @@ Lab.register({
       return { cls: !seen && done ? 'gone' : '', cells: [String(i + 1), st[1], { v: state, cls: id === s.cur ? 'hot' : id === s.end ? 'bad' : seen ? 'good' : '' }] };
     });
     H.table(v, ['순서', '구성 요소', '상태'], rows, '요청이 지나는 길 (위에서 아래로 들어가고, 응답은 마지막 줄에서 나갑니다)');
-    H.counters(v, [[done ? s.resp : '처리 중', '클라이언트가 받는 응답']]);
   },
   // 그림: 요청이 지나는 구성 요소를 위에서 아래로 늘어놓는다. 어디까지 갔고 어디를 건너뛰었는지가 보인다.
   draw: function (P, sim, shown) {
@@ -1620,7 +1597,7 @@ Lab.register({
     P.region('path', 16, 16, 648, 42 + stages.length * 29, '요청이 지나는 길 (위에서 아래로)');
     stages.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0; P.box('st_' + id, 28, 50 + i * 29, 624, 25, { cls: id === s.cur ? 'hot now' : id === s.end ? 'bad' : seen ? 'good' : 'ghost', title: (i + 1) + '. ' + st[1], right: id === s.cur ? '지금 여기' : id === s.end ? '여기서 문제 발생' : seen ? '지나감' : done ? '건너뜀' : (group[id] || '') }); });
     P.box('resp', 16, 70 + stages.length * 29, 648, 34, { cls: !done ? 'ghost' : /^2/.test(s.resp) ? 'good' : 'bad', title: '클라이언트가 받는 응답', right: done ? s.resp : '처리 중' });
-    P.note('초록은 지나간 곳, 노랑은 지금 있는 곳, 빨강은 문제가 생긴 곳, 점선은 건너뛴 곳입니다. 앞쪽에서 막히면 그 뒤의 구성 요소는 실행되지 않습니다.');
+    P.note('초록은 지나간 곳, 노랑은 지금 있는 곳, 빨강은 문제가 생긴 곳, 점선은 건너뛴 곳입니다.');
   },
   assume: '인터셉터와 필터가 각각 하나씩 있는 단순한 구성으로 그렸습니다. 열여섯 가지 조합 모두를 실제 스프링 부트 4.1.1 서버(내장 톰캣)에 HTTP 요청을 보내, 응답 코드와 컨트롤러·postHandle·afterCompletion의 실행 여부, 응답을 만든 곳이 화면과 일치하는 것을 확인했습니다(화면 응답은 템플릿 엔진 대신 같은 이름의 뷰 객체로 그려서 확인). 처리되지 않은 예외가 /error로 다시 전달되어 500 응답이 되는 부분은 스프링 부트의 기본 오류 처리 동작이며, 그 재전달 과정은 한 단계로 줄여서 표현했습니다. 매핑되는 컨트롤러가 없는 경우(404)는 버전과 정적 리소스 설정에 따라 경로가 달라서 넣지 않았습니다.',
 });
@@ -1743,16 +1720,16 @@ Lab.register({
     function push(s, k, snap) { ev.push({ s: s, k: k, snap: snap }); }
     function cells(count, mark) { var a = []; for (var j = 0; j < count; j++) a.push([String(j), mark(j) || 'd']); return a; }
     if (c.op === 'append') {
-      var cap = 0, size = 0, copies = 0, grows = 0;
+      var cap = 0, size = 0, copies = 0;
       for (var x = 1; x <= n; x++) {
         if (arr && size === cap) {
-          var nc = cap === 0 ? 10 : cap + Math.max(1, cap >> 1), cp = size; copies += cp; if (cap > 0) grows++;
+          var nc = cap === 0 ? 10 : cap + Math.max(1, cap >> 1), cp = size; copies += cp;
           push(cap === 0 ? 'add(' + x + '): 첫 추가라서 10칸짜리 배열을 만듭니다.' : 'add(' + x + '): 배열 ' + cap + '칸이 꽉 찼습니다. 1.5배인 ' + nc + '칸짜리 새 배열을 만들고 기존 원소 ' + cp + '개를 전부 복사한 뒤 넣습니다.', cap === 0 ? '' : 'bad', { size: size + 1, cap: nc, copies: copies, last: size });
           cap = nc; size++;
         } else { size++; push('add(' + x + '): ' + (arr ? '빈 칸이 있어 바로 넣습니다. 복사 없음.' : '새 노드를 만들어 마지막 노드 뒤에 연결합니다. 마지막 노드의 위치를 따로 기억하고 있어서 따라갈 필요가 없습니다.'), '', { size: size, cap: arr ? cap : size, copies: copies, last: size - 1 }); }
       }
       moved = copies; big = arr ? 'O(1) (분할 상환)' : 'O(1)';
-      if (arr) { sum.push(n + '개를 추가하는 동안 배열을 ' + grows + '번 늘렸고, 그때 복사한 원소는 모두 ' + copies + '개입니다. 추가 한 번당 평균 ' + (Math.round(copies / n * 100) / 100) + '개를 복사한 셈입니다.'); sum.push('가끔 비싼 복사가 있어도 대부분의 추가는 복사 없이 끝나므로, 평균으로 보면 추가 한 번의 비용은 일정합니다. 이것을 분할 상환 O(1)이라고 합니다. 개수를 미리 알면 new ArrayList<>(' + n + ')처럼 용량을 정해 복사를 없앨 수 있습니다.'); }
+      if (arr) { sum.push('가끔 비싼 복사가 있어도 대부분의 추가는 복사 없이 끝나므로, 평균으로 보면 추가 한 번의 비용은 일정합니다. 이것을 분할 상환 O(1)이라고 합니다. 개수를 미리 알면 new ArrayList<>(' + n + ')처럼 용량을 정해 복사를 없앨 수 있습니다.'); }
       else sum.push('LinkedList는 복사가 없습니다. 대신 원소마다 노드 객체를 하나씩 만들고(' + n + '개), 노드마다 앞뒤 참조 두 개를 더 저장하므로 메모리를 더 씁니다.');
       return { events: ev, summary: sum, row: ['0개', copies + '개', big], kind: 'append' };
     }
@@ -1779,7 +1756,6 @@ Lab.register({
       if (c.op === 'add') { last = cells(n + 1, function (j) { return j === i ? 'b now' : ''; }); last[i][0] = '99'; push('새 노드를 만들고 앞뒤 노드의 연결만 바꿔 끼워 넣었습니다. 다른 원소는 하나도 옮기지 않았습니다.', 'good', { cells: last, linked: true }); big = hops ? 'O(n) (탐색) + O(1) (연결)' : 'O(1)'; sum.push(hops ? 'LinkedList의 삽입 자체는 연결만 바꾸면 되지만, 그 자리를 찾는 데 ' + hops + '번을 따라갔습니다. "LinkedList는 삽입이 빠르다"는 말은 위치를 이미 알고 있을 때(양 끝, 또는 반복자가 가리키는 곳)에만 맞습니다.' : 'LinkedList의 ' + where + ' 삽입은 따라갈 것도 옮길 것도 없습니다.'); }
       if (c.op === 'remove') { push('앞 노드와 뒤 노드를 서로 직접 연결해 ' + i + '번 노드를 빼냈습니다. 다른 원소는 옮기지 않았습니다.', 'good', { cells: cells(n - 1, function () { return ''; }), linked: true }); big = hops ? 'O(n) (탐색) + O(1) (연결)' : 'O(1)'; sum.push(hops ? 'LinkedList의 삭제도 연결만 바꾸면 되지만, 지울 노드를 찾는 데 ' + hops + '번을 따라갔습니다.' : 'LinkedList의 ' + where + ' 삭제는 따라갈 것도 옮길 것도 없습니다.'); }
     }
-    sum.unshift('따라간 노드 ' + hops + '개, 옮긴 원소 ' + moved + '개. 시간 복잡도는 ' + big + '입니다.');
     return { events: ev, summary: sum, row: [hops + '개', moved + '개', big], kind: 'one' };
   },
   render: function (v, sim, t, H, shown) {
@@ -1793,7 +1769,6 @@ Lab.register({
     } else {
       H.title(v, arr ? '내부 배열 (칸 번호 = 인덱스)' : '노드 (왼쪽이 첫 노드, 오른쪽이 마지막 노드)');
       H.slots(v, s.cells, '비어 있음', true);
-      H.text(v, arr ? '파란 칸은 옮겨진 원소, 노란 칸은 대상 위치입니다.' : '파란 칸은 따라가며 지나친 노드, 노란 칸은 대상 노드입니다.');
     }
   },
   // 그림: 배열은 칸이 나란히 붙어 있고, 연결 리스트는 떨어진 노드가 화살표로 이어진다.
@@ -1810,7 +1785,7 @@ Lab.register({
       if (arr) P.box('c' + j, 28 + col * 31, 52 + row * pitch, 31, 28, { cls: x[1], sub: x[0], center: true });
       else { var back = row % 2 === 1, cx = back ? per - 1 - col : col; P.box('c' + j, 28 + cx * 62, 52 + row * pitch, 42, 28, { cls: x[1], sub: x[0], center: true }); if (j) P.arrow('l' + j, 'c' + (j - 1) + (!col ? ':b' : back ? ':l' : ':r'), 'c' + j + (!col ? ':t' : back ? ':r' : ':l'), { cls: 'mut' }); }
     });
-    P.note(arr ? '칸 안의 숫자는 인덱스입니다. 노란 칸은 대상 위치, 파란 칸은 한 칸씩 옮겨진 원소, 점선은 빈 칸입니다. 칸이 붙어 있어서 중간에 끼워 넣으려면 뒤의 원소를 모두 밀어야 합니다.' : '노란 노드는 대상, 파란 노드는 그 자리까지 가느라 지나친 노드입니다. 실제 LinkedList는 앞뒤 양쪽으로 이어져 있고, 인덱스로 위치를 계산할 수 없어 화살표를 따라가야 합니다.');
+    P.note(arr ? '칸 안의 숫자는 인덱스입니다. 노란 칸은 대상 위치, 파란 칸은 한 칸씩 옮겨진 원소, 점선은 빈 칸입니다.' :'노란 노드는 대상, 파란 노드는 그 자리까지 가느라 지나친 노드입니다. 실제 LinkedList는 앞뒤 양쪽으로 이어져 있고, 인덱스로 위치를 계산할 수 없어 화살표를 따라가야 합니다.');
   },
   assume: '삽입 한 번을 볼 때는 ArrayList 내부 배열에 빈 칸이 남아 있다고 가정했습니다. 꽉 찬 경우는 "맨 뒤로 계속 추가"에서 따로 보여 줍니다. ArrayList의 용량이 10에서 시작해 1.5배씩(10 → 15 → 22 → 33 → 49) 늘어나는 것과, LinkedList가 인덱스 위치에 따라 앞이나 뒤 중 가까운 쪽에서 출발하는 것은 JDK 구현과 같습니다. 용량이 늘어나는 시점과 복사량은 이 PC의 JDK 21에서 실제 ArrayList 내부 배열을 꺼내 확인한 값과 일치합니다(40개 추가 시 4번 늘리고 80개 복사). 실제 속도는 칸 수만으로 정해지지 않습니다. 배열은 메모리에 연속으로 있어 CPU 캐시에 유리하므로, 옮기는 양이 많아도 LinkedList보다 빠른 경우가 흔합니다.',
 });
@@ -3256,7 +3231,7 @@ Lab.register({
 Lab.register({
   id: 'pc', nav: '영속성 컨텍스트', cat: 'JPA', mode: 'step',
   title: 'JPA는 SQL을 언제 보내나',
-  intro: 'JPA는 엔티티를 영속성 컨텍스트라는 메모리 공간에 보관하고, SQL을 코드가 실행되는 순간이 아니라 필요한 시점에 모아서 보냅니다. 코드 한 줄씩 따라가며 어느 줄에서 SQL이 나가고 어느 줄에서는 안 나가는지 보세요.',
+  intro: 'JPA는 엔티티를 영속성 컨텍스트라는 메모리 공간에 보관하고, SQL을 코드가 실행되는 순간이 아니라 필요한 시점에 모아서 보냅니다.',
   terms: ['영속성 컨텍스트', '1차 캐시', '변경 감지(Dirty Checking)', '쓰기 지연과 flush', '엔티티'], ranks: ['jpaorm'],
   controls: [
     { id: 'sc', label: '해 볼 코드', type: 'select', value: 'update', options: [['find2', '같은 회원을 두 번 조회'], ['update', '조회한 뒤 이름만 바꿈 (save 호출 없음)'], ['persist', '새 회원 3명 저장'], ['jpql', '이름을 바꾼 뒤 JPQL로 조회']] },
@@ -3336,17 +3311,13 @@ Lab.register({
       push(-1, '메서드 종료, 커밋: 변경 사항은 이미 flush됐으므로 더 보낼 SQL이 없습니다. 커밋하면 다른 트랜잭션에도 변경이 보이게 됩니다.', '');
       result = '김영수로 변경됨'; sum.push('flush는 "모아 둔 SQL을 DB로 보내는 것"이고 커밋과는 다릅니다. 커밋 때뿐 아니라 JPQL을 실행하기 직전에도 자동으로 일어납니다.', '반대로 em.find는 1차 캐시를 먼저 보기 때문에 flush를 일으키지 않습니다.');
     }
-    sum.unshift('DB로 나간 SQL은 ' + sent.length + '건입니다: ' + sent.map(function (q) { return q.sql.split(' ')[0].toUpperCase(); }).join(', ') + '.');
     return { events: ev, summary: sum, L: L, row: [sent.length + '건', when, result] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { line: -2, cache: [], pending: [], sent: [], db: [{ id: 1, name: '김철수' }] };
     H.table(v, ['줄', '코드', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← 지금' : ''] }; }).concat([{ cells: ['', { v: '(메서드 종료)', cls: s.line === -1 ? 'hot' : '' }, s.line === -1 ? '← 지금' : ''] }]), '실행 중인 코드');
-    H.counters(v, [[s.sent.length, 'DB로 나간 SQL'], [s.pending.length, '보내지 않고 쌓아 둔 SQL']]);
-    if (s.cache.length) H.table(v, ['엔티티', '현재 값', '스냅샷 (처음 읽은 값)', '상태'], s.cache.map(function (e) { var diff = e.name !== e.snap; return { cells: ['회원 ' + e.id, { v: e.name, cls: diff ? 'hot' : '' }, e.snap, e.st] }; }), '영속성 컨텍스트 (1차 캐시)'); else { H.title(v, '영속성 컨텍스트 (1차 캐시)'); H.text(v, '비어 있습니다.'); }
     if (s.pending.length) H.table(v, ['쌓아 둔 SQL'], s.pending.map(function (q) { return { cells: [q] }; }), '쓰기 지연 저장소');
     if (s.sent.length) H.table(v, ['#', 'SQL', '나간 시점'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'DB로 실제 나간 SQL');
-    H.table(v, ['id', 'name'], s.db.map(function (r) { return { cells: [String(r.id), { v: r.name, cls: r.cls || '' }] }; }), 'DB의 member 테이블');
   },
   // 그림: 왼쪽에 영속성 컨텍스트(1차 캐시와 쓰기 지연 저장소), 오른쪽에 DB. SQL이 실제로 나가는 단계에만 화살표가 생긴다.
   draw: function (P, sim, shown) {
@@ -5143,10 +5114,8 @@ Lab.register({
     for (var k = 0; k < order.length && !failed; k++) if (st[order[k]] !== '완성') create(order[k], '컨테이너');
     var sum = [];
     if (failed) {
-      sum.push('기동 실패: 순환 참조(' + failed + ') 때문에 빈을 만들 수 없습니다.');
       sum.push(ctor ? '생성자 주입은 순환 참조를 기동 시점에 바로 드러냅니다. 설정으로 허용해도 생성자 주입끼리의 순환은 풀리지 않습니다. 해법은 두 빈이 공통으로 쓰는 기능을 제3의 빈으로 빼내서 순환 자체를 없애는 것입니다.' : '스프링 부트 2.6부터 순환 참조는 주입 방식과 관계없이 기본적으로 금지됩니다. 설정으로 허용할 수는 있지만, 순환을 없애도록 설계를 고치는 것이 권장됩니다.');
     } else {
-      sum.push('기동 성공. 객체가 만들어진 순서는 ' + made.join(' → ') + ', 완성된 순서는 ' + done.join(' → ') + '입니다.');
       if (ctor) sum.push('생성자 주입에서는 의존 대상이 완성된 뒤에야 객체를 만들 수 있습니다. 그래서 객체가 존재하는 순간부터 의존성이 빠짐없이 채워져 있고, 필드를 final로 둘 수 있습니다.');
       else sum.push(how + ' 주입에서는 객체가 먼저 만들어지고 의존성은 나중에 채워집니다. 그 사이에 객체는 의존성이 아직 null인 상태로 존재하며, 그 필드에는 final을 쓸 수 없습니다. 테스트에서 스프링 없이 객체를 만들면 의존성이 비어 있는 채로 남습니다.');
       if (c.cycle) sum.push('순환 참조를 허용해 통과했지만, 주입이 끝나지 않은 객체가 다른 빈에 먼저 넘어갔습니다. 두 빈이 서로를 알아야 하는 구조 자체가 설계상 문제일 가능성이 큽니다.');
@@ -6834,7 +6803,7 @@ Lab.register({
 Lab.register({
   id: 'stack', nav: '스택과 힙', cat: 'JVM', mode: 'step',
   title: '메서드를 부를 때마다 메모리에서는 무슨 일이',
-  intro: '메서드를 호출하면 그 스레드의 스택에 프레임이 하나 쌓이고, 반환하면 사라집니다. new로 만든 객체는 스택이 아니라 힙에 놓이고 프레임의 지역 변수가 그것을 가리킵니다. 재귀 깊이와 스택 크기를 바꿔 가며 프레임이 쌓이고 빠지는 모습과 StackOverflowError를 보세요.',
+  intro: '메서드를 호출하면 그 스레드의 스택에 프레임이 하나 쌓이고, 반환하면 사라집니다. new로 만든 객체는 스택이 아니라 힙에 놓이고 프레임의 지역 변수가 그것을 가리킵니다.',
   terms: ['런타임 데이터 영역', 'JVM 스택', '힙(Heap) 메모리', 'StackOverflowError와 OutOfMemoryError'], ranks: ['jvm'],
   controls: [
     { id: 'n', label: 'factorial에 넘기는 값', type: 'range', min: 1, max: 10, value: 4, fmt: function (v) { return 'factorial(' + v + ')'; } },
@@ -6895,10 +6864,8 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { frames: [], heap: [] };
-    H.counters(v, [[s.frames.length + ' / ' + c.limit, '스택의 프레임'], [s.heap.filter(function (h) { return h.live; }).length, '힙: 가리키는 곳 있는 객체'], [s.heap.filter(function (h) { return !h.live; }).length, '힙: 가리키는 곳 없는 객체']]);
     H.title(v, 'main 스레드의 스택 (맨 위가 지금 실행 중인 메서드)'); var ln = H.lanes(v);
     for (var i = c.limit - 1; i >= 0; i--) { var f = s.frames[i]; if (f) H.lane(ln, (i + 1) + '번째', f.name + '  |  ' + f.vars + '  |  ' + f.st, i === s.frames.length - 1 ? 'hot' : 'wait'); else H.lane(ln, (i + 1) + '번째', '빈 자리', 'none'); }
-    if (c.obj) { H.title(v, '힙 (모든 스레드가 함께 쓰는 영역)'); H.slots(v, s.heap.map(function (h) { return ['객체' + h.id, h.live ? 'd' : '']; }), '아직 객체가 없습니다.'); H.text(v, '초록은 스택의 변수가 가리키는 객체, 점선은 가리키는 곳이 없어져 GC 대상이 된 객체입니다.'); }
   },
   // 그림: 왼쪽에 스택(아래에서 위로 쌓임), 오른쪽에 힙. 프레임의 변수에서 힙의 객체로 화살표가 간다.
   draw: function (P, sim, shown) {
@@ -8497,7 +8464,7 @@ Lab.register({
 Lab.register({
   id: 'poly', nav: '다형성과 메서드 선택', cat: '자바 언어', mode: 'step',
   title: '어느 메서드가 실행될지는 누가, 언제 정하나',
-  intro: '변수의 선언 타입과 실제 들어 있는 객체의 타입이 다를 수 있습니다. 오버라이딩한 메서드는 실행 시점에 실제 객체를 보고 고르지만, 오버로딩, static 메서드, 필드는 컴파일 시점에 선언 타입만 보고 정해집니다. 조합을 바꿔 가며 결과를 예상해 보세요.',
+  intro: '변수의 선언 타입과 실제 들어 있는 객체의 타입이 다를 수 있습니다. 오버라이딩한 메서드는 실행 시점에 실제 객체를 보고 고르지만, 오버로딩, static 메서드, 필드는 컴파일 시점에 선언 타입만 보고 정해집니다.',
   terms: ['다형성', '오버라이딩', '오버로딩', 'static', '상속'], ranks: ['oop', 'absint'],
   controls: [
     { id: 'v', label: '변수의 선언 타입', type: 'select', value: 'Animal', options: [['Animal', 'Animal a'], ['Dog', 'Dog a']] },
@@ -8546,7 +8513,6 @@ Lab.register({
       if (c.w === 'static') { push('컴파일 시점: info()는 static 메서드입니다. static 메서드는 객체가 아니라 클래스에 속하므로, 컴파일러가 a.info()를 선언 타입에 따라 ' + c.v + '.info()로 바꿔 놓습니다.', '', { decl: c.v, obj: c.o, stage: '컴파일', pick: c.v + '.info()', out: '' }); push('실행 시점: ' + c.v + '.info()가 실행됩니다. Dog에도 info()가 있지만 이것은 오버라이딩이 아니라, 같은 이름의 별개 메서드로 부모 것을 가린 것(하이딩)입니다.', c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: '실행', pick: c.v + '.info()', out: out }); sum.push('static 메서드는 오버라이딩되지 않습니다. 그래서 변수로 static 메서드를 부르는 것은 혼란을 주므로, 클래스 이름으로 호출하는 것이 원칙입니다.'); }
       if (c.w === 'field') { push('컴파일 시점: 필드 접근은 메서드 호출과 달리 선언 타입으로 정해집니다. 컴파일러가 a.name을 ' + c.v + ' 클래스의 name 필드로 확정합니다.', '', { decl: c.v, obj: c.o, stage: '컴파일', pick: c.v + '의 name 필드', out: '' }); push('실행 시점: ' + c.v + '의 name 값 "' + out + '"을 읽습니다.' + (c.o === 'Dog' ? ' Dog 객체 안에는 Animal의 name과 Dog의 name이 둘 다 들어 있고, 어느 쪽을 읽을지가 선언 타입으로 갈립니다.' : ''), c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: '실행', pick: c.v + '의 name 필드', out: out }); sum.push('필드에는 다형성이 적용되지 않습니다. 필드를 직접 노출하지 않고 메서드(getter)로 접근하게 하는 이유 중 하나입니다.'); }
     }
-    sum.unshift('출력: ' + out + '. ' + when + '에 ' + basis + '을 기준으로 정해졌습니다.');
     return { events: ev, summary: sum, row: [out, when, basis] };
   },
   render: function (v, sim, t, H, shown) {
@@ -8556,7 +8522,6 @@ Lab.register({
     H.lane(ln, '선언 타입', s.decl + ' (컴파일러가 아는 것)', 'wait');
     H.lane(ln, '실제 객체', s.obj + (s.obj.indexOf('(') < 0 ? ' (실행해 봐야 아는 것)' : ''), s.obj.indexOf('(') === 0 ? 'bad' : 'good');
     H.table(v, ['단계', '선택된 대상'], [{ cells: [s.stage + ' 시점', { v: s.pick || '아직 정하지 않음', cls: s.pick.indexOf('오류') >= 0 ? 'bad' : s.pick ? 'hot' : '' }] }], '지금 단계');
-    H.counters(v, [[s.out || '(아직 실행 전)', '콘솔 출력']]);
   },
   // 그림: 위에 변수(선언 타입)와 객체(실제 타입), 아래에 후보 둘. 어느 쪽에서 출발한 화살표가 후보를 고르는지가 핵심.
   draw: function (P, sim, shown) {
@@ -9862,7 +9827,6 @@ Lab.register({
     var prim = c.kind === 'int' && c.ib === 'prim';
     push(prim ? 'a == b: 한쪽이 기본형 int이므로 Integer인 a에서 값을 꺼내(언박싱) 숫자끼리 비교합니다. ' + c.iv + ' == ' + c.iv + '이므로 true입니다.' : 'a == b: 두 변수가 가리키는 대상이 같은지 비교합니다. a는 ' + A + ', b는 ' + B + '를 가리키므로 ' + same + '입니다.', same ? 'good' : 'bad', { eq: String(same) });
     push('a.equals(b): 객체 안의 값을 비교합니다. 내용이 같으므로 true입니다.', 'good', { eq: String(same), equals: 'true' });
-    sum.push('a == b는 ' + same + ', a.equals(b)는 true입니다.');
     if (c.kind === 'str') { sum.push(same ? '두 변수가 String Pool의 같은 객체를 가리켜서 ==도 true가 나왔습니다. 하지만 이것은 만드는 방법에 따라 달라지는 우연에 가깝습니다.' : '내용은 같지만 서로 다른 객체라서 ==는 false입니다.'); sum.push('문자열 내용을 비교할 때는 항상 equals를 씁니다. DB나 요청에서 읽어 온 문자열은 리터럴이 아니므로 ==로 비교하면 대부분 false가 됩니다.'); }
     else { sum.push(prim ? 'Integer와 int를 ==로 비교하면 언박싱되어 값 비교가 됩니다. 단, Integer가 null이면 언박싱하다가 NullPointerException이 납니다.' : c.iv === '127' ? 'Integer.valueOf는 -128부터 127까지의 객체를 캐시해 두고 재사용합니다. 그래서 이 범위에서는 ==가 true로 나옵니다.' : '128은 캐시 범위를 벗어나 매번 새 객체가 만들어집니다. 테스트에서는 작은 수만 써서 통과하다가, 운영에서 ID가 커지면 비교가 틀어지는 버그의 원인입니다.'); sum.push('래퍼 타입(Integer, Long)끼리의 값 비교는 equals로 합니다.'); }
     return { events: ev, summary: sum, row: [String(same), 'true', prim ? '(기본형과 비교)' : same ? '같은 객체' : '다른 객체'] };
@@ -9870,10 +9834,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    H.title(v, '변수 (스택)'); var ln = H.lanes(v);
-    H.lane(ln, 'a', s.a ? '→ ' + s.a : '아직 없음', s.a ? 'wait' : 'none'); H.lane(ln, 'b', s.b ? (s.b.indexOf('기본형') === 0 ? s.b : '→ ' + s.b) : '아직 없음', s.b ? 'wait' : 'none');
     H.table(v, ['객체', '위치', '값', '가리키는 변수'], s.objs.map(function (o) { return { cls: o.by.length ? '' : 'gone', cells: ['객체 ' + o.id, o.where, o.val, { v: o.by.length ? o.by.join(', ') : '없음 (버려짐)', cls: o.by.length > 1 ? 'good' : '' }] }; }), '메모리의 객체');
-    H.counters(v, [[s.cmp.eq || '?', 'a == b'], [s.cmp.equals || '?', 'a.equals(b)']]);
   },
   // 그림: 왼쪽에 변수, 오른쪽 위아래에 객체가 놓이는 두 곳. 변수에서 객체로 화살표가 간다.
   draw: function (P, sim, shown) {
@@ -11249,7 +11210,7 @@ Lab.register({
 Lab.register({
   id: 'scale', nav: '로드밸런서와 스케일 아웃', cat: '대용량 트래픽', mode: 'step',
   title: '서버를 늘리면 어디까지 버티나',
-  intro: '로드밸런서가 요청을 여러 서버에 나눠 주고, 서버는 요청마다 DB를 한 번씩 씁니다. 요청량, 서버 수, 서버 성능, DB 한계를 바꿔 가며 어디가 먼저 막히는지(병목) 보세요. 서버 한 대를 죽여 볼 수도 있습니다.',
+  intro: '로드밸런서가 요청을 여러 서버에 나눠 주고, 서버는 요청마다 DB를 한 번씩 씁니다.',
   terms: ['스케일 업과 스케일 아웃', '로드밸런서', '병목(Bottleneck)', '오토스케일링', 'TPS와 응답 시간 백분위'], ranks: ['traffic', 'cloud'],
   controls: [
     { id: 'rps', label: '초당 들어오는 요청', type: 'range', min: 100, max: 4000, step: 100, value: 1000, fmt: function (v) { return v + '건'; } },
@@ -11294,7 +11255,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, k = sim.calc, last = shown[shown.length - 1], stage = last ? last.snap.stage : 0;
-    H.counters(v, [[stage >= 5 || !k.alive && stage >= 4 ? k.out + '건' : '?', '초당 처리량'], [stage >= 5 || !k.alive && stage >= 4 ? k.lost + '건' : '?', '처리 못 한 요청'], [stage >= 5 || !k.alive && stage >= 4 ? k.neck : '?', '병목']]);
     var ln = H.lanes(v);
     H.lane(ln, '로드밸런서', stage >= 1 ? '초당 ' + c.rps + '건 수신' : '대기', stage >= 1 ? 'wait' : 'none');
     for (var i = 1; i <= c.n; i++) {
@@ -11317,7 +11277,7 @@ Lab.register({
     }
     P.box('db', 190, 222, 300, 44, { cls: dbOver ? 'bad' : stage >= 4 ? 'good' : 'plain', title: 'DB (하나뿐)', right: stage >= 4 && k.alive ? '부하 ' + k.dbLoad + '%' : '초당 ' + k.dbCap + '건 가능' });
     P.text('neck', 340, 296, fin ? '병목: ' + k.neck + ' · 초당 처리 ' + k.out + '건, 처리 못 함 ' + k.lost + '건' : '실행을 진행하면 병목이 표시됩니다', { anchor: 'middle', bold: fin, cls: fin ? (k.lost ? 'bad' : 'good') : 'mut' });
-    P.note('빨간 상자가 들어오는 양을 감당하지 못하는 곳입니다. 서버는 옆으로 늘릴 수 있지만 모든 서버가 DB 하나를 함께 쓰므로, 서버를 늘리다 보면 빨간색이 DB로 옮겨 갑니다.');
+    P.note('빨간 상자가 들어오는 양을 감당하지 못하는 곳입니다.');
   },
   assume: '모든 요청의 무게가 같고, 요청 1건이 DB 쿼리 1번을 쓴다고 단순화했습니다. 로드밸런서는 요청을 고르게 나누며 자체 한계는 없다고 가정했습니다(실제로는 로드밸런서도 이중화합니다). 처리 능력을 넘은 요청은 "처리 못 함"으로만 셌는데, 실제로는 한계에 가까워질수록 대기 시간이 먼저 급격히 늘어납니다. 숫자는 관계를 보이기 위한 예시이며 실측값이 아닙니다.',
 });
@@ -11548,7 +11508,7 @@ Lab.register({
 Lab.register({
   id: 'gc', nav: 'GC와 메모리 누수', cat: 'JVM', mode: 'step',
   title: '버려진 객체는 누가 언제 치우나',
-  intro: '새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다. 생성 속도, 오래 사는 객체의 비율, 힙 크기를 바꿔 보고 누수가 있으면 어떻게 끝나는지 보세요.',
+  intro: '새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다.',
   terms: ['가비지 컬렉션(GC)', '도달 가능성과 GC 루트', 'Young 세대와 Old 세대', 'Minor GC와 Full GC', 'Stop-the-world(STW)', '메모리 누수', 'StackOverflowError와 OutOfMemoryError'], ranks: ['gc', 'jvm'],
   controls: [
     { id: 'rate', label: '한 틱에 만드는 객체 수', type: 'range', min: 2, max: 10, value: 5, fmt: function (v) { return v + '개'; } },
@@ -11601,7 +11561,7 @@ Lab.register({
     if (oom) t--;
     if (oom) push(t + '틱: Full GC를 했는데도 Old 영역에 빈자리가 생기지 않았습니다. 살아 있는(참조되는) 객체만으로 힙이 가득 찼기 때문입니다. java.lang.OutOfMemoryError: Java heap space가 발생합니다.', 'bad');
     var oldUse = cnt('O'), leaked = objs.filter(function (o) { return o.die === Infinity; }).length;
-    var sum = ['객체 ' + made + '개를 만드는 동안 Minor GC ' + minor + '번, Full GC ' + full + '번이 돌았고 애플리케이션은 합계 ' + pause + '만큼 멈췄습니다.'];
+    var sum = [];
     if (oom) sum.push('OutOfMemoryError로 끝났습니다. ' + (c.leak ? '누수된 객체 ' + leaked + '개는 static 목록이 계속 참조하고 있어서 GC가 치울 수 없습니다. 힙을 키우면 시점이 늦춰질 뿐 결과는 같습니다. 힙 덤프를 떠서 무엇이 쌓이는지 찾아 참조를 끊어야 합니다.' : '오래 사는 객체가 힙보다 많습니다. 누수가 아니라면 힙을 키우거나 객체를 오래 붙잡는 구조(캐시 크기 등)를 줄여야 합니다.'));
     else if (c.leak) sum.push('아직 죽지는 않았지만 누수된 객체 ' + leaked + '개가 Old에 계속 쌓이고 있습니다. Full GC 뒤에도 Old 사용량이 줄지 않고 올라가기만 하는 것이 누수의 신호입니다. 더 오래 돌리면 OutOfMemoryError로 끝납니다.');
     else if (full === 0) sum.push('대부분의 객체가 금방 버려져서 Minor GC만으로 충분했습니다. "대부분의 객체는 일찍 죽는다"는 가정이 맞을 때 세대를 나누는 방식이 효율적입니다.');
@@ -11611,9 +11571,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { t: 0, minor: 0, full: 0, pause: 0, E: [], S: [], O: [] };
     H.counters(v, [[s.t, '틱'], [s.minor, 'Minor GC'], [s.full, 'Full GC'], [s.pause, '멈춘 시간 합계']]);
-    function region(name, arr, cap) { H.title(v, name + ' (' + arr.length + '/' + cap + ')'); var it = []; for (var i = 0; i < cap; i++) it.push(['', arr[i] || '']); H.slots(v, it, null, true); }
-    region('Eden: 새 객체가 만들어지는 곳', s.E, sim.EC); region('Survivor: Minor GC에서 살아남은 객체', s.S, sim.SC); region('Old: 여러 번 살아남아 승격된 객체', s.O, sim.OC);
-    H.text(v, '초록은 아직 참조되는 객체, 빨강은 더 이상 참조되지 않지만 아직 치워지지 않은 객체, 노랑은 누수된 객체(계속 참조됨)입니다.');
   },
   // 그림: 힙의 세 영역을 칸으로 그린다. 새 객체는 Eden에, 살아남으면 Survivor를 거쳐 Old로 간다.
   draw: function (P, sim, shown) {
@@ -11626,7 +11583,7 @@ Lab.register({
     P.region('O', 332, 16, 332, rh, 'Old ' + s.O.length + '/' + OC); cells('o', 332, s.O, OC, 16);
     var txt = last ? last.s : '', kind = txt.indexOf('Full GC를 했는데도') >= 0 ? 'oom' : txt.indexOf('Full GC가') >= 0 ? 'full' : txt.indexOf('Minor GC가') >= 0 ? 'minor' : '';
     P.box('msg', 16, rh + 30, 648, 30, { cls: kind === 'oom' || kind === 'full' ? 'bad' : kind === 'minor' ? 'hot' : 'ghost', center: true, title: { oom: 'OutOfMemoryError: 참조되는 객체만으로 힙이 가득 참', full: 'Full GC: 힙 전체를 검사 (모든 스레드가 오래 멈춤)', minor: 'Minor GC: Eden과 Survivor만 검사 (잠깐 멈춤)', '': last ? 'GC 없이 Eden에 새 객체를 만드는 중' : '실행을 누르면 시작합니다' }[kind] });
-    P.note('초록은 아직 참조되는 객체, 빨강은 참조가 끊겼지만 아직 치워지지 않은 객체, 노랑은 누수된 객체(계속 참조됨), 점선은 빈 칸입니다. 새 객체는 Eden에 생기고, Minor GC에서 살아남으면 Survivor를 거쳐 Old로 옮겨집니다.');
+    P.note('초록은 아직 참조되는 객체, 빨강은 참조가 끊겼지만 아직 치워지지 않은 객체, 노랑은 누수된 객체(계속 참조됨), 점선은 빈 칸입니다.');
   },
   assume: '객체 크기가 모두 같고 힙을 칸 수로 센 단순한 세대별 GC 모형입니다. 승격 기준을 "Minor GC에서 두 번 살아남으면"으로 낮췄습니다(실제 기본 최대치는 15이며 GC가 상황에 따라 조정합니다). 멈춤 시간 1과 10은 Minor GC가 Full GC보다 훨씬 짧다는 관계만 나타내는 값입니다. G1이나 ZGC 같은 실제 수집기는 힙을 더 잘게 나누고 애플리케이션과 동시에 일하는 등 방식이 다르지만, 새 객체 영역과 오래된 객체 영역을 나누어 다루고 참조가 남은 객체는 치우지 못한다는 원리는 같습니다. 칸 수와 횟수는 모형의 값입니다. 다만 같은 상황을 이 PC의 JDK 21에서 64MB 힙으로 실제로 돌려 방향을 확인했습니다. 금방 버려지는 객체만 만들면 Young GC 24번에 Full GC 0번, 오래 붙잡는 객체가 섞이면 Full GC가 7번 돌았고(평균 멈춤 Young 2.1ms, Full 11.5ms), 지우지 않는 목록에 계속 담으면 Full GC를 37번 반복한 끝에 OutOfMemoryError로 끝났습니다. 힙을 128MB로 키우면 같은 누수가 약 두 배의 객체를 만든 뒤에 같은 오류로 끝났습니다.',
 });
@@ -11634,7 +11591,7 @@ Lab.register({
 Lab.register({
   id: 'index', nav: '인덱스와 풀 스캔', cat: '데이터베이스', mode: 'step',
   title: '인덱스가 있는데 왜 안 탈까',
-  intro: '조건에 맞는 행을 찾는 방법은 두 가지입니다. 테이블을 처음부터 끝까지 읽거나(풀 스캔), 인덱스에서 위치를 찾아 그 행만 읽거나. 어느 쪽이 싼지는 조건에 걸리는 행의 비율에 달려 있고, 옵티마이저가 통계를 보고 고릅니다. 행 수와 비율을 바꿔 가며 선택이 바뀌는 지점을 찾아보세요.',
+  intro: '조건에 맞는 행을 찾는 방법은 두 가지입니다. 테이블을 처음부터 끝까지 읽거나(풀 스캔), 인덱스에서 위치를 찾아 그 행만 읽거나. 어느 쪽이 싼지는 조건에 걸리는 행의 비율에 달려 있고, 옵티마이저가 통계를 보고 고릅니다.',
   terms: ['인덱스', 'B-트리 인덱스', '풀 테이블 스캔', '실행 계획(EXPLAIN)', '옵티마이저', '카디널리티와 선택도'], ranks: ['index', 'tuning', 'dbengine'],
   controls: [
     { id: 'rows', label: '테이블 행 수', type: 'select', value: '100000', options: [['1000', '1천 행'], ['100000', '10만 행'], ['10000000', '1천만 행']] },
@@ -11673,7 +11630,6 @@ Lab.register({
       push('테이블의 첫 행부터 마지막 행까지 ' + num(N) + '행을 모두 읽습니다. 행마다 status를 확인해 ' + num(matched) + '행만 남기고 ' + num(N - matched) + '행은 읽고 나서 버립니다.', c.idx ? '' : 'bad', 6);
     }
     var read = useIdx ? matched : N, cost = useIdx ? costIdx : costFull, sum = [];
-    sum.push((useIdx ? '인덱스' : '풀 스캔') + '로 실행했습니다. ' + num(read) + '행을 읽어 ' + num(matched) + '행을 돌려줬고, 읽고 버린 행은 ' + num(read - matched) + '행입니다.');
     if (!c.idx) sum.push('인덱스가 없으면 결과가 몇 건이든 테이블 전체를 읽어야 합니다. 행이 10배가 되면 읽는 양도 10배가 됩니다. 인덱스가 있었다면 예상 비용은 ' + num(costIdx) + '로 ' + (costIdx < costFull ? '풀 스캔의 약 ' + (Math.round(costFull / costIdx) >= 2 ? Math.round(costFull / costIdx) + '분의 1' : '절반 수준') + '이었을 것입니다.' : '오히려 풀 스캔보다 비쌌을 것입니다. 이 조건에는 인덱스가 도움이 되지 않습니다.'));
     else if (useIdx && !(c.force && costIdx >= costFull)) sum.push('조건에 걸리는 비율이 낮을수록(선택도가 좋을수록) 인덱스의 효과가 큽니다. 풀 스캔이었다면 비용은 ' + num(costFull) + '로 약 ' + Math.max(1, Math.round(costFull / costIdx)) + '배였습니다.');
     else if (useIdx) sum.push('인덱스를 강제했더니 비용이 ' + num(costIdx) + '로, 풀 스캔(' + num(costFull) + ')보다 비쌉니다. 옵티마이저의 판단이 맞았습니다. 힌트는 통계가 틀렸다는 근거가 있을 때만 씁니다.');
@@ -11791,8 +11747,6 @@ Lab.register({
     H.lane(ln, '호출', s.caller, 'wait');
     H.lane(ln, '프록시', s.proxy, s.proxy.indexOf('보지 못함') >= 0 ? 'bad' : s.proxy === '대기' ? 'none' : 'hot');
     H.lane(ln, '실제 객체', s.target, s.target === '대기' ? 'none' : s.target.indexOf('예외') >= 0 ? 'bad' : '');
-    if (sim.tx) { if (s.rows.length) H.table(v, ['데이터', '상태'], s.rows.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[2] }] }; }), 'DB 테이블'); }
-    else H.counters(v, [[s.thread || '아직 실행 전', '메일 발송이 실행되는 스레드'], [s.wait || '-', '호출한 쪽이 기다린 시간']]);
   },
   // 그림: 프록시는 실제 객체를 감싼 바깥 상자다. 밖에서 오는 호출은 바깥 상자를 지나고, 안에서 this로 부르는 호출은 지나지 않는다.
   draw: function (P, sim, shown) {
@@ -11819,7 +11773,7 @@ Lab.register({
       P.box('th', 16, 232, 318, 48, { cls: s.thread ? (s.thread.indexOf('task') === 0 ? 'good' : 'bad') : 'ghost', title: '메일 발송이 실행되는 스레드', sub: s.thread || '아직 실행 전' });
       P.box('wt', 346, 232, 318, 48, { cls: !s.wait ? 'ghost' : s.wait === '0초' ? 'good' : 'bad', title: '호출한 쪽이 기다린 시간', sub: s.wait || '-' });
     }
-    P.note('바깥 상자가 프록시, 안쪽 상자가 실제 객체입니다. 다른 빈이 부르는 호출은 바깥 상자를 지나야 안으로 들어가므로 그때 트랜잭션 같은 부가 기능이 붙습니다. 안쪽 객체가 자기 메서드를 this로 부르는 빨간 화살표는 바깥 상자를 지나지 않습니다.');
+    P.note('바깥 상자가 프록시, 안쪽 상자가 실제 객체입니다. 안쪽 객체가 자기 메서드를 this로 부르는 빨간 화살표는 바깥 상자를 지나지 않습니다.');
   },
   assume: '스프링의 기본 방식인 프록시 기반 AOP를 기준으로 했습니다(AspectJ 위빙을 쓰면 내부 호출에도 적용할 수 있지만 흔하지 않습니다). @Async는 @EnableAsync가 켜져 있다고 가정했습니다. 트랜잭션이 없을 때 INSERT가 각각 바로 커밋된다는 것은 JDBC 커넥션의 자동 커밋 기본값을 따른 것입니다. 열 가지 조합 모두를 실제 스프링(스프링 프레임워크 7.0.9)의 @Transactional, @Async 빈으로 실행해 확인했습니다. 프록시를 거친 호출에서만 메서드 안에 트랜잭션이 열려 있었고 예외 뒤에 남은 행이 없었으며, 내부 호출과 private 메서드에서는 두 행이 그대로 남았습니다. @Async도 프록시를 거친 호출만 별도 스레드(task-1)에서 실행됐고, 내부 호출은 호출한 스레드에서 끝까지 실행됐습니다(메일 발송 3초는 0.3초로 줄여 시험).',
 });
@@ -11827,7 +11781,7 @@ Lab.register({
 Lab.register({
   id: 'cache', nav: '캐시와 TTL', cat: '대용량 트래픽', mode: 'time',
   title: '캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나',
-  intro: '인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다. TTL, 요청 빈도, DB 조회 시간을 바꿔 가며 적중률과 만료 순간에 DB로 몰리는 요청을 보세요.',
+  intro: '인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다.',
   terms: ['캐시', 'Cache-Aside 패턴', 'TTL(Time To Live)', '캐시 스탬피드', 'Redis', '분산 락'], ranks: ['cache', 'traffic', 'nosql'],
   controls: [
     { id: 'ttl', label: '캐시 TTL', type: 'select', value: '10', options: [['0', '캐시 없음'], ['5', '5초'], ['10', '10초'], ['30', '30초 이상 (만료 없음)']] },
@@ -11869,7 +11823,7 @@ Lab.register({
     var avg = reqs.reduce(function (a, r) { return a + (r.done - r.t); }, 0) / reqs.length, rate = Math.round(hits / reqs.length * 100);
     if (ttl === 0) ev.push({ t: 0, s: '0.0초: 캐시가 없습니다. 모든 요청이 DB를 조회합니다.' });
     ev.sort(function (a, b) { return a.t - b.t; });
-    var sum = ['요청 ' + reqs.length + '건 중 ' + hits + '건(' + rate + '%)이 캐시에서 바로 응답했고, DB 조회는 ' + dbq + '번 일어났습니다. 한순간에 겹친 DB 조회는 최대 ' + peak + '건, 평균 응답 시간은 ' + (Math.round(avg * 100) / 100) + '초입니다.'];
+    var sum = [];
     if (ttl === 0) sum.push('같은 상품을 ' + reqs.length + '번 조회하는 데 DB를 ' + dbq + '번 읽었습니다. 자주 읽히고 잘 바뀌지 않는 데이터일수록 캐시의 효과가 큽니다.');
     else if (peak > 1 && !lock) sum.push('만료 순간 캐시가 채워지기 전까지(' + dbt + '초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락, 만료 전에 미리 갱신하기, 키마다 TTL에 약간의 차이를 주는 방법으로 줄입니다.');
     else if (lock) sum.push('락으로 캐시가 빌 때마다 한 요청만 DB를 조회했습니다. DB 부하는 지켰지만, ' + waits + '건은 그 조회가 끝날 때까지 기다렸습니다. 서버가 여러 대라면 서버들이 함께 쓰는 분산 락이어야 합니다.');
@@ -11878,16 +11832,7 @@ Lab.register({
   },
   render: function (v, sim, t, H) {
     var c = sim.c, done = sim.reqs.filter(function (r) { return r.t <= t + 1e-9; }), hits = done.filter(function (r) { return r.kind === 'hit'; }).length, dbq = sim.queries.filter(function (q) { return q[0] <= t + 1e-9; }).length;
-    var flying = sim.queries.filter(function (q) { return q[0] <= t + 1e-9 && q[1] > t + 1e-9; }).length;
     H.counters(v, [[done.length, '들어온 요청'], [hits, '캐시 적중'], [dbq, 'DB 조회'], [done.length ? Math.round(hits / done.length * 100) + '%' : '-', '적중률']]);
-    var ln = H.lanes(v), lastHit = done.filter(function (r) { return r.kind === 'hit'; }).pop(), lastReq = done[done.length - 1];
-    var cached = lastReq && lastReq.kind === 'hit';
-    H.lane(ln, '캐시', sim.ttl === 0 ? '사용 안 함' : cached ? '값 있음 · 요청에 바로 응답 중' : flying ? '값 없음 · DB 결과를 기다리는 중' : done.length ? '값 없음' : '비어 있음', sim.ttl === 0 ? 'none' : cached ? 'good' : 'bad');
-    H.lane(ln, 'DB', flying ? '지금 조회 ' + flying + '건 처리 중' : '한가함', flying > 3 ? 'bad' : flying ? 'hot' : '');
-    H.title(v, '초 단위로 본 DB 조회 수 (1칸 = 1초)');
-    var items = []; for (var s = 0; s < 30; s++) { var n = sim.queries.filter(function (q) { return q[0] >= s - 1e-9 && q[0] < s + 1 - 1e-9 && q[0] <= t + 1e-9; }).length; items.push([s < t ? String(n) : '', s >= t ? '' : n === 0 ? 'd' : n === 1 ? 'q' : 'r']); }
-    H.slots(v, items, null, true);
-    H.text(v, '초록은 DB 조회가 없던 초(전부 캐시에서 응답), 파랑은 1건, 빨강은 2건 이상 몰린 초입니다.');
   },
   // 그림: 요청이 캐시를 먼저 보고, 없을 때만 DB로 간다. 아래 줄은 초마다 DB까지 간 조회 수다.
   draw: function (P, sim, shown, t) {
@@ -11908,7 +11853,7 @@ Lab.register({
 Lab.register({
   id: 'iso', nav: '격리 수준', cat: '데이터베이스', mode: 'step',
   title: '다른 트랜잭션이 바꾸는 중인 데이터가 내게 어떻게 보이나',
-  intro: '트랜잭션 A가 조회하는 사이에 트랜잭션 B가 같은 데이터를 바꿉니다. 격리 수준에 따라 A가 B의 변경을 보기도 하고 못 보기도 합니다. 상황 세 가지와 격리 수준 네 가지를 바꿔 가며 A의 눈에 보이는 값을 확인하세요.',
+  intro: '트랜잭션 A가 조회하는 사이에 트랜잭션 B가 같은 데이터를 바꿉니다. 격리 수준에 따라 A가 B의 변경을 보기도 하고 못 보기도 합니다.',
   terms: ['트랜잭션 격리 수준', 'Dirty Read', 'Non-repeatable Read', 'Phantom Read', 'MVCC(다중 버전 동시성 제어)', 'Undo 로그와 Redo 로그', '공유 락과 배타 락'], ranks: ['isolation', 'dbengine'],
   controls: [
     { id: 'sc', label: '상황', type: 'select', value: 'nonrep', options: [['dirty', 'B가 수정하고 아직 커밋하지 않은 값을 A가 조회'], ['nonrep', 'A가 두 번 조회하는 사이에 B가 수정하고 커밋'], ['phantom', 'A가 두 번 조회하는 사이에 B가 새 행을 추가하고 커밋']] },
@@ -11979,9 +11924,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { tl: [], ver: [], first: '-', second: '-' };
-    H.counters(v, [[s.first, 'A의 첫 번째 조회 결과'], [s.second, 'A의 두 번째 조회 결과']]);
     H.table(v, ['순서', '트랜잭션 A', '트랜잭션 B'], s.tl.map(function (r, i) { var on = i === s.tl.length - 1; return { cells: [String(i + 1), { v: r.a, cls: r.a && (r.k === 'bad' ? 'bad' : r.k === 'good' ? 'good' : on ? 'hot' : '') }, { v: r.b, cls: r.b && on ? 'hot' : '' }] }; }), '시간 순서 (위에서 아래로)');
-    if (s.ver.length) H.table(v, ['DB 안의 데이터', '값'], s.ver.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[2] }] }; }), sim.c.sc === 'phantom' ? 'orders 테이블' : 'account 테이블의 id = 1 행');
   },
   // 그림: 트랜잭션 A와 B가 가운데의 DB에 번갈아 명령을 보내는 순서. A가 읽은 값이 어떻게 달라지는지가 핵심.
   draw: function (P, sim, shown) {
@@ -12050,7 +11993,6 @@ Lab.register({
         sum.push('기다리는 시간에 제한을 두면, 못 얻은 쪽이 가진 락을 내려놓아 고리가 풀립니다. 대신 실패한 작업을 다시 시도하는 코드가 필요하고, 두 스레드가 동시에 포기와 재시도를 반복하지 않도록 재시도 간격을 조금씩 다르게 줍니다.');
       }
     }
-    sum.unshift(dead ? '결과: 교착 상태. 완료된 이체 0건.' : '결과: 이체 ' + done + '건이 모두 완료됐습니다. 락 대기 ' + waits + '번, 재시도 ' + retries + '번.');
     return { events: ev, summary: sum, row: [dead ? '교착 상태' : '정상 완료', done + '건', waits + '번', retries + '번'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -12058,9 +12000,7 @@ Lab.register({
     var w1 = s.st[1].indexOf('기다리는') >= 0, w2 = s.st[2].indexOf('기다리는') >= 0, dead = w1 && w2 && s.own.A === 1 && s.own.B === 2;
     H.title(v, '스레드'); var ln = H.lanes(v);
     [1, 2].forEach(function (t2) { var x = s.st[t2]; H.lane(ln, '스레드 ' + t2, x + (t2 === 1 ? '  (A → B로 100원)' : '  (B → A로 50원)'), x === '이체 완료' ? 'good' : x.indexOf('기다리는') >= 0 ? (dead ? 'bad' : 'wait') : x === '시작 전' ? 'none' : 'hot'); });
-    H.table(v, ['락', '쥐고 있는 스레드', '기다리는 스레드'], ['A', 'B'].map(function (l) { var waiter = [1, 2].filter(function (t2) { return s.st[t2].indexOf(l + '를 기다리는') >= 0 || s.st[t2].indexOf('계좌 ' + l + ' 락을 기다리는') >= 0; }); return { cells: ['계좌 ' + l, { v: s.own[l] ? '스레드 ' + s.own[l] : '없음', cls: s.own[l] ? 'hot' : '' }, { v: waiter.length ? '스레드 ' + waiter[0] : '없음', cls: waiter.length ? (dead ? 'bad' : '') : '' }] }; }), '락의 상태');
     if (dead) H.text(v, '스레드 1 → (B를 기다림) → 스레드 2 → (A를 기다림) → 스레드 1. 기다림이 고리를 이뤘습니다.');
-    H.counters(v, [[s.done + ' / 2', '완료된 이체']]);
   },
   // 그림: 스레드 둘과 락 둘을 마름모꼴로 놓는다. 락에서 스레드로 가는 화살표는 "쥐고 있음", 스레드에서 락으로 가는 화살표는 "기다림"이다.
   draw: function (P, sim, shown) {
@@ -12085,7 +12025,7 @@ Lab.register({
 Lab.register({
   id: 'exflow', nav: '예외와 finally', cat: '자바 언어', mode: 'step',
   title: '예외가 나면 어느 블록이 어떤 순서로 실행되나',
-  intro: 'try에서 예외가 나면 catch로 건너뛰고, finally는 어떤 경우에도 실행됩니다. return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다. 조건을 바꿔 가며 실행 순서와 최종 결과를 확인하세요.',
+  intro: 'try에서 예외가 나면 catch로 건너뛰고, finally는 어떤 경우에도 실행됩니다. return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다.',
   terms: ['finally와 try-with-resources', '예외(Exception)와 Error', 'Checked 예외와 Unchecked 예외'], ranks: ['exception'],
   controls: [
     { id: 'ex', label: '예외', type: 'select', value: 'match', options: [['none', '예외 없음'], ['match', 'try에서 발생, catch가 잡는 타입'], ['nomatch', 'try에서 발생, catch가 잡지 못하는 타입'], ['incatch', 'try에서 발생해 잡았는데 catch 안에서 또 발생']] },
@@ -12140,7 +12080,6 @@ Lab.register({
     else if (tr.out.indexOf('throw') === 0) push(null, 'finally가 끝난 뒤, 처리되지 않은 ' + tr.out.slice(6) + '이 메서드 밖으로 나갑니다. "블록 다음"은 실행되지 않습니다.', 'bad');
     else push(null, '메서드가 여기서 끝납니다. 반환값은 ' + tr.out.slice(7) + '입니다. "블록 다음"은 실행되지 않습니다.', c.fret && before ? 'bad' : 'good');
     var res = tr.out.indexOf('throw') === 0 ? tr.out.slice(6) + ' 발생' : tr.out.slice(7) + ' 반환';
-    sum.push('실행 순서: ' + seen.join(' → ') + '. 최종 결과: ' + res + '.');
     sum.push('finally는 정상 종료, return, 예외 어느 경우에도 실행됩니다. 락 해제나 자원 정리를 finally에 두는 이유입니다.');
     if (c.fret && before) sum.push('finally 안의 return은 진행 중이던 예외나 반환값을 조용히 지워 버립니다. 예외가 났다는 사실이 사라지므로 finally에는 return을 쓰지 않습니다.');
     if (c.res) sum.push('try-with-resources의 자원은 try 블록이 끝나는 시점에 닫히므로, catch와 finally가 실행될 때는 이미 닫혀 있습니다. 직접 finally에서 close()를 부르는 것보다 안전합니다.');
@@ -12160,7 +12099,7 @@ Lab.register({
 Lab.register({
   id: 'stream', nav: '스트림 지연 평가', cat: '자바 언어', mode: 'step',
   title: '스트림은 적힌 순서대로 실행되지 않는다',
-  intro: 'filter와 map 같은 중간 연산은 호출한 순간에는 아무 일도 하지 않고, 최종 연산이 호출될 때 비로소 실행됩니다. 그것도 연산별로 한꺼번에가 아니라 원소 하나씩 끝까지 흘려보내는 방식입니다. 최종 연산과 중간 연산을 바꿔 가며 실제 실행 순서를 보세요.',
+  intro: 'filter와 map 같은 중간 연산은 호출한 순간에는 아무 일도 하지 않고, 최종 연산이 호출될 때 비로소 실행됩니다. 그것도 연산별로 한꺼번에가 아니라 원소 하나씩 끝까지 흘려보내는 방식입니다.',
   terms: ['Stream API', '지연 평가(Lazy Evaluation)', '람다 표현식', 'Optional'], ranks: ['stream', 'javaver'],
   controls: [
     { id: 'term', label: '최종 연산', type: 'select', value: 'toList', options: [['none', '없음 (중간 연산까지만)'], ['toList', 'toList() : 전부 모으기'], ['findFirst', 'findFirst() : 첫 원소만']] },
@@ -12205,7 +12144,6 @@ Lab.register({
     if (early) push((c.term === 'findFirst' ? 'findFirst가 원소 하나를 받았으므로' : 'limit(2)가 두 개를 채웠으므로') + ' 더 끌어당기지 않습니다. 남은 원소 ' + (D.length - fN) + '개는 filter조차 거치지 않았습니다.', 'good', -1);
     else if (mN < tr.log.filter(function (l) { return l.indexOf('filter') === 0 && +l.replace(/\D/g, '') > 3; }).length) push((c.term === 'findFirst' ? 'findFirst가 원소 하나를 받았으므로' : 'limit(2)가 두 개를 채웠으므로') + ' 멈춥니다. 정렬된 나머지 값은 map을 거치지 않았습니다.', 'good', -1);
     push('결과: ' + tr.out, 'good', -1);
-    sum.push('filter는 ' + fN + '번, map은 ' + mN + '번 실행됐습니다. 결과는 ' + tr.out + '입니다.');
     if (!c.sorted) sum.push('"filter를 전부 한 다음 map을 전부"가 아니라, 원소 하나가 filter → map을 끝까지 통과한 뒤 다음 원소가 출발합니다. 그래서 중간에 멈출 수 있습니다.');
     if (early) sum.push('필요한 만큼만 처리하고 멈췄습니다(쇼트 서킷). 원소가 많거나 연산이 비쌀 때 차이가 큽니다.');
     if (c.sorted) sum.push('sorted()처럼 전체를 알아야 하는 연산이 끼면 그 앞 단계는 모든 원소에 대해 실행됩니다. 뒤에 findFirst나 limit이 있어도 앞 단계의 일은 줄지 않습니다. 가능하면 걸러내는 연산을 앞에 두는 것이 좋습니다.');
@@ -12224,7 +12162,7 @@ Lab.register({
 Lab.register({
   id: 'stock', nav: '재고 차감과 락', cat: '데이터베이스', mode: 'step',
   title: '재고 3개에 주문이 동시에 몰리면',
-  intro: '여러 요청이 동시에 "재고 확인 → 1 감소 → 주문 생성"을 합니다. 아무 장치가 없으면 재고보다 많이 팔리거나 재고 숫자가 실제와 어긋납니다. 동시 수정을 막는 방법을 바꿔 가며 결과와 비용(대기, 재시도)을 비교해 보세요.',
+  intro: '여러 요청이 동시에 "재고 확인 → 1 감소 → 주문 생성"을 합니다. 아무 장치가 없으면 재고보다 많이 팔리거나 재고 숫자가 실제와 어긋납니다.',
   terms: ['비관적 락', '낙관적 락(@Version)', '공유 락과 배타 락', '분산 락', '경쟁 상태(Race Condition)'], ranks: ['concurrency', 'traffic', 'dbengine'],
   controls: [
     { id: 'how', label: '동시 수정을 다루는 방법', type: 'select', value: 'none', options: [['none', '아무것도 안 함 (조회 후 수정)'], ['pess', '비관적 락 (SELECT ... FOR UPDATE)'], ['opt', '낙관적 락 (@Version)'], ['atomic', '조건을 넣은 UPDATE 한 문장'], ['dist', '분산 락 (Redis)']] },
@@ -12280,7 +12218,6 @@ Lab.register({
         push('요청 ' + (win + 1) + ': "버전이 ' + readVer + '일 때만 수정"하는 UPDATE를 보냅니다. 버전이 그대로여서 성공합니다. 재고는 ' + stock + '개, 새 버전은 ' + ver + '입니다.', 'good', win);
         if (left.length) { retries += left.length; left.forEach(function (r) { st[r] = '저장 실패 → 재시도'; }); push('나머지 ' + left.length + '건: 같은 UPDATE를 보냈지만 버전이 이미 바뀌어(현재 ' + ver + ') 조건에 맞는 행이 없습니다(0건 수정). 충돌로 판단해 예외가 발생하고, 처음부터 다시 시도합니다.', 'bad', -1); }
       }
-      sum.push('재고는 정확합니다. 주문 ' + orders + '건, 남은 재고 ' + stock + '개. 그 과정에서 저장 실패와 재시도가 ' + retries + '번 있었습니다.');
       sum.push('낙관적 락은 락을 기다리지 않아서 충돌이 드문 경우(예: 한 사람이 자기 정보를 수정)에 유리합니다. 이 예처럼 같은 행에 요청이 몰리면 대부분이 실패하고 재시도하느라 오히려 일을 더 많이 합니다. 재시도 코드는 직접 만들어야 합니다.');
     }
     if (c.how === 'atomic') {
@@ -12288,7 +12225,6 @@ Lab.register({
         if (stock > 0) { stock--; orders++; sold++; st[u] = '주문 성공'; push('요청 ' + (u + 1) + ': "재고가 0보다 크면 1 감소" UPDATE를 보냅니다. DB가 이 한 문장을 실행하는 동안에만 행을 잠급니다. 1건이 수정됐으므로 주문을 만듭니다. 재고 ' + stock + '개.', 'good', u); }
         else { st[u] = '품절로 거절'; push('요청 ' + (u + 1) + ': 같은 UPDATE를 보냈지만 재고가 0이라 조건에 맞지 않습니다. 수정된 행이 0건이므로 품절로 처리합니다.', '', u); }
       }
-      sum.push('재고는 정확합니다. 주문 ' + orders + '건, 남은 재고 ' + stock + '개. 대기도 재시도도 없었습니다.');
       sum.push('"읽고, 확인하고, 쓰기"를 애플리케이션에서 나눠 하지 않고 SQL 한 문장에 넣으면, 끼어들 틈 자체가 없어집니다. 단순한 증감에는 가장 가볍고 확실한 방법입니다. 확인할 조건이 여러 테이블에 걸쳐 복잡하면 쓰기 어렵습니다.');
     }
     var match = orders === S - stock;
@@ -12296,7 +12232,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { stock: c.s, ver: 0, st: [], orders: 0, hot: -1, waits: 0, retries: 0 };
-    H.counters(v, [[s.stock + (c.how === 'opt' ? ' (버전 ' + s.ver + ')' : ''), 'DB의 재고'], [s.orders, '만들어진 주문'], [c.s - s.orders, '재고에서 주문을 뺀 값 (실제 남아야 할 수)'], [s.waits, '락 대기'], [s.retries, '재시도']]);
+    H.counters(v, [[c.s - s.orders, '재고에서 주문을 뺀 값 (실제 남아야 할 수)']]);
     H.title(v, '요청'); var ln = H.lanes(v);
     for (var i = 0; i < c.n; i++) { var x = s.st[i] || '도착 전'; H.lane(ln, '요청 ' + (i + 1), x, x === '주문 성공' ? 'good' : x.indexOf('대기') >= 0 ? 'wait' : x.indexOf('실패') >= 0 ? 'bad' : i === s.hot ? 'hot' : x === '도착 전' ? 'none' : ''); }
   },
@@ -12358,17 +12294,17 @@ Lab.register({
     ev.sort(function (a, b) { return a.t - b.t; });
     var ok = reqs.filter(function (x) { return !x.fail; }), waits = ok.map(function (x) { return x.start - x.at; }), fails = reqs.length - ok.length;
     var avg = waits.length ? waits.reduce(function (a, b) { return a + b; }, 0) / waits.length : 0, mx = waits.length ? Math.max.apply(null, waits) : 0, total = reqs.reduce(function (m, x) { return Math.max(m, x.fail || x.done); }, 0);
-    var sum = ['요청 ' + c.n + '건 중 ' + ok.length + '건 성공, ' + fails + '건은 커넥션을 얻지 못해 실패했습니다. 성공한 요청은 커넥션을 평균 ' + fmt(avg) + '초, 최대 ' + fmt(mx) + '초 기다렸습니다.', '요청 하나가 커넥션을 쥐고 있는 시간은 ' + fmt(hold) + '초입니다(DB 작업 ' + c.q + '초' + (c.osiv && ext > 0 ? ' + 외부 API ' + c.ext + '초' : '') + ').'];
+    var sum = ext > 0 || fails ? [] : ['요청 ' + c.n + '건 중 ' + ok.length + '건 성공, ' + fails + '건은 커넥션을 얻지 못해 실패했습니다. 성공한 요청은 커넥션을 평균 ' + fmt(avg) + '초, 최대 ' + fmt(mx) + '초 기다렸습니다.'];
     if (c.osiv && ext > 0) sum.push('OSIV가 켜져 있으면 영속성 컨텍스트가 응답이 끝날 때까지 열려 있고, 그동안 DB 커넥션도 함께 붙잡혀 있습니다. DB를 쓰지 않는 외부 API 대기 시간까지 커넥션을 점유하므로, 트래픽이 많은 API 서버에서는 커넥션이 금방 모자랍니다. 끄면 트랜잭션이 끝날 때 커넥션을 돌려줍니다.');
     if (!c.osiv && ext > 0) sum.push('OSIV를 끄면 트랜잭션이 끝나는 즉시 커넥션을 돌려줍니다. 대신 트랜잭션 밖(컨트롤러, 뷰)에서는 지연 로딩을 쓸 수 없으므로, 필요한 데이터를 서비스 계층에서 미리 다 읽어 두어야 합니다.');
     if (fails) sum.push('풀을 무작정 늘리는 것은 해법이 아닙니다. DB가 감당할 수 있는 연결 수에 한계가 있고, 연결이 많아지면 DB 쪽에서 서로 경쟁해 오히려 느려집니다. 커넥션을 쥐는 시간을 줄이는 것(OSIV 끄기, 트랜잭션 범위 줄이기, 느린 쿼리 개선)이 먼저입니다.');
     return { total: total, events: ev, summary: sum, conns: conns, reqs: reqs, hold: hold, row: [ok.length + '건', fails + '건', fmt(avg) + '초', fmt(mx) + '초', fmt(hold) + '초'] };
   },
   render: function (v, sim, t, H) {
-    var c = sim.c, e = 1e-9, done = sim.reqs.filter(function (r) { return r.done !== undefined && r.done <= t + e; }).length, failed = sim.reqs.filter(function (r) { return r.fail !== undefined && r.fail <= t + e; }).length;
+    var c = sim.c, e = 1e-9;
     var waiting = sim.reqs.filter(function (r) { return r.at <= t + e && (r.fail !== undefined ? r.fail > t + e : r.start > t + e); });
     var busy = sim.conns.filter(function (cn) { return cn.segs.some(function (r) { return r.start <= t + e && r.rel > t + e; }); }).length;
-    H.counters(v, [[busy + ' / ' + c.pool, '사용 중인 커넥션'], [waiting.length, '커넥션을 기다리는 요청'], [done, '응답 완료'], [failed, '대기 시간 초과로 실패']]);
+    H.counters(v, [[busy + ' / ' + c.pool, '사용 중인 커넥션'], [waiting.length, '커넥션을 기다리는 요청']]);
     H.title(v, '커넥션 풀'); var ln = H.lanes(v);
     sim.conns.forEach(function (cn) { var r = cn.segs.filter(function (x) { return x.start <= t + e && x.rel > t + e; })[0];
       if (!r) H.lane(ln, '커넥션 ' + cn.id, '풀에서 대기 (빌려줄 수 있음)', 'none');
@@ -12404,7 +12340,7 @@ Lab.register({
 Lab.register({
   id: 'kafka', nav: 'Kafka 파티션과 컨슈머', cat: '메시지 큐', mode: 'step',
   title: '컨슈머를 늘렸는데 왜 처리량이 그대로인가',
-  intro: '토픽은 여러 파티션으로 나뉘고, 같은 그룹의 컨슈머들이 파티션을 나눠 맡습니다. 파티션 하나는 그룹 안에서 한 컨슈머만 읽을 수 있습니다. 파티션 수, 컨슈머 수, 속도를 바꿔 가며 밀리는 메시지를 보고, 컨슈머가 죽었을 때 커밋 시점에 따라 중복이나 유실이 생기는 것도 확인하세요.',
+  intro: '토픽은 여러 파티션으로 나뉘고, 같은 그룹의 컨슈머들이 파티션을 나눠 맡습니다. 파티션 하나는 그룹 안에서 한 컨슈머만 읽을 수 있습니다.',
   terms: ['Kafka의 토픽, 파티션, 오프셋', '컨슈머 그룹과 리밸런싱', 'Consumer Lag', '메시지 전달 보장', '메시지 큐', '멱등성과 멱등키'], ranks: ['mq', 'msa'],
   controls: [
     { id: 'p', label: '파티션 수', type: 'range', min: 1, max: 6, value: 3, fmt: function (v) { return v + '개'; } },
@@ -12452,7 +12388,6 @@ Lab.register({
       if (after) { dup = 3; push('파티션을 이어받은 컨슈머는 마지막으로 커밋된 위치인 100부터 다시 읽습니다. 100, 101, 102는 이미 처리된 메시지인데 한 번 더 처리됩니다. 유실은 없지만 중복이 3건 생겼습니다(최소 한 번 전달).', 'bad', 6); }
       else { lost = 2; push('파티션을 이어받은 컨슈머는 커밋된 위치인 105부터 읽습니다. 103과 104는 커밋만 되고 처리되지 않았는데, 아무도 다시 읽지 않습니다. 중복은 없지만 2건이 유실됐습니다(최대 한 번 전달).', 'bad', 6); }
     }
-    sum.push('그룹의 처리량은 초당 ' + A.total + '건(유입 ' + c.r + '건), 10초 뒤 밀린 메시지는 ' + A.lag + '건입니다.' + (A.idle.length ? ' 컨슈머 ' + A.idle.length + '개는 맡은 파티션이 없어 놀았습니다.' : ''));
     if (A.idle.length) sum.push('한 그룹에서 동시에 일할 수 있는 컨슈머 수는 파티션 수를 넘지 못합니다. 처리량을 더 올리려면 파티션부터 늘려야 합니다. 파티션은 늘릴 수는 있어도 줄일 수 없고, 늘리면 같은 키의 메시지가 가는 파티션이 바뀔 수 있습니다.');
     else if (A.lag) sum.push('랙이 쌓입니다. 컨슈머를 파티션 수까지 늘리거나, 컨슈머 하나의 처리 속도를 올려야 합니다. 랙은 컨슈머가 따라가고 있는지를 보여 주는 핵심 지표입니다.');
     if (c.crash) sum.push(c.commit === 'after' ? '처리 후 커밋은 메시지를 잃지 않는 대신 같은 메시지를 두 번 처리할 수 있습니다. 실무에서는 대부분 이 방식을 쓰고, 중복이 와도 결과가 같도록 컨슈머를 멱등하게 만듭니다(예: 처리한 메시지 ID를 기록해 두고 걸러내기).' : '처리 전 커밋은 중복이 없는 대신 메시지를 잃을 수 있습니다. 조금 빠져도 되는 로그나 통계에만 씁니다.');
@@ -12539,7 +12474,7 @@ Lab.register({
       if (win.length >= 10 && rate >= th) { state = 'OPEN'; openedAt = t; trans.push('OPEN'); push(msg + ' 최근 10번 중 실패율이 ' + Math.round(rate) + '%로 임계치 ' + th + '% 이상이 됐습니다. 서킷을 엽니다(OPEN). 이제부터 ' + wait + '초 동안 결제 서비스 호출을 막습니다.', 'bad'); }
       else push(msg + (win.length >= 10 || !ok ? ' 최근 ' + win.length + '번의 실패율 ' + Math.round(rate) + '%.' : ''), ok ? '' : 'bad');
     }
-    var waitT = failN * 3, sum = ['호출 40번 중 성공 ' + okN + '번, 3초씩 기다리다 실패 ' + failN + '번, 차단되어 즉시 대체 응답 ' + blockN + '번. 응답 없는 서비스를 기다리는 데 쓴 시간은 합계 ' + waitT + '초입니다.'];
+    var waitT = failN * 3, sum = [];
     if (!c.use) sum.push('장애가 이어지는 동안 모든 호출이 3초씩 스레드를 붙잡았습니다. 요청이 많으면 스레드 풀이 금방 바닥나고, 결제와 무관한 기능까지 응답하지 못하게 됩니다. 한 서비스의 장애가 호출하는 쪽으로 번지는 것입니다.');
     else if (!trans.length) sum.push('실패율이 임계치에 닿지 않아 서킷이 한 번도 열리지 않았습니다. 장애가 짧거나 임계치가 높으면 이렇게 됩니다.');
     else sum.push('상태가 ' + ['CLOSED'].concat(trans).join(' → ') + ' 순으로 바뀌었습니다. 열려 있는 동안에는 호출하지 않고 바로 대체 응답을 주므로 스레드가 묶이지 않고, 장애 난 서비스에도 부하를 주지 않아 회복할 틈을 줍니다. 일정 시간 뒤에는 소수의 호출만 보내 회복 여부를 확인합니다.');
@@ -12553,9 +12488,6 @@ Lab.register({
     var ln = H.lanes(v), down = n >= sim.downFrom && n <= sim.downTo;
     H.lane(ln, '결제 서비스', n === 0 ? '정상' : down ? '장애 (응답 없음)' : '정상', down ? 'bad' : 'good');
     if (c.use) H.lane(ln, '서킷', s.state === 'CLOSED' ? 'CLOSED: 호출을 그대로 통과시킴 · 최근 ' + s.wn + '번 실패율 ' + s.rate + '%' : s.state === 'OPEN' ? 'OPEN: 호출을 막고 즉시 대체 응답' : 'HALF_OPEN: 시험 호출 몇 번만 통과', s.state === 'OPEN' ? 'bad' : s.state === 'HALF_OPEN' ? 'hot' : '', s.state === 'CLOSED' ? s.rate / 100 : undefined);
-    H.title(v, '호출 40번의 결과 (1칸 = 1초에 1번)'); var items = [];
-    for (var i = 0; i < 40; i++) items.push([String(i + 1), (s.calls[i] || '') + (i === n - 1 ? ' now' : '')]);
-    H.slots(v, items, null, true);
     H.text(v, '초록은 성공, 빨강은 3초를 기다리다 실패, 파랑은 서킷이 막아서 즉시 대체 응답. 장애 구간은 ' + sim.downFrom + '초부터 ' + sim.downTo + '초까지입니다.');
   },
   // 그림: 주문 서비스와 결제 서비스 사이에 놓인 서킷. 닫혀 있으면 호출이 지나가고, 열리면 서킷에서 바로 되돌아온다.
@@ -12643,11 +12575,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { S: ['v1', 'v1', 'v1', 'v1'], G: [], lb: 'v1 서버 4대', cut: 0 };
     var cls = function (x) { return x === 'v1' ? 'q' : x === 'v2' ? 'd' : x === '없음' ? '' : 'b'; };
-    var ln = H.lanes(v); H.lane(ln, '로드밸런서', '요청을 보내는 곳: ' + s.lb, s.lb.indexOf('없음') >= 0 ? 'bad' : 'wait');
     H.title(v, sim.c.st === 'bluegreen' ? '기존 환경 (블루)' : '서버'); H.slots(v, s.S.map(function (x, i) { return ['서버 ' + (i + 1) + ': ' + x, cls(x)]; }), '');
     if (s.G.length) { H.title(v, '새 환경 (그린)'); H.slots(v, s.G.map(function (x, i) { return ['서버 ' + (i + 5) + ': ' + x, cls(x)]; }), ''); }
-    H.text(v, '파랑은 v1, 초록은 v2, 노랑은 내리거나 올리는 중인 서버입니다.');
-    H.counters(v, [[s.cut + '건', '끊긴 요청']]);
   },
   // 그림: 로드밸런서와 서버들. 서버의 색이 버전이고, 화살표가 닿은 서버가 지금 요청을 받는 서버다.
   draw: function (P, sim, shown) {
@@ -12695,7 +12624,6 @@ Lab.register({
     if (vm) {
       layers.push(['하이퍼바이저 (가상 하드웨어를 만들어 줌)', 'hot']); push('하이퍼바이저가 물리 자원을 나눠 가짜 컴퓨터(가상 하드웨어)를 만듭니다.', '');
       for (var i = 1; i <= c.n; i++) { inst.push(['VM ' + i, '게스트 OS 부팅 중', 'b']); mem += OS; push('VM ' + i + ': 가상 하드웨어 위에서 게스트 운영체제를 처음부터 부팅합니다. 커널을 올리고 시스템 서비스를 시작하는 데 수십 초가 걸리고, 운영체제만으로 메모리를 약 1GB 씁니다.', ''); inst[i - 1] = ['VM ' + i, '게스트 OS(커널) + JDK + app', 'd']; mem += APP; push('VM ' + i + ': 부팅이 끝난 뒤 그 안에서 애플리케이션을 실행합니다. 이 VM은 자기만의 커널을 가지고 있어 다른 VM과 완전히 분리됩니다.', ''); }
-      sum.push('운영체제(커널)가 호스트 1개 + 게스트 ' + c.n + '개 올라갔습니다. 전체 메모리 약 ' + mem + 'MB 중 게스트 운영체제 몫이 ' + c.n * OS + 'MB입니다.');
       sum.push('가상 머신은 인스턴스마다 운영체제를 통째로 가지므로 무겁고 느리게 뜨지만, 커널까지 분리되어 격리가 강합니다. 다른 종류의 운영체제도 올릴 수 있습니다.');
     } else {
       layers.push(['컨테이너 런타임 (Docker 등)', 'hot']); push('컨테이너 런타임은 가상 하드웨어를 만들지 않습니다. 호스트 커널의 기능으로 프로세스를 격리해서 실행할 뿐입니다.', '');
@@ -12704,7 +12632,6 @@ Lab.register({
         if (+c.limit < APP) { inst[j - 1] = ['컨테이너 ' + j, 'OOMKilled (메모리 제한 초과)', 'r']; killed = true; push('컨테이너 ' + j + ': 애플리케이션이 400MB를 쓰려 했지만 제한이 ' + c.limit + 'MB입니다. 커널(cgroups)이 제한을 넘은 프로세스를 강제로 종료합니다. 자바의 OutOfMemoryError가 아니라 프로세스가 통째로 사라집니다.', 'bad'); }
         else { inst[j - 1] = ['컨테이너 ' + j, '프로세스(JDK + app) · 제한 ' + c.limit + 'MB', 'd']; mem += APP; push('컨테이너 ' + j + ': 실행 중입니다. 네임스페이스 덕분에 이 프로세스는 자기만의 파일 시스템, 네트워크, 프로세스 목록을 가진 것처럼 보이지만, 실제로는 호스트 커널 위의 평범한 프로세스입니다.', 'good'); }
       }
-      sum.push('운영체제(커널)는 호스트 1개뿐입니다. 전체 메모리 약 ' + mem + 'MB이며 컨테이너마다 애플리케이션이 쓰는 만큼만 더해졌습니다.');
       sum.push('컨테이너는 커널을 공유하므로 가볍고 빨리 뜹니다. 대신 격리는 가상 머신보다 약하고, 호스트와 같은 종류의 커널에서만 동작합니다. "보이는 범위"는 네임스페이스가, "쓸 수 있는 자원량"은 cgroups가 나눕니다.');
       if (killed) sum.push('메모리 제한보다 많이 쓰면 컨테이너가 강제 종료됩니다(OOMKilled). JVM의 힙 크기는 컨테이너 제한 안에 들어오도록 맞춰야 합니다. 요즘 JVM은 컨테이너 제한을 인식해 기본 힙 크기를 정하지만, 힙 외에 쓰는 메모리도 있어서 여유를 둬야 합니다.');
     }
@@ -12712,10 +12639,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { layers: [], inst: [], mem: 0 };
-    H.counters(v, [[s.inst.length, '띄운 인스턴스'], ['약 ' + s.mem + 'MB', '메모리 사용']]);
     H.title(v, '인스턴스 (위쪽 층)'); H.slots(v, s.inst.map(function (x) { return [x[0] + ': ' + x[1], x[2]]; }), '아직 없음');
-    H.title(v, '아래쪽 층 (위에서 아래로 쌓인 순서의 반대)'); var ln = H.lanes(v);
-    s.layers.slice().reverse().forEach(function (l, i) { H.lane(ln, (s.layers.length - i) + '층', l[0], l[1] || ''); });
   },
   // 그림: 아래에서 위로 쌓이는 층. 가상 머신은 인스턴스마다 운영체제 층이 하나씩 더 있고, 컨테이너는 프로세스만 있다.
   draw: function (P, sim, shown) {
@@ -12733,7 +12657,7 @@ Lab.register({
       } else P.box('app' + j, ix + 7, 138, w - 14, 50, state.indexOf('OOM') >= 0 ? { cls: 'bad', title: 'OOMKilled', sub: '제한 초과', center: true } : state.indexOf('이미지') >= 0 ? { cls: 'hot', title: '이미지 준비', sub: ' ', center: true } : { cls: 'good', title: 'JDK + app', sub: '제한 ' + c.limit + 'MB', center: true });
     });
     if (!s.layers.length) P.text('hint', 340, 180, '실행을 누르면 아래층부터 쌓습니다', { cls: 'mut', anchor: 'middle' });
-    P.note(vm ? '아래에서 위로 쌓인 층입니다. 가상 머신은 인스턴스마다 파란 "게스트 OS" 층을 하나씩 따로 가집니다. 그만큼 무겁고 뜨는 데 오래 걸리지만 서로 완전히 분리됩니다.' : '아래에서 위로 쌓인 층입니다. 컨테이너에는 게스트 OS 층이 없고, 모든 컨테이너가 맨 아래의 호스트 커널 하나를 함께 씁니다. 점선 상자는 서로 격리된 범위입니다.');
+    P.note(vm ? '아래에서 위로 쌓인 층입니다. 가상 머신은 인스턴스마다 파란 "게스트 OS" 층을 하나씩 따로 가집니다.' : '아래에서 위로 쌓인 층입니다. 컨테이너에는 게스트 OS 층이 없고, 모든 컨테이너가 맨 아래의 호스트 커널 하나를 함께 씁니다. 점선 상자는 서로 격리된 범위입니다.');
   },
   assume: '메모리 수치(게스트 운영체제 약 1GB, 애플리케이션 약 400MB)와 부팅 시간은 차이의 방향을 보이기 위한 대략적인 예시이며 실제 값은 구성에 따라 크게 다릅니다. 컨테이너가 호스트 커널을 공유하고 네임스페이스와 cgroups로 격리된다는 점, 제한을 넘으면 커널이 프로세스를 종료한다는 점은 Docker와 리눅스 커널 문서의 설명을 따랐습니다. 윈도우나 맥의 Docker Desktop은 내부에 리눅스 가상 머신을 하나 두고 그 안에서 컨테이너를 돌립니다.',
 });
@@ -12741,7 +12665,7 @@ Lab.register({
 Lab.register({
   id: 'security', nav: '시큐리티 필터 체인', cat: '인증', mode: 'step',
   title: '401과 403은 어디에서 갈리나',
-  intro: '스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 "누구인지"를 확인해 기록해 두고, 뒤쪽 필터가 "이 경로에 들어와도 되는지"를 판단합니다. 토큰 상태와 요청 경로를 바꿔 가며 어느 필터에서 어떤 응답으로 끝나는지 보세요.',
+  intro: '스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄입니다. 앞쪽 필터가 "누구인지"를 확인해 기록해 두고, 뒤쪽 필터가 "이 경로에 들어와도 되는지"를 판단합니다.',
   terms: ['인증과 인가', 'Spring Security와 SecurityFilterChain', 'SecurityContext', '필터(Filter)', 'HTTP 상태 코드'], ranks: ['auth', 'websec', 'filter'],
   controls: [
     { id: 'who', label: '요청에 실린 토큰', type: 'select', value: 'none', options: [['none', '토큰 없음'], ['bad', '만료되었거나 위조된 토큰'], ['user', '유효한 토큰 (권한: USER)'], ['admin', '유효한 토큰 (권한: ADMIN)']] },
@@ -12786,7 +12710,7 @@ Lab.register({
       else { resp = '403 Forbidden'; end = 'AccessDeniedHandler'; push('ETF', 'ExceptionTranslationFilter: 예외를 받아 사용자를 확인합니다. 인증된 사용자인데 권한이 모자란 것이므로 AccessDeniedHandler를 호출해 403으로 응답합니다.', 'bad'); }
     }
     ctx = '비워짐'; push('OUT', '응답이 나가고, 이 요청에 쓰인 SecurityContext는 비워집니다. 스레드에 묶어 두는 정보라서, 스레드가 다음 요청에 재사용되기 전에 지워야 합니다.', '');
-    sum.push('응답은 ' + resp + '입니다. ' + (res === 200 ? '필터 체인을 통과해 컨트롤러가 실행됐습니다.' : '컨트롤러는 실행되지 않았고 ' + end + '가 응답을 만들었습니다.'));
+    if (res === 200 && c.path !== 'public') sum.push('응답은 ' + resp + '입니다. ' + (res === 200 ? '필터 체인을 통과해 컨트롤러가 실행됐습니다.' : '컨트롤러는 실행되지 않았고 ' + end + '가 응답을 만들었습니다.'));
     if (res === 401) sum.push('401은 "누구인지 확인되지 않았다"(인증 실패)입니다. 토큰 없이 관리자 경로를 요청해도 403이 아니라 401인 이유는, 누구인지 모르는 상태에서는 권한을 따질 수 없기 때문입니다.');
     if (res === 403) sum.push('403은 "누구인지는 알지만 이 일을 할 권한이 없다"(인가 실패)입니다. 다시 로그인해도 결과가 같습니다.');
     if (res !== 200) sum.push('이 응답은 DispatcherServlet에 닿기 전에 필터에서 만들어지므로 @ControllerAdvice로는 바꿀 수 없습니다. 응답 형식을 바꾸려면 AuthenticationEntryPoint와 AccessDeniedHandler를 직접 등록합니다.');
@@ -12798,7 +12722,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : { seen: [], cur: null, ctx: '비어 있음', resp: '' }, done = shown.length === sim.events.length;
     var bads = shown.filter(function (e) { return e.snap.bad; }).map(function (e) { return e.snap.bad; });
     H.table(v, ['필터 체인 (위에서 아래 순서로 배치됨)', '상태'], this.STAGES.map(function (st) { var id = st[0], seen = s.seen.indexOf(id) >= 0; return { cls: !seen && done ? 'gone' : '', cells: [st[1], { v: id === s.cur ? '지금 여기' : seen ? (bads.indexOf(id) >= 0 ? '여기서 막힘' : '지나감') : done ? '거치지 않음' : '', cls: id === s.cur ? 'hot' : bads.indexOf(id) >= 0 ? 'bad' : seen ? 'good' : '' }] }; }));
-    H.counters(v, [[s.ctx, 'SecurityContext에 들어 있는 것'], [s.resp || '처리 중', '응답']]);
     H.text(v, 'ExceptionTranslationFilter는 AuthorizationFilter보다 앞에 있어서, 뒤에서 던진 예외를 받아 처리합니다.');
   },
   // 그림: 필터들이 위에서 아래로 늘어선 통로. 요청이 어디까지 들어갔다가 어디서 막혔는지를 색으로 보인다.
@@ -12809,7 +12732,7 @@ Lab.register({
     this.STAGES.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0, blocked = bads.indexOf(id) >= 0; P.box('st_' + id, 26, 50 + i * 37, 420, 30, { cls: id === s.cur ? 'hot now' : blocked ? 'bad' : seen ? 'good' : 'ghost', title: st[1], right: blocked ? '막힘' : '' }); });
     P.box('ctx', 472, 50, 192, 64, { cls: s.ctx === '비어 있음' || s.ctx === '비워짐' ? 'ghost' : 'good', title: 'SecurityContext', sub: ['들어 있는 것:', s.ctx] });
     P.box('resp', 472, 130, 192, 64, { cls: !s.resp ? 'ghost' : /^2/.test(s.resp) ? 'good' : 'bad', title: '응답', sub: [s.resp || '처리 중', ' '] });
-    P.note('초록은 지나간 필터, 노랑은 지금 있는 곳, 빨강은 요청이 막힌 곳, 점선은 거치지 않은 곳입니다. 인증 필터가 SecurityContext에 "누구인지"를 넣어 두면, 뒤의 인가 필터가 그것을 보고 들여보낼지 정합니다.');
+    P.note('초록은 지나간 필터, 노랑은 지금 있는 곳, 빨강은 요청이 막힌 곳, 점선은 거치지 않은 곳입니다.');
   },
   assume: '세션을 쓰지 않는 JWT 방식의 일반적인 구성을 가정했습니다. 직접 만든 JwtAuthenticationFilter는 토큰이 없거나 잘못된 경우 거절하지 않고 넘긴다고 보았습니다(잘못된 토큰이면 이 필터에서 바로 401을 내도록 구현하기도 합니다). 열두 가지 조합 모두를 실제 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버에 HTTP 요청을 보내, 응답 코드와 응답을 만든 곳(AuthenticationEntryPoint, AccessDeniedHandler), 컨트롤러 실행 여부가 화면과 일치하는 것을 확인했습니다. 이때 두 가지를 알게 됐습니다. 첫째, 인증 실패 때의 응답을 정하지 않으면(exceptionHandling 설정이 없으면) 토큰 없는 요청에 401이 아니라 403이 돌아옵니다. 그래서 화면의 코드에 exceptionHandling 설정을 넣었습니다. 둘째, 권한 부족을 스프링 시큐리티의 기본 처리기에 맡기면 USER가 관리자 경로를 요청했을 때 403이 아니라 401이 돌아왔습니다. 기본 처리기가 오류 페이지(/error)로 요청을 다시 넘기는데, 그 요청에는 인증 정보가 없어 다시 인증 실패로 처리되기 때문입니다. 화면처럼 403이 나오게 하려면 처리기에서 상태 코드를 직접 응답하거나 /error 경로를 허용해야 합니다. 실제 체인에는 여기 적지 않은 필터가 더 있습니다.',
 });
@@ -12817,7 +12740,7 @@ Lab.register({
 Lab.register({
   id: 'compidx', nav: '복합·커버링 인덱스', cat: '데이터베이스', mode: 'step',
   title: '복합 인덱스는 컬럼 순서대로만 쓸 수 있다',
-  intro: '여러 컬럼을 묶은 인덱스는 첫 컬럼부터 차례로 정렬돼 있습니다. 그래서 WHERE 조건이 앞 컬럼부터 채워져야 탐색 범위를 좁힐 수 있고, 범위 조건을 만나면 그 뒤 컬럼은 범위를 좁히는 데 쓰이지 못합니다. 조건과 조회 컬럼을 바꿔 가며 인덱스가 어디까지 쓰이는지 보세요.',
+  intro: '여러 컬럼을 묶은 인덱스는 첫 컬럼부터 차례로 정렬돼 있습니다. 그래서 WHERE 조건이 앞 컬럼부터 채워져야 탐색 범위를 좁힐 수 있고, 범위 조건을 만나면 그 뒤 컬럼은 범위를 좁히는 데 쓰이지 못합니다.',
   terms: ['복합 인덱스와 Leftmost Prefix', '커버링 인덱스', '클러스터드 인덱스와 세컨더리 인덱스', '카디널리티와 선택도', '실행 계획(EXPLAIN)'], ranks: ['index', 'tuning'],
   controls: [
     { id: 'ord', label: '인덱스의 컬럼 순서', type: 'select', value: 'msc', options: [['msc', '(member_id, status, created_at)'], ['mcs', '(member_id, created_at, status)']] },
@@ -12870,16 +12793,15 @@ Lab.register({
     else push('인덱스에서 좁혀진 범위의 항목 ' + num(p.idxRead) + '개를 읽습니다.' + (p.filt.length ? ' 읽으면서 나머지 조건을 확인해 ' + num(p.idxRead * p.filt.reduce(function (a, k) { return a * C[k][2]; }, 1)) + '개만 남깁니다.' : ''), '', 5);
     if (p.type !== 'ALL') push(p.cov ? '조회하는 컬럼이 전부 인덱스에 들어 있으므로 테이블에 가지 않고 끝냅니다(커버링 인덱스). 테이블에서 읽은 행은 0입니다.' : 'SELECT *는 인덱스에 없는 컬럼도 필요합니다. 남은 ' + num(p.tblRead) + '건마다 테이블(클러스터드 인덱스)로 가서 행 전체를 읽어 옵니다.', p.cov ? 'good' : '', 6);
     var usedNames = p.used.map(function (k) { return C[k][0]; }).join(', ') || '없음';
-    sum.push('범위를 좁히는 데 쓰인 컬럼: ' + usedNames + '. 인덱스 항목 ' + num(p.idxRead) + '개, 테이블 행 ' + num(p.tblRead) + '개를 읽어 결과 약 ' + num(Math.max(1, p.out)) + '건을 얻었습니다.');
     if (!p.used.length) sum.push('복합 인덱스는 첫 컬럼의 조건이 없으면 탐색에 쓸 수 없습니다. 자주 쓰는 조건의 컬럼, 그중에서도 "=" 조건으로 쓰이는 컬럼을 앞에 둡니다.');
     else if (p.filt.length) sum.push('순서가 끊긴 뒤의 조건(' + p.filt.map(function (k) { return C[k][0]; }).join(', ') + ')은 범위를 좁히지 못해, 필요한 것보다 많은 인덱스 항목을 읽었습니다. "=" 조건 컬럼을 앞에, 범위 조건 컬럼을 맨 뒤에 두면 세 컬럼 모두 범위를 좁힙니다.');
     else if (p.used.length === 3) sum.push('조건이 인덱스 순서대로 빠짐없이 이어져 세 컬럼 모두 범위를 좁혔습니다. WHERE에 적는 순서는 상관없고, 인덱스의 컬럼 순서가 기준입니다.');
     if (p.cov && p.type !== 'ALL') sum.push('세컨더리 인덱스에는 인덱스 컬럼과 기본 키만 들어 있어, 다른 컬럼이 필요하면 테이블을 한 번 더 찾아가야 합니다. 필요한 컬럼이 인덱스에 다 있으면 그 왕복이 사라집니다. SELECT *를 피하라는 이유 중 하나입니다.');
+    if (!sum.length) sum.push('범위를 좁히는 데 쓰인 컬럼: ' + usedNames + '. 인덱스 항목 ' + num(p.idxRead) + '개, 테이블 행 ' + num(p.tblRead) + '개를 읽어 결과 약 ' + num(Math.max(1, p.out)) + '건을 얻었습니다.');
     return { events: ev, summary: sum, p: p, row: [usedNames, p.type, num(p.idxRead) + '개', num(p.tblRead) + '행', p.extra || '(없음)'] };
   },
   render: function (v, sim, t, H, shown) {
-    var c = sim.c, p = sim.p, C = this.COLS, ord = this.order(c), num = this.num, last = shown[shown.length - 1], st = last ? last.snap.stage : 0;
-    H.table(v, ['인덱스 순서', '컬럼', 'WHERE 조건', '쓰임'], ord.map(function (k, i) { var on = st >= 2 + i, u = p.used.indexOf(k) >= 0, f = p.filt.indexOf(k) >= 0 && p.type !== 'ALL'; return { cells: [(i + 1) + '번째', C[k][0], c[k] ? C[k][1] : '(조건 없음)', { v: !on ? '' : u ? '범위를 좁힘' : f ? '읽으면서 걸러냄' : c[k] ? '쓰지 못함' : '-', cls: !on ? '' : u ? 'good' : f || c[k] ? 'bad' : '' }] }; }), '인덱스 idx_orders');
+    var p = sim.p, num = this.num, last = shown[shown.length - 1], st = last ? last.snap.stage : 0;
     if (st >= 5) { H.counters(v, [[num(p.idxRead), '인덱스에서 읽은 항목'], [st >= 6 || p.type === 'ALL' ? num(p.tblRead) : '?', '테이블에서 읽은 행'], [num(Math.max(1, p.out)), '결과 행 (약)']]);
       H.table(v, ['type', 'key', 'Extra'], [{ cells: [p.type, p.type === 'ALL' ? 'NULL' : 'idx_orders', p.extra || ''] }], 'EXPLAIN으로 보면 (주요 컬럼만)'); }
   },
@@ -12910,7 +12832,7 @@ Lab.register({
 Lab.register({
   id: 'paging', nav: 'OFFSET과 키셋 페이징', cat: '데이터베이스', mode: 'step',
   title: '뒤쪽 페이지일수록 느려지는 이유',
-  intro: '게시글 목록을 최신순으로 페이지마다 나눠 보여 줍니다. OFFSET 방식은 앞 페이지의 행을 전부 읽고 버린 뒤에야 원하는 페이지에 도착합니다. 키셋(커서) 방식은 "마지막으로 본 글 다음부터"를 인덱스로 바로 찾아갑니다. 페이지 번호를 키워 가며 읽는 행 수를 비교하세요.',
+  intro: '게시글 목록을 최신순으로 페이지마다 나눠 보여 줍니다. OFFSET 방식은 앞 페이지의 행을 전부 읽고 버린 뒤에야 원하는 페이지에 도착합니다. 키셋(커서) 방식은 "마지막으로 본 글 다음부터"를 인덱스로 바로 찾아갑니다.',
   terms: ['OFFSET 페이징과 키셋(커서) 페이징', '인덱스', 'B-트리 인덱스'], ranks: ['tuning', 'index'],
   controls: [
     { id: 'how', label: '페이징 방식', type: 'select', value: 'offset', options: [['offset', 'OFFSET (페이지 번호)'], ['keyset', '키셋 (마지막으로 본 글의 id 기준)']] },
@@ -13019,11 +12941,11 @@ Lab.register({
     } else fbody = tab(rows);
     var park = hasPark(final);
     push('최종 결과: ' + final.length + '행.', park || c.join === 'INNER' ? 'good' : '', '최종 결과', fhead, fbody);
-    sum.push('조인 직후 ' + afterJoin + '행, 최종 ' + final.length + '행입니다. 주문이 없는 회원 박민수는 결과에 ' + (park ? '포함됐습니다.' : '없습니다.'));
     if (c.join === 'LEFT' && c.cond === 'where') sum.push('LEFT JOIN 뒤에 오른쪽 테이블의 컬럼으로 WHERE 조건을 걸면, NULL로 채워진 행이 걸러져 INNER JOIN과 같아집니다. "짝이 없는 쪽도 남기되 조건에 맞는 것만 붙이고 싶다"면 조건을 ON에 써야 합니다.');
     if (c.join === 'LEFT' && c.cond === 'on') sum.push('ON의 조건은 "어떤 주문을 붙일지"를 정할 뿐, 왼쪽 테이블(회원)의 행을 없애지 않습니다. 결제된 주문이 없는 회원도 NULL과 함께 남습니다.');
     if (c.join === 'INNER') sum.push('INNER JOIN에서는 조건을 ON에 쓰든 WHERE에 쓰든 결과가 같습니다. 차이는 OUTER JOIN에서만 생깁니다.');
     if (c.agg !== 'none') sum.push('처리 순서는 FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT입니다. 그래서 SELECT에서 붙인 별칭(cnt)은 WHERE에서 쓸 수 없습니다.');
+    if (!sum.length) sum.push('조인 직후 ' + afterJoin + '행, 최종 ' + final.length + '행입니다. 주문이 없는 회원 박민수는 결과에 ' + (park ? '포함됐습니다.' : '없습니다.'));
     return { events: ev, summary: sum, row: [afterJoin + '행', final.length + '행', park ? '포함' : '빠짐'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -13081,7 +13003,6 @@ Lab.register({
       ev.push({ t: 0.05, k: 'good', s: '0.1초: ' + c.n + '건 모두 외부 응답을 기다리는 중입니다. ' + (c.model === 'loop' ? '기다림은 운영체제에 맡겨 두었으므로 이벤트 루프 스레드는 한가합니다.' : '가상 스레드가 블로킹 호출에서 멈추면, JVM이 그 가상 스레드를 OS 스레드에서 내려놓습니다. OS 스레드는 다른 가상 스레드를 실행할 수 있습니다.') });
       ev.push({ t: w, k: 'good', s: fmt(w) + '초: 응답이 도착합니다. ' + (c.model === 'loop' ? '이벤트 루프가 등록해 둔 다음 작업을 차례로 실행해 ' : '가상 스레드들이 다시 OS 스레드에 올라가 이어서 실행되고 ') + c.n + '건이 거의 동시에 끝납니다.' });
     }
-    sum.push('요청 ' + c.n + '건을 OS 스레드 ' + osT + '개로 처리했습니다. 전체 ' + fmt(total) + '초가 걸렸고, 동시에 진행된 요청은 최대 ' + peak + '건입니다.');
     if (c.model === 'pool') sum.push('블로킹 방식에서는 동시에 처리할 수 있는 요청 수가 스레드 수를 넘지 못합니다. 기다리는 시간이 길수록 스레드가 오래 묶입니다. 코드가 단순하고 디버깅이 쉬워서 대부분의 서비스가 이 방식을 씁니다.');
     if (c.model === 'loop' && !c.block) sum.push('논블로킹 방식은 기다리는 동안 스레드를 붙잡지 않아서 적은 스레드로 많은 요청을 진행합니다. 대신 호출 경로 전체(DB 드라이버, HTTP 클라이언트)가 논블로킹이어야 하고, 코드가 콜백의 연결 형태가 되어 익히고 디버깅하기 어렵습니다.');
     if (c.model === 'loop' && c.block) sum.push('이벤트 루프 스레드는 개수가 매우 적으므로, 그 안에서 블로킹 호출을 하면 스레드 풀 방식보다도 훨씬 나쁩니다. WebFlux를 쓰면서 JDBC나 블로킹 HTTP 클라이언트를 그대로 호출하는 것이 대표적인 실수입니다.');
@@ -13097,7 +13018,6 @@ Lab.register({
       else H.lane(ln, '스레드 ' + (i + 1), run.length ? '한가함 (기다림은 스레드가 하지 않음)' : '쉬는 중', run.length ? 'good' : '');
     }
     if (!sim.serial) { H.title(v, c.model === 'virtual' ? '가상 스레드 (요청마다 하나, 지금은 OS 스레드에서 내려와 대기 중)' : '응답을 기다리는 요청 (스레드 없이 등록만 돼 있음)'); H.slots(v, run.map(function (r) { return ['요청 ' + r.id, 'q']; }), done ? '모두 끝남' : '없음', true); }
-    else { H.title(v, '스레드가 비기를 기다리는 요청'); H.slots(v, wait.map(function (r) { return ['요청 ' + r.id, 'q']; }), '없음', true); }
   },
   // 그림: 요청(번호 상자)이 OS 스레드를 붙잡고 기다리는지, 스레드 없이 기다리는지를 자리로 보인다.
   draw: function (P, sim, shown, t) {
@@ -13114,7 +13034,7 @@ Lab.register({
     }
     if (!sim.serial) run.slice(0, 30).forEach(function (r, j) { P.box('rq' + r.id, 502 + (j % 3) * 52, 50 + Math.floor(j / 3) * 26, 48, 22, { cls: 'good', sub: String(r.id), center: true }); });
     P.box('dn', 16, H + 30, 648, 34, { cls: 'plain', title: '완료한 요청', right: done + ' / ' + c.n + '건' });
-    P.note(sim.serial ? '요청 하나가 스레드 하나를 붙잡고 응답을 기다립니다. 스레드가 모두 묶이면 나머지 요청은 왼쪽에서 줄을 섭니다.' : '기다리는 동안 요청은 스레드를 놓아줍니다(오른쪽 칸의 숫자가 요청 번호). 그래서 적은 수의 스레드로도 많은 요청을 동시에 기다릴 수 있습니다.');
+    P.note(sim.serial ? '요청 하나가 스레드 하나를 붙잡고 응답을 기다립니다. 스레드가 모두 묶이면 나머지 요청은 왼쪽에서 줄을 섭니다.' : '기다리는 동안 요청은 스레드를 놓아줍니다(오른쪽 칸의 숫자가 요청 번호).');
   },
   assume: '요청 처리에서 CPU를 쓰는 시간은 무시하고, 외부 응답을 기다리는 시간만 있다고 단순화했습니다. 이벤트 루프와 가상 스레드를 실어 나르는 OS 스레드는 2개로 고정했습니다(실제 기본값은 CPU 코어 수에 맞춰집니다). 가상 스레드는 JDK 21에서 정식 기능이 됐으며, JDK 21~23에서는 synchronized 블록 안에서 기다리면 OS 스레드를 내려놓지 못하는 제약이 있었고 JDK 24에서 해소됐습니다. 이 PC의 JDK 21에서 기다리는 시간을 0.2초로 줄여 실제로 쟀습니다. 요청 12건 기준으로 스레드 4개 풀은 619ms(세 번에 나눠 처리), 스레드 2개에서 블로킹하면 1,227ms, 가상 스레드는 OS 스레드 2개로 216ms, 스레드 2개에서 기다림을 등록만 하는 방식은 201ms였습니다. 모형의 비율(6초, 12초, 2초, 2초)과 같습니다. 스프링 WebFlux 자체를 띄운 것은 아니고 같은 원리를 JDK만으로 재현한 측정입니다.',
 });
@@ -13122,7 +13042,7 @@ Lab.register({
 Lab.register({
   id: 'parallel', nav: '순차 호출과 병렬 호출', cat: '동시성', mode: 'time',
   title: '외부 호출 여러 개를 차례로 할까 한꺼번에 할까',
-  intro: '상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다. 호출 개수와 방식을 바꿔 보고, 느린 호출에 제한 시간을 걸었을 때의 차이도 보세요.',
+  intro: '상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다.',
   terms: ['CompletableFuture', '동기와 비동기', '스레드 풀', 'ForkJoinPool과 공용 풀'], ranks: ['concurrency', 'threadpool', 'javaver'],
   controls: [
     { id: 'how', label: '호출 방식', type: 'select', value: 'seq', options: [['seq', '순차 (하나 끝나면 다음)'], ['par', '병렬 (CompletableFuture로 동시에)']] },
@@ -13157,7 +13077,6 @@ Lab.register({
     ev.sort(function (a, b) { return a.t - b.t; });
     var total = calls.reduce(function (m, x) { return Math.max(m, x.end); }, 0), add = calls.reduce(function (a, x) { return a + x.eff; }, 0), slow = calls.reduce(function (m, x) { return Math.max(m, x.eff); }, 0);
     ev.push({ t: total, k: 'good', s: fmt(total) + '초: 모든 결과가 모였습니다. 화면을 조립해 응답합니다.' });
-    sum.push('전체 응답 시간은 ' + fmt(total) + '초입니다. 각 호출 시간의 합은 ' + fmt(add) + '초, 가장 느린 호출은 ' + fmt(slow) + '초입니다.');
     if (c.how === 'seq') sum.push('순차 호출의 응답 시간은 모든 호출 시간의 합입니다. 서로 결과에 의존하지 않는 호출이라면 차례로 부를 이유가 없습니다.');
     else if (total <= slow + 1e-9) sum.push('병렬 호출의 응답 시간은 가장 느린 호출 하나의 시간입니다. 호출을 더 늘려도 가장 느린 것보다 빠르기만 하면 응답 시간은 늘지 않습니다.');
     else sum.push('병렬로 요청했지만 비동기 작업용 스레드가 ' + c.pool + '개뿐이라 동시에 ' + c.pool + '개까지만 진행됐습니다. 블로킹 호출을 병렬로 돌리려면 동시에 돌릴 개수만큼 스레드가 필요합니다. 스레드 풀을 지정하지 않으면 모든 코드가 함께 쓰는 공용 풀에서 실행되는데, 이 풀은 CPU 코어 수 정도로 작아서 블로킹 호출에는 맞지 않습니다.');
@@ -13194,7 +13113,7 @@ Lab.register({
 Lab.register({
   id: 'cors', nav: 'CORS', cat: 'HTTP', mode: 'step',
   title: 'Postman에서는 되는데 브라우저에서만 막히는 이유',
-  intro: '브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 "이 출처는 허용한다"고 알려 줘야 풀립니다. 요청 종류와 서버 설정을 바꿔 가며 사전 요청(preflight)이 언제 나가는지, 요청이 서버에 닿기는 하는지 확인하세요.',
+  intro: '브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 "이 출처는 허용한다"고 알려 줘야 풀립니다.',
   terms: ['CORS와 동일 출처 정책', 'Preflight 요청', 'HTTP 메서드', '쿠키'], ranks: ['websec', 'http', 'network'],
   controls: [
     { id: 'api', label: 'API 서버의 주소 (페이지는 https://shop.example)', type: 'select', value: 'cross', options: [['same', 'https://shop.example/api (같은 출처)'], ['cross', 'https://api.shop.example (다른 출처)']] },
@@ -13250,11 +13169,11 @@ Lab.register({
       if (j.ok) { row('브라우저', '응답을 스크립트에 전달', '전달함', 'good'); push('응답에 이 출처를 허용하는 헤더가 있습니다. 브라우저가 응답을 스크립트에 넘겨줍니다.', 'good'); }
       else { row('브라우저', '응답을 스크립트에 전달', '차단', 'bad'); push('브라우저가 응답 헤더를 확인합니다. ' + j.why + '. 응답을 스크립트에 넘기지 않고 콘솔에 CORS 오류를 냅니다. 서버는 이미 요청을 처리한 뒤입니다.', 'bad'); }
     }
-    sum.push('사전 요청 ' + (j.pre ? '있음' : '없음') + ', 본 요청은 서버에 ' + (j.reached ? '도착했고' : '도착하지 않았고') + ', 스크립트는 응답을 ' + (j.ok ? '받았습니다.' : '받지 못했습니다.'));
     if (!j.ok) sum.push('CORS는 서버가 아니라 브라우저가 지키는 규칙입니다. 그래서 Postman이나 curl, 서버끼리의 호출에서는 같은 요청이 문제없이 됩니다. 해결은 프론트가 아니라 API 서버가 허용 헤더를 내려 주는 것입니다.');
     if (!j.pre && !j.ok) sum.push('단순 요청은 사전 확인 없이 서버에 도착해 실행됩니다. 브라우저가 막는 것은 응답을 읽는 것뿐입니다. CORS는 서버를 보호하는 장치가 아니므로, 상태를 바꾸는 요청의 보호는 인증과 CSRF 대책으로 해야 합니다.');
     if (c.srv === 'star' && c.cred) sum.push('쿠키나 인증 정보를 실어 보내는 요청에는 Access-Control-Allow-Origin에 정확한 출처를 적고 Access-Control-Allow-Credentials: true를 함께 줘야 합니다.');
     if (j.ok && j.pre) sum.push('사전 요청은 매번 왕복이 한 번 더 생깁니다. 서버가 Access-Control-Max-Age를 주면 브라우저가 그 시간 동안 결과를 기억해 다시 묻지 않습니다.');
+    if (!sum.length) sum.push('사전 요청 ' + (j.pre ? '있음' : '없음') + ', 본 요청은 서버에 ' + (j.reached ? '도착했고' : '도착하지 않았고') + ', 스크립트는 응답을 ' + (j.ok ? '받았습니다.' : '받지 못했습니다.'));
     return { events: ev, summary: sum, row: [j.pre ? '있음' : '없음', j.reached ? '예' : '아니오', j.ok ? '예' : '아니오', j.why || '-'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -13281,7 +13200,7 @@ Lab.register({
 Lab.register({
   id: 'webattack', nav: '웹 공격 세 가지', cat: '인증', mode: 'step',
   title: '입력값을 그대로 믿으면 생기는 일',
-  intro: 'SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다. 공격별로 방어를 켜고 끄며 무엇이 달라지는지 보세요.',
+  intro: 'SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다.',
   terms: ['SQL Injection', 'XSS(크로스 사이트 스크립팅)', 'CSRF(사이트 간 요청 위조)', 'HttpOnly, Secure, SameSite', '쿠키'], ranks: ['websec', 'auth'],
   controls: [
     { id: 'atk', label: '공격 종류', type: 'select', value: 'sqli', options: [['sqli', 'SQL Injection'], ['xss', 'XSS (저장형)'], ['csrf', 'CSRF']] },
@@ -13353,7 +13272,6 @@ Lab.register({
       else { box.push(['bank.example이 받은 요청', 'POST /transfer\nCookie: 세션 ID (브라우저가 자동으로 붙임)\nto=공격자 계좌, amount=1000000\n→ 정상 요청으로 판단 → 이체 실행']); push('이 세션 쿠키는 다른 사이트에서 보낸 요청에도 붙도록(SameSite=None) 설정돼 있습니다. 브라우저는 bank.example으로 가는 요청에 세션 쿠키를 자동으로 붙입니다. 은행 서버 입장에서는 로그인한 사용자가 보낸 정상적인 이체 요청과 구별할 수 없습니다. 이체가 실행됩니다.', 'bad'); res = '성공'; harm = '피해자 계좌에서 이체 실행'; sum.push('CSRF는 쿠키가 요청에 자동으로 붙는다는 점을 악용합니다. 공격자는 쿠키 값을 훔치지 않고도, 피해자의 브라우저가 대신 요청을 보내게 만듭니다.'); }
       if (c.d3 !== 'none') sum.push('인증 정보를 쿠키가 아니라 Authorization 헤더로 보내는 API(JWT 등)는 브라우저가 자동으로 붙여 주지 않으므로 CSRF의 대상이 되기 어렵습니다. 그래서 그런 API 서버에서는 CSRF 보호를 끄기도 합니다.');
     }
-    sum.unshift('공격 결과: ' + res + '. 피해: ' + harm + '.');
     return { events: ev, summary: sum, row: [res, harm, where] };
   },
   render: function (v, sim, t, H, shown) {
@@ -13416,7 +13334,6 @@ Lab.register({
     if (H === 'salt') push('솔트가 섞여 있어서 미리 계산해 둔 표는 쓸모가 없습니다. 공격자는 회원마다 그 회원의 솔트를 붙여 가며 후보 비밀번호를 하나씩 해시해 봐야 합니다. 그런데 SHA-256은 빠르게 계산되도록 만들어진 함수라서, 그래픽 카드 한 장으로 초당 수백억 번을 시도할 수 있습니다.', 'bad', 4);
     if (H === 'bcrypt') push('bcrypt도 솔트가 있어 미리 계산한 표를 쓸 수 없고, 회원마다 따로 대입해야 합니다. 차이는 속도입니다. bcrypt는 한 번 계산하는 데 일부러 시간이 걸리도록 설계돼 있어서, 같은 장비로도 초당 수천 번 정도밖에 시도하지 못합니다.', 'good', 4);
     push(H === 'plain' ? '결과: 유출과 동시에 전부 노출.' : '흔한 비밀번호 1억 개를 회원 한 명에게 모두 대입해 보는 데 걸리는 시간: ' + crack + '.' + (H === 'bcrypt' ? ' 회원이 100만 명이면 이 시간이 회원 수만큼 곱해집니다.' : ' password123처럼 흔한 비밀번호는 사실상 즉시 찾아냅니다.'), H === 'bcrypt' ? 'good' : 'bad', 5);
-    sum.push('저장값이 두 회원에서 ' + (same ? '같습니다' : '다릅니다') + '. 미리 계산한 표로 역추적: ' + table + '. 사전 1억 개 대입: ' + crack + '. 정상 로그인 한 번의 검증 시간: ' + verify + '.');
     if (H === 'plain') sum.push('평문 저장은 어떤 경우에도 해서는 안 됩니다. 운영자나 DB에 접근할 수 있는 누구든 비밀번호를 볼 수 있다는 뜻이기도 합니다.');
     if (H === 'sha') sum.push('SHA-256 같은 일반 해시 함수는 파일 검증처럼 빨라야 하는 용도로 만들어졌습니다. 비밀번호 저장에는 "빠르다"는 것이 약점입니다.');
     if (H === 'salt') sum.push('솔트는 같은 비밀번호가 같은 해시가 되는 것과 미리 계산한 표를 막아 줍니다. 그러나 대입 공격의 속도 자체는 줄이지 못합니다.');
@@ -13436,7 +13353,7 @@ Lab.register({
 Lab.register({
   id: 'singleton', nav: '싱글톤 빈과 상태', cat: '스프링', mode: 'step',
   title: '내 주문에 다른 사람 이름이 찍혔다',
-  intro: '스프링 빈은 기본적으로 하나만 만들어져 모든 요청이 함께 씁니다. 그 빈의 필드에 요청마다 달라지는 값을 저장하면, 동시에 들어온 다른 요청이 그 값을 덮어씁니다. 값을 어디에 두느냐에 따라 무슨 일이 생기는지 보세요.',
+  intro: '스프링 빈은 기본적으로 하나만 만들어져 모든 요청이 함께 씁니다. 그 빈의 필드에 요청마다 달라지는 값을 저장하면, 동시에 들어온 다른 요청이 그 값을 덮어씁니다.',
   terms: ['싱글톤 빈과 무상태(Stateless)', '빈 스코프', 'ThreadLocal', '스레드 안전(Thread-safe)', '경쟁 상태(Race Condition)'], ranks: ['bean', 'di', 'concurrency'],
   controls: [
     { id: 'where', label: '현재 사용자 정보를 두는 곳', type: 'select', value: 'field', options: [['field', '서비스 빈의 필드'], ['local', '메서드의 지역 변수 (파라미터로 전달)'], ['tl', 'ThreadLocal (요청 끝에 지우지 않음)'], ['tlc', 'ThreadLocal (요청 끝에 remove)']] },
@@ -13485,16 +13402,11 @@ Lab.register({
       }
     }
     var ok = a === '철수' && b === '영희' && (g === '-' || g.indexOf('없음') === 0);
-    sum.unshift('철수의 주문에는 "' + a + '", 영희의 주문에는 "' + b + '"가 찍혔습니다.' + (g !== '-' ? ' 로그인하지 않은 다음 요청이 본 사용자 값: ' + g + '.' : ''));
     return { events: ev, summary: sum, row: [a, b, g, ok ? '정상' : '값이 섞임'] };
   },
   render: function (v, sim, t, H, shown) {
     var W = sim.c.where, last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 두 요청이 동시에 들어옵니다.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, '스레드 1', s.t1 || '대기', s.t1 ? 'hot' : 'none'); H.lane(ln, '스레드 2', s.t2 || '대기', s.t2 && s.t2 !== '(대기)' ? 'wait' : 'none');
-    if (W === 'field') H.table(v, ['공유되는 것', '지금 값'], [{ cells: ['OrderService.currentUser (필드, 하나뿐)', { v: s.field, cls: s.field === '영희' ? 'bad' : s.field === '철수' ? 'hot' : '' }] }], '싱글톤 빈');
-    if (W === 'tl' || W === 'tlc') H.table(v, ['스레드별 보관함', '지금 값'], [{ cells: ['스레드 1의 ThreadLocal', { v: s.tl1, cls: s.tl1 === '철수' ? 'hot' : '' }] }, { cells: ['스레드 2의 ThreadLocal', { v: s.tl2, cls: s.tl2 === '영희' ? 'hot' : '' }] }], 'ThreadLocal');
     H.table(v, ['요청', '기록된 사용자'], [{ cells: ['철수의 주문', { v: s.o1, cls: s.o1 === '-' ? '' : s.o1 === '철수' ? 'good' : 'bad' }] }, { cells: ['영희의 주문', { v: s.o2, cls: s.o2 === '-' ? '' : s.o2 === '영희' ? 'good' : 'bad' }] }].concat(W === 'tl' || W === 'tlc' ? [{ cells: ['로그인 안 한 다음 요청', { v: s.o3, cls: s.o3 === '-' ? '' : s.o3.indexOf('없음') === 0 ? 'good' : 'bad' }] }] : []), '결과');
   },
   // 그림: 위에 하나뿐인 빈, 아래에 두 스레드. 두 스레드가 같은 객체를 부른다. 값이 어디에 놓이는지가 핵심.
@@ -13522,7 +13434,7 @@ Lab.register({
 Lab.register({
   id: 'ratelimit', nav: '요청 수 제한', cat: '대용량 트래픽', mode: 'step',
   title: '초당 5건까지만 받는다는 것의 세 가지 의미',
-  intro: '요청이 한꺼번에 몰리면 서버를 지키기 위해 일부를 거절합니다(429 Too Many Requests). "초당 5건"이라는 같은 제한도 세는 방법에 따라 통과하는 요청이 달라집니다. 알고리즘과 요청이 들어오는 모양을 바꿔 가며 비교하세요.',
+  intro: '요청이 한꺼번에 몰리면 서버를 지키기 위해 일부를 거절합니다(429 Too Many Requests). "초당 5건"이라는 같은 제한도 세는 방법에 따라 통과하는 요청이 달라집니다.',
   terms: ['Rate Limiting', 'HTTP 상태 코드', 'API 게이트웨이'], ranks: ['traffic', 'msa'],
   controls: [
     { id: 'algo', label: '세는 방법', type: 'select', value: 'fixed', options: [['fixed', '고정 윈도 (매 초 정각에 카운터 초기화)'], ['sliding', '슬라이딩 윈도 (최근 1초 동안의 요청 수)'], ['bucket', '토큰 버킷 (토큰 5개, 초당 5개씩 채움)']] },
@@ -13562,8 +13474,7 @@ Lab.register({
     });
     var pass = res.filter(function (r) { return r.ok; }), rej = res.length - pass.length, peak = 0;
     pass.forEach(function (p) { var n = pass.filter(function (q) { return q.t >= p.t - 1e-9 && q.t < p.t + 1 - 1e-9; }).length; if (n > peak) peak = n; });
-    sum.push('요청 ' + res.length + '건 중 ' + pass.length + '건 통과, ' + rej + '건 거절. 임의의 1초 구간에서 통과한 요청은 최대 ' + peak + '건입니다.');
-    if (c.algo === 'fixed') sum.push(peak > L ? '고정 윈도는 정각마다 카운터가 0으로 돌아가므로, 경계 직전과 직후에 몰리면 짧은 시간에 제한의 두 배까지 통과합니다. 구현이 가장 단순하고 메모리도 적게 쓰는 대신 이런 틈이 있습니다.' : '고정 윈도는 구현이 단순합니다. 요청이 윈도 경계에 몰리면 순간적으로 제한의 두 배까지 통과할 수 있습니다("윈도 경계에 몰림"으로 확인해 보세요).');
+    if (c.algo === 'fixed') sum.push(peak > L ? '고정 윈도는 정각마다 카운터가 0으로 돌아가므로, 경계 직전과 직후에 몰리면 짧은 시간에 제한의 두 배까지 통과합니다. 구현이 가장 단순하고 메모리도 적게 쓰는 대신 이런 틈이 있습니다.' : '고정 윈도는 구현이 단순합니다. 요청이 윈도 경계에 몰리면 순간적으로 제한의 두 배까지 통과할 수 있습니다.');
     if (c.algo === 'sliding') sum.push('슬라이딩 윈도는 어느 1초 구간을 잡아도 5건을 넘지 않아 가장 정확합니다. 대신 요청마다 시각을 기록해야 해서 메모리와 연산이 더 듭니다.');
     if (c.algo === 'bucket') sum.push('토큰 버킷은 평소에 쓰지 않은 토큰을 용량만큼 모아 두었다가, 요청이 몰리면 그만큼은 한꺼번에 통과시킵니다. 그 뒤로는 토큰이 채워지는 속도(초당 5건)로만 통과합니다. 순간적인 몰림을 어느 정도 허용하면서 평균 속도를 지키고 싶을 때 씁니다.');
     sum.push('거절할 때는 429 상태 코드와 함께 언제 다시 시도하면 되는지(Retry-After 헤더)를 알려 주는 것이 좋습니다. 서버가 여러 대면 카운터를 Redis 같은 공용 저장소에 둬야 제한이 서버 수만큼 늘어나지 않습니다.');
@@ -13583,7 +13494,7 @@ Lab.register({
     res.forEach(function (r, i) { var slot = Math.round(r.t * 20), kth = count[slot] = (count[slot] || 0) + 1, x = 20 + Math.min(r.t, 2.99) / 3 * 640 - 5; P.box('rq' + i, Math.max(18, Math.min(652, x)), 226 - kth * 14, 11, 11, { cls: (r.ok ? 'good' : 'bad') + (i === res.length - 1 ? ' now' : '') }); });
     P.box('ok', 16, 250, 318, 34, { cls: 'good', title: '통과', right: ok + '건' });
     P.box('no', 346, 250, 318, 34, { cls: res.length - ok ? 'bad' : 'ghost', title: '거절 (429)', right: (res.length - ok) + '건' });
-    P.note('점 하나가 요청 하나이고, 왼쪽에서 오른쪽으로 시간이 흐릅니다. 초록은 통과, 빨강은 거절입니다. ' + (algo === 'fixed' ? '고정 윈도는 점선 경계에서 카운터를 0으로 되돌리므로, 경계 양쪽에 몰린 요청이 한도의 두 배까지 통과할 수 있습니다.' : algo === 'sliding' ? '슬라이딩 윈도는 점선 경계와 관계없이 "지금부터 1초 전까지"를 셉니다.' : '토큰 버킷은 모아 둔 토큰만큼은 한꺼번에 통과시키고, 그 뒤로는 토큰이 채워지는 속도만큼만 통과시킵니다.'));
+    P.note('점 하나가 요청 하나이고, 왼쪽에서 오른쪽으로 시간이 흐릅니다. 초록은 통과, 빨강은 거절입니다. ' + (algo === 'fixed' ? '고정 윈도는 점선 경계에서 카운터를 0으로 되돌리므로, 경계 양쪽에 몰린 요청이 한도의 두 배까지 통과할 수 있습니다.' : algo === 'sliding' ? '슬라이딩 윈도는 점선 경계와 관계없이 "지금부터 1초 전까지"를 셉니다.' : ''));
   },
   assume: '제한은 초당 5건으로 고정했습니다. 세 알고리즘의 동작은 널리 쓰이는 정의를 따랐습니다. 슬라이딩 윈도는 요청 시각을 모두 기록하는 방식(슬라이딩 윈도 로그)으로 구현했고, 토큰 버킷은 시간이 흐른 만큼 연속적으로 토큰이 채워진다고 보았습니다. 실제 서비스에서는 사용자나 IP, API 키 단위로 따로 셉니다.',
 });
@@ -13591,7 +13502,7 @@ Lab.register({
 Lab.register({
   id: 'sqh', nav: '스택·큐·우선순위 큐', cat: '자료구조', mode: 'step',
   title: '넣은 순서와 꺼내는 순서',
-  intro: '같은 숫자 다섯 개를 같은 순서로 넣어도, 자료구조에 따라 꺼내지는 순서가 다릅니다. 스택은 나중에 넣은 것부터, 큐는 먼저 넣은 것부터, 우선순위 큐는 가장 작은 것부터 나옵니다. 우선순위 큐는 내부 배열(힙)이 어떻게 바뀌는지도 함께 보세요.',
+  intro: '같은 숫자 다섯 개를 같은 순서로 넣어도, 자료구조에 따라 꺼내지는 순서가 다릅니다. 스택은 나중에 넣은 것부터, 큐는 먼저 넣은 것부터, 우선순위 큐는 가장 작은 것부터 나옵니다.',
   terms: ['스택, 큐, 덱', '힙과 우선순위 큐', '시간 복잡도(Big-O)'], ranks: ['ds', 'collection'],
   controls: [
     { id: 'ds', label: '자료구조', type: 'select', value: 'pq', options: [['stack', '스택 (ArrayDeque의 push / pop)'], ['queue', '큐 (ArrayDeque의 offer / poll)'], ['pq', '우선순위 큐 (PriorityQueue)']] },
@@ -13640,8 +13551,6 @@ Lab.register({
       else s = st.op === 'in' ? 'offer(' + st.x + '): 배열 맨 끝에 넣은 뒤, 부모보다 작으면 자리를 바꾸며 위로 올라갑니다. ' + (st.moves ? st.moves + '번 올라가 ' + (st.at === 0 ? '맨 위(가장 작은 값의 자리)에 도착했습니다.' : '멈췄습니다.') : (st.at === 0 ? '첫 값이라 맨 위에 그대로 놓입니다.' : '부모보다 작지 않아 그 자리에 머뭅니다.')) : 'poll(): 맨 위의 가장 작은 값 ' + st.x + ' 꺼냄. 빈 맨 위에 배열의 마지막 값을 올린 뒤, 두 자식 중 작은 쪽과 자리를 바꾸며 내려갑니다(' + st.moves + '번 내려감).';
       ev.push({ s: s, k: st.op === 'out' ? 'good' : '', snap: { a: st.a, outs: outs.slice(), op: st.op, x: st.x } });
     });
-    var inp = this.INPUTS[c.inp];
-    sum.push('넣은 순서 ' + inp.join(', ') + ' → 꺼낸 순서 ' + r.out.join(', ') + '.');
     if (c.ds === 'stack') sum.push('스택은 후입선출(LIFO)입니다. 메서드 호출 스택, 되돌리기(undo), 괄호 짝 검사처럼 "가장 최근 것부터" 처리할 때 씁니다. 넣기와 꺼내기 모두 O(1)입니다. 자바에서는 오래된 Stack 클래스 대신 ArrayDeque를 씁니다.');
     if (c.ds === 'queue') sum.push('큐는 선입선출(FIFO)입니다. 작업 대기열, 메시지 큐, 너비 우선 탐색처럼 "먼저 온 것부터" 처리할 때 씁니다. 넣기와 꺼내기 모두 O(1)입니다.');
     if (c.ds === 'pq') { sum.push('우선순위 큐는 넣은 순서와 무관하게 가장 작은 값이 먼저 나옵니다. 내부 배열은 완전히 정렬돼 있지 않고, "부모는 자식보다 작거나 같다"는 조건만 지킵니다(힙). 그래서 맨 위가 항상 최솟값입니다.'); sum.push('넣기와 꺼내기는 트리의 높이만큼만 자리를 바꾸므로 O(log n)입니다. 전체를 매번 정렬하는 것보다 훨씬 쌉니다. 작업 스케줄링, 상위 N개 구하기, 최단 경로 알고리즘에 씁니다.'); }
@@ -13651,8 +13560,6 @@ Lab.register({
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { a: [], outs: [] };
     H.title(v, c.ds === 'stack' ? '스택 (오른쪽이 맨 위)' : c.ds === 'queue' ? '큐 (왼쪽이 맨 앞, 오른쪽이 맨 뒤)' : '내부 배열 (0번 칸이 맨 위 = 가장 작은 값)');
     H.slots(v, s.a.map(function (x, i) { var hot = c.ds === 'stack' ? i === s.a.length - 1 : i === 0; return [String(x), hot ? 'b' : 'q']; }), '비어 있음');
-    if (c.ds === 'pq' && s.a.length) { H.title(v, '같은 배열을 트리로 보면 (i번 칸의 자식은 2i+1, 2i+2번 칸)'); var lv = [s.a.slice(0, 1), s.a.slice(1, 3), s.a.slice(3, 7)]; lv.forEach(function (row, i) { if (row.length) H.slots(v, row.map(function (x) { return [String(x), i === 0 ? 'b' : 'q']; }), ''); }); }
-    H.title(v, '꺼낸 순서'); H.slots(v, s.outs.map(function (x) { return [String(x), 'd']; }), '아직 없음');
   },
   // 그림: 스택은 위로 쌓고, 큐는 옆으로 줄 세우고, 우선순위 큐는 트리(힙)로 그린다. 꺼낸 값은 아래 줄로 옮겨 간다.
   draw: function (P, sim, shown) {
@@ -13674,7 +13581,7 @@ Lab.register({
     }
     if (!n && !s.outs.length) P.text('hint', 340, 130, '실행을 누르면 값을 하나씩 넣습니다', { cls: 'mut', anchor: 'middle' });
     s.outs.forEach(function (x, k) { P.box('v' + x, 28 + k * 54, 280, 46, 26, { cls: 'good', sub: String(x), center: true }); });
-    P.note(c.ds === 'pq' ? '노란 칸이 맨 위(가장 작은 값)입니다. 트리는 아래의 내부 배열을 다르게 본 모습이며, i번 칸의 자식은 2i+1번과 2i+2번 칸입니다. 값을 넣거나 꺼낼 때 부모와 자식이 자리를 바꾸는 것이 보입니다.' : '노란 칸이 다음에 꺼낼 값입니다. 꺼낸 값은 아래 줄로 옮겨 갑니다.');
+    P.note(c.ds === 'pq' ? '노란 칸이 맨 위(가장 작은 값)입니다. 트리는 아래의 내부 배열을 다르게 본 모습이며, i번 칸의 자식은 2i+1번과 2i+2번 칸입니다.' : '노란 칸이 다음에 꺼낼 값입니다. 꺼낸 값은 아래 줄로 옮겨 갑니다.');
   },
   assume: '꺼낸 순서와 우선순위 큐 내부 배열의 변화는 이 PC의 JDK 21에서 실제 ArrayDeque와 PriorityQueue를 실행해 대조했습니다(내부 배열은 넣을 때마다, 꺼낼 때마다 모두 일치). PriorityQueue는 기본적으로 작은 값이 먼저 나오며, Comparator를 주면 기준을 바꿀 수 있습니다.',
 });
@@ -13682,7 +13589,7 @@ Lab.register({
 Lab.register({
   id: 'cme', nav: '순회 중 삭제', cat: '자료구조', mode: 'step',
   title: '반복문 안에서 원소를 지우면',
-  intro: '리스트 [1, 2, 2, 3, 4]를 돌면서 값이 2인 원소를 지우려 합니다. 지우는 방법에 따라 예외가 나기도 하고, 예외 없이 원소 하나를 건너뛰어 버리기도 합니다. 방법과 컬렉션 종류를 바꿔 가며 결과를 보세요.',
+  intro: '리스트 [1, 2, 2, 3, 4]를 돌면서 값이 2인 원소를 지우려 합니다. 지우는 방법에 따라 예외가 나기도 하고, 예외 없이 원소 하나를 건너뛰어 버리기도 합니다.',
   terms: ['fail-fast 반복자', 'ArrayList', 'ConcurrentHashMap', '스레드 안전(Thread-safe)'], ranks: ['collection', 'exception'],
   controls: [
     { id: 'how', label: '지우는 방법', type: 'select', value: 'foreach', options: [['foreach', '향상된 for문 안에서 list.remove()'], ['indexfwd', '인덱스 for문 (앞에서 뒤로)'], ['indexback', '인덱스 for문 (뒤에서 앞으로)'], ['iterator', 'Iterator의 remove()'], ['removeIf', 'removeIf()']] },
@@ -13733,11 +13640,11 @@ Lab.register({
     if (c.how === 'removeIf') { list = list.filter(function (x2) { return x2 !== 2; }); push('removeIf가 조건에 맞는 원소를 내부에서 한 번에 걸러 냅니다. 반복을 직접 돌리지 않으므로 순회 중 수정 문제가 생기지 않습니다. 리스트는 ' + JSON.stringify(list).replace(/,/g, ', ') + '.', 'good', -1); }
     var res = '[' + list.join(', ') + ']', clean = list.indexOf(2) < 0;
     push('최종 리스트: ' + res + (ex ? ' (예외로 중단됨)' : '') + '.', clean && !ex ? 'good' : 'bad', -1);
-    sum.push('결과: ' + res + '. 예외: ' + (ex || '없음') + '. 2가 ' + (clean ? '모두 지워졌습니다.' : '남아 있습니다.'));
     if (ex === 'ConcurrentModificationException') sum.push('이 예외는 이름과 달리 스레드가 하나여도 납니다. 순회 중에 반복자를 거치지 않고 컬렉션을 바꾸면 발생합니다. 반복자는 수정 횟수를 비교해 변화를 감지하는 즉시 실패합니다.');
     if (c.how === 'indexfwd') sum.push('예외는 없지만 결과가 틀렸습니다. 지운 자리로 당겨져 온 원소를 건너뛰기 때문입니다. 조용히 틀리는 쪽이 예외보다 더 위험합니다.');
     if (cow && c.how === 'foreach') sum.push('CopyOnWriteArrayList는 수정할 때마다 배열을 통째로 복사해 새로 만들고, 반복자는 예전 배열을 돕니다. 그래서 순회 중 수정이 안전하지만 수정 비용이 큽니다. 읽기가 압도적으로 많고 수정이 드문 경우(리스너 목록 등)에 맞습니다. ConcurrentHashMap도 순회 중 수정에 예외를 던지지 않도록 설계돼 있습니다.');
     if (!ex && clean && c.how !== 'foreach') sum.push('순회하며 지울 때는 removeIf()나 Iterator.remove()를 씁니다.');
+    if (!sum.length) sum.push('결과: ' + res + '. 예외: ' + (ex || '없음') + '. 2가 ' + (clean ? '모두 지워졌습니다.' : '남아 있습니다.'));
     return { events: ev, summary: sum, res: res + (ex ? '|' + ex : ''), row: [res, ex || '없음', clean ? '예' : '아니오'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -13751,7 +13658,7 @@ Lab.register({
 Lab.register({
   id: 'pct', nav: '평균과 백분위', cat: '모니터링', mode: 'step',
   title: '평균 응답 시간은 멀쩡한데 왜 느리다는 불만이 오나',
-  intro: '요청 1,000건의 응답 시간을 모았습니다. 대부분은 0.1초 안팎이지만 일부가 아주 느립니다. 느린 요청의 비율과 정도를 바꿔 가며, 평균과 백분위(p50, p95, p99)가 각각 무엇을 보여 주고 무엇을 숨기는지 확인하세요.',
+  intro: '요청 1,000건의 응답 시간을 모았습니다. 대부분은 0.1초 안팎이지만 일부가 아주 느립니다.',
   terms: ['TPS와 응답 시간 백분위', '부하 테스트', 'APM', '관측성(로그, 지표, 추적)'], ranks: ['monitor', 'tuning', 'traffic'],
   controls: [
     { id: 'ratio', label: '느린 요청의 비율', type: 'select', value: '2', options: [['0', '없음'], ['0.5', '0.5% (1,000건 중 5건)'], ['2', '2% (20건)'], ['6', '6% (60건)'], ['20', '20% (200건)']] },
@@ -13784,7 +13691,6 @@ Lab.register({
     push('p95: 950번째 값은 ' + f(k.p95) + '입니다. "95%의 요청은 이 시간 안에 끝났고, 나머지 5%는 이보다 느렸다"는 뜻입니다.', k.p95 > 0.5 ? 'bad' : '', 4);
     push('p99: 990번째 값은 ' + f(k.p99) + '입니다. "99%의 요청은 이 시간 안에 끝났고, 가장 느린 1%만 이보다 느렸다"는 뜻입니다.' + (k.p99 > 0.5 ? ' 평균으로는 보이지 않던 느린 요청이 여기서 드러납니다.' : nSlow ? ' 느린 요청이 전체의 1%보다 적어서 p99에도 잡히지 않았습니다.' : ''), k.p99 > 0.5 ? 'bad' : '', 5);
     push('최댓값은 ' + f(k.max) + ', p99.9(999번째 값)는 ' + f(k.p999) + '입니다. 하루 요청이 100만 건이라면 ' + (nSlow ? '이 비율로 약 ' + String(Math.round(1e6 * nSlow / N)).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '건이 ' + slow + '초씩 걸린다는 뜻입니다.' : '느린 요청은 없습니다.'), nSlow ? 'bad' : 'good', 6);
-    sum.push('평균 ' + f(mean) + ', p50 ' + f(k.p50) + ', p95 ' + f(k.p95) + ', p99 ' + f(k.p99) + ', 최댓값 ' + f(k.max) + '.');
     if (nSlow) sum.push('평균은 소수의 느린 요청을 가립니다. 응답 시간은 대부분 빠르고 일부만 매우 느린 치우친 분포라서, 평균이 "대표적인 경험"을 나타내지 못합니다. 그래서 성능 목표는 "평균 0.2초"가 아니라 "p99가 1초 이하"처럼 백분위로 정합니다.');
     if (nSlow && k.p99 < 0.5) sum.push('느린 요청이 1% 미만이면 p99도 조용합니다. 요청이 많은 서비스에서는 0.5%도 큰 숫자이므로 p99.9나 최댓값도 함께 봅니다.');
     sum.push('사용자 한 명이 화면 하나를 볼 때 여러 API를 호출하므로, 그중 하나라도 느린 쪽에 걸릴 확률은 개별 요청의 비율보다 높습니다. 꼬리 쪽 지연이 체감 속도를 좌우하는 이유입니다.');
@@ -13841,9 +13747,8 @@ Lab.register({
       if (failed >= 0) {
         for (var j = failed - 1; j >= 0; j--) { st[j] = '보상 완료: ' + steps[j][3]; comp++; push('보상 ' + comp + ': ' + steps[j][1] + '가 실패 이벤트를 받아 ' + steps[j][3] + '를 실행합니다. 이미 커밋된 작업을 "취소하는 새 작업"으로 되돌리는 것입니다. 실행한 순서의 반대로 진행합니다.', ''); }
         push('모든 보상이 끝났습니다. 주문은 취소 상태가 됐고 데이터는 다시 앞뒤가 맞습니다. 다만 보상이 끝나기 전까지는 "결제는 됐는데 주문은 실패"처럼 어긋난 상태가 잠시 존재했습니다.', '');
-        sum.push(steps[failed][1] + '에서 실패해 보상 ' + comp + '개를 역순으로 실행했습니다. 최종적으로 주문은 취소됐습니다.');
         sum.push('Saga는 긴 트랜잭션을 서비스별 로컬 트랜잭션의 연속으로 나누고, 실패하면 보상 트랜잭션으로 되돌립니다. DB의 롤백처럼 "없던 일"이 되는 것이 아니라 취소 기록이 남는 새 작업입니다. 그래서 중간 상태가 외부에 보일 수 있고(격리되지 않음), 보상 작업 자체도 실패할 수 있어 재시도와 멱등성이 필요합니다.');
-      } else { push('네 단계가 모두 성공했습니다. 주문이 확정됩니다.', 'good'); sum.push('실패 없이 네 서비스의 로컬 트랜잭션이 차례로 커밋됐습니다.'); sum.push('각 단계가 커밋되는 사이에는 "결제는 됐는데 재고는 아직"인 상태가 존재합니다. 모든 단계가 끝나야 일관된 상태가 됩니다(최종 일관성).'); }
+      } else { push('네 단계가 모두 성공했습니다. 주문이 확정됩니다.', 'good'); sum.push('각 단계가 커밋되는 사이에는 "결제는 됐는데 재고는 아직"인 상태가 존재합니다. 모든 단계가 끝나야 일관된 상태가 됩니다(최종 일관성).'); }
       return { events: ev, summary: sum, steps: steps, part: 'saga', row: [failed >= 0 ? '주문 취소' : '주문 확정', comp + '개', '-'] };
     }
     var S = { db: '없음', ob: '없음', mq: '없음', other: '대기' }, pushO = function (s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(S)) }); }, okAll;
@@ -13889,7 +13794,7 @@ Lab.register({
         if (i < 3 && comp) P.arrow('cp' + i, 'sv' + (i + 1) + ':t:0.3', 'sv' + i + ':t:0.7', { cls: 'hot', label: '보상' });
       });
       P.text('t', 340, 226, 'DB가 따로라서 ROLLBACK 한 번으로 전부 되돌릴 수 없습니다', { anchor: 'middle', cls: 'mut' });
-      P.note('초록은 이미 커밋된 단계, 빨강은 실패한 단계, 노랑은 보상 작업으로 되돌린 단계입니다. 실패하면 앞 단계들을 거꾸로 하나씩 되돌립니다.');
+      P.note('초록은 이미 커밋된 단계, 빨강은 실패한 단계, 노랑은 보상 작업으로 되돌린 단계입니다.');
     } else {
       var o = s || { db: '없음', ob: '없음', mq: '없음', other: '대기' }, box = sim.c.pub === 'outbox';
       P.region('dbr', 16, 30, 300, 190, '주문 서비스의 DB (한 트랜잭션)');
@@ -13907,7 +13812,7 @@ Lab.register({
 Lab.register({
   id: 'replica', nav: '복제 지연과 CAP', cat: '데이터베이스', mode: 'step',
   title: '방금 저장했는데 조회하니 옛날 값이 나온다',
-  intro: '쓰기는 원본(프라이머리) DB에, 읽기는 복제본(레플리카)에 나눠 보내면 읽기 부하를 분산할 수 있습니다. 하지만 원본의 변경이 복제본에 도착하기까지 시간이 걸립니다. 지연 시간과 읽는 시점을 바꿔 보고, 두 DB 사이의 네트워크가 끊겼을 때 무엇을 포기할지도 골라 보세요.',
+  intro: '쓰기는 원본(프라이머리) DB에, 읽기는 복제본(레플리카)에 나눠 보내면 읽기 부하를 분산할 수 있습니다. 하지만 원본의 변경이 복제본에 도착하기까지 시간이 걸립니다.',
   terms: ['레플리케이션(복제)', '최종 일관성(Eventual Consistency)', 'CAP 정리', 'readOnly 트랜잭션'], ranks: ['dbengine', 'nosql', 'traffic'],
   controls: [
     { id: 'part', label: '볼 내용', type: 'select', value: 'lag', options: [['lag', '복제 지연'], ['cut', '원본과 복제본 사이의 네트워크 단절']] },
@@ -13945,7 +13850,6 @@ Lab.register({
       else { got = '민수'; S.read = '복제본에서 "민수"'; push(when + '초: 조회를 복제본으로 보냅니다. 복제가 끝난 뒤라 "민수"가 나옵니다.', 'good'); }
       if (first) { S.r = '닉네임 = 민수'; push(lag + '초: 뒤늦게 복제가 도착해 복제본도 "민수"가 됩니다. 이후의 조회는 새 값을 봅니다.', ''); }
       fresh = got === '민수';
-      sum.push('저장 ' + when + '초 뒤 ' + (c.from === 'replica' ? '복제본' : '원본') + '에서 조회한 결과는 "' + got + '"입니다.' + (fresh ? '' : ' 저장은 성공했는데 화면에는 옛 값이 보였습니다.'));
       sum.push('복제는 보통 비동기라서 원본과 복제본 사이에 시차가 있습니다. 시간이 지나면 같아지지만 그 전에는 다를 수 있습니다(최종 일관성). 대응 방법은 자기가 방금 쓴 데이터는 원본에서 읽게 하거나, 쓰기 직후의 화면은 응답으로 받은 값을 그대로 쓰는 것입니다.');
       if (c.from === 'primary') sum.push('모든 조회를 원본으로 보내면 문제는 없지만 읽기 분산의 이점이 사라집니다. 꼭 최신이어야 하는 조회만 원본으로 보냅니다.');
     } else {
@@ -13954,7 +13858,6 @@ Lab.register({
       if (c.choice === 'ap') { got = '철수'; fresh = false; S.read = '복제본에서 "철수" (옛 값)'; push('다른 사용자의 조회가 복제본으로 옵니다. 복제본은 자신이 가진 값 "철수"로 응답합니다. 서비스는 계속되지만 최신이 아닌 값이 나갔습니다.', 'bad'); }
       else { got = '오류'; fresh = true; answered = false; S.read = '복제본이 응답 거부'; push('다른 사용자의 조회가 복제본으로 옵니다. 복제본은 자기 데이터가 최신인지 보장할 수 없으므로 오류를 돌려줍니다. 틀린 값은 나가지 않았지만 조회가 실패했습니다.', 'bad'); }
       S.link = '복구됨'; S.r = '닉네임 = 민수'; push('네트워크가 복구됐습니다. 밀려 있던 변경이 복제본에 전달되어 두 DB가 다시 같아집니다.', 'good');
-      sum.push('단절 중 복제본의 응답: ' + (answered ? '"철수" (옛 값)' : '오류') + '.');
       sum.push('여러 대로 나뉜 시스템에서 네트워크 단절은 언젠가 반드시 일어납니다. 그때 "모든 요청에 응답한다(가용성)"와 "어디서 읽어도 같은 최신 값을 준다(일관성)"를 둘 다 지킬 수는 없고 하나를 골라야 합니다. 이것이 CAP 정리가 말하는 바입니다. 단절이 없는 평상시에는 둘 다 지킬 수 있습니다.');
       sum.push(c.choice === 'ap' ? '상품 목록이나 좋아요 수처럼 잠깐 옛 값이어도 되는 데이터는 가용성을 고릅니다.' : '계좌 잔액이나 재고처럼 틀린 값이 나가면 안 되는 데이터는 일관성을 고르고 오류를 감수합니다.');
     }
@@ -13966,8 +13869,6 @@ Lab.register({
     H.lane(ln, '원본', s.p + '  (쓰기를 받는 곳)', s.p.indexOf('민수') >= 0 ? 'good' : '');
     H.lane(ln, '복제 연결', s.link, s.link === '끊김' ? 'bad' : 'none');
     H.lane(ln, '복제본', s.r + '  (읽기를 받는 곳)', s.r === s.p ? (s.r.indexOf('민수') >= 0 ? 'good' : '') : 'bad');
-    H.counters(v, [[s.read, '조회한 쪽이 받은 것']]);
-    if (s.r !== s.p) H.text(v, '지금 원본과 복제본의 값이 다릅니다.');
   },
   // 그림: 원본과 복제본, 그 사이의 복제 화살표. 쓰기는 원본으로, 조회는 설정한 쪽으로 간다.
   draw: function (P, sim, shown) {
@@ -13989,7 +13890,7 @@ Lab.register({
 Lab.register({
   id: 'oauth', nav: 'OAuth 로그인 흐름', cat: '인증', mode: 'step',
   title: '"카카오로 로그인"을 누르면 오가는 것들',
-  intro: '소셜 로그인은 우리 서비스가 사용자의 비밀번호를 받지 않고도, 사용자의 동의 아래 그 사람의 정보에 접근할 권한을 얻는 절차입니다. 브라우저를 거쳐 오가는 것과 서버끼리 직접 주고받는 것이 나뉘어 있습니다. 정상 흐름과 문제가 생기는 경우를 단계별로 보세요.',
+  intro: '소셜 로그인은 우리 서비스가 사용자의 비밀번호를 받지 않고도, 사용자의 동의 아래 그 사람의 정보에 접근할 권한을 얻는 절차입니다. 브라우저를 거쳐 오가는 것과 서버끼리 직접 주고받는 것이 나뉘어 있습니다.',
   terms: ['OAuth 2.0', '인증과 인가', '액세스 토큰과 리프레시 토큰', 'CSRF(사이트 간 요청 위조)'], ranks: ['auth', 'websec'],
   controls: [
     { id: 'sc', label: '상황', type: 'select', value: 'ok', options: [['ok', '정상 로그인'], ['deny', '사용자가 동의 화면에서 취소'], ['state', '돌아온 요청의 state 값이 다름 (위조된 요청)'], ['reuse', '가로챈 인가 코드를 다시 사용하려는 시도']] },
@@ -14037,7 +13938,6 @@ Lab.register({
         if (c.sc === 'reuse') sum.push('인가 코드는 한 번만 쓸 수 있고 수명이 짧으며, 토큰으로 바꾸려면 서버만 아는 client_secret이 필요합니다. 비밀값을 둘 수 없는 모바일 앱이나 SPA는 PKCE라는 보완 절차를 씁니다.');
       }
     }
-    sum.unshift('결과: ' + res + '. 사용자의 카카오 비밀번호는 카카오에만 입력됐고 우리 서비스는 본 적이 없습니다.');
     sum.push('OAuth 2.0은 원래 "권한을 위임받는" 절차(인가)입니다. 로그인(인증)에 쓸 때는 받은 토큰으로 사용자 정보를 조회해 신원을 확인하며, 이를 표준화한 것이 OpenID Connect입니다.');
     return { events: ev, summary: sum, row: [res, got, '카카오뿐'] };
   },
@@ -14052,7 +13952,7 @@ Lab.register({
     var msgs = rows.map(function (r) { var m = P.dir(P.v(r.cells[0]), ids); m.s = P.v(r.cells[2]); m.cls = P.c(r.cells[2]); return m; });
     var end = P.seq([['u', '사용자 (브라우저)', 'wait'], ['w', '우리 서비스', 'wait'], ['k', '카카오 인가 서버', 'plain'], ['a', '카카오 API 서버', 'plain']], msgs, { keep: 8 });
     P.size(680, end + 16);
-    P.note('사용자의 아이디와 비밀번호는 카카오 인가 서버로만 갑니다. 우리 서비스는 인가 코드를 받고, 그것을 서버끼리 직접 통신해 토큰으로 바꿉니다. 글자가 길면 잘려 보이므로 전체 내용은 오른쪽 표에서 확인하세요.');
+    P.note('글자가 길면 잘려 보이므로 전체 내용은 오른쪽 표에서 확인하세요.');
   },
   assume: 'OAuth 2.0의 인가 코드 방식(Authorization Code Grant)을 표준 문서(RFC 6749)의 흐름대로 옮겼습니다. 카카오는 예시일 뿐이며 구글, 네이버 등 다른 제공자도 흐름이 같습니다. 코드와 토큰 값은 설명을 위한 가짜 값입니다.',
 });
@@ -14060,7 +13960,7 @@ Lab.register({
 Lab.register({
   id: 'tls', nav: 'TLS 핸드셰이크', cat: '네트워크', mode: 'step',
   title: 'https의 자물쇠가 잠기기까지',
-  intro: 'HTTPS는 HTTP를 TLS로 감싼 것입니다. 데이터를 보내기 전에 브라우저와 서버는 "상대가 진짜 그 서버인지" 확인하고 "둘만 아는 암호화 키"를 만듭니다. 이 과정에서 비대칭키와 대칭키가 각각 어디에 쓰이는지, 인증서에 문제가 있으면 어디서 멈추는지 보세요.',
+  intro: 'HTTPS는 HTTP를 TLS로 감싼 것입니다. 데이터를 보내기 전에 브라우저와 서버는 "상대가 진짜 그 서버인지" 확인하고 "둘만 아는 암호화 키"를 만듭니다.',
   terms: ['HTTPS와 TLS', 'TLS 핸드셰이크와 인증서', '대칭키 암호화와 비대칭키 암호화', 'HMAC과 전자서명'], ranks: ['network', 'websec', 'http'],
   controls: [
     { id: 'cert', label: '서버 인증서의 상태', type: 'select', value: 'ok', options: [['ok', '정상'], ['expired', '유효 기간이 지남'], ['name', '다른 도메인의 인증서'], ['self', '신뢰할 수 없는 곳에서 발급 (자체 서명)']] },
@@ -14092,14 +13992,12 @@ Lab.register({
     step('서버 → 브라우저', 'CertificateVerify: 지금까지의 대화를 서버 개인키로 서명', '서버가 지금까지 주고받은 내용을 자신의 개인키로 서명해 보냅니다. 브라우저는 인증서의 공개키로 이 서명을 확인합니다. 인증서는 누구나 복사할 수 있지만, 서명은 짝이 되는 개인키를 가진 진짜 서버만 만들 수 있습니다.', 'good');
     step('양쪽', 'Finished: 핸드셰이크 전체가 변조되지 않았음을 확인', '양쪽이 핸드셰이크 내용 전체의 확인값을 주고받아, 중간에 누가 메시지를 바꾸지 않았는지 확인합니다.', '');
     S.lock = '대칭키로 암호화 중'; step('브라우저 ↔ 서버', 'HTTP 요청과 응답 (대칭키로 암호화)', '이제 HTTP 요청과 응답이 합의한 대칭키로 암호화되어 오갑니다. 중간에서 보는 사람에게는 어느 서버와 통신하는지 정도만 보이고 내용(주소의 경로, 헤더, 쿠키, 본문)은 보이지 않습니다.', 'good');
-    sum.push('핸드셰이크가 끝나고 암호화 통신이 시작됐습니다.');
     sum.push('비대칭키(공개키와 개인키)는 "상대가 진짜인지 확인"하는 서명과 "키를 안전하게 합의"하는 데만 쓰입니다. 계산이 느리기 때문입니다. 실제 데이터는 빠른 대칭키로 암호화합니다. 두 방식의 장점을 나눠 쓰는 구조입니다.');
     sum.push('TLS 1.3은 이 과정을 왕복 한 번으로 끝냅니다(이전 버전은 두 번). 그래도 연결마다 비용이 들기 때문에 한 번 맺은 연결을 재사용하는 것이 중요합니다.');
     return { events: ev, summary: sum, row: ['연결 성공', '-', '키 합의로 만든 대칭키'] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], key: '없음', lock: '아직 암호화되지 않음' };
-    H.counters(v, [[s.key, '암호화 키'], [s.lock, '통신 상태']]);
     if (s.rows.length) H.table(v, ['방향', '내용'], s.rows, '핸드셰이크 순서'); else H.text(v, '실행을 누르면 시작합니다.');
   },
   // 그림: 브라우저와 서버가 주고받는 핸드셰이크 메시지. 각자 안에서 하는 계산과 검증은 상자로 그린다.
@@ -14110,7 +14008,7 @@ Lab.register({
     P.box('key', 16, end + 14, 318, 48, { cls: s.key === '없음' ? 'ghost' : 'good', title: '암호화 키', sub: s.key });
     P.box('lock', 346, end + 14, 318, 48, { cls: enc ? 'good' : s.lock.indexOf('아직') === 0 ? 'ghost' : 'bad', title: '통신 상태', sub: s.lock });
     P.size(680, end + 78);
-    P.note('화살표는 주고받는 메시지이고, 한쪽 선 위의 상자는 그쪽 안에서 하는 일(계산, 검증)입니다. 인증서 검증에서 막히면 그 아래로 진행하지 않습니다.');
+    P.note('화살표는 주고받는 메시지이고, 한쪽 선 위의 상자는 그쪽 안에서 하는 일(계산, 검증)입니다.');
   },
   assume: 'TLS 1.3의 기본 핸드셰이크를 단순화했습니다(실제로는 서버의 응답 메시지 여러 개가 한 번에 묶여 전송됩니다). 키 합의는 양쪽이 공개값을 교환해 같은 비밀을 계산하는 방식(ECDHE)이며, 예전 방식처럼 대칭키를 서버 공개키로 암호화해 보내지 않습니다. 인증서 검증 항목은 TLS와 웹 PKI의 표준 절차를 따랐습니다. 이 PC에서 openssl로 시험용 인증 기관과 인증서 네 가지를 만들어 실제 TLS 1.3 연결을 맺어 확인했습니다. 정상 인증서는 검증을 통과했고, 나머지는 각각 certificate has expired, hostname mismatch, self-signed certificate 오류로 거부됐습니다. 핸드셰이크 메시지도 ClientHello, ServerHello, EncryptedExtensions, Certificate, CertificateVerify, Finished 순서로 오가는 것을 확인했습니다.',
 });
@@ -14118,7 +14016,7 @@ Lab.register({
 Lab.register({
   id: 'tcp', nav: 'TCP 연결과 재전송', cat: '네트워크', mode: 'step',
   title: '패킷이 사라지면 누가 알아채고 다시 보내나',
-  intro: 'TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다. 패킷을 일부러 잃어버리게 해 보고 두 프로토콜의 차이를 확인하세요.',
+  intro: 'TCP는 데이터를 보내기 전에 연결을 맺고, 보낸 데이터마다 받았다는 확인을 받습니다. 확인이 오지 않으면 다시 보냅니다. UDP는 그런 절차 없이 그냥 보냅니다.',
   terms: ['TCP와 UDP', '3-way handshake', '흐름 제어와 혼잡 제어'], ranks: ['network', 'os'],
   controls: [
     { id: 'proto', label: '프로토콜', type: 'select', value: 'tcp', options: [['tcp', 'TCP'], ['udp', 'UDP']] },
@@ -14168,14 +14066,12 @@ Lab.register({
       step('서버 → 클라이언트', 'ACK (ack=116)', '서버가 "115번까지 다 받았다"고 확인합니다.', 'good');
     }
     step('양쪽', 'FIN / ACK 를 주고받아 연결 종료', '보낼 것이 끝나면 양쪽이 각각 "나는 끝났다(FIN)"를 보내고 확인받아 연결을 닫습니다.', '');
-    sum.push('받은 쪽에 도착한 데이터: "' + got.join('') + '". 재전송 ' + re + '번.');
     sum.push('TCP는 번호와 확인 응답으로 유실을 감지해 다시 보내고, 순서가 뒤바뀌어 도착해도 번호대로 맞춰서 애플리케이션에 넘깁니다. 애플리케이션은 유실을 전혀 모릅니다. 그 대가로 연결을 맺는 왕복과, 유실 시 뒤따르는 데이터까지 기다리게 되는 지연이 있습니다.');
     sum.push('받는 쪽이 처리할 수 있는 만큼만 보내도록 조절하는 것이 흐름 제어, 네트워크가 막히면 보내는 속도를 줄이는 것이 혼잡 제어입니다. 유실이 생기면 TCP는 네트워크가 막혔다고 보고 속도를 낮춥니다.');
     return { events: ev, summary: sum, row: ['"' + got.join('') + '"', re + '번', '1번 (SYN → SYN+ACK → ACK)'] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], got: [] };
-    H.counters(v, [['"' + s.got.join('') + '"', '받는 쪽 애플리케이션에 전달된 데이터']]);
     if (s.rows.length) H.table(v, ['방향', '패킷'], s.rows, '오간 패킷 (위에서 아래로)'); else H.text(v, '실행을 누르면 시작합니다.');
   },
   // 그림: 두 컴퓨터 사이를 오가는 패킷. 중간에 사라진 패킷은 끊긴 화살표로 그린다.
@@ -14185,7 +14081,7 @@ Lab.register({
     var end = P.seq([['c', udp ? '보내는 쪽' : '클라이언트', 'wait'], ['s', udp ? '받는 쪽' : '서버', 'wait']], msgs);
     P.box('got', 16, end + 14, 648, 34, { cls: s.got.length ? 'good' : 'ghost', title: '받는 쪽 애플리케이션에 전달된 데이터', right: '"' + s.got.join('') + '"' });
     P.size(680, end + 64);
-    P.note('화살표 하나가 패킷 하나이고, 위에서 아래로 시간이 흐릅니다. 빨간 점선은 가는 도중에 사라진 패킷입니다. TCP는 확인 응답(ACK)이 오지 않으면 다시 보냅니다.');
+    P.note('화살표 하나가 패킷 하나이고, 위에서 아래로 시간이 흐릅니다. 빨간 점선은 가는 도중에 사라진 패킷입니다.');
   },
   assume: '"안녕하세요"를 세 조각으로 나눠 보내는 작은 예입니다. 번호(seq, ack)는 이해를 돕기 위한 임의의 값이고 한글 한 글자를 3바이트로 계산했습니다. 재전송 시점은 단순화했습니다. 실제 TCP는 타이머 만료 외에 같은 확인 응답이 세 번 거듭 오면 바로 재전송하는 방식도 함께 씁니다. 3-way handshake와 재전송의 원리는 TCP 표준(RFC 9293)을 따랐습니다.',
 });
@@ -14193,7 +14089,7 @@ Lab.register({
 Lab.register({
   id: 'journey', nav: '주소 입력부터 응답까지', cat: '네트워크', mode: 'step',
   title: '주소창에 입력하고 엔터를 누르면',
-  intro: '브라우저가 주소 하나를 여는 동안 DNS 조회, TCP 연결, TLS 핸드셰이크, HTTP 요청, 리버스 프록시, 애플리케이션 서버, DB가 차례로 관여합니다. 어떤 단계는 캐시나 연결 재사용으로 건너뛸 수 있습니다. 조건을 바꿔 가며 거치는 단계와 걸리는 시간을 비교하세요.',
+  intro: '브라우저가 주소 하나를 여는 동안 DNS 조회, TCP 연결, TLS 핸드셰이크, HTTP 요청, 리버스 프록시, 애플리케이션 서버, DB가 차례로 관여합니다. 어떤 단계는 캐시나 연결 재사용으로 건너뛸 수 있습니다.',
   terms: ['DNS', '웹 서버와 WAS', '리버스 프록시', 'CDN', 'HTTPS와 TLS', '3-way handshake'], ranks: ['network', 'was', 'http'],
   controls: [
     { id: 'what', label: '요청하는 것', type: 'select', value: 'api', options: [['api', '동적 페이지 (/orders, DB 조회 필요)'], ['static', '정적 파일 (/logo.png)']] },
@@ -14233,7 +14129,6 @@ Lab.register({
       }
     }
     step('응답 수신과 화면 표시', rtt, '응답이 브라우저에 도착합니다. HTML이라면 브라우저가 해석하면서 그 안의 CSS, 스크립트, 이미지 주소를 발견하고, 그것들에 대해 같은 과정을 반복합니다.', 'good');
-    sum.push('전체 약 ' + total + 'ms. ' + (skipped ? skipped + '개 단계를 건너뛰었습니다.' : '모든 단계를 거쳤습니다.') + ' 응답을 만든 곳: ' + maker + '.');
     if (!c.dns || !c.conn) sum.push('첫 요청에서는 DNS 조회, TCP 연결, TLS 핸드셰이크가 실제 요청보다 먼저 일어납니다. 서버가 아무리 빨라도 이 왕복들은 줄지 않으므로, 연결을 유지해 재사용하는 것(keep-alive, HTTP/2)이 체감 속도에 큰 영향을 줍니다.');
     if (c.what === 'static' && !cdn) sum.push('정적 파일은 웹 서버가 직접 내어 줍니다. 애플리케이션 서버(WAS)는 실행해야 결과가 나오는 요청만 맡습니다. 리버스 프록시를 앞에 두면 TLS 처리, 정적 파일, 부하 분산, 내부 서버 숨기기를 한곳에서 할 수 있습니다.');
     if (cdn) sum.push('CDN은 정적 파일의 사본을 세계 여러 곳에 두고 가까운 곳에서 응답합니다. 왕복 시간이 짧아지고, 원래 서버로 오는 요청이 줄어듭니다.');
@@ -14242,7 +14137,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], total: 0 };
-    H.counters(v, [[s.total + 'ms', '지금까지 걸린 시간']]);
     if (s.rows.length) H.table(v, ['단계', '걸린 시간', '누적'], s.rows, '거친 단계'); else H.text(v, '실행을 누르면 시작합니다.');
   },
   // 그림: 브라우저에서 출발한 요청이 DNS, 프록시, 애플리케이션 서버, DB를 차례로 거치는 순서.
@@ -14254,7 +14148,7 @@ Lab.register({
     var end = P.seq(actors, msgs, { keep: 11 });
     P.box('tot', 16, end + 14, 648, 34, { cls: 'plain', title: '지금까지 걸린 시간', right: s.total + 'ms' });
     P.size(680, end + 64);
-    P.note('화살표는 그 단계에서 누가 누구에게 갔는지를, 숫자는 걸린 시간을 나타냅니다. 설정에서 DNS 캐시나 연결 재사용을 켜면 앞쪽 화살표가 사라집니다.');
+    P.note('화살표는 그 단계에서 누가 누구에게 갔는지를, 숫자는 걸린 시간을 나타냅니다.');
   },
   assume: '시간은 상대적인 크기를 보이기 위한 예시입니다(서버까지 한 번 가는 데 30ms, CDN은 5ms, DNS 조회 40ms, DB 조회 20ms). 실제 값은 거리와 네트워크, 쿼리에 따라 크게 다릅니다. 구성은 nginx가 앞에서 TLS를 처리하고 뒤의 스프링 부트(내장 톰캣)로 넘기는 흔한 형태를 가정했습니다. 단계가 실제로 이 순서로 일어나고 연결을 재사용하면 앞의 세 단계가 사라진다는 점은 curl로 공개 사이트에 연달아 두 번 요청해 확인했습니다. 첫 요청은 DNS 조회 27ms, TCP 연결 완료 60ms, TLS 완료 156ms, 첫 바이트 194ms였고, 같은 연결로 보낸 두 번째 요청은 DNS·TCP·TLS가 0이고 전체 40ms였습니다. 리버스 프록시 뒤의 구간은 직접 확인하지 못했습니다.',
 });
@@ -14262,7 +14156,7 @@ Lab.register({
 Lab.register({
   id: 'etag', nav: 'HTTP 캐시와 ETag', cat: 'HTTP', mode: 'step',
   title: '같은 파일을 또 받을 필요가 있을까',
-  intro: '브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 "얼마 동안 그대로 써도 되는지"와 "내용의 버전 표시(ETag)"를 알려 주면, 브라우저는 요청을 아예 생략하거나 "바뀌었느냐"만 물어볼 수 있습니다. 설정과 시점을 바꿔 가며 오가는 것을 보세요.',
+  intro: '브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 "얼마 동안 그대로 써도 되는지"와 "내용의 버전 표시(ETag)"를 알려 주면, 브라우저는 요청을 아예 생략하거나 "바뀌었느냐"만 물어볼 수 있습니다.',
   terms: ['조건부 요청과 ETag', 'HTTP 상태 코드', '캐시', 'CDN'], ranks: ['http', 'cache', 'rest'],
   controls: [
     { id: 'cc', label: '서버가 준 캐시 지시', type: 'select', value: 'max', options: [['nostore', 'Cache-Control: no-store (저장 금지)'], ['max', 'Cache-Control: max-age=60 (60초 동안 그대로 사용)'], ['nocache', 'Cache-Control: no-cache (쓸 때마다 확인)']] },
@@ -14302,12 +14196,10 @@ Lab.register({
       sum.push(c.chg ? '내용이 바뀌었으므로 새 본문을 받았습니다. ETag 덕분에 "바뀌었을 때만" 전체를 받습니다.' : '304 응답은 본문이 없어 전송량이 거의 없습니다. 다만 요청과 응답의 왕복은 한 번 일어나고, 서버는 현재 ETag를 알기 위해 일을 해야 합니다.');
       if (c.cc === 'nocache') sum.push('no-cache는 이름과 달리 "저장하지 말라"가 아니라 "저장하되 쓸 때마다 서버에 확인하라"입니다. 저장 자체를 막는 것은 no-store입니다.');
     }
-    sum.unshift('두 번째에 서버로 간 요청: ' + req2 + '. 응답: ' + res2 + '. 두 번 여는 동안 전송된 본문은 합계 ' + sent + 'KB입니다.');
     return { events: ev, summary: sum, row: [req2, res2, body2, shown] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], cache: '없음', sent: 0 };
-    H.counters(v, [[s.cache, '브라우저에 저장된 것'], [(s.rows.length > 1 ? s.sent : 0) + 'KB', '지금까지 전송된 본문']]);
     if (s.rows.length) H.table(v, ['방향', '보낸 것', '헤더 / 결과'], s.rows, '브라우저와 서버 사이'); else H.text(v, '실행을 누르면 시작합니다.');
   },
   // 그림: 브라우저와 서버 사이의 요청과 응답. 캐시에서 바로 꺼내 쓰면 서버로 가는 화살표가 생기지 않는다.

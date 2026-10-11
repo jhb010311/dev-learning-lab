@@ -1,7 +1,7 @@
 Lab.register({
   id: 'kafka', nav: 'Kafka partitions and consumers', cat: 'Message queues', mode: 'step',
   title: 'I added consumers, so why is the throughput the same?',
-  intro: 'A topic is split into partitions, and the consumers of a consumer group divide the partitions among themselves. Within a group, a partition can be read by only one consumer. Change the number of partitions, the number of consumers, and the speeds to see the messages pile up. Also see how a consumer that dies produces duplicates or losses, depending on when it commits.',
+  intro: 'A topic is split into partitions, and the consumers of a consumer group divide the partitions among themselves. Within a group, a partition can be read by only one consumer.',
   terms: ['Kafka topics, partitions, and offsets', 'Consumer groups and rebalancing', 'Consumer lag', 'Message delivery guarantees', 'Message queue', 'Idempotency and idempotency keys'], ranks: ['mq', 'msa'],
   controls: [
     { id: 'p', label: 'Partitions', type: 'range', min: 1, max: 6, value: 3, fmt: function (v) { return v + (v === 1 ? ' partition' : ' partitions'); } },
@@ -49,7 +49,6 @@ Lab.register({
       if (after) { dup = 3; push('The consumer that takes over the partition reads again from the last committed position, 100. Messages 100, 101, and 102 were already processed, but they are processed one more time. Nothing is lost, but 3 duplicates occurred (at-least-once delivery).', 'bad', 6); }
       else { lost = 2; push('The consumer that takes over the partition reads from the committed position, 105. Messages 103 and 104 were committed but never processed, and nobody reads them again. There are no duplicates, but 2 messages were lost (at-most-once delivery).', 'bad', 6); }
     }
-    sum.push('The group processes ' + A.total + ' messages per second (inflow: ' + c.r + '), and ' + A.lag + ' messages are waiting after 10 seconds.' + (A.idle.length ? ' ' + A.idle.length + (A.idle.length === 1 ? ' consumer' : ' consumers') + ' had no partition and sat idle.' : ''));
     if (A.idle.length) sum.push('The number of consumers that can work at the same time in a group cannot exceed the number of partitions. To raise the throughput further, you must increase the partitions first. You can add partitions but cannot reduce them, and adding them can change which partition messages with the same key go to.');
     else if (A.lag) sum.push('Lag builds up. You must increase the consumers up to the number of partitions, or make each consumer process faster. Lag is the key metric that shows whether the consumers are keeping up.');
     if (c.crash) sum.push(c.commit === 'after' ? 'Committing after processing does not lose messages, but it can process the same message twice. In practice most systems use this approach, and make the consumer idempotent so that a duplicate gives the same result (for example, record the IDs of processed messages and filter out repeats).' : 'Committing before processing has no duplicates, but it can lose messages. Use it only for logs or statistics where a small loss is acceptable.');

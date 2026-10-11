@@ -1,7 +1,7 @@
 Lab.register({
   id: 'race', nav: '경쟁 상태', cat: '동시성', mode: 'step',
   title: 'count++는 왜 숫자를 잃어버리나',
-  intro: '여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다. 동기화 방식과 실행 순서를 바꿔 가며 최종 값이 어떻게 달라지는지 보세요.',
+  intro: '여러 스레드가 같은 변수를 동시에 올립니다. count++는 읽기, 더하기, 쓰기의 세 단계라서 단계가 섞이면 증가가 사라집니다.',
   terms: ['경쟁 상태(Race Condition)', '임계 영역과 상호 배제', 'synchronized', 'volatile', '가시성(Visibility)', '원자성(Atomicity)과 CAS', '스레드 안전(Thread-safe)'], ranks: ['javasync', 'concurrency'],
   controls: [
     { id: 'threads', label: '스레드 수', type: 'range', min: 2, max: 4, value: 2, fmt: function (v) { return v + '개'; } },
@@ -74,17 +74,16 @@ Lab.register({
         if (c.sync === 'sync') lock = null;
       }
     }
-    var expect = c.threads * c.loops, sum = ['기대값은 ' + expect + '(스레드 ' + c.threads + '개 × ' + c.loops + '번)이고 최종 값은 ' + count + '입니다.'];
+    var expect = c.threads * c.loops, sum = [];
     if (lost > 0) sum.push('증가 ' + lost + '번이 사라졌습니다. 한 스레드가 읽고 쓰는 사이에 다른 스레드가 끼어들어, 오래된 값을 기준으로 계산한 결과가 덮어써졌기 때문입니다.');
     if (c.sync === 'volatile') sum.push('volatile은 다른 스레드가 쓴 값이 보이도록 해 줄 뿐입니다. 읽기-더하기-쓰기 세 단계를 하나로 묶어 주지 않아서 결과는 동기화가 없을 때와 같습니다.');
     if (c.sync === 'sync') sum.push('synchronized 블록 안에는 한 번에 한 스레드만 들어갈 수 있어서 세 단계가 끊기지 않았습니다. 대신 다른 스레드가 ' + waits + '번 기다렸습니다.');
-    if (c.sync === 'atomic') sum.push('AtomicInteger는 락을 잡지 않습니다. 대신 "내가 읽은 값 그대로일 때만 쓴다"(CAS)를 지켜서, 다른 스레드가 먼저 바꿨으면 덮어쓰지 않고 다시 시도합니다. 이번에는 ' + retries + '번 다시 시도했고 사라진 증가는 없습니다.');
+    if (c.sync === 'atomic') sum.push('AtomicInteger는 락을 잡지 않습니다. 대신 "내가 읽은 값 그대로일 때만 쓴다"(CAS)를 지켜서, 다른 스레드가 먼저 바꿨으면 덮어쓰지 않고 다시 시도합니다.');
     if ((c.sync === 'none' || c.sync === 'volatile') && lost === 0) sum.push('이번에는 단계가 겹치지 않아 값이 맞았습니다. 코드가 안전해서가 아니라 순서가 우연히 좋았던 것입니다. 부하가 작은 테스트에서 이 버그가 드러나지 않는 이유입니다.');
     return { events: ev, summary: sum, expect: expect, row: [expect, count, lost + '번', c.sync === 'sync' ? '대기 ' + waits + '번' : c.sync === 'atomic' ? '재시도 ' + retries + '번' : '없음'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { count: 0, lost: 0, lock: null, ths: [] };
-    H.counters(v, [[sim.expect, '기대값'], [s.count, '지금 count'], [s.lost, '사라진 증가']]);
     H.title(v, '스레드');
     var ln = H.lanes(v), ph = c.sync === 'atomic' ? ['읽을 차례', 'CAS 할 차례'] : ['읽을 차례', '더할 차례', '쓸 차례'];
     for (var i = 0; i < c.threads; i++) {
@@ -93,7 +92,6 @@ Lab.register({
       var txt = th.left === 0 ? '끝' : th.blocked ? '락을 기다리는 중' : th.note + ' · ' + ph[th.phase];
       H.lane(ln, name, txt, th.left === 0 ? 'good' : th.blocked ? 'wait' : s.actor === th.id ? 'hot' : '');
     }
-    if (c.sync === 'sync') { H.title(v, '락'); H.slots(v, s.lock ? [['스레드 ' + s.lock + '가 잡고 있음', 'b']] : [['비어 있음', '']]); }
     H.text(v, '노란색은 방금 움직인 스레드, 파란색은 락을 기다리는 스레드입니다.');
   },
   // 그림: 가운데 위에 모두가 함께 쓰는 변수, 아래에 스레드들. 스레드는 값을 읽어 가서 자기 자리에서 더한 뒤 다시 쓴다.
@@ -112,7 +110,7 @@ Lab.register({
     P.box('exp', 16, 240, 208, 40, { cls: 'plain', title: '기대값', right: String(sim.expect) });
     P.box('now', 236, 240, 208, 40, { cls: 'plain', title: '지금 count', right: String(s.count) });
     P.box('lost', 456, 240, 208, 40, { cls: s.lost ? 'bad' : 'good', title: '사라진 증가', right: s.lost + '번' });
-    P.note('스레드는 count를 읽어 가서(아래로 가는 화살표) 자기 자리에서 1을 더한 뒤 다시 씁니다(위로 가는 화살표). 두 스레드가 같은 값을 읽어 간 뒤 각자 쓰면 한 번의 증가가 사라집니다.');
+    P.note('스레드는 count를 읽어 가서(아래로 가는 화살표) 자기 자리에서 1을 더한 뒤 다시 씁니다(위로 가는 화살표).');
   },
   assume: '한 번에 한 스레드의 한 단계만 실행하는 것으로 단순화했습니다. 실제 멀티코어에서는 여러 스레드가 진짜로 동시에 실행됩니다. 또 읽을 때는 항상 최신 값이 보인다고 가정했는데, 실제 일반 변수는 다른 스레드가 쓴 값이 보이지 않을 수도 있습니다(가시성 문제). 이 PC에서 JDK 21로 스레드 2개가 100만 번씩 올리는 실제 코드를 돌렸을 때 동기화 없는 count++는 1,017,250 ~ 1,892,129로 매번 달랐고, volatile을 붙여도 모자랐으며, synchronized와 AtomicInteger는 항상 2,000,000이었습니다. AtomicInteger는 읽기 → CAS → 실패하면 재시도의 순서로 그렸는데, 실제 JVM은 CPU에 따라 이 증가를 명령 하나로 끝내기도 해서 재시도가 눈에 띄지 않을 수 있습니다.',
 });

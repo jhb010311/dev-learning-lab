@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>복제 지연과 CAP: 방금 저장했는데 조회하니 옛날 값이 나온다 · 개발 학습 실습실</title>
-<meta name="description" content="쓰기는 원본(프라이머리) DB에, 읽기는 복제본(레플리카)에 나눠 보내면 읽기 부하를 분산할 수 있습니다. 하지만 원본의 변경이 복제본에 도착하기까지 시간이 걸립니다. 지연 시간과 읽는 시점을 바꿔 보고, 두 DB 사이의 네트워크가 끊겼을 때 무엇을 포기할지도 골라 보세요.">
+<meta name="description" content="쓰기는 원본(프라이머리) DB에, 읽기는 복제본(레플리카)에 나눠 보내면 읽기 부하를 분산할 수 있습니다. 하지만 원본의 변경이 복제본에 도착하기까지 시간이 걸립니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/replica/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/replica/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/replica/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="복제 지연과 CAP: 방금 저장했는데 조회하니 옛날 값이 나온다 · 개발 학습 실습실">
-<meta property="og:description" content="쓰기는 원본(프라이머리) DB에, 읽기는 복제본(레플리카)에 나눠 보내면 읽기 부하를 분산할 수 있습니다. 하지만 원본의 변경이 복제본에 도착하기까지 시간이 걸립니다. 지연 시간과 읽는 시점을 바꿔 보고, 두 DB 사이의 네트워크가 끊겼을 때 무엇을 포기할지도 골라 보세요.">
+<meta property="og:description" content="쓰기는 원본(프라이머리) DB에, 읽기는 복제본(레플리카)에 나눠 보내면 읽기 부하를 분산할 수 있습니다. 하지만 원본의 변경이 복제본에 도착하기까지 시간이 걸립니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/replica/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/db/">DB</a> › 확장과 분산</p>
 <h1>복제 지연과 CAP</h1>
 <p><b>방금 저장했는데 조회하니 옛날 값이 나온다</b></p>
-<p>쓰기는 원본(프라이머리) DB에, 읽기는 복제본(레플리카)에 나눠 보내면 읽기 부하를 분산할 수 있습니다. 하지만 원본의 변경이 복제본에 도착하기까지 시간이 걸립니다. 지연 시간과 읽는 시점을 바꿔 보고, 두 DB 사이의 네트워크가 끊겼을 때 무엇을 포기할지도 골라 보세요.</p>
+<p>쓰기는 원본(프라이머리) DB에, 읽기는 복제본(레플리카)에 나눠 보내면 읽기 부하를 분산할 수 있습니다. 하지만 원본의 변경이 복제본에 도착하기까지 시간이 걸립니다.</p>
 <p>개념 모형 · 원리를 보이는 모형</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -62,7 +62,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>저장 0.3초 뒤 복제본에서 조회한 결과는 &quot;철수&quot;입니다. 저장은 성공했는데 화면에는 옛 값이 보였습니다.</li>
 <li>복제는 보통 비동기라서 원본과 복제본 사이에 시차가 있습니다. 시간이 지나면 같아지지만 그 전에는 다를 수 있습니다(최종 일관성). 대응 방법은 자기가 방금 쓴 데이터는 원본에서 읽게 하거나, 쓰기 직후의 화면은 응답으로 받은 값을 그대로 쓰는 것입니다.</li>
 </ul>
 <h2>코드</h2>
@@ -161,6 +160,6 @@ public Member getMember(long id) {                      // -&gt; 복제본
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

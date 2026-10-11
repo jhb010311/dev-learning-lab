@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Averages and percentiles: The average response time looks fine, so why do users complain that it is slow? · Dev Learning Lab</title>
-<meta name="description" content="The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow. Change the share of slow requests and how slow…">
+<meta name="description" content="The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pct/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pct/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/pct/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Averages and percentiles: The average response time looks fine, so why do users complain that it is slow? · Dev Learning Lab">
-<meta property="og:description" content="The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow. Change the share of slow requests and how slow…">
+<meta property="og:description" content="The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/pct/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/arch/">Architecture and operations</a> › Observability</p>
 <h1>Averages and percentiles</h1>
 <p><b>The average response time looks fine, so why do users complain that it is slow?</b></p>
-<p>The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow. Change the share of slow requests and how slow they are, and see what the average and the percentiles (p50, p95, p99) each show and hide.</p>
+<p>The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow.</p>
 <p>Checked against real execution · Checked against a separate calculation of the same data in Java</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -63,7 +63,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Average 0.16s, p50 0.10s, p95 0.12s, p99 3.00s, maximum 3.00s.</li>
 <li>The average hides a small number of slow requests. Response times follow a skewed distribution, where most are fast and only a few are very slow, so the average does not represent the &quot;typical experience&quot;. That is why performance goals are set with percentiles, such as &quot;p99 is 1s or less&quot;, instead of &quot;an average of 0.2s&quot;.</li>
 <li>A user looking at one screen triggers several API calls, so the chance of hitting a slow one among them is higher than the share of slow individual requests. That is why the delay in the tail decides how fast the service feels.</li>
 </ul>
@@ -161,6 +160,6 @@ management.metrics.distribution.percentiles:
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

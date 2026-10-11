@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -60,7 +60,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>결과: 교착 상태. 완료된 이체 0건.</li>
 <li>교착 상태가 됐습니다. 두 이체 모두 끝나지 않고, 두 스레드는 예외도 없이 멈춰 있습니다. 스레드 덤프를 뜨면 서로의 락을 기다리는 BLOCKED 상태의 스레드로 확인할 수 있습니다.</li>
 <li>교착 상태는 네 조건이 모두 맞을 때 생깁니다: 한 번에 하나만 쓸 수 있는 자원, 가진 채로 다른 것을 기다림, 남의 것을 뺏을 수 없음, 기다림이 고리를 이룸. 이 중 하나만 깨면 됩니다. 락 순서 통일은 고리를, tryLock은 &quot;가진 채로 기다림&quot;을 깹니다.</li>
 </ul>
@@ -161,6 +160,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

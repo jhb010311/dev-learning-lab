@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>싱글톤 빈과 상태: 내 주문에 다른 사람 이름이 찍혔다 · 개발 학습 실습실</title>
-<meta name="description" content="스프링 빈은 기본적으로 하나만 만들어져 모든 요청이 함께 씁니다. 그 빈의 필드에 요청마다 달라지는 값을 저장하면, 동시에 들어온 다른 요청이 그 값을 덮어씁니다. 값을 어디에 두느냐에 따라 무슨 일이 생기는지 보세요.">
+<meta name="description" content="스프링 빈은 기본적으로 하나만 만들어져 모든 요청이 함께 씁니다. 그 빈의 필드에 요청마다 달라지는 값을 저장하면, 동시에 들어온 다른 요청이 그 값을 덮어씁니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/singleton/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/singleton/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/singleton/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="싱글톤 빈과 상태: 내 주문에 다른 사람 이름이 찍혔다 · 개발 학습 실습실">
-<meta property="og:description" content="스프링 빈은 기본적으로 하나만 만들어져 모든 요청이 함께 씁니다. 그 빈의 필드에 요청마다 달라지는 값을 저장하면, 동시에 들어온 다른 요청이 그 값을 덮어씁니다. 값을 어디에 두느냐에 따라 무슨 일이 생기는지 보세요.">
+<meta property="og:description" content="스프링 빈은 기본적으로 하나만 만들어져 모든 요청이 함께 씁니다. 그 빈의 필드에 요청마다 달라지는 값을 저장하면, 동시에 들어온 다른 요청이 그 값을 덮어씁니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/singleton/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › IoC 컨테이너와 DI</p>
 <h1>싱글톤 빈과 상태</h1>
 <p><b>내 주문에 다른 사람 이름이 찍혔다</b></p>
-<p>스프링 빈은 기본적으로 하나만 만들어져 모든 요청이 함께 씁니다. 그 빈의 필드에 요청마다 달라지는 값을 저장하면, 동시에 들어온 다른 요청이 그 값을 덮어씁니다. 값을 어디에 두느냐에 따라 무슨 일이 생기는지 보세요.</p>
+<p>스프링 빈은 기본적으로 하나만 만들어져 모든 요청이 함께 씁니다. 그 빈의 필드에 요청마다 달라지는 값을 저장하면, 동시에 들어온 다른 요청이 그 값을 덮어씁니다.</p>
 <p>실행으로 대조 · JDK 21에서 실행해 확인</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -63,7 +63,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>철수의 주문에는 &quot;영희&quot;, 영희의 주문에는 &quot;영희&quot;가 찍혔습니다.</li>
 <li>싱글톤 빈의 필드는 모든 요청이 공유합니다. 요청마다 달라지는 값을 필드에 두면 동시 요청에서 서로의 값을 덮어씁니다. 혼자 테스트할 때는 절대 드러나지 않고, 사용자가 몰릴 때만 간헐적으로 나타납니다.</li>
 </ul>
 <h2>코드</h2>
@@ -162,6 +161,6 @@ class OrderService {                 // 인스턴스는 하나뿐
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>HTTP caching and ETag</h1>
 <p><b>Do we have to fetch the same file again?</b></p>
-<p>A browser keeps a response it has received and uses it again later. If the server tells it, in the response headers, &quot;how long it may use the response as it is&quot; and &quot;a tag for the version of the content (the ETag)&quot;, the browser can skip the request altogether or ask only &quot;has it changed?&quot;. Change the settings and the timing, and watch what goes back and forth.</p>
+<p>A browser keeps a response it has received and uses it again later. If the server tells it, in the response headers, &quot;how long it may use the response as it is&quot; and &quot;a tag for the version of the content (the ETag)&quot;, the browser can skip the request altogether or ask only &quot;has it changed?&quot;.</p>
 <p>Checked against real execution · Checked with a test server and a real browser</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -62,7 +62,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Request sent to the server the second time: GET + If-None-Match. Response: 304 Not Modified. Body transferred in total while the address was opened twice: 200KB.</li>
 <li>A 304 response has no body, so almost nothing is transferred. One round trip still takes place, though, and the server has to do some work to find out the current ETag.</li>
 </ul>
 <h2>Code</h2>
@@ -162,6 +161,6 @@ ResponseEntity&lt;Product&gt; get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

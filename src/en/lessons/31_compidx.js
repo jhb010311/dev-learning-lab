@@ -1,7 +1,7 @@
 Lab.register({
   id: 'compidx', nav: 'Composite and covering indexes', cat: 'Database', mode: 'step',
   title: 'A composite index can be used only in column order',
-  intro: 'An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to narrow the search range, and once a range condition is reached, the columns after it cannot be used to narrow the range. Change the conditions and the selected columns to see how far the index is used.',
+  intro: 'An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to narrow the search range, and once a range condition is reached, the columns after it cannot be used to narrow the range.',
   terms: ['Composite index and leftmost prefix', 'Covering index', 'Clustered index and secondary index', 'Cardinality and selectivity', 'Query execution plan (EXPLAIN)'], ranks: ['index', 'tuning'],
   controls: [
     { id: 'ord', label: 'Column order of the index', type: 'select', value: 'msc', options: [['msc', '(member_id, status, created_at)'], ['mcs', '(member_id, created_at, status)']] },
@@ -54,16 +54,15 @@ Lab.register({
     else push(num(p.idxRead) + ' index entries in the narrowed range are read.' + (p.filt.length ? ' While reading, the remaining conditions are checked, and only ' + num(p.idxRead * p.filt.reduce(function (a, k) { return a * C[k][2]; }, 1)) + ' entries are kept.' : ''), '', 5);
     if (p.type !== 'ALL') push(p.cov ? 'Every column being selected is in the index, so the query finishes without going to the table (covering index). Table rows read: 0.' : 'SELECT * needs columns that are not in the index too. For each of the remaining ' + num(p.tblRead) + ' entries, the query goes to the table (the clustered index) and reads the whole row.', p.cov ? 'good' : '', 6);
     var usedNames = p.used.map(function (k) { return C[k][0]; }).join(', ') || 'none';
-    sum.push('Columns used to narrow the range: ' + usedNames + '. The query read ' + num(p.idxRead) + ' index entries and ' + num(p.tblRead) + ' table rows, and got about ' + num(Math.max(1, p.out)) + ' results.');
     if (!p.used.length) sum.push('A composite index cannot be used for searching when there is no condition on its first column. Put the columns of the conditions you use often first, and among them the columns used with "=".');
     else if (p.filt.length) sum.push('The conditions after the order was broken (' + p.filt.map(function (k) { return C[k][0]; }).join(', ') + ') could not narrow the range, so more index entries were read than necessary. If you put the "=" condition columns first and the range condition column last, all three columns narrow the range.');
     else if (p.used.length === 3) sum.push('The conditions continue in index order without a gap, so all three columns narrowed the range. The order in which you write the conditions in WHERE does not matter; the column order of the index decides.');
     if (p.cov && p.type !== 'ALL') sum.push('A secondary index holds only the index columns and the primary key, so if another column is needed, the query must go to the table one more time. If every needed column is in the index, that extra trip disappears. This is one reason to avoid SELECT *.');
+    if (!sum.length) sum.push('Columns used to narrow the range: ' + usedNames + '. The query read ' + num(p.idxRead) + ' index entries and ' + num(p.tblRead) + ' table rows, and got about ' + num(Math.max(1, p.out)) + ' results.');
     return { events: ev, summary: sum, p: p, row: [usedNames, p.type, num(p.idxRead), num(p.tblRead), p.extra || '(none)'] };
   },
   render: function (v, sim, t, H, shown) {
-    var c = sim.c, p = sim.p, C = this.COLS, ord = this.order(c), num = this.num, last = shown[shown.length - 1], st = last ? last.snap.stage : 0;
-    H.table(v, ['Index order', 'Column', 'WHERE condition', 'How it is used'], ord.map(function (k, i) { var on = st >= 2 + i, u = p.used.indexOf(k) >= 0, f = p.filt.indexOf(k) >= 0 && p.type !== 'ALL'; return { cells: ['#' + (i + 1), C[k][0], c[k] ? C[k][1] : '(no condition)', { v: !on ? '' : u ? 'Narrows the range' : f ? 'Filters while reading' : c[k] ? 'Not usable' : '-', cls: !on ? '' : u ? 'good' : f || c[k] ? 'bad' : '' }] }; }), 'Index idx_orders');
+    var p = sim.p, num = this.num, last = shown[shown.length - 1], st = last ? last.snap.stage : 0;
     if (st >= 5) { H.counters(v, [[num(p.idxRead), 'Index entries read'], [st >= 6 || p.type === 'ALL' ? num(p.tblRead) : '?', 'Table rows read'], [num(Math.max(1, p.out)), 'Result rows (approx.)']]);
       H.table(v, ['type', 'key', 'Extra'], [{ cells: [p.type, p.type === 'ALL' ? 'NULL' : 'idx_orders', p.extra || ''] }], 'In EXPLAIN (main columns only)'); }
   },

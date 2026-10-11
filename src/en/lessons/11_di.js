@@ -64,10 +64,8 @@ Lab.register({
     for (var k = 0; k < order.length && !failed; k++) if (st[order[k]] !== 'fully initialized') create(order[k], 'The container');
     var sum = [];
     if (failed) {
-      sum.push('Startup failed: the beans cannot be created because of a circular dependency (' + failed + ').');
       sum.push(ctor ? 'Constructor injection reveals a circular dependency right at startup. Even when you allow circular dependencies with the setting, a cycle between constructor-injected beans cannot be resolved. The solution is to remove the cycle itself by moving the functionality that the two beans share into a third bean.' : 'Since Spring Boot 2.6, circular dependencies are prohibited by default regardless of the injection style. You can allow them with a setting, but the recommendation is to change the design so that the cycle goes away.');
     } else {
-      sum.push('Startup succeeded. The objects were created in the order ' + made.join(' → ') + ', and the beans were fully initialized in the order ' + done.join(' → ') + '.');
       if (ctor) sum.push('With constructor injection, an object can be created only after its dependencies are fully initialized. So from the moment the object exists, all of its dependencies are in place, and the fields can be final.');
       else sum.push('With ' + how + ' injection, the object is created first and its dependencies are filled in later. In between, the object exists with its dependencies still null, and those fields cannot be final. If a test creates the object without Spring, its dependencies stay empty.');
       if (c.cycle) sum.push('Startup got through because circular dependencies were allowed, but an object whose injection was not finished was handed to another bean early. A structure in which two beans must know each other is likely to be a design problem in itself.');

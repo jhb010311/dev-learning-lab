@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -95,7 +95,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>호출 40번 중 성공 24번, 3초씩 기다리다 실패 8번, 차단되어 즉시 대체 응답 8번. 응답 없는 서비스를 기다리는 데 쓴 시간은 합계 24초입니다.</li>
 <li>상태가 CLOSED → OPEN → HALF_OPEN → OPEN → HALF_OPEN → CLOSED 순으로 바뀌었습니다. 열려 있는 동안에는 호출하지 않고 바로 대체 응답을 주므로 스레드가 묶이지 않고, 장애 난 서비스에도 부하를 주지 않아 회복할 틈을 줍니다. 일정 시간 뒤에는 소수의 호출만 보내 회복 여부를 확인합니다.</li>
 <li>차단 시간이 길면 서비스가 회복된 뒤에도 한동안 정상 호출까지 막힙니다. 짧으면 회복되지 않은 서비스를 자주 떠보게 됩니다. 임계치와 차단 시간은 서비스 특성에 맞춰 조정합니다.</li>
 </ul>
@@ -201,6 +200,6 @@ PaymentResult payLater(Order order, Throwable t) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

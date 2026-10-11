@@ -1,7 +1,7 @@
 Lab.register({
   id: 'hashmap', nav: 'Inside HashMap', cat: 'Data structures', mode: 'step',
   title: 'Where does a HashMap put a key, and how does it find it?',
-  intro: 'A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled. Change the hashCode implementation and whether equals is overridden, and see how the buckets fill up and whether a key that was put can be found again.',
+  intro: 'A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled.',
   terms: ['Hash table and HashMap', 'Hash collision', 'Load factor and resizing', 'Red-black tree', 'equals and hashCode contract'], ranks: ['collection', 'equals', 'ds'],
   controls: [
     { id: 'n', label: 'Number of keys to put', type: 'range', min: 1, max: 40, value: 13, fmt: function (v) { return v + ''; } },
@@ -74,7 +74,7 @@ Lab.register({
     else if (!hcOn) gs += 'The hash differs from that of the object used for the put, so the wrong bucket was examined. ' + (qb.nodes.length ? 'The nodes in that bucket (' + qb.nodes.length + ') differ in hash to begin with, so equals is not even called. ' : 'That bucket is empty. ') + 'null is returned. The value is in the map, but it cannot be retrieved.';
     else gs += 'The right bucket was reached, and the hash is the same too. But equals is not overridden, so it compares only "are these the same object", and the newly created object is a different object, so every comparison is false. All the nodes (' + qb.nodes.length + ') are compared, and null is returned.';
     push(gs, found ? 'good' : 'bad', qi);
-    var sum = ['Keys put: ' + c.n + '. Meanwhile the number of buckets went from 16 to ' + afterFill.cap + ' (number of resizes: ' + afterFill.resizes + '), and the number of entries in the longest bucket is ' + afterFill.longest + '.'];
+    var sum = [];
     if (hcOn && c.hash !== 'good' && afterFill.longest > 2) sum.push('When there are only a few distinct hashCode values, the keys pile up in the same buckets no matter how much the number of buckets grows. The longer a bucket gets, the slower put and get become, because they compare the entries in it one by one.');
     if (afterFill.trees) sum.push('Buckets converted to red-black trees: ' + afterFill.trees + '. A tree makes the search faster when the hash values differ from each other or the keys are Comparable. When, as in this example, every hashCode in a bucket is the same and the keys are not Comparable either, converting to a tree does not make the search faster. In the end, the solution is to make hashCode spread evenly.');
     if (c.eq === 'both') sum.push('Both equals and hashCode are overridden, so a new object created with the same id could also be used to replace the value and to find it.');
@@ -86,11 +86,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { cap: 16, thr: Math.floor(16 * +sim.c.lf), size: 0, resizes: 0, touch: -1, longest: 0, B: [] };
     H.counters(v, [[s.cap, 'Buckets'], [s.size, 'Entries stored'], ['> ' + s.thr, 'Resize threshold'], [s.resizes, 'Resizes'], [s.longest, 'Longest bucket']]);
-    H.title(v, 'Buckets: ' + s.cap + ' (each number is the number of entries in that bucket)');
-    var items = [];
-    for (var i = 0; i < s.cap; i++) { var b = s.B[i] || { n: 0 }; items.push([b.n ? String(b.n) + (b.tree ? 'T' : '') : '', (b.n === 0 ? '' : b.n === 1 ? 'd' : b.n < 8 ? 'q' : 'r') + (i === s.touch ? ' now' : '')]); }
-    H.slots(v, items, null, true);
-    H.text(v, 'Green is 1 entry, blue is 2 to 7 (a collision), red is 8 or more, and T is a bucket that was converted to a tree. A thick border marks the bucket that was just touched.');
     var rows = [];
     s.B.forEach(function (b, i) { if (b.n >= 2 || (i === s.touch && b.n)) rows.push({ cells: [{ v: i + '', cls: i === s.touch ? 'hot' : '' }, b.tree ? 'Red-black tree' : b.n > 1 ? 'Linked list' : '1 node', b.n + '', b.ids.slice(0, 12).join(' → ') + (b.n > 12 ? ' → …' : '')] }); });
     if (rows.length) H.table(v, ['Bucket', 'Structure', 'Entries', 'ids of the keys in it (in the order they were put)'], rows, 'The bucket that was just touched and the buckets with collisions');

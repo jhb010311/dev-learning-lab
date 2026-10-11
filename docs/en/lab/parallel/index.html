@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Threads and concurrency</p>
 <h1>Sequential and parallel calls</h1>
 <p><b>Several external calls: one after another, or all at once?</b></p>
-<p>To build a single product detail page, the application calls several services. If it calls them one after another, all the times add up. If it calls them at the same time, the page takes only as long as the slowest call. Change the number of calls and the way they are made, and see what difference a timeout on a slow call makes.</p>
+<p>To build a single product detail page, the application calls several services. If it calls them one after another, all the times add up. If it calls them at the same time, the page takes only as long as the slowest call.</p>
 <p>Checked against real execution · Checked by running code on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The total response time is 3.2s. The call times add up to 3.2s, and the slowest call takes 1.6s.</li>
 <li>With sequential calls, the response time is the sum of all the call times. If the calls do not depend on each other's results, there is no reason to make them one after another.</li>
 </ul>
 <h2>Code</h2>
@@ -161,6 +160,6 @@ return new ProductPage(product, stock, reviews, recommend);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

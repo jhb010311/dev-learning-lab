@@ -1,7 +1,7 @@
 Lab.register({
   id: 'mvc', nav: 'Spring MVC request flow', cat: 'Spring', mode: 'step',
   title: 'How one request reaches the controller, and how it goes back',
-  intro: 'An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse. Go through the steps to see which steps are skipped and what produces the response when the request is rejected along the way or an exception is thrown.',
+  intro: 'An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse.',
   terms: ['DispatcherServlet and the front controller pattern', 'HandlerMapping and HandlerAdapter', 'HandlerMethodArgumentResolver', 'HttpMessageConverter', 'Servlet filter', 'Interceptor (HandlerInterceptor)', '@ControllerAdvice and @ExceptionHandler', 'ViewResolver'], ranks: ['mvc', 'filter'],
   controls: [
     { id: 'kind', label: 'Kind of controller', type: 'select', value: 'rest', options: [['rest', '@RestController (JSON response)'], ['view', '@Controller (returns a view name)']] },
@@ -76,10 +76,11 @@ Lab.register({
       }
     }
     var has = function (id) { return seen.indexOf(id) >= 0; }, yn = function (b) { return b ? 'ran' : 'skipped'; };
-    var sum = ['The final response is ' + resp + '. Response produced by: ' + maker + '.', 'Controller method: ' + yn(has('CT')) + ', postHandle: ' + yn(has('PO')) + ', afterCompletion: ' + yn(has('AC')) + '.'];
+    var sum = [];
     if (c.what === 'filter') sum.push('Filters come before DispatcherServlet, so an exception thrown in a filter or a rejection by a filter cannot be handled with @ControllerAdvice.');
     if (c.what === 'ex') sum.push('When the controller throws an exception, postHandle is not called but afterCompletion is. That is why "cleanup work that must always run" goes in afterCompletion.');
     if (c.what === 'none' && rest) sum.push('An @RestController does not go through ViewResolver. The returned object becomes the response body directly through HttpMessageConverter.');
+    if (!sum.length) sum.push('The final response is ' + resp + '. Response produced by: ' + maker + '.');
     return { events: ev, summary: sum, rest: rest, row: [resp, yn(has('CT')), yn(has('PO')), yn(has('AC')), maker] };
   },
   render: function (v, sim, t, H, shown) {
@@ -89,7 +90,6 @@ Lab.register({
       return { cls: !seen && done ? 'gone' : '', cells: [String(i + 1), st[1], { v: state, cls: id === s.cur ? 'hot' : id === s.end ? 'bad' : seen ? 'good' : '' }] };
     });
     H.table(v, ['Order', 'Component', 'State'], rows, 'The path of the request (it goes in from top to bottom, and the response goes out at the last row)');
-    H.counters(v, [[done ? s.resp : 'In progress', 'Response the client receives']]);
   },
   // Diagram: the components the request passes through, laid out from top to bottom. It shows how far the request got and which components were skipped.
   draw: function (P, sim, shown) {
@@ -99,7 +99,7 @@ Lab.register({
     P.region('path', 16, 16, 648, 42 + stages.length * 29, 'The path of the request (top to bottom)');
     stages.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0; P.box('st_' + id, 28, 50 + i * 29, 624, 25, { cls: id === s.cur ? 'hot now' : id === s.end ? 'bad' : seen ? 'good' : 'ghost', title: (i + 1) + '. ' + st[1], right: id === s.cur ? 'now here' : id === s.end ? 'problem occurred here' : seen ? 'passed' : done ? 'skipped' : (group[id] || '') }); });
     P.box('resp', 16, 70 + stages.length * 29, 648, 34, { cls: !done ? 'ghost' : /^2/.test(s.resp) ? 'good' : 'bad', title: 'Response the client receives', right: done ? s.resp : 'In progress' });
-    P.note('Green marks a component the request has passed, yellow marks where it is now, red marks where a problem occurred, and a dashed outline marks a skipped component. If the request is stopped early, the components after that point do not run.');
+    P.note('Green marks a component the request has passed, yellow marks where it is now, red marks where a problem occurred, and a dashed outline marks a skipped component.');
   },
   assume: 'The lab shows a simple setup with one interceptor and one filter. For all 16 combinations, HTTP requests were sent to a real Spring Boot 4.1.1 server (embedded Tomcat), and the response code, whether the controller, postHandle, and afterCompletion ran, and what produced the response were confirmed to match the screen (the view response was checked by rendering with a view object of the same name instead of a template engine). That an unhandled exception is forwarded again to /error and becomes a 500 response is the default error handling behavior of Spring Boot, and that forwarding is shown as a single step. The case where no controller is mapped to the request (404) is not included, because the path differs depending on the version and the static resource configuration.',
 });

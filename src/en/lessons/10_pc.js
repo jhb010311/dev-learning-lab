@@ -1,7 +1,7 @@
 Lab.register({
   id: 'pc', nav: 'Persistence context', cat: 'JPA', mode: 'step',
   title: 'When does JPA send SQL?',
-  intro: 'JPA keeps entities in an in-memory space called the persistence context. It does not send SQL at the moment a line of code runs. It collects the SQL and sends it when it is needed. Follow the code one line at a time and see on which lines SQL is sent and on which lines it is not.',
+  intro: 'JPA keeps entities in an in-memory space called the persistence context. It does not send SQL at the moment a line of code runs. It collects the SQL and sends it when it is needed.',
   terms: ['Persistence context', 'First-level cache', 'Dirty checking', 'Transactional write-behind and flush', 'Entity'], ranks: ['jpaorm'],
   controls: [
     { id: 'sc', label: 'Code to try', type: 'select', value: 'update', options: [['find2', 'Load the same member twice'], ['update', 'Load a member, then change only the name (no save call)'], ['persist', 'Save 3 new members'], ['jpql', 'Change the name, then run a JPQL query']] },
@@ -81,17 +81,13 @@ Lab.register({
       push(-1, 'Method ends, commit: The changes have already been flushed, so there is no more SQL to send. When the commit happens, the change becomes visible to other transactions too.', '');
       result = 'Changed to Bob'; sum.push('A flush means sending the collected SQL to the database, and it is not the same as a commit. It happens automatically not only at commit but also just before a JPQL query runs.', 'In contrast, em.find looks in the first-level cache first, so it does not trigger a flush.');
     }
-    sum.unshift('SQL statements sent: ' + sent.length + ' (' + sent.map(function (q) { return q.sql.split(' ')[0].toUpperCase(); }).join(', ') + ').');
     return { events: ev, summary: sum, L: L, row: [String(sent.length), when, result] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { line: -2, cache: [], pending: [], sent: [], db: [{ id: 1, name: 'Alice' }] };
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }).concat([{ cells: ['', { v: '(method ends)', cls: s.line === -1 ? 'hot' : '' }, s.line === -1 ? '← now' : ''] }]), 'Running code');
-    H.counters(v, [[s.sent.length, 'SQL sent to the DB'], [s.pending.length, 'SQL queued, not yet sent']]);
-    if (s.cache.length) H.table(v, ['Entity', 'Current value', 'Snapshot (value first read)', 'State'], s.cache.map(function (e) { var diff = e.name !== e.snap; return { cells: ['Member ' + e.id, { v: e.name, cls: diff ? 'hot' : '' }, e.snap, e.st] }; }), 'Persistence context (first-level cache)'); else { H.title(v, 'Persistence context (first-level cache)'); H.text(v, 'It is empty.'); }
     if (s.pending.length) H.table(v, ['Queued SQL'], s.pending.map(function (q) { return { cells: [q] }; }), 'Write-behind queue');
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'SQL actually sent to the DB');
-    H.table(v, ['id', 'name'], s.db.map(function (r) { return { cells: [String(r.id), { v: r.name, cls: r.cls || '' }] }; }), 'The member table in the DB');
   },
   // Diagram: the persistence context (the first-level cache and the write-behind queue) on the left, the DB on the right. An arrow appears only in a step where SQL is actually sent.
   draw: function (P, sim, shown) {

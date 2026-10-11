@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › IoC container and DI</p>
 <h1>Singleton beans and state</h1>
 <p><b>My order shows someone else's name</b></p>
-<p>By default, only one instance of a Spring bean is created, and all requests share it. If you store a value that differs per request in a field of that bean, another request that comes in at the same time overwrites the value. See what happens depending on where you keep the value.</p>
+<p>By default, only one instance of a Spring bean is created, and all requests share it. If you store a value that differs per request in a field of that bean, another request that comes in at the same time overwrites the value.</p>
 <p>Checked against real execution · Checked by running code on JDK 21</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -63,7 +63,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Alice's order shows &quot;Bob&quot;, and Bob's order shows &quot;Bob&quot;.</li>
 <li>All requests share the fields of a singleton bean. If you keep a value that differs per request in a field, concurrent requests overwrite each other's values. This never shows up when you test alone, and it appears only intermittently when many users come in at once.</li>
 </ul>
 <h2>Code</h2>
@@ -162,6 +161,6 @@ class OrderService {                 // there is only one instance
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

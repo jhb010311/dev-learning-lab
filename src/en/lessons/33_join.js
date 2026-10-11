@@ -48,11 +48,11 @@ Lab.register({
     } else fbody = tab(rows);
     var park = hasPark(final);
     push('Final result. Rows: ' + final.length + '.', park || c.join === 'INNER' ? 'good' : '', 'Final result', fhead, fbody);
-    sum.push('Rows right after the join: ' + afterJoin + '. Final rows: ' + final.length + '. Carol, the member with no orders, is ' + (park ? 'included in the result.' : 'not in the result.'));
     if (c.join === 'LEFT' && c.cond === 'where') sum.push('If you put a WHERE condition on a column of the right table after a LEFT JOIN, the rows filled with NULL are filtered out, and the result becomes the same as with an INNER JOIN. If you want to keep the rows with no match and attach only the orders that satisfy the condition, write the condition in ON.');
     if (c.join === 'LEFT' && c.cond === 'on') sum.push('The condition in ON only decides which orders get attached. It does not remove rows of the left table (member). A member with no paid orders still stays, together with NULL.');
     if (c.join === 'INNER') sum.push('With an INNER JOIN, the result is the same whether you write the condition in ON or in WHERE. The difference appears only with an outer join.');
     if (c.agg !== 'none') sum.push('The processing order is FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT. That is why an alias given in SELECT (cnt) cannot be used in WHERE.');
+    if (!sum.length) sum.push('Rows right after the join: ' + afterJoin + '. Final rows: ' + final.length + '. Carol, the member with no orders, is ' + (park ? 'included in the result.' : 'not in the result.'));
     return { events: ev, summary: sum, row: [afterJoin + '', final.length + '', park ? 'Included' : 'Missing'] };
   },
   render: function (v, sim, t, H, shown) {

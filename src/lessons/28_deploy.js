@@ -66,11 +66,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { S: ['v1', 'v1', 'v1', 'v1'], G: [], lb: 'v1 서버 4대', cut: 0 };
     var cls = function (x) { return x === 'v1' ? 'q' : x === 'v2' ? 'd' : x === '없음' ? '' : 'b'; };
-    var ln = H.lanes(v); H.lane(ln, '로드밸런서', '요청을 보내는 곳: ' + s.lb, s.lb.indexOf('없음') >= 0 ? 'bad' : 'wait');
     H.title(v, sim.c.st === 'bluegreen' ? '기존 환경 (블루)' : '서버'); H.slots(v, s.S.map(function (x, i) { return ['서버 ' + (i + 1) + ': ' + x, cls(x)]; }), '');
     if (s.G.length) { H.title(v, '새 환경 (그린)'); H.slots(v, s.G.map(function (x, i) { return ['서버 ' + (i + 5) + ': ' + x, cls(x)]; }), ''); }
-    H.text(v, '파랑은 v1, 초록은 v2, 노랑은 내리거나 올리는 중인 서버입니다.');
-    H.counters(v, [[s.cut + '건', '끊긴 요청']]);
   },
   // 그림: 로드밸런서와 서버들. 서버의 색이 버전이고, 화살표가 닿은 서버가 지금 요청을 받는 서버다.
   draw: function (P, sim, shown) {

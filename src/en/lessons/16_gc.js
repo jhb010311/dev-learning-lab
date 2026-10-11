@@ -1,7 +1,7 @@
 Lab.register({
   id: 'gc', nav: 'GC and memory leaks', cat: 'JVM', mode: 'step',
   title: 'Who reclaims discarded objects, and when?',
-  intro: 'New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are promoted to the old generation, and when the old generation fills up, a full GC runs, which takes much longer. Change the rate at which objects are created, the share of long-lived objects, and the heap size, and see how the run ends when there is a memory leak.',
+  intro: 'New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are promoted to the old generation, and when the old generation fills up, a full GC runs, which takes much longer.',
   terms: ['Garbage collection (GC)', 'Reachability and GC roots', 'Young generation and old generation', 'Minor GC and full GC', 'Stop-the-world (STW)', 'Memory leak', 'StackOverflowError and OutOfMemoryError'], ranks: ['gc', 'jvm'],
   controls: [
     { id: 'rate', label: 'Objects created per tick', type: 'range', min: 2, max: 10, value: 5, fmt: function (v) { return v + ' objects'; } },
@@ -54,7 +54,7 @@ Lab.register({
     if (oom) t--;
     if (oom) push('Tick ' + t + ': Even after a full GC, no room was freed in the old generation, because live (referenced) objects alone fill the heap. A java.lang.OutOfMemoryError: Java heap space is thrown.', 'bad');
     var oldUse = cnt('O'), leaked = objs.filter(function (o) { return o.die === Infinity; }).length;
-    var sum = ['While ' + made + ' objects were created, the counts were: minor GCs ' + minor + ', full GCs ' + full + '. The application was paused for a total of ' + pause + '.'];
+    var sum = [];
     if (oom) sum.push('The run ended with an OutOfMemoryError. ' + (c.leak ? 'The static list still refers to the leaked objects (' + leaked + '), so the garbage collector cannot reclaim them. A larger heap only delays the failure, and the result is the same. You have to take a heap dump, find what is piling up, and remove the references.' : 'There are more long-lived objects than the heap can hold. If this is not a leak, you have to make the heap larger or cut down on whatever holds objects for a long time (the size of a cache, for example).'));
     else if (c.leak) sum.push('The program has not failed yet, but the leaked objects (' + leaked + ') keep piling up in the old generation. Old generation usage that does not go down after a full GC and only keeps rising is the sign of a leak. If the program runs longer, it ends with an OutOfMemoryError.');
     else if (full === 0) sum.push('Most objects were discarded quickly, so minor GCs alone were enough. Dividing the heap into generations is efficient when the assumption that "most objects die young" holds.');
@@ -64,9 +64,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { t: 0, minor: 0, full: 0, pause: 0, E: [], S: [], O: [] };
     H.counters(v, [[s.t, 'Tick'], [s.minor, 'Minor GCs'], [s.full, 'Full GCs'], [s.pause, 'Total pause time']]);
-    function region(name, arr, cap) { H.title(v, name + ' (' + arr.length + '/' + cap + ')'); var it = []; for (var i = 0; i < cap; i++) it.push(['', arr[i] || '']); H.slots(v, it, null, true); }
-    region('Eden: where new objects are created', s.E, sim.EC); region('Survivor space: objects that survived a minor GC', s.S, sim.SC); region('Old generation: objects promoted after surviving several times', s.O, sim.OC);
-    H.text(v, 'Green marks an object that is still referenced, red marks an object that is no longer referenced but has not been reclaimed yet, and yellow marks a leaked object (still referenced).');
   },
   // Diagram: the three areas of the heap drawn as slots. New objects go into eden, and the ones that survive go through the survivor space to the old generation.
   draw: function (P, sim, shown) {
@@ -79,7 +76,7 @@ Lab.register({
     P.region('O', 332, 16, 332, rh, 'Old ' + s.O.length + '/' + OC); cells('o', 332, s.O, OC, 16);
     var txt = last ? last.s : '', kind = txt.indexOf('Even after a full GC') >= 0 ? 'oom' : txt.indexOf('A full GC examines') >= 0 ? 'full' : txt.indexOf('A minor GC examines') >= 0 ? 'minor' : '';
     P.box('msg', 16, rh + 30, 648, 30, { cls: kind === 'oom' || kind === 'full' ? 'bad' : kind === 'minor' ? 'hot' : 'ghost', center: true, title: { oom: 'OutOfMemoryError: referenced objects alone fill the heap', full: 'Full GC: examines the whole heap (all threads pause for a long time)', minor: 'Minor GC: examines only eden and the survivor space (brief pause)', '': last ? 'Creating new objects in eden with no GC' : 'Click Run to start' }[kind] });
-    P.note('Green marks an object that is still referenced, red marks an object whose references are gone but that has not been reclaimed yet, yellow marks a leaked object (still referenced), and a dashed outline marks an empty slot. A new object is created in eden, and if it survives minor GCs, it moves through the survivor space to the old generation.');
+    P.note('Green marks an object that is still referenced, red marks an object whose references are gone but that has not been reclaimed yet, yellow marks a leaked object (still referenced), and a dashed outline marks an empty slot.');
   },
   assume: 'This is a simple model of generational garbage collection in which all objects have the same size and the heap is counted in slots. The condition for promotion is lowered to "survives two minor GCs" (the real default maximum is 15, and the garbage collector adjusts it to the situation). The pause times 1 and 10 only express the relationship that a minor GC is much shorter than a full GC. Real collectors such as G1 and ZGC work differently, for example by dividing the heap into smaller parts and working concurrently with the application, but the principle is the same: the area for new objects and the area for old objects are handled separately, and objects that are still referenced cannot be reclaimed. The slot counts and GC counts are values of the model. However, the same situations were actually run on JDK 21 on this PC with a 64MB heap to check the direction. Creating only objects that are discarded quickly gave 24 young collections and 0 full GCs. Mixing in objects that are held for a long time gave 7 full GCs (average pause: young 2.1ms, full 11.5ms). Continually adding objects to a list that is never cleared ended with an OutOfMemoryError after 37 repeated full GCs. With the heap enlarged to 128MB, the same leak ended with the same error after creating about twice as many objects.',
 });

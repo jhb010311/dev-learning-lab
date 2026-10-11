@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cors', nav: 'CORS', cat: 'HTTP', mode: 'step',
   title: 'Why a request works in Postman but is blocked only in the browser',
-  intro: 'By default, a browser does not let a script on a web page read a response from a server at a different origin. The block is lifted only when the server says in a response header that this origin is allowed. Change the kind of request and the server settings, and see when a preflight request is sent and whether the request reaches the server at all.',
+  intro: 'By default, a browser does not let a script on a web page read a response from a server at a different origin. The block is lifted only when the server says in a response header that this origin is allowed.',
   terms: ['CORS and the same-origin policy', 'Preflight request', 'HTTP methods', 'Cookie'], ranks: ['websec', 'http', 'network'],
   controls: [
     { id: 'api', label: 'Address of the API server (the page is https://shop.example)', type: 'select', value: 'cross', options: [['same', 'https://shop.example/api (same origin)'], ['cross', 'https://api.shop.example (different origin)']] },
@@ -57,11 +57,11 @@ Lab.register({
       if (j.ok) { row('Browser', 'Passes the response to the script', 'Passed', 'good'); push('The response has a header that allows this origin. The browser hands the response to the script.', 'good'); }
       else { row('Browser', 'Passes the response to the script', 'Blocked', 'bad'); push('The browser checks the response headers. ' + j.why + '. It does not hand the response to the script, and it prints a CORS error to the console. The server has already handled the request.', 'bad'); }
     }
-    sum.push('Preflight request: ' + (j.pre ? 'sent' : 'not sent') + '. The actual request ' + (j.reached ? 'reached' : 'did not reach') + ' the server, and the script ' + (j.ok ? 'received' : 'did not receive') + ' the response.');
     if (!j.ok) sum.push('CORS is a rule that the browser enforces, not the server. That is why the same request works from Postman or curl, and in calls between servers. The fix is for the API server to send the Allow headers, not for the front end to change.');
     if (!j.pre && !j.ok) sum.push('A simple request reaches the server and runs without any check beforehand. All the browser blocks is reading the response. CORS is not a mechanism that protects the server, so a request that changes state has to be protected with authentication and CSRF countermeasures.');
     if (c.srv === 'star' && c.cred) sum.push('For a request that carries cookies or other credentials, the server must give the exact origin in Access-Control-Allow-Origin and also send Access-Control-Allow-Credentials: true.');
     if (j.ok && j.pre) sum.push('A preflight request adds one more round trip each time. If the server sends Access-Control-Max-Age, the browser remembers the result for that time and does not ask again.');
+    if (!sum.length) sum.push('Preflight request: ' + (j.pre ? 'sent' : 'not sent') + '. The actual request ' + (j.reached ? 'reached' : 'did not reach') + ' the server, and the script ' + (j.ok ? 'received' : 'did not receive') + ' the response.');
     return { events: ev, summary: sum, row: [j.pre ? 'Sent' : 'Not sent', j.reached ? 'Yes' : 'No', j.ok ? 'Yes' : 'No', j.why || '-'] };
   },
   render: function (v, sim, t, H, shown) {

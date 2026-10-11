@@ -51,7 +51,6 @@ Lab.register({
         sum.push('When the waiting time is limited, the thread that could not acquire the lock releases the lock it holds, and the cycle is broken. In return, you need code that retries the failed operation, and the retry intervals are made slightly different so that the two threads do not keep giving up and retrying at the same time.');
       }
     }
-    sum.unshift(dead ? 'Result: deadlock. Transfers completed: 0.' : 'Result: all ' + done + ' transfers were completed. Lock waits: ' + waits + ', retries: ' + retries + '.');
     return { events: ev, summary: sum, row: [dead ? 'Deadlock' : 'Completed normally', done + '', waits + '', retries + ''] };
   },
   render: function (v, sim, t, H, shown) {
@@ -59,9 +58,7 @@ Lab.register({
     var w1 = s.st[1].indexOf('Waiting') >= 0, w2 = s.st[2].indexOf('Waiting') >= 0, dead = w1 && w2 && s.own.A === 1 && s.own.B === 2;
     H.title(v, 'Threads'); var ln = H.lanes(v);
     [1, 2].forEach(function (t2) { var x = s.st[t2]; H.lane(ln, 'Thread ' + t2, x + (t2 === 1 ? '  (A → B, amount 100)' : '  (B → A, amount 50)'), x === 'Transfer completed' ? 'good' : x.indexOf('Waiting') >= 0 ? (dead ? 'bad' : 'wait') : x === 'Not started' ? 'none' : 'hot'); });
-    H.table(v, ['Lock', 'Thread that holds it', 'Thread that waits for it'], ['A', 'B'].map(function (l) { var waiter = [1, 2].filter(function (t2) { return s.st[t2].indexOf('Waiting for ' + l) >= 0 || s.st[t2].indexOf('Waiting for the ' + l + ' lock') >= 0; }); return { cells: ['Account ' + l, { v: s.own[l] ? 'Thread ' + s.own[l] : 'None', cls: s.own[l] ? 'hot' : '' }, { v: waiter.length ? 'Thread ' + waiter[0] : 'None', cls: waiter.length ? (dead ? 'bad' : '') : '' }] }; }), 'State of the locks');
     if (dead) H.text(v, 'Thread 1 → (waits for B) → Thread 2 → (waits for A) → Thread 1. The waits form a cycle.');
-    H.counters(v, [[s.done + ' / 2', 'Transfers completed']]);
   },
   // Diagram: the two threads and the two locks are placed in a diamond shape. An arrow from a lock to a thread means "holds", and an arrow from a thread to a lock means "waits".
   draw: function (P, sim, shown) {

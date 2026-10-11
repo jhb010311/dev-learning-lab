@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cache', nav: '캐시와 TTL', cat: '대용량 트래픽', mode: 'time',
   title: '캐시를 두면 DB 조회가 얼마나 줄고, 언제 다시 몰리나',
-  intro: '인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다. TTL, 요청 빈도, DB 조회 시간을 바꿔 가며 적중률과 만료 순간에 DB로 몰리는 요청을 보세요.',
+  intro: '인기 상품 하나를 30초 동안 계속 조회합니다. 캐시에 값이 있으면 DB에 가지 않고, 없으면 DB에서 읽어 캐시에 넣어 둡니다(Cache-Aside). 값은 TTL이 지나면 사라집니다.',
   terms: ['캐시', 'Cache-Aside 패턴', 'TTL(Time To Live)', '캐시 스탬피드', 'Redis', '분산 락'], ranks: ['cache', 'traffic', 'nosql'],
   controls: [
     { id: 'ttl', label: '캐시 TTL', type: 'select', value: '10', options: [['0', '캐시 없음'], ['5', '5초'], ['10', '10초'], ['30', '30초 이상 (만료 없음)']] },
@@ -43,7 +43,7 @@ Lab.register({
     var avg = reqs.reduce(function (a, r) { return a + (r.done - r.t); }, 0) / reqs.length, rate = Math.round(hits / reqs.length * 100);
     if (ttl === 0) ev.push({ t: 0, s: '0.0초: 캐시가 없습니다. 모든 요청이 DB를 조회합니다.' });
     ev.sort(function (a, b) { return a.t - b.t; });
-    var sum = ['요청 ' + reqs.length + '건 중 ' + hits + '건(' + rate + '%)이 캐시에서 바로 응답했고, DB 조회는 ' + dbq + '번 일어났습니다. 한순간에 겹친 DB 조회는 최대 ' + peak + '건, 평균 응답 시간은 ' + (Math.round(avg * 100) / 100) + '초입니다.'];
+    var sum = [];
     if (ttl === 0) sum.push('같은 상품을 ' + reqs.length + '번 조회하는 데 DB를 ' + dbq + '번 읽었습니다. 자주 읽히고 잘 바뀌지 않는 데이터일수록 캐시의 효과가 큽니다.');
     else if (peak > 1 && !lock) sum.push('만료 순간 캐시가 채워지기 전까지(' + dbt + '초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락, 만료 전에 미리 갱신하기, 키마다 TTL에 약간의 차이를 주는 방법으로 줄입니다.');
     else if (lock) sum.push('락으로 캐시가 빌 때마다 한 요청만 DB를 조회했습니다. DB 부하는 지켰지만, ' + waits + '건은 그 조회가 끝날 때까지 기다렸습니다. 서버가 여러 대라면 서버들이 함께 쓰는 분산 락이어야 합니다.');
@@ -52,16 +52,7 @@ Lab.register({
   },
   render: function (v, sim, t, H) {
     var c = sim.c, done = sim.reqs.filter(function (r) { return r.t <= t + 1e-9; }), hits = done.filter(function (r) { return r.kind === 'hit'; }).length, dbq = sim.queries.filter(function (q) { return q[0] <= t + 1e-9; }).length;
-    var flying = sim.queries.filter(function (q) { return q[0] <= t + 1e-9 && q[1] > t + 1e-9; }).length;
     H.counters(v, [[done.length, '들어온 요청'], [hits, '캐시 적중'], [dbq, 'DB 조회'], [done.length ? Math.round(hits / done.length * 100) + '%' : '-', '적중률']]);
-    var ln = H.lanes(v), lastHit = done.filter(function (r) { return r.kind === 'hit'; }).pop(), lastReq = done[done.length - 1];
-    var cached = lastReq && lastReq.kind === 'hit';
-    H.lane(ln, '캐시', sim.ttl === 0 ? '사용 안 함' : cached ? '값 있음 · 요청에 바로 응답 중' : flying ? '값 없음 · DB 결과를 기다리는 중' : done.length ? '값 없음' : '비어 있음', sim.ttl === 0 ? 'none' : cached ? 'good' : 'bad');
-    H.lane(ln, 'DB', flying ? '지금 조회 ' + flying + '건 처리 중' : '한가함', flying > 3 ? 'bad' : flying ? 'hot' : '');
-    H.title(v, '초 단위로 본 DB 조회 수 (1칸 = 1초)');
-    var items = []; for (var s = 0; s < 30; s++) { var n = sim.queries.filter(function (q) { return q[0] >= s - 1e-9 && q[0] < s + 1 - 1e-9 && q[0] <= t + 1e-9; }).length; items.push([s < t ? String(n) : '', s >= t ? '' : n === 0 ? 'd' : n === 1 ? 'q' : 'r']); }
-    H.slots(v, items, null, true);
-    H.text(v, '초록은 DB 조회가 없던 초(전부 캐시에서 응답), 파랑은 1건, 빨강은 2건 이상 몰린 초입니다.');
   },
   // 그림: 요청이 캐시를 먼저 보고, 없을 때만 DB로 간다. 아래 줄은 초마다 DB까지 간 조회 수다.
   draw: function (P, sim, shown, t) {

@@ -44,7 +44,6 @@ Lab.register({
       ev.push({ t: 0.05, k: 'good', s: '0.1s: Every request (' + c.n + ' in total) is waiting for an external response. ' + (c.model === 'loop' ? 'The waiting is left to the operating system, so the event loop threads are free.' : 'When a virtual thread stops in a blocking call, the JVM unmounts that virtual thread from its OS thread. The OS thread can then run another virtual thread.') });
       ev.push({ t: w, k: 'good', s: fmt(w) + 's: The responses arrive. ' + (c.model === 'loop' ? 'The event loop runs the next steps that were registered, one after another, and the requests (' : 'The virtual threads are mounted on OS threads again and continue running, and the requests (') + c.n + ' in total) finish at almost the same time.' });
     }
-    sum.push('Requests handled: ' + c.n + '. OS threads used: ' + osT + '. Total time: ' + fmt(total) + 's. Peak number of requests in progress at the same time: ' + peak + '.');
     if (c.model === 'pool') sum.push('In the blocking style, the number of requests that can be handled at the same time cannot exceed the number of threads. The longer the wait, the longer the threads are tied up. The code is simple and easy to debug, which is why most services use this style.');
     if (c.model === 'loop' && !c.block) sum.push('The non-blocking style does not hold a thread while waiting, so a small number of threads keeps many requests in progress. In return, the whole call path (the database driver, the HTTP client) must be non-blocking, and the code becomes a chain of callbacks, which is hard to learn and to debug.');
     if (c.model === 'loop' && c.block) sum.push('There are very few event loop threads, so making a blocking call on one of them is far worse than even the thread pool approach. Calling JDBC or a blocking HTTP client as it is while using WebFlux is a typical mistake.');
@@ -60,7 +59,6 @@ Lab.register({
       else H.lane(ln, 'Thread ' + (i + 1), run.length ? 'free (the waiting is not done by a thread)' : 'idle', run.length ? 'good' : '');
     }
     if (!sim.serial) { H.title(v, c.model === 'virtual' ? 'Virtual threads (one per request, now unmounted from the OS threads and waiting)' : 'Requests waiting for a response (only registered, holding no thread)'); H.slots(v, run.map(function (r) { return ['Request ' + r.id, 'q']; }), done ? 'All finished' : 'None', true); }
-    else { H.title(v, 'Requests waiting for a thread to become free'); H.slots(v, wait.map(function (r) { return ['Request ' + r.id, 'q']; }), 'None', true); }
   },
   // Diagram: the position of a request (a numbered box) shows whether it waits while holding an OS thread or waits without a thread.
   draw: function (P, sim, shown, t) {
@@ -77,7 +75,7 @@ Lab.register({
     }
     if (!sim.serial) run.slice(0, 30).forEach(function (r, j) { P.box('rq' + r.id, 502 + (j % 3) * 52, 50 + Math.floor(j / 3) * 26, 48, 22, { cls: 'good', sub: String(r.id), center: true }); });
     P.box('dn', 16, H + 30, 648, 34, { cls: 'plain', title: 'Completed requests', right: done + ' / ' + c.n + '' });
-    P.note(sim.serial ? 'Each request holds one thread while it waits for its response. When every thread is tied up, the remaining requests wait in line on the left.' : 'While a request waits, it releases its thread (the numbers in the area on the right are request numbers). That is why even a small number of threads lets many requests wait at the same time.');
+    P.note(sim.serial ? 'Each request holds one thread while it waits for its response. When every thread is tied up, the remaining requests wait in line on the left.' : 'While a request waits, it releases its thread (the numbers in the area on the right are request numbers).');
   },
   assume: 'This model ignores the CPU time spent in handling a request and assumes that a request consists only of waiting for an external response. The number of OS threads that run the event loop and that carry the virtual threads is fixed at 2 (the real default follows the number of CPU cores). Virtual threads were finalized in JDK 21. In JDK 21 to 23 there was a limitation that a virtual thread waiting inside a synchronized block could not release its OS thread, and this was resolved in JDK 24. The times were actually measured on JDK 21 on this PC, with the wait shortened to 0.2s. With 12 requests, a pool of 4 threads took 619ms (handled in three rounds), blocking on 2 threads took 1,227ms, virtual threads took 216ms on 2 OS threads, and the approach that only registers the wait took 201ms on 2 threads. These are the same ratios as in the model (6s, 12s, 2s, 2s). The measurement did not run Spring WebFlux itself. It reproduced the same principle with the JDK alone.',
 });

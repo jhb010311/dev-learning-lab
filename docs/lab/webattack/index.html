@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>웹 공격 세 가지: 입력값을 그대로 믿으면 생기는 일 · 개발 학습 실습실</title>
-<meta name="description" content="SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다. 공격별로 방어를 켜고 끄며 무엇이 달라지는지…">
+<meta name="description" content="SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/webattack/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/webattack/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/webattack/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="웹 공격 세 가지: 입력값을 그대로 믿으면 생기는 일 · 개발 학습 실습실">
-<meta property="og:description" content="SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다. 공격별로 방어를 켜고 끄며 무엇이 달라지는지…">
+<meta property="og:description" content="SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/webattack/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 웹 공격과 방어</p>
 <h1>웹 공격 세 가지</h1>
 <p><b>입력값을 그대로 믿으면 생기는 일</b></p>
-<p>SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다. 공격별로 방어를 켜고 끄며 무엇이 달라지는지 보세요.</p>
+<p>SQL Injection, XSS, CSRF는 원리가 서로 다릅니다. 하나는 입력이 SQL의 일부가 되고, 하나는 입력이 다른 사용자 브라우저에서 스크립트로 실행되고, 하나는 로그인된 사용자의 브라우저가 대신 요청을 보내게 됩니다.</p>
 <p>일부만 실행으로 확인 · 세 공격의 일부를 SQLite와 브라우저로 확인</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>공격 결과: 성공. 피해: 비밀번호 없이 로그인 (데이터 조회·삭제도 가능).</li>
 <li>입력값이 &quot;값&quot;이 아니라 &quot;SQL 문법&quot;으로 해석된 것이 원인입니다. 같은 방법으로 다른 테이블을 조회하거나 데이터를 지우는 SQL도 끼워 넣을 수 있습니다.</li>
 </ul>
 <h2>코드</h2>
@@ -157,6 +156,6 @@ ResultSet rs = statement.executeQuery(sql);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

@@ -38,17 +38,17 @@ Lab.register({
     ev.sort(function (a, b) { return a.t - b.t; });
     var ok = reqs.filter(function (x) { return !x.fail; }), waits = ok.map(function (x) { return x.start - x.at; }), fails = reqs.length - ok.length;
     var avg = waits.length ? waits.reduce(function (a, b) { return a + b; }, 0) / waits.length : 0, mx = waits.length ? Math.max.apply(null, waits) : 0, total = reqs.reduce(function (m, x) { return Math.max(m, x.fail || x.done); }, 0);
-    var sum = ['요청 ' + c.n + '건 중 ' + ok.length + '건 성공, ' + fails + '건은 커넥션을 얻지 못해 실패했습니다. 성공한 요청은 커넥션을 평균 ' + fmt(avg) + '초, 최대 ' + fmt(mx) + '초 기다렸습니다.', '요청 하나가 커넥션을 쥐고 있는 시간은 ' + fmt(hold) + '초입니다(DB 작업 ' + c.q + '초' + (c.osiv && ext > 0 ? ' + 외부 API ' + c.ext + '초' : '') + ').'];
+    var sum = ext > 0 || fails ? [] : ['요청 ' + c.n + '건 중 ' + ok.length + '건 성공, ' + fails + '건은 커넥션을 얻지 못해 실패했습니다. 성공한 요청은 커넥션을 평균 ' + fmt(avg) + '초, 최대 ' + fmt(mx) + '초 기다렸습니다.'];
     if (c.osiv && ext > 0) sum.push('OSIV가 켜져 있으면 영속성 컨텍스트가 응답이 끝날 때까지 열려 있고, 그동안 DB 커넥션도 함께 붙잡혀 있습니다. DB를 쓰지 않는 외부 API 대기 시간까지 커넥션을 점유하므로, 트래픽이 많은 API 서버에서는 커넥션이 금방 모자랍니다. 끄면 트랜잭션이 끝날 때 커넥션을 돌려줍니다.');
     if (!c.osiv && ext > 0) sum.push('OSIV를 끄면 트랜잭션이 끝나는 즉시 커넥션을 돌려줍니다. 대신 트랜잭션 밖(컨트롤러, 뷰)에서는 지연 로딩을 쓸 수 없으므로, 필요한 데이터를 서비스 계층에서 미리 다 읽어 두어야 합니다.');
     if (fails) sum.push('풀을 무작정 늘리는 것은 해법이 아닙니다. DB가 감당할 수 있는 연결 수에 한계가 있고, 연결이 많아지면 DB 쪽에서 서로 경쟁해 오히려 느려집니다. 커넥션을 쥐는 시간을 줄이는 것(OSIV 끄기, 트랜잭션 범위 줄이기, 느린 쿼리 개선)이 먼저입니다.');
     return { total: total, events: ev, summary: sum, conns: conns, reqs: reqs, hold: hold, row: [ok.length + '건', fails + '건', fmt(avg) + '초', fmt(mx) + '초', fmt(hold) + '초'] };
   },
   render: function (v, sim, t, H) {
-    var c = sim.c, e = 1e-9, done = sim.reqs.filter(function (r) { return r.done !== undefined && r.done <= t + e; }).length, failed = sim.reqs.filter(function (r) { return r.fail !== undefined && r.fail <= t + e; }).length;
+    var c = sim.c, e = 1e-9;
     var waiting = sim.reqs.filter(function (r) { return r.at <= t + e && (r.fail !== undefined ? r.fail > t + e : r.start > t + e); });
     var busy = sim.conns.filter(function (cn) { return cn.segs.some(function (r) { return r.start <= t + e && r.rel > t + e; }); }).length;
-    H.counters(v, [[busy + ' / ' + c.pool, '사용 중인 커넥션'], [waiting.length, '커넥션을 기다리는 요청'], [done, '응답 완료'], [failed, '대기 시간 초과로 실패']]);
+    H.counters(v, [[busy + ' / ' + c.pool, '사용 중인 커넥션'], [waiting.length, '커넥션을 기다리는 요청']]);
     H.title(v, '커넥션 풀'); var ln = H.lanes(v);
     sim.conns.forEach(function (cn) { var r = cn.segs.filter(function (x) { return x.start <= t + e && x.rel > t + e; })[0];
       if (!r) H.lane(ln, '커넥션 ' + cn.id, '풀에서 대기 (빌려줄 수 있음)', 'none');

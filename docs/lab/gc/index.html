@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GC와 메모리 누수: 버려진 객체는 누가 언제 치우나 · 개발 학습 실습실</title>
-<meta name="description" content="새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다. 생성 속도, 오래 사는 객체의 비율, 힙 크기를 바꿔 보고 누수가 있으면…">
+<meta name="description" content="새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/gc/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/gc/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/gc/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="GC와 메모리 누수: 버려진 객체는 누가 언제 치우나 · 개발 학습 실습실">
-<meta property="og:description" content="새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다. 생성 속도, 오래 사는 객체의 비율, 힙 크기를 바꿔 보고 누수가 있으면…">
+<meta property="og:description" content="새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/gc/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>GC와 메모리 누수</h1>
 <p><b>버려진 객체는 누가 언제 치우나</b></p>
-<p>새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다. 생성 속도, 오래 사는 객체의 비율, 힙 크기를 바꿔 보고 누수가 있으면 어떻게 끝나는지 보세요.</p>
+<p>새 객체는 Eden에 만들어지고, Eden이 차면 Minor GC가 살아 있는 객체만 골라 옮깁니다. 여러 번 살아남은 객체는 Old로 올라가고, Old가 차면 훨씬 오래 걸리는 Full GC가 돕니다.</p>
 <p>일부만 실행으로 확인 · JDK 21에서 방향만 확인(수치는 모형)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -113,7 +113,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>객체 200개를 만드는 동안 Minor GC 9번, Full GC 0번이 돌았고 애플리케이션은 합계 9만큼 멈췄습니다.</li>
 <li>대부분의 객체가 금방 버려져서 Minor GC만으로 충분했습니다. &quot;대부분의 객체는 일찍 죽는다&quot;는 가정이 맞을 때 세대를 나누는 방식이 효율적입니다.</li>
 </ul>
 <h2>코드</h2>
@@ -212,6 +211,6 @@ while (running) {                       // 한 바퀴 = 한 틱
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

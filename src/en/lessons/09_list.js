@@ -31,16 +31,16 @@ Lab.register({
     function push(s, k, snap) { ev.push({ s: s, k: k, snap: snap }); }
     function cells(count, mark) { var a = []; for (var j = 0; j < count; j++) a.push([String(j), mark(j) || 'd']); return a; }
     if (c.op === 'append') {
-      var cap = 0, size = 0, copies = 0, grows = 0;
+      var cap = 0, size = 0, copies = 0;
       for (var x = 1; x <= n; x++) {
         if (arr && size === cap) {
-          var nc = cap === 0 ? 10 : cap + Math.max(1, cap >> 1), cp = size; copies += cp; if (cap > 0) grows++;
+          var nc = cap === 0 ? 10 : cap + Math.max(1, cap >> 1), cp = size; copies += cp;
           push(cap === 0 ? 'add(' + x + '): This is the first add, so an array of length 10 is created.' : 'add(' + x + '): The array of length ' + cap + ' is full. A new array of length ' + nc + ', which is 1.5 times as long, is created, all ' + cp + ' existing elements are copied into it, and then the new element is stored.', cap === 0 ? '' : 'bad', { size: size + 1, cap: nc, copies: copies, last: size });
           cap = nc; size++;
         } else { size++; push('add(' + x + '): ' + (arr ? 'The array has an empty position, so the element is stored right away. Nothing is copied.' : 'A new node is created and linked after the last node. The list keeps a separate reference to the last node, so no nodes have to be followed.'), '', { size: size, cap: arr ? cap : size, copies: copies, last: size - 1 }); }
       }
       moved = copies; big = arr ? 'O(1) (amortized)' : 'O(1)';
-      if (arr) { sum.push('While ' + n + ' elements were added, the array grew ' + grows + (grows === 1 ? ' time' : ' times') + ', and a total of ' + copies + ' elements were copied when it grew. That is an average of ' + (Math.round(copies / n * 100) / 100) + ' elements copied per add.'); sum.push('Even though there is an expensive copy now and then, most adds finish without copying, so on average the cost of one add is constant. This is called amortized O(1). If you know the number of elements in advance, you can set the capacity, as in new ArrayList<>(' + n + '), and avoid the copying.'); }
+      if (arr) { sum.push('Even though there is an expensive copy now and then, most adds finish without copying, so on average the cost of one add is constant. This is called amortized O(1). If you know the number of elements in advance, you can set the capacity, as in new ArrayList<>(' + n + '), and avoid the copying.'); }
       else sum.push('A LinkedList does no copying. Instead, it creates one node object for each element (' + n + ' of them) and stores two more references in each node, to the previous node and the next node, so it uses more memory.');
       return { events: ev, summary: sum, row: ['0', copies + '', big], kind: 'append' };
     }
@@ -67,7 +67,6 @@ Lab.register({
       if (c.op === 'add') { last = cells(n + 1, function (j) { return j === i ? 'b now' : ''; }); last[i][0] = '99'; push('A new node was created and inserted by changing only the links of the nodes before and after it. Not a single other element was moved.', 'good', { cells: last, linked: true }); big = hops ? 'O(n) (traversal) + O(1) (linking)' : 'O(1)'; sum.push(hops ? 'The insertion itself in a LinkedList only requires changing links, but ' + hops + ' links had to be followed to find the position. The saying "insertion into a LinkedList is fast" is true only when the position is already known (at either end, or where an iterator is pointing).' : 'Inserting an element ' + where + ' of a LinkedList requires neither following nodes nor shifting elements.'); }
       if (c.op === 'remove') { push('The node before it and the node after it were linked directly to each other, which took the node at index ' + i + ' out of the list. No other element was moved.', 'good', { cells: cells(n - 1, function () { return ''; }), linked: true }); big = hops ? 'O(n) (traversal) + O(1) (linking)' : 'O(1)'; sum.push(hops ? 'Removal from a LinkedList also only requires changing links, but ' + hops + ' links had to be followed to find the node to remove.' : 'Removing an element ' + where + ' of a LinkedList requires neither following nodes nor shifting elements.'); }
     }
-    sum.unshift('Nodes traversed: ' + hops + '. Elements shifted: ' + moved + '. The time complexity is ' + big + '.');
     return { events: ev, summary: sum, row: [hops + '', moved + '', big], kind: 'one' };
   },
   render: function (v, sim, t, H, shown) {
@@ -81,7 +80,6 @@ Lab.register({
     } else {
       H.title(v, arr ? 'Internal array (position number = index)' : 'Nodes (the first node is on the left, the last node on the right)');
       H.slots(v, s.cells, 'Empty', true);
-      H.text(v, arr ? 'Blue marks the elements that are shifted, and yellow marks the target position.' : 'Blue marks the nodes that are passed along the way, and yellow marks the target node.');
     }
   },
   // Diagram: in an array the positions sit side by side with no gaps, and in a linked list the separate nodes are connected by arrows.
@@ -98,7 +96,7 @@ Lab.register({
       if (arr) P.box('c' + j, 28 + col * 31, 52 + row * pitch, 31, 28, { cls: x[1], sub: x[0], center: true });
       else { var back = row % 2 === 1, cx = back ? per - 1 - col : col; P.box('c' + j, 28 + cx * 62, 52 + row * pitch, 42, 28, { cls: x[1], sub: x[0], center: true }); if (j) P.arrow('l' + j, 'c' + (j - 1) + (!col ? ':b' : back ? ':l' : ':r'), 'c' + j + (!col ? ':t' : back ? ':r' : ':l'), { cls: 'mut' }); }
     });
-    P.note(arr ? 'The number in each position is its index. Yellow is the target position, blue marks the elements that are shifted by one position, and a dashed outline is an empty position. The positions are contiguous, so inserting in the middle requires shifting all the elements after that point.' : 'The yellow node is the target, and the blue nodes are the ones passed on the way to it. A real LinkedList is linked in both directions, and because a location cannot be computed from an index, the arrows have to be followed.');
+    P.note(arr ? 'The number in each position is its index. Yellow is the target position, blue marks the elements that are shifted by one position, and a dashed outline is an empty position.' :'The yellow node is the target, and the blue nodes are the ones passed on the way to it. A real LinkedList is linked in both directions, and because a location cannot be computed from an index, the arrows have to be followed.');
   },
   assume: 'For a single insertion, the model assumes that the internal array of the ArrayList still has an empty position. The case in which the array is full is shown separately under "Keep appending to an empty list". The capacity of an ArrayList starting at 10 and growing to 1.5 times each time (10 → 15 → 22 → 33 → 49), and a LinkedList starting from the beginning or the end, whichever is closer to the index, are the same as in the JDK implementation. The points at which the capacity grows and the number of elements copied match the values that were checked by taking out the internal array of a real ArrayList on JDK 21 on this PC (adding 40 elements grows the array 4 times and copies 80 elements). Actual speed is not determined by the number of positions alone. An array is contiguous in memory, which favors the CPU cache, so an ArrayList is often faster than a LinkedList even when it has many elements to shift.',
 });

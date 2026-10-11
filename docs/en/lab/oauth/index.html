@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/sec/">Security</a> › Authentication</p>
 <h1>OAuth login flow</h1>
 <p><b>What is exchanged when you click &quot;Log in with Kakao&quot;</b></p>
-<p>Social login is a procedure in which our service gets permission to access a user's information, with the user's consent, without ever receiving the user's password. Some things travel through the browser, and others are exchanged directly between servers. Step through the normal flow and the cases where something goes wrong.</p>
+<p>Social login is a procedure in which our service gets permission to access a user's information, with the user's consent, without ever receiving the user's password. Some things travel through the browser, and others are exchanged directly between servers.</p>
 <p>Checked against documentation and standards · Checked against the OAuth 2.0 standard (RFC 6749)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -66,7 +66,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Result: Login succeeded. The user's Kakao password was entered only at Kakao, and our service never saw it.</li>
 <li>The authorization code arrives through the browser, while the token is exchanged directly between servers. The structure lets only a value that is useless by itself (the code) travel on the path that is easy to expose.</li>
 <li>OAuth 2.0 is, at its core, a procedure for being delegated permission (authorization). When it is used for login (authentication), the received token is used to look up user information and confirm who the user is, and OpenID Connect standardizes this.</li>
 </ul>
@@ -165,6 +164,6 @@ spring.security.oauth2.client.registration.kakao:
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'nplus1', nav: 'N+1', cat: 'JPA', mode: 'step',
   title: 'Why are many queries sent when you load the order list only once?',
-  intro: 'You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries sent to the DB changes. Change the fetching strategy and compare the query logs.',
+  intro: 'You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries sent to the DB changes.',
   terms: ['N+1 selects problem', 'Lazy fetching and eager fetching', 'Fetch join', '@EntityGraph', 'Batch fetching (batch size)', 'First-level cache'], ranks: ['nplus1', 'jpaorm'],
   controls: [
     { id: 'n', label: 'Number of orders loaded', type: 'range', min: 1, max: 30, value: 10, fmt: function (v) { return v + (v === 1 ? ' order' : ' orders'); } },
@@ -67,7 +67,7 @@ Lab.register({
       }
     });
     if (c.use && (joined || c.st === 'eager')) push('The loop took the member name of every order (' + c.n + ' in total). All the members were already loaded, so there are no extra queries.', '');
-    var total = qs.length, mq = total - 1, sum = ['Queries sent in total: ' + total + ' (order queries: 1, member queries: ' + mq + '). The DB round trips took ' + total * c.rt + 'ms.'];
+    var total = qs.length, mq = total - 1, sum = [];
     if (c.st === 'lazy' && c.use) sum.push('On top of the 1 list query, as many queries as members followed. This is the N+1 selects problem. The number of extra queries is decided not by the number of orders but by the number of distinct members that have not been read yet (' + c.m + ').');
     if (c.st === 'lazy' && !c.use) sum.push('Lazy fetching queries only when the data is actually used, so a screen that does not use the members finishes with 1 query. This is why lazy fetching is used as the default.');
     if (c.st === 'eager') sum.push('Even if you switch to eager fetching, the N+1 selects problem still occurs in a JPQL query. Only the timing moves earlier, to right after the query' + (c.use ? '' : ', and ' + mq + ' extra member queries were sent although the members are not used') + '. Eager fetching is not a solution to the N+1 selects problem.');

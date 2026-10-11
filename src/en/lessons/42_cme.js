@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cme', nav: 'Removing during iteration', cat: 'Data structures', mode: 'step',
   title: 'What happens when you remove elements inside a loop',
-  intro: 'The code iterates over the list [1, 2, 2, 3, 4] and tries to remove the elements whose value is 2. Depending on how it removes them, an exception is thrown, or one element is skipped with no exception at all. Change the method and the kind of collection to see the results.',
+  intro: 'The code iterates over the list [1, 2, 2, 3, 4] and tries to remove the elements whose value is 2. Depending on how it removes them, an exception is thrown, or one element is skipped with no exception at all.',
   terms: ['Fail-fast iterator', 'ArrayList', 'ConcurrentHashMap', 'Thread safety'], ranks: ['collection', 'exception'],
   controls: [
     { id: 'how', label: 'How to remove', type: 'select', value: 'foreach', options: [['foreach', 'list.remove() inside an enhanced for statement'], ['indexfwd', 'for statement with an index (front to back)'], ['indexback', 'for statement with an index (back to front)'], ['iterator', 'remove() of the Iterator'], ['removeIf', 'removeIf()']] },
@@ -52,11 +52,11 @@ Lab.register({
     if (c.how === 'removeIf') { list = list.filter(function (x2) { return x2 !== 2; }); push('removeIf filters out the elements that match the condition internally, all at once. You do not run the loop yourself, so the problem of modifying during iteration does not arise. The list is now ' + JSON.stringify(list).replace(/,/g, ', ') + '.', 'good', -1); }
     var res = '[' + list.join(', ') + ']', clean = list.indexOf(2) < 0;
     push('Final list: ' + res + (ex ? ' (stopped by an exception)' : '') + '.', clean && !ex ? 'good' : 'bad', -1);
-    sum.push('Result: ' + res + '. Exception: ' + (ex || 'none') + '. ' + (clean ? 'All the 2s were removed.' : 'A 2 is still in the list.'));
     if (ex === 'ConcurrentModificationException') sum.push('Despite its name, this exception is thrown even when there is only one thread. It occurs when a collection is modified during iteration without going through the iterator. The iterator detects the change by comparing modification counts and fails immediately.');
     if (c.how === 'indexfwd') sum.push('No exception is thrown, but the result is wrong. The loop skips the element that shifted into the position of the removed one. Being silently wrong is more dangerous than throwing an exception.');
     if (cow && c.how === 'foreach') sum.push('CopyOnWriteArrayList makes a fresh copy of the whole array on every modification, and an iterator goes over the old array. So modifying during iteration is safe, but each modification is costly. It suits cases where reads vastly outnumber modifications (such as a list of listeners). ConcurrentHashMap is also designed not to throw an exception when it is modified during iteration.');
     if (!ex && clean && c.how !== 'foreach') sum.push('To remove elements while iterating, use removeIf() or Iterator.remove().');
+    if (!sum.length) sum.push('Result: ' + res + '. Exception: ' + (ex || 'none') + '. ' + (clean ? 'All the 2s were removed.' : 'A 2 is still in the list.'));
     return { events: ev, summary: sum, res: res + (ex ? '|' + ex : ''), row: [res, ex || 'none', clean ? 'Yes' : 'No'] };
   },
   render: function (v, sim, t, H, shown) {

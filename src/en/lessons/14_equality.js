@@ -50,7 +50,6 @@ Lab.register({
     var prim = c.kind === 'int' && c.ib === 'prim';
     push(prim ? 'a == b: One side is the primitive type int, so the value is taken out of the Integer a (unboxing) and the two numbers are compared. ' + c.iv + ' == ' + c.iv + ', so the result is true.' : 'a == b: This compares whether the two variables refer to the same object. a refers to ' + A + ' and b refers to ' + B + ', so the result is ' + same + '.', same ? 'good' : 'bad', { eq: String(same) });
     push('a.equals(b): This compares the values inside the objects. The contents are the same, so the result is true.', 'good', { eq: String(same), equals: 'true' });
-    sum.push('a == b is ' + same + ', and a.equals(b) is true.');
     if (c.kind === 'str') { sum.push(same ? 'Both variables refer to the same object in the string pool, so == is true as well. But this is close to a coincidence that depends on how the strings were created.' : 'The contents are the same, but the two are different objects, so == is false.'); sum.push('Always use equals to compare the contents of strings. A string read from a database or from a request is not a literal, so comparing it with == gives false in most cases.'); }
     else { sum.push(prim ? 'When you compare an Integer and an int with ==, the Integer is unboxed and the values are compared. However, if the Integer is null, unboxing throws a NullPointerException.' : c.iv === '127' ? 'Integer.valueOf caches the objects for -128 through 127 and reuses them. That is why == is true in this range.' : '128 is outside the cache range, so a new object is created every time. This causes bugs in which tests pass because they use only small numbers, and then comparisons go wrong in production once the IDs grow large.'); sum.push('To compare the values of two wrapper class objects (Integer, Long), use equals.'); }
     return { events: ev, summary: sum, row: [String(same), 'true', prim ? '(compared with a primitive)' : same ? 'Same object' : 'Different objects'] };
@@ -58,10 +57,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    H.title(v, 'Variables (stack)'); var ln = H.lanes(v);
-    H.lane(ln, 'a', s.a ? '→ ' + s.a : 'not declared yet', s.a ? 'wait' : 'none'); H.lane(ln, 'b', s.b ? (s.b.indexOf('primitive') === 0 ? s.b : '→ ' + s.b) : 'not declared yet', s.b ? 'wait' : 'none');
     H.table(v, ['Object', 'Location', 'Value', 'Referenced by'], s.objs.map(function (o) { return { cls: o.by.length ? '' : 'gone', cells: ['Object ' + o.id, o.where, o.val, { v: o.by.length ? o.by.join(', ') : 'none (discarded)', cls: o.by.length > 1 ? 'good' : '' }] }; }), 'Objects in memory');
-    H.counters(v, [[s.cmp.eq || '?', 'a == b'], [s.cmp.equals || '?', 'a.equals(b)']]);
   },
   // Diagram: the variables on the left, and on the right two places, one above the other, where objects are placed. Arrows go from the variables to the objects.
   draw: function (P, sim, shown) {

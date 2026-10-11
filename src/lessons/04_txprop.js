@@ -68,18 +68,12 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { A: '없음', ro: false, B: null, SP: null, order: '없음', log: '없음', caller: '아직 호출 전' };
-    var cls = function (x) { return x === '커밋됨' ? 'good' : x === '롤백됨' ? 'bad' : x === '진행 중' ? 'hot' : x === '잠시 멈춤' ? 'wait' : 'none'; };
-    H.title(v, '트랜잭션'); var ln = H.lanes(v);
-    H.lane(ln, '트랜잭션 A', s.A + (s.ro ? ' · "롤백만 가능" 표시 붙음' : '') + ' (placeOrder가 시작)', s.ro && s.A === '진행 중' ? 'bad' : cls(s.A));
-    if (c.prop === 'REQUIRES_NEW') H.lane(ln, '트랜잭션 B', s.B ? s.B + ' (saveLog가 시작, 별도 커넥션)' : '아직 없음', s.B ? cls(s.B) : 'none');
-    if (c.prop === 'NESTED') H.lane(ln, '세이브포인트', s.SP ? s.SP + ' (A 안의 되돌아올 지점)' : '아직 없음', s.SP === '여기로 되돌림' ? 'bad' : s.SP === '만들어 둠' ? 'wait' : 'none');
     var st = function (x) { return x === '없음' ? '아직 없음' : x === '미커밋' ? 'INSERT함 (커밋 전)' : x === '커밋됨' ? '커밋됨 (DB에 남음)' : '롤백됨 (사라짐)'; };
     var cc = function (x) { return x === '커밋됨' ? 'good' : x === '롤백됨' ? 'bad' : x === '미커밋' ? 'hot' : ''; };
     H.table(v, ['데이터', '속한 트랜잭션', '상태'], [
       { cells: ['주문 1건', 'A', { v: st(s.order), cls: cc(s.order) }] },
       { cells: ['로그 1건', c.prop === 'REQUIRES_NEW' ? 'B' : c.prop === 'NESTED' ? 'A (세이브포인트 뒤)' : 'A', { v: st(s.log), cls: cc(s.log) }] },
     ], 'DB 테이블');
-    H.counters(v, [[s.caller, 'placeOrder()를 호출한 쪽이 받는 것']]);
   },
   // 그림: 트랜잭션을 상자로 그리고 그 안에 그 트랜잭션에 속한 데이터를 놓는다. 상자의 색이 곧 그 안 데이터의 운명이다.
   draw: function (P, sim, shown) {
@@ -93,7 +87,7 @@ Lab.register({
     if (ne) P.box('SP', 340, 82, 310, 112, { cls: s.SP === '여기로 되돌림' ? 'bad' : s.SP ? 'wait' : 'ghost', title: '세이브포인트 뒤 (A 안의 한 구간)', sub: s.SP || '아직 없음' });
     P.box('log', rn ? 368 : ne ? 354 : 342, ne ? 128 : 100, rn ? 280 : ne ? 282 : 306, ne ? 54 : 60, { cls: dc(s.log), title: '로그 1건', sub: st(s.log) });
     P.box('caller', 16, 232, 648, 40, { cls: s.caller === '아직 호출 전' ? 'ghost' : s.caller.indexOf('Exception') >= 0 ? 'bad' : 'good', title: 'placeOrder()를 호출한 쪽이 받는 것', right: s.caller });
-    P.note('큰 상자가 트랜잭션이고, 그 안의 작은 상자가 그 트랜잭션에 속한 데이터입니다. 트랜잭션이 롤백되면 안에 든 데이터가 함께 사라집니다. 로그가 어느 상자 안에 있는지가 전파 속성의 차이입니다.');
+    P.note('큰 상자가 트랜잭션이고, 그 안의 작은 상자가 그 트랜잭션에 속한 데이터입니다. 트랜잭션이 롤백되면 안에 든 데이터가 함께 사라집니다.');
   },
   assume: 'saveLog()는 다른 빈의 메서드라서 프록시를 거쳐 호출됩니다(같은 클래스 안에서 부르면 안쪽 @Transactional이 적용되지 않습니다. 이 내용은 "프록시와 자기 호출" 실습에서 다룹니다). 규칙은 스프링 프레임워크의 기본 동작을 따랐습니다. 언체크 예외와 Error에만 롤백하고, 참여한 트랜잭션에서 롤백 대상 예외가 나가면 전체에 rollback-only 표시를 남깁니다. NESTED는 JDBC 세이브포인트로 구현되며 JdbcTemplate이나 MyBatis가 쓰는 DataSourceTransactionManager에서 동작합니다. JPA(JpaTransactionManager + Hibernate)에서는 NESTED를 쓰면 NestedTransactionNotSupportedException이 납니다. 세이브포인트가 JDBC 커넥션에만 적용되고 영속성 컨텍스트에는 적용되지 않기 때문입니다. 72가지 조합 모두를 실제 스프링(스프링 프레임워크 7.0.9, DataSourceTransactionManager, H2 데이터베이스)에서 실행해, 주문과 로그가 DB에 남는지, 호출한 쪽이 받는 것, 동시에 쓴 커넥션 수가 화면과 일치하는 것을 확인했습니다.',
 });

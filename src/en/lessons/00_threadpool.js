@@ -1,7 +1,7 @@
 Lab.register({
   id: 'threadpool', nav: 'Thread pool', cat: 'Concurrency', mode: 'time',
   title: 'What changes when you add more threads',
-  intro: 'When a request comes in, one thread handles it from start to finish. If there are not enough threads, requests wait in a queue, and when the queue is also full, requests are rejected. Change the numbers and watch how the waiting and the rejections change.',
+  intro: 'When a request comes in, one thread handles it from start to finish. If there are not enough threads, requests wait in a queue, and when the queue is also full, requests are rejected.',
   terms: ['Thread pool', 'How ThreadPoolExecutor handles a new task', 'Tomcat\'s threading model', 'Blocking and non-blocking'], ranks: ['threadpool', 'was'],
   controls: [
     { id: 'core', label: 'Core pool size', type: 'range', min: 1, max: 8, value: 2, fmt: function (v) { return v + ''; } },
@@ -55,9 +55,7 @@ Lab.register({
     var ok = reqs.filter(function (r) { return !r.rejected; }), waits = ok.map(function (r) { return r.start - r.at; });
     var total = ok.reduce(function (m, r) { return Math.max(m, r.end); }, 0), rej = reqs.length - ok.length;
     var avg = waits.length ? waits.reduce(function (a, b) { return a + b; }, 0) / waits.length : 0, mx = waits.length ? Math.max.apply(null, waits) : 0;
-    var sum = ['Requests: ' + c.n + '. Handled: ' + ok.length + '. Rejected: ' + rej + '. Total time: ' + fmt(total) + 's.',
-      'The requests that were handled spent ' + fmt(avg) + 's in the queue on average, and the one that waited longest spent ' + fmt(mx) + 's there.',
-      'Threads created: ' + threads.length + ' (core pool size ' + c.core + ', maximum pool size ' + c.max + ').'];
+    var sum = ['The requests that were handled spent ' + fmt(avg) + 's in the queue on average, and the one that waited longest spent ' + fmt(mx) + 's there.'];
     if (c.unb && threads.length <= c.core && c.max > c.core) sum.push('The queue is unbounded, so it never became full, and that is why the maximum pool size of ' + c.max + ' was never used.');
     if (rej > 0) sum.push('To get rid of the rejections, add threads, make the queue longer (requests then wait longer), or reduce the time it takes to handle a request.');
     if (rej === 0 && mx === 0) sum.push('Every request was handled right away without waiting. There are enough threads for this load.');
@@ -65,26 +63,21 @@ Lab.register({
       row: [ok.length + '', rej + '', fmt(avg) + 's', fmt(mx) + 's', fmt(total) + 's', threads.length + ''] };
   },
   render: function (v, sim, t, H) {
-    var c = sim.c, slots = Math.max(c.max, sim.threads.length), busyN = 0, made = 0, rows = [];
+    var c = sim.c, slots = Math.max(c.max, sim.threads.length), rows = [];
     for (var i = 0; i < slots; i++) {
       var th = sim.threads[i];
       if (!th || th.created > t + 1e-9) { rows.push(['Thread ' + (i + 1), i < c.core ? 'not created yet (core thread)' : 'not created yet (created only when the queue is full)', 'none']); continue; }
-      made++;
       var cur = th.segs.filter(function (r) { return r.start <= t + 1e-9 && r.end > t + 1e-9; })[0];
-      if (cur) { busyN++; rows.push(['Thread ' + (i + 1), 'handling request ' + cur.id + ' · ' + H.fmt(cur.end - t) + 's left', '', (t - cur.start) / c.work]); }
+      if (cur) { rows.push(['Thread ' + (i + 1), 'handling request ' + cur.id + ' · ' + H.fmt(cur.end - t) + 's left', '', (t - cur.start) / c.work]); }
       else rows.push(['Thread ' + (i + 1), 'idle', '']);
     }
     var q = sim.reqs.filter(function (r) { return r.queued !== undefined && r.queued <= t + 1e-9 && r.start > t + 1e-9; });
-    var rj = sim.reqs.filter(function (r) { return r.rejected && r.at <= t + 1e-9; });
-    var doneN = sim.reqs.filter(function (r) { return !r.rejected && r.end <= t + 1e-9; }).length;
-    H.counters(v, [[made, 'Threads created'], [busyN, 'Busy threads'], [q.length, 'Requests waiting'], [doneN, 'Completed'], [rj.length, 'Rejected']]);
     H.title(v, 'Threads'); var ln = H.lanes(v); rows.forEach(function (r) { H.lane(ln, r[0], r[1], r[2], r[3]); });
     H.title(v, 'Queue');
     var items = [], capN = c.unb ? Math.max(q.length, 1) : c.cap;
     for (var j = 0; j < capN; j++) items.push(q[j] ? ['Request ' + q[j].id, 'q'] : [c.unb ? 'empty' : 'empty slot', '']);
     if (c.unb) items.push(['… unbounded', '']);
     H.slots(v, items, 'The queue has no capacity. When no thread is idle, the pool immediately adds a thread or rejects the request.');
-    H.title(v, 'Rejected requests'); H.slots(v, rj.map(function (r) { return ['Request ' + r.id, 'r']; }), 'None');
   },
   // Diagram: the queue and the rejected requests on the left, the threads on the right. A request (a numbered box) moves from the queue to a thread, and goes to the rejected area when there is no room.
   draw: function (P, sim, shown, t) {
@@ -105,7 +98,7 @@ Lab.register({
       if (cur) P.box('rq' + cur.id, 540, y + 3, 104, 18, { cls: 'wait', sub: 'Request ' + cur.id + '', center: true, from: 'th' + i });
     }
     P.text('done', 358, H + 8, 'Completed: ' + doneN + '', { cls: 'good' });
-    P.note('The blue boxes with numbers are requests. When every thread is busy, a request goes into the queue first, and only after the queue is full does the number of threads grow, up to the maximum pool size. If there is still no room, the request goes to the rejected area.');
+    P.note('The blue boxes with numbers are requests.');
   },
   assume: 'While a request is being handled, one thread is tied up for the whole handling time (a request that waits for a slow database or external API). The model assumes that adding threads costs nothing. In reality each thread uses memory, and when more threads want the CPU than there are cores, the cost of switching between them grows. The order in which threads are assigned (core threads → queue → threads up to the maximum → rejection) is the same as the actual rule of the Java ThreadPoolExecutor, and it was checked against real execution.',
 });

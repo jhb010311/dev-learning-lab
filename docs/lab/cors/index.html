@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CORS: Postman에서는 되는데 브라우저에서만 막히는 이유 · 개발 학습 실습실</title>
-<meta name="description" content="브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 &quot;이 출처는 허용한다&quot;고 알려 줘야 풀립니다. 요청 종류와 서버 설정을 바꿔 가며 사전 요청(preflight)이 언제 나가는지, 요청이 서버에 닿기는 하는지 확인하…">
+<meta name="description" content="브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 &quot;이 출처는 허용한다&quot;고 알려 줘야 풀립니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/cors/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cors/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cors/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="CORS: Postman에서는 되는데 브라우저에서만 막히는 이유 · 개발 학습 실습실">
-<meta property="og:description" content="브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 &quot;이 출처는 허용한다&quot;고 알려 줘야 풀립니다. 요청 종류와 서버 설정을 바꿔 가며 사전 요청(preflight)이 언제 나가는지, 요청이 서버에 닿기는 하는지 확인하…">
+<meta property="og:description" content="브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 &quot;이 출처는 허용한다&quot;고 알려 줘야 풀립니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/cors/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>CORS</h1>
 <p><b>Postman에서는 되는데 브라우저에서만 막히는 이유</b></p>
-<p>브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 &quot;이 출처는 허용한다&quot;고 알려 줘야 풀립니다. 요청 종류와 서버 설정을 바꿔 가며 사전 요청(preflight)이 언제 나가는지, 요청이 서버에 닿기는 하는지 확인하세요.</p>
+<p>브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 &quot;이 출처는 허용한다&quot;고 알려 줘야 풀립니다.</p>
 <p>실행으로 대조 · 시험 서버 두 개와 실제 브라우저로 24가지 조합 실행</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -60,7 +60,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>사전 요청 있음, 본 요청은 서버에 도착하지 않았고, 스크립트는 응답을 받지 못했습니다.</li>
 <li>CORS는 서버가 아니라 브라우저가 지키는 규칙입니다. 그래서 Postman이나 curl, 서버끼리의 호출에서는 같은 요청이 문제없이 됩니다. 해결은 프론트가 아니라 API 서버가 허용 헤더를 내려 주는 것입니다.</li>
 </ul>
 <h2>코드</h2>
@@ -157,6 +156,6 @@ fetch('https://api.shop.example/orders', {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

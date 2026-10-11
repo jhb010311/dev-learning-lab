@@ -1,7 +1,7 @@
 Lab.register({
   id: 'tls', nav: 'TLS handshake', cat: 'Networking', mode: 'step',
   title: 'What happens before the https padlock locks',
-  intro: 'HTTPS is HTTP wrapped in TLS. Before any data is sent, the browser and the server check that "the other side really is that server" and create "an encryption key that only the two of them know". Watch where public-key cryptography and symmetric-key cryptography are each used in this process, and where the handshake stops when something is wrong with the certificate.',
+  intro: 'HTTPS is HTTP wrapped in TLS. Before any data is sent, the browser and the server check that "the other side really is that server" and create "an encryption key that only the two of them know".',
   terms: ['HTTPS and TLS', 'TLS handshake and certificates', 'Symmetric-key cryptography and public-key cryptography', 'HMAC and digital signatures'], ranks: ['network', 'websec', 'http'],
   controls: [
     { id: 'cert', label: 'State of the server certificate', type: 'select', value: 'ok', options: [['ok', 'Valid'], ['expired', 'Past its validity period'], ['name', 'Certificate for a different domain'], ['self', 'Issued by an untrusted source (self-signed)']] },
@@ -33,14 +33,12 @@ Lab.register({
     step('Server → Browser', 'CertificateVerify: signature over everything so far', 'The server signs everything exchanged so far with its private key and sends the signature. The browser checks this signature with the public key in the certificate. Anyone can copy a certificate, but only the real server that holds the matching private key can create the signature.', 'good');
     step('Both sides', 'Finished: confirms that the whole handshake was not tampered with', 'Both sides exchange a verification value over the entire handshake, to check that no one changed a message in the middle.', '');
     S.lock = 'Encrypted with the symmetric key'; step('Browser ↔ Server', 'HTTP request and response (symmetric-key encrypted)', 'Now the HTTP request and the response travel encrypted with the agreed symmetric key. Someone watching in the middle can see only roughly which server you are talking to, and cannot see the content (the path of the address, the headers, cookies, and the body).', 'good');
-    sum.push('The handshake is finished and encrypted communication has started.');
     sum.push('Public-key cryptography (a public key and a private key) is used only for the signatures that confirm the other side is genuine and for agreeing on a key safely. The reason is that its computation is slow. The actual data is encrypted with the fast symmetric key. The two methods share the work, each doing what it is good at.');
     sum.push('TLS 1.3 completes this process in one round trip (earlier versions need two). Even so, every connection has a cost, so it is important to reuse a connection once it has been made.');
     return { events: ev, summary: sum, row: ['Connection succeeded', '-', 'Symmetric key created by the key exchange'] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], key: 'None', lock: 'Not yet encrypted' };
-    H.counters(v, [[s.key, 'Encryption key'], [s.lock, 'Connection state']]);
     if (s.rows.length) H.table(v, ['Direction', 'Content'], s.rows, 'Handshake sequence'); else H.text(v, 'Click Run to start.');
   },
   // Diagram: the handshake messages exchanged between the browser and the server. The calculations and checks each side makes are drawn as boxes.
@@ -51,7 +49,7 @@ Lab.register({
     P.box('key', 16, end + 14, 318, 48, { cls: s.key === 'None' ? 'ghost' : 'good', title: 'Encryption key', sub: s.key });
     P.box('lock', 346, end + 14, 318, 48, { cls: enc ? 'good' : s.lock.indexOf('Not yet') === 0 ? 'ghost' : 'bad', title: 'Connection state', sub: s.lock });
     P.size(680, end + 78);
-    P.note('An arrow is a message sent between the two sides, and a box on one side\'s line is work done inside that side (a calculation or a check). If certificate validation fails, nothing below it happens.');
+    P.note('An arrow is a message sent between the two sides, and a box on one side\'s line is work done inside that side (a calculation or a check).');
   },
   assume: 'This simplifies the basic TLS 1.3 handshake (in a real handshake, several of the server\'s reply messages are sent bundled together). The key exchange is the kind in which both sides exchange public values and compute the same secret (ECDHE); it does not encrypt a symmetric key with the server\'s public key and send it, as the older method did. The certificate checks follow the standard procedure of TLS and the web PKI. On the PC used to write this lab, openssl was used to create a test certificate authority and four kinds of certificate, and real TLS 1.3 connections were made with them to check. The valid certificate passed validation, and each of the others was rejected with the error certificate has expired, hostname mismatch, or self-signed certificate. It was also confirmed that the handshake messages are exchanged in the order ClientHello, ServerHello, EncryptedExtensions, Certificate, CertificateVerify, Finished.',
 });

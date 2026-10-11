@@ -1,7 +1,7 @@
 Lab.register({
   id: 'iso', nav: '격리 수준', cat: '데이터베이스', mode: 'step',
   title: '다른 트랜잭션이 바꾸는 중인 데이터가 내게 어떻게 보이나',
-  intro: '트랜잭션 A가 조회하는 사이에 트랜잭션 B가 같은 데이터를 바꿉니다. 격리 수준에 따라 A가 B의 변경을 보기도 하고 못 보기도 합니다. 상황 세 가지와 격리 수준 네 가지를 바꿔 가며 A의 눈에 보이는 값을 확인하세요.',
+  intro: '트랜잭션 A가 조회하는 사이에 트랜잭션 B가 같은 데이터를 바꿉니다. 격리 수준에 따라 A가 B의 변경을 보기도 하고 못 보기도 합니다.',
   terms: ['트랜잭션 격리 수준', 'Dirty Read', 'Non-repeatable Read', 'Phantom Read', 'MVCC(다중 버전 동시성 제어)', 'Undo 로그와 Redo 로그', '공유 락과 배타 락'], ranks: ['isolation', 'dbengine'],
   controls: [
     { id: 'sc', label: '상황', type: 'select', value: 'nonrep', options: [['dirty', 'B가 수정하고 아직 커밋하지 않은 값을 A가 조회'], ['nonrep', 'A가 두 번 조회하는 사이에 B가 수정하고 커밋'], ['phantom', 'A가 두 번 조회하는 사이에 B가 새 행을 추가하고 커밋']] },
@@ -72,9 +72,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { tl: [], ver: [], first: '-', second: '-' };
-    H.counters(v, [[s.first, 'A의 첫 번째 조회 결과'], [s.second, 'A의 두 번째 조회 결과']]);
     H.table(v, ['순서', '트랜잭션 A', '트랜잭션 B'], s.tl.map(function (r, i) { var on = i === s.tl.length - 1; return { cells: [String(i + 1), { v: r.a, cls: r.a && (r.k === 'bad' ? 'bad' : r.k === 'good' ? 'good' : on ? 'hot' : '') }, { v: r.b, cls: r.b && on ? 'hot' : '' }] }; }), '시간 순서 (위에서 아래로)');
-    if (s.ver.length) H.table(v, ['DB 안의 데이터', '값'], s.ver.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[2] }] }; }), sim.c.sc === 'phantom' ? 'orders 테이블' : 'account 테이블의 id = 1 행');
   },
   // 그림: 트랜잭션 A와 B가 가운데의 DB에 번갈아 명령을 보내는 순서. A가 읽은 값이 어떻게 달라지는지가 핵심.
   draw: function (P, sim, shown) {

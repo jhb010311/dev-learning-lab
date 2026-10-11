@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>재고 서비스에서 실패해 보상 2개를 역순으로 실행했습니다. 최종적으로 주문은 취소됐습니다.</li>
 <li>Saga는 긴 트랜잭션을 서비스별 로컬 트랜잭션의 연속으로 나누고, 실패하면 보상 트랜잭션으로 되돌립니다. DB의 롤백처럼 &quot;없던 일&quot;이 되는 것이 아니라 취소 기록이 남는 새 작업입니다. 그래서 중간 상태가 외부에 보일 수 있고(격리되지 않음), 보상 작업 자체도 실패할 수 있어 재시도와 멱등성이 필요합니다.</li>
 </ul>
 <h2>코드</h2>
@@ -164,6 +163,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

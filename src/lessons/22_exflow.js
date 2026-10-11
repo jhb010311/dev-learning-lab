@@ -1,7 +1,7 @@
 Lab.register({
   id: 'exflow', nav: '예외와 finally', cat: '자바 언어', mode: 'step',
   title: '예외가 나면 어느 블록이 어떤 순서로 실행되나',
-  intro: 'try에서 예외가 나면 catch로 건너뛰고, finally는 어떤 경우에도 실행됩니다. return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다. 조건을 바꿔 가며 실행 순서와 최종 결과를 확인하세요.',
+  intro: 'try에서 예외가 나면 catch로 건너뛰고, finally는 어떤 경우에도 실행됩니다. return이 끼어 있거나 catch 안에서 또 예외가 나면 순서가 헷갈리기 쉽습니다.',
   terms: ['finally와 try-with-resources', '예외(Exception)와 Error', 'Checked 예외와 Unchecked 예외'], ranks: ['exception'],
   controls: [
     { id: 'ex', label: '예외', type: 'select', value: 'match', options: [['none', '예외 없음'], ['match', 'try에서 발생, catch가 잡는 타입'], ['nomatch', 'try에서 발생, catch가 잡지 못하는 타입'], ['incatch', 'try에서 발생해 잡았는데 catch 안에서 또 발생']] },
@@ -56,7 +56,6 @@ Lab.register({
     else if (tr.out.indexOf('throw') === 0) push(null, 'finally가 끝난 뒤, 처리되지 않은 ' + tr.out.slice(6) + '이 메서드 밖으로 나갑니다. "블록 다음"은 실행되지 않습니다.', 'bad');
     else push(null, '메서드가 여기서 끝납니다. 반환값은 ' + tr.out.slice(7) + '입니다. "블록 다음"은 실행되지 않습니다.', c.fret && before ? 'bad' : 'good');
     var res = tr.out.indexOf('throw') === 0 ? tr.out.slice(6) + ' 발생' : tr.out.slice(7) + ' 반환';
-    sum.push('실행 순서: ' + seen.join(' → ') + '. 최종 결과: ' + res + '.');
     sum.push('finally는 정상 종료, return, 예외 어느 경우에도 실행됩니다. 락 해제나 자원 정리를 finally에 두는 이유입니다.');
     if (c.fret && before) sum.push('finally 안의 return은 진행 중이던 예외나 반환값을 조용히 지워 버립니다. 예외가 났다는 사실이 사라지므로 finally에는 return을 쓰지 않습니다.');
     if (c.res) sum.push('try-with-resources의 자원은 try 블록이 끝나는 시점에 닫히므로, catch와 finally가 실행될 때는 이미 닫혀 있습니다. 직접 finally에서 close()를 부르는 것보다 안전합니다.');

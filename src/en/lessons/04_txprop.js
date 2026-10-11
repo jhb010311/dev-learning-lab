@@ -68,18 +68,12 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { A: 'none', ro: false, B: null, SP: null, order: 'none', log: 'none', caller: 'not called yet' };
-    var cls = function (x) { return x === 'committed' ? 'good' : x === 'rolled back' ? 'bad' : x === 'active' ? 'hot' : x === 'suspended' ? 'wait' : 'none'; };
-    H.title(v, 'Transactions'); var ln = H.lanes(v);
-    H.lane(ln, 'A', s.A + (s.ro ? ' · marked rollback-only' : '') + ' (started by placeOrder)', s.ro && s.A === 'active' ? 'bad' : cls(s.A));
-    if (c.prop === 'REQUIRES_NEW') H.lane(ln, 'B', s.B ? s.B + ' (started by saveLog, separate connection)' : 'none yet', s.B ? cls(s.B) : 'none');
-    if (c.prop === 'NESTED') H.lane(ln, 'Savepoint', s.SP ? s.SP + ' (a point inside A to roll back to)' : 'none yet', s.SP === 'rolled back to here' ? 'bad' : s.SP === 'set' ? 'wait' : 'none');
     var st = function (x) { return x === 'none' ? 'none yet' : x === 'uncommitted' ? 'inserted (not committed)' : x === 'committed' ? 'committed (stays in the DB)' : 'rolled back (gone)'; };
     var cc = function (x) { return x === 'committed' ? 'good' : x === 'rolled back' ? 'bad' : x === 'uncommitted' ? 'hot' : ''; };
     H.table(v, ['Data', 'Transaction it belongs to', 'State'], [
       { cells: ['Order (1 row)', 'A', { v: st(s.order), cls: cc(s.order) }] },
       { cells: ['Log (1 row)', c.prop === 'REQUIRES_NEW' ? 'B' : c.prop === 'NESTED' ? 'A (after the savepoint)' : 'A', { v: st(s.log), cls: cc(s.log) }] },
     ], 'Database tables');
-    H.counters(v, [[s.caller, 'What the caller of placeOrder() gets']]);
   },
   // Diagram: each transaction is drawn as a box, and the data that belongs to it is placed inside the box. The color of the box is the fate of the data inside it.
   draw: function (P, sim, shown) {
@@ -93,7 +87,7 @@ Lab.register({
     if (ne) P.box('SP', 340, 82, 310, 112, { cls: s.SP === 'rolled back to here' ? 'bad' : s.SP ? 'wait' : 'ghost', title: 'After the savepoint (a section of A)', sub: s.SP || 'none yet' });
     P.box('log', rn ? 368 : ne ? 354 : 342, ne ? 128 : 100, rn ? 280 : ne ? 282 : 306, ne ? 54 : 60, { cls: dc(s.log), title: 'Log (1 row)', sub: st(s.log) });
     P.box('caller', 16, 232, 648, 40, { cls: s.caller === 'not called yet' ? 'ghost' : s.caller.indexOf('Exception') >= 0 ? 'bad' : 'good', title: 'What the caller of placeOrder() gets', right: s.caller });
-    P.note('A large box is a transaction, and the small boxes inside it are the data that belongs to that transaction. When a transaction is rolled back, the data inside it disappears with it. Which box the log is in is the difference between the propagation settings.');
+    P.note('A large box is a transaction, and the small boxes inside it are the data that belongs to that transaction. When a transaction is rolled back, the data inside it disappears with it.');
   },
   assume: 'saveLog() is a method of another bean, so it is called through the proxy (when it is called from inside the same class, the inner @Transactional does not apply; the "Proxies and self-invocation" lab covers that case). The rules follow the default behavior of the Spring Framework. A transaction is rolled back only on unchecked exceptions and Error, and when an exception that results in a rollback leaves a participating transaction, the whole transaction is marked rollback-only. NESTED is implemented with JDBC savepoints and works with DataSourceTransactionManager, which JdbcTemplate and MyBatis use. With JPA (JpaTransactionManager + Hibernate), using NESTED throws a NestedTransactionNotSupportedException. This is because a savepoint applies only to the JDBC connection and not to the persistence context. All 72 combinations were run on a real Spring setup (Spring Framework 7.0.9, DataSourceTransactionManager, the H2 database), and it was confirmed that whether the order and the log stay in the database, what the caller gets, and the number of connections in use at once match the screen.',
 });

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'pc', nav: '영속성 컨텍스트', cat: 'JPA', mode: 'step',
   title: 'JPA는 SQL을 언제 보내나',
-  intro: 'JPA는 엔티티를 영속성 컨텍스트라는 메모리 공간에 보관하고, SQL을 코드가 실행되는 순간이 아니라 필요한 시점에 모아서 보냅니다. 코드 한 줄씩 따라가며 어느 줄에서 SQL이 나가고 어느 줄에서는 안 나가는지 보세요.',
+  intro: 'JPA는 엔티티를 영속성 컨텍스트라는 메모리 공간에 보관하고, SQL을 코드가 실행되는 순간이 아니라 필요한 시점에 모아서 보냅니다.',
   terms: ['영속성 컨텍스트', '1차 캐시', '변경 감지(Dirty Checking)', '쓰기 지연과 flush', '엔티티'], ranks: ['jpaorm'],
   controls: [
     { id: 'sc', label: '해 볼 코드', type: 'select', value: 'update', options: [['find2', '같은 회원을 두 번 조회'], ['update', '조회한 뒤 이름만 바꿈 (save 호출 없음)'], ['persist', '새 회원 3명 저장'], ['jpql', '이름을 바꾼 뒤 JPQL로 조회']] },
@@ -81,17 +81,13 @@ Lab.register({
       push(-1, '메서드 종료, 커밋: 변경 사항은 이미 flush됐으므로 더 보낼 SQL이 없습니다. 커밋하면 다른 트랜잭션에도 변경이 보이게 됩니다.', '');
       result = '김영수로 변경됨'; sum.push('flush는 "모아 둔 SQL을 DB로 보내는 것"이고 커밋과는 다릅니다. 커밋 때뿐 아니라 JPQL을 실행하기 직전에도 자동으로 일어납니다.', '반대로 em.find는 1차 캐시를 먼저 보기 때문에 flush를 일으키지 않습니다.');
     }
-    sum.unshift('DB로 나간 SQL은 ' + sent.length + '건입니다: ' + sent.map(function (q) { return q.sql.split(' ')[0].toUpperCase(); }).join(', ') + '.');
     return { events: ev, summary: sum, L: L, row: [sent.length + '건', when, result] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { line: -2, cache: [], pending: [], sent: [], db: [{ id: 1, name: '김철수' }] };
     H.table(v, ['줄', '코드', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← 지금' : ''] }; }).concat([{ cells: ['', { v: '(메서드 종료)', cls: s.line === -1 ? 'hot' : '' }, s.line === -1 ? '← 지금' : ''] }]), '실행 중인 코드');
-    H.counters(v, [[s.sent.length, 'DB로 나간 SQL'], [s.pending.length, '보내지 않고 쌓아 둔 SQL']]);
-    if (s.cache.length) H.table(v, ['엔티티', '현재 값', '스냅샷 (처음 읽은 값)', '상태'], s.cache.map(function (e) { var diff = e.name !== e.snap; return { cells: ['회원 ' + e.id, { v: e.name, cls: diff ? 'hot' : '' }, e.snap, e.st] }; }), '영속성 컨텍스트 (1차 캐시)'); else { H.title(v, '영속성 컨텍스트 (1차 캐시)'); H.text(v, '비어 있습니다.'); }
     if (s.pending.length) H.table(v, ['쌓아 둔 SQL'], s.pending.map(function (q) { return { cells: [q] }; }), '쓰기 지연 저장소');
     if (s.sent.length) H.table(v, ['#', 'SQL', '나간 시점'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'DB로 실제 나간 SQL');
-    H.table(v, ['id', 'name'], s.db.map(function (r) { return { cells: [String(r.id), { v: r.name, cls: r.cls || '' }] }; }), 'DB의 member 테이블');
   },
   // 그림: 왼쪽에 영속성 컨텍스트(1차 캐시와 쓰기 지연 저장소), 오른쪽에 DB. SQL이 실제로 나가는 단계에만 화살표가 생긴다.
   draw: function (P, sim, shown) {

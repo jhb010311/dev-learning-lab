@@ -714,7 +714,7 @@ var Lab = (function () {
 Lab.register({
   id: 'threadpool', nav: 'Thread pool', cat: 'Concurrency', mode: 'time',
   title: 'What changes when you add more threads',
-  intro: 'When a request comes in, one thread handles it from start to finish. If there are not enough threads, requests wait in a queue, and when the queue is also full, requests are rejected. Change the numbers and watch how the waiting and the rejections change.',
+  intro: 'When a request comes in, one thread handles it from start to finish. If there are not enough threads, requests wait in a queue, and when the queue is also full, requests are rejected.',
   terms: ['Thread pool', 'How ThreadPoolExecutor handles a new task', 'Tomcat\'s threading model', 'Blocking and non-blocking'], ranks: ['threadpool', 'was'],
   controls: [
     { id: 'core', label: 'Core pool size', type: 'range', min: 1, max: 8, value: 2, fmt: function (v) { return v + ''; } },
@@ -768,9 +768,7 @@ Lab.register({
     var ok = reqs.filter(function (r) { return !r.rejected; }), waits = ok.map(function (r) { return r.start - r.at; });
     var total = ok.reduce(function (m, r) { return Math.max(m, r.end); }, 0), rej = reqs.length - ok.length;
     var avg = waits.length ? waits.reduce(function (a, b) { return a + b; }, 0) / waits.length : 0, mx = waits.length ? Math.max.apply(null, waits) : 0;
-    var sum = ['Requests: ' + c.n + '. Handled: ' + ok.length + '. Rejected: ' + rej + '. Total time: ' + fmt(total) + 's.',
-      'The requests that were handled spent ' + fmt(avg) + 's in the queue on average, and the one that waited longest spent ' + fmt(mx) + 's there.',
-      'Threads created: ' + threads.length + ' (core pool size ' + c.core + ', maximum pool size ' + c.max + ').'];
+    var sum = ['The requests that were handled spent ' + fmt(avg) + 's in the queue on average, and the one that waited longest spent ' + fmt(mx) + 's there.'];
     if (c.unb && threads.length <= c.core && c.max > c.core) sum.push('The queue is unbounded, so it never became full, and that is why the maximum pool size of ' + c.max + ' was never used.');
     if (rej > 0) sum.push('To get rid of the rejections, add threads, make the queue longer (requests then wait longer), or reduce the time it takes to handle a request.');
     if (rej === 0 && mx === 0) sum.push('Every request was handled right away without waiting. There are enough threads for this load.');
@@ -778,26 +776,21 @@ Lab.register({
       row: [ok.length + '', rej + '', fmt(avg) + 's', fmt(mx) + 's', fmt(total) + 's', threads.length + ''] };
   },
   render: function (v, sim, t, H) {
-    var c = sim.c, slots = Math.max(c.max, sim.threads.length), busyN = 0, made = 0, rows = [];
+    var c = sim.c, slots = Math.max(c.max, sim.threads.length), rows = [];
     for (var i = 0; i < slots; i++) {
       var th = sim.threads[i];
       if (!th || th.created > t + 1e-9) { rows.push(['Thread ' + (i + 1), i < c.core ? 'not created yet (core thread)' : 'not created yet (created only when the queue is full)', 'none']); continue; }
-      made++;
       var cur = th.segs.filter(function (r) { return r.start <= t + 1e-9 && r.end > t + 1e-9; })[0];
-      if (cur) { busyN++; rows.push(['Thread ' + (i + 1), 'handling request ' + cur.id + ' · ' + H.fmt(cur.end - t) + 's left', '', (t - cur.start) / c.work]); }
+      if (cur) { rows.push(['Thread ' + (i + 1), 'handling request ' + cur.id + ' · ' + H.fmt(cur.end - t) + 's left', '', (t - cur.start) / c.work]); }
       else rows.push(['Thread ' + (i + 1), 'idle', '']);
     }
     var q = sim.reqs.filter(function (r) { return r.queued !== undefined && r.queued <= t + 1e-9 && r.start > t + 1e-9; });
-    var rj = sim.reqs.filter(function (r) { return r.rejected && r.at <= t + 1e-9; });
-    var doneN = sim.reqs.filter(function (r) { return !r.rejected && r.end <= t + 1e-9; }).length;
-    H.counters(v, [[made, 'Threads created'], [busyN, 'Busy threads'], [q.length, 'Requests waiting'], [doneN, 'Completed'], [rj.length, 'Rejected']]);
     H.title(v, 'Threads'); var ln = H.lanes(v); rows.forEach(function (r) { H.lane(ln, r[0], r[1], r[2], r[3]); });
     H.title(v, 'Queue');
     var items = [], capN = c.unb ? Math.max(q.length, 1) : c.cap;
     for (var j = 0; j < capN; j++) items.push(q[j] ? ['Request ' + q[j].id, 'q'] : [c.unb ? 'empty' : 'empty slot', '']);
     if (c.unb) items.push(['… unbounded', '']);
     H.slots(v, items, 'The queue has no capacity. When no thread is idle, the pool immediately adds a thread or rejects the request.');
-    H.title(v, 'Rejected requests'); H.slots(v, rj.map(function (r) { return ['Request ' + r.id, 'r']; }), 'None');
   },
   // Diagram: the queue and the rejected requests on the left, the threads on the right. A request (a numbered box) moves from the queue to a thread, and goes to the rejected area when there is no room.
   draw: function (P, sim, shown, t) {
@@ -818,7 +811,7 @@ Lab.register({
       if (cur) P.box('rq' + cur.id, 540, y + 3, 104, 18, { cls: 'wait', sub: 'Request ' + cur.id + '', center: true, from: 'th' + i });
     }
     P.text('done', 358, H + 8, 'Completed: ' + doneN + '', { cls: 'good' });
-    P.note('The blue boxes with numbers are requests. When every thread is busy, a request goes into the queue first, and only after the queue is full does the number of threads grow, up to the maximum pool size. If there is still no room, the request goes to the rejected area.');
+    P.note('The blue boxes with numbers are requests.');
   },
   assume: 'While a request is being handled, one thread is tied up for the whole handling time (a request that waits for a slow database or external API). The model assumes that adding threads costs nothing. In reality each thread uses memory, and when more threads want the CPU than there are cores, the cost of switching between them grows. The order in which threads are assigned (core threads → queue → threads up to the maximum → rejection) is the same as the actual rule of the Java ThreadPoolExecutor, and it was checked against real execution.',
 });
@@ -826,7 +819,7 @@ Lab.register({
 Lab.register({
   id: 'race', nav: 'Race condition', cat: 'Concurrency', mode: 'step',
   title: 'Why does count++ lose increments?',
-  intro: 'Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost. Change the synchronization method and the execution order to see how the final value changes.',
+  intro: 'Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost.',
   terms: ['Race condition', 'Critical section and mutual exclusion', 'synchronized', 'volatile', 'Visibility', 'Atomicity and CAS (compare-and-swap)', 'Thread safety'], ranks: ['javasync', 'concurrency'],
   controls: [
     { id: 'threads', label: 'Number of threads', type: 'range', min: 2, max: 4, value: 2, fmt: function (v) { return v + ' threads'; } },
@@ -899,17 +892,16 @@ Lab.register({
         if (c.sync === 'sync') lock = null;
       }
     }
-    var expect = c.threads * c.loops, sum = ['The expected value is ' + expect + ' (' + c.threads + ' threads × ' + c.loops + '), and the final value is ' + count + '.'];
+    var expect = c.threads * c.loops, sum = [];
     if (lost > 0) sum.push('Increments lost: ' + lost + '. Another thread cut in between the read and the write of one thread, so a result computed from a stale value overwrote the newer one.');
     if (c.sync === 'volatile') sum.push('volatile only makes a value written by another thread visible. It does not combine the three steps of read, add, and write into one, so the result is the same as with no synchronization.');
     if (c.sync === 'sync') sum.push('Only one thread at a time can be inside the synchronized block, so the three steps were never broken up. In return, other threads had to wait. Number of waits: ' + waits + '.');
-    if (c.sync === 'atomic') sum.push('AtomicInteger does not acquire a lock. Instead, it follows the rule "write only if the value is still the one I read" (CAS), so if another thread changed the value first, it does not overwrite it and tries again. Retries in this run: ' + retries + '. No increments were lost.');
+    if (c.sync === 'atomic') sum.push('AtomicInteger does not acquire a lock. Instead, it follows the rule "write only if the value is still the one I read" (CAS), so if another thread changed the value first, it does not overwrite it and tries again.');
     if ((c.sync === 'none' || c.sync === 'volatile') && lost === 0) sum.push('This time the steps did not overlap, so the value is correct. This is not because the code is safe. The order just happened to be favorable. It is why this bug does not show up in tests under light load.');
     return { events: ev, summary: sum, expect: expect, row: [expect, count, lost + '', c.sync === 'sync' ? 'Waits: ' + waits : c.sync === 'atomic' ? 'Retries: ' + retries : 'None'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { count: 0, lost: 0, lock: null, ths: [] };
-    H.counters(v, [[sim.expect, 'Expected value'], [s.count, 'Current count'], [s.lost, 'Lost increments']]);
     H.title(v, 'Threads');
     var ln = H.lanes(v), ph = c.sync === 'atomic' ? ['next: read', 'next: CAS'] : ['next: read', 'next: add', 'next: write'];
     for (var i = 0; i < c.threads; i++) {
@@ -918,7 +910,6 @@ Lab.register({
       var txt = th.left === 0 ? 'Done' : th.blocked ? 'Waiting for the lock' : th.note + ' · ' + ph[th.phase];
       H.lane(ln, name, txt, th.left === 0 ? 'good' : th.blocked ? 'wait' : s.actor === th.id ? 'hot' : '');
     }
-    if (c.sync === 'sync') { H.title(v, 'Lock'); H.slots(v, s.lock ? [['Thread ' + s.lock + ' holds it', 'b']] : [['Free', '']]); }
     H.text(v, 'Yellow marks the thread that just moved, and blue marks a thread that is waiting for the lock.');
   },
   // Diagram: the variable that all threads share at the top center, and the threads below. A thread reads the value, adds to it at its own place, and then writes it back.
@@ -937,7 +928,7 @@ Lab.register({
     P.box('exp', 16, 240, 208, 40, { cls: 'plain', title: 'Expected value', right: String(sim.expect) });
     P.box('now', 236, 240, 208, 40, { cls: 'plain', title: 'Current count', right: String(s.count) });
     P.box('lost', 456, 240, 208, 40, { cls: s.lost ? 'bad' : 'good', title: 'Lost increments', right: s.lost + '' });
-    P.note('A thread reads count (the downward arrow), adds 1 at its own place, and then writes the result back (the upward arrow). When two threads read the same value and then each write, one increment is lost.');
+    P.note('A thread reads count (the downward arrow), adds 1 at its own place, and then writes the result back (the upward arrow).');
   },
   assume: 'The model is simplified so that only one step of one thread runs at a time. On a real machine with multiple cores, several threads truly run at the same time. The model also assumes that a read always sees the latest value, but with a real ordinary variable, a value written by another thread may not be visible (a visibility problem). When real code in which 2 threads each increment 1 million times was run with JDK 21 on this PC, count++ without synchronization gave a different result every time, from 1,017,250 to 1,892,129, the result still fell short with volatile, and synchronized and AtomicInteger always gave 2,000,000. AtomicInteger is drawn in the order read → CAS → retry on failure, but depending on the CPU, a real JVM sometimes completes this increment with a single instruction, so retries may not be noticeable.',
 });
@@ -945,7 +936,7 @@ Lab.register({
 Lab.register({
   id: 'hashmap', nav: 'Inside HashMap', cat: 'Data structures', mode: 'step',
   title: 'Where does a HashMap put a key, and how does it find it?',
-  intro: 'A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled. Change the hashCode implementation and whether equals is overridden, and see how the buckets fill up and whether a key that was put can be found again.',
+  intro: 'A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled.',
   terms: ['Hash table and HashMap', 'Hash collision', 'Load factor and resizing', 'Red-black tree', 'equals and hashCode contract'], ranks: ['collection', 'equals', 'ds'],
   controls: [
     { id: 'n', label: 'Number of keys to put', type: 'range', min: 1, max: 40, value: 13, fmt: function (v) { return v + ''; } },
@@ -1018,7 +1009,7 @@ Lab.register({
     else if (!hcOn) gs += 'The hash differs from that of the object used for the put, so the wrong bucket was examined. ' + (qb.nodes.length ? 'The nodes in that bucket (' + qb.nodes.length + ') differ in hash to begin with, so equals is not even called. ' : 'That bucket is empty. ') + 'null is returned. The value is in the map, but it cannot be retrieved.';
     else gs += 'The right bucket was reached, and the hash is the same too. But equals is not overridden, so it compares only "are these the same object", and the newly created object is a different object, so every comparison is false. All the nodes (' + qb.nodes.length + ') are compared, and null is returned.';
     push(gs, found ? 'good' : 'bad', qi);
-    var sum = ['Keys put: ' + c.n + '. Meanwhile the number of buckets went from 16 to ' + afterFill.cap + ' (number of resizes: ' + afterFill.resizes + '), and the number of entries in the longest bucket is ' + afterFill.longest + '.'];
+    var sum = [];
     if (hcOn && c.hash !== 'good' && afterFill.longest > 2) sum.push('When there are only a few distinct hashCode values, the keys pile up in the same buckets no matter how much the number of buckets grows. The longer a bucket gets, the slower put and get become, because they compare the entries in it one by one.');
     if (afterFill.trees) sum.push('Buckets converted to red-black trees: ' + afterFill.trees + '. A tree makes the search faster when the hash values differ from each other or the keys are Comparable. When, as in this example, every hashCode in a bucket is the same and the keys are not Comparable either, converting to a tree does not make the search faster. In the end, the solution is to make hashCode spread evenly.');
     if (c.eq === 'both') sum.push('Both equals and hashCode are overridden, so a new object created with the same id could also be used to replace the value and to find it.');
@@ -1030,11 +1021,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { cap: 16, thr: Math.floor(16 * +sim.c.lf), size: 0, resizes: 0, touch: -1, longest: 0, B: [] };
     H.counters(v, [[s.cap, 'Buckets'], [s.size, 'Entries stored'], ['> ' + s.thr, 'Resize threshold'], [s.resizes, 'Resizes'], [s.longest, 'Longest bucket']]);
-    H.title(v, 'Buckets: ' + s.cap + ' (each number is the number of entries in that bucket)');
-    var items = [];
-    for (var i = 0; i < s.cap; i++) { var b = s.B[i] || { n: 0 }; items.push([b.n ? String(b.n) + (b.tree ? 'T' : '') : '', (b.n === 0 ? '' : b.n === 1 ? 'd' : b.n < 8 ? 'q' : 'r') + (i === s.touch ? ' now' : '')]); }
-    H.slots(v, items, null, true);
-    H.text(v, 'Green is 1 entry, blue is 2 to 7 (a collision), red is 8 or more, and T is a bucket that was converted to a tree. A thick border marks the bucket that was just touched.');
     var rows = [];
     s.B.forEach(function (b, i) { if (b.n >= 2 || (i === s.touch && b.n)) rows.push({ cells: [{ v: i + '', cls: i === s.touch ? 'hot' : '' }, b.tree ? 'Red-black tree' : b.n > 1 ? 'Linked list' : '1 node', b.n + '', b.ids.slice(0, 12).join(' → ') + (b.n > 12 ? ' → …' : '')] }); });
     if (rows.length) H.table(v, ['Bucket', 'Structure', 'Entries', 'ids of the keys in it (in the order they were put)'], rows, 'The bucket that was just touched and the buckets with collisions');
@@ -1066,7 +1052,7 @@ Lab.register({
 Lab.register({
   id: 'nplus1', nav: 'N+1', cat: 'JPA', mode: 'step',
   title: 'Why are many queries sent when you load the order list only once?',
-  intro: 'You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries sent to the DB changes. Change the fetching strategy and compare the query logs.',
+  intro: 'You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries sent to the DB changes.',
   terms: ['N+1 selects problem', 'Lazy fetching and eager fetching', 'Fetch join', '@EntityGraph', 'Batch fetching (batch size)', 'First-level cache'], ranks: ['nplus1', 'jpaorm'],
   controls: [
     { id: 'n', label: 'Number of orders loaded', type: 'range', min: 1, max: 30, value: 10, fmt: function (v) { return v + (v === 1 ? ' order' : ' orders'); } },
@@ -1132,7 +1118,7 @@ Lab.register({
       }
     });
     if (c.use && (joined || c.st === 'eager')) push('The loop took the member name of every order (' + c.n + ' in total). All the members were already loaded, so there are no extra queries.', '');
-    var total = qs.length, mq = total - 1, sum = ['Queries sent in total: ' + total + ' (order queries: 1, member queries: ' + mq + '). The DB round trips took ' + total * c.rt + 'ms.'];
+    var total = qs.length, mq = total - 1, sum = [];
     if (c.st === 'lazy' && c.use) sum.push('On top of the 1 list query, as many queries as members followed. This is the N+1 selects problem. The number of extra queries is decided not by the number of orders but by the number of distinct members that have not been read yet (' + c.m + ').');
     if (c.st === 'lazy' && !c.use) sum.push('Lazy fetching queries only when the data is actually used, so a screen that does not use the members finishes with 1 query. This is why lazy fetching is used as the default.');
     if (c.st === 'eager') sum.push('Even if you switch to eager fetching, the N+1 selects problem still occurs in a JPQL query. Only the timing moves earlier, to right after the query' + (c.use ? '' : ', and ' + mq + ' extra member queries were sent although the members are not used') + '. Eager fetching is not a solution to the N+1 selects problem.');
@@ -1224,18 +1210,12 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { A: 'none', ro: false, B: null, SP: null, order: 'none', log: 'none', caller: 'not called yet' };
-    var cls = function (x) { return x === 'committed' ? 'good' : x === 'rolled back' ? 'bad' : x === 'active' ? 'hot' : x === 'suspended' ? 'wait' : 'none'; };
-    H.title(v, 'Transactions'); var ln = H.lanes(v);
-    H.lane(ln, 'A', s.A + (s.ro ? ' · marked rollback-only' : '') + ' (started by placeOrder)', s.ro && s.A === 'active' ? 'bad' : cls(s.A));
-    if (c.prop === 'REQUIRES_NEW') H.lane(ln, 'B', s.B ? s.B + ' (started by saveLog, separate connection)' : 'none yet', s.B ? cls(s.B) : 'none');
-    if (c.prop === 'NESTED') H.lane(ln, 'Savepoint', s.SP ? s.SP + ' (a point inside A to roll back to)' : 'none yet', s.SP === 'rolled back to here' ? 'bad' : s.SP === 'set' ? 'wait' : 'none');
     var st = function (x) { return x === 'none' ? 'none yet' : x === 'uncommitted' ? 'inserted (not committed)' : x === 'committed' ? 'committed (stays in the DB)' : 'rolled back (gone)'; };
     var cc = function (x) { return x === 'committed' ? 'good' : x === 'rolled back' ? 'bad' : x === 'uncommitted' ? 'hot' : ''; };
     H.table(v, ['Data', 'Transaction it belongs to', 'State'], [
       { cells: ['Order (1 row)', 'A', { v: st(s.order), cls: cc(s.order) }] },
       { cells: ['Log (1 row)', c.prop === 'REQUIRES_NEW' ? 'B' : c.prop === 'NESTED' ? 'A (after the savepoint)' : 'A', { v: st(s.log), cls: cc(s.log) }] },
     ], 'Database tables');
-    H.counters(v, [[s.caller, 'What the caller of placeOrder() gets']]);
   },
   // Diagram: each transaction is drawn as a box, and the data that belongs to it is placed inside the box. The color of the box is the fate of the data inside it.
   draw: function (P, sim, shown) {
@@ -1249,7 +1229,7 @@ Lab.register({
     if (ne) P.box('SP', 340, 82, 310, 112, { cls: s.SP === 'rolled back to here' ? 'bad' : s.SP ? 'wait' : 'ghost', title: 'After the savepoint (a section of A)', sub: s.SP || 'none yet' });
     P.box('log', rn ? 368 : ne ? 354 : 342, ne ? 128 : 100, rn ? 280 : ne ? 282 : 306, ne ? 54 : 60, { cls: dc(s.log), title: 'Log (1 row)', sub: st(s.log) });
     P.box('caller', 16, 232, 648, 40, { cls: s.caller === 'not called yet' ? 'ghost' : s.caller.indexOf('Exception') >= 0 ? 'bad' : 'good', title: 'What the caller of placeOrder() gets', right: s.caller });
-    P.note('A large box is a transaction, and the small boxes inside it are the data that belongs to that transaction. When a transaction is rolled back, the data inside it disappears with it. Which box the log is in is the difference between the propagation settings.');
+    P.note('A large box is a transaction, and the small boxes inside it are the data that belongs to that transaction. When a transaction is rolled back, the data inside it disappears with it.');
   },
   assume: 'saveLog() is a method of another bean, so it is called through the proxy (when it is called from inside the same class, the inner @Transactional does not apply; the "Proxies and self-invocation" lab covers that case). The rules follow the default behavior of the Spring Framework. A transaction is rolled back only on unchecked exceptions and Error, and when an exception that results in a rollback leaves a participating transaction, the whole transaction is marked rollback-only. NESTED is implemented with JDBC savepoints and works with DataSourceTransactionManager, which JdbcTemplate and MyBatis use. With JPA (JpaTransactionManager + Hibernate), using NESTED throws a NestedTransactionNotSupportedException. This is because a savepoint applies only to the JDBC connection and not to the persistence context. All 72 combinations were run on a real Spring setup (Spring Framework 7.0.9, DataSourceTransactionManager, the H2 database), and it was confirmed that whether the order and the log stay in the database, what the caller gets, and the number of connections in use at once match the screen.',
 });
@@ -1364,7 +1344,7 @@ Lab.register({
         if (!gone) P.arrow('fk' + val(c[0]), id + ':l', 'm' + val(c[1]) + ':r', { cls: 'mut' });
       });
     }
-    P.note(flat ? 'The blue boxes are member data. The name and address of the same member are stored once for every order. Yellow boxes are values that just changed, and red boxes are values that went out of step or cannot be inserted.' : 'Each arrow shows an order pointing to a member row by member ID. The member data is in only one place, so there is only one place to change, however many orders there are.');
+    P.note(flat ? 'The blue boxes are member data. Yellow boxes are values that just changed, and red boxes are values that went out of step or cannot be inserted.' : 'Each arrow shows an order pointing to a member row by member ID.');
   },
   assume: 'This is a small example reduced to 3 members and a few orders. The table before normalization has a chain of functional dependencies, order ID → member ID → member name and address, so it does not satisfy third normal form. After normalization, orders refer to members through a foreign key. The definitions of the anomalies follow the standard explanation in relational database theory. Tables with the same structure were created in a real SQL engine (SQLite) and checked. When only one row was changed, the same member\'s address was returned as two different values; an INSERT of a member without an order ID was rejected; and after the last order was deleted, the number of rows still holding that member\'s information was 0. With the tables split, none of the three cases caused a problem.',
 });
@@ -1437,22 +1417,19 @@ Lab.register({
         }
       }
     });
-    var sum = ['Out of 5 requests, handled as logged in: ' + ok + ', 401 responses: ' + fail + ', shared store accesses: ' + look + '.'];
+    var sum = [];
     if (M === 'local' && S > 1 && !c.kick) sum.push('The session exists only in the memory of the one server where the user logged in, so requests that went to other servers lost the login. To add more servers, you must either always send the same user to the same server (sticky sessions) or move the session to a shared store.');
-    if (M === 'local' && S === 1) sum.push('With one server there is no problem. Increase the number of servers to 2 or more.');
+    if (M === 'local' && S === 1) sum.push('With one server there is no problem.');
     if (M === 'redis') sum.push('If the session is kept in a shared store, the login stays valid no matter how many servers there are, and you can log a user out immediately just by deleting the session. In exchange, every request queries the store, and if the store goes down, everyone is logged out.');
     if (M === 'jwt') sum.push('With a JWT the server stores nothing, so it is easy to add servers and there is no lookup cost.' + (c.kick ? ' In exchange, a token that has been issued cannot be invalidated before it expires. Requests that passed even after the forced logout: ' + leaked + '. You can block tokens by keeping a list of blocked tokens on the server, but then every request queries a store again.' : ' After the expiration time passes, the user has to log in again.'));
-    if (M === 'refresh') sum.push('If you keep the access token short and reissue it with the refresh token, ordinary requests are handled without a lookup, while the damage from a stolen token or a forced logout is limited to the expiration time of the access token.' + (c.kick ? ' Requests that passed after the forced logout: ' + leaked + '. Shorten the expiration time and compare again.' : ''));
+    if (M === 'refresh') sum.push('If you keep the access token short and reissue it with the refresh token, ordinary requests are handled without a lookup, while the damage from a stolen token or a forced logout is limited to the expiration time of the access token.');
+    if (!sum.length) sum.push('Out of 5 requests, handled as logged in: ' + ok + ', 401 responses: ' + fail + ', shared store accesses: ' + look + '.');
     return { events: ev, summary: sum, row: [ok + '', fail + '', look + '', c.kick ? leaked + '' : 'N/A'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to start with the login at 0 min.'); return; }
     H.counters(v, [[s.ok, 'Successful requests'], [s.fail, '401 responses'], [s.look, 'Shared store accesses']]);
-    H.title(v, 'Who holds what'); var ln = H.lanes(v);
-    H.lane(ln, 'User', s.client, s.client === 'None' ? 'none' : 'good');
-    s.sv.forEach(function (x, i) { H.lane(ln, 'Server ' + (i + 1), x, i === s.hot ? 'hot' : x.indexOf('No session') === 0 ? 'none' : ''); });
-    if (s.shared !== null) H.lane(ln, c.mode === 'redis' ? 'Redis' : 'Token store', s.shared, s.shared === 'Empty' ? 'none' : 'wait');
     H.table(v, ['Time', 'Server that received it', 'What the user sent', 'Result'], s.rows, 'Request log');
   },
   // Diagram: the request from the browser goes through the load balancer to one of the servers. The boxes below show where the login state is kept.
@@ -1465,7 +1442,7 @@ Lab.register({
     s.sv.forEach(function (t, i) { var p = t.split(' ('); P.box('mem' + i, 16 + i * (w + 8), y + 54, w, 62, { cls: (/no session|nothing/i.test(t) || t === '-' ? 'ghost' : 'good') + (i === s.hot ? ' now' : ''), title: 'Server ' + (i + 1) + ' memory', sub: [p[0], p[1] ? '(' + p[1] : ' '] }); });
     if (s.shared !== null) P.box('sh', 16, y + 124, 648, 46, { cls: s.shared === 'Empty' ? 'ghost' : 'good', title: 'Store shared by the servers (Redis)', sub: s.shared });
     P.size(680, y + 124 + (s.shared !== null ? 46 + 16 : 8));
-    P.note('The top shows the order of requests and responses, and the bottom shows where the login state is kept. If a session is only in the memory of one server, a request that goes to another server is treated as not logged in. The thick outline marks the server that just received a request.');
+    P.note('The top shows the order of requests and responses, and the bottom shows where the login state is kept. The thick outline marks the server that just received a request.');
   },
   assume: 'It assumes that the load balancer sends requests to the servers in turn (the login goes to Server 1, the next request to Server 2, and so on). The session expiration time and the refresh token expiration (usually days to weeks) are assumed not to be reached within these 50 minutes. Verifying a JWT signature uses only the key the server holds, with no store. Keeping the refresh token in a server store and checking it there is a widely used setup, but no standard requires it.',
 });
@@ -1473,7 +1450,7 @@ Lab.register({
 Lab.register({
   id: 'mvc', nav: 'Spring MVC request flow', cat: 'Spring', mode: 'step',
   title: 'How one request reaches the controller, and how it goes back',
-  intro: 'An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse. Go through the steps to see which steps are skipped and what produces the response when the request is rejected along the way or an exception is thrown.',
+  intro: 'An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse.',
   terms: ['DispatcherServlet and the front controller pattern', 'HandlerMapping and HandlerAdapter', 'HandlerMethodArgumentResolver', 'HttpMessageConverter', 'Servlet filter', 'Interceptor (HandlerInterceptor)', '@ControllerAdvice and @ExceptionHandler', 'ViewResolver'], ranks: ['mvc', 'filter'],
   controls: [
     { id: 'kind', label: 'Kind of controller', type: 'select', value: 'rest', options: [['rest', '@RestController (JSON response)'], ['view', '@Controller (returns a view name)']] },
@@ -1548,10 +1525,11 @@ Lab.register({
       }
     }
     var has = function (id) { return seen.indexOf(id) >= 0; }, yn = function (b) { return b ? 'ran' : 'skipped'; };
-    var sum = ['The final response is ' + resp + '. Response produced by: ' + maker + '.', 'Controller method: ' + yn(has('CT')) + ', postHandle: ' + yn(has('PO')) + ', afterCompletion: ' + yn(has('AC')) + '.'];
+    var sum = [];
     if (c.what === 'filter') sum.push('Filters come before DispatcherServlet, so an exception thrown in a filter or a rejection by a filter cannot be handled with @ControllerAdvice.');
     if (c.what === 'ex') sum.push('When the controller throws an exception, postHandle is not called but afterCompletion is. That is why "cleanup work that must always run" goes in afterCompletion.');
     if (c.what === 'none' && rest) sum.push('An @RestController does not go through ViewResolver. The returned object becomes the response body directly through HttpMessageConverter.');
+    if (!sum.length) sum.push('The final response is ' + resp + '. Response produced by: ' + maker + '.');
     return { events: ev, summary: sum, rest: rest, row: [resp, yn(has('CT')), yn(has('PO')), yn(has('AC')), maker] };
   },
   render: function (v, sim, t, H, shown) {
@@ -1561,7 +1539,6 @@ Lab.register({
       return { cls: !seen && done ? 'gone' : '', cells: [String(i + 1), st[1], { v: state, cls: id === s.cur ? 'hot' : id === s.end ? 'bad' : seen ? 'good' : '' }] };
     });
     H.table(v, ['Order', 'Component', 'State'], rows, 'The path of the request (it goes in from top to bottom, and the response goes out at the last row)');
-    H.counters(v, [[done ? s.resp : 'In progress', 'Response the client receives']]);
   },
   // Diagram: the components the request passes through, laid out from top to bottom. It shows how far the request got and which components were skipped.
   draw: function (P, sim, shown) {
@@ -1571,7 +1548,7 @@ Lab.register({
     P.region('path', 16, 16, 648, 42 + stages.length * 29, 'The path of the request (top to bottom)');
     stages.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0; P.box('st_' + id, 28, 50 + i * 29, 624, 25, { cls: id === s.cur ? 'hot now' : id === s.end ? 'bad' : seen ? 'good' : 'ghost', title: (i + 1) + '. ' + st[1], right: id === s.cur ? 'now here' : id === s.end ? 'problem occurred here' : seen ? 'passed' : done ? 'skipped' : (group[id] || '') }); });
     P.box('resp', 16, 70 + stages.length * 29, 648, 34, { cls: !done ? 'ghost' : /^2/.test(s.resp) ? 'good' : 'bad', title: 'Response the client receives', right: done ? s.resp : 'In progress' });
-    P.note('Green marks a component the request has passed, yellow marks where it is now, red marks where a problem occurred, and a dashed outline marks a skipped component. If the request is stopped early, the components after that point do not run.');
+    P.note('Green marks a component the request has passed, yellow marks where it is now, red marks where a problem occurred, and a dashed outline marks a skipped component.');
   },
   assume: 'The lab shows a simple setup with one interceptor and one filter. For all 16 combinations, HTTP requests were sent to a real Spring Boot 4.1.1 server (embedded Tomcat), and the response code, whether the controller, postHandle, and afterCompletion ran, and what produced the response were confirmed to match the screen (the view response was checked by rendering with a view object of the same name instead of a template engine). That an unhandled exception is forwarded again to /error and becomes a 500 response is the default error handling behavior of Spring Boot, and that forwarding is shown as a single step. The case where no controller is mapped to the request (404) is not included, because the path differs depending on the version and the static resource configuration.',
 });
@@ -1694,16 +1671,16 @@ Lab.register({
     function push(s, k, snap) { ev.push({ s: s, k: k, snap: snap }); }
     function cells(count, mark) { var a = []; for (var j = 0; j < count; j++) a.push([String(j), mark(j) || 'd']); return a; }
     if (c.op === 'append') {
-      var cap = 0, size = 0, copies = 0, grows = 0;
+      var cap = 0, size = 0, copies = 0;
       for (var x = 1; x <= n; x++) {
         if (arr && size === cap) {
-          var nc = cap === 0 ? 10 : cap + Math.max(1, cap >> 1), cp = size; copies += cp; if (cap > 0) grows++;
+          var nc = cap === 0 ? 10 : cap + Math.max(1, cap >> 1), cp = size; copies += cp;
           push(cap === 0 ? 'add(' + x + '): This is the first add, so an array of length 10 is created.' : 'add(' + x + '): The array of length ' + cap + ' is full. A new array of length ' + nc + ', which is 1.5 times as long, is created, all ' + cp + ' existing elements are copied into it, and then the new element is stored.', cap === 0 ? '' : 'bad', { size: size + 1, cap: nc, copies: copies, last: size });
           cap = nc; size++;
         } else { size++; push('add(' + x + '): ' + (arr ? 'The array has an empty position, so the element is stored right away. Nothing is copied.' : 'A new node is created and linked after the last node. The list keeps a separate reference to the last node, so no nodes have to be followed.'), '', { size: size, cap: arr ? cap : size, copies: copies, last: size - 1 }); }
       }
       moved = copies; big = arr ? 'O(1) (amortized)' : 'O(1)';
-      if (arr) { sum.push('While ' + n + ' elements were added, the array grew ' + grows + (grows === 1 ? ' time' : ' times') + ', and a total of ' + copies + ' elements were copied when it grew. That is an average of ' + (Math.round(copies / n * 100) / 100) + ' elements copied per add.'); sum.push('Even though there is an expensive copy now and then, most adds finish without copying, so on average the cost of one add is constant. This is called amortized O(1). If you know the number of elements in advance, you can set the capacity, as in new ArrayList<>(' + n + '), and avoid the copying.'); }
+      if (arr) { sum.push('Even though there is an expensive copy now and then, most adds finish without copying, so on average the cost of one add is constant. This is called amortized O(1). If you know the number of elements in advance, you can set the capacity, as in new ArrayList<>(' + n + '), and avoid the copying.'); }
       else sum.push('A LinkedList does no copying. Instead, it creates one node object for each element (' + n + ' of them) and stores two more references in each node, to the previous node and the next node, so it uses more memory.');
       return { events: ev, summary: sum, row: ['0', copies + '', big], kind: 'append' };
     }
@@ -1730,7 +1707,6 @@ Lab.register({
       if (c.op === 'add') { last = cells(n + 1, function (j) { return j === i ? 'b now' : ''; }); last[i][0] = '99'; push('A new node was created and inserted by changing only the links of the nodes before and after it. Not a single other element was moved.', 'good', { cells: last, linked: true }); big = hops ? 'O(n) (traversal) + O(1) (linking)' : 'O(1)'; sum.push(hops ? 'The insertion itself in a LinkedList only requires changing links, but ' + hops + ' links had to be followed to find the position. The saying "insertion into a LinkedList is fast" is true only when the position is already known (at either end, or where an iterator is pointing).' : 'Inserting an element ' + where + ' of a LinkedList requires neither following nodes nor shifting elements.'); }
       if (c.op === 'remove') { push('The node before it and the node after it were linked directly to each other, which took the node at index ' + i + ' out of the list. No other element was moved.', 'good', { cells: cells(n - 1, function () { return ''; }), linked: true }); big = hops ? 'O(n) (traversal) + O(1) (linking)' : 'O(1)'; sum.push(hops ? 'Removal from a LinkedList also only requires changing links, but ' + hops + ' links had to be followed to find the node to remove.' : 'Removing an element ' + where + ' of a LinkedList requires neither following nodes nor shifting elements.'); }
     }
-    sum.unshift('Nodes traversed: ' + hops + '. Elements shifted: ' + moved + '. The time complexity is ' + big + '.');
     return { events: ev, summary: sum, row: [hops + '', moved + '', big], kind: 'one' };
   },
   render: function (v, sim, t, H, shown) {
@@ -1744,7 +1720,6 @@ Lab.register({
     } else {
       H.title(v, arr ? 'Internal array (position number = index)' : 'Nodes (the first node is on the left, the last node on the right)');
       H.slots(v, s.cells, 'Empty', true);
-      H.text(v, arr ? 'Blue marks the elements that are shifted, and yellow marks the target position.' : 'Blue marks the nodes that are passed along the way, and yellow marks the target node.');
     }
   },
   // Diagram: in an array the positions sit side by side with no gaps, and in a linked list the separate nodes are connected by arrows.
@@ -1761,7 +1736,7 @@ Lab.register({
       if (arr) P.box('c' + j, 28 + col * 31, 52 + row * pitch, 31, 28, { cls: x[1], sub: x[0], center: true });
       else { var back = row % 2 === 1, cx = back ? per - 1 - col : col; P.box('c' + j, 28 + cx * 62, 52 + row * pitch, 42, 28, { cls: x[1], sub: x[0], center: true }); if (j) P.arrow('l' + j, 'c' + (j - 1) + (!col ? ':b' : back ? ':l' : ':r'), 'c' + j + (!col ? ':t' : back ? ':r' : ':l'), { cls: 'mut' }); }
     });
-    P.note(arr ? 'The number in each position is its index. Yellow is the target position, blue marks the elements that are shifted by one position, and a dashed outline is an empty position. The positions are contiguous, so inserting in the middle requires shifting all the elements after that point.' : 'The yellow node is the target, and the blue nodes are the ones passed on the way to it. A real LinkedList is linked in both directions, and because a location cannot be computed from an index, the arrows have to be followed.');
+    P.note(arr ? 'The number in each position is its index. Yellow is the target position, blue marks the elements that are shifted by one position, and a dashed outline is an empty position.' :'The yellow node is the target, and the blue nodes are the ones passed on the way to it. A real LinkedList is linked in both directions, and because a location cannot be computed from an index, the arrows have to be followed.');
   },
   assume: 'For a single insertion, the model assumes that the internal array of the ArrayList still has an empty position. The case in which the array is full is shown separately under "Keep appending to an empty list". The capacity of an ArrayList starting at 10 and growing to 1.5 times each time (10 → 15 → 22 → 33 → 49), and a LinkedList starting from the beginning or the end, whichever is closer to the index, are the same as in the JDK implementation. The points at which the capacity grows and the number of elements copied match the values that were checked by taking out the internal array of a real ArrayList on JDK 21 on this PC (adding 40 elements grows the array 4 times and copies 80 elements). Actual speed is not determined by the number of positions alone. An array is contiguous in memory, which favors the CPU cache, so an ArrayList is often faster than a LinkedList even when it has many elements to shift.',
 });
@@ -3207,7 +3182,7 @@ Lab.register({
 Lab.register({
   id: 'pc', nav: 'Persistence context', cat: 'JPA', mode: 'step',
   title: 'When does JPA send SQL?',
-  intro: 'JPA keeps entities in an in-memory space called the persistence context. It does not send SQL at the moment a line of code runs. It collects the SQL and sends it when it is needed. Follow the code one line at a time and see on which lines SQL is sent and on which lines it is not.',
+  intro: 'JPA keeps entities in an in-memory space called the persistence context. It does not send SQL at the moment a line of code runs. It collects the SQL and sends it when it is needed.',
   terms: ['Persistence context', 'First-level cache', 'Dirty checking', 'Transactional write-behind and flush', 'Entity'], ranks: ['jpaorm'],
   controls: [
     { id: 'sc', label: 'Code to try', type: 'select', value: 'update', options: [['find2', 'Load the same member twice'], ['update', 'Load a member, then change only the name (no save call)'], ['persist', 'Save 3 new members'], ['jpql', 'Change the name, then run a JPQL query']] },
@@ -3287,17 +3262,13 @@ Lab.register({
       push(-1, 'Method ends, commit: The changes have already been flushed, so there is no more SQL to send. When the commit happens, the change becomes visible to other transactions too.', '');
       result = 'Changed to Bob'; sum.push('A flush means sending the collected SQL to the database, and it is not the same as a commit. It happens automatically not only at commit but also just before a JPQL query runs.', 'In contrast, em.find looks in the first-level cache first, so it does not trigger a flush.');
     }
-    sum.unshift('SQL statements sent: ' + sent.length + ' (' + sent.map(function (q) { return q.sql.split(' ')[0].toUpperCase(); }).join(', ') + ').');
     return { events: ev, summary: sum, L: L, row: [String(sent.length), when, result] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { line: -2, cache: [], pending: [], sent: [], db: [{ id: 1, name: 'Alice' }] };
     H.table(v, ['Line', 'Code', ''], sim.L.map(function (l, i) { var on = i === s.line; return { cells: [String(i + 1), { v: l, cls: on ? 'hot' : '' }, on ? '← now' : ''] }; }).concat([{ cells: ['', { v: '(method ends)', cls: s.line === -1 ? 'hot' : '' }, s.line === -1 ? '← now' : ''] }]), 'Running code');
-    H.counters(v, [[s.sent.length, 'SQL sent to the DB'], [s.pending.length, 'SQL queued, not yet sent']]);
-    if (s.cache.length) H.table(v, ['Entity', 'Current value', 'Snapshot (value first read)', 'State'], s.cache.map(function (e) { var diff = e.name !== e.snap; return { cells: ['Member ' + e.id, { v: e.name, cls: diff ? 'hot' : '' }, e.snap, e.st] }; }), 'Persistence context (first-level cache)'); else { H.title(v, 'Persistence context (first-level cache)'); H.text(v, 'It is empty.'); }
     if (s.pending.length) H.table(v, ['Queued SQL'], s.pending.map(function (q) { return { cells: [q] }; }), 'Write-behind queue');
     if (s.sent.length) H.table(v, ['#', 'SQL', 'Sent at'], s.sent.map(function (q, i) { return { cells: [String(i + 1), q.sql, q.at] }; }), 'SQL actually sent to the DB');
-    H.table(v, ['id', 'name'], s.db.map(function (r) { return { cells: [String(r.id), { v: r.name, cls: r.cls || '' }] }; }), 'The member table in the DB');
   },
   // Diagram: the persistence context (the first-level cache and the write-behind queue) on the left, the DB on the right. An arrow appears only in a step where SQL is actually sent.
   draw: function (P, sim, shown) {
@@ -5094,10 +5065,8 @@ Lab.register({
     for (var k = 0; k < order.length && !failed; k++) if (st[order[k]] !== 'fully initialized') create(order[k], 'The container');
     var sum = [];
     if (failed) {
-      sum.push('Startup failed: the beans cannot be created because of a circular dependency (' + failed + ').');
       sum.push(ctor ? 'Constructor injection reveals a circular dependency right at startup. Even when you allow circular dependencies with the setting, a cycle between constructor-injected beans cannot be resolved. The solution is to remove the cycle itself by moving the functionality that the two beans share into a third bean.' : 'Since Spring Boot 2.6, circular dependencies are prohibited by default regardless of the injection style. You can allow them with a setting, but the recommendation is to change the design so that the cycle goes away.');
     } else {
-      sum.push('Startup succeeded. The objects were created in the order ' + made.join(' → ') + ', and the beans were fully initialized in the order ' + done.join(' → ') + '.');
       if (ctor) sum.push('With constructor injection, an object can be created only after its dependencies are fully initialized. So from the moment the object exists, all of its dependencies are in place, and the fields can be final.');
       else sum.push('With ' + how + ' injection, the object is created first and its dependencies are filled in later. In between, the object exists with its dependencies still null, and those fields cannot be final. If a test creates the object without Spring, its dependencies stay empty.');
       if (c.cycle) sum.push('Startup got through because circular dependencies were allowed, but an object whose injection was not finished was handed to another bean early. A structure in which two beans must know each other is likely to be a design problem in itself.');
@@ -6785,7 +6754,7 @@ Lab.register({
 Lab.register({
   id: 'stack', nav: 'Stack and heap', cat: 'JVM', mode: 'step',
   title: 'What happens in memory each time a method is called',
-  intro: 'When a method is called, a frame is pushed onto the stack of that thread, and when the method returns, the frame is removed. An object created with new is placed on the heap, not on the stack, and a local variable in the frame refers to it. Change the recursion depth and the stack size to watch frames being pushed and removed, and to see a StackOverflowError.',
+  intro: 'When a method is called, a frame is pushed onto the stack of that thread, and when the method returns, the frame is removed. An object created with new is placed on the heap, not on the stack, and a local variable in the frame refers to it.',
   terms: ['Run-time data areas', 'Java Virtual Machine stack', 'Heap memory', 'StackOverflowError and OutOfMemoryError'], ranks: ['jvm'],
   controls: [
     { id: 'n', label: 'Value passed to factorial', type: 'range', min: 1, max: 10, value: 4, fmt: function (v) { return 'factorial(' + v + ')'; } },
@@ -6846,10 +6815,8 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { frames: [], heap: [] };
-    H.counters(v, [[s.frames.length + ' / ' + c.limit, 'Frames on the stack'], [s.heap.filter(function (h) { return h.live; }).length, 'Heap: referenced objects'], [s.heap.filter(function (h) { return !h.live; }).length, 'Heap: unreferenced objects']]);
     H.title(v, 'Stack of the main thread (the top is the method that is running now)'); var ln = H.lanes(v);
     for (var i = c.limit - 1; i >= 0; i--) { var f = s.frames[i]; if (f) H.lane(ln, '#' + (i + 1), f.name + '  |  ' + f.vars + '  |  ' + f.st, i === s.frames.length - 1 ? 'hot' : 'wait'); else H.lane(ln, '#' + (i + 1), 'empty', 'none'); }
-    if (c.obj) { H.title(v, 'Heap (area shared by all threads)'); H.slots(v, s.heap.map(function (h) { return ['Object ' + h.id, h.live ? 'd' : '']; }), 'No objects yet.'); H.text(v, 'Green marks an object that a variable on the stack refers to. A dashed outline marks an object that is no longer referenced and is eligible for garbage collection.'); }
   },
   // Diagram: the stack on the left (filled from the bottom up) and the heap on the right. Arrows go from the variables in the frames to the objects on the heap.
   draw: function (P, sim, shown) {
@@ -8448,7 +8415,7 @@ Lab.register({
 Lab.register({
   id: 'poly', nav: 'Polymorphism and method selection', cat: 'Java language', mode: 'step',
   title: 'Who decides which method runs, and when?',
-  intro: 'The declared type of a variable and the type of the object that it actually holds can be different. An overridden method is chosen at run time by looking at the actual object, but overloading, static methods, and fields are decided at compile time from the declared type alone. Change the combination and try to predict the result.',
+  intro: 'The declared type of a variable and the type of the object that it actually holds can be different. An overridden method is chosen at run time by looking at the actual object, but overloading, static methods, and fields are decided at compile time from the declared type alone.',
   terms: ['Polymorphism', 'Overriding', 'Overloading', 'static', 'Inheritance'], ranks: ['oop', 'absint'],
   controls: [
     { id: 'v', label: 'Declared type of the variable', type: 'select', value: 'Animal', options: [['Animal', 'Animal a'], ['Dog', 'Dog a']] },
@@ -8497,7 +8464,6 @@ Lab.register({
       if (c.w === 'static') { push('Compile time: info() is a static method. A static method belongs to the class, not to an object, so the compiler turns a.info() into ' + c.v + '.info(), according to the declared type.', '', { decl: c.v, obj: c.o, stage: 'Compile', pick: c.v + '.info()', out: '' }); push('Run time: ' + c.v + '.info() runs. Dog also has info(), but this is not overriding. It is a separate method with the same name that hides the one in the superclass (hiding).', c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: 'Run', pick: c.v + '.info()', out: out }); sum.push('Static methods are not overridden. Calling a static method through a variable is therefore confusing, and the rule is to call it with the class name.'); }
       if (c.w === 'field') { push('Compile time: Unlike a method call, a field access is decided by the declared type. The compiler resolves a.name to the name field of the ' + c.v + ' class.', '', { decl: c.v, obj: c.o, stage: 'Compile', pick: c.v + '\'s name field', out: '' }); push('Run time: The value of name in ' + c.v + ', "' + out + '", is read.' + (c.o === 'Dog' ? ' A Dog object contains both the name of Animal and the name of Dog, and the declared type determines which one is read.' : ''), c.v !== c.o ? 'bad' : 'good', { decl: c.v, obj: c.o, stage: 'Run', pick: c.v + '\'s name field', out: out }); sum.push('Polymorphism does not apply to fields. This is one of the reasons to access a field through a method (a getter) instead of exposing it directly.'); }
     }
-    sum.unshift('Output: ' + out + '. ' + when + ', this was decided based on the ' + basis + '.');
     return { events: ev, summary: sum, row: [out, when, basis] };
   },
   render: function (v, sim, t, H, shown) {
@@ -8507,7 +8473,6 @@ Lab.register({
     H.lane(ln, 'Declared type', s.decl + ' (what the compiler knows)', 'wait');
     H.lane(ln, 'Actual object', s.obj + (s.obj.indexOf('(') < 0 ? ' (known only when the code runs)' : ''), s.obj.indexOf('(') === 0 ? 'bad' : 'good');
     H.table(v, ['Stage', 'Selected target'], [{ cells: [s.stage + ' time', { v: s.pick || 'not decided yet', cls: s.pick.indexOf('error') >= 0 ? 'bad' : s.pick ? 'hot' : '' }] }], 'Current stage');
-    H.counters(v, [[s.out || '(not run yet)', 'Console output']]);
   },
   // Diagram: the variable (declared type) and the object (actual type) at the top, and two candidates at the bottom. The key point is which side the arrow that selects a candidate starts from.
   draw: function (P, sim, shown) {
@@ -9813,7 +9778,6 @@ Lab.register({
     var prim = c.kind === 'int' && c.ib === 'prim';
     push(prim ? 'a == b: One side is the primitive type int, so the value is taken out of the Integer a (unboxing) and the two numbers are compared. ' + c.iv + ' == ' + c.iv + ', so the result is true.' : 'a == b: This compares whether the two variables refer to the same object. a refers to ' + A + ' and b refers to ' + B + ', so the result is ' + same + '.', same ? 'good' : 'bad', { eq: String(same) });
     push('a.equals(b): This compares the values inside the objects. The contents are the same, so the result is true.', 'good', { eq: String(same), equals: 'true' });
-    sum.push('a == b is ' + same + ', and a.equals(b) is true.');
     if (c.kind === 'str') { sum.push(same ? 'Both variables refer to the same object in the string pool, so == is true as well. But this is close to a coincidence that depends on how the strings were created.' : 'The contents are the same, but the two are different objects, so == is false.'); sum.push('Always use equals to compare the contents of strings. A string read from a database or from a request is not a literal, so comparing it with == gives false in most cases.'); }
     else { sum.push(prim ? 'When you compare an Integer and an int with ==, the Integer is unboxed and the values are compared. However, if the Integer is null, unboxing throws a NullPointerException.' : c.iv === '127' ? 'Integer.valueOf caches the objects for -128 through 127 and reuses them. That is why == is true in this range.' : '128 is outside the cache range, so a new object is created every time. This causes bugs in which tests pass because they use only small numbers, and then comparisons go wrong in production once the IDs grow large.'); sum.push('To compare the values of two wrapper class objects (Integer, Long), use equals.'); }
     return { events: ev, summary: sum, row: [String(same), 'true', prim ? '(compared with a primitive)' : same ? 'Same object' : 'Different objects'] };
@@ -9821,10 +9785,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to go through the code one line at a time.'); return; }
-    H.title(v, 'Variables (stack)'); var ln = H.lanes(v);
-    H.lane(ln, 'a', s.a ? '→ ' + s.a : 'not declared yet', s.a ? 'wait' : 'none'); H.lane(ln, 'b', s.b ? (s.b.indexOf('primitive') === 0 ? s.b : '→ ' + s.b) : 'not declared yet', s.b ? 'wait' : 'none');
     H.table(v, ['Object', 'Location', 'Value', 'Referenced by'], s.objs.map(function (o) { return { cls: o.by.length ? '' : 'gone', cells: ['Object ' + o.id, o.where, o.val, { v: o.by.length ? o.by.join(', ') : 'none (discarded)', cls: o.by.length > 1 ? 'good' : '' }] }; }), 'Objects in memory');
-    H.counters(v, [[s.cmp.eq || '?', 'a == b'], [s.cmp.equals || '?', 'a.equals(b)']]);
   },
   // Diagram: the variables on the left, and on the right two places, one above the other, where objects are placed. Arrows go from the variables to the objects.
   draw: function (P, sim, shown) {
@@ -11200,7 +11161,7 @@ Lab.register({
 Lab.register({
   id: 'scale', nav: 'Load balancers and scale out', cat: 'High traffic', mode: 'step',
   title: 'How far does adding servers get you?',
-  intro: 'A load balancer distributes requests across several servers, and each request uses the database once. Change the request rate, the number of servers, the server performance, and the database limit, and see which part reaches its limit first (the bottleneck). You can also kill one of the servers.',
+  intro: 'A load balancer distributes requests across several servers, and each request uses the database once.',
   terms: ['Scale up and scale out', 'Load balancer', 'Bottleneck', 'Autoscaling', 'TPS and response time percentiles'], ranks: ['traffic', 'cloud'],
   controls: [
     { id: 'rps', label: 'Requests arriving per second', type: 'range', min: 100, max: 4000, step: 100, value: 1000, fmt: function (v) { return v + ' requests'; } },
@@ -11245,7 +11206,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, k = sim.calc, last = shown[shown.length - 1], stage = last ? last.snap.stage : 0;
-    H.counters(v, [[stage >= 5 || !k.alive && stage >= 4 ? k.out + '' : '?', 'Requests handled per second'], [stage >= 5 || !k.alive && stage >= 4 ? k.lost + '' : '?', 'Requests not handled'], [stage >= 5 || !k.alive && stage >= 4 ? k.neck : '?', 'Bottleneck']]);
     var ln = H.lanes(v);
     H.lane(ln, 'Load balancer', stage >= 1 ? 'Receiving ' + c.rps + ' requests per second' : 'Waiting', stage >= 1 ? 'wait' : 'none');
     for (var i = 1; i <= c.n; i++) {
@@ -11268,7 +11228,7 @@ Lab.register({
     }
     P.box('db', 190, 222, 300, 44, { cls: dbOver ? 'bad' : stage >= 4 ? 'good' : 'plain', title: 'DB (only one)', right: stage >= 4 && k.alive ? 'Load ' + k.dbLoad + '%' : k.dbCap + ' per second' });
     P.text('neck', 340, 296, fin ? 'Bottleneck: ' + k.neck + ' · Handled ' + k.out + ' per second, not handled ' + k.lost : 'The bottleneck is shown as the run proceeds', { anchor: 'middle', bold: fin, cls: fin ? (k.lost ? 'bad' : 'good') : 'mut' });
-    P.note('A red box is a place that cannot handle the amount coming in. You can add servers sideways, but all the servers share a single database, so as you keep adding servers, the red moves to the database.');
+    P.note('A red box is a place that cannot handle the amount coming in.');
   },
   assume: 'This model simplifies things: every request weighs the same, and one request uses one database query. The load balancer is assumed to divide requests evenly and to have no limit of its own (in practice, load balancers are also made redundant). Requests beyond capacity are only counted as "not handled"; in practice, as the load gets closer to the limit, the waiting time grows sharply first. The numbers are examples to show the relationships, not measured values.',
 });
@@ -11499,7 +11459,7 @@ Lab.register({
 Lab.register({
   id: 'gc', nav: 'GC and memory leaks', cat: 'JVM', mode: 'step',
   title: 'Who reclaims discarded objects, and when?',
-  intro: 'New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are promoted to the old generation, and when the old generation fills up, a full GC runs, which takes much longer. Change the rate at which objects are created, the share of long-lived objects, and the heap size, and see how the run ends when there is a memory leak.',
+  intro: 'New objects are created in eden, and when eden fills up, a minor GC picks out only the live objects and moves them. Objects that survive several times are promoted to the old generation, and when the old generation fills up, a full GC runs, which takes much longer.',
   terms: ['Garbage collection (GC)', 'Reachability and GC roots', 'Young generation and old generation', 'Minor GC and full GC', 'Stop-the-world (STW)', 'Memory leak', 'StackOverflowError and OutOfMemoryError'], ranks: ['gc', 'jvm'],
   controls: [
     { id: 'rate', label: 'Objects created per tick', type: 'range', min: 2, max: 10, value: 5, fmt: function (v) { return v + ' objects'; } },
@@ -11552,7 +11512,7 @@ Lab.register({
     if (oom) t--;
     if (oom) push('Tick ' + t + ': Even after a full GC, no room was freed in the old generation, because live (referenced) objects alone fill the heap. A java.lang.OutOfMemoryError: Java heap space is thrown.', 'bad');
     var oldUse = cnt('O'), leaked = objs.filter(function (o) { return o.die === Infinity; }).length;
-    var sum = ['While ' + made + ' objects were created, the counts were: minor GCs ' + minor + ', full GCs ' + full + '. The application was paused for a total of ' + pause + '.'];
+    var sum = [];
     if (oom) sum.push('The run ended with an OutOfMemoryError. ' + (c.leak ? 'The static list still refers to the leaked objects (' + leaked + '), so the garbage collector cannot reclaim them. A larger heap only delays the failure, and the result is the same. You have to take a heap dump, find what is piling up, and remove the references.' : 'There are more long-lived objects than the heap can hold. If this is not a leak, you have to make the heap larger or cut down on whatever holds objects for a long time (the size of a cache, for example).'));
     else if (c.leak) sum.push('The program has not failed yet, but the leaked objects (' + leaked + ') keep piling up in the old generation. Old generation usage that does not go down after a full GC and only keeps rising is the sign of a leak. If the program runs longer, it ends with an OutOfMemoryError.');
     else if (full === 0) sum.push('Most objects were discarded quickly, so minor GCs alone were enough. Dividing the heap into generations is efficient when the assumption that "most objects die young" holds.');
@@ -11562,9 +11522,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { t: 0, minor: 0, full: 0, pause: 0, E: [], S: [], O: [] };
     H.counters(v, [[s.t, 'Tick'], [s.minor, 'Minor GCs'], [s.full, 'Full GCs'], [s.pause, 'Total pause time']]);
-    function region(name, arr, cap) { H.title(v, name + ' (' + arr.length + '/' + cap + ')'); var it = []; for (var i = 0; i < cap; i++) it.push(['', arr[i] || '']); H.slots(v, it, null, true); }
-    region('Eden: where new objects are created', s.E, sim.EC); region('Survivor space: objects that survived a minor GC', s.S, sim.SC); region('Old generation: objects promoted after surviving several times', s.O, sim.OC);
-    H.text(v, 'Green marks an object that is still referenced, red marks an object that is no longer referenced but has not been reclaimed yet, and yellow marks a leaked object (still referenced).');
   },
   // Diagram: the three areas of the heap drawn as slots. New objects go into eden, and the ones that survive go through the survivor space to the old generation.
   draw: function (P, sim, shown) {
@@ -11577,7 +11534,7 @@ Lab.register({
     P.region('O', 332, 16, 332, rh, 'Old ' + s.O.length + '/' + OC); cells('o', 332, s.O, OC, 16);
     var txt = last ? last.s : '', kind = txt.indexOf('Even after a full GC') >= 0 ? 'oom' : txt.indexOf('A full GC examines') >= 0 ? 'full' : txt.indexOf('A minor GC examines') >= 0 ? 'minor' : '';
     P.box('msg', 16, rh + 30, 648, 30, { cls: kind === 'oom' || kind === 'full' ? 'bad' : kind === 'minor' ? 'hot' : 'ghost', center: true, title: { oom: 'OutOfMemoryError: referenced objects alone fill the heap', full: 'Full GC: examines the whole heap (all threads pause for a long time)', minor: 'Minor GC: examines only eden and the survivor space (brief pause)', '': last ? 'Creating new objects in eden with no GC' : 'Click Run to start' }[kind] });
-    P.note('Green marks an object that is still referenced, red marks an object whose references are gone but that has not been reclaimed yet, yellow marks a leaked object (still referenced), and a dashed outline marks an empty slot. A new object is created in eden, and if it survives minor GCs, it moves through the survivor space to the old generation.');
+    P.note('Green marks an object that is still referenced, red marks an object whose references are gone but that has not been reclaimed yet, yellow marks a leaked object (still referenced), and a dashed outline marks an empty slot.');
   },
   assume: 'This is a simple model of generational garbage collection in which all objects have the same size and the heap is counted in slots. The condition for promotion is lowered to "survives two minor GCs" (the real default maximum is 15, and the garbage collector adjusts it to the situation). The pause times 1 and 10 only express the relationship that a minor GC is much shorter than a full GC. Real collectors such as G1 and ZGC work differently, for example by dividing the heap into smaller parts and working concurrently with the application, but the principle is the same: the area for new objects and the area for old objects are handled separately, and objects that are still referenced cannot be reclaimed. The slot counts and GC counts are values of the model. However, the same situations were actually run on JDK 21 on this PC with a 64MB heap to check the direction. Creating only objects that are discarded quickly gave 24 young collections and 0 full GCs. Mixing in objects that are held for a long time gave 7 full GCs (average pause: young 2.1ms, full 11.5ms). Continually adding objects to a list that is never cleared ended with an OutOfMemoryError after 37 repeated full GCs. With the heap enlarged to 128MB, the same leak ended with the same error after creating about twice as many objects.',
 });
@@ -11585,7 +11542,7 @@ Lab.register({
 Lab.register({
   id: 'index', nav: 'Indexes and full table scans', cat: 'Database', mode: 'step',
   title: 'Why is the index not used even though it exists?',
-  intro: 'There are two ways to find the rows that match a condition: read the table from beginning to end (a full table scan), or find the positions in an index and read only those rows. Which one is cheaper depends on the share of rows the condition matches, and the optimizer chooses by looking at statistics. Change the number of rows and the share, and find the point where the choice changes.',
+  intro: 'There are two ways to find the rows that match a condition: read the table from beginning to end (a full table scan), or find the positions in an index and read only those rows. Which one is cheaper depends on the share of rows the condition matches, and the optimizer chooses by looking at statistics.',
   terms: ['Index', 'B-tree index', 'Full table scan', 'Query execution plan (EXPLAIN)', 'Optimizer', 'Cardinality and selectivity'], ranks: ['index', 'tuning', 'dbengine'],
   controls: [
     { id: 'rows', label: 'Rows in the table', type: 'select', value: '100000', options: [['1000', '1,000 rows'], ['100000', '100,000 rows'], ['10000000', '10,000,000 rows']] },
@@ -11624,7 +11581,6 @@ Lab.register({
       push('It reads all ' + num(N) + ' rows, from the first row of the table to the last. For each row it checks status, keeps only ' + num(matched) + ' rows, and discards the other ' + num(N - matched) + ' rows after reading them.', c.idx ? '' : 'bad', 6);
     }
     var read = useIdx ? matched : N, cost = useIdx ? costIdx : costFull, sum = [];
-    sum.push((useIdx ? 'The query used the index' : 'The query used a full table scan') + '. It read ' + num(read) + ' rows and returned ' + num(matched) + ' rows, so the number of rows read and then discarded is ' + num(read - matched) + '.');
     if (!c.idx) sum.push('Without an index, the whole table must be read however many rows match. If the number of rows grows 10 times, the amount read grows 10 times. If there had been an index, the estimated cost would have been ' + num(costIdx) + ', ' + (costIdx < costFull ? 'about ' + (Math.round(costFull / costIdx) >= 2 ? '1/' + Math.round(costFull / costIdx) : 'half') + ' of the full table scan.' : 'which is higher than the full table scan. An index does not help with this condition.'));
     else if (useIdx && !(c.force && costIdx >= costFull)) sum.push('The lower the share of matching rows (the better the selectivity), the greater the benefit of the index. A full table scan would have cost ' + num(costFull) + ', about ' + Math.max(1, Math.round(costFull / costIdx)) + ' times as much.');
     else if (useIdx) sum.push('Forcing the index made the cost ' + num(costIdx) + ', which is higher than the full table scan (' + num(costFull) + '). The optimizer\'s judgment was right. Use a hint only when you have evidence that the statistics are wrong.');
@@ -11742,8 +11698,6 @@ Lab.register({
     H.lane(ln, 'Call', s.caller, 'wait');
     H.lane(ln, 'Proxy', s.proxy, s.proxy.indexOf('Does not see') >= 0 ? 'bad' : s.proxy === 'Waiting' ? 'none' : 'hot');
     H.lane(ln, 'Real object', s.target, s.target === 'Waiting' ? 'none' : s.target.indexOf('Exception') >= 0 ? 'bad' : '');
-    if (sim.tx) { if (s.rows.length) H.table(v, ['Data', 'State'], s.rows.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[2] }] }; }), 'DB table'); }
-    else H.counters(v, [[s.thread || 'Not run yet', 'Thread that sends the mail'], [s.wait || '-', 'Time the caller waited']]);
   },
   // Diagram: The proxy is the outer box that wraps the real object. A call that comes from outside passes through the outer box, and a call made from inside with this does not.
   draw: function (P, sim, shown) {
@@ -11770,7 +11724,7 @@ Lab.register({
       P.box('th', 16, 232, 318, 48, { cls: s.thread ? (s.thread.indexOf('task') === 0 ? 'good' : 'bad') : 'ghost', title: 'Thread that sends the mail', sub: s.thread || 'Not run yet' });
       P.box('wt', 346, 232, 318, 48, { cls: !s.wait ? 'ghost' : s.wait === '0s' ? 'good' : 'bad', title: 'Time the caller waited', sub: s.wait || '-' });
     }
-    P.note('The outer box is the proxy, and the inner box is the real object. A call from another bean must pass through the outer box to get inside, and that is when extra behavior such as a transaction is added. The red arrow, where the inner object calls its own method with this, does not pass through the outer box.');
+    P.note('The outer box is the proxy, and the inner box is the real object. The red arrow, where the inner object calls its own method with this, does not pass through the outer box.');
   },
   assume: 'This lab is based on proxy-based AOP, which is the default in Spring (with AspectJ weaving, the annotations can also be applied to self-invocation, but that is uncommon). For @Async, @EnableAsync is assumed to be turned on. That each INSERT is committed right away when there is no transaction follows the auto-commit default of a JDBC connection. All 10 combinations were run and confirmed with @Transactional and @Async beans on a real Spring (Spring Framework 7.0.9). Only in calls that went through the proxy was a transaction open inside the method and no rows were left after the exception, and with self-invocation and with the private method the two rows stayed as they were. For @Async too, only the calls that went through the proxy ran on a separate thread (task-1), and with self-invocation the method ran to the end on the calling thread (the 3 seconds of sending the mail were shortened to 0.3 seconds for the test).',
 });
@@ -11778,7 +11732,7 @@ Lab.register({
 Lab.register({
   id: 'cache', nav: 'Caching and TTL', cat: 'High traffic', mode: 'time',
   title: 'How much does a cache reduce database queries, and when do requests pile up again?',
-  intro: 'One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the request reads the value from the database and stores it in the cache (cache-aside). A value disappears from the cache when its TTL passes. Change the TTL, the request rate, and the database query time, and watch the cache hit rate and the requests that rush to the database at the moment the value expires.',
+  intro: 'One popular product is requested continuously for 30 seconds. If the cache has the value, the request does not go to the database. If it does not, the request reads the value from the database and stores it in the cache (cache-aside). A value disappears from the cache when its TTL passes.',
   terms: ['Cache', 'Cache-aside pattern', 'TTL (time to live)', 'Cache stampede', 'Redis', 'Distributed lock'], ranks: ['cache', 'traffic', 'nosql'],
   controls: [
     { id: 'ttl', label: 'Cache TTL', type: 'select', value: '10', options: [['0', 'No cache'], ['5', '5s'], ['10', '10s'], ['30', '30s or more (never expires)']] },
@@ -11820,7 +11774,7 @@ Lab.register({
     var avg = reqs.reduce(function (a, r) { return a + (r.done - r.t); }, 0) / reqs.length, rate = Math.round(hits / reqs.length * 100);
     if (ttl === 0) ev.push({ t: 0, s: '0.0s: There is no cache. Every request queries the database.' });
     ev.sort(function (a, b) { return a.t - b.t; });
-    var sum = ['Of ' + reqs.length + ' requests, ' + hits + ' (' + rate + '%) were answered directly from the cache, and the database was queried ' + dbq + (dbq === 1 ? ' time' : ' times') + '. The most database queries in flight at one moment was ' + peak + ', and the average response time was ' + (Math.round(avg * 100) / 100) + 's.'];
+    var sum = [];
     if (ttl === 0) sum.push('The same product was requested ' + reqs.length + ' times, and the database was read ' + dbq + ' times. The more often data is read and the less often it changes, the more a cache helps.');
     else if (peak > 1 && !lock) sum.push('At the moment of expiration, all the requests that arrived before the cache was filled again (during ' + dbt + 's) went to the database. The more requests there are and the slower the database query is, the bigger the pile-up. This is a cache stampede. You reduce it with a lock that lets only one request query the database, by refreshing the value before it expires, or by giving each key a slightly different TTL.');
     else if (lock) sum.push('With the lock, only one request queried the database each time the cache became empty. This protected the database from the load, but ' + waits + (waits === 1 ? ' request' : ' requests') + ' had to wait until that query finished. With several servers, you need a distributed lock that all the servers share.');
@@ -11829,16 +11783,7 @@ Lab.register({
   },
   render: function (v, sim, t, H) {
     var c = sim.c, done = sim.reqs.filter(function (r) { return r.t <= t + 1e-9; }), hits = done.filter(function (r) { return r.kind === 'hit'; }).length, dbq = sim.queries.filter(function (q) { return q[0] <= t + 1e-9; }).length;
-    var flying = sim.queries.filter(function (q) { return q[0] <= t + 1e-9 && q[1] > t + 1e-9; }).length;
     H.counters(v, [[done.length, 'Requests received'], [hits, 'Cache hits'], [dbq, 'Database queries'], [done.length ? Math.round(hits / done.length * 100) + '%' : '-', 'Hit rate']]);
-    var ln = H.lanes(v), lastHit = done.filter(function (r) { return r.kind === 'hit'; }).pop(), lastReq = done[done.length - 1];
-    var cached = lastReq && lastReq.kind === 'hit';
-    H.lane(ln, 'Cache', sim.ttl === 0 ? 'Not used' : cached ? 'Has the value · answering requests right away' : flying ? 'No value · waiting for the database result' : done.length ? 'No value' : 'Empty', sim.ttl === 0 ? 'none' : cached ? 'good' : 'bad');
-    H.lane(ln, 'DB', flying ? 'Queries in progress: ' + flying : 'Idle', flying > 3 ? 'bad' : flying ? 'hot' : '');
-    H.title(v, 'Database queries per second (1 box = 1 second)');
-    var items = []; for (var s = 0; s < 30; s++) { var n = sim.queries.filter(function (q) { return q[0] >= s - 1e-9 && q[0] < s + 1 - 1e-9 && q[0] <= t + 1e-9; }).length; items.push([s < t ? String(n) : '', s >= t ? '' : n === 0 ? 'd' : n === 1 ? 'q' : 'r']); }
-    H.slots(v, items, null, true);
-    H.text(v, 'Green is a second with no database query (all answered from the cache), blue is a second with 1 query, and red is a second when 2 or more queries piled up.');
   },
   // Diagram: A request looks at the cache first and goes to the database only when the value is missing. The row below shows the number of queries that reached the database in each second.
   draw: function (P, sim, shown, t) {
@@ -11859,7 +11804,7 @@ Lab.register({
 Lab.register({
   id: 'iso', nav: 'Isolation levels', cat: 'Database', mode: 'step',
   title: 'How does data that another transaction is changing look to me?',
-  intro: 'While transaction A runs a query, transaction B changes the same data. Depending on the isolation level, A may or may not see the changes made by B. Switch between three situations and four isolation levels, and see which values A gets.',
+  intro: 'While transaction A runs a query, transaction B changes the same data. Depending on the isolation level, A may or may not see the changes made by B.',
   terms: ['Transaction isolation level', 'Dirty read', 'Non-repeatable read', 'Phantom read', 'MVCC (multiversion concurrency control)', 'Undo log and redo log', 'Shared locks and exclusive locks'], ranks: ['isolation', 'dbengine'],
   controls: [
     { id: 'sc', label: 'Situation', type: 'select', value: 'nonrep', options: [['dirty', 'A queries a value that B has changed but not yet committed'], ['nonrep', 'B changes a value and commits between the two queries of A'], ['phantom', 'B adds a new row and commits between the two queries of A']] },
@@ -11930,9 +11875,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { tl: [], ver: [], first: '-', second: '-' };
-    H.counters(v, [[s.first, 'Result of the first query of A'], [s.second, 'Result of the second query of A']]);
     H.table(v, ['Step', 'Transaction A', 'Transaction B'], s.tl.map(function (r, i) { var on = i === s.tl.length - 1; return { cells: [String(i + 1), { v: r.a, cls: r.a && (r.k === 'bad' ? 'bad' : r.k === 'good' ? 'good' : on ? 'hot' : '') }, { v: r.b, cls: r.b && on ? 'hot' : '' }] }; }), 'In time order (top to bottom)');
-    if (s.ver.length) H.table(v, ['Data in the DB', 'Value'], s.ver.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[2] }] }; }), sim.c.sc === 'phantom' ? 'orders table' : 'Row with id = 1 in the account table');
   },
   // Diagram: The order in which transactions A and B take turns sending commands to the DB in the middle. What matters is how the value that A read changes.
   draw: function (P, sim, shown) {
@@ -12001,7 +11944,6 @@ Lab.register({
         sum.push('When the waiting time is limited, the thread that could not acquire the lock releases the lock it holds, and the cycle is broken. In return, you need code that retries the failed operation, and the retry intervals are made slightly different so that the two threads do not keep giving up and retrying at the same time.');
       }
     }
-    sum.unshift(dead ? 'Result: deadlock. Transfers completed: 0.' : 'Result: all ' + done + ' transfers were completed. Lock waits: ' + waits + ', retries: ' + retries + '.');
     return { events: ev, summary: sum, row: [dead ? 'Deadlock' : 'Completed normally', done + '', waits + '', retries + ''] };
   },
   render: function (v, sim, t, H, shown) {
@@ -12009,9 +11951,7 @@ Lab.register({
     var w1 = s.st[1].indexOf('Waiting') >= 0, w2 = s.st[2].indexOf('Waiting') >= 0, dead = w1 && w2 && s.own.A === 1 && s.own.B === 2;
     H.title(v, 'Threads'); var ln = H.lanes(v);
     [1, 2].forEach(function (t2) { var x = s.st[t2]; H.lane(ln, 'Thread ' + t2, x + (t2 === 1 ? '  (A → B, amount 100)' : '  (B → A, amount 50)'), x === 'Transfer completed' ? 'good' : x.indexOf('Waiting') >= 0 ? (dead ? 'bad' : 'wait') : x === 'Not started' ? 'none' : 'hot'); });
-    H.table(v, ['Lock', 'Thread that holds it', 'Thread that waits for it'], ['A', 'B'].map(function (l) { var waiter = [1, 2].filter(function (t2) { return s.st[t2].indexOf('Waiting for ' + l) >= 0 || s.st[t2].indexOf('Waiting for the ' + l + ' lock') >= 0; }); return { cells: ['Account ' + l, { v: s.own[l] ? 'Thread ' + s.own[l] : 'None', cls: s.own[l] ? 'hot' : '' }, { v: waiter.length ? 'Thread ' + waiter[0] : 'None', cls: waiter.length ? (dead ? 'bad' : '') : '' }] }; }), 'State of the locks');
     if (dead) H.text(v, 'Thread 1 → (waits for B) → Thread 2 → (waits for A) → Thread 1. The waits form a cycle.');
-    H.counters(v, [[s.done + ' / 2', 'Transfers completed']]);
   },
   // Diagram: the two threads and the two locks are placed in a diamond shape. An arrow from a lock to a thread means "holds", and an arrow from a thread to a lock means "waits".
   draw: function (P, sim, shown) {
@@ -12036,7 +11976,7 @@ Lab.register({
 Lab.register({
   id: 'exflow', nav: 'Exceptions and finally', cat: 'Java language', mode: 'step',
   title: 'When an exception is thrown, which blocks run, and in what order?',
-  intro: 'When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs in every case. The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block. Change the conditions and check the execution order and the final result.',
+  intro: 'When an exception is thrown in the try block, control jumps to the catch block, and the finally block runs in every case. The order is easy to get wrong when a return is involved or when another exception is thrown inside the catch block.',
   terms: ['finally and try-with-resources', 'Exception and Error', 'Checked and unchecked exceptions'], ranks: ['exception'],
   controls: [
     { id: 'ex', label: 'Exception', type: 'select', value: 'match', options: [['none', 'No exception'], ['match', 'Thrown in try, a type that the catch block catches'], ['nomatch', 'Thrown in try, a type that the catch block does not catch'], ['incatch', 'Thrown in try and caught, then another one thrown inside catch']] },
@@ -12091,7 +12031,6 @@ Lab.register({
     else if (tr.out.indexOf('throw') === 0) push(null, 'After the finally block finishes, the unhandled ' + tr.out.slice(6) + ' leaves the method. The "after the block" line does not run.', 'bad');
     else push(null, 'The method ends here. The return value is ' + tr.out.slice(7) + '. The "after the block" line does not run.', c.fret && before ? 'bad' : 'good');
     var res = tr.out.indexOf('throw') === 0 ? tr.out.slice(6) + ' thrown' : tr.out.slice(7) + ' returned';
-    sum.push('Execution order: ' + seen.join(' → ') + '. Final result: ' + res + '.');
     sum.push('The finally block runs in every case: normal completion, a return, or an exception. That is why releasing locks and cleaning up resources are placed in the finally block.');
     if (c.fret && before) sum.push('A return inside the finally block silently discards the exception or the return value that was in progress. The fact that an exception was thrown disappears, so do not write a return in a finally block.');
     if (c.res) sum.push('A resource of try-with-resources is closed at the point where the try block ends, so it is already closed when the catch and finally blocks run. This is safer than calling close() yourself in the finally block.');
@@ -12111,7 +12050,7 @@ Lab.register({
 Lab.register({
   id: 'stream', nav: 'Lazy evaluation in streams', cat: 'Java language', mode: 'step',
   title: 'A stream does not run in the order in which it is written',
-  intro: 'Intermediate operations such as filter and map do nothing at the moment they are called. They run only when the terminal operation is called. Even then, the stream does not finish one operation for all the elements before it starts the next. It sends the elements through to the end one at a time. Change the terminal operation and the intermediate operations to see the actual order of execution.',
+  intro: 'Intermediate operations such as filter and map do nothing at the moment they are called. They run only when the terminal operation is called. Even then, the stream does not finish one operation for all the elements before it starts the next. It sends the elements through to the end one at a time.',
   terms: ['Stream API', 'Lazy evaluation', 'Lambda expression', 'Optional'], ranks: ['stream', 'javaver'],
   controls: [
     { id: 'term', label: 'Terminal operation', type: 'select', value: 'toList', options: [['none', 'None (intermediate operations only)'], ['toList', 'toList(): collect all the elements'], ['findFirst', 'findFirst(): the first element only']] },
@@ -12156,7 +12095,6 @@ Lab.register({
     if (early) push((c.term === 'findFirst' ? 'findFirst has received one element,' : 'limit(2) has its two elements,') + ' so nothing more is pulled. The remaining ' + (D.length - fN) + ' elements did not even go through filter.', 'good', -1);
     else if (mN < tr.log.filter(function (l) { return l.indexOf('filter') === 0 && +l.replace(/\D/g, '') > 3; }).length) push((c.term === 'findFirst' ? 'findFirst has received one element,' : 'limit(2) has its two elements,') + ' so the stream stops. The rest of the sorted values did not go through map.', 'good', -1);
     push('Result: ' + tr.out, 'good', -1);
-    sum.push('filter ran ' + fN + (fN === 1 ? ' time' : ' times') + ' and map ran ' + mN + (mN === 1 ? ' time' : ' times') + '. The result is ' + tr.out + '.');
     if (!c.sorted) sum.push('The stream does not "run filter on everything and then map on everything". One element goes all the way through filter → map, and only then does the next element set off. That is why the stream can stop partway.');
     if (early) sum.push('The stream handled only as many elements as were needed and then stopped (short-circuiting). The difference is large when there are many elements or when the operations are expensive.');
     if (c.sorted) sum.push('When an operation that needs to know all the elements, such as sorted(), is in the pipeline, the stages before it run on every element. Even if findFirst or limit comes after it, the work of the earlier stages does not shrink. When possible, put the operations that filter elements out first.');
@@ -12175,7 +12113,7 @@ Lab.register({
 Lab.register({
   id: 'stock', nav: 'Stock decrement and locks', cat: 'Database', mode: 'step',
   title: 'What if many orders arrive at once for 3 items in stock?',
-  intro: 'Several requests run "check the stock, subtract 1, create an order" at the same time. With no safeguard, more items are sold than are in stock, or the stock number no longer matches reality. Change the way concurrent updates are handled, and compare the results and the cost (waiting and retrying).',
+  intro: 'Several requests run "check the stock, subtract 1, create an order" at the same time. With no safeguard, more items are sold than are in stock, or the stock number no longer matches reality.',
   terms: ['Pessimistic locking', 'Optimistic locking (@Version)', 'Shared locks and exclusive locks', 'Distributed lock', 'Race condition'], ranks: ['concurrency', 'traffic', 'dbengine'],
   controls: [
     { id: 'how', label: 'How concurrent updates are handled', type: 'select', value: 'none', options: [['none', 'Nothing (read, then update)'], ['pess', 'Pessimistic locking (SELECT ... FOR UPDATE)'], ['opt', 'Optimistic locking (@Version)'], ['atomic', 'One UPDATE statement with a condition'], ['dist', 'Distributed lock (Redis)']] },
@@ -12231,7 +12169,6 @@ Lab.register({
         push('Request ' + (win + 1) + ': Sends an UPDATE that changes the row "only if the version is ' + readVer + '". The version is unchanged, so it succeeds. The stock is ' + stock + ', and the new version is ' + ver + '.', 'good', win);
         if (left.length) { retries += left.length; left.forEach(function (r) { st[r] = 'Save failed → retry'; }); push('The other requests (' + left.length + '): They sent the same UPDATE, but the version had already changed (it is now ' + ver + '), so no row matches the condition (0 rows changed). The request is treated as a conflict, an exception is thrown, and it tries again from the start.', 'bad', -1); }
       }
-      sum.push('The stock is accurate. Orders created: ' + orders + ', stock left: ' + stock + '. Along the way, save failures and retries: ' + retries + '.');
       sum.push('Optimistic locking does not wait for locks, so it works well when conflicts are rare (for example, one person editing their own information). When requests pile up on the same row, as in this example, most of them fail and retry, so the system actually does more work. You have to write the retry code yourself.');
     }
     if (c.how === 'atomic') {
@@ -12239,7 +12176,6 @@ Lab.register({
         if (stock > 0) { stock--; orders++; sold++; st[u] = 'Order placed'; push('Request ' + (u + 1) + ': Sends the UPDATE "decrease by 1 if the stock is greater than 0". The DB locks the row only while it runs this one statement. 1 row was changed, so the request creates the order. Stock: ' + stock + '.', 'good', u); }
         else { st[u] = 'Rejected (sold out)'; push('Request ' + (u + 1) + ': Sends the same UPDATE, but the stock is 0, so the condition does not match. 0 rows were changed, so the request is handled as sold out.', '', u); }
       }
-      sum.push('The stock is accurate. Orders created: ' + orders + ', stock left: ' + stock + '. There was no waiting and no retrying.');
       sum.push('If you put "read, check, and write" into one SQL statement instead of splitting it up in the application, there is no gap for another request to cut into. For a simple increase or decrease, this is the lightest and most reliable method. It is hard to use when the condition to check is complex and spans several tables.');
     }
     var match = orders === S - stock;
@@ -12247,7 +12183,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { stock: c.s, ver: 0, st: [], orders: 0, hot: -1, waits: 0, retries: 0 };
-    H.counters(v, [[s.stock + (c.how === 'opt' ? ' (version ' + s.ver + ')' : ''), 'Stock in the DB'], [s.orders, 'Orders created'], [c.s - s.orders, 'Initial stock minus orders (what should be left)'], [s.waits, 'Lock waits'], [s.retries, 'Retries']]);
+    H.counters(v, [[c.s - s.orders, 'Initial stock minus orders (what should be left)']]);
     H.title(v, 'Requests'); var ln = H.lanes(v);
     for (var i = 0; i < c.n; i++) { var x = s.st[i] || 'Not arrived'; H.lane(ln, 'Request ' + (i + 1), x, x === 'Order placed' ? 'good' : x.indexOf('Waiting') >= 0 ? 'wait' : x.indexOf('failed') >= 0 ? 'bad' : i === s.hot ? 'hot' : x === 'Not arrived' ? 'none' : ''); }
   },
@@ -12309,17 +12245,17 @@ Lab.register({
     ev.sort(function (a, b) { return a.t - b.t; });
     var ok = reqs.filter(function (x) { return !x.fail; }), waits = ok.map(function (x) { return x.start - x.at; }), fails = reqs.length - ok.length;
     var avg = waits.length ? waits.reduce(function (a, b) { return a + b; }, 0) / waits.length : 0, mx = waits.length ? Math.max.apply(null, waits) : 0, total = reqs.reduce(function (m, x) { return Math.max(m, x.fail || x.done); }, 0);
-    var sum = ['Requests: ' + c.n + '. Succeeded: ' + ok.length + '. Failed because they could not get a connection: ' + fails + '. The requests that succeeded waited for a connection ' + fmt(avg) + 's on average and ' + fmt(mx) + 's at most.', 'One request holds a connection for ' + fmt(hold) + 's (database work ' + c.q + 's' + (c.osiv && ext > 0 ? ' + external API ' + c.ext + 's' : '') + ').'];
+    var sum = ext > 0 || fails ? [] : ['Requests: ' + c.n + '. Succeeded: ' + ok.length + '. Failed because they could not get a connection: ' + fails + '. The requests that succeeded waited for a connection ' + fmt(avg) + 's on average and ' + fmt(mx) + 's at most.'];
     if (c.osiv && ext > 0) sum.push('When OSIV is on, the persistence context stays open until the response is finished, and the database connection is held along with it for that time. The connection stays occupied even during the wait for the external API, which does not use the database, so on an API server with heavy traffic the connections soon run short. When OSIV is off, the connection is returned when the transaction ends.');
     if (!c.osiv && ext > 0) sum.push('When OSIV is off, the connection is returned as soon as the transaction ends. In exchange, lazy fetching cannot be used outside the transaction (in the controller or the view), so the service layer has to read all the data that is needed in advance.');
     if (fails) sum.push('Simply making the pool larger is not the solution. There is a limit to the number of connections the database can handle, and with more connections they compete with each other on the database side, which makes things slower instead. Reducing the time a connection is held (turning OSIV off, narrowing the transaction scope, improving slow queries) comes first.');
     return { total: total, events: ev, summary: sum, conns: conns, reqs: reqs, hold: hold, row: [ok.length + '', fails + '', fmt(avg) + 's', fmt(mx) + 's', fmt(hold) + 's'] };
   },
   render: function (v, sim, t, H) {
-    var c = sim.c, e = 1e-9, done = sim.reqs.filter(function (r) { return r.done !== undefined && r.done <= t + e; }).length, failed = sim.reqs.filter(function (r) { return r.fail !== undefined && r.fail <= t + e; }).length;
+    var c = sim.c, e = 1e-9;
     var waiting = sim.reqs.filter(function (r) { return r.at <= t + e && (r.fail !== undefined ? r.fail > t + e : r.start > t + e); });
     var busy = sim.conns.filter(function (cn) { return cn.segs.some(function (r) { return r.start <= t + e && r.rel > t + e; }); }).length;
-    H.counters(v, [[busy + ' / ' + c.pool, 'Connections in use'], [waiting.length, 'Requests waiting for a connection'], [done, 'Responses finished'], [failed, 'Failed on wait timeout']]);
+    H.counters(v, [[busy + ' / ' + c.pool, 'Connections in use'], [waiting.length, 'Requests waiting for a connection']]);
     H.title(v, 'Connection pool'); var ln = H.lanes(v);
     sim.conns.forEach(function (cn) { var r = cn.segs.filter(function (x) { return x.start <= t + e && x.rel > t + e; })[0];
       if (!r) H.lane(ln, 'Connection ' + cn.id, 'idle in the pool (available to borrow)', 'none');
@@ -12355,7 +12291,7 @@ Lab.register({
 Lab.register({
   id: 'kafka', nav: 'Kafka partitions and consumers', cat: 'Message queues', mode: 'step',
   title: 'I added consumers, so why is the throughput the same?',
-  intro: 'A topic is split into partitions, and the consumers of a consumer group divide the partitions among themselves. Within a group, a partition can be read by only one consumer. Change the number of partitions, the number of consumers, and the speeds to see the messages pile up. Also see how a consumer that dies produces duplicates or losses, depending on when it commits.',
+  intro: 'A topic is split into partitions, and the consumers of a consumer group divide the partitions among themselves. Within a group, a partition can be read by only one consumer.',
   terms: ['Kafka topics, partitions, and offsets', 'Consumer groups and rebalancing', 'Consumer lag', 'Message delivery guarantees', 'Message queue', 'Idempotency and idempotency keys'], ranks: ['mq', 'msa'],
   controls: [
     { id: 'p', label: 'Partitions', type: 'range', min: 1, max: 6, value: 3, fmt: function (v) { return v + (v === 1 ? ' partition' : ' partitions'); } },
@@ -12403,7 +12339,6 @@ Lab.register({
       if (after) { dup = 3; push('The consumer that takes over the partition reads again from the last committed position, 100. Messages 100, 101, and 102 were already processed, but they are processed one more time. Nothing is lost, but 3 duplicates occurred (at-least-once delivery).', 'bad', 6); }
       else { lost = 2; push('The consumer that takes over the partition reads from the committed position, 105. Messages 103 and 104 were committed but never processed, and nobody reads them again. There are no duplicates, but 2 messages were lost (at-most-once delivery).', 'bad', 6); }
     }
-    sum.push('The group processes ' + A.total + ' messages per second (inflow: ' + c.r + '), and ' + A.lag + ' messages are waiting after 10 seconds.' + (A.idle.length ? ' ' + A.idle.length + (A.idle.length === 1 ? ' consumer' : ' consumers') + ' had no partition and sat idle.' : ''));
     if (A.idle.length) sum.push('The number of consumers that can work at the same time in a group cannot exceed the number of partitions. To raise the throughput further, you must increase the partitions first. You can add partitions but cannot reduce them, and adding them can change which partition messages with the same key go to.');
     else if (A.lag) sum.push('Lag builds up. You must increase the consumers up to the number of partitions, or make each consumer process faster. Lag is the key metric that shows whether the consumers are keeping up.');
     if (c.crash) sum.push(c.commit === 'after' ? 'Committing after processing does not lose messages, but it can process the same message twice. In practice most systems use this approach, and make the consumer idempotent so that a duplicate gives the same result (for example, record the IDs of processed messages and filter out repeats).' : 'Committing before processing has no duplicates, but it can lose messages. Use it only for logs or statistics where a small loss is acceptable.');
@@ -12490,7 +12425,7 @@ Lab.register({
       if (win.length >= 10 && rate >= th) { state = 'OPEN'; openedAt = t; trans.push('OPEN'); push(msg + ' Among the last 10 calls, the failure rate became ' + Math.round(rate) + '%, at or above the threshold of ' + th + '%. The circuit opens (OPEN). For the next ' + wait + 's, calls to the payment service are blocked.', 'bad'); }
       else push(msg + (win.length >= 10 || !ok ? ' Calls in the window: ' + win.length + ', failure rate ' + Math.round(rate) + '%.' : ''), ok ? '' : 'bad');
     }
-    var waitT = failN * 3, sum = ['Of the 40 calls, ' + okN + ' succeeded, ' + failN + ' waited 3s each and then failed, and ' + blockN + ' were blocked and got an immediate fallback response. The total time spent waiting for a service that did not respond was ' + waitT + 's.'];
+    var waitT = failN * 3, sum = [];
     if (!c.use) sum.push('While the outage lasted, every call held a thread for 3s. With many requests, the thread pool runs out quickly, and even features unrelated to payment can no longer respond. The failure of one service spreads to the service that calls it.');
     else if (!trans.length) sum.push('The failure rate never reached the threshold, so the circuit never opened. This happens when the outage is short or the threshold is high.');
     else sum.push('The state changed in the order ' + ['CLOSED'].concat(trans).join(' → ') + '. While the circuit is open, calls are not made and a fallback response is returned right away, so no threads are tied up. The failing service is not put under extra load either, which gives it room to recover. After a set time, only a few calls are sent to check whether it has recovered.');
@@ -12504,9 +12439,6 @@ Lab.register({
     var ln = H.lanes(v), down = n >= sim.downFrom && n <= sim.downTo;
     H.lane(ln, 'Payment service', n === 0 ? 'Normal' : down ? 'Outage (no response)' : 'Normal', down ? 'bad' : 'good');
     if (c.use) H.lane(ln, 'Circuit', s.state === 'CLOSED' ? 'CLOSED: lets calls pass through · calls in the window: ' + s.wn + ', failure rate ' + s.rate + '%' : s.state === 'OPEN' ? 'OPEN: blocks calls and returns a fallback right away' : 'HALF_OPEN: lets only a few trial calls through', s.state === 'OPEN' ? 'bad' : s.state === 'HALF_OPEN' ? 'hot' : '', s.state === 'CLOSED' ? s.rate / 100 : undefined);
-    H.title(v, 'Results of the 40 calls (1 box = 1 call per second)'); var items = [];
-    for (var i = 0; i < 40; i++) items.push([String(i + 1), (s.calls[i] || '') + (i === n - 1 ? ' now' : '')]);
-    H.slots(v, items, null, true);
     H.text(v, 'Green is a success, red is a call that waited 3s and failed, and blue is a call that the circuit blocked with an immediate fallback response. The outage runs from second ' + sim.downFrom + ' to second ' + sim.downTo + '.');
   },
   // Diagram: The circuit sits between the order service and the payment service. When it is closed, calls pass through, and when it is open, calls turn back at the circuit.
@@ -12594,11 +12526,8 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { S: ['v1', 'v1', 'v1', 'v1'], G: [], lb: 'v1 servers: 4', cut: 0 };
     var cls = function (x) { return x === 'v1' ? 'q' : x === 'v2' ? 'd' : x === 'None' ? '' : 'b'; };
-    var ln = H.lanes(v); H.lane(ln, 'Load balancer', 'Sending requests to: ' + s.lb, s.lb.indexOf('No server') >= 0 ? 'bad' : 'wait');
     H.title(v, sim.c.st === 'bluegreen' ? 'Existing environment (blue)' : 'Servers'); H.slots(v, s.S.map(function (x, i) { return ['Server ' + (i + 1) + ': ' + x, cls(x)]; }), '');
     if (s.G.length) { H.title(v, 'New environment (green)'); H.slots(v, s.G.map(function (x, i) { return ['Server ' + (i + 5) + ': ' + x, cls(x)]; }), ''); }
-    H.text(v, 'Blue is v1, green is v2, and yellow is a server that is being taken down or brought up.');
-    H.counters(v, [[s.cut, 'Requests cut off']]);
   },
   // Diagram: the load balancer and the servers. The color of a server is its version, and the server an arrow reaches is the one that receives requests now.
   draw: function (P, sim, shown) {
@@ -12646,7 +12575,6 @@ Lab.register({
     if (vm) {
       layers.push(['Hypervisor (creates the virtual hardware)', 'hot']); push('The hypervisor divides the physical resources and creates virtual computers (virtual hardware).', '');
       for (var i = 1; i <= c.n; i++) { inst.push(['VM ' + i, 'Booting guest OS', 'b']); mem += OS; push('VM ' + i + ': The guest operating system is booted from scratch on the virtual hardware. Loading the kernel and starting the system services takes tens of seconds, and the operating system alone uses about 1GB of memory.', ''); inst[i - 1] = ['VM ' + i, 'Guest OS (kernel) + JDK + app', 'd']; mem += APP; push('VM ' + i + ': After the boot finishes, the application runs inside it. This VM has its own kernel, so it is completely separated from the other VMs.', ''); }
-      sum.push('Operating systems (kernels) loaded: 1 for the host, plus ' + c.n + ' for the guests. Of the total memory of about ' + mem + 'MB, the guest operating systems account for ' + c.n * OS + 'MB.');
       sum.push('A virtual machine holds a whole operating system for each instance, so it is heavy and slow to start, but even the kernel is separated, so the isolation is strong. It can also run a different kind of operating system.');
     } else {
       layers.push(['Container runtime (such as Docker)', 'hot']); push('The container runtime does not create virtual hardware. It only runs processes in isolation, using features of the host kernel.', '');
@@ -12655,7 +12583,6 @@ Lab.register({
         if (+c.limit < APP) { inst[j - 1] = ['Container ' + j, 'OOMKilled (memory limit exceeded)', 'r']; killed = true; push('Container ' + j + ': The application tried to use 400MB, but the limit is ' + c.limit + 'MB. The kernel (cgroups) kills a process that goes over its limit. It is not a Java OutOfMemoryError; the whole process disappears.', 'bad'); }
         else { inst[j - 1] = ['Container ' + j, 'Process (JDK + app) · limit ' + c.limit + 'MB', 'd']; mem += APP; push('Container ' + j + ': Running. Thanks to namespaces, this process appears to have its own file system, network, and process list, but in reality it is an ordinary process on the host kernel.', 'good'); }
       }
-      sum.push('There is only one operating system (kernel), the host\'s. The total memory is about ' + mem + 'MB, and for each container only the amount that the application uses was added.');
       sum.push('Containers share the kernel, so they are lightweight and start quickly. In return, the isolation is weaker than that of a virtual machine, and they work only with the same kind of kernel as the host. Namespaces divide "what you can see," and cgroups divide "how many resources you can use."');
       if (killed) sum.push('If a container uses more than its memory limit, it is killed (OOMKilled). The heap size of the JVM has to be set to fit within the container limit. Recent JVMs recognize the container limit and set the default heap size from it, but some memory is also used outside the heap, so you need to leave some room.');
     }
@@ -12663,10 +12590,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { layers: [], inst: [], mem: 0 };
-    H.counters(v, [[s.inst.length, 'Instances started'], ['About ' + s.mem + 'MB', 'Memory used']]);
     H.title(v, 'Instances (upper layer)'); H.slots(v, s.inst.map(function (x) { return [x[0] + ': ' + x[1], x[2]]; }), 'None yet');
-    H.title(v, 'Lower layers (the reverse of the order they were stacked)'); var ln = H.lanes(v);
-    s.layers.slice().reverse().forEach(function (l, i) { H.lane(ln, 'Layer ' + (s.layers.length - i), l[0], l[1] || ''); });
   },
   // Diagram: layers stacked from the bottom to the top. A virtual machine has one more operating system layer for each instance, and a container has only the process.
   draw: function (P, sim, shown) {
@@ -12684,7 +12608,7 @@ Lab.register({
       } else P.box('app' + j, ix + 7, 138, w - 14, 50, state.indexOf('OOM') >= 0 ? { cls: 'bad', title: 'OOMKilled', sub: 'Over limit', center: true } : state.indexOf('image') >= 0 ? { cls: 'hot', title: 'Preparing', sub: ' ', center: true } : { cls: 'good', title: 'JDK + app', sub: 'Max ' + c.limit + 'MB', center: true });
     });
     if (!s.layers.length) P.text('hint', 340, 180, 'Click Run to stack the layers from the bottom', { cls: 'mut', anchor: 'middle' });
-    P.note(vm ? 'These are layers stacked from the bottom to the top. A virtual machine has its own blue "Guest OS" layer for each instance. It is that much heavier and slower to start, but the instances are completely separated from each other.' : 'These are layers stacked from the bottom to the top. A container has no Guest OS layer, and all the containers share the one host kernel at the very bottom. The dotted boxes are the scopes isolated from each other.');
+    P.note(vm ? 'These are layers stacked from the bottom to the top. A virtual machine has its own blue "Guest OS" layer for each instance.' : 'These are layers stacked from the bottom to the top. A container has no Guest OS layer, and all the containers share the one host kernel at the very bottom. The dotted boxes are the scopes isolated from each other.');
   },
   assume: 'The memory figures (about 1GB for a guest operating system, about 400MB for the application) and the boot times are rough examples to show the direction of the difference, and the real values vary a great deal depending on the setup. That containers share the host kernel and are isolated with namespaces and cgroups, and that the kernel kills a process when it goes over its limit, follow the explanations in the Docker and Linux kernel documentation. Docker Desktop on Windows or Mac keeps one Linux virtual machine inside and runs the containers in it.',
 });
@@ -12692,7 +12616,7 @@ Lab.register({
 Lab.register({
   id: 'security', nav: 'Security filter chain', cat: 'Authentication', mode: 'step',
   title: 'Where is it decided whether the response is 401 or 403?',
-  intro: 'Spring Security is a line of filters placed in front of the controller. A filter near the front checks "who this is" and records it, and a filter near the back decides "whether this user may enter this path". Change the token state and the request path to see at which filter the request ends and with which response.',
+  intro: 'Spring Security is a line of filters placed in front of the controller. A filter near the front checks "who this is" and records it, and a filter near the back decides "whether this user may enter this path".',
   terms: ['Authentication and authorization', 'Spring Security and SecurityFilterChain', 'SecurityContext', 'Servlet filter', 'HTTP status codes'], ranks: ['auth', 'websec', 'filter'],
   controls: [
     { id: 'who', label: 'Token carried by the request', type: 'select', value: 'none', options: [['none', 'No token'], ['bad', 'Expired or forged token'], ['user', 'Valid token (role: USER)'], ['admin', 'Valid token (role: ADMIN)']] },
@@ -12737,7 +12661,7 @@ Lab.register({
       else { resp = '403 Forbidden'; end = 'AccessDeniedHandler'; push('ETF', 'ExceptionTranslationFilter: The filter catches the exception and checks the user. The user is authenticated but does not have enough authority, so the filter calls the AccessDeniedHandler to respond with 403.', 'bad'); }
     }
     ctx = 'Cleared'; push('OUT', 'The response goes out, and the SecurityContext that was used for this request is cleared. The information is bound to the thread, so it must be removed before the thread is reused for the next request.', '');
-    sum.push('The response is ' + resp + '. ' + (res === 200 ? 'The request passed the filter chain and the controller ran.' : 'The controller did not run, and ' + end + ' produced the response.'));
+    if (res === 200 && c.path !== 'public') sum.push('The response is ' + resp + '. ' + (res === 200 ? 'The request passed the filter chain and the controller ran.' : 'The controller did not run, and ' + end + ' produced the response.'));
     if (res === 401) sum.push('401 means "it has not been confirmed who this is" (authentication failed). A request for an admin path without a token gets 401, not 403, because permissions cannot be checked while it is not known who the user is.');
     if (res === 403) sum.push('403 means "it is known who this is, but this user has no permission to do this" (authorization failed). Logging in again gives the same result.');
     if (res !== 200) sum.push('This response is produced in a filter before the request reaches DispatcherServlet, so it cannot be changed with @ControllerAdvice. To change the format of the response, register your own AuthenticationEntryPoint and AccessDeniedHandler.');
@@ -12749,7 +12673,6 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : { seen: [], cur: null, ctx: 'Empty', resp: '' }, done = shown.length === sim.events.length;
     var bads = shown.filter(function (e) { return e.snap.bad; }).map(function (e) { return e.snap.bad; });
     H.table(v, ['Filter chain (in order from top to bottom)', 'Status'], this.STAGES.map(function (st) { var id = st[0], seen = s.seen.indexOf(id) >= 0; return { cls: !seen && done ? 'gone' : '', cells: [st[1], { v: id === s.cur ? 'Now here' : seen ? (bads.indexOf(id) >= 0 ? 'Blocked here' : 'Passed') : done ? 'Not reached' : '', cls: id === s.cur ? 'hot' : bads.indexOf(id) >= 0 ? 'bad' : seen ? 'good' : '' }] }; }));
-    H.counters(v, [[s.ctx, 'What the SecurityContext holds'], [s.resp || 'In progress', 'Response']]);
     H.text(v, 'ExceptionTranslationFilter comes before AuthorizationFilter, so it catches and handles the exception that is thrown behind it.');
   },
   // Diagram: a passage in which the filters are lined up from top to bottom. Colors show how far the request went in and where it was blocked.
@@ -12760,7 +12683,7 @@ Lab.register({
     this.STAGES.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0, blocked = bads.indexOf(id) >= 0; P.box('st_' + id, 26, 50 + i * 37, 420, 30, { cls: id === s.cur ? 'hot now' : blocked ? 'bad' : seen ? 'good' : 'ghost', title: st[1], right: blocked ? 'Blocked' : '' }); });
     P.box('ctx', 472, 50, 192, 64, { cls: s.ctx === 'Empty' || s.ctx === 'Cleared' ? 'ghost' : 'good', title: 'SecurityContext', sub: ['Contains:', s.ctx] });
     P.box('resp', 472, 130, 192, 64, { cls: !s.resp ? 'ghost' : /^2/.test(s.resp) ? 'good' : 'bad', title: 'Response', sub: [s.resp || 'In progress', ' '] });
-    P.note('Green is a filter that the request has passed, yellow is where the request is now, red is where the request was blocked, and a dashed outline is a place that the request did not reach. The authentication filter puts "who this is" into the SecurityContext, and the authorization filter behind it looks at that to decide whether to let the request in.');
+    P.note('Green is a filter that the request has passed, yellow is where the request is now, red is where the request was blocked, and a dashed outline is a place that the request did not reach.');
   },
   assume: 'The model assumes a common JWT-based setup that does not use sessions. The custom JwtAuthenticationFilter is assumed to pass the request on without rejecting it when the token is missing or invalid (some implementations make this filter return 401 right away for an invalid token). For all 12 combinations, HTTP requests were sent to a real server running Spring Boot 4.1.1 and Spring Security 7.1.1, and it was confirmed that the response code, the place that produced the response (AuthenticationEntryPoint, AccessDeniedHandler), and whether the controller ran match the screen. Two things were learned while doing this. First, if the response for an authentication failure is not specified (that is, if there is no exceptionHandling configuration), a request without a token gets 403, not 401. That is why the exceptionHandling configuration was put in the code on the screen. Second, when insufficient authority was left to the default handler of Spring Security, 401, not 403, came back when USER requested the admin path. This is because the default handler passes the request on again to the error page (/error), and that request has no authentication information, so it is handled as an authentication failure once more. To get 403 as on the screen, the handler must respond with the status code directly, or the /error path must be permitted. A real chain has more filters that are not listed here.',
 });
@@ -12768,7 +12691,7 @@ Lab.register({
 Lab.register({
   id: 'compidx', nav: 'Composite and covering indexes', cat: 'Database', mode: 'step',
   title: 'A composite index can be used only in column order',
-  intro: 'An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to narrow the search range, and once a range condition is reached, the columns after it cannot be used to narrow the range. Change the conditions and the selected columns to see how far the index is used.',
+  intro: 'An index on several columns is sorted by the first column, then by the next column, and so on. So the WHERE conditions must start from the first column to narrow the search range, and once a range condition is reached, the columns after it cannot be used to narrow the range.',
   terms: ['Composite index and leftmost prefix', 'Covering index', 'Clustered index and secondary index', 'Cardinality and selectivity', 'Query execution plan (EXPLAIN)'], ranks: ['index', 'tuning'],
   controls: [
     { id: 'ord', label: 'Column order of the index', type: 'select', value: 'msc', options: [['msc', '(member_id, status, created_at)'], ['mcs', '(member_id, created_at, status)']] },
@@ -12821,16 +12744,15 @@ Lab.register({
     else push(num(p.idxRead) + ' index entries in the narrowed range are read.' + (p.filt.length ? ' While reading, the remaining conditions are checked, and only ' + num(p.idxRead * p.filt.reduce(function (a, k) { return a * C[k][2]; }, 1)) + ' entries are kept.' : ''), '', 5);
     if (p.type !== 'ALL') push(p.cov ? 'Every column being selected is in the index, so the query finishes without going to the table (covering index). Table rows read: 0.' : 'SELECT * needs columns that are not in the index too. For each of the remaining ' + num(p.tblRead) + ' entries, the query goes to the table (the clustered index) and reads the whole row.', p.cov ? 'good' : '', 6);
     var usedNames = p.used.map(function (k) { return C[k][0]; }).join(', ') || 'none';
-    sum.push('Columns used to narrow the range: ' + usedNames + '. The query read ' + num(p.idxRead) + ' index entries and ' + num(p.tblRead) + ' table rows, and got about ' + num(Math.max(1, p.out)) + ' results.');
     if (!p.used.length) sum.push('A composite index cannot be used for searching when there is no condition on its first column. Put the columns of the conditions you use often first, and among them the columns used with "=".');
     else if (p.filt.length) sum.push('The conditions after the order was broken (' + p.filt.map(function (k) { return C[k][0]; }).join(', ') + ') could not narrow the range, so more index entries were read than necessary. If you put the "=" condition columns first and the range condition column last, all three columns narrow the range.');
     else if (p.used.length === 3) sum.push('The conditions continue in index order without a gap, so all three columns narrowed the range. The order in which you write the conditions in WHERE does not matter; the column order of the index decides.');
     if (p.cov && p.type !== 'ALL') sum.push('A secondary index holds only the index columns and the primary key, so if another column is needed, the query must go to the table one more time. If every needed column is in the index, that extra trip disappears. This is one reason to avoid SELECT *.');
+    if (!sum.length) sum.push('Columns used to narrow the range: ' + usedNames + '. The query read ' + num(p.idxRead) + ' index entries and ' + num(p.tblRead) + ' table rows, and got about ' + num(Math.max(1, p.out)) + ' results.');
     return { events: ev, summary: sum, p: p, row: [usedNames, p.type, num(p.idxRead), num(p.tblRead), p.extra || '(none)'] };
   },
   render: function (v, sim, t, H, shown) {
-    var c = sim.c, p = sim.p, C = this.COLS, ord = this.order(c), num = this.num, last = shown[shown.length - 1], st = last ? last.snap.stage : 0;
-    H.table(v, ['Index order', 'Column', 'WHERE condition', 'How it is used'], ord.map(function (k, i) { var on = st >= 2 + i, u = p.used.indexOf(k) >= 0, f = p.filt.indexOf(k) >= 0 && p.type !== 'ALL'; return { cells: ['#' + (i + 1), C[k][0], c[k] ? C[k][1] : '(no condition)', { v: !on ? '' : u ? 'Narrows the range' : f ? 'Filters while reading' : c[k] ? 'Not usable' : '-', cls: !on ? '' : u ? 'good' : f || c[k] ? 'bad' : '' }] }; }), 'Index idx_orders');
+    var p = sim.p, num = this.num, last = shown[shown.length - 1], st = last ? last.snap.stage : 0;
     if (st >= 5) { H.counters(v, [[num(p.idxRead), 'Index entries read'], [st >= 6 || p.type === 'ALL' ? num(p.tblRead) : '?', 'Table rows read'], [num(Math.max(1, p.out)), 'Result rows (approx.)']]);
       H.table(v, ['type', 'key', 'Extra'], [{ cells: [p.type, p.type === 'ALL' ? 'NULL' : 'idx_orders', p.extra || ''] }], 'In EXPLAIN (main columns only)'); }
   },
@@ -12861,7 +12783,7 @@ Lab.register({
 Lab.register({
   id: 'paging', nav: 'Offset and keyset pagination', cat: 'Database', mode: 'step',
   title: 'Why later pages get slower',
-  intro: 'A list of posts is shown page by page, newest first. The OFFSET method reads and discards all the rows of the earlier pages before it reaches the page you want. The keyset (cursor) method uses the index to go straight to "right after the last post you saw". Increase the page number and compare the number of rows read.',
+  intro: 'A list of posts is shown page by page, newest first. The OFFSET method reads and discards all the rows of the earlier pages before it reaches the page you want. The keyset (cursor) method uses the index to go straight to "right after the last post you saw".',
   terms: ['Offset-based pagination and keyset (cursor-based) pagination', 'Index', 'B-tree index'], ranks: ['tuning', 'index'],
   controls: [
     { id: 'how', label: 'Pagination method', type: 'select', value: 'offset', options: [['offset', 'OFFSET (page number)'], ['keyset', 'Keyset (based on the id of the last post seen)']] },
@@ -12970,11 +12892,11 @@ Lab.register({
     } else fbody = tab(rows);
     var park = hasPark(final);
     push('Final result. Rows: ' + final.length + '.', park || c.join === 'INNER' ? 'good' : '', 'Final result', fhead, fbody);
-    sum.push('Rows right after the join: ' + afterJoin + '. Final rows: ' + final.length + '. Carol, the member with no orders, is ' + (park ? 'included in the result.' : 'not in the result.'));
     if (c.join === 'LEFT' && c.cond === 'where') sum.push('If you put a WHERE condition on a column of the right table after a LEFT JOIN, the rows filled with NULL are filtered out, and the result becomes the same as with an INNER JOIN. If you want to keep the rows with no match and attach only the orders that satisfy the condition, write the condition in ON.');
     if (c.join === 'LEFT' && c.cond === 'on') sum.push('The condition in ON only decides which orders get attached. It does not remove rows of the left table (member). A member with no paid orders still stays, together with NULL.');
     if (c.join === 'INNER') sum.push('With an INNER JOIN, the result is the same whether you write the condition in ON or in WHERE. The difference appears only with an outer join.');
     if (c.agg !== 'none') sum.push('The processing order is FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT. That is why an alias given in SELECT (cnt) cannot be used in WHERE.');
+    if (!sum.length) sum.push('Rows right after the join: ' + afterJoin + '. Final rows: ' + final.length + '. Carol, the member with no orders, is ' + (park ? 'included in the result.' : 'not in the result.'));
     return { events: ev, summary: sum, row: [afterJoin + '', final.length + '', park ? 'Included' : 'Missing'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -13032,7 +12954,6 @@ Lab.register({
       ev.push({ t: 0.05, k: 'good', s: '0.1s: Every request (' + c.n + ' in total) is waiting for an external response. ' + (c.model === 'loop' ? 'The waiting is left to the operating system, so the event loop threads are free.' : 'When a virtual thread stops in a blocking call, the JVM unmounts that virtual thread from its OS thread. The OS thread can then run another virtual thread.') });
       ev.push({ t: w, k: 'good', s: fmt(w) + 's: The responses arrive. ' + (c.model === 'loop' ? 'The event loop runs the next steps that were registered, one after another, and the requests (' : 'The virtual threads are mounted on OS threads again and continue running, and the requests (') + c.n + ' in total) finish at almost the same time.' });
     }
-    sum.push('Requests handled: ' + c.n + '. OS threads used: ' + osT + '. Total time: ' + fmt(total) + 's. Peak number of requests in progress at the same time: ' + peak + '.');
     if (c.model === 'pool') sum.push('In the blocking style, the number of requests that can be handled at the same time cannot exceed the number of threads. The longer the wait, the longer the threads are tied up. The code is simple and easy to debug, which is why most services use this style.');
     if (c.model === 'loop' && !c.block) sum.push('The non-blocking style does not hold a thread while waiting, so a small number of threads keeps many requests in progress. In return, the whole call path (the database driver, the HTTP client) must be non-blocking, and the code becomes a chain of callbacks, which is hard to learn and to debug.');
     if (c.model === 'loop' && c.block) sum.push('There are very few event loop threads, so making a blocking call on one of them is far worse than even the thread pool approach. Calling JDBC or a blocking HTTP client as it is while using WebFlux is a typical mistake.');
@@ -13048,7 +12969,6 @@ Lab.register({
       else H.lane(ln, 'Thread ' + (i + 1), run.length ? 'free (the waiting is not done by a thread)' : 'idle', run.length ? 'good' : '');
     }
     if (!sim.serial) { H.title(v, c.model === 'virtual' ? 'Virtual threads (one per request, now unmounted from the OS threads and waiting)' : 'Requests waiting for a response (only registered, holding no thread)'); H.slots(v, run.map(function (r) { return ['Request ' + r.id, 'q']; }), done ? 'All finished' : 'None', true); }
-    else { H.title(v, 'Requests waiting for a thread to become free'); H.slots(v, wait.map(function (r) { return ['Request ' + r.id, 'q']; }), 'None', true); }
   },
   // Diagram: the position of a request (a numbered box) shows whether it waits while holding an OS thread or waits without a thread.
   draw: function (P, sim, shown, t) {
@@ -13065,7 +12985,7 @@ Lab.register({
     }
     if (!sim.serial) run.slice(0, 30).forEach(function (r, j) { P.box('rq' + r.id, 502 + (j % 3) * 52, 50 + Math.floor(j / 3) * 26, 48, 22, { cls: 'good', sub: String(r.id), center: true }); });
     P.box('dn', 16, H + 30, 648, 34, { cls: 'plain', title: 'Completed requests', right: done + ' / ' + c.n + '' });
-    P.note(sim.serial ? 'Each request holds one thread while it waits for its response. When every thread is tied up, the remaining requests wait in line on the left.' : 'While a request waits, it releases its thread (the numbers in the area on the right are request numbers). That is why even a small number of threads lets many requests wait at the same time.');
+    P.note(sim.serial ? 'Each request holds one thread while it waits for its response. When every thread is tied up, the remaining requests wait in line on the left.' : 'While a request waits, it releases its thread (the numbers in the area on the right are request numbers).');
   },
   assume: 'This model ignores the CPU time spent in handling a request and assumes that a request consists only of waiting for an external response. The number of OS threads that run the event loop and that carry the virtual threads is fixed at 2 (the real default follows the number of CPU cores). Virtual threads were finalized in JDK 21. In JDK 21 to 23 there was a limitation that a virtual thread waiting inside a synchronized block could not release its OS thread, and this was resolved in JDK 24. The times were actually measured on JDK 21 on this PC, with the wait shortened to 0.2s. With 12 requests, a pool of 4 threads took 619ms (handled in three rounds), blocking on 2 threads took 1,227ms, virtual threads took 216ms on 2 OS threads, and the approach that only registers the wait took 201ms on 2 threads. These are the same ratios as in the model (6s, 12s, 2s, 2s). The measurement did not run Spring WebFlux itself. It reproduced the same principle with the JDK alone.',
 });
@@ -13073,7 +12993,7 @@ Lab.register({
 Lab.register({
   id: 'parallel', nav: 'Sequential and parallel calls', cat: 'Concurrency', mode: 'time',
   title: 'Several external calls: one after another, or all at once?',
-  intro: 'To build a single product detail page, the application calls several services. If it calls them one after another, all the times add up. If it calls them at the same time, the page takes only as long as the slowest call. Change the number of calls and the way they are made, and see what difference a timeout on a slow call makes.',
+  intro: 'To build a single product detail page, the application calls several services. If it calls them one after another, all the times add up. If it calls them at the same time, the page takes only as long as the slowest call.',
   terms: ['CompletableFuture', 'Synchronous and asynchronous', 'Thread pool', 'ForkJoinPool and the common pool'], ranks: ['concurrency', 'threadpool', 'javaver'],
   controls: [
     { id: 'how', label: 'How the calls are made', type: 'select', value: 'seq', options: [['seq', 'Sequential (the next one starts when one finishes)'], ['par', 'Parallel (at the same time, with CompletableFuture)']] },
@@ -13108,7 +13028,6 @@ Lab.register({
     ev.sort(function (a, b) { return a.t - b.t; });
     var total = calls.reduce(function (m, x) { return Math.max(m, x.end); }, 0), add = calls.reduce(function (a, x) { return a + x.eff; }, 0), slow = calls.reduce(function (m, x) { return Math.max(m, x.eff); }, 0);
     ev.push({ t: total, k: 'good', s: fmt(total) + 's: All the results have arrived. The application assembles the page and responds.' });
-    sum.push('The total response time is ' + fmt(total) + 's. The call times add up to ' + fmt(add) + 's, and the slowest call takes ' + fmt(slow) + 's.');
     if (c.how === 'seq') sum.push('With sequential calls, the response time is the sum of all the call times. If the calls do not depend on each other\'s results, there is no reason to make them one after another.');
     else if (total <= slow + 1e-9) sum.push('With parallel calls, the response time is the time of the single slowest call. Adding more calls does not increase the response time as long as they are faster than the slowest one.');
     else sum.push('The calls were requested in parallel, but the number of threads for the asynchronous tasks is only ' + c.pool + ', so the number of calls in progress at a time was limited to ' + c.pool + '. To run blocking calls in parallel, you need as many threads as the number of calls you want to run at the same time. If you do not specify a thread pool, the tasks run in the common pool that all code shares, and that pool is small, about the number of CPU cores, so it is not suited to blocking calls.');
@@ -13145,7 +13064,7 @@ Lab.register({
 Lab.register({
   id: 'cors', nav: 'CORS', cat: 'HTTP', mode: 'step',
   title: 'Why a request works in Postman but is blocked only in the browser',
-  intro: 'By default, a browser does not let a script on a web page read a response from a server at a different origin. The block is lifted only when the server says in a response header that this origin is allowed. Change the kind of request and the server settings, and see when a preflight request is sent and whether the request reaches the server at all.',
+  intro: 'By default, a browser does not let a script on a web page read a response from a server at a different origin. The block is lifted only when the server says in a response header that this origin is allowed.',
   terms: ['CORS and the same-origin policy', 'Preflight request', 'HTTP methods', 'Cookie'], ranks: ['websec', 'http', 'network'],
   controls: [
     { id: 'api', label: 'Address of the API server (the page is https://shop.example)', type: 'select', value: 'cross', options: [['same', 'https://shop.example/api (same origin)'], ['cross', 'https://api.shop.example (different origin)']] },
@@ -13201,11 +13120,11 @@ Lab.register({
       if (j.ok) { row('Browser', 'Passes the response to the script', 'Passed', 'good'); push('The response has a header that allows this origin. The browser hands the response to the script.', 'good'); }
       else { row('Browser', 'Passes the response to the script', 'Blocked', 'bad'); push('The browser checks the response headers. ' + j.why + '. It does not hand the response to the script, and it prints a CORS error to the console. The server has already handled the request.', 'bad'); }
     }
-    sum.push('Preflight request: ' + (j.pre ? 'sent' : 'not sent') + '. The actual request ' + (j.reached ? 'reached' : 'did not reach') + ' the server, and the script ' + (j.ok ? 'received' : 'did not receive') + ' the response.');
     if (!j.ok) sum.push('CORS is a rule that the browser enforces, not the server. That is why the same request works from Postman or curl, and in calls between servers. The fix is for the API server to send the Allow headers, not for the front end to change.');
     if (!j.pre && !j.ok) sum.push('A simple request reaches the server and runs without any check beforehand. All the browser blocks is reading the response. CORS is not a mechanism that protects the server, so a request that changes state has to be protected with authentication and CSRF countermeasures.');
     if (c.srv === 'star' && c.cred) sum.push('For a request that carries cookies or other credentials, the server must give the exact origin in Access-Control-Allow-Origin and also send Access-Control-Allow-Credentials: true.');
     if (j.ok && j.pre) sum.push('A preflight request adds one more round trip each time. If the server sends Access-Control-Max-Age, the browser remembers the result for that time and does not ask again.');
+    if (!sum.length) sum.push('Preflight request: ' + (j.pre ? 'sent' : 'not sent') + '. The actual request ' + (j.reached ? 'reached' : 'did not reach') + ' the server, and the script ' + (j.ok ? 'received' : 'did not receive') + ' the response.');
     return { events: ev, summary: sum, row: [j.pre ? 'Sent' : 'Not sent', j.reached ? 'Yes' : 'No', j.ok ? 'Yes' : 'No', j.why || '-'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -13232,7 +13151,7 @@ Lab.register({
 Lab.register({
   id: 'webattack', nav: 'Three web attacks', cat: 'Authentication', mode: 'step',
   title: 'What happens when you trust input as it is',
-  intro: 'SQL injection, cross-site scripting (XSS), and cross-site request forgery (CSRF) work on different principles. In one, the input becomes part of the SQL. In another, the input runs as a script in another user\'s browser. In the third, a logged-in user\'s browser is made to send a request on the attacker\'s behalf. For each attack, turn the defenses on and off and see what changes.',
+  intro: 'SQL injection, cross-site scripting (XSS), and cross-site request forgery (CSRF) work on different principles. In one, the input becomes part of the SQL. In another, the input runs as a script in another user\'s browser. In the third, a logged-in user\'s browser is made to send a request on the attacker\'s behalf.',
   terms: ['SQL injection', 'Cross-site scripting (XSS)', 'Cross-site request forgery (CSRF)', 'HttpOnly, Secure, and SameSite', 'Cookie'], ranks: ['websec', 'auth'],
   controls: [
     { id: 'atk', label: 'Attack type', type: 'select', value: 'sqli', options: [['sqli', 'SQL injection'], ['xss', 'XSS (stored)'], ['csrf', 'CSRF']] },
@@ -13304,7 +13223,6 @@ Lab.register({
       else { box.push(['Request bank.example received', 'POST /transfer\nCookie: session ID (attached automatically by the browser)\nto=attacker account, amount=1000000\n→ judged a normal request → transfer executed']); push('This session cookie is set to be attached even to requests sent from other sites (SameSite=None). The browser automatically attaches the session cookie to a request going to bank.example. To the bank server, it cannot be told apart from a normal transfer request sent by the logged-in user. The transfer is executed.', 'bad'); res = 'Succeeded'; harm = 'Transfer executed from the victim\'s account'; sum.push('CSRF abuses the fact that cookies are attached to requests automatically. Without stealing the cookie value, the attacker makes the victim\'s browser send the request on their behalf.'); }
       if (c.d3 !== 'none') sum.push('An API that sends authentication information in the Authorization header (such as a JWT) instead of in a cookie is hard to target with CSRF, because the browser does not attach the header automatically. That is why CSRF protection is sometimes turned off on such API servers.');
     }
-    sum.unshift('Attack result: ' + res + '. Harm: ' + harm + '.');
     return { events: ev, summary: sum, row: [res, harm, where] };
   },
   render: function (v, sim, t, H, shown) {
@@ -13367,7 +13285,6 @@ Lab.register({
     if (H === 'salt') push('A salt is mixed in, so precomputed tables are useless. The attacker has to hash candidate passwords one by one, adding each member\'s own salt. But SHA-256 is a function built to be computed quickly, and a single graphics card can make tens of billions of attempts per second.', 'bad', 4);
     if (H === 'bcrypt') push('bcrypt also has a salt, so precomputed tables cannot be used, and each member must be attacked separately. The difference is speed. bcrypt is designed so that one computation takes time on purpose, so even the same hardware can make only a few thousand attempts per second.', 'good', 4);
     push(H === 'plain' ? 'Result: everything is exposed the moment the data leaks.' : 'Time needed to try 100 million common passwords against one member: ' + crack + '.' + (H === 'bcrypt' ? ' With 1 million members, this time is multiplied by the number of members.' : ' A common password such as password123 is found almost instantly.'), H === 'bcrypt' ? 'good' : 'bad', 5);
-    sum.push('The stored values ' + (same ? 'are the same' : 'differ') + ' for the two members. Reverse lookup with a precomputed table: ' + table + '. Trying 100 million passwords: ' + crack + '. Time to verify one normal login: ' + verify + '.');
     if (H === 'plain') sum.push('Never store passwords as plain text. It also means that an operator, or anyone who can access the database, can see the passwords.');
     if (H === 'sha') sum.push('General-purpose hash functions such as SHA-256 were made for uses that need speed, such as verifying files. For storing passwords, being fast is the weakness.');
     if (H === 'salt') sum.push('A salt stops the same password from producing the same hash, and it stops precomputed tables. But it does not slow down the guessing itself.');
@@ -13387,7 +13304,7 @@ Lab.register({
 Lab.register({
   id: 'singleton', nav: 'Singleton beans and state', cat: 'Spring', mode: 'step',
   title: 'My order shows someone else\'s name',
-  intro: 'By default, only one instance of a Spring bean is created, and all requests share it. If you store a value that differs per request in a field of that bean, another request that comes in at the same time overwrites the value. See what happens depending on where you keep the value.',
+  intro: 'By default, only one instance of a Spring bean is created, and all requests share it. If you store a value that differs per request in a field of that bean, another request that comes in at the same time overwrites the value.',
   terms: ['Stateless singleton beans', 'Bean scope', 'ThreadLocal', 'Thread safety', 'Race condition'], ranks: ['bean', 'di', 'concurrency'],
   controls: [
     { id: 'where', label: 'Where the current user information is kept', type: 'select', value: 'field', options: [['field', 'A field of the service bean'], ['local', 'A local variable of the method (passed as a parameter)'], ['tl', 'ThreadLocal (not cleared at the end of the request)'], ['tlc', 'ThreadLocal (remove at the end of the request)']] },
@@ -13436,16 +13353,11 @@ Lab.register({
       }
     }
     var ok = a === 'Alice' && b === 'Bob' && (g === '-' || g.indexOf('none') === 0);
-    sum.unshift('Alice\'s order shows "' + a + '", and Bob\'s order shows "' + b + '".' + (g !== '-' ? ' User value seen by the next request, which is not logged in: ' + g + '.' : ''));
     return { events: ev, summary: sum, row: [a, b, g, ok ? 'Correct' : 'Values mixed up'] };
   },
   render: function (v, sim, t, H, shown) {
     var W = sim.c.where, last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to send two requests at the same time.'); return; }
-    var ln = H.lanes(v);
-    H.lane(ln, 'Thread 1', s.t1 || 'waiting', s.t1 ? 'hot' : 'none'); H.lane(ln, 'Thread 2', s.t2 || 'waiting', s.t2 && s.t2 !== '(waiting)' ? 'wait' : 'none');
-    if (W === 'field') H.table(v, ['What is shared', 'Current value'], [{ cells: ['OrderService.currentUser (field, only one)', { v: s.field, cls: s.field === 'Bob' ? 'bad' : s.field === 'Alice' ? 'hot' : '' }] }], 'Singleton bean');
-    if (W === 'tl' || W === 'tlc') H.table(v, ['Copy for each thread', 'Current value'], [{ cells: ['ThreadLocal of thread 1', { v: s.tl1, cls: s.tl1 === 'Alice' ? 'hot' : '' }] }, { cells: ['ThreadLocal of thread 2', { v: s.tl2, cls: s.tl2 === 'Bob' ? 'hot' : '' }] }], 'ThreadLocal');
     H.table(v, ['Request', 'Recorded user'], [{ cells: ['Alice\'s order', { v: s.o1, cls: s.o1 === '-' ? '' : s.o1 === 'Alice' ? 'good' : 'bad' }] }, { cells: ['Bob\'s order', { v: s.o2, cls: s.o2 === '-' ? '' : s.o2 === 'Bob' ? 'good' : 'bad' }] }].concat(W === 'tl' || W === 'tlc' ? [{ cells: ['Next request, not logged in', { v: s.o3, cls: s.o3 === '-' ? '' : s.o3.indexOf('none') === 0 ? 'good' : 'bad' }] }] : []), 'Result');
   },
   // Diagram: the single bean at the top and the two threads below. Both threads call the same object. The key point is where the value is placed.
@@ -13473,7 +13385,7 @@ Lab.register({
 Lab.register({
   id: 'ratelimit', nav: 'Rate limiting', cat: 'High traffic', mode: 'step',
   title: 'Three meanings of "accept only 5 requests per second"',
-  intro: 'When requests arrive all at once, the server rejects some of them to protect itself (429 Too Many Requests). Even the same limit of "5 requests per second" lets different requests through, depending on how you count. Compare them by changing the algorithm and the shape of the incoming requests.',
+  intro: 'When requests arrive all at once, the server rejects some of them to protect itself (429 Too Many Requests). Even the same limit of "5 requests per second" lets different requests through, depending on how you count.',
   terms: ['Rate limiting', 'HTTP status codes', 'API gateway'], ranks: ['traffic', 'msa'],
   controls: [
     { id: 'algo', label: 'How requests are counted', type: 'select', value: 'fixed', options: [['fixed', 'Fixed window (the counter resets exactly on every second)'], ['sliding', 'Sliding window (the number of requests in the last 1 second)'], ['bucket', 'Token bucket (5 tokens, refilled at 5 per second)']] },
@@ -13513,8 +13425,7 @@ Lab.register({
     });
     var pass = res.filter(function (r) { return r.ok; }), rej = res.length - pass.length, peak = 0;
     pass.forEach(function (p) { var n = pass.filter(function (q) { return q.t >= p.t - 1e-9 && q.t < p.t + 1 - 1e-9; }).length; if (n > peak) peak = n; });
-    sum.push('Requests: ' + res.length + '. Passed: ' + pass.length + '. Rejected: ' + rej + '. Most requests passed in any 1-second span: ' + peak + '.');
-    if (c.algo === 'fixed') sum.push(peak > L ? 'A fixed window resets its counter to 0 at every whole second, so if requests pile up just before and just after a boundary, up to twice the limit passes in a short time. It is the simplest to implement and uses little memory, but it has this gap.' : 'A fixed window is simple to implement. If requests pile up at a window boundary, up to twice the limit can pass for a moment (check it with "Piled up at a window boundary").');
+    if (c.algo === 'fixed') sum.push(peak > L ? 'A fixed window resets its counter to 0 at every whole second, so if requests pile up just before and just after a boundary, up to twice the limit passes in a short time. It is the simplest to implement and uses little memory, but it has this gap.' : 'A fixed window is simple to implement. If requests pile up at a window boundary, up to twice the limit can pass for a moment.');
     if (c.algo === 'sliding') sum.push('A sliding window never lets through more than 5 requests in any 1-second span, so it is the most accurate. In exchange, it has to record the time of every request, which takes more memory and more computation.');
     if (c.algo === 'bucket') sum.push('A token bucket saves up the tokens that were not used, up to its capacity, and when requests pile up it lets that many through at once. After that, requests pass only at the speed at which tokens are refilled (5 per second). Use it when you want to allow some bursts while keeping the average rate.');
     sum.push('When you reject a request, it is good to send the 429 status code together with when the client may try again (the Retry-After header). If there are several servers, keep the counter in a shared store such as Redis so that the limit does not grow with the number of servers.');
@@ -13534,7 +13445,7 @@ Lab.register({
     res.forEach(function (r, i) { var slot = Math.round(r.t * 20), kth = count[slot] = (count[slot] || 0) + 1, x = 20 + Math.min(r.t, 2.99) / 3 * 640 - 5; P.box('rq' + i, Math.max(18, Math.min(652, x)), 226 - kth * 14, 11, 11, { cls: (r.ok ? 'good' : 'bad') + (i === res.length - 1 ? ' now' : '') }); });
     P.box('ok', 16, 250, 318, 34, { cls: 'good', title: 'Passed', right: ok + (ok === 1 ? ' request' : ' requests') });
     P.box('no', 346, 250, 318, 34, { cls: res.length - ok ? 'bad' : 'ghost', title: 'Rejected (429)', right: (res.length - ok) + (res.length - ok === 1 ? ' request' : ' requests') });
-    P.note('Each dot is one request, and time flows from left to right. Green passed and red was rejected. ' + (algo === 'fixed' ? 'A fixed window resets its counter to 0 at the dotted boundary, so requests piled up on both sides of the boundary can pass up to twice the limit.' : algo === 'sliding' ? 'A sliding window counts "from now back to 1 second ago", regardless of the dotted boundary.' : 'A token bucket lets through as many requests as it has saved tokens, and after that only as many as the speed at which tokens are refilled.'));
+    P.note('Each dot is one request, and time flows from left to right. Green passed and red was rejected. ' + (algo === 'fixed' ? 'A fixed window resets its counter to 0 at the dotted boundary, so requests piled up on both sides of the boundary can pass up to twice the limit.' : algo === 'sliding' ? 'A sliding window counts "from now back to 1 second ago", regardless of the dotted boundary.' : ''));
   },
   assume: 'The limit is fixed at 5 requests per second. The behavior of the three algorithms follows widely used definitions. The sliding window is implemented by recording the time of every request (a sliding window log), and the token bucket assumes that tokens are refilled continuously as time passes. A real service counts separately for each user, IP address, or API key.',
 });
@@ -13542,7 +13453,7 @@ Lab.register({
 Lab.register({
   id: 'sqh', nav: 'Stack, queue, priority queue', cat: 'Data structures', mode: 'step',
   title: 'Insertion order and removal order',
-  intro: 'Even when you insert the same five numbers in the same order, the order in which they come out depends on the data structure. A stack returns the most recently inserted value first, a queue returns the earliest inserted value first, and a priority queue returns the smallest value first. For the priority queue, also watch how the internal array (the heap) changes.',
+  intro: 'Even when you insert the same five numbers in the same order, the order in which they come out depends on the data structure. A stack returns the most recently inserted value first, a queue returns the earliest inserted value first, and a priority queue returns the smallest value first.',
   terms: ['Stack, queue, deque', 'Heap and priority queue', 'Time complexity (big-O notation)'], ranks: ['ds', 'collection'],
   controls: [
     { id: 'ds', label: 'Data structure', type: 'select', value: 'pq', options: [['stack', 'Stack (push / pop of ArrayDeque)'], ['queue', 'Queue (offer / poll of ArrayDeque)'], ['pq', 'Priority queue (PriorityQueue)']] },
@@ -13591,8 +13502,6 @@ Lab.register({
       else s = st.op === 'in' ? 'offer(' + st.x + '): The value is placed at the end of the array and then moves up, swapping places with its parent while it is smaller than the parent. ' + (st.moves ? 'It moved up ' + st.moves + (st.moves === 1 ? ' level and ' : ' levels and ') + (st.at === 0 ? 'reached the top (the place of the smallest value).' : 'stopped.') : (st.at === 0 ? 'It is the first value, so it stays at the top.' : 'It is not smaller than its parent, so it stays where it is.')) : 'poll(): Removes the smallest value, ' + st.x + ', from the top. The last value in the array is moved to the empty top and then moves down, swapping places with the smaller of its two children (it moved down ' + st.moves + (st.moves === 1 ? ' level' : ' levels') + ').';
       ev.push({ s: s, k: st.op === 'out' ? 'good' : '', snap: { a: st.a, outs: outs.slice(), op: st.op, x: st.x } });
     });
-    var inp = this.INPUTS[c.inp];
-    sum.push('Insertion order ' + inp.join(', ') + ' → removal order ' + r.out.join(', ') + '.');
     if (c.ds === 'stack') sum.push('A stack is last-in-first-out (LIFO). It is used when the most recent item must be handled first, as in a method call stack, undo, or checking that parentheses are matched. Insertion and removal are both O(1). In Java, use ArrayDeque in place of the old Stack class.');
     if (c.ds === 'queue') sum.push('A queue is first-in-first-out (FIFO). It is used when items must be handled in the order they arrived, as in a job queue, a message queue, or breadth-first search. Insertion and removal are both O(1).');
     if (c.ds === 'pq') { sum.push('A priority queue returns the smallest value first, regardless of the insertion order. The internal array is not fully sorted. It keeps only the condition that a parent is less than or equal to its children (a heap). That is why the top is always the minimum value.'); sum.push('Insertion and removal swap places only as many times as the height of the tree, so they are O(log n). This is much cheaper than sorting everything every time. A priority queue is used for task scheduling, finding the top N items, and shortest-path algorithms.'); }
@@ -13602,8 +13511,6 @@ Lab.register({
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { a: [], outs: [] };
     H.title(v, c.ds === 'stack' ? 'Stack (the right end is the top)' : c.ds === 'queue' ? 'Queue (the left end is the head, the right end is the tail)' : 'Internal array (index 0 is the top = the smallest value)');
     H.slots(v, s.a.map(function (x, i) { var hot = c.ds === 'stack' ? i === s.a.length - 1 : i === 0; return [String(x), hot ? 'b' : 'q']; }), 'empty');
-    if (c.ds === 'pq' && s.a.length) { H.title(v, 'The same array viewed as a tree (the children of index i are at indexes 2i+1 and 2i+2)'); var lv = [s.a.slice(0, 1), s.a.slice(1, 3), s.a.slice(3, 7)]; lv.forEach(function (row, i) { if (row.length) H.slots(v, row.map(function (x) { return [String(x), i === 0 ? 'b' : 'q']; }), ''); }); }
-    H.title(v, 'Removal order'); H.slots(v, s.outs.map(function (x) { return [String(x), 'd']; }), 'nothing yet');
   },
   // Diagram: the stack is drawn piling upward, the queue as a line from side to side, and the priority queue as a tree (heap). A removed value moves to the row at the bottom.
   draw: function (P, sim, shown) {
@@ -13625,7 +13532,7 @@ Lab.register({
     }
     if (!n && !s.outs.length) P.text('hint', 340, 130, 'Click Run to insert the values one at a time', { cls: 'mut', anchor: 'middle' });
     s.outs.forEach(function (x, k) { P.box('v' + x, 28 + k * 54, 280, 46, 26, { cls: 'good', sub: String(x), center: true }); });
-    P.note(c.ds === 'pq' ? 'The yellow box is the top (the smallest value). The tree is another view of the internal array below it, and the children of index i are at indexes 2i+1 and 2i+2. You can see a parent and a child swap places when a value is inserted or removed.' : 'The yellow box is the value that will be removed next. A removed value moves to the row at the bottom.');
+    P.note(c.ds === 'pq' ? 'The yellow box is the top (the smallest value). The tree is another view of the internal array below it, and the children of index i are at indexes 2i+1 and 2i+2.' : 'The yellow box is the value that will be removed next. A removed value moves to the row at the bottom.');
   },
   assume: 'The removal order and the changes to the internal array of the priority queue were checked by running the real ArrayDeque and PriorityQueue on JDK 21 on this PC (the internal array matched after every insertion and after every removal). By default, PriorityQueue returns the smallest value first, and you can change the ordering by supplying a Comparator.',
 });
@@ -13633,7 +13540,7 @@ Lab.register({
 Lab.register({
   id: 'cme', nav: 'Removing during iteration', cat: 'Data structures', mode: 'step',
   title: 'What happens when you remove elements inside a loop',
-  intro: 'The code iterates over the list [1, 2, 2, 3, 4] and tries to remove the elements whose value is 2. Depending on how it removes them, an exception is thrown, or one element is skipped with no exception at all. Change the method and the kind of collection to see the results.',
+  intro: 'The code iterates over the list [1, 2, 2, 3, 4] and tries to remove the elements whose value is 2. Depending on how it removes them, an exception is thrown, or one element is skipped with no exception at all.',
   terms: ['Fail-fast iterator', 'ArrayList', 'ConcurrentHashMap', 'Thread safety'], ranks: ['collection', 'exception'],
   controls: [
     { id: 'how', label: 'How to remove', type: 'select', value: 'foreach', options: [['foreach', 'list.remove() inside an enhanced for statement'], ['indexfwd', 'for statement with an index (front to back)'], ['indexback', 'for statement with an index (back to front)'], ['iterator', 'remove() of the Iterator'], ['removeIf', 'removeIf()']] },
@@ -13684,11 +13591,11 @@ Lab.register({
     if (c.how === 'removeIf') { list = list.filter(function (x2) { return x2 !== 2; }); push('removeIf filters out the elements that match the condition internally, all at once. You do not run the loop yourself, so the problem of modifying during iteration does not arise. The list is now ' + JSON.stringify(list).replace(/,/g, ', ') + '.', 'good', -1); }
     var res = '[' + list.join(', ') + ']', clean = list.indexOf(2) < 0;
     push('Final list: ' + res + (ex ? ' (stopped by an exception)' : '') + '.', clean && !ex ? 'good' : 'bad', -1);
-    sum.push('Result: ' + res + '. Exception: ' + (ex || 'none') + '. ' + (clean ? 'All the 2s were removed.' : 'A 2 is still in the list.'));
     if (ex === 'ConcurrentModificationException') sum.push('Despite its name, this exception is thrown even when there is only one thread. It occurs when a collection is modified during iteration without going through the iterator. The iterator detects the change by comparing modification counts and fails immediately.');
     if (c.how === 'indexfwd') sum.push('No exception is thrown, but the result is wrong. The loop skips the element that shifted into the position of the removed one. Being silently wrong is more dangerous than throwing an exception.');
     if (cow && c.how === 'foreach') sum.push('CopyOnWriteArrayList makes a fresh copy of the whole array on every modification, and an iterator goes over the old array. So modifying during iteration is safe, but each modification is costly. It suits cases where reads vastly outnumber modifications (such as a list of listeners). ConcurrentHashMap is also designed not to throw an exception when it is modified during iteration.');
     if (!ex && clean && c.how !== 'foreach') sum.push('To remove elements while iterating, use removeIf() or Iterator.remove().');
+    if (!sum.length) sum.push('Result: ' + res + '. Exception: ' + (ex || 'none') + '. ' + (clean ? 'All the 2s were removed.' : 'A 2 is still in the list.'));
     return { events: ev, summary: sum, res: res + (ex ? '|' + ex : ''), row: [res, ex || 'none', clean ? 'Yes' : 'No'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -13702,7 +13609,7 @@ Lab.register({
 Lab.register({
   id: 'pct', nav: 'Averages and percentiles', cat: 'Monitoring', mode: 'step',
   title: 'The average response time looks fine, so why do users complain that it is slow?',
-  intro: 'The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow. Change the share of slow requests and how slow they are, and see what the average and the percentiles (p50, p95, p99) each show and hide.',
+  intro: 'The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow.',
   terms: ['TPS and response time percentiles', 'Load testing', 'APM', 'Observability (logs, metrics, traces)'], ranks: ['monitor', 'tuning', 'traffic'],
   controls: [
     { id: 'ratio', label: 'Share of slow requests', type: 'select', value: '2', options: [['0', 'None'], ['0.5', '0.5% (5 of 1,000 requests)'], ['2', '2% (20 requests)'], ['6', '6% (60 requests)'], ['20', '20% (200 requests)']] },
@@ -13735,7 +13642,6 @@ Lab.register({
     push('p95: the 950th value is ' + f(k.p95) + '. It means "95% of the requests finished within this time, and the other 5% were slower".', k.p95 > 0.5 ? 'bad' : '', 4);
     push('p99: the 990th value is ' + f(k.p99) + '. It means "99% of the requests finished within this time, and only the slowest 1% were slower".' + (k.p99 > 0.5 ? ' The slow requests that the average could not show appear here.' : nSlow ? ' The slow requests are less than 1% of the total, so even p99 did not catch them.' : ''), k.p99 > 0.5 ? 'bad' : '', 5);
     push('The maximum is ' + f(k.max) + ', and p99.9 (the 999th value) is ' + f(k.p999) + '. If there are 1,000,000 requests a day, ' + (nSlow ? 'about ' + String(Math.round(1e6 * nSlow / N)).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' of them would take ' + slow + 's each at this ratio.' : 'there are no slow requests.'), nSlow ? 'bad' : 'good', 6);
-    sum.push('Average ' + f(mean) + ', p50 ' + f(k.p50) + ', p95 ' + f(k.p95) + ', p99 ' + f(k.p99) + ', maximum ' + f(k.max) + '.');
     if (nSlow) sum.push('The average hides a small number of slow requests. Response times follow a skewed distribution, where most are fast and only a few are very slow, so the average does not represent the "typical experience". That is why performance goals are set with percentiles, such as "p99 is 1s or less", instead of "an average of 0.2s".');
     if (nSlow && k.p99 < 0.5) sum.push('When fewer than 1% of the requests are slow, p99 stays quiet too. In a service with many requests, even 0.5% is a large number, so also look at p99.9 and the maximum.');
     sum.push('A user looking at one screen triggers several API calls, so the chance of hitting a slow one among them is higher than the share of slow individual requests. That is why the delay in the tail decides how fast the service feels.');
@@ -13792,9 +13698,8 @@ Lab.register({
       if (failed >= 0) {
         for (var j = failed - 1; j >= 0; j--) { st[j] = 'Compensated: ' + steps[j][3]; comp++; push('Compensation ' + comp + ': ' + steps[j][1] + ' receives the failure event and runs the compensation: ' + steps[j][3] + '. This undoes the work that was already committed with a new action that cancels it. It proceeds in the reverse of the order in which the steps ran.', ''); }
         push('All the compensations are finished. The order is in the canceled state, and the data is consistent again. But until the compensations finished, an inconsistent state such as "payment went through but the order failed" existed for a short time.', '');
-        sum.push(steps[failed][1] + ' failed, and the compensations were run in reverse order (' + comp + ' in total). In the end, the order was canceled.');
         sum.push('A saga splits a long transaction into a sequence of local transactions, one per service, and when a step fails, it undoes the work with compensating transactions. Unlike a database rollback, this does not make the work "never happen". It is a new action that leaves a record of the cancellation. So intermediate states can be visible from outside (there is no isolation), and a compensation can fail too, so retries and idempotency are needed.');
-      } else { push('All four steps succeeded. The order is confirmed.', 'good'); sum.push('The local transactions of the four services were committed one after another, with no failure.'); sum.push('Between the commits of the steps, there is a state like "payment is done but inventory is not yet". The state becomes consistent only after all the steps finish (eventual consistency).'); }
+      } else { push('All four steps succeeded. The order is confirmed.', 'good'); sum.push('Between the commits of the steps, there is a state like "payment is done but inventory is not yet". The state becomes consistent only after all the steps finish (eventual consistency).'); }
       return { events: ev, summary: sum, steps: steps, part: 'saga', row: [failed >= 0 ? 'Order canceled' : 'Order confirmed', String(comp), '-'] };
     }
     var S = { db: 'None', ob: 'None', mq: 'None', other: 'Waiting' }, pushO = function (s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(S)) }); }, okAll;
@@ -13840,7 +13745,7 @@ Lab.register({
         if (i < 3 && comp) P.arrow('cp' + i, 'sv' + (i + 1) + ':t:0.3', 'sv' + i + ':t:0.7', { cls: 'hot', label: 'Undo' });
       });
       P.text('t', 340, 226, 'The databases are separate, so one ROLLBACK cannot undo everything', { anchor: 'middle', cls: 'mut' });
-      P.note('Green is a step that was already committed, red is the step that failed, and yellow is a step that was undone by a compensation. When a step fails, the earlier steps are undone one by one in reverse.');
+      P.note('Green is a step that was already committed, red is the step that failed, and yellow is a step that was undone by a compensation.');
     } else {
       var o = s || { db: 'None', ob: 'None', mq: 'None', other: 'Waiting' }, box = sim.c.pub === 'outbox';
       P.region('dbr', 16, 30, 300, 190, 'Database of the order service (one transaction)');
@@ -13858,7 +13763,7 @@ Lab.register({
 Lab.register({
   id: 'replica', nav: 'Replication lag and CAP', cat: 'Database', mode: 'step',
   title: 'I just saved it, but the query shows the old value',
-  intro: 'If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source to reach the replica. Change the replication lag and the time of the read, and also choose what to give up when the network between the two databases is cut.',
+  intro: 'If you send writes to the source (primary) database and reads to a replica, you can spread out the read load. But it takes time for a change on the source to reach the replica.',
   terms: ['Replication', 'Eventual consistency', 'CAP theorem', 'Read-only transaction (readOnly)'], ranks: ['dbengine', 'nosql', 'traffic'],
   controls: [
     { id: 'part', label: 'What to look at', type: 'select', value: 'lag', options: [['lag', 'Replication lag'], ['cut', 'Network partition between the source and the replica']] },
@@ -13896,7 +13801,6 @@ Lab.register({
       else { got = 'Bob'; S.read = 'From replica: "Bob"'; push(when + 's: The query is sent to the replica. Replication has already finished, so "Bob" is returned.', 'good'); }
       if (first) { S.r = 'Nickname = Bob'; push(lag + 's: Replication finally arrives, and the replica also becomes "Bob". Later queries see the new value.', ''); }
       fresh = got === 'Bob';
-      sum.push('The result of a query to the ' + (c.from === 'replica' ? 'replica' : 'source') + ' ' + when + 's after the save is "' + got + '".' + (fresh ? '' : ' The save succeeded, but the screen showed the old value.'));
       sum.push('Replication is usually asynchronous, so there is a time lag between the source and the replica. Given time they become the same, but before that they can differ (eventual consistency). Ways to handle this are to read the data a user has just written from the source, or, on the screen right after a write, to use the value received in the response as it is.');
       if (c.from === 'primary') sum.push('If every query is sent to the source, there is no problem, but the benefit of spreading out the reads is lost. Send only the queries that must be current to the source.');
     } else {
@@ -13905,7 +13809,6 @@ Lab.register({
       if (c.choice === 'ap') { got = 'Alice'; fresh = false; S.read = 'From replica: "Alice" (old value)'; push('A query from another user comes to the replica. The replica responds with the value it has, "Alice". The service continues, but a value that is not the latest was returned.', 'bad'); }
       else { got = 'Error'; fresh = true; answered = false; S.read = 'Replica refused to respond'; push('A query from another user comes to the replica. The replica cannot guarantee that its data is the latest, so it returns an error. No wrong value was returned, but the query failed.', 'bad'); }
       S.link = 'Restored'; S.r = 'Nickname = Bob'; push('The network is restored. The changes that were held back are delivered to the replica, and the two databases are the same again.', 'good');
-      sum.push('Replica response during the partition: ' + (answered ? '"Alice" (old value)' : 'error') + '.');
       sum.push('In a system split across several machines, a network partition will happen sooner or later. When it does, you cannot keep both "respond to every request (availability)" and "give the same latest value wherever you read (consistency)"; you have to choose one. This is what the CAP theorem says. In normal times, without a partition, both can be kept.');
       sum.push(c.choice === 'ap' ? 'Data that is fine to be an old value for a short time, such as a product list or a like count, chooses availability.' : 'Data that must never return a wrong value, such as an account balance or stock, chooses consistency and accepts the errors.');
     }
@@ -13917,8 +13820,6 @@ Lab.register({
     H.lane(ln, 'Source', s.p + '  (receives writes)', s.p.indexOf('Bob') >= 0 ? 'good' : '');
     H.lane(ln, 'Replication link', s.link, s.link === 'Disconnected' ? 'bad' : 'none');
     H.lane(ln, 'Replica', s.r + '  (serves reads)', s.r === s.p ? (s.r.indexOf('Bob') >= 0 ? 'good' : '') : 'bad');
-    H.counters(v, [[s.read, 'What the query received']]);
-    if (s.r !== s.p) H.text(v, 'The source and the replica have different values now.');
   },
   // Diagram: the source and the replica, with a replication arrow between them. A write goes to the source, and a query goes to the side that is set.
   draw: function (P, sim, shown) {
@@ -13940,7 +13841,7 @@ Lab.register({
 Lab.register({
   id: 'oauth', nav: 'OAuth login flow', cat: 'Authentication', mode: 'step',
   title: 'What is exchanged when you click "Log in with Kakao"',
-  intro: 'Social login is a procedure in which our service gets permission to access a user\'s information, with the user\'s consent, without ever receiving the user\'s password. Some things travel through the browser, and others are exchanged directly between servers. Step through the normal flow and the cases where something goes wrong.',
+  intro: 'Social login is a procedure in which our service gets permission to access a user\'s information, with the user\'s consent, without ever receiving the user\'s password. Some things travel through the browser, and others are exchanged directly between servers.',
   terms: ['OAuth 2.0', 'Authentication and authorization', 'Access token and refresh token', 'Cross-site request forgery (CSRF)'], ranks: ['auth', 'websec'],
   controls: [
     { id: 'sc', label: 'Scenario', type: 'select', value: 'ok', options: [['ok', 'Normal login'], ['deny', 'The user cancels on the consent screen'], ['state', 'The state value in the returning request is different (forged request)'], ['reuse', 'An attempt to reuse an intercepted authorization code']] },
@@ -13988,7 +13889,6 @@ Lab.register({
         if (c.sc === 'reuse') sum.push('An authorization code can be used only once and has a short lifetime, and exchanging it for a token requires the client_secret that only the server knows. Mobile apps and SPAs, which cannot keep a secret, use a supplementary procedure called PKCE.');
       }
     }
-    sum.unshift('Result: ' + res + '. The user\'s Kakao password was entered only at Kakao, and our service never saw it.');
     sum.push('OAuth 2.0 is, at its core, a procedure for being delegated permission (authorization). When it is used for login (authentication), the received token is used to look up user information and confirm who the user is, and OpenID Connect standardizes this.');
     return { events: ev, summary: sum, row: [res, got, 'Kakao only'] };
   },
@@ -14003,7 +13903,7 @@ Lab.register({
     var msgs = rows.map(function (r) { var m = P.dir(P.v(r.cells[0]), ids); m.s = P.v(r.cells[2]); m.cls = P.c(r.cells[2]); return m; });
     var end = P.seq([['u', 'User (browser)', 'wait'], ['w', 'Our service', 'wait'], ['k', 'Kakao auth server', 'plain'], ['a', 'Kakao API server', 'plain']], msgs, { keep: 8 });
     P.size(680, end + 16);
-    P.note('The user\'s ID and password go only to the Kakao authorization server. Our service receives the authorization code and exchanges it for a token by communicating directly server to server. Long text may look cut off, so check the full content in the table on the right.');
+    P.note('Long text may look cut off, so check the full content in the table on the right.');
   },
   assume: 'The authorization code grant of OAuth 2.0 is transcribed following the flow in the standard document (RFC 6749). Kakao is only an example, and other providers such as Google and Naver have the same flow. The code and token values are fake values for explanation.',
 });
@@ -14011,7 +13911,7 @@ Lab.register({
 Lab.register({
   id: 'tls', nav: 'TLS handshake', cat: 'Networking', mode: 'step',
   title: 'What happens before the https padlock locks',
-  intro: 'HTTPS is HTTP wrapped in TLS. Before any data is sent, the browser and the server check that "the other side really is that server" and create "an encryption key that only the two of them know". Watch where public-key cryptography and symmetric-key cryptography are each used in this process, and where the handshake stops when something is wrong with the certificate.',
+  intro: 'HTTPS is HTTP wrapped in TLS. Before any data is sent, the browser and the server check that "the other side really is that server" and create "an encryption key that only the two of them know".',
   terms: ['HTTPS and TLS', 'TLS handshake and certificates', 'Symmetric-key cryptography and public-key cryptography', 'HMAC and digital signatures'], ranks: ['network', 'websec', 'http'],
   controls: [
     { id: 'cert', label: 'State of the server certificate', type: 'select', value: 'ok', options: [['ok', 'Valid'], ['expired', 'Past its validity period'], ['name', 'Certificate for a different domain'], ['self', 'Issued by an untrusted source (self-signed)']] },
@@ -14043,14 +13943,12 @@ Lab.register({
     step('Server → Browser', 'CertificateVerify: signature over everything so far', 'The server signs everything exchanged so far with its private key and sends the signature. The browser checks this signature with the public key in the certificate. Anyone can copy a certificate, but only the real server that holds the matching private key can create the signature.', 'good');
     step('Both sides', 'Finished: confirms that the whole handshake was not tampered with', 'Both sides exchange a verification value over the entire handshake, to check that no one changed a message in the middle.', '');
     S.lock = 'Encrypted with the symmetric key'; step('Browser ↔ Server', 'HTTP request and response (symmetric-key encrypted)', 'Now the HTTP request and the response travel encrypted with the agreed symmetric key. Someone watching in the middle can see only roughly which server you are talking to, and cannot see the content (the path of the address, the headers, cookies, and the body).', 'good');
-    sum.push('The handshake is finished and encrypted communication has started.');
     sum.push('Public-key cryptography (a public key and a private key) is used only for the signatures that confirm the other side is genuine and for agreeing on a key safely. The reason is that its computation is slow. The actual data is encrypted with the fast symmetric key. The two methods share the work, each doing what it is good at.');
     sum.push('TLS 1.3 completes this process in one round trip (earlier versions need two). Even so, every connection has a cost, so it is important to reuse a connection once it has been made.');
     return { events: ev, summary: sum, row: ['Connection succeeded', '-', 'Symmetric key created by the key exchange'] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], key: 'None', lock: 'Not yet encrypted' };
-    H.counters(v, [[s.key, 'Encryption key'], [s.lock, 'Connection state']]);
     if (s.rows.length) H.table(v, ['Direction', 'Content'], s.rows, 'Handshake sequence'); else H.text(v, 'Click Run to start.');
   },
   // Diagram: the handshake messages exchanged between the browser and the server. The calculations and checks each side makes are drawn as boxes.
@@ -14061,7 +13959,7 @@ Lab.register({
     P.box('key', 16, end + 14, 318, 48, { cls: s.key === 'None' ? 'ghost' : 'good', title: 'Encryption key', sub: s.key });
     P.box('lock', 346, end + 14, 318, 48, { cls: enc ? 'good' : s.lock.indexOf('Not yet') === 0 ? 'ghost' : 'bad', title: 'Connection state', sub: s.lock });
     P.size(680, end + 78);
-    P.note('An arrow is a message sent between the two sides, and a box on one side\'s line is work done inside that side (a calculation or a check). If certificate validation fails, nothing below it happens.');
+    P.note('An arrow is a message sent between the two sides, and a box on one side\'s line is work done inside that side (a calculation or a check).');
   },
   assume: 'This simplifies the basic TLS 1.3 handshake (in a real handshake, several of the server\'s reply messages are sent bundled together). The key exchange is the kind in which both sides exchange public values and compute the same secret (ECDHE); it does not encrypt a symmetric key with the server\'s public key and send it, as the older method did. The certificate checks follow the standard procedure of TLS and the web PKI. On the PC used to write this lab, openssl was used to create a test certificate authority and four kinds of certificate, and real TLS 1.3 connections were made with them to check. The valid certificate passed validation, and each of the others was rejected with the error certificate has expired, hostname mismatch, or self-signed certificate. It was also confirmed that the handshake messages are exchanged in the order ClientHello, ServerHello, EncryptedExtensions, Certificate, CertificateVerify, Finished.',
 });
@@ -14069,7 +13967,7 @@ Lab.register({
 Lab.register({
   id: 'tcp', nav: 'TCP connections and retransmission', cat: 'Networking', mode: 'step',
   title: 'When a packet is lost, who notices and sends it again?',
-  intro: 'TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure. Make a packet get lost on purpose and see how the two protocols differ.',
+  intro: 'TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure.',
   terms: ['TCP and UDP', 'Three-way handshake', 'Flow control and congestion control'], ranks: ['network', 'os'],
   controls: [
     { id: 'proto', label: 'Protocol', type: 'select', value: 'tcp', options: [['tcp', 'TCP'], ['udp', 'UDP']] },
@@ -14119,14 +14017,12 @@ Lab.register({
       step('Server → Client', 'ACK (ack=116)', 'The server acknowledges: "I have received everything up to 115."', 'good');
     }
     step('Both', 'Exchange FIN / ACK to close the connection', 'When there is nothing left to send, each side sends "I am finished (FIN)," has it acknowledged, and closes the connection.', '');
-    sum.push('Data that reached the receiver: "' + got.join('') + '". Retransmissions: ' + re + '.');
     sum.push('TCP detects a loss from the sequence numbers and acknowledgments and sends the data again, and even if segments arrive in the wrong order, it puts them in order by number before passing them to the application. The application never learns about the loss. The price is the round trip to establish the connection and, when a loss happens, the delay of also waiting for the data that follows.');
     sum.push('Flow control adjusts the sending so that it does not exceed what the receiver can handle, and congestion control slows the sending down when the network is congested. When a loss occurs, TCP assumes the network is congested and lowers its sending rate.');
     return { events: ev, summary: sum, row: ['"' + got.join('') + '"', re + '', '1 (SYN → SYN+ACK → ACK)'] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], got: [] };
-    H.counters(v, [['"' + s.got.join('') + '"', 'Data delivered to the receiving application']]);
     if (s.rows.length) H.table(v, ['Direction', 'Packet'], s.rows, 'Packets exchanged (top to bottom)'); else H.text(v, 'Click Run to start.');
   },
   // Diagram: packets going back and forth between two computers. A packet that is lost on the way is drawn as a broken arrow.
@@ -14136,7 +14032,7 @@ Lab.register({
     var end = P.seq([['c', udp ? 'Sender' : 'Client', 'wait'], ['s', udp ? 'Receiver' : 'Server', 'wait']], msgs);
     P.box('got', 16, end + 14, 648, 34, { cls: s.got.length ? 'good' : 'ghost', title: 'Data delivered to the receiving application', right: '"' + s.got.join('') + '"' });
     P.size(680, end + 64);
-    P.note('Each arrow is one packet, and time flows from top to bottom. A red dashed line is a packet that was lost on the way. If no acknowledgment (ACK) arrives, TCP sends the data again.');
+    P.note('Each arrow is one packet, and time flows from top to bottom. A red dashed line is a packet that was lost on the way.');
   },
   assume: 'This is a small example in which "Hello, world!!!" is split into three pieces and sent. The numbers (seq, ack) are arbitrary values chosen to make the example easier to follow, and each character is counted as 1 byte (ASCII text), so the three pieces are 6, 6, and 3 bytes. The timing of retransmission is simplified. Besides the timer expiring, real TCP also retransmits right away when the same acknowledgment arrives three times in a row (three duplicate ACKs). The principles of the three-way handshake and of retransmission follow the TCP specification (RFC 9293).',
 });
@@ -14144,7 +14040,7 @@ Lab.register({
 Lab.register({
   id: 'journey', nav: 'From URL to response', cat: 'Networking', mode: 'step',
   title: 'What happens when you type a URL in the address bar and press Enter',
-  intro: 'While a browser opens a single URL, a DNS lookup, a TCP connection, a TLS handshake, an HTTP request, a reverse proxy, an application server, and a database take part one after another. Some steps can be skipped thanks to a cache or connection reuse. Change the conditions and compare the steps taken and the time they take.',
+  intro: 'While a browser opens a single URL, a DNS lookup, a TCP connection, a TLS handshake, an HTTP request, a reverse proxy, an application server, and a database take part one after another. Some steps can be skipped thanks to a cache or connection reuse.',
   terms: ['DNS', 'Web server and application server', 'Reverse proxy', 'CDN', 'HTTPS and TLS', 'Three-way handshake'], ranks: ['network', 'was', 'http'],
   controls: [
     { id: 'what', label: 'What is requested', type: 'select', value: 'api', options: [['api', 'Dynamic page (/orders, needs a database query)'], ['static', 'Static file (/logo.png)']] },
@@ -14184,7 +14080,6 @@ Lab.register({
       }
     }
     step('Response received and displayed', rtt, 'The response arrives at the browser. If it is HTML, the browser parses it, finds the URLs of the CSS, scripts, and images in it, and repeats the same process for each of them.', 'good');
-    sum.push('Total: about ' + total + 'ms. ' + (skipped ? 'Steps skipped: ' + skipped + '.' : 'Every step was taken.') + ' Response produced by: ' + maker + '.');
     if (!c.dns || !c.conn) sum.push('On a first request, the DNS lookup, the TCP connection, and the TLS handshake all happen before the actual request. However fast the server is, these round trips do not go away, so keeping a connection open and reusing it (keep-alive, HTTP/2) has a large effect on how fast the site feels.');
     if (c.what === 'static' && !cdn) sum.push('The web server serves static files directly. The application server handles only the requests whose result has to be produced by running code. Putting a reverse proxy in front lets you handle TLS, static files, load balancing, and hiding the internal servers in one place.');
     if (cdn) sum.push('A CDN keeps copies of static files in many places around the world and responds from a place close to the user. The round trips get shorter, and fewer requests reach the origin server.');
@@ -14193,7 +14088,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], total: 0 };
-    H.counters(v, [[s.total + 'ms', 'Time so far']]);
     if (s.rows.length) H.table(v, ['Step', 'Time', 'Cumulative'], s.rows, 'Steps taken'); else H.text(v, 'Click Run to start.');
   },
   // Diagram: the order in which a request leaves the browser and passes through DNS, the proxy, the application server, and the database.
@@ -14205,7 +14099,7 @@ Lab.register({
     var end = P.seq(actors, msgs, { keep: 11 });
     P.box('tot', 16, end + 14, 648, 34, { cls: 'plain', title: 'Time so far', right: s.total + 'ms' });
     P.size(680, end + 64);
-    P.note('An arrow shows who contacted whom in that step, and the number is the time it took. If you turn on the DNS cache or connection reuse in the settings, the arrows near the top disappear.');
+    P.note('An arrow shows who contacted whom in that step, and the number is the time it took.');
   },
   assume: 'The times are examples chosen to show relative sizes (30ms to reach the server once, 5ms with a CDN, 40ms for a DNS lookup, 20ms for a database query). Real values vary widely with the distance, the network, and the query. The setup assumes a common arrangement in which nginx handles TLS in front and passes requests to Spring Boot (embedded Tomcat) behind it. That the steps really happen in this order, and that the first three steps disappear when a connection is reused, was checked by sending two requests in a row to a public site with curl. In the first request, the DNS lookup was done at 27ms, the TCP connection at 60ms, and TLS at 156ms, and the first byte arrived at 194ms. The second request, sent over the same connection, showed 0 for DNS, TCP, and TLS and took 40ms in total. The part behind the reverse proxy was not verified directly.',
 });
@@ -14213,7 +14107,7 @@ Lab.register({
 Lab.register({
   id: 'etag', nav: 'HTTP caching and ETag', cat: 'HTTP', mode: 'step',
   title: 'Do we have to fetch the same file again?',
-  intro: 'A browser keeps a response it has received and uses it again later. If the server tells it, in the response headers, "how long it may use the response as it is" and "a tag for the version of the content (the ETag)", the browser can skip the request altogether or ask only "has it changed?". Change the settings and the timing, and watch what goes back and forth.',
+  intro: 'A browser keeps a response it has received and uses it again later. If the server tells it, in the response headers, "how long it may use the response as it is" and "a tag for the version of the content (the ETag)", the browser can skip the request altogether or ask only "has it changed?".',
   terms: ['Conditional requests and ETag', 'HTTP status codes', 'Cache', 'CDN'], ranks: ['http', 'cache', 'rest'],
   controls: [
     { id: 'cc', label: 'Cache directive sent by the server', type: 'select', value: 'max', options: [['nostore', 'Cache-Control: no-store (do not store)'], ['max', 'Cache-Control: max-age=60 (use as it is for 60s)'], ['nocache', 'Cache-Control: no-cache (check every time before use)']] },
@@ -14253,12 +14147,10 @@ Lab.register({
       sum.push(c.chg ? 'The content changed, so the new body was received. Thanks to the ETag, the whole body is received only when it has changed.' : 'A 304 response has no body, so almost nothing is transferred. One round trip still takes place, though, and the server has to do some work to find out the current ETag.');
       if (c.cc === 'nocache') sum.push('Despite its name, no-cache does not mean "do not store". It means "store it, but check with the server every time before using it". The directive that prevents storing is no-store.');
     }
-    sum.unshift('Request sent to the server the second time: ' + req2 + '. Response: ' + res2 + '. Body transferred in total while the address was opened twice: ' + sent + 'KB.');
     return { events: ev, summary: sum, row: [req2, res2, body2, shown] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], cache: 'None', sent: 0 };
-    H.counters(v, [[s.cache, 'Stored in the browser'], [(s.rows.length > 1 ? s.sent : 0) + 'KB', 'Body transferred so far']]);
     if (s.rows.length) H.table(v, ['Direction', 'What was sent', 'Header / result'], s.rows, 'Between the browser and the server'); else H.text(v, 'Click Run to start.');
   },
   // Diagram: requests and responses between the browser and the server. When the browser uses the cache directly, no arrow to the server appears.

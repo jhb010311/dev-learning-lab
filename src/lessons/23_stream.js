@@ -1,7 +1,7 @@
 Lab.register({
   id: 'stream', nav: '스트림 지연 평가', cat: '자바 언어', mode: 'step',
   title: '스트림은 적힌 순서대로 실행되지 않는다',
-  intro: 'filter와 map 같은 중간 연산은 호출한 순간에는 아무 일도 하지 않고, 최종 연산이 호출될 때 비로소 실행됩니다. 그것도 연산별로 한꺼번에가 아니라 원소 하나씩 끝까지 흘려보내는 방식입니다. 최종 연산과 중간 연산을 바꿔 가며 실제 실행 순서를 보세요.',
+  intro: 'filter와 map 같은 중간 연산은 호출한 순간에는 아무 일도 하지 않고, 최종 연산이 호출될 때 비로소 실행됩니다. 그것도 연산별로 한꺼번에가 아니라 원소 하나씩 끝까지 흘려보내는 방식입니다.',
   terms: ['Stream API', '지연 평가(Lazy Evaluation)', '람다 표현식', 'Optional'], ranks: ['stream', 'javaver'],
   controls: [
     { id: 'term', label: '최종 연산', type: 'select', value: 'toList', options: [['none', '없음 (중간 연산까지만)'], ['toList', 'toList() : 전부 모으기'], ['findFirst', 'findFirst() : 첫 원소만']] },
@@ -46,7 +46,6 @@ Lab.register({
     if (early) push((c.term === 'findFirst' ? 'findFirst가 원소 하나를 받았으므로' : 'limit(2)가 두 개를 채웠으므로') + ' 더 끌어당기지 않습니다. 남은 원소 ' + (D.length - fN) + '개는 filter조차 거치지 않았습니다.', 'good', -1);
     else if (mN < tr.log.filter(function (l) { return l.indexOf('filter') === 0 && +l.replace(/\D/g, '') > 3; }).length) push((c.term === 'findFirst' ? 'findFirst가 원소 하나를 받았으므로' : 'limit(2)가 두 개를 채웠으므로') + ' 멈춥니다. 정렬된 나머지 값은 map을 거치지 않았습니다.', 'good', -1);
     push('결과: ' + tr.out, 'good', -1);
-    sum.push('filter는 ' + fN + '번, map은 ' + mN + '번 실행됐습니다. 결과는 ' + tr.out + '입니다.');
     if (!c.sorted) sum.push('"filter를 전부 한 다음 map을 전부"가 아니라, 원소 하나가 filter → map을 끝까지 통과한 뒤 다음 원소가 출발합니다. 그래서 중간에 멈출 수 있습니다.');
     if (early) sum.push('필요한 만큼만 처리하고 멈췄습니다(쇼트 서킷). 원소가 많거나 연산이 비쌀 때 차이가 큽니다.');
     if (c.sorted) sum.push('sorted()처럼 전체를 알아야 하는 연산이 끼면 그 앞 단계는 모든 원소에 대해 실행됩니다. 뒤에 findFirst나 limit이 있어도 앞 단계의 일은 줄지 않습니다. 가능하면 걸러내는 연산을 앞에 두는 것이 좋습니다.');

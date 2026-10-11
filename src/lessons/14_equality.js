@@ -50,7 +50,6 @@ Lab.register({
     var prim = c.kind === 'int' && c.ib === 'prim';
     push(prim ? 'a == b: 한쪽이 기본형 int이므로 Integer인 a에서 값을 꺼내(언박싱) 숫자끼리 비교합니다. ' + c.iv + ' == ' + c.iv + '이므로 true입니다.' : 'a == b: 두 변수가 가리키는 대상이 같은지 비교합니다. a는 ' + A + ', b는 ' + B + '를 가리키므로 ' + same + '입니다.', same ? 'good' : 'bad', { eq: String(same) });
     push('a.equals(b): 객체 안의 값을 비교합니다. 내용이 같으므로 true입니다.', 'good', { eq: String(same), equals: 'true' });
-    sum.push('a == b는 ' + same + ', a.equals(b)는 true입니다.');
     if (c.kind === 'str') { sum.push(same ? '두 변수가 String Pool의 같은 객체를 가리켜서 ==도 true가 나왔습니다. 하지만 이것은 만드는 방법에 따라 달라지는 우연에 가깝습니다.' : '내용은 같지만 서로 다른 객체라서 ==는 false입니다.'); sum.push('문자열 내용을 비교할 때는 항상 equals를 씁니다. DB나 요청에서 읽어 온 문자열은 리터럴이 아니므로 ==로 비교하면 대부분 false가 됩니다.'); }
     else { sum.push(prim ? 'Integer와 int를 ==로 비교하면 언박싱되어 값 비교가 됩니다. 단, Integer가 null이면 언박싱하다가 NullPointerException이 납니다.' : c.iv === '127' ? 'Integer.valueOf는 -128부터 127까지의 객체를 캐시해 두고 재사용합니다. 그래서 이 범위에서는 ==가 true로 나옵니다.' : '128은 캐시 범위를 벗어나 매번 새 객체가 만들어집니다. 테스트에서는 작은 수만 써서 통과하다가, 운영에서 ID가 커지면 비교가 틀어지는 버그의 원인입니다.'); sum.push('래퍼 타입(Integer, Long)끼리의 값 비교는 equals로 합니다.'); }
     return { events: ev, summary: sum, row: [String(same), 'true', prim ? '(기본형과 비교)' : same ? '같은 객체' : '다른 객체'] };
@@ -58,10 +57,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 줄씩 진행합니다.'); return; }
-    H.title(v, '변수 (스택)'); var ln = H.lanes(v);
-    H.lane(ln, 'a', s.a ? '→ ' + s.a : '아직 없음', s.a ? 'wait' : 'none'); H.lane(ln, 'b', s.b ? (s.b.indexOf('기본형') === 0 ? s.b : '→ ' + s.b) : '아직 없음', s.b ? 'wait' : 'none');
     H.table(v, ['객체', '위치', '값', '가리키는 변수'], s.objs.map(function (o) { return { cls: o.by.length ? '' : 'gone', cells: ['객체 ' + o.id, o.where, o.val, { v: o.by.length ? o.by.join(', ') : '없음 (버려짐)', cls: o.by.length > 1 ? 'good' : '' }] }; }), '메모리의 객체');
-    H.counters(v, [[s.cmp.eq || '?', 'a == b'], [s.cmp.equals || '?', 'a.equals(b)']]);
   },
   // 그림: 왼쪽에 변수, 오른쪽 위아래에 객체가 놓이는 두 곳. 변수에서 객체로 화살표가 간다.
   draw: function (P, sim, shown) {

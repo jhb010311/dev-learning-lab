@@ -1,7 +1,7 @@
 Lab.register({
   id: 'scale', nav: 'Load balancers and scale out', cat: 'High traffic', mode: 'step',
   title: 'How far does adding servers get you?',
-  intro: 'A load balancer distributes requests across several servers, and each request uses the database once. Change the request rate, the number of servers, the server performance, and the database limit, and see which part reaches its limit first (the bottleneck). You can also kill one of the servers.',
+  intro: 'A load balancer distributes requests across several servers, and each request uses the database once.',
   terms: ['Scale up and scale out', 'Load balancer', 'Bottleneck', 'Autoscaling', 'TPS and response time percentiles'], ranks: ['traffic', 'cloud'],
   controls: [
     { id: 'rps', label: 'Requests arriving per second', type: 'range', min: 100, max: 4000, step: 100, value: 1000, fmt: function (v) { return v + ' requests'; } },
@@ -46,7 +46,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, k = sim.calc, last = shown[shown.length - 1], stage = last ? last.snap.stage : 0;
-    H.counters(v, [[stage >= 5 || !k.alive && stage >= 4 ? k.out + '' : '?', 'Requests handled per second'], [stage >= 5 || !k.alive && stage >= 4 ? k.lost + '' : '?', 'Requests not handled'], [stage >= 5 || !k.alive && stage >= 4 ? k.neck : '?', 'Bottleneck']]);
     var ln = H.lanes(v);
     H.lane(ln, 'Load balancer', stage >= 1 ? 'Receiving ' + c.rps + ' requests per second' : 'Waiting', stage >= 1 ? 'wait' : 'none');
     for (var i = 1; i <= c.n; i++) {
@@ -69,7 +68,7 @@ Lab.register({
     }
     P.box('db', 190, 222, 300, 44, { cls: dbOver ? 'bad' : stage >= 4 ? 'good' : 'plain', title: 'DB (only one)', right: stage >= 4 && k.alive ? 'Load ' + k.dbLoad + '%' : k.dbCap + ' per second' });
     P.text('neck', 340, 296, fin ? 'Bottleneck: ' + k.neck + ' · Handled ' + k.out + ' per second, not handled ' + k.lost : 'The bottleneck is shown as the run proceeds', { anchor: 'middle', bold: fin, cls: fin ? (k.lost ? 'bad' : 'good') : 'mut' });
-    P.note('A red box is a place that cannot handle the amount coming in. You can add servers sideways, but all the servers share a single database, so as you keep adding servers, the red moves to the database.');
+    P.note('A red box is a place that cannot handle the amount coming in.');
   },
   assume: 'This model simplifies things: every request weighs the same, and one request uses one database query. The load balancer is assumed to divide requests evenly and to have no limit of its own (in practice, load balancers are also made redundant). Requests beyond capacity are only counted as "not handled"; in practice, as the load gets closer to the limit, the waiting time grows sharply first. The numbers are examples to show the relationships, not measured values.',
 });

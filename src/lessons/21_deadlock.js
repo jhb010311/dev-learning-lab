@@ -51,7 +51,6 @@ Lab.register({
         sum.push('기다리는 시간에 제한을 두면, 못 얻은 쪽이 가진 락을 내려놓아 고리가 풀립니다. 대신 실패한 작업을 다시 시도하는 코드가 필요하고, 두 스레드가 동시에 포기와 재시도를 반복하지 않도록 재시도 간격을 조금씩 다르게 줍니다.');
       }
     }
-    sum.unshift(dead ? '결과: 교착 상태. 완료된 이체 0건.' : '결과: 이체 ' + done + '건이 모두 완료됐습니다. 락 대기 ' + waits + '번, 재시도 ' + retries + '번.');
     return { events: ev, summary: sum, row: [dead ? '교착 상태' : '정상 완료', done + '건', waits + '번', retries + '번'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -59,9 +58,7 @@ Lab.register({
     var w1 = s.st[1].indexOf('기다리는') >= 0, w2 = s.st[2].indexOf('기다리는') >= 0, dead = w1 && w2 && s.own.A === 1 && s.own.B === 2;
     H.title(v, '스레드'); var ln = H.lanes(v);
     [1, 2].forEach(function (t2) { var x = s.st[t2]; H.lane(ln, '스레드 ' + t2, x + (t2 === 1 ? '  (A → B로 100원)' : '  (B → A로 50원)'), x === '이체 완료' ? 'good' : x.indexOf('기다리는') >= 0 ? (dead ? 'bad' : 'wait') : x === '시작 전' ? 'none' : 'hot'); });
-    H.table(v, ['락', '쥐고 있는 스레드', '기다리는 스레드'], ['A', 'B'].map(function (l) { var waiter = [1, 2].filter(function (t2) { return s.st[t2].indexOf(l + '를 기다리는') >= 0 || s.st[t2].indexOf('계좌 ' + l + ' 락을 기다리는') >= 0; }); return { cells: ['계좌 ' + l, { v: s.own[l] ? '스레드 ' + s.own[l] : '없음', cls: s.own[l] ? 'hot' : '' }, { v: waiter.length ? '스레드 ' + waiter[0] : '없음', cls: waiter.length ? (dead ? 'bad' : '') : '' }] }; }), '락의 상태');
     if (dead) H.text(v, '스레드 1 → (B를 기다림) → 스레드 2 → (A를 기다림) → 스레드 1. 기다림이 고리를 이뤘습니다.');
-    H.counters(v, [[s.done + ' / 2', '완료된 이체']]);
   },
   // 그림: 스레드 둘과 락 둘을 마름모꼴로 놓는다. 락에서 스레드로 가는 화살표는 "쥐고 있음", 스레드에서 락으로 가는 화살표는 "기다림"이다.
   draw: function (P, sim, shown) {

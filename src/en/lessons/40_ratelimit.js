@@ -1,7 +1,7 @@
 Lab.register({
   id: 'ratelimit', nav: 'Rate limiting', cat: 'High traffic', mode: 'step',
   title: 'Three meanings of "accept only 5 requests per second"',
-  intro: 'When requests arrive all at once, the server rejects some of them to protect itself (429 Too Many Requests). Even the same limit of "5 requests per second" lets different requests through, depending on how you count. Compare them by changing the algorithm and the shape of the incoming requests.',
+  intro: 'When requests arrive all at once, the server rejects some of them to protect itself (429 Too Many Requests). Even the same limit of "5 requests per second" lets different requests through, depending on how you count.',
   terms: ['Rate limiting', 'HTTP status codes', 'API gateway'], ranks: ['traffic', 'msa'],
   controls: [
     { id: 'algo', label: 'How requests are counted', type: 'select', value: 'fixed', options: [['fixed', 'Fixed window (the counter resets exactly on every second)'], ['sliding', 'Sliding window (the number of requests in the last 1 second)'], ['bucket', 'Token bucket (5 tokens, refilled at 5 per second)']] },
@@ -41,8 +41,7 @@ Lab.register({
     });
     var pass = res.filter(function (r) { return r.ok; }), rej = res.length - pass.length, peak = 0;
     pass.forEach(function (p) { var n = pass.filter(function (q) { return q.t >= p.t - 1e-9 && q.t < p.t + 1 - 1e-9; }).length; if (n > peak) peak = n; });
-    sum.push('Requests: ' + res.length + '. Passed: ' + pass.length + '. Rejected: ' + rej + '. Most requests passed in any 1-second span: ' + peak + '.');
-    if (c.algo === 'fixed') sum.push(peak > L ? 'A fixed window resets its counter to 0 at every whole second, so if requests pile up just before and just after a boundary, up to twice the limit passes in a short time. It is the simplest to implement and uses little memory, but it has this gap.' : 'A fixed window is simple to implement. If requests pile up at a window boundary, up to twice the limit can pass for a moment (check it with "Piled up at a window boundary").');
+    if (c.algo === 'fixed') sum.push(peak > L ? 'A fixed window resets its counter to 0 at every whole second, so if requests pile up just before and just after a boundary, up to twice the limit passes in a short time. It is the simplest to implement and uses little memory, but it has this gap.' : 'A fixed window is simple to implement. If requests pile up at a window boundary, up to twice the limit can pass for a moment.');
     if (c.algo === 'sliding') sum.push('A sliding window never lets through more than 5 requests in any 1-second span, so it is the most accurate. In exchange, it has to record the time of every request, which takes more memory and more computation.');
     if (c.algo === 'bucket') sum.push('A token bucket saves up the tokens that were not used, up to its capacity, and when requests pile up it lets that many through at once. After that, requests pass only at the speed at which tokens are refilled (5 per second). Use it when you want to allow some bursts while keeping the average rate.');
     sum.push('When you reject a request, it is good to send the 429 status code together with when the client may try again (the Retry-After header). If there are several servers, keep the counter in a shared store such as Redis so that the limit does not grow with the number of servers.');
@@ -62,7 +61,7 @@ Lab.register({
     res.forEach(function (r, i) { var slot = Math.round(r.t * 20), kth = count[slot] = (count[slot] || 0) + 1, x = 20 + Math.min(r.t, 2.99) / 3 * 640 - 5; P.box('rq' + i, Math.max(18, Math.min(652, x)), 226 - kth * 14, 11, 11, { cls: (r.ok ? 'good' : 'bad') + (i === res.length - 1 ? ' now' : '') }); });
     P.box('ok', 16, 250, 318, 34, { cls: 'good', title: 'Passed', right: ok + (ok === 1 ? ' request' : ' requests') });
     P.box('no', 346, 250, 318, 34, { cls: res.length - ok ? 'bad' : 'ghost', title: 'Rejected (429)', right: (res.length - ok) + (res.length - ok === 1 ? ' request' : ' requests') });
-    P.note('Each dot is one request, and time flows from left to right. Green passed and red was rejected. ' + (algo === 'fixed' ? 'A fixed window resets its counter to 0 at the dotted boundary, so requests piled up on both sides of the boundary can pass up to twice the limit.' : algo === 'sliding' ? 'A sliding window counts "from now back to 1 second ago", regardless of the dotted boundary.' : 'A token bucket lets through as many requests as it has saved tokens, and after that only as many as the speed at which tokens are refilled.'));
+    P.note('Each dot is one request, and time flows from left to right. Green passed and red was rejected. ' + (algo === 'fixed' ? 'A fixed window resets its counter to 0 at the dotted boundary, so requests piled up on both sides of the boundary can pass up to twice the limit.' : algo === 'sliding' ? 'A sliding window counts "from now back to 1 second ago", regardless of the dotted boundary.' : ''));
   },
   assume: 'The limit is fixed at 5 requests per second. The behavior of the three algorithms follows widely used definitions. The sliding window is implemented by recording the time of every request (a sliding window log), and the token bucket assumes that tokens are refilled continuously as time passes. A real service counts separately for each user, IP address, or API key.',
 });

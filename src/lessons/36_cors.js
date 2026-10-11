@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cors', nav: 'CORS', cat: 'HTTP', mode: 'step',
   title: 'Postman에서는 되는데 브라우저에서만 막히는 이유',
-  intro: '브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 "이 출처는 허용한다"고 알려 줘야 풀립니다. 요청 종류와 서버 설정을 바꿔 가며 사전 요청(preflight)이 언제 나가는지, 요청이 서버에 닿기는 하는지 확인하세요.',
+  intro: '브라우저는 웹 페이지의 스크립트가 다른 출처의 서버 응답을 읽는 것을 기본적으로 막습니다. 서버가 응답 헤더로 "이 출처는 허용한다"고 알려 줘야 풀립니다.',
   terms: ['CORS와 동일 출처 정책', 'Preflight 요청', 'HTTP 메서드', '쿠키'], ranks: ['websec', 'http', 'network'],
   controls: [
     { id: 'api', label: 'API 서버의 주소 (페이지는 https://shop.example)', type: 'select', value: 'cross', options: [['same', 'https://shop.example/api (같은 출처)'], ['cross', 'https://api.shop.example (다른 출처)']] },
@@ -57,11 +57,11 @@ Lab.register({
       if (j.ok) { row('브라우저', '응답을 스크립트에 전달', '전달함', 'good'); push('응답에 이 출처를 허용하는 헤더가 있습니다. 브라우저가 응답을 스크립트에 넘겨줍니다.', 'good'); }
       else { row('브라우저', '응답을 스크립트에 전달', '차단', 'bad'); push('브라우저가 응답 헤더를 확인합니다. ' + j.why + '. 응답을 스크립트에 넘기지 않고 콘솔에 CORS 오류를 냅니다. 서버는 이미 요청을 처리한 뒤입니다.', 'bad'); }
     }
-    sum.push('사전 요청 ' + (j.pre ? '있음' : '없음') + ', 본 요청은 서버에 ' + (j.reached ? '도착했고' : '도착하지 않았고') + ', 스크립트는 응답을 ' + (j.ok ? '받았습니다.' : '받지 못했습니다.'));
     if (!j.ok) sum.push('CORS는 서버가 아니라 브라우저가 지키는 규칙입니다. 그래서 Postman이나 curl, 서버끼리의 호출에서는 같은 요청이 문제없이 됩니다. 해결은 프론트가 아니라 API 서버가 허용 헤더를 내려 주는 것입니다.');
     if (!j.pre && !j.ok) sum.push('단순 요청은 사전 확인 없이 서버에 도착해 실행됩니다. 브라우저가 막는 것은 응답을 읽는 것뿐입니다. CORS는 서버를 보호하는 장치가 아니므로, 상태를 바꾸는 요청의 보호는 인증과 CSRF 대책으로 해야 합니다.');
     if (c.srv === 'star' && c.cred) sum.push('쿠키나 인증 정보를 실어 보내는 요청에는 Access-Control-Allow-Origin에 정확한 출처를 적고 Access-Control-Allow-Credentials: true를 함께 줘야 합니다.');
     if (j.ok && j.pre) sum.push('사전 요청은 매번 왕복이 한 번 더 생깁니다. 서버가 Access-Control-Max-Age를 주면 브라우저가 그 시간 동안 결과를 기억해 다시 묻지 않습니다.');
+    if (!sum.length) sum.push('사전 요청 ' + (j.pre ? '있음' : '없음') + ', 본 요청은 서버에 ' + (j.reached ? '도착했고' : '도착하지 않았고') + ', 스크립트는 응답을 ' + (j.ok ? '받았습니다.' : '받지 못했습니다.'));
     return { events: ev, summary: sum, row: [j.pre ? '있음' : '없음', j.reached ? '예' : '아니오', j.ok ? '예' : '아니오', j.why || '-'] };
   },
   render: function (v, sim, t, H, shown) {

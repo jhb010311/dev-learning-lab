@@ -1,7 +1,7 @@
 Lab.register({
   id: 'stock', nav: '재고 차감과 락', cat: '데이터베이스', mode: 'step',
   title: '재고 3개에 주문이 동시에 몰리면',
-  intro: '여러 요청이 동시에 "재고 확인 → 1 감소 → 주문 생성"을 합니다. 아무 장치가 없으면 재고보다 많이 팔리거나 재고 숫자가 실제와 어긋납니다. 동시 수정을 막는 방법을 바꿔 가며 결과와 비용(대기, 재시도)을 비교해 보세요.',
+  intro: '여러 요청이 동시에 "재고 확인 → 1 감소 → 주문 생성"을 합니다. 아무 장치가 없으면 재고보다 많이 팔리거나 재고 숫자가 실제와 어긋납니다.',
   terms: ['비관적 락', '낙관적 락(@Version)', '공유 락과 배타 락', '분산 락', '경쟁 상태(Race Condition)'], ranks: ['concurrency', 'traffic', 'dbengine'],
   controls: [
     { id: 'how', label: '동시 수정을 다루는 방법', type: 'select', value: 'none', options: [['none', '아무것도 안 함 (조회 후 수정)'], ['pess', '비관적 락 (SELECT ... FOR UPDATE)'], ['opt', '낙관적 락 (@Version)'], ['atomic', '조건을 넣은 UPDATE 한 문장'], ['dist', '분산 락 (Redis)']] },
@@ -57,7 +57,6 @@ Lab.register({
         push('요청 ' + (win + 1) + ': "버전이 ' + readVer + '일 때만 수정"하는 UPDATE를 보냅니다. 버전이 그대로여서 성공합니다. 재고는 ' + stock + '개, 새 버전은 ' + ver + '입니다.', 'good', win);
         if (left.length) { retries += left.length; left.forEach(function (r) { st[r] = '저장 실패 → 재시도'; }); push('나머지 ' + left.length + '건: 같은 UPDATE를 보냈지만 버전이 이미 바뀌어(현재 ' + ver + ') 조건에 맞는 행이 없습니다(0건 수정). 충돌로 판단해 예외가 발생하고, 처음부터 다시 시도합니다.', 'bad', -1); }
       }
-      sum.push('재고는 정확합니다. 주문 ' + orders + '건, 남은 재고 ' + stock + '개. 그 과정에서 저장 실패와 재시도가 ' + retries + '번 있었습니다.');
       sum.push('낙관적 락은 락을 기다리지 않아서 충돌이 드문 경우(예: 한 사람이 자기 정보를 수정)에 유리합니다. 이 예처럼 같은 행에 요청이 몰리면 대부분이 실패하고 재시도하느라 오히려 일을 더 많이 합니다. 재시도 코드는 직접 만들어야 합니다.');
     }
     if (c.how === 'atomic') {
@@ -65,7 +64,6 @@ Lab.register({
         if (stock > 0) { stock--; orders++; sold++; st[u] = '주문 성공'; push('요청 ' + (u + 1) + ': "재고가 0보다 크면 1 감소" UPDATE를 보냅니다. DB가 이 한 문장을 실행하는 동안에만 행을 잠급니다. 1건이 수정됐으므로 주문을 만듭니다. 재고 ' + stock + '개.', 'good', u); }
         else { st[u] = '품절로 거절'; push('요청 ' + (u + 1) + ': 같은 UPDATE를 보냈지만 재고가 0이라 조건에 맞지 않습니다. 수정된 행이 0건이므로 품절로 처리합니다.', '', u); }
       }
-      sum.push('재고는 정확합니다. 주문 ' + orders + '건, 남은 재고 ' + stock + '개. 대기도 재시도도 없었습니다.');
       sum.push('"읽고, 확인하고, 쓰기"를 애플리케이션에서 나눠 하지 않고 SQL 한 문장에 넣으면, 끼어들 틈 자체가 없어집니다. 단순한 증감에는 가장 가볍고 확실한 방법입니다. 확인할 조건이 여러 테이블에 걸쳐 복잡하면 쓰기 어렵습니다.');
     }
     var match = orders === S - stock;
@@ -73,7 +71,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { stock: c.s, ver: 0, st: [], orders: 0, hot: -1, waits: 0, retries: 0 };
-    H.counters(v, [[s.stock + (c.how === 'opt' ? ' (버전 ' + s.ver + ')' : ''), 'DB의 재고'], [s.orders, '만들어진 주문'], [c.s - s.orders, '재고에서 주문을 뺀 값 (실제 남아야 할 수)'], [s.waits, '락 대기'], [s.retries, '재시도']]);
+    H.counters(v, [[c.s - s.orders, '재고에서 주문을 뺀 값 (실제 남아야 할 수)']]);
     H.title(v, '요청'); var ln = H.lanes(v);
     for (var i = 0; i < c.n; i++) { var x = s.st[i] || '도착 전'; H.lane(ln, '요청 ' + (i + 1), x, x === '주문 성공' ? 'good' : x.indexOf('대기') >= 0 ? 'wait' : x.indexOf('실패') >= 0 ? 'bad' : i === s.hot ? 'hot' : x === '도착 전' ? 'none' : ''); }
   },

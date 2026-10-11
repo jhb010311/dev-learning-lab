@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/jpa/">JPA</a> › Proxies and fetching</p>
 <h1>N+1</h1>
 <p><b>Why are many queries sent when you load the order list only once?</b></p>
-<p>You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries sent to the DB changes. Change the fetching strategy and compare the query logs.</p>
+<p>You load a list of orders and then take the member name from each order. Depending on when and how the associated member is fetched, the number of queries sent to the DB changes.</p>
 <p>Checked against real execution · The number of SQL statements for 112 combinations was checked against Hibernate 7.4.5 and H2</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -74,7 +74,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Queries sent in total: 11 (order queries: 1, member queries: 10). The DB round trips took 55ms.</li>
 <li>On top of the 1 list query, as many queries as members followed. This is the N+1 selects problem. The number of extra queries is decided not by the number of orders but by the number of distinct members that have not been read yet (10).</li>
 </ul>
 <h2>Code</h2>
@@ -178,6 +177,6 @@ for (Order o : orders) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

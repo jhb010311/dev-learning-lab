@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -86,8 +86,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>요청 8건 중 8건 성공, 0건은 커넥션을 얻지 못해 실패했습니다. 성공한 요청은 커넥션을 평균 1.9초, 최대 4.4초 기다렸습니다.</li>
-<li>요청 하나가 커넥션을 쥐고 있는 시간은 2.5초입니다(DB 작업 0.5초 + 외부 API 2초).</li>
 <li>OSIV가 켜져 있으면 영속성 컨텍스트가 응답이 끝날 때까지 열려 있고, 그동안 DB 커넥션도 함께 붙잡혀 있습니다. DB를 쓰지 않는 외부 API 대기 시간까지 커넥션을 점유하므로, 트래픽이 많은 API 서버에서는 커넥션이 금방 모자랍니다. 끄면 트랜잭션이 끝날 때 커넥션을 돌려줍니다.</li>
 </ul>
 <h2>코드</h2>
@@ -187,6 +185,6 @@ OrderDto get(long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

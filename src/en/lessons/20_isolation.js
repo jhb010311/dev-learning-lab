@@ -1,7 +1,7 @@
 Lab.register({
   id: 'iso', nav: 'Isolation levels', cat: 'Database', mode: 'step',
   title: 'How does data that another transaction is changing look to me?',
-  intro: 'While transaction A runs a query, transaction B changes the same data. Depending on the isolation level, A may or may not see the changes made by B. Switch between three situations and four isolation levels, and see which values A gets.',
+  intro: 'While transaction A runs a query, transaction B changes the same data. Depending on the isolation level, A may or may not see the changes made by B.',
   terms: ['Transaction isolation level', 'Dirty read', 'Non-repeatable read', 'Phantom read', 'MVCC (multiversion concurrency control)', 'Undo log and redo log', 'Shared locks and exclusive locks'], ranks: ['isolation', 'dbengine'],
   controls: [
     { id: 'sc', label: 'Situation', type: 'select', value: 'nonrep', options: [['dirty', 'A queries a value that B has changed but not yet committed'], ['nonrep', 'B changes a value and commits between the two queries of A'], ['phantom', 'B adds a new row and commits between the two queries of A']] },
@@ -72,9 +72,7 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { tl: [], ver: [], first: '-', second: '-' };
-    H.counters(v, [[s.first, 'Result of the first query of A'], [s.second, 'Result of the second query of A']]);
     H.table(v, ['Step', 'Transaction A', 'Transaction B'], s.tl.map(function (r, i) { var on = i === s.tl.length - 1; return { cells: [String(i + 1), { v: r.a, cls: r.a && (r.k === 'bad' ? 'bad' : r.k === 'good' ? 'good' : on ? 'hot' : '') }, { v: r.b, cls: r.b && on ? 'hot' : '' }] }; }), 'In time order (top to bottom)');
-    if (s.ver.length) H.table(v, ['Data in the DB', 'Value'], s.ver.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[2] }] }; }), sim.c.sc === 'phantom' ? 'orders table' : 'Row with id = 1 in the account table');
   },
   // Diagram: The order in which transactions A and B take turns sending commands to the DB in the middle. What matters is how the value that A read changes.
   draw: function (P, sim, shown) {

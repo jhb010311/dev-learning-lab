@@ -1,7 +1,7 @@
 Lab.register({
   id: 'threadpool', nav: '스레드 풀', cat: '동시성', mode: 'time',
   title: '스레드를 늘리면 무엇이 달라지나',
-  intro: '요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다. 숫자를 바꿔 가며 대기와 거절이 어떻게 변하는지 보세요.',
+  intro: '요청이 들어오면 스레드 하나가 그 요청을 끝까지 맡습니다. 스레드가 모자라면 요청은 대기 줄에 서고, 줄도 꽉 차면 거절됩니다.',
   terms: ['스레드 풀', 'ThreadPoolExecutor의 동작 순서', '톰캣의 스레드 모델', '블로킹과 논블로킹'], ranks: ['threadpool', 'was'],
   controls: [
     { id: 'core', label: '기본 스레드 수', type: 'range', min: 1, max: 8, value: 2, fmt: function (v) { return v + '개'; } },
@@ -55,9 +55,7 @@ Lab.register({
     var ok = reqs.filter(function (r) { return !r.rejected; }), waits = ok.map(function (r) { return r.start - r.at; });
     var total = ok.reduce(function (m, r) { return Math.max(m, r.end); }, 0), rej = reqs.length - ok.length;
     var avg = waits.length ? waits.reduce(function (a, b) { return a + b; }, 0) / waits.length : 0, mx = waits.length ? Math.max.apply(null, waits) : 0;
-    var sum = ['요청 ' + c.n + '개 중 ' + ok.length + '개를 처리하고 ' + rej + '개를 거절했습니다. 전체 ' + fmt(total) + '초가 걸렸습니다.',
-      '처리된 요청은 평균 ' + fmt(avg) + '초, 가장 오래 기다린 요청은 ' + fmt(mx) + '초를 대기 줄에서 보냈습니다.',
-      '스레드는 ' + threads.length + '개까지 만들어졌습니다(기본 ' + c.core + ', 최대 ' + c.max + ').'];
+    var sum = ['처리된 요청은 평균 ' + fmt(avg) + '초, 가장 오래 기다린 요청은 ' + fmt(mx) + '초를 대기 줄에서 보냈습니다.'];
     if (c.unb && threads.length <= c.core && c.max > c.core) sum.push('대기 줄이 무제한이라 꽉 찰 일이 없었고, 그래서 최대 스레드 수 ' + c.max + '개는 한 번도 쓰이지 않았습니다.');
     if (rej > 0) sum.push('거절을 없애려면 스레드를 늘리거나, 대기 줄을 늘리거나(대신 기다리는 시간이 길어짐), 요청 처리 시간을 줄여야 합니다.');
     if (rej === 0 && mx === 0) sum.push('모든 요청이 기다리지 않고 바로 처리됐습니다. 이 부하에는 스레드가 충분합니다.');
@@ -65,26 +63,21 @@ Lab.register({
       row: [ok.length + '개', rej + '개', fmt(avg) + '초', fmt(mx) + '초', fmt(total) + '초', threads.length + '개'] };
   },
   render: function (v, sim, t, H) {
-    var c = sim.c, slots = Math.max(c.max, sim.threads.length), busyN = 0, made = 0, rows = [];
+    var c = sim.c, slots = Math.max(c.max, sim.threads.length), rows = [];
     for (var i = 0; i < slots; i++) {
       var th = sim.threads[i];
       if (!th || th.created > t + 1e-9) { rows.push(['스레드 ' + (i + 1), i < c.core ? '아직 만들지 않음(기본)' : '아직 만들지 않음(큐가 꽉 차야 만듦)', 'none']); continue; }
-      made++;
       var cur = th.segs.filter(function (r) { return r.start <= t + 1e-9 && r.end > t + 1e-9; })[0];
-      if (cur) { busyN++; rows.push(['스레드 ' + (i + 1), '요청 ' + cur.id + ' 처리 중 · ' + H.fmt(cur.end - t) + '초 남음', '', (t - cur.start) / c.work]); }
+      if (cur) { rows.push(['스레드 ' + (i + 1), '요청 ' + cur.id + ' 처리 중 · ' + H.fmt(cur.end - t) + '초 남음', '', (t - cur.start) / c.work]); }
       else rows.push(['스레드 ' + (i + 1), '쉬는 중', '']);
     }
     var q = sim.reqs.filter(function (r) { return r.queued !== undefined && r.queued <= t + 1e-9 && r.start > t + 1e-9; });
-    var rj = sim.reqs.filter(function (r) { return r.rejected && r.at <= t + 1e-9; });
-    var doneN = sim.reqs.filter(function (r) { return !r.rejected && r.end <= t + 1e-9; }).length;
-    H.counters(v, [[made, '만들어진 스레드'], [busyN, '일하는 스레드'], [q.length, '대기 중인 요청'], [doneN, '처리 완료'], [rj.length, '거절됨']]);
     H.title(v, '스레드'); var ln = H.lanes(v); rows.forEach(function (r) { H.lane(ln, r[0], r[1], r[2], r[3]); });
     H.title(v, '대기 큐');
     var items = [], capN = c.unb ? Math.max(q.length, 1) : c.cap;
     for (var j = 0; j < capN; j++) items.push(q[j] ? ['요청 ' + q[j].id, 'q'] : [c.unb ? '비어 있음' : '빈 칸', '']);
     if (c.unb) items.push(['… 무제한', '']);
     H.slots(v, items, '대기 칸이 없습니다. 쉬는 스레드가 없으면 바로 스레드를 늘리거나 거절합니다.');
-    H.title(v, '거절된 요청'); H.slots(v, rj.map(function (r) { return ['요청 ' + r.id, 'r']; }), '없음');
   },
   // 그림: 왼쪽에 대기 큐와 거절된 요청, 오른쪽에 스레드. 요청(번호 상자)이 큐에서 스레드로 옮겨 가고, 자리가 없으면 거절 칸으로 간다.
   draw: function (P, sim, shown, t) {
@@ -105,7 +98,7 @@ Lab.register({
       if (cur) P.box('rq' + cur.id, 540, y + 3, 104, 18, { cls: 'wait', sub: '요청 ' + cur.id + ' 처리 중', center: true, from: 'th' + i });
     }
     P.text('done', 358, H + 8, '처리 완료 ' + doneN + '개', { cls: 'good' });
-    P.note('번호가 적힌 파란 상자가 요청입니다. 스레드가 모두 바쁘면 요청은 먼저 대기 큐에 들어가고, 큐가 꽉 찬 뒤에야 스레드가 최대 수까지 늘어납니다. 그래도 자리가 없으면 거절 칸으로 갑니다.');
+    P.note('번호가 적힌 파란 상자가 요청입니다.');
   },
   assume: '요청 하나를 처리하는 동안 스레드 하나가 처리 시간만큼 통째로 묶입니다(응답이 느린 DB나 외부 API를 기다리는 요청). 스레드를 늘려도 비용이 들지 않는다고 가정했습니다. 실제로는 스레드마다 메모리를 쓰고, CPU를 쓰려는 스레드가 코어 수보다 많아지면 교대하는 비용이 늘어납니다. 스레드를 배정하는 순서(기본 스레드 → 대기 큐 → 최대 스레드 → 거절)는 자바 ThreadPoolExecutor의 실제 규칙과 같고, 실제 실행 결과와 대조했습니다.',
 });

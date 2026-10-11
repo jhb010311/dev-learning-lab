@@ -1,7 +1,7 @@
 Lab.register({
   id: 'pct', nav: 'Averages and percentiles', cat: 'Monitoring', mode: 'step',
   title: 'The average response time looks fine, so why do users complain that it is slow?',
-  intro: 'The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow. Change the share of slow requests and how slow they are, and see what the average and the percentiles (p50, p95, p99) each show and hide.',
+  intro: 'The response times of 1,000 requests were collected. Most take about 0.1 seconds, but a few are very slow.',
   terms: ['TPS and response time percentiles', 'Load testing', 'APM', 'Observability (logs, metrics, traces)'], ranks: ['monitor', 'tuning', 'traffic'],
   controls: [
     { id: 'ratio', label: 'Share of slow requests', type: 'select', value: '2', options: [['0', 'None'], ['0.5', '0.5% (5 of 1,000 requests)'], ['2', '2% (20 requests)'], ['6', '6% (60 requests)'], ['20', '20% (200 requests)']] },
@@ -34,7 +34,6 @@ Lab.register({
     push('p95: the 950th value is ' + f(k.p95) + '. It means "95% of the requests finished within this time, and the other 5% were slower".', k.p95 > 0.5 ? 'bad' : '', 4);
     push('p99: the 990th value is ' + f(k.p99) + '. It means "99% of the requests finished within this time, and only the slowest 1% were slower".' + (k.p99 > 0.5 ? ' The slow requests that the average could not show appear here.' : nSlow ? ' The slow requests are less than 1% of the total, so even p99 did not catch them.' : ''), k.p99 > 0.5 ? 'bad' : '', 5);
     push('The maximum is ' + f(k.max) + ', and p99.9 (the 999th value) is ' + f(k.p999) + '. If there are 1,000,000 requests a day, ' + (nSlow ? 'about ' + String(Math.round(1e6 * nSlow / N)).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' of them would take ' + slow + 's each at this ratio.' : 'there are no slow requests.'), nSlow ? 'bad' : 'good', 6);
-    sum.push('Average ' + f(mean) + ', p50 ' + f(k.p50) + ', p95 ' + f(k.p95) + ', p99 ' + f(k.p99) + ', maximum ' + f(k.max) + '.');
     if (nSlow) sum.push('The average hides a small number of slow requests. Response times follow a skewed distribution, where most are fast and only a few are very slow, so the average does not represent the "typical experience". That is why performance goals are set with percentiles, such as "p99 is 1s or less", instead of "an average of 0.2s".');
     if (nSlow && k.p99 < 0.5) sum.push('When fewer than 1% of the requests are slow, p99 stays quiet too. In a service with many requests, even 0.5% is a large number, so also look at p99.9 and the maximum.');
     sum.push('A user looking at one screen triggers several API calls, so the chance of hitting a slow one among them is higher than the share of slow individual requests. That is why the delay in the tail decides how fast the service feels.');

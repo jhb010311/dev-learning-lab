@@ -37,9 +37,8 @@ Lab.register({
       if (failed >= 0) {
         for (var j = failed - 1; j >= 0; j--) { st[j] = 'Compensated: ' + steps[j][3]; comp++; push('Compensation ' + comp + ': ' + steps[j][1] + ' receives the failure event and runs the compensation: ' + steps[j][3] + '. This undoes the work that was already committed with a new action that cancels it. It proceeds in the reverse of the order in which the steps ran.', ''); }
         push('All the compensations are finished. The order is in the canceled state, and the data is consistent again. But until the compensations finished, an inconsistent state such as "payment went through but the order failed" existed for a short time.', '');
-        sum.push(steps[failed][1] + ' failed, and the compensations were run in reverse order (' + comp + ' in total). In the end, the order was canceled.');
         sum.push('A saga splits a long transaction into a sequence of local transactions, one per service, and when a step fails, it undoes the work with compensating transactions. Unlike a database rollback, this does not make the work "never happen". It is a new action that leaves a record of the cancellation. So intermediate states can be visible from outside (there is no isolation), and a compensation can fail too, so retries and idempotency are needed.');
-      } else { push('All four steps succeeded. The order is confirmed.', 'good'); sum.push('The local transactions of the four services were committed one after another, with no failure.'); sum.push('Between the commits of the steps, there is a state like "payment is done but inventory is not yet". The state becomes consistent only after all the steps finish (eventual consistency).'); }
+      } else { push('All four steps succeeded. The order is confirmed.', 'good'); sum.push('Between the commits of the steps, there is a state like "payment is done but inventory is not yet". The state becomes consistent only after all the steps finish (eventual consistency).'); }
       return { events: ev, summary: sum, steps: steps, part: 'saga', row: [failed >= 0 ? 'Order canceled' : 'Order confirmed', String(comp), '-'] };
     }
     var S = { db: 'None', ob: 'None', mq: 'None', other: 'Waiting' }, pushO = function (s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(S)) }); }, okAll;
@@ -85,7 +84,7 @@ Lab.register({
         if (i < 3 && comp) P.arrow('cp' + i, 'sv' + (i + 1) + ':t:0.3', 'sv' + i + ':t:0.7', { cls: 'hot', label: 'Undo' });
       });
       P.text('t', 340, 226, 'The databases are separate, so one ROLLBACK cannot undo everything', { anchor: 'middle', cls: 'mut' });
-      P.note('Green is a step that was already committed, red is the step that failed, and yellow is a step that was undone by a compensation. When a step fails, the earlier steps are undone one by one in reverse.');
+      P.note('Green is a step that was already committed, red is the step that failed, and yellow is a step that was undone by a compensation.');
     } else {
       var o = s || { db: 'None', ob: 'None', mq: 'None', other: 'Waiting' }, box = sim.c.pub === 'outbox';
       P.region('dbr', 16, 30, 300, 190, 'Database of the order service (one transaction)');

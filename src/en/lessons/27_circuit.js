@@ -46,7 +46,7 @@ Lab.register({
       if (win.length >= 10 && rate >= th) { state = 'OPEN'; openedAt = t; trans.push('OPEN'); push(msg + ' Among the last 10 calls, the failure rate became ' + Math.round(rate) + '%, at or above the threshold of ' + th + '%. The circuit opens (OPEN). For the next ' + wait + 's, calls to the payment service are blocked.', 'bad'); }
       else push(msg + (win.length >= 10 || !ok ? ' Calls in the window: ' + win.length + ', failure rate ' + Math.round(rate) + '%.' : ''), ok ? '' : 'bad');
     }
-    var waitT = failN * 3, sum = ['Of the 40 calls, ' + okN + ' succeeded, ' + failN + ' waited 3s each and then failed, and ' + blockN + ' were blocked and got an immediate fallback response. The total time spent waiting for a service that did not respond was ' + waitT + 's.'];
+    var waitT = failN * 3, sum = [];
     if (!c.use) sum.push('While the outage lasted, every call held a thread for 3s. With many requests, the thread pool runs out quickly, and even features unrelated to payment can no longer respond. The failure of one service spreads to the service that calls it.');
     else if (!trans.length) sum.push('The failure rate never reached the threshold, so the circuit never opened. This happens when the outage is short or the threshold is high.');
     else sum.push('The state changed in the order ' + ['CLOSED'].concat(trans).join(' → ') + '. While the circuit is open, calls are not made and a fallback response is returned right away, so no threads are tied up. The failing service is not put under extra load either, which gives it room to recover. After a set time, only a few calls are sent to check whether it has recovered.');
@@ -60,9 +60,6 @@ Lab.register({
     var ln = H.lanes(v), down = n >= sim.downFrom && n <= sim.downTo;
     H.lane(ln, 'Payment service', n === 0 ? 'Normal' : down ? 'Outage (no response)' : 'Normal', down ? 'bad' : 'good');
     if (c.use) H.lane(ln, 'Circuit', s.state === 'CLOSED' ? 'CLOSED: lets calls pass through · calls in the window: ' + s.wn + ', failure rate ' + s.rate + '%' : s.state === 'OPEN' ? 'OPEN: blocks calls and returns a fallback right away' : 'HALF_OPEN: lets only a few trial calls through', s.state === 'OPEN' ? 'bad' : s.state === 'HALF_OPEN' ? 'hot' : '', s.state === 'CLOSED' ? s.rate / 100 : undefined);
-    H.title(v, 'Results of the 40 calls (1 box = 1 call per second)'); var items = [];
-    for (var i = 0; i < 40; i++) items.push([String(i + 1), (s.calls[i] || '') + (i === n - 1 ? ' now' : '')]);
-    H.slots(v, items, null, true);
     H.text(v, 'Green is a success, red is a call that waited 3s and failed, and blue is a call that the circuit blocked with an immediate fallback response. The outage runs from second ' + sim.downFrom + ' to second ' + sim.downTo + '.');
   },
   // Diagram: The circuit sits between the order service and the payment service. When it is closed, calls pass through, and when it is open, calls turn back at the circuit.

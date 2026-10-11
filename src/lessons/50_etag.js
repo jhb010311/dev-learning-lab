@@ -1,7 +1,7 @@
 Lab.register({
   id: 'etag', nav: 'HTTP 캐시와 ETag', cat: 'HTTP', mode: 'step',
   title: '같은 파일을 또 받을 필요가 있을까',
-  intro: '브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 "얼마 동안 그대로 써도 되는지"와 "내용의 버전 표시(ETag)"를 알려 주면, 브라우저는 요청을 아예 생략하거나 "바뀌었느냐"만 물어볼 수 있습니다. 설정과 시점을 바꿔 가며 오가는 것을 보세요.',
+  intro: '브라우저는 한 번 받은 응답을 보관해 두었다가 다시 씁니다. 서버가 응답 헤더로 "얼마 동안 그대로 써도 되는지"와 "내용의 버전 표시(ETag)"를 알려 주면, 브라우저는 요청을 아예 생략하거나 "바뀌었느냐"만 물어볼 수 있습니다.',
   terms: ['조건부 요청과 ETag', 'HTTP 상태 코드', '캐시', 'CDN'], ranks: ['http', 'cache', 'rest'],
   controls: [
     { id: 'cc', label: '서버가 준 캐시 지시', type: 'select', value: 'max', options: [['nostore', 'Cache-Control: no-store (저장 금지)'], ['max', 'Cache-Control: max-age=60 (60초 동안 그대로 사용)'], ['nocache', 'Cache-Control: no-cache (쓸 때마다 확인)']] },
@@ -41,12 +41,10 @@ Lab.register({
       sum.push(c.chg ? '내용이 바뀌었으므로 새 본문을 받았습니다. ETag 덕분에 "바뀌었을 때만" 전체를 받습니다.' : '304 응답은 본문이 없어 전송량이 거의 없습니다. 다만 요청과 응답의 왕복은 한 번 일어나고, 서버는 현재 ETag를 알기 위해 일을 해야 합니다.');
       if (c.cc === 'nocache') sum.push('no-cache는 이름과 달리 "저장하지 말라"가 아니라 "저장하되 쓸 때마다 서버에 확인하라"입니다. 저장 자체를 막는 것은 no-store입니다.');
     }
-    sum.unshift('두 번째에 서버로 간 요청: ' + req2 + '. 응답: ' + res2 + '. 두 번 여는 동안 전송된 본문은 합계 ' + sent + 'KB입니다.');
     return { events: ev, summary: sum, row: [req2, res2, body2, shown] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], cache: '없음', sent: 0 };
-    H.counters(v, [[s.cache, '브라우저에 저장된 것'], [(s.rows.length > 1 ? s.sent : 0) + 'KB', '지금까지 전송된 본문']]);
     if (s.rows.length) H.table(v, ['방향', '보낸 것', '헤더 / 결과'], s.rows, '브라우저와 서버 사이'); else H.text(v, '실행을 누르면 시작합니다.');
   },
   // 그림: 브라우저와 서버 사이의 요청과 응답. 캐시에서 바로 꺼내 쓰면 서버로 가는 화살표가 생기지 않는다.

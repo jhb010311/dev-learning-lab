@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -66,7 +66,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>요청 12건을 OS 스레드 4개로 처리했습니다. 전체 6.0초가 걸렸고, 동시에 진행된 요청은 최대 4건입니다.</li>
 <li>블로킹 방식에서는 동시에 처리할 수 있는 요청 수가 스레드 수를 넘지 못합니다. 기다리는 시간이 길수록 스레드가 오래 묶입니다. 코드가 단순하고 디버깅이 쉬워서 대부분의 서비스가 이 방식을 씁니다.</li>
 </ul>
 <h2>코드</h2>
@@ -163,6 +162,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

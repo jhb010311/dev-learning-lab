@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>요청 수 제한: 초당 5건까지만 받는다는 것의 세 가지 의미 · 개발 학습 실습실</title>
-<meta name="description" content="요청이 한꺼번에 몰리면 서버를 지키기 위해 일부를 거절합니다(429 Too Many Requests). &quot;초당 5건&quot;이라는 같은 제한도 세는 방법에 따라 통과하는 요청이 달라집니다. 알고리즘과 요청이 들어오는 모양을 바꿔 가며 비교하세요.">
+<meta name="description" content="요청이 한꺼번에 몰리면 서버를 지키기 위해 일부를 거절합니다(429 Too Many Requests). &quot;초당 5건&quot;이라는 같은 제한도 세는 방법에 따라 통과하는 요청이 달라집니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/ratelimit/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ratelimit/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ratelimit/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="요청 수 제한: 초당 5건까지만 받는다는 것의 세 가지 의미 · 개발 학습 실습실">
-<meta property="og:description" content="요청이 한꺼번에 몰리면 서버를 지키기 위해 일부를 거절합니다(429 Too Many Requests). &quot;초당 5건&quot;이라는 같은 제한도 세는 방법에 따라 통과하는 요청이 달라집니다. 알고리즘과 요청이 들어오는 모양을 바꿔 가며 비교하세요.">
+<meta property="og:description" content="요청이 한꺼번에 몰리면 서버를 지키기 위해 일부를 거절합니다(429 Too Many Requests). &quot;초당 5건&quot;이라는 같은 제한도 세는 방법에 따라 통과하는 요청이 달라집니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/ratelimit/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 웹 공격과 방어</p>
 <h1>요청 수 제한</h1>
 <p><b>초당 5건까지만 받는다는 것의 세 가지 의미</b></p>
-<p>요청이 한꺼번에 몰리면 서버를 지키기 위해 일부를 거절합니다(429 Too Many Requests). &quot;초당 5건&quot;이라는 같은 제한도 세는 방법에 따라 통과하는 요청이 달라집니다. 알고리즘과 요청이 들어오는 모양을 바꿔 가며 비교하세요.</p>
+<p>요청이 한꺼번에 몰리면 서버를 지키기 위해 일부를 거절합니다(429 Too Many Requests). &quot;초당 5건&quot;이라는 같은 제한도 세는 방법에 따라 통과하는 요청이 달라집니다.</p>
 <p>개념 모형 · 널리 쓰이는 알고리즘 정의대로 만든 모형</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -69,7 +69,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>요청 14건 중 14건 통과, 0건 거절. 임의의 1초 구간에서 통과한 요청은 최대 10건입니다.</li>
 <li>고정 윈도는 정각마다 카운터가 0으로 돌아가므로, 경계 직전과 직후에 몰리면 짧은 시간에 제한의 두 배까지 통과합니다. 구현이 가장 단순하고 메모리도 적게 쓰는 대신 이런 틈이 있습니다.</li>
 <li>거절할 때는 429 상태 코드와 함께 언제 다시 시도하면 되는지(Retry-After 헤더)를 알려 주는 것이 좋습니다. 서버가 여러 대면 카운터를 Redis 같은 공용 저장소에 둬야 제한이 서버 수만큼 늘어나지 않습니다.</li>
 </ul>
@@ -164,6 +163,6 @@ if (count &gt; 5) return tooManyRequests(); // 429</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

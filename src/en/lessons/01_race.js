@@ -1,7 +1,7 @@
 Lab.register({
   id: 'race', nav: 'Race condition', cat: 'Concurrency', mode: 'step',
   title: 'Why does count++ lose increments?',
-  intro: 'Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost. Change the synchronization method and the execution order to see how the final value changes.',
+  intro: 'Several threads increment the same variable at the same time. count++ consists of three steps (read, add, and write), so when the steps of different threads are interleaved, increments are lost.',
   terms: ['Race condition', 'Critical section and mutual exclusion', 'synchronized', 'volatile', 'Visibility', 'Atomicity and CAS (compare-and-swap)', 'Thread safety'], ranks: ['javasync', 'concurrency'],
   controls: [
     { id: 'threads', label: 'Number of threads', type: 'range', min: 2, max: 4, value: 2, fmt: function (v) { return v + ' threads'; } },
@@ -74,17 +74,16 @@ Lab.register({
         if (c.sync === 'sync') lock = null;
       }
     }
-    var expect = c.threads * c.loops, sum = ['The expected value is ' + expect + ' (' + c.threads + ' threads × ' + c.loops + '), and the final value is ' + count + '.'];
+    var expect = c.threads * c.loops, sum = [];
     if (lost > 0) sum.push('Increments lost: ' + lost + '. Another thread cut in between the read and the write of one thread, so a result computed from a stale value overwrote the newer one.');
     if (c.sync === 'volatile') sum.push('volatile only makes a value written by another thread visible. It does not combine the three steps of read, add, and write into one, so the result is the same as with no synchronization.');
     if (c.sync === 'sync') sum.push('Only one thread at a time can be inside the synchronized block, so the three steps were never broken up. In return, other threads had to wait. Number of waits: ' + waits + '.');
-    if (c.sync === 'atomic') sum.push('AtomicInteger does not acquire a lock. Instead, it follows the rule "write only if the value is still the one I read" (CAS), so if another thread changed the value first, it does not overwrite it and tries again. Retries in this run: ' + retries + '. No increments were lost.');
+    if (c.sync === 'atomic') sum.push('AtomicInteger does not acquire a lock. Instead, it follows the rule "write only if the value is still the one I read" (CAS), so if another thread changed the value first, it does not overwrite it and tries again.');
     if ((c.sync === 'none' || c.sync === 'volatile') && lost === 0) sum.push('This time the steps did not overlap, so the value is correct. This is not because the code is safe. The order just happened to be favorable. It is why this bug does not show up in tests under light load.');
     return { events: ev, summary: sum, expect: expect, row: [expect, count, lost + '', c.sync === 'sync' ? 'Waits: ' + waits : c.sync === 'atomic' ? 'Retries: ' + retries : 'None'] };
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { count: 0, lost: 0, lock: null, ths: [] };
-    H.counters(v, [[sim.expect, 'Expected value'], [s.count, 'Current count'], [s.lost, 'Lost increments']]);
     H.title(v, 'Threads');
     var ln = H.lanes(v), ph = c.sync === 'atomic' ? ['next: read', 'next: CAS'] : ['next: read', 'next: add', 'next: write'];
     for (var i = 0; i < c.threads; i++) {
@@ -93,7 +92,6 @@ Lab.register({
       var txt = th.left === 0 ? 'Done' : th.blocked ? 'Waiting for the lock' : th.note + ' · ' + ph[th.phase];
       H.lane(ln, name, txt, th.left === 0 ? 'good' : th.blocked ? 'wait' : s.actor === th.id ? 'hot' : '');
     }
-    if (c.sync === 'sync') { H.title(v, 'Lock'); H.slots(v, s.lock ? [['Thread ' + s.lock + ' holds it', 'b']] : [['Free', '']]); }
     H.text(v, 'Yellow marks the thread that just moved, and blue marks a thread that is waiting for the lock.');
   },
   // Diagram: the variable that all threads share at the top center, and the threads below. A thread reads the value, adds to it at its own place, and then writes it back.
@@ -112,7 +110,7 @@ Lab.register({
     P.box('exp', 16, 240, 208, 40, { cls: 'plain', title: 'Expected value', right: String(sim.expect) });
     P.box('now', 236, 240, 208, 40, { cls: 'plain', title: 'Current count', right: String(s.count) });
     P.box('lost', 456, 240, 208, 40, { cls: s.lost ? 'bad' : 'good', title: 'Lost increments', right: s.lost + '' });
-    P.note('A thread reads count (the downward arrow), adds 1 at its own place, and then writes the result back (the upward arrow). When two threads read the same value and then each write, one increment is lost.');
+    P.note('A thread reads count (the downward arrow), adds 1 at its own place, and then writes the result back (the upward arrow).');
   },
   assume: 'The model is simplified so that only one step of one thread runs at a time. On a real machine with multiple cores, several threads truly run at the same time. The model also assumes that a read always sees the latest value, but with a real ordinary variable, a value written by another thread may not be visible (a visibility problem). When real code in which 2 threads each increment 1 million times was run with JDK 21 on this PC, count++ without synchronization gave a different result every time, from 1,017,250 to 1,892,129, the result still fell short with volatile, and synchronized and AtomicInteger always gave 2,000,000. AtomicInteger is drawn in the order read → CAS → retry on failure, but depending on the CPU, a real JVM sometimes completes this increment with a single instruction, so retries may not be noticeable.',
 });

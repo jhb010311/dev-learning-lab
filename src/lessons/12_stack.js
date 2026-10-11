@@ -1,7 +1,7 @@
 Lab.register({
   id: 'stack', nav: '스택과 힙', cat: 'JVM', mode: 'step',
   title: '메서드를 부를 때마다 메모리에서는 무슨 일이',
-  intro: '메서드를 호출하면 그 스레드의 스택에 프레임이 하나 쌓이고, 반환하면 사라집니다. new로 만든 객체는 스택이 아니라 힙에 놓이고 프레임의 지역 변수가 그것을 가리킵니다. 재귀 깊이와 스택 크기를 바꿔 가며 프레임이 쌓이고 빠지는 모습과 StackOverflowError를 보세요.',
+  intro: '메서드를 호출하면 그 스레드의 스택에 프레임이 하나 쌓이고, 반환하면 사라집니다. new로 만든 객체는 스택이 아니라 힙에 놓이고 프레임의 지역 변수가 그것을 가리킵니다.',
   terms: ['런타임 데이터 영역', 'JVM 스택', '힙(Heap) 메모리', 'StackOverflowError와 OutOfMemoryError'], ranks: ['jvm'],
   controls: [
     { id: 'n', label: 'factorial에 넘기는 값', type: 'range', min: 1, max: 10, value: 4, fmt: function (v) { return 'factorial(' + v + ')'; } },
@@ -62,10 +62,8 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { frames: [], heap: [] };
-    H.counters(v, [[s.frames.length + ' / ' + c.limit, '스택의 프레임'], [s.heap.filter(function (h) { return h.live; }).length, '힙: 가리키는 곳 있는 객체'], [s.heap.filter(function (h) { return !h.live; }).length, '힙: 가리키는 곳 없는 객체']]);
     H.title(v, 'main 스레드의 스택 (맨 위가 지금 실행 중인 메서드)'); var ln = H.lanes(v);
     for (var i = c.limit - 1; i >= 0; i--) { var f = s.frames[i]; if (f) H.lane(ln, (i + 1) + '번째', f.name + '  |  ' + f.vars + '  |  ' + f.st, i === s.frames.length - 1 ? 'hot' : 'wait'); else H.lane(ln, (i + 1) + '번째', '빈 자리', 'none'); }
-    if (c.obj) { H.title(v, '힙 (모든 스레드가 함께 쓰는 영역)'); H.slots(v, s.heap.map(function (h) { return ['객체' + h.id, h.live ? 'd' : '']; }), '아직 객체가 없습니다.'); H.text(v, '초록은 스택의 변수가 가리키는 객체, 점선은 가리키는 곳이 없어져 GC 대상이 된 객체입니다.'); }
   },
   // 그림: 왼쪽에 스택(아래에서 위로 쌓임), 오른쪽에 힙. 프레임의 변수에서 힙의 객체로 화살표가 간다.
   draw: function (P, sim, shown) {

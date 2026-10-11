@@ -1,7 +1,7 @@
 Lab.register({
   id: 'tcp', nav: 'TCP connections and retransmission', cat: 'Networking', mode: 'step',
   title: 'When a packet is lost, who notices and sends it again?',
-  intro: 'TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure. Make a packet get lost on purpose and see how the two protocols differ.',
+  intro: 'TCP establishes a connection before it sends data, and it asks for an acknowledgment of every piece of data it sends. If no acknowledgment arrives, it sends the data again. UDP sends without any of that procedure.',
   terms: ['TCP and UDP', 'Three-way handshake', 'Flow control and congestion control'], ranks: ['network', 'os'],
   controls: [
     { id: 'proto', label: 'Protocol', type: 'select', value: 'tcp', options: [['tcp', 'TCP'], ['udp', 'UDP']] },
@@ -51,14 +51,12 @@ Lab.register({
       step('Server → Client', 'ACK (ack=116)', 'The server acknowledges: "I have received everything up to 115."', 'good');
     }
     step('Both', 'Exchange FIN / ACK to close the connection', 'When there is nothing left to send, each side sends "I am finished (FIN)," has it acknowledged, and closes the connection.', '');
-    sum.push('Data that reached the receiver: "' + got.join('') + '". Retransmissions: ' + re + '.');
     sum.push('TCP detects a loss from the sequence numbers and acknowledgments and sends the data again, and even if segments arrive in the wrong order, it puts them in order by number before passing them to the application. The application never learns about the loss. The price is the round trip to establish the connection and, when a loss happens, the delay of also waiting for the data that follows.');
     sum.push('Flow control adjusts the sending so that it does not exceed what the receiver can handle, and congestion control slows the sending down when the network is congested. When a loss occurs, TCP assumes the network is congested and lowers its sending rate.');
     return { events: ev, summary: sum, row: ['"' + got.join('') + '"', re + '', '1 (SYN → SYN+ACK → ACK)'] };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], got: [] };
-    H.counters(v, [['"' + s.got.join('') + '"', 'Data delivered to the receiving application']]);
     if (s.rows.length) H.table(v, ['Direction', 'Packet'], s.rows, 'Packets exchanged (top to bottom)'); else H.text(v, 'Click Run to start.');
   },
   // Diagram: packets going back and forth between two computers. A packet that is lost on the way is drawn as a broken arrow.
@@ -68,7 +66,7 @@ Lab.register({
     var end = P.seq([['c', udp ? 'Sender' : 'Client', 'wait'], ['s', udp ? 'Receiver' : 'Server', 'wait']], msgs);
     P.box('got', 16, end + 14, 648, 34, { cls: s.got.length ? 'good' : 'ghost', title: 'Data delivered to the receiving application', right: '"' + s.got.join('') + '"' });
     P.size(680, end + 64);
-    P.note('Each arrow is one packet, and time flows from top to bottom. A red dashed line is a packet that was lost on the way. If no acknowledgment (ACK) arrives, TCP sends the data again.');
+    P.note('Each arrow is one packet, and time flows from top to bottom. A red dashed line is a packet that was lost on the way.');
   },
   assume: 'This is a small example in which "Hello, world!!!" is split into three pieces and sent. The numbers (seq, ack) are arbitrary values chosen to make the example easier to follow, and each character is counted as 1 byte (ASCII text), so the three pieces are 6, 6, and 3 bytes. The timing of retransmission is simplified. Besides the timer expiring, real TCP also retransmits right away when the same acknowledgment arrives three times in a row (three duplicate ACKs). The principles of the three-way handshake and of retransmission follow the TCP specification (RFC 9293).',
 });

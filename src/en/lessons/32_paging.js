@@ -1,7 +1,7 @@
 Lab.register({
   id: 'paging', nav: 'Offset and keyset pagination', cat: 'Database', mode: 'step',
   title: 'Why later pages get slower',
-  intro: 'A list of posts is shown page by page, newest first. The OFFSET method reads and discards all the rows of the earlier pages before it reaches the page you want. The keyset (cursor) method uses the index to go straight to "right after the last post you saw". Increase the page number and compare the number of rows read.',
+  intro: 'A list of posts is shown page by page, newest first. The OFFSET method reads and discards all the rows of the earlier pages before it reaches the page you want. The keyset (cursor) method uses the index to go straight to "right after the last post you saw".',
   terms: ['Offset-based pagination and keyset (cursor-based) pagination', 'Index', 'B-tree index'], ranks: ['tuning', 'index'],
   controls: [
     { id: 'how', label: 'Pagination method', type: 'select', value: 'offset', options: [['offset', 'OFFSET (page number)'], ['keyset', 'Keyset (based on the id of the last post seen)']] },

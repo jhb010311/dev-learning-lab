@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Isolation levels: How does data that another transaction is changing look to me? · Dev Learning Lab</title>
-<meta name="description" content="While transaction A runs a query, transaction B changes the same data. Depending on the isolation level, A may or may not see the changes made by B. Switc…">
+<meta name="description" content="While transaction A runs a query, transaction B changes the same data. Depending on the isolation level, A may or may not see the changes made by B.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/iso/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/iso/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/iso/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Isolation levels: How does data that another transaction is changing look to me? · Dev Learning Lab">
-<meta property="og:description" content="While transaction A runs a query, transaction B changes the same data. Depending on the isolation level, A may or may not see the changes made by B. Switc…">
+<meta property="og:description" content="While transaction A runs a query, transaction B changes the same data. Depending on the isolation level, A may or may not see the changes made by B.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/iso/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/db/">Database</a> › Transactions and locking</p>
 <h1>Isolation levels</h1>
 <p><b>How does data that another transaction is changing look to me?</b></p>
-<p>While transaction A runs a query, transaction B changes the same data. Depending on the isolation level, A may or may not see the changes made by B. Switch between three situations and four isolation levels, and see which values A gets.</p>
+<p>While transaction A runs a query, transaction B changes the same data. Depending on the isolation level, A may or may not see the changes made by B.</p>
 <p>Checked against real execution · Ran all 12 combinations on MySQL 8.4.11 with two sessions and checked the results against them</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -172,6 +172,6 @@ COMMIT;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

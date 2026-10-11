@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -60,7 +60,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The stored values are the same for the two members. Reverse lookup with a precomputed table: Possible. Trying 100 million passwords: under 1 second. Time to verify one normal login: almost 0.</li>
 <li>General-purpose hash functions such as SHA-256 were made for uses that need speed, such as verifying files. For storing passwords, being fast is the weakness.</li>
 <li>Store passwords as hashes, not as encrypted values. Encryption can be reversed to the original value with the key, but a hash cannot be reversed, and the server has no need to know the original password.</li>
 </ul>
@@ -153,6 +152,6 @@ member.setPassword(HexFormat.of().formatHex(hash));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

@@ -74,8 +74,6 @@ Lab.register({
     H.lane(ln, '호출', s.caller, 'wait');
     H.lane(ln, '프록시', s.proxy, s.proxy.indexOf('보지 못함') >= 0 ? 'bad' : s.proxy === '대기' ? 'none' : 'hot');
     H.lane(ln, '실제 객체', s.target, s.target === '대기' ? 'none' : s.target.indexOf('예외') >= 0 ? 'bad' : '');
-    if (sim.tx) { if (s.rows.length) H.table(v, ['데이터', '상태'], s.rows.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[2] }] }; }), 'DB 테이블'); }
-    else H.counters(v, [[s.thread || '아직 실행 전', '메일 발송이 실행되는 스레드'], [s.wait || '-', '호출한 쪽이 기다린 시간']]);
   },
   // 그림: 프록시는 실제 객체를 감싼 바깥 상자다. 밖에서 오는 호출은 바깥 상자를 지나고, 안에서 this로 부르는 호출은 지나지 않는다.
   draw: function (P, sim, shown) {
@@ -102,7 +100,7 @@ Lab.register({
       P.box('th', 16, 232, 318, 48, { cls: s.thread ? (s.thread.indexOf('task') === 0 ? 'good' : 'bad') : 'ghost', title: '메일 발송이 실행되는 스레드', sub: s.thread || '아직 실행 전' });
       P.box('wt', 346, 232, 318, 48, { cls: !s.wait ? 'ghost' : s.wait === '0초' ? 'good' : 'bad', title: '호출한 쪽이 기다린 시간', sub: s.wait || '-' });
     }
-    P.note('바깥 상자가 프록시, 안쪽 상자가 실제 객체입니다. 다른 빈이 부르는 호출은 바깥 상자를 지나야 안으로 들어가므로 그때 트랜잭션 같은 부가 기능이 붙습니다. 안쪽 객체가 자기 메서드를 this로 부르는 빨간 화살표는 바깥 상자를 지나지 않습니다.');
+    P.note('바깥 상자가 프록시, 안쪽 상자가 실제 객체입니다. 안쪽 객체가 자기 메서드를 this로 부르는 빨간 화살표는 바깥 상자를 지나지 않습니다.');
   },
   assume: '스프링의 기본 방식인 프록시 기반 AOP를 기준으로 했습니다(AspectJ 위빙을 쓰면 내부 호출에도 적용할 수 있지만 흔하지 않습니다). @Async는 @EnableAsync가 켜져 있다고 가정했습니다. 트랜잭션이 없을 때 INSERT가 각각 바로 커밋된다는 것은 JDBC 커넥션의 자동 커밋 기본값을 따른 것입니다. 열 가지 조합 모두를 실제 스프링(스프링 프레임워크 7.0.9)의 @Transactional, @Async 빈으로 실행해 확인했습니다. 프록시를 거친 호출에서만 메서드 안에 트랜잭션이 열려 있었고 예외 뒤에 남은 행이 없었으며, 내부 호출과 private 메서드에서는 두 행이 그대로 남았습니다. @Async도 프록시를 거친 호출만 별도 스레드(task-1)에서 실행됐고, 내부 호출은 호출한 스레드에서 끝까지 실행됐습니다(메일 발송 3초는 0.3초로 줄여 시험).',
 });

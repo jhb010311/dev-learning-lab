@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Classes and objects</p>
 <h1>Polymorphism and method selection</h1>
 <p><b>Who decides which method runs, and when?</b></p>
-<p>The declared type of a variable and the type of the object that it actually holds can be different. An overridden method is chosen at run time by looking at the actual object, but overloading, static methods, and fields are decided at compile time from the declared type alone. Change the combination and try to predict the result.</p>
+<p>The declared type of a variable and the type of the object that it actually holds can be different. An overridden method is chosen at run time by looking at the actual object, but overloading, static methods, and fields are decided at compile time from the declared type alone.</p>
 <p>Checked against real execution · Every combination was compiled and run on JDK 21 and checked against the result</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -63,7 +63,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>Output: Dog.sound. At run time, this was decided based on the actual object (Dog).</li>
 <li>An overridden instance method is selected by the type of the actual object, not by the declared type of the variable. This is polymorphism, and it is the principle that lets Spring run an implementation that was injected as an interface type.</li>
 </ul>
 <h2>Code</h2>
@@ -170,6 +169,6 @@ a.sound();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

@@ -74,8 +74,6 @@ Lab.register({
     H.lane(ln, 'Call', s.caller, 'wait');
     H.lane(ln, 'Proxy', s.proxy, s.proxy.indexOf('Does not see') >= 0 ? 'bad' : s.proxy === 'Waiting' ? 'none' : 'hot');
     H.lane(ln, 'Real object', s.target, s.target === 'Waiting' ? 'none' : s.target.indexOf('Exception') >= 0 ? 'bad' : '');
-    if (sim.tx) { if (s.rows.length) H.table(v, ['Data', 'State'], s.rows.map(function (r) { return { cells: [r[0], { v: r[1], cls: r[2] }] }; }), 'DB table'); }
-    else H.counters(v, [[s.thread || 'Not run yet', 'Thread that sends the mail'], [s.wait || '-', 'Time the caller waited']]);
   },
   // Diagram: The proxy is the outer box that wraps the real object. A call that comes from outside passes through the outer box, and a call made from inside with this does not.
   draw: function (P, sim, shown) {
@@ -102,7 +100,7 @@ Lab.register({
       P.box('th', 16, 232, 318, 48, { cls: s.thread ? (s.thread.indexOf('task') === 0 ? 'good' : 'bad') : 'ghost', title: 'Thread that sends the mail', sub: s.thread || 'Not run yet' });
       P.box('wt', 346, 232, 318, 48, { cls: !s.wait ? 'ghost' : s.wait === '0s' ? 'good' : 'bad', title: 'Time the caller waited', sub: s.wait || '-' });
     }
-    P.note('The outer box is the proxy, and the inner box is the real object. A call from another bean must pass through the outer box to get inside, and that is when extra behavior such as a transaction is added. The red arrow, where the inner object calls its own method with this, does not pass through the outer box.');
+    P.note('The outer box is the proxy, and the inner box is the real object. The red arrow, where the inner object calls its own method with this, does not pass through the outer box.');
   },
   assume: 'This lab is based on proxy-based AOP, which is the default in Spring (with AspectJ weaving, the annotations can also be applied to self-invocation, but that is uncommon). For @Async, @EnableAsync is assumed to be turned on. That each INSERT is committed right away when there is no transaction follows the auto-commit default of a JDBC connection. All 10 combinations were run and confirmed with @Transactional and @Async beans on a real Spring (Spring Framework 7.0.9). Only in calls that went through the proxy was a transaction open inside the method and no rows were left after the exception, and with self-invocation and with the private method the two rows stayed as they were. For @Async too, only the calls that went through the proxy ran on a separate thread (task-1), and with self-invocation the method ran to the end on the calling thread (the 3 seconds of sending the mail were shortened to 0.3 seconds for the test).',
 });

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › Secure connections</p>
 <h1>TLS handshake</h1>
 <p><b>What happens before the https padlock locks</b></p>
-<p>HTTPS is HTTP wrapped in TLS. Before any data is sent, the browser and the server check that &quot;the other side really is that server&quot; and create &quot;an encryption key that only the two of them know&quot;. Watch where public-key cryptography and symmetric-key cryptography are each used in this process, and where the handshake stops when something is wrong with the certificate.</p>
+<p>HTTPS is HTTP wrapped in TLS. Before any data is sent, the browser and the server check that &quot;the other side really is that server&quot; and create &quot;an encryption key that only the two of them know&quot;.</p>
 <p>Checked against real execution · Checked by making real TLS 1.3 connections with openssl</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The handshake is finished and encrypted communication has started.</li>
 <li>Public-key cryptography (a public key and a private key) is used only for the signatures that confirm the other side is genuine and for agreeing on a key safely. The reason is that its computation is slow. The actual data is encrypted with the fast symmetric key. The two methods share the work, each doing what it is good at.</li>
 <li>TLS 1.3 completes this process in one round trip (earlier versions need two). Even so, every connection has a cost, so it is important to reuse a connection once it has been made.</li>
 </ul>
@@ -166,6 +165,6 @@ server:
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

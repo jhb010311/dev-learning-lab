@@ -1,7 +1,7 @@
 Lab.register({
   id: 'hashmap', nav: 'HashMap 내부', cat: '자료구조', mode: 'step',
   title: 'HashMap은 키를 어디에 넣고 어떻게 찾나',
-  intro: '키의 hashCode로 버킷 번호를 정해 넣습니다. hashCode가 겹치면 한 버킷에 줄줄이 달리고, 항목이 많아지면 버킷을 두 배로 늘립니다. hashCode 구현과 equals 재정의 여부를 바꿔 가며 버킷이 어떻게 차는지, 넣은 키를 다시 찾을 수 있는지 보세요.',
+  intro: '키의 hashCode로 버킷 번호를 정해 넣습니다. hashCode가 겹치면 한 버킷에 줄줄이 달리고, 항목이 많아지면 버킷을 두 배로 늘립니다.',
   terms: ['해시 테이블과 HashMap', '해시 충돌', '로드 팩터와 리사이즈', '레드-블랙 트리', 'equals와 hashCode 규약'], ranks: ['collection', 'equals', 'ds'],
   controls: [
     { id: 'n', label: '넣는 키 개수', type: 'range', min: 1, max: 40, value: 13, fmt: function (v) { return v + '개'; } },
@@ -74,7 +74,7 @@ Lab.register({
     else if (!hcOn) gs += '넣을 때의 객체와 해시가 달라 엉뚱한 버킷을 봤습니다. ' + (qb.nodes.length ? '그 버킷의 노드 ' + qb.nodes.length + '개는 해시부터 달라 equals를 부르지도 않습니다. ' : '그 버킷은 비어 있습니다. ') + 'null을 돌려줍니다. 값은 맵 안에 있는데 꺼낼 수 없습니다.';
     else gs += '맞는 버킷을 찾아갔고 해시도 같습니다. 하지만 equals가 재정의되지 않아 "같은 객체인가"만 비교하고, 새로 만든 객체는 다른 객체이므로 전부 false입니다. 노드 ' + qb.nodes.length + '개를 다 비교하고 null을 돌려줍니다.';
     push(gs, found ? 'good' : 'bad', qi);
-    var sum = ['키 ' + c.n + '개를 넣는 동안 버킷은 16개에서 ' + afterFill.cap + '개가 됐고(' + afterFill.resizes + '번 늘림), 가장 긴 버킷에는 ' + afterFill.longest + '개가 달렸습니다.'];
+    var sum = [];
     if (hcOn && c.hash !== 'good' && afterFill.longest > 2) sum.push('hashCode 값의 종류가 적으면 버킷을 아무리 늘려도 같은 버킷에 쌓입니다. 한 버킷이 길어질수록 put과 get이 그 안을 하나씩 비교하므로 느려집니다.');
     if (afterFill.trees) sum.push('버킷 ' + afterFill.trees + '개가 레드-블랙 트리로 바뀌었습니다. 트리는 해시 값이 서로 다르거나 키가 Comparable일 때 탐색을 빠르게 합니다. 이 예처럼 한 버킷의 hashCode가 전부 같고 Comparable도 아니면 트리로 바꿔도 탐색은 빨라지지 않습니다. 결국 hashCode를 고르게 만드는 것이 해법입니다.');
     if (c.eq === 'both') sum.push('equals와 hashCode를 둘 다 재정의해서, 같은 id로 만든 새 객체로도 값을 바꾸고 찾을 수 있었습니다.');
@@ -86,11 +86,6 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { cap: 16, thr: Math.floor(16 * +sim.c.lf), size: 0, resizes: 0, touch: -1, longest: 0, B: [] };
     H.counters(v, [[s.cap, '버킷 수'], [s.size, '저장된 항목'], [s.thr + ' 초과', '늘리는 기준'], [s.resizes, '늘린 횟수'], [s.longest, '가장 긴 버킷']]);
-    H.title(v, '버킷 ' + s.cap + '개 (숫자는 그 버킷에 달린 항목 수)');
-    var items = [];
-    for (var i = 0; i < s.cap; i++) { var b = s.B[i] || { n: 0 }; items.push([b.n ? String(b.n) + (b.tree ? 'T' : '') : '', (b.n === 0 ? '' : b.n === 1 ? 'd' : b.n < 8 ? 'q' : 'r') + (i === s.touch ? ' now' : '')]); }
-    H.slots(v, items, null, true);
-    H.text(v, '초록은 1개, 파랑은 2~7개(충돌), 빨강은 8개 이상, T는 트리로 바뀐 버킷입니다. 굵은 테두리는 방금 건드린 버킷입니다.');
     var rows = [];
     s.B.forEach(function (b, i) { if (b.n >= 2 || (i === s.touch && b.n)) rows.push({ cells: [{ v: i + '번', cls: i === s.touch ? 'hot' : '' }, b.tree ? '레드-블랙 트리' : b.n > 1 ? '연결 리스트' : '노드 1개', b.n + '개', b.ids.slice(0, 12).join(' → ') + (b.n > 12 ? ' → …' : '')] }); });
     if (rows.length) H.table(v, ['버킷', '구조', '개수', '들어 있는 키의 id (넣은 순서)'], rows, '방금 건드린 버킷과 충돌이 난 버킷');

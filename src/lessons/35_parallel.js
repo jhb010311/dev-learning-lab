@@ -1,7 +1,7 @@
 Lab.register({
   id: 'parallel', nav: '순차 호출과 병렬 호출', cat: '동시성', mode: 'time',
   title: '외부 호출 여러 개를 차례로 할까 한꺼번에 할까',
-  intro: '상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다. 호출 개수와 방식을 바꿔 보고, 느린 호출에 제한 시간을 걸었을 때의 차이도 보세요.',
+  intro: '상품 상세 화면 하나를 만들려고 여러 서비스를 호출합니다. 차례로 부르면 걸리는 시간이 모두 더해지고, 동시에 부르면 가장 느린 호출만큼만 걸립니다.',
   terms: ['CompletableFuture', '동기와 비동기', '스레드 풀', 'ForkJoinPool과 공용 풀'], ranks: ['concurrency', 'threadpool', 'javaver'],
   controls: [
     { id: 'how', label: '호출 방식', type: 'select', value: 'seq', options: [['seq', '순차 (하나 끝나면 다음)'], ['par', '병렬 (CompletableFuture로 동시에)']] },
@@ -36,7 +36,6 @@ Lab.register({
     ev.sort(function (a, b) { return a.t - b.t; });
     var total = calls.reduce(function (m, x) { return Math.max(m, x.end); }, 0), add = calls.reduce(function (a, x) { return a + x.eff; }, 0), slow = calls.reduce(function (m, x) { return Math.max(m, x.eff); }, 0);
     ev.push({ t: total, k: 'good', s: fmt(total) + '초: 모든 결과가 모였습니다. 화면을 조립해 응답합니다.' });
-    sum.push('전체 응답 시간은 ' + fmt(total) + '초입니다. 각 호출 시간의 합은 ' + fmt(add) + '초, 가장 느린 호출은 ' + fmt(slow) + '초입니다.');
     if (c.how === 'seq') sum.push('순차 호출의 응답 시간은 모든 호출 시간의 합입니다. 서로 결과에 의존하지 않는 호출이라면 차례로 부를 이유가 없습니다.');
     else if (total <= slow + 1e-9) sum.push('병렬 호출의 응답 시간은 가장 느린 호출 하나의 시간입니다. 호출을 더 늘려도 가장 느린 것보다 빠르기만 하면 응답 시간은 늘지 않습니다.');
     else sum.push('병렬로 요청했지만 비동기 작업용 스레드가 ' + c.pool + '개뿐이라 동시에 ' + c.pool + '개까지만 진행됐습니다. 블로킹 호출을 병렬로 돌리려면 동시에 돌릴 개수만큼 스레드가 필요합니다. 스레드 풀을 지정하지 않으면 모든 코드가 함께 쓰는 공용 풀에서 실행되는데, 이 풀은 CPU 코어 수 정도로 작아서 블로킹 호출에는 맞지 않습니다.');

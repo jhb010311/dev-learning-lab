@@ -1,7 +1,7 @@
 Lab.register({
   id: 'sqh', nav: 'Stack, queue, priority queue', cat: 'Data structures', mode: 'step',
   title: 'Insertion order and removal order',
-  intro: 'Even when you insert the same five numbers in the same order, the order in which they come out depends on the data structure. A stack returns the most recently inserted value first, a queue returns the earliest inserted value first, and a priority queue returns the smallest value first. For the priority queue, also watch how the internal array (the heap) changes.',
+  intro: 'Even when you insert the same five numbers in the same order, the order in which they come out depends on the data structure. A stack returns the most recently inserted value first, a queue returns the earliest inserted value first, and a priority queue returns the smallest value first.',
   terms: ['Stack, queue, deque', 'Heap and priority queue', 'Time complexity (big-O notation)'], ranks: ['ds', 'collection'],
   controls: [
     { id: 'ds', label: 'Data structure', type: 'select', value: 'pq', options: [['stack', 'Stack (push / pop of ArrayDeque)'], ['queue', 'Queue (offer / poll of ArrayDeque)'], ['pq', 'Priority queue (PriorityQueue)']] },
@@ -50,8 +50,6 @@ Lab.register({
       else s = st.op === 'in' ? 'offer(' + st.x + '): The value is placed at the end of the array and then moves up, swapping places with its parent while it is smaller than the parent. ' + (st.moves ? 'It moved up ' + st.moves + (st.moves === 1 ? ' level and ' : ' levels and ') + (st.at === 0 ? 'reached the top (the place of the smallest value).' : 'stopped.') : (st.at === 0 ? 'It is the first value, so it stays at the top.' : 'It is not smaller than its parent, so it stays where it is.')) : 'poll(): Removes the smallest value, ' + st.x + ', from the top. The last value in the array is moved to the empty top and then moves down, swapping places with the smaller of its two children (it moved down ' + st.moves + (st.moves === 1 ? ' level' : ' levels') + ').';
       ev.push({ s: s, k: st.op === 'out' ? 'good' : '', snap: { a: st.a, outs: outs.slice(), op: st.op, x: st.x } });
     });
-    var inp = this.INPUTS[c.inp];
-    sum.push('Insertion order ' + inp.join(', ') + ' → removal order ' + r.out.join(', ') + '.');
     if (c.ds === 'stack') sum.push('A stack is last-in-first-out (LIFO). It is used when the most recent item must be handled first, as in a method call stack, undo, or checking that parentheses are matched. Insertion and removal are both O(1). In Java, use ArrayDeque in place of the old Stack class.');
     if (c.ds === 'queue') sum.push('A queue is first-in-first-out (FIFO). It is used when items must be handled in the order they arrived, as in a job queue, a message queue, or breadth-first search. Insertion and removal are both O(1).');
     if (c.ds === 'pq') { sum.push('A priority queue returns the smallest value first, regardless of the insertion order. The internal array is not fully sorted. It keeps only the condition that a parent is less than or equal to its children (a heap). That is why the top is always the minimum value.'); sum.push('Insertion and removal swap places only as many times as the height of the tree, so they are O(log n). This is much cheaper than sorting everything every time. A priority queue is used for task scheduling, finding the top N items, and shortest-path algorithms.'); }
@@ -61,8 +59,6 @@ Lab.register({
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { a: [], outs: [] };
     H.title(v, c.ds === 'stack' ? 'Stack (the right end is the top)' : c.ds === 'queue' ? 'Queue (the left end is the head, the right end is the tail)' : 'Internal array (index 0 is the top = the smallest value)');
     H.slots(v, s.a.map(function (x, i) { var hot = c.ds === 'stack' ? i === s.a.length - 1 : i === 0; return [String(x), hot ? 'b' : 'q']; }), 'empty');
-    if (c.ds === 'pq' && s.a.length) { H.title(v, 'The same array viewed as a tree (the children of index i are at indexes 2i+1 and 2i+2)'); var lv = [s.a.slice(0, 1), s.a.slice(1, 3), s.a.slice(3, 7)]; lv.forEach(function (row, i) { if (row.length) H.slots(v, row.map(function (x) { return [String(x), i === 0 ? 'b' : 'q']; }), ''); }); }
-    H.title(v, 'Removal order'); H.slots(v, s.outs.map(function (x) { return [String(x), 'd']; }), 'nothing yet');
   },
   // Diagram: the stack is drawn piling upward, the queue as a line from side to side, and the priority queue as a tree (heap). A removed value moves to the row at the bottom.
   draw: function (P, sim, shown) {
@@ -84,7 +80,7 @@ Lab.register({
     }
     if (!n && !s.outs.length) P.text('hint', 340, 130, 'Click Run to insert the values one at a time', { cls: 'mut', anchor: 'middle' });
     s.outs.forEach(function (x, k) { P.box('v' + x, 28 + k * 54, 280, 46, 26, { cls: 'good', sub: String(x), center: true }); });
-    P.note(c.ds === 'pq' ? 'The yellow box is the top (the smallest value). The tree is another view of the internal array below it, and the children of index i are at indexes 2i+1 and 2i+2. You can see a parent and a child swap places when a value is inserted or removed.' : 'The yellow box is the value that will be removed next. A removed value moves to the row at the bottom.');
+    P.note(c.ds === 'pq' ? 'The yellow box is the top (the smallest value). The tree is another view of the internal array below it, and the children of index i are at indexes 2i+1 and 2i+2.' : 'The yellow box is the value that will be removed next. A removed value moves to the row at the bottom.');
   },
   assume: 'The removal order and the changes to the internal array of the priority queue were checked by running the real ArrayDeque and PriorityQueue on JDK 21 on this PC (the internal array matched after every insertion and after every removal). By default, PriorityQueue returns the smallest value first, and you can change the ordering by supplying a Comparator.',
 });

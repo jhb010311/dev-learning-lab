@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c96ac5bdc9">
+<link rel="stylesheet" href="../../app.css?v=1e909b04d7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/spring/">Spring</a> › Web MVC</p>
 <h1>Spring MVC request flow</h1>
 <p><b>How one request reaches the controller, and how it goes back</b></p>
-<p>An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse. Go through the steps to see which steps are skipped and what produces the response when the request is rejected along the way or an exception is thrown.</p>
+<p>An HTTP request passes through the filters, DispatcherServlet, and the interceptors in turn before it arrives at the controller, and it becomes a response by going back the same way in reverse.</p>
 <p>Checked against real execution · Checked by sending 16 kinds of requests to a Spring Boot 4.1.1 server</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -77,8 +77,6 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The final response is 200 OK + JSON. Response produced by: Controller return value.</li>
-<li>Controller method: ran, postHandle: ran, afterCompletion: ran.</li>
 <li>An @RestController does not go through ViewResolver. The returned object becomes the response body directly through HttpMessageConverter.</li>
 </ul>
 <h2>Code</h2>
@@ -174,6 +172,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c96ac5bdc9"></script>
+<script src="../../app.js?v=1e909b04d7"></script>
 </body>
 </html>

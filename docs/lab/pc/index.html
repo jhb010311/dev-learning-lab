@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>영속성 컨텍스트: JPA는 SQL을 언제 보내나 · 개발 학습 실습실</title>
-<meta name="description" content="JPA는 엔티티를 영속성 컨텍스트라는 메모리 공간에 보관하고, SQL을 코드가 실행되는 순간이 아니라 필요한 시점에 모아서 보냅니다. 코드 한 줄씩 따라가며 어느 줄에서 SQL이 나가고 어느 줄에서는 안 나가는지 보세요.">
+<meta name="description" content="JPA는 엔티티를 영속성 컨텍스트라는 메모리 공간에 보관하고, SQL을 코드가 실행되는 순간이 아니라 필요한 시점에 모아서 보냅니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/pc/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/pc/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pc/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="영속성 컨텍스트: JPA는 SQL을 언제 보내나 · 개발 학습 실습실">
-<meta property="og:description" content="JPA는 엔티티를 영속성 컨텍스트라는 메모리 공간에 보관하고, SQL을 코드가 실행되는 순간이 아니라 필요한 시점에 모아서 보냅니다. 코드 한 줄씩 따라가며 어느 줄에서 SQL이 나가고 어느 줄에서는 안 나가는지 보세요.">
+<meta property="og:description" content="JPA는 엔티티를 영속성 컨텍스트라는 메모리 공간에 보관하고, SQL을 코드가 실행되는 순간이 아니라 필요한 시점에 모아서 보냅니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/pc/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
+<link rel="stylesheet" href="../../app.css?v=acc6b404b6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 영속성 관리</p>
 <h1>영속성 컨텍스트</h1>
 <p><b>JPA는 SQL을 언제 보내나</b></p>
-<p>JPA는 엔티티를 영속성 컨텍스트라는 메모리 공간에 보관하고, SQL을 코드가 실행되는 순간이 아니라 필요한 시점에 모아서 보냅니다. 코드 한 줄씩 따라가며 어느 줄에서 SQL이 나가고 어느 줄에서는 안 나가는지 보세요.</p>
+<p>JPA는 엔티티를 영속성 컨텍스트라는 메모리 공간에 보관하고, SQL을 코드가 실행되는 순간이 아니라 필요한 시점에 모아서 보냅니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 여섯 장면의 SQL을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -64,7 +64,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>DB로 나간 SQL은 2건입니다: SELECT, UPDATE.</li>
 <li>update나 save를 호출하지 않았는데 UPDATE가 나갔습니다. 영속성 컨텍스트가 관리하는 엔티티는 값만 바꾸면, 커밋 시점에 스냅샷과 비교해 SQL을 만들어 줍니다.</li>
 </ul>
 <h2>코드</h2>
@@ -159,6 +158,6 @@ public void run() {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0f6ff462bd"></script>
+<script src="../../app.js?v=acc6b404b6"></script>
 </body>
 </html>

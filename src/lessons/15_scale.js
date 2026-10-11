@@ -1,7 +1,7 @@
 Lab.register({
   id: 'scale', nav: '로드밸런서와 스케일 아웃', cat: '대용량 트래픽', mode: 'step',
   title: '서버를 늘리면 어디까지 버티나',
-  intro: '로드밸런서가 요청을 여러 서버에 나눠 주고, 서버는 요청마다 DB를 한 번씩 씁니다. 요청량, 서버 수, 서버 성능, DB 한계를 바꿔 가며 어디가 먼저 막히는지(병목) 보세요. 서버 한 대를 죽여 볼 수도 있습니다.',
+  intro: '로드밸런서가 요청을 여러 서버에 나눠 주고, 서버는 요청마다 DB를 한 번씩 씁니다.',
   terms: ['스케일 업과 스케일 아웃', '로드밸런서', '병목(Bottleneck)', '오토스케일링', 'TPS와 응답 시간 백분위'], ranks: ['traffic', 'cloud'],
   controls: [
     { id: 'rps', label: '초당 들어오는 요청', type: 'range', min: 100, max: 4000, step: 100, value: 1000, fmt: function (v) { return v + '건'; } },
@@ -46,7 +46,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var c = sim.c, k = sim.calc, last = shown[shown.length - 1], stage = last ? last.snap.stage : 0;
-    H.counters(v, [[stage >= 5 || !k.alive && stage >= 4 ? k.out + '건' : '?', '초당 처리량'], [stage >= 5 || !k.alive && stage >= 4 ? k.lost + '건' : '?', '처리 못 한 요청'], [stage >= 5 || !k.alive && stage >= 4 ? k.neck : '?', '병목']]);
     var ln = H.lanes(v);
     H.lane(ln, '로드밸런서', stage >= 1 ? '초당 ' + c.rps + '건 수신' : '대기', stage >= 1 ? 'wait' : 'none');
     for (var i = 1; i <= c.n; i++) {
@@ -69,7 +68,7 @@ Lab.register({
     }
     P.box('db', 190, 222, 300, 44, { cls: dbOver ? 'bad' : stage >= 4 ? 'good' : 'plain', title: 'DB (하나뿐)', right: stage >= 4 && k.alive ? '부하 ' + k.dbLoad + '%' : '초당 ' + k.dbCap + '건 가능' });
     P.text('neck', 340, 296, fin ? '병목: ' + k.neck + ' · 초당 처리 ' + k.out + '건, 처리 못 함 ' + k.lost + '건' : '실행을 진행하면 병목이 표시됩니다', { anchor: 'middle', bold: fin, cls: fin ? (k.lost ? 'bad' : 'good') : 'mut' });
-    P.note('빨간 상자가 들어오는 양을 감당하지 못하는 곳입니다. 서버는 옆으로 늘릴 수 있지만 모든 서버가 DB 하나를 함께 쓰므로, 서버를 늘리다 보면 빨간색이 DB로 옮겨 갑니다.');
+    P.note('빨간 상자가 들어오는 양을 감당하지 못하는 곳입니다.');
   },
   assume: '모든 요청의 무게가 같고, 요청 1건이 DB 쿼리 1번을 쓴다고 단순화했습니다. 로드밸런서는 요청을 고르게 나누며 자체 한계는 없다고 가정했습니다(실제로는 로드밸런서도 이중화합니다). 처리 능력을 넘은 요청은 "처리 못 함"으로만 셌는데, 실제로는 한계에 가까워질수록 대기 시간이 먼저 급격히 늘어납니다. 숫자는 관계를 보이기 위한 예시이며 실측값이 아닙니다.',
 });

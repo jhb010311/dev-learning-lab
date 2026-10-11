@@ -1,7 +1,7 @@
 Lab.register({
   id: 'journey', nav: '주소 입력부터 응답까지', cat: '네트워크', mode: 'step',
   title: '주소창에 입력하고 엔터를 누르면',
-  intro: '브라우저가 주소 하나를 여는 동안 DNS 조회, TCP 연결, TLS 핸드셰이크, HTTP 요청, 리버스 프록시, 애플리케이션 서버, DB가 차례로 관여합니다. 어떤 단계는 캐시나 연결 재사용으로 건너뛸 수 있습니다. 조건을 바꿔 가며 거치는 단계와 걸리는 시간을 비교하세요.',
+  intro: '브라우저가 주소 하나를 여는 동안 DNS 조회, TCP 연결, TLS 핸드셰이크, HTTP 요청, 리버스 프록시, 애플리케이션 서버, DB가 차례로 관여합니다. 어떤 단계는 캐시나 연결 재사용으로 건너뛸 수 있습니다.',
   terms: ['DNS', '웹 서버와 WAS', '리버스 프록시', 'CDN', 'HTTPS와 TLS', '3-way handshake'], ranks: ['network', 'was', 'http'],
   controls: [
     { id: 'what', label: '요청하는 것', type: 'select', value: 'api', options: [['api', '동적 페이지 (/orders, DB 조회 필요)'], ['static', '정적 파일 (/logo.png)']] },
@@ -41,7 +41,6 @@ Lab.register({
       }
     }
     step('응답 수신과 화면 표시', rtt, '응답이 브라우저에 도착합니다. HTML이라면 브라우저가 해석하면서 그 안의 CSS, 스크립트, 이미지 주소를 발견하고, 그것들에 대해 같은 과정을 반복합니다.', 'good');
-    sum.push('전체 약 ' + total + 'ms. ' + (skipped ? skipped + '개 단계를 건너뛰었습니다.' : '모든 단계를 거쳤습니다.') + ' 응답을 만든 곳: ' + maker + '.');
     if (!c.dns || !c.conn) sum.push('첫 요청에서는 DNS 조회, TCP 연결, TLS 핸드셰이크가 실제 요청보다 먼저 일어납니다. 서버가 아무리 빨라도 이 왕복들은 줄지 않으므로, 연결을 유지해 재사용하는 것(keep-alive, HTTP/2)이 체감 속도에 큰 영향을 줍니다.');
     if (c.what === 'static' && !cdn) sum.push('정적 파일은 웹 서버가 직접 내어 줍니다. 애플리케이션 서버(WAS)는 실행해야 결과가 나오는 요청만 맡습니다. 리버스 프록시를 앞에 두면 TLS 처리, 정적 파일, 부하 분산, 내부 서버 숨기기를 한곳에서 할 수 있습니다.');
     if (cdn) sum.push('CDN은 정적 파일의 사본을 세계 여러 곳에 두고 가까운 곳에서 응답합니다. 왕복 시간이 짧아지고, 원래 서버로 오는 요청이 줄어듭니다.');
@@ -50,7 +49,6 @@ Lab.register({
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], total: 0 };
-    H.counters(v, [[s.total + 'ms', '지금까지 걸린 시간']]);
     if (s.rows.length) H.table(v, ['단계', '걸린 시간', '누적'], s.rows, '거친 단계'); else H.text(v, '실행을 누르면 시작합니다.');
   },
   // 그림: 브라우저에서 출발한 요청이 DNS, 프록시, 애플리케이션 서버, DB를 차례로 거치는 순서.
@@ -62,7 +60,7 @@ Lab.register({
     var end = P.seq(actors, msgs, { keep: 11 });
     P.box('tot', 16, end + 14, 648, 34, { cls: 'plain', title: '지금까지 걸린 시간', right: s.total + 'ms' });
     P.size(680, end + 64);
-    P.note('화살표는 그 단계에서 누가 누구에게 갔는지를, 숫자는 걸린 시간을 나타냅니다. 설정에서 DNS 캐시나 연결 재사용을 켜면 앞쪽 화살표가 사라집니다.');
+    P.note('화살표는 그 단계에서 누가 누구에게 갔는지를, 숫자는 걸린 시간을 나타냅니다.');
   },
   assume: '시간은 상대적인 크기를 보이기 위한 예시입니다(서버까지 한 번 가는 데 30ms, CDN은 5ms, DNS 조회 40ms, DB 조회 20ms). 실제 값은 거리와 네트워크, 쿼리에 따라 크게 다릅니다. 구성은 nginx가 앞에서 TLS를 처리하고 뒤의 스프링 부트(내장 톰캣)로 넘기는 흔한 형태를 가정했습니다. 단계가 실제로 이 순서로 일어나고 연결을 재사용하면 앞의 세 단계가 사라진다는 점은 curl로 공개 사이트에 연달아 두 번 요청해 확인했습니다. 첫 요청은 DNS 조회 27ms, TCP 연결 완료 60ms, TLS 완료 156ms, 첫 바이트 194ms였고, 같은 연결로 보낸 두 번째 요청은 DNS·TCP·TLS가 0이고 전체 40ms였습니다. 리버스 프록시 뒤의 구간은 직접 확인하지 못했습니다.',
 });
