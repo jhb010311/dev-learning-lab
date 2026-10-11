@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>재시도와 멱등성: 응답을 못 받아서 다시 보냈더니 · 개발 학습 실습실</title>
-<meta name="description" content="네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다. 메서드와 유실 상황을 바꿔 가며 서버 상태를 비교해 보세요.">
+<meta name="description" content="네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/idem/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/idem/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/idem/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="재시도와 멱등성: 응답을 못 받아서 다시 보냈더니 · 개발 학습 실습실">
-<meta property="og:description" content="네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다. 메서드와 유실 상황을 바꿔 가며 서버 상태를 비교해 보세요.">
+<meta property="og:description" content="네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/idem/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=07b5977d3b">
+<link rel="stylesheet" href="../../app.css?v=0f6ff462bd">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/network/">네트워크</a> › HTTP</p>
 <h1>재시도와 멱등성</h1>
 <p><b>응답을 못 받아서 다시 보냈더니</b></p>
-<p>네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다. 메서드와 유실 상황을 바꿔 가며 서버 상태를 비교해 보세요.</p>
+<p>네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다.</p>
 <p>문서·표준 대조 · HTTP 표준(RFC 9110)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -61,7 +61,6 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>클라이언트는 요청을 2번 보냈고 서버는 2번 실행했습니다. 최종 서버 상태: 주문 1 수량 2, 주문 2 수량 2, 주문 3 수량 2.</li>
 <li>POST는 멱등하지 않습니다. 실행될 때마다 새 주문이 생겨서 같은 주문이 2건 만들어졌습니다. 결제나 주문에서 중복 처리가 생기는 전형적인 경로입니다.</li>
 </ul>
 <h2>코드</h2>
@@ -82,7 +81,7 @@ Content-Type: application/json
 
   <section class="lesson-head labonly">
     <div class="eyebrow" id="eyebrow"></div>
-    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button><button class="btn ghost small" id="to-list" type="button">목록으로</button></div>
+    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button></div>
     <p class="question" id="question"></p>
     <div class="vbadge" id="vbadge"></div>
     <p id="intro"></p>
@@ -129,7 +128,7 @@ Content-Type: application/json
     <div class="panel stage p-stage" id="stage">
       <div class="view" id="view"></div>
       <div class="verdict" id="verdict"></div>
-      <div class="assume"><span id="assume"></span> <button class="linkbtn" id="assume-more" type="button" aria-expanded="false">전제 모두 보기</button></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
     </div>
 
   </div>
@@ -157,6 +156,6 @@ Content-Type: application/json
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=07b5977d3b"></script>
+<script src="../../app.js?v=0f6ff462bd"></script>
 </body>
 </html>

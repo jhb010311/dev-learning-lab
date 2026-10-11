@@ -85,7 +85,7 @@ var Lab = (function () {
     });
     var ps = $('presets'); ps.textContent = '';
     cur.presets.forEach(function (p) {
-      var b = el('button', 'preset'); b.type = 'button'; b.setAttribute('aria-pressed', 'false'); b.appendChild(el('b', null, p.t)); b.appendChild(el('span', null, p.d));
+      var b = el('button', 'preset'); b.type = 'button'; b.setAttribute('aria-pressed', 'false'); b.appendChild(el('b', null, p.t));
       b.addEventListener('click', function () {
         var before = cfg(); setValues(p.v); var after = cfg(); clearMarks();
         cur.controls.forEach(function (d) { if (String(before[d.id]) === String(after[d.id])) return; var bx = $('box-' + d.id); bx.classList.add('chg'); (bx.querySelector('label') || bx).appendChild(el('span', 'chgtag', 'changed')); });
@@ -130,7 +130,7 @@ var Lab = (function () {
     v.appendChild(d);
   }
   function firstSentence(s) { var depth = 0; for (var i = 1; i < s.length - 1; i++) { var ch = s.charAt(i); if (ch === '(') depth++; else if (ch === ')') depth = Math.max(0, depth - 1); else if (ch === '.' && !depth && s.charAt(i + 1) === ' ' && (LANG === 'en' ? /[A-Z@]/.test(s.charAt(i + 2)) : false)) return s.slice(0, i + 1); } return s; }
-  function drawAssume() { var one = firstSentence(cur.assume), b = $('assume-more'); glossInto($('assume'), 'Assumptions of this model: ' + (assumeOpen ? cur.assume : one), cur.id); b.hidden = one === cur.assume; b.textContent = assumeOpen ? 'Show less' : 'Show all assumptions'; b.setAttribute('aria-expanded', String(assumeOpen)); }
+  function drawAssume() { var one = firstSentence(cur.assume), b = $('assume-more'); glossInto($('assume'), assumeOpen ? cur.assume + ' ' : '', cur.id); b.textContent = assumeOpen ? 'Hide the assumptions' : 'Show the assumptions of this model'; b.setAttribute('aria-expanded', String(assumeOpen)); }
   var VER = { run: 'Checked against real execution', part: 'Partly checked against real execution', doc: 'Checked against documentation and standards', model: 'Conceptual model' };
   function drawVerify() { var v = verify[cur.id], b = $('vbadge'); b.textContent = ''; if (!v) { b.hidden = true; return; } b.hidden = false; var vb = el('button', 'linkbtn', VER[v[0]]), vd = el('span', null, ' · ' + v[1]); vb.type = 'button'; vb.setAttribute('aria-expanded', 'false'); vd.hidden = true; vb.addEventListener('click', function () { vd.hidden = !vd.hidden; vb.setAttribute('aria-expanded', String(!vd.hidden)); }); b.appendChild(vb); b.appendChild(vd); }
   function drawCode() { var o = !cur.draw || codeOpen, b = $('code-toggle'); $('code').hidden = !o; b.hidden = !cur.draw; b.textContent = o ? 'Hide code' : 'Show this behavior as code'; b.setAttribute('aria-expanded', String(o)); }
@@ -138,6 +138,7 @@ var Lab = (function () {
     var hd = $('hist-head'); hd.textContent = ''; var tr = el('tr'); ['Run', 'Settings'].concat(cur.columns).forEach(function (c, i) { tr.appendChild(el('th', i === 1 ? 'l' : '', c)); }); hd.appendChild(tr);
     var tb = $('hist'); tb.textContent = ''; var list = hist[cur.id] || [];
     list.forEach(function (s, i) { var r = el('tr', i === list.length - 1 ? 'latest' : ''); r.appendChild(el('td', null, '#' + (i + 1))); r.appendChild(el('td', 'l', s.label)); s.row.forEach(function (x) { r.appendChild(el('td', null, String(x))); }); tb.appendChild(r); });
+    $('histpanel').hidden = list.length < 2;
   }
   function stop() { if (timer) { clearInterval(timer); timer = null; } running = false; }
   function showStage() {
@@ -333,7 +334,6 @@ var Lab = (function () {
     $('prev').addEventListener('click', function () { stepTo(-1); });
     $('clear').addEventListener('click', function () { hist[cur.id] = []; drawHist(); });
     $('explain-btn').addEventListener('click', function () { var x = $('explain'); x.hidden = !x.hidden; this.setAttribute('aria-expanded', String(!x.hidden)); this.textContent = x.hidden ? 'Show concept notes' : 'Hide concept notes'; });
-    $('to-list').addEventListener('click', function () { nav(curCat ? 'study/' + curCat.id : 'study'); });
     $('brand').addEventListener('click', function (e) { e.preventDefault(); nav('home'); });
     $('t-home').addEventListener('click', function () { nav('home'); });
     $('t-lab').addEventListener('click', function () { nav('study'); });
@@ -1579,7 +1579,7 @@ Lab.register({
 Lab.register({
   id: 'idem', nav: 'Retries and idempotency', cat: 'HTTP', mode: 'step',
   title: 'No response came back, so the request was sent again',
-  intro: 'On a network, a request or a response can be lost, and when no response arrives, the client sends the same request again. Depending on the HTTP method, running a request several times either gives the same result (the method is idempotent) or it does not. Change the method and what is lost, and compare the state of the server.',
+  intro: 'On a network, a request or a response can be lost, and when no response arrives, the client sends the same request again. Depending on the HTTP method, running a request several times either gives the same result (the method is idempotent) or it does not.',
   terms: ['Safe methods and idempotent methods', 'HTTP methods', 'Idempotency and idempotency keys', 'HTTP status codes'], ranks: ['rest', 'http'],
   controls: [
     { id: 'm', label: 'Request to send', type: 'select', value: 'POST', options: [['GET', 'GET /orders/1 (read)'], ['PUT', 'PUT /orders/1 (replace the quantity with 3)'], ['DELETE', 'DELETE /orders/1 (delete)'], ['POST', 'POST /orders (create a new order)'], ['PATCH', 'PATCH /orders/1 (increase the quantity by 1)']] },
@@ -1628,19 +1628,17 @@ Lab.register({
     }
     var same = JSON.stringify(orders.map(function (o) { return { id: o.id, item: o.item, qty: o.qty }; })) === one(), idem = M !== 'POST' && M !== 'PATCH';
     var st = orders.length ? orders.map(function (o) { return 'order ' + o.id + ' quantity ' + o.qty; }).join(', ') : 'no orders';
-    var sum = ['Requests sent by the client: ' + sent + '. Times the server executed the request: ' + exec + '. Final server state: ' + st + '.'];
+    var sum = [];
     if (same && exec > 1) sum.push(M + ' requests are idempotent, so after ' + exec + ' executions the state of the server is the same as after one execution.' + (M === 'DELETE' ? ' From the second request on, the response code changes to 404, but idempotency is judged by the state of the server, not by the response.' : '') + (M === 'GET' ? ' GET is also a safe method: it does not change the state of the server.' : ''));
     if (!same) sum.push(M === 'POST' ? 'POST is not idempotent. Every execution creates a new order, so the same order was created ' + (orders.length - 1) + ' times. This is the typical way duplicate processing happens in payments and orders.' : 'A PATCH that increases the quantity by 1 is not idempotent. The quantity went up once for every execution. If you express the same change as an absolute value, such as "set the quantity to 3", it becomes idempotent.');
     if (useKey && sent > exec) sum.push('Thanks to the idempotency key, the server recognized the retry as the same request and executed it only once. To retry a request that is not idempotent safely, you need a mechanism like this.');
     if (c.lost === 'req') sum.push('When the request itself is lost, the server never executed it, so any method can be retried. The problem is that the client cannot tell whether the request or the response was lost.');
-    if (c.lost === 'none') sum.push('When nothing is lost, every method is executed only once. Try changing what the network loses to the response.');
+    if (c.lost === 'none') sum.push('When nothing is lost, every method is executed only once.');
     return { events: ev, summary: sum, row: [sent + '', exec + '', st, same ? 'Same' : 'Different'], idem: idem };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { orders: [], rows: [], sent: 0, exec: 0, saved: null };
-    H.counters(v, [[s.sent, 'Requests sent by the client'], [s.exec, 'Times the server executed it']]);
     H.table(v, ['Attempt', 'What the server did', 'Response'], s.rows, 'Request log');
-    if (s.orders.length) H.table(v, ['Order ID', 'Item', 'Quantity'], s.orders, 'Order data on the server'); else { H.title(v, 'Order data on the server'); H.text(v, 'There are no orders.'); }
     if (s.saved) H.text(v, 'Idempotency key the server remembers: 7f3a9c12 → ' + s.saved);
   },
   // Diagram: what happens when the same request is sent twice and a request or a response is lost on the way. The key point is how many times the server really executed it.
@@ -1658,7 +1656,7 @@ Lab.register({
     P.box('sn', 346, y, 318, 34, { cls: 'plain', title: 'Requests sent', right: s.sent + '' });
     (s.orders || []).slice(0, 4).forEach(function (o, i) { P.box('od' + i, 16 + i * 164, y + 44, 156, 34, { cls: 'wait', title: '#' + P.v(o.cells[0]), right: P.v(o.cells[1]) + ' x ' + P.v(o.cells[2]) }); });
     P.size(680, y + 44 + 34 + 16);
-    P.note('A red dashed line is a request or a response lost on the way. When no response arrives, the client cannot tell whether the server handled the request, so it sends the request again. The boxes at the bottom are the orders left in the database.');
+    P.note('A red dashed line is a request or a response lost on the way. The boxes at the bottom are the orders left in the database.');
   },
   assume: 'The definition of idempotency follows the HTTP standard (RFC 9110). A method is idempotent if the intended effect on the server of sending the same request several times is the same as that of sending it once, and GET, HEAD, OPTIONS, and TRACE (the safe methods) and PUT and DELETE belong here. The standard does not guarantee that POST and PATCH are idempotent (a PATCH can be designed to be idempotent, depending on its content). The Idempotency-Key header is a convention widely used in payment APIs and similar services, and it has not been finalized as a standard.',
 });

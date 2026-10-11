@@ -35,3 +35,4 @@ tools/patch_speed*.js
 tools/patch_log*.js
 tools/patch_wide*.js
 tools/patch_refs*.js
+tools/patch_trim*.js

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'idem', nav: '재시도와 멱등성', cat: 'HTTP', mode: 'step',
   title: '응답을 못 받아서 다시 보냈더니',
-  intro: '네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다. 메서드와 유실 상황을 바꿔 가며 서버 상태를 비교해 보세요.',
+  intro: '네트워크에서는 요청이나 응답이 사라질 수 있고, 클라이언트는 응답이 없으면 같은 요청을 다시 보냅니다. HTTP 메서드에 따라 여러 번 실행돼도 결과가 같은 것(멱등)과 그렇지 않은 것이 있습니다.',
   terms: ['안전한 메서드와 멱등한 메서드', 'HTTP 메서드', '멱등성과 멱등키', 'HTTP 상태 코드'], ranks: ['rest', 'http'],
   controls: [
     { id: 'm', label: '보내는 요청', type: 'select', value: 'POST', options: [['GET', 'GET /orders/1 (조회)'], ['PUT', 'PUT /orders/1 (수량을 3으로 교체)'], ['DELETE', 'DELETE /orders/1 (삭제)'], ['POST', 'POST /orders (새 주문 생성)'], ['PATCH', 'PATCH /orders/1 (수량을 1 증가)']] },
@@ -50,19 +50,17 @@ Lab.register({
     }
     var same = JSON.stringify(orders.map(function (o) { return { id: o.id, item: o.item, qty: o.qty }; })) === one(), idem = M !== 'POST' && M !== 'PATCH';
     var st = orders.length ? orders.map(function (o) { return '주문 ' + o.id + ' 수량 ' + o.qty; }).join(', ') : '주문 없음';
-    var sum = ['클라이언트는 요청을 ' + sent + '번 보냈고 서버는 ' + exec + '번 실행했습니다. 최종 서버 상태: ' + st + '.'];
+    var sum = [];
     if (same && exec > 1) sum.push(M + ' 요청은 멱등해서 ' + exec + '번 실행돼도 서버 상태가 한 번 실행한 것과 같습니다.' + (M === 'DELETE' ? ' 두 번째부터 응답 코드는 404로 달라지지만, 멱등성은 응답이 아니라 서버 상태를 기준으로 합니다.' : '') + (M === 'GET' ? ' GET은 서버 상태를 바꾸지 않는 안전한 메서드이기도 합니다.' : ''));
     if (!same) sum.push(M === 'POST' ? 'POST는 멱등하지 않습니다. 실행될 때마다 새 주문이 생겨서 같은 주문이 ' + (orders.length - 1) + '건 만들어졌습니다. 결제나 주문에서 중복 처리가 생기는 전형적인 경로입니다.' : '수량을 "1 증가"시키는 PATCH는 멱등하지 않습니다. 실행된 횟수만큼 더 올라갔습니다. 같은 변경을 "수량을 3으로" 같은 절대값으로 표현하면 멱등해집니다.');
     if (useKey && sent > exec) sum.push('멱등키 덕분에 서버가 재시도를 같은 요청으로 알아보고 한 번만 실행했습니다. 멱등하지 않은 요청을 안전하게 재시도하려면 이런 장치가 필요합니다.');
     if (c.lost === 'req') sum.push('요청이 사라진 경우는 서버가 실행한 적이 없으므로 어떤 메서드든 재시도해도 됩니다. 문제는 클라이언트 입장에서 요청이 사라진 것인지 응답이 사라진 것인지 구별할 수 없다는 점입니다.');
-    if (c.lost === 'none') sum.push('유실이 없으면 어떤 메서드든 한 번만 실행됩니다. "응답이 사라짐"으로 바꿔 보세요.');
+    if (c.lost === 'none') sum.push('유실이 없으면 어떤 메서드든 한 번만 실행됩니다.');
     return { events: ev, summary: sum, row: [sent + '번', exec + '번', st, same ? '같음' : '다름'], idem: idem };
   },
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { orders: [], rows: [], sent: 0, exec: 0, saved: null };
-    H.counters(v, [[s.sent, '클라이언트가 보낸 횟수'], [s.exec, '서버가 실행한 횟수']]);
     H.table(v, ['시도', '서버가 한 일', '응답'], s.rows, '요청 기록');
-    if (s.orders.length) H.table(v, ['주문번호', '상품', '수량'], s.orders, '서버의 주문 데이터'); else { H.title(v, '서버의 주문 데이터'); H.text(v, '주문이 없습니다.'); }
     if (s.saved) H.text(v, '서버가 기억하는 멱등키: 7f3a9c12 → ' + s.saved);
   },
   // 그림: 같은 요청을 두 번 보낼 때 요청이나 응답이 중간에 사라지는 모습. 서버가 실제로 몇 번 실행했는지가 핵심.
@@ -80,7 +78,7 @@ Lab.register({
     P.box('sn', 346, y, 318, 34, { cls: 'plain', title: '클라이언트가 보낸 횟수', right: s.sent + '번' });
     (s.orders || []).slice(0, 4).forEach(function (o, i) { P.box('od' + i, 16 + i * 164, y + 44, 156, 34, { cls: 'wait', title: '주문 ' + P.v(o.cells[0]), right: P.v(o.cells[1]) + ' ' + P.v(o.cells[2]) + '개' }); });
     P.size(680, y + 44 + 34 + 16);
-    P.note('빨간 점선은 가는 도중에 사라진 요청이나 응답입니다. 클라이언트는 응답을 못 받으면 서버가 처리했는지 알 수 없어 다시 보냅니다. 맨 아래 상자는 DB에 남은 주문입니다.');
+    P.note('빨간 점선은 가는 도중에 사라진 요청이나 응답입니다. 맨 아래 상자는 DB에 남은 주문입니다.');
   },
   assume: '멱등성의 정의는 HTTP 표준(RFC 9110)을 따랐습니다. 같은 요청을 여러 번 보냈을 때 서버에 의도한 효과가 한 번 보낸 것과 같으면 멱등이며, GET·HEAD·OPTIONS·TRACE(안전한 메서드)와 PUT·DELETE가 여기에 속합니다. POST와 PATCH는 표준상 멱등이 보장되지 않습니다(PATCH는 내용에 따라 멱등하게 설계할 수도 있습니다). Idempotency-Key 헤더는 결제 API 등에서 널리 쓰이는 관례이며, 아직 표준으로 확정된 것은 아닙니다.',
 });
