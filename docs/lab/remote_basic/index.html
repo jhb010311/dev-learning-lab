@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>다른 서버 부르기: 서버가 다른 서버를 부르는 것은 메서드를 부르는 것과 무엇이 다른가 · 개발 학습 실습실</title>
+<meta name="description" content="큰 서비스는 기능을 여러 서버로 나누기도 합니다. 주문을 받는 주문 서버와 결제를 맡는 결제 서버가 따로 실행되는 서로 다른 프로그램이라면, 주문 서버는 결제를 하려고 결제 서버에 네트워크로 요청(POST /pay)을 보내야 합니다. 같은 프로그램 안의 메서드를 부를 때는 부…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/remote_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/remote_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/remote_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="다른 서버 부르기: 서버가 다른 서버를 부르는 것은 메서드를 부르는 것과 무엇이 다른가 · 개발 학습 실습실">
+<meta property="og:description" content="큰 서비스는 기능을 여러 서버로 나누기도 합니다. 주문을 받는 주문 서버와 결제를 맡는 결제 서버가 따로 실행되는 서로 다른 프로그램이라면, 주문 서버는 결제를 하려고 결제 서버에 네트워크로 요청(POST /pay)을 보내야 합니다. 같은 프로그램 안의 메서드를 부를 때는 부…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/remote_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=2f1ee2d7c5">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › 구조와 운영</p>
+<h1>다른 서버 부르기</h1>
+<p><b>서버가 다른 서버를 부르는 것은 메서드를 부르는 것과 무엇이 다른가</b></p>
+<p>큰 서비스는 기능을 여러 서버로 나누기도 합니다. 주문을 받는 주문 서버와 결제를 맡는 결제 서버가 따로 실행되는 서로 다른 프로그램이라면, 주문 서버는 결제를 하려고 결제 서버에 네트워크로 요청(POST /pay)을 보내야 합니다. 같은 프로그램 안의 메서드를 부를 때는 부를 상대가 늘 같은 프로그램 안에 있고 호출이 곧바로 끝나지만, 네트워크 너머의 서버를 부를 때는 상대가 꺼져 있어 연결이 거절될 수 있고, 상대가 느려서 기다려야 할 수 있습니다. 그래서 주문 서버의 코드에는 답을 얼마나 기다릴지(타임아웃)와, 실패했을 때 클라이언트에게 무엇으로 답할지를 정해 두어야 합니다. 이 실습은 결제 서버의 상태와 기다리는 시간을 정했는지를 바꿔 가며, 클라이언트가 받는 응답과 걸린 시간, 주문 서버가 겪은 일을 봅니다. 코드 칸은 프로그램이 아니라 누가 누구에게 무엇을 보내는지를 적은 것이고, 실제 실행은 이 설정대로 주문 서버와 결제 서버를 띄워 요청을 주고받은 것입니다.</p>
+<p>실행으로 대조 · Node.js 24.18.0의 주문 서버와 결제 서버를 띄워 여섯 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>서버 간 호출(네트워크 호출)</dt>
+<dd>서버 간 호출은 한 서버의 프로그램이 다른 서버에 네트워크로 요청을 보내 그쪽 기능을 쓰는 것이다. RFC 9110 3.3절은 연결을 맺어 요청을 보내는 프로그램을 클라이언트, 연결을 받아 응답하는 프로그램을 서버라 부르고, 같은 프로그램이 어떤 연결에서는 클라이언트이고 다른 연결에서는 서버일 수 있다고 한다. 그래서 주문 서버는 브라우저에게는 서버이고, 결제 서버에게는 클라이언트이다. 같은 프로그램 안의 메서드 호출과 달리 상대가 꺼져 있어 연결에 실패할 수 있고, 상대가 느리면 답이 올 때까지 기다려야 하며, 답이 영영 오지 않을 수도 있다. 그래서 호출하는 쪽의 코드에 얼마나 기다릴지와 실패했을 때 무엇을 할지를 정해 두어야 한다.</dd>
+<dt>연결 타임아웃과 읽기 타임아웃</dt>
+<dd>다른 서버를 호출할 때 얼마나 기다리다 포기할지를 정하는 두 가지 시간이다. 연결 타임아웃은 상대와 TCP 연결이 맺어지기까지 기다리는 한도이고, 읽기 타임아웃은 연결이 맺어진 뒤 응답 데이터가 오지 않는 채로 기다리는 한도다. 두 시간은 서로 다른 구간을 재므로, 연결 타임아웃만 정하면 연결은 됐는데 응답이 늦는 경우를 막지 못한다. 타임아웃을 정하지 않으면 느린 상대 때문에 호출한 스레드가 계속 묶이고, 스레드 풀이 바닥나면 장애가 호출한 쪽으로 번진다. 읽기 타임아웃이 났다고 해서 상대가 요청을 처리하지 않았다는 뜻은 아니므로, 같은 요청을 다시 보낼 때는 중복 처리를 조심해야 한다.</dd>
+<dt>502 Bad Gateway</dt>
+<dd>502는 서버가 게이트웨이나 프록시로 일하다가, 요청을 이루려고 접속한 안쪽 서버에게서 올바르지 않은 응답을 받았을 때 쓰는 상태 코드다(RFC 9110 15.6.3절). 이 응답을 만들어 보내는 것은 클라이언트가 연결한 프록시 서버이고, 그 뒤의 진짜 서버가 아니다. 그래서 클라이언트가 502를 받았다는 것은 연결한 상대인 프록시 서버까지는 닿았고, 문제가 프록시 서버와 그 뒤쪽 서버 사이에 있다는 뜻이다.</dd>
+<dt>504 Gateway Timeout</dt>
+<dd>504는 서버가 게이트웨이나 프록시로 일하면서, 요청을 이루려고 접속한 안쪽 서버에게서 제때 답을 받지 못했을 때 쓰는 상태 코드이다(RFC 9110 15.6.5절). 다른 서버를 부르는 서버가 기다림의 한도를 넘기고 포기할 때, 클라이언트에게 이 코드로 답할 수 있다. 안쪽 서버에게서 올바르지 않은 답을 받았을 때 쓰는 502와 구별된다. 504를 받았다는 것은 기다림이 끝났다는 뜻일 뿐, 안쪽 서버가 그 요청을 처리하지 않았다는 뜻이 아니다. 안쪽 서버가 한도를 넘긴 뒤에 처리를 끝냈을 수 있다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 결제 서버가 켜져 있고 0.1초 뒤 답합니다. 주문 서버가 그 답을 받아 클라이언트에 200으로 답합니다.</li>
+<li><b>결제 서버가 꺼져 있으면</b> — 연결이 거절되어 주문 서버가 바로 502로 답합니다.</li>
+<li><b>결제 서버가 3초 뒤에 답하면</b> — 1초를 넘기자 주문 서버가 기다림을 그만두고 504로 답합니다.</li>
+<li><b>기다리는 시간을 지우면</b> — 한도가 없어 3초를 모두 기다리고, 클라이언트도 3초 뒤에 응답을 받습니다.</li>
+<li><b>기다리는 시간을 지우고 꺼져 있으면</b> — 기다릴 일이 없어서 한도가 있을 때와 결과가 같습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>클라이언트가 주문 서버에 POST /orders 요청을 보냅니다. 이 실습의 서비스는 주문을 받는 주문 서버와 결제를 맡는 결제 서버로 나뉘어 있고, 둘은 따로 실행되는 서로 다른 프로그램입니다. 코드 칸의 # 줄은 프로그램이 아니라 누가 누구에게 무엇을 보내는지를 적은 것입니다.</li>
+<li>주문 서버는 주문을 처리하다가 결제를 해야 합니다. 결제하는 기능은 주문 서버 안에 없고 결제 서버에 있습니다. 같은 프로그램 안의 기능이라면 메서드를 부르면 되지만, 다른 서버의 기능은 그 서버에 POST /pay 요청을 네트워크로 보내 부르는 수밖에 없습니다. 주문 서버는 이 요청의 답을 최대 1초까지만 기다리도록 정해 두었습니다.</li>
+<li>결제 서버가 POST /pay 요청을 받아 결제를 처리합니다. 이 결제 서버는 처리에 0.1초가 걸립니다. 그동안 주문 서버는 답을 기다립니다.</li>
+<li>결제 서버가 200 응답으로 &quot;결제 완료&quot;라고 답합니다. 주문 서버는 이 답을 받아 결제가 끝났음을 압니다. 정해 둔 1초가 되기 전에 답이 왔으므로 기다림은 한도에 걸리지 않았습니다.</li>
+<li>주문 서버가 클라이언트에 200 응답으로 &quot;주문 완료&quot;를 돌려줍니다.</li>
+<li>클라이언트가 약 0.1초 만에 200 응답을 받았습니다. 결과는 메서드 하나를 부른 것과 같아 보이지만, 그 사이에 다른 서버와 글을 주고받는 단계가 있었습니다. 이 단계가 잘 끝나려면 결제 서버가 켜져 있고 제때 답해야 했습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>서버가 다른 서버를 부르는 것은 네트워크로 요청을 보내고 답을 기다리는 일입니다. 주문 서버가 결제 서버에 POST /pay를 보냈고, 0.1초 뒤 200 답을 받아 클라이언트에 200 &quot;주문 완료&quot;로 답했습니다.</li>
+<li>메서드 호출과 다른 곳은 상대가 따로 실행되는 서버라는 점입니다. 이번에는 결제 서버가 켜져 있고 빨리 답해서 1초 한도가 쓰이지 않았습니다. 꺼져 있거나 늦게 답하는 경우는 다음 물음에서 봅니다.</li>
+</ul>
+<h2>코드</h2>
+<pre># 클라이언트 → 주문 서버(8080): POST /orders
+# 주문 서버 → 결제 서버(9000): POST /pay  (최대 1초 기다린다)
+# 결제 서버: 0.1초 뒤 &quot;결제 완료&quot;
+# 주문 서버: 연결 실패는 502, 시간 초과는 504로 답한다</pre>
+<h2>이 모형의 전제</h2>
+<p>코드 칸은 실행한 프로그램이 아니라, 클라이언트와 주문 서버와 결제 서버가 주고받은 것을 적은 글입니다. 실제 실행은 Node.js 24.18.0의 http 모듈로 주문 서버와 결제 서버를 127.0.0.1에 따로 띄우고(포트는 운영체제가 정한 빈 포트이며, 화면의 8080과 9000은 예시 번호입니다), 클라이언트가 주문 서버에 POST /orders를 보내게 했습니다. 주문 서버는 결제 서버에 POST /pay를 보내고(연결을 재사용하지 않음), 결제 서버가 답하면 200 &quot;주문 완료&quot;로, 연결 실패(ECONNREFUSED)이면 502로, 시간 초과이면 504로 답하게 썼습니다. 결제 서버는 0.1초 뒤 또는 3초 뒤에 200 &quot;결제 완료&quot;로 답하며, 꺼진 결제 서버는 서버를 띄웠다가 닫아 아무도 듣지 않는 포트를 만들어 흉내 냈습니다. 최대 1초 기다리는 것은 AbortSignal.timeout(1000)을 http.request의 signal로 주어, 정하지 않는 것은 signal을 주지 않아 구현했습니다. 여섯 가지 조합을 모두 실행해 클라이언트가 받은 응답과 걸린 시간, 주문 서버가 겪은 오류의 종류, 결제 서버가 요청을 받았는지와 결제 처리를 끝낸 때, 그때 연결이 이미 끊겨 있었는지를 모형과 대조했고, 화면의 코드가 서버들이 실제로 받은 요청 줄과 주문 서버에 정한 기다림 한도, 결제 서버의 지연 설정, 오류별 상태 코드에서 만든 글과 같은지도 조합마다 확인했습니다. 걸린 시간은 화면에 어림으로 적었고 이 PC에서 잰 값은 약 0.1초(0.117초), 바로(0.003초 이하), 약 1초(1.01초), 약 3초(3.02초)였습니다. 결제 서버가 꺼져 있을 때는 기다리는 시간을 정했는지와 관계없이 같은 결과가 나왔습니다. 3초 뒤에 답하는 결제 서버에 1초 한도를 두면, 주문 서버가 기다림을 그만둔 뒤에도 이 결제 서버는 3초 뒤 결제 처리를 끝냈습니다. 이 결제 서버는 연결이 끊겼는지 확인하지 않고 처리를 끝내도록 이 실습에서 쓴 것이므로, 모든 서버가 그렇게 동작한다는 뜻은 아닙니다. 기다리는 시간을 정하지 않고 결제 서버가 요청을 받고도 끝내 답하지 않게 했을 때는 4초가 지나도록 주문 서버가 포기하지 않았고 클라이언트도 응답을 받지 못했지만, 그 이상 오래 기다리면 어떻게 되는지는 보지 않았습니다. 이것들은 이 Node.js 버전에서 관찰한 동작입니다. 문서로 확인한 것은 RFC 9110의 3.3절(클라이언트와 서버의 정의, 같은 프로그램이 둘 다 될 수 있음), 15.6.3절(502는 게이트웨이나 프록시로 일하는 서버가 안쪽 서버에게서 올바르지 않은 응답을 받았을 때), 15.6.5절(504는 게이트웨이나 프록시로 일하는 서버가 안쪽 서버에게서 제때 응답을 받지 못했을 때)과 Node.js 문서의 http.request(signal 옵션은 진행 중인 요청을 중단하며, timeout 옵션은 요청을 중단하지 않고 timeout 이벤트만 더함)입니다. 주문 서버는 엄밀하게는 프록시가 아니라 스스로 일하는 서버이므로, 연결 실패에 502를, 시간 초과에 504를 쓴 것은 규격이 정한 쓰임을 넓게 따른 이 코드의 선택이고, 다른 상태 코드(예를 들어 503)로 답하는 서버도 있을 수 있습니다. 같은 프로그램 안의 메서드 호출에는 연결이라는 단계가 없다는 것은 실행으로 재지 않은 설명입니다. 화면은 한 번 부르는 가장 단순한 경우만 다루었고, 실패한 호출을 다시 보내는 것, 계속 실패하는 서버를 부르지 않고 건너뛰는 것, 여러 서버에 걸친 일을 되돌리는 것은 다루지 않았습니다. 연결 타임아웃과 읽기 타임아웃의 구분은 &quot;세부 동작 실습: 외부 API 호출과 타임아웃&quot;, 실패하는 서버를 막아 주는 장치는 &quot;서킷 브레이커&quot;, 여러 서버의 일을 되돌리는 방법은 &quot;Saga와 Outbox&quot;, 요청을 한곳에서 받아 나누는 방법은 &quot;게이트웨이와 점진적 전환&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/process_basic/">프로세스</a> · 다음 실습: <a href="../../lab/lb_basic/">로드 밸런서</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=2f1ee2d7c5"></script>
+</body>
+</html>
