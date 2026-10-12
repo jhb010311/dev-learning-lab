@@ -94,7 +94,7 @@ Lab.register({
     // 4. save
     st.phase = 'save'; st.hot = 'im';
     send(SEL_ID);
-    push('memberRepository.save(new Member(1L, "김철수"))가 실행됩니다. save 메서드를 쓴 코드는 우리에게 없고, JpaRepository에서 물려받은 것을 스프링이 만든 구현 객체가 실행합니다. Member의 id가 1로 이미 정해져 있어서, 스프링 데이터는 id가 1인 행이 이미 있는지 먼저 SELECT로 찾아봅니다(SELECT 1번). 그런 행은 없습니다.', '');
+    push('memberRepository.save(new Member(1L, "김철수"))가 실행됩니다. save 메서드를 구현한 코드는 우리에게 없고, JpaRepository에서 물려받은 것을 스프링이 만든 구현 객체가 실행합니다. Member의 id가 1로 이미 정해져 있어서, 스프링 데이터는 id가 1인 행이 이미 있는지 먼저 SELECT로 찾아봅니다(SELECT 1번). 그런 행은 없습니다.', '');
     send(INS); st.rows = 1;
     push('찾은 행이 없으므로 구현 객체가 INSERT를 보내 member 테이블에 id 1, 김철수 행을 저장합니다(INSERT 1번). 우리가 쓴 SQL은 한 줄도 없습니다.', 'good');
 
@@ -102,7 +102,7 @@ Lab.register({
     st.phase = 'find';
     if (none) {
       send(SEL_CNT);
-      push('System.out.println(memberRepository.count())의 count 메서드가 실행됩니다. count도 JpaRepository에서 물려받은 메서드이고, 구현 객체가 ' + SEL_CNT + '를 보냅니다. member 테이블의 행은 1개입니다.', 'good');
+      push('System.out.println(memberRepository.count())의 count 메서드가 실행됩니다. count도 JpaRepository에서 물려받은 메서드이고, 구현 객체가 ' + SEL_CNT + '을 보냅니다. member 테이블의 행은 1개입니다.', 'good');
       st.out = '1'; st.phase = 'done';
       push('println이 count가 돌려준 1을 출력합니다.', 'good');
     } else {

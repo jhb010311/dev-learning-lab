@@ -1,7 +1,7 @@
 Lab.register({
   id: 'controller_basic', nav: '컨트롤러', cat: '기초개념', mode: 'step', basic: true, deep: ['mvc'],
   title: '어떤 클래스를 컨트롤러라고 부르는가',
-  intro: '컨트롤러는 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @RestController는 스프링이 이 클래스의 객체를 만들어 두고 웹 요청을 처리하는 클래스로 다룬다는 표시이고, 메서드 위의 @GetMapping("/hello")는 브라우저가 /hello라는 주소로 보낸 GET 요청을 이 메서드에 맡긴다는 등록입니다. 컨트롤러는 서블릿이 아닙니다. 요청은 스프링 부트가 톰캣에 등록해 둔 서블릿 하나(DispatcherServlet)가 받아서 컨트롤러의 메서드를 불러 줍니다. 이 둘을 하나씩 지워 가며 같은 요청을 보내, 스프링이 객체를 만들고 메서드를 불러 주는지를 봅니다.',
+  intro: '컨트롤러는 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @RestController는 스프링이 이 클래스의 객체를 만들어 두고 웹 요청을 처리하는 클래스로 다룬다는 표시이고, 메서드 위의 @GetMapping("/hello")는 브라우저가 /hello라는 주소로 보낸 GET 요청을 이 메서드에 맡긴다는 등록입니다. 컨트롤러는 서블릿이 아닙니다. 요청은 스프링 부트가 톰캣에 등록해 둔 서블릿 하나(DispatcherServlet)가 받아서 컨트롤러의 메서드를 불러 줍니다. @RestController와 @GetMapping을 하나씩 지워 가며 같은 요청을 보내, 스프링이 객체를 만들고 메서드를 불러 주는지를 봅니다.',
   terms: ['컨트롤러 클래스', '@RestController', '@GetMapping', 'DispatcherServlet과 프론트 컨트롤러'],
   controls: [
     { id: 'ctl', label: '클래스 위에 @RestController를 적는다', type: 'check', value: true },

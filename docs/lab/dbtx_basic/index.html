@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ce3316e88e">
+<link rel="stylesheet" href="../../app.css?v=e12009116c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -54,7 +54,7 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>CREATE TABLE과 INSERT: DB가 account 테이블을 만들고 계좌 1(잔액 1000)과 계좌 2(잔액 0)를 넣습니다. 화면의 SQL은 DB에 접속한 연결 하나(이 연결)에서 실행합니다. 코드에는 없지만 확인을 위해 같은 DB에 연결을 하나 더(다른 연결) 열어 두고, 이 연결이 문장을 실행할 때마다 계좌 잔액을 읽어 봅니다. 아직 트랜잭션을 시작하지 않았으므로 이 두 문장은 실행되자마자 확정되어, 다른 연결에서 읽어도 계좌 1은 1000, 계좌 2는 0입니다.</li>
+<li>CREATE TABLE과 INSERT: DB가 account 테이블을 만들고 계좌 1(잔액 1000)과 계좌 2(잔액 0)를 넣습니다. 화면의 SQL은 DB에 접속한 연결 하나(이 연결)에서 실행합니다. 코드에는 없지만 확인을 위해 같은 DB에 연결을 하나 더(다른 연결) 열어 두고, 이 연결이 문장을 실행할 때마다 다른 연결로 계좌 잔액을 읽어 봅니다. 아직 트랜잭션을 시작하지 않았으므로 이 두 문장은 실행되자마자 확정되어, 다른 연결에서 읽어도 계좌 1은 1000, 계좌 2는 0입니다.</li>
 <li>BEGIN: DB가 이 연결에서 보내는 문장들을 한 묶음으로 다루기 시작합니다. 문장마다 바로 확정하던 방식(자동 커밋)을 이 묶음이 끝날 때까지 멈추므로, 지금부터 하는 일은 COMMIT이나 ROLLBACK을 만날 때까지 확정되지 않습니다.</li>
 <li>UPDATE account SET balance = balance - 300 WHERE id = 1: DB가 계좌 1의 잔액을 1000에서 700으로 바꿉니다. 묶음 안의 일이라 아직 확정되지 않았습니다. 이 연결에서 읽으면 700이지만, 다른 연결에서 읽으면 여전히 1000입니다. 확정된 값만 보면 두 계좌의 합은 1000 그대로입니다.</li>
 <li>UPDATE account SET balance = balance + 300 WHERE id = 2: DB가 계좌 2의 잔액을 0에서 300으로 바꿉니다. 이것도 묶음 안이라 확정되지 않았습니다. 이 연결에서는 700과 300이지만 다른 연결에서는 1000과 0 그대로입니다. 두 변경이 한 묶음에 쌓여 있습니다.</li>
@@ -168,6 +168,6 @@ SELECT * FROM account ORDER BY id;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ce3316e88e"></script>
+<script src="../../app.js?v=e12009116c"></script>
 </body>
 </html>

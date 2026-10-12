@@ -1,7 +1,7 @@
 Lab.register({
   id: 'table_basic', nav: '테이블, 행, 열', cat: '기초개념', mode: 'step', basic: true, deep: ['constraints'],
   title: '테이블은 어떻게 생겼고, 행과 열은 무엇인가',
-  intro: '관계형 데이터베이스는 데이터를 테이블(표)에 담습니다. CREATE TABLE은 표를 만들면서 열(세로 칸)을 정하는 문장이고, 열마다 이름과 타입이 있어서 "id 칸에는 정수, name 칸에는 글자"처럼 무엇을 담을지가 정해집니다. INSERT는 행(가로 한 줄, 한 사람의 정보)을 하나 넣는 문장이고, 행은 열의 개수와 타입에 맞아야 합니다. SELECT는 행들에서 고른 열의 값을 읽어 오는 문장입니다. 이 실습은 CREATE TABLE을 지우거나 둘째 행의 모양, 읽는 열을 바꿔 가며 같은 SQL을 실행해, DB가 어느 문장을 받아들이고 어느 문장을 거부하는지를 봅니다.',
+  intro: '관계형 데이터베이스는 데이터를 테이블(표)에 담습니다. CREATE TABLE은 표를 만들면서 열(세로 칸)을 정하는 문장이고, 열마다 이름과 타입이 있어서 "id 칸에는 정수, name 칸에는 글자"처럼 무엇을 담을지가 정해집니다. INSERT는 행(가로 한 줄, 한 사람의 정보)을 하나 넣는 문장이고, 행은 열의 개수와 타입에 맞아야 합니다. SELECT는 행들에서 고른 열의 값을 읽어 오는 문장입니다. 이 실습은 CREATE TABLE을 지우거나 둘째 행의 모양과 읽는 열을 바꿔 가며 같은 SQL을 실행해, DB가 어느 문장을 받아들이고 어느 문장을 거부하는지를 봅니다.',
   terms: ['테이블', '행과 열', '열의 데이터 타입', 'CREATE TABLE, INSERT, SELECT'],
   controls: [
     { id: 'create', label: 'CREATE TABLE 문이 있다', type: 'check', value: true },

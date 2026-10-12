@@ -51,7 +51,7 @@ Lab.register({
       push('컴파일러가 소스를 위에서부터 읽습니다. 먼저 interface Payable 선언을 읽고, 이 선언으로 Payable이라는 타입을 알게 됩니다. Payable 타입은 이 선언에서 만들어집니다. void pay(); 줄은 이름만 있고 본문이 없는데, 인터페이스에서 이 모양은 "Payable 타입이라면 pay 메서드를 갖춰야 한다"는 약속입니다(추상 메서드).', '');
     } else {
       st.checks.push(['Payable 타입', { v: '선언이 없음', cls: 'bad' }]);
-      push('컴파일러가 소스를 위에서부터 읽습니다. interface Payable 선언이 코드 어디에도 없으므로, Payable이라는 타입은 아직 알려진 것이 없습니다. 타입은 선언에서 만들어지므로, 이름을 코드에 쓴다고 생기지 않습니다.', '');
+      push('컴파일러가 소스를 위에서부터 읽습니다. interface Payable 선언이 코드 어디에도 없으므로, Payable이라는 타입은 아직 알려지지 않았습니다. 타입은 선언에서 만들어지므로, 이름을 코드에 쓴다고 생기지 않습니다.', '');
     }
 
     // 2. class Card 줄을 읽는다

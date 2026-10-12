@@ -1,7 +1,7 @@
 Lab.register({
   id: 'lambda_basic', nav: '람다', cat: '기초개념', mode: 'step', basic: true, deep: ['lambda'],
   title: '람다는 무엇을 줄여 쓴 것인가',
-  intro: '람다는 화살표(->)로 적는 짧은 코드입니다. () -> System.out.println("일한다")는 "메서드가 하나뿐인 인터페이스를 구현한 객체"를 짧게 적은 것입니다. 여기서는 run 메서드 하나만 있는 Task 인터페이스를 쓰고, 화살표 뒤의 코드가 run이 할 일입니다. 같은 일을 길게 쓰면 Task를 구현한 클래스를 만들고 new로 객체를 만드는 코드가 됩니다. 이 실습은 람다를 익명 클래스와 이름 있는 클래스로 풀어 적어 결과가 같은지 보고, 람다를 적은 줄에서 화살표 뒤의 코드가 실행되는지, t.run()을 지우거나 두 번 부르면 어떻게 되는지, Task에 메서드가 하나 더 있으면 어떻게 되는지를 같은 코드를 컴파일하고 실행해 봅니다.',
+  intro: '람다는 화살표(->)로 적는 짧은 코드입니다. () -> System.out.println("일한다")는 "메서드가 하나뿐인 인터페이스를 구현한 객체"를 짧게 적은 것입니다. 여기서는 run 메서드 하나만 있는 Task 인터페이스를 쓰고, 화살표 뒤의 코드가 run이 할 일입니다. 같은 일을 길게 쓰면 Task를 구현한 클래스를 만들고 new로 객체를 만드는 코드가 됩니다. 이 실습은 람다를 익명 클래스와 이름 있는 클래스로 풀어 적어 결과가 같은지 보고, 람다를 적은 줄에서 화살표 뒤의 코드가 실행되는지, t.run()을 지우거나 두 번 부르면 어떻게 되는지, Task에 메서드가 하나 더 있으면 어떻게 되는지, 같은 코드를 컴파일하고 실행해 봅니다.',
   terms: ['람다 표현식', '함수형 인터페이스', '익명 클래스', '인터페이스'],
   controls: [
     { id: 'form', label: 'run이 할 일을 적는 방법', type: 'select', value: 'lambda', options: [['lambda', '람다로 적는다: () -> …'], ['anon', '익명 클래스로 풀어 적는다: new Task() { … }'], ['named', '이름 있는 클래스로 풀어 적는다: class Work implements Task']] },
@@ -74,7 +74,7 @@ Lab.register({
     } else {
       if (ok) {
         st.checks.push(['Work 클래스의 run', { v: '작성됨', cls: 'good' }]);
-        push('컴파일러가 class Work implements Task 줄을 읽습니다. Work가 Task가 요구하는 메서드를 작성하겠다는 선언입니다. Work 안에 run 메서드가 작성돼 있으므로 통과입니다. 람다에서 화살표 뒤에 적었던 코드가, 여기서는 Work 클래스의 run 메서드 본문에 들어 있습니다.', 'good');
+        push('컴파일러가 class Work implements Task 줄을 읽습니다. 이 줄은 Work가 Task가 요구하는 메서드를 작성하겠다는 선언입니다. Work 안에 run 메서드가 작성돼 있으므로 통과입니다. 람다에서 화살표 뒤에 적었던 코드가, 여기서는 Work 클래스의 run 메서드 본문에 들어 있습니다.', 'good');
       } else {
         st.bad = true; st.errs = 1; st.errText = first;
         st.checks.push(['Work 클래스의 stop', { v: '없음: 오류', cls: 'bad' }]);

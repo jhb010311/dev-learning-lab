@@ -47,7 +47,7 @@ Lab.register({
       push('Greeter b = context.getBean(Greeter.class); 줄이 실행됩니다. 한 번 더 달라고 해도 스프링은 새로 만들지 않고 같은 객체를 줍니다. 스프링은 빈을 하나만 만들어 두고, 달라고 할 때마다 그 하나를 주기 때문입니다. 변수 b도 a와 같은 객체를 가리킵니다.', 'good');
     } else if (via) {
       st.va = 'miss'; st.hot = 'va';
-      push('Greeter a = context.getBean(Greeter.class); 줄이 실행됩니다. 스프링에게 Greeter 객체를 달라고 하지만 컨테이너는 비어 있습니다. 스프링은 Greeter 클래스를 알지 못하므로 새로 만들어 주지도 않고, "그런 빈이 없다"는 뜻의 ' + EXC + '를 일으킵니다. 이 예외를 처리하는 코드가 없어, 프로그램이 이 줄에서 멈춥니다.', 'bad');
+      push('Greeter a = context.getBean(Greeter.class); 줄이 실행됩니다. 스프링에게 Greeter 객체를 달라고 하지만 컨테이너는 비어 있습니다. 스프링은 Greeter 클래스를 알지 못하므로 새로 만들어 주지도 않고, "그런 빈이 없다"는 뜻의 ' + EXC + '을 일으킵니다. 이 예외를 처리하는 코드가 없어, 프로그램이 이 줄에서 멈춥니다.', 'bad');
       st.exc = EXC; st.hot = '';
       push('프로그램이 멈췄으므로 그 아래 줄들은 실행되지 않습니다. Greeter b 줄도, 값을 출력하는 줄도 실행되지 않아, 출력된 글은 하나도 없습니다.', 'bad');
     } else {

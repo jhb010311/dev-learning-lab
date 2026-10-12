@@ -53,7 +53,7 @@ Lab.register({
       st.ann = 'cut';
       push('프로그램이 시작되면서 JPA(여기서는 Hibernate)에 Order와 Member 클래스를 알려 주고, JPA가 클래스를 읽습니다. 이 등록하는 줄과 DB에 연결하는 설정은 화면에서 줄였습니다. JPA가 Order의 member 필드를 보니 타입이 Member, 곧 다른 엔티티입니다. 그런데 필드 위에 @ManyToOne 같은 표시가 없습니다. JPA는 표시가 없는 필드를 숫자나 글자처럼 열 하나에 담을 값으로 보고 열의 타입을 정하려 하는데, Member는 그런 값이 아닙니다.', 'bad');
       st.phase = 'fail'; st.jpa = 'bad'; st.jl = '시작 실패 (오류 발생)';
-      push('JPA가 MappingException 오류를 내며 시작을 멈춥니다. 메시지는 Incorrect use of entity type \'app.Member\' (possibly due to missing association mapping annotation)로 시작하고, 연관관계를 나타내는 표시가 빠진 것 같다는 뜻입니다. 안쪽 원인은 Java 타입 \'app.Member\'에 맞는 열의 타입을 정하지 못했다는 것입니다. 앞의 app은 이 실험에서 Member를 넣은 패키지 이름입니다. 테이블은 하나도 만들어지지 않았습니다. 프로그램은 쓰는 코드에 이르지도 못하므로 find도 persist도 실행되지 않았고, SQL은 한 번도 나가지 않았습니다.', 'bad');
+      push('JPA가 MappingException 오류를 내며 시작을 멈춥니다. 메시지는 Incorrect use of entity type \'app.Member\' (possibly due to missing association mapping annotation)으로 시작하고, 연관관계를 나타내는 표시가 빠진 것 같다는 뜻입니다. 안쪽 원인은 Java 타입 \'app.Member\'에 맞는 열의 타입을 정하지 못했다는 것입니다. 앞의 app은 이 실험에서 Member를 넣은 패키지 이름입니다. 테이블은 하나도 만들어지지 않았습니다. 프로그램은 쓰는 코드에 이르지도 못하므로 find도 persist도 실행되지 않았고, SQL은 한 번도 나가지 않았습니다.', 'bad');
       sum.push('@ManyToOne을 지우면 JPA는 Member 타입의 필드를 열에 어떻게 담을지 몰라 시작하지 못합니다. 이 필드는 연관관계라는 표시를 잃어, JPA에게는 담을 방법을 알 수 없는 값이 되었습니다.');
       sum.push('이번 오류는 find나 persist 줄이 아니라 JPA가 시작할 때 났고, 테이블이 하나도 만들어지지 않았습니다. 엔티티 타입의 필드는 연관관계 표시가 있어야 외래 키 열로 이어집니다.');
     } else if (obj) {

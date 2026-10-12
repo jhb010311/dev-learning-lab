@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ce3316e88e">
+<link rel="stylesheet" href="../../app.css?v=e12009116c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › Spring</p>
 <h1>컨트롤러</h1>
 <p><b>어떤 클래스를 컨트롤러라고 부르는가</b></p>
-<p>컨트롤러는 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @RestController는 스프링이 이 클래스의 객체를 만들어 두고 웹 요청을 처리하는 클래스로 다룬다는 표시이고, 메서드 위의 @GetMapping(&quot;/hello&quot;)는 브라우저가 /hello라는 주소로 보낸 GET 요청을 이 메서드에 맡긴다는 등록입니다. 컨트롤러는 서블릿이 아닙니다. 요청은 스프링 부트가 톰캣에 등록해 둔 서블릿 하나(DispatcherServlet)가 받아서 컨트롤러의 메서드를 불러 줍니다. 이 둘을 하나씩 지워 가며 같은 요청을 보내, 스프링이 객체를 만들고 메서드를 불러 주는지를 봅니다.</p>
+<p>컨트롤러는 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @RestController는 스프링이 이 클래스의 객체를 만들어 두고 웹 요청을 처리하는 클래스로 다룬다는 표시이고, 메서드 위의 @GetMapping(&quot;/hello&quot;)는 브라우저가 /hello라는 주소로 보낸 GET 요청을 이 메서드에 맡긴다는 등록입니다. 컨트롤러는 서블릿이 아닙니다. 요청은 스프링 부트가 톰캣에 등록해 둔 서블릿 하나(DispatcherServlet)가 받아서 컨트롤러의 메서드를 불러 줍니다. @RestController와 @GetMapping을 하나씩 지워 가며 같은 요청을 보내, 스프링이 객체를 만들고 메서드를 불러 주는지를 봅니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1에서 여덟 가지 조합을 실제 컴포넌트 스캔으로 띄우고 요청을 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -167,6 +167,6 @@ public class HelloController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ce3316e88e"></script>
+<script src="../../app.js?v=e12009116c"></script>
 </body>
 </html>

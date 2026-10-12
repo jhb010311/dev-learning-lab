@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ce3316e88e">
+<link rel="stylesheet" href="../../app.css?v=e12009116c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › Spring</p>
 <h1>스프링 부트</h1>
 <p><b>스프링 부트는 무엇을 대신해 주는가</b></p>
-<p>스프링 부트 애플리케이션은 main 메서드가 있는 평범한 자바 클래스(App)입니다. main 메서드가 SpringApplication.run(App.class, args) 한 줄을 부르는 것으로 시작하고, 이 한 줄이 스프링을 시작하고(클래스를 훑어 빈을 만들고), 웹 서버(톰캣)를 프로그램 안에서 띄우고, 요청을 받을 준비를 합니다. 톰캣을 따로 설치하거나 서버를 띄우는 코드를 우리가 쓰지 않습니다. App 위의 @SpringBootApplication은 이 클래스가 있는 패키지부터 훑고 필요한 것을 알아서 설정하라는 표시이고, 무엇을 설정할지는 프로젝트에 들어 있는 라이브러리를 보고 정합니다. 웹 라이브러리가 들어 있으면 톰캣을 띄우고, 없으면 띄우지 않습니다. 이 실습은 run 줄, @SpringBootApplication, 웹 라이브러리를 하나씩 지워 가며 java 명령으로 프로그램을 실행하고, 프로그램이 계속 실행되는지, 톰캣이 뜨는지, 브라우저의 요청에 응답하는지를 봅니다.</p>
+<p>스프링 부트 애플리케이션은 main 메서드가 있는 평범한 자바 클래스(App)입니다. main 메서드가 SpringApplication.run(App.class, args) 한 줄을 부르는 것으로 시작하고, 이 한 줄이 스프링을 시작하고(클래스를 훑어 빈을 만들고), 웹 서버(톰캣)를 프로그램 안에서 띄우고, 요청을 받을 준비를 합니다. 톰캣을 따로 설치하지 않고, 서버를 띄우는 코드도 우리가 쓰지 않습니다. App 위의 @SpringBootApplication은 이 클래스가 있는 패키지부터 훑고 필요한 것을 알아서 설정하라는 표시이고, 무엇을 설정할지는 프로젝트에 들어 있는 라이브러리를 보고 정합니다. 웹 라이브러리가 들어 있으면 톰캣을 띄우고, 없으면 띄우지 않습니다. 이 실습은 run 줄, @SpringBootApplication, 웹 라이브러리를 하나씩 지워 가며 java 명령으로 프로그램을 실행하고, 프로그램이 계속 실행되는지, 톰캣이 뜨는지, 브라우저의 요청에 응답하는지를 봅니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1에서 여덟 가지 조합을 조합마다 소스를 컴파일해 자식 java 프로세스로 실행하고, 밖에서 대기 포트와 HTTP 요청을 관찰해 대조 (웹 라이브러리를 뺀 클래스패스는 pom의 의존 관계로 정함)</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -66,7 +66,7 @@
 <h3>실행 결과</h3>
 <ul>
 <li>스프링 부트 애플리케이션은 main 메서드에서 SpringApplication.run(App.class, args) 한 줄을 부르는 것으로 시작합니다. 이 한 줄이 스프링을 시작하고(클래스를 훑어 빈을 만들고), 톰캣을 프로그램 안에서 띄우고, 요청을 받을 준비를 합니다. 일반 자바 프로그램과 다른 곳은 이 줄, App 위의 @SpringBootApplication, 프로젝트에 들어 있는 웹 라이브러리입니다.</li>
-<li>톰캣을 설치하거나 서버를 띄우는 코드를 쓰지 않았습니다. @SpringBootApplication은 &quot;이 패키지부터 훑고 필요한 것을 알아서 설정하라&quot;는 표시이고, 무엇을 설정할지는 프로젝트에 들어 있는 라이브러리를 보고 정합니다. 웹 라이브러리가 있어서 톰캣이 떴습니다.</li>
+<li>톰캣을 따로 설치하지 않았고 서버를 띄우는 코드도 쓰지 않았습니다. @SpringBootApplication은 &quot;이 패키지부터 훑고 필요한 것을 알아서 설정하라&quot;는 표시이고, 무엇을 설정할지는 프로젝트에 들어 있는 라이브러리를 보고 정합니다. 웹 라이브러리가 있어서 톰캣이 떴습니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>// build.gradle: 이 프로젝트에 넣을 라이브러리
@@ -177,6 +177,6 @@ public class HelloController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ce3316e88e"></script>
+<script src="../../app.js?v=e12009116c"></script>
 </body>
 </html>

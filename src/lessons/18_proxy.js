@@ -31,16 +31,16 @@ Lab.register({
     var S = { caller: '', proxy: '대기', target: '대기', rows: [], thread: '', wait: '' };
     function snap(o) { Object.keys(o).forEach(function (k) { S[k] = o[k]; }); return JSON.parse(JSON.stringify(S)); }
     push('애플리케이션이 뜰 때 스프링은 ' + (tx ? '@Transactional이' : '@Async가') + ' 붙은 메서드를 가진 빈을 발견하고, 원래 객체 대신 그것을 감싼 프록시를 빈으로 등록합니다. 다른 빈이 주입받는 것은 이 프록시입니다.', '', snap({ caller: '아직 호출 전' }));
-    if (c.path === 'ext') push('컨트롤러가 orderService.' + m + '를 호출합니다. 컨트롤러가 들고 있는 참조는 프록시이므로 호출은 프록시에 먼저 도착합니다.', '', snap({ caller: '컨트롤러 → 프록시.' + m, proxy: '호출을 받음' }));
+    if (c.path === 'ext') push('컨트롤러가 orderService.' + m + '을 호출합니다. 컨트롤러가 들고 있는 참조는 프록시이므로 호출은 프록시에 먼저 도착합니다.', '', snap({ caller: '컨트롤러 → 프록시.' + m, proxy: '호출을 받음' }));
     else {
       push('컨트롤러가 orderService.placeOrder()를 호출합니다. 프록시가 받지만 placeOrder()에는 애노테이션이 없으므로 그대로 실제 객체에 넘깁니다.', '', snap({ caller: '컨트롤러 → 프록시.placeOrder()', proxy: '부가 기능 없이 통과시킴', target: 'OrderService.placeOrder() 실행 중' }));
-      if (c.path === 'self' || c.path === 'priv') push('실제 객체 안에서 ' + m + '를 호출합니다. 이 호출은 this.' + m + '입니다. this는 프록시가 아니라 실제 객체 자신이므로 프록시를 거치지 않습니다.' + (c.path === 'priv' ? ' 게다가 private 메서드는 프록시가 재정의할 수 없어서, 밖에서 부를 방법도 가로챌 방법도 없습니다.' : ''), 'bad', snap({ caller: 'OrderService(this) → this.' + m, proxy: '이 호출을 보지 못함', target: m + ' 실행' }));
-      if (c.path === 'inject') push('실제 객체가 주입받은 self.' + m + '를 호출합니다. self는 자기 자신의 프록시이므로 호출이 다시 프록시를 거칩니다.', '', snap({ caller: 'OrderService → self(프록시).' + m, proxy: '호출을 받음' }));
-      if (c.path === 'split') push('실제 객체가 다른 빈인 ' + target + '의 ' + m + '를 호출합니다. 주입받은 ' + target + ' 참조는 프록시이므로 호출이 프록시를 거칩니다.', '', snap({ caller: 'OrderService → ' + target + ' 프록시.' + m, proxy: '호출을 받음' }));
+      if (c.path === 'self' || c.path === 'priv') push('실제 객체 안에서 ' + m + '을 호출합니다. 이 호출은 this.' + m + '입니다. this는 프록시가 아니라 실제 객체 자신이므로 프록시를 거치지 않습니다.' + (c.path === 'priv' ? ' 게다가 private 메서드는 프록시가 재정의할 수 없어서, 밖에서 부를 방법도 가로챌 방법도 없습니다.' : ''), 'bad', snap({ caller: 'OrderService(this) → this.' + m, proxy: '이 호출을 보지 못함', target: m + ' 실행' }));
+      if (c.path === 'inject') push('실제 객체가 주입받은 self.' + m + '을 호출합니다. self는 자기 자신의 프록시이므로 호출이 다시 프록시를 거칩니다.', '', snap({ caller: 'OrderService → self(프록시).' + m, proxy: '호출을 받음' }));
+      if (c.path === 'split') push('실제 객체가 다른 빈인 ' + target + '의 ' + m + '을 호출합니다. 주입받은 ' + target + ' 참조는 프록시이므로 호출이 프록시를 거칩니다.', '', snap({ caller: 'OrderService → ' + target + ' 프록시.' + m, proxy: '호출을 받음' }));
     }
     if (tx) {
       if (via) {
-        push('프록시가 메서드를 실행하기 전에 트랜잭션을 시작합니다. 그다음 실제 객체의 ' + m + '를 호출합니다.', '', snap({ proxy: '트랜잭션 시작', target: m + ' 실행 중' }));
+        push('프록시가 메서드를 실행하기 전에 트랜잭션을 시작합니다. 그다음 실제 객체의 ' + m + '을 호출합니다.', '', snap({ proxy: '트랜잭션 시작', target: m + ' 실행 중' }));
         push('주문 A, 주문 B를 INSERT했습니다. 같은 트랜잭션 안이며 아직 커밋 전입니다.', '', snap({ rows: [['주문 A', 'INSERT함 (커밋 전)', 'hot'], ['주문 B', 'INSERT함 (커밋 전)', 'hot']] }));
         push('예외가 발생해 메서드 밖으로 나갑니다. 프록시가 예외를 보고 트랜잭션을 롤백합니다. 두 INSERT가 모두 취소됩니다.', 'good', snap({ proxy: '예외 감지 → 롤백', target: '예외 발생', rows: [['주문 A', '롤백됨', 'bad'], ['주문 B', '롤백됨', 'bad']] }));
         res = '둘 다 롤백 (DB에 남은 것 없음)';
@@ -56,7 +56,7 @@ Lab.register({
         push('호출한 쪽은 기다리지 않고 다음 코드를 실행해 응답을 돌려줍니다. 메일 발송은 task-1 스레드에서 따로 진행됩니다(3초).', 'good', snap({ target: m + ' 실행 중 (task-1)', wait: '0초' }));
         res = '비동기 실행 (호출자 대기 0초)';
       } else {
-        push('작업을 다른 스레드로 넘겨 줄 프록시가 없습니다. ' + m + '는 평범한 메서드 호출로, 호출한 스레드(http-nio-exec-1)에서 그대로 실행됩니다.', 'bad', snap({ thread: 'http-nio-exec-1 (요청 스레드)', wait: '진행 중' }));
+        push('작업을 다른 스레드로 넘겨 줄 프록시가 없습니다. ' + m + '은 평범한 메서드 호출로, 호출한 스레드(http-nio-exec-1)에서 그대로 실행됩니다.', 'bad', snap({ thread: 'http-nio-exec-1 (요청 스레드)', wait: '진행 중' }));
         push('메일 발송 3초가 끝날 때까지 요청 스레드가 묶여 있습니다. 사용자는 응답을 3초 늦게 받습니다. 오류도 경고도 없이 그냥 동기로 실행됩니다.', 'bad', snap({ wait: '3초' }));
         res = '동기 실행 (호출자 대기 3초)';
       }

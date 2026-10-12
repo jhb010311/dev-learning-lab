@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ce3316e88e">
+<link rel="stylesheet" href="../../app.css?v=e12009116c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../basics/">기초개념</a> › Spring</p>
 <h1>의존성 주입</h1>
 <p><b>의존성 주입은 무엇을 대신해 주는가</b></p>
-<p>의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 OrderService는 결제를 하려고 PayService 객체가 필요하고, 이것을 &quot;OrderService가 PayService에 의존한다&quot;고 합니다. 스프링에서는 OrderService의 생성자 매개변수에 PayService를 적어 두는 것이 전부이고, 클래스 위의 @Component는 스프링이 그 클래스의 객체(빈)를 만들어 보관하라는 표시입니다. 스프링이 OrderService 객체를 만들 때 보관하던 PayService 빈을 그 생성자에 넣어 줍니다. 이 실습은 생성자를 new PayService()로 바꾸거나 없애고, PayService 위의 @Component를 지워 가며 같은 main을 실행해, OrderService가 쓰는 PayService가 어디서 왔는지와 PayService 객체가 몇 개 만들어지는지를 봅니다.</p>
+<p>의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 OrderService는 결제를 하려고 PayService 객체가 필요하고, 이것을 &quot;OrderService가 PayService에 의존한다&quot;고 합니다. 스프링에서는 OrderService의 생성자 매개변수에 PayService를 적어 두는 것이 전부이고, 클래스 위의 @Component는 스프링이 그 클래스의 객체(빈)를 만들어 보관하라는 표시입니다. 스프링이 OrderService 객체를 만들 때 보관하던 PayService 빈을 그 생성자에 넣어 줍니다. 이 실습은 PayService를 생성자로 받는 대신 new PayService()로 직접 만들거나 아예 받지도 만들지도 않고, PayService 위의 @Component를 지워 가며 같은 main을 실행해, OrderService가 쓰는 PayService가 어디서 왔는지와 PayService 객체가 몇 개 만들어지는지를 봅니다.</p>
 <p>실행으로 대조 · 스프링 프레임워크 7.0.9에서 여섯 가지 조합을 실제 컴포넌트 스캔으로 컴파일해 실행하고, 필드의 객체까지 리플렉션으로 재어 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -186,6 +186,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ce3316e88e"></script>
+<script src="../../app.js?v=e12009116c"></script>
 </body>
 </html>

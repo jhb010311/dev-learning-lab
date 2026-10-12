@@ -1,7 +1,7 @@
 Lab.register({
   id: 'where_basic', nav: 'WHERE', cat: '기초개념', mode: 'step', basic: true, deep: ['selectorder'],
   title: 'WHERE는 무엇을 정하고, 없으면 어떻게 되는가',
-  intro: 'WHERE는 SQL 문장 뒤에 붙이는 "WHERE 조건"입니다. UPDATE나 DELETE, SELECT가 테이블의 행 가운데 어느 행에 적용될지를 정합니다. DB는 행을 하나씩 보며 조건이 맞는지 확인하고, 맞는 행에만 문장을 적용하거나 읽어 옵니다. 이 실습은 문장의 종류와 WHERE의 조건을 바꿔 가며 같은 테이블에서 같은 SQL을 실행해, 몇 행에 문장이 적용되고 마지막에 어떤 행이 남는지를 봅니다. WHERE를 지우면 어떻게 되는지도 봅니다.',
+  intro: 'WHERE는 SQL 문장 뒤에 붙이는 "WHERE 조건"입니다. UPDATE나 DELETE, SELECT를 테이블의 행 가운데 어느 행에 적용할지를 정합니다. DB는 행을 하나씩 보며 조건이 맞는지 확인하고, 맞는 행에만 문장을 적용하거나 읽어 옵니다. 이 실습은 문장의 종류와 WHERE의 조건을 바꿔 가며 같은 테이블에서 같은 SQL을 실행해, 몇 행에 문장이 적용되고 마지막에 어떤 행이 남는지를 봅니다. WHERE를 지우면 어떻게 되는지도 봅니다.',
   terms: ['WHERE 절', 'UPDATE와 DELETE', '행과 열'],
   controls: [
     { id: 'stmt', label: 'WHERE를 붙이는 문장', type: 'select', value: 'update', options: [['update', "UPDATE member SET name = '탈퇴'"], ['delete', 'DELETE FROM member'], ['select', 'SELECT * FROM member (읽기만)']] },

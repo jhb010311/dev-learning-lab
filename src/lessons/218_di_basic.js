@@ -1,7 +1,7 @@
 Lab.register({
   id: 'di_basic', nav: '의존성 주입', cat: '기초개념', mode: 'step', basic: true, deep: ['di'],
   title: '의존성 주입은 무엇을 대신해 주는가',
-  intro: '의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 OrderService는 결제를 하려고 PayService 객체가 필요하고, 이것을 "OrderService가 PayService에 의존한다"고 합니다. 스프링에서는 OrderService의 생성자 매개변수에 PayService를 적어 두는 것이 전부이고, 클래스 위의 @Component는 스프링이 그 클래스의 객체(빈)를 만들어 보관하라는 표시입니다. 스프링이 OrderService 객체를 만들 때 보관하던 PayService 빈을 그 생성자에 넣어 줍니다. 이 실습은 생성자를 new PayService()로 바꾸거나 없애고, PayService 위의 @Component를 지워 가며 같은 main을 실행해, OrderService가 쓰는 PayService가 어디서 왔는지와 PayService 객체가 몇 개 만들어지는지를 봅니다.',
+  intro: '의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 OrderService는 결제를 하려고 PayService 객체가 필요하고, 이것을 "OrderService가 PayService에 의존한다"고 합니다. 스프링에서는 OrderService의 생성자 매개변수에 PayService를 적어 두는 것이 전부이고, 클래스 위의 @Component는 스프링이 그 클래스의 객체(빈)를 만들어 보관하라는 표시입니다. 스프링이 OrderService 객체를 만들 때 보관하던 PayService 빈을 그 생성자에 넣어 줍니다. 이 실습은 PayService를 생성자로 받는 대신 new PayService()로 직접 만들거나 아예 받지도 만들지도 않고, PayService 위의 @Component를 지워 가며 같은 main을 실행해, OrderService가 쓰는 PayService가 어디서 왔는지와 PayService 객체가 몇 개 만들어지는지를 봅니다.',
   terms: ['DI(의존성 주입)', '생성자 주입, 세터 주입, 필드 주입', '의존성', '@Component'],
   controls: [
     { id: 'how', label: 'OrderService가 PayService를 얻는 방법', type: 'select', value: 'inject', options: [['inject', '생성자의 매개변수로 받는다 (주입)'], ['new', 'new PayService()로 직접 만든다'], ['none', '받지도 만들지도 않는다']] },
@@ -58,7 +58,7 @@ Lab.register({
       st.phase = 'makeOrder'; st.os = 'making'; order.push('OrderService<-spring');
       push('스프링이 OrderService 객체를 만들기 시작합니다. 이 클래스에는 생성자가 없어서 PayService를 받을 매개변수가 없습니다. OrderService는 일을 하려면 PayService 객체가 필요하지만, 스프링이 읽을 수 있는 표시가 없어 그 사실을 알지 못하고 넣어 줄 것도 없습니다.', '');
       st.phase = 'newPay'; st.os = 'made'; st.field = 'new'; st.ext = true; newPay('OrderService.<init>');
-      push('OrderService 객체가 만들어지는 중에 필드 줄 private final PayService payService = new PayService();가 실행됩니다. OrderService가 PayService 객체를 직접 만들어 필드에 담습니다.' + (dep ? ' 이 객체는 스프링이 보관하는 빈이 아니라, 우리가 쓴 코드가 만든 것입니다.' : ' PayService에는 @Component가 없어 스프링이 모르는 클래스이지만, 직접 만드는 데는 상관이 없습니다.') + ' 만들어진 PayService 객체는 1개입니다.', 'hot');
+      push('OrderService 객체가 만들어지는 중에 private final PayService payService = new PayService(); 필드 줄이 실행됩니다. OrderService가 PayService 객체를 직접 만들어 필드에 담습니다.' + (dep ? ' 이 객체는 스프링이 보관하는 빈이 아니라, 우리가 쓴 코드가 만든 것입니다.' : ' PayService에는 @Component가 없어 스프링이 모르는 클래스이지만, 직접 만드는 데는 상관이 없습니다.') + ' 만들어진 PayService 객체는 1개입니다.', 'hot');
       if (dep) {
         st.phase = 'makePay'; st.ps = true; newPay('spring');
         push('이어서 스프링이 @Component가 붙은 PayService도 객체로 만들어 PayService 빈으로 보관합니다. 이 빈은 OrderService가 직접 만든 객체와 다른 객체입니다. 만들어진 PayService 객체는 2개가 되었습니다.', '');

@@ -29,7 +29,7 @@ Lab.register({
     return out.join('\n');
   },
   label: function (c) { return { ok: '첫 줄 200 OK', notfound: '첫 줄 404 Not Found', none: '상태 줄 없음' }[c.status] + ' · ' + (c.ctype ? 'Content-Type 있음' : 'Content-Type 없음') + ' · ' + { right: 'Content-Length 15', short: 'Content-Length 6', none: 'Content-Length 없음' }[c.clen]; },
-  columns: ['클라이언트가 읽은 상태', '클라이언트가 안 본문의 종류', '클라이언트가 읽은 본문'],
+  columns: ['클라이언트가 읽은 상태', '클라이언트가 알아낸 본문의 종류', '클라이언트가 읽은 본문'],
   simulate: function (c) {
     var ev = [], sum = [], B = '안녕하세요', unread = c.status === 'none', ok = c.status === 'ok', num = ok ? '200' : '404';
     var stTxt = unread ? '응답으로 읽지 못함' : ok ? '200 OK' : '404 Not Found';
@@ -100,7 +100,7 @@ Lab.register({
     push('클라이언트가 응답을 다 읽었습니다. 읽어 낸 것은 상태 "' + stTxt + '", 본문의 종류 ' + (c.ctype ? '"' + tyTxt + '"' : '알 수 없음') + ', 본문 "' + boTxt + '"입니다.' + (ok ? '' : ' 상태가 404여도 본문은 따로 읽혔습니다.'), ok && c.clen !== 'short' ? 'good' : 'bad');
     // 요약
     var S = [], L = [];
-    if (!ok) { S.push('상태 코드를 404로 바꾸면 클라이언트는 요청이 404 Not Found로 끝났다고 읽습니다.'); L.push('상태 코드는 요청이 어떻게 됐는지를 알리는 칸이고, 본문은 따로 읽는 칸입니다. 404여도 서버가 붙인 본문은 그대로 클라이언트에 도착했습니다.'); }
+    if (!ok) { S.push('상태 코드를 404로 바꾸면 클라이언트는 요청이 404 Not Found 상태로 끝났다고 읽습니다.'); L.push('상태 코드는 요청이 어떻게 됐는지를 알리는 칸이고, 본문은 따로 읽는 칸입니다. 404여도 서버가 붙인 본문은 그대로 클라이언트에 도착했습니다.'); }
     if (!c.ctype) { S.push('Content-Type 줄을 지우면 클라이언트는 본문이 어떤 종류의 내용인지 알려 주는 헤더를 받지 못합니다.'); L.push('Content-Type이 없어도 본문 글자는 그대로 도착합니다. 다만 그 글자가 어떤 종류의 내용인지는 응답이 알려 주지 않습니다. 브라우저가 이때 본문을 어떻게 추측해 보여 주는지는 이 실습에서 확인하지 않았습니다.'); }
     if (c.clen === 'short') { S.push('Content-Length를 본문보다 짧은 6으로 적으면 클라이언트는 앞의 6바이트인 "안녕"만 본문으로 읽습니다.'); L.push('클라이언트는 본문의 끝을 글자 수가 아니라 Content-Length의 바이트 수로 정합니다. 서버가 보낸 나머지 9바이트는 본문으로 읽히지 않았습니다.'); }
     if (c.clen === 'none') { S.push('Content-Length 줄을 지워도, 이 서버는 글자를 다 보낸 뒤 연결을 닫기 때문에 클라이언트는 받은 글자 전부인 "안녕하세요"를 본문으로 읽습니다.'); L.push('길이를 알려 주는 줄이 없으면 클라이언트는 연결이 닫혀야 본문이 끝났음을 압니다. 같은 글을 연결을 닫지 않는 서버가 보냈을 때는 본문 15바이트를 받고도 1.5초가 지나도록 응답이 끝나지 않았습니다.'); }

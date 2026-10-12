@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ce3316e88e">
+<link rel="stylesheet" href="../../app.css?v=e12009116c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -62,7 +62,7 @@
 <li>그다음 /부터 ?의 앞까지가 경로이고, 여기서는 &quot;/hello&quot;입니다. 경로는 연결한 프로그램에게 무엇을 달라는지를 말합니다.</li>
 <li>?의 뒤가 쿼리이고, 여기서는 &quot;name=kim&quot;입니다. 이름=값 꼴로, 경로에 덧붙여 보내는 값입니다.</li>
 <li>클라이언트가 호스트와 포트로 연결합니다. localhost 컴퓨터(이 PC)의 8080번 포트에서 기다리는 서버 프로그램에 연결합니다. 스킴, 호스트, 포트는 이 연결에 쓰였습니다.</li>
-<li>연결되면 클라이언트가 요청의 첫 줄에 경로와 쿼리를 적어 보냅니다: &quot;GET /hello?name=kim HTTP/1.1&quot;. 스킴(http), 호스트(localhost), 포트(8080)는 첫 줄에 들어가지 않습니다. 호스트와 포트는 연결에 쓰였고, 요청의 Host 헤더에도 적혀 갑니다. 이 실험에서 서버가 받은 Host 줄은 &quot;Host: localhost:8080&quot;였습니다.</li>
+<li>연결되면 클라이언트가 요청의 첫 줄에 경로와 쿼리를 적어 보냅니다: &quot;GET /hello?name=kim HTTP/1.1&quot;. 스킴(http), 호스트(localhost), 포트(8080)는 첫 줄에 들어가지 않습니다. 호스트와 포트는 연결에 쓰였고, 요청의 Host 헤더에도 적혀 갑니다. 이 실험에서 서버는 Host 줄을 &quot;Host: localhost:8080&quot; 그대로 받았습니다.</li>
 <li>서버가 첫 줄의 경로를 봅니다. /hello는 만들어 둔 주소라서 200 응답을 만듭니다. 본문의 이름은 쿼리에서 읽습니다. name의 값이 kim이라 &quot;안녕하세요, kim&quot;입니다. 이 서버 코드는 화면에 보이지 않지만, 그렇게 답하도록 만들어 두었습니다.</li>
 <li>브라우저가 200 응답을 받습니다. 본문은 &quot;안녕하세요, kim&quot;입니다.</li>
 </ol>
@@ -74,7 +74,7 @@
 <h2>코드</h2>
 <pre>http://localhost:8080/hello?name=kim</pre>
 <h2>이 모형의 전제</h2>
-<p>서버는 Node.js 24.18.0의 http 모듈로 만든 것 하나로, GET /hello에 200과 본문 &quot;안녕하세요, &lt;name 값&gt;&quot;(name이 없으면 &quot;안녕하세요, 손님&quot;)을, 그 밖의 경로에는 404를 돌려줍니다. 스물네 가지 조합을 모두 실행해 대조했습니다. URL을 부분으로 나눈 결과(스킴, 호스트, 포트, 경로, 쿼리)는 Node.js의 new URL(글자)이 낸 값입니다. 이 해석기는 브라우저와 같은 URL 표준(WHATWG URL)을 따릅니다. 요청은 Node.js의 http.request에 그 URL을 주어 보냈고, 서버가 받은 요청의 첫 줄과 Host 줄은 글자 그대로 기록했습니다. 화면의 8080은 예시입니다. 포트를 적은 조합은 비어 있는 포트에 서버를 띄우고 URL의 8080 자리에 그 번호를 넣어 localhost라는 이름으로 실제로 연결했고, 서버가 받은 Host 줄의 번호는 8080으로 바꿔 대조했습니다. 같은 URL 글자(8080 그대로)를 연결만 시험 서버로 돌려 보내, 클라이언트가 연결하려던 곳도 기록했습니다(8080번이었습니다). 포트를 생략한 조합은 80번에 실제로 연결하지 않았습니다. 연결을 가로채 클라이언트가 연결하려던 곳이 localhost의 80번이라는 것과, 그때 보내려던 요청의 첫 줄과 Host 줄(&quot;Host: localhost&quot;, 포트 번호 없음)만 기록했습니다. 그래서 응답 칸의 &quot;80번 포트에 서버가 없으면 연결할 수 없음&quot;은 이 PC의 80번을 확인한 것이 아니라 연결하려던 곳이 80번이라는 사실에서 나온 조건문이고, 이 PC의 80번 포트 사정은 보지 않았습니다. 스킴을 지운 조합은 실제 결과를 따랐습니다. localhost:8080/hello처럼 :가 있으면 new URL이 localhost를 스킴으로 읽고 호스트와 포트는 비워 둔 채 8080/hello를 경로로 읽었고, localhost/hello처럼 :가 없으면 Invalid URL 오류(ERR_INVALID_URL)였습니다. 앞의 경우 http.request는 ERR_INVALID_PROTOCOL로, fetch는 unknown scheme으로 요청을 보내지 못했습니다(연결이 일어나지 않는 경우라 실제로 시도해 보았습니다). 이 PC에서 localhost는 ::1과 127.0.0.1 두 주소로 풀렸고(::1이 먼저), 시험 서버는 127.0.0.1에서만 열었는데도 Node.js의 기본 설정(여러 주소를 차례로 시도)에서는 127.0.0.1로 연결되었습니다. 그 시도를 끈 설정에서는 ::1에서 연결이 거절되었습니다. 브라우저가 어떻게 하는지는 보지 않았습니다. 문서로 확인한 것은 RFC 3986의 3절(URI = scheme &quot;:&quot; hier-part [ &quot;?&quot; query ], scheme, authority, path, query의 구분), 3.1절(스킴), 3.2.3절(스킴이 기본 포트를 정할 수 있고 포트가 비면 생략), 3.3절(경로), 3.4절(쿼리는 첫 ?부터 #이나 끝까지), RFC 9110의 4.2.1절(http에서 포트가 비었거나 없으면 TCP 80번이 기본), 7.2절(Host는 대상 URI의 호스트와 포트를 알림), RFC 9112의 3.2.1절(origin-form은 경로와 쿼리만 요청 대상으로 보내고, 경로가 비면 /를 보내야 한다), WHATWG URL 표준의 4.4절(스킴을 찾지 못하고 기준 주소가 없으면 실패, 규칙 있는 스킴 뒤에 //가 없으면 나머지를 경로로 읽음, 기본 포트와 같은 포트는 비워 둠)입니다. 문서는 요약으로만 열려 원문 전체를 대조하지는 못했습니다. 브라우저의 주소창은 http://를 적지 않아도 알아서 붙여 주는 편의 기능이 있는데, 이 실습은 URL 자체의 규칙만 다뤘고 주소창의 동작은 실행해 확인하지 않았습니다. 이 실습의 클라이언트는 Node.js이고 실제 브라우저로는 실행하지 않았습니다. 프래그먼트(#)와 퍼센트 인코딩, 상대 URL 같은 세부 규칙은 &quot;세부 동작 실습: URL의 구조&quot;에서 다룹니다.</p>
+<p>서버는 Node.js 24.18.0의 http 모듈로 만든 것 하나로, GET /hello에 200과 본문 &quot;안녕하세요, &lt;name 값&gt;&quot;(name이 없으면 &quot;안녕하세요, 손님&quot;)을, 그 밖의 경로에는 404를 돌려줍니다. 스물네 가지 조합을 모두 실행해 대조했습니다. URL을 부분으로 나눈 결과(스킴, 호스트, 포트, 경로, 쿼리)는 Node.js의 new URL(글자)이 낸 값입니다. 이 해석기는 브라우저와 같은 URL 표준(WHATWG URL)을 따릅니다. 요청은 Node.js의 http.request에 그 URL을 주어 보냈고, 서버가 받은 요청의 첫 줄과 Host 줄은 글자 그대로 기록했습니다. 화면의 8080은 예시입니다. 포트를 적은 조합은 비어 있는 포트에 서버를 띄우고 URL의 8080 자리에 그 번호를 넣어 localhost라는 이름으로 실제로 연결했고, 서버가 받은 Host 줄의 번호는 8080으로 바꿔 대조했습니다. 같은 URL 글자(8080 그대로)를 연결만 시험 서버로 돌려 보내, 클라이언트가 연결하려던 곳도 기록했습니다(8080번이었습니다). 포트를 생략한 조합은 80번에 실제로 연결하지 않았습니다. 연결을 가로채 클라이언트가 연결하려던 곳이 localhost의 80번이라는 것과, 그때 보내려던 요청의 첫 줄과 Host 줄(&quot;Host: localhost&quot;, 포트 번호 없음)만 기록했습니다. 그래서 응답 칸의 &quot;80번 포트에 서버가 없으면 연결할 수 없음&quot;은 이 PC의 80번을 확인한 것이 아니라 연결하려던 곳이 80번이라는 사실에서 나온 조건문이고, 이 PC의 80번 포트 사정은 보지 않았습니다. 스킴을 지운 조합은 실제 결과를 따랐습니다. localhost:8080/hello처럼 콜론(:)이 있으면 new URL이 localhost를 스킴으로 읽고 호스트와 포트는 비워 둔 채 8080/hello를 경로로 읽었고, localhost/hello처럼 콜론(:)이 없으면 Invalid URL 오류(ERR_INVALID_URL)였습니다. 앞의 경우 http.request는 ERR_INVALID_PROTOCOL로, fetch는 unknown scheme으로 요청을 보내지 못했습니다(연결이 일어나지 않는 경우라 실제로 시도해 보았습니다). 이 PC에서 localhost는 ::1과 127.0.0.1 두 주소로 풀렸고(::1이 먼저), 시험 서버는 127.0.0.1에서만 열었는데도 Node.js의 기본 설정(여러 주소를 차례로 시도)에서는 127.0.0.1로 연결되었습니다. 그 시도를 끈 설정에서는 ::1에서 연결이 거절되었습니다. 브라우저가 어떻게 하는지는 보지 않았습니다. 문서로 확인한 것은 RFC 3986의 3절(URI = scheme &quot;:&quot; hier-part [ &quot;?&quot; query ], scheme, authority, path, query의 구분), 3.1절(스킴), 3.2.3절(스킴이 기본 포트를 정할 수 있고 포트가 비면 생략), 3.3절(경로), 3.4절(쿼리는 첫 ?부터 #이나 끝까지), RFC 9110의 4.2.1절(http에서 포트가 비었거나 없으면 TCP 80번이 기본), 7.2절(Host는 대상 URI의 호스트와 포트를 알림), RFC 9112의 3.2.1절(origin-form은 경로와 쿼리만 요청 대상으로 보내고, 경로가 비면 /를 보내야 한다), WHATWG URL 표준의 4.4절(스킴을 찾지 못하고 기준 주소가 없으면 실패, 규칙 있는 스킴 뒤에 //가 없으면 나머지를 경로로 읽음, 기본 포트와 같은 포트는 비워 둠)입니다. 문서는 요약으로만 열려 원문 전체를 대조하지는 못했습니다. 브라우저의 주소창은 http://를 적지 않아도 알아서 붙여 주는 편의 기능이 있는데, 이 실습은 URL 자체의 규칙만 다뤘고 주소창의 동작은 실행해 확인하지 않았습니다. 이 실습의 클라이언트는 Node.js이고 실제 브라우저로는 실행하지 않았습니다. 프래그먼트(#)와 퍼센트 인코딩, 상대 URL 같은 세부 규칙은 &quot;세부 동작 실습: URL의 구조&quot;에서 다룹니다.</p>
 <p>앞 실습: <a href="../../lab/port_basic/">IP 주소와 포트</a> · 다음 실습: <a href="../../lab/dns_basic/">DNS</a></p>
   </div>
 
@@ -162,6 +162,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ce3316e88e"></script>
+<script src="../../app.js?v=e12009116c"></script>
 </body>
 </html>

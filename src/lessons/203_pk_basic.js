@@ -108,7 +108,7 @@ Lab.register({
       cool();
       st.inc = { title: 'SELECT', sub: ['COUNT(*) WHERE', 'id = NULL'] };
       st.chk = { cls: 'plain', sub: ['결과는 0'] }; st.flow = 'in';
-      push('참고로 이 코드에는 없는 문장을 따로 실행해 봅니다. SELECT COUNT(*) FROM member WHERE id = NULL은 0을 돌려줍니다. NULL은 "값이 없음"이라서 = 로 비교해서는 찾을 수 없습니다. id가 비어 있는 행은 WHERE id IS NULL이라고 따로 써야 고를 수 있는데, 이 조건은 id가 비어 있는 행을 모두 고릅니다. id가 비어 있는 행을 하나 더 넣어도 DB가 막지 않으므로, 이 방법으로도 한 행만 가리킬 수는 없습니다.', 'bad');
+      push('참고로 이 코드에는 없는 문장을 따로 실행해 봅니다. SELECT COUNT(*) FROM member WHERE id = NULL은 0을 돌려줍니다. NULL은 "값이 없음"이라서 =로 비교해서는 찾을 수 없습니다. id가 비어 있는 행은 WHERE id IS NULL이라고 따로 써야 고를 수 있는데, 이 조건은 id가 비어 있는 행을 모두 고릅니다. id가 비어 있는 행을 하나 더 넣어도 DB가 막지 않으므로, 이 방법으로도 한 행만 가리킬 수는 없습니다.', 'bad');
     }
 
     // 요약: 첫 줄은 물음의 답

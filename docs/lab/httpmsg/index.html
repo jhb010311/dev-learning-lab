@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ce3316e88e">
+<link rel="stylesheet" href="../../app.css?v=e12009116c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -60,7 +60,7 @@
 <li>요청의 첫 줄(시작 줄)입니다. 메서드 GET, 대상 경로 /orders/1, 프로토콜 버전 순서입니다. 메서드는 &quot;무엇을 하려는지&quot;, 경로는 &quot;무엇에 대해서인지&quot;를 나타냅니다.</li>
 <li>그다음 줄들은 헤더입니다. &quot;이름: 값&quot; 형태로 요청에 대한 부가 정보를 싣습니다. Host는 어느 사이트로 가는 요청인지, Authorization은 누가 보내는지,</li>
 <li>헤더가 끝났다는 표시로 빈 줄이 하나 들어갑니다. 이 요청은 보낼 데이터가 없어 본문이 없습니다. 서버는 이 요청 하나만 보고 처리할 수 있어야 합니다. 앞서 보낸 요청을 기억하지 않기 때문입니다(무상태).</li>
-<li>서버의 응답입니다. 첫 줄에 상태 코드 200 OK가 있습니다. 세 자리 숫자의 첫 자리가 큰 분류입니다: 2xx 성공.</li>
+<li>서버의 응답입니다. 첫 줄의 상태 코드는 200 OK입니다. 세 자리 숫자의 첫 자리가 큰 분류입니다: 2xx 성공.</li>
 <li>요청한 주문을 찾아 본문에 담아 돌려줍니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -162,6 +162,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ce3316e88e"></script>
+<script src="../../app.js?v=e12009116c"></script>
 </body>
 </html>

@@ -50,7 +50,7 @@ Lab.register({
       st.hot = 'va'; st.out.push('1');
       push('System.out.println(a); 줄이 실행됩니다. a에 들어 있는 값 1을 출력합니다. b를 바꿨지만 a는 바뀌지 않았습니다.');
       st.hot = 'va vb'; st.out.push('false');
-      push('System.out.println(a == b); 줄이 실행됩니다. int 변수의 == 는 두 변수에 들어 있는 값이 같은지를 봅니다. a는 1이고 b는 2이므로 false를 출력합니다.');
+      push('System.out.println(a == b); 줄이 실행됩니다. int 변수의 ==는 두 변수에 들어 있는 값이 같은지를 봅니다. a는 1이고 b는 2이므로 false를 출력합니다.');
       st.hot = ''; st.done = true;
       push('main이 끝납니다. 이 코드에는 Card 객체가 나오지 않으므로 객체는 하나도 만들어지지 않았습니다.');
       sum.push('int 같은 기본 타입 변수에는 값 자체가 들어 있어서, int b = a;는 값을 복사합니다. 그래서 b를 2로 바꿔도 a는 1 그대로였고, a == b는 false였습니다.');

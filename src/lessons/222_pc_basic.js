@@ -9,7 +9,7 @@ Lab.register({
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
-    { t: '처음 설정으로', q: '영속성 컨텍스트는 무엇이고, find로 가져온 엔티티의 값을 바꾸면 무슨 일이 일어나나', d: 'find로 가져온 Member의 name만 바꿨는데, 커밋할 때 JPA가 UPDATE 문을 보내 DB가 이영희가 됩니다.', v: { how: 'find', again: false } },
+    { t: '처음 설정으로', q: '영속성 컨텍스트는 무엇이고, find로 가져온 엔티티의 값을 바꾸면 무슨 일이 일어나나', d: 'find로 가져온 Member의 name만 바꿨는데, 커밋할 때 JPA가 UPDATE 문을 보내 DB의 name이 이영희가 됩니다.', v: { how: 'find', again: false } },
     { t: 'new로 직접 만들면', q: 'find 대신 new로 직접 만든 객체의 값을 바꾸면', d: 'new로 만든 객체는 영속성 컨텍스트에 없는 평범한 객체라서, 바꿔도 UPDATE가 나가지 않고 DB는 김철수 그대로입니다.', v: { how: 'new', again: false } },
     { t: 'find 뒤 detach로 떼어 내면', q: 'find로 가져온 뒤 em.detach(m)으로 떼어 내면', d: 'find로 가져왔어도 떼어 내면 지켜보지 않는 평범한 객체가 되어, 바꿔도 UPDATE가 나가지 않습니다.', v: { how: 'detach', again: false } },
     { t: '같은 id로 한 번 더 find하면', q: '같은 id로 한 번 더 find하면', d: '두 번째 find는 DB에 가지 않고 보관하던 객체를 주어서, SELECT는 1번이고 m == m2가 true입니다.', v: { how: 'find', again: true } },

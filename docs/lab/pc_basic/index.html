@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ce3316e88e">
+<link rel="stylesheet" href="../../app.css?v=e12009116c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — find로 가져온 Member의 name만 바꿨는데, 커밋할 때 JPA가 UPDATE 문을 보내 DB가 이영희가 됩니다.</li>
+<li><b>처음 설정으로</b> — find로 가져온 Member의 name만 바꿨는데, 커밋할 때 JPA가 UPDATE 문을 보내 DB의 name이 이영희가 됩니다.</li>
 <li><b>new로 직접 만들면</b> — new로 만든 객체는 영속성 컨텍스트에 없는 평범한 객체라서, 바꿔도 UPDATE가 나가지 않고 DB는 김철수 그대로입니다.</li>
 <li><b>find 뒤 detach로 떼어 내면</b> — find로 가져왔어도 떼어 내면 지켜보지 않는 평범한 객체가 되어, 바꿔도 UPDATE가 나가지 않습니다.</li>
 <li><b>같은 id로 한 번 더 find하면</b> — 두 번째 find는 DB에 가지 않고 보관하던 객체를 주어서, SELECT는 1번이고 m == m2가 true입니다.</li>
@@ -160,6 +160,6 @@ em.getTransaction().commit();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ce3316e88e"></script>
+<script src="../../app.js?v=e12009116c"></script>
 </body>
 </html>

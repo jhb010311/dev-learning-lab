@@ -11502,16 +11502,16 @@ Lab.register({
     var S = { caller: '', proxy: '대기', target: '대기', rows: [], thread: '', wait: '' };
     function snap(o) { Object.keys(o).forEach(function (k) { S[k] = o[k]; }); return JSON.parse(JSON.stringify(S)); }
     push('애플리케이션이 뜰 때 스프링은 ' + (tx ? '@Transactional이' : '@Async가') + ' 붙은 메서드를 가진 빈을 발견하고, 원래 객체 대신 그것을 감싼 프록시를 빈으로 등록합니다. 다른 빈이 주입받는 것은 이 프록시입니다.', '', snap({ caller: '아직 호출 전' }));
-    if (c.path === 'ext') push('컨트롤러가 orderService.' + m + '를 호출합니다. 컨트롤러가 들고 있는 참조는 프록시이므로 호출은 프록시에 먼저 도착합니다.', '', snap({ caller: '컨트롤러 → 프록시.' + m, proxy: '호출을 받음' }));
+    if (c.path === 'ext') push('컨트롤러가 orderService.' + m + '을 호출합니다. 컨트롤러가 들고 있는 참조는 프록시이므로 호출은 프록시에 먼저 도착합니다.', '', snap({ caller: '컨트롤러 → 프록시.' + m, proxy: '호출을 받음' }));
     else {
       push('컨트롤러가 orderService.placeOrder()를 호출합니다. 프록시가 받지만 placeOrder()에는 애노테이션이 없으므로 그대로 실제 객체에 넘깁니다.', '', snap({ caller: '컨트롤러 → 프록시.placeOrder()', proxy: '부가 기능 없이 통과시킴', target: 'OrderService.placeOrder() 실행 중' }));
-      if (c.path === 'self' || c.path === 'priv') push('실제 객체 안에서 ' + m + '를 호출합니다. 이 호출은 this.' + m + '입니다. this는 프록시가 아니라 실제 객체 자신이므로 프록시를 거치지 않습니다.' + (c.path === 'priv' ? ' 게다가 private 메서드는 프록시가 재정의할 수 없어서, 밖에서 부를 방법도 가로챌 방법도 없습니다.' : ''), 'bad', snap({ caller: 'OrderService(this) → this.' + m, proxy: '이 호출을 보지 못함', target: m + ' 실행' }));
-      if (c.path === 'inject') push('실제 객체가 주입받은 self.' + m + '를 호출합니다. self는 자기 자신의 프록시이므로 호출이 다시 프록시를 거칩니다.', '', snap({ caller: 'OrderService → self(프록시).' + m, proxy: '호출을 받음' }));
-      if (c.path === 'split') push('실제 객체가 다른 빈인 ' + target + '의 ' + m + '를 호출합니다. 주입받은 ' + target + ' 참조는 프록시이므로 호출이 프록시를 거칩니다.', '', snap({ caller: 'OrderService → ' + target + ' 프록시.' + m, proxy: '호출을 받음' }));
+      if (c.path === 'self' || c.path === 'priv') push('실제 객체 안에서 ' + m + '을 호출합니다. 이 호출은 this.' + m + '입니다. this는 프록시가 아니라 실제 객체 자신이므로 프록시를 거치지 않습니다.' + (c.path === 'priv' ? ' 게다가 private 메서드는 프록시가 재정의할 수 없어서, 밖에서 부를 방법도 가로챌 방법도 없습니다.' : ''), 'bad', snap({ caller: 'OrderService(this) → this.' + m, proxy: '이 호출을 보지 못함', target: m + ' 실행' }));
+      if (c.path === 'inject') push('실제 객체가 주입받은 self.' + m + '을 호출합니다. self는 자기 자신의 프록시이므로 호출이 다시 프록시를 거칩니다.', '', snap({ caller: 'OrderService → self(프록시).' + m, proxy: '호출을 받음' }));
+      if (c.path === 'split') push('실제 객체가 다른 빈인 ' + target + '의 ' + m + '을 호출합니다. 주입받은 ' + target + ' 참조는 프록시이므로 호출이 프록시를 거칩니다.', '', snap({ caller: 'OrderService → ' + target + ' 프록시.' + m, proxy: '호출을 받음' }));
     }
     if (tx) {
       if (via) {
-        push('프록시가 메서드를 실행하기 전에 트랜잭션을 시작합니다. 그다음 실제 객체의 ' + m + '를 호출합니다.', '', snap({ proxy: '트랜잭션 시작', target: m + ' 실행 중' }));
+        push('프록시가 메서드를 실행하기 전에 트랜잭션을 시작합니다. 그다음 실제 객체의 ' + m + '을 호출합니다.', '', snap({ proxy: '트랜잭션 시작', target: m + ' 실행 중' }));
         push('주문 A, 주문 B를 INSERT했습니다. 같은 트랜잭션 안이며 아직 커밋 전입니다.', '', snap({ rows: [['주문 A', 'INSERT함 (커밋 전)', 'hot'], ['주문 B', 'INSERT함 (커밋 전)', 'hot']] }));
         push('예외가 발생해 메서드 밖으로 나갑니다. 프록시가 예외를 보고 트랜잭션을 롤백합니다. 두 INSERT가 모두 취소됩니다.', 'good', snap({ proxy: '예외 감지 → 롤백', target: '예외 발생', rows: [['주문 A', '롤백됨', 'bad'], ['주문 B', '롤백됨', 'bad']] }));
         res = '둘 다 롤백 (DB에 남은 것 없음)';
@@ -11527,7 +11527,7 @@ Lab.register({
         push('호출한 쪽은 기다리지 않고 다음 코드를 실행해 응답을 돌려줍니다. 메일 발송은 task-1 스레드에서 따로 진행됩니다(3초).', 'good', snap({ target: m + ' 실행 중 (task-1)', wait: '0초' }));
         res = '비동기 실행 (호출자 대기 0초)';
       } else {
-        push('작업을 다른 스레드로 넘겨 줄 프록시가 없습니다. ' + m + '는 평범한 메서드 호출로, 호출한 스레드(http-nio-exec-1)에서 그대로 실행됩니다.', 'bad', snap({ thread: 'http-nio-exec-1 (요청 스레드)', wait: '진행 중' }));
+        push('작업을 다른 스레드로 넘겨 줄 프록시가 없습니다. ' + m + '은 평범한 메서드 호출로, 호출한 스레드(http-nio-exec-1)에서 그대로 실행됩니다.', 'bad', snap({ thread: 'http-nio-exec-1 (요청 스레드)', wait: '진행 중' }));
         push('메일 발송 3초가 끝날 때까지 요청 스레드가 묶여 있습니다. 사용자는 응답을 3초 늦게 받습니다. 오류도 경고도 없이 그냥 동기로 실행됩니다.', 'bad', snap({ wait: '3초' }));
         res = '동기 실행 (호출자 대기 3초)';
       }
@@ -11785,7 +11785,7 @@ Lab.register({
 Lab.register({
   id: 'controller_basic', nav: '컨트롤러', cat: '기초개념', mode: 'step', basic: true, deep: ['mvc'],
   title: '어떤 클래스를 컨트롤러라고 부르는가',
-  intro: '컨트롤러는 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @RestController는 스프링이 이 클래스의 객체를 만들어 두고 웹 요청을 처리하는 클래스로 다룬다는 표시이고, 메서드 위의 @GetMapping("/hello")는 브라우저가 /hello라는 주소로 보낸 GET 요청을 이 메서드에 맡긴다는 등록입니다. 컨트롤러는 서블릿이 아닙니다. 요청은 스프링 부트가 톰캣에 등록해 둔 서블릿 하나(DispatcherServlet)가 받아서 컨트롤러의 메서드를 불러 줍니다. 이 둘을 하나씩 지워 가며 같은 요청을 보내, 스프링이 객체를 만들고 메서드를 불러 주는지를 봅니다.',
+  intro: '컨트롤러는 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @RestController는 스프링이 이 클래스의 객체를 만들어 두고 웹 요청을 처리하는 클래스로 다룬다는 표시이고, 메서드 위의 @GetMapping("/hello")는 브라우저가 /hello라는 주소로 보낸 GET 요청을 이 메서드에 맡긴다는 등록입니다. 컨트롤러는 서블릿이 아닙니다. 요청은 스프링 부트가 톰캣에 등록해 둔 서블릿 하나(DispatcherServlet)가 받아서 컨트롤러의 메서드를 불러 줍니다. @RestController와 @GetMapping을 하나씩 지워 가며 같은 요청을 보내, 스프링이 객체를 만들고 메서드를 불러 주는지를 봅니다.',
   terms: ['컨트롤러 클래스', '@RestController', '@GetMapping', 'DispatcherServlet과 프론트 컨트롤러'],
   controls: [
     { id: 'ctl', label: '클래스 위에 @RestController를 적는다', type: 'check', value: true },
@@ -11968,7 +11968,7 @@ Lab.register({
       push('컴파일러가 소스를 위에서부터 읽습니다. 먼저 interface Payable 선언을 읽고, 이 선언으로 Payable이라는 타입을 알게 됩니다. Payable 타입은 이 선언에서 만들어집니다. void pay(); 줄은 이름만 있고 본문이 없는데, 인터페이스에서 이 모양은 "Payable 타입이라면 pay 메서드를 갖춰야 한다"는 약속입니다(추상 메서드).', '');
     } else {
       st.checks.push(['Payable 타입', { v: '선언이 없음', cls: 'bad' }]);
-      push('컴파일러가 소스를 위에서부터 읽습니다. interface Payable 선언이 코드 어디에도 없으므로, Payable이라는 타입은 아직 알려진 것이 없습니다. 타입은 선언에서 만들어지므로, 이름을 코드에 쓴다고 생기지 않습니다.', '');
+      push('컴파일러가 소스를 위에서부터 읽습니다. interface Payable 선언이 코드 어디에도 없으므로, Payable이라는 타입은 아직 알려지지 않았습니다. 타입은 선언에서 만들어지므로, 이름을 코드에 쓴다고 생기지 않습니다.', '');
     }
 
     // 2. class Card 줄을 읽는다
@@ -12198,7 +12198,7 @@ Lab.register({
       cool();
       st.inc = { title: 'SELECT', sub: ['COUNT(*) WHERE', 'id = NULL'] };
       st.chk = { cls: 'plain', sub: ['결과는 0'] }; st.flow = 'in';
-      push('참고로 이 코드에는 없는 문장을 따로 실행해 봅니다. SELECT COUNT(*) FROM member WHERE id = NULL은 0을 돌려줍니다. NULL은 "값이 없음"이라서 = 로 비교해서는 찾을 수 없습니다. id가 비어 있는 행은 WHERE id IS NULL이라고 따로 써야 고를 수 있는데, 이 조건은 id가 비어 있는 행을 모두 고릅니다. id가 비어 있는 행을 하나 더 넣어도 DB가 막지 않으므로, 이 방법으로도 한 행만 가리킬 수는 없습니다.', 'bad');
+      push('참고로 이 코드에는 없는 문장을 따로 실행해 봅니다. SELECT COUNT(*) FROM member WHERE id = NULL은 0을 돌려줍니다. NULL은 "값이 없음"이라서 =로 비교해서는 찾을 수 없습니다. id가 비어 있는 행은 WHERE id IS NULL이라고 따로 써야 고를 수 있는데, 이 조건은 id가 비어 있는 행을 모두 고릅니다. id가 비어 있는 행을 하나 더 넣어도 DB가 막지 않으므로, 이 방법으로도 한 행만 가리킬 수는 없습니다.', 'bad');
     }
 
     // 요약: 첫 줄은 물음의 답
@@ -12292,7 +12292,7 @@ Lab.register({
       return { events: ev, summary: sum, row: ['요청으로 읽지 못함', '400', '아니요'] };
     }
     st.rows.push([line, '메서드 ' + 'GET, 경로 ' + path + ', 버전 HTTP/1.1', '']);
-    push('서버를 이루는 Node.js가 첫 줄을 읽습니다. 읽은 글은 "' + line + '"입니다. 첫 줄(요청 줄)에는 세 가지가 차례로 적힙니다. GET은 메서드로 무엇을 하려는지(달라는 요청), ' + path + '는 경로로 무엇에 대해서인지, HTTP/1.1은 어떤 규칙으로 쓴 글인지입니다. 세 칸이 모두 있어 요청 줄로 읽힙니다.', '');
+    push('서버를 이루는 Node.js가 첫 줄을 읽습니다. 읽은 글은 "' + line + '"입니다. 첫 줄(요청 줄)에는 세 가지가 차례로 적힙니다. GET은 메서드로 무엇을 하려는지(달라는 요청), ' + path + (path === '/nothing' ? '은' : '는') + ' 경로로 무엇에 대해서인지, HTTP/1.1은 어떤 규칙으로 쓴 글인지입니다. 세 칸이 모두 있어 요청 줄로 읽힙니다.', '');
     // 3단계: Host 줄
     if (c.host) {
       st.lc = 'plain'; st.hc = 'hot'; st.rdt = ['Host 줄을 읽는 중'];
@@ -12377,7 +12377,7 @@ Lab.register({
 Lab.register({
   id: 'var_basic', nav: '변수와 타입', cat: '기초개념', mode: 'step', basic: true, deep: ['vars'],
   title: '변수는 무엇이고, 타입은 무엇을 정하는가',
-  intro: '변수는 값을 담아 두는 이름입니다. int age = 20;이라는 한 줄은 세 부분으로 되어 있습니다. int는 타입으로, 이 변수에는 정수만 담는다는 뜻입니다. age는 이름이고, 20은 처음에 담을 값입니다. 이 줄을 선언이라고 하며, 선언을 읽은 컴파일러는 "age는 int 변수다"라고 기억해 두고 그 뒤의 줄들이 이 기억에 맞는지 실행하기 전에 확인합니다. 이 실습은 타입 int를 지우고, 담는 값을 바꾸고, 값을 아예 담지 않아 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.',
+  intro: '변수는 값을 담아 두는 이름입니다. int age = 20;이라는 한 줄은 세 부분으로 되어 있습니다. int는 타입으로, 이 변수에는 정수만 담는다는 뜻입니다. age는 이름이고, 20은 처음에 담을 값입니다. 이 줄을 선언이라고 하며, 선언을 읽은 컴파일러는 "age는 int 변수다"라고 기억해 두고 그 뒤의 줄들이 이 기억에 맞는지 실행하기 전에 확인합니다. 이 실습은 타입 int를 지우고, 담는 값을 바꾸고, 값을 아예 담지 않기도 하며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.',
   terms: ['변수', '선언과 초기화', '타입', '기본형과 참조형'],
   controls: [
     { id: 'type', label: '변수 이름 앞에 타입 int를 적는다', type: 'check', value: true },
@@ -12665,7 +12665,7 @@ Lab.register({
         st.hot = 'mn'; st.phase = 'recv'; st.params = ''; st.send = ''; st.vals.push([nm, '5']);
         push('add(2, 3) 호출이 있던 자리가 돌려받은 값 5가 되어, 5가 ' + nm + '에 담깁니다.', '');
         st.out.push('5'); st.phase = '';
-        push('System.out.println(' + nm + ')이 ' + nm + '에 담긴 5를 출력합니다.' + (head || n === 1 ? '' : ' 부를 때마다 add 실행이 먼저 나온 뒤 돌려받은 값이 출력되는 것을 볼 수 있습니다.'), 'good');
+        push('System.out.println(' + nm + ') 줄이 ' + nm + '에 담긴 5를 출력합니다.' + (head || n === 1 ? '' : ' 부를 때마다 add 실행이 먼저 나온 뒤 돌려받은 값이 출력되는 것을 볼 수 있습니다.'), 'good');
         st.ret = '';
       }
       st.hot = '';
@@ -12682,7 +12682,7 @@ Lab.register({
       sum.push('add(2, 3)을 두 번 부르면 add의 코드가 두 번 실행되어 add 실행이 두 번 출력됐습니다. 메서드는 한 번 선언해 두고, 부를 때마다 처음부터 다시 실행됩니다.');
       sum.push('add의 코드를 두 번 쓴 것이 아니라 부르는 줄만 두 번 썼습니다. 두 번째 호출에서도 2와 3이 a와 b에 새로 담겼고, return이 5를 돌려주어 sum2에 담겼습니다.');
     } else if (ok) {
-      sum.push('add의 선언을 지웠지만 부르는 줄도 없어서, 컴파일에 성공했고 아무것도 출력되지 않았습니다. 선언이 없어도 오류가 나려면, 그 이름을 부르는 곳이 있어야 합니다.');
+      sum.push('add의 선언을 지웠지만 부르는 줄도 없어서, 컴파일에 성공했고 아무것도 출력되지 않았습니다. 선언이 없는 것이 오류가 되려면, 그 이름을 부르는 곳이 있어야 합니다.');
       sum.push('선언을 지우는 것만으로는 오류가 나지 않았습니다. 컴파일러가 add라는 이름을 찾는 때는 코드에서 add를 부를 때입니다.');
     } else if (nameErr) {
       sum.push('add의 선언을 지우고 부르기만 하면 컴파일러가 add라는 이름을 찾지 못해 컴파일에 실패했습니다. 호출은 선언된 이름을 찾아가서 실행하는 것이므로, 선언이 없으면 부를 대상이 없습니다.');
@@ -12923,7 +12923,7 @@ Lab.register({
     P.box('r2', 14, 212, 652, 36, { cls: s && s.exc ? 'bad' : s && s.ran ? 'good' : err ? 'bad' : 'ghost', title: '실행 결과', right: s && s.exc ? s.exc + '으로 멈춤' : s && s.ran ? (s.out.length ? s.out.join(' / ') : '(아직 출력 없음)') : err ? '실행할 수 없음' : '' });
     P.box('n1', 14, 256, 652, 36, { cls: s && s.made ? 'good' : 'ghost', title: '만들어진 Card 객체', right: (s ? s.made : 0) + '개' });
   },
-  assume: '컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력과 예외를 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.cant.resolve.location, var.might.not.have.been.initialized를 화면의 두 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력, 실행 중 예외의 종류입니다. 만들어진 Card 객체의 수는 짐작이 아니라 실측했습니다. 대조용 소스에만 Card 안에 객체가 만들어질 때마다 숫자를 올리는 줄(인스턴스 초기화 블록)을 더해 실행 뒤에 읽었고, 대조 스크립트는 화면의 코드와 견줄 때 그 한 줄을 뺍니다. 컴파일에 실패한 조합은 실행하지 않았으므로 0개입니다. null을 담은 조합의 예외는 NullPointerException이고 메시지는 a.owner에 값을 담으려다 변수가 null이었다는 내용이었으며, 이 예외가 a.owner 줄에서 나므로 그 아래의 b 줄은 실행되지 않아 객체는 0개였습니다. 새로 만든 객체의 owner가 값을 담기 전에는 null이라는 단계 문장의 설명도 따로 실행해(new Card().show()가 null의 카드를 출력) 확인했습니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 클래스 선언이 클래스를 정하는 것은 8.1절, 필드와, static이 아닌 필드는 인스턴스가 만들어질 때마다 인스턴스마다 새로 생긴다는 것은 8.3절과 8.3.1.1절, 객체가 클래스 인스턴스 또는 배열이고 참조는 객체를 가리키는 포인터이며 아무것도 가리키지 않는 null 참조가 있다는 것은 4.3.1절, new를 평가할 때마다 새 객체가 만들어지고 필드는 기본값으로 채워진다는 것은 15.9.4절, 참조 타입의 기본값이 null이라는 것은 4.12.5절, 객체 없이(null로) 인스턴스 필드에 접근하거나 인스턴스 메서드를 부르면 NullPointerException이라는 것은 15.11.1절과 15.12.4.4절, 값을 담지 않은 지역 변수를 읽으면 컴파일 오류라는 것은 16장 서두를 따랐습니다. 명세 15.26.1절(필드에 값을 담는 식의 평가 순서)은 열어 확인하지 못했고, 이 실습은 그 순서에 기대지 않습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. class Card 선언이 없을 때는 Card를 쓴 자리마다 오류가 하나씩 났고(new가 있는 줄은 변수의 타입과 new 뒤, 두 개), Card의 필드나 메서드를 쓰는 줄은 따로 오류가 나지 않았습니다. 값을 담지 않은 변수는 처음 쓴 줄에서만 오류가 났습니다. 화면의 코드는 클래스가 한 파일에 같이 있는 모양이고 패키지와 접근 제어자는 줄였습니다. 클래스는 필드와 메서드 말고도 생성자 등을 가질 수 있고 객체가 메모리의 어디에 놓이는지도 있지만 이 실습은 다루지 않았습니다. 변수와 객체가 놓이는 곳은 "세부 동작 실습: 스택과 힙"에서 다룹니다.',
+  assume: '컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력과 예외를 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.cant.resolve.location, var.might.not.have.been.initialized를 화면의 두 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력, 실행 중 예외의 종류입니다. 만들어진 Card 객체의 수는 짐작이 아니라 실측했습니다. 대조용 소스에만 Card 안에 객체가 만들어질 때마다 숫자를 올리는 줄(인스턴스 초기화 블록)을 더해 실행 뒤에 읽었고, 대조 스크립트는 화면의 코드와 견줄 때 그 한 줄을 뺍니다. 컴파일에 실패한 조합은 실행하지 않았으므로 0개입니다. null을 담은 조합의 예외는 NullPointerException이고 메시지는 a.owner에 값을 담으려다 변수가 null이었다는 내용이었으며, 이 예외가 a.owner 줄에서 나므로 그 아래의 b 줄은 실행되지 않아 객체는 0개였습니다. 새로 만든 객체의 owner가 값을 담기 전에는 null이라는 단계 문장의 설명도 따로 실행해(new Card().show()가 null의 카드를 출력) 확인했습니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 클래스 선언이 클래스를 정하는 것은 8.1절, 필드와, static이 아닌 필드는 인스턴스가 만들어질 때마다 인스턴스마다 새로 생긴다는 것은 8.3절과 8.3.1.1절, 객체가 클래스 인스턴스 또는 배열이고 참조는 객체를 가리키는 포인터이며 아무것도 가리키지 않는 null 참조가 있다는 것은 4.3.1절, new를 평가할 때마다 새 객체가 만들어지고 필드는 기본값으로 채워진다는 것은 15.9.4절, 참조 타입의 기본값이 null이라는 것은 4.12.5절, 객체 없이(null로) 인스턴스 필드에 접근하거나 인스턴스 메서드를 부르면 NullPointerException이라는 것은 15.11.1절과 15.12.4.4절, 값을 담지 않은 지역 변수를 읽으면 컴파일 오류라는 것은 16장 서두를 따랐습니다. 명세 15.26.1절(필드에 값을 담는 식의 평가 순서)은 열어 확인하지 못했고, 이 실습은 그 순서에 기대지 않습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. class Card 선언이 없을 때는 Card를 쓴 자리마다 오류가 하나씩 났고(new가 있는 줄은 변수의 타입과 new 뒤, 두 개), Card의 필드나 메서드를 쓰는 줄은 따로 오류가 나지 않았습니다. 값을 담지 않은 변수는 처음 쓴 줄에서만 오류가 났습니다. 화면의 코드는 클래스가 한 파일에 같이 있는 모양이고 패키지와 접근 제어자는 줄였습니다. 클래스는 필드와 메서드 말고도 생성자 등을 가질 수 있고 객체가 메모리의 어디에 놓이는지 같은 내용도 있지만 이 실습은 다루지 않았습니다. 변수와 객체가 놓이는 곳은 "세부 동작 실습: 스택과 힙"에서 다룹니다.',
 });
 
 Lab.register({
@@ -12978,7 +12978,7 @@ Lab.register({
       st.hot = 'va'; st.out.push('1');
       push('System.out.println(a); 줄이 실행됩니다. a에 들어 있는 값 1을 출력합니다. b를 바꿨지만 a는 바뀌지 않았습니다.');
       st.hot = 'va vb'; st.out.push('false');
-      push('System.out.println(a == b); 줄이 실행됩니다. int 변수의 == 는 두 변수에 들어 있는 값이 같은지를 봅니다. a는 1이고 b는 2이므로 false를 출력합니다.');
+      push('System.out.println(a == b); 줄이 실행됩니다. int 변수의 ==는 두 변수에 들어 있는 값이 같은지를 봅니다. a는 1이고 b는 2이므로 false를 출력합니다.');
       st.hot = ''; st.done = true;
       push('main이 끝납니다. 이 코드에는 Card 객체가 나오지 않으므로 객체는 하나도 만들어지지 않았습니다.');
       sum.push('int 같은 기본 타입 변수에는 값 자체가 들어 있어서, int b = a;는 값을 복사합니다. 그래서 b를 2로 바꿔도 a는 1 그대로였고, a == b는 false였습니다.');
@@ -13331,7 +13331,7 @@ Lab.register({
 Lab.register({
   id: 'static_basic', nav: 'static', cat: '기초개념', mode: 'step', basic: true, deep: ['static'],
   title: 'static은 무엇이고, 붙이면 무엇이 달라지는가',
-  intro: 'static은 필드(클래스 안에 선언한 변수) 앞에 붙이는 키워드입니다. static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고, static이 아닌 필드는 "어느 객체의 것인지"가 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞의 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.',
+  intro: 'static은 필드(클래스 안에 선언한 변수) 앞에 붙이는 키워드입니다. static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고, static이 아닌 필드는 "어느 객체의 것인지"가 정해져 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞에 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.',
   terms: ['static', '필드', '인스턴스 필드와 static 필드', '클래스와 객체'],
   controls: [
     { id: 'st', label: 'count 앞에 static을 적는다', type: 'check', value: true },
@@ -13389,7 +13389,7 @@ Lab.register({
     if (fail) {
       st.compile = 'err';
       st.checks.push(['컴파일', { v: '오류 1개', cls: 'bad' }]);
-      push('컴파일이 실패합니다. 컴파일러가 알린 오류는 1개이고, "' + errNonStatic + '"입니다. 실행할 Main 클래스 파일이 만들어지지 않았으므로 프로그램을 실행할 수 없고, new Counter()도 한 번 실행되지 않습니다.', 'bad');
+      push('컴파일이 실패합니다. 컴파일러가 알린 오류는 1개이고, "' + errNonStatic + '"입니다. 실행할 Main 클래스 파일이 만들어지지 않았으므로 프로그램을 실행할 수 없고, new Counter()도 한 번도 실행되지 않습니다.', 'bad');
     } else {
       st.compile = 'ok';
       st.checks.push(['컴파일', { v: '성공', cls: 'good' }]);
@@ -13422,7 +13422,7 @@ Lab.register({
       st.checks.push(['출력', { v: out, cls: 'good' }]);
       if (c.st && c.read === 'cls') push(READ_LINE + ' 줄이 실행됩니다. Counter.count는 Counter 클래스에 하나 있는 count이고, 그 값 ' + J(out, '이', '가') + ' 출력됩니다.', 'good');
       else if (c.st) push(READ_LINE + ' 줄이 실행됩니다. a.count는 객체 a로 가리키는 모양이지만 count는 static이어서, 읽는 것은 Counter 클래스에 하나 있는 count입니다. 그 값 ' + J(out, '이', '가') + ' 출력됩니다. a와 b가 같은 칸을 올렸으므로 b.count로 읽어도 같은 값입니다.', 'good');
-      else push(READ_LINE + ' 줄이 실행됩니다. a.count는 a의 count 칸이고, 그 값 ' + J(out, '이', '가') + ' 출력됩니다. b의 count 칸도 값이 1로 서로 다른 칸이므로, 둘이 올린 값을 합친 2는 어디에도 없습니다.', 'good');
+      else push(READ_LINE + ' 줄이 실행됩니다. a.count는 a의 count 칸이고, 그 값 ' + J(out, '이', '가') + ' 출력됩니다. b의 count 칸도 값이 1이고 서로 다른 칸이므로, 둘이 올린 값을 합친 2는 어디에도 없습니다.', 'good');
     }
 
     // 요약: 첫 줄은 이 설정(물음)의 답
@@ -13527,7 +13527,7 @@ Lab.register({
       push('컴파일러가 소스를 위에서부터 읽습니다. 먼저 class Animal을 읽고, Animal에 eat 메서드가 있다는 것을 알게 됩니다. 다음에 class Dog extends Animal 줄을 읽고, Dog가 Animal의 자식이며 Animal에 적힌 것을 물려받는다고 기억해 둡니다. extends 뒤에 적은 Animal이 부모 클래스입니다. Dog 안에는 ' + dogOwn + ' 메서드를 직접 적었습니다.', '');
     } else {
       st.checks.push(['class Dog 줄', { v: 'extends 없음: Animal과 관계없음', cls: '' }]);
-      push('컴파일러가 소스를 위에서부터 읽습니다. 먼저 class Animal을 읽고, Animal에 eat 메서드가 있다는 것을 알게 됩니다. 다음에 class Dog 줄을 읽는데 extends가 없으므로, Dog는 Animal과 관계없는 클래스입니다. Dog 안에는 ' + dogOwn + ' 메서드를 직접 적었고, Animal에 적힌 것이 Dog로 오는 일은 없습니다. 이름이 같은 eat이 Animal에 있다는 것은 Dog와 아무 상관이 없습니다.', '');
+      push('컴파일러가 소스를 위에서부터 읽습니다. 먼저 class Animal을 읽고, Animal에 eat 메서드가 있다는 것을 알게 됩니다. 다음에 class Dog 줄을 읽는데 extends가 없으므로, Dog는 Animal과 관계없는 클래스입니다. Dog 안에는 ' + dogOwn + ' 메서드를 직접 적었고, Animal에 적힌 것이 Dog로 오는 일은 없습니다. Animal에 eat이 있다는 것은 Dog와 아무 상관이 없습니다.', '');
     }
 
     // 2. 변수 d의 줄을 확인한다
@@ -13977,7 +13977,7 @@ Lab.register({
 Lab.register({
   id: 'lambda_basic', nav: '람다', cat: '기초개념', mode: 'step', basic: true, deep: ['lambda'],
   title: '람다는 무엇을 줄여 쓴 것인가',
-  intro: '람다는 화살표(->)로 적는 짧은 코드입니다. () -> System.out.println("일한다")는 "메서드가 하나뿐인 인터페이스를 구현한 객체"를 짧게 적은 것입니다. 여기서는 run 메서드 하나만 있는 Task 인터페이스를 쓰고, 화살표 뒤의 코드가 run이 할 일입니다. 같은 일을 길게 쓰면 Task를 구현한 클래스를 만들고 new로 객체를 만드는 코드가 됩니다. 이 실습은 람다를 익명 클래스와 이름 있는 클래스로 풀어 적어 결과가 같은지 보고, 람다를 적은 줄에서 화살표 뒤의 코드가 실행되는지, t.run()을 지우거나 두 번 부르면 어떻게 되는지, Task에 메서드가 하나 더 있으면 어떻게 되는지를 같은 코드를 컴파일하고 실행해 봅니다.',
+  intro: '람다는 화살표(->)로 적는 짧은 코드입니다. () -> System.out.println("일한다")는 "메서드가 하나뿐인 인터페이스를 구현한 객체"를 짧게 적은 것입니다. 여기서는 run 메서드 하나만 있는 Task 인터페이스를 쓰고, 화살표 뒤의 코드가 run이 할 일입니다. 같은 일을 길게 쓰면 Task를 구현한 클래스를 만들고 new로 객체를 만드는 코드가 됩니다. 이 실습은 람다를 익명 클래스와 이름 있는 클래스로 풀어 적어 결과가 같은지 보고, 람다를 적은 줄에서 화살표 뒤의 코드가 실행되는지, t.run()을 지우거나 두 번 부르면 어떻게 되는지, Task에 메서드가 하나 더 있으면 어떻게 되는지, 같은 코드를 컴파일하고 실행해 봅니다.',
   terms: ['람다 표현식', '함수형 인터페이스', '익명 클래스', '인터페이스'],
   controls: [
     { id: 'form', label: 'run이 할 일을 적는 방법', type: 'select', value: 'lambda', options: [['lambda', '람다로 적는다: () -> …'], ['anon', '익명 클래스로 풀어 적는다: new Task() { … }'], ['named', '이름 있는 클래스로 풀어 적는다: class Work implements Task']] },
@@ -14050,7 +14050,7 @@ Lab.register({
     } else {
       if (ok) {
         st.checks.push(['Work 클래스의 run', { v: '작성됨', cls: 'good' }]);
-        push('컴파일러가 class Work implements Task 줄을 읽습니다. Work가 Task가 요구하는 메서드를 작성하겠다는 선언입니다. Work 안에 run 메서드가 작성돼 있으므로 통과입니다. 람다에서 화살표 뒤에 적었던 코드가, 여기서는 Work 클래스의 run 메서드 본문에 들어 있습니다.', 'good');
+        push('컴파일러가 class Work implements Task 줄을 읽습니다. 이 줄은 Work가 Task가 요구하는 메서드를 작성하겠다는 선언입니다. Work 안에 run 메서드가 작성돼 있으므로 통과입니다. 람다에서 화살표 뒤에 적었던 코드가, 여기서는 Work 클래스의 run 메서드 본문에 들어 있습니다.', 'good');
       } else {
         st.bad = true; st.errs = 1; st.errText = first;
         st.checks.push(['Work 클래스의 stop', { v: '없음: 오류', cls: 'bad' }]);
@@ -14213,7 +14213,7 @@ Lab.register({
 
     // 1~3. 컴파일
     st.hot = 'rn';
-    push('컴파일러가 소스를 위에서부터 읽습니다. 먼저 @interface Run 선언을 읽고, Run이라는 표시를 새로 만듭니다. @로 시작하는 표시를 애너테이션이라고 부르고, @interface로 선언한 것이 그 이름이 됩니다. Run의 { } 안은 비어 있어서, 아무 값도 담지 않는 표시입니다. ' + (c.keep ? '그 위의 @Retention(RetentionPolicy.RUNTIME)은 이 표시를 어디까지 남길지 컴파일러에게 알립니다. RUNTIME은 class 파일에 기록하고 실행 중에도 리플렉션(실행 중에 클래스와 메서드를 조사하는 기능)으로 읽을 수 있게 남기라는 뜻입니다.' : '@Retention을 적지 않았으므로 기본값인 CLASS가 됩니다. CLASS는 class 파일에는 기록하지만 실행 중에는 남겨 두지 않아도 되는 방식입니다.'), '');
+    push('컴파일러가 소스를 위에서부터 읽습니다. 먼저 @interface Run 선언을 읽고, Run이라는 표시를 새로 만듭니다. @로 시작하는 표시를 애너테이션이라고 부르고, @interface 뒤에 적은 Run이 그 표시의 이름이 됩니다. Run의 { } 안은 비어 있어서, 아무 값도 담지 않는 표시입니다. ' + (c.keep ? '그 위의 @Retention(RetentionPolicy.RUNTIME)은 이 표시를 어디까지 남길지 컴파일러에게 알립니다. RUNTIME은 class 파일에 기록하고 실행 중에도 리플렉션(실행 중에 클래스와 메서드를 조사하는 기능)으로 읽을 수 있게 남기라는 뜻입니다.' : '@Retention을 적지 않았으므로 기본값인 CLASS가 됩니다. CLASS는 class 파일에는 기록하지만 실행 중에는 남겨 두지 않아도 되는 방식입니다.'), '');
     st.hot = 'jobs';
     push(anyMark
       ? '컴파일러가 Job 클래스를 읽습니다. ' + markText + '에 @Run이 붙어 있습니다. 컴파일러는 ' + (c.mark === 'both' ? '이 표시들을' : '이 표시를') + ' class 파일에 ' + (c.keep ? '실행 중에 읽을 수 있는 표시로' : '실행 중에는 읽을 수 없는 표시로') + ' 적어 둘 뿐, 메서드를 실행하거나 부르지는 않습니다.'
@@ -14258,8 +14258,8 @@ Lab.register({
       sum.push('애너테이션은 @로 시작하는, 코드에 붙이는 표시입니다. @interface Run으로 표시를 만들고 work 메서드 위에 @Run을 붙였습니다. 그런데 표시는 그 자체로는 아무것도 실행하지 않습니다. work가 불린 것은 Run이 붙은 메서드를 찾아 m.invoke(job)으로 부르는 코드를 우리가 썼기 때문입니다.');
       sum.push('스프링의 @RestController나 @GetMapping도 마찬가지로, 스프링이 그 표시를 읽어 주기 때문에 효과가 있는 것입니다. 스프링이 읽는 모습은 "컨트롤러" 기초 실습에서 봅니다.');
     } else if (c.reader && c.keep && c.mark === 'both') {
-      sum.push('rest에도 @Run을 붙였더니 rest도 불렸습니다. 읽는 코드는 한 줄도 바꾸지 않았고, 표시가 붙은 메서드를 읽는 쪽이 모두 찾아 불렀습니다.');
-      sum.push('어느 메서드를 부를지를 부르는 코드가 아니라 메서드에 붙은 표시가 정했습니다. 표시를 읽는 쪽을 한 번 써 두면, 표시만 붙여서 대상을 늘릴 수 있습니다.');
+      sum.push('rest에도 @Run을 붙였더니 rest도 불렸습니다. 읽는 코드는 한 줄도 바꾸지 않았고, 읽는 쪽이 표시가 붙은 메서드를 모두 찾아 불렀습니다.');
+      sum.push('어느 메서드를 부를지는 부르는 코드가 아니라 메서드에 붙은 표시가 정했습니다. 표시를 읽는 쪽을 한 번 써 두면, 표시만 붙여서 대상을 늘릴 수 있습니다.');
     } else if (c.reader && c.keep) {
       sum.push('work의 @Run을 지웠더니 work가 불리지 않았습니다. 읽는 코드는 그대로이고 work 메서드의 코드도 그대로인데, Run이 붙어 있지 않다는 답을 받아 if 안을 건너뛰었습니다.');
       sum.push('메서드가 불릴지는 메서드 안의 코드가 아니라 표시가 정했습니다. 읽는 쪽은 표시를 보고 일하는 코드이므로, 표시가 없으면 아무것도 하지 않습니다.');
@@ -14536,7 +14536,7 @@ Lab.register({
       push('Greeter b = context.getBean(Greeter.class); 줄이 실행됩니다. 한 번 더 달라고 해도 스프링은 새로 만들지 않고 같은 객체를 줍니다. 스프링은 빈을 하나만 만들어 두고, 달라고 할 때마다 그 하나를 주기 때문입니다. 변수 b도 a와 같은 객체를 가리킵니다.', 'good');
     } else if (via) {
       st.va = 'miss'; st.hot = 'va';
-      push('Greeter a = context.getBean(Greeter.class); 줄이 실행됩니다. 스프링에게 Greeter 객체를 달라고 하지만 컨테이너는 비어 있습니다. 스프링은 Greeter 클래스를 알지 못하므로 새로 만들어 주지도 않고, "그런 빈이 없다"는 뜻의 ' + EXC + '를 일으킵니다. 이 예외를 처리하는 코드가 없어, 프로그램이 이 줄에서 멈춥니다.', 'bad');
+      push('Greeter a = context.getBean(Greeter.class); 줄이 실행됩니다. 스프링에게 Greeter 객체를 달라고 하지만 컨테이너는 비어 있습니다. 스프링은 Greeter 클래스를 알지 못하므로 새로 만들어 주지도 않고, "그런 빈이 없다"는 뜻의 ' + EXC + '을 일으킵니다. 이 예외를 처리하는 코드가 없어, 프로그램이 이 줄에서 멈춥니다.', 'bad');
       st.exc = EXC; st.hot = '';
       push('프로그램이 멈췄으므로 그 아래 줄들은 실행되지 않습니다. Greeter b 줄도, 값을 출력하는 줄도 실행되지 않아, 출력된 글은 하나도 없습니다.', 'bad');
     } else {
@@ -14601,7 +14601,7 @@ Lab.register({
 Lab.register({
   id: 'di_basic', nav: '의존성 주입', cat: '기초개념', mode: 'step', basic: true, deep: ['di'],
   title: '의존성 주입은 무엇을 대신해 주는가',
-  intro: '의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 OrderService는 결제를 하려고 PayService 객체가 필요하고, 이것을 "OrderService가 PayService에 의존한다"고 합니다. 스프링에서는 OrderService의 생성자 매개변수에 PayService를 적어 두는 것이 전부이고, 클래스 위의 @Component는 스프링이 그 클래스의 객체(빈)를 만들어 보관하라는 표시입니다. 스프링이 OrderService 객체를 만들 때 보관하던 PayService 빈을 그 생성자에 넣어 줍니다. 이 실습은 생성자를 new PayService()로 바꾸거나 없애고, PayService 위의 @Component를 지워 가며 같은 main을 실행해, OrderService가 쓰는 PayService가 어디서 왔는지와 PayService 객체가 몇 개 만들어지는지를 봅니다.',
+  intro: '의존성 주입은 클래스가 일을 하려고 필요로 하는 객체를 스스로 만들지 않고 밖에서 넣어 받는 것입니다. 여기서 OrderService는 결제를 하려고 PayService 객체가 필요하고, 이것을 "OrderService가 PayService에 의존한다"고 합니다. 스프링에서는 OrderService의 생성자 매개변수에 PayService를 적어 두는 것이 전부이고, 클래스 위의 @Component는 스프링이 그 클래스의 객체(빈)를 만들어 보관하라는 표시입니다. 스프링이 OrderService 객체를 만들 때 보관하던 PayService 빈을 그 생성자에 넣어 줍니다. 이 실습은 PayService를 생성자로 받는 대신 new PayService()로 직접 만들거나 아예 받지도 만들지도 않고, PayService 위의 @Component를 지워 가며 같은 main을 실행해, OrderService가 쓰는 PayService가 어디서 왔는지와 PayService 객체가 몇 개 만들어지는지를 봅니다.',
   terms: ['DI(의존성 주입)', '생성자 주입, 세터 주입, 필드 주입', '의존성', '@Component'],
   controls: [
     { id: 'how', label: 'OrderService가 PayService를 얻는 방법', type: 'select', value: 'inject', options: [['inject', '생성자의 매개변수로 받는다 (주입)'], ['new', 'new PayService()로 직접 만든다'], ['none', '받지도 만들지도 않는다']] },
@@ -14658,7 +14658,7 @@ Lab.register({
       st.phase = 'makeOrder'; st.os = 'making'; order.push('OrderService<-spring');
       push('스프링이 OrderService 객체를 만들기 시작합니다. 이 클래스에는 생성자가 없어서 PayService를 받을 매개변수가 없습니다. OrderService는 일을 하려면 PayService 객체가 필요하지만, 스프링이 읽을 수 있는 표시가 없어 그 사실을 알지 못하고 넣어 줄 것도 없습니다.', '');
       st.phase = 'newPay'; st.os = 'made'; st.field = 'new'; st.ext = true; newPay('OrderService.<init>');
-      push('OrderService 객체가 만들어지는 중에 필드 줄 private final PayService payService = new PayService();가 실행됩니다. OrderService가 PayService 객체를 직접 만들어 필드에 담습니다.' + (dep ? ' 이 객체는 스프링이 보관하는 빈이 아니라, 우리가 쓴 코드가 만든 것입니다.' : ' PayService에는 @Component가 없어 스프링이 모르는 클래스이지만, 직접 만드는 데는 상관이 없습니다.') + ' 만들어진 PayService 객체는 1개입니다.', 'hot');
+      push('OrderService 객체가 만들어지는 중에 private final PayService payService = new PayService(); 필드 줄이 실행됩니다. OrderService가 PayService 객체를 직접 만들어 필드에 담습니다.' + (dep ? ' 이 객체는 스프링이 보관하는 빈이 아니라, 우리가 쓴 코드가 만든 것입니다.' : ' PayService에는 @Component가 없어 스프링이 모르는 클래스이지만, 직접 만드는 데는 상관이 없습니다.') + ' 만들어진 PayService 객체는 1개입니다.', 'hot');
       if (dep) {
         st.phase = 'makePay'; st.ps = true; newPay('spring');
         push('이어서 스프링이 @Component가 붙은 PayService도 객체로 만들어 PayService 빈으로 보관합니다. 이 빈은 OrderService가 직접 만든 객체와 다른 객체입니다. 만들어진 PayService 객체는 2개가 되었습니다.', '');
@@ -14887,7 +14887,7 @@ Lab.register({
     var n1 = s && s.od === 'saved' ? 1 : 0, n2 = s && s.pm === 'saved' ? 1 : 0;
     P.box('n1', 14, 242, 322, 36, { cls: n1 ? (s.half ? 'bad' : 'good') : 'ghost', title: 'orders에 반영된 행', right: n1 + '행' });
     P.box('n2', 344, 242, 322, 36, { cls: n2 ? 'good' : 'ghost', title: 'payment에 반영된 행', right: n2 + '행' });
-    if (s && s.half) P.note('빨간 상자는 주문 저장만 반영되고 결제 저장은 하지 못한 채 남은 반쪽 상태입니다.');
+    if (s && s.half) P.note('빨간 상자는 주문 저장만 반영되고 결제 저장은 하지 못한 채 남은 반쪽 상태를 나타냅니다.');
   },
   assume: 'Spring Framework 7.0.9를 JDK 21에서, H2 2.4.240(메모리 DB)에 JDBC로 연결해 실행해 대조했고 MySQL에서의 실행 대조는 하지 않았습니다. 네 가지 조합을 모두, 화면의 OrderService와 같은 소스(package와 import 줄, 그리고 끝에 PROBE 표시를 붙인 측정 줄 두 개만 더함)를 컴파일하고 자바 프로세스를 조합마다 새로 띄워 확인했습니다. 설정 클래스에는 AnnotationConfigApplicationContext가 읽는 @EnableTransactionManagement, H2의 DataSource(HikariCP), JdbcTemplate, DataSourceTransactionManager(시작, 반영, 취소 횟수를 세는 줄만 더한 하위 클래스)를 두었고, OrderService는 @Service로 스프링이 컴포넌트 스캔으로 찾게 했습니다. 자동 커밋은 JDBC 기본값(켜짐) 그대로이고 조합마다 DB와 두 테이블(orders, payment)을 새로 만들었습니다. 대조한 것은 order()가 끝난 방식(IllegalStateException과 그 메시지, 또는 정상)과, 호출이 끝난 뒤 별도의 조회로 센 orders와 payment의 행 수입니다. 단계 문장이 기대는 사실로 order() 안에서 트랜잭션이 활성인지(@Transactional이 있을 때만 활성), main이 받은 OrderService 빈의 클래스(@Transactional이 있으면 스프링이 만든 CGLIB 프록시 클래스, 없으면 우리가 쓴 클래스 그대로), 첫 저장 직후 따로 연결한 DB 연결에서 센 orders의 행 수(@Transactional이 있으면 0행, 없으면 1행), 트랜잭션 매니저가 묶음을 시작하고 반영하고 취소한 횟수(예외로 끝나면 시작 1번과 취소 1번, 정상으로 끝나면 시작 1번과 반영 1번, @Transactional이 없으면 모두 0번)도 실행으로 확인했습니다. 둘째 저장이 묶음 안에서 확정되지 않는다는 것과 없을 때 곧바로 반영된다는 것은 첫 저장으로 잰 값과 최종 행 수에서 이끌어 낸 것이고, 둘째 저장 직후를 따로 재지는 않았습니다. 문서가 정한 것은 스프링 프레임워크 7.0 문서 Data Access의 Declarative Transaction Management 절(선언적 트랜잭션이 AOP로 이루어진다는 것), Understanding the Spring Framework\'s Declarative Transaction Implementation 절(TransactionInterceptor와 트랜잭션 매니저가 메서드 호출 둘레에서 트랜잭션을 이끈다는 것), Using @Transactional 절(@EnableTransactionManagement로 켜야 하고 기본은 프록시 방식이라는 것, 기본으로 RuntimeException과 Error는 롤백하고 체크 예외는 롤백하지 않는다는 것), Rolling Back a Declarative Transaction 절(기본 설정에서 런타임 예외에만 롤백 표시를 한다는 것)입니다. 다만 메서드 앞에서 시작하고 정상이면 반영하며 예외면 취소하는 순서를 문서가 한 문단으로 풀어 쓰고 있지는 않아서, 그 순서는 Probe가 센 횟수와 행 수로 확인한 관찰입니다. 화면의 코드는 package와 import 줄을 줄였고, order()를 부르는 main, 테이블을 만드는 CREATE TABLE, DB 연결과 스프링 설정은 보이지 않습니다. 이 실습은 RuntimeException이 던져지는 한 가지 예외만 다루며, 체크 예외, 같은 클래스 안에서 부르는 경우, readOnly는 다루지 않습니다. 체크 예외와 rollbackFor, 전파 방식은 "트랜잭션 전파" 실습에서, 트랜잭션 자체(격리 수준 포함)는 "트랜잭션 기본" 실습에서 다룹니다.',
 });
@@ -14977,7 +14977,7 @@ Lab.register({
 Lab.register({
   id: 'boot_basic', nav: '스프링 부트', cat: '기초개념', mode: 'step', basic: true, deep: ['autoconf'],
   title: '스프링 부트는 무엇을 대신해 주는가',
-  intro: '스프링 부트 애플리케이션은 main 메서드가 있는 평범한 자바 클래스(App)입니다. main 메서드가 SpringApplication.run(App.class, args) 한 줄을 부르는 것으로 시작하고, 이 한 줄이 스프링을 시작하고(클래스를 훑어 빈을 만들고), 웹 서버(톰캣)를 프로그램 안에서 띄우고, 요청을 받을 준비를 합니다. 톰캣을 따로 설치하거나 서버를 띄우는 코드를 우리가 쓰지 않습니다. App 위의 @SpringBootApplication은 이 클래스가 있는 패키지부터 훑고 필요한 것을 알아서 설정하라는 표시이고, 무엇을 설정할지는 프로젝트에 들어 있는 라이브러리를 보고 정합니다. 웹 라이브러리가 들어 있으면 톰캣을 띄우고, 없으면 띄우지 않습니다. 이 실습은 run 줄, @SpringBootApplication, 웹 라이브러리를 하나씩 지워 가며 java 명령으로 프로그램을 실행하고, 프로그램이 계속 실행되는지, 톰캣이 뜨는지, 브라우저의 요청에 응답하는지를 봅니다.',
+  intro: '스프링 부트 애플리케이션은 main 메서드가 있는 평범한 자바 클래스(App)입니다. main 메서드가 SpringApplication.run(App.class, args) 한 줄을 부르는 것으로 시작하고, 이 한 줄이 스프링을 시작하고(클래스를 훑어 빈을 만들고), 웹 서버(톰캣)를 프로그램 안에서 띄우고, 요청을 받을 준비를 합니다. 톰캣을 따로 설치하지 않고, 서버를 띄우는 코드도 우리가 쓰지 않습니다. App 위의 @SpringBootApplication은 이 클래스가 있는 패키지부터 훑고 필요한 것을 알아서 설정하라는 표시이고, 무엇을 설정할지는 프로젝트에 들어 있는 라이브러리를 보고 정합니다. 웹 라이브러리가 들어 있으면 톰캣을 띄우고, 없으면 띄우지 않습니다. 이 실습은 run 줄, @SpringBootApplication, 웹 라이브러리를 하나씩 지워 가며 java 명령으로 프로그램을 실행하고, 프로그램이 계속 실행되는지, 톰캣이 뜨는지, 브라우저의 요청에 응답하는지를 봅니다.',
   terms: ['스프링 부트', '@SpringBootApplication', '스타터(Starter)', '내장 서버'],
   controls: [
     { id: 'run', label: 'main에 SpringApplication.run(App.class, args)를 적는다', type: 'check', value: true },
@@ -15054,18 +15054,18 @@ Lab.register({
     // 요약: 첫 줄은 이 설정(물음)의 답
     if (kind === 'serve') {
       sum.push('스프링 부트 애플리케이션은 main 메서드에서 SpringApplication.run(App.class, args) 한 줄을 부르는 것으로 시작합니다. 이 한 줄이 스프링을 시작하고(클래스를 훑어 빈을 만들고), 톰캣을 프로그램 안에서 띄우고, 요청을 받을 준비를 합니다. 일반 자바 프로그램과 다른 곳은 이 줄, App 위의 @SpringBootApplication, 프로젝트에 들어 있는 웹 라이브러리입니다.');
-      sum.push('톰캣을 설치하거나 서버를 띄우는 코드를 쓰지 않았습니다. @SpringBootApplication은 "이 패키지부터 훑고 필요한 것을 알아서 설정하라"는 표시이고, 무엇을 설정할지는 프로젝트에 들어 있는 라이브러리를 보고 정합니다. 웹 라이브러리가 있어서 톰캣이 떴습니다.');
+      sum.push('톰캣을 따로 설치하지 않았고 서버를 띄우는 코드도 쓰지 않았습니다. @SpringBootApplication은 "이 패키지부터 훑고 필요한 것을 알아서 설정하라"는 표시이고, 무엇을 설정할지는 프로젝트에 들어 있는 라이브러리를 보고 정합니다. 웹 라이브러리가 있어서 톰캣이 떴습니다.');
     } else if (kind === 'norun') {
-      sum.push('SpringApplication.run 줄이 없으면 main 메서드가 비어 있어서 java 프로세스가 바로 끝납니다. 스프링 부트는 시작되지 않았고 서버도 뜨지 않아, 요청은 연결할 수 없었습니다.');
+      sum.push('SpringApplication.run 줄이 없으면 main 메서드가 비어 있어서 java 프로세스가 바로 끝납니다. 스프링 부트는 시작되지 않았고 서버도 뜨지 않아, 요청은 연결되지 않았습니다.');
       sum.push('@SpringBootApplication과 웹 라이브러리는 스스로 아무것도 시작하지 못합니다. 스프링 부트를 시작하는 것은 main이 부르는 SpringApplication.run 한 줄이고, 표시와 라이브러리는 그 줄이 읽어서 쓰는 정보입니다.');
     } else if (kind === 'fail') {
-      sum.push('@SpringBootApplication을 지우면 알아서 설정해 주는 일이 없으므로, 웹 라이브러리가 있어도 톰캣을 만드는 설정이 없습니다. 웹 서버를 시작하지 못해 "Unable to start web server" 예외로 프로그램이 실패했고, 요청은 연결할 수 없었습니다.');
+      sum.push('@SpringBootApplication을 지우면 알아서 설정해 주는 일이 없으므로, 웹 라이브러리가 있어도 톰캣을 만드는 설정이 없습니다. 웹 서버를 시작하지 못해 "Unable to start web server" 예외로 프로그램이 실패했고, 요청은 연결되지 않았습니다.');
       sum.push('웹 라이브러리는 있어도 그것을 설정해 쓰게 해 주는 것이 @SpringBootApplication입니다. 웹 애플리케이션이라고 판단한 뒤에 서버를 만들 설정이 없으면, 조용히 끝나지 않고 시작하다 실패합니다.');
     } else if (kind === 'plainA') {
-      sum.push('웹 라이브러리를 빼면 스프링 부트는 웹 애플리케이션이 아니라고 판단하고 톰캣을 띄우지 않습니다. 스프링은 시작되지만 기다릴 서버가 없어 프로그램이 할 일을 마치고 바로 끝났고, 요청은 연결할 수 없었습니다.');
+      sum.push('웹 라이브러리를 빼면 스프링 부트는 웹 애플리케이션이 아니라고 판단하고 톰캣을 띄우지 않습니다. 스프링은 시작되지만 기다릴 서버가 없어 프로그램이 할 일을 마치고 바로 끝났고, 요청은 연결되지 않았습니다.');
       sum.push('스프링 부트가 무엇을 설정할지는 프로젝트에 들어 있는 라이브러리를 보고 정합니다. 같은 main 메서드와 @SpringBootApplication이라도 웹 라이브러리가 있으면 톰캣이 뜨고, 없으면 뜨지 않습니다.');
     } else {
-      sum.push('웹 라이브러리를 빼고 @SpringBootApplication도 지우면, 스프링 부트는 웹 애플리케이션이 아니라고 판단하고 아무것도 알아서 설정하지 않습니다. 스프링은 시작되지만 기다릴 서버가 없어 프로그램이 바로 끝났고, 요청은 연결할 수 없었습니다.');
+      sum.push('웹 라이브러리를 빼고 @SpringBootApplication도 지우면, 스프링 부트는 웹 애플리케이션이 아니라고 판단하고 아무것도 알아서 설정하지 않습니다. 스프링은 시작되지만 기다릴 서버가 없어 프로그램이 바로 끝났고, 요청은 연결되지 않았습니다.');
       sum.push('이 경우에는 웹 서버가 필요하다고 판단하지 않았으므로 오류 없이 끝났습니다. @SpringBootApplication만 지우고 웹 라이브러리가 있을 때는 서버를 만들 설정이 없다며 실패했던 것과 다릅니다.');
     }
     var prog = st.alive === 'run' ? '계속 실행하며 요청을 기다림' : st.alive === 'fail' ? '시작하다 실패함' : '할 일이 없어 바로 끝남';
@@ -15261,7 +15261,7 @@ Lab.register({
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
-    { t: '처음 설정으로', q: '영속성 컨텍스트는 무엇이고, find로 가져온 엔티티의 값을 바꾸면 무슨 일이 일어나나', d: 'find로 가져온 Member의 name만 바꿨는데, 커밋할 때 JPA가 UPDATE 문을 보내 DB가 이영희가 됩니다.', v: { how: 'find', again: false } },
+    { t: '처음 설정으로', q: '영속성 컨텍스트는 무엇이고, find로 가져온 엔티티의 값을 바꾸면 무슨 일이 일어나나', d: 'find로 가져온 Member의 name만 바꿨는데, 커밋할 때 JPA가 UPDATE 문을 보내 DB의 name이 이영희가 됩니다.', v: { how: 'find', again: false } },
     { t: 'new로 직접 만들면', q: 'find 대신 new로 직접 만든 객체의 값을 바꾸면', d: 'new로 만든 객체는 영속성 컨텍스트에 없는 평범한 객체라서, 바꿔도 UPDATE가 나가지 않고 DB는 김철수 그대로입니다.', v: { how: 'new', again: false } },
     { t: 'find 뒤 detach로 떼어 내면', q: 'find로 가져온 뒤 em.detach(m)으로 떼어 내면', d: 'find로 가져왔어도 떼어 내면 지켜보지 않는 평범한 객체가 되어, 바꿔도 UPDATE가 나가지 않습니다.', v: { how: 'detach', again: false } },
     { t: '같은 id로 한 번 더 find하면', q: '같은 id로 한 번 더 find하면', d: '두 번째 find는 DB에 가지 않고 보관하던 객체를 주어서, SELECT는 1번이고 m == m2가 true입니다.', v: { how: 'find', again: true } },
@@ -15502,7 +15502,7 @@ Lab.register({
     // 4. save
     st.phase = 'save'; st.hot = 'im';
     send(SEL_ID);
-    push('memberRepository.save(new Member(1L, "김철수"))가 실행됩니다. save 메서드를 쓴 코드는 우리에게 없고, JpaRepository에서 물려받은 것을 스프링이 만든 구현 객체가 실행합니다. Member의 id가 1로 이미 정해져 있어서, 스프링 데이터는 id가 1인 행이 이미 있는지 먼저 SELECT로 찾아봅니다(SELECT 1번). 그런 행은 없습니다.', '');
+    push('memberRepository.save(new Member(1L, "김철수"))가 실행됩니다. save 메서드를 구현한 코드는 우리에게 없고, JpaRepository에서 물려받은 것을 스프링이 만든 구현 객체가 실행합니다. Member의 id가 1로 이미 정해져 있어서, 스프링 데이터는 id가 1인 행이 이미 있는지 먼저 SELECT로 찾아봅니다(SELECT 1번). 그런 행은 없습니다.', '');
     send(INS); st.rows = 1;
     push('찾은 행이 없으므로 구현 객체가 INSERT를 보내 member 테이블에 id 1, 김철수 행을 저장합니다(INSERT 1번). 우리가 쓴 SQL은 한 줄도 없습니다.', 'good');
 
@@ -15510,7 +15510,7 @@ Lab.register({
     st.phase = 'find';
     if (none) {
       send(SEL_CNT);
-      push('System.out.println(memberRepository.count())의 count 메서드가 실행됩니다. count도 JpaRepository에서 물려받은 메서드이고, 구현 객체가 ' + SEL_CNT + '를 보냅니다. member 테이블의 행은 1개입니다.', 'good');
+      push('System.out.println(memberRepository.count())의 count 메서드가 실행됩니다. count도 JpaRepository에서 물려받은 메서드이고, 구현 객체가 ' + SEL_CNT + '을 보냅니다. member 테이블의 행은 1개입니다.', 'good');
       st.out = '1'; st.phase = 'done';
       push('println이 count가 돌려준 1을 출력합니다.', 'good');
     } else {
@@ -15615,7 +15615,7 @@ Lab.register({
       st.ann = 'cut';
       push('프로그램이 시작되면서 JPA(여기서는 Hibernate)에 Order와 Member 클래스를 알려 주고, JPA가 클래스를 읽습니다. 이 등록하는 줄과 DB에 연결하는 설정은 화면에서 줄였습니다. JPA가 Order의 member 필드를 보니 타입이 Member, 곧 다른 엔티티입니다. 그런데 필드 위에 @ManyToOne 같은 표시가 없습니다. JPA는 표시가 없는 필드를 숫자나 글자처럼 열 하나에 담을 값으로 보고 열의 타입을 정하려 하는데, Member는 그런 값이 아닙니다.', 'bad');
       st.phase = 'fail'; st.jpa = 'bad'; st.jl = '시작 실패 (오류 발생)';
-      push('JPA가 MappingException 오류를 내며 시작을 멈춥니다. 메시지는 Incorrect use of entity type \'app.Member\' (possibly due to missing association mapping annotation)로 시작하고, 연관관계를 나타내는 표시가 빠진 것 같다는 뜻입니다. 안쪽 원인은 Java 타입 \'app.Member\'에 맞는 열의 타입을 정하지 못했다는 것입니다. 앞의 app은 이 실험에서 Member를 넣은 패키지 이름입니다. 테이블은 하나도 만들어지지 않았습니다. 프로그램은 쓰는 코드에 이르지도 못하므로 find도 persist도 실행되지 않았고, SQL은 한 번도 나가지 않았습니다.', 'bad');
+      push('JPA가 MappingException 오류를 내며 시작을 멈춥니다. 메시지는 Incorrect use of entity type \'app.Member\' (possibly due to missing association mapping annotation)으로 시작하고, 연관관계를 나타내는 표시가 빠진 것 같다는 뜻입니다. 안쪽 원인은 Java 타입 \'app.Member\'에 맞는 열의 타입을 정하지 못했다는 것입니다. 앞의 app은 이 실험에서 Member를 넣은 패키지 이름입니다. 테이블은 하나도 만들어지지 않았습니다. 프로그램은 쓰는 코드에 이르지도 못하므로 find도 persist도 실행되지 않았고, SQL은 한 번도 나가지 않았습니다.', 'bad');
       sum.push('@ManyToOne을 지우면 JPA는 Member 타입의 필드를 열에 어떻게 담을지 몰라 시작하지 못합니다. 이 필드는 연관관계라는 표시를 잃어, JPA에게는 담을 방법을 알 수 없는 값이 되었습니다.');
       sum.push('이번 오류는 find나 persist 줄이 아니라 JPA가 시작할 때 났고, 테이블이 하나도 만들어지지 않았습니다. 엔티티 타입의 필드는 연관관계 표시가 있어야 외래 키 열로 이어집니다.');
     } else if (obj) {
@@ -15714,7 +15714,7 @@ Lab.register({
 Lab.register({
   id: 'table_basic', nav: '테이블, 행, 열', cat: '기초개념', mode: 'step', basic: true, deep: ['constraints'],
   title: '테이블은 어떻게 생겼고, 행과 열은 무엇인가',
-  intro: '관계형 데이터베이스는 데이터를 테이블(표)에 담습니다. CREATE TABLE은 표를 만들면서 열(세로 칸)을 정하는 문장이고, 열마다 이름과 타입이 있어서 "id 칸에는 정수, name 칸에는 글자"처럼 무엇을 담을지가 정해집니다. INSERT는 행(가로 한 줄, 한 사람의 정보)을 하나 넣는 문장이고, 행은 열의 개수와 타입에 맞아야 합니다. SELECT는 행들에서 고른 열의 값을 읽어 오는 문장입니다. 이 실습은 CREATE TABLE을 지우거나 둘째 행의 모양, 읽는 열을 바꿔 가며 같은 SQL을 실행해, DB가 어느 문장을 받아들이고 어느 문장을 거부하는지를 봅니다.',
+  intro: '관계형 데이터베이스는 데이터를 테이블(표)에 담습니다. CREATE TABLE은 표를 만들면서 열(세로 칸)을 정하는 문장이고, 열마다 이름과 타입이 있어서 "id 칸에는 정수, name 칸에는 글자"처럼 무엇을 담을지가 정해집니다. INSERT는 행(가로 한 줄, 한 사람의 정보)을 하나 넣는 문장이고, 행은 열의 개수와 타입에 맞아야 합니다. SELECT는 행들에서 고른 열의 값을 읽어 오는 문장입니다. 이 실습은 CREATE TABLE을 지우거나 둘째 행의 모양과 읽는 열을 바꿔 가며 같은 SQL을 실행해, DB가 어느 문장을 받아들이고 어느 문장을 거부하는지를 봅니다.',
   terms: ['테이블', '행과 열', '열의 데이터 타입', 'CREATE TABLE, INSERT, SELECT'],
   controls: [
     { id: 'create', label: 'CREATE TABLE 문이 있다', type: 'check', value: true },
@@ -16062,7 +16062,7 @@ Lab.register({
 Lab.register({
   id: 'where_basic', nav: 'WHERE', cat: '기초개념', mode: 'step', basic: true, deep: ['selectorder'],
   title: 'WHERE는 무엇을 정하고, 없으면 어떻게 되는가',
-  intro: 'WHERE는 SQL 문장 뒤에 붙이는 "WHERE 조건"입니다. UPDATE나 DELETE, SELECT가 테이블의 행 가운데 어느 행에 적용될지를 정합니다. DB는 행을 하나씩 보며 조건이 맞는지 확인하고, 맞는 행에만 문장을 적용하거나 읽어 옵니다. 이 실습은 문장의 종류와 WHERE의 조건을 바꿔 가며 같은 테이블에서 같은 SQL을 실행해, 몇 행에 문장이 적용되고 마지막에 어떤 행이 남는지를 봅니다. WHERE를 지우면 어떻게 되는지도 봅니다.',
+  intro: 'WHERE는 SQL 문장 뒤에 붙이는 "WHERE 조건"입니다. UPDATE나 DELETE, SELECT를 테이블의 행 가운데 어느 행에 적용할지를 정합니다. DB는 행을 하나씩 보며 조건이 맞는지 확인하고, 맞는 행에만 문장을 적용하거나 읽어 옵니다. 이 실습은 문장의 종류와 WHERE의 조건을 바꿔 가며 같은 테이블에서 같은 SQL을 실행해, 몇 행에 문장이 적용되고 마지막에 어떤 행이 남는지를 봅니다. WHERE를 지우면 어떻게 되는지도 봅니다.',
   terms: ['WHERE 절', 'UPDATE와 DELETE', '행과 열'],
   controls: [
     { id: 'stmt', label: 'WHERE를 붙이는 문장', type: 'select', value: 'update', options: [['update', "UPDATE member SET name = '탈퇴'"], ['delete', 'DELETE FROM member'], ['select', 'SELECT * FROM member (읽기만)']] },
@@ -16382,7 +16382,7 @@ Lab.register({
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
-    { t: '처음 설정으로', q: '인덱스는 어떻게 생겼고, 있으면 DB는 행을 어떻게 찾나', d: 'name 색인이 있는 테이블. DB는 색인에서 회원777을 찾아 그 행 1행만 읽습니다.', v: { idx: true, cond: 'name' } },
+    { t: '처음 설정으로', q: '인덱스는 어떻게 생겼고, 있으면 DB는 행을 어떻게 찾나', d: 'name 색인이 있는 테이블. DB는 색인에서 회원777을 찾아 그 1행만 읽습니다.', v: { idx: true, cond: 'name' } },
     { t: 'CREATE INDEX를 지우면', q: 'CREATE INDEX를 지우면', d: '같은 1행을 찾지만 DB가 테이블의 1000행을 다 읽습니다.', v: { idx: false, cond: 'name' } },
     { t: '색인을 만들지 않은 열로 찾으면', q: '색인을 만들지 않은 열(city)로 찾으면', d: 'idx_name은 name 값으로 정리한 색인이라 city로 찾을 때는 쓰이지 않고, DB가 1000행을 다 읽습니다.', v: { idx: true, cond: 'city' } },
     { t: '기본 키로 찾으면', q: 'CREATE INDEX 없이 기본 키(id)로 찾으면', d: 'CREATE INDEX를 쓰지 않았지만 기본 키에는 색인이 이미 있어서, DB가 1행만 읽습니다.', v: { idx: false, cond: 'id' } },
@@ -16451,7 +16451,7 @@ Lab.register({
       : cond === 'name' ? ' CREATE INDEX idx_name이 있는 테이블에서 같은 SELECT를 실행해도 찾아내는 행은 똑같습니다. 다른 점은 그때 DB가 읽는 행이 1행이라는 것입니다.'
       : cond === 'city' ? ' CREATE INDEX가 있든 없든 DB가 읽는 행은 1000행으로 같습니다.'
       : ' CREATE INDEX가 있든 없든 DB가 읽는 행은 1행으로 같습니다.';
-    push('SELECT의 결과: ' + (cond === 'city' ? "city가 '부산'인 250행(id 2, 6, 10, …)을 돌려줍니다. DB가 읽은 1000행 가운데 250행이 조건에 맞았습니다." : 'id 777인 회원777 행 1행을 돌려줍니다.') + tail, how === 'full' ? '' : 'good');
+    push('SELECT의 결과: ' + (cond === 'city' ? "city가 '부산'인 250행(id 2, 6, 10, …)을 돌려줍니다. DB가 읽은 1000행 가운데 250행이 조건에 맞았습니다." : 'id 777인 회원777 행 하나를 돌려줍니다.') + tail, how === 'full' ? '' : 'good');
 
     // 요약: 첫 줄은 물음의 답
     var S = {
@@ -16459,7 +16459,7 @@ Lab.register({
       'false|name': ['CREATE INDEX를 지우면 name 열의 색인이 없어서, DB는 첫 행부터 마지막 행까지 1000행을 읽고서야 회원777 행을 찾았습니다.', '찾아낸 행은 색인이 있을 때와 같은 1행입니다. 색인이 없으면 결과는 같고 읽는 양만 늡니다. 테이블의 행이 늘면 이 읽는 양도 같이 늡니다.'],
       'true|city': ['색인은 만든 열에서만 쓸모가 있습니다. idx_name은 name 값으로 정리한 색인이라 city로 찾을 때는 쓰이지 않았고, DB는 1000행을 다 읽어 부산인 250행을 찾았습니다.', 'CREATE INDEX가 있는 테이블이라도 색인이 없는 열로 찾으면 읽는 양은 색인이 없을 때와 같습니다. city로 빨리 찾으려면 city 열의 색인이 따로 있어야 합니다.'],
       'false|city': ['이 테이블에는 city 열의 색인이 없어서 DB는 1000행을 다 읽어 부산인 250행을 찾았습니다.', '색인을 만들지 않은 열로 찾을 때 DB가 읽는 양은 name 색인이 있든 없든 같습니다.'],
-      'true|id': ['기본 키(id)에는 따로 만들지 않아도 색인이 이미 있습니다. 그래서 DB는 id 색인에서 777을 찾아 그 행 1행만 읽었고, name 색인 idx_name은 쓰이지 않았습니다.', '색인은 열마다 따로 있습니다. 어느 색인을 쓸지는 DB가 조건의 열을 보고 정합니다.'],
+      'true|id': ['기본 키(id)에는 따로 만들지 않아도 색인이 이미 있습니다. 그래서 DB는 id 색인에서 777을 찾아 그 1행만 읽었고, name 색인 idx_name은 쓰이지 않았습니다.', '색인은 열마다 따로 있습니다. 어느 색인을 쓸지는 DB가 조건의 열을 보고 정합니다.'],
       'false|id': ['CREATE INDEX를 한 줄도 쓰지 않았는데도 id로 찾을 때는 1행만 읽었습니다. PRIMARY KEY를 적은 열에는 DB가 색인을 만들어 두기 때문입니다.', '기본 키가 아닌 열에 색인이 필요하면 CREATE INDEX로 직접 만들어야 합니다.']
     };
     S[idx + '|' + cond].forEach(function (x) { sum.push(x); });
@@ -16625,7 +16625,7 @@ Lab.register({
     // 1. 테이블 준비: 트랜잭션을 시작하기 전이라 문장마다 바로 확정된다
     facts.bSetup = both(st.t);
     st.log.push(['CREATE TABLE, INSERT', '바로 확정됨', '']);
-    push('CREATE TABLE과 INSERT: DB가 account 테이블을 만들고 계좌 1(잔액 1000)과 계좌 2(잔액 0)를 넣습니다. 화면의 SQL은 DB에 접속한 연결 하나(이 연결)에서 실행합니다. 코드에는 없지만 확인을 위해 같은 DB에 연결을 하나 더(다른 연결) 열어 두고, 이 연결이 문장을 실행할 때마다 계좌 잔액을 읽어 봅니다. ' +
+    push('CREATE TABLE과 INSERT: DB가 account 테이블을 만들고 계좌 1(잔액 1000)과 계좌 2(잔액 0)를 넣습니다. 화면의 SQL은 DB에 접속한 연결 하나(이 연결)에서 실행합니다. 코드에는 없지만 확인을 위해 같은 DB에 연결을 하나 더(다른 연결) 열어 두고, 이 연결이 문장을 실행할 때마다 다른 연결로 계좌 잔액을 읽어 봅니다. ' +
       (begin ? '아직 트랜잭션을 시작하지 않았으므로 이 두 문장은 실행되자마자 확정되어, 다른 연결에서 읽어도 계좌 1은 1000, 계좌 2는 0입니다.' : '트랜잭션을 시작하는 문장이 없으므로 문장 하나하나가 실행되자마자 확정됩니다(자동 커밋). 다른 연결에서 읽어도 계좌 1은 1000, 계좌 2는 0입니다.'), '');
 
     // 2. BEGIN
@@ -16778,7 +16778,7 @@ Lab.register({
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
-    { t: '처음 설정으로', q: 'IP 주소와 포트는 어떻게 쓰이고, 서버가 연 포트로 연결하면 무슨 일이 일어나나', d: '서버가 8080번 포트를 열어 두었고 클라이언트가 같은 포트로 연결합니다. 운영체제가 연결을 서버에 넘기고 글을 받습니다.', v: { server: true, port: 'same', second: false } },
+    { t: '처음 설정으로', q: 'IP 주소와 포트는 어떻게 쓰이고, 서버가 연 포트로 연결하면 무슨 일이 일어나나', d: '서버가 8080번 포트를 열어 두었고 클라이언트가 같은 포트로 연결합니다. 운영체제가 연결을 서버에 넘기고, 클라이언트는 서버가 보낸 글을 받습니다.', v: { server: true, port: 'same', second: false } },
     { t: '서버 프로그램 없이 연결하면', q: '서버 프로그램을 띄우지 않고 연결하면', d: '8080번 포트를 연 프로그램이 없어 운영체제가 연결을 거절합니다.', v: { server: false, port: 'same', second: false } },
     { t: '9090번 포트로 연결하면', q: '서버가 열지 않은 9090번 포트로 연결하면', d: '서버가 열어 둔 것은 8080번뿐이어서, 9090번으로는 연결이 거절됩니다.', v: { server: true, port: 'other', second: false } },
     { t: '같은 포트를 또 열려고 하면', q: '다른 프로그램이 같은 8080번 포트를 또 열려고 하면', d: '이미 서버가 열어 둔 포트라서 두 번째 프로그램은 열지 못합니다. 서버와 클라이언트의 통신은 그대로입니다.', v: { server: true, port: 'same', second: true } },
@@ -16856,7 +16856,7 @@ Lab.register({
     // 요약
     var secLine = c.second && c.server ? ' 또 다른 프로그램이 8080번 포트를 또 열려던 일은 이 연결과 상관없이 실패했습니다.' : c.second ? ' 또 다른 프로그램이 8080번 포트를 열었지만 클라이언트가 연결한 것은 9090번이어서 거절됩니다.' : '';
     if (c.server && same && !c.second) {
-      sum.push('IP 주소는 "어느 컴퓨터인지", 포트는 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 "어느 프로그램인지"를 가리키는 번호입니다. 서버 프로그램이 8080번 포트를 열고 기다리는 중에 클라이언트가 127.0.0.1(이 컴퓨터)의 8080번 포트로 연결하자, 운영체제가 연결을 서버 프로그램에 넘겨 글을 받았습니다.');
+      sum.push('IP 주소는 "어느 컴퓨터인지", 포트는 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 "어느 프로그램인지"를 가리키는 번호입니다. 서버 프로그램이 8080번 포트를 열고 기다리는 중에 클라이언트가 127.0.0.1(이 컴퓨터)의 8080번 포트로 연결하자, 운영체제가 연결을 서버 프로그램에 넘겼고, 클라이언트는 서버가 보낸 글을 받았습니다.');
       sum.push('클라이언트 코드에는 서버 프로그램의 이름이 없고 주소와 포트만 있습니다. 포트를 연 프로그램을 찾아 연결을 넘기는 것은 운영체제입니다.');
     } else if (c.server && same) {
       sum.push('이미 서버 프로그램이 연 8080번 포트를 다른 프로그램이 또 열려고 하면 열지 못합니다(BindException). 서버와 클라이언트는 영향 없이 글을 주고받았습니다.');
@@ -16964,30 +16964,30 @@ Lab.register({
     if (f.kind === 'bad') {
       push(first, '');
       st.hl = ['sc']; st.rev = ['sc'];
-      push('맨 앞에서 스킴을 찾습니다. 스킴은 : 앞의 이름인데, "' + T + '"에는 :가 없어 스킴이 없습니다. 스킴도 없고 기준으로 삼을 다른 주소도 없으면 URL 표준은 이 글을 주소로 읽지 못합니다.', 'bad');
+      push('맨 앞에서 스킴을 찾습니다. 스킴은 : 앞의 이름인데, "' + T + '"에는 콜론(:)이 없어 스킴이 없습니다. 스킴도 없고 기준으로 삼을 다른 주소도 없으면 URL 표준은 이 글을 주소로 읽지 못합니다.', 'bad');
       st.hl = ['ho', 'po', 'pa', 'qu']; st.rev = ['sc', 'ho', 'po', 'pa', 'qu'];
       push('스킴을 모르면 /와 ?가 무엇을 나누는 기호인지도 알 수 없습니다. 이 글은 호스트, 포트, 경로, 쿼리로 나뉘지 못하고 "Invalid URL" 오류가 됩니다.', 'bad');
       st.hl = []; st.cn = 'bad'; st.cnText = '연결할 곳을 알 수 없음'; st.rq = 'bad'; st.rqText = '보내지 못함'; st.res = '응답 없음 (요청을 보내지 못함)'; st.out = [['연결하는 곳', '알 수 없음'], ['요청의 첫 줄', '보내지 못함'], ['응답', st.res]];
       push('나뉘지 못한 글에서는 연결할 호스트도, 요청에 적을 경로도 얻을 수 없습니다. 클라이언트는 요청을 보내지 못했고, 서버는 아무것도 받지 못했습니다.', 'bad');
       sum.push('맨 앞의 http://와 :8080을 모두 지우면 이 글은 URL로 읽히지 않습니다. 스킴을 찾지 못해 부분으로 나뉘지 못했고, 요청도 보내지 못했습니다.');
-      sum.push('나머지 글자가 어떻든 스킴이 없으면 소용이 없습니다. 스킴은 :와 /와 ? 같은 기호가 제 뜻으로 읽히게 하는 출발점입니다.');
+      sum.push('나머지 글자가 어떻든 스킴이 없으면 소용이 없습니다. 스킴은 콜론(:)과 /와 ? 같은 기호가 제 뜻으로 읽히게 하는 출발점입니다.');
       return { events: ev, summary: sum, f: f, row: ['주소로 읽히지 않음', '보내지 못함', '응답 없음 (요청을 보내지 못함)'] };
     }
 
     if (f.kind === 'odd') {
       push(first, '');
       at('sc'); st.rows.push(['스킴', 'localhost', '(잘못 읽힘) 어떤 규칙으로 대화할지']);
-      push('맨 앞에서 스킴을 찾습니다. 스킴은 :가 처음 나오는 곳 앞까지의 이름입니다. "' + T + '"에는 localhost 바로 뒤에 :가 있어서, URL 표준대로 읽으면 localhost가 스킴이 됩니다. 원래 호스트로 적은 글입니다.', 'bad');
+      push('맨 앞에서 스킴을 찾습니다. 스킴은 콜론(:)이 처음 나오는 곳 앞까지의 이름입니다. "' + T + '"에는 localhost 바로 뒤에 콜론(:)이 있어서, URL 표준대로 읽으면 localhost가 스킴이 됩니다. 원래 호스트로 적은 글입니다.', 'bad');
       at('ho'); st.hl = ['ho', 'po', 'pa']; st.rev = ['sc', 'ho', 'po', 'pa'];
       st.rows.push(['호스트와 포트', '(없음)', '스킴 뒤에 //가 이어지지 않아 읽히지 않음']);
       st.rows.push(['경로', f.rest, '(잘못 읽힘) 나머지가 통째로 경로가 됨']);
-      push('스킴 뒤에 //가 이어지지 않아서 호스트와 포트는 읽히지 않았습니다. 나머지 "' + f.rest + '"가 통째로 경로가 됩니다. 8080은 포트가 아니라 경로의 글자입니다.', 'bad');
-      if (c.query) { at('qu'); st.hl = ['qu']; st.rows.push(['쿼리', 'name=kim', '덧붙여 보내는 값']); push('? 뒤의 "name=kim"은 쿼리로 나뉩니다. 이 경우에도 ? 뒤는 쿼리로 나뉩니다. 하지만 이것을 받아 줄 호스트가 없습니다.', ''); }
+      push('스킴 뒤에 //가 이어지지 않아서 호스트와 포트는 읽히지 않았습니다. 나머지 "' + f.rest + '" 전체가 경로가 됩니다. 8080은 포트가 아니라 경로의 글자입니다.', 'bad');
+      if (c.query) { at('qu'); st.hl = ['qu']; st.rows.push(['쿼리', 'name=kim', '덧붙여 보내는 값']); push('? 뒤의 "name=kim"은 쿼리로 나뉩니다. 하지만 이것을 받아 줄 호스트가 없습니다.', ''); }
       else { st.rev = ['sc', 'ho', 'po', 'pa', 'qu']; }
       st.hl = []; st.cn = 'bad'; st.cnText = '연결할 곳을 알 수 없음'; st.rq = 'bad'; st.rqText = '보내지 못함'; st.res = '응답 없음 (요청을 보내지 못함)'; st.out = [['연결하는 곳', '알 수 없음'], ['요청의 첫 줄', '보내지 못함'], ['응답', st.res]];
       push('localhost는 HTTP 규칙을 뜻하는 스킴이 아니고 호스트도 없으니, 클라이언트는 어느 컴퓨터에 어떤 규칙으로 연결할지 알 수 없습니다. Node.js의 요청 보내기는 스킴이 맞지 않다며 거절했고, fetch도 모르는 스킴이라며 실패했습니다. 요청의 첫 줄은 만들어지지 않았고 서버는 아무것도 받지 못했습니다.', 'bad');
-      sum.push('맨 앞의 http://를 지우면 "' + T + '"는 주소로 읽히기는 하지만 엉뚱하게 나뉩니다. localhost가 스킴이 되고 호스트와 포트는 사라졌습니다. 요청을 보내지 못했습니다.');
-      sum.push('스킴이 없으면 :와 /가 무엇을 나누는 기호인지 달라집니다. 같은 글자라도 스킴이 있어야 호스트와 포트, 경로로 올바로 나뉩니다.');
+      sum.push('맨 앞의 http://를 지운 "' + T + '"도 주소로 읽히기는 하지만 엉뚱하게 나뉩니다. localhost가 스킴이 되고 호스트와 포트는 사라졌습니다. 요청을 보내지 못했습니다.');
+      sum.push('스킴이 없으면 콜론(:)과 /가 무엇을 나누는 기호인지 달라집니다. 같은 글자라도 스킴이 있어야 호스트와 포트, 경로로 올바로 나뉩니다.');
       return { events: ev, summary: sum, f: f, row: ['스킴이 localhost로 읽힘 (호스트 없음)', '보내지 못함', '응답 없음 (요청을 보내지 못함)'] };
     }
 
@@ -16997,14 +16997,14 @@ Lab.register({
     at('sc'); st.rows.push(['스킴', 'http', '어떤 규칙으로 대화할지']);
     push('맨 앞에서 ://까지가 스킴이고, 여기서는 "http"입니다. 스킴은 서버와 어떤 규칙으로 대화할지를 알려 줍니다. http는 HTTP 규칙, 곧 요청 줄과 헤더를 보내고 응답을 받는 규칙으로 대화한다는 뜻입니다.', '');
     at('ho'); st.rows.push(['호스트', 'localhost', '어느 컴퓨터인지']);
-    push('://다음부터 ' + bound + '까지가 호스트와 포트입니다. ' + (c.port ? '이 가운데 :의 앞이 호스트이고, 여기서는 "localhost"입니다.' : '여기에는 :가 없어 이 부분 전체가 호스트이고, "localhost"입니다.') + ' 호스트는 어느 컴퓨터에 연결할지를 알려 줍니다.', '');
+    push('://다음부터 ' + bound + '까지가 호스트와 포트입니다. ' + (c.port ? '이 가운데 :의 앞이 호스트이고, 여기서는 "localhost"입니다.' : '여기에는 콜론(:)이 없어 이 부분 전체가 호스트이고, "localhost"입니다.') + ' 호스트는 어느 컴퓨터에 연결할지를 알려 줍니다.', '');
     at('po');
     if (c.port) {
       st.rows.push(['포트', '8080', '그 컴퓨터의 어느 프로그램인지']);
       push(':의 뒤가 포트이고, 여기서는 "8080"입니다. 한 컴퓨터에서는 여러 프로그램이 돌 수 있어서, 포트는 그 가운데 어느 프로그램에 연결할지를 알려 줍니다. 우리 서버 프로그램은 8080번에서 기다리고 있습니다.', '');
     } else {
       st.rows.push(['포트', '(적지 않음) 80', 'http의 기본 포트를 씀']);
-      push('URL에 :가 없어 포트가 적혀 있지 않습니다. 이때 클라이언트는 스킴의 기본 포트를 씁니다. http의 기본 포트는 80이라서 80번으로 읽습니다. 우리 서버 프로그램이 기다리는 번호는 8080번이므로 같지 않습니다.', 'bad');
+      push('URL에 콜론(:)이 없어 포트가 적혀 있지 않습니다. 이때 클라이언트는 스킴의 기본 포트를 씁니다. http의 기본 포트는 80이라서 80번으로 읽습니다. 우리 서버 프로그램이 기다리는 번호는 8080번이므로 같지 않습니다.', 'bad');
     }
     at('pa');
     if (f.p) {
@@ -17028,20 +17028,20 @@ Lab.register({
     else push('클라이언트가 호스트와 포트로 연결하려 합니다. 연결하려는 곳은 localhost의 80번 포트입니다. 서버가 기다리는 8080번이 아니어서 이 연결은 우리 서버에 닿지 않습니다. (이 실습은 80번에 실제로 연결하지 않고, 클라이언트가 연결하려는 곳을 가로채 기록했습니다.)', 'bad');
     st.hl = ['pa', 'qu']; st.rq = 'ok'; st.rqText = f.line;
     st.out.push(['요청의 첫 줄', f.line + (c.port ? '' : ' (80번으로 보낼 요청)')], ['Host 헤더', f.hostLine]);
-    push((c.port ? '연결되면' : '80번 포트에 서버가 있어 연결된다면') + ' 클라이언트가 요청의 첫 줄에 경로와 쿼리를 적어 보냅니다: "' + f.line + '". 스킴(http), 호스트(localhost), 포트' + (c.port ? '(8080)' : '(80)') + '는 첫 줄에 들어가지 않습니다. 호스트와 포트는 연결에 쓰였고, 요청의 Host 헤더에도 적혀 갑니다. 이 실험에서 서버가 받은 Host 줄은 "' + f.hostLine + '"였습니다' + (c.port ? '.' : '(포트를 적지 않았으므로 번호가 없습니다).') + (f.p ? '' : ' 경로가 비어 있었으므로 첫 줄에는 /가 적혔습니다.'), 'good');
+    push((c.port ? '연결되면' : '80번 포트에 서버가 있어 연결된다면') + ' 클라이언트가 요청의 첫 줄에 경로와 쿼리를 적어 보냅니다: "' + f.line + '". 스킴(http), 호스트(localhost), 포트' + (c.port ? '(8080)' : '(80)') + '는 첫 줄에 들어가지 않습니다. 호스트와 포트는 연결에 쓰였고, 요청의 Host 헤더에도 적혀 갑니다. 이 실험에서 서버는 Host 줄을 "' + f.hostLine + '" 그대로 받았습니다' + (c.port ? '.' : '(포트를 적지 않았으므로 번호가 없습니다).') + (f.p ? '' : ' 경로가 비어 있었으므로 첫 줄에는 /가 적혔습니다.'), 'good');
     if (!c.port) {
       st.res = '80번 포트에 서버가 없으면 연결할 수 없음'; st.hl = [];
       st.out.push(['응답', st.res]);
       push('80번 포트에 서버가 없으면 연결 자체가 되지 않아 요청도 응답도 없습니다. 우리 서버(8080번)는 이 요청을 받지 못합니다. 경로와 쿼리는 맞게 적혀 있어도, 연결하는 곳이 틀렸기 때문입니다.', 'bad');
       sum.push(':8080을 지우면 클라이언트는 http의 기본 포트인 80번으로 연결하려 합니다. 서버는 8080번에 있어서 이 요청은 서버에 닿지 않고, 80번에 서버가 없으면 연결할 수 없습니다.');
-      sum.push('요청의 첫 줄은 "' + f.line + '"로 그대로이고, 바뀐 것은 연결하는 곳뿐입니다. 포트를 적지 않는 것은 포트가 없는 것이 아니라 스킴의 기본 포트를 쓰겠다는 뜻입니다.');
+      sum.push('요청의 첫 줄은 "' + f.line + '" 그대로이고, 바뀐 것은 연결하는 곳뿐입니다. 포트를 적지 않는 것은 포트가 없는 것이 아니라 스킴의 기본 포트를 쓰겠다는 뜻입니다.');
       return { events: ev, summary: sum, f: f, row: ['localhost, 80번 (http의 기본 포트)', f.line + ' (80번으로 보낼 요청)', '80번 포트에 서버가 없으면 연결할 수 없음'] };
     }
     st.hl = ['pa', 'qu'];
     var answer = f.status + (f.body ? ' ' + f.body : '');
     st.res = answer; st.out.push(['응답', answer]);
-    if (f.ok) push('서버가 첫 줄의 경로를 봅니다. /hello는 만들어 둔 주소라서 200 응답을 만듭니다. 본문의 이름은 쿼리에서 읽습니다. ' + (c.query ? 'name의 값이 kim이라 "' + f.body + '"입니다.' : '쿼리가 없어 name을 찾지 못하고, 이때 쓰도록 만들어 둔 "손님"으로 "' + f.body + '"가 됩니다.') + ' 이 서버 코드는 화면에 보이지 않지만, 그렇게 답하도록 만들어 두었습니다.', 'good');
-    else push('서버가 첫 줄의 경로를 봅니다. "' + (f.p || '/') + '"는 만들어 둔 주소가 아니라서 404 응답을 만듭니다.' + (c.query ? ' 쿼리 name=kim이 붙어 있어도 경로가 맞지 않으면 쓰이지 않습니다.' : ''), 'bad');
+    if (f.ok) push('서버가 첫 줄의 경로를 봅니다. /hello는 만들어 둔 주소라서 200 응답을 만듭니다. 본문의 이름은 쿼리에서 읽습니다. ' + (c.query ? 'name의 값이 kim이라 "' + f.body + '"입니다.' : '쿼리가 없어 name을 찾지 못하고, 이때 쓰도록 만들어 둔 "손님"으로 "' + f.body + '"이 됩니다.') + ' 이 서버 코드는 화면에 보이지 않지만, 그렇게 답하도록 만들어 두었습니다.', 'good');
+    else push('서버가 첫 줄의 경로를 봅니다. "' + (f.p || '/') + '" 경로는 만들어 둔 주소가 아니라서 404 응답을 만듭니다.' + (c.query ? ' 쿼리 name=kim이 붙어 있어도 경로가 맞지 않으면 쓰이지 않습니다.' : ''), 'bad');
     push('브라우저가 ' + (f.ok ? '200 응답을 받습니다. 본문은 "' + f.body + '"입니다.' : '404 응답을 받습니다.'), f.ok ? 'good' : 'bad');
     // 요약: 첫 줄은 물음의 답
     if (f.ok && c.query) {
@@ -17118,7 +17118,7 @@ Lab.register({
     var res = s && s.res ? s.res : '아직';
     P.box('res', 14, 266, 652, 38, { cls: s && s.res ? (s.res.indexOf('200') === 0 ? 'good' : 'bad') : 'ghost', title: '응답', right: res });
   },
-  assume: '서버는 Node.js 24.18.0의 http 모듈로 만든 것 하나로, GET /hello에 200과 본문 "안녕하세요, <name 값>"(name이 없으면 "안녕하세요, 손님")을, 그 밖의 경로에는 404를 돌려줍니다. 스물네 가지 조합을 모두 실행해 대조했습니다. URL을 부분으로 나눈 결과(스킴, 호스트, 포트, 경로, 쿼리)는 Node.js의 new URL(글자)이 낸 값입니다. 이 해석기는 브라우저와 같은 URL 표준(WHATWG URL)을 따릅니다. 요청은 Node.js의 http.request에 그 URL을 주어 보냈고, 서버가 받은 요청의 첫 줄과 Host 줄은 글자 그대로 기록했습니다. 화면의 8080은 예시입니다. 포트를 적은 조합은 비어 있는 포트에 서버를 띄우고 URL의 8080 자리에 그 번호를 넣어 localhost라는 이름으로 실제로 연결했고, 서버가 받은 Host 줄의 번호는 8080으로 바꿔 대조했습니다. 같은 URL 글자(8080 그대로)를 연결만 시험 서버로 돌려 보내, 클라이언트가 연결하려던 곳도 기록했습니다(8080번이었습니다). 포트를 생략한 조합은 80번에 실제로 연결하지 않았습니다. 연결을 가로채 클라이언트가 연결하려던 곳이 localhost의 80번이라는 것과, 그때 보내려던 요청의 첫 줄과 Host 줄("Host: localhost", 포트 번호 없음)만 기록했습니다. 그래서 응답 칸의 "80번 포트에 서버가 없으면 연결할 수 없음"은 이 PC의 80번을 확인한 것이 아니라 연결하려던 곳이 80번이라는 사실에서 나온 조건문이고, 이 PC의 80번 포트 사정은 보지 않았습니다. 스킴을 지운 조합은 실제 결과를 따랐습니다. localhost:8080/hello처럼 :가 있으면 new URL이 localhost를 스킴으로 읽고 호스트와 포트는 비워 둔 채 8080/hello를 경로로 읽었고, localhost/hello처럼 :가 없으면 Invalid URL 오류(ERR_INVALID_URL)였습니다. 앞의 경우 http.request는 ERR_INVALID_PROTOCOL로, fetch는 unknown scheme으로 요청을 보내지 못했습니다(연결이 일어나지 않는 경우라 실제로 시도해 보았습니다). 이 PC에서 localhost는 ::1과 127.0.0.1 두 주소로 풀렸고(::1이 먼저), 시험 서버는 127.0.0.1에서만 열었는데도 Node.js의 기본 설정(여러 주소를 차례로 시도)에서는 127.0.0.1로 연결되었습니다. 그 시도를 끈 설정에서는 ::1에서 연결이 거절되었습니다. 브라우저가 어떻게 하는지는 보지 않았습니다. 문서로 확인한 것은 RFC 3986의 3절(URI = scheme ":" hier-part [ "?" query ], scheme, authority, path, query의 구분), 3.1절(스킴), 3.2.3절(스킴이 기본 포트를 정할 수 있고 포트가 비면 생략), 3.3절(경로), 3.4절(쿼리는 첫 ?부터 #이나 끝까지), RFC 9110의 4.2.1절(http에서 포트가 비었거나 없으면 TCP 80번이 기본), 7.2절(Host는 대상 URI의 호스트와 포트를 알림), RFC 9112의 3.2.1절(origin-form은 경로와 쿼리만 요청 대상으로 보내고, 경로가 비면 /를 보내야 한다), WHATWG URL 표준의 4.4절(스킴을 찾지 못하고 기준 주소가 없으면 실패, 규칙 있는 스킴 뒤에 //가 없으면 나머지를 경로로 읽음, 기본 포트와 같은 포트는 비워 둠)입니다. 문서는 요약으로만 열려 원문 전체를 대조하지는 못했습니다. 브라우저의 주소창은 http://를 적지 않아도 알아서 붙여 주는 편의 기능이 있는데, 이 실습은 URL 자체의 규칙만 다뤘고 주소창의 동작은 실행해 확인하지 않았습니다. 이 실습의 클라이언트는 Node.js이고 실제 브라우저로는 실행하지 않았습니다. 프래그먼트(#)와 퍼센트 인코딩, 상대 URL 같은 세부 규칙은 "세부 동작 실습: URL의 구조"에서 다룹니다.',
+  assume: '서버는 Node.js 24.18.0의 http 모듈로 만든 것 하나로, GET /hello에 200과 본문 "안녕하세요, <name 값>"(name이 없으면 "안녕하세요, 손님")을, 그 밖의 경로에는 404를 돌려줍니다. 스물네 가지 조합을 모두 실행해 대조했습니다. URL을 부분으로 나눈 결과(스킴, 호스트, 포트, 경로, 쿼리)는 Node.js의 new URL(글자)이 낸 값입니다. 이 해석기는 브라우저와 같은 URL 표준(WHATWG URL)을 따릅니다. 요청은 Node.js의 http.request에 그 URL을 주어 보냈고, 서버가 받은 요청의 첫 줄과 Host 줄은 글자 그대로 기록했습니다. 화면의 8080은 예시입니다. 포트를 적은 조합은 비어 있는 포트에 서버를 띄우고 URL의 8080 자리에 그 번호를 넣어 localhost라는 이름으로 실제로 연결했고, 서버가 받은 Host 줄의 번호는 8080으로 바꿔 대조했습니다. 같은 URL 글자(8080 그대로)를 연결만 시험 서버로 돌려 보내, 클라이언트가 연결하려던 곳도 기록했습니다(8080번이었습니다). 포트를 생략한 조합은 80번에 실제로 연결하지 않았습니다. 연결을 가로채 클라이언트가 연결하려던 곳이 localhost의 80번이라는 것과, 그때 보내려던 요청의 첫 줄과 Host 줄("Host: localhost", 포트 번호 없음)만 기록했습니다. 그래서 응답 칸의 "80번 포트에 서버가 없으면 연결할 수 없음"은 이 PC의 80번을 확인한 것이 아니라 연결하려던 곳이 80번이라는 사실에서 나온 조건문이고, 이 PC의 80번 포트 사정은 보지 않았습니다. 스킴을 지운 조합은 실제 결과를 따랐습니다. localhost:8080/hello처럼 콜론(:)이 있으면 new URL이 localhost를 스킴으로 읽고 호스트와 포트는 비워 둔 채 8080/hello를 경로로 읽었고, localhost/hello처럼 콜론(:)이 없으면 Invalid URL 오류(ERR_INVALID_URL)였습니다. 앞의 경우 http.request는 ERR_INVALID_PROTOCOL로, fetch는 unknown scheme으로 요청을 보내지 못했습니다(연결이 일어나지 않는 경우라 실제로 시도해 보았습니다). 이 PC에서 localhost는 ::1과 127.0.0.1 두 주소로 풀렸고(::1이 먼저), 시험 서버는 127.0.0.1에서만 열었는데도 Node.js의 기본 설정(여러 주소를 차례로 시도)에서는 127.0.0.1로 연결되었습니다. 그 시도를 끈 설정에서는 ::1에서 연결이 거절되었습니다. 브라우저가 어떻게 하는지는 보지 않았습니다. 문서로 확인한 것은 RFC 3986의 3절(URI = scheme ":" hier-part [ "?" query ], scheme, authority, path, query의 구분), 3.1절(스킴), 3.2.3절(스킴이 기본 포트를 정할 수 있고 포트가 비면 생략), 3.3절(경로), 3.4절(쿼리는 첫 ?부터 #이나 끝까지), RFC 9110의 4.2.1절(http에서 포트가 비었거나 없으면 TCP 80번이 기본), 7.2절(Host는 대상 URI의 호스트와 포트를 알림), RFC 9112의 3.2.1절(origin-form은 경로와 쿼리만 요청 대상으로 보내고, 경로가 비면 /를 보내야 한다), WHATWG URL 표준의 4.4절(스킴을 찾지 못하고 기준 주소가 없으면 실패, 규칙 있는 스킴 뒤에 //가 없으면 나머지를 경로로 읽음, 기본 포트와 같은 포트는 비워 둠)입니다. 문서는 요약으로만 열려 원문 전체를 대조하지는 못했습니다. 브라우저의 주소창은 http://를 적지 않아도 알아서 붙여 주는 편의 기능이 있는데, 이 실습은 URL 자체의 규칙만 다뤘고 주소창의 동작은 실행해 확인하지 않았습니다. 이 실습의 클라이언트는 Node.js이고 실제 브라우저로는 실행하지 않았습니다. 프래그먼트(#)와 퍼센트 인코딩, 상대 URL 같은 세부 규칙은 "세부 동작 실습: URL의 구조"에서 다룹니다.',
 });
 
 Lab.register({
@@ -17128,7 +17128,7 @@ Lab.register({
   terms: ['DNS', '도메인 이름', 'IP 주소(IPv4)', '이름 없음 응답(NXDOMAIN)'],
   controls: [
     { id: 'reg', label: 'DNS 서버에 등록된 것', type: 'select', value: 'one', options: [['one', 'shop.example을 127.0.0.1로 등록해 둔다'], ['two', 'shop.example을 127.0.0.2로 등록해 둔다 (다른 컴퓨터)'], ['none', 'shop.example을 등록하지 않는다']] },
-    { id: 'target', label: '클라이언트가 접속하려는 주소', type: 'select', value: 'name', options: [['name', 'http://shop.example:8080/ 으로 접속한다'], ['ip', 'http://127.0.0.1:8080/ 으로 접속한다 (IP 주소를 직접 적는다)']] },
+    { id: 'target', label: '클라이언트가 접속하려는 주소', type: 'select', value: 'name', options: [['name', 'http://shop.example:8080/로 접속한다'], ['ip', 'http://127.0.0.1:8080/로 접속한다 (IP 주소를 직접 적는다)']] },
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
@@ -17264,7 +17264,7 @@ Lab.register({
     return out.join('\n');
   },
   label: function (c) { return { ok: '첫 줄 200 OK', notfound: '첫 줄 404 Not Found', none: '상태 줄 없음' }[c.status] + ' · ' + (c.ctype ? 'Content-Type 있음' : 'Content-Type 없음') + ' · ' + { right: 'Content-Length 15', short: 'Content-Length 6', none: 'Content-Length 없음' }[c.clen]; },
-  columns: ['클라이언트가 읽은 상태', '클라이언트가 안 본문의 종류', '클라이언트가 읽은 본문'],
+  columns: ['클라이언트가 읽은 상태', '클라이언트가 알아낸 본문의 종류', '클라이언트가 읽은 본문'],
   simulate: function (c) {
     var ev = [], sum = [], B = '안녕하세요', unread = c.status === 'none', ok = c.status === 'ok', num = ok ? '200' : '404';
     var stTxt = unread ? '응답으로 읽지 못함' : ok ? '200 OK' : '404 Not Found';
@@ -17335,7 +17335,7 @@ Lab.register({
     push('클라이언트가 응답을 다 읽었습니다. 읽어 낸 것은 상태 "' + stTxt + '", 본문의 종류 ' + (c.ctype ? '"' + tyTxt + '"' : '알 수 없음') + ', 본문 "' + boTxt + '"입니다.' + (ok ? '' : ' 상태가 404여도 본문은 따로 읽혔습니다.'), ok && c.clen !== 'short' ? 'good' : 'bad');
     // 요약
     var S = [], L = [];
-    if (!ok) { S.push('상태 코드를 404로 바꾸면 클라이언트는 요청이 404 Not Found로 끝났다고 읽습니다.'); L.push('상태 코드는 요청이 어떻게 됐는지를 알리는 칸이고, 본문은 따로 읽는 칸입니다. 404여도 서버가 붙인 본문은 그대로 클라이언트에 도착했습니다.'); }
+    if (!ok) { S.push('상태 코드를 404로 바꾸면 클라이언트는 요청이 404 Not Found 상태로 끝났다고 읽습니다.'); L.push('상태 코드는 요청이 어떻게 됐는지를 알리는 칸이고, 본문은 따로 읽는 칸입니다. 404여도 서버가 붙인 본문은 그대로 클라이언트에 도착했습니다.'); }
     if (!c.ctype) { S.push('Content-Type 줄을 지우면 클라이언트는 본문이 어떤 종류의 내용인지 알려 주는 헤더를 받지 못합니다.'); L.push('Content-Type이 없어도 본문 글자는 그대로 도착합니다. 다만 그 글자가 어떤 종류의 내용인지는 응답이 알려 주지 않습니다. 브라우저가 이때 본문을 어떻게 추측해 보여 주는지는 이 실습에서 확인하지 않았습니다.'); }
     if (c.clen === 'short') { S.push('Content-Length를 본문보다 짧은 6으로 적으면 클라이언트는 앞의 6바이트인 "안녕"만 본문으로 읽습니다.'); L.push('클라이언트는 본문의 끝을 글자 수가 아니라 Content-Length의 바이트 수로 정합니다. 서버가 보낸 나머지 9바이트는 본문으로 읽히지 않았습니다.'); }
     if (c.clen === 'none') { S.push('Content-Length 줄을 지워도, 이 서버는 글자를 다 보낸 뒤 연결을 닫기 때문에 클라이언트는 받은 글자 전부인 "안녕하세요"를 본문으로 읽습니다.'); L.push('길이를 알려 주는 줄이 없으면 클라이언트는 연결이 닫혀야 본문이 끝났음을 압니다. 같은 글을 연결을 닫지 않는 서버가 보냈을 때는 본문 15바이트를 받고도 1.5초가 지나도록 응답이 끝나지 않았습니다.'); }
@@ -17391,7 +17391,7 @@ Lab.register({
 Lab.register({
   id: 'cookie_basic', nav: '쿠키', cat: '기초개념', mode: 'step', basic: true, deep: ['cookie'],
   title: '쿠키는 무엇이고, 누가 저장하고 누가 보내는가',
-  intro: 'HTTP에서는 요청 하나하나가 따로여서, 서버는 두 번째 요청이 아까 그 사람에게서 온 것인지 스스로는 알 수 없습니다. 쿠키는 이것을 풀기 위한 작은 값입니다. 코드 칸에는 서버가 첫 요청에 돌려주는 응답 글이 있고, 그 안의 Set-Cookie: visitor=kim 줄이 쿠키를 맡기는 줄입니다. 서버는 이 줄로 "이 값을 맡아 두었다가 다음에 올 때 보여 달라"고 부탁합니다. 값을 저장하는 것도, 다시 보내는 것도 브라우저입니다. 브라우저는 저장해 둔 값을 같은 서버로 가는 다음 요청에 Cookie: visitor=kim 헤더로 붙여 보냅니다. 이 실습의 서버는 요청에 Cookie 헤더로 visitor 값이 오면 "또 오셨군요, 값"을, 없으면 "처음 오셨군요"를 돌려주게 만들어 둔 서버이고, 그 서버 코드는 화면에 보이지 않습니다. Set-Cookie 줄을 지우거나, 둘째 요청 전에 쿠키를 지우거나, 쿠키를 저장하지 않는 프로그램으로 요청해 가며, 같은 서버에 두 번 요청했을 때 서버가 둘째 요청을 알아보는지를 봅니다. 코드 칸의 (빈 줄)은 아무 글자도 없는 줄을 눈에 보이게 적은 것입니다.',
+  intro: 'HTTP에서는 요청 하나하나가 따로여서, 서버는 두 번째 요청이 아까 그 사람에게서 온 것인지 스스로는 알 수 없습니다. 쿠키는 이 문제를 풀기 위한 작은 값입니다. 코드 칸에는 서버가 첫 요청에 돌려주는 응답 글이 있고, 그 안의 Set-Cookie: visitor=kim 줄이 쿠키를 맡기는 줄입니다. 서버는 이 줄로 "이 값을 맡아 두었다가 다음에 올 때 보여 달라"고 부탁합니다. 값을 저장하는 것도, 다시 보내는 것도 브라우저입니다. 브라우저는 저장해 둔 값을 같은 서버로 가는 다음 요청에 Cookie: visitor=kim 헤더로 붙여 보냅니다. 이 실습의 서버는 요청에 Cookie 헤더로 visitor 값이 오면 "또 오셨군요, 값"을, 없으면 "처음 오셨군요"를 돌려주게 만들어 둔 서버이고, 그 서버 코드는 화면에 보이지 않습니다. Set-Cookie 줄을 지우거나, 둘째 요청 전에 쿠키를 지우거나, 쿠키를 저장하지 않는 프로그램으로 요청해 가며, 같은 서버에 두 번 요청했을 때 서버가 둘째 요청을 알아보는지를 봅니다. 코드 칸의 (빈 줄)은 아무 글자도 없는 줄을 눈에 보이게 적은 것입니다.',
   terms: ['쿠키', 'Set-Cookie 헤더', 'Cookie 헤더', 'HTTP와 무상태(Stateless)'],
   controls: [
     { id: 'set', label: '서버가 응답에 Set-Cookie: visitor=kim 줄을 붙인다', type: 'check', value: true },
@@ -17557,7 +17557,7 @@ Lab.register({
     if (!num) diff.push('age의 값 30에 큰따옴표를 붙임');
     if (c.comma === 'trail') diff.push('마지막 값 뒤에 쉼표를 붙임');
     if (c.comma === 'miss') diff.push('"age" 줄 끝의 쉼표를 뺌');
-    push('서버가 브라우저에 회원 정보를 보내려 합니다. 서버의 메모리 안에 있는 객체(이름, 나이, 태그를 가진 것)는 그대로 보낼 수 없습니다. 그래서 정해진 약속대로 글자로 적어 보내는데, 그 약속이 JSON입니다. 보내는 쪽이 객체를 아래 글자로 적었습니다.' + (diff.length ? ' 이 실습의 글에서 처음 모양과 다른 곳은 ' + diff.join(', ') + '입니다.' : '') + ' 받는 쪽의 해석기가 이 글을 읽어 객체로 되돌립니다. 이 실습은 같은 글을 Node.js의 JSON.parse와 자바의 Jackson 두 해석기에 넣어 보았고, 모든 조합에서 두 해석기의 판단이 같았습니다.', '');
+    push('서버가 브라우저에 회원 정보를 보내려 합니다. 서버의 메모리 안에 있는 객체(이름, 나이, 태그를 가진 것)는 그대로 보낼 수 없습니다. 그래서 정해진 약속대로 글자로 적어 보내는데, 그 약속이 JSON입니다. 보내는 쪽이 객체를 아래 글자로 적었습니다.' + (diff.length ? ' 이 실습의 글이 처음 모양과 다른 점: ' + diff.join(', ') + '.' : '') + ' 받는 쪽의 해석기가 이 글을 읽어 객체로 되돌립니다. 이 실습은 같은 글을 Node.js의 JSON.parse와 자바의 Jackson 두 해석기에 넣어 보았고, 모든 조합에서 두 해석기의 판단이 같았습니다.', '');
     // 2단계: {
     st.ln[0] = 'hot'; st.rows.push(['{', '이름과 값의 묶음이 시작됨']);
     push('받는 쪽 해석기가 글을 앞에서부터 차례로 읽습니다. 첫 글자는 {입니다. {는 "이름과 값의 묶음이 시작된다"는 뜻이어서, 해석기는 이제부터 "이름": 값이 쉼표로 이어지다가 }로 끝나리라고 기대합니다.', '');
@@ -17622,7 +17622,7 @@ Lab.register({
     st.ln[4] = 'good'; st.done = true; st.read = '성공'; st.kind = f.ageKind;
     push('읽기에 성공해, 받는 쪽이 자기 언어의 객체를 만들었습니다. name은 글자 "김철수", age는 ' + (num ? '숫자 30' : '글자 "30"') + ', tags는 글자 두 개의 목록입니다. 글자로 적어 보낸 것이 다시 객체가 되었습니다.', 'good');
     st.plus = f.plus;
-    push('받는 쪽 프로그램이 읽은 객체에서 age를 꺼내 1을 더합니다(자바스크립트로 읽은객체.age + 1을 실행한 결과입니다). ' + (num ? 'age가 숫자 30이라서 숫자끼리의 덧셈이고, 결과는 31입니다.' : 'age가 글자 "30"이라서, +는 글자 뒤에 1을 이어 붙입니다. 결과는 글자 "301"입니다.'), num ? 'good' : 'bad');
+    push('받는 쪽 프로그램이 읽은 객체에서 age를 꺼내 1을 더합니다(자바스크립트로 읽은 객체의 age + 1을 실행한 결과입니다). ' + (num ? 'age가 숫자 30이라서 숫자끼리의 덧셈이고, 결과는 31입니다.' : 'age가 글자 "30"이라서, +는 글자 뒤에 1을 이어 붙입니다. 결과는 글자 "301"입니다.'), num ? 'good' : 'bad');
     if (num) {
       sum.push('JSON은 객체를 글자로 적어 주고받는 약속입니다. { } 안에 "이름": 값을 쉼표로 이어 적고, 이름과 글자 값은 큰따옴표로 감싸며, 숫자는 따옴표 없이 적습니다. 받는 쪽 해석기는 이 글을 앞에서부터 읽어 객체로 만들었습니다.');
       sum.push('age의 30은 따옴표가 없어 숫자이고, 1을 더하면 31입니다. 이 글은 규칙에 한 군데도 어긋나지 않았기 때문에 읽혔습니다.');
@@ -17704,7 +17704,7 @@ Lab.register({
     if (!https) {
       // http: 확인도 암호화도 없다
       st.clc = 'hot'; st.clt = ['http로 연결']; st.a1 = 'plain'; st.a2 = 'plain'; st.seenc = 'plain'; st.seent = ['연결을 시작하는', '바이트가 지나감']; st.svt = ['연결을 받음']; st.conn = this.CONN.ok;
-      push('서버에 연결하는 주소는 ' + url + ' 입니다. http://로 시작하므로 클라이언트(서버에 접속하는 프로그램)는 서버를 확인하지도 암호화를 준비하지도 않고 바로 HTTP 글자를 보냅니다. 서버도 인증서를 내보이지 않습니다.' + between + ' 8080은 예시로 적은 포트 번호입니다.', '');
+      push('서버에 연결하는 주소는 ' + url + '입니다. http://로 시작하므로 클라이언트(서버에 접속하는 프로그램)는 서버를 확인하지도 암호화를 준비하지도 않고 바로 HTTP 글자를 보냅니다. 서버도 인증서를 내보이지 않습니다.' + between + ' 8080은 예시로 적은 포트 번호입니다.', '');
       st.clt = ['글자를', '그대로 보냄']; st.a1 = 'hot'; st.seenc = 'bad'; st.seent = ['POST /login HTTP/1.1', '(헤더 줄들)', '(빈 줄)', 'password=1234'];
       push('클라이언트가 HTTP 요청 글자를 그대로 보냅니다. 첫 줄 POST /login HTTP/1.1, 헤더 줄들, 빈 줄, 본문 password=1234가 글자 그대로 네트워크에 흘러 나갑니다.', '');
       st.mid = this.MID.plain; st.midc = 'bad';
@@ -17717,17 +17717,17 @@ Lab.register({
     }
     // https: 연결 -> 인증서 -> 확인 -> (통과하면) 암호화
     st.clc = 'hot'; st.clt = ['https로 연결']; st.a1 = 'plain'; st.a2 = 'plain'; st.seenc = 'plain'; st.seent = ['연결을 시작하는', '바이트가 지나감'];
-    push('서버에 연결하는 주소는 ' + url + ' 입니다. https://로 시작하므로 클라이언트(서버에 접속하는 프로그램)는 HTTP 글자를 보내기 전에 먼저 서버를 확인하고 암호화를 준비합니다.' + between + ' 8443은 예시로 적은 포트 번호입니다.', '');
+    push('서버에 연결하는 주소는 ' + url + '입니다. https://로 시작하므로 클라이언트(서버에 접속하는 프로그램)는 HTTP 글자를 보내기 전에 먼저 서버를 확인하고 암호화를 준비합니다.' + between + ' 8443은 예시로 적은 포트 번호입니다.', '');
     st.svc = 'hot'; st.svt = ['인증서를 내보임']; st.certc = 'hot';
     push('서버가 인증서를 내보입니다. 인증서는 서버가 "나는 이 이름의 주인이다"라고 보이는 증명서이고, 이 서버의 인증서에는 이름 localhost가 적혀 있습니다(코드 칸의 "서버의 인증서").', '');
     st.clt = ['인증서를 확인 중']; st.certc = 'plain';
     st.chk.push(['믿는 목록에 있는가', trust ? '있음' : '없음', trust ? 'good' : 'bad']);
     if (!trust) {
-      push('클라이언트가 인증서를 확인합니다. 첫째는 이 인증서를 믿을 수 있는가입니다. 클라이언트는 믿는 목록을 가지고 있고, 서버가 내보인 인증서가 그 목록에 있는지 봅니다. 이 인증서는 클라이언트가 믿는 목록에 없습니다. 누구나 스스로 만들 수 있는 인증서와 구분할 수 없어서, 서버가 그 이름의 주인이라는 증명이 되지 못합니다.' + (other ? ' 이 조합에서는 접속한 이름 127.0.0.1도 인증서에 적혀 있지 않지만, 이 실행에서 클라이언트가 알린 끊은 이유는 믿을 수 없는 인증서였습니다.' : ''), 'bad');
+      push('클라이언트가 인증서를 확인합니다. 첫째는 이 인증서를 믿을 수 있는가입니다. 클라이언트는 믿는 목록을 가지고 있고, 서버가 내보인 인증서가 그 목록에 있는지 봅니다. 이 인증서는 클라이언트가 믿는 목록에 없습니다. 누구나 스스로 만들 수 있는 인증서와 구분할 수 없어서, 서버가 그 이름의 주인이라는 증명이 되지 못합니다.' + (other ? ' 이 조합에서는 접속한 이름 127.0.0.1도 인증서에 적혀 있지 않지만, 이 실행에서 클라이언트가 연결을 끊은 이유로 알린 것은 믿을 수 없는 인증서였습니다.' : ''), 'bad');
     } else {
       push('클라이언트가 인증서를 확인합니다. 첫째는 이 인증서를 믿을 수 있는가입니다. 클라이언트는 믿는 목록을 가지고 있고, 서버가 내보인 인증서가 그 목록에 있는지 봅니다. 이 인증서는 클라이언트가 믿는 목록에 있어서 통과합니다.', 'good');
       st.chk.push(['접속한 이름이 인증서에 적혀 있는가', other ? '없음' : '있음', other ? 'bad' : 'good']);
-      push('둘째는 접속한 이름이 인증서에 적혀 있는가입니다. 접속한 이름은 ' + host + ' 입니다. 인증서에 적힌 이름은 localhost뿐입니다.' + (other ? ' 접속한 이름이 적혀 있지 않아서, 이 인증서가 이 주소의 서버가 낸 것이라고 인정할 수 없습니다.' : ' 접속한 이름이 적혀 있어서 통과합니다.'), other ? 'bad' : 'good');
+      push('둘째는 접속한 이름이 인증서에 적혀 있는가입니다. 접속한 이름은 ' + host + '입니다. 인증서에 적힌 이름은 localhost뿐입니다.' + (other ? ' 접속한 이름이 적혀 있지 않아서, 이 인증서가 이 주소의 서버가 낸 것이라고 인정할 수 없습니다.' : ' 접속한 이름이 적혀 있어서 통과합니다.'), other ? 'bad' : 'good');
     }
     if (!trust || other) {
       var why = !trust ? 'trust' : 'name';
@@ -22344,7 +22344,7 @@ Lab.register({
     S.req.push(['빈 줄', '']); if (K.body) S.req.push(['본문', K.body]);
     push('헤더가 끝났다는 표시로 빈 줄이 하나 들어갑니다. ' + (K.body ? '그 뒤가 본문입니다. 서버에 보낼 데이터가 들어갑니다.' : '이 요청은 보낼 데이터가 없어 본문이 없습니다.') + ' 서버는 이 요청 하나만 보고 처리할 수 있어야 합니다. 앞서 보낸 요청을 기억하지 않기 때문입니다(무상태).', '', 'req');
     S.res.push(['시작 줄', 'HTTP/1.1 ' + K.status]);
-    push('서버의 응답입니다. 첫 줄에 상태 코드 ' + K.status + '가 있습니다. 세 자리 숫자의 첫 자리가 큰 분류입니다: ' + group + '.', cls === '2' || cls === '3' ? 'good' : 'bad', 'res');
+    push('서버의 응답입니다. 첫 줄의 상태 코드는 ' + K.status + '입니다. 세 자리 숫자의 첫 자리가 큰 분류입니다: ' + group + '.', cls === '2' || cls === '3' ? 'good' : 'bad', 'res');
     K.hdr.forEach(function (h) { S.res.push(['헤더', h]); }); S.res.push(['빈 줄', '']); if (K.rbody) S.res.push(['본문', K.rbody]);
     var why = { get: '요청한 주문을 찾아 본문에 담아 돌려줍니다.', create: '새 주문이 만들어졌습니다. Location 헤더가 새로 생긴 주문의 주소를 알려 줍니다. 200이 아니라 201을 쓰는 것은 "새로 생겼다"는 사실을 전하기 위해서입니다.', delete: '삭제에 성공했고 돌려줄 내용이 없습니다. 그래서 본문이 없는 204입니다.', bad: '필수 값 quantity가 빠졌습니다. 요청 자체가 규칙에 맞지 않으므로 400입니다. 서버는 일을 시작하지도 않았습니다.', noauth: '누가 보낸 요청인지 알 수 없습니다. "먼저 인증하라"는 뜻의 401입니다.', forbid: '누구인지는 확인됐지만 이 주문을 볼 권한이 없습니다. 403입니다.', missing: '주소 형식은 맞지만 그 번호의 주문이 없습니다. 404입니다.', moved: '이 주소는 영구히 /orders로 옮겨졌습니다. 브라우저는 Location 헤더의 주소로 자동으로 다시 요청합니다.', error: '요청에는 문제가 없었는데 서버 코드에서 처리하지 못한 예외가 났습니다. 500입니다. 내부 오류 내용은 본문에 그대로 내보내지 않습니다.' }[c.sc];
     push(why, cls === '2' || cls === '3' ? 'good' : 'bad', 'res');

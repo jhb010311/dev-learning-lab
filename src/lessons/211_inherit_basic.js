@@ -53,7 +53,7 @@ Lab.register({
       push('컴파일러가 소스를 위에서부터 읽습니다. 먼저 class Animal을 읽고, Animal에 eat 메서드가 있다는 것을 알게 됩니다. 다음에 class Dog extends Animal 줄을 읽고, Dog가 Animal의 자식이며 Animal에 적힌 것을 물려받는다고 기억해 둡니다. extends 뒤에 적은 Animal이 부모 클래스입니다. Dog 안에는 ' + dogOwn + ' 메서드를 직접 적었습니다.', '');
     } else {
       st.checks.push(['class Dog 줄', { v: 'extends 없음: Animal과 관계없음', cls: '' }]);
-      push('컴파일러가 소스를 위에서부터 읽습니다. 먼저 class Animal을 읽고, Animal에 eat 메서드가 있다는 것을 알게 됩니다. 다음에 class Dog 줄을 읽는데 extends가 없으므로, Dog는 Animal과 관계없는 클래스입니다. Dog 안에는 ' + dogOwn + ' 메서드를 직접 적었고, Animal에 적힌 것이 Dog로 오는 일은 없습니다. 이름이 같은 eat이 Animal에 있다는 것은 Dog와 아무 상관이 없습니다.', '');
+      push('컴파일러가 소스를 위에서부터 읽습니다. 먼저 class Animal을 읽고, Animal에 eat 메서드가 있다는 것을 알게 됩니다. 다음에 class Dog 줄을 읽는데 extends가 없으므로, Dog는 Animal과 관계없는 클래스입니다. Dog 안에는 ' + dogOwn + ' 메서드를 직접 적었고, Animal에 적힌 것이 Dog로 오는 일은 없습니다. Animal에 eat이 있다는 것은 Dog와 아무 상관이 없습니다.', '');
     }
 
     // 2. 변수 d의 줄을 확인한다

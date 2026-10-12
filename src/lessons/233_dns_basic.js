@@ -5,7 +5,7 @@ Lab.register({
   terms: ['DNS', '도메인 이름', 'IP 주소(IPv4)', '이름 없음 응답(NXDOMAIN)'],
   controls: [
     { id: 'reg', label: 'DNS 서버에 등록된 것', type: 'select', value: 'one', options: [['one', 'shop.example을 127.0.0.1로 등록해 둔다'], ['two', 'shop.example을 127.0.0.2로 등록해 둔다 (다른 컴퓨터)'], ['none', 'shop.example을 등록하지 않는다']] },
-    { id: 'target', label: '클라이언트가 접속하려는 주소', type: 'select', value: 'name', options: [['name', 'http://shop.example:8080/ 으로 접속한다'], ['ip', 'http://127.0.0.1:8080/ 으로 접속한다 (IP 주소를 직접 적는다)']] },
+    { id: 'target', label: '클라이언트가 접속하려는 주소', type: 'select', value: 'name', options: [['name', 'http://shop.example:8080/로 접속한다'], ['ip', 'http://127.0.0.1:8080/로 접속한다 (IP 주소를 직접 적는다)']] },
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [

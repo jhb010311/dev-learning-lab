@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ce3316e88e">
+<link rel="stylesheet" href="../../app.css?v=e12009116c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 서버가 8080번 포트를 열어 두었고 클라이언트가 같은 포트로 연결합니다. 운영체제가 연결을 서버에 넘기고 글을 받습니다.</li>
+<li><b>처음 설정으로</b> — 서버가 8080번 포트를 열어 두었고 클라이언트가 같은 포트로 연결합니다. 운영체제가 연결을 서버에 넘기고, 클라이언트는 서버가 보낸 글을 받습니다.</li>
 <li><b>서버 프로그램 없이 연결하면</b> — 8080번 포트를 연 프로그램이 없어 운영체제가 연결을 거절합니다.</li>
 <li><b>9090번 포트로 연결하면</b> — 서버가 열어 둔 것은 8080번뿐이어서, 9090번으로는 연결이 거절됩니다.</li>
 <li><b>같은 포트를 또 열려고 하면</b> — 이미 서버가 열어 둔 포트라서 두 번째 프로그램은 열지 못합니다. 서버와 클라이언트의 통신은 그대로입니다.</li>
@@ -63,7 +63,7 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>IP 주소는 &quot;어느 컴퓨터인지&quot;, 포트는 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 &quot;어느 프로그램인지&quot;를 가리키는 번호입니다. 서버 프로그램이 8080번 포트를 열고 기다리는 중에 클라이언트가 127.0.0.1(이 컴퓨터)의 8080번 포트로 연결하자, 운영체제가 연결을 서버 프로그램에 넘겨 글을 받았습니다.</li>
+<li>IP 주소는 &quot;어느 컴퓨터인지&quot;, 포트는 그 컴퓨터에서 돌고 있는 여러 프로그램 가운데 &quot;어느 프로그램인지&quot;를 가리키는 번호입니다. 서버 프로그램이 8080번 포트를 열고 기다리는 중에 클라이언트가 127.0.0.1(이 컴퓨터)의 8080번 포트로 연결하자, 운영체제가 연결을 서버 프로그램에 넘겼고, 클라이언트는 서버가 보낸 글을 받았습니다.</li>
 <li>클라이언트 코드에는 서버 프로그램의 이름이 없고 주소와 포트만 있습니다. 포트를 연 프로그램을 찾아 연결을 넘기는 것은 운영체제입니다.</li>
 </ul>
 <h2>코드</h2>
@@ -166,6 +166,6 @@ System.out.println(text);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ce3316e88e"></script>
+<script src="../../app.js?v=e12009116c"></script>
 </body>
 </html>

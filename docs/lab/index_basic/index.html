@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=ce3316e88e">
+<link rel="stylesheet" href="../../app.css?v=e12009116c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — name 색인이 있는 테이블. DB는 색인에서 회원777을 찾아 그 행 1행만 읽습니다.</li>
+<li><b>처음 설정으로</b> — name 색인이 있는 테이블. DB는 색인에서 회원777을 찾아 그 1행만 읽습니다.</li>
 <li><b>CREATE INDEX를 지우면</b> — 같은 1행을 찾지만 DB가 테이블의 1000행을 다 읽습니다.</li>
 <li><b>색인을 만들지 않은 열로 찾으면</b> — idx_name은 name 값으로 정리한 색인이라 city로 찾을 때는 쓰이지 않고, DB가 1000행을 다 읽습니다.</li>
 <li><b>기본 키로 찾으면</b> — CREATE INDEX를 쓰지 않았지만 기본 키에는 색인이 이미 있어서, DB가 1행만 읽습니다.</li>
@@ -58,7 +58,7 @@
 <li>CREATE INDEX idx_name ON member(name): DB가 name 열의 값들을 순서대로 정리한 색인을 테이블과 따로 만듭니다. 색인에는 name 값(…, 회원776, 회원777, 회원778, …)과 그 값이 있는 행을 가리키는 정보가 들어 있습니다. 테이블의 행은 그대로 1000행입니다. 색인을 만들어도 행은 바뀌지 않습니다.</li>
 <li>SELECT * FROM member WHERE name = '회원777': DB가 먼저 조건에 쓰인 name 열을 위한 색인이 있는지 봅니다. name 열에는 CREATE INDEX로 만든 색인 idx_name이 있으므로, DB는 이 색인으로 찾기로 합니다.</li>
 <li>DB가 name 색인에서 회원777을 찾고, 그 값에 딸린 정보를 따라 테이블의 id 777 행으로 바로 갑니다. 테이블의 나머지 999행은 읽지 않았습니다. DB가 읽은 행은 1행입니다.</li>
-<li>SELECT의 결과: id 777인 회원777 행 1행을 돌려줍니다. CREATE INDEX가 없는 테이블에서 같은 SELECT를 실행해도 찾아내는 행은 똑같습니다. 다른 점은 그때 DB가 읽는 행이 1000행이라는 것입니다.</li>
+<li>SELECT의 결과: id 777인 회원777 행 하나를 돌려줍니다. CREATE INDEX가 없는 테이블에서 같은 SELECT를 실행해도 찾아내는 행은 똑같습니다. 다른 점은 그때 DB가 읽는 행이 1000행이라는 것입니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -166,6 +166,6 @@ SELECT * FROM member WHERE name = '회원777';</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=ce3316e88e"></script>
+<script src="../../app.js?v=e12009116c"></script>
 </body>
 </html>

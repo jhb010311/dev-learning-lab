@@ -1,7 +1,7 @@
 Lab.register({
   id: 'static_basic', nav: 'static', cat: '기초개념', mode: 'step', basic: true, deep: ['static'],
   title: 'static은 무엇이고, 붙이면 무엇이 달라지는가',
-  intro: 'static은 필드(클래스 안에 선언한 변수) 앞에 붙이는 키워드입니다. static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고, static이 아닌 필드는 "어느 객체의 것인지"가 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞의 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.',
+  intro: 'static은 필드(클래스 안에 선언한 변수) 앞에 붙이는 키워드입니다. static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고, static이 아닌 필드는 "어느 객체의 것인지"가 정해져 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞에 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.',
   terms: ['static', '필드', '인스턴스 필드와 static 필드', '클래스와 객체'],
   controls: [
     { id: 'st', label: 'count 앞에 static을 적는다', type: 'check', value: true },
@@ -59,7 +59,7 @@ Lab.register({
     if (fail) {
       st.compile = 'err';
       st.checks.push(['컴파일', { v: '오류 1개', cls: 'bad' }]);
-      push('컴파일이 실패합니다. 컴파일러가 알린 오류는 1개이고, "' + errNonStatic + '"입니다. 실행할 Main 클래스 파일이 만들어지지 않았으므로 프로그램을 실행할 수 없고, new Counter()도 한 번 실행되지 않습니다.', 'bad');
+      push('컴파일이 실패합니다. 컴파일러가 알린 오류는 1개이고, "' + errNonStatic + '"입니다. 실행할 Main 클래스 파일이 만들어지지 않았으므로 프로그램을 실행할 수 없고, new Counter()도 한 번도 실행되지 않습니다.', 'bad');
     } else {
       st.compile = 'ok';
       st.checks.push(['컴파일', { v: '성공', cls: 'good' }]);
@@ -92,7 +92,7 @@ Lab.register({
       st.checks.push(['출력', { v: out, cls: 'good' }]);
       if (c.st && c.read === 'cls') push(READ_LINE + ' 줄이 실행됩니다. Counter.count는 Counter 클래스에 하나 있는 count이고, 그 값 ' + J(out, '이', '가') + ' 출력됩니다.', 'good');
       else if (c.st) push(READ_LINE + ' 줄이 실행됩니다. a.count는 객체 a로 가리키는 모양이지만 count는 static이어서, 읽는 것은 Counter 클래스에 하나 있는 count입니다. 그 값 ' + J(out, '이', '가') + ' 출력됩니다. a와 b가 같은 칸을 올렸으므로 b.count로 읽어도 같은 값입니다.', 'good');
-      else push(READ_LINE + ' 줄이 실행됩니다. a.count는 a의 count 칸이고, 그 값 ' + J(out, '이', '가') + ' 출력됩니다. b의 count 칸도 값이 1로 서로 다른 칸이므로, 둘이 올린 값을 합친 2는 어디에도 없습니다.', 'good');
+      else push(READ_LINE + ' 줄이 실행됩니다. a.count는 a의 count 칸이고, 그 값 ' + J(out, '이', '가') + ' 출력됩니다. b의 count 칸도 값이 1이고 서로 다른 칸이므로, 둘이 올린 값을 합친 2는 어디에도 없습니다.', 'good');
     }
 
     // 요약: 첫 줄은 이 설정(물음)의 답
