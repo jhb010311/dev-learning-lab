@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>영속성 컨텍스트: 영속성 컨텍스트는 무엇이고, 무엇을 해 주는가 · 개발 학습 실습실</title>
+<meta name="description" content="영속성 컨텍스트는 EntityManager(코드의 em)가 엔티티 객체를 보관하면서 지켜보는 곳입니다. 엔티티는 DB의 행 하나에 대응하는 자바 객체이고, 여기서는 Member입니다. em.find로 DB에서 읽어 온 엔티티가 영속성 컨텍스트에 들어갑니다(새로 저장할 때 쓰는…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/pc_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/pc_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pc_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="영속성 컨텍스트: 영속성 컨텍스트는 무엇이고, 무엇을 해 주는가 · 개발 학습 실습실">
+<meta property="og:description" content="영속성 컨텍스트는 EntityManager(코드의 em)가 엔티티 객체를 보관하면서 지켜보는 곳입니다. 엔티티는 DB의 행 하나에 대응하는 자바 객체이고, 여기서는 Member입니다. em.find로 DB에서 읽어 온 엔티티가 영속성 컨텍스트에 들어갑니다(새로 저장할 때 쓰는…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/pc_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=902181daa9">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › JPA</p>
+<h1>영속성 컨텍스트</h1>
+<p><b>영속성 컨텍스트는 무엇이고, 무엇을 해 주는가</b></p>
+<p>영속성 컨텍스트는 EntityManager(코드의 em)가 엔티티 객체를 보관하면서 지켜보는 곳입니다. 엔티티는 DB의 행 하나에 대응하는 자바 객체이고, 여기서는 Member입니다. em.find로 DB에서 읽어 온 엔티티가 영속성 컨텍스트에 들어갑니다(새로 저장할 때 쓰는 em.persist로 넘긴 엔티티도 들어가지만 이 실습에는 나오지 않습니다). 들어 있는 엔티티는 JPA가 지켜보고 있어서, 값을 바꾸기만 해도 트랜잭션을 커밋할 때 JPA가 UPDATE 문을 만들어 보냅니다. 같은 id를 다시 find하면 DB에 가지 않고 보관하던 그 객체를 줍니다. 반대로 new로 직접 만든 객체나 em.detach로 떼어 낸 객체는 영속성 컨텍스트에 들어 있지 않은 평범한 자바 객체여서, 값을 바꿔도 DB에 반영되지 않습니다. 이 실습은 Member를 얻는 방법을 바꿔 가며 같은 코드(name을 이영희로 바꾸고 커밋)를 실행해, 커밋 뒤 DB의 name과 나간 UPDATE, SELECT 문의 수를 봅니다.</p>
+<p>실행으로 대조 · Hibernate 7.4.5와 H2 2.4.240에서 여섯 가지 조합을 실행해 대조, 규칙은 Jakarta Persistence 3.2 명세와 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>영속성 컨텍스트</dt>
+<dd>엔티티를 보관하고 관리하는 JPA의 논리적 공간이다. 조회하거나 저장한 엔티티는 이곳에 보관되며, JPA는 이곳의 엔티티에 일어난 변화를 추적해 트랜잭션이 끝날 때 DB에 반영한다. 보통 트랜잭션 하나와 생명주기를 같이한다(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다). 1차 캐시, 변경 감지, 쓰기 지연 같은 기능이 이 위에서 동작한다. (50선 밖이지만 JPA를 쓰면 반드시 이어서 묻는 개념)</dd>
+<dt>변경 감지(Dirty Checking)</dt>
+<dd>영속성 컨텍스트가 관리하는 엔티티의 값이 바뀌면, 트랜잭션을 커밋할 때 JPA가 처음 읽었던 상태와 비교해 값이 달라진 엔티티에 대한 UPDATE 문을 자동으로 실행하는 기능이다. Hibernate는 기본적으로 바뀐 컬럼만이 아니라 전체 컬럼을 UPDATE 문에 넣으며, 바뀐 컬럼만 넣으려면 @DynamicUpdate를 쓴다. 따라서 조회한 엔티티의 값을 바꾸기만 하면 별도의 저장 메서드를 호출하지 않아도 DB에 반영된다.</dd>
+<dt>1차 캐시</dt>
+<dd>영속성 컨텍스트 안에 엔티티를 식별자 기준으로 보관하는 저장소다. 같은 트랜잭션 안에서 같은 식별자로 다시 조회하면 DB에 쿼리를 보내지 않고 보관된 엔티티를 돌려준다. 그 결과 같은 트랜잭션 안에서 같은 식별자의 엔티티는 항상 같은 객체다. 기본적으로 트랜잭션이 끝나면 사라지므로(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다) 애플리케이션 전체의 캐시와는 다르다.</dd>
+<dt>준영속 상태</dt>
+<dd>영속성 컨텍스트가 관리하다가 더는 관리하지 않게 된 엔티티의 상태다. em.detach로 떼어 내거나, em.clear로 영속성 컨텍스트를 비우거나, em.close로 닫으면 그 안에 있던 엔티티가 준영속이 된다. 식별자(id) 값은 가지고 있지만 평범한 자바 객체와 같아서, 값을 바꿔도 UPDATE가 나가지 않고 예외도 나지 않는다. 화면에서 받은 값으로 new 해서 만든 객체도, DB에 이미 있는 행의 id를 가지고 있으면 준영속으로 다룬다. 트랜잭션이 끝난 뒤에 엔티티를 고치는 코드에서 자주 만난다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — find로 가져온 Member의 name만 바꿨는데, 커밋할 때 JPA가 UPDATE 문을 보내 DB가 이영희가 됩니다.</li>
+<li><b>new로 직접 만들면</b> — new로 만든 객체는 영속성 컨텍스트에 없는 평범한 객체라서, 바꿔도 UPDATE가 나가지 않고 DB는 김철수 그대로입니다.</li>
+<li><b>find 뒤 detach로 떼어 내면</b> — find로 가져왔어도 떼어 내면 지켜보지 않는 평범한 객체가 되어, 바꿔도 UPDATE가 나가지 않습니다.</li>
+<li><b>같은 id로 한 번 더 find하면</b> — 두 번째 find는 DB에 가지 않고 보관하던 객체를 주어서, SELECT는 1번이고 m == m2가 true입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>DB의 준비: 코드가 실행되기 전에 DB의 member 테이블에는 id가 1인 행 (1, 김철수)가 하나 들어 있습니다. 이 행은 화면의 코드 바깥에서 미리 넣어 둔 것입니다. 코드에 나오는 em은 EntityManager 객체이고, em이 엔티티(DB의 행 하나에 대응하는 자바 객체, 여기서는 Member)를 보관하면서 지켜보는 곳이 영속성 컨텍스트입니다. 지금은 비어 있습니다.</li>
+<li>em.getTransaction().begin(): 트랜잭션을 시작합니다. 여기서부터 commit까지가 한 묶음의 작업입니다.</li>
+<li>Member m = em.find(Member.class, 1L): em이 id가 1인 Member를 찾습니다. 영속성 컨텍스트에는 아직 없으므로 JPA가 SELECT 문을 만들어 DB에 보내고, 읽어 온 값으로 Member 객체를 만들어 영속성 컨텍스트에 넣습니다. JPA는 이때의 값(김철수)도 기억해 둡니다. m은 이 객체를 가리킵니다. SELECT를 쓴 줄은 우리가 쓴 코드에 없고, JPA가 만들어 보냈습니다.</li>
+<li>m.setName(&quot;이영희&quot;): 자바 객체의 name만 이영희로 바뀝니다. 이 줄에서는 SQL이 나가지 않고, DB의 name은 그대로 김철수입니다. 영속성 컨텍스트 안의 객체는 지금 값(이영희)과 JPA가 기억하는 처음 값(김철수)이 달라졌습니다.</li>
+<li>em.getTransaction().commit(): 커밋할 때 JPA가 영속성 컨텍스트에 보관 중인 엔티티의 현재 값을 기억해 둔 처음 값과 비교합니다. name이 김철수에서 이영희로 달라졌으므로, JPA가 UPDATE 문을 만들어 DB에 보냅니다. 우리가 쓴 코드에는 UPDATE도, 저장하라는 호출도 없습니다. UPDATE가 나간 것은 m.setName 줄이 아니라 이 commit 줄입니다.</li>
+<li>커밋이 끝난 뒤 다른 연결로 DB의 member 테이블을 조회하면, id가 1인 행의 name은 이영희입니다. (이 조회는 확인용이어서 나간 SELECT 문의 수에 세지 않습니다.)</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>영속성 컨텍스트는 EntityManager가 엔티티 객체를 보관하면서 지켜보는 곳입니다. em.find로 가져온 Member는 여기에 들어가 있어서, name만 바꿨는데 커밋할 때 JPA가 UPDATE 문을 1번 만들어 보내 DB의 name이 이영희가 되었습니다.</li>
+<li>우리가 쓴 코드에는 UPDATE도 저장하라는 호출도 없습니다. 영속성 컨텍스트 안의 엔티티는 값을 바꾸기만 하면 커밋할 때 DB에 반영됩니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>em.getTransaction().begin();
+// find: DB에서 읽어 온 엔티티가 영속성 컨텍스트에 들어간다
+Member m = em.find(Member.class, 1L);
+m.setName(&quot;이영희&quot;);
+em.getTransaction().commit();</pre>
+<h2>이 모형의 전제</h2>
+<p>Hibernate 7.4.5와 H2 2.4.240(메모리 DB)에서 실행해 대조했습니다. 스프링 없이 SessionFactory를 직접 만들었고, JDK 21입니다. 여섯 가지 조합을 모두, 화면의 코드 줄을 글자 그대로(주석 줄 포함) 컴파일해 실행했습니다. 조합마다 DB와 SessionFactory를 새로 만들고, DB에는 실행 전에 JDBC로 (1, 김철수) 한 행을 미리 넣었습니다. 이 준비의 SQL은 세지 않았습니다. 화면에 보이지 않는 것은 Member 엔티티(@Entity, @Id가 붙은 id와 name, 생성자, setName과 getName)와 EntityManager를 얻고 닫는 코드이고, 트랜잭션은 em에서 직접 시작하고 커밋했습니다. 대조한 것은 커밋 뒤 다른 연결(순수 JDBC)로 조회한 name, Hibernate의 StatementInspector로 센 UPDATE와 SELECT 문의 수(SQL 원문과 나간 줄은 대조 출력에 남겼습니다), 코드가 화면에 찍은 m == m2입니다. 단계 문장이 기대는 사실도 코드 줄마다 바로 아래에 측정 줄을 끼운 두 번째 실행에서 쟀습니다. em.contains(m)(find로 가져온 뒤에는 true, new로 만든 객체와 detach로 뗀 뒤에는 false), UPDATE는 m.setName 줄이 아니라 commit 줄에서 나간다는 것, 같은 id를 다시 find할 때 find 조합에서는 SELECT가 늘지 않고 아직 커밋 전인데도 name이 이영희인 같은 객체를 받는다는 것(new와 detach 조합에서는 SELECT가 늘고 name이 김철수인 새 객체를 받는다는 것), Hibernate가 읽어 올 때의 값을 따로 기억한다는 것(내부 API로 보면 읽은 뒤 [김철수], detach 뒤에는 기억 없음)입니다. 이름을 이영희로 바꿨다가 김철수로 되돌린 뒤 커밋하면 UPDATE가 나가지 않는다는 것도 따로 실행해, &quot;바꾸는 호출을 했는지&quot;가 아니라 처음 값과 비교한다는 근거로 삼았습니다. 또 new로 만든 객체를 em.persist로 넘기면 em.contains가 true가 되고 커밋할 때 INSERT가 나가는 것도 실행해 확인했습니다. 문서가 정한 것은 Jakarta Persistence 3.2 명세의 3.1절(EntityManager마다 영속성 컨텍스트가 있고, 그 안에는 같은 식별자의 엔티티 인스턴스가 하나뿐이라는 것), 3.3절(엔티티 인스턴스의 생명주기: managed는 영속성 컨텍스트에 속한 상태, detached는 속하지 않거나 더는 속하지 않는 상태), 3.3.2절(persist로 managed가 되는 것), 3.3.4절(영속 엔티티의 상태가 트랜잭션 커밋 때 DB와 맞춰지는 것), 3.3.6절과 3.3.7절(영속성 컨텍스트에서 떼어 낸 인스턴스는 그 밖에서 살아간다는 것)입니다. 명세 페이지는 요약으로만 돌아와 이 절들의 원문 전체를 읽지는 못했습니다. 처음 값을 기억해 비교하는 방식과 나가는 SQL의 모양은 명세가 정한 것이 아니라 Hibernate 7.4.5에서 관찰한 동작이므로, 화면에는 SQL 문장 대신 횟수만 적었습니다. 이 실습은 em을 직접 만들어 쓰는 모양이라 스프링의 @Transactional과 함께 쓸 때(영속성 컨텍스트가 트랜잭션과 같이 만들어지고 끝납니다)나, 쓰기 지연, 쿼리를 실행하기 직전의 flush, em.persist로 새로 저장하는 일은 다루지 않으며, 세부는 &quot;JPA는 SQL을 언제 보내나&quot; 실습에서 다룹니다. MySQL에서의 실행 대조는 하지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/entity_basic/">엔티티</a> · 다음 실습: <a href="../../lab/pk_basic/">기본 키</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=902181daa9"></script>
+</body>
+</html>

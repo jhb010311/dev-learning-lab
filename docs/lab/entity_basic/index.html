@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>엔티티: 엔티티는 무엇이고, 일반 클래스와 무엇이 다른가 · 개발 학습 실습실</title>
+<meta name="description" content="엔티티는 데이터베이스 테이블의 한 행과 짝이 되는 자바 클래스입니다. 코드로 보면 class로 선언한 평범한 자바 클래스인데, 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @Entity는 이 클래스의 객체를 테이블에 저장한다는 표시이고, 필드 위의 @Id는 그 필드가…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/entity_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/entity_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/entity_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="엔티티: 엔티티는 무엇이고, 일반 클래스와 무엇이 다른가 · 개발 학습 실습실">
+<meta property="og:description" content="엔티티는 데이터베이스 테이블의 한 행과 짝이 되는 자바 클래스입니다. 코드로 보면 class로 선언한 평범한 자바 클래스인데, 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @Entity는 이 클래스의 객체를 테이블에 저장한다는 표시이고, 필드 위의 @Id는 그 필드가…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/entity_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=902181daa9">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › JPA</p>
+<h1>엔티티</h1>
+<p><b>엔티티는 무엇이고, 일반 클래스와 무엇이 다른가</b></p>
+<p>엔티티는 데이터베이스 테이블의 한 행과 짝이 되는 자바 클래스입니다. 코드로 보면 class로 선언한 평범한 자바 클래스인데, 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @Entity는 이 클래스의 객체를 테이블에 저장한다는 표시이고, 필드 위의 @Id는 그 필드가 기본 키(행을 구별하는 열)라는 표시입니다. 이 둘이 있으면 JPA(여기서는 Hibernate)가 클래스의 필드를 보고 테이블의 열과 짝을 짓고, em.persist로 객체를 넘기면 INSERT 문을 대신 만들어 실행합니다. 우리가 SQL을 쓰지 않습니다. 여기서 em은 JPA에 저장을 시키는 EntityManager 객체입니다. 이 실습은 두 표시를 하나씩 지워 가며 같은 저장 코드를 실행해, 테이블이 만들어지는지와 INSERT 문이 나가는지를 봅니다.</p>
+<p>실행으로 대조 · Hibernate 7.4.5와 H2 2.4.240에서 여덟 가지 조합을 소스째 컴파일해 JPA를 실제로 시작하고 저장해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>엔티티</dt>
+<dd>데이터베이스 테이블의 행에 대응하는 자바 객체다. @Entity를 붙인 클래스로 정의하며 식별자(@Id)를 가진다. JPA는 엔티티의 상태 변화를 추적해 그에 맞는 SQL을 실행한다.</dd>
+<dt>@Entity</dt>
+<dd>@Entity는 클래스 위에 붙여 &quot;이 클래스의 객체는 데이터베이스 테이블의 한 행으로 저장된다&quot;고 표시하는 애너테이션이다. JPA 명세는 엔티티 클래스가 이 애너테이션을 갖거나 XML 설정 파일에 엔티티로 선언되어야 한다고 정하며, 클래스는 인자 없는 생성자(public 또는 protected)를 가져야 하고 final이어서는 안 된다. 이름을 따로 적지 않으면 클래스 이름이 엔티티 이름이 되고, 테이블 이름도 기본으로 이 이름을 따른다. @Entity가 없는 클래스는 JPA에 등록해도 엔티티로 받아들여지지 않으므로, 그 클래스의 객체를 em.persist로 넘기면 오류가 난다.</dd>
+<dt>@Id</dt>
+<dd>@Id는 엔티티의 필드(또는 getter) 위에 붙여 &quot;이 값이 기본 키&quot;라고 표시하는 애너테이션이다. JPA 명세는 모든 엔티티에 기본 키가 있어야 한다고 정하며, 한 필드로 이루어진 단순한 기본 키는 그 필드에 @Id를 붙여 선언한다. 기본 키는 엔티티의 객체 하나를 구별하는 값이므로, 객체를 저장한 뒤에는 바꾸지 않아야 한다. @Id를 필드에 붙이면 JPA가 필드로 값을 읽고 쓰고(필드 접근), getter에 붙이면 getter로 읽고 쓴다(프로퍼티 접근). @Entity가 붙은 클래스에 @Id가 없으면 JPA는 시작할 때 오류를 내고 멈춘다.</dd>
+<dt>JPA, Hibernate, Spring Data JPA</dt>
+<dd>JPA는 자바의 ORM 표준 명세로, 어떤 기능을 어떻게 사용할지 정한 규칙(인터페이스)이다. Hibernate는 그 명세를 실제로 구현한 라이브러리다. Spring Data JPA는 JPA를 더 쉽게 쓰도록 리포지토리 인터페이스를 제공하는 스프링의 모듈이며 내부적으로 JPA(Hibernate)를 사용한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — @Entity와 @Id가 다 있는 엔티티. JPA가 테이블을 만들고, commit 때 INSERT 문을 보냅니다.</li>
+<li><b>@Entity를 지우면</b> — JPA가 이 클래스를 엔티티로 받아들이지 않아, em.persist에서 오류가 납니다.</li>
+<li><b>@Id를 지우면</b> — 기본 키로 쓸 필드를 찾지 못해, JPA가 시작하다가 멈춥니다.</li>
+<li><b>email 필드를 하나 더 적으면</b> — 필드가 열 하나로 짝지어져, 테이블에 email 열이 생기고 INSERT 문에도 들어갑니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>프로그램이 시작되면서 JPA(여기서는 Hibernate)에 Member 클래스를 알려 주고, JPA가 이 클래스를 읽습니다. 이 등록하는 줄과 DB에 연결하는 설정은 화면에서 줄였습니다. 우리가 쓴 코드 가운데 필드를 열에 짝짓는 줄은 없습니다. 짝짓기는 JPA가 클래스의 표시를 보고 합니다.</li>
+<li>JPA가 Member 클래스 위에서 @Entity를 찾습니다. 있으므로 저장할 클래스로 받아들입니다. 이어서 필드를 읽어, @Id가 붙은 id를 기본 키로 삼고 나머지 필드(name)를 기본 키가 아닌 열로 삼습니다.</li>
+<li>JPA가 이 짝짓기대로 H2 DB에 테이블을 만듭니다. 테이블 이름은 클래스 이름을 따라 Member이고, 열은 필드마다 하나씩 id, name입니다. 이 실습은 JPA가 시작할 때 테이블을 만들도록 설정했고(hibernate.hbm2ddl.auto=create-drop), 우리는 CREATE TABLE도 쓰지 않았습니다. 아직 행은 하나도 없습니다.</li>
+<li>em.getTransaction().begin(): 저장 작업을 시작합니다. 트랜잭션은 작업을 한 묶음으로 처리하는 단위이고, 자세한 것은 따로 다룹니다. 아직 INSERT 문은 나가지 않았습니다.</li>
+<li>new Member(1L, &quot;김철수&quot;): Member 클래스로 객체를 만듭니다. 이 객체는 아직 평범한 자바 객체이고, JPA는 이 객체를 모릅니다.</li>
+<li>em.persist(...): JPA가 이 객체를 넘겨받습니다. 이 줄이 끝난 시점에 나간 INSERT 문은 아직 0번입니다. 객체를 넘겼다고 바로 DB에 쓰이는 것은 아닙니다. INSERT가 언제 나가는지는 &quot;영속성 컨텍스트&quot; 실습에서 다룹니다.</li>
+<li>em.getTransaction().commit(): JPA가 INSERT 문을 만들어 DB에 보냅니다. 이 실행에서 Hibernate 7.4.5가 만든 문장은 &quot;insert into Member (name,id) values (?,?)&quot;입니다. 각 ?에는 앞의 열 이름 순서대로 객체의 필드 값이 들어갑니다. 우리가 쓴 코드에는 INSERT라는 글자가 없습니다. 문장의 글자는 Hibernate 버전에 따라 다를 수 있습니다.</li>
+<li>Member 테이블에 행이 하나 생겼습니다. id는 1, name은 김철수입니다. 객체 하나가 테이블의 한 행이 되었습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>엔티티는 테이블의 한 행과 짝이 되는 자바 클래스입니다. 일반 클래스와 다른 곳은 클래스 위의 @Entity(저장되는 클래스라는 표시)와 필드 위의 @Id(기본 키라는 표시)이고, 이 둘이 있으면 JPA가 필드를 열과 짝지어 테이블을 만듭니다.</li>
+<li>우리는 SQL을 한 줄도 쓰지 않았습니다. 테이블도 INSERT 문도 JPA가 클래스의 모양을 보고 만들었고, INSERT는 persist 줄이 아니라 commit 줄에서 나갔습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 표시: 이 클래스의 객체는 테이블의 한 행으로 저장된다
+@Entity
+public class Member {
+    // 표시: 이 필드가 기본 키다
+    @Id
+    private Long id;
+    private String name;
+
+    protected Member() { }
+
+    public Member(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+}
+
+// 저장하는 쪽
+em.getTransaction().begin();
+em.persist(new Member(1L, &quot;김철수&quot;));
+em.getTransaction().commit();</pre>
+<h2>이 모형의 전제</h2>
+<p>Hibernate 7.4.5와 H2 2.4.240(메모리 DB)에서 실행해 대조했습니다. 스프링은 쓰지 않고 Hibernate를 코드로 직접 시작했습니다(persistence.xml 없이 Configuration에 클래스를 등록). 여덟 가지 조합을 모두, 화면의 Member 소스와 같은 글(package와 import 줄만 더함)을 컴파일하고 자바 프로세스를 새로 띄워 확인했습니다. @Entity가 없는 조합에서도 같은 방식으로 Member를 등록했습니다. 화면의 &quot;저장하는 쪽&quot; 세 줄은 실제로는 main 안의 코드이고, EntityManager(em)를 얻는 줄, 예외를 잡아 기록하는 줄, 측정하는 줄은 화면에서 줄였습니다. 대조한 것은 JPA가 시작하다가 실패하는지와 예외의 종류, 시작 직후와 실행 뒤 H2에 있는 테이블과 열(INFORMATION_SCHEMA.COLUMNS), StatementInspector로 잡은 INSERT 문의 수와 글(persist 줄이 끝난 때와 commit 줄이 끝난 때), 실행 뒤 테이블의 행 수와 내용입니다. 테이블 이름은 H2가 MEMBER로, 열 이름은 ID, NAME, EMAIL로 저장하는데, 화면에는 읽기 쉽게 테이블 이름은 첫 글자만 대문자로, 열 이름은 소문자로 적었습니다. 열은 필드를 적은 순서가 아니라 id가 먼저, 나머지가 이름 순으로 만들어지는 것을 관찰했습니다. 문서가 정한 것은 Jakarta Persistence 3.2 명세 2.1절(엔티티 클래스는 @Entity를 갖고 public 또는 protected의 인자 없는 생성자를 가져야 하며 final이 아니어야 한다)과 2.4절(모든 엔티티에는 기본 키가 있어야 하고 단순한 기본 키는 필드에 @Id를 붙여 선언한다), Hibernate ORM 7.0 사용자 가이드 3.4절(Entity types)의 3.4.1, 3.4.3, 3.4.5, 3.4.6항(테이블 이름은 기본으로 엔티티 이름을 따르고, 필드에 @Id를 붙이면 필드 접근이다)입니다. 이 문서들은 WebFetch로 열었고, 돌려받은 것은 원문이 아니라 요약이어서 문장을 하나하나 원문과 대조하지는 못했습니다. 명세는 앞부분만(2.1절과 2.4절이 있는 앞 10만 자) 읽었습니다. 아래는 문서가 정한 것이 아니라 이 버전에서 관찰한 동작입니다. @Entity가 없는 클래스를 등록하면 오류 없이 시작을 마치고(JPA가 아는 엔티티는 없음) em.persist에서 IllegalArgumentException이 나며, 이때 @Id가 있어도 결과가 같습니다. @Entity는 있고 @Id가 없으면 시작할 때 AnnotationException이 나서 테이블이 만들어지지 않습니다(Hibernate 7.0 사용자 가이드 3.4.5항은 식별자를 생략하는 것이 예전에는 허용됐으나 폐지 예정이라고 하는데, 7.4.5에서는 오류였습니다). 테이블은 persist나 commit 때가 아니라 JPA가 시작할 때 만들어지며(hibernate.hbm2ddl.auto=create-drop 설정), INSERT 문은 persist 줄이 아니라 commit 줄에서 나갔습니다. 문장은 insert into Member (name,id) values (?,?) 모양이고 Hibernate 버전에 따라 글자가 다를 수 있으며, 그 INSERT가 persist 때 나가는지 commit 때 나가는지 같은 세부는 &quot;영속성 컨텍스트&quot; 실습에서 다룹니다. 화면의 코드에서 줄인 것은 package와 import 줄이고, 필드는 id, name, email만 다뤘습니다. 이름과 열의 짝을 바꾸는 @Table, @Column, 기본 키 값을 자동으로 만드는 @GeneratedValue, 접근자 메서드, 엔티티 클래스의 나머지 조건(final이 아니어야 한다 등)은 다루지 않았습니다. MySQL에서의 실행 대조는 하지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/tx_basic/">@Transactional</a> · 다음 실습: <a href="../../lab/pc_basic/">영속성 컨텍스트</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=902181daa9"></script>
+</body>
+</html>
