@@ -109,6 +109,7 @@ module.exports = [
   [`var BASIC = '기초개념'`, `var BASIC = 'Fundamentals'`],
   [`'실습 ' + n + '개' + (td ? ' · 준비 중 ' + td + '개' : '')`, `n + (n === 1 ? ' lab' : ' labs') + (td ? ' · ' + td + ' coming soon' : '')`],
   [`'세부 동작 실습: '`, `'In-depth lab: '`],
+  [`'먼저 볼 기초개념: '`, `'Fundamentals first: '`],
   [`'그 밖의 주제'`, `'Other topics'`],
   [`el('h2', null, '테스트')`, `el('h2', null, 'Quiz')`],
   [`'문제 ' + quizCount(c.id) + '개'`, `quizCount(c.id) + ' questions'`],

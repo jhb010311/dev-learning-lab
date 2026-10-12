@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=095d0c957e">
+<link rel="stylesheet" href="../../app.css?v=64470b6a28">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -70,7 +70,7 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>다른 네트워크로 보낼 때 PC A가 ARP로 묻는 것은 받는 기기가 아니라 게이트웨이의 MAC 주소입니다. 기본 게이트웨이 설정이 틀리면 같은 네트워크 안에서는 통신이 되는데 바깥으로는 나가지 못하는 까닭입니다.</li>
+<li>다른 네트워크로 보낼 때 PC A가 ARP로 묻는 것은 받는 기기가 아니라 게이트웨이의 MAC 주소입니다. 그래서 기본 게이트웨이 설정이 틀리면 같은 네트워크 안에서는 통신이 되는데 바깥으로는 나가지 못합니다.</li>
 <li>라우터를 지날 때마다 프레임은 새로 만들어져 MAC 주소가 1번 바뀌었습니다. 보내는 IP와 받는 IP는 처음부터 끝까지 같았습니다. MAC 주소는 한 구간 안에서만 쓰이는 주소이고, IP 주소는 출발지에서 목적지까지 쓰이는 주소입니다.</li>
 <li>ARP 요청은 구간마다 한 번씩, 모두 2번 있었습니다. 한 번 알아낸 MAC 주소는 캐시에 남으므로 이어지는 패킷은 묻지 않고 보냅니다.</li>
 </ul>
@@ -180,6 +180,6 @@ else forwardInNewFrame(packet);    // MAC 주소만 새로 써서 다음 구간�
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=095d0c957e"></script>
+<script src="../../app.js?v=64470b6a28"></script>
 </body>
 </html>

@@ -157,7 +157,13 @@ if (require.main === module) {
   if (lost.length && !process.env.LAB_OUT_DIR) throw new Error('curriculum: 어느 분야에도 없는 실습: ' + lost.join(', '));
   console.log('목차', curri.map(c => c.name + ' ' + new Set(c.groups.flatMap(g => g.items.filter(it => it.id).map(it => it.id))).size + (c.groups.flatMap(g => g.items).filter(it => !it.id).length ? '(+준비 중 ' + c.groups.flatMap(g => g.items).filter(it => !it.id).length + ')' : '')).join(', '), '| 준비 중 합계', todo);
   const glossOut = EN ? 'Lab.glossary(' + JSON.stringify(gl) + ');' : glossSrc, curOut = EN ? 'Lab.site(' + JSON.stringify(site) + ');\nLab.curriculum(' + JSON.stringify(curri) + ');' : curSrc;
-  const js = (files.map(f => fs.readFileSync(path.join(dir, 'lessons', f), 'utf8')).join('\n') + '\n' + tracksSrc + '\n' + quizSrc + '\n' + glossOut + '\n' + verSrc + '\n' + curOut + '\n' + basSrc).replace(/<(?=!--|\/?script)/gi, '\\x3c');
+  // 먼저 볼 기초개념: 공부 쪽 실습 id → 기초개념 실습 id들(src/basics_map.js, 두 언어가 같이 쓴다). 모든 공부 쪽 실습이 표에 있어야 하고, 아직 없는(또는 이 언어로 옮기지 않은) 기초개념 실습은 뺀다.
+  let preMap = null; const preFile = path.join(__dirname, 'src', 'basics_map.js'); if (fs.existsSync(preFile)) new Function('Lab', fs.readFileSync(preFile, 'utf8'))({ pre: m => { preMap = m; } });
+  if (preMap) { const missing = new Set(); Object.keys(preMap).forEach(k => { const l = list.find(x => x.id === k); if (l && l.basic) throw new Error('basics_map: 기초개념 실습은 키가 될 수 없음 ' + k); preMap[k] = preMap[k].filter(b => { const bl = list.find(x => x.id === b); if (!bl) { missing.add(b); return false; } if (!bl.basic) throw new Error('basics_map: 기초개념 실습이 아님 ' + b); return true; }); });
+    if (!EN) { const none = list.filter(l => !l.basic && !(l.id in preMap)).map(l => l.id); if (none.length) throw new Error('basics_map: 표에 없는 공부 쪽 실습 ' + none.join(', ')); }
+    const empty = list.filter(l => !l.basic && !(preMap[l.id] || []).length).map(l => l.id); console.log('먼저 볼 기초개념: 공부 쪽 실습 ' + list.filter(l => !l.basic).length + '개 가운데 이어진 것 ' + (list.filter(l => !l.basic).length - empty.length) + '개' + (empty.length ? ' | 없는 것: ' + empty.join(', ') : '') + (missing.size ? ' | 아직 없는 기초개념: ' + [...missing].join(', ') : '')); }
+  const preSrc = preMap ? 'Lab.pre(' + JSON.stringify(preMap) + ');' : '';
+  const js = (files.map(f => fs.readFileSync(path.join(dir, 'lessons', f), 'utf8')).join('\n') + '\n' + tracksSrc + '\n' + quizSrc + '\n' + glossOut + '\n' + verSrc + '\n' + curOut + '\n' + basSrc + '\n' + preSrc).replace(/<(?=!--|\/?script)/gi, '\\x3c');
   let html = fs.readFileSync(path.join(__dirname, 'src', 'framework.html'), 'utf8');
   if (EN) html = toEnglish(html);
   const shell = html; // 데이터를 넣기 전의 틀 (여러 페이지로 나눠 쓸 때 쓴다)

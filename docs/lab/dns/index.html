@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=095d0c957e">
+<link rel="stylesheet" href="../../app.css?v=64470b6a28">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -69,13 +69,13 @@
 <li>A 레코드는 이름에 IPv4 주소를 연결합니다. 가장 기본이 되는 레코드입니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>; shop.example 의 권한 있는 네임 서버가 가진 레코드 (이름, TTL, 종류, 값)
+<pre>; shop.example의 권한 있는 네임 서버가 가진 레코드 (이름, TTL, 종류, 값)
 shop.example.        300  IN  A      203.0.113.10
 shop.example.        300  IN  AAAA   2001:db8::10
 shop.example.        300  IN  MX     10 mail.shop.example.
 www.shop.example.    300  IN  CNAME  shop.cdn.example.
 
-; cdn.example 의 권한 있는 네임 서버가 가진 레코드
+; cdn.example의 권한 있는 네임 서버가 가진 레코드
 shop.cdn.example.    300  IN  A      203.0.113.80
 
 // 묻는 쪽 (Node.js, 파일 이름은 ask.mjs). 네트워크 설정에 있는 재귀 리졸버에게 묻고 답을 받는다
@@ -170,6 +170,6 @@ console.log(await new Resolver().resolve4('shop.example', { ttl: true }));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=095d0c957e"></script>
+<script src="../../app.js?v=64470b6a28"></script>
 </body>
 </html>

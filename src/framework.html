@@ -722,7 +722,7 @@ var Lab = (function () {
   function todoOf(cat) { var n = 0; cat.groups.forEach(function (g) { g.items.forEach(function (it) { if (!it.id) n++; }); }); return n; }
   function groupOf(cat, id) { return cat.groups.filter(function (g) { return g.items.some(function (it) { return it.id === id; }); })[0]; }
   // 기초개념: 공부의 분야들과 따로 두는 목차 하나. 분야(Java, Spring …)가 묶음이 된다. Lab.basics가 채운다.
-  var BASIC = '기초개념', basics = null;
+  var BASIC = '기초개념', basics = null, preMap = {}; // preMap: 공부 쪽 실습 id → 먼저 볼 기초개념 실습 id들 (Lab.pre가 채운다)
   function placeOf(id) { var bg = basics && groupOf(basics, id); if (bg) return { cat: basics, group: bg }; for (var i = 0; i < curri.length; i++) { var g = groupOf(curri[i], id); if (g) return { cat: curri[i], group: g }; } return null; }
   // 여러 페이지로 빌드한 사이트는 <html data-root="사이트 뿌리까지의 상대 경로">를 달고 있다. BASE는 그 뿌리의 경로(끝이 /)이고, 없으면 null이다.
   var ROOT = document.documentElement.getAttribute('data-root'), BASE = ROOT === null ? null : new URL(ROOT || './', location.href).pathname;
@@ -868,6 +868,8 @@ var Lab = (function () {
     if (i < ids.length - 1) { var nx = el('button', 'btn ghost small', '다음 실습: ' + byId(ids[i + 1]).nav + ' →'); nx.type = 'button'; nx.addEventListener('click', function () { nav(ids[i + 1]); }); pb.appendChild(nx); }
     // 기초개념 실습에서 같은 개념의 세부 동작을 다루는 공부 쪽 실습으로 건너간다
     (cur.deep || []).forEach(function (id) { var d = byId(id); if (!d) return; var db = el('button', 'btn ghost small', '세부 동작 실습: ' + d.nav + ' →'); db.type = 'button'; db.addEventListener('click', function () { curCat = null; nav(id); }); pb.appendChild(db); });
+    // 공부 쪽 실습에서는 그 실습을 읽기 전에 볼 기초개념 실습으로 건너간다
+    if (!cur.basic) (preMap[cur.id] || []).forEach(function (id) { var d = byId(id); if (!d) return; var qb = el('button', 'btn ghost small', '먼저 볼 기초개념: ' + d.nav); qb.type = 'button'; qb.addEventListener('click', function () { curCat = null; nav(id); }); pb.appendChild(qb); });
   }
   function run(animated, quiet, pred, force) {
     var c = cfg();
@@ -1325,7 +1327,7 @@ var Lab = (function () {
     });
   }
   function attach(map, terms) { lessons.forEach(function (l) { var m = map[l.id]; if (m) l.explain = m.explain; }); kbTerms = terms || []; }
-  return { curriculum: function (c) { curri = c; }, basics: function (b) { basics = { id: 'basics', name: BASIC, desc: b.desc, groups: b.groups, basic: true }; }, site: function (o) { Object.keys(o).forEach(function (k) { SITE[k] = o[k]; }); }, verify: function (v) { Object.keys(v).forEach(function (k) { verify[k] = v[k]; }); }, register: function (l) { lessons.push(l); }, tracks: function (t) { tracks = t; }, quiz: function (q) { quizBank = quizBank.concat(q); }, glossary: function (g) { gloss = gloss.concat(g); }, start: start, fmt: fmt, attach: attach };
+  return { curriculum: function (c) { curri = c; }, pre: function (m) { preMap = m; }, basics: function (b) { basics = { id: 'basics', name: BASIC, desc: b.desc, groups: b.groups, basic: true }; }, site: function (o) { Object.keys(o).forEach(function (k) { SITE[k] = o[k]; }); }, verify: function (v) { Object.keys(v).forEach(function (k) { verify[k] = v[k]; }); }, register: function (l) { lessons.push(l); }, tracks: function (t) { tracks = t; }, quiz: function (q) { quizBank = quizBank.concat(q); }, glossary: function (g) { gloss = gloss.concat(g); }, start: start, fmt: fmt, attach: attach };
 })();
 </script>
 <script type="application/json" id="explain-data">/*__EXPLAIN__*/{}</script>
