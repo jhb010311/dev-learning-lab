@@ -56,7 +56,7 @@ if (require.main === module) {
     list.forEach(l => { if (l.basic && !listed.has(l.id)) wip.add(l.id); });
     if (wip.size) { console.log('작성 중이라 뺀 기초개념 실습: ' + [...wip].join(', ')); files = files.filter((x, i) => !wip.has(list[i].id)); list = list.filter(l => !wip.has(l.id)); } }
   // 문제·검증 수준 파일은 이번 빌드에 들어가는 실습의 것만 읽는다(실습 파일보다 먼저 만들어진 것도 건너뛴다)
-  const enIn = new Set(list.map(l => l.id)), fileId = x => x.replace(/^(quiz|verify)_/, '').replace(/\.js$/, ''), enReady = x => !wip.has(fileId(x)) && (!EN || enIn.has(fileId(x)));
+  const enIn = new Set(list.map(l => l.id)), fileId = x => x.replace(/^(quiz|verify)_/, '').replace(/\.js$/, ''), enReady = x => !wip.has(fileId(x)) && !(/_basic$/.test(fileId(x)) && !enIn.has(fileId(x))) && (!EN || enIn.has(fileId(x))); // 실습 파일보다 먼저 써 둔 기초 실습의 검증 수준 파일도 건너뛴다
   // 영어판의 글에는 한글이 남아 있으면 안 된다 (목차 파일의 책 이름과 언어 바꾸기 글자는 예외라서 따로 본다)
   // 영어판에도 남아야 하는 한글 데이터(src/en/hangul_ok.js)는 이 검사에서 뺀다
   const okhList = EN && fs.existsSync(path.join(dir, 'hangul_ok.js')) ? Object.values(require(path.join(dir, 'hangul_ok.js'))).flat().sort((a, b) => b.length - a.length) : [], okh = s => okhList.reduce((a, w) => a.split(w).join(''), s);
