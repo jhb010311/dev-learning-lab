@@ -1,0 +1,26 @@
+# node v24.18.0 · 127.0.0.1 빈 포트 · net.connect로 요청 글자 그대로 전송 · 서버가 연결을 닫을 때까지 받음
+GET|1 => status1=200 OK|body1=first|allow1=(없음)|seen=GET /memos|before=first|after=first|count=1|changed=false|check=first|checkSame=true
+GET|2 => status1=200 OK|body1=first|allow1=(없음)|status2=200 OK|body2=first|allow2=(없음)|seen=GET /memos;GET /memos|before=first|after=first|count=1|changed=false|check=first|checkSame=true
+POST|1 => status1=200 OK|body1=first, hello|allow1=(없음)|seen=POST /memos [hello]|before=first|after=first, hello|count=2|changed=true|check=first, hello|checkSame=true
+POST|2 => status1=200 OK|body1=first, hello|allow1=(없음)|status2=200 OK|body2=first, hello, hello|allow2=(없음)|seen=POST /memos [hello];POST /memos [hello]|before=first|after=first, hello, hello|count=3|changed=true|check=first, hello, hello|checkSame=true
+DELETE|1 => status1=405 Method Not Allowed|body1=|allow1=GET, POST|seen=DELETE /memos|before=first|after=first|count=1|changed=false|check=first|checkSame=true
+DELETE|2 => status1=405 Method Not Allowed|body1=|allow1=GET, POST|status2=405 Method Not Allowed|body2=|allow2=GET, POST|seen=DELETE /memos;DELETE /memos|before=first|after=first|count=1|changed=false|check=first|checkSame=true
+# 근거 없는 주소 GET /nothing => status=404 Not Found|allow=(없음)|seen=GET /nothing
+# 화면 코드 GET|1 = "GET /memos HTTP/1.1\nHost: localhost:8080\n(빈 줄)\n\n# 서버: 처음 목록에는 메모 first 하나가 있다\n# 서버: GET /memos → 목록을 돌려준다\n# 서버: POST /memos → 본문의 글을 목록에 더한다"
+# 보낸 글 GET|1 = "GET /memos HTTP/1.1\r\nHost: localhost:8080\r\n\r\n"
+# 받은 글 GET|1 = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 5\r\nConnection: close\r\nDate: Mon, 12 Oct 2026 19:00:27 GMT\r\n\r\nfirst"
+# 화면 코드 GET|2 = "# 같은 요청을 두 번 보낸다\nGET /memos HTTP/1.1\nHost: localhost:8080\n(빈 줄)\n\n# 서버: 처음 목록에는 메모 first 하나가 있다\n# 서버: GET /memos → 목록을 돌려준다\n# 서버: POST /memos → 본문의 글을 목록에 더한다"
+# 보낸 글 GET|2 = "GET /memos HTTP/1.1\r\nHost: localhost:8080\r\n\r\n"
+# 받은 글 GET|2 = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 5\r\nConnection: close\r\nDate: Mon, 12 Oct 2026 19:00:27 GMT\r\n\r\nfirst"
+# 화면 코드 POST|1 = "POST /memos HTTP/1.1\nHost: localhost:8080\nContent-Length: 5\n(빈 줄)\nhello\n\n# 서버: 처음 목록에는 메모 first 하나가 있다\n# 서버: GET /memos → 목록을 돌려준다\n# 서버: POST /memos → 본문의 글을 목록에 더한다"
+# 보낸 글 POST|1 = "POST /memos HTTP/1.1\r\nHost: localhost:8080\r\nContent-Length: 5\r\n\r\nhello"
+# 받은 글 POST|1 = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 12\r\nConnection: close\r\nDate: Mon, 12 Oct 2026 19:00:27 GMT\r\n\r\nfirst, hello"
+# 화면 코드 POST|2 = "# 같은 요청을 두 번 보낸다\nPOST /memos HTTP/1.1\nHost: localhost:8080\nContent-Length: 5\n(빈 줄)\nhello\n\n# 서버: 처음 목록에는 메모 first 하나가 있다\n# 서버: GET /memos → 목록을 돌려준다\n# 서버: POST /memos → 본문의 글을 목록에 더한다"
+# 보낸 글 POST|2 = "POST /memos HTTP/1.1\r\nHost: localhost:8080\r\nContent-Length: 5\r\n\r\nhello"
+# 받은 글 POST|2 = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 12\r\nConnection: close\r\nDate: Mon, 12 Oct 2026 19:00:27 GMT\r\n\r\nfirst, hello"
+# 화면 코드 DELETE|1 = "DELETE /memos HTTP/1.1\nHost: localhost:8080\n(빈 줄)\n\n# 서버: 처음 목록에는 메모 first 하나가 있다\n# 서버: GET /memos → 목록을 돌려준다\n# 서버: POST /memos → 본문의 글을 목록에 더한다"
+# 보낸 글 DELETE|1 = "DELETE /memos HTTP/1.1\r\nHost: localhost:8080\r\n\r\n"
+# 받은 글 DELETE|1 = "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 0\r\nConnection: close\r\nAllow: GET, POST\r\nDate: Mon, 12 Oct 2026 19:00:27 GMT\r\n\r\n"
+# 화면 코드 DELETE|2 = "# 같은 요청을 두 번 보낸다\nDELETE /memos HTTP/1.1\nHost: localhost:8080\n(빈 줄)\n\n# 서버: 처음 목록에는 메모 first 하나가 있다\n# 서버: GET /memos → 목록을 돌려준다\n# 서버: POST /memos → 본문의 글을 목록에 더한다"
+# 보낸 글 DELETE|2 = "DELETE /memos HTTP/1.1\r\nHost: localhost:8080\r\n\r\n"
+# 받은 글 DELETE|2 = "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 0\r\nConnection: close\r\nAllow: GET, POST\r\nDate: Mon, 12 Oct 2026 19:00:27 GMT\r\n\r\n"

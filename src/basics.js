@@ -69,10 +69,12 @@ Lab.basics({
       { id: 'url_basic' },
       { id: 'dns_basic' },
       { id: 'http_basic' },
+      { id: 'httpmethod_basic' },
       { id: 'httpres_basic' },
       { id: 'cookie_basic' },
       { id: 'json_basic' },
       { id: 'https_basic' },
+      { id: 'proxy_basic' },
     ] },
     { name: '보안', desc: '누구인지 확인하고 지키는 일의 기본입니다.', items: [
       { id: 'authn_basic' },
