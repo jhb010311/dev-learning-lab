@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=f4654bf3cf">
+<link rel="stylesheet" href="../../app.css?v=8c87300bdb">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -114,7 +114,6 @@ SELECT * FROM orders WHERE amount = 230;</pre>
     </div>
 
     <div class="panel p-bar" id="runbar">
-      <h3 id="log-head">Step log</h3>
       <div class="runrow">
         <button class="btn" id="run" type="button">Run</button>
         <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
@@ -125,7 +124,7 @@ SELECT * FROM orders WHERE amount = 230;</pre>
         <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
       </div>
       <div class="ask" id="ask" hidden></div>
-      <ol class="log" id="log" aria-live="polite" aria-relevant="additions" hidden></ol>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
     </div>
 
     <div class="panel p-code" id="codepanel">
@@ -166,6 +165,6 @@ SELECT * FROM orders WHERE amount = 230;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=f4654bf3cf"></script>
+<script src="../../app.js?v=8c87300bdb"></script>
 </body>
 </html>

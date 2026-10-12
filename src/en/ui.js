@@ -31,7 +31,7 @@ module.exports = [
   [`<h3>그림</h3>`, `<h3>Diagram</h3>`],
   [`aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."`, `aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."`],
   [`aria-expanded="false">이 모형의 전제 보기</button>`, `aria-expanded="false">Show the assumptions of this model</button>`],
-  [`<h3 id="log-head">전체 단계 기록</h3>`, `<h3 id="log-head">Step log</h3>`],
+  [`aria-label="전체 단계 기록"`, `aria-label="Step log"`],
   [`<h3>실행 비교</h3>`, `<h3>Run comparison</h3>`],
   [`type="button">비교 기록 지우기</button>`, `type="button">Clear comparison history</button>`],
   [`aria-label="용어 풀이"`, `aria-label="Glossary"`],

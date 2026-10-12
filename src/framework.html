@@ -90,12 +90,13 @@ button, input, select { font: inherit; color: inherit; }
 .grid.haspic .p-pic, .grid:not(.haspic) .p-code { position: sticky; top: calc(var(--barh, 104px) + 10px); max-height: calc(100vh - var(--barh, 104px) - 20px); overflow-y: auto; }
 /* 실행 띠: 전체 단계 기록. 조작 줄 아래에 지나온 단계가 쌓이고, 맨 아래 줄이 지금 단계다 */
 .panel.p-bar { position: sticky; top: 0; z-index: 20; padding: 10px 18px 12px; gap: 8px; border-color: var(--ink); box-shadow: 0 3px 0 color-mix(in srgb, var(--ink) 14%, transparent); }
-.p-bar .runrow { gap: 8px 10px; }
+.p-bar .runrow { gap: 6px 8px; }
+.p-bar .btn { padding: 4px 12px; font-size: .9rem; }
 .p-bar .clock { font-family: var(--font-code); font-size: .84rem; color: var(--muted); margin-left: 4px; }
 .p-bar .clock b { color: var(--accent); }
 .p-bar .stale { font-size: .86rem; font-weight: 600; color: var(--busy-edge); margin-left: auto; }
 .p-bar.isstale #run { box-shadow: 0 0 0 3px color-mix(in srgb, var(--busy-edge) 45%, transparent); }
-.p-bar .log { max-height: 132px; font-size: .92rem; }
+.p-bar .log { max-height: 170px; font-size: .92rem; }
 .p-bar .log li:last-child .tx { font-weight: 600; }
 .ask { border: 1px dashed var(--queue-edge); background: var(--bg); padding: 10px 12px; border-radius: 3px; display: flex; flex-direction: column; gap: 8px; }
 .askopts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 6px 18px; }
@@ -331,10 +332,10 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
   .ctlsum { display: block; }
   .p-ctl.shut .ctls { display: none; }
   .panel.p-bar { padding: 8px 12px 10px; gap: 6px; }
-  .p-bar .btn { padding: 6px 11px; font-size: .9rem; }
+  .p-bar .btn { padding: 4px 10px; font-size: .88rem; }
   .p-bar .lng { display: none; }
   .p-bar .clock { font-size: .78rem; margin-left: 0; }
-  .p-bar .log { max-height: 108px; font-size: .9rem; }
+  .p-bar .log { max-height: 138px; font-size: .9rem; }
   .headcols { grid-template-columns: minmax(0, 1fr); }
   .terms { columns: 1; }
   .about { order: -1; padding-left: 0; margin-left: 0; border-left: 0; }
@@ -393,7 +394,6 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
     </div>
 
     <div class="panel p-bar" id="runbar">
-      <h3 id="log-head">전체 단계 기록</h3>
       <div class="runrow">
         <button class="btn" id="run" type="button">실행</button>
         <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
@@ -404,7 +404,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
         <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
       </div>
       <div class="ask" id="ask" hidden></div>
-      <ol class="log" id="log" aria-live="polite" aria-relevant="additions" hidden></ol>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
     </div>
 
     <div class="panel p-code" id="codepanel">

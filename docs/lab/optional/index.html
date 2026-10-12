@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c9d3866f99">
+<link rel="stylesheet" href="../../app.css?v=4a31eaba1a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -123,7 +123,6 @@ public class Main {
     </div>
 
     <div class="panel p-bar" id="runbar">
-      <h3 id="log-head">전체 단계 기록</h3>
       <div class="runrow">
         <button class="btn" id="run" type="button">실행</button>
         <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
@@ -134,7 +133,7 @@ public class Main {
         <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
       </div>
       <div class="ask" id="ask" hidden></div>
-      <ol class="log" id="log" aria-live="polite" aria-relevant="additions" hidden></ol>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
     </div>
 
     <div class="panel p-code" id="codepanel">
@@ -175,6 +174,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c9d3866f99"></script>
+<script src="../../app.js?v=4a31eaba1a"></script>
 </body>
 </html>
