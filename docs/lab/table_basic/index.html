@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
+<link rel="stylesheet" href="../../app.css?v=ca1d4d1fb6">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -79,7 +79,7 @@ INSERT INTO member VALUES (2, '이영희');
 SELECT name FROM member;</pre>
 <h2>이 모형의 전제</h2>
 <p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했습니다. 열여섯 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 글자 그대로 문장 하나씩 따로 실행했고, 한 문장이 실패해도 다음 문장은 계속 실행했습니다. 대조한 것은 둘째 INSERT가 들어갔는지 거부됐는지와 오류의 종류(H2의 SQLSTATE 22018 값을 타입으로 바꿀 수 없음, 21S02 값의 개수가 열의 개수와 다름, 42S04 테이블 없음, 42S22 열 없음), INSERT 두 번 뒤의 행 수, 마지막 SELECT가 읽은 값입니다. CREATE TABLE 직후의 행 수가 0이고 DB가 열의 이름과 타입(id 정수, name 글자 20자)을 기억한다는 것은 메타데이터를 읽어 확인했습니다. 열이 둘인데 값이 하나뿐인 INSERT를 H2는 거부했고, 이것은 문서가 아니라 H2에서 관찰한 동작입니다. MySQL 8.4 문서의 튜토리얼 Creating a Table(CREATE TABLE로 열의 이름과 타입을 정함, VARCHAR는 길이가 달라지는 글자), Loading Data into a Table(INSERT의 값은 CREATE TABLE에서 열을 적은 순서대로 들어감, NULL을 직접 넣을 수 있음), Selecting All Data와 Selecting Particular Columns(SELECT *는 모든 행과 열, 열 이름을 적으면 그 열만), Chapter 13 Data Types의 서두(타입은 숫자, 날짜와 시간, 문자열, 공간, JSON의 다섯 종류)를 직접 열어 확인했습니다. 다만 타입이나 개수가 맞지 않는 INSERT를 거부한다는 규칙은 이 문서들이 정한 것이 아니라 H2의 실행으로 확인한 것입니다. MySQL에서의 실행 대조는 하지 않았습니다. 오류 메시지의 글자와, 맞지 않는 값을 얼마나 엄격하게 거부하는지는 DB와 설정에 따라 다를 수 있습니다. 화면에는 오류의 종류만 적었고 오류 번호와 메시지 원문은 대조 프로그램의 출력에만 있습니다. 이 실습은 INT와 VARCHAR 두 타입만 다루며, 기본 키 같은 제약 조건, 여러 테이블, WHERE 조건은 다루지 않습니다.</p>
-<p>앞 실습: <a href="../../lab/lazy_basic/">지연 로딩</a> · 다음 실습: <a href="../../lab/pk_basic/">기본 키</a></p>
+<p>앞 실습: <a href="../../lab/jpql_basic/">JPQL</a> · 다음 실습: <a href="../../lab/pk_basic/">기본 키</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -166,6 +166,6 @@ SELECT name FROM member;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=c4ea67ee7c"></script>
+<script src="../../app.js?v=ca1d4d1fb6"></script>
 </body>
 </html>

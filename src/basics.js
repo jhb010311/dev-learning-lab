@@ -38,6 +38,7 @@ Lab.basics({
       { id: 'servlet_basic' },
       { id: 'controller_basic' },
       { id: 'config_basic' },
+      { id: 'jdbc_basic' },
       { id: 'tx_basic' },
       { id: 'boot_basic' },
       { id: 'test_basic' },
@@ -48,6 +49,7 @@ Lab.basics({
       { id: 'repo_basic' },
       { id: 'relation_basic' },
       { id: 'lazy_basic' },
+      { id: 'jpql_basic' },
     ] },
     { name: 'DB', desc: '테이블에 데이터를 넣고 찾을 때의 기본 약속들입니다.', items: [
       { id: 'table_basic' },
