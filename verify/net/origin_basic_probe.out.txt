@@ -1,0 +1,17 @@
+# node v24.18.0 · Chrome(headless=new) · 127.0.0.1 시험 서버(CORS 헤더 없음) · 포트는 이번 실행에서 잡은 빈 포트 · 화면의 주소는 shop.example(실제 서버 아님)
+# 화면의 페이지 = https://shop.example/cart
+# 사실 기본포트생략|https://shop.example:443/x=https://shop.example ; 포트없음|https://shop.example/x=https://shop.example ; 경로쿼리|https://shop.example=https://shop.example ; http기본포트생략|http://shop.example:80/x=http://shop.example ; 같은컴퓨터다른이름|localhost vs 127.0.0.1=다름
+same => origin=https://shop.example|same=true|scheme=같음|host=같음|port=같음|arrived=true|read=true|errName=(없음)|errMsg=(없음)|status=200|body=상품 3개|realTarget=http://127.0.0.1:59798/api/items|realSame=true|realParts=scheme:같음,host:같음,port:같음|serverSaw=A http Host:127.0.0.1:59798|originHeader=(없음)|pageLoads=1
+path => origin=https://shop.example|same=true|scheme=같음|host=같음|port=같음|arrived=true|read=true|errName=(없음)|errMsg=(없음)|status=200|body=상품 3개|realTarget=http://127.0.0.1:59798/other?x=1|realSame=true|realParts=scheme:같음,host:같음,port:같음|serverSaw=A http Host:127.0.0.1:59798|originHeader=(없음)|pageLoads=1
+host => origin=https://api.shop.example|same=false|scheme=같음|host=다름|port=같음|arrived=true|read=false|errName=TypeError|errMsg=Failed to fetch|status=(없음)|body=(없음)|realTarget=http://localhost:59798/items|realSame=false|realParts=scheme:같음,host:다름,port:같음|serverSaw=A http Host:localhost:59798|originHeader=http://127.0.0.1:59798|pageLoads=1
+port => origin=https://shop.example:8443|same=false|scheme=같음|host=같음|port=다름|arrived=true|read=false|errName=TypeError|errMsg=Failed to fetch|status=(없음)|body=(없음)|realTarget=http://127.0.0.1:59799/items|realSame=false|realParts=scheme:같음,host:같음,port:다름|serverSaw=B http Host:127.0.0.1:59799|originHeader=http://127.0.0.1:59798|pageLoads=1
+scheme => origin=http://shop.example|same=false|scheme=다름|host=같음|port=다름|arrived=true|read=false|errName=TypeError|errMsg=Failed to fetch|status=(없음)|body=(없음)|realTarget=https://127.0.0.1:59798/items|realSame=false|realParts=scheme:다름,host:같음,port:같음|serverSaw=A https Host:127.0.0.1:59798|originHeader=http://127.0.0.1:59798|pageLoads=1
+# 브라우저 Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36
+# 근거 스킴 반대(https 페이지에서 http 주소로) => 읽음=false|오류=TypeError: Failed to fetch|서버에 도착=true|서버가 본 것=http
+# 근거 허락 헤더를 단 다른 포트 서버 => 읽음=true|본문=상품 3개|오류=(없음)|서버에 도착=true
+# 근거 서버가 없는 포트 => 읽음=false|오류=TypeError: Failed to fetch|서버에 도착=false
+# 화면의 코드 same = "# 지금 열려 있는 페이지\nhttps://shop.example/cart\n# 그 페이지의 스크립트가 요청하는 주소\nhttps://shop.example/api/items"
+# 화면의 코드 path = "# 지금 열려 있는 페이지\nhttps://shop.example/cart\n# 그 페이지의 스크립트가 요청하는 주소\nhttps://shop.example/other?x=1"
+# 화면의 코드 host = "# 지금 열려 있는 페이지\nhttps://shop.example/cart\n# 그 페이지의 스크립트가 요청하는 주소\nhttps://api.shop.example/items"
+# 화면의 코드 port = "# 지금 열려 있는 페이지\nhttps://shop.example/cart\n# 그 페이지의 스크립트가 요청하는 주소\nhttps://shop.example:8443/items"
+# 화면의 코드 scheme = "# 지금 열려 있는 페이지\nhttps://shop.example/cart\n# 그 페이지의 스크립트가 요청하는 주소\nhttp://shop.example/items"

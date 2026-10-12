@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>출처(origin): 출처는 무엇이고, 브라우저는 왜 다른 출처를 가르는가 · 개발 학습 실습실</title>
+<meta name="description" content="출처(origin)는 주소(URL)의 앞부분 세 가지, 스킴(https나 http), 호스트(사이트 이름), 포트(번호)를 합친 것입니다. 셋 가운데 하나라도 다르면 다른 출처이고, 뒤쪽의 경로와 쿼리는 출처에 들어가지 않습니다. 브라우저는 페이지 안에서 도는 스크립트가 다른…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/origin_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/origin_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/origin_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="출처(origin): 출처는 무엇이고, 브라우저는 왜 다른 출처를 가르는가 · 개발 학습 실습실">
+<meta property="og:description" content="출처(origin)는 주소(URL)의 앞부분 세 가지, 스킴(https나 http), 호스트(사이트 이름), 포트(번호)를 합친 것입니다. 셋 가운데 하나라도 다르면 다른 출처이고, 뒤쪽의 경로와 쿼리는 출처에 들어가지 않습니다. 브라우저는 페이지 안에서 도는 스크립트가 다른…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/origin_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=250e20fc36">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › 보안</p>
+<h1>출처(origin)</h1>
+<p><b>출처는 무엇이고, 브라우저는 왜 다른 출처를 가르는가</b></p>
+<p>출처(origin)는 주소(URL)의 앞부분 세 가지, 스킴(https나 http), 호스트(사이트 이름), 포트(번호)를 합친 것입니다. 셋 가운데 하나라도 다르면 다른 출처이고, 뒤쪽의 경로와 쿼리는 출처에 들어가지 않습니다. 브라우저는 페이지 안에서 도는 스크립트가 다른 출처에 보낸 요청의 응답을 읽지 못하게 막습니다. 이 규칙이 동일 출처 정책입니다. 이 실습은 코드 칸에 열려 있는 페이지의 주소와, 그 페이지의 스크립트가 요청하는 주소를 적어 두고, 요청하는 주소를 한 부분씩 바꿔 가며 브라우저가 출처를 같다고 보는지, 요청이 서버에 도착하는지, 스크립트가 응답을 읽는지를 봅니다. 코드 칸은 프로그램이 아니라 주소 두 개를 적은 것입니다. 서버가 읽기를 허락하는 방법(CORS)은 이 실습에서 다루지 않습니다.</p>
+<p>일부만 실행으로 확인 · 주소 다섯 가지의 출처 계산은 Node.js 24.18.0의 URL로, 응답을 읽는지와 요청이 서버에 도착했는지는 이 PC의 Chrome(창 없이 실행)과 127.0.0.1 시험 서버로 포트·호스트·스킴 차이를 만들어 확인함. 화면의 shop.example 주소 자체와 브라우저의 모든 판단 규칙은 실행하지 않고 문서로 확인함</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>출처(origin)</dt>
+<dd>출처는 주소(URL)의 앞부분에서 스킴, 호스트, 포트 세 가지를 합친 것이다. https://shop.example/cart의 출처는 스킴 https, 호스트 shop.example, 포트 443이고, https://shop.example처럼 적는다. 주소에 포트가 없으면 스킴의 기본 포트(https는 443, http는 80)를 쓰고, 적을 때도 기본 포트는 생략한다(RFC 6454 4절, 6절). 두 출처는 세 가지가 모두 같을 때만 같은 출처이고, 하나라도 다르면 다른 출처다(RFC 6454 5절). 경로와 쿼리는 출처에 들어가지 않아서 경로만 다른 주소는 같은 출처다(MDN).</dd>
+<dt>웹 페이지의 스크립트</dt>
+<dd>웹 페이지의 스크립트는 HTML 페이지의 &lt;script&gt; 요소로 넣는 JavaScript 코드로, 페이지를 받은 브라우저가 그 탭 안에서 실행한다(MDN). 스크립트는 fetch() 함수로 서버에 HTTP 요청을 보내고 응답을 받아 페이지를 바꿀 수 있다. fetch()는 서버가 응답하면 그 응답을 담은 Response 객체를 돌려주고, 네트워크 오류 같은 일이 생기면 실패한다(MDN Using the Fetch API). 요청 주소의 출처가 페이지와 다를 때 응답을 스크립트에 줄지는 브라우저가 정한다.</dd>
+<dt>스킴과 기본 포트</dt>
+<dd>스킴은 URL의 맨 앞에서 :가 나오기 전까지의 이름으로, 이 URL로 어떤 규칙에 따라 대화할지를 알려 준다. http://localhost/hello의 http가 스킴이며, 영문자로 시작한다(RFC 3986 3.1절). 스킴은 기본 포트도 정할 수 있어서(3.2.3절), http의 기본 포트는 80이고 URL에 포트를 적지 않으면 클라이언트가 80번으로 연결한다(RFC 9110 4.2.1절). 스킴이 없으면 :나 /가 무엇을 나누는 기호인지 알 수 없어, URL 표준(WHATWG)에 따르면 기준이 되는 다른 주소가 없는 한 주소로 읽히지 않는다. localhost:8080/hello처럼 :가 있으면 localhost를 스킴으로 읽어 버리는 일도 생긴다.</dd>
+<dt>CORS와 동일 출처 정책</dt>
+<dd>동일 출처 정책은 브라우저가 한 출처(스킴, 호스트, 포트의 조합)의 스크립트가 다른 출처의 응답을 읽지 못하게 막는 보안 정책이다. CORS는 서버가 응답 헤더로 특정 출처의 접근을 허용한다고 알려 이 제한을 풀어 주는 방법이다. 브라우저가 적용하는 정책이므로 서버끼리의 호출이나 도구를 이용한 호출에는 해당하지 않는다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 페이지와 요청 주소의 스킴, 호스트, 포트가 모두 같습니다. 스크립트가 응답을 읽습니다.</li>
+<li><b>경로와 쿼리만 바꾸면</b> — 경로와 쿼리는 출처에 들어가지 않아 여전히 같은 출처입니다. 응답을 읽습니다.</li>
+<li><b>호스트를 바꾸면</b> — 호스트가 달라 다른 출처입니다. 요청은 서버에 도착하지만 스크립트는 응답을 읽지 못합니다.</li>
+<li><b>포트를 바꾸면</b> — 포트가 달라 다른 출처입니다. 스크립트는 응답을 읽지 못합니다.</li>
+<li><b>스킴을 바꾸면</b> — 스킴이 달라 다른 출처입니다. 스크립트는 응답을 읽지 못합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>브라우저 주소창에 https://shop.example/cart 주소를 입력하면, 브라우저가 서버에서 이 페이지를 받아 보여 줍니다. 이 페이지에는 스크립트(브라우저가 페이지 안에서 실행하는 프로그램)가 들어 있습니다. 브라우저는 주소의 앞부분 세 가지로 페이지의 출처를 정합니다. 스킴(https)은 어떤 규칙으로 통신하는지, 호스트(shop.example)는 어느 사이트인지, 포트는 한 컴퓨터 안에서 프로그램을 가리키는 번호입니다. 포트는 주소에 적지 않았으므로 https의 기본 포트인 443이 쓰입니다. 이 세 가지를 합친 것이 출처(origin)이고, 이 페이지의 출처는 https://shop.example입니다(기본 포트는 적지 않습니다).</li>
+<li>페이지의 스크립트가 https://shop.example/api/items 주소로 요청을 보내려 합니다. 브라우저는 이 주소의 출처도 같은 방식으로 정합니다. 스킴은 https, 호스트는 shop.example, 포트는 주소에 적지 않았으므로 https의 기본 포트인 443이 쓰입니다. 주소 뒤쪽의 /api/items(경로)는 출처에 들어가지 않으므로 따지지 않습니다. 이 요청 주소의 출처는 https://shop.example입니다.</li>
+<li>브라우저가 페이지의 출처와 요청 주소의 출처를 세 가지씩 견줍니다. 스킴: 페이지 https, 요청 https → 같음. 호스트: 페이지 shop.example, 요청 shop.example → 같음. 포트: 페이지 443, 요청 443 → 같음.</li>
+<li>세 가지가 모두 같으므로 같은 출처입니다. 주소의 경로와 쿼리가 달라도 출처에는 영향이 없습니다.</li>
+<li>브라우저가 이 요청을 서버로 보냅니다. 이 실습의 요청은 스크립트가 내용을 가져오는 평범한 요청(GET)이고, 같은 출처로 가는 요청입니다. 서버에 요청이 도착했습니다.</li>
+<li>서버는 요청을 평소처럼 처리해 200 응답과 본문 &quot;상품 3개&quot;를 돌려줍니다.</li>
+<li>브라우저가 응답을 확인합니다. 요청한 주소가 페이지와 같은 출처이므로, 브라우저는 응답을 스크립트에 넘겨줍니다.</li>
+<li>스크립트가 응답을 받아 상태 200과 본문 &quot;상품 3개&quot;를 읽습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>출처는 주소의 스킴, 호스트, 포트 세 가지를 합친 것입니다. 이 요청은 페이지와 세 가지가 모두 같아 같은 출처이므로, 스크립트가 응답을 읽을 수 있었습니다.</li>
+<li>브라우저가 막는 것은 스크립트가 다른 출처의 응답을 읽는 일입니다. 이 규칙은 내가 로그인해 둔 다른 사이트의 내용을, 아무 페이지의 스크립트나 읽어 가지 못하게 하려는 것입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre># 지금 열려 있는 페이지
+https://shop.example/cart
+# 그 페이지의 스크립트가 요청하는 주소
+https://shop.example/api/items</pre>
+<h2>이 모형의 전제</h2>
+<p>코드 칸은 실행한 프로그램이 아니라 열려 있는 페이지의 주소와 스크립트가 요청하는 주소를 적은 것이고, shop.example은 예약된 예시 도메인이라 실제 서버가 없습니다. 그래서 두 층으로 확인했습니다. 첫째, 화면의 주소 여섯 개(페이지 하나와 요청 주소 다섯 개)의 출처를 Node.js 24.18.0의 URL 표준 구현(new URL(...).origin)으로 계산해, 같은 출처인지와 스킴·호스트·포트 가운데 어느 것이 다른지를 모형과 대조했습니다. 같은 계산에서 https://shop.example:443/x의 출처가 포트를 적지 않은 주소와 같은 https://shop.example로 나오는 것(기본 포트는 생략), 경로와 쿼리가 다른 주소의 출처가 같은 것도 확인했습니다. 둘째, 브라우저가 응답을 스크립트에 넘기는지는 이 PC의 Chrome 155(HeadlessChrome)를 창 없이 실행(--headless=new --dump-dom)해 확인했습니다. 127.0.0.1에 CORS 헤더를 달지 않는 시험 서버를 띄우고(포트는 빈 포트), 서버가 보낸 페이지의 스크립트가 fetch로 아래 주소를 요청해 그 결과를 페이지에 적게 했습니다. 같은 출처는 같은 서버의 /api/items, 경로와 쿼리만 다른 것은 같은 서버의 /other?x=1, 호스트가 다른 것은 같은 컴퓨터 같은 포트에 localhost라는 이름으로(페이지는 127.0.0.1), 포트가 다른 것은 다른 포트의 서버, 스킴이 다른 것은 같은 포트에서 http와 https를 나눠 받는 서버에 https로(자체 서명 인증서) 요청했습니다. 다섯 조합 모두 요청은 서버에 도착했고, 같은 출처 둘은 스크립트가 상태 200과 본문을 읽었고, 나머지 셋은 스크립트가 TypeError(Failed to fetch)를 받아 읽지 못했습니다. 이 실험의 주소는 화면의 주소와 같은 차이를 만든 것이지 화면의 주소 자체는 아닙니다. 스킴 실험은 http 페이지에서 https 주소를 요청하는 방향이라 화면의 예(https 페이지에서 http 주소)와 반대이므로, 화면과 같은 방향(https 페이지에서 http 주소)도 따로 실행해 스크립트가 읽지 못하고 요청은 서버에 도착하는 것을 확인했습니다. 화면의 스킴 예는 스킴과 함께 포트도(http 80, https 443) 다르지만 Chrome 실험은 스킴만 다르게 만들었습니다. 같은 출처에 보낸 요청에는 Origin 헤더가 없었고 다른 출처로 보낸 요청에는 Origin 헤더가 있었는데, 화면은 이를 다루지 않습니다. 서버를 꺼 둔 포트에 요청해도 스크립트가 받는 오류는 막힌 경우와 같은 TypeError(Failed to fetch)였고, 다른 출처 서버가 응답에 Access-Control-Allow-Origin으로 페이지의 출처를 적어 주면 스크립트가 본문을 읽었습니다. 이것들은 이 Chrome 버전에서 관찰한 동작이고, 다른 브라우저와 다른 버전은 실행하지 않았습니다. 문서로 확인한 것은 RFC 6454의 3.2절·4절·5절·6절(출처는 스킴·호스트·포트의 세 값이고, 포트가 없으면 스킴의 기본 포트를 쓰며, 세 값이 모두 같을 때만 같은 출처이고, 적을 때 기본 포트는 생략), WHATWG URL 표준의 4.2절·4.4절·4.7절(http와 https의 기본 포트 80과 443, 기본 포트는 URL에서 null로 저장, http·https URL의 출처는 스킴·호스트·포트로 이루어진 값), MDN의 Same-origin policy(경로만 다른 주소는 같은 출처, 다른 출처로의 읽기는 대체로 막힘, 읽기를 허락하는 방법이 CORS, 악성 페이지의 스크립트가 로그인해 둔 웹메일의 내용을 읽어 가지 못하게 하려는 목적), MDN의 Using the Fetch API(다른 출처 서버가 허락 헤더를 보내지 않으면 브라우저가 응답을 호출한 쪽에 공유하지 않음)입니다. 브라우저가 서버의 응답을 받은 뒤에 허락 표시를 확인한다는 순서와 &quot;로그인해 둔 다른 사이트의 내용을 지킨다&quot;는 목적은 문서의 설명을 따른 것이고, 쿠키가 실제로 함께 가는지는 실행하지 않았습니다. 화면에서 줄인 것은 페이지를 받는 과정, 요청과 응답의 헤더, 응답의 본문 해석입니다. 요청은 특별한 헤더가 없는 평범한 GET 하나만 다뤘습니다. 요청을 보내기 전에 서버에 먼저 묻는 경우(사전 요청), 쿠키를 함께 보내는 요청, 서버가 읽기를 허락하는 방법(CORS)은 &quot;세부 동작 실습: CORS&quot;에서, 출처를 노린 공격은 &quot;세부 동작 실습: 웹 공격 세 가지&quot;에서, 다른 사이트의 페이지를 프레임에 끼워 넣는 일은 &quot;세부 동작 실습: 클릭재킹과 오픈 리다이렉트&quot;에서 다룹니다. 이미지나 스크립트 파일을 다른 출처에서 불러 오는 것(임베딩)은 보통 허용된다는 것과 나머지 출처 규칙(쿠키, 저장소 등)도 이 실습에서 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/crypto_basic/">암호화</a> · 다음 실습: <a href="../../lab/injection_basic/">입력과 인젝션</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=250e20fc36"></script>
+</body>
+</html>

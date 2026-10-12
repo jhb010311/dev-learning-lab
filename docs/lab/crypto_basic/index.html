@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=1c397cc373">
+<link rel="stylesheet" href="../../app.css?v=250e20fc36">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -79,7 +79,7 @@ System.out.println(sent);
 System.out.println(read);</pre>
 <h2>이 모형의 전제</h2>
 <p>자바 JDK 21.0.12.1의 javax.crypto.Cipher(&quot;AES/GCM/NoPadding&quot;)로 실제 계산했고, 열쇠는 256비트, 태그는 128비트, 암호화마다 새로 만드는 12바이트 nonce를 결과 앞에 붙여 Base64로 적었습니다. 화면에서 줄인 것은 import, main의 선언, 도우미 메서드 newKey, encrypt, decrypt의 본문입니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 줄을 main에 담은 소스를 javax.tools로 컴파일하고 클래스를 새 클래스 로더로 읽어 Main.main을 실행해, 표준 출력과 던져진 예외를 잡은 결과와 대조했습니다. 대조한 것은 중간에서 보이는 값(encrypt가 돌려준 값의 앞 12자와 전체 글자 수), 받는 쪽이 읽은 것, 원래 글자를 되찾았는지, 다른 열쇠로 풀 때 던져진 예외의 이름(javax.crypto.AEADBadTagException, 메시지 Tag mismatch)과 그때 아무것도 출력되지 않는 것입니다. 암호화한 값은 실행할 때마다 달라집니다. 대조를 위해 열쇠와 nonce를 정해진 값으로 고정해 같은 값이 나오게 했고(실제로는 둘 다 무작위로 만듭니다), 화면의 ih/DXie50GTx…(60자)는 그렇게 얻은 한 예입니다. 같은 글자를 같은 열쇠로 nonce를 새로 만들어 두 번 암호화하면 두 값이 서로 달랐고 둘 다 풀렸으며, 무작위로 만든 열쇠와 nonce로 여섯 조합을 다시 실행해도 결과의 종류(읽은 글자, 예외 이름, 값의 길이)는 같았습니다. 화면에 보이는 앞 12자는 값 앞에 붙은 nonce 부분(앞 9바이트)이고, 암호화된 글자 부분은 그 뒤에 이어집니다. 값의 길이는 글자의 길이에 따라 달라집니다. 계산이 표준대로인지는 두 가지로 확인했습니다. 같은 열쇠, nonce, 글자를 Node.js의 aes-256-gcm으로도 암호화해 암호문과 태그가 자바와 바이트까지 같았고, Node.js가 자바의 값을 같은 열쇠로 풀고 다른 열쇠로는 풀지 못했습니다. 또 NIST 암호 알고리즘 검증 프로그램(CAVP)이 공개한 GCM 시험 벡터(gcmtestvectors.zip의 gcmEncryptExtIV256.rsp와 gcmDecrypt256.rsp, 열쇠 256비트, IV 96비트, 글자 128비트, 추가 데이터 없음, 태그 128비트)에서 암호화 한 건의 암호문과 태그, 복호화 두 건(통과 한 건, FAIL 한 건)의 결과가 자바 계산과 같았습니다. 문서는 직접 열어 확인했습니다. NIST FIPS 197(2023년 갱신판) 머리말 3항은 AES를 암호화하고 복호화할 수 있는 대칭 블록 암호로 소개하고, 열쇠 길이는 128, 192, 256비트이며 데이터는 128비트 블록 단위라고 적습니다. NIST SP 800-38D(2007년판)는 3절에서 GCM이 데이터의 기밀성과 인증을 함께 보장한다고 하고, 5.2.2절과 7.2절에서 인증된 복호화는 확인 값(태그)이 맞으면 글자를, 맞지 않으면 글자 대신 FAIL을 내놓는다고 정하며, 8절에서 같은 열쇠와 같은 IV로 서로 다른 데이터를 암호화하는 일이 일어날 확률을 2의 -32제곱 이하로 하라고 요구하고, 5.2.1.1절에서 IV 길이는 96비트를 권장합니다. Java 21의 Cipher 문서는 AEAD 방식(GCM 등)에서 태그가 암호문 뒤에 붙고 복호화할 때 확인된다고 설명하고, 같은 열쇠로 암호화할 때마다 IV를 바꾸라고 안내하며, AEADBadTagException 문서는 AEAD 방식의 Cipher가 태그를 확인하지 못할 때 던져진다고 설명합니다. 이 실습은 보내는 쪽과 받는 쪽이 같은 열쇠를 쓰는 방식(대칭 키 암호화)만 다룹니다. 열쇠가 둘인 방식(공개 키)과 서명은 &quot;세부 동작 실습: 해시·암호화·서명&quot;에서 다루고, 받는 쪽이 같은 열쇠를 어떻게 안전하게 갖게 되는지(열쇠 전달)는 다루지 않습니다. 다른 열쇠로 풀 때 예외가 나는 것은 이 실습이 고른 방식(AES-GCM)이 값이 바뀌었거나 열쇠가 다른지를 태그로 함께 확인하기 때문입니다. 그런 확인이 없는 방식에서는 다를 수 있어서, 다른 열쇠로 AES/CTR/NoPadding을 풀어 보았더니 예외 없이 원래 글자가 아닌 다른 바이트가 나왔습니다. 열쇠를 안전하게 보관하는 방법은 다루지 않았습니다.</p>
-<p>앞 실습: <a href="../../lab/hash_basic/">해시</a> · 다음 실습: <a href="../../lab/process_basic/">프로세스</a></p>
+<p>앞 실습: <a href="../../lab/hash_basic/">해시</a> · 다음 실습: <a href="../../lab/origin_basic/">출처(origin)</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -166,6 +166,6 @@ System.out.println(read);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=1c397cc373"></script>
+<script src="../../app.js?v=250e20fc36"></script>
 </body>
 </html>
