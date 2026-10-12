@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GROUP BY와 집계: GROUP BY는 무엇을 묶고, COUNT와 SUM은 무엇을 세는가 · 개발 학습 실습실</title>
+<meta name="description" content="COUNT(*)와 SUM(price)는 여러 행을 값 하나로 줄이는 집계 함수입니다. COUNT(*)는 행이 몇 개인지, SUM(price)는 price를 모두 더하면 얼마인지를 돌려줍니다. GROUP BY member는 SELECT 문 뒤에 붙여서, member 값이 같은…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/groupby_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/groupby_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/groupby_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="GROUP BY와 집계: GROUP BY는 무엇을 묶고, COUNT와 SUM은 무엇을 세는가 · 개발 학습 실습실">
+<meta property="og:description" content="COUNT(*)와 SUM(price)는 여러 행을 값 하나로 줄이는 집계 함수입니다. COUNT(*)는 행이 몇 개인지, SUM(price)는 price를 모두 더하면 얼마인지를 돌려줍니다. GROUP BY member는 SELECT 문 뒤에 붙여서, member 값이 같은…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/groupby_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=df7ea64144">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › DB</p>
+<h1>GROUP BY와 집계</h1>
+<p><b>GROUP BY는 무엇을 묶고, COUNT와 SUM은 무엇을 세는가</b></p>
+<p>COUNT(*)와 SUM(price)는 여러 행을 값 하나로 줄이는 집계 함수입니다. COUNT(*)는 행이 몇 개인지, SUM(price)는 price를 모두 더하면 얼마인지를 돌려줍니다. GROUP BY member는 SELECT 문 뒤에 붙여서, member 값이 같은 행끼리 한 묶음으로 만들고 묶음마다 집계를 한 번씩 하게 합니다. 묶음 하나는 결과의 한 줄이 됩니다. 이 실습은 주문 5건이 든 orders 테이블에 같은 집계를 하면서, GROUP BY member를 지우고, 묶지 않은 열 id를 SELECT에 더 적고, WHERE 조건을 넣어 가며 결과가 몇 줄이고 어떤 모양인지를 봅니다.</p>
+<p>실행으로 대조 · H2 2.4.240에서 여섯 가지 조합을 실행해 대조, 규칙은 MySQL 문서와 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>GROUP BY 절</dt>
+<dd>SELECT 문 뒤에 GROUP BY 열 이름으로 적어, 그 열의 값이 같은 행끼리 한 묶음(그룹)으로 만드는 절이다. 집계 함수는 묶음마다 한 번씩 계산되고, 묶음 하나가 결과의 한 줄이 된다. 그래서 결과의 행 수는 원래 행의 수가 아니라 묶음의 수이다. GROUP BY를 적지 않고 집계 함수를 쓰면 조건에 맞는 모든 행이 한 묶음이 되어 결과가 한 행이다. WHERE로 행을 거르는 일은 묶기 전에 일어나므로, WHERE는 어느 행을 묶을지를 정한다.</dd>
+<dt>집계 함수</dt>
+<dd>여러 행의 값을 모아 값 하나를 돌려주는 함수이다. COUNT(개수), SUM(합계), AVG(평균), MAX(최댓값), MIN(최솟값)이 대표적이다. GROUP BY가 있으면 그룹마다 한 번씩 계산하고, 없으면 조건에 맞는 행 전체를 한 그룹으로 보고 계산한다. 그룹이 만들어진 뒤에야 계산할 수 있으므로 WHERE에는 쓸 수 없고 HAVING, SELECT, ORDER BY에 쓴다. COUNT(*)를 뺀 집계 함수는 NULL인 값을 건너뛰고 계산한다.</dd>
+<dt>COUNT와 SUM</dt>
+<dd>COUNT(*)와 SUM(열)은 대표적인 집계 함수이다. COUNT(*)는 묶음 안의 행이 몇 개인지를 돌려주며, 값이 NULL인 열이 있어도 행으로 센다. COUNT(열)은 그 열이 NULL이 아닌 행만 센다. SUM(열)은 묶음 안에서 그 열의 값을 모두 더한 값을 돌려준다. GROUP BY가 있으면 묶음마다, 없으면 모든 행에 대해 한 번 계산한다.</dd>
+<dt>묶지 않은 열과 ONLY_FULL_GROUP_BY</dt>
+<dd>집계를 하는 SELECT에서 GROUP BY에 적지도 않았고 집계 함수 안에 있지도 않은 열을 묶지 않은 열이라고 부른다. 묶음 하나가 결과의 한 줄이 되는데 묶음 안에는 그 열의 값이 여럿일 수 있어서, 한 줄에 무엇을 적을지 정할 수 없다. MySQL은 SQL 모드 ONLY_FULL_GROUP_BY가 켜져 있으면(8.4에서 기본으로 켜져 있다) 묶지 않은 열을 SELECT, HAVING, ORDER BY에 쓴 문장을 거부한다. GROUP BY 없이 집계 함수를 쓴 문장에서도 같다. 다만 GROUP BY에 적은 열이 그 열의 값을 하나로 정해 주는 경우(예: 기본 키)는 허용하고, 값을 하나로 줄이려면 MAX 같은 집계 함수 안에 넣거나 ANY_VALUE를 쓴다. 데이터베이스마다 이 규칙을 검사하는 방식이 다르다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — member가 같은 행끼리 세 묶음이 되고, 묶음마다 한 줄씩 3행이 나옵니다.</li>
+<li><b>GROUP BY를 지우면</b> — 묶음이 테이블 전체 하나뿐이어서 결과가 한 행입니다.</li>
+<li><b>id를 SELECT에 더 적으면</b> — 묶은 열도 집계도 아닌 id는 적을 수 없고 오류가 납니다.</li>
+<li><b>WHERE 조건을 넣으면</b> — 묶기 전에 행이 걸러져서 lee 묶음의 개수와 합계가 달라집니다.</li>
+<li><b>GROUP BY 없이 id를 적으면</b> — 집계와 함께 id를 적으면, 묶음이 하나뿐이어도 오류가 납니다.</li>
+<li><b>GROUP BY 없이 WHERE만 넣으면</b> — 걸러진 4행이 한 묶음이 되어 결과가 한 행입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>CREATE TABLE과 INSERT: DB가 orders 테이블을 만들고 행 5개를 넣습니다. 열은 id(주문 번호), member(주문한 사람), price(금액)입니다. kim이 2건, lee가 2건, park이 1건 주문했습니다. 아래 문장은 이 5행을 읽습니다.</li>
+<li>SELECT member, COUNT(*), SUM(price) FROM orders GROUP BY member: orders의 행을 member 값이 같은 것끼리 묶고, 묶음마다 COUNT(*)와 SUM(price) 두 가지 집계를 한 번씩 계산해 한 줄씩 보여 달라는 문장입니다. COUNT(*)는 묶음 안의 행 수이고 SUM(price)는 묶음 안의 price를 모두 더한 값입니다. 묶고 세는 코드를 우리는 쓰지 않았습니다. DB가 이 문장을 받아 합니다.</li>
+<li>GROUP BY member: DB가 5개 행을 member 값이 같은 것끼리 묶습니다. member가 kim인 행(id 1, 2), member가 lee인 행(id 3, 4), member가 park인 행(id 5)이 각각 한 묶음이 되어, 묶음은 3개입니다. 묶음 안의 행 순서나 묶는 방법은 DB가 정합니다.</li>
+<li>kim 묶음(id 1, 2)에서 COUNT(*)는 묶음 안의 행 수라 2이고, SUM(price)는 price를 모두 더한 1000 + 2000 = 3000입니다. 묶음마다 한 줄이 나오므로 (kim, 2, 3000) 한 줄을 결과에 넣습니다.</li>
+<li>lee 묶음(id 3, 4): COUNT(*)는 2이고 SUM(price)는 500 + 1500 = 2000입니다. (lee, 2, 2000) 한 줄을 결과에 넣습니다.</li>
+<li>park 묶음(id 5): COUNT(*)는 1이고 SUM(price)는 3000입니다. (park, 1, 3000) 한 줄을 결과에 넣습니다.</li>
+<li>SELECT의 결과: 결과는 3행입니다. 주문은 5건이었지만 결과의 행 수는 행의 수가 아니라 묶음의 수입니다. ORDER BY member 때문에 member 순서로 나옵니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>GROUP BY member는 member 값이 같은 행끼리 한 묶음으로 만들고, 묶음마다 COUNT(*)와 SUM(price)를 한 번씩 계산해 한 줄씩 냅니다. 주문 5행이 kim, lee, park 세 묶음이 되어 결과는 3행입니다.</li>
+<li>결과의 행 수는 원래 행의 수가 아니라 묶음의 수입니다. 묶음마다 한 줄이 나오므로 SELECT에는 묶은 열(member)과 묶음마다 값 하나가 나오는 집계(COUNT, SUM)를 적습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>CREATE TABLE orders (id INT PRIMARY KEY, member VARCHAR(20), price INT);
+INSERT INTO orders VALUES (1, 'kim', 1000), (2, 'kim', 2000),
+    (3, 'lee', 500), (4, 'lee', 1500), (5, 'park', 3000);
+
+SELECT member, COUNT(*), SUM(price)
+FROM orders
+-- GROUP BY: member 값이 같은 행끼리 한 묶음으로 만든다
+GROUP BY member
+ORDER BY member;</pre>
+<h2>이 모형의 전제</h2>
+<p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했습니다. 여섯 가지 조합을 모두, 화면의 SQL 전체(CREATE TABLE, INSERT, SELECT와 주석 줄)를 글자 그대로 문장 하나씩 실행해서, SELECT가 돌려준 행 수와 모든 행의 값, 오류가 났는지와 그 오류의 종류를 모형과 대조했습니다. 오류가 난 두 조합은 H2의 오류 코드 90016(id 열이 GROUP BY 목록에 있어야 한다는 메시지)이었고, 화면에는 그 종류만 한국어로 적었습니다. 단계 문장이 기대는 값도 H2에서 따로 확인했습니다: 행 수 5와 전체 합계 8000, price가 1000 이상인 행의 id(1, 2, 4, 5), 이름별 id 목록(kim은 1과 2, lee는 3과 4, park은 5)과 WHERE를 넣었을 때의 목록(lee는 4만), 이름별 서로 다른 id 수, 묶음이 3개라는 것, MAX(id)를 적은 문장이 오류 없이 실행된다는 것입니다. 예상과 달랐던 것: H2는 id를 적은 문장을 해석하는 단계(prepareStatement)에서는 오류를 내지 않았고, 실행하면서 한 묶음 안에 서로 다른 id가 있을 때 오류를 냈습니다. 그래서 park 행만 남기거나 묶음마다 id가 하나씩뿐이게(id 1, 3, 5) 행을 남기면 같은 모양의 문장이 오류 없이 실행되었습니다. 화면의 오류 단계 문장은 이 관찰을 따라 쓴 것입니다. 정의와 규칙은 문서를 열어 확인했습니다. MySQL 8.4 문서 14.19.1절 Aggregate Function Descriptions에서 집계 함수는 값의 집합에 대해 동작하고, GROUP BY 없이 쓰면 모든 행을 한 그룹으로 묶은 것과 같으며, COUNT(*)는 NULL이 있어도 행 수를 센다고 합니다. 14.19.3절 MySQL Handling of GROUP BY에서는 SQL 모드 ONLY_FULL_GROUP_BY가 기본으로 켜져 있고, GROUP BY에 적지 않았고 함수적으로 종속되지도 않은 열을 SELECT에 쓴 문장을 거부하며, GROUP BY 없이 집계 함수를 쓴 문장에서도 같다고 합니다. 15.2.13절 SELECT 문에서는 WHERE 조건에 맞는 행이 선택되고 WHERE에는 집계 함수를 쓸 수 없다고 합니다. H2는 문법 페이지(grammar.html)에 SELECT 설명이 없어 Commands 페이지의 SELECT를 열었습니다. GROUP BY는 식으로 결과를 묶고, GROUP BY 없이 집계 함수를 쓰면 모든 행이 함께 묶이며, 논리적인 실행 순서에서 WHERE가 GROUP BY보다 앞이라고 합니다. 네 문서 모두 웹 페이지를 요약해 주는 도구로 열었고 원문을 한 글자씩 확인한 것은 아닙니다. MySQL에서의 실행 대조는 하지 않았습니다. 따라서 MySQL이 같은 문장에서 같은 결과와 오류를 내는지는 실행으로 확인하지 않았고, 문서에 따르면 MySQL은 id의 값이 몇 개인지 보지 않고 문장에 적힌 열의 종류만 보고 거부하므로 H2와 오류를 내는 조건이 다릅니다. 화면의 INSERT는 5행 모두 그대로 보입니다. SELECT 끝에 ORDER BY member를 붙인 것은 묶음을 member 순서로 보이게 하려는 것이고, GROUP BY member를 지우면 결과에 member가 없으므로 ORDER BY member도 함께 지웠습니다. 단계 문장은 결과가 만들어지는 원리를 순서대로 풀어 쓴 것입니다. 실제로 DB가 행을 어떤 방법으로 묶는지는 DB가 정하며, 실행으로 확인한 것은 결과입니다. 이 실습은 HAVING, 둘 이상의 열로 묶기, NULL이 든 열, COUNT(열)과 AVG, 조인과 함께 쓰는 집계, ANY_VALUE를 다루지 않습니다. 집계한 뒤 조건을 거는 HAVING과 SELECT가 처리되는 순서는 &quot;SELECT가 처리되는 순서&quot;에서, 행을 합치지 않고 순위를 붙이는 방법은 &quot;윈도우 함수&quot;에서, 조인한 결과를 집계하는 것은 &quot;JOIN과 GROUP BY&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/join_basic/">조인</a> · 다음 실습: <a href="../../lab/index_basic/">인덱스</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=df7ea64144"></script>
+</body>
+</html>

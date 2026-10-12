@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>행 잠금: 두 트랜잭션이 같은 행을 고치려 하면 무슨 일이 생기는가 · 개발 학습 실습실</title>
+<meta name="description" content="DB에는 연결이 여러 개 동시에 붙어 일합니다. 한 연결이 UPDATE로 행을 고치면, DB는 그 행에 잠금(락)을 걸어 둡니다. 잠금은 &quot;이 행은 내가 고치는 중이니 다른 연결은 고치지 말라&quot;는 표시이고, 우리가 쓰는 SQL에는 없이 DB가 UPDATE를 받으면 스스로 겁니…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/dblock_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/dblock_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dblock_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="행 잠금: 두 트랜잭션이 같은 행을 고치려 하면 무슨 일이 생기는가 · 개발 학습 실습실">
+<meta property="og:description" content="DB에는 연결이 여러 개 동시에 붙어 일합니다. 한 연결이 UPDATE로 행을 고치면, DB는 그 행에 잠금(락)을 걸어 둡니다. 잠금은 &quot;이 행은 내가 고치는 중이니 다른 연결은 고치지 말라&quot;는 표시이고, 우리가 쓰는 SQL에는 없이 DB가 UPDATE를 받으면 스스로 겁니…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/dblock_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=df7ea64144">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › DB</p>
+<h1>행 잠금</h1>
+<p><b>두 트랜잭션이 같은 행을 고치려 하면 무슨 일이 생기는가</b></p>
+<p>DB에는 연결이 여러 개 동시에 붙어 일합니다. 한 연결이 UPDATE로 행을 고치면, DB는 그 행에 잠금(락)을 걸어 둡니다. 잠금은 &quot;이 행은 내가 고치는 중이니 다른 연결은 고치지 말라&quot;는 표시이고, 우리가 쓰는 SQL에는 없이 DB가 UPDATE를 받으면 스스로 겁니다. 잠금은 그 연결의 묶음(트랜잭션)이 COMMIT이나 ROLLBACK으로 끝날 때까지 풀리지 않습니다. 다른 연결이 같은 행을 고치려 하면 DB는 잠금이 풀릴 때까지 그 UPDATE를 기다리게 하고, 너무 오래 기다리면 오류로 끝냅니다. 이 실습은 연결 B가 고치는 행을 바꾸고 연결 A의 COMMIT을 지워 가며 같은 SQL을 실행해, B의 UPDATE가 언제 실행되는지와 마지막 잔액을 봅니다.</p>
+<p>실행으로 대조 · H2 2.4.240에서 네 가지 조합을 연결 두 개로 실행해 대조, 규칙은 MySQL 문서와 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>행 잠금</dt>
+<dd>행 잠금은 트랜잭션이 행을 고칠 때 DB가 그 행에 거는 잠금이다. MySQL InnoDB에서 UPDATE ... WHERE는 검색에서 만난 인덱스 레코드에 배타 락을 걸고, 기본 키처럼 유일한 인덱스로 한 행을 찾으면 그 레코드 락 하나면 된다. 한 트랜잭션이 행에 배타 락을 쥐고 있으면 다른 트랜잭션이 같은 행에 락을 요청해도 곧바로 얻지 못하고, 앞의 트랜잭션이 락을 풀 때까지 기다려야 한다. InnoDB의 락은 그 트랜잭션이 커밋되거나 중단될 때 풀리므로, 트랜잭션을 끝내지 않고 열어 두면 그 행은 계속 잠겨 있다. 잠금은 고친 행에만 걸리고 코드에 따로 적는 것이 아니라 UPDATE를 받은 DB가 스스로 건다.</dd>
+<dt>트랜잭션</dt>
+<dd>여러 데이터 변경 작업을 하나의 단위로 묶어, 전부 반영되거나(커밋) 전부 취소되게(롤백) 하는 것이다. 계좌 이체에서 출금과 입금 중 하나만 반영되는 중간 상태를 막는다. 데이터베이스가 정합성을 지키는 가장 기본적인 수단이다.</dd>
+<dt>공유 락과 배타 락</dt>
+<dd>공유 락(S)은 읽기를 위한 잠금으로 여러 트랜잭션이 동시에 가질 수 있다. 배타 락(X)은 쓰기를 위한 잠금으로 한 트랜잭션만 가질 수 있으며, 배타 락이 걸린 데이터에는 다른 트랜잭션이 공유 락도 배타 락도 걸 수 없다.</dd>
+<dt>락 대기 시간 초과</dt>
+<dd>다른 트랜잭션이 쥔 락이 풀리기를 정해진 시간까지 기다렸는데도 얻지 못해 그 문장이 실패하는 것이다. MySQL InnoDB에서는 innodb_lock_wait_timeout(기본 50초)이 지나면 오류 1205(Lock wait timeout exceeded)를 돌려준다. 교착과 달리 서로 기다리는 고리가 없어도 생기며, 상대가 트랜잭션을 오래 열어 두는 것이 흔한 원인이다. 기본 설정에서는 기다리던 문장 하나만 취소되고 트랜잭션은 그대로 살아 있으므로, 앞에서 고친 내용과 락이 남는다. 그래서 이 오류를 받으면 직접 롤백한 뒤 다시 시도할지 정해야 한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 같은 행. B의 UPDATE는 A가 COMMIT할 때까지 기다렸다가 그 뒤에 실행됩니다.</li>
+<li><b>B가 다른 행을 고치면</b> — 다른 행에는 잠금이 없어, B의 UPDATE가 A의 COMMIT 전에 바로 실행됩니다.</li>
+<li><b>A의 COMMIT을 지우면</b> — A가 잠금을 풀지 않아, B의 UPDATE는 기다리다 시간 초과 오류로 끝납니다.</li>
+<li><b>A의 COMMIT을 지우고 B가 다른 행을 고치면</b> — A가 id 1인 행을 붙잡고 있어도 B는 다른 행이라 기다리지 않습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>CREATE TABLE과 INSERT: DB가 account 테이블을 만들고 계좌 1과 계좌 2에 잔액 1000씩을 넣습니다. 프로그램이 DB에 접속하는 통로를 연결이라고 하고, DB에는 연결이 여러 개 동시에 붙을 수 있습니다. 화면의 코드에서 &quot;연결 A&quot;와 &quot;연결 B&quot; 구역은 각각 연결 하나가 보내는 SQL이고, 두 연결이 같은 테이블을 동시에 씁니다. 구역의 순서가 아니라 시간 순서대로, 다음 단계부터 한 문장씩 따라갑니다.</li>
+<li>BEGIN (연결 A): 연결 A가 묶음(트랜잭션)을 시작합니다. 이 묶음은 COMMIT이나 ROLLBACK을 만날 때까지 이어집니다.</li>
+<li>UPDATE account SET balance = balance - 100 WHERE id = 1 (연결 A): DB가 id 1인 행의 잔액을 1000에서 900으로 바꿉니다. 이때 DB는 이 행에 잠금을 겁니다. 우리가 쓴 SQL에는 잠금을 거는 문장이 없고, DB가 UPDATE를 받으면 스스로 합니다. 잠금은 이 묶음이 COMMIT이나 ROLLBACK으로 끝날 때까지 풀리지 않습니다. 900은 아직 확정되지 않아서, 다른 연결이 이 행을 읽으면 1000이 보입니다.</li>
+<li>BEGIN (연결 B): 연결 B도 자기 묶음을 시작합니다. A와 B는 서로 다른 연결이므로 묶음도 따로입니다.</li>
+<li>UPDATE account SET balance = balance + 50 WHERE id = 1 (연결 B): B가 A와 같은 id 1인 행을 고치려 합니다. DB는 먼저 이 행에 다른 연결의 잠금이 있는지 봅니다. A의 잠금이 걸려 있으므로 B의 UPDATE는 실행되지 못하고 기다립니다. B는 이 문장에서 멈춰 다음 문장으로 가지 못합니다. (기다리는 것은 고치는 문장뿐입니다. 같은 때 다른 연결로 이 행을 SELECT로 읽어 보면 기다리지 않고 바로 1000이 읽혔습니다. H2에서 확인했습니다.)</li>
+<li>COMMIT (연결 A): A가 묶음을 확정합니다. id 1인 행의 900이 확정되어 다른 연결에서도 읽히고, A가 건 잠금이 풀립니다. 기다리던 B가 있으므로 DB는 곧바로 B의 UPDATE를 이어서 실행합니다.</li>
+<li>B의 UPDATE가 이어서 실행됩니다. DB가 id 1인 행의 지금 잔액을 읽어 50을 더합니다. A가 확정한 900에 더하므로 950이 되고, A의 변경은 지워지지 않았습니다. 이제 이 행에는 B의 잠금이 걸립니다.</li>
+<li>COMMIT (연결 B): B가 묶음을 확정합니다. id 1인 행의 950이 확정되어 다른 연결에서도 읽힙니다. 이제 id 1인 행에는 A의 -100과 B의 +50이 모두 반영되어 950이 되었고, B의 잠금도 풀립니다.</li>
+<li>모든 문장이 끝난 뒤, 새 연결에서 계좌를 읽어 봅니다. 결과는 (1, 950), (2, 1000)입니다. A의 -100과 B의 +50이 순서대로 반영되었습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>행 잠금은 UPDATE로 행을 고칠 때 DB가 그 행에 거는 표시입니다. 묶음이 끝날 때까지 풀리지 않아서, 같은 행을 고치려는 B의 UPDATE는 A가 COMMIT할 때까지 기다렸다가 그 뒤에 실행되었습니다.</li>
+<li>잠금은 우리가 쓴 SQL이 아니라 UPDATE를 받은 DB가 겁니다. B는 A가 확정한 900에 50을 더해 950이 되었으므로, 두 변경이 서로를 덮어쓰지 않았습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>CREATE TABLE account (id INT PRIMARY KEY, balance INT);
+INSERT INTO account VALUES (1, 1000), (2, 1000);
+
+-- 연결 A (먼저 실행)
+BEGIN;
+-- 고치는 행에 잠금이 걸리고, 이 묶음이 끝날 때까지 유지된다
+UPDATE account SET balance = balance - 100 WHERE id = 1;
+-- 끝: 묶음을 확정하고 잠금을 푼다
+COMMIT;
+
+-- 연결 B (A의 UPDATE 다음에 실행)
+BEGIN;
+-- 고치려는 행에 다른 연결의 잠금이 있는지 DB가 먼저 본다
+UPDATE account SET balance = balance + 50 WHERE id = 1;
+COMMIT;</pre>
+<h2>이 모형의 전제</h2>
+<p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했고 MySQL에서의 실행 대조는 하지 않았습니다. 네 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 만든 뒤 &quot;연결 A&quot;와 &quot;연결 B&quot; 구역으로 나눠 연결 A(메인 스레드)와 연결 B(스레드)가 각자의 구역을 글자 그대로 실행했습니다. 실행 차례는 A의 BEGIN과 UPDATE, B의 BEGIN, B의 UPDATE 시도, (있으면) A의 COMMIT, B의 COMMIT입니다. 두 연결이 같은 DB를 보도록 이름을 준 메모리 DB(DB_CLOSE_DELAY=-1)를 조합마다 새로 만들었고, 격리 수준은 H2 기본값인 READ COMMITTED 그대로 두었습니다. 대조한 것은 결과 표의 세 항목입니다. B의 UPDATE가 0.4초가 지난 뒤에도 끝나지 않았는지와 A의 COMMIT 시각보다 늦게 끝났는지(시각을 기록해 비교), 오류가 났다면 그 종류(H2의 SQLSTATE HYT00, 오류 코드 50200, 메시지 첫 줄은 Timeout trying to lock table &quot;ACCOUNT&quot;이며 H2는 행 잠금이어도 메시지에 테이블 이름을 적습니다), 모든 문장이 끝난 뒤 새 연결로 읽은 잔액입니다. 끝내지 않은 조합은 A가 잠금을 쥔 채로 읽었고, A의 연결을 닫은 뒤에 읽은 값도 같았습니다. 잠금을 기다리는 시간은 연결 B에서 SET LOCK_TIMEOUT 1000(1초)으로 줄여 두었습니다(H2 기본값은 2초이며, 이 설정은 화면의 코드에 없습니다). 화면에는 시간 숫자를 적지 않았고, MySQL InnoDB의 기본값은 innodb_lock_wait_timeout 50초입니다. 단계 문장이 기대는 사실로 A가 UPDATE한 직후 다른 연결이 읽은 값(확정 전이라 1000), B가 기다리는 동안 다른 연결의 SELECT가 기다리지 않고 1000을 바로 읽은 것(H2에서 읽기가 기다리지 않는 것을 따로 재었고, 화면에서는 한 문장으로만 언급했습니다), B가 기다리다 오류로 끝난 뒤에도 B의 자동 커밋이 꺼진 채라 묶음이 열려 있는 것, 이어서 실행된 B의 UPDATE가 A가 확정한 900에 50을 더해 950이 된 것도 실행으로 확인했습니다. MySQL 8.4 문서는 17.7.1절 InnoDB Locking(배타 락은 그 행을 고치거나 지울 수 있게 하고, 한 트랜잭션이 행에 배타 락을 쥐면 다른 트랜잭션의 같은 행 락 요청은 곧바로 얻지 못하고 기다려야 한다), 17.7.3절 Locks Set by Different SQL Statements in InnoDB(UPDATE ... WHERE는 검색에서 만난 레코드에 배타 락을 걸고, 유일한 인덱스로 한 행을 찾으면 인덱스 레코드 락이면 된다. InnoDB 락은 트랜잭션이 커밋되거나 중단될 때 풀린다), InnoDB 시작 옵션과 시스템 변수 페이지(innodb-parameters)의 innodb_lock_wait_timeout(기본 50초, 기다리다 오류 1205, 이때 문장만 롤백되고 트랜잭션 전체는 롤백되지 않음)을 직접 열어 확인했습니다. H2 문서는 Advanced 페이지의 Multi-Version Concurrency Control(연결은 확정된 데이터와 자기 변경만 보며, 같은 행을 동시에 잠그거나 고치려 하면 잠금 대기 시간까지 기다린다)과 Lock Timeout(잠금을 얻지 못하면 오류, 연결마다 설정 가능)을 확인했습니다. 17.7.3절이 UPDATE 락의 해제 시점을 문장으로 직접 적은 것은 아니고, 같은 절의 일반 문장(InnoDB 락은 트랜잭션이 커밋되거나 중단될 때 풀린다)에서 읽은 것입니다. MySQL이 같은 SQL에서 같은 결과를 내는지는 실행으로 확인하지 않았습니다. 이 실습은 한 행에 대한 배타적 잠금과 기다림만 다루며, 읽기 잠금(SELECT ... FOR UPDATE), 격리 수준에 따른 차이(iso), 재고 차감에서의 사용(stock), 서로를 기다리는 교착 상태(dbdeadlock), 행 사이의 빈 구간 잠금(gaplock)은 다루지 않습니다.</p>
+<p>앞 실습: <a href="../../lab/dbtx_basic/">트랜잭션</a> · 다음 실습: <a href="../../lab/port_basic/">IP 주소와 포트</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=df7ea64144"></script>
+</body>
+</html>
