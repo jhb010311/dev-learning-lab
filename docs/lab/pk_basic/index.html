@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=801a04b24b">
+<link rel="stylesheet" href="../../app.css?v=494a5399e5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -80,7 +80,7 @@ UPDATE member SET name = '박민수' WHERE id = 1;
 SELECT * FROM member ORDER BY id;</pre>
 <h2>이 모형의 전제</h2>
 <p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했습니다. 여섯 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 글자 그대로 한 문장씩 실행해서, 두 번째 INSERT가 들어갔는지 거부됐는지와 오류의 종류(H2의 SQLSTATE 23505 중복, 23502 NULL 불가), INSERT 두 번 뒤의 행 수, UPDATE가 돌려준 바뀐 행 수, 마지막 SELECT 결과를 모형과 대조했습니다. 마지막에 id를 비운 행을 찾는 단계의 값(id = NULL은 0행, id IS NULL은 비어 있는 행 전부)은 화면 코드에 없는 문장을 H2에서 따로 실행해 확인했습니다. 기본 키가 같은 값과 NULL을 받지 않는다는 규칙은 MySQL도 같으며, MySQL 8.4 문서의 CREATE TABLE 문(PRIMARY KEY는 모든 키 열이 NOT NULL인 고유 인덱스), 1.7.3.1절 PRIMARY KEY and UNIQUE Index Constraints(기본 키나 유니크 키를 어기는 INSERT와 UPDATE는 오류), 5.3.4.6절 Working with NULL Values(NULL은 =로 비교할 수 없고 IS NULL을 쓰며, ORDER BY의 ASC에서는 NULL이 맨 앞)를 직접 열어 확인했습니다. 오류의 번호와 메시지의 글자는 DB마다 다르므로 화면에는 종류만 적었습니다. MySQL에서의 실행 대조는 아직 하지 않았습니다. 그래서 위 규칙은 문서와 H2 실행이 일치한다는 근거이고, MySQL이 같은 SQL에서 같은 결과를 내는지는 실행으로 확인하지 않았습니다. PRIMARY KEY가 없는 테이블이 같은 id나 NULL을 받아들이는 것은 H2에서 관찰한 동작입니다. 이 실습은 PRIMARY KEY 하나만 다루며, 유니크 키, 외래 키, 자동 증가(AUTO_INCREMENT)는 다루지 않습니다.</p>
-<p>앞 실습: <a href="../../lab/table_basic/">테이블, 행, 열</a> · 다음 실습: <a href="../../lab/http_basic/">HTTP 요청</a></p>
+<p>앞 실습: <a href="../../lab/table_basic/">테이블, 행, 열</a> · 다음 실습: <a href="../../lab/fk_basic/">외래 키</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -166,6 +166,6 @@ SELECT * FROM member ORDER BY id;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=801a04b24b"></script>
+<script src="../../app.js?v=494a5399e5"></script>
 </body>
 </html>
