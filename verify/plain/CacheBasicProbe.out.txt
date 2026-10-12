@@ -1,0 +1,8 @@
+# java 21.0.12.1
+true|none => OK|1 / 키보드 / 키보드
+true|source => OK|1 / 키보드 / 마우스
+true|both => OK|2 / 마우스 / 마우스
+false|none => OK|2 / 키보드 / 키보드
+false|source => OK|2 / 마우스 / 마우스
+FACT first true => OK|first 키보드 / 1 ## 1 / 키보드 / 키보드
+FACT first false => OK|first 키보드 / 1 ## 2 / 키보드 / 키보드

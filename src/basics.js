@@ -89,6 +89,9 @@ Lab.basics({
       { id: 'process_basic' },
       { id: 'remote_basic' },
       { id: 'lb_basic' },
+      { id: 'cache_basic' },
+      { id: 'queue_basic' },
+      { id: 'deploy_basic' },
     ] },
   ],
 });

@@ -1,0 +1,5 @@
+// 기초개념 "메시지 큐" 실습의 용어. 근거(WebFetch로 열어 확인, 2026-10-13): https://www.rabbitmq.com/tutorials/tutorial-one-java (Introduction: producer, queue, consumer, message broker 정의), https://kafka.apache.org/intro (Main Concepts and Terminology: producers와 consumers). 주소 https://kafka.apache.org/documentation/#introduction 은 /intro 로 넘기는 안내 페이지만 열려서, 실제 내용은 /intro 에서 확인했다. 아래 두 용어 외에 이 실습이 쓰는 "메시지 큐"는 kb에 이미 있는 것을 쓴다.
+module.exports = [
+  ['캐시·메시징', '생산자와 소비자', '생산자(producer)는 메시지를 만들어 보내는 프로그램이고, 소비자(consumer)는 그 메시지를 받아 처리하는 프로그램이다. RabbitMQ 튜토리얼은 메시지를 보내는 프로그램을 producer, 메시지가 오기를 주로 기다리는 프로그램을 consumer라고 부르고, Kafka 문서는 이벤트를 쓰는 클라이언트 애플리케이션을 producer, 이벤트를 읽고 처리하는 쪽을 consumer라고 부른다. 큐를 사이에 두면 생산자는 큐에 메시지를 넣기만 하고, 소비자는 준비됐을 때 큐에서 꺼낸다. Kafka 문서는 둘이 서로를 모르는 채로 완전히 분리되어 있다고 설명한다.'],
+  ['캐시·메시징', '메시지 브로커', '메시지 브로커는 생산자가 보낸 메시지를 받아 소비자에게 전달해 주는 중간 프로그램이다. RabbitMQ 튜토리얼은 RabbitMQ를 메시지를 받아서 전달하는 메시지 브로커라고 소개한다. 브로커 안에는 메시지를 보관하는 큐가 있고, 같은 튜토리얼은 큐를 호스트의 메모리와 디스크가 허락하는 만큼 메시지를 담는 큰 완충 공간으로 설명한다. 생산자와 소비자는 서로 직접 연결하지 않고 브로커를 통해 메시지를 주고받는다.'],
+];

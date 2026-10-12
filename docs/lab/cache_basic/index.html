@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>캐시: 캐시는 무엇이고, 쓰면 무엇을 얻고 무엇을 잃는가 · 개발 학습 실습실</title>
+<meta name="description" content="캐시는 오래 걸려 얻은 결과를 가까운 곳에 적어 두었다가, 같은 것을 다시 달라고 하면 적어 둔 것을 주는 장치입니다. 이 실습의 코드에서는 cache라는 Map이 적어 두는 곳이고, find 메서드 안의 cache 줄들이 &quot;적어 둔 것이 있으면 그것을 주고, 없을 때만 느린…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/cache_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cache_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cache_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="캐시: 캐시는 무엇이고, 쓰면 무엇을 얻고 무엇을 잃는가 · 개발 학습 실습실">
+<meta property="og:description" content="캐시는 오래 걸려 얻은 결과를 가까운 곳에 적어 두었다가, 같은 것을 다시 달라고 하면 적어 둔 것을 주는 장치입니다. 이 실습의 코드에서는 cache라는 Map이 적어 두는 곳이고, find 메서드 안의 cache 줄들이 &quot;적어 둔 것이 있으면 그것을 주고, 없을 때만 느린…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/cache_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=cea9828a6c">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › 구조와 운영</p>
+<h1>캐시</h1>
+<p><b>캐시는 무엇이고, 쓰면 무엇을 얻고 무엇을 잃는가</b></p>
+<p>캐시는 오래 걸려 얻은 결과를 가까운 곳에 적어 두었다가, 같은 것을 다시 달라고 하면 적어 둔 것을 주는 장치입니다. 이 실습의 코드에서는 cache라는 Map이 적어 두는 곳이고, find 메서드 안의 cache 줄들이 &quot;적어 둔 것이 있으면 그것을 주고, 없을 때만 느린 조회(slowLoad)를 한 뒤 적어 둔다&quot;는 일을 합니다. slowLoad는 원본(source)에서 값을 읽어 오는 느린 일이고, 부른 횟수를 slowCount로 셉니다. 실제 시간은 재지 않고 slowLoad가 불린 횟수로 &quot;얼마나 느린 일을 했는가&quot;를 보입니다. 이 실습은 cache 줄을 지워 보고, 두 번 찾는 사이에 원본의 값을 바꾸거나 cache.remove(1) 줄로 캐시의 값을 지워 가며 같은 코드를 컴파일해 실행하고, 느린 조회가 몇 번 일어나는지와 두 번째로 받은 값이 원본과 같은지를 봅니다. (static은 main이 객체를 만들지 않고 바로 부를 수 있게 붙인 것으로 보고, 이 실습에서는 다루지 않습니다.)</p>
+<p>실행으로 대조 · JDK 21에서 다섯 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>캐시</dt>
+<dd>자주 사용하는 데이터나 계산 결과를 빠르게 접근할 수 있는 곳에 미리 저장해 두고 재사용하는 것이다. 원본(주로 데이터베이스)을 매번 조회하지 않아 응답이 빨라지고 원본의 부하가 줄어든다. 대신 원본이 바뀌었을 때 캐시의 값이 오래된 상태로 남는 문제를 관리해야 한다.</dd>
+<dt>캐시 적중과 미스</dt>
+<dd>캐시에서 값을 찾을 때 두 가지 일이 일어난다. 찾는 것이 캐시에 이미 적혀 있으면 적중(hit)이라고 하며, 적어 둔 값을 그대로 돌려주고 원본까지 가지 않는다. 적혀 있지 않으면 미스(miss)라고 하며, 원본에서 값을 읽어 와 캐시에 적어 두고 돌려준다. 스프링의 캐시 추상화도 같은 순서로, 같은 인자로 이미 호출한 적이 있으면 메서드를 실행하지 않고 캐시된 결과를 돌려주고, 아니면 메서드를 실행해 그 결과를 캐시에 넣어 돌려준다. 처음 찾는 것은 늘 미스이고, 적중이 많을수록 원본까지 가는 느린 일이 줄어든다.</dd>
+<dt>Cache-Aside 패턴</dt>
+<dd>애플리케이션이 캐시를 직접 관리하는 가장 일반적인 방식이다. 데이터를 조회할 때 먼저 캐시를 확인하고, 없으면 데이터베이스에서 읽어 캐시에 저장한 뒤 반환한다. 데이터를 변경할 때는 데이터베이스를 갱신하고 해당 캐시를 삭제한다.</dd>
+<dt>캐시의 옛 값(Stale)</dt>
+<dd>캐시에 적어 둔 뒤 원본의 값이 바뀌어, 원본과 달라진 채 캐시에 남아 있는 값이다. 캐시를 쓰는 쪽은 적중하면 원본을 보지 않으므로 바뀐 줄 모르고 옛 값을 받는다. 원본을 바꿀 때 캐시에 적어 둔 그 값도 함께 지우면, 다음에 찾을 때 미스가 되어 바뀐 값을 새로 읽어 온다(대신 그 한 번은 느리다). 적어 둔 값에 유효 시간을 두는 방법도 있다. HTTP 캐시 명세(RFC 9111 4.2절)는 저장한 응답이 정해진 유효 기간을 넘기면 stale이라고 부르며, 이 말은 시간이 지난 응답을 가리키는 명세의 용어이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — cache 줄이 있는 모습. 두 번 찾았는데 느린 조회는 한 번만 일어납니다.</li>
+<li><b>캐시 없이 두 번 찾으면</b> — 찾을 때마다 원본까지 가서 느린 조회가 두 번 일어납니다.</li>
+<li><b>캐시가 있는데 그 사이에 원본이 바뀌면</b> — 느린 조회는 한 번이지만, 두 번째로 받은 값이 원본과 다릅니다.</li>
+<li><b>원본을 바꾸면서 캐시의 값도 지우면</b> — 두 번째 find가 캐시에서 값을 찾지 못해 바뀐 값을 새로 읽어 옵니다.</li>
+<li><b>캐시 없이 그 사이에 원본이 바뀌면</b> — 매번 원본에서 읽으므로 바뀐 값을 받지만, 느린 조회가 두 번입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>main이 시작되고 첫 줄 source.put(1, &quot;키보드&quot;); 줄이 실행됩니다. 원본에 1번 값 &quot;키보드&quot;가 들어갑니다. 원본은 값이 원래 들어 있는 곳이고, slowLoad가 읽어 오는 곳입니다. cache는 new HashMap&lt;&gt;() 호출로 만든 빈 Map이어서 아직 아무것도 적혀 있지 않습니다.</li>
+<li>find(1); 줄이 실행됩니다. find는 먼저 cache.containsKey(1) 호출로 캐시에 1번 값이 적혀 있는지 봅니다. 캐시가 비어 있으므로 적혀 있지 않습니다. 캐시에 적혀 있지 않은 이런 경우를 미스라고 합니다.</li>
+<li>그래서 find가 slowLoad 메서드를 부릅니다. slowLoad는 원본에서 1번 값 &quot;키보드&quot;를 읽어 오는 느린 일이고, slowCount를 올려 부른 횟수를 셉니다. 지금까지 slowLoad가 불린 횟수는 1번입니다.</li>
+<li>find는 읽어 온 값 &quot;키보드&quot;를 cache.put(1, v) 호출로 캐시에 적어 두고, 그 값을 돌려줍니다. 이제 캐시에 1번 값 &quot;키보드&quot;가 적혀 있습니다.</li>
+<li>String second = find(1); 줄이 실행됩니다. find가 cache.containsKey(1) 호출로 캐시를 보니 1번 값이 적혀 있습니다. 캐시에 적혀 있는 이런 경우를 적중이라고 합니다. find는 slowLoad를 부르지 않고 적어 둔 값 &quot;키보드&quot;를 그대로 돌려줍니다. slowLoad가 불린 횟수는 1번 그대로입니다.</li>
+<li>마지막 줄 System.out.println이 slowCount, second, source.get(1) 값을 차례로 출력합니다. 출력은 &quot;1 / 키보드 / 키보드&quot;입니다. 받은 값과 원본의 값이 같습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>캐시는 읽어 온 값을 Map에 적어 두었다가, 같은 것을 다시 찾으면 적어 둔 값을 주는 것입니다. find 안의 cache 줄들(containsKey로 확인, put으로 적기, get으로 꺼내기)이 그 일을 했고, 1번 값을 두 번 찾았는데 느린 조회 slowLoad는 1번만 불렸습니다.</li>
+<li>두 번째 find는 적어 둔 값을 바로 주어서 원본까지 가지 않았습니다. 두 번 찾는 사이에 원본이 바뀌지 않았으므로 받은 값은 원본과 같았습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>import java.util.*;
+
+public class Main {
+    // 원본: 값이 원래 들어 있는 곳
+    static Map&lt;Integer, String&gt; source = new HashMap&lt;&gt;();
+    static int slowCount = 0;
+
+    // 느린 조회: 원본에서 읽어 온다. 부른 횟수를 센다
+    static String slowLoad(int id) {
+        slowCount++;
+        return source.get(id);
+    }
+
+    // 캐시: 읽어 온 값을 적어 두는 곳
+    static Map&lt;Integer, String&gt; cache = new HashMap&lt;&gt;();
+
+    static String find(int id) {
+        // 적어 둔 값이 있으면 주고, 없으면 읽어 와서 적어 둔다
+        if (cache.containsKey(id)) return cache.get(id);
+        String v = slowLoad(id);
+        cache.put(id, v);
+        return v;
+    }
+
+    public static void main(String[] args) {
+        source.put(1, &quot;키보드&quot;);
+        // 1번 값을 처음 찾는다
+        find(1);
+        // 1번 값을 다시 찾는다
+        String second = find(1);
+        // 느린 조회 횟수 / 두 번째로 받은 값 / 원본의 값
+        System.out.println(
+            slowCount + &quot; / &quot; + second + &quot; / &quot; + source.get(1));
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 다섯 가지 조합(캐시를 두는가 두 가지와 두 번 찾는 사이에 하는 일 세 가지에서, 캐시가 없으면 cache.remove(1) 줄을 쓸 수 없어 빠지는 한 가지를 뺀 것)을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글, import 줄까지 포함)를 javax.tools로 컴파일하고, 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 출력된 세 값(slowLoad가 불린 횟수, 두 번째 find가 돌려준 값, 원본의 값)과 마지막 단계 문장이 보이는 출력 글입니다. 단계 문장이 기대는 &quot;처음 find(1) 호출을 한 번 한 뒤 slowLoad는 1번 불렸고 받은 값은 키보드&quot;라는 사실은, 처음 find의 결과를 출력하도록 고친 별도의 소스(캐시가 있는 것과 없는 것)를 같은 방식으로 실행해 확인했습니다. 화면의 코드는 실제로 컴파일되고 실행되는 프로그램이며 줄인 것은 없습니다. slowLoad는 실제로 오래 걸리지 않고 시간도 재지 않았습니다. &quot;느리다&quot;는 slowLoad가 불린 횟수로만 나타냈고, 실제 DB나 네트워크의 시간은 측정하지 않았습니다. 이 캐시는 Map 하나이고, 적어 둔 값을 언제 버릴지 정하는 규칙(유효 시간, 크기 제한)이 없어서 cache.remove(1) 줄로 지우기 전까지 값이 남습니다. 문서는 직접 열어 확인했습니다. Spring Framework Reference의 Cache Abstraction 도입부(https://docs.spring.io/spring-framework/reference/integration/cache.html)는 캐싱을 기존 애플리케이션에 투명하게 더하는 지원이라는 설명까지만 열렸고, 같은 문서의 하위 쪽(https://docs.spring.io/spring-framework/reference/integration/cache/strategies.html)에서 같은 인자로 이미 호출했으면 메서드를 실행하지 않고 캐시된 결과를 돌려주며 아니면 실행해 결과를 캐시에 넣는다는 것, 캐시의 내용을 갱신하거나 항목을 지우는 기능이 있다는 것을 확인했습니다. RFC 9111(HTTP Caching)은 1절(캐시가 응답을 저장해 응답 시간과 네트워크 사용을 줄인다), 4절(저장한 응답을 다시 쓰는 조건), 4.2절과 4.2.4절(유효 기간을 넘긴 저장 응답을 stale이라 부른다)을 확인했고, 문서의 끝 7천 자 가량은 읽지 못했습니다. 적중과 미스라는 낱말을 그 문서들이 쓰는지는 확인하지 못했고, 설명집에는 이 낱말을 일반적인 용어로만 적었습니다. 이 실습의 Map 캐시는 문서가 말하는 방식의 한 예일 뿐 스프링이나 HTTP 캐시의 동작을 실행해 대조한 것은 아닙니다. 이 밖에 여러 스레드가 동시에 쓰는 캐시, 캐시가 가득 찼을 때 무엇을 버릴지, 유효 시간(TTL), 인기 있는 값이 한꺼번에 사라질 때 원본에 요청이 몰리는 일, 스프링의 @Cacheable, 브라우저와 서버 사이의 HTTP 캐시(ETag), Redis는 다루지 않았습니다. 이들은 &quot;세부 동작 실습: 캐시와 TTL, 캐시 추상화, ETag, Redis&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/lb_basic/">로드 밸런서</a> · 다음 실습: <a href="../../lab/queue_basic/">메시지 큐</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=cea9828a6c"></script>
+</body>
+</html>

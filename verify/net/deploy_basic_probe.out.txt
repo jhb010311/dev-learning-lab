@@ -1,0 +1,14 @@
+# node v24.18.0 · 127.0.0.1 · 조합마다 server.js를 쓰고 node server.js를 자식 프로세스로 띄워 껐다 켬 · http 클라이언트가 GET /hello
+true|true|after => response=버전 2|running=버전 2|disk=버전 2|sameProc=false|afterEditRunning=버전 1|later=버전 2|starts=2|finalDisk=버전 2
+true|true|during => response=(연결 거부:ECONNREFUSED)|running=(프로세스 없음)|disk=버전 2|sameProc=(해당 없음)|afterEditRunning=버전 1|later=버전 2|starts=2|finalDisk=버전 2
+true|false|after => response=버전 1|running=버전 1|disk=버전 2|sameProc=true|afterEditRunning=버전 1|later=버전 1|starts=1|finalDisk=버전 2
+false|true|after => response=버전 1|running=버전 1|disk=버전 1|sameProc=false|afterEditRunning=(고치지 않음)|later=버전 1|starts=2|finalDisk=버전 1
+false|true|during => response=(연결 거부:ECONNREFUSED)|running=(프로세스 없음)|disk=버전 1|sameProc=(해당 없음)|afterEditRunning=(고치지 않음)|later=버전 1|starts=2|finalDisk=버전 1
+false|false|after => response=버전 1|running=버전 1|disk=버전 1|sameProc=true|afterEditRunning=(고치지 않음)|later=버전 1|starts=1|finalDisk=버전 1
+# 남은 자식 프로세스 0개
+# 실행한 코드 true|true|after = "# 1. 서버를 켠다 (코드: \"버전 1\"을 답한다)\n# 2. 소스 파일의 \"버전 1\"을 \"버전 2\"로 고친다\n# 3. 서버를 끄고 다시 켠다\n# 4. 요청을 보낸다"
+# 실행한 코드 true|true|during = "# 1. 서버를 켠다 (코드: \"버전 1\"을 답한다)\n# 2. 소스 파일의 \"버전 1\"을 \"버전 2\"로 고친다\n# 3. 서버를 끈다\n# 4. 요청을 보낸다\n# 5. 서버를 다시 켠다"
+# 실행한 코드 true|false|after = "# 1. 서버를 켠다 (코드: \"버전 1\"을 답한다)\n# 2. 소스 파일의 \"버전 1\"을 \"버전 2\"로 고친다\n# 4. 요청을 보낸다"
+# 실행한 코드 false|true|after = "# 1. 서버를 켠다 (코드: \"버전 1\"을 답한다)\n# 3. 서버를 끄고 다시 켠다\n# 4. 요청을 보낸다"
+# 실행한 코드 false|true|during = "# 1. 서버를 켠다 (코드: \"버전 1\"을 답한다)\n# 3. 서버를 끈다\n# 4. 요청을 보낸다\n# 5. 서버를 다시 켠다"
+# 실행한 코드 false|false|after = "# 1. 서버를 켠다 (코드: \"버전 1\"을 답한다)\n# 4. 요청을 보낸다"
