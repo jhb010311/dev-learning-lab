@@ -10,13 +10,13 @@ Lab.register({
     { id: 'unless', label: 'Add unless = "#result == null" to @Cacheable', type: 'check', value: false, show: function (c) { return c.data === 'no'; }, hint: 'This condition means that a null result is not put in the cache.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'find is called twice with the same argument. The body runs only once.', v: { mid: 'none', via: 'ext', data: 'yes', unless: false } },
-    { t: 'With a different argument', d: 'The key is different, so the body runs again.', v: { mid: 'other', via: 'ext', data: 'yes', unless: false } },
-    { t: 'Evicting with @CacheEvict', d: 'The value was removed from the cache, so the body runs again.', v: { mid: 'evict', via: 'ext', data: 'yes', unless: false } },
-    { t: 'Replacing the value with @CachePut', d: 'The body of rename always runs, and the cache is updated with the new value.', v: { mid: 'put', via: 'ext', data: 'yes', unless: false } },
-    { t: 'Changing only the DB and leaving the cache as it is', d: 'The second find returns the value from before the change.', v: { mid: 'plain', via: 'ext', data: 'yes', unless: false } },
-    { t: 'Calling from within the same class', d: 'Caching is not applied, so the body runs every time.', v: { mid: 'none', via: 'self', data: 'yes', unless: false } },
-    { t: 'A null result is cached too', d: 'A product that does not exist is looked up twice. Turn on unless and compare.', v: { mid: 'none', via: 'ext', data: 'no', unless: false } },
+    { t: 'Default settings', q: 'How many times does the body run when you call find, which has @Cacheable, twice in a row with the same argument 1?', d: 'find is called twice with the same argument. The body runs only once.', v: { mid: 'none', via: 'ext', data: 'yes', unless: false } },
+    { t: 'With a different argument', q: 'What if you call find(1) and then call find again with the argument 2?', d: 'The key is different, so the body runs again.', v: { mid: 'other', via: 'ext', data: 'yes', unless: false } },
+    { t: 'Evicting with @CacheEvict', q: 'What if, after find(1), you remove 1 with evict, which has @CacheEvict, and call find again?', d: 'The value was removed from the cache, so the body runs again.', v: { mid: 'evict', via: 'ext', data: 'yes', unless: false } },
+    { t: 'Replacing the value with @CachePut', q: 'What if, after find(1), you change product 1 to "New keyboard" with rename, which has @CachePut, and call find again?', d: 'The body of rename always runs, and the cache is updated with the new value.', v: { mid: 'put', via: 'ext', data: 'yes', unless: false } },
+    { t: 'Changing only the DB and leaving the cache as it is', q: 'What if, after find(1), you change product 1 to "New keyboard" with renamePlain, which has no annotation, and call find again?', d: 'The second find returns the value from before the change.', v: { mid: 'plain', via: 'ext', data: 'yes', unless: false } },
+    { t: 'Calling from within the same class', q: 'What if detail of the same class calls find inside it, and you call detail twice?', d: 'Caching is not applied, so the body runs every time.', v: { mid: 'none', via: 'self', data: 'yes', unless: false } },
+    { t: 'A null result is cached too', q: 'What if the product with id 1 is not in the DB and find returns null?', d: 'A product that does not exist is looked up twice. Turn on unless and compare.', v: { mid: 'none', via: 'ext', data: 'no', unless: false } },
   ],
   code: function (c) {
     var self = c.via === 'self', f = function (id) { return 'productService.' + (self ? 'detail' : 'find') + '(' + id + 'L);'; };

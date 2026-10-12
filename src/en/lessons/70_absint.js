@@ -8,12 +8,12 @@ Lab.register({
     { id: 'what', label: 'What to try', type: 'select', value: 'multi', options: [['new', 'Create an object directly with new'], ['impl', 'Write a class that implements (extends) it and use it'], ['missing', 'Leave an abstract method unimplemented'], ['multi', 'Inherit from two at once'], ['state', 'Declare a field (state) and a constructor'], ['default', 'Inherit a method that has a body']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A class can implement several interfaces at once.', v: { kind: 'iface', what: 'multi' } },
-    { t: 'Extending two abstract classes', d: 'A class can extend only one class, so this does not compile.', v: { kind: 'abs', what: 'multi' } },
-    { t: 'A field and a constructor in an interface', d: 'An interface cannot have the state of an object.', v: { kind: 'iface', what: 'state' } },
-    { t: 'A field and a constructor in an abstract class', d: 'It can pass shared state and initialization code down to its subclasses.', v: { kind: 'abs', what: 'state' } },
-    { t: 'Using new directly', d: 'Neither one can be used by itself to create an object.', v: { kind: 'iface', what: 'new' } },
-    { t: 'Not implementing an abstract method', d: 'If a method required by the contract is missing, the compiler rejects the class.', v: { kind: 'iface', what: 'missing' } },
+    { t: 'Default settings', q: 'How does inheriting from two at once differ from an abstract class when you try it with an interface (interface Payable)?', d: 'A class can implement several interfaces at once.', v: { kind: 'iface', what: 'multi' } },
+    { t: 'Extending two abstract classes', q: 'What if you switch the kind to Abstract class (abstract class Payment) and try to inherit from two at once?', d: 'A class can extend only one class, so this does not compile.', v: { kind: 'abs', what: 'multi' } },
+    { t: 'A field and a constructor in an interface', q: 'What if you try to declare a field (state) and a constructor in an interface?', d: 'An interface cannot have the state of an object.', v: { kind: 'iface', what: 'state' } },
+    { t: 'A field and a constructor in an abstract class', q: 'What if you switch the kind to Abstract class (abstract class Payment) and try to declare a field (state) and a constructor?', d: 'It can pass shared state and initialization code down to its subclasses.', v: { kind: 'abs', what: 'state' } },
+    { t: 'Using new directly', q: 'What if you try to create an object directly with new?', d: 'Neither one can be used by itself to create an object.', v: { kind: 'iface', what: 'new' } },
+    { t: 'Not implementing an abstract method', q: 'What if you leave an abstract method unimplemented?', d: 'If a method required by the contract is missing, the compiler rejects the class.', v: { kind: 'iface', what: 'missing' } },
   ],
   SRC: {
     iface: 'interface Payable {\n    void pay();                              // abstract method: no body\n    default String name() { return "default name"; }\n}',

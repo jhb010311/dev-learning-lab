@@ -9,13 +9,13 @@ Lab.register({
     { id: 'intr', label: 'main calls t.interrupt() partway through', type: 'check', value: false, hint: 'An interrupt is a signal sent to a waiting thread to tell it to stop waiting.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'run() is called directly. The task runs, but the thread that runs it is main, and t stays NEW to the end.', v: { call: 'run', work: 'sleep', intr: false } },
-    { t: 'Starting with start()', d: 'A new thread, worker, runs the task, and t is TIMED_WAITING while worker sleeps.', v: { call: 'start', work: 'sleep', intr: false } },
-    { t: 'A thread that waits with join', d: 'A thread that waits, with no time limit, for another thread to terminate is WAITING.', v: { call: 'start', work: 'join', intr: false } },
-    { t: 'A thread that waits for a lock', d: 'A thread that is blocked at a lock held by another thread is BLOCKED.', v: { call: 'start', work: 'lock', intr: false } },
-    { t: 'Interrupting a sleeping thread', d: 'sleep throws an InterruptedException, and the thread wakes up right away.', v: { call: 'start', work: 'sleep', intr: true } },
-    { t: 'Interrupting a thread that waits for a lock', d: 'The thread does not wake up. Only its interrupt status is set.', v: { call: 'start', work: 'lock', intr: true } },
-    { t: 'Calling start() again on a terminated thread', d: 'An IllegalThreadStateException is thrown.', v: { call: 'twice', work: 'quick', intr: false } },
+    { t: 'Default settings', q: 'Which thread runs a task that sleeps with Thread.sleep(1000) when you call t.run() directly, and what state is t in?', d: 'run() is called directly. The task runs, but the thread that runs it is main, and t stays NEW to the end.', v: { call: 'run', work: 'sleep', intr: false } },
+    { t: 'Starting with start()', q: 'What if you make the thread run with t.start() instead?', d: 'A new thread, worker, runs the task, and t is TIMED_WAITING while worker sleeps.', v: { call: 'start', work: 'sleep', intr: false } },
+    { t: 'A thread that waits with join', q: 'What if you call t.start() and the task waits for another thread to terminate with helper.join()?', d: 'A thread that waits, with no time limit, for another thread to terminate is WAITING.', v: { call: 'start', work: 'join', intr: false } },
+    { t: 'A thread that waits for a lock', q: 'What if you call t.start() and the task acquires the lock that main holds?', d: 'A thread that is blocked at a lock held by another thread is BLOCKED.', v: { call: 'start', work: 'lock', intr: false } },
+    { t: 'Interrupting a sleeping thread', q: 'What if you call t.start() and main calls t.interrupt() while the thread sleeps?', d: 'sleep throws an InterruptedException, and the thread wakes up right away.', v: { call: 'start', work: 'sleep', intr: true } },
+    { t: 'Interrupting a thread that waits for a lock', q: 'What if the task acquires the lock that main holds and main calls t.interrupt() partway through?', d: 'The thread does not wake up. Only its interrupt status is set.', v: { call: 'start', work: 'lock', intr: true } },
+    { t: 'Calling start() again on a terminated thread', q: 'What if the task only prints the name and ends right away, and you call t.start() once more after the thread has terminated?', d: 'An IllegalThreadStateException is thrown.', v: { call: 'twice', work: 'quick', intr: false } },
   ],
   code: function (c) {
     var W = c.work, s = '';

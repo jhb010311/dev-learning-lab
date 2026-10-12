@@ -9,11 +9,11 @@ Lab.register({
     { id: 'auth', label: 'Some requests have no login token', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'Only the order route is handed over to the new service.', v: { stage: '1', ratio: '100', auth: false } },
-    { t: 'Only 10% of orders first', d: 'Verifies the new service with a small share of real requests.', v: { stage: '1', ratio: '10', auth: false } },
-    { t: 'Before migration', d: 'Every request goes to the existing server.', v: { stage: '0', ratio: '100', auth: false } },
-    { t: 'Migration complete', d: 'No requests go to the existing server, so it can be shut down.', v: { stage: '3', ratio: '100', auth: false } },
-    { t: 'Requests with no token', d: 'The gateway filters them out at the entrance.', v: { stage: '2', ratio: '100', auth: true } },
+    { t: 'Default settings', q: 'At Stage 1 (only orders on the new service) with 100% of order requests sent to the new service, where does each request go?', d: 'Only the order route is handed over to the new service.', v: { stage: '1', ratio: '100', auth: false } },
+    { t: 'Only 10% of orders first', q: 'What if you send only 10% of order requests to the new service (the rest go to the existing server)?', d: 'Verifies the new service with a small share of real requests.', v: { stage: '1', ratio: '10', auth: false } },
+    { t: 'Before migration', q: 'What if you set the migration stage to Stage 0: everything on the existing server?', d: 'Every request goes to the existing server.', v: { stage: '0', ratio: '100', auth: false } },
+    { t: 'Migration complete', q: 'What if you set the migration stage to Stage 3: everything on new services (existing server shut down)?', d: 'No requests go to the existing server, so it can be shut down.', v: { stage: '3', ratio: '100', auth: false } },
+    { t: 'Requests with no token', q: 'What if you set Stage 2 (orders and payments on new services) and some requests have no login token?', d: 'The gateway filters them out at the entrance.', v: { stage: '2', ratio: '100', auth: true } },
   ],
   code: function (c) {
     var r = [];

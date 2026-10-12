@@ -9,12 +9,12 @@ Lab.register({
     { id: 'policy', label: 'How the server decides the verification algorithm', type: 'select', value: 'fixed', options: [['fixed', 'The server sets it to HS256 in advance'], ['trust', 'The server follows the alg written in the token header']], hint: 'The difference between the two shows up with a token whose alg was changed to none.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'This is a token whose role in the payload was changed to ADMIN. Anyone can read and change it, but it gets caught at the signature.', v: { tok: 'payload', time: 'before', policy: 'fixed' } },
-    { t: 'Exactly as issued', d: 'The signature matches and the token has not expired, so it passes.', v: { tok: 'ok', time: 'before', policy: 'fixed' } },
-    { t: 'If a new signature is made with a different key', d: 'It differs from the value calculated with the server\'s key, so it is rejected.', v: { tok: 'otherkey', time: 'before', policy: 'fixed' } },
-    { t: 'After the expiration time', d: 'It is rejected even though the signature is correct.', v: { tok: 'ok', time: 'after', policy: 'fixed' } },
-    { t: 'A token with alg changed to none', d: 'A server that has fixed the algorithm rejects it before even looking at the signature.', v: { tok: 'none', time: 'before', policy: 'fixed' } },
-    { t: 'A server that trusts the alg the token states', d: 'The token with no signature passes as ADMIN.', v: { tok: 'none', time: 'before', policy: 'trust' } },
+    { t: 'Default settings', q: 'What does the server decide when a token with the role changed to ADMIN and the signature left as is arrives 10 minutes before expiration (exp)?', d: 'This is a token whose role in the payload was changed to ADMIN. Anyone can read and change it, but it gets caught at the signature.', v: { tok: 'payload', time: 'before', policy: 'fixed' } },
+    { t: 'Exactly as issued', q: 'What if the token arrives exactly as the server issued it?', d: 'The signature matches and the token has not expired, so it passes.', v: { tok: 'ok', time: 'before', policy: 'fixed' } },
+    { t: 'If a new signature is made with a different key', q: 'What if the payload was changed and a new signature was made with a different key?', d: 'It differs from the value calculated with the server\'s key, so it is rejected.', v: { tok: 'otherkey', time: 'before', policy: 'fixed' } },
+    { t: 'After the expiration time', q: 'What if the server verifies a token exactly as issued 1 minute after expiration (exp)?', d: 'It is rejected even though the signature is correct.', v: { tok: 'ok', time: 'after', policy: 'fixed' } },
+    { t: 'A token with alg changed to none', q: 'What if the alg in the header is changed to none and the signature is left empty?', d: 'A server that has fixed the algorithm rejects it before even looking at the signature.', v: { tok: 'none', time: 'before', policy: 'fixed' } },
+    { t: 'A server that trusts the alg the token states', q: 'What if that token arrives and the server follows the alg written in the token header?', d: 'The token with no signature passes as ADMIN.', v: { tok: 'none', time: 'before', policy: 'trust' } },
   ],
   // Values that were actually calculated (verify/net/jwt_probe.js and verify/plain/JwtProbe.java produce the same values)
   V: {

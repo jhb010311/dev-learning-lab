@@ -10,12 +10,12 @@ Lab.register({
     { id: 'leak', label: 'There is a memory leak (objects are added to a static list and never removed)', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'Most objects are discarded quickly. Minor GCs alone keep the program going.', v: { rate: 5, live: 10, heap: 'mid', leak: false } },
-    { t: 'With many long-lived objects', d: 'More objects are promoted to the old generation, and full GCs start to run.', v: { rate: 5, live: 40, heap: 'mid', leak: false } },
-    { t: 'Creating objects faster', d: 'Eden fills up sooner, so minor GCs become more frequent.', v: { rate: 10, live: 10, heap: 'mid', leak: false } },
-    { t: 'With a larger heap', d: 'The number of GCs goes down.', v: { rate: 10, live: 10, heap: 'large', leak: false } },
-    { t: 'Memory leak', d: 'Even though GCs run, the old generation does not empty, and the run ends with an OutOfMemoryError.', v: { rate: 5, live: 10, heap: 'mid', leak: true } },
-    { t: 'A leak with only a larger heap', d: 'This only delays the point of failure.', v: { rate: 5, live: 10, heap: 'large', leak: true } },
+    { t: 'Default settings', q: 'How does a medium heap (eden 20, old 40) behave when each tick creates 5 objects and 10% of them stay in use for a while?', d: 'Most objects are discarded quickly. Minor GCs alone keep the program going.', v: { rate: 5, live: 10, heap: 'mid', leak: false } },
+    { t: 'With many long-lived objects', q: 'What if you change the share of objects that stay in use for a while to 40%?', d: 'More objects are promoted to the old generation, and full GCs start to run.', v: { rate: 5, live: 40, heap: 'mid', leak: false } },
+    { t: 'Creating objects faster', q: 'What if you change the number of objects created per tick to 10?', d: 'Eden fills up sooner, so minor GCs become more frequent.', v: { rate: 10, live: 10, heap: 'mid', leak: false } },
+    { t: 'With a larger heap', q: 'What if each tick creates 10 objects and you change the heap size to Large (eden 32, old 64)?', d: 'The number of GCs goes down.', v: { rate: 10, live: 10, heap: 'large', leak: false } },
+    { t: 'Memory leak', q: 'What if there is a memory leak, where objects are added to a static list and never removed?', d: 'Even though GCs run, the old generation does not empty, and the run ends with an OutOfMemoryError.', v: { rate: 5, live: 10, heap: 'mid', leak: true } },
+    { t: 'A leak with only a larger heap', q: 'What if there is a memory leak and you change only the heap size to Large (eden 32, old 64)?', d: 'This only delays the point of failure.', v: { rate: 5, live: 10, heap: 'large', leak: true } },
   ],
   SIZES: { small: [12, 3, 24], mid: [20, 5, 40], large: [32, 8, 64] },
   code: function (c) {

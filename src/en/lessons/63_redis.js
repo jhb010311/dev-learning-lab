@@ -8,11 +8,11 @@ Lab.register({
     { id: 'incr', label: 'Two clients send INCR to the same key at the same time', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'One KEYS command stops the other clients for 0.5s each.', v: { slow: 'keys', incr: false } },
-    { t: 'With fast commands only', d: 'Every command finishes within 1ms.', v: { slow: 'none', incr: false } },
-    { t: 'Switching to SCAN', d: 'It runs in small pieces, so other commands can cut in between them.', v: { slow: 'scan', incr: false } },
-    { t: 'Reading a large collection whole', d: 'Even without KEYS, the same thing happens when a value is large.', v: { slow: 'big', incr: false } },
-    { t: 'INCR at the same time', d: 'The commands run one at a time, so no increment is lost.', v: { slow: 'none', incr: true } },
+    { t: 'Default settings', q: 'What happens to the other clients when a KEYS user:* command cuts in partway?', d: 'One KEYS command stops the other clients for 0.5s each.', v: { slow: 'keys', incr: false } },
+    { t: 'With fast commands only', q: 'What if only fast commands run and no other command cuts in?', d: 'Every command finishes within 1ms.', v: { slow: 'none', incr: false } },
+    { t: 'Switching to SCAN', q: 'What if you scan with SCAN, 1,000 keys at a time, instead of KEYS?', d: 'It runs in small pieces, so other commands can cut in between them.', v: { slow: 'scan', incr: false } },
+    { t: 'Reading a large collection whole', q: 'What if you read a whole list of 500,000 elements with LRANGE 0 -1 instead of KEYS?', d: 'Even without KEYS, the same thing happens when a value is large.', v: { slow: 'big', incr: false } },
+    { t: 'INCR at the same time', q: 'What if no command cuts in and two clients send INCR to the same key at the same time?', d: 'The commands run one at a time, so no increment is lost.', v: { slow: 'none', incr: true } },
   ],
   code: function (c) {
     var s = { none: '', keys: '\n// Admin script\nSet<String> keys = redis.keys("user:*");          // scans all the keys at once', scan: '\n// Admin script\nScanOptions opt = ScanOptions.scanOptions().match("user:*").count(1000).build();\ntry (Cursor<String> cur = redis.scan(opt)) {       // in pieces of 1,000\n    cur.forEachRemaining(this::handle);\n}', big: '\n// Batch job\nList<String> all = redis.opsForList().range("events", 0, -1);   // all 500,000' }[c.slow];

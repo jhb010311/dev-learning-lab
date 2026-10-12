@@ -7,11 +7,11 @@ Lab.register({
     { id: 'what', label: 'What happens', type: 'select', value: 'kill', options: [['kill', 'One Pod suddenly dies'], ['node', 'One node (server) dies completely'], ['scale', 'The number of replicas is changed from 3 to 5'], ['hang', 'The application hangs (the process is still alive)'], ['notready', 'The application cannot take requests for a while (database connection lost)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'One Pod dies. A new Pod is created automatically.', v: { what: 'kill' } },
-    { t: 'When a node dies', d: 'The Pods that were on that node are created again on other nodes.', v: { what: 'node' } },
-    { t: 'When you increase the replicas', d: 'You change only the number, and Kubernetes creates as many Pods as are missing.', v: { what: 'scale' } },
-    { t: 'The process is alive but hung', d: 'The liveness probe fails, so the container is restarted.', v: { what: 'hang' } },
-    { t: 'It cannot take requests for a while', d: 'The readiness probe fails, so only the requests are cut off. The container is not restarted.', v: { what: 'notready' } },
+    { t: 'Default settings', q: 'With 3 replicas, what starts a new Pod when one Pod suddenly dies?', d: 'One Pod dies. A new Pod is created automatically.', v: { what: 'kill' } },
+    { t: 'When a node dies', q: 'What if one node (server) dies completely?', d: 'The Pods that were on that node are created again on other nodes.', v: { what: 'node' } },
+    { t: 'When you increase the replicas', q: 'What if the number of replicas is changed from 3 to 5?', d: 'You change only the number, and Kubernetes creates as many Pods as are missing.', v: { what: 'scale' } },
+    { t: 'The process is alive but hung', q: 'What if the application hangs while the process is still alive?', d: 'The liveness probe fails, so the container is restarted.', v: { what: 'hang' } },
+    { t: 'It cannot take requests for a while', q: 'What if the application cannot take requests for a while because the database connection is lost?', d: 'The readiness probe fails, so only the requests are cut off. The container is not restarted.', v: { what: 'notready' } },
   ],
   code: function (c) {
     return 'apiVersion: apps/v1\nkind: Deployment\nmetadata: { name: shop }\nspec:\n  replicas: ' + (c.what === 'scale' ? '5                 # changed from 3 to 5' : '3                 # desired state: always 3') + '\n  template:\n    spec:\n      containers:\n        - name: app\n          image: shop:1.0\n          livenessProbe:        # if it fails, restart the container\n            httpGet: { path: /actuator/health/liveness, port: 8080 }\n          readinessProbe:       # if it fails, only exclude it from request targets\n            httpGet: { path: /actuator/health/readiness, port: 8080 }';

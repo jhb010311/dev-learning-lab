@@ -9,11 +9,11 @@ Lab.register({
     { id: 'n', label: 'Orders arriving at the same time', type: 'range', min: 2, max: 6, value: 4, fmt: function (v) { return v + ' orders'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'No safeguard. With 3 items in stock, all 4 orders succeed.', v: { how: 'none', s: 3, n: 4 } },
-    { t: 'Pessimistic locking', d: 'Only one request at a time reads and changes the stock row. The others wait in line.', v: { how: 'pess', s: 3, n: 4 } },
-    { t: 'Optimistic locking', d: 'Everyone goes ahead, and when saving, a request fails if someone else changed the row first.', v: { how: 'opt', s: 3, n: 4 } },
-    { t: 'UPDATE with a condition', d: 'The check and the decrement are combined into one SQL statement.', v: { how: 'atomic', s: 3, n: 4 } },
-    { t: 'Many orders with optimistic locking', d: '6 requests compete. Look at the number of retries.', v: { how: 'opt', s: 5, n: 6 } },
+    { t: 'Default settings', q: 'What happens when 4 orders arrive at the same time for 3 items in stock, with only a read followed by an update?', d: 'No safeguard. With 3 items in stock, all 4 orders succeed.', v: { how: 'none', s: 3, n: 4 } },
+    { t: 'Pessimistic locking', q: 'What if you handle concurrent updates with pessimistic locking?', d: 'Only one request at a time reads and changes the stock row. The others wait in line.', v: { how: 'pess', s: 3, n: 4 } },
+    { t: 'Optimistic locking', q: 'What if you handle concurrent updates with optimistic locking?', d: 'Everyone goes ahead, and when saving, a request fails if someone else changed the row first.', v: { how: 'opt', s: 3, n: 4 } },
+    { t: 'UPDATE with a condition', q: 'What if you handle concurrent updates with one UPDATE statement with a condition?', d: 'The check and the decrement are combined into one SQL statement.', v: { how: 'atomic', s: 3, n: 4 } },
+    { t: 'Many orders with optimistic locking', q: 'What if you use optimistic locking (@Version) with an initial stock of 5 items and 6 orders at the same time?', d: '6 requests compete. Look at the number of retries.', v: { how: 'opt', s: 5, n: 6 } },
   ],
   code: function (c) {
     if (c.how === 'none') return '@Transactional\npublic void order(long productId) {\n    Product p = productRepository.findById(productId).orElseThrow();\n    if (p.getStock() <= 0) throw new SoldOutException();\n    p.setStock(p.getStock() - 1);        // subtract 1 from the value that was read\n    orderRepository.save(new Order(productId));\n}';

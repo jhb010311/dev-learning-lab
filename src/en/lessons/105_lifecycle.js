@@ -9,13 +9,13 @@ Lab.register({
     { id: 'scope', label: 'Scope of the PriceCache bean', type: 'select', value: 'singleton', options: [['singleton', 'Singleton'], ['prototype', 'Prototype']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'Field injection, but the constructor uses repository. Startup fails.', v: { inj: 'field', cb: 'ctor', scope: 'singleton' } },
-    { t: 'Moving the work to @PostConstruct', d: 'It is called after injection finishes, so repository can be used.', v: { inj: 'field', cb: 'anno', scope: 'singleton' } },
-    { t: 'With constructor injection', d: 'Inside the constructor, repository is already set.', v: { inj: 'ctor', cb: 'ctor', scope: 'singleton' } },
-    { t: 'Using all three kinds of callbacks', d: 'See the order to find out which one is called first.', v: { inj: 'field', cb: 'all', scope: 'singleton' } },
-    { t: 'initMethod of @Bean', d: 'The method name is specified in the configuration, with no annotation on the class.', v: { inj: 'field', cb: 'method', scope: 'singleton' } },
-    { t: 'With a prototype bean', d: 'The initialization callback is called, but the destruction callback is not.', v: { inj: 'field', cb: 'anno', scope: 'prototype' } },
-    { t: 'InitializingBean and DisposableBean', d: 'This approach implements interfaces of Spring.', v: { inj: 'field', cb: 'iface', scope: 'singleton' } },
+    { t: 'Default settings', q: 'What happens when PriceCache receives PriceRepository through field injection (@Autowired) and reads the price list inside the constructor?', d: 'Field injection, but the constructor uses repository. Startup fails.', v: { inj: 'field', cb: 'ctor', scope: 'singleton' } },
+    { t: 'Moving the work to @PostConstruct', q: 'What if you move reading and clearing the price list to @PostConstruct and @PreDestroy?', d: 'It is called after injection finishes, so repository can be used.', v: { inj: 'field', cb: 'anno', scope: 'singleton' } },
+    { t: 'With constructor injection', q: 'What if PriceCache receives PriceRepository through constructor injection?', d: 'Inside the constructor, repository is already set.', v: { inj: 'ctor', cb: 'ctor', scope: 'singleton' } },
+    { t: 'Using all three kinds of callbacks', q: 'What if you use all three kinds of callbacks for reading and clearing the price list?', d: 'See the order to find out which one is called first.', v: { inj: 'field', cb: 'all', scope: 'singleton' } },
+    { t: 'initMethod of @Bean', q: 'What if you use initMethod and destroyMethod of @Bean for reading and clearing the price list?', d: 'The method name is specified in the configuration, with no annotation on the class.', v: { inj: 'field', cb: 'method', scope: 'singleton' } },
+    { t: 'With a prototype bean', q: 'What if you use @PostConstruct and @PreDestroy and change the scope of the PriceCache bean to Prototype?', d: 'The initialization callback is called, but the destruction callback is not.', v: { inj: 'field', cb: 'anno', scope: 'prototype' } },
+    { t: 'InitializingBean and DisposableBean', q: 'What if you use InitializingBean and DisposableBean for reading and clearing the price list?', d: 'This approach implements interfaces of Spring.', v: { inj: 'field', cb: 'iface', scope: 'singleton' } },
   ],
   // The callback list determined by the settings: [name for the record, name shown in the table, name used in sentences]
   callbacks: function (c) {

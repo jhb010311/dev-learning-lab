@@ -10,13 +10,13 @@ Lab.register({
     { id: 'd3', label: 'Defense', type: 'select', value: 'none', options: [['none', 'None (the session cookie is SameSite=None)'], ['samesite', 'SameSite=Lax on the session cookie'], ['token', 'CSRF token verification']], show: function (c) { return c.atk === 'csrf'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'SQL injection, no defense. The attacker is logged in without a password.', v: { atk: 'sqli', d1: 'none', d2: 'none', d3: 'none' } },
-    { t: 'Parameterized query', d: 'The input is treated only as a value, not as SQL syntax.', v: { atk: 'sqli', d1: 'bind', d2: 'none', d3: 'none' } },
-    { t: 'XSS, no defense', d: 'A script put in a comment runs in another user\'s browser.', v: { atk: 'xss', d1: 'none', d2: 'none', d3: 'none' } },
-    { t: 'XSS, escape on output', d: 'The script is shown only as text.', v: { atk: 'xss', d1: 'none', d2: 'escape', d3: 'none' } },
-    { t: 'XSS, HttpOnly only', d: 'The cookie cannot be stolen, but the script still runs.', v: { atk: 'xss', d1: 'none', d2: 'httponly', d3: 'none' } },
-    { t: 'CSRF, no defense', d: 'You only opened another site, but a request goes out under your account.', v: { atk: 'csrf', d1: 'none', d2: 'none', d3: 'none' } },
-    { t: 'CSRF, SameSite=Lax', d: 'The cookie is not attached to a POST sent from another site.', v: { atk: 'csrf', d1: 'none', d2: 'none', d3: 'samesite' } },
+    { t: 'Default settings', q: 'What happens when a SQL injection attack hits a query built by concatenating strings, with no defense?', d: 'SQL injection, no defense. The attacker is logged in without a password.', v: { atk: 'sqli', d1: 'none', d2: 'none', d3: 'none' } },
+    { t: 'Parameterized query', q: 'What if the SQL injection attack meets a parameterized query with bind variables (PreparedStatement)?', d: 'The input is treated only as a value, not as SQL syntax.', v: { atk: 'sqli', d1: 'bind', d2: 'none', d3: 'none' } },
+    { t: 'XSS, no defense', q: 'What if you change the attack type to XSS (stored) and print the input to the page as is?', d: 'A script put in a comment runs in another user\'s browser.', v: { atk: 'xss', d1: 'none', d2: 'none', d3: 'none' } },
+    { t: 'XSS, escape on output', q: 'What if, with stored XSS, you escape on output?', d: 'The script is shown only as text.', v: { atk: 'xss', d1: 'none', d2: 'escape', d3: 'none' } },
+    { t: 'XSS, HttpOnly only', q: 'What if, with stored XSS, you set only HttpOnly on the session cookie?', d: 'The cookie cannot be stolen, but the script still runs.', v: { atk: 'xss', d1: 'none', d2: 'httponly', d3: 'none' } },
+    { t: 'CSRF, no defense', q: 'What if you change the attack type to CSRF and leave the session cookie as SameSite=None?', d: 'You only opened another site, but a request goes out under your account.', v: { atk: 'csrf', d1: 'none', d2: 'none', d3: 'none' } },
+    { t: 'CSRF, SameSite=Lax', q: 'What if, with CSRF, you set SameSite=Lax on the session cookie?', d: 'The cookie is not attached to a POST sent from another site.', v: { atk: 'csrf', d1: 'none', d2: 'none', d3: 'samesite' } },
   ],
   code: function (c) {
     if (c.atk === 'sqli') return c.d1 === 'none' ? '// The input is concatenated into a string\nString sql = "SELECT * FROM member WHERE email = \'" + email\n           + "\' AND password = \'" + password + "\'";\nResultSet rs = statement.executeQuery(sql);' : '// Use placeholders (?) and pass the values separately\nString sql = "SELECT * FROM member WHERE email = ? AND password = ?";\nPreparedStatement ps = connection.prepareStatement(sql);\nps.setString(1, email);\nps.setString(2, password);\nResultSet rs = ps.executeQuery();\n\n// JPA, and #{} in MyBatis, work this way internally too';

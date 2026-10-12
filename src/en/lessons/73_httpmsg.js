@@ -7,12 +7,12 @@ Lab.register({
     { id: 'sc', label: 'Situation', type: 'select', value: 'get', options: [['get', 'Get order 1'], ['create', 'Create a new order'], ['delete', 'Delete order 1'], ['bad', 'Create an order with a required value missing'], ['noauth', 'Get an order without logging in'], ['forbid', 'Get another user\'s order'], ['missing', 'Get order 999, which does not exist'], ['moved', 'Get an old path whose address has changed'], ['error', 'An exception is thrown in server code']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A successful read. The response comes with 200 and a body.', v: { sc: 'get' } },
-    { t: 'Create a new order', d: 'The response is 201, and it tells you the address of the newly created order.', v: { sc: 'create' } },
-    { t: 'Invalid request', d: '400. The sender has to fix it.', v: { sc: 'bad' } },
-    { t: 'Not logged in / No permission', d: 'Switch back and forth to see the difference between 401 and 403.', v: { sc: 'noauth' } },
-    { t: 'Order that does not exist', d: '404. There is nothing at the address.', v: { sc: 'missing' } },
-    { t: 'Server error', d: '500. The server has to fix it, not the sender.', v: { sc: 'error' } },
+    { t: 'Default settings', q: 'What text do the request and the response look like when you get order 1?', d: 'A successful read. The response comes with 200 and a body.', v: { sc: 'get' } },
+    { t: 'Create a new order', q: 'What if you create a new order?', d: 'The response is 201, and it tells you the address of the newly created order.', v: { sc: 'create' } },
+    { t: 'Invalid request', q: 'What if you create an order with a required value missing?', d: '400. The sender has to fix it.', v: { sc: 'bad' } },
+    { t: 'Not logged in / No permission', q: 'What if you get an order without logging in?', d: 'Switch back and forth to see the difference between 401 and 403.', v: { sc: 'noauth' } },
+    { t: 'Order that does not exist', q: 'What if you get order 999, which does not exist?', d: '404. There is nothing at the address.', v: { sc: 'missing' } },
+    { t: 'Server error', q: 'What if an exception is thrown in server code?', d: '500. The server has to fix it, not the sender.', v: { sc: 'error' } },
   ],
   CASES: {
     get: { req: ['GET /orders/1 HTTP/1.1', 'Host: shop.example', 'Authorization: Bearer eyJ…'], body: '', status: '200 OK', hdr: ['Content-Type: application/json'], rbody: '{"id":1,"item":"keyboard","quantity":2}', who: 'None', next: 'Use the body that was received' },

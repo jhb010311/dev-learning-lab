@@ -9,12 +9,12 @@ Lab.register({
     { id: 'n', label: 'If the real table were this large', type: 'select', value: 1000000, options: [[1000, '1,000 rows'], [1000000, '1 million rows'], [1000000000, '1 billion rows']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'One by one from the start. It checks 23 times to reach a value near the end.', v: { how: 'scan', target: 230, n: 1000000 } },
-    { t: 'With binary search', d: 'It finds the same value in 5 checks.', v: { how: 'binary', target: 230, n: 1000000 } },
-    { t: 'With a B-tree', d: 'It reads only 3 nodes to find any value.', v: { how: 'btree', target: 230, n: 1000000 } },
-    { t: 'Looking for a missing value one by one', d: 'It has to check to the very end to know the value is not there.', v: { how: 'scan', target: 145, n: 1000000 } },
-    { t: 'A missing value with a B-tree', d: 'It confirms the value is not there with 3 nodes too.', v: { how: 'btree', target: 145, n: 1000000 } },
-    { t: 'With 1 billion rows', d: 'See the difference in the number of steps by method in the table below.', v: { how: 'btree', target: 230, n: 1000000000 } },
+    { t: 'Default settings', q: 'How many checks does it take to find 230 (toward the end) one by one from the start (unsorted data)?', d: 'One by one from the start. It checks 23 times to reach a value near the end.', v: { how: 'scan', target: 230, n: 1000000 } },
+    { t: 'With binary search', q: 'What if you change the search method to Binary search (sorted array)?', d: 'It finds the same value in 5 checks.', v: { how: 'binary', target: 230, n: 1000000 } },
+    { t: 'With a B-tree', q: 'What if you change the search method to B-tree (several values in one node)?', d: 'It reads only 3 nodes to find any value.', v: { how: 'btree', target: 230, n: 1000000 } },
+    { t: 'Looking for a missing value one by one', q: 'What if the value to find is 145 (not in the data)?', d: 'It has to check to the very end to know the value is not there.', v: { how: 'scan', target: 145, n: 1000000 } },
+    { t: 'A missing value with a B-tree', q: 'What if you use a B-tree (several values in one node) and look for 145 (not in the data)?', d: 'It confirms the value is not there with 3 nodes too.', v: { how: 'btree', target: 145, n: 1000000 } },
+    { t: 'With 1 billion rows', q: 'What if you use a B-tree (several values in one node) and the real table has 1 billion rows?', d: 'See the difference in the number of steps by method in the table below.', v: { how: 'btree', target: 230, n: 1000000000 } },
   ],
   keys: function () { var a = []; for (var i = 1; i <= 27; i++) a.push(i * 10); return a; },
   // Unsorted order: a fixed array that is assumed to be the order in which rows piled up in the real table (each value's position is kept the same as its sorted position to make comparison easy)

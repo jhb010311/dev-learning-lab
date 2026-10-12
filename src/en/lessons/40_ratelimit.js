@@ -8,11 +8,11 @@ Lab.register({
     { id: 'pat', label: 'Shape of the incoming requests', type: 'select', value: 'edge', options: [['even', 'Evenly (8 per second)'], ['edge', 'Piled up at a window boundary (10 requests between 0.8 and 1.2 seconds)'], ['burst', 'All at one instant (12 requests at the same time, at 2 seconds)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A fixed window. All 10 requests pass within 0.4 seconds, on both sides of the boundary.', v: { algo: 'fixed', pat: 'edge' } },
-    { t: 'The same requests with a sliding window', d: 'No 1-second span lets through more than 5 requests.', v: { algo: 'sliding', pat: 'edge' } },
-    { t: 'A sudden burst with a token bucket', d: 'As many requests as there are saved tokens pass at once.', v: { algo: 'bucket', pat: 'burst' } },
-    { t: 'Evenly, 8 per second', d: '3 requests over the limit are rejected every second.', v: { algo: 'fixed', pat: 'even' } },
-    { t: 'Even requests with a token bucket', d: 'Requests keep passing at the speed at which tokens are refilled.', v: { algo: 'bucket', pat: 'even' } },
+    { t: 'Default settings', q: 'What happens when 10 requests arrive between 0.8 and 1.2 seconds at a fixed window that accepts 5 requests per second?', d: 'A fixed window. All 10 requests pass within 0.4 seconds, on both sides of the boundary.', v: { algo: 'fixed', pat: 'edge' } },
+    { t: 'The same requests with a sliding window', q: 'What if you count the same requests with a sliding window?', d: 'No 1-second span lets through more than 5 requests.', v: { algo: 'sliding', pat: 'edge' } },
+    { t: 'A sudden burst with a token bucket', q: 'What if you switch to a token bucket and 12 requests arrive at the same time, at 2 seconds?', d: 'As many requests as there are saved tokens pass at once.', v: { algo: 'bucket', pat: 'burst' } },
+    { t: 'Evenly, 8 per second', q: 'What if a fixed window receives requests evenly, 8 per second?', d: '3 requests over the limit are rejected every second.', v: { algo: 'fixed', pat: 'even' } },
+    { t: 'Even requests with a token bucket', q: 'What if you switch to a token bucket and requests arrive evenly, 8 per second?', d: 'Requests keep passing at the speed at which tokens are refilled.', v: { algo: 'bucket', pat: 'even' } },
   ],
   code: function (c) {
     if (c.algo === 'fixed') return '// Fixed window: key = user + the current second\nString key = "rate:" + userId + ":" + (now / 1000);\nlong count = redis.incr(key);            // add 1 to the request count of this second\nif (count == 1) redis.expire(key, 1);    // disappears after 1 second\nif (count > 5) return tooManyRequests(); // 429';

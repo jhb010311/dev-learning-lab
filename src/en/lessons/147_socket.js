@@ -9,11 +9,11 @@ Lab.register({
     { id: 'n', label: 'Number of clients', type: 'select', value: '3', options: [['1', '1 client'], ['2', '2 clients'], ['3', '3 clients']], hint: 'All the clients connect without closing the earlier connections.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'Two servers cannot share one port, but three clients can connect to one port together.', v: { srv: 'same', to: '9000', n: '3' } },
-    { t: 'Choosing the program by port', d: 'Same computer, but sending to port 9001 reaches Server B.', v: { srv: 'ab', to: '9001', n: '1' } },
-    { t: 'A port with no server listening', d: 'Even though the computer is on, the connection is refused.', v: { srv: 'ab', to: '9002', n: '1' } },
-    { t: 'Port 9001 after Server B failed to start', d: 'B did not get port 9000, and nobody is on port 9001.', v: { srv: 'same', to: '9001', n: '2' } },
-    { t: 'One server, one client', d: 'Start with the simplest case.', v: { srv: 'a', to: '9000', n: '1' } },
+    { t: 'Default settings', q: 'What happens when Server A and Server B both start on port 9000 and 3 clients connect to port 9000?', d: 'Two servers cannot share one port, but three clients can connect to one port together.', v: { srv: 'same', to: '9000', n: '3' } },
+    { t: 'Choosing the program by port', q: 'What if Server A is on port 9000, Server B is on port 9001, and 1 client connects to port 9001?', d: 'Same computer, but sending to port 9001 reaches Server B.', v: { srv: 'ab', to: '9001', n: '1' } },
+    { t: 'A port with no server listening', q: 'What if Server A is on port 9000, Server B is on port 9001, and 1 client connects to port 9002, a port nobody uses?', d: 'Even though the computer is on, the connection is refused.', v: { srv: 'ab', to: '9002', n: '1' } },
+    { t: 'Port 9001 after Server B failed to start', q: 'What if Server A and Server B are both on port 9000 and 2 clients connect to port 9001?', d: 'B did not get port 9000, and nobody is on port 9001.', v: { srv: 'same', to: '9001', n: '2' } },
+    { t: 'One server, one client', q: 'What if you start only Server A on port 9000 and use 1 client?', d: 'Start with the simplest case.', v: { srv: 'a', to: '9000', n: '1' } },
   ],
   code: function (c) {
     var n = +c.n, bport = c.srv === 'same' ? 9000 : 9001;

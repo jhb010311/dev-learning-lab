@@ -9,12 +9,12 @@ Lab.register({
     { id: 'changed', label: 'The administrator changed the value of the record a moment ago', type: 'check', value: false, hint: 'Only the value on the authoritative name server changes. Answers already in a cache stay as they are.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'A name asked for the first time. The resolver asks from the root server down, one server at a time, to find the answer.', v: { q: 'a', cache: 'none', changed: false } },
-    { t: 'A name that was just asked for', d: 'The answer is in this PC\'s cache, so no one is asked.', v: { q: 'a', cache: 'os', changed: false } },
-    { t: 'Record changed, but traffic still goes to the old address', d: 'The TTL has not run out in the resolver\'s cache, so it gets the old value.', v: { q: 'a', cache: 'resolver', changed: true } },
-    { t: 'After the TTL has passed', d: 'It asks again and gets the new value. It does not start from the root server.', v: { q: 'a', cache: 'expired', changed: true } },
-    { t: 'A name that goes through a CNAME', d: 'It finds the canonical name of the alias, and then looks up that name once more.', v: { q: 'cname', cache: 'none', changed: false } },
-    { t: 'Finding the mail server', d: 'An MX record gives the name of the mail server, not an address.', v: { q: 'mx', cache: 'none', changed: false } },
+    { t: 'Default settings', q: 'How does the PC get the answer when it asks for the IPv4 address of shop.example (A) and no cache has the name?', d: 'A name asked for the first time. The resolver asks from the root server down, one server at a time, to find the answer.', v: { q: 'a', cache: 'none', changed: false } },
+    { t: 'A name that was just asked for', q: 'What if this PC\'s cache has an answer from a query made 120s ago?', d: 'The answer is in this PC\'s cache, so no one is asked.', v: { q: 'a', cache: 'os', changed: false } },
+    { t: 'Record changed, but traffic still goes to the old address', q: 'What if the resolver\'s cache has an answer another user asked 120s ago, and the administrator changed the value of the record a moment ago?', d: 'The TTL has not run out in the resolver\'s cache, so it gets the old value.', v: { q: 'a', cache: 'resolver', changed: true } },
+    { t: 'After the TTL has passed', q: 'What if this PC asked 400s ago, so the TTL of 300s has passed, and the administrator changed the value of the record a moment ago?', d: 'It asks again and gets the new value. It does not start from the root server.', v: { q: 'a', cache: 'expired', changed: true } },
+    { t: 'A name that goes through a CNAME', q: 'What if you ask for the address of www.shop.example (through a CNAME)?', d: 'It finds the canonical name of the alias, and then looks up that name once more.', v: { q: 'cname', cache: 'none', changed: false } },
+    { t: 'Finding the mail server', q: 'What if you ask for the mail server of shop.example (MX)?', d: 'An MX record gives the name of the mail server, not an address.', v: { q: 'mx', cache: 'none', changed: false } },
   ],
   CASES: {
     a: { name: 'shop.example', type: 'A', old: '203.0.113.10', neu: '203.0.113.99' },

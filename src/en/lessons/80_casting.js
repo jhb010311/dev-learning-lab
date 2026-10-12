@@ -10,13 +10,13 @@ Lab.register({
     { id: 'e3', label: 'Expression', type: 'select', value: 'ns', options: [['ns', '1 + 2 + "3"'], ['sn', '"1" + 2 + 3'], ['paren', '"1" + (2 + 3)'], ['mixed', '1 + 2 + "3" + 4 + 5']], show: function (c) { return c.topic === 'str'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'Dividing an int by an int gives 3, not 3.5.', v: { topic: 'ints', e1: 'div', e2: 'late', e3: 'ns' } },
-    { t: 'Even with a double variable', d: 'The calculation has already finished as an int, so the result is 3.0.', v: { topic: 'conv', e1: 'div', e2: 'late', e3: 'ns' } },
-    { t: 'Writing one side as a double', d: 'The types are matched before the calculation, so the result is 3.5.', v: { topic: 'conv', e1: 'div', e2: 'mix', e3: 'ns' } },
-    { t: 'Going beyond the range of int', d: 'Adding 1 to the largest value gives the smallest value.', v: { topic: 'ints', e1: 'over', e2: 'late', e3: 'ns' } },
-    { t: 'Only storing in a long variable', d: 'The value after the overflow is stored as it is.', v: { topic: 'conv', e1: 'over', e2: 'longlate', e3: 'ns' } },
-    { t: 'Casting to byte', d: '200 becomes -56.', v: { topic: 'conv', e1: 'div', e2: 'byte', e3: 'ns' } },
-    { t: 'Adding a number and a string', d: '1 + 2 + "3" is neither "6" nor "123".', v: { topic: 'str', e1: 'div', e2: 'late', e3: 'ns' } },
+    { t: 'Default settings', q: 'What value does the expression 7 / 2 produce in a calculation between integers?', d: 'Dividing an int by an int gives 3, not 3.5.', v: { topic: 'ints', e1: 'div', e2: 'late', e3: 'ns' } },
+    { t: 'Even with a double variable', q: 'What if you look at "When types are mixed or changed (type conversion)" and store the result with double r = 7 / 2?', d: 'The calculation has already finished as an int, so the result is 3.0.', v: { topic: 'conv', e1: 'div', e2: 'late', e3: 'ns' } },
+    { t: 'Writing one side as a double', q: 'What if you change double r = 7 / 2 to double r = 7 / 2.0?', d: 'The types are matched before the calculation, so the result is 3.5.', v: { topic: 'conv', e1: 'div', e2: 'mix', e3: 'ns' } },
+    { t: 'Going beyond the range of int', q: 'What if you change the expression to 2147483647 + 1 in a calculation between integers?', d: 'Adding 1 to the largest value gives the smallest value.', v: { topic: 'ints', e1: 'over', e2: 'late', e3: 'ns' } },
+    { t: 'Only storing in a long variable', q: 'What if big is 2147483647 and you store the expression 2147483647 + 1 with long r = big + 1?', d: 'The value after the overflow is stored as it is.', v: { topic: 'conv', e1: 'over', e2: 'longlate', e3: 'ns' } },
+    { t: 'Casting to byte', q: 'What if you change the code to byte r = (byte) 200 under type conversion?', d: '200 becomes -56.', v: { topic: 'conv', e1: 'div', e2: 'byte', e3: 'ns' } },
+    { t: 'Adding a number and a string', q: 'What if you look at "Strings and +" and evaluate the expression 1 + 2 + "3"?', d: '1 + 2 + "3" is neither "6" nor "123".', v: { topic: 'str', e1: 'div', e2: 'late', e3: 'ns' } },
   ],
   // The one line chosen by the settings: the type T of the variable r, the right-hand expression e (an expression tree), and the note written next to the code
   pick: function (c) {

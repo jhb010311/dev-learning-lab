@@ -8,12 +8,12 @@ Lab.register({
     { id: 'path', label: 'How that method is called', type: 'select', value: 'self', options: [['ext', 'Called from another bean (a controller)'], ['self', 'Called from another method of the same class (this)'], ['priv', 'Called from the same class + the method is private'], ['inject', 'The bean injects itself and calls through that reference'], ['split', 'The method is moved to another bean and called there']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A @Transactional method is called from within the same class. No transaction is applied.', v: { feat: 'tx', path: 'self' } },
-    { t: 'Calling from another bean', d: 'The call goes through the proxy, so the transaction is applied.', v: { feat: 'tx', path: 'ext' } },
-    { t: 'Moving the method to another bean', d: 'This is the most common way to solve the self-invocation problem.', v: { feat: 'tx', path: 'split' } },
-    { t: 'Putting it on a private method', d: 'The proxy cannot intercept the call.', v: { feat: 'tx', path: 'priv' } },
-    { t: 'Calling @Async from within the class', d: 'It does not run asynchronously, and the calling thread waits until it finishes.', v: { feat: 'async', path: 'self' } },
-    { t: 'Calling @Async from another bean', d: 'It runs on a separate thread, and the caller returns immediately.', v: { feat: 'async', path: 'ext' } },
+    { t: 'Default settings', q: 'What happens when a @Transactional method is called from another method of the same class (this)?', d: 'A @Transactional method is called from within the same class. No transaction is applied.', v: { feat: 'tx', path: 'self' } },
+    { t: 'Calling from another bean', q: 'What if the @Transactional method is called from another bean (a controller)?', d: 'The call goes through the proxy, so the transaction is applied.', v: { feat: 'tx', path: 'ext' } },
+    { t: 'Moving the method to another bean', q: 'What if the @Transactional method is moved to another bean and called there?', d: 'This is the most common way to solve the self-invocation problem.', v: { feat: 'tx', path: 'split' } },
+    { t: 'Putting it on a private method', q: 'What if the @Transactional method is private and is called from the same class?', d: 'The proxy cannot intercept the call.', v: { feat: 'tx', path: 'priv' } },
+    { t: 'Calling @Async from within the class', q: 'What if an @Async method is called from another method of the same class?', d: 'It does not run asynchronously, and the calling thread waits until it finishes.', v: { feat: 'async', path: 'self' } },
+    { t: 'Calling @Async from another bean', q: 'What if an @Async method is called from another bean (a controller)?', d: 'It runs on a separate thread, and the caller returns immediately.', v: { feat: 'async', path: 'ext' } },
   ],
   code: function (c) {
     var tx = c.feat === 'tx', ann = tx ? '@Transactional' : '@Async', m = tx ? 'saveAll' : 'sendMail', body = tx ? '        orderDao.insert(a);\n        orderDao.insert(b);\n        throw new IllegalStateException();   // fails partway' : '        mailClient.send(mail);               // takes 3 seconds';

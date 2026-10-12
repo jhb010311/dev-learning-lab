@@ -10,13 +10,13 @@ Lab.register({
     { id: 'n', label: 'Number of items', type: 'range', min: 2, max: 8, value: 3, step: 1, fmt: function (v) { return v + ' items'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'After a bulk UPDATE, reading the entity gives the old value, 1000.', v: { op: 'update', after: 'none', dirty: false, n: 3 } },
-    { t: 'Old value even after querying again', d: 'Even if you read it again with JPQL, the entity you already hold is returned as it is.', v: { op: 'update', after: 'jpql', dirty: false, n: 3 } },
-    { t: 'Query after em.clear()', d: 'If you empty the persistence context, you read the new value from the database.', v: { op: 'update', after: 'clear', dirty: false, n: 3 } },
-    { t: 'em.refresh', d: 'It overwrites only that one entity with the value in the database.', v: { op: 'update', after: 'refresh', dirty: false, n: 3 } },
-    { t: 'With an unflushed change', d: 'The change is sent to the database first, just before the bulk operation.', v: { op: 'update', after: 'none', dirty: true, n: 3 } },
-    { t: 'Changing them one by one', d: 'With 8 items, 8 UPDATEs are sent. A bulk operation sends 1.', v: { op: 'each', after: 'none', dirty: false, n: 8 } },
-    { t: 'em.find after a bulk DELETE', d: 'An item that was deleted from the database still comes back from em.find.', v: { op: 'delete', after: 'find', dirty: false, n: 3 } },
+    { t: 'Default settings', q: 'What price of item 1 do you read from the entity you already hold after a bulk UPDATE adds 500 to the price of all 3 items?', d: 'After a bulk UPDATE, reading the entity gives the old value, 1000.', v: { op: 'update', after: 'none', dirty: false, n: 3 } },
+    { t: 'Old value even after querying again', q: 'What if you query the list again with JPQL after the bulk UPDATE and read the price of item 1?', d: 'Even if you read it again with JPQL, the entity you already hold is returned as it is.', v: { op: 'update', after: 'jpql', dirty: false, n: 3 } },
+    { t: 'Query after em.clear()', q: 'What if you call em.clear() after the bulk UPDATE and then read item 1 with em.find?', d: 'If you empty the persistence context, you read the new value from the database.', v: { op: 'update', after: 'clear', dirty: false, n: 3 } },
+    { t: 'em.refresh', q: 'What if you call em.refresh(first) after the bulk UPDATE?', d: 'It overwrites only that one entity with the value in the database.', v: { op: 'update', after: 'refresh', dirty: false, n: 3 } },
+    { t: 'With an unflushed change', q: 'What if you change the price of item 1 to 5000 before the bulk UPDATE?', d: 'The change is sent to the database first, just before the bulk operation.', v: { op: 'update', after: 'none', dirty: true, n: 3 } },
+    { t: 'Changing them one by one', q: 'What if you change 8 items one by one with setPrice (dirty checking) instead of a bulk UPDATE?', d: 'With 8 items, 8 UPDATEs are sent. A bulk operation sends 1.', v: { op: 'each', after: 'none', dirty: false, n: 8 } },
+    { t: 'em.find after a bulk DELETE', q: 'What if you delete all items with a bulk DELETE and then read item 1 with em.find?', d: 'An item that was deleted from the database still comes back from em.find.', v: { op: 'delete', after: 'find', dirty: false, n: 3 } },
   ],
   code: function (c) {
     var sel = 'em.createQuery("select i from Item i order by i.id", Item.class).getResultList()';

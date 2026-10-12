@@ -19,8 +19,9 @@
 ## 어떻게 쓰나
 
 1. 위의 주소로 들어가 분야(Java, Spring, JPA, DB, 네트워크, 보안)를 고르고 실습 하나를 엽니다.
-2. **실행**을 누릅니다. 그림과 설명이 한 단계씩 넘어갑니다.
-3. 결과 아래의 "이렇게 바꿔 보세요"에서 다른 예시를 누르거나 설정을 직접 바꿔, 결과가 어떻게 달라지는지 비교합니다.
+2. 물음 목록에서 하나를 고릅니다. 그 물음에 맞게 설정이 바뀌고, 코드에서 달라진 곳이 표시됩니다.
+3. **실행**을 누릅니다. 그림과 설명이 한 단계씩 넘어가고, 결과가 그 물음의 답입니다.
+4. 다른 물음을 골라 결과를 비교하거나, "직접 조합해 보기"를 열어 설정을 직접 바꿔 봅니다.
 
 예를 들어 위 그림의 [트랜잭션 전파](https://jhb010311.github.io/dev-learning-lab/lab/txprop/) 실습에서는 전파 속성과 예외가 나는 위치를 바꿔 가며, 주문과 로그 가운데 무엇이 DB에 남는지를 봅니다.
 
@@ -91,7 +92,7 @@ node serve.js
 
 [![A lab screen: Transaction propagation](docs/img/lab-en.png)](https://jhb010311.github.io/dev-learning-lab/en/lab/txprop/)
 
-Dev Learning Lab is a free site for learning Java, Spring, JPA, database, networking, and security concepts **by changing settings and clicking Run**.
+Dev Learning Lab is a free site for learning Java, Spring, JPA, database, networking, and security concepts **by picking a question and clicking Run**.
 Instead of only reading about a concept, you watch step by step, with a diagram, how it behaves and what result it produces.
 
 - 161 labs and 591 quiz questions, in Korean and English.
@@ -103,8 +104,9 @@ Instead of only reading about a concept, you watch step by step, with a diagram,
 ### How to use it
 
 1. Open the site, choose a category (Java, Spring, JPA, Database, Networking, Security), and open a lab.
-2. Click **Run**. The diagram and the explanation advance one step at a time.
-3. Under the result, click another example in "Try these", or change the settings yourself, and compare how the result changes.
+2. Pick a question from the list. The settings change to match it, and the part of the code that changed is marked.
+3. Click **Run**. The diagram and the explanation advance one step at a time, and the result answers the question.
+4. Pick another question and compare the results, or open "Combine the settings yourself" to try your own combination.
 
 ### What it is, and what it is not
 

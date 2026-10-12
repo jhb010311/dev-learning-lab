@@ -14,11 +14,11 @@ Lab.register({
   ],
   fix: function (c) { return c.max < c.core ? { max: c.core } : null; },
   presets: [
-    { t: 'Default settings', d: 'Core pool size 2, maximum pool size 4, queue capacity 2, and 10 requests. Some requests are rejected.', v: { core: 2, max: 4, cap: 2, n: 10, work: 2, gap: 0.2, unb: false } },
-    { t: 'More threads only', d: 'Core pool size 4 and maximum pool size 8. See how the rejections and the waiting change.', v: { core: 4, max: 8, cap: 2, n: 10, work: 2, gap: 0.2, unb: false } },
-    { t: 'A longer queue only', d: 'The threads stay the same and only the queue capacity grows to 10. Fewer requests are rejected, but requests wait longer.', v: { core: 2, max: 4, cap: 10, n: 10, work: 2, gap: 0.2, unb: false } },
-    { t: 'An unbounded queue', d: 'Confirm that the maximum pool size is never used.', v: { core: 2, max: 4, cap: 2, n: 10, work: 2, gap: 0.2, unb: true } },
-    { t: 'Requests that finish quickly', d: 'Each request takes 0.5s. The same number of threads can now keep up.', v: { core: 2, max: 4, cap: 2, n: 10, work: 0.5, gap: 0.2, unb: false } },
+    { t: 'Default settings', q: 'What happens when 10 requests arrive at a thread pool with core pool size 2, maximum pool size 4, and queue capacity 2?', d: 'Core pool size 2, maximum pool size 4, queue capacity 2, and 10 requests. Some requests are rejected.', v: { core: 2, max: 4, cap: 2, n: 10, work: 2, gap: 0.2, unb: false } },
+    { t: 'More threads only', q: 'What if you increase the core pool size to 4 and the maximum pool size to 8?', d: 'Core pool size 4 and maximum pool size 8. See how the rejections and the waiting change.', v: { core: 4, max: 8, cap: 2, n: 10, work: 2, gap: 0.2, unb: false } },
+    { t: 'A longer queue only', q: 'What if you keep the thread counts the same and increase only the queue capacity to 10?', d: 'The threads stay the same and only the queue capacity grows to 10. Fewer requests are rejected, but requests wait longer.', v: { core: 2, max: 4, cap: 10, n: 10, work: 2, gap: 0.2, unb: false } },
+    { t: 'An unbounded queue', q: 'What if you use an unbounded queue?', d: 'Confirm that the maximum pool size is never used.', v: { core: 2, max: 4, cap: 2, n: 10, work: 2, gap: 0.2, unb: true } },
+    { t: 'Requests that finish quickly', q: 'What if you reduce the time to handle one request from 2.0s to 0.5s?', d: 'Each request takes 0.5s. The same number of threads can now keep up.', v: { core: 2, max: 4, cap: 2, n: 10, work: 0.5, gap: 0.2, unb: false } },
   ],
   code: function (c) {
     var q = c.unb ? 'new LinkedBlockingQueue<>());      // unbounded queue' : c.cap === 0 ? 'new SynchronousQueue<>());         // holds no waiting requests' : 'new ArrayBlockingQueue<>(' + c.cap + '));     // queue capacity ' + c.cap + '';

@@ -9,13 +9,13 @@ Lab.register({
     { id: 'orphan', label: 'orphanRemoval = true', type: 'check', value: false, hint: 'This setting tells JPA to also delete from the DB a child that has been disconnected from its parent.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'Persist only the post, with no cascade. There is no exception, but only the comments are left out of the save.', v: { act: 'persist', cas: 'none', orphan: false } },
-    { t: 'CascadeType.PERSIST', d: 'The persist is passed on to the comments, so 3 INSERTs are sent.', v: { act: 'persist', cas: 'PERSIST', orphan: false } },
-    { t: 'Remove the post without cascade', d: 'The comments point to the post, so the DB refuses the deletion.', v: { act: 'remove', cas: 'none', orphan: false } },
-    { t: 'Remove with CascadeType.REMOVE', d: 'It deletes the comments first and then the post.', v: { act: 'remove', cas: 'REMOVE', orphan: false } },
-    { t: 'ALL, but you only take one out of the list', d: 'Even with CascadeType.ALL, no DELETE is sent.', v: { act: 'orphan', cas: 'ALL', orphan: false } },
-    { t: 'orphanRemoval = true', d: 'A DELETE is sent for the comment you took out of the list.', v: { act: 'orphan', cas: 'ALL', orphan: true } },
-    { t: 'Only orphanRemoval on, and remove the post', d: 'The comments are deleted together even though you did not write cascade.', v: { act: 'remove', cas: 'none', orphan: true } },
+    { t: 'Default settings', q: 'What happens when you persist only a post that holds two comments, and cascade is not written on @OneToMany?', d: 'Persist only the post, with no cascade. There is no exception, but only the comments are left out of the save.', v: { act: 'persist', cas: 'none', orphan: false } },
+    { t: 'CascadeType.PERSIST', q: 'What if you set cascade of @OneToMany to CascadeType.PERSIST?', d: 'The persist is passed on to the comments, so 3 INSERTs are sent.', v: { act: 'persist', cas: 'PERSIST', orphan: false } },
+    { t: 'Remove the post without cascade', q: 'What if you remove a post that already has two comments, and cascade is not written?', d: 'The comments point to the post, so the DB refuses the deletion.', v: { act: 'remove', cas: 'none', orphan: false } },
+    { t: 'Remove with CascadeType.REMOVE', q: 'What if cascade is CascadeType.REMOVE and you remove the post?', d: 'It deletes the comments first and then the post.', v: { act: 'remove', cas: 'REMOVE', orphan: false } },
+    { t: 'ALL, but you only take one out of the list', q: 'What if cascade is CascadeType.ALL and you only take one comment out of the comment list?', d: 'Even with CascadeType.ALL, no DELETE is sent.', v: { act: 'orphan', cas: 'ALL', orphan: false } },
+    { t: 'orphanRemoval = true', q: 'What if cascade is CascadeType.ALL, orphanRemoval = true is on, and you take one comment out of the comment list?', d: 'A DELETE is sent for the comment you took out of the list.', v: { act: 'orphan', cas: 'ALL', orphan: true } },
+    { t: 'Only orphanRemoval on, and remove the post', q: 'What if you do not write cascade, turn on only orphanRemoval = true, and remove the post?', d: 'The comments are deleted together even though you did not write cascade.', v: { act: 'remove', cas: 'none', orphan: true } },
   ],
   code: function (c) {
     var opt = 'mappedBy = "post"' + (c.cas !== 'none' ? ', cascade = CascadeType.' + c.cas : '') + (c.orphan ? ', orphanRemoval = true' : '');

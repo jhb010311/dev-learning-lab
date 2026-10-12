@@ -9,11 +9,11 @@ Lab.register({
     { id: 'loss', label: 'One packet is lost in transit', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'HTTP/1.1. Six connections fetch six files at a time in five batches, so the requests wait in line four times.', v: { ver: '1.1', n: 30, loss: false } },
-    { t: 'Switch to HTTP/2', d: 'One connection fetches all 30 files at the same time.', v: { ver: '2', n: 30, loss: false } },
-    { t: 'Packet loss with HTTP/2', d: 'When one packet disappears, all the files stop together.', v: { ver: '2', n: 30, loss: true } },
-    { t: 'Packet loss with HTTP/3', d: 'Only the one file that the packet belongs to waits.', v: { ver: '3', n: 30, loss: true } },
-    { t: 'HTTP/1.1, 60 files', d: 'The more files there are, the more times the requests wait in line.', v: { ver: '1.1', n: 60, loss: false } },
+    { t: 'Default settings', q: 'How does the transfer proceed when you fetch 30 files over HTTP/1.1?', d: 'HTTP/1.1. Six connections fetch six files at a time in five batches, so the requests wait in line four times.', v: { ver: '1.1', n: 30, loss: false } },
+    { t: 'Switch to HTTP/2', q: 'What if you change the HTTP version to HTTP/2?', d: 'One connection fetches all 30 files at the same time.', v: { ver: '2', n: 30, loss: false } },
+    { t: 'Packet loss with HTTP/2', q: 'What if you switch to HTTP/2 and one packet is lost in transit?', d: 'When one packet disappears, all the files stop together.', v: { ver: '2', n: 30, loss: true } },
+    { t: 'Packet loss with HTTP/3', q: 'What if you switch to HTTP/3 and one packet is lost in transit?', d: 'Only the one file that the packet belongs to waits.', v: { ver: '3', n: 30, loss: true } },
+    { t: 'HTTP/1.1, 60 files', q: 'What if you stay on HTTP/1.1 and increase the number of files to fetch to 60?', d: 'The more files there are, the more times the requests wait in line.', v: { ver: '1.1', n: 60, loss: false } },
   ],
   code: function (c) {
     return '# application.yml\nserver.http2.enabled: ' + (c.ver === '1.1' ? 'false' : 'true') + '        # HTTP/2 (needs TLS)\n\n# nginx\nserver {\n    listen 443 ssl' + (c.ver === '2' ? ';\n    http2 on' : c.ver === '3' ? ';\n    listen 443 quic;                 # HTTP/3 is QUIC over UDP\n    http2 on' : '') + ';\n    ...\n}\n\n<!-- Files requested by one page: ' + c.n + ' -->';

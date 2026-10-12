@@ -13,7 +13,7 @@ module.exports = function (o) {
   const { EN, shell, js, explain, terms, list, kb, curri, site, ver, basics } = o;
   const out = path.join(__dirname, 'docs', EN ? 'en' : ''), lang = EN ? 'en' : 'ko';
   const T = EN ? {
-    study: 'Learn', basics: 'Fundamentals', quiz: 'Quiz', quizAll: 'Quiz: all categories', lead: 'Change the settings, click Run, and watch how each concept behaves.',
+    study: 'Learn', basics: 'Fundamentals', quiz: 'Quiz', quizAll: 'Quiz: all categories', lead: 'Pick a question, click Run, and watch how each concept behaves.',
     quizDesc: 'Questions at four levels: Basics, Beginner, Intermediate, and Applied. Questions you miss come back at spaced intervals.',
     concepts: 'Concepts in this lab', presets: 'Try these', run: 'Running with the default settings', result: 'Result of this run', code: 'Code', assume: 'Assumptions of this model',
     prev: 'Previous lab', next: 'Next lab', nojs: 'The labs on this site need JavaScript to run. The same content is written out below.',

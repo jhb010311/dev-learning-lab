@@ -9,12 +9,12 @@ Lab.register({
     { id: 'dest', label: 'Address that Location points to', type: 'select', value: 'ok', options: [['ok', '/orders responds normally'], ['loop', '/orders also points back to /order (they point to each other)']], hint: 'If a configuration mistake makes two addresses point to each other, the redirect never ends.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'The server responds to a POST with 302. The next request becomes a GET and the body is lost.', v: { code: '302', m: 'POST', dest: 'ok' } },
-    { t: 'With 307, the POST stays a POST', d: 'The request is sent again to the new address without changing the method or the body.', v: { code: '307', m: 'POST', dest: 'ok' } },
-    { t: '303: get the result with GET', d: 'This is the approach used to send the user to a result page after a form is submitted.', v: { code: '303', m: 'POST', dest: 'ok' } },
-    { t: 'Sending a PUT with 301', d: 'Only a POST is changed to GET. A PUT goes on unchanged.', v: { code: '301', m: 'PUT', dest: 'ok' } },
-    { t: 'Permanent redirect 308', d: 'It is a permanent move like 301, but it keeps the method.', v: { code: '308', m: 'POST', dest: 'ok' } },
-    { t: 'Redirects that point to each other', d: 'There is no end, so the client stops by itself at a limit it has set.', v: { code: '302', m: 'GET', dest: 'loop' } },
+    { t: 'Default settings', q: 'When you send POST /order (body: item=keyboard) and the server responds with 302 Found pointing to /orders, how does the next request go out?', d: 'The server responds to a POST with 302. The next request becomes a GET and the body is lost.', v: { code: '302', m: 'POST', dest: 'ok' } },
+    { t: 'With 307, the POST stays a POST', q: 'What if the server responds with the status code 307 Temporary Redirect?', d: 'The request is sent again to the new address without changing the method or the body.', v: { code: '307', m: 'POST', dest: 'ok' } },
+    { t: '303: get the result with GET', q: 'What if the server responds with the status code 303 See Other?', d: 'This is the approach used to send the user to a result page after a form is submitted.', v: { code: '303', m: 'POST', dest: 'ok' } },
+    { t: 'Sending a PUT with 301', q: 'What if the status code is 301 Moved Permanently and the first request is PUT /order?', d: 'Only a POST is changed to GET. A PUT goes on unchanged.', v: { code: '301', m: 'PUT', dest: 'ok' } },
+    { t: 'Permanent redirect 308', q: 'What if the server responds with the status code 308 Permanent Redirect?', d: 'It is a permanent move like 301, but it keeps the method.', v: { code: '308', m: 'POST', dest: 'ok' } },
+    { t: 'Redirects that point to each other', q: 'What if the first request is GET /order and /orders also points back to /order?', d: 'There is no end, so the client stops by itself at a limit it has set.', v: { code: '302', m: 'GET', dest: 'loop' } },
   ],
   CODES: {
     '301': { name: 'Moved Permanently', kind: 'Permanent', rule: 'May change POST to GET (allowed)' },

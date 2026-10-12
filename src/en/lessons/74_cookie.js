@@ -11,12 +11,12 @@ Lab.register({
     { id: 'later', label: 'When the next request is sent', type: 'select', value: 'now', options: [['now', 'Right after login'], ['wait', '10s later'], ['restart', '10s later, after closing the browser and opening it again']], show: function (c) { return c.give; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'The cookie is attached automatically to every request to the same site.', v: { give: true, path: '/', http: true, life: 'session', later: 'now' } },
-    { t: 'Without a cookie', d: 'Even for a request right after the login, the server does not know who sent it.', v: { give: false } },
-    { t: 'Narrow the path to /shop', d: 'The cookie is not attached to a request for /orders.', v: { give: true, path: '/shop', http: true, life: 'session', later: 'now' } },
-    { t: 'Turn off HttpOnly', d: 'JavaScript on the page can read the value of the cookie.', v: { give: true, path: '/', http: false, life: 'session', later: 'now' } },
-    { t: 'Lifetime of 3s, request after 10s', d: 'The browser deletes an expired cookie.', v: { give: true, path: '/', http: true, life: 'short', later: 'wait' } },
-    { t: 'Close the browser and open it again', d: 'A cookie with no lifetime specified disappears. Change it to 1 hour and compare.', v: { give: true, path: '/', http: true, life: 'session', later: 'restart' } },
+    { t: 'Default settings', q: 'What does the server receive from a request sent right after login, when the login response sets a cookie with Path=/ and HttpOnly on?', d: 'The cookie is attached automatically to every request to the same site.', v: { give: true, path: '/', http: true, life: 'session', later: 'now' } },
+    { t: 'Without a cookie', q: 'What if the login response does not set a cookie?', d: 'Even for a request right after the login, the server does not know who sent it.', v: { give: false } },
+    { t: 'Narrow the path to /shop', q: 'What if you change the path to Path=/shop (only under /shop)?', d: 'The cookie is not attached to a request for /orders.', v: { give: true, path: '/shop', http: true, life: 'session', later: 'now' } },
+    { t: 'Turn off HttpOnly', q: 'What if you turn off HttpOnly (so that JavaScript cannot read it)?', d: 'JavaScript on the page can read the value of the cookie.', v: { give: true, path: '/', http: false, life: 'session', later: 'now' } },
+    { t: 'Lifetime of 3s, request after 10s', q: 'What if you set the lifetime to Max-Age=3 (3s) and send the next request 10s later?', d: 'The browser deletes an expired cookie.', v: { give: true, path: '/', http: true, life: 'short', later: 'wait' } },
+    { t: 'Close the browser and open it again', q: 'What if the next request is sent 10s later, after closing the browser and opening it again?', d: 'A cookie with no lifetime specified disappears. Change it to 1 hour and compare.', v: { give: true, path: '/', http: true, life: 'session', later: 'restart' } },
   ],
   // A pure calculation used to check against real browser results: is the cookie sent in each situation?
   sent: function (c) {

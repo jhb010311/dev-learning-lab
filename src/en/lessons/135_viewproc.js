@@ -9,12 +9,12 @@ Lab.register({
     { id: 'qty', label: 'Order quantity (the stock is 10)', type: 'select', value: '3', options: [['3', '3 items'], ['6', '6 items'], ['12', '12 items (more than the stock)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'It is one INSERT statement, yet the stock goes down and a log row appears.', v: { how: 'insert', trig: true, qty: '3' } },
-    { t: 'Without the trigger', d: 'The same INSERT, but the stock stays the same.', v: { how: 'insert', trig: false, qty: '3' } },
-    { t: 'Ordering with the procedure', d: 'One CALL runs three statements inside the database.', v: { how: 'proc', trig: false, qty: '3' } },
-    { t: 'Both the procedure and the trigger', d: 'If they do not know about each other, the stock is reduced twice.', v: { how: 'proc', trig: true, qty: '3' } },
-    { t: 'Ordering more than the stock', d: 'You insert into orders, but you get a constraint error from product.', v: { how: 'insert', trig: true, qty: '12' } },
-    { t: 'Both, and an order of 6', d: 'The order fails, but the stock still goes down.', v: { how: 'proc', trig: true, qty: '6' } },
+    { t: 'Default settings', q: 'What happens to the stock when you order 3 of the 10 items with one INSERT INTO orders statement and a trigger is defined on orders?', d: 'It is one INSERT statement, yet the stock goes down and a log row appears.', v: { how: 'insert', trig: true, qty: '3' } },
+    { t: 'Without the trigger', q: 'What if no trigger is defined on the orders table?', d: 'The same INSERT, but the stock stays the same.', v: { how: 'insert', trig: false, qty: '3' } },
+    { t: 'Ordering with the procedure', q: 'What if you order with CALL place_order and no trigger is defined on the orders table?', d: 'One CALL runs three statements inside the database.', v: { how: 'proc', trig: false, qty: '3' } },
+    { t: 'Both the procedure and the trigger', q: 'What if you order with CALL place_order and the trigger stays defined on the orders table?', d: 'If they do not know about each other, the stock is reduced twice.', v: { how: 'proc', trig: true, qty: '3' } },
+    { t: 'Ordering more than the stock', q: 'What if you change the order quantity to 12 items, which is more than the stock?', d: 'You insert into orders, but you get a constraint error from product.', v: { how: 'insert', trig: true, qty: '12' } },
+    { t: 'Both, and an order of 6', q: 'What if you order 6 items with CALL place_order while the trigger is defined?', d: 'The order fails, but the stock still goes down.', v: { how: 'proc', trig: true, qty: '6' } },
   ],
   code: function (c) {
     var s = "-- product table: (1, 'keyboard', stock 10)\n-- The stock column has a CHECK (stock >= 0) constraint\n\nCREATE VIEW v_stock AS            -- View: stores only the SELECT statement\n  SELECT name, stock FROM product;\nCREATE TABLE stock_copy AS        -- Copy: stores the current result as rows\n  SELECT name, stock FROM product;\n";

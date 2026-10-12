@@ -10,13 +10,13 @@ Lab.register({
   ],
   fix: function (c) { return !c.recv && c.net !== 'ok' ? { net: 'ok' } : null; },
   presets: [
-    { t: 'Default settings', d: 'TCP. The data is sent in three pieces, but the receiver reads it as one piece.', v: { proto: 'tcp', recv: true, net: 'ok' } },
-    { t: 'The same data with UDP', d: 'Three pieces arrive, exactly as they were sent.', v: { proto: 'udp', recv: true, net: 'ok' } },
-    { t: 'UDP with no receiving program', d: 'All three sends succeed. The data disappears.', v: { proto: 'udp', recv: false, net: 'ok' } },
-    { t: 'TCP with no receiving program', d: 'The connection fails first, so nothing can be sent.', v: { proto: 'tcp', recv: false, net: 'ok' } },
-    { t: 'When UDP loses one', d: 'The receiver gets it with a piece missing, and the sender does not know.', v: { proto: 'udp', recv: true, net: 'loss' } },
-    { t: 'When UDP reorders', d: 'The pieces are received in the order they arrived.', v: { proto: 'udp', recv: true, net: 'reorder' } },
-    { t: 'When TCP loses one', d: 'The operating system sends it again and fills the gap. The program does not know.', v: { proto: 'tcp', recv: true, net: 'loss' } },
+    { t: 'Default settings', q: 'When the receiving program is waiting on port 9000 and you send data in three pieces over TCP, does the receiver read three pieces?', d: 'TCP. The data is sent in three pieces, but the receiver reads it as one piece.', v: { proto: 'tcp', recv: true, net: 'ok' } },
+    { t: 'The same data with UDP', q: 'What if you change the protocol to UDP?', d: 'Three pieces arrive, exactly as they were sent.', v: { proto: 'udp', recv: true, net: 'ok' } },
+    { t: 'UDP with no receiving program', q: 'What if you use UDP and no receiving program is waiting on port 9000?', d: 'All three sends succeed. The data disappears.', v: { proto: 'udp', recv: false, net: 'ok' } },
+    { t: 'TCP with no receiving program', q: 'What if you use TCP and no receiving program is waiting on port 9000?', d: 'The connection fails first, so nothing can be sent.', v: { proto: 'tcp', recv: false, net: 'ok' } },
+    { t: 'When UDP loses one', q: 'What if you use UDP and the second one sent is lost on the way?', d: 'The receiver gets it with a piece missing, and the sender does not know.', v: { proto: 'udp', recv: true, net: 'loss' } },
+    { t: 'When UDP reorders', q: 'What if you use UDP and the second one arrives later than the third?', d: 'The pieces are received in the order they arrived.', v: { proto: 'udp', recv: true, net: 'reorder' } },
+    { t: 'When TCP loses one', q: 'What if you use TCP and the second one sent is lost on the way?', d: 'The operating system sends it again and fills the gap. The program does not know.', v: { proto: 'tcp', recv: true, net: 'loss' } },
   ],
   code: function (c) {
     if (c.proto === 'tcp') return '// Node.js (net module): TCP\nconst socket = net.connect(9000, \'127.0.0.1\');   // establish the connection first\nsocket.on(\'connect\', async () => {               // data can be sent only after it is connected\n  socket.write(\'AB\');  await sleep(50);           // three times, at 0.05-second intervals\n  socket.write(\'CD\');  await sleep(50);\n  socket.write(\'EF\');\n});\nsocket.on(\'error\', e => console.log(e.code));    // a connection failure arrives here\n\n' + (c.recv ? '// Receiving program: starts reading after all three have arrived\nnet.createServer({ pauseOnConnect: true }, conn => {\n  conn.on(\'data\', d => console.log(d.toString()));\n  setTimeout(() => conn.resume(), 500);\n}).listen(9000, \'127.0.0.1\');' : '// The receiving program was not started (no program is listening on port 9000)');

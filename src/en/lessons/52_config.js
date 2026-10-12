@@ -11,11 +11,11 @@ Lab.register({
     { id: 'cli', label: 'Command-line argument --app.timeout=9000', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'Both application.yml and the prod file have the value. The prod file wins.', v: { yml: true, prof: true, env: false, sys: false, cli: false } },
-    { t: 'Adding an environment variable', d: 'An environment variable takes precedence over the files. This is a common approach in container deployments.', v: { yml: true, prof: true, env: true, sys: false, cli: false } },
-    { t: 'Adding a command-line argument too', d: 'Command-line arguments have the highest precedence.', v: { yml: true, prof: true, env: true, sys: true, cli: true } },
-    { t: 'application.yml only', d: 'When no other place has the value, the value in application.yml is used.', v: { yml: true, prof: false, env: false, sys: false, cli: false } },
-    { t: 'Not set anywhere', d: 'The default value written in the code is used.', v: { yml: false, prof: false, env: false, sys: false, cli: false } },
+    { t: 'Default settings', q: 'If app.timeout is 3000 in application.yml and 5000 in application-prod.yml with the prod profile active, which value is used?', d: 'Both application.yml and the prod file have the value. The prod file wins.', v: { yml: true, prof: true, env: false, sys: false, cli: false } },
+    { t: 'Adding an environment variable', q: 'What if you also set the environment variable APP_TIMEOUT=7000?', d: 'An environment variable takes precedence over the files. This is a common approach in container deployments.', v: { yml: true, prof: true, env: true, sys: false, cli: false } },
+    { t: 'Adding a command-line argument too', q: 'What if you set APP_TIMEOUT=7000, -Dapp.timeout=8000, and --app.timeout=9000 all at once?', d: 'Command-line arguments have the highest precedence.', v: { yml: true, prof: true, env: true, sys: true, cli: true } },
+    { t: 'application.yml only', q: 'What if you turn off app.timeout: 5000 in application-prod.yml so that only application.yml is left?', d: 'When no other place has the value, the value in application.yml is used.', v: { yml: true, prof: false, env: false, sys: false, cli: false } },
+    { t: 'Not set anywhere', q: 'What if you turn off both app.timeout: 3000 in application.yml and app.timeout: 5000 in application-prod.yml?', d: 'The default value written in the code is used.', v: { yml: false, prof: false, env: false, sys: false, cli: false } },
   ],
   SRC: [['cli', 'Command-line argument (--app.timeout=9000)', '9000'], ['sys', 'JVM system property (-Dapp.timeout=8000)', '8000'], ['env', 'OS environment variable (APP_TIMEOUT=7000)', '7000'], ['prof', 'application-prod.yml (profile-specific file)', '5000'], ['yml', 'application.yml (not profile-specific)', '3000']],
   code: function (c) {

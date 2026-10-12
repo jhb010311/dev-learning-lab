@@ -9,13 +9,13 @@ Lab.register({
     { id: 'rt', label: 'Set a read timeout (3 seconds)', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'Only the connect timeout is set. It does not cover a slow response, so the thread waits 10 seconds.', v: { server: 'slow', ct: true, rt: false } },
-    { t: 'Setting the read timeout as well', d: 'If the response does not arrive within 3 seconds, the thread stops waiting.', v: { server: 'slow', ct: true, rt: true } },
-    { t: 'Server that does not answer, no timeouts', d: 'The thread stays occupied until the operating system gives up.', v: { server: 'noanswer', ct: false, rt: false } },
-    { t: 'Server that does not answer, read timeout only', d: 'The read timeout is of no use during the connection phase.', v: { server: 'noanswer', ct: false, rt: true } },
-    { t: 'Server that does not answer, connect timeout', d: 'The call gives up after 2 seconds and releases the thread.', v: { server: 'noanswer', ct: true, rt: true } },
-    { t: 'When the server program is not running', d: 'The refusal comes back right away, so the call does not wait for a timeout.', v: { server: 'refused', ct: true, rt: true } },
-    { t: 'When a 404 or 500 comes back', d: 'The response arrived, but in the calling code it shows up as an exception.', v: { server: 'e404', ct: true, rt: true } },
+    { t: 'Default settings', q: 'What happens when you call a server that accepts the connection but responds after 10 seconds, with only a 2-second connect timeout set?', d: 'Only the connect timeout is set. It does not cover a slow response, so the thread waits 10 seconds.', v: { server: 'slow', ct: true, rt: false } },
+    { t: 'Setting the read timeout as well', q: 'What if you also set a read timeout of 3 seconds?', d: 'If the response does not arrive within 3 seconds, the thread stops waiting.', v: { server: 'slow', ct: true, rt: true } },
+    { t: 'Server that does not answer, no timeouts', q: 'What if the server gives no answer to the connection request and you set no connect timeout?', d: 'The thread stays occupied until the operating system gives up.', v: { server: 'noanswer', ct: false, rt: false } },
+    { t: 'Server that does not answer, read timeout only', q: 'What if the server gives no answer to the connection request, and you set no connect timeout but set a 3-second read timeout?', d: 'The read timeout is of no use during the connection phase.', v: { server: 'noanswer', ct: false, rt: true } },
+    { t: 'Server that does not answer, connect timeout', q: 'What if the server gives no answer to the connection request, and you set a 2-second connect timeout and a 3-second read timeout?', d: 'The call gives up after 2 seconds and releases the thread.', v: { server: 'noanswer', ct: true, rt: true } },
+    { t: 'When the server program is not running', q: 'What if the server program is not running and refuses the connection, and you also set a 3-second read timeout?', d: 'The refusal comes back right away, so the call does not wait for a timeout.', v: { server: 'refused', ct: true, rt: true } },
+    { t: 'When a 404 or 500 comes back', q: 'What if the server responds with 404 right away and a 3-second read timeout is set?', d: 'The response arrived, but in the calling code it shows up as an exception.', v: { server: 'e404', ct: true, rt: true } },
   ],
   code: function (c) {
     return 'SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();\n'

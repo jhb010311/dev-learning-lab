@@ -11,12 +11,12 @@ Lab.register({
     { id: 'down', label: 'One server dies', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: '1,000 requests per second with 2 servers. The servers cannot keep up.', v: { rps: 1000, n: 2, spec: '400', db: '2000', down: false } },
-    { t: 'Go to 3 servers (scale out)', d: 'Add one more server of the same spec.', v: { rps: 1000, n: 3, spec: '400', db: '2000', down: false } },
-    { t: 'Double the server spec (scale up)', d: 'The number of servers stays at 2; the performance of each one goes up.', v: { rps: 1000, n: 2, spec: '800', db: '2000', down: false } },
-    { t: 'Keep adding servers', d: '3,000 requests per second with 8 servers. This time the database becomes the bottleneck.', v: { rps: 3000, n: 8, spec: '400', db: '2000', down: false } },
-    { t: '1 of 3 servers fails', d: 'The remaining 2 share the requests. If they have no spare capacity, they overflow together.', v: { rps: 1000, n: 3, spec: '400', db: '2000', down: true } },
-    { t: 'Failure with only 1 server', d: 'There is no server left to accept requests, so the whole service stops.', v: { rps: 300, n: 1, spec: '400', db: '2000', down: true } },
+    { t: 'Default settings', q: 'What happens when 1000 requests per second arrive at 2 servers of 400 requests per second each and a database of 2,000 requests per second?', d: '1,000 requests per second with 2 servers. The servers cannot keep up.', v: { rps: 1000, n: 2, spec: '400', db: '2000', down: false } },
+    { t: 'Go to 3 servers (scale out)', q: 'What if you increase the number of application servers to 3?', d: 'Add one more server of the same spec.', v: { rps: 1000, n: 3, spec: '400', db: '2000', down: false } },
+    { t: 'Double the server spec (scale up)', q: 'What if you keep 2 servers but change one server to the double spec (800 requests per second)?', d: 'The number of servers stays at 2; the performance of each one goes up.', v: { rps: 1000, n: 2, spec: '800', db: '2000', down: false } },
+    { t: 'Keep adding servers', q: 'What if 3000 requests per second arrive and you increase the number of application servers to 8?', d: '3,000 requests per second with 8 servers. This time the database becomes the bottleneck.', v: { rps: 3000, n: 8, spec: '400', db: '2000', down: false } },
+    { t: '1 of 3 servers fails', q: 'What if you have 3 application servers and one server dies?', d: 'The remaining 2 share the requests. If they have no spare capacity, they overflow together.', v: { rps: 1000, n: 3, spec: '400', db: '2000', down: true } },
+    { t: 'Failure with only 1 server', q: 'What if 300 requests per second arrive at only 1 server and that server dies?', d: 'There is no server left to accept requests, so the whole service stops.', v: { rps: 300, n: 1, spec: '400', db: '2000', down: true } },
   ],
   code: function (c) {
     var s = '# Load balancer settings (nginx example)\nupstream app {\n';

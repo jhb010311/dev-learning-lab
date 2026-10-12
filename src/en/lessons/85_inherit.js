@@ -10,12 +10,12 @@ Lab.register({
     { id: 'sm', label: 'describe() in Dog calls super.describe()', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'The superclass constructor calls describe(). sound is assigned "Woof", yet sound=null is printed.', v: { pctor: 'arg', sup: 'arg', pcall: true, sm: false } },
-    { t: 'Only the order of execution', d: 'The order is the superclass constructor, the field initializer of the subclass, and then the body of the subclass constructor.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: false } },
-    { t: 'Without super', d: 'The compiler inserts super(), which calls Animal() of the superclass.', v: { pctor: 'noarg', sup: 'omit', pcall: false, sm: false } },
-    { t: 'Without super when the superclass has no Animal()', d: 'The automatically inserted super() has no constructor to call, so this is a compile-time error.', v: { pctor: 'arg', sup: 'omit', pcall: false, sm: false } },
-    { t: 'Calling the superclass method too, with super.describe()', d: 'Inside the overriding method, the original behavior of the superclass runs first.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: true } },
-    { t: 'When the superclass has two constructors', d: 'The superclass constructor that matches the arguments passed to super is selected.', v: { pctor: 'both', sup: 'omit', pcall: false, sm: true } },
+    { t: 'Default settings', q: 'In what order does new Dog() run when the Animal constructor calls describe() and the first line of Dog() is super("Buddy");?', d: 'The superclass constructor calls describe(). sound is assigned "Woof", yet sound=null is printed.', v: { pctor: 'arg', sup: 'arg', pcall: true, sm: false } },
+    { t: 'Only the order of execution', q: 'What if you turn off the call to describe() in the Animal constructor?', d: 'The order is the superclass constructor, the field initializer of the subclass, and then the body of the subclass constructor.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: false } },
+    { t: 'Without super', q: 'What if Animal declares only Animal(), Dog() does not write super, and the Animal constructor does not call describe()?', d: 'The compiler inserts super(), which calls Animal() of the superclass.', v: { pctor: 'noarg', sup: 'omit', pcall: false, sm: false } },
+    { t: 'Without super when the superclass has no Animal()', q: 'What if Animal declares only Animal(String name), Dog() does not write super, and the Animal constructor does not call describe()?', d: 'The automatically inserted super() has no constructor to call, so this is a compile-time error.', v: { pctor: 'arg', sup: 'omit', pcall: false, sm: false } },
+    { t: 'Calling the superclass method too, with super.describe()', q: 'What if describe() in Dog calls super.describe() and the Animal constructor does not call describe()?', d: 'Inside the overriding method, the original behavior of the superclass runs first.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: true } },
+    { t: 'When the superclass has two constructors', q: 'What if Animal declares Animal() and Animal(String name), Dog() does not write super, and describe() in Dog calls super.describe()?', d: 'The superclass constructor that matches the arguments passed to super is selected.', v: { pctor: 'both', sup: 'omit', pcall: false, sm: true } },
   ],
   code: function (c) {
     var bad = this.bad(c), call = c.pcall ? '        describe();                // calls an overridden method from the constructor\n' : '';

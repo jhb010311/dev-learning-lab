@@ -11,13 +11,13 @@ Lab.register({
     { id: 'rf', label: 'Specify rollbackFor = Exception.class', type: 'check', value: false, show: function (c) { return c.ex !== 'none' && c.type === 'chk'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'REQUIRED, with an unchecked exception in the inner method. The order and the log are rolled back together.', v: { prop: 'REQUIRED', ex: 'inner', type: 'rt', catch: false, rf: false } },
-    { t: 'Rolled back even though the exception is caught', d: 'With REQUIRED, catch the exception from the inner method.', v: { prop: 'REQUIRED', ex: 'inner', type: 'rt', catch: true, rf: false } },
-    { t: 'Keeping a log failure from ruining the order', d: 'Separate the log with REQUIRES_NEW and catch the exception.', v: { prop: 'REQUIRES_NEW', ex: 'inner', type: 'rt', catch: true, rf: false } },
-    { t: 'Keeping the log even when the order fails', d: 'With REQUIRES_NEW, the outer method fails.', v: { prop: 'REQUIRES_NEW', ex: 'outer', type: 'rt', catch: false, rf: false } },
-    { t: 'How NESTED differs', d: 'When the outer method fails, the inner work is rolled back with it. Compare this with the example just above.', v: { prop: 'NESTED', ex: 'outer', type: 'rt', catch: false, rf: false } },
-    { t: 'A checked exception does not cause a rollback', d: 'The exception leaves the method, yet the order and the log are committed.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: false } },
-    { t: 'Specifying rollbackFor', d: 'The transaction is rolled back on a checked exception too.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: true } },
+    { t: 'Default settings', q: 'What happens when the inner method (saveLog) throws an unchecked exception and both methods are joined with REQUIRED?', d: 'REQUIRED, with an unchecked exception in the inner method. The order and the log are rolled back together.', v: { prop: 'REQUIRED', ex: 'inner', type: 'rt', catch: false, rf: false } },
+    { t: 'Rolled back even though the exception is caught', q: 'What if you keep REQUIRED and the outer method catches the inner exception with try-catch?', d: 'With REQUIRED, catch the exception from the inner method.', v: { prop: 'REQUIRED', ex: 'inner', type: 'rt', catch: true, rf: false } },
+    { t: 'Keeping a log failure from ruining the order', q: 'What if you change the propagation setting to REQUIRES_NEW and the outer method catches the inner exception with try-catch?', d: 'Separate the log with REQUIRES_NEW and catch the exception.', v: { prop: 'REQUIRES_NEW', ex: 'inner', type: 'rt', catch: true, rf: false } },
+    { t: 'Keeping the log even when the order fails', q: 'What if you use REQUIRES_NEW and the exception is thrown in the outer method after the inner call returns?', d: 'With REQUIRES_NEW, the outer method fails.', v: { prop: 'REQUIRES_NEW', ex: 'outer', type: 'rt', catch: false, rf: false } },
+    { t: 'How NESTED differs', q: 'What if you use NESTED and the exception is thrown in the outer method after the inner call returns?', d: 'When the outer method fails, the inner work is rolled back with it. Compare this with the example just above.', v: { prop: 'NESTED', ex: 'outer', type: 'rt', catch: false, rf: false } },
+    { t: 'A checked exception does not cause a rollback', q: 'What if the exception is a checked exception, IOException?', d: 'The exception leaves the method, yet the order and the log are committed.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: false } },
+    { t: 'Specifying rollbackFor', q: 'What if the exception is a checked exception, IOException, and you specify rollbackFor = Exception.class?', d: 'The transaction is rolled back on a checked exception too.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: true } },
   ],
   code: function (c) {
     var chk = c.ex !== 'none' && c.type === 'chk', rf = chk && c.rf, E = chk ? 'IOException' : 'IllegalStateException', ct = c.ex === 'inner' && c.catch;

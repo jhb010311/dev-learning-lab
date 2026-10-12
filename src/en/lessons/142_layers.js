@@ -8,11 +8,11 @@ Lab.register({
     { id: 'mtu', label: 'Largest size that fits in one frame (MTU)', type: 'select', value: '1500', options: [['1500', '1500 bytes (Ethernet default)'], ['1400', '1400 bytes (example of a narrower link)']], hint: 'The MTU is the largest IP packet that the link layer can carry in one frame.' },
   ],
   presets: [
-    { t: 'Default settings', d: '1500 bytes with an MTU of 1500. Even though the size equals the MTU, the message becomes two pieces.', v: { size: '1500', mtu: '1500' } },
-    { t: 'Exactly one piece', d: '1460 bytes become exactly 1500 bytes once the headers are added.', v: { size: '1460', mtu: '1500' } },
-    { t: 'Short request', d: '300 bytes. It is not split; only the headers are added.', v: { size: '300', mtu: '1500' } },
-    { t: 'Long data', d: '10000 bytes is split into 7 pieces, and each piece gets its own headers.', v: { size: '10000', mtu: '1500' } },
-    { t: 'A smaller MTU', d: 'The same 1460 bytes now become two pieces.', v: { size: '1460', mtu: '1400' } },
+    { t: 'Default settings', q: 'How many bytes cross the wire when you send a 1500-byte HTTP message over a link with an MTU of 1500 bytes?', d: '1500 bytes with an MTU of 1500. Even though the size equals the MTU, the message becomes two pieces.', v: { size: '1500', mtu: '1500' } },
+    { t: 'Exactly one piece', q: 'What if you change the size of the HTTP message to send to 1460 bytes?', d: '1460 bytes become exactly 1500 bytes once the headers are added.', v: { size: '1460', mtu: '1500' } },
+    { t: 'Short request', q: 'What if you change the size of the HTTP message to send to 300 bytes?', d: '300 bytes. It is not split; only the headers are added.', v: { size: '300', mtu: '1500' } },
+    { t: 'Long data', q: 'What if you change the size of the HTTP message to send to 10000 bytes?', d: '10000 bytes is split into 7 pieces, and each piece gets its own headers.', v: { size: '10000', mtu: '1500' } },
+    { t: 'A smaller MTU', q: 'What if the message is 1460 bytes and you change the MTU to 1400 bytes?', d: 'The same 1460 bytes now become two pieces.', v: { size: '1460', mtu: '1400' } },
   ],
   TCP: 20, IP: 20, ETH: 14, FCS: 4,
   code: function (c) {

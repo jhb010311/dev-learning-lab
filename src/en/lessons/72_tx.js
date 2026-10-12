@@ -9,12 +9,12 @@ Lab.register({
     { id: 'peek', label: 'Another user queries the total of the two accounts partway through', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'An error partway through, without a transaction. 1,000 won disappears.', v: { mode: 'auto', fail: 'ex', peek: false } },
-    { t: 'Grouping the statements in a transaction', d: 'With the same error, the withdrawal is undone too.', v: { mode: 'tx', fail: 'ex', peek: false } },
-    { t: 'A server crash with a transaction', d: 'Changes that were not committed do not remain.', v: { mode: 'tx', fail: 'crash', peek: false } },
-    { t: 'When nothing goes wrong', d: 'The result is the same either way.', v: { mode: 'tx', fail: 'none', peek: false } },
-    { t: 'When someone else queries partway through', d: 'Without a transaction: a moment when the total is 1,000 won short is visible.', v: { mode: 'auto', fail: 'none', peek: true } },
-    { t: 'A query partway through a transaction', d: 'Changes that are not committed yet are not visible to others.', v: { mode: 'tx', fail: 'none', peek: true } },
+    { t: 'Default settings', q: 'Without a transaction, what happens when an error (exception) occurs in the application between the withdrawal and the deposit?', d: 'An error partway through, without a transaction. 1,000 won disappears.', v: { mode: 'auto', fail: 'ex', peek: false } },
+    { t: 'Grouping the statements in a transaction', q: 'What if you group the two statements in a transaction?', d: 'With the same error, the withdrawal is undone too.', v: { mode: 'tx', fail: 'ex', peek: false } },
+    { t: 'A server crash with a transaction', q: 'What if you group the two statements in a transaction and the server crashes between the withdrawal and the deposit?', d: 'Changes that were not committed do not remain.', v: { mode: 'tx', fail: 'crash', peek: false } },
+    { t: 'When nothing goes wrong', q: 'What if you group the two statements in a transaction and nothing happens between the withdrawal and the deposit?', d: 'The result is the same either way.', v: { mode: 'tx', fail: 'none', peek: false } },
+    { t: 'When someone else queries partway through', q: 'What if nothing happens between the withdrawal and the deposit, and another user queries the total of the two accounts partway through?', d: 'Without a transaction: a moment when the total is 1,000 won short is visible.', v: { mode: 'auto', fail: 'none', peek: true } },
+    { t: 'A query partway through a transaction', q: 'What if you group the two statements in a transaction, nothing happens, and another user queries the total partway through?', d: 'Changes that are not committed yet are not visible to others.', v: { mode: 'tx', fail: 'none', peek: true } },
   ],
   code: function (c) {
     var w = "UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- withdrawal\n", d = "UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- deposit\n", gap = c.fail === 'ex' ? '-- (an application error occurs here)\n' : c.fail === 'crash' ? '-- (the server crashes here)\n' : '';

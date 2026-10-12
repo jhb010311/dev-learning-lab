@@ -9,13 +9,13 @@ Lab.register({
     { id: 'use', label: 'Implementation you want to use', type: 'select', value: 'rate', options: [['fixed', 'FixedDiscountPolicy (always 1000 won off)'], ['rate', 'RateDiscountPolicy (10% off)']], show: function (c) { return c.how === 'new' || c.reg === 'one' || c.reg === 'primary' || c.reg === 'qualifier'; }, hint: 'Change this value and check in the code on the left which file changes.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'Both implementations are registered with @Component. The container cannot choose between them, so startup fails.', v: { how: 'comp', reg: 'two', use: 'rate' } },
-    { t: 'Creating it directly with new', d: 'The choice of implementation is written inside OrderService. To change it, you edit OrderService.', v: { how: 'new', reg: 'two', use: 'fixed' } },
-    { t: 'Only one implementation registered', d: 'The container finds the only bean and injects it. OrderService contains no new.', v: { how: 'comp', reg: 'one', use: 'rate' } },
-    { t: 'Choosing with @Primary', d: 'Both are registered, and the one to prefer is marked.', v: { how: 'comp', reg: 'primary', use: 'rate' } },
-    { t: 'Choosing with @Qualifier', d: 'The bean name is specified at the injection point.', v: { how: 'comp', reg: 'qualifier', use: 'fixed' } },
-    { t: 'Registering with a @Bean method', d: 'The object returned by a method of a configuration class becomes a bean.', v: { how: 'bean', reg: 'one', use: 'rate' } },
-    { t: 'With no bean registered', d: 'There is no bean to inject, so startup fails.', v: { how: 'comp', reg: 'none', use: 'rate' } },
+    { t: 'Default settings', q: 'What happens at startup when both implementations are registered with @Component, with nothing marking which to use, for RateDiscountPolicy?', d: 'Both implementations are registered with @Component. The container cannot choose between them, so startup fails.', v: { how: 'comp', reg: 'two', use: 'rate' } },
+    { t: 'Creating it directly with new', q: 'What if OrderService creates the discount policy object directly with new and you want FixedDiscountPolicy?', d: 'The choice of implementation is written inside OrderService. To change it, you edit OrderService.', v: { how: 'new', reg: 'two', use: 'fixed' } },
+    { t: 'Only one implementation registered', q: 'What if you register only the implementation you want to use as a bean?', d: 'The container finds the only bean and injects it. OrderService contains no new.', v: { how: 'comp', reg: 'one', use: 'rate' } },
+    { t: 'Choosing with @Primary', q: 'What if you register both implementations and put @Primary on the one you want to use?', d: 'Both are registered, and the one to prefer is marked.', v: { how: 'comp', reg: 'primary', use: 'rate' } },
+    { t: 'Choosing with @Qualifier', q: 'What if you register both implementations and choose FixedDiscountPolicy with @Qualifier at the injection point?', d: 'The bean name is specified at the injection point.', v: { how: 'comp', reg: 'qualifier', use: 'fixed' } },
+    { t: 'Registering with a @Bean method', q: 'What if you register the discount policy with a @Bean method and register only the implementation you want to use?', d: 'The object returned by a method of a configuration class becomes a bean.', v: { how: 'bean', reg: 'one', use: 'rate' } },
+    { t: 'With no bean registered', q: 'What if you register no implementation as a bean?', d: 'There is no bean to inject, so startup fails.', v: { how: 'comp', reg: 'none', use: 'rate' } },
   ],
   // Facts determined by the settings: which implementations are registered as beans, and which one is chosen
   facts: function (c) {

@@ -8,10 +8,10 @@ Lab.register({
     { id: 'prop', label: 'Pass the trace ID between services', type: 'check', value: true },
   ],
   presets: [
-    { t: 'Default settings', d: 'The external payment provider is slow. You can see it at a glance on the tracing screen.', v: { slow: 'pg', prop: true } },
-    { t: 'Without a trace ID', d: 'Each service has logs, but you cannot connect the ones that belong to the same request.', v: { slow: 'pg', prop: false } },
-    { t: 'When the database query is slow', d: 'The slow span moves inside the order service.', v: { slow: 'db', prop: true } },
-    { t: 'When the inside of the payment service is slow', d: 'The time of the payment service minus the time of its external call is long.', v: { slow: 'pay', prop: true } },
+    { t: 'Default settings', q: 'When the slow span is the external payment provider API and the trace ID is passed between services, how do you find the cause?', d: 'The external payment provider is slow. You can see it at a glance on the tracing screen.', v: { slow: 'pg', prop: true } },
+    { t: 'Without a trace ID', q: 'What if you do not pass the trace ID between services?', d: 'Each service has logs, but you cannot connect the ones that belong to the same request.', v: { slow: 'pg', prop: false } },
+    { t: 'When the database query is slow', q: 'What if the slow span is the database query in the order service?', d: 'The slow span moves inside the order service.', v: { slow: 'db', prop: true } },
+    { t: 'When the inside of the payment service is slow', q: 'What if the slow span is the processing inside the payment service?', d: 'The time of the payment service minus the time of its external call is long.', v: { slow: 'pay', prop: true } },
   ],
   code: function (c) {
     return c.prop ? '// build.gradle: Micrometer Tracing\nimplementation \'io.micrometer:micrometer-tracing-bridge-otel\'\n\n# Header added automatically when services call each other (W3C Trace Context)\ntraceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01\n#               └─ trace id (same for the whole request)      └─ span id (differs for each span)\n\n# Put the trace ID into the log pattern (taken from the MDC)\nlogging.pattern.level: "%5p [%X{traceId:-},%X{spanId:-}]"' : '// No tracing configured\n// Each service writes only its own log\n\nlog.info("Order processing started orderId={}", orderId);';

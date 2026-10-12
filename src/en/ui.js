@@ -42,7 +42,7 @@ module.exports = [
   [`type="button">닫기</button>`, `type="button">Close</button>`],
   // ── lab page (script)
   [`'지금 설정: '`, `'Current settings: '`],
-  [`'처음 설정에서 바꾼 것: '`, `'Changed from the initial settings: '`],
+  [`'처음 설정에서 바꾼 것: '`, `'Changed from the default settings: '`],
   [`(c[d.id] ? '켬' : '끔')`, `(c[d.id] ? 'on' : 'off')`],
   [`stale ? '실행' : running ? '일시정지' : paused && mid ? '이어서' : '실행'`, `stale ? 'Run' : running ? 'Pause' : paused && mid ? 'Resume' : 'Run'`],
   [`'실행하기 전에 예측해 보세요'`, `'Predict before you run'`],
@@ -92,7 +92,7 @@ module.exports = [
   // ── home, Learn, category list
   [`'테스트 · '`, `'Quiz · '`],
   [`'공부 · '`, `'Learn · '`],
-  [`'물음을 고르고 실행을 눌러, 개념이 어떻게 움직이는지 직접 봅니다.'`, `'Change the settings, click Run, and watch how each concept behaves.'`],
+  [`'물음을 고르고 실행을 눌러, 개념이 어떻게 움직이는지 직접 봅니다.'`, `'Pick a question, click Run, and watch how each concept behaves.'`],
   [`'무료 · 가입 없음 · 실습 ' + lessons.length + '개'`, `'Free · No sign-up · ' + lessons.length + ' labs'`],
   [`'지난번에 보던 실습 이어서 하기: '`, `'Continue the lab you were on: '`],
   [`'처음이라면 여기부터'`, `'New here? Start with these'`],

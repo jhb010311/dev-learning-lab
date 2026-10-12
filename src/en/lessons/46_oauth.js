@@ -7,10 +7,10 @@ Lab.register({
     { id: 'sc', label: 'Scenario', type: 'select', value: 'ok', options: [['ok', 'Normal login'], ['deny', 'The user cancels on the consent screen'], ['state', 'The state value in the returning request is different (forged request)'], ['reuse', 'An attempt to reuse an intercepted authorization code']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'The whole flow of the authorization code grant.', v: { sc: 'ok' } },
-    { t: 'The user cancels the consent', d: 'An error comes back instead of a code.', v: { sc: 'deny' } },
-    { t: 'The state value is different', d: 'It is not a request that our service started, so it is rejected.', v: { sc: 'state' } },
-    { t: 'Intercept and reuse the authorization code', d: 'A code can be used only once, and only together with the client secret.', v: { sc: 'reuse' } },
+    { t: 'Default settings', q: 'What is exchanged in the authorization code flow when you click "Log in with Kakao"?', d: 'The whole flow of the authorization code grant.', v: { sc: 'ok' } },
+    { t: 'The user cancels the consent', q: 'What if the user cancels on the consent screen?', d: 'An error comes back instead of a code.', v: { sc: 'deny' } },
+    { t: 'The state value is different', q: 'What if the state value in the returning request is different?', d: 'It is not a request that our service started, so it is rejected.', v: { sc: 'state' } },
+    { t: 'Intercept and reuse the authorization code', q: 'What if someone tries to reuse an intercepted authorization code?', d: 'A code can be used only once, and only together with the client secret.', v: { sc: 'reuse' } },
   ],
   code: function () {
     return '# application.yml (Spring Security OAuth2 client)\nspring.security.oauth2.client.registration.kakao:\n  client-id: abc123                     # a value that may be public\n  client-secret: ********               # a value only the server knows\n  authorization-grant-type: authorization_code\n  redirect-uri: https://shop.example/login/oauth2/code/kakao\n  scope: profile_nickname, account_email\n\n// Spring Security handles the steps below for you';

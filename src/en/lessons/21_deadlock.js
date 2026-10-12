@@ -9,10 +9,10 @@ Lab.register({
     { id: 'tryl', label: 'Limit the time spent waiting for a lock (tryLock)', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'The threads acquire the locks in opposite orders and start at the same time. The result is a deadlock.', v: { ord: 'BA', time: 'overlap', tryl: false } },
-    { t: 'Using the same lock order', d: 'Both threads acquire A first. One waits, and they finish one after the other.', v: { ord: 'AB', time: 'overlap', tryl: false } },
-    { t: 'When the timing does not overlap', d: 'The orders are opposite, but both threads finish without a problem. That is why tests do not catch it.', v: { ord: 'BA', time: 'seq', tryl: false } },
-    { t: 'Limiting the waiting time', d: 'A thread that cannot acquire a lock releases the lock it holds and tries again.', v: { ord: 'BA', time: 'overlap', tryl: true } },
+    { t: 'Default settings', q: 'What happens when thread 2 acquires the locks B first, then A, and both threads start at the same time?', d: 'The threads acquire the locks in opposite orders and start at the same time. The result is a deadlock.', v: { ord: 'BA', time: 'overlap', tryl: false } },
+    { t: 'Using the same lock order', q: 'What if thread 2 acquires the locks A first, then B?', d: 'Both threads acquire A first. One waits, and they finish one after the other.', v: { ord: 'AB', time: 'overlap', tryl: false } },
+    { t: 'When the timing does not overlap', q: 'What if thread 2 starts after thread 1 has finished, instead of both threads starting at the same time?', d: 'The orders are opposite, but both threads finish without a problem. That is why tests do not catch it.', v: { ord: 'BA', time: 'seq', tryl: false } },
+    { t: 'Limiting the waiting time', q: 'What if you limit the time spent waiting for a lock with tryLock?', d: 'A thread that cannot acquire a lock releases the lock it holds and tries again.', v: { ord: 'BA', time: 'overlap', tryl: true } },
   ],
   code: function (c) {
     if (c.tryl) { var x = c.ord === 'AB' ? 'first' : 'from', y = c.ord === 'AB' ? 'second' : 'to';

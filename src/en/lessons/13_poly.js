@@ -9,12 +9,12 @@ Lab.register({
     { id: 'w', label: 'What is done with the variable', type: 'select', value: 'override', options: [['override', 'Call an overridden method: a.sound()'], ['overload', 'Pass it as an argument to an overloaded method: printer.print(a)'], ['static', 'Call a static method: a.info()'], ['field', 'Read a field: a.name']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A Dog object in an Animal variable. For the overridden method, the one in Dog runs.', v: { v: 'Animal', o: 'Dog', w: 'override' } },
-    { t: 'Passing the same variable to an overloaded method', d: 'print(Animal) is selected even though the actual object is a Dog.', v: { v: 'Animal', o: 'Dog', w: 'overload' } },
-    { t: 'A static method', d: 'It is not overridden. The one in the declared type is called.', v: { v: 'Animal', o: 'Dog', w: 'static' } },
-    { t: 'A field', d: 'Polymorphism does not apply to fields either.', v: { v: 'Animal', o: 'Dog', w: 'field' } },
-    { t: 'Changing the declared type to Dog', d: 'With overloading, print(Dog) is selected.', v: { v: 'Dog', o: 'Dog', w: 'overload' } },
-    { t: 'An Animal object in a Dog variable', d: 'This does not compile.', v: { v: 'Dog', o: 'Animal', w: 'override' } },
+    { t: 'Default settings', q: 'Which method runs when you assign new Dog() to the variable Animal a and call a.sound()?', d: 'A Dog object in an Animal variable. For the overridden method, the one in Dog runs.', v: { v: 'Animal', o: 'Dog', w: 'override' } },
+    { t: 'Passing the same variable to an overloaded method', q: 'What if you pass the same variable as an argument to an overloaded method, printer.print(a)?', d: 'print(Animal) is selected even though the actual object is a Dog.', v: { v: 'Animal', o: 'Dog', w: 'overload' } },
+    { t: 'A static method', q: 'What if you call a static method, a.info()?', d: 'It is not overridden. The one in the declared type is called.', v: { v: 'Animal', o: 'Dog', w: 'static' } },
+    { t: 'A field', q: 'What if you read the field a.name?', d: 'Polymorphism does not apply to fields either.', v: { v: 'Animal', o: 'Dog', w: 'field' } },
+    { t: 'Changing the declared type to Dog', q: 'What if you change the declared type of the variable to Dog a and pass it to printer.print(a)?', d: 'With overloading, print(Dog) is selected.', v: { v: 'Dog', o: 'Dog', w: 'overload' } },
+    { t: 'An Animal object in a Dog variable', q: 'What if you change the declared type to Dog a and assign new Animal() as the object?', d: 'This does not compile.', v: { v: 'Dog', o: 'Animal', w: 'override' } },
   ],
   code: function (c) {
     var use = { override: 'a.sound();', overload: 'new Printer().print(a);', static: 'a.info();          // not a recommended way to call it', field: 'System.out.println(a.name);' }[c.w];

@@ -8,13 +8,13 @@ Lab.register({
     { id: 'page', label: 'Pagination: setFirstResult(0).setMaxResults(1)', type: 'check', value: false, hint: 'Asks for only 1 result, starting from the first.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'A plain join. Even though it joins, the comment queries are still sent separately for each post.', v: { q: 'join', page: false } },
-    { t: 'join fetch', d: 'It reads the comment columns in one go, so no queries follow.', v: { q: 'fetch', page: false } },
-    { t: 'Query without a join', d: 'It reads only the posts and queries the comments each time they are used.', v: { q: 'plain', page: false } },
-    { t: 'Using the table name', d: 'In JPQL, an entity name must follow from.', v: { q: 'table', page: false } },
-    { t: 'Pagination with a fetch join', d: 'Hibernate 7.4.5 first cuts the posts in a subquery.', v: { q: 'fetch', page: true } },
-    { t: 'A case that cuts in memory', d: 'If you sort by comment, it reads everything, cuts the results in memory, and logs a warning.', v: { q: 'fetchsort', page: true } },
-    { t: 'Fetch join two collections', d: 'It is rejected with an exception before it runs.', v: { q: 'two', page: false } },
+    { t: 'Default settings', q: 'What are the result list and the follow-up comment queries when you run select p from Post p join p.comments c?', d: 'A plain join. Even though it joins, the comment queries are still sent separately for each post.', v: { q: 'join', page: false } },
+    { t: 'join fetch', q: 'What if you change the plain join to join fetch p.comments?', d: 'It reads the comment columns in one go, so no queries follow.', v: { q: 'fetch', page: false } },
+    { t: 'Query without a join', q: 'What if you run select p from Post p with no join?', d: 'It reads only the posts and queries the comments each time they are used.', v: { q: 'plain', page: false } },
+    { t: 'Using the table name', q: 'What if you write a table name after from, as in select p from posts p?', d: 'In JPQL, an entity name must follow from.', v: { q: 'table', page: false } },
+    { t: 'Pagination with a fetch join', q: 'What if you turn on pagination with setFirstResult(0).setMaxResults(1) for join fetch p.comments?', d: 'Hibernate 7.4.5 first cuts the posts in a subquery.', v: { q: 'fetch', page: true } },
+    { t: 'A case that cuts in memory', q: 'What if you sort by comment with join fetch p.comments c order by c.id desc and turn on pagination?', d: 'If you sort by comment, it reads everything, cuts the results in memory, and logs a warning.', v: { q: 'fetchsort', page: true } },
+    { t: 'Fetch join two collections', q: 'What if you fetch join two collections with join fetch p.comments join fetch p.files?', d: 'It is rejected with an exception before it runs.', v: { q: 'two', page: false } },
   ],
   jpql: function (c) {
     return { plain: 'select p from Post p order by p.id', table: 'select p from posts p order by p.id', join: 'select p from Post p join p.comments c order by p.id', fetch: 'select p from Post p join fetch p.comments order by p.id', fetchsort: 'select p from Post p join fetch p.comments c order by c.id desc', two: 'select p from Post p join fetch p.comments join fetch p.files order by p.id' }[c.q];

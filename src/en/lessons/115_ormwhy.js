@@ -9,13 +9,13 @@ Lab.register({
     { id: 'fix', label: 'I filled in the missing part with code myself', type: 'check', value: false, show: function (c) { return c.how === 'jdbc'; }, hint: 'Load twice: the code that keeps the objects already read. Go to the member: the SQL that reads the member. Add a field: changes to the SQL and to the code that moves values.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'The order was read with JDBC, but order.getMember() is null.', v: { sc: 'nav', how: 'jdbc', fix: false } },
-    { t: 'Write the SQL that reads the member yourself', d: 'It works, but the amount of SQL and of code that moves values doubles.', v: { sc: 'nav', how: 'jdbc', fix: true } },
-    { t: 'Go to the member with JPA', d: 'You wrote no SQL, yet the member name appears.', v: { sc: 'nav', how: 'jpa', fix: false } },
-    { t: 'Load twice: JDBC', d: 'It is the same row, but two different objects are created.', v: { sc: 'same', how: 'jdbc', fix: false } },
-    { t: 'Load twice: JPA', d: 'One SELECT, and one object.', v: { sc: 'same', how: 'jpa', fix: false } },
-    { t: 'Add a field: SQL unchanged', d: 'It was saved as VIP, but the value disappears without an error.', v: { sc: 'field', how: 'jdbc', fix: false } },
-    { t: 'Add a field: JPA', d: 'You only add one line to the entity.', v: { sc: 'field', how: 'jpa', fix: false } },
+    { t: 'Default settings', q: 'What happens when you want to go from the order to its member but write only the SQL that reads the order with JDBC?', d: 'The order was read with JDBC, but order.getMember() is null.', v: { sc: 'nav', how: 'jdbc', fix: false } },
+    { t: 'Write the SQL that reads the member yourself', q: 'What if you write the SQL that reads the member yourself with JDBC to fill in the missing part?', d: 'It works, but the amount of SQL and of code that moves values doubles.', v: { sc: 'nav', how: 'jdbc', fix: true } },
+    { t: 'Go to the member with JPA', q: 'What if you change how you work with the DB to JPA and only write the mapping?', d: 'You wrote no SQL, yet the member name appears.', v: { sc: 'nav', how: 'jpa', fix: false } },
+    { t: 'Load twice: JDBC', q: 'What if you load the same order twice with JDBC?', d: 'It is the same row, but two different objects are created.', v: { sc: 'same', how: 'jdbc', fix: false } },
+    { t: 'Load twice: JPA', q: 'What if you load the same order twice with JPA?', d: 'One SELECT, and one object.', v: { sc: 'same', how: 'jpa', fix: false } },
+    { t: 'Add a field: SQL unchanged', q: 'What if you add a grade field to the member with JDBC and leave the SQL unchanged?', d: 'It was saved as VIP, but the value disappears without an error.', v: { sc: 'field', how: 'jdbc', fix: false } },
+    { t: 'Add a field: JPA', q: 'What if you add a grade field to the member with JPA?', d: 'You only add one line to the entity.', v: { sc: 'field', how: 'jpa', fix: false } },
   ],
   code: function (c) {
     var jdbc = c.how === 'jdbc', fix = jdbc && c.fix;

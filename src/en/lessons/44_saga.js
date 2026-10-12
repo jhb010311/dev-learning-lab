@@ -9,12 +9,12 @@ Lab.register({
     { id: 'pub', label: 'How the message is published', type: 'select', value: 'after', options: [['after', 'Publish the message after the DB commit'], ['before', 'Commit to the DB after publishing the message'], ['outbox', 'Save it together in an outbox table (publish later)']], show: function (c) { return c.part === 'outbox'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'It fails at the inventory deduction. Payment and the order are undone in reverse.', v: { part: 'saga', fail: 'stock', pub: 'after' } },
-    { t: 'Failure at the last step', d: 'The shipping request fails. There are three things to undo.', v: { part: 'saga', fail: 'ship', pub: 'after' } },
-    { t: 'No failure', d: 'The four steps succeed one after another.', v: { part: 'saga', fail: 'none', pub: 'after' } },
-    { t: 'The server dies while publishing after the commit', d: 'The order is saved, but the event is not sent.', v: { part: 'outbox', fail: 'stock', pub: 'after' } },
-    { t: 'The server dies while committing after publishing', d: 'The event is sent, but there is no order.', v: { part: 'outbox', fail: 'stock', pub: 'before' } },
-    { t: 'Using an outbox table', d: 'The order and the "message to send" are saved in one transaction.', v: { part: 'outbox', fail: 'stock', pub: 'outbox' } },
+    { t: 'Default settings', q: 'What happens in the order flow when the inventory deduction step fails?', d: 'It fails at the inventory deduction. Payment and the order are undone in reverse.', v: { part: 'saga', fail: 'stock', pub: 'after' } },
+    { t: 'Failure at the last step', q: 'What if the step that fails is the shipping request?', d: 'The shipping request fails. There are three things to undo.', v: { part: 'saga', fail: 'ship', pub: 'after' } },
+    { t: 'No failure', q: 'What if no step fails?', d: 'The four steps succeed one after another.', v: { part: 'saga', fail: 'none', pub: 'after' } },
+    { t: 'The server dies while publishing after the commit', q: 'What if you publish the message after the DB commit and the server dies in between?', d: 'The order is saved, but the event is not sent.', v: { part: 'outbox', fail: 'stock', pub: 'after' } },
+    { t: 'The server dies while committing after publishing', q: 'What if you publish the message first, commit to the DB afterward, and the server dies in between?', d: 'The event is sent, but there is no order.', v: { part: 'outbox', fail: 'stock', pub: 'before' } },
+    { t: 'Using an outbox table', q: 'What if you save the order and the message together in an outbox table, publish later, and the server dies?', d: 'The order and the "message to send" are saved in one transaction.', v: { part: 'outbox', fail: 'stock', pub: 'outbox' } },
   ],
   code: function (c) {
     if (c.part === 'saga') return '// Each step is committed as a local transaction of its own service\n1. Order service       Create order (PENDING)      Compensation: cancel the order\n2. Payment service     Approve payment             Compensation: cancel the payment (refund)\n3. Inventory service   Deduct inventory           Compensation: restore the inventory\n4. Shipping service    Request shipping            (last step)\n\n// When a step fails, it publishes a "failed" event,\n// and the earlier steps receive that event and run their own compensations';

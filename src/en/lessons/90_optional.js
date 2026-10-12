@@ -9,13 +9,13 @@ Lab.register({
     { id: 'take', label: 'How the value is taken out', type: 'select', value: 'orElse', options: [['get', 'get()'], ['orElse', 'orElse(makeDefault())'], ['orElseGet', 'orElseGet(() -> makeDefault())'], ['map', 'Chain map calls, then orElse("no name")']], hint: 'makeDefault() is a method that creates the default value "guest", and it prints one line when it runs.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'makeDefault() runs even though a value is present.', v: { val: 'kim', make: 'nullable', take: 'orElse' } },
-    { t: 'Switching to orElseGet', d: 'When a value is present, makeDefault() does not run.', v: { val: 'kim', make: 'nullable', take: 'orElseGet' } },
-    { t: 'Passing null to Optional.of', d: 'A NullPointerException is thrown at the moment the Optional is created.', v: { val: 'null', make: 'of', take: 'orElse' } },
-    { t: 'get() on an empty Optional', d: 'The result is not null but a NoSuchElementException.', v: { val: 'null', make: 'nullable', take: 'get' } },
-    { t: 'orElseGet on an empty Optional', d: 'Only in this case does makeDefault() run.', v: { val: 'null', make: 'nullable', take: 'orElseGet' } },
-    { t: 'Chaining map (no value)', d: 'The code runs to the end without an exception, with no null check.', v: { val: 'null', make: 'nullable', take: 'map' } },
-    { t: 'Chaining map (value present)', d: 'The functions are applied to the value one after another.', v: { val: 'kim', make: 'nullable', take: 'map' } },
+    { t: 'Default settings', q: 'What happens when name is "kim", opt is created with Optional.ofNullable(name), and the value is taken out with orElse(makeDefault())?', d: 'makeDefault() runs even though a value is present.', v: { val: 'kim', make: 'nullable', take: 'orElse' } },
+    { t: 'Switching to orElseGet', q: 'What if you take out the value with orElseGet(() -> makeDefault())?', d: 'When a value is present, makeDefault() does not run.', v: { val: 'kim', make: 'nullable', take: 'orElseGet' } },
+    { t: 'Passing null to Optional.of', q: 'What if name is null and you create the Optional with Optional.of(name)?', d: 'A NullPointerException is thrown at the moment the Optional is created.', v: { val: 'null', make: 'of', take: 'orElse' } },
+    { t: 'get() on an empty Optional', q: 'What if name is null and you take out the value with get()?', d: 'The result is not null but a NoSuchElementException.', v: { val: 'null', make: 'nullable', take: 'get' } },
+    { t: 'orElseGet on an empty Optional', q: 'What if name is null and you take out the value with orElseGet(() -> makeDefault())?', d: 'Only in this case does makeDefault() run.', v: { val: 'null', make: 'nullable', take: 'orElseGet' } },
+    { t: 'Chaining map (no value)', q: 'What if name is null and you chain map calls and then call orElse("no name")?', d: 'The code runs to the end without an exception, with no null check.', v: { val: 'null', make: 'nullable', take: 'map' } },
+    { t: 'Chaining map (value present)', q: 'What if name is "kim" and you chain map calls and then call orElse("no name")?', d: 'The functions are applied to the value one after another.', v: { val: 'kim', make: 'nullable', take: 'map' } },
   ],
   code: function (c) {
     var useMd = c.take === 'orElse' || c.take === 'orElseGet';

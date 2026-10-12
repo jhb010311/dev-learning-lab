@@ -11,11 +11,11 @@ Lab.register({
     { id: 'startup', label: 'Prepare the servlet in advance when the server starts (loadOnStartup)', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'GET /hello twice. The servlet object is created only once, at the first request.', v: { kind: 'plain', req: 'get', impl: 'get', n: 2, startup: false } },
-    { t: 'Creating it at server startup', d: 'The setup work is done at server startup, not at the first request.', v: { kind: 'plain', req: 'get', impl: 'get', n: 2, startup: true } },
-    { t: 'A POST arrives but there is only doGet', d: 'The request reaches the servlet but is rejected with 405.', v: { kind: 'plain', req: 'post', impl: 'get', n: 1, startup: false } },
-    { t: 'A path that nothing is mapped to', d: 'No servlet matches, so the response is 404.', v: { kind: 'plain', req: 'none', impl: 'get', n: 1, startup: false } },
-    { t: 'In Spring MVC', d: 'There is only one servlet, DispatcherServlet, and it calls the controller.', v: { kind: 'spring', req: 'get', impl: 'get', n: 2, startup: false } },
+    { t: 'Default settings', q: 'How does GET /hello?name=Alice, sent twice to a servlet you write directly that handles only GET, reach the Java code?', d: 'GET /hello twice. The servlet object is created only once, at the first request.', v: { kind: 'plain', req: 'get', impl: 'get', n: 2, startup: false } },
+    { t: 'Creating it at server startup', q: 'What if you prepare the servlet in advance when the server starts (loadOnStartup)?', d: 'The setup work is done at server startup, not at the first request.', v: { kind: 'plain', req: 'get', impl: 'get', n: 2, startup: true } },
+    { t: 'A POST arrives but there is only doGet', q: 'What if the code handles only GET and the browser sends POST /hello once?', d: 'The request reaches the servlet but is rejected with 405.', v: { kind: 'plain', req: 'post', impl: 'get', n: 1, startup: false } },
+    { t: 'A path that nothing is mapped to', q: 'What if the browser sends GET /nothing (a path that nothing is mapped to) once?', d: 'No servlet matches, so the response is 404.', v: { kind: 'plain', req: 'none', impl: 'get', n: 1, startup: false } },
+    { t: 'In Spring MVC', q: 'What if you build it with Spring MVC (write a controller) instead of writing a servlet directly?', d: 'There is only one servlet, DispatcherServlet, and it calls the controller.', v: { kind: 'spring', req: 'get', impl: 'get', n: 2, startup: false } },
   ],
   code: function (c) {
     var both = c.impl === 'both';

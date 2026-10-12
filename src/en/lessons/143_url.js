@@ -10,13 +10,13 @@ Lab.register({
     { id: 'rel', label: 'Link on this page (relative URL)', type: 'select', value: 'detail', options: [['detail', 'detail'], ['../cart', '../cart'], ['/help', '/help'], ['?page=2', '?page=2'], ['#top', '#top'], ['//cdn.example/app.js', '//cdn.example/app.js']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'The search term A&B is appended as it is. The server receives only A as the value of q.', v: { origin: 'https://shop.example', q: 'A&B', enc: false, rel: 'detail' } },
-    { t: 'With encoding', d: '& becomes %26, and the value arrives intact.', v: { origin: 'https://shop.example', q: 'A&B', enc: true, rel: 'detail' } },
-    { t: 'A # in the search term', d: 'Everything after # becomes the fragment and is not sent to the server.', v: { origin: 'https://shop.example', q: 'C#', enc: false, rel: '#top' } },
-    { t: 'A + in the search term', d: 'The server reads + as a space.', v: { origin: 'https://shop.example', q: 'C++', enc: false, rel: 'detail' } },
-    { t: 'Korean text and a space', d: 'See which characters the browser converts for you, and what they look like.', v: { origin: 'https://shop.example', q: '겨울 옷', enc: true, rel: '?page=2' } },
-    { t: 'A URL with a port', d: 'It connects to port 8443, which is not the default port, and the port is also added to the Host header.', v: { origin: 'https://shop.example:8443', q: 'keyboard', enc: true, rel: '/help' } },
-    { t: 'Writing the default port anyway', d: ':443 is the same as leaving the port out, so it disappears from the normalized URL.', v: { origin: 'https://shop.example:443', q: 'keyboard', enc: true, rel: '../cart' } },
+    { t: 'Default settings', q: 'What does the server receive as q when you append the search term A&B to the URL without encoding it?', d: 'The search term A&B is appended as it is. The server receives only A as the value of q.', v: { origin: 'https://shop.example', q: 'A&B', enc: false, rel: 'detail' } },
+    { t: 'With encoding', q: 'What if you encode the search term A&B when you insert it?', d: '& becomes %26, and the value arrives intact.', v: { origin: 'https://shop.example', q: 'A&B', enc: true, rel: 'detail' } },
+    { t: 'A # in the search term', q: 'What if the search term is C# and the link on this page is #top?', d: 'Everything after # becomes the fragment and is not sent to the server.', v: { origin: 'https://shop.example', q: 'C#', enc: false, rel: '#top' } },
+    { t: 'A + in the search term', q: 'What if the search term is C++?', d: 'The server reads + as a space.', v: { origin: 'https://shop.example', q: 'C++', enc: false, rel: 'detail' } },
+    { t: 'Korean text and a space', q: 'What if the search term is Korean text and a space, and you encode it when you insert it?', d: 'See which characters the browser converts for you, and what they look like.', v: { origin: 'https://shop.example', q: '겨울 옷', enc: true, rel: '?page=2' } },
+    { t: 'A URL with a port', q: 'What if the URL begins with https://shop.example:8443, the search term is keyboard, and you encode it when you insert it?', d: 'It connects to port 8443, which is not the default port, and the port is also added to the Host header.', v: { origin: 'https://shop.example:8443', q: 'keyboard', enc: true, rel: '/help' } },
+    { t: 'Writing the default port anyway', q: 'What if you write the port in the URL as https://shop.example:443 and insert keyboard with encoding?', d: ':443 is the same as leaving the port out, so it disappears from the normalized URL.', v: { origin: 'https://shop.example:443', q: 'keyboard', enc: true, rel: '../cart' } },
   ],
   code: function (c) {
     var head = '// JavaScript. Paste it into the console of the browser developer tools to run it.\nconst keyword = \'' + c.q + '\';\n\n';

@@ -10,12 +10,12 @@ Lab.register({
     { id: 'idx', label: 'Index of the element to store a value in through b', type: 'select', value: '2', options: [['0', '0 (the first element)'], ['2', '2 (the last element)'], ['3', '3 (the same number as the length)'], ['-1', '-1']], hint: 'For a two-dimensional array, this is the index within row 0 (b[0]).' },
   ],
   presets: [
-    { t: 'Default settings', d: 'After the assignment b = a, a value is stored in an element through b. Printing a shows that value too.', v: { shape: '1', type: 'int', copy: 'ref', idx: '2' } },
-    { t: 'Copying with clone', d: 'There are now two arrays, so a stays the same.', v: { shape: '1', type: 'int', copy: 'clone', idx: '2' } },
-    { t: 'Storing at an index equal to the length', d: 'Three elements have only the indexes 0, 1, and 2. Storing at index 3 throws an exception.', v: { shape: '1', type: 'int', copy: 'clone', idx: '3' } },
-    { t: 'Initial state of a String array', d: 'An element in which no value has been stored holds null.', v: { shape: '1', type: 'String', copy: 'clone', idx: '0' } },
-    { t: 'A two-dimensional array is an array of arrays', d: 'One outer array and two row arrays, three in all, are created.', v: { shape: '2', type: 'int', copy: 'ref', idx: '2' } },
-    { t: 'Cloning a two-dimensional array', d: 'The value in a changes even though a copy was made. That is because the row arrays are shared.', v: { shape: '2', type: 'int', copy: 'clone', idx: '2' } },
+    { t: 'Default settings', q: 'Does b = a copy a one-dimensional int array with 3 elements when you store a value at index 2 through b?', d: 'After the assignment b = a, a value is stored in an element through b. Printing a shows that value too.', v: { shape: '1', type: 'int', copy: 'ref', idx: '2' } },
+    { t: 'Copying with clone', q: 'What if you create the second variable b with b = a.clone()?', d: 'There are now two arrays, so a stays the same.', v: { shape: '1', type: 'int', copy: 'clone', idx: '2' } },
+    { t: 'Storing at an index equal to the length', q: 'What if you create b with b = a.clone() and store a value through b at index 3 (the same number as the length)?', d: 'Three elements have only the indexes 0, 1, and 2. Storing at index 3 throws an exception.', v: { shape: '1', type: 'int', copy: 'clone', idx: '3' } },
+    { t: 'Initial state of a String array', q: 'What if you change the element type to String, create b with b = a.clone(), and store a value through b at index 0?', d: 'An element in which no value has been stored holds null.', v: { shape: '1', type: 'String', copy: 'clone', idx: '0' } },
+    { t: 'A two-dimensional array is an array of arrays', q: 'What if you change the shape of the array to two-dimensional: 2 rows, 3 columns?', d: 'One outer array and two row arrays, three in all, are created.', v: { shape: '2', type: 'int', copy: 'ref', idx: '2' } },
+    { t: 'Cloning a two-dimensional array', q: 'What if the array is two-dimensional: 2 rows, 3 columns, and you create b with b = a.clone()?', d: 'The value in a changes even though a copy was made. That is because the row arrays are shared.', v: { shape: '2', type: 'int', copy: 'clone', idx: '2' } },
   ],
   lit: function (c) { return { int: '7', boolean: 'true', String: '"A"' }[c.type]; },
   code: function (c) {

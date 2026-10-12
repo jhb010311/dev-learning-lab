@@ -10,13 +10,13 @@ Lab.register({
   ],
   fix: function (c) { return c.kind === 'unit' && c.next !== 'same' ? { next: 'same' } : null; },
   presets: [
-    { t: 'Default settings', d: 'Only @WebMvcTest is added. The context does not load, so the test cannot even start.', v: { kind: 'webmvc', mock: 'none', next: 'same' } },
-    { t: 'Filling in the service with a mock', d: 'With a @MockitoBean OrderService, the context loads and the test passes.', v: { kind: 'webmvc', mock: 'svc', next: 'same' } },
-    { t: 'Filling in only the repository with a mock', d: 'What the controller requires is the service, so the context still does not load.', v: { kind: 'webmvc', mock: 'repo', next: 'same' } },
-    { t: 'Setting no return value on the mock', d: 'The context loads, but the mock returns null, so the test fails on the line that checks the value.', v: { kind: 'webmvc', mock: 'bare', next: 'same' } },
-    { t: 'Loading everything with @SpringBootTest', d: 'All three beans are registered as real ones, so the test passes even without a mock.', v: { kind: 'boot', mock: 'none', next: 'same' } },
-    { t: 'Different @MockitoBean fields', d: 'The second class cannot use the context in the cache and creates a new one.', v: { kind: 'boot', mock: 'svc', next: 'mock' } },
-    { t: 'Without Spring, with new', d: 'The test calls the controller method directly without ever creating a context.', v: { kind: 'unit', mock: 'svc', next: 'same' } },
+    { t: 'Default settings', q: 'What happens when you run two test classes with the same configuration, loading only the web layer with @WebMvcTest and using no mock?', d: 'Only @WebMvcTest is added. The context does not load, so the test cannot even start.', v: { kind: 'webmvc', mock: 'none', next: 'same' } },
+    { t: 'Filling in the service with a mock', q: 'What if you replace OrderService with a mock and set a return value?', d: 'With a @MockitoBean OrderService, the context loads and the test passes.', v: { kind: 'webmvc', mock: 'svc', next: 'same' } },
+    { t: 'Filling in only the repository with a mock', q: 'What if you replace OrderRepository with a mock and set a return value, instead of OrderService?', d: 'What the controller requires is the service, so the context still does not load.', v: { kind: 'webmvc', mock: 'repo', next: 'same' } },
+    { t: 'Setting no return value on the mock', q: 'What if you replace OrderService with a mock but set no return value?', d: 'The context loads, but the mock returns null, so the test fails on the line that checks the value.', v: { kind: 'webmvc', mock: 'bare', next: 'same' } },
+    { t: 'Loading everything with @SpringBootTest', q: 'What if you change the testing approach to @SpringBootTest and load all the beans?', d: 'All three beans are registered as real ones, so the test passes even without a mock.', v: { kind: 'boot', mock: 'none', next: 'same' } },
+    { t: 'Different @MockitoBean fields', q: 'What if @SpringBootTest has a mock OrderService with a return value set, and the second test class has one more @MockitoBean?', d: 'The second class cannot use the context in the cache and creates a new one.', v: { kind: 'boot', mock: 'svc', next: 'mock' } },
+    { t: 'Without Spring, with new', q: 'What if you create the objects yourself with new and Mockito, without Spring, and set a return value for OrderService?', d: 'The test calls the controller method directly without ever creating a context.', v: { kind: 'unit', mock: 'svc', next: 'same' } },
   ],
   // The configuration of one test class: what is replaced with a mock (svc, repo), whether a return value is set (stubSvc, stubRepo), and the profile
   conf: function (c) {

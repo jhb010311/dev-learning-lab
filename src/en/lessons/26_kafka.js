@@ -12,12 +12,12 @@ Lab.register({
     { id: 'crash', label: 'One consumer dies while processing', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: '2 consumers for 3 partitions. The processing capacity is too low, so messages pile up.', v: { p: 3, c: 2, r: 120, k: 50, commit: 'after', crash: false } },
-    { t: 'With 3 consumers', d: 'Each partition gets one consumer, and the pile-up disappears.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'after', crash: false } },
-    { t: 'Even with 6 consumers', d: 'There are only 3 partitions, so 3 consumers have nothing to do.', v: { p: 3, c: 6, r: 240, k: 50, commit: 'after', crash: false } },
-    { t: 'With 6 partitions too', d: 'Now all 6 consumers work.', v: { p: 6, c: 6, r: 240, k: 50, commit: 'after', crash: false } },
-    { t: 'A consumer dies while processing (commit after)', d: 'Another consumer takes over, and it processes some messages again.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'after', crash: true } },
-    { t: 'A consumer dies while processing (commit before)', d: 'Messages that were already committed are skipped without being processed.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'before', crash: true } },
+    { t: 'Default settings', q: 'What happens with 3 partitions and 2 consumers when 120 messages arrive per second and one consumer processes 50 per second?', d: '2 consumers for 3 partitions. The processing capacity is too low, so messages pile up.', v: { p: 3, c: 2, r: 120, k: 50, commit: 'after', crash: false } },
+    { t: 'With 3 consumers', q: 'What if you increase the consumers to 3?', d: 'Each partition gets one consumer, and the pile-up disappears.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'after', crash: false } },
+    { t: 'Even with 6 consumers', q: 'What if you keep 3 partitions and increase to 6 consumers and 240 messages per second?', d: 'There are only 3 partitions, so 3 consumers have nothing to do.', v: { p: 3, c: 6, r: 240, k: 50, commit: 'after', crash: false } },
+    { t: 'With 6 partitions too', q: 'What if you also increase the partitions to 6, with 6 consumers and 240 messages per second?', d: 'Now all 6 consumers work.', v: { p: 6, c: 6, r: 240, k: 50, commit: 'after', crash: false } },
+    { t: 'A consumer dies while processing (commit after)', q: 'With 3 consumers and the offset committed after processing, what if one consumer dies while processing?', d: 'Another consumer takes over, and it processes some messages again.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'after', crash: true } },
+    { t: 'A consumer dies while processing (commit before)', q: 'What if one of 3 consumers dies while processing and the offset is committed before processing the messages?', d: 'Messages that were already committed are skipped without being processed.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'before', crash: true } },
   ],
   code: function (c) {
     return '// Topic orders: ' + c.p + ' partitions\n// Consumer group order-service: ' + c.c + ' consumers\n\nwhile (true) {\n    ConsumerRecords<String, Order> records = consumer.poll(Duration.ofMillis(500));\n' + (c.commit === 'before' ? '    consumer.commitSync();               // first, record "read up to here"\n    for (var r : records) {\n        handle(r.value());               // then process\n    }\n' : '    for (var r : records) {\n        handle(r.value());               // first, process\n    }\n    consumer.commitSync();               // then, record "read up to here"\n') + '}';

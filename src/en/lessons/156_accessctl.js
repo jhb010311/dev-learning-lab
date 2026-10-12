@@ -9,13 +9,13 @@ Lab.register({
     { id: 'target', label: 'Requested URL', type: 'select', value: '2', options: [['1', 'GET /orders/1 · kim\'s order'], ['2', 'GET /orders/2 · lee\'s order'], ['99', 'GET /orders/99 · an order that does not exist']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'The server checks only that the user is logged in. Changing just the number shows lee\'s order as it is.', v: { check: 'login', who: 'kim', target: '2' } },
-    { t: 'Blocking by role', d: 'kim is also USER, so the request passes. A role does not know whose order it is.', v: { check: 'role', who: 'kim', target: '2' } },
-    { t: 'Checking the owner', d: 'The owner of the order and the logged-in user differ, so the request is refused with 403.', v: { check: 'owner403', who: 'kim', target: '2' } },
-    { t: 'Entering a number that does not exist', d: 'The response is 404. Order 2 gave 403, so it becomes known that order 2 exists.', v: { check: 'owner403', who: 'kim', target: '99' } },
-    { t: 'Answering 404 for other people\'s orders too', d: 'It cannot be told apart from an order that does not exist, so you cannot even tell whether the order exists.', v: { check: 'owner404', who: 'kim', target: '2' } },
-    { t: 'Customer support staff looks up the order', d: 'Even without being the owner, the ADMIN role allows the request.', v: { check: 'ownerAdmin', who: 'admin', target: '2' } },
-    { t: 'When the role rule blocks the staff', d: 'The response is 403 before the controller even runs.', v: { check: 'role', who: 'admin', target: '99' } },
+    { t: 'Default settings', q: 'What happens when kim requests GET /orders/2, lee\'s order, on a server that checks only that the user is logged in?', d: 'The server checks only that the user is logged in. Changing just the number shows lee\'s order as it is.', v: { check: 'login', who: 'kim', target: '2' } },
+    { t: 'Blocking by role', q: 'What if the server checks only the role (USER) with a URL rule?', d: 'kim is also USER, so the request passes. A role does not know whose order it is.', v: { check: 'role', who: 'kim', target: '2' } },
+    { t: 'Checking the owner', q: 'What if the server checks that the user owns the order, and answers 403 if not?', d: 'The owner of the order and the logged-in user differ, so the request is refused with 403.', v: { check: 'owner403', who: 'kim', target: '2' } },
+    { t: 'Entering a number that does not exist', q: 'What if the server checks that the user owns the order, and kim requests GET /orders/99, an order that does not exist?', d: 'The response is 404. Order 2 gave 403, so it becomes known that order 2 exists.', v: { check: 'owner403', who: 'kim', target: '99' } },
+    { t: 'Answering 404 for other people\'s orders too', q: 'What if the server looks only among the user\'s own orders, and answers 404 if not found?', d: 'It cannot be told apart from an order that does not exist, so you cannot even tell whether the order exists.', v: { check: 'owner404', who: 'kim', target: '2' } },
+    { t: 'Customer support staff looks up the order', q: 'What if park, who has the ADMIN role, requests GET /orders/2 on a server that allows the owner or the ADMIN role?', d: 'Even without being the owner, the ADMIN role allows the request.', v: { check: 'ownerAdmin', who: 'admin', target: '2' } },
+    { t: 'When the role rule blocks the staff', q: 'What if the server checks only the role (USER) with a URL rule, and park, who has the ADMIN role, requests GET /orders/99?', d: 'The response is 403 before the controller even runs.', v: { check: 'role', who: 'admin', target: '99' } },
   ],
   code: function (c) {
     var rule = (c.check === 'role' ? '            .requestMatchers("/orders/**").hasRole("USER")   // checks only the role\n' : '') + '            .anyRequest().authenticated())                 // checks only that the user is logged in\n';

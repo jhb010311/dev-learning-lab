@@ -12,13 +12,13 @@ Lab.register({
     { id: 'ov', label: '@Override is applied to that method', type: 'check', value: false, show: function (c) { return c.topic === 'override'; } },
   ],
   presets: [
-    { t: 'Default settings', d: '@Timed is applied and there is code that reads it, but nothing happens.', v: { topic: 'custom', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: false } },
-    { t: 'Retaining it with RUNTIME', d: 'The reading code finds the annotation and adds extra steps before and after work.', v: { topic: 'custom', ret: 'RUNTIME', target: 'METHOD', reader: true, typo: true, ov: false } },
-    { t: 'With no code that reads it', d: 'Nothing happens even though the annotation is retained until run time.', v: { topic: 'custom', ret: 'RUNTIME', target: 'METHOD', reader: false, typo: true, ov: false } },
-    { t: 'With SOURCE', d: 'The annotation is not retained even in the class file.', v: { topic: 'custom', ret: 'SOURCE', target: 'METHOD', reader: true, typo: true, ov: false } },
-    { t: 'Applied where it is not allowed', d: '@Target is TYPE, but the annotation is applied to a method. This is a compile-time error.', v: { topic: 'custom', ret: 'RUNTIME', target: 'TYPE', reader: true, typo: true, ov: false } },
-    { t: 'A misspelled name without @Override', d: 'The code compiles without an error, and the superclass method runs instead.', v: { topic: 'override', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: false } },
-    { t: '@Override catches it', d: 'The compiler reports the same mistake as an error.', v: { topic: 'override', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: true } },
+    { t: 'Default settings', q: 'What happens at run time when @Timed is applied to a method with no @Retention and code reads it with reflection?', d: '@Timed is applied and there is code that reads it, but nothing happens.', v: { topic: 'custom', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: false } },
+    { t: 'Retaining it with RUNTIME', q: 'What if you set @Retention of @Timed to RUNTIME?', d: 'The reading code finds the annotation and adds extra steps before and after work.', v: { topic: 'custom', ret: 'RUNTIME', target: 'METHOD', reader: true, typo: true, ov: false } },
+    { t: 'With no code that reads it', q: 'What if @Retention is RUNTIME and you remove the code that reads @Timed?', d: 'Nothing happens even though the annotation is retained until run time.', v: { topic: 'custom', ret: 'RUNTIME', target: 'METHOD', reader: false, typo: true, ov: false } },
+    { t: 'With SOURCE', q: 'What if you set @Retention of @Timed to SOURCE?', d: 'The annotation is not retained even in the class file.', v: { topic: 'custom', ret: 'SOURCE', target: 'METHOD', reader: true, typo: true, ov: false } },
+    { t: 'Applied where it is not allowed', q: 'What if @Retention stays RUNTIME and you change @Target of @Timed to TYPE?', d: '@Target is TYPE, but the annotation is applied to a method. This is a compile-time error.', v: { topic: 'custom', ret: 'RUNTIME', target: 'TYPE', reader: true, typo: true, ov: false } },
+    { t: 'A misspelled name without @Override', q: 'What if the method name is misspelled (sound → sount) and @Override is not applied?', d: 'The code compiles without an error, and the superclass method runs instead.', v: { topic: 'override', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: false } },
+    { t: '@Override catches it', q: 'What if the same misspelling (sound → sount) is made and @Override is applied to that method?', d: 'The compiler reports the same mistake as an error.', v: { topic: 'override', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: true } },
   ],
   // The code on the screen: [the declarations, the part inside main]
   parts: function (c) {

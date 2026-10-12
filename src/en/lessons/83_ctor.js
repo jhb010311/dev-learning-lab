@@ -9,12 +9,12 @@ Lab.register({
     { id: 'first', label: 'Written first in the class', type: 'select', value: 'field', options: [['field', 'Field initializer int qty = 10'], ['block', 'Initializer block { qty = 20; }']], hint: 'The two run starting from the one that is written first.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'Order() first calls the other constructor with this(1). The output is 21, standard.', v: { ctors: 'chain', call: 'noarg', first: 'field' } },
-    { t: 'With no constructors declared', d: 'The compiler provides a default constructor. memo stays null.', v: { ctors: 'none', call: 'noarg', first: 'field' } },
-    { t: 'Only a constructor with an argument, then new Order()', d: 'No default constructor is provided, so this is a compile-time error.', v: { ctors: 'arg', call: 'noarg', first: 'field' } },
-    { t: 'With the initializer block written first', d: 'The field initializer runs later, so qty becomes 10.', v: { ctors: 'both', call: 'noarg', first: 'block' } },
-    { t: 'new Order(3)', d: 'The constructor that matches the argument, Order(int extra), is selected.', v: { ctors: 'both', call: 'arg', first: 'field' } },
-    { t: 'No constructors, then new Order(3)', d: 'The default constructor takes no arguments, so this is a compile-time error.', v: { ctors: 'none', call: 'arg', first: 'field' } },
+    { t: 'Default settings', q: 'In what order does new Order() run when Order() calls Order(int extra) with this(1)?', d: 'Order() first calls the other constructor with this(1). The output is 21, standard.', v: { ctors: 'chain', call: 'noarg', first: 'field' } },
+    { t: 'With no constructors declared', q: 'What if you declare no constructors in the Order class?', d: 'The compiler provides a default constructor. memo stays null.', v: { ctors: 'none', call: 'noarg', first: 'field' } },
+    { t: 'Only a constructor with an argument, then new Order()', q: 'What if you declare only Order(int extra) and then call new Order()?', d: 'No default constructor is provided, so this is a compile-time error.', v: { ctors: 'arg', call: 'noarg', first: 'field' } },
+    { t: 'With the initializer block written first', q: 'What if you declare Order() and Order(int extra), and write the initializer block { qty = 20; } first in the class?', d: 'The field initializer runs later, so qty becomes 10.', v: { ctors: 'both', call: 'noarg', first: 'block' } },
+    { t: 'new Order(3)', q: 'What if you declare Order() and Order(int extra) and create the object with new Order(3)?', d: 'The constructor that matches the argument, Order(int extra), is selected.', v: { ctors: 'both', call: 'arg', first: 'field' } },
+    { t: 'No constructors, then new Order(3)', q: 'What if you declare no constructors and create the object with new Order(3)?', d: 'The default constructor takes no arguments, so this is a compile-time error.', v: { ctors: 'none', call: 'arg', first: 'field' } },
   ],
   code: function (c) {
     var field = '    int qty = 10;                  // field initializer\n', memo = '    String memo;                   // field without an initializer\n', block = '    {                              // initializer block\n        qty = 20;\n    }\n';

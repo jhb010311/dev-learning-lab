@@ -10,11 +10,11 @@ Lab.register({
     { id: 'state', label: 'Email server state', type: 'select', value: 'ok', options: [['ok', 'Normal'], ['down', 'Down, then recovered later']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'Direct call. The order response is delayed by the time it takes to send the email.', v: { how: 'direct', n: 3, work: '1000', state: 'ok' } },
-    { t: 'With a queue', d: 'The order responds right away, and the emails go out one after another in the background.', v: { how: 'queue', n: 3, work: '1000', state: 'ok' } },
-    { t: 'Direct call while the email server is down', d: 'Because of the email, even the order fails.', v: { how: 'direct', n: 3, work: '1000', state: 'down' } },
-    { t: 'Queue while the email server is down', d: 'The order succeeds, and the messages pile up and are handled after the recovery.', v: { how: 'queue', n: 3, work: '1000', state: 'down' } },
-    { t: 'When email is very slow', d: 'A 3s job. Compare the order response time of the two approaches.', v: { how: 'queue', n: 5, work: '3000', state: 'ok' } },
+    { t: 'Default settings', q: 'What happens to 3 orders when you call an email server that takes 1s per email directly and wait until it finishes?', d: 'Direct call. The order response is delayed by the time it takes to send the email.', v: { how: 'direct', n: 3, work: '1000', state: 'ok' } },
+    { t: 'With a queue', q: 'What if you put the work in a message queue and respond right away?', d: 'The order responds right away, and the emails go out one after another in the background.', v: { how: 'queue', n: 3, work: '1000', state: 'ok' } },
+    { t: 'Direct call while the email server is down', q: 'What if you keep the direct call and the email server is Down, then recovered later?', d: 'Because of the email, even the order fails.', v: { how: 'direct', n: 3, work: '1000', state: 'down' } },
+    { t: 'Queue while the email server is down', q: 'What if you put the work in a message queue and respond right away, and the email server is Down, then recovered later?', d: 'The order succeeds, and the messages pile up and are handled after the recovery.', v: { how: 'queue', n: 3, work: '1000', state: 'down' } },
+    { t: 'When email is very slow', q: 'What if you use a message queue, 5 orders arrive in a row, and one email takes 3s to send?', d: 'A 3s job. Compare the order response time of the two approaches.', v: { how: 'queue', n: 5, work: '3000', state: 'ok' } },
   ],
   code: function (c) {
     if (c.how === 'direct') return '@PostMapping("/orders")\nOrderDto order(@RequestBody OrderRequest req) {\n    Order order = orderService.save(req);          // 0.05s\n    mailClient.sendConfirm(order);                 // calls the email server directly and waits\n    return OrderDto.of(order);                     // responds only after the email is done\n}';

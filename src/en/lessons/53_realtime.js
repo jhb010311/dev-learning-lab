@@ -10,12 +10,12 @@ Lab.register({
     { id: 'up', label: 'The client also sends to the server often (chat input, for example)', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'Polling every 5s. Most requests end with "no news".', v: { how: 'poll', iv: '5', n: '3', up: false } },
-    { t: 'Polling interval of 1s', d: 'The delay gets shorter, but the requests grow to 30.', v: { how: 'poll', iv: '1', n: '3', up: false } },
-    { t: 'Long polling', d: 'The server responds the moment news arrives. The number of requests is close to the number of notifications.', v: { how: 'long', iv: '5', n: '3', up: false } },
-    { t: 'SSE', d: 'With one connection, the server sends as things happen.', v: { how: 'sse', iv: '5', n: '3', up: false } },
-    { t: 'When you need two-way communication', d: 'If the client also sends often, as in a chat, WebSocket is the right fit.', v: { how: 'ws', iv: '5', n: '12', up: true } },
-    { t: 'SSE, but the client also sends often', d: 'Each message the client sends becomes a separate HTTP request.', v: { how: 'sse', iv: '5', n: '12', up: true } },
+    { t: 'Default settings', q: 'With polling every 5s and 3 notifications created in 30 seconds, how does the browser find out about them?', d: 'Polling every 5s. Most requests end with "no news".', v: { how: 'poll', iv: '5', n: '3', up: false } },
+    { t: 'Polling interval of 1s', q: 'What if you change the polling interval to 1s?', d: 'The delay gets shorter, but the requests grow to 30.', v: { how: 'poll', iv: '1', n: '3', up: false } },
+    { t: 'Long polling', q: 'What if you change the method to long polling?', d: 'The server responds the moment news arrives. The number of requests is close to the number of notifications.', v: { how: 'long', iv: '5', n: '3', up: false } },
+    { t: 'SSE', q: 'What if you change the method to SSE?', d: 'With one connection, the server sends as things happen.', v: { how: 'sse', iv: '5', n: '3', up: false } },
+    { t: 'When you need two-way communication', q: 'What if you change the method to WebSocket, with 12 notifications and a client that also sends to the server often?', d: 'If the client also sends often, as in a chat, WebSocket is the right fit.', v: { how: 'ws', iv: '5', n: '12', up: true } },
+    { t: 'SSE, but the client also sends often', q: 'What if the method is SSE, there are 12 notifications, and the client also sends to the server often?', d: 'Each message the client sends becomes a separate HTTP request.', v: { how: 'sse', iv: '5', n: '12', up: true } },
   ],
   code: function (c) {
     if (c.how === 'poll') return '// Browser\nsetInterval(async () => {\n    const res = await fetch("/notifications?after=" + lastId);\n    show(await res.json());              // an empty array if there is nothing\n}, ' + (+c.iv * 1000) + ');';

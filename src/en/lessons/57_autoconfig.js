@@ -12,12 +12,12 @@ Lab.register({
     { id: 'myDs', label: 'You registered your own DataSource bean', type: 'check', value: false, show: function (c) { return c.jpa; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'The web and JPA starters. All the beans that are needed are created, and you register none yourself.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: true, myDs: false } },
-    { t: 'Leaving out the database URL', d: 'The driver is MySQL, but there is no connection URL. Startup fails.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: false, myDs: false } },
-    { t: 'With H2, even without a URL', d: 'When Spring Boot finds an embedded database, it creates an in-memory database for you.', v: { web: true, myOm: false, jpa: true, db: 'h2', url: false, myDs: false } },
-    { t: 'Registering your own DataSource', d: 'The auto-configuration backs away, and the one you created is used.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: true, myDs: true } },
-    { t: 'Registering your own ObjectMapper', d: 'The ObjectMapper that Spring Boot would have created is not registered.', v: { web: true, myOm: true, jpa: true, db: 'mysql', url: true, myDs: false } },
-    { t: 'Removing the web starter', d: 'Neither Tomcat nor DispatcherServlet is created.', v: { web: false, myOm: false, jpa: true, db: 'mysql', url: true, myDs: false } },
+    { t: 'Default settings', q: 'Which beans are created when you start with the web and JPA starters, the MySQL driver, and spring.datasource.url set?', d: 'The web and JPA starters. All the beans that are needed are created, and you register none yourself.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: true, myDs: false } },
+    { t: 'Leaving out the database URL', q: 'What if you leave out spring.datasource.url?', d: 'The driver is MySQL, but there is no connection URL. Startup fails.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: false, myDs: false } },
+    { t: 'With H2, even without a URL', q: 'What if you switch the database driver to H2 (embedded database) and leave out spring.datasource.url?', d: 'When Spring Boot finds an embedded database, it creates an in-memory database for you.', v: { web: true, myOm: false, jpa: true, db: 'h2', url: false, myDs: false } },
+    { t: 'Registering your own DataSource', q: 'What if you register your own DataSource bean?', d: 'The auto-configuration backs away, and the one you created is used.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: true, myDs: true } },
+    { t: 'Registering your own ObjectMapper', q: 'What if you register your own ObjectMapper bean?', d: 'The ObjectMapper that Spring Boot would have created is not registered.', v: { web: true, myOm: true, jpa: true, db: 'mysql', url: true, myDs: false } },
+    { t: 'Removing the web starter', q: 'What if you remove the spring-boot-starter-webmvc dependency?', d: 'Neither Tomcat nor DispatcherServlet is created.', v: { web: false, myOm: false, jpa: true, db: 'mysql', url: true, myDs: false } },
   ],
   code: function (c) {
     var dep = [];

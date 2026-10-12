@@ -10,12 +10,12 @@ Lab.register({
     { id: 'key', label: 'Send an idempotency key (Idempotency-Key) header with it', type: 'check', value: false, show: function (c) { return c.m === 'POST' || c.m === 'PATCH'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'The response to the POST is lost once. Two orders are created.', v: { m: 'POST', lost: 'res', n: 1, key: false } },
-    { t: 'PUT in the same situation', d: 'Even when it runs twice, the result is the same as running it once.', v: { m: 'PUT', lost: 'res', n: 1, key: false } },
-    { t: 'Sending DELETE again', d: 'The response code of the second request is different, but the state of the server is the same.', v: { m: 'DELETE', lost: 'res', n: 1, key: false } },
-    { t: 'A PATCH that increases a value', d: 'The quantity goes up once for every retry.', v: { m: 'PATCH', lost: 'res', n: 2, key: false } },
-    { t: 'Adding an idempotency key to the POST', d: 'The server recognizes the repeated request and handles it only once.', v: { m: 'POST', lost: 'res', n: 2, key: true } },
-    { t: 'When the request is lost', d: 'The server never handled it, so retrying causes no problem.', v: { m: 'POST', lost: 'req', n: 1, key: false } },
+    { t: 'Default settings', q: 'What happens when the response to POST /orders (create a new order) is lost once and the request is sent again?', d: 'The response to the POST is lost once. Two orders are created.', v: { m: 'POST', lost: 'res', n: 1, key: false } },
+    { t: 'PUT in the same situation', q: 'What if you send PUT /orders/1 (replace the quantity with 3) and the response is lost once?', d: 'Even when it runs twice, the result is the same as running it once.', v: { m: 'PUT', lost: 'res', n: 1, key: false } },
+    { t: 'Sending DELETE again', q: 'What if you send DELETE /orders/1 (delete) and the response is lost once?', d: 'The response code of the second request is different, but the state of the server is the same.', v: { m: 'DELETE', lost: 'res', n: 1, key: false } },
+    { t: 'A PATCH that increases a value', q: 'What if you send PATCH /orders/1 (increase the quantity by 1) and the response is lost 2 times?', d: 'The quantity goes up once for every retry.', v: { m: 'PATCH', lost: 'res', n: 2, key: false } },
+    { t: 'Adding an idempotency key to the POST', q: 'What if you send an Idempotency-Key header with POST /orders and the response is lost 2 times?', d: 'The server recognizes the repeated request and handles it only once.', v: { m: 'POST', lost: 'res', n: 2, key: true } },
+    { t: 'When the request is lost', q: 'What if the network loses the request instead of the response for POST /orders?', d: 'The server never handled it, so retrying causes no problem.', v: { m: 'POST', lost: 'req', n: 1, key: false } },
   ],
   code: function (c) {
     var k = c.key && (c.m === 'POST' || c.m === 'PATCH') ? 'Idempotency-Key: 7f3a9c12\n' : '';

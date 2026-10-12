@@ -8,13 +8,13 @@ Lab.register({
     { id: 'get', label: 'How OrderService, a singleton, obtains the Cart', type: 'select', value: 'inject', options: [['inject', 'Has it injected through the constructor and keeps it in a field'], ['provider', 'Has an ObjectProvider injected and retrieves a Cart on each use'], ['proxy', 'Has a proxy of Cart injected (proxyMode)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A prototype bean is injected into a singleton bean. However many requests you send, it is the same object.', v: { scope: 'prototype', get: 'inject' } },
-    { t: 'Retrieving with ObjectProvider', d: 'A new object is created each time one is retrieved.', v: { scope: 'prototype', get: 'provider' } },
-    { t: 'With a singleton', d: 'However you obtain it, it is the only object in the container.', v: { scope: 'singleton', get: 'inject' } },
-    { t: 'Injecting a request-scoped bean directly', d: 'There is no request at startup, so the bean cannot be created. Startup fails.', v: { scope: 'request', get: 'inject' } },
-    { t: 'request scope + ObjectProvider', d: 'Within the same request it is the same object, and a different request gets a different object.', v: { scope: 'request', get: 'provider' } },
-    { t: 'request scope + proxy', d: 'The code of OrderService stays as it is, and one object is used per request.', v: { scope: 'request', get: 'proxy' } },
-    { t: 'prototype + proxy', d: 'A new object is created every time a method is called.', v: { scope: 'prototype', get: 'proxy' } },
+    { t: 'Default settings', q: 'How is the Cart used per request when a singleton OrderService has a prototype Cart injected through the constructor and keeps it in a field?', d: 'A prototype bean is injected into a singleton bean. However many requests you send, it is the same object.', v: { scope: 'prototype', get: 'inject' } },
+    { t: 'Retrieving with ObjectProvider', q: 'What if the singleton OrderService has an ObjectProvider injected and retrieves a Cart on each use?', d: 'A new object is created each time one is retrieved.', v: { scope: 'prototype', get: 'provider' } },
+    { t: 'With a singleton', q: 'What if you change the scope of the Cart bean to singleton?', d: 'However you obtain it, it is the only object in the container.', v: { scope: 'singleton', get: 'inject' } },
+    { t: 'Injecting a request-scoped bean directly', q: 'What if you change the scope of the Cart bean to request and inject it directly through the constructor?', d: 'There is no request at startup, so the bean cannot be created. Startup fails.', v: { scope: 'request', get: 'inject' } },
+    { t: 'request scope + ObjectProvider', q: 'What if the Cart bean has request scope and OrderService has an ObjectProvider injected and retrieves a Cart on each use?', d: 'Within the same request it is the same object, and a different request gets a different object.', v: { scope: 'request', get: 'provider' } },
+    { t: 'request scope + proxy', q: 'What if the Cart bean has request scope and OrderService has a proxy of Cart injected (proxyMode)?', d: 'The code of OrderService stays as it is, and one object is used per request.', v: { scope: 'request', get: 'proxy' } },
+    { t: 'prototype + proxy', q: 'What if the Cart bean is a prototype and OrderService has a proxy of Cart injected (proxyMode)?', d: 'A new object is created every time a method is called.', v: { scope: 'prototype', get: 'proxy' } },
   ],
   code: function (c) {
     var line = c.get === 'proxy' ? '@Scope(value = "' + c.scope + '", proxyMode = ScopedProxyMode.TARGET_CLASS)\n' : c.scope === 'singleton' ? '' : '@Scope("' + c.scope + '")\n';

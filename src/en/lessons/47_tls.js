@@ -7,10 +7,10 @@ Lab.register({
     { id: 'cert', label: 'State of the server certificate', type: 'select', value: 'ok', options: [['ok', 'Valid'], ['expired', 'Past its validity period'], ['name', 'Certificate for a different domain'], ['self', 'Issued by an untrusted source (self-signed)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A normal TLS 1.3 handshake.', v: { cert: 'ok' } },
-    { t: 'If the certificate has expired', d: 'The browser shows a warning and stops the connection.', v: { cert: 'expired' } },
-    { t: 'If the domain is different', d: 'The certificate is genuine, but it does not belong to this server.', v: { cert: 'name' } },
-    { t: 'Self-signed certificate', d: 'A certificate that no one vouches for.', v: { cert: 'self' } },
+    { t: 'Default settings', q: 'In what order does the process go until an https connection is established when the server certificate is valid?', d: 'A normal TLS 1.3 handshake.', v: { cert: 'ok' } },
+    { t: 'If the certificate has expired', q: 'What if the server certificate is past its validity period?', d: 'The browser shows a warning and stops the connection.', v: { cert: 'expired' } },
+    { t: 'If the domain is different', q: 'What if the server presents a certificate for a different domain?', d: 'The certificate is genuine, but it does not belong to this server.', v: { cert: 'name' } },
+    { t: 'Self-signed certificate', q: 'What if the server uses a self-signed certificate issued by an untrusted source?', d: 'A certificate that no one vouches for.', v: { cert: 'self' } },
   ],
   code: function () {
     return '# application.yml (server-side settings)\nserver:\n  port: 443\n  ssl:\n    enabled: true\n    key-store: classpath:shop.p12       # certificate + private key\n    key-store-password: ********\n    protocol: TLS\n    enabled-protocols: TLSv1.3\n\n# In production, a load balancer or nginx in front usually handles TLS,\n# and the application server receives plain HTTP behind it';

@@ -9,12 +9,12 @@ Lab.register({
     { id: 'chg', label: 'The content on the server changed in the meantime', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'The request is made again after the freshness lifetime has passed. If nothing changed, only a 304 comes back, with no body.', v: { cc: 'max', when: '120', chg: false } },
-    { t: 'Open again within the freshness lifetime', d: 'No request is sent to the server at all.', v: { cc: 'max', when: '30', chg: false } },
-    { t: 'If the content changed', d: 'The ETag is different, so the new content arrives with 200.', v: { cc: 'max', when: '120', chg: true } },
-    { t: 'Content changes within the freshness lifetime', d: 'The browser does not know, and it uses the old content.', v: { cc: 'max', when: '30', chg: true } },
-    { t: 'no-store', d: 'Nothing is stored, so the whole response is received again every time.', v: { cc: 'nostore', when: '120', chg: false } },
-    { t: 'no-cache', d: 'The response is stored, but the server is asked every time before it is used.', v: { cc: 'nocache', when: '120', chg: false } },
+    { t: 'Default settings', q: 'What is exchanged with the server when you open a file received with Cache-Control: max-age=60 again 120 seconds later?', d: 'The request is made again after the freshness lifetime has passed. If nothing changed, only a 304 comes back, with no body.', v: { cc: 'max', when: '120', chg: false } },
+    { t: 'Open again within the freshness lifetime', q: 'What if you open the address the second time 30s later?', d: 'No request is sent to the server at all.', v: { cc: 'max', when: '30', chg: false } },
+    { t: 'If the content changed', q: 'What if the content on the server changed in the meantime and you open the address 120s later?', d: 'The ETag is different, so the new content arrives with 200.', v: { cc: 'max', when: '120', chg: true } },
+    { t: 'Content changes within the freshness lifetime', q: 'What if you open the address 30s later and the content on the server changed in the meantime?', d: 'The browser does not know, and it uses the old content.', v: { cc: 'max', when: '30', chg: true } },
+    { t: 'no-store', q: 'What if the server sends Cache-Control: no-store?', d: 'Nothing is stored, so the whole response is received again every time.', v: { cc: 'nostore', when: '120', chg: false } },
+    { t: 'no-cache', q: 'What if the server sends Cache-Control: no-cache?', d: 'The response is stored, but the server is asked every time before it is used.', v: { cc: 'nocache', when: '120', chg: false } },
   ],
   code: function (c) {
     var h = { nostore: 'CacheControl.noStore()', max: 'CacheControl.maxAge(60, TimeUnit.SECONDS)', nocache: 'CacheControl.noCache()' }[c.cc];

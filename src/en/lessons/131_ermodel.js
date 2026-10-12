@@ -8,13 +8,13 @@ Lab.register({
     { id: 'task', label: 'Task to try', type: 'select', value: 'find', options: [['find', 'Find what is connected'], ['add', 'Connect one more']], hint: 'In one-to-one, "connect one more" means trying to insert a second profile, which must not be allowed.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'Finds the java tag in the comma-separated string. The javascript post comes back too.', v: { design: 'm2m_csv', task: 'find' } },
-    { t: 'Finding with an associative table', d: 'Exactly the 2 posts with the java tag come back.', v: { design: 'm2m_link', task: 'find' } },
-    { t: 'A fourth tag in tag1~tag3', d: 'There is no column to put it in, so an error occurs.', v: { design: 'm2m_cols', task: 'add' } },
-    { t: 'One more tag in the associative table', d: 'Inserting one row into the associative table is all it takes.', v: { design: 'm2m_link', task: 'add' } },
-    { t: 'Foreign key on the "one" side', d: 'Of the 2 posts that the member wrote, only 1 is found.', v: { design: 'o2m_one', task: 'find' } },
-    { t: 'One-to-one without a unique constraint', d: 'Two profiles go in for one member.', v: { design: 'o2o_fk', task: 'add' } },
-    { t: 'One-to-one with a unique constraint', d: 'The second profile is blocked with error 1062.', v: { design: 'o2o_uq', task: 'add' } },
+    { t: 'Default settings', q: 'What does the task Find what is connected return when the post-tag many-to-many relationship is a string column joined with commas?', d: 'Finds the java tag in the comma-separated string. The javascript post comes back too.', v: { design: 'm2m_csv', task: 'find' } },
+    { t: 'Finding with an associative table', q: 'What if you replace the comma-joined string column of the post-tag relationship with the associative table post_tag?', d: 'Exactly the 2 posts with the java tag come back.', v: { design: 'm2m_link', task: 'find' } },
+    { t: 'A fourth tag in tag1~tag3', q: 'What if you use the columns tag1, tag2, tag3 for the post-tag relationship and connect one more?', d: 'There is no column to put it in, so an error occurs.', v: { design: 'm2m_cols', task: 'add' } },
+    { t: 'One more tag in the associative table', q: 'What if you use the associative table post_tag for the post-tag relationship and connect one more?', d: 'Inserting one row into the associative table is all it takes.', v: { design: 'm2m_link', task: 'add' } },
+    { t: 'Foreign key on the "one" side', q: 'What if you put the foreign key on the member, the "one" side, of the member-post one-to-many relationship?', d: 'Of the 2 posts that the member wrote, only 1 is found.', v: { design: 'o2m_one', task: 'find' } },
+    { t: 'One-to-one without a unique constraint', q: 'What if you design the member-profile one-to-one relationship with a foreign key only (no unique) and connect one more?', d: 'Two profiles go in for one member.', v: { design: 'o2o_fk', task: 'add' } },
+    { t: 'One-to-one with a unique constraint', q: 'What if you design the member-profile one-to-one relationship with a foreign key + unique and connect one more?', d: 'The second profile is blocked with error 1062.', v: { design: 'o2o_uq', task: 'add' } },
   ],
   // The table definitions (CREATE TABLE) and the initial data for each design. The model and the INSERT statements on the screen are made from the same data.
   base: function (design) {

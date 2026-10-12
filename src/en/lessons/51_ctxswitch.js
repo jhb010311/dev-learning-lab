@@ -9,11 +9,11 @@ Lab.register({
     { id: 'kind', label: 'Kind of task', type: 'select', value: 'cpu', options: [['cpu', 'Mostly computation (image conversion, encryption, and so on): uses the CPU all the time'], ['io', 'Mostly waiting (database and API calls): 90% of the time is spent waiting for a response']] },
   ],
   presets: [
-    { t: 'Default settings', d: '4 cores and 16 threads that do computation. Throughput is the same as with 4 threads, and only the time for one task to finish becomes 4 times as long.', v: { core: 4, th: 16, kind: 'cpu' } },
-    { t: 'Threads matched to the number of cores', d: 'Throughput is the same, and every task finishes without waiting.', v: { core: 4, th: 4, kind: 'cpu' } },
-    { t: 'Mostly waiting, 4 threads', d: 'The threads are waiting most of the time, so the CPU sits idle.', v: { core: 4, th: 4, kind: 'io' } },
-    { t: 'Mostly waiting, 40 threads', d: 'While one thread waits, other threads use the CPU, so throughput becomes 10 times as high.', v: { core: 4, th: 40, kind: 'io' } },
-    { t: 'Even more threads', d: '80 threads. The CPU is already fully used, so throughput stays the same.', v: { core: 4, th: 80, kind: 'io' } },
+    { t: 'Default settings', q: 'What happens when 16 threads run tasks that are mostly computation on 4 CPU cores?', d: '4 cores and 16 threads that do computation. Throughput is the same as with 4 threads, and only the time for one task to finish becomes 4 times as long.', v: { core: 4, th: 16, kind: 'cpu' } },
+    { t: 'Threads matched to the number of cores', q: 'What if you keep the tasks mostly computation and change the number of threads to 4?', d: 'Throughput is the same, and every task finishes without waiting.', v: { core: 4, th: 4, kind: 'cpu' } },
+    { t: 'Mostly waiting, 4 threads', q: 'What if the tasks are mostly waiting (database and API calls) and you use 4 threads?', d: 'The threads are waiting most of the time, so the CPU sits idle.', v: { core: 4, th: 4, kind: 'io' } },
+    { t: 'Mostly waiting, 40 threads', q: 'What if the tasks are mostly waiting (database and API calls) and you use 40 threads?', d: 'While one thread waits, other threads use the CPU, so throughput becomes 10 times as high.', v: { core: 4, th: 40, kind: 'io' } },
+    { t: 'Even more threads', q: 'What if the tasks are mostly waiting (database and API calls) and you use 80 threads?', d: '80 threads. The CPU is already fully used, so throughput stays the same.', v: { core: 4, th: 80, kind: 'io' } },
   ],
   code: function (c) {
     return 'int cores = Runtime.getRuntime().availableProcessors();   // ' + c.core + '\n\n// ' + (c.kind === 'cpu' ? 'mostly computation: as many threads as cores is enough' : 'mostly waiting: number of cores x (1 + wait time / compute time)') + '\nExecutorService pool = Executors.newFixedThreadPool(' + c.th + ');\n\nfor (Task task : tasks) {\n    pool.submit(() -> ' + (c.kind === 'cpu' ? 'resize(image)' : 'callExternalApi()') + ');\n}';

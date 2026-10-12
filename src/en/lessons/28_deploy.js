@@ -9,12 +9,12 @@ Lab.register({
     { id: 'grace', label: 'Graceful shutdown is configured', type: 'check', value: true },
   ],
   presets: [
-    { t: 'Default settings', d: 'Rolling deployment. Servers are replaced one at a time, so the service is not interrupted.', v: { st: 'rolling', bug: false, grace: true } },
-    { t: 'Take everything down first', d: 'The simplest way, but the service stops in the meantime.', v: { st: 'recreate', bug: false, grace: true } },
-    { t: 'Blue-green', d: 'You need twice the servers, but switching and rolling back are instant.', v: { st: 'bluegreen', bug: false, grace: true } },
-    { t: 'A version with a bug, deployed by rolling', d: 'Until you notice the problem, the range of impact keeps growing.', v: { st: 'rolling', bug: true, grace: true } },
-    { t: 'A version with a bug, deployed as a canary', d: 'Only some users are affected, and then you roll back.', v: { st: 'canary', bug: true, grace: true } },
-    { t: 'Without graceful shutdown', d: 'Requests in progress are cut off when a server is taken down.', v: { st: 'rolling', bug: false, grace: false } },
+    { t: 'Default settings', q: 'What happens to the service when you deploy a v2 without a bug by rolling, with graceful shutdown configured?', d: 'Rolling deployment. Servers are replaced one at a time, so the service is not interrupted.', v: { st: 'rolling', bug: false, grace: true } },
+    { t: 'Take everything down first', q: 'What if you change the deployment strategy to take everything down, then bring up the new version?', d: 'The simplest way, but the service stops in the meantime.', v: { st: 'recreate', bug: false, grace: true } },
+    { t: 'Blue-green', q: 'What if you change the deployment strategy to blue-green?', d: 'You need twice the servers, but switching and rolling back are instant.', v: { st: 'bluegreen', bug: false, grace: true } },
+    { t: 'A version with a bug, deployed by rolling', q: 'What if v2 has a bug and you deploy by rolling as before?', d: 'Until you notice the problem, the range of impact keeps growing.', v: { st: 'rolling', bug: true, grace: true } },
+    { t: 'A version with a bug, deployed as a canary', q: 'What if you deploy as a canary and v2 has a bug?', d: 'Only some users are affected, and then you roll back.', v: { st: 'canary', bug: true, grace: true } },
+    { t: 'Without graceful shutdown', q: 'What if you turn off graceful shutdown?', d: 'Requests in progress are cut off when a server is taken down.', v: { st: 'rolling', bug: false, grace: false } },
   ],
   code: function (c) {
     var k = { recreate: 'strategy:\n  type: Recreate                # takes all the existing ones down, then brings up the new ones', rolling: 'strategy:\n  type: RollingUpdate\n  rollingUpdate:\n    maxUnavailable: 1           # takes down at most 1 server at a time\n    maxSurge: 0', bluegreen: '# Bring up the Deployment of the new version (green) separately,\n# then change the selector of the Service to version: v2 to switch all at once', canary: '# Bring up just 1 server of v2 so that it receives only 25% of all requests,\n# watch the error rate and the response time, then replace the rest' }[c.st];

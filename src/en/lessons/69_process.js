@@ -8,12 +8,12 @@ Lab.register({
     { id: 'fail', label: 'What happens in task 2', type: 'select', value: 'none', options: [['none', 'No problem'], ['ex', 'An uncaught exception is thrown'], ['kill', 'The process itself is terminated (System.exit, forced termination by the operating system, and so on)']] },
   ],
   presets: [
-    { t: 'Default settings', d: '3 threads. They finish in 0.3 seconds and increment the same variable together.', v: { how: 'multi', fail: 'none' } },
-    { t: 'One thread, one task after another', d: 'The times of the three tasks simply add up.', v: { how: 'single', fail: 'none' } },
-    { t: '3 processes', d: 'They finish at the same time, but each has its own separate variable.', v: { how: 'proc', fail: 'none' } },
-    { t: 'One thread dies from an exception', d: 'Only that thread ends, and the others continue.', v: { how: 'multi', fail: 'ex' } },
-    { t: 'An error that kills the process', d: 'When the 3 threads are in one process, they die together.', v: { how: 'multi', fail: 'kill' } },
-    { t: 'The same error, in separate processes', d: 'Only that process dies, and the others are unharmed.', v: { how: 'proc', fail: 'kill' } },
+    { t: 'Default settings', q: 'What happens when you run the tasks as 1 process, 3 threads and nothing goes wrong in task 2?', d: '3 threads. They finish in 0.3 seconds and increment the same variable together.', v: { how: 'multi', fail: 'none' } },
+    { t: 'One thread, one task after another', q: 'What if you run the tasks as 1 process, 1 thread (one task after another)?', d: 'The times of the three tasks simply add up.', v: { how: 'single', fail: 'none' } },
+    { t: '3 processes', q: 'What if you run the tasks as 3 processes (1 thread each)?', d: 'They finish at the same time, but each has its own separate variable.', v: { how: 'proc', fail: 'none' } },
+    { t: 'One thread dies from an exception', q: 'What if an uncaught exception is thrown in task 2?', d: 'Only that thread ends, and the others continue.', v: { how: 'multi', fail: 'ex' } },
+    { t: 'An error that kills the process', q: 'What if the process itself is terminated in task 2 (System.exit, forced termination by the operating system, and so on)?', d: 'When the 3 threads are in one process, they die together.', v: { how: 'multi', fail: 'kill' } },
+    { t: 'The same error, in separate processes', q: 'What if you run 3 processes (1 thread each) and task 2 calls System.exit?', d: 'Only that process dies, and the others are unharmed.', v: { how: 'proc', fail: 'kill' } },
   ],
   code: function (c) {
     var body = 'static int counter = 0;                 // a variable in the memory of the process\n\nstatic void work(int id) throws Exception {\n    Thread.sleep(300);                  // a task that takes 0.3 seconds\n' + (c.fail === 'ex' ? '    if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '    if (id == 2) System.exit(3);        // ends the whole process\n' : '') + '    counter++;\n}\n\n';

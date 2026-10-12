@@ -8,13 +8,13 @@ Lab.register({
     { id: 'use', label: 'What you do with m', type: 'select', value: 'name', options: [['id', 'm.getId() (read the identifier)'], ['name', 'm.getName() (read the name)'], ['cls', 'Compare m.getClass() == Member.class'], ['closed', 'Close the persistence context, then m.getName()']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'No SQL is sent when you get it with getReference, and a SELECT is sent when you read the name.', v: { how: 'ref', use: 'name' } },
-    { t: 'Reading only the identifier', d: 'The proxy already knows that value, so no SQL is sent.', v: { how: 'ref', use: 'id' } },
-    { t: 'A member received through lazy fetching', d: 'What order.getMember() returns is a proxy, too.', v: { how: 'lazy', use: 'name' } },
-    { t: 'After the persistence context is closed', d: 'There is no way to fill the empty proxy, so an exception is thrown.', v: { how: 'lazy', use: 'closed' } },
-    { t: 'Comparing with getClass()', d: 'The class of the proxy is not Member, so the result is false.', v: { how: 'ref', use: 'cls' } },
-    { t: 'When a member was already read', d: 'getReference returns the real entity, not a proxy.', v: { how: 'findref', use: 'cls' } },
-    { t: 'When you got the proxy first', d: 'The em.find called later returns that proxy, too.', v: { how: 'reffind', use: 'cls' } },
+    { t: 'Default settings', q: 'When you get member m with em.getReference(Member.class, 1L) and read the name, what is m and when is the SELECT sent?', d: 'No SQL is sent when you get it with getReference, and a SELECT is sent when you read the name.', v: { how: 'ref', use: 'name' } },
+    { t: 'Reading only the identifier', q: 'What if you read only the identifier with m.getId() instead of the name?', d: 'The proxy already knows that value, so no SQL is sent.', v: { how: 'ref', use: 'id' } },
+    { t: 'A member received through lazy fetching', q: 'What if you load an order and get the member with order.getMember() (lazy fetching) instead of em.getReference?', d: 'What order.getMember() returns is a proxy, too.', v: { how: 'lazy', use: 'name' } },
+    { t: 'After the persistence context is closed', q: 'What if you close the persistence context and then read m.getName() on a member received through lazy fetching?', d: 'There is no way to fill the empty proxy, so an exception is thrown.', v: { how: 'lazy', use: 'closed' } },
+    { t: 'Comparing with getClass()', q: 'What if you compare m.getClass() == Member.class?', d: 'The class of the proxy is not Member, so the result is false.', v: { how: 'ref', use: 'cls' } },
+    { t: 'When a member was already read', q: 'What if you read with em.find first, then get m with em.getReference and compare m.getClass() == Member.class?', d: 'getReference returns the real entity, not a proxy.', v: { how: 'findref', use: 'cls' } },
+    { t: 'When you got the proxy first', q: 'What if you call em.getReference first, then get m with em.find and compare m.getClass() == Member.class?', d: 'The em.find called later returns that proxy, too.', v: { how: 'reffind', use: 'cls' } },
   ],
   lines: function (c) {
     var a = { ref: ['Member m = em.getReference(Member.class, 1L);'], lazy: ['Order order = em.find(Order.class, 1L);', 'Member m = order.getMember();'], find: ['Member m = em.find(Member.class, 1L);'], findref: ['Member found = em.find(Member.class, 1L);', 'Member m = em.getReference(Member.class, 1L);'], reffind: ['Member ref = em.getReference(Member.class, 1L);', 'Member m = em.find(Member.class, 1L);'] }[c.how];

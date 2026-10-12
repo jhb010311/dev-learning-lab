@@ -8,10 +8,10 @@ Lab.register({
     { id: 'inp', label: 'Insertion order', type: 'select', value: 'mixed', options: [['mixed', '5, 2, 8, 1, 9 (mixed order)'], ['asc', '1, 2, 5, 8, 9 (ascending order)'], ['desc', '9, 8, 5, 2, 1 (descending order)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A priority queue. The smallest value comes out first, regardless of the insertion order.', v: { ds: 'pq', inp: 'mixed' } },
-    { t: 'Stack', d: 'The 9, which was inserted last, comes out first.', v: { ds: 'stack', inp: 'mixed' } },
-    { t: 'Queue', d: 'The values come out in insertion order.', v: { ds: 'queue', inp: 'mixed' } },
-    { t: 'Descending order into a priority queue', d: 'On every insertion, the new value moves all the way up to the top.', v: { ds: 'pq', inp: 'desc' } },
+    { t: 'Default settings', q: 'In what order do the values come out when you insert 5, 2, 8, 1, 9 into a priority queue (PriorityQueue) and remove them?', d: 'A priority queue. The smallest value comes out first, regardless of the insertion order.', v: { ds: 'pq', inp: 'mixed' } },
+    { t: 'Stack', q: 'What if you insert the same values into a stack (push / pop of ArrayDeque) and remove them?', d: 'The 9, which was inserted last, comes out first.', v: { ds: 'stack', inp: 'mixed' } },
+    { t: 'Queue', q: 'What if you insert the same values into a queue (offer / poll of ArrayDeque) and remove them?', d: 'The values come out in insertion order.', v: { ds: 'queue', inp: 'mixed' } },
+    { t: 'Descending order into a priority queue', q: 'What if you insert 9, 8, 5, 2, 1 (descending order) into the PriorityQueue?', d: 'On every insertion, the new value moves all the way up to the top.', v: { ds: 'pq', inp: 'desc' } },
   ],
   INPUTS: { mixed: [5, 2, 8, 1, 9], asc: [1, 2, 5, 8, 9], desc: [9, 8, 5, 2, 1] },
   code: function (c) {

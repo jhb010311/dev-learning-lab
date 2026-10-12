@@ -13,13 +13,13 @@ Lab.register({
   ],
   fix: function (c) { return c.m > c.n ? { m: c.n } : null; },
   presets: [
-    { t: 'Default settings', d: 'Lazy fetching, 10 orders, 10 members. 1 + 10 queries are sent.', v: { n: 10, m: 10, st: 'lazy', bs: 5, use: true, rt: 5 } },
-    { t: 'Does switching to eager fetching solve it?', d: 'The number of queries stays the same, and only the time they are sent moves earlier.', v: { n: 10, m: 10, st: 'eager', bs: 5, use: true, rt: 5 } },
-    { t: 'Fetch join', d: 'Fetches the orders and the members in one query.', v: { n: 10, m: 10, st: 'fetch', bs: 5, use: true, rt: 5 } },
-    { t: 'Batch size setting', d: 'Fetches the members 5 at a time with an IN query.', v: { n: 10, m: 10, st: 'batch', bs: 5, use: true, rt: 5 } },
-    { t: 'When one member has many orders', d: '10 orders, 3 members. A member that has already been read is not queried again.', v: { n: 10, m: 3, st: 'lazy', bs: 5, use: true, rt: 5 } },
-    { t: 'When you do not use the member information', d: 'Lazy fetching does not query a member you do not use. Compare it with eager fetching.', v: { n: 10, m: 10, st: 'lazy', bs: 5, use: false, rt: 5 } },
-    { t: 'Raise it to 30 orders', d: 'With lazy fetching, the queries grow as the data grows.', v: { n: 30, m: 30, st: 'lazy', bs: 5, use: true, rt: 5 } },
+    { t: 'Default settings', q: 'How many queries are sent when you load 10 orders placed by 10 members with lazy fetching (LAZY) and then use the member name?', d: 'Lazy fetching, 10 orders, 10 members. 1 + 10 queries are sent.', v: { n: 10, m: 10, st: 'lazy', bs: 5, use: true, rt: 5 } },
+    { t: 'Does switching to eager fetching solve it?', q: 'What if you change the way the member is fetched to eager fetching (EAGER)?', d: 'The number of queries stays the same, and only the time they are sent moves earlier.', v: { n: 10, m: 10, st: 'eager', bs: 5, use: true, rt: 5 } },
+    { t: 'Fetch join', q: 'What if you change the way the member is fetched to lazy fetching + fetch join?', d: 'Fetches the orders and the members in one query.', v: { n: 10, m: 10, st: 'fetch', bs: 5, use: true, rt: 5 } },
+    { t: 'Batch size setting', q: 'What if you use lazy fetching + batch size setting with a batch size of 5?', d: 'Fetches the members 5 at a time with an IN query.', v: { n: 10, m: 10, st: 'batch', bs: 5, use: true, rt: 5 } },
+    { t: 'When one member has many orders', q: 'What if you keep the 10 orders but they were placed by only 3 members?', d: '10 orders, 3 members. A member that has already been read is not queried again.', v: { n: 10, m: 3, st: 'lazy', bs: 5, use: true, rt: 5 } },
+    { t: 'When you do not use the member information', q: 'What if you do not use the member name after loading?', d: 'Lazy fetching does not query a member you do not use. Compare it with eager fetching.', v: { n: 10, m: 10, st: 'lazy', bs: 5, use: false, rt: 5 } },
+    { t: 'Raise it to 30 orders', q: 'What if you load 30 orders placed by 30 members?', d: 'With lazy fetching, the queries grow as the data grows.', v: { n: 30, m: 30, st: 'lazy', bs: 5, use: true, rt: 5 } },
   ],
   code: function (c) {
     var eager = c.st === 'eager';

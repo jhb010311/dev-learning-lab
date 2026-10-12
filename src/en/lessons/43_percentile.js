@@ -8,11 +8,11 @@ Lab.register({
     { id: 'slow', label: 'Response time of each slow request', type: 'select', value: '3', options: [['1', '1 second'], ['3', '3 seconds'], ['10', '10 seconds']], show: function (c) { return c.ratio !== '0'; } },
   ],
   presets: [
-    { t: 'Default settings', d: '2% take 3s. The average looks fine at 0.16s, but p99 is 3s.', v: { ratio: '2', slow: '3' } },
-    { t: 'When there are no slow requests', d: 'The average, the median, and p99 are almost the same.', v: { ratio: '0', slow: '3' } },
-    { t: 'When only 0.5% are slow', d: 'Not even p99 catches them. You have to look at the maximum or p99.9 to see them.', v: { ratio: '0.5', slow: '10' } },
-    { t: 'When 6% are slow', d: 'p95 is the first to jump.', v: { ratio: '6', slow: '3' } },
-    { t: '20% take 10s', d: 'The average becomes 2s, but not a single user received a response like that.', v: { ratio: '20', slow: '10' } },
+    { t: 'Default settings', q: 'If 2% of the requests (20 requests) are slow and each takes 3 seconds, what are the average and p99?', d: '2% take 3s. The average looks fine at 0.16s, but p99 is 3s.', v: { ratio: '2', slow: '3' } },
+    { t: 'When there are no slow requests', q: 'What if there are no slow requests?', d: 'The average, the median, and p99 are almost the same.', v: { ratio: '0', slow: '3' } },
+    { t: 'When only 0.5% are slow', q: 'What if 5 of 1,000 requests are slow and each takes 10 seconds?', d: 'Not even p99 catches them. You have to look at the maximum or p99.9 to see them.', v: { ratio: '0.5', slow: '10' } },
+    { t: 'When 6% are slow', q: 'What if you change the share of slow requests to 6%?', d: 'p95 is the first to jump.', v: { ratio: '6', slow: '3' } },
+    { t: '20% take 10s', q: 'What if 20% of the requests are slow and each takes 10 seconds?', d: 'The average becomes 2s, but not a single user received a response like that.', v: { ratio: '20', slow: '10' } },
   ],
   code: function () {
     return '// Micrometer: also record percentiles of the response time\nTimer.builder("http.server.requests")\n    .publishPercentiles(0.5, 0.95, 0.99)\n    .register(registry);\n\n# application.yml\nmanagement.metrics.distribution.percentiles:\n  http.server.requests: 0.5, 0.95, 0.99';

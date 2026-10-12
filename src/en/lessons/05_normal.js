@@ -10,12 +10,12 @@ Lab.register({
     { id: 'miss', label: 'Use the wrong condition in the update, so that only one row is changed', type: 'check', value: false, show: function (c) { return c.op === 'update' && c.form === 'flat'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'Changing an address in the table before normalization. You must change as many rows as there are orders.', v: { form: 'flat', op: 'update', k: 3, miss: false } },
-    { t: 'A mistake that changes only one row', d: 'The same member ends up with two different addresses (an update anomaly).', v: { form: 'flat', op: 'update', k: 3, miss: true } },
-    { t: 'The same change after normalization', d: 'The address is stored in only one place, so changing one row is enough.', v: { form: 'norm', op: 'update', k: 3, miss: false } },
-    { t: 'A member with no orders', d: 'Before normalization, there is no place to put the member (an insertion anomaly).', v: { form: 'flat', op: 'insert', k: 3, miss: false } },
-    { t: 'Deleting the last order', d: 'Before normalization, the member information is lost as well (a deletion anomaly).', v: { form: 'flat', op: 'delete', k: 3, miss: false } },
-    { t: 'The cost of normalization', d: 'After normalization, reading the data needs a join.', v: { form: 'norm', op: 'read', k: 3, miss: false } },
+    { t: 'Default settings', q: 'What happens when you change the address of Alice, who has 3 orders, from Seoul to Busan in the design before normalization?', d: 'Changing an address in the table before normalization. You must change as many rows as there are orders.', v: { form: 'flat', op: 'update', k: 3, miss: false } },
+    { t: 'A mistake that changes only one row', q: 'What if you use the wrong condition in the same address update, so that only one row is changed?', d: 'The same member ends up with two different addresses (an update anomaly).', v: { form: 'flat', op: 'update', k: 3, miss: true } },
+    { t: 'The same change after normalization', q: 'What if you make the same address change in the design after normalization (split into member and orders)?', d: 'The address is stored in only one place, so changing one row is enough.', v: { form: 'norm', op: 'update', k: 3, miss: false } },
+    { t: 'A member with no orders', q: 'What if the operation is registering a new member who has no orders yet?', d: 'Before normalization, there is no place to put the member (an insertion anomaly).', v: { form: 'flat', op: 'insert', k: 3, miss: false } },
+    { t: 'Deleting the last order', q: 'What if the operation is deleting the only order of member Bob?', d: 'Before normalization, the member information is lost as well (a deletion anomaly).', v: { form: 'flat', op: 'delete', k: 3, miss: false } },
+    { t: 'The cost of normalization', q: 'What if you list the orders together with the member name in the design after normalization?', d: 'After normalization, reading the data needs a join.', v: { form: 'norm', op: 'read', k: 3, miss: false } },
   ],
   code: function (c) {
     var ddl = c.form === 'flat'

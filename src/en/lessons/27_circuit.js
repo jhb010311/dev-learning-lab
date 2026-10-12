@@ -10,11 +10,11 @@ Lab.register({
     { id: 'dur', label: 'How long the payment service outage lasts', type: 'select', value: '15', options: [['5', '5s'], ['15', '15s'], ['25', '25s']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A 15s outage. When failures pile up, calls are blocked, and the circuit periodically tests whether the service has recovered.', v: { use: true, th: '50', wait: '5', dur: '15' } },
-    { t: 'Without a circuit breaker', d: 'For the whole outage, every call waits 3s and then fails.', v: { use: false, th: '50', wait: '5', dur: '15' } },
-    { t: 'Lower the threshold', d: '30%. It blocks calls sooner.', v: { use: true, th: '30', wait: '5', dur: '15' } },
-    { t: 'A long open duration', d: '10s. Fewer trial calls are made during the outage.', v: { use: true, th: '50', wait: '10', dur: '15' } },
-    { t: 'A short outage', d: 'A 5s outage with an 80% threshold. The failure rate does not reach the threshold, so the circuit never opens.', v: { use: true, th: '80', wait: '5', dur: '5' } },
+    { t: 'Default settings', q: 'How does the circuit breaker behave with a 50% failure rate threshold, a 5s open duration, and a 15s payment service outage?', d: 'A 15s outage. When failures pile up, calls are blocked, and the circuit periodically tests whether the service has recovered.', v: { use: true, th: '50', wait: '5', dur: '15' } },
+    { t: 'Without a circuit breaker', q: 'What if you turn off the circuit breaker?', d: 'For the whole outage, every call waits 3s and then fails.', v: { use: false, th: '50', wait: '5', dur: '15' } },
+    { t: 'Lower the threshold', q: 'What if you lower the failure rate threshold to 30%?', d: '30%. It blocks calls sooner.', v: { use: true, th: '30', wait: '5', dur: '15' } },
+    { t: 'A long open duration', q: 'What if you increase how long the circuit stays open to 10s?', d: '10s. Fewer trial calls are made during the outage.', v: { use: true, th: '50', wait: '10', dur: '15' } },
+    { t: 'A short outage', q: 'What if you raise the failure rate threshold to 80% and the payment service outage lasts only 5s?', d: 'A 5s outage with an 80% threshold. The failure rate does not reach the threshold, so the circuit never opens.', v: { use: true, th: '80', wait: '5', dur: '5' } },
   ],
   code: function (c) {
     if (!c.use) return 'PaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // times out after 3s if there is no response\n}';

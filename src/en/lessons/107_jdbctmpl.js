@@ -8,13 +8,13 @@ Lab.register({
     { id: 'op', label: 'Operation to run', type: 'select', value: 'dup', options: [['one', 'Query: the result has 1 row'], ['zero', 'Query: the result has 0 rows'], ['two', 'Query: the result has 2 rows'], ['dup', 'Insert: an id that already exists (duplicate primary key)'], ['nul', 'Insert: null into a NOT NULL column'], ['bad', 'Query: a typo in a column name in the SQL']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'JDBC is used directly, with close() on the last line. When an exception is thrown, the connection is not returned.', v: { how: 'plain', op: 'dup' } },
-    { t: 'Closing with try-with-resources', d: 'The connection is returned. But what the caller gets is still an SQLException and a code.', v: { how: 'twr', op: 'dup' } },
-    { t: 'Switching to JdbcTemplate', d: 'The code becomes one line, and the exception is translated to DuplicateKeyException.', v: { how: 'tmpl', op: 'dup' } },
-    { t: 'A typo in the SQL', d: 'The exception is translated to BadSqlGrammarException.', v: { how: 'tmpl', op: 'bad' } },
-    { t: 'queryForObject with 0 rows', d: 'You get an exception, not null.', v: { how: 'tmpl', op: 'zero' } },
-    { t: '2 rows with JDBC directly', d: 'Only the first row is returned, and the fact that there were 2 rows is lost.', v: { how: 'plain', op: 'two' } },
-    { t: 'queryForObject with 2 rows', d: 'Compare this with the example just above. An exception tells you about it.', v: { how: 'tmpl', op: 'two' } },
+    { t: 'Default settings', q: 'What happens when you use JDBC directly, call close() on the last line, and insert an id that already exists (duplicate primary key)?', d: 'JDBC is used directly, with close() on the last line. When an exception is thrown, the connection is not returned.', v: { how: 'plain', op: 'dup' } },
+    { t: 'Closing with try-with-resources', q: 'What if you close the connection with try-with-resources instead of calling close() on the last line?', d: 'The connection is returned. But what the caller gets is still an SQLException and a code.', v: { how: 'twr', op: 'dup' } },
+    { t: 'Switching to JdbcTemplate', q: 'What if you access the database with JdbcTemplate instead?', d: 'The code becomes one line, and the exception is translated to DuplicateKeyException.', v: { how: 'tmpl', op: 'dup' } },
+    { t: 'A typo in the SQL', q: 'What if you use JdbcTemplate and run a query with a typo in a column name in the SQL?', d: 'The exception is translated to BadSqlGrammarException.', v: { how: 'tmpl', op: 'bad' } },
+    { t: 'queryForObject with 0 rows', q: 'What if you use queryForObject of JdbcTemplate for a query whose result has 0 rows?', d: 'You get an exception, not null.', v: { how: 'tmpl', op: 'zero' } },
+    { t: '2 rows with JDBC directly', q: 'What if you use JDBC directly and run a query whose result has 2 rows?', d: 'Only the first row is returned, and the fact that there were 2 rows is lost.', v: { how: 'plain', op: 'two' } },
+    { t: 'queryForObject with 2 rows', q: 'What if you use queryForObject of JdbcTemplate for a query whose result has 2 rows?', d: 'Compare this with the example just above. An exception tells you about it.', v: { how: 'tmpl', op: 'two' } },
   ],
   code: function (c) {
     var q = c.op === 'one' || c.op === 'zero' || c.op === 'two' || c.op === 'bad', city = { one: 'Busan', zero: 'Jeju', two: 'Seoul', bad: 'Busan' }[c.op];

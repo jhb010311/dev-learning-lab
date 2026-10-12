@@ -10,12 +10,12 @@ Lab.register({
     { id: 'lock', label: 'When the cache is empty, let only one request query the database (lock)', type: 'check', value: false, show: function (c) { return c.ttl !== '0'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'TTL 10s. Each time the value expires, several requests go to the database at the same time.', v: { ttl: '10', rps: 5, dbt: '1', lock: false } },
-    { t: 'Without a cache', d: 'Every request queries the database.', v: { ttl: '0', rps: 5, dbt: '1', lock: false } },
-    { t: 'Many requests and a slow database', d: 'At the moment of expiration, dozens of requests hit the database at the same time (a cache stampede).', v: { ttl: '10', rps: 20, dbt: '2', lock: false } },
-    { t: 'Same situation with the lock', d: 'Only one request goes to the database, and the others wait for its result.', v: { ttl: '10', rps: 20, dbt: '2', lock: true } },
-    { t: 'Shorten the TTL to 5s', d: 'The data is fresher, but there are more database queries.', v: { ttl: '5', rps: 5, dbt: '1', lock: false } },
-    { t: 'A long TTL', d: 'The database is queried only when the cache is first filled. But a change in the source goes unnoticed for a long time.', v: { ttl: '30', rps: 5, dbt: '1', lock: false } },
+    { t: 'Default settings', q: 'How do requests reach the database when the cache TTL is 10s, 5 requests arrive per second, and one database query takes 1s?', d: 'TTL 10s. Each time the value expires, several requests go to the database at the same time.', v: { ttl: '10', rps: 5, dbt: '1', lock: false } },
+    { t: 'Without a cache', q: 'What if you set the cache TTL to No cache?', d: 'Every request queries the database.', v: { ttl: '0', rps: 5, dbt: '1', lock: false } },
+    { t: 'Many requests and a slow database', q: 'What if you change the requests per second to 20 and the time for one database query to 2s?', d: 'At the moment of expiration, dozens of requests hit the database at the same time (a cache stampede).', v: { ttl: '10', rps: 20, dbt: '2', lock: false } },
+    { t: 'Same situation with the lock', q: 'What if 20 requests arrive per second, a query takes 2s, and only one request may query the database when the cache is empty (lock)?', d: 'Only one request goes to the database, and the others wait for its result.', v: { ttl: '10', rps: 20, dbt: '2', lock: true } },
+    { t: 'Shorten the TTL to 5s', q: 'What if you change the cache TTL to 5s?', d: 'The data is fresher, but there are more database queries.', v: { ttl: '5', rps: 5, dbt: '1', lock: false } },
+    { t: 'A long TTL', q: 'What if you change the cache TTL to 30s or more (never expires)?', d: 'The database is queried only when the cache is first filled. But a change in the source goes unnoticed for a long time.', v: { ttl: '30', rps: 5, dbt: '1', lock: false } },
   ],
   code: function (c) {
     if (c.ttl === '0') return 'public Product getProduct(long id) {\n    return productRepository.findById(id);   // queries the database every time (' + c.dbt + 's)\n}';

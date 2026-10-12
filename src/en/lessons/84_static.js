@@ -9,13 +9,13 @@ Lab.register({
     { id: 'nb', label: 'Number of calls to b.hit()', type: 'select', value: '1', options: [['0', 'None'], ['1', 'Once'], ['2', 'Twice']], hint: 'a.hit() is always called twice.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'count is static. a.hit() is called twice and b.hit() once, yet both print 3.', v: { decl: 'static', extra: 'none', nb: '1' } },
-    { t: 'Without static', d: 'Each object has its own count. The output is 2 and 1.', v: { decl: 'inst', extra: 'none', nb: '1' } },
-    { t: 'An instance variable used in a static method', d: 'It cannot be determined which object the count belongs to, so the result is a compile-time error.', v: { decl: 'inst', extra: 'sm', nb: '1' } },
-    { t: 'A static field used in a static method', d: 'The value is read with Counter.report(), without an object.', v: { decl: 'static', extra: 'sm', nb: '1' } },
-    { t: 'this used in a static method', d: 'Even though count is static, this cannot be used.', v: { decl: 'static', extra: 'smThis', nb: '1' } },
-    { t: 'Counter.count before any object is created', d: 'A static field exists even when there are no objects at all.', v: { decl: 'static', extra: 'cls0', nb: '1' } },
-    { t: 'Counter.hit() without an object', d: 'An instance method cannot be called with the class name.', v: { decl: 'static', extra: 'clsHit', nb: '1' } },
+    { t: 'Default settings', q: 'What are a.count and b.count when the static field count is changed by calling a.hit() twice and b.hit() once?', d: 'count is static. a.hit() is called twice and b.hit() once, yet both print 3.', v: { decl: 'static', extra: 'none', nb: '1' } },
+    { t: 'Without static', q: 'What if you declare count as int count (instance variable), without static?', d: 'Each object has its own count. The output is 2 and 1.', v: { decl: 'inst', extra: 'none', nb: '1' } },
+    { t: 'An instance variable used in a static method', q: 'What if count is declared as int count, without static, and the static method report() returns count?', d: 'It cannot be determined which object the count belongs to, so the result is a compile-time error.', v: { decl: 'inst', extra: 'sm', nb: '1' } },
+    { t: 'A static field used in a static method', q: 'What if count stays static int count and the static method report() returns count?', d: 'The value is read with Counter.report(), without an object.', v: { decl: 'static', extra: 'sm', nb: '1' } },
+    { t: 'this used in a static method', q: 'What if the static method report() returns this.count?', d: 'Even though count is static, this cannot be used.', v: { decl: 'static', extra: 'smThis', nb: '1' } },
+    { t: 'Counter.count before any object is created', q: 'What if you print Counter.count before creating any object?', d: 'A static field exists even when there are no objects at all.', v: { decl: 'static', extra: 'cls0', nb: '1' } },
+    { t: 'Counter.hit() without an object', q: 'What if you call Counter.hit() without an object?', d: 'An instance method cannot be called with the class name.', v: { decl: 'static', extra: 'clsHit', nb: '1' } },
   ],
   code: function (c) {
     var e = this.error(c), isS = c.decl === 'static', nb = +c.nb, i;

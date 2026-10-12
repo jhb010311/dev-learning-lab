@@ -10,12 +10,12 @@ Lab.register({
     { id: 'ins', label: 'One new post is added while moving to the next page', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'OFFSET on page 1,000. It reads 20,000 rows and uses only 20.', v: { how: 'offset', page: '1000', size: '20', ins: false } },
-    { t: 'The same position with keyset', d: 'It reads only the 20 rows it needs.', v: { how: 'keyset', page: '1000', size: '20', ins: false } },
-    { t: 'OFFSET, page 1', d: 'Early pages are fast with OFFSET too.', v: { how: 'offset', page: '1', size: '20', ins: false } },
-    { t: 'OFFSET, page 10,000', d: 'The number of discarded rows becomes 200,000.', v: { how: 'offset', page: '10000', size: '20', ins: false } },
-    { t: 'A new post is added in between (OFFSET)', d: 'A post you just saw appears again on the next page.', v: { how: 'offset', page: '10', size: '20', ins: true } },
-    { t: 'A new post is added in between (keyset)', d: 'The reference is the post id, so nothing shifts.', v: { how: 'keyset', page: '10', size: '20', ins: true } },
+    { t: 'Default settings', q: 'How does the database read rows to show page 1,000 with OFFSET and 20 posts per page?', d: 'OFFSET on page 1,000. It reads 20,000 rows and uses only 20.', v: { how: 'offset', page: '1000', size: '20', ins: false } },
+    { t: 'The same position with keyset', q: 'What if you change the pagination method to keyset, based on the id of the last post seen?', d: 'It reads only the 20 rows it needs.', v: { how: 'keyset', page: '1000', size: '20', ins: false } },
+    { t: 'OFFSET, page 1', q: 'What if you change the page to view to page 1?', d: 'Early pages are fast with OFFSET too.', v: { how: 'offset', page: '1', size: '20', ins: false } },
+    { t: 'OFFSET, page 10,000', q: 'What if you change the page to view to page 10,000?', d: 'The number of discarded rows becomes 200,000.', v: { how: 'offset', page: '10000', size: '20', ins: false } },
+    { t: 'A new post is added in between (OFFSET)', q: 'What if you view page 10 and one new post is added while moving to the next page?', d: 'A post you just saw appears again on the next page.', v: { how: 'offset', page: '10', size: '20', ins: true } },
+    { t: 'A new post is added in between (keyset)', q: 'What if one new post is added while moving to page 10 and you use keyset pagination?', d: 'The reference is the post id, so nothing shifts.', v: { how: 'keyset', page: '10', size: '20', ins: true } },
   ],
   num: function (x) { return String(Math.round(x)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); },
   code: function (c) {

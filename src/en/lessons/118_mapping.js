@@ -10,13 +10,13 @@ Lab.register({
     { id: 'pk', label: 'Primary key id', type: 'select', value: 'assigned', options: [['assigned', '@Id only: the code sets 100 itself'], ['auto', '@GeneratedValue(IDENTITY): the database assigns it'], ['forgot', '@Id only, and no value was set']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'Almost no annotations are used. VIP is stored as the number 1.', v: { col: 'none', en: 'ORDINAL', tr: false, pk: 'assigned' } },
-    { t: 'Adding a value at the front of the enum', d: 'The VIP member that was saved is read back as BASIC.', v: { col: 'none', en: 'ORDINAL_ADD', tr: false, pk: 'assigned' } },
-    { t: 'Storing as STRING', d: 'Even if the order of the enum changes, the member is still read back as VIP.', v: { col: 'none', en: 'STRING_ADD', tr: false, pk: 'assigned' } },
-    { t: 'nullable = false on name', d: 'The table that is created gets not null.', v: { col: 'nn', en: 'STRING', tr: false, pk: 'assigned' } },
-    { t: '@Transient on memo', d: 'No memo column is created, and the value is not stored.', v: { col: 'none', en: 'STRING', tr: true, pk: 'assigned' } },
-    { t: 'Letting the database choose the primary key', d: 'Even if you do not set id, the database assigns 1.', v: { col: 'none', en: 'STRING', tr: true, pk: 'auto' } },
-    { t: 'Without setting id', d: 'If you leave a field that has only @Id empty, saving throws an exception.', v: { col: 'none', en: 'STRING', tr: true, pk: 'forgot' } },
+    { t: 'Default settings', q: 'What is stored when name has no @Column, grade is @Enumerated(EnumType.ORDINAL), and id is @Id only with 100 set in the code?', d: 'Almost no annotations are used. VIP is stored as the number 1.', v: { col: 'none', en: 'ORDINAL', tr: false, pk: 'assigned' } },
+    { t: 'Adding a value at the front of the enum', q: 'What if you save grade as ORDINAL, then add a value at the front of the enum, and read the member back?', d: 'The VIP member that was saved is read back as BASIC.', v: { col: 'none', en: 'ORDINAL_ADD', tr: false, pk: 'assigned' } },
+    { t: 'Storing as STRING', q: 'What if you save grade as EnumType.STRING, then add a value at the front of the enum, and read the member back?', d: 'Even if the order of the enum changes, the member is still read back as VIP.', v: { col: 'none', en: 'STRING_ADD', tr: false, pk: 'assigned' } },
+    { t: 'nullable = false on name', q: 'What if you add @Column(nullable = false) to name and use @Enumerated(EnumType.STRING) for grade?', d: 'The table that is created gets not null.', v: { col: 'nn', en: 'STRING', tr: false, pk: 'assigned' } },
+    { t: '@Transient on memo', q: 'What if grade is @Enumerated(EnumType.STRING) and you put @Transient on the memo field?', d: 'No memo column is created, and the value is not stored.', v: { col: 'none', en: 'STRING', tr: true, pk: 'assigned' } },
+    { t: 'Letting the database choose the primary key', q: 'What if grade is STRING, memo has @Transient, and you use @GeneratedValue(IDENTITY) so the database assigns id?', d: 'Even if you do not set id, the database assigns 1.', v: { col: 'none', en: 'STRING', tr: true, pk: 'auto' } },
+    { t: 'Without setting id', q: 'What if grade is STRING, memo has @Transient, and id has only @Id and no value is set before em.persist(m)?', d: 'If you leave a field that has only @Id empty, saving throws an exception.', v: { col: 'none', en: 'STRING', tr: true, pk: 'forgot' } },
   ],
   code: function (c) {
     var ord = c.en.indexOf('ORDINAL') === 0, add = /_ADD$/.test(c.en), id = c.pk === 'auto' ? '1L' : '100L';

@@ -8,13 +8,13 @@ Lab.register({
     { id: 'when', label: 'When the name is changed', type: 'select', value: 'after', options: [['after', 'After the state changes'], ['before', 'Just before the state changes']], show: function (c) { return ['persist', 'detach', 'clear', 'close'].indexOf(c.st) >= 0; }, hint: 'Choose whether to change the name before or after the line that changes the state (persist, detach, clear, commit and close).' },
   ],
   presets: [
-    { t: 'Default settings', d: 'You change the name of a detached object. It is not applied, and there is no error.', v: { st: 'detach', when: 'after' } },
-    { t: 'Changing it while managed', d: 'Even if you only change the name of a loaded object, an UPDATE is sent at commit.', v: { st: 'find', when: 'after' } },
-    { t: 'em.clear after the change', d: 'You changed it while the object was managed, yet the change is lost. This is because it had not been sent to the DB yet.', v: { st: 'clear', when: 'before' } },
-    { t: 'Forgetting persist after new', d: 'No SQL is sent at all.', v: { st: 'new', when: 'after' } },
-    { t: 'Changing it after persist', d: 'An UPDATE is sent once more after the INSERT.', v: { st: 'persist', when: 'after' } },
-    { t: 'Changing it after closing em', d: 'This is a common mistake: modifying an entity outside the transaction.', v: { st: 'close', when: 'after' } },
-    { t: 'Changing it after remove', d: 'Only a DELETE is sent, and it is sent at commit.', v: { st: 'remove', when: 'after' } },
+    { t: 'Default settings', q: 'What is left in the DB if you detach a loaded entity with em.detach and then change its name?', d: 'You change the name of a detached object. It is not applied, and there is no error.', v: { st: 'detach', when: 'after' } },
+    { t: 'Changing it while managed', q: 'What if you only load the entity with em.find, without em.detach, and change the name while it is managed?', d: 'Even if you only change the name of a loaded object, an UPDATE is sent at commit.', v: { st: 'find', when: 'after' } },
+    { t: 'em.clear after the change', q: 'What if you load the entity, call em.clear, and change the name just before the state changes?', d: 'You changed it while the object was managed, yet the change is lost. This is because it had not been sent to the DB yet.', v: { st: 'clear', when: 'before' } },
+    { t: 'Forgetting persist after new', q: 'What if you change the name of an entity that you created with new but did not pass to em.persist?', d: 'No SQL is sent at all.', v: { st: 'new', when: 'after' } },
+    { t: 'Changing it after persist', q: 'What if you change the name of an entity after new and em.persist?', d: 'An UPDATE is sent once more after the INSERT.', v: { st: 'persist', when: 'after' } },
+    { t: 'Changing it after closing em', q: 'What if you load the entity, commit, close it with em.close, and then change the name?', d: 'This is a common mistake: modifying an entity outside the transaction.', v: { st: 'close', when: 'after' } },
+    { t: 'Changing it after remove', q: 'What if you load the entity, call em.remove, and then change the name?', d: 'Only a DELETE is sent, and it is sent at commit.', v: { st: 'remove', when: 'after' } },
   ],
   // The lines of code for the settings. k is the kind of work the line does, and simulate runs the lines one at a time in this order
   lines: function (c) {

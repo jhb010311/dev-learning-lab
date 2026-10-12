@@ -8,12 +8,12 @@ Lab.register({
     { id: 'path', label: 'Request path', type: 'select', value: 'orders', options: [['public', 'GET /public/notice (permitted for everyone)'], ['orders', 'GET /orders (login required)'], ['admin', 'GET /admin/users (ADMIN role required)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A path that requires login is requested without a token. 401.', v: { who: 'none', path: 'orders' } },
-    { t: 'With a valid token', d: 'The request reaches the controller.', v: { who: 'user', path: 'orders' } },
-    { t: 'USER requests an admin path', d: 'It is known who the user is, but the user lacks the permission. 403.', v: { who: 'user', path: 'admin' } },
-    { t: 'ADMIN requests an admin path', d: 'The request passes.', v: { who: 'admin', path: 'admin' } },
-    { t: 'Admin path without a token', d: 'The response is 401, not 403. See why.', v: { who: 'none', path: 'admin' } },
-    { t: 'Path permitted for everyone', d: 'The request passes even without a token.', v: { who: 'none', path: 'public' } },
+    { t: 'Default settings', q: 'Where does the request end when you request GET /orders, which requires login, without a token?', d: 'A path that requires login is requested without a token. 401.', v: { who: 'none', path: 'orders' } },
+    { t: 'With a valid token', q: 'What if you request GET /orders with a valid token with the USER role?', d: 'The request reaches the controller.', v: { who: 'user', path: 'orders' } },
+    { t: 'USER requests an admin path', q: 'What if you request GET /admin/users with a valid token with the USER role?', d: 'It is known who the user is, but the user lacks the permission. 403.', v: { who: 'user', path: 'admin' } },
+    { t: 'ADMIN requests an admin path', q: 'What if you request GET /admin/users with a valid token with the ADMIN role?', d: 'The request passes.', v: { who: 'admin', path: 'admin' } },
+    { t: 'Admin path without a token', q: 'What if you request GET /admin/users without a token?', d: 'The response is 401, not 403. See why.', v: { who: 'none', path: 'admin' } },
+    { t: 'Path permitted for everyone', q: 'What if you request GET /public/notice, which is permitted for everyone, without a token?', d: 'The request passes even without a token.', v: { who: 'none', path: 'public' } },
   ],
   code: function () {
     return '@Bean\nSecurityFilterChain filterChain(HttpSecurity http) throws Exception {\n    return http\n        .csrf(csrf -> csrf.disable())\n        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n        .authorizeHttpRequests(auth -> auth\n            .requestMatchers("/public/**").permitAll()\n            .requestMatchers("/admin/**").hasRole("ADMIN")\n            .anyRequest().authenticated())\n        .addFilterBefore(jwtAuthenticationFilter,\n                         UsernamePasswordAuthenticationFilter.class)\n        .exceptionHandling(e -> e\n            .authenticationEntryPoint((req, res, ex) -> res.setStatus(401))   // not authenticated\n            .accessDeniedHandler((req, res, ex) -> res.setStatus(403)))       // no permission\n        .build();\n}\n\n// JwtAuthenticationFilter: verifies the token in the Authorization header and,\n// if it is valid, puts the authentication information into the SecurityContext';

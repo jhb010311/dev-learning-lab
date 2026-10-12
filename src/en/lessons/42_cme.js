@@ -8,12 +8,12 @@ Lab.register({
     { id: 'coll', label: 'Collection', type: 'select', value: 'array', options: [['array', 'ArrayList'], ['cow', 'CopyOnWriteArrayList']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'Removal inside an enhanced for statement. An exception is thrown.', v: { how: 'foreach', coll: 'array' } },
-    { t: 'for statement with an index, from the front', d: 'No exception is thrown, but one 2 is left.', v: { how: 'indexfwd', coll: 'array' } },
-    { t: 'Removing from the back', d: 'The elements that shift are on the side that was already visited, so there is no problem.', v: { how: 'indexback', coll: 'array' } },
-    { t: 'Iterator.remove()', d: 'Removing through the iterator is safe.', v: { how: 'iterator', coll: 'array' } },
-    { t: 'removeIf()', d: 'This is the simplest and safest way.', v: { how: 'removeIf', coll: 'array' } },
-    { t: 'Removal in a for statement on a CopyOnWriteArrayList', d: 'No exception is thrown. The loop iterates over a copy.', v: { how: 'foreach', coll: 'cow' } },
+    { t: 'Default settings', q: 'What happens when you remove the 2s with list.remove() inside an enhanced for statement?', d: 'Removal inside an enhanced for statement. An exception is thrown.', v: { how: 'foreach', coll: 'array' } },
+    { t: 'for statement with an index, from the front', q: 'What if you remove the 2s with a for statement with an index, from front to back?', d: 'No exception is thrown, but one 2 is left.', v: { how: 'indexfwd', coll: 'array' } },
+    { t: 'Removing from the back', q: 'What if you remove the 2s with a for statement with an index, from back to front?', d: 'The elements that shift are on the side that was already visited, so there is no problem.', v: { how: 'indexback', coll: 'array' } },
+    { t: 'Iterator.remove()', q: 'What if you remove the 2s with remove() of the Iterator?', d: 'Removing through the iterator is safe.', v: { how: 'iterator', coll: 'array' } },
+    { t: 'removeIf()', q: 'What if you remove the 2s with removeIf(), passing the condition x == 2?', d: 'This is the simplest and safest way.', v: { how: 'removeIf', coll: 'array' } },
+    { t: 'Removal in a for statement on a CopyOnWriteArrayList', q: 'What if you change the collection to CopyOnWriteArrayList and remove the 2s with list.remove() inside an enhanced for statement?', d: 'No exception is thrown. The loop iterates over a copy.', v: { how: 'foreach', coll: 'cow' } },
   ],
   code: function (c) {
     var decl = 'List<Integer> list = new ' + (c.coll === 'array' ? 'ArrayList' : 'CopyOnWriteArrayList') + '<>(List.of(1, 2, 2, 3, 4));\n\n';

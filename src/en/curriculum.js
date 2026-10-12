@@ -4,7 +4,7 @@
 // Titles of books that have no English edition are left in their original language.
 Lab.site({
   name: 'Dev Learning Lab',
-  desc: 'A free lab for learning Java, Spring, JPA, database, networking, and security concepts by changing settings and running them',
+  desc: 'A free lab for learning Java, Spring, JPA, database, networking, and security concepts by picking a question and running it',
   other: ['한국어', '../'],
 });
 Lab.names({

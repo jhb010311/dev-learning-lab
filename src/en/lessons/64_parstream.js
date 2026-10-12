@@ -7,9 +7,9 @@ Lab.register({
     { id: 'a', label: 'What request A does', type: 'select', value: 'block', options: [['none', 'Nothing (only B runs)'], ['block', '8 calls to an external API, 2 seconds each, inside a parallel stream'], ['own', 'The same work, run in a separate thread pool']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A occupies the common pool. B becomes 4 times slower.', v: { a: 'block' } },
-    { t: 'When only B runs', d: 'B has the whole common pool to itself, so it is fast.', v: { a: 'none' } },
-    { t: 'Moving A to a separate pool', d: 'B becomes fast again.', v: { a: 'own' } },
+    { t: 'Default settings', q: 'While request A makes 8 calls to an external API, 2 seconds each, inside a parallel stream, what happens to request B?', d: 'A occupies the common pool. B becomes 4 times slower.', v: { a: 'block' } },
+    { t: 'When only B runs', q: 'What if only request B runs, without request A?', d: 'B has the whole common pool to itself, so it is fast.', v: { a: 'none' } },
+    { t: 'Moving A to a separate pool', q: 'What if the same work of request A runs in a separate thread pool?', d: 'B becomes fast again.', v: { a: 'own' } },
   ],
   code: function (c) {
     var b = '// Request B: 8 tasks of 0.1 seconds each\nitems.parallelStream().forEach(this::resize);';

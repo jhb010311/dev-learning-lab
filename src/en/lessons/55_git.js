@@ -10,12 +10,12 @@ Lab.register({
     { id: 'pushed', label: 'The feature branch has already been pushed to the remote', type: 'check', value: false, show: function (c) { return c.how === 'rebase'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'merge. A merge commit that joins the two lines is created.', v: { how: 'merge', main: true, conf: false, pushed: false } },
-    { t: 'Merging after a rebase', d: 'The commits of feature are moved and attached to the end of main. The result is a single line.', v: { how: 'rebase', main: true, conf: false, pushed: false } },
-    { t: 'When main has no new commits', d: 'main just moves forward, with no merge commit (fast-forward).', v: { how: 'merge', main: false, conf: false, pushed: false } },
-    { t: 'When both changed the same line', d: 'A merge conflict occurs. A person has to choose.', v: { how: 'merge', main: true, conf: true, pushed: false } },
-    { t: 'Rebasing a branch that is already pushed', d: 'It now differs from the commits on the remote, so you have to push by force.', v: { how: 'rebase', main: true, conf: false, pushed: true } },
-    { t: 'squash', d: 'Several commits of feature are squashed into one and added to main.', v: { how: 'squash', main: true, conf: false, pushed: false } },
+    { t: 'Default settings', q: 'When new commits appeared on main in the meantime, what does the graph look like after git merge feature on main?', d: 'merge. A merge commit that joins the two lines is created.', v: { how: 'merge', main: true, conf: false, pushed: false } },
+    { t: 'Merging after a rebase', q: 'What if you combine by running git rebase main on feature, then merge?', d: 'The commits of feature are moved and attached to the end of main. The result is a single line.', v: { how: 'rebase', main: true, conf: false, pushed: false } },
+    { t: 'When main has no new commits', q: 'What if no new commits appeared on main in the meantime?', d: 'main just moves forward, with no merge commit (fast-forward).', v: { how: 'merge', main: false, conf: false, pushed: false } },
+    { t: 'When both changed the same line', q: 'What if both branches changed the same line of the same file?', d: 'A merge conflict occurs. A person has to choose.', v: { how: 'merge', main: true, conf: true, pushed: false } },
+    { t: 'Rebasing a branch that is already pushed', q: 'What if the feature branch has already been pushed to the remote and you run git rebase main on feature, then merge?', d: 'It now differs from the commits on the remote, so you have to push by force.', v: { how: 'rebase', main: true, conf: false, pushed: true } },
+    { t: 'squash', q: 'What if you combine with git merge --squash feature?', d: 'Several commits of feature are squashed into one and added to main.', v: { how: 'squash', main: true, conf: false, pushed: false } },
   ],
   code: function (c) {
     if (c.how === 'merge') return 'git switch main\ngit merge feature' + (c.main && c.conf ? '\n# CONFLICT (content): Merge conflict in OrderService.java\n# Open the file and fix it by hand, then\ngit add OrderService.java\ngit commit' : '');

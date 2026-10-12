@@ -10,12 +10,12 @@ Lab.register({
     { id: 'n', label: 'Number of elements', type: 'range', min: 5, max: 40, value: 10, fmt: function (v) { return v + ' elements'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'Insert at the beginning of an ArrayList. Every element is shifted one position to the right.', v: { ds: 'array', op: 'add', pos: 'front', n: 10 } },
-    { t: 'The same insertion into a LinkedList', d: 'Only the links have to be changed. No element is shifted.', v: { ds: 'linked', op: 'add', pos: 'front', n: 10 } },
-    { t: 'Insert in the middle of a LinkedList', d: 'The insertion itself is fast, but the nodes have to be followed up to that position.', v: { ds: 'linked', op: 'add', pos: 'mid', n: 10 } },
-    { t: 'Get from the middle of a LinkedList', d: 'It cannot go directly to an index, so it follows the nodes one by one.', v: { ds: 'linked', op: 'get', pos: 'mid', n: 20 } },
-    { t: 'Get from the middle of an ArrayList', d: 'The element is accessed in one step, however many elements there are.', v: { ds: 'array', op: 'get', pos: 'mid', n: 20 } },
-    { t: 'Append 40 elements to an ArrayList', d: 'The elements are moved to a larger array only when the array is full. Look at the average cost.', v: { ds: 'array', op: 'append', pos: 'back', n: 40 } },
+    { t: 'Default settings', q: 'How much work does it take to insert a value at the beginning of an ArrayList with 10 elements?', d: 'Insert at the beginning of an ArrayList. Every element is shifted one position to the right.', v: { ds: 'array', op: 'add', pos: 'front', n: 10 } },
+    { t: 'The same insertion into a LinkedList', q: 'What if you make the same insertion at the beginning of a LinkedList?', d: 'Only the links have to be changed. No element is shifted.', v: { ds: 'linked', op: 'add', pos: 'front', n: 10 } },
+    { t: 'Insert in the middle of a LinkedList', q: 'What if you insert in the middle of a LinkedList instead of at the beginning?', d: 'The insertion itself is fast, but the nodes have to be followed up to that position.', v: { ds: 'linked', op: 'add', pos: 'mid', n: 10 } },
+    { t: 'Get from the middle of a LinkedList', q: 'What if you get the middle element of a LinkedList with 20 elements by index with get(i)?', d: 'It cannot go directly to an index, so it follows the nodes one by one.', v: { ds: 'linked', op: 'get', pos: 'mid', n: 20 } },
+    { t: 'Get from the middle of an ArrayList', q: 'What if you get the middle element of an ArrayList with 20 elements by index with get(i)?', d: 'The element is accessed in one step, however many elements there are.', v: { ds: 'array', op: 'get', pos: 'mid', n: 20 } },
+    { t: 'Append 40 elements to an ArrayList', q: 'What if you keep appending 40 elements to an empty ArrayList with add(x)?', d: 'The elements are moved to a larger array only when the array is full. Look at the average cost.', v: { ds: 'array', op: 'append', pos: 'back', n: 40 } },
   ],
   idx: function (c) { return c.pos === 'front' ? 0 : c.pos === 'mid' ? c.n >> 1 : c.op === 'add' ? c.n : c.n - 1; },
   code: function (c) {

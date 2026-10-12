@@ -8,12 +8,12 @@ Lab.register({
     { id: 'lv', label: 'Isolation level of transaction A', type: 'select', value: 'RC', options: [['RU', 'READ UNCOMMITTED'], ['RC', 'READ COMMITTED'], ['RR', 'REPEATABLE READ (MySQL default)'], ['SER', 'SERIALIZABLE']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'READ COMMITTED. A runs the same query twice and gets different values.', v: { sc: 'nonrep', lv: 'RC' } },
-    { t: 'Raising it to REPEATABLE READ', d: 'The second query sees the same value as the first.', v: { sc: 'nonrep', lv: 'RR' } },
-    { t: 'Reading an uncommitted value', d: 'READ UNCOMMITTED. A reads a value that will be rolled back and disappear.', v: { sc: 'dirty', lv: 'RU' } },
-    { t: 'The same situation, READ COMMITTED', d: 'The value from before the commit is not visible.', v: { sc: 'dirty', lv: 'RC' } },
-    { t: 'A row that did not exist appears', d: 'READ COMMITTED. The row count goes up in the second query.', v: { sc: 'phantom', lv: 'RC' } },
-    { t: 'SERIALIZABLE', d: 'There are no anomalies, but B waits for A.', v: { sc: 'nonrep', lv: 'SER' } },
+    { t: 'Default settings', q: 'How do the two queries of A look when A uses READ COMMITTED and B changes a value and commits between them?', d: 'READ COMMITTED. A runs the same query twice and gets different values.', v: { sc: 'nonrep', lv: 'RC' } },
+    { t: 'Raising it to REPEATABLE READ', q: 'What if you change the isolation level of transaction A to REPEATABLE READ?', d: 'The second query sees the same value as the first.', v: { sc: 'nonrep', lv: 'RR' } },
+    { t: 'Reading an uncommitted value', q: 'What if A queries with READ UNCOMMITTED a value that B has changed but not yet committed?', d: 'READ UNCOMMITTED. A reads a value that will be rolled back and disappear.', v: { sc: 'dirty', lv: 'RU' } },
+    { t: 'The same situation, READ COMMITTED', q: 'What if A queries with READ COMMITTED a value that B has changed but not yet committed?', d: 'The value from before the commit is not visible.', v: { sc: 'dirty', lv: 'RC' } },
+    { t: 'A row that did not exist appears', q: 'What if B adds a new row and commits between the two queries of A, which uses READ COMMITTED?', d: 'READ COMMITTED. The row count goes up in the second query.', v: { sc: 'phantom', lv: 'RC' } },
+    { t: 'SERIALIZABLE', q: 'What if you change the isolation level of transaction A to SERIALIZABLE?', d: 'There are no anomalies, but B waits for A.', v: { sc: 'nonrep', lv: 'SER' } },
   ],
   NAMES: { RU: 'READ UNCOMMITTED', RC: 'READ COMMITTED', RR: 'REPEATABLE READ', SER: 'SERIALIZABLE' },
   code: function (c) {

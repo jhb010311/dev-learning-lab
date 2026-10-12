@@ -9,13 +9,13 @@ Lab.register({
     { id: 'n', label: 'Number of related rows to save together', type: 'range', min: 1, max: 3, value: 2, step: 1, fmt: function (v) { return v + ''; }, show: function (c) { return c.rel !== 'o2o'; }, hint: 'In many-to-one and one-to-many, it is the number of members that belong to one team. In many-to-many, it is the number of products that one member picked.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'Unidirectional one-to-many. After the INSERTs, as many UPDATEs as there are members are sent to fill in the foreign key.', v: { rel: 'o2m', fk: 'main', n: 2 } },
-    { t: 'Many-to-one', d: 'The tables are the same, but INSERT alone is enough.', v: { rel: 'm2o', fk: 'main', n: 2 } },
-    { t: 'Removing @JoinColumn from the one-to-many', d: 'A join table is created instead of a foreign key.', v: { rel: 'o2mjt', fk: 'main', n: 2 } },
-    { t: 'Many-to-many', d: 'The join table member_product is created automatically in the middle.', v: { rel: 'm2m', fk: 'main', n: 2 } },
-    { t: 'One-to-one: foreign key in the member table', d: 'A foreign key and a unique constraint are created on member.locker_id.', v: { rel: 'o2o', fk: 'main', n: 2 } },
-    { t: 'One-to-one: foreign key in the locker table', d: 'The foreign key moves to locker.member_id.', v: { rel: 'o2o', fk: 'target', n: 2 } },
-    { t: 'One-to-many with 3 members', d: 'The UPDATEs increase to 3 as well.', v: { rel: 'o2m', fk: 'main', n: 3 } },
+    { t: 'Default settings', q: 'What SQL is sent when you save 2 members together and the team holds the list of members with @OneToMany + @JoinColumn?', d: 'Unidirectional one-to-many. After the INSERTs, as many UPDATEs as there are members are sent to fill in the foreign key.', v: { rel: 'o2m', fk: 'main', n: 2 } },
+    { t: 'Many-to-one', q: 'What if you change the kind of relationship to @ManyToOne, where the member points to the team?', d: 'The tables are the same, but INSERT alone is enough.', v: { rel: 'm2o', fk: 'main', n: 2 } },
+    { t: 'Removing @JoinColumn from the one-to-many', q: 'What if you leave out @JoinColumn in the unidirectional one-to-many?', d: 'A join table is created instead of a foreign key.', v: { rel: 'o2mjt', fk: 'main', n: 2 } },
+    { t: 'Many-to-many', q: 'What if you change the relationship between members and products to @ManyToMany?', d: 'The join table member_product is created automatically in the middle.', v: { rel: 'm2m', fk: 'main', n: 2 } },
+    { t: 'One-to-one: foreign key in the member table', q: 'What if you use @OneToOne between a member and a locker, with the foreign key in the member table (member.locker_id)?', d: 'A foreign key and a unique constraint are created on member.locker_id.', v: { rel: 'o2o', fk: 'main', n: 2 } },
+    { t: 'One-to-one: foreign key in the locker table', q: 'What if you use @OneToOne between a member and a locker, with the foreign key in the locker table (locker.member_id)?', d: 'The foreign key moves to locker.member_id.', v: { rel: 'o2o', fk: 'target', n: 2 } },
+    { t: 'One-to-many with 3 members', q: 'What if you increase the number of related rows to save together to 3 in the unidirectional one-to-many?', d: 'The UPDATEs increase to 3 as well.', v: { rel: 'o2m', fk: 'main', n: 3 } },
   ],
   // For each kind of relationship, this fixes the tables, the foreign keys, the entity code, and the code that saves
   spec: function (c) {

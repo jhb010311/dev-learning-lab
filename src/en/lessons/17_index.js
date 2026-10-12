@@ -10,12 +10,12 @@ Lab.register({
     { id: 'force', label: 'Force the index to be used (FORCE INDEX)', type: 'check', value: false, show: function (c) { return c.idx; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'Of 100,000 rows, only 0.1% match the condition. The index reads only 100 rows.', v: { rows: '100000', sel: '0.1', idx: true, force: false } },
-    { t: 'Same query, no index', d: 'To find 100 rows, it reads all 100,000 rows.', v: { rows: '100000', sel: '0.1', idx: false, force: false } },
-    { t: 'When half the rows match', d: 'Even with an index, the optimizer chooses a full table scan.', v: { rows: '100000', sel: '50', idx: true, force: false } },
-    { t: 'Forcing the index anyway', d: 'It actually costs more.', v: { rows: '100000', sel: '50', idx: true, force: true } },
-    { t: 'Near the boundary: 20% and 30%', d: 'Run it at 20%, then change to 30% and compare.', v: { rows: '100000', sel: '20', idx: true, force: false } },
-    { t: 'No index on 10,000,000 rows', d: 'It gets slower in proportion to the extra rows.', v: { rows: '10000000', sel: '0.1', idx: false, force: false } },
+    { t: 'Default settings', q: 'Which method reads a table of 100,000 rows when 0.1% of the rows match the condition and the condition column has an index?', d: 'Of 100,000 rows, only 0.1% match the condition. The index reads only 100 rows.', v: { rows: '100000', sel: '0.1', idx: true, force: false } },
+    { t: 'Same query, no index', q: 'What if you remove the index on the condition column for the same query?', d: 'To find 100 rows, it reads all 100,000 rows.', v: { rows: '100000', sel: '0.1', idx: false, force: false } },
+    { t: 'When half the rows match', q: 'What if the share of rows that match the condition is 50%?', d: 'Even with an index, the optimizer chooses a full table scan.', v: { rows: '100000', sel: '50', idx: true, force: false } },
+    { t: 'Forcing the index anyway', q: 'What if 50% of the rows match the condition and you force the index to be used with FORCE INDEX?', d: 'It actually costs more.', v: { rows: '100000', sel: '50', idx: true, force: true } },
+    { t: 'Near the boundary: 20% and 30%', q: 'What if the share of rows that match the condition is 20%?', d: 'Run it at 20%, then change to 30% and compare.', v: { rows: '100000', sel: '20', idx: true, force: false } },
+    { t: 'No index on 10,000,000 rows', q: 'What if the table has 10,000,000 rows and the condition column has no index?', d: 'It gets slower in proportion to the extra rows.', v: { rows: '10000000', sel: '0.1', idx: false, force: false } },
   ],
   code: function (c) {
     return (c.idx ? 'CREATE INDEX idx_orders_status ON orders (status);\n\n' : '-- no index on the status column\n\n') + 'SELECT *\n  FROM orders' + (c.idx && c.force ? ' FORCE INDEX (idx_orders_status)' : '') + "\n WHERE status = 'CANCELED';   -- " + c.sel + '% of all rows';

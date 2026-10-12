@@ -11,13 +11,13 @@ Lab.register({
   // The join example has a fixed query, and choosing GROUP BY fixes the selected columns to age, COUNT(*)
   fix: function (c) { return c.w === 'join' ? { sel: 'star', tail: 'none' } : c.tail === 'gage' ? { sel: 'star' } : null; },
   presets: [
-    { t: 'Default settings', d: 'The column has an index, but a function is applied to it, so type is ALL.', v: { w: 'func', sel: 'star', tail: 'none' } },
-    { t: 'Writing the same meaning with LIKE', d: "LIKE 'user001%'. type changes to range.", v: { w: 'prefix', sel: 'star', tail: 'none' } },
-    { t: 'One row by primary key', d: 'type const. This is the case that reads the least.', v: { w: 'pk', sel: 'star', tail: 'none' } },
-    { t: 'LIKE with a leading %, selecting only indexed columns', d: 'type index. Despite its name, it reads the whole index.', v: { w: 'suffix', sel: 'cov', tail: 'none' } },
-    { t: 'Find with the index, sort separately', d: 'type is ref, but Using filesort appears in Extra.', v: { w: 'eq', sel: 'star', tail: 'oage' } },
-    { t: 'GROUP BY', d: 'Using temporary appears in Extra.', v: { w: 'none', sel: 'star', tail: 'gage' } },
-    { t: 'Join', d: 'Two lines appear, and the type of the second line is eq_ref.', v: { w: 'join', sel: 'star', tail: 'none' } },
+    { t: 'Default settings', q: 'What should you read in the one EXPLAIN line for SELECT * with the condition LEFT(name, 7) = \'user001\'?', d: 'The column has an index, but a function is applied to it, so type is ALL.', v: { w: 'func', sel: 'star', tail: 'none' } },
+    { t: 'Writing the same meaning with LIKE', q: 'What if you change the WHERE condition to name LIKE \'user001%\'?', d: "LIKE 'user001%'. type changes to range.", v: { w: 'prefix', sel: 'star', tail: 'none' } },
+    { t: 'One row by primary key', q: 'What if you change the WHERE condition to id = 500 (primary key)?', d: 'type const. This is the case that reads the least.', v: { w: 'pk', sel: 'star', tail: 'none' } },
+    { t: 'LIKE with a leading %, selecting only indexed columns', q: 'What if you select only id, name and filter with name LIKE \'%00123\'?', d: 'type index. Despite its name, it reads the whole index.', v: { w: 'suffix', sel: 'cov', tail: 'none' } },
+    { t: 'Find with the index, sort separately', q: 'What if you filter with name = \'user00123\' and use ORDER BY age, a column without an index?', d: 'type is ref, but Using filesort appears in Extra.', v: { w: 'eq', sel: 'star', tail: 'oage' } },
+    { t: 'GROUP BY', q: 'What if you use no WHERE condition and count the people per age with GROUP BY age?', d: 'Using temporary appears in Extra.', v: { w: 'none', sel: 'star', tail: 'gage' } },
+    { t: 'Join', q: 'What if you change it to a join of orders and member, connected by the primary key?', d: 'Two lines appear, and the type of the second line is eq_ref.', v: { w: 'join', sel: 'star', tail: 'none' } },
   ],
   WHERE: { none: '', pk: 'id = 500', eq: "name = 'user00123'", prefix: "name LIKE 'user001%'", suffix: "name LIKE '%00123'", func: "LEFT(name, 7) = 'user001'", noidx: 'age = 30' },
   // Number of rows that actually match the condition (counted by Probe on the same data)

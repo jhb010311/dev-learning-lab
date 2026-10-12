@@ -9,11 +9,11 @@ Lab.register({
     { id: 'grow', label: 'Add one more shard', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'Orders are distributed by the remainder of the member number divided by 4. They spread evenly.', v: { n: 4, how: 'hash', grow: false } },
-    { t: 'Dividing by order number range', d: 'All new orders go to the last shard.', v: { n: 4, how: 'range', grow: false } },
-    { t: 'When a particular member has many orders', d: 'Only the shard that member belongs to grows.', v: { n: 4, how: 'hot', grow: false } },
-    { t: 'Adding a shard with hashing', d: 'From 4 shards to 5. Most of the data has to move.', v: { n: 4, how: 'hash', grow: true } },
-    { t: 'Adding a shard with ranges', d: 'The existing data stays where it is, and the new shard receives only the new range.', v: { n: 4, how: 'range', grow: true } },
+    { t: 'Default settings', q: 'How does the data spread across 4 shards when you divide it by member number % number of shards?', d: 'Orders are distributed by the remainder of the member number divided by 4. They spread evenly.', v: { n: 4, how: 'hash', grow: false } },
+    { t: 'Dividing by order number range', q: 'What if you change the rule for dividing to range by order number range?', d: 'All new orders go to the last shard.', v: { n: 4, how: 'range', grow: false } },
+    { t: 'When a particular member has many orders', q: 'What if you use hashing, but one member has an unusually large number of orders?', d: 'Only the shard that member belongs to grows.', v: { n: 4, how: 'hot', grow: false } },
+    { t: 'Adding a shard with hashing', q: 'What if you add one more shard with the hash rule?', d: 'From 4 shards to 5. Most of the data has to move.', v: { n: 4, how: 'hash', grow: true } },
+    { t: 'Adding a shard with ranges', q: 'What if the rule for dividing is range by order number range and you add one more shard?', d: 'The existing data stays where it is, and the new shard receives only the new range.', v: { n: 4, how: 'range', grow: true } },
   ],
   code: function (c) {
     if (c.how === 'range') return '// The shard is chosen by the order number range\nint shardOf(long orderId) {\n    return (int) ((orderId - 1) / ' + Math.ceil(120 / c.n) + ');     // Orders 1-' + Math.ceil(120 / c.n) + ' go to shard 0, the next ones go to shard 1 …\n}';

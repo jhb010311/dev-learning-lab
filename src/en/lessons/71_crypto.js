@@ -8,12 +8,12 @@ Lab.register({
     { id: 'act', label: 'What to try', type: 'select', value: 'ok', options: [['ok', 'Normal use'], ['tamper', 'The content is changed to "Order 900 won" on the way'], ['wrong', 'Try with a different key (or without a key)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A hash. The same input always gives the same value, and the value cannot be reversed.', v: { tool: 'hash', act: 'ok' } },
-    { t: 'Hash: change just one character', d: 'The result becomes a completely different value.', v: { tool: 'hash', act: 'tamper' } },
-    { t: 'Symmetric key: decrypt with a different key', d: 'Without the same key, you cannot decrypt.', v: { tool: 'sym', act: 'wrong' } },
-    { t: 'Public key: decrypt with the public key', d: 'The key that locked it cannot open it. Only the matching private key opens it.', v: { tool: 'asym', act: 'wrong' } },
-    { t: 'HMAC: change the content', d: 'The signature no longer matches, so the tampering is revealed. JWT works this way.', v: { tool: 'hmac', act: 'tamper' } },
-    { t: 'Digital signature: sign with someone else\'s key', d: 'Verifying with the public key reveals that it is fake.', v: { tool: 'sign', act: 'wrong' } },
+    { t: 'Default settings', q: 'When you use Hash (SHA-256) normally, does it hide something, check something, or do something that cannot be undone?', d: 'A hash. The same input always gives the same value, and the value cannot be reversed.', v: { tool: 'hash', act: 'ok' } },
+    { t: 'Hash: change just one character', q: 'What if the content is changed to "Order 900 won" on the way when you use a hash?', d: 'The result becomes a completely different value.', v: { tool: 'hash', act: 'tamper' } },
+    { t: 'Symmetric key: decrypt with a different key', q: 'What if you use Symmetric-key cryptography (AES) and try with a different key (or without a key)?', d: 'Without the same key, you cannot decrypt.', v: { tool: 'sym', act: 'wrong' } },
+    { t: 'Public key: decrypt with the public key', q: 'What if you use Public-key cryptography (RSA) and try with a different key (or without a key)?', d: 'The key that locked it cannot open it. Only the matching private key opens it.', v: { tool: 'asym', act: 'wrong' } },
+    { t: 'HMAC: change the content', q: 'What if you use Signing with a keyed hash (HMAC) and the content is changed to "Order 900 won" on the way?', d: 'The signature no longer matches, so the tampering is revealed. JWT works this way.', v: { tool: 'hmac', act: 'tamper' } },
+    { t: 'Digital signature: sign with someone else\'s key', q: 'What if you use a Digital signature (sign with the private key, verify with the public key) and try a different key (or no key)?', d: 'Verifying with the public key reveals that it is fake.', v: { tool: 'sign', act: 'wrong' } },
   ],
   code: function (c) {
     return {

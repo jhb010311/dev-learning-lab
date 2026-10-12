@@ -10,13 +10,13 @@ Lab.register({
     { id: 'gap', label: 'How to measure from January 31 to March 1', type: 'select', value: 'period', options: [['period', 'Period.between (date-based amount)'], ['duration', 'Duration.between (time-based amount, with 00:00 added to the dates)'], ['durdate', 'Passing only dates to Duration.between']], show: function (c) { return c.topic === 'gap'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'Adding one month to January 31 gives the last day of February.', v: { topic: 'plus', add: 'month', zone: 'ny', gap: 'period' } },
-    { t: 'Adding and ignoring the return value', d: 'plusMonths is called, but the date is unchanged.', v: { topic: 'plus', add: 'drop', zone: 'ny', gap: 'period' } },
-    { t: 'Adding one month, twice', d: 'The result is March 29, not March 31.', v: { topic: 'plus', add: 'twice', zone: 'ny', gap: 'period' } },
-    { t: 'Adding two months at once', d: 'The result is March 31. This differs from adding one month twice.', v: { topic: 'plus', add: 'two', zone: 'ny', gap: 'period' } },
-    { t: 'New Year in Seoul, in New York time', d: 'It is the same instant, but in New York it is still the previous day.', v: { topic: 'zone', add: 'month', zone: 'ny', gap: 'period' } },
-    { t: 'An amount measured with Period', d: '30 days have passed, but getDays() is 1.', v: { topic: 'gap', add: 'month', zone: 'ny', gap: 'period' } },
-    { t: 'Measuring a Duration from dates only', d: 'The code compiles, but an exception is thrown at run time.', v: { topic: 'gap', add: 'month', zone: 'ny', gap: 'durdate' } },
+    { t: 'Default settings', q: 'What date do you get when you add one month to January 31, 2024 with plusMonths(1)?', d: 'Adding one month to January 31 gives the last day of February.', v: { topic: 'plus', add: 'month', zone: 'ny', gap: 'period' } },
+    { t: 'Adding and ignoring the return value', q: 'What if you call plusMonths(1) and ignore the return value?', d: 'plusMonths is called, but the date is unchanged.', v: { topic: 'plus', add: 'drop', zone: 'ny', gap: 'period' } },
+    { t: 'Adding one month, twice', q: 'What if you add one month twice with plusMonths(1).plusMonths(1)?', d: 'The result is March 29, not March 31.', v: { topic: 'plus', add: 'twice', zone: 'ny', gap: 'period' } },
+    { t: 'Adding two months at once', q: 'What if you add two months at once with plusMonths(2)?', d: 'The result is March 31. This differs from adding one month twice.', v: { topic: 'plus', add: 'two', zone: 'ny', gap: 'period' } },
+    { t: 'New Year in Seoul, in New York time', q: 'What if you write 00:30 on January 1, 2024 in Seoul in the America/New_York (New York) time zone?', d: 'It is the same instant, but in New York it is still the previous day.', v: { topic: 'zone', add: 'month', zone: 'ny', gap: 'period' } },
+    { t: 'An amount measured with Period', q: 'What if you measure from January 31 to March 1 with Period.between (date-based amount)?', d: '30 days have passed, but getDays() is 1.', v: { topic: 'gap', add: 'month', zone: 'ny', gap: 'period' } },
+    { t: 'Measuring a Duration from dates only', q: 'What if you pass only dates to Duration.between to measure from January 31 to March 1?', d: 'The code compiles, but an exception is thrown at run time.', v: { topic: 'gap', add: 'month', zone: 'ny', gap: 'durdate' } },
   ],
   // Values confirmed by real execution: the same instant as 2024-01-01 00:30 in Seoul, written in each time zone
   Z: {

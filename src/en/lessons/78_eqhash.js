@@ -8,12 +8,12 @@ Lab.register({
     { id: 'same', label: 'id of the two objects', type: 'select', value: 'same', options: [['same', 'Both 1 (same contents)'], ['diff', '1 and 2 (different contents)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'Only equals is overridden. equals is true, but getting the value from the map returns null.', v: { how: 'eq', same: 'same' } },
-    { t: 'Both overridden', d: 'You can get the value with an object that has the same contents.', v: { how: 'both', same: 'same' } },
-    { t: 'Nothing overridden', d: 'The two are treated as different objects even though their contents are the same.', v: { how: 'none', same: 'same' } },
-    { t: 'Only hashCode overridden', d: 'The lookup reaches the same bucket, but equals is false, so the key is not found.', v: { how: 'hash', same: 'same' } },
-    { t: 'Declared as a record', d: 'Both methods are generated for you automatically.', v: { how: 'record', same: 'same' } },
-    { t: 'hashCode always returns the same value', d: 'The contract is kept, but every object ends up in one bucket.', v: { how: 'const', same: 'diff' } },
+    { t: 'Default settings', q: 'Why can HashMap not find the key with an Order class that overrides only equals when both ids are 1?', d: 'Only equals is overridden. equals is true, but getting the value from the map returns null.', v: { how: 'eq', same: 'same' } },
+    { t: 'Both overridden', q: 'What if the Order class overrides both equals and hashCode?', d: 'You can get the value with an object that has the same contents.', v: { how: 'both', same: 'same' } },
+    { t: 'Nothing overridden', q: 'What if the Order class overrides nothing?', d: 'The two are treated as different objects even though their contents are the same.', v: { how: 'none', same: 'same' } },
+    { t: 'Only hashCode overridden', q: 'What if the Order class overrides only hashCode?', d: 'The lookup reaches the same bucket, but equals is false, so the key is not found.', v: { how: 'hash', same: 'same' } },
+    { t: 'Declared as a record', q: 'What if you declare Order as a record (both generated automatically)?', d: 'Both methods are generated for you automatically.', v: { how: 'record', same: 'same' } },
+    { t: 'hashCode always returns the same value', q: 'What if equals is overridden, hashCode always returns 42, and the ids of the two objects are 1 and 2 (different contents)?', d: 'The contract is kept, but every object ends up in one bucket.', v: { how: 'const', same: 'diff' } },
   ],
   code: function (c) {
     var b = c.same === 'same' ? 1 : 2;

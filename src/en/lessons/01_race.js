@@ -11,12 +11,12 @@ Lab.register({
     { id: 'seed', label: 'Interleaving pattern', type: 'range', min: 1, max: 20, value: 7, fmt: function (v) { return 'Pattern #' + v; }, show: function (c) { return c.order === 'rand'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'Alternating execution with no synchronization. Increments are lost.', v: { threads: 2, loops: 3, sync: 'none', order: 'alt', seed: 7 } },
-    { t: 'Adding only volatile', d: 'The latest value is visible, but volatile cannot keep the steps from being interleaved.', v: { threads: 2, loops: 3, sync: 'volatile', order: 'alt', seed: 7 } },
-    { t: 'Guarding with synchronized', d: 'The other threads wait until one thread is finished.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
-    { t: 'Using AtomicInteger', d: 'Without a lock, a thread writes only if the value it read is unchanged (CAS). Otherwise it tries again.', v: { threads: 2, loops: 3, sync: 'atomic', order: 'alt', seed: 7 } },
-    { t: 'A lucky run with no overlap', d: 'The result is correct even though there is no synchronization. This is why tests do not catch the bug.', v: { threads: 2, loops: 3, sync: 'none', order: 'seq', seed: 7 } },
-    { t: '4 threads at random', d: 'Run it several times with different pattern numbers. The result is different each time.', v: { threads: 4, loops: 3, sync: 'none', order: 'rand', seed: 7 } },
+    { t: 'Default settings', q: 'What happens when 2 threads each run count++ 3 times with no synchronization, alternating one step at a time?', d: 'Alternating execution with no synchronization. Increments are lost.', v: { threads: 2, loops: 3, sync: 'none', order: 'alt', seed: 7 } },
+    { t: 'Adding only volatile', q: 'What if you change the synchronization method to volatile only?', d: 'The latest value is visible, but volatile cannot keep the steps from being interleaved.', v: { threads: 2, loops: 3, sync: 'volatile', order: 'alt', seed: 7 } },
+    { t: 'Guarding with synchronized', q: 'What if you change the synchronization method to a synchronized block?', d: 'The other threads wait until one thread is finished.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
+    { t: 'Using AtomicInteger', q: 'What if you change the synchronization method to AtomicInteger?', d: 'Without a lock, a thread writes only if the value it read is unchanged (CAS). Otherwise it tries again.', v: { threads: 2, loops: 3, sync: 'atomic', order: 'alt', seed: 7 } },
+    { t: 'A lucky run with no overlap', q: 'What if you keep no synchronization but run each thread to completion before the next one starts?', d: 'The result is correct even though there is no synchronization. This is why tests do not catch the bug.', v: { threads: 2, loops: 3, sync: 'none', order: 'seq', seed: 7 } },
+    { t: '4 threads at random', q: 'What if you increase the number of threads to 4 and run them interleaved at random?', d: 'Run it several times with different pattern numbers. The result is different each time.', v: { threads: 4, loops: 3, sync: 'none', order: 'rand', seed: 7 } },
   ],
   code: function (c) {
     var decl = { none: 'static int count = 0;', volatile: 'static volatile int count = 0;', sync: 'static int count = 0;\nstatic final Object lock = new Object();', atomic: 'static final AtomicInteger count = new AtomicInteger();' }[c.sync];

@@ -10,11 +10,11 @@ Lab.register({
     { id: 'to', label: 'Set a timeout of 1s on each call (use a default value when it is exceeded)', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'The 4 services are called one after another. All the times add up.', v: { how: 'seq', n: 4, pool: 5, to: false } },
-    { t: 'Switch to parallel', d: 'The page takes only as long as the single slowest call.', v: { how: 'par', n: 4, pool: 5, to: false } },
-    { t: 'Parallel, but with only 2 threads', d: 'Only 2 calls are in progress at a time.', v: { how: 'par', n: 4, pool: 2, to: false } },
-    { t: 'A timeout on the slow call', d: 'A call that takes longer than 1s is not waited for. A default value is used in its place.', v: { how: 'par', n: 4, pool: 5, to: true } },
-    { t: '5 calls, sequential', d: 'Each additional call makes the page slower by the time of that call.', v: { how: 'seq', n: 5, pool: 5, to: false } },
+    { t: 'Default settings', q: 'What is the total response time when you call 4 services sequentially with no timeout?', d: 'The 4 services are called one after another. All the times add up.', v: { how: 'seq', n: 4, pool: 5, to: false } },
+    { t: 'Switch to parallel', q: 'What if you change the calls to parallel, at the same time, with CompletableFuture?', d: 'The page takes only as long as the single slowest call.', v: { how: 'par', n: 4, pool: 5, to: false } },
+    { t: 'Parallel, but with only 2 threads', q: 'What if the calls are parallel and you reduce the number of threads for the asynchronous tasks to 2?', d: 'Only 2 calls are in progress at a time.', v: { how: 'par', n: 4, pool: 2, to: false } },
+    { t: 'A timeout on the slow call', q: 'What if you make the calls parallel and set a timeout of 1s on each call?', d: 'A call that takes longer than 1s is not waited for. A default value is used in its place.', v: { how: 'par', n: 4, pool: 5, to: true } },
+    { t: '5 calls, sequential', q: 'What if you increase the number of services called to 5 in the sequential calls?', d: 'Each additional call makes the page slower by the time of that call.', v: { how: 'seq', n: 5, pool: 5, to: false } },
   ],
   CALLS: [['Product details', 0.3], ['Stock', 0.5], ['Reviews', 0.8], ['Recommendations', 1.6], ['Coupons', 0.4]],
   code: function (c) {

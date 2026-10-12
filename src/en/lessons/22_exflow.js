@@ -10,12 +10,12 @@ Lab.register({
     { id: 'res', label: 'Open a resource with try-with-resources', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'The catch block catches the exception thrown in the try block.', v: { ex: 'match', ret: false, fret: false, res: false } },
-    { t: 'An exception that the catch block does not catch', d: 'The catch block is skipped, but the finally block runs.', v: { ex: 'nomatch', ret: false, fret: false, res: false } },
-    { t: 'A return in the try block', d: 'Even after the return value is set, the finally block runs first.', v: { ex: 'none', ret: true, fret: false, res: false } },
-    { t: 'A return in the finally block', d: 'The exception that was on its way out disappears.', v: { ex: 'nomatch', ret: false, fret: true, res: false } },
-    { t: 'try-with-resources', d: 'The resource is closed before the catch and finally blocks run.', v: { ex: 'match', ret: false, fret: false, res: true } },
-    { t: 'Another exception inside catch', d: 'The new exception leaves the method, and the finally block runs before that.', v: { ex: 'incatch', ret: false, fret: false, res: false } },
+    { t: 'Default settings', q: 'Which blocks run, and in what order, when an exception is thrown in try and the catch block catches that type?', d: 'The catch block catches the exception thrown in the try block.', v: { ex: 'match', ret: false, fret: false, res: false } },
+    { t: 'An exception that the catch block does not catch', q: 'What if the exception is a type that the catch block does not catch?', d: 'The catch block is skipped, but the finally block runs.', v: { ex: 'nomatch', ret: false, fret: false, res: false } },
+    { t: 'A return in the try block', q: 'What if there is no exception and the try block ends with a return?', d: 'Even after the return value is set, the finally block runs first.', v: { ex: 'none', ret: true, fret: false, res: false } },
+    { t: 'A return in the finally block', q: 'What if the exception is a type that the catch block does not catch, and the finally block has a return?', d: 'The exception that was on its way out disappears.', v: { ex: 'nomatch', ret: false, fret: true, res: false } },
+    { t: 'try-with-resources', q: 'What if you open a resource with try-with-resources?', d: 'The resource is closed before the catch and finally blocks run.', v: { ex: 'match', ret: false, fret: false, res: true } },
+    { t: 'Another exception inside catch', q: 'What if the catch block catches the exception from try, and another exception is thrown inside catch?', d: 'The new exception leaves the method, and the finally block runs before that.', v: { ex: 'incatch', ret: false, fret: false, res: false } },
   ],
   code: function (c) {
     var t = c.ex === 'none' ? '' : c.ex === 'nomatch' ? '        throw new IllegalStateException();      // not caught by the catch block\n' : '        throw new IllegalArgumentException();\n';

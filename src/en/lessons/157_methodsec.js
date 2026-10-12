@@ -10,12 +10,12 @@ Lab.register({
     { id: 'call', label: 'How it is called', type: 'select', value: 'ext', options: [['ext', 'Called directly from a controller (another bean)'], ['self', 'Called through another method of the same class']] },
   ],
   presets: [
-    { t: 'Default settings', d: '@PreAuthorize is on the method, but kim, who has the role USER, runs deleteAll.', v: { enable: false, m: 'role', who: 'kim', call: 'ext' } },
-    { t: 'With @EnableMethodSecurity', d: 'The call is denied before the method body runs.', v: { enable: true, m: 'role', who: 'kim', call: 'ext' } },
-    { t: 'When ADMIN calls', d: 'The expression is true, so the body runs.', v: { enable: true, m: 'role', who: 'admin', call: 'ext' } },
-    { t: 'Compare an argument with the logged-in user', d: 'lee asks for the order list of kim. The call is denied before the body runs.', v: { enable: true, m: 'arg', who: 'lee', call: 'ext' } },
-    { t: 'Decide from the returned value', d: 'The body runs, and the call is denied just before the value goes out.', v: { enable: true, m: 'post', who: 'lee', call: 'ext' } },
-    { t: 'When called inside the same class', d: 'The call does not pass through the proxy, so the check is skipped.', v: { enable: true, m: 'role', who: 'kim', call: 'self' } },
+    { t: 'Default settings', q: 'What happens when kim, who has the role USER, calls deleteAll() with @PreAuthorize("hasRole(\'ADMIN\')") but without @EnableMethodSecurity?', d: '@PreAuthorize is on the method, but kim, who has the role USER, runs deleteAll.', v: { enable: false, m: 'role', who: 'kim', call: 'ext' } },
+    { t: 'With @EnableMethodSecurity', q: 'What if you add @EnableMethodSecurity to the configuration class?', d: 'The call is denied before the method body runs.', v: { enable: true, m: 'role', who: 'kim', call: 'ext' } },
+    { t: 'When ADMIN calls', q: 'What if you add @EnableMethodSecurity and park, who has the role ADMIN, calls the deleteAll() method?', d: 'The expression is true, so the body runs.', v: { enable: true, m: 'role', who: 'admin', call: 'ext' } },
+    { t: 'Compare an argument with the logged-in user', q: 'What if you add @EnableMethodSecurity and lee calls ordersOf("kim"), asking for kim\'s order list?', d: 'lee asks for the order list of kim. The call is denied before the body runs.', v: { enable: true, m: 'arg', who: 'lee', call: 'ext' } },
+    { t: 'Decide from the returned value', q: 'What if you add @EnableMethodSecurity and lee calls findOrder(1), which has @PostAuthorize?', d: 'The body runs, and the call is denied just before the value goes out.', v: { enable: true, m: 'post', who: 'lee', call: 'ext' } },
+    { t: 'When called inside the same class', q: 'What if you add @EnableMethodSecurity and deleteAll() is called through nightlyCleanUp(), another method of the same class?', d: 'The call does not pass through the proxy, so the check is skipped.', v: { enable: true, m: 'role', who: 'kim', call: 'self' } },
   ],
   M: {
     role: { name: 'deleteAll', call: 'deleteAll()', wrap: 'nightlyCleanUp', wcall: 'nightlyCleanUp()', ann: '@PreAuthorize("hasRole(\'ADMIN\')")', expr: 'hasRole(\'ADMIN\')', ret: '"Deleted all"' },

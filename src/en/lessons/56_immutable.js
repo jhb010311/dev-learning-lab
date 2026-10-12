@@ -8,11 +8,11 @@ Lab.register({
     { id: 'out', label: 'What the getter returns', type: 'select', value: 'none', options: [['none', 'The internal list itself'], ['copy', 'A copy of the internal list'], ['unmod', 'An unmodifiable view']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'No defense at all. The internal state is changed from outside through two paths.', v: { in: 'ref', out: 'none' } },
-    { t: 'Copy only in the constructor', d: 'Changing the original list has no effect, but the internal state can still be changed through the getter.', v: { in: 'copy', out: 'none' } },
-    { t: 'Copy on both sides', d: 'There is no way to change the internal state from outside.', v: { in: 'copy', out: 'copy' } },
-    { t: 'The getter returns an unmodifiable view', d: 'An attempt to change it throws an exception.', v: { in: 'copy', out: 'unmod' } },
-    { t: 'A view only, with no copy in the constructor', d: 'The internal state can still be changed through the original list.', v: { in: 'ref', out: 'unmod' } },
+    { t: 'Default settings', q: 'If the constructor stores the list as it is and the getter returns the internal list itself, can outside code change the inside?', d: 'No defense at all. The internal state is changed from outside through two paths.', v: { in: 'ref', out: 'none' } },
+    { t: 'Copy only in the constructor', q: 'What if the constructor copies the list and then stores it?', d: 'Changing the original list has no effect, but the internal state can still be changed through the getter.', v: { in: 'copy', out: 'none' } },
+    { t: 'Copy on both sides', q: 'What if the constructor stores a copy and the getter also returns a copy of the internal list?', d: 'There is no way to change the internal state from outside.', v: { in: 'copy', out: 'copy' } },
+    { t: 'The getter returns an unmodifiable view', q: 'What if the constructor stores a copy and the getter returns an unmodifiable view?', d: 'An attempt to change it throws an exception.', v: { in: 'copy', out: 'unmod' } },
+    { t: 'A view only, with no copy in the constructor', q: 'What if the constructor stores the list as it is and only the getter returns an unmodifiable view?', d: 'The internal state can still be changed through the original list.', v: { in: 'ref', out: 'unmod' } },
   ],
   code: function (c) {
     return 'class Order {\n    private final List<String> items;          // final: cannot be replaced with another list\n\n    Order(List<String> items) {\n        this.items = ' + (c.in === 'copy' ? 'new ArrayList<>(items);   // stores a copy' : 'items;                    // stores the list it received as it is') + '\n    }\n\n    List<String> getItems() {\n        return ' + { none: 'items;                            // exposes the internal list itself', copy: 'new ArrayList<>(items);           // returns a copy', unmod: 'Collections.unmodifiableList(items);  // unmodifiable view' }[c.out] + '\n    }\n}\n\nList<String> src = new ArrayList<>(List.of("keyboard", "mouse"));\nOrder order = new Order(src);\nsrc.add("monitor");                // (1) modifies the original list\norder.getItems().add("chair");     // (2) modifies the list returned by the getter';

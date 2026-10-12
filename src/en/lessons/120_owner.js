@@ -9,12 +9,12 @@ Lab.register({
     { id: 'mp', label: 'Team.members has mappedBy = "team"', type: 'check', value: true, hint: 'When off, it is the case of a bidirectional relationship in which mappedBy was left out.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'You add the member only to the team\'s list. There is no exception, but team_id in the database is null.', v: { set: 'inverse', clear: false, mp: true } },
-    { t: 'Setting the member side only', d: 'team_id is stored, but the list of the team that is read in the same transaction is empty.', v: { set: 'owner', clear: false, mp: true } },
-    { t: 'Setting both sides', d: 'The foreign key in the database and the list in memory are both correct.', v: { set: 'both', clear: false, mp: true } },
-    { t: 'Setting the team side only, then reading again from the database', d: 'The list had 1 member in memory, but when it is read again from the database, it has 0.', v: { set: 'inverse', clear: true, mp: true } },
-    { t: 'Setting the member side only, then reading again from the database', d: 'The foreign key was stored, so the list that is read again has 1 member.', v: { set: 'owner', clear: true, mp: true } },
-    { t: 'Leaving out mappedBy', d: 'A separate join table team_member is created, and one more INSERT is sent.', v: { set: 'both', clear: false, mp: false } },
+    { t: 'Default settings', q: 'With mappedBy = "team", what happens to member.team_id when you add the member only to the team\'s list and save?', d: 'You add the member only to the team\'s list. There is no exception, but team_id in the database is null.', v: { set: 'inverse', clear: false, mp: true } },
+    { t: 'Setting the member side only', q: 'What if you leave the team\'s list alone and set the team only on the member side with member.setTeam(team)?', d: 'team_id is stored, but the list of the team that is read in the same transaction is empty.', v: { set: 'owner', clear: false, mp: true } },
+    { t: 'Setting both sides', q: 'What if you set both sides, the team\'s list and member.setTeam(team)?', d: 'The foreign key in the database and the list in memory are both correct.', v: { set: 'both', clear: false, mp: true } },
+    { t: 'Setting the team side only, then reading again from the database', q: 'What if you set only the team side and call em.flush() and em.clear() before reading the list?', d: 'The list had 1 member in memory, but when it is read again from the database, it has 0.', v: { set: 'inverse', clear: true, mp: true } },
+    { t: 'Setting the member side only, then reading again from the database', q: 'What if you set only the member side and call em.flush() and em.clear() before reading the list?', d: 'The foreign key was stored, so the list that is read again has 1 member.', v: { set: 'owner', clear: true, mp: true } },
+    { t: 'Leaving out mappedBy', q: 'What if you set both sides and leave out mappedBy in Team.members?', d: 'A separate join table team_member is created, and one more INSERT is sent.', v: { set: 'both', clear: false, mp: false } },
   ],
   // The lines of code that run, depending on the settings. k is the name that points to the line.
   lines: function (c) {

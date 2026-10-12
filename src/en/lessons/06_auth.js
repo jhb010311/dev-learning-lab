@@ -10,12 +10,12 @@ Lab.register({
     { id: 'kick', label: 'An administrator forces this user to log out at 25 min', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'Session in server memory, 2 servers. A request that goes to a different server is no longer logged in.', v: { mode: 'local', servers: 2, exp: '25', kick: false } },
-    { t: 'Move the session to Redis', d: 'The login stays valid whichever server the request goes to. In exchange, every request queries the store.', v: { mode: 'redis', servers: 2, exp: '25', kick: false } },
-    { t: 'Switch to JWT', d: 'The server remembers nothing. The token expires after 25 minutes.', v: { mode: 'jwt', servers: 2, exp: '25', kick: false } },
-    { t: 'JWT with a forced logout', d: 'There is no way to stop a token that has already been issued until it expires.', v: { mode: 'jwt', servers: 2, exp: '45', kick: true } },
-    { t: 'Session with a forced logout', d: 'If you delete the session from the store, requests are blocked starting with the very next one.', v: { mode: 'redis', servers: 2, exp: '25', kick: true } },
-    { t: 'Short access token + refresh token', d: 'A new access token is issued every 15 minutes. Even if it comes late, a forced logout takes effect within 15 minutes.', v: { mode: 'refresh', servers: 2, exp: '15', kick: true } },
+    { t: 'Default settings', q: 'What happens to the login state when you use sessions stored in each server\'s memory on 2 servers?', d: 'Session in server memory, 2 servers. A request that goes to a different server is no longer logged in.', v: { mode: 'local', servers: 2, exp: '25', kick: false } },
+    { t: 'Move the session to Redis', q: 'What if you change the authentication method to a session stored in a shared store, Redis?', d: 'The login stays valid whichever server the request goes to. In exchange, every request queries the store.', v: { mode: 'redis', servers: 2, exp: '25', kick: false } },
+    { t: 'Switch to JWT', q: 'What if you change the authentication method to JWT (access token only)?', d: 'The server remembers nothing. The token expires after 25 minutes.', v: { mode: 'jwt', servers: 2, exp: '25', kick: false } },
+    { t: 'JWT with a forced logout', q: 'What if you use JWT (access token only) with a 45 min expiration and an administrator forces the user to log out at 25 min?', d: 'There is no way to stop a token that has already been issued until it expires.', v: { mode: 'jwt', servers: 2, exp: '45', kick: true } },
+    { t: 'Session with a forced logout', q: 'What if an administrator forces the user to log out at 25 min with a session stored in Redis?', d: 'If you delete the session from the store, requests are blocked starting with the very next one.', v: { mode: 'redis', servers: 2, exp: '25', kick: true } },
+    { t: 'Short access token + refresh token', q: 'What if you use JWT (access token + refresh token) with a 15 min expiration and an administrator forces a logout at 25 min?', d: 'A new access token is issued every 15 minutes. Even if it comes late, a forced logout takes effect within 15 minutes.', v: { mode: 'refresh', servers: 2, exp: '15', kick: true } },
   ],
   code: function (c) {
     if (c.mode === 'local' || c.mode === 'redis') return (c.mode === 'redis' ? '// Adding the spring-session-data-redis dependency\n// stores the session in Redis instead of server memory\n\n' : '') + '// On successful login\nHttpSession session = request.getSession();\nsession.setAttribute("memberId", member.getId());\n// Response header: Set-Cookie: JSESSIONID=abc123; HttpOnly\n\n// On every later request: find the session by the session ID in the cookie\nHttpSession session = request.getSession(false);\nif (session == null) {\n    throw new UnauthorizedException();   // 401\n}';

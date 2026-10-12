@@ -9,12 +9,12 @@ Lab.register({
     { id: 'after', label: 'If you change city to "Busan" after the merge', type: 'select', value: 'none', options: [['none', 'Do not change it'], ['arg', 'Change it on the object m that you passed to merge'], ['ret', 'Change it on the object r that merge returned']], show: function (c) { return c.how === 'merge'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'You merge an object with only the name filled in. city becomes NULL.', v: { src: 'form', how: 'merge', after: 'none' } },
-    { t: 'Load again and move only the name', d: 'city stays as it is (dirty checking).', v: { src: 'form', how: 'dirty', after: 'none' } },
-    { t: 'Do nothing', d: 'Changing only the values of a detached object does not apply them.', v: { src: 'form', how: 'none', after: 'none' } },
-    { t: 'Merge a loaded object', d: 'All fields are filled in, so city is kept.', v: { src: 'loaded', how: 'merge', after: 'none' } },
-    { t: 'Fix the passed object after merge', d: 'The passed object is still detached, so the change is not applied.', v: { src: 'loaded', how: 'merge', after: 'arg' } },
-    { t: 'Fix the returned object after merge', d: 'The returned object is managed, so the change is applied.', v: { src: 'loaded', how: 'merge', after: 'ret' } },
+    { t: 'Default settings', q: 'What happens to city when you merge, with em.merge(m), an object m that was created with new and has only id and name filled in?', d: 'You merge an object with only the name filled in. city becomes NULL.', v: { src: 'form', how: 'merge', after: 'none' } },
+    { t: 'Load again and move only the name', q: 'What if you load the member again with em.find and move only the name, instead of calling em.merge(m)?', d: 'city stays as it is (dirty checking).', v: { src: 'form', how: 'dirty', after: 'none' } },
+    { t: 'Do nothing', q: 'What if you do nothing and commit, instead of calling em.merge(m)?', d: 'Changing only the values of a detached object does not apply them.', v: { src: 'form', how: 'none', after: 'none' } },
+    { t: 'Merge a loaded object', q: 'What if m is an object loaded in an earlier request, with all fields filled in, and you merge it?', d: 'All fields are filled in, so city is kept.', v: { src: 'loaded', how: 'merge', after: 'none' } },
+    { t: 'Fix the passed object after merge', q: 'What if you merge an object loaded in an earlier request and then change city to "Busan" on the object m that you passed to merge?', d: 'The passed object is still detached, so the change is not applied.', v: { src: 'loaded', how: 'merge', after: 'arg' } },
+    { t: 'Fix the returned object after merge', q: 'What if you merge an object loaded in an earlier request and then change city to "Busan" on the object r that merge returned?', d: 'The returned object is managed, so the change is applied.', v: { src: 'loaded', how: 'merge', after: 'ret' } },
   ],
   // The lines of code for the settings. k is the kind of work the line does, and pre marks the line before which the code is shown (it is not a step)
   lines: function (c) {

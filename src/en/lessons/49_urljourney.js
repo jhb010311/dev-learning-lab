@@ -10,10 +10,10 @@ Lab.register({
     { id: 'cdn', label: 'The static file is served from a CDN', type: 'check', value: false, show: function (c) { return c.what === 'static'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'A first visit. The request goes through every step.', v: { what: 'api', dns: false, conn: false, cdn: false } },
-    { t: 'Second request to the same site', d: 'The DNS lookup and the connection setup are skipped.', v: { what: 'api', dns: true, conn: true, cdn: false } },
-    { t: 'Static file', d: 'The web server (nginx) responds directly. The request does not reach the application server.', v: { what: 'static', dns: true, conn: true, cdn: false } },
-    { t: 'Static file from a CDN', d: 'A server close to the user responds.', v: { what: 'static', dns: true, conn: true, cdn: true } },
+    { t: 'Default settings', q: 'Which steps does a first visit go through when you request the dynamic page /orders?', d: 'A first visit. The request goes through every step.', v: { what: 'api', dns: false, conn: false, cdn: false } },
+    { t: 'Second request to the same site', q: 'What if you turn on the DNS cache and connection reuse and request the same site again?', d: 'The DNS lookup and the connection setup are skipped.', v: { what: 'api', dns: true, conn: true, cdn: false } },
+    { t: 'Static file', q: 'What if you turn on the DNS cache and connection reuse and request the static file /logo.png?', d: 'The web server (nginx) responds directly. The request does not reach the application server.', v: { what: 'static', dns: true, conn: true, cdn: false } },
+    { t: 'Static file from a CDN', q: 'What if you also serve the static file /logo.png from a CDN, with the DNS cache and connection reuse on?', d: 'A server close to the user responds.', v: { what: 'static', dns: true, conn: true, cdn: true } },
   ],
   code: function (c) {
     return '# nginx (reverse proxy)\nserver {\n    listen 443 ssl;\n    server_name shop.example;\n\n    location /static/ {                  # serve static files directly\n        root /var/www;\n    }\n    location / {                         # pass everything else to the application server\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header X-Forwarded-For $remote_addr;\n    }\n}';

@@ -10,13 +10,13 @@ Lab.register({
     { id: 'ib', label: 'Type of the second variable', type: 'select', value: 'box', options: [['box', 'Integer (object)'], ['prim', 'int (primitive type)']], show: function (c) { return c.kind === 'int'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'A literal and new String. The contents are the same, but == is false.', v: { kind: 'str', sb: 'new', iv: '127', ib: 'box' } },
-    { t: 'Two literals', d: 'Identical literals use the same object in the string pool.', v: { kind: 'str', sb: 'lit', iv: '127', ib: 'box' } },
-    { t: 'A string concatenated with a variable', d: 'A string created at run time is a different object from the one in the pool.', v: { kind: 'str', sb: 'concat', iv: '127', ib: 'box' } },
-    { t: 'Calling intern()', d: 'You get back the object in the pool, so == becomes true.', v: { kind: 'str', sb: 'intern', iv: '127', ib: 'box' } },
-    { t: 'Integer 127', d: '== is true.', v: { kind: 'int', sb: 'new', iv: '127', ib: 'box' } },
-    { t: 'Integer 128', d: 'The value is only 1 larger, but == becomes false.', v: { kind: 'int', sb: 'new', iv: '128', ib: 'box' } },
-    { t: 'Comparing an Integer with an int', d: 'When one side is a primitive type, the values are compared.', v: { kind: 'int', sb: 'new', iv: '128', ib: 'prim' } },
+    { t: 'Default settings', q: 'What do a == b and a.equals(b) return when the second String is created with new String("hello")?', d: 'A literal and new String. The contents are the same, but == is false.', v: { kind: 'str', sb: 'new', iv: '127', ib: 'box' } },
+    { t: 'Two literals', q: 'What if the second string is the literal "hello" instead of new String?', d: 'Identical literals use the same object in the string pool.', v: { kind: 'str', sb: 'lit', iv: '127', ib: 'box' } },
+    { t: 'A string concatenated with a variable', q: 'What if the second string is created by concatenation with a variable, part + "lo"?', d: 'A string created at run time is a different object from the one in the pool.', v: { kind: 'str', sb: 'concat', iv: '127', ib: 'box' } },
+    { t: 'Calling intern()', q: 'What if you call intern() on new String("hello") when you create the second string?', d: 'You get back the object in the pool, so == becomes true.', v: { kind: 'str', sb: 'intern', iv: '127', ib: 'box' } },
+    { t: 'Integer 127', q: 'What if you change the type to compare to Integer and compare 127?', d: '== is true.', v: { kind: 'int', sb: 'new', iv: '127', ib: 'box' } },
+    { t: 'Integer 128', q: 'What if you change the type to compare to Integer and the value to 128?', d: 'The value is only 1 larger, but == becomes false.', v: { kind: 'int', sb: 'new', iv: '128', ib: 'box' } },
+    { t: 'Comparing an Integer with an int', q: 'What if the type is Integer, the value is 128, and the second variable is an int?', d: 'When one side is a primitive type, the values are compared.', v: { kind: 'int', sb: 'new', iv: '128', ib: 'prim' } },
   ],
   code: function (c) {
     if (c.kind === 'str') {

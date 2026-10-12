@@ -10,13 +10,13 @@ Lab.register({
     { id: 'q', label: 'Query condition', type: 'select', value: 'func', options: [['key', 'Partitioning key column = value'], ['range', 'A range on the partitioning key column'], ['func', 'A function or calculation applied to the partitioning key column'], ['other', 'A condition without the partitioning key (id = 100)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'The table is divided by year, but a search with YEAR(ordered_at) = 2024 reads all three partitions.', v: { how: 'range', pk: 'with', ins: 'in', q: 'func' } },
-    { t: 'Comparing the column as it is', d: 'It reads only the one partition that the date would be in.', v: { how: 'range', pk: 'with', ins: 'in', q: 'key' } },
-    { t: 'A range that spans two years', d: 'It reads only the two partitions it spans and skips the rest.', v: { how: 'range', pk: 'with', ins: 'in', q: 'range' } },
-    { t: 'A condition without the partitioning key', d: 'Even though it searches by the first column of the primary key, it reads all the partitions.', v: { how: 'range', pk: 'with', ins: 'in', q: 'other' } },
-    { t: 'Inserting a date outside the range', d: 'There is no partition to accept it, so the INSERT fails with error 1526.', v: { how: 'range', pk: 'with', ins: 'out', q: 'key' } },
-    { t: 'When the primary key lacks the partitioning key', d: 'Error 1503 occurs when the table is created.', v: { how: 'range', pk: 'only', ins: 'in', q: 'key' } },
-    { t: 'Dividing with a hash', d: 'Any value has a place to go, but a range query reads all the partitions.', v: { how: 'hash', pk: 'with', ins: 'out', q: 'range' } },
+    { t: 'Default settings', q: 'Which partitions does a query with YEAR(ordered_at) = 2024 read on a table divided by RANGE: by the year of the order date?', d: 'The table is divided by year, but a search with YEAR(ordered_at) = 2024 reads all three partitions.', v: { how: 'range', pk: 'with', ins: 'in', q: 'func' } },
+    { t: 'Comparing the column as it is', q: 'What if the query condition is the partitioning key column = value?', d: 'It reads only the one partition that the date would be in.', v: { how: 'range', pk: 'with', ins: 'in', q: 'key' } },
+    { t: 'A range that spans two years', q: 'What if the query condition is a range on the partitioning key column?', d: 'It reads only the two partitions it spans and skips the rest.', v: { how: 'range', pk: 'with', ins: 'in', q: 'range' } },
+    { t: 'A condition without the partitioning key', q: 'What if the query condition has no partitioning key (id = 100)?', d: 'Even though it searches by the first column of the primary key, it reads all the partitions.', v: { how: 'range', pk: 'with', ins: 'in', q: 'other' } },
+    { t: 'Inserting a date outside the range', q: 'What if you insert an order in January 2026 from member 9 and query with the partitioning key column = value?', d: 'There is no partition to accept it, so the INSERT fails with error 1526.', v: { how: 'range', pk: 'with', ins: 'out', q: 'key' } },
+    { t: 'When the primary key lacks the partitioning key', q: 'What if the primary key is (id) only and you query with the partitioning key column = value?', d: 'Error 1503 occurs when the table is created.', v: { how: 'range', pk: 'only', ins: 'in', q: 'key' } },
+    { t: 'Dividing with a hash', q: 'What if you divide with HASH, insert an order in January 2026 from member 9, and query a range on the partitioning key column?', d: 'Any value has a place to go, but a range query reads all the partitions.', v: { how: 'hash', pk: 'with', ins: 'out', q: 'range' } },
   ],
   where: function (c) {
     if (c.q === 'other') return 'id = 100';

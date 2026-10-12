@@ -10,11 +10,11 @@ Lab.register({
     { id: 'srv', label: 'CORS settings on the server', type: 'select', value: 'none', options: [['none', 'No settings'], ['star', 'Allow all origins (*)'], ['exact', 'Allow only https://shop.example + allow cookies']], show: function (c) { return c.api === 'cross'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'A JSON POST to a different origin. The server has no settings, so the request is blocked at the preflight request.', v: { api: 'cross', req: 'json', cred: false, srv: 'none' } },
-    { t: 'When the server allows the origin', d: 'The preflight request passes, and the actual request is sent.', v: { api: 'cross', req: 'json', cred: false, srv: 'exact' } },
-    { t: 'Simple GET, no server settings', d: 'The request reaches the server and is handled. Only the response is not passed to the script.', v: { api: 'cross', req: 'simple', cred: false, srv: 'none' } },
-    { t: 'Allow all origins + cookies', d: '* and cookies cannot be used together.', v: { api: 'cross', req: 'simple', cred: true, srv: 'star' } },
-    { t: 'If the origin is the same', d: 'There is no CORS check at all.', v: { api: 'same', req: 'json', cred: false, srv: 'none' } },
+    { t: 'Default settings', q: 'What happens when a script sends a JSON POST to the different origin https://api.shop.example and the server has no CORS settings?', d: 'A JSON POST to a different origin. The server has no settings, so the request is blocked at the preflight request.', v: { api: 'cross', req: 'json', cred: false, srv: 'none' } },
+    { t: 'When the server allows the origin', q: 'What if you set the CORS settings on the server to allow only https://shop.example and allow cookies?', d: 'The preflight request passes, and the actual request is sent.', v: { api: 'cross', req: 'json', cred: false, srv: 'exact' } },
+    { t: 'Simple GET, no server settings', q: 'What if the request sent by the script is a GET with no extra headers?', d: 'The request reaches the server and is handled. Only the response is not passed to the script.', v: { api: 'cross', req: 'simple', cred: false, srv: 'none' } },
+    { t: 'Allow all origins + cookies', q: 'What if a GET with no extra headers sends cookies and the server allows all origins (*)?', d: '* and cookies cannot be used together.', v: { api: 'cross', req: 'simple', cred: true, srv: 'star' } },
+    { t: 'If the origin is the same', q: 'What if the address of the API server is https://shop.example/api, the same origin?', d: 'There is no CORS check at all.', v: { api: 'same', req: 'json', cred: false, srv: 'none' } },
   ],
   code: function (c) {
     var url = c.api === 'same' ? '/api/orders' : 'https://api.shop.example/orders', opt = [];

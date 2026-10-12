@@ -9,12 +9,12 @@ Lab.register({
     { id: 'gen', label: 'Primary key generation strategy', type: 'select', value: 'IDENTITY', options: [['IDENTITY', 'IDENTITY (database auto increment)'], ['SEQUENCE', 'SEQUENCE (database sequence)']], show: function (c) { return c.sc === 'persist'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'Only the name is changed, yet an UPDATE is sent at commit (dirty checking).', v: { sc: 'update', tx: true, gen: 'IDENTITY' } },
-    { t: 'Without @Transactional', d: 'It is the same code, but no UPDATE is sent.', v: { sc: 'update', tx: false, gen: 'IDENTITY' } },
-    { t: 'Load the same member twice', d: 'The second load does not go to the database (first-level cache).', v: { sc: 'find2', tx: true, gen: 'IDENTITY' } },
-    { t: 'Save: IDENTITY strategy', d: 'An INSERT is sent right away on every persist call.', v: { sc: 'persist', tx: true, gen: 'IDENTITY' } },
-    { t: 'Save: SEQUENCE strategy', d: 'The INSERTs are collected and sent together at commit (transactional write-behind).', v: { sc: 'persist', tx: true, gen: 'SEQUENCE' } },
-    { t: 'JPQL query after a change', d: 'Even before the commit, an UPDATE is sent just before the JPQL query runs.', v: { sc: 'jpql', tx: true, gen: 'IDENTITY' } },
+    { t: 'Default settings', q: 'When is the UPDATE sent if a method with @Transactional loads a member and changes only the name, without a save call?', d: 'Only the name is changed, yet an UPDATE is sent at commit (dirty checking).', v: { sc: 'update', tx: true, gen: 'IDENTITY' } },
+    { t: 'Without @Transactional', q: 'What if you turn off @Transactional on the method and run the same code?', d: 'It is the same code, but no UPDATE is sent.', v: { sc: 'update', tx: false, gen: 'IDENTITY' } },
+    { t: 'Load the same member twice', q: 'What if you change the code to try to load the same member twice?', d: 'The second load does not go to the database (first-level cache).', v: { sc: 'find2', tx: true, gen: 'IDENTITY' } },
+    { t: 'Save: IDENTITY strategy', q: 'What if you save 3 new members with the IDENTITY primary key generation strategy?', d: 'An INSERT is sent right away on every persist call.', v: { sc: 'persist', tx: true, gen: 'IDENTITY' } },
+    { t: 'Save: SEQUENCE strategy', q: 'What if you save 3 new members and change the primary key generation strategy to SEQUENCE?', d: 'The INSERTs are collected and sent together at commit (transactional write-behind).', v: { sc: 'persist', tx: true, gen: 'SEQUENCE' } },
+    { t: 'JPQL query after a change', q: 'What if you change the name of a loaded member and then run a JPQL query?', d: 'Even before the commit, an UPDATE is sent just before the JPQL query runs.', v: { sc: 'jpql', tx: true, gen: 'IDENTITY' } },
   ],
   lines: function (c) {
     if (c.sc === 'find2') return ['Member a = em.find(Member.class, 1L);', 'Member b = em.find(Member.class, 1L);', 'System.out.println(a == b);'];

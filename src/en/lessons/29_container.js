@@ -9,11 +9,11 @@ Lab.register({
     { id: 'limit', label: 'Container memory limit', type: 'select', value: '1024', options: [['256', '256MB'], ['512', '512MB'], ['1024', '1GB']], show: function (c) { return c.kind === 'container'; }, hint: 'The application uses about 400MB while running.' },
   ],
   presets: [
-    { t: 'Default settings', d: '3 containers. They share the kernel of the host.', v: { kind: 'container', n: 3, limit: '1024' } },
-    { t: 'The same thing as virtual machines', d: 'One more operating system is loaded for each instance.', v: { kind: 'vm', n: 3, limit: '1024' } },
-    { t: 'Increase to 6', d: 'Virtual machines. The share taken by operating systems becomes 6 times as large.', v: { kind: 'vm', n: 6, limit: '1024' } },
-    { t: '6 containers', d: 'It grows only by as much as the application uses.', v: { kind: 'container', n: 6, limit: '1024' } },
-    { t: 'Memory limit of 256MB', d: 'The application tries to use 400MB and is killed.', v: { kind: 'container', n: 1, limit: '256' } },
+    { t: 'Default settings', q: 'How are operating systems and memory used when you start 3 containers with a memory limit of 1GB?', d: '3 containers. They share the kernel of the host.', v: { kind: 'container', n: 3, limit: '1024' } },
+    { t: 'The same thing as virtual machines', q: 'What if you change the isolation type to virtual machine?', d: 'One more operating system is loaded for each instance.', v: { kind: 'vm', n: 3, limit: '1024' } },
+    { t: 'Increase to 6', q: 'What if the isolation type is virtual machine and you increase the number of instances to 6?', d: 'Virtual machines. The share taken by operating systems becomes 6 times as large.', v: { kind: 'vm', n: 6, limit: '1024' } },
+    { t: '6 containers', q: 'What if you keep containers and increase the number of instances to 6?', d: 'It grows only by as much as the application uses.', v: { kind: 'container', n: 6, limit: '1024' } },
+    { t: 'Memory limit of 256MB', q: 'What if you reduce the number of instances to 1 and the container memory limit to 256MB?', d: 'The application tries to use 400MB and is killed.', v: { kind: 'container', n: 1, limit: '256' } },
   ],
   code: function (c) {
     if (c.kind === 'vm') return '# Virtual machines: ' + c.n + '\n# Each VM: virtual hardware + guest OS (including a kernel) + JDK + app.jar\n\n$ ssh vm-1\n$ java -jar app.jar';

@@ -11,12 +11,12 @@ Lab.register({
     { id: 'choice', label: 'Replica behavior during the partition', type: 'select', value: 'ap', options: [['ap', 'Keep responding with the data it has (choose availability)'], ['cp', 'Refuse to respond, because it cannot confirm the data is current (choose consistency)']], show: function (c) { return c.part === 'cut'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'Replication takes 1s, and the replica is queried 0.3s after the save. The old value comes back.', v: { part: 'lag', lag: '1', when: '0.3', from: 'replica', choice: 'ap' } },
-    { t: 'Only the query right after saving goes to the source', d: 'A user who has just written reads from the source.', v: { part: 'lag', lag: '1', when: '0.3', from: 'primary', choice: 'ap' } },
-    { t: 'A query after some time has passed', d: 'Once replication has finished, the replica also returns the new value.', v: { part: 'lag', lag: '1', when: '2', from: 'replica', choice: 'ap' } },
-    { t: 'When replication falls 5s behind', d: 'Even a read 2s later returns the old value.', v: { part: 'lag', lag: '5', when: '2', from: 'replica', choice: 'ap' } },
-    { t: 'Network partition: keep responding', d: 'The service keeps working, but it returns the old value.', v: { part: 'cut', lag: '1', when: '0.3', from: 'replica', choice: 'ap' } },
-    { t: 'Network partition: refuse to respond', d: 'It does not return a wrong value, but the query fails.', v: { part: 'cut', lag: '1', when: '0.3', from: 'replica', choice: 'cp' } },
+    { t: 'Default settings', q: 'With replication that takes 1 second, what value does a query to the replica return 0.3 seconds after the save?', d: 'Replication takes 1s, and the replica is queried 0.3s after the save. The old value comes back.', v: { part: 'lag', lag: '1', when: '0.3', from: 'replica', choice: 'ap' } },
+    { t: 'Only the query right after saving goes to the source', q: 'What if you send the query right after the save to the source?', d: 'A user who has just written reads from the source.', v: { part: 'lag', lag: '1', when: '0.3', from: 'primary', choice: 'ap' } },
+    { t: 'A query after some time has passed', q: 'What if the time from the save to the query is 2 seconds?', d: 'Once replication has finished, the replica also returns the new value.', v: { part: 'lag', lag: '1', when: '2', from: 'replica', choice: 'ap' } },
+    { t: 'When replication falls 5s behind', q: 'What if replication takes 5 seconds and you query 2 seconds after the save?', d: 'Even a read 2s later returns the old value.', v: { part: 'lag', lag: '5', when: '2', from: 'replica', choice: 'ap' } },
+    { t: 'Network partition: keep responding', q: 'What if the network between the source and the replica is cut and the replica keeps responding with the data it has?', d: 'The service keeps working, but it returns the old value.', v: { part: 'cut', lag: '1', when: '0.3', from: 'replica', choice: 'ap' } },
+    { t: 'Network partition: refuse to respond', q: 'What if, during the network partition, the replica refuses to respond because it cannot confirm the data is current?', d: 'It does not return a wrong value, but the query fails.', v: { part: 'cut', lag: '1', when: '0.3', from: 'replica', choice: 'cp' } },
   ],
   code: function (c) {
     if (c.part === 'cut') return '// The source and the replica cannot communicate with each other\n// The replica can choose one of two things\n//\n// 1) Respond with the value it has  -> it responds, but the value may not be the latest (AP)\n// 2) Refuse to respond              -> it gives no wrong value, but the service is down (CP)';

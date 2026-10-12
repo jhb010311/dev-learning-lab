@@ -9,13 +9,13 @@ Lab.register({
     { id: 'calls', label: 'How many times the receiving method (run) calls the action', type: 'select', value: '2', options: [['0', '0 times (receives it but never calls it)'], ['1', '1 time'], ['2', '2 times']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'Nothing happens on the line that creates the lambda expression, and the body runs each time run calls it.', v: { fi: 'function', form: 'lambda', calls: '2' } },
-    { t: 'Receiving it without calling it', d: 'The lambda expression is created and passed, but the body never runs.', v: { fi: 'function', form: 'lambda', calls: '0' } },
-    { t: 'Writing it as an anonymous class', d: 'The code gets longer, but the result is the same as with the lambda expression.', v: { fi: 'function', form: 'anon', calls: '2' } },
-    { t: 'Writing it as a method reference', d: 'It refers to an existing method by name. The result is the same.', v: { fi: 'function', form: 'ref', calls: '2' } },
-    { t: 'Passing a Supplier and calling get later', d: 'The work of creating a value is put off and runs when the value is needed.', v: { fi: 'supplier', form: 'lambda', calls: '1' } },
-    { t: 'Predicate', d: 'It passes a condition check. true or false comes back.', v: { fi: 'predicate', form: 'lambda', calls: '2' } },
-    { t: 'Consumer', d: 'It takes a value, only uses it, and returns nothing.', v: { fi: 'consumer', form: 'lambda', calls: '2' } },
+    { t: 'Default settings', q: 'When does the body run if a Function<String, Integer> lambda expression is passed to run and run calls the action 2 times?', d: 'Nothing happens on the line that creates the lambda expression, and the body runs each time run calls it.', v: { fi: 'function', form: 'lambda', calls: '2' } },
+    { t: 'Receiving it without calling it', q: 'What if the receiving method (run) calls the action 0 times?', d: 'The lambda expression is created and passed, but the body never runs.', v: { fi: 'function', form: 'lambda', calls: '0' } },
+    { t: 'Writing it as an anonymous class', q: 'What if you write the action as an anonymous class instead of a lambda expression?', d: 'The code gets longer, but the result is the same as with the lambda expression.', v: { fi: 'function', form: 'anon', calls: '2' } },
+    { t: 'Writing it as a method reference', q: 'What if you write the action as a method reference instead of a lambda expression?', d: 'It refers to an existing method by name. The result is the same.', v: { fi: 'function', form: 'ref', calls: '2' } },
+    { t: 'Passing a Supplier and calling get later', q: 'What if the functional interface is Supplier<String> and run calls the action 1 time?', d: 'The work of creating a value is put off and runs when the value is needed.', v: { fi: 'supplier', form: 'lambda', calls: '1' } },
+    { t: 'Predicate', q: 'What if the functional interface is Predicate<String>?', d: 'It passes a condition check. true or false comes back.', v: { fi: 'predicate', form: 'lambda', calls: '2' } },
+    { t: 'Consumer', q: 'What if the functional interface is Consumer<String>?', d: 'It takes a value, only uses it, and returns nothing.', v: { fi: 'consumer', form: 'lambda', calls: '2' } },
   ],
   // For each interface: the type, the variable name, the method that is called, the method that serves as the body, what it takes, what it returns, the values passed in the calls, the values that come back
   FI: {

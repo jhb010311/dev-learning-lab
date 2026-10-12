@@ -11,11 +11,11 @@ Lab.register({
     { id: 'osiv', label: 'OSIV is on (the Spring Boot default)', type: 'check', value: true },
   ],
   presets: [
-    { t: 'Default settings', d: 'OSIV on. The database work takes 0.5s, but each request holds a connection for 2.5s.', v: { pool: 3, n: 8, q: '0.5', ext: '2', osiv: true } },
-    { t: 'Turning OSIV off', d: 'The connection is returned as soon as the database work ends.', v: { pool: 3, n: 8, q: '0.5', ext: '2', osiv: false } },
-    { t: 'When more requests arrive', d: 'OSIV on, 20 requests. Some requests wait 5s and then fail.', v: { pool: 3, n: 20, q: '0.5', ext: '2', osiv: true } },
-    { t: 'Making the pool larger', d: 'The same 20 requests with a pool of 10. The pool holds up, but there is a limit to the number of connections the database can accept.', v: { pool: 10, n: 20, q: '0.5', ext: '2', osiv: true } },
-    { t: 'When the query itself is slow', d: 'Even with OSIV off, a connection is in use for the 2s of database work.', v: { pool: 3, n: 8, q: '2', ext: '0', osiv: false } },
+    { t: 'Default settings', q: 'With OSIV on, a pool of 3, 8 requests, 0.5s of database work, and a 2s external API call, how are connections used?', d: 'OSIV on. The database work takes 0.5s, but each request holds a connection for 2.5s.', v: { pool: 3, n: 8, q: '0.5', ext: '2', osiv: true } },
+    { t: 'Turning OSIV off', q: 'What if you turn OSIV off?', d: 'The connection is returned as soon as the database work ends.', v: { pool: 3, n: 8, q: '0.5', ext: '2', osiv: false } },
+    { t: 'When more requests arrive', q: 'What if 20 requests arrive at almost the same time?', d: 'OSIV on, 20 requests. Some requests wait 5s and then fail.', v: { pool: 3, n: 20, q: '0.5', ext: '2', osiv: true } },
+    { t: 'Making the pool larger', q: 'What if you increase the connection pool size to 10 and 20 requests arrive?', d: 'The same 20 requests with a pool of 10. The pool holds up, but there is a limit to the number of connections the database can accept.', v: { pool: 10, n: 20, q: '0.5', ext: '2', osiv: true } },
+    { t: 'When the query itself is slow', q: 'What if the database work takes 2s, there is no external API call, and OSIV is off?', d: 'Even with OSIV off, a connection is in use for the 2s of database work.', v: { pool: 3, n: 8, q: '2', ext: '0', osiv: false } },
   ],
   code: function (c) {
     return '# application.yml\nspring.datasource.hikari.maximum-pool-size: ' + c.pool + '\nspring.datasource.hikari.connection-timeout: 5000   # fail after waiting 5s\nspring.jpa.open-in-view: ' + c.osiv + '\n\n// controller\nOrderDto get(long id) {\n    Order order = orderService.find(id);       // @Transactional, database work ' + c.q + 's\n' + (c.ext !== '0' ? '    Delivery d = deliveryApi.track(order);     // external API ' + c.ext + 's (no database use)\n' : '') + '    return OrderDto.of(order' + (c.ext !== '0' ? ', d' : '') + ');\n}';

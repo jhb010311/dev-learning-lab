@@ -9,12 +9,12 @@ Lab.register({
     { id: 'allow', label: 'Set spring.main.allow-circular-references=true', type: 'check', value: false, show: function (c) { return c.cycle; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'Constructor injection. A dependency must be fully initialized before the next object can be created.', v: { inj: 'ctor', cycle: false, allow: false } },
-    { t: 'Switching to field injection', d: 'The object is created first and filled in later. For a short time, its fields are empty.', v: { inj: 'field', cycle: false, allow: false } },
-    { t: 'Constructor injection + circular dependency', d: 'Neither bean can be created first, so startup fails.', v: { inj: 'ctor', cycle: true, allow: false } },
-    { t: 'Field injection + circular dependency', d: 'With the default settings of Spring Boot, this also fails at startup.', v: { inj: 'field', cycle: true, allow: false } },
-    { t: 'Allowing circular dependencies', d: 'Field injection gets through by handing over an object early, before it is fully initialized.', v: { inj: 'field', cycle: true, allow: true } },
-    { t: 'Constructor injection fails even when allowed', d: 'This is because the arguments must exist before a constructor can be called.', v: { inj: 'ctor', cycle: true, allow: true } },
+    { t: 'Default settings', q: 'In what order are the objects created when you start OrderController, OrderService, and OrderRepository with constructor injection?', d: 'Constructor injection. A dependency must be fully initialized before the next object can be created.', v: { inj: 'ctor', cycle: false, allow: false } },
+    { t: 'Switching to field injection', q: 'What if you switch the injection style to field injection (@Autowired)?', d: 'The object is created first and filled in later. For a short time, its fields are empty.', v: { inj: 'field', cycle: false, allow: false } },
+    { t: 'Constructor injection + circular dependency', q: 'What if OrderService and PaymentService are injected into each other with constructor injection?', d: 'Neither bean can be created first, so startup fails.', v: { inj: 'ctor', cycle: true, allow: false } },
+    { t: 'Field injection + circular dependency', q: 'What if OrderService and PaymentService are injected into each other with field injection (@Autowired)?', d: 'With the default settings of Spring Boot, this also fails at startup.', v: { inj: 'field', cycle: true, allow: false } },
+    { t: 'Allowing circular dependencies', q: 'What if you use field injection, inject the two services into each other, and set spring.main.allow-circular-references=true?', d: 'Field injection gets through by handing over an object early, before it is fully initialized.', v: { inj: 'field', cycle: true, allow: true } },
+    { t: 'Constructor injection fails even when allowed', q: 'What if you use constructor injection, inject the two services into each other, and set spring.main.allow-circular-references=true?', d: 'This is because the arguments must exist before a constructor can be called.', v: { inj: 'ctor', cycle: true, allow: true } },
   ],
   code: function (c) {
     function cls(name, ann, deps) {

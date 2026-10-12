@@ -16,12 +16,12 @@ Lab.register({
     return f.heavy || f.after ? f : null;
   },
   presets: [
-    { t: 'Default settings', d: 'Opposite orders. The database detects the deadlock and rolls one side back, and that transfer is lost.', v: { sit: 'rev', heavy: 'eq', after: 'giveup' } },
-    { t: 'If the rolled-back side tries again', d: 'It runs again from the start, and both transfers are applied.', v: { sit: 'rev', heavy: 'eq', after: 'retry' } },
-    { t: 'If the rows are locked in the same order', d: 'One side just waits for a moment, and both finish without an error.', v: { sit: 'same', heavy: 'eq', after: 'giveup' } },
-    { t: 'If B had done more work', d: 'This time A is rolled back. The side with less to undo is chosen.', v: { sit: 'rev', heavy: 'b', after: 'giveup' } },
-    { t: 'A long wait that is not a deadlock', d: 'With no cycle, nothing is detected. After waiting until the time limit, the side that waits gets error 1205.', v: { sit: 'hold', heavy: 'eq', after: 'giveup' } },
-    { t: 'If the timeout is ignored and committed', d: 'Only the earlier statement is applied, and 50 disappears.', v: { sit: 'hold', heavy: 'eq', after: 'commit' } },
+    { t: 'Default settings', q: 'How does the database end the two transactions when A locks rows 1 → 2 and B locks rows 2 → 1?', d: 'Opposite orders. The database detects the deadlock and rolls one side back, and that transfer is lost.', v: { sit: 'rev', heavy: 'eq', after: 'giveup' } },
+    { t: 'If the rolled-back side tries again', q: 'What if the side that got the error rolls back and tries again from the start?', d: 'It runs again from the start, and both transfers are applied.', v: { sit: 'rev', heavy: 'eq', after: 'retry' } },
+    { t: 'If the rows are locked in the same order', q: 'What if both transactions lock the rows in the same order (both 1 → 2)?', d: 'One side just waits for a moment, and both finish without an error.', v: { sit: 'same', heavy: 'eq', after: 'giveup' } },
+    { t: 'If B had done more work', q: 'What if the lock order is opposite and B first changes 50 other rows?', d: 'This time A is rolled back. The side with less to undo is chosen.', v: { sit: 'rev', heavy: 'b', after: 'giveup' } },
+    { t: 'A long wait that is not a deadlock', q: 'What if the lock order is opposite, but A stops for a long time holding only the first row?', d: 'With no cycle, nothing is detected. After waiting until the time limit, the side that waits gets error 1205.', v: { sit: 'hold', heavy: 'eq', after: 'giveup' } },
+    { t: 'If the timeout is ignored and committed', q: 'What if A stops for a long time holding only the first row and the side that got the error ignores the error and runs COMMIT?', d: 'Only the earlier statement is applied, and 50 disappears.', v: { sit: 'hold', heavy: 'eq', after: 'commit' } },
   ],
   code: function (c) {
     var U = 'UPDATE account SET balance = balance ';

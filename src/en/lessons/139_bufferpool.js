@@ -11,12 +11,12 @@ Lab.register({
   // When only one page is read, the number of slots does not affect the result, so it is left at the default value
   fix: function (c) { return c.seq === 'same' && +c.size !== 3 ? { size: 3 } : null; },
   presets: [
-    { t: 'Default settings', d: 'Row 2 is read for the first time, but the disk is not accessed. A commit does not write to the data file right away.', v: { seq: 'same', size: 3, upd: true } },
-    { t: 'Four pages in three slots', d: 'There is not enough room, so the page of row 1 is evicted, and the disk is accessed again when that page is read again.', v: { seq: 'spread', size: 3, upd: false } },
-    { t: 'With plenty of slots', d: 'Every page that was read stays, so the last query is answered from memory.', v: { seq: 'spread', size: 4, upd: false } },
-    { t: 'Frequently read pages stay', d: 'The page that is evicted is the one that has gone unused the longest.', v: { seq: 'hot', size: 3, upd: false } },
-    { t: 'When a changed page is evicted', d: 'It must be written to disk first, and only then can it be removed from the buffer pool.', v: { seq: 'spread', size: 3, upd: true } },
-    { t: 'With only two slots', d: 'Almost every query goes to disk.', v: { seq: 'hot', size: 2, upd: false } },
+    { t: 'Default settings', q: 'How many disk reads happen when you query row 1, row 2, row 1 with 3 buffer pool slots, then change row 1 and commit?', d: 'Row 2 is read for the first time, but the disk is not accessed. A commit does not write to the data file right away.', v: { seq: 'same', size: 3, upd: true } },
+    { t: 'Four pages in three slots', q: 'What if you query rows 1 → 5 → 9 → 13 → 1 and do not change row 1?', d: 'There is not enough room, so the page of row 1 is evicted, and the disk is accessed again when that page is read again.', v: { seq: 'spread', size: 3, upd: false } },
+    { t: 'With plenty of slots', q: 'What if you query the four pages in turn, increase the buffer pool to 4 slots, and do not change row 1?', d: 'Every page that was read stays, so the last query is answered from memory.', v: { seq: 'spread', size: 4, upd: false } },
+    { t: 'Frequently read pages stay', q: 'What if you query row 1 often (1 → 5 → 1 → 9 → 13 → 1) and do not change row 1?', d: 'The page that is evicted is the one that has gone unused the longest.', v: { seq: 'hot', size: 3, upd: false } },
+    { t: 'When a changed page is evicted', q: 'What if you change row 1 and commit, then query rows 1 → 5 → 9 → 13 → 1?', d: 'It must be written to disk first, and only then can it be removed from the buffer pool.', v: { seq: 'spread', size: 3, upd: true } },
+    { t: 'With only two slots', q: 'What if you query row 1 often, reduce the buffer pool to 2 slots, and do not change row 1?', d: 'Almost every query goes to disk.', v: { seq: 'hot', size: 2, upd: false } },
   ],
   ids: function (c) { return { same: [1, 2, 1], spread: [1, 5, 9, 13, 1], hot: [1, 5, 1, 9, 13, 1] }[c.seq]; },
   code: function (c) {

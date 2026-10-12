@@ -10,12 +10,12 @@ Lab.register({
     { id: 'lf', label: 'Load factor', type: 'select', value: '0.75', options: [['0.5', '0.5 (resize when half full)'], ['0.75', '0.75 (default)'], ['1', '1.0 (resize only when full)']], hint: 'When the number of entries exceeds the number of buckets × the load factor, the number of buckets is doubled.' },
   ],
   presets: [
-    { t: 'Default settings', d: '13 keys are put. At key #13, the buckets grow from 16 to 32.', v: { n: 13, eq: 'both', hash: 'good', lf: '0.75' } },
-    { t: 'hashCode always returns the same value', d: 'Every key ends up in one bucket. Watch what happens from key #9 on.', v: { n: 13, eq: 'both', hash: 'same', lf: '0.75' } },
-    { t: 'Only 4 hashCode values', d: '40 keys are put. Even when the number of buckets grows, the keys pile up in only 4 of them.', v: { n: 40, eq: 'both', hash: 'mod4', lf: '0.75' } },
-    { t: 'Load factor 0.5', d: 'The map resizes earlier. There are fewer collisions, and more memory is used.', v: { n: 13, eq: 'both', hash: 'good', lf: '0.5' } },
-    { t: 'Only equals overridden', d: 'A lookup with a key that has the same contents as a key that was put does not find it.', v: { n: 13, eq: 'eqonly', hash: 'good', lf: '0.75' } },
-    { t: 'Only hashCode overridden', d: 'The lookup gets as far as the right bucket, but the key is not recognized as the same key.', v: { n: 13, eq: 'hconly', hash: 'good', lf: '0.75' } },
+    { t: 'Default settings', q: 'What happens when you put 13 keys whose hashCode is the id, with equals overridden too, into a HashMap with load factor 0.75?', d: '13 keys are put. At key #13, the buckets grow from 16 to 32.', v: { n: 13, eq: 'both', hash: 'good', lf: '0.75' } },
+    { t: 'hashCode always returns the same value', q: 'What if hashCode() always returns 1?', d: 'Every key ends up in one bucket. Watch what happens from key #9 on.', v: { n: 13, eq: 'both', hash: 'same', lf: '0.75' } },
+    { t: 'Only 4 hashCode values', q: 'What if you put 40 keys and hashCode() returns id % 4?', d: '40 keys are put. Even when the number of buckets grows, the keys pile up in only 4 of them.', v: { n: 40, eq: 'both', hash: 'mod4', lf: '0.75' } },
+    { t: 'Load factor 0.5', q: 'What if you change the load factor to 0.5?', d: 'The map resizes earlier. There are fewer collisions, and more memory is used.', v: { n: 13, eq: 'both', hash: 'good', lf: '0.5' } },
+    { t: 'Only equals overridden', q: 'What if the key class overrides only equals?', d: 'A lookup with a key that has the same contents as a key that was put does not find it.', v: { n: 13, eq: 'eqonly', hash: 'good', lf: '0.75' } },
+    { t: 'Only hashCode overridden', q: 'What if the key class overrides only hashCode?', d: 'The lookup gets as far as the right bucket, but the key is not recognized as the same key.', v: { n: 13, eq: 'hconly', hash: 'good', lf: '0.75' } },
   ],
   code: function (c) {
     var eq = c.eq === 'both' || c.eq === 'eqonly', hc = c.eq === 'both' || c.eq === 'hconly';

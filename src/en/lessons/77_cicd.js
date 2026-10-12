@@ -8,12 +8,12 @@ Lab.register({
     { id: 'bug', label: 'Problem in this change', type: 'select', value: 'test', options: [['none', 'No problem'], ['compile', 'Code that does not compile'], ['test', 'Breaks an existing feature (a test can catch it)'], ['env', 'Code that depends on a file that exists only on my PC'], ['runtime', 'Fails to start only in production (tests cannot catch it)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'Deploying by hand. The tests are skipped, and an outage occurs in production.', v: { pipe: 'manual', bug: 'test' } },
-    { t: 'With CI', d: 'The same change is stopped at the test stage.', v: { pipe: 'ci', bug: 'test' } },
-    { t: 'Code that works only on my PC', d: 'It shows up only when you run it in a clean environment.', v: { pipe: 'ci', bug: 'env' } },
-    { t: 'A problem the tests cannot catch, CI only', d: 'A person deploys, and a person rolls back.', v: { pipe: 'ci', bug: 'runtime' } },
-    { t: 'A problem the tests cannot catch, CI/CD', d: 'The health check after deployment catches it, and it is rolled back automatically.', v: { pipe: 'cicd', bug: 'runtime' } },
-    { t: 'When there is no problem', d: 'Compare how much work is left for people.', v: { pipe: 'cicd', bug: 'none' } },
+    { t: 'Default settings', q: 'What happens when you deploy by hand (build on my PC and copy to the server) a change that breaks an existing feature?', d: 'Deploying by hand. The tests are skipped, and an outage occurs in production.', v: { pipe: 'manual', bug: 'test' } },
+    { t: 'With CI', q: 'What if changes reach production with CI: build and test automatically on push, a person deploys?', d: 'The same change is stopped at the test stage.', v: { pipe: 'ci', bug: 'test' } },
+    { t: 'Code that works only on my PC', q: 'What if you use CI and the change has code that depends on a file that exists only on my PC?', d: 'It shows up only when you run it in a clean environment.', v: { pipe: 'ci', bug: 'env' } },
+    { t: 'A problem the tests cannot catch, CI only', q: 'What if you use CI and the change fails to start only in production (tests cannot catch it)?', d: 'A person deploys, and a person rolls back.', v: { pipe: 'ci', bug: 'runtime' } },
+    { t: 'A problem the tests cannot catch, CI/CD', q: 'What if you use CI/CD and the change fails to start only in production (tests cannot catch it)?', d: 'The health check after deployment catches it, and it is rolled back automatically.', v: { pipe: 'cicd', bug: 'runtime' } },
+    { t: 'When there is no problem', q: 'What if you use CI/CD and there is no problem in the change?', d: 'Compare how much work is left for people.', v: { pipe: 'cicd', bug: 'none' } },
   ],
   code: function (c) {
     if (c.pipe === 'manual') return '# The developer types this directly on their own PC\n./gradlew build -x test      # skips the tests because of a rush\nscp build/libs/app.jar prod-server:/app/\nssh prod-server "systemctl restart app"\n\n# No record is left of who uploaded what code, or when';

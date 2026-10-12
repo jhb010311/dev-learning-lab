@@ -11,13 +11,13 @@ Lab.register({
   // For a class that already fails at saving, a change after saving has no meaning
   fix: function (c) { return c.cls !== 'ok' && c.chg !== 'same' ? { chg: 'same' } : null; },
   presets: [
-    { t: 'Default settings', d: 'A transient field. 50 was saved, but the restored value is 0.', v: { cls: 'ok', fld: 'transient', chg: 'same' } },
-    { t: 'An ordinary field', d: 'The value at the time of saving, 50, comes back as it was.', v: { cls: 'ok', fld: 'plain', chg: 'same' } },
-    { t: 'A static field', d: 'What you see is not a saved value but 70, the value the class has now.', v: { cls: 'ok', fld: 'static', chg: 'same' } },
-    { t: 'Without implementing Serializable', d: 'A NotSerializableException is thrown when the object is saved.', v: { cls: 'no', fld: 'plain', chg: 'same' } },
-    { t: 'When an object held in a field is the problem', d: 'Saving fails because of Address, not User.', v: { cls: 'field', fld: 'plain', chg: 'same' } },
-    { t: 'Changing serialVersionUID after saving', d: 'An InvalidClassException is thrown when the object is restored.', v: { cls: 'ok', fld: 'plain', chg: 'uid' } },
-    { t: 'Adding a field without a serialVersionUID', d: 'The automatically computed value changes, so again the object cannot be restored.', v: { cls: 'ok', fld: 'plain', chg: 'auto' } },
+    { t: 'Default settings', q: 'What is the value of point after restoring a Serializable User whose transient int point was set to 50 when saved?', d: 'A transient field. 50 was saved, but the restored value is 0.', v: { cls: 'ok', fld: 'transient', chg: 'same' } },
+    { t: 'An ordinary field', q: 'What if you change the point field to an ordinary field, int point?', d: 'The value at the time of saving, 50, comes back as it was.', v: { cls: 'ok', fld: 'plain', chg: 'same' } },
+    { t: 'A static field', q: 'What if you change the point field to static int point and set it to 70 after saving?', d: 'What you see is not a saved value but 70, the value the class has now.', v: { cls: 'ok', fld: 'static', chg: 'same' } },
+    { t: 'Without implementing Serializable', q: 'What if the User class does not implement Serializable and point is an ordinary field?', d: 'A NotSerializableException is thrown when the object is saved.', v: { cls: 'no', fld: 'plain', chg: 'same' } },
+    { t: 'When an object held in a field is the problem', q: 'What if User implements Serializable but Address, which it has as a field, does not?', d: 'Saving fails because of Address, not User.', v: { cls: 'field', fld: 'plain', chg: 'same' } },
+    { t: 'Changing serialVersionUID after saving', q: 'What if point is an ordinary field and you change serialVersionUID from 1L to 2L after saving?', d: 'An InvalidClassException is thrown when the object is restored.', v: { cls: 'ok', fld: 'plain', chg: 'uid' } },
+    { t: 'Adding a field without a serialVersionUID', q: 'What if point is an ordinary field and you add one field after saving to a class that does not declare serialVersionUID?', d: 'The automatically computed value changes, so again the object cannot be restored.', v: { cls: 'ok', fld: 'plain', chg: 'auto' } },
   ],
   code: function (c) {
     var ser = c.cls !== 'no', P = c.fld === 'static' ? 'User.point' : 'u.point', pad = function (x) { while (x.length < 50) x += ' '; return x; };

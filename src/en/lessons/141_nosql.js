@@ -11,13 +11,13 @@ Lab.register({
   // Reading one order does not depend on the number of orders, so it is left at the default value
   fix: function (c) { return c.op === 'read' && +c.n !== 3 ? { n: 3 } : null; },
   presets: [
-    { t: 'Default settings', d: 'In the document model, renaming a product means fixing every document that contains it.', v: { model: 'doc', op: 'rename', n: 3 } },
-    { t: 'Renaming in the relational model', d: 'However many orders there are, only one row of the product table is changed.', v: { model: 'rel', op: 'rename', n: 3 } },
-    { t: 'Reading one order as a document', d: 'It ends with a single document, with no join.', v: { model: 'doc', op: 'read', n: 3 } },
-    { t: 'Reading one order relationally', d: 'You have to join three tables to complete one order.', v: { model: 'rel', op: 'read', n: 3 } },
-    { t: 'Adding a new field to a document', d: 'It is stored right away without changing the structure. In return, documents end up with different shapes.', v: { model: 'doc', op: 'newfield', n: 3 } },
-    { t: 'Inserting a column that does not exist in the relational model', d: 'It is rejected with error 1054. You first have to change the table structure.', v: { model: 'rel', op: 'newfield', n: 3 } },
-    { t: 'Misspelling a field name in a document', d: 'It is stored without an error, and the quantity total becomes quietly wrong.', v: { model: 'doc', op: 'typo', n: 3 } },
+    { t: 'Default settings', q: 'What happens when you rename a product from keyboard to mechanical keyboard in the document model, with 3 orders that contain a keyboard?', d: 'In the document model, renaming a product means fixing every document that contains it.', v: { model: 'doc', op: 'rename', n: 3 } },
+    { t: 'Renaming in the relational model', q: 'What if you store the data relationally, split into three tables and joined?', d: 'However many orders there are, only one row of the product table is changed.', v: { model: 'rel', op: 'rename', n: 3 } },
+    { t: 'Reading one order as a document', q: 'What if you read one order in the document model?', d: 'It ends with a single document, with no join.', v: { model: 'doc', op: 'read', n: 3 } },
+    { t: 'Reading one order relationally', q: 'What if you read one order in the relational model?', d: 'You have to join three tables to complete one order.', v: { model: 'rel', op: 'read', n: 3 } },
+    { t: 'Adding a new field to a document', q: 'What if you add a field that did not exist (gift wrapping) to a new order in the document model?', d: 'It is stored right away without changing the structure. In return, documents end up with different shapes.', v: { model: 'doc', op: 'newfield', n: 3 } },
+    { t: 'Inserting a column that does not exist in the relational model', q: 'What if you add the gift wrapping field to a new order in the relational model?', d: 'It is rejected with error 1054. You first have to change the table structure.', v: { model: 'rel', op: 'newfield', n: 3 } },
+    { t: 'Misspelling a field name in a document', q: 'What if you insert an order in the document model, misspelling the quantity field as quantity instead of qty?', d: 'It is stored without an error, and the quantity total becomes quietly wrong.', v: { model: 'doc', op: 'typo', n: 3 } },
   ],
   code: function (c) {
     var n = +c.n, x = n + 1, rel = c.model === 'rel';

@@ -9,12 +9,12 @@ Lab.register({
     { id: 'logout', label: 'The victim logs out before that person sends a request', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'The session ID stays the same after login. A request from a person who knew that ID in advance is handled as kim.', v: { fix: 'none', when: 'before', logout: false } },
-    { t: 'With the Spring Security default', d: 'The ID changes at the moment of login, so the ID obtained in advance is useless.', v: { fix: 'default', when: 'before', logout: false } },
-    { t: 'Creating a new session', d: 'The ID changes just the same, but the cart filled before login is lost.', v: { fix: 'newSession', when: 'before', logout: false } },
-    { t: 'If the ID after login leaks', d: 'Changing the ID at login does not stop this.', v: { fix: 'default', when: 'after', logout: false } },
-    { t: 'If the victim logs out', d: 'The server deletes the session, so the leaked ID no longer works.', v: { fix: 'default', when: 'after', logout: true } },
-    { t: 'Protection off, but the victim logs out', d: 'The request is blocked after logout, but the session was open for as long as the victim stayed logged in.', v: { fix: 'none', when: 'before', logout: true } },
+    { t: 'Default settings', q: 'What happens when a victim logs in with a session ID the attacker already holds, on a server that does nothing at login (none)?', d: 'The session ID stays the same after login. A request from a person who knew that ID in advance is handled as kim.', v: { fix: 'none', when: 'before', logout: false } },
+    { t: 'With the Spring Security default', q: 'What if the server changes the session ID to a new value when login succeeds (the Spring Security default)?', d: 'The ID changes at the moment of login, so the ID obtained in advance is useless.', v: { fix: 'default', when: 'before', logout: false } },
+    { t: 'Creating a new session', q: 'What if the server creates a new session and discards the old contents when login succeeds (newSession)?', d: 'The ID changes just the same, but the cart filled before login is lost.', v: { fix: 'newSession', when: 'before', logout: false } },
+    { t: 'If the ID after login leaks', q: 'What if the server changes the session ID at login, but the attacker learns the ID of the logged-in session?', d: 'Changing the ID at login does not stop this.', v: { fix: 'default', when: 'after', logout: false } },
+    { t: 'If the victim logs out', q: 'What if, with the Spring Security default, the victim logs out before the person who learned the logged-in session ID sends a request?', d: 'The server deletes the session, so the leaked ID no longer works.', v: { fix: 'default', when: 'after', logout: true } },
+    { t: 'Protection off, but the victim logs out', q: 'What if protection is turned off and the victim logs out before that person sends a request?', d: 'The request is blocked after logout, but the session was open for as long as the victim stayed logged in.', v: { fix: 'none', when: 'before', logout: true } },
   ],
   code: function (c) {
     var sm = c.fix === 'none' ? '        .sessionManagement(s -> s\n            .sessionFixation(f -> f.none()))          // leave the session as it is on login (protection off)\n'

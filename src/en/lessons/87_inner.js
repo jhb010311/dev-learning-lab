@@ -9,13 +9,13 @@ Lab.register({
     { id: 'loc', label: 'The local variable count used inside', type: 'select', value: 'keep', options: [['keep', 'Its value is not changed'], ['change', 'Changed with count = 2 after creation'], ['arr', 'Stored in an array, and only the element value is changed']], show: function (c) { return c.kind === 'anon' || c.kind === 'lambda'; }, hint: 'An anonymous class and a lambda expression can use, inside their bodies, the local variables of the method that created them.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'Creating an inner class object without an outer object. This is a compile-time error.', v: { kind: 'inner', use: 'alone', loc: 'keep' } },
-    { t: 'Creating it with an outer object', d: 'The inner object follows its reference to the outer object and reads the field.', v: { kind: 'inner', use: 'field', loc: 'keep' } },
-    { t: 'A static nested class', d: 'It can be created without an outer object.', v: { kind: 'nested', use: 'alone', loc: 'keep' } },
-    { t: 'Reading an outer field from a static nested class', d: 'There is no outer object that it refers to, so this is a compile-time error.', v: { kind: 'nested', use: 'field', loc: 'keep' } },
-    { t: 'this in an anonymous class', d: 'this is the object created from the anonymous class itself.', v: { kind: 'anon', use: 'alone', loc: 'keep' } },
-    { t: 'this in a lambda expression', d: 'this is the outer object in which the lambda expression is written.', v: { kind: 'lambda', use: 'alone', loc: 'keep' } },
-    { t: 'Changing the value of a local variable', d: 'Changing a local variable that is used inside a lambda expression is a compile-time error.', v: { kind: 'lambda', use: 'alone', loc: 'change' } },
+    { t: 'Default settings', q: 'What happens when you create only the object of an inner class (no static) without an outer object?', d: 'Creating an inner class object without an outer object. This is a compile-time error.', v: { kind: 'inner', use: 'alone', loc: 'keep' } },
+    { t: 'Creating it with an outer object', q: 'What if you create an outer object and read the outer field name from inside?', d: 'The inner object follows its reference to the outer object and reads the field.', v: { kind: 'inner', use: 'field', loc: 'keep' } },
+    { t: 'A static nested class', q: 'What if you create a static nested class instead?', d: 'It can be created without an outer object.', v: { kind: 'nested', use: 'alone', loc: 'keep' } },
+    { t: 'Reading an outer field from a static nested class', q: 'What if a static nested class reads the outer field name?', d: 'There is no outer object that it refers to, so this is a compile-time error.', v: { kind: 'nested', use: 'field', loc: 'keep' } },
+    { t: 'this in an anonymous class', q: 'What if you create an anonymous class instead?', d: 'this is the object created from the anonymous class itself.', v: { kind: 'anon', use: 'alone', loc: 'keep' } },
+    { t: 'this in a lambda expression', q: 'What if you create a lambda expression instead?', d: 'this is the outer object in which the lambda expression is written.', v: { kind: 'lambda', use: 'alone', loc: 'keep' } },
+    { t: 'Changing the value of a local variable', q: 'What if you create a lambda expression and change the local variable count with count = 2 after creating it?', d: 'Changing a local variable that is used inside a lambda expression is a compile-time error.', v: { kind: 'lambda', use: 'alone', loc: 'change' } },
   ],
   code: function (c) {
     var main = function (body) { return '\n\npublic class Main {\n    public static void main(String[] args) {\n' + body + '    }\n}'; };

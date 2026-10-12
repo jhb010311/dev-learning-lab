@@ -9,12 +9,12 @@ Lab.register({
     { id: 'arp', label: 'The devices already know the MAC addresses they need (ARP cache)', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'Sends to Server C. The destination IP is Server C, but the destination MAC of the first frame is the router.', v: { dst: 'c', ttl: '64', arp: false } },
-    { t: 'Within the same network', d: 'The frame is delivered by MAC address alone, without passing a router.', v: { dst: 'b', ttl: '64', arp: false } },
-    { t: 'Across two routers', d: 'The MAC addresses change twice and the TTL goes down by 2.', v: { dst: 'd', ttl: '64', arp: false } },
-    { t: 'Not enough TTL', d: 'With an initial TTL of 2, the packet is discarded at the second router.', v: { dst: 'd', ttl: '2', arp: false } },
-    { t: 'TTL 1 on the same network', d: 'The packet passes no router, so it arrives even with a TTL of 1.', v: { dst: 'b', ttl: '1', arp: false } },
-    { t: 'MAC addresses already known', d: 'The frame is sent right away, with no ARP request.', v: { dst: 'c', ttl: '64', arp: true } },
+    { t: 'Default settings', q: 'When PC A sends a packet to Server C (192.168.2.30), one router away, whose MAC address is the destination MAC of the first frame?', d: 'Sends to Server C. The destination IP is Server C, but the destination MAC of the first frame is the router.', v: { dst: 'c', ttl: '64', arp: false } },
+    { t: 'Within the same network', q: 'What if PC A sends the packet to PC B on the same network (192.168.1.20)?', d: 'The frame is delivered by MAC address alone, without passing a router.', v: { dst: 'b', ttl: '64', arp: false } },
+    { t: 'Across two routers', q: 'What if PC A sends the packet to Server D, two routers away (192.168.3.40)?', d: 'The MAC addresses change twice and the TTL goes down by 2.', v: { dst: 'd', ttl: '64', arp: false } },
+    { t: 'Not enough TTL', q: 'What if the packet goes to Server D, two routers away, and the initial TTL is 2?', d: 'With an initial TTL of 2, the packet is discarded at the second router.', v: { dst: 'd', ttl: '2', arp: false } },
+    { t: 'TTL 1 on the same network', q: 'What if the packet goes to PC B on the same network and the initial TTL is 1?', d: 'The packet passes no router, so it arrives even with a TTL of 1.', v: { dst: 'b', ttl: '1', arp: false } },
+    { t: 'MAC addresses already known', q: 'What if the devices already know the MAC addresses they need (ARP cache)?', d: 'The frame is sent right away, with no ARP request.', v: { dst: 'c', ttl: '64', arp: true } },
   ],
   DEV: { A: { name: 'PC A', ip: '192.168.1.10' }, B: { name: 'PC B', ip: '192.168.1.20' }, C: { name: 'Server C', ip: '192.168.2.30' }, D: { name: 'Server D', ip: '192.168.3.40' }, R1: { name: 'Router R1' }, R2: { name: 'Router R2' } },
   // The hops that each destination goes through. sm and dm are the source MAC and the destination MAC of the frame on that hop (last two digits), and ask is the IP address asked about with ARP on that hop.

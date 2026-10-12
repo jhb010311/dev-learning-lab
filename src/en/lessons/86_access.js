@@ -8,13 +8,13 @@ Lab.register({
     { id: 'from', label: 'Where the code that reads balance is', type: 'select', value: 'subParent', options: [['same', 'Inside the same class, Account'], ['pkg', 'Teller, another class in the same package'], ['subThis', 'SavingAccount, a subclass in another package: this.balance'], ['subChild', 'Subclass in another package: through a SavingAccount variable'], ['subParent', 'Subclass in another package: through an Account variable'], ['other', 'Report, an unrelated class in another package']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A protected member is read inside a subclass, but reading it through a variable of the superclass type is a compile-time error.', v: { mod: 'protected', from: 'subParent' } },
-    { t: 'Reading a protected member as its own', d: 'The subclass can read this.balance, its own inherited member.', v: { mod: 'protected', from: 'subThis' } },
-    { t: 'protected is also open to the same package', d: 'A class in the same package can read the member even if it is not a subclass.', v: { mod: 'protected', from: 'pkg' } },
-    { t: 'Reading a private member from the same package', d: 'A private member can be used only inside the same class.', v: { mod: 'private', from: 'pkg' } },
-    { t: 'A member with no modifier, from a subclass in another package', d: 'Even a subclass cannot read it if the package is different.', v: { mod: 'package', from: 'subThis' } },
-    { t: 'A protected member, from an unrelated class', d: 'A class that is in another package and is not a subclass cannot read it.', v: { mod: 'protected', from: 'other' } },
-    { t: 'With public', d: 'Even an unrelated class in another package can read it.', v: { mod: 'public', from: 'other' } },
+    { t: 'Default settings', q: 'Does the code compile when balance is protected and a subclass in another package reads it through an Account variable?', d: 'A protected member is read inside a subclass, but reading it through a variable of the superclass type is a compile-time error.', v: { mod: 'protected', from: 'subParent' } },
+    { t: 'Reading a protected member as its own', q: 'What if SavingAccount, a subclass in another package, reads balance with this.balance?', d: 'The subclass can read this.balance, its own inherited member.', v: { mod: 'protected', from: 'subThis' } },
+    { t: 'protected is also open to the same package', q: 'What if Teller, another class in the same package, reads balance?', d: 'A class in the same package can read the member even if it is not a subclass.', v: { mod: 'protected', from: 'pkg' } },
+    { t: 'Reading a private member from the same package', q: 'What if you change the access modifier to private and Teller, another class in the same package, reads balance?', d: 'A private member can be used only inside the same class.', v: { mod: 'private', from: 'pkg' } },
+    { t: 'A member with no modifier, from a subclass in another package', q: 'What if balance has no modifier (package-private) and SavingAccount, a subclass in another package, reads this.balance?', d: 'Even a subclass cannot read it if the package is different.', v: { mod: 'package', from: 'subThis' } },
+    { t: 'A protected member, from an unrelated class', q: 'What if Report, an unrelated class in another package, reads balance?', d: 'A class that is in another package and is not a subclass cannot read it.', v: { mod: 'protected', from: 'other' } },
+    { t: 'With public', q: 'What if you change the access modifier to public and Report, an unrelated class in another package, reads balance?', d: 'Even an unrelated class in another package can read it.', v: { mod: 'public', from: 'other' } },
   ],
   code: function (c) {
     var ok = this.allowed(c.mod, c.from), tail = ok ? '' : '       // compile-time error', kw = c.mod === 'package' ? '' : c.mod + ' ';

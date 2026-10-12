@@ -8,13 +8,13 @@ Lab.register({
     { id: 'how', label: 'Where the copying happens', type: 'select', value: 'assign', options: [['assign', 'Assigning to another variable: b = a'], ['call', 'Passing to a method: change(a)'], ['ret', 'Passing to a method and getting the result back: a = change(a)']], hint: 'When you pass a variable to a method, the parameter p is the copy.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'A Point variable is assigned to b, and the contents are changed through b. Reading through a also gives 99.', v: { what: 'field', how: 'assign' } },
-    { t: 'With a primitive type', d: 'The value is copied, so a is still 1 after b is changed.', v: { what: 'prim', how: 'assign' } },
-    { t: 'Passing an object to a method', d: 'A change made inside the method is visible outside the method too.', v: { what: 'field', how: 'call' } },
-    { t: 'Assigning a new object inside the method', d: 'Only the parameter comes to refer to a different object, and a stays the same.', v: { what: 'renew', how: 'call' } },
-    { t: 'Passing a primitive value to a method', d: 'a stays the same even when the method changes the parameter.', v: { what: 'prim', how: 'call' } },
-    { t: 'Getting the result back and assigning it', d: 'a changes only when the value received through return is stored back in a.', v: { what: 'prim', how: 'ret' } },
-    { t: 'Concatenating onto a String', d: 'String is a reference type, and yet a stays the same.', v: { what: 'str', how: 'assign' } },
+    { t: 'Default settings', q: 'What is copied when you assign the Point variable a to another variable with b = a and change the contents of the object through b?', d: 'A Point variable is assigned to b, and the contents are changed through b. Reading through a also gives 99.', v: { what: 'field', how: 'assign' } },
+    { t: 'With a primitive type', q: 'What if you change the type to int (primitive type) and assign 99 to the copy?', d: 'The value is copied, so a is still 1 after b is changed.', v: { what: 'prim', how: 'assign' } },
+    { t: 'Passing an object to a method', q: 'What if you pass a to the method change(a) instead of using b = a, and change the contents of the object inside the method?', d: 'A change made inside the method is visible outside the method too.', v: { what: 'field', how: 'call' } },
+    { t: 'Assigning a new object inside the method', q: 'What if you pass a to change(a) and assign a new object to the copy inside the method?', d: 'Only the parameter comes to refer to a different object, and a stays the same.', v: { what: 'renew', how: 'call' } },
+    { t: 'Passing a primitive value to a method', q: 'What if you pass an int (primitive type) variable to change(a) and assign 99 to the copy?', d: 'a stays the same even when the method changes the parameter.', v: { what: 'prim', how: 'call' } },
+    { t: 'Getting the result back and assigning it', q: 'What if you pass an int (primitive type) variable with a = change(a) and assign the returned result?', d: 'a changes only when the value received through return is stored back in a.', v: { what: 'prim', how: 'ret' } },
+    { t: 'Concatenating onto a String', q: 'What if you concatenate text onto the copy of a String (reference type) variable?', d: 'String is a reference type, and yet a stays the same.', v: { what: 'str', how: 'assign' } },
   ],
   code: function (c) {
     var W = c.what, call = c.how !== 'assign', ret = c.how === 'ret', cv = call ? 'p' : 'b';

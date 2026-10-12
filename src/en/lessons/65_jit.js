@@ -7,9 +7,9 @@ Lab.register({
     { id: 'mode', label: 'How the code is run', type: 'select', value: 'jit', options: [['jit', 'Default settings (interpreted, then JIT-compiled)'], ['int', 'JIT turned off (-Xint, interpreted only)'], ['warm', 'Called in advance before requests arrive (warmup)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'The first batch takes 5.8ms, and the batches after it take about 1.4ms.', v: { mode: 'jit' } },
-    { t: 'With JIT turned off', d: 'It never gets faster. About 29ms per batch.', v: { mode: 'int' } },
-    { t: 'With a warmup in advance', d: 'It is fast from the first user request.', v: { mode: 'warm' } },
+    { t: 'Default settings', q: 'Why are the first requests right after a deployment slow with the default settings (interpreted, then JIT-compiled)?', d: 'The first batch takes 5.8ms, and the batches after it take about 1.4ms.', v: { mode: 'jit' } },
+    { t: 'With JIT turned off', q: 'What if you turn JIT off (-Xint, interpreted only)?', d: 'It never gets faster. About 29ms per batch.', v: { mode: 'int' } },
+    { t: 'With a warmup in advance', q: 'What if you call the code in advance before requests arrive (warmup)?', d: 'It is fast from the first user request.', v: { mode: 'warm' } },
   ],
   DATA: { jit: [5765, 1694, 1369, 1651, 1484, 1368, 1535, 1403, 1373, 1436, 1609, 1725], int: [28000, 31416, 28925, 25281, 36973, 28376, 28920, 29169, 26738, 31654, 28077, 32120] },
   code: function (c) {

@@ -7,10 +7,10 @@ Lab.register({
     { id: 'where', label: 'Where the current user information is kept', type: 'select', value: 'field', options: [['field', 'A field of the service bean'], ['local', 'A local variable of the method (passed as a parameter)'], ['tl', 'ThreadLocal (not cleared at the end of the request)'], ['tlc', 'ThreadLocal (remove at the end of the request)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'Stored in a field of the bean. When two requests overlap, the values get mixed up.', v: { where: 'field' } },
-    { t: 'In a local variable', d: 'Each request has its own variable on its own stack, so the values do not get mixed up.', v: { where: 'local' } },
-    { t: 'ThreadLocal, not cleaned up', d: 'Concurrent requests are safe, but the previous value remains when the thread is reused.', v: { where: 'tl' } },
-    { t: 'ThreadLocal, cleaned up', d: 'It is safe if you clear the value when the request ends.', v: { where: 'tlc' } },
+    { t: 'Default settings', q: 'When Alice and Bob order at the same time and the current user is kept in a field of the service bean, whose name is on each order?', d: 'Stored in a field of the bean. When two requests overlap, the values get mixed up.', v: { where: 'field' } },
+    { t: 'In a local variable', q: 'What if you keep the user information in a local variable of the method, passed as a parameter, instead of in a field?', d: 'Each request has its own variable on its own stack, so the values do not get mixed up.', v: { where: 'local' } },
+    { t: 'ThreadLocal, not cleaned up', q: 'What if you keep the user information in a ThreadLocal and do not clear it at the end of the request?', d: 'Concurrent requests are safe, but the previous value remains when the thread is reused.', v: { where: 'tl' } },
+    { t: 'ThreadLocal, cleaned up', q: 'What if you keep the user information in a ThreadLocal and call remove at the end of the request?', d: 'It is safe if you clear the value when the request ends.', v: { where: 'tlc' } },
   ],
   code: function (c) {
     if (c.where === 'field') return '@Service\nclass OrderService {                 // there is only one instance\n    private String currentUser;      // a field that all requests share\n\n    public Order order(String user, Item item) {\n        this.currentUser = user;     // (1) store\n        checkStock(item);            // some other work for a moment\n        return new Order(currentUser, item);   // (2) read it back\n    }\n}';

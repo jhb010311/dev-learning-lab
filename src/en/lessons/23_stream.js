@@ -9,11 +9,11 @@ Lab.register({
     { id: 'limit', label: 'Add limit(2) at the end', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'One element goes through filter and map to the end, and then the stream moves on to the next element.', v: { term: 'toList', sorted: false, limit: false } },
-    { t: 'Without a terminal operation', d: 'Neither filter nor map runs even once.', v: { term: 'none', sorted: false, limit: false } },
-    { t: 'findFirst()', d: 'The stream stops the moment the first element is found. It does not even look at the rest.', v: { term: 'findFirst', sorted: false, limit: false } },
-    { t: 'limit(2)', d: 'Once two elements have been taken, the remaining elements are not handled.', v: { term: 'toList', sorted: false, limit: true } },
-    { t: 'Adding sorted()', d: 'Sorting requires gathering all the elements, so filter runs to the end first.', v: { term: 'findFirst', sorted: true, limit: false } },
+    { t: 'Default settings', q: 'In a stream that collects all the elements with toList(), in what order do filter and map run?', d: 'One element goes through filter and map to the end, and then the stream moves on to the next element.', v: { term: 'toList', sorted: false, limit: false } },
+    { t: 'Without a terminal operation', q: 'What if you leave out the terminal operation and keep only the intermediate operations?', d: 'Neither filter nor map runs even once.', v: { term: 'none', sorted: false, limit: false } },
+    { t: 'findFirst()', q: 'What if you change the terminal operation to findFirst()?', d: 'The stream stops the moment the first element is found. It does not even look at the rest.', v: { term: 'findFirst', sorted: false, limit: false } },
+    { t: 'limit(2)', q: 'What if you add limit(2) at the end?', d: 'Once two elements have been taken, the remaining elements are not handled.', v: { term: 'toList', sorted: false, limit: true } },
+    { t: 'Adding sorted()', q: 'What if the terminal operation is findFirst() and you put sorted() between filter and map?', d: 'Sorting requires gathering all the elements, so filter runs to the end first.', v: { term: 'findFirst', sorted: true, limit: false } },
   ],
   DATA: [5, 2, 8, 1, 9, 4],
   code: function (c) {

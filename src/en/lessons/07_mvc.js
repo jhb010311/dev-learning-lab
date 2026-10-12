@@ -9,12 +9,12 @@ Lab.register({
     { id: 'advice', label: 'An @ControllerAdvice has an @ExceptionHandler that handles this exception', type: 'check', value: true, show: function (c) { return c.what === 'ex'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'The full path of a request that returns a page and is handled normally. The controller, the model, and the view all appear.', v: { kind: 'view', what: 'none', advice: true } },
-    { t: 'A controller that returns JSON', d: 'The returned object becomes the response body directly, without a model or a view.', v: { kind: 'rest', what: 'none', advice: true } },
-    { t: 'Exception in the controller', d: 'An @ExceptionHandler produces the response. postHandle is skipped.', v: { kind: 'rest', what: 'ex', advice: true } },
-    { t: 'With nothing to handle the exception', d: 'The exception propagates up to the servlet container and becomes a 500 response.', v: { kind: 'rest', what: 'ex', advice: false } },
-    { t: 'Rejected by a filter', d: 'The request does not even reach DispatcherServlet. @ControllerAdvice cannot take part either.', v: { kind: 'rest', what: 'filter', advice: true } },
-    { t: 'Stopped by the interceptor', d: 'The request goes back without the controller being called.', v: { kind: 'rest', what: 'pre', advice: true } },
+    { t: 'Default settings', q: 'Which path does a request take when an @Controller returns a view name and nothing goes wrong along the way?', d: 'The full path of a request that returns a page and is handled normally. The controller, the model, and the view all appear.', v: { kind: 'view', what: 'none', advice: true } },
+    { t: 'A controller that returns JSON', q: 'What if you change the kind of controller to @RestController?', d: 'The returned object becomes the response body directly, without a model or a view.', v: { kind: 'rest', what: 'none', advice: true } },
+    { t: 'Exception in the controller', q: 'What if an @RestController throws an exception and an @ControllerAdvice has an @ExceptionHandler for it?', d: 'An @ExceptionHandler produces the response. postHandle is skipped.', v: { kind: 'rest', what: 'ex', advice: true } },
+    { t: 'With nothing to handle the exception', q: 'What if an @RestController throws an exception and no @ControllerAdvice has an @ExceptionHandler for it?', d: 'The exception propagates up to the servlet container and becomes a 500 response.', v: { kind: 'rest', what: 'ex', advice: false } },
+    { t: 'Rejected by a filter', q: 'What if a filter rejects the request to an @RestController because authentication fails?', d: 'The request does not even reach DispatcherServlet. @ControllerAdvice cannot take part either.', v: { kind: 'rest', what: 'filter', advice: true } },
+    { t: 'Stopped by the interceptor', q: 'What if the interceptor preHandle returns false for a request to an @RestController?', d: 'The request goes back without the controller being called.', v: { kind: 'rest', what: 'pre', advice: true } },
   ],
   code: function (c) {
     var ctl = c.kind === 'rest'

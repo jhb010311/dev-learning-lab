@@ -11,12 +11,12 @@ Lab.register({
   // The hash join setting means something only when a hash join is chosen (no index, member first)
   fix: function (c) { return !(!c.idx && c.drive === 'm') && !c.hash ? { hash: true } : null; },
   presets: [
-    { t: 'Default settings', d: 'The join column has no index. A hash join is chosen instead of a nested-loop join.', v: { idx: false, drive: 'm', hash: true } },
-    { t: 'Creating an index on the join column', d: 'It becomes a nested-loop join, which looks up each row through the index.', v: { idx: true, drive: 'm', hash: true } },
-    { t: 'No index and no hash join', d: 'For each row of member, the whole of orders is read. That is 10,000,000 rows.', v: { idx: false, drive: 'm', hash: false } },
-    { t: 'Reading orders first', d: 'member is looked up one row at a time by primary key.', v: { idx: false, drive: 'o', hash: true } },
-    { t: 'Leaving it to the optimizer (no index)', d: 'It sets the order so that the table that can be reached through an index is read later.', v: { idx: false, drive: 'auto', hash: true } },
-    { t: 'Leaving it to the optimizer (with an index)', d: 'It reads member, which has fewer rows, first.', v: { idx: true, drive: 'auto', hash: true } },
+    { t: 'Default settings', q: 'How does the database find matching rows when orders.member_id has no index, member is read first, and a hash join can be used?', d: 'The join column has no index. A hash join is chosen instead of a nested-loop join.', v: { idx: false, drive: 'm', hash: true } },
+    { t: 'Creating an index on the join column', q: 'What if you create an index on orders.member_id?', d: 'It becomes a nested-loop join, which looks up each row through the index.', v: { idx: true, drive: 'm', hash: true } },
+    { t: 'No index and no hash join', q: 'What if there is no index and a hash join cannot be used?', d: 'For each row of member, the whole of orders is read. That is 10,000,000 rows.', v: { idx: false, drive: 'm', hash: false } },
+    { t: 'Reading orders first', q: 'What if you fix orders as the table to read first with STRAIGHT_JOIN?', d: 'member is looked up one row at a time by primary key.', v: { idx: false, drive: 'o', hash: true } },
+    { t: 'Leaving it to the optimizer (no index)', q: 'What if there is no index and you leave the table to read first to the optimizer?', d: 'It sets the order so that the table that can be reached through an index is read later.', v: { idx: false, drive: 'auto', hash: true } },
+    { t: 'Leaving it to the optimizer (with an index)', q: 'What if you create an index on orders.member_id and leave the table to read first to the optimizer?', d: 'It reads member, which has fewer rows, first.', v: { idx: true, drive: 'auto', hash: true } },
   ],
   num: function (x) { return String(Math.round(x)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); },
   code: function (c) {

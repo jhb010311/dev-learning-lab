@@ -10,11 +10,11 @@ Lab.register({
     { id: 'obj', label: 'Each call creates one object', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', d: 'factorial(4). The frames pile up to 5 and are then removed in reverse order.', v: { n: 4, base: true, limit: 8, obj: false } },
-    { t: 'Without the base case', d: 'The method keeps calling itself until the stack overflows.', v: { n: 4, base: false, limit: 8, obj: false } },
-    { t: 'With a base case, but too deep', d: 'factorial(10) needs 11 frames. The stack holds only 8.', v: { n: 10, base: true, limit: 8, obj: false } },
-    { t: 'With a larger stack', d: 'The same factorial(10) finishes normally.', v: { n: 10, base: true, limit: 12, obj: false } },
-    { t: 'An object created on each call', d: 'The objects are created on the heap, and once a frame is removed, nothing refers to its object anymore.', v: { n: 4, base: true, limit: 8, obj: true } },
+    { t: 'Default settings', q: 'What happens in memory when factorial(4), which has a base case, is called on a stack that holds up to 8 frames?', d: 'factorial(4). The frames pile up to 5 and are then removed in reverse order.', v: { n: 4, base: true, limit: 8, obj: false } },
+    { t: 'Without the base case', q: 'What if the recursion has no base case?', d: 'The method keeps calling itself until the stack overflows.', v: { n: 4, base: false, limit: 8, obj: false } },
+    { t: 'With a base case, but too deep', q: 'What if you keep the base case and pass factorial(10) instead?', d: 'factorial(10) needs 11 frames. The stack holds only 8.', v: { n: 10, base: true, limit: 8, obj: false } },
+    { t: 'With a larger stack', q: 'What if you call factorial(10) and increase the number of frames that fit on the stack to 12?', d: 'The same factorial(10) finishes normally.', v: { n: 10, base: true, limit: 12, obj: false } },
+    { t: 'An object created on each call', q: 'What if each call creates one object?', d: 'The objects are created on the heap, and once a frame is removed, nothing refers to its object anymore.', v: { n: 4, base: true, limit: 8, obj: true } },
   ],
   code: function (c) {
     return 'static long factorial(int n) {\n' + (c.obj ? '    byte[] buf = new byte[1024];      // the object is on the heap, the variable buf is on the stack\n' : '') + (c.base ? '    if (n <= 1) return 1;             // base case\n' : '    // no base case\n') + '    return n * factorial(n - 1);\n}\n\npublic static void main(String[] args) {\n    System.out.println(factorial(' + c.n + '));\n}';

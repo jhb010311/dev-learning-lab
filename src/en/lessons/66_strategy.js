@@ -10,10 +10,10 @@ Lab.register({
   ],
   fix: function (c) { return !c.add && c.pay === 'NAVER' ? { pay: 'KAKAO' } : null; },
   presets: [
-    { t: 'Default settings', d: 'Naver Pay is added to the if-else version. An existing method has to be modified.', v: { how: 'ifelse', add: true, pay: 'NAVER' } },
-    { t: 'Adding Naver Pay to the Strategy pattern', d: 'You create one new class and you are done. The existing code stays as it is.', v: { how: 'strategy', add: true, pay: 'NAVER' } },
-    { t: 'How the Strategy pattern runs', d: 'The right implementation is selected without a conditional statement.', v: { how: 'strategy', add: false, pay: 'KAKAO' } },
-    { t: 'How the if-else version runs', d: 'The conditions are compared one by one from the top.', v: { how: 'ifelse', add: false, pay: 'KAKAO' } },
+    { t: 'Default settings', q: 'Where do you have to make changes in the if-else version when you add the Naver Pay payment method?', d: 'Naver Pay is added to the if-else version. An existing method has to be modified.', v: { how: 'ifelse', add: true, pay: 'NAVER' } },
+    { t: 'Adding Naver Pay to the Strategy pattern', q: 'What if you switch to the Strategy pattern (interface + implementing classes) and run Naver Pay?', d: 'You create one new class and you are done. The existing code stays as it is.', v: { how: 'strategy', add: true, pay: 'NAVER' } },
+    { t: 'How the Strategy pattern runs', q: 'What if you use the Strategy pattern (interface + implementing classes) and do not add the Naver Pay payment method?', d: 'The right implementation is selected without a conditional statement.', v: { how: 'strategy', add: false, pay: 'KAKAO' } },
+    { t: 'How the if-else version runs', q: 'What if you keep the if-else branching and do not add the Naver Pay payment method?', d: 'The conditions are compared one by one from the top.', v: { how: 'ifelse', add: false, pay: 'KAKAO' } },
   ],
   code: function (c) {
     if (c.how === 'ifelse') return '@Service\nclass PaymentService {\n    void pay(String type, Order order) {\n        if (type.equals("CARD")) {\n            // request approval from the card company ... (30 lines)\n        } else if (type.equals("BANK")) {\n            // bank transfer ... (25 lines)\n        } else if (type.equals("KAKAO")) {\n            // Kakao Pay ... (40 lines)\n' + (c.add ? '        } else if (type.equals("NAVER")) {      // added: an existing method is modified\n            // Naver Pay ... (35 lines)\n' : '') + '        } else {\n            throw new IllegalArgumentException(type);\n        }\n    }\n    // the same branches are repeated in refund() and cancel()\n}';

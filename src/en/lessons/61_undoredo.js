@@ -7,10 +7,10 @@ Lab.register({
     { id: 'what', label: 'What happens', type: 'select', value: 'crashAfter', options: [['commit', 'A normal commit'], ['rollback', 'A rollback without committing'], ['crashAfter', 'The server goes down right after the commit (before the write to the data file)'], ['crashBefore', 'The server goes down before the commit']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A failure right after the commit. The data file holds the old value, but after a restart the value is the new one.', v: { what: 'crashAfter' } },
-    { t: 'A failure before the commit', d: 'After a restart, the change is as if it never happened.', v: { what: 'crashBefore' } },
-    { t: 'Rollback', d: 'The data is returned to the earlier value that was kept in the undo log.', v: { what: 'rollback' } },
-    { t: 'A normal commit', d: 'At commit time, only the log is written to disk.', v: { what: 'commit' } },
+    { t: 'Default settings', q: 'If the server goes down right after the commit, before the write to the data file, what is the value after a restart?', d: 'A failure right after the commit. The data file holds the old value, but after a restart the value is the new one.', v: { what: 'crashAfter' } },
+    { t: 'A failure before the commit', q: 'What if the server goes down before the commit?', d: 'After a restart, the change is as if it never happened.', v: { what: 'crashBefore' } },
+    { t: 'Rollback', q: 'What if you roll back without committing?', d: 'The data is returned to the earlier value that was kept in the undo log.', v: { what: 'rollback' } },
+    { t: 'A normal commit', q: 'What if it is a normal commit?', d: 'At commit time, only the log is written to disk.', v: { what: 'commit' } },
   ],
   code: function (c) {
     return 'START TRANSACTION;\nUPDATE account SET balance = 500 WHERE id = 1;   -- it was 1000\n' + (c.what === 'rollback' ? 'ROLLBACK;' : c.what === 'crashBefore' ? '-- (the server goes down here)' : 'COMMIT;' + (c.what === 'crashAfter' ? '\n-- (the server goes down right after the commit reply)' : ''));

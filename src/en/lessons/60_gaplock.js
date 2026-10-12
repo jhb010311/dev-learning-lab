@@ -9,11 +9,11 @@ Lab.register({
     { id: 'ins', label: 'Row that transaction B tries to insert', type: 'select', value: '25', options: [['25', 'id = 25 (between 20 and 30)'], ['45', 'id = 45 (after 40)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'A range query. An INSERT that tries to squeeze in between 20 and 30 waits.', v: { q: 'range', lv: 'RR', ins: '25' } },
-    { t: 'Querying a row that does not exist', d: 'There is no row to lock, yet the gap at that place is locked.', v: { q: 'miss', lv: 'RR', ins: '25' } },
-    { t: 'Querying exactly one existing row', d: 'Only that row is locked. The gaps next to it are free.', v: { q: 'hit', lv: 'RR', ins: '25' } },
-    { t: 'Lowering it to READ COMMITTED', d: 'The gaps are not locked. The INSERT goes through right away.', v: { q: 'range', lv: 'RC', ins: '25' } },
-    { t: 'Inserting outside the range', d: 'That place is not locked, so B does not wait.', v: { q: 'range', lv: 'RR', ins: '45' } },
+    { t: 'Default settings', q: 'Under REPEATABLE READ, what happens when transaction A queries id BETWEEN 20 AND 30 and transaction B inserts id = 25?', d: 'A range query. An INSERT that tries to squeeze in between 20 and 30 waits.', v: { q: 'range', lv: 'RR', ins: '25' } },
+    { t: 'Querying a row that does not exist', q: 'What if transaction A queries id = 25 (a row that does not exist)?', d: 'There is no row to lock, yet the gap at that place is locked.', v: { q: 'miss', lv: 'RR', ins: '25' } },
+    { t: 'Querying exactly one existing row', q: 'What if transaction A queries id = 20 (one row that exists)?', d: 'Only that row is locked. The gaps next to it are free.', v: { q: 'hit', lv: 'RR', ins: '25' } },
+    { t: 'Lowering it to READ COMMITTED', q: 'What if you change the isolation level to READ COMMITTED?', d: 'The gaps are not locked. The INSERT goes through right away.', v: { q: 'range', lv: 'RC', ins: '25' } },
+    { t: 'Inserting outside the range', q: 'What if transaction B tries to insert id = 45 (after 40)?', d: 'That place is not locked, so B does not wait.', v: { q: 'range', lv: 'RR', ins: '45' } },
   ],
   code: function (c) {
     var w = { hit: 'id = 20', miss: 'id = 25', range: 'id BETWEEN 20 AND 30' }[c.q];

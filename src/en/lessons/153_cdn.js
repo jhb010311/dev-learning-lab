@@ -10,12 +10,12 @@ Lab.register({
     { id: 'after', label: 'What is done after the change', type: 'select', value: 'none', options: [['none', 'Nothing'], ['purge', 'Ask the edge to invalidate (purge) /app.css?v=1'], ['ver', 'Change the requested address to /app.css?v=2']], show: function (c) { return c.chg; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'Freshness lifetime of 300 seconds. Although the origin was changed, the users at 40s and at 80s both get the old content.', v: { ttl: '300', q2: 'same', chg: true, after: 'none' } },
-    { t: 'If the freshness lifetime is 60 seconds', d: 'At 40s the user gets the old content, and at 80s the edge asks again and the user gets the new content.', v: { ttl: '60', q2: 'same', chg: true, after: 'none' } },
-    { t: 'Invalidation (purge)', d: 'The copy at the edge is deleted, and the next request fetches the new content from the origin.', v: { ttl: '300', q2: 'same', chg: true, after: 'purge' } },
-    { t: 'Change the address', d: '?v=2 is a different address, so the edge has no copy of it and fetches the new content.', v: { ttl: '300', q2: 'same', chg: true, after: 'ver' } },
-    { t: 'If a query string is added', d: 'Even though it is the same file, it is treated as a different copy, and the request goes to the origin one more time.', v: { ttl: '300', q2: 'ref', chg: false, after: 'none' } },
-    { t: 'When the file is not changed', d: 'The request goes to the origin only once, and the edge answers all the rest.', v: { ttl: '300', q2: 'same', chg: false, after: 'none' } },
+    { t: 'Default settings', q: 'With s-maxage=300 on app.css, requests at 0s, 10s, 40s, and 80s, and the origin changed at 30s, what does each request receive?', d: 'Freshness lifetime of 300 seconds. Although the origin was changed, the users at 40s and at 80s both get the old content.', v: { ttl: '300', q2: 'same', chg: true, after: 'none' } },
+    { t: 'If the freshness lifetime is 60 seconds', q: 'What if you change how long the edge may use a copy to s-maxage=60?', d: 'At 40s the user gets the old content, and at 80s the edge asks again and the user gets the new content.', v: { ttl: '60', q2: 'same', chg: true, after: 'none' } },
+    { t: 'Invalidation (purge)', q: 'What if, after the change, you ask the edge to invalidate (purge) /app.css?v=1?', d: 'The copy at the edge is deleted, and the next request fetches the new content from the origin.', v: { ttl: '300', q2: 'same', chg: true, after: 'purge' } },
+    { t: 'Change the address', q: 'What if, after the change, you change the requested address to /app.css?v=2?', d: '?v=2 is a different address, so the edge has no copy of it and fetches the new content.', v: { ttl: '300', q2: 'same', chg: true, after: 'ver' } },
+    { t: 'If a query string is added', q: 'What if the request at 10s uses /app.css?v=1&ref=mail and the app.css at the origin is not changed at 30s?', d: 'Even though it is the same file, it is treated as a different copy, and the request goes to the origin one more time.', v: { ttl: '300', q2: 'ref', chg: false, after: 'none' } },
+    { t: 'When the file is not changed', q: 'What if the app.css at the origin is not changed at 30s?', d: 'The request goes to the origin only once, and the edge answers all the rest.', v: { ttl: '300', q2: 'same', chg: false, after: 'none' } },
   ],
   // If the file is not changed, "What is done after the change" is not used, so it is fixed to one value
   fix: function (c) { return c.chg ? null : { after: 'none' }; },

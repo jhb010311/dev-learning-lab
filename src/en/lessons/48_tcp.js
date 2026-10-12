@@ -9,10 +9,10 @@ Lab.register({
   ],
   fix: function (c) { return c.proto === 'udp' && c.loss === 'syn' ? { loss: 'none' } : null; },
   presets: [
-    { t: 'Default settings', d: 'TCP, no loss. It establishes a connection, sends the data, and receives acknowledgments.', v: { proto: 'tcp', loss: 'none' } },
-    { t: 'A lost data packet', d: 'No acknowledgment arrives, so the data is sent again.', v: { proto: 'tcp', loss: 'data' } },
-    { t: 'A lost connection request', d: 'With no reply, the sender waits and then tries again.', v: { proto: 'tcp', loss: 'syn' } },
-    { t: 'The same loss with UDP', d: 'The lost datagram stays lost.', v: { proto: 'udp', loss: 'data' } },
+    { t: 'Default settings', q: 'How are the connection setup and the acknowledgments exchanged when TCP sends data and no packet is lost?', d: 'TCP, no loss. It establishes a connection, sends the data, and receives acknowledgments.', v: { proto: 'tcp', loss: 'none' } },
+    { t: 'A lost data packet', q: 'What if the second data packet is lost on the way over TCP?', d: 'No acknowledgment arrives, so the data is sent again.', v: { proto: 'tcp', loss: 'data' } },
+    { t: 'A lost connection request', q: 'What if the connection request (SYN) is lost on the way over TCP?', d: 'With no reply, the sender waits and then tries again.', v: { proto: 'tcp', loss: 'syn' } },
+    { t: 'The same loss with UDP', q: 'What if you change the protocol to UDP and the second data packet is lost on the way?', d: 'The lost datagram stays lost.', v: { proto: 'udp', loss: 'data' } },
   ],
   code: function (c) {
     if (c.proto === 'udp') return '// UDP: send right away, without a connection\nDatagramSocket socket = new DatagramSocket();\nfor (byte[] part : parts) {\n    socket.send(new DatagramPacket(part, part.length, address, 9000));\n}   // there is no way to know whether it arrived';

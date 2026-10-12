@@ -8,11 +8,11 @@ Lab.register({
     { id: 'cost', label: 'bcrypt work factor (cost)', type: 'select', value: '10', options: [['10', '10 (Spring Security default)'], ['12', '12'], ['14', '14']], show: function (c) { return c.how === 'bcrypt'; } },
   ],
   presets: [
-    { t: 'Default settings', d: 'SHA-256. The same password produces the same hash.', v: { how: 'sha', cost: '10' } },
-    { t: 'Plain text storage', d: 'Everything is exposed the moment the data leaks.', v: { how: 'plain', cost: '10' } },
-    { t: 'Add a salt', d: 'The same password now produces different hashes. But the hash itself is still fast.', v: { how: 'salt', cost: '10' } },
-    { t: 'bcrypt', d: 'A hash that is made slow on purpose. The time needed to try guesses changes.', v: { how: 'bcrypt', cost: '10' } },
-    { t: 'bcrypt cost 14', d: 'Attacks get slower, but verifying a login gets slower too.', v: { how: 'bcrypt', cost: '14' } },
+    { t: 'Default settings', q: 'How well do passwords hold up when the database leaks if they are stored as a SHA-256 hash?', d: 'SHA-256. The same password produces the same hash.', v: { how: 'sha', cost: '10' } },
+    { t: 'Plain text storage', q: 'What if you store the passwords as plain text, without a hash?', d: 'Everything is exposed the moment the data leaks.', v: { how: 'plain', cost: '10' } },
+    { t: 'Add a salt', q: 'What if you store a SHA-256 hash with a salt for each member?', d: 'The same password now produces different hashes. But the hash itself is still fast.', v: { how: 'salt', cost: '10' } },
+    { t: 'bcrypt', q: 'What if you store passwords with bcrypt and leave the cost at the default of 10?', d: 'A hash that is made slow on purpose. The time needed to try guesses changes.', v: { how: 'bcrypt', cost: '10' } },
+    { t: 'bcrypt cost 14', q: 'What if you store passwords with bcrypt and change the cost to 14?', d: 'Attacks get slower, but verifying a login gets slower too.', v: { how: 'bcrypt', cost: '14' } },
   ],
   code: function (c) {
     if (c.how === 'plain') return '// Store the input as it is\nmember.setPassword(rawPassword);';

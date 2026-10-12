@@ -11,13 +11,13 @@ Lab.register({
   // Where the member is declared matters only when a static member of Child is used
   fix: function (c) { return c.decl === 'parent' && !(c.cls === 'child' && ['smethod', 'sfield', 'const', 'finalrt'].indexOf(c.use) >= 0) ? { decl: 'own' } : null; },
   presets: [
-    { t: 'Default settings', d: 'Reading a constant. The static initializer does not run, and the class is not even loaded.', v: { cls: 'parent', use: 'const', decl: 'own' } },
-    { t: 'Creating an object with new', d: 'The static initializer runs only once, when the first object is created.', v: { cls: 'parent', use: 'new', decl: 'own' } },
-    { t: 'A static final field that is not a constant', d: 'Its value is known only at run time, so initialization happens.', v: { cls: 'parent', use: 'finalrt', decl: 'own' } },
-    { t: 'Creating only an array', d: 'The class is only loaded and is not initialized.', v: { cls: 'parent', use: 'array', decl: 'own' } },
-    { t: 'Creating an object of the subclass', d: 'The superclass is initialized first, and then the subclass.', v: { cls: 'child', use: 'new', decl: 'own' } },
-    { t: 'A static field of the superclass through the subclass name', d: 'The code says Child.count, but Child is not initialized.', v: { cls: 'child', use: 'sfield', decl: 'parent' } },
-    { t: 'Using ClassName.class', d: 'It only refers to the class information and does not initialize the class.', v: { cls: 'child', use: 'classlit', decl: 'own' } },
+    { t: 'Default settings', q: 'What happens to the static initializer and class loading when you read the constant MAX of Parent?', d: 'Reading a constant. The static initializer does not run, and the class is not even loaded.', v: { cls: 'parent', use: 'const', decl: 'own' } },
+    { t: 'Creating an object with new', q: 'What if you create an object with new instead of reading the constant?', d: 'The static initializer runs only once, when the first object is created.', v: { cls: 'parent', use: 'new', decl: 'own' } },
+    { t: 'A static final field that is not a constant', q: 'What if you read a field that is static final but gets its value only at run time?', d: 'Its value is known only at run time, so initialization happens.', v: { cls: 'parent', use: 'finalrt', decl: 'own' } },
+    { t: 'Creating only an array', q: 'What if you create an array with new Parent[3]?', d: 'The class is only loaded and is not initialized.', v: { cls: 'parent', use: 'array', decl: 'own' } },
+    { t: 'Creating an object of the subclass', q: 'What if you use Child and create an object with new?', d: 'The superclass is initialized first, and then the subclass.', v: { cls: 'child', use: 'new', decl: 'own' } },
+    { t: 'A static field of the superclass through the subclass name', q: 'What if you use Child and read count, which is declared in Parent, through the name Child?', d: 'The code says Child.count, but Child is not initialized.', v: { cls: 'child', use: 'sfield', decl: 'parent' } },
+    { t: 'Using ClassName.class', q: 'What if you use Child and use Child.class?', d: 'It only refers to the class information and does not initialize the class.', v: { cls: 'child', use: 'classlit', decl: 'own' } },
   ],
   // The names used with these settings, and what is loaded and what is initialized
   facts: function (c) {

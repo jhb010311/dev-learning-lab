@@ -9,13 +9,13 @@ Lab.register({
     { id: 'val', label: 'name sent in the request', type: 'select', value: 'empty', options: [['none', 'Not sent (null on the receiving side)'], ['empty', 'Empty string ""'], ['blank', 'A single space " "'], ['pen', '"pen"']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'The field has @NotBlank, but an empty name is registered as it is, because the parameter has no @Valid.', v: { how: 'plain', con: 'notblank', val: 'empty' } },
-    { t: 'With @Valid', d: 'The same request is rejected with 400 before it reaches the controller.', v: { how: 'valid', con: 'notblank', val: 'empty' } },
-    { t: '@NotNull lets an empty string through', d: 'An empty string is not null. The empty name is registered even though validation ran.', v: { how: 'valid', con: 'notnull', val: 'empty' } },
-    { t: 'A single space passes even @NotEmpty', d: 'A space also counts as one character. @NotBlank is the one that also blocks a value made only of whitespace.', v: { how: 'valid', con: 'notempty', val: 'blank' } },
-    { t: 'With a BindingResult', d: 'Even when validation fails, no exception is thrown and the controller runs.', v: { how: 'br', con: 'notblank', val: 'empty' } },
-    { t: 'A constraint directly on the parameter', d: 'It is checked even without @Valid. When it fails, the name of the exception is different.', v: { how: 'param', con: 'notblank', val: 'empty' } },
-    { t: 'Sending no @RequestParam value at all', d: 'The request is rejected first as "required value is missing", before the constraint is checked.', v: { how: 'param', con: 'notblank', val: 'none' } },
+    { t: 'Default settings', q: 'What happens when the controller receives @RequestBody ItemForm form without @Valid and name, which has @NotBlank, is sent as an empty string ""?', d: 'The field has @NotBlank, but an empty name is registered as it is, because the parameter has no @Valid.', v: { how: 'plain', con: 'notblank', val: 'empty' } },
+    { t: 'With @Valid', q: 'What if you add @Valid to the controller parameter?', d: 'The same request is rejected with 400 before it reaches the controller.', v: { how: 'valid', con: 'notblank', val: 'empty' } },
+    { t: '@NotNull lets an empty string through', q: 'What if you add @Valid and change the constraint on name to @NotNull?', d: 'An empty string is not null. The empty name is registered even though validation ran.', v: { how: 'valid', con: 'notnull', val: 'empty' } },
+    { t: 'A single space passes even @NotEmpty', q: 'What if you add @Valid, change the constraint on name to @NotEmpty, and send a single space " "?', d: 'A space also counts as one character. @NotBlank is the one that also blocks a value made only of whitespace.', v: { how: 'valid', con: 'notempty', val: 'blank' } },
+    { t: 'With a BindingResult', q: 'What if the controller receives @Valid @RequestBody ItemForm form and also BindingResult errors?', d: 'Even when validation fails, no exception is thrown and the controller runs.', v: { how: 'br', con: 'notblank', val: 'empty' } },
+    { t: 'A constraint directly on the parameter', q: 'What if you put @NotBlank directly on the @RequestParam String name parameter and send an empty string ""?', d: 'It is checked even without @Valid. When it fails, the name of the exception is different.', v: { how: 'param', con: 'notblank', val: 'empty' } },
+    { t: 'Sending no @RequestParam value at all', q: 'What if you put @NotBlank directly on the @RequestParam String name parameter and do not send name at all?', d: 'The request is rejected first as "required value is missing", before the constraint is checked.', v: { how: 'param', con: 'notblank', val: 'none' } },
   ],
   // Values sent: lit is how the value looks in Java code, and inner is the text that goes inside the [ ] of the text the controller returns
   VALS: {

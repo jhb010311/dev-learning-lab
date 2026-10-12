@@ -10,13 +10,13 @@ Lab.register({
     { id: 'read', label: 'How to read the file back', type: 'select', value: 'char', options: [['byte', 'Read one byte at a time with a byte stream and convert each byte to a character'], ['char', 'Read with a character stream (InputStreamReader, UTF-8)']] },
   ],
   presets: [
-    { t: 'Default settings', d: 'Wrapped in a buffer and not closed. write was called 9 times, but the file has 0 bytes.', v: { buf: 'buf', end: 'none', fail: false, read: 'char' } },
-    { t: 'Closing with close', d: 'The 9 bytes collected in the buffer are written out in one write and end up in the file.', v: { buf: 'buf', end: 'close', fail: false, read: 'char' } },
-    { t: 'Writing with no buffer', d: 'The 9 calls to write reach the underlying stream as 9 writes.', v: { buf: 'raw', end: 'none', fail: false, read: 'char' } },
-    { t: 'With a 4-byte buffer', d: 'The buffer is written out each time it fills up, and if the stream is not closed, the last 1 byte is left behind.', v: { buf: 'buf4', end: 'none', fail: false, read: 'char' } },
-    { t: 'An exception before close', d: 'close never runs, so the file is empty.', v: { buf: 'buf', end: 'close', fail: true, read: 'char' } },
-    { t: 'With try-with-resources', d: 'Even when an exception is thrown, the stream is closed automatically and the data is written to the file.', v: { buf: 'buf', end: 'twr', fail: true, read: 'char' } },
-    { t: 'Reading one byte as one character', d: 'The three Korean characters become nine garbled characters.', v: { buf: 'buf', end: 'close', fail: false, read: 'byte' } },
+    { t: 'Default settings', q: 'What happens to the file when you call write 9 times on a BufferedOutputStream (default size) and never close it?', d: 'Wrapped in a buffer and not closed. write was called 9 times, but the file has 0 bytes.', v: { buf: 'buf', end: 'none', fail: false, read: 'char' } },
+    { t: 'Closing with close', q: 'What if you call out.close() after all the writes?', d: 'The 9 bytes collected in the buffer are written out in one write and end up in the file.', v: { buf: 'buf', end: 'close', fail: false, read: 'char' } },
+    { t: 'Writing with no buffer', q: 'What if you write directly, with no buffer?', d: 'The 9 calls to write reach the underlying stream as 9 writes.', v: { buf: 'raw', end: 'none', fail: false, read: 'char' } },
+    { t: 'With a 4-byte buffer', q: 'What if you wrap the stream in a BufferedOutputStream with a 4-byte buffer?', d: 'The buffer is written out each time it fills up, and if the stream is not closed, the last 1 byte is left behind.', v: { buf: 'buf4', end: 'none', fail: false, read: 'char' } },
+    { t: 'An exception before close', q: 'What if you call out.close() after the writes, but an exception is thrown right after the writes, before the stream is closed?', d: 'close never runs, so the file is empty.', v: { buf: 'buf', end: 'close', fail: true, read: 'char' } },
+    { t: 'With try-with-resources', q: 'What if you use try-with-resources and an exception is thrown right after the writes, before the stream is closed?', d: 'Even when an exception is thrown, the stream is closed automatically and the data is written to the file.', v: { buf: 'buf', end: 'twr', fail: true, read: 'char' } },
+    { t: 'Reading one byte as one character', q: 'What if you call out.close() and read the file back one byte at a time with a byte stream, converting each byte to a character?', d: 'The three Korean characters become nine garbled characters.', v: { buf: 'buf', end: 'close', fail: false, read: 'byte' } },
   ],
   code: function (c) {
     var wrap = { raw: 'OutputStream out = counting;                                // directly, with no buffer', buf: 'OutputStream out = new BufferedOutputStream(counting);     // wrap it in a buffer', buf4: 'OutputStream out = new BufferedOutputStream(counting, 4);  // a 4-byte buffer' }[c.buf];

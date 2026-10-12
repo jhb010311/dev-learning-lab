@@ -9,12 +9,12 @@ Lab.register({
     { id: 'm', label: 'Method to call', type: 'select', value: 'upper', options: [['concat', 'concat("!")  concatenate to the end'], ['replace', 'replace(\'a\', \'o\')  replace a character'], ['upper', 'toUpperCase()  convert to upper case']], show: function (c) { return c.type === 'str' && c.op !== 'loop'; }, hint: 'With a StringBuilder, you add to the end with append.' },
   ],
   presets: [
-    { t: 'Default settings', d: 'toUpperCase() is called, but printing s shows that it is unchanged.', v: { type: 'str', op: 'drop', m: 'upper' } },
-    { t: 'Assigning the return value', d: 's refers to the new string, and the first object stays as it was.', v: { type: 'str', op: 'assign', m: 'upper' } },
-    { t: 'concat works the same way', d: 'A method that concatenates does not change the original either.', v: { type: 'str', op: 'drop', m: 'concat' } },
-    { t: 'Concatenating with + in a loop', d: 'On every iteration, s refers to a new object.', v: { type: 'str', op: 'loop', m: 'upper' } },
-    { t: 'Appending with a StringBuilder', d: 'A single object is modified from start to finish.', v: { type: 'sb', op: 'loop', m: 'upper' } },
-    { t: 'append of StringBuilder', d: 'The contents change even if you ignore the return value.', v: { type: 'sb', op: 'drop', m: 'upper' } },
+    { t: 'Default settings', q: 'What happens to the String s when you call toUpperCase() and do not use the returned value?', d: 'toUpperCase() is called, but printing s shows that it is unchanged.', v: { type: 'str', op: 'drop', m: 'upper' } },
+    { t: 'Assigning the return value', q: 'What if the code assigns the return value back to the same variable?', d: 's refers to the new string, and the first object stays as it was.', v: { type: 'str', op: 'assign', m: 'upper' } },
+    { t: 'concat works the same way', q: 'What if you call concat("!") instead?', d: 'A method that concatenates does not change the original either.', v: { type: 'str', op: 'drop', m: 'concat' } },
+    { t: 'Concatenating with + in a loop', q: 'What if the code concatenates three times in a loop?', d: 'On every iteration, s refers to a new object.', v: { type: 'str', op: 'loop', m: 'upper' } },
+    { t: 'Appending with a StringBuilder', q: 'What if you change the type to StringBuilder and concatenate three times in a loop?', d: 'A single object is modified from start to finish.', v: { type: 'sb', op: 'loop', m: 'upper' } },
+    { t: 'append of StringBuilder', q: 'What if you change the type to StringBuilder and call a method without using the returned value?', d: 'The contents change even if you ignore the return value.', v: { type: 'sb', op: 'drop', m: 'upper' } },
   ],
   // The text of the method call that matches the settings, and its result
   call: function (c) {
