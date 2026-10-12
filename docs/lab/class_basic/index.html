@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>클래스와 객체: 클래스와 객체는 어떻게 다른가 · 개발 학습 실습실</title>
+<meta name="description" content="클래스는 class로 적는 설계도입니다. 어떤 값(필드)과 메서드를 갖는지를 적어 둘 뿐이고, 클래스를 선언했다고 무엇이 만들어지지는 않습니다. 객체는 new로 그 설계도대로 만든 실제 것입니다. new를 실행할 때마다 객체가 하나씩 생기고, 객체마다 필드의 값을 따로 가집니…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/class_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/class_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/class_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="클래스와 객체: 클래스와 객체는 어떻게 다른가 · 개발 학습 실습실">
+<meta property="og:description" content="클래스는 class로 적는 설계도입니다. 어떤 값(필드)과 메서드를 갖는지를 적어 둘 뿐이고, 클래스를 선언했다고 무엇이 만들어지지는 않습니다. 객체는 new로 그 설계도대로 만든 실제 것입니다. new를 실행할 때마다 객체가 하나씩 생기고, 객체마다 필드의 값을 따로 가집니…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/class_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=04d9f35c6d">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › Java</p>
+<h1>클래스와 객체</h1>
+<p><b>클래스와 객체는 어떻게 다른가</b></p>
+<p>클래스는 class로 적는 설계도입니다. 어떤 값(필드)과 메서드를 갖는지를 적어 둘 뿐이고, 클래스를 선언했다고 무엇이 만들어지지는 않습니다. 객체는 new로 그 설계도대로 만든 실제 것입니다. new를 실행할 때마다 객체가 하나씩 생기고, 객체마다 필드의 값을 따로 가집니다. 변수는 객체 자체가 아니라 객체를 가리키는 것이어서, 가리키는 객체가 없으면 그 객체의 메서드를 부를 수 없습니다. 이 실습은 class 선언과 new를 지우거나 null로 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주는지와 만들어진 Card 객체가 몇 개인지를 봅니다.</p>
+<p>실행으로 대조 · JDK 21에서 열두 가지 조합을 javax.tools로 컴파일하고 실행해 대조, 만들어진 객체 수는 세는 줄을 더해 실측</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>클래스와 객체</dt>
+<dd>클래스는 어떤 필드(데이터)와 메서드(동작)를 가질지 적어 둔 설계도이고, 객체는 그 설계도로 new를 해서 메모리(힙)에 실제로 만든 것이다. 객체를 인스턴스라고도 부른다. 클래스 하나로 객체를 여러 개 만들 수 있고, 객체마다 필드 값을 따로 가진다. 변수에는 객체 자체가 아니라 객체가 있는 곳을 가리키는 참조가 담긴다.</dd>
+<dt>필드</dt>
+<dd>필드는 클래스 안에 선언해 두는 변수이다. class Card { String owner; }에서 owner가 String 타입의 필드이다. static을 붙이지 않은 필드는 인스턴스 변수라고도 부르며, 그 클래스의 객체가 새로 만들어질 때마다 객체마다 따로 하나씩 생긴다. 그래서 같은 클래스에서 만든 객체라도 필드의 값은 서로 다를 수 있다. 값을 따로 주지 않으면 필드에는 기본값이 들어가고, 참조 타입의 필드는 null이다.</dd>
+<dt>new</dt>
+<dd>new는 클래스로 객체를 만드는 연산자이다. new Card()를 실행하면 Card 클래스대로 새 객체가 만들어지고, 그 객체를 가리키는 참조가 식의 값이 된다. 보통 Card a = new Card();처럼 이 참조를 변수에 담아 쓴다. 이 식은 실행될 때마다 새 객체를 만들어서, new를 두 번 실행하면 객체가 두 개 생긴다. 클래스를 선언하는 것만으로는 객체가 만들어지지 않고, new를 실행해야 만들어진다.</dd>
+<dt>필드의 기본값</dt>
+<dd>객체가 만들어질 때 값을 따로 주지 않은 필드에 자동으로 들어가는 값이다. int 같은 숫자 타입은 0, boolean은 false, String을 비롯한 참조 타입은 null이다. 필드 초기화식이나 생성자가 값을 넣기 전까지는 이 값이 보인다. 메서드 안의 지역 변수에는 기본값이 없어서, 값을 넣지 않고 읽으면 컴파일 오류가 난다.</dd>
+<dt>NullPointerException</dt>
+<dd>null인 참조로 메서드를 부르거나 필드를 읽으려고 할 때 발생하는 예외다. null은 가리키는 객체가 없다는 뜻이므로, 없는 객체에게 일을 시킬 수 없어서 예외가 난다. 컴파일러가 미리 잡아 주지 않는 Unchecked 예외라서 실행해 봐야 드러난다. null을 받지 않도록 만든 메서드(Optional.of, Objects.requireNonNull 등)에 null을 넘겨도 이 예외가 발생한다. 값이 없을 수 있는 곳에서는 먼저 null인지 검사하거나, Optional로 값이 없을 수 있음을 타입에 드러내어 줄인다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 클래스를 선언하고 new로 객체를 하나 만듭니다. 컴파일에 성공하고 김철수의 카드가 출력됩니다.</li>
+<li><b>new Card()를 지우면</b> — 변수만 선언하고 값을 담지 않은 채 쓰면 컴파일 오류가 납니다.</li>
+<li><b>null을 담으면</b> — 컴파일은 성공하지만 실행 중에 NullPointerException으로 멈춥니다.</li>
+<li><b>객체를 하나 더 만들면</b> — new를 두 번 실행해 객체가 2개 생기고, 객체마다 owner를 따로 가집니다.</li>
+<li><b>class Card 선언을 지우면</b> — Card라는 클래스가 없어 컴파일 오류가 납니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>컴파일러가 소스를 위에서부터 읽습니다. 먼저 class Card 선언을 읽고, owner라는 값(필드)과 show라는 메서드를 가진 Card 클래스를 알게 됩니다. 클래스는 설계도입니다. 설계도를 적어 두었을 뿐이어서, 이 선언만으로는 Card 객체가 하나도 만들어지지 않습니다.</li>
+<li>컴파일러가 Card a = new Card(); 줄을 확인합니다. Card 클래스가 있으므로 new Card()를 쓸 수 있습니다. 컴파일러는 이 줄을 실행하지 않고 확인만 합니다. 객체는 프로그램을 실행할 때 이 줄에서 만들어집니다.</li>
+<li>컴파일러가 a.owner = &quot;김철수&quot;; 와 a.show(); 줄을 확인합니다. Card에 owner 필드와 show 메서드가 있고 변수 a에 값이 담겨 있으므로 오류가 없습니다.</li>
+<li>컴파일이 성공해 실행할 Main 클래스 파일이 만들어집니다. 지금까지 만들어진 Card 객체는 0개입니다. 컴파일은 소스를 확인할 뿐 new를 실행하지 않습니다.</li>
+<li>java Main으로 실행합니다. 실행은 main 메서드부터 시작합니다. 설계도인 Card 클래스는 코드에 있지만, 만들어진 Card 객체는 아직 0개입니다.</li>
+<li>Card a = new Card(); 줄이 실행됩니다. new Card()가 Card 설계도대로 객체를 하나 만듭니다. 이 객체의 owner에는 아직 값을 담지 않아서 null, 즉 비어 있습니다.</li>
+<li>같은 줄에서 = 가 만들어진 객체를 변수 a에 담습니다. 변수 a에 담기는 것은 객체 자체가 아니라 객체가 있는 곳을 가리키는 참조여서, a가 그 객체를 가리키게 됩니다.</li>
+<li>a.owner = &quot;김철수&quot;; 줄이 실행됩니다. a가 가리키는 객체의 owner에 &quot;김철수&quot;를 담습니다.</li>
+<li>a.show(); 줄이 실행됩니다. a가 가리키는 객체의 show 메서드가 실행되어, 그 객체의 owner를 읽고 &quot;김철수의 카드&quot;를 출력합니다. show는 설계도에 적힌 메서드이고, 읽는 owner는 객체에 담긴 값입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>클래스는 class로 적는 설계도이고, 객체는 new로 그 설계도대로 만든 실제 것입니다. class Card는 owner와 show를 갖는다고 적어 둘 뿐 객체를 만들지 않았고, new Card()를 실행하자 Card 객체가 하나 생겼습니다.</li>
+<li>변수 a는 그 객체를 가리킬 뿐이고, owner의 값은 객체에 담겼습니다. a.show()는 설계도에 적힌 메서드를 a가 가리키는 객체에게 시킨 것이어서, 그 객체의 owner를 읽어 출력했습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 설계도: Card는 owner라는 값(필드)과 show라는 메서드를 가진다
+class Card {
+    String owner;
+    void show() {
+        System.out.println(owner + &quot;의 카드&quot;);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // 객체: 설계도대로 실제 카드를 하나 만들어 변수 a에 담는다
+        Card a = new Card();
+        a.owner = &quot;김철수&quot;;
+        a.show();
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력과 예외를 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.cant.resolve.location, var.might.not.have.been.initialized를 화면의 두 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력, 실행 중 예외의 종류입니다. 만들어진 Card 객체의 수는 짐작이 아니라 실측했습니다. 대조용 소스에만 Card 안에 객체가 만들어질 때마다 숫자를 올리는 줄(인스턴스 초기화 블록)을 더해 실행 뒤에 읽었고, 대조 스크립트는 화면의 코드와 견줄 때 그 한 줄을 뺍니다. 컴파일에 실패한 조합은 실행하지 않았으므로 0개입니다. null을 담은 조합의 예외는 NullPointerException이고 메시지는 a.owner에 값을 담으려다 변수가 null이었다는 내용이었으며, 이 예외가 a.owner 줄에서 나므로 그 아래의 b 줄은 실행되지 않아 객체는 0개였습니다. 새로 만든 객체의 owner가 값을 담기 전에는 null이라는 단계 문장의 설명도 따로 실행해(new Card().show()가 null의 카드를 출력) 확인했습니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 클래스 선언이 클래스를 정하는 것은 8.1절, 필드와, static이 아닌 필드는 인스턴스가 만들어질 때마다 인스턴스마다 새로 생긴다는 것은 8.3절과 8.3.1.1절, 객체가 클래스 인스턴스 또는 배열이고 참조는 객체를 가리키는 포인터이며 아무것도 가리키지 않는 null 참조가 있다는 것은 4.3.1절, new를 평가할 때마다 새 객체가 만들어지고 필드는 기본값으로 채워진다는 것은 15.9.4절, 참조 타입의 기본값이 null이라는 것은 4.12.5절, 객체 없이(null로) 인스턴스 필드에 접근하거나 인스턴스 메서드를 부르면 NullPointerException이라는 것은 15.11.1절과 15.12.4.4절, 값을 담지 않은 지역 변수를 읽으면 컴파일 오류라는 것은 16장 서두를 따랐습니다. 명세 15.26.1절(필드에 값을 담는 식의 평가 순서)은 열어 확인하지 못했고, 이 실습은 그 순서에 기대지 않습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. class Card 선언이 없을 때는 Card를 쓴 자리마다 오류가 하나씩 났고(new가 있는 줄은 변수의 타입과 new 뒤, 두 개), Card의 필드나 메서드를 쓰는 줄은 따로 오류가 나지 않았습니다. 값을 담지 않은 변수는 처음 쓴 줄에서만 오류가 났습니다. 화면의 코드는 클래스가 한 파일에 같이 있는 모양이고 패키지와 접근 제어자는 줄였습니다. 클래스는 필드와 메서드 말고도 생성자 등을 가질 수 있고 객체가 메모리의 어디에 놓이는지도 있지만 이 실습은 다루지 않았습니다. 변수와 객체가 놓이는 곳은 &quot;세부 동작 실습: 스택과 힙&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/method_basic/">메서드</a> · 다음 실습: <a href="../../lab/ref_basic/">참조</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=04d9f35c6d"></script>
+</body>
+</html>

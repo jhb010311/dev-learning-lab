@@ -91,3 +91,24 @@ node tools/rows.js <id>              # 조합별 결과 표를 눈으로 읽어 
 ```
 
 보고: 만든 파일, 조합 수와 대조 결과, 열어서 확인한 문서(주소와 절), 예상과 달랐던 실제 동작, 실행으로 확인하지 못한 것, 남은 걱정거리.
+
+## 11. 환경별 본보기와 이미 겪은 것
+
+이미 만든 기초개념 실습입니다. 맡은 주제와 대조 환경이 같은 것을 골라 실습 파일, Probe, cmp를 읽고 같은 방식으로 씁니다.
+
+| 대조 환경 | 실습 | Probe와 cmp |
+|---|---|---|
+| 톰캣에 배치 (소스를 컴파일해 WEB-INF/classes에) | `200_servlet_basic.js` | `verify/spring/src/ServletBasicProbe.java`, `cmp_servlet_basic.js` |
+| 스프링 부트 (조합마다 소스를 컴파일해 자식 자바 프로세스로, 실제 컴포넌트 스캔) | `201_controller_basic.js` | `verify/spring/src/ControllerBasicProbe.java`, `cmp_controller_basic.js` |
+| 자바 컴파일러 (컴파일 오류가 결과, javac 진단 코드를 한국어 표기로 옮김) | `202_interface_basic.js` | `verify/plain/InterfaceBasicProbe.java`, `cmp_interface_basic.js` |
+| SQL (H2 메모리 DB에 화면의 SQL을 글자 그대로) | `203_pk_basic.js` | `verify/spring/src/PkBasicProbe.java`, `cmp_pk_basic.js` |
+| 네트워크 (Node.js 서버에 글자를 그대로 보냄) | `204_http_basic.js` | `verify/net/http_basic_probe.js`, `cmp_http_basic.js` |
+
+- JDK: `E:/dev/jdk-21.0.12.1+1/bin`. 스프링·Hibernate·H2 라이브러리: `E:/dev/java-interview-lab/verify/spring/libs/*`(읽기만). Node.js 24. 도커와 MySQL 컨테이너는 꺼져 있고, 켜지 않습니다. DB는 H2 2.4.240(`libs/h2-2.4.240.jar`)으로 대조하고, assume에 "H2에서 실행해 대조했고 MySQL에서의 실행 대조는 하지 않았다"고 사실대로 적습니다.
+- cmp는 결과 표의 열만이 아니라 **화면의 `code(c)`가 Probe가 실제로 실행한 소스와 같은 글인지**도 조합마다 확인합니다(Probe가 실행한 소스를 출력에 남기거나 `verify/out/<id>/`에 써 둡니다). 세는 코드처럼 Probe에만 있는 줄은 표시를 해 두고 견줄 때 뺍니다.
+- 단계 문장이 기대는 사실(예: "객체는 서버가 뜰 때 이미 만들어진다")은 Probe가 따로 재서 출력에 남기고 cmp가 함께 확인합니다.
+- 오류가 결과인 실습은 오류의 **종류**만 화면에 한국어로 적고, 실제 오류 코드와 메시지 원문은 Probe 출력에 남깁니다. 어느 오류가 먼저 나오는지, 몇 개 나오는지는 예상하지 말고 실제를 따릅니다.
+- 메서드 이름 뒤에도 조사를 바로 붙이지 않습니다(`hello()을` → `hello() 메서드를`).
+- 설정이 겹쳐 결과 표의 행이 똑같아지는 조합이 실제로 있으면(예: 선언을 지우면 나머지와 상관없이 같은 오류) 억지로 열을 늘리지 않고 그대로 둡니다. 다만 단계 문장과 요약은 조합마다 그 설정에 맞게 달라야 합니다.
+- 이 PC의 셸에서 heredoc으로 파일을 쓰면 역슬래시가 사라지는 일이 있습니다(`\n`, `\\`). 파일은 Write·Edit 도구로 쓰고, 쓴 뒤에 역슬래시가 든 줄을 확인합니다.
+- 공식 문서는 WebFetch로 엽니다. 요약만 돌아와 원문을 확인하지 못한 문장은 그렇다고 보고합니다.

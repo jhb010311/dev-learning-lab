@@ -1,0 +1,7 @@
+# java 21.0.12.1
+false|num => ERR|compiler.err.cant.resolve.location|4|false|false|-|cannot find symbol|compiler.err.cant.resolve.location,compiler.err.cant.resolve.location,compiler.err.cant.resolve.location,compiler.err.cant.resolve.location|age = 20; ## age = age + 1; ## age = age + 1; ## System.out.println(age);
+false|text => ERR|compiler.err.cant.resolve.location|4|false|false|-|cannot find symbol|compiler.err.cant.resolve.location,compiler.err.cant.resolve.location,compiler.err.cant.resolve.location,compiler.err.cant.resolve.location|age = "스무 살"; ## age = age + 1; ## age = age + 1; ## System.out.println(age);
+false|none => ERR|compiler.err.cant.resolve.location|3|false|false|-|cannot find symbol|compiler.err.cant.resolve.location,compiler.err.cant.resolve.location,compiler.err.cant.resolve.location|age = age + 1; ## age = age + 1; ## System.out.println(age);
+true|num => OK|-|0|true|true|21|-|-|-
+true|text => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: java.lang.String cannot be converted to int|compiler.err.prob.found.req|int age = "스무 살";
+true|none => ERR|compiler.err.var.might.not.have.been.initialized|1|false|false|-|variable age might not have been initialized|compiler.err.var.might.not.have.been.initialized|age = age + 1;

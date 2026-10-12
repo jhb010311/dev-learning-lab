@@ -1,0 +1,14 @@
+# java 21.0.12.1
+false|new|false => ERR|compiler.err.cant.resolve.location|2|false|false|-|-|-|-|cannot find symbol|Card a = new Card(); ## Card a = new Card();
+false|new|true => ERR|compiler.err.cant.resolve.location|4|false|false|-|-|-|-|cannot find symbol|Card a = new Card(); ## Card a = new Card(); ## Card b = new Card(); ## Card b = new Card();
+false|none|false => ERR|compiler.err.cant.resolve.location|1|false|false|-|-|-|-|cannot find symbol|Card a;
+false|none|true => ERR|compiler.err.cant.resolve.location|3|false|false|-|-|-|-|cannot find symbol|Card a; ## Card b = new Card(); ## Card b = new Card();
+false|null|false => ERR|compiler.err.cant.resolve.location|1|false|false|-|-|-|-|cannot find symbol|Card a = null;
+false|null|true => ERR|compiler.err.cant.resolve.location|3|false|false|-|-|-|-|cannot find symbol|Card a = null; ## Card b = new Card(); ## Card b = new Card();
+true|new|false => OK|-|0|true|true|-|-|김철수의 카드|1|-|-
+true|new|true => OK|-|0|true|true|-|-|김철수의 카드 / 이영희의 카드 / 김철수의 카드|2|-|-
+true|none|false => ERR|compiler.err.var.might.not.have.been.initialized|1|false|false|-|-|-|-|variable a might not have been initialized|a.owner = "김철수";
+true|none|true => ERR|compiler.err.var.might.not.have.been.initialized|1|false|false|-|-|-|-|variable a might not have been initialized|a.owner = "김철수";
+true|null|false => OK|-|0|true|true|java.lang.NullPointerException|Cannot assign field "owner" because "<local1>" is null|(없음)|0|-|-
+true|null|true => OK|-|0|true|true|java.lang.NullPointerException|Cannot assign field "owner" because "<local1>" is null|(없음)|0|-|-
+FACT owner_default => null의 카드

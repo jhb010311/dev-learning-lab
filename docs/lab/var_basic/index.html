@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>변수와 타입: 변수는 무엇이고, 타입은 무엇을 정하는가 · 개발 학습 실습실</title>
+<meta name="description" content="변수는 값을 담아 두는 이름입니다. int age = 20;이라는 한 줄은 세 부분으로 되어 있습니다. int는 타입으로, 이 변수에는 정수만 담는다는 뜻입니다. age는 이름이고, 20은 처음에 담을 값입니다. 이 줄을 선언이라고 하며, 선언을 읽은 컴파일러는 &quot;age는 i…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/var_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/var_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/var_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="변수와 타입: 변수는 무엇이고, 타입은 무엇을 정하는가 · 개발 학습 실습실">
+<meta property="og:description" content="변수는 값을 담아 두는 이름입니다. int age = 20;이라는 한 줄은 세 부분으로 되어 있습니다. int는 타입으로, 이 변수에는 정수만 담는다는 뜻입니다. age는 이름이고, 20은 처음에 담을 값입니다. 이 줄을 선언이라고 하며, 선언을 읽은 컴파일러는 &quot;age는 i…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/var_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=04d9f35c6d">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › Java</p>
+<h1>변수와 타입</h1>
+<p><b>변수는 무엇이고, 타입은 무엇을 정하는가</b></p>
+<p>변수는 값을 담아 두는 이름입니다. int age = 20;이라는 한 줄은 세 부분으로 되어 있습니다. int는 타입으로, 이 변수에는 정수만 담는다는 뜻입니다. age는 이름이고, 20은 처음에 담을 값입니다. 이 줄을 선언이라고 하며, 선언을 읽은 컴파일러는 &quot;age는 int 변수다&quot;라고 기억해 두고 그 뒤의 줄들이 이 기억에 맞는지 실행하기 전에 확인합니다. 이 실습은 타입 int를 지우고, 담는 값을 바꾸고, 값을 아예 담지 않아 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지를 봅니다.</p>
+<p>실행으로 대조 · JDK 21에서 여섯 가지 조합을 javax.tools로 컴파일하고 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>변수</dt>
+<dd>변수는 값을 담아 두는 저장 공간에 붙인 이름이다. 모든 변수에는 컴파일할 때 이미 정해진 타입이 있고, 그 타입이 어떤 종류의 값을 담을 수 있는지를 정한다. 예를 들어 int age;로 선언한 변수는 정수만 담을 수 있고, int는 -2147483648부터 2147483647까지의 32비트 정수이다. 변수에 값을 담는 것은 = 로 하며, age = age + 1;은 &quot;오른쪽을 계산한 값을 왼쪽 변수에 담는다&quot;는 뜻이다. 담긴 값은 바뀔 수 있지만 변수의 이름과 타입은 바뀌지 않는다. 타입에 맞지 않는 값을 담으려 하면 컴파일 오류이다.</dd>
+<dt>선언과 초기화</dt>
+<dd>메서드 안에서 변수를 만드는 줄을 지역 변수 선언이라고 하며 타입, 이름, 그리고 선택적으로 = 뒤에 처음 담을 값(초기화)을 적는다. int age;는 선언만 한 것이고 int age = 20;은 선언하면서 초기화한 것이다. 선언하지 않은 이름을 쓰면 컴파일러가 그 이름을 찾지 못해 오류를 낸다. 지역 변수는 필드와 달리 0 같은 기본값이 저절로 들어가지 않으므로, 값을 읽기 전에 반드시 값이 담겨 있어야 하고 아니면 컴파일 오류이다. 값을 담는 줄 = 의 왼쪽에 쓴 이름은 읽는 것으로 치지 않는다.</dd>
+<dt>타입</dt>
+<dd>타입은 변수에 담을 수 있는 값의 종류를 정하는 이름이다. 자바의 타입은 기본형과 참조형으로 나뉘고, 참조형에는 클래스 타입, 인터페이스 타입, 타입 변수, 배열 타입이 있다. class Card나 interface Payable 선언을 쓰면 Card, Payable이라는 타입을 쓸 수 있게 된다. 컴파일러는 값을 변수에 담는 줄마다, 그 값의 타입이 변수의 타입과 같거나 그 하위 타입인지 확인한다. 클래스가 implements로 밝힌 인터페이스는 그 클래스의 상위 타입이다. 선언하지 않은 이름을 타입으로 쓰면 컴파일러가 그 타입을 찾지 못해 오류를 낸다.</dd>
+<dt>기본형과 참조형</dt>
+<dd>자바의 타입은 기본형과 참조형 두 가지로 나뉜다. 기본형은 byte, short, int, long, float, double, char, boolean의 여덟 가지이며, 변수가 값 자체를 담는다. 참조형은 클래스, 인터페이스, 배열처럼 그 밖의 모든 타입이며, 변수가 객체 자체가 아니라 객체를 가리키는 참조를 담는다. 그래서 기본형 변수를 대입하면 값이 복사되어 두 변수가 서로 영향을 주지 않지만, 참조형 변수를 대입하면 참조가 복사되어 두 변수가 같은 객체를 가리키게 된다. 참조형 변수는 아무 객체도 가리키지 않는다는 뜻의 null을 담을 수 있고, 기본형 변수는 null을 담을 수 없다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 이름 age에 타입 int를 붙여 선언하고 20을 담습니다. 컴파일에 성공하고 21이 출력됩니다.</li>
+<li><b>타입 int를 지우면</b> — 컴파일러가 age가 무엇인지 몰라 선언하지 않은 이름이라는 오류가 납니다.</li>
+<li><b>&quot;스무 살&quot;을 담으면</b> — int 변수에 글자를 담을 수 없다는 컴파일 오류가 납니다.</li>
+<li><b>값을 담지 않으면</b> — 변수는 만들어지지만, 값을 담기 전에 읽어서 컴파일 오류가 납니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>컴파일러가 main 안을 위에서부터 읽습니다. 먼저 int age = 20; 줄을 읽습니다. 이 줄은 세 부분입니다. int는 타입으로, 정수만 담는다는 뜻입니다. age는 이름입니다. 20은 담을 값입니다. 컴파일러는 &quot;age라는 이름은 int 타입의 변수다&quot;라고 기억합니다.</li>
+<li>컴파일러가 담으려는 값을 확인합니다. 20은 정수이므로 정수만 담는 int 변수 age에 담을 수 있습니다.</li>
+<li>컴파일러가 age = age + 1; 줄을 확인합니다. 오른쪽의 age + 1은 age에 담긴 값을 읽는 일입니다. age는 int로 선언돼 있고 앞 줄에서 값이 담겼으므로 읽을 수 있습니다. int에 1을 더한 결과도 정수이므로 다시 age에 담아도 됩니다.</li>
+<li>컴파일러가 System.out.println(age); 줄을 확인합니다. age는 int 변수이고 값도 담겨 있으므로 읽어서 출력할 수 있습니다.</li>
+<li>컴파일이 성공해 실행할 Main 클래스 파일이 만들어집니다. age가 int인지, 담는 값이 맞는지, 읽을 수 있는지는 실행할 때가 아니라 지금 컴파일러가 컴파일하면서 확인했습니다.</li>
+<li>java Main으로 실행합니다. main이 시작되고 int age = 20; 줄이 실행됩니다. age라는 이름표가 붙은 int 칸이 만들어지고, 그 칸에 20이 담깁니다.</li>
+<li>age = age + 1; 줄이 실행됩니다. 먼저 오른쪽의 age + 1을 계산합니다. age 칸에 든 20에 1을 더하면 21입니다. 이 값을 같은 age 칸에 담습니다. 칸은 그대로이고 안의 값만 20에서 21로 바뀝니다. 여기서 = 는 &quot;같다&quot;가 아니라 &quot;오른쪽 계산 결과를 왼쪽 칸에 담는다&quot;는 뜻입니다.</li>
+<li>System.out.println(age);가 실행됩니다. age 칸에 든 값을 읽어 화면에 21을 출력합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>변수는 값을 담아 두는 이름입니다. int age = 20;은 세 부분입니다. 타입 int(정수만 담는다는 뜻), 이름 age, 담을 값 20입니다. 컴파일러가 이 줄에서 &quot;age는 int 변수&quot;라고 기억하고, 그 뒤의 줄들이 이 기억에 맞는지 실행하기 전에 확인했습니다.</li>
+<li>실행하면 age 칸에 20이 담기고, age = age + 1;이 같은 칸의 값을 21로 바꾸고, 21이 출력됩니다. 변수는 이름과 칸이 그대로이고 안의 값만 바뀔 수 있습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>public class Main {
+    public static void main(String[] args) {
+        // 선언: int 타입의 변수 age를 만들고 20을 담는다
+        int age = 20;
+        age = age + 1;
+        System.out.println(age);
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.cant.resolve.location, prob.found.req, var.might.not.have.been.initialized를 화면의 세 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력입니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 모든 변수와 식에 컴파일할 때 알려진 타입이 있다는 것은 4장 서두, 변수가 값을 담는 저장 공간이고 컴파일 시점의 타입을 가진다는 것은 4.12절, 기본형 변수는 그 타입의 값만 담는다는 것은 4.12.1절, int가 32비트 부호 있는 정수라는 것은 4.2절과 4.2.1절, 지역 변수 선언이 타입(또는 var)과 이름과 선택적인 초기화로 이루어진다는 것은 14.4절, 초기화 없이 선언한 변수는 읽기 전에 값을 담아야 하고 아니면 컴파일 오류라는 것은 14.4.2절과 4.12.5절과 16장 서두를 따랐습니다. 지역 변수에는 필드와 달리 기본값이 저절로 들어가지 않는다는 것도 4.12.5절입니다. 값을 읽는 것만 접근으로 치고 = 왼쪽의 이름은 접근이 아니라는 것은 16장 서두입니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 오류가 여럿이면 javac는 모두 알리는데, 표에는 첫 번째 것만 적었습니다. 컴파일에 실패한 모든 조합에서 Main 클래스 파일은 만들어지지 않았고, 그래서 실행할 수 없다고 적었습니다. 타입 int도 값도 없는 조합은 선언 줄을 아예 두지 않았습니다. 타입 없이 age;만 쓴 줄은 문법에 맞는 문장이 아니기 때문이며(14.8절: 문장으로 쓸 수 있는 식은 대입, 증감, 메서드 호출, 객체 생성뿐), 이 모양을 한 번 따로 컴파일해 보니 javac가 not a statement라는 문법 오류를 냈습니다(조합 대조에는 넣지 않았습니다). 이 실습은 지역 변수와 int 하나만 다뤘습니다. 다른 기본형, 참조형 변수, var, 변수의 이름 짓기와 범위, 상수(final)는 다루지 않았습니다. 기본형과 참조형 변수에 값이 어떻게 복사되는지는 &quot;세부 동작 실습: 변수와 타입&quot;에서 다룹니다.</p>
+<p>다음 실습: <a href="../../lab/method_basic/">메서드</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=04d9f35c6d"></script>
+</body>
+</html>

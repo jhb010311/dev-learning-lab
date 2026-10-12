@@ -1,0 +1,5 @@
+# java 21.0.12.1
+same => OK|이영희|true|1|1|true|김철수|true
+fresh => OK|김철수|false|2|2|false|null|false
+copy => OK|김철수|false|2|2|false|김철수|true
+prim => OK|1|false|-|-|true|-|-

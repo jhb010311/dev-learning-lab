@@ -1,0 +1,14 @@
+# java 21.0.12.1
+false|once|two => ERR|compiler.err.cant.resolve.location.args|1|false|false|-|cannot find symbol|int sum = add(2, 3);
+false|once|one => ERR|compiler.err.cant.resolve.location.args|1|false|false|-|cannot find symbol|int sum = add(2);
+false|twice|two => ERR|compiler.err.cant.resolve.location.args|2|false|false|-|cannot find symbol|int sum = add(2, 3); ## int sum2 = add(2, 3);
+false|twice|one => ERR|compiler.err.cant.resolve.location.args|2|false|false|-|cannot find symbol|int sum = add(2); ## int sum2 = add(2);
+false|none|two => OK|-|0|true|true||-|-
+false|none|one => OK|-|0|true|true||-|-
+true|once|two => OK|-|0|true|true|add 실행 / 5|-|-
+true|once|one => ERR|compiler.err.cant.apply.symbol|1|false|false|-|method add in class Main cannot be applied to given types;|int sum = add(2);
+true|twice|two => OK|-|0|true|true|add 실행 / 5 / add 실행 / 5|-|-
+true|twice|one => ERR|compiler.err.cant.apply.symbol|2|false|false|-|method add in class Main cannot be applied to given types;|int sum = add(2); ## int sum2 = add(2);
+true|none|two => OK|-|0|true|true||-|-
+true|none|one => OK|-|0|true|true||-|-
+FACT order => main 시작 / add 실행 / 5
