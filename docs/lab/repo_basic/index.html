@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>리포지토리: 리포지토리는 무엇이고, 구현은 누가 만드는가 · 개발 학습 실습실</title>
+<meta name="description" content="스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository&lt;Member, Long&gt;이라고 선언만 하면, 스프링이 시작할 때 이 인터페이스를 구현한 객체를…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/repo_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/repo_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/repo_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="리포지토리: 리포지토리는 무엇이고, 구현은 누가 만드는가 · 개발 학습 실습실">
+<meta property="og:description" content="스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository&lt;Member, Long&gt;이라고 선언만 하면, 스프링이 시작할 때 이 인터페이스를 구현한 객체를…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/repo_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=a00b9e3361">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › JPA</p>
+<h1>리포지토리</h1>
+<p><b>리포지토리는 무엇이고, 구현은 누가 만드는가</b></p>
+<p>스프링 데이터 JPA의 리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. interface MemberRepository extends JpaRepository&lt;Member, Long&gt;이라고 선언만 하면, 스프링이 시작할 때 이 인터페이스를 구현한 객체를 대신 만들어 빈으로 등록합니다. 그래서 우리가 한 줄도 구현하지 않은 save 메서드를 부를 수 있습니다. save는 JpaRepository에 선언돼 있어서 물려받은 것입니다. findByName처럼 정해진 이름 규칙(findBy 뒤에 필드 이름)에 맞춰 메서드를 선언하면, 스프링이 그 이름을 읽어 쿼리까지 만들어 줍니다. 이 실습은 extends JpaRepository와 찾는 메서드의 선언을 바꿔 가며 같은 코드를 컴파일하고 스프링을 시작해, 구현 객체가 만들어지는지와 어떤 SQL이 나가는지를 봅니다.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1, 스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, H2에서 여섯 가지 조합을 컴파일하고 실제 스프링 시작으로 구현 객체와 나간 SQL을 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>리포지토리</dt>
+<dd>리포지토리(Repository)는 스프링 데이터에서 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스다. 스프링 데이터가 정한 중심 인터페이스는 Repository이고, 다루는 엔티티 클래스와 그 id의 타입을 타입 인자로 받는다. 개발자는 이 인터페이스를 상속한 인터페이스를 선언만 하고 구현 클래스는 쓰지 않는다. 스프링은 시작할 때 설정된 패키지 아래에서 이런 인터페이스를 모두 찾아, 각각에 대해 호출을 처리하는 프록시 객체를 만들어 빈으로 등록한다. 그래서 그 빈을 주입받아 save 같은 메서드를 바로 부를 수 있다. Repository를 상속하지 않은 평범한 인터페이스는 찾지 않으므로 구현 객체도 만들어지지 않는다.</dd>
+<dt>JpaRepository</dt>
+<dd>JpaRepository는 스프링 데이터 JPA가 제공하는 리포지토리 인터페이스로, 엔티티 클래스와 id 타입을 타입 인자로 받는다(예: JpaRepository&lt;Member, Long&gt;). 저장 기술에 맞춘 이 인터페이스는 CrudRepository 계열 인터페이스를 확장하므로, 이를 상속하면 save, findById, findAll, count, delete 같은 기본 메서드를 선언하지 않고도 물려받아 쓸 수 있다. 이 인터페이스를 상속해 선언하면 스프링 데이터 JPA의 대상이 되어, 스프링이 시작할 때 그 인터페이스의 구현 객체를 만들어 준다. 상속하지 않으면 이런 메서드가 없어 save를 부르는 코드는 컴파일되지 않는다. 메서드 이름을 findByName처럼 규칙에 맞게 선언하면 쿼리 메서드가 되어 쿼리까지 만들어 준다.</dd>
+<dt>쿼리 메서드</dt>
+<dd>스프링 데이터 리포지토리 인터페이스에 선언한 메서드의 이름을 읽어 쿼리를 만들어 주는 기능이다. findByName처럼 find…By 뒤에 엔티티의 프로퍼티 이름을 쓰고, GreaterThan이나 Containing 같은 키워드를 프로퍼티 이름 뒤에 붙여 조건의 종류를 정하며, 여러 조건은 And나 Or로 잇는다. 이름을 쿼리로 바꾸는 일은 애플리케이션이 뜰 때 하므로, 엔티티에 없는 프로퍼티 이름을 쓰면 PropertyReferenceException이 나고 애플리케이션이 뜨지 않는다. 조건이 많아지면 이름이 지나치게 길어지므로 그때는 @Query에 JPQL을 직접 적는다.</dd>
+<dt>JPA, Hibernate, Spring Data JPA</dt>
+<dd>JPA는 자바의 ORM 표준 명세로, 어떤 기능을 어떻게 사용할지 정한 규칙(인터페이스)이다. Hibernate는 그 명세를 실제로 구현한 라이브러리다. Spring Data JPA는 JPA를 더 쉽게 쓰도록 리포지토리 인터페이스를 제공하는 스프링의 모듈이며 내부적으로 JPA(Hibernate)를 사용한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 선언만 한 인터페이스. 스프링이 구현 객체를 만들어 주어 save와 findByName이 실행되고 SQL이 나갑니다.</li>
+<li><b>extends JpaRepository를 지우면</b> — 평범한 인터페이스가 되어 save가 없고, 컴파일에 실패합니다. 스프링도 구현 객체를 만들지 않습니다.</li>
+<li><b>findByName 선언을 지우면</b> — 선언한 메서드가 없어도 물려받은 save와 count가 실행됩니다.</li>
+<li><b>Member에 없는 필드로 선언하면</b> — 스프링이 쿼리를 만들지 못해 시작하다가 실패합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>컴파일러가 MemberRepository.java와 쓰는 쪽을 확인합니다. 인터페이스가 extends JpaRepository&lt;Member, Long&gt;을 선언해 JpaRepository의 메서드를 물려받으므로, 우리가 선언하지 않은 save 메서드를 부르는 줄도 오류가 아닙니다. findByName 메서드는 우리가 선언한 것입니다. 컴파일에 성공합니다.</li>
+<li>main이 SpringApplication.run으로 스프링을 시작합니다. 스프링 데이터가 시작 클래스가 있는 app 패키지에서 JpaRepository를 상속한 인터페이스를 찾습니다. extends JpaRepository가 붙은 MemberRepository가 찾아집니다. 우리가 쓴 코드에는 MemberRepository를 구현한 클래스도, 구현을 만드는 줄도 없습니다.</li>
+<li>스프링 데이터가 MemberRepository를 구현한 객체를 만들어 빈으로 등록합니다. 이 객체는 우리가 쓴 클래스가 아니라 스프링이 실행 중에 만든 것이고, MemberRepository 타입으로 쓸 수 있습니다. save 같은 물려받은 메서드는 이 객체가 실행합니다.</li>
+<li>이때 스프링 데이터가 findByName 메서드의 이름을 읽습니다. findBy는 &quot;찾는다&quot;, 그 뒤의 Name은 Member의 name 필드라는 규칙에 따라 &quot;name으로 찾는 쿼리&quot;를 준비합니다. Member에 name 필드가 있어서 통과합니다. 이름이 규칙에 맞지 않으면 여기서 실패합니다.</li>
+<li>main이 스프링에서 MemberRepository 타입의 빈을 받아 memberRepository에 담습니다(화면에서는 줄여 둔 부분). 담긴 것은 방금 스프링이 만든 구현 객체입니다. new로 만든 객체가 아닙니다. 이 뒤에 나가는 SQL부터 셉니다.</li>
+<li>memberRepository.save(new Member(1L, &quot;김철수&quot;))가 실행됩니다. save 메서드를 쓴 코드는 우리에게 없고, JpaRepository에서 물려받은 것을 스프링이 만든 구현 객체가 실행합니다. Member의 id가 1로 이미 정해져 있어서, 스프링 데이터는 id가 1인 행이 이미 있는지 먼저 SELECT로 찾아봅니다(SELECT 1번). 그런 행은 없습니다.</li>
+<li>찾은 행이 없으므로 구현 객체가 INSERT를 보내 member 테이블에 id 1, 김철수 행을 저장합니다(INSERT 1번). 우리가 쓴 SQL은 한 줄도 없습니다.</li>
+<li>memberRepository.findByName(&quot;김철수&quot;)가 실행됩니다. 구현 객체가 시작할 때 읽어 둔 이름 규칙대로 SELECT를 보냅니다: select m1_0.id,m1_0.name from member m1_0 where m1_0.name=? (name=? 자리에는 넘긴 &quot;김철수&quot;가 들어갑니다). 우리가 쓴 쿼리는 없습니다. 찾은 행 1개가 Member 객체가 되어 List에 담깁니다.</li>
+<li>println이 found.size()를 출력합니다. 찾은 Member가 1개이므로 1입니다. 우리가 쓴 것은 인터페이스의 선언 두 줄(인터페이스 선언과 findByName 한 줄)뿐이었습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>리포지토리는 엔티티를 저장하고 찾는 메서드를 모아 둔 인터페이스입니다. extends JpaRepository&lt;Member, Long&gt;을 선언하면 스프링이 시작할 때 이 인터페이스의 구현 객체를 대신 만들어 빈으로 등록하고, 그래서 우리가 구현하지 않은 save를 부를 수 있었습니다.</li>
+<li>save는 JpaRepository에서 물려받은 메서드이고, findByName은 이름의 규칙(findBy + 필드 이름)을 스프링이 읽어 SELECT를 만든 것입니다. 우리가 쓴 것은 인터페이스의 선언뿐이고, 구현 클래스도 SQL도 쓰지 않았습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 자격: 스프링이 구현을 대신 만들어 준다 (구현 클래스는 쓰지 않는다)
+public interface MemberRepository extends JpaRepository&lt;Member, Long&gt; {
+    // 이름의 규칙(findBy + 필드 이름)을 보고 스프링이 쿼리를 만든다
+    List&lt;Member&gt; findByName(String name);
+}
+
+// 쓰는 쪽
+memberRepository.save(new Member(1L, &quot;김철수&quot;));
+List&lt;Member&gt; found = memberRepository.findByName(&quot;김철수&quot;);
+System.out.println(found.size());</pre>
+<h2>이 모형의 전제</h2>
+<p>스프링 부트 4.1.1(스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, 스프링 프레임워크 7.0.9)을 JDK 21에서, H2 2.4.240 메모리 DB에서 실행해 대조했고 MySQL에서의 실행 대조는 하지 않았습니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 소스(패키지 app의 MemberRepository와 쓰는 쪽을 가진 Main, 끝에 PROBE 표시를 붙인 측정 줄만 더함)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 자바 프로세스를 새로 띄워 실행했습니다. 시작 클래스는 @SpringBootConfiguration과 @EnableAutoConfiguration을 붙였고 웹 서버는 띄우지 않았습니다. 엔티티 Member(id는 Long, name은 String)와 MemberRepository는 시작 클래스와 같은 패키지에 두고, 리포지토리를 손으로 등록하지 않고 스프링 데이터가 패키지를 훑어 인터페이스를 찾아 구현 객체를 만들게 했습니다. 대조한 것은 출력한 글, 컴파일 오류의 javac 진단 코드와 줄(cant.resolve.location.args, 첫 오류가 save이고 count가 있으면 둘째 오류), 스프링이 시작하다 실패한 예외의 사슬(BeanCreationException, QueryCreationException, PropertyReferenceException), 스프링 컨텍스트에 있는 MemberRepository 빈의 수, 그 객체가 우리가 쓴 클래스인지 아닌지(JDK 동적 프록시이고 MemberRepository를 구현한 우리 클래스는 없음), 시작이 끝난 뒤 DB로 나간 SQL의 종류별 수와 문장(Hibernate의 StatementInspector로 잡음)입니다. extends JpaRepository가 없는 세 조합은 컴파일이 실패하므로, 쓰는 쪽을 뺀 같은 인터페이스로 스프링을 따로 띄워 구현 객체가 0개인 것을 확인했습니다. 컴파일이 실패한 조합에서는 Main 클래스 파일이 만들어지지 않았습니다. 문서는 직접 열어 확인했습니다. 스프링 데이터 커먼즈 문서의 Creating Repository Instances 절은 스프링 데이터가 설정된 패키지 아래에서 리포지토리 하위 인터페이스를 상속한 인터페이스를 모두 찾아 그것마다 빈 객체를 만들고, 쿼리 메서드 호출을 처리하는 프록시를 만든다고 하며, 스프링 데이터 JPA 문서의 Core concepts 절은 Repository가 중심 인터페이스이고 JpaRepository 같은 저장 기술별 인터페이스가 CrudRepository를 확장한다고, Defining Repository Interfaces 절은 인터페이스가 Repository를 상속해야 하고 JpaRepository를 상속한 인터페이스가 스프링 데이터 JPA 모듈의 대상이라고 합니다. Query Methods 절의 Query Creation과 Property Expressions는 메서드 이름의 첫 By까지가 주제이고 그 뒤가 조건이라는 것, 쿼리를 만드는 때에 파싱한 이름이 관리하는 엔티티의 프로퍼티인지 확인한다는 것을 설명합니다. 그 확인이 스프링을 시작할 때 일어나 시작을 실패시킨다는 것과 예외의 이름은 문서가 정한 것이 아니라 이 버전에서 관찰한 동작입니다. 구현 객체의 실제 클래스가 JDK 프록시인 것, save가 id가 있는 엔티티에 대해 INSERT에 앞서 SELECT를 한 번 보내는 것, 나간 SQL의 모양과 개수도 이 버전과 설정에서 관찰한 것으로, 버전에 따라 다를 수 있습니다. 화면의 코드는 package와 import 줄을 줄였고, Member 엔티티, 스프링을 시작하고 구현 객체를 받는 main의 줄, DB 설정은 보이지 않습니다. 이 실습은 쿼리 메서드의 이름 규칙 가운데 findBy와 필드 이름 하나만 다루며, @Query, 조건 키워드(And, GreaterThan 등), 반환 타입, 페이지 요청, 트랜잭션은 다루지 않습니다. 이것들은 &quot;세부 동작 실습: 스프링 데이터 JPA&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/pc_basic/">영속성 컨텍스트</a> · 다음 실습: <a href="../../lab/pk_basic/">기본 키</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=a00b9e3361"></script>
+</body>
+</html>

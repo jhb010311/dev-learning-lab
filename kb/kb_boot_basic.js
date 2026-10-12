@@ -1,0 +1,5 @@
+// 기초개념 "스프링 부트" 실습의 용어. 근거: 스프링 부트 문서 Developing with Spring Boot(using/index, Build Systems의 Starters 절, Using the @SpringBootApplication Annotation, Auto-configuration), SpringApplication(features/spring-application의 Web Environment 절), Embedded Servlet Container Support(web/servlet), SpringApplication의 API 문서.
+module.exports = [
+  ['Spring', '스프링 부트', '스프링 부트는 스프링 애플리케이션을 만들고 실행하는 데 필요한 설정을 줄여 주는 스프링의 라이브러리다. 애플리케이션은 main 메서드에서 SpringApplication.run(App.class, args)를 부르는 것으로 시작하며, 이 호출이 스프링을 시작해 빈을 만들고, 웹 애플리케이션이면 웹 서버(기본은 톰캣)를 프로그램 안에서 띄워 요청을 받을 준비까지 한다. 스프링 부트는 프로젝트에 들어 있는 라이브러리를 보고 무엇을 설정할지 정하므로, 같은 코드라도 웹 라이브러리가 있으면 웹 서버가 뜨고 없으면 뜨지 않는다. 웹 서버를 따로 설치하거나 서버를 띄우는 코드를 쓰지 않아도 되는 것이 이 방식의 특징이다.'],
+  ['Spring', '@SpringBootApplication', '@SpringBootApplication은 스프링 부트 애플리케이션의 시작 클래스 위에 붙이는 애너테이션이다. @EnableAutoConfiguration(스프링 부트의 자동 설정을 켠다), @ComponentScan(이 클래스가 있는 패키지부터 @Component 계열 클래스를 훑어 찾는다), @SpringBootConfiguration(추가 빈을 등록하거나 다른 설정 클래스를 가져올 수 있게 한다)을 하나로 합친 것이다. 이 애너테이션이 없으면 클래스 훑기도 자동 설정도 일어나지 않으므로, 웹 라이브러리가 있는 프로젝트에서도 웹 서버를 만드는 설정이 없어 시작에 실패한다.'],
+];

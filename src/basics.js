@@ -28,12 +28,12 @@ Lab.basics({
       { id: 'servlet_basic' },
       { id: 'controller_basic' },
       { id: 'tx_basic' },
-      { t: '스프링 부트', d: '서버를 띄우는 일까지 대신 해 주는 것' },
+      { id: 'boot_basic' },
     ] },
     { name: 'JPA', desc: '자바 객체를 테이블에 저장할 때 나오는 것들입니다.', items: [
       { id: 'entity_basic' },
       { id: 'pc_basic' },
-      { t: '리포지토리', d: '저장하고 찾는 메서드를 모아 둔 인터페이스' },
+      { id: 'repo_basic' },
       { t: '연관관계', d: '엔티티가 다른 엔티티를 가리키는 것' },
     ] },
     { name: 'DB', desc: '테이블에 데이터를 넣고 찾을 때의 기본 약속들입니다.', items: [
