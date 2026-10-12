@@ -52,7 +52,7 @@ Lab.basics({
       { id: 'http_basic' },
       { id: 'httpres_basic' },
       { id: 'cookie_basic' },
-      { t: 'JSON', d: '데이터를 글자로 적는 약속' },
+      { id: 'json_basic' },
       { t: 'HTTPS', d: '주고받는 글을 남이 읽지 못하게 하는 것' },
     ] },
     { name: '보안', desc: '누구인지 확인하고 지키는 일의 기본입니다.', items: [

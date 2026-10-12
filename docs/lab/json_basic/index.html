@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JSON: JSON은 어떻게 생긴 글이고, 무엇이 틀리면 읽히지 않는가 · 개발 학습 실습실</title>
+<meta name="description" content="프로그램끼리 데이터를 주고받을 때(예: 서버가 브라우저에 회원 정보를 보낼 때), 메모리 안의 객체를 그대로 보낼 수는 없습니다. 그래서 정해진 약속대로 글자로 적어 보내고, 받는 쪽은 그 글자를 읽어 다시 자기 언어의 객체로 만듭니다. JSON은 가장 널리 쓰이는 그 약속입…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/json_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/json_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/json_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="JSON: JSON은 어떻게 생긴 글이고, 무엇이 틀리면 읽히지 않는가 · 개발 학습 실습실">
+<meta property="og:description" content="프로그램끼리 데이터를 주고받을 때(예: 서버가 브라우저에 회원 정보를 보낼 때), 메모리 안의 객체를 그대로 보낼 수는 없습니다. 그래서 정해진 약속대로 글자로 적어 보내고, 받는 쪽은 그 글자를 읽어 다시 자기 언어의 객체로 만듭니다. JSON은 가장 널리 쓰이는 그 약속입…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/json_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=feca155288">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › 네트워크</p>
+<h1>JSON</h1>
+<p><b>JSON은 어떻게 생긴 글이고, 무엇이 틀리면 읽히지 않는가</b></p>
+<p>프로그램끼리 데이터를 주고받을 때(예: 서버가 브라우저에 회원 정보를 보낼 때), 메모리 안의 객체를 그대로 보낼 수는 없습니다. 그래서 정해진 약속대로 글자로 적어 보내고, 받는 쪽은 그 글자를 읽어 다시 자기 언어의 객체로 만듭니다. JSON은 가장 널리 쓰이는 그 약속입니다. 코드 칸에 보이는 것이 JSON 글 그대로입니다. { } 안에 &quot;이름&quot;: 값을 쉼표로 이어 적고, 이름과 글자 값은 큰따옴표로 감싸며, 숫자는 따옴표 없이 적습니다. [ ]는 값 여러 개의 목록입니다. 따옴표가 있고 없고가 값의 종류를 정해서 30은 숫자, &quot;30&quot;은 글자입니다. 이 실습은 이름의 따옴표, age의 값, 쉼표를 하나씩 바꿔 가며 같은 글을 두 가지 해석기(글을 읽어 객체로 만드는 프로그램), 곧 Node.js의 JSON.parse와 자바의 Jackson에 넣어, 읽히는지와 읽은 age가 어떤 종류인지를 봅니다. JSON에는 주석을 적는 문법이 없어서, 코드 칸에는 설명 없이 글만 보입니다.</p>
+<p>실행으로 대조 · Node.js 24.18.0의 JSON.parse와 Jackson 3.1.5(기본 설정)에 열여덟 가지 조합의 글자를 그대로 넣어 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>JSON</dt>
+<dd>JSON(JavaScript Object Notation)은 구조가 있는 데이터를 글자로 적어 주고받기 위한 텍스트 형식이다(RFC 8259 1절). 객체는 { } 안에 &quot;이름&quot;: 값을 쉼표로 이어 적고, 목록은 [ ] 안에 값을 쉼표로 이어 적는다. 이름은 반드시 큰따옴표로 감싼 글자이고(4절), 쉼표는 값과 값 사이에만 둔다(4절과 5절의 문법). 서버가 브라우저에 데이터를 보낼 때처럼 프로그램끼리 데이터를 주고받는 곳에서 널리 쓰이며, 받는 쪽이 이 규칙에 어긋난 글을 받으면 보통 글 전체를 읽지 못한다.</dd>
+<dt>JSON의 값의 종류</dt>
+<dd>JSON의 값은 객체, 목록(배열), 숫자, 글자(문자열), 그리고 false, null, true라는 세 낱말 중 하나이다(RFC 8259 3절). 글자는 큰따옴표로 감싸고(7절), 숫자는 따옴표 없이 10진수 숫자로 적고(6절), false, null, true도 따옴표 없이 소문자로 적는다(3절). 따옴표가 있고 없고가 종류를 가르므로 30은 숫자이고 &quot;30&quot;은 글자이다. 읽은 뒤의 계산도 종류를 따라가서, 자바스크립트에서 숫자 30에 1을 더하면 31이지만 글자 &quot;30&quot;에 1을 더하면 글자 &quot;301&quot;이 된다.</dd>
+<dt>파싱(parsing)</dt>
+<dd>파싱은 글자로 적힌 데이터를 문법에 따라 앞에서부터 읽어, 프로그램이 다룰 수 있는 구조(객체 등)로 바꾸는 일이고, 그 일을 하는 프로그램을 해석기(파서)라고 한다. RFC 8259 9절은 JSON 해석기를 JSON 글을 다른 표현으로 바꾸는 것으로 설명하고, JSON 문법에 맞는 글은 모두 받아야 한다고 정한다. 문법에 어긋난 글을 만나면 해석기는 오류를 낸다. 같은 절은 해석기가 JSON이 아닌 형식이나 확장을 받아 줄 수도 있다고 하므로, 어떤 해석기는 설정에 따라 작은따옴표나 마지막 쉼표 같은 것을 받아 주기도 한다.</dd>
+<dt>직렬화와 역직렬화</dt>
+<dd>객체를 저장하거나 전송할 수 있는 형태(바이트열, JSON 등)로 바꾸는 것이 직렬화, 그것을 다시 객체로 복원하는 것이 역직렬화다. 웹 API에서는 객체와 JSON 사이의 변환(Jackson 등)이 대표적이다. 자바 기본 직렬화(Serializable)는 클래스 구조가 바뀌면 호환성 문제가 생기고 보안 위험이 있어 지금은 JSON 등의 형식을 주로 쓴다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 규칙에 맞는 JSON 글. 해석기가 읽어 age가 숫자인 객체를 만듭니다.</li>
+<li><b>30에 큰따옴표를 붙이면</b> — 읽히지만 age가 글자가 되어, 1을 더하면 301이 됩니다.</li>
+<li><b>이름의 큰따옴표를 지우면</b> — 이름에 따옴표가 없어 글 전체를 읽지 못합니다.</li>
+<li><b>작은따옴표를 쓰면</b> — 작은따옴표는 JSON의 따옴표가 아니어서 글 전체를 읽지 못합니다.</li>
+<li><b>마지막 값 뒤에 쉼표를 붙이면</b> — 쉼표 뒤에 이름이 와야 하는데 끝(})이 와서 글 전체를 읽지 못합니다.</li>
+<li><b>쉼표를 빠뜨리면</b> — 값 사이에 쉼표가 없어 글 전체를 읽지 못합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>서버가 브라우저에 회원 정보를 보내려 합니다. 서버의 메모리 안에 있는 객체(이름, 나이, 태그를 가진 것)는 그대로 보낼 수 없습니다. 그래서 정해진 약속대로 글자로 적어 보내는데, 그 약속이 JSON입니다. 보내는 쪽이 객체를 아래 글자로 적었습니다. 받는 쪽의 해석기가 이 글을 읽어 객체로 되돌립니다. 이 실습은 같은 글을 Node.js의 JSON.parse와 자바의 Jackson 두 해석기에 넣어 보았고, 모든 조합에서 두 해석기의 판단이 같았습니다.</li>
+<li>받는 쪽 해석기가 글을 앞에서부터 차례로 읽습니다. 첫 글자는 {입니다. {는 &quot;이름과 값의 묶음이 시작된다&quot;는 뜻이어서, 해석기는 이제부터 &quot;이름&quot;: 값이 쉼표로 이어지다가 }로 끝나리라고 기대합니다.</li>
+<li>다음에 &quot;name&quot;이 나옵니다. 묶음 안에서 큰따옴표로 감싼 글자는 이름입니다. 뒤따르는 :는 &quot;이 뒤가 이 이름의 값&quot;이라는 표시입니다.</li>
+<li>: 뒤의 &quot;김철수&quot;는 큰따옴표로 감싸여 있으니 글자 값입니다. 이어서 쉼표가 있으므로 다음 &quot;이름&quot;: 값이 이어집니다.</li>
+<li>쉼표 다음 줄입니다. &quot;age&quot;는 큰따옴표로 감싼 이름이고, : 뒤의 값은 30입니다. 큰따옴표가 없고 숫자 모양이어서 숫자 값입니다. 뒤에 쉼표가 있어 다음 묶음이 이어집니다.</li>
+<li>쉼표 다음 줄입니다. &quot;tags&quot;는 큰따옴표로 감싼 이름이고, 값은 [로 시작합니다. [ ]는 값 여러 개의 목록입니다. 안의 &quot;vip&quot;와 &quot;new&quot;는 둘 다 큰따옴표로 감싸여 글자 두 개이고, 사이의 쉼표로 나뉩니다. ]에서 목록이 끝납니다.</li>
+<li>마지막으로 }를 만났습니다. 쉼표 없이 }가 나왔으니 {로 시작한 묶음이 여기서 끝납니다. 규칙에 어긋난 곳이 한 군데도 없이 끝까지 읽혔습니다.</li>
+<li>읽기에 성공해, 받는 쪽이 자기 언어의 객체를 만들었습니다. name은 글자 &quot;김철수&quot;, age는 숫자 30, tags는 글자 두 개의 목록입니다. 글자로 적어 보낸 것이 다시 객체가 되었습니다.</li>
+<li>받는 쪽 프로그램이 읽은 객체에서 age를 꺼내 1을 더합니다(자바스크립트로 읽은객체.age + 1을 실행한 결과입니다). age가 숫자 30이라서 숫자끼리의 덧셈이고, 결과는 31입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>JSON은 객체를 글자로 적어 주고받는 약속입니다. { } 안에 &quot;이름&quot;: 값을 쉼표로 이어 적고, 이름과 글자 값은 큰따옴표로 감싸며, 숫자는 따옴표 없이 적습니다. 받는 쪽 해석기는 이 글을 앞에서부터 읽어 객체로 만들었습니다.</li>
+<li>age의 30은 따옴표가 없어 숫자이고, 1을 더하면 31입니다. 이 글은 규칙에 한 군데도 어긋나지 않았기 때문에 읽혔습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>{
+  &quot;name&quot;: &quot;김철수&quot;,
+  &quot;age&quot;: 30,
+  &quot;tags&quot;: [&quot;vip&quot;, &quot;new&quot;]
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>해석기는 두 가지입니다. 하나는 Node.js 24.18.0의 JSON.parse(자바스크립트의 표준 해석기)이고, 다른 하나는 자바 21.0.12.1에서 돌린 Jackson 3.1.5(jackson-databind와 jackson-core)의 기본 설정, 곧 JsonMapper.builder().build()로 만든 해석기의 readTree입니다. 열여덟 가지 조합을 모두, 화면의 코드와 같은 글자(줄 끝은 \n, 끝에 줄바꿈 없음)를 두 해석기에 그대로 넣어 실행했고, 성공과 실패 판단, 오류가 난 줄과 칸과 그 자리의 글자, 읽은 age의 종류(JSON.parse의 typeof, Jackson의 노드 종류), 읽은 이름들과 값을 모형과 대조했습니다. 두 해석기는 열여덟 조합 모두에서 성공/실패 판단이 같았고, 실패일 때는 오류 위치도 같았습니다. 실패할 때 두 해석기 모두 오류만 내고 읽은 부분을 돌려주지 않았으며, 글에 오류가 둘 이상이면 처음 만난 곳 하나만 알려 주었습니다. 오류 메시지 원문은 둘이 다르고(예: JSON.parse는 &quot;Expected property name or '}' in JSON at position 4&quot;, Jackson은 &quot;was expecting double-quote to start property name&quot;), 화면에는 오류의 종류만 한국어로 적었습니다. 원문은 Probe 출력에 있습니다. 화면의 &quot;자바스크립트로 읽은 객체의 age + 1&quot;은 자바스크립트의 동작입니다. JSON.parse로 읽은 객체의 age에 1을 더한 값(typeof까지 확인했고, 숫자 30은 숫자 31, 글자 &quot;30&quot;은 글자 &quot;301&quot;)이며, 자바의 동작이 아닙니다. 같은 글을 Jackson으로 읽으면 age가 글자 노드이고, 그 노드의 intValue()는 오류(JsonNodeException)를 냈으며, asInt()와 정수 필드를 가진 레코드로 읽기는 둘 다 30을 냈습니다. 이것은 Jackson의 변환 동작이어서 화면에는 쓰지 않았습니다. 일부 해석기는 설정에 따라 규칙에 어긋난 글도 받아 주는 옵션이 있습니다. 확인한 범위는 Jackson의 JsonReadFeature 세 가지(ALLOW_SINGLE_QUOTES, ALLOW_UNQUOTED_PROPERTY_NAMES, ALLOW_TRAILING_COMMA)를 켜면 작은따옴표로 감싼 이름, 따옴표 없는 이름, 마지막 값 뒤의 쉼표가 읽힌다는 것까지입니다(쉼표를 빠뜨린 글은 그래도 읽히지 않았습니다). 화면의 대조는 모두 기본 설정으로 한 것입니다. 다른 해석기와 JSON.parse의 설정은 보지 않았습니다. 주석을 넣은 글도 두 해석기가 기본 설정에서 모두 읽지 못했습니다. 문서로 확인한 것은 RFC 8259의 1절(JSON은 구조가 있는 데이터를 직렬화하는 텍스트 형식), 2절(문법. 구조 문자 둘레의 공백은 뜻이 없음), 3절(값은 객체, 배열, 숫자, 문자열 또는 false, null, true이고 이 낱말들은 소문자), 4절(객체의 문법: member를 쉼표로 이어 적고, 이름은 문자열), 5절(배열의 문법), 6절(숫자는 10진수 숫자로 적음), 7절(문자열은 따옴표로 시작하고 끝나며 따옴표는 큰따옴표 %x22 하나뿐), 9절(해석기는 문법에 맞는 글을 모두 받아야 하고, JSON이 아닌 형식을 받아 줄 수도 있음)입니다. 문서는 요약으로만 열려 원문 전체를 대조하지는 못했습니다. 마지막 쉼표와 작은따옴표가 안 된다는 말은 문서에 직접 없고, 4절과 5절의 문법에 쉼표 뒤에 값이 없는 모양과 작은따옴표 모양이 없다는 것과 위 실행 결과를 근거로 삼았습니다. 화면의 JSON은 값 네 종류 가운데 객체, 목록, 글자, 숫자만 다뤘고 true, false, null, 중첩 객체, 글자 안의 이스케이프(\n 등)는 다루지 않았습니다. 같은 주제의 세부 동작(서버가 객체와 JSON을 서로 바꾸는 과정)은 &quot;세부 동작 실습: REST API와 메시지 컨버터&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/cookie_basic/">쿠키</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=feca155288"></script>
+</body>
+</html>
