@@ -46,7 +46,7 @@ Lab.basics({
       { id: 'dbtx_basic' },
     ] },
     { name: '네트워크', desc: '브라우저와 서버가 주고받는 것의 생김새입니다.', items: [
-      { t: 'IP 주소와 포트', d: '어느 컴퓨터의 어느 프로그램인지 가리키는 번호' },
+      { id: 'port_basic' },
       { t: 'URL', d: '주소 한 줄을 이루는 부분들' },
       { t: 'DNS', d: '이름을 IP 주소로 바꿔 주는 것' },
       { id: 'http_basic' },

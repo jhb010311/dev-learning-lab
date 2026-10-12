@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5044b11269">
+<link rel="stylesheet" href="../../app.css?v=626de79eed">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -81,7 +81,7 @@ COMMIT;
 SELECT * FROM account ORDER BY id;</pre>
 <h2>이 모형의 전제</h2>
 <p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했고 MySQL에서의 실행 대조는 하지 않았습니다. 여섯 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 글자 그대로 연결 하나(이 연결)에서 한 문장씩 실행했습니다. 두 연결이 같은 DB를 보도록 이름을 준 메모리 DB(DB_CLOSE_DELAY=-1)를 조합마다 새로 만들었고, 격리 수준은 H2 기본값인 READ COMMITTED 그대로 두었습니다. 대조한 것은 결과 표의 세 항목, 곧 첫 UPDATE 직후 따로 열어 둔 다른 연결이 SELECT balance FROM account WHERE id = 1로 읽은 값, 그리고 모든 것이 끝난 뒤(끝내지 않은 조합은 이 연결을 닫은 뒤) 새 연결로 읽은 두 계좌의 값입니다. 이 확인용 조회는 화면의 코드에 없는 것이고, 다른 연결의 조회가 기다리거나 실패한 경우는 없었습니다(시간 제한 3초를 두고 실행). 단계 문장이 기대는 사실로 문장마다 이 연결과 다른 연결이 읽은 두 계좌의 값, BEGIN 뒤 자동 커밋이 꺼지고 COMMIT이나 ROLLBACK 뒤 다시 켜지는 것(JDBC의 getAutoCommit), 마지막 SELECT가 이 연결에 보여 준 값도 실행으로 확인했습니다. 끝내지 않고 연결을 닫으면 확정되지 않은 변경이 취소된다는 것은 H2에서 JDBC 연결을 닫았을 때 관찰한 동작이고, 연결이 끊기는 다른 방식(네트워크 단절, 서버 종료)은 실행하지 않았습니다. 격리 수준에 따라 달라지는 세부(다른 연결이 어떤 값을 볼 수 있는지, 기다리는지)는 다루지 않았으며 H2 기본값에서 본 결과일 뿐입니다. 트랜잭션을 시작하는 문장은 H2 2.4.240이 START TRANSACTION을 받지 않아(구문 오류) BEGIN으로 적었습니다. BEGIN은 H2 2.4.240에서 실행되었으나 H2 문서의 Commands 페이지에서는 찾지 못했습니다. COMMIT, ROLLBACK, SET AUTOCOMMIT은 그 페이지에 있습니다. MySQL 8.4 문서의 15.3.1절 START TRANSACTION, COMMIT, and ROLLBACK Statements에는 BEGIN과 BEGIN WORK가 START TRANSACTION의 다른 이름이라는 것(START TRANSACTION이 표준 SQL이며 권장된다는 것), 저장 프로그램 안에서는 BEGIN이 BEGIN ... END 블록의 시작으로 해석되므로 START TRANSACTION을 써야 한다는 것, START TRANSACTION 동안 자동 커밋이 꺼지고 COMMIT이나 ROLLBACK 뒤 이전 상태로 돌아온다는 것, 기본으로 자동 커밋이 켜져 있어 문장마다 확정되고 ROLLBACK으로 되돌릴 수 없다는 것, COMMIT은 변경을 영구하게 하고 ROLLBACK은 변경을 취소한다는 것이 적혀 있습니다. 17.7.2.2절 autocommit, Commit, and Rollback(InnoDB)에는 새 연결이 자동 커밋을 켠 채 시작한다는 것, 자동 커밋을 끈 세션이 마지막 트랜잭션을 확정하지 않고 끝나면 MySQL이 그 트랜잭션을 롤백한다는 것이 적혀 있습니다. 위 두 절은 직접 열어 확인했지만 MySQL이 같은 SQL에서 같은 값을 내는지는 실행으로 확인하지 않았습니다. 화면의 코드는 CREATE TABLE과 INSERT를 포함한 전체이고, 다른 연결의 조회와 연결을 닫는 일은 보이지 않습니다. 이 실습은 한 묶음의 시작과 끝만 다루며, 격리 수준, 락, 중첩 트랜잭션, 스프링의 @Transactional은 다루지 않습니다.</p>
-<p>앞 실습: <a href="../../lab/index_basic/">인덱스</a> · 다음 실습: <a href="../../lab/http_basic/">HTTP 요청</a></p>
+<p>앞 실습: <a href="../../lab/index_basic/">인덱스</a> · 다음 실습: <a href="../../lab/port_basic/">IP 주소와 포트</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -167,6 +167,6 @@ SELECT * FROM account ORDER BY id;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5044b11269"></script>
+<script src="../../app.js?v=626de79eed"></script>
 </body>
 </html>
