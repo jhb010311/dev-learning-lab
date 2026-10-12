@@ -1,0 +1,26 @@
+# java 21.0.12.1
+on|same => OK|ih/DXie50GTxOpwONIJroszKQMgY6uu8wPNOizaCFAN2BszTvuA0AS2yX0fH|ih/DXie50GTxOpwONIJroszKQMgY6uu8wPNOizaCFAN2BszTvuA0AS2yX0fH / 카드번호 1234|-|-
+REAL on|same => OK|wireLen=60|readIsPt=true|-|-
+on|other => EX|ih/DXie50GTxOpwONIJroszKQMgY6uu8wPNOizaCFAN2BszTvuA0AS2yX0fH||javax.crypto.AEADBadTagException|Tag mismatch
+REAL on|other => EX|wireLen=60|readIsPt=false|javax.crypto.AEADBadTagException|Tag mismatch
+on|none => OK|ih/DXie50GTxOpwONIJroszKQMgY6uu8wPNOizaCFAN2BszTvuA0AS2yX0fH|ih/DXie50GTxOpwONIJroszKQMgY6uu8wPNOizaCFAN2BszTvuA0AS2yX0fH / ih/DXie50GTxOpwONIJroszKQMgY6uu8wPNOizaCFAN2BszTvuA0AS2yX0fH|-|-
+REAL on|none => OK|wireLen=60|readIsPt=false|-|-
+off|same => OK|-|카드번호 1234 / 카드번호 1234|-|-
+REAL off|same => OK|wireLen=-|readIsPt=true|-|-
+off|other => OK|-|카드번호 1234 / 카드번호 1234|-|-
+REAL off|other => OK|wireLen=-|readIsPt=true|-|-
+off|none => OK|-|카드번호 1234 / 카드번호 1234|-|-
+REAL off|none => OK|wireLen=-|readIsPt=true|-|-
+JAVA key=000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f|nonce=8a1fc35e27b9d064f13a9c0e|pt=ecb9b4eb939cebb288ed98b82031323334|ct=34826ba2ccca40c818eaebbcc0f34e8b36|tag=8214037606ccd3bee034012db25f47c7|b64=ih/DXie50GTxOpwONIJroszKQMgY6uu8wPNOizaCFAN2BszTvuA0AS2yX0fH
+FACT bytes => ptBytes=17|decodedBytes=45|b64Len=60
+FACT head12IsNonce => true
+FACT plainInWire => bytes=false|text=false|ASCIIdigits=false
+FACT twice => OK|ooIuVGVuk4GEh19LUh9Tyxhk+Laci2YVdAUsvtyWvYF6P02Vnl6QEwpmqRsD|false / 카드번호 1234 / 카드번호 1234 / 60 60 / false|-|-
+FACT wrongKey100 => thrown=100|returned=0|javax.crypto.AEADBadTagException|Tag mismatch|isBadPadding=true
+FACT tampered => javax.crypto.AEADBadTagException
+FACT sameKey => PT=ecb9b4eb939cebb288ed98b82031323334|expectPT=ecb9b4eb939cebb288ed98b82031323334
+FACT otherKeyFixed => javax.crypto.AEADBadTagException
+FACT ctrOtherKey => noException|len=17|equalsPT=false|utf8=false
+NIST enc => ct=fa4362189661d163fcd6a56d8bf0405a|tag=d636ac1bbedd5cc3ee727dc2ab4a9489|expectCt=fa4362189661d163fcd6a56d8bf0405a|expectTag=d636ac1bbedd5cc3ee727dc2ab4a9489|match=true
+NIST dec0 => PT=7789b41cb3ee548814ca0b388c10b343|expect=PT=7789b41cb3ee548814ca0b388c10b343|match=true
+NIST dec2 => javax.crypto.AEADBadTagException|expect=FAIL(exception)|match=true

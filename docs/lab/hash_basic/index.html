@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=bf0f2ef08d">
+<link rel="stylesheet" href="../../app.css?v=c799467fdd">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -81,7 +81,7 @@ System.out.println(saved);
 System.out.println(ok);</pre>
 <h2>이 모형의 전제</h2>
 <p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 여섯 가지 조합을 모두, 화면의 코드를 import 줄, sha256 도우미 메서드, main 메서드의 틀로 감싼 소스로 만들어 javax.tools로 컴파일하고 새 클래스 로더로 읽어 Main.main을 실행했습니다. 화면에는 import, main, sha256 메서드를 줄였고, 줄인 sha256 메서드는 MessageDigest로 SHA-256을 계산해 소문자 16진수 글자 64개로 바꿉니다. 대조한 것은 화면의 코드가 실행한 소스의 그 부분과 같은 글인지, 프로그램이 출력한 saved와 ok, 입력에서 계산한 값(컴파일한 Main의 sha256 메서드를 입력에 대해 불러 얻었습니다)입니다. 결과 표의 값은 저장된 값과 입력에서 계산한 값의 앞 12자와 &quot;… (64자)&quot;로 줄여 적었고, 줄이기 전의 값 전체도 같은 방식으로 대조했습니다. 비밀번호를 그대로 저장하는 쪽에서 계산이 일어나지 않는다는 것은 그 코드에 sha256 호출이 없는 것으로 확인했습니다. 계산이 표준대로인지는 SHA-256의 표준 예시 두 가지(메시지 &quot;abc&quot;와 56글자 메시지)를 자바로 계산해 문서의 값과 견주었고, &quot;abc&quot;의 값은 NIST의 SHA-256 예시 문서와 RFC 6234의 시험 벡터에서, 56글자 메시지의 값은 NIST의 예시 문서에서 확인했습니다. 같은 8가지 입력(빈 글자, 1글자, 100글자 포함)을 Node.js의 crypto와 이 PC의 openssl dgst -sha256으로도 계산해 세 구현의 값이 모두 같은 것을 확인했습니다. 단계 문장이 기대는 사실도 따로 재었습니다. 같은 입력을 두 번 해시하면 같은 값이고, pass1234와 pass1235의 해시는 64자 가운데 61자가 다르며(이 입력에서 관찰한 값입니다), 입력이 0글자, 1글자, 100글자여도 결과는 64자입니다. 문서는 직접 열어 확인했습니다. NIST FIPS 180-4(Secure Hash Standard)는 1절에서 SHA-256 등을 반복 계산하는 단방향 해시 함수로, 입력(메시지)에서 메시지 다이제스트라는 압축된 값을 만든다고 하고 메시지가 조금이라도 바뀌면 매우 높은 확률로 다른 다이제스트가 나온다고 하며, 1절의 표는 SHA-256의 다이제스트 크기를 256비트(16진수 64자)로 정했고, 문서 앞머리의 설명은 주어진 다이제스트에 맞는 메시지를 찾는 것과 같은 다이제스트를 내는 두 메시지를 찾는 것이 계산상 불가능하다는 뜻으로 &quot;안전한&quot; 해시 알고리즘이라 부른다고 말합니다. OWASP의 Password Storage Cheat Sheet는 비밀번호를 평문으로 저장하지 말고 해시해서 저장하라고 하고, 해시는 한 방향 함수라서 원래 비밀번호로 되돌릴 수 없다고 하며(암호화가 아니라 해시), 약하고 흔한 비밀번호는 흔한 비밀번호 목록이나 모든 후보를 하나씩 넣어 보는 방법으로 찾아질 수 있다고 합니다. 이 실습에서 &quot;거꾸로 계산해 낼 수 없다&quot;는 것은 수학적으로 증명된 것이 아니라 현실적으로 알려진 방법이 없다는 뜻이고, 짧고 흔한 비밀번호는 후보를 하나씩 해시해서 저장된 값과 견주는 방법으로 찾아질 수 있습니다. 이 실습은 해시의 성질을 보이려고 빠른 범용 해시 함수 SHA-256을 그대로 썼습니다. 실제 서비스에서 비밀번호를 저장할 때는 SHA-256을 그대로 쓰지 않고, 일부러 느리게 만들고 사용자마다 다른 값(솔트)을 섞는 비밀번호 전용 함수(BCrypt, Argon2 등)를 씁니다. OWASP 문서도 SHA-256 같은 빠른 해시 알고리즘은 비밀번호 저장에 맞지 않다고 하고, Argon2id를 먼저 권하고, 그것을 쓸 수 없을 때의 scrypt, 오래된 시스템의 bcrypt, FIPS 인증이 필요할 때의 PBKDF2를 들며, 사용자마다 고유한 솔트를 더하라고 합니다. 그 이유와 동작은 &quot;세부 동작 실습: 비밀번호 해시&quot;에서 다룹니다. 화면의 코드는 가입과 로그인을 한 번의 실행 안에 이어 적은 것입니다. 실제 서비스에서는 가입과 로그인이 서로 다른 요청이고 saved는 DB에 보관되며, 서버가 사용자가 입력한 비밀번호 글자를 받아 해시한다고 가정했습니다. 입력을 사용자의 기기에서 미리 해시하는 방식, 해시 값을 직접 비교할 때의 시간차 공격, 솔트와 느린 해시, 해시 충돌은 다루지 않았습니다. 이 실습의 해시 함수는 암호용 해시 함수이고, HashMap의 해시 코드와는 쓰임이 다릅니다.</p>
-<p>앞 실습: <a href="../../lab/token_basic/">토큰</a></p>
+<p>앞 실습: <a href="../../lab/token_basic/">토큰</a> · 다음 실습: <a href="../../lab/crypto_basic/">암호화</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -167,6 +167,6 @@ System.out.println(ok);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=bf0f2ef08d"></script>
+<script src="../../app.js?v=c799467fdd"></script>
 </body>
 </html>

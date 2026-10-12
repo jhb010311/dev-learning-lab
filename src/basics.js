@@ -60,7 +60,7 @@ Lab.basics({
       { id: 'session_basic' },
       { id: 'token_basic' },
       { id: 'hash_basic' },
-      { t: '암호화', d: '열쇠가 있어야 읽을 수 있게 바꾸기' },
+      { id: 'crypto_basic' },
     ] },
   ],
 });
