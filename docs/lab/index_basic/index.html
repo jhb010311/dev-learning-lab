@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>인덱스: 인덱스는 무엇이고, 없으면 무엇이 달라지는가 · 개발 학습 실습실</title>
+<meta name="description" content="인덱스(색인)는 어떤 열의 값을 정리해 두고, 그 값이 있는 행을 가리키는 목록입니다. DB가 테이블과 따로 만들어 두는 것이고, 책 뒤의 &quot;찾아보기&quot;와 같습니다. CREATE INDEX idx_name ON member(name)은 name 열의 색인을 만드는 문장입니다.…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/index_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/index_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/index_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="인덱스: 인덱스는 무엇이고, 없으면 무엇이 달라지는가 · 개발 학습 실습실">
+<meta property="og:description" content="인덱스(색인)는 어떤 열의 값을 정리해 두고, 그 값이 있는 행을 가리키는 목록입니다. DB가 테이블과 따로 만들어 두는 것이고, 책 뒤의 &quot;찾아보기&quot;와 같습니다. CREATE INDEX idx_name ON member(name)은 name 열의 색인을 만드는 문장입니다.…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/index_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=5044b11269">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › DB</p>
+<h1>인덱스</h1>
+<p><b>인덱스는 무엇이고, 없으면 무엇이 달라지는가</b></p>
+<p>인덱스(색인)는 어떤 열의 값을 정리해 두고, 그 값이 있는 행을 가리키는 목록입니다. DB가 테이블과 따로 만들어 두는 것이고, 책 뒤의 &quot;찾아보기&quot;와 같습니다. CREATE INDEX idx_name ON member(name)은 name 열의 색인을 만드는 문장입니다. 색인이 없으면 DB는 조건에 맞는 행을 찾으려고 테이블의 행을 처음부터 끝까지 읽어야 하고, 색인이 있으면 색인에서 값을 찾아 필요한 행만 읽습니다. 이 실습은 CREATE INDEX를 지우거나 찾는 열을 바꿔 가며 같은 SELECT를 실행해, 찾아낸 행은 같은데 DB가 읽은 행이 얼마나 달라지는지를 봅니다. 색인이 값을 어떤 구조로 정리하는지와 색인을 만드는 데 드는 비용은 다루지 않습니다.</p>
+<p>실행으로 대조 · H2 2.4.240에서 여섯 가지 조합을 실행해 대조(읽은 행은 EXPLAIN ANALYZE의 scanCount에서 1을 뺀 값), 규칙은 MySQL 문서와 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>인덱스</dt>
+<dd>테이블에서 원하는 행을 빨리 찾기 위해 특정 컬럼의 값을 정렬된 형태로 따로 유지하는 자료구조다. 인덱스가 없으면 조건에 맞는 행을 찾기 위해 테이블 전체를 읽어야 한다. 조회는 빨라지지만 데이터를 추가, 수정, 삭제할 때마다 인덱스도 갱신해야 하므로 쓰기 성능과 저장 공간에 비용이 든다.</dd>
+<dt>CREATE INDEX</dt>
+<dd>CREATE INDEX 색인이름 ON 테이블(열) 형태로, 이미 만든 테이블의 열에 색인(인덱스)을 더하는 SQL 문이다. 예를 들어 CREATE INDEX idx_name ON member(name)은 member 테이블의 name 열 값을 정리한 색인을 만든다. 색인은 테이블과 따로 저장되며 테이블의 행 자체는 바꾸지 않는다. 색인은 주로 만든 열을 조건으로 찾을 때 쓰이므로 다른 열로 찾으려면 그 열의 색인이 따로 있어야 한다. 기본 키(PRIMARY KEY)를 적은 열에는 DB가 색인을 자동으로 만들어 두므로 CREATE INDEX를 쓰지 않아도 된다(MySQL에서 기본 키 자체는 CREATE INDEX가 아니라 CREATE TABLE이나 ALTER TABLE로 만든다).</dd>
+<dt>풀 테이블 스캔</dt>
+<dd>조건에 맞는 행을 찾기 위해 테이블의 모든 행을 처음부터 끝까지 읽는 방식이다. 조건에 쓸 인덱스가 없거나, 인덱스가 있어도 조건에 해당하는 행이 너무 많아 전체를 읽는 편이 낫다고 옵티마이저가 판단할 때 선택된다. 큰 테이블에서 소수의 행을 찾는데 이 방식이 쓰이면 성능 문제의 원인이 된다.</dd>
+<dt>실행 계획(EXPLAIN)</dt>
+<dd>데이터베이스가 쿼리를 어떤 방법으로 실행할지 정한 계획이다. 어떤 인덱스를 쓰는지, 테이블을 어떤 순서로 조인하는지, 몇 행을 읽을 것으로 예상하는지를 보여 준다. 쿼리 앞에 EXPLAIN을 붙여 확인하며, 쿼리가 느릴 때 원인을 찾는 출발점이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — name 색인이 있는 테이블. DB는 색인에서 회원777을 찾아 그 행 1행만 읽습니다.</li>
+<li><b>CREATE INDEX를 지우면</b> — 같은 1행을 찾지만 DB가 테이블의 1000행을 다 읽습니다.</li>
+<li><b>색인을 만들지 않은 열로 찾으면</b> — idx_name은 name 값으로 정리한 색인이라 city로 찾을 때는 쓰이지 않고, DB가 1000행을 다 읽습니다.</li>
+<li><b>기본 키로 찾으면</b> — CREATE INDEX를 쓰지 않았지만 기본 키에는 색인이 이미 있어서, DB가 1행만 읽습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>CREATE TABLE: DB가 member라는 테이블을 만듭니다. 열은 id, name, city 셋이고 지금은 행이 하나도 없습니다. id 열에는 PRIMARY KEY가 적혀 있으므로, DB는 id 값으로 행을 찾는 색인(인덱스)도 만들어 둡니다. 색인은 어떤 열의 값을 정리해 두고 그 값이 있는 행을 가리키는 목록이며, 책 뒤의 &quot;찾아보기&quot;와 같은 것입니다. 이 색인은 CREATE INDEX를 쓰지 않아도 생깁니다.</li>
+<li>회원 1000명 넣기(화면에서 줄인 INSERT 1000번): DB가 id 1부터 1000까지, name은 회원1부터 회원1000까지, city는 서울, 부산, 대구, 광주를 돌아가며 넣습니다. 테이블은 1000행이 되었고 city마다 250행입니다.</li>
+<li>CREATE INDEX idx_name ON member(name): DB가 name 열의 값들을 순서대로 정리한 색인을 테이블과 따로 만듭니다. 색인에는 name 값(…, 회원776, 회원777, 회원778, …)과 그 값이 있는 행을 가리키는 정보가 들어 있습니다. 테이블의 행은 그대로 1000행입니다. 색인을 만들어도 행은 바뀌지 않습니다.</li>
+<li>SELECT * FROM member WHERE name = '회원777': DB가 먼저 조건에 쓰인 name 열을 위한 색인이 있는지 봅니다. name 열에는 CREATE INDEX로 만든 색인 idx_name이 있으므로, DB는 이 색인으로 찾기로 합니다.</li>
+<li>DB가 name 색인에서 회원777을 찾고, 그 값에 딸린 정보를 따라 테이블의 id 777 행으로 바로 갑니다. 테이블의 나머지 999행은 읽지 않았습니다. DB가 읽은 행은 1행입니다.</li>
+<li>SELECT의 결과: id 777인 회원777 행 1행을 돌려줍니다. CREATE INDEX가 없는 테이블에서 같은 SELECT를 실행해도 찾아내는 행은 똑같습니다. 다른 점은 그때 DB가 읽는 행이 1000행이라는 것입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>인덱스는 어떤 열의 값을 정리해 두고 그 값이 있는 행을 가리키는, 테이블과 따로 만든 색인입니다. name 색인이 있어서 DB는 회원777 행으로 바로 가 1000행 가운데 1행만 읽었습니다.</li>
+<li>찾아낸 행은 색인이 없을 때와 똑같습니다. 색인이 바꾸는 것은 결과가 아니라 DB가 읽는 양입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>CREATE TABLE member (
+    id   INT PRIMARY KEY,
+    name VARCHAR(20),
+    city VARCHAR(20)
+);
+-- 회원 1000명을 넣는다 (회원1 ~ 회원1000. INSERT 문은 화면에서 줄였다)
+
+-- 인덱스: name 값으로 행을 빨리 찾기 위한 색인을 만든다
+CREATE INDEX idx_name ON member(name);
+
+SELECT * FROM member WHERE name = '회원777';</pre>
+<h2>이 모형의 전제</h2>
+<p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했습니다. 여섯 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 글자 그대로 실행했습니다. 화면의 &quot;회원 1000명을 넣는다&quot; 주석 줄이 있는 자리에서는 대조 프로그램이 회원 1000명(id 1~1000, name은 회원1~회원1000, city는 서울, 부산, 대구, 광주를 돌아가며 250명씩)을 넣었고, INSERT 문은 화면에서 줄였습니다. 대조한 것은 SELECT가 돌려준 행 수, H2의 EXPLAIN이 알려 준 찾는 방법(name 색인 IDX_NAME, 기본 키의 색인 PRIMARY_KEY, 색인 없이 tableScan), EXPLAIN ANALYZE가 알려 준 scanCount, 그리고 단계 문장이 기대는 사실입니다. 기대는 사실은 CREATE TABLE 직후 id 열의 색인이 자동으로 생겨 있다는 것, CREATE INDEX가 name 열을 순서대로 정리한 색인을 만들었다는 것, CREATE INDEX 전후로 행이 1000행 그대로라는 것, 색인이 있을 때와 없을 때 SELECT가 같은 행을 돌려준다는 것입니다. 화면의 &quot;DB가 읽은 행&quot;은 scanCount에서 1을 뺀 값입니다. H2 문서는 scanCount의 뜻을 따로 정의하지 않았고, 이 버전에서 관찰한 scanCount는 읽은 행 수보다 1 큽니다(더 읽을 행이 없음을 확인하는 한 번이 더해지는 것으로 보입니다). 근거는 이렇습니다. 행이 0개, 10개, 1000개인 테이블을 처음부터 끝까지 읽으면 scanCount는 1, 11, 1001이고, 조건에 행마다 불린 횟수를 세는 함수를 써서 전체를 읽게 했더니 함수가 1000번 불렸고 scanCount는 1001이었습니다. 색인으로 없는 값을 찾으면 scanCount가 1, 있는 값을 찾으면 2였습니다. 색인으로 찾을 때의 &quot;1행&quot;은 이 관찰에 따라 같은 방식으로 1을 뺀 값이며, 찾아낸 행 수와 같습니다. 어떤 방법으로 찾을지는 DB가 데이터의 양과 분포를 보고 정하므로, 다른 DB나 다른 데이터에서는 색인이 있어도 쓰지 않을 수 있습니다. 이 PC의 H2에서 이 데이터로 관찰한 결과입니다. 문서는 H2 문서의 performance 페이지에서 &quot;How Data is Stored and How Indexes Work&quot;(색인은 색인된 열과 행 번호를 담은 표와 같다), &quot;Statement Execution Plans (EXPLAIN)&quot;(EXPLAIN ANALYZE는 읽은 행을 보여 주고, tableScan은 색인을 쓰지 않았다는 뜻이며, 기본 키와 유니크 제약에는 색인이 자동으로 만들어진다)를 열어 확인했습니다. MySQL 8.4 문서는 10.3.1절 How MySQL Uses Indexes(색인이 없으면 첫 행부터 테이블 전체를 읽어야 한다), 15.1.15절 CREATE INDEX Statement(기존 테이블에 색인을 더한다), 10.3.2절 Primary Key Optimization(기본 키에는 색인이 딸려 있다), CREATE TABLE 문의 PRIMARY KEY 항목을 열어 확인했습니다. 다만 MySQL에서의 실행 대조는 하지 않았습니다. 또 이 화면은 기본 키의 색인도 name 색인처럼 상자로 그렸지만, H2와 MySQL(InnoDB)은 정수 기본 키를 테이블 데이터 자체의 정렬 기준으로 쓰므로 기본 키의 색인이 name 색인처럼 테이블과 따로 있는 목록은 아닙니다. 색인의 구조(B-트리 등)와, 색인이 있으면 INSERT, UPDATE, DELETE가 색인도 고쳐야 해서 드는 비용은 다루지 않았고 &quot;세부 동작 실습: 인덱스&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/join_basic/">조인</a> · 다음 실습: <a href="../../lab/dbtx_basic/">트랜잭션</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=5044b11269"></script>
+</body>
+</html>
