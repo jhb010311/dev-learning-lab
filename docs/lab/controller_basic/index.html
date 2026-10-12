@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7d5cf4ebc9">
+<link rel="stylesheet" href="../../app.css?v=c541dcaac2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -80,7 +80,7 @@ public class HelloController {
 }</pre>
 <h2>이 모형의 전제</h2>
 <p>스프링 부트 4.1.1(스프링 프레임워크 7.0.9, 내장 톰캣 11)을 JDK 21에서 실행한 결과입니다. 브라우저는 주소마다 GET 요청을 한 번씩 차례로 보낸다고 가정했습니다. 주소의 localhost:8080은 내 컴퓨터에서 스프링 부트를 기본 포트로 띄웠을 때의 예입니다. 여덟 가지 조합을 모두, 화면의 코드와 같은 소스(객체와 실행 횟수를 세는 줄만 더함)를 패키지 app으로 컴파일하고 @SpringBootConfiguration, @EnableAutoConfiguration, @ComponentScan이 붙은 시작 클래스와 함께 자바 프로세스를 새로 띄워 확인했습니다. 컨트롤러를 손으로 등록하지 않고 스프링이 클래스를 훑어 찾게 했으며, 요청은 서버가 뜬 뒤 실제 HTTP로 보냈습니다. 대조한 것은 스프링이 만든 컨트롤러 객체의 수(서버가 뜬 직후와 요청 뒤), 주소 표(RequestMappingHandlerMapping의 getHandlerMethods 가운데 이 클래스의 것), 주소마다의 상태 코드와 본문, 메서드 실행 횟수입니다. 톰캣에 등록된 서블릿이 DispatcherServlet 하나이고 &quot;/&quot; 주소를 맡는다는 것, 컨트롤러 클래스가 Servlet 타입이 아니라는 것, 404 응답에서 메서드가 실행되지 않았다는 것도 실행으로 확인했습니다. 문서가 정한 것은 스프링 프레임워크 문서 Web MVC의 DispatcherServlet 절(DispatcherServlet이 모든 요청을 받는 서블릿 하나이고 실제 일은 위임 구성 요소가 한다는 것, 스프링 부트에서는 서블릿 선언이 스프링 설정에서 찾아져 컨테이너에 등록된다는 것), Annotated Controllers의 Declaration 절(컨트롤러 객체가 클래스 경로 스캔으로 찾아지고 @RestController가 @Controller와 @ResponseBody를 합친 것이라는 것), Mapping Requests 절(@GetMapping 같은 단축 애너테이션)과 @RestController, @Controller, @GetMapping의 API 문서입니다. 객체가 서버가 뜰 때 만들어지고 주소 표도 그때 만들어진다는 것과, 주소가 없을 때 404가 나가는 것은 문서가 정한 것이 아니라 이 버전의 기본 설정에서 관찰한 동작입니다. 화면의 코드는 package와 import 줄을 줄였고, 컨트롤러가 시작 클래스와 같은 패키지(또는 그 아래)에 있다고 가정했습니다. 주소 등록은 @GetMapping만 다뤘고 @RequestMapping, @PostMapping이나 @Controller는 다루지 않았습니다. 스프링 부트의 DispatcherServlet이 서버가 뜰 때가 아니라 첫 요청이 올 때 초기화되는 것은 관찰했지만 이 실습의 단계에는 넣지 않았고, &quot;세부 동작 실습: MVC 요청 흐름&quot;에서 다룹니다.</p>
-<p>앞 실습: <a href="../../lab/servlet_basic/">서블릿</a> · 다음 실습: <a href="../../lab/pk_basic/">기본 키</a></p>
+<p>앞 실습: <a href="../../lab/servlet_basic/">서블릿</a> · 다음 실습: <a href="../../lab/tx_basic/">@Transactional</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -166,6 +166,6 @@ public class HelloController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7d5cf4ebc9"></script>
+<script src="../../app.js?v=c541dcaac2"></script>
 </body>
 </html>

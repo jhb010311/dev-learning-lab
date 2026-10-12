@@ -23,11 +23,11 @@ Lab.basics({
       { id: 'thread_basic' },
     ] },
     { name: 'Spring', desc: '스프링으로 웹 요청을 처리할 때 밑에 깔려 있는 것들입니다.', items: [
-      { t: '빈', d: '스프링이 만들어 관리하는 객체' },
-      { t: '의존성 주입', d: '필요한 객체를 직접 만들지 않고 스프링에게 받기' },
+      { id: 'bean_basic' },
+      { id: 'di_basic' },
       { id: 'servlet_basic' },
       { id: 'controller_basic' },
-      { t: '@Transactional', d: '여러 저장을 한 묶음으로 만드는 표시' },
+      { id: 'tx_basic' },
       { t: '스프링 부트', d: '서버를 띄우는 일까지 대신 해 주는 것' },
     ] },
     { name: 'JPA', desc: '자바 객체를 테이블에 저장할 때 나오는 것들입니다.', items: [

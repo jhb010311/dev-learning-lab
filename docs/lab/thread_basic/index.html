@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=7d5cf4ebc9">
+<link rel="stylesheet" href="../../app.css?v=c541dcaac2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -86,7 +86,7 @@
 }</pre>
 <h2>이 모형의 전제</h2>
 <p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 이 JDK의 java를 자식 프로세스로 띄워 조합마다 20번씩 실제로 실행해 대조했습니다. 120번의 실행 모두 종료 코드는 0이고 표준 오류는 비어 있었으며, 조합마다 표준 출력이 20번 모두 같았습니다. 대조한 것은 표준 출력의 줄들(결과 표의 출력 열), 그 줄에 나온 스레드의 이름(work를 실행한 스레드 열), 새로 시작된 스레드의 수입니다. 새로 시작된 스레드의 수는 화면의 소스를 바꾸지 않고, 자식 프로세스의 시작 클래스가 Main.main을 부르기 전과 뒤에 ThreadMXBean.getTotalStartedThreadCount()를 읽어 그 차이로 쟀습니다(start를 부른 조합은 1개와 2개, 나머지는 0개였고 20번 모두 같았습니다). 단계 문장이 기대는 사실은 따로 만든 소스를 같은 방식으로 20번 실행해 확인했습니다. Thread 객체를 만든 직후에는 상태가 NEW이고 isAlive()가 false이며, start() 뒤에는 새 스레드와 main이 함께 살아 있고(새 스레드는 WAITING으로 붙들어 둔 상태), join()이 돌아온 뒤에는 TERMINATED입니다. run()을 부르면 맡긴 코드를 main이 실행하고 부른 뒤에도 그 Thread 객체의 상태는 NEW이며, 시작한 적 없는 스레드의 join()은 기다리지 않고 바로 돌아옵니다. 문서는 Java SE 21 API 문서의 java.lang.Thread를 WebFetch로 열어 확인했습니다(발췌가 돌려준 문장을 따랐고 페이지 전체를 직접 읽지는 않았습니다). 스레드는 실행 흐름이고 시작하면 run 메서드를 실행하도록 예약된다는 것은 클래스 설명을, 이름을 주지 않는 Thread()와 Thread(Runnable)로 만든 스레드에는 &quot;Thread-&quot;에 정수를 붙인 이름이 자동으로 붙는다는 것은 생성자 설명을, start()가 새 스레드의 실행을 예약하고 현재 스레드와 따로 실행된다는 것은 start() 설명을, run()은 직접 부르도록 만든 메서드가 아니며 Runnable로 만든 스레드에서는 그 과제의 run을 부른다는 것은 run() 설명을, join()은 그 스레드가 끝나기를 기다리고 시작하지 않은 스레드에는 기다리지 않고 바로 돌아온다는 것은 join()과 join(long) 설명을 따랐습니다. 스레드는 Thread 객체로 만들고 그 객체의 start()를 부를 때 시작한다는 것은 Java Language Specification(Java SE 21) 17장 서두를, 프로그램이 클래스의 main 메서드를 불러 실행을 시작한다는 것은 12.1절을 따랐습니다. 다만 12.1절은 main을 실행하는 스레드나 그 이름을 정하지 않으므로, 그 스레드의 이름이 main이라는 것과 이름 없이 만든 첫 스레드가 Thread-0, 둘째가 Thread-1이라는 번호 순서는 명세가 정한 것이 아니라 이 JDK에서 실행해 관찰한 것입니다. 새로 시작된 스레드의 수는 JVM이 센 값이며 JVM 안에서 따로 시작되는 스레드가 있으면 달라질 수 있는데, 이 PC에서는 그런 일이 없었습니다. 화면의 코드는 java.lang 안의 클래스만 쓰므로 import 줄이 없고, java Main으로 실행하는 모양 그대로입니다. 모든 조합이 t를 시작하고 join으로 끝나기를 기다린 뒤에 t2를 시작하므로 출력 순서가 정해져 있고, join이 없을 때나 두 스레드가 동시에 움직일 때의 순서는 이 실습이 다루지 않았고 실행으로 확인하지도 않았습니다. 이 밖에 Runnable을 구현하거나 Thread를 상속하는 방법, 스레드에 이름을 주는 것, start()를 두 번 부르는 것, 스레드의 상태 변화, 가상 스레드와 스레드 풀은 다루지 않았습니다. 상태 변화는 &quot;세부 동작 실습: 스레드의 생성과 상태&quot;에서 다룹니다.</p>
-<p>앞 실습: <a href="../../lab/annot_basic/">애너테이션</a> · 다음 실습: <a href="../../lab/servlet_basic/">서블릿</a></p>
+<p>앞 실습: <a href="../../lab/annot_basic/">애너테이션</a> · 다음 실습: <a href="../../lab/bean_basic/">빈</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -172,6 +172,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=7d5cf4ebc9"></script>
+<script src="../../app.js?v=c541dcaac2"></script>
 </body>
 </html>

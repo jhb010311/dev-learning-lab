@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>빈: 빈은 무엇이고, 그냥 만든 객체와 무엇이 다른가 · 개발 학습 실습실</title>
+<meta name="description" content="빈은 스프링이 만들어서 보관하는 객체입니다. 코드로는 평범한 클래스이고, 클래스 위에 @Component를 적어 두면 스프링이 시작할 때 app 패키지를 훑어 그 클래스를 찾아 객체를 하나 만들고, 컨테이너라는 보관하는 곳에 넣어 둡니다. 우리는 new를 쓰지 않고 필요한 곳…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/bean_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/bean_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/bean_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="빈: 빈은 무엇이고, 그냥 만든 객체와 무엇이 다른가 · 개발 학습 실습실">
+<meta property="og:description" content="빈은 스프링이 만들어서 보관하는 객체입니다. 코드로는 평범한 클래스이고, 클래스 위에 @Component를 적어 두면 스프링이 시작할 때 app 패키지를 훑어 그 클래스를 찾아 객체를 하나 만들고, 컨테이너라는 보관하는 곳에 넣어 둡니다. 우리는 new를 쓰지 않고 필요한 곳…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/bean_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=c541dcaac2">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › Spring</p>
+<h1>빈</h1>
+<p><b>빈은 무엇이고, 그냥 만든 객체와 무엇이 다른가</b></p>
+<p>빈은 스프링이 만들어서 보관하는 객체입니다. 코드로는 평범한 클래스이고, 클래스 위에 @Component를 적어 두면 스프링이 시작할 때 app 패키지를 훑어 그 클래스를 찾아 객체를 하나 만들고, 컨테이너라는 보관하는 곳에 넣어 둡니다. 우리는 new를 쓰지 않고 필요한 곳에서 context.getBean(Greeter.class)로 스프링에게 객체를 달라고 하며, 몇 번을 달라고 해도 스프링은 보관하던 같은 객체 하나를 줍니다. 이 실습은 @Component를 지우거나 getBean 대신 new Greeter()로 만들어 가며 같은 코드를 실행해, 스프링이 만든 객체와 우리 코드가 new로 만든 객체가 각각 몇 개인지, a == b가 true인지 false인지를 봅니다.</p>
+<p>실행으로 대조 · 스프링 프레임워크 7.0.9에서 네 가지 조합을 실제 컴포넌트 스캔으로 실행하고 객체 수를 재어 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>스프링 빈(Bean)</dt>
+<dd>스프링 IoC 컨테이너가 생성하고 관리하는 객체다. 개발자가 new로 직접 만든 객체와 달리 컨테이너가 의존성을 주입하고 초기화와 소멸을 관리하며, 프록시를 통해 트랜잭션이나 AOP 같은 부가 기능을 적용할 수 있다.</dd>
+<dt>IoC 컨테이너(ApplicationContext)</dt>
+<dd>빈의 생성, 의존성 연결, 생명주기 관리를 담당하는 스프링의 핵심 구성 요소다. BeanFactory가 가장 기본적인 컨테이너 인터페이스이고, ApplicationContext는 이를 확장해 이벤트 발행, 메시지 국제화, 환경 설정 등의 기능을 더한 것이다. 보통 컨테이너라고 하면 ApplicationContext를 가리킨다.</dd>
+<dt>@Component</dt>
+<dd>@Component는 클래스 위에 붙여, 스프링이 그 클래스를 알고 객체를 만들어 관리하는 대상(빈)으로 삼게 하는 애너테이션이다. 스프링은 컴포넌트 스캔으로 지정한 패키지 아래의 클래스를 훑어 @Component가 붙은 클래스를 찾고, 그 클래스의 객체를 만들어 컨테이너에 보관한다. 빈의 이름을 따로 정하지 않으면 클래스 이름의 첫 글자를 소문자로 바꾼 것이 쓰인다(Greeter는 greeter). @Repository, @Service, @Controller는 @Component를 특수화한 것이어서 같은 방식으로 찾아진다. 이 애너테이션이 없는 클래스는 같은 패키지에 있어도 찾아지지 않으므로, 스프링에게 그 클래스의 객체를 달라고 하면 그런 빈이 없다는 예외가 난다.</dd>
+<dt>컴포넌트 스캔</dt>
+<dd>지정한 패키지 아래에서 @Component 계열 애노테이션(@Service, @Repository, @Controller 등)이 붙은 클래스를 찾아 자동으로 빈으로 등록하는 기능이다. Spring Boot에서는 @SpringBootApplication이 붙은 클래스의 패키지와 그 하위 패키지가 기본 대상이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — @Component가 있는 Greeter. 스프링이 시작할 때 객체를 하나 만들어 보관하고, 몇 번을 달라고 해도 그 객체를 줍니다.</li>
+<li><b>@Component를 지우면</b> — 스프링이 Greeter 클래스를 모르므로 보관한 객체가 없고, 달라고 하면 예외로 멈춥니다.</li>
+<li><b>new Greeter()로 만들면</b> — 우리가 new로 만든 객체는 스프링이 보관하는 것이 아니어서 빈이 아니고, 만들 때마다 다른 객체입니다.</li>
+<li><b>둘 다 바꾸면</b> — 스프링은 Greeter 객체를 하나도 만들지 않고, 우리가 만든 객체 2개는 서로 다릅니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>main 메서드가 실행되고, new AnnotationConfigApplicationContext(&quot;app&quot;) 줄이 스프링을 시작합니다. 시작할 때 컨테이너가 만들어집니다. 컨테이너는 스프링이 만든 객체를 보관하는 곳이고, 지금은 비어 있습니다.</li>
+<li>스프링이 app 패키지의 클래스를 훑어 @Component가 붙은 클래스를 찾습니다. Greeter 클래스에 붙어 있습니다.</li>
+<li>스프링이 Greeter 클래스의 객체를 하나 만들어 컨테이너에 보관합니다. 이렇게 스프링이 만들어 보관하는 객체가 빈입니다. 이 객체는 우리 코드가 달라고 하기 전에, 스프링을 시작할 때 이미 만들어집니다. 우리가 쓴 코드에는 new Greeter()라는 줄이 없습니다.</li>
+<li>Greeter a = context.getBean(Greeter.class); 줄이 실행됩니다. 스프링에게 Greeter 객체를 달라고 하는 줄입니다. 스프링은 새로 만들지 않고, 컨테이너에 보관하던 그 객체를 줍니다. 변수 a가 그 객체를 가리킵니다. 스프링이 만든 객체는 그대로 1개입니다.</li>
+<li>Greeter b = context.getBean(Greeter.class); 줄이 실행됩니다. 한 번 더 달라고 해도 스프링은 새로 만들지 않고 같은 객체를 줍니다. 스프링은 빈을 하나만 만들어 두고, 달라고 할 때마다 그 하나를 주기 때문입니다. 변수 b도 a와 같은 객체를 가리킵니다.</li>
+<li>System.out.println(a.hello()); 줄이 실행됩니다. a가 가리키는 객체의 hello() 메서드가 &quot;안녕하세요&quot;를 돌려주고, 이 글이 출력됩니다.</li>
+<li>System.out.println(a == b); 줄이 실행됩니다. a == b는 두 변수가 같은 객체를 가리키는지 비교하는 식입니다. a와 b는 컨테이너에 보관된 같은 객체를 가리키므로 true가 출력됩니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>빈은 스프링이 만들어서 보관하는 객체입니다. 일반 클래스와 다른 곳은 클래스 위의 @Component 하나이고, 이것이 있으면 스프링이 시작할 때 Greeter 객체를 하나 만들어 컨테이너에 보관합니다.</li>
+<li>getBean은 새로 만드는 것이 아니라 보관하던 객체를 꺼내 주는 것이어서, 몇 번을 달라고 해도 같은 객체가 오고 a == b가 true입니다. 우리 코드에는 new Greeter()라는 줄이 없습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 표시: 스프링이 이 클래스의 객체를 만들어 보관한다
+@Component
+public class Greeter {
+    public String hello() {
+        return &quot;안녕하세요&quot;;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // 스프링을 시작한다. app 패키지를 훑어 @Component를 찾는다
+        ApplicationContext context =
+                new AnnotationConfigApplicationContext(&quot;app&quot;);
+        // 스프링이 보관하고 있는 Greeter 객체를 달라고 한다
+        Greeter a = context.getBean(Greeter.class);
+        Greeter b = context.getBean(Greeter.class);
+        System.out.println(a.hello());
+        System.out.println(a == b);
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>스프링 프레임워크 7.0.9를 JDK 21.0.12.1에서 실행한 결과입니다. 스프링 부트는 쓰지 않았고, 화면의 코드대로 AnnotationConfigApplicationContext(&quot;app&quot;)만 썼습니다. 네 가지 조합을 모두, 화면의 코드와 같은 구조의 소스(패키지 app의 Greeter와 Main)를 컴파일해 자바 프로세스를 새로 띄워 그대로 실행했습니다. Greeter를 손으로 등록하지 않았고, 스프링이 app 패키지를 훑어 @Component를 찾게 했습니다. 대조한 것은 프로그램이 출력한 글(안녕하세요와 a == b의 값), 예외로 멈췄을 때 그 예외의 종류, 스프링이 만든 Greeter 객체의 수, 우리 코드가 new로 만든 객체의 수입니다. 객체 수는 짐작이 아니라 실측했습니다. 대조용 소스에만 Greeter의 생성자에 객체가 만들어질 때마다 숫자를 올리는 줄을 더했고, 스프링을 시작한 직후의 수를 스프링이 만든 수로, 끝난 뒤의 수에서 그 수를 뺀 것을 우리 코드가 new로 만든 수로 적었습니다. 시작한 직후의 수는 getBean을 부르기 전에 이미 1개(@Component가 있을 때)였으므로, 스프링이 객체를 만드는 때는 getBean을 부를 때가 아니라 스프링을 시작할 때입니다. getBean을 두 번 불러도 수는 늘지 않았고 a == b는 true였으며, new를 쓴 조합에서는 컨테이너에 들어 있는 Greeter 빈이 끝난 뒤에도 시작 직후와 같은 수여서 new로 만든 객체는 컨테이너에 들어가지 않았습니다. @Component가 없을 때는 시작한 직후의 수가 0이었고 컨테이너에 등록된 이름도 없었으며(스프링 내부의 것은 뺐습니다), getBean 줄에서 org.springframework.beans.factory.NoSuchBeanDefinitionException(메시지는 app.Greeter 타입의 빈이 없다는 내용)이 나와 프로세스가 오류 코드로 끝났고 출력은 하나도 없었습니다. @Component가 있을 때 컨테이너에 등록된 이름은 greeter 하나였고 그 빈은 싱글톤이었습니다. 문서가 정한 것은 스프링 프레임워크 문서 Core의 다음 절입니다. Introduction to the Spring IoC Container and Beans(빈은 스프링 IoC 컨테이너가 만들고 조립하고 관리하는 객체이고, 그렇지 않은 객체는 그냥 애플리케이션의 여러 객체 가운데 하나라는 것), Classpath Scanning and Managed Components(@Component가 스프링이 관리하는 컴포넌트를 뜻하는 일반적인 애너테이션이고 @Service, @Controller 등이 그것을 특수화한 것이라는 것, 스프링이 애너테이션이 붙은 클래스를 찾아 빈 정의를 등록한다는 것, 이름을 정하지 않으면 클래스 이름의 첫 글자를 소문자로 바꾼 이름이 쓰인다는 것), Bean Scopes(싱글톤은 기본 범위이고 컨테이너가 그 빈 정의로 객체를 정확히 하나만 만들어 두고 요청이 올 때마다 그 객체를 돌려준다는 것), 그리고 AnnotationConfigApplicationContext(String... basePackages)의 API 문서(주어진 패키지에서 컴포넌트를 찾아 빈 정의를 등록하고 컨텍스트를 자동으로 새로 고친다는 것)입니다. 문서가 정한 것과 달리, 객체가 시작할 때 만들어지고 @Component가 없는 클래스는 getBean을 불러도 만들어지지 않는다는 점과 예외의 이름은 이 버전에서 관찰한 동작입니다. 화면의 코드는 package와 import 줄을 줄였고, Greeter와 Main이 둘 다 app 패키지에 있다고 가정했습니다. 컨테이너를 닫는 줄은 쓰지 않았습니다. 빈을 등록하는 방법은 @Component 말고도 @Bean 메서드 등이 있고, @Component 계열인 @Service나 @Controller, 빈의 범위가 싱글톤이 아닌 경우, 빈끼리 서로 연결하는 의존성 주입은 다루지 않았습니다. 이것들은 &quot;세부 동작 실습: 스프링 컨테이너와 빈&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/thread_basic/">스레드</a> · 다음 실습: <a href="../../lab/di_basic/">의존성 주입</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=c541dcaac2"></script>
+</body>
+</html>
