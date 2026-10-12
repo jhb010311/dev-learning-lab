@@ -84,7 +84,8 @@ button, input, select { font: inherit; color: inherit; }
 .grid.haspic { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-areas: "ctl ctl" "bar bar" "pic stage"; }
 /* 물음 방식(기초개념 실습): 설정 칸 대신 차례로 눌러 볼 물음을 두고, 그 옆에 코드를 둔다. 물음을 누르면 처음 코드에서 달라진 곳이 코드에 표시된다. */
 .grid.qgrid { grid-template-areas: "ctl code" "bar bar" "stage stage"; }
-.grid.qgrid.haspic { grid-template-areas: "ctl code" "bar bar" "pic stage"; }
+/* 그림이 있으면 세 칸으로 나눈다: 윗줄은 물음과 코드(75칸짜리 줄이 넘치지 않는 너비), 아랫줄은 그림과 결과. 윗줄과 아랫줄이 나뉘는 자리가 다르다. */
+.grid.qgrid.haspic { grid-template-columns: minmax(0, .96fr) minmax(0, .2fr) minmax(0, 1fr); grid-template-areas: "ctl code code" "bar bar bar" "pic pic stage"; }
 .asks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .askq { display: grid; grid-template-columns: 1.5em minmax(0, 1fr); gap: 8px; align-items: baseline; width: 100%; text-align: left; border: 1px solid transparent; background: transparent; border-radius: 3px; padding: 7px 9px; cursor: pointer; font-size: .96rem; }
 .askq:hover, .askq:focus-visible { background: color-mix(in srgb, var(--ink) 5%, transparent); outline: none; }
@@ -340,7 +341,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
   .grid, .grid.haspic { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ctl" "bar" "stage" "code"; }
   .grid.haspic { grid-template-areas: "ctl" "bar" "pic" "stage"; }
   .grid.qgrid { grid-template-areas: "ctl" "code" "bar" "stage"; }
-  .grid.qgrid.haspic { grid-template-areas: "ctl" "code" "bar" "pic" "stage"; }
+  .grid.qgrid.haspic { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ctl" "code" "bar" "pic" "stage"; }
   .grid.haspic .p-pic, .grid:not(.haspic) .p-code { position: static; max-height: none; }
   .presets { display: flex; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
   .preset { flex: 0 0 min(230px, 72vw); scroll-snap-align: start; }
