@@ -34,10 +34,10 @@ Lab.basics({
       { id: 'entity_basic' },
       { id: 'pc_basic' },
       { id: 'repo_basic' },
-      { t: '연관관계', d: '엔티티가 다른 엔티티를 가리키는 것' },
+      { id: 'relation_basic' },
     ] },
     { name: 'DB', desc: '테이블에 데이터를 넣고 찾을 때의 기본 약속들입니다.', items: [
-      { t: '테이블, 행, 열', d: '데이터를 담는 표의 생김새' },
+      { id: 'table_basic' },
       { id: 'pk_basic' },
       { t: '외래 키', d: '다른 테이블의 행을 가리키는 열' },
       { t: 'WHERE', d: '어느 행을 고를지 정하는 조건' },

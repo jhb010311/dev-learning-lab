@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=a00b9e3361">
+<link rel="stylesheet" href="../../app.css?v=801a04b24b">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -81,7 +81,7 @@ List&lt;Member&gt; found = memberRepository.findByName(&quot;김철수&quot;);
 System.out.println(found.size());</pre>
 <h2>이 모형의 전제</h2>
 <p>스프링 부트 4.1.1(스프링 데이터 JPA 4.1.1, Hibernate 7.4.5, 스프링 프레임워크 7.0.9)을 JDK 21에서, H2 2.4.240 메모리 DB에서 실행해 대조했고 MySQL에서의 실행 대조는 하지 않았습니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 소스(패키지 app의 MemberRepository와 쓰는 쪽을 가진 Main, 끝에 PROBE 표시를 붙인 측정 줄만 더함)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 자바 프로세스를 새로 띄워 실행했습니다. 시작 클래스는 @SpringBootConfiguration과 @EnableAutoConfiguration을 붙였고 웹 서버는 띄우지 않았습니다. 엔티티 Member(id는 Long, name은 String)와 MemberRepository는 시작 클래스와 같은 패키지에 두고, 리포지토리를 손으로 등록하지 않고 스프링 데이터가 패키지를 훑어 인터페이스를 찾아 구현 객체를 만들게 했습니다. 대조한 것은 출력한 글, 컴파일 오류의 javac 진단 코드와 줄(cant.resolve.location.args, 첫 오류가 save이고 count가 있으면 둘째 오류), 스프링이 시작하다 실패한 예외의 사슬(BeanCreationException, QueryCreationException, PropertyReferenceException), 스프링 컨텍스트에 있는 MemberRepository 빈의 수, 그 객체가 우리가 쓴 클래스인지 아닌지(JDK 동적 프록시이고 MemberRepository를 구현한 우리 클래스는 없음), 시작이 끝난 뒤 DB로 나간 SQL의 종류별 수와 문장(Hibernate의 StatementInspector로 잡음)입니다. extends JpaRepository가 없는 세 조합은 컴파일이 실패하므로, 쓰는 쪽을 뺀 같은 인터페이스로 스프링을 따로 띄워 구현 객체가 0개인 것을 확인했습니다. 컴파일이 실패한 조합에서는 Main 클래스 파일이 만들어지지 않았습니다. 문서는 직접 열어 확인했습니다. 스프링 데이터 커먼즈 문서의 Creating Repository Instances 절은 스프링 데이터가 설정된 패키지 아래에서 리포지토리 하위 인터페이스를 상속한 인터페이스를 모두 찾아 그것마다 빈 객체를 만들고, 쿼리 메서드 호출을 처리하는 프록시를 만든다고 하며, 스프링 데이터 JPA 문서의 Core concepts 절은 Repository가 중심 인터페이스이고 JpaRepository 같은 저장 기술별 인터페이스가 CrudRepository를 확장한다고, Defining Repository Interfaces 절은 인터페이스가 Repository를 상속해야 하고 JpaRepository를 상속한 인터페이스가 스프링 데이터 JPA 모듈의 대상이라고 합니다. Query Methods 절의 Query Creation과 Property Expressions는 메서드 이름의 첫 By까지가 주제이고 그 뒤가 조건이라는 것, 쿼리를 만드는 때에 파싱한 이름이 관리하는 엔티티의 프로퍼티인지 확인한다는 것을 설명합니다. 그 확인이 스프링을 시작할 때 일어나 시작을 실패시킨다는 것과 예외의 이름은 문서가 정한 것이 아니라 이 버전에서 관찰한 동작입니다. 구현 객체의 실제 클래스가 JDK 프록시인 것, save가 id가 있는 엔티티에 대해 INSERT에 앞서 SELECT를 한 번 보내는 것, 나간 SQL의 모양과 개수도 이 버전과 설정에서 관찰한 것으로, 버전에 따라 다를 수 있습니다. 화면의 코드는 package와 import 줄을 줄였고, Member 엔티티, 스프링을 시작하고 구현 객체를 받는 main의 줄, DB 설정은 보이지 않습니다. 이 실습은 쿼리 메서드의 이름 규칙 가운데 findBy와 필드 이름 하나만 다루며, @Query, 조건 키워드(And, GreaterThan 등), 반환 타입, 페이지 요청, 트랜잭션은 다루지 않습니다. 이것들은 &quot;세부 동작 실습: 스프링 데이터 JPA&quot;에서 다룹니다.</p>
-<p>앞 실습: <a href="../../lab/pc_basic/">영속성 컨텍스트</a> · 다음 실습: <a href="../../lab/pk_basic/">기본 키</a></p>
+<p>앞 실습: <a href="../../lab/pc_basic/">영속성 컨텍스트</a> · 다음 실습: <a href="../../lab/relation_basic/">연관관계</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -167,6 +167,6 @@ System.out.println(found.size());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=a00b9e3361"></script>
+<script src="../../app.js?v=801a04b24b"></script>
 </body>
 </html>

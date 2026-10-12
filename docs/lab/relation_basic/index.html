@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>연관관계: 연관관계는 무엇이고, @ManyToOne은 무엇을 해 주는가 · 개발 학습 실습실</title>
+<meta name="description" content="주문은 누가 주문했는지를 알아야 합니다. 테이블에서는 주문 행이 회원의 번호를 열 하나(외래 키)에 적어 회원을 가리킵니다. 자바 객체에서는 Order가 Member 객체를 필드로 직접 가리킵니다. 이렇게 엔티티가 다른 엔티티를 가리키는 것이 연관관계입니다. 그 필드 위에 @…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/relation_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/relation_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/relation_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="연관관계: 연관관계는 무엇이고, @ManyToOne은 무엇을 해 주는가 · 개발 학습 실습실">
+<meta property="og:description" content="주문은 누가 주문했는지를 알아야 합니다. 테이블에서는 주문 행이 회원의 번호를 열 하나(외래 키)에 적어 회원을 가리킵니다. 자바 객체에서는 Order가 Member 객체를 필드로 직접 가리킵니다. 이렇게 엔티티가 다른 엔티티를 가리키는 것이 연관관계입니다. 그 필드 위에 @…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/relation_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=801a04b24b">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › JPA</p>
+<h1>연관관계</h1>
+<p><b>연관관계는 무엇이고, @ManyToOne은 무엇을 해 주는가</b></p>
+<p>주문은 누가 주문했는지를 알아야 합니다. 테이블에서는 주문 행이 회원의 번호를 열 하나(외래 키)에 적어 회원을 가리킵니다. 자바 객체에서는 Order가 Member 객체를 필드로 직접 가리킵니다. 이렇게 엔티티가 다른 엔티티를 가리키는 것이 연관관계입니다. 그 필드 위에 @ManyToOne을 적으면 JPA가 둘 사이를 이어 줍니다. 저장할 때는 Member 객체에서 id를 꺼내 외래 키 열에 넣고, 읽을 때는 그 번호로 Member를 찾아 필드에 넣어 줍니다. 그래서 order.getMember().getName()처럼 객체를 따라가면 됩니다. 이 실습은 member 테이블에 (1, 김철수)가 미리 들어 있는 DB에서, 주문을 저장했다가 다시 읽는 같은 코드를 필드 선언만 바꿔 실행합니다. @ManyToOne을 지우면 어떻게 되는지, 객체 대신 번호(Long memberId)만 필드로 두면 무엇이 달라지는지를 봅니다.</p>
+<p>실행으로 대조 · Hibernate 7.4.5와 H2 2.4.240에서 네 가지 조합을 소스째 컴파일해 JPA를 실제로 시작하고 저장하고 다시 읽어 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>연관관계</dt>
+<dd>연관관계는 한 엔티티가 다른 엔티티를 가리키는 관계다. 테이블에서는 한 행이 다른 테이블 행의 기본 키 값을 열 하나(외래 키)에 적어 그 행을 가리키고, 자바 객체에서는 한 엔티티의 필드가 다른 엔티티의 객체를 직접 가리킨다. JPA는 이 두 표현을 이어 준다. 저장할 때는 가리키는 객체에서 기본 키를 꺼내 외래 키 열에 넣고, 읽을 때는 외래 키 값으로 상대 엔티티를 찾아 필드에 넣는다. JPA 명세는 연관관계를 나타내는 필드나 프로퍼티에 @OneToOne, @OneToMany, @ManyToOne, @ManyToMany 가운데 하나를 붙이도록 정한다. 상대의 객체가 아니라 번호만 필드로 두면 연관관계가 아니라 평범한 숫자 필드이고, 상대 엔티티는 그 번호로 직접 찾아야 한다.</dd>
+<dt>@ManyToOne</dt>
+<dd>@ManyToOne은 필드 위에 붙여 &quot;이 필드는 다른 엔티티 하나를 가리키고, 이 엔티티 여러 개가 같은 상대 하나를 가리킬 수 있다&quot;고 표시하는 애너테이션이다. 주문 여러 개가 회원 한 명을 가리키는 경우가 대표적이다. 가리키는 대상의 타입은 필드의 타입에서 알아낸다. 테이블에서는 이 필드를 가진 엔티티의 테이블에 상대의 기본 키 값을 담는 외래 키 열이 생기고, 열 이름을 따로 정하지 않으면 필드 이름, 밑줄, 상대의 기본 키 열 이름을 이은 이름(Member 타입의 member 필드면 member_id)이 된다. 다른 엔티티 타입의 필드에 이런 연관관계 표시가 없으면, Hibernate 7.4.5는 그 필드를 열에 담을 방법을 찾지 못해 시작하다가 오류를 낸다.</dd>
+<dt>@JoinColumn</dt>
+<dd>@JoinColumn은 연관관계의 외래 키 열을 지정하는 애너테이션이며, @ManyToOne 같은 연관관계 표시와 함께 쓴다. name에 열 이름을 적고, 적지 않으면 필드 이름, 밑줄, 상대의 기본 키 열 이름을 이은 이름이 된다. 예를 들어 @JoinColumn(name = &quot;buyer_id&quot;)를 붙이면 외래 키 열이 member_id가 아니라 buyer_id가 된다. 바뀌는 것은 테이블의 열 이름이고, 엔티티 코드에서 객체를 따라가는 방법은 달라지지 않는다.</dd>
+<dt>기본 키, 유니크 키, 외래 키</dt>
+<dd>기본 키(PK)는 테이블의 각 행을 유일하게 식별하는 컬럼으로 값이 중복되거나 비어 있을 수 없고 테이블에 하나만 둔다. 유니크 키는 값의 중복을 막는 제약으로 여러 개 둘 수 있다. 외래 키(FK)는 다른 테이블의 기본 키(또는 유니크 키)를 참조하는 컬럼으로, 참조 대상이 실제로 존재하도록 보장한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — @ManyToOne이 붙은 member 필드. JPA가 객체에서 번호를 꺼내 외래 키 열에 넣고, 읽을 때는 번호로 Member를 찾아 필드에 넣어 줍니다.</li>
+<li><b>@ManyToOne을 지우면</b> — Member 타입의 필드를 열에 어떻게 담을지 몰라 JPA가 시작하지 못합니다.</li>
+<li><b>객체 대신 번호만 두면</b> — 저장은 되지만 외래 키 제약은 만들어지지 않고, 회원을 얻으려면 번호로 우리가 다시 찾아야 합니다.</li>
+<li><b>@JoinColumn을 더하면</b> — 외래 키 열의 이름만 member_id에서 buyer_id로 바뀌고, 저장하고 읽는 결과는 같습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>프로그램이 시작되면서 JPA(여기서는 Hibernate)에 Order와 Member 클래스를 알려 주고, JPA가 클래스를 읽습니다. 이 등록하는 줄과 DB에 연결하는 설정은 화면에서 줄였습니다. JPA가 Order의 member 필드를 보니 타입이 Member, 곧 다른 엔티티이고 위에 @ManyToOne이 붙어 있습니다. 그래서 JPA는 이 필드를 &quot;다른 엔티티를 가리키는 필드&quot;로 받아들입니다.</li>
+<li>JPA가 이 짝짓기대로 H2 DB에 orders 테이블을 만듭니다. 열은 id, member_id이고, 열 member_id에는 Member의 id를 담습니다. 외래 키 제약도 함께 만들어져, 이 열의 값은 member 테이블의 id에 있는 번호여야 합니다. 열 이름 member_id는 필드 이름 member에 _와 가리키는 열 이름 id를 이은 것입니다(@JoinColumn을 적지 않았을 때의 JPA 명세의 기본 규칙). 이 실습은 JPA가 시작할 때 테이블을 만들도록 설정했고(hibernate.hbm2ddl.auto=create-drop), 우리는 CREATE TABLE을 쓰지 않았습니다. member 테이블에는 실습이 미리 넣어 둔 행 (1, 김철수)가 있습니다. 화면에는 보이지 않는 준비입니다.</li>
+<li>Member kim = em.find(Member.class, 1L): JPA가 member 테이블에서 id가 1인 행을 읽어 Member 객체 kim을 만듭니다. 이 실행에서 SELECT가 1번 나갔습니다. kim은 id 1과 name 김철수를 가진 평범한 객체입니다.</li>
+<li>em.persist(new Order(10L, kim)): 주문 객체를 만들면서 member 필드에 번호 1이 아니라 kim 객체를 넣습니다. 이 주문을 JPA에 넘기고 저장을 마치는 과정에서 INSERT가 1번 나갑니다. 이 실행에서 Hibernate 7.4.5가 만든 문장은 &quot;insert into orders (member_id,id) values (?,?)&quot;입니다. JPA가 kim 객체에서 id 1을 꺼내 member_id 자리에 넣었습니다. 우리는 번호를 꺼내 적지 않았습니다. orders 테이블에 행 (id 10, member_id 1)이 생겼습니다.</li>
+<li>Order o = em2.find(Order.class, 10L): 저장할 때 쓴 em과 다른 em2로 주문을 읽습니다. 따로 만든 em2는 앞의 객체를 모르기 때문에 DB에서 읽어 옵니다. 이 줄에서 SELECT가 1번 나갔고, 그 문장이 orders 테이블뿐 아니라 member 테이블까지 함께 읽었습니다. JPA가 행의 member_id 값 1로 Member를 찾아 o의 member 필드에 넣어 줍니다. Member를 찾는 find를 우리가 따로 부르지 않았습니다.</li>
+<li>System.out.println(o.getMember().getName()): o.getMember()는 JPA가 넣어 준 Member 객체이고, getName()은 그 객체의 이름을 돌려줍니다. 화면에 김철수가 찍힙니다. 우리는 번호를 다루지 않고 객체를 따라가기만 했습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>연관관계는 한 엔티티가 다른 엔티티를 가리키는 것입니다. 테이블에서는 orders 행이 회원의 번호를 member_id 열(외래 키)에 적어 가리키고, 자바 객체에서는 Order가 Member 객체를 필드로 가리킵니다. 필드 위의 @ManyToOne이 둘을 이어 줍니다.</li>
+<li>저장할 때 JPA가 kim 객체에서 id를 꺼내 member_id에 넣었고, 읽을 때는 그 번호로 Member를 찾아 member 필드에 넣어 주었습니다. 그래서 o.getMember().getName()처럼 객체를 따라가면 회원의 이름을 얻습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@Entity
+@Table(name = &quot;orders&quot;)
+public class Order {
+    @Id
+    private Long id;
+    // 연관관계: 이 주문을 한 회원을 객체로 가리킨다
+    @ManyToOne
+    private Member member;
+}
+
+// 쓰는 쪽: 주문을 저장하고, 다시 읽어서 주문한 회원의 이름을 본다
+Member kim = em.find(Member.class, 1L);
+em.persist(new Order(10L, kim));
+// 저장(commit)을 마친 뒤, 새 EntityManager(em2)로 DB에서 다시 읽는다
+Order o = em2.find(Order.class, 10L);
+System.out.println(o.getMember().getName());</pre>
+<h2>이 모형의 전제</h2>
+<p>Hibernate 7.4.5와 H2 2.4.240(메모리 DB)에서 실행해 대조했습니다. 스프링은 쓰지 않고 Hibernate를 코드로 직접 시작했습니다(persistence.xml 없이 Configuration에 Member와 Order 클래스를 등록). 네 가지 조합을 모두, 화면의 Order 소스와 같은 글(package와 import 줄, 생성자와 getter만 더함)을 Member 소스와 함께 컴파일하고 자바 프로세스를 새로 띄워 확인했습니다. 화면에서 줄인 것은 package와 import 줄, Order의 생성자와 getter, Member 엔티티(id와 name 필드를 가진 평범한 엔티티), 그리고 EntityManager em과 em2를 얻는 줄입니다. 화면의 &quot;쓰는 쪽&quot;은 실제로는 main 안의 코드이고, em으로 저장하는 부분은 트랜잭션을 시작하고 끝내는(commit) 줄 사이에 있습니다. 그 줄은 화면에서 줄였습니다. 읽는 줄은 저장이 끝난 뒤, 새로 만든 em2로 실행했습니다. 같은 EntityManager로 읽으면 방금 저장한 객체를 DB가 아니라 메모리에서 돌려주어, 읽는 단계를 보일 수 없기 때문입니다. member 테이블의 (1, 김철수)는 JPA가 시작하면서 테이블을 만든 직후 JDBC로 직접 넣었습니다. 열 이름은 필드 이름의 대문자 앞에 _를 넣어 정하는 규칙(hibernate.physical_naming_strategy=PhysicalNamingStrategySnakeCaseImpl)을 설정했습니다. 스프링 부트 4.1.1의 spring-boot-hibernate jar가 기본 이름 규칙으로 가리키는 클래스와 같은 것이며(jar 안의 클래스 이름으로 확인했고 스프링 부트를 실제로 띄워 보지는 않았습니다), 이 설정이 없을 때 열 이름이 어떻게 되는지는 확인하지 않았습니다. 대조한 것은 JPA가 시작하다 실패하는지와 예외의 종류와 메시지 첫 줄, 시작 직후와 실행 뒤 H2에 있는 테이블과 열(INFORMATION_SCHEMA.COLUMNS), 외래 키 제약(INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS와 KEY_COLUMN_USAGE), StatementInspector로 잡은 SQL(저장 단계와 읽기 단계로 나눠 SELECT와 INSERT의 수와 글), 화면에 찍힌 글, 실행 뒤 orders 테이블의 행입니다. 테이블 이름은 H2가 대문자로 저장하는데 화면에는 소문자로 적었고, 외래 키가 가리키는 member 테이블은 엔티티 이름을 따라 Member로 적었습니다. 열의 차례는 H2에서 본 그대로이며 필드를 적은 순서와 같지 않습니다(@JoinColumn으로 buyer_id를 정하면 buyer_id가 id보다 앞에 놓였습니다). 문서가 정한 것은 Jakarta Persistence 3.2 명세 2.11절(연관관계를 나타내는 필드에는 @OneToOne, @OneToMany, @ManyToOne, @ManyToMany 가운데 하나를 붙인다), 2.12절(연관관계의 기본 매핑)과 2.12.3.2항(단방향 ManyToOne은 이 엔티티의 테이블에 상대 테이블의 기본 키를 가리키는 외래 키 열이 놓이고, 그 열의 이름은 필드 이름, 밑줄, 상대의 기본 키 열 이름을 이은 것), 그리고 ManyToOne과 JoinColumn의 API 문서(JoinColumn의 name을 적지 않았을 때의 기본 이름 규칙)입니다. 명세 본문에는 애너테이션 설명이 따로 없어 이 둘은 API 문서에서 읽었습니다. 이 문서들은 WebFetch로 열었고, 돌려받은 것은 원문이 아니라 요약이어서 문장을 하나하나 원문과 대조하지는 못했습니다. 아래는 문서가 정한 것이 아니라 이 버전에서 관찰한 동작입니다. @ManyToOne을 지우면 JPA는 시작할 때 MappingException을 내고(메시지 첫 줄은 Incorrect use of entity type 'app.Member' (possibly due to missing association mapping annotation)이고, 안쪽 원인은 Java 타입 'app.Member'에 맞는 JdbcType을 정하지 못했다는 것) 테이블이 하나도 만들어지지 않습니다. 이때 member 테이블도 만들어지지 않으므로 미리 넣는 행 (1, 김철수)도 없습니다. 연관관계가 있을 때 주문을 다시 읽는 SELECT는 1번이었고 member 테이블을 함께 읽는 문장(left join)이었으며, 번호만 두었을 때는 주문을 읽는 SELECT 1번과 우리가 부른 Member find의 SELECT 1번으로 모두 2번이었습니다. 이 SELECT가 언제 어떻게 나가는지의 세부는 공부 쪽 실습에서 다룹니다. 문장은 Hibernate 버전에 따라 글자가 다를 수 있어 화면에는 &quot;이 실행에서 Hibernate 7.4.5가 만든 문장&quot;이라고 밝혔습니다. 테이블 이름을 orders로 정한 @Table은 order가 SQL의 예약어이기 때문에 붙였고, 이 실습의 주제가 아닙니다. 필드는 id와 member(또는 memberId)만 다뤘고, 반대 방향(Member가 주문 목록을 가지는 양방향), 연관관계의 주인, 지연 로딩, 상대가 없는 경우(optional), cascade는 다루지 않았습니다. 이 실습의 연관관계는 Order에서 Member 쪽으로만 가리키는 단방향입니다. MySQL에서의 실행 대조는 하지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/repo_basic/">리포지토리</a> · 다음 실습: <a href="../../lab/table_basic/">테이블, 행, 열</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=801a04b24b"></script>
+</body>
+</html>
