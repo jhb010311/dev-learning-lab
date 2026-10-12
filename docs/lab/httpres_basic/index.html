@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTP 응답: HTTP 응답은 어떻게 생긴 글인가 · 개발 학습 실습실</title>
+<meta name="description" content="서버가 요청에 답해 돌려주는 HTTP 응답도 정해진 모양의 글자 몇 줄입니다. 첫 줄(상태 줄)에는 버전과 상태 코드(200, 404 같은 세 자리 숫자)와 짧은 설명을 적습니다. 그 아래에는 &quot;이름: 값&quot; 꼴의 줄인 헤더를 적고, 아무 글자도 없는 빈 줄 뒤에 본문(실제 내…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/httpres_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/httpres_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/httpres_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="HTTP 응답: HTTP 응답은 어떻게 생긴 글인가 · 개발 학습 실습실">
+<meta property="og:description" content="서버가 요청에 답해 돌려주는 HTTP 응답도 정해진 모양의 글자 몇 줄입니다. 첫 줄(상태 줄)에는 버전과 상태 코드(200, 404 같은 세 자리 숫자)와 짧은 설명을 적습니다. 그 아래에는 &quot;이름: 값&quot; 꼴의 줄인 헤더를 적고, 아무 글자도 없는 빈 줄 뒤에 본문(실제 내…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/httpres_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=5f9f8a1ea5">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › 네트워크</p>
+<h1>HTTP 응답</h1>
+<p><b>HTTP 응답은 어떻게 생긴 글인가</b></p>
+<p>서버가 요청에 답해 돌려주는 HTTP 응답도 정해진 모양의 글자 몇 줄입니다. 첫 줄(상태 줄)에는 버전과 상태 코드(200, 404 같은 세 자리 숫자)와 짧은 설명을 적습니다. 그 아래에는 &quot;이름: 값&quot; 꼴의 줄인 헤더를 적고, 아무 글자도 없는 빈 줄 뒤에 본문(실제 내용)을 붙입니다. 클라이언트(브라우저)는 상태 코드로 요청이 어떻게 됐는지를 알고, Content-Type 헤더로 본문이 어떤 종류의 내용인지를 알고, Content-Length 헤더로 본문이 몇 바이트인지를 압니다. 이 실습은 상태 줄, Content-Type 줄, Content-Length 줄을 하나씩 바꾸거나 지워 가며 그 글자를 그대로 클라이언트에 보내, 클라이언트가 무엇을 읽어 내는지를 봅니다. 코드 칸의 (빈 줄)은 아무 글자도 없는 줄을 눈에 보이게 적은 것입니다.</p>
+<p>실행으로 대조 · Node.js 24.18.0의 net 서버가 글자를 그대로 보내고 http 클라이언트가 읽는 열여덟 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>상태 줄(status line)</dt>
+<dd>상태 줄은 HTTP 응답의 맨 첫 줄로, HTTP 버전, 상태 코드, 짧은 설명을 공백으로 나누어 차례로 적는다. 예를 들어 HTTP/1.1 200 OK는 HTTP/1.1 규칙으로 쓴 글이고, 요청의 결과가 200이며, 사람이 읽는 설명이 OK라는 뜻이다. 상태 코드는 요청이 어떻게 됐는지를 알리는 세 자리 숫자이고, 설명은 사람을 위한 글일 뿐이다(RFC 9112 4절). 클라이언트는 이 줄부터 읽기 때문에, 응답이 상태 줄로 시작하지 않으면 그 글을 HTTP 응답으로 읽지 못한다.</dd>
+<dt>HTTP 상태 코드</dt>
+<dd>서버가 요청을 처리한 결과를 나타내는 세 자리 숫자다. 2xx는 성공, 3xx는 다른 위치로의 이동(리다이렉션), 4xx는 클라이언트의 요청에 문제가 있음, 5xx는 서버 쪽 오류를 뜻한다. 200(성공), 201(생성됨), 400(잘못된 요청), 401(인증 필요), 403(권한 없음), 404(없음), 500(서버 오류)이 자주 쓰인다.</dd>
+<dt>Content-Type 헤더</dt>
+<dd>Content-Type은 응답 본문이 어떤 종류의 내용인지를 알리는 헤더로, text/plain; charset=utf-8처럼 적는다. 앞의 text/plain은 꾸밈없는 글자라는 종류(미디어 타입)이고, charset=utf-8은 그 글자를 적은 문자 인코딩이다. 클라이언트는 이 값을 보고 본문을 글로 보여 줄지, 그림이나 다른 형식으로 다룰지를 정한다. RFC 9110 8.3절은 이 헤더가 없으면 받는 쪽이 종류를 application/octet-stream으로 가정하거나 데이터를 살펴 정할 수 있다고 한다.</dd>
+<dt>Content-Length 헤더</dt>
+<dd>Content-Length는 응답 본문의 크기를 바이트 수로 알리는 헤더다. 클라이언트는 이 숫자로 헤더 다음에 오는 글자 가운데 어디까지가 본문인지를 정한다(RFC 9112 6.2절). 글자 수가 아니라 바이트 수라서, UTF-8에서 한 글자가 3바이트인 한글은 글자 수의 세 배가 된다. Content-Length도 없고 다른 길이 표시도 없는 응답은, 서버가 연결을 닫기 전까지 받은 바이트를 본문으로 본다(RFC 9112 6.3절). 그래서 이 경우 연결을 닫지 않는 서버는 본문의 끝을 알릴 수 없다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 모양이 맞는 응답. 클라이언트가 상태, 본문의 종류, 본문을 모두 읽어 냅니다.</li>
+<li><b>상태 코드를 404로 바꾸면</b> — 상태만 404로 읽히고, 본문은 그대로 읽힙니다.</li>
+<li><b>Content-Type 줄을 지우면</b> — 본문은 읽히지만 본문의 종류를 알려 주는 헤더가 없습니다.</li>
+<li><b>Content-Length를 본문보다 짧게 적으면</b> — 적힌 6바이트만 본문으로 읽혀 글이 잘립니다.</li>
+<li><b>Content-Length 줄을 지우면</b> — 길이 정보가 없어, 연결이 닫힐 때까지 받은 글자 전부가 본문이 됩니다.</li>
+<li><b>첫 줄(상태 줄)을 지우면</b> — 응답으로 읽히지 않습니다. 헤더와 본문이 맞아도 소용이 없습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>브라우저가 서버에 GET /hello 요청을 보내자, 서버가 요청에 답해 아래와 같은 글자를 돌려보냅니다. 이 글자가 HTTP 응답입니다. 이 실습의 서버는 코드 칸의 글자를 그대로 보내고, 다 보내면 연결을 닫습니다. 응답을 읽는 클라이언트는 Node.js의 http 모듈입니다.</li>
+<li>클라이언트가 첫 줄을 읽습니다. 읽은 글은 &quot;HTTP/1.1 200 OK&quot;입니다. 첫 줄(상태 줄)에는 세 가지가 차례로 적힙니다. HTTP/1.1은 어떤 규칙으로 쓴 글인지(버전), 200 부분은 요청이 어떻게 됐는지를 알리는 세 자리 숫자(상태 코드), OK는 그 코드를 사람이 읽도록 풀어 쓴 짧은 설명입니다. 200은 요청이 잘 처리됐다는 뜻입니다. 클라이언트가 읽은 상태는 &quot;200 OK&quot;입니다.</li>
+<li>클라이언트가 다음 줄을 읽습니다. 읽은 글은 &quot;Content-Type: text/plain; charset=utf-8&quot;입니다. &quot;이름: 값&quot; 꼴의 줄을 헤더라고 합니다. Content-Type 헤더는 본문이 어떤 종류의 내용인지를 알려 줍니다. text/plain은 꾸밈없는 글자라는 뜻이고, charset=utf-8은 그 글자를 UTF-8 방식으로 적었다는 뜻입니다.</li>
+<li>클라이언트가 다음 줄을 읽습니다. 읽은 글은 &quot;Content-Length: 15&quot;입니다. Content-Length 헤더는 본문이 몇 바이트인지를 알려 주고, 클라이언트는 이 숫자로 본문이 어디까지인지를 정합니다. 바이트는 컴퓨터가 글자를 세는 단위이고, UTF-8에서 한글 한 글자는 3바이트라서 &quot;안녕하세요&quot; 다섯 글자는 15바이트입니다.</li>
+<li>클라이언트가 다음 줄을 읽었더니 아무 글자도 없는 빈 줄입니다(화면의 (빈 줄)). 빈 줄은 헤더가 끝났다는 표시이고, 다음 글자부터는 본문입니다.</li>
+<li>클라이언트가 Content-Length에 적힌 15바이트만큼을 본문으로 읽습니다. 읽은 글은 &quot;안녕하세요&quot;이고, 본문이 정확히 여기서 끝납니다. 본문이 어디서 끝나는지를 이 숫자로 압니다.</li>
+<li>클라이언트가 응답을 다 읽었습니다. 읽어 낸 것은 상태 &quot;200 OK&quot;, 본문의 종류 &quot;text/plain; charset=utf-8&quot;, 본문 &quot;안녕하세요&quot;입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>HTTP 응답은 서버가 돌려주는 글자 몇 줄입니다. 첫 줄(상태 줄)에 버전, 상태 코드, 짧은 설명을 적고, 그 아래에 &quot;이름: 값&quot; 꼴의 헤더를 적고, 빈 줄 뒤에 본문을 붙입니다.</li>
+<li>클라이언트는 상태 코드 200으로 요청이 잘 처리됐음을, Content-Type으로 본문이 text/plain 글자임을, Content-Length로 본문이 15바이트임을 알고 본문을 읽었습니다. 읽은 본문은 &quot;안녕하세요&quot;입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>HTTP/1.1 200 OK
+Content-Type: text/plain; charset=utf-8
+Content-Length: 15
+(빈 줄)
+안녕하세요</pre>
+<h2>이 모형의 전제</h2>
+<p>서버는 Node.js 24.18.0의 net 모듈로 띄운 것으로, 연결이 오면 요청을 빈 줄까지 읽은 뒤 코드 칸의 글자를 줄 끝 CRLF로 그대로 써 보내고 연결을 닫습니다(http 모듈로 응답을 만들면 틀린 모양을 보낼 수 없어 쓰지 않았습니다). 본문 &quot;안녕하세요&quot; 뒤에는 아무것도 붙이지 않았고, 이 글자는 UTF-8로 15바이트, 앞의 &quot;안녕&quot;은 6바이트로 재서 확인했습니다. 클라이언트는 Node.js의 http 모듈(실제 HTTP 해석기)로 GET /hello 요청을 보내 응답을 읽었습니다. 열여덟 가지 조합을 모두 실행해, 클라이언트가 읽은 상태(상태 코드와 설명), 받은 content-type 헤더 값, 실제로 받은 본문과 그 바이트 수를 확인해 모형과 대조했고, 화면의 코드가 서버가 보낸 글과 같은 글인지도 조합마다 확인했습니다. 이 클라이언트는 Content-Length가 6이면 앞의 6바이트(&quot;안녕&quot;)만 본문으로 받았고, 그때 남은 9바이트를 읽다가 해석 오류(HPE_INVALID_CONSTANT)를 하나 냈습니다. 상태 줄이 없는 여섯 조합은 헤더와 본문이 어떻든 모두 같은 해석 오류(HPE_INVALID_CONSTANT, 메시지는 Expected HTTP/, RTSP/ or ICE/)로 응답을 읽지 못했습니다. 이것들은 이 Node.js 버전에서 관찰한 동작입니다. Content-Length가 없을 때 이 서버는 보낸 뒤 연결을 닫기 때문에 클라이언트가 연결이 닫힐 때까지를 본문으로 읽었습니다. 연결을 닫지 않는 서버는 화면에서 다루지 않았지만, 확인용으로 따로 같은 글을 연결을 닫지 않는 서버에 보내 보았더니 클라이언트는 본문 15바이트를 받고도 1.5초가 지나도록 응답이 끝나지 않았습니다(Content-Length가 있을 때는 연결을 닫지 않아도 바로 끝났습니다). 그 이상 오래 기다렸을 때나 다른 클라이언트에서의 동작은 보지 않았습니다. 브라우저가 Content-Type이 없는 본문을 어떻게 추측해 보여 주는지는 이 실습에서 확인하지 않았습니다. 문서로 확인한 것은 RFC 9112의 2.1절(메시지 형식: 시작 줄, 헤더, 빈 줄, 본문), 4절(상태 줄: 버전, 세 자리 상태 코드, 설명), 6.2절과 6.3절(Content-Length가 본문의 바이트 수를 정하고, 길이 정보가 없는 응답은 서버가 연결을 닫기 전에 받은 바이트 수로 본문 길이가 정해진다는 규칙)과 RFC 9110의 8.3절(Content-Type은 본문의 미디어 타입을 알리고, 없으면 받는 쪽이 application/octet-stream으로 가정하거나 데이터를 살펴 종류를 정할 수 있다), 8.6절(Content-Length), 15절(상태 코드는 세 자리 숫자), 15.3.1절(200), 15.5.5절(404)입니다. 화면의 응답은 헤더를 두 개만 남긴 최소한의 모양이고, 본문이 글자인 GET 응답만 다뤘습니다. 서버가 보낸 글에 줄 끝을 CRLF로 쓴 것, 클라이언트로 Node.js를 쓴 것은 이 실습의 선택이며 브라우저는 쓰지 않았습니다. 같은 주제의 세부 동작(요청과 응답의 모양, 상태 코드 전체)은 &quot;세부 동작 실습: HTTP 메시지와 상태 코드&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/http_basic/">HTTP 요청</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=5f9f8a1ea5"></script>
+</body>
+</html>

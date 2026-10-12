@@ -50,7 +50,7 @@ Lab.basics({
       { id: 'url_basic' },
       { id: 'dns_basic' },
       { id: 'http_basic' },
-      { t: 'HTTP 응답', d: '서버가 돌려주는 글의 생김새' },
+      { id: 'httpres_basic' },
       { t: '쿠키', d: '서버가 브라우저에 맡겨 두는 작은 값' },
       { t: 'JSON', d: '데이터를 글자로 적는 약속' },
       { t: 'HTTPS', d: '주고받는 글을 남이 읽지 못하게 하는 것' },
