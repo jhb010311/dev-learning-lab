@@ -92,6 +92,7 @@ Lab.basics({
       { id: 'cache_basic' },
       { id: 'queue_basic' },
       { id: 'deploy_basic' },
+      { id: 'git_basic' },
     ] },
   ],
 });

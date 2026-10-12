@@ -1,0 +1,92 @@
+# git git version 2.55.0.windows.3 · 조합마다 verify/out/git_basic/1791832425025/<조합>/ 의 새 빈 폴더 · git init -b main
+true|main => branch=main|main=커밋 1|feature=커밋 2|memo=v1|mainFile=v1|featFile=v2|status=(깨끗함)|count=2
+true|stay => branch=feature|main=커밋 1|feature=커밋 2|memo=v2|mainFile=v1|featFile=v2|status=(깨끗함)|count=2
+false|main => branch=main|main=커밋 1|feature=커밋 1|memo=v2|mainFile=v1|featFile=v1|status=M memo.txt|count=1
+false|stay => branch=feature|main=커밋 1|feature=커밋 1|memo=v2|mainFile=v1|featFile=v1|status=M memo.txt|count=1
+# 보낸 코드 true|main = "# 이 폴더를 Git 저장소로 만든다 (첫 브랜치 이름은 main)\ngit init -b main\n# memo.txt 파일을 만들고 v1이라고 쓴다\necho v1 > memo.txt\n# memo.txt를 다음 커밋에 넣을 것으로 올린다\ngit add memo.txt\n# 올려 둔 것을 커밋(저장)한다\ngit commit -m \"첫 커밋\"\n# feature 브랜치를 새로 만들고 그쪽으로 옮겨 간다\ngit switch -c feature\n# memo.txt의 내용을 v2로 바꾼다\necho v2 > memo.txt\n# 바뀐 파일을 올리고(-a) 곧바로 커밋한다\ngit commit -am \"둘째 커밋\"\n# main 브랜치로 옮겨 간다\ngit switch main\n# memo.txt의 내용을 화면에 보인다\ncat memo.txt"
+# 사실 init 직후 true|main = HEAD파일="ref: refs/heads/main"|refs/heads/main 파일=(없음)|refs/heads 폴더 안=[]
+# 상태 true|main 0 "git init -b main" => cur=main|main=없음|feature=없음|count=0|file=없음|status=(깨끗함)|mainFile=없음|featFile=없음
+# 상태 true|main 1 "echo v1 > memo.txt" => cur=main|main=없음|feature=없음|count=0|file=v1|status=?? memo.txt|mainFile=없음|featFile=없음
+# 상태 true|main 2 "git add memo.txt" => cur=main|main=없음|feature=없음|count=0|file=v1|status=A  memo.txt|mainFile=없음|featFile=없음
+# 상태 true|main 3 "git commit -m \"첫 커밋\"" => cur=main|main=커밋 1|feature=없음|count=1|file=v1|status=(깨끗함)|mainFile=v1|featFile=없음
+# 상태 true|main 4 "git switch -c feature" => cur=feature|main=커밋 1|feature=커밋 1|count=1|file=v1|status=(깨끗함)|mainFile=v1|featFile=v1
+# 상태 true|main 5 "echo v2 > memo.txt" => cur=feature|main=커밋 1|feature=커밋 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# 상태 true|main 6 "git commit -am \"둘째 커밋\"" => cur=feature|main=커밋 1|feature=커밋 2|count=2|file=v2|status=(깨끗함)|mainFile=v1|featFile=v2
+# 상태 true|main 7 "git switch main" => cur=main|main=커밋 1|feature=커밋 2|count=2|file=v1|status=(깨끗함)|mainFile=v1|featFile=v2
+# 상태 true|main 8 "cat memo.txt" => cur=main|main=커밋 1|feature=커밋 2|count=2|file=v1|status=(깨끗함)|mainFile=v1|featFile=v2
+# 출력 true|main "git init -b main" => 종료 0 stdout="Initialized empty Git repository in E:/dev/dev-learning-lab/verify/out/git_basic/1791832425025/true_main/.git/\n" stderr=""
+# 출력 true|main "echo v1 > memo.txt" => 종료 0 stdout="" stderr=""
+# 출력 true|main "git add memo.txt" => 종료 0 stdout="" stderr=""
+# 출력 true|main "git commit -m \"첫 커밋\"" => 종료 0 stdout="[main (root-commit) 7f21f3e] 첫 커밋\n 1 file changed, 1 insertion(+)\n create mode 100644 memo.txt\n" stderr=""
+# 출력 true|main "git switch -c feature" => 종료 0 stdout="" stderr="Switched to a new branch 'feature'\n"
+# 출력 true|main "echo v2 > memo.txt" => 종료 0 stdout="" stderr=""
+# 출력 true|main "git commit -am \"둘째 커밋\"" => 종료 0 stdout="[feature 8e959be] 둘째 커밋\n 1 file changed, 1 insertion(+), 1 deletion(-)\n" stderr=""
+# 출력 true|main "git switch main" => 종료 0 stdout="" stderr="Switched to branch 'main'\n"
+# 출력 true|main "cat memo.txt" => 종료 0 stdout="v1\n" stderr=""
+# 사실 true|main = HEAD파일="ref: refs/heads/main"|main파일은 해시 하나=true(41바이트)|feature파일은 해시 하나=true(41바이트)|main과 feature가 같은 커밋=false|첫 커밋의 부모 수=0|feature 끝 커밋의 부모=커밋 1|커밋 1의 memo.txt="v1\n"|커밋 1의 파일 목록="memo.txt"|커밋 메시지=["첫 커밋","둘째 커밋"]|브랜치 목록=["feature","main"]|git diff --stat=""
+# 보낸 코드 true|stay = "# 이 폴더를 Git 저장소로 만든다 (첫 브랜치 이름은 main)\ngit init -b main\n# memo.txt 파일을 만들고 v1이라고 쓴다\necho v1 > memo.txt\n# memo.txt를 다음 커밋에 넣을 것으로 올린다\ngit add memo.txt\n# 올려 둔 것을 커밋(저장)한다\ngit commit -m \"첫 커밋\"\n# feature 브랜치를 새로 만들고 그쪽으로 옮겨 간다\ngit switch -c feature\n# memo.txt의 내용을 v2로 바꾼다\necho v2 > memo.txt\n# 바뀐 파일을 올리고(-a) 곧바로 커밋한다\ngit commit -am \"둘째 커밋\"\n# memo.txt의 내용을 화면에 보인다\ncat memo.txt"
+# 사실 init 직후 true|stay = HEAD파일="ref: refs/heads/main"|refs/heads/main 파일=(없음)|refs/heads 폴더 안=[]
+# 상태 true|stay 0 "git init -b main" => cur=main|main=없음|feature=없음|count=0|file=없음|status=(깨끗함)|mainFile=없음|featFile=없음
+# 상태 true|stay 1 "echo v1 > memo.txt" => cur=main|main=없음|feature=없음|count=0|file=v1|status=?? memo.txt|mainFile=없음|featFile=없음
+# 상태 true|stay 2 "git add memo.txt" => cur=main|main=없음|feature=없음|count=0|file=v1|status=A  memo.txt|mainFile=없음|featFile=없음
+# 상태 true|stay 3 "git commit -m \"첫 커밋\"" => cur=main|main=커밋 1|feature=없음|count=1|file=v1|status=(깨끗함)|mainFile=v1|featFile=없음
+# 상태 true|stay 4 "git switch -c feature" => cur=feature|main=커밋 1|feature=커밋 1|count=1|file=v1|status=(깨끗함)|mainFile=v1|featFile=v1
+# 상태 true|stay 5 "echo v2 > memo.txt" => cur=feature|main=커밋 1|feature=커밋 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# 상태 true|stay 6 "git commit -am \"둘째 커밋\"" => cur=feature|main=커밋 1|feature=커밋 2|count=2|file=v2|status=(깨끗함)|mainFile=v1|featFile=v2
+# 상태 true|stay 7 "cat memo.txt" => cur=feature|main=커밋 1|feature=커밋 2|count=2|file=v2|status=(깨끗함)|mainFile=v1|featFile=v2
+# 출력 true|stay "git init -b main" => 종료 0 stdout="Initialized empty Git repository in E:/dev/dev-learning-lab/verify/out/git_basic/1791832425025/true_stay/.git/\n" stderr=""
+# 출력 true|stay "echo v1 > memo.txt" => 종료 0 stdout="" stderr=""
+# 출력 true|stay "git add memo.txt" => 종료 0 stdout="" stderr=""
+# 출력 true|stay "git commit -m \"첫 커밋\"" => 종료 0 stdout="[main (root-commit) 280c4eb] 첫 커밋\n 1 file changed, 1 insertion(+)\n create mode 100644 memo.txt\n" stderr=""
+# 출력 true|stay "git switch -c feature" => 종료 0 stdout="" stderr="Switched to a new branch 'feature'\n"
+# 출력 true|stay "echo v2 > memo.txt" => 종료 0 stdout="" stderr=""
+# 출력 true|stay "git commit -am \"둘째 커밋\"" => 종료 0 stdout="[feature 29e35dd] 둘째 커밋\n 1 file changed, 1 insertion(+), 1 deletion(-)\n" stderr=""
+# 출력 true|stay "cat memo.txt" => 종료 0 stdout="v2\n" stderr=""
+# 사실 true|stay = HEAD파일="ref: refs/heads/feature"|main파일은 해시 하나=true(41바이트)|feature파일은 해시 하나=true(41바이트)|main과 feature가 같은 커밋=false|첫 커밋의 부모 수=0|feature 끝 커밋의 부모=커밋 1|커밋 1의 memo.txt="v1\n"|커밋 1의 파일 목록="memo.txt"|커밋 메시지=["첫 커밋","둘째 커밋"]|브랜치 목록=["feature","main"]|git diff --stat=""
+# 보낸 코드 false|main = "# 이 폴더를 Git 저장소로 만든다 (첫 브랜치 이름은 main)\ngit init -b main\n# memo.txt 파일을 만들고 v1이라고 쓴다\necho v1 > memo.txt\n# memo.txt를 다음 커밋에 넣을 것으로 올린다\ngit add memo.txt\n# 올려 둔 것을 커밋(저장)한다\ngit commit -m \"첫 커밋\"\n# feature 브랜치를 새로 만들고 그쪽으로 옮겨 간다\ngit switch -c feature\n# memo.txt의 내용을 v2로 바꾼다\necho v2 > memo.txt\n# main 브랜치로 옮겨 간다\ngit switch main\n# memo.txt의 내용을 화면에 보인다\ncat memo.txt"
+# 사실 init 직후 false|main = HEAD파일="ref: refs/heads/main"|refs/heads/main 파일=(없음)|refs/heads 폴더 안=[]
+# 상태 false|main 0 "git init -b main" => cur=main|main=없음|feature=없음|count=0|file=없음|status=(깨끗함)|mainFile=없음|featFile=없음
+# 상태 false|main 1 "echo v1 > memo.txt" => cur=main|main=없음|feature=없음|count=0|file=v1|status=?? memo.txt|mainFile=없음|featFile=없음
+# 상태 false|main 2 "git add memo.txt" => cur=main|main=없음|feature=없음|count=0|file=v1|status=A  memo.txt|mainFile=없음|featFile=없음
+# 상태 false|main 3 "git commit -m \"첫 커밋\"" => cur=main|main=커밋 1|feature=없음|count=1|file=v1|status=(깨끗함)|mainFile=v1|featFile=없음
+# 상태 false|main 4 "git switch -c feature" => cur=feature|main=커밋 1|feature=커밋 1|count=1|file=v1|status=(깨끗함)|mainFile=v1|featFile=v1
+# 상태 false|main 5 "echo v2 > memo.txt" => cur=feature|main=커밋 1|feature=커밋 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# 상태 false|main 6 "git switch main" => cur=main|main=커밋 1|feature=커밋 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# 상태 false|main 7 "cat memo.txt" => cur=main|main=커밋 1|feature=커밋 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# 출력 false|main "git init -b main" => 종료 0 stdout="Initialized empty Git repository in E:/dev/dev-learning-lab/verify/out/git_basic/1791832425025/false_main/.git/\n" stderr=""
+# 출력 false|main "echo v1 > memo.txt" => 종료 0 stdout="" stderr=""
+# 출력 false|main "git add memo.txt" => 종료 0 stdout="" stderr=""
+# 출력 false|main "git commit -m \"첫 커밋\"" => 종료 0 stdout="[main (root-commit) f9cbb7d] 첫 커밋\n 1 file changed, 1 insertion(+)\n create mode 100644 memo.txt\n" stderr=""
+# 출력 false|main "git switch -c feature" => 종료 0 stdout="" stderr="Switched to a new branch 'feature'\n"
+# 출력 false|main "echo v2 > memo.txt" => 종료 0 stdout="" stderr=""
+# 출력 false|main "git switch main" => 종료 0 stdout="M\tmemo.txt\n" stderr="Switched to branch 'main'\n"
+# 출력 false|main "cat memo.txt" => 종료 0 stdout="v2\n" stderr=""
+# 사실 false|main = HEAD파일="ref: refs/heads/main"|main파일은 해시 하나=true(41바이트)|feature파일은 해시 하나=true(41바이트)|main과 feature가 같은 커밋=true|첫 커밋의 부모 수=0|feature 끝 커밋의 부모=|커밋 1의 memo.txt="v1\n"|커밋 1의 파일 목록="memo.txt"|커밋 메시지=["첫 커밋"]|브랜치 목록=["feature","main"]|git diff --stat="memo.txt | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)"
+# 보낸 코드 false|stay = "# 이 폴더를 Git 저장소로 만든다 (첫 브랜치 이름은 main)\ngit init -b main\n# memo.txt 파일을 만들고 v1이라고 쓴다\necho v1 > memo.txt\n# memo.txt를 다음 커밋에 넣을 것으로 올린다\ngit add memo.txt\n# 올려 둔 것을 커밋(저장)한다\ngit commit -m \"첫 커밋\"\n# feature 브랜치를 새로 만들고 그쪽으로 옮겨 간다\ngit switch -c feature\n# memo.txt의 내용을 v2로 바꾼다\necho v2 > memo.txt\n# memo.txt의 내용을 화면에 보인다\ncat memo.txt"
+# 사실 init 직후 false|stay = HEAD파일="ref: refs/heads/main"|refs/heads/main 파일=(없음)|refs/heads 폴더 안=[]
+# 상태 false|stay 0 "git init -b main" => cur=main|main=없음|feature=없음|count=0|file=없음|status=(깨끗함)|mainFile=없음|featFile=없음
+# 상태 false|stay 1 "echo v1 > memo.txt" => cur=main|main=없음|feature=없음|count=0|file=v1|status=?? memo.txt|mainFile=없음|featFile=없음
+# 상태 false|stay 2 "git add memo.txt" => cur=main|main=없음|feature=없음|count=0|file=v1|status=A  memo.txt|mainFile=없음|featFile=없음
+# 상태 false|stay 3 "git commit -m \"첫 커밋\"" => cur=main|main=커밋 1|feature=없음|count=1|file=v1|status=(깨끗함)|mainFile=v1|featFile=없음
+# 상태 false|stay 4 "git switch -c feature" => cur=feature|main=커밋 1|feature=커밋 1|count=1|file=v1|status=(깨끗함)|mainFile=v1|featFile=v1
+# 상태 false|stay 5 "echo v2 > memo.txt" => cur=feature|main=커밋 1|feature=커밋 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# 상태 false|stay 6 "cat memo.txt" => cur=feature|main=커밋 1|feature=커밋 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# 출력 false|stay "git init -b main" => 종료 0 stdout="Initialized empty Git repository in E:/dev/dev-learning-lab/verify/out/git_basic/1791832425025/false_stay/.git/\n" stderr=""
+# 출력 false|stay "echo v1 > memo.txt" => 종료 0 stdout="" stderr=""
+# 출력 false|stay "git add memo.txt" => 종료 0 stdout="" stderr=""
+# 출력 false|stay "git commit -m \"첫 커밋\"" => 종료 0 stdout="[main (root-commit) 0c7acfb] 첫 커밋\n 1 file changed, 1 insertion(+)\n create mode 100644 memo.txt\n" stderr=""
+# 출력 false|stay "git switch -c feature" => 종료 0 stdout="" stderr="Switched to a new branch 'feature'\n"
+# 출력 false|stay "echo v2 > memo.txt" => 종료 0 stdout="" stderr=""
+# 출력 false|stay "cat memo.txt" => 종료 0 stdout="v2\n" stderr=""
+# 사실 false|stay = HEAD파일="ref: refs/heads/feature"|main파일은 해시 하나=true(41바이트)|feature파일은 해시 하나=true(41바이트)|main과 feature가 같은 커밋=true|첫 커밋의 부모 수=0|feature 끝 커밋의 부모=|커밋 1의 memo.txt="v1\n"|커밋 1의 파일 목록="memo.txt"|커밋 메시지=["첫 커밋"]|브랜치 목록=["feature","main"]|git diff --stat="memo.txt | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)"
+# 참고 변경이 있는 채로 다른 모습의 브랜치로 "git init -b main" => 종료 0 stdout="Initialized empty Git repository in E:/dev/dev-learning-lab/verify/out/git_basic/1791832425025/ref_conflict/.git/\n" stderr=""
+# 참고 변경이 있는 채로 다른 모습의 브랜치로 "echo v1 > memo.txt" => 종료 0 stdout="" stderr=""
+# 참고 변경이 있는 채로 다른 모습의 브랜치로 "git add memo.txt" => 종료 0 stdout="" stderr=""
+# 참고 변경이 있는 채로 다른 모습의 브랜치로 "git commit -m \"첫 커밋\"" => 종료 0 stdout="[main (root-commit) 5a7bdb6] 첫 커밋\n 1 file changed, 1 insertion(+)\n create mode 100644 memo.txt\n" stderr=""
+# 참고 변경이 있는 채로 다른 모습의 브랜치로 "git switch -c feature" => 종료 0 stdout="" stderr="Switched to a new branch 'feature'\n"
+# 참고 변경이 있는 채로 다른 모습의 브랜치로 "echo v2 > memo.txt" => 종료 0 stdout="" stderr=""
+# 참고 변경이 있는 채로 다른 모습의 브랜치로 "git commit -am \"둘째 커밋\"" => 종료 0 stdout="[feature 13c961f] 둘째 커밋\n 1 file changed, 1 insertion(+), 1 deletion(-)\n" stderr=""
+# 참고 변경이 있는 채로 다른 모습의 브랜치로 "git switch main" => 종료 0 stdout="" stderr="Switched to branch 'main'\n"
+# 참고 변경이 있는 채로 다른 모습의 브랜치로 "echo v3 > memo.txt" => 종료 0 stdout="" stderr=""
+# 참고 변경이 있는 채로 다른 모습의 브랜치로 "git switch feature" => 종료 1 stdout="" stderr="error: Your local changes to the following files would be overwritten by checkout:\n\tmemo.txt\nPlease commit your changes or stash them before you switch branches.\nAborting\n"
+# 참고 변경이 있는 채로 다른 모습의 브랜치로 "cat memo.txt" => 종료 0 stdout="v3\n" stderr=""
