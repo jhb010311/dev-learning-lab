@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTPS: HTTPS는 HTTP와 무엇이 다른가 · 개발 학습 실습실</title>
+<meta name="description" content="HTTP는 요청과 응답을 글자 그대로 네트워크에 흘려보냅니다. 클라이언트와 서버 사이에는 공유기나 통신사 장비 같은 것들이 있어서, 그곳을 지나가는 글자를 누군가 들여다보면 비밀번호까지 그대로 읽힙니다. HTTPS는 같은 HTTP 글자를 암호화해서 보내는 것이고, 주소가 ht…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/https_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/https_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/https_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="HTTPS: HTTPS는 HTTP와 무엇이 다른가 · 개발 학습 실습실">
+<meta property="og:description" content="HTTP는 요청과 응답을 글자 그대로 네트워크에 흘려보냅니다. 클라이언트와 서버 사이에는 공유기나 통신사 장비 같은 것들이 있어서, 그곳을 지나가는 글자를 누군가 들여다보면 비밀번호까지 그대로 읽힙니다. HTTPS는 같은 HTTP 글자를 암호화해서 보내는 것이고, 주소가 ht…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/https_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=7bec3ed750">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › 네트워크</p>
+<h1>HTTPS</h1>
+<p><b>HTTPS는 HTTP와 무엇이 다른가</b></p>
+<p>HTTP는 요청과 응답을 글자 그대로 네트워크에 흘려보냅니다. 클라이언트와 서버 사이에는 공유기나 통신사 장비 같은 것들이 있어서, 그곳을 지나가는 글자를 누군가 들여다보면 비밀번호까지 그대로 읽힙니다. HTTPS는 같은 HTTP 글자를 암호화해서 보내는 것이고, 주소가 https://로 시작합니다. 화면의 코드 칸은 세 구역입니다. 첫째는 클라이언트가 접속하는 주소, 둘째는 보내는 내용(POST 요청의 본문), 셋째는 https일 때만 나오는 서버의 인증서입니다. 암호화를 시작하기 전에 서버는 인증서를 내보여 자신이 그 이름의 주인임을 보이고, 클라이언트는 그 인증서가 믿는 목록에 있는지와 접속한 주소의 이름이 인증서에 적혀 있는지를 확인합니다. 확인에 실패하면 클라이언트는 연결을 끊고 요청을 보내지 않습니다. 이 실습은 https://를 http://로 바꾸거나, 인증서를 믿지 않거나, 인증서에 적히지 않은 이름으로 접속해 가며 같은 내용을 보내, 그림 가운데의 중간에서 무엇이 보이는지와 서버가 무엇을 받는지를 봅니다. 화면의 8080과 8443은 예시로 적은 포트 번호이고, password=1234는 시험용 글자입니다.</p>
+<p>실행으로 대조 · Node.js 24.18.0의 http·https 서버와 클라이언트 사이에 TCP 중계기를 두고, openssl로 만든 시험용 인증서로 여덟 가지 조합을 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>HTTPS와 TLS</dt>
+<dd>HTTPS는 HTTP 통신을 TLS로 암호화한 것이다. TLS는 통신 내용을 제3자가 볼 수 없게 하고(기밀성), 중간에서 바꿀 수 없게 하며(무결성), 접속한 서버가 진짜인지 인증서로 확인한다(인증). SSL은 TLS의 전신인 프로토콜로, 지금은 폐기되어 실제로는 TLS만 쓰이지만 관습적으로 SSL이라는 이름이 함께 불린다.</dd>
+<dt>TLS 핸드셰이크와 인증서</dt>
+<dd>TLS 핸드셰이크는 암호화 통신을 시작하기 전에 클라이언트와 서버가 사용할 암호 방식을 정하고, 서버의 신원을 확인하며, 데이터를 암호화할 키를 합의하는 과정이다. 인증서는 서버의 공개키와 도메인 정보를 신뢰할 수 있는 인증 기관(CA)이 서명해 보증한 문서로, 클라이언트는 이를 검증해 접속한 서버가 진짜임을 확인한다.</dd>
+<dt>평문</dt>
+<dd>평문은 암호화하지 않고 그대로 보내는 글자를 가리킨다. http://로 접속하면 요청과 응답의 글자가 평문으로 네트워크를 지나가므로, 클라이언트와 서버 사이에 있는 공유기나 통신사 장비 같은 곳에서 그 글자를 읽을 수 있고 비밀번호도 예외가 아니다. 암호화하면 같은 내용이 알아볼 수 없는 바이트로 바뀌어 지나가고, 원래 글자로 풀 수 있는 것은 열쇠를 가진 양 끝뿐이다(RFC 8446 1절은 TLS로 만든 통로의 데이터가 양 끝에서만 보인다고 설명한다). 평문이라는 말은 &quot;암호화하기 전의 글&quot;을 뜻하기도 하므로 문맥에서 구분한다.</dd>
+<dt>서버 인증서 확인(믿는 목록과 이름)</dt>
+<dd>HTTPS 클라이언트는 암호화한 요청을 보내기 전에 서버가 내보인 인증서를 확인한다. 확인은 둘이다. 하나는 그 인증서를 믿을 수 있는가로, RFC 9110 4.3.4절은 이 확인에 클라이언트가 미리 갖춘 믿는 인증서(또는 인증 기관)의 목록이 필요하다고 말한다. 다른 하나는 접속한 주소의 이름(IP 주소로 접속했으면 그 IP 주소)이 인증서에 적혀 있는가이다. 예를 들어 이름이 localhost뿐인 인증서를 내보인 서버에 127.0.0.1로 접속하면 이름이 적혀 있지 않아 확인에 실패한다. 인증서가 그 주소에 유효하지 않을 때 브라우저 같은 사용자 에이전트는 사용자의 확인을 받거나 연결을 끊어야 하고, 자동으로 동작하는 클라이언트는 연결을 끊는 것이 권장된다(같은 절).</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 중간에서는 알아볼 수 없는 바이트만 지나가고, 서버는 원래 글자 password=1234를 받습니다.</li>
+<li><b>http로 바꾸면</b> — 확인도 암호화도 없이 글자가 그대로 지나가 중간에서 password=1234가 읽힙니다.</li>
+<li><b>인증서를 믿지 않으면</b> — 클라이언트가 연결을 끊고 요청을 보내지 않습니다. 서버는 아무것도 받지 못합니다.</li>
+<li><b>127.0.0.1로 접속하면</b> — 믿는 인증서여도 접속한 이름이 적혀 있지 않아 클라이언트가 연결을 끊습니다.</li>
+<li><b>믿지 않고 127.0.0.1로도 접속하면</b> — 두 가지가 다 맞지 않는 경우. 클라이언트가 알리는 이유는 믿을 수 없는 인증서입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>서버에 연결하는 주소는 https://localhost:8443/login 입니다. https://로 시작하므로 클라이언트(서버에 접속하는 프로그램)는 HTTP 글자를 보내기 전에 먼저 서버를 확인하고 암호화를 준비합니다. 클라이언트와 서버 사이에는 공유기나 통신사 장비 같은 것들이 있고(그림의 가운데), 그곳을 지나가는 글자를 누군가 들여다볼 수 있습니다. 8443은 예시로 적은 포트 번호입니다.</li>
+<li>서버가 인증서를 내보입니다. 인증서는 서버가 &quot;나는 이 이름의 주인이다&quot;라고 보이는 증명서이고, 이 서버의 인증서에는 이름 localhost가 적혀 있습니다(코드 칸의 &quot;서버의 인증서&quot;).</li>
+<li>클라이언트가 인증서를 확인합니다. 첫째는 이 인증서를 믿을 수 있는가입니다. 클라이언트는 믿는 목록을 가지고 있고, 서버가 내보인 인증서가 그 목록에 있는지 봅니다. 이 인증서는 클라이언트가 믿는 목록에 있어서 통과합니다.</li>
+<li>둘째는 접속한 이름이 인증서에 적혀 있는가입니다. 접속한 이름은 localhost 입니다. 인증서에 적힌 이름은 localhost뿐입니다. 접속한 이름이 적혀 있어서 통과합니다.</li>
+<li>두 확인을 모두 통과했습니다. 양쪽은 HTTP 글자를 암호화하는 데 쓸 열쇠를 정한 상태로 암호화된 통신을 시작합니다. 열쇠를 어떻게 정하는지는 &quot;세부 동작 실습: TLS 핸드셰이크&quot;에서 다룹니다.</li>
+<li>클라이언트가 HTTP 요청 글자(POST /login 요청과 본문 password=1234)를 암호화해서 보냅니다. 암호화하기 전의 글자는 http://로 보낼 때와 같습니다.</li>
+<li>중간에서 지나가는 바이트를 들여다보면 알아볼 수 없는 바이트가 보입니다. POST /login도 password=1234도 글자로 찾을 수 없습니다. 이 실행에서 중간에 둔 중계기가 기록한 바이트 안에서 찾아본 결과입니다. 연결을 시작하는 바이트에는 접속한 이름 localhost가 글자로 들어 있는 것이 이 실행에서 보였습니다. 요청 내용은 아닙니다.</li>
+<li>서버가 받은 바이트를 열쇠로 풀어 원래 글자를 얻습니다. 서버의 요청 처리 함수가 받은 본문은 password=1234입니다. 암호화는 중간에서 보이는 것만 바꾸고, 서버가 받는 글자는 바꾸지 않습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>HTTPS는 HTTP와 같은 글자(POST /login, password=1234)를 암호화해서 보내는 것입니다. 중간에서 들여다보면 알아볼 수 없는 바이트가 보이고, 서버는 풀어서 원래 글자 password=1234를 받습니다.</li>
+<li>암호화를 시작하기 전에 서버가 인증서를 내보이고, 클라이언트가 믿는 목록에 있는지와 접속한 이름이 인증서에 적혀 있는지를 확인합니다. 두 확인을 통과해야 요청을 보냅니다.</li>
+</ul>
+<h2>코드</h2>
+<pre># 클라이언트가 접속하는 주소
+https://localhost:8443/login
+
+# 보내는 내용 (POST 요청의 본문)
+password=1234
+
+# 서버의 인증서
+이름: localhost
+클라이언트가 믿는 목록에 있음</pre>
+<h2>이 모형의 전제</h2>
+<p>여덟 가지 조합을 모두 이 PC의 127.0.0.1 안에서만 실제로 실행해 대조했습니다. 외부 네트워크에는 연결하지 않았습니다. 서버는 Node.js 24.18.0의 http 서버 또는 https 서버(요청 처리 함수가 받은 본문을 기록)이고, 클라이언트는 같은 Node.js의 http.request 또는 https.request입니다. 서버와 클라이언트 사이에는 Probe가 만든 TCP 중계기를 두었습니다. 중계기는 받은 바이트를 그대로 반대편에 넘기면서 양쪽 방향의 바이트를 모두 기록하고, 그림 가운데의 &quot;중간(공유기, 통신사 장비 등)에서 보이는 것&quot;은 이 기록으로 재현했습니다. 기록된 전체 바이트 안에서 password=1234와 POST /login이라는 글자를 찾았습니다. http://로 접속한 네 조합에서는 두 글자가 모두 있었고, https://로 접속한 조합에서는 연결된 것과 끊긴 것 모두 두 글자가 없었습니다. 이것은 이 실행에서 찾아본 결과이고, 암호가 안전하다는 증명은 아닙니다. 또 https://로 localhost에 접속한 조합에서는 연결을 시작하는 바이트에 localhost라는 글자가 보였고 127.0.0.1로 접속한 조합에서는 보이지 않았습니다(관찰만 했고 원인은 이 실습에서 확인하지 않았습니다). 인증서는 이 PC의 openssl 3.5.7로 시험용을 만들었습니다(자체 서명, 이름 localhost, subjectAltName은 DNS:localhost만, 유효 기간 2일, 파일은 verify/out/https_basic/). &quot;클라이언트가 믿는다&quot;는 https.request의 ca 옵션에 이 인증서를 주는 것으로, &quot;믿지 않는다&quot;는 ca 옵션을 주지 않는 것(Node.js에 들어 있는 인증 기관 목록만 믿는 상태)으로 재현했고, 검증을 끄는 rejectUnauthorized: false는 쓰지 않았습니다. 믿지 않는 두 조합은 DEPTH_ZERO_SELF_SIGNED_CERT 오류로, 믿지만 127.0.0.1로 접속한 조합은 ERR_TLS_CERT_ALTNAME_INVALID 오류(메시지는 Hostname/IP does not match certificate's altnames로 시작)로 연결이 끊겼습니다. 둘 다 해당하는 조합(믿지 않고 127.0.0.1로 접속)에서는 믿을 수 없는 인증서 오류가 나왔고, 이름 불일치 오류는 나오지 않았습니다. 끊긴 조합에서는 서버의 요청 처리 함수가 한 번도 불리지 않았고(서버는 연결이 끊겼다는 오류 ECONNRESET만 기록), 연결된 조합에서는 서버가 POST /login 요청의 본문 password=1234를 받았습니다. 연결된 조합이 사용한 TLS 버전은 TLSv1.3, 암호 묶음은 TLS_AES_256_GCM_SHA384였고, 끊긴 조합의 TLS 버전은 재지 못했습니다. 화면의 8080과 8443은 예시 번호이고 실제로는 빈 포트를 썼으며, password=1234는 시험용 글자입니다. 실제 브라우저와 운영체제에는 믿는 인증 기관의 목록이 미리 들어 있고 서버의 인증서는 그 기관이 서명해 준 것이어야 하는데, 이 실습은 그것을 다루지 않고 &quot;믿는 목록에 있음/없음&quot;만 다뤘습니다. 실제 브라우저로는 실행해 보지 않았습니다. 문서로 확인한 것은 RFC 9110의 4.2.2절(https URI 스킴: TLS로 보호된 연결, 서버가 해당 권한의 서버로 인증됨, 기본 포트 443)과 4.3.4절(https 인증서 확인: 접속한 주소의 서버와 인증서의 신원이 맞는지 확인해야 하고, 확인에는 믿는 인증서 목록이 필요하다. 인증서가 그 주소에 유효하지 않으면 브라우저 같은 사용자 에이전트는 사용자의 확인을 받거나 연결을 끊어야 하고 자동 클라이언트는 연결을 끊는 것이 권장된다), RFC 8446의 1절(TLS의 목적은 두 상대 사이의 안전한 통로이고, 통로의 데이터는 양 끝에서만 보이며 변조되면 알 수 있다)입니다. 이 실습의 클라이언트는 자동으로 동작하는 프로그램이라 사용자에게 묻지 않고 끊습니다. 브라우저가 경고 화면을 보여 주고 계속할지 묻는 경우는 다루지 않았습니다. 암호화 전에 열쇠를 정하는 방법과 TLS 핸드셰이크의 메시지 순서, 인증서의 유효 기간·폐기·체인은 다루지 않았고 &quot;세부 동작 실습: TLS 핸드셰이크&quot;에서 다룹니다. 화면의 코드는 클라이언트가 접속하는 주소와 보내는 내용, 서버의 인증서 사정을 보인 것이고 서버나 클라이언트의 프로그램 코드가 아닙니다.</p>
+<p>앞 실습: <a href="../../lab/json_basic/">JSON</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=7bec3ed750"></script>
+</body>
+</html>

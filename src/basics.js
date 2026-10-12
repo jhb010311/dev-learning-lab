@@ -53,7 +53,7 @@ Lab.basics({
       { id: 'httpres_basic' },
       { id: 'cookie_basic' },
       { id: 'json_basic' },
-      { t: 'HTTPS', d: '주고받는 글을 남이 읽지 못하게 하는 것' },
+      { id: 'https_basic' },
     ] },
     { name: '보안', desc: '누구인지 확인하고 지키는 일의 기본입니다.', items: [
       { t: '인증과 인가', d: '누구인지 확인하는 것과, 해도 되는지 확인하는 것' },
