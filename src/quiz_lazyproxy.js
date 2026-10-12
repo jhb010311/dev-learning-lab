@@ -9,7 +9,7 @@ Lab.quiz([
     why: '프록시는 만들어질 때부터 식별자를 갖고 있으므로 getId()로는 초기화되지 않습니다. 이름처럼 식별자가 아닌 값을 읽을 때 비로소 SELECT가 나갑니다.',
     sim: { c: { how: 'lazy', use: 'id' }, col: 1, has: '0번' } },
   { lv: 2, id: 'lazyproxy', q: '지연 로딩으로 받은 회원 m에 대해 m.getClass() == Member.class가 false인 이유는 무엇입니까?',
-    a: ['m은 Member를 상속해 만든 프록시 클래스의 객체이기 때문이다', 'm이 아직 초기화되지 않아 클래스가 정해지지 않았기 때문이다', '지연 로딩된 객체는 Object 타입으로 들어오기 때문이다', '== 는 클래스를 비교할 수 없고 equals를 써야 하기 때문이다'],
+    a: ['m은 Member를 상속해 만든 프록시 클래스의 객체이기 때문이다', 'm이 아직 초기화되지 않아 클래스가 정해지지 않았기 때문이다', '지연 로딩된 객체는 Object 타입으로 들어오기 때문이다', '==는 클래스를 비교할 수 없고 equals를 써야 하기 때문이다'],
     why: 'Hibernate는 엔티티 클래스를 상속한 프록시 클래스를 만들어 그 객체를 돌려줍니다. 프록시의 클래스는 Member의 자식 클래스이므로 getClass() 비교는 false이고 instanceof Member는 true입니다. 초기화된 뒤에도 프록시의 클래스는 바뀌지 않습니다.',
     sim: { c: { how: 'lazy', use: 'cls' }, col: 2, has: 'false' } },
   { lv: 3, id: 'lazyproxy', q: '서비스 메서드(트랜잭션)에서 em.find로 주문을 조회해 돌려주고, 트랜잭션과 영속성 컨텍스트가 끝난 뒤에 order.getMember().getName()을 불렀습니다. member는 LAZY이고 그 전에 회원을 건드린 적이 없습니다. 어떻게 됩니까?',

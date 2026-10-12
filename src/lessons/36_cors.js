@@ -31,7 +31,7 @@ Lab.register({
   columns: ['사전 요청', '본 요청이 서버에 도착', '스크립트가 응답을 받음', '막힌 이유'],
   judge: function (c) {
     if (c.api === 'same') return { pre: false, reached: true, ok: true, why: '' };
-    var pre = c.req !== 'simple', allow = c.srv === 'exact' || (c.srv === 'star' && !c.cred), why = c.srv === 'none' ? '응답에 Access-Control-Allow-Origin 헤더가 없음' : c.srv === 'star' && c.cred ? '쿠키를 보내는 요청에는 * 를 쓸 수 없음' : '';
+    var pre = c.req !== 'simple', allow = c.srv === 'exact' || (c.srv === 'star' && !c.cred), why = c.srv === 'none' ? '응답에 Access-Control-Allow-Origin 헤더가 없음' : c.srv === 'star' && c.cred ? '쿠키를 보내는 요청에는 *를 쓸 수 없음' : '';
     return { pre: pre, reached: pre ? allow : true, ok: allow, why: why };
   },
   simulate: function (c) {
@@ -55,7 +55,7 @@ Lab.register({
       row('브라우저', M + ' /orders (본 요청)' + (c.cred ? ' + 쿠키' : ''), '보냄', ''); row('서버', '요청 처리', '200 OK' + (c.srv === 'none' ? ' (허용 헤더 없음)' : ''), j.ok ? 'good' : 'hot');
       push('본 요청이 서버에 도착하고, 서버는 평소처럼 처리해 응답합니다.' + (j.ok ? '' : ' 서버 쪽에서는 아무 문제 없이 처리가 끝났습니다.'), '');
       if (j.ok) { row('브라우저', '응답을 스크립트에 전달', '전달함', 'good'); push('응답에 이 출처를 허용하는 헤더가 있습니다. 브라우저가 응답을 스크립트에 넘겨줍니다.', 'good'); }
-      else { row('브라우저', '응답을 스크립트에 전달', '차단', 'bad'); push('브라우저가 응답 헤더를 확인합니다. ' + j.why + '. 응답을 스크립트에 넘기지 않고 콘솔에 CORS 오류를 냅니다. 서버는 이미 요청을 처리한 뒤입니다.', 'bad'); }
+      else { row('브라우저', '응답을 스크립트에 전달', '차단', 'bad'); push('브라우저가 응답 헤더를 확인합니다. ' + j.why.replace('없음', '없습니다') + '. 응답을 스크립트에 넘기지 않고 콘솔에 CORS 오류를 냅니다. 서버는 이미 요청을 처리한 뒤입니다.', 'bad'); }
     }
     if (!j.ok) sum.push('CORS는 서버가 아니라 브라우저가 지키는 규칙입니다. 그래서 Postman이나 curl, 서버끼리의 호출에서는 같은 요청이 문제없이 됩니다. 해결은 프론트가 아니라 API 서버가 허용 헤더를 내려 주는 것입니다.');
     if (!j.pre && !j.ok) sum.push('단순 요청은 사전 확인 없이 서버에 도착해 실행됩니다. 브라우저가 막는 것은 응답을 읽는 것뿐입니다. CORS는 서버를 보호하는 장치가 아니므로, 상태를 바꾸는 요청의 보호는 인증과 CSRF 대책으로 해야 합니다.');

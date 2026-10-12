@@ -44,7 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 //   enable : 설정 클래스에 @EnableMethodSecurity가 있는가
 //   m      : role(deleteAll, hasRole('ADMIN')) | arg(ordersOf("kim"), #owner == authentication.name) | post(findOrder(1), returnObject.owner == authentication.name)
 //   who    : kim(ROLE_USER) | lee(ROLE_USER) | admin(park, ROLE_ADMIN)
-//   call   : ext(다른 빈에서 직접 부름) | self(같은 클래스의 애노테이션 없는 메서드를 거쳐 부름)
+//   call   : ext(다른 빈에서 직접 부름) | self(같은 클래스의 애너테이션 없는 메서드를 거쳐 부름)
 // 권한 검사가 실제로 실행됐는지는 AuthorizationEventPublisher 빈으로 센다(통과든 거부든 검사 한 번에 한 번 불린다).
 public class MethodSecProbe {
     public record Order(long id, String owner, String item) { }
@@ -70,7 +70,7 @@ public class MethodSecProbe {
             return new Order(id, "kim", "키보드");                       // 주문 1번의 주인은 kim
         }
 
-        // 같은 클래스 안에서 부르는, 애노테이션이 없는 메서드들
+        // 같은 클래스 안에서 부르는, 애너테이션이 없는 메서드들
         public String nightlyCleanUp() { return deleteAll(); }          // this.deleteAll()
         public String summary(String owner) { return ordersOf(owner); } // this.ordersOf(owner)
         public Order receipt(long id) { return findOrder(id); }         // this.findOrder(id)

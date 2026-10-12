@@ -39,7 +39,7 @@ Lab.register({
       go('F1', req + ' 요청이 서블릿 컨테이너(톰캣)에 도착해 필터 체인을 탑니다. 필터는 스프링 MVC 바깥, 서블릿 수준에서 동작합니다. 인코딩, 인증, 로깅 필터가 차례로 chain.doFilter를 호출해 다음으로 넘깁니다.', '');
       go('DS', 'DispatcherServlet이 요청을 받습니다. 모든 요청이 이 서블릿 하나로 들어오고, 여기서 알맞은 컨트롤러로 나눠 보냅니다(프론트 컨트롤러).', '');
       go('HM', 'HandlerMapping이 ' + req + '를 처리할 핸들러를 찾습니다. ' + (rest ? '@PostMapping("/orders")가 붙은 create 메서드' : '@GetMapping("/orders")가 붙은 list 메서드') + '와, 이 경로에 적용할 인터셉터 목록을 묶어 돌려줍니다.', '');
-      go('HA', 'HandlerAdapter를 고릅니다. 애노테이션 기반 컨트롤러 메서드를 실행할 줄 아는 RequestMappingHandlerAdapter가 선택됩니다.', '');
+      go('HA', 'HandlerAdapter를 고릅니다. 애너테이션 기반 컨트롤러 메서드를 실행할 줄 아는 RequestMappingHandlerAdapter가 선택됩니다.', '');
       if (c.what === 'pre') {
         resp = '401 Unauthorized'; maker = '인터셉터';
         go('IP', '인터셉터의 preHandle이 실행됩니다. 로그인하지 않은 요청이라 401 응답을 쓰고 false를 반환합니다. DispatcherServlet은 여기서 처리를 멈춥니다. 컨트롤러와 postHandle은 호출되지 않습니다.', 'bad');

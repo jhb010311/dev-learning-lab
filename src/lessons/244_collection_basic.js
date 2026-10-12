@@ -45,7 +45,7 @@ Lab.register({
 
     // 1. 빈 그릇을 만든다
     st.cur = L ? 'List<String> names = new ArrayList<>();' : 'Map<String, Integer> ages = new HashMap<>();'; st.res = '빈 그릇';
-    st.checks.push([st.cur, { v: '담긴 것이 없는 ' + (L ? 'List' : 'Map') + '을 만듦', cls: '' }]);
+    st.checks.push([st.cur, { v: '담긴 것이 없는 ' + (L ? 'List를' : 'Map을') + ' 만듦', cls: '' }]);
     if (L) push('java Main으로 실행합니다. main의 첫 줄 List<String> names = new ArrayList<>(); 가 실행됩니다. 왼쪽의 List<String>은 "문자열(String)을 담는 List"라는 뜻으로, names 변수가 어떤 그릇을 가리키는지 정한 것입니다. 오른쪽의 new ArrayList<>()가 담긴 것이 하나도 없는 빈 List를 만들고, names가 그 List를 가리킵니다. List는 담는 규칙의 이름이고, ArrayList는 그 규칙대로 만든 실제 클래스입니다. 괄호 안에 크기는 적지 않았습니다. 담긴 개수는 0입니다.', '');
     else push('java Main으로 실행합니다. main의 첫 줄 Map<String, Integer> ages = new HashMap<>(); 가 실행됩니다. 왼쪽의 Map<String, Integer>는 "키는 문자열(String), 값은 정수(Integer)"라는 뜻으로, ages 변수가 어떤 그릇을 가리키는지 정한 것입니다. 오른쪽의 new HashMap<>()가 담긴 것이 하나도 없는 빈 Map을 만들고, ages가 그 Map을 가리킵니다. Map은 담는 규칙의 이름이고, HashMap은 그 규칙대로 만든 실제 클래스입니다. 담긴 짝은 0개입니다.', '');
 
@@ -53,7 +53,7 @@ Lab.register({
     var adds = L ? [['kim', 'names.add("kim");'], ['lee', 'names.add("lee");']] : [['kim', 'ages.put("kim", 20);', '20'], ['lee', 'ages.put("lee", 30);', '30']];
     adds.forEach(function (a, i) {
       st.items.push(L ? [String(i), a[0]] : [a[0], a[2]]); st.count++; st.hotIdx = i; st.cur = a[1]; st.res = '담긴 개수 ' + st.count;
-      st.checks.push([a[1], { v: L ? '번호 ' + i + ' 자리에 담음' : '키 ' + a[0] + '와 값 ' + a[2] + '를 짝지어 담음', cls: 'good' }]);
+      st.checks.push([a[1], { v: L ? '번호 ' + i + ' 자리에 담음' : '키(' + a[0] + ')와 값(' + a[2] + ')을 짝지어 담음', cls: 'good' }]);
       if (L) push(a[1] + ' 줄이 실행됩니다. add는 List의 맨 뒤에 값을 붙입니다. ' + (i === 0 ? '비어 있었으므로 "kim"은 번호 0 자리에 들어갑니다. 번호는 0부터 시작해, 담는 순서대로 매겨집니다.' : '"lee"는 "kim" 다음인 번호 1 자리에 들어갑니다.') + ' 담긴 개수는 ' + st.count + '입니다.', 'good');
       else push(a[1] + ' 줄이 실행됩니다. put은 키와 값을 짝지어 담습니다. ' + (i === 0 ? '키 "kim"에 값 20이 짝지어집니다. 나중에 값을 꺼낼 때 쓰는 이름표는 값이 아니라 키입니다.' : '키 "lee"에 값 30이 짝지어집니다.') + ' 담긴 짝은 ' + st.count + '개입니다.', 'good');
     });

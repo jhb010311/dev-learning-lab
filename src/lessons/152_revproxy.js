@@ -15,7 +15,7 @@ Lab.register({
     { t: '프록시가 새로 쓰면', q: '프록시가 받은 X-Forwarded-For 값을 버리고 연결 상대의 주소만 새로 쓰면', d: '클라이언트가 써넣은 값이 서버까지 가지 못합니다.', v: { path: 'reverse', xff: 'set', spoof: true, read: 'first' } },
     { t: '연결 상대 주소만 보면', q: '클라이언트가 X-Forwarded-For를 쓰지 않고 서버가 연결 상대 주소를 클라이언트 주소로 삼으면', d: '모든 사용자가 프록시 한 대의 주소로 보입니다.', v: { path: 'reverse', xff: 'append', spoof: false, read: 'remote' } },
     { t: '프록시가 아무것도 안 붙이면', q: '프록시가 X-Forwarded-For를 붙이지 않고 클라이언트도 써넣지 않으면', d: '서버는 원래 주소도, 원래 HTTPS였다는 것도 알 수 없습니다.', v: { path: 'reverse', xff: 'none', spoof: false, read: 'first' } },
-    { t: '포워드 프록시', q: '포워드 프록시를 거치는데 프록시도 클라이언트도 X-Forwarded-For를 쓰지 않고, 서버는 연결 상대 주소를 클라이언트 주소로 삼으면', d: '클라이언트가 일부러 거치는 프록시. 서버는 프록시만 봅니다.', v: { path: 'forward', xff: 'none', spoof: false, read: 'remote' } },
+    { t: '포워드 프록시', q: '포워드 프록시를 거치는데 프록시도 클라이언트도 X-Forwarded-For를 쓰지 않고, 서버는 연결 상대 주소를 클라이언트 주소로 삼으면', d: '클라이언트가 일부러 거치는 프록시입니다. 서버는 프록시만 봅니다.', v: { path: 'forward', xff: 'none', spoof: false, read: 'remote' } },
     { t: '프록시 없는 서버가 헤더를 믿으면', q: '프록시 없이 직접 연결하는데 클라이언트가 X-Forwarded-For: 198.51.100.99를 써넣고 서버가 맨 앞 값을 믿으면', d: '직접 연결인데도 가짜 주소에 속습니다.', v: { path: 'direct', xff: 'none', spoof: true, read: 'first' } },
   ],
   // 직접 연결에는 프록시가 없으므로 프록시 설정을 하나로 고정한다
@@ -108,7 +108,7 @@ Lab.register({
     P.box('v2', 16, 192, 648, 34, { cls: !s.xff ? 'ghost' : 'plain', title: '서버가 받은 X-Forwarded-For', right: s.xff || '?' });
     P.box('v3', 16, 234, 648, 34, { cls: !s.client ? 'ghost' : s.verdict === 'ok' ? 'good' : 'bad', title: '서버가 판단한 클라이언트 주소', right: s.client ? s.client + ' (' + { ok: '맞음', forged: '위조된 주소에 속음', proxy: '프록시의 주소' }[s.verdict] + ')' : '?' });
     P.box('v4', 16, 276, 648, 34, { cls: !s.xfp || s.xfp === 'na' ? 'ghost' : s.xfp === 'https' ? 'good' : 'bad', title: '서버가 받은 X-Forwarded-Proto', right: !s.xfp ? '?' : s.xfp === 'https' ? 'https' : s.xfp === 'none' ? '없음 (원래 https였는지 모름)' : '쓰이지 않음' });
-    P.note('서버와 직접 연결을 맺은 쪽의 주소만이 "연결 상대 주소"가 됩니다. 프록시가 끼면 예시의 주소는 문서용으로 정해진 주소입니다.');
+    P.note('서버와 직접 연결을 맺은 쪽의 주소만이 "연결 상대 주소"가 됩니다. 프록시가 끼면 프록시의 주소가 됩니다. 예시의 주소는 문서용으로 정해진 주소입니다.');
   },
   assume: '서로 다른 42가지 조합(직접 연결에는 프록시 설정이 쓰이지 않음)을 이 PC 안에서 실행해 다섯 열이 모두 모형과 같은 것을 확인했습니다. 클라이언트, 프록시, 서버를 이 PC의 루프백 주소 셋(127.0.0.10, 127.0.0.20, 127.0.0.30)에 나눠 띄우고, Node.js 24로 만든 작은 프록시와 서버에 두 가지 클라이언트(Node의 http·https 모듈, curl 8.21)로 요청해 서버가 실제로 본 연결 상대 주소와 헤더를 기록했습니다. 두 클라이언트의 결과는 모든 조합에서 같았습니다. 리버스 프록시는 시험용 인증서로 HTTPS를 받아 서버에는 HTTP로 넘겼고, 포워드 프록시에는 curl의 -x 옵션으로 요청해 요청 줄에 전체 주소가 실려 오는 것을 확인했습니다. 화면의 주소(203.0.113.7, 198.51.100.99, 192.0.2.50)는 문서 예시용으로 정해진 주소이고 10.0.0.x는 사설망 주소이며, 시험에 쓴 루프백 주소를 바꿔 적은 것입니다. 프록시는 시험용으로 직접 만든 것이라 실제 제품의 기본 동작과는 다를 수 있습니다. 예를 들어 nginx는 따로 설정하지 않으면 받은 헤더를 그대로 넘기고, proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for가 "덧붙이기", $remote_addr가 "새로 쓰기"에 해당합니다(nginx 문서 기준이며 실행으로 확인하지 않았습니다). X-Forwarded-For와 X-Forwarded-Proto는 표준이 아니라 널리 쓰이는 관례이고, 같은 정보를 담는 표준 헤더로 Forwarded(RFC 7239)가 있습니다. HTTPS 요청을 포워드 프록시로 보낼 때는 프록시가 내용을 볼 수 없는 통로(CONNECT)만 이어 주므로 헤더를 덧붙일 수 없는데, 이 실습의 포워드 프록시는 HTTP 요청만 다뤘습니다. 서버가 헤더가 없을 때 연결 상대 주소를 대신 쓰는 것은 이 모형에서 정한 규칙입니다. 프록시가 여러 대 이어진 경우와 로드밸런서의 분산은 다루지 않았습니다.',
 });

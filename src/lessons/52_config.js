@@ -27,11 +27,11 @@ Lab.register({
   simulate: function (c) {
     var ev = [], sum = [], SRC = this.SRC, win = null, hidden = [], seen = [];
     function push(s, k) { ev.push({ s: s, k: k, snap: { seen: seen.slice(), win: win } }); }
-    push('애플리케이션이 뜨면서 app.timeout의 값을 찾습니다. 스프링 부트는 정해진 순서로 여러 곳을 살피고, 우선순위가 높은 곳에서 찾은 값을 씁니다. 우선순위가 높은 곳부터 봅니다.', '');
+    push('애플리케이션이 뜨면서 app.timeout의 값을 찾습니다. 스프링 부트는 우선순위가 높은 곳부터 차례로 살피고, 가장 먼저 찾은 값을 씁니다.', '');
     SRC.forEach(function (s, i) {
       seen.push(s[0]);
       if (!c[s[0]]) { push((i + 1) + '순위 ' + s[1].split(' (')[0] + ': 이 키가 없습니다. 다음으로 넘어갑니다.', ''); return; }
-      if (!win) { win = s[0]; push((i + 1) + '순위 ' + s[1].split(' (')[0] + ': 값 ' + s[2] + '을 찾았습니다. 더 높은 우선순위에 값이 없었으므로 이 값이 최종 값입니다.' + (s[0] === 'env' ? ' 환경 변수 이름 APP_TIMEOUT은 대문자와 밑줄로 적지만, 스프링 부트가 app.timeout과 같은 키로 맞춰 줍니다.' : ''), 'good'); }
+      if (!win) { win = s[0]; push((i + 1) + '순위 ' + s[1].split(' (')[0] + ': 값 ' + s[2] + '을 찾았습니다. ' + (i ? '더 높은 우선순위에 값이 없었으므로' : '가장 높은 우선순위이므로') + ' 이 값이 최종 값입니다.' + (s[0] === 'env' ? ' 환경 변수 이름 APP_TIMEOUT은 대문자와 밑줄로 적지만, 스프링 부트가 app.timeout과 같은 키로 맞춰 줍니다.' : ''), 'good'); }
       else { hidden.push(s[2]); push((i + 1) + '순위 ' + s[1].split(' (')[0] + ': 값 ' + s[2] + '이 있지만, 더 높은 우선순위에서 이미 값이 정해졌습니다. 이 값은 쓰이지 않습니다.', ''); }
     });
     var val = win ? SRC.filter(function (s) { return s[0] === win; })[0][2] : '1000', from = win ? SRC.filter(function (s) { return s[0] === win; })[0][1].split(' (')[0] : '코드의 기본값 (@Value의 : 뒤)';

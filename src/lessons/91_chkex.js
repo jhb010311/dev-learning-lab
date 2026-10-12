@@ -119,7 +119,7 @@ Lab.register({
       } else {
         if (h === 'wrap') {
           st.exc = 'RuntimeException (원인: ' + T + ')';
-          push('read의 catch 블록이 예외를 잡아 throw new RuntimeException(e)를 실행합니다: 원래 예외를 원인(cause)으로 담은 새 언체크 예외가 던져집니다. 예외의 종류만 바뀌었을 뿐, 문제가 해결된 것은 아닙니다.', 'bad');
+          push('read의 catch 블록이 예외를 잡아 throw new RuntimeException(e)을 실행합니다: 원래 예외를 원인(cause)으로 담은 새 언체크 예외가 던져집니다. 예외의 종류만 바뀌었을 뿐, 문제가 해결된 것은 아닙니다.', 'bad');
           crashed = 'java.lang.RuntimeException: ' + full + ': 파일 없음';
         } else crashed = full + ': 파일 없음';
         st.at = 'main';
@@ -178,7 +178,7 @@ Lab.register({
     P.text('exc', 30, 176, s.comp === '오류' ? '컴파일 오류: 실행되지 않으므로 예외도 생기지 않습니다' : s.exc ? '던져진 예외: ' + s.exc : s.caught ? s.caught + '의 catch가 예외를 잡았습니다' : s.comp === '성공' ? '던져진 예외: 없음' : '컴파일러가 검사하는 중입니다', { cls: s.exc || s.comp === '오류' ? 'bad' : s.caught ? 'good' : 'mut' });
     P.box('r1', 16, 196, 320, 36, { cls: s.comp === '성공' ? 'good' : s.comp === '오류' ? 'bad' : 'ghost', title: '컴파일', right: s.comp });
     P.box('r2', 344, 196, 320, 36, { cls: s.end === '정상 종료' ? 'good' : s.end === '?' ? 'ghost' : 'bad', title: '프로그램', right: s.end });
-    P.note('체크 예외는 길 위의 어느 메서드인가가 잡거나, 지나가는 메서드마다 throws로 선언해야 컴파일됩니다. 언체크 예외, 곧 RuntimeException 계열과 Error 계열(메모리 부족 같은 JVM 수준의 문제)은 컴파일러가 이 검사를 하지 않습니다.');
+    P.note('체크 예외는 길 위의 어느 한 메서드가 잡거나, 지나가는 메서드마다 throws로 선언해야 컴파일됩니다. 언체크 예외, 곧 RuntimeException 계열과 Error 계열(메모리 부족 같은 JVM 수준의 문제)은 컴파일러가 이 검사를 하지 않습니다.');
   },
   assume: '스물네 가지 조합 모두를 이 PC의 JDK 21에서 화면의 코드와 같은 소스로 실제로 컴파일하고, 컴파일된 것은 실행해서 컴파일 여부, 오류가 난 줄, 컴파일러 메시지, 출력, 종료 코드, 오류 출력의 첫 줄을 대조했습니다. 컴파일러 메시지는 명령줄 javac가 보여 주는 모양(클래스 이름만)으로 적었습니다. Error 계열을 아무 처리 없이 던져도 컴파일된다는 것과, Exception 자체를 던지면 체크 예외로 취급된다는 것도 같은 방법으로 확인했습니다. 모형은 메서드가 둘(read, main)인 경우만 다룹니다. 호출이 더 깊어도 규칙은 같아서, 체크 예외가 지나가는 메서드마다 잡거나 선언해야 합니다. 잡히지 않은 예외가 프로그램을 끝내는 것은 스레드가 main 하나뿐인 경우의 이야기입니다.',
 });

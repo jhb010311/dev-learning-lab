@@ -4,7 +4,7 @@ Lab.register({
   intro: '컴퓨터는 shop.example 같은 이름으로는 접속할 수 없고 IP 주소가 있어야 합니다. 이름을 주소로 바꿔 주는 것이 DNS입니다. 답을 아는 서버는 한 곳이 아니라 여러 단계로 나뉘어 있고, 한 번 받은 답은 정해진 시간(TTL) 동안 캐시에 남아 다시 묻지 않습니다.',
   terms: ['DNS', 'DNS 레코드', '재귀 리졸버와 권한 있는 네임 서버', 'DNS 캐시와 TTL'],
   controls: [
-    { id: 'q', label: '묻는 것', type: 'select', value: 'a', options: [['a', 'shop.example 의 IPv4 주소 (A)'], ['aaaa', 'shop.example 의 IPv6 주소 (AAAA)'], ['cname', 'www.shop.example 의 주소 (CNAME을 거침)'], ['mx', 'shop.example 의 메일 서버 (MX)']] },
+    { id: 'q', label: '묻는 것', type: 'select', value: 'a', options: [['a', 'shop.example의 IPv4 주소 (A)'], ['aaaa', 'shop.example의 IPv6 주소 (AAAA)'], ['cname', 'www.shop.example의 주소 (CNAME을 거침)'], ['mx', 'shop.example의 메일 서버 (MX)']] },
     { id: 'cache', label: '캐시의 상태', type: 'select', value: 'none', options: [['none', '어디에도 없다 (처음 묻는 이름)'], ['resolver', '리졸버의 캐시에 있다 (다른 사용자가 120초 전에 물음)'], ['os', '이 PC의 캐시에 있다 (120초 전에 물음)'], ['expired', '이 PC가 400초 전에 물었다 (TTL 300초가 지남)']] },
     { id: 'changed', label: '관리자가 조금 전에 레코드의 값을 바꿨다', type: 'check', value: false, hint: '권한 있는 네임 서버의 값만 바뀝니다. 캐시에 이미 들어 있는 답은 그대로입니다.' },
   ],
@@ -26,7 +26,7 @@ Lab.register({
     var C = this.CASES, K = C[c.q];
     var ch = function (q) { return c.changed && c.q === q ? '   ; 조금 전에 바꿈 (전에는 ' + C[q].old + ')' : ''; }, v = function (q) { return c.changed && c.q === q ? C[q].neu : C[q].old; };
     var call = c.q === 'aaaa' ? 'resolve6(\'shop.example\', { ttl: true })' : c.q === 'mx' ? 'resolveMx(\'shop.example\')' : 'resolve4(\'' + K.name + '\', { ttl: true })';
-    return '; shop.example 의 권한 있는 네임 서버가 가진 레코드 (이름, TTL, 종류, 값)\nshop.example.        300  IN  A      ' + v('a') + ch('a') + '\nshop.example.        300  IN  AAAA   ' + v('aaaa') + ch('aaaa') + '\nshop.example.        300  IN  MX     ' + v('mx') + '.' + ch('mx') + '\nwww.shop.example.    300  IN  CNAME  shop.cdn.example.\n\n; cdn.example 의 권한 있는 네임 서버가 가진 레코드\nshop.cdn.example.    300  IN  A      ' + v('cname') + ch('cname') + '\n\n// 묻는 쪽 (Node.js, 파일 이름은 ask.mjs). 네트워크 설정에 있는 재귀 리졸버에게 묻고 답을 받는다\nimport { Resolver } from \'node:dns/promises\';\nconsole.log(await new Resolver().' + call + ');';
+    return '; shop.example의 권한 있는 네임 서버가 가진 레코드 (이름, TTL, 종류, 값)\nshop.example.        300  IN  A      ' + v('a') + ch('a') + '\nshop.example.        300  IN  AAAA   ' + v('aaaa') + ch('aaaa') + '\nshop.example.        300  IN  MX     ' + v('mx') + '.' + ch('mx') + '\nwww.shop.example.    300  IN  CNAME  shop.cdn.example.\n\n; cdn.example의 권한 있는 네임 서버가 가진 레코드\nshop.cdn.example.    300  IN  A      ' + v('cname') + ch('cname') + '\n\n// 묻는 쪽 (Node.js, 파일 이름은 ask.mjs). 네트워크 설정에 있는 재귀 리졸버에게 묻고 답을 받는다\nimport { Resolver } from \'node:dns/promises\';\nconsole.log(await new Resolver().' + call + ');';
   },
   label: function (c) { return { a: 'A', aaaa: 'AAAA', cname: 'CNAME을 거치는 A', mx: 'MX' }[c.q] + ' · ' + { none: '캐시 없음', resolver: '리졸버의 캐시', os: 'PC의 캐시', expired: 'TTL 지남' }[c.cache] + (c.changed ? ' · 레코드를 바꿈' : ''); },
   columns: ['받은 답', '답이 나온 곳', 'PC가 리졸버에 물은 횟수', '리졸버가 네임 서버에 물은 횟수', '바꾼 값이 반영됐나'],
@@ -53,7 +53,7 @@ Lab.register({
       if (c.changed) push('그런데 관리자가 조금 전에 ' + chg + '. 바뀐 것은 권한 있는 네임 서버가 가진 값뿐이고, 이 PC는 그 사실을 알 방법이 없습니다. 캐시의 TTL이 끝나는 ' + LEFT + '초 뒤에야 다시 묻고 새 값을 받습니다.', 'bad');
     } else {
       if (c.cache === 'expired') { msg('pc', '', '캐시의 답은 TTL이 지남'); st.pc = []; push(need + ' 먼저 이 PC의 캐시를 봅니다. 전에 받은 답이 있었지만 ' + OLD + '초 전의 것이라 TTL ' + TTL + '초가 지났습니다. TTL이 지난 답은 쓰지 않고 버립니다.'); }
-      else { msg('pc', '', '캐시에 없음'); push(need + ' 먼저 이 PC의 캐시(운영체제와 브라우저가 전에 받은 답을 기억해 둔 곳)를 봅니다. ' + (c.cache === 'none' ? '처음 묻는 이름이라 없습니다.' : '이 PC는 물은 적이 없어 없습니다.')); }
+      else { msg('pc', '', '캐시에 없음'); push(need + ' 먼저 이 PC의 캐시(운영체제와 브라우저가 전에 받은 답을 기억해 둔 곳)를 봅니다. ' + (c.cache === 'none' ? '처음 묻는 이름이라 없습니다.' : '이 PC는 물은 적이 없어 캐시에 없습니다.')); }
       // 2. 재귀 리졸버
       msg('pc', 'rs', ask); st.pcq = 1;
       var intro2 = '이 PC가 재귀 리졸버에게 묻습니다. 재귀 리졸버는 답을 대신 찾아다 주는 DNS 서버로, 보통 통신사나 회사가 운영하며 그 주소는 네트워크 설정에 들어 있습니다. 리졸버도 먼저 자기 캐시를 봅니다. ';
@@ -86,7 +86,7 @@ Lab.register({
           push('리졸버 → shop.example의 권한 있는 네임 서버: 이 도메인의 레코드 원본을 가진 서버입니다.' + skip + ' A 레코드를 물었는데 CNAME 레코드가 왔습니다: ' + K.name + ' CNAME ' + K.alias + ', TTL ' + TTL + '초. ' + K.name + '은 별명이고 진짜 이름은 ' + K.alias + '이라는 뜻입니다. 주소는 아직 모릅니다.');
           if (c.cache === 'none') {
             msg('rs', 'tld', K.alias + ' A ?'); msg('tld', 'rs', '위임: cdn.example 서버로'); st.upq++; path.push('.example'); st.rs.push(['cdn.example', 'NS', 'cdn.example의 네임 서버', NS + '초']);
-            push('리졸버가 진짜 이름(' + K.alias + ')으로 처음부터 다시 찾습니다. .example을 맡은 서버는 조금 전에 알아 두었으므로 루트 서버는 건너뛰고 .example 서버에 묻습니다. cdn.example을 맡은 네임 서버의 주소를 받습니다.');
+            push('리졸버가 진짜 이름(' + K.alias + ')으로 다시 찾습니다. .example을 맡은 서버는 조금 전에 알아 두었으므로 루트 서버는 건너뛰고 .example 서버에 묻습니다. cdn.example을 맡은 네임 서버의 주소를 받습니다.');
           }
           msg('rs', 'cdn', K.alias + ' A ?'); msg('cdn', 'rs', '답: A ' + val + ' (TTL ' + TTL + ')', 'good'); st.upq++; path.push('cdn.example'); st.rs = [st.rs[0], [K.alias, 'A', val, TTL + '초']].concat(st.rs.slice(1));
           push('리졸버 → cdn.example의 권한 있는 네임 서버: ' + (c.cache === 'expired' ? '진짜 이름(' + K.alias + ')으로 다시 찾습니다. cdn.example의 위임 정보도 캐시에 있으므로 바로 묻습니다. ' : '') + '답을 줍니다: ' + K.alias + ' A ' + val + ', TTL ' + TTL + '초.' + chNote, 'good');

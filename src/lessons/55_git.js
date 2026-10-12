@@ -22,7 +22,7 @@ Lab.register({
     if (c.how === 'rebase') return 'git switch feature\ngit rebase main' + (c.main && c.conf ? '\n# CONFLICT: 커밋 D를 옮기다 충돌\n# 파일을 고친 뒤\ngit add OrderService.java\ngit rebase --continue' : '') + (c.pushed && c.main ? '\ngit push --force-with-lease          # 이력이 바뀌어 일반 push는 거부됨' : '') + '\n\ngit switch main\ngit merge feature                    # fast-forward';
     return 'git switch main\ngit merge --squash feature' + (c.main && c.conf ? '\n# CONFLICT: 파일을 고친 뒤 git add' : '') + '\ngit commit -m "주문 취소 기능"';
   },
-  label: function (c) { return { merge: 'merge', rebase: 'rebase 후 merge', squash: 'squash merge' }[c.how] + (c.main ? ' · main에 새 커밋' : ' · main 그대로') + (c.main && c.conf ? ' · 충돌' : '') + (c.how === 'rebase' && c.pushed ? ' · 이미 push함' : ''); },
+  label: function (c) { return { merge: 'merge', rebase: 'rebase 후 merge', squash: 'squash merge' }[c.how] + (c.main ? ' · main에 새 커밋' : ' · main 그대로') + (c.main && c.conf ? ' · 충돌' : '') + (c.how === 'rebase' && c.main && c.pushed ? ' · 이미 push함' : ''); },
   columns: ['그래프 모양', '새로 생긴 커밋', '충돌 해결', '주의할 점'],
   simulate: function (c) {
     var ev = [], sum = [], conf = c.main && c.conf, shape, made, fix = '없음', warn = '없음';
@@ -87,7 +87,7 @@ Lab.register({
     if (lastTop) P.text('lm', X[lastTop], 48, remote ? '내 feature' : both ? 'main, feature' : 'main', { anchor: 'middle', bold: true });
     if (low.length) P.text('lf', X[low[low.length - 1] + '_low'], 200, floating ? '떼어 둔 커밋' : applying ? '다시 적용하다 충돌' : remote ? '원격의 feature (옛 커밋)' : top.indexOf('S') >= 0 ? 'feature (합친 뒤 삭제)' : 'feature', { anchor: 'middle', bold: true, cls: applying || remote ? 'bad' : '' });
     if (g.indexOf('<<<<<<<') >= 0) P.box('cf', 60, 228, 560, 44, { cls: 'bad', title: '충돌: 같은 줄을 서로 다르게 고침', sub: 'main은 limit = 10, feature는 limit = 20' });
-    else if (g.indexOf('직접 고른 결과') >= 0) P.box('cf', 60, 228, 560, 44, { cls: 'good', title: '사람이 직접 골라 해결', sub: 'limit = 20 으로 정하고 커밋' });
+    else if (g.indexOf('직접 고른 결과') >= 0) P.box('cf', 60, 228, 560, 44, { cls: 'good', title: '사람이 직접 골라 해결', sub: 'limit = 20으로 정하고 커밋' });
     else if (g.indexOf('충돌 해결 필요') >= 0) P.box('cf', 60, 228, 560, 44, { cls: 'bad', title: '충돌: 같은 줄을 서로 다르게 고침', sub: '파일을 고친 뒤 진행' });
     else if (remote) P.box('cf', 60, 228, 560, 44, { cls: 'bad', title: '원격과 내 이력이 서로 다름', sub: '일반 push는 거부됨. 강제로 덮어써야 함' });
     P.note('상자 하나가 커밋 하나이고 왼쪽이 오래된 커밋입니다. 파랑은 main의 커밋, 초록은 feature의 커밋, 노랑은 이번에 새로 만들어진 커밋입니다. D\'처럼 작은따옴표가 붙은 것은 내용은 같지만 새로 만들어진 다른 커밋입니다.');

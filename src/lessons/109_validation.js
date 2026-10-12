@@ -1,7 +1,7 @@
 Lab.register({
   id: 'validation', nav: '검증', cat: '스프링', mode: 'step',
   title: '필드에 @NotBlank를 붙였는데 왜 빈 값이 그대로 들어오나',
-  intro: '입력값에는 "이름은 비어 있으면 안 된다" 같은 조건이 있습니다. Bean Validation은 이런 조건을 @NotBlank 같은 애노테이션으로 필드 위에 적어 두는 방법이고, 이렇게 적은 조건을 제약이라고 부릅니다. 그런데 제약은 적어 둔 것만으로는 아무 일도 하지 않습니다. 누군가 "이 객체를 검사하라"고 시켜야 하고, 스프링 MVC에서는 컨트롤러 파라미터에 붙인 @Valid가 그 신호입니다.',
+  intro: '입력값에는 "이름은 비어 있으면 안 된다" 같은 조건이 있습니다. Bean Validation은 이런 조건을 @NotBlank 같은 애너테이션으로 필드 위에 적어 두는 방법이고, 이렇게 적은 조건을 제약이라고 부릅니다. 그런데 제약은 적어 둔 것만으로는 아무 일도 하지 않습니다. 누군가 "이 객체를 검사하라"고 시켜야 하고, 스프링 MVC에서는 컨트롤러 파라미터에 붙인 @Valid가 그 신호입니다.',
   terms: ['Bean Validation과 @Valid', '@NotNull, @NotEmpty, @NotBlank', 'BindingResult', 'MethodArgumentNotValidException', 'HTTP 상태 코드'],
   controls: [
     { id: 'how', label: '컨트롤러가 값을 받는 방법', type: 'select', value: 'plain', options: [['plain', '@RequestBody ItemForm form (@Valid 없음)'], ['valid', '@Valid @RequestBody ItemForm form'], ['br', '@Valid @RequestBody ItemForm form, BindingResult errors'], ['param', '@RequestParam String name (제약을 파라미터에 직접 붙임)']] },

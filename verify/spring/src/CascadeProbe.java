@@ -20,7 +20,7 @@ import org.hibernate.resource.jdbc.spi.StatementInspector;
 
 // "영속성 전이와 고아 객체" 실습의 24가지 조합(cascade 4 x orphanRemoval 2 x 동작 3)을 실제 Hibernate + H2에서 실행한다.
 // 조합마다 나간 SQL을 종류와 테이블로 세고, 예외가 났는지, 끝난 뒤 DB에 남은 행 수를 적는다.
-// 애노테이션의 값은 실행 중에 바꿀 수 없으므로 게시글과 댓글 클래스를 설정마다 한 쌍씩(여덟 쌍) 둔다. 내용은 애노테이션만 다르다.
+// 애너테이션의 값은 실행 중에 바꿀 수 없으므로 게시글과 댓글 클래스를 설정마다 한 쌍씩(여덟 쌍) 둔다. 내용은 애너테이션만 다르다.
 public class CascadeProbe {
     static final List<String> SQL = new ArrayList<>();
     public static class Capture implements StatementInspector {

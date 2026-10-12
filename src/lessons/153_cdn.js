@@ -10,7 +10,7 @@ Lab.register({
     { id: 'after', label: '바꾼 뒤에 하는 일', type: 'select', value: 'none', options: [['none', '아무것도 하지 않는다'], ['purge', '엣지에 /app.css?v=1의 무효화(purge)를 요청한다'], ['ver', '요청하는 주소를 /app.css?v=2로 바꾼다']], show: function (c) { return c.chg; } },
   ],
   presets: [
-    { t: '처음 설정으로', q: 's-maxage=300인 app.css를 0초, 10초, 40초, 80초에 요청하는 중 30초에 오리진이 바뀌면 각 요청은 무엇을 받나', d: '유효 시간 300초. 오리진을 바꿨는데 40초와 80초의 사용자 모두 옛 내용을 받습니다.', v: { ttl: '300', q2: 'same', chg: true, after: 'none' } },
+    { t: '처음 설정으로', q: 's-maxage=300인 app.css를 0초, 10초, 40초, 80초에 요청하는 중 30초에 오리진이 바뀌면 각 요청은 무엇을 받나', d: '유효 시간은 300초입니다. 오리진을 바꿨는데 40초와 80초의 사용자 모두 옛 내용을 받습니다.', v: { ttl: '300', q2: 'same', chg: true, after: 'none' } },
     { t: '유효 시간이 60초라면', q: '엣지가 사본을 써도 되는 시간을 s-maxage=60으로 바꾸면', d: '40초에는 옛 내용, 80초에는 엣지가 다시 물어 새 내용을 받습니다.', v: { ttl: '60', q2: 'same', chg: true, after: 'none' } },
     { t: '무효화(purge)를 하면', q: '오리진의 app.css를 바꾼 뒤 엣지에 /app.css?v=1의 무효화(purge)를 요청하면', d: '엣지의 사본을 지워, 다음 요청이 오리진에서 새 내용을 받아 옵니다.', v: { ttl: '300', q2: 'same', chg: true, after: 'purge' } },
     { t: '주소를 바꾸면', q: '오리진의 app.css를 바꾼 뒤 요청하는 주소를 /app.css?v=2로 바꾸면', d: '?v=2는 다른 주소라서 엣지에 사본이 없고, 새 내용을 받아 옵니다.', v: { ttl: '300', q2: 'same', chg: true, after: 'ver' } },

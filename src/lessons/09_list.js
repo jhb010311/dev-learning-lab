@@ -60,7 +60,7 @@ Lab.register({
       var target = c.op === 'add' && i === n ? -1 : i, fromHead = target < (n >> 1), path = [];
       if (target >= 0) { if (fromHead) for (var a = 0; a <= target; a++) path.push(a); else for (var b = n - 1; b >= target; b--) path.push(b); hops = path.length - 1; }
       var inPath = function (j) { return path.indexOf(j) >= 0; };
-      var walk = target < 0 ? '맨 뒤에 붙이는 경우라 마지막 노드를 바로 씁니다. 따라갈 노드가 없습니다.' : (fromHead ? '앞쪽 절반에 있으므로 첫 노드에서 출발해' : '뒤쪽 절반에 있으므로 마지막 노드에서 출발해') + ' 연결을 ' + hops + '번 따라가 ' + i + '번 노드에 도착했습니다.';
+      var walk = target < 0 ? '맨 뒤에 붙이는 경우라 마지막 노드를 바로 씁니다. 따라갈 노드가 없습니다.' : (fromHead ? '앞쪽 절반에 있으므로 첫 노드에서 출발해' : '뒤쪽 절반에 있으므로 마지막 노드에서 출발해') + (hops ? ' 연결을 ' + hops + '번 따라가 ' : ' 연결을 따라갈 것 없이 바로 ') + i + '번 노드에 도착했습니다.';
       var name = c.op === 'get' ? 'get(' + i + ')' : c.op === 'add' ? 'add(' + i + ', 99)' : 'remove(' + i + ')';
       push(name + ': LinkedList는 인덱스로 위치를 계산할 수 없습니다. ' + walk, hops > 2 ? 'bad' : '', { cells: cells(n, function (j) { return j === target ? 'b now' : inPath(j) ? 'q' : ''; }), linked: true });
       if (c.op === 'get') { big = hops ? 'O(n)' : 'O(1)'; sum.push(hops ? 'LinkedList의 인덱스 조회는 그 위치까지 노드를 하나씩 따라가야 합니다(' + hops + '번). 양 끝에서 가까운 쪽으로 출발하지만, 가운데일수록 오래 걸립니다.' : 'LinkedList도 양 끝 원소는 바로 접근합니다.'); }

@@ -4,7 +4,7 @@ Lab.register({
   intro: '브라우저가 주소 하나를 여는 동안 DNS 조회, TCP 연결, TLS 핸드셰이크, HTTP 요청, 리버스 프록시, 애플리케이션 서버, DB가 차례로 관여합니다. 어떤 단계는 캐시나 연결 재사용으로 건너뛸 수 있습니다.',
   terms: ['DNS', '웹 서버와 WAS', '리버스 프록시', 'CDN', 'HTTPS와 TLS', '3-way handshake'], ranks: ['network', 'was', 'http'],
   controls: [
-    { id: 'what', label: '요청하는 것', type: 'select', value: 'api', options: [['api', '동적 페이지 (/orders, DB 조회 필요)'], ['static', '정적 파일 (/logo.png)']] },
+    { id: 'what', label: '요청하는 것', type: 'select', value: 'api', options: [['api', '동적 페이지 (/orders, DB 조회 필요)'], ['static', '정적 파일 (/static/logo.png)']] },
     { id: 'dns', label: '도메인의 IP 주소를 이미 알고 있다 (DNS 캐시)', type: 'check', value: false },
     { id: 'conn', label: '이 서버와 맺어 둔 연결이 남아 있다 (연결 재사용)', type: 'check', value: false },
     { id: 'cdn', label: '정적 파일을 CDN에서 받는다', type: 'check', value: false, show: function (c) { return c.what === 'static'; } },
@@ -12,8 +12,8 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '처음 방문해 /orders 동적 페이지를 요청하면 어떤 단계를 거치나', d: '처음 방문. 모든 단계를 거칩니다.', v: { what: 'api', dns: false, conn: false, cdn: false } },
     { t: '같은 사이트의 두 번째 요청', q: '도메인의 IP 주소를 이미 알고 있고 맺어 둔 연결도 남아 있는 상태에서 같은 사이트에 다시 요청하면', d: 'DNS와 연결 수립을 건너뜁니다.', v: { what: 'api', dns: true, conn: true, cdn: false } },
-    { t: '정적 파일', q: '도메인의 IP 주소를 이미 알고 있고 맺어 둔 연결도 남아 있는 상태에서 /logo.png 정적 파일을 요청하면', d: '웹 서버(nginx)가 직접 응답합니다. 애플리케이션 서버까지 가지 않습니다.', v: { what: 'static', dns: true, conn: true, cdn: false } },
-    { t: '정적 파일을 CDN에서', q: 'IP 주소를 알고 있고 맺어 둔 연결도 남아 있는 상태에서 /logo.png를 CDN에서 받으면', d: '사용자와 가까운 서버가 응답합니다.', v: { what: 'static', dns: true, conn: true, cdn: true } },
+    { t: '정적 파일', q: '도메인의 IP 주소를 이미 알고 있고 맺어 둔 연결도 남아 있는 상태에서 정적 파일 /static/logo.png를 요청하면', d: '웹 서버(nginx)가 직접 응답합니다. 애플리케이션 서버까지 가지 않습니다.', v: { what: 'static', dns: true, conn: true, cdn: false } },
+    { t: '정적 파일을 CDN에서', q: 'IP 주소를 알고 있고 맺어 둔 연결도 남아 있는 상태에서 /static/logo.png를 CDN에서 받으면', d: '사용자와 가까운 서버가 응답합니다.', v: { what: 'static', dns: true, conn: true, cdn: true } },
   ],
   code: function (c) {
     return '# nginx (리버스 프록시)\nserver {\n    listen 443 ssl;\n    server_name shop.example;\n\n    location /static/ {                  # 정적 파일은 직접 응답\n        root /var/www;\n    }\n    location / {                         # 나머지는 애플리케이션 서버로 전달\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header X-Forwarded-For $remote_addr;\n    }\n}';
@@ -23,7 +23,7 @@ Lab.register({
   simulate: function (c) {
     var ev = [], rows = [], total = 0, skipped = 0, sum = [], cdn = c.what === 'static' && c.cdn, rtt = cdn ? 5 : 30, maker;
     function step(name, ms, s, k, skip) { if (skip) skipped++; else total += ms; rows.push({ cls: skip ? 'gone' : '', cells: [name, skip ? '건너뜀' : ms + 'ms', { v: skip ? '-' : total + 'ms', cls: k === 'good' ? 'good' : '' }] }); ev.push({ s: s, k: k, snap: { rows: rows.slice(), total: total } }); }
-    step('주소 해석', 0, '브라우저가 주소 https://shop.example' + (c.what === 'api' ? '/orders' : '/static/logo.png') + ' 를 프로토콜(https), 호스트(shop.example), 경로로 나눕니다. https이므로 443번 포트로 접속할 것입니다.', '');
+    step('주소 해석', 0, '브라우저가 주소 https://shop.example' + (c.what === 'api' ? '/orders' : '/static/logo.png') + '를 프로토콜(https), 호스트(shop.example), 경로로 나눕니다. https이므로 443번 포트로 접속할 것입니다.', '');
     if (c.dns) step('DNS 조회', 0, '도메인의 IP 주소가 브라우저나 운영체제의 캐시에 남아 있습니다. DNS 서버에 묻지 않습니다.', 'good', true);
     else step('DNS 조회', 40, 'shop.example의 IP 주소를 모릅니다. DNS 서버에 물어 IP 주소를 받아 옵니다' + (cdn ? '. CDN을 쓰는 도메인이라 사용자와 가까운 CDN 서버의 주소가 돌아옵니다.' : '.') + ' 결과는 정해진 시간(TTL) 동안 캐시에 보관됩니다.', '');
     if (c.conn) { step('TCP 연결', 0, '이 서버와 맺어 둔 연결이 아직 살아 있습니다(keep-alive). 새로 연결하지 않고 그대로 씁니다.', 'good', true); step('TLS 핸드셰이크', 0, '기존 연결은 이미 암호화돼 있습니다. 핸드셰이크도 다시 하지 않습니다.', 'good', true); }
@@ -41,7 +41,7 @@ Lab.register({
       }
     }
     step('응답 수신과 화면 표시', rtt, '응답이 브라우저에 도착합니다. HTML이라면 브라우저가 해석하면서 그 안의 CSS, 스크립트, 이미지 주소를 발견하고, 그것들에 대해 같은 과정을 반복합니다.', 'good');
-    if (!c.dns || !c.conn) sum.push('첫 요청에서는 DNS 조회, TCP 연결, TLS 핸드셰이크가 실제 요청보다 먼저 일어납니다. 서버가 아무리 빨라도 이 왕복들은 줄지 않으므로, 연결을 유지해 재사용하는 것(keep-alive, HTTP/2)이 체감 속도에 큰 영향을 줍니다.');
+    if (!c.dns || !c.conn) sum.push((!c.dns && !c.conn ? '첫 요청에서는 DNS 조회, TCP 연결, TLS 핸드셰이크가' : !c.dns ? '이번 요청에서는 DNS 조회가' : '이번 요청에서는 TCP 연결과 TLS 핸드셰이크가') + ' 실제 요청보다 먼저 일어납니다. 서버가 아무리 빨라도 이 왕복들은 줄지 않으므로, 연결을 유지해 재사용하는 것(keep-alive, HTTP/2)이 체감 속도에 큰 영향을 줍니다.');
     if (c.what === 'static' && !cdn) sum.push('정적 파일은 웹 서버가 직접 내어 줍니다. 애플리케이션 서버(WAS)는 실행해야 결과가 나오는 요청만 맡습니다. 리버스 프록시를 앞에 두면 TLS 처리, 정적 파일, 부하 분산, 내부 서버 숨기기를 한곳에서 할 수 있습니다.');
     if (cdn) sum.push('CDN은 정적 파일의 사본을 세계 여러 곳에 두고 가까운 곳에서 응답합니다. 왕복 시간이 짧아지고, 원래 서버로 오는 요청이 줄어듭니다.');
     if (c.what === 'api') sum.push('동적 요청에서 서버가 쓰는 시간은 대부분 DB 조회입니다(여기서는 31ms 가운데 20ms). 성능 문제를 볼 때 어느 구간에서 시간이 드는지부터 나눠 보는 이유입니다.');

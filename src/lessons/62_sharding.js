@@ -29,7 +29,7 @@ Lab.register({
     var d1 = dist(N, per), mx = Math.max.apply(null, d1), mn = Math.min.apply(null, d1);
     function push(s, k, d, extra) { ev.push({ s: s, k: k, snap: { d: d, extra: extra || '' } }); }
     push('주문 ' + TOTAL + '건을 샤드 ' + N + '개에 나눠 담습니다. ' + (c.how === 'range' ? '주문 번호 ' + per + '개씩 구간을 잘라 샤드에 배정합니다.' : '주문의 회원 번호를 샤드 수(' + N + ')로 나눈 나머지가 샤드 번호입니다. 같은 회원의 주문은 항상 같은 샤드에 모입니다.'), '', d1.map(function () { return 0; }));
-    push('분배 결과입니다. 가장 많은 샤드 ' + mx + '건, 가장 적은 샤드 ' + mn + '건.' + (c.how === 'hot' ? ' 회원 7번의 주문이 전체의 3분의 1이라서, 그 회원이 속한 샤드 ' + (7 % N) + '번에 몰렸습니다. 해시는 키를 고르게 나누지만, 키 하나에 딸린 데이터가 많으면 소용이 없습니다.' : c.how === 'range' ? ' 지금은 고르지만 이것은 과거 데이터 기준입니다.' : ' 회원 번호가 고르게 퍼져 있어 샤드별 건수가 비슷합니다.'), mx > mn * 2 ? 'bad' : 'good', d1);
+    push('분배 결과입니다. 가장 많은 샤드는 ' + mx + '건, 가장 적은 샤드는 ' + mn + '건입니다.' + (c.how === 'hot' ? ' 회원 7번의 주문이 전체의 3분의 1이라서, 그 회원이 속한 샤드 ' + (7 % N) + '번에 몰렸습니다. 해시는 키를 고르게 나누지만, 키 하나에 딸린 데이터가 많으면 소용이 없습니다.' : c.how === 'range' ? ' 지금은 고르지만 이것은 과거 데이터 기준입니다.' : ' 회원 번호가 고르게 퍼져 있어 샤드별 건수가 비슷합니다.'), mx >= mn * 2 ? 'bad' : 'good', d1);
     var newTo = c.how === 'range' ? '마지막 샤드 한 곳' : '회원에 따라 모든 샤드에 분산';
     push(c.how === 'range' ? '새 주문은 번호가 계속 커지므로 전부 마지막 샤드 ' + (N - 1) + '번으로 들어갑니다. 쓰기 부하가 샤드 하나에 몰리고(핫스팟), 나머지 샤드는 한가합니다.' : '새 주문은 주문한 회원의 번호에 따라 여러 샤드로 흩어집니다. 쓰기 부하가 분산됩니다.', c.how === 'range' ? 'bad' : 'good', d1, c.how === 'range' ? '새 주문 → 샤드 ' + (N - 1) : '새 주문 → 여러 샤드');
     var q = c.how === 'range' ? '모든 샤드에 물어봐야 함' : '샤드 1곳';
@@ -49,18 +49,18 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 시작합니다.'); return; }
     var mx = Math.max.apply(null, s.d.concat([1])), ln = H.lanes(v);
-    s.d.forEach(function (x, i) { H.lane(ln, '샤드 ' + i, x + '건', x === 0 ? 'none' : x > 120 / s.d.length * 1.5 ? 'bad' : '', x ? x / Math.max(mx, 60) : undefined); });
+    s.d.forEach(function (x, i) { H.lane(ln, '샤드 ' + i, x + '건', x === 0 ? 'none' : x > 120 / s.d.length * 1.3 ? 'bad' : '', x ? x / Math.max(mx, 60) : undefined); });
   },
   // 그림: 위에 라우터, 아래에 샤드들. 샤드 안의 막대 높이가 담긴 주문 건수다.
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], s = last ? last.snap : { d: [], extra: '' }, d = s.d, n = d.length || c.n, w = (648 - (n - 1) * 10) / n, mx = Math.max.apply(null, d.concat([60])), ex = s.extra || '';
     var newAll = ex.indexOf('여러 샤드') >= 0, newOne = /새 주문 → 샤드 (\d+)/.exec(ex), qAll = ex.indexOf('모든 샤드') >= 0, qOne = ex.indexOf('샤드 1곳') >= 0 ? 7 % n : -1;
     P.size(680, 330);
-    P.box('rt', 160, 16, 360, 40, { cls: 'wait', center: true, title: c.how === 'range' ? '라우터: 주문 번호 구간으로 샤드를 고름' : '라우터: 회원 번호 % ' + n + ' 로 샤드를 고름' });
+    P.box('rt', 160, 16, 360, 40, { cls: 'wait', center: true, title: c.how === 'range' ? '라우터: 주문 번호 구간으로 샤드를 고름' : '라우터: 회원 번호 % ' + n + (n === 3 || n === 6 ? '으로' : '로') + ' 샤드를 고름' });
     for (var i = 0; i < n; i++) {
       var x = 16 + i * (w + 10), cnt = d[i] || 0, h = Math.max(2, 120 * cnt / mx), on = qAll || qOne === i, hit = newAll || (newOne && +newOne[1] === i);
       P.box('sh' + i, x, 106, w, 184, { cls: 'plain' + (on ? ' now' : ''), title: '샤드 ' + i, sub: cnt + '건', center: true });
-      P.box('fill' + i, x + 8, 282 - h, w - 16, h, { cls: cnt > 120 / n * 1.5 ? 'bad' : cnt ? 'good' : 'ghost' });
+      P.box('fill' + i, x + 8, 282 - h, w - 16, h, { cls: cnt > 120 / n * 1.3 ? 'bad' : cnt ? 'good' : 'ghost' });
       P.arrow('ar' + i, 'rt:b:' + ((i + 0.5) / n), 'sh' + i + ':t', { cls: hit ? 'hot' : 'mut' });
     }
     if (ex) P.text('ex', 340, 314, ex + (qOne >= 0 ? ' (샤드 ' + qOne + ')' : ''), { anchor: 'middle', bold: true });

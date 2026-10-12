@@ -20,7 +20,7 @@ Lab.quiz([
     a: ['회원 1행과 그 회원의 주문 2행이 지워진다', '주문이 남아 있으므로 오류 1451로 거부된다', '회원 1행만 지워지고 주문 2행의 외래 키는 NULL이 된다', '회원 1행만 지워지고 주문 2행은 그대로 남는다'],
     why: 'CASCADE는 부모를 지우면서 그 부모를 가리키는 자식 행도 함께 지웁니다. 삭제를 거부하는 것은 RESTRICT, 외래 키만 NULL로 바꾸는 것은 SET NULL, 주문이 그대로 남는 것은 외래 키가 없을 때입니다.',
     sim: { c: { op: 'fkdel', con: 'on', act: 'cascade' }, col: 2, has: 'member 2행, orders 1행' } },
-  { lv: 3, id: 'constraints', q: 'orders의 외래 키를 ON DELETE SET NULL로 선언했습니다. 주문이 2건 있는 회원을 지운 뒤 orders 테이블은 어떻게 됩니까?',
+  { lv: 3, id: 'constraints', q: 'orders에는 주문이 3건 있고 그중 2건이 한 회원의 것입니다. orders의 외래 키를 ON DELETE SET NULL로 선언하고 그 회원을 지우면 orders 테이블은 어떻게 됩니까?',
     a: ['주문은 3행 그대로이고 그중 2행의 member_id가 NULL이다', '주문 2행이 함께 지워져 1행만 남는다', '주문은 3행 그대로이고 member_id도 처음 값 그대로이다', '삭제 자체가 거부되어 회원도 주문도 그대로이다'],
     why: 'SET NULL은 자식 행을 남기고 부모를 가리키던 컬럼만 NULL로 바꿉니다. 탈퇴한 회원의 주문 기록을 남기고 싶을 때 쓰며, member_id가 NULL인 주문은 외래 키에 어긋나지 않습니다.',
     sim: { c: { op: 'fkdel', con: 'on', act: 'setnull' }, col: 2, has: 'member 2행, orders 3행' } },

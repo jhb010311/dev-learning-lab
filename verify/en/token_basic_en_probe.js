@@ -147,7 +147,7 @@ const get = (port, token) => request(port, 'GET', '/me', token === null ? {} : {
 
   // (5) 같은 토큰을 JWT 라이브러리 jose4j로 확인
   const jin = SERVER_KEY.toString('hex') + '\n' + ['good', 'edited', 'nosig', 'otherkey'].map(k => k + '\t' + tokens[k]).join('\n') + '\n';
-  const jsrc = path.join(__dirname, '..', 'net', 'TokenBasicJose4jCheck.java'), outDir = 'C:/Users/wlsgu/AppData/Local/Temp/claude/C--/0d076020-6795-44d4-8279-d5047966b753/scratchpad/en_basics/w11/token_out';
+  const jsrc = path.join(__dirname, '..', 'net', 'TokenBasicJose4jCheck.java'), outDir = '<이 PC의 임시 폴더>/claude/C--/0d076020-6795-44d4-8279-d5047966b753/scratchpad/en_basics/w11/token_out';
   fs.mkdirSync(outDir, { recursive: true });
   let jose = '';
   if (fs.existsSync(JOSE) && fs.existsSync(SLF4J)) {

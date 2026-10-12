@@ -21,7 +21,7 @@ Lab.register({
   simulate: function (c) {
     var ev = [], sum = [], want = 3, pods = [{ n: 'shop-a', node: 'Node 1', st: 'Running', svc: true }, { n: 'shop-b', node: 'Node 2', st: 'Running', svc: true }, { n: 'shop-c', node: 'Node 2', st: 'Running', svc: true }], did, human = 'None';
     function push(s, k) { ev.push({ s: s, k: k, snap: { want: want, pods: pods.map(function (p) { return { n: p.n, node: p.node, st: p.st, svc: p.svc }; }) } }); }
-    push('This is the normal state. The Deployment says "3 replicas", and 3 Pods are actually running, spread across two nodes. The Service divides requests among the three Pods.', '');
+    push('This is the normal state. The Deployment says "3 replicas", and 3 Pods are actually running, spread across two of the three nodes (Node 1 and Node 2). The Service divides requests among the three Pods.', '');
     if (c.what === 'kill') {
       pods[1].st = 'Dead'; pods[1].svc = false; push('The container in shop-b died because it ran out of memory. The Service stops sending requests to this Pod. The actual number of Pods is now 2.', 'bad');
       push('The controller compares the states. Desired: 3, actual: 2. One Pod is missing. No one has to tell it, because this comparison keeps repeating.', '');

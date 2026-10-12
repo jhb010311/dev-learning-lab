@@ -49,7 +49,7 @@ Lab.register({
     var ann = boot ? '@SpringBootTest\n@AutoConfigureMockMvc                    // MockMvc를 쓸 수 있게 한다\n' : '@WebMvcTest(OrderController.class)\n';
     var s = '';
     if (unit) {
-      s += '// 첫 번째 테스트 클래스. 스프링의 애노테이션이 없다\nclass OrderControllerTest {\n\n    @Test\n    void returnsOrderName() {\n' + unitBody(A) + '    }\n}\n\n';
+      s += '// 첫 번째 테스트 클래스. 스프링의 애너테이션이 없다\nclass OrderControllerTest {\n\n    @Test\n    void returnsOrderName() {\n' + unitBody(A) + '    }\n}\n\n';
       s += '// 두 번째 테스트 클래스. 내용은 첫 번째와 같다\nclass OrderControllerSecondTest {\n    // returnsOrderName()이 OrderControllerTest와 같다\n}\n';
     } else {
       s += '// 첫 번째 테스트 클래스\n' + ann + (A.dirty ? '@DirtiesContext                          // 끝나면 컨텍스트를 버린다\n' : '') + 'class OrderControllerTest {\n\n' + fields(A) + '\n    @Test\n    void returnsOrderName() throws Exception {\n' + mvcBody(A) + '    }\n}\n\n';
@@ -104,7 +104,7 @@ Lab.register({
         return ok ? PASS : FAIL;
       }
       set(1, '테스트 메서드 실행 중', 'hot');
-      push(CN[0] + ' 실행 시작: 이 클래스에는 @SpringBootTest나 @WebMvcTest 같은 스프링의 테스트 애노테이션이 없습니다. 스프링은 관여하지 않고, JUnit이 곧바로 테스트 메서드 returnsOrderName을 부릅니다.');
+      push(CN[0] + ' 실행 시작: 이 클래스에는 @SpringBootTest나 @WebMvcTest 같은 스프링의 테스트 애너테이션이 없습니다. 스프링은 관여하지 않고, JUnit이 곧바로 테스트 메서드 returnsOrderName을 부릅니다.');
       var cx = { n: 1, cfg: '', beans: ['없음', '없음', '없음'], state: 'obj' }; st.ctxs.push(cx); st.use1 = 0; st.how1 = '직접 만듦';
       if (f.svc) {
         cx.beans = ['없음', '가짜', '없음'];
@@ -154,7 +154,7 @@ Lab.register({
         register(1, f, w);
       } else {
         var same = key(A) === k;
-        push(CN[1] + ' 실행 시작: 같은 JVM에서 두 번째 테스트 클래스가 이어서 실행됩니다. ' + (next === 'mock' ? '첫 번째 클래스보다 @MockitoBean ' + (A.repo ? 'OrderService' : 'OrderRepository') + ' 필드가 하나 더 있습니다.' : next === 'profile' ? '첫 번째 클래스와 같은데 @ActiveProfiles("test")가 붙어 있습니다.' : '애노테이션과 필드가 첫 번째 클래스와 같습니다.') + ' 이 클래스에도 컨텍스트가 필요합니다.');
+        push(CN[1] + ' 실행 시작: 같은 JVM에서 두 번째 테스트 클래스가 이어서 실행됩니다. ' + (next === 'mock' ? '첫 번째 클래스보다 @MockitoBean ' + (A.repo ? 'OrderService' : 'OrderRepository') + ' 필드가 하나 더 있습니다.' : next === 'profile' ? '첫 번째 클래스와 같은데 @ActiveProfiles("test")가 붙어 있습니다.' : '애너테이션과 필드가 첫 번째 클래스와 같습니다.') + ' 이 클래스에도 컨텍스트가 필요합니다.');
         if (same && k in cache) {
           st.use2 = cache[k]; st.how2 = '다시 씀'; used[1] = cache[k]; set(2, '테스트 메서드 실행 중', 'hot');
           push('컨텍스트 캐시 조회: 설정이 첫 번째 클래스와 같으므로 캐시에서 같은 컨텍스트를 찾습니다. 새로 만들지 않고 첫 번째 클래스가 쓰던 컨텍스트를 그대로 받습니다.', 'good');
@@ -202,7 +202,7 @@ Lab.register({
         var k1 = key(A);
         if (k1 in cache) {
           st.ctxs[cache[k1]].state = 'closed'; delete cache[k1]; st.now = 1;
-          push(CN[0] + ' 종료 (@DirtiesContext): 이 애노테이션은 "이 클래스가 컨텍스트의 상태를 바꿔 놓았으니 다른 테스트가 다시 쓰면 안 된다"는 표시입니다. 클래스의 테스트가 모두 끝나면 스프링이 이 컨텍스트를 닫고 캐시에서 뺍니다.');
+          push(CN[0] + ' 종료 (@DirtiesContext): 이 애너테이션은 "이 클래스가 컨텍스트의 상태를 바꿔 놓았으니 다른 테스트가 다시 쓰면 안 된다"는 표시입니다. 클래스의 테스트가 모두 끝나면 스프링이 이 컨텍스트를 닫고 캐시에서 뺍니다.');
         } else push(CN[0] + ' 종료 (@DirtiesContext): 닫을 컨텍스트가 없습니다. 기동에 실패한 컨텍스트는 캐시에 들어간 적이 없기 때문입니다.');
       }
       res[1] = runCtx(2, B);

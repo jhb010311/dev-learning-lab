@@ -13,7 +13,7 @@ Lab.register({
     { t: '처음 설정으로', q: 'LogAspect 하나만 둔 채 order 메서드가 IllegalStateException을 던지면 어드바이스는 어떻게 실행되나', d: '메서드가 예외를 던집니다. @Around의 뒷부분은 실행되지 않고 @After는 실행됩니다.', v: { pc: 'cls', m: 'order', out: 'ex', second: 'none' } },
     { t: '정상적으로 끝나면', q: 'order 메서드가 예외 대신 값을 정상적으로 돌려주면', d: '어드바이스 다섯 가지 가운데 네 가지가 정해진 순서로 실행됩니다.', v: { pc: 'cls', m: 'order', out: 'ok', second: 'none' } },
     { t: '괄호 안을 비운 포인트컷', q: '포인트컷을 cancel() 형태로 바꾸고 인자가 Long인 cancel 메서드를 정상적으로 부르면', d: 'cancel()이라고 썼는데 cancel(Long)에는 끼어들지 않습니다.', v: { pc: 'noarg', m: 'cancel', out: 'ok', second: 'none' } },
-    { t: '애노테이션으로 고르기', q: '포인트컷을 @annotation(shop.Audit) 식으로 바꾸고 @Audit 붙은 MemberService의 join을 정상적으로 부르면', d: '@Audit이 붙은 메서드라면 다른 클래스의 메서드에도 끼어듭니다.', v: { pc: 'ann', m: 'join', out: 'ok', second: 'none' } },
+    { t: '애너테이션으로 고르기', q: '포인트컷을 @annotation(shop.Audit) 식으로 바꾸고 @Audit이 붙은 MemberService의 join을 정상적으로 부르면', d: '@Audit이 붙은 메서드라면 다른 클래스의 메서드에도 끼어듭니다.', v: { pc: 'ann', m: 'join', out: 'ok', second: 'none' } },
     { t: '같은 클래스인데 끼어들지 않는 메서드', q: '포인트컷을 @annotation(shop.Audit) 식으로 바꾸고 @Audit이 없는 order 메서드를 정상적으로 부르면', d: '@Audit이 없는 order에는 아무것도 실행되지 않습니다.', v: { pc: 'ann', m: 'order', out: 'ok', second: 'none' } },
     { t: '애스펙트가 둘일 때', q: 'order 메서드가 정상적으로 값을 돌려주는데 LogAspect @Order(1), TimeAspect @Order(2) 둘을 두면', d: '@Order의 숫자가 작은 LogAspect가 바깥쪽에서 감쌉니다.', v: { pc: 'cls', m: 'order', out: 'ok', second: 'log1' } },
     { t: '@Order를 서로 바꾸면', q: '예외를 던지는 order 메서드에 애스펙트 둘을 TimeAspect @Order(1), LogAspect @Order(2) 순서로 두면', d: 'TimeAspect가 바깥쪽이 됩니다. 예외가 나도 "Time 끝"은 찍힙니다.', v: { pc: 'cls', m: 'order', out: 'ex', second: 'time1' } },
@@ -32,7 +32,7 @@ Lab.register({
     var time = c.second === 'none' ? '' : '@Aspect\n@Component\n' + to + '\nclass TimeAspect {\n    @Around("' + E + '")\n    Object time(ProceedingJoinPoint pjp) throws Throwable {\n        System.out.println("Time 시작");\n        try {\n            return pjp.proceed();\n        } finally {\n            System.out.println("Time 끝");    // 예외가 나도 실행된다\n        }\n    }\n}\n\n';
     var svc = '@Service\nclass OrderService {\n    public String order(String item) {\n' + body('order', '주문 완료') + '    }\n\n    @Audit\n    public String cancel(Long id) {\n' + body('cancel', '취소 완료') + '    }\n}\n\n' +
       '@Service\nclass MemberService {\n    @Audit\n    public String join(String name) {\n' + body('join', '가입 완료') + '    }\n}';
-    return '// 아래 클래스는 모두 shop 패키지에 있다\n// @Audit은 이 예제에서 직접 만든 애노테이션이다 (메서드에 붙이는 표시)\n// 다른 빈에서 부르는 코드: ' + call + '\n\n' + log + time + svc;
+    return '// 아래 클래스는 모두 shop 패키지에 있다\n// @Audit은 이 예제에서 직접 만든 애너테이션이다 (메서드에 붙이는 표시)\n// 다른 빈에서 부르는 코드: ' + call + '\n\n' + log + time + svc;
   },
   label: function (c) { return { cls: 'OrderService.*(..)', arg: 'shop.*.*(String)', noarg: 'cancel()', ann: '@annotation(Audit)' }[c.pc] + ' · ' + { order: 'order(String)', cancel: 'cancel(Long)', join: 'join(String)' }[c.m] + ' · ' + (c.out === 'ok' ? '정상' : '예외') + ' · ' + { none: 'Log만', log1: 'Log 바깥, Time 안', time1: 'Time 바깥, Log 안' }[c.second]; },
   columns: ['포인트컷이 이 메서드를 고르나', '찍힌 순서', '호출한 쪽이 받는 것'],

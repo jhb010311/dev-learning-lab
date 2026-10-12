@@ -6,7 +6,7 @@ Lab.register({
   controls: [
     { id: 'topic', label: '살펴볼 것', type: 'select', value: 'ints', options: [['ints', '정수끼리의 계산 (나눗셈, 나머지, 범위)'], ['conv', '타입이 섞이거나 바뀔 때 (형변환)'], ['str', '문자열과 +']] },
     { id: 'e1', label: '계산식', type: 'select', value: 'div', options: [['div', '7 / 2'], ['mod', '7 % 2'], ['ndiv', '-7 / 2'], ['nmod', '-7 % 2'], ['zero', '7 / 0'], ['over', '2147483647 + 1']], show: function (c) { return c.topic === 'ints'; } },
-    { id: 'e2', label: '코드', type: 'select', value: 'late', options: [['late', 'double r = 7 / 2'], ['mix', 'double r = 7 / 2.0'], ['longlate', 'long r = big + 1  (big은 2147483647)'], ['longmix', 'long r = big + 1L'], ['narrow', 'int r = 3.99'], ['trunc', 'int r = (int) 3.99'], ['ntrunc', 'int r = (int) -3.99'], ['byte', 'byte r = (byte) 200']], show: function (c) { return c.topic === 'conv'; } },
+    { id: 'e2', label: '코드', type: 'select', value: 'late', options: [['late', 'double r = 7 / 2'], ['mix', 'double r = 7 / 2.0'], ['longlate', 'long r = big + 1 (big은 2147483647)'], ['longmix', 'long r = big + 1L'], ['narrow', 'int r = 3.99'], ['trunc', 'int r = (int) 3.99'], ['ntrunc', 'int r = (int) -3.99'], ['byte', 'byte r = (byte) 200']], show: function (c) { return c.topic === 'conv'; } },
     { id: 'e3', label: '계산식', type: 'select', value: 'ns', options: [['ns', '1 + 2 + "3"'], ['sn', '"1" + 2 + 3'], ['paren', '"1" + (2 + 3)'], ['mixed', '1 + 2 + "3" + 4 + 5']], show: function (c) { return c.topic === 'str'; } },
   ],
   presets: [
@@ -69,7 +69,7 @@ Lab.register({
         run(n.e); var before = self.txt(n), from = n.e.t, x = n.e.v, v, s;
         if (n.t === 'int' && from === 'double') {
           v = isNaN(x) ? 0 : Math.max(-2147483648, Math.min(2147483647, Math.trunc(x)));
-          s = before + ': double 값을 int로 강제로 바꿉니다. int는 소수점 아래를 담지 못하므로, 소수점 아래를 버리고 ' + v + '만 남깁니다. 반올림하지 않습니다.' + (x < 0 && v !== x ? ' 버림은 0에 가까운 쪽으로 일어납니다(아래쪽 정수로 내리는 것이었다면 ' + Math.floor(x) + ').' : '');
+          s = before + ': double 값을 int로 강제로 바꿉니다. int는 소수점 아래를 담지 못하므로, 소수점 아래를 버리고 ' + v + '만 남깁니다. 반올림하지 않습니다.' + (x < 0 && v !== x ? ' 버림은 0에 가까운 쪽으로 일어납니다(아래쪽 정수로 내리는 것이었다면 ' + Math.floor(x) + '였을 것입니다).' : '');
           if (v !== x) lost = true;
         } else if (n.t === 'byte' && from === 'int') {
           v = ((x & 255) << 24) >> 24;
@@ -98,7 +98,7 @@ Lab.register({
           var q = Math.trunc(x / y), rem = x % y, pr = function (z) { return z < 0 ? '(' + z + ')' : String(z); };
           if (op === '/') {
             res = q;
-            if (rem !== 0) { lost = true; msg = text + ': 양쪽이 모두 int이므로 결과도 int입니다. 수학에서의 값은 ' + (x / y) + '입니다. 하지만 int는 소수점 아래를 담지 못하므로, 반올림 없이 버리고 ' + q + '만 남깁니다.' + (x / y < 0 ? ' 버림은 0에 가까운 쪽으로 일어납니다(아래쪽 정수로 내리는 것이었다면 ' + Math.floor(x / y) + ').' : ''); kind = 'bad'; }
+            if (rem !== 0) { lost = true; msg = text + ': 양쪽이 모두 int이므로 결과도 int입니다. 수학에서의 값은 ' + (x / y) + '입니다. 하지만 int는 소수점 아래를 담지 못하므로, 반올림 없이 버리고 ' + q + '만 남깁니다.' + (x / y < 0 ? ' 버림은 0에 가까운 쪽으로 일어납니다(아래쪽 정수로 내리는 것이었다면 ' + Math.floor(x / y) + '였을 것입니다).' : ''); kind = 'bad'; }
             else msg = text + ': 양쪽이 모두 int이므로 결과도 int입니다. 나누어떨어지므로 결과는 ' + q + '입니다.';
           } else {
             res = rem;
@@ -152,7 +152,7 @@ Lab.register({
       nmod: ['나머지의 부호는 왼쪽 수(나누어지는 수)를 따릅니다. 그래서 홀수 검사를 n % 2 == 1로 쓰면 음수 홀수에서 false가 됩니다. n % 2 != 0으로 씁니다.'],
       zero: ['정수를 0으로 나누면 ArithmeticException이 납니다. 나누는 값이 0일 수 있으면 나누기 전에 검사합니다.', '실수 계산인 7 / 0.0은 예외 없이 Infinity가 됩니다. 정수와 실수는 규칙이 다릅니다.'],
       over: ['int는 약 -21억부터 21억까지만 담습니다. 범위를 넘어도 예외나 경고 없이 반대쪽 끝으로 넘어가므로 알아차리기 어렵습니다.', '큰 수가 나올 수 있는 계산(금액, 밀리초 단위 시간, 개수의 곱)은 long으로 합니다. 넘치는 순간을 예외로 알고 싶으면 Math.addExact를 씁니다.'],
-      late: ['타입은 변수에 넣을 때가 아니라 계산할 때 정해집니다. 7 / 2는 int끼리의 계산이라 이미 3이 됐고, double 변수에 넣어도 3.0이 될 뿐입니다.', '평균을 구하면서 double avg = sum / count; 로 쓰면 같은 일이 생깁니다. (double) sum / count처럼 나누기 전에 한쪽을 double로 바꿉니다.'],
+      late: ['타입은 변수에 넣을 때가 아니라 계산할 때 정해집니다. 7 / 2는 int끼리의 계산이라 이미 3이 됐고, double 변수에 넣어도 3.0이 될 뿐입니다.', '평균을 구하면서 double avg = sum / count;로 쓰면 같은 일이 생깁니다. (double) sum / count처럼 나누기 전에 한쪽을 double로 바꿉니다.'],
       mix: ['타입이 섞인 계산에서는 좁은 쪽이 넓은 쪽으로 자동으로 바뀐 뒤 계산됩니다(int보다 long이, long보다 double이 넓습니다). 담을 수 있는 범위가 넓어지는 방향이라 따로 적지 않아도 됩니다.'],
       longlate: ['long 변수에 받는 것만으로는 오버플로를 막지 못합니다. big + 1은 int끼리의 계산이라 이미 넘친 뒤이고, 그 결과가 long으로 넓혀질 뿐입니다.', '계산 자체가 long으로 이루어지게 해야 합니다.'],
       longmix: ['계산에 long이 하나라도 섞이면 그 계산은 long으로 이루어집니다. 1L처럼 숫자 뒤에 L을 붙이거나 (long) big처럼 한쪽을 먼저 바꿉니다.'],
@@ -184,8 +184,8 @@ Lab.register({
     });
     if (c.topic === 'str') {
       P.region('ty', 350, 16, 314, 200, '+의 두 가지 뜻');
-      P.box('ru1', 364, 52, 286, 44, { cls: h.rule === 'add' ? 'wait now' : 'plain', title: '양쪽이 모두 숫자', sub: '덧셈: 1 + 2 는 3' });
-      P.box('ru2', 364, 112, 286, 44, { cls: h.rule === 'concat' ? 'hot now' : 'plain', title: '한쪽이라도 문자열', sub: '이어 붙이기: 3 + "3" 은 "33"' });
+      P.box('ru1', 364, 52, 286, 44, { cls: h.rule === 'add' ? 'wait now' : 'plain', title: '양쪽이 모두 숫자', sub: '덧셈: 1 + 2는 3' });
+      P.box('ru2', 364, 112, 286, 44, { cls: h.rule === 'concat' ? 'hot now' : 'plain', title: '한쪽이라도 문자열', sub: '이어 붙이기: 3 + "3"은 "33"' });
       P.text('ru3', 364, 190, '왼쪽부터 +를 하나씩 계산합니다', { cls: 'mut' });
     } else {
       P.region('ty', 350, 16, 314, 200, '타입의 넓이 (아래로 갈수록 넓음)');

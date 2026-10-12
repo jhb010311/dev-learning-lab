@@ -15,7 +15,7 @@ Lab.register({
     { t: 'Comparable이 정한 순서', q: '정렬 기준을 클래스가 Comparable로 정해 둔 순서(이름순)로 바꾸고 잔액을 작은 수(100 ~ 300)로 바꾸면', d: '클래스의 compareTo대로 이름순이 됩니다. 잔액은 보지 않습니다.', v: { by: 'natural', data: 'normal', rev: false } },
     { t: '잔액이 같은 사람끼리', q: '잔액이 작은 수(100 ~ 300)인데 comparingInt 잔액순으로 정렬하면 잔액이 같은 사람끼리는 어떤 순서가 되나', d: '잔액순으로 정렬해도 같은 잔액끼리는 원래 순서를 지킵니다.', v: { by: 'cmp', data: 'normal', rev: false } },
     { t: '같으면 이름순으로', q: '잔액순으로 정렬하되 같으면 이름순이 되도록 thenComparing을 쓰고 잔액을 작은 수(100 ~ 300)로 바꾸면', d: 'thenComparing으로 두 번째 기준을 줍니다.', v: { by: 'then', data: 'normal', rev: false } },
-    { t: '거꾸로 정렬', q: '잔액순 comparingInt에 잔액을 작은 수(100 ~ 300)로 두고 reversed로 거꾸로 정렬하면', d: '잔액이 큰 것부터. 잔액이 같은 사람끼리는 여전히 원래 순서입니다.', v: { by: 'cmp', data: 'normal', rev: true } },
+    { t: '거꾸로 정렬', q: '잔액순 comparingInt에 잔액을 작은 수(100 ~ 300)로 두고 reversed로 거꾸로 정렬하면', d: '잔액이 큰 것부터 나옵니다. 잔액이 같은 사람끼리는 여전히 원래 순서입니다.', v: { by: 'cmp', data: 'normal', rev: true } },
   ],
   DATA: {
     normal: [['park', 300], ['choi', 100], ['kim', 300], ['lee', 100], ['han', 200]],

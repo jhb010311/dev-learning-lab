@@ -60,7 +60,7 @@ Lab.register({
     var ln = H.lanes(v), down = n >= sim.downFrom && n <= sim.downTo;
     H.lane(ln, '결제 서비스', n === 0 ? '정상' : down ? '장애 (응답 없음)' : '정상', down ? 'bad' : 'good');
     if (c.use) H.lane(ln, '서킷', s.state === 'CLOSED' ? 'CLOSED: 호출을 그대로 통과시킴 · 최근 ' + s.wn + '번 실패율 ' + s.rate + '%' : s.state === 'OPEN' ? 'OPEN: 호출을 막고 즉시 대체 응답' : 'HALF_OPEN: 시험 호출 몇 번만 통과', s.state === 'OPEN' ? 'bad' : s.state === 'HALF_OPEN' ? 'hot' : '', s.state === 'CLOSED' ? s.rate / 100 : undefined);
-    H.text(v, '초록은 성공, 빨강은 3초를 기다리다 실패, 파랑은 서킷이 막아서 즉시 대체 응답. 장애 구간은 ' + sim.downFrom + '초부터 ' + sim.downTo + '초까지입니다.');
+    H.text(v, '초록은 성공, 빨강은 3초를 기다리다 실패, 파랑은 서킷이 막아서 즉시 대체 응답을 준 호출입니다. 장애 구간은 ' + sim.downFrom + '초부터 ' + sim.downTo + '초까지입니다.');
   },
   // 그림: 주문 서비스와 결제 서비스 사이에 놓인 서킷. 닫혀 있으면 호출이 지나가고, 열리면 서킷에서 바로 되돌아온다.
   draw: function (P, sim, shown) {

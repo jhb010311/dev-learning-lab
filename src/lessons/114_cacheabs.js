@@ -1,10 +1,10 @@
 Lab.register({
   id: 'cacheabs', nav: '캐시 추상화', cat: '스프링', mode: 'step',
   title: '@Cacheable을 붙이면 메서드 본문은 언제 실행되지 않나',
-  intro: '스프링에서는 메서드에 @Cacheable을 붙이기만 하면, 같은 인자로 다시 부를 때 본문을 실행하지 않고 전에 돌려준 값을 캐시에서 꺼내 줍니다. 캐시를 조회하고 저장하는 코드는 프록시가 대신 실행합니다. 어떤 캐시 저장소를 쓰든 같은 애노테이션으로 다룰 수 있게 스프링이 중간에 둔 층을 캐시 추상화라고 합니다.',
+  intro: '스프링에서는 메서드에 @Cacheable을 붙이기만 하면, 같은 인자로 다시 부를 때 본문을 실행하지 않고 전에 돌려준 값을 캐시에서 꺼내 줍니다. 캐시를 조회하고 저장하는 코드는 프록시가 대신 실행합니다. 어떤 캐시 저장소를 쓰든 같은 애너테이션으로 다룰 수 있게 스프링이 중간에 둔 층을 캐시 추상화라고 합니다.',
   terms: ['@Cacheable', '@CacheEvict와 @CachePut', '캐시', '프록시(Proxy)', '자기 호출(Self-invocation)'],
   controls: [
-    { id: 'mid', label: 'find(1)을 부른 다음에 하는 일', type: 'select', value: 'none', options: [['none', '바로 find(1)을 다시 부른다'], ['other', '인자를 바꿔 find(2)를 부른다'], ['evict', 'evict(1)을 부르고 find(1) · @CacheEvict'], ['put', 'rename(1, "새 키보드")를 부르고 find(1) · @CachePut'], ['plain', 'renamePlain(1, "새 키보드")를 부르고 find(1) · 애노테이션 없음']] },
+    { id: 'mid', label: 'find(1)을 부른 다음에 하는 일', type: 'select', value: 'none', options: [['none', '바로 find(1)을 다시 부른다'], ['other', '인자를 바꿔 find(2)를 부른다'], ['evict', 'evict(1)을 부르고 find(1) · @CacheEvict'], ['put', 'rename(1, "새 키보드")를 부르고 find(1) · @CachePut'], ['plain', 'renamePlain(1, "새 키보드")를 부르고 find(1) · 애너테이션 없음']] },
     { id: 'via', label: 'find를 부르는 방식', type: 'select', value: 'ext', options: [['ext', '다른 빈에서 productService.find(id)'], ['self', '같은 클래스의 detail(id)가 안에서 find(id)를 부른다']] },
     { id: 'data', label: 'id 1인 상품', type: 'select', value: 'yes', options: [['yes', 'DB에 있다 ("키보드")'], ['no', 'DB에 없다 (find가 null을 돌려준다)']] },
     { id: 'unless', label: '@Cacheable에 unless = "#result == null"을 붙인다', type: 'check', value: false, show: function (c) { return c.data === 'no'; }, hint: '결과가 null이면 캐시에 넣지 않는다는 조건입니다.' },
@@ -14,7 +14,7 @@ Lab.register({
     { t: '인자가 다르면', q: 'find를 1로 부른 다음 인자를 2로 바꿔 다시 부르면', d: '키가 달라서 본문이 다시 실행됩니다.', v: { mid: 'other', via: 'ext', data: 'yes', unless: false } },
     { t: '@CacheEvict로 비우면', q: 'find를 1로 부른 다음 @CacheEvict가 붙은 evict로 1을 지우고 다시 find를 부르면', d: '캐시에서 지워졌으므로 본문이 다시 실행됩니다.', v: { mid: 'evict', via: 'ext', data: 'yes', unless: false } },
     { t: '@CachePut으로 값을 바꾸면', q: 'find를 1로 부른 다음 @CachePut이 붙은 rename으로 1번 상품을 새 키보드로 바꾸고 다시 find를 부르면', d: 'rename의 본문은 항상 실행되고, 캐시가 새 값으로 바뀝니다.', v: { mid: 'put', via: 'ext', data: 'yes', unless: false } },
-    { t: '캐시는 그대로 두고 DB만 바꾸면', q: 'find를 1로 부른 다음 애노테이션 없는 renamePlain으로 1번 상품을 새 키보드로 바꾸고 다시 find를 부르면', d: '두 번째 find가 바뀌기 전의 값을 돌려줍니다.', v: { mid: 'plain', via: 'ext', data: 'yes', unless: false } },
+    { t: '캐시는 그대로 두고 DB만 바꾸면', q: 'find를 1로 부른 다음 애너테이션 없는 renamePlain으로 1번 상품을 새 키보드로 바꾸고 다시 find를 부르면', d: '두 번째 find가 바뀌기 전의 값을 돌려줍니다.', v: { mid: 'plain', via: 'ext', data: 'yes', unless: false } },
     { t: '같은 클래스 안에서 부르면', q: '같은 클래스의 detail이 안에서 find를 부르게 하고 detail을 두 번 부르면', d: '캐시가 적용되지 않아 본문이 매번 실행됩니다.', v: { mid: 'none', via: 'self', data: 'yes', unless: false } },
     { t: '결과가 null이어도 캐시된다', q: 'id 1인 상품이 DB에 없어 find가 null을 돌려주면', d: '없는 상품을 두 번 찾습니다. unless를 켜서 비교해 보세요.', v: { mid: 'none', via: 'ext', data: 'no', unless: false } },
   ],
@@ -25,7 +25,7 @@ Lab.register({
       '    @Cacheable(cacheNames = "product"' + (c.unless ? ',\n               unless = "#result == null"' : '') + ')\n    public String find(Long id) {\n        findCount++;                 // 본문이 실행된 횟수\n        return db.get(id);           // 없으면 null\n    }\n';
     if (c.mid === 'evict') s += '\n    @CacheEvict(cacheNames = "product")\n    public void evict(Long id) { }\n';
     if (c.mid === 'put') s += '\n    @CachePut(cacheNames = "product", key = "#id")\n    public String rename(Long id, String name) {\n        db.put(id, name);\n        return name;                 // 돌려준 값이 캐시에 들어간다\n    }\n';
-    if (c.mid === 'plain') s += '\n    public void renamePlain(Long id, String name) {\n        db.put(id, name);            // 캐시 애노테이션이 없다\n    }\n';
+    if (c.mid === 'plain') s += '\n    public void renamePlain(Long id, String name) {\n        db.put(id, name);            // 캐시 애너테이션이 없다\n    }\n';
     if (self) s += '\n    public String detail(Long id) {\n        return find(id);             // this.find(id)와 같다\n    }\n';
     return s + '}';
   },
@@ -47,15 +47,15 @@ Lab.register({
     function find(id, nth) {
       var ord = nth === 1 ? '첫 번째' : '두 번째', v;
       if (self) {
-        reset('detail(' + id + 'L)', 'detail(' + id + ')'); st.px = '캐시 애노테이션 없음: 그대로 넘김'; st.tg = 'detail 실행 중'; st.toBody = true;
-        push('productService.detail(' + id + 'L) 호출 (' + ord + '): 다른 빈이 detail을 부릅니다. 호출은 프록시에 도착하지만 detail에는 캐시 애노테이션이 없으므로, 프록시는 아무 일도 하지 않고 실제 객체에 넘깁니다.');
+        reset('detail(' + id + 'L)', 'detail(' + id + ')'); st.px = '캐시 애너테이션 없음: 그대로 넘김'; st.tg = 'detail 실행 중'; st.toBody = true;
+        push('productService.detail(' + id + 'L) 호출 (' + ord + '): 다른 빈이 detail을 부릅니다. 호출은 프록시에 도착하지만 detail에는 캐시 애너테이션이 없으므로, 프록시는 아무 일도 하지 않고 실제 객체에 넘깁니다.');
         count++; v = db[id]; st.self = true; st.px = '이 호출을 보지 못함'; st.tg = 'find 본문 실행 (' + count + '번째)'; st.dbop = '조회';
         if (nth === 2) st.second = q(v);
         push('detail 안의 find(id): this.find(id)를 부르는 것과 같습니다. 실제 객체가 자기 메서드를 직접 부르는 것이라 프록시를 지나지 않습니다. 캐시를 찾아보지도, 결과를 저장하지도 않고 본문이 실행됩니다(' + count + '번째). ' + (v === null ? 'DB에 id ' + id + '인 상품이 없어서 null을 돌려줍니다.' : 'DB에서 읽은 ' + obj(v) + ' 돌려줍니다.'), 'bad');
         return v;
       }
       reset('find(' + id + 'L)', 'find(' + id + ')'); st.px = '호출을 받음';
-      push('productService.find(' + id + 'L) 호출 (' + ord + '): 다른 빈이 부릅니다. 호출은 프록시에 먼저 도착합니다. 프록시는 @Cacheable을 보고, 본문을 실행하기 전에 캐시 "product"에서 키 ' + id + (id === 2 ? '를' : '을') + ' 찾아봅니다.' + (nth === 1 ? ' 프록시는 캐시가 실제로 어디에 저장되는지 모릅니다. CacheManager가 내준 Cache 객체에 get과 put을 부를 뿐이어서, 저장소를 메모리의 맵에서 Redis로 바꿔도 이 코드와 애노테이션은 그대로입니다. 스프링은 이 구조를 캐시 추상화라고 부릅니다.' : ''));
+      push('productService.find(' + id + 'L) 호출 (' + ord + '): 다른 빈이 부릅니다. 호출은 프록시에 먼저 도착합니다. 프록시는 @Cacheable을 보고, 본문을 실행하기 전에 캐시 "product"에서 키 ' + id + (id === 2 ? '를' : '을') + ' 찾아봅니다.' + (nth === 1 ? ' 프록시는 캐시가 실제로 어디에 저장되는지 모릅니다. CacheManager가 내준 Cache 객체에 get과 put을 부를 뿐이어서, 저장소를 메모리의 맵에서 Redis로 바꿔도 이 코드와 애너테이션은 그대로입니다. 스프링은 이 구조를 캐시 추상화라고 부릅니다.' : ''));
       if (id in cache) {
         v = cache[id]; st.look = 'hit'; st.px = '키 ' + id + ' 있음: 캐시의 값을 돌려줌'; st.tg = '본문을 실행하지 않음';
         if (nth === 2) st.second = q(v);
@@ -91,8 +91,8 @@ Lab.register({
     }
     if (mid === 'plain') {
       db[1] = '새 키보드';
-      reset('renamePlain(1L, "새 키보드")', 'renamePlain'); st.px = '캐시 애노테이션 없음: 그대로 넘김'; st.tg = 'renamePlain 본문 실행'; st.toBody = true; st.dbop = '변경';
-      push('productService.renamePlain(1L, "새 키보드") 호출: 캐시 애노테이션이 없는 메서드입니다. DB의 id 1만 "새 키보드"로 ' + (has ? '바뀌고' : '들어가고') + ', 캐시는 아무도 건드리지 않습니다.', '');
+      reset('renamePlain(1L, "새 키보드")', 'renamePlain'); st.px = '캐시 애너테이션 없음: 그대로 넘김'; st.tg = 'renamePlain 본문 실행'; st.toBody = true; st.dbop = '변경';
+      push('productService.renamePlain(1L, "새 키보드") 호출: 캐시 애너테이션이 없는 메서드입니다. DB의 id 1만 "새 키보드"로 ' + (has ? '바뀌고' : '들어가고') + ', 캐시는 아무도 건드리지 않습니다.', '');
     }
     var second = find(mid === 'other' ? 2 : 1, 2);
     var ck = Object.keys(cache).sort(), cstr = ck.length ? ck.map(function (k2) { return k2 + '=' + (cache[k2] === null ? 'null' : cache[k2]); }).join(', ') : '비어 있음';
@@ -106,7 +106,7 @@ Lab.register({
     } else if (mid === 'other') sum.push('캐시의 키는 기본으로 메서드의 인자입니다. 인자가 다르면 키가 다르므로 본문이 다시 실행되고, 결과는 키마다 따로 저장됩니다.');
     else if (mid === 'evict') sum.push('@CacheEvict는 캐시에서 값을 지웁니다. 그다음 호출은 본문을 다시 실행해 결과를 새로 저장합니다. 데이터를 바꾸거나 지우는 메서드에 붙여 캐시에 옛 값이 남지 않게 합니다.');
     else if (mid === 'put') sum.push('@CachePut은 @Cacheable과 달리 본문을 건너뛰지 않습니다. 항상 실행하고, 돌려준 값으로 캐시를 바꿉니다. 그래서 그다음 find는 본문을 실행하지 않고도 새 값을 받았습니다.');
-    else if (count === 1) sum.push('캐시 애노테이션이 없는 메서드로 데이터를 바꾸면 캐시에는 바뀌기 전의 ' + (has ? '값이' : 'null이') + ' 남습니다. 데이터를 바꾸는 메서드에는 @CacheEvict나 @CachePut을 붙여 캐시를 함께 맞춰야 합니다.');
+    else if (count === 1) sum.push('캐시 애너테이션이 없는 메서드로 데이터를 바꾸면 캐시에는 바뀌기 전의 ' + (has ? '값이' : 'null이') + ' 남습니다. 데이터를 바꾸는 메서드에는 @CacheEvict나 @CachePut을 붙여 캐시를 함께 맞춰야 합니다.');
     else sum.push('첫 번째 결과가 null이라 캐시에 넣지 않았으므로, 두 번째 호출이 본문을 실행해 바뀐 값을 읽었습니다. 값이 한번 캐시에 들어간 뒤에 DB만 바꾸면 캐시에는 옛 값이 남습니다.');
     return { events: ev, summary: sum, self: self, row: [count + '번', q(second), cstr] };
   },

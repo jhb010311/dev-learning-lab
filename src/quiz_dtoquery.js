@@ -1,6 +1,6 @@
 // "DTO로 바로 조회하기" 실습의 문제. a의 첫 번째가 정답이고, sim이 있으면 실습 모형의 결과와 정답을 대조한다.
 Lab.quiz([
-  { lv: 1, id: 'dtoquery', q: 'JPQL에 select new dtoquery.MemberDto(m.name, m.age) from Member m 이라고 적어 조회했습니다. SQL의 SELECT 절에는 무엇이 들어갑니까?',
+  { lv: 1, id: 'dtoquery', q: 'JPQL에 select new dtoquery.MemberDto(m.name, m.age) from Member m이라고 적어 조회했습니다. SQL의 SELECT 절에는 무엇이 들어갑니까?',
     a: ['생성자에 넘긴 값에 해당하는 컬럼인 name과 age만 들어간다', 'Member의 모든 컬럼이 들어가고 자바에서 두 개만 골라낸다', 'DTO는 테이블이 아니므로 컬럼 없이 행의 수만 조회한다', 'id와 생성자에 넘긴 두 컬럼까지 모두 세 개가 들어간다'],
     why: 'JPQL의 new는 생성자에 넘길 값만 조회합니다. 회원의 컬럼이 여섯 개여도 SQL은 name과 age 두 컬럼만 읽고, 돌아온 행마다 MemberDto의 생성자를 부릅니다.',
     sim: { c: { how: 'dto', team: false, mod: false }, col: 1, has: '2개' } },

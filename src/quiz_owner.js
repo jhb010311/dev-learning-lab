@@ -9,7 +9,7 @@ Lab.quiz([
     sim: { c: { set: 'inverse', clear: false, mp: true }, col: 0, has: 'null' } },
   { lv: 3, id: 'owner', q: 'member.setTeam(team)만 하고 저장한 뒤, flush와 clear 없이 같은 트랜잭션에서 team.getMembers().size()를 읽었습니다. 결과는 무엇입니까?',
     a: ['0이다. 외래 키는 저장됐지만 메모리의 목록은 비어 있다', '1이다. 외래 키가 저장됐으므로 목록에도 바로 보인다', '0이다. 주인 쪽에만 넣으면 외래 키도 저장되지 않는다', '예외가 난다. 목록을 채우지 않은 채로 읽었기 때문이다'],
-    why: 'em.find는 1차 캐시에 있는 처음의 team 객체를 그대로 돌려줍니다. 그 객체의 목록에는 아무것도 넣지 않았으므로 0입니다. DB의 team_id는 1로 저장돼 있어서 DB와 메모리가 어긋납니다. 그래서 양쪽에 다 넣습니다.',
+    why: 'clear를 하지 않았으므로 team은 1차 캐시에 있는 처음의 객체 그대로입니다. 그 객체의 목록에는 아무것도 넣지 않았으므로 0입니다. DB의 team_id는 1로 저장돼 있어서 DB와 메모리가 어긋납니다. 그래서 양쪽에 다 넣습니다.',
     sim: { c: { set: 'owner', clear: false, mp: true }, col: 1, has: '0명' } },
   { lv: 3, id: 'owner', q: '양방향으로 만들면서 Team.members의 mappedBy를 빠뜨렸습니다. 양쪽에 다 값을 넣고 저장하면 어떤 테이블이 만들어집니까?',
     a: ['team, member와 연결 테이블 team_member까지 세 개', 'team과 member 두 개이고 team_id가 두 번 저장된다', 'team과 member 두 개이고 시작할 때 경고가 나온다', '매핑 오류로 시작할 때 예외가 나서 만들어지지 않는다'],

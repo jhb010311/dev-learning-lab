@@ -9,7 +9,7 @@ Lab.register({
     { id: 'intr', label: '중간에 main이 t.interrupt()를 호출', type: 'check', value: false, hint: 'interrupt는 기다리고 있는 스레드에게 그만 기다리라고 보내는 신호입니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', q: 'Thread.sleep(1000) 작업을 t.run() 직접 호출로 실행하면 어느 스레드가 실행하고 t는 어떤 상태가 되나', d: 'run()을 직접 호출. 작업은 실행되지만 실행한 스레드는 main이고, t는 끝까지 NEW입니다.', v: { call: 'run', work: 'sleep', intr: false } },
+    { t: '처음 설정으로', q: 'Thread.sleep(1000) 작업을 t.run() 직접 호출로 실행하면 어느 스레드가 실행하고 t는 어떤 상태가 되나', d: 'run()을 직접 호출합니다. 작업은 실행되지만 실행한 스레드는 main이고, t는 끝까지 NEW입니다.', v: { call: 'run', work: 'sleep', intr: false } },
     { t: 'start()로 시작', q: 't.run() 직접 호출 대신 t.start()를 호출하면', d: '새 스레드 worker가 작업을 실행하고, 쉬는 동안 TIMED_WAITING입니다.', v: { call: 'start', work: 'sleep', intr: false } },
     { t: 'join으로 기다리는 스레드', q: 't.start()로 시작했는데 작업이 helper.join()으로 다른 스레드가 끝나기를 기다리면', d: '다른 스레드가 끝나기를 기한 없이 기다리면 WAITING입니다.', v: { call: 'start', work: 'join', intr: false } },
     { t: 'lock을 기다리는 스레드', q: 't.start()로 시작했는데 작업이 main이 쥐고 있는 lock을 얻으려 하면', d: '다른 스레드가 쥔 lock 앞에서 막히면 BLOCKED입니다.', v: { call: 'start', work: 'lock', intr: false } },
@@ -110,7 +110,7 @@ Lab.register({
       if (W === 'sleep') sum.push('시간을 정해 두고 기다리는 스레드는 TIMED_WAITING입니다. Thread.sleep(시간)이 대표적입니다. 시간이 지나면 RUNNABLE로 돌아옵니다.');
       if (W === 'join') sum.push('기한 없이 다른 쪽의 일이 끝나기를 기다리는 스레드는 WAITING입니다. join()은 상대 스레드가 끝날 때까지 부른 쪽을 멈춰 세웁니다. main이 t.join()으로 기다리는 동안에는 main의 상태도 WAITING입니다.');
       if (W === 'lock') sum.push('다른 스레드가 쥔 lock을 얻으려고 synchronized 앞에서 막힌 스레드는 BLOCKED입니다. lock을 쥔 쪽이 놓아야 RUNNABLE로 돌아옵니다.');
-      if (ie) sum.push('sleep이나 join으로 기다리던 스레드는 interrupt를 받으면 InterruptedException과 함께 바로 깨어납니다. 오래 기다리는 작업을 중간에 멈추게 하는 방법이며, 그래서 이런 메서드는 InterruptedException을 처리하도록 코드를 쓰게 되어 있습니다.');
+      if (ie) sum.push('sleep이나 join으로 기다리던 스레드는 interrupt를 받으면 InterruptedException과 함께 바로 깨어납니다. 오래 기다리는 작업을 중간에 멈추게 하는 방법이며, 그래서 이런 메서드를 쓸 때는 InterruptedException을 처리하는 코드를 적어야 합니다.');
       else if (intr && W === 'lock') sum.push('interrupt는 스레드를 강제로 멈추는 것이 아니라 신호를 보내는 것입니다. sleep, join처럼 InterruptedException을 던지는 기다림은 그 신호로 깨어나지만, synchronized의 lock을 기다리는 스레드는 깨어나지 않습니다.');
       else if (intr) sum.push('이미 끝난 스레드에 보낸 interrupt는 아무 일도 일으키지 않습니다.');
     }

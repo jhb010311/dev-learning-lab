@@ -12,7 +12,7 @@ Lab.register({
     { t: 'When there are no slow requests', q: 'What if there are no slow requests?', d: 'The average, the median, and p99 are almost the same.', v: { ratio: '0', slow: '3' } },
     { t: 'When only 0.5% are slow', q: 'What if 5 of 1,000 requests are slow and each takes 10 seconds?', d: 'Not even p99 catches them. You have to look at the maximum or p99.9 to see them.', v: { ratio: '0.5', slow: '10' } },
     { t: 'When 6% are slow', q: 'What if you change the share of slow requests to 6%?', d: 'p95 is the first to jump.', v: { ratio: '6', slow: '3' } },
-    { t: '20% take 10s', q: 'What if 20% of the requests are slow and each takes 10 seconds?', d: 'The average becomes 2s, but not a single user received a response like that.', v: { ratio: '20', slow: '10' } },
+    { t: '20% take 10s', q: 'What if 20% of the requests are slow and each takes 10 seconds?', d: 'The average goes above 2s, but not a single user received a response like that.', v: { ratio: '20', slow: '10' } },
   ],
   code: function () {
     return '// Micrometer: also record percentiles of the response time\nTimer.builder("http.server.requests")\n    .publishPercentiles(0.5, 0.95, 0.99)\n    .register(registry);\n\n# application.yml\nmanagement.metrics.distribution.percentiles:\n  http.server.requests: 0.5, 0.95, 0.99';
@@ -28,8 +28,8 @@ Lab.register({
     var mean = data.reduce(function (a, b) { return a + b; }, 0) / N, k = { mean: mean, p50: pct(0.5), p95: pct(0.95), p99: pct(0.99), p999: pct(0.999), max: data[N - 1], nSlow: nSlow, slow: slow };
     var f = function (x) { return (Math.round(x * 100) / 100).toFixed(2) + 's'; };
     function push(s, kd, stage) { ev.push({ s: s, k: kd, snap: { stage: stage } }); }
-    push('The response times of 1,000 requests were collected. Of these, ' + (N - nSlow) + ' took 0.08s to 0.12s, and ' + nSlow + ' took ' + slow + 's.', '', 1);
-    push('Average: adding up all the response times and dividing by 1,000 gives ' + f(mean) + '.' + (nSlow ? ' There are far more fast requests, so the slow ones are buried in the average. And not a single request actually got its response in ' + f(mean) + '.' : ''), nSlow ? 'bad' : '', 2);
+    push('The response times of 1,000 requests were collected. ' + (nSlow ? 'Of these, ' + (N - nSlow) + ' took 0.08s to 0.12s, and ' + nSlow + ' took ' + slow + 's.' : 'All of them took 0.08s to 0.12s.'), '', 1);
+    push('Average: adding up all the response times and dividing by 1,000 gives ' + f(mean) + '.' + (nSlow ? ' There are far more fast requests, so the slow ones are buried in the average.' + (mean > 0.12 ? ' And not a single request actually got its response in ' + f(mean) + '.' : '') : ''), nSlow ? 'bad' : '', 2);
     push('p50 (median): when the response times are lined up from fastest to slowest, the 500th value is ' + f(k.p50) + '. It means "half of the requests finished within this time". This is the speed a typical user experiences.', '', 3);
     push('p95: the 950th value is ' + f(k.p95) + '. It means "95% of the requests finished within this time, and the other 5% were slower".', k.p95 > 0.5 ? 'bad' : '', 4);
     push('p99: the 990th value is ' + f(k.p99) + '. It means "99% of the requests finished within this time, and only the slowest 1% were slower".' + (k.p99 > 0.5 ? ' The slow requests that the average could not show appear here.' : nSlow ? ' The slow requests are less than 1% of the total, so even p99 did not catch them.' : ''), k.p99 > 0.5 ? 'bad' : '', 5);

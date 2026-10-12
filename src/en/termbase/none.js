@@ -112,7 +112,7 @@ module.exports = [
   // ── 작업 도중 설명집에 추가된 용어(kb_testing.js). 실습 testing이 아직 목차에 없어 none으로 나온다.
   { ko: '@SpringBootTest와 @WebMvcTest', en: '@SpringBootTest and @WebMvcTest', how: 'composed',
     src: 'Spring Boot Reference (testing/spring-boot-applications 페이지) ("Spring Boot provides a @SpringBootTest annotation, which can be used as an alternative to the standard spring-test @ContextConfiguration annotation when you need Spring Boot features.", "To test whether Spring MVC controllers are working as expected, use the @WebMvcTest annotation from the spring-boot-webmvc-test module.") — https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html',
-    note: '애노테이션 이름이라 글자 그대로 둔다. 문서는 @WebMvcTest 같은 것을 "slice"를 테스트하는 애노테이션이라고 부른다(test slice). "Regular @Component and @ConfigurationProperties beans are not scanned when the @WebMvcTest annotation is used."' },
+    note: '애너테이션 이름이라 글자 그대로 둔다. 문서는 @WebMvcTest 같은 것을 "slice"를 테스트하는 애너테이션이라고 부른다(test slice). "Regular @Component and @ConfigurationProperties beans are not scanned when the @WebMvcTest annotation is used."' },
   { ko: '@MockitoBean', en: '@MockitoBean', how: 'official',
     src: 'Spring Framework Reference, "@MockitoBean and @MockitoSpyBean" ("@MockitoBean and @MockitoSpyBean can be used in test classes to override a bean in the test’s ApplicationContext with a Mockito mock or spy, respectively.") — https://docs.spring.io/spring-framework/reference/testing/annotations/integration-spring/annotation-mockitobean.html',
     note: '"가짜 객체"는 문서의 mock(Mockito mock), "빈을 바꾼다"는 override a bean(bean override). 없으면 새로 만드는 동작은 문서의 REPLACE_OR_CREATE strategy.' },

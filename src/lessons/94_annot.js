@@ -2,7 +2,7 @@ Lab.register({
   id: 'annot', nav: '애너테이션', cat: '자바 언어', mode: 'step',
   title: '@를 붙이기만 하면 정말 무슨 일이 일어나나',
   intro: '애너테이션(@Override, @Timed처럼 @로 시작하는 표시)은 코드에 붙여 두는 꼬리표입니다. 꼬리표 자체는 아무 일도 하지 않습니다. 그것을 읽는 쪽, 곧 컴파일러나 실행 중에 리플렉션으로 읽는 프레임워크가 있어야 의미가 생깁니다. 그리고 실행 중에 읽으려면 꼬리표가 실행 중까지 남아 있어야 합니다.',
-  terms: ['애노테이션', '리플렉션', '@Retention과 @Target', '@Override', '오버라이딩'],
+  terms: ['애너테이션', '리플렉션', '@Retention과 @Target', '@Override', '오버라이딩'],
   controls: [
     { id: 'topic', label: '무엇을 볼까', type: 'select', value: 'custom', options: [['custom', '직접 만든 @Timed를 실행 중에 읽기 (리플렉션)'], ['override', '@Override를 컴파일러가 읽기']] },
     { id: 'ret', label: '@Timed의 @Retention (표시를 어디까지 남길지)', type: 'select', value: 'none', options: [['none', '적지 않음'], ['SOURCE', 'SOURCE: 소스 코드까지만'], ['CLASS', 'CLASS: class 파일까지'], ['RUNTIME', 'RUNTIME: 실행 중까지']], show: function (c) { return c.topic === 'custom'; } },

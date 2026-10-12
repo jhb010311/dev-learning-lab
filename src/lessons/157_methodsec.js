@@ -1,11 +1,11 @@
 Lab.register({
   id: 'methodsec', nav: '메서드 보안', cat: '인증', mode: 'step',
   title: '메서드에 붙인 권한 검사는 언제 실행되고 언제 빠지나',
-  intro: '주소(URL)가 아니라 메서드에 "누가 이 메서드를 실행해도 되는가"를 적어 두는 방법이 메서드 보안입니다. @PreAuthorize는 메서드를 실행하기 전에, @PostAuthorize는 메서드가 값을 돌려준 뒤에 식을 계산해 거짓이면 거부합니다. 그런데 이 애노테이션은 붙여 두기만 해서는 동작하지 않을 때가 있습니다.',
+  intro: '주소(URL)가 아니라 메서드에 "누가 이 메서드를 실행해도 되는가"를 적어 두는 방법이 메서드 보안입니다. @PreAuthorize는 메서드를 실행하기 전에, @PostAuthorize는 메서드가 값을 돌려준 뒤에 식을 계산해 거짓이면 거부합니다. 그런데 이 애너테이션은 붙여 두기만 해서는 동작하지 않을 때가 있습니다.',
   terms: ['메서드 보안(@PreAuthorize, @PostAuthorize)', '인증과 인가', '프록시(Proxy)', '자기 호출(Self-invocation)', 'SecurityContext'],
   controls: [
     { id: 'enable', label: '설정 클래스에 @EnableMethodSecurity를 붙였다', type: 'check', value: false },
-    { id: 'm', label: '부르는 메서드와 거기에 붙은 애노테이션', type: 'select', value: 'role', options: [['role', 'deleteAll() · @PreAuthorize("hasRole(\'ADMIN\')")'], ['arg', 'ordersOf("kim") · @PreAuthorize("#owner == authentication.name")'], ['post', 'findOrder(1) · @PostAuthorize("returnObject.owner == authentication.name")']], hint: 'findOrder(1)이 돌려주는 주문 1번의 주인은 kim입니다.' },
+    { id: 'm', label: '부르는 메서드와 거기에 붙은 애너테이션', type: 'select', value: 'role', options: [['role', 'deleteAll() · @PreAuthorize("hasRole(\'ADMIN\')")'], ['arg', 'ordersOf("kim") · @PreAuthorize("#owner == authentication.name")'], ['post', 'findOrder(1) · @PostAuthorize("returnObject.owner == authentication.name")']], hint: 'findOrder(1)이 돌려주는 주문 1번의 주인은 kim입니다.' },
     { id: 'who', label: '로그인한 사용자', type: 'select', value: 'kim', options: [['kim', 'kim · 역할 USER'], ['lee', 'lee · 역할 USER'], ['admin', 'park · 역할 ADMIN']] },
     { id: 'call', label: '부르는 방식', type: 'select', value: 'ext', options: [['ext', '컨트롤러(다른 빈)에서 직접 부른다'], ['self', '같은 클래스의 다른 메서드를 거쳐서 부른다']] },
   ],
@@ -24,13 +24,13 @@ Lab.register({
   },
   code: function (c) {
     var m = this.M[c.m], self = c.call === 'self';
-    var cfg = '@Configuration\n' + (c.enable ? '@EnableMethodSecurity          // 이것이 있어야 아래의 애노테이션이 동작한다\n' : '// @EnableMethodSecurity 가 없다\n') + 'class SecurityConfig { }\n\n';
+    var cfg = '@Configuration\n' + (c.enable ? '@EnableMethodSecurity          // 이것이 있어야 아래의 애너테이션이 동작한다\n' : '// @EnableMethodSecurity가 없다\n') + 'class SecurityConfig { }\n\n';
     var method = {
       role: '    @PreAuthorize("hasRole(\'ADMIN\')")                 // 메서드를 실행하기 전에 확인\n    public String deleteAll() {\n        orders.clear();\n        return "모두 삭제함";\n    }\n',
       arg: '    @PreAuthorize("#owner == authentication.name")    // 인자와 로그인한 사용자를 비교\n    public String ordersOf(String owner) {\n        return owner + "의 주문 목록";\n    }\n',
       post: '    @PostAuthorize("returnObject.owner == authentication.name")   // 돌려줄 값을 보고 확인\n    public Order findOrder(long id) {\n        return orders.get(id);            // 주문 1번의 주인은 kim\n    }\n',
     }[c.m];
-    var wrap = { role: '\n    public String nightlyCleanUp() {          // 애노테이션이 없는 메서드\n        return deleteAll();                   // this.deleteAll() 과 같다\n    }\n', arg: '\n    public String summary(String owner) {     // 애노테이션이 없는 메서드\n        return ordersOf(owner);               // this.ordersOf(owner) 와 같다\n    }\n', post: '\n    public Order receipt(long id) {           // 애노테이션이 없는 메서드\n        return findOrder(id);                 // this.findOrder(id) 와 같다\n    }\n' }[c.m];
+    var wrap = { role: '\n    public String nightlyCleanUp() {          // 애너테이션이 없는 메서드\n        return deleteAll();                   // this.deleteAll()과 같다\n    }\n', arg: '\n    public String summary(String owner) {     // 애너테이션이 없는 메서드\n        return ordersOf(owner);               // this.ordersOf(owner)와 같다\n    }\n', post: '\n    public Order receipt(long id) {           // 애너테이션이 없는 메서드\n        return findOrder(id);                 // this.findOrder(id)와 같다\n    }\n' }[c.m];
     var who = { kim: 'kim (ROLE_USER)', lee: 'lee (ROLE_USER)', admin: 'park (ROLE_ADMIN)' }[c.who];
     return cfg + '@Service\nclass OrderService {\n' + method + (self ? wrap : '') + '}\n\n@RestController\nclass OrderController {\n    private final OrderService orderService;       // 스프링이 넣어 준 빈\n    OrderController(OrderService orderService) { this.orderService = orderService; }\n\n    @GetMapping("/try")\n    Object call() {                                // 지금 로그인한 사용자: ' + who + '\n        return orderService.' + (self ? m.wcall : m.call) + ';\n    }\n}';
   },
@@ -52,13 +52,13 @@ Lab.register({
         : 'returnObject는 방금 메서드가 돌려준 주문이고 그 owner는 "kim"입니다. authentication.name은 로그인한 사용자의 이름 "' + me + '"입니다. ' + (J.pass ? '같으므로 참입니다.' : '다르므로 거짓입니다.');
     st.boot = true;
     if (c.enable) push('애플리케이션이 뜰 때: @EnableMethodSecurity가 있으므로, 스프링 시큐리티가 @PreAuthorize나 @PostAuthorize가 붙은 메서드를 가진 빈을 프록시(대리 객체)로 감쌉니다. 컨트롤러가 주입받는 orderService는 실제 객체가 아니라 이 프록시입니다.', 'good');
-    else push('애플리케이션이 뜰 때: 설정 클래스에 @EnableMethodSecurity가 없습니다. 애노테이션은 메서드에 붙은 표시일 뿐이고, 그것을 읽어 검사해 줄 것이 없습니다. 프록시는 만들어지지 않고, 컨트롤러는 실제 객체를 그대로 주입받습니다. 오류나 경고는 나오지 않습니다.', 'bad');
+    else push('애플리케이션이 뜰 때: 설정 클래스에 @EnableMethodSecurity가 없습니다. 애너테이션은 메서드에 붙은 표시일 뿐이고, 그것을 읽어 검사해 줄 것이 없습니다. 프록시는 만들어지지 않고, 컨트롤러는 실제 객체를 그대로 주입받습니다. 오류나 경고는 나오지 않습니다.', 'bad');
     st.called = true;
     push('orderService.' + (self ? m.wcall : m.call) + ': 컨트롤러가 메서드를 부릅니다. 지금 로그인한 사용자는 ' + me + '(역할 ' + role + ')입니다. ' + (c.enable ? '호출은 프록시에 먼저 도착합니다.' : '프록시가 없으므로 호출이 실제 객체의 메서드로 바로 갑니다.'), '');
     if (self) {
       st.wrap = true;
-      push(m.wcall + ' 실행: ' + (c.enable ? '프록시가 보니 ' + m.wrap + '에는 애노테이션이 없습니다. 검사할 것이 없으므로 실제 객체의 ' + m.wrap + '에 그대로 넘깁니다. ' : '') + '이 메서드 안에서 ' + m.name + ' 메서드를 부릅니다. 같은 클래스 안의 호출은 this.' + m.name + '(...) 호출과 같고, this는 프록시가 아니라 실제 객체 자신입니다.', '');
-      if (c.enable) { st.check = 'skip'; push('this.' + m.name + '(...): 호출이 프록시를 거치지 않고 실제 객체 안에서 바로 넘어갑니다. ' + m.ann + ' 애노테이션을 읽어 검사하는 것은 프록시인데, 프록시가 이 호출을 보지 못합니다. 권한 검사는 실행되지 않습니다.', J.pass ? '' : 'bad'); }
+      push(m.wcall + ' 실행: ' + (c.enable ? '프록시가 보니 ' + m.wrap + '에는 애너테이션이 없습니다. 검사할 것이 없으므로 실제 객체의 ' + m.wrap + '에 그대로 넘깁니다. ' : '') + '이 메서드 안에서 ' + m.name + ' 메서드를 부릅니다. 같은 클래스 안의 호출은 this.' + m.name + '(...) 호출과 같고, this는 프록시가 아니라 실제 객체 자신입니다.', '');
+      if (c.enable) { st.check = 'skip'; push('this.' + m.name + '(...): 호출이 프록시를 거치지 않고 실제 객체 안에서 바로 넘어갑니다. ' + m.ann + ' 애너테이션을 읽어 검사하는 것은 프록시인데, 프록시가 이 호출을 보지 못합니다. 권한 검사는 실행되지 않습니다.', J.pass ? '' : 'bad'); }
     }
     if (J.checked && c.m !== 'post') {
       st.check = J.pass ? 'pass' : 'deny';
@@ -76,8 +76,8 @@ Lab.register({
     st.got = J.denied ? '예외 AuthorizationDeniedException' : m.ret;
     push('부른 쪽(컨트롤러): ' + (J.denied ? 'AuthorizationDeniedException을 받습니다. 이것은 AccessDeniedException의 한 종류이고, 웹 요청을 처리하는 중이었다면 스프링 시큐리티가 403 응답으로 바꿉니다.' : m.ret + '을 받습니다.' + (!J.checked && !J.pass ? ' 거부됐어야 할 호출이 정상적으로 끝났습니다.' : '')), J.denied ? 'good' : !J.checked && !J.pass ? 'bad' : 'good');
     var checkText = J.checked ? (J.pass ? '실행됨: 통과' : '실행됨: 거부') : J.why === 'off' ? '실행되지 않음 (@EnableMethodSecurity 없음)' : '실행되지 않음 (프록시를 거치지 않음)';
-    if (J.why === 'off') sum.push('@EnableMethodSecurity가 없으면 @PreAuthorize와 @PostAuthorize는 아무 일도 하지 않습니다. 오류도 나지 않으므로, 애노테이션을 붙였다는 것만으로 안심하면 안 됩니다. 권한이 없는 사용자로 실제로 불러 보는 테스트로 확인합니다.' + (J.pass ? ' 지금은 식이 참인 사용자라서 결과만 보면 차이가 없습니다.' : ''));
-    if (J.why === 'self') sum.push('같은 클래스 안에서 부르면(자기 호출) 프록시를 거치지 않으므로 검사가 빠집니다. @Transactional이 같은 클래스 안의 호출에서 동작하지 않는 것과 같은 원리입니다. 검사가 필요한 메서드는 다른 빈에서 부르게 하거나, 바깥에서 불리는 메서드(' + m.wrap + ')에도 애노테이션을 붙입니다.' + (J.pass ? ' 지금은 식이 참인 사용자라서 결과만 보면 차이가 없습니다.' : ''));
+    if (J.why === 'off') sum.push('@EnableMethodSecurity가 없으면 @PreAuthorize와 @PostAuthorize는 아무 일도 하지 않습니다. 오류도 나지 않으므로, 애너테이션을 붙였다는 것만으로 안심하면 안 됩니다. 권한이 없는 사용자로 실제로 불러 보는 테스트로 확인합니다.' + (J.pass ? ' 지금은 식이 참인 사용자라서 결과만 보면 차이가 없습니다.' : ''));
+    if (J.why === 'self') sum.push('같은 클래스 안에서 부르면(자기 호출) 프록시를 거치지 않으므로 검사가 빠집니다. @Transactional이 같은 클래스 안의 호출에서 동작하지 않는 것과 같은 원리입니다. 검사가 필요한 메서드는 다른 빈에서 부르게 하거나, 바깥에서 불리는 메서드(' + m.wrap + ')에도 애너테이션을 붙입니다.' + (J.pass ? ' 지금은 식이 참인 사용자라서 결과만 보면 차이가 없습니다.' : ''));
     if (J.checked && c.m === 'role') sum.push('@PreAuthorize는 본문을 실행하기 전에 식을 계산하고, 거짓이면 본문을 한 줄도 실행하지 않습니다. 주소가 아니라 메서드에 걸어 두었으므로, 이 메서드를 어느 컨트롤러에서 부르든 같은 검사를 받습니다.');
     if (J.checked && c.m === 'arg') sum.push('#owner처럼 메서드의 인자를 식에 쓸 수 있어서 "자기 것만"이라는 규칙을 적을 수 있습니다. 주소와 역할만 보는 URL 규칙으로는 적기 어려운 조건입니다. ' + (c.who === 'admin' ? 'ADMIN인 park도 거부된 것은, 이 식이 역할을 묻지 않고 이름만 비교하기 때문입니다.' : '역할이 같은 kim과 lee가 이 식에서는 구별됩니다.'));
     if (J.checked && c.m === 'post') sum.push('@PostAuthorize는 돌려줄 값을 봐야 판단할 수 있을 때 씁니다. 본문이 먼저 실행된다는 점에 주의합니다. 조회하는 메서드에는 괜찮지만, 저장이나 삭제처럼 무언가를 바꾸는 메서드에 쓰면 거부되기 전에 이미 바뀌어 있습니다.');
@@ -99,7 +99,7 @@ Lab.register({
     P.box('caller', 16, 12, 648, 44, { cls: s.called ? 'wait' : 'ghost', title: '컨트롤러 · 로그인: ' + sim.me + ' (' + sim.role + ')', right: 'orderService.' + (self ? m.wcall : m.call) });
     P.region('bean', 16, 70, 648, 204, 'orderService 빈');
     P.box('proxy', 28, 98, 624, 62, { cls: !s.boot || !J.proxy ? 'ghost' : s.check === 'pass' ? 'good' : s.check === 'deny' ? 'bad' : s.check === 'skip' ? 'hot' : 'plain', title: J.proxy || !s.boot ? '프록시: 호출을 먼저 받아 권한을 검사한다' : '프록시 없음 (@EnableMethodSecurity가 없다)', sub: ['검사할 식  ' + m.expr, !J.proxy && s.boot ? '검사해 줄 것이 없음' : { '': '아직 검사 전', skip: '이 호출을 보지 못함: 검사하지 않음', wait: '본문이 끝난 뒤에 검사', pass: '식이 참: 통과', deny: '식이 거짓: 거부' }[s.check]] });
-    if (self) P.box('wrap', 28, 180, 190, 64, { cls: s.wrap ? 'plain' : 'ghost', title: m.wcall, sub: ['애노테이션 없음', s.wrap ? '실행됨' : '아직 실행 전'] });
+    if (self) P.box('wrap', 28, 180, 190, 64, { cls: s.wrap ? 'plain' : 'ghost', title: m.wcall, sub: ['애너테이션 없음', s.wrap ? '실행됨' : '아직 실행 전'] });
     P.box('target', 250, 180, 402, 64, { cls: s.body ? (!J.checked && !J.pass ? 'bad' : 'good') : s.got ? 'ghost' : 'plain', title: m.call + ' 본문', sub: [c.m === 'post' ? '@PostAuthorize가 붙음' : '@PreAuthorize가 붙음', s.body ? '실행됨' : s.got ? '실행되지 않음' : '아직 실행 전'] });
     if (s.called) P.arrow('a1', 'caller:b:' + px, 'proxy:t:' + px, { cls: J.proxy ? '' : 'dash' });
     if (self && s.wrap) P.arrow('a2', 'proxy:b:' + px, 'wrap:t', { cls: J.proxy ? '' : 'dash' });

@@ -61,7 +61,7 @@ module.exports = [
   { ko: '@EntityGraph', en: '@EntityGraph', how: 'official',
     src: 'Spring Data JPA Reference, "JPA Query Methods"의 "Configuring Fetch- and LoadGraphs" — https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html ; [명세] 3.8',
     also: ['entity graph'],
-    note: '애노테이션 이름 그대로. Spring Data: "... support for specifying Fetch- and LoadGraphs that we also support with the @EntityGraph annotation, which lets you reference a @NamedEntityGraph definition." 개념 이름은 entity graph(명세 3.8: "An entity graph is a template that captures the path and boundaries for an operation or query.").' },
+    note: '애너테이션 이름 그대로. Spring Data: "... support for specifying Fetch- and LoadGraphs that we also support with the @EntityGraph annotation, which lets you reference a @NamedEntityGraph definition." 개념 이름은 entity graph(명세 3.8: "An entity graph is a template that captures the path and boundaries for an operation or query.").' },
 
   { ko: '배치 페치(Batch Size)', en: 'Batch fetching (batch size)', how: 'official',
     src: 'Hibernate ORM 6.6 Javadoc, org.hibernate.annotations.BatchSize — https://docs.hibernate.org/orm/6.6/javadocs/org/hibernate/annotations/BatchSize.html ; [H-입문] 7.4. Batch fetching and subselect fetching',
@@ -176,12 +176,12 @@ module.exports = [
   { ko: '임베디드 타입(@Embeddable)', en: 'Embeddable type (@Embeddable)', how: 'official',
     src: '[H-가이드] 3.1.1. Value types, 3장 ; [API] Embeddable ; [명세] 2.7. Embeddable Classes ; [H-입문] 3.14. Embeddable objects',
     also: ['embeddable class', 'embeddable object', '@Embedded'],
-    note: '한국어는 "임베디드(embedded)"이지만 타입의 이름은 embeddable이다. embedded type이라고 쓰지 않는다. Hibernate: "An embeddable type is another form of a value type, and its lifecycle is bound to a parent entity type". Embeddable Javadoc: "Declares a type whose instances are stored as an intrinsic part of an owning entity, sharing the identity of the entity.", "An embeddable class does not have its own table." 명세는 embeddable class, Hibernate 입문서 3.14절 제목은 "Embeddable objects". @Embedded는 그 타입을 쓰는 필드에 붙이는 애노테이션.' },
+    note: '한국어는 "임베디드(embedded)"이지만 타입의 이름은 embeddable이다. embedded type이라고 쓰지 않는다. Hibernate: "An embeddable type is another form of a value type, and its lifecycle is bound to a parent entity type". Embeddable Javadoc: "Declares a type whose instances are stored as an intrinsic part of an owning entity, sharing the identity of the entity.", "An embeddable class does not have its own table." 명세는 embeddable class, Hibernate 입문서 3.14절 제목은 "Embeddable objects". @Embedded는 그 타입을 쓰는 필드에 붙이는 애너테이션.' },
 
   { ko: '값 타입 컬렉션(@ElementCollection)', en: 'Element collection (@ElementCollection)', how: 'official',
     src: '[명세] 2.8. Collections of Embeddable Classes and Basic Types ; [API] ElementCollection ; [H-가이드] 3.9.7. @ElementCollection',
     also: ['collections of value types', 'value type collection', 'collection table'],
-    note: '고르기 어려웠던 용어. 명세의 이름은 element collection이다: 2.8 "a collection of a basic type or embeddable class (“element collection”)", ElementCollection "Declares a collection of instances of a basic type or embeddable class." Hibernate User Guide는 두 가지를 다 쓴다("Element collections may contain values of either basic or embeddable types.", "Unidirectional associations are very similar to value type collections", 절 제목 "Collections of value types"). 애노테이션 이름과 맞고 명세의 말인 element collection을 이름으로 삼았다. 값을 담는 별도 테이블은 collection table(@CollectionTable).' },
+    note: '고르기 어려웠던 용어. 명세의 이름은 element collection이다: 2.8 "a collection of a basic type or embeddable class (“element collection”)", ElementCollection "Declares a collection of instances of a basic type or embeddable class." Hibernate User Guide는 두 가지를 다 쓴다("Element collections may contain values of either basic or embeddable types.", "Unidirectional associations are very similar to value type collections", 절 제목 "Collections of value types"). 애너테이션 이름과 맞고 명세의 말인 element collection을 이름으로 삼았다. 값을 담는 별도 테이블은 collection table(@CollectionTable).' },
 
   { ko: '엔티티의 네 가지 상태', en: 'The four entity states', how: 'descriptive',
     src: '[명세] 3.3. Entity Instance’s Life Cycle ; [API] EntityManager ; Hibernate User Guide 원본 pc/PersistenceContext.adoc ; [H-입문] 5.1. Persistence Contexts',
@@ -234,7 +234,7 @@ module.exports = [
   { ko: '@Enumerated', en: '@Enumerated', how: 'official',
     src: '[API] Enumerated — https://jakarta.ee/specifications/persistence/3.2/apidocs/jakarta.persistence/jakarta/persistence/Enumerated.html',
     also: ['EnumType.ORDINAL', 'EnumType.STRING'],
-    note: '"Specifies that a persistent property or field should be persisted as an enumerated type." "An enum can be mapped as either a string or an integer, where EnumType enumerates the available options." 3.2 Javadoc의 기본값 규칙: 애노테이션이 없고 converter도 없을 때, enum에 EnumeratedValue를 붙인 final String 필드가 있으면 EnumType.STRING, 없으면 EnumType.ORDINAL.' },
+    note: '"Specifies that a persistent property or field should be persisted as an enumerated type." "An enum can be mapped as either a string or an integer, where EnumType enumerates the available options." 3.2 Javadoc의 기본값 규칙: 애너테이션이 없고 converter도 없을 때, enum에 EnumeratedValue를 붙인 final String 필드가 있으면 EnumType.STRING, 없으면 EnumType.ORDINAL.' },
 
   { ko: '@Transient', en: '@Transient', how: 'official',
     src: '[API] Transient — https://jakarta.ee/specifications/persistence/3.2/apidocs/jakarta.persistence/jakarta/persistence/Transient.html ; [API] Embeddable',

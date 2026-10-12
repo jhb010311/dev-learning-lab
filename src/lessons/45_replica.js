@@ -20,7 +20,7 @@ Lab.register({
   ],
   code: function (c) {
     if (c.part === 'cut') return '// 원본과 복제본이 서로 통신하지 못하는 상황\n// 복제본이 고를 수 있는 것은 둘 중 하나\n//\n// 1) 가진 값으로 응답한다  -> 응답은 하지만 최신이 아닐 수 있다 (AP)\n// 2) 응답을 거부한다       -> 틀린 값은 주지 않지만 서비스가 안 된다 (CP)';
-    return '// readOnly 트랜잭션은 복제본으로, 그 외는 원본으로 보내는 설정\n@Transactional\npublic void changeNickname(long id, String name) {     // -> 원본\n    memberRepository.findById(id).orElseThrow().setNickname(name);\n}\n\n@Transactional(readOnly = true)\npublic Member getMember(long id) {                      // -> ' + (c.from === 'replica' ? '복제본' : '원본 (직후 조회는 원본으로 보냄)') + '\n    return memberRepository.findById(id).orElseThrow();\n}';
+    return (c.from === 'replica' ? '// readOnly 트랜잭션은 복제본으로, 그 외는 원본으로 보내는 설정' : '// 쓰기 직후의 조회는 readOnly여도 원본으로 보내는 설정') + '\n@Transactional\npublic void changeNickname(long id, String name) {     // -> 원본\n    memberRepository.findById(id).orElseThrow().setNickname(name);\n}\n\n@Transactional(readOnly = true)\npublic Member getMember(long id) {                      // -> ' + (c.from === 'replica' ? '복제본' : '원본 (직후 조회는 원본으로 보냄)') + '\n    return memberRepository.findById(id).orElseThrow();\n}';
   },
   label: function (c) { return c.part === 'lag' ? '복제 ' + c.lag + '초 · ' + c.when + '초 뒤 ' + (c.from === 'replica' ? '복제본' : '원본') + ' 조회' : '단절 · ' + (c.choice === 'ap' ? '계속 응답' : '응답 거부'); },
   columns: ['조회 결과', '최신 값인가', '응답했나'],
@@ -35,11 +35,11 @@ Lab.register({
       var first = when < lag;
       if (!first) { S.r = '닉네임 = 민수'; push(lag + '초: 원본의 변경 기록이 복제본에 도착해 반영됐습니다.', 'good'); }
       if (c.from === 'primary') { got = '민수'; S.read = '원본에서 "민수"'; push(when + '초: 조회를 원본으로 보냅니다. 원본은 항상 최신 값을 가지고 있으므로 "민수"가 나옵니다.', 'good'); }
-      else if (first) { got = '철수'; S.read = '복제본에서 "철수"'; push(when + '초: 조회를 복제본으로 보냅니다. 복제가 아직 도착하지 않아 복제본에는 옛 값 "철수"가 있습니다. 이 시차가 복제 지연입니다. 사용자는 방금 바꾼 닉네임이 그대로인 화면을 봅니다.', 'bad'); }
+      else if (first) { got = '철수'; S.read = '복제본에서 "철수"'; push(when + '초: 조회를 복제본으로 보냅니다. 복제가 아직 도착하지 않아 복제본에는 옛 값 "철수"가 있습니다. 이 시차가 복제 지연입니다. 사용자는 방금 바꾼 닉네임이 반영되지 않은 화면을 봅니다.', 'bad'); }
       else { got = '민수'; S.read = '복제본에서 "민수"'; push(when + '초: 조회를 복제본으로 보냅니다. 복제가 끝난 뒤라 "민수"가 나옵니다.', 'good'); }
       if (first) { S.r = '닉네임 = 민수'; push(lag + '초: 뒤늦게 복제가 도착해 복제본도 "민수"가 됩니다. 이후의 조회는 새 값을 봅니다.', ''); }
       fresh = got === '민수';
-      sum.push('복제는 보통 비동기라서 원본과 복제본 사이에 시차가 있습니다. 시간이 지나면 같아지지만 그 전에는 다를 수 있습니다(최종 일관성). 대응 방법은 자기가 방금 쓴 데이터는 원본에서 읽게 하거나, 쓰기 직후의 화면은 응답으로 받은 값을 그대로 쓰는 것입니다.');
+      sum.push('복제는 보통 비동기라서 원본과 복제본 사이에 시차가 있습니다. 시간이 지나면 같아지지만 그 전에는 다를 수 있습니다(최종 일관성). 대응 방법은 자기가 방금 쓴 데이터는 원본에서 읽게 하는 것, 또는 쓰기 직후의 화면은 응답으로 받은 값을 그대로 쓰는 것입니다.');
       if (c.from === 'primary') sum.push('모든 조회를 원본으로 보내면 문제는 없지만 읽기 분산의 이점이 사라집니다. 꼭 최신이어야 하는 조회만 원본으로 보냅니다.');
     } else {
       S.link = '끊김'; push('원본과 복제본 사이의 네트워크가 끊겼습니다. 두 DB는 각각 살아 있지만 서로의 상태를 알 수 없습니다.', 'bad');

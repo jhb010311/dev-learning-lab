@@ -25,7 +25,7 @@ Lab.register({
     }
     return 'Integer a = ' + c.iv + ';                 // Integer.valueOf(' + c.iv + ')\n' + (c.ib === 'box' ? 'Integer b = ' + c.iv + ';' : 'int b = ' + c.iv + ';') + '\n\nSystem.out.println(a == b);\nSystem.out.println(a.equals(b));';
   },
-  label: function (c) { return c.kind === 'str' ? 'String · "hello" 와 ' + { lit: '"hello"', new: 'new String', intern: 'intern()', const: '"hel" + "lo"', concat: 'part + "lo"' }[c.sb] : 'Integer ' + c.iv + ' 와 ' + (c.ib === 'box' ? 'Integer ' : 'int ') + c.iv; },
+  label: function (c) { return c.kind === 'str' ? 'String · "hello"와 ' + { lit: '"hello"', new: 'new String', intern: 'intern()', const: '"hel" + "lo"', concat: 'part + "lo"' }[c.sb] : 'Integer ' + c.iv + '과 ' + (c.ib === 'box' ? 'Integer ' : 'int ') + c.iv; },
   columns: ['a == b', 'a.equals(b)', '같은 객체인가'],
   same: function (c) { return c.kind === 'str' ? (c.sb === 'lit' || c.sb === 'intern' || c.sb === 'const') : (c.ib === 'prim' || c.iv === '127'); },
   simulate: function (c) {

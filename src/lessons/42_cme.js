@@ -36,20 +36,20 @@ Lab.register({
         if (x !== 2) { push('원소 ' + x + ' 확인: 2가 아니므로 넘어갑니다.', '', cow ? list.indexOf(x) : at); continue; }
         if (c.how === 'foreach') {
           list.splice(list.indexOf(2), 1); mod++;
-          push('원소 2를 읽었습니다. list.remove()로 리스트에서 직접 지웁니다. 리스트는 ' + JSON.stringify(list).replace(/,/g, ', ') + '이 됐습니다.' + (cow ? ' 원본은 새 배열로 교체됐지만 반복자는 예전 배열을 계속 돕니다.' : ' 리스트의 수정 횟수가 ' + mod + '로 올라갔지만 반복자는 이를 모릅니다.'), cow ? '' : 'bad', -1);
+          push('원소 2를 읽었습니다. list.remove()로 리스트에서 직접 지웁니다. 리스트는 ' + JSON.stringify(list).replace(/,/g, ', ') + '가 됐습니다.' + (cow ? ' 원본은 새 배열로 교체됐지만 반복자는 예전 배열을 계속 돕니다.' : ' 리스트의 수정 횟수가 ' + mod + '로 올라갔지만 반복자는 이를 모릅니다.'), cow ? '' : 'bad', -1);
         } else if (cow) { ex = 'UnsupportedOperationException'; push('원소 2를 읽고 it.remove()를 호출합니다. CopyOnWriteArrayList의 반복자는 복사본을 도는 읽기 전용이라 삭제를 지원하지 않습니다. UnsupportedOperationException이 발생합니다.', 'bad', at); break; }
-        else { list.splice(at, 1); cursor = at; mod++; expected = mod; push('원소 2를 읽고 it.remove()로 지웁니다. 반복자가 직접 지웠으므로 자기 위치를 한 칸 당기고, 기억해 둔 수정 횟수도 ' + mod + '로 맞춥니다. 리스트는 ' + JSON.stringify(list).replace(/,/g, ', ') + '.', 'good', -1); }
+        else { list.splice(at, 1); cursor = at; mod++; expected = mod; push('원소 2를 읽고 it.remove()로 지웁니다. 반복자가 직접 지웠으므로 자기 위치를 한 칸 당기고, 기억해 둔 수정 횟수도 ' + mod + '로 맞춥니다. 리스트는 ' + JSON.stringify(list).replace(/,/g, ', ') + '가 됩니다.', 'good', -1); }
       }
     }
     if (c.how === 'indexfwd') for (var i = 0; i < list.length; i++) {
-      if (list[i] === 2) { list.splice(i, 1); push('i = ' + i + ': 값이 2입니다. 지웁니다. 뒤의 원소들이 한 칸씩 앞으로 당겨져 리스트는 ' + JSON.stringify(list).replace(/,/g, ', ') + '. 방금 ' + i + '번 칸으로 당겨져 온 원소는 ' + list[i] + '인데, 반복문은 i를 ' + (i + 1) + '로 올리므로 이 원소를 검사하지 않고 지나칩니다.', list[i] === 2 ? 'bad' : '', i); }
+      if (list[i] === 2) { list.splice(i, 1); push('i = ' + i + ': 값이 2입니다. 지웁니다. 뒤의 원소들이 한 칸씩 앞으로 당겨져 리스트는 ' + JSON.stringify(list).replace(/,/g, ', ') + '가 됩니다. 방금 ' + i + '번 칸으로 당겨져 온 원소는 ' + list[i] + '인데, 반복문은 i를 ' + (i + 1) + '로 올리므로 이 원소를 검사하지 않고 지나칩니다.', list[i] === 2 ? 'bad' : '', i); }
       else push('i = ' + i + ': 값이 ' + list[i] + '입니다. 넘어갑니다.', '', i);
     }
     if (c.how === 'indexback') for (var j = list.length - 1; j >= 0; j--) {
-      if (list[j] === 2) { list.splice(j, 1); push('i = ' + j + ': 값이 2입니다. 지웁니다. 당겨지는 것은 이미 검사를 마친 뒤쪽 원소들뿐이라, 앞으로 볼 원소의 위치는 변하지 않습니다. 리스트는 ' + JSON.stringify(list).replace(/,/g, ', ') + '.', 'good', -1); }
+      if (list[j] === 2) { list.splice(j, 1); push('i = ' + j + ': 값이 2입니다. 지웁니다. 당겨지는 것은 이미 검사를 마친 뒤쪽 원소들뿐이라, 앞으로 볼 원소의 위치는 변하지 않습니다. 리스트는 ' + JSON.stringify(list).replace(/,/g, ', ') + '가 됩니다.', 'good', -1); }
       else push('i = ' + j + ': 값이 ' + list[j] + '입니다. 넘어갑니다.', '', j);
     }
-    if (c.how === 'removeIf') { list = list.filter(function (x2) { return x2 !== 2; }); push('removeIf가 조건에 맞는 원소를 내부에서 한 번에 걸러 냅니다. 반복을 직접 돌리지 않으므로 순회 중 수정 문제가 생기지 않습니다. 리스트는 ' + JSON.stringify(list).replace(/,/g, ', ') + '.', 'good', -1); }
+    if (c.how === 'removeIf') { list = list.filter(function (x2) { return x2 !== 2; }); push('removeIf가 조건에 맞는 원소를 내부에서 한 번에 걸러 냅니다. 반복을 직접 돌리지 않으므로 순회 중 수정 문제가 생기지 않습니다. 리스트는 ' + JSON.stringify(list).replace(/,/g, ', ') + '가 됩니다.', 'good', -1); }
     var res = '[' + list.join(', ') + ']', clean = list.indexOf(2) < 0;
     push('최종 리스트: ' + res + (ex ? ' (예외로 중단됨)' : '') + '.', clean && !ex ? 'good' : 'bad', -1);
     if (ex === 'ConcurrentModificationException') sum.push('이 예외는 이름과 달리 스레드가 하나여도 납니다. 순회 중에 반복자를 거치지 않고 컬렉션을 바꾸면 발생합니다. 반복자는 수정 횟수를 비교해 변화를 감지하는 즉시 실패합니다.');

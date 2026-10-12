@@ -13,7 +13,7 @@ import org.springframework.core.SpringVersion;
 // 테스트 대상과 테스트 클래스: TestingApp.java, TestingCases.java (패키지 labtesting). Gradle이나 Maven 없이 JUnit Platform Launcher로 실행한다.
 //
 // 컴파일: javac -encoding UTF-8 -parameters -proc:none -cp "<libs>/*;<libs-extra>/*" -d verify/out/testing verify/spring/src/Testing*.java
-//         (-proc:none: 클래스패스의 querydsl-apt 같은 애노테이션 처리기가 돌지 않게 한다. JUnit의 @API 때문에 "unknown enum constant Status" 경고가 나오지만 무시해도 된다)
+//         (-proc:none: 클래스패스의 querydsl-apt 같은 애너테이션 처리기가 돌지 않게 한다. JUnit의 @API 때문에 "unknown enum constant Status" 경고가 나오지만 무시해도 된다)
 // 실행:   java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -cp "<libs>/*;<libs-extra>/*;verify/out/testing" TestingProbe verify/spring/testing_probe.out.txt
 public class TestingProbe {
     // 매니페스트에 버전이 없으면 jar 파일 이름으로 대신한다

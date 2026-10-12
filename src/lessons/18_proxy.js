@@ -1,10 +1,10 @@
 Lab.register({
   id: 'proxy', nav: '프록시와 자기 호출', cat: '스프링', mode: 'step',
-  title: '애노테이션을 붙였는데 왜 동작하지 않나',
-  intro: '@Transactional이나 @Async는 메서드 자체를 바꾸지 않습니다. 스프링이 빈을 프록시(대리 객체)로 감싸 두고, 프록시를 거쳐 들어오는 호출에만 부가 기능을 끼워 넣습니다. 그래서 어디서 어떻게 호출하느냐에 따라 같은 애노테이션이 적용되기도 하고 무시되기도 합니다.',
+  title: '애너테이션을 붙였는데 왜 동작하지 않나',
+  intro: '@Transactional이나 @Async는 메서드 자체를 바꾸지 않습니다. 스프링이 빈을 프록시(대리 객체)로 감싸 두고, 프록시를 거쳐 들어오는 호출에만 부가 기능을 끼워 넣습니다. 그래서 어디서 어떻게 호출하느냐에 따라 같은 애너테이션이 적용되기도 하고 무시되기도 합니다.',
   terms: ['프록시(Proxy)', '자기 호출(Self-invocation)', 'AOP(관점 지향 프로그래밍)', 'JDK 동적 프록시와 CGLIB', '@Async', '@Transactional'], ranks: ['aop', 'txspring'],
   controls: [
-    { id: 'feat', label: '메서드에 붙인 애노테이션', type: 'select', value: 'tx', options: [['tx', '@Transactional'], ['async', '@Async']] },
+    { id: 'feat', label: '메서드에 붙인 애너테이션', type: 'select', value: 'tx', options: [['tx', '@Transactional'], ['async', '@Async']] },
     { id: 'path', label: '그 메서드를 호출하는 방식', type: 'select', value: 'self', options: [['ext', '다른 빈(컨트롤러)에서 호출'], ['self', '같은 클래스의 다른 메서드에서 호출 (this)'], ['priv', '같은 클래스에서 호출 + 메서드가 private'], ['inject', '자기 자신을 주입받아 그 참조로 호출'], ['split', '메서드를 다른 빈으로 옮겨서 호출']] },
   ],
   presets: [
@@ -20,10 +20,10 @@ Lab.register({
     var acc = c.path === 'priv' ? 'private' : 'public';
     if (c.path === 'ext') return '@RestController class OrderController {\n    private final OrderService orderService;   // 주입된 것은 프록시\n\n    @PostMapping("/orders")\n    void order() {\n        orderService.' + m + '();              // 프록시를 거친다\n    }\n}\n\n@Service class OrderService {\n    ' + ann + '\n    public void ' + m + '() {\n' + body + '\n    }\n}';
     if (c.path === 'split') return '@Service class OrderService {\n    private final ' + (tx ? 'OrderWriter writer' : 'MailSender sender') + ';   // 다른 빈 (프록시)\n\n    public void placeOrder() {\n        ' + (tx ? 'writer' : 'sender') + '.' + m + '();                    // 프록시를 거친다\n    }\n}\n\n@Service class ' + (tx ? 'OrderWriter' : 'MailSender') + ' {\n    ' + ann + '\n    public void ' + m + '() {\n' + body + '\n    }\n}';
-    return '@Service class OrderService {\n' + (c.path === 'inject' ? '    @Autowired @Lazy\n    private OrderService self;                 // 자기 자신의 프록시\n\n' : '') + '    public void placeOrder() {                 // 컨트롤러가 호출\n        ' + (c.path === 'inject' ? 'self.' + m + '();                        // 프록시를 거친다' : m + '();                             // this.' + m + '()와 같다') + '\n    }\n\n    ' + ann + '\n    ' + acc + ' void ' + m + '() {\n' + body + '\n    }\n}';
+    return '@Service class OrderService {\n' + (c.path === 'inject' ? '    @Autowired @Lazy\n    private OrderService self;                 // 자기 자신의 프록시\n\n' : '') + '    public void placeOrder() {                 // 컨트롤러가 호출\n        ' + (c.path === 'inject' ? 'self.' + m + '();                        // 프록시를 거친다' : m + '();                             // this.' + m + '()과 같다') + '\n    }\n\n    ' + ann + '\n    ' + acc + ' void ' + m + '() {\n' + body + '\n    }\n}';
   },
   label: function (c) { return (c.feat === 'tx' ? '@Transactional' : '@Async') + ' · ' + { ext: '다른 빈에서 호출', self: '같은 클래스에서 호출', priv: '같은 클래스 + private', inject: '자기 주입 후 호출', split: '다른 빈으로 분리' }[c.path]; },
-  columns: ['프록시를 거쳤나', '애노테이션 적용', '결과'],
+  columns: ['프록시를 거쳤나', '애너테이션 적용', '결과'],
   simulate: function (c) {
     var tx = c.feat === 'tx', m = tx ? 'saveAll()' : 'sendMail()', via = c.path === 'ext' || c.path === 'inject' || c.path === 'split', ev = [], sum = [], res;
     var target = c.path === 'split' ? (tx ? 'OrderWriter' : 'MailSender') : 'OrderService';
@@ -33,7 +33,7 @@ Lab.register({
     push('애플리케이션이 뜰 때 스프링은 ' + (tx ? '@Transactional이' : '@Async가') + ' 붙은 메서드를 가진 빈을 발견하고, 원래 객체 대신 그것을 감싼 프록시를 빈으로 등록합니다. 다른 빈이 주입받는 것은 이 프록시입니다.', '', snap({ caller: '아직 호출 전' }));
     if (c.path === 'ext') push('컨트롤러가 orderService.' + m + '을 호출합니다. 컨트롤러가 들고 있는 참조는 프록시이므로 호출은 프록시에 먼저 도착합니다.', '', snap({ caller: '컨트롤러 → 프록시.' + m, proxy: '호출을 받음' }));
     else {
-      push('컨트롤러가 orderService.placeOrder()를 호출합니다. 프록시가 받지만 placeOrder()에는 애노테이션이 없으므로 그대로 실제 객체에 넘깁니다.', '', snap({ caller: '컨트롤러 → 프록시.placeOrder()', proxy: '부가 기능 없이 통과시킴', target: 'OrderService.placeOrder() 실행 중' }));
+      push('컨트롤러가 orderService.placeOrder()를 호출합니다. 프록시가 받지만 placeOrder()에는 애너테이션이 없으므로 그대로 실제 객체에 넘깁니다.', '', snap({ caller: '컨트롤러 → 프록시.placeOrder()', proxy: '부가 기능 없이 통과시킴', target: 'OrderService.placeOrder() 실행 중' }));
       if (c.path === 'self' || c.path === 'priv') push('실제 객체 안에서 ' + m + '을 호출합니다. 이 호출은 this.' + m + '입니다. this는 프록시가 아니라 실제 객체 자신이므로 프록시를 거치지 않습니다.' + (c.path === 'priv' ? ' 게다가 private 메서드는 프록시가 재정의할 수 없어서, 밖에서 부를 방법도 가로챌 방법도 없습니다.' : ''), 'bad', snap({ caller: 'OrderService(this) → this.' + m, proxy: '이 호출을 보지 못함', target: m + ' 실행' }));
       if (c.path === 'inject') push('실제 객체가 주입받은 self.' + m + '을 호출합니다. self는 자기 자신의 프록시이므로 호출이 다시 프록시를 거칩니다.', '', snap({ caller: 'OrderService → self(프록시).' + m, proxy: '호출을 받음' }));
       if (c.path === 'split') push('실제 객체가 다른 빈인 ' + target + '의 ' + m + '을 호출합니다. 주입받은 ' + target + ' 참조는 프록시이므로 호출이 프록시를 거칩니다.', '', snap({ caller: 'OrderService → ' + target + ' 프록시.' + m, proxy: '호출을 받음' }));
@@ -63,7 +63,7 @@ Lab.register({
     }
     sum.push((via ? '프록시를 거쳤으므로 ' : '프록시를 거치지 않았으므로 ') + (tx ? '@Transactional이 ' : '@Async가 ') + (via ? '적용됐습니다.' : '무시됐습니다.') + ' 결과: ' + res + '.');
     if (!via) sum.push('같은 클래스 안에서의 호출은 프록시를 지나지 않습니다. 예외도 경고도 없이 조용히 무시되기 때문에 놓치기 쉽습니다. 해법은 그 메서드를 다른 빈으로 옮기는 것이 가장 일반적이고, 자기 자신의 프록시를 주입받아 호출하는 방법도 있습니다.');
-    if (c.path === 'priv') sum.push('프록시는 원래 클래스를 상속하거나 같은 인터페이스를 구현해서 만들기 때문에 private 메서드는 가로챌 수 없습니다. 이런 애노테이션은 프록시를 통해 호출되는 메서드에 붙여야 의미가 있습니다.');
+    if (c.path === 'priv') sum.push('프록시는 원래 클래스를 상속하거나 같은 인터페이스를 구현해서 만들기 때문에 private 메서드는 가로챌 수 없습니다. 이런 애너테이션은 프록시를 통해 호출되는 메서드에 붙여야 의미가 있습니다.');
     if (c.path === 'inject') sum.push('동작은 하지만 자기 자신을 주입받는 구조는 어색하고 순환 참조처럼 보입니다. 보통은 메서드를 별도의 빈으로 분리하는 쪽을 택합니다.');
     return { events: ev, summary: sum, tx: tx, row: [via ? '거침' : '거치지 않음', via ? '적용됨' : '무시됨', res] };
   },

@@ -5,7 +5,7 @@
 // 같은 실습을 여러 분야에 둘 수 있다. 실습 화면의 "앞·다음 실습"은 들어온 분야의 순서를 따른다.
 Lab.site({
   name: '개발 학습 실습실',
-  desc: '자바, 스프링, JPA, 데이터베이스, 네트워크, 보안의 개념을 물음을 하나씩 골라 실행해 보며 익히는 무료 실습실',
+  desc: '물음을 하나씩 골라 실행해 보며 자바, 스프링, JPA, 데이터베이스, 네트워크, 보안의 개념을 익히는 무료 실습실',
   feedback: 'https://github.com/jhb010311/dev-learning-lab/issues',
   // 저장소 주소: 머리말의 GitHub 링크와 처음 화면 아래쪽의 Star 안내에 쓴다
   repo: 'https://github.com/jhb010311/dev-learning-lab',

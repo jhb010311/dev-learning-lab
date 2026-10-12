@@ -74,7 +74,7 @@ Lab.register({
       else {
         if (!broke) sum.push(le ? 'i <= 3은 i가 3일 때도 true라서 i < 3보다 한 번 더 돕니다. 0부터 시작할 때 i < n은 n번, i <= n은 n + 1번입니다. 한 번 차이로 생기는 이런 실수는 아주 흔합니다. 원소가 n개인 배열을 돌 때는 i < n을 씁니다.' : 'i < 3은 i가 0, 1, 2일 때 true입니다. 0부터 시작해 i < n으로 쓰면 n번 돕니다.' + (skipped ? ' 그 가운데 한 번은 continue로 출력을 건너뛰었습니다.' : ''));
         if (broke) sum.push('break는 자기를 감싼 가장 가까운 반복문 하나를 즉시 끝냅니다. 조건이 아직 true여도 더 돌지 않습니다. 찾던 것을 찾아서 더 볼 필요가 없을 때 씁니다.');
-        if (skipped) sum.push('continue는 반복문을 끝내지 않고 이번 회차의 남은 줄만 건너뜁니다. for문에서는 건너뛴 뒤에 증감(i++)이 실행되어 다음 회차로 넘어갑니다. 문장을 while로 바꾸면 결과가 달라집니다.');
+        if (skipped) sum.push('continue는 반복문을 끝내지 않고 이번 회차의 남은 줄만 건너뜁니다. for문에서는 건너뛴 뒤에 증감(i++)이 실행되어 다음 회차로 넘어갑니다. for문을 while문으로 바꾸면 결과가 달라집니다.');
         if (jump === 'none') sum.push(isFor ? 'for문은 초기화, 조건, 증감을 한 줄에 모아 적는 반복문입니다. 실행 순서는 초기화(한 번) → 조건 → 본문 → 증감 → 조건 → ... 입니다.' : 'while문은 조건이 true인 동안 본문을 되풀이합니다. 같은 일을 하는 for문과 실행 순서가 같고, 변수를 만드는 줄과 값을 바꾸는 줄을 직접 적는다는 점만 다릅니다.');
       }
       return { events: ev, summary: sum, row: [outText, spin ? '끝없이 반복' : '본문 ' + st.body + '번'] };

@@ -10,7 +10,7 @@ Lab.register({
     { id: 'up', label: '클라이언트도 서버로 자주 보낸다 (채팅 입력 등)', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', q: '폴링 간격 5초로 30초 동안 알림이 3건 생기면 브라우저는 어떻게 알게 되나', d: '5초 간격 폴링. 대부분의 요청이 "새 소식 없음"으로 끝납니다.', v: { how: 'poll', iv: '5', n: '3', up: false } },
+    { t: '처음 설정으로', q: '폴링 간격 5초로 30초 동안 알림이 3건 생기면 브라우저는 어떻게 알게 되나', d: '5초 간격 폴링. 요청 6번 가운데 절반이 "새 소식 없음"으로 끝납니다.', v: { how: 'poll', iv: '5', n: '3', up: false } },
     { t: '폴링 간격을 1초로', q: '폴링 간격을 1초로 바꾸면', d: '지연은 줄지만 요청이 30번으로 늘어납니다.', v: { how: 'poll', iv: '1', n: '3', up: false } },
     { t: '롱 폴링', q: '방식을 롱 폴링으로 바꾸면', d: '소식이 생기는 순간 응답합니다. 요청 수는 알림 수와 비슷합니다.', v: { how: 'long', iv: '5', n: '3', up: false } },
     { t: 'SSE', q: '방식을 SSE로 바꾸면', d: '연결 하나로 서버가 생기는 대로 보냅니다.', v: { how: 'sse', iv: '5', n: '3', up: false } },
@@ -29,7 +29,7 @@ Lab.register({
     var D = 30, n = +c.n, ev = [], rows = [], sum = [], evT = [], i, reqs = 0, empty = 0, delay = 0, conn = '없음 (요청할 때만)', ups = c.up ? 10 : 0;
     for (i = 0; i < n; i++) evT.push(Math.round((D / n * (i + 0.37)) * 10) / 10);
     function push(s, k) { ev.push({ s: s, k: k, snap: { rows: rows.slice(), reqs: reqs, empty: empty } }); }
-    function row(t, what, res, cls) { rows.push({ cells: [t + '초', what, { v: res, cls: cls }] }); }
+    function row(t, what, res, cls) { rows.push({ cells: [t === '수시로' ? t : t + '초', what, { v: res, cls: cls }] }); }
     var fmt = function (x) { return (Math.round(x * 10) / 10).toFixed(1); };
     function setLast(res, cls) { var p = rows[rows.length - 1]; rows[rows.length - 1] = { cells: [p.cells[0], p.cells[1], { v: res, cls: cls }] }; }
     if (c.how === 'poll') {

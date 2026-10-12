@@ -39,7 +39,7 @@ module.exports = [
   { ko: '컴포넌트 스캔', en: 'Component scanning', how: 'official',
     src: 'Spring Framework Reference, "Instantiating the Spring Container by Using AnnotationConfigApplicationContext"("To enable component scanning, ...") — https://docs.spring.io/spring-framework/reference/core/beans/java/instantiating-container.html',
     also: ['component scan', 'classpath scanning'],
-    note: '참조 문서 본문은 component scanning. Spring Boot 문서에는 "component scan"도 나온다(https://docs.spring.io/spring-boot/reference/using/structuring-your-code.html). 장 제목은 "Classpath Scanning and Managed Components". 애노테이션은 @ComponentScan.' },
+    note: '참조 문서 본문은 component scanning. Spring Boot 문서에는 "component scan"도 나온다(https://docs.spring.io/spring-boot/reference/using/structuring-your-code.html). 장 제목은 "Classpath Scanning and Managed Components". 애너테이션은 @ComponentScan.' },
 
   { ko: '@Configuration과 @Bean', en: '@Configuration and @Bean', how: 'composed',
     src: 'Spring Framework Reference, "Basic Concepts: @Bean and @Configuration" — https://docs.spring.io/spring-framework/reference/core/beans/java/basic-concepts.html',

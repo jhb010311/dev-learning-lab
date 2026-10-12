@@ -115,7 +115,7 @@ Lab.register({
     else if (f.none) { st.pw = '가짜 값과 한 번 비교'; push('아이디가 없어도 비밀번호 비교를 한 번 수행합니다(미리 만들어 둔 가짜 값과 비교합니다). 아이디가 있을 때와 걸리는 시간이 비슷해지게 하려는 것입니다. ' + (c.lg === 'sec' ? '그리고 기본 설정(hideUserNotFoundExceptions=true)에 따라 UsernameNotFoundException을 BadCredentialsException으로 바꿔 던집니다.' : 'hideUserNotFoundExceptions를 false로 바꿨으므로 UsernameNotFoundException을 바꾸지 않고 그대로 던집니다.'), c.lg === 'sec' ? 'good' : 'bad'); }
     else { st.pw = '저장된 값과 비교: 틀림'; push('넣은 비밀번호를 저장된 값과 비교합니다: 맞지 않습니다. BadCredentialsException을 던집니다.', ''); }
     st.phase = 4; st.body = f.body;
-    push('서버가 401 응답을 보냅니다. 본문에 담긴 것은 ' + f.body + ' 입니다.' + (split ? '' : ' 컨트롤러가 예외의 메시지를 그대로 본문에 넣었습니다.'), '');
+    push('서버가 401 응답을 보냅니다. 본문: ' + f.body + (split ? '' : '.') + (split ? '' : ' 컨트롤러가 예외의 메시지를 그대로 본문에 넣었습니다.'), '');
     st.phase = 5;
     var learned = f.same ? '없음' : f.none ? '이 아이디는 가입돼 있지 않다는 사실' : '이 아이디는 가입돼 있다는 사실';
     st.learned = learned;

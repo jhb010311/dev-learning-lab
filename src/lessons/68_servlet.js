@@ -55,14 +55,14 @@ Lab.register({
       if (plain && !st.made) create('첫 요청 때'); else if (!plain && !st.init) initOnly('첫 요청 때'); else if (i > 1 || c.startup) push('이미 만들어 둔 ' + S + ' 객체가 있습니다. 새로 만들지 않고 그 객체를 다시 씁니다. init()도 다시 부르지 않습니다.', 'good');
       st.svc++; st.who = S;
       if (plain) {
-        push('톰캣이 ' + S + '의 service(request, response)를 호출합니다. service()는 요청의 HTTP 메서드를 보고 ' + (method === 'GET' ? 'doGet()' : 'doPost()') + '을 부릅니다.', '');
+        push('톰캣이 ' + S + '의 service(request, response)를 호출합니다. service()는 요청의 HTTP 메서드를 보고 ' + (method === 'GET' ? 'doGet()을' : 'doPost()를') + ' 부릅니다.', '');
         if (handled) { st.respText = 'HTTP/1.1 ' + status + '\nContent-Type: text/plain;charset=UTF-8\n\n' + body; push((method === 'GET' ? 'doGet()' : 'doPost()') + ' 안의 우리 코드가 실행됩니다. ' + (method === 'GET' ? 'request에서 name을 꺼내고, ' : '') + 'response에 상태와 본문을 씁니다.', 'good'); }
         else { st.respText = 'HTTP/1.1 ' + status; push('HelloServlet은 doPost()를 재정의하지 않았습니다. 부모 클래스 HttpServlet의 기본 doPost()가 실행되고, 이것은 "이 주소는 POST를 지원하지 않는다"는 405 응답을 씁니다.', 'bad'); }
       } else {
         push('톰캣이 DispatcherServlet의 service(request, response)를 호출합니다. 톰캣이 하는 일은 여기까지입니다. 이 뒤는 스프링이 맡습니다.', '');
         if (c.req === 'none') { st.respText = 'HTTP/1.1 ' + status; push('DispatcherServlet이 /nothing을 처리할 컨트롤러 메서드를 찾습니다. 없습니다. 응답의 상태를 404로 정합니다.', 'bad'); errorDispatch(); }
         else if (!handled) { st.respText = 'HTTP/1.1 ' + status; push('DispatcherServlet이 /hello를 처리할 컨트롤러 메서드를 찾습니다. @GetMapping("/hello")는 있지만 POST용은 없습니다. 응답의 상태를 405로 정합니다.', 'bad'); errorDispatch(); }
-        else { st.who = 'HelloController'; st.respText = 'HTTP/1.1 ' + status + '\nContent-Type: text/plain;charset=UTF-8\n\n' + body; push('DispatcherServlet이 ' + method + ' /hello에 맞는 컨트롤러 메서드를 찾아 호출합니다. request에서 값을 꺼내 파라미터로 넘겨 주고, 메서드가 돌려준 값을 response에 써 줍니다. 서블릿을 직접 쓸 때 우리가 하던 일을 DispatcherServlet이 대신합니다.', 'good'); }
+        else { st.who = 'HelloController'; st.respText = 'HTTP/1.1 ' + status + '\nContent-Type: text/plain;charset=UTF-8\n\n' + body; push('DispatcherServlet이 ' + method + ' /hello에 맞는 컨트롤러 메서드를 찾아 호출합니다. ' + (method === 'GET' ? 'request에서 값을 꺼내 파라미터로 넘겨 주고, ' : '') + '메서드가 돌려준 값을 response에 써 줍니다. 서블릿을 직접 쓸 때 우리가 하던 일을 DispatcherServlet이 대신합니다.', 'good'); }
       }
       st.who = '톰캣 (서블릿 컨테이너)';
       push('서블릿의 메서드가 끝났습니다. 톰캣이 HttpServletResponse에 담긴 내용을 HTTP 응답 글자로 바꿔 브라우저에 보냅니다. 이 요청에 쓴 request와 response 객체는 버리고, 스레드는 풀에 돌려줍니다. ' + S + ' 객체는 그대로 남아 다음 요청을 기다립니다.', '');

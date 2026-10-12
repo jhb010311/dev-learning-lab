@@ -71,7 +71,7 @@ Lab.register({
       });
     }
     var N = +c.n, worst = { scan: N, binary: self.depth(N + 1, 2), b3: self.depth(N, 3), b500: self.depth(N, 500) };
-    var fmtN = function (x) { return x >= 100000000 ? (x / 100000000) + '억' : x >= 10000 ? (x / 10000) + '만' : String(x); };
+    var fmtN = function (x) { return x >= 100000000 ? (x / 100000000) + '억' : x >= 10000 ? (x / 10000) + '만' : x >= 1000 ? (x / 1000) + '천' : String(x); };
     var unit = c.how === 'btree' ? '노드 ' + T.count + '개 읽음' : T.count + '번 확인';
     if (c.how === 'scan') sum.push('하나씩 찾는 방식은 데이터가 10배가 되면 확인 횟수도 10배가 됩니다(O(n)). 없는 값은 끝까지 봐야 합니다. 인덱스가 없는 컬럼으로 조회하면 DB가 하는 일이 이것입니다.');
     if (c.how === 'binary') sum.push('한 번 확인할 때마다 후보가 절반으로 줄어듭니다(O(log n)). 데이터가 1천 배가 되어도 확인은 10번쯤만 늘어납니다. 단, 데이터가 정렬돼 있어야 하고, 정렬된 배열은 중간에 값을 끼워 넣기가 비쌉니다.');

@@ -189,7 +189,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, '실행을 누르면 한 단계씩 진행합니다.'); return; }
-    H.table(v, ['라이브러리', '버전', '어떻게 들어왔나', '상태'], s.libs.map(function (l) { return { cells: [l.n, l.v, l.from === 'shop-api' ? '내가 build.gradle에 적음 (직접)' : l.from + '이 필요로 함 (전이)', { v: l.note || '-', cls: l.cls }] }; }), '지금 빌드에 들어와 있는 라이브러리 ' + s.libs.length + '개');
+    H.table(v, ['라이브러리', '버전', '어떻게 들어왔나', '상태'], s.libs.map(function (l) { return { cells: [l.n, l.v, l.from === 'shop-api' ? '내가 build.gradle에 적음 (직접)' : l.from + '에 딸려 들어옴 (전이)', { v: l.note || '-', cls: l.cls }] }; }), '지금 빌드에 들어와 있는 라이브러리 ' + s.libs.length + '개');
     if (s.lock) H.text(v, '잠금 파일에 적힌 버전: ' + s.lock);
     if (s.path) H.text(v, 'json-lite가 들어온 길: ' + s.path);
   },

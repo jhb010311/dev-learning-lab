@@ -87,7 +87,7 @@ Lab.register({
       st.out.push(line);
       push('System.out.println(s + " (" + s.label() + ")") 실행: 출력은 "' + line + '"입니다. label()은 enum 안에 직접 만든 메서드로, 그 상수가 만들어질 때 받은 label 값을 돌려줍니다. enum도 클래스라서 이렇게 필드와 메서드를 가질 수 있습니다.');
       st.eq = String(f.eq); st.out.push(String(f.eq)); st.end = '정상 종료';
-      push('s == Status.' + f.now + ' 실행: ' + f.eq + '입니다. enum 상수는 상수마다 객체가 하나뿐이어서, 어떤 방법으로 얻었든 같은 상수면 같은 객체입니다. 그래서 equals 없이 ==로 비교해도 됩니다. ' + (f.eq ? '방금 읽어 온 s와 코드에 적은 Status.' + f.now + '는 같은 객체입니다.' : 'false가 나온 것은 비교 방법 때문이 아니라, s가 정말로 다른 상수(' + f.read[0] + ')이기 때문입니다.') + ' 프로그램은 정상으로 끝납니다.', f.eq ? 'good' : 'bad');
+      push('s == Status.' + f.now + ' 실행: ' + f.eq + '입니다. enum 상수는 상수마다 객체가 하나뿐이어서, 어떤 방법으로 얻었든 같은 상수면 같은 객체입니다. 그래서 equals 없이 ==로 비교해도 됩니다. ' + (f.eq ? '방금 읽어 온 s와 코드에 적은 Status.' + f.now + (f.now === 'PAYMENT_DONE' ? '은' : '는') + ' 같은 객체입니다.' : 'false가 나온 것은 비교 방법 때문이 아니라, s가 정말로 다른 상수(' + f.read[0] + ')이기 때문입니다.') + ' 프로그램은 정상으로 끝납니다.', f.eq ? 'good' : 'bad');
     }
     var endText = f.read ? '정상 종료' : '예외로 중단: java.lang.IllegalArgumentException: No enum constant Status.' + f.value;
     var row = [f.shown, f.read ? f.read[0] + ' (' + f.read[2] + ')' : '(읽지 못함)', f.read ? String(f.eq) : '(읽지 못함)', endText];

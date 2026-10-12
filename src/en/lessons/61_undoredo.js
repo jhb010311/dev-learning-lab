@@ -29,7 +29,7 @@ Lab.register({
       push('ROLLBACK: The data in memory is returned to the earlier value, 1000, which was kept in the undo log. Everything the transaction did is canceled.', 'good');
       sum.push('A rollback is done with the undo log. The undo log supports "all applied or all canceled" (atomicity).');
     } else if (W === 'crashBefore') {
-      S.redo = '"Account 1 = 500" (maybe partly on disk, no committed note)'; push('The server went down before the commit. Everything in memory is lost. What remains on disk is the data file (1000) and the log that had been written to disk.', 'bad');
+      S.redo = '"Account 1 = 500" (maybe partly on disk, no committed note)'; S.mem = '(lost)'; push('The server went down before the commit. Everything in memory is lost. What remains on disk is the data file (1000) and the log that had been written to disk.', 'bad');
       S.mem = '(restarting)'; S.tx = 'Aborted'; push('The server starts again. Recovery reads the redo log, applies again the changes that remain on disk, and then finds the transactions that have no record that they committed.', '');
       S.mem = '1000'; S.tx = 'Rolled back (during recovery)'; usedU = 'Undo log'; usedR = 'Redo log (at the start of recovery)'; fin = '1000'; prop = 'Atomicity';
       push('The changes of the transaction that was not committed are undone using the undo log. The balance is 1000. The user never received a "commit succeeded" reply, so this result is correct.', 'good');

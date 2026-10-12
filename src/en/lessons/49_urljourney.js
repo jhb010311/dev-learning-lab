@@ -4,7 +4,7 @@ Lab.register({
   intro: 'While a browser opens a single URL, a DNS lookup, a TCP connection, a TLS handshake, an HTTP request, a reverse proxy, an application server, and a database take part one after another. Some steps can be skipped thanks to a cache or connection reuse.',
   terms: ['DNS', 'Web server and application server', 'Reverse proxy', 'CDN', 'HTTPS and TLS', 'Three-way handshake'], ranks: ['network', 'was', 'http'],
   controls: [
-    { id: 'what', label: 'What is requested', type: 'select', value: 'api', options: [['api', 'Dynamic page (/orders, needs a database query)'], ['static', 'Static file (/logo.png)']] },
+    { id: 'what', label: 'What is requested', type: 'select', value: 'api', options: [['api', 'Dynamic page (/orders, needs a database query)'], ['static', 'Static file (/static/logo.png)']] },
     { id: 'dns', label: 'The IP address of the domain is already known (DNS cache)', type: 'check', value: false },
     { id: 'conn', label: 'A connection made earlier to this server is still open (connection reuse)', type: 'check', value: false },
     { id: 'cdn', label: 'The static file is served from a CDN', type: 'check', value: false, show: function (c) { return c.what === 'static'; } },
@@ -12,8 +12,8 @@ Lab.register({
   presets: [
     { t: 'Default settings', q: 'Which steps does a first visit go through when you request the dynamic page /orders?', d: 'A first visit. The request goes through every step.', v: { what: 'api', dns: false, conn: false, cdn: false } },
     { t: 'Second request to the same site', q: 'What if you turn on the DNS cache and connection reuse and request the same site again?', d: 'The DNS lookup and the connection setup are skipped.', v: { what: 'api', dns: true, conn: true, cdn: false } },
-    { t: 'Static file', q: 'What if you turn on the DNS cache and connection reuse and request the static file /logo.png?', d: 'The web server (nginx) responds directly. The request does not reach the application server.', v: { what: 'static', dns: true, conn: true, cdn: false } },
-    { t: 'Static file from a CDN', q: 'What if you also serve the static file /logo.png from a CDN, with the DNS cache and connection reuse on?', d: 'A server close to the user responds.', v: { what: 'static', dns: true, conn: true, cdn: true } },
+    { t: 'Static file', q: 'What if you turn on the DNS cache and connection reuse and request the static file /static/logo.png?', d: 'The web server (nginx) responds directly. The request does not reach the application server.', v: { what: 'static', dns: true, conn: true, cdn: false } },
+    { t: 'Static file from a CDN', q: 'What if you also serve the static file /static/logo.png from a CDN, with the DNS cache and connection reuse on?', d: 'A server close to the user responds.', v: { what: 'static', dns: true, conn: true, cdn: true } },
   ],
   code: function (c) {
     return '# nginx (reverse proxy)\nserver {\n    listen 443 ssl;\n    server_name shop.example;\n\n    location /static/ {                  # serve static files directly\n        root /var/www;\n    }\n    location / {                         # pass everything else to the application server\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header X-Forwarded-For $remote_addr;\n    }\n}';
@@ -41,7 +41,7 @@ Lab.register({
       }
     }
     step('Response received and displayed', rtt, 'The response arrives at the browser. If it is HTML, the browser parses it, finds the URLs of the CSS, scripts, and images in it, and repeats the same process for each of them.', 'good');
-    if (!c.dns || !c.conn) sum.push('On a first request, the DNS lookup, the TCP connection, and the TLS handshake all happen before the actual request. However fast the server is, these round trips do not go away, so keeping a connection open and reusing it (keep-alive, HTTP/2) has a large effect on how fast the site feels.');
+    if (!c.dns || !c.conn) sum.push((!c.dns && !c.conn ? 'On a first request, the DNS lookup, the TCP connection, and the TLS handshake all happen' : !c.dns ? 'On this request, the DNS lookup happens' : 'On this request, the TCP connection and the TLS handshake happen') + ' before the actual request. However fast the server is, these round trips do not go away, so keeping a connection open and reusing it (keep-alive, HTTP/2) has a large effect on how fast the site feels.');
     if (c.what === 'static' && !cdn) sum.push('The web server serves static files directly. The application server handles only the requests whose result has to be produced by running code. Putting a reverse proxy in front lets you handle TLS, static files, load balancing, and hiding the internal servers in one place.');
     if (cdn) sum.push('A CDN keeps copies of static files in many places around the world and responds from a place close to the user. The round trips get shorter, and fewer requests reach the origin server.');
     if (c.what === 'api') sum.push('In a dynamic request, most of the time the server spends goes to the database query (here, 20ms out of 31ms). This is why, when you look into a performance problem, you start by breaking the request down to see which part takes the time.');

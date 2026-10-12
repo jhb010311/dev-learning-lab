@@ -43,7 +43,7 @@ Lab.register({
     if (c.jpa) {
       if (c.myDs) { row('DataSource 설정', '직접 등록한 DataSource 있음', '물러남 → 내가 만든 DataSource 사용', 'hot'); push('DataSource 자동 설정: "DataSource 빈이 없을 때만" 조건에 걸려 물러납니다. 내가 등록한 DataSource가 쓰입니다. spring.datasource.* 설정값은 이 빈에 자동으로 적용되지 않습니다.', ''); }
       else if (c.url) { row('DataSource 설정', 'JDBC 있음, 접속 주소 있음', 'HikariCP 커넥션 풀(DataSource) 등록', 'good'); push('DataSource 자동 설정: JDBC 클래스가 있고 직접 등록한 DataSource가 없습니다. 설정의 접속 주소로 HikariCP 커넥션 풀을 만들어 등록합니다.', 'good'); }
-      else if (c.db === 'h2') { row('DataSource 설정', '접속 주소 없음, 내장형 DB(H2) 발견', '메모리 DB용 DataSource 등록', 'good'); push('DataSource 자동 설정: 접속 주소가 없지만 클래스패스에 내장형 DB인 H2가 있습니다. 메모리 안에 임시 DB를 만들어 연결하는 DataSource를 등록합니다. 테스트나 예제에서 설정 없이 DB가 되는 이유입니다.', 'good'); }
+      else if (c.db === 'h2') { row('DataSource 설정', '접속 주소 없음, 내장형 DB(H2) 발견', '메모리 DB용 DataSource 등록', 'good'); push('DataSource 자동 설정: 접속 주소가 없지만 클래스패스에 내장형 DB인 H2가 있습니다. 메모리 안에 임시 DB를 만들어 연결하는 DataSource를 등록합니다. 테스트나 예제에서 설정 없이 DB를 쓸 수 있는 이유입니다.', 'good'); }
       else { failed = true; row('DataSource 설정', '접속 주소 없음, 내장형 DB도 없음', '실패: Failed to configure a DataSource', 'bad'); push('DataSource 자동 설정: DataSource를 만들어야 하는데 접속 주소가 없고, 대신 쓸 내장형 DB도 없습니다. "Failed to configure a DataSource: \'url\' attribute is not specified" 오류와 함께 기동이 실패합니다.', 'bad'); }
       if (!failed) { row('JPA(Hibernate) 설정', 'DataSource 빈 있음, Hibernate 있음', 'EntityManagerFactory, 트랜잭션 매니저 등록', 'good'); push('JPA 자동 설정: 앞에서 준비된 DataSource를 사용해 EntityManagerFactory와 JPA용 트랜잭션 매니저를 등록합니다. 자동 설정끼리도 순서가 있어서, DataSource가 먼저 준비된 뒤에 평가됩니다.', 'good');
         row('Spring Data JPA 설정', 'JpaRepository 인터페이스 발견', '리포지토리 구현체 등록', 'good'); push('Spring Data JPA 자동 설정: JpaRepository를 상속한 인터페이스를 찾아 구현 객체를 만들어 빈으로 등록합니다.', 'good'); }

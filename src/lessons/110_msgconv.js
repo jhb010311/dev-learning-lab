@@ -65,7 +65,7 @@ Lab.register({
           push('화면 그리기: ViewResolver가 이름이 "orders/done"인 화면을 찾고, 그 화면이 HTML을 만들어 응답 본문에 씁니다. Content-Type은 text/html이고 200으로 응답합니다. 요청의 Accept는 ' + q.accept + '이었지만, 화면을 돌려주는 길에서는 그것 때문에 거절되지 않았습니다.', 'good');
         } else {
           if (K === 'entity') { st.wr = '상태와 헤더를 옮김'; push('ResponseEntity 처리: 스프링이 ResponseEntity에 담긴 상태 코드 201과 Location 헤더를 응답에 옮겨 적습니다. 본문으로 담긴 OrderResponse 객체는 메시지 컨버터로 넘깁니다.'); }
-          else { st.wr = '본문으로 쓰기로 함'; push('@RestController: 이 애노테이션은 @Controller에 @ResponseBody를 더한 것입니다. @ResponseBody가 있으면 돌려준 값을 화면 이름으로 보지 않고, 메시지 컨버터로 응답 본문에 직접 씁니다.'); }
+          else { st.wr = '본문으로 쓰기로 함'; push('@RestController: 이 애너테이션은 @Controller에 @ResponseBody를 더한 것입니다. @ResponseBody가 있으면 돌려준 값을 화면 이름으로 보지 않고, 메시지 컨버터로 응답 본문에 직접 씁니다.'); }
           st.stage = 6;
           if (K === 'str') {
             st.wr = '문자열 컨버터가 맡음';

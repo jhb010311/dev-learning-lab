@@ -21,7 +21,7 @@ Lab.register({
   simulate: function (c) {
     var ev = [], sum = [], want = 3, pods = [{ n: 'shop-a', node: '노드 1', st: '실행 중', svc: true }, { n: 'shop-b', node: '노드 2', st: '실행 중', svc: true }, { n: 'shop-c', node: '노드 2', st: '실행 중', svc: true }], did, human = '없음';
     function push(s, k) { ev.push({ s: s, k: k, snap: { want: want, pods: pods.map(function (p) { return { n: p.n, node: p.node, st: p.st, svc: p.svc }; }) } }); }
-    push('평소 상태입니다. Deployment에 "복제본 3개"라고 적혀 있고, 실제로 Pod 3개가 노드 두 대에 나뉘어 실행 중입니다. Service가 요청을 세 Pod에 나눠 보냅니다.', '');
+    push('평소 상태입니다. Deployment에 "복제본 3개"라고 적혀 있고, 실제로 Pod 3개가 노드 세 대 가운데 두 대(노드 1, 노드 2)에 나뉘어 실행 중입니다. Service가 요청을 세 Pod에 나눠 보냅니다.', '');
     if (c.what === 'kill') {
       pods[1].st = '죽음'; pods[1].svc = false; push('shop-b의 컨테이너가 메모리 부족으로 죽었습니다. Service는 이 Pod로 요청을 보내지 않게 됩니다. 실제 Pod 수는 2개가 됐습니다.', 'bad');
       push('컨트롤러가 상태를 비교합니다. 원하는 수 3, 실제 2. 하나가 모자랍니다. 누가 알려 주지 않아도 이 비교는 계속 반복되고 있습니다.', '');
@@ -40,8 +40,8 @@ Lab.register({
       want = 5; human = 'replicas 숫자 수정'; push('운영자가 Deployment의 replicas를 5로 고쳤습니다. 한 일은 "원하는 상태"의 숫자를 바꾼 것뿐입니다. Pod를 직접 만들라는 명령은 하지 않았습니다.', '');
       push('컨트롤러가 비교합니다. 원하는 수 5, 실제 3. 두 개가 모자랍니다.', '');
       pods.push({ n: 'shop-d', node: '노드 1', st: '시작 중', svc: false }); pods.push({ n: 'shop-e', node: '노드 3', st: '시작 중', svc: false }); push('Pod 두 개를 새로 만듭니다.', '');
-      pods[3].st = '실행 중'; pods[3].svc = true; pods[4].st = '실행 중'; pods[4].svc = true; push('준비가 끝나 Service의 대상에 추가됩니다. 요청이 5개에 나뉩니다.', 'good');
-      did = '새 Pod 2개 생성'; sum.push('쿠버네티스에는 "무엇을 하라"가 아니라 "어떤 상태여야 한다"를 알려 줍니다(선언형). 이 숫자를 CPU 사용률에 따라 자동으로 바꿔 주는 것이 오토스케일러(HPA)입니다.');
+      pods[3].st = '실행 중'; pods[3].svc = true; pods[4].st = '실행 중'; pods[4].svc = true; push('준비가 끝나 Service의 대상에 추가됩니다. 요청이 Pod 5개에 나뉩니다.', 'good');
+      did = '새 Pod 2개 생성'; sum.push('쿠버네티스에는 "무엇을 하라"가 아니라 "어떤 상태여야 한다"를 알려 줍니다(선언형). 복제본 수를 CPU 사용률에 따라 자동으로 바꿔 주는 것이 오토스케일러(HPA)입니다.');
     }
     if (c.what === 'hang') {
       pods[1].st = '멈춤 (프로세스는 있음)'; push('shop-b의 애플리케이션이 교착 상태에 빠져 응답하지 않습니다. 프로세스는 살아 있어서 쿠버네티스가 보기에 컨테이너는 "실행 중"입니다. 그대로 두면 이 Pod로 간 요청은 계속 실패합니다.', 'bad');

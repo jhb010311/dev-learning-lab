@@ -95,7 +95,7 @@ Lab.register({
       endAll();
       push('스레드가 모두 끝난 뒤 main은 Thread.sleep(2000)에서 2초 기다리고, 그 뒤 main이 끝나 프로세스가 끝납니다. 프로세스는 처음부터 끝까지 1개였습니다.', 'good');
       var seq = []; for (var q = 1; q <= n; q++) seq.push(3 * q);
-      sum.push('스레드는 새 프로세스를 만들지 않고 한 프로세스 안에서 코드를 실행합니다. 프로세스는 1개(PID 하나)뿐이었고, 스레드들이 같은 메모리의 count를 이어서 올려 ' + seq.join(', ') + '이 출력되었습니다.');
+      sum.push('스레드는 새 프로세스를 만들지 않고 한 프로세스 안에서 코드를 실행합니다. 프로세스는 1개(PID 하나)뿐이었고, 스레드들이 같은 메모리의 count를 이어서 올려 ' + seq.join(', ') + ' 순서로 출력되었습니다.');
       sum.push('프로세스끼리는 메모리가 따로이고, 한 프로세스 안의 스레드끼리는 메모리를 같이 씁니다. 결과가 매번 같도록 스레드를 차례로 실행하게 했습니다.');
     }
     var cs = how === 'threads' ? [3, 6, 9].slice(0, n) : Array.apply(null, Array(n)).map(function () { return 3; });

@@ -1,6 +1,6 @@
 Lab.register({
   id: 'clickjack', nav: '클릭재킹과 오픈 리다이렉트', cat: '인증', mode: 'step',
-  title: '내 화면이 남의 페이지에 숨겨지거나, 내 주소가 남의 사이트로 넘겨주는 일을 어떻게 막나',
+  title: '내 화면이 남의 페이지에 숨겨지거나, 내 주소가 사용자를 남의 사이트로 넘겨주는 일을 어떻게 막나',
   intro: '클릭재킹은 다른 사이트가 내 사이트의 화면을 보이지 않는 프레임에 넣어, 사용자가 모르는 사이에 내 화면의 단추를 누르게 만드는 것입니다. 오픈 리다이렉트는 "로그인 뒤 돌아갈 주소"를 요청에서 받아 확인 없이 그대로 보내 주어, 내 사이트의 주소로 시작하는 링크가 다른 사이트로 넘어가게 되는 것입니다. 둘 다 서버가 뚫리는 것이 아니라 내 사이트에 대한 믿음이 이용당하는 문제이며, 서버가 응답 헤더와 주소 검사로 막습니다.',
   terms: ['클릭재킹', 'X-Frame-Options와 frame-ancestors', '오픈 리다이렉트', 'Spring Security와 SecurityFilterChain', 'CORS와 동일 출처 정책'],
   controls: [
@@ -11,13 +11,13 @@ Lab.register({
     { id: 'next', label: '링크의 next에 들어 있는 값', type: 'select', value: 'abs', options: [['path', '/orders (정상적인 경로)'], ['abs', 'https://attacker.example/login'], ['dslash', '//attacker.example/login']], show: function (c) { return c.topic === 'redir'; } },
   ],
   presets: [
-    { t: '처음 설정으로', q: 'frameOptions를 꺼 둔 서버의 결제 화면을 attacker.example 페이지가 프레임에 넣으면 어떻게 되나', d: '프레임 헤더를 꺼 둔 서버. 공격자가 내 결제 화면을 숨은 프레임에 넣을 수 있습니다.', v: { topic: 'frame', hdr: 'off', who: 'attacker', check: 'none', next: 'abs' } },
+    { t: '처음 설정으로', q: 'frameOptions를 꺼 둔 서버의 결제 화면을 attacker.example 페이지가 프레임에 넣으면 어떻게 되나', d: '프레임 헤더를 꺼 둔 서버입니다. 공격자가 내 결제 화면을 숨은 프레임에 넣을 수 있습니다.', v: { topic: 'frame', hdr: 'off', who: 'attacker', check: 'none', next: 'abs' } },
     { t: '스프링 시큐리티 기본값', q: '헤더 설정을 스프링 시큐리티 기본값 그대로 두면', d: '설정하지 않아도 X-Frame-Options: DENY가 붙어 프레임에 그려지지 않습니다.', v: { topic: 'frame', hdr: 'default', who: 'attacker', check: 'none', next: 'abs' } },
     { t: '기본값에서 내 페이지의 프레임', q: '스프링 시큐리티 기본값인데 같은 사이트의 shop.example 페이지가 결제 화면을 프레임에 넣으면', d: 'DENY는 같은 사이트의 프레임까지 막습니다.', v: { topic: 'frame', hdr: 'default', who: 'self', check: 'none', next: 'abs' } },
     { t: '협력 사이트만 허용', q: 'CSP frame-ancestors로 내 사이트와 협력 사이트만 허용하고 partner.example 페이지가 결제 화면을 프레임에 넣으면', d: 'frame-ancestors에 적은 출처의 프레임에만 그려집니다.', v: { topic: 'frame', hdr: 'csp', who: 'partner', check: 'none', next: 'abs' } },
     { t: '돌아갈 주소를 검사하지 않으면', q: '오픈 리다이렉트에서 next를 검사하지 않고 next에 https://attacker.example/login이 들어 있으면', d: '내 사이트의 주소로 시작하는 링크가 공격자 사이트로 넘어갑니다.', v: { topic: 'redir', hdr: 'off', who: 'attacker', check: 'none', next: 'abs' } },
     { t: '"/"로 시작하는지만 보면', q: '서버가 next 값이 /로 시작하는지만 확인하는데 next에 //attacker.example/login이 들어 있으면', d: '//로 시작하는 주소가 검사를 통과합니다.', v: { topic: 'redir', hdr: 'off', who: 'attacker', check: 'slash', next: 'dslash' } },
-    { t: '같은 사이트의 경로만 허용', q: 'next를 같은 사이트의 경로만 허용하는 검사로 바꾸고 next가 //attacker.example/login이면', d: '다른 사이트로 가는 값은 첫 화면으로 바뀝니다.', v: { topic: 'redir', hdr: 'off', who: 'attacker', check: 'path', next: 'dslash' } },
+    { t: '같은 사이트의 경로만 허용', q: 'next 검사를 같은 사이트의 경로만 허용하는 방식으로 바꾸고 next가 //attacker.example/login이면', d: '다른 사이트로 가는 값은 첫 화면으로 바뀝니다.', v: { topic: 'redir', hdr: 'off', who: 'attacker', check: 'path', next: 'dslash' } },
   ],
   CSP: "frame-ancestors 'self' https://partner.example",
   NEXT: { path: '/orders', abs: 'https://attacker.example/login', dslash: '//attacker.example/login' },
@@ -94,7 +94,7 @@ Lab.register({
     if (c.hdr === 'default') sum.push('스프링 시큐리티는 아무 설정을 하지 않아도 X-Frame-Options: DENY를 붙입니다. 가장 안전한 값이지만 같은 사이트의 프레임까지 막으므로, 내 사이트 안에서 프레임을 쓴다면 sameOrigin으로 바꿉니다.');
     if (c.hdr === 'same') sum.push('SAMEORIGIN은 출처(프로토콜, 호스트, 포트)가 같은 페이지의 프레임만 허용합니다. X-Frame-Options로는 "이 사이트 하나만 더 허용"을 적을 수 없습니다. 다른 사이트를 골라 허용하려면 Content-Security-Policy의 frame-ancestors를 씁니다.');
     if (c.hdr === 'csp') sum.push('frame-ancestors는 프레임에 넣어도 되는 출처를 목록으로 적습니다. \'none\'이면 DENY와, \'self\'만 적으면 SAMEORIGIN과 같은 효과이고, 뒤에 출처를 더 적어 특정 사이트만 허용할 수 있습니다.');
-    if (c.hdr === 'both') sum.push('두 헤더가 함께 오면 frame-ancestors가 우선합니다. DENY가 붙어 있는데도 ' + (who === 'attacker' ? '목록에 있는 출처의 프레임은 그려진다는 뜻입니다.' : '프레임이 그려진 이유입니다.') + ' 다만 frame-ancestors를 모르는 오래된 브라우저는 DENY를 따르므로, 두 헤더가 같은 뜻이 되도록 맞추거나 한쪽만 쓰는 편이 헷갈리지 않습니다.');
+    if (c.hdr === 'both') sum.push('두 헤더가 함께 오면 frame-ancestors가 우선합니다. 이는 DENY가 붙어 있는데도 ' + (who === 'attacker' ? '목록에 있는 출처의 프레임은 그려진다는 뜻입니다.' : '프레임이 그려진 이유입니다.') + ' 다만 frame-ancestors를 모르는 오래된 브라우저는 DENY를 따르므로, 두 헤더가 같은 뜻이 되도록 맞추거나 한쪽만 쓰는 편이 헷갈리지 않습니다.');
     if (who === 'attacker' && on) sum.push('클릭재킹은 서버가 받은 요청만 보아서는 정상적인 클릭과 구별되지 않습니다. 그래서 서버가 응답 헤더로 "이 화면을 프레임에 넣지 말라"고 미리 알리고, 브라우저가 그것을 지키는 방식으로 막습니다.');
     return { events: ev, summary: sum, row: [hsText, on ? '프레임 안에 그림' : '프레임 안에 그리지 않음', res], on: on, hs: hs };
   },

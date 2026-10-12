@@ -9,7 +9,7 @@ Lab.register({
     { id: 'nb', label: 'b.hit()을 부르는 횟수', type: 'select', value: '1', options: [['0', '0번'], ['1', '1번'], ['2', '2번']], hint: 'a.hit()은 항상 2번 부릅니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', q: 'static 필드 count를 a.hit() 2번, b.hit() 1번 부르면 a.count와 b.count는 각각 무엇이 되나', d: 'count가 static입니다. a.hit() 2번, b.hit() 1번인데 둘 다 3이 나옵니다.', v: { decl: 'static', extra: 'none', nb: '1' } },
+    { t: '처음 설정으로', q: 'count가 static 필드일 때 a.hit()을 2번, b.hit()을 1번 부르면 a.count와 b.count는 각각 무엇이 되나', d: 'count가 static입니다. a.hit() 2번, b.hit() 1번인데 둘 다 3이 나옵니다.', v: { decl: 'static', extra: 'none', nb: '1' } },
     { t: 'static을 떼면', q: 'count 필드를 static 없는 int count 선언으로 바꾸면', d: '객체마다 자기 count를 가집니다. 2와 1이 나옵니다.', v: { decl: 'inst', extra: 'none', nb: '1' } },
     { t: 'static 메서드에서 인스턴스 필드를 쓰면', q: 'static 없는 int count 선언인데 static 메서드 report() 안에서 return count를 하면', d: '어느 객체의 count인지 알 수 없어 컴파일 오류입니다.', v: { decl: 'inst', extra: 'sm', nb: '1' } },
     { t: 'static 메서드에서 static 필드를 쓰면', q: 'count가 static int count인 채로 static 메서드 report() 안에서 return count를 하면', d: '객체 없이 Counter.report()로 값을 읽습니다.', v: { decl: 'static', extra: 'sm', nb: '1' } },
@@ -52,7 +52,7 @@ Lab.register({
       if (x === 'smThis') push('컴파일: static 메서드 report() 안의 this.count를 검사합니다. this는 "지금 이 메서드가 다루고 있는 객체"인데, static 메서드는 객체 없이 불리므로 this가 없습니다. ' + (isS ? 'count가 static 필드여도 this라는 말 자체를 쓸 수 없어' : '가리킬 객체가 없으니 this.count도 읽을 수 없어') + ' 컴파일 오류입니다.', 'bad');
       else if (x === 'sm') push('컴파일: static 메서드 report() 안의 count를 검사합니다. count는 객체마다 따로 있는 인스턴스 필드입니다. static 메서드는 객체 없이 불리므로 어느 객체의 count를 말하는지 정할 수 없습니다. 컴파일 오류입니다.', 'bad');
       else if (x === 'cls0') push('컴파일: Counter.count를 검사합니다. 클래스 이름으로는 클래스에 속한 static 멤버만 쓸 수 있습니다. count는 객체마다 따로 있는 인스턴스 필드라서 어느 객체의 것인지 알 수 없습니다. 컴파일 오류입니다.', 'bad');
-      else push('컴파일: Counter.hit()을 검사합니다. hit()은 인스턴스 메서드라서 어느 객체를 대상으로 실행할지가 있어야 합니다. ' + (isS ? 'hit()이 건드리는 count가 static 필드여도, hit() 자체에 static이 없으면 객체가 필요합니다. ' : '') + '클래스 이름만으로는 대상 객체가 없어 컴파일 오류입니다.', 'bad');
+      else push('컴파일: Counter.hit()을 검사합니다. hit()은 인스턴스 메서드라서 어느 객체를 대상으로 실행할지가 정해져야 합니다. ' + (isS ? 'hit()이 건드리는 count가 static 필드여도, hit() 자체에 static이 없으면 객체가 필요합니다. ' : '') + '클래스 이름만으로는 대상 객체가 없어 컴파일 오류입니다.', 'bad');
       sum.push('컴파일 오류입니다. javac의 메시지는 "' + e.msg + '"이고, "static이 아닌 것을 static인 자리에서 쓸 수 없다"는 뜻입니다. 프로그램은 실행되지 않습니다.');
       if (x === 'smThis') { sum.push('static 메서드에는 this가 없습니다. 객체 없이 클래스 이름으로 불리기 때문입니다.'); sum.push(isS ? 'count가 static이므로 this를 빼고 return count라고 쓰면 됩니다.' : 'static 메서드에서 어떤 객체의 값을 읽으려면 그 객체를 인자로 받아야 합니다. static int report(Counter c) { return c.count; }처럼 쓰면 컴파일됩니다.'); }
       if (x === 'sm') { sum.push('static 메서드 안에서 이름만 적어서 쓸 수 있는 것은 static 멤버뿐입니다. 인스턴스 필드는 객체가 있어야 존재합니다.'); sum.push('고치는 방법은 둘입니다. count가 클래스 전체에 하나면 되는 값이면 count에 static을 붙이고, 객체마다 달라야 하는 값이면 static int report(Counter c) { return c.count; }처럼 객체를 인자로 받습니다.'); }

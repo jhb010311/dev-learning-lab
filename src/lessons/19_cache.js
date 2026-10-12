@@ -45,8 +45,8 @@ Lab.register({
     ev.sort(function (a, b) { return a.t - b.t; });
     var sum = [];
     if (ttl === 0) sum.push('같은 상품을 ' + reqs.length + '번 조회하는 데 DB를 ' + dbq + '번 읽었습니다. 자주 읽히고 잘 바뀌지 않는 데이터일수록 캐시의 효과가 큽니다.');
-    else if (peak > 1 && !lock) sum.push('만료 순간 캐시가 채워지기 전까지(' + dbt + '초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락, 만료 전에 미리 갱신하기, 키마다 TTL에 약간의 차이를 주는 방법으로 줄입니다.');
-    else if (lock) sum.push('락으로 캐시가 빌 때마다 한 요청만 DB를 조회했습니다. DB 부하는 지켰지만, ' + waits + '건은 그 조회가 끝날 때까지 기다렸습니다. 서버가 여러 대라면 서버들이 함께 쓰는 분산 락이어야 합니다.');
+    else if (peak > 1 && !lock) sum.push('캐시가 비어 있는 순간부터 다시 채워지기 전까지(' + dbt + '초 동안) 들어온 요청들이 모두 DB로 갔습니다. 요청이 많고 DB 조회가 느릴수록 몰림이 커집니다. 이것이 캐시 스탬피드입니다. 한 요청만 조회하게 하는 락, 만료 전에 미리 갱신하기, 키마다 TTL에 약간의 차이를 주는 방법으로 줄입니다.');
+    else if (lock) sum.push('락으로 캐시가 빌 때마다 한 요청만 DB를 조회했습니다. ' + (waits ? 'DB로 몰리는 것은 막았지만, ' + waits + '건은 그 조회가 끝날 때까지 기다렸습니다.' : '이 설정에서는 조회가 끝나기 전에 들어온 요청이 없어 기다린 요청도 없었습니다.') + ' 서버가 여러 대라면 서버들이 함께 쓰는 분산 락이어야 합니다.');
     if (ttl > 0) sum.push('TTL이 길수록 DB 조회는 줄지만, 원본 데이터가 바뀌어도 최대 TTL만큼 옛 값을 돌려줍니다. 얼마나 오래된 값까지 허용할 수 있는지가 TTL을 정하는 기준입니다.');
     return { total: DUR, events: ev, summary: sum, reqs: reqs, queries: queries, sets: null, ttl: ttl, row: [reqs.length + '건', rate + '%', dbq + '번', peak + '건', (Math.round(avg * 100) / 100) + '초'] };
   },

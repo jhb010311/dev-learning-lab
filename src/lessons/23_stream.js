@@ -33,7 +33,7 @@ Lab.register({
     var tr = this.trace(c), ev = [], D = this.DATA, done = [], out = [], sum = [];
     function push(s, k, cur) { ev.push({ s: s, k: k, snap: { log: done.slice(), out: out.slice(), cur: cur } }); }
     push('stream(), filter(), ' + (c.sorted ? 'sorted(), ' : '') + 'map()' + (c.limit ? ', limit()' : '') + '을 차례로 호출했습니다. 이 호출들은 "무엇을 할지"를 연결해 둘 뿐, 원소를 하나도 꺼내지 않습니다. 람다는 아직 한 번도 실행되지 않았습니다.', '', -1);
-    if (c.term === 'none') { push('최종 연산이 없습니다. 파이프라인은 만들어졌지만 실행을 시작하라는 신호가 없으므로 filter와 map은 끝까지 실행되지 않습니다.', 'bad', -1); sum.push('중간 연산만으로는 아무 일도 일어나지 않습니다. 스트림을 만들어 두고 최종 연산을 빼먹으면, 오류 없이 조용히 아무것도 하지 않는 코드가 됩니다.'); return { events: ev, summary: sum, tr: tr, row: ['0번', '0번', '(실행 안 됨)'] }; }
+    if (c.term === 'none') { push('최종 연산이 없습니다. 파이프라인은 만들어졌지만 실행을 시작하라는 신호가 없으므로 filter와 map은 한 번도 실행되지 않습니다.', 'bad', -1); sum.push('중간 연산만으로는 아무 일도 일어나지 않습니다. 스트림을 만들어 두고 최종 연산을 빼먹으면, 오류 없이 조용히 아무것도 하지 않는 코드가 됩니다.'); return { events: ev, summary: sum, tr: tr, row: ['0번', '0번', '(실행 안 됨)'] }; }
     push(c.term + '()가 호출됐습니다. 이제 실행이 시작됩니다. 최종 연산이 원소를 하나씩 끌어당깁니다.', '', -1);
     tr.log.forEach(function (l, i) {
       var x = +l.replace(/\D/g, ''), isF = l.indexOf('filter') === 0, next = tr.log[i + 1] || '';

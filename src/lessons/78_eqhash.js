@@ -57,7 +57,7 @@ Lab.register({
     }
     st.set = found ? '1' : '2';
     push('set.add(a), set.add(b): HashSet도 안에서 HashMap을 쓰므로 같은 순서로 판단합니다. ' + (found ? 'b는 이미 들어 있는 a와 같은 원소로 보아 넣지 않습니다. 크기는 1입니다.' : 'b를 a와 다른 원소로 보아 둘 다 넣습니다. 크기는 2입니다.' + (same ? ' 내용이 같은 객체가 중복으로 들어갔습니다.' : '')), found ? 'good' : same ? 'bad' : '');
-    if (same && f.eq && !f.hs) sum.push('equals만 재정의하면 equals로는 같은 두 객체가 서로 다른 자리로 갑니다. HashMap, HashSet, HashMap을 쓰는 캐시에서 "넣었는데 못 찾는" 버그가 됩니다. equals를 재정의할 때는 hashCode도 같은 필드로 함께 재정의합니다.');
+    if (same && f.eq && !f.hs) sum.push('equals만 재정의하면 equals로는 같은 두 객체가 서로 다른 자리로 갑니다. HashMap, HashSet, 이들로 만든 캐시에서 "넣었는데 못 찾는" 버그가 됩니다. equals를 재정의할 때는 hashCode도 같은 필드로 함께 재정의합니다.');
     if (same && !f.eq && f.hs) sum.push('hashCode만 재정의하면 같은 자리까지는 가지만 마지막 확인인 equals가 false입니다. 둘은 짝이라서 하나만으로는 소용이 없습니다.');
     if (same && !f.eqOver && !f.hashOver) sum.push('아무것도 재정의하지 않으면 객체는 자기 자신과만 같습니다. 주문 번호나 좌표처럼 "값이 같으면 같은 것"으로 다뤄야 하는 객체는 둘 다 재정의하거나 record로 선언합니다.');
     if (found) sum.push(c.how === 'record' ? 'record는 모든 구성 요소를 비교하는 equals와 그에 맞는 hashCode를 자동으로 만들어 줍니다. 값을 담는 객체에 잘 맞습니다.' : c.how === 'const' ? '모든 객체의 hashCode가 같아도 규약에는 어긋나지 않고 결과도 맞습니다. 하지만 모든 키가 한 자리에 몰려, 찾을 때마다 그 자리의 키를 하나씩 equals로 비교해야 합니다. 키가 많아지면 HashMap이 느려집니다.' : 'equals가 같은 두 객체가 같은 hashCode를 돌려주므로 HashMap과 HashSet이 둘을 같은 키로 다룹니다.');

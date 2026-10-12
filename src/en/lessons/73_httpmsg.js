@@ -37,7 +37,7 @@ Lab.register({
     S.req.push(['Start line', K.req[0]]); var p = K.req[0].split(' ');
     push('This is the first line of the request, the start line. It holds the method ' + p[0] + ', the target path ' + p[1] + ', and the protocol version, in that order. The method says "what to do", and the path says "what it is about".', '', 'req');
     K.req.slice(1).forEach(function (h) { S.req.push(['Header', h]); });
-    push('The next lines are headers. Each one is written as "name: value" and carries extra information about the request. Host says which site the request is for, ' + (K.req.join(' ').indexOf('Authorization') >= 0 ? 'Authorization says who is sending it,' : '(this request has no credentials)') + (K.body ? ' Content-Type tells the format of the body.' : ''), '', 'req');
+    push('The next lines are headers. Each one is written as "name: value" and carries extra information about the request. Host says which site the request is for' + (K.req.join(' ').indexOf('Authorization') >= 0 ? ', Authorization says who is sending it' : '') + (K.body ? ', and Content-Type tells the format of the body' : '') + '.' + (K.req.join(' ').indexOf('Authorization') >= 0 ? '' : ' This request has no credentials (no Authorization header).'), '', 'req');
     S.req.push(['Empty line', '']); if (K.body) S.req.push(['Body', K.body]);
     push('An empty line marks the end of the headers. ' + (K.body ? 'What comes after it is the body. It holds the data to send to the server.' : 'This request has no data to send, so it has no body.') + ' The server has to be able to handle the request by looking at this one request alone, because it does not remember the requests sent before it (it is stateless).', '', 'req');
     S.res.push(['Start line', 'HTTP/1.1 ' + K.status]);

@@ -32,7 +32,7 @@ Lab.register({
       var failed = -1;
       for (var i = 0; i < 4; i++) {
         if (steps[i][0] === c.fail) { st[i] = 'Failed'; failed = i; push('Step ' + (i + 1) + ' ' + steps[i][1] + ': ' + steps[i][2] + ' failed. The local transaction of this service is rolled back, but the earlier steps are already committed in their own databases. A database rollback cannot undo them.', 'bad'); break; }
-        st[i] = 'Done (committed)'; push('Step ' + (i + 1) + ' ' + steps[i][1] + ': ' + steps[i][2] + ' completed. It commits to its own database and publishes an event for the next step.', 'good');
+        st[i] = 'Done (committed)'; push('Step ' + (i + 1) + ' ' + steps[i][1] + ': ' + steps[i][2] + ' completed. ' + (i < 3 ? 'It commits to its own database and publishes an event for the next step.' : 'It commits to its own database. This is the last step.'), 'good');
       }
       if (failed >= 0) {
         for (var j = failed - 1; j >= 0; j--) { st[j] = 'Compensated: ' + steps[j][3]; comp++; push('Compensation ' + comp + ': ' + steps[j][1] + ' receives the failure event and runs the compensation: ' + steps[j][3] + '. This undoes the work that was already committed with a new action that cancels it. It proceeds in the reverse of the order in which the steps ran.', ''); }

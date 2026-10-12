@@ -48,7 +48,7 @@ module.exports = [
 2. 한국어 이름이 영어를 소리 나는 대로 옮긴 것이어도(예: "가비지 컬렉션") 철자, 띄어쓰기, 하이픈, 대소문자를 자료에서 확인합니다(예: fail-fast, thread-safe, read-only, deadlock, classloader 대 class loader).
 3. 한국에서만 굳은 말은 직역하지 않습니다. 공식 문서가 그 **동작을 무엇이라 부르는지** 찾습니다. 예: "연관관계의 주인" → 명세의 owning side, "쓰기 지연" → Hibernate 문서가 쓰는 말, "영속성 전이" → cascade.
 4. 같은 뜻의 영어가 여럿이면 그 분야 1차 자료의 말을 `en`으로, 나머지를 `also`로 둡니다.
-5. 클래스·애노테이션·속성·명령어 이름(`@Transactional`, `HashMap`, `spring.jpa.open-in-view`)은 글자 그대로 둡니다.
+5. 클래스·애너테이션·속성·명령어 이름(`@Transactional`, `HashMap`, `spring.jpa.open-in-view`)은 글자 그대로 둡니다.
 6. 대소문자: 문장 첫머리처럼 첫 글자만 대문자로 쓰고(예: "Persistence context"), 고유 이름과 약어는 자료의 표기를 따릅니다(G1, Metaspace, JPQL).
 7. `en`은 표 전체에서 서로 달라야 합니다. 한국어 이름에 괄호로 뜻을 가른 것(예: "노드(자료구조)", "노드(쿠버네티스)")은 영어에서도 괄호로 가릅니다.
 8. 한국어 설명이 공식 문서의 내용과 어긋나 보이면 고치지 말고 보고에 적습니다(이것도 중요한 결과입니다).

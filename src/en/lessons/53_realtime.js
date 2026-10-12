@@ -10,7 +10,7 @@ Lab.register({
     { id: 'up', label: 'The client also sends to the server often (chat input, for example)', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', q: 'With polling every 5s and 3 notifications created in 30 seconds, how does the browser find out about them?', d: 'Polling every 5s. Most requests end with "no news".', v: { how: 'poll', iv: '5', n: '3', up: false } },
+    { t: 'Default settings', q: 'With polling every 5s and 3 notifications created in 30 seconds, how does the browser find out about them?', d: 'Polling every 5s. Half of the 6 requests end with "no news".', v: { how: 'poll', iv: '5', n: '3', up: false } },
     { t: 'Polling interval of 1s', q: 'What if you change the polling interval to 1s?', d: 'The delay gets shorter, but the requests grow to 30.', v: { how: 'poll', iv: '1', n: '3', up: false } },
     { t: 'Long polling', q: 'What if you change the method to long polling?', d: 'The server responds the moment news arrives. The number of requests is close to the number of notifications.', v: { how: 'long', iv: '5', n: '3', up: false } },
     { t: 'SSE', q: 'What if you change the method to SSE?', d: 'With one connection, the server sends as things happen.', v: { how: 'sse', iv: '5', n: '3', up: false } },
@@ -29,7 +29,7 @@ Lab.register({
     var D = 30, n = +c.n, ev = [], rows = [], sum = [], evT = [], i, reqs = 0, empty = 0, delay = 0, conn = 'None (only when a request is made)', ups = c.up ? 10 : 0;
     for (i = 0; i < n; i++) evT.push(Math.round((D / n * (i + 0.37)) * 10) / 10);
     function push(s, k) { ev.push({ s: s, k: k, snap: { rows: rows.slice(), reqs: reqs, empty: empty } }); }
-    function row(t, what, res, cls) { rows.push({ cells: [t + 's', what, { v: res, cls: cls }] }); }
+    function row(t, what, res, cls) { rows.push({ cells: [t === 'Often' ? t : t + 's', what, { v: res, cls: cls }] }); }
     var fmt = function (x) { return (Math.round(x * 10) / 10).toFixed(1); };
     function setLast(res, cls) { var p = rows[rows.length - 1]; rows[rows.length - 1] = { cells: [p.cells[0], p.cells[1], { v: res, cls: cls }] }; }
     if (c.how === 'poll') {

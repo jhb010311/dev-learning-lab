@@ -22,7 +22,7 @@ Lab.register({
     if (c.how === 'rebase') return 'git switch feature\ngit rebase main' + (c.main && c.conf ? '\n# CONFLICT: conflict while moving commit D\n# After fixing the file\ngit add OrderService.java\ngit rebase --continue' : '') + (c.pushed && c.main ? '\ngit push --force-with-lease          # history changed, so a normal push is rejected' : '') + '\n\ngit switch main\ngit merge feature                    # fast-forward';
     return 'git switch main\ngit merge --squash feature' + (c.main && c.conf ? '\n# CONFLICT: fix the file, then git add' : '') + '\ngit commit -m "Add order cancellation"';
   },
-  label: function (c) { return { merge: 'merge', rebase: 'rebase, then merge', squash: 'squash merge' }[c.how] + (c.main ? ' · new commits on main' : ' · main unchanged') + (c.main && c.conf ? ' · conflict' : '') + (c.how === 'rebase' && c.pushed ? ' · already pushed' : ''); },
+  label: function (c) { return { merge: 'merge', rebase: 'rebase, then merge', squash: 'squash merge' }[c.how] + (c.main ? ' · new commits on main' : ' · main unchanged') + (c.main && c.conf ? ' · conflict' : '') + (c.how === 'rebase' && c.main && c.pushed ? ' · already pushed' : ''); },
   columns: ['Graph shape', 'New commits', 'Conflict resolution', 'Things to watch for'],
   simulate: function (c) {
     var ev = [], sum = [], conf = c.main && c.conf, shape, made, fix = 'None', warn = 'None';

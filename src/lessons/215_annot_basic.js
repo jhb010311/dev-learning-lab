@@ -2,7 +2,7 @@ Lab.register({
   id: 'annot_basic', nav: '애너테이션', cat: '기초개념', mode: 'step', basic: true, deep: ['annot'],
   title: '애너테이션은 무엇이고, 붙이면 무슨 일이 생기는가',
   intro: '애너테이션은 @Run, @Override처럼 @로 시작하는, 코드에 붙이는 표시입니다. 이 실습에서는 @interface Run으로 표시를 직접 만들고 work 메서드 위에 @Run을 붙입니다. 그런데 표시는 그 자체로는 아무것도 실행하지 않습니다. 효과가 생기려면 그 표시를 읽고 무언가를 해 주는 쪽이 있어야 하고, 컴파일러나 스프링 같은 프레임워크, 또는 우리가 쓴 코드가 그 역할을 합니다. 여기서는 "Run이 붙은 메서드를 찾아 부르는" for 문을 우리가 직접 써서 그 관계를 보입니다. @Run을 지우고, 읽는 쪽을 지우고, @Retention을 지워 가며 같은 코드를 컴파일해 실행하고, 어느 메서드가 불리는지를 봅니다.',
-  terms: ['애노테이션', '@interface', '리플렉션', '@Retention과 @Target'],
+  terms: ['애너테이션', '@interface', '리플렉션', '@Retention과 @Target'],
   controls: [
     { id: 'mark', label: '@Run을 붙이는 메서드', type: 'select', value: 'work', options: [['work', 'work에 @Run을 붙인다'], ['none', '어디에도 붙이지 않는다'], ['both', 'work와 rest 둘 다에 붙인다']] },
     { id: 'reader', label: 'Run이 붙은 메서드를 찾아 부르는 코드가 있다', type: 'check', value: true },

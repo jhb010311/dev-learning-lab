@@ -29,7 +29,7 @@ Lab.register({
     var d1 = dist(N, per), mx = Math.max.apply(null, d1), mn = Math.min.apply(null, d1);
     function push(s, k, d, extra) { ev.push({ s: s, k: k, snap: { d: d, extra: extra || '' } }); }
     push('Divide ' + TOTAL + ' orders among ' + N + ' shards. ' + (c.how === 'range' ? 'The order numbers are cut into ranges of ' + per + ' and assigned to the shards.' : 'The remainder of the member number of the order divided by the number of shards (' + N + ') is the shard number. The orders of the same member always end up on the same shard.'), '', d1.map(function () { return 0; }));
-    push('Distribution result. Largest shard: ' + mx + ' orders. Smallest shard: ' + mn + ' orders.' + (c.how === 'hot' ? ' Member 7 has one third of all the orders, so they are piled onto shard ' + (7 % N) + ', where that member belongs. Hashing spreads keys evenly, but it does not help when one key has a lot of data attached.' : c.how === 'range' ? ' It is even now, but that is based on past data.' : ' The member numbers are spread evenly, so the number of orders per shard is similar.'), mx > mn * 2 ? 'bad' : 'good', d1);
+    push('Distribution result. Largest shard: ' + mx + ' orders. Smallest shard: ' + mn + ' orders.' + (c.how === 'hot' ? ' Member 7 has one third of all the orders, so they are piled onto shard ' + (7 % N) + ', where that member belongs. Hashing spreads keys evenly, but it does not help when one key has a lot of data attached.' : c.how === 'range' ? ' It is even now, but that is based on past data.' : ' The member numbers are spread evenly, so the number of orders per shard is similar.'), mx >= mn * 2 ? 'bad' : 'good', d1);
     var newTo = c.how === 'range' ? 'Last shard only' : 'Spread over all shards by member';
     push(c.how === 'range' ? 'New order numbers keep getting larger, so all new orders go to the last shard, shard ' + (N - 1) + '. The write load piles up on a single shard (a bottleneck), and the other shards sit idle.' : 'New orders are scattered over several shards depending on the member number of the member who ordered. The write load is spread out.', c.how === 'range' ? 'bad' : 'good', d1, c.how === 'range' ? 'New order → shard ' + (N - 1) : 'New order → multiple shards');
     var q = c.how === 'range' ? 'Must ask all shards' : '1 shard';
@@ -49,7 +49,7 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to start.'); return; }
     var mx = Math.max.apply(null, s.d.concat([1])), ln = H.lanes(v);
-    s.d.forEach(function (x, i) { H.lane(ln, 'Shard ' + i, 'Orders: ' + x, x === 0 ? 'none' : x > 120 / s.d.length * 1.5 ? 'bad' : '', x ? x / Math.max(mx, 60) : undefined); });
+    s.d.forEach(function (x, i) { H.lane(ln, 'Shard ' + i, 'Orders: ' + x, x === 0 ? 'none' : x > 120 / s.d.length * 1.3 ? 'bad' : '', x ? x / Math.max(mx, 60) : undefined); });
   },
   // Diagram: the router is on top, and the shards are below. The height of the bar inside a shard is the number of orders it holds.
   draw: function (P, sim, shown) {
@@ -60,7 +60,7 @@ Lab.register({
     for (var i = 0; i < n; i++) {
       var x = 16 + i * (w + 10), cnt = d[i] || 0, h = Math.max(2, 120 * cnt / mx), on = qAll || qOne === i, hit = newAll || (newOne && +newOne[1] === i);
       P.box('sh' + i, x, 106, w, 184, { cls: 'plain' + (on ? ' now' : ''), title: 'Shard ' + i, sub: 'Orders: ' + cnt, center: true });
-      P.box('fill' + i, x + 8, 282 - h, w - 16, h, { cls: cnt > 120 / n * 1.5 ? 'bad' : cnt ? 'good' : 'ghost' });
+      P.box('fill' + i, x + 8, 282 - h, w - 16, h, { cls: cnt > 120 / n * 1.3 ? 'bad' : cnt ? 'good' : 'ghost' });
       P.arrow('ar' + i, 'rt:b:' + ((i + 0.5) / n), 'sh' + i + ':t', { cls: hit ? 'hot' : 'mut' });
     }
     if (ex) P.text('ex', 340, 314, ex + (qOne >= 0 ? ' (shard ' + qOne + ')' : ''), { anchor: 'middle', bold: true });

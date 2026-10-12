@@ -45,7 +45,7 @@ Lab.register({
     }
     var jarText = 'sid=abc123  (Path=' + c.path + (c.http ? ', HttpOnly' : '') + ', ' + { session: '브라우저를 닫으면 삭제', hour: '1시간 뒤 만료', short: '3초 뒤 만료' }[c.life] + ')';
     S.jar = [jarText];
-    push('서버가 응답 헤더에 ' + self.header(c) + ' 를 실어 보냅니다. 브라우저는 이 값을 shop.example의 쿠키로 보관합니다. 서버는 "abc123은 회원 7"이라고 자기 쪽에 적어 둡니다.', '');
+    push('서버가 응답에 ' + self.header(c) + ' 헤더를 실어 보냅니다. 브라우저는 이 값을 shop.example의 쿠키로 보관합니다. 서버는 "abc123은 회원 7"이라고 자기 쪽에 적어 둡니다.', '');
     if (c.later !== 'now') {
       if (!R.alive) S.jar = [];
       push((c.later === 'wait' ? '10초가 지났습니다. ' : '10초 뒤 브라우저를 완전히 닫았다가 다시 열었습니다. ') + (R.alive ? '쿠키는 아직 남아 있습니다.' : c.life === 'short' ? '수명(3초)이 지난 쿠키를 브라우저가 지웠습니다.' : '수명을 지정하지 않은 쿠키(세션 쿠키)는 브라우저를 닫을 때 지워집니다.'), R.alive ? '' : 'bad');
@@ -54,10 +54,10 @@ Lab.register({
     S.rows.push(['GET /orders', R.orders ? 'Cookie: sid=abc123' : '(없음)', say(R.orders)]);
     push('shop.example/orders 요청입니다. ' + (R.orders ? '브라우저가 Cookie 헤더에 sid를 자동으로 붙였습니다. 코드에서 따로 넣어 주지 않아도 붙습니다. 서버는 abc123을 찾아 회원 7의 요청임을 압니다.' : !R.alive ? '보관된 쿠키가 없으므로 아무것도 붙지 않습니다. 다시 로그인해야 합니다.' : '쿠키의 Path가 /shop이라서 /orders 요청에는 붙지 않습니다. 쿠키는 남아 있지만 이 경로는 대상이 아닙니다.'), R.orders ? 'good' : 'bad');
     S.rows.push(['GET /shop/cart', R.shop ? 'Cookie: sid=abc123' : '(없음)', say(R.shop)]);
-    push('shop.example/shop/cart 요청입니다. ' + (R.shop ? '이 경로는 Path=' + c.path + ' 에 해당하므로 쿠키가 붙습니다.' : '보관된 쿠키가 없습니다.'), R.shop ? 'good' : 'bad');
+    push('shop.example/shop/cart 요청입니다. ' + (R.shop ? '이 경로는 Path=' + c.path + '에 해당하므로 쿠키가 붙습니다.' : '보관된 쿠키가 없습니다.'), R.shop ? 'good' : 'bad');
     S.rows.push(['GET other.example/ (다른 사이트)', '(없음)', 'shop.example의 쿠키는 전달되지 않음']);
-    push('다른 사이트 other.example으로 가는 요청입니다. shop.example이 준 쿠키는 붙지 않습니다. 쿠키는 그것을 내려 준 사이트로 가는 요청에만 붙습니다.', '');
-    S.rows.push(['페이지의 자바스크립트: document.cookie', R.js ? '"sid=abc123" 을 읽음' : '(읽히지 않음)', R.js ? '스크립트가 값을 가져갈 수 있음' : R.alive ? 'HttpOnly라서 스크립트에 보이지 않음' : '쿠키 없음']);
+    push('다른 사이트 other.example로 가는 요청입니다. shop.example이 준 쿠키는 붙지 않습니다. 쿠키는 그것을 내려 준 사이트로 가는 요청에만 붙습니다.', '');
+    S.rows.push(['페이지의 자바스크립트: document.cookie', R.js ? '"sid=abc123"을 읽음' : '(읽히지 않음)', R.js ? '스크립트가 값을 가져갈 수 있음' : R.alive ? 'HttpOnly라서 스크립트에 보이지 않음' : '쿠키 없음']);
     push('shop.example/shop/cart 페이지에서 자바스크립트가 document.cookie를 읽습니다. ' + (R.js ? 'HttpOnly가 없어서 값이 그대로 읽힙니다. 페이지에 악성 스크립트가 끼어들면(XSS) 이 값을 빼내 로그인 상태를 훔칠 수 있습니다.' : R.alive ? 'HttpOnly 쿠키는 스크립트에 보이지 않습니다. 그래도 요청에는 계속 자동으로 붙습니다.' : '보관된 쿠키가 없습니다.'), R.js ? 'bad' : R.alive ? 'good' : '');
     if (R.alive && c.path !== '/') sum.push('Path를 좁히면 그 경로 밖의 요청에는 쿠키가 붙지 않습니다. 로그인 쿠키는 보통 Path=/로 둡니다.');
     if (R.js) sum.push('로그인에 쓰는 쿠키에는 HttpOnly를 붙여 스크립트가 읽지 못하게 합니다. 실제 서비스에서는 https에서만 보내는 Secure, 다른 사이트에서 시작된 요청에 붙을지를 정하는 SameSite도 함께 지정합니다.');

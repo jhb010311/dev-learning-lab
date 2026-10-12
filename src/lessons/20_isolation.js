@@ -67,7 +67,7 @@ Lab.register({
     if (L === 'RR' && ph) sum.push('SQL 표준은 REPEATABLE READ에서 Phantom Read가 생길 수 있다고 정의합니다. 하지만 MySQL InnoDB의 일반 SELECT는 스냅샷을 읽기 때문에 새 행이 보이지 않습니다. 이 실습은 InnoDB의 동작을 따랐습니다.');
     if (L === 'RR' && !ph && c.sc !== 'dirty') sum.push('락을 걸지 않고도 일관된 값을 읽을 수 있는 것은, 수정 전 값을 Undo 로그에 남겨 여러 버전을 유지하기 때문입니다(MVCC). 읽기와 쓰기가 서로를 막지 않습니다.');
     if (L === 'SER') sum.push('SERIALIZABLE은 모든 이상 현상을 막지만 조회에도 락을 걸어 다른 트랜잭션을 기다리게 합니다. 동시 처리량이 크게 떨어지고 교착 상태도 늘어나서 일반 서비스에서는 잘 쓰지 않습니다.');
-    if (L === 'RC' && c.sc === 'dirty') sum.push('READ COMMITTED 이상에서는 커밋된 값만 읽습니다. 수정 중인 행을 읽을 때도 락을 기다리지 않고 Undo 로그의 이전 버전을 읽습니다.');
+    if (L === 'RC' && c.sc === 'dirty') sum.push('READ COMMITTED부터는 커밋된 값만 읽습니다. READ COMMITTED와 REPEATABLE READ에서는 수정 중인 행을 읽을 때도 락을 기다리지 않고 Undo 로그의 이전 버전을 읽습니다.');
     return { events: ev, summary: sum, row: [first, second, anomaly, waited] };
   },
   render: function (v, sim, t, H, shown) {

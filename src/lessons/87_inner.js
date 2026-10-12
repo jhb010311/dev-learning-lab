@@ -9,7 +9,7 @@ Lab.register({
     { id: 'loc', label: '안에서 쓰는 지역 변수 count', type: 'select', value: 'keep', options: [['keep', '값을 바꾸지 않음'], ['change', '만든 뒤에 count = 2로 바꿈'], ['arr', '배열에 담아 두고 칸의 값만 바꿈']], show: function (c) { return c.kind === 'anon' || c.kind === 'lambda'; }, hint: '익명 클래스와 람다는 자기를 만든 메서드의 지역 변수를 안에서 쓸 수 있습니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', q: 'static 없는 인스턴스 내부 클래스인데 바깥 객체 없이 안쪽 객체만 만들면 어떻게 되나', d: '내부 클래스를 바깥 객체 없이 만들기. 컴파일 오류가 납니다.', v: { kind: 'inner', use: 'alone', loc: 'keep' } },
+    { t: '처음 설정으로', q: 'static 없는 인스턴스 내부 클래스인데 바깥 객체 없이 안쪽 객체만 만들면 어떻게 되나', d: '내부 클래스를 바깥 객체 없이 만들면 컴파일 오류가 납니다.', v: { kind: 'inner', use: 'alone', loc: 'keep' } },
     { t: '바깥 객체로 만들면', q: '바깥 객체를 만들고 안쪽에서 바깥 필드 name을 읽으면', d: '안쪽 객체가 바깥 객체를 따라가 필드를 읽습니다.', v: { kind: 'inner', use: 'field', loc: 'keep' } },
     { t: 'static 중첩 클래스', q: '인스턴스 내부 클래스 대신 static 중첩 클래스를 쓰면', d: '바깥 객체 없이 만들 수 있습니다.', v: { kind: 'nested', use: 'alone', loc: 'keep' } },
     { t: 'static 중첩 클래스에서 바깥 필드 읽기', q: '바깥 객체를 만들고 static 중첩 클래스 안에서 바깥 필드 name을 읽으면', d: '가리키는 바깥 객체가 없어 컴파일 오류가 납니다.', v: { kind: 'nested', use: 'field', loc: 'keep' } },

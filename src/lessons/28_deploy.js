@@ -17,7 +17,7 @@ Lab.register({
     { t: 'Graceful Shutdown이 없으면', q: 'Graceful Shutdown을 설정하지 않으면', d: '서버를 내릴 때 처리 중이던 요청이 끊깁니다.', v: { st: 'rolling', bug: false, grace: false } },
   ],
   code: function (c) {
-    var k = { recreate: 'strategy:\n  type: Recreate                # 기존 것을 모두 내린 뒤 새로 올림', rolling: 'strategy:\n  type: RollingUpdate\n  rollingUpdate:\n    maxUnavailable: 1           # 한 번에 1대까지만 내림\n    maxSurge: 0', bluegreen: '# 새 버전 Deployment(green)를 따로 띄운 뒤\n# Service의 selector를 version: v2 로 바꿔 한 번에 전환', canary: '# v2를 1대만 띄워 전체 요청의 25%만 받게 한 뒤\n# 오류율과 응답 시간을 지켜보고 나머지를 교체' }[c.st];
+    var k = { recreate: 'strategy:\n  type: Recreate                # 기존 것을 모두 내린 뒤 새로 올림', rolling: 'strategy:\n  type: RollingUpdate\n  rollingUpdate:\n    maxUnavailable: 1           # 한 번에 1대까지만 내림\n    maxSurge: 0', bluegreen: '# 새 버전 Deployment(green)를 따로 띄운 뒤\n# Service의 selector를 version: v2로 바꿔 한 번에 전환', canary: '# v2를 1대만 띄워 전체 요청의 25%만 받게 한 뒤\n# 오류율과 응답 시간을 지켜보고 나머지를 교체' }[c.st];
     return '# Kubernetes Deployment (replicas: 4)\n' + k + '\n\nreadinessProbe:                 # 준비됐을 때만 요청을 받음\n  httpGet: { path: /actuator/health/readiness, port: 8080 }\n\n# application.yml\nserver.shutdown: ' + (c.grace ? 'graceful         # 처리 중인 요청을 끝내고 종료' : 'immediate        # 즉시 종료') + (c.grace ? '\nspring.lifecycle.timeout-per-shutdown-phase: 30s' : '');
   },
   label: function (c) { return { recreate: '전부 내리고 올리기', rolling: '롤링', bluegreen: '블루-그린', canary: '카나리' }[c.st] + (c.bug ? ' · v2에 버그' : '') + (c.grace ? '' : ' · Graceful 없음'); },
@@ -39,16 +39,16 @@ Lab.register({
       var stopAt = c.bug ? 2 : 4;
       for (var r = 0; r < stopAt; r++) {
         stop(r); S[r] = '기동 중'; lb = '남은 서버 3대 (v1 ' + (3 - r) + ', v2 ' + r + ')'; push('서버 ' + (r + 1) + ': v2로 올리는 중입니다. 준비 상태 확인을 통과하기 전까지 요청을 받지 않습니다. 그동안 3대로 버팁니다.', '');
-        S[r] = 'v2'; lb = 'v1 ' + (3 - r) + '대, v2 ' + (r + 1) + '대'; push('서버 ' + (r + 1) + ': 준비 완료. 다시 요청을 받습니다. 지금은 v1과 v2가 함께 서비스 중이며 요청의 ' + (r + 1) * 25 + '%가 v2로 갑니다.', c.bug ? 'bad' : '');
+        S[r] = 'v2'; lb = 'v1 ' + (3 - r) + '대, v2 ' + (r + 1) + '대'; push('서버 ' + (r + 1) + ': 준비 완료. 다시 요청을 받습니다. ' + (r < 3 ? '지금은 v1과 v2가 함께 서비스 중이며 요청의 ' + (r + 1) * 25 + '%가 v2로 갑니다.' : '이제 모든 요청이 v2로 갑니다.'), c.bug ? 'bad' : '');
       }
       if (c.bug) { exposed = '최대 50%'; back = '바꾼 서버를 한 대씩 v1으로 다시 교체'; push('v2로 간 요청에서 오류가 늘어난 것을 발견했습니다. 배포를 멈춥니다. 이미 요청의 50%가 버그 있는 버전으로 가고 있었습니다.', 'bad'); S[0] = 'v1'; S[1] = 'v1'; lb = 'v1 서버 4대'; push('바꾼 2대를 다시 한 대씩 v1으로 되돌렸습니다. 되돌리는 데도 배포한 만큼 시간이 걸립니다.', ''); }
-      else push('4대 모두 v2가 됐습니다. 배포하는 동안 서비스는 끊기지 않았습니다.', 'good');
+      else push('4대 모두 v2가 됐습니다. ' + (c.grace ? '배포하는 동안 서비스는 끊기지 않았습니다.' : '서비스 전체가 멈춘 적은 없지만, 서버를 내릴 때마다 처리 중이던 요청이 끊겼습니다.'), 'good');
       sum.push('추가 서버 없이 무중단으로 배포합니다. 배포 중에는 처리 용량이 줄고, v1과 v2가 동시에 요청을 받으므로 DB 스키마나 API가 두 버전 모두와 호환돼야 합니다.');
     }
     if (c.st === 'bluegreen') {
       G = ['기동 중', '기동 중', '기동 중', '기동 중']; push('기존 v1 환경(블루)은 그대로 두고, 똑같은 규모의 v2 환경(그린)을 새로 띄웁니다. 아직 사용자 요청은 받지 않습니다.', '');
       G = ['v2', 'v2', 'v2', 'v2']; push('그린 4대가 준비됐습니다. 지금은 서버 8대가 떠 있습니다. 사용자에게 노출하기 전에 그린 환경에서 점검할 수 있습니다.', '');
-      lb = 'v2 서버 4대 (그린)'; if (!c.grace) cut += 8; push('로드밸런서의 대상을 블루에서 그린으로 한 번에 바꿉니다. 모든 요청이 v2로 갑니다.' + (c.grace ? ' 블루에서 처리 중이던 요청은 끝까지 처리됩니다.' : ' 블루를 바로 내려서 처리 중이던 요청 8건이 끊겼습니다.'), c.grace ? 'good' : 'bad');
+      lb = 'v2 서버 4대 (그린)'; if (!c.grace) cut += 8; push('로드밸런서의 대상을 블루에서 그린으로 한 번에 바꿉니다. 모든 요청이 v2로 갑니다.' + (c.grace ? ' 블루에서 처리 중이던 요청은 끝까지 처리됩니다.' : ' 블루로 가던 연결을 바로 끊어서 처리 중이던 요청 8건이 끊겼습니다.'), c.grace ? 'good' : 'bad');
       if (c.bug) { exposed = '100% (전환 직후부터 되돌릴 때까지)'; back = '로드밸런서를 블루로 다시 전환 (즉시)'; push('v2의 버그가 모든 사용자에게 드러납니다. 하지만 블루 환경이 그대로 살아 있습니다.', 'bad'); lb = 'v1 서버 4대 (블루)'; push('로드밸런서를 블루로 다시 돌립니다. 서버를 새로 띄울 필요가 없어 되돌리기가 즉시 끝납니다.', 'good'); G = ['없음', '없음', '없음', '없음']; }
       else { S = ['없음', '없음', '없음', '없음']; push('문제가 없음을 확인한 뒤 블루 환경을 내립니다.', ''); }
       sum.push('전환과 되돌리기가 한순간이고 두 버전이 섞여 서비스되는 시간이 없습니다. 대신 배포하는 동안 서버가 두 배로 필요하고, 전환 순간 전체 사용자가 새 버전을 쓰게 됩니다.');

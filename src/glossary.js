@@ -24,7 +24,7 @@
     { kb: '람다 표현식', w: ['람다'] }, { kb: '함수형 인터페이스' }, { kb: '메서드 참조' },
     { kb: 'Stream API', w: ['스트림'], only: ['stream', 'parstream'] },
     { kb: '지연 평가(Lazy Evaluation)', w: ['중간 연산', '최종 연산'] },
-    { kb: 'Optional' }, { kb: 'record' }, { kb: '리플렉션' }, { kb: '애노테이션' }, { kb: '직렬화와 역직렬화', w: ['직렬화', '역직렬화'] },
+    { kb: 'Optional' }, { kb: 'record' }, { kb: '리플렉션' }, { kb: '애너테이션' }, { kb: '직렬화와 역직렬화', w: ['직렬화', '역직렬화'] },
     // ── 자료구조
     { kb: 'ArrayList' }, { kb: 'LinkedList' }, { kb: 'LinkedList', w: ['연결 리스트'], only: ['list', 'sqh', 'cme', 'btree'] },
     { kb: '해시 테이블과 HashMap', w: ['HashMap', '해시 테이블'] },
