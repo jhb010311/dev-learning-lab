@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>조인: 조인은 무엇을 이어 붙이고, ON은 무엇을 정하는가 · 개발 학습 실습실</title>
+<meta name="description" content="조인은 두 테이블의 행을 옆으로 이어 붙이는 SELECT입니다. 이 실습의 orders 테이블에는 주문한 회원의 번호(member_id)만 적혀 있고 이름은 member 테이블에 있어서, 주문한 물건과 주문한 사람의 이름을 함께 보려면 두 테이블을 이어야 합니다. JOIN m…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/join_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/join_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/join_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="조인: 조인은 무엇을 이어 붙이고, ON은 무엇을 정하는가 · 개발 학습 실습실">
+<meta property="og:description" content="조인은 두 테이블의 행을 옆으로 이어 붙이는 SELECT입니다. 이 실습의 orders 테이블에는 주문한 회원의 번호(member_id)만 적혀 있고 이름은 member 테이블에 있어서, 주문한 물건과 주문한 사람의 이름을 함께 보려면 두 테이블을 이어야 합니다. JOIN m…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/join_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=5aa22ce6ef">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › DB</p>
+<h1>조인</h1>
+<p><b>조인은 무엇을 이어 붙이고, ON은 무엇을 정하는가</b></p>
+<p>조인은 두 테이블의 행을 옆으로 이어 붙이는 SELECT입니다. 이 실습의 orders 테이블에는 주문한 회원의 번호(member_id)만 적혀 있고 이름은 member 테이블에 있어서, 주문한 물건과 주문한 사람의 이름을 함께 보려면 두 테이블을 이어야 합니다. JOIN member m은 이어 붙일 테이블을 정하고, ON o.member_id = m.id는 &quot;어떤 행끼리 짝인지&quot;를 정합니다. DB는 주문 행마다 ON 조건이 맞는 회원 행을 찾아 한 줄로 붙입니다. 이 실습은 JOIN을 지우거나 ON 조건을 없애고, 짝이 없는 주문을 넣어 가며 같은 SQL을 실행해, 결과가 몇 줄이고 어떤 모양인지를 봅니다.</p>
+<p>실행으로 대조 · H2 2.4.240에서 여섯 가지 조합을 실행해 대조, 규칙은 MySQL 문서와 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>JOIN (INNER, OUTER)</dt>
+<dd>두 테이블의 행을 조건에 따라 결합하는 연산이다. INNER JOIN은 양쪽에서 조건이 맞는 행만 결과에 포함한다. LEFT OUTER JOIN은 왼쪽 테이블의 모든 행을 포함하고 오른쪽에 짝이 없으면 NULL로 채운다. 짝이 없는 데이터도 결과에 남겨야 하는지에 따라 선택한다.</dd>
+<dt>ON 조건</dt>
+<dd>JOIN으로 두 테이블을 이을 때, 어떤 행끼리 짝인지를 정하는 조건이다. JOIN member m ON o.member_id = m.id처럼 JOIN 뒤에 ON을 쓰고 조건식을 적으면, DB는 이 조건이 참이 되는 두 행을 짝으로 보고 한 줄로 붙인다. 조건식은 WHERE에 쓸 수 있는 것과 같은 모양이며, 보통 ON은 테이블을 어떻게 이을지를, WHERE는 결과에 넣을 행을 고르는 데 쓴다. ON에는 그 JOIN이 잇는 두 테이블의 열만 쓸 수 있다. 표준 SQL에서 ON이 없는 JOIN은 CROSS JOIN이라 하고, 이때는 짝을 가리지 않고 모든 행을 모든 행과 붙인다.</dd>
+<dt>테이블 별칭</dt>
+<dd>FROM 절에서 테이블에 붙이는 짧은 다른 이름이다. FROM orders o처럼 테이블 이름 뒤에 적거나 FROM orders AS o처럼 AS를 넣어 적으며, 두 방식은 같은 뜻이다. 별칭을 붙이면 SELECT나 ON에서 o.item, m.name처럼 &quot;어느 테이블의 열인지&quot;를 짧게 밝힐 수 있다. 두 테이블이 같은 이름의 열(예: id)을 가질 때는 별칭으로 어느 쪽인지 밝혀야 하는 경우가 많다. 컬럼 별칭(AS)은 열에 붙이는 이름이고, 테이블 별칭은 테이블에 붙이는 이름이다.</dd>
+<dt>카테시안 곱</dt>
+<dd>두 집합의 모든 조합을 만들어 내는 것이다. SQL에서 한 엔티티에 딸린 두 개의 컬렉션을 동시에 조인하면 결과 행 수가 두 컬렉션 크기의 곱으로 늘어난다. 불필요하게 많은 데이터가 전송되고 메모리를 차지하므로 여러 컬렉션을 한 번에 조인해 가져오는 것은 피한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 주문 행마다 ON 조건에 맞는 회원 행이 붙어, 물건과 회원의 이름이 한 줄에 나옵니다.</li>
+<li><b>JOIN을 지우고 orders만 읽으면</b> — 이름이 아니라 member_id 번호만 읽힙니다.</li>
+<li><b>ON 조건 없이 이으면</b> — 짝을 가리지 않고 모든 주문에 모든 회원이 붙습니다.</li>
+<li><b>짝이 되는 회원이 없는 주문이 있으면</b> — 회원이 없는 주문은 JOIN의 결과에 나오지 않습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>CREATE TABLE과 INSERT: DB가 member와 orders 두 테이블을 만들고 행을 넣습니다. member에는 회원 2명(id 1 김철수, id 2 이영희)이 있고, orders에는 주문 3개(10번 키보드, 11번 마우스, 12번 모니터)가 있습니다. orders에는 누가 주문했는지가 member_id 열의 번호로만 적혀 있습니다(주문 10의 member_id는 1). 그 번호에 해당하는 이름은 member 테이블에만 있습니다.</li>
+<li>SELECT o.item, m.name FROM orders o JOIN member m ON o.member_id = m.id: 주문한 물건과 회원의 이름을 함께 읽는 SELECT입니다. FROM orders o는 orders 테이블을 읽는다는 뜻(o는 orders의 짧은 이름)이고, JOIN member m은 member 테이블(m은 member의 짧은 이름)을 이어 붙인다는 뜻이며, ON o.member_id = m.id는 주문 행의 member_id와 회원 행의 id가 같은 행끼리 짝이라는 뜻입니다. 결과가 만들어지는 원리를 순서대로 풀어 쓰면, DB가 orders의 행마다 ON 조건에 맞는 member의 행을 찾아 옆으로 붙입니다. 실제로 DB가 어느 테이블부터 어떤 방법으로 찾는지는 DB가 정합니다.</li>
+<li>DB가 orders에서 먼저 주문 10 행(member_id 1, 키보드)을 봅니다. ON 조건 o.member_id = m.id에 맞는 member의 행을 찾습니다. 이 주문의 member_id가 1이므로 id가 1인 행, 김철수 행이 짝입니다.</li>
+<li>DB가 주문 10 행과 김철수 행을 옆으로 붙입니다. 붙인 행에서 SELECT에 적은 o.item(키보드)과 m.name(김철수)을 꺼내 &quot;키보드, 김철수&quot; 한 줄을 결과에 넣습니다. orders에는 없던 이름이 같은 줄에 나왔습니다. 이것이 조인입니다.</li>
+<li>DB가 주문 11 행(member_id 1, 마우스)의 짝으로 id가 1인 김철수 행을 찾아 붙이고, &quot;마우스, 김철수&quot; 한 줄을 결과에 넣습니다. 앞의 주문에도 같은 김철수 행이 붙었습니다. 회원 한 행이 여러 주문에 붙을 수 있습니다.</li>
+<li>DB가 주문 12 행(member_id 2, 모니터)의 짝으로 id가 2인 이영희 행을 찾아 붙이고, &quot;모니터, 이영희&quot; 한 줄을 결과에 넣습니다.</li>
+<li>SELECT의 결과: orders의 행을 모두 보았습니다. 결과는 3행입니다. 주문 3개마다 한 줄씩 만들어졌습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>조인은 두 테이블의 행을 옆으로 이어 붙이는 것입니다. JOIN은 이어 붙일 테이블을, ON은 어떤 행끼리 짝인지를 정하고, DB는 주문 행마다 ON 조건이 맞는 회원 행을 찾아 한 줄로 붙였습니다. 그래서 주문한 물건과 회원의 이름이 한 줄에 나왔습니다.</li>
+<li>주문 3개가 결과 3행이 되었습니다. 김철수 행은 주문 두 개에 붙었는데, ON 조건에 맞는 행이 여러 주문에 붙을 수 있기 때문입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>CREATE TABLE member (id INT PRIMARY KEY, name VARCHAR(20));
+CREATE TABLE orders (id INT PRIMARY KEY, member_id INT, item VARCHAR(20));
+INSERT INTO member VALUES (1, '김철수'), (2, '이영희');
+INSERT INTO orders VALUES (10, 1, '키보드'), (11, 1, '마우스'),
+    (12, 2, '모니터');
+
+-- 조인: orders의 행에 member의 행을 옆으로 붙인다
+SELECT o.item, m.name
+FROM orders o
+-- ON: member_id가 회원의 id와 같은 행끼리 짝이다
+JOIN member m ON o.member_id = m.id
+ORDER BY o.id;</pre>
+<h2>이 모형의 전제</h2>
+<p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했습니다. 여섯 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 글자 그대로 문장 하나씩 실행해서, SELECT가 돌려준 행 수와 모든 행의 값(item과 name 또는 member_id)을 모형과 대조했습니다. 결과가 네 행을 넘으면 앞의 네 행과 모두 몇 행인지로 줄여 적었고, 대조할 때도 같은 규칙을 썼습니다. 이 밖에 단계 문장이 기대는 값도 H2에서 따로 확인했습니다: orders의 행 수, member에 id가 9인 회원이 없다는 것, 짝이 되는 회원의 id, 그리고 ON 없는 CROSS JOIN의 행 수가 두 테이블의 행 수를 곱한 수라는 것입니다. 정의와 규칙은 MySQL 8.4 문서를 열어 확인했습니다. 15.2.13.2절 JOIN Clause에서 MySQL은 JOIN, CROSS JOIN, INNER JOIN을 서로 바꿔 쓸 수 있는 같은 것으로 보고(표준 SQL은 ON이 있으면 INNER JOIN, 없으면 CROSS JOIN), 조건이 없으면 두 테이블의 카테시안 곱이 만들어지며, ON 조건은 WHERE에 쓸 수 있는 조건식이고 보통 테이블을 어떻게 이을지를 정하는 데 쓴다고 합니다. 테이블 별칭은 같은 절과 15.2.13절 SELECT 문의 FROM 설명(tbl_name AS alias_name 또는 tbl_name alias_name)을 따랐습니다. 다만 두 문서는 짝이 없는 행이 INNER JOIN 결과에 나오지 않는다고 따로 적어 두지는 않아서, 이 동작은 H2의 실행으로 확인한 것입니다. 문서는 웹 페이지를 요약해 주는 도구로 열었고 원문을 한 글자씩 확인한 것은 아닙니다. MySQL에서의 실행 대조는 하지 않았습니다. 단계 문장은 결과가 만들어지는 원리를 순서대로 풀어 쓴 것입니다. 실제로 DB가 어느 테이블부터 읽고 어떤 방법으로 짝을 찾는지는 DB가 정하며, 결과의 줄 순서는 화면의 ORDER BY가 정합니다. 짝이 없는 행도 남기는 LEFT JOIN은 다루지 않으며, 공부 쪽 실습 &quot;JOIN과 GROUP BY&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/where_basic/">WHERE</a> · 다음 실습: <a href="../../lab/http_basic/">HTTP 요청</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=5aa22ce6ef"></script>
+</body>
+</html>

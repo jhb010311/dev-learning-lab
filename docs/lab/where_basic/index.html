@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=8e441c75a7">
+<link rel="stylesheet" href="../../app.css?v=5aa22ce6ef">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -80,7 +80,7 @@ UPDATE member SET name = '탈퇴' WHERE id = 2;
 SELECT * FROM member ORDER BY id;</pre>
 <h2>이 모형의 전제</h2>
 <p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했습니다. 열두 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 글자 그대로 한 문장씩 실행해서, 문장이 적용된 행의 수와 어느 행인지(UPDATE는 이름이 바뀐 행, DELETE는 사라진 행, SELECT는 읽힌 행), 오류가 났는지, 마지막 SELECT의 결과를 모형과 대조했습니다. 맞는 행이 없는 조건(WHERE id = 9)과 WHERE가 없는 UPDATE·DELETE가 H2에서 오류 없이 끝난다는 것, WHERE 없는 DELETE 뒤에도 테이블이 남아 마지막 SELECT가 빈 결과를 돌려준다는 것은 이 실행에서 확인했습니다. 규칙은 MySQL 8.4 문서의 UPDATE 문(15.2.17절: WHERE가 있으면 조건에 맞는 행만 고치고 없으면 모든 행을 고친다), DELETE 문(15.2.2절: WHERE가 없으면 모든 행을 지운다), SELECT 문(15.2.13절: WHERE가 없으면 모든 행을 선택한다)을 직접 열어 확인했습니다. 또 MySQL에는 WHERE를 잊은 UPDATE와 DELETE를 막는 safe-updates 모드가 있다는 것을 MySQL 문서(mysql 클라이언트 팁의 Using Safe-Updates Mode)에서 확인했습니다. 이 모드를 켜면 WHERE에 키 조건이 없는 UPDATE와 DELETE는 오류가 나는데, 이 실습은 그 모드를 다루지 않습니다. MySQL에서의 실행 대조는 하지 않았습니다. 그래서 위 규칙은 문서와 H2 실행이 일치한다는 근거이고, MySQL이 같은 SQL에서 같은 결과를 내는지는 실행으로 확인하지 않았습니다. 화면은 DB가 행을 하나씩 보며 조건을 확인하는 모습으로 그렸습니다. 실제 DB는 인덱스를 쓰는 등 구현에 따라 다른 방법으로 맞는 행을 찾을 수 있으며, 실행으로 확인한 것은 어느 행에 문장이 적용되었는가이지 확인 순서가 아닙니다. 문장이 돌려주는 &quot;적용된 행 수&quot;는 이 실습의 UPDATE에서 맞은 행의 이름이 모두 이전과 달라 맞은 행 수와 바뀐 행 수가 같았습니다. 새 값이 이미 같은 행을 DB가 어떻게 세는지는 DB와 드라이버 설정에 따라 다를 수 있어 다루지 않았습니다. 조건은 같음(=) 비교 하나만 다루며, AND·OR, 범위, LIKE, NULL 비교는 다루지 않습니다.</p>
-<p>앞 실습: <a href="../../lab/fk_basic/">외래 키</a> · 다음 실습: <a href="../../lab/http_basic/">HTTP 요청</a></p>
+<p>앞 실습: <a href="../../lab/fk_basic/">외래 키</a> · 다음 실습: <a href="../../lab/join_basic/">조인</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -166,6 +166,6 @@ SELECT * FROM member ORDER BY id;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=8e441c75a7"></script>
+<script src="../../app.js?v=5aa22ce6ef"></script>
 </body>
 </html>
