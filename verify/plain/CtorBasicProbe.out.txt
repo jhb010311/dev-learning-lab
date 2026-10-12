@@ -1,0 +1,14 @@
+# java 21.0.12.1
+false|name|false => ERR|compiler.err.cant.apply.symbol|1|false|false|-|0|constructor Card in class Card cannot be applied to given types; ##   required: no arguments ##   found:    java.lang.String ##   reason: actual and formal argument lists differ in length|Card a = new Card("김철수");
+false|name|true => ERR|compiler.err.cant.apply.symbol|2|false|false|-|0|constructor Card in class Card cannot be applied to given types; ##   required: no arguments ##   found:    java.lang.String ##   reason: actual and formal argument lists differ in length|Card a = new Card("김철수"); ## Card b = new Card("이영희");
+false|empty|false => OK|-|0|true|true|null|0|-|-
+false|empty|true => OK|-|0|true|true|null ## null|0|-|-
+true|name|false => OK|-|0|true|true|생성자 실행 ## 김철수|1|-|-
+true|name|true => OK|-|0|true|true|생성자 실행 ## 김철수 ## 생성자 실행 ## 이영희|2|-|-
+true|empty|false => ERR|compiler.err.cant.apply.symbol|1|false|false|-|0|constructor Card in class Card cannot be applied to given types; ##   required: java.lang.String ##   found:    no arguments ##   reason: actual and formal argument lists differ in length|Card a = new Card();
+true|empty|true => ERR|compiler.err.cant.apply.symbol|2|false|false|-|0|constructor Card in class Card cannot be applied to given types; ##   required: java.lang.String ##   found:    no arguments ##   reason: actual and formal argument lists differ in length|Card a = new Card(); ## Card b = new Card();
+@기본 생성자(생성자를 적지 않은 Card) => 개수 1|매개변수 0|접근 |
+@값을 받는 생성자를 적은 Card => 개수 1|매개변수 1|
+@생성자 실행 순서 => new 전 ## 시작할 때 this.owner=null, 매개변수 owner=김철수 ## 끝날 때 this.owner=김철수 ## new 후 a.owner=김철수|
+@이름으로 부르기 a.Card("이영희"); => ERR|compiler.err.cant.resolve.location.args|cannot find symbol ##   symbol:   method Card(java.lang.String) ##   location: variable a of type Card|
+@이름으로 부르기 Card("이영희"); => ERR|compiler.err.cant.resolve.location.args|cannot find symbol ##   symbol:   method Card(java.lang.String) ##   location: class Main|

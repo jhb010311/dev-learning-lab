@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>static: static은 무엇이고, 붙이면 무엇이 달라지는가 · 개발 학습 실습실</title>
+<meta name="description" content="static은 필드(클래스 안에 선언한 변수) 앞에 붙이는 키워드입니다. static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/static_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/static_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/static_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="static: static은 무엇이고, 붙이면 무엇이 달라지는가 · 개발 학습 실습실">
+<meta property="og:description" content="static은 필드(클래스 안에 선언한 변수) 앞에 붙이는 키워드입니다. static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/static_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=eb276d271a">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › Java</p>
+<h1>static</h1>
+<p><b>static은 무엇이고, 붙이면 무엇이 달라지는가</b></p>
+<p>static은 필드(클래스 안에 선언한 변수) 앞에 붙이는 키워드입니다. static이 없는 필드는 객체를 만들 때마다 그 객체 안에 따로 하나씩 생깁니다. static을 붙이면 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 씁니다. 그래서 static인 필드는 객체 없이 Counter.count처럼 클래스 이름으로 쓸 수 있고, static이 아닌 필드는 &quot;어느 객체의 것인지&quot;가 있어야 해서 클래스 이름만으로는 쓸 수 없습니다. 이 실습은 count 앞의 static을 붙였다 떼고 읽는 방법도 바꿔 가며 같은 코드를 컴파일하고 실행해, 컴파일러가 무엇을 알려 주고 무엇이 출력되는지, count가 어디에 있는지를 봅니다.</p>
+<p>실행으로 대조 · JDK 21에서 네 가지 조합을 javax.tools로 컴파일하고 실행해 대조, count가 있는 곳은 읽는 줄만 a.count와 b.count로 바꾼 소스를 실행해 실측</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>static</dt>
+<dd>인스턴스가 아니라 클래스에 속하는 멤버임을 나타내는 키워드다. static 필드는 클래스당 하나만 존재해 모든 인스턴스가 공유하고, static 메서드는 객체를 만들지 않고 호출한다. 값이 바뀌는 static 필드는 사실상 전역 변수이므로 여러 스레드가 동시에 접근할 때 문제가 되기 쉽다.</dd>
+<dt>필드</dt>
+<dd>필드는 클래스 안에 선언해 두는 변수이다. class Card { String owner; }에서 owner가 String 타입의 필드이다. static을 붙이지 않은 필드는 인스턴스 변수라고도 부르며, 그 클래스의 객체가 새로 만들어질 때마다 객체마다 따로 하나씩 생긴다. 그래서 같은 클래스에서 만든 객체라도 필드의 값은 서로 다를 수 있다. 값을 따로 주지 않으면 필드에는 기본값이 들어가고, 참조 타입의 필드는 null이다.</dd>
+<dt>인스턴스 필드와 static 필드</dt>
+<dd>static을 붙이지 않은 필드는 인스턴스 필드이고, 그 클래스의 객체를 새로 만들 때마다 객체 안에 그 필드의 변수가 하나씩 따로 생긴다. static을 붙인 필드는 객체를 몇 개 만들든(하나도 만들지 않아도) 변수가 정확히 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 쓴다. static 필드는 Counter.count처럼 클래스 이름으로 쓸 수 있고, 어느 객체의 것인지 정해야 하는 인스턴스 필드를 클래스 이름으로 쓰면 컴파일 오류이다. static 필드를 a.count처럼 객체로 읽어도 컴파일되며 읽는 것은 객체 안의 칸이 아니라 클래스에 하나뿐인 변수이다.</dd>
+<dt>클래스와 객체</dt>
+<dd>클래스는 어떤 필드(데이터)와 메서드(동작)를 가질지 적어 둔 설계도이고, 객체는 그 설계도로 new를 해서 메모리(힙)에 실제로 만든 것이다. 객체를 인스턴스라고도 부른다. 클래스 하나로 객체를 여러 개 만들 수 있고, 객체마다 필드 값을 따로 가진다. 변수에는 객체 자체가 아니라 객체가 있는 곳을 가리키는 참조가 담긴다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — count 앞에 static이 있고 클래스 이름으로 읽습니다. 컴파일에 성공하고 2가 출력됩니다.</li>
+<li><b>static을 지우고 a.count로 읽으면</b> — count가 객체마다 따로 있어서 a의 count만 1입니다. 컴파일에 성공하고 1이 출력됩니다.</li>
+<li><b>static을 지우고 Counter.count로 읽으면</b> — 클래스 이름만으로는 어느 객체의 count인지 정할 수 없어 컴파일 오류가 납니다.</li>
+<li><b>static을 둔 채 a.count로 읽으면</b> — 객체 a로 읽어도 읽는 것은 클래스에 하나뿐인 count입니다. 컴파일에 성공하고 2가 출력됩니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>컴파일러가 소스를 위에서부터 읽습니다. 먼저 Counter 클래스의 count 선언을 읽습니다. count 앞에 static이 있으므로, count는 객체마다 생기는 것이 아니라 Counter 클래스에 하나만 있는 변수로 정해집니다.</li>
+<li>컴파일러가 main 안의 System.out.println(Counter.count); 줄을 확인합니다. Counter.count는 클래스 이름으로 count를 가리킵니다. count가 static이어서 Counter 클래스에 하나 있으므로, 객체 없이도 가리킬 수 있습니다. 오류가 아닙니다.</li>
+<li>컴파일이 성공해 실행할 Main 클래스 파일이 만들어집니다.</li>
+<li>java Main으로 실행합니다. main이 시작되고, 첫 new Counter()가 Counter 객체를 만들어 변수 a에 담습니다. count는 static이어서 이 객체 안에는 count 칸이 생기지 않습니다. Counter 클래스에 count 칸이 하나 있고 값은 0입니다.</li>
+<li>두 번째 new Counter()가 Counter 객체를 하나 더 만들어 변수 b에 담습니다. 객체는 둘이 되었지만 count 칸은 새로 생기지 않았습니다. 여전히 Counter 클래스에 하나뿐입니다.</li>
+<li>a.up() 호출이 실행됩니다. up 메서드의 count = count + 1; 은 count를 읽어 1을 더해 다시 담습니다. 이 count는 Counter 클래스에 하나뿐인 칸이어서, 그 칸의 값이 0에서 1이 됩니다. 객체 b를 거쳐 읽어도 지금 이 칸의 값은 1입니다.</li>
+<li>b.up() 호출이 실행됩니다. 같은 count = count + 1; 입니다. b의 up도 같은 하나뿐인 칸을 올리므로, 값이 1에서 2가 됩니다. a가 올린 것 위에 b가 더한 것입니다.</li>
+<li>System.out.println(Counter.count); 줄이 실행됩니다. Counter.count는 Counter 클래스에 하나 있는 count이고, 그 값 2이 출력됩니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>static 필드는 필드 앞에 static을 붙인 것입니다. 일반 필드와 다른 곳은 객체마다가 아니라 클래스에 하나만 있고, 그 클래스의 모든 객체가 그 하나를 같이 쓴다는 것입니다. a와 b가 up()을 한 번씩 불러 count가 2가 된 것은, 둘이 같은 count를 올렸기 때문입니다.</li>
+<li>static이어서 Counter.count처럼 객체 없이 클래스 이름으로 읽을 수 있었습니다. static이 없는 필드는 객체마다 따로 있어서, 클래스 이름만으로는 어느 객체의 것인지 정할 수 없습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>class Counter {
+    // static: 객체마다가 아니라 Counter 클래스에 하나만 있다
+    static int count = 0;
+    void up() {
+        count = count + 1;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Counter a = new Counter();
+        Counter b = new Counter();
+        a.up();
+        b.up();
+        System.out.println(Counter.count);
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 네 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.non-static.cant.be.ref를 화면의 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력입니다. &quot;count가 있는 곳&quot; 열은 같은 선언에서 읽는 줄만 a.count와 b.count를 각각 출력하도록 바꾼 소스를 따로 컴파일해 실행한 값으로 확인했습니다(static이 있으면 2와 2, 없으면 1과 1). 컴파일 오류가 나는 조합에서도 읽는 줄만 바꾼 소스는 컴파일되어 실행됩니다. 단계 문장이 기대는 사실인 a.up() 직후의 값(static이면 a.count와 b.count가 1과 1, 아니면 1과 0)도 따로 실행해 확인했습니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. static 필드는 객체를 몇 개 만들든 변수가 정확히 하나라는 것과 static이 아닌 필드는 객체를 만들 때마다 그 객체의 변수가 생긴다는 것은 8.3.1.1절을, 객체로 static 필드를 읽으면 그 식은 계산하고 결과는 버리며 필드의 값이 쓰인다는 것은 15.11.1절을, 클래스 이름으로 static이 아닌 필드를 쓰면 컴파일 오류라는 것은 6.5.6.2절을 따랐습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. a.count처럼 객체로 static 필드를 읽을 때 이 javac는 기본 설정에서 경고를 내지 않았고, -Xlint:all 옵션을 주면 그 줄에 &quot;static variable should be qualified by type name, Counter, instead of by an expression&quot;라는 경고 하나를 냈습니다. 경고는 명세가 정한 것이 아니라 이 javac의 동작입니다. static은 이 밖에도 메서드와 초기화 블록에 붙일 수 있고, static 메서드 안에서는 대상 객체가 없어 static이 아닌 필드를 이름만으로 쓸 수 없는데, 이 실습은 static 필드만 다뤘습니다. static 필드의 값이 정해지는 시점이나 여러 스레드가 함께 고칠 때의 문제도 다루지 않았습니다. static 메서드와 static이 아닌 멤버의 관계는 &quot;세부 동작 실습: static과 인스턴스&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/ctor_basic/">생성자</a> · 다음 실습: <a href="../../lab/inherit_basic/">상속</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=eb276d271a"></script>
+</body>
+</html>

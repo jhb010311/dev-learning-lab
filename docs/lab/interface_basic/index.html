@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=04d9f35c6d">
+<link rel="stylesheet" href="../../app.css?v=eb276d271a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -90,7 +90,7 @@ public class Main {
 }</pre>
 <h2>이 모형의 전제</h2>
 <p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.cant.resolve, cant.resolve.location, prob.found.req, does.not.override.abstract를 화면의 세 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력입니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 본문 없이 세미콜론으로 끝나는 인터페이스 메서드가 추상 메서드이고 public이라는 것은 9.4절, 추상 클래스가 아닌 클래스는 implements한 인터페이스의 추상 메서드를 모두 구현해야 한다는 것은 8.1.5절과 8.1.1.1절, 메서드 본문이 세미콜론이 아니라 블록이면 구현이고 블록이 비어 있어도 되는 것은 8.4.7절과 8.1.1.1절의 예(alert() { })를, 인터페이스와 클래스가 모두 참조 타입이고 implements한 인터페이스가 클래스의 상위 타입이라는 것은 4.3절과 4.10.2절, 하위 타입의 값을 상위 타입 변수에 담을 수 있다는 것은 5.1.5절과 5.2절을 따랐습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 오류가 여럿이면 javac는 모두 알리는데, 표에는 첫 번째 것만 적었습니다. 컴파일에 실패해도 Card 같은 일부 클래스 파일은 만들어졌지만 Main 클래스 파일은 한 번도 만들어지지 않았고, 그래서 실행할 수 없다고 적었습니다. 인터페이스는 이 밖에도 default 메서드, static 메서드, 상수를 가질 수 있고 한 클래스가 여러 인터페이스를 implements할 수 있지만 이 실습은 다루지 않았습니다. 인터페이스의 쓰임과 추상 클래스와의 차이는 &quot;세부 동작 실습: 인터페이스와 추상 클래스&quot;에서 다룹니다.</p>
-<p>앞 실습: <a href="../../lab/ref_basic/">참조</a> · 다음 실습: <a href="../../lab/servlet_basic/">서블릿</a></p>
+<p>앞 실습: <a href="../../lab/inherit_basic/">상속</a> · 다음 실습: <a href="../../lab/exception_basic/">예외</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -176,6 +176,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=04d9f35c6d"></script>
+<script src="../../app.js?v=eb276d271a"></script>
 </body>
 </html>

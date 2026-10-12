@@ -1,0 +1,12 @@
+# java 21.0.12.1
+false|false|dog => ERR|compiler.err.cant.resolve.location.args|1|false|false|-|cannot find symbol|d.eat();
+false|false|animal => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Dog cannot be converted to Animal|Animal d = new Dog();
+false|true|dog => OK|-|0|true|true|개가 먹는다 / 멍멍|-|-
+false|true|animal => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Dog cannot be converted to Animal|Animal d = new Dog();
+true|false|dog => OK|-|0|true|true|먹는다 / 멍멍|-|-
+true|false|animal => OK|-|0|true|true|먹는다|-|-
+true|true|dog => OK|-|0|true|true|개가 먹는다 / 멍멍|-|-
+true|true|animal => OK|-|0|true|true|개가 먹는다|-|-
+FACT animal_var_bark => ERR|compiler.err.cant.resolve.location.args|1|false|false|-|cannot find symbol|d.bark();
+FACT animal_object_eat => OK|-|0|true|true|먹는다|-|-
+FACT dog_bark_alone => OK|-|0|true|true|멍멍|-|-

@@ -1,0 +1,9 @@
+# java 21.0.12.1
+false|zero|arith => OK|0|1|(없음)|Exception in thread "main" java.lang.ArithmeticException: / by zero|2|0
+false|zero|npe => OK|0|1|(없음)|Exception in thread "main" java.lang.ArithmeticException: / by zero|2|0
+false|two|arith => OK|0|0|5 / 끝|-|0|2
+false|two|npe => OK|0|0|5 / 끝|-|0|2
+true|zero|arith => OK|0|0|0으로 나눌 수 없습니다 / 끝|-|0|2
+true|zero|npe => OK|0|1|(없음)|Exception in thread "main" java.lang.ArithmeticException: / by zero|2|0
+true|two|arith => OK|0|0|5 / 끝|-|0|2
+true|two|npe => OK|0|0|5 / 끝|-|0|2

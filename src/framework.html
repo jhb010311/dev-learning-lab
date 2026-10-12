@@ -503,7 +503,7 @@ var Lab = (function () {
       while (s < X.length - p && s < Y.length - p && X[X.length - 1 - s] === Y[Y.length - 1 - s]) s++;
       var head = X.slice(0, p).join(''), tail = Y.slice(Y.length - s).join(''), gone = X.slice(p, X.length - s).join(''), came = Y.slice(p, Y.length - s).join('');
       if ((head + tail).trim().length < Math.max(x.trim().length, y.trim().length) * 0.4) return null;
-      return highlight(head) + (gone.trim() ? '<s>' + highlight(gone) + '</s>' : '') + (came.trim() ? '<mark>' + highlight(came) + '</mark>' : '') + highlight(tail);
+      return highlight(head) + (gone.trim() ? '<s>' + highlight(gone) + '</s>' : '') + (came.trim() ? '<mark>' + highlight(came) + '</mark>' : esc(came)) + highlight(tail);
     }
     function line(cls, html) { return '<span class="ln' + (cls ? ' ' + cls : '') + '">' + html + '\n</span>'; }
     var out = '';

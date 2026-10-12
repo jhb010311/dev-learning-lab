@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=04d9f35c6d">
+<link rel="stylesheet" href="../../app.css?v=eb276d271a">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -84,7 +84,7 @@ public class Main {
 }</pre>
 <h2>이 모형의 전제</h2>
 <p>실행 환경은 JDK 21.0.12.1(javac 21)입니다. 네 가지 조합을 모두, 화면의 코드와 같은 소스를 javax.tools로 컴파일해 새 클래스 로더로 읽어 Main.main을 실행하고, 표준 출력을 잡은 결과와 대조했습니다. 대조할 때 Probe의 소스에는 Card 객체를 세는 줄(static 변수와 생성자의 증가, 그리고 몇 줄의 출력)만 더했고, 그 줄을 빼면 화면의 코드와 줄 단위로 같은 글임을 조합마다 확인했습니다. 대조한 것은 두 출력 줄, 만들어진 Card 객체의 수, 그리고 단계 문장이 기대는 사실입니다. 사실은 Card b = ...; 줄을 실행한 직후(new Card()를 담은 조합은 owner를 옮겨 담은 직후)의 객체 수, a == b의 값, 두 변수가 가리키는 객체의 owner 값과 그 두 값이 같은지입니다. 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 객체를 가리키는 참조 값이 있다는 것, 두 변수가 같은 객체를 가리키면 한 변수로 바꾼 상태를 다른 변수로 읽을 수 있다는 것, int 값은 대입하면 복사되어 둘이 따로라는 것은 4.2절과 4.3.1절(예제 4.3.1-2)을, 기본 타입 변수는 그 기본 타입의 값을 담고 클래스 타입 변수는 null이나 그 클래스의 객체에 대한 참조를 담는다는 것은 4.12.1절과 4.12.2절을, 참조에 쓴 ==가 둘 다 null이거나 같은 객체를 가리킬 때 true라는 것은 15.21.3절을 따랐습니다. int 변수의 ==가 값을 비교한다는 것(15.21.1절)은 문서를 열어 확인하지 않았고, 이 실행의 결과로만 확인했습니다. 화면은 owner의 글 김철수와 이영희를 객체 안에 들어 있는 값처럼 그렸지만, owner도 String 객체를 가리키는 참조입니다. 이 실습은 그 차이를 다루지 않고, 문자열 상수가 같은 객체를 가리키게 되는 일도 다루지 않았습니다. 객체의 내용이 같은지를 묻는 equals는 &quot;세부 동작 실습: ==와 equals&quot;에서 다룹니다. 변수와 객체가 메모리의 어디에 놓이는지는 이 실습이 다루거나 확인한 것이 아닙니다. 이 실습에서 본 것은 변수에 담긴 값이 객체를 가리키고, 대입하면 그 값이 복사된다는 동작입니다.</p>
-<p>앞 실습: <a href="../../lab/class_basic/">클래스와 객체</a> · 다음 실습: <a href="../../lab/interface_basic/">인터페이스</a></p>
+<p>앞 실습: <a href="../../lab/class_basic/">클래스와 객체</a> · 다음 실습: <a href="../../lab/ctor_basic/">생성자</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -170,6 +170,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=04d9f35c6d"></script>
+<script src="../../app.js?v=eb276d271a"></script>
 </body>
 </html>

@@ -1,0 +1,15 @@
+# java 21.0.12.1
+false|cls => ERR|compiler.err.non-static.cant.be.ref|1|false|false|-|non-static variable count cannot be referenced from a static context|System.out.println(Counter.count);
+false|obj => OK|-|0|true|true|1|-|-
+true|cls => OK|-|0|true|true|2|-|-
+true|obj => OK|-|0|true|true|2|-|-
+SHARE false|cls => 1 1
+SHARE false|obj => 1 1
+SHARE true|cls => 2 2
+SHARE true|obj => 2 2
+MID false => 1 0 / 1
+MID true => 1 1 / 2
+LINT false|cls => 기본 0개 | -Xlint:all 0개 | (없음)
+LINT false|obj => 기본 0개 | -Xlint:all 0개 | (없음)
+LINT true|cls => 기본 0개 | -Xlint:all 0개 | (없음)
+LINT true|obj => 기본 0개 | -Xlint:all 1개 | compiler.warn.static.not.qualified.by.type: static variable should be qualified by type name, Counter, instead of by an expression @15
