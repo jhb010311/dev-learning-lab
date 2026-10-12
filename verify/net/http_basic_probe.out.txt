@@ -1,0 +1,37 @@
+# node v24.18.0 · 127.0.0.1 · net.connect로 글자 그대로 전송 · 응답 없음 기준: 1500ms 동안 0바이트
+ok|true|true => status=HTTP/1.1 200 OK|body=안녕하세요|called=true|req=GET /hello|answered=true|clientError=(없음)|hostOff=GET /hello
+ok|true|false => status=(없음)|body=|called=false|req=(없음)|answered=false|clientError=(없음)|hostOff=(없음)
+ok|false|true => status=HTTP/1.1 400 Bad Request|body=|called=false|req=(없음)|answered=true|clientError=(없음)|hostOff=GET /hello
+ok|false|false => status=(없음)|body=|called=false|req=(없음)|answered=false|clientError=(없음)|hostOff=(없음)
+nopath|true|true => status=HTTP/1.1 404 Not Found|body=|called=true|req=GET /nothing|answered=true|clientError=(없음)|hostOff=GET /nothing
+nopath|true|false => status=(없음)|body=|called=false|req=(없음)|answered=false|clientError=(없음)|hostOff=(없음)
+nopath|false|true => status=HTTP/1.1 400 Bad Request|body=|called=false|req=(없음)|answered=true|clientError=(없음)|hostOff=GET /nothing
+nopath|false|false => status=(없음)|body=|called=false|req=(없음)|answered=false|clientError=(없음)|hostOff=(없음)
+broken|true|true => status=HTTP/1.1 400 Bad Request|body=|called=false|req=(없음)|answered=true|clientError=HPE_INVALID_METHOD|hostOff=(없음)
+broken|true|false => status=HTTP/1.1 400 Bad Request|body=|called=false|req=(없음)|answered=true|clientError=HPE_INVALID_METHOD|hostOff=(없음)
+broken|false|true => status=HTTP/1.1 400 Bad Request|body=|called=false|req=(없음)|answered=true|clientError=HPE_INVALID_METHOD|hostOff=(없음)
+broken|false|false => status=HTTP/1.1 400 Bad Request|body=|called=false|req=(없음)|answered=true|clientError=HPE_INVALID_METHOD|hostOff=(없음)
+# 보낸 글 ok|true|true = "GET /hello HTTP/1.1\r\nHost: localhost:8080\r\n\r\n"
+# 받은 글 ok|true|true = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nDate: Mon, 12 Oct 2026 10:53:29 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\nf\r\n안녕하세요\r\n0\r\n\r\n"
+# 보낸 글 ok|true|false = "GET /hello HTTP/1.1\r\nHost: localhost:8080\r\n"
+# 받은 글 ok|true|false = ""
+# 보낸 글 ok|false|true = "GET /hello HTTP/1.1\r\n\r\n"
+# 받은 글 ok|false|true = "HTTP/1.1 400 Bad Request\r\nConnection: close\r\nDate: Mon, 12 Oct 2026 10:53:33 GMT\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n"
+# 보낸 글 ok|false|false = "GET /hello HTTP/1.1\r\n"
+# 받은 글 ok|false|false = ""
+# 보낸 글 nopath|true|true = "GET /nothing HTTP/1.1\r\nHost: localhost:8080\r\n\r\n"
+# 받은 글 nopath|true|true = "HTTP/1.1 404 Not Found\r\nDate: Mon, 12 Oct 2026 10:53:36 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n"
+# 보낸 글 nopath|true|false = "GET /nothing HTTP/1.1\r\nHost: localhost:8080\r\n"
+# 받은 글 nopath|true|false = ""
+# 보낸 글 nopath|false|true = "GET /nothing HTTP/1.1\r\n\r\n"
+# 받은 글 nopath|false|true = "HTTP/1.1 400 Bad Request\r\nConnection: close\r\nDate: Mon, 12 Oct 2026 10:53:40 GMT\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n"
+# 보낸 글 nopath|false|false = "GET /nothing HTTP/1.1\r\n"
+# 받은 글 nopath|false|false = ""
+# 보낸 글 broken|true|true = "/hello\r\nHost: localhost:8080\r\n\r\n"
+# 받은 글 broken|true|true = "HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n"
+# 보낸 글 broken|true|false = "/hello\r\nHost: localhost:8080\r\n"
+# 받은 글 broken|true|false = "HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n"
+# 보낸 글 broken|false|true = "/hello\r\n\r\n"
+# 받은 글 broken|false|true = "HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n"
+# 보낸 글 broken|false|false = "/hello\r\n"
+# 받은 글 broken|false|false = "HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n"

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://jhb010311.github.io/dev-learning-lab/basics/</loc></url>
 <url><loc>https://jhb010311.github.io/dev-learning-lab/</loc></url>
 <url><loc>https://jhb010311.github.io/dev-learning-lab/study/</loc></url>
 <url><loc>https://jhb010311.github.io/dev-learning-lab/quiz/</loc></url>
@@ -99,6 +100,11 @@
 <url><loc>https://jhb010311.github.io/dev-learning-lab/lab/index/</loc></url>
 <url><loc>https://jhb010311.github.io/dev-learning-lab/lab/proxy/</loc></url>
 <url><loc>https://jhb010311.github.io/dev-learning-lab/lab/cache/</loc></url>
+<url><loc>https://jhb010311.github.io/dev-learning-lab/lab/servlet_basic/</loc></url>
+<url><loc>https://jhb010311.github.io/dev-learning-lab/lab/controller_basic/</loc></url>
+<url><loc>https://jhb010311.github.io/dev-learning-lab/lab/interface_basic/</loc></url>
+<url><loc>https://jhb010311.github.io/dev-learning-lab/lab/pk_basic/</loc></url>
+<url><loc>https://jhb010311.github.io/dev-learning-lab/lab/http_basic/</loc></url>
 <url><loc>https://jhb010311.github.io/dev-learning-lab/lab/iso/</loc></url>
 <url><loc>https://jhb010311.github.io/dev-learning-lab/lab/deadlock/</loc></url>
 <url><loc>https://jhb010311.github.io/dev-learning-lab/lab/exflow/</loc></url>

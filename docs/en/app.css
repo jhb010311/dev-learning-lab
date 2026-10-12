@@ -80,6 +80,21 @@ button, input, select { font: inherit; color: inherit; }
 .p-ctl { grid-area: ctl; } .p-stage { grid-area: stage; } .p-code { grid-area: code; } .p-pic { grid-area: pic; } .p-bar { grid-area: bar; }
 .grid:not(.haspic) .p-pic { display: none; }
 .grid.haspic { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-areas: "ctl ctl" "bar bar" "pic stage"; }
+
+.grid.qgrid { grid-template-areas: "ctl code" "bar bar" "stage stage"; }
+.grid.qgrid.haspic { grid-template-areas: "ctl code" "bar bar" "pic stage"; }
+.asks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.askq { display: grid; grid-template-columns: 1.5em minmax(0, 1fr); gap: 8px; align-items: baseline; width: 100%; text-align: left; border: 1px solid transparent; background: transparent; border-radius: 3px; padding: 7px 9px; cursor: pointer; font-size: .96rem; }
+.askq:hover, .askq:focus-visible { background: color-mix(in srgb, var(--ink) 5%, transparent); outline: none; }
+.askq .num { color: var(--muted); font-family: var(--font-code); font-size: .84rem; }
+.askq[aria-current="true"] { border-color: var(--ink); background: var(--bg); font-weight: 600; }
+.p-ctl.qmode .ctlsum { display: none; }
+.p-ctl.qmode #ctl-toggle { display: inline-block; align-self: flex-start; }
+.p-ctl.qmode.shut .ctls { display: none; }
+.code .ln { display: block; }
+.code .ln.add, .code mark { background: color-mix(in srgb, var(--busy) 50%, transparent); color: inherit; }
+.grid.qgrid .p-code .code { max-height: 300px; overflow-y: auto; }
+.code .ln.del, .code s { text-decoration: line-through; opacity: .5; }
 .below { display: flex; flex-direction: column; gap: 16px; }
 .ctls { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px 20px; align-items: start; }
 .presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px; }
@@ -322,6 +337,8 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 @media (max-width: 900px) {
   .grid, .grid.haspic { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ctl" "bar" "stage" "code"; }
   .grid.haspic { grid-template-areas: "ctl" "bar" "pic" "stage"; }
+  .grid.qgrid { grid-template-areas: "ctl" "code" "bar" "stage"; }
+  .grid.qgrid.haspic { grid-template-areas: "ctl" "code" "bar" "pic" "stage"; }
   .grid.haspic .p-pic, .grid:not(.haspic) .p-code { position: static; max-height: none; }
   .presets { display: flex; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
   .preset { flex: 0 0 min(230px, 72vw); scroll-snap-align: start; }

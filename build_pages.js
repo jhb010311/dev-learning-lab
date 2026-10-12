@@ -10,16 +10,16 @@
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
 
 module.exports = function (o) {
-  const { EN, shell, js, explain, terms, list, kb, curri, site, ver } = o;
+  const { EN, shell, js, explain, terms, list, kb, curri, site, ver, basics } = o;
   const out = path.join(__dirname, 'docs', EN ? 'en' : ''), lang = EN ? 'en' : 'ko';
   const T = EN ? {
-    study: 'Learn', quiz: 'Quiz', quizAll: 'Quiz: all categories', lead: 'Change the settings, click Run, and watch how each concept behaves.',
+    study: 'Learn', basics: 'Fundamentals', quiz: 'Quiz', quizAll: 'Quiz: all categories', lead: 'Change the settings, click Run, and watch how each concept behaves.',
     quizDesc: 'Questions at four levels: Basics, Beginner, Intermediate, and Applied. Questions you miss come back at spaced intervals.',
     concepts: 'Concepts in this lab', presets: 'Try these', run: 'Running with the default settings', result: 'Result of this run', code: 'Code', assume: 'Assumptions of this model',
     prev: 'Previous lab', next: 'Next lab', nojs: 'The labs on this site need JavaScript to run. The same content is written out below.',
     ver: { run: 'Checked against real execution', part: 'Partly checked against real execution', doc: 'Checked against documentation and standards', model: 'Conceptual model' },
   } : {
-    study: '공부', quiz: '테스트', quizAll: '전체 테스트', lead: '설정을 바꾸고 실행을 눌러, 개념이 어떻게 움직이는지 직접 봅니다.',
+    study: '공부', basics: '기초개념', quiz: '테스트', quizAll: '전체 테스트', lead: '설정을 바꾸고 실행을 눌러, 개념이 어떻게 움직이는지 직접 봅니다.',
     quizDesc: '기초, 초급, 중급, 응용 단계의 문제를 풉니다. 틀린 문제는 간격을 두고 다시 나옵니다.',
     concepts: '이 실습에 나오는 개념', presets: '이렇게 바꿔 보세요', run: '처음 설정으로 실행하면', result: '실행 결과', code: '코드', assume: '이 모형의 전제',
     prev: '앞 실습', next: '다음 실습', nojs: '이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.',
@@ -61,9 +61,12 @@ module.exports = function (o) {
   const toc = (c, up, h) => c.groups.map(g => '<h' + h + '>' + esc(g.name) + '</h' + h + '>\n<ul>\n' + g.items.map(it => it.id ? '<li>' + link(up, 'lab/' + it.id, it.t || byId(it.id).nav) + ' — ' + esc(byId(it.id).title) + '</li>' : '<li>' + esc(it.t) + '</li>').join('\n') + '\n</ul>').join('\n');
   const labsOf = c => { const had = new Set(); c.groups.forEach(g => g.items.forEach(it => { if (it.id) had.add(it.id); })); return [...had]; };
 
+  // 기초개념은 분야 하나처럼 다룬다(묶음이 분야). 실습 페이지의 길 안내와 앞뒤 실습에 쓴다.
+  const bcat = basics ? { id: 'basics', name: T.basics, desc: basics.desc, groups: basics.groups, basic: true } : null;
   let bytes = 0;
   // 처음 화면: 사이트 소개와 모든 분야의 목차
-  bytes += page('', name, site.desc, '<h1>' + esc(name) + '</h1>\n<p>' + esc(T.lead) + '</p>\n<p>' + esc(site.desc) + '</p>\n' + curri.map(c => '<h2>' + link('./', 'study/' + c.id, c.name) + '</h2>\n<p>' + esc(c.desc) + '</p>\n' + toc(c, './', 3)).join('\n'));
+  if (bcat) bytes += page('basics', bcat.name + ' · ' + name, bcat.desc, '<h1>' + esc(bcat.name) + '</h1>\n<p>' + esc(bcat.desc) + '</p>\n' + toc(bcat, '../', 2));
+  bytes += page('', name, site.desc, '<h1>' + esc(name) + '</h1>\n<p>' + esc(T.lead) + '</p>\n<p>' + esc(site.desc) + '</p>\n' + (bcat ? '<h2>' + link('./', 'basics', bcat.name) + '</h2>\n<p>' + esc(bcat.desc) + '</p>\n' + toc(bcat, './', 3) + '\n' : '') + curri.map(c => '<h2>' + link('./', 'study/' + c.id, c.name) + '</h2>\n<p>' + esc(c.desc) + '</p>\n' + toc(c, './', 3)).join('\n'));
   bytes += page('study', T.study + ' · ' + name, site.desc, '<h1>' + esc(T.study) + '</h1>\n<ul>\n' + curri.map(c => '<li>' + link('../', 'study/' + c.id, c.name) + ' — ' + esc(c.desc) + '</li>').join('\n') + '\n</ul>');
   bytes += page('quiz', T.quiz + ' · ' + name, T.quizDesc, '<h1>' + esc(T.quiz) + '</h1>\n<p>' + esc(T.quizDesc) + '</p>\n<ul>\n' + curri.map(c => '<li>' + link('../', 'quiz/' + c.id, c.name) + '</li>').join('\n') + '\n</ul>');
   bytes += page('quiz/all', T.quizAll + ' · ' + name, T.quizDesc, '<h1>' + esc(T.quizAll) + '</h1>\n<p>' + esc(T.quizDesc) + '</p>');
@@ -73,8 +76,8 @@ module.exports = function (o) {
   });
   // 실습: 물음, 소개, 용어 설명, 예시, 처음 설정으로 실행한 단계와 결과, 코드, 전제
   list.forEach(l => {
-    const up = '../../', cat = curri.find(c => labsOf(c).includes(l.id)), parts = [];
-    if (cat) { const g = cat.groups.find(x => x.items.some(it => it.id === l.id)); parts.push('<p>' + link(up, 'study', T.study) + ' › ' + link(up, 'study/' + cat.id, cat.name) + ' › ' + esc(g.name) + '</p>'); }
+    const up = '../../', cat = (bcat && labsOf(bcat).includes(l.id) ? bcat : null) || curri.find(c => labsOf(c).includes(l.id)), parts = [];
+    if (cat) { const g = cat.groups.find(x => x.items.some(it => it.id === l.id)); parts.push('<p>' + (cat.basic ? link(up, 'basics', cat.name) : link(up, 'study', T.study) + ' › ' + link(up, 'study/' + cat.id, cat.name)) + ' › ' + esc(g.name) + '</p>'); }
     parts.push('<h1>' + esc(l.nav) + '</h1>', '<p><b>' + esc(l.title) + '</b></p>', '<p>' + esc(l.intro) + '</p>', '<p>' + esc(T.ver[ver[l.id][0]] + ' · ' + ver[l.id][1]) + '</p>');
     parts.push('<h2>' + esc(T.concepts) + '</h2>\n<dl>\n' + l.terms.map(t => '<dt>' + esc(t) + '</dt>\n<dd>' + esc(kb.find(r => r[1] === t)[2]) + '</dd>').join('\n') + '\n</dl>');
     parts.push('<h2>' + esc(T.presets) + '</h2>\n<ul>\n' + l.presets.map(p => '<li><b>' + esc(p.t) + '</b> — ' + esc(p.d) + '</li>').join('\n') + '\n</ul>');

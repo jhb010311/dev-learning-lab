@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>컨트롤러: 어떤 클래스를 컨트롤러라고 부르는가 · 개발 학습 실습실</title>
+<meta name="description" content="컨트롤러는 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @RestController는 스프링이 이 클래스의 객체를 만들어 두고 웹 요청을 처리하는 클래스로 다룬다는 표시이고, 메서드 위의 @GetMapping(&quot;/hello&quot;)는…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/controller_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/controller_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/controller_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="컨트롤러: 어떤 클래스를 컨트롤러라고 부르는가 · 개발 학습 실습실">
+<meta property="og:description" content="컨트롤러는 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @RestController는 스프링이 이 클래스의 객체를 만들어 두고 웹 요청을 처리하는 클래스로 다룬다는 표시이고, 메서드 위의 @GetMapping(&quot;/hello&quot;)는…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/controller_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=19ee4b7621">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › Spring</p>
+<h1>컨트롤러</h1>
+<p><b>어떤 클래스를 컨트롤러라고 부르는가</b></p>
+<p>컨트롤러는 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. 클래스 위의 @RestController는 스프링이 이 클래스의 객체를 만들어 두고 웹 요청을 처리하는 클래스로 다룬다는 표시이고, 메서드 위의 @GetMapping(&quot;/hello&quot;)는 브라우저가 /hello라는 주소로 보낸 GET 요청을 이 메서드에 맡긴다는 등록입니다. 컨트롤러는 서블릿이 아닙니다. 요청은 스프링 부트가 톰캣에 등록해 둔 서블릿 하나(DispatcherServlet)가 받아서 컨트롤러의 메서드를 불러 줍니다. 이 둘을 하나씩 지워 가며 같은 요청을 보내, 스프링이 객체를 만들고 메서드를 불러 주는지를 봅니다.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1에서 여덟 가지 조합을 실제 컴포넌트 스캔으로 띄우고 요청을 보내 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>컨트롤러 클래스</dt>
+<dd>컨트롤러 클래스는 스프링 MVC에서 웹 요청을 처리하는 메서드를 가진 자바 클래스다. 서블릿과 달리 특정 클래스를 상속하거나 인터페이스를 구현하지 않아도 되고, 클래스 위에 @Controller나 @RestController를 붙여 컨트롤러라고 표시한다. 스프링이 클래스 경로를 훑어(컴포넌트 스캔) 표시가 붙은 클래스를 찾아 객체를 만들어 두며, 개발자가 new로 만들지 않는다. 요청은 DispatcherServlet이 받아, 메서드 위에 적힌 주소(@GetMapping 등)를 보고 알맞은 컨트롤러의 메서드를 불러 준다. 주소는 클래스가 아니라 메서드에 적으므로 클래스 하나에 주소 여러 개를 둘 수 있다.</dd>
+<dt>@RestController</dt>
+<dd>@RestController는 클래스를 컨트롤러로 표시하는 애너테이션이다. @Controller와 @ResponseBody를 합친 것으로, 이 클래스의 요청 처리 메서드가 돌려주는 값이 뷰를 거치지 않고 곧바로 응답 본문에 쓰인다. @Controller는 @Component를 특수화한 것이어서 스프링이 컴포넌트 스캔으로 이 클래스를 찾아 객체로 등록한다. 이 애너테이션이 없으면 스프링이 그 클래스를 컨트롤러로 찾지 못하므로, 메서드에 @GetMapping을 붙여도 요청을 받지 못한다.</dd>
+<dt>@GetMapping</dt>
+<dd>@GetMapping은 HTTP GET 요청을 특정 메서드에 맡기는 애너테이션이다. 괄호 안에 주소(예: &quot;/hello&quot;)를 적으며, @RequestMapping(method = RequestMethod.GET)의 줄임 형태로 만들어진 애너테이션이다. 스프링은 컨트롤러로 찾은 클래스의 메서드에서 이 애너테이션을 읽어 주소와 메서드를 짝지은 주소 표를 만든다. 같은 방식의 줄임 형태로 @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping이 있다.</dd>
+<dt>DispatcherServlet과 프론트 컨트롤러</dt>
+<dd>Spring MVC에서 모든 HTTP 요청을 가장 먼저 받는 서블릿이다. 요청을 처리할 컨트롤러를 찾아 호출하고 그 결과를 응답으로 만드는 전체 흐름을 조율한다. 이렇게 하나의 진입점이 모든 요청을 받아 공통 처리를 한 뒤 각 담당에게 넘기는 구조를 프론트 컨트롤러 패턴이라 한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 두 가지가 다 있는 컨트롤러. 요청이 오면 DispatcherServlet이 주소 표를 보고 메서드를 불러 줍니다.</li>
+<li><b>@GetMapping을 지우면</b> — 스프링이 객체는 만들지만 맡은 주소가 없어 메서드는 한 번도 불리지 않습니다.</li>
+<li><b>@RestController를 지우면</b> — 스프링이 이 클래스를 찾지 못해 객체도 주소 표도 없습니다.</li>
+<li><b>둘 다 지우면</b> — 같은 메서드가 있는 일반 클래스. 스프링은 이 클래스를 쓰지 않습니다.</li>
+<li><b>주소가 3개면</b> — 클래스 하나에 메서드 세 개를 두고, 주소는 메서드마다 적습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>서버가 뜹니다. 스프링 부트가 톰캣을 띄우고, 톰캣에 DispatcherServlet이라는 서블릿 하나를 등록합니다. 이 서블릿은 우리가 쓴 것이 아니라 스프링이 제공하는 것이며, 모든 주소(&quot;/&quot;)의 요청을 맡습니다.</li>
+<li>스프링이 프로젝트의 클래스를 훑어 @RestController가 붙은 클래스를 찾습니다. HelloController 클래스에 붙어 있으므로, 스프링이 이 클래스의 객체를 만들어 둡니다. 이 객체는 첫 요청이 오기 전, 서버가 뜰 때 이미 만들어집니다.</li>
+<li>스프링이 HelloController 클래스의 메서드에서 @GetMapping이 붙은 것을 찾아, 거기 적힌 주소와 메서드를 스프링의 주소 표에 적습니다.</li>
+<li>브라우저 주소창에 localhost:8080/hello 주소를 입력하면, 브라우저가 서버에 GET /hello 요청을 보냅니다.</li>
+<li>톰캣이 요청을 받습니다. 톰캣에 등록된 서블릿은 DispatcherServlet 하나이고 모든 주소를 맡고 있으므로, 톰캣이 요청을 DispatcherServlet에 넘깁니다. 우리가 쓴 클래스에는 아직 아무것도 오지 않았습니다.</li>
+<li>DispatcherServlet이 스프링의 주소 표에서 /hello 주소를 찾습니다. HelloController.hello 메서드가 적혀 있습니다.</li>
+<li>DispatcherServlet이 찾아낸 메서드를 부릅니다. 이 메서드가 속한 객체는 서버가 뜰 때 스프링이 만들어 둔 것입니다. 우리가 쓴 코드에는 new HelloController()라는 줄도, hello() 메서드를 부르는 줄도 없습니다. 이 메서드가 돌려주는 글은 &quot;안녕하세요&quot;입니다.</li>
+<li>브라우저가 200 응답을 받습니다. 메서드가 돌려준 글이 응답 본문이 되어, 본문은 &quot;안녕하세요&quot;입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>컨트롤러는 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 클래스 위의 @RestController(표시)와 메서드 위의 @GetMapping(등록)이고, 이 둘이 있으면 스프링이 객체를 만들어 두고 주소 표에 메서드를 올려 둡니다.</li>
+<li>컨트롤러는 서블릿이 아닙니다. 요청은 스프링이 톰캣에 등록해 둔 DispatcherServlet이 받아서, 주소 표를 보고 컨트롤러의 메서드를 불러 줍니다. 우리가 쓴 코드에는 new도, 메서드를 부르는 줄도 없습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 표시: 웹 요청을 처리하는 클래스. 스프링이 객체를 만들어 둔다
+@RestController
+public class HelloController {
+    // 등록: 이 주소로 온 GET 요청을 이 메서드에 맡긴다
+    @GetMapping(&quot;/hello&quot;)
+    public String hello() {
+        return &quot;안녕하세요&quot;;
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>스프링 부트 4.1.1(스프링 프레임워크 7.0.9, 내장 톰캣 11)을 JDK 21에서 실행한 결과입니다. 브라우저는 주소마다 GET 요청을 한 번씩 차례로 보낸다고 가정했습니다. 주소의 localhost:8080은 내 컴퓨터에서 스프링 부트를 기본 포트로 띄웠을 때의 예입니다. 여덟 가지 조합을 모두, 화면의 코드와 같은 소스(객체와 실행 횟수를 세는 줄만 더함)를 패키지 app으로 컴파일하고 @SpringBootConfiguration, @EnableAutoConfiguration, @ComponentScan이 붙은 시작 클래스와 함께 자바 프로세스를 새로 띄워 확인했습니다. 컨트롤러를 손으로 등록하지 않고 스프링이 클래스를 훑어 찾게 했으며, 요청은 서버가 뜬 뒤 실제 HTTP로 보냈습니다. 대조한 것은 스프링이 만든 컨트롤러 객체의 수(서버가 뜬 직후와 요청 뒤), 주소 표(RequestMappingHandlerMapping의 getHandlerMethods 가운데 이 클래스의 것), 주소마다의 상태 코드와 본문, 메서드 실행 횟수입니다. 톰캣에 등록된 서블릿이 DispatcherServlet 하나이고 &quot;/&quot; 주소를 맡는다는 것, 컨트롤러 클래스가 Servlet 타입이 아니라는 것, 404 응답에서 메서드가 실행되지 않았다는 것도 실행으로 확인했습니다. 문서가 정한 것은 스프링 프레임워크 문서 Web MVC의 DispatcherServlet 절(DispatcherServlet이 모든 요청을 받는 서블릿 하나이고 실제 일은 위임 구성 요소가 한다는 것, 스프링 부트에서는 서블릿 선언이 스프링 설정에서 찾아져 컨테이너에 등록된다는 것), Annotated Controllers의 Declaration 절(컨트롤러 객체가 클래스 경로 스캔으로 찾아지고 @RestController가 @Controller와 @ResponseBody를 합친 것이라는 것), Mapping Requests 절(@GetMapping 같은 단축 애너테이션)과 @RestController, @Controller, @GetMapping의 API 문서입니다. 객체가 서버가 뜰 때 만들어지고 주소 표도 그때 만들어진다는 것과, 주소가 없을 때 404가 나가는 것은 문서가 정한 것이 아니라 이 버전의 기본 설정에서 관찰한 동작입니다. 화면의 코드는 package와 import 줄을 줄였고, 컨트롤러가 시작 클래스와 같은 패키지(또는 그 아래)에 있다고 가정했습니다. 주소 등록은 @GetMapping만 다뤘고 @RequestMapping, @PostMapping이나 @Controller는 다루지 않았습니다. 스프링 부트의 DispatcherServlet이 서버가 뜰 때가 아니라 첫 요청이 올 때 초기화되는 것은 관찰했지만 이 실습의 단계에는 넣지 않았고, &quot;세부 동작 실습: MVC 요청 흐름&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/servlet_basic/">서블릿</a> · 다음 실습: <a href="../../lab/pk_basic/">기본 키</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=19ee4b7621"></script>
+</body>
+</html>

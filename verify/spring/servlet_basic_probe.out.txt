@@ -1,0 +1,13 @@
+# tomcat 11.0.24.0 | java 21.0.12.1
+false|false|one => state=STARTED|classes=Hello|table={}|isServlet=false|madeAtStart=0|made1=0|doGet1=0|round1=/hello=404:-|round2=/hello=404:-
+false|false|each => state=STARTED|classes=Login,Join,Members|table={}|isServlet=false|madeAtStart=0|made1=0|doGet1=0|round1=/login=404:-;/join=404:-;/members=404:-|round2=/login=404:-;/join=404:-;/members=404:-
+false|false|shared => state=STARTED|classes=Member|table={}|isServlet=false|madeAtStart=0|made1=0|doGet1=0|round1=/login=404:-;/join=404:-;/members=404:-|round2=/login=404:-;/join=404:-;/members=404:-
+false|true|one => state=STARTED|classes=Hello|table={/hello=Hello}|isServlet=false|madeAtStart=0|made1=1|doGet1=0|round1=/hello=500:not a Servlet|round2=/hello=404:-
+false|true|each => state=STARTED|classes=Login,Join,Members|table={/join=Join, /login=Login, /members=Members}|isServlet=false|madeAtStart=0|made1=3|doGet1=0|round1=/login=500:not a Servlet;/join=500:not a Servlet;/members=500:not a Servlet|round2=/login=404:-;/join=404:-;/members=404:-
+false|true|shared => state=STARTED|classes=Member|table={/join=Member, /login=Member, /members=Member}|isServlet=false|madeAtStart=0|made1=1|doGet1=0|round1=/login=500:not a Servlet;/join=404:-;/members=404:-|round2=/login=404:-;/join=404:-;/members=404:-
+true|false|one => state=STARTED|classes=Hello|table={}|isServlet=true|madeAtStart=0|made1=0|doGet1=0|round1=/hello=404:-|round2=/hello=404:-
+true|false|each => state=STARTED|classes=Login,Join,Members|table={}|isServlet=true|madeAtStart=0|made1=0|doGet1=0|round1=/login=404:-;/join=404:-;/members=404:-|round2=/login=404:-;/join=404:-;/members=404:-
+true|false|shared => state=STARTED|classes=Member|table={}|isServlet=true|madeAtStart=0|made1=0|doGet1=0|round1=/login=404:-;/join=404:-;/members=404:-|round2=/login=404:-;/join=404:-;/members=404:-
+true|true|one => state=STARTED|classes=Hello|table={/hello=Hello}|isServlet=true|madeAtStart=0|made1=1|doGet1=1|round1=/hello=200:안녕하세요|round2=/hello=200:안녕하세요
+true|true|each => state=STARTED|classes=Login,Join,Members|table={/join=Join, /login=Login, /members=Members}|isServlet=true|madeAtStart=0|made1=3|doGet1=3|round1=/login=200:로그인 화면;/join=200:회원가입 화면;/members=200:회원 목록|round2=/login=200:로그인 화면;/join=200:회원가입 화면;/members=200:회원 목록
+true|true|shared => state=STARTED|classes=Member|table={/join=Member, /login=Member, /members=Member}|isServlet=true|madeAtStart=0|made1=1|doGet1=3|round1=/login=200:회원 화면;/join=200:회원 화면;/members=200:회원 화면|round2=/login=200:회원 화면;/join=200:회원 화면;/members=200:회원 화면

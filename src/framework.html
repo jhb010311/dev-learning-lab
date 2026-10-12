@@ -84,6 +84,21 @@ button, input, select { font: inherit; color: inherit; }
 .p-ctl { grid-area: ctl; } .p-stage { grid-area: stage; } .p-code { grid-area: code; } .p-pic { grid-area: pic; } .p-bar { grid-area: bar; }
 .grid:not(.haspic) .p-pic { display: none; }
 .grid.haspic { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-areas: "ctl ctl" "bar bar" "pic stage"; }
+/* 물음 방식(기초개념 실습): 설정 칸 대신 차례로 눌러 볼 물음을 두고, 그 옆에 코드를 둔다. 물음을 누르면 처음 코드에서 달라진 곳이 코드에 표시된다. */
+.grid.qgrid { grid-template-areas: "ctl code" "bar bar" "stage stage"; }
+.grid.qgrid.haspic { grid-template-areas: "ctl code" "bar bar" "pic stage"; }
+.asks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.askq { display: grid; grid-template-columns: 1.5em minmax(0, 1fr); gap: 8px; align-items: baseline; width: 100%; text-align: left; border: 1px solid transparent; background: transparent; border-radius: 3px; padding: 7px 9px; cursor: pointer; font-size: .96rem; }
+.askq:hover, .askq:focus-visible { background: color-mix(in srgb, var(--ink) 5%, transparent); outline: none; }
+.askq .num { color: var(--muted); font-family: var(--font-code); font-size: .84rem; }
+.askq[aria-current="true"] { border-color: var(--ink); background: var(--bg); font-weight: 600; }
+.p-ctl.qmode .ctlsum { display: none; }
+.p-ctl.qmode #ctl-toggle { display: inline-block; align-self: flex-start; }
+.p-ctl.qmode.shut .ctls { display: none; }
+.code .ln { display: block; }
+.code .ln.add, .code mark { background: color-mix(in srgb, var(--busy) 50%, transparent); color: inherit; }
+.grid.qgrid .p-code .code { max-height: 300px; overflow-y: auto; }
+.code .ln.del, .code s { text-decoration: line-through; opacity: .5; }
 .below { display: flex; flex-direction: column; gap: 16px; }
 .ctls { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px 20px; align-items: start; }
 .presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px; }
@@ -326,6 +341,8 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 @media (max-width: 900px) {
   .grid, .grid.haspic { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ctl" "bar" "stage" "code"; }
   .grid.haspic { grid-template-areas: "ctl" "bar" "pic" "stage"; }
+  .grid.qgrid { grid-template-areas: "ctl" "code" "bar" "stage"; }
+  .grid.qgrid.haspic { grid-template-areas: "ctl" "code" "bar" "pic" "stage"; }
   .grid.haspic .p-pic, .grid:not(.haspic) .p-code { position: static; max-height: none; }
   .presets { display: flex; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
   .preset { flex: 0 0 min(230px, 72vw); scroll-snap-align: start; }
@@ -361,7 +378,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 <div class="wrap" id="wrap">
   <header class="top">
     <div class="toprow"><a class="brand" href="#home" id="brand">개발 학습 실습실</a>
-      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
   </header>
 
   <main class="home" id="homeview"></main>
@@ -388,7 +405,8 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 
   <div class="grid labonly">
     <div class="panel p-ctl shut" id="ctlpanel">
-      <div class="titlerow"><h3>설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
       <p class="ctlsum" id="ctlsum"></p>
       <div id="controls" class="ctls"></div>
     </div>
@@ -410,6 +428,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
     <div class="panel p-code" id="codepanel">
       <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
       <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
     </div>
 
     <div class="panel p-pic" id="picpanel">
@@ -467,6 +486,44 @@ var Lab = (function () {
       return out + esc(line.slice(last));
     }).join('\n');
   }
+  // 기초개념 실습은 설정 칸 대신 물음을 앞에 둔다(물음 방식)
+  function qmode() { return !!cur && !!cur.basic; }
+  // 두 코드를 줄 단위로 견주어, 지운 줄은 줄을 긋고 새로 쓴 줄은 칠한다. 한 줄이 한 줄로 바뀐 곳은 그 줄 안에서 달라진 낱말만 표시한다. 같으면 null.
+  function diffHtml(a, b) {
+    if (a === b) return null;
+    var A = a.split('\n'), B = b.split('\n'), n = A.length, m = B.length, L = [], i, j, ops = [];
+    for (i = 0; i <= n; i++) { L.push([]); for (j = 0; j <= m; j++) L[i].push(0); }
+    for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) L[i][j] = A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    i = 0; j = 0;
+    while (i < n || j < m) { if (i < n && j < m && A[i] === B[j]) { ops.push(['', A[i]]); i++; j++; } else if (i < n && (j >= m || L[i + 1][j] >= L[i][j + 1])) ops.push(['del', A[i++]]); else ops.push(['add', B[j++]]); }
+    // 한 줄이 조금만 바뀐 것이면(앞뒤로 같은 낱말이 줄의 4할 이상) 그 줄 안에서 달라진 낱말만 표시한 글을, 아니면 null을 돌려준다
+    function words(x, y) {
+      var W = new RegExp('([^A-Za-z0-9_' + String.fromCharCode(0xAC00) + '-' + String.fromCharCode(0xD7A3) + ']+)'), X = x.split(W), Y = y.split(W), p = 0, s = 0;
+      while (p < X.length && p < Y.length && X[p] === Y[p]) p++;
+      while (s < X.length - p && s < Y.length - p && X[X.length - 1 - s] === Y[Y.length - 1 - s]) s++;
+      var head = X.slice(0, p).join(''), tail = Y.slice(Y.length - s).join(''), gone = X.slice(p, X.length - s).join(''), came = Y.slice(p, Y.length - s).join('');
+      if ((head + tail).trim().length < Math.max(x.trim().length, y.trim().length) * 0.4) return null;
+      return highlight(head) + (gone.trim() ? '<s>' + highlight(gone) + '</s>' : '') + (came.trim() ? '<mark>' + highlight(came) + '</mark>' : '') + highlight(tail);
+    }
+    function line(cls, html) { return '<span class="ln' + (cls ? ' ' + cls : '') + '">' + html + '\n</span>'; }
+    var out = '';
+    for (i = 0; i < ops.length;) {
+      if (!ops[i][0]) { out += line('', highlight(ops[i][1])); i++; continue; }
+      // 잇달아 바뀐 줄들을 한 덩어리로 본다. 새 코드의 줄 순서를 지키면서, 새 줄마다 짝이 될 지운 줄을 차례로 찾는다.
+      // 짝이 있으면 그 줄 안에서 달라진 낱말만 표시하고, 짝이 없는 지운 줄은 제자리에 줄을 그어 둔다.
+      var D = [], N = [], dp = 0;
+      for (; i < ops.length && ops[i][0]; i++) (ops[i][0] === 'del' ? D : N).push(ops[i][1]);
+      N.forEach(function (x) {
+        var w = null, k;
+        for (k = dp; k < D.length && !w; k++) if (x.trim() && D[k].trim()) w = words(D[k], x);
+        if (!w) { out += line('add', highlight(x)); return; }
+        for (; dp < k - 1; dp++) out += line('del', highlight(D[dp]));
+        out += line('', w); dp = k;
+      });
+      for (; dp < D.length; dp++) out += line('del', highlight(D[dp]));
+    }
+    return out;
+  }
   // 무대를 그릴 때 쓰는 공통 도우미
   var H = {
     el: el, fmt: fmt,
@@ -491,7 +548,13 @@ var Lab = (function () {
       var box = $('box-' + d.id); box.hidden = d.show ? !d.show(c) : false;
       if (d.type === 'range') $('out-' + d.id).textContent = d.fmt ? d.fmt(c[d.id], c) : String(c[d.id]);
     });
-    $('code').innerHTML = highlight(cur.code(c));
+    var code = cur.code(c), dh = null;
+    // 물음 방식: 처음 설정의 코드와 견주어 달라진 곳을 표시하고, 지금 설정과 같은 물음에 표시를 둔다
+    if (qmode()) {
+      var c0 = {}; cur.controls.forEach(function (d) { c0[d.id] = d.value; }); dh = diffHtml(cur.code(c0), code);
+      Array.prototype.forEach.call($('asks').querySelectorAll('.askq'), function (b, i) { var v = cur.presets[i].v, same = cur.controls.every(function (d) { return String(v[d.id] === undefined ? d.value : v[d.id]) === String(c[d.id]); }); if (same) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
+    }
+    $('code').innerHTML = dh || highlight(code); $('code-note').hidden = !dh;
     $('ctlsum').textContent = '지금 설정: ' + cur.label(c);
     if (ask) { if (JSON.stringify(c) === JSON.stringify(sim.c)) askCancel(); else askShow(c); }
     syncBar(c);
@@ -508,6 +571,14 @@ var Lab = (function () {
     Array.prototype.forEach.call($('controls').querySelectorAll('.chg'), function (x) { x.classList.remove('chg'); });
     Array.prototype.forEach.call($('controls').querySelectorAll('.chgtag'), function (x) { x.parentNode.removeChild(x); });
     Array.prototype.forEach.call($('presets').querySelectorAll('.preset'), function (x) { x.setAttribute('aria-pressed', 'false'); });
+  }
+  // 예시를 누르면 그 설정으로 바꾸고, 바뀐 설정에 표시를 남긴 뒤 실행한다.
+  // 물음(b 없이 부른다)은 설정과 코드만 바꾼다. 실행은 사용자가 실행 버튼으로 하고, 화면도 옮기지 않는다.
+  function usePreset(p, b) {
+    var before = cfg(); setValues(p.v); var after = cfg(); clearMarks();
+    cur.controls.forEach(function (d) { if (String(before[d.id]) === String(after[d.id])) return; var bx = $('box-' + d.id); bx.classList.add('chg'); (bx.querySelector('label') || bx).appendChild(el('span', 'chgtag', '바뀜')); });
+    if (b) { b.setAttribute('aria-pressed', 'true'); run(true); }
+    else if (running) pause();
   }
   function onCtl() { clearMarks(); labels(); }
   // 예측하고 실행: 지금 화면의 결과와 견주어, 새 설정에서 달라질 결과 항목을 실행 전에 고르게 한다
@@ -540,13 +611,21 @@ var Lab = (function () {
     cur.presets.forEach(function (p) {
       var b = el('button', 'preset'); b.type = 'button'; b.setAttribute('aria-pressed', 'false'); b.appendChild(el('b', null, p.t));
       b.addEventListener('click', function () {
-        var before = cfg(); setValues(p.v); var after = cfg(); clearMarks();
-        cur.controls.forEach(function (d) { if (String(before[d.id]) === String(after[d.id])) return; var bx = $('box-' + d.id); bx.classList.add('chg'); (bx.querySelector('label') || bx).appendChild(el('span', 'chgtag', '바뀜')); });
-        b.setAttribute('aria-pressed', 'true'); run(true);
+        usePreset(p, b);
         // 예시는 결과 아래에 있으므로, 누르면 실행되는 모습이 보이도록 실행 띠가 있는 곳으로 올라간다
         $('runbar').scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
       ps.appendChild(b);
+    });
+    // 물음 방식: 예시를 물음(q)으로 적어 설정 자리에 차례로 두고, 설정 칸은 "직접 조합해 보기" 뒤로 접는다. 아래쪽의 예시 목록은 감춘다.
+    var q = qmode(), panel = $('ctlpanel'), tg = $('ctl-toggle'), as = $('asks');
+    panel.classList.toggle('qmode', q); panel.classList.add('shut'); $('ctl-title').textContent = q ? '물음' : '설정';
+    as.textContent = ''; as.hidden = !q; $('prepanel').hidden = q;
+    if (q) panel.insertBefore(tg, $('ctlsum')); else $('ctl-title').parentNode.appendChild(tg);
+    tg.textContent = q ? '직접 조합해 보기' : '설정 바꾸기'; tg.setAttribute('aria-expanded', 'false');
+    if (q) cur.presets.forEach(function (p, i) {
+      var li = el('li'), qb = el('button', 'askq'); qb.type = 'button'; qb.appendChild(el('span', 'num', (i + 1) + '.')); qb.appendChild(el('span', null, p.q || p.t));
+      qb.addEventListener('click', function () { usePreset(p, null); }); li.appendChild(qb); as.appendChild(li);
     });
   }
   function setValues(v) { cur.controls.forEach(function (d) { if (v[d.id] === undefined) return; var e = $('ctl-' + d.id); if (d.type === 'check') e.checked = v[d.id]; else e.value = v[d.id]; }); labels(); }
@@ -590,7 +669,7 @@ var Lab = (function () {
   // 검증 수준 표시: 제목 아래에 수준과 근거 한 줄, 전체 목록에는 점으로
   var VER = { run: '실행으로 대조', part: '일부만 실행으로 확인', doc: '문서·표준 대조', model: '개념 모형' };
   function drawVerify() { var v = verify[cur.id], b = $('vbadge'); b.textContent = ''; if (!v) { b.hidden = true; return; } b.hidden = false; var vb = el('button', 'linkbtn', VER[v[0]]), vd = el('span', null, ' · ' + v[1]); vb.type = 'button'; vb.setAttribute('aria-expanded', 'false'); vd.hidden = true; vb.addEventListener('click', function () { vd.hidden = !vd.hidden; vb.setAttribute('aria-expanded', String(!vd.hidden)); }); b.appendChild(vb); b.appendChild(vd); }
-  function drawCode() { var o = !cur.draw || codeOpen, b = $('code-toggle'); $('code').hidden = !o; b.hidden = !cur.draw; b.textContent = o ? '코드 접기' : '이 동작을 코드로 보기'; b.setAttribute('aria-expanded', String(o)); }
+  function drawCode() { var o = !cur.draw || codeOpen || qmode(), b = $('code-toggle'); $('code').hidden = !o; b.hidden = !cur.draw || qmode(); b.textContent = o ? '코드 접기' : '이 동작을 코드로 보기'; b.setAttribute('aria-expanded', String(o)); }
   function drawHist() {
     var hd = $('hist-head'); hd.textContent = ''; var tr = el('tr'); ['실행', '설정'].concat(cur.columns).forEach(function (c, i) { tr.appendChild(el('th', i === 1 ? 'l' : '', c)); }); hd.appendChild(tr);
     var tb = $('hist'); tb.textContent = ''; var list = hist[cur.id] || [];
@@ -626,10 +705,12 @@ var Lab = (function () {
   function lessonsOf(cat) { var out = [], had = {}; cat.groups.forEach(function (g) { g.items.forEach(function (it) { if (it.id && !had[it.id]) { had[it.id] = 1; out.push(it.id); } }); }); return out; }
   function todoOf(cat) { var n = 0; cat.groups.forEach(function (g) { g.items.forEach(function (it) { if (!it.id) n++; }); }); return n; }
   function groupOf(cat, id) { return cat.groups.filter(function (g) { return g.items.some(function (it) { return it.id === id; }); })[0]; }
-  function placeOf(id) { for (var i = 0; i < curri.length; i++) { var g = groupOf(curri[i], id); if (g) return { cat: curri[i], group: g }; } return null; }
+  // 기초개념: 공부의 분야들과 따로 두는 목차 하나. 분야(Java, Spring …)가 묶음이 된다. Lab.basics가 채운다.
+  var BASIC = '기초개념', basics = null;
+  function placeOf(id) { var bg = basics && groupOf(basics, id); if (bg) return { cat: basics, group: bg }; for (var i = 0; i < curri.length; i++) { var g = groupOf(curri[i], id); if (g) return { cat: curri[i], group: g }; } return null; }
   // 여러 페이지로 빌드한 사이트는 <html data-root="사이트 뿌리까지의 상대 경로">를 달고 있다. BASE는 그 뿌리의 경로(끝이 /)이고, 없으면 null이다.
   var ROOT = document.documentElement.getAttribute('data-root'), BASE = ROOT === null ? null : new URL(ROOT || './', location.href).pathname;
-  function pathOf(r) { return BASE + (!r || r === 'home' ? '' : /^(study|quiz)(\/|$)/.test(r) ? r + '/' : 'lab/' + r + '/'); }
+  function pathOf(r) { return BASE + (!r || r === 'home' ? '' : /^(study|quiz|basics)(\/|$)/.test(r) ? r + '/' : 'lab/' + r + '/'); }
   // 지금 주소가 가리키는 화면. # 뒤에 글자가 있으면 그것을 먼저 본다(예전 주소와 페이지 안의 #링크).
   function routeOf() {
     var h = ''; try { h = decodeURIComponent((location.hash || '').slice(1)); } catch (e) {}
@@ -642,9 +723,9 @@ var Lab = (function () {
   // 코드 상자의 자리: 그림이 없는 실습은 늘 그림 자리(왼쪽). 그림이 있는 실습은 아주 넓은 화면(1600px 이상)이면 그림 왼쪽의 세 번째 칸, 아니면 아래 구역.
   var wideMq = window.matchMedia ? window.matchMedia('(min-width: 1600px)') : null; // 이보다 좁으면 세 칸에서 그림이 잘린다
   function placeCode() {
-    if (!cur) return; var grid = document.querySelector('.grid'), three = !!(cur.draw && wideMq && wideMq.matches);
+    if (!cur) return; var grid = document.querySelector('.grid'), q = qmode(), three = !q && !!(cur.draw && wideMq && wideMq.matches);
     grid.classList.toggle('wide3', three);
-    (cur.draw && !three ? $('below') : grid).appendChild($('codepanel')); $('below').appendChild($('prepanel'));
+    (cur.draw && !three && !q ? $('below') : grid).appendChild($('codepanel')); $('below').appendChild($('prepanel'));
   }
   function nav(r) {
     if (BASE === null) { if (location.hash === '#' + r) route(); else location.hash = r; return; }
@@ -664,9 +745,13 @@ var Lab = (function () {
     } else if (p[0] === 'study') {
       if (catById(p[1])) { curCat = catById(p[1]); setView('cat'); drawCat(); title = curCat.name + ' · ' + SITE.name; }
       else { setView('study'); drawHome('study'); title = '공부 · ' + SITE.name; }
+    } else if (p[0] === 'basics' && basics) { curCat = basics; setView('cat'); drawCat(); title = BASIC + ' · ' + SITE.name;
     } else if (byId(p[0])) { setView('lab'); if (!cur || cur.id !== p[0]) open(p[0]); else drawPath(); title = cur.nav + ': ' + cur.title + ' · ' + SITE.name; }
     else { setView('home'); drawHome('home'); }
     document.title = title; window.scrollTo(0, 0);
+    // 기초개념의 목차나 그 안의 실습을 보고 있으면 공부가 아니라 기초개념 탭이 눌린 것으로 보인다
+    var inBasic = (view === 'cat' || view === 'lab') && !!curCat && !!curCat.basic;
+    $('t-basic').hidden = !basics; $('t-basic').setAttribute('aria-pressed', String(inBasic)); if (inBasic) $('t-lab').setAttribute('aria-pressed', 'false');
     if (SITE.repo) { var rl = $('repolink'); rl.hidden = false; rl.href = SITE.repo; }
     if (SITE.other) { var sw = $('langsw'); sw.hidden = false; sw.textContent = SITE.other[0]; sw.href = BASE === null ? SITE.other[1] + (location.hash || '') : new URL(SITE.other[1], location.origin + BASE).pathname + pathOf(h).slice(BASE.length); }
   }
@@ -694,6 +779,12 @@ var Lab = (function () {
       var sg = el('div', 'hgrid small'); (SITE.start || []).forEach(function (id) { var l = byId(id); if (l) sg.appendChild(hcard(l.title, '', l.nav + ' 실습', id)); }); sb.appendChild(sg);
       box.appendChild(sb);
     } else crumbs(box, [['처음', 'home'], [mode === 'study' ? '공부' : '테스트', null]]);
+    if (mode === 'home' && basics) {
+      var s0 = el('section', 'hsec'); s0.appendChild(el('h2', null, BASIC));
+      var g0 = el('div', 'hgrid');
+      basics.groups.forEach(function (g) { var n = g.items.filter(function (it) { return it.id; }).length, td = g.items.length - n; if (n) g0.appendChild(hcard(g.name, g.desc || '', '실습 ' + n + '개' + (td ? ' · 준비 중 ' + td + '개' : ''), 'basics')); });
+      s0.appendChild(g0); box.appendChild(s0);
+    }
     if (mode !== 'quizpick') {
       var s1 = el('section', 'hsec'); s1.appendChild(el('h2', null, '공부'));
       var g1 = el('div', 'hgrid');
@@ -726,12 +817,13 @@ var Lab = (function () {
   // 분야의 목차: 묶음마다 배울 항목을 차례로 보여 준다. 아직 실습이 없는 항목은 "준비 중"으로 적는다.
   function drawCat() {
     var c = curCat, box = $('catview'); box.textContent = '';
-    crumbs(box, [['처음', 'home'], ['공부', 'study'], [c.name, null]]);
+    crumbs(box, c.basic ? [['처음', 'home'], [c.name, null]] : [['처음', 'home'], ['공부', 'study'], [c.name, null]]);
     box.appendChild(el('h2', null, c.name)); box.appendChild(el('p', 'lead', c.desc));
     var ids = lessonsOf(c), todo = todoOf(c), row = el('div', 'runrow');
     row.appendChild(el('span', 'muted', '실습 ' + ids.length + '개' + (todo ? ' · 준비 중 ' + todo + '개' : '')));
     if (ids.length) { var fb = el('button', 'btn small', '첫 실습부터 시작: ' + byId(ids[0]).nav); fb.type = 'button'; fb.addEventListener('click', function () { nav(ids[0]); }); row.appendChild(fb); }
-    var tb = el('button', 'btn ghost small', c.name + ' 테스트 하기'); tb.type = 'button'; tb.addEventListener('click', function () { nav('quiz/' + c.id); }); row.appendChild(tb); box.appendChild(row);
+    if (!c.basic) { var tb = el('button', 'btn ghost small', c.name + ' 테스트 하기'); tb.type = 'button'; tb.addEventListener('click', function () { nav('quiz/' + c.id); }); row.appendChild(tb); }
+    box.appendChild(row);
     var num = 0;
     c.groups.forEach(function (g) {
       var sec = el('section', 'cgroup'); sec.appendChild(el('h3', null, g.name)); var ol = el('ol', 'steps');
@@ -750,7 +842,7 @@ var Lab = (function () {
     var pb = $('pathbar'), eb = $('eyebrow'); pb.textContent = ''; eb.textContent = ''; if (!cur) return;
     var pl = curCat && groupOf(curCat, cur.id) ? { cat: curCat, group: groupOf(curCat, cur.id) } : placeOf(cur.id); if (!pl) return;
     curCat = pl.cat;
-    [['공부', 'study'], [pl.cat.name, 'study/' + pl.cat.id]].forEach(function (p) { var b = el('button', 'linkbtn', p[0]); b.type = 'button'; b.addEventListener('click', function () { nav(p[1]); }); eb.appendChild(b); eb.appendChild(el('span', 'sep', ' › ')); });
+    (pl.cat.basic ? [[pl.cat.name, 'basics']] : [['공부', 'study'], [pl.cat.name, 'study/' + pl.cat.id]]).forEach(function (p) { var b = el('button', 'linkbtn', p[0]); b.type = 'button'; b.addEventListener('click', function () { nav(p[1]); }); eb.appendChild(b); eb.appendChild(el('span', 'sep', ' › ')); });
     eb.appendChild(el('span', null, pl.group.name));
     // 제목은 목차에서 누른 그 이름으로 보여 준다(목차가 따로 이름을 붙인 실습은 그 이름)
     var here = pl.group.items.filter(function (it) { return it.id === cur.id; })[0]; $('title').textContent = (here && here.t) || cur.nav;
@@ -758,6 +850,8 @@ var Lab = (function () {
     pb.appendChild(el('span', 'where', (i + 1) + ' / ' + ids.length));
     if (i > 0) { var pv = el('button', 'btn ghost small', '← 앞 실습: ' + byId(ids[i - 1]).nav); pv.type = 'button'; pv.addEventListener('click', function () { nav(ids[i - 1]); }); pb.appendChild(pv); }
     if (i < ids.length - 1) { var nx = el('button', 'btn ghost small', '다음 실습: ' + byId(ids[i + 1]).nav + ' →'); nx.type = 'button'; nx.addEventListener('click', function () { nav(ids[i + 1]); }); pb.appendChild(nx); }
+    // 기초개념 실습에서 같은 개념의 세부 동작을 다루는 공부 쪽 실습으로 건너간다
+    (cur.deep || []).forEach(function (id) { var d = byId(id); if (!d) return; var db = el('button', 'btn ghost small', '세부 동작 실습: ' + d.nav + ' →'); db.type = 'button'; db.addEventListener('click', function () { curCat = null; nav(id); }); pb.appendChild(db); });
   }
   function run(animated, quiet, pred, force) {
     var c = cfg();
@@ -795,7 +889,7 @@ var Lab = (function () {
     stop(); askCancel(); sim = null; paused = false; assumeOpen = false; cur = byId(id) || lessons[0];
     $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
     drawPath();
-    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); placeCode(); picReset();
+    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : '') + (qmode() ? ' qgrid' : ''); placeCode(); picReset();
     buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
     try { localStorage.setItem('lab-last', cur.id); } catch (e) {}
   }
@@ -804,7 +898,7 @@ var Lab = (function () {
     $('restart').addEventListener('click', function () { run(true); });
     $('assume-more').addEventListener('click', function () { assumeOpen = !assumeOpen; drawAssume(); });
     $('code-toggle').addEventListener('click', function () { codeOpen = !codeOpen; try { localStorage.setItem('lab-code', codeOpen ? '1' : '0'); } catch (e) {} drawCode(); });
-    $('ctl-toggle').addEventListener('click', function () { var p = $('ctlpanel'), shut = !p.classList.contains('shut'); p.classList.toggle('shut', shut); this.setAttribute('aria-expanded', String(!shut)); this.textContent = shut ? '설정 바꾸기' : '설정 접기'; });
+    $('ctl-toggle').addEventListener('click', function () { var p = $('ctlpanel'), shut = !p.classList.contains('shut'); p.classList.toggle('shut', shut); this.setAttribute('aria-expanded', String(!shut)); this.textContent = qmode() ? (shut ? '직접 조합해 보기' : '설정 칸 접기') : shut ? '설정 바꾸기' : '설정 접기'; });
     try { codeOpen = localStorage.getItem('lab-code') !== '0'; predOn = localStorage.getItem('lab-pred') === '1'; } catch (e) {}
     $('pred-on').checked = predOn; $('pred-on').addEventListener('change', function () { predOn = this.checked; try { localStorage.setItem('lab-pred', predOn ? '1' : '0'); } catch (e) {} if (!predOn && ask) { askCancel(); syncBar(); } });
     // 실행 띠의 높이만큼 그림(또는 코드)이 그 아래에 붙도록 알려 준다
@@ -818,6 +912,7 @@ var Lab = (function () {
     $('brand').addEventListener('click', function (e) { e.preventDefault(); nav('home'); });
     $('t-home').addEventListener('click', function () { nav('home'); });
     $('t-lab').addEventListener('click', function () { nav('study'); });
+    $('t-basic').addEventListener('click', function () { nav('basics'); });
     $('t-quiz').addEventListener('click', function () { nav('quiz'); });
     loadState(); startGloss(); startQuizTab();
     window.addEventListener('hashchange', route); window.addEventListener('popstate', route);
@@ -1214,7 +1309,7 @@ var Lab = (function () {
     });
   }
   function attach(map, terms) { lessons.forEach(function (l) { var m = map[l.id]; if (m) l.explain = m.explain; }); kbTerms = terms || []; }
-  return { curriculum: function (c) { curri = c; }, site: function (o) { Object.keys(o).forEach(function (k) { SITE[k] = o[k]; }); }, verify: function (v) { Object.keys(v).forEach(function (k) { verify[k] = v[k]; }); }, register: function (l) { lessons.push(l); }, tracks: function (t) { tracks = t; }, quiz: function (q) { quizBank = quizBank.concat(q); }, glossary: function (g) { gloss = gloss.concat(g); }, start: start, fmt: fmt, attach: attach };
+  return { curriculum: function (c) { curri = c; }, basics: function (b) { basics = { id: 'basics', name: BASIC, desc: b.desc, groups: b.groups, basic: true }; }, site: function (o) { Object.keys(o).forEach(function (k) { SITE[k] = o[k]; }); }, verify: function (v) { Object.keys(v).forEach(function (k) { verify[k] = v[k]; }); }, register: function (l) { lessons.push(l); }, tracks: function (t) { tracks = t; }, quiz: function (q) { quizBank = quizBank.concat(q); }, glossary: function (g) { gloss = gloss.concat(g); }, start: start, fmt: fmt, attach: attach };
 })();
 </script>
 <script type="application/json" id="explain-data">/*__EXPLAIN__*/{}</script>

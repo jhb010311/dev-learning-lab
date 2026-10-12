@@ -1,0 +1,13 @@
+# java 21.0.12.1
+false|false|body => ERR|compiler.err.cant.resolve.location|1|false|false|-|cannot find symbol|Payable p = new Card();
+false|false|empty => ERR|compiler.err.cant.resolve.location|1|false|false|-|cannot find symbol|Payable p = new Card();
+false|false|none => ERR|compiler.err.cant.resolve.location|1|false|false|-|cannot find symbol|Payable p = new Card();
+false|true|body => ERR|compiler.err.cant.resolve|2|false|false|-|cannot find symbol|class Card implements Payable { ## Payable p = new Card();
+false|true|empty => ERR|compiler.err.cant.resolve|2|false|false|-|cannot find symbol|class Card implements Payable { ## Payable p = new Card();
+false|true|none => ERR|compiler.err.cant.resolve|2|false|false|-|cannot find symbol|class Card implements Payable { ## Payable p = new Card();
+true|false|body => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Card cannot be converted to Payable|Payable p = new Card();
+true|false|empty => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Card cannot be converted to Payable|Payable p = new Card();
+true|false|none => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Card cannot be converted to Payable|Payable p = new Card();
+true|true|body => OK|-|0|true|true|카드로 결제|-|-
+true|true|empty => OK|-|0|true|true||-|-
+true|true|none => ERR|compiler.err.does.not.override.abstract|1|false|false|-|Card is not abstract and does not override abstract method pay() in Payable|class Card implements Payable {

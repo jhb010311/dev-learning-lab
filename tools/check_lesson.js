@@ -25,7 +25,8 @@ const myKb = path.join(root, 'kb', 'kb_' + id + '.js');
 if (fs.existsSync(myKb)) { const rows = require(myKb), all = kb.map(r => r[1]); rows.forEach(r => { if (r.length !== 3 || !r[0] || !r[1] || !r[2]) errs.push('kb_' + id + '.js 형식 오류: ' + r[1]); if (all.filter(n => n === r[1]).length > 1) errs.push('kb에 이미 있는 용어: ' + r[1]); if (r[2].length < 80) warns.push('설명이 너무 짧음: ' + r[1]); }); }
 // 문제
 const qf = path.join(root, 'src', 'quiz_' + id + '.js');
-if (!fs.existsSync(qf)) errs.push('문제 파일 없음: src/quiz_' + id + '.js');
+// 기초개념 실습(basic: true)은 문제 파일이 없어도 된다
+if (!fs.existsSync(qf)) { if (!l.basic) errs.push('문제 파일 없음: src/quiz_' + id + '.js'); }
 else { const bank = []; try { new Function('Lab', fs.readFileSync(qf, 'utf8'))({ quiz: q => bank.push(...q) }); } catch (e) { errs.push('문제 파일 오류: ' + e.message); }
   if (bank.length < 3) errs.push('문제가 3개보다 적음');
   [1, 2, 3].forEach(lv => { if (!bank.some(q => q.lv === lv)) warns.push('단계 ' + lv + ' 문제가 없음'); });

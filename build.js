@@ -134,14 +134,22 @@ if (require.main === module) {
     if (gone.size) site.notice = ids.size + ' of ' + (ids.size + gone.size) + ' labs are available in English so far. The rest are being translated and are available in the Korean edition.'; }
   const placed = new Set(); let todo = 0;
   if (new Set(curri.map(c => c.id)).size !== curri.length) throw new Error('curriculum: 분야 id가 겹침');
-  curri.forEach(c => { if (!c.id || !c.name || !c.desc || !c.groups.length) throw new Error('curriculum: 분야 형식 오류 ' + c.id); if (ids.has(c.id) || ['home', 'study', 'quiz', 'all'].includes(c.id)) throw new Error('curriculum: 분야 id가 실습 id나 주소 이름과 겹침 ' + c.id);
+  curri.forEach(c => { if (!c.id || !c.name || !c.desc || !c.groups.length) throw new Error('curriculum: 분야 형식 오류 ' + c.id); if (ids.has(c.id) || ['home', 'study', 'quiz', 'all', 'basics'].includes(c.id)) throw new Error('curriculum: 분야 id가 실습 id나 주소 이름과 겹침 ' + c.id);
     c.groups.forEach(g => { if (!g.name || !g.items.length) throw new Error('curriculum: 빈 묶음 ' + c.id + ' / ' + g.name); g.items.forEach(it => { if (it.id) { if (!ids.has(it.id)) throw new Error('curriculum: 없는 실습 ' + it.id); placed.add(it.id); } else { if (!it.t) throw new Error('curriculum: 이름 없는 항목 ' + c.id + ' / ' + g.name); todo++; } }); }); });
+  // 기초개념: 공부의 분야와 따로 두는 목차(src/basics.js). 묶음이 분야이고, 항목은 basic: true인 실습(id)이거나 아직 없는 주제(t)다.
+  // 영어판에는 아직 두지 않는다(옮긴 실습이 없다).
+  const basSrc = !EN && fs.existsSync(path.join(dir, 'basics.js')) ? fs.readFileSync(path.join(dir, 'basics.js'), 'utf8') : '';
+  let basics = null; new Function('Lab', basSrc)({ basics: b => { basics = b; } });
+  if (basics) { if (!basics.desc || !basics.groups || !basics.groups.length) throw new Error('basics: desc와 groups가 필요');
+    basics.groups.forEach(g => { if (!g.name || !g.items.length) throw new Error('basics: 빈 묶음 ' + g.name); g.items.forEach(it => { if (it.id) { const l = list.find(x => x.id === it.id); if (!l) throw new Error('basics: 없는 실습 ' + it.id); if (!l.basic) throw new Error('basics: basic: true가 아닌 실습 ' + it.id); if (placed.has(it.id)) throw new Error('basics: 공부의 목차에도 있는 실습 ' + it.id); placed.add(it.id); } else if (!it.t) throw new Error('basics: 이름 없는 항목 ' + g.name); }); });
+    console.log('기초개념', basics.groups.map(g => g.name + ' ' + g.items.filter(it => it.id).length + (g.items.some(it => !it.id) ? '(+준비 중 ' + g.items.filter(it => !it.id).length + ')' : '')).join(', ')); }
+  list.forEach(l => { if (l.basic && !(basics && basics.groups.some(g => g.items.some(it => it.id === l.id))) && !process.env.LAB_OUT_DIR) throw new Error('basics: 기초개념 목차에 없는 기초 실습 ' + l.id); (l.deep || []).forEach(d => { if (!ids.has(d)) throw new Error(l.id + ': deep이 가리키는 실습이 없음 ' + d); }); });
   const lost = list.filter(l => !placed.has(l.id)).map(l => l.id);
   // 미리보기(tools/preview.js)에서는 아직 목차에 넣지 않은 실습이 있어도 된다
   if (lost.length && !process.env.LAB_OUT_DIR) throw new Error('curriculum: 어느 분야에도 없는 실습: ' + lost.join(', '));
   console.log('목차', curri.map(c => c.name + ' ' + new Set(c.groups.flatMap(g => g.items.filter(it => it.id).map(it => it.id))).size + (c.groups.flatMap(g => g.items).filter(it => !it.id).length ? '(+준비 중 ' + c.groups.flatMap(g => g.items).filter(it => !it.id).length + ')' : '')).join(', '), '| 준비 중 합계', todo);
   const glossOut = EN ? 'Lab.glossary(' + JSON.stringify(gl) + ');' : glossSrc, curOut = EN ? 'Lab.site(' + JSON.stringify(site) + ');\nLab.curriculum(' + JSON.stringify(curri) + ');' : curSrc;
-  const js = (files.map(f => fs.readFileSync(path.join(dir, 'lessons', f), 'utf8')).join('\n') + '\n' + tracksSrc + '\n' + quizSrc + '\n' + glossOut + '\n' + verSrc + '\n' + curOut).replace(/<(?=!--|\/?script)/gi, '\\x3c');
+  const js = (files.map(f => fs.readFileSync(path.join(dir, 'lessons', f), 'utf8')).join('\n') + '\n' + tracksSrc + '\n' + quizSrc + '\n' + glossOut + '\n' + verSrc + '\n' + curOut + '\n' + basSrc).replace(/<(?=!--|\/?script)/gi, '\\x3c');
   let html = fs.readFileSync(path.join(__dirname, 'src', 'framework.html'), 'utf8');
   if (EN) html = toEnglish(html);
   const shell = html; // 데이터를 넣기 전의 틀 (여러 페이지로 나눠 쓸 때 쓴다)
@@ -152,7 +160,7 @@ if (require.main === module) {
   if (!preview) { fs.mkdirSync(path.join(__dirname, 'dist'), { recursive: true }); fs.mkdirSync(path.join(__dirname, 'docs'), { recursive: true });
   fs.writeFileSync(path.join(__dirname, 'dist', EN ? 'fragment.en.html' : 'fragment.html'), html);
     // 공개 사이트는 여러 페이지로 만든다(실습마다 주소가 따로 있고, 스크립트 없이도 읽을 글이 들어간다). build_pages.js 참고.
-    const r = require('./build_pages.js')({ EN, shell, js, explain, terms, list, kb, curri, site, ver });
+    const r = require('./build_pages.js')({ EN, shell, js, explain, terms, list, kb, curri, site, ver, basics });
     console.log(EN ? 'docs/en/' : 'docs/', '페이지 ' + r.pages + '개(' + r.pageKB + 'KB) + app.js ' + r.appKB + 'KB + app.css ' + r.cssKB + 'KB', '| 개념', list.length + '개:', list.map(l => l.nav).join(', '));
     return; }
   // 미리보기(LAB_OUT_DIR): 파일 하나로 만든다

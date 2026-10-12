@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>기초개념 · 개발 학습 실습실</title>
+<meta name="description" content="개념의 세부 동작을 보기 전에, 그 개념이 코드에서 어떻게 생긴 것인지와 없으면 어떻게 되는지를 봅니다.">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/basics/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/basics/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/basics/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="기초개념 · 개발 학습 실습실">
+<meta property="og:description" content="개념의 세부 동작을 보기 전에, 그 개념이 코드에서 어떻게 생긴 것인지와 없으면 어떻게 되는지를 봅니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/basics/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../app.css?v=19ee4b7621">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<h1>기초개념</h1>
+<p>개념의 세부 동작을 보기 전에, 그 개념이 코드에서 어떻게 생긴 것인지와 없으면 어떻게 되는지를 봅니다.</p>
+<h2>Java</h2>
+<ul>
+<li>변수와 타입</li>
+<li>메서드</li>
+<li>클래스와 객체</li>
+<li>참조</li>
+<li>생성자</li>
+<li>static</li>
+<li>상속</li>
+<li><a href="../lab/interface_basic/">인터페이스</a> — 인터페이스는 코드에서 어떻게 생겼고 무엇을 정하는가</li>
+<li>예외</li>
+<li>제네릭</li>
+<li>람다</li>
+<li>애너테이션</li>
+<li>스레드</li>
+</ul>
+<h2>Spring</h2>
+<ul>
+<li>빈</li>
+<li>의존성 주입</li>
+<li><a href="../lab/servlet_basic/">서블릿</a> — 어떤 클래스를 서블릿이라고 부르는가</li>
+<li><a href="../lab/controller_basic/">컨트롤러</a> — 어떤 클래스를 컨트롤러라고 부르는가</li>
+<li>@Transactional</li>
+<li>스프링 부트</li>
+</ul>
+<h2>JPA</h2>
+<ul>
+<li>엔티티</li>
+<li>영속성 컨텍스트</li>
+<li>리포지토리</li>
+<li>연관관계</li>
+</ul>
+<h2>DB</h2>
+<ul>
+<li>테이블, 행, 열</li>
+<li><a href="../lab/pk_basic/">기본 키</a> — 기본 키는 무엇이고, 없으면 무엇이 달라지는가</li>
+<li>외래 키</li>
+<li>WHERE</li>
+<li>조인</li>
+<li>인덱스</li>
+<li>트랜잭션</li>
+</ul>
+<h2>네트워크</h2>
+<ul>
+<li>IP 주소와 포트</li>
+<li>URL</li>
+<li>DNS</li>
+<li><a href="../lab/http_basic/">HTTP 요청</a> — HTTP 요청은 어떻게 생긴 글인가</li>
+<li>HTTP 응답</li>
+<li>쿠키</li>
+<li>JSON</li>
+<li>HTTPS</li>
+</ul>
+<h2>보안</h2>
+<ul>
+<li>인증과 인가</li>
+<li>세션</li>
+<li>토큰</li>
+<li>해시</li>
+<li>암호화</li>
+</ul>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../app.js?v=19ee4b7621"></script>
+</body>
+</html>

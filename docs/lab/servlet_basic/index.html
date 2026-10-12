@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서블릿: 어떤 클래스를 서블릿이라고 부르는가 · 개발 학습 실습실</title>
+<meta name="description" content="서블릿은 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. extends HttpServlet은 웹 요청을 받을 수 있는 클래스라는 자격이고, @WebServlet(&quot;/hello&quot;)는 브라우저가 /hello라는 주소로 보낸 요청을 이 클래스에 맡…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/servlet_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/servlet_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/servlet_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="서블릿: 어떤 클래스를 서블릿이라고 부르는가 · 개발 학습 실습실">
+<meta property="og:description" content="서블릿은 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. extends HttpServlet은 웹 요청을 받을 수 있는 클래스라는 자격이고, @WebServlet(&quot;/hello&quot;)는 브라우저가 /hello라는 주소로 보낸 요청을 이 클래스에 맡…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/servlet_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=19ee4b7621">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › Spring</p>
+<h1>서블릿</h1>
+<p><b>어떤 클래스를 서블릿이라고 부르는가</b></p>
+<p>서블릿은 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 두 군데입니다. extends HttpServlet은 웹 요청을 받을 수 있는 클래스라는 자격이고, @WebServlet(&quot;/hello&quot;)는 브라우저가 /hello라는 주소로 보낸 요청을 이 클래스에 맡긴다는 등록입니다. 이 둘을 하나씩 지워 가며 같은 요청을 보내, 톰캣이 이 클래스의 doGet을 불러 주는지를 봅니다.</p>
+<p>실행으로 대조 · 톰캣 11.0.24에 열두 가지 조합을 배치하고 요청을 보내 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>서블릿 클래스</dt>
+<dd>서블릿 클래스는 Servlet 인터페이스를 구현한 자바 클래스다. 인터페이스를 직접 구현하기보다, 그것을 이미 구현해 둔 HttpServlet을 상속해서 만드는 것이 보통이다. 서블릿 클래스의 객체는 개발자가 new로 만들지 않고 서블릿 컨테이너가 만들며, 요청이 오면 컨테이너가 그 객체의 메서드를 부른다. 컨테이너는 서블릿 선언 하나에 객체를 하나만 만들어 계속 쓴다. 클래스도, 컨테이너가 만든 그 객체도 서블릿이라고 부른다.</dd>
+<dt>HttpServlet</dt>
+<dd>HttpServlet은 서블릿 API에 들어 있는 추상 클래스로, HTTP 요청을 받는 서블릿을 만들 때 상속한다. 모든 서블릿이 구현해야 하는 Servlet 인터페이스를 이미 구현해 두었으므로, 개발자는 extends HttpServlet이라고 쓰고 doGet이나 doPost 같은 메서드만 재정의하면 된다. 요청이 오면 HttpServlet의 service 메서드가 요청의 HTTP 메서드를 보고 알맞은 doXxx 메서드를 부른다. 재정의하지 않은 doXxx 메서드로 요청이 오면 그 HTTP 메서드를 지원하지 않는다는 오류 응답이 나간다.</dd>
+<dt>@WebServlet</dt>
+<dd>@WebServlet은 클래스를 서블릿으로 선언하고 그 서블릿이 맡을 주소(URL 패턴)를 적는 애너테이션이다. 서블릿 컨테이너는 애플리케이션을 배치할 때 이 애너테이션을 읽어 주소와 서블릿을 짝짓는다. 주소는 하나 이상 적어야 하고, 이 애너테이션을 붙이는 클래스는 HttpServlet을 상속해야 한다. 애너테이션을 붙인다고 일반 클래스가 서블릿이 되는 것은 아니다. 같은 등록을 web.xml이라는 설정 파일에 적어서 할 수도 있다.</dd>
+<dt>서블릿과 서블릿 컨테이너</dt>
+<dd>서블릿은 HTTP 요청을 받아 처리하고 응답을 만드는 자바 표준 인터페이스다. 서블릿 컨테이너(톰캣 등)는 네트워크 연결을 받아 요청을 해석하고 알맞은 서블릿을 호출하며 서블릿의 생명주기와 요청 처리 스레드를 관리한다. Spring MVC는 DispatcherServlet이라는 서블릿 하나 위에서 동작한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 두 가지가 다 있는 서블릿. 요청이 오면 톰캣이 doGet을 불러 줍니다.</li>
+<li><b>@WebServlet을 지우면</b> — 서블릿 클래스이지만 맡은 주소가 없어 한 번도 불리지 않습니다.</li>
+<li><b>extends HttpServlet을 지우면</b> — 주소는 등록되지만 서블릿이 아니어서 첫 요청에서 실패합니다.</li>
+<li><b>둘 다 지우면</b> — 같은 메서드가 있는 일반 클래스. 톰캣은 이 클래스를 쓰지 않습니다.</li>
+<li><b>주소가 3개면</b> — 주소마다 서블릿 클래스를 하나씩 만듭니다.</li>
+<li><b>클래스 하나에 주소 3개를 적으면</b> — doGet이 하나뿐이라 세 주소가 같은 응답을 냅니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>서버가 뜹니다. 톰캣이 웹 애플리케이션의 클래스 파일을 훑어 @WebServlet이 붙은 클래스를 찾습니다. Hello 클래스에 붙어 있으므로, 거기 적힌 주소와 클래스를 주소 표에 적습니다. 객체는 아직 만들지 않습니다.</li>
+<li>브라우저 주소창에 localhost:8080/hello 주소를 입력하면, 브라우저가 서버에 GET /hello 요청을 보냅니다.</li>
+<li>톰캣이 주소 표에서 /hello 주소를 찾습니다. Hello 클래스가 적혀 있습니다.</li>
+<li>톰캣이 Hello 클래스의 객체를 만듭니다. 우리가 쓴 코드에는 new Hello()라는 줄이 없습니다. 서블릿 객체는 톰캣이 만듭니다.</li>
+<li>톰캣이 이 객체에 요청을 넘깁니다. HttpServlet에 들어 있는 코드가 GET 요청인 것을 보고 우리가 쓴 doGet을 부릅니다. doGet을 부르는 줄도 우리가 쓰지 않았습니다. doGet이 응답에 쓰는 글은 &quot;안녕하세요&quot;입니다.</li>
+<li>브라우저가 200 응답을 받습니다. 본문은 &quot;안녕하세요&quot;입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>서블릿은 class로 선언한 자바 클래스입니다. 일반 클래스와 다른 곳은 extends HttpServlet(자격)과 @WebServlet(주소 등록)이고, 이 둘이 있으면 톰캣이 객체를 만들고 요청이 올 때 doGet을 불러 줍니다.</li>
+<li>우리가 쓴 코드에는 new도, doGet을 부르는 줄도 없습니다. 일반 클래스의 메서드는 우리 코드가 불러야 실행되지만, 서블릿의 메서드는 요청이 오면 톰캣이 부릅니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>// 등록: 이 주소로 온 요청을 이 클래스에 맡긴다
+@WebServlet(&quot;/hello&quot;)
+// 자격: 웹 요청을 받을 수 있는 서블릿 클래스
+public class Hello extends HttpServlet {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        resp.setContentType(&quot;text/plain; charset=UTF-8&quot;);
+        resp.getWriter().write(&quot;안녕하세요&quot;);
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>서블릿 컨테이너는 톰캣 11.0.24(Jakarta Servlet 6.1)이고, 브라우저는 주소마다 GET 요청을 한 번씩 차례로 보낸다고 가정했습니다. 주소의 localhost:8080은 내 컴퓨터에서 톰캣을 기본 포트로 띄웠을 때의 예입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스를 컴파일해 웹 애플리케이션 폴더(WEB-INF/classes)에 넣고 실제 톰캣을 띄워 요청을 보낸 결과와 대조했습니다. 대조한 것은 클래스가 Servlet 타입인지, 톰캣의 주소 표, 응답의 상태 코드와 본문, 만들어진 객체 수, doGet 실행 횟수입니다. 모든 서블릿이 Servlet 인터페이스를 구현한다는 것과 HttpServlet이 그 구현이라는 것은 Jakarta Servlet 명세 2장을, @WebServlet을 붙인 클래스는 HttpServlet을 상속해야 하고 주소를 하나 이상 적어야 한다는 것은 명세 8.1.1절을 따랐습니다. 화면은 extends HttpServlet 하나로 자격을 나타냈지만, 정확한 조건은 Servlet 인터페이스의 구현이며 HttpServlet을 상속하는 것이 가장 흔한 방법입니다. 주소 등록도 @WebServlet 말고 web.xml 설정 파일이나 코드로 할 수 있는데, 여기서는 @WebServlet만 다뤘습니다. 화면의 코드는 import 줄과, 재정의한 메서드에 흔히 붙이는 @Override를 줄였습니다. @WebServlet만 붙인 일반 클래스가 첫 요청에 500을, 같은 등록으로 가는 그다음 요청부터 404를 돌려준다는 것은 명세가 정한 것이 아니라 이 톰캣 버전에서 관찰한 동작입니다. 톰캣이 객체를 만든 뒤 doGet에 이르기까지 거치는 init과 service 호출은 줄였고, &quot;세부 동작 실습: 서블릿&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/interface_basic/">인터페이스</a> · 다음 실습: <a href="../../lab/controller_basic/">컨트롤러</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=19ee4b7621"></script>
+</body>
+</html>

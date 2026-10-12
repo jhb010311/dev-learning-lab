@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>기본 키: 기본 키는 무엇이고, 없으면 무엇이 달라지는가 · 개발 학습 실습실</title>
+<meta name="description" content="기본 키는 테이블을 만들 때 열 하나에 PRIMARY KEY라고 적는 것입니다. 이렇게 적으면 그 열의 값은 행마다 달라야 하고 비어 있을(NULL) 수 없다고 DB에 약속하는 것이 되어, 약속을 어기는 INSERT는 DB가 거부합니다. 그래서 &quot;id가 1인 행&quot;이라고 하면…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/pk_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/pk_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pk_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="기본 키: 기본 키는 무엇이고, 없으면 무엇이 달라지는가 · 개발 학습 실습실">
+<meta property="og:description" content="기본 키는 테이블을 만들 때 열 하나에 PRIMARY KEY라고 적는 것입니다. 이렇게 적으면 그 열의 값은 행마다 달라야 하고 비어 있을(NULL) 수 없다고 DB에 약속하는 것이 되어, 약속을 어기는 INSERT는 DB가 거부합니다. 그래서 &quot;id가 1인 행&quot;이라고 하면…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/pk_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=19ee4b7621">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › DB</p>
+<h1>기본 키</h1>
+<p><b>기본 키는 무엇이고, 없으면 무엇이 달라지는가</b></p>
+<p>기본 키는 테이블을 만들 때 열 하나에 PRIMARY KEY라고 적는 것입니다. 이렇게 적으면 그 열의 값은 행마다 달라야 하고 비어 있을(NULL) 수 없다고 DB에 약속하는 것이 되어, 약속을 어기는 INSERT는 DB가 거부합니다. 그래서 &quot;id가 1인 행&quot;이라고 하면 언제나 한 행만 가리킵니다. 이 실습은 PRIMARY KEY를 지우거나 두 번째로 넣는 행의 id를 바꿔 가며 같은 SQL을 실행해, DB가 INSERT를 받아들이는지와 UPDATE가 몇 행을 바꾸는지를 봅니다.</p>
+<p>실행으로 대조 · H2 2.4.240에서 여섯 가지 조합을 실행해 대조, 규칙은 MySQL 문서와 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>기본 키, 유니크 키, 외래 키</dt>
+<dd>기본 키(PK)는 테이블의 각 행을 유일하게 식별하는 컬럼으로 값이 중복되거나 비어 있을 수 없고 테이블에 하나만 둔다. 유니크 키는 값의 중복을 막는 제약으로 여러 개 둘 수 있다. 외래 키(FK)는 다른 테이블의 기본 키(또는 유니크 키)를 참조하는 컬럼으로, 참조 대상이 실제로 존재하도록 보장한다.</dd>
+<dt>제약 조건</dt>
+<dd>테이블에 들어갈 수 있는 값의 규칙을 테이블 정의에 적어 두는 것이다. 기본 키, 유니크, NOT NULL, CHECK, 외래 키가 대표적이다. 규칙에 어긋나는 INSERT, UPDATE, DELETE가 오면 데이터베이스가 그 문장을 오류로 거부하고 테이블은 바뀌지 않는다. 애플리케이션 코드에서만 검사하면 검사를 빠뜨린 코드나 직접 실행한 SQL로 잘못된 값이 들어갈 수 있지만, 제약 조건은 어떤 경로로 들어오는 값이든 똑같이 막는다. 제약이 없으면 잘못된 값도 오류 없이 저장되고, 문제는 나중에 조회할 때에야 드러난다.</dd>
+<dt>NULL과 3값 논리</dt>
+<dd>NULL은 0이나 빈 문자열이 아니라 &quot;값이 없음&quot; 또는 &quot;알 수 없음&quot;을 뜻한다. NULL과의 비교(=, &lt;&gt;, &lt; 등)는 참도 거짓도 아닌 &quot;알 수 없음(UNKNOWN)&quot;이 되어, SQL의 조건은 참, 거짓, 알 수 없음의 세 가지 값을 가진다. WHERE와 HAVING은 조건이 참인 행만 남기므로 알 수 없음인 행은 거짓인 행과 마찬가지로 빠진다. 알 수 없음은 NOT을 붙여도 알 수 없음이다. NULL인지 확인할 때는 = NULL이 아니라 IS NULL, IS NOT NULL을 쓴다.</dd>
+<dt>행과 열</dt>
+<dd>관계형 데이터베이스의 테이블은 표처럼 열과 행으로 이루어진다. 열(컬럼)은 테이블을 만들 때 이름과 타입을 정해 두는 칸의 종류이고, 예를 들어 member 테이블의 id, name이 열이다. 행(레코드)은 그 열들에 값을 채운 한 줄이며, 회원 한 사람의 정보가 행 하나가 된다. INSERT는 행을 하나 추가하고, UPDATE는 WHERE 조건에 맞는 행을 모두 고치며, SELECT는 행을 읽어 온다. 열에 값이 없는 것은 NULL로 나타낸다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — PRIMARY KEY가 있는 테이블. 같은 id로 한 번 더 넣는 INSERT를 DB가 거부합니다.</li>
+<li><b>PRIMARY KEY를 지우면</b> — 같은 id의 행이 둘 들어가고, UPDATE가 두 행을 다 고칩니다.</li>
+<li><b>두 번째 행의 id를 2로 바꾸면</b> — id가 서로 다르면 PRIMARY KEY가 있어도 두 행이 다 들어갑니다.</li>
+<li><b>id를 비워서 넣으면</b> — id가 비어 있는 INSERT도 DB가 거부합니다. 같은 id일 때와는 다른 이유입니다.</li>
+<li><b>PRIMARY KEY를 지우고 id를 비우면</b> — id가 비어 있는 행이 들어가고, id로는 그 행을 가리킬 수 없습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>CREATE TABLE: DB가 member라는 테이블을 만듭니다. 테이블은 표처럼 열(id와 name)과 행(한 사람의 정보 한 줄)으로 이루어지고, 지금은 행이 하나도 없습니다. id 열에 PRIMARY KEY가 적혀 있으므로, DB는 &quot;이 열의 값은 행마다 달라야 하고 비어 있을 수 없다&quot;는 약속을 기억해 둡니다.</li>
+<li>INSERT INTO member VALUES (1, '김철수'): DB가 행을 넣기 전에 약속을 확인합니다. 테이블이 비어 있어 같은 id가 없고 id도 비어 있지 않으므로 통과하고, 김철수 행이 들어갑니다.</li>
+<li>INSERT INTO member VALUES (1, '이영희'): 두 번째 행을 넣으려 합니다. DB는 행을 넣기 전에 기본 키의 약속을 확인합니다. 테이블에 id가 1인 행이 이미 있는지, id가 비어 있지 않은지를 봅니다. 이 확인을 하는 코드를 우리는 쓰지 않았습니다. DB가 INSERT가 올 때마다 스스로 합니다.</li>
+<li>DB의 확인 결과: 테이블에 id가 1인 행(김철수)이 이미 있습니다. 약속을 어기므로 DB는 이 INSERT를 거부하고, &quot;같은 값이 이미 있다&quot;는 종류의 오류를 돌려줍니다. 이영희 행은 테이블에 들어가지 않았고, 테이블은 INSERT 전 그대로입니다.</li>
+<li>UPDATE member SET name = '박민수' WHERE id = 1: 우리가 하려는 일은 id가 1인 한 사람의 이름을 고치는 것입니다. DB는 WHERE 조건에 맞는 행을 모두 찾아 고칩니다. id가 1인 행은 하나뿐이므로 그 행의 이름이 박민수로 바뀝니다. 바뀐 행은 1행입니다.</li>
+<li>SELECT * FROM member ORDER BY id: 테이블에 남은 행을 id 순으로 읽습니다. 결과는 (1, 박민수)입니다. 남은 것은 id가 1인 한 행입니다. 이영희 행은 거부되어 들어가지 않았고, 김철수 행의 이름이 박민수로 바뀌었습니다. &quot;id가 1인 행&quot;은 언제나 이 한 행입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>기본 키는 테이블을 만들 때 열 하나에 PRIMARY KEY라고 적는 것입니다. 그 열의 값은 행마다 달라야 하고 비어 있을 수 없다고 DB에 약속하는 것이고, 같은 id로 한 번 더 넣는 INSERT는 DB가 거부했습니다.</li>
+<li>확인하는 코드는 우리가 쓰지 않았고 DB가 INSERT마다 스스로 확인했습니다. 그래서 &quot;id가 1인 행&quot;은 언제나 한 행이고, 그 id로 하는 UPDATE는 한 사람만 고칩니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>CREATE TABLE member (
+    -- 기본 키: 이 열의 값은 행마다 달라야 하고 비어 있을 수 없다
+    id   INT PRIMARY KEY,
+    name VARCHAR(20)
+);
+
+INSERT INTO member VALUES (1, '김철수');
+INSERT INTO member VALUES (1, '이영희');
+
+UPDATE member SET name = '박민수' WHERE id = 1;
+SELECT * FROM member ORDER BY id;</pre>
+<h2>이 모형의 전제</h2>
+<p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했습니다. 여섯 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 글자 그대로 한 문장씩 실행해서, 두 번째 INSERT가 들어갔는지 거부됐는지와 오류의 종류(H2의 SQLSTATE 23505 중복, 23502 NULL 불가), INSERT 두 번 뒤의 행 수, UPDATE가 돌려준 바뀐 행 수, 마지막 SELECT 결과를 모형과 대조했습니다. 마지막에 id를 비운 행을 찾는 단계의 값(id = NULL은 0행, id IS NULL은 비어 있는 행 전부)은 화면 코드에 없는 문장을 H2에서 따로 실행해 확인했습니다. 기본 키가 같은 값과 NULL을 받지 않는다는 규칙은 MySQL도 같으며, MySQL 8.4 문서의 CREATE TABLE 문(PRIMARY KEY는 모든 키 열이 NOT NULL인 고유 인덱스), 1.7.3.1절 PRIMARY KEY and UNIQUE Index Constraints(기본 키나 유니크 키를 어기는 INSERT와 UPDATE는 오류), 5.3.4.6절 Working with NULL Values(NULL은 =로 비교할 수 없고 IS NULL을 쓰며, ORDER BY의 ASC에서는 NULL이 맨 앞)를 직접 열어 확인했습니다. 오류의 번호와 메시지의 글자는 DB마다 다르므로 화면에는 종류만 적었습니다. MySQL에서의 실행 대조는 아직 하지 않았습니다. 그래서 위 규칙은 문서와 H2 실행이 일치한다는 근거이고, MySQL이 같은 SQL에서 같은 결과를 내는지는 실행으로 확인하지 않았습니다. PRIMARY KEY가 없는 테이블이 같은 id나 NULL을 받아들이는 것은 H2에서 관찰한 동작입니다. 이 실습은 PRIMARY KEY 하나만 다루며, 유니크 키, 외래 키, 자동 증가(AUTO_INCREMENT)는 다루지 않습니다.</p>
+<p>앞 실습: <a href="../../lab/controller_basic/">컨트롤러</a> · 다음 실습: <a href="../../lab/http_basic/">HTTP 요청</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=19ee4b7621"></script>
+</body>
+</html>
