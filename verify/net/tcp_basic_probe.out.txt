@@ -1,0 +1,14 @@
+# TCP 연결: Node.js v24.18.0 (win32), 127.0.0.1에서 실행. 조합마다 5번 실행해 매번 같은 결과인지 확인. 포트는 조합마다 빈 포트를 골랐다(화면의 9000은 예시).
+# 한 줄: proto|listen => 보내는 쪽이 본 것 | 받는 쪽이 본 것 | TCP 연결 시도에서 결과(연결 또는 오류)가 나오기까지 걸린 시간의 최대(ms)
+# 실행 tcp|on => listen(TCP);connect(TCP);send(A);send(B);send(C)
+tcp|on => connect:yes,err:none,sent:3,errEvents:0 | text:ABC,reads:3,conns:1 | ms:2
+# 실행 tcp|off => connect(TCP)
+tcp|off => connect:no,err:ECONNREFUSED,sent:0,errEvents:1 | text:,reads:0,conns:0 | ms:1
+# 실행 udp|on => listen(UDP);send(A);send(B);send(C)
+udp|on => connect:none,err:none,sent:3,errEvents:0 | text:ABC,reads:3,conns:0 | ms:0
+# 실행 udp|off => send(A);send(B);send(C)
+udp|off => connect:none,err:none,sent:3,errEvents:0 | text:,reads:0,conns:0 | ms:0
+# 동작 tcp: (listen이 on이면 net.createServer().listen) → net.connect(port,"127.0.0.1") → connect 이벤트 뒤에 write("A"), write("B"), write("C")를 0.05초 간격으로
+# 동작 udp: (listen이 on이면 dgram bind) → 연결하는 호출 없이 socket.send("A", port, "127.0.0.1"), send("B", ...), send("C", ...)를 0.05초 간격으로
+# 사실 HTTP를 TCP로 보냄 => 서버가 받은 요청=["GET /hello"]|받은 응답의 첫 줄="HTTP/1.1 200 OK"|본문="hello"
+# 사실 같은 요청 글을 UDP로 보냄 => send 콜백 오류=none|서버가 받은 요청 수=0|받은 응답=none

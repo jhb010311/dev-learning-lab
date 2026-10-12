@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df7ea64144">
+<link rel="stylesheet" href="../../app.css?v=e944f2d13d">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -79,7 +79,7 @@ String text = new String(socket.getInputStream().readAllBytes(), &quot;UTF-8&quo
 System.out.println(text);</pre>
 <h2>이 모형의 전제</h2>
 <p>자바는 JDK 21.0.12.1이고 운영체제는 Windows 11입니다. 여덟 가지 조합을 모두, 화면의 코드와 같은 글로 서버 프로그램, 또 다른 프로그램, 클라이언트 프로그램의 소스를 만들어 컴파일하고, 이 JDK의 java를 서로 다른 프로세스로 띄워 127.0.0.1에서 실제로 연결한 결과와 대조했습니다. 대조한 것은 클라이언트의 연결이 되었는지와 던져진 예외의 종류, 클라이언트가 받은 글, 또 열려던 프로그램이 열었는지와 던져진 예외의 종류입니다. 화면의 8080과 9090은 예시 번호이고, 실제 대조에서는 이 PC에서 비어 있는 다른 번호 두 개를 조합마다 골라 8080 자리와 9090 자리에 썼습니다(9090 자리에는 아무도 열지 않은 것을 연결해 보아 확인했습니다). 화면의 코드는 import 줄, main 메서드, 예외 처리(throws Exception으로 넘김)를 줄였고, 실제 프로그램에는 프로세스가 준비되었음을 알리는 출력 줄이 더 있습니다. 서버와 클라이언트를 실제로 연결한 것은 127.0.0.1뿐이고 외부 네트워크에는 연결하지 않았습니다. 다만 new ServerSocket(포트)는 이 컴퓨터의 모든 주소에서 연결을 받는 모양으로 열려서(netstat에도 0.0.0.0으로 나왔습니다), 대조하는 동안 서버 프로그램은 몇 초 동안 127.0.0.1에만 묶이지 않은 상태였습니다. 연결 거절과 &quot;이미 쓰는 포트&quot; 오류는 운영체제(Windows 11)가 돌려준 것을 자바가 예외로 알린 것입니다. 연결을 거절당했을 때 자바가 던진 것은 java.net.ConnectException(메시지 Connection refused: connect), 이미 열린 포트를 또 열 때 던진 것은 java.net.BindException(메시지 Address already in use: bind)이었고, 이 메시지는 이 PC에서 관찰한 것이어서 운영체제마다 다를 수 있습니다. 실행으로 확인한 것은 서버가 포트를 연 직후 운영체제의 목록(netstat)에 그 포트가 서버 프로세스의 것으로 올라 있다는 것, 클라이언트 쪽 소켓의 자기 포트가 서버 포트와 다른 49152 이상의 번호라는 것, 서버 없이 또 다른 프로그램만 포트를 열면 클라이언트의 연결은 되지만 3초 안에 글이 오지 않고 클라이언트가 끝나지 않았다는 것(3초 뒤 일은 보지 않았습니다), 서버가 열지 않은 포트로 연결해도 서버 프로세스는 계속 기다린다는 것입니다. 실제로 운영체제가 TCP 연결 요청에 어떤 신호로 거절했는지는 패킷을 잡아 보지 않아 확인하지 못했습니다. 문서로는 다음을 직접 열어 확인했습니다. RFC 9293(TCP)의 2.2절은 TCP가 포트 번호로 응용 서비스를 구분한다고, 3.1절은 헤더에 출발지 포트와 목적지 포트가 있다고, 3.4.1절은 연결이 소켓(양쪽 끝)의 쌍으로 정해진다고, 3.10.7.1절은 연결이 없는 상태(CLOSED)에서 RST를 담지 않은 세그먼트가 오면 RST로 응답한다고 적습니다(위 거절이 이것인지는 확인하지 못했습니다). RFC 1122의 3.2.1.3절 (g)는 127로 시작하는 주소를 호스트 내부 루프백 주소로 정하고 호스트 밖에 나타나서는 안 된다고 하며, RFC 6890의 2.2.2절 Table 4는 127.0.0.0/8을 Loopback으로 올리고 전달되지 않는 주소로 표시합니다. RFC 6761의 6.3절은 localhost 이름이 루프백 주소로 풀리게 하도록 권합니다(이 PC에서 localhost를 풀면 127.0.0.1과 IPv6의 루프백 주소 ::1이 나왔고, 이 실습은 127.0.0.1만 다뤘습니다). java.net.ServerSocket 문서(Java SE 21)는 포트 번호로 서버 소켓을 만들고, 아직 받지 않은 연결 요청의 대기열 길이가 50이며, accept는 연결이 올 때까지 막힌다고 적습니다. 이 문서에는 BindException이나 이미 쓰는 포트에 대한 설명이 없고, java.net.Socket 문서의 생성자 설명에도 ConnectException이 나오지 않아 두 예외는 이 PC에서의 관찰입니다. 포트는 TCP로 연결할 때의 것이고, UDP나 IPv6, 한 컴퓨터가 여러 IP 주소를 가지는 경우, 인터넷의 다른 컴퓨터에 연결하는 경우는 다루지 않았습니다. 소켓과 포트의 세부 동작(임시 포트, 포트 번호의 범위와 약속된 번호 등)은 &quot;세부 동작 실습: 소켓과 포트&quot;에서 다룹니다.</p>
-<p>앞 실습: <a href="../../lab/dblock_basic/">행 잠금</a> · 다음 실습: <a href="../../lab/url_basic/">URL</a></p>
+<p>앞 실습: <a href="../../lab/durable_basic/">저장과 지속성</a> · 다음 실습: <a href="../../lab/tcp_basic/">TCP 연결</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -166,6 +166,6 @@ System.out.println(text);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df7ea64144"></script>
+<script src="../../app.js?v=e944f2d13d"></script>
 </body>
 </html>

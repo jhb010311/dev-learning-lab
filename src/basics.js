@@ -61,9 +61,11 @@ Lab.basics({
       { id: 'index_basic' },
       { id: 'dbtx_basic' },
       { id: 'dblock_basic' },
+      { id: 'durable_basic' },
     ] },
     { name: '네트워크', desc: '브라우저와 서버가 주고받는 것의 생김새입니다.', items: [
       { id: 'port_basic' },
+      { id: 'tcp_basic' },
       { id: 'url_basic' },
       { id: 'dns_basic' },
       { id: 'http_basic' },

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=df7ea64144">
+<link rel="stylesheet" href="../../app.css?v=e944f2d13d">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -86,7 +86,7 @@ UPDATE account SET balance = balance + 50 WHERE id = 1;
 COMMIT;</pre>
 <h2>이 모형의 전제</h2>
 <p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했고 MySQL에서의 실행 대조는 하지 않았습니다. 네 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 만든 뒤 &quot;연결 A&quot;와 &quot;연결 B&quot; 구역으로 나눠 연결 A(메인 스레드)와 연결 B(스레드)가 각자의 구역을 글자 그대로 실행했습니다. 실행 차례는 A의 BEGIN과 UPDATE, B의 BEGIN, B의 UPDATE 시도, (있으면) A의 COMMIT, B의 COMMIT입니다. 두 연결이 같은 DB를 보도록 이름을 준 메모리 DB(DB_CLOSE_DELAY=-1)를 조합마다 새로 만들었고, 격리 수준은 H2 기본값인 READ COMMITTED 그대로 두었습니다. 대조한 것은 결과 표의 세 항목입니다. B의 UPDATE가 0.4초가 지난 뒤에도 끝나지 않았는지와 A의 COMMIT 시각보다 늦게 끝났는지(시각을 기록해 비교), 오류가 났다면 그 종류(H2의 SQLSTATE HYT00, 오류 코드 50200, 메시지 첫 줄은 Timeout trying to lock table &quot;ACCOUNT&quot;이며 H2는 행 잠금이어도 메시지에 테이블 이름을 적습니다), 모든 문장이 끝난 뒤 새 연결로 읽은 잔액입니다. 끝내지 않은 조합은 A가 잠금을 쥔 채로 읽었고, A의 연결을 닫은 뒤에 읽은 값도 같았습니다. 잠금을 기다리는 시간은 연결 B에서 SET LOCK_TIMEOUT 1000(1초)으로 줄여 두었습니다(H2 기본값은 2초이며, 이 설정은 화면의 코드에 없습니다). 화면에는 시간 숫자를 적지 않았고, MySQL InnoDB의 기본값은 innodb_lock_wait_timeout 50초입니다. 단계 문장이 기대는 사실로 A가 UPDATE한 직후 다른 연결이 읽은 값(확정 전이라 1000), B가 기다리는 동안 다른 연결의 SELECT가 기다리지 않고 1000을 바로 읽은 것(H2에서 읽기가 기다리지 않는 것을 따로 재었고, 화면에서는 한 문장으로만 언급했습니다), B가 기다리다 오류로 끝난 뒤에도 B의 자동 커밋이 꺼진 채라 묶음이 열려 있는 것, 이어서 실행된 B의 UPDATE가 A가 확정한 900에 50을 더해 950이 된 것도 실행으로 확인했습니다. MySQL 8.4 문서는 17.7.1절 InnoDB Locking(배타 락은 그 행을 고치거나 지울 수 있게 하고, 한 트랜잭션이 행에 배타 락을 쥐면 다른 트랜잭션의 같은 행 락 요청은 곧바로 얻지 못하고 기다려야 한다), 17.7.3절 Locks Set by Different SQL Statements in InnoDB(UPDATE ... WHERE는 검색에서 만난 레코드에 배타 락을 걸고, 유일한 인덱스로 한 행을 찾으면 인덱스 레코드 락이면 된다. InnoDB 락은 트랜잭션이 커밋되거나 중단될 때 풀린다), InnoDB 시작 옵션과 시스템 변수 페이지(innodb-parameters)의 innodb_lock_wait_timeout(기본 50초, 기다리다 오류 1205, 이때 문장만 롤백되고 트랜잭션 전체는 롤백되지 않음)을 직접 열어 확인했습니다. H2 문서는 Advanced 페이지의 Multi-Version Concurrency Control(연결은 확정된 데이터와 자기 변경만 보며, 같은 행을 동시에 잠그거나 고치려 하면 잠금 대기 시간까지 기다린다)과 Lock Timeout(잠금을 얻지 못하면 오류, 연결마다 설정 가능)을 확인했습니다. 17.7.3절이 UPDATE 락의 해제 시점을 문장으로 직접 적은 것은 아니고, 같은 절의 일반 문장(InnoDB 락은 트랜잭션이 커밋되거나 중단될 때 풀린다)에서 읽은 것입니다. MySQL이 같은 SQL에서 같은 결과를 내는지는 실행으로 확인하지 않았습니다. 이 실습은 한 행에 대한 배타적 잠금과 기다림만 다루며, 읽기 잠금(SELECT ... FOR UPDATE), 격리 수준에 따른 차이(iso), 재고 차감에서의 사용(stock), 서로를 기다리는 교착 상태(dbdeadlock), 행 사이의 빈 구간 잠금(gaplock)은 다루지 않습니다.</p>
-<p>앞 실습: <a href="../../lab/dbtx_basic/">트랜잭션</a> · 다음 실습: <a href="../../lab/port_basic/">IP 주소와 포트</a></p>
+<p>앞 실습: <a href="../../lab/dbtx_basic/">트랜잭션</a> · 다음 실습: <a href="../../lab/durable_basic/">저장과 지속성</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -173,6 +173,6 @@ COMMIT;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=df7ea64144"></script>
+<script src="../../app.js?v=e944f2d13d"></script>
 </body>
 </html>
