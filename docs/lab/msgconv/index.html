@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -62,7 +62,7 @@
 <li>@RequestBody OrderRequest req: 컨트롤러를 부르기 전에 요청 본문을 OrderRequest 객체로 바꿔야 합니다. 스프링은 Content-Type 헤더를 보고 읽을 컨버터를 고릅니다. application/json이므로 JSON 메시지 컨버터(Jackson)가 맡습니다.</li>
 <li>JSON 읽기: Jackson이 본문의 JSON에서 이름이 같은 값을 찾아 OrderRequest 객체(item은 &quot;book&quot;, qty는 2)를 만듭니다. 글자가 자바 객체가 됐습니다.</li>
 <li>create(req) 실행: 컨트롤러 메서드가 주문을 만들고 OrderResponse 객체를 돌려줍니다.</li>
-<li>@RestController: 이 애노테이션은 @Controller에 @ResponseBody를 더한 것입니다. @ResponseBody가 있으면 돌려준 값을 화면 이름으로 보지 않고, 메시지 컨버터로 응답 본문에 직접 씁니다.</li>
+<li>@RestController: 이 애너테이션은 @Controller에 @ResponseBody를 더한 것입니다. @ResponseBody가 있으면 돌려준 값을 화면 이름으로 보지 않고, 메시지 컨버터로 응답 본문에 직접 씁니다.</li>
 <li>응답 형식 고르기: 클라이언트는 Accept로 application/xml을 원합니다. 이 서버에는 OrderResponse 객체를 XML로 만들 줄 아는 컨버터가 없습니다. &quot;원하는 형식으로는 줄 수 없다&quot;는 뜻의 406으로 응답합니다(HttpMediaTypeNotAcceptableException). 컨트롤러 메서드는 이미 실행된 뒤이므로 주문은 만들어진 상태입니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -177,6 +177,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

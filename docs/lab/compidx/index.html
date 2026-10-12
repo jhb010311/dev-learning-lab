@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,9 +58,9 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>orders 테이블에는 100만 행이 있습니다. 인덱스는 member_id → status → created_at 순서로 정렬돼 있습니다. 첫 컬럼이 같은 것끼리 모여 있고, 그 안에서 둘째 컬럼 순, 다시 그 안에서 셋째 컬럼 순입니다.</li>
-<li>1번째 컬럼 member_id: 조건 member_id = 7이 있고, 앞 컬럼들이 모두 정해져 있으므로 이 조건으로 읽을 범위를 좁힙니다.</li>
+<li>1번째 컬럼 member_id: 조건 member_id = 7이 있고, 인덱스의 첫 컬럼이므로 이 조건으로 읽을 범위를 좁힙니다.</li>
 <li>2번째 컬럼 status: 조건 status = 'PAID'이 있고, 앞 컬럼들이 모두 정해져 있으므로 이 조건으로 읽을 범위를 좁힙니다.</li>
-<li>3번째 컬럼 created_at: 조건 created_at &gt;= '2026-09-01'이 있고, 앞 컬럼들이 모두 정해져 있으므로 이 조건으로 읽을 범위를 좁힙니다. 다만 범위 조건이라서, 이 범위 안에서는 다음 컬럼이 정렬돼 있지 않습니다. 뒤 컬럼은 범위를 좁히는 데 쓸 수 없습니다.</li>
+<li>3번째 컬럼 created_at: 조건 created_at &gt;= '2026-09-01'이 있고, 앞 컬럼들이 모두 정해져 있으므로 이 조건으로 읽을 범위를 좁힙니다.</li>
 <li>인덱스에서 좁혀진 범위의 항목 50개를 읽습니다.</li>
 <li>SELECT *는 인덱스에 없는 컬럼도 필요합니다. 남은 50건마다 테이블(클러스터드 인덱스)로 가서 행 전체를 읽어 옵니다.</li>
 </ol>
@@ -165,6 +165,6 @@ SELECT *
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

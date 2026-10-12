@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>샤딩과 파티셔닝</dt>
-<dd>파티셔닝은 큰 테이블을 날짜 범위 등의 기준으로 여러 조각으로 나눠 관리하는 것이다. 샤딩은 데이터를 여러 데이터베이스 서버에 나눠 저장하는 것으로, 한 서버로 감당할 수 없는 쓰기 부하나 데이터 양을 분산한다. 샤딩을 하면 서버에 걸친 조인이나 트랜잭션이 어려워진다. (50선 밖)</dd>
+<dd>파티셔닝은 큰 테이블을 날짜 범위 등의 기준으로 여러 조각으로 나눠 관리하는 것이다. 샤딩은 데이터를 여러 데이터베이스 서버에 나눠 저장하는 것으로, 한 서버로 감당할 수 없는 쓰기 부하나 데이터 양을 분산한다. 샤딩을 하면 서버에 걸친 조인이나 트랜잭션이 어려워진다.</dd>
 <dt>RANGE 파티션과 HASH 파티션</dt>
 <dd>테이블을 파티션으로 나누는 대표적인 두 가지 방법이다. 행이 어느 파티션으로 갈지를 정하는 컬럼(또는 식)을 파티션 키라고 한다. RANGE는 파티션마다 값의 범위를 정해 두는 방식으로, 날짜처럼 이어진 범위로 조회하거나 오래된 데이터를 파티션째 지울 때 알맞다. 정해 둔 어느 범위에도 속하지 않는 값은 넣을 수 없으므로 다음 기간의 파티션을 미리 추가해야 한다. HASH는 파티션 키를 파티션 수로 나눈 나머지로 파티션을 정하는 방식으로, 행을 고르게 흩어 놓지만 범위 조건으로는 읽을 파티션을 줄이기 어렵다.</dd>
 <dt>파티션 프루닝</dt>
@@ -178,6 +178,6 @@ EXPLAIN SELECT * FROM orders WHERE YEAR(ordered_at) = 2024;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>메서드</dt>
 <dd>메서드는 이름을 붙여 둔 실행 코드 묶음으로, 호출할 때 정해진 개수의 값을 넘겨받을 수 있다. 선언은 static int add(int a, int b) { ... }처럼 반환 타입, 이름, 괄호 안의 매개변수 목록, 중괄호로 묶은 본문으로 이루어진다. 선언은 &quot;이런 코드 묶음이 있다&quot;고 적어 둔 것일 뿐이어서, 선언만으로는 본문이 실행되지 않고 호출될 때 실행된다. 본문이 블록이면 그 블록이 비어 있어도 구현한 메서드이다. 반환 타입을 선언한 메서드는 본문이 끝까지 그냥 흘러 나가면 컴파일 오류이므로 return 등으로 끝나야 한다.</dd>
 <dt>메서드 호출</dt>
-<dd>메서드 호출은 add(2, 3)처럼 메서드 이름 뒤에 괄호를 붙이고 괄호 안에 넘길 값을 적어 그 메서드의 본문을 실행시키는 식이다. 컴파일러는 호출마다 그 이름의 메서드를 찾고, 고정 인자 메서드라면 넘긴 값의 개수가 매개변수의 개수와 같은지 확인한다. 이름의 메서드가 없거나 개수가 맞지 않아 부를 수 있는 메서드가 하나도 없으면 컴파일 오류이다. 실행할 때는 넘기는 값을 왼쪽부터 차례로 계산하고, 그 값을 새로 만든 매개변수 변수에 담은 뒤 본문을 실행한다. 같은 메서드를 두 번 부르면 본문도 두 번 실행된다.</dd>
+<dd>메서드 호출은 add(2, 3)처럼 메서드 이름 뒤에 괄호를 붙이고 괄호 안에 넘길 값을 적어 그 메서드의 본문을 실행시키는 식이다. 컴파일러는 호출마다 그 이름의 메서드를 찾고, 고정 인자 메서드라면 넘긴 값의 개수가 매개변수의 개수와 같은지 확인한다. 그 이름의 메서드가 없거나 개수가 맞지 않아 부를 수 있는 메서드가 하나도 없으면 컴파일 오류이다. 실행할 때는 넘기는 값을 왼쪽부터 차례로 계산하고, 그 값을 새로 만든 매개변수 변수에 담은 뒤 본문을 실행한다. 같은 메서드를 두 번 부르면 본문도 두 번 실행된다.</dd>
 <dt>매개변수와 인자</dt>
 <dd>매개변수는 메서드 선언의 괄호 안에 적은 변수이고, 인자는 메서드를 부를 때 괄호 안에 넘기는 값이다. add(int a, int b)의 a와 b가 매개변수이고, add(2, 3)의 2와 3이 인자이다. 메서드를 부르면 인자의 값이 호출마다 새로 만들어지는 매개변수 변수에 차례로 담긴 뒤 본문이 실행되고, 본문 안에서는 매개변수의 이름을 변수처럼 쓴다. 한 메서드에 같은 이름의 매개변수를 두 개 선언하면 컴파일 오류이다.</dd>
 <dt>반환값(return)</dt>
@@ -172,6 +172,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>서브쿼리</dt>
-<dd>다른 SQL 문 안에 포함된 SELECT 문이다. SELECT 절에서 값 하나를 구하는 데, FROM 절에서 임시 테이블처럼, WHERE 절에서 조건의 비교 대상으로 쓸 수 있다. 바깥 쿼리의 컬럼을 참조하는 상관 서브쿼리는 바깥 행마다 실행될 수 있어 성능에 주의가 필요하다.</dd>
+<dd>다른 SQL 문 안에 포함된 SELECT 문이다. SELECT 절에서 값 하나를 구하는 데 쓰거나, FROM 절에서 임시 테이블처럼, WHERE 절에서 조건의 비교 대상으로 쓸 수 있다. 바깥 쿼리의 컬럼을 참조하는 상관 서브쿼리는 바깥 행마다 실행될 수 있어 성능에 주의가 필요하다.</dd>
 <dt>스칼라 서브쿼리</dt>
 <dd>값 하나(한 행, 한 컬럼)를 돌려주는 서브쿼리이다. WHERE id = (SELECT ...)처럼 값이 올 자리에 쓸 수 있고 SELECT 절의 컬럼 자리에도 쓸 수 있다. 실행했을 때 두 행 이상이 나오면 MySQL은 오류 1242(Subquery returns more than 1 row)로 문장을 거부한다. 0행이 나오면 오류가 아니라 NULL이 되므로, 비교 조건이 참이 되지 않아 결과가 조용히 비게 된다. 지금 데이터에서 한 행이 나온다고 해서 앞으로도 그렇다는 보장은 없으므로, 한 행만 나오도록 조건을 적거나 IN을 쓴다.</dd>
 <dt>상관 서브쿼리</dt>
@@ -187,6 +187,6 @@ SELECT name
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

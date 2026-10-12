@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>HTTP/1.1, HTTP/2, HTTP/3</dt>
-<dd>HTTP/1.1은 한 연결에서 요청을 하나씩 차례로 처리한다. HTTP/2는 하나의 연결에서 여러 요청과 응답을 동시에 주고받고(다중화) 헤더를 압축한다. HTTP/3는 TCP 대신 UDP 기반의 QUIC 프로토콜을 사용해 연결 수립을 빠르게 하고, 패킷 하나가 유실되었을 때 다른 요청까지 지연되는 문제를 줄인다. (50선 밖)</dd>
+<dd>HTTP/1.1은 한 연결에서 요청을 하나씩 차례로 처리한다. HTTP/2는 하나의 연결에서 여러 요청과 응답을 동시에 주고받고(다중화) 헤더를 압축한다. HTTP/3는 TCP 대신 UDP 기반의 QUIC 프로토콜을 사용해 연결 수립을 빠르게 하고, 패킷 하나가 유실되었을 때 다른 요청까지 지연되는 문제를 줄인다.</dd>
 <dt>TCP와 UDP</dt>
 <dd>인터넷에서 데이터를 전송하는 두 가지 대표적인 방식이다. TCP는 통신 전에 연결을 맺고, 데이터가 빠짐없이 순서대로 도착하도록 보장하며, 문제가 생기면 다시 보낸다. UDP는 연결 없이 데이터를 보내며 도착 여부나 순서를 보장하지 않는 대신 가볍고 빠르다. 웹, 데이터베이스 연결은 TCP를, 실시간 영상·음성이나 DNS는 UDP를 주로 쓴다.</dd>
 <dt>3-way handshake</dt>
@@ -164,6 +164,6 @@ server {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

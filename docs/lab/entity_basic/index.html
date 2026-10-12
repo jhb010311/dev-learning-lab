@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -90,7 +90,7 @@ em.persist(new Member(1L, &quot;김철수&quot;));
 em.getTransaction().commit();</pre>
 <h2>이 모형의 전제</h2>
 <p>Hibernate 7.4.5와 H2 2.4.240(메모리 DB)에서 실행해 대조했습니다. 스프링은 쓰지 않고 Hibernate를 코드로 직접 시작했습니다(persistence.xml 없이 Configuration에 클래스를 등록). 여덟 가지 조합을 모두, 화면의 Member 소스와 같은 글(package와 import 줄만 더함)을 컴파일하고 자바 프로세스를 새로 띄워 확인했습니다. @Entity가 없는 조합에서도 같은 방식으로 Member를 등록했습니다. 화면의 &quot;저장하는 쪽&quot; 세 줄은 실제로는 main 안의 코드이고, EntityManager(em)를 얻는 줄, 예외를 잡아 기록하는 줄, 측정하는 줄은 화면에서 줄였습니다. 대조한 것은 JPA가 시작하다가 실패하는지와 예외의 종류, 시작 직후와 실행 뒤 H2에 있는 테이블과 열(INFORMATION_SCHEMA.COLUMNS), StatementInspector로 잡은 INSERT 문의 수와 글(persist 줄이 끝난 때와 commit 줄이 끝난 때), 실행 뒤 테이블의 행 수와 내용입니다. 테이블 이름은 H2가 MEMBER로, 열 이름은 ID, NAME, EMAIL로 저장하는데, 화면에는 읽기 쉽게 테이블 이름은 첫 글자만 대문자로, 열 이름은 소문자로 적었습니다. 열은 필드를 적은 순서대로 만들어지지 않았습니다(이 실행에서는 id, email, name 순서). 순서를 정하는 규칙은 확인하지 않았습니다. 문서가 정한 것은 Jakarta Persistence 3.2 명세 2.1절(엔티티 클래스는 @Entity를 갖고 public 또는 protected의 인자 없는 생성자를 가져야 하며 final이 아니어야 한다)과 2.4절(모든 엔티티에는 기본 키가 있어야 하고 단순한 기본 키는 필드에 @Id를 붙여 선언한다), Hibernate ORM 7.0 사용자 가이드 3.4절(Entity types)의 3.4.1, 3.4.3, 3.4.5, 3.4.6항(테이블 이름은 기본으로 엔티티 이름을 따르고, 필드에 @Id를 붙이면 필드 접근이다)입니다. 이 문서들은 WebFetch로 열었고, 돌려받은 것은 원문이 아니라 요약이어서 문장을 하나하나 원문과 대조하지는 못했습니다. 명세는 앞부분만(2.1절과 2.4절이 있는 앞 10만 자) 읽었습니다. 아래는 문서가 정한 것이 아니라 이 버전에서 관찰한 동작입니다. @Entity가 없는 클래스를 등록하면 오류 없이 시작을 마치고(JPA가 아는 엔티티는 없음) em.persist에서 IllegalArgumentException이 나며, 이때 @Id가 있어도 결과가 같습니다. @Entity는 있고 @Id가 없으면 시작할 때 AnnotationException이 나서 테이블이 만들어지지 않습니다(Hibernate 7.0 사용자 가이드 3.4.5항은 식별자를 생략하는 것이 예전에는 허용됐으나 폐지 예정이라고 하는데, 7.4.5에서는 오류였습니다). 테이블은 persist나 commit 때가 아니라 JPA가 시작할 때 만들어지며(hibernate.hbm2ddl.auto=create-drop 설정), INSERT 문은 persist 줄이 아니라 commit 줄에서 나갔습니다. 문장은 insert into Member (name,id) values (?,?) 모양이고 Hibernate 버전에 따라 글자가 다를 수 있으며, 그 INSERT가 persist 때 나가는지 commit 때 나가는지 같은 세부는 &quot;영속성 컨텍스트&quot; 실습에서 다룹니다. 화면의 코드에서 줄인 것은 package와 import 줄이고, 필드는 id, name, email만 다뤘습니다. 이름과 열의 짝을 바꾸는 @Table, @Column, 기본 키 값을 자동으로 만드는 @GeneratedValue, 접근자 메서드, 엔티티 클래스의 나머지 조건(final이 아니어야 한다 등)은 다루지 않았습니다. MySQL에서의 실행 대조는 하지 않았습니다.</p>
-<p>앞 실습: <a href="../../lab/boot_basic/">스프링 부트</a> · 다음 실습: <a href="../../lab/pc_basic/">영속성 컨텍스트</a></p>
+<p>앞 실습: <a href="../../lab/test_basic/">테스트 코드</a> · 다음 실습: <a href="../../lab/pc_basic/">영속성 컨텍스트</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -177,6 +177,6 @@ em.getTransaction().commit();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

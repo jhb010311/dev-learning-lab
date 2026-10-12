@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -63,7 +63,7 @@
 <li>PC A가 프레임을 보냅니다: 겉에는 받는 MAC …:11(라우터 R1), 보내는 MAC …:0A(PC A)를 적고, 그 안에 IP 패킷(보내는 IP 192.168.1.10, 받는 IP 192.168.2.30, TTL 64)을 넣습니다. 받는 IP는 서버 C의 것인데 받는 MAC은 라우터 R1의 것입니다. IP 주소는 마지막에 받을 곳을, MAC 주소는 이번 구간에서 건네받을 기기를 가리킵니다.</li>
 <li>스위치: 프레임의 받는 MAC 주소만 보고, 그 주소의 기기(라우터 R1)가 연결된 포트로만 내보냅니다. 안에 든 IP 패킷은 열어 보지 않고, 프레임을 고치지도 않습니다.</li>
 <li>라우터 R1의 수신: 프레임의 받는 MAC 주소가 자기 것이므로 받아들이고, MAC 주소가 적힌 겉을 벗겨 냅니다. 안에 든 IP 패킷의 받는 IP(192.168.2.30)는 자기 주소가 아닙니다. 다른 곳으로 전달해야 할 패킷입니다. 스위치는 MAC 주소만 보고 넘기지만, 라우터는 이렇게 IP 주소를 보고 길을 정합니다.</li>
-<li>라우터 R1의 TTL 처리: 전달하기 전에 TTL을 1 줄입니다(64 → 63). TTL은 패킷이 지날 수 있는 라우터 수의 한도입니다. 길이 잘못 설정돼 패킷이 라우터 사이를 맴돌더라도 언젠가 0이 되어 사라지게 하는 장치입니다.</li>
+<li>라우터 R1의 TTL 처리: 전달하기 전에 TTL을 1 줄입니다(64 → 63). TTL은 패킷이 지날 수 있는 라우터 수의 한도입니다. 경로가 잘못 설정돼 패킷이 라우터 사이를 맴돌더라도 언젠가 0이 되어 사라지게 하는 장치입니다.</li>
 <li>라우터 R1의 길 찾기와 ARP: 라우팅 표를 보니 받는 IP가 속한 192.168.2.0/24는 이 라우터에 직접 연결된 네트워크 B입니다. 서버 C에게 바로 건넬 수 있습니다. 네트워크 B에 ARP 요청을 보내 192.168.2.30의 MAC 주소(…:0C)를 알아냅니다.</li>
 <li>라우터 R1의 전달: 같은 IP 패킷을 새 프레임에 담아 보냅니다. 겉의 받는 MAC은 …:0C(서버 C), 보내는 MAC은 …:12(R1의 네트워크 B 쪽)로 둘 다 바뀌었습니다. 안의 보내는 IP 192.168.1.10과 받는 IP 192.168.2.30은 그대로이고, TTL만 63입니다.</li>
 <li>서버 C의 수신: 프레임의 받는 MAC 주소가 자기 것이고, 안에 든 패킷의 받는 IP도 자기 주소입니다. 도착했습니다. 도착했을 때의 TTL은 63입니다. 라우터 1개를 지나 처음 값 64에서 1만큼 줄었습니다.</li>
@@ -180,6 +180,6 @@ else forwardInNewFrame(packet);    // MAC 주소만 새로 써서 다음 구간�
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>캐시 추상화: @Cacheable을 붙이면 메서드 본문은 언제 실행되지 않나 · 개발 학습 실습실</title>
-<meta name="description" content="스프링에서는 메서드에 @Cacheable을 붙이기만 하면, 같은 인자로 다시 부를 때 본문을 실행하지 않고 전에 돌려준 값을 캐시에서 꺼내 줍니다. 캐시를 조회하고 저장하는 코드는 프록시가 대신 실행합니다. 어떤 캐시 저장소를 쓰든 같은 애노테이션으로 다룰 수 있게 스프링이…">
+<meta name="description" content="스프링에서는 메서드에 @Cacheable을 붙이기만 하면, 같은 인자로 다시 부를 때 본문을 실행하지 않고 전에 돌려준 값을 캐시에서 꺼내 줍니다. 캐시를 조회하고 저장하는 코드는 프록시가 대신 실행합니다. 어떤 캐시 저장소를 쓰든 같은 애너테이션으로 다룰 수 있게 스프링이…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/cacheabs/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cacheabs/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cacheabs/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="캐시 추상화: @Cacheable을 붙이면 메서드 본문은 언제 실행되지 않나 · 개발 학습 실습실">
-<meta property="og:description" content="스프링에서는 메서드에 @Cacheable을 붙이기만 하면, 같은 인자로 다시 부를 때 본문을 실행하지 않고 전에 돌려준 값을 캐시에서 꺼내 줍니다. 캐시를 조회하고 저장하는 코드는 프록시가 대신 실행합니다. 어떤 캐시 저장소를 쓰든 같은 애노테이션으로 다룰 수 있게 스프링이…">
+<meta property="og:description" content="스프링에서는 메서드에 @Cacheable을 붙이기만 하면, 같은 인자로 다시 부를 때 본문을 실행하지 않고 전에 돌려준 값을 캐시에서 꺼내 줍니다. 캐시를 조회하고 저장하는 코드는 프록시가 대신 실행합니다. 어떤 캐시 저장소를 쓰든 같은 애너테이션으로 다룰 수 있게 스프링이…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/cacheabs/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,14 +31,14 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 그 밖의 기능</p>
 <h1>캐시 추상화</h1>
 <p><b>@Cacheable을 붙이면 메서드 본문은 언제 실행되지 않나</b></p>
-<p>스프링에서는 메서드에 @Cacheable을 붙이기만 하면, 같은 인자로 다시 부를 때 본문을 실행하지 않고 전에 돌려준 값을 캐시에서 꺼내 줍니다. 캐시를 조회하고 저장하는 코드는 프록시가 대신 실행합니다. 어떤 캐시 저장소를 쓰든 같은 애노테이션으로 다룰 수 있게 스프링이 중간에 둔 층을 캐시 추상화라고 합니다.</p>
+<p>스프링에서는 메서드에 @Cacheable을 붙이기만 하면, 같은 인자로 다시 부를 때 본문을 실행하지 않고 전에 돌려준 값을 캐시에서 꺼내 줍니다. 캐시를 조회하고 저장하는 코드는 프록시가 대신 실행합니다. 어떤 캐시 저장소를 쓰든 같은 애너테이션으로 다룰 수 있게 스프링이 중간에 둔 층을 캐시 추상화라고 합니다.</p>
 <p>실행으로 대조 · 스프링 프레임워크 7.0.9의 @EnableCaching과 ConcurrentMapCacheManager로 마흔 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>@Cacheable</dt>
-<dd>메서드의 결과를 캐시에 넣어 두고, 같은 인자로 다시 부르면 본문을 실행하지 않고 캐시의 값을 돌려주게 하는 애노테이션이다. 프록시가 호출을 받아 캐시를 먼저 찾아보고, 값이 없을 때만 본문을 실행한 뒤 결과를 저장한다. 캐시의 키는 기본으로 메서드의 인자이며, cacheNames로 어느 캐시에 넣을지 정한다. unless에 조건을 쓰면 그 조건이 참인 결과는 저장하지 않는다(예: 결과가 null일 때). 프록시가 하는 일이므로 같은 클래스 안에서 this로 부르면 적용되지 않는다.</dd>
+<dd>메서드의 결과를 캐시에 넣어 두고, 같은 인자로 다시 부르면 본문을 실행하지 않고 캐시의 값을 돌려주게 하는 애너테이션이다. 프록시가 호출을 받아 캐시를 먼저 찾아보고, 값이 없을 때만 본문을 실행한 뒤 결과를 저장한다. 캐시의 키는 기본으로 메서드의 인자이며, cacheNames로 어느 캐시에 넣을지 정한다. unless에 조건을 쓰면 그 조건이 참인 결과는 저장하지 않는다(예: 결과가 null일 때). 프록시가 하는 일이므로 같은 클래스 안에서 this로 부르면 적용되지 않는다.</dd>
 <dt>@CacheEvict와 @CachePut</dt>
-<dd>캐시의 값을 원본 데이터와 맞추는 데 쓰는 두 애노테이션이다. @CacheEvict는 메서드가 불리면 캐시에서 해당 키의 값을 지워, 다음 조회가 본문을 다시 실행하게 한다. @CachePut은 @Cacheable과 달리 본문을 건너뛰지 않고 항상 실행하며, 돌려준 값을 캐시에 넣어 기존 값을 덮어쓴다. 데이터를 바꾸는 메서드에 둘 중 하나를 붙이지 않으면 캐시에 바뀌기 전의 값이 남아, 조회하는 쪽이 옛 값을 받게 된다.</dd>
+<dd>캐시의 값을 원본 데이터와 맞추는 데 쓰는 두 애너테이션이다. @CacheEvict는 메서드가 불리면 캐시에서 해당 키의 값을 지워, 다음 조회가 본문을 다시 실행하게 한다. @CachePut은 @Cacheable과 달리 본문을 건너뛰지 않고 항상 실행하며, 돌려준 값을 캐시에 넣어 기존 값을 덮어쓴다. 데이터를 바꾸는 메서드에 둘 중 하나를 붙이지 않으면 캐시에 바뀌기 전의 값이 남아, 조회하는 쪽이 옛 값을 받게 된다.</dd>
 <dt>캐시</dt>
 <dd>자주 사용하는 데이터나 계산 결과를 빠르게 접근할 수 있는 곳에 미리 저장해 두고 재사용하는 것이다. 원본(주로 데이터베이스)을 매번 조회하지 않아 응답이 빨라지고 원본의 부하가 줄어든다. 대신 원본이 바뀌었을 때 캐시의 값이 오래된 상태로 남는 문제를 관리해야 한다.</dd>
 <dt>프록시(Proxy)</dt>
@@ -58,7 +58,7 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>productService.find(1L) 호출 (첫 번째): 다른 빈이 부릅니다. 호출은 프록시에 먼저 도착합니다. 프록시는 @Cacheable을 보고, 본문을 실행하기 전에 캐시 &quot;product&quot;에서 키 1을 찾아봅니다. 프록시는 캐시가 실제로 어디에 저장되는지 모릅니다. CacheManager가 내준 Cache 객체에 get과 put을 부를 뿐이어서, 저장소를 메모리의 맵에서 Redis로 바꿔도 이 코드와 애노테이션은 그대로입니다. 스프링은 이 구조를 캐시 추상화라고 부릅니다.</li>
+<li>productService.find(1L) 호출 (첫 번째): 다른 빈이 부릅니다. 호출은 프록시에 먼저 도착합니다. 프록시는 @Cacheable을 보고, 본문을 실행하기 전에 캐시 &quot;product&quot;에서 키 1을 찾아봅니다. 프록시는 캐시가 실제로 어디에 저장되는지 모릅니다. CacheManager가 내준 Cache 객체에 get과 put을 부를 뿐이어서, 저장소를 메모리의 맵에서 Redis로 바꿔도 이 코드와 애너테이션은 그대로입니다. 스프링은 이 구조를 캐시 추상화라고 부릅니다.</li>
 <li>캐시 조회: 키 1이 없습니다. 아직 아무것도 넣은 적이 없습니다. 프록시가 실제 객체의 find를 부릅니다.</li>
 <li>find 본문 실행 (1번째): findCount가 1이 됩니다. DB에서 id 1인 상품을 찾아 &quot;키보드&quot;를 돌려줍니다.</li>
 <li>프록시가 결과를 캐시에 저장: 키 1 → 키보드. 다음에 같은 인자로 부르면 이 값을 씁니다.</li>
@@ -176,6 +176,6 @@ class ProductService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

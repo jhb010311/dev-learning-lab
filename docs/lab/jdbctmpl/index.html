@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>예외 변환과 DataAccessException</dt>
 <dd>스프링이 데이터 접근 기술이 던지는 예외를 자신의 예외 계층으로 바꿔 주는 것이다. JDBC의 SQLException은 체크 예외이고 무슨 문제인지는 그 안의 코드(SQLState, 오류 번호)로만 알 수 있는데, 스프링은 이것을 DataAccessException의 하위 클래스로 바꿔 던진다. 중복 키는 DuplicateKeyException, 그 밖의 제약 조건 위반은 DataIntegrityViolationException, 잘못된 SQL은 BadSqlGrammarException이 된다. DataAccessException은 언체크 예외라서 throws를 적지 않아도 되고, 원래의 예외는 원인(cause)으로 보관된다. 예외 클래스의 이름으로 문제를 구분하므로, 서비스 코드가 특정 DB 제품의 오류 번호에 묶이지 않는다.</dd>
 <dt>커넥션 풀</dt>
-<dd>데이터베이스 연결을 미리 여러 개 만들어 두고 재사용하는 방식이다. 연결을 새로 맺는 것은 비용이 큰 작업이므로, 요청마다 연결을 맺고 끊는 대신 풀에서 빌려 쓰고 반납한다. 풀의 연결이 모두 사용 중이면 새 요청은 연결이 반납될 때까지 기다리고, 정해진 시간(HikariCP의 connectionTimeout, 기본 30초) 안에 얻지 못하면 예외가 발생한다. Spring Boot의 기본 구현은 HikariCP다. (50선 밖)</dd>
+<dd>데이터베이스 연결을 미리 여러 개 만들어 두고 재사용하는 방식이다. 연결을 새로 맺는 것은 비용이 큰 작업이므로, 요청마다 연결을 맺고 끊는 대신 풀에서 빌려 쓰고 반납한다. 풀의 연결이 모두 사용 중이면 새 요청은 연결이 반납될 때까지 기다리고, 정해진 시간(HikariCP의 connectionTimeout, 기본 30초) 안에 얻지 못하면 예외가 발생한다. Spring Boot의 기본 구현은 HikariCP다.</dd>
 <dt>Checked 예외와 Unchecked 예외</dt>
 <dd>Unchecked 예외는 RuntimeException과 그 하위 클래스로(명세상으로는 Error 계열도 unchecked에 속한다), 컴파일러가 처리 여부를 검사하지 않는다(NullPointerException, IllegalArgumentException 등). Checked 예외는 그 밖의 Exception으로, 반드시 catch로 처리하거나 throws로 선언해야 컴파일된다(IOException, SQLException 등). 스프링의 @Transactional은 기본적으로 RuntimeException과 Error에서만 롤백하고 Checked 예외에서는 커밋한다.</dd>
 <dt>템플릿 메서드 패턴</dt>
@@ -174,6 +174,6 @@ public int insert(Long id, String name, String city) throws SQLException {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

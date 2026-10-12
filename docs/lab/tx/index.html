@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>Undo 로그와 Redo 로그</dt>
 <dd>Undo 로그는 변경 전의 데이터를 기록한 것으로, 트랜잭션을 롤백할 때와 다른 트랜잭션에 과거 버전을 보여 줄 때(MVCC) 쓰인다. Redo 로그는 변경 내용을 기록한 것으로, 커밋된 변경이 데이터 파일에 완전히 쓰이기 전에 장애가 나더라도 재시작 시 이를 다시 적용해 복구하는 데 쓰인다.</dd>
 <dt>@Transactional</dt>
-<dd>메서드나 클래스에 붙여 그 범위를 하나의 트랜잭션으로 실행하게 하는 애노테이션이다. 프록시가 메서드 실행 전에 트랜잭션을 시작하고, 정상적으로 끝나면 커밋, 예외가 발생하면 규칙에 따라 롤백한다. 트랜잭션을 시작하고 끝내는 코드를 직접 쓰지 않아도 되어 선언적 트랜잭션이라고 한다.</dd>
+<dd>메서드나 클래스에 붙여 그 범위를 하나의 트랜잭션으로 실행하게 하는 애너테이션이다. 프록시가 메서드 실행 전에 트랜잭션을 시작하고, 정상적으로 끝나면 커밋, 예외가 발생하면 규칙에 따라 롤백한다. 트랜잭션을 시작하고 끝내는 코드를 직접 쓰지 않아도 되어 선언적 트랜잭션이라고 한다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
@@ -158,6 +158,6 @@ UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- 출금
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

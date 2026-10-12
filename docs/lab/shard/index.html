@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,11 +36,11 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>샤딩과 파티셔닝</dt>
-<dd>파티셔닝은 큰 테이블을 날짜 범위 등의 기준으로 여러 조각으로 나눠 관리하는 것이다. 샤딩은 데이터를 여러 데이터베이스 서버에 나눠 저장하는 것으로, 한 서버로 감당할 수 없는 쓰기 부하나 데이터 양을 분산한다. 샤딩을 하면 서버에 걸친 조인이나 트랜잭션이 어려워진다. (50선 밖)</dd>
+<dd>파티셔닝은 큰 테이블을 날짜 범위 등의 기준으로 여러 조각으로 나눠 관리하는 것이다. 샤딩은 데이터를 여러 데이터베이스 서버에 나눠 저장하는 것으로, 한 서버로 감당할 수 없는 쓰기 부하나 데이터 양을 분산한다. 샤딩을 하면 서버에 걸친 조인이나 트랜잭션이 어려워진다.</dd>
 <dt>스케일 업과 스케일 아웃</dt>
 <dd>스케일 업은 서버 한 대의 사양(CPU, 메모리)을 높여 처리 능력을 키우는 것이고, 스케일 아웃은 서버의 수를 늘려 부하를 나누는 것이다. 스케일 업은 간단하지만 한계와 비용 문제가 있고, 스케일 아웃은 유연하게 확장할 수 있지만 서버가 상태를 갖지 않도록 설계하고 요청을 분산할 장치가 필요하다.</dd>
 <dt>레플리케이션(복제)</dt>
-<dd>원본 데이터베이스(source. primary라고도 부른다)의 변경 내용을 다른 데이터베이스(replica)에 계속 복사해 같은 데이터를 유지하는 것이다. 읽기 요청을 복제본으로 분산해 부하를 줄이고, 원본에 장애가 나면 복제본을 원본으로 승격해 서비스를 이어 갈 수 있다. 복제에는 약간의 지연이 있어 방금 쓴 데이터가 복제본에서 바로 보이지 않을 수 있다. (50선 밖)</dd>
+<dd>원본 데이터베이스(source이며 primary라고도 부른다)의 변경 내용을 다른 데이터베이스(replica)에 계속 복사해 같은 데이터를 유지하는 것이다. 읽기 요청을 복제본으로 분산해 부하를 줄이고, 원본에 장애가 나면 복제본을 원본으로 승격해 서비스를 이어 갈 수 있다. 복제에는 약간의 지연이 있어 방금 쓴 데이터가 복제본에서 바로 보이지 않을 수 있다.</dd>
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
@@ -159,6 +159,6 @@ DataSource ds = shards.get(shardOf(memberId));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

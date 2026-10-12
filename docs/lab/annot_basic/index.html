@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -35,12 +35,12 @@
 <p>실행으로 대조 · JDK 21에서 열두 가지 조합을 javax.tools로 컴파일하고 실행해, 불린 메서드와 실행 중에 읽힌 표시까지 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
-<dt>애노테이션</dt>
+<dt>애너테이션</dt>
 <dd>코드에 붙이는 메타데이터로, 그 자체로는 동작하지 않고 컴파일러나 프레임워크가 읽어서 처리한다. @Override처럼 컴파일러가 검사에 쓰는 것과 @Transactional, @Autowired처럼 프레임워크가 실행 중에 리플렉션으로 읽어 기능을 적용하는 것이 있다.</dd>
 <dt>@interface</dt>
 <dd>@interface는 애너테이션(@로 시작하는 표시)을 새로 만드는 선언이다. 일반 인터페이스 선언의 interface 앞에 @를 붙여 @interface Run { }처럼 쓰면 Run이라는 애너테이션이 생기고, 그 뒤로 클래스나 메서드 위에 @Run으로 붙일 수 있다. 중괄호 안이 비어 있으면 값을 담지 않는 표시(마커 애너테이션)이고, 메서드 모양의 선언을 두면 @Name(값)처럼 값을 담는 요소가 된다. 선언만으로는 실행되는 코드가 생기지 않으며, 표시를 읽고 일하는 쪽은 따로 있어야 한다. 직접 만든 애너테이션에 @Retention을 적지 않으면 실행 중에는 남지 않는다.</dd>
 <dt>리플렉션</dt>
-<dd>실행 중인 프로그램이 클래스의 정보(필드, 메서드, 생성자, 애노테이션)를 조사하고, 이름으로 객체를 생성하거나 메서드를 호출할 수 있는 기능이다. 스프링의 의존성 주입, JPA의 엔티티 처리, JSON 직렬화 라이브러리 등이 이 기능 위에서 동작한다. 일반 호출보다 느리고 컴파일 시점의 타입 검사를 받지 못한다.</dd>
+<dd>실행 중인 프로그램이 클래스의 정보(필드, 메서드, 생성자, 애너테이션)를 조사하고, 이름으로 객체를 생성하거나 메서드를 호출할 수 있는 기능이다. 스프링의 의존성 주입, JPA의 엔티티 처리, JSON 직렬화 라이브러리 등이 이 기능 위에서 동작한다. 일반 호출보다 느리고 컴파일 시점의 타입 검사를 받지 못한다.</dd>
 <dt>@Retention과 @Target</dt>
 <dd>애너테이션을 새로 만들 때 그 애너테이션에 붙여 성질을 정하는 두 애너테이션이다. @Retention은 표시를 어디까지 남길지 정한다. SOURCE는 소스 코드까지만, CLASS는 class 파일까지, RUNTIME은 실행 중까지 남겨 리플렉션으로 읽을 수 있게 한다. 적지 않으면 CLASS가 되므로, 실행 중에 읽을 애너테이션에는 RUNTIME을 반드시 적어야 한다. @Target은 붙일 수 있는 곳(TYPE은 클래스 같은 타입 선언, METHOD는 메서드, FIELD는 필드 등)을 정하며, 맞지 않는 곳에 붙이면 컴파일 오류가 난다.</dd>
 </dl>
@@ -190,6 +190,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

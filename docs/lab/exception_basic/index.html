@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -38,7 +38,7 @@
 <dt>예외(Exception)와 Error</dt>
 <dd>둘 다 프로그램 실행 중의 비정상 상황을 나타내는 Throwable의 하위 타입이다. Exception은 애플리케이션이 잡아서 처리할 수 있는 상황(잘못된 입력, 파일 없음 등)이고, Error는 메모리 부족이나 스택 오버플로처럼 JVM 수준의 심각한 문제라 애플리케이션이 복구를 시도하지 않는 것이 일반적이다.</dd>
 <dt>try-catch</dt>
-<dd>try-catch는 예외가 났을 때 실행이 건너가 처리할 곳을 정하는 문장이다. 문제가 날 수 있는 코드를 try { } 로 감싸고, 뒤에 catch (예외의 종류 e) { }를 붙인다. try 안에서 예외가 던져지면 실행이 거기서 멈추고, 던져진 예외의 종류가 catch에 적은 종류이거나 그 하위 종류일 때 catch 안으로 건너가 실행한 뒤, try-catch 아래의 줄로 이어 간다. catch가 여러 개면 위에서부터 맞는 첫 번째 것이 쓰이고, 맞는 catch가 없으면 예외는 try-catch 밖으로 계속 전달되어 아무도 잡지 않으면 그 스레드가 끝난다. 예외가 나지 않으면 catch 안은 실행되지 않는다.</dd>
+<dd>try-catch는 예외가 났을 때 실행이 건너가 처리할 곳을 정하는 문장이다. 문제가 날 수 있는 코드를 try { }로 감싸고, 뒤에 catch (예외의 종류 e) { }를 붙인다. try 안에서 예외가 던져지면 실행이 거기서 멈추고, 던져진 예외의 종류가 catch에 적은 종류이거나 그 하위 종류일 때 catch 안으로 건너가 실행한 뒤, try-catch 아래의 줄로 이어 간다. catch가 여러 개면 위에서부터 맞는 첫 번째 것이 쓰이고, 맞는 catch가 없으면 예외는 try-catch 밖으로 계속 전달되어 아무도 잡지 않으면 그 스레드가 끝난다. 예외가 나지 않으면 catch 안은 실행되지 않는다.</dd>
 <dt>예외를 던진다(throw)</dt>
 <dd>예외를 던진다는 것은 예외 객체를 만들어 지금 하던 일을 멈추고, 그것을 잡는 곳으로 실행을 옮기는 것이다. 정수를 0으로 나누는 것처럼 자바의 규칙을 어기는 일이 생기면 자바가 스스로 예외를 던지고, throw new IllegalStateException()처럼 throw 문으로 코드에서 직접 던질 수도 있다. 던져지면 던진 곳으로 되돌아가 이어서 실행하지 않는다. 호출한 쪽으로 차례로 올라가며 이 예외를 잡을 수 있는 try-catch를 찾고, 끝까지 없으면 그 스레드가 끝난다.</dd>
 <dt>NullPointerException</dt>
@@ -169,6 +169,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

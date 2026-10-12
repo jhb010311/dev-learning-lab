@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,11 +36,11 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>커넥션 풀</dt>
-<dd>데이터베이스 연결을 미리 여러 개 만들어 두고 재사용하는 방식이다. 연결을 새로 맺는 것은 비용이 큰 작업이므로, 요청마다 연결을 맺고 끊는 대신 풀에서 빌려 쓰고 반납한다. 풀의 연결이 모두 사용 중이면 새 요청은 연결이 반납될 때까지 기다리고, 정해진 시간(HikariCP의 connectionTimeout, 기본 30초) 안에 얻지 못하면 예외가 발생한다. Spring Boot의 기본 구현은 HikariCP다. (50선 밖)</dd>
+<dd>데이터베이스 연결을 미리 여러 개 만들어 두고 재사용하는 방식이다. 연결을 새로 맺는 것은 비용이 큰 작업이므로, 요청마다 연결을 맺고 끊는 대신 풀에서 빌려 쓰고 반납한다. 풀의 연결이 모두 사용 중이면 새 요청은 연결이 반납될 때까지 기다리고, 정해진 시간(HikariCP의 connectionTimeout, 기본 30초) 안에 얻지 못하면 예외가 발생한다. Spring Boot의 기본 구현은 HikariCP다.</dd>
 <dt>OSIV(Open Session In View)</dt>
-<dd>영속성 컨텍스트를 트랜잭션이 끝난 뒤에도 요청 처리가 끝날 때(응답 작성)까지 유지하는 설정이다. 컨트롤러나 뷰에서도 지연 로딩을 쓸 수 있어 편리하지만, 요청 처리 중 처음 DB에 접근한 뒤로는 응답이 끝날 때까지 DB 커넥션을 계속 붙잡고 있어 요청이 많은 서비스에서는 커넥션이 부족해질 수 있다. Spring Boot에서는 기본으로 켜져 있다. (50선 밖)</dd>
+<dd>영속성 컨텍스트를 트랜잭션이 끝난 뒤에도 요청 처리가 끝날 때(응답 작성)까지 유지하는 설정이다. 컨트롤러나 뷰에서도 지연 로딩을 쓸 수 있어 편리하지만, 요청 처리 중 처음 DB에 접근한 뒤로는 응답이 끝날 때까지 DB 커넥션을 계속 붙잡고 있어 요청이 많은 서비스에서는 커넥션이 부족해질 수 있다. Spring Boot에서는 기본으로 켜져 있다.</dd>
 <dt>영속성 컨텍스트</dt>
-<dd>엔티티를 보관하고 관리하는 JPA의 논리적 공간이다. 조회하거나 저장한 엔티티는 이곳에 보관되며, JPA는 이곳의 엔티티에 일어난 변화를 추적해 트랜잭션이 끝날 때 DB에 반영한다. 보통 트랜잭션 하나와 생명주기를 같이한다(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다). 1차 캐시, 변경 감지, 쓰기 지연 같은 기능이 이 위에서 동작한다. (50선 밖이지만 JPA를 쓰면 반드시 이어서 묻는 개념)</dd>
+<dd>엔티티를 보관하고 관리하는 JPA의 논리적 공간이다. 조회하거나 저장한 엔티티는 이곳에 보관되며, JPA는 이곳의 엔티티에 일어난 변화를 추적해 트랜잭션이 끝날 때 DB에 반영한다. 보통 트랜잭션 하나와 생명주기를 같이한다(OSIV가 켜진 웹 요청에서는 요청이 끝날 때까지 유지된다). 1차 캐시, 변경 감지, 쓰기 지연 같은 기능이 이 위에서 동작한다.</dd>
 <dt>병목(Bottleneck)</dt>
 <dd>시스템 전체의 처리 성능을 제한하는 가장 느린 부분이다. 다른 부분을 아무리 개선해도 병목이 그대로면 전체 성능은 나아지지 않는다. 성능 개선은 측정으로 병목을 찾는 것에서 시작한다.</dd>
 </dl>
@@ -189,6 +189,6 @@ OrderDto get(long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

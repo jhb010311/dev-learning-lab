@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>fetch join</dt>
 <dd>JPQL에서 엔티티를 조회하면서 연관된 엔티티를 SQL 조인으로 한 번에 함께 가져오게 하는 기능이다. 지연 로딩으로 설정된 연관 관계라도 이 쿼리에서는 즉시 함께 조회되어 N+1 문제를 해결한다. 컬렉션을 여러 개 함께 가져오면 결과 행이 곱으로 늘어나는 점에 주의한다.</dd>
 <dt>@EntityGraph</dt>
-<dd>조회할 때 함께 가져올 연관 관계를 애노테이션으로 지정하는 기능이다. Spring Data JPA의 리포지토리 메서드에 붙이면 JPQL을 직접 쓰지 않고도 fetch join과 같은 효과를 얻는다.</dd>
+<dd>조회할 때 함께 가져올 연관 관계를 애너테이션으로 지정하는 기능이다. Spring Data JPA의 리포지토리 메서드에 붙이면 JPQL을 직접 쓰지 않고도 fetch join과 같은 효과를 얻는다.</dd>
 <dt>배치 페치(Batch Size)</dt>
 <dd>지연 로딩 대상을 하나씩 조회하지 않고 여러 개를 IN 조건으로 묶어 한 번에 조회하게 하는 설정이다. 예를 들어 크기를 100으로 두면 100개의 연관 데이터를 한 번의 쿼리로 가져와, N번 실행되던 쿼리가 N/100번으로 줄어든다. 컬렉션을 fetch join하면 페이징을 메모리에서 처리하던 Hibernate 7.3 이하에서, 컬렉션 연관 관계를 페이징과 함께 쓸 수 있는 해결책이다(7.4부터는 fetch join과 페이징의 조합도 DB에서 처리된다).</dd>
 <dt>1차 캐시</dt>
@@ -181,6 +181,6 @@ for (Order o : orders) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6b630957c2">
+<link rel="stylesheet" href="../../app.css?v=06895e70b4">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Replication</dt>
-<dd>Continuously copying the changes of an original database (the source, also called the primary) to another database (a replica) so that both keep the same data. It reduces load by spreading read requests across replicas, and if the source fails, a replica can be promoted to take its place and keep the service running. There is a small delay in the copying, so data that was just written may not be visible on a replica right away. (Outside the top 50.)</dd>
+<dd>Continuously copying the changes of an original database (the source, also called the primary) to another database (a replica) so that both keep the same data. It reduces load by spreading read requests across replicas, and if the source fails, a replica can be promoted to take its place and keep the service running. There is a small delay in the copying, so data that was just written may not be visible on a replica right away.</dd>
 <dt>Eventual consistency</dt>
 <dd>The guarantee that, although some nodes may show the old value right after data changes, all nodes end up with the same value over time if no further changes are made. It gives up immediate consistency and gains availability and scalability in return. It is commonly adopted in distributed databases and for synchronizing data between microservices.</dd>
 <dt>CAP theorem</dt>
@@ -164,6 +164,6 @@ public Member getMember(long id) {                      // -&gt; replica
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6b630957c2"></script>
+<script src="../../app.js?v=06895e70b4"></script>
 </body>
 </html>

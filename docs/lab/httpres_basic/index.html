@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -55,7 +55,7 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>브라우저가 서버에 GET /hello 요청을 보내자, 서버가 요청에 답해 아래와 같은 글자를 돌려보냅니다. 이 글자가 HTTP 응답입니다. 이 실습의 서버는 코드 칸의 글자를 그대로 보내고, 다 보내면 연결을 닫습니다. 응답을 읽는 클라이언트는 Node.js의 http 모듈입니다.</li>
+<li>클라이언트가 서버에 GET /hello 요청을 보내자, 서버가 요청에 답해 아래와 같은 글자를 돌려보냅니다. 이 글자가 HTTP 응답입니다. 이 실습의 서버는 코드 칸의 글자를 그대로 보내고, 다 보내면 연결을 닫습니다. 응답을 읽는 클라이언트는 Node.js의 http 모듈입니다.</li>
 <li>클라이언트가 첫 줄을 읽습니다. 읽은 글은 &quot;HTTP/1.1 200 OK&quot;입니다. 첫 줄(상태 줄)에는 세 가지가 차례로 적힙니다. HTTP/1.1은 어떤 규칙으로 쓴 글인지(버전), 200 부분은 요청이 어떻게 됐는지를 알리는 세 자리 숫자(상태 코드), OK는 그 코드를 사람이 읽도록 풀어 쓴 짧은 설명입니다. 200은 요청이 잘 처리됐다는 뜻입니다. 클라이언트가 읽은 상태는 &quot;200 OK&quot;입니다.</li>
 <li>클라이언트가 다음 줄을 읽습니다. 읽은 글은 &quot;Content-Type: text/plain; charset=utf-8&quot;입니다. &quot;이름: 값&quot; 꼴의 줄을 헤더라고 합니다. Content-Type 헤더는 본문이 어떤 종류의 내용인지를 알려 줍니다. text/plain은 꾸밈없는 글자라는 뜻이고, charset=utf-8은 그 글자를 UTF-8 방식으로 적었다는 뜻입니다.</li>
 <li>클라이언트가 다음 줄을 읽습니다. 읽은 글은 &quot;Content-Length: 15&quot;입니다. Content-Length 헤더는 본문이 몇 바이트인지를 알려 주고, 클라이언트는 이 숫자로 본문이 어디까지인지를 정합니다. 바이트는 컴퓨터가 글자를 세는 단위이고, UTF-8에서 한글 한 글자는 3바이트라서 &quot;안녕하세요&quot; 다섯 글자는 15바이트입니다.</li>
@@ -163,6 +163,6 @@ Content-Length: 15
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

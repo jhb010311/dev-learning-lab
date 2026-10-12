@@ -1,0 +1,11 @@
+# java 21.0.12.1 / junit-jupiter 6.0.3 / junit-platform-launcher 6.0.3
+plus|five|true => compile=OK|found=1|started=1|succeeded=1|failed=0|aborted=0|skipped=0|containersFailed=0|exc=-|msg=-
+plus|five|false => compile=OK|found=0|started=0|succeeded=0|failed=0|aborted=0|skipped=0|containersFailed=0|exc=-|msg=-
+plus|six|true => compile=OK|found=1|started=1|succeeded=0|failed=1|aborted=0|skipped=0|containersFailed=0|exc=org.opentest4j.AssertionFailedError|msg=expected: <6> but was: <5>
+plus|six|false => compile=OK|found=0|started=0|succeeded=0|failed=0|aborted=0|skipped=0|containersFailed=0|exc=-|msg=-
+minus|five|true => compile=OK|found=1|started=1|succeeded=0|failed=1|aborted=0|skipped=0|containersFailed=0|exc=org.opentest4j.AssertionFailedError|msg=expected: <5> but was: <-1>
+minus|five|false => compile=OK|found=0|started=0|succeeded=0|failed=0|aborted=0|skipped=0|containersFailed=0|exc=-|msg=-
+minus|six|true => compile=OK|found=1|started=1|succeeded=0|failed=1|aborted=0|skipped=0|containersFailed=0|exc=org.opentest4j.AssertionFailedError|msg=expected: <6> but was: <-1>
+minus|six|false => compile=OK|found=0|started=0|succeeded=0|failed=0|aborted=0|skipped=0|containersFailed=0|exc=-|msg=-
+FACT anno=true => compile=OK|found=1|addsCalls=1|addCalls=1
+FACT anno=false => compile=OK|found=0|addsCalls=0|addCalls=0

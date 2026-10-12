@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>레플리케이션(복제)</dt>
-<dd>원본 데이터베이스(source. primary라고도 부른다)의 변경 내용을 다른 데이터베이스(replica)에 계속 복사해 같은 데이터를 유지하는 것이다. 읽기 요청을 복제본으로 분산해 부하를 줄이고, 원본에 장애가 나면 복제본을 원본으로 승격해 서비스를 이어 갈 수 있다. 복제에는 약간의 지연이 있어 방금 쓴 데이터가 복제본에서 바로 보이지 않을 수 있다. (50선 밖)</dd>
+<dd>원본 데이터베이스(source이며 primary라고도 부른다)의 변경 내용을 다른 데이터베이스(replica)에 계속 복사해 같은 데이터를 유지하는 것이다. 읽기 요청을 복제본으로 분산해 부하를 줄이고, 원본에 장애가 나면 복제본을 원본으로 승격해 서비스를 이어 갈 수 있다. 복제에는 약간의 지연이 있어 방금 쓴 데이터가 복제본에서 바로 보이지 않을 수 있다.</dd>
 <dt>최종 일관성(Eventual Consistency)</dt>
 <dd>데이터를 변경한 직후에는 일부 노드가 이전 값을 보여 줄 수 있지만, 추가 변경이 없으면 시간이 지나 모든 노드가 같은 값을 갖게 된다는 보장이다. 즉시 일관성을 포기하는 대신 가용성과 확장성을 얻는다. 분산 데이터베이스와 마이크로서비스 간 데이터 동기화에서 흔히 채택된다.</dd>
 <dt>CAP 정리</dt>
@@ -164,6 +164,6 @@ public Member getMember(long id) {                      // -&gt; 복제본
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

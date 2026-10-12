@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,12 +31,12 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/spring/">Spring</a> › 웹 MVC</p>
 <h1>요청 매핑과 파라미터 바인딩</h1>
 <p><b>요청에 실어 보낸 값은 어떻게 메서드의 파라미터가 되나</b></p>
-<p>요청 매핑은 주소와 HTTP 메서드를 보고 어느 컨트롤러 메서드가 요청을 받을지 정하는 일이고, 파라미터 바인딩은 요청에 실린 값을 그 메서드의 파라미터에 넣어 주는 일입니다. HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애노테이션은 &quot;그 가운데 어느 자리에서 값을 꺼낼지&quot;를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다.</p>
+<p>요청 매핑은 주소와 HTTP 메서드를 보고 어느 컨트롤러 메서드가 요청을 받을지 정하는 일이고, 파라미터 바인딩은 요청에 실린 값을 그 메서드의 파라미터에 넣어 주는 일입니다. HTTP 요청은 값을 실을 수 있는 자리가 여러 곳입니다. 주소의 경로, ? 뒤의 쿼리 스트링, 그리고 본문입니다. 컨트롤러 메서드의 파라미터에 붙인 애너테이션은 &quot;그 가운데 어느 자리에서 값을 꺼낼지&quot;를 정합니다. 값을 실은 자리와 꺼내는 자리가 어긋나면 값이 들어오지 않습니다.</p>
 <p>실행으로 대조 · 스프링 부트 4.1.1 서버에 마흔여덟 가지 조합의 요청을 보내 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>@RequestParam과 @PathVariable</dt>
-<dd>요청에 실려 온 값 하나를 컨트롤러 메서드의 파라미터로 받게 해 주는 애노테이션이다. @RequestParam은 요청 파라미터(쿼리 스트링과 폼 형식 본문의 이름=값)에서, @PathVariable은 /orders/{id}처럼 주소 경로에 만들어 둔 {이름} 자리에서 값을 꺼낸다. 꺼낸 값은 글자이므로 스프링이 파라미터의 타입(int 등)으로 바꿔 주고, 바꿀 수 없는 글자가 오면 컨트롤러를 실행하지 않고 400으로 응답한다. @RequestParam은 값이 없으면 400이 되는 것이 기본이며, required = false를 주면 null이, defaultValue를 주면 그 값이 대신 들어간다. required = false를 쓸 때는 null을 담을 수 있도록 int가 아니라 Integer 같은 객체 타입으로 선언한다.</dd>
+<dd>요청에 실려 온 값 하나를 컨트롤러 메서드의 파라미터로 받게 해 주는 애너테이션이다. @RequestParam은 요청 파라미터(쿼리 스트링과 폼 형식 본문의 이름=값)에서, @PathVariable은 /orders/{id}처럼 주소 경로에 만들어 둔 {이름} 자리에서 값을 꺼낸다. 꺼낸 값은 글자이므로 스프링이 파라미터의 타입(int 등)으로 바꿔 주고, 바꿀 수 없는 글자가 오면 컨트롤러를 실행하지 않고 400으로 응답한다. @RequestParam은 값이 없으면 400이 되는 것이 기본이며, required = false를 주면 null이, defaultValue를 주면 그 값이 대신 들어간다. required = false를 쓸 때는 null을 담을 수 있도록 int가 아니라 Integer 같은 객체 타입으로 선언한다.</dd>
 <dt>@ModelAttribute와 @RequestBody</dt>
 <dd>요청의 값 여러 개를 객체 하나로 받는 두 가지 방법이다. @ModelAttribute는 객체를 먼저 만든 뒤, 요청 파라미터(쿼리 스트링과 폼 형식 본문) 가운데 필드와 이름이 같은 것을 setter로 넣어 준다(record처럼 생성자로 값을 받는 클래스라면 객체를 만들 때 생성자의 인자로 넣는다). @RequestBody는 요청 본문 전체를 Content-Type에 맞는 메시지 컨버터에 넘겨 객체로 바꾸며, 주로 JSON 본문을 받을 때 쓴다. 두 방법은 보는 자리가 달라서, JSON 본문으로 보낸 값은 @ModelAttribute로 들어오지 않고 쿼리 스트링으로 보낸 값은 @RequestBody로 들어오지 않는다. @ModelAttribute는 값이 없는 필드를 그대로 두고 오류로 보지 않으므로, 반드시 있어야 하는 값은 따로 검증해야 한다.</dd>
 <dt>쿼리 스트링과 폼 본문</dt>
@@ -60,13 +60,13 @@
 <ol>
 <li>요청이 도착합니다: POST /orders. qty는 본문에 JSON 형식으로 실려 있습니다. Content-Type 헤더가 본문의 형식을 알려 줍니다. 어느 자리에 실리든 HTTP 요청 안에서는 모두 글자입니다.</li>
 <li>@PostMapping(&quot;/orders&quot;): 스프링이 요청의 메서드와 경로로 실행할 컨트롤러 메서드를 찾습니다(요청 매핑). 메서드가 POST이고 경로가 /orders이므로 order 메서드로 정해집니다. 이 단계에서는 쿼리 스트링과 본문을 보지 않습니다.</li>
-<li>@RequestParam int qty: 이제 요청에 실린 값을 메서드의 파라미터에 넣을 차례입니다(파라미터 바인딩). 파라미터에 붙은 애노테이션이 값을 꺼낼 자리를 정합니다. @RequestParam은 &quot;요청 파라미터&quot;에서 이름이 qty인 값을 찾습니다. 요청 파라미터는 쿼리 스트링과 폼 형식 본문을 합친 것입니다.</li>
+<li>@RequestParam int qty: 이제 요청에 실린 값을 메서드의 파라미터에 넣을 차례입니다(파라미터 바인딩). 파라미터에 붙은 애너테이션이 값을 꺼낼 자리를 정합니다. @RequestParam은 &quot;요청 파라미터&quot;에서 이름이 qty인 값을 찾습니다. 요청 파라미터는 쿼리 스트링과 폼 형식 본문을 합친 것입니다.</li>
 <li>값 꺼내기: JSON 본문은 요청 파라미터가 아닙니다. 본문 안에 qty가 적혀 있어도 @RequestParam은 본문을 열어 보지 않습니다. @RequestParam은 값이 반드시 있어야 하는 것이 기본이므로 400으로 응답합니다(MissingServletRequestParameterException). 컨트롤러 메서드는 실행되지 않습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
 <li>JSON 본문으로 보낸 값은 @RequestParam으로 받을 수 없습니다. 값을 실은 자리(본문)와 꺼내는 자리(요청 파라미터)가 다르기 때문입니다. JSON 본문은 @RequestBody로 받습니다.</li>
-<li>애노테이션마다 보는 자리가 정해져 있습니다. @RequestParam과 @ModelAttribute는 요청 파라미터(쿼리 스트링과 폼 본문), @PathVariable은 경로, @RequestBody는 본문 전체입니다.</li>
+<li>애너테이션마다 보는 자리가 정해져 있습니다. @RequestParam과 @ModelAttribute는 요청 파라미터(쿼리 스트링과 폼 본문), @PathVariable은 경로, @RequestBody는 본문 전체입니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>// 보내는 요청
@@ -84,7 +84,7 @@ class OrderController {
     }
 }</pre>
 <h2>이 모형의 전제</h2>
-<p>받는 방법 여섯 가지와 요청 여덟 가지를 곱한 마흔여덟 조합을 모두 실제 스프링 부트 4.1.1 서버(스프링 프레임워크 7.0.9, 내장 톰캣 11)에 HTTP 요청으로 보내, 상태 코드와 컨트롤러 실행 여부, 컨트롤러가 받은 값, 스프링이 던진 예외의 이름이 화면과 일치하는 것을 확인했습니다. 예외의 이름은 스프링 버전에 따라 다릅니다(맞는 주소가 없을 때의 NoResourceFoundException, @ModelAttribute 변환 실패의 MethodArgumentNotValidException은 이 버전 기준입니다). 오류 응답의 본문은 버전과 설정에 따라 달라서 결과로 삼지 않았습니다. 컨트롤러에 메서드가 하나, 파라미터가 하나인 경우로 단순화했고, 매핑 애노테이션은 요청의 HTTP 메서드에 맞춰 @GetMapping과 @PostMapping 가운데 맞는 쪽을 보였습니다(메서드가 맞지 않을 때의 405는 &quot;서블릿&quot; 실습에 있습니다). OrderForm은 기본 생성자와 setter가 있는 클래스입니다. record처럼 생성자로 값을 받는 객체는 값이 없을 때의 동작이 다를 수 있고, 그것은 확인하지 않았습니다. @RequestParam int qty처럼 이름을 따로 적지 않고 파라미터 이름으로 값을 찾는 것은 -parameters 옵션으로 컴파일했을 때의 동작이며, 대조도 그렇게 했습니다. 화면에 없는 경우 네 가지도 같은 서버에서 확인했습니다. ?qty=처럼 빈 값을 보내면 @RequestParam int는 400, required = false는 null, defaultValue는 기본값이 됩니다. required = false인데 타입을 int로 두고 값을 보내지 않으면 null을 담을 수 없어 500이 됩니다. @ModelAttribute 파라미터 바로 뒤에 BindingResult 파라미터를 두면 변환에 실패해도 컨트롤러가 실행됩니다. 본문이 {}이면 @RequestBody로 받은 qty는 0입니다. 값의 범위를 검사하는 검증(@Valid)은 이 실습에서 다루지 않고, 다음 실습인 검증에서 따로 봅니다.</p>
+<p>받는 방법 여섯 가지와 요청 여덟 가지를 곱한 마흔여덟 조합을 모두 실제 스프링 부트 4.1.1 서버(스프링 프레임워크 7.0.9, 내장 톰캣 11)에 HTTP 요청으로 보내, 상태 코드와 컨트롤러 실행 여부, 컨트롤러가 받은 값, 스프링이 던진 예외의 이름이 화면과 일치하는 것을 확인했습니다. 예외의 이름은 스프링 버전에 따라 다릅니다(맞는 주소가 없을 때의 NoResourceFoundException, @ModelAttribute 변환 실패의 MethodArgumentNotValidException은 이 버전 기준입니다). 오류 응답의 본문은 버전과 설정에 따라 달라서 결과로 삼지 않았습니다. 컨트롤러에 메서드가 하나, 파라미터가 하나인 경우로 단순화했고, 매핑 애너테이션은 요청의 HTTP 메서드에 맞춰 @GetMapping과 @PostMapping 가운데 맞는 쪽을 보였습니다(메서드가 맞지 않을 때의 405는 &quot;서블릿&quot; 실습에 있습니다). OrderForm은 기본 생성자와 setter가 있는 클래스입니다. record처럼 생성자로 값을 받는 객체는 값이 없을 때의 동작이 다를 수 있고, 그것은 확인하지 않았습니다. @RequestParam int qty처럼 이름을 따로 적지 않고 파라미터 이름으로 값을 찾는 것은 -parameters 옵션으로 컴파일했을 때의 동작이며, 대조도 그렇게 했습니다. 화면에 없는 경우 네 가지도 같은 서버에서 확인했습니다. ?qty=처럼 빈 값을 보내면 @RequestParam int는 400, required = false는 null, defaultValue는 기본값이 됩니다. required = false인데 타입을 int로 두고 값을 보내지 않으면 null을 담을 수 없어 500이 됩니다. @ModelAttribute 파라미터 바로 뒤에 BindingResult 파라미터를 두면 변환에 실패해도 컨트롤러가 실행됩니다. 본문이 {}이면 @RequestBody로 받은 qty는 0입니다. 값의 범위를 검사하는 검증(@Valid)은 이 실습에서 다루지 않고, 다음 실습인 검증에서 따로 봅니다.</p>
 <p>앞 실습: <a href="../../lab/mvc/">MVC 요청 흐름</a> · 다음 실습: <a href="../../lab/validation/">검증</a></p>
   </div>
 
@@ -172,6 +172,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

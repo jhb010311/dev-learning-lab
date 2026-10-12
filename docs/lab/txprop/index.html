@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>@Transactional</dt>
-<dd>메서드나 클래스에 붙여 그 범위를 하나의 트랜잭션으로 실행하게 하는 애노테이션이다. 프록시가 메서드 실행 전에 트랜잭션을 시작하고, 정상적으로 끝나면 커밋, 예외가 발생하면 규칙에 따라 롤백한다. 트랜잭션을 시작하고 끝내는 코드를 직접 쓰지 않아도 되어 선언적 트랜잭션이라고 한다.</dd>
+<dd>메서드나 클래스에 붙여 그 범위를 하나의 트랜잭션으로 실행하게 하는 애너테이션이다. 프록시가 메서드 실행 전에 트랜잭션을 시작하고, 정상적으로 끝나면 커밋, 예외가 발생하면 규칙에 따라 롤백한다. 트랜잭션을 시작하고 끝내는 코드를 직접 쓰지 않아도 되어 선언적 트랜잭션이라고 한다.</dd>
 <dt>트랜잭션 전파(Propagation)</dt>
 <dd>트랜잭션이 이미 진행 중일 때 @Transactional 메서드가 호출되면 어떻게 할지 정하는 설정이다. 기본값 REQUIRED는 진행 중인 트랜잭션에 참여하고 없으면 새로 시작한다. REQUIRES_NEW는 기존 트랜잭션을 잠시 멈추고 항상 별도의 새 트랜잭션을 시작한다. NESTED는 같은 트랜잭션 안에서 세이브포인트를 두어 부분 롤백을 가능하게 한다.</dd>
 <dt>롤백 규칙과 rollbackFor</dt>
@@ -176,6 +176,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

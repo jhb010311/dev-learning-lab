@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6b630957c2">
+<link rel="stylesheet" href="../../app.css?v=06895e70b4">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,7 +36,7 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Sharding and partitioning</dt>
-<dd>Partitioning divides a large table into several pieces by a criterion such as a date range and manages it that way. Sharding stores data across several database servers. It spreads out a write load or a data volume that one server cannot handle. With sharding, joins and transactions that span servers become difficult. (Outside the top 50.)</dd>
+<dd>Partitioning divides a large table into several pieces by a criterion such as a date range and manages it that way. Sharding stores data across several database servers. It spreads out a write load or a data volume that one server cannot handle. With sharding, joins and transactions that span servers become difficult.</dd>
 <dt>RANGE partitioning and HASH partitioning</dt>
 <dd>The two main ways to divide a table into partitions. The column (or expression) that decides which partition a row goes to is called the partitioning key. RANGE assigns a range of values to each partition. It suits queries that look for a continuous range such as dates, and it suits dropping old data one partition at a time. A value that does not belong to any of the ranges cannot be inserted, so you must add the partition for the next period in advance. HASH decides the partition by the remainder of the partitioning key divided by the number of partitions. It spreads rows evenly, but a range condition can hardly reduce the partitions to read.</dd>
 <dt>Partition pruning</dt>
@@ -178,6 +178,6 @@ EXPLAIN SELECT * FROM orders WHERE YEAR(ordered_at) = 2024;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6b630957c2"></script>
+<script src="../../app.js?v=06895e70b4"></script>
 </body>
 </html>

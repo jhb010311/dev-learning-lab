@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -49,7 +49,7 @@
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
 <li><b>처음 설정으로</b> — 1500바이트를 MTU 1500으로. MTU와 같은 크기인데도 두 조각이 됩니다.</li>
-<li><b>딱 한 조각</b> — 1460바이트는 머리말을 붙이면 정확히 1500바이트가 됩니다.</li>
+<li><b>딱 한 조각</b> — 1460바이트는 TCP와 IP 머리말을 붙이면 정확히 1500바이트가 됩니다.</li>
 <li><b>짧은 요청</b> — 300바이트. 나누지 않고 머리말만 붙습니다.</li>
 <li><b>긴 데이터</b> — 10000바이트는 일곱 조각으로 나뉘고 조각마다 머리말이 붙습니다.</li>
 <li><b>MTU가 더 작으면</b> — 같은 1460바이트가 이번에는 두 조각이 됩니다.</li>
@@ -181,6 +181,6 @@ console.log(total);                                     // 전선으로 나간 �
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

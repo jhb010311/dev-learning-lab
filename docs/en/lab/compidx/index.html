@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6b630957c2">
+<link rel="stylesheet" href="../../app.css?v=06895e70b4">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,9 +58,9 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>The orders table has 1,000,000 rows. The index is sorted in the order member_id → status → created_at. Entries with the same first column are grouped together, within that group they are in order of the second column, and within that in order of the third column.</li>
-<li>Column #1 (member_id): there is the condition member_id = 7, and the columns before it are all fixed, so this condition narrows the range to read.</li>
+<li>Column #1 (member_id): there is the condition member_id = 7, and it is the first column of the index, so this condition narrows the range to read.</li>
 <li>Column #2 (status): there is the condition status = 'PAID', and the columns before it are all fixed, so this condition narrows the range to read.</li>
-<li>Column #3 (created_at): there is the condition created_at &gt;= '2026-09-01', and the columns before it are all fixed, so this condition narrows the range to read. But it is a range condition, so within this range the next column is not sorted. The columns after it cannot be used to narrow the range.</li>
+<li>Column #3 (created_at): there is the condition created_at &gt;= '2026-09-01', and the columns before it are all fixed, so this condition narrows the range to read.</li>
 <li>50 index entries in the narrowed range are read.</li>
 <li>SELECT * needs columns that are not in the index too. For each of the remaining 50 entries, the query goes to the table (the clustered index) and reads the whole row.</li>
 </ol>
@@ -165,6 +165,6 @@ SELECT *
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6b630957c2"></script>
+<script src="../../app.js?v=06895e70b4"></script>
 </body>
 </html>

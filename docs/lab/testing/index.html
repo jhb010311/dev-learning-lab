@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,9 +40,9 @@
 <dt>테스트 대역(Mock, Stub)</dt>
 <dd>테스트 대상이 의존하는 실제 객체를 대신하는 테스트용 객체다. Stub은 정해진 값을 돌려주도록 만든 것이고, Mock은 어떤 메서드가 어떻게 호출되었는지까지 검증할 수 있는 것이다. 데이터베이스나 외부 API 없이 테스트 대상의 로직만 빠르고 일관되게 검증할 수 있게 한다.</dd>
 <dt>@SpringBootTest와 @WebMvcTest</dt>
-<dd>스프링 부트가 테스트에 쓸 스프링 컨텍스트를 만들어 주는 두 애노테이션이다. @SpringBootTest는 애플리케이션을 띄울 때와 같이 빈을 전부 등록하므로 여러 계층이 이어져 동작하는 것을 확인할 수 있지만, 등록되는 빈이 많아 컨텍스트가 크다. @WebMvcTest는 컨트롤러 같은 웹 계층의 빈만 등록하고 @Service나 @Repository가 붙은 클래스는 등록하지 않는다. 그래서 컨트롤러가 의존하는 서비스를 @MockitoBean으로 직접 넣어 주지 않으면 컨텍스트가 뜨지 못하고, 테스트 메서드는 실행되기도 전에 실패한다. 스프링 부트 4에서 @WebMvcTest는 spring-boot-webmvc-test 모듈의 org.springframework.boot.webmvc.test.autoconfigure 패키지에 있다.</dd>
+<dd>스프링 부트가 테스트에 쓸 스프링 컨텍스트를 만들어 주는 두 애너테이션이다. @SpringBootTest는 애플리케이션을 띄울 때와 같이 빈을 전부 등록하므로 여러 계층이 이어져 동작하는 것을 확인할 수 있지만, 등록되는 빈이 많아 컨텍스트가 크다. @WebMvcTest는 컨트롤러 같은 웹 계층의 빈만 등록하고 @Service나 @Repository가 붙은 클래스는 등록하지 않는다. 그래서 컨트롤러가 의존하는 서비스를 @MockitoBean으로 직접 넣어 주지 않으면 컨텍스트가 뜨지 못하고, 테스트 메서드는 실행되기도 전에 실패한다. 스프링 부트 4에서 @WebMvcTest는 spring-boot-webmvc-test 모듈의 org.springframework.boot.webmvc.test.autoconfigure 패키지에 있다.</dd>
 <dt>@MockitoBean</dt>
-<dd>테스트용 스프링 컨텍스트의 빈을 Mockito가 만든 가짜 객체로 바꾸는 애노테이션이다. 테스트 클래스의 필드에 붙이면, 그 타입의 빈이 컨텍스트에 있을 때는 가짜가 그 자리를 대신하고 없을 때는 가짜가 새 빈으로 추가된다. 가짜 객체의 메서드는 when(...).thenReturn(...)으로 돌려줄 값을 정해 주지 않으면 null 같은 기본값을 돌려준다. 스프링 부트 4에는 예전의 @MockBean이 없고, 스프링 프레임워크에 들어 있는 이 애노테이션을 쓴다. 테스트 클래스마다 @MockitoBean을 붙인 필드의 구성이 다르면 서로 다른 컨텍스트가 필요해져, 컨텍스트를 그만큼 여러 번 만들게 된다.</dd>
+<dd>테스트용 스프링 컨텍스트의 빈을 Mockito가 만든 가짜 객체로 바꾸는 애너테이션이다. 테스트 클래스의 필드에 붙이면, 그 타입의 빈이 컨텍스트에 있을 때는 가짜가 그 자리를 대신하고 없을 때는 가짜가 새 빈으로 추가된다. 가짜 객체의 메서드는 when(...).thenReturn(...)으로 돌려줄 값을 정해 주지 않으면 null 같은 기본값을 돌려준다. 스프링 부트 4에는 예전의 @MockBean이 없고, 스프링 프레임워크에 들어 있는 이 애너테이션을 쓴다. 테스트 클래스마다 @MockitoBean을 붙인 필드의 구성이 다르면 서로 다른 컨텍스트가 필요해져, 컨텍스트를 그만큼 여러 번 만들게 된다.</dd>
 <dt>테스트 컨텍스트 캐시</dt>
 <dd>스프링의 테스트 지원 기능이 한 번 만든 컨텍스트를 보관해 두었다가, 설정이 같은 다른 테스트 클래스에 다시 내주는 저장소이다. 설정 클래스, 활성 프로필, @MockitoBean을 붙인 필드의 구성 같은 것이 모두 같아야 같은 컨텍스트로 보고, 하나라도 다르면 새로 만든다. 캐시는 테스트를 실행하는 JVM 안에 있으며, @DirtiesContext를 붙이면 해당 컨텍스트를 닫고 캐시에서 뺀다. 같은 설정의 컨텍스트가 기동에 실패하면 기본으로는 다시 만들어 보지 않고 뒤의 테스트를 바로 실패시킨다. 테스트 클래스마다 설정이 조금씩 다르면 컨텍스트를 여러 번 띄우게 되어 전체 테스트가 느려진다.</dd>
 </dl>
@@ -63,7 +63,7 @@
 <li>빈 등록 (@WebMvcTest): 웹 계층에 속한 것만 등록합니다. @RestController가 붙은 OrderController는 빈이 되고, @Service가 붙은 OrderService와 @Repository가 붙은 OrderRepository는 등록되지 않습니다.</li>
 <li>OrderController 생성 실패: 스프링이 컨트롤러를 만들려면 생성자가 요구하는 OrderService 빈이 있어야 하는데 컨텍스트에 없습니다. NoSuchBeanDefinitionException이 나고 컨텍스트 기동이 중단됩니다.</li>
 <li>returnsOrderName 실패 처리: 컨텍스트가 없으니 @Autowired MockMvc 필드를 채울 수 없습니다. 테스트 메서드의 본문은 한 줄도 실행되지 않고, &quot;Failed to load ApplicationContext&quot;라는 IllegalStateException으로 실패가 기록됩니다.</li>
-<li>OrderControllerSecondTest 실행 시작: 같은 JVM에서 두 번째 테스트 클래스가 이어서 실행됩니다. 애노테이션과 필드가 첫 번째 클래스와 같습니다. 이 클래스에도 컨텍스트가 필요합니다.</li>
+<li>OrderControllerSecondTest 실행 시작: 같은 JVM에서 두 번째 테스트 클래스가 이어서 실행됩니다. 애너테이션과 필드가 첫 번째 클래스와 같습니다. 이 클래스에도 컨텍스트가 필요합니다.</li>
 <li>컨텍스트 캐시 조회: 설정이 첫 번째 클래스와 같은데, 그 설정의 컨텍스트는 기동에 실패해서 캐시에 없습니다. 스프링은 같은 설정으로 한 번 실패한 컨텍스트를 다시 만들어 보지 않습니다(기본 한도 1번). 만들기를 시작하지도 않고 &quot;failure threshold (1) exceeded&quot;라는 IllegalStateException으로 테스트를 바로 실패시킵니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -219,6 +219,6 @@ class OrderRepository {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

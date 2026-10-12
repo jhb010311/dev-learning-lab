@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>지연 로딩: 연관된 객체는 언제 DB에서 읽어 오는가 · 개발 학습 실습실</title>
+<meta name="description" content="주문(Order)은 그 주문을 한 회원(Member)을 가리킵니다. 코드에서는 Order의 member 필드가 그 회원을 가리키고, DB에서는 orders 테이블의 주문 행이 회원의 번호(member_id)만 적어 둡니다. 그래서 em.find로 주문 하나를 읽어 올 때 JP…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/lazy_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lazy_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lazy_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="지연 로딩: 연관된 객체는 언제 DB에서 읽어 오는가 · 개발 학습 실습실">
+<meta property="og:description" content="주문(Order)은 그 주문을 한 회원(Member)을 가리킵니다. 코드에서는 Order의 member 필드가 그 회원을 가리키고, DB에서는 orders 테이블의 주문 행이 회원의 번호(member_id)만 적어 둡니다. 그래서 em.find로 주문 하나를 읽어 올 때 JP…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/lazy_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › JPA</p>
+<h1>지연 로딩</h1>
+<p><b>연관된 객체는 언제 DB에서 읽어 오는가</b></p>
+<p>주문(Order)은 그 주문을 한 회원(Member)을 가리킵니다. 코드에서는 Order의 member 필드가 그 회원을 가리키고, DB에서는 orders 테이블의 주문 행이 회원의 번호(member_id)만 적어 둡니다. 그래서 em.find로 주문 하나를 읽어 올 때 JPA는 정해야 합니다. 그 주문이 가리키는 회원도 지금 같이 읽어 올 것인가, 회원은 코드가 그 값을 실제로 쓰는 순간에 읽어 올 것인가. 이것을 member 필드 위의 @ManyToOne(fetch = ...)에 적습니다. FetchType.EAGER는 회원도 주문을 읽을 때 함께 읽어 오는 방식(즉시 로딩)이고, FetchType.LAZY는 회원을 쓰는 순간까지 미루는 방식(지연 로딩)입니다. 미루는 동안 member 필드에는 회원 1의 번호만 아는 비어 있는 대리 객체(프록시)가 들어 있다가, 이름처럼 회원의 값을 꺼내는 순간에 JPA가 member 테이블을 읽는 SELECT 문을 보내 채웁니다. 화면의 코드에는 SQL이 한 줄도 없는데도 SQL이 나가고, 나가는 때가 설정에 따라 달라집니다. 이 실습은 fetch 설정을 바꾸고 order.getMember().getName() 줄을 지워 가며 같은 주문을 읽어, 줄마다 어느 테이블을 읽는 SELECT가 나갔는지 봅니다.</p>
+<p>실행으로 대조 · Hibernate 7.4.5와 H2 2.4.240에서 네 가지 조합을 실행해 줄마다 나간 SQL을 대조, FetchType 규칙은 Jakarta Persistence 3.2 API 문서와 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>지연 로딩과 즉시 로딩</dt>
+<dd>연관된 엔티티를 언제 조회할지에 대한 설정이다. 즉시 로딩(EAGER)은 엔티티를 조회할 때 연관된 엔티티도 함께 가져온다. 지연 로딩(LAZY)은 연관된 엔티티 자리에 프록시 객체를 넣어 두고 실제로 그 값을 사용할 때 조회한다. 즉시 로딩은 필요 없는 데이터까지 항상 가져오고 예상하기 어려운 쿼리를 만들기 때문에 지연 로딩을 기본으로 쓰는 것이 권장된다.</dd>
+<dt>@ManyToOne</dt>
+<dd>@ManyToOne은 필드 위에 붙여 &quot;이 필드는 다른 엔티티 하나를 가리키고, 이 엔티티 여러 개가 같은 상대 하나를 가리킬 수 있다&quot;고 표시하는 애너테이션이다. 주문 여러 개가 회원 한 명을 가리키는 경우가 대표적이다. 가리키는 대상의 타입은 필드의 타입에서 알아낸다. 테이블에서는 이 필드를 가진 엔티티의 테이블에 상대의 기본 키 값을 담는 외래 키 열이 생기고, 열 이름을 따로 정하지 않으면 필드 이름, 밑줄, 상대의 기본 키 열 이름을 이은 이름(Member 타입의 member 필드면 member_id)이 된다. 다른 엔티티 타입의 필드에 이런 연관관계 표시가 없으면, Hibernate 7.4.5는 그 필드를 열에 담을 방법을 찾지 못해 시작하다가 오류를 낸다.</dd>
+<dt>엔티티 프록시</dt>
+<dd>진짜 엔티티 대신 들어오는 대리 객체다. Hibernate가 엔티티 클래스를 상속한 클래스를 실행 중에 만들어 그 객체를 돌려주며, 처음에는 식별자만 알고 나머지 내용은 비어 있다. 식별자가 아닌 값을 처음 읽는 순간 DB를 조회해 진짜 엔티티를 읽어 오는데, 이것을 프록시 초기화라고 한다. em.getReference의 결과나 지연 로딩으로 설정한 연관 객체가 프록시로 들어온다. 프록시의 클래스는 엔티티 클래스와 다르므로 타입을 비교할 때는 getClass() 대신 instanceof를 쓴다.</dd>
+<dt>FetchType</dt>
+<dd>FetchType은 연관된 데이터를 언제 읽어 올지를 나타내는 열거형(enum)으로, 값은 EAGER와 LAZY 두 가지다. @ManyToOne 같은 연관관계 애너테이션의 fetch 속성에 FetchType.LAZY나 FetchType.EAGER를 적는다. EAGER는 데이터를 즉시 읽어 와야 한다는 요구이고, LAZY는 그 데이터를 처음 접근할 때 읽어도 된다는 힌트다. LAZY는 힌트이므로 구현체가 LAZY로 적힌 데이터를 미리 읽어 오는 것도 허용된다. @ManyToOne의 fetch를 적지 않으면 기본값은 EAGER다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — LAZY이면 find 줄에서는 orders 테이블만 읽고, 회원의 이름을 꺼내는 getName 줄에서 member 테이블을 읽는 SELECT가 나갑니다.</li>
+<li><b>이름을 쓰지 않으면</b> — LAZY에서 회원의 값을 쓰지 않으면 member 테이블을 읽는 SELECT는 끝까지 나가지 않습니다.</li>
+<li><b>EAGER로 바꾸면</b> — EAGER이면 find 줄에서 주문과 회원을 조인한 SELECT 하나로 함께 읽고, getName 줄에서는 SQL이 나가지 않습니다.</li>
+<li><b>EAGER에서 이름을 쓰지 않으면</b> — EAGER이면 회원의 이름을 쓰지 않아도 find 줄에서 회원까지 읽어 옵니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>DB의 준비: 코드가 실행되기 전에 DB의 orders 테이블에는 주문 한 행(id 10, member_id 1)이, member 테이블에는 회원 한 행(id 1, 김철수)이 들어 있습니다. member_id는 이 주문을 한 회원의 번호를 적은 칸입니다. 이 행들은 화면의 코드 바깥에서 미리 넣어 두었습니다. Order와 Member는 각각 테이블의 한 행에 대응하는 자바 클래스(엔티티)이고, 코드에 나오는 em은 DB에서 엔티티를 읽어 오는 EntityManager입니다. 지금은 아직 아무것도 읽어 오지 않았습니다.</li>
+<li>Order order = em.find(Order.class, 10L): em이 id가 10인 주문을 찾습니다. JPA(Hibernate)가 orders 테이블을 읽는 SELECT 문(DB에서 행을 읽어 오는 SQL)을 1번 만들어 보내고, 읽어 온 행으로 Order 객체를 만듭니다. 이 행에는 회원의 번호 member_id = 1만 적혀 있습니다. member 필드 위에 LAZY가 적혀 있으므로 member 테이블은 읽지 않고, member 필드에는 회원 1의 번호만 아는 대리 객체(프록시)를 넣어 둡니다. 대리 객체의 이름은 아직 비어 있습니다. 이 SELECT는 우리가 쓴 코드에 없고, JPA가 만들어 보냈습니다.</li>
+<li>order.getMember(): Order 객체의 member 필드에 들어 있던 대리 객체를 그대로 돌려줍니다. 이 줄까지는 member 테이블에 SQL이 나가지 않았고, 돌려받은 대리 객체의 이름은 아직 비어 있습니다.</li>
+<li>.getName(): 대리 객체가 가진 것은 회원의 번호뿐이라 이름을 알 수 없습니다. 이 순간 JPA(Hibernate)가 member 테이블을 읽는 SELECT 문을 보내 회원 1의 행을 읽어 오고, 대리 객체를 채워 이름 김철수를 돌려줍니다. 회원의 값을 처음 꺼낸 이 줄에서 SELECT가 나갔고, 이 SELECT도 우리가 쓴 코드에 없습니다.</li>
+<li>코드가 끝났습니다. 나간 SELECT는 모두 2번입니다. 주문을 읽는 find 줄에서 1번, 회원의 이름을 꺼내는 getName 줄에서 1번 나갔고, 회원을 읽은 때는 이름을 실제로 쓴 getName 줄입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>FetchType.LAZY로 적은 member는 &quot;회원은 쓰는 순간에 읽어 온다&quot;는 뜻입니다. 주문을 읽는 find 줄에서는 orders 테이블만 읽었고, 회원을 읽는 SELECT는 이름을 꺼낸 getName 줄에서 나갔습니다(SELECT 모두 2번).</li>
+<li>코드에는 SQL이 한 줄도 없는데 SQL이 두 번 나갔습니다. order.getMember()까지는 SQL이 나가지 않고, 회원의 값을 쓰는 순간에 나갑니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@Entity
+public class Member {
+    @Id
+    private Long id;
+    private String name;
+
+    public String getName() { return name; }
+}
+
+@Entity
+@Table(name = &quot;orders&quot;)
+public class Order {
+    @Id
+    private Long id;
+
+    // 연결: 이 주문이 가리키는 회원을 언제 읽어 올지 정한다
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Member member;
+
+    public Member getMember() { return member; }
+}
+
+// DB에는 주문 10과, 그 주문을 한 회원 1(김철수)이 들어 있다
+Order order = em.find(Order.class, 10L);
+// 사용: 회원의 값(이름)을 실제로 쓴다
+String name = order.getMember().getName();</pre>
+<h2>이 모형의 전제</h2>
+<p>Hibernate 7.4.5와 H2 2.4.240(메모리 DB)에서 실행해 대조했습니다. 스프링 없이 SessionFactory를 직접 만들었고, JDK 21입니다. 네 가지 조합을 모두, 화면의 엔티티 두 클래스(Member와 Order)와 읽는 코드 줄을 글자 그대로(주석 줄 포함) 컴파일해 실행했습니다. 화면에서 줄인 것은 package와 import 줄뿐이고, 화면에 보이지 않는 것은 EntityManager를 얻고 닫는 코드입니다. 조합마다 DB와 SessionFactory를 새로 만들고, 테이블은 Hibernate가 만들게 했으며, DB에는 실행 전에 JDBC로 회원 (1, 김철수)와 주문 (10, member_id 1)을 미리 넣었습니다. 이 준비의 SQL은 세지 않았고, 읽는 코드는 그 준비와 다른 EntityManager에서 영속성 컨텍스트가 빈 상태로 실행했습니다. 읽는 코드에는 트랜잭션을 시작하는 줄이 없고 em을 열어 둔 채 실행했습니다. 대조한 것은 Hibernate의 StatementInspector로 잡은 SQL을 코드 줄마다 나눈 것입니다(어느 줄에서 나갔는지는 호출 스택으로 알아냈고, 나간 SQL 원문과 줄은 대조 출력에 남겼습니다). 이 환경에서 LAZY는 find 줄에서 orders 테이블만 읽는 SELECT 1번이, getName 줄에서 member 테이블만 읽는 SELECT 1번이 나갔고, EAGER는 find 줄에서 orders와 member를 left join한 SELECT 1번이 나가고 getName 줄에서는 나가지 않았습니다. 이름을 쓰는 줄이 없으면 LAZY는 member 테이블을 읽는 SELECT가 전혀 나가지 않았습니다. 단계 문장이 기대는 사실도 줄마다 바로 아래에 측정 줄을 끼우고 getMember()와 getName()을 두 줄로 나눈 두 번째 실행에서 쟀습니다. LAZY에서 find 직후 member 필드의 객체는 Hibernate가 만든 프록시 클래스의 객체(Member$HibernateProxy)이고 초기화되지 않았으며 식별자 1을 알고 있다는 것, order.getMember()를 부른 직후에도 SQL이 늘지 않고 여전히 초기화되지 않았다는 것, getName() 직후에 SELECT가 한 번 늘고 초기화되었다는 것, EAGER에서는 find 직후 member 필드가 프록시가 아닌 진짜 Member 객체이고 초기화되어 있으며 getMember()와 getName() 뒤에도 SQL이 늘지 않았다는 것입니다. 또 @ManyToOne에 fetch를 적지 않고 같은 코드를 실행하면 EAGER와 같게 find 줄에서 조인한 SELECT 1번으로 회원까지 읽혔습니다(화면의 설정에는 넣지 않았고, 용어 설명의 근거로만 썼습니다). 문서가 정한 것은 Jakarta Persistence 3.2 API 문서의 FetchType(EAGER는 데이터를 반드시 즉시 읽어야 한다는 요구이고, LAZY는 처음 접근할 때 읽어도 된다는 힌트이며 구현체는 LAZY로 적힌 데이터를 미리 읽어도 된다는 것)과 ManyToOne의 fetch(적지 않으면 기본값이 EAGER라는 것)입니다. Hibernate 사용자 안내서(User Guide)의 Fetching 장은 페이지에서 해당 부분을 열지 못해 읽지 못했으므로, 대리 객체를 넣어 두는 방식과 EAGER를 조인으로 읽는 방식은 문서가 아니라 Hibernate 7.4.5에서 관찰한 동작입니다. 명세상 LAZY는 힌트이고 EAGER를 조인으로 읽을지 별도 SELECT로 읽을지는 구현이 정하므로, 화면에는 이 환경에서 나간 SQL만 적었습니다. 이 실습은 em이 열려 있는 동안만 다루며, em을 닫은 뒤 대리 객체를 채우려 할 때 나는 LazyInitializationException, 주문이 여러 개일 때 SELECT가 주문 수만큼 늘어나는 N+1 문제, JPQL 조회, 컬렉션(@OneToMany)의 로딩은 다루지 않습니다. 대리 객체의 세부는 &quot;프록시와 지연 로딩&quot; 실습에서, N+1은 &quot;N+1 문제&quot; 실습에서 다룹니다. MySQL에서의 실행 대조는 하지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/relation_basic/">연관관계</a> · 다음 실습: <a href="../../lab/table_basic/">테이블, 행, 열</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=c4ea67ee7c"></script>
+</body>
+</html>

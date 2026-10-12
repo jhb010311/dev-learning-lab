@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -42,7 +42,7 @@
 <dt>EXPLAIN의 Extra</dt>
 <dd>MySQL의 EXPLAIN 결과에서 읽는 방법 말고 덧붙여 하는 일을 적어 주는 칸이다. Using where는 읽어 온 행을 조건으로 다시 걸러낸다는 뜻이고, Using index는 테이블에 가지 않고 인덱스만 읽어 끝낸다는 뜻이다. Using filesort는 ORDER BY를 위해 따로 정렬한다는 뜻이며, Using temporary는 GROUP BY 등을 위해 임시 테이블을 만든다는 뜻이다. 비어 있으면 덧붙은 작업이 없다는 것이다. Using filesort와 Using temporary는 읽는 행이 많을 때 느려지는 원인이 되므로, rows 칸의 값과 함께 본다.</dd>
 <dt>풀 테이블 스캔</dt>
-<dd>조건에 맞는 행을 찾기 위해 테이블의 모든 행을 처음부터 끝까지 읽는 방식이다. 조건에 쓸 인덱스가 없거나, 인덱스가 있어도 조건에 해당하는 행이 너무 많아 전체를 읽는 편이 낫다고 옵티마이저가 판단할 때 선택된다. 큰 테이블에서 소수의 행을 찾는데 이 방식이 쓰이면 성능 문제의 원인이 된다.</dd>
+<dd>조건에 맞는 행을 찾기 위해 테이블의 모든 행을 처음부터 끝까지 읽는 방식이다. 조건에 쓸 인덱스가 없거나, 인덱스가 있어도 조건에 해당하는 행이 너무 많아 전체를 읽는 편이 낫다고 옵티마이저가 판단할 때 선택된다. 큰 테이블에서 소수의 행을 찾는 데 이 방식이 쓰이면 성능 문제의 원인이 된다.</dd>
 <dt>커버링 인덱스</dt>
 <dd>쿼리가 필요로 하는 모든 컬럼이 인덱스에 포함되어 있어, 테이블의 행을 읽지 않고 인덱스만으로 결과를 만들 수 있는 경우를 말한다. 테이블 접근이 생략되어 조회가 빨라진다. MySQL의 실행 계획에서는 Extra 항목에 Using index로 표시된다.</dd>
 </dl>
@@ -167,6 +167,6 @@ SELECT *
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

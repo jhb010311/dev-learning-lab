@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6b630957c2">
+<link rel="stylesheet" href="../../app.css?v=06895e70b4">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -40,7 +40,7 @@
 <dt>Exception translation and DataAccessException</dt>
 <dd>This is what Spring does when it converts the exceptions thrown by a data access technology into its own exception hierarchy. The SQLException of JDBC is a checked exception, and what the problem is can be known only from the codes inside it (the SQLState and the error code), but Spring translates it to a subclass of DataAccessException and throws that. A duplicate key becomes DuplicateKeyException, any other constraint violation becomes DataIntegrityViolationException, and invalid SQL becomes BadSqlGrammarException. DataAccessException is an unchecked exception, so no throws clause is needed, and the original exception is kept as the cause. Problems are told apart by the name of the exception class, so the service code is not tied to the error codes of a particular database product.</dd>
 <dt>Connection pool</dt>
-<dd>A technique that creates several database connections in advance and reuses them. Opening a new connection is an expensive operation, so instead of opening and closing a connection for every request, the application borrows one and returns it. If every connection is in use, a new request waits until one is returned, and an exception is thrown if it cannot get one within a set time (connectionTimeout in HikariCP, 30 seconds by default). The default implementation in Spring Boot is HikariCP. (Outside the top 50.)</dd>
+<dd>A technique that creates several database connections in advance and reuses them. Opening a new connection is an expensive operation, so instead of opening and closing a connection for every request, the application borrows one and returns it. If every connection is in use, a new request waits until one is returned, and an exception is thrown if it cannot get one within a set time (connectionTimeout in HikariCP, 30 seconds by default). The default implementation in Spring Boot is HikariCP.</dd>
 <dt>Checked and unchecked exceptions</dt>
 <dd>Unchecked exceptions are RuntimeException and its subclasses (in the specification, the Error classes are also unchecked), and the compiler does not check whether they are handled (examples are NullPointerException and IllegalArgumentException). Checked exceptions are all other Exception classes, and the code compiles only if they are handled with catch or declared with throws (examples are IOException and SQLException). By default, Spring's @Transactional rolls back only on RuntimeException and Error, and commits on checked exceptions.</dd>
 <dt>Template Method pattern</dt>
@@ -174,6 +174,6 @@ public int insert(Long id, String name, String city) throws SQLException {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6b630957c2"></script>
+<script src="../../app.js?v=06895e70b4"></script>
 </body>
 </html>

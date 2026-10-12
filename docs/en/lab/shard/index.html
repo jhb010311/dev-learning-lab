@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=6b630957c2">
+<link rel="stylesheet" href="../../app.css?v=06895e70b4">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,11 +36,11 @@
 <h2>Concepts in this lab</h2>
 <dl>
 <dt>Sharding and partitioning</dt>
-<dd>Partitioning divides a large table into several pieces by a criterion such as a date range and manages it that way. Sharding stores data across several database servers. It spreads out a write load or a data volume that one server cannot handle. With sharding, joins and transactions that span servers become difficult. (Outside the top 50.)</dd>
+<dd>Partitioning divides a large table into several pieces by a criterion such as a date range and manages it that way. Sharding stores data across several database servers. It spreads out a write load or a data volume that one server cannot handle. With sharding, joins and transactions that span servers become difficult.</dd>
 <dt>Scale up and scale out</dt>
 <dd>Scaling up means raising the specifications (CPU, memory) of a single server to increase its capacity, and scaling out means adding more servers to share the load. Scaling up is simple but has limits and cost problems. Scaling out can grow flexibly, but the servers must be designed to hold no state, and you need something that distributes the requests.</dd>
 <dt>Replication</dt>
-<dd>Continuously copying the changes of an original database (the source, also called the primary) to another database (a replica) so that both keep the same data. It reduces load by spreading read requests across replicas, and if the source fails, a replica can be promoted to take its place and keep the service running. There is a small delay in the copying, so data that was just written may not be visible on a replica right away. (Outside the top 50.)</dd>
+<dd>Continuously copying the changes of an original database (the source, also called the primary) to another database (a replica) so that both keep the same data. It reduces load by spreading read requests across replicas, and if the source fails, a replica can be promoted to take its place and keep the service running. There is a small delay in the copying, so data that was just written may not be visible on a replica right away.</dd>
 </dl>
 <h2>Try these</h2>
 <ul>
@@ -159,6 +159,6 @@ DataSource ds = shards.get(shardOf(memberId));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=6b630957c2"></script>
+<script src="../../app.js?v=06895e70b4"></script>
 </body>
 </html>

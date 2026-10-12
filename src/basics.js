@@ -40,12 +40,14 @@ Lab.basics({
       { id: 'config_basic' },
       { id: 'tx_basic' },
       { id: 'boot_basic' },
+      { id: 'test_basic' },
     ] },
     { name: 'JPA', desc: '자바 객체를 테이블에 저장할 때 나오는 것들입니다.', items: [
       { id: 'entity_basic' },
       { id: 'pc_basic' },
       { id: 'repo_basic' },
       { id: 'relation_basic' },
+      { id: 'lazy_basic' },
     ] },
     { name: 'DB', desc: '테이블에 데이터를 넣고 찾을 때의 기본 약속들입니다.', items: [
       { id: 'table_basic' },

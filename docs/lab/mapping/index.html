@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>엔티티 매핑과 기본 키: 엔티티에 붙인 애노테이션은 테이블과 저장되는 값을 어떻게 바꾸나 · 개발 학습 실습실</title>
-<meta name="description" content="JPA는 엔티티 클래스의 필드와 애노테이션을 읽어 테이블의 컬럼과 짝을 짓습니다. 이것을 매핑이라고 합니다.">
+<title>엔티티 매핑과 기본 키: 엔티티에 붙인 애너테이션은 테이블과 저장되는 값을 어떻게 바꾸나 · 개발 학습 실습실</title>
+<meta name="description" content="JPA는 엔티티 클래스의 필드와 애너테이션을 읽어 테이블의 컬럼과 짝을 짓습니다. 이것을 매핑이라고 합니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/mapping/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/mapping/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/mapping/">
 <meta property="og:site_name" content="개발 학습 실습실">
-<meta property="og:title" content="엔티티 매핑과 기본 키: 엔티티에 붙인 애노테이션은 테이블과 저장되는 값을 어떻게 바꾸나 · 개발 학습 실습실">
-<meta property="og:description" content="JPA는 엔티티 클래스의 필드와 애노테이션을 읽어 테이블의 컬럼과 짝을 짓습니다. 이것을 매핑이라고 합니다.">
+<meta property="og:title" content="엔티티 매핑과 기본 키: 엔티티에 붙인 애너테이션은 테이블과 저장되는 값을 어떻게 바꾸나 · 개발 학습 실습실">
+<meta property="og:description" content="JPA는 엔티티 클래스의 필드와 애너테이션을 읽어 테이블의 컬럼과 짝을 짓습니다. 이것을 매핑이라고 합니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/mapping/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -30,17 +30,17 @@
 <p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
 <p><a href="../../study/">공부</a> › <a href="../../study/jpa/">JPA</a> › 엔티티 매핑</p>
 <h1>엔티티 매핑과 기본 키</h1>
-<p><b>엔티티에 붙인 애노테이션은 테이블과 저장되는 값을 어떻게 바꾸나</b></p>
-<p>JPA는 엔티티 클래스의 필드와 애노테이션을 읽어 테이블의 컬럼과 짝을 짓습니다. 이것을 매핑이라고 합니다.</p>
+<p><b>엔티티에 붙인 애너테이션은 테이블과 저장되는 값을 어떻게 바꾸나</b></p>
+<p>JPA는 엔티티 클래스의 필드와 애너테이션을 읽어 테이블의 컬럼과 짝을 짓습니다. 이것을 매핑이라고 합니다.</p>
 <p>실행으로 대조 · Hibernate 7.4.5와 H2에서 아흔여섯 가지 조합의 엔티티를 컴파일·실행해 create table 문과 저장된 값을 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>@Column</dt>
-<dd>엔티티의 필드가 테이블의 어떤 컬럼과 짝지어지는지를 자세히 정하는 애노테이션이다. name으로 컬럼 이름을, nullable = false로 null 금지를, unique = true로 중복 금지를, length로 문자열의 최대 길이를 적는다. 붙이지 않아도 필드는 컬럼과 짝지어지며, 그때 문자열은 길이 255에 null과 중복을 허용한다. nullable, unique, length는 JPA가 테이블을 만들 때(create table 문) 반영되는 정보다. 이미 있는 테이블을 그대로 쓰는 경우 unique와 length는 실행 중에 아무것도 막아 주지 않는다.</dd>
+<dd>엔티티의 필드가 테이블의 어떤 컬럼과 짝지어지는지를 자세히 정하는 애너테이션이다. name으로 컬럼 이름을, nullable = false로 null 금지를, unique = true로 중복 금지를, length로 문자열의 최대 길이를 적는다. 붙이지 않아도 필드는 컬럼과 짝지어지며, 그때 문자열은 길이 255에 null과 중복을 허용한다. nullable, unique, length는 JPA가 테이블을 만들 때(create table 문) 반영되는 정보다. 이미 있는 테이블을 그대로 쓰는 경우 unique와 length는 실행 중에 아무것도 막아 주지 않는다.</dd>
 <dt>@Enumerated</dt>
-<dd>enum 타입의 필드를 DB에 어떤 값으로 저장할지 정하는 애노테이션이다. EnumType.ORDINAL은 enum에 적힌 순서 번호(0부터)를 숫자로 저장하고, EnumType.STRING은 상수의 이름을 글자로 저장한다. 붙이지 않았을 때의 기본값은 ORDINAL이다. ORDINAL로 저장한 뒤 enum의 중간이나 앞에 상수를 추가하면 번호가 밀려서, 이미 저장된 값이 다른 상수로 읽힌다. 예외가 나지 않아 알아차리기 어려우므로 STRING으로 쓰는 것이 안전하다.</dd>
+<dd>enum 타입의 필드를 DB에 어떤 값으로 저장할지 정하는 애너테이션이다. EnumType.ORDINAL은 enum에 적힌 순서 번호(0부터)를 숫자로 저장하고, EnumType.STRING은 상수의 이름을 글자로 저장한다. 붙이지 않았을 때의 기본값은 ORDINAL이다. ORDINAL로 저장한 뒤 enum의 중간이나 앞에 상수를 추가하면 번호가 밀려서, 이미 저장된 값이 다른 상수로 읽힌다. 예외가 나지 않아 알아차리기 어려우므로 STRING으로 쓰는 것이 안전하다.</dd>
 <dt>@Transient</dt>
-<dd>엔티티의 필드를 매핑에서 빼는 애노테이션이다. 이 필드에는 컬럼이 만들어지지 않고, 저장할 때도 조회할 때도 쓰이지 않는다. 엔티티의 필드는 따로 표시하지 않으면 모두 컬럼과 짝지어지므로, DB에 둘 필요가 없는 임시 값이나 계산용 값에는 이것을 붙여야 한다. DB에서 다시 읽어 온 객체에서는 이 필드가 비어 있다(참조형이면 null). 자바의 transient 키워드는 직렬화에서 필드를 빼는 것으로 목적이 다르다.</dd>
+<dd>엔티티의 필드를 매핑에서 빼는 애너테이션이다. 이 필드에는 컬럼이 만들어지지 않고, 저장할 때도 조회할 때도 쓰이지 않는다. 엔티티의 필드는 따로 표시하지 않으면 모두 컬럼과 짝지어지므로, DB에 둘 필요가 없는 임시 값이나 계산용 값에는 이것을 붙여야 한다. DB에서 다시 읽어 온 객체에서는 이 필드가 비어 있다(참조형이면 null). 자바의 transient 키워드는 직렬화에서 필드를 빼는 것으로 목적이 다르다.</dd>
 <dt>기본 키 생성 전략(@GeneratedValue)</dt>
 <dd>엔티티의 기본 키(@Id) 값을 누가 어떻게 만드는지 정하는 설정이다. @Id만 붙이면 코드에서 값을 직접 넣어야 하고, 넣지 않고 저장하면 예외가 난다. @GeneratedValue를 함께 붙이면 자동으로 만들어진다. IDENTITY는 DB의 자동 증가 컬럼에 맡기는 방식으로 MySQL에서 흔히 쓰고, SEQUENCE는 DB의 시퀀스에서 번호를 받아 오는 방식이다. 자동 생성으로 해 두고 값을 직접 넣어 저장하면 그것도 예외가 된다.</dd>
 <dt>엔티티</dt>
@@ -48,7 +48,7 @@
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 애노테이션을 거의 붙이지 않은 상태입니다. VIP가 숫자 1로 저장됩니다.</li>
+<li><b>처음 설정으로</b> — 애너테이션을 거의 붙이지 않은 상태입니다. VIP가 숫자 1로 저장됩니다.</li>
 <li><b>enum 맨 앞에 값을 추가하면</b> — 저장해 둔 VIP 회원이 BASIC으로 읽힙니다.</li>
 <li><b>STRING으로 저장하면</b> — enum의 순서가 바뀌어도 VIP로 읽힙니다.</li>
 <li><b>name에 nullable = false</b> — 만들어지는 테이블에 not null이 붙습니다.</li>
@@ -61,7 +61,7 @@
 <li>애플리케이션이 시작될 때: Hibernate가 Member 클래스를 읽어 create table 문을 만듭니다(테이블을 자동으로 만드는 설정일 때). @Id가 붙은 id 필드는 기본 키 컬럼이 됩니다. @Id만 있으므로 평범한 not null 컬럼입니다. 값은 코드가 넣어 주어야 합니다.</li>
 <li>name 필드: @Column을 붙이지 않았으므로 기본값대로 만들어집니다. 길이는 255자이고, null도 중복도 허용합니다.</li>
 <li>grade 필드: ORDINAL은 enum에 적힌 순서 번호를 저장하는 방식이므로 작은 정수 컬럼(tinyint)이 됩니다. BASIC은 0, VIP는 1입니다. 번호가 0에서 1 사이인지 확인하는 조건(check)도 함께 붙었습니다.</li>
-<li>memo 필드: 애노테이션이 하나도 없지만 컬럼이 만들어집니다. 엔티티의 필드는 @Transient로 빼지 않는 한 모두 컬럼과 짝지어집니다.</li>
+<li>memo 필드: 애너테이션이 하나도 없지만 컬럼이 만들어집니다. 엔티티의 필드는 @Transient로 빼지 않는 한 모두 컬럼과 짝지어집니다.</li>
 <li>em.persist(m)과 commit: INSERT가 나가 행이 하나 저장됩니다. id는 코드에서 넣은 100 그대로입니다.</li>
 <li>DB에 저장된 값: grade 컬럼에는 숫자 1이 들어 있습니다. Grade.VIP가 enum에서 두 번째(순서 번호 1)이기 때문입니다. &quot;VIP&quot;라는 글자는 DB 어디에도 없습니다. memo 컬럼에는 &quot;오늘 가입&quot;이 저장됐습니다.</li>
 <li>em2.find(Member.class, 100L): DB에서 다시 읽습니다. grade 컬럼의 1을 지금 enum의 순서 번호 1인 상수로 바꾸면 VIP입니다. memo는 &quot;오늘 가입&quot;입니다.</li>
@@ -70,7 +70,7 @@
 <ul>
 <li>ORDINAL은 enum에 적힌 순서 번호를 저장합니다. 숫자라서 자리를 적게 쓰지만, 그 번호의 뜻은 enum에 적힌 순서에 달려 있습니다.</li>
 <li>@Column을 붙이지 않은 문자열 필드는 varchar(255)이고 null과 중복을 허용합니다. 필수 값이나 길이 제한이 있다면 @Column에 적어 테이블의 제약으로 드러나게 합니다.</li>
-<li>애노테이션을 붙이지 않은 필드도 컬럼이 됩니다. 저장하지 않을 필드에는 @Transient를 붙여야 합니다.</li>
+<li>애너테이션을 붙이지 않은 필드도 컬럼이 됩니다. 저장하지 않을 필드에는 @Transient를 붙여야 합니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>enum Grade { BASIC, VIP }
@@ -189,6 +189,6 @@ System.out.println(r.getGrade() + &quot;, &quot; + r.getMemo());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>

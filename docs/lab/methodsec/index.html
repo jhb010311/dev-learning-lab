@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>메서드 보안: 메서드에 붙인 권한 검사는 언제 실행되고 언제 빠지나 · 개발 학습 실습실</title>
-<meta name="description" content="주소(URL)가 아니라 메서드에 &quot;누가 이 메서드를 실행해도 되는가&quot;를 적어 두는 방법이 메서드 보안입니다. @PreAuthorize는 메서드를 실행하기 전에, @PostAuthorize는 메서드가 값을 돌려준 뒤에 식을 계산해 거짓이면 거부합니다. 그런데 이 애노테이션은 붙…">
+<meta name="description" content="주소(URL)가 아니라 메서드에 &quot;누가 이 메서드를 실행해도 되는가&quot;를 적어 두는 방법이 메서드 보안입니다. @PreAuthorize는 메서드를 실행하기 전에, @PostAuthorize는 메서드가 값을 돌려준 뒤에 식을 계산해 거짓이면 거부합니다. 그런데 이 애너테이션은 붙…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/methodsec/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/methodsec/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/methodsec/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="메서드 보안: 메서드에 붙인 권한 검사는 언제 실행되고 언제 빠지나 · 개발 학습 실습실">
-<meta property="og:description" content="주소(URL)가 아니라 메서드에 &quot;누가 이 메서드를 실행해도 되는가&quot;를 적어 두는 방법이 메서드 보안입니다. @PreAuthorize는 메서드를 실행하기 전에, @PostAuthorize는 메서드가 값을 돌려준 뒤에 식을 계산해 거짓이면 거부합니다. 그런데 이 애노테이션은 붙…">
+<meta property="og:description" content="주소(URL)가 아니라 메서드에 &quot;누가 이 메서드를 실행해도 되는가&quot;를 적어 두는 방법이 메서드 보안입니다. @PreAuthorize는 메서드를 실행하기 전에, @PostAuthorize는 메서드가 값을 돌려준 뒤에 식을 계산해 거짓이면 거부합니다. 그런데 이 애너테이션은 붙…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/methodsec/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
+<link rel="stylesheet" href="../../app.css?v=c4ea67ee7c">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,12 +31,12 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/sec/">보안</a> › 인가</p>
 <h1>메서드 보안</h1>
 <p><b>메서드에 붙인 권한 검사는 언제 실행되고 언제 빠지나</b></p>
-<p>주소(URL)가 아니라 메서드에 &quot;누가 이 메서드를 실행해도 되는가&quot;를 적어 두는 방법이 메서드 보안입니다. @PreAuthorize는 메서드를 실행하기 전에, @PostAuthorize는 메서드가 값을 돌려준 뒤에 식을 계산해 거짓이면 거부합니다. 그런데 이 애노테이션은 붙여 두기만 해서는 동작하지 않을 때가 있습니다.</p>
+<p>주소(URL)가 아니라 메서드에 &quot;누가 이 메서드를 실행해도 되는가&quot;를 적어 두는 방법이 메서드 보안입니다. @PreAuthorize는 메서드를 실행하기 전에, @PostAuthorize는 메서드가 값을 돌려준 뒤에 식을 계산해 거짓이면 거부합니다. 그런데 이 애너테이션은 붙여 두기만 해서는 동작하지 않을 때가 있습니다.</p>
 <p>실행으로 대조 · 스프링 시큐리티 7.1.1에서 서른여섯 가지 조합을 실행해 검사 실행 여부, 본문 실행 여부, 받은 값이나 예외를 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
 <dt>메서드 보안(@PreAuthorize, @PostAuthorize)</dt>
-<dd>주소(URL)가 아니라 메서드에 권한 조건을 적어 두는 스프링 시큐리티의 기능이다. @PreAuthorize는 메서드를 실행하기 전에 식을 계산해 거짓이면 본문을 실행하지 않고, @PostAuthorize는 본문을 실행한 뒤 돌려줄 값을 보고 식을 계산해 거짓이면 값을 돌려주지 않는다. 식에는 hasRole('ADMIN') 같은 역할 확인뿐 아니라 메서드의 인자(#이름), 돌려줄 값(returnObject), 로그인한 사용자(authentication)를 쓸 수 있다. 설정 클래스에 @EnableMethodSecurity가 있어야 동작하며, 없으면 애노테이션은 오류 없이 무시된다. 빈을 감싼 프록시가 검사를 하므로 같은 클래스 안에서 부른 호출에는 적용되지 않는다.</dd>
+<dd>주소(URL)가 아니라 메서드에 권한 조건을 적어 두는 스프링 시큐리티의 기능이다. @PreAuthorize는 메서드를 실행하기 전에 식을 계산해 거짓이면 본문을 실행하지 않고, @PostAuthorize는 본문을 실행한 뒤 돌려줄 값을 보고 식을 계산해 거짓이면 값을 돌려주지 않는다. 식에는 hasRole('ADMIN') 같은 역할 확인뿐 아니라 메서드의 인자(#이름), 돌려줄 값(returnObject), 로그인한 사용자(authentication)를 쓸 수 있다. 설정 클래스에 @EnableMethodSecurity가 있어야 동작하며, 없으면 애너테이션은 오류 없이 무시된다. 빈을 감싼 프록시가 검사를 하므로 같은 클래스 안에서 부른 호출에는 적용되지 않는다.</dd>
 <dt>인증과 인가</dt>
 <dd>인증(Authentication)은 사용자가 누구인지 확인하는 것이고, 인가(Authorization)는 확인된 사용자가 특정 자원이나 기능을 사용할 권한이 있는지 판단하는 것이다. 인증이 먼저 이뤄지고 그 결과를 바탕으로 인가를 판단한다. HTTP 상태 코드로는 인증 실패가 401, 인가 실패가 403에 해당한다.</dd>
 <dt>프록시(Proxy)</dt>
@@ -57,14 +57,14 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>애플리케이션이 뜰 때: 설정 클래스에 @EnableMethodSecurity가 없습니다. 애노테이션은 메서드에 붙은 표시일 뿐이고, 그것을 읽어 검사해 줄 것이 없습니다. 프록시는 만들어지지 않고, 컨트롤러는 실제 객체를 그대로 주입받습니다. 오류나 경고는 나오지 않습니다.</li>
+<li>애플리케이션이 뜰 때: 설정 클래스에 @EnableMethodSecurity가 없습니다. 애너테이션은 메서드에 붙은 표시일 뿐이고, 그것을 읽어 검사해 줄 것이 없습니다. 프록시는 만들어지지 않고, 컨트롤러는 실제 객체를 그대로 주입받습니다. 오류나 경고는 나오지 않습니다.</li>
 <li>orderService.deleteAll(): 컨트롤러가 메서드를 부릅니다. 지금 로그인한 사용자는 kim(역할 USER)입니다. 프록시가 없으므로 호출이 실제 객체의 메서드로 바로 갑니다.</li>
 <li>deleteAll() 본문 실행: 주문을 모두 지우고 &quot;모두 삭제함&quot;을 돌려줍니다. 권한 검사를 거치지 않았으므로, 지금 로그인한 사용자가 실행해서는 안 되는 메서드가 그대로 실행됐습니다.</li>
 <li>부른 쪽(컨트롤러): &quot;모두 삭제함&quot;을 받습니다. 거부됐어야 할 호출이 정상적으로 끝났습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>@EnableMethodSecurity가 없으면 @PreAuthorize와 @PostAuthorize는 아무 일도 하지 않습니다. 오류도 나지 않으므로, 애노테이션을 붙였다는 것만으로 안심하면 안 됩니다. 권한이 없는 사용자로 실제로 불러 보는 테스트로 확인합니다.</li>
+<li>@EnableMethodSecurity가 없으면 @PreAuthorize와 @PostAuthorize는 아무 일도 하지 않습니다. 오류도 나지 않으므로, 애너테이션을 붙였다는 것만으로 안심하면 안 됩니다. 권한이 없는 사용자로 실제로 불러 보는 테스트로 확인합니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>@Configuration
@@ -179,6 +179,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=edb045ba3e"></script>
+<script src="../../app.js?v=c4ea67ee7c"></script>
 </body>
 </html>
