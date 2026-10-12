@@ -3,7 +3,8 @@
 //   { t: '주제 이름', d: '한 줄 설명' }  아직 실습이 없는 항목 (화면에 "준비 중"으로 보인다)
 // 기초개념 실습은 세부 동작이 아니라 "그 개념이 코드에서 어떻게 생긴 것인가"를 다룬다.
 // 그 개념을 이루는 것을 하나씩 떼어 보며, 그것인 것과 아닌 것, 없으면 어떻게 되는지를 대조한다. 쓰는 법은 tools/BASICS_GUIDE.md.
-// 어떤 주제를 둘지는 공부 쪽 실습의 글에 설명 없이 자주 나오는 낱말(행, 객체, 메서드, 클래스, 테이블, 빈, 예외, 변수, 타입 …)을 세어 정했다.
+// 어떤 주제를 둘지: 처음 43개는 공부 쪽 실습의 글에 설명 없이 자주 나오는 낱말을 세어 정했고, 그 뒤로는 공부 쪽 161개 실습을 묶음별로 놓고
+// 받쳐 주는 기초개념이 없는 묶음을 채웠다(맞춘 표는 src/basics_map.js). 실제 실행으로 대조할 수 없는 것(컨테이너, DB 복제·샤딩 등)은 만들지 않았다.
 Lab.basics({
   desc: '개념의 세부 동작을 보기 전에, 그 개념이 코드에서 어떻게 생긴 것인지와 없으면 어떻게 되는지를 봅니다.',
   groups: [
@@ -12,15 +13,19 @@ Lab.basics({
       { id: 'method_basic' },
       { id: 'class_basic' },
       { id: 'ref_basic' },
+      { id: 'null_basic' },
       { id: 'ctor_basic' },
       { id: 'static_basic' },
       { id: 'inherit_basic' },
       { id: 'interface_basic' },
       { id: 'exception_basic' },
       { id: 'generic_basic' },
+      { id: 'collection_basic' },
       { id: 'lambda_basic' },
+      { id: 'stream_basic' },
       { id: 'annot_basic' },
       { id: 'thread_basic' },
+      { id: 'lock_basic' },
     ] },
     { name: 'Spring', desc: '스프링으로 웹 요청을 처리할 때 밑에 깔려 있는 것들입니다.', items: [
       { id: 'bean_basic' },

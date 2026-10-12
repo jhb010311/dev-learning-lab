@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=64470b6a28">
+<link rel="stylesheet" href="../../app.css?v=0ccd62bc42">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -83,7 +83,7 @@ public class Main {
 }</pre>
 <h2>이 모형의 전제</h2>
 <p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)이고, 컴파일은 경고 옵션을 켜지 않은 기본 옵션으로 했습니다. 여덟 가지 조합을 모두, 화면의 코드와 같은 소스(import 줄까지 줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력과 예외를 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드와 영어 메시지(compiler.err.prob.found.req의 &quot;int cannot be converted to String&quot;과 &quot;Object cannot be converted to String&quot;을 화면의 두 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 컴파일러가 오류 말고 남긴 노트, 실행했을 때의 출력, 실행 중 예외의 종류와 메시지와 예외가 난 줄입니다. 단계 문장이 기대는 사실도 따로 실행해 확인했습니다. &lt;String&gt;이 없는 리스트에 123을 담는 줄은 실행 중에도 예외 없이 지나가고 리스트에 1개가 담기며, 꺼내는 (String) 줄에서야 ClassCastException이 났습니다(메시지: Integer를 String으로 바꿀 수 없음). &lt;String&gt;이 없어도 꺼낸 것을 Object 변수에 담는 줄은 컴파일되고, 꺼낸 것에 캐스팅 없이 length()를 부르는 줄은 컴파일되지 않습니다. &lt;String&gt;이 있으면 꺼낸 것에 length()를 바로 부를 수 있습니다. 기본 옵션에서 로 타입이 든 조합(컴파일에 성공한 것은 물론 오류가 난 것도)은 오류가 아니라 노트 두 줄(안전하지 않은 작업을 쓴다는 것과 -Xlint:unchecked로 다시 컴파일하라는 것)만 남겼고, 경고(warning)로는 나오지 않았습니다. 경고 옵션 -Xlint:unchecked와 -Xlint:rawtypes를 켜서 따로 컴파일하면 List와 ArrayList를 &lt;&gt; 없이 쓴 선언 줄에 로 타입 경고가, names.add 줄에 unchecked 호출 경고가 났고, (String)으로 꺼내는 줄에는 경고가 없었습니다. &lt;String&gt;이 있고 (String)도 적은 조합은 기본 옵션에서 노트도 없이 컴파일되고, -Xlint:all을 켜면 불필요한 캐스트라는 경고가 났습니다. &lt;String&gt;이 있는 리스트에 123을 담는 오류는 javac가 줄여 알린 것으로(노트: Some messages have been simplified), -Xdiags:verbose로 다시 컴파일하면 add(int)에 맞는 메서드가 없다는 compiler.err.cant.apply.symbols 오류였습니다. 문서는 WebFetch로 열어 확인했습니다. Java Language Specification(Java SE 21)의 4.5절과 4.5.1절(List&lt;String&gt;처럼 제네릭 클래스에 타입 인자를 붙인 것이 매개변수화된 타입이고, 타입 인자는 참조 타입이어야 해서 List&lt;int&gt;는 쓸 수 없음), 4.8절(&lt;&gt;를 붙이지 않은 이름이 로 타입이고 옛 코드와의 호환을 위해서만 허용되며, 로 타입 멤버의 일부 접근이 unchecked 경고를 낸다는 것), 5.5절과 5.1.6절(검사가 필요한 참조 타입 변환은 실행 중에 객체의 클래스를 확인하고 틀리면 ClassCastException이 날 수 있다는 것), 그리고 자바 튜토리얼 &quot;Why Use Generics?&quot;(제네릭은 컴파일할 때 더 강하게 검사하고, 꺼낼 때의 캐스팅을 없애 준다는 것)를 따랐습니다. 열린 문서는 요약된 답으로 돌아와 원문을 모두 직접 읽지는 못했고, jls-4.html은 앞쪽 100000자까지만 읽었습니다(4.5절과 4.8절은 그 안에 있었습니다). 123이 Integer 객체로 리스트에 담긴다는 것은 명세 5.1.7절(박싱)을 열어 확인한 것이 아니라, 실행 중 예외 메시지에서 관찰한 것입니다. 오류의 종류, 개수, 어느 줄에서 나는지, 노트가 남는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 화면의 코드는 클래스 하나에 main만 둔 모양입니다. &lt;String&gt;이 있어도 컴파일러의 검사를 피하는 방법이 있고, 제네릭 클래스나 메서드를 직접 만드는 것, 와일드카드, 실행 중에는 &lt;String&gt;이 남지 않는다는 것(타입 소거)도 이 실습은 다루지 않았습니다. 이것들은 &quot;세부 동작 실습: 제네릭&quot;에서 다룹니다.</p>
-<p>앞 실습: <a href="../../lab/exception_basic/">예외</a> · 다음 실습: <a href="../../lab/lambda_basic/">람다</a></p>
+<p>앞 실습: <a href="../../lab/exception_basic/">예외</a> · 다음 실습: <a href="../../lab/collection_basic/">List와 Map</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -170,6 +170,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=64470b6a28"></script>
+<script src="../../app.js?v=0ccd62bc42"></script>
 </body>
 </html>

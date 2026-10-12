@@ -1,0 +1,6 @@
+// 기초개념 "List와 Map" 실습의 용어. 근거: Java SE 21 API 문서 java.util.List, java.util.Map, java.util.ArrayList, java.util.HashMap, java.lang.IndexOutOfBoundsException (https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/List.html 등), Java Language Specification(Java SE 21) 10.2절(배열의 길이).
+module.exports = [
+  ['컬렉션·자료구조', 'List의 add와 get', 'List는 값을 순서대로 줄 세워 담는 그릇이고, 담긴 값은 0부터 시작하는 정수 번호(인덱스)로 가리킨다. add(값)은 List의 맨 뒤에 값을 붙이고, get(번호)은 그 번호 자리의 값을 돌려준다. List는 같은 값을 여러 번 담을 수 있어서 같은 값을 add하면 번호만 다른 자리에 하나 더 담긴다. size()는 담긴 값의 개수를 돌려주며, 쓸 수 있는 번호는 0부터 size() - 1까지이다. ArrayList는 List 규칙대로 만든 클래스로, 담을수록 안에서 쓰는 배열의 크기를 스스로 늘리므로 만들 때 크기를 정하지 않아도 된다.'],
+  ['컬렉션·자료구조', 'Map의 put과 get', 'Map은 키와 값을 짝지어 담는 그릇이고, 값은 번호가 아니라 키로 꺼낸다. 하나의 Map에는 같은 키가 둘 있을 수 없고, 키 하나는 값 하나와 짝지어진다. put(키, 값)은 키와 값을 짝지어 담는데, 그 키가 이미 담겨 있으면 새 짝을 만들지 않고 이전 값을 새 값으로 바꾸며 이전 값을 돌려준다. get(키)는 그 키와 짝지어진 값을 돌려주고, 짝지어진 값이 없으면 예외 없이 null을 돌려준다. 값으로 null을 담을 수도 있는 Map에서는 get이 null을 돌려주어도 그 키가 없다는 뜻이 아닐 수 있고, 키가 있는지는 containsKey로 따로 확인한다. HashMap은 Map 규칙대로 만든 클래스이며 꺼내는 순서를 보장하지 않는다.'],
+  ['Java 언어', 'IndexOutOfBoundsException', 'IndexOutOfBoundsException은 배열, 문자열, List처럼 번호로 가리키는 것에서 그 번호가 범위를 벗어났을 때 던져지는 예외이다. List의 get(번호)은 번호가 0보다 작거나 담긴 개수 이상이면 이 예외를 던진다. RuntimeException의 하위 클래스이다. 번호가 틀린 코드도 컴파일은 통과하고, 그 줄이 실행될 때 예외가 던져진다.'],
+];

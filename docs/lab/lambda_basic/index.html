@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=64470b6a28">
+<link rel="stylesheet" href="../../app.css?v=0ccd62bc42">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -82,7 +82,7 @@ public class Main {
 }</pre>
 <h2>이 모형의 전제</h2>
 <p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 열여덟 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.prob.found.req의 &quot;Task is not a functional interface, multiple non-overriding abstract methods found in interface Task&quot;는 &quot;Task는 메서드가 하나가 아니어서 람다로 쓸 수 없음&quot;으로, compiler.err.does.not.override.abstract의 &quot;does not override abstract method stop() in Task&quot;는 &quot;Task의 stop 메서드를 작성하지 않았음&quot;으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력입니다. 단계 문장이 기대는 사실은 별도의 소스를 같은 방식으로 실행해 확인했습니다. 객체를 담는 줄 바로 뒤에서 t는 세 형식 모두 Task를 구현한 클래스의 객체이고, 그 줄에서는 &quot;일한다&quot;가 출력되지 않았습니다(람다는 이 JDK에서 만들어지는 숨은 클래스의 객체이고, 익명 클래스와 이름 있는 클래스 Work는 각각 그 이름 그대로의 클래스의 객체였습니다). 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 람다 표현식이 대입, 호출, 형 변환 문맥에서 함수형 인터페이스를 목표 타입으로 가진다는 것은 15.27.3절, 실행할 때 람다 표현식을 계산하면 목표 함수형 인터페이스를 구현하는 클래스의 객체에 대한 참조가 만들어지고 이것은 람다 본문의 실행과 다르다는 것과 람다 본문은 그 인터페이스의 메서드가 불릴 때 실행된다는 것은 15.27절 서두와 15.27.4절, 함수형 인터페이스가 (Object의 메서드를 제외하고) 추상 메서드가 하나뿐인 인터페이스라는 것과 그 객체를 람다 표현식으로도 만들 수 있다는 것은 9.8절, 익명 클래스가 클래스 인스턴스 생성 식에서 암시적으로 선언되고 인터페이스를 직접 상위 인터페이스로 가질 수 있다는 것은 15.9.5절을 따랐습니다. 문서의 해당 절은 일부만 요약으로 돌아와 원문 전체를 읽지는 못했습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 이 실습은 &quot;람다는 메서드가 하나뿐인 인터페이스를 구현한 객체를 짧게 적은 것&quot;과 그 실행 시점만 다룹니다. 람다가 만드는 객체가 익명 클래스의 객체와 똑같은 것은 아닙니다. 이 JDK에서는 숨은 클래스로 만들어지고, 그 밖에 this가 가리키는 대상 등이 다르다고 하는데 이 실습에서는 확인하지 않았습니다. 매개변수가 있는 람다, 값을 돌려주는 람다, 메서드 참조, Runnable이나 Comparator 같은 기본 제공 함수형 인터페이스, default 메서드나 static 메서드가 있는 인터페이스는 다루지 않았고, 이것들은 &quot;세부 동작 실습: 람다와 함수형 인터페이스&quot;에서 다룹니다.</p>
-<p>앞 실습: <a href="../../lab/generic_basic/">제네릭</a> · 다음 실습: <a href="../../lab/annot_basic/">애너테이션</a></p>
+<p>앞 실습: <a href="../../lab/collection_basic/">List와 Map</a> · 다음 실습: <a href="../../lab/stream_basic/">스트림</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -169,6 +169,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=64470b6a28"></script>
+<script src="../../app.js?v=0ccd62bc42"></script>
 </body>
 </html>

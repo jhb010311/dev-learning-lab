@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=64470b6a28">
+<link rel="stylesheet" href="../../app.css?v=0ccd62bc42">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -86,7 +86,7 @@ public class Main {
 }</pre>
 <h2>이 모형의 전제</h2>
 <p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 여덟 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 첫 번째 오류의 진단 코드(compiler.err.cant.apply.symbol)와 메시지에 적힌 필요한 인자와 넘긴 인자(화면의 두 가지 오류 설명으로 옮겼습니다), 오류의 개수와 오류가 난 줄, Main 클래스 파일이 만들어졌는지, 실행했을 때의 출력, 그리고 출력에서 &quot;생성자 실행&quot; 줄을 센 횟수입니다. 생성자를 적지 않은 조합은 우리가 쓴 생성자가 없으므로 실행 횟수를 0번으로 적었습니다. 단계 문장이 기대는 사실도 따로 실행해 확인했습니다. 생성자를 적지 않은 Card의 클래스 파일에는 매개변수 없는 생성자가 하나 들어 있고, 값을 받는 생성자를 적은 Card에는 그 생성자 하나뿐이며, 생성자 본문이 시작될 때 새 객체의 owner는 이미 null이고 매개변수에는 넘긴 값이 들어 있으며, new가 끝나야 main의 다음 줄이 실행됩니다. 생성자를 a.Card(&quot;이영희&quot;)나 Card(&quot;이영희&quot;)처럼 이름으로 부르는 줄은 컴파일 오류(cannot find symbol)였습니다. 문서는 Java Language Specification(Java SE 21)을 WebFetch로 열어 확인했습니다. 생성자의 이름이 클래스의 단순 이름과 같아야 하고 메서드와 달리 반환 타입이 없으며 메서드 호출식으로 부를 수 없다는 것은 8.8절, 생성자를 하나도 적지 않은 클래스에만 매개변수 없는 기본 생성자가 암묵적으로 선언된다는 것은 8.8.9절, 컴파일할 때 넘긴 인자에 맞는 생성자를 고르며 맞는 것이 없으면 컴파일 오류라는 것은 15.9.3절, 실행할 때 객체를 만들고 필드를 기본값으로 채운 뒤 인자를 계산하고 생성자를 실행한다는 것은 15.9.4절, 생성자 안에서 this가 지금 만들어지는 객체를 뜻한다는 것은 15.8.3절을 따랐습니다. 오류의 종류, 개수, 어느 줄에서 나는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 오류가 여럿이면 javac는 모두 알리는데, 표에는 첫 번째 것만 적었습니다. 컴파일에 실패하면 Main 클래스 파일은 한 번도 만들어지지 않았고, 그래서 실행할 수 없다고 적었습니다. 화면의 코드는 Card 클래스를 package-private으로 두고 import 줄이 필요 없는 모양입니다. 생성자를 여러 개 두는 것(오버로딩), this(...)로 다른 생성자를 부르는 것, 상위 클래스 생성자 super(...), 필드 초기화식과 생성자의 실행 순서는 이 실습에서 다루지 않았고 &quot;세부 동작 실습: 생성자&quot;에서 다룹니다.</p>
-<p>앞 실습: <a href="../../lab/ref_basic/">참조</a> · 다음 실습: <a href="../../lab/static_basic/">static</a></p>
+<p>앞 실습: <a href="../../lab/null_basic/">null</a> · 다음 실습: <a href="../../lab/static_basic/">static</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -173,6 +173,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=64470b6a28"></script>
+<script src="../../app.js?v=0ccd62bc42"></script>
 </body>
 </html>

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>null: null은 무엇이고, 왜 NullPointerException이 나는가 · 개발 학습 실습실</title>
+<meta name="description" content="변수 name에는 문자열 같은 객체 자체가 아니라, 그 객체를 가리키는 값(참조)이 담깁니다. null은 이 자리에 &quot;아무 객체도 가리키지 않는다&quot;를 담는 특별한 값이고, 코드에서는 String name = null;처럼 씁니다. name.length()에서 점(.)은 nam…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/null_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/null_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/null_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="null: null은 무엇이고, 왜 NullPointerException이 나는가 · 개발 학습 실습실">
+<meta property="og:description" content="변수 name에는 문자열 같은 객체 자체가 아니라, 그 객체를 가리키는 값(참조)이 담깁니다. null은 이 자리에 &quot;아무 객체도 가리키지 않는다&quot;를 담는 특별한 값이고, 코드에서는 String name = null;처럼 씁니다. name.length()에서 점(.)은 nam…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/null_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0ccd62bc42">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › Java</p>
+<h1>null</h1>
+<p><b>null은 무엇이고, 왜 NullPointerException이 나는가</b></p>
+<p>변수 name에는 문자열 같은 객체 자체가 아니라, 그 객체를 가리키는 값(참조)이 담깁니다. null은 이 자리에 &quot;아무 객체도 가리키지 않는다&quot;를 담는 특별한 값이고, 코드에서는 String name = null;처럼 씁니다. name.length()에서 점(.)은 name이 가리키는 객체에게 일을 시킨다는 표시인데, null이면 시킬 객체가 없어서 NullPointerException이라는 예외가 납니다. if (name != null)은 name이 객체를 가리키는지 먼저 묻는 확인입니다. 글자가 하나도 없는 빈 문자열 &quot;&quot;는 null이 아니라 글자가 0개인 문자열 객체입니다. 이 실습은 name에 담는 값을 &quot;kim&quot;, null, &quot;&quot;로 바꾸고 if 확인을 붙였다 떼며 같은 코드를 컴파일하고 실행해, 무엇이 출력되고 예외가 나는지를 봅니다.</p>
+<p>실행으로 대조 · JDK 21에서 여섯 가지 조합을 javax.tools로 컴파일하고 java로 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>null</dt>
+<dd>null은 변수가 아무 객체도 가리키지 않는다는 것을 나타내는 값이다. 자바 명세에서 null 리터럴(코드에 쓰는 null)의 타입은 이름이 없는 null 타입이고, 그 타입의 값은 null 참조 하나뿐이다. null은 어떤 참조 타입의 변수에도 담을 수 있어서 String name = null;처럼 쓸 수 있고, 이때 name 변수는 만들어져 있지만 가리키는 객체가 없다. 그래서 null인 변수에 점(.)을 찍어 객체의 메서드를 부르면 시킬 대상이 없어 NullPointerException이 발생한다. null은 글자가 0개인 문자열 &quot;&quot;와 다르다. &quot;&quot;는 객체가 있되 글자만 없는 것이고, null은 객체가 없는 것이다.</dd>
+<dt>NullPointerException</dt>
+<dd>null인 참조로 메서드를 부르거나 필드를 읽으려고 할 때 발생하는 예외다. null은 가리키는 객체가 없다는 뜻이므로, 없는 객체에게 일을 시킬 수 없어서 예외가 난다. 컴파일러가 미리 잡아 주지 않는 Unchecked 예외라서 실행해 봐야 드러난다. null을 받지 않도록 만든 메서드(Optional.of, Objects.requireNonNull 등)에 null을 넘겨도 이 예외가 발생한다. 값이 없을 수 있는 곳에서는 먼저 null인지 검사하거나, Optional로 값이 없을 수 있음을 타입에 드러내어 줄인다.</dd>
+<dt>null 검사</dt>
+<dd>null 검사는 변수를 쓰기 전에 if (name != null)처럼 그 변수가 null이 아닌지 조건으로 확인하는 코드이다. 참조를 !=로 비교하면 둘 다 null이거나 같은 객체를 가리킬 때 false이고 그렇지 않으면 true이므로, name != null은 name이 어떤 객체를 가리키고 있을 때 true이다. if문은 조건이 true이면 첫 번째 블록을, false이면 else 블록을 실행하므로, name.length() 같은 호출을 true 쪽 블록에만 두면 null일 때는 그 호출이 실행되지 않는다. name != null은 객체가 있는지만 따지며 글자가 있는지는 따지지 않으므로, 빈 문자열 &quot;&quot;은 이 검사를 통과한다.</dd>
+<dt>빈 문자열</dt>
+<dd>빈 문자열은 글자가 하나도 없는 문자열로, 코드에서는 큰따옴표 두 개를 붙여 &quot;&quot;로 쓴다. 문자열 리터럴은 실행할 때 String 객체를 가리키는 값이므로, &quot;&quot;도 null이 아니라 글자 수가 0인 String 객체이다. 이 객체에 length()를 부르면 0을 돌려주고 예외가 나지 않으며, isEmpty()는 length()가 0이면 true를 돌려준다. null과 구별해야 하는 이유는, 빈 문자열은 객체가 있으므로 메서드를 부를 수 있지만 null은 부르면 NullPointerException이 나기 때문이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — name이 가리키는 &quot;kim&quot; 객체가 글자 수 3을 돌려줍니다.</li>
+<li><b>null을 담으면</b> — name이 가리키는 객체가 없어 name.length()에서 NullPointerException이 납니다.</li>
+<li><b>null인데 확인하면</b> — 확인에서 걸러져 length()를 부르지 않고, 예외도 나지 않습니다.</li>
+<li><b>&quot;kim&quot;인데 확인하면</b> — 확인을 통과해 length()가 실행되고 결과는 같습니다.</li>
+<li><b>빈 문자열을 담으면</b> — 빈 문자열도 객체여서 length()가 0을 돌려주고 예외는 나지 않습니다.</li>
+<li><b>빈 문자열인데 확인하면</b> — 빈 문자열은 null이 아니어서 확인을 통과합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>String name = &quot;kim&quot;; 줄이 실행됩니다. name은 변수이고, 변수에는 객체 자체가 아니라 객체를 가리키는 값(참조)이 담깁니다. 여기서는 name이 &quot;kim&quot;이라는 글자를 담은 문자열 객체를 가리키게 됩니다. 그 객체가 오른쪽 상자입니다.</li>
+<li>System.out.println(name.length()); 줄에서 name.length()를 먼저 계산합니다. 점(.)은 &quot;name이 가리키는 객체에게 시킨다&quot;는 표시이고, length()는 글자가 몇 개인지 세어 달라는 요청입니다. name이 가리키는 &quot;kim&quot; 객체가 글자를 세어 3을 돌려줍니다.</li>
+<li>돌려받은 3이 println에 넘어갑니다.</li>
+<li>System.out.println이 3을 출력합니다.</li>
+<li>main의 마지막 줄까지 실행되어 프로그램이 끝납니다. 예외는 나지 않았습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>name 변수가 &quot;kim&quot; 문자열 객체를 가리키고 있으므로, name.length()는 그 객체에게 글자 수를 물어 3을 돌려받습니다. 변수에는 객체 자체가 아니라 객체를 가리키는 값이 담겨 있고, 점(.)은 그 객체에게 일을 시키는 표시입니다.</li>
+<li>이 코드가 되는 것은 name이 가리키는 객체가 있기 때문입니다. 다음 물음들은 그 객체가 없을 때와, 객체는 있는데 글자가 없을 때를 가려 봅니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>public class Main {
+    public static void main(String[] args) {
+        // 변수: 문자열 객체를 가리키거나, null이면 아무것도 가리키지 않는다
+        String name = &quot;kim&quot;;
+        System.out.println(name.length());
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21, java 21)입니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 컴파일된 Main을 새 java 프로세스로 실행해 표준 출력, 표준 오류의 첫 줄, 종료 코드를 잡은 결과와 대조했습니다. 대조한 것은 컴파일 성공 여부, 출력, 예외가 났는지(표준 오류의 첫 줄이 NullPointerException인지)와 예외가 난 줄(스택 추적이 가리킨 줄이 name.length() 줄), 종료 코드입니다. 표의 &quot;length() 실행&quot;은 출력에 글자 수가 나왔는지로, &quot;if 확인&quot;은 어느 블록의 출력이 나왔는지로 실제 출력에서 가려냈습니다. 단계 문장이 기대는 사실은 별도 프로그램으로 확인했습니다. 값 세 개 각각에 대해 name == null이 &quot;kim&quot;은 false, null은 true, &quot;&quot;는 false이고 length()는 3, (null이라 부를 수 없음), 0인 것, 그리고 String name = null; 줄은 예외 없이 실행되고 예외는 그다음 name.length() 줄에서 나며 프로그램이 종료 코드 1로 끝나는 것입니다. 문서는 직접 열어 확인했습니다. null 타입의 값은 null 참조 하나뿐이고 어떤 참조 타입에도 담을 수 있다는 것은 Java Language Specification(Java SE 21) 3.10.8절과 4.1절, 참조 값은 객체를 가리키거나 아무 객체도 가리키지 않는 null 참조라는 것은 4.3.1절, 참조를 ==와 !=로 비교하는 규칙은 15.21.3절, if문이 조건이 true이면 첫 번째 문장을, false이면 else의 문장을 실행한다는 것은 14.9.1절과 14.9.2절, 문자열 리터럴이 실행할 때 String 객체를 가리키는 값이고 &quot;&quot;가 빈 문자열이라는 것은 3.10.5절을 따랐습니다. NullPointerException API 문서는 null인 객체의 인스턴스 메서드를 부를 때 던져진다고 적고 있고(Java SE 21 API), String.length()와 isEmpty()의 설명도 같은 API 문서에서 열어 확인했습니다. 인스턴스 메서드 호출에서 대상이 null이면 NullPointerException이 난다는 문장은 JLS 15장(15.6절)의 것을 확인했고, 호출 처리를 자세히 정한 15.12.4.1절과 15.12.4.4절은 본문을 열지 못했습니다. 이 PC의 javac는 변수 이름을 클래스 파일에 넣지 않아 NullPointerException의 상세 메시지에 name 대신 &lt;local1&gt;이 찍혔는데, 이 메시지는 명세가 정한 것이 아니라 이 JDK에서 관찰한 것이어서 화면에는 쓰지 않았습니다. 화면의 코드는 실제로 컴파일되는 모양 그대로이고 줄인 것이 없습니다. 이 밖에 int 같은 기본형 변수와 null, 배열이나 필드가 처음에 null인 것, 두 문자열을 ==와 equals로 견주는 것, null일 수 있는 값을 Optional로 다루는 방법은 다루지 않았고, Optional은 &quot;세부 동작 실습: Optional&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/ref_basic/">참조</a> · 다음 실습: <a href="../../lab/ctor_basic/">생성자</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0ccd62bc42"></script>
+</body>
+</html>

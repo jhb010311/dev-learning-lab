@@ -1,0 +1,18 @@
+# java 21.0.12.1
+stream|true|true => OK|[20, 40, 60]|[1, 2, 3, 4, 5, 6]|filter>map>toList
+FACT trace stream|true|true => [filter(1), filter(2), map(2), filter(3), filter(4), map(4), filter(5), filter(6), map(6)]
+stream|true|false => OK|[2, 4, 6]|[1, 2, 3, 4, 5, 6]|filter>toList
+FACT trace stream|true|false => [filter(1), filter(2), filter(3), filter(4), filter(5), filter(6)]
+stream|false|true => OK|[10, 20, 30, 40, 50, 60]|[1, 2, 3, 4, 5, 6]|map>toList
+FACT trace stream|false|true => [map(1), map(2), map(3), map(4), map(5), map(6)]
+stream|false|false => OK|[1, 2, 3, 4, 5, 6]|[1, 2, 3, 4, 5, 6]|toList
+FACT trace stream|false|false => []
+for|true|true => OK|[20, 40, 60]|[1, 2, 3, 4, 5, 6]|for>if>add
+FACT trace for|true|true => [if(1), if(2), add(20), if(3), if(4), add(40), if(5), if(6), add(60)]
+for|true|false => OK|[2, 4, 6]|[1, 2, 3, 4, 5, 6]|for>if>add
+FACT trace for|true|false => [if(1), if(2), add(2), if(3), if(4), add(4), if(5), if(6), add(6)]
+for|false|true => OK|[10, 20, 30, 40, 50, 60]|[1, 2, 3, 4, 5, 6]|for>add
+FACT trace for|false|true => [add(10), add(20), add(30), add(40), add(50), add(60)]
+for|false|false => OK|[1, 2, 3, 4, 5, 6]|[1, 2, 3, 4, 5, 6]|for>add
+FACT trace for|false|false => [add(1), add(2), add(3), add(4), add(5), add(6)]
+FACT identity => false true

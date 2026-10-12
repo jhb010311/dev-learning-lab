@@ -1,0 +1,9 @@
+# java 21.0.12.1
+list|has => OK|0|0|2 / kim|-|0|2
+list|none => OK|0|1|2|Exception in thread "main" java.lang.IndexOutOfBoundsException: Index 5 out of bounds for length 2|7|1
+list|dup => OK|0|0|3 / kim|-|0|2
+map|has => OK|0|0|2 / 20|-|0|2
+map|none => OK|0|0|2 / null|-|0|2
+map|dup => OK|0|0|2 / 25|-|0|2
+FACT list => OK|0|0,1 / 2 / kim,0,3|-
+FACT map => OK|0|20 / 25,2 / null / false,30,2|-

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=64470b6a28">
+<link rel="stylesheet" href="../../app.css?v=0ccd62bc42">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -89,7 +89,7 @@ public class Main {
 }</pre>
 <h2>이 모형의 전제</h2>
 <p>스프링 프레임워크 7.0.9를 JDK 21.0.12.1에서 실행한 결과입니다. 스프링 부트는 쓰지 않았고, 화면의 코드대로 AnnotationConfigApplicationContext(&quot;app&quot;)만 썼습니다. 네 가지 조합을 모두, 화면의 코드와 같은 구조의 소스(패키지 app의 Greeter와 Main)를 컴파일해 자바 프로세스를 새로 띄워 그대로 실행했습니다. Greeter를 손으로 등록하지 않았고, 스프링이 app 패키지를 훑어 @Component를 찾게 했습니다. 대조한 것은 프로그램이 출력한 글(안녕하세요와 a == b의 값), 예외로 멈췄을 때 그 예외의 종류, 스프링이 만든 Greeter 객체의 수, 우리 코드가 new로 만든 객체의 수입니다. 객체 수는 짐작이 아니라 실측했습니다. 대조용 소스에만 Greeter의 생성자에 객체가 만들어질 때마다 숫자를 올리는 줄을 더했고, 스프링을 시작한 직후의 수를 스프링이 만든 수로, 끝난 뒤의 수에서 그 수를 뺀 것을 우리 코드가 new로 만든 수로 적었습니다. 시작한 직후의 수는 getBean을 부르기 전에 이미 1개(@Component가 있을 때)였으므로, 스프링이 객체를 만드는 때는 getBean을 부를 때가 아니라 스프링을 시작할 때입니다. getBean을 두 번 불러도 수는 늘지 않았고 a == b는 true였으며, new를 쓴 조합에서는 컨테이너에 들어 있는 Greeter 빈이 끝난 뒤에도 시작 직후와 같은 수여서 new로 만든 객체는 컨테이너에 들어가지 않았습니다. @Component가 없을 때는 시작한 직후의 수가 0이었고 컨테이너에 등록된 이름도 없었으며(스프링 내부의 것은 뺐습니다), getBean 줄에서 org.springframework.beans.factory.NoSuchBeanDefinitionException(메시지는 app.Greeter 타입의 빈이 없다는 내용)이 나와 프로세스가 오류 코드로 끝났고 출력은 하나도 없었습니다. @Component가 있을 때 컨테이너에 등록된 이름은 greeter 하나였고 그 빈은 싱글톤이었습니다. 문서가 정한 것은 스프링 프레임워크 문서 Core의 다음 절입니다. Introduction to the Spring IoC Container and Beans(빈은 스프링 IoC 컨테이너가 만들고 조립하고 관리하는 객체이고, 그렇지 않은 객체는 그냥 애플리케이션의 여러 객체 가운데 하나라는 것), Classpath Scanning and Managed Components(@Component가 스프링이 관리하는 컴포넌트를 뜻하는 일반적인 애너테이션이고 @Service, @Controller 등이 그것을 특수화한 것이라는 것, 스프링이 애너테이션이 붙은 클래스를 찾아 빈 정의를 등록한다는 것, 이름을 정하지 않으면 클래스 이름의 첫 글자를 소문자로 바꾼 이름이 쓰인다는 것), Bean Scopes(싱글톤은 기본 범위이고 컨테이너가 그 빈 정의로 객체를 정확히 하나만 만들어 두고 요청이 올 때마다 그 객체를 돌려준다는 것), 그리고 AnnotationConfigApplicationContext(String... basePackages)의 API 문서(주어진 패키지에서 컴포넌트를 찾아 빈 정의를 등록하고 컨텍스트를 자동으로 새로 고친다는 것)입니다. 문서가 정한 것과 달리, 객체가 시작할 때 만들어지고 @Component가 없는 클래스는 getBean을 불러도 만들어지지 않는다는 점과 예외의 이름은 이 버전에서 관찰한 동작입니다. 화면의 코드는 package와 import 줄을 줄였고, Greeter와 Main이 둘 다 app 패키지에 있다고 가정했습니다. 컨테이너를 닫는 줄은 쓰지 않았습니다. 빈을 등록하는 방법은 @Component 말고도 @Bean 메서드 등이 있고, @Component 계열인 @Service나 @Controller, 빈의 범위가 싱글톤이 아닌 경우, 빈끼리 서로 연결하는 의존성 주입은 다루지 않았습니다. 이것들은 &quot;세부 동작 실습: 스프링 컨테이너와 빈&quot;에서 다룹니다.</p>
-<p>앞 실습: <a href="../../lab/thread_basic/">스레드</a> · 다음 실습: <a href="../../lab/di_basic/">의존성 주입</a></p>
+<p>앞 실습: <a href="../../lab/lock_basic/">락(synchronized)</a> · 다음 실습: <a href="../../lab/di_basic/">의존성 주입</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -176,6 +176,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=64470b6a28"></script>
+<script src="../../app.js?v=0ccd62bc42"></script>
 </body>
 </html>

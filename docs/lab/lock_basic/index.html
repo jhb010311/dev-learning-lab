@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>락(synchronized): 락은 무엇이고, 없으면 무슨 일이 생기는가 · 개발 학습 실습실</title>
+<meta name="description" content="락은 &quot;한 번에 한 스레드만 이 구역을 실행한다&quot;는 표시입니다. 이 코드에서 락을 거는 부분은 add 메서드 선언 앞의 synchronized입니다. add가 하는 일은 count++ 한 줄인데, 이 한 줄은 count의 값을 읽고, 1을 더하고, 더한 값을 count에 쓰는…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/lock_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lock_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lock_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="락(synchronized): 락은 무엇이고, 없으면 무슨 일이 생기는가 · 개발 학습 실습실">
+<meta property="og:description" content="락은 &quot;한 번에 한 스레드만 이 구역을 실행한다&quot;는 표시입니다. 이 코드에서 락을 거는 부분은 add 메서드 선언 앞의 synchronized입니다. add가 하는 일은 count++ 한 줄인데, 이 한 줄은 count의 값을 읽고, 1을 더하고, 더한 값을 count에 쓰는…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/lock_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=0ccd62bc42">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › Java</p>
+<h1>락(synchronized)</h1>
+<p><b>락은 무엇이고, 없으면 무슨 일이 생기는가</b></p>
+<p>락은 &quot;한 번에 한 스레드만 이 구역을 실행한다&quot;는 표시입니다. 이 코드에서 락을 거는 부분은 add 메서드 선언 앞의 synchronized입니다. add가 하는 일은 count++ 한 줄인데, 이 한 줄은 count의 값을 읽고, 1을 더하고, 더한 값을 count에 쓰는 세 동작입니다. 스레드 두 개가 같은 count를 동시에 고치면, 한 스레드가 값을 읽은 뒤 쓰기 전에 다른 스레드가 count를 바꿔 놓아 한쪽의 증가가 사라질 수 있습니다. synchronized가 붙으면 스레드는 add에 들어가기 전에 락을 잡아야 하고, 락은 한 번에 한 스레드만 잡을 수 있어서 다른 스레드는 앞 스레드가 add를 나올 때까지 기다립니다. 이 실습은 synchronized를 붙였다 떼고 스레드를 2개와 1개로 바꿔 가며 같은 코드를 컴파일하고 실제로 실행해, 마지막에 출력되는 count를 봅니다. (스레드를 만들어 start와 join으로 다루는 것은 &quot;스레드&quot; 실습에서 다룹니다. static은 count와 add가 프로그램에 하나씩만 있다는 뜻으로 보고, 이 실습에서는 자세히 다루지 않습니다.)</p>
+<p>실행으로 대조 · JDK 21에서 네 가지 조합을 javax.tools로 컴파일하고 자식 java 프로세스로 30번씩 실행해, 마지막 count를 대조(락 없이 스레드 2개이면 30번 모두 200000보다 작음)</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>락(lock)과 모니터</dt>
+<dd>자바의 모든 객체에는 모니터가 하나 딸려 있고, 스레드는 그 모니터를 잠그거나(lock) 풀 수(unlock) 있다. 이 잠금을 흔히 락이라고 부른다. 한 모니터를 한 번에 잠글 수 있는 스레드는 하나뿐이고, 같은 모니터를 잠그려는 다른 스레드는 잠글 수 있을 때까지 막혀서 기다린다. synchronized 메서드는 실행하기 전에 모니터를 얻는데, 인스턴스 메서드는 this에 딸린 모니터를, static 메서드는 그 클래스의 Class 객체에 딸린 모니터를 쓴다. 메서드에서 나올 때는 락이 자동으로 풀린다.</dd>
+<dt>synchronized</dt>
+<dd>자바에서 임계 영역을 지정하는 키워드다. synchronized가 붙은 메서드나 블록은 한 번에 한 스레드만 실행할 수 있으며, 실행하려는 스레드는 해당 객체의 모니터 락을 얻어야 한다. 간단하지만 락을 기다리는 스레드는 멈춰 있게 되므로 범위를 필요한 만큼만 잡아야 한다.</dd>
+<dt>count++의 세 동작</dt>
+<dd>count++처럼 변수의 값을 바꿔 다시 쓰는 식은 한 줄이어도 한 동작이 아니다. 현재 값을 읽고, 읽은 값에 1을 더하고, 더한 값을 변수에 쓰는 세 단계로 나뉜다. JDK 21의 javap로 static int 필드의 count++를 보면 getstatic, iconst_1과 iadd, putstatic의 순서이다. 두 스레드의 세 단계가 섞여서 한 스레드가 읽어 둔 오래된 값에 1을 더해 쓰면, 그사이 다른 스레드가 올려 놓은 증가가 덮어써져 사라질 수 있다. 세 단계를 락으로 묶어 한 스레드가 끝낼 때까지 다른 스레드가 들어오지 못하게 하면 사라지지 않는다.</dd>
+<dt>경쟁 상태(Race Condition)</dt>
+<dd>둘 이상의 스레드가 같은 데이터를 동시에 읽고 쓸 때 실행 순서에 따라 결과가 달라지는 상황이다. count++는 값을 읽고, 1을 더하고, 다시 쓰는 세 단계로 이뤄지는데 두 스레드의 단계가 섞이면 한쪽의 증가가 사라진다. 테스트에서는 잘 드러나지 않다가 부하가 걸릴 때 나타나는 것이 특징이다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — add에 synchronized가 붙어 있고 스레드가 2개입니다. 한 번에 한 스레드만 add를 실행해 count가 200000이 됩니다.</li>
+<li><b>synchronized를 지우면</b> — 두 스레드가 count를 읽고 쓰는 사이에 서로 끼어들어, 200000보다 작은 값이 나옵니다. 값은 실행마다 다릅니다.</li>
+<li><b>스레드를 1개만 쓰면</b> — 끼어들 다른 스레드가 없어서 락이 없어도 count는 100000입니다.</li>
+<li><b>스레드 1개에 synchronized를 붙이면</b> — 락을 잡아도 기다리는 스레드가 없어서 결과는 락이 없을 때와 같습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>java Main으로 실행합니다. 맨 위의 static int count = 0; 줄로 count라는 변수가 하나 만들어지고 값은 0입니다. 이 변수는 하나뿐이어서, 프로그램의 모든 스레드가 같은 count를 읽고 씁니다. main 스레드가 main 메서드를 위에서부터 실행합니다.</li>
+<li>main이 Runnable job을 만듭니다. job은 &quot;add()를 100000번 부르라&quot;고 적어 둔 일입니다. main은 같은 job을 Thread t1과 t2에 맡기고 t1.start(), t2.start()를 부릅니다. 이제 스레드 두 개가 각자 add()를 100000번 부르기 시작합니다. main은 t1.join(), t2.join()에서 둘이 끝나기를 기다립니다.</li>
+<li>add() 안의 count++ 한 줄은 한 덩어리가 아니라 세 동작입니다. 1) count의 현재 값을 읽는다. 2) 읽은 값에 1을 더한다. 3) 더한 값을 count에 쓴다. 이 add는 synchronized가 붙어 있으므로, 부른 스레드는 안에 들어가기 전에 락을 잡아야 합니다. static 메서드의 락은 Main 클래스에 딸린 락 하나이고, 락은 한 번에 한 스레드만 잡을 수 있습니다. 락을 잡은 스레드가 add를 나오면 락이 풀립니다.</li>
+<li>락이 있는 경우의 한 예를 따라가 봅니다(숫자는 예로 든 것입니다). 100000번씩 부르는 도중에 count가 5라고 합시다. t1이 먼저 add()를 부릅니다. 락이 비어 있어 t1이 락을 잡고 안에 들어가, count를 읽어 5를 얻습니다.</li>
+<li>이때 t2도 add()를 부릅니다. 락은 t1이 잡고 있습니다. t2는 add 안으로 들어가지 못하고, 락이 풀릴 때까지 기다립니다. count를 읽지도 않습니다.</li>
+<li>t1이 읽어 둔 5에 1을 더한 6을 count에 쓰고 add()를 나옵니다. 읽기, 더하기, 쓰기 세 동작을 중간에 끼어드는 것 없이 끝냈고, 나오면서 락이 풀립니다.</li>
+<li>락이 풀리자 t2가 락을 잡고 add 안으로 들어갑니다. 이번에 count를 읽으면 t1이 쓴 6이고, 1을 더한 7을 씁니다. 나오면서 락을 풉니다. 증가 둘이 모두 count에 반영되어 5에서 7이 되었습니다.</li>
+<li>이렇게 add()를 부를 때마다 안에는 한 스레드만 있었으므로 증가가 사라지지 않습니다. t1.join()과 t2.join()으로 두 스레드가 끝난 뒤 println(count)가 200000을 출력합니다. 몇 번을 실행해도 같은 값입니다. 대신 락을 잡은 스레드가 나올 때까지 다른 스레드는 기다려야 합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>락을 건 add()는 한 번에 한 스레드만 실행하므로, 스레드 2개가 100000번씩 불러도 count는 200000이 됩니다. 락은 &quot;한 번에 한 스레드만 이 구역을 실행한다&quot;는 표시이고, 자바에서는 메서드 선언 앞에 synchronized를 붙여 겁니다.</li>
+<li>count++의 읽기, 더하기, 쓰기가 한 스레드 안에서 끊기지 않고 끝나므로 증가가 사라지지 않았습니다. 그 대가로 락을 잡은 스레드가 나올 때까지 다른 스레드는 기다립니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>public class Main {
+    // 두 스레드가 함께 고치는 변수. 프로그램에 하나뿐이다
+    static int count = 0;
+
+    // 락: synchronized를 붙이면 한 번에 한 스레드만 실행한다
+    static synchronized void add() {
+        // count++는 읽기, 더하기, 쓰기 세 동작이다
+        count++;
+    }
+
+    public static void main(String[] args) throws Exception {
+        // 스레드가 할 일: add()를 100000번 부른다
+        Runnable job = () -&gt; {
+            for (int i = 0; i &lt; 100000; i++) {
+                add();
+            }
+        };
+        Thread t1 = new Thread(job);
+        // 두 번째 스레드: 같은 일을 한다
+        Thread t2 = new Thread(job);
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        System.out.println(count);
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 네 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 이 JDK의 java를 자식 프로세스로 띄워 조합마다 30번씩 실제로 실행해 마지막에 출력된 count를 모아 대조했습니다. 120번의 실행 모두 종료 코드는 0이고 표준 오류는 비어 있었습니다. synchronized가 있는 두 조합은 스레드 2개일 때 30번 모두 200000, 1개일 때 30번 모두 100000이었습니다. synchronized가 없고 스레드가 1개인 조합도 30번 모두 100000이었습니다. synchronized가 없고 스레드가 2개인 조합은 30번 모두 200000보다 작았고, 서로 다른 값이 30가지(119684에서 155244 사이)였습니다. 그래서 이 조합의 결과 칸은 고정된 숫자가 아니라 &quot;200000보다 작은 값 (실행마다 다름)&quot;으로 적었습니다. 이 PC(논리 프로세서 12개)에서 본 결과이고, 얼마나 사라지는지는 컴퓨터와 실행 때마다 달라질 수 있어 사라지는 양을 화면에서 단정하지 않았습니다. 장면에 나오는 5, 6, 7이라는 숫자와 t1, t2가 끼어드는 순서는 원리를 보이려고 고른 한 예이고, 실제 실행에서 그 순서를 관찰한 것은 아닙니다. 실제 실행에서 사라진 증가는 이 예의 한 번보다 훨씬 많았는데(기대한 값보다 44756에서 80316 모자랐습니다), 왜 그만큼 사라지는지는 따로 쪼개 확인하지 않았습니다. 이 실습이 확인한 것은 &quot;사라진다&quot;는 사실과 세 동작으로 나뉜다는 사실이고, 그 두 가지가 사라진 양을 어떻게 만드는지는 확인하지 않았습니다. 단계 문장이 기대는 사실은 따로 만든 소스로 확인했습니다. 첫째, 같은 소스에서 add() 안의 count++를 javap로 보면 getstatic(읽기), iconst_1과 iadd(1을 더하기), putstatic(쓰기)의 순서입니다. 둘째, t1이 static synchronized 메서드 안에서 락을 쥐고 있는 동안 t2가 같은 메서드를 부르면 t2의 상태가 BLOCKED이고, 그 락이 Main 클래스 객체의 것임을 Thread.holdsLock(Main.class)가 true로 보였으며, 둘이 끝난 뒤 count는 2였습니다(30번 모두 같았습니다). 문서는 Java Language Specification(Java SE 21)을 직접 열어 확인했습니다. 한 번에 한 스레드만 모니터의 락을 쥘 수 있고 다른 스레드는 쥘 수 있을 때까지 멈춘다는 것과 static 메서드는 Class 객체의 모니터를 쓴다는 것은 17.1절을, synchronized 메서드가 실행 전에 모니터를 얻고 static 메서드는 Class 객체의 모니터를, 인스턴스 메서드는 this의 모니터를 쓴다는 것은 8.4.3.6절을, 락을 푸는 것이 메서드가 끝날 때 자동으로 일어난다는 것은 8장 첫머리의 설명을 따랐습니다. 8.4.3.6절 자체에는 풀리는 때가 적혀 있지 않았습니다. 한 스레드가 락을 푼 것은 그 뒤에 같은 락을 잡는 스레드보다 먼저 일어난 것으로 정해진다는 것은 17.4.5절의 내용이며 이 실습에서는 값이 보이는 문제를 따로 다루지 않았습니다. count++가 값을 가져오고, 1을 더하고, 다시 저장하는 세 단계로 나뉘며 두 스레드의 단계가 섞이면 갱신이 사라질 수 있다는 것은 Java Tutorials의 Synchronization 절 중 Thread Interference와 Synchronized Methods를 열어 확인했습니다. 다만 어느 문서도 이 코드에서 몇 번이 사라지는지는 정하지 않으며, 그것은 이 JDK에서 실행해 본 값입니다. 문서는 웹 페이지 요약을 거쳐 읽었고 원문 전체를 직접 읽지는 않았습니다. 화면의 코드는 java.lang 안의 클래스만 쓰므로 import 줄이 없습니다. 이 밖에 synchronized 블록, 객체마다 따로 있는 락(인스턴스 메서드), volatile과 AtomicInteger, 락이 풀리는 순서와 공정성, 락이 서로를 기다려 멈추는 교착 상태는 다루지 않았고, 사라지는 원리와 락의 비교는 &quot;세부 동작 실습: 경쟁 상태&quot;, 교착 상태는 &quot;세부 동작 실습: 교착 상태&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/thread_basic/">스레드</a> · 다음 실습: <a href="../../lab/bean_basic/">빈</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=0ccd62bc42"></script>
+</body>
+</html>

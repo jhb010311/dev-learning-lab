@@ -1,0 +1,11 @@
+# java 21.0.12.1
+kim|false => OK|0|3|-|-
+kim|true => OK|0|3|-|-
+null|false => OK|1|(없음)|Exception in thread "main" java.lang.NullPointerException: Cannot invoke "String.length()" because "<local1>" is null|System.out.println(name.length());
+null|true => OK|0|이름 없음|-|-
+empty|false => OK|0|0|-|-
+empty|true => OK|0|0|-|-
+FACT value kim => isNull=false length=3
+FACT value null => isNull=true length=-
+FACT value empty => isNull=false length=0
+FACT assign => 출력 대입 끝 | 종료 1 | 예외가 난 줄 System.out.println(name.length());
