@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=73594cd158">
+<link rel="stylesheet" href="../../app.css?v=917a1b9b78">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -56,7 +56,7 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>로그인 요청입니다. 첫 요청이라 브라우저에는 이 사이트의 쿠키가 없습니다. 서버는 본문의 아이디와 비밀번호를 확인합니다.</li>
-<li>서버가 응답 헤더에 Set-Cookie: sid=abc123; Path=/; HttpOnly 를 실어 보냅니다. 브라우저는 이 값을 shop.example의 쿠키로 보관합니다. 서버는 &quot;abc123은 회원 7&quot;이라고 자기 쪽에 적어 둡니다.</li>
+<li>서버가 응답에 Set-Cookie: sid=abc123; Path=/; HttpOnly 헤더를 실어 보냅니다. 브라우저는 이 값을 shop.example의 쿠키로 보관합니다. 서버는 &quot;abc123은 회원 7&quot;이라고 자기 쪽에 적어 둡니다.</li>
 <li>shop.example/orders 요청입니다. 브라우저가 Cookie 헤더에 sid를 자동으로 붙였습니다. 코드에서 따로 넣어 주지 않아도 붙습니다. 서버는 abc123을 찾아 회원 7의 요청임을 압니다.</li>
 <li>shop.example/shop/cart 요청입니다. 이 경로는 Path=/에 해당하므로 쿠키가 붙습니다.</li>
 <li>다른 사이트 other.example로 가는 요청입니다. shop.example이 준 쿠키는 붙지 않습니다. 쿠키는 그것을 내려 준 사이트로 가는 요청에만 붙습니다.</li>
@@ -171,6 +171,6 @@ ResponseEntity&lt;Void&gt; login(@RequestBody LoginRequest req) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=73594cd158"></script>
+<script src="../../app.js?v=917a1b9b78"></script>
 </body>
 </html>

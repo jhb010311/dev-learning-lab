@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=73594cd158">
+<link rel="stylesheet" href="../../app.css?v=917a1b9b78">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -60,7 +60,7 @@
 <li>주문 서비스가 DB를 조회합니다(30ms). 이 쿼리도 하나의 스팬으로 기록됩니다.</li>
 <li>주문 서비스가 결제 서비스를 호출합니다. 이번에도 헤더로 Trace ID가 전달됩니다. 로그를 남길 때마다 MDC에 들어 있는 Trace ID가 자동으로 함께 찍힙니다.</li>
 <li>결제 서비스가 외부 결제사 API를 호출합니다(2000ms). 응답이 돌아오면 거꾸로 결제 서비스, 주문 서비스, 게이트웨이 순으로 스팬이 닫힙니다. 전체 2095ms.</li>
-<li>추적 시스템(Zipkin, Tempo 등)에서 Trace ID 하나로 조회하면 다섯 구간이 시간 축 위에 계단 모양으로 그려집니다. 가장 긴 막대가 &quot;외부 결제사 API&quot;입니다. 어디가 느린지 바로 보입니다.</li>
+<li>추적 시스템(Zipkin, Tempo 등)에서 Trace ID 하나로 조회하면 다섯 구간이 시간 축 위에 계단 모양으로 그려집니다. 안쪽 호출을 뺀 자체 시간이 가장 긴 구간은 &quot;외부 결제사 API&quot;입니다. 어디가 느린지 바로 보입니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -166,6 +166,6 @@ logging.pattern.level: &quot;%5p [%X{traceId:-},%X{spanId:-}]&quot;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=73594cd158"></script>
+<script src="../../app.js?v=917a1b9b78"></script>
 </body>
 </html>

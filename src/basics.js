@@ -26,6 +26,7 @@ Lab.basics({
       { id: 'annot_basic' },
       { id: 'thread_basic' },
       { id: 'lock_basic' },
+      { id: 'pool_basic' },
       { id: 'jvm_basic' },
       { id: 'io_basic' },
       { id: 'dep_basic' },
@@ -33,6 +34,7 @@ Lab.basics({
     { name: 'Spring', desc: '스프링으로 웹 요청을 처리할 때 밑에 깔려 있는 것들입니다.', items: [
       { id: 'bean_basic' },
       { id: 'di_basic' },
+      { id: 'aop_basic' },
       { id: 'servlet_basic' },
       { id: 'controller_basic' },
       { id: 'tx_basic' },

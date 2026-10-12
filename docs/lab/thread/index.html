@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=73594cd158">
+<link rel="stylesheet" href="../../app.css?v=917a1b9b78">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -48,7 +48,7 @@
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — run()을 직접 호출. 작업은 실행되지만 실행한 스레드는 main이고, t는 끝까지 NEW입니다.</li>
+<li><b>처음 설정으로</b> — run()을 직접 호출합니다. 작업은 실행되지만 실행한 스레드는 main이고, t는 끝까지 NEW입니다.</li>
 <li><b>start()로 시작</b> — 새 스레드 worker가 작업을 실행하고, 쉬는 동안 TIMED_WAITING입니다.</li>
 <li><b>join으로 기다리는 스레드</b> — 다른 스레드가 끝나기를 기한 없이 기다리면 WAITING입니다.</li>
 <li><b>lock을 기다리는 스레드</b> — 다른 스레드가 쥔 lock 앞에서 막히면 BLOCKED입니다.</li>
@@ -177,6 +177,6 @@ System.out.println(t.getState());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=73594cd158"></script>
+<script src="../../app.js?v=917a1b9b78"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=73594cd158">
+<link rel="stylesheet" href="../../app.css?v=917a1b9b78">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -56,7 +56,7 @@
 <li>요청 A가 병렬 스트림 안에서 외부 API를 호출합니다. 공용 풀의 일꾼 3개가 모두 A의 작업을 하나씩 집어 들고, 응답을 기다리며 2초씩 멈춰 있습니다. 계산을 하는 것이 아니라 그냥 기다리는 중인데도 스레드는 묶여 있습니다.</li>
 <li>요청 B가 0.1초짜리 작업 8개를 parallelStream()으로 실행합니다. 작업을 쪼개 공용 풀에 맡깁니다.</li>
 <li>공용 풀의 일꾼이 전부 A에 묶여 있어서 B의 작업을 가져갈 스레드가 없습니다. B를 호출한 스레드 혼자서 8개를 하나씩 처리합니다. 병렬 스트림인데 사실상 순차 실행입니다.</li>
-<li>B가 끝났습니다. 소요 시간 862ms. 혼자 실행할 때(217ms)의 약 4배입니다. B의 코드는 한 줄도 바뀌지 않았습니다.</li>
+<li>B가 끝났습니다. 소요 시간 862ms. B만 실행할 때(217ms)의 약 4배입니다. B의 코드는 한 줄도 바뀌지 않았습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -159,6 +159,6 @@ items.parallelStream().forEach(this::resize);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=73594cd158"></script>
+<script src="../../app.js?v=917a1b9b78"></script>
 </body>
 </html>

@@ -19996,7 +19996,7 @@ Lab.register({
       var s;
       if (c.ds === 'stack') s = st.op === 'in' ? 'push(' + st.x + '): Pushes the value onto the top.' : 'pop(): Removes ' + st.x + ' from the top. It is the value that was inserted last.';
       else if (c.ds === 'queue') s = st.op === 'in' ? 'offer(' + st.x + '): Inserts the value at the tail of the queue.' : 'poll(): Removes ' + st.x + ' from the head of the queue. It is the value that was inserted first.';
-      else s = st.op === 'in' ? 'offer(' + st.x + '): The value is placed at the end of the array and then moves up, swapping places with its parent while it is smaller than the parent. ' + (st.moves ? 'It moved up ' + st.moves + (st.moves === 1 ? ' level and ' : ' levels and ') + (st.at === 0 ? 'reached the top (the place of the smallest value).' : 'stopped.') : (st.at === 0 ? 'It is the first value, so it stays at the top.' : 'It is not smaller than its parent, so it stays where it is.')) : 'poll(): Removes the smallest value, ' + st.x + ', from the top. The last value in the array is moved to the empty top and then moves down, swapping places with the smaller of its two children (it moved down ' + st.moves + (st.moves === 1 ? ' level' : ' levels') + ').';
+      else s = st.op === 'in' ? 'offer(' + st.x + '): The value is placed at the end of the array and then moves up, swapping places with its parent while it is smaller than the parent. ' + (st.moves ? 'It moved up ' + st.moves + (st.moves === 1 ? ' level and ' : ' levels and ') + (st.at === 0 ? 'reached the top (the place of the smallest value).' : 'stopped.') : (st.at === 0 ? 'It is the first value, so it stays at the top.' : 'It is not smaller than its parent, so it stays where it is.')) : 'poll(): Removes the smallest value, ' + st.x + ', from the top. ' + (st.moves ? 'The last value in the array is moved to the empty top and then moves down, swapping places with the smaller of its two children (it moved down ' + st.moves + (st.moves === 1 ? ' level' : ' levels') + ').' : 'If any values remain, the last value in the array is moved to the empty top. This time no swap was needed.');
       ev.push({ s: s, k: st.op === 'out' ? 'good' : '', snap: { a: st.a, outs: outs.slice(), op: st.op, x: st.x } });
     });
     if (c.ds === 'stack') sum.push('A stack is last-in-first-out (LIFO). It is used when the most recent item must be handled first, as in a method call stack, undo, or checking that parentheses are matched. Insertion and removal are both O(1). In Java, use ArrayDeque in place of the old Stack class.');
@@ -20117,7 +20117,7 @@ Lab.register({
     { t: 'When there are no slow requests', q: 'What if there are no slow requests?', d: 'The average, the median, and p99 are almost the same.', v: { ratio: '0', slow: '3' } },
     { t: 'When only 0.5% are slow', q: 'What if 5 of 1,000 requests are slow and each takes 10 seconds?', d: 'Not even p99 catches them. You have to look at the maximum or p99.9 to see them.', v: { ratio: '0.5', slow: '10' } },
     { t: 'When 6% are slow', q: 'What if you change the share of slow requests to 6%?', d: 'p95 is the first to jump.', v: { ratio: '6', slow: '3' } },
-    { t: '20% take 10s', q: 'What if 20% of the requests are slow and each takes 10 seconds?', d: 'The average becomes 2s, but not a single user received a response like that.', v: { ratio: '20', slow: '10' } },
+    { t: '20% take 10s', q: 'What if 20% of the requests are slow and each takes 10 seconds?', d: 'The average goes above 2s, but not a single user received a response like that.', v: { ratio: '20', slow: '10' } },
   ],
   code: function () {
     return '// Micrometer: also record percentiles of the response time\nTimer.builder("http.server.requests")\n    .publishPercentiles(0.5, 0.95, 0.99)\n    .register(registry);\n\n# application.yml\nmanagement.metrics.distribution.percentiles:\n  http.server.requests: 0.5, 0.95, 0.99';
@@ -20133,8 +20133,8 @@ Lab.register({
     var mean = data.reduce(function (a, b) { return a + b; }, 0) / N, k = { mean: mean, p50: pct(0.5), p95: pct(0.95), p99: pct(0.99), p999: pct(0.999), max: data[N - 1], nSlow: nSlow, slow: slow };
     var f = function (x) { return (Math.round(x * 100) / 100).toFixed(2) + 's'; };
     function push(s, kd, stage) { ev.push({ s: s, k: kd, snap: { stage: stage } }); }
-    push('The response times of 1,000 requests were collected. Of these, ' + (N - nSlow) + ' took 0.08s to 0.12s, and ' + nSlow + ' took ' + slow + 's.', '', 1);
-    push('Average: adding up all the response times and dividing by 1,000 gives ' + f(mean) + '.' + (nSlow ? ' There are far more fast requests, so the slow ones are buried in the average. And not a single request actually got its response in ' + f(mean) + '.' : ''), nSlow ? 'bad' : '', 2);
+    push('The response times of 1,000 requests were collected. ' + (nSlow ? 'Of these, ' + (N - nSlow) + ' took 0.08s to 0.12s, and ' + nSlow + ' took ' + slow + 's.' : 'All of them took 0.08s to 0.12s.'), '', 1);
+    push('Average: adding up all the response times and dividing by 1,000 gives ' + f(mean) + '.' + (nSlow ? ' There are far more fast requests, so the slow ones are buried in the average.' + (mean > 0.12 ? ' And not a single request actually got its response in ' + f(mean) + '.' : '') : ''), nSlow ? 'bad' : '', 2);
     push('p50 (median): when the response times are lined up from fastest to slowest, the 500th value is ' + f(k.p50) + '. It means "half of the requests finished within this time". This is the speed a typical user experiences.', '', 3);
     push('p95: the 950th value is ' + f(k.p95) + '. It means "95% of the requests finished within this time, and the other 5% were slower".', k.p95 > 0.5 ? 'bad' : '', 4);
     push('p99: the 990th value is ' + f(k.p99) + '. It means "99% of the requests finished within this time, and only the slowest 1% were slower".' + (k.p99 > 0.5 ? ' The slow requests that the average could not show appear here.' : nSlow ? ' The slow requests are less than 1% of the total, so even p99 did not catch them.' : ''), k.p99 > 0.5 ? 'bad' : '', 5);
@@ -20190,7 +20190,7 @@ Lab.register({
       var failed = -1;
       for (var i = 0; i < 4; i++) {
         if (steps[i][0] === c.fail) { st[i] = 'Failed'; failed = i; push('Step ' + (i + 1) + ' ' + steps[i][1] + ': ' + steps[i][2] + ' failed. The local transaction of this service is rolled back, but the earlier steps are already committed in their own databases. A database rollback cannot undo them.', 'bad'); break; }
-        st[i] = 'Done (committed)'; push('Step ' + (i + 1) + ' ' + steps[i][1] + ': ' + steps[i][2] + ' completed. It commits to its own database and publishes an event for the next step.', 'good');
+        st[i] = 'Done (committed)'; push('Step ' + (i + 1) + ' ' + steps[i][1] + ': ' + steps[i][2] + ' completed. ' + (i < 3 ? 'It commits to its own database and publishes an event for the next step.' : 'It commits to its own database. This is the last step.'), 'good');
       }
       if (failed >= 0) {
         for (var j = failed - 1; j >= 0; j--) { st[j] = 'Compensated: ' + steps[j][3]; comp++; push('Compensation ' + comp + ': ' + steps[j][1] + ' receives the failure event and runs the compensation: ' + steps[j][3] + '. This undoes the work that was already committed with a new action that cancels it. It proceeds in the reverse of the order in which the steps ran.', ''); }
@@ -20279,7 +20279,7 @@ Lab.register({
   ],
   code: function (c) {
     if (c.part === 'cut') return '// The source and the replica cannot communicate with each other\n// The replica can choose one of two things\n//\n// 1) Respond with the value it has  -> it responds, but the value may not be the latest (AP)\n// 2) Refuse to respond              -> it gives no wrong value, but the service is down (CP)';
-    return '// A setting that sends readOnly transactions to the replica and everything else to the source\n@Transactional\npublic void changeNickname(long id, String name) {     // -> source\n    memberRepository.findById(id).orElseThrow().setNickname(name);\n}\n\n@Transactional(readOnly = true)\npublic Member getMember(long id) {                      // -> ' + (c.from === 'replica' ? 'replica' : 'source (a query right after the write is sent to the source)') + '\n    return memberRepository.findById(id).orElseThrow();\n}';
+    return (c.from === 'replica' ? '// A setting that sends readOnly transactions to the replica and everything else to the source' : '// A setting that sends a read right after a write to the source, even if it is readOnly') + '\n@Transactional\npublic void changeNickname(long id, String name) {     // -> source\n    memberRepository.findById(id).orElseThrow().setNickname(name);\n}\n\n@Transactional(readOnly = true)\npublic Member getMember(long id) {                      // -> ' + (c.from === 'replica' ? 'replica' : 'source (a query right after the write is sent to the source)') + '\n    return memberRepository.findById(id).orElseThrow();\n}';
   },
   label: function (c) { return c.part === 'lag' ? 'Replication ' + c.lag + 's · query to ' + (c.from === 'replica' ? 'replica' : 'source') + ' ' + c.when + 's later' : 'Partition · ' + (c.choice === 'ap' ? 'keeps responding' : 'refuses to respond'); },
   columns: ['Query result', 'Is it the latest value', 'Did it respond'],
@@ -20777,7 +20777,7 @@ Lab.register({
     { id: 'up', label: 'The client also sends to the server often (chat input, for example)', type: 'check', value: false },
   ],
   presets: [
-    { t: 'Default settings', q: 'With polling every 5s and 3 notifications created in 30 seconds, how does the browser find out about them?', d: 'Polling every 5s. Most requests end with "no news".', v: { how: 'poll', iv: '5', n: '3', up: false } },
+    { t: 'Default settings', q: 'With polling every 5s and 3 notifications created in 30 seconds, how does the browser find out about them?', d: 'Polling every 5s. Half of the 6 requests end with "no news".', v: { how: 'poll', iv: '5', n: '3', up: false } },
     { t: 'Polling interval of 1s', q: 'What if you change the polling interval to 1s?', d: 'The delay gets shorter, but the requests grow to 30.', v: { how: 'poll', iv: '1', n: '3', up: false } },
     { t: 'Long polling', q: 'What if you change the method to long polling?', d: 'The server responds the moment news arrives. The number of requests is close to the number of notifications.', v: { how: 'long', iv: '5', n: '3', up: false } },
     { t: 'SSE', q: 'What if you change the method to SSE?', d: 'With one connection, the server sends as things happen.', v: { how: 'sse', iv: '5', n: '3', up: false } },
@@ -20796,7 +20796,7 @@ Lab.register({
     var D = 30, n = +c.n, ev = [], rows = [], sum = [], evT = [], i, reqs = 0, empty = 0, delay = 0, conn = 'None (only when a request is made)', ups = c.up ? 10 : 0;
     for (i = 0; i < n; i++) evT.push(Math.round((D / n * (i + 0.37)) * 10) / 10);
     function push(s, k) { ev.push({ s: s, k: k, snap: { rows: rows.slice(), reqs: reqs, empty: empty } }); }
-    function row(t, what, res, cls) { rows.push({ cells: [t + 's', what, { v: res, cls: cls }] }); }
+    function row(t, what, res, cls) { rows.push({ cells: [t === 'Often' ? t : t + 's', what, { v: res, cls: cls }] }); }
     var fmt = function (x) { return (Math.round(x * 10) / 10).toFixed(1); };
     function setLast(res, cls) { var p = rows[rows.length - 1]; rows[rows.length - 1] = { cells: [p.cells[0], p.cells[1], { v: res, cls: cls }] }; }
     if (c.how === 'poll') {
@@ -20878,9 +20878,9 @@ Lab.register({
     if (c.ver === '1.1') {
       conns = 6; waves = Math.ceil(n / 6); setup = 60; total = setup + waves * T + (c.loss ? RT : 0);
       push('In HTTP/1.1, a connection has to receive the whole response to one request before it can send the next request. To go faster, the browser opens up to 6 connections to the same server. Each connection needs its own TCP and TLS handshakes.', '', { done: 0, wave: 0 });
-      for (var w = 1; w <= waves; w++) { var cnt = Math.min(6, n - (w - 1) * 6), lossNow = c.loss && w === 1; push('Batch #' + w + ': ' + cnt + (cnt === 1 ? ' connection receives one file.' : ' connections receive one file each.') + (n > w * 6 ? ' The remaining ' + (n - w * 6) + ' wait until a connection is free.' : ' No files are waiting now.') + (lossNow ? ' A packet is lost on one connection, so the file on that connection, and the files waiting for that connection, are delayed by the retransmission time. The other 5 connections are not affected.' : ''), lossNow ? 'bad' : '', { done: Math.min(n, w * 6), wave: w, loss: lossNow }); }
+      for (var w = 1; w <= waves; w++) { var cnt = Math.min(6, n - (w - 1) * 6), lossNow = c.loss && w === 1; push('Batch #' + w + ': ' + cnt + (cnt === 1 ? ' connection receives one file.' : ' connections receive one file each.') + (n > w * 6 ? ' The remaining ' + (n - w * 6) + ' wait until a connection is free.' : w > 1 ? ' No files are waiting now.' : '') + (lossNow ? ' A packet is lost on one connection, so the file on that connection, and the files waiting for that connection, are delayed by the retransmission time. The other 5 connections are not affected.' : ''), lossNow ? 'bad' : '', { done: Math.min(n, w * 6), wave: w, loss: lossNow }); }
       stalled = c.loss ? waves : 0;
-      sum.push('The files were received in ' + waves + ' batches over 6 connections. The next request can be sent only after the earlier response is finished, so the more files there are, the longer the time spent waiting in line. That is why people used to use workarounds such as combining files into one or spreading them over several domains.');
+      sum.push((waves > 1 ? 'The files were received in ' + waves + ' batches over 6 connections.' : 'The files were received in one batch over 6 connections.') + ' The next request can be sent only after the earlier response is finished, so the more files there are, the longer the time spent waiting in line. That is why people used to use workarounds such as combining files into one or spreading them over several domains.');
     } else {
       conns = 1; waves = 1; setup = c.ver === '3' ? 20 : 30;
       push(c.ver === '2' ? 'HTTP/2 creates several independent flows (streams) inside one connection. Requests and responses are split into small pieces, numbered, and sent mixed together, so nothing has to wait for its turn.' : 'HTTP/3 also carries several streams on one connection. The difference is underneath. It uses QUIC, which runs over UDP instead of TCP, and finishes connection setup and the encryption negotiation in one step.', '', { done: 0, wave: 0 });
@@ -20947,7 +20947,7 @@ Lab.register({
     if (c.how === 'rebase') return 'git switch feature\ngit rebase main' + (c.main && c.conf ? '\n# CONFLICT: conflict while moving commit D\n# After fixing the file\ngit add OrderService.java\ngit rebase --continue' : '') + (c.pushed && c.main ? '\ngit push --force-with-lease          # history changed, so a normal push is rejected' : '') + '\n\ngit switch main\ngit merge feature                    # fast-forward';
     return 'git switch main\ngit merge --squash feature' + (c.main && c.conf ? '\n# CONFLICT: fix the file, then git add' : '') + '\ngit commit -m "Add order cancellation"';
   },
-  label: function (c) { return { merge: 'merge', rebase: 'rebase, then merge', squash: 'squash merge' }[c.how] + (c.main ? ' · new commits on main' : ' · main unchanged') + (c.main && c.conf ? ' · conflict' : '') + (c.how === 'rebase' && c.pushed ? ' · already pushed' : ''); },
+  label: function (c) { return { merge: 'merge', rebase: 'rebase, then merge', squash: 'squash merge' }[c.how] + (c.main ? ' · new commits on main' : ' · main unchanged') + (c.main && c.conf ? ' · conflict' : '') + (c.how === 'rebase' && c.main && c.pushed ? ' · already pushed' : ''); },
   columns: ['Graph shape', 'New commits', 'Conflict resolution', 'Things to watch for'],
   simulate: function (c) {
     var ev = [], sum = [], conf = c.main && c.conf, shape, made, fix = 'None', warn = 'None';
@@ -21174,7 +21174,7 @@ Lab.register({
   simulate: function (c) {
     var ev = [], sum = [], want = 3, pods = [{ n: 'shop-a', node: 'Node 1', st: 'Running', svc: true }, { n: 'shop-b', node: 'Node 2', st: 'Running', svc: true }, { n: 'shop-c', node: 'Node 2', st: 'Running', svc: true }], did, human = 'None';
     function push(s, k) { ev.push({ s: s, k: k, snap: { want: want, pods: pods.map(function (p) { return { n: p.n, node: p.node, st: p.st, svc: p.svc }; }) } }); }
-    push('This is the normal state. The Deployment says "3 replicas", and 3 Pods are actually running, spread across two nodes. The Service divides requests among the three Pods.', '');
+    push('This is the normal state. The Deployment says "3 replicas", and 3 Pods are actually running, spread across two of the three nodes (Node 1 and Node 2). The Service divides requests among the three Pods.', '');
     if (c.what === 'kill') {
       pods[1].st = 'Dead'; pods[1].svc = false; push('The container in shop-b died because it ran out of memory. The Service stops sending requests to this Pod. The actual number of Pods is now 2.', 'bad');
       push('The controller compares the states. Desired: 3, actual: 2. One Pod is missing. No one has to tell it, because this comparison keeps repeating.', '');
@@ -21272,7 +21272,7 @@ Lab.register({
     push('The order service queries the database (' + d.db + 'ms).' + (c.prop ? ' This query is recorded as a span too.' : ''), d.db > 500 ? 'bad' : '', 3);
     push('The order service calls the payment service.' + (c.prop ? ' The trace ID is passed in the headers again. Each time a log is written, the trace ID held in the MDC is printed with it automatically.' : ' The payment service\'s log has no clue that connects it to the order service.'), '', 4);
     push('The payment service calls the external payment provider API (' + d.pg + 'ms). When the response comes back, the spans close in reverse order: the payment service, the order service, and the gateway. Total: ' + total + 'ms.', d.pg > 500 ? 'bad' : '', 5);
-    if (c.prop) push('When you look up a single trace ID in the tracing system (Zipkin, Tempo, and so on), the five spans are drawn on a time axis in a staircase shape. ' + (c.slow === 'none' ? 'Every span is short.' : 'The longest bar is "' + spans[mi][0] + '". You can see right away where it is slow.'), 'good', 6);
+    if (c.prop) push('When you look up a single trace ID in the tracing system (Zipkin, Tempo, and so on), the five spans are drawn on a time axis in a staircase shape. ' + (c.slow === 'none' ? 'Every span is short.' : 'The span with the longest self time (its inner calls excluded) is "' + spans[mi][0] + '". You can see right away where it is slow.'), 'good', 6);
     else push('The logs are in the three services separately. Hundreds of requests are mixed together at the same time, so you have to guess which logs belong to this request from the time and the order number. You also have to calculate the time per span yourself.', 'bad', 6);
     sum.push(c.prop ? 'A trace ID is a number attached to a whole request, and a span is one part of it (the processing of one service, one query, or one external call). Each span records its parent span, so the call relationships can be rebuilt as a tree.' : 'When services are split up, the traces of one request are scattered in many places. Passing a common ID in the headers and printing it in every log is the starting point of distributed tracing.');
     sum.push('Logs tell you "what happened", metrics tell you "how much overall", and traces tell you "where and for how long for this request". If you also print the trace ID in the logs, you can find the slow span on the tracing screen and then search the logs by that ID.');
@@ -21402,7 +21402,7 @@ Lab.register({
       push('ROLLBACK: The data in memory is returned to the earlier value, 1000, which was kept in the undo log. Everything the transaction did is canceled.', 'good');
       sum.push('A rollback is done with the undo log. The undo log supports "all applied or all canceled" (atomicity).');
     } else if (W === 'crashBefore') {
-      S.redo = '"Account 1 = 500" (maybe partly on disk, no committed note)'; push('The server went down before the commit. Everything in memory is lost. What remains on disk is the data file (1000) and the log that had been written to disk.', 'bad');
+      S.redo = '"Account 1 = 500" (maybe partly on disk, no committed note)'; S.mem = '(lost)'; push('The server went down before the commit. Everything in memory is lost. What remains on disk is the data file (1000) and the log that had been written to disk.', 'bad');
       S.mem = '(restarting)'; S.tx = 'Aborted'; push('The server starts again. Recovery reads the redo log, applies again the changes that remain on disk, and then finds the transactions that have no record that they committed.', '');
       S.mem = '1000'; S.tx = 'Rolled back (during recovery)'; usedU = 'Undo log'; usedR = 'Redo log (at the start of recovery)'; fin = '1000'; prop = 'Atomicity';
       push('The changes of the transaction that was not committed are undone using the undo log. The balance is 1000. The user never received a "commit succeeded" reply, so this result is correct.', 'good');
@@ -21483,7 +21483,7 @@ Lab.register({
     var d1 = dist(N, per), mx = Math.max.apply(null, d1), mn = Math.min.apply(null, d1);
     function push(s, k, d, extra) { ev.push({ s: s, k: k, snap: { d: d, extra: extra || '' } }); }
     push('Divide ' + TOTAL + ' orders among ' + N + ' shards. ' + (c.how === 'range' ? 'The order numbers are cut into ranges of ' + per + ' and assigned to the shards.' : 'The remainder of the member number of the order divided by the number of shards (' + N + ') is the shard number. The orders of the same member always end up on the same shard.'), '', d1.map(function () { return 0; }));
-    push('Distribution result. Largest shard: ' + mx + ' orders. Smallest shard: ' + mn + ' orders.' + (c.how === 'hot' ? ' Member 7 has one third of all the orders, so they are piled onto shard ' + (7 % N) + ', where that member belongs. Hashing spreads keys evenly, but it does not help when one key has a lot of data attached.' : c.how === 'range' ? ' It is even now, but that is based on past data.' : ' The member numbers are spread evenly, so the number of orders per shard is similar.'), mx > mn * 2 ? 'bad' : 'good', d1);
+    push('Distribution result. Largest shard: ' + mx + ' orders. Smallest shard: ' + mn + ' orders.' + (c.how === 'hot' ? ' Member 7 has one third of all the orders, so they are piled onto shard ' + (7 % N) + ', where that member belongs. Hashing spreads keys evenly, but it does not help when one key has a lot of data attached.' : c.how === 'range' ? ' It is even now, but that is based on past data.' : ' The member numbers are spread evenly, so the number of orders per shard is similar.'), mx >= mn * 2 ? 'bad' : 'good', d1);
     var newTo = c.how === 'range' ? 'Last shard only' : 'Spread over all shards by member';
     push(c.how === 'range' ? 'New order numbers keep getting larger, so all new orders go to the last shard, shard ' + (N - 1) + '. The write load piles up on a single shard (a bottleneck), and the other shards sit idle.' : 'New orders are scattered over several shards depending on the member number of the member who ordered. The write load is spread out.', c.how === 'range' ? 'bad' : 'good', d1, c.how === 'range' ? 'New order → shard ' + (N - 1) : 'New order → multiple shards');
     var q = c.how === 'range' ? 'Must ask all shards' : '1 shard';
@@ -21503,7 +21503,7 @@ Lab.register({
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     if (!s) { H.text(v, 'Click Run to start.'); return; }
     var mx = Math.max.apply(null, s.d.concat([1])), ln = H.lanes(v);
-    s.d.forEach(function (x, i) { H.lane(ln, 'Shard ' + i, 'Orders: ' + x, x === 0 ? 'none' : x > 120 / s.d.length * 1.5 ? 'bad' : '', x ? x / Math.max(mx, 60) : undefined); });
+    s.d.forEach(function (x, i) { H.lane(ln, 'Shard ' + i, 'Orders: ' + x, x === 0 ? 'none' : x > 120 / s.d.length * 1.3 ? 'bad' : '', x ? x / Math.max(mx, 60) : undefined); });
   },
   // Diagram: the router is on top, and the shards are below. The height of the bar inside a shard is the number of orders it holds.
   draw: function (P, sim, shown) {
@@ -21514,7 +21514,7 @@ Lab.register({
     for (var i = 0; i < n; i++) {
       var x = 16 + i * (w + 10), cnt = d[i] || 0, h = Math.max(2, 120 * cnt / mx), on = qAll || qOne === i, hit = newAll || (newOne && +newOne[1] === i);
       P.box('sh' + i, x, 106, w, 184, { cls: 'plain' + (on ? ' now' : ''), title: 'Shard ' + i, sub: 'Orders: ' + cnt, center: true });
-      P.box('fill' + i, x + 8, 282 - h, w - 16, h, { cls: cnt > 120 / n * 1.5 ? 'bad' : cnt ? 'good' : 'ghost' });
+      P.box('fill' + i, x + 8, 282 - h, w - 16, h, { cls: cnt > 120 / n * 1.3 ? 'bad' : cnt ? 'good' : 'ghost' });
       P.arrow('ar' + i, 'rt:b:' + ((i + 0.5) / n), 'sh' + i + ':t', { cls: hit ? 'hot' : 'mut' });
     }
     if (ex) P.text('ex', 340, 314, ex + (qOne >= 0 ? ' (shard ' + qOne + ')' : ''), { anchor: 'middle', bold: true });
@@ -21776,7 +21776,7 @@ Lab.register({
       if (moved && r[1] === 'orders' && st === 1 && ratio < 100) { orderSeen++; moved = ratio === 50 ? orderSeen % 2 === 0 : orderSeen === 5; why = moved ? 'Based on the ratio setting, this request goes to the new service.' : 'Based on the ratio setting, this request still goes to the existing server.'; }
       to = moved ? { orders: 'Order service (new)', payments: 'Payment service (new)', members: 'Member service (new)' }[r[1]] : 'Existing server (monolith)';
       if (moved) neu++; else old++;
-      rows.push({ cells: [r[0], '/' + r[1] + '/**', { v: to, cls: moved ? 'good' : '' }] });
+      rows.push({ cells: [r[0], moved ? '/' + r[1] + '/**' : '/**', { v: to, cls: moved ? 'good' : '' }] });
       push(r[0] + ': The path starts with /' + r[1] + '. ' + (why || (moved ? 'This path is configured to be passed to the new service.' : 'It is not a path with its own rule, so it goes to the existing server.')) + ' → ' + to, moved ? 'good' : '');
     });
     if (st === 0) sum.push('Nothing has been moved yet. Putting the gateway in place first is the first step of the migration. After that, you can hand routes over one at a time just by changing the configuration.');
@@ -21868,7 +21868,7 @@ Lab.register({
         push('Tomcat calls service(request, response) of DispatcherServlet. The work of Tomcat ends here. Spring handles the rest.', '');
         if (c.req === 'none') { st.respText = 'HTTP/1.1 ' + status; push('DispatcherServlet looks for a controller method that handles /nothing. There is none. It sets the status of the response to 404.', 'bad'); errorDispatch(); }
         else if (!handled) { st.respText = 'HTTP/1.1 ' + status; push('DispatcherServlet looks for a controller method that handles /hello. There is a @GetMapping("/hello"), but there is none for POST. It sets the status of the response to 405.', 'bad'); errorDispatch(); }
-        else { st.who = 'HelloController'; st.respText = 'HTTP/1.1 ' + status + '\nContent-Type: text/plain;charset=UTF-8\n\n' + body; push('DispatcherServlet finds the controller method that matches ' + method + ' /hello and calls it. It reads the values from request and passes them as arguments, and it writes the value that the method returns to response. DispatcherServlet does the work that we did ourselves when we wrote the servlet directly.', 'good'); }
+        else { st.who = 'HelloController'; st.respText = 'HTTP/1.1 ' + status + '\nContent-Type: text/plain;charset=UTF-8\n\n' + body; push('DispatcherServlet finds the controller method that matches ' + method + ' /hello and calls it. ' + (method === 'GET' ? 'It reads the values from request and passes them as arguments, and it' : 'It') + ' writes the value that the method returns to response. DispatcherServlet does the work that we did ourselves when we wrote the servlet directly.', 'good'); }
       }
       st.who = 'Tomcat (servlet container)';
       push('The method of the servlet has finished. Tomcat turns the content of the HttpServletResponse into the text of an HTTP response and sends it to the browser. It discards the request and response objects used for this request and returns the thread to the pool. The ' + S + ' object stays as it is and waits for the next request.', '');
@@ -22275,7 +22275,7 @@ Lab.register({
     S.req.push(['Start line', K.req[0]]); var p = K.req[0].split(' ');
     push('This is the first line of the request, the start line. It holds the method ' + p[0] + ', the target path ' + p[1] + ', and the protocol version, in that order. The method says "what to do", and the path says "what it is about".', '', 'req');
     K.req.slice(1).forEach(function (h) { S.req.push(['Header', h]); });
-    push('The next lines are headers. Each one is written as "name: value" and carries extra information about the request. Host says which site the request is for, ' + (K.req.join(' ').indexOf('Authorization') >= 0 ? 'Authorization says who is sending it,' : '(this request has no credentials)') + (K.body ? ' Content-Type tells the format of the body.' : ''), '', 'req');
+    push('The next lines are headers. Each one is written as "name: value" and carries extra information about the request. Host says which site the request is for' + (K.req.join(' ').indexOf('Authorization') >= 0 ? ', Authorization says who is sending it' : '') + (K.body ? ', and Content-Type tells the format of the body' : '') + '.' + (K.req.join(' ').indexOf('Authorization') >= 0 ? '' : ' This request has no credentials (no Authorization header).'), '', 'req');
     S.req.push(['Empty line', '']); if (K.body) S.req.push(['Body', K.body]);
     push('An empty line marks the end of the headers. ' + (K.body ? 'What comes after it is the body. It holds the data to send to the server.' : 'This request has no data to send, so it has no body.') + ' The server has to be able to handle the request by looking at this one request alone, because it does not remember the requests sent before it (it is stateless).', '', 'req');
     S.res.push(['Start line', 'HTTP/1.1 ' + K.status]);
@@ -23719,7 +23719,7 @@ Lab.register({
     { t: 'Without super', q: 'What if Animal declares only Animal(), Dog() does not write super, and the Animal constructor does not call describe()?', d: 'The compiler inserts super(), which calls Animal() of the superclass.', v: { pctor: 'noarg', sup: 'omit', pcall: false, sm: false } },
     { t: 'Without super when the superclass has no Animal()', q: 'What if Animal declares only Animal(String name), Dog() does not write super, and the Animal constructor does not call describe()?', d: 'The automatically inserted super() has no constructor to call, so this is a compile-time error.', v: { pctor: 'arg', sup: 'omit', pcall: false, sm: false } },
     { t: 'Calling the superclass method too, with super.describe()', q: 'What if describe() in Dog calls super.describe() and the Animal constructor does not call describe()?', d: 'Inside the overriding method, the original behavior of the superclass runs first.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: true } },
-    { t: 'When the superclass has two constructors', q: 'What if Animal declares Animal() and Animal(String name), Dog() does not write super, and describe() in Dog calls super.describe()?', d: 'The superclass constructor that matches the arguments passed to super is selected.', v: { pctor: 'both', sup: 'omit', pcall: false, sm: true } },
+    { t: 'When the superclass has two constructors', q: 'What if Animal declares both Animal() and Animal(String name), and the first line of Dog() is super("Buddy");?', d: 'The superclass constructor that matches the arguments passed to super is selected.', v: { pctor: 'both', sup: 'arg', pcall: false, sm: false } },
   ],
   code: function (c) {
     var bad = this.bad(c), call = c.pcall ? '        describe();                // calls an overridden method from the constructor\n' : '';

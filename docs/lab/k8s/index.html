@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=73594cd158">
+<link rel="stylesheet" href="../../app.css?v=917a1b9b78">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -56,7 +56,7 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>평소 상태입니다. Deployment에 &quot;복제본 3개&quot;라고 적혀 있고, 실제로 Pod 3개가 노드 두 대에 나뉘어 실행 중입니다. Service가 요청을 세 Pod에 나눠 보냅니다.</li>
+<li>평소 상태입니다. Deployment에 &quot;복제본 3개&quot;라고 적혀 있고, 실제로 Pod 3개가 노드 세 대 가운데 두 대(노드 1, 노드 2)에 나뉘어 실행 중입니다. Service가 요청을 세 Pod에 나눠 보냅니다.</li>
 <li>shop-b의 컨테이너가 메모리 부족으로 죽었습니다. Service는 이 Pod로 요청을 보내지 않게 됩니다. 실제 Pod 수는 2개가 됐습니다.</li>
 <li>컨트롤러가 상태를 비교합니다. 원하는 수 3, 실제 2. 하나가 모자랍니다. 누가 알려 주지 않아도 이 비교는 계속 반복되고 있습니다.</li>
 <li>새 Pod shop-d를 만듭니다. 스케줄러가 여유 있는 노드를 골라 배치하고, 그 노드의 kubelet이 컨테이너를 띄웁니다. 죽은 Pod를 살리는 것이 아니라 새것으로 교체합니다.</li>
@@ -171,6 +171,6 @@ spec:
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=73594cd158"></script>
+<script src="../../app.js?v=917a1b9b78"></script>
 </body>
 </html>

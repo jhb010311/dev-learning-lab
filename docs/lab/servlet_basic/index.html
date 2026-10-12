@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=73594cd158">
+<link rel="stylesheet" href="../../app.css?v=917a1b9b78">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -80,7 +80,7 @@ public class Hello extends HttpServlet {
 }</pre>
 <h2>이 모형의 전제</h2>
 <p>서블릿 컨테이너는 톰캣 11.0.24(Jakarta Servlet 6.1)이고, 브라우저는 주소마다 GET 요청을 한 번씩 차례로 보낸다고 가정했습니다. 주소의 localhost:8080은 내 컴퓨터에서 톰캣을 기본 포트로 띄웠을 때의 예입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스를 컴파일해 웹 애플리케이션 폴더(WEB-INF/classes)에 넣고 실제 톰캣을 띄워 요청을 보낸 결과와 대조했습니다. 대조한 것은 클래스가 Servlet 타입인지, 톰캣의 주소 표, 응답의 상태 코드와 본문, 만들어진 객체 수, doGet 실행 횟수입니다. 모든 서블릿이 Servlet 인터페이스를 구현한다는 것과 HttpServlet이 그 구현이라는 것은 Jakarta Servlet 명세 2장을, @WebServlet을 붙인 클래스는 HttpServlet을 상속해야 하고 주소를 하나 이상 적어야 한다는 것은 명세 8.1.1절을 따랐습니다. 화면은 extends HttpServlet 하나로 자격을 나타냈지만, 정확한 조건은 Servlet 인터페이스의 구현이며 HttpServlet을 상속하는 것이 가장 흔한 방법입니다. 주소 등록도 @WebServlet 말고 web.xml 설정 파일이나 코드로 할 수 있는데, 여기서는 @WebServlet만 다뤘습니다. 화면의 코드는 import 줄과, 재정의한 메서드에 흔히 붙이는 @Override를 줄였습니다. @WebServlet만 붙인 일반 클래스가 첫 요청에 500을, 같은 등록으로 가는 그다음 요청부터 404를 돌려준다는 것은 명세가 정한 것이 아니라 이 톰캣 버전에서 관찰한 동작입니다. 톰캣이 객체를 만든 뒤 doGet에 이르기까지 거치는 init과 service 호출은 줄였고, &quot;세부 동작 실습: 서블릿&quot;에서 다룹니다.</p>
-<p>앞 실습: <a href="../../lab/di_basic/">의존성 주입</a> · 다음 실습: <a href="../../lab/controller_basic/">컨트롤러</a></p>
+<p>앞 실습: <a href="../../lab/aop_basic/">AOP와 프록시</a> · 다음 실습: <a href="../../lab/controller_basic/">컨트롤러</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -167,6 +167,6 @@ public class Hello extends HttpServlet {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=73594cd158"></script>
+<script src="../../app.js?v=917a1b9b78"></script>
 </body>
 </html>

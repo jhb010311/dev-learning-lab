@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e8f3044b5c">
+<link rel="stylesheet" href="../../app.css?v=6b630957c2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,9 +58,9 @@
 <li>offer(9): The value is placed at the end of the array and then moves up, swapping places with its parent while it is smaller than the parent. It is not smaller than its parent, so it stays where it is.</li>
 <li>poll(): Removes the smallest value, 1, from the top. The last value in the array is moved to the empty top and then moves down, swapping places with the smaller of its two children (it moved down 2 levels).</li>
 <li>poll(): Removes the smallest value, 2, from the top. The last value in the array is moved to the empty top and then moves down, swapping places with the smaller of its two children (it moved down 1 level).</li>
-<li>poll(): Removes the smallest value, 5, from the top. The last value in the array is moved to the empty top and then moves down, swapping places with the smaller of its two children (it moved down 0 levels).</li>
-<li>poll(): Removes the smallest value, 8, from the top. The last value in the array is moved to the empty top and then moves down, swapping places with the smaller of its two children (it moved down 0 levels).</li>
-<li>poll(): Removes the smallest value, 9, from the top. The last value in the array is moved to the empty top and then moves down, swapping places with the smaller of its two children (it moved down 0 levels).</li>
+<li>poll(): Removes the smallest value, 5, from the top. If any values remain, the last value in the array is moved to the empty top. This time no swap was needed.</li>
+<li>poll(): Removes the smallest value, 8, from the top. If any values remain, the last value in the array is moved to the empty top. This time no swap was needed.</li>
+<li>poll(): Removes the smallest value, 9, from the top. If any values remain, the last value in the array is moved to the empty top. This time no swap was needed.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
@@ -161,6 +161,6 @@ while (!pq.isEmpty()) System.out.print(pq.poll() + &quot; &quot;);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e8f3044b5c"></script>
+<script src="../../app.js?v=6b630957c2"></script>
 </body>
 </html>

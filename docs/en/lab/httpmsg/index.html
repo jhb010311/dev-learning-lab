@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e8f3044b5c">
+<link rel="stylesheet" href="../../app.css?v=6b630957c2">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,7 +58,7 @@
 <h2>Running with the default settings</h2>
 <ol>
 <li>This is the first line of the request, the start line. It holds the method GET, the target path /orders/1, and the protocol version, in that order. The method says &quot;what to do&quot;, and the path says &quot;what it is about&quot;.</li>
-<li>The next lines are headers. Each one is written as &quot;name: value&quot; and carries extra information about the request. Host says which site the request is for, Authorization says who is sending it,</li>
+<li>The next lines are headers. Each one is written as &quot;name: value&quot; and carries extra information about the request. Host says which site the request is for, Authorization says who is sending it.</li>
 <li>An empty line marks the end of the headers. This request has no data to send, so it has no body. The server has to be able to handle the request by looking at this one request alone, because it does not remember the requests sent before it (it is stateless).</li>
 <li>This is the response from the server. The status code 200 OK is on the first line. The first digit of the three-digit number is the broad category: 2xx Successful.</li>
 <li>The server finds the requested order and returns it in the body.</li>
@@ -162,6 +162,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e8f3044b5c"></script>
+<script src="../../app.js?v=6b630957c2"></script>
 </body>
 </html>
