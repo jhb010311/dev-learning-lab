@@ -1,0 +1,12 @@
+# java 21.0.12.1
+gaA|utf8 => OK|0|4|EA B0 80 41|4|AC00 41|-|-|Main.class,Main.java,memo.txt|false
+gaA|iso => OK|0|4|EA B0 80 41|4|EA B0 80 41|-|-|Main.class,Main.java,memo.txt|false
+gaA|none => OK|1|4|EA B0 80 41|-|-|Exception in thread "main" java.nio.file.NoSuchFileException: none.txt|12|Main.class,Main.java,memo.txt|false
+ab|utf8 => OK|0|2|41 42|2|41 42|-|-|Main.class,Main.java,memo.txt|false
+ab|iso => OK|0|2|41 42|2|41 42|-|-|Main.class,Main.java,memo.txt|false
+ab|none => OK|1|2|41 42|-|-|Exception in thread "main" java.nio.file.NoSuchFileException: none.txt|12|Main.class,Main.java,memo.txt|false
+gana|utf8 => OK|0|6|EA B0 80 EB 82 98|6|AC00 B098|-|-|Main.class,Main.java,memo.txt|false
+gana|iso => OK|0|6|EA B0 80 EB 82 98|6|EA B0 80 EB 82 98|-|-|Main.class,Main.java,memo.txt|false
+gana|none => OK|1|6|EA B0 80 EB 82 98|-|-|Exception in thread "main" java.nio.file.NoSuchFileException: none.txt|12|Main.class,Main.java,memo.txt|false
+FACT utf8len => A=1(41) B=1(42) 가=3(EA B0 80) 나=3(EB 82 98)
+FACT iso256 => true

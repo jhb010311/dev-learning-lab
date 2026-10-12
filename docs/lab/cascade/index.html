@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0ccd62bc42">
+<link rel="stylesheet" href="../../app.css?v=73594cd158">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -101,7 +101,7 @@ post.addComment(&quot;둘째 댓글&quot;);
 em.persist(post);                      // 게시글만 persist한다
 // 메서드가 끝나면 커밋</pre>
 <h2>이 모형의 전제</h2>
-<p>양방향 연관관계(@OneToMany(mappedBy)와 @ManyToOne), 기본 키는 IDENTITY 전략, 하나의 트랜잭션 안에서 실행한다고 보았습니다. 스물네 가지 조합(cascade 넷, orphanRemoval 둘, 동작 셋)을 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 나간 SQL의 수와 순서, 예외, 끝난 뒤 DB에 남은 행 수가 화면과 일치하는 것을 확인했습니다. 화면의 SQL 문장은 읽기 쉽게 줄인 것이며 실제 문장의 글자와는 다릅니다. &quot;cascade 없이 부모만 persist하면 예외 없이 자식이 빠진다&quot;는 결과는 댓글 목록에 mappedBy가 붙은 이 매핑에서의 결과입니다. 목록 쪽이 외래 키를 직접 관리하는 단방향 @OneToMany(@JoinColumn)으로 바꿔 같은 코드를 실행하면 커밋할 때 TransientPropertyValueException이 나고 게시글도 저장되지 않는 것을 같은 환경에서 확인했습니다. 반대로 저장되지 않은 게시글을 가리키는 댓글만 persist하는 경우는 이 실습에서 다루지 않았습니다. 기본 키가 SEQUENCE 전략이면 INSERT가 persist를 부를 때가 아니라 커밋할 때 나갑니다(이 부분은 &quot;영속성 컨텍스트&quot; 실습에서 다룹니다). DB의 외래 키에 ON DELETE CASCADE를 걸어 두는 방법은 JPA의 cascade와 다른 기능이며 여기서는 다루지 않았습니다.</p>
+<p>양방향 연관관계(@OneToMany(mappedBy)와 @ManyToOne), 기본 키는 IDENTITY 전략, 하나의 트랜잭션 안에서 실행한다고 보았습니다. 스물네 가지 조합(cascade 넷, orphanRemoval 둘, 동작 셋)을 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 나간 SQL의 수와 순서, 예외, 끝난 뒤 DB에 남은 행 수가 화면과 일치하는 것을 확인했습니다. 화면의 SQL 문장은 읽기 쉽게 줄인 것이며 실제 문장의 글자와는 다릅니다. &quot;cascade 없이 부모만 persist하면 예외 없이 자식이 빠진다&quot;는 결과는 댓글 목록에 mappedBy가 붙은 이 매핑에서의 결과입니다. 목록 쪽이 외래 키를 직접 관리하는 단방향 @OneToMany(@JoinColumn)로 바꿔 같은 코드를 실행하면 커밋할 때 TransientPropertyValueException이 나고 게시글도 저장되지 않는 것을 같은 환경에서 확인했습니다. 반대로 저장되지 않은 게시글을 가리키는 댓글만 persist하는 경우는 이 실습에서 다루지 않았습니다. 기본 키가 SEQUENCE 전략이면 INSERT가 persist를 부를 때가 아니라 커밋할 때 나갑니다(이 부분은 &quot;영속성 컨텍스트&quot; 실습에서 다룹니다). DB의 외래 키에 ON DELETE CASCADE를 걸어 두는 방법은 JPA의 cascade와 다른 기능이며 여기서는 다루지 않았습니다.</p>
 <p>앞 실습: <a href="../../lab/inheritmap/">상속 관계 매핑</a> · 다음 실습: <a href="../../lab/lazyproxy/">프록시와 지연 로딩</a></p>
   </div>
 
@@ -189,6 +189,6 @@ em.persist(post);                      // 게시글만 persist한다
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0ccd62bc42"></script>
+<script src="../../app.js?v=73594cd158"></script>
 </body>
 </html>

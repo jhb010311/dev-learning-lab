@@ -1,0 +1,11 @@
+# java 21.0.12.1
+false|ok => -|-|-|-|-|-|-|-|1||Error: Could not find or load main class Hello|Caused by: java.lang.ClassNotFoundException: Hello|Hello.java|java
+false|nosemi => -|-|-|-|-|-|-|-|1||Error: Could not find or load main class Hello|Caused by: java.lang.ClassNotFoundException: Hello|Hello.java|java
+false|edited => -|-|-|-|-|-|-|-|1||Error: Could not find or load main class Hello|Caused by: java.lang.ClassNotFoundException: Hello|Hello.java|edit,java
+true|ok => 0|-|-|(비어 있음)|true|CAFEBABE|65|-|0|안녕|-|-|Hello.class,Hello.java|javac,java
+true|nosemi => 1|Hello.java:4: error: ';' expected|1 error|(비어 있음)|false|-|-|-|1||Error: Could not find or load main class Hello|Caused by: java.lang.ClassNotFoundException: Hello|Hello.java|javac,java
+true|edited => 0|-|-|(비어 있음)|true|CAFEBABE|65|true|0|안녕|-|-|Hello.class,Hello.java|javac,edit,java
+FACT recompile => 고친 뒤 다시 컴파일하기 전 출력=안녕|javac 종료 코드=0|class가 달라졌는가=true|다시 컴파일한 뒤 출력=잘 가
+FACT sourcemode => java 종료 코드=0|출력=안녕|Hello.class가 만들어졌는가=false
+FACT sourcemode-err => java 종료 코드=1|오류 첫 줄=Hello.java:4: error: ';' expected
+FACT oldclass => javac 종료 코드=1|옛 class가 남아 있는가=true|그대로인가=true|java Hello 출력=안녕

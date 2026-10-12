@@ -1,0 +1,5 @@
+// 기초개념 "컴파일과 JVM" 실습의 용어. 근거(직접 열어 확인한 문서): The Java Virtual Machine Specification, Java SE 21 Edition 1장 1.2절(https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-1.html)과 4.1절(…/jvms-4.html, 일부), JDK 21 javac 도구 문서(https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html)와 java 도구 문서(…/man/java.html, 앞쪽 일부).
+module.exports = [
+  ['JVM·GC', '컴파일과 javac', '컴파일은 사람이 쓴 소스 코드를 JVM이 실행할 수 있는 형태로 바꾸는 일이고, 자바에서 이 일을 하는 프로그램이 javac(자바 컴파일러)이다. javac 명령은 확장자가 .java인 소스 파일을 읽어 확장자가 .class인 class 파일로 바꾸며, 따로 정하지 않으면 class 파일을 소스 파일과 같은 폴더에 만든다. javac는 코드를 바꾸기만 하고 실행하지는 않으므로, 컴파일한 뒤에 JVM에서 실행하는 단계가 따로 있다. 소스에 오류가 있으면 javac가 오류 메시지를 출력하고, 오류가 없으면 class 파일이 출력 폴더에 놓인다. 소스 파일을 고쳐도 이미 만든 class 파일은 바뀌지 않으므로, 고친 내용을 쓰려면 javac로 다시 컴파일해야 한다.'],
+  ['JVM·GC', '.class 파일', '.class 파일은 컴파일의 결과로 만들어지는 파일로, JVM이 읽는 class 파일 형식으로 되어 있다. 이 안에는 JVM의 명령어(바이트코드)와 기호 표, 그 밖의 부가 정보가 들어 있고, 파일의 맨 앞 4바이트는 이 형식임을 알리는 0xCAFEBABE이다. JVM은 자바 언어를 알지 못하고 이 class 파일 형식만 안다. java Hello처럼 클래스 이름으로 실행하면 JVM은 클래스 경로에서 그 이름의 클래스를 찾는데, 클래스 경로를 따로 정하지 않으면 현재 폴더이다. 그래서 같은 폴더에 Hello.java가 있어도 Hello.class가 없으면 Hello 클래스를 찾을 수 없다는 오류가 난다.'],
+];

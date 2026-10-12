@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>컴파일과 JVM: 자바 코드는 어떻게 실행되는가 · 개발 학습 실습실</title>
+<meta name="description" content="우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/jvm_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/jvm_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jvm_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="컴파일과 JVM: 자바 코드는 어떻게 실행되는가 · 개발 학습 실습실">
+<meta property="og:description" content="우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/jvm_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=73594cd158">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › Java</p>
+<h1>컴파일과 JVM</h1>
+<p><b>자바 코드는 어떻게 실행되는가</b></p>
+<p>우리가 쓰는 Hello.java 파일은 사람이 읽는 글입니다. 이 글이 그대로 실행되는 것이 아니라 두 단계를 거칩니다. 터미널(명령을 글자로 입력하는 창)에서 javac Hello.java 명령을 쓰면 javac라는 프로그램(컴파일러)이 이 글을 읽어 Hello.class 파일로 바꿉니다. 이 일을 컴파일이라고 합니다. Hello.class에는 JVM이 읽는 바이트코드가 들어 있습니다. 이어서 java Hello 명령을 쓰면 JVM(자바 가상 머신)이 뜨고, JVM이 Hello.class를 읽어 main을 실행합니다. 이 실습은 javac 줄을 지우고, 소스의 글을 틀리게 하거나 컴파일한 뒤에 고쳐 가며 실제 javac와 java 명령을 실행해, Hello.class가 만들어지는지와 java Hello가 무엇을 실행하는지를 봅니다.</p>
+<p>실행으로 대조 · JDK 21의 javac와 java 명령으로 여섯 가지 조합을 실제로 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>컴파일과 javac</dt>
+<dd>컴파일은 사람이 쓴 소스 코드를 JVM이 실행할 수 있는 형태로 바꾸는 일이고, 자바에서 이 일을 하는 프로그램이 javac(자바 컴파일러)이다. javac 명령은 확장자가 .java인 소스 파일을 읽어 확장자가 .class인 class 파일로 바꾸며, 따로 정하지 않으면 class 파일을 소스 파일과 같은 폴더에 만든다. javac는 코드를 바꾸기만 하고 실행하지는 않으므로, 컴파일한 뒤에 JVM에서 실행하는 단계가 따로 있다. 소스에 오류가 있으면 javac가 오류 메시지를 출력하고, 오류가 없으면 class 파일이 출력 폴더에 놓인다. 소스 파일을 고쳐도 이미 만든 class 파일은 바뀌지 않으므로, 고친 내용을 쓰려면 javac로 다시 컴파일해야 한다.</dd>
+<dt>.class 파일</dt>
+<dd>.class 파일은 컴파일의 결과로 만들어지는 파일로, JVM이 읽는 class 파일 형식으로 되어 있다. 이 안에는 JVM의 명령어(바이트코드)와 기호 표, 그 밖의 부가 정보가 들어 있고, 파일의 맨 앞 4바이트는 이 형식임을 알리는 0xCAFEBABE이다. JVM은 자바 언어를 알지 못하고 이 class 파일 형식만 안다. java Hello처럼 클래스 이름으로 실행하면 JVM은 클래스 경로에서 그 이름의 클래스를 찾는데, 클래스 경로를 따로 정하지 않으면 현재 폴더이다. 그래서 같은 폴더에 Hello.java가 있어도 Hello.class가 없으면 Hello 클래스를 찾을 수 없다는 오류가 난다.</dd>
+<dt>JVM(자바 가상 머신)</dt>
+<dd>자바 바이트코드를 읽어 실행하는 프로그램이다. 운영체제마다 그에 맞는 JVM이 있어서, 한 번 컴파일한 자바 프로그램을 수정 없이 여러 운영체제에서 실행할 수 있다. 클래스를 읽어 들이고, 메모리를 관리하고(가비지 컬렉션), 바이트코드를 기계어로 바꿔 실행하는 일을 맡는다.</dd>
+<dt>바이트코드</dt>
+<dd>자바 컴파일러(javac)가 소스 코드를 변환해 만든 중간 형태의 코드로 .class 파일에 담긴다. 특정 CPU나 운영체제의 기계어가 아니라 JVM이 이해하는 명령어라서 어느 플랫폼의 JVM에서든 실행된다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — javac가 Hello.class를 만들고, JVM이 Hello.class를 읽어 안녕을 출력합니다.</li>
+<li><b>javac 줄을 지우면</b> — Hello.class가 만들어지지 않아 java Hello가 실행할 것을 찾지 못합니다.</li>
+<li><b>세미콜론을 빼면</b> — javac가 문법 오류를 알리고 Hello.class를 만들지 않습니다.</li>
+<li><b>컴파일한 뒤 소스만 고치면</b> — 고치기 전에 만든 Hello.class가 실행되어 안녕이 출력됩니다.</li>
+<li><b>javac 줄도 지우고 세미콜론도 빼면</b> — javac가 읽은 적이 없어 문법 오류는 알려지지 않고, 같은 이유로 실행에 실패합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>Hello.java 파일에는 사람이 읽는 자바 코드가 적혀 있고, 이 코드는 &quot;안녕&quot;을 출력하라는 뜻입니다. 이 코드를 실행하려면 두 단계를 거칩니다. 먼저 javac 명령이 Hello.java 파일을 Hello.class라는 다른 파일로 바꾸고(컴파일), 그다음 java 명령이 Hello.class 파일을 읽어 실행합니다. java 명령이 찾는 것은 Hello.java 글이 아니라 Hello.class 파일입니다.</li>
+<li>터미널에서 javac Hello.java 명령을 실행합니다. javac 컴파일러가 Hello.java 파일을 처음부터 읽으며 자바 문법에 맞는지 확인하고, 맞으면 읽은 내용을 바이트코드로 바꿔 Hello.class 파일에 씁니다. 이 단계에서는 코드를 바꾸기만 하고 실행하지 않으므로 아무것도 출력되지 않습니다.</li>
+<li>javac 명령이 오류 없이 끝났습니다(종료 코드 0). 폴더에 Hello.class 파일이 생겼습니다. 이 파일에는 사람이 읽는 글이 아니라 JVM이 읽는 바이트코드가 들어 있습니다. Hello.java 파일은 그대로 남아 있습니다.</li>
+<li>터미널에서 java Hello 명령을 실행합니다. java 명령이 JVM을 띄우고, JVM이 현재 폴더에서 Hello.class 파일을 찾아 읽어 들입니다. JVM이 읽는 것은 Hello.class 파일이고 Hello.java 파일은 읽지 않습니다.</li>
+<li>JVM이 Hello.class 안의 main을 실행하고, main의 println이 안녕을 출력합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>Hello.java는 사람이 읽는 자바 코드이고, javac 명령이 이것을 JVM이 읽는 바이트코드 파일 Hello.class로 바꿉니다(컴파일). java 명령이 띄운 JVM이 Hello.class를 읽어 main을 실행하면 안녕이 출력됩니다. 실행된 것은 Hello.java가 아니라 Hello.class입니다.</li>
+<li>컴파일은 코드를 바꿀 뿐 실행하지 않습니다. javac Hello.java 명령을 쓸 때는 아무것도 출력되지 않았고, java Hello 명령을 쓸 때 안녕이 출력되었습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre># Hello.java
+public class Hello {
+    // main: java 명령이 가장 먼저 부르는 메서드
+    public static void main(String[] args) {
+        System.out.println(&quot;안녕&quot;);
+    }
+}
+
+# 터미널
+# 컴파일: javac가 Hello.java를 읽고 Hello.class를 만든다
+javac Hello.java
+# 실행: java가 JVM을 띄워 Hello.class의 main을 실행한다
+java Hello</pre>
+<h2>이 모형의 전제</h2>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21, java 21)입니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 글(# Hello.java 구역과 # 터미널 구역)을 조합마다 빈 폴더에 만들고, 그 글에서 소스 파일과 명령을 읽어 실제 javac 프로그램과 java 프로그램을 프로세스로 띄워 실행한 결과와 대조했습니다. 대조한 것은 폴더에 Hello.class가 생겼는지, javac의 종료 코드와 표준 출력, 첫 오류 메시지와 오류 개수와 오류가 난 줄, java의 종료 코드와 출력과 오류 메시지, 고치는 일이 Hello.class를 바꾸지 않는지, Hello.class 파일 맨 앞 네 바이트(CAFEBABE)와 버전(65, 자바 21)입니다. 고친 뒤 javac 명령을 다시 쓰면 &quot;잘 가&quot;가 출력되는 것도 따로 실행해 확인했습니다. 실행한 명령은 화면과 두 가지가 다릅니다. 출력 글자와 오류 메시지를 같은 방식으로 읽으려고 javac와 java에 출력 인코딩을 UTF-8로, 메시지 언어를 영어로 하는 옵션(-Dstdout.encoding=UTF-8, -Duser.language=en 등)을 더했습니다. 옵션 없이 이 PC(한국어 Windows)에서 java Hello 명령을 쓰면 같은 오류가 한국어 메시지로 나옵니다. 문서는 직접 열어 확인했습니다. Java 가상 머신 명세 Java SE 21 판 1.2절(JVM은 자바 언어를 모르고 class 파일 형식만 안다, class 파일에는 JVM 명령어인 바이트코드가 들어 있다), 같은 명세 4.1절(class 파일 맨 앞의 magic 값은 0xCAFEBABE, 자바 SE 21의 major 버전은 65, 이 장은 일부만 읽었습니다), JDK 21 javac 도구 문서(.java 소스 파일을 읽어 .class 파일로 컴파일한다, 따로 정하지 않으면 소스와 같은 폴더에 만든다, 오류가 없으면 class 파일을 출력 폴더에 놓는다), java 도구 문서(JVM을 띄워 지정한 클래스를 읽고 main을 부른다, 클래스 경로를 정하지 않으면 현재 폴더이다, 앞쪽 일부만 읽었고 종료 코드 절은 읽지 못했습니다)를 따랐습니다. 오류가 났을 때 Hello.class를 만들지 않는 것, 종료 코드가 0과 1이라는 것, 오류 메시지의 글은 문서가 정한 것이 아니라 이 JDK에서 관찰한 것입니다. 화면의 코드는 폴더에 Hello.java 하나만 있는 상황으로 줄였고, 패키지가 있는 클래스, 클래스 경로 설정, jar 파일, IDE나 빌드 도구가 대신 컴파일하는 것은 다루지 않았습니다. java Hello.java처럼 소스 파일을 바로 실행하는 방법(소스 파일 모드)도 화면에서 쓰지 않았습니다. 이 JDK에서 실행해 보니 Hello.class를 만들지 않고 안녕을 출력했고(java 문서도 소스를 메모리에 컴파일해 실행한다고 설명합니다), 세미콜론이 빠진 소스는 이 방식에서도 같은 컴파일 오류로 실패했습니다. 또 컴파일에 성공한 뒤 소스를 틀리게 고치고 javac 명령을 다시 쓰면 오류가 나지만 옛 Hello.class는 폴더에 그대로 남아 java Hello 명령이 옛 코드를 실행하는 것도 확인했으나, 화면에서는 다루지 않았습니다. JVM이 Hello.class를 읽어 들이는 방식은 &quot;세부 동작 실습: 클래스 로딩과 초기화&quot;에서, 바이트코드를 기계어로 다시 컴파일하는 JIT는 &quot;세부 동작 실습: JIT 워밍업&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/lock_basic/">락(synchronized)</a> · 다음 실습: <a href="../../lab/io_basic/">파일 입출력</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=73594cd158"></script>
+</body>
+</html>

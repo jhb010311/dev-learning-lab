@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>라이브러리와 의존성: 라이브러리는 무엇이고, 없으면 어떻게 되는가 · 개발 학습 실습실</title>
+<meta name="description" content="라이브러리는 남이 만들어 둔 클래스들입니다. 이 실습에서는 lib.Greeter 클래스 하나를 jar 파일(클래스 파일을 묶어 둔 파일) greet.jar에 담아 두었습니다. 내 코드 App.java는 import lib.Greeter;로 그 클래스를 가져다 쓰는데, Gree…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/dep_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/dep_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dep_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="라이브러리와 의존성: 라이브러리는 무엇이고, 없으면 어떻게 되는가 · 개발 학습 실습실">
+<meta property="og:description" content="라이브러리는 남이 만들어 둔 클래스들입니다. 이 실습에서는 lib.Greeter 클래스 하나를 jar 파일(클래스 파일을 묶어 둔 파일) greet.jar에 담아 두었습니다. 내 코드 App.java는 import lib.Greeter;로 그 클래스를 가져다 쓰는데, Gree…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/dep_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=73594cd158">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › Java</p>
+<h1>라이브러리와 의존성</h1>
+<p><b>라이브러리는 무엇이고, 없으면 어떻게 되는가</b></p>
+<p>라이브러리는 남이 만들어 둔 클래스들입니다. 이 실습에서는 lib.Greeter 클래스 하나를 jar 파일(클래스 파일을 묶어 둔 파일) greet.jar에 담아 두었습니다. 내 코드 App.java는 import lib.Greeter;로 그 클래스를 가져다 쓰는데, Greeter는 App.java 안에 없습니다. 그래서 컴파일할 때도, 실행할 때도 컴파일러(javac)와 JVM(java)은 클래스패스(클래스 파일을 찾아볼 곳의 목록)에서 Greeter를 찾아야 하고, 명령에서는 -cp 뒤에 그 목록을 적습니다. 내 프로젝트가 쓰는 라이브러리를 의존성이라고 부르며, 빌드 도구 Gradle에서는 implementation으로 적은 의존성이 컴파일할 때와 실행할 때의 클래스패스에 모두 들어갑니다. 이 실습은 javac 명령과 java 명령에서 greet.jar를 하나씩 빼 가며 실제로 컴파일하고 실행해, 어느 단계에서 어떤 오류가 나는지를 봅니다. (Gradle은 이 실습에서 실행하지 않습니다.)</p>
+<p>실행으로 대조 · JDK 21에서 네 가지 조합을 greet.jar를 만들어 javac와 java 명령 그대로 실행해 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>라이브러리와 jar 파일</dt>
+<dd>라이브러리는 남이 만들어 둔 클래스들로, 내 코드가 import로 가져다 쓴다. 자바에서는 컴파일한 클래스 파일을 jar 파일 하나로 묶어 나누어 주는 일이 흔하다. 예를 들어 Greeter.java를 컴파일해 jar 도구로 묶으면 jar tf greet.jar가 lib/Greeter.class를 비롯한 안의 파일 목록을 보여 준다. 내 코드를 컴파일하거나 실행할 때 jar 안의 클래스가 필요하면, 그 jar를 클래스패스에 적어야 한다. jar가 내 소스와 같은 폴더에 놓여 있다는 것만으로는 찾아보는 곳에 들어가지 않는다.</dd>
+<dt>클래스패스(-cp)</dt>
+<dd>클래스패스는 컴파일러(javac)와 JVM(java)이 사용자 클래스 파일을 찾아볼 곳의 목록이다. 명령에서는 -cp(또는 --class-path, -classpath) 뒤에 적고, 목록의 한 곳은 디렉터리나 JAR 파일이며 Windows에서는 세미콜론(;)으로, 그 밖의 시스템에서는 콜론(:)으로 구분한다. -cp를 적지 않고 CLASSPATH 환경 변수도 없으면 javac와 java 모두 현재 폴더를 쓴다. javac와 java는 각각 자기 명령의 클래스패스를 따로 받으므로, 컴파일할 때 준 -cp가 실행할 때 저절로 이어지지 않는다. -cp greet.jar처럼 jar만 적으면 현재 폴더는 찾아보는 곳이 아니므로, 현재 폴더의 클래스 파일도 쓰려면 greet.jar;.처럼 점(.)을 함께 적어야 한다.</dd>
+<dt>NoClassDefFoundError</dt>
+<dd>NoClassDefFoundError는 JVM이나 클래스 로더가 클래스의 정의를 불러오려는데 그 정의를 찾을 수 없을 때 던져지는 오류이다. API 문서는 찾으려는 클래스의 정의가 지금 실행 중인 클래스를 컴파일할 때는 있었지만 이제는 찾을 수 없는 경우라고 설명한다. 라이브러리 jar를 컴파일할 때는 클래스패스에 넣고 실행할 때는 빼면 이 오류가 난다. 컴파일할 때 jar가 없어서 나는 &quot;package lib does not exist&quot; 같은 컴파일 오류와는 시점이 다르다. 컴파일 오류는 프로그램을 실행하기 전에 컴파일러가 알리고, 이 오류는 프로그램이 실행되는 도중에 그 클래스가 필요해진 곳에서 난다.</dd>
+<dt>빌드 의존성과 implementation</dt>
+<dd>의존성은 내 프로젝트가 쓰는 라이브러리이다. Gradle에서는 dependencies 블록 안에 group:name:version 좌표로 적는다. 그 가운데 implementation은 메인 소스를 컴파일할 때와 실행할 때 모두 필요한 의존성을 적는 자리이다. Gradle 문서에 따르면 implementation으로 적은 의존성은 컴파일에 쓰는 compileClasspath와 실행에 쓰는 runtimeClasspath에 모두 포함된다. 곧 손으로 javac와 java 명령에 -cp를 적던 일을 빌드 도구가 설정 한 줄로 대신한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 컴파일과 실행 명령에 모두 greet.jar가 있습니다. 컴파일에 성공하고 hello, kim이 출력됩니다.</li>
+<li><b>컴파일할 때 -cp greet.jar를 빼면</b> — 컴파일러가 Greeter를 찾지 못해 컴파일이 실패합니다.</li>
+<li><b>실행할 때 greet.jar를 빼면</b> — 컴파일에는 성공하지만, 실행하는 중에 Greeter를 찾지 못해 오류가 납니다.</li>
+<li><b>둘 다 빼면</b> — 컴파일 단계에서 이미 실패해 실행할 수 없습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>터미널에 javac -cp greet.jar App.java 명령을 입력하면 컴파일러(javac)가 App.java를 읽습니다. 소스 맨 위의 import lib.Greeter; 줄은 App.java 안에 없는 Greeter 클래스를 가져다 쓰겠다는 뜻입니다. Greeter는 남이 만들어 둔 클래스이고, greet.jar 안에 lib/Greeter.class라는 파일로 들어 있습니다.</li>
+<li>컴파일러는 Greeter가 어떤 클래스인지 알아야 컴파일할 수 있으므로, 클래스패스에서 lib/Greeter.class를 찾습니다. 클래스패스는 클래스 파일을 찾아볼 곳의 목록이고, 명령의 -cp 뒤에 적습니다. 이 명령은 -cp greet.jar라고 적었으므로 찾아볼 곳은 greet.jar입니다.</li>
+<li>greet.jar 안에서 lib/Greeter.class를 찾았습니다. 컴파일러가 Greeter 클래스를 알게 되었으므로 Greeter.hello(&quot;kim&quot;) 줄도 통과합니다.</li>
+<li>컴파일에 성공해 App.class가 만들어집니다. 폴더에 새로 생긴 클래스 파일은 App.class 하나뿐이고, Greeter.class는 복사되지 않았습니다. greet.jar의 내용이 App.class 안으로 들어온 것이 아닙니다.</li>
+<li>java -cp greet.jar;. App 명령을 입력하면 JVM(java)이 클래스패스에서 App 클래스를 찾아 main을 시작합니다. 클래스패스는 greet.jar;.입니다. 세미콜론(;)은 Windows에서 여러 곳을 구분하는 글자이고(macOS와 Linux는 :), 맨 뒤의 점(.)은 현재 폴더, 곧 App.class가 있는 곳입니다. 점을 빼고 -cp greet.jar만 적으면 현재 폴더를 찾아보지 않아 App을 찾지 못합니다.</li>
+<li>main 안의 System.out.println(Greeter.hello(&quot;kim&quot;)) 줄에서 Greeter.hello를 부르려면 Greeter 클래스가 필요합니다. JVM이 클래스패스에서 lib/Greeter.class를 찾습니다.</li>
+<li>greet.jar 안에서 lib/Greeter.class를 찾아 불러옵니다. hello(&quot;kim&quot;)이 hello, kim을 돌려주고, println이 그 글을 출력합니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>라이브러리는 남이 만들어 둔 클래스를 묶은 jar 파일입니다. 내 코드가 Greeter 같은 라이브러리의 클래스를 쓰려면 컴파일할 때(javac -cp greet.jar)와 실행할 때(java -cp greet.jar;.) 모두 그 jar가 클래스패스에 있어야 합니다. 둘 다 있었으므로 컴파일에 성공하고 hello, kim이 출력됐습니다.</li>
+<li>내 프로젝트가 쓰는 라이브러리를 의존성이라고 부릅니다. Gradle에서는 dependencies 안에 implementation(&quot;lib:greet:1.0&quot;)처럼 한 줄을 적고(이 이름은 설명을 위한 가짜입니다), Gradle 문서에 따르면 implementation으로 적은 의존성은 컴파일할 때와 실행할 때의 클래스패스에 모두 들어갑니다. 이 실습은 Gradle을 실행하지 않고, 그 일을 -cp로 손수 적어 보인 것입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre># App.java
+// greet.jar 안에 있는, 남이 만든 클래스를 가져온다
+import lib.Greeter;
+
+public class App {
+    public static void main(String[] args) {
+        System.out.println(Greeter.hello(&quot;kim&quot;));
+    }
+}
+
+# greet.jar (Greeter.java를 컴파일해 jar로 묶은 것)
+package lib;
+
+public class Greeter {
+    public static String hello(String name) {
+        return &quot;hello, &quot; + name;
+    }
+}
+
+# 터미널
+javac -cp greet.jar App.java
+java -cp greet.jar;. App</pre>
+<h2>이 모형의 전제</h2>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21, java 21)입니다. 네 가지 조합을 모두 대조했습니다. 먼저 lib.Greeter 클래스(hello 메서드 하나)를 javac와 jar 도구로 greet.jar에 묶었고(외부 jar는 받지 않았습니다), 조합마다 새 폴더에 greet.jar와 App.java를 놓고 화면에 적힌 터미널 명령 javac와 java를 그대로 실행했습니다. 화면의 코드는 Probe가 실제 파일 내용과 실제 실행한 명령으로 만들어 남긴 글과 같습니다. 대조한 것은 컴파일 성공 여부, 오류의 개수와 진단 코드(compiler.err.doesnt.exist와 compiler.err.cant.resolve.location를 화면의 두 가지 오류 설명으로 옮겼습니다)와 오류가 난 줄, App.class가 만들어졌는지, java 명령의 종료 코드와 출력, 실행 오류의 종류(NoClassDefFoundError)와 그 위치(App.java:6)입니다. 컴파일에 실패한 조합에서도 java 명령을 실제로 실행해, App 클래스를 찾을 수 없다는 오류가 나는 것을 확인했습니다. 단계 문장이 기대는 사실도 따로 실행해 확인했습니다. greet.jar에는 lib/Greeter.class가 들어 있다는 것(jar tf), 컴파일에 성공한 폴더에 생긴 클래스 파일은 App.class 하나뿐이라는 것, java 명령에서 -cp greet.jar만 적고 점(.)을 빼면 현재 폴더의 App.class를 찾지 못한다는 것, 컴파일 전 폴더에는 App.java와 greet.jar만 있었다는 것입니다. 명령은 Windows 11에서 실행했고, 클래스패스의 구분자 세미콜론(;)은 Windows 기준입니다(macOS와 Linux는 콜론). 화면에는 한 가지로만 적었습니다. CLASSPATH 환경 변수는 실행하는 프로세스에서 지웠고, 이 변수가 설정된 환경에서는 -cp를 적지 않은 명령의 결과가 달라질 수 있습니다. java 실행기의 오류 문장은 이 PC의 언어(한국어)로 나왔고, 다른 언어 설정에서는 문장이 다릅니다. 문서는 직접 열어 확인했습니다. Oracle의 javac 도구 문서(https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html)에서 --class-path(-cp)가 사용자 클래스 파일을 찾을 곳을 정하고, -cp도 CLASSPATH 환경 변수도 없으면 현재 폴더가 쓰이며, 구분자가 Windows에서 세미콜론이라는 것을, java 도구 문서(https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html, 앞부분 10만 자만 읽었고 -cp 설명은 그 안에 있었습니다)에서 -cp가 클래스 파일을 찾을 디렉터리, JAR 파일, ZIP 파일의 목록이고 지정하지 않으면 현재 폴더(.)라는 것을, NoClassDefFoundError API 문서(https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/NoClassDefFoundError.html)에서 클래스를 불러오려는데 정의를 찾을 수 없을 때 던져지며 컴파일할 때는 있었던 정의를 지금은 찾을 수 없는 경우라는 것을, Gradle 문서의 Declaring dependencies(https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html)에서 모듈 의존성을 group:name:version 좌표로 적는다는 것과 dependencies 안에 implementation으로 적는 예를, Java Plugin 문서(https://docs.gradle.org/current/userguide/java_plugin.html)의 설정 표에서 implementation이 컴파일할 때와 실행할 때 모두 필요한 의존성이고 compileClasspath와 runtimeClasspath에 포함된다는 것을 따랐습니다. Gradle은 실행하지 않았고, 저장소에서 jar를 내려받는 과정은 문서로도 확인하지 못해 적지 않았습니다. 오류의 개수와 종류, 오류 문장은 명세가 정한 것이 아니라 이 JDK에서 관찰한 것입니다. 이 밖에 라이브러리가 다시 다른 라이브러리를 끌어오는 것(전이 의존성), 버전, 클래스패스 여러 곳에 같은 클래스가 있을 때의 순서, 모듈 시스템은 다루지 않았고, 의존성과 공급망은 &quot;세부 동작 실습: 의존성과 공급망&quot;에서, 의존성을 보고 설정을 자동으로 만들어 주는 스프링 부트는 &quot;세부 동작 실습: 스프링 부트 자동 설정&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/io_basic/">파일 입출력</a> · 다음 실습: <a href="../../lab/bean_basic/">빈</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=73594cd158"></script>
+</body>
+</html>

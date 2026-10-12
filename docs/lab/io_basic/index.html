@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>파일 입출력: 파일에 쓰고 읽는다는 것은 무엇을 주고받는 것인가 · 개발 학습 실습실</title>
+<meta name="description" content="파일에 글자를 쓰고 읽는 코드는 Files 클래스의 메서드 세 개로 이루어집니다. Files.writeString 메서드는 글자를 파일에 쓰고, Files.readAllBytes 메서드는 파일에 저장된 바이트를 있는 그대로 읽고, Files.readString 메서드는 파일의…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/io_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/io_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/io_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="파일 입출력: 파일에 쓰고 읽는다는 것은 무엇을 주고받는 것인가 · 개발 학습 실습실">
+<meta property="og:description" content="파일에 글자를 쓰고 읽는 코드는 Files 클래스의 메서드 세 개로 이루어집니다. Files.writeString 메서드는 글자를 파일에 쓰고, Files.readAllBytes 메서드는 파일에 저장된 바이트를 있는 그대로 읽고, Files.readString 메서드는 파일의…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/io_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=73594cd158">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › Java</p>
+<h1>파일 입출력</h1>
+<p><b>파일에 쓰고 읽는다는 것은 무엇을 주고받는 것인가</b></p>
+<p>파일에 글자를 쓰고 읽는 코드는 Files 클래스의 메서드 세 개로 이루어집니다. Files.writeString 메서드는 글자를 파일에 쓰고, Files.readAllBytes 메서드는 파일에 저장된 바이트를 있는 그대로 읽고, Files.readString 메서드는 파일의 바이트를 글자로 되돌려 읽습니다. 파일에는 글자가 아니라 바이트(0부터 255까지의 숫자로 볼 수 있는 값)가 저장됩니다. 그래서 글자를 쓸 때는 정해진 규칙(문자 인코딩)에 따라 글자를 바이트로 바꾸고, 읽을 때는 규칙에 따라 바이트를 글자로 되돌립니다. 코드에서 StandardCharsets.UTF_8 부분이 그 규칙을 적은 곳이고, 쓰는 줄과 읽는 줄에 각각 적습니다. 이 실습은 쓰는 글자와 읽는 방법을 바꿔 가며 같은 코드를 컴파일하고 실행해, 파일에 실제로 저장된 바이트와 읽어 낸 글자를 봅니다. (Path.of(&quot;memo.txt&quot;)는 프로그램을 실행한 폴더 안의 memo.txt 파일을 가리키는 것으로 보고, 그 밖의 경로 규칙은 다루지 않습니다.)</p>
+<p>실행으로 대조 · JDK 21에서 아홉 가지 조합을 javax.tools로 컴파일하고 새 자바 프로세스로 실행해, 저장된 파일의 바이트와 읽은 글자·예외를 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>바이트(byte)</dt>
+<dd>바이트는 파일에 저장되는 내용을 이루는 기본 단위로, 8비트 하나이다. 자바의 byte 타입은 -128부터 127까지로 보여 주지만 같은 8비트를 0부터 255까지의 값으로 읽을 수도 있다(Byte.toUnsignedInt). 파일에는 글자나 그림 자체가 아니라 이런 바이트가 차례로 저장되고, 어떤 글자가 되는지는 그 바이트를 어떤 규칙으로 읽느냐에 따라 달라진다. 자바에서 byte[] 배열은 파일의 내용을 규칙 없이 있는 그대로 담는 그릇이고, Files.readAllBytes가 파일의 바이트를 이 배열로 읽어 온다. 파일의 크기도 글자 수가 아니라 바이트 수로 센다.</dd>
+<dt>문자 인코딩과 UTF-8</dt>
+<dd>문자 인코딩은 글자를 어떤 바이트로 바꾸어 저장할지 정한 규칙이다. UTF-8은 가장 널리 쓰이는 인코딩으로, 글자에 따라 1바이트에서 4바이트까지 길이가 달라진다. 영문자와 숫자는 1바이트, 한글 한 글자는 3바이트다. 쓸 때와 읽을 때의 인코딩이 다르거나 글자의 중간에서 바이트를 끊어 읽으면 글자가 깨지므로, 글을 읽고 쓰는 코드에는 인코딩을 명시하는 것이 안전하다.</dd>
+<dt>ISO_8859_1</dt>
+<dd>ISO_8859_1은 자바의 StandardCharsets가 상수로 제공하는 문자 인코딩의 하나로, 문서에는 ISO Latin Alphabet No. 1(ISO-LATIN-1)로 설명되어 있다. 이 JDK에서 0부터 255까지 바이트 256가지를 모두 읽어 보면 바이트 하나가 글자 하나가 되고 그 글자의 번호가 바이트 값과 같다. 그래서 어떤 바이트 열을 읽어도 오류 없이 글자로 바뀌지만, UTF-8로 저장한 한글처럼 한 글자가 여러 바이트인 글은 바이트마다 엉뚱한 글자가 되어 깨진다. 0x00부터 0x7F까지의 바이트는 UTF-8과 같은 영문자와 숫자가 된다.</dd>
+<dt>NoSuchFileException</dt>
+<dd>NoSuchFileException은 존재하지 않는 파일에 접근하려 할 때 던지는 검사 예외(checked exception)이다. java.nio.file.FileSystemException의 하위 클래스이고, 따라서 IOException의 한 종류이다. 이 JDK에서 Files.readAllBytes로 폴더에 없는 이름의 파일을 읽으려 하면 이 예외가 던져졌고, 예외 메시지에는 찾지 못한 경로가 담겨 있었다. 예외가 처리되지 않고 main 밖으로 나가면 프로그램은 거기서 오류로 끝난다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 한글 한 글자는 3바이트, 영문 한 글자는 1바이트로 저장되고, 같은 UTF-8 규칙으로 읽으면 &quot;가A&quot;로 돌아옵니다.</li>
+<li><b>영문만 쓰면</b> — 영문 두 글자는 2바이트로 저장되어 글자 수와 바이트 수가 같습니다.</li>
+<li><b>한글만 쓰면</b> — 한글 두 글자가 6바이트로 저장됩니다.</li>
+<li><b>다른 규칙으로 읽으면</b> — 파일의 바이트는 그대로인데 한글이 엉뚱한 글자로 읽힙니다.</li>
+<li><b>없는 파일을 읽으면</b> — 그런 파일이 없어 읽는 줄에서 NoSuchFileException 예외가 납니다.</li>
+<li><b>영문을 다른 규칙으로 읽으면</b> — 영문자는 두 규칙에서 같은 글자가 되어 깨지지 않습니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>Files.writeString 메서드를 부르는 줄이 실행됩니다. 이 시점에 memo.txt 파일은 아직 없습니다. 파일에는 글자가 아니라 바이트(0부터 255까지의 숫자로 볼 수 있는 값)가 저장되므로, 쓸 글자 2개를 먼저 바이트로 바꿔야 합니다. 바꾸는 규칙(문자 인코딩)은 세 번째로 넘긴 StandardCharsets.UTF_8 규칙, 곧 UTF-8입니다.</li>
+<li>UTF-8 규칙에 따라 글자가 바이트로 바뀝니다. &quot;가&quot;: 3바이트(EA B0 80), &quot;A&quot;: 1바이트(41). 이 규칙에서 한글 한 글자는 3바이트, 영문 한 글자는 1바이트입니다. 글자는 2개인데 바이트는 4개가 됩니다. 이 바이트들이 memo.txt 파일에 저장됩니다. 파일에 저장된 것은 이 숫자들뿐입니다.</li>
+<li>Files.readAllBytes 메서드를 부르는 줄이 memo.txt 파일을 읽습니다. 이 메서드는 읽을 때 쓰는 규칙이 없고, 파일에 저장된 바이트를 그대로 bytes 변수에 담습니다. 담긴 바이트는 4개(EA B0 80 41)로, 방금 저장한 바이트와 같습니다.</li>
+<li>Files.readString 메서드를 부르는 줄이 memo.txt 파일의 바이트를 글자로 되돌립니다. 읽을 때의 규칙은 StandardCharsets.UTF_8 규칙으로, 쓸 때와 같습니다. 같은 규칙으로 바이트를 묶어 읽으므로 EA B0 80 → &quot;가&quot;, 41 → &quot;A&quot;처럼 원래 글자가 그대로 돌아와 text 변수에 담깁니다.</li>
+<li>System.out.println 두 줄이 bytes 변수에 담긴 바이트의 수와 text 변수의 글자를 출력합니다. 첫 줄은 4이고, 둘째 줄은 가A입니다. 글자는 2개인데 첫 줄의 수는 4이므로, bytes.length 값은 글자 수가 아니라 바이트 수입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>파일에는 글자가 아니라 바이트가 저장됩니다. 쓴 글자 2개는 UTF-8 규칙에 따라 4바이트(EA B0 80 41)가 되어 저장되고, 같은 UTF-8 규칙으로 읽으면 원래 글자가 그대로 돌아옵니다.</li>
+<li>글자는 2개인데 바이트는 4개입니다. 한글 한 글자는 3바이트, 영문 한 글자는 1바이트이기 때문이고, 그래서 bytes.length 값은 글자 수가 아닙니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>public class Main {
+    public static void main(String[] args) throws IOException {
+        // 쓰기: 글자를 정해진 규칙으로 바이트로 바꿔 파일에 저장한다
+        Files.writeString(Path.of(&quot;memo.txt&quot;), &quot;가A&quot;,
+                StandardCharsets.UTF_8);
+        // 읽기 1: 파일에 저장된 바이트를 그대로 읽는다
+        byte[] bytes = Files.readAllBytes(Path.of(&quot;memo.txt&quot;));
+        // 읽기 2: 파일의 바이트를 정해진 규칙으로 글자로 되돌린다
+        String text = Files.readString(Path.of(&quot;memo.txt&quot;),
+                StandardCharsets.UTF_8);
+        System.out.println(bytes.length);
+        System.out.println(text);
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 아홉 가지 조합을 모두, 화면의 코드(맨 위의 import 네 줄만 더함)를 javax.tools로 컴파일한 뒤 새 자바 프로세스(java -cp . Main)로 조합마다 빈 폴더에서 실행해 대조했습니다. 프로세스가 끝난 뒤 폴더의 memo.txt를 직접 열어 실제로 저장된 바이트(16진수)와 크기를 읽었고, 프로그램이 출력한 바이트 수와 읽은 글자의 코드 포인트, 종료 코드, 예외 이름과 예외가 난 줄(소스의 몇 번째 줄인지), 실행 뒤 폴더의 파일 목록(none.txt가 없고 memo.txt는 있음), 실행 전에 memo.txt가 없었다는 것을 확인했습니다. 화면에서 import 네 줄은 줄였습니다. 한글 가가 EA B0 80, 나가 EB 82 98, 영문 A와 B가 41과 42로 저장되는 것과, ISO_8859_1 규칙이 0부터 255까지 바이트 256가지를 모두 하나씩 글자 하나로 바꾸는 것도 같은 JDK에서 따로 실행해 확인했습니다. &quot;깨진 글자&quot;는 ISO_8859_1로 읽은 글자 가운데 번호가 128 이상인 것의 수이며, 원래 글자와 같은 영문자는 세지 않았습니다. 번호 128부터 159까지(예: U+0080)와 같이 화면에 보이지 않는 글자는 실제로 읽혔지만 그림과 단계 문장에서는 번호(U+0080 등)로 적었습니다. 문서는 직접 열어 확인했습니다. Java SE 21 API 문서의 Files(readAllBytes는 규칙 없이 바이트를 읽는다는 것, readString은 지정한 문자 집합으로 바이트를 글자로 해독한다는 것, writeString은 지정한 문자 집합으로 글자를 바이트로 인코딩해 쓰고 옵션이 없으면 파일을 만들거나 기존 내용을 비우고 쓴다는 것), StandardCharsets(UTF_8과 ISO_8859_1 상수), NoSuchFileException(존재하지 않는 파일에 접근하려 할 때 던지는 검사 예외), Byte(바이트가 8비트라는 것과 부호 없는 값으로 읽는 방법), RFC 3629 1절과 3절(UTF-8에서 U+0000부터 U+007F는 1바이트이고, U+0800부터 U+FFFF는 3바이트라는 것)입니다. 다만 Files 문서에는 NoSuchFileException이 이 메서드들의 예외로 따로 적혀 있지 않고 IOException으로만 적혀 있어서, 없는 파일을 읽을 때 이 예외가 난다는 것은 문서가 아니라 이 JDK에서 실행해 관찰한 것입니다. 마찬가지로 Path.of(&quot;memo.txt&quot;)가 실행한 폴더의 파일을 가리킨다는 것도 문서를 열어 확인하지 않고 실행으로만 관찰했습니다. 이 밖에 UTF-8로 읽을 때 잘못된 바이트가 있는 경우(MalformedInputException), UTF-16 같은 다른 인코딩, 줄바꿈 문자, 파일 경로 규칙, 파일에 한 바이트씩 쓰는 스트림과 버퍼(세부 동작 실습: 입출력 스트림과 버퍼), 객체를 바이트로 바꿔 저장하는 직렬화(세부 동작 실습: 직렬화)는 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/jvm_basic/">컴파일과 JVM</a> · 다음 실습: <a href="../../lab/dep_basic/">라이브러리와 의존성</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=73594cd158"></script>
+</body>
+</html>

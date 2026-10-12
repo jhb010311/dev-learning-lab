@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0ccd62bc42">
+<link rel="stylesheet" href="../../app.css?v=73594cd158">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,7 +58,7 @@
 <li>리스트는 [1, 2, 2, 3, 4]입니다. 값이 2인 원소 두 개를 지우려 합니다.</li>
 <li>반복자를 만듭니다(향상된 for문도 내부적으로 반복자를 씁니다). 반복자는 이 시점의 리스트 수정 횟수(0)를 기억해 둡니다.</li>
 <li>원소 1 확인: 2가 아니므로 넘어갑니다.</li>
-<li>원소 2를 읽었습니다. list.remove()로 리스트에서 직접 지웁니다. 리스트는 [1, 2, 3, 4]이 됐습니다. 리스트의 수정 횟수가 1로 올라갔지만 반복자는 이를 모릅니다.</li>
+<li>원소 2를 읽었습니다. list.remove()로 리스트에서 직접 지웁니다. 리스트는 [1, 2, 3, 4]가 됐습니다. 리스트의 수정 횟수가 1로 올라갔지만 반복자는 이를 모릅니다.</li>
 <li>다음 원소를 읽으려는데, 리스트의 수정 횟수(1)가 반복자가 기억한 값(0)과 다릅니다. 반복자가 모르는 사이에 리스트가 바뀌었다는 뜻이므로, 잘못된 결과를 내느니 즉시 ConcurrentModificationException을 던집니다(fail-fast).</li>
 <li>최종 리스트: [1, 2, 3, 4] (예외로 중단됨).</li>
 </ol>
@@ -161,6 +161,6 @@ for (Integer x : list) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0ccd62bc42"></script>
+<script src="../../app.js?v=73594cd158"></script>
 </body>
 </html>

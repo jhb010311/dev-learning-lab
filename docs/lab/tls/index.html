@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0ccd62bc42">
+<link rel="stylesheet" href="../../app.css?v=73594cd158">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -53,9 +53,9 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>브라우저가 https://shop.example 에 접속합니다. TCP 연결이 맺어진 뒤, 자신이 쓸 수 있는 암호 방식 목록과 키 합의에 쓸 공개값을 보냅니다. 이 메시지는 암호화되지 않았습니다.</li>
+<li>브라우저가 https://shop.example에 접속합니다. TCP 연결이 맺어진 뒤, 자신이 쓸 수 있는 암호 방식 목록과 키 합의에 쓸 공개값을 보냅니다. 이 메시지는 암호화되지 않았습니다.</li>
 <li>서버가 암호 방식을 하나 고르고 자신의 키 합의용 공개값을 보냅니다. 양쪽은 서로의 공개값과 자신의 비밀값을 조합해 같은 값을 계산해 냅니다. 중간에서 공개값만 엿본 사람은 이 값을 계산할 수 없습니다.</li>
-<li>이 값에서 대칭키를 만들어 냅니다. 키 자체는 네트워크로 한 번도 전송되지 않았습니다. 이후의 핸드셰이크 메시지부터 암호화됩니다.</li>
+<li>양쪽이 계산한 같은 값에서 대칭키를 만들어 냅니다. 키 자체는 네트워크로 한 번도 전송되지 않았습니다. 이후의 핸드셰이크 메시지부터 암호화됩니다.</li>
 <li>서버가 인증서를 보냅니다. 인증서에는 도메인 이름, 서버의 공개키, 유효 기간, 그리고 이 내용을 인증 기관(CA)이 자신의 개인키로 서명한 값이 들어 있습니다.</li>
 <li>브라우저가 인증서를 검증합니다. 신뢰하는 인증 기관의 서명이 맞고, 유효 기간 안이며, 도메인이 shop.example과 일치합니다. 이 공개키는 진짜 shop.example의 것이라고 믿을 수 있습니다.</li>
 <li>서버가 지금까지 주고받은 내용을 자신의 개인키로 서명해 보냅니다. 브라우저는 인증서의 공개키로 이 서명을 확인합니다. 인증서는 누구나 복사할 수 있지만, 서명은 짝이 되는 개인키를 가진 진짜 서버만 만들 수 있습니다.</li>
@@ -169,6 +169,6 @@ server:
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0ccd62bc42"></script>
+<script src="../../app.js?v=73594cd158"></script>
 </body>
 </html>
