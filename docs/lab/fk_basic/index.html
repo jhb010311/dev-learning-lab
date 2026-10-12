@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=494a5399e5">
+<link rel="stylesheet" href="../../app.css?v=8e441c75a7">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -90,7 +90,7 @@ DELETE FROM member WHERE id = 1;
 SELECT * FROM orders ORDER BY id;</pre>
 <h2>이 모형의 전제</h2>
 <p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했습니다. 여섯 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 글자 그대로 한 문장씩 실행했고, 문장 하나가 거부되어도 다음 문장은 계속 실행했습니다. 둘째 주문의 INSERT와 회원 1을 지우는 DELETE가 받아들여졌는지 거부됐는지와 오류의 종류(H2의 SQLSTATE 23506은 INSERT가 외래 키를 어김, 23503은 DELETE가 참조하는 행을 지우려 함), 마지막 SELECT 결과를 모형과 대조했습니다. &quot;없는 회원을 가리키는 주문&quot;은 화면의 코드에 없는 확인용 문장 SELECT COUNT(*) FROM orders o LEFT JOIN member m ON o.member_id = m.id WHERE o.member_id IS NOT NULL AND m.id IS NULL을 Probe가 마지막에 따로 실행해 센 값입니다. 화면의 코드는 열 정의 옆에 REFERENCES만 적는 모양이 아니라 FOREIGN KEY (member_id) REFERENCES member(id) 줄을 따로 쓰는 모양입니다. MySQL 8.4 문서(1.7.2.3절 FOREIGN KEY Constraint Differences와 15.1.20절 CREATE TABLE의 Indexes, Foreign Keys, and CHECK Constraints)가 열 정의 옆에 적은 REFERENCES를 해석만 하고 무시하며 별도의 FOREIGN KEY 줄에 적은 것만 받아들인다고 하기 때문입니다. H2는 두 모양을 모두 외래 키로 받아들이는 것을 따로 확인했습니다. MySQL 8.4 문서의 15.1.20.5절 FOREIGN KEY Constraints를 직접 열어, 외래 키 제약은 자식 테이블에 정의하며, 부모 테이블에 짝이 되는 값이 없는 값을 자식 테이블에 만드는 INSERT와 UPDATE는 거부되고, ON DELETE를 적지 않으면 기본 동작은 NO ACTION이며 InnoDB에서는 RESTRICT와 같이 부모 행의 삭제가 즉시 거부된다는 것을 확인했습니다. 외래 키 열이 NULL이면 부모에 짝이 없어도 INSERT가 가능하다는 것은 15.1.20절과 1.7.2.3절의 MATCH 설명(MATCH SIMPLE은 외래 키가 NULL인 것을 허용)을 따랐습니다. 오류의 번호와 메시지의 글자는 DB마다 다르므로 화면에는 종류만 적었습니다. MySQL에서의 실행 대조는 하지 않았습니다. 그래서 위 규칙은 문서와 H2 실행이 일치한다는 근거이고, MySQL이 같은 SQL에서 같은 결과를 내는지는 실행으로 확인하지 않았습니다. FOREIGN KEY 줄이 없는 테이블이 없는 회원 번호를 받아들이고 회원 삭제를 막지 않는 것은 H2에서 관찰한 동작입니다. 이 실습은 외래 키의 기본 동작(거부)만 다루며, ON DELETE CASCADE 같은 참조 동작, UPDATE, NOT NULL, 복합 외래 키는 다루지 않습니다.</p>
-<p>앞 실습: <a href="../../lab/pk_basic/">기본 키</a> · 다음 실습: <a href="../../lab/http_basic/">HTTP 요청</a></p>
+<p>앞 실습: <a href="../../lab/pk_basic/">기본 키</a> · 다음 실습: <a href="../../lab/where_basic/">WHERE</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -176,6 +176,6 @@ SELECT * FROM orders ORDER BY id;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=494a5399e5"></script>
+<script src="../../app.js?v=8e441c75a7"></script>
 </body>
 </html>

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHERE: WHERE는 무엇을 정하고, 없으면 어떻게 되는가 · 개발 학습 실습실</title>
+<meta name="description" content="WHERE는 SQL 문장 뒤에 붙이는 &quot;WHERE 조건&quot;입니다. UPDATE나 DELETE, SELECT가 테이블의 행 가운데 어느 행에 적용될지를 정합니다. DB는 행을 하나씩 보며 조건이 맞는지 확인하고, 맞는 행에만 문장을 적용하거나 읽어 옵니다. 이 실습은 문장의 종류…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/where_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/where_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/where_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="WHERE: WHERE는 무엇을 정하고, 없으면 어떻게 되는가 · 개발 학습 실습실">
+<meta property="og:description" content="WHERE는 SQL 문장 뒤에 붙이는 &quot;WHERE 조건&quot;입니다. UPDATE나 DELETE, SELECT가 테이블의 행 가운데 어느 행에 적용될지를 정합니다. DB는 행을 하나씩 보며 조건이 맞는지 확인하고, 맞는 행에만 문장을 적용하거나 읽어 옵니다. 이 실습은 문장의 종류…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/where_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=8e441c75a7">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › DB</p>
+<h1>WHERE</h1>
+<p><b>WHERE는 무엇을 정하고, 없으면 어떻게 되는가</b></p>
+<p>WHERE는 SQL 문장 뒤에 붙이는 &quot;WHERE 조건&quot;입니다. UPDATE나 DELETE, SELECT가 테이블의 행 가운데 어느 행에 적용될지를 정합니다. DB는 행을 하나씩 보며 조건이 맞는지 확인하고, 맞는 행에만 문장을 적용하거나 읽어 옵니다. 이 실습은 문장의 종류와 WHERE의 조건을 바꿔 가며 같은 테이블에서 같은 SQL을 실행해, 몇 행에 문장이 적용되고 마지막에 어떤 행이 남는지를 봅니다. WHERE를 지우면 어떻게 되는지도 봅니다.</p>
+<p>실행으로 대조 · H2 2.4.240에서 열두 가지 조합을 실행해 대조, 규칙은 MySQL 문서와 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>WHERE 절</dt>
+<dd>WHERE 절은 SELECT, UPDATE, DELETE 문 뒤에 붙여 테이블의 행 가운데 어느 행에 그 문장을 적용할지를 정하는 조건이다. DB는 행마다 조건이 참인지 확인하고, 참인 행에만 UPDATE나 DELETE를 적용하거나 SELECT로 읽어 온다. 조건에 맞는 행이 여럿이면 여럿 모두에 적용되고, 하나도 없으면 아무 행에도 적용되지 않으며 그것은 오류가 아니다. WHERE를 적지 않으면 모든 행이 대상이므로, SELECT는 전체를 읽고 UPDATE는 모든 행을 고치고 DELETE는 모든 행을 지운다.</dd>
+<dt>UPDATE와 DELETE</dt>
+<dd>UPDATE는 테이블에 이미 있는 행의 열 값을 새 값으로 고치는 문장이고, DELETE는 행을 지우는 문장이다. 둘 다 어느 행에 적용할지를 WHERE 조건으로 정하며, 실행하면 적용된 행의 수를 돌려준다(JDBC에서는 executeUpdate가 그 수를 돌려준다). WHERE를 적지 않으면 UPDATE는 모든 행을 고치고 DELETE는 모든 행을 지운다. 이때도 문장은 오류 없이 끝나므로, 한 사람만 고치거나 지우려던 문장에서 WHERE를 빠뜨리면 DB가 알려 주지 않는다. DELETE로 행을 모두 지워도 테이블 자체는 남는다.</dd>
+<dt>행과 열</dt>
+<dd>관계형 데이터베이스의 테이블은 표처럼 열과 행으로 이루어진다. 열(컬럼)은 테이블을 만들 때 이름과 타입을 정해 두는 칸의 종류이고, 예를 들어 member 테이블의 id, name이 열이다. 행(레코드)은 그 열들에 값을 채운 한 줄이며, 회원 한 사람의 정보가 행 하나가 된다. INSERT는 행을 하나 추가하고, UPDATE는 WHERE 조건에 맞는 행을 모두 고치며, SELECT는 행을 읽어 온다. 열에 값이 없는 것은 NULL로 나타낸다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — WHERE id = 2가 붙은 UPDATE. 조건에 맞는 id 2의 행만 바뀝니다.</li>
+<li><b>WHERE를 지우면</b> — 조건이 없으면 모든 행이 대상이 되어, UPDATE가 세 행을 다 고칩니다.</li>
+<li><b>조건을 age = 30으로 바꾸면</b> — 맞는 행이 둘이면 둘 모두에 적용됩니다.</li>
+<li><b>맞는 행이 없는 조건이면</b> — 맞는 행이 없으면 아무 행도 바뀌지 않고, 오류도 아닙니다.</li>
+<li><b>DELETE에서 WHERE를 지우면</b> — WHERE 없는 DELETE는 테이블의 모든 행을 지웁니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>CREATE TABLE과 INSERT: DB가 member 테이블을 만들고 행 세 개(김철수, 이영희, 박민수)를 넣습니다. 테이블은 열(id, name, age)과 행(한 사람의 정보 한 줄)으로 이루어집니다. 아래 문장이 적용될 수 있는 행은 이 세 행이 전부입니다.</li>
+<li>UPDATE member SET name = '탈퇴' WHERE id = 2: 이 문장에는 WHERE 조건이 붙어 있습니다(WHERE id = 2). WHERE 뒤의 조건은 &quot;어느 행에 이 문장을 적용할지&quot;를 정합니다. DB는 member 테이블의 행을 하나씩 보며 id가 2인지 확인합니다. 이 확인을 하는 코드를 우리는 쓰지 않았습니다. DB가 문장마다 스스로 합니다.</li>
+<li>DB가 첫 번째 행(1, 김철수, 20)을 봅니다: id가 2인가? 이 행의 id는 1이고 2가 아니므로 &quot;아니요&quot;입니다. 조건에 맞지 않는 행이라 이 행에는 문장을 적용하지 않습니다.</li>
+<li>두 번째 행(2, 이영희, 30): id가 2인가? 이 행의 id는 2이므로 &quot;예&quot;입니다. 조건에 맞는 행입니다.</li>
+<li>세 번째 행(3, 박민수, 30): id가 2인가? 이 행의 id는 3이고 2가 아니므로 &quot;아니요&quot;입니다. 조건에 맞지 않는 행이라 문장을 적용하지 않습니다.</li>
+<li>UPDATE member SET name = '탈퇴' WHERE id = 2: 조건에 맞은 행(id 2)에만 문장을 적용합니다. DB가 그 행의 name을 탈퇴로 바꿉니다. 돌려주는 값(바뀐 행 수)은 1입니다. 맞지 않은 행(id 1, 3)은 그대로입니다.</li>
+<li>SELECT * FROM member ORDER BY id: 이 SELECT에는 WHERE가 없으므로 테이블에 남은 행을 모두 읽습니다. 결과는 (1, 김철수, 20), (2, 탈퇴, 30), (3, 박민수, 30)입니다. id 2인 행의 name만 탈퇴로 바뀌었고 나머지는 그대로입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>WHERE는 문장 뒤에 붙여 &quot;어느 행에 이 문장을 적용할지&quot; 정하는 조건입니다. &quot;WHERE id = 2&quot;를 붙인 UPDATE는 조건에 맞는 id 2의 행만 바꿨습니다.</li>
+<li>DB는 행마다 조건이 맞는지 보고, 맞는 행에만 문장을 적용합니다. 나머지 두 행은 조건에 맞지 않아 그대로입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>CREATE TABLE member (
+    id   INT PRIMARY KEY,
+    name VARCHAR(20),
+    age  INT
+);
+INSERT INTO member VALUES (1, '김철수', 20);
+INSERT INTO member VALUES (2, '이영희', 30);
+INSERT INTO member VALUES (3, '박민수', 30);
+
+-- WHERE: 조건에 맞는 행에만 이 문장을 적용한다
+UPDATE member SET name = '탈퇴' WHERE id = 2;
+SELECT * FROM member ORDER BY id;</pre>
+<h2>이 모형의 전제</h2>
+<p>H2 2.4.240(메모리 DB, JDBC)에서 실행해 대조했습니다. 열두 가지 조합을 모두, 화면의 SQL 전체(주석 줄 포함)를 글자 그대로 한 문장씩 실행해서, 문장이 적용된 행의 수와 어느 행인지(UPDATE는 이름이 바뀐 행, DELETE는 사라진 행, SELECT는 읽힌 행), 오류가 났는지, 마지막 SELECT의 결과를 모형과 대조했습니다. 맞는 행이 없는 조건(WHERE id = 9)과 WHERE가 없는 UPDATE·DELETE가 H2에서 오류 없이 끝난다는 것, WHERE 없는 DELETE 뒤에도 테이블이 남아 마지막 SELECT가 빈 결과를 돌려준다는 것은 이 실행에서 확인했습니다. 규칙은 MySQL 8.4 문서의 UPDATE 문(15.2.17절: WHERE가 있으면 조건에 맞는 행만 고치고 없으면 모든 행을 고친다), DELETE 문(15.2.2절: WHERE가 없으면 모든 행을 지운다), SELECT 문(15.2.13절: WHERE가 없으면 모든 행을 선택한다)을 직접 열어 확인했습니다. 또 MySQL에는 WHERE를 잊은 UPDATE와 DELETE를 막는 safe-updates 모드가 있다는 것을 MySQL 문서(mysql 클라이언트 팁의 Using Safe-Updates Mode)에서 확인했습니다. 이 모드를 켜면 WHERE에 키 조건이 없는 UPDATE와 DELETE는 오류가 나는데, 이 실습은 그 모드를 다루지 않습니다. MySQL에서의 실행 대조는 하지 않았습니다. 그래서 위 규칙은 문서와 H2 실행이 일치한다는 근거이고, MySQL이 같은 SQL에서 같은 결과를 내는지는 실행으로 확인하지 않았습니다. 화면은 DB가 행을 하나씩 보며 조건을 확인하는 모습으로 그렸습니다. 실제 DB는 인덱스를 쓰는 등 구현에 따라 다른 방법으로 맞는 행을 찾을 수 있으며, 실행으로 확인한 것은 어느 행에 문장이 적용되었는가이지 확인 순서가 아닙니다. 문장이 돌려주는 &quot;적용된 행 수&quot;는 이 실습의 UPDATE에서 맞은 행의 이름이 모두 이전과 달라 맞은 행 수와 바뀐 행 수가 같았습니다. 새 값이 이미 같은 행을 DB가 어떻게 세는지는 DB와 드라이버 설정에 따라 다를 수 있어 다루지 않았습니다. 조건은 같음(=) 비교 하나만 다루며, AND·OR, 범위, LIKE, NULL 비교는 다루지 않습니다.</p>
+<p>앞 실습: <a href="../../lab/fk_basic/">외래 키</a> · 다음 실습: <a href="../../lab/http_basic/">HTTP 요청</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=8e441c75a7"></script>
+</body>
+</html>
