@@ -12,10 +12,10 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '서블릿을 직접 작성해 GET만 처리하게 하고 GET /hello?name=철수 요청을 2번 보내면 어떻게 자바 코드에 닿나', d: 'GET /hello를 두 번. 서블릿 객체는 첫 요청 때 한 번만 만들어집니다.', v: { kind: 'plain', req: 'get', impl: 'get', n: 2, startup: false } },
-    { t: '서버가 뜰 때 미리 만들기', q: '서버가 뜰 때 서블릿을 미리 준비해 둔다 (loadOnStartup) 설정을 켜면', d: '준비 작업을 첫 요청이 아니라 서버 시작 때 치릅니다.', v: { kind: 'plain', req: 'get', impl: 'get', n: 2, startup: true } },
+    { t: '서버가 뜰 때 미리 만들기', q: 'loadOnStartup으로 서버가 뜰 때 서블릿을 미리 준비해 두면', d: '준비 작업을 첫 요청이 아니라 서버 시작 때 치릅니다.', v: { kind: 'plain', req: 'get', impl: 'get', n: 2, startup: true } },
     { t: 'doGet만 있는데 POST가 오면', q: '코드는 GET만 처리하는데 브라우저가 POST /hello를 1번 보내면', d: '서블릿까지는 도착하지만 405로 거절됩니다.', v: { kind: 'plain', req: 'post', impl: 'get', n: 1, startup: false } },
-    { t: '만들어 두지 않은 주소', q: '브라우저가 GET /nothing (만들어 두지 않은 주소) 요청을 1번 보내면', d: '맞는 서블릿이 없어 404가 됩니다.', v: { kind: 'plain', req: 'none', impl: 'get', n: 1, startup: false } },
-    { t: '스프링 MVC에서는', q: '만드는 방식을 스프링 MVC (컨트롤러 작성) 쪽으로 바꾸면', d: '서블릿은 DispatcherServlet 하나뿐이고, 그것이 컨트롤러를 불러 줍니다.', v: { kind: 'spring', req: 'get', impl: 'get', n: 2, startup: false } },
+    { t: '만들어 두지 않은 주소', q: '브라우저가 만들어 두지 않은 주소 GET /nothing을 1번 요청하면', d: '맞는 서블릿이 없어 404가 됩니다.', v: { kind: 'plain', req: 'none', impl: 'get', n: 1, startup: false } },
+    { t: '스프링 MVC에서는', q: '스프링 MVC 컨트롤러를 작성해 만들면', d: '서블릿은 DispatcherServlet 하나뿐이고, 그것이 컨트롤러를 불러 줍니다.', v: { kind: 'spring', req: 'get', impl: 'get', n: 2, startup: false } },
   ],
   code: function (c) {
     var both = c.impl === 'both';

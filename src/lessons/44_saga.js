@@ -11,7 +11,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '주문 흐름에서 재고 차감 단계가 실패하면 어떻게 처리되나', d: '재고 차감에서 실패. 결제와 주문을 거꾸로 되돌립니다.', v: { part: 'saga', fail: 'stock', pub: 'after' } },
     { t: '마지막 단계에서 실패', q: '실패하는 단계를 배송 요청으로 바꾸면', d: '배송 요청 실패. 되돌릴 것이 세 개입니다.', v: { part: 'saga', fail: 'ship', pub: 'after' } },
-    { t: '실패 없음', q: '실패하는 단계를 실패 없음으로 바꾸면', d: '네 단계가 차례로 성공합니다.', v: { part: 'saga', fail: 'none', pub: 'after' } },
+    { t: '실패 없음', q: '어느 단계도 실패하지 않으면', d: '네 단계가 차례로 성공합니다.', v: { part: 'saga', fail: 'none', pub: 'after' } },
     { t: '커밋 후 발행하다 서버가 죽으면', q: 'DB 커밋 후에 메시지를 발행하는데 그 사이에 서버가 죽으면', d: '주문은 저장됐는데 이벤트가 나가지 않습니다.', v: { part: 'outbox', fail: 'stock', pub: 'after' } },
     { t: '발행 후 커밋하다 서버가 죽으면', q: '메시지 발행 후에 DB 커밋하는데 그 사이에 서버가 죽으면', d: '이벤트는 나갔는데 주문이 없습니다.', v: { part: 'outbox', fail: 'stock', pub: 'before' } },
     { t: 'Outbox 테이블 사용', q: '주문과 보낼 메시지를 Outbox 테이블에 함께 저장하고 나중에 발행하는데 서버가 죽으면', d: '주문과 "보낼 메시지"를 한 트랜잭션에 저장합니다.', v: { part: 'outbox', fail: 'stock', pub: 'outbox' } },

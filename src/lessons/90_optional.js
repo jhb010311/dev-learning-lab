@@ -10,12 +10,12 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'name에 "kim" 값이 있고 Optional.ofNullable(name) 호출로 만든 opt를 orElse(makeDefault()) 호출로 꺼내면 어떻게 되나', d: '값이 있는데도 makeDefault()가 실행됩니다.', v: { val: 'kim', make: 'nullable', take: 'orElse' } },
-    { t: 'orElseGet으로 바꾸면', q: '값을 꺼내는 방법을 orElseGet(() -> makeDefault()) 방식으로 바꾸면', d: '값이 있으면 makeDefault()가 실행되지 않습니다.', v: { val: 'kim', make: 'nullable', take: 'orElseGet' } },
+    { t: 'orElseGet으로 바꾸면', q: 'orElse(makeDefault()) 대신 orElseGet(() -> makeDefault()) 방식으로 꺼내면', d: '값이 있으면 makeDefault()가 실행되지 않습니다.', v: { val: 'kim', make: 'nullable', take: 'orElseGet' } },
     { t: 'Optional.of에 null을 넣으면', q: 'name을 null로 바꾸고 Optional.of(name) 호출로 만들면', d: 'Optional을 만드는 순간 NullPointerException이 납니다.', v: { val: 'null', make: 'of', take: 'orElse' } },
-    { t: '비어 있는데 get()', q: 'name이 null인데 값을 꺼내는 방법을 get() 호출로 바꾸면', d: 'null이 아니라 NoSuchElementException이 나옵니다.', v: { val: 'null', make: 'nullable', take: 'get' } },
-    { t: '비어 있을 때의 orElseGet', q: 'name이 null인데 값을 꺼내는 방법을 orElseGet(() -> makeDefault()) 방식으로 바꾸면', d: '이때에만 makeDefault()가 실행됩니다.', v: { val: 'null', make: 'nullable', take: 'orElseGet' } },
-    { t: 'map으로 이어 가기 (값 없음)', q: 'name이 null인데 값을 꺼내는 방법을 map으로 이어 간 뒤 orElse("이름 없음") 방식으로 바꾸면', d: 'null 검사를 하지 않아도 예외 없이 끝까지 갑니다.', v: { val: 'null', make: 'nullable', take: 'map' } },
-    { t: 'map으로 이어 가기 (값 있음)', q: 'name에 "kim" 값이 있는데 값을 꺼내는 방법을 map으로 이어 간 뒤 orElse("이름 없음") 방식으로 바꾸면', d: '값에 함수를 차례로 적용합니다.', v: { val: 'kim', make: 'nullable', take: 'map' } },
+    { t: '비어 있는데 get()', q: 'name이 null인데 get() 호출로 꺼내면', d: 'null이 아니라 NoSuchElementException이 나옵니다.', v: { val: 'null', make: 'nullable', take: 'get' } },
+    { t: '비어 있을 때의 orElseGet', q: 'name이 null인데 orElseGet(() -> makeDefault()) 방식으로 꺼내면', d: '이때에만 makeDefault()가 실행됩니다.', v: { val: 'null', make: 'nullable', take: 'orElseGet' } },
+    { t: 'map으로 이어 가기 (값 없음)', q: 'name이 null인데 map으로 이어 간 뒤 orElse("이름 없음") 방식으로 꺼내면', d: 'null 검사를 하지 않아도 예외 없이 끝까지 갑니다.', v: { val: 'null', make: 'nullable', take: 'map' } },
+    { t: 'map으로 이어 가기 (값 있음)', q: 'name에 "kim" 값이 있는데 map으로 이어 간 뒤 orElse("이름 없음") 방식으로 꺼내면', d: '값에 함수를 차례로 적용합니다.', v: { val: 'kim', make: 'nullable', take: 'map' } },
   ],
   code: function (c) {
     var useMd = c.take === 'orElse' || c.take === 'orElseGet';

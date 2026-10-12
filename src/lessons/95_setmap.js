@@ -15,7 +15,7 @@ Lab.register({
     { t: 'HashSet에 작은 정수', q: 'HashSet인데 넣는 값을 작은 정수 3, 1, 2, 1, 5로 바꾸면', d: '정렬해 준 것처럼 보입니다. 넣는 값을 40, 5, 17, 5, 100으로 바꿔 비교해 보세요.', v: { kind: 'hash', data: 'small', shape: 'set' } },
     { t: 'TreeSet에 null', q: 'TreeSet인데 넣는 값을 null이 섞인 문자열 grape, apple, null, apple, fig로 바꾸면', d: '비교할 수 없어 NullPointerException이 납니다.', v: { kind: 'tree', data: 'null', shape: 'set' } },
     { t: 'TreeSet에 직접 만든 객체', q: 'TreeSet인데 넣는 값을 직접 만든 Task 객체(id가 40, 5, 17, 5, 100)로 바꾸면', d: 'Comparable을 구현하지 않은 객체는 ClassCastException이 납니다.', v: { kind: 'tree', data: 'obj', shape: 'set' } },
-    { t: 'LinkedHashMap에 같은 키를 다시', q: 'LinkedHashMap으로 바꾸고 Map(값은 넣은 차례 번호)에 apple을 두 번 넣으면', d: '값만 바뀌고 자리는 처음 넣은 그대로입니다.', v: { kind: 'linked', data: 'words', shape: 'map' } },
+    { t: 'LinkedHashMap에 같은 키를 다시', q: '넣은 차례 번호를 값으로 담는 LinkedHashMap에 apple을 두 번 넣으면', d: '값만 바뀌고 자리는 처음 넣은 그대로입니다.', v: { kind: 'linked', data: 'words', shape: 'map' } },
   ],
   DATA: {
     words: [['s', 'grape'], ['s', 'apple'], ['s', 'date'], ['s', 'apple'], ['s', 'fig']],

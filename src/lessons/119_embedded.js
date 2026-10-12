@@ -15,7 +15,7 @@ Lab.register({
     { t: '처음 설정으로', q: '같은 Address 객체를 두 회원에게 넣고 setCity로 고치면 DB의 행은 어떻게 되나', d: '회원1의 도시만 고쳤는데 회원2의 행까지 UPDATE됩니다.', v: { sc: 'share', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
     { t: '복사해서 넣으면', q: '같은 객체 대신 복사한 객체를 넣고 setCity로 고치면', d: '객체가 따로이므로 회원1의 행만 UPDATE됩니다.', v: { sc: 'share', tb: 'emb', sh: 'copy', ct: 'list', op: 'mod', n: 3 } },
     { t: '값 타입을 불변으로 만들면', q: 'Address를 불변으로 만들고 member1.setAddress에 새 Address 객체를 갈아 끼우면', d: 'setter가 없어서 함께 쓰는 객체를 고칠 방법이 없습니다.', v: { sc: 'share', tb: 'emb', sh: 'fixed', ct: 'list', op: 'mod', n: 3 } },
-    { t: '임베디드 타입의 테이블', q: '볼 장면을 임베디드 타입의 저장 모습으로 바꿔 Address를 가진 김철수를 persist하면', d: 'Address 테이블은 생기지 않고 member 테이블의 컬럼이 됩니다.', v: { sc: 'table', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
+    { t: '임베디드 타입의 테이블', q: '임베디드 타입 Address를 가진 김철수를 persist하면', d: 'Address 테이블은 생기지 않고 member 테이블의 컬럼이 됩니다.', v: { sc: 'table', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
     { t: '같은 값 타입을 두 번 쓰면', q: 'Address를 homeAddress와 workAddress로 두 번 쓰고 컬럼 이름을 바꾸지 않으면', d: '컬럼 이름이 겹쳐서 시작할 때 예외가 납니다.', v: { sc: 'table', tb: 'two', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
     { t: '값 타입 컬렉션에서 하나만 바꾸면', q: '이미 주소 3개가 저장된 값 타입 컬렉션 List에서 서울을 빼고 제주를 넣으면', d: '그 회원의 주소를 전부 지우고 다시 넣습니다.', v: { sc: 'coll', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
     { t: 'Set이고 컬럼이 모두 NOT NULL이면', q: '컬렉션이 List가 아니라 컬럼이 모두 NOT NULL인 Set인데 서울을 빼고 제주를 넣으면', d: '바뀐 행 하나만 지우고 넣습니다.', v: { sc: 'coll', tb: 'emb', sh: 'same', ct: 'setnn', op: 'mod', n: 3 } },

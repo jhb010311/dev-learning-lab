@@ -9,17 +9,17 @@ Lab.register({
     { id: 'peek', label: '다른 사용자가 중간에 두 계좌의 합계를 조회한다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', q: '트랜잭션 없이 (문장마다 바로 확정) 돌리다 출금과 입금 사이에 애플리케이션에서 오류(예외)가 발생하면 어떻게 되나', d: '트랜잭션 없이 중간에 오류. 1,000원이 사라집니다.', v: { mode: 'auto', fail: 'ex', peek: false } },
-    { t: '트랜잭션으로 묶으면', q: '실행 방식을 두 문장을 트랜잭션으로 묶음 쪽으로 바꾸면', d: '같은 오류에서 출금까지 취소됩니다.', v: { mode: 'tx', fail: 'ex', peek: false } },
-    { t: '묶은 상태에서 서버가 꺼지면', q: '실행 방식을 두 문장을 트랜잭션으로 묶음으로 바꾸고 출금과 입금 사이에 서버가 꺼지면', d: '커밋하지 않은 변경은 남지 않습니다.', v: { mode: 'tx', fail: 'crash', peek: false } },
-    { t: '문제가 없을 때', q: '실행 방식을 두 문장을 트랜잭션으로 묶음으로 바꾸고 출금과 입금 사이에 아무 일 없으면', d: '어느 방식이든 결과는 같습니다.', v: { mode: 'tx', fail: 'none', peek: false } },
-    { t: '중간에 다른 사람이 조회하면', q: '출금과 입금 사이에 아무 일이 없는데 다른 사용자가 중간에 두 계좌의 합계를 조회하면', d: '트랜잭션 없이: 합계가 1,000원 모자란 순간이 보입니다.', v: { mode: 'auto', fail: 'none', peek: true } },
-    { t: '묶은 상태에서 중간 조회', q: '두 문장을 트랜잭션으로 묶고 아무 일 없는데 다른 사용자가 중간에 두 계좌의 합계를 조회하면', d: '커밋 전의 변경은 다른 사람에게 보이지 않습니다.', v: { mode: 'tx', fail: 'none', peek: true } },
+    { t: '처음 설정으로', q: '트랜잭션 없이 문장마다 바로 확정하다가 출금과 입금 사이에 애플리케이션에서 오류(예외)가 발생하면 어떻게 되나', d: '트랜잭션 없이 중간에 오류. 1,000원이 사라집니다.', v: { mode: 'auto', fail: 'ex', peek: false } },
+    { t: '트랜잭션으로 묶으면', q: '두 문장을 트랜잭션으로 묶으면', d: '같은 오류에서 출금까지 취소됩니다.', v: { mode: 'tx', fail: 'ex', peek: false } },
+    { t: '묶은 상태에서 서버가 꺼지면', q: '두 문장을 트랜잭션으로 묶은 상태에서 출금과 입금 사이에 서버가 꺼지면', d: '커밋하지 않은 변경은 남지 않습니다.', v: { mode: 'tx', fail: 'crash', peek: false } },
+    { t: '문제가 없을 때', q: '두 문장을 트랜잭션으로 묶은 상태에서 출금과 입금 사이에 아무 일도 없으면', d: '어느 방식이든 결과는 같습니다.', v: { mode: 'tx', fail: 'none', peek: false } },
+    { t: '중간에 다른 사람이 조회하면', q: '출금과 입금 사이에 아무 일도 없는데 다른 사용자가 중간에 두 계좌의 합계를 조회하면', d: '트랜잭션 없이: 합계가 1,000원 모자란 순간이 보입니다.', v: { mode: 'auto', fail: 'none', peek: true } },
+    { t: '묶은 상태에서 중간 조회', q: '두 문장을 트랜잭션으로 묶고 아무 일도 없는데 다른 사용자가 중간에 두 계좌의 합계를 조회하면', d: '커밋 전의 변경은 다른 사람에게 보이지 않습니다.', v: { mode: 'tx', fail: 'none', peek: true } },
   ],
   code: function (c) {
-    var w = "UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- 출금\n", d = "UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- 입금\n", gap = c.fail === 'ex' ? '-- (여기서 애플리케이션 오류 발생)\n' : c.fail === 'crash' ? '-- (여기서 서버가 꺼짐)\n' : '';
-    if (c.mode === 'auto') return '-- 자동 커밋: 문장 하나가 끝날 때마다 바로 확정된다\n' + w + gap + (c.fail === 'none' ? d : '-- 입금 문장은 실행되지 못함');
-    return 'START TRANSACTION;\n' + w + gap + (c.fail === 'none' ? d + 'COMMIT;      -- 여기서 둘 다 한꺼번에 확정' : c.fail === 'ex' ? 'ROLLBACK;    -- 오류를 감지하고 지금까지 한 것을 전부 취소' : '-- COMMIT에 도달하지 못함 → DB가 알아서 취소');
+    var w = "UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- 출금\n", d = "UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- 입금\n", gap = c.fail === 'ex' ? '-- (여기서 애플리케이션 오류 발생)\n' : c.fail === 'crash' ? '-- (여기서 서버가 꺼짐)\n' : '', skip = "-- UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- 입금: 실행되지 못함";
+    if (c.mode === 'auto') return '-- 자동 커밋: 문장 하나가 끝날 때마다 바로 확정된다\n' + w + gap + (c.fail === 'none' ? d : skip);
+    return 'START TRANSACTION;\n' + w + gap + (c.fail === 'none' ? d + 'COMMIT;      -- 여기서 둘 다 한꺼번에 확정' : skip + '\n' + (c.fail === 'ex' ? 'ROLLBACK;    -- 오류를 감지하고 지금까지 한 것을 전부 취소' : '-- COMMIT에 도달하지 못함 → DB가 알아서 취소'));
   },
   label: function (c) { return (c.mode === 'auto' ? '트랜잭션 없음' : '트랜잭션') + ' · ' + { none: '문제 없음', ex: '중간에 오류', crash: '중간에 서버 꺼짐' }[c.fail] + (c.peek ? ' · 중간 조회' : ''); },
   columns: ['최종 A', '최종 B', '합계 (처음 6,000)', '중간에 다른 사람이 본 합계'],

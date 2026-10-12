@@ -16,7 +16,7 @@ Lab.register({
     { t: 'liveness로 물으면', q: '요청하는 주소를 GET /actuator/health/liveness로 바꾸면', d: 'pay가 DOWN이어도 200 UP입니다. liveness 그룹은 pay를 묻지 않습니다.', v: { pay: 'DOWN', path: 'liveness', details: 'never', ready: false } },
     { t: 'readiness로 물으면', q: '요청하는 주소를 GET /actuator/health/readiness로 바꾸면', d: 'readiness 그룹도 기본으로는 pay를 묻지 않습니다. 역시 200 UP입니다.', v: { pay: 'DOWN', path: 'readiness', details: 'never', ready: false } },
     { t: 'readiness 그룹에 pay를 넣으면', q: 'GET /actuator/health/readiness로 묻고 readiness 그룹에 pay를 넣으면', d: '이제 pay가 DOWN이면 readiness도 503이 됩니다.', v: { pay: 'DOWN', path: 'readiness', details: 'never', ready: true } },
-    { t: 'UNKNOWN은 UP에 밀린다', q: 'pay 구성 요소가 UNKNOWN을 답하고 show-details를 always로 바꾸면', d: 'pay가 "알 수 없음"을 답해도 전체 상태는 UP이고 200입니다.', v: { pay: 'UNKNOWN', path: 'health', details: 'always', ready: false } },
+    { t: 'UNKNOWN은 UP에 밀린다', q: 'pay 구성 요소가 UNKNOWN으로 답하고 show-details를 always로 바꾸면', d: 'pay가 "알 수 없음"을 답해도 전체 상태는 UP이고 200입니다.', v: { pay: 'UNKNOWN', path: 'health', details: 'always', ready: false } },
   ],
   PATHS: { health: '/actuator/health', liveness: '/actuator/health/liveness', readiness: '/actuator/health/readiness' },
   COMPS: [['livenessState', '고장 없이 돌고 있는가'], ['readinessState', '요청을 받을 준비가 됐는가'], ['pay', '결제사에 연결되는가']],

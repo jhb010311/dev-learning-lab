@@ -11,11 +11,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '캐시 TTL이 10초이고 초당 5건 요청에 DB 조회가 1초 걸리면 요청은 DB로 어떻게 가나', d: 'TTL 10초. 만료될 때마다 여러 요청이 한꺼번에 DB로 갑니다.', v: { ttl: '10', rps: 5, dbt: '1', lock: false } },
-    { t: '캐시가 없다면', q: '캐시 TTL을 캐시 없음으로 바꾸면', d: '모든 요청이 DB를 조회합니다.', v: { ttl: '0', rps: 5, dbt: '1', lock: false } },
+    { t: '캐시가 없다면', q: '캐시를 없애면', d: '모든 요청이 DB를 조회합니다.', v: { ttl: '0', rps: 5, dbt: '1', lock: false } },
     { t: '요청이 많고 DB가 느릴 때', q: '초당 요청 수를 20건으로, DB 조회에 걸리는 시간을 2초로 바꾸면', d: '만료 순간 수십 개의 요청이 동시에 DB를 때립니다(캐시 스탬피드).', v: { ttl: '10', rps: 20, dbt: '2', lock: false } },
     { t: '같은 상황에 락 적용', q: '초당 20건에 DB 조회가 2초 걸리는데 캐시가 비었을 때 한 요청만 DB를 조회하게 하면', d: '한 요청만 DB에 가고 나머지는 그 결과를 기다립니다.', v: { ttl: '10', rps: 20, dbt: '2', lock: true } },
     { t: 'TTL을 5초로 줄이면', q: '캐시 TTL을 5초로 바꾸면', d: '데이터는 더 최신이지만 DB 조회가 늘어납니다.', v: { ttl: '5', rps: 5, dbt: '1', lock: false } },
-    { t: 'TTL을 길게', q: '캐시 TTL을 만료 없는 30초 이상으로 바꾸면', d: 'DB 조회는 처음 캐시를 채울 때뿐입니다. 대신 원본이 바뀌어도 오래 모릅니다.', v: { ttl: '30', rps: 5, dbt: '1', lock: false } },
+    { t: 'TTL을 길게', q: '캐시 TTL을 30초 이상으로 늘려 만료되지 않게 하면', d: 'DB 조회는 처음 캐시를 채울 때뿐입니다. 대신 원본이 바뀌어도 오래 모릅니다.', v: { ttl: '30', rps: 5, dbt: '1', lock: false } },
   ],
   code: function (c) {
     if (c.ttl === '0') return 'public Product getProduct(long id) {\n    return productRepository.findById(id);   // 매번 DB 조회 (' + c.dbt + '초)\n}';

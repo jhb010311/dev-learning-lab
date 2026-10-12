@@ -12,7 +12,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '두 번째 String을 new String("hello") 방식으로 만들어 ==와 equals로 비교하면 어떻게 나오나', d: '리터럴과 new String. 내용은 같지만 ==는 false입니다.', v: { kind: 'str', sb: 'new', iv: '127', ib: 'box' } },
     { t: '리터럴끼리', q: '두 번째 문자열을 new String 대신 리터럴 hello로 바꾸면', d: '같은 리터럴은 String Pool의 같은 객체를 씁니다.', v: { kind: 'str', sb: 'lit', iv: '127', ib: 'box' } },
-    { t: '변수와 결합한 문자열', q: '두 번째 문자열을 변수와 결합한 part + lo 방식으로 바꾸면', d: '실행 중에 만들어진 문자열은 풀에 있는 것과 다른 객체입니다.', v: { kind: 'str', sb: 'concat', iv: '127', ib: 'box' } },
+    { t: '변수와 결합한 문자열', q: '두 번째 문자열을 part + "lo"처럼 변수와 결합해 만들면', d: '실행 중에 만들어진 문자열은 풀에 있는 것과 다른 객체입니다.', v: { kind: 'str', sb: 'concat', iv: '127', ib: 'box' } },
     { t: 'intern()을 부르면', q: '두 번째 문자열을 만들 때 new String("hello") 방식에 intern 메서드 호출을 덧붙이면', d: '풀에 있는 객체를 돌려받아 ==가 true가 됩니다.', v: { kind: 'str', sb: 'intern', iv: '127', ib: 'box' } },
     { t: 'Integer 127', q: '비교할 타입을 Integer로 바꿔 127을 비교하면', d: '==가 true입니다.', v: { kind: 'int', sb: 'new', iv: '127', ib: 'box' } },
     { t: 'Integer 128', q: '비교할 타입을 Integer로, 값을 128로 바꾸면', d: '값만 1 늘렸는데 ==가 false가 됩니다.', v: { kind: 'int', sb: 'new', iv: '128', ib: 'box' } },
@@ -29,7 +29,7 @@ Lab.register({
   columns: ['a == b', 'a.equals(b)', '같은 객체인가'],
   same: function (c) { return c.kind === 'str' ? (c.sb === 'lit' || c.sb === 'intern' || c.sb === 'const') : (c.ib === 'prim' || c.iv === '127'); },
   simulate: function (c) {
-    var ev = [], same = this.same(c), sum = [], objs = [], A, B;
+    var ev = [], same = this.same(c), sum = [], objs = [], A, B; var J = function (v, a, b) { var s = String(v), ch = s.charCodeAt(s.length - 1), k = ch >= 0xAC00 && ch <= 0xD7A3 ? (ch - 0xAC00) % 28 : [1, 8, 0, 1, 0, 0, 1, 8, 8, 0]['0123456789'.indexOf(s.slice(-1))] || 0; return s + (a === '으로' ? (k && k !== 8 ? a : b) : k ? a : b); };   // 값 뒤에 붙일 조사를 고른다
     function push(s, k, cmp) { ev.push({ s: s, k: k, snap: { objs: objs.map(function (o) { return { id: o.id, where: o.where, val: o.val, by: o.by.slice() }; }), a: A, b: B, cmp: cmp || {} } }); }
     function obj(where, val) { var o = { id: objs.length + 1, where: where, val: val, by: [] }; objs.push(o); return o; }
     if (c.kind === 'str') {
@@ -48,7 +48,7 @@ Lab.register({
       else { var ib = obj('힙', c.iv); ib.by.push('b'); B = '객체 ' + ib.id; push('Integer b = 128: 캐시 범위 밖이므로 또 다른 Integer 객체를 새로 만듭니다. 값은 같지만 a와는 다른 객체입니다.', ''); }
     }
     var prim = c.kind === 'int' && c.ib === 'prim';
-    push(prim ? 'a == b: 한쪽이 기본형 int이므로 Integer인 a에서 값을 꺼내(언박싱) 숫자끼리 비교합니다. ' + c.iv + ' == ' + c.iv + '이므로 true입니다.' : 'a == b: 두 변수가 가리키는 대상이 같은지 비교합니다. a는 ' + A + ', b는 ' + B + '를 가리키므로 ' + same + '입니다.', same ? 'good' : 'bad', { eq: String(same) });
+    push(prim ? 'a == b: 한쪽이 기본형 int이므로 Integer인 a에서 값을 꺼내(언박싱) 숫자끼리 비교합니다. ' + c.iv + ' == ' + c.iv + '이므로 true입니다.' : 'a == b: 두 변수가 가리키는 대상이 같은지 비교합니다. a는 ' + A + ', b는 ' + J(B, '을', '를') + ' 가리키므로 ' + same + '입니다.', same ? 'good' : 'bad', { eq: String(same) });
     push('a.equals(b): 객체 안의 값을 비교합니다. 내용이 같으므로 true입니다.', 'good', { eq: String(same), equals: 'true' });
     if (c.kind === 'str') { sum.push(same ? '두 변수가 String Pool의 같은 객체를 가리켜서 ==도 true가 나왔습니다. 하지만 이것은 만드는 방법에 따라 달라지는 우연에 가깝습니다.' : '내용은 같지만 서로 다른 객체라서 ==는 false입니다.'); sum.push('문자열 내용을 비교할 때는 항상 equals를 씁니다. DB나 요청에서 읽어 온 문자열은 리터럴이 아니므로 ==로 비교하면 대부분 false가 됩니다.'); }
     else { sum.push(prim ? 'Integer와 int를 ==로 비교하면 언박싱되어 값 비교가 됩니다. 단, Integer가 null이면 언박싱하다가 NullPointerException이 납니다.' : c.iv === '127' ? 'Integer.valueOf는 -128부터 127까지의 객체를 캐시해 두고 재사용합니다. 그래서 이 범위에서는 ==가 true로 나옵니다.' : '128은 캐시 범위를 벗어나 매번 새 객체가 만들어집니다. 테스트에서는 작은 수만 써서 통과하다가, 운영에서 ID가 커지면 비교가 틀어지는 버그의 원인입니다.'); sum.push('래퍼 타입(Integer, Long)끼리의 값 비교는 equals로 합니다.'); }

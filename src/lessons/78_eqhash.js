@@ -9,11 +9,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'equals만 재정의한 Order 클래스에서 id가 둘 다 1인 객체를 HashMap에서 왜 못 찾나', d: 'equals만 재정의. equals는 true인데 map에서 꺼내면 null입니다.', v: { how: 'eq', same: 'same' } },
-    { t: '둘 다 재정의', q: 'Order 클래스가 재정의한 메서드를 equals와 hashCode 둘 다로 바꾸면', d: '내용이 같은 객체로 꺼낼 수 있습니다.', v: { how: 'both', same: 'same' } },
-    { t: '아무것도 재정의하지 않으면', q: 'Order 클래스가 재정의한 메서드를 아무것도 재정의하지 않음 쪽으로 바꾸면', d: '내용이 같아도 서로 다른 객체로 취급됩니다.', v: { how: 'none', same: 'same' } },
-    { t: 'hashCode만 재정의', q: 'Order 클래스가 재정의한 메서드를 hashCode만 재정의 쪽으로 바꾸면', d: '같은 자리까지는 찾아가지만 equals가 false라서 못 찾습니다.', v: { how: 'hash', same: 'same' } },
-    { t: 'record로 선언', q: 'Order를 record로 선언 (둘 다 자동 생성) 쪽으로 바꾸면', d: '둘 다 자동으로 만들어 줍니다.', v: { how: 'record', same: 'same' } },
-    { t: 'hashCode가 항상 같은 값', q: 'equals 재정의 + hashCode가 항상 42 쪽으로 바꾸고 두 객체의 id를 1과 2 (내용이 다름) 쪽으로 바꾸면', d: '규약은 지키지만 모든 객체가 한 자리에 몰립니다.', v: { how: 'const', same: 'diff' } },
+    { t: '둘 다 재정의', q: 'Order 클래스가 equals와 hashCode를 둘 다 재정의하면', d: '내용이 같은 객체로 꺼낼 수 있습니다.', v: { how: 'both', same: 'same' } },
+    { t: '아무것도 재정의하지 않으면', q: 'Order 클래스가 아무것도 재정의하지 않으면', d: '내용이 같아도 서로 다른 객체로 취급됩니다.', v: { how: 'none', same: 'same' } },
+    { t: 'hashCode만 재정의', q: 'Order 클래스가 hashCode만 재정의하면', d: '같은 자리까지는 찾아가지만 equals가 false라서 못 찾습니다.', v: { how: 'hash', same: 'same' } },
+    { t: 'record로 선언', q: 'Order를 record로 선언하면', d: '둘 다 자동으로 만들어 줍니다.', v: { how: 'record', same: 'same' } },
+    { t: 'hashCode가 항상 같은 값', q: 'equals를 재정의하고 hashCode가 항상 42를 돌려주게 한 채 두 객체의 id를 1과 2로 바꾸면', d: '규약은 지키지만 모든 객체가 한 자리에 몰립니다.', v: { how: 'const', same: 'diff' } },
   ],
   code: function (c) {
     var b = c.same === 'same' ? 1 : 2;

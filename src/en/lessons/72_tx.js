@@ -17,9 +17,9 @@ Lab.register({
     { t: 'A query partway through a transaction', q: 'What if you group the two statements in a transaction, nothing happens, and another user queries the total partway through?', d: 'Changes that are not committed yet are not visible to others.', v: { mode: 'tx', fail: 'none', peek: true } },
   ],
   code: function (c) {
-    var w = "UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- withdrawal\n", d = "UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- deposit\n", gap = c.fail === 'ex' ? '-- (an application error occurs here)\n' : c.fail === 'crash' ? '-- (the server crashes here)\n' : '';
-    if (c.mode === 'auto') return '-- Autocommit: each statement is made permanent as soon as it finishes\n' + w + gap + (c.fail === 'none' ? d : '-- the deposit statement never runs');
-    return 'START TRANSACTION;\n' + w + gap + (c.fail === 'none' ? d + 'COMMIT;      -- both are made permanent together here' : c.fail === 'ex' ? 'ROLLBACK;    -- the error is detected and everything done so far is undone' : '-- COMMIT is never reached → the DB undoes the changes on its own');
+    var w = "UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- withdrawal\n", d = "UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- deposit\n", gap = c.fail === 'ex' ? '-- (an application error occurs here)\n' : c.fail === 'crash' ? '-- (the server crashes here)\n' : '', skip = "-- UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- deposit: never runs";
+    if (c.mode === 'auto') return '-- Autocommit: each statement is made permanent as soon as it finishes\n' + w + gap + (c.fail === 'none' ? d : skip);
+    return 'START TRANSACTION;\n' + w + gap + (c.fail === 'none' ? d + 'COMMIT;      -- both are made permanent together here' : skip + '\n' + (c.fail === 'ex' ? 'ROLLBACK;    -- the error is detected and everything done so far is undone' : '-- COMMIT is never reached → the DB undoes the changes on its own'));
   },
   label: function (c) { return (c.mode === 'auto' ? 'No transaction' : 'Transaction') + ' · ' + { none: 'no problem', ex: 'error partway through', crash: 'server crash partway through' }[c.fail] + (c.peek ? ' · query partway through' : ''); },
   columns: ['Final A', 'Final B', 'Total (6,000 at first)', 'Total that someone else saw partway through'],

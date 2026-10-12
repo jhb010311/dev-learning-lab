@@ -12,9 +12,9 @@ Lab.register({
     { t: '식별자만 읽으면', q: 'm의 이름 대신 식별자 getId만 읽으면', d: '프록시가 이미 알고 있는 값이라 SQL이 나가지 않습니다.', v: { how: 'ref', use: 'id' } },
     { t: '지연 로딩으로 받은 회원', q: 'em.getReference 대신 주문을 조회한 뒤 order.getMember로 지연 로딩된 회원을 얻으면', d: 'order.getMember()가 돌려주는 것도 프록시입니다.', v: { how: 'lazy', use: 'name' } },
     { t: '영속성 컨텍스트를 닫은 뒤', q: '지연 로딩으로 얻은 회원 m의 이름을 영속성 컨텍스트를 닫은 뒤 읽으면', d: '비어 있는 프록시를 채울 길이 없어 예외가 납니다.', v: { how: 'lazy', use: 'closed' } },
-    { t: 'getClass()로 비교하면', q: 'm의 getClass를 Member.class와 == 로 비교하면', d: '프록시의 클래스는 Member가 아니라서 false입니다.', v: { how: 'ref', use: 'cls' } },
+    { t: 'getClass()로 비교하면', q: 'm의 getClass를 Member.class와 ==로 비교하면', d: '프록시의 클래스는 Member가 아니라서 false입니다.', v: { how: 'ref', use: 'cls' } },
     { t: '이미 읽어 둔 회원이 있으면', q: 'em.find로 먼저 읽은 뒤 em.getReference로 얻은 m의 getClass를 Member.class와 비교하면', d: 'getReference가 프록시가 아니라 진짜 엔티티를 돌려줍니다.', v: { how: 'findref', use: 'cls' } },
-    { t: '프록시를 먼저 받았다면', q: 'em.getReference를 먼저 하고 뒤에 em.find로 얻은 m의 getClass를 Member.class와 비교하면', d: '뒤에 부른 em.find도 그 프록시를 돌려줍니다.', v: { how: 'reffind', use: 'cls' } },
+    { t: '프록시를 먼저 받았다면', q: 'em.getReference를 먼저 한 뒤 em.find로 얻은 m의 getClass를 Member.class와 비교하면', d: '뒤에 부른 em.find도 그 프록시를 돌려줍니다.', v: { how: 'reffind', use: 'cls' } },
   ],
   lines: function (c) {
     var a = { ref: ['Member m = em.getReference(Member.class, 1L);'], lazy: ['Order order = em.find(Order.class, 1L);', 'Member m = order.getMember();'], find: ['Member m = em.find(Member.class, 1L);'], findref: ['Member found = em.find(Member.class, 1L);', 'Member m = em.getReference(Member.class, 1L);'], reffind: ['Member ref = em.getReference(Member.class, 1L);', 'Member m = em.find(Member.class, 1L);'] }[c.how];

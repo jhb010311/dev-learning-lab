@@ -10,10 +10,10 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '조회 후 수정만 하고 아무 장치 없이 재고 3개에 주문 4건이 동시에 들어오면 어떻게 되나', d: '장치 없음. 재고 3개에 주문 4건이 전부 성공합니다.', v: { how: 'none', s: 3, n: 4 } },
-    { t: '비관적 락', q: '동시 수정을 다루는 방법을 비관적 락으로 바꾸면', d: '한 번에 하나씩만 재고 행을 읽고 고칩니다. 나머지는 줄을 섭니다.', v: { how: 'pess', s: 3, n: 4 } },
-    { t: '낙관적 락', q: '동시 수정을 다루는 방법을 낙관적 락으로 바꾸면', d: '일단 진행하고, 저장할 때 누가 먼저 바꿨으면 실패시킵니다.', v: { how: 'opt', s: 3, n: 4 } },
-    { t: '조건을 넣은 UPDATE', q: '동시 수정을 다루는 방법을 조건을 넣은 UPDATE 한 문장으로 바꾸면', d: '확인과 감소를 SQL 한 문장으로 합칩니다.', v: { how: 'atomic', s: 3, n: 4 } },
-    { t: '낙관적 락에 주문이 몰리면', q: '낙관적 락으로 바꾸고 처음 재고를 5개, 동시에 들어오는 주문을 6건으로 바꾸면', d: '6건이 경쟁합니다. 재시도 횟수를 보세요.', v: { how: 'opt', s: 5, n: 6 } },
+    { t: '비관적 락', q: '비관적 락으로 동시 수정을 다루면', d: '한 번에 하나씩만 재고 행을 읽고 고칩니다. 나머지는 줄을 섭니다.', v: { how: 'pess', s: 3, n: 4 } },
+    { t: '낙관적 락', q: '낙관적 락으로 동시 수정을 다루면', d: '일단 진행하고, 저장할 때 누가 먼저 바꿨으면 실패시킵니다.', v: { how: 'opt', s: 3, n: 4 } },
+    { t: '조건을 넣은 UPDATE', q: '조건을 넣은 UPDATE 한 문장으로 동시 수정을 다루면', d: '확인과 감소를 SQL 한 문장으로 합칩니다.', v: { how: 'atomic', s: 3, n: 4 } },
+    { t: '낙관적 락에 주문이 몰리면', q: '낙관적 락을 쓰고 재고 5개에 주문 6건이 동시에 들어오면', d: '6건이 경쟁합니다. 재시도 횟수를 보세요.', v: { how: 'opt', s: 5, n: 6 } },
   ],
   code: function (c) {
     if (c.how === 'none') return '@Transactional\npublic void order(long productId) {\n    Product p = productRepository.findById(productId).orElseThrow();\n    if (p.getStock() <= 0) throw new SoldOutException();\n    p.setStock(p.getStock() - 1);        // 읽은 값에서 1을 뺀다\n    orderRepository.save(new Order(productId));\n}';

@@ -10,11 +10,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'String s에 toUpperCase() 메서드를 부르고 돌려준 값을 받지 않으면 s는 어떻게 되나', d: 'toUpperCase()를 불렀는데 s를 출력하면 그대로입니다.', v: { type: 'str', op: 'drop', m: 'upper' } },
-    { t: '돌려준 값을 받으면', q: '하는 일을 돌려준 값을 같은 변수에 다시 넣음으로 바꾸면', d: 's는 새 문자열을 가리키고, 처음 객체는 그대로 남습니다.', v: { type: 'str', op: 'assign', m: 'upper' } },
-    { t: 'concat도 마찬가지', q: '부르는 메서드를 concat("!") 뒤에 이어 붙이기로 바꾸면', d: '이어 붙이는 메서드도 원본을 바꾸지 않습니다.', v: { type: 'str', op: 'drop', m: 'concat' } },
-    { t: '반복문에서 +로 이어 붙이기', q: '하는 일을 반복문에서 세 번 이어 붙임으로 바꾸면', d: '한 번 돌 때마다 s가 새 객체를 가리킵니다.', v: { type: 'str', op: 'loop', m: 'upper' } },
+    { t: '돌려준 값을 받으면', q: '돌려준 값을 같은 변수에 다시 넣으면', d: 's는 새 문자열을 가리키고, 처음 객체는 그대로 남습니다.', v: { type: 'str', op: 'assign', m: 'upper' } },
+    { t: 'concat도 마찬가지', q: 'toUpperCase() 대신 concat("!") 메서드를 부르면', d: '이어 붙이는 메서드도 원본을 바꾸지 않습니다.', v: { type: 'str', op: 'drop', m: 'concat' } },
+    { t: '반복문에서 +로 이어 붙이기', q: '반복문에서 세 번 이어 붙이면', d: '한 번 돌 때마다 s가 새 객체를 가리킵니다.', v: { type: 'str', op: 'loop', m: 'upper' } },
     { t: 'StringBuilder로 이어 붙이기', q: '문자열을 담는 타입을 StringBuilder로 바꾸고 반복문에서 세 번 이어 붙이면', d: '끝까지 객체 하나를 고쳐 씁니다.', v: { type: 'sb', op: 'loop', m: 'upper' } },
-    { t: 'StringBuilder의 append', q: '문자열을 담는 타입을 StringBuilder로 바꾸고 메서드를 부르고 돌려준 값을 받지 않으면', d: '돌려준 값을 받지 않아도 내용이 바뀝니다.', v: { type: 'sb', op: 'drop', m: 'upper' } },
+    { t: 'StringBuilder의 append', q: 'String 대신 StringBuilder에 메서드를 부르고 돌려준 값을 받지 않으면', d: '돌려준 값을 받지 않아도 내용이 바뀝니다.', v: { type: 'sb', op: 'drop', m: 'upper' } },
   ],
   // 설정에 해당하는 메서드 호출 글자와 그 결과
   call: function (c) {

@@ -13,10 +13,10 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '로그인 응답에 쿠키(Path=/, HttpOnly 켬)를 내려 준 뒤 로그인 직후 요청을 보내면 서버는 무엇을 받나', d: '쿠키가 같은 사이트의 요청마다 자동으로 붙습니다.', v: { give: true, path: '/', http: true, life: 'session', later: 'now' } },
     { t: '쿠키가 없다면', q: '로그인 응답에 쿠키를 내려 주지 않으면', d: '로그인 직후의 요청도 서버는 누구인지 모릅니다.', v: { give: false } },
-    { t: '경로를 /shop으로 좁히면', q: 'Path를 Path=/shop (/shop 아래에서만) 쪽으로 바꾸면', d: '/orders 요청에는 붙지 않습니다.', v: { give: true, path: '/shop', http: true, life: 'session', later: 'now' } },
-    { t: 'HttpOnly를 끄면', q: 'HttpOnly (자바스크립트가 읽지 못하게) 설정을 끄면', d: '페이지의 자바스크립트가 쿠키 값을 읽을 수 있습니다.', v: { give: true, path: '/', http: false, life: 'session', later: 'now' } },
-    { t: '수명 3초, 10초 뒤 요청', q: '수명을 Max-Age=3 (3초) 쪽으로 바꾸고 다음 요청을 10초 뒤에 보내면', d: '만료된 쿠키는 브라우저가 지웁니다.', v: { give: true, path: '/', http: true, life: 'short', later: 'wait' } },
-    { t: '브라우저를 닫았다 열면', q: '다음 요청을 10초 뒤, 브라우저를 닫았다가 다시 열고 보내면', d: '수명을 지정하지 않은 쿠키는 사라집니다. 1시간으로 바꿔 비교해 보세요.', v: { give: true, path: '/', http: true, life: 'session', later: 'restart' } },
+    { t: '경로를 /shop으로 좁히면', q: 'Path=/shop으로 /shop 아래에서만 쿠키를 보내게 하면', d: '/orders 요청에는 붙지 않습니다.', v: { give: true, path: '/shop', http: true, life: 'session', later: 'now' } },
+    { t: 'HttpOnly를 끄면', q: 'HttpOnly를 끄면', d: '페이지의 자바스크립트가 쿠키 값을 읽을 수 있습니다.', v: { give: true, path: '/', http: false, life: 'session', later: 'now' } },
+    { t: '수명 3초, 10초 뒤 요청', q: '쿠키 수명을 3초(Max-Age=3)로 바꾸고 다음 요청을 10초 뒤에 보내면', d: '만료된 쿠키는 브라우저가 지웁니다.', v: { give: true, path: '/', http: true, life: 'short', later: 'wait' } },
+    { t: '브라우저를 닫았다 열면', q: '10초 뒤에 브라우저를 닫았다가 다시 열고 다음 요청을 보내면', d: '수명을 지정하지 않은 쿠키는 사라집니다. 1시간으로 바꿔 비교해 보세요.', v: { give: true, path: '/', http: true, life: 'session', later: 'restart' } },
   ],
   // 실제 브라우저 결과와 대조하는 데 쓰는 순수 계산: 각 상황에서 쿠키가 전달되는가
   sent: function (c) {

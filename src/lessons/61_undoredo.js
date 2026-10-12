@@ -10,7 +10,7 @@ Lab.register({
     { t: '처음 설정으로', q: '커밋 직후 데이터 파일에 쓰기 전에 서버가 꺼지면 재시작 뒤 값은 어떻게 되나', d: '커밋 직후 장애. 데이터 파일에는 옛 값인데 재시작하면 새 값입니다.', v: { what: 'crashAfter' } },
     { t: '커밋 전에 장애', q: '커밋 전에 서버가 꺼지면', d: '재시작하면 변경이 없던 일이 됩니다.', v: { what: 'crashBefore' } },
     { t: '롤백', q: '커밋하지 않고 롤백하면', d: 'Undo 로그에 남겨 둔 이전 값으로 되돌립니다.', v: { what: 'rollback' } },
-    { t: '정상 커밋', q: '일어나는 일을 정상 커밋으로 바꾸면', d: '커밋 시점에 디스크에 쓰는 것은 로그뿐입니다.', v: { what: 'commit' } },
+    { t: '정상 커밋', q: '정상적으로 커밋하면', d: '커밋 시점에 디스크에 쓰는 것은 로그뿐입니다.', v: { what: 'commit' } },
   ],
   code: function (c) {
     return 'START TRANSACTION;\nUPDATE account SET balance = 500 WHERE id = 1;   -- 원래 1000\n' + (c.what === 'rollback' ? 'ROLLBACK;' : c.what === 'crashBefore' ? '-- (여기서 서버가 꺼짐)' : 'COMMIT;' + (c.what === 'crashAfter' ? '\n-- (커밋 응답 직후 서버가 꺼짐)' : ''));

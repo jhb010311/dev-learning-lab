@@ -10,10 +10,10 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '새 버전 v2에 버그가 없고 Graceful Shutdown을 설정한 채 한 대씩 교체하는 롤링으로 배포하면 서비스는 어떻게 되나', d: '롤링 배포. 한 대씩 바꾸므로 서비스가 끊기지 않습니다.', v: { st: 'rolling', bug: false, grace: true } },
-    { t: '전부 내리고 올리기', q: '배포 방식을 전부 내리고 새로 올리기로 바꾸면', d: '가장 단순하지만 그동안 서비스가 멈춥니다.', v: { st: 'recreate', bug: false, grace: true } },
-    { t: '블루-그린', q: '배포 방식을 새 환경을 통째로 준비 후 전환하는 블루-그린으로 바꾸면', d: '서버가 두 배 필요하지만 전환과 되돌리기가 한순간입니다.', v: { st: 'bluegreen', bug: false, grace: true } },
+    { t: '전부 내리고 올리기', q: '전부 내렸다가 새로 올리는 방식으로 배포하면', d: '가장 단순하지만 그동안 서비스가 멈춥니다.', v: { st: 'recreate', bug: false, grace: true } },
+    { t: '블루-그린', q: '새 환경을 통째로 준비한 뒤 전환하는 블루-그린으로 배포하면', d: '서버가 두 배 필요하지만 전환과 되돌리기가 한순간입니다.', v: { st: 'bluegreen', bug: false, grace: true } },
     { t: '버그가 있는 버전을 롤링으로', q: '롤링 배포 그대로 새 버전 v2에 버그가 있으면', d: '문제를 알아챌 때까지 영향 범위가 점점 커집니다.', v: { st: 'rolling', bug: true, grace: true } },
-    { t: '버그가 있는 버전을 카나리로', q: '배포 방식을 일부에만 먼저 배포하는 카나리로 바꾸고 새 버전 v2에 버그가 있으면', d: '일부 사용자만 영향을 받고 되돌립니다.', v: { st: 'canary', bug: true, grace: true } },
+    { t: '버그가 있는 버전을 카나리로', q: '카나리로 일부에만 먼저 배포하는데 새 버전 v2에 버그가 있으면', d: '일부 사용자만 영향을 받고 되돌립니다.', v: { st: 'canary', bug: true, grace: true } },
     { t: 'Graceful Shutdown이 없으면', q: 'Graceful Shutdown 설정을 끄면', d: '서버를 내릴 때 처리 중이던 요청이 끊깁니다.', v: { st: 'rolling', bug: false, grace: false } },
   ],
   code: function (c) {

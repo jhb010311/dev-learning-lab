@@ -14,7 +14,7 @@ Lab.register({
     { t: '부르는 줄을 지우면', q: '부르는 줄을 지우면', d: '선언은 그대로여도 부르지 않으면 add의 코드는 실행되지 않습니다.', v: { decl: true, call: 'none', args: 'two' } },
     { t: 'add(2, 3)을 두 번 부르면', q: 'add(2, 3)을 두 번 부르면', d: '부를 때마다 add의 코드가 다시 실행됩니다.', v: { decl: true, call: 'twice', args: 'two' } },
     { t: 'add의 선언을 지우고 부르기만 하면', q: 'add의 선언을 지우고 부르기만 하면', d: '부를 대상이 없어 컴파일 오류가 납니다.', v: { decl: false, call: 'once', args: 'two' } },
-    { t: '값을 하나만 넘기면', q: '값을 하나만 넘기면: add(2)', d: '넘긴 값의 개수가 매개변수의 개수와 맞지 않아 컴파일 오류가 납니다.', v: { decl: true, call: 'once', args: 'one' } },
+    { t: '값을 하나만 넘기면', q: 'add(2)처럼 값을 하나만 넘기면', d: '넘긴 값의 개수가 매개변수의 개수와 맞지 않아 컴파일 오류가 납니다.', v: { decl: true, call: 'once', args: 'one' } },
   ],
   // 컴파일러가 알려 주는 오류의 종류(실제 javac의 진단 코드를 옮긴 것)
   errName: 'add라는 메서드를 찾을 수 없음',

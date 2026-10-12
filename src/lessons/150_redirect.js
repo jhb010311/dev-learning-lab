@@ -14,7 +14,7 @@ Lab.register({
     { t: '303: 결과는 GET으로 조회', q: '서버가 응답하는 상태 코드를 303 See Other로 바꾸면', d: '폼을 보낸 뒤 결과 화면으로 넘길 때 쓰는 방식입니다.', v: { code: '303', m: 'POST', dest: 'ok' } },
     { t: '301에 PUT을 보내면', q: '상태 코드를 301 Moved Permanently로, 처음 요청을 PUT /order로 바꾸면', d: 'GET으로 바뀌는 것은 POST뿐입니다. PUT은 그대로 갑니다.', v: { code: '301', m: 'PUT', dest: 'ok' } },
     { t: '영구 이동 308', q: '서버가 응답하는 상태 코드를 308 Permanent Redirect로 바꾸면', d: '301과 같은 영구 이동인데 메서드를 유지합니다.', v: { code: '308', m: 'POST', dest: 'ok' } },
-    { t: '서로를 가리키는 리다이렉트', q: '처음 요청을 GET /order로 바꾸고 /orders도 다시 /order를 가리켜 서로를 가리키면', d: '끝이 없으므로 클라이언트가 정해 둔 횟수에서 스스로 멈춥니다.', v: { code: '302', m: 'GET', dest: 'loop' } },
+    { t: '서로를 가리키는 리다이렉트', q: '처음 요청을 GET /order로 바꾸고 /order와 /orders가 서로를 가리키면', d: '끝이 없으므로 클라이언트가 정해 둔 횟수에서 스스로 멈춥니다.', v: { code: '302', m: 'GET', dest: 'loop' } },
   ],
   CODES: {
     '301': { name: 'Moved Permanently', kind: '영구 이동', rule: 'POST를 GET으로 바꿔도 됨 (허용)' },

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0e1f2edec4">
+<link rel="stylesheet" href="../../app.css?v=9ecb2cab87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -69,10 +69,10 @@
 <li>스레드 B: count에 1을 썼습니다. 그런데 이 스레드가 읽은 뒤로 다른 스레드가 count를 1까지 올려 놓았습니다. 그 위에 1을 덮어써서 증가 1번이 사라졌습니다.</li>
 <li>스레드 A: count를 읽었습니다. 읽은 값은 1입니다.</li>
 <li>스레드 B: count를 읽었습니다. 읽은 값은 1입니다.</li>
-<li>스레드 A: 읽은 값 1에 1을 더해 2을 만들었습니다. 아직 count에 쓰지는 않았습니다.</li>
-<li>스레드 B: 읽은 값 1에 1을 더해 2을 만들었습니다. 아직 count에 쓰지는 않았습니다.</li>
-<li>스레드 A: count에 2을 썼습니다.</li>
-<li>스레드 B: count에 2을 썼습니다. 그런데 이 스레드가 읽은 뒤로 다른 스레드가 count를 2까지 올려 놓았습니다. 그 위에 2을 덮어써서 증가 1번이 사라졌습니다.</li>
+<li>스레드 A: 읽은 값 1에 1을 더해 2를 만들었습니다. 아직 count에 쓰지는 않았습니다.</li>
+<li>스레드 B: 읽은 값 1에 1을 더해 2를 만들었습니다. 아직 count에 쓰지는 않았습니다.</li>
+<li>스레드 A: count에 2를 썼습니다.</li>
+<li>스레드 B: count에 2를 썼습니다. 그런데 이 스레드가 읽은 뒤로 다른 스레드가 count를 2까지 올려 놓았습니다. 그 위에 2를 덮어써서 증가 1번이 사라졌습니다.</li>
 <li>스레드 A: count를 읽었습니다. 읽은 값은 2입니다.</li>
 <li>스레드 B: count를 읽었습니다. 읽은 값은 2입니다.</li>
 <li>스레드 A: 읽은 값 2에 1을 더해 3을 만들었습니다. 아직 count에 쓰지는 않았습니다.</li>
@@ -186,6 +186,6 @@ for (int t = 0; t &lt; 2; t++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0e1f2edec4"></script>
+<script src="../../app.js?v=9ecb2cab87"></script>
 </body>
 </html>

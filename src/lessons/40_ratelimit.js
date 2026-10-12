@@ -33,7 +33,7 @@ Lab.register({
     function push(s, k) { ev.push({ s: s, k: k, snap: { res: res.slice() } }); }
     ts.forEach(function (t, i) {
       var ok, why;
-      if (c.algo === 'fixed') { var w = Math.floor(t); win[w] = (win[w] || 0) + 1; ok = win[w] <= L; why = w + '초대 카운터가 ' + win[w] + (ok ? '입니다. 5 이하이므로 통과.' : '이 되어 5를 넘었습니다. 거절.'); }
+      if (c.algo === 'fixed') { var w = Math.floor(t); win[w] = (win[w] || 0) + 1; ok = win[w] <= L; why = w + '초대 카운터가 ' + win[w] + (ok ? '입니다. 5 이하이므로 통과.' : ('013678'.indexOf(String(win[w]).slice(-1)) >= 0 ? '이' : '가') + ' 되어 5를 넘었습니다. 거절.'); }
       if (c.algo === 'sliding') { log = log.filter(function (x) { return x > t - 1 + 1e-9; }); ok = log.length < L; why = '직전 1초 동안 통과한 요청이 ' + log.length + '건입니다. ' + (ok ? '5건 미만이므로 통과.' : '이미 5건이므로 거절.'); if (ok) log.push(t); }
       if (c.algo === 'bucket') { tokens = Math.min(L, tokens + (t - lastT) * L); lastT = t; ok = tokens >= 1 - 1e-9; why = '버킷에 토큰이 ' + (Math.floor(tokens * 10 + 1e-6) / 10) + '개 있습니다. ' + (ok ? '하나를 쓰고 통과.' : '1개가 안 되므로 거절.'); if (ok) tokens -= 1; }
       res.push({ t: t, ok: ok });

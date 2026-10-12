@@ -13,13 +13,13 @@ Lab.register({
   ],
   fix: function (c) { return c.m > c.n ? { m: c.n } : null; },
   presets: [
-    { t: '처음 설정으로', q: '지연 로딩 (LAZY) 설정에서 회원 10명이 한 주문 10건을 조회하고 회원 이름을 쓰면 쿼리는 몇 번 나가나', d: '지연 로딩, 주문 10건, 회원 10명. 쿼리가 1 + 10번 나갑니다.', v: { n: 10, m: 10, st: 'lazy', bs: 5, use: true, rt: 5 } },
-    { t: '즉시 로딩으로 바꾸면 해결될까', q: '회원을 가져오는 방법을 즉시 로딩 (EAGER) 설정으로 바꾸면', d: '쿼리 수는 그대로이고 나가는 시점만 앞당겨집니다.', v: { n: 10, m: 10, st: 'eager', bs: 5, use: true, rt: 5 } },
-    { t: 'fetch join', q: '회원을 가져오는 방법을 지연 로딩 + fetch join으로 바꾸면', d: '주문과 회원을 한 쿼리로 가져옵니다.', v: { n: 10, m: 10, st: 'fetch', bs: 5, use: true, rt: 5 } },
-    { t: '배치 크기 설정', q: '회원을 가져오는 방법을 지연 로딩 + 배치 크기 설정으로 바꾸고 배치 크기를 5개씩 두면', d: '회원을 5명씩 묶어서 IN 쿼리로 가져옵니다.', v: { n: 10, m: 10, st: 'batch', bs: 5, use: true, rt: 5 } },
-    { t: '같은 회원의 주문이 많을 때', q: '주문 10건은 그대로 두고 그 주문들을 한 회원 수만 3명으로 줄이면', d: '주문 10건, 회원 3명. 이미 읽은 회원은 다시 조회하지 않습니다.', v: { n: 10, m: 3, st: 'lazy', bs: 5, use: true, rt: 5 } },
-    { t: '회원 정보를 쓰지 않을 때', q: '조회한 뒤 회원 이름을 사용한다 설정을 끄면', d: '지연 로딩은 쓰지 않는 회원을 조회하지 않습니다. 즉시 로딩과 비교해 보세요.', v: { n: 10, m: 10, st: 'lazy', bs: 5, use: false, rt: 5 } },
-    { t: '주문 30건으로 늘리면', q: '조회되는 주문 건수를 30건으로, 그 주문들을 한 회원 수를 30명으로 늘리면', d: '지연 로딩에서는 데이터가 늘어난 만큼 쿼리도 늘어납니다.', v: { n: 30, m: 30, st: 'lazy', bs: 5, use: true, rt: 5 } },
+    { t: '처음 설정으로', q: '회원 10명이 낸 주문 10건을 지연 로딩(LAZY)으로 조회하고 회원 이름을 쓰면 쿼리는 몇 번 나가나', d: '지연 로딩, 주문 10건, 회원 10명. 쿼리가 1 + 10번 나갑니다.', v: { n: 10, m: 10, st: 'lazy', bs: 5, use: true, rt: 5 } },
+    { t: '즉시 로딩으로 바꾸면 해결될까', q: '회원을 즉시 로딩(EAGER)으로 가져오면', d: '쿼리 수는 그대로이고 나가는 시점만 앞당겨집니다.', v: { n: 10, m: 10, st: 'eager', bs: 5, use: true, rt: 5 } },
+    { t: 'fetch join', q: '지연 로딩에 fetch join을 써서 회원을 가져오면', d: '주문과 회원을 한 쿼리로 가져옵니다.', v: { n: 10, m: 10, st: 'fetch', bs: 5, use: true, rt: 5 } },
+    { t: '배치 크기 설정', q: '지연 로딩에 배치 크기를 5개씩 설정해 회원을 가져오면', d: '회원을 5명씩 묶어서 IN 쿼리로 가져옵니다.', v: { n: 10, m: 10, st: 'batch', bs: 5, use: true, rt: 5 } },
+    { t: '같은 회원의 주문이 많을 때', q: '주문 10건은 그대로 두고 주문한 회원만 3명으로 줄이면', d: '주문 10건, 회원 3명. 이미 읽은 회원은 다시 조회하지 않습니다.', v: { n: 10, m: 3, st: 'lazy', bs: 5, use: true, rt: 5 } },
+    { t: '회원 정보를 쓰지 않을 때', q: '조회한 뒤 회원 이름을 쓰지 않으면', d: '지연 로딩은 쓰지 않는 회원을 조회하지 않습니다. 즉시 로딩과 비교해 보세요.', v: { n: 10, m: 10, st: 'lazy', bs: 5, use: false, rt: 5 } },
+    { t: '주문 30건으로 늘리면', q: '조회되는 주문을 30건으로, 주문한 회원을 30명으로 늘리면', d: '지연 로딩에서는 데이터가 늘어난 만큼 쿼리도 늘어납니다.', v: { n: 30, m: 30, st: 'lazy', bs: 5, use: true, rt: 5 } },
   ],
   code: function (c) {
     var eager = c.st === 'eager';
@@ -31,7 +31,7 @@ Lab.register({
   label: function (c) { return { lazy: '지연 로딩', eager: '즉시 로딩', fetch: 'fetch join', graph: '@EntityGraph', batch: '배치 ' + c.bs + '개씩' }[c.st] + ' · 주문 ' + c.n + '건 · 회원 ' + c.m + '명 · 이름 ' + (c.use ? '사용' : '사용 안 함'); },
   columns: ['쿼리 수', '주문 조회', '회원 조회', 'DB 왕복 시간'],
   simulate: function (c) {
-    var ev = [], qs = [], loaded = {}, orders = [], cursor = 0;
+    var ev = [], qs = [], loaded = {}, orders = [], cursor = 0; var J = function (v, a, b) { var s = String(v), ch = s.charCodeAt(s.length - 1), k = ch >= 0xAC00 && ch <= 0xD7A3 ? (ch - 0xAC00) % 28 : [1, 8, 0, 1, 0, 0, 1, 8, 8, 0]['0123456789'.indexOf(s.slice(-1))] || 0; return s + (a === '으로' ? (k && k !== 8 ? a : b) : k ? a : b); };   // 값 뒤에 붙일 조사를 고른다
     for (var i = 1; i <= c.n; i++) orders.push({ id: i, mem: (i - 1) % c.m + 1 });
     function snap() { var l = {}; Object.keys(loaded).forEach(function (k) { l[k] = 1; }); return { qs: qs.slice(), loaded: l, cursor: cursor }; }
     function push(s, k) { ev.push({ s: s, k: k, snap: snap() }); }
@@ -49,7 +49,7 @@ Lab.register({
       orders.forEach(function (o) {
         if (loaded[o.mem]) return;
         loaded[o.mem] = 1; query('select m.* from member m where m.id = ' + o.mem, '즉시 로딩', 'm');
-        push('쿼리 ' + qs.length + '번: 즉시 로딩으로 설정돼 있어서, 조회 결과를 돌려주기 전에 주문 ' + o.id + '의 회원 ' + o.mem + '을 바로 조회합니다. 코드에서 회원을 쓰는지와 상관없습니다.', 'bad');
+        push('쿼리 ' + qs.length + '번: 즉시 로딩으로 설정돼 있어서, 조회 결과를 돌려주기 전에 주문 ' + o.id + '의 회원 ' + J(o.mem, '을', '를') + ' 바로 조회합니다. 코드에서 회원을 쓰는지와 상관없습니다.', 'bad');
       });
     }
     if (!c.use) { cursor = c.n; push('반복문에서 주문 금액만 사용했습니다. 회원에는 손대지 않았으므로 추가 쿼리는 없습니다.', ''); }

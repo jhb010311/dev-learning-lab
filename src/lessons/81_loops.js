@@ -14,9 +14,9 @@ Lab.register({
     { t: '<로 바꾸면', q: '반복 조건을 i < 3으로 바꾸면', d: 'i < 3은 0, 1, 2에서 세 번 돕니다.', v: { stmt: 'for', cmp: 'lt', jump: 'none', val: '2' } },
     { t: 'break를 만나면', q: '반복 조건을 i < 3으로 바꾸고 i가 1일 때 break를 만나면', d: 'i가 1일 때 반복문 전체가 끝납니다.', v: { stmt: 'for', cmp: 'lt', jump: 'break', val: '2' } },
     { t: 'continue를 만나면', q: '반복 조건을 i < 3으로 바꾸고 i가 1일 때 continue를 만나면', d: 'i가 1인 회차만 건너뛰고 계속 돕니다.', v: { stmt: 'for', cmp: 'lt', jump: 'cont', val: '2' } },
-    { t: 'while문에서 continue', q: '문장을 while 반복문으로 바꾸고 i < 3에서 i가 1일 때 continue를 만나면', d: '같은 코드인데 끝나지 않습니다.', v: { stmt: 'while', cmp: 'lt', jump: 'cont', val: '2' } },
-    { t: 'switch에서 break를 빼면', q: '문장을 switch (break 없음) 쪽으로 바꾸면', d: 'case 2에서 시작해 아래 case까지 모두 실행됩니다.', v: { stmt: 'swf', cmp: 'le', jump: 'none', val: '2' } },
-    { t: '화살표 switch', q: '문장을 switch (화살표 ->) 쪽으로 바꾸면', d: 'break를 적지 않아도 일치한 case만 실행됩니다.', v: { stmt: 'swa', cmp: 'le', jump: 'none', val: '2' } },
+    { t: 'while문에서 continue', q: 'for 대신 while 반복문을 쓰고 i < 3에서 i가 1일 때 continue를 만나면', d: '같은 코드인데 끝나지 않습니다.', v: { stmt: 'while', cmp: 'lt', jump: 'cont', val: '2' } },
+    { t: 'switch에서 break를 빼면', q: 'for 대신 break 없는 switch로 바꾸면', d: 'case 2에서 시작해 아래 case까지 모두 실행됩니다.', v: { stmt: 'swf', cmp: 'le', jump: 'none', val: '2' } },
+    { t: '화살표 switch', q: 'for 대신 화살표 ->를 쓰는 switch로 바꾸면', d: 'break를 적지 않아도 일치한 case만 실행됩니다.', v: { stmt: 'swa', cmp: 'le', jump: 'none', val: '2' } },
   ],
   words: ['하나', '둘', '셋', '그 외'],
   code: function (c) {

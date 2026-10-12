@@ -10,7 +10,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '조회한 엔티티를 em.detach로 준영속으로 만든 뒤 이름을 바꾸면 DB에는 무엇이 남나', d: '떼어 낸(준영속) 객체의 이름을 바꿉니다. 오류 없이 반영되지 않습니다.', v: { st: 'detach', when: 'after' } },
     { t: '영속 상태에서 바꾸면', q: 'em.detach 대신 em.find로 조회만 한 영속 상태에서 이름을 바꾸면', d: '조회한 객체의 이름만 바꿔도 커밋할 때 UPDATE가 나갑니다.', v: { st: 'find', when: 'after' } },
-    { t: '바꾼 다음에 em.clear', q: '조회한 뒤 em.clear를 부르되 이름을 상태가 바뀌기 직전에 바꾸면', d: '영속일 때 바꿨는데도 사라집니다. 아직 DB로 보내기 전이었기 때문입니다.', v: { st: 'clear', when: 'before' } },
+    { t: '바꾼 다음에 em.clear', q: '조회한 뒤 이름을 바꾸고 나서 em.clear를 부르면', d: '영속일 때 바꿨는데도 사라집니다. 아직 DB로 보내기 전이었기 때문입니다.', v: { st: 'clear', when: 'before' } },
     { t: 'new만 하고 persist를 잊으면', q: 'em.persist 없이 new만 한 엔티티의 이름을 바꾸면', d: 'SQL이 하나도 나가지 않습니다.', v: { st: 'new', when: 'after' } },
     { t: 'persist 한 뒤에 바꾸면', q: 'new 한 뒤 em.persist까지 한 엔티티의 이름을 바꾸면', d: 'INSERT에 이어 UPDATE가 한 번 더 나갑니다.', v: { st: 'persist', when: 'after' } },
     { t: 'em을 닫은 뒤에 바꾸면', q: '조회한 뒤 커밋하고 em.close로 닫은 다음 이름을 바꾸면', d: '트랜잭션 밖에서 엔티티를 고치는 흔한 실수입니다.', v: { st: 'close', when: 'after' } },

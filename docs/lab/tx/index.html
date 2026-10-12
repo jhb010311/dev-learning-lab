@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=0e1f2edec4">
+<link rel="stylesheet" href="../../app.css?v=9ecb2cab87">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -68,7 +68,7 @@
 <pre>-- 자동 커밋: 문장 하나가 끝날 때마다 바로 확정된다
 UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- 출금
 -- (여기서 애플리케이션 오류 발생)
--- 입금 문장은 실행되지 못함</pre>
+-- UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- 입금: 실행되지 못함</pre>
 <h2>이 모형의 전제</h2>
 <p>열두 가지 조합의 최종 잔액과 중간 조회 결과를 실제 SQL 엔진(SQLite)에서 연결 두 개로 실행해 확인했습니다. &quot;서버가 꺼짐&quot;은 커밋하지 않은 채 연결을 끊는 것으로 재현했습니다. 중간 조회에서 커밋 전 값이 보이지 않는 것은 대부분의 DB 기본 설정에서의 동작이며, 가장 낮은 격리 수준에서는 보일 수 있습니다.</p>
 <p>앞 실습: <a href="../../lab/aop/">AOP: 어드바이스와 포인트컷</a> · 다음 실습: <a href="../../lab/txprop/">트랜잭션 전파</a></p>
@@ -158,6 +158,6 @@ UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- 출금
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=0e1f2edec4"></script>
+<script src="../../app.js?v=9ecb2cab87"></script>
 </body>
 </html>

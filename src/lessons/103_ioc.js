@@ -11,11 +11,11 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '두 구현을 모두 @Component로 등록하고 고르는 표시 없이 RateDiscountPolicy를 쓰려 하면 기동은 어떻게 되나', d: '두 구현을 모두 @Component로 등록했습니다. 컨테이너가 고르지 못해 기동이 실패합니다.', v: { how: 'comp', reg: 'two', use: 'rate' } },
     { t: '직접 new로 만들면', q: '할인 정책 객체를 OrderService가 직접 new로 만들고 쓰려는 구현을 FixedDiscountPolicy로 바꾸면', d: '어떤 구현을 쓸지가 OrderService 안에 적힙니다. 바꾸려면 OrderService를 고칩니다.', v: { how: 'new', reg: 'two', use: 'fixed' } },
-    { t: '구현 하나만 등록', q: '빈으로 등록한 구현을 쓰려는 구현 하나만으로 바꾸면', d: '컨테이너가 하나뿐인 빈을 찾아 넣어 줍니다. OrderService에는 new가 없습니다.', v: { how: 'comp', reg: 'one', use: 'rate' } },
+    { t: '구현 하나만 등록', q: '쓰려는 구현 하나만 빈으로 등록하면', d: '컨테이너가 하나뿐인 빈을 찾아 넣어 줍니다. OrderService에는 new가 없습니다.', v: { how: 'comp', reg: 'one', use: 'rate' } },
     { t: '@Primary로 고르기', q: '두 구현 모두 등록하고 쓰려는 쪽에 @Primary를 붙이면', d: '둘 다 등록하고 먼저 쓸 쪽에 표시를 붙입니다.', v: { how: 'comp', reg: 'primary', use: 'rate' } },
     { t: '@Qualifier로 고르기', q: '두 구현 모두 등록하고 주입받는 곳에 @Qualifier로 FixedDiscountPolicy를 고르면', d: '주입받는 쪽에서 빈 이름을 지정합니다.', v: { how: 'comp', reg: 'qualifier', use: 'fixed' } },
     { t: '@Bean 메서드로 등록', q: '할인 정책 객체를 @Bean 메서드로 등록하고 쓰려는 구현 하나만 등록하면', d: '설정 클래스의 메서드가 돌려준 객체가 빈이 됩니다.', v: { how: 'bean', reg: 'one', use: 'rate' } },
-    { t: '빈을 등록하지 않으면', q: '빈으로 등록한 구현을 하나도 등록하지 않으면', d: '넣어 줄 빈이 없어 기동이 실패합니다.', v: { how: 'comp', reg: 'none', use: 'rate' } },
+    { t: '빈을 등록하지 않으면', q: '구현을 하나도 빈으로 등록하지 않으면', d: '넣어 줄 빈이 없어 기동이 실패합니다.', v: { how: 'comp', reg: 'none', use: 'rate' } },
   ],
   // 설정에서 정해지는 사실: 어느 구현이 빈으로 등록되는지, 무엇이 선택되는지
   facts: function (c) {

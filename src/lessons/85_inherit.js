@@ -11,11 +11,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '부모 생성자가 describe() 호출을 하고 Dog() 생성자 첫 줄이 super("바둑이"); 일 때 new Dog() 호출은 어떤 순서로 실행되나', d: '부모 생성자가 describe()를 부릅니다. sound에 "멍멍"을 넣었는데 sound=null이 찍힙니다.', v: { pctor: 'arg', sup: 'arg', pcall: true, sm: false } },
-    { t: '실행 순서만 보기', q: 'Animal 생성자의 describe() 호출을 끄면', d: '부모 생성자, 자식의 필드 초기화식, 자식 생성자 본문 순서입니다.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: false } },
-    { t: 'super를 쓰지 않으면', q: '부모 생성자를 Animal() 하나만 두고 Dog() 첫 줄에 super를 쓰지 않고 describe() 호출을 끄면', d: '컴파일러가 super()를 넣어 부모의 Animal()을 부릅니다.', v: { pctor: 'noarg', sup: 'omit', pcall: false, sm: false } },
-    { t: '부모에 Animal()이 없는데 super를 쓰지 않으면', q: '부모 생성자가 Animal(String name) 하나만인데 Dog() 첫 줄에 super를 쓰지 않고 describe() 호출을 끄면', d: '자동으로 들어간 super()가 부를 생성자가 없어 컴파일 오류입니다.', v: { pctor: 'arg', sup: 'omit', pcall: false, sm: false } },
-    { t: 'super.describe()로 부모 것도 부르기', q: 'Dog의 describe() 안에서 super.describe() 호출을 켜고 부모 생성자의 describe() 호출을 끄면', d: '오버라이딩한 메서드 안에서 부모의 원래 동작을 먼저 실행합니다.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: true } },
-    { t: '부모 생성자가 둘일 때', q: 'Animal() 생성자와 Animal(String name) 생성자를 두고 Dog() 첫 줄에 super를 쓰지 않으며 super.describe() 호출을 켜면', d: 'super에 넘긴 인자에 맞는 부모 생성자가 선택됩니다.', v: { pctor: 'both', sup: 'omit', pcall: false, sm: true } },
+    { t: '실행 순서만 보기', q: 'Animal 생성자가 describe()를 부르지 않으면', d: '부모 생성자, 자식의 필드 초기화식, 자식 생성자 본문 순서입니다.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: false } },
+    { t: 'super를 쓰지 않으면', q: '부모 생성자를 Animal() 하나만 두고 Dog() 첫 줄에 super를 쓰지 않으며 Animal 생성자가 describe()를 부르지 않으면', d: '컴파일러가 super()를 넣어 부모의 Animal()을 부릅니다.', v: { pctor: 'noarg', sup: 'omit', pcall: false, sm: false } },
+    { t: '부모에 Animal()이 없는데 super를 쓰지 않으면', q: '부모 생성자가 Animal(String name) 하나만인데 Dog() 첫 줄에 super를 쓰지 않으며 Animal 생성자가 describe()를 부르지 않으면', d: '자동으로 들어간 super()가 부를 생성자가 없어 컴파일 오류입니다.', v: { pctor: 'arg', sup: 'omit', pcall: false, sm: false } },
+    { t: 'super.describe()로 부모 것도 부르기', q: 'Dog의 describe()가 super.describe()를 부르게 하고 Animal 생성자는 describe()를 부르지 않으면', d: '오버라이딩한 메서드 안에서 부모의 원래 동작을 먼저 실행합니다.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: true } },
+    { t: '부모 생성자가 둘일 때', q: 'Animal()과 Animal(String name)을 둘 다 두고 Dog() 첫 줄에 super를 쓰지 않으며 Animal 생성자는 describe()를 부르지 않고 Dog의 describe()는 super.describe()를 부르면', d: 'super에 넘긴 인자에 맞는 부모 생성자가 선택됩니다.', v: { pctor: 'both', sup: 'omit', pcall: false, sm: true } },
   ],
   code: function (c) {
     var bad = this.bad(c), call = c.pcall ? '        describe();                // 오버라이딩된 메서드를 생성자에서 부른다\n' : '';

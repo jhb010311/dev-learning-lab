@@ -12,11 +12,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '스레드 2개가 각각 count++를 3번씩 하는데 동기화 없이 한 단계씩 번갈아 실행되면 어떻게 되나', d: '동기화 없이 번갈아 실행. 증가가 사라집니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'alt', seed: 7 } },
-    { t: 'volatile만 붙여 보기', q: '동기화 방식을 volatile만 붙임으로 바꾸면', d: '값은 최신으로 보이지만 단계가 섞이는 것은 막지 못합니다.', v: { threads: 2, loops: 3, sync: 'volatile', order: 'alt', seed: 7 } },
-    { t: 'synchronized로 묶기', q: '동기화 방식을 synchronized 블록으로 바꾸면', d: '한 스레드가 끝낼 때까지 다른 스레드가 기다립니다.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
-    { t: 'AtomicInteger 쓰기', q: '동기화 방식을 AtomicInteger로 바꾸면', d: '락 없이, 읽은 값이 그대로일 때만 씁니다(CAS). 아니면 다시 합니다.', v: { threads: 2, loops: 3, sync: 'atomic', order: 'alt', seed: 7 } },
-    { t: '운 좋게 안 겹친 경우', q: '동기화 방식은 없음 그대로인데 실행 순서를 한 스레드가 다 끝낸 뒤 다음으로 바꾸면', d: '동기화가 없는데도 결과가 맞습니다. 테스트에서 버그가 안 잡히는 이유입니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'seq', seed: 7 } },
-    { t: '스레드 4개가 무작위로', q: '스레드 수를 4개로 늘리고 실행 순서를 무작위로 섞임으로 바꾸면', d: '패턴 번호를 바꿔 가며 여러 번 실행해 보세요. 결과가 매번 다릅니다.', v: { threads: 4, loops: 3, sync: 'none', order: 'rand', seed: 7 } },
+    { t: 'volatile만 붙여 보기', q: 'count에 volatile만 붙이면', d: '값은 최신으로 보이지만 단계가 섞이는 것은 막지 못합니다.', v: { threads: 2, loops: 3, sync: 'volatile', order: 'alt', seed: 7 } },
+    { t: 'synchronized로 묶기', q: 'count++를 synchronized 블록으로 묶으면', d: '한 스레드가 끝낼 때까지 다른 스레드가 기다립니다.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
+    { t: 'AtomicInteger 쓰기', q: 'count를 AtomicInteger로 바꾸면', d: '락 없이, 읽은 값이 그대로일 때만 씁니다(CAS). 아니면 다시 합니다.', v: { threads: 2, loops: 3, sync: 'atomic', order: 'alt', seed: 7 } },
+    { t: '운 좋게 안 겹친 경우', q: '동기화 없이 한 스레드가 다 끝난 뒤에 다음 스레드가 실행되면', d: '동기화가 없는데도 결과가 맞습니다. 테스트에서 버그가 안 잡히는 이유입니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'seq', seed: 7 } },
+    { t: '스레드 4개가 무작위로', q: '스레드를 4개로 늘리고 실행 순서를 무작위로 섞으면', d: '패턴 번호를 바꿔 가며 여러 번 실행해 보세요. 결과가 매번 다릅니다.', v: { threads: 4, loops: 3, sync: 'none', order: 'rand', seed: 7 } },
   ],
   code: function (c) {
     var decl = { none: 'static int count = 0;', volatile: 'static volatile int count = 0;', sync: 'static int count = 0;\nstatic final Object lock = new Object();', atomic: 'static final AtomicInteger count = new AtomicInteger();' }[c.sync];
@@ -26,7 +26,7 @@ Lab.register({
   label: function (c) { return { none: '동기화 없음', volatile: 'volatile', sync: 'synchronized', atomic: 'AtomicInteger' }[c.sync] + ' · 스레드 ' + c.threads + '개 × ' + c.loops + '번 · ' + { alt: '번갈아', rand: '무작위 ' + c.seed + '번', seq: '차례로' }[c.order]; },
   columns: ['기대값', '최종 값', '사라진 증가', '기다림·재시도'],
   simulate: function (c) {
-    var names = 'ABCD', ths = [], count = 0, lost = 0, done = 0, waits = 0, retries = 0, lock = null, ev = [], seed = c.seed * 7919 + 13, rr = 0;
+    var names = 'ABCD', ths = [], count = 0, lost = 0, done = 0, waits = 0, retries = 0, lock = null, ev = [], seed = c.seed * 7919 + 13, rr = 0; var J = function (v, a, b) { var s = String(v), ch = s.charCodeAt(s.length - 1), k = ch >= 0xAC00 && ch <= 0xD7A3 ? (ch - 0xAC00) % 28 : [1, 8, 0, 1, 0, 0, 1, 8, 8, 0]['0123456789'.indexOf(s.slice(-1))] || 0; return s + (a === '으로' ? (k && k !== 8 ? a : b) : k ? a : b); };   // 값 뒤에 붙일 조사를 고른다
     for (var i = 0; i < c.threads; i++) ths.push({ id: names[i], left: c.loops, phase: 0, local: null, note: '시작 전' });
     function rnd(n) { seed = (seed * 1103515245 + 12345) % 2147483648; return Math.floor(seed / 2147483648 * n); }
     function alive() { return ths.filter(function (t) { return t.left > 0; }); }
@@ -48,12 +48,12 @@ Lab.register({
       if (c.sync === 'atomic') {
         if (t.phase === 0) {
           t.local = count; t.phase = 1; t.note = '읽은 값 ' + t.local;
-          push('스레드 ' + t.id + ': 현재 값 ' + t.local + '을 읽었습니다. 이 값이 그대로일 때만 ' + (t.local + 1) + '로 바꾸려고 합니다.', '', t.id);
+          push('스레드 ' + t.id + ': 현재 값 ' + J(t.local, '을', '를') + ' 읽었습니다. 이 값이 그대로일 때만 ' + J(t.local + 1, '으로', '로') + ' 바꾸려고 합니다.', '', t.id);
         } else if (count === t.local) {
           count = t.local + 1; t.left--; t.phase = 0; t.local = null; t.note = t.left ? '남은 횟수 ' + t.left + '번' : '끝';
-          push('스레드 ' + t.id + ': CAS 성공. count가 읽었던 값 ' + (count - 1) + ' 그대로여서 ' + count + '로 바꿨습니다. 비교와 쓰기는 CPU 명령 하나로 처리되어 그 사이에 다른 스레드가 끼어들 수 없습니다.', 'good', t.id);
+          push('스레드 ' + t.id + ': CAS 성공. count가 읽었던 값 ' + (count - 1) + ' 그대로여서 ' + J(count, '으로', '로') + ' 바꿨습니다. 비교와 쓰기는 CPU 명령 하나로 처리되어 그 사이에 다른 스레드가 끼어들 수 없습니다.', 'good', t.id);
         } else {
-          retries++; push('스레드 ' + t.id + ': CAS 실패. 읽었던 값은 ' + t.local + '인데 그사이 count가 ' + count + '로 바뀌어 있습니다. 덮어쓰지 않고 처음부터 다시 읽습니다.', '', t.id);
+          retries++; push('스레드 ' + t.id + ': CAS 실패. 읽었던 값은 ' + t.local + '인데 그사이 count가 ' + J(count, '으로', '로') + ' 바뀌어 있습니다. 덮어쓰지 않고 처음부터 다시 읽습니다.', '', t.id);
           t.phase = 0; t.local = null; t.note = '다시 시도';
         }
         continue;
@@ -64,13 +64,13 @@ Lab.register({
         push('스레드 ' + t.id + ': ' + (c.sync === 'sync' ? '락을 잡고 ' : '') + 'count를 읽었습니다. 읽은 값은 ' + t.local + '입니다.', '', t.id);
       } else if (t.phase === 1) {
         t.phase = 2; t.note = '계산한 값 ' + (t.local + 1) + ' (아직 안 씀)';
-        push('스레드 ' + t.id + ': 읽은 값 ' + t.local + '에 1을 더해 ' + (t.local + 1) + '을 만들었습니다. 아직 count에 쓰지는 않았습니다.', '', t.id);
+        push('스레드 ' + t.id + ': 읽은 값 ' + t.local + '에 1을 더해 ' + J(t.local + 1, '을', '를') + ' 만들었습니다. 아직 count에 쓰지는 않았습니다.', '', t.id);
       } else {
         var over = count - t.local, nv = t.local + 1; count = nv; done++; lost = done - count; t.left--; t.phase = 0; t.local = null;
         t.note = t.left ? '남은 횟수 ' + t.left + '번' : '끝';
-        if (over > 0) { push('스레드 ' + t.id + ': count에 ' + nv + '을 썼습니다. 그런데 이 스레드가 읽은 뒤로 다른 스레드가 count를 ' + (nv - 1 + over) + '까지 올려 놓았습니다. 그 위에 ' + nv + '을 덮어써서 증가 ' + over + '번이 사라졌습니다.', 'bad', t.id); }
-        else if (over < 0) push('스레드 ' + t.id + ': count에 ' + nv + '을 썼습니다. 이 스레드가 읽은 뒤에 다른 스레드가 오래된 값으로 count를 ' + (nv - 1 + over) + '까지 되돌려 놓았지만, 그 위에 다시 ' + nv + '을 덮어썼습니다. 지금까지 끝난 증가는 ' + done + '번인데 count는 ' + count + '입니다.', lost > 0 ? 'bad' : '', t.id);
-        else push('스레드 ' + t.id + ': count에 ' + nv + '을 썼습니다.' + (c.sync === 'sync' ? ' 블록을 나오면서 락을 풉니다.' : ''), '', t.id);
+        if (over > 0) { push('스레드 ' + t.id + ': count에 ' + J(nv, '을', '를') + ' 썼습니다. 그런데 이 스레드가 읽은 뒤로 다른 스레드가 count를 ' + (nv - 1 + over) + '까지 올려 놓았습니다. 그 위에 ' + J(nv, '을', '를') + ' 덮어써서 증가 ' + over + '번이 사라졌습니다.', 'bad', t.id); }
+        else if (over < 0) push('스레드 ' + t.id + ': count에 ' + J(nv, '을', '를') + ' 썼습니다. 이 스레드가 읽은 뒤에 다른 스레드가 오래된 값으로 count를 ' + (nv - 1 + over) + '까지 되돌려 놓았지만, 그 위에 다시 ' + J(nv, '을', '를') + ' 덮어썼습니다. 지금까지 끝난 증가는 ' + done + '번인데 count는 ' + count + '입니다.', lost > 0 ? 'bad' : '', t.id);
+        else push('스레드 ' + t.id + ': count에 ' + J(nv, '을', '를') + ' 썼습니다.' + (c.sync === 'sync' ? ' 블록을 나오면서 락을 풉니다.' : ''), '', t.id);
         if (c.sync === 'sync') lock = null;
       }
     }

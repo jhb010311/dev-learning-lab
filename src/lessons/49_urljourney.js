@@ -11,9 +11,9 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '처음 방문해 /orders 동적 페이지를 요청하면 어떤 단계를 거치나', d: '처음 방문. 모든 단계를 거칩니다.', v: { what: 'api', dns: false, conn: false, cdn: false } },
-    { t: '같은 사이트의 두 번째 요청', q: 'DNS 캐시와 연결 재사용을 켜고 같은 사이트에 다시 요청하면', d: 'DNS와 연결 수립을 건너뜁니다.', v: { what: 'api', dns: true, conn: true, cdn: false } },
-    { t: '정적 파일', q: 'DNS 캐시와 연결 재사용을 켠 채로 /logo.png 정적 파일을 요청하면', d: '웹 서버(nginx)가 직접 응답합니다. 애플리케이션 서버까지 가지 않습니다.', v: { what: 'static', dns: true, conn: true, cdn: false } },
-    { t: '정적 파일을 CDN에서', q: 'DNS 캐시와 연결 재사용을 켠 /logo.png 요청에 CDN에서 받기까지 켜면', d: '사용자와 가까운 서버가 응답합니다.', v: { what: 'static', dns: true, conn: true, cdn: true } },
+    { t: '같은 사이트의 두 번째 요청', q: '도메인의 IP 주소를 이미 알고 맺어 둔 연결이 남아 있는 상태에서 같은 사이트에 다시 요청하면', d: 'DNS와 연결 수립을 건너뜁니다.', v: { what: 'api', dns: true, conn: true, cdn: false } },
+    { t: '정적 파일', q: '도메인의 IP 주소를 이미 알고 맺어 둔 연결이 남아 있는 상태에서 /logo.png 정적 파일을 요청하면', d: '웹 서버(nginx)가 직접 응답합니다. 애플리케이션 서버까지 가지 않습니다.', v: { what: 'static', dns: true, conn: true, cdn: false } },
+    { t: '정적 파일을 CDN에서', q: 'IP 주소를 알고 맺어 둔 연결이 남아 있는 상태에서 /logo.png를 CDN에서 받으면', d: '사용자와 가까운 서버가 응답합니다.', v: { what: 'static', dns: true, conn: true, cdn: true } },
   ],
   code: function (c) {
     return '# nginx (리버스 프록시)\nserver {\n    listen 443 ssl;\n    server_name shop.example;\n\n    location /static/ {                  # 정적 파일은 직접 응답\n        root /var/www;\n    }\n    location / {                         # 나머지는 애플리케이션 서버로 전달\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header X-Forwarded-For $remote_addr;\n    }\n}';

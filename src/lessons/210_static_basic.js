@@ -25,7 +25,7 @@ Lab.register({
   label: function (c) { return (c.st ? 'static 있음' : 'static 없음') + ' · ' + (c.read === 'cls' ? 'Counter.count로 읽음' : 'a.count로 읽음'); },
   columns: ['컴파일', '컴파일러가 알려 주는 것', '출력', 'count가 있는 곳'],
   simulate: function (c) {
-    var ev = [], sum = [], READ = c.read === 'cls' ? 'Counter.count' : 'a.count', READ_LINE = 'System.out.println(' + READ + ');';
+    var ev = [], sum = [], READ = c.read === 'cls' ? 'Counter.count' : 'a.count', READ_LINE = 'System.out.println(' + READ + ');'; var J = function (v, a, b) { var s = String(v), ch = s.charCodeAt(s.length - 1), k = ch >= 0xAC00 && ch <= 0xD7A3 ? (ch - 0xAC00) % 28 : [1, 8, 0, 1, 0, 0, 1, 8, 8, 0]['0123456789'.indexOf(s.slice(-1))] || 0; return s + (a === '으로' ? (k && k !== 8 ? a : b) : k ? a : b); };   // 값 뒤에 붙일 조사를 고른다
     var fail = !c.st && c.read === 'cls';
     var where = c.st ? '클래스에 하나' : '객체마다 하나씩';
     var st = { hot: '', by: '', objs: 0, cells: 0, cls: null, a: null, b: null, bad: {}, compile: '', errText: '', ran: false, out: '', checks: [] };
@@ -90,9 +90,9 @@ Lab.register({
       out = c.st ? '2' : '1';
       st.ran = true; st.out = out;
       st.checks.push(['출력', { v: out, cls: 'good' }]);
-      if (c.st && c.read === 'cls') push(READ_LINE + ' 줄이 실행됩니다. Counter.count는 Counter 클래스에 하나 있는 count이고, 그 값 ' + out + '이 출력됩니다.', 'good');
-      else if (c.st) push(READ_LINE + ' 줄이 실행됩니다. a.count는 객체 a로 가리키는 모양이지만 count는 static이어서, 읽는 것은 Counter 클래스에 하나 있는 count입니다. 그 값 ' + out + '이 출력됩니다. a와 b가 같은 칸을 올렸으므로 b.count로 읽어도 같은 값입니다.', 'good');
-      else push(READ_LINE + ' 줄이 실행됩니다. a.count는 a의 count 칸이고, 그 값 ' + out + '이 출력됩니다. b의 count 칸도 값이 1로 서로 다른 칸이므로, 둘이 올린 값을 합친 2는 어디에도 없습니다.', 'good');
+      if (c.st && c.read === 'cls') push(READ_LINE + ' 줄이 실행됩니다. Counter.count는 Counter 클래스에 하나 있는 count이고, 그 값 ' + J(out, '이', '가') + ' 출력됩니다.', 'good');
+      else if (c.st) push(READ_LINE + ' 줄이 실행됩니다. a.count는 객체 a로 가리키는 모양이지만 count는 static이어서, 읽는 것은 Counter 클래스에 하나 있는 count입니다. 그 값 ' + J(out, '이', '가') + ' 출력됩니다. a와 b가 같은 칸을 올렸으므로 b.count로 읽어도 같은 값입니다.', 'good');
+      else push(READ_LINE + ' 줄이 실행됩니다. a.count는 a의 count 칸이고, 그 값 ' + J(out, '이', '가') + ' 출력됩니다. b의 count 칸도 값이 1로 서로 다른 칸이므로, 둘이 올린 값을 합친 2는 어디에도 없습니다.', 'good');
     }
 
     // 요약: 첫 줄은 이 설정(물음)의 답

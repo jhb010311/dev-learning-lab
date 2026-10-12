@@ -12,7 +12,7 @@ Lab.register({
     { t: '처음 설정으로', q: '스레드 2가 B 먼저 그다음 A 순서로 락을 잡고 두 스레드가 동시에 시작하면 어떻게 되나', d: '서로 반대 순서로 락을 잡고 동시에 시작합니다. 교착 상태가 됩니다.', v: { ord: 'BA', time: 'overlap', tryl: false } },
     { t: '락 순서를 통일하면', q: '스레드 2가 A 먼저, 그다음 B 순서로 락을 잡게 바꾸면', d: '둘 다 A부터 잡습니다. 한쪽이 기다렸다가 차례로 끝납니다.', v: { ord: 'AB', time: 'overlap', tryl: false } },
     { t: '타이밍이 어긋나면', q: '두 스레드를 동시에 시작하지 않고 스레드 1이 끝난 뒤 스레드 2를 시작하면', d: '반대 순서인데도 문제없이 끝납니다. 그래서 테스트에서 안 잡힙니다.', v: { ord: 'BA', time: 'seq', tryl: false } },
-    { t: '기다리는 시간에 제한을 두면', q: '락을 기다리는 시간에 제한을 두는 tryLock을 켜면', d: '못 잡으면 가진 락을 내려놓고 다시 시도합니다.', v: { ord: 'BA', time: 'overlap', tryl: true } },
+    { t: '기다리는 시간에 제한을 두면', q: '락을 기다리는 시간에 tryLock으로 제한을 두면', d: '못 잡으면 가진 락을 내려놓고 다시 시도합니다.', v: { ord: 'BA', time: 'overlap', tryl: true } },
   ],
   code: function (c) {
     if (c.tryl) { var x = c.ord === 'AB' ? 'first' : 'from', y = c.ord === 'AB' ? 'second' : 'to';
@@ -67,7 +67,7 @@ Lab.register({
     P.size(680, 310);
     [1, 2].forEach(function (t) { var x = s.st[t], p = x.split(' · '); P.box('T' + t, t === 1 ? 24 : 456, 104, 200, 66, { cls: x === '이체 완료' ? 'good' : x.indexOf('기다리는') >= 0 ? (dead ? 'bad' : 'wait') : x === '시작 전' ? 'plain' : 'hot', title: '스레드 ' + t + (t === 1 ? ' (A → B 이체)' : ' (B → A 이체)'), sub: [p[0], p[1] || ' '] }); });
     ['A', 'B'].forEach(function (l) {
-      P.box('L' + l, 250, l === 'A' ? 24 : 204, 180, 46, { cls: s.own[l] ? 'hot' : 'plain', title: '계좌 ' + l + '의 락', sub: s.own[l] ? '스레드 ' + s.own[l] + '가 쥐고 있음' : '비어 있음' });
+      P.box('L' + l, 250, l === 'A' ? 24 : 204, 180, 46, { cls: s.own[l] ? 'hot' : 'plain', title: '계좌 ' + l + '의 락', sub: s.own[l] ? '스레드 ' + s.own[l] + (String(s.own[l]) === '1' ? '이' : '가') + ' 쥐고 있음' : '비어 있음' });
       [1, 2].forEach(function (t) {
         var side = t === 1 ? 'l' : 'r', tside = l === 'A' ? 't' : 'b';
         if (s.own[l] === t) P.arrow('e' + t + l, 'L' + l + ':' + side, 'T' + t + ':' + tside, { cls: 'hot', label: '쥐고 있음' });

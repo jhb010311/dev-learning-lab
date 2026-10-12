@@ -869,7 +869,7 @@ Lab.register({
     { t: '처음 설정으로', q: '기본 2개, 최대 4개, 대기 큐 2칸인 스레드 풀에 요청 10개가 오면 어떻게 처리되나', d: '기본 2, 최대 4, 큐 2칸에 요청 10개. 일부가 거절됩니다.', v: { core: 2, max: 4, cap: 2, n: 10, work: 2, gap: 0.2, unb: false } },
     { t: '스레드만 늘려 보기', q: '기본 스레드 수를 4개, 최대 스레드 수를 8개로 늘리면', d: '기본 4, 최대 8로. 거절과 대기가 어떻게 변하는지 봅니다.', v: { core: 4, max: 8, cap: 2, n: 10, work: 2, gap: 0.2, unb: false } },
     { t: '대기 줄만 늘려 보기', q: '스레드 수는 그대로 두고 대기 큐 칸 수만 10칸으로 늘리면', d: '스레드는 그대로, 큐만 10칸으로. 거절은 줄지만 기다림이 길어집니다.', v: { core: 2, max: 4, cap: 10, n: 10, work: 2, gap: 0.2, unb: false } },
-    { t: '대기 줄을 무제한으로', q: '대기 큐를 무제한으로 켜면', d: '최대 스레드 수가 쓰이지 않는 것을 확인합니다.', v: { core: 2, max: 4, cap: 2, n: 10, work: 2, gap: 0.2, unb: true } },
+    { t: '대기 줄을 무제한으로', q: '대기 큐를 무제한으로 두면', d: '최대 스레드 수가 쓰이지 않는 것을 확인합니다.', v: { core: 2, max: 4, cap: 2, n: 10, work: 2, gap: 0.2, unb: true } },
     { t: '요청이 빨리 끝나게', q: '요청 하나의 처리 시간을 2.0초에서 0.5초로 줄이면', d: '처리 시간을 0.5초로. 같은 스레드 수로도 버팁니다.', v: { core: 2, max: 4, cap: 2, n: 10, work: 0.5, gap: 0.2, unb: false } },
   ],
   code: function (c) {
@@ -969,11 +969,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '스레드 2개가 각각 count++를 3번씩 하는데 동기화 없이 한 단계씩 번갈아 실행되면 어떻게 되나', d: '동기화 없이 번갈아 실행. 증가가 사라집니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'alt', seed: 7 } },
-    { t: 'volatile만 붙여 보기', q: '동기화 방식을 volatile만 붙임으로 바꾸면', d: '값은 최신으로 보이지만 단계가 섞이는 것은 막지 못합니다.', v: { threads: 2, loops: 3, sync: 'volatile', order: 'alt', seed: 7 } },
-    { t: 'synchronized로 묶기', q: '동기화 방식을 synchronized 블록으로 바꾸면', d: '한 스레드가 끝낼 때까지 다른 스레드가 기다립니다.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
-    { t: 'AtomicInteger 쓰기', q: '동기화 방식을 AtomicInteger로 바꾸면', d: '락 없이, 읽은 값이 그대로일 때만 씁니다(CAS). 아니면 다시 합니다.', v: { threads: 2, loops: 3, sync: 'atomic', order: 'alt', seed: 7 } },
-    { t: '운 좋게 안 겹친 경우', q: '동기화 방식은 없음 그대로인데 실행 순서를 한 스레드가 다 끝낸 뒤 다음으로 바꾸면', d: '동기화가 없는데도 결과가 맞습니다. 테스트에서 버그가 안 잡히는 이유입니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'seq', seed: 7 } },
-    { t: '스레드 4개가 무작위로', q: '스레드 수를 4개로 늘리고 실행 순서를 무작위로 섞임으로 바꾸면', d: '패턴 번호를 바꿔 가며 여러 번 실행해 보세요. 결과가 매번 다릅니다.', v: { threads: 4, loops: 3, sync: 'none', order: 'rand', seed: 7 } },
+    { t: 'volatile만 붙여 보기', q: 'count에 volatile만 붙이면', d: '값은 최신으로 보이지만 단계가 섞이는 것은 막지 못합니다.', v: { threads: 2, loops: 3, sync: 'volatile', order: 'alt', seed: 7 } },
+    { t: 'synchronized로 묶기', q: 'count++를 synchronized 블록으로 묶으면', d: '한 스레드가 끝낼 때까지 다른 스레드가 기다립니다.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
+    { t: 'AtomicInteger 쓰기', q: 'count를 AtomicInteger로 바꾸면', d: '락 없이, 읽은 값이 그대로일 때만 씁니다(CAS). 아니면 다시 합니다.', v: { threads: 2, loops: 3, sync: 'atomic', order: 'alt', seed: 7 } },
+    { t: '운 좋게 안 겹친 경우', q: '동기화 없이 한 스레드가 다 끝난 뒤에 다음 스레드가 실행되면', d: '동기화가 없는데도 결과가 맞습니다. 테스트에서 버그가 안 잡히는 이유입니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'seq', seed: 7 } },
+    { t: '스레드 4개가 무작위로', q: '스레드를 4개로 늘리고 실행 순서를 무작위로 섞으면', d: '패턴 번호를 바꿔 가며 여러 번 실행해 보세요. 결과가 매번 다릅니다.', v: { threads: 4, loops: 3, sync: 'none', order: 'rand', seed: 7 } },
   ],
   code: function (c) {
     var decl = { none: 'static int count = 0;', volatile: 'static volatile int count = 0;', sync: 'static int count = 0;\nstatic final Object lock = new Object();', atomic: 'static final AtomicInteger count = new AtomicInteger();' }[c.sync];
@@ -983,7 +983,7 @@ Lab.register({
   label: function (c) { return { none: '동기화 없음', volatile: 'volatile', sync: 'synchronized', atomic: 'AtomicInteger' }[c.sync] + ' · 스레드 ' + c.threads + '개 × ' + c.loops + '번 · ' + { alt: '번갈아', rand: '무작위 ' + c.seed + '번', seq: '차례로' }[c.order]; },
   columns: ['기대값', '최종 값', '사라진 증가', '기다림·재시도'],
   simulate: function (c) {
-    var names = 'ABCD', ths = [], count = 0, lost = 0, done = 0, waits = 0, retries = 0, lock = null, ev = [], seed = c.seed * 7919 + 13, rr = 0;
+    var names = 'ABCD', ths = [], count = 0, lost = 0, done = 0, waits = 0, retries = 0, lock = null, ev = [], seed = c.seed * 7919 + 13, rr = 0; var J = function (v, a, b) { var s = String(v), ch = s.charCodeAt(s.length - 1), k = ch >= 0xAC00 && ch <= 0xD7A3 ? (ch - 0xAC00) % 28 : [1, 8, 0, 1, 0, 0, 1, 8, 8, 0]['0123456789'.indexOf(s.slice(-1))] || 0; return s + (a === '으로' ? (k && k !== 8 ? a : b) : k ? a : b); };   // 값 뒤에 붙일 조사를 고른다
     for (var i = 0; i < c.threads; i++) ths.push({ id: names[i], left: c.loops, phase: 0, local: null, note: '시작 전' });
     function rnd(n) { seed = (seed * 1103515245 + 12345) % 2147483648; return Math.floor(seed / 2147483648 * n); }
     function alive() { return ths.filter(function (t) { return t.left > 0; }); }
@@ -1005,12 +1005,12 @@ Lab.register({
       if (c.sync === 'atomic') {
         if (t.phase === 0) {
           t.local = count; t.phase = 1; t.note = '읽은 값 ' + t.local;
-          push('스레드 ' + t.id + ': 현재 값 ' + t.local + '을 읽었습니다. 이 값이 그대로일 때만 ' + (t.local + 1) + '로 바꾸려고 합니다.', '', t.id);
+          push('스레드 ' + t.id + ': 현재 값 ' + J(t.local, '을', '를') + ' 읽었습니다. 이 값이 그대로일 때만 ' + J(t.local + 1, '으로', '로') + ' 바꾸려고 합니다.', '', t.id);
         } else if (count === t.local) {
           count = t.local + 1; t.left--; t.phase = 0; t.local = null; t.note = t.left ? '남은 횟수 ' + t.left + '번' : '끝';
-          push('스레드 ' + t.id + ': CAS 성공. count가 읽었던 값 ' + (count - 1) + ' 그대로여서 ' + count + '로 바꿨습니다. 비교와 쓰기는 CPU 명령 하나로 처리되어 그 사이에 다른 스레드가 끼어들 수 없습니다.', 'good', t.id);
+          push('스레드 ' + t.id + ': CAS 성공. count가 읽었던 값 ' + (count - 1) + ' 그대로여서 ' + J(count, '으로', '로') + ' 바꿨습니다. 비교와 쓰기는 CPU 명령 하나로 처리되어 그 사이에 다른 스레드가 끼어들 수 없습니다.', 'good', t.id);
         } else {
-          retries++; push('스레드 ' + t.id + ': CAS 실패. 읽었던 값은 ' + t.local + '인데 그사이 count가 ' + count + '로 바뀌어 있습니다. 덮어쓰지 않고 처음부터 다시 읽습니다.', '', t.id);
+          retries++; push('스레드 ' + t.id + ': CAS 실패. 읽었던 값은 ' + t.local + '인데 그사이 count가 ' + J(count, '으로', '로') + ' 바뀌어 있습니다. 덮어쓰지 않고 처음부터 다시 읽습니다.', '', t.id);
           t.phase = 0; t.local = null; t.note = '다시 시도';
         }
         continue;
@@ -1021,13 +1021,13 @@ Lab.register({
         push('스레드 ' + t.id + ': ' + (c.sync === 'sync' ? '락을 잡고 ' : '') + 'count를 읽었습니다. 읽은 값은 ' + t.local + '입니다.', '', t.id);
       } else if (t.phase === 1) {
         t.phase = 2; t.note = '계산한 값 ' + (t.local + 1) + ' (아직 안 씀)';
-        push('스레드 ' + t.id + ': 읽은 값 ' + t.local + '에 1을 더해 ' + (t.local + 1) + '을 만들었습니다. 아직 count에 쓰지는 않았습니다.', '', t.id);
+        push('스레드 ' + t.id + ': 읽은 값 ' + t.local + '에 1을 더해 ' + J(t.local + 1, '을', '를') + ' 만들었습니다. 아직 count에 쓰지는 않았습니다.', '', t.id);
       } else {
         var over = count - t.local, nv = t.local + 1; count = nv; done++; lost = done - count; t.left--; t.phase = 0; t.local = null;
         t.note = t.left ? '남은 횟수 ' + t.left + '번' : '끝';
-        if (over > 0) { push('스레드 ' + t.id + ': count에 ' + nv + '을 썼습니다. 그런데 이 스레드가 읽은 뒤로 다른 스레드가 count를 ' + (nv - 1 + over) + '까지 올려 놓았습니다. 그 위에 ' + nv + '을 덮어써서 증가 ' + over + '번이 사라졌습니다.', 'bad', t.id); }
-        else if (over < 0) push('스레드 ' + t.id + ': count에 ' + nv + '을 썼습니다. 이 스레드가 읽은 뒤에 다른 스레드가 오래된 값으로 count를 ' + (nv - 1 + over) + '까지 되돌려 놓았지만, 그 위에 다시 ' + nv + '을 덮어썼습니다. 지금까지 끝난 증가는 ' + done + '번인데 count는 ' + count + '입니다.', lost > 0 ? 'bad' : '', t.id);
-        else push('스레드 ' + t.id + ': count에 ' + nv + '을 썼습니다.' + (c.sync === 'sync' ? ' 블록을 나오면서 락을 풉니다.' : ''), '', t.id);
+        if (over > 0) { push('스레드 ' + t.id + ': count에 ' + J(nv, '을', '를') + ' 썼습니다. 그런데 이 스레드가 읽은 뒤로 다른 스레드가 count를 ' + (nv - 1 + over) + '까지 올려 놓았습니다. 그 위에 ' + J(nv, '을', '를') + ' 덮어써서 증가 ' + over + '번이 사라졌습니다.', 'bad', t.id); }
+        else if (over < 0) push('스레드 ' + t.id + ': count에 ' + J(nv, '을', '를') + ' 썼습니다. 이 스레드가 읽은 뒤에 다른 스레드가 오래된 값으로 count를 ' + (nv - 1 + over) + '까지 되돌려 놓았지만, 그 위에 다시 ' + J(nv, '을', '를') + ' 덮어썼습니다. 지금까지 끝난 증가는 ' + done + '번인데 count는 ' + count + '입니다.', lost > 0 ? 'bad' : '', t.id);
+        else push('스레드 ' + t.id + ': count에 ' + J(nv, '을', '를') + ' 썼습니다.' + (c.sync === 'sync' ? ' 블록을 나오면서 락을 풉니다.' : ''), '', t.id);
         if (c.sync === 'sync') lock = null;
       }
     }
@@ -1084,9 +1084,9 @@ Lab.register({
     { id: 'lf', label: '로드 팩터', type: 'select', value: '0.75', options: [['0.5', '0.5 (절반 차면 늘림)'], ['0.75', '0.75 (기본값)'], ['1', '1.0 (다 차야 늘림)']], hint: '저장된 개수가 버킷 수 × 로드 팩터를 넘으면 버킷을 두 배로 늘립니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', q: 'id 그대로를 hashCode로 쓰고 equals도 재정의한 키 13개를 로드 팩터 0.75인 HashMap에 넣으면 어떻게 되나', d: '13개를 넣습니다. 13번째에서 버킷이 16개에서 32개로 늘어납니다.', v: { n: 13, eq: 'both', hash: 'good', lf: '0.75' } },
-    { t: 'hashCode가 항상 같은 값', q: 'hashCode() 구현을 항상 1로 바꾸면', d: '전부 한 버킷에 몰립니다. 9번째부터 무슨 일이 생기는지 보세요.', v: { n: 13, eq: 'both', hash: 'same', lf: '0.75' } },
-    { t: 'hashCode 값이 4가지뿐', q: '넣는 키를 40개로 늘리고 hashCode() 구현을 id % 4로 바꾸면', d: '40개를 넣습니다. 버킷을 늘려도 4곳에만 쌓입니다.', v: { n: 40, eq: 'both', hash: 'mod4', lf: '0.75' } },
+    { t: '처음 설정으로', q: 'id를 그대로 hashCode로 쓰고 equals도 재정의한 키 13개를 로드 팩터 0.75인 HashMap에 넣으면 어떻게 되나', d: '13개를 넣습니다. 13번째에서 버킷이 16개에서 32개로 늘어납니다.', v: { n: 13, eq: 'both', hash: 'good', lf: '0.75' } },
+    { t: 'hashCode가 항상 같은 값', q: 'hashCode()가 항상 1을 돌려주면', d: '전부 한 버킷에 몰립니다. 9번째부터 무슨 일이 생기는지 보세요.', v: { n: 13, eq: 'both', hash: 'same', lf: '0.75' } },
+    { t: 'hashCode 값이 4가지뿐', q: '넣는 키를 40개로 늘리고 hashCode()가 id % 4를 돌려주면', d: '40개를 넣습니다. 버킷을 늘려도 4곳에만 쌓입니다.', v: { n: 40, eq: 'both', hash: 'mod4', lf: '0.75' } },
     { t: '로드 팩터를 0.5로', q: '로드 팩터를 0.5로 바꾸면', d: '더 일찍 늘립니다. 충돌은 줄고 메모리는 더 씁니다.', v: { n: 13, eq: 'both', hash: 'good', lf: '0.5' } },
     { t: 'equals만 재정의', q: '키 클래스에서 equals만 재정의하면', d: '넣은 키와 내용이 같은 키로 조회해도 찾지 못합니다.', v: { n: 13, eq: 'eqonly', hash: 'good', lf: '0.75' } },
     { t: 'hashCode만 재정의', q: '키 클래스에서 hashCode만 재정의하면', d: '맞는 버킷까지는 가지만 같은 키로 인정받지 못합니다.', v: { n: 13, eq: 'hconly', hash: 'good', lf: '0.75' } },
@@ -1203,13 +1203,13 @@ Lab.register({
   ],
   fix: function (c) { return c.m > c.n ? { m: c.n } : null; },
   presets: [
-    { t: '처음 설정으로', q: '지연 로딩 (LAZY) 설정에서 회원 10명이 한 주문 10건을 조회하고 회원 이름을 쓰면 쿼리는 몇 번 나가나', d: '지연 로딩, 주문 10건, 회원 10명. 쿼리가 1 + 10번 나갑니다.', v: { n: 10, m: 10, st: 'lazy', bs: 5, use: true, rt: 5 } },
-    { t: '즉시 로딩으로 바꾸면 해결될까', q: '회원을 가져오는 방법을 즉시 로딩 (EAGER) 설정으로 바꾸면', d: '쿼리 수는 그대로이고 나가는 시점만 앞당겨집니다.', v: { n: 10, m: 10, st: 'eager', bs: 5, use: true, rt: 5 } },
-    { t: 'fetch join', q: '회원을 가져오는 방법을 지연 로딩 + fetch join으로 바꾸면', d: '주문과 회원을 한 쿼리로 가져옵니다.', v: { n: 10, m: 10, st: 'fetch', bs: 5, use: true, rt: 5 } },
-    { t: '배치 크기 설정', q: '회원을 가져오는 방법을 지연 로딩 + 배치 크기 설정으로 바꾸고 배치 크기를 5개씩 두면', d: '회원을 5명씩 묶어서 IN 쿼리로 가져옵니다.', v: { n: 10, m: 10, st: 'batch', bs: 5, use: true, rt: 5 } },
-    { t: '같은 회원의 주문이 많을 때', q: '주문 10건은 그대로 두고 그 주문들을 한 회원 수만 3명으로 줄이면', d: '주문 10건, 회원 3명. 이미 읽은 회원은 다시 조회하지 않습니다.', v: { n: 10, m: 3, st: 'lazy', bs: 5, use: true, rt: 5 } },
-    { t: '회원 정보를 쓰지 않을 때', q: '조회한 뒤 회원 이름을 사용한다 설정을 끄면', d: '지연 로딩은 쓰지 않는 회원을 조회하지 않습니다. 즉시 로딩과 비교해 보세요.', v: { n: 10, m: 10, st: 'lazy', bs: 5, use: false, rt: 5 } },
-    { t: '주문 30건으로 늘리면', q: '조회되는 주문 건수를 30건으로, 그 주문들을 한 회원 수를 30명으로 늘리면', d: '지연 로딩에서는 데이터가 늘어난 만큼 쿼리도 늘어납니다.', v: { n: 30, m: 30, st: 'lazy', bs: 5, use: true, rt: 5 } },
+    { t: '처음 설정으로', q: '회원 10명이 낸 주문 10건을 지연 로딩(LAZY)으로 조회하고 회원 이름을 쓰면 쿼리는 몇 번 나가나', d: '지연 로딩, 주문 10건, 회원 10명. 쿼리가 1 + 10번 나갑니다.', v: { n: 10, m: 10, st: 'lazy', bs: 5, use: true, rt: 5 } },
+    { t: '즉시 로딩으로 바꾸면 해결될까', q: '회원을 즉시 로딩(EAGER)으로 가져오면', d: '쿼리 수는 그대로이고 나가는 시점만 앞당겨집니다.', v: { n: 10, m: 10, st: 'eager', bs: 5, use: true, rt: 5 } },
+    { t: 'fetch join', q: '지연 로딩에 fetch join을 써서 회원을 가져오면', d: '주문과 회원을 한 쿼리로 가져옵니다.', v: { n: 10, m: 10, st: 'fetch', bs: 5, use: true, rt: 5 } },
+    { t: '배치 크기 설정', q: '지연 로딩에 배치 크기를 5개씩 설정해 회원을 가져오면', d: '회원을 5명씩 묶어서 IN 쿼리로 가져옵니다.', v: { n: 10, m: 10, st: 'batch', bs: 5, use: true, rt: 5 } },
+    { t: '같은 회원의 주문이 많을 때', q: '주문 10건은 그대로 두고 주문한 회원만 3명으로 줄이면', d: '주문 10건, 회원 3명. 이미 읽은 회원은 다시 조회하지 않습니다.', v: { n: 10, m: 3, st: 'lazy', bs: 5, use: true, rt: 5 } },
+    { t: '회원 정보를 쓰지 않을 때', q: '조회한 뒤 회원 이름을 쓰지 않으면', d: '지연 로딩은 쓰지 않는 회원을 조회하지 않습니다. 즉시 로딩과 비교해 보세요.', v: { n: 10, m: 10, st: 'lazy', bs: 5, use: false, rt: 5 } },
+    { t: '주문 30건으로 늘리면', q: '조회되는 주문을 30건으로, 주문한 회원을 30명으로 늘리면', d: '지연 로딩에서는 데이터가 늘어난 만큼 쿼리도 늘어납니다.', v: { n: 30, m: 30, st: 'lazy', bs: 5, use: true, rt: 5 } },
   ],
   code: function (c) {
     var eager = c.st === 'eager';
@@ -1221,7 +1221,7 @@ Lab.register({
   label: function (c) { return { lazy: '지연 로딩', eager: '즉시 로딩', fetch: 'fetch join', graph: '@EntityGraph', batch: '배치 ' + c.bs + '개씩' }[c.st] + ' · 주문 ' + c.n + '건 · 회원 ' + c.m + '명 · 이름 ' + (c.use ? '사용' : '사용 안 함'); },
   columns: ['쿼리 수', '주문 조회', '회원 조회', 'DB 왕복 시간'],
   simulate: function (c) {
-    var ev = [], qs = [], loaded = {}, orders = [], cursor = 0;
+    var ev = [], qs = [], loaded = {}, orders = [], cursor = 0; var J = function (v, a, b) { var s = String(v), ch = s.charCodeAt(s.length - 1), k = ch >= 0xAC00 && ch <= 0xD7A3 ? (ch - 0xAC00) % 28 : [1, 8, 0, 1, 0, 0, 1, 8, 8, 0]['0123456789'.indexOf(s.slice(-1))] || 0; return s + (a === '으로' ? (k && k !== 8 ? a : b) : k ? a : b); };   // 값 뒤에 붙일 조사를 고른다
     for (var i = 1; i <= c.n; i++) orders.push({ id: i, mem: (i - 1) % c.m + 1 });
     function snap() { var l = {}; Object.keys(loaded).forEach(function (k) { l[k] = 1; }); return { qs: qs.slice(), loaded: l, cursor: cursor }; }
     function push(s, k) { ev.push({ s: s, k: k, snap: snap() }); }
@@ -1239,7 +1239,7 @@ Lab.register({
       orders.forEach(function (o) {
         if (loaded[o.mem]) return;
         loaded[o.mem] = 1; query('select m.* from member m where m.id = ' + o.mem, '즉시 로딩', 'm');
-        push('쿼리 ' + qs.length + '번: 즉시 로딩으로 설정돼 있어서, 조회 결과를 돌려주기 전에 주문 ' + o.id + '의 회원 ' + o.mem + '을 바로 조회합니다. 코드에서 회원을 쓰는지와 상관없습니다.', 'bad');
+        push('쿼리 ' + qs.length + '번: 즉시 로딩으로 설정돼 있어서, 조회 결과를 돌려주기 전에 주문 ' + o.id + '의 회원 ' + J(o.mem, '을', '를') + ' 바로 조회합니다. 코드에서 회원을 쓰는지와 상관없습니다.', 'bad');
       });
     }
     if (!c.use) { cursor = c.n; push('반복문에서 주문 금액만 사용했습니다. 회원에는 손대지 않았으므로 추가 쿼리는 없습니다.', ''); }
@@ -1387,9 +1387,9 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '주문 테이블 하나에 전부 담은 정규화 전 설계에서 김철수의 주문 3건이 있을 때 주소를 서울에서 부산으로 변경하면 어떻게 되나', d: '정규화 전 테이블에서 주소 변경. 주문 건수만큼 행을 고쳐야 합니다.', v: { form: 'flat', op: 'update', k: 3, miss: false } },
     { t: '한 행만 고치는 실수', q: '같은 주소 변경에서 수정할 때 조건을 잘못 줘서 한 행만 고치면', d: '같은 회원의 주소가 두 가지가 됩니다(갱신 이상).', v: { form: 'flat', op: 'update', k: 3, miss: true } },
-    { t: '같은 변경을 정규화 후에', q: '같은 주소 변경을 정규화 후 (회원 / 주문으로 분리) 설계에서 하면', d: '주소가 한 곳에만 있어서 한 행만 고치면 끝납니다.', v: { form: 'norm', op: 'update', k: 3, miss: false } },
-    { t: '주문 없는 회원 등록', q: '해 볼 작업을 아직 주문이 없는 신규 회원 등록으로 바꾸면', d: '정규화 전에는 넣을 자리가 없습니다(삽입 이상).', v: { form: 'flat', op: 'insert', k: 3, miss: false } },
-    { t: '마지막 주문 삭제', q: '해 볼 작업을 회원 이영희의 하나뿐인 주문 삭제로 바꾸면', d: '정규화 전에는 회원 정보까지 사라집니다(삭제 이상).', v: { form: 'flat', op: 'delete', k: 3, miss: false } },
+    { t: '같은 변경을 정규화 후에', q: '같은 주소 변경을 회원과 주문으로 분리한 정규화 후 설계에서 하면', d: '주소가 한 곳에만 있어서 한 행만 고치면 끝납니다.', v: { form: 'norm', op: 'update', k: 3, miss: false } },
+    { t: '주문 없는 회원 등록', q: '아직 주문이 없는 신규 회원을 등록하면', d: '정규화 전에는 넣을 자리가 없습니다(삽입 이상).', v: { form: 'flat', op: 'insert', k: 3, miss: false } },
+    { t: '마지막 주문 삭제', q: '회원 이영희의 하나뿐인 주문을 삭제하면', d: '정규화 전에는 회원 정보까지 사라집니다(삭제 이상).', v: { form: 'flat', op: 'delete', k: 3, miss: false } },
     { t: '정규화의 비용', q: '정규화 후 설계에서 주문 목록을 회원 이름과 함께 조회하면', d: '정규화 후에는 조회할 때 조인이 필요합니다.', v: { form: 'norm', op: 'read', k: 3, miss: false } },
   ],
   code: function (c) {
@@ -1501,8 +1501,8 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '각 서버 메모리에 세션을 저장하는 서버 2대를 쓰면 로그인 상태는 어떻게 되나', d: '서버 메모리 세션, 서버 2대. 다른 서버로 간 요청은 로그인이 풀립니다.', v: { mode: 'local', servers: 2, exp: '25', kick: false } },
-    { t: '세션을 Redis로 옮기면', q: '인증 방식을 Redis 공용 저장소에 세션을 저장하는 방식으로 바꾸면', d: '어느 서버로 가도 로그인이 유지됩니다. 대신 요청마다 저장소를 조회합니다.', v: { mode: 'redis', servers: 2, exp: '25', kick: false } },
-    { t: 'JWT로 바꾸면', q: '인증 방식을 액세스 토큰만 쓰는 JWT로 바꾸면', d: '서버는 아무것도 기억하지 않습니다. 25분 뒤 토큰이 만료됩니다.', v: { mode: 'jwt', servers: 2, exp: '25', kick: false } },
+    { t: '세션을 Redis로 옮기면', q: '세션을 각 서버 메모리 대신 Redis 공용 저장소에 저장하면', d: '어느 서버로 가도 로그인이 유지됩니다. 대신 요청마다 저장소를 조회합니다.', v: { mode: 'redis', servers: 2, exp: '25', kick: false } },
+    { t: 'JWT로 바꾸면', q: '액세스 토큰만 쓰는 JWT로 인증하면', d: '서버는 아무것도 기억하지 않습니다. 25분 뒤 토큰이 만료됩니다.', v: { mode: 'jwt', servers: 2, exp: '25', kick: false } },
     { t: 'JWT인데 강제 로그아웃', q: '액세스 토큰만 쓰는 JWT에서 만료 시간을 45분으로 하고 25분에 관리자가 강제 로그아웃시키면', d: '이미 발급한 토큰은 만료 전까지 막을 방법이 없습니다.', v: { mode: 'jwt', servers: 2, exp: '45', kick: true } },
     { t: '세션인데 강제 로그아웃', q: 'Redis 공용 저장소 세션에서 25분에 관리자가 강제 로그아웃시키면', d: '저장소에서 세션을 지우면 바로 다음 요청부터 막힙니다.', v: { mode: 'redis', servers: 2, exp: '25', kick: true } },
     { t: '짧은 액세스 토큰 + 리프레시 토큰', q: '리프레시 토큰을 함께 쓰는 JWT로 바꾸고 액세스 토큰 만료 시간을 15분으로 줄인 채 25분에 관리자가 강제 로그아웃시키면', d: '15분마다 재발급합니다. 강제 로그아웃이 늦어도 15분 안에 먹힙니다.', v: { mode: 'refresh', servers: 2, exp: '15', kick: true } },
@@ -1729,7 +1729,7 @@ Lab.register({
     { t: 'DELETE를 다시 보내면', q: '응답이 1번 사라지는 같은 상황에서 DELETE /orders/1로 삭제하면', d: '두 번째 응답 코드는 다르지만 서버 상태는 같습니다.', v: { m: 'DELETE', lost: 'res', n: 1, key: false } },
     { t: '증가시키는 PATCH', q: 'PATCH /orders/1로 수량을 1 증가시키는데 응답이 2번 사라지면', d: '재시도한 만큼 수량이 더 올라갑니다.', v: { m: 'PATCH', lost: 'res', n: 2, key: false } },
     { t: 'POST에 멱등키를 붙이면', q: 'POST /orders에 멱등키(Idempotency-Key) 헤더를 함께 보내고 응답이 2번 사라지면', d: '서버가 같은 요청임을 알아보고 한 번만 처리합니다.', v: { m: 'POST', lost: 'res', n: 2, key: true } },
-    { t: '요청이 사라진 경우', q: 'POST /orders에서 사라지는 것을 응답이 아니라 요청으로 바꾸면', d: '서버가 처리한 적이 없으므로 재시도해도 문제없습니다.', v: { m: 'POST', lost: 'req', n: 1, key: false } },
+    { t: '요청이 사라진 경우', q: 'POST /orders에서 응답이 아니라 요청이 서버에 도착하지 못하고 사라지면', d: '서버가 처리한 적이 없으므로 재시도해도 문제없습니다.', v: { m: 'POST', lost: 'req', n: 1, key: false } },
   ],
   code: function (c) {
     var k = c.key && (c.m === 'POST' || c.m === 'PATCH') ? 'Idempotency-Key: 7f3a9c12\n' : '';
@@ -1914,9 +1914,9 @@ Lab.register({
   fix: function (c) { return c.decl === 'parent' && !(c.cls === 'child' && ['smethod', 'sfield', 'const', 'finalrt'].indexOf(c.use) >= 0) ? { decl: 'own' } : null; },
   presets: [
     { t: '처음 설정으로', q: 'Parent 클래스의 상수 MAX를 읽으면 static 블록과 클래스 로딩은 어떻게 되나', d: '상수 읽기. static 블록이 실행되지 않고, 클래스를 읽어 들이지도 않습니다.', v: { cls: 'parent', use: 'const', decl: 'own' } },
-    { t: 'new로 객체 만들기', q: '그 클래스로 하는 일을 상수 읽기에서 new로 객체 만들기로 바꾸면', d: '처음 만들 때 한 번만 static 블록이 실행됩니다.', v: { cls: 'parent', use: 'new', decl: 'own' } },
-    { t: 'static final인데 상수가 아닌 필드', q: '그 클래스로 하는 일을 static final이지만 실행해야 값이 정해지는 필드 읽기로 바꾸면', d: '실행해야 값이 정해지므로 초기화가 일어납니다.', v: { cls: 'parent', use: 'finalrt', decl: 'own' } },
-    { t: '배열만 만들면', q: '그 클래스로 하는 일을 배열 만들기로 바꿔 Parent 배열을 new로 만들면', d: '클래스를 읽어 들이기만 하고 초기화하지 않습니다.', v: { cls: 'parent', use: 'array', decl: 'own' } },
+    { t: 'new로 객체 만들기', q: '상수를 읽는 대신 new로 객체를 만들면', d: '처음 만들 때 한 번만 static 블록이 실행됩니다.', v: { cls: 'parent', use: 'new', decl: 'own' } },
+    { t: 'static final인데 상수가 아닌 필드', q: 'static final이지만 실행해야 값이 정해지는 필드를 읽으면', d: '실행해야 값이 정해지므로 초기화가 일어납니다.', v: { cls: 'parent', use: 'finalrt', decl: 'own' } },
+    { t: '배열만 만들면', q: 'Parent 배열을 new로 만들면', d: '클래스를 읽어 들이기만 하고 초기화하지 않습니다.', v: { cls: 'parent', use: 'array', decl: 'own' } },
     { t: '자식 클래스의 객체 만들기', q: '사용하는 클래스를 Child로 바꾸고 new로 객체를 만들면', d: '부모가 먼저, 그다음 자식이 초기화됩니다.', v: { cls: 'child', use: 'new', decl: 'own' } },
     { t: '부모의 static 필드를 자식 이름으로', q: '사용하는 클래스를 Child로 바꾸고 Parent 안에 선언된 static 필드 count를 Child 이름으로 읽으면', d: 'Child.count라고 썼지만 Child는 초기화되지 않습니다.', v: { cls: 'child', use: 'sfield', decl: 'parent' } },
     { t: '클래스이름.class 쓰기', q: '사용하는 클래스를 Child로 바꾸고 Child.class를 쓰면', d: '클래스 정보만 가리킬 뿐 초기화하지 않습니다.', v: { cls: 'child', use: 'classlit', decl: 'own' } },
@@ -2034,11 +2034,11 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: 'BufferedOutputStream으로 감싼 스트림에 write를 9번 하고 닫지 않으면 파일은 어떻게 되나', d: '버퍼로 감싸고 닫지 않음. write를 9번 했는데 파일은 0바이트입니다.', v: { buf: 'buf', end: 'none', fail: false, read: 'char' } },
     { t: 'close로 닫으면', q: '다 쓴 뒤에 out.close 호출을 추가하면', d: '버퍼에 모인 9바이트가 한 번에 내려가 파일에 쓰입니다.', v: { buf: 'buf', end: 'close', fail: false, read: 'char' } },
-    { t: '버퍼 없이 쓰면', q: '쓰는 스트림을 버퍼 없이 바로 쓰기로 바꾸면', d: 'write 9번이 그대로 아래로 9번 내려갑니다.', v: { buf: 'raw', end: 'none', fail: false, read: 'char' } },
-    { t: '버퍼가 4바이트라면', q: '쓰는 스트림을 버퍼 4바이트인 BufferedOutputStream으로 바꾸면', d: '가득 찰 때마다 내려가고, 닫지 않으면 마지막 1바이트가 남습니다.', v: { buf: 'buf4', end: 'none', fail: false, read: 'char' } },
+    { t: '버퍼 없이 쓰면', q: '버퍼 없이 바로 쓰면', d: 'write 9번이 그대로 아래로 9번 내려갑니다.', v: { buf: 'raw', end: 'none', fail: false, read: 'char' } },
+    { t: '버퍼가 4바이트라면', q: '버퍼가 4바이트인 BufferedOutputStream으로 감싸 쓰면', d: '가득 찰 때마다 내려가고, 닫지 않으면 마지막 1바이트가 남습니다.', v: { buf: 'buf4', end: 'none', fail: false, read: 'char' } },
     { t: 'close 전에 예외가 나면', q: '다 쓴 뒤 out.close 호출을 하는데 쓰기를 마친 직후 닫기 전에 예외가 발생하면', d: 'close가 실행되지 못해 파일이 비어 있습니다.', v: { buf: 'buf', end: 'close', fail: true, read: 'char' } },
-    { t: 'try-with-resources라면', q: '다 쓴 뒤에 하는 일을 try-with-resources로 바꾸고 닫기 전에 예외가 발생하면', d: '예외가 나도 자동으로 닫혀 데이터가 파일에 쓰입니다.', v: { buf: 'buf', end: 'twr', fail: true, read: 'char' } },
-    { t: '바이트 하나를 글자 하나로 읽으면', q: '다 쓴 뒤 out.close 호출을 하고 파일을 바이트 스트림으로 한 바이트씩 읽어 글자로 바꾸면', d: '한글 세 글자가 깨진 글자 아홉 개가 됩니다.', v: { buf: 'buf', end: 'close', fail: false, read: 'byte' } },
+    { t: 'try-with-resources라면', q: 'try-with-resources로 쓰는데, 쓰기를 마친 직후 닫기 전에 예외가 발생하면', d: '예외가 나도 자동으로 닫혀 데이터가 파일에 쓰입니다.', v: { buf: 'buf', end: 'twr', fail: true, read: 'char' } },
+    { t: '바이트 하나를 글자 하나로 읽으면', q: 'out.close로 닫은 뒤, 파일을 바이트 스트림으로 한 바이트씩 읽어 글자로 바꾸면', d: '한글 세 글자가 깨진 글자 아홉 개가 됩니다.', v: { buf: 'buf', end: 'close', fail: false, read: 'byte' } },
   ],
   code: function (c) {
     var wrap = { raw: 'OutputStream out = counting;                                // 버퍼 없이 바로', buf: 'OutputStream out = new BufferedOutputStream(counting);     // 버퍼로 감싼다', buf4: 'OutputStream out = new BufferedOutputStream(counting, 4);  // 4바이트짜리 버퍼' }[c.buf];
@@ -2158,7 +2158,7 @@ Lab.register({
   fix: function (c) { return c.cls !== 'ok' && c.chg !== 'same' ? { chg: 'same' } : null; },
   presets: [
     { t: '처음 설정으로', q: 'Serializable을 구현한 User의 transient int point에 50을 저장하고 되살리면 point는 어떻게 되나', d: 'transient 필드. 50을 저장했는데 되살리면 0입니다.', v: { cls: 'ok', fld: 'transient', chg: 'same' } },
-    { t: '보통 필드', q: 'point 필드의 선언을 transient 없는 보통 필드 int point로 바꾸면', d: '저장할 때의 값 50이 그대로 돌아옵니다.', v: { cls: 'ok', fld: 'plain', chg: 'same' } },
+    { t: '보통 필드', q: 'point 필드에서 transient를 빼 보통 필드로 두면', d: '저장할 때의 값 50이 그대로 돌아옵니다.', v: { cls: 'ok', fld: 'plain', chg: 'same' } },
     { t: 'static 필드', q: 'point 필드를 static int point로 바꾸고 저장한 뒤에 값을 70으로 바꾸면', d: '저장된 값이 아니라 지금 클래스가 가진 값 70이 보입니다.', v: { cls: 'ok', fld: 'static', chg: 'same' } },
     { t: 'Serializable을 구현하지 않으면', q: 'User 클래스가 Serializable을 구현하지 않고 point를 보통 필드로 두면', d: '저장할 때 NotSerializableException이 발생합니다.', v: { cls: 'no', fld: 'plain', chg: 'same' } },
     { t: '필드로 가진 객체가 문제라면', q: 'User는 Serializable을 구현했지만 필드로 가진 Address는 구현하지 않으면', d: 'User가 아니라 Address 때문에 저장에 실패합니다.', v: { cls: 'field', fld: 'plain', chg: 'same' } },
@@ -2267,11 +2267,11 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '두 구현을 모두 @Component로 등록하고 고르는 표시 없이 RateDiscountPolicy를 쓰려 하면 기동은 어떻게 되나', d: '두 구현을 모두 @Component로 등록했습니다. 컨테이너가 고르지 못해 기동이 실패합니다.', v: { how: 'comp', reg: 'two', use: 'rate' } },
     { t: '직접 new로 만들면', q: '할인 정책 객체를 OrderService가 직접 new로 만들고 쓰려는 구현을 FixedDiscountPolicy로 바꾸면', d: '어떤 구현을 쓸지가 OrderService 안에 적힙니다. 바꾸려면 OrderService를 고칩니다.', v: { how: 'new', reg: 'two', use: 'fixed' } },
-    { t: '구현 하나만 등록', q: '빈으로 등록한 구현을 쓰려는 구현 하나만으로 바꾸면', d: '컨테이너가 하나뿐인 빈을 찾아 넣어 줍니다. OrderService에는 new가 없습니다.', v: { how: 'comp', reg: 'one', use: 'rate' } },
+    { t: '구현 하나만 등록', q: '쓰려는 구현 하나만 빈으로 등록하면', d: '컨테이너가 하나뿐인 빈을 찾아 넣어 줍니다. OrderService에는 new가 없습니다.', v: { how: 'comp', reg: 'one', use: 'rate' } },
     { t: '@Primary로 고르기', q: '두 구현 모두 등록하고 쓰려는 쪽에 @Primary를 붙이면', d: '둘 다 등록하고 먼저 쓸 쪽에 표시를 붙입니다.', v: { how: 'comp', reg: 'primary', use: 'rate' } },
     { t: '@Qualifier로 고르기', q: '두 구현 모두 등록하고 주입받는 곳에 @Qualifier로 FixedDiscountPolicy를 고르면', d: '주입받는 쪽에서 빈 이름을 지정합니다.', v: { how: 'comp', reg: 'qualifier', use: 'fixed' } },
     { t: '@Bean 메서드로 등록', q: '할인 정책 객체를 @Bean 메서드로 등록하고 쓰려는 구현 하나만 등록하면', d: '설정 클래스의 메서드가 돌려준 객체가 빈이 됩니다.', v: { how: 'bean', reg: 'one', use: 'rate' } },
-    { t: '빈을 등록하지 않으면', q: '빈으로 등록한 구현을 하나도 등록하지 않으면', d: '넣어 줄 빈이 없어 기동이 실패합니다.', v: { how: 'comp', reg: 'none', use: 'rate' } },
+    { t: '빈을 등록하지 않으면', q: '구현을 하나도 빈으로 등록하지 않으면', d: '넣어 줄 빈이 없어 기동이 실패합니다.', v: { how: 'comp', reg: 'none', use: 'rate' } },
   ],
   // 설정에서 정해지는 사실: 어느 구현이 빈으로 등록되는지, 무엇이 선택되는지
   facts: function (c) {
@@ -2868,7 +2868,7 @@ Lab.register({
     { t: 'SQL에 오타가 있으면', q: 'JdbcTemplate으로 바꾸고 SQL의 컬럼 이름에 오타가 있는 조회를 하면', d: 'BadSqlGrammarException으로 바뀝니다.', v: { how: 'tmpl', op: 'bad' } },
     { t: 'queryForObject의 결과가 0건', q: 'JdbcTemplate의 queryForObject로 결과가 0건인 조회를 하면', d: 'null이 아니라 예외가 나옵니다.', v: { how: 'tmpl', op: 'zero' } },
     { t: '결과가 2건인데 JDBC 직접', q: 'JDBC를 직접 쓰는 채로 결과가 2건인 조회를 하면', d: '첫 행만 돌려주고 2건이었다는 사실은 사라집니다.', v: { how: 'plain', op: 'two' } },
-    { t: '결과가 2건인 queryForObject', q: '결과가 2건인 조회인데 JdbcTemplate의 queryForObject로 바꾸면', d: '바로 위와 비교해 보세요. 예외로 알려 줍니다.', v: { how: 'tmpl', op: 'two' } },
+    { t: '결과가 2건인 queryForObject', q: '결과가 2건인 조회를 JdbcTemplate의 queryForObject로 하면', d: '바로 위와 비교해 보세요. 예외로 알려 줍니다.', v: { how: 'tmpl', op: 'two' } },
   ],
   code: function (c) {
     var q = c.op === 'one' || c.op === 'zero' || c.op === 'two' || c.op === 'bad', city = { one: '부산', zero: '제주', two: '서울', bad: '부산' }[c.op];
@@ -2997,7 +2997,7 @@ Lab.register({
     { t: 'defaultValue가 있어도 글자는 400', q: '@RequestParam(defaultValue = "1") int qty로 받는데 GET /orders?qty=abc 요청을 보내면', d: '기본값은 값이 없을 때만 쓰입니다. 잘못된 값을 대신해 주지는 않습니다.', v: { how: 'def', req: 'qabc' } },
     { t: '경로에서 꺼내기', q: '받는 방법을 @PathVariable int qty로, 요청을 GET /orders/3으로 바꾸면', d: '/orders/3의 3이 @PathVariable 파라미터가 됩니다.', v: { how: 'path', req: 'p3' } },
     { t: '객체로 받으면 값이 없어도 통과', q: '받는 방법을 @ModelAttribute OrderForm form으로 바꾸고 GET /orders로 값을 보내지 않으면', d: '@ModelAttribute는 없는 값을 오류로 보지 않습니다. qty가 0으로 남습니다.', v: { how: 'model', req: 'none' } },
-    { t: '폼 본문은 @RequestParam으로도', q: '@RequestParam int qty인데 요청을 POST /orders, 폼 본문 qty=3으로 바꾸면', d: '폼 형식의 본문은 쿼리 스트링과 같은 "요청 파라미터"입니다.', v: { how: 'param', req: 'f3' } },
+    { t: '폼 본문은 @RequestParam으로도', q: '@RequestParam int qty로 받는데 POST /orders로 폼 본문 qty=3을 보내면', d: '폼 형식의 본문은 쿼리 스트링과 같은 "요청 파라미터"입니다.', v: { how: 'param', req: 'f3' } },
   ],
   REQS: {
     q3: { m: 'GET', path: '/orders', query: 'qty=3', ct: '', body: '', where: 'query', val: '3' },
@@ -3286,8 +3286,8 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '@Transactional이 있는 메서드에서 회원을 조회해 이름만 바꾸고 save를 부르지 않으면 UPDATE는 언제 나가나', d: '이름만 바꿨는데 커밋할 때 UPDATE가 나갑니다(변경 감지).', v: { sc: 'update', tx: true, gen: 'IDENTITY' } },
-    { t: '@Transactional이 없으면', q: '메서드의 @Transactional을 끄고 같은 코드를 실행하면', d: '같은 코드인데 UPDATE가 나가지 않습니다.', v: { sc: 'update', tx: false, gen: 'IDENTITY' } },
-    { t: '같은 회원을 두 번 조회', q: '해 볼 코드를 같은 회원 두 번 조회로 바꾸면', d: '두 번째는 DB에 가지 않습니다(1차 캐시).', v: { sc: 'find2', tx: true, gen: 'IDENTITY' } },
+    { t: '@Transactional이 없으면', q: '메서드에서 @Transactional을 빼고 같은 코드를 실행하면', d: '같은 코드인데 UPDATE가 나가지 않습니다.', v: { sc: 'update', tx: false, gen: 'IDENTITY' } },
+    { t: '같은 회원을 두 번 조회', q: '같은 회원을 두 번 조회하면', d: '두 번째는 DB에 가지 않습니다(1차 캐시).', v: { sc: 'find2', tx: true, gen: 'IDENTITY' } },
     { t: '저장: IDENTITY 전략', q: '기본 키 생성 전략이 IDENTITY인데 새 회원 3명을 저장하면', d: 'persist를 부를 때마다 INSERT가 바로 나갑니다.', v: { sc: 'persist', tx: true, gen: 'IDENTITY' } },
     { t: '저장: SEQUENCE 전략', q: '새 회원 3명을 저장하는데 기본 키 생성 전략을 SEQUENCE로 바꾸면', d: 'INSERT를 모아 두었다가 커밋할 때 한꺼번에 보냅니다(쓰기 지연).', v: { sc: 'persist', tx: true, gen: 'SEQUENCE' } },
     { t: '변경 뒤 JPQL 조회', q: '조회한 회원의 이름을 바꾼 뒤 JPQL로 조회하면', d: '커밋 전인데도 JPQL 실행 직전에 UPDATE가 먼저 나갑니다.', v: { sc: 'jpql', tx: true, gen: 'IDENTITY' } },
@@ -3528,7 +3528,7 @@ Lab.register({
     { t: 'liveness로 물으면', q: '요청하는 주소를 GET /actuator/health/liveness로 바꾸면', d: 'pay가 DOWN이어도 200 UP입니다. liveness 그룹은 pay를 묻지 않습니다.', v: { pay: 'DOWN', path: 'liveness', details: 'never', ready: false } },
     { t: 'readiness로 물으면', q: '요청하는 주소를 GET /actuator/health/readiness로 바꾸면', d: 'readiness 그룹도 기본으로는 pay를 묻지 않습니다. 역시 200 UP입니다.', v: { pay: 'DOWN', path: 'readiness', details: 'never', ready: false } },
     { t: 'readiness 그룹에 pay를 넣으면', q: 'GET /actuator/health/readiness로 묻고 readiness 그룹에 pay를 넣으면', d: '이제 pay가 DOWN이면 readiness도 503이 됩니다.', v: { pay: 'DOWN', path: 'readiness', details: 'never', ready: true } },
-    { t: 'UNKNOWN은 UP에 밀린다', q: 'pay 구성 요소가 UNKNOWN을 답하고 show-details를 always로 바꾸면', d: 'pay가 "알 수 없음"을 답해도 전체 상태는 UP이고 200입니다.', v: { pay: 'UNKNOWN', path: 'health', details: 'always', ready: false } },
+    { t: 'UNKNOWN은 UP에 밀린다', q: 'pay 구성 요소가 UNKNOWN으로 답하고 show-details를 always로 바꾸면', d: 'pay가 "알 수 없음"을 답해도 전체 상태는 UP이고 200입니다.', v: { pay: 'UNKNOWN', path: 'health', details: 'always', ready: false } },
   ],
   PATHS: { health: '/actuator/health', liveness: '/actuator/health/liveness', readiness: '/actuator/health/readiness' },
   COMPS: [['livenessState', '고장 없이 돌고 있는가'], ['readinessState', '요청을 받을 준비가 됐는가'], ['pay', '결제사에 연결되는가']],
@@ -4331,7 +4331,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '조회한 엔티티를 em.detach로 준영속으로 만든 뒤 이름을 바꾸면 DB에는 무엇이 남나', d: '떼어 낸(준영속) 객체의 이름을 바꿉니다. 오류 없이 반영되지 않습니다.', v: { st: 'detach', when: 'after' } },
     { t: '영속 상태에서 바꾸면', q: 'em.detach 대신 em.find로 조회만 한 영속 상태에서 이름을 바꾸면', d: '조회한 객체의 이름만 바꿔도 커밋할 때 UPDATE가 나갑니다.', v: { st: 'find', when: 'after' } },
-    { t: '바꾼 다음에 em.clear', q: '조회한 뒤 em.clear를 부르되 이름을 상태가 바뀌기 직전에 바꾸면', d: '영속일 때 바꿨는데도 사라집니다. 아직 DB로 보내기 전이었기 때문입니다.', v: { st: 'clear', when: 'before' } },
+    { t: '바꾼 다음에 em.clear', q: '조회한 뒤 이름을 바꾸고 나서 em.clear를 부르면', d: '영속일 때 바꿨는데도 사라집니다. 아직 DB로 보내기 전이었기 때문입니다.', v: { st: 'clear', when: 'before' } },
     { t: 'new만 하고 persist를 잊으면', q: 'em.persist 없이 new만 한 엔티티의 이름을 바꾸면', d: 'SQL이 하나도 나가지 않습니다.', v: { st: 'new', when: 'after' } },
     { t: 'persist 한 뒤에 바꾸면', q: 'new 한 뒤 em.persist까지 한 엔티티의 이름을 바꾸면', d: 'INSERT에 이어 UPDATE가 한 번 더 나갑니다.', v: { st: 'persist', when: 'after' } },
     { t: 'em을 닫은 뒤에 바꾸면', q: '조회한 뒤 커밋하고 em.close로 닫은 다음 이름을 바꾸면', d: '트랜잭션 밖에서 엔티티를 고치는 흔한 실수입니다.', v: { st: 'close', when: 'after' } },
@@ -4728,7 +4728,7 @@ Lab.register({
     { t: '처음 설정으로', q: '같은 Address 객체를 두 회원에게 넣고 setCity로 고치면 DB의 행은 어떻게 되나', d: '회원1의 도시만 고쳤는데 회원2의 행까지 UPDATE됩니다.', v: { sc: 'share', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
     { t: '복사해서 넣으면', q: '같은 객체 대신 복사한 객체를 넣고 setCity로 고치면', d: '객체가 따로이므로 회원1의 행만 UPDATE됩니다.', v: { sc: 'share', tb: 'emb', sh: 'copy', ct: 'list', op: 'mod', n: 3 } },
     { t: '값 타입을 불변으로 만들면', q: 'Address를 불변으로 만들고 member1.setAddress에 새 Address 객체를 갈아 끼우면', d: 'setter가 없어서 함께 쓰는 객체를 고칠 방법이 없습니다.', v: { sc: 'share', tb: 'emb', sh: 'fixed', ct: 'list', op: 'mod', n: 3 } },
-    { t: '임베디드 타입의 테이블', q: '볼 장면을 임베디드 타입의 저장 모습으로 바꿔 Address를 가진 김철수를 persist하면', d: 'Address 테이블은 생기지 않고 member 테이블의 컬럼이 됩니다.', v: { sc: 'table', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
+    { t: '임베디드 타입의 테이블', q: '임베디드 타입 Address를 가진 김철수를 persist하면', d: 'Address 테이블은 생기지 않고 member 테이블의 컬럼이 됩니다.', v: { sc: 'table', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
     { t: '같은 값 타입을 두 번 쓰면', q: 'Address를 homeAddress와 workAddress로 두 번 쓰고 컬럼 이름을 바꾸지 않으면', d: '컬럼 이름이 겹쳐서 시작할 때 예외가 납니다.', v: { sc: 'table', tb: 'two', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
     { t: '값 타입 컬렉션에서 하나만 바꾸면', q: '이미 주소 3개가 저장된 값 타입 컬렉션 List에서 서울을 빼고 제주를 넣으면', d: '그 회원의 주소를 전부 지우고 다시 넣습니다.', v: { sc: 'coll', tb: 'emb', sh: 'same', ct: 'list', op: 'mod', n: 3 } },
     { t: 'Set이고 컬럼이 모두 NOT NULL이면', q: '컬렉션이 List가 아니라 컬럼이 모두 NOT NULL인 Set인데 서울을 빼고 제주를 넣으면', d: '바뀐 행 하나만 지우고 넣습니다.', v: { sc: 'coll', tb: 'emb', sh: 'same', ct: 'setnn', op: 'mod', n: 3 } },
@@ -5283,7 +5283,7 @@ Lab.register({
     { t: '다대다', q: '회원과 상품의 관계를 @ManyToMany로 바꾸면', d: '가운데에 연결 테이블 member_product가 자동으로 생깁니다.', v: { rel: 'm2m', fk: 'main', n: 2 } },
     { t: '일대일: 외래 키를 회원 테이블에', q: '회원과 사물함을 @OneToOne으로 바꾸고 외래 키를 회원 테이블 member.locker_id에 두면', d: 'member.locker_id에 외래 키와 유니크 제약이 생깁니다.', v: { rel: 'o2o', fk: 'main', n: 2 } },
     { t: '일대일: 외래 키를 사물함 테이블에', q: '@OneToOne 회원과 사물함인데 외래 키를 사물함 테이블 locker.member_id에 두면', d: '외래 키가 locker.member_id로 옮겨 갑니다.', v: { rel: 'o2o', fk: 'target', n: 2 } },
-    { t: '일대다에서 회원이 3명이면', q: '일대다 단방향에서 함께 저장할 상대의 수를 3개로 늘리면', d: 'UPDATE도 3번으로 늘어납니다.', v: { rel: 'o2m', fk: 'main', n: 3 } },
+    { t: '일대다에서 회원이 3명이면', q: '일대다 단방향에서 회원 3명을 함께 저장하면', d: 'UPDATE도 3번으로 늘어납니다.', v: { rel: 'o2m', fk: 'main', n: 3 } },
   ],
   // 관계의 종류마다 테이블, 외래 키, 엔티티 코드, 저장 코드를 정해 둔 것
   spec: function (c) {
@@ -5610,8 +5610,8 @@ Lab.register({
     { t: 'cascade 없이 게시글 삭제', q: 'cascade를 적지 않은 채 이미 댓글 둘이 있는 게시글을 remove하면', d: '댓글이 게시글을 가리키고 있어서 DB가 삭제를 거절합니다.', v: { act: 'remove', cas: 'none', orphan: false } },
     { t: 'CascadeType.REMOVE로 삭제', q: 'cascade를 CascadeType.REMOVE로 두고 게시글을 remove하면', d: '댓글을 먼저 지우고 게시글을 지웁니다.', v: { act: 'remove', cas: 'REMOVE', orphan: false } },
     { t: 'ALL인데 목록에서 빼기만 하면', q: 'CascadeType.ALL인데 댓글 목록에서 댓글 하나를 빼기만 하면', d: 'CascadeType.ALL이어도 DELETE가 나가지 않습니다.', v: { act: 'orphan', cas: 'ALL', orphan: false } },
-    { t: 'orphanRemoval = true', q: 'CascadeType.ALL에 orphanRemoval = true를 켜고 댓글 목록에서 댓글 하나를 빼면', d: '목록에서 뺀 댓글에 DELETE가 나갑니다.', v: { act: 'orphan', cas: 'ALL', orphan: true } },
-    { t: 'orphanRemoval만 켜고 게시글 삭제', q: 'cascade는 적지 않고 orphanRemoval = true만 켠 채 게시글을 remove하면', d: 'cascade를 적지 않았는데도 댓글이 함께 지워집니다.', v: { act: 'remove', cas: 'none', orphan: true } },
+    { t: 'orphanRemoval = true', q: 'CascadeType.ALL에 orphanRemoval = true를 주고 댓글 목록에서 댓글 하나를 빼면', d: '목록에서 뺀 댓글에 DELETE가 나갑니다.', v: { act: 'orphan', cas: 'ALL', orphan: true } },
+    { t: 'orphanRemoval만 켜고 게시글 삭제', q: 'cascade는 적지 않고 orphanRemoval = true만 준 채 게시글을 remove하면', d: 'cascade를 적지 않았는데도 댓글이 함께 지워집니다.', v: { act: 'remove', cas: 'none', orphan: true } },
   ],
   code: function (c) {
     var opt = 'mappedBy = "post"' + (c.cas !== 'none' ? ', cascade = CascadeType.' + c.cas : '') + (c.orphan ? ', orphanRemoval = true' : '');
@@ -5735,9 +5735,9 @@ Lab.register({
     { t: '식별자만 읽으면', q: 'm의 이름 대신 식별자 getId만 읽으면', d: '프록시가 이미 알고 있는 값이라 SQL이 나가지 않습니다.', v: { how: 'ref', use: 'id' } },
     { t: '지연 로딩으로 받은 회원', q: 'em.getReference 대신 주문을 조회한 뒤 order.getMember로 지연 로딩된 회원을 얻으면', d: 'order.getMember()가 돌려주는 것도 프록시입니다.', v: { how: 'lazy', use: 'name' } },
     { t: '영속성 컨텍스트를 닫은 뒤', q: '지연 로딩으로 얻은 회원 m의 이름을 영속성 컨텍스트를 닫은 뒤 읽으면', d: '비어 있는 프록시를 채울 길이 없어 예외가 납니다.', v: { how: 'lazy', use: 'closed' } },
-    { t: 'getClass()로 비교하면', q: 'm의 getClass를 Member.class와 == 로 비교하면', d: '프록시의 클래스는 Member가 아니라서 false입니다.', v: { how: 'ref', use: 'cls' } },
+    { t: 'getClass()로 비교하면', q: 'm의 getClass를 Member.class와 ==로 비교하면', d: '프록시의 클래스는 Member가 아니라서 false입니다.', v: { how: 'ref', use: 'cls' } },
     { t: '이미 읽어 둔 회원이 있으면', q: 'em.find로 먼저 읽은 뒤 em.getReference로 얻은 m의 getClass를 Member.class와 비교하면', d: 'getReference가 프록시가 아니라 진짜 엔티티를 돌려줍니다.', v: { how: 'findref', use: 'cls' } },
-    { t: '프록시를 먼저 받았다면', q: 'em.getReference를 먼저 하고 뒤에 em.find로 얻은 m의 getClass를 Member.class와 비교하면', d: '뒤에 부른 em.find도 그 프록시를 돌려줍니다.', v: { how: 'reffind', use: 'cls' } },
+    { t: '프록시를 먼저 받았다면', q: 'em.getReference를 먼저 한 뒤 em.find로 얻은 m의 getClass를 Member.class와 비교하면', d: '뒤에 부른 em.find도 그 프록시를 돌려줍니다.', v: { how: 'reffind', use: 'cls' } },
   ],
   lines: function (c) {
     var a = { ref: ['Member m = em.getReference(Member.class, 1L);'], lazy: ['Order order = em.find(Order.class, 1L);', 'Member m = order.getMember();'], find: ['Member m = em.find(Member.class, 1L);'], findref: ['Member found = em.find(Member.class, 1L);', 'Member m = em.getReference(Member.class, 1L);'], reffind: ['Member ref = em.getReference(Member.class, 1L);', 'Member m = em.find(Member.class, 1L);'] }[c.how];
@@ -5874,8 +5874,8 @@ Lab.register({
     { t: 'join fetch', q: 'join을 join fetch p.comments로 바꾸면', d: '댓글 컬럼까지 한 번에 읽어 와서 뒤따르는 조회가 없습니다.', v: { q: 'fetch', page: false } },
     { t: '조인 없이 조회', q: '조인 없이 select p from Post p로 조회하면', d: '게시글만 읽고, 댓글은 쓸 때마다 조회합니다.', v: { q: 'plain', page: false } },
     { t: '테이블 이름으로 쓰면', q: 'select p from posts p처럼 from 뒤에 테이블 이름을 쓰면', d: 'JPQL의 from 뒤에는 엔티티 이름이 와야 합니다.', v: { q: 'table', page: false } },
-    { t: '페치 조인에 페이징', q: 'join fetch p.comments에 setFirstResult(0).setMaxResults(1) 페이징을 켜면', d: 'Hibernate 7.4.5는 서브쿼리에서 게시글을 먼저 자릅니다.', v: { q: 'fetch', page: true } },
-    { t: '메모리에서 자르는 경우', q: 'join fetch p.comments c order by c.id desc로 댓글 기준 정렬하고 페이징을 켜면', d: '댓글 기준으로 정렬하면 전부 읽어 온 뒤 메모리에서 자르고 경고를 냅니다.', v: { q: 'fetchsort', page: true } },
+    { t: '페치 조인에 페이징', q: 'join fetch p.comments에 setFirstResult(0).setMaxResults(1) 페이징을 걸면', d: 'Hibernate 7.4.5는 서브쿼리에서 게시글을 먼저 자릅니다.', v: { q: 'fetch', page: true } },
+    { t: '메모리에서 자르는 경우', q: 'join fetch p.comments c order by c.id desc로 댓글 기준 정렬하고 페이징을 걸면', d: '댓글 기준으로 정렬하면 전부 읽어 온 뒤 메모리에서 자르고 경고를 냅니다.', v: { q: 'fetchsort', page: true } },
     { t: '컬렉션 두 개를 페치 조인', q: 'join fetch p.comments join fetch p.files로 컬렉션 두 개를 페치 조인하면', d: '실행하기 전에 예외로 거절됩니다.', v: { q: 'two', page: false } },
   ],
   jpql: function (c) {
@@ -5987,7 +5987,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '상품 3개의 가격을 벌크 UPDATE로 500씩 올린 뒤 갖고 있던 엔티티로 상품 1의 가격을 읽으면', d: '벌크 UPDATE 뒤에 엔티티를 읽으면 옛 값 1000원이 나옵니다.', v: { op: 'update', after: 'none', dirty: false, n: 3 } },
     { t: '다시 조회해도 옛 값', q: '벌크 UPDATE 뒤 JPQL로 목록을 다시 조회해 상품 1의 가격을 읽으면', d: 'JPQL로 다시 읽어도 보관 중인 엔티티가 그대로 돌아옵니다.', v: { op: 'update', after: 'jpql', dirty: false, n: 3 } },
-    { t: 'em.clear() 뒤에 조회', q: '벌크 UPDATE 뒤 em.clear 하고 em.find로 상품 1을 읽으면', d: '영속성 컨텍스트를 비우면 DB의 새 값을 읽습니다.', v: { op: 'update', after: 'clear', dirty: false, n: 3 } },
+    { t: 'em.clear() 뒤에 조회', q: '벌크 UPDATE 뒤 em.clear를 부르고 em.find로 상품 1을 읽으면', d: '영속성 컨텍스트를 비우면 DB의 새 값을 읽습니다.', v: { op: 'update', after: 'clear', dirty: false, n: 3 } },
     { t: 'em.refresh', q: '벌크 UPDATE 뒤 em.refresh로 상품 1을 다시 읽어 오면', d: '그 엔티티 하나만 DB의 값으로 덮어씁니다.', v: { op: 'update', after: 'refresh', dirty: false, n: 3 } },
     { t: '미뤄 둔 변경이 있으면', q: '벌크 UPDATE 전에 상품 1의 가격을 5000으로 고쳐 두면', d: '벌크 연산 직전에 그 변경이 먼저 DB로 나갑니다.', v: { op: 'update', after: 'none', dirty: true, n: 3 } },
     { t: '하나씩 고치면', q: '벌크 UPDATE 대신 상품 8개를 하나씩 setPrice로 고치면', d: '상품 8개에 UPDATE가 8번 나갑니다. 벌크 연산은 1번입니다.', v: { op: 'each', after: 'none', dirty: false, n: 8 } },
@@ -6731,10 +6731,10 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '프레임 8개까지 쌓이는 스택에서 종료 조건이 있는 factorial(4) 호출은 메모리에서 어떻게 처리되나', d: 'factorial(4). 프레임이 5개까지 쌓였다가 거꾸로 빠집니다.', v: { n: 4, base: true, limit: 8, obj: false } },
-    { t: '종료 조건을 빼면', q: '재귀 종료 조건을 끄면', d: '끝없이 자기를 부르다 스택이 넘칩니다.', v: { n: 4, base: false, limit: 8, obj: false } },
-    { t: '종료 조건이 있어도 너무 깊으면', q: '종료 조건은 그대로 두고 factorial에 넘기는 값을 factorial(10) 호출로 바꾸면', d: 'factorial(10)은 프레임 11개가 필요합니다. 스택은 8개까지입니다.', v: { n: 10, base: true, limit: 8, obj: false } },
+    { t: '종료 조건을 빼면', q: '재귀 종료 조건을 없애면', d: '끝없이 자기를 부르다 스택이 넘칩니다.', v: { n: 4, base: false, limit: 8, obj: false } },
+    { t: '종료 조건이 있어도 너무 깊으면', q: '종료 조건은 그대로 두고 factorial(10)을 호출하면', d: 'factorial(10)은 프레임 11개가 필요합니다. 스택은 8개까지입니다.', v: { n: 10, base: true, limit: 8, obj: false } },
     { t: '스택을 키우면', q: 'factorial(10) 호출인데 스택에 들어갈 수 있는 프레임 수를 12개로 늘리면', d: '같은 factorial(10)이 정상적으로 끝납니다.', v: { n: 10, base: true, limit: 12, obj: false } },
-    { t: '호출마다 객체 생성', q: '호출마다 객체를 하나씩 만드는 설정을 켜면', d: '객체는 힙에 생기고, 프레임이 사라지면 가리키는 곳이 없어집니다.', v: { n: 4, base: true, limit: 8, obj: true } },
+    { t: '호출마다 객체 생성', q: '호출할 때마다 객체를 하나씩 만들면', d: '객체는 힙에 생기고, 프레임이 사라지면 가리키는 곳이 없어집니다.', v: { n: 4, base: true, limit: 8, obj: true } },
   ],
   code: function (c) {
     return 'static long factorial(int n) {\n' + (c.obj ? '    byte[] buf = new byte[1024];      // 객체는 힙에, 변수 buf는 스택에\n' : '') + (c.base ? '    if (n <= 1) return 1;             // 종료 조건\n' : '    // 종료 조건 없음\n') + '    return n * factorial(n - 1);\n}\n\npublic static void main(String[] args) {\n    System.out.println(factorial(' + c.n + '));\n}';
@@ -7500,12 +7500,12 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '90점 둘, 70점 둘로 동점이 있는 점수에 RANK() 순위를 붙이면 행이 어떻게 되나', d: 'RANK. 90점이 두 명이면 둘 다 1위이고 2위는 없습니다.', v: { fn: 'rank', part: false, tie: 'yes' } },
-    { t: 'DENSE_RANK로 바꾸면', q: '계산 방법을 DENSE_RANK() 순위로 바꾸면', d: '동점 다음 순위를 건너뛰지 않습니다.', v: { fn: 'dense', part: false, tie: 'yes' } },
-    { t: 'ROW_NUMBER로 바꾸면', q: '계산 방법을 ROW_NUMBER() 줄 번호로 바꾸면', d: '동점이어도 번호가 겹치지 않습니다.', v: { fn: 'rownum', part: false, tie: 'yes' } },
+    { t: 'DENSE_RANK로 바꾸면', q: 'RANK() 대신 DENSE_RANK()로 순위를 붙이면', d: '동점 다음 순위를 건너뛰지 않습니다.', v: { fn: 'dense', part: false, tie: 'yes' } },
+    { t: 'ROW_NUMBER로 바꾸면', q: 'RANK() 대신 ROW_NUMBER()로 줄 번호를 붙이면', d: '동점이어도 번호가 겹치지 않습니다.', v: { fn: 'rownum', part: false, tie: 'yes' } },
     { t: 'GROUP BY와 비교', q: 'RANK() 순위 대신 GROUP BY로 합계를 내고 팀별로 따로 계산하면', d: '6행이 팀별 2행으로 줄고 이름이 사라집니다.', v: { fn: 'group', part: true, tie: 'yes' } },
     { t: '팀별 순위', q: 'RANK() 순위를 팀별로 따로 계산하면', d: 'PARTITION BY team. 팀마다 1위부터 다시 매깁니다.', v: { fn: 'rank', part: true, tie: 'yes' } },
-    { t: '누계인데 동점이 있으면', q: '계산 방법을 SUM(pts) OVER 누계로 바꾸면', d: '동점인 두 행의 누계가 같게 나옵니다.', v: { fn: 'sum', part: false, tie: 'yes' } },
-    { t: '앞 행의 값 가져오기', q: 'LAG(pts) 앞 행의 값을 동점이 없는 점수 데이터에서 팀별로 따로 계산하면', d: 'LAG. 팀의 첫 행은 앞 행이 없어 NULL입니다.', v: { fn: 'lag', part: true, tie: 'no' } },
+    { t: '누계인데 동점이 있으면', q: 'RANK() 대신 SUM(pts) OVER로 누계를 구하면', d: '동점인 두 행의 누계가 같게 나옵니다.', v: { fn: 'sum', part: false, tie: 'yes' } },
+    { t: '앞 행의 값 가져오기', q: '동점이 없는 점수 데이터에서 LAG(pts)로 앞 행의 값을 팀별로 따로 가져오면', d: 'LAG. 팀의 첫 행은 앞 행이 없어 NULL입니다.', v: { fn: 'lag', part: true, tie: 'no' } },
   ],
   FN: { rownum: ['ROW_NUMBER()', 'num'], rank: ['RANK()', 'rnk'], dense: ['DENSE_RANK()', 'rnk'], sum: ['SUM(pts)', 'running'], lag: ['LAG(pts)', 'prev'] },
   rowsOf: function (c) {
@@ -7947,7 +7947,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: 'orders.member_id에 인덱스가 없고 member 먼저, 해시 조인을 쓸 수 있으면 DB는 어떻게 짝을 찾나', d: '조인 컬럼에 인덱스가 없습니다. 중첩 루프가 아니라 해시 조인이 선택됩니다.', v: { idx: false, drive: 'm', hash: true } },
     { t: '조인 컬럼에 인덱스를 만들면', q: 'orders.member_id에 인덱스를 만들면', d: '중첩 루프 조인으로, 행마다 인덱스로 찾아갑니다.', v: { idx: true, drive: 'm', hash: true } },
-    { t: '인덱스도 해시 조인도 없으면', q: '인덱스 없이 해시 조인을 쓸 수 없게 끄면', d: 'member의 행마다 orders 전체를 읽습니다. 1,000만 행입니다.', v: { idx: false, drive: 'm', hash: false } },
+    { t: '인덱스도 해시 조인도 없으면', q: '인덱스 없이 해시 조인을 쓸 수 없게 하면', d: 'member의 행마다 orders 전체를 읽습니다. 1,000만 행입니다.', v: { idx: false, drive: 'm', hash: false } },
     { t: 'orders를 먼저 읽으면', q: 'STRAIGHT_JOIN으로 orders를 먼저 읽도록 고정하면', d: 'member는 기본 키로 한 행씩 찾습니다.', v: { idx: false, drive: 'o', hash: true } },
     { t: '옵티마이저에게 맡기면 (인덱스 없음)', q: '인덱스 없이 먼저 읽을 테이블을 옵티마이저에게 맡기면', d: '인덱스로 찾아갈 수 있는 쪽을 나중에 읽도록 순서를 정합니다.', v: { idx: false, drive: 'auto', hash: true } },
     { t: '옵티마이저에게 맡기면 (인덱스 있음)', q: 'orders.member_id에 인덱스를 만들고 먼저 읽을 테이블을 옵티마이저에게 맡기면', d: '행이 적은 member를 먼저 읽습니다.', v: { idx: true, drive: 'auto', hash: true } },
@@ -8096,7 +8096,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: 'A는 1 → 2, B는 2 → 1로 서로 반대 순서로 잠그면 DB는 두 트랜잭션을 어떻게 끝내나', d: '서로 반대 순서. DB가 교착을 감지해 한쪽을 롤백시키고, 그 이체는 사라집니다.', v: { sit: 'rev', heavy: 'eq', after: 'giveup' } },
     { t: '롤백된 쪽이 다시 시도하면', q: '오류를 받은 쪽이 롤백하고 처음부터 다시 시도하면', d: '처음부터 다시 실행해 두 이체가 모두 반영됩니다.', v: { sit: 'rev', heavy: 'eq', after: 'retry' } },
-    { t: '같은 순서로 잠그면', q: '두 트랜잭션이 둘 다 1 → 2 같은 순서로 잠그면', d: '한쪽이 잠깐 기다릴 뿐 오류 없이 둘 다 끝납니다.', v: { sit: 'same', heavy: 'eq', after: 'giveup' } },
+    { t: '같은 순서로 잠그면', q: '두 트랜잭션이 똑같이 1 → 2 순서로 잠그면', d: '한쪽이 잠깐 기다릴 뿐 오류 없이 둘 다 끝납니다.', v: { sit: 'same', heavy: 'eq', after: 'giveup' } },
     { t: 'B가 더 많은 일을 했다면', q: '서로 반대 순서인데 B가 다른 행 50개를 먼저 고쳤으면', d: '이번에는 A가 롤백됩니다. 되돌릴 일이 적은 쪽을 고릅니다.', v: { sit: 'rev', heavy: 'b', after: 'giveup' } },
     { t: '교착이 아닌 긴 대기', q: '서로 반대 순서인데 A가 첫 행만 잠근 채 오래 멈추면', d: '고리가 없으면 감지되지 않고, 시간 제한까지 기다린 뒤 오류 1205를 받습니다.', v: { sit: 'hold', heavy: 'eq', after: 'giveup' } },
     { t: '시간 초과를 무시하고 커밋하면', q: 'A가 첫 행만 잠근 채 오래 멈추는데 오류를 받은 쪽이 오류를 무시하고 COMMIT하면', d: '앞 문장만 반영되어 50이 사라집니다.', v: { sit: 'hold', heavy: 'eq', after: 'commit' } },
@@ -8353,11 +8353,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'Animal a 변수에 new Dog() 객체를 넣고 a.sound() 호출을 하면 어느 메서드가 실행되나', d: 'Animal 변수에 Dog 객체. 오버라이딩된 메서드는 Dog 것이 실행됩니다.', v: { v: 'Animal', o: 'Dog', w: 'override' } },
-    { t: '같은 변수를 오버로딩 메서드에 넘기면', q: '같은 변수를 오버로딩된 메서드에 printer.print(a) 인자로 넘기면', d: '실제 객체가 Dog인데도 print(Animal)이 선택됩니다.', v: { v: 'Animal', o: 'Dog', w: 'overload' } },
-    { t: 'static 메서드는', q: 'static 메서드를 a.info() 호출로 바꾸면', d: '오버라이딩되지 않습니다. 선언 타입의 것이 불립니다.', v: { v: 'Animal', o: 'Dog', w: 'static' } },
+    { t: '같은 변수를 오버로딩 메서드에 넘기면', q: '같은 변수를 오버로딩된 메서드 printer.print(a)의 인자로 넘기면', d: '실제 객체가 Dog인데도 print(Animal)이 선택됩니다.', v: { v: 'Animal', o: 'Dog', w: 'overload' } },
+    { t: 'static 메서드는', q: '그 변수로 static 메서드 a.info()를 호출하면', d: '오버라이딩되지 않습니다. 선언 타입의 것이 불립니다.', v: { v: 'Animal', o: 'Dog', w: 'static' } },
     { t: '필드는', q: '필드 a.name을 읽으면', d: '필드도 다형성이 적용되지 않습니다.', v: { v: 'Animal', o: 'Dog', w: 'field' } },
-    { t: '선언 타입을 Dog로 바꾸면', q: '변수의 선언 타입을 Dog a로 바꾸고 printer.print(a) 인자로 넘기면', d: '오버로딩에서 print(Dog)가 선택됩니다.', v: { v: 'Dog', o: 'Dog', w: 'overload' } },
-    { t: 'Dog 변수에 Animal 객체', q: '선언 타입을 Dog a로 바꾸고 실제로 넣는 객체를 new Animal() 객체로 바꾸면', d: '컴파일되지 않습니다.', v: { v: 'Dog', o: 'Animal', w: 'override' } },
+    { t: '선언 타입을 Dog로 바꾸면', q: '변수의 선언 타입을 Dog a로 바꾸고 오버로딩된 메서드 printer.print(a)의 인자로 넘기면', d: '오버로딩에서 print(Dog)가 선택됩니다.', v: { v: 'Dog', o: 'Dog', w: 'overload' } },
+    { t: 'Dog 변수에 Animal 객체', q: 'Dog a 변수에 new Animal() 객체를 넣으면', d: '컴파일되지 않습니다.', v: { v: 'Dog', o: 'Animal', w: 'override' } },
   ],
   code: function (c) {
     var use = { override: 'a.sound();', overload: 'new Printer().print(a);', static: 'a.info();          // 권장하지 않는 호출 방식', field: 'System.out.println(a.name);' }[c.w];
@@ -8436,12 +8436,12 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '연도별 RANGE 파티션에서 YEAR(ordered_at) = 2024로 조회하면 어느 파티션을 읽나', d: '연도로 나눴는데 YEAR(ordered_at) = 2024로 찾으면 세 파티션을 모두 읽습니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'func' } },
-    { t: '컬럼을 그대로 비교하면', q: '조회 조건을 파티션 키 컬럼 = 값으로 바꾸면', d: '그 날짜가 들어 있을 파티션 하나만 읽습니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'key' } },
-    { t: '두 해에 걸친 범위', q: '조회 조건을 파티션 키 컬럼의 범위로 바꾸면', d: '걸쳐 있는 두 파티션만 읽고 나머지는 건너뜁니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'range' } },
-    { t: '파티션 키가 없는 조건', q: '조회 조건을 파티션 키가 없는 id = 100으로 바꾸면', d: '기본 키의 첫 컬럼으로 찾는데도 모든 파티션을 읽습니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'other' } },
-    { t: '범위 밖의 날짜를 넣으면', q: '새로 넣는 행을 2026년 1월 주문, 회원 9번으로 바꾸고 파티션 키 컬럼 = 값으로 조회하면', d: '받아 줄 파티션이 없어 INSERT가 오류 1526으로 실패합니다.', v: { how: 'range', pk: 'with', ins: 'out', q: 'key' } },
-    { t: '기본 키에 파티션 키가 없으면', q: '기본 키를 (id) 하나뿐으로 바꾸고 파티션 키 컬럼 = 값으로 조회하면', d: '테이블을 만들 때 오류 1503이 납니다.', v: { how: 'range', pk: 'only', ins: 'in', q: 'key' } },
-    { t: '해시로 나누면', q: 'HASH로 회원 번호를 4로 나눈 나머지로 나누고 2026년 1월 주문, 회원 9번을 넣어 범위로 조회하면', d: '어떤 값이든 들어갈 곳이 있지만, 범위 조회는 모든 파티션을 읽습니다.', v: { how: 'hash', pk: 'with', ins: 'out', q: 'range' } },
+    { t: '컬럼을 그대로 비교하면', q: '파티션 키 컬럼을 그대로 값과 비교해 조회하면', d: '그 날짜가 들어 있을 파티션 하나만 읽습니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'key' } },
+    { t: '두 해에 걸친 범위', q: '파티션 키 컬럼의 범위로 조회하면', d: '걸쳐 있는 두 파티션만 읽고 나머지는 건너뜁니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'range' } },
+    { t: '파티션 키가 없는 조건', q: '파티션 키 없이 id = 100으로 조회하면', d: '기본 키의 첫 컬럼으로 찾는데도 모든 파티션을 읽습니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'other' } },
+    { t: '범위 밖의 날짜를 넣으면', q: '2026년 1월 주문, 회원 9번 행을 넣고 파티션 키 컬럼을 그대로 값과 비교해 조회하면', d: '받아 줄 파티션이 없어 INSERT가 오류 1526으로 실패합니다.', v: { how: 'range', pk: 'with', ins: 'out', q: 'key' } },
+    { t: '기본 키에 파티션 키가 없으면', q: '기본 키를 (id) 하나로만 두고 파티션 키 컬럼을 그대로 값과 비교해 조회하면', d: '테이블을 만들 때 오류 1503이 납니다.', v: { how: 'range', pk: 'only', ins: 'in', q: 'key' } },
+    { t: '해시로 나누면', q: '회원 번호를 4로 나눈 나머지로 나누는 HASH 파티션에 2026년 1월 주문, 회원 9번을 넣고 파티션 키 컬럼의 범위로 조회하면', d: '어떤 값이든 들어갈 곳이 있지만, 범위 조회는 모든 파티션을 읽습니다.', v: { how: 'hash', pk: 'with', ins: 'out', q: 'range' } },
   ],
   where: function (c) {
     if (c.q === 'other') return 'id = 100';
@@ -8550,7 +8550,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '주문 하나에 항목까지 담은 문서 모델에서 키보드가 든 주문 3건의 상품 이름을 기계식 키보드로 바꾸면 어떻게 되나', d: '문서 모델에서 상품 이름을 바꾸려면 그 상품이 든 문서를 모두 고쳐야 합니다.', v: { model: 'doc', op: 'rename', n: 3 } },
     { t: '관계형에서 이름을 바꾸면', q: '저장 방식을 테이블 셋으로 나누고 조인하는 관계형으로 바꾸면', d: '주문이 몇 건이든 product 테이블의 한 행만 고칩니다.', v: { model: 'rel', op: 'rename', n: 3 } },
-    { t: '문서로 주문 하나 읽기', q: '문서 모델에서 하는 일을 주문 하나 읽기로 바꾸면', d: '조인 없이 문서 하나로 끝납니다.', v: { model: 'doc', op: 'read', n: 3 } },
+    { t: '문서로 주문 하나 읽기', q: '문서 모델에서 주문 하나를 읽으면', d: '조인 없이 문서 하나로 끝납니다.', v: { model: 'doc', op: 'read', n: 3 } },
     { t: '관계형으로 주문 하나 읽기', q: '관계형으로 주문 하나를 읽으면', d: '테이블 셋을 조인해야 주문 하나가 완성됩니다.', v: { model: 'rel', op: 'read', n: 3 } },
     { t: '문서에 새 항목 넣기', q: '문서 모델에서 새 주문에 없던 항목인 선물 포장 여부를 넣으면', d: '구조를 바꾸지 않고 바로 저장됩니다. 대신 문서마다 모양이 달라집니다.', v: { model: 'doc', op: 'newfield', n: 3 } },
     { t: '관계형에 없는 컬럼을 넣으면', q: '관계형인데 새 주문에 선물 포장 여부 항목을 넣으면', d: '오류 1054로 거절됩니다. 먼저 테이블 구조를 바꿔야 합니다.', v: { model: 'rel', op: 'newfield', n: 3 } },
@@ -8768,7 +8768,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '검색어 A&B를 인코딩 없이 주소에 이어 붙여 보내면 서버는 q를 어떻게 받나', d: '검색어 A&B를 그대로 이어 붙입니다. 서버는 q의 값으로 A만 받습니다.', v: { origin: 'https://shop.example', q: 'A&B', enc: false, rel: 'detail' } },
     { t: '인코딩해서 넣으면', q: '검색어 A&B를 인코딩해서 넣으면', d: '&가 %26으로 바뀌어 값이 온전히 도착합니다.', v: { origin: 'https://shop.example', q: 'A&B', enc: true, rel: 'detail' } },
-    { t: '검색어에 #이 있으면', q: '검색어를 C#, 페이지 안의 링크를 #top으로 바꾸면', d: '# 뒤가 모두 프래그먼트가 되어 서버로 가지 않습니다.', v: { origin: 'https://shop.example', q: 'C#', enc: false, rel: '#top' } },
+    { t: '검색어에 #이 있으면', q: '검색어를 C#으로, 페이지 안의 링크를 #top으로 바꾸면', d: '# 뒤가 모두 프래그먼트가 되어 서버로 가지 않습니다.', v: { origin: 'https://shop.example', q: 'C#', enc: false, rel: '#top' } },
     { t: '검색어에 +가 있으면', q: '검색어를 C++로 바꾸면', d: '서버는 +를 공백으로 읽습니다.', v: { origin: 'https://shop.example', q: 'C++', enc: false, rel: 'detail' } },
     { t: '한글과 공백', q: '검색어를 겨울 옷으로 바꾸고 인코딩해서 넣으면', d: '브라우저가 대신 바꿔 주는 글자와 그 모양을 봅니다.', v: { origin: 'https://shop.example', q: '겨울 옷', enc: true, rel: '?page=2' } },
     { t: '포트를 적은 주소', q: '주소의 앞부분을 https://shop.example:8443으로, 검색어를 keyboard로 바꾸고 인코딩해서 넣으면', d: '기본 포트가 아닌 8443번으로 접속하고, Host 헤더에도 포트가 붙습니다.', v: { origin: 'https://shop.example:8443', q: 'keyboard', enc: true, rel: '/help' } },
@@ -9640,7 +9640,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '두 번째 String을 new String("hello") 방식으로 만들어 ==와 equals로 비교하면 어떻게 나오나', d: '리터럴과 new String. 내용은 같지만 ==는 false입니다.', v: { kind: 'str', sb: 'new', iv: '127', ib: 'box' } },
     { t: '리터럴끼리', q: '두 번째 문자열을 new String 대신 리터럴 hello로 바꾸면', d: '같은 리터럴은 String Pool의 같은 객체를 씁니다.', v: { kind: 'str', sb: 'lit', iv: '127', ib: 'box' } },
-    { t: '변수와 결합한 문자열', q: '두 번째 문자열을 변수와 결합한 part + lo 방식으로 바꾸면', d: '실행 중에 만들어진 문자열은 풀에 있는 것과 다른 객체입니다.', v: { kind: 'str', sb: 'concat', iv: '127', ib: 'box' } },
+    { t: '변수와 결합한 문자열', q: '두 번째 문자열을 part + "lo"처럼 변수와 결합해 만들면', d: '실행 중에 만들어진 문자열은 풀에 있는 것과 다른 객체입니다.', v: { kind: 'str', sb: 'concat', iv: '127', ib: 'box' } },
     { t: 'intern()을 부르면', q: '두 번째 문자열을 만들 때 new String("hello") 방식에 intern 메서드 호출을 덧붙이면', d: '풀에 있는 객체를 돌려받아 ==가 true가 됩니다.', v: { kind: 'str', sb: 'intern', iv: '127', ib: 'box' } },
     { t: 'Integer 127', q: '비교할 타입을 Integer로 바꿔 127을 비교하면', d: '==가 true입니다.', v: { kind: 'int', sb: 'new', iv: '127', ib: 'box' } },
     { t: 'Integer 128', q: '비교할 타입을 Integer로, 값을 128로 바꾸면', d: '값만 1 늘렸는데 ==가 false가 됩니다.', v: { kind: 'int', sb: 'new', iv: '128', ib: 'box' } },
@@ -9657,7 +9657,7 @@ Lab.register({
   columns: ['a == b', 'a.equals(b)', '같은 객체인가'],
   same: function (c) { return c.kind === 'str' ? (c.sb === 'lit' || c.sb === 'intern' || c.sb === 'const') : (c.ib === 'prim' || c.iv === '127'); },
   simulate: function (c) {
-    var ev = [], same = this.same(c), sum = [], objs = [], A, B;
+    var ev = [], same = this.same(c), sum = [], objs = [], A, B; var J = function (v, a, b) { var s = String(v), ch = s.charCodeAt(s.length - 1), k = ch >= 0xAC00 && ch <= 0xD7A3 ? (ch - 0xAC00) % 28 : [1, 8, 0, 1, 0, 0, 1, 8, 8, 0]['0123456789'.indexOf(s.slice(-1))] || 0; return s + (a === '으로' ? (k && k !== 8 ? a : b) : k ? a : b); };   // 값 뒤에 붙일 조사를 고른다
     function push(s, k, cmp) { ev.push({ s: s, k: k, snap: { objs: objs.map(function (o) { return { id: o.id, where: o.where, val: o.val, by: o.by.slice() }; }), a: A, b: B, cmp: cmp || {} } }); }
     function obj(where, val) { var o = { id: objs.length + 1, where: where, val: val, by: [] }; objs.push(o); return o; }
     if (c.kind === 'str') {
@@ -9676,7 +9676,7 @@ Lab.register({
       else { var ib = obj('힙', c.iv); ib.by.push('b'); B = '객체 ' + ib.id; push('Integer b = 128: 캐시 범위 밖이므로 또 다른 Integer 객체를 새로 만듭니다. 값은 같지만 a와는 다른 객체입니다.', ''); }
     }
     var prim = c.kind === 'int' && c.ib === 'prim';
-    push(prim ? 'a == b: 한쪽이 기본형 int이므로 Integer인 a에서 값을 꺼내(언박싱) 숫자끼리 비교합니다. ' + c.iv + ' == ' + c.iv + '이므로 true입니다.' : 'a == b: 두 변수가 가리키는 대상이 같은지 비교합니다. a는 ' + A + ', b는 ' + B + '를 가리키므로 ' + same + '입니다.', same ? 'good' : 'bad', { eq: String(same) });
+    push(prim ? 'a == b: 한쪽이 기본형 int이므로 Integer인 a에서 값을 꺼내(언박싱) 숫자끼리 비교합니다. ' + c.iv + ' == ' + c.iv + '이므로 true입니다.' : 'a == b: 두 변수가 가리키는 대상이 같은지 비교합니다. a는 ' + A + ', b는 ' + J(B, '을', '를') + ' 가리키므로 ' + same + '입니다.', same ? 'good' : 'bad', { eq: String(same) });
     push('a.equals(b): 객체 안의 값을 비교합니다. 내용이 같으므로 true입니다.', 'good', { eq: String(same), equals: 'true' });
     if (c.kind === 'str') { sum.push(same ? '두 변수가 String Pool의 같은 객체를 가리켜서 ==도 true가 나왔습니다. 하지만 이것은 만드는 방법에 따라 달라지는 우연에 가깝습니다.' : '내용은 같지만 서로 다른 객체라서 ==는 false입니다.'); sum.push('문자열 내용을 비교할 때는 항상 equals를 씁니다. DB나 요청에서 읽어 온 문자열은 리터럴이 아니므로 ==로 비교하면 대부분 false가 됩니다.'); }
     else { sum.push(prim ? 'Integer와 int를 ==로 비교하면 언박싱되어 값 비교가 됩니다. 단, Integer가 null이면 언박싱하다가 NullPointerException이 납니다.' : c.iv === '127' ? 'Integer.valueOf는 -128부터 127까지의 객체를 캐시해 두고 재사용합니다. 그래서 이 범위에서는 ==가 true로 나옵니다.' : '128은 캐시 범위를 벗어나 매번 새 객체가 만들어집니다. 테스트에서는 작은 수만 써서 통과하다가, 운영에서 ID가 커지면 비교가 틀어지는 버그의 원인입니다.'); sum.push('래퍼 타입(Integer, Long)끼리의 값 비교는 equals로 합니다.'); }
@@ -9726,7 +9726,7 @@ Lab.register({
     { t: '303: 결과는 GET으로 조회', q: '서버가 응답하는 상태 코드를 303 See Other로 바꾸면', d: '폼을 보낸 뒤 결과 화면으로 넘길 때 쓰는 방식입니다.', v: { code: '303', m: 'POST', dest: 'ok' } },
     { t: '301에 PUT을 보내면', q: '상태 코드를 301 Moved Permanently로, 처음 요청을 PUT /order로 바꾸면', d: 'GET으로 바뀌는 것은 POST뿐입니다. PUT은 그대로 갑니다.', v: { code: '301', m: 'PUT', dest: 'ok' } },
     { t: '영구 이동 308', q: '서버가 응답하는 상태 코드를 308 Permanent Redirect로 바꾸면', d: '301과 같은 영구 이동인데 메서드를 유지합니다.', v: { code: '308', m: 'POST', dest: 'ok' } },
-    { t: '서로를 가리키는 리다이렉트', q: '처음 요청을 GET /order로 바꾸고 /orders도 다시 /order를 가리켜 서로를 가리키면', d: '끝이 없으므로 클라이언트가 정해 둔 횟수에서 스스로 멈춥니다.', v: { code: '302', m: 'GET', dest: 'loop' } },
+    { t: '서로를 가리키는 리다이렉트', q: '처음 요청을 GET /order로 바꾸고 /order와 /orders가 서로를 가리키면', d: '끝이 없으므로 클라이언트가 정해 둔 횟수에서 스스로 멈춥니다.', v: { code: '302', m: 'GET', dest: 'loop' } },
   ],
   CODES: {
     '301': { name: 'Moved Permanently', kind: '영구 이동', rule: 'POST를 GET으로 바꿔도 됨 (허용)' },
@@ -9963,11 +9963,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '클라이언트가 써넣은 198.51.100.99 뒤에 리버스 프록시가 주소를 덧붙일 때 서버가 맨 앞 값을 믿으면 누구 주소로 보나', d: '클라이언트가 써넣은 가짜 주소가 맨 앞에 남고, 서버가 그것을 믿습니다.', v: { path: 'reverse', xff: 'append', spoof: true, read: 'first' } },
-    { t: '맨 뒤 값을 읽으면', q: '서버가 클라이언트 주소로 삼는 것을 X-Forwarded-For의 맨 뒤 값으로 바꾸면', d: '프록시가 직접 붙인 값이라 위조에 속지 않습니다.', v: { path: 'reverse', xff: 'append', spoof: true, read: 'last' } },
+    { t: '맨 뒤 값을 읽으면', q: '서버가 X-Forwarded-For의 맨 뒤 값을 클라이언트 주소로 삼으면', d: '프록시가 직접 붙인 값이라 위조에 속지 않습니다.', v: { path: 'reverse', xff: 'append', spoof: true, read: 'last' } },
     { t: '프록시가 새로 쓰면', q: '프록시가 받은 X-Forwarded-For 값을 버리고 연결 상대의 주소만 새로 쓰면', d: '클라이언트가 써넣은 값이 서버까지 가지 못합니다.', v: { path: 'reverse', xff: 'set', spoof: true, read: 'first' } },
     { t: '연결 상대 주소만 보면', q: '클라이언트가 X-Forwarded-For를 쓰지 않고 서버가 연결 상대 주소를 클라이언트 주소로 삼으면', d: '모든 사용자가 프록시 한 대의 주소로 보입니다.', v: { path: 'reverse', xff: 'append', spoof: false, read: 'remote' } },
     { t: '프록시가 아무것도 안 붙이면', q: '프록시가 X-Forwarded-For를 붙이지 않고 클라이언트도 써넣지 않으면', d: '서버는 원래 주소도, 원래 HTTPS였다는 것도 알 수 없습니다.', v: { path: 'reverse', xff: 'none', spoof: false, read: 'first' } },
-    { t: '포워드 프록시', q: '포워드 프록시를 거치고 X-Forwarded-For를 붙이지도 써넣지도 않으며 서버가 연결 상대 주소를 삼으면', d: '클라이언트가 일부러 거치는 프록시. 서버는 프록시만 봅니다.', v: { path: 'forward', xff: 'none', spoof: false, read: 'remote' } },
+    { t: '포워드 프록시', q: '포워드 프록시를 거치고 X-Forwarded-For를 붙이지도 써넣지도 않으며 서버가 연결 상대 주소를 클라이언트 주소로 삼으면', d: '클라이언트가 일부러 거치는 프록시. 서버는 프록시만 봅니다.', v: { path: 'forward', xff: 'none', spoof: false, read: 'remote' } },
     { t: '프록시 없는 서버가 헤더를 믿으면', q: '프록시 없이 직접 연결하는데 클라이언트가 X-Forwarded-For: 198.51.100.99를 써넣고 서버가 맨 앞 값을 믿으면', d: '직접 연결인데도 가짜 주소에 속습니다.', v: { path: 'direct', xff: 'none', spoof: true, read: 'first' } },
   ],
   // 직접 연결에는 프록시가 없으므로 프록시 설정을 하나로 고정한다
@@ -10079,9 +10079,9 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: 's-maxage=300인 app.css를 0초, 10초, 40초, 80초에 요청하는 중 30초에 오리진이 바뀌면 각 요청은 무엇을 받나', d: '유효 시간 300초. 오리진을 바꿨는데 40초와 80초의 사용자 모두 옛 내용을 받습니다.', v: { ttl: '300', q2: 'same', chg: true, after: 'none' } },
     { t: '유효 시간이 60초라면', q: '엣지가 사본을 써도 되는 시간을 s-maxage=60으로 바꾸면', d: '40초에는 옛 내용, 80초에는 엣지가 다시 물어 새 내용을 받습니다.', v: { ttl: '60', q2: 'same', chg: true, after: 'none' } },
-    { t: '무효화(purge)를 하면', q: '바꾼 뒤에 엣지에 app.css v=1의 무효화 purge를 요청하면', d: '엣지의 사본을 지워, 다음 요청이 오리진에서 새 내용을 받아 옵니다.', v: { ttl: '300', q2: 'same', chg: true, after: 'purge' } },
-    { t: '주소를 바꾸면', q: '바꾼 뒤에 요청하는 주소를 쿼리 v=2로 바꾸면', d: '?v=2는 다른 주소라서 엣지에 사본이 없고, 새 내용을 받아 옵니다.', v: { ttl: '300', q2: 'same', chg: true, after: 'ver' } },
-    { t: '쿼리 문자열이 더 붙으면', q: '10초의 요청 주소를 v=1&ref=mail로 바꾸고 30초에 오리진의 app.css를 바꾸지 않으면', d: '같은 파일인데도 다른 사본으로 취급되어 오리진에 한 번 더 갑니다.', v: { ttl: '300', q2: 'ref', chg: false, after: 'none' } },
+    { t: '무효화(purge)를 하면', q: '오리진의 app.css를 바꾼 뒤 엣지에 /app.css?v=1의 무효화(purge)를 요청하면', d: '엣지의 사본을 지워, 다음 요청이 오리진에서 새 내용을 받아 옵니다.', v: { ttl: '300', q2: 'same', chg: true, after: 'purge' } },
+    { t: '주소를 바꾸면', q: '오리진의 app.css를 바꾼 뒤 요청하는 주소를 /app.css?v=2로 바꾸면', d: '?v=2는 다른 주소라서 엣지에 사본이 없고, 새 내용을 받아 옵니다.', v: { ttl: '300', q2: 'same', chg: true, after: 'ver' } },
+    { t: '쿼리 문자열이 더 붙으면', q: '10초에 /app.css?v=1&ref=mail로 요청하고 30초에 오리진의 app.css를 바꾸지 않으면', d: '같은 파일인데도 다른 사본으로 취급되어 오리진에 한 번 더 갑니다.', v: { ttl: '300', q2: 'ref', chg: false, after: 'none' } },
     { t: '파일을 바꾸지 않을 때', q: '30초에 오리진의 app.css를 바꾸지 않으면', d: '오리진에는 한 번만 가고 나머지는 모두 엣지가 답합니다.', v: { ttl: '300', q2: 'same', chg: false, after: 'none' } },
   ],
   // 파일을 바꾸지 않으면 "바꾼 뒤에 하는 일"은 쓰이지 않으므로 하나로 고정한다
@@ -10310,11 +10310,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '로그인 성공 때 아무것도 하지 않는(none) 서버에서 미리 받아 둔 세션 ID로 피해자가 로그인하면 어떻게 되나', d: '로그인해도 세션 ID가 그대로입니다. 그 ID를 미리 알던 사람의 요청이 kim으로 처리됩니다.', v: { fix: 'none', when: 'before', logout: false } },
-    { t: '스프링 시큐리티의 기본값이면', q: '로그인에 성공했을 때 세션 ID를 새 값으로 바꾸는 스프링 시큐리티 기본값으로 바꾸면', d: '로그인하는 순간 ID가 바뀌어, 미리 알아 둔 ID는 쓸모가 없어집니다.', v: { fix: 'default', when: 'before', logout: false } },
-    { t: '새 세션을 만드는 방식', q: '로그인에 성공했을 때 새 세션을 만들고 예전 내용은 버리는 newSession으로 바꾸면', d: 'ID가 바뀌는 것은 같지만 로그인 전에 담은 장바구니가 사라집니다.', v: { fix: 'newSession', when: 'before', logout: false } },
-    { t: '로그인 뒤의 ID가 새어 나가면', q: '세션 ID를 새 값으로 바꾸는 기본값인데 로그인된 세션의 ID를 알아냈으면', d: '로그인할 때 ID를 바꾸는 것으로는 막지 못합니다.', v: { fix: 'default', when: 'after', logout: false } },
-    { t: '피해자가 로그아웃하면', q: '기본값에서 로그인된 세션의 ID를 알아냈는데 그 사람이 요청하기 전에 피해자가 로그아웃하면', d: '서버가 세션을 지워, 새어 나간 ID가 더는 통하지 않습니다.', v: { fix: 'default', when: 'after', logout: true } },
-    { t: '보호를 껐지만 로그아웃한 경우', q: '보호를 끈 채로 그 사람이 요청하기 전에 피해자가 로그아웃하면', d: '로그아웃한 뒤에는 막히지만, 로그인해 있는 동안은 열려 있었습니다.', v: { fix: 'none', when: 'before', logout: true } },
+    { t: '스프링 시큐리티의 기본값이면', q: '로그인에 성공했을 때 세션 ID를 새 값으로 바꾸는 스프링 시큐리티 기본값을 쓰면', d: '로그인하는 순간 ID가 바뀌어, 미리 알아 둔 ID는 쓸모가 없어집니다.', v: { fix: 'default', when: 'before', logout: false } },
+    { t: '새 세션을 만드는 방식', q: '로그인에 성공했을 때 새 세션을 만들고 예전 내용은 버리는 newSession 방식을 쓰면', d: 'ID가 바뀌는 것은 같지만 로그인 전에 담은 장바구니가 사라집니다.', v: { fix: 'newSession', when: 'before', logout: false } },
+    { t: '로그인 뒤의 ID가 새어 나가면', q: '세션 ID를 새 값으로 바꾸는 기본값인데 다른 사람이 로그인된 세션의 ID를 알아냈으면', d: '로그인할 때 ID를 바꾸는 것으로는 막지 못합니다.', v: { fix: 'default', when: 'after', logout: false } },
+    { t: '피해자가 로그아웃하면', q: '기본값에서 다른 사람이 로그인된 세션의 ID를 알아냈는데 그 사람이 요청하기 전에 피해자가 로그아웃하면', d: '서버가 세션을 지워, 새어 나간 ID가 더는 통하지 않습니다.', v: { fix: 'default', when: 'after', logout: true } },
+    { t: '보호를 껐지만 로그아웃한 경우', q: '보호를 끈 채로 세션 ID를 알게 된 사람이 요청하기 전에 피해자가 로그아웃하면', d: '로그아웃한 뒤에는 막히지만, 로그인해 있는 동안은 열려 있었습니다.', v: { fix: 'none', when: 'before', logout: true } },
   ],
   code: function (c) {
     var sm = c.fix === 'none' ? '        .sessionManagement(s -> s\n            .sessionFixation(f -> f.none()))          // 로그인해도 세션을 그대로 둔다 (보호를 끔)\n'
@@ -10557,8 +10557,8 @@ Lab.register({
     { t: '처음 설정으로', q: '@EnableMethodSecurity 없이 deleteAll에 @PreAuthorize를 붙였는데 USER인 kim이 부르면 어떻게 되나', d: '@PreAuthorize를 붙였는데, USER인 kim이 deleteAll을 실행합니다.', v: { enable: false, m: 'role', who: 'kim', call: 'ext' } },
     { t: '@EnableMethodSecurity를 붙이면', q: '설정 클래스에 @EnableMethodSecurity를 붙이면', d: '메서드 본문이 실행되기 전에 거부됩니다.', v: { enable: true, m: 'role', who: 'kim', call: 'ext' } },
     { t: 'ADMIN이 부르면', q: '@EnableMethodSecurity를 붙이고 ADMIN 역할인 park이 deleteAll 메서드를 부르면', d: '식이 참이라 본문이 실행됩니다.', v: { enable: true, m: 'role', who: 'admin', call: 'ext' } },
-    { t: '인자와 로그인한 사용자를 비교', q: '@EnableMethodSecurity를 붙이고 ordersOf를 lee가 kim의 주문 목록으로 부르면', d: 'lee가 kim의 주문 목록을 요청합니다. 본문 실행 전에 거부됩니다.', v: { enable: true, m: 'arg', who: 'lee', call: 'ext' } },
-    { t: '돌려줄 값을 보고 판단', q: '@EnableMethodSecurity를 붙이고 @PostAuthorize가 달린 findOrder를 lee가 1번 주문으로 부르면', d: '본문은 실행되고, 값이 나가기 직전에 거부됩니다.', v: { enable: true, m: 'post', who: 'lee', call: 'ext' } },
+    { t: '인자와 로그인한 사용자를 비교', q: '@EnableMethodSecurity를 붙이고 lee가 ordersOf("kim")으로 kim의 주문 목록을 조회하면', d: 'lee가 kim의 주문 목록을 요청합니다. 본문 실행 전에 거부됩니다.', v: { enable: true, m: 'arg', who: 'lee', call: 'ext' } },
+    { t: '돌려줄 값을 보고 판단', q: '@EnableMethodSecurity를 붙이고 lee가 @PostAuthorize가 달린 findOrder(1)로 1번 주문을 조회하면', d: '본문은 실행되고, 값이 나가기 직전에 거부됩니다.', v: { enable: true, m: 'post', who: 'lee', call: 'ext' } },
     { t: '같은 클래스 안에서 부르면', q: '@EnableMethodSecurity를 붙였는데 같은 클래스의 nightlyCleanUp 메서드를 거쳐 deleteAll을 부르면', d: '프록시를 거치지 않아 검사가 빠집니다.', v: { enable: true, m: 'role', who: 'kim', call: 'self' } },
   ],
   M: {
@@ -10673,7 +10673,7 @@ Lab.register({
     { t: '기본값에서 내 페이지의 프레임', q: '스프링 시큐리티 기본값인데 같은 사이트의 shop.example 페이지가 결제 화면을 프레임에 넣으면', d: 'DENY는 같은 사이트의 프레임까지 막습니다.', v: { topic: 'frame', hdr: 'default', who: 'self', check: 'none', next: 'abs' } },
     { t: '협력 사이트만 허용', q: 'CSP frame-ancestors로 내 사이트와 협력 사이트만 허용하고 partner.example 페이지가 프레임에 넣으면', d: 'frame-ancestors에 적은 출처의 프레임에만 그려집니다.', v: { topic: 'frame', hdr: 'csp', who: 'partner', check: 'none', next: 'abs' } },
     { t: '돌아갈 주소를 검사하지 않으면', q: '오픈 리다이렉트에서 next를 검사하지 않고 next에 https://attacker.example/login이 들어 있으면', d: '내 사이트의 주소로 시작하는 링크가 공격자 사이트로 넘어갑니다.', v: { topic: 'redir', hdr: 'off', who: 'attacker', check: 'none', next: 'abs' } },
-    { t: '"/"로 시작하는지만 보면', q: 'next 값이 /로 시작하는지만 확인하는 서버에 //attacker.example/login이 들어 있으면', d: '//로 시작하는 주소가 검사를 통과합니다.', v: { topic: 'redir', hdr: 'off', who: 'attacker', check: 'slash', next: 'dslash' } },
+    { t: '"/"로 시작하는지만 보면', q: '서버가 next 값이 /로 시작하는지만 확인하는데 next에 //attacker.example/login이 들어 있으면', d: '//로 시작하는 주소가 검사를 통과합니다.', v: { topic: 'redir', hdr: 'off', who: 'attacker', check: 'slash', next: 'dslash' } },
     { t: '같은 사이트의 경로만 허용', q: 'next를 같은 사이트의 경로만 허용하는 검사로 바꾸고 next가 //attacker.example/login이면', d: '다른 사이트로 가는 값은 첫 화면으로 바뀝니다.', v: { topic: 'redir', hdr: 'off', who: 'attacker', check: 'path', next: 'dslash' } },
   ],
   CSP: "frame-ancestors 'self' https://partner.example",
@@ -10846,10 +10846,10 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: 'include-message와 include-stacktrace가 둘 다 always인 스프링 부트 기본 오류 응답은 무엇을 내보내나', d: '개발할 때 편하려고 둘 다 always로 둔 서버. SQL과 스택 트레이스가 응답에 실립니다.', v: { topic: 'boot', msg: 'always', trace: 'always', q: false, body: 'raw', lg: 'split', acct: 'none' } },
     { t: '스프링 부트 기본값', q: 'include-message와 include-stacktrace를 둘 다 never로 바꾸면', d: '둘 다 never. 오류가 났다는 사실만 나갑니다.', v: { topic: 'boot', msg: 'never', trace: 'never', q: false, body: 'raw', lg: 'split', acct: 'none' } },
-    { t: 'on_param에 ?trace=true', q: 'include-stacktrace를 on_param으로 바꾸고 요청 주소 끝에 trace=true를 붙이면', d: '파라미터는 누구나 붙일 수 있으므로 숨긴 것이 아닙니다.', v: { topic: 'boot', msg: 'never', trace: 'on_param', q: true, body: 'raw', lg: 'split', acct: 'none' } },
+    { t: 'on_param에 ?trace=true', q: 'include-message는 never로 두고 include-stacktrace를 on_param으로 바꾼 뒤 요청 주소 끝에 ?trace=true를 붙이면', d: '파라미터는 누구나 붙일 수 있으므로 숨긴 것이 아닙니다.', v: { topic: 'boot', msg: 'never', trace: 'on_param', q: true, body: 'raw', lg: 'split', acct: 'none' } },
     { t: '예외 메시지를 그대로 응답', q: '설정은 둘 다 never인데 @ExceptionHandler가 예외의 메시지를 그대로 응답에 담으면', d: '설정이 기본값이어도 코드가 직접 내보내면 새어 나갑니다.', v: { topic: 'handler', msg: 'never', trace: 'never', q: false, body: 'raw', lg: 'split', acct: 'none' } },
     { t: '정해 둔 글귀와 오류 번호만', q: '설정은 둘 다 never인데 @ExceptionHandler가 정해 둔 글귀와 오류 번호만 응답에 담으면', d: '자세한 내용은 서버의 로그에만 남깁니다.', v: { topic: 'handler', msg: 'never', trace: 'never', q: false, body: 'safe', lg: 'split', acct: 'none' } },
-    { t: '로그인 실패 글귀가 다르면', q: '직접 짠 코드가 두 경우에 다른 글귀를 내는 로그인에 가입하지 않은 아이디 ghost로 시도하면', d: '아이디가 가입돼 있는지를 알려 주게 됩니다.', v: { topic: 'login', msg: 'always', trace: 'always', q: false, body: 'raw', lg: 'split', acct: 'none' } },
+    { t: '로그인 실패 글귀가 다르면', q: '직접 짠 로그인 코드가 두 경우에 다른 글귀를 내는데 가입하지 않은 아이디 ghost로 시도하면', d: '아이디가 가입돼 있는지를 알려 주게 됩니다.', v: { topic: 'login', msg: 'always', trace: 'always', q: false, body: 'raw', lg: 'split', acct: 'none' } },
     { t: '스프링 시큐리티 기본값의 로그인', q: '로그인 실패를 스프링 시큐리티 기본값으로 알리는데 ghost로 시도하면', d: '없는 아이디와 틀린 비밀번호의 응답이 같습니다.', v: { topic: 'login', msg: 'always', trace: 'always', q: false, body: 'raw', lg: 'sec', acct: 'none' } },
   ],
   SQL: 'select id, item, pirce from orders where id = ?',
@@ -11318,9 +11318,9 @@ Lab.register({
     { t: '처음 설정으로', q: '한 틱에 객체 5개를 만들고 10%만 계속 쓰이는 보통 크기 힙은 어떻게 돌아가나', d: '대부분의 객체가 금방 버려집니다. Minor GC만으로 유지됩니다.', v: { rate: 5, live: 10, heap: 'mid', leak: false } },
     { t: '오래 사는 객체가 많으면', q: '한동안 계속 쓰이는 객체의 비율을 40%로 바꾸면', d: 'Old로 올라가는 객체가 늘어 Full GC가 돌기 시작합니다.', v: { rate: 5, live: 40, heap: 'mid', leak: false } },
     { t: '객체를 더 빨리 만들면', q: '한 틱에 만드는 객체 수를 10개로 바꾸면', d: 'Eden이 빨리 차서 Minor GC가 잦아집니다.', v: { rate: 10, live: 10, heap: 'mid', leak: false } },
-    { t: '힙을 키우면', q: '한 틱에 객체를 10개 만드는데 힙 크기를 크게 (Eden 32, Old 64) 쪽으로 바꾸면', d: 'GC 횟수가 줄어듭니다.', v: { rate: 10, live: 10, heap: 'large', leak: false } },
+    { t: '힙을 키우면', q: '한 틱에 객체를 10개 만드는데 힙을 Eden 32, Old 64로 키우면', d: 'GC 횟수가 줄어듭니다.', v: { rate: 10, live: 10, heap: 'large', leak: false } },
     { t: '메모리 누수', q: '객체를 static 목록에 담고 지우지 않는 메모리 누수가 있으면', d: 'GC가 돌아도 Old가 비지 않다가 OutOfMemoryError로 끝납니다.', v: { rate: 5, live: 10, heap: 'mid', leak: true } },
-    { t: '누수 상태에서 힙만 키우면', q: '메모리 누수가 있는 상태에서 힙 크기를 크게 (Eden 32, Old 64) 쪽으로만 바꾸면', d: '죽는 시점이 늦춰질 뿐입니다.', v: { rate: 5, live: 10, heap: 'large', leak: true } },
+    { t: '누수 상태에서 힙만 키우면', q: '메모리 누수가 있는 상태에서 힙만 Eden 32, Old 64로 키우면', d: '죽는 시점이 늦춰질 뿐입니다.', v: { rate: 5, live: 10, heap: 'large', leak: true } },
   ],
   SIZES: { small: [12, 3, 24], mid: [20, 5, 40], large: [32, 8, 64] },
   code: function (c) {
@@ -11412,7 +11412,7 @@ Lab.register({
   num: function (x) { return String(Math.round(x)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); },
   columns: ['선택된 방법', '읽은 행', '결과 행', '버린 행', '상대 비용'],
   simulate: function (c) {
-    var N = +c.rows, matched = Math.max(1, Math.round(N * (+c.sel) / 100)), W = 4, h = Math.max(1, Math.ceil(Math.log(N) / Math.log(500))), num = this.num, ev = [];
+    var N = +c.rows, matched = Math.max(1, Math.round(N * (+c.sel) / 100)), W = 4, h = Math.max(1, Math.ceil(Math.log(N) / Math.log(500))), num = this.num, ev = []; var J = function (v, a, b) { var s = String(v), ch = s.charCodeAt(s.length - 1), k = ch >= 0xAC00 && ch <= 0xD7A3 ? (ch - 0xAC00) % 28 : [1, 8, 0, 1, 0, 0, 1, 8, 8, 0]['0123456789'.indexOf(s.slice(-1))] || 0; return s + (a === '으로' ? (k && k !== 8 ? a : b) : k ? a : b); };   // 값 뒤에 붙일 조사를 고른다
     var costFull = N, costIdx = matched * W + h, useIdx = c.idx && (c.force || costIdx < costFull), plan = useIdx ? 'index' : 'full';
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
     push('쿼리가 도착했습니다. 옵티마이저가 실행 방법을 정하려고 통계 정보를 봅니다. 테이블은 약 ' + num(N) + '행이고, status = \'CANCELED\' 조건에는 약 ' + num(matched) + '행(' + c.sel + '%)이 걸릴 것으로 예상합니다.', '', 1);
@@ -11428,7 +11428,7 @@ Lab.register({
       push('테이블의 첫 행부터 마지막 행까지 ' + num(N) + '행을 모두 읽습니다. 행마다 status를 확인해 ' + num(matched) + '행만 남기고 ' + num(N - matched) + '행은 읽고 나서 버립니다.', c.idx ? '' : 'bad', 6);
     }
     var read = useIdx ? matched : N, cost = useIdx ? costIdx : costFull, sum = [];
-    if (!c.idx) sum.push('인덱스가 없으면 결과가 몇 건이든 테이블 전체를 읽어야 합니다. 행이 10배가 되면 읽는 양도 10배가 됩니다. 인덱스가 있었다면 예상 비용은 ' + num(costIdx) + '로 ' + (costIdx < costFull ? '풀 스캔의 약 ' + (Math.round(costFull / costIdx) >= 2 ? Math.round(costFull / costIdx) + '분의 1' : '절반 수준') + '이었을 것입니다.' : '오히려 풀 스캔보다 비쌌을 것입니다. 이 조건에는 인덱스가 도움이 되지 않습니다.'));
+    if (!c.idx) sum.push('인덱스가 없으면 결과가 몇 건이든 테이블 전체를 읽어야 합니다. 행이 10배가 되면 읽는 양도 10배가 됩니다. 인덱스가 있었다면 예상 비용은 ' + J(num(costIdx), '으로', '로') + ' ' + (costIdx < costFull ? '풀 스캔의 약 ' + (Math.round(costFull / costIdx) >= 2 ? Math.round(costFull / costIdx) + '분의 1' : '절반 수준') + '이었을 것입니다.' : '오히려 풀 스캔보다 비쌌을 것입니다. 이 조건에는 인덱스가 도움이 되지 않습니다.'));
     else if (useIdx && !(c.force && costIdx >= costFull)) sum.push('조건에 걸리는 비율이 낮을수록(선택도가 좋을수록) 인덱스의 효과가 큽니다. 풀 스캔이었다면 비용은 ' + num(costFull) + '로 약 ' + Math.max(1, Math.round(costFull / costIdx)) + '배였습니다.');
     else if (useIdx) sum.push('인덱스를 강제했더니 비용이 ' + num(costIdx) + '로, 풀 스캔(' + num(costFull) + ')보다 비쌉니다. 옵티마이저의 판단이 맞았습니다. 힌트는 통계가 틀렸다는 근거가 있을 때만 씁니다.');
     else sum.push('조건에 걸리는 행이 너무 많으면, 한 건씩 찾아가는 비용의 합이 전체를 순서대로 읽는 비용을 넘습니다. 그래서 인덱스가 있어도 풀 스캔이 선택됩니다. 성별이나 상태값처럼 값의 종류가 적은 컬럼 하나만으로는 인덱스 효과가 작은 이유입니다.');
@@ -11589,11 +11589,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '캐시 TTL이 10초이고 초당 5건 요청에 DB 조회가 1초 걸리면 요청은 DB로 어떻게 가나', d: 'TTL 10초. 만료될 때마다 여러 요청이 한꺼번에 DB로 갑니다.', v: { ttl: '10', rps: 5, dbt: '1', lock: false } },
-    { t: '캐시가 없다면', q: '캐시 TTL을 캐시 없음으로 바꾸면', d: '모든 요청이 DB를 조회합니다.', v: { ttl: '0', rps: 5, dbt: '1', lock: false } },
+    { t: '캐시가 없다면', q: '캐시를 없애면', d: '모든 요청이 DB를 조회합니다.', v: { ttl: '0', rps: 5, dbt: '1', lock: false } },
     { t: '요청이 많고 DB가 느릴 때', q: '초당 요청 수를 20건으로, DB 조회에 걸리는 시간을 2초로 바꾸면', d: '만료 순간 수십 개의 요청이 동시에 DB를 때립니다(캐시 스탬피드).', v: { ttl: '10', rps: 20, dbt: '2', lock: false } },
     { t: '같은 상황에 락 적용', q: '초당 20건에 DB 조회가 2초 걸리는데 캐시가 비었을 때 한 요청만 DB를 조회하게 하면', d: '한 요청만 DB에 가고 나머지는 그 결과를 기다립니다.', v: { ttl: '10', rps: 20, dbt: '2', lock: true } },
     { t: 'TTL을 5초로 줄이면', q: '캐시 TTL을 5초로 바꾸면', d: '데이터는 더 최신이지만 DB 조회가 늘어납니다.', v: { ttl: '5', rps: 5, dbt: '1', lock: false } },
-    { t: 'TTL을 길게', q: '캐시 TTL을 만료 없는 30초 이상으로 바꾸면', d: 'DB 조회는 처음 캐시를 채울 때뿐입니다. 대신 원본이 바뀌어도 오래 모릅니다.', v: { ttl: '30', rps: 5, dbt: '1', lock: false } },
+    { t: 'TTL을 길게', q: '캐시 TTL을 30초 이상으로 늘려 만료되지 않게 하면', d: 'DB 조회는 처음 캐시를 채울 때뿐입니다. 대신 원본이 바뀌어도 오래 모릅니다.', v: { ttl: '30', rps: 5, dbt: '1', lock: false } },
   ],
   code: function (c) {
     if (c.ttl === '0') return 'public Product getProduct(long id) {\n    return productRepository.findById(id);   // 매번 DB 조회 (' + c.dbt + '초)\n}';
@@ -12578,7 +12578,7 @@ Lab.register({
     { t: '부르는 줄을 지우면', q: '부르는 줄을 지우면', d: '선언은 그대로여도 부르지 않으면 add의 코드는 실행되지 않습니다.', v: { decl: true, call: 'none', args: 'two' } },
     { t: 'add(2, 3)을 두 번 부르면', q: 'add(2, 3)을 두 번 부르면', d: '부를 때마다 add의 코드가 다시 실행됩니다.', v: { decl: true, call: 'twice', args: 'two' } },
     { t: 'add의 선언을 지우고 부르기만 하면', q: 'add의 선언을 지우고 부르기만 하면', d: '부를 대상이 없어 컴파일 오류가 납니다.', v: { decl: false, call: 'once', args: 'two' } },
-    { t: '값을 하나만 넘기면', q: '값을 하나만 넘기면: add(2)', d: '넘긴 값의 개수가 매개변수의 개수와 맞지 않아 컴파일 오류가 납니다.', v: { decl: true, call: 'once', args: 'one' } },
+    { t: '값을 하나만 넘기면', q: 'add(2)처럼 값을 하나만 넘기면', d: '넘긴 값의 개수가 매개변수의 개수와 맞지 않아 컴파일 오류가 납니다.', v: { decl: true, call: 'once', args: 'one' } },
   ],
   // 컴파일러가 알려 주는 오류의 종류(실제 javac의 진단 코드를 옮긴 것)
   errName: 'add라는 메서드를 찾을 수 없음',
@@ -13355,7 +13355,7 @@ Lab.register({
   label: function (c) { return (c.st ? 'static 있음' : 'static 없음') + ' · ' + (c.read === 'cls' ? 'Counter.count로 읽음' : 'a.count로 읽음'); },
   columns: ['컴파일', '컴파일러가 알려 주는 것', '출력', 'count가 있는 곳'],
   simulate: function (c) {
-    var ev = [], sum = [], READ = c.read === 'cls' ? 'Counter.count' : 'a.count', READ_LINE = 'System.out.println(' + READ + ');';
+    var ev = [], sum = [], READ = c.read === 'cls' ? 'Counter.count' : 'a.count', READ_LINE = 'System.out.println(' + READ + ');'; var J = function (v, a, b) { var s = String(v), ch = s.charCodeAt(s.length - 1), k = ch >= 0xAC00 && ch <= 0xD7A3 ? (ch - 0xAC00) % 28 : [1, 8, 0, 1, 0, 0, 1, 8, 8, 0]['0123456789'.indexOf(s.slice(-1))] || 0; return s + (a === '으로' ? (k && k !== 8 ? a : b) : k ? a : b); };   // 값 뒤에 붙일 조사를 고른다
     var fail = !c.st && c.read === 'cls';
     var where = c.st ? '클래스에 하나' : '객체마다 하나씩';
     var st = { hot: '', by: '', objs: 0, cells: 0, cls: null, a: null, b: null, bad: {}, compile: '', errText: '', ran: false, out: '', checks: [] };
@@ -13420,9 +13420,9 @@ Lab.register({
       out = c.st ? '2' : '1';
       st.ran = true; st.out = out;
       st.checks.push(['출력', { v: out, cls: 'good' }]);
-      if (c.st && c.read === 'cls') push(READ_LINE + ' 줄이 실행됩니다. Counter.count는 Counter 클래스에 하나 있는 count이고, 그 값 ' + out + '이 출력됩니다.', 'good');
-      else if (c.st) push(READ_LINE + ' 줄이 실행됩니다. a.count는 객체 a로 가리키는 모양이지만 count는 static이어서, 읽는 것은 Counter 클래스에 하나 있는 count입니다. 그 값 ' + out + '이 출력됩니다. a와 b가 같은 칸을 올렸으므로 b.count로 읽어도 같은 값입니다.', 'good');
-      else push(READ_LINE + ' 줄이 실행됩니다. a.count는 a의 count 칸이고, 그 값 ' + out + '이 출력됩니다. b의 count 칸도 값이 1로 서로 다른 칸이므로, 둘이 올린 값을 합친 2는 어디에도 없습니다.', 'good');
+      if (c.st && c.read === 'cls') push(READ_LINE + ' 줄이 실행됩니다. Counter.count는 Counter 클래스에 하나 있는 count이고, 그 값 ' + J(out, '이', '가') + ' 출력됩니다.', 'good');
+      else if (c.st) push(READ_LINE + ' 줄이 실행됩니다. a.count는 객체 a로 가리키는 모양이지만 count는 static이어서, 읽는 것은 Counter 클래스에 하나 있는 count입니다. 그 값 ' + J(out, '이', '가') + ' 출력됩니다. a와 b가 같은 칸을 올렸으므로 b.count로 읽어도 같은 값입니다.', 'good');
+      else push(READ_LINE + ' 줄이 실행됩니다. a.count는 a의 count 칸이고, 그 값 ' + J(out, '이', '가') + ' 출력됩니다. b의 count 칸도 값이 1로 서로 다른 칸이므로, 둘이 올린 값을 합친 2는 어디에도 없습니다.', 'good');
     }
 
     // 요약: 첫 줄은 이 설정(물음)의 답
@@ -14906,7 +14906,7 @@ Lab.register({
     { t: '처음 설정으로', q: '스레드 2가 B 먼저 그다음 A 순서로 락을 잡고 두 스레드가 동시에 시작하면 어떻게 되나', d: '서로 반대 순서로 락을 잡고 동시에 시작합니다. 교착 상태가 됩니다.', v: { ord: 'BA', time: 'overlap', tryl: false } },
     { t: '락 순서를 통일하면', q: '스레드 2가 A 먼저, 그다음 B 순서로 락을 잡게 바꾸면', d: '둘 다 A부터 잡습니다. 한쪽이 기다렸다가 차례로 끝납니다.', v: { ord: 'AB', time: 'overlap', tryl: false } },
     { t: '타이밍이 어긋나면', q: '두 스레드를 동시에 시작하지 않고 스레드 1이 끝난 뒤 스레드 2를 시작하면', d: '반대 순서인데도 문제없이 끝납니다. 그래서 테스트에서 안 잡힙니다.', v: { ord: 'BA', time: 'seq', tryl: false } },
-    { t: '기다리는 시간에 제한을 두면', q: '락을 기다리는 시간에 제한을 두는 tryLock을 켜면', d: '못 잡으면 가진 락을 내려놓고 다시 시도합니다.', v: { ord: 'BA', time: 'overlap', tryl: true } },
+    { t: '기다리는 시간에 제한을 두면', q: '락을 기다리는 시간에 tryLock으로 제한을 두면', d: '못 잡으면 가진 락을 내려놓고 다시 시도합니다.', v: { ord: 'BA', time: 'overlap', tryl: true } },
   ],
   code: function (c) {
     if (c.tryl) { var x = c.ord === 'AB' ? 'first' : 'from', y = c.ord === 'AB' ? 'second' : 'to';
@@ -14961,7 +14961,7 @@ Lab.register({
     P.size(680, 310);
     [1, 2].forEach(function (t) { var x = s.st[t], p = x.split(' · '); P.box('T' + t, t === 1 ? 24 : 456, 104, 200, 66, { cls: x === '이체 완료' ? 'good' : x.indexOf('기다리는') >= 0 ? (dead ? 'bad' : 'wait') : x === '시작 전' ? 'plain' : 'hot', title: '스레드 ' + t + (t === 1 ? ' (A → B 이체)' : ' (B → A 이체)'), sub: [p[0], p[1] || ' '] }); });
     ['A', 'B'].forEach(function (l) {
-      P.box('L' + l, 250, l === 'A' ? 24 : 204, 180, 46, { cls: s.own[l] ? 'hot' : 'plain', title: '계좌 ' + l + '의 락', sub: s.own[l] ? '스레드 ' + s.own[l] + '가 쥐고 있음' : '비어 있음' });
+      P.box('L' + l, 250, l === 'A' ? 24 : 204, 180, 46, { cls: s.own[l] ? 'hot' : 'plain', title: '계좌 ' + l + '의 락', sub: s.own[l] ? '스레드 ' + s.own[l] + (String(s.own[l]) === '1' ? '이' : '가') + ' 쥐고 있음' : '비어 있음' });
       [1, 2].forEach(function (t) {
         var side = t === 1 ? 'l' : 'r', tside = l === 'A' ? 't' : 'b';
         if (s.own[l] === t) P.arrow('e' + t + l, 'L' + l + ':' + side, 'T' + t + ':' + tside, { cls: 'hot', label: '쥐고 있음' });
@@ -18684,10 +18684,10 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '조회 후 수정만 하고 아무 장치 없이 재고 3개에 주문 4건이 동시에 들어오면 어떻게 되나', d: '장치 없음. 재고 3개에 주문 4건이 전부 성공합니다.', v: { how: 'none', s: 3, n: 4 } },
-    { t: '비관적 락', q: '동시 수정을 다루는 방법을 비관적 락으로 바꾸면', d: '한 번에 하나씩만 재고 행을 읽고 고칩니다. 나머지는 줄을 섭니다.', v: { how: 'pess', s: 3, n: 4 } },
-    { t: '낙관적 락', q: '동시 수정을 다루는 방법을 낙관적 락으로 바꾸면', d: '일단 진행하고, 저장할 때 누가 먼저 바꿨으면 실패시킵니다.', v: { how: 'opt', s: 3, n: 4 } },
-    { t: '조건을 넣은 UPDATE', q: '동시 수정을 다루는 방법을 조건을 넣은 UPDATE 한 문장으로 바꾸면', d: '확인과 감소를 SQL 한 문장으로 합칩니다.', v: { how: 'atomic', s: 3, n: 4 } },
-    { t: '낙관적 락에 주문이 몰리면', q: '낙관적 락으로 바꾸고 처음 재고를 5개, 동시에 들어오는 주문을 6건으로 바꾸면', d: '6건이 경쟁합니다. 재시도 횟수를 보세요.', v: { how: 'opt', s: 5, n: 6 } },
+    { t: '비관적 락', q: '비관적 락으로 동시 수정을 다루면', d: '한 번에 하나씩만 재고 행을 읽고 고칩니다. 나머지는 줄을 섭니다.', v: { how: 'pess', s: 3, n: 4 } },
+    { t: '낙관적 락', q: '낙관적 락으로 동시 수정을 다루면', d: '일단 진행하고, 저장할 때 누가 먼저 바꿨으면 실패시킵니다.', v: { how: 'opt', s: 3, n: 4 } },
+    { t: '조건을 넣은 UPDATE', q: '조건을 넣은 UPDATE 한 문장으로 동시 수정을 다루면', d: '확인과 감소를 SQL 한 문장으로 합칩니다.', v: { how: 'atomic', s: 3, n: 4 } },
+    { t: '낙관적 락에 주문이 몰리면', q: '낙관적 락을 쓰고 재고 5개에 주문 6건이 동시에 들어오면', d: '6건이 경쟁합니다. 재시도 횟수를 보세요.', v: { how: 'opt', s: 5, n: 6 } },
   ],
   code: function (c) {
     if (c.how === 'none') return '@Transactional\npublic void order(long productId) {\n    Product p = productRepository.findById(productId).orElseThrow();\n    if (p.getStock() <= 0) throw new SoldOutException();\n    p.setStock(p.getStock() - 1);        // 읽은 값에서 1을 뺀다\n    orderRepository.save(new Order(productId));\n}';
@@ -18784,7 +18784,7 @@ Lab.register({
     { t: 'OSIV를 끄면', q: 'OSIV를 끄면', d: 'DB 작업이 끝나는 즉시 커넥션을 돌려줍니다.', v: { pool: 3, n: 8, q: '0.5', ext: '2', osiv: false } },
     { t: '요청이 더 몰리면', q: '거의 동시에 들어오는 요청을 20건으로 늘리면', d: 'OSIV 켜짐, 20건. 5초를 기다리다 실패하는 요청이 나옵니다.', v: { pool: 3, n: 20, q: '0.5', ext: '2', osiv: true } },
     { t: '풀을 늘리면', q: '커넥션 풀 크기를 10개로 늘리고 요청 20건이 오면', d: '같은 20건에 풀 10개. 버티지만 DB가 받을 수 있는 연결 수에는 한계가 있습니다.', v: { pool: 10, n: 20, q: '0.5', ext: '2', osiv: true } },
-    { t: '쿼리 자체가 느리면', q: 'DB 작업 시간을 2초로, 외부 API 호출 시간을 없음으로 바꾸고 OSIV를 끄면', d: 'OSIV를 꺼도 DB 작업 2초 동안은 커넥션을 씁니다.', v: { pool: 3, n: 8, q: '2', ext: '0', osiv: false } },
+    { t: '쿼리 자체가 느리면', q: 'DB 작업에 2초가 걸리고 외부 API 호출이 없는 상태에서 OSIV를 끄면', d: 'OSIV를 꺼도 DB 작업 2초 동안은 커넥션을 씁니다.', v: { pool: 3, n: 8, q: '2', ext: '0', osiv: false } },
   ],
   code: function (c) {
     return '# application.yml\nspring.datasource.hikari.maximum-pool-size: ' + c.pool + '\nspring.datasource.hikari.connection-timeout: 5000   # 5초 기다리다 실패\nspring.jpa.open-in-view: ' + c.osiv + '\n\n// 컨트롤러\nOrderDto get(long id) {\n    Order order = orderService.find(id);       // @Transactional, DB 작업 ' + c.q + '초\n' + (c.ext !== '0' ? '    Delivery d = deliveryApi.track(order);     // 외부 API ' + c.ext + '초 (DB 안 씀)\n' : '') + '    return OrderDto.of(order' + (c.ext !== '0' ? ', d' : '') + ');\n}';
@@ -18868,8 +18868,8 @@ Lab.register({
     { t: '컨슈머를 3개로', q: '컨슈머 수를 3개로 늘리면', d: '파티션마다 컨슈머가 하나씩 붙어 밀림이 사라집니다.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'after', crash: false } },
     { t: '컨슈머를 6개로 늘려도', q: '파티션은 3개 그대로 두고 컨슈머 6개, 초당 들어오는 메시지 240건으로 늘리면', d: '파티션이 3개뿐이라 3개는 할 일이 없습니다.', v: { p: 3, c: 6, r: 240, k: 50, commit: 'after', crash: false } },
     { t: '파티션도 6개로', q: '컨슈머 6개, 초당 메시지 240건인데 파티션 수도 6개로 늘리면', d: '이제 6개가 모두 일합니다.', v: { p: 6, c: 6, r: 240, k: 50, commit: 'after', crash: false } },
-    { t: '처리 도중 컨슈머가 죽으면 (처리 후 커밋)', q: '오프셋을 처리한 뒤에 커밋하는 채로 컨슈머 3개 중 하나가 처리 도중 죽으면', d: '다른 컨슈머가 이어받으면서 일부를 다시 처리합니다.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'after', crash: true } },
-    { t: '처리 도중 컨슈머가 죽으면 (처리 전 커밋)', q: '컨슈머 3개 중 하나가 처리 도중 죽는데 오프셋을 메시지를 처리하기 전에 커밋하면', d: '이미 커밋된 메시지는 처리되지 않은 채 건너뜁니다.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'before', crash: true } },
+    { t: '처리 도중 컨슈머가 죽으면 (처리 후 커밋)', q: '메시지를 처리한 뒤에 오프셋을 커밋하는 상태에서 컨슈머 3개 중 하나가 처리 도중 죽으면', d: '다른 컨슈머가 이어받으면서 일부를 다시 처리합니다.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'after', crash: true } },
+    { t: '처리 도중 컨슈머가 죽으면 (처리 전 커밋)', q: '메시지를 처리하기 전에 오프셋을 커밋하는데 컨슈머 3개 중 하나가 처리 도중 죽으면', d: '이미 커밋된 메시지는 처리되지 않은 채 건너뜁니다.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'before', crash: true } },
   ],
   code: function (c) {
     return '// 토픽 orders: 파티션 ' + c.p + '개\n// 컨슈머 그룹 order-service: 컨슈머 ' + c.c + '개\n\nwhile (true) {\n    ConsumerRecords<String, Order> records = consumer.poll(Duration.ofMillis(500));\n' + (c.commit === 'before' ? '    consumer.commitSync();               // 먼저 "여기까지 읽었다"고 기록\n    for (var r : records) {\n        handle(r.value());               // 그다음 처리\n    }\n' : '    for (var r : records) {\n        handle(r.value());               // 먼저 처리\n    }\n    consumer.commitSync();               // 그다음 "여기까지 읽었다"고 기록\n') + '}';
@@ -19032,10 +19032,10 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '새 버전 v2에 버그가 없고 Graceful Shutdown을 설정한 채 한 대씩 교체하는 롤링으로 배포하면 서비스는 어떻게 되나', d: '롤링 배포. 한 대씩 바꾸므로 서비스가 끊기지 않습니다.', v: { st: 'rolling', bug: false, grace: true } },
-    { t: '전부 내리고 올리기', q: '배포 방식을 전부 내리고 새로 올리기로 바꾸면', d: '가장 단순하지만 그동안 서비스가 멈춥니다.', v: { st: 'recreate', bug: false, grace: true } },
-    { t: '블루-그린', q: '배포 방식을 새 환경을 통째로 준비 후 전환하는 블루-그린으로 바꾸면', d: '서버가 두 배 필요하지만 전환과 되돌리기가 한순간입니다.', v: { st: 'bluegreen', bug: false, grace: true } },
+    { t: '전부 내리고 올리기', q: '전부 내렸다가 새로 올리는 방식으로 배포하면', d: '가장 단순하지만 그동안 서비스가 멈춥니다.', v: { st: 'recreate', bug: false, grace: true } },
+    { t: '블루-그린', q: '새 환경을 통째로 준비한 뒤 전환하는 블루-그린으로 배포하면', d: '서버가 두 배 필요하지만 전환과 되돌리기가 한순간입니다.', v: { st: 'bluegreen', bug: false, grace: true } },
     { t: '버그가 있는 버전을 롤링으로', q: '롤링 배포 그대로 새 버전 v2에 버그가 있으면', d: '문제를 알아챌 때까지 영향 범위가 점점 커집니다.', v: { st: 'rolling', bug: true, grace: true } },
-    { t: '버그가 있는 버전을 카나리로', q: '배포 방식을 일부에만 먼저 배포하는 카나리로 바꾸고 새 버전 v2에 버그가 있으면', d: '일부 사용자만 영향을 받고 되돌립니다.', v: { st: 'canary', bug: true, grace: true } },
+    { t: '버그가 있는 버전을 카나리로', q: '카나리로 일부에만 먼저 배포하는데 새 버전 v2에 버그가 있으면', d: '일부 사용자만 영향을 받고 되돌립니다.', v: { st: 'canary', bug: true, grace: true } },
     { t: 'Graceful Shutdown이 없으면', q: 'Graceful Shutdown 설정을 끄면', d: '서버를 내릴 때 처리 중이던 요청이 끊깁니다.', v: { st: 'rolling', bug: false, grace: false } },
   ],
   code: function (c) {
@@ -19120,7 +19120,7 @@ Lab.register({
     { t: '처음 설정으로', q: '컨테이너 메모리 제한 1GB인 컨테이너 3개를 띄우면 운영체제와 메모리는 어떻게 쓰이나', d: '컨테이너 3개. 호스트의 커널을 함께 씁니다.', v: { kind: 'container', n: 3, limit: '1024' } },
     { t: '같은 것을 가상 머신으로', q: '격리 방식을 가상 머신으로 바꾸면', d: '인스턴스마다 운영체제가 하나씩 더 올라갑니다.', v: { kind: 'vm', n: 3, limit: '1024' } },
     { t: '6개로 늘리면', q: '격리 방식이 가상 머신인데 띄울 인스턴스 수를 6개로 늘리면', d: '가상 머신. 운영체제가 차지하는 몫이 6배가 됩니다.', v: { kind: 'vm', n: 6, limit: '1024' } },
-    { t: '컨테이너 6개', q: '격리 방식은 컨테이너 그대로 띄울 인스턴스 수를 6개로 늘리면', d: '애플리케이션이 쓰는 만큼만 늘어납니다.', v: { kind: 'container', n: 6, limit: '1024' } },
+    { t: '컨테이너 6개', q: '컨테이너 방식 그대로 인스턴스를 6개로 늘리면', d: '애플리케이션이 쓰는 만큼만 늘어납니다.', v: { kind: 'container', n: 6, limit: '1024' } },
     { t: '메모리 제한을 256MB로', q: '띄울 인스턴스 수를 1개로, 컨테이너 메모리 제한을 256MB로 줄이면', d: '애플리케이션이 400MB를 쓰려다 강제 종료됩니다.', v: { kind: 'container', n: 1, limit: '256' } },
   ],
   code: function (c) {
@@ -19263,12 +19263,12 @@ Lab.register({
     { id: 'sel', label: '조회하는 컬럼', type: 'select', value: 'star', options: [['star', 'SELECT * (모든 컬럼)'], ['cov', 'SELECT member_id, status, created_at (인덱스에 있는 컬럼만)']] },
   ],
   presets: [
-    { t: '처음 설정으로', q: '인덱스 컬럼 순서가 member_id, status, created_at일 때 세 조건을 모두 걸어 SELECT * 로 조회하면 어떻게 읽히나', d: '세 조건이 인덱스 순서와 맞아 세 컬럼 모두 범위를 좁힙니다.', v: { ord: 'msc', m: true, s: true, d: true, sel: 'star' } },
-    { t: '첫 컬럼 조건을 빼면', q: 'WHERE member_id = 7 조건을 끄면', d: 'member_id 조건이 없으면 이 인덱스로는 범위를 좁힐 수 없습니다.', v: { ord: 'msc', m: false, s: true, d: true, sel: 'star' } },
-    { t: '가운데 컬럼 조건을 빼면', q: 'WHERE status = \'PAID\' 조건을 끄면', d: '첫 컬럼까지만 쓰이고, 날짜 조건은 인덱스를 읽으면서 걸러냅니다.', v: { ord: 'msc', m: true, s: false, d: true, sel: 'star' } },
+    { t: '처음 설정으로', q: '인덱스 컬럼 순서가 member_id, status, created_at일 때 세 조건을 모두 걸어 SELECT *로 조회하면 어떻게 읽히나', d: '세 조건이 인덱스 순서와 맞아 세 컬럼 모두 범위를 좁힙니다.', v: { ord: 'msc', m: true, s: true, d: true, sel: 'star' } },
+    { t: '첫 컬럼 조건을 빼면', q: 'WHERE member_id = 7 조건을 빼면', d: 'member_id 조건이 없으면 이 인덱스로는 범위를 좁힐 수 없습니다.', v: { ord: 'msc', m: false, s: true, d: true, sel: 'star' } },
+    { t: '가운데 컬럼 조건을 빼면', q: 'WHERE status = \'PAID\' 조건을 빼면', d: '첫 컬럼까지만 쓰이고, 날짜 조건은 인덱스를 읽으면서 걸러냅니다.', v: { ord: 'msc', m: true, s: false, d: true, sel: 'star' } },
     { t: '범위 조건 컬럼이 가운데 있으면', q: '인덱스의 컬럼 순서를 member_id, created_at, status로 바꾸면', d: '(member_id, created_at, status). 범위 뒤의 status는 범위를 좁히지 못합니다.', v: { ord: 'mcs', m: true, s: true, d: true, sel: 'star' } },
     { t: '인덱스에 있는 컬럼만 조회', q: '조회하는 컬럼을 member_id, status, created_at 세 개로만 줄이면', d: '테이블에 가지 않고 인덱스만 읽고 끝납니다(커버링 인덱스).', v: { ord: 'msc', m: true, s: true, d: true, sel: 'cov' } },
-    { t: '첫 컬럼 조건 없이 인덱스 컬럼만 조회', q: 'member_id 조건과 created_at 범위 조건을 끄고 member_id, status, created_at만 조회하면', d: '범위는 못 좁히지만 테이블 대신 인덱스 전체를 훑습니다.', v: { ord: 'msc', m: false, s: true, d: false, sel: 'cov' } },
+    { t: '첫 컬럼 조건 없이 인덱스 컬럼만 조회', q: 'member_id 조건과 created_at 범위 조건을 빼고 member_id, status, created_at만 조회하면', d: '범위는 못 좁히지만 테이블 대신 인덱스 전체를 훑습니다.', v: { ord: 'msc', m: false, s: true, d: false, sel: 'cov' } },
   ],
   COLS: { m: ['member_id', 'member_id = 7', 0.001, 'eq'], s: ['status', "status = 'PAID'", 0.5, 'eq'], d: ['created_at', "created_at >= '2026-09-01'", 0.1, 'range'] },
   order: function (c) { return c.ord === 'msc' ? ['m', 's', 'd'] : ['m', 'd', 's']; },
@@ -19355,7 +19355,7 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'OFFSET 방식으로 한 페이지 20개씩 1,000페이지를 보려면 DB는 행을 어떻게 읽나', d: 'OFFSET으로 1,000페이지. 2만 행을 읽어 20행만 씁니다.', v: { how: 'offset', page: '1000', size: '20', ins: false } },
-    { t: '같은 위치를 키셋으로', q: '페이징 방식을 마지막으로 본 글의 id 기준 키셋으로 바꾸면', d: '필요한 20행만 읽습니다.', v: { how: 'keyset', page: '1000', size: '20', ins: false } },
+    { t: '같은 위치를 키셋으로', q: '마지막으로 본 글의 id를 기준으로 하는 키셋 페이징으로 바꾸면', d: '필요한 20행만 읽습니다.', v: { how: 'keyset', page: '1000', size: '20', ins: false } },
     { t: 'OFFSET 1페이지', q: '보려는 페이지를 1페이지로 바꾸면', d: '앞쪽 페이지는 OFFSET도 빠릅니다.', v: { how: 'offset', page: '1', size: '20', ins: false } },
     { t: 'OFFSET 10,000페이지', q: '보려는 페이지를 10,000페이지로 바꾸면', d: '버리는 행이 20만 개가 됩니다.', v: { how: 'offset', page: '10000', size: '20', ins: false } },
     { t: '넘기는 사이 새 글 등록 (OFFSET)', q: '보려는 페이지를 10페이지로 바꾸고 다음 페이지로 넘어가는 사이에 새 글 1개가 등록되면', d: '방금 본 글이 다음 페이지에 또 나옵니다.', v: { how: 'offset', page: '10', size: '20', ins: true } },
@@ -19565,7 +19565,7 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '서비스 4개를 순차로 호출하고 제한 시간을 두지 않으면 전체 응답 시간은 어떻게 되나', d: '4개를 차례로 호출합니다. 시간이 전부 더해집니다.', v: { how: 'seq', n: 4, pool: 5, to: false } },
-    { t: '병렬로 바꾸면', q: '호출 방식을 CompletableFuture로 동시에 호출하는 병렬로 바꾸면', d: '가장 느린 호출 하나의 시간만 걸립니다.', v: { how: 'par', n: 4, pool: 5, to: false } },
+    { t: '병렬로 바꾸면', q: 'CompletableFuture로 서비스를 동시에 호출하면', d: '가장 느린 호출 하나의 시간만 걸립니다.', v: { how: 'par', n: 4, pool: 5, to: false } },
     { t: '병렬인데 스레드가 2개뿐이면', q: '병렬 호출인데 비동기 작업용 스레드 수를 2개로 줄이면', d: '동시에 2개까지만 진행됩니다.', v: { how: 'par', n: 4, pool: 2, to: false } },
     { t: '느린 호출에 제한 시간', q: '병렬로 바꾸고 호출마다 제한 시간 1초를 두면', d: '1초를 넘는 호출은 기다리지 않고 기본값으로 대신합니다.', v: { how: 'par', n: 4, pool: 5, to: true } },
     { t: '5개를 순차로', q: '순차 호출에서 호출하는 서비스 수를 5개로 늘리면', d: '호출이 하나 늘 때마다 그만큼 느려집니다.', v: { how: 'seq', n: 5, pool: 5, to: false } },
@@ -19636,7 +19636,7 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '다른 출처 https://api.shop.example에 JSON을 POST하는데 CORS 설정이 없으면 어떻게 되나', d: '다른 출처에 JSON을 POST. 서버 설정이 없어 사전 요청에서 막힙니다.', v: { api: 'cross', req: 'json', cred: false, srv: 'none' } },
-    { t: '서버가 출처를 허용하면', q: '서버의 CORS 설정을 https://shop.example만 허용 + 쿠키 허용으로 바꾸면', d: '사전 요청이 통과하고 본 요청이 나갑니다.', v: { api: 'cross', req: 'json', cred: false, srv: 'exact' } },
+    { t: '서버가 출처를 허용하면', q: '서버가 https://shop.example만 허용하고 쿠키도 허용하도록 CORS를 설정하면', d: '사전 요청이 통과하고 본 요청이 나갑니다.', v: { api: 'cross', req: 'json', cred: false, srv: 'exact' } },
     { t: '단순한 GET, 서버 설정 없음', q: '스크립트가 보내는 요청을 추가 헤더 없는 GET으로 바꾸면', d: '요청은 서버에 도착해 처리됩니다. 응답만 스크립트에 전달되지 않습니다.', v: { api: 'cross', req: 'simple', cred: false, srv: 'none' } },
     { t: '모든 출처 허용 + 쿠키', q: '추가 헤더 없는 GET 요청에 쿠키를 함께 보내고 서버를 모든 출처 허용으로 두면', d: '*와 쿠키는 함께 쓸 수 없습니다.', v: { api: 'cross', req: 'simple', cred: true, srv: 'star' } },
     { t: '같은 출처라면', q: 'API 서버의 주소를 https://shop.example/api로 바꿔 같은 출처로 요청하면', d: 'CORS 검사 자체가 없습니다.', v: { api: 'same', req: 'json', cred: false, srv: 'none' } },
@@ -19979,7 +19979,7 @@ Lab.register({
     function push(s, k) { ev.push({ s: s, k: k, snap: { res: res.slice() } }); }
     ts.forEach(function (t, i) {
       var ok, why;
-      if (c.algo === 'fixed') { var w = Math.floor(t); win[w] = (win[w] || 0) + 1; ok = win[w] <= L; why = w + '초대 카운터가 ' + win[w] + (ok ? '입니다. 5 이하이므로 통과.' : '이 되어 5를 넘었습니다. 거절.'); }
+      if (c.algo === 'fixed') { var w = Math.floor(t); win[w] = (win[w] || 0) + 1; ok = win[w] <= L; why = w + '초대 카운터가 ' + win[w] + (ok ? '입니다. 5 이하이므로 통과.' : ('013678'.indexOf(String(win[w]).slice(-1)) >= 0 ? '이' : '가') + ' 되어 5를 넘었습니다. 거절.'); }
       if (c.algo === 'sliding') { log = log.filter(function (x) { return x > t - 1 + 1e-9; }); ok = log.length < L; why = '직전 1초 동안 통과한 요청이 ' + log.length + '건입니다. ' + (ok ? '5건 미만이므로 통과.' : '이미 5건이므로 거절.'); if (ok) log.push(t); }
       if (c.algo === 'bucket') { tokens = Math.min(L, tokens + (t - lastT) * L); lastT = t; ok = tokens >= 1 - 1e-9; why = '버킷에 토큰이 ' + (Math.floor(tokens * 10 + 1e-6) / 10) + '개 있습니다. ' + (ok ? '하나를 쓰고 통과.' : '1개가 안 되므로 거절.'); if (ok) tokens -= 1; }
       res.push({ t: t, ok: ok });
@@ -20234,7 +20234,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '주문 흐름에서 재고 차감 단계가 실패하면 어떻게 처리되나', d: '재고 차감에서 실패. 결제와 주문을 거꾸로 되돌립니다.', v: { part: 'saga', fail: 'stock', pub: 'after' } },
     { t: '마지막 단계에서 실패', q: '실패하는 단계를 배송 요청으로 바꾸면', d: '배송 요청 실패. 되돌릴 것이 세 개입니다.', v: { part: 'saga', fail: 'ship', pub: 'after' } },
-    { t: '실패 없음', q: '실패하는 단계를 실패 없음으로 바꾸면', d: '네 단계가 차례로 성공합니다.', v: { part: 'saga', fail: 'none', pub: 'after' } },
+    { t: '실패 없음', q: '어느 단계도 실패하지 않으면', d: '네 단계가 차례로 성공합니다.', v: { part: 'saga', fail: 'none', pub: 'after' } },
     { t: '커밋 후 발행하다 서버가 죽으면', q: 'DB 커밋 후에 메시지를 발행하는데 그 사이에 서버가 죽으면', d: '주문은 저장됐는데 이벤트가 나가지 않습니다.', v: { part: 'outbox', fail: 'stock', pub: 'after' } },
     { t: '발행 후 커밋하다 서버가 죽으면', q: '메시지 발행 후에 DB 커밋하는데 그 사이에 서버가 죽으면', d: '이벤트는 나갔는데 주문이 없습니다.', v: { part: 'outbox', fail: 'stock', pub: 'before' } },
     { t: 'Outbox 테이블 사용', q: '주문과 보낼 메시지를 Outbox 테이블에 함께 저장하고 나중에 발행하는데 서버가 죽으면', d: '주문과 "보낼 메시지"를 한 트랜잭션에 저장합니다.', v: { part: 'outbox', fail: 'stock', pub: 'outbox' } },
@@ -20340,7 +20340,7 @@ Lab.register({
     { t: '시간이 지난 뒤 조회', q: '저장한 뒤 조회하기까지의 시간을 2초로 바꾸면', d: '복제가 끝난 뒤에는 복제본도 새 값을 줍니다.', v: { part: 'lag', lag: '1', when: '2', from: 'replica', choice: 'ap' } },
     { t: '복제가 5초씩 밀릴 때', q: '복제에 걸리는 시간이 5초인데 저장 2초 뒤에 조회하면', d: '2초 뒤에 읽어도 옛 값입니다.', v: { part: 'lag', lag: '5', when: '2', from: 'replica', choice: 'ap' } },
     { t: '네트워크 단절: 계속 응답', q: '원본과 복제본 사이의 네트워크가 끊겼는데 복제본이 가진 데이터로 계속 응답하면', d: '서비스는 되지만 옛 값을 돌려줍니다.', v: { part: 'cut', lag: '1', when: '0.3', from: 'replica', choice: 'ap' } },
-    { t: '네트워크 단절: 응답 거부', q: '네트워크가 끊겼는데 복제본이 최신인지 확인할 수 없으므로 응답을 거부하게 바꾸면', d: '틀린 값은 주지 않지만 조회가 실패합니다.', v: { part: 'cut', lag: '1', when: '0.3', from: 'replica', choice: 'cp' } },
+    { t: '네트워크 단절: 응답 거부', q: '네트워크가 끊겼을 때 복제본이 최신인지 확인할 수 없다며 응답을 거부하면', d: '틀린 값은 주지 않지만 조회가 실패합니다.', v: { part: 'cut', lag: '1', when: '0.3', from: 'replica', choice: 'cp' } },
   ],
   code: function (c) {
     if (c.part === 'cut') return '// 원본과 복제본이 서로 통신하지 못하는 상황\n// 복제본이 고를 수 있는 것은 둘 중 하나\n//\n// 1) 가진 값으로 응답한다  -> 응답은 하지만 최신이 아닐 수 있다 (AP)\n// 2) 응답을 거부한다       -> 틀린 값은 주지 않지만 서비스가 안 된다 (CP)';
@@ -20612,9 +20612,9 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '처음 방문해 /orders 동적 페이지를 요청하면 어떤 단계를 거치나', d: '처음 방문. 모든 단계를 거칩니다.', v: { what: 'api', dns: false, conn: false, cdn: false } },
-    { t: '같은 사이트의 두 번째 요청', q: 'DNS 캐시와 연결 재사용을 켜고 같은 사이트에 다시 요청하면', d: 'DNS와 연결 수립을 건너뜁니다.', v: { what: 'api', dns: true, conn: true, cdn: false } },
-    { t: '정적 파일', q: 'DNS 캐시와 연결 재사용을 켠 채로 /logo.png 정적 파일을 요청하면', d: '웹 서버(nginx)가 직접 응답합니다. 애플리케이션 서버까지 가지 않습니다.', v: { what: 'static', dns: true, conn: true, cdn: false } },
-    { t: '정적 파일을 CDN에서', q: 'DNS 캐시와 연결 재사용을 켠 /logo.png 요청에 CDN에서 받기까지 켜면', d: '사용자와 가까운 서버가 응답합니다.', v: { what: 'static', dns: true, conn: true, cdn: true } },
+    { t: '같은 사이트의 두 번째 요청', q: '도메인의 IP 주소를 이미 알고 맺어 둔 연결이 남아 있는 상태에서 같은 사이트에 다시 요청하면', d: 'DNS와 연결 수립을 건너뜁니다.', v: { what: 'api', dns: true, conn: true, cdn: false } },
+    { t: '정적 파일', q: '도메인의 IP 주소를 이미 알고 맺어 둔 연결이 남아 있는 상태에서 /logo.png 정적 파일을 요청하면', d: '웹 서버(nginx)가 직접 응답합니다. 애플리케이션 서버까지 가지 않습니다.', v: { what: 'static', dns: true, conn: true, cdn: false } },
+    { t: '정적 파일을 CDN에서', q: 'IP 주소를 알고 맺어 둔 연결이 남아 있는 상태에서 /logo.png를 CDN에서 받으면', d: '사용자와 가까운 서버가 응답합니다.', v: { what: 'static', dns: true, conn: true, cdn: true } },
   ],
   code: function (c) {
     return '# nginx (리버스 프록시)\nserver {\n    listen 443 ssl;\n    server_name shop.example;\n\n    location /static/ {                  # 정적 파일은 직접 응답\n        root /var/www;\n    }\n    location / {                         # 나머지는 애플리케이션 서버로 전달\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header X-Forwarded-For $remote_addr;\n    }\n}';
@@ -20792,10 +20792,10 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'application.yml은 3000, application-prod.yml은 5000으로 둘 다 있으면 어느 값이 쓰이나', d: '기본 파일과 prod 파일에 둘 다 있습니다. prod 쪽이 이깁니다.', v: { yml: true, prof: true, env: false, sys: false, cli: false } },
-    { t: '환경 변수를 추가하면', q: '환경 변수 APP_TIMEOUT=7000을 켜면', d: '파일보다 환경 변수가 우선합니다. 컨테이너 배포에서 흔히 쓰는 방식입니다.', v: { yml: true, prof: true, env: true, sys: false, cli: false } },
-    { t: '실행 인자까지 주면', q: 'APP_TIMEOUT=7000, -Dapp.timeout=8000, --app.timeout=9000을 모두 켜면', d: '실행 인자가 가장 우선합니다.', v: { yml: true, prof: true, env: true, sys: true, cli: true } },
-    { t: '기본 파일만', q: 'prod 프로파일의 app.timeout: 5000을 끄고 기본 파일만 남기면', d: '다른 곳에 없으면 기본 파일의 값을 씁니다.', v: { yml: true, prof: false, env: false, sys: false, cli: false } },
-    { t: '어디에도 없으면', q: 'application.yml의 3000과 application-prod.yml의 5000을 모두 끄면', d: '코드에 적어 둔 기본값을 씁니다.', v: { yml: false, prof: false, env: false, sys: false, cli: false } },
+    { t: '환경 변수를 추가하면', q: '환경 변수 APP_TIMEOUT=7000을 설정하면', d: '파일보다 환경 변수가 우선합니다. 컨테이너 배포에서 흔히 쓰는 방식입니다.', v: { yml: true, prof: true, env: true, sys: false, cli: false } },
+    { t: '실행 인자까지 주면', q: 'APP_TIMEOUT=7000, -Dapp.timeout=8000, --app.timeout=9000을 모두 주면', d: '실행 인자가 가장 우선합니다.', v: { yml: true, prof: true, env: true, sys: true, cli: true } },
+    { t: '기본 파일만', q: 'prod 프로파일의 app.timeout: 5000을 빼고 기본 파일만 남기면', d: '다른 곳에 없으면 기본 파일의 값을 씁니다.', v: { yml: true, prof: false, env: false, sys: false, cli: false } },
+    { t: '어디에도 없으면', q: 'application.yml의 3000과 application-prod.yml의 5000을 모두 빼면', d: '코드에 적어 둔 기본값을 씁니다.', v: { yml: false, prof: false, env: false, sys: false, cli: false } },
   ],
   SRC: [['cli', '실행 인자 (--app.timeout=9000)', '9000'], ['sys', 'JVM 시스템 프로퍼티 (-Dapp.timeout=8000)', '8000'], ['env', '운영체제 환경 변수 (APP_TIMEOUT=7000)', '7000'], ['prof', 'application-prod.yml (프로파일 전용 파일)', '5000'], ['yml', 'application.yml (기본 파일)', '3000']],
   code: function (c) {
@@ -21169,7 +21169,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '웹과 JPA 스타터에 MySQL 드라이버와 spring.datasource.url만 두고 기동하면 어떤 빈이 생기나', d: '웹과 JPA 스타터. 직접 등록한 빈 없이 필요한 빈이 모두 생깁니다.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: true, myDs: false } },
     { t: 'DB 주소를 빼먹으면', q: 'spring.datasource.url 설정을 빼면', d: 'MySQL 드라이버인데 접속 주소가 없습니다. 기동에 실패합니다.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: false, myDs: false } },
-    { t: 'H2라면 주소가 없어도', q: 'DB 드라이버를 H2 (내장형 DB) 쪽으로 바꾸고 spring.datasource.url 설정을 빼면', d: '내장형 DB를 발견하면 메모리 DB를 알아서 만들어 줍니다.', v: { web: true, myOm: false, jpa: true, db: 'h2', url: false, myDs: false } },
+    { t: 'H2라면 주소가 없어도', q: 'DB 드라이버를 내장형 DB인 H2로 바꾸고 spring.datasource.url 설정을 빼면', d: '내장형 DB를 발견하면 메모리 DB를 알아서 만들어 줍니다.', v: { web: true, myOm: false, jpa: true, db: 'h2', url: false, myDs: false } },
     { t: 'DataSource를 직접 등록하면', q: 'DataSource 빈을 직접 등록하면', d: '자동 설정이 물러나고 내가 만든 것을 씁니다.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: true, myDs: true } },
     { t: 'ObjectMapper를 직접 등록하면', q: 'ObjectMapper 빈을 직접 등록하면', d: '부트가 만들어 주던 ObjectMapper는 등록되지 않습니다.', v: { web: true, myOm: true, jpa: true, db: 'mysql', url: true, myDs: false } },
     { t: '웹 스타터를 빼면', q: 'spring-boot-starter-webmvc 의존성을 빼면', d: '톰캣도 DispatcherServlet도 생기지 않습니다.', v: { web: false, myOm: false, jpa: true, db: 'mysql', url: true, myDs: false } },
@@ -21226,7 +21226,7 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '복제본이 3개일 때 Pod 하나가 갑자기 죽으면 누가 다시 띄우나', d: 'Pod 하나가 죽습니다. 새 Pod가 자동으로 만들어집니다.', v: { what: 'kill' } },
-    { t: '노드가 죽으면', q: '일어나는 일이 노드(서버) 한 대가 통째로 죽는 것이면', d: '그 노드에 있던 Pod가 다른 노드에 다시 만들어집니다.', v: { what: 'node' } },
+    { t: '노드가 죽으면', q: '노드(서버) 한 대가 통째로 죽으면', d: '그 노드에 있던 Pod가 다른 노드에 다시 만들어집니다.', v: { what: 'node' } },
     { t: '복제본 수를 늘리면', q: '복제본 수를 3에서 5로 바꾸면', d: '숫자만 바꾸면 쿠버네티스가 모자란 만큼 만듭니다.', v: { what: 'scale' } },
     { t: '프로세스는 살아 있는데 멈췄다면', q: '애플리케이션이 멈췄는데 프로세스는 살아 있으면', d: 'liveness 검사가 실패해 컨테이너를 재시작합니다.', v: { what: 'hang' } },
     { t: '잠시 요청을 못 받는 상태라면', q: '애플리케이션이 DB 연결이 끊겨 잠시 요청을 받을 수 없으면', d: 'readiness 검사가 실패해 요청만 끊습니다. 재시작하지 않습니다.', v: { what: 'notready' } },
@@ -21374,10 +21374,10 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'REPEATABLE READ에서 A가 id BETWEEN 20 AND 30 범위를 조회할 때 B가 id = 25를 넣으면 어떻게 되나', d: '범위 조회. 20과 30 사이에 끼워 넣으려는 INSERT가 기다립니다.', v: { q: 'range', lv: 'RR', ins: '25' } },
-    { t: '없는 행을 조회했을 때', q: 'A의 조회 조건을 id = 25 (없는 행) 쪽으로 바꾸면', d: '잠글 행이 없는데도 그 자리의 빈 구간이 잠깁니다.', v: { q: 'miss', lv: 'RR', ins: '25' } },
-    { t: '있는 행 하나를 정확히 조회', q: 'A의 조회 조건을 id = 20 (있는 행 하나) 쪽으로 바꾸면', d: '그 행만 잠깁니다. 옆 구간은 자유롭습니다.', v: { q: 'hit', lv: 'RR', ins: '25' } },
+    { t: '없는 행을 조회했을 때', q: 'A의 조회 조건을 없는 행 id = 25로 바꾸면', d: '잠글 행이 없는데도 그 자리의 빈 구간이 잠깁니다.', v: { q: 'miss', lv: 'RR', ins: '25' } },
+    { t: '있는 행 하나를 정확히 조회', q: 'A의 조회 조건을 있는 행 하나인 id = 20으로 바꾸면', d: '그 행만 잠깁니다. 옆 구간은 자유롭습니다.', v: { q: 'hit', lv: 'RR', ins: '25' } },
     { t: 'READ COMMITTED로 낮추면', q: '격리 수준을 READ COMMITTED로 바꾸면', d: '빈 구간을 잠그지 않습니다. INSERT가 바로 됩니다.', v: { q: 'range', lv: 'RC', ins: '25' } },
-    { t: '범위 밖에 넣으면', q: 'B가 넣으려는 행을 id = 45 (40보다 뒤) 쪽으로 바꾸면', d: '잠긴 구간이 아니므로 기다리지 않습니다.', v: { q: 'range', lv: 'RR', ins: '45' } },
+    { t: '범위 밖에 넣으면', q: 'B가 넣으려는 행을 40보다 뒤인 id = 45로 바꾸면', d: '잠긴 구간이 아니므로 기다리지 않습니다.', v: { q: 'range', lv: 'RR', ins: '45' } },
   ],
   code: function (c) {
     var w = { hit: 'id = 20', miss: 'id = 25', range: 'id BETWEEN 20 AND 30' }[c.q];
@@ -21448,7 +21448,7 @@ Lab.register({
     { t: '처음 설정으로', q: '커밋 직후 데이터 파일에 쓰기 전에 서버가 꺼지면 재시작 뒤 값은 어떻게 되나', d: '커밋 직후 장애. 데이터 파일에는 옛 값인데 재시작하면 새 값입니다.', v: { what: 'crashAfter' } },
     { t: '커밋 전에 장애', q: '커밋 전에 서버가 꺼지면', d: '재시작하면 변경이 없던 일이 됩니다.', v: { what: 'crashBefore' } },
     { t: '롤백', q: '커밋하지 않고 롤백하면', d: 'Undo 로그에 남겨 둔 이전 값으로 되돌립니다.', v: { what: 'rollback' } },
-    { t: '정상 커밋', q: '일어나는 일을 정상 커밋으로 바꾸면', d: '커밋 시점에 디스크에 쓰는 것은 로그뿐입니다.', v: { what: 'commit' } },
+    { t: '정상 커밋', q: '정상적으로 커밋하면', d: '커밋 시점에 디스크에 쓰는 것은 로그뿐입니다.', v: { what: 'commit' } },
   ],
   code: function (c) {
     return 'START TRANSACTION;\nUPDATE account SET balance = 500 WHERE id = 1;   -- 원래 1000\n' + (c.what === 'rollback' ? 'ROLLBACK;' : c.what === 'crashBefore' ? '-- (여기서 서버가 꺼짐)' : 'COMMIT;' + (c.what === 'crashAfter' ? '\n-- (커밋 응답 직후 서버가 꺼짐)' : ''));
@@ -21529,10 +21529,10 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '샤드 4개에 회원 번호 % 샤드 수로 나누면 데이터가 어떻게 퍼지나', d: '회원 번호를 4로 나눈 나머지로 분배. 고르게 퍼집니다.', v: { n: 4, how: 'hash', grow: false } },
-    { t: '주문 번호 구간으로 나누면', q: '나누는 규칙을 범위: 주문 번호 구간별로 바꾸면', d: '새 주문은 전부 마지막 샤드로 갑니다.', v: { n: 4, how: 'range', grow: false } },
+    { t: '주문 번호 구간으로 나누면', q: '주문 번호 구간별로 나누면', d: '새 주문은 전부 마지막 샤드로 갑니다.', v: { n: 4, how: 'range', grow: false } },
     { t: '특정 회원의 주문이 많으면', q: '해시인데 한 회원의 주문이 유독 많으면', d: '그 회원이 속한 샤드만 커집니다.', v: { n: 4, how: 'hot', grow: false } },
     { t: '해시 방식에서 샤드 추가', q: '해시 규칙인데 샤드를 하나 더 늘리면', d: '4개에서 5개로. 대부분의 데이터가 이사해야 합니다.', v: { n: 4, how: 'hash', grow: true } },
-    { t: '범위 방식에서 샤드 추가', q: '나누는 규칙을 범위: 주문 번호 구간별로 바꾸고 샤드를 하나 더 늘리면', d: '기존 데이터는 그대로 두고 새 구간만 받습니다.', v: { n: 4, how: 'range', grow: true } },
+    { t: '범위 방식에서 샤드 추가', q: '주문 번호 구간별로 나누고 샤드를 하나 더 늘리면', d: '기존 데이터는 그대로 두고 새 구간만 받습니다.', v: { n: 4, how: 'range', grow: true } },
   ],
   code: function (c) {
     if (c.how === 'range') return '// 주문 번호 구간으로 샤드를 정한다\nint shardOf(long orderId) {\n    return (int) ((orderId - 1) / ' + Math.ceil(120 / c.n) + ');     // 1~' + Math.ceil(120 / c.n) + '번은 샤드 0, 그다음은 샤드 1 …\n}';
@@ -21713,9 +21713,9 @@ Lab.register({
     { id: 'mode', label: '실행 방식', type: 'select', value: 'jit', options: [['jit', '기본 설정 (해석하다가 JIT 컴파일)'], ['int', 'JIT를 끔 (-Xint, 계속 해석만)'], ['warm', '요청을 받기 전에 미리 호출해 둠 (워밍업)']] },
   ],
   presets: [
-    { t: '처음 설정으로', q: '실행 방식이 기본 설정 (해석하다가 JIT 컴파일)인 배포 직후의 첫 요청들은 왜 느리나', d: '첫 묶음은 5.8ms, 그다음부터는 1.4ms 안팎입니다.', v: { mode: 'jit' } },
-    { t: 'JIT를 끄면', q: '실행 방식을 JIT를 끔 (-Xint, 계속 해석만) 쪽으로 바꾸면', d: '끝까지 빨라지지 않습니다. 묶음마다 약 29ms.', v: { mode: 'int' } },
-    { t: '미리 워밍업하면', q: '실행 방식을 요청을 받기 전에 미리 호출해 둠 (워밍업) 쪽으로 바꾸면', d: '사용자의 첫 요청부터 빠릅니다.', v: { mode: 'warm' } },
+    { t: '처음 설정으로', q: '해석하다가 JIT 컴파일하는 기본 설정으로 배포한 직후의 첫 요청들은 왜 느리나', d: '첫 묶음은 5.8ms, 그다음부터는 1.4ms 안팎입니다.', v: { mode: 'jit' } },
+    { t: 'JIT를 끄면', q: '-Xint로 JIT를 끄고 계속 해석만 하면', d: '끝까지 빨라지지 않습니다. 묶음마다 약 29ms.', v: { mode: 'int' } },
+    { t: '미리 워밍업하면', q: '요청을 받기 전에 미리 호출해 워밍업해 두면', d: '사용자의 첫 요청부터 빠릅니다.', v: { mode: 'warm' } },
   ],
   DATA: { jit: [5765, 1694, 1369, 1651, 1484, 1368, 1535, 1403, 1373, 1436, 1609, 1725], int: [28000, 31416, 28925, 25281, 36973, 28376, 28920, 29169, 26738, 31654, 28077, 32120] },
   code: function (c) {
@@ -21765,9 +21765,9 @@ Lab.register({
   fix: function (c) { return !c.add && c.pay === 'NAVER' ? { pay: 'KAKAO' } : null; },
   presets: [
     { t: '처음 설정으로', q: 'if-else로 분기한 구현에 네이버페이 결제 수단이 하나 늘면 어디를 고쳐야 하나', d: 'if-else 방식에 네이버페이 추가. 기존 메서드를 고쳐야 합니다.', v: { how: 'ifelse', add: true, pay: 'NAVER' } },
-    { t: '전략 패턴에 네이버페이 추가', q: '구현 방식을 전략 패턴 (인터페이스 + 구현 클래스) 쪽으로 바꾸고 네이버페이를 실행하면', d: '클래스 하나를 새로 만들면 끝입니다. 기존 코드는 그대로입니다.', v: { how: 'strategy', add: true, pay: 'NAVER' } },
-    { t: '전략 패턴의 실행 과정', q: '구현 방식을 전략 패턴 (인터페이스 + 구현 클래스) 쪽으로 바꾸고 "네이버페이" 추가를 끄면', d: '분기문 없이 맞는 구현이 선택됩니다.', v: { how: 'strategy', add: false, pay: 'KAKAO' } },
-    { t: 'if-else의 실행 과정', q: 'if-else로 분기한 채 결제 수단 "네이버페이" 추가를 끄면', d: '조건을 위에서부터 차례로 비교합니다.', v: { how: 'ifelse', add: false, pay: 'KAKAO' } },
+    { t: '전략 패턴에 네이버페이 추가', q: '인터페이스와 구현 클래스를 쓰는 전략 패턴으로 바꾸고 네이버페이를 실행하면', d: '클래스 하나를 새로 만들면 끝입니다. 기존 코드는 그대로입니다.', v: { how: 'strategy', add: true, pay: 'NAVER' } },
+    { t: '전략 패턴의 실행 과정', q: '인터페이스와 구현 클래스를 쓰는 전략 패턴으로 바꾸고 네이버페이 결제 수단을 추가하지 않으면', d: '분기문 없이 맞는 구현이 선택됩니다.', v: { how: 'strategy', add: false, pay: 'KAKAO' } },
+    { t: 'if-else의 실행 과정', q: 'if-else로 분기한 채 네이버페이 결제 수단을 추가하지 않으면', d: '조건을 위에서부터 차례로 비교합니다.', v: { how: 'ifelse', add: false, pay: 'KAKAO' } },
   ],
   code: function (c) {
     if (c.how === 'ifelse') return '@Service\nclass PaymentService {\n    void pay(String type, Order order) {\n        if (type.equals("CARD")) {\n            // 카드사 승인 요청 ... (30줄)\n        } else if (type.equals("BANK")) {\n            // 계좌이체 ... (25줄)\n        } else if (type.equals("KAKAO")) {\n            // 카카오페이 ... (40줄)\n' + (c.add ? '        } else if (type.equals("NAVER")) {      // 추가: 기존 메서드를 수정\n            // 네이버페이 ... (35줄)\n' : '') + '        } else {\n            throw new IllegalArgumentException(type);\n        }\n    }\n    // refund(), cancel() 에도 같은 분기가 반복된다\n}';
@@ -21813,10 +21813,10 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '전환 단계 1단계(주문만 새 서비스로)에서 주문 요청을 100% 새 서비스로 보낼 때 요청은 어디로 가나', d: '주문 경로만 새 서비스로 넘겼습니다.', v: { stage: '1', ratio: '100', auth: false } },
-    { t: '주문의 10%만 먼저', q: '주문 요청 중 새 서비스로 보내는 비율을 10% (나머지는 기존 서버) 쪽으로 바꾸면', d: '새 서비스를 실제 요청 일부로 검증합니다.', v: { stage: '1', ratio: '10', auth: false } },
-    { t: '전환 전', q: '전환 단계를 0단계: 전부 기존 서버로 바꾸면', d: '모든 요청이 기존 서버로 갑니다.', v: { stage: '0', ratio: '100', auth: false } },
-    { t: '전환 완료', q: '전환 단계를 3단계: 전부 새 서비스로 (기존 서버 종료) 쪽으로 바꾸면', d: '기존 서버로 가는 요청이 없어 종료할 수 있습니다.', v: { stage: '3', ratio: '100', auth: false } },
-    { t: '토큰 없는 요청', q: '전환 단계를 2단계: 주문과 결제를 새 서비스로 바꾸고 로그인 토큰이 없는 요청까지 섞으면', d: '게이트웨이가 입구에서 걸러 냅니다.', v: { stage: '2', ratio: '100', auth: true } },
+    { t: '주문의 10%만 먼저', q: '주문 요청의 10%만 새 서비스로 보내고 나머지는 기존 서버로 보내면', d: '새 서비스를 실제 요청 일부로 검증합니다.', v: { stage: '1', ratio: '10', auth: false } },
+    { t: '전환 전', q: '전부 기존 서버로 보내는 0단계로 바꾸면', d: '모든 요청이 기존 서버로 갑니다.', v: { stage: '0', ratio: '100', auth: false } },
+    { t: '전환 완료', q: '전부 새 서비스로 보내고 기존 서버를 종료하는 3단계로 바꾸면', d: '기존 서버로 가는 요청이 없어 종료할 수 있습니다.', v: { stage: '3', ratio: '100', auth: false } },
+    { t: '토큰 없는 요청', q: '주문과 결제를 새 서비스로 보내는 2단계로 바꾸고 로그인 토큰이 없는 요청까지 섞으면', d: '게이트웨이가 입구에서 걸러 냅니다.', v: { stage: '2', ratio: '100', auth: true } },
   ],
   code: function (c) {
     var r = [];
@@ -21883,10 +21883,10 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '서블릿을 직접 작성해 GET만 처리하게 하고 GET /hello?name=철수 요청을 2번 보내면 어떻게 자바 코드에 닿나', d: 'GET /hello를 두 번. 서블릿 객체는 첫 요청 때 한 번만 만들어집니다.', v: { kind: 'plain', req: 'get', impl: 'get', n: 2, startup: false } },
-    { t: '서버가 뜰 때 미리 만들기', q: '서버가 뜰 때 서블릿을 미리 준비해 둔다 (loadOnStartup) 설정을 켜면', d: '준비 작업을 첫 요청이 아니라 서버 시작 때 치릅니다.', v: { kind: 'plain', req: 'get', impl: 'get', n: 2, startup: true } },
+    { t: '서버가 뜰 때 미리 만들기', q: 'loadOnStartup으로 서버가 뜰 때 서블릿을 미리 준비해 두면', d: '준비 작업을 첫 요청이 아니라 서버 시작 때 치릅니다.', v: { kind: 'plain', req: 'get', impl: 'get', n: 2, startup: true } },
     { t: 'doGet만 있는데 POST가 오면', q: '코드는 GET만 처리하는데 브라우저가 POST /hello를 1번 보내면', d: '서블릿까지는 도착하지만 405로 거절됩니다.', v: { kind: 'plain', req: 'post', impl: 'get', n: 1, startup: false } },
-    { t: '만들어 두지 않은 주소', q: '브라우저가 GET /nothing (만들어 두지 않은 주소) 요청을 1번 보내면', d: '맞는 서블릿이 없어 404가 됩니다.', v: { kind: 'plain', req: 'none', impl: 'get', n: 1, startup: false } },
-    { t: '스프링 MVC에서는', q: '만드는 방식을 스프링 MVC (컨트롤러 작성) 쪽으로 바꾸면', d: '서블릿은 DispatcherServlet 하나뿐이고, 그것이 컨트롤러를 불러 줍니다.', v: { kind: 'spring', req: 'get', impl: 'get', n: 2, startup: false } },
+    { t: '만들어 두지 않은 주소', q: '브라우저가 만들어 두지 않은 주소 GET /nothing을 1번 요청하면', d: '맞는 서블릿이 없어 404가 됩니다.', v: { kind: 'plain', req: 'none', impl: 'get', n: 1, startup: false } },
+    { t: '스프링 MVC에서는', q: '스프링 MVC 컨트롤러를 작성해 만들면', d: '서블릿은 DispatcherServlet 하나뿐이고, 그것이 컨트롤러를 불러 줍니다.', v: { kind: 'spring', req: 'get', impl: 'get', n: 2, startup: false } },
   ],
   code: function (c) {
     var both = c.impl === 'both';
@@ -21987,11 +21987,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '작업 2에 문제가 없는 상태에서 프로세스 1개, 스레드 3개로 일꾼을 늘리면 어떻게 되나', d: '스레드 3개. 0.3초 만에 끝나고 같은 변수를 함께 올립니다.', v: { how: 'multi', fail: 'none' } },
-    { t: '스레드 하나로 차례로', q: '실행 방식을 프로세스 1개, 스레드 1개 (차례로 실행) 쪽으로 바꾸면', d: '세 작업의 시간이 그대로 더해집니다.', v: { how: 'single', fail: 'none' } },
-    { t: '프로세스 3개로', q: '실행 방식을 프로세스 3개 (각각 스레드 1개) 쪽으로 바꾸면', d: '동시에 끝나지만 변수는 각자 따로입니다.', v: { how: 'proc', fail: 'none' } },
+    { t: '스레드 하나로 차례로', q: '프로세스 1개, 스레드 1개로 차례로 실행하면', d: '세 작업의 시간이 그대로 더해집니다.', v: { how: 'single', fail: 'none' } },
+    { t: '프로세스 3개로', q: '프로세스 3개를 각각 스레드 1개로 실행하면', d: '동시에 끝나지만 변수는 각자 따로입니다.', v: { how: 'proc', fail: 'none' } },
     { t: '스레드 하나가 예외로 죽으면', q: '작업 2에서 잡지 않은 예외가 발생하면', d: '그 스레드만 끝나고 나머지는 계속합니다.', v: { how: 'multi', fail: 'ex' } },
-    { t: '프로세스를 죽이는 오류', q: '작업 2에서 생기는 일을 프로세스 자체가 종료됨 (System.exit, 운영체제의 강제 종료 등) 쪽으로 바꾸면', d: '스레드 3개가 한 프로세스에 있으면 함께 죽습니다.', v: { how: 'multi', fail: 'kill' } },
-    { t: '같은 오류, 프로세스가 따로라면', q: '프로세스 3개 (각각 스레드 1개) 쪽으로 바꾸고 작업 2에서 System.exit를 호출하면', d: '그 프로세스만 죽고 나머지는 무사합니다.', v: { how: 'proc', fail: 'kill' } },
+    { t: '프로세스를 죽이는 오류', q: '작업 2에서 System.exit나 운영체제의 강제 종료로 프로세스 자체가 종료되면', d: '스레드 3개가 한 프로세스에 있으면 함께 죽습니다.', v: { how: 'multi', fail: 'kill' } },
+    { t: '같은 오류, 프로세스가 따로라면', q: '프로세스 3개를 각각 스레드 1개로 실행하고 작업 2에서 System.exit를 호출하면', d: '그 프로세스만 죽고 나머지는 무사합니다.', v: { how: 'proc', fail: 'kill' } },
   ],
   code: function (c) {
     var body = 'static int counter = 0;                 // 프로세스의 메모리에 있는 변수\n\nstatic void work(int id) throws Exception {\n    Thread.sleep(300);                  // 0.3초 걸리는 작업\n' + (c.fail === 'ex' ? '    if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '    if (id == 2) System.exit(3);        // 프로세스 전체를 끝낸다\n' : '') + '    counter++;\n}\n\n';
@@ -22078,12 +22078,12 @@ Lab.register({
     { id: 'what', label: '해 보는 일', type: 'select', value: 'multi', options: [['new', '직접 new로 객체 만들기'], ['impl', '구현(상속)한 클래스를 만들어 쓰기'], ['missing', '추상 메서드를 구현하지 않고 두기'], ['multi', '두 개를 동시에 물려받기'], ['state', '필드(상태)와 생성자 두기'], ['default', '본문이 있는 메서드 물려받기']] },
   ],
   presets: [
-    { t: '처음 설정으로', q: '인터페이스 (interface Payable) 종류에서 두 개를 동시에 물려받기를 해 보면 추상 클래스와 무엇이 다르나', d: '인터페이스는 여러 개를 동시에 구현할 수 있습니다.', v: { kind: 'iface', what: 'multi' } },
-    { t: '추상 클래스 두 개를 상속하면', q: '종류를 추상 클래스 (abstract class Payment) 쪽으로 바꾸고 두 개를 동시에 물려받기를 해 보면', d: '클래스는 하나만 상속할 수 있어 컴파일되지 않습니다.', v: { kind: 'abs', what: 'multi' } },
-    { t: '인터페이스에 필드와 생성자', q: '인터페이스에서 해 보는 일을 필드(상태)와 생성자 두기로 바꾸면', d: '인터페이스는 객체의 상태를 가질 수 없습니다.', v: { kind: 'iface', what: 'state' } },
-    { t: '추상 클래스에 필드와 생성자', q: '종류를 추상 클래스 (abstract class Payment) 쪽으로 바꾸고 필드(상태)와 생성자 두기를 해 보면', d: '공통 상태와 초기화 코드를 물려줄 수 있습니다.', v: { kind: 'abs', what: 'state' } },
-    { t: '직접 new 하기', q: '해 보는 일을 직접 new로 객체 만들기로 바꾸면', d: '둘 다 그 자체로는 객체를 만들 수 없습니다.', v: { kind: 'iface', what: 'new' } },
-    { t: '추상 메서드를 구현하지 않으면', q: '해 보는 일을 추상 메서드를 구현하지 않고 두기로 바꾸면', d: '약속한 메서드가 빠지면 컴파일러가 막습니다.', v: { kind: 'iface', what: 'missing' } },
+    { t: '처음 설정으로', q: '인터페이스 두 개를 동시에 물려받으면 추상 클래스와 무엇이 다르나', d: '인터페이스는 여러 개를 동시에 구현할 수 있습니다.', v: { kind: 'iface', what: 'multi' } },
+    { t: '추상 클래스 두 개를 상속하면', q: '추상 클래스 두 개를 동시에 물려받으면', d: '클래스는 하나만 상속할 수 있어 컴파일되지 않습니다.', v: { kind: 'abs', what: 'multi' } },
+    { t: '인터페이스에 필드와 생성자', q: '인터페이스에 필드(상태)와 생성자를 두면', d: '인터페이스는 객체의 상태를 가질 수 없습니다.', v: { kind: 'iface', what: 'state' } },
+    { t: '추상 클래스에 필드와 생성자', q: '추상 클래스에 필드(상태)와 생성자를 두면', d: '공통 상태와 초기화 코드를 물려줄 수 있습니다.', v: { kind: 'abs', what: 'state' } },
+    { t: '직접 new 하기', q: '인터페이스를 직접 new 해서 객체를 만들려고 하면', d: '둘 다 그 자체로는 객체를 만들 수 없습니다.', v: { kind: 'iface', what: 'new' } },
+    { t: '추상 메서드를 구현하지 않으면', q: '추상 메서드를 구현하지 않고 그대로 두면', d: '약속한 메서드가 빠지면 컴파일러가 막습니다.', v: { kind: 'iface', what: 'missing' } },
   ],
   SRC: {
     iface: 'interface Payable {\n    void pay();                              // 추상 메서드: 본문 없음\n    default String name() { return "기본 이름"; }\n}',
@@ -22149,12 +22149,12 @@ Lab.register({
     { id: 'act', label: '해 보는 일', type: 'select', value: 'ok', options: [['ok', '정상적으로 사용'], ['tamper', '중간에 내용을 "주문 900원"으로 바꿈'], ['wrong', '다른 키(또는 키 없이)로 시도']] },
   ],
   presets: [
-    { t: '처음 설정으로', q: '해시 (SHA-256) 도구를 정상적으로 사용하면 숨기는 것, 확인하는 것, 되돌릴 수 없는 것 중 어디에 속하나', d: '해시. 같은 입력은 항상 같은 값이 되고, 되돌릴 수 없습니다.', v: { tool: 'hash', act: 'ok' } },
+    { t: '처음 설정으로', q: 'SHA-256 해시를 정상적으로 사용하면 숨기는 것, 확인하는 것, 되돌릴 수 없는 것 중 어디에 속하나', d: '해시. 같은 입력은 항상 같은 값이 되고, 되돌릴 수 없습니다.', v: { tool: 'hash', act: 'ok' } },
     { t: '해시: 한 글자만 바꾸면', q: '해시에서 중간에 내용을 "주문 900원"으로 바꾸면', d: '결과가 전혀 다른 값이 됩니다.', v: { tool: 'hash', act: 'tamper' } },
-    { t: '대칭키: 다른 키로 풀기', q: '도구를 대칭키 암호화 (AES) 쪽으로 바꾸고 다른 키(또는 키 없이)로 시도하면', d: '같은 키가 없으면 풀 수 없습니다.', v: { tool: 'sym', act: 'wrong' } },
-    { t: '비대칭키: 공개키로 풀기', q: '도구를 비대칭키 암호화 (RSA) 쪽으로 바꾸고 다른 키(또는 키 없이)로 시도하면', d: '잠근 열쇠로는 열 수 없습니다. 짝이 되는 개인키만 엽니다.', v: { tool: 'asym', act: 'wrong' } },
-    { t: 'HMAC: 내용을 바꾸면', q: '도구를 키가 있는 해시로 서명 (HMAC) 쪽으로 바꾸고 중간에 내용을 "주문 900원"으로 바꾸면', d: '서명이 맞지 않아 변조가 드러납니다. JWT가 이 방식입니다.', v: { tool: 'hmac', act: 'tamper' } },
-    { t: '전자서명: 다른 사람의 키로 서명', q: '도구를 전자서명 (개인키로 서명, 공개키로 검증) 쪽으로 바꾸고 다른 키(또는 키 없이)로 시도하면', d: '공개키로 검증하면 가짜임이 드러납니다.', v: { tool: 'sign', act: 'wrong' } },
+    { t: '대칭키: 다른 키로 풀기', q: 'AES 대칭키 암호화에서 다른 키(또는 키 없이)로 시도하면', d: '같은 키가 없으면 풀 수 없습니다.', v: { tool: 'sym', act: 'wrong' } },
+    { t: '비대칭키: 공개키로 풀기', q: 'RSA 비대칭키 암호화에서 다른 키(또는 키 없이)로 시도하면', d: '잠근 열쇠로는 열 수 없습니다. 짝이 되는 개인키만 엽니다.', v: { tool: 'asym', act: 'wrong' } },
+    { t: 'HMAC: 내용을 바꾸면', q: '키가 있는 해시(HMAC) 서명에서 중간에 내용을 "주문 900원"으로 바꾸면', d: '서명이 맞지 않아 변조가 드러납니다. JWT가 이 방식입니다.', v: { tool: 'hmac', act: 'tamper' } },
+    { t: '전자서명: 다른 사람의 키로 서명', q: '전자서명에서 다른 키(또는 키 없이)로 시도하면', d: '공개키로 검증하면 가짜임이 드러납니다.', v: { tool: 'sign', act: 'wrong' } },
   ],
   code: function (c) {
     return {
@@ -22238,17 +22238,17 @@ Lab.register({
     { id: 'peek', label: '다른 사용자가 중간에 두 계좌의 합계를 조회한다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', q: '트랜잭션 없이 (문장마다 바로 확정) 돌리다 출금과 입금 사이에 애플리케이션에서 오류(예외)가 발생하면 어떻게 되나', d: '트랜잭션 없이 중간에 오류. 1,000원이 사라집니다.', v: { mode: 'auto', fail: 'ex', peek: false } },
-    { t: '트랜잭션으로 묶으면', q: '실행 방식을 두 문장을 트랜잭션으로 묶음 쪽으로 바꾸면', d: '같은 오류에서 출금까지 취소됩니다.', v: { mode: 'tx', fail: 'ex', peek: false } },
-    { t: '묶은 상태에서 서버가 꺼지면', q: '실행 방식을 두 문장을 트랜잭션으로 묶음으로 바꾸고 출금과 입금 사이에 서버가 꺼지면', d: '커밋하지 않은 변경은 남지 않습니다.', v: { mode: 'tx', fail: 'crash', peek: false } },
-    { t: '문제가 없을 때', q: '실행 방식을 두 문장을 트랜잭션으로 묶음으로 바꾸고 출금과 입금 사이에 아무 일 없으면', d: '어느 방식이든 결과는 같습니다.', v: { mode: 'tx', fail: 'none', peek: false } },
-    { t: '중간에 다른 사람이 조회하면', q: '출금과 입금 사이에 아무 일이 없는데 다른 사용자가 중간에 두 계좌의 합계를 조회하면', d: '트랜잭션 없이: 합계가 1,000원 모자란 순간이 보입니다.', v: { mode: 'auto', fail: 'none', peek: true } },
-    { t: '묶은 상태에서 중간 조회', q: '두 문장을 트랜잭션으로 묶고 아무 일 없는데 다른 사용자가 중간에 두 계좌의 합계를 조회하면', d: '커밋 전의 변경은 다른 사람에게 보이지 않습니다.', v: { mode: 'tx', fail: 'none', peek: true } },
+    { t: '처음 설정으로', q: '트랜잭션 없이 문장마다 바로 확정하다가 출금과 입금 사이에 애플리케이션에서 오류(예외)가 발생하면 어떻게 되나', d: '트랜잭션 없이 중간에 오류. 1,000원이 사라집니다.', v: { mode: 'auto', fail: 'ex', peek: false } },
+    { t: '트랜잭션으로 묶으면', q: '두 문장을 트랜잭션으로 묶으면', d: '같은 오류에서 출금까지 취소됩니다.', v: { mode: 'tx', fail: 'ex', peek: false } },
+    { t: '묶은 상태에서 서버가 꺼지면', q: '두 문장을 트랜잭션으로 묶은 상태에서 출금과 입금 사이에 서버가 꺼지면', d: '커밋하지 않은 변경은 남지 않습니다.', v: { mode: 'tx', fail: 'crash', peek: false } },
+    { t: '문제가 없을 때', q: '두 문장을 트랜잭션으로 묶은 상태에서 출금과 입금 사이에 아무 일도 없으면', d: '어느 방식이든 결과는 같습니다.', v: { mode: 'tx', fail: 'none', peek: false } },
+    { t: '중간에 다른 사람이 조회하면', q: '출금과 입금 사이에 아무 일도 없는데 다른 사용자가 중간에 두 계좌의 합계를 조회하면', d: '트랜잭션 없이: 합계가 1,000원 모자란 순간이 보입니다.', v: { mode: 'auto', fail: 'none', peek: true } },
+    { t: '묶은 상태에서 중간 조회', q: '두 문장을 트랜잭션으로 묶고 아무 일도 없는데 다른 사용자가 중간에 두 계좌의 합계를 조회하면', d: '커밋 전의 변경은 다른 사람에게 보이지 않습니다.', v: { mode: 'tx', fail: 'none', peek: true } },
   ],
   code: function (c) {
-    var w = "UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- 출금\n", d = "UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- 입금\n", gap = c.fail === 'ex' ? '-- (여기서 애플리케이션 오류 발생)\n' : c.fail === 'crash' ? '-- (여기서 서버가 꺼짐)\n' : '';
-    if (c.mode === 'auto') return '-- 자동 커밋: 문장 하나가 끝날 때마다 바로 확정된다\n' + w + gap + (c.fail === 'none' ? d : '-- 입금 문장은 실행되지 못함');
-    return 'START TRANSACTION;\n' + w + gap + (c.fail === 'none' ? d + 'COMMIT;      -- 여기서 둘 다 한꺼번에 확정' : c.fail === 'ex' ? 'ROLLBACK;    -- 오류를 감지하고 지금까지 한 것을 전부 취소' : '-- COMMIT에 도달하지 못함 → DB가 알아서 취소');
+    var w = "UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- 출금\n", d = "UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- 입금\n", gap = c.fail === 'ex' ? '-- (여기서 애플리케이션 오류 발생)\n' : c.fail === 'crash' ? '-- (여기서 서버가 꺼짐)\n' : '', skip = "-- UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- 입금: 실행되지 못함";
+    if (c.mode === 'auto') return '-- 자동 커밋: 문장 하나가 끝날 때마다 바로 확정된다\n' + w + gap + (c.fail === 'none' ? d : skip);
+    return 'START TRANSACTION;\n' + w + gap + (c.fail === 'none' ? d + 'COMMIT;      -- 여기서 둘 다 한꺼번에 확정' : skip + '\n' + (c.fail === 'ex' ? 'ROLLBACK;    -- 오류를 감지하고 지금까지 한 것을 전부 취소' : '-- COMMIT에 도달하지 못함 → DB가 알아서 취소'));
   },
   label: function (c) { return (c.mode === 'auto' ? '트랜잭션 없음' : '트랜잭션') + ' · ' + { none: '문제 없음', ex: '중간에 오류', crash: '중간에 서버 꺼짐' }[c.fail] + (c.peek ? ' · 중간 조회' : ''); },
   columns: ['최종 A', '최종 B', '합계 (처음 6,000)', '중간에 다른 사람이 본 합계'],
@@ -22311,11 +22311,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '주문 1번 조회 요청과 응답은 어떤 글자로 오가나', d: '조회 성공. 200과 함께 본문이 옵니다.', v: { sc: 'get' } },
-    { t: '새 주문 등록', q: '상황을 새 주문 등록으로 바꾸면', d: '201과 함께 새로 만들어진 주소를 알려 줍니다.', v: { sc: 'create' } },
-    { t: '잘못된 요청', q: '상황을 필수 값을 빼고 주문 등록으로 바꾸면', d: '400. 보낸 쪽이 고쳐야 합니다.', v: { sc: 'bad' } },
-    { t: '로그인 안 함 / 권한 없음', q: '상황을 로그인하지 않고 주문 조회로 바꾸면', d: '401과 403의 차이를 번갈아 보세요.', v: { sc: 'noauth' } },
-    { t: '없는 주문', q: '상황을 없는 주문 999번 조회로 바꾸면', d: '404. 주소가 가리키는 대상이 없습니다.', v: { sc: 'missing' } },
-    { t: '서버 오류', q: '상황을 서버 코드에서 예외 발생으로 바꾸면', d: '500. 보낸 쪽이 아니라 서버가 고쳐야 합니다.', v: { sc: 'error' } },
+    { t: '새 주문 등록', q: '새 주문을 등록하면', d: '201과 함께 새로 만들어진 주소를 알려 줍니다.', v: { sc: 'create' } },
+    { t: '잘못된 요청', q: '필수 값을 빼고 주문을 등록하면', d: '400. 보낸 쪽이 고쳐야 합니다.', v: { sc: 'bad' } },
+    { t: '로그인 안 함 / 권한 없음', q: '로그인하지 않고 주문을 조회하면', d: '401과 403의 차이를 번갈아 보세요.', v: { sc: 'noauth' } },
+    { t: '없는 주문', q: '없는 주문 999번을 조회하면', d: '404. 주소가 가리키는 대상이 없습니다.', v: { sc: 'missing' } },
+    { t: '서버 오류', q: '서버 코드에서 예외가 발생하면', d: '500. 보낸 쪽이 아니라 서버가 고쳐야 합니다.', v: { sc: 'error' } },
   ],
   CASES: {
     get: { req: ['GET /orders/1 HTTP/1.1', 'Host: shop.example', 'Authorization: Bearer eyJ…'], body: '', status: '200 OK', hdr: ['Content-Type: application/json'], rbody: '{"id":1,"item":"키보드","quantity":2}', who: '없음', next: '받은 본문을 사용' },
@@ -22394,10 +22394,10 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '로그인 응답에 쿠키(Path=/, HttpOnly 켬)를 내려 준 뒤 로그인 직후 요청을 보내면 서버는 무엇을 받나', d: '쿠키가 같은 사이트의 요청마다 자동으로 붙습니다.', v: { give: true, path: '/', http: true, life: 'session', later: 'now' } },
     { t: '쿠키가 없다면', q: '로그인 응답에 쿠키를 내려 주지 않으면', d: '로그인 직후의 요청도 서버는 누구인지 모릅니다.', v: { give: false } },
-    { t: '경로를 /shop으로 좁히면', q: 'Path를 Path=/shop (/shop 아래에서만) 쪽으로 바꾸면', d: '/orders 요청에는 붙지 않습니다.', v: { give: true, path: '/shop', http: true, life: 'session', later: 'now' } },
-    { t: 'HttpOnly를 끄면', q: 'HttpOnly (자바스크립트가 읽지 못하게) 설정을 끄면', d: '페이지의 자바스크립트가 쿠키 값을 읽을 수 있습니다.', v: { give: true, path: '/', http: false, life: 'session', later: 'now' } },
-    { t: '수명 3초, 10초 뒤 요청', q: '수명을 Max-Age=3 (3초) 쪽으로 바꾸고 다음 요청을 10초 뒤에 보내면', d: '만료된 쿠키는 브라우저가 지웁니다.', v: { give: true, path: '/', http: true, life: 'short', later: 'wait' } },
-    { t: '브라우저를 닫았다 열면', q: '다음 요청을 10초 뒤, 브라우저를 닫았다가 다시 열고 보내면', d: '수명을 지정하지 않은 쿠키는 사라집니다. 1시간으로 바꿔 비교해 보세요.', v: { give: true, path: '/', http: true, life: 'session', later: 'restart' } },
+    { t: '경로를 /shop으로 좁히면', q: 'Path=/shop으로 /shop 아래에서만 쿠키를 보내게 하면', d: '/orders 요청에는 붙지 않습니다.', v: { give: true, path: '/shop', http: true, life: 'session', later: 'now' } },
+    { t: 'HttpOnly를 끄면', q: 'HttpOnly를 끄면', d: '페이지의 자바스크립트가 쿠키 값을 읽을 수 있습니다.', v: { give: true, path: '/', http: false, life: 'session', later: 'now' } },
+    { t: '수명 3초, 10초 뒤 요청', q: '쿠키 수명을 3초(Max-Age=3)로 바꾸고 다음 요청을 10초 뒤에 보내면', d: '만료된 쿠키는 브라우저가 지웁니다.', v: { give: true, path: '/', http: true, life: 'short', later: 'wait' } },
+    { t: '브라우저를 닫았다 열면', q: '10초 뒤에 브라우저를 닫았다가 다시 열고 다음 요청을 보내면', d: '수명을 지정하지 않은 쿠키는 사라집니다. 1시간으로 바꿔 비교해 보세요.', v: { give: true, path: '/', http: true, life: 'session', later: 'restart' } },
   ],
   // 실제 브라우저 결과와 대조하는 데 쓰는 순수 계산: 각 상황에서 쿠키가 전달되는가
   sent: function (c) {
@@ -22479,12 +22479,12 @@ Lab.register({
     { id: 'n', label: '실제 테이블이 이만큼 크다면', type: 'select', value: 1000000, options: [[1000, '1천 건'], [1000000, '100만 건'], [1000000000, '10억 건']] },
   ],
   presets: [
-    { t: '처음 설정으로', q: '처음부터 하나씩 (정렬 안 된 데이터) 찾는 방식으로 230 (뒤쪽) 값을 찾으면 몇 번 확인하나', d: '처음부터 하나씩. 뒤쪽 값까지 23번 봅니다.', v: { how: 'scan', target: 230, n: 1000000 } },
-    { t: '이진 탐색으로', q: '찾는 방식을 이진 탐색 (정렬된 배열) 쪽으로 바꾸면', d: '같은 값을 5번 만에 찾습니다.', v: { how: 'binary', target: 230, n: 1000000 } },
-    { t: 'B-트리로', q: '찾는 방식을 B-트리 (노드 하나에 여러 값) 쪽으로 바꾸면', d: '노드 3개만 읽으면 어떤 값이든 찾습니다.', v: { how: 'btree', target: 230, n: 1000000 } },
-    { t: '없는 값을 하나씩 찾으면', q: '찾는 값을 145 (없는 값) 쪽으로 바꾸면', d: '끝까지 다 봐야 없다는 것을 압니다.', v: { how: 'scan', target: 145, n: 1000000 } },
-    { t: '없는 값을 B-트리로', q: '찾는 방식을 B-트리 (노드 하나에 여러 값) 쪽으로, 찾는 값을 145 (없는 값) 쪽으로 바꾸면', d: '없다는 것도 노드 3개로 확인합니다.', v: { how: 'btree', target: 145, n: 1000000 } },
-    { t: '10억 건이라면', q: '찾는 방식을 B-트리 (노드 하나에 여러 값) 쪽으로 바꾸고 실제 테이블이 10억 건만큼 크다면', d: '아래 표에서 방식별 횟수 차이를 보세요.', v: { how: 'btree', target: 230, n: 1000000000 } },
+    { t: '처음 설정으로', q: '정렬 안 된 데이터에서 처음부터 하나씩 찾는 방식으로 뒤쪽의 230을 찾으면 몇 번 확인하나', d: '처음부터 하나씩. 뒤쪽 값까지 23번 봅니다.', v: { how: 'scan', target: 230, n: 1000000 } },
+    { t: '이진 탐색으로', q: '정렬된 배열에서 이진 탐색으로 찾으면', d: '같은 값을 5번 만에 찾습니다.', v: { how: 'binary', target: 230, n: 1000000 } },
+    { t: 'B-트리로', q: '노드 하나에 여러 값을 담는 B-트리로 찾으면', d: '노드 3개만 읽으면 어떤 값이든 찾습니다.', v: { how: 'btree', target: 230, n: 1000000 } },
+    { t: '없는 값을 하나씩 찾으면', q: '없는 값 145를 처음부터 하나씩 찾으면', d: '끝까지 다 봐야 없다는 것을 압니다.', v: { how: 'scan', target: 145, n: 1000000 } },
+    { t: '없는 값을 B-트리로', q: 'B-트리로 없는 값 145를 찾으면', d: '없다는 것도 노드 3개로 확인합니다.', v: { how: 'btree', target: 145, n: 1000000 } },
+    { t: '10억 건이라면', q: 'B-트리로 찾는데 실제 테이블이 10억 건이라면', d: '아래 표에서 방식별 횟수 차이를 보세요.', v: { how: 'btree', target: 230, n: 1000000000 } },
   ],
   keys: function () { var a = []; for (var i = 1; i <= 27; i++) a.push(i * 10); return a; },
   // 정렬 안 된 순서: 실제 테이블에 쌓인 순서라고 가정한 고정 배열 (각 값의 위치는 정렬 순서와 같게 두어 비교를 쉽게 함)
@@ -22604,10 +22604,10 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '메일 한 통에 1초 걸리는 메일 서버를 직접 호출하고 끝날 때까지 기다리면 주문 3건은 어떻게 되나', d: '직접 호출. 주문 응답이 메일 발송 시간만큼 늦어집니다.', v: { how: 'direct', n: 3, work: '1000', state: 'ok' } },
-    { t: '큐에 넣으면', q: '메일 서버에 일을 넘기는 방식을 메시지 큐에 넣고 바로 응답으로 바꾸면', d: '주문은 바로 응답하고 메일은 뒤에서 차례로 나갑니다.', v: { how: 'queue', n: 3, work: '1000', state: 'ok' } },
-    { t: '메일 서버가 죽었을 때 직접 호출', q: '직접 호출 방식 그대로 메일 서버 상태를 죽어 있다가 나중에 복구됨으로 바꾸면', d: '메일 때문에 주문까지 실패합니다.', v: { how: 'direct', n: 3, work: '1000', state: 'down' } },
-    { t: '메일 서버가 죽었을 때 큐', q: '메시지 큐에 넣고 바로 응답하는 방식인데 메일 서버 상태를 죽어 있다가 나중에 복구됨으로 바꾸면', d: '주문은 성공하고 메시지는 쌓였다가 복구 뒤 처리됩니다.', v: { how: 'queue', n: 3, work: '1000', state: 'down' } },
-    { t: '메일이 아주 느릴 때', q: '메시지 큐에 넣고 바로 응답으로 바꾸고 연달아 들어오는 주문을 5건, 메일 한 통 시간을 3초로 바꾸면', d: '3초짜리 작업. 두 방식의 주문 응답 시간을 비교해 보세요.', v: { how: 'queue', n: 5, work: '3000', state: 'ok' } },
+    { t: '큐에 넣으면', q: '메일 발송을 메시지 큐에 넣고 바로 응답하면', d: '주문은 바로 응답하고 메일은 뒤에서 차례로 나갑니다.', v: { how: 'queue', n: 3, work: '1000', state: 'ok' } },
+    { t: '메일 서버가 죽었을 때 직접 호출', q: '직접 호출 방식 그대로 메일 서버가 죽어 있다가 나중에 복구되면', d: '메일 때문에 주문까지 실패합니다.', v: { how: 'direct', n: 3, work: '1000', state: 'down' } },
+    { t: '메일 서버가 죽었을 때 큐', q: '메시지 큐에 넣고 바로 응답하는 방식인데 메일 서버가 죽어 있다가 나중에 복구되면', d: '주문은 성공하고 메시지는 쌓였다가 복구 뒤 처리됩니다.', v: { how: 'queue', n: 3, work: '1000', state: 'down' } },
+    { t: '메일이 아주 느릴 때', q: '메시지 큐에 넣고 바로 응답하는데 연달아 들어오는 주문이 5건이고 메일 한 통을 보내는 데 3초가 걸리면', d: '3초짜리 작업. 두 방식의 주문 응답 시간을 비교해 보세요.', v: { how: 'queue', n: 5, work: '3000', state: 'ok' } },
   ],
   code: function (c) {
     if (c.how === 'direct') return '@PostMapping("/orders")\nOrderDto order(@RequestBody OrderRequest req) {\n    Order order = orderService.save(req);          // 0.05초\n    mailClient.sendConfirm(order);                 // 메일 서버를 직접 호출하고 기다린다\n    return OrderDto.of(order);                     // 메일이 끝나야 응답\n}';
@@ -22675,11 +22675,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '내 PC에서 빌드해 서버에 복사하는 손 배포로 기존 기능을 망가뜨리는 변경을 올리면 어떻게 되나', d: '손으로 배포. 테스트를 건너뛰어 운영에서 장애가 납니다.', v: { pipe: 'manual', bug: 'test' } },
-    { t: 'CI를 두면', q: '반영 방식을 CI: 올리면 자동으로 빌드와 테스트, 배포는 사람이 쪽으로 바꾸면', d: '같은 변경이 테스트 단계에서 막힙니다.', v: { pipe: 'ci', bug: 'test' } },
-    { t: '내 PC에서만 되는 코드', q: '반영 방식을 CI로 바꾸고 문제를 내 PC에만 있는 파일에 기대는 코드로 바꾸면', d: '깨끗한 환경에서 돌려야 드러납니다.', v: { pipe: 'ci', bug: 'env' } },
-    { t: '테스트가 못 잡는 문제, CI만', q: '반영 방식을 CI로 바꾸고 문제를 운영 환경에서만 시작에 실패 (테스트로는 못 잡음) 쪽으로 바꾸면', d: '사람이 배포하고 사람이 되돌립니다.', v: { pipe: 'ci', bug: 'runtime' } },
-    { t: '테스트가 못 잡는 문제, CI/CD', q: '반영 방식을 CI/CD로 바꾸고 문제를 운영 환경에서만 시작에 실패 (테스트로는 못 잡음) 쪽으로 바꾸면', d: '배포 뒤 헬스 체크에서 걸려 자동으로 되돌립니다.', v: { pipe: 'cicd', bug: 'runtime' } },
-    { t: '문제가 없을 때', q: '반영 방식을 CI/CD로 바꾸고 이번 변경에 든 문제를 문제 없음으로 바꾸면', d: '사람이 할 일이 얼마나 남는지 비교해 보세요.', v: { pipe: 'cicd', bug: 'none' } },
+    { t: 'CI를 두면', q: '올리면 자동으로 빌드와 테스트를 하고 배포는 사람이 하는 CI를 두면', d: '같은 변경이 테스트 단계에서 막힙니다.', v: { pipe: 'ci', bug: 'test' } },
+    { t: '내 PC에서만 되는 코드', q: 'CI를 둔 상태에서 내 PC에만 있는 파일에 기대는 코드를 올리면', d: '깨끗한 환경에서 돌려야 드러납니다.', v: { pipe: 'ci', bug: 'env' } },
+    { t: '테스트가 못 잡는 문제, CI만', q: 'CI를 둔 상태에서 운영 환경에서만 시작에 실패해 테스트로는 못 잡는 변경을 올리면', d: '사람이 배포하고 사람이 되돌립니다.', v: { pipe: 'ci', bug: 'runtime' } },
+    { t: '테스트가 못 잡는 문제, CI/CD', q: 'CI/CD를 둔 상태에서 운영 환경에서만 시작에 실패해 테스트로는 못 잡는 변경을 올리면', d: '배포 뒤 헬스 체크에서 걸려 자동으로 되돌립니다.', v: { pipe: 'cicd', bug: 'runtime' } },
+    { t: '문제가 없을 때', q: 'CI/CD를 둔 상태에서 문제 없는 변경을 올리면', d: '사람이 할 일이 얼마나 남는지 비교해 보세요.', v: { pipe: 'cicd', bug: 'none' } },
   ],
   code: function (c) {
     if (c.pipe === 'manual') return '# 개발자가 자기 PC에서 직접 입력\n./gradlew build -x test      # 급해서 테스트는 건너뜀\nscp build/libs/app.jar prod-server:/app/\nssh prod-server "systemctl restart app"\n\n# 누가, 언제, 어떤 코드를 올렸는지 기록이 남지 않는다';
@@ -22777,11 +22777,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'equals만 재정의한 Order 클래스에서 id가 둘 다 1인 객체를 HashMap에서 왜 못 찾나', d: 'equals만 재정의. equals는 true인데 map에서 꺼내면 null입니다.', v: { how: 'eq', same: 'same' } },
-    { t: '둘 다 재정의', q: 'Order 클래스가 재정의한 메서드를 equals와 hashCode 둘 다로 바꾸면', d: '내용이 같은 객체로 꺼낼 수 있습니다.', v: { how: 'both', same: 'same' } },
-    { t: '아무것도 재정의하지 않으면', q: 'Order 클래스가 재정의한 메서드를 아무것도 재정의하지 않음 쪽으로 바꾸면', d: '내용이 같아도 서로 다른 객체로 취급됩니다.', v: { how: 'none', same: 'same' } },
-    { t: 'hashCode만 재정의', q: 'Order 클래스가 재정의한 메서드를 hashCode만 재정의 쪽으로 바꾸면', d: '같은 자리까지는 찾아가지만 equals가 false라서 못 찾습니다.', v: { how: 'hash', same: 'same' } },
-    { t: 'record로 선언', q: 'Order를 record로 선언 (둘 다 자동 생성) 쪽으로 바꾸면', d: '둘 다 자동으로 만들어 줍니다.', v: { how: 'record', same: 'same' } },
-    { t: 'hashCode가 항상 같은 값', q: 'equals 재정의 + hashCode가 항상 42 쪽으로 바꾸고 두 객체의 id를 1과 2 (내용이 다름) 쪽으로 바꾸면', d: '규약은 지키지만 모든 객체가 한 자리에 몰립니다.', v: { how: 'const', same: 'diff' } },
+    { t: '둘 다 재정의', q: 'Order 클래스가 equals와 hashCode를 둘 다 재정의하면', d: '내용이 같은 객체로 꺼낼 수 있습니다.', v: { how: 'both', same: 'same' } },
+    { t: '아무것도 재정의하지 않으면', q: 'Order 클래스가 아무것도 재정의하지 않으면', d: '내용이 같아도 서로 다른 객체로 취급됩니다.', v: { how: 'none', same: 'same' } },
+    { t: 'hashCode만 재정의', q: 'Order 클래스가 hashCode만 재정의하면', d: '같은 자리까지는 찾아가지만 equals가 false라서 못 찾습니다.', v: { how: 'hash', same: 'same' } },
+    { t: 'record로 선언', q: 'Order를 record로 선언하면', d: '둘 다 자동으로 만들어 줍니다.', v: { how: 'record', same: 'same' } },
+    { t: 'hashCode가 항상 같은 값', q: 'equals를 재정의하고 hashCode가 항상 42를 돌려주게 한 채 두 객체의 id를 1과 2로 바꾸면', d: '규약은 지키지만 모든 객체가 한 자리에 몰립니다.', v: { how: 'const', same: 'diff' } },
   ],
   code: function (c) {
     var b = c.same === 'same' ? 1 : 2;
@@ -22870,7 +22870,7 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'Point (참조형) 변수 a를 b = a로 다른 변수에 대입하고 b로 객체의 내용을 바꾸면 무엇이 복사되나', d: 'Point 변수를 b에 대입하고 b로 내용을 바꿉니다. a에서 읽어도 99입니다.', v: { what: 'field', how: 'assign' } },
-    { t: '기본형이면', q: '타입을 int (기본형) 쪽으로 바꾸고 복사본에 99를 대입하면', d: '값이 복사되므로 b를 바꿔도 a는 1 그대로입니다.', v: { what: 'prim', how: 'assign' } },
+    { t: '기본형이면', q: 'int 변수의 복사본에 99를 대입하면', d: '값이 복사되므로 b를 바꿔도 a는 1 그대로입니다.', v: { what: 'prim', how: 'assign' } },
     { t: '메서드에 객체를 넘기면', q: 'b = a 대신 change(a) 호출로 넘기고 그 안에서 객체의 내용을 바꾸면', d: '메서드 안에서 바꾼 내용이 메서드 밖에서도 보입니다.', v: { what: 'field', how: 'call' } },
     { t: '메서드 안에서 새 객체를 대입하면', q: 'change(a) 호출로 넘기고 그 안에서 복사본에 새 객체를 대입하면', d: '매개변수만 다른 객체를 가리키게 되고 a는 그대로입니다.', v: { what: 'renew', how: 'call' } },
     { t: '기본형을 메서드에 넘기면', q: 'int (기본형) 변수를 change(a) 호출로 넘기고 복사본에 99를 대입하면', d: '메서드가 매개변수를 바꿔도 a는 그대로입니다.', v: { what: 'prim', how: 'call' } },
@@ -22999,12 +22999,12 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '정수끼리의 계산에서 계산식 7 / 2는 어떤 값이 나오나', d: 'int끼리 나누면 3.5가 아니라 3이 나옵니다.', v: { topic: 'ints', e1: 'div', e2: 'late', e3: 'ns' } },
-    { t: 'double 변수에 받아도', q: '살펴볼 것을 타입이 섞이거나 바뀔 때 (형변환) 쪽으로 바꾸고 double r = 7 / 2로 받으면', d: '계산은 이미 int로 끝나서 3.0이 됩니다.', v: { topic: 'conv', e1: 'div', e2: 'late', e3: 'ns' } },
-    { t: '한쪽을 double로 쓰면', q: '형변환 쪽에서 double r = 7 / 2 대신 double r = 7 / 2.0으로 바꾸면', d: '계산 전에 타입이 맞춰져 3.5가 나옵니다.', v: { topic: 'conv', e1: 'div', e2: 'mix', e3: 'ns' } },
-    { t: 'int의 범위를 넘으면', q: '정수끼리의 계산에서 계산식을 2147483647 + 1로 바꾸면', d: '가장 큰 값에 1을 더하면 가장 작은 값이 됩니다.', v: { topic: 'ints', e1: 'over', e2: 'late', e3: 'ns' } },
+    { t: 'double 변수에 받아도', q: 'double r = 7 / 2처럼 결과를 double 변수에 받으면', d: '계산은 이미 int로 끝나서 3.0이 됩니다.', v: { topic: 'conv', e1: 'div', e2: 'late', e3: 'ns' } },
+    { t: '한쪽을 double로 쓰면', q: 'double r = 7 / 2 대신 double r = 7 / 2.0으로 쓰면', d: '계산 전에 타입이 맞춰져 3.5가 나옵니다.', v: { topic: 'conv', e1: 'div', e2: 'mix', e3: 'ns' } },
+    { t: 'int의 범위를 넘으면', q: '정수끼리의 계산에서 2147483647 + 1을 계산하면', d: '가장 큰 값에 1을 더하면 가장 작은 값이 됩니다.', v: { topic: 'ints', e1: 'over', e2: 'late', e3: 'ns' } },
     { t: 'long 변수에 받기만 하면', q: 'big이 2147483647일 때 계산식 2147483647 + 1을 long r = big + 1로 받으면', d: '넘친 뒤의 값이 그대로 들어갑니다.', v: { topic: 'conv', e1: 'over', e2: 'longlate', e3: 'ns' } },
-    { t: 'byte로 강제 형변환', q: '형변환 쪽에서 코드를 byte r = (byte) 200으로 바꾸면', d: '200이 -56이 됩니다.', v: { topic: 'conv', e1: 'div', e2: 'byte', e3: 'ns' } },
-    { t: '숫자와 문자열을 더하면', q: '살펴볼 것을 문자열과 + 쪽으로 바꾸고 1 + 2 + "3" 식을 계산하면', d: '1 + 2 + "3"은 "6"도 "123"도 아닙니다.', v: { topic: 'str', e1: 'div', e2: 'late', e3: 'ns' } },
+    { t: 'byte로 강제 형변환', q: 'byte r = (byte) 200으로 200을 byte로 강제 형변환하면', d: '200이 -56이 됩니다.', v: { topic: 'conv', e1: 'div', e2: 'byte', e3: 'ns' } },
+    { t: '숫자와 문자열을 더하면', q: '1 + 2 + "3"처럼 숫자와 문자열을 +로 더하면', d: '1 + 2 + "3"은 "6"도 "123"도 아닙니다.', v: { topic: 'str', e1: 'div', e2: 'late', e3: 'ns' } },
   ],
   // 설정이 고른 한 줄: 변수 r의 타입 T, 오른쪽 식 e(계산 나무), 코드 옆에 적을 말
   pick: function (c) {
@@ -23206,9 +23206,9 @@ Lab.register({
     { t: '<로 바꾸면', q: '반복 조건을 i < 3으로 바꾸면', d: 'i < 3은 0, 1, 2에서 세 번 돕니다.', v: { stmt: 'for', cmp: 'lt', jump: 'none', val: '2' } },
     { t: 'break를 만나면', q: '반복 조건을 i < 3으로 바꾸고 i가 1일 때 break를 만나면', d: 'i가 1일 때 반복문 전체가 끝납니다.', v: { stmt: 'for', cmp: 'lt', jump: 'break', val: '2' } },
     { t: 'continue를 만나면', q: '반복 조건을 i < 3으로 바꾸고 i가 1일 때 continue를 만나면', d: 'i가 1인 회차만 건너뛰고 계속 돕니다.', v: { stmt: 'for', cmp: 'lt', jump: 'cont', val: '2' } },
-    { t: 'while문에서 continue', q: '문장을 while 반복문으로 바꾸고 i < 3에서 i가 1일 때 continue를 만나면', d: '같은 코드인데 끝나지 않습니다.', v: { stmt: 'while', cmp: 'lt', jump: 'cont', val: '2' } },
-    { t: 'switch에서 break를 빼면', q: '문장을 switch (break 없음) 쪽으로 바꾸면', d: 'case 2에서 시작해 아래 case까지 모두 실행됩니다.', v: { stmt: 'swf', cmp: 'le', jump: 'none', val: '2' } },
-    { t: '화살표 switch', q: '문장을 switch (화살표 ->) 쪽으로 바꾸면', d: 'break를 적지 않아도 일치한 case만 실행됩니다.', v: { stmt: 'swa', cmp: 'le', jump: 'none', val: '2' } },
+    { t: 'while문에서 continue', q: 'for 대신 while 반복문을 쓰고 i < 3에서 i가 1일 때 continue를 만나면', d: '같은 코드인데 끝나지 않습니다.', v: { stmt: 'while', cmp: 'lt', jump: 'cont', val: '2' } },
+    { t: 'switch에서 break를 빼면', q: 'for 대신 break 없는 switch로 바꾸면', d: 'case 2에서 시작해 아래 case까지 모두 실행됩니다.', v: { stmt: 'swf', cmp: 'le', jump: 'none', val: '2' } },
+    { t: '화살표 switch', q: 'for 대신 화살표 ->를 쓰는 switch로 바꾸면', d: 'break를 적지 않아도 일치한 case만 실행됩니다.', v: { stmt: 'swa', cmp: 'le', jump: 'none', val: '2' } },
   ],
   words: ['하나', '둘', '셋', '그 외'],
   code: function (c) {
@@ -23371,10 +23371,10 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '칸 3개인 int 배열 a를 b = a로 대입하고 b의 2번 칸에 값을 넣으면 배열이 복사되나', d: 'b = a로 대입한 뒤 b의 칸에 값을 넣습니다. a를 출력해도 그 값이 보입니다.', v: { shape: '1', type: 'int', copy: 'ref', idx: '2' } },
     { t: 'clone으로 복사하면', q: '두 번째 변수를 b = a.clone() 호출로 만들면', d: '배열이 두 개가 되어 a는 그대로입니다.', v: { shape: '1', type: 'int', copy: 'clone', idx: '2' } },
-    { t: '길이와 같은 번호에 넣으면', q: 'b = a.clone() 호출로 만들고 b의 3번 칸 (길이와 같은 수)에 값을 넣으면', d: '칸 3개의 번호는 0, 1, 2뿐입니다. 3번에 넣으면 예외가 납니다.', v: { shape: '1', type: 'int', copy: 'clone', idx: '3' } },
+    { t: '길이와 같은 번호에 넣으면', q: 'b = a.clone() 호출로 만들고 b에서 길이와 같은 3번 칸에 값을 넣으면', d: '칸 3개의 번호는 0, 1, 2뿐입니다. 3번에 넣으면 예외가 납니다.', v: { shape: '1', type: 'int', copy: 'clone', idx: '3' } },
     { t: 'String 배열의 처음 상태', q: '칸의 타입을 String으로 바꾸고 b = a.clone() 호출로 만든 뒤 b의 0번 칸에 값을 넣으면', d: '값을 넣지 않은 칸에는 null이 들어 있습니다.', v: { shape: '1', type: 'String', copy: 'clone', idx: '0' } },
-    { t: '2차원 배열은 배열의 배열', q: '배열의 모양을 2차원: 2행 3열로 바꾸면', d: '바깥 배열 하나와 행 배열 둘, 모두 세 개가 만들어집니다.', v: { shape: '2', type: 'int', copy: 'ref', idx: '2' } },
-    { t: '2차원 배열을 clone하면', q: '배열의 모양이 2차원: 2행 3열인데 b = a.clone() 호출로 만들면', d: '복사했는데도 a의 값이 바뀝니다. 행 배열을 함께 쓰기 때문입니다.', v: { shape: '2', type: 'int', copy: 'clone', idx: '2' } },
+    { t: '2차원 배열은 배열의 배열', q: '배열을 2행 3열의 2차원 배열로 바꾸면', d: '바깥 배열 하나와 행 배열 둘, 모두 세 개가 만들어집니다.', v: { shape: '2', type: 'int', copy: 'ref', idx: '2' } },
+    { t: '2차원 배열을 clone하면', q: '2행 3열의 2차원 배열을 b = a.clone() 호출로 만들면', d: '복사했는데도 a의 값이 바뀝니다. 행 배열을 함께 쓰기 때문입니다.', v: { shape: '2', type: 'int', copy: 'clone', idx: '2' } },
   ],
   lit: function (c) { return { int: '7', boolean: 'true', String: '"A"' }[c.type]; },
   code: function (c) {
@@ -23514,8 +23514,8 @@ Lab.register({
     { t: '처음 설정으로', q: 'Order() 생성자가 this(1) 호출로 Order(int extra) 생성자를 부를 때 new Order() 호출은 어떤 순서로 일어나나', d: 'Order()가 this(1)로 다른 생성자를 먼저 부릅니다. 출력은 21, 기본입니다.', v: { ctors: 'chain', call: 'noarg', first: 'field' } },
     { t: '생성자를 하나도 적지 않으면', q: 'Order 클래스에 생성자를 하나도 적지 않으면', d: '컴파일러가 기본 생성자를 넣어 줍니다. memo는 null로 남습니다.', v: { ctors: 'none', call: 'noarg', first: 'field' } },
     { t: '인자 있는 생성자만 적고 new Order()', q: '생성자를 Order(int extra) 하나만 적고 new Order() 호출을 하면', d: '기본 생성자가 생기지 않아 컴파일 오류입니다.', v: { ctors: 'arg', call: 'noarg', first: 'field' } },
-    { t: '초기화 블록을 위에 적으면', q: '생성자를 Order() 하나, Order(int extra) 하나로 두고 더 위에 적은 것을 초기화 블록 { qty = 20; } 쪽으로 바꾸면', d: '초기화식이 나중에 실행되어 qty가 10이 됩니다.', v: { ctors: 'both', call: 'noarg', first: 'block' } },
-    { t: 'new Order(3)', q: '생성자를 Order() 하나, Order(int extra) 하나로 두고 객체를 new Order(3) 호출로 만들면', d: '인자에 맞는 생성자 Order(int extra)가 선택됩니다.', v: { ctors: 'both', call: 'arg', first: 'field' } },
+    { t: '초기화 블록을 위에 적으면', q: '생성자를 Order()와 Order(int extra) 둘 다 적고 int qty = 10 대신 초기화 블록 { qty = 20; }을 위에 적으면', d: '초기화식이 나중에 실행되어 qty가 10이 됩니다.', v: { ctors: 'both', call: 'noarg', first: 'block' } },
+    { t: 'new Order(3)', q: '생성자를 Order()와 Order(int extra) 둘 다 적고 new Order(3) 호출로 객체를 만들면', d: '인자에 맞는 생성자 Order(int extra)가 선택됩니다.', v: { ctors: 'both', call: 'arg', first: 'field' } },
     { t: '생성자가 없는데 new Order(3)', q: '생성자를 하나도 적지 않고 new Order(3) 호출로 만들면', d: '기본 생성자는 인자를 받지 않으므로 컴파일 오류입니다.', v: { ctors: 'none', call: 'arg', first: 'field' } },
   ],
   code: function (c) {
@@ -23780,11 +23780,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '부모 생성자가 describe() 호출을 하고 Dog() 생성자 첫 줄이 super("바둑이"); 일 때 new Dog() 호출은 어떤 순서로 실행되나', d: '부모 생성자가 describe()를 부릅니다. sound에 "멍멍"을 넣었는데 sound=null이 찍힙니다.', v: { pctor: 'arg', sup: 'arg', pcall: true, sm: false } },
-    { t: '실행 순서만 보기', q: 'Animal 생성자의 describe() 호출을 끄면', d: '부모 생성자, 자식의 필드 초기화식, 자식 생성자 본문 순서입니다.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: false } },
-    { t: 'super를 쓰지 않으면', q: '부모 생성자를 Animal() 하나만 두고 Dog() 첫 줄에 super를 쓰지 않고 describe() 호출을 끄면', d: '컴파일러가 super()를 넣어 부모의 Animal()을 부릅니다.', v: { pctor: 'noarg', sup: 'omit', pcall: false, sm: false } },
-    { t: '부모에 Animal()이 없는데 super를 쓰지 않으면', q: '부모 생성자가 Animal(String name) 하나만인데 Dog() 첫 줄에 super를 쓰지 않고 describe() 호출을 끄면', d: '자동으로 들어간 super()가 부를 생성자가 없어 컴파일 오류입니다.', v: { pctor: 'arg', sup: 'omit', pcall: false, sm: false } },
-    { t: 'super.describe()로 부모 것도 부르기', q: 'Dog의 describe() 안에서 super.describe() 호출을 켜고 부모 생성자의 describe() 호출을 끄면', d: '오버라이딩한 메서드 안에서 부모의 원래 동작을 먼저 실행합니다.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: true } },
-    { t: '부모 생성자가 둘일 때', q: 'Animal() 생성자와 Animal(String name) 생성자를 두고 Dog() 첫 줄에 super를 쓰지 않으며 super.describe() 호출을 켜면', d: 'super에 넘긴 인자에 맞는 부모 생성자가 선택됩니다.', v: { pctor: 'both', sup: 'omit', pcall: false, sm: true } },
+    { t: '실행 순서만 보기', q: 'Animal 생성자가 describe()를 부르지 않으면', d: '부모 생성자, 자식의 필드 초기화식, 자식 생성자 본문 순서입니다.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: false } },
+    { t: 'super를 쓰지 않으면', q: '부모 생성자를 Animal() 하나만 두고 Dog() 첫 줄에 super를 쓰지 않으며 Animal 생성자가 describe()를 부르지 않으면', d: '컴파일러가 super()를 넣어 부모의 Animal()을 부릅니다.', v: { pctor: 'noarg', sup: 'omit', pcall: false, sm: false } },
+    { t: '부모에 Animal()이 없는데 super를 쓰지 않으면', q: '부모 생성자가 Animal(String name) 하나만인데 Dog() 첫 줄에 super를 쓰지 않으며 Animal 생성자가 describe()를 부르지 않으면', d: '자동으로 들어간 super()가 부를 생성자가 없어 컴파일 오류입니다.', v: { pctor: 'arg', sup: 'omit', pcall: false, sm: false } },
+    { t: 'super.describe()로 부모 것도 부르기', q: 'Dog의 describe()가 super.describe()를 부르게 하고 Animal 생성자는 describe()를 부르지 않으면', d: '오버라이딩한 메서드 안에서 부모의 원래 동작을 먼저 실행합니다.', v: { pctor: 'arg', sup: 'arg', pcall: false, sm: true } },
+    { t: '부모 생성자가 둘일 때', q: 'Animal()과 Animal(String name)을 둘 다 두고 Dog() 첫 줄에 super를 쓰지 않으며 Animal 생성자는 describe()를 부르지 않고 Dog의 describe()는 super.describe()를 부르면', d: 'super에 넘긴 인자에 맞는 부모 생성자가 선택됩니다.', v: { pctor: 'both', sup: 'omit', pcall: false, sm: true } },
   ],
   code: function (c) {
     var bad = this.bad(c), call = c.pcall ? '        describe();                // 오버라이딩된 메서드를 생성자에서 부른다\n' : '';
@@ -23920,7 +23920,7 @@ Lab.register({
     { t: 'protected를 자기 자신의 것으로 읽으면', q: '다른 패키지의 자식 SavingAccount에서 this.balance로 읽으면', d: '물려받은 자기 멤버 this.balance는 읽을 수 있습니다.', v: { mod: 'protected', from: 'subThis' } },
     { t: 'protected는 같은 패키지에도 열려 있다', q: '같은 패키지의 다른 클래스 Teller에서 읽으면', d: '자식이 아니어도 같은 패키지의 클래스는 읽을 수 있습니다.', v: { mod: 'protected', from: 'pkg' } },
     { t: 'private을 같은 패키지에서 읽으면', q: '접근 제어자를 private으로 바꾸고 같은 패키지의 다른 클래스 Teller에서 읽으면', d: 'private은 같은 클래스 안에서만 쓸 수 있습니다.', v: { mod: 'private', from: 'pkg' } },
-    { t: '아무것도 쓰지 않은 멤버를 다른 패키지의 자식에서', q: '접근 제어자를 아무것도 쓰지 않음 (패키지 전용) 상태로 바꾸고 다른 패키지의 자식 SavingAccount에서 this.balance로 읽으면', d: '자식 클래스여도 패키지가 다르면 읽을 수 없습니다.', v: { mod: 'package', from: 'subThis' } },
+    { t: '아무것도 쓰지 않은 멤버를 다른 패키지의 자식에서', q: 'balance 앞에 접근 제어자를 쓰지 않고 다른 패키지의 자식 SavingAccount에서 this.balance로 읽으면', d: '자식 클래스여도 패키지가 다르면 읽을 수 없습니다.', v: { mod: 'package', from: 'subThis' } },
     { t: 'protected를 무관한 클래스에서', q: '다른 패키지의 무관한 클래스 Report에서 읽으면', d: '다른 패키지이고 자식도 아니면 읽을 수 없습니다.', v: { mod: 'protected', from: 'other' } },
     { t: 'public이면', q: '접근 제어자를 public으로 바꾸고 다른 패키지의 무관한 클래스 Report에서 읽으면', d: '다른 패키지의 무관한 클래스에서도 읽을 수 있습니다.', v: { mod: 'public', from: 'other' } },
   ],
@@ -24063,12 +24063,12 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'static 없는 인스턴스 내부 클래스를 바깥 객체 없이 안쪽 객체만 만들면 어떻게 되나', d: '내부 클래스를 바깥 객체 없이 만들기. 컴파일 오류가 납니다.', v: { kind: 'inner', use: 'alone', loc: 'keep' } },
-    { t: '바깥 객체로 만들면', q: '해 보려는 것을 바깥 객체를 만들고, 안쪽에서 바깥 필드 name을 읽기로 바꾸면', d: '안쪽 객체가 바깥 객체를 따라가 필드를 읽습니다.', v: { kind: 'inner', use: 'field', loc: 'keep' } },
-    { t: 'static 중첩 클래스', q: '안쪽에 만드는 것을 static 중첩 클래스로 바꾸면', d: '바깥 객체 없이 만들 수 있습니다.', v: { kind: 'nested', use: 'alone', loc: 'keep' } },
-    { t: 'static 중첩 클래스에서 바깥 필드 읽기', q: '안쪽에 만드는 것이 static 중첩 클래스인데 바깥 필드 name을 읽으면', d: '가리키는 바깥 객체가 없어 컴파일 오류가 납니다.', v: { kind: 'nested', use: 'field', loc: 'keep' } },
-    { t: '익명 클래스의 this', q: '안쪽에 만드는 것을 익명 클래스로 바꾸면', d: 'this는 익명 클래스로 만든 객체 자신입니다.', v: { kind: 'anon', use: 'alone', loc: 'keep' } },
-    { t: '람다의 this', q: '안쪽에 만드는 것을 람다로 바꾸면', d: 'this는 람다를 적은 바깥 객체입니다.', v: { kind: 'lambda', use: 'alone', loc: 'keep' } },
-    { t: '지역 변수의 값을 바꾸면', q: '안쪽에 만드는 것이 람다인데 지역 변수 count를 만든 뒤에 count = 2로 바꾸면', d: '람다 안에서 쓰는 지역 변수를 바꾸면 컴파일 오류가 납니다.', v: { kind: 'lambda', use: 'alone', loc: 'change' } },
+    { t: '바깥 객체로 만들면', q: '바깥 객체를 만들고 안쪽에서 바깥 필드 name을 읽으면', d: '안쪽 객체가 바깥 객체를 따라가 필드를 읽습니다.', v: { kind: 'inner', use: 'field', loc: 'keep' } },
+    { t: 'static 중첩 클래스', q: '인스턴스 내부 클래스 대신 static 중첩 클래스를 쓰면', d: '바깥 객체 없이 만들 수 있습니다.', v: { kind: 'nested', use: 'alone', loc: 'keep' } },
+    { t: 'static 중첩 클래스에서 바깥 필드 읽기', q: 'static 중첩 클래스 안에서 바깥 필드 name을 읽으면', d: '가리키는 바깥 객체가 없어 컴파일 오류가 납니다.', v: { kind: 'nested', use: 'field', loc: 'keep' } },
+    { t: '익명 클래스의 this', q: '인스턴스 내부 클래스 대신 익명 클래스를 쓰면', d: 'this는 익명 클래스로 만든 객체 자신입니다.', v: { kind: 'anon', use: 'alone', loc: 'keep' } },
+    { t: '람다의 this', q: '인스턴스 내부 클래스 대신 람다를 쓰면', d: 'this는 람다를 적은 바깥 객체입니다.', v: { kind: 'lambda', use: 'alone', loc: 'keep' } },
+    { t: '지역 변수의 값을 바꾸면', q: '람다 안에서 쓰는 지역 변수 count를 만든 뒤에 count = 2로 바꾸면', d: '람다 안에서 쓰는 지역 변수를 바꾸면 컴파일 오류가 납니다.', v: { kind: 'lambda', use: 'alone', loc: 'change' } },
   ],
   code: function (c) {
     var main = function (body) { return '\n\npublic class Main {\n    public static void main(String[] args) {\n' + body + '    }\n}'; };
@@ -24225,11 +24225,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'String s에 toUpperCase() 메서드를 부르고 돌려준 값을 받지 않으면 s는 어떻게 되나', d: 'toUpperCase()를 불렀는데 s를 출력하면 그대로입니다.', v: { type: 'str', op: 'drop', m: 'upper' } },
-    { t: '돌려준 값을 받으면', q: '하는 일을 돌려준 값을 같은 변수에 다시 넣음으로 바꾸면', d: 's는 새 문자열을 가리키고, 처음 객체는 그대로 남습니다.', v: { type: 'str', op: 'assign', m: 'upper' } },
-    { t: 'concat도 마찬가지', q: '부르는 메서드를 concat("!") 뒤에 이어 붙이기로 바꾸면', d: '이어 붙이는 메서드도 원본을 바꾸지 않습니다.', v: { type: 'str', op: 'drop', m: 'concat' } },
-    { t: '반복문에서 +로 이어 붙이기', q: '하는 일을 반복문에서 세 번 이어 붙임으로 바꾸면', d: '한 번 돌 때마다 s가 새 객체를 가리킵니다.', v: { type: 'str', op: 'loop', m: 'upper' } },
+    { t: '돌려준 값을 받으면', q: '돌려준 값을 같은 변수에 다시 넣으면', d: 's는 새 문자열을 가리키고, 처음 객체는 그대로 남습니다.', v: { type: 'str', op: 'assign', m: 'upper' } },
+    { t: 'concat도 마찬가지', q: 'toUpperCase() 대신 concat("!") 메서드를 부르면', d: '이어 붙이는 메서드도 원본을 바꾸지 않습니다.', v: { type: 'str', op: 'drop', m: 'concat' } },
+    { t: '반복문에서 +로 이어 붙이기', q: '반복문에서 세 번 이어 붙이면', d: '한 번 돌 때마다 s가 새 객체를 가리킵니다.', v: { type: 'str', op: 'loop', m: 'upper' } },
     { t: 'StringBuilder로 이어 붙이기', q: '문자열을 담는 타입을 StringBuilder로 바꾸고 반복문에서 세 번 이어 붙이면', d: '끝까지 객체 하나를 고쳐 씁니다.', v: { type: 'sb', op: 'loop', m: 'upper' } },
-    { t: 'StringBuilder의 append', q: '문자열을 담는 타입을 StringBuilder로 바꾸고 메서드를 부르고 돌려준 값을 받지 않으면', d: '돌려준 값을 받지 않아도 내용이 바뀝니다.', v: { type: 'sb', op: 'drop', m: 'upper' } },
+    { t: 'StringBuilder의 append', q: 'String 대신 StringBuilder에 메서드를 부르고 돌려준 값을 받지 않으면', d: '돌려준 값을 받지 않아도 내용이 바뀝니다.', v: { type: 'sb', op: 'drop', m: 'upper' } },
   ],
   // 설정에 해당하는 메서드 호출 글자와 그 결과
   call: function (c) {
@@ -24347,13 +24347,13 @@ Lab.register({
     { id: 'gap', label: '1월 31일부터 3월 1일까지를 재는 방법', type: 'select', value: 'period', options: [['period', 'Period.between (날짜 간격)'], ['duration', 'Duration.between (시간 간격, 날짜에 0시를 붙여서)'], ['durdate', 'Duration.between에 날짜만 넘기기']], show: function (c) { return c.topic === 'gap'; } },
   ],
   presets: [
-    { t: '처음 설정으로', q: '2024년 1월 31일에 한 달 더하기 plusMonths(1) 호출을 하면 며칠이 되나', d: '1월 31일에 한 달을 더하면 2월의 마지막 날이 됩니다.', v: { topic: 'plus', add: 'month', zone: 'ny', gap: 'period' } },
+    { t: '처음 설정으로', q: '2024년 1월 31일에 plusMonths(1)로 한 달을 더하면 며칠이 되나', d: '1월 31일에 한 달을 더하면 2월의 마지막 날이 됩니다.', v: { topic: 'plus', add: 'month', zone: 'ny', gap: 'period' } },
     { t: '더하고 받지 않으면', q: 'plusMonths(1) 호출을 하고 돌려준 값을 받지 않으면', d: 'plusMonths를 불렀는데 날짜가 그대로입니다.', v: { topic: 'plus', add: 'drop', zone: 'ny', gap: 'period' } },
     { t: '한 달씩 두 번 더하기', q: 'plusMonths(1).plusMonths(1) 호출로 한 달씩 두 번 더하면', d: '3월 31일이 아니라 3월 29일이 됩니다.', v: { topic: 'plus', add: 'twice', zone: 'ny', gap: 'period' } },
     { t: '두 달을 한 번에 더하기', q: 'plusMonths(2) 호출로 두 달을 한 번에 더하면', d: '3월 31일이 됩니다. 한 달씩 두 번 더한 것과 다릅니다.', v: { topic: 'plus', add: 'two', zone: 'ny', gap: 'period' } },
-    { t: '서울의 새해를 뉴욕 시각으로', q: '서울의 2024년 1월 1일 0시 30분을 America/New_York (뉴욕) 시간대로 적으면', d: '같은 순간인데 뉴욕은 아직 전날입니다.', v: { topic: 'zone', add: 'month', zone: 'ny', gap: 'period' } },
-    { t: 'Period로 잰 간격', q: '1월 31일부터 3월 1일까지를 Period.between (날짜 간격) 방식으로 재면', d: '30일이 지났는데 getDays()는 1입니다.', v: { topic: 'gap', add: 'month', zone: 'ny', gap: 'period' } },
-    { t: '날짜만으로 Duration을 재면', q: '1월 31일부터 3월 1일까지를 Duration.between에 날짜만 넘기기로 재면', d: '컴파일은 되지만 실행 중에 예외가 납니다.', v: { topic: 'gap', add: 'month', zone: 'ny', gap: 'durdate' } },
+    { t: '서울의 새해를 뉴욕 시각으로', q: '서울의 2024년 1월 1일 0시 30분을 뉴욕 시간대(America/New_York)로 적으면', d: '같은 순간인데 뉴욕은 아직 전날입니다.', v: { topic: 'zone', add: 'month', zone: 'ny', gap: 'period' } },
+    { t: 'Period로 잰 간격', q: '1월 31일부터 3월 1일까지의 날짜 간격을 Period.between으로 재면', d: '30일이 지났는데 getDays()는 1입니다.', v: { topic: 'gap', add: 'month', zone: 'ny', gap: 'period' } },
+    { t: '날짜만으로 Duration을 재면', q: '1월 31일부터 3월 1일까지를 Duration.between에 날짜만 넘겨서 재면', d: '컴파일은 되지만 실행 중에 예외가 납니다.', v: { topic: 'gap', add: 'month', zone: 'ny', gap: 'durdate' } },
   ],
   // 실제 실행으로 확인한 값: 서울의 2024-01-01 00:30과 같은 순간을 각 시간대로 적은 것
   Z: {
@@ -24535,12 +24535,12 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'name에 "kim" 값이 있고 Optional.ofNullable(name) 호출로 만든 opt를 orElse(makeDefault()) 호출로 꺼내면 어떻게 되나', d: '값이 있는데도 makeDefault()가 실행됩니다.', v: { val: 'kim', make: 'nullable', take: 'orElse' } },
-    { t: 'orElseGet으로 바꾸면', q: '값을 꺼내는 방법을 orElseGet(() -> makeDefault()) 방식으로 바꾸면', d: '값이 있으면 makeDefault()가 실행되지 않습니다.', v: { val: 'kim', make: 'nullable', take: 'orElseGet' } },
+    { t: 'orElseGet으로 바꾸면', q: 'orElse(makeDefault()) 대신 orElseGet(() -> makeDefault()) 방식으로 꺼내면', d: '값이 있으면 makeDefault()가 실행되지 않습니다.', v: { val: 'kim', make: 'nullable', take: 'orElseGet' } },
     { t: 'Optional.of에 null을 넣으면', q: 'name을 null로 바꾸고 Optional.of(name) 호출로 만들면', d: 'Optional을 만드는 순간 NullPointerException이 납니다.', v: { val: 'null', make: 'of', take: 'orElse' } },
-    { t: '비어 있는데 get()', q: 'name이 null인데 값을 꺼내는 방법을 get() 호출로 바꾸면', d: 'null이 아니라 NoSuchElementException이 나옵니다.', v: { val: 'null', make: 'nullable', take: 'get' } },
-    { t: '비어 있을 때의 orElseGet', q: 'name이 null인데 값을 꺼내는 방법을 orElseGet(() -> makeDefault()) 방식으로 바꾸면', d: '이때에만 makeDefault()가 실행됩니다.', v: { val: 'null', make: 'nullable', take: 'orElseGet' } },
-    { t: 'map으로 이어 가기 (값 없음)', q: 'name이 null인데 값을 꺼내는 방법을 map으로 이어 간 뒤 orElse("이름 없음") 방식으로 바꾸면', d: 'null 검사를 하지 않아도 예외 없이 끝까지 갑니다.', v: { val: 'null', make: 'nullable', take: 'map' } },
-    { t: 'map으로 이어 가기 (값 있음)', q: 'name에 "kim" 값이 있는데 값을 꺼내는 방법을 map으로 이어 간 뒤 orElse("이름 없음") 방식으로 바꾸면', d: '값에 함수를 차례로 적용합니다.', v: { val: 'kim', make: 'nullable', take: 'map' } },
+    { t: '비어 있는데 get()', q: 'name이 null인데 get() 호출로 꺼내면', d: 'null이 아니라 NoSuchElementException이 나옵니다.', v: { val: 'null', make: 'nullable', take: 'get' } },
+    { t: '비어 있을 때의 orElseGet', q: 'name이 null인데 orElseGet(() -> makeDefault()) 방식으로 꺼내면', d: '이때에만 makeDefault()가 실행됩니다.', v: { val: 'null', make: 'nullable', take: 'orElseGet' } },
+    { t: 'map으로 이어 가기 (값 없음)', q: 'name이 null인데 map으로 이어 간 뒤 orElse("이름 없음") 방식으로 꺼내면', d: 'null 검사를 하지 않아도 예외 없이 끝까지 갑니다.', v: { val: 'null', make: 'nullable', take: 'map' } },
+    { t: 'map으로 이어 가기 (값 있음)', q: 'name에 "kim" 값이 있는데 map으로 이어 간 뒤 orElse("이름 없음") 방식으로 꺼내면', d: '값에 함수를 차례로 적용합니다.', v: { val: 'kim', make: 'nullable', take: 'map' } },
   ],
   code: function (c) {
     var useMd = c.take === 'orElse' || c.take === 'orElseGet';
@@ -24679,13 +24679,13 @@ Lab.register({
     { id: 'occur', label: '실행할 때 예외가 실제로 발생한다 (파일이 없다)', type: 'check', value: true, hint: '끄면 read(false)로 호출해 예외가 나지 않습니다. 컴파일 결과가 달라지는지 보세요.' },
   ],
   presets: [
-    { t: '처음 설정으로', q: 'read가 IOException (체크 예외) 종류를 던지는데 아무것도 하지 않으면 컴파일되나', d: '체크 예외를 아무 처리 없이 던집니다. 컴파일이 되지 않습니다.', v: { ex: 'io', how: 'none', occur: true } },
-    { t: '언체크 예외는 그냥 컴파일된다', q: 'read 메서드가 던지는 예외를 IllegalStateException (언체크 예외) 쪽으로 바꾸면', d: '같은 코드에서 예외만 바꿉니다. 컴파일은 되고, 실행 중에 프로그램이 멈춥니다.', v: { ex: 'rt', how: 'none', occur: true } },
-    { t: '예외가 나지 않는 경우에도', q: '실행할 때 예외가 실제로 발생한다 (파일이 없다) 설정을 끄면', d: '실행하면 예외가 나지 않을 코드인데도 컴파일 오류입니다.', v: { ex: 'io', how: 'none', occur: false } },
-    { t: 'throws만 붙이면', q: '예외를 처리하는 방식을 read에 throws 선언 (main은 그대로) 쪽으로 바꾸면', d: '오류가 사라지지 않고 read를 부른 main으로 옮겨 갑니다.', v: { ex: 'io', how: 'throws', occur: true } },
-    { t: 'main까지 throws', q: '예외를 처리하는 방식을 read와 main 모두 throws 선언으로 바꾸면', d: '컴파일은 되지만 예외를 잡는 곳이 없어 프로그램이 멈춥니다.', v: { ex: 'io', how: 'throws2', occur: true } },
-    { t: '부른 쪽에서 잡기', q: '예외를 처리하는 방식을 read에 throws 선언, main에서 try-catch로 바꾸면', d: 'read는 던진다고 알리고, main이 잡아서 처리합니다.', v: { ex: 'io', how: 'throwscatch', occur: true } },
-    { t: 'RuntimeException으로 감싸기', q: '예외를 처리하는 방식을 read 안에서 잡아 RuntimeException으로 감싸 다시 던짐 쪽으로 바꾸면', d: 'throws 없이도 컴파일되지만 예외가 사라진 것은 아닙니다.', v: { ex: 'io', how: 'wrap', occur: true } },
+    { t: '처음 설정으로', q: 'read가 체크 예외인 IOException을 던지는데 아무것도 하지 않으면 컴파일되나', d: '체크 예외를 아무 처리 없이 던집니다. 컴파일이 되지 않습니다.', v: { ex: 'io', how: 'none', occur: true } },
+    { t: '언체크 예외는 그냥 컴파일된다', q: 'read가 언체크 예외인 IllegalStateException을 던지면', d: '같은 코드에서 예외만 바꿉니다. 컴파일은 되고, 실행 중에 프로그램이 멈춥니다.', v: { ex: 'rt', how: 'none', occur: true } },
+    { t: '예외가 나지 않는 경우에도', q: '실행할 때 예외가 실제로 발생하지 않으면', d: '실행하면 예외가 나지 않을 코드인데도 컴파일 오류입니다.', v: { ex: 'io', how: 'none', occur: false } },
+    { t: 'throws만 붙이면', q: 'read에 throws를 선언하고 main은 그대로 두면', d: '오류가 사라지지 않고 read를 부른 main으로 옮겨 갑니다.', v: { ex: 'io', how: 'throws', occur: true } },
+    { t: 'main까지 throws', q: 'read와 main 모두 throws를 선언하면', d: '컴파일은 되지만 예외를 잡는 곳이 없어 프로그램이 멈춥니다.', v: { ex: 'io', how: 'throws2', occur: true } },
+    { t: '부른 쪽에서 잡기', q: 'read에는 throws를 선언하고 main에서는 try-catch로 잡으면', d: 'read는 던진다고 알리고, main이 잡아서 처리합니다.', v: { ex: 'io', how: 'throwscatch', occur: true } },
+    { t: 'RuntimeException으로 감싸기', q: 'read 안에서 잡아 RuntimeException으로 감싸 다시 던지면', d: 'throws 없이도 컴파일되지만 예외가 사라진 것은 아닙니다.', v: { ex: 'io', how: 'wrap', occur: true } },
   ],
   typeName: function (c) { return c.ex === 'io' ? 'IOException' : 'IllegalStateException'; },
   code: function (c) {
@@ -24864,7 +24864,7 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '제네릭 없는 List (로 타입) 변수 list에 list.add("삼") 줄로 문자열을 넣으면 어떻게 되나', d: '제네릭 없이 문자열을 넣습니다. 컴파일은 되고, 나중에 꺼낼 때 예외가 납니다.', v: { decl: 'raw', op: 'addStr' } },
-    { t: '제네릭을 쓰면', q: '변수 list의 선언을 List<Integer>로 바꾸면', d: '같은 실수가 컴파일 오류로 미리 잡힙니다.', v: { decl: 'int', op: 'addStr' } },
+    { t: '제네릭을 쓰면', q: '변수 list를 List<Integer>로 선언하면', d: '같은 실수가 컴파일 오류로 미리 잡힙니다.', v: { decl: 'int', op: 'addStr' } },
     { t: 'List<Number>에 대입', q: '변수 list를 List<Number>로 선언하고 list.add(3.5) 줄로 실수를 넣으면', d: 'Integer는 Number의 하위 타입인데도 대입 자체가 컴파일되지 않습니다.', v: { decl: 'num', op: 'addDbl' } },
     { t: '? extends에 넣기', q: '변수 list를 List<? extends Number>로 선언하고 list.add(3) 줄로 정수를 넣으면', d: '꺼낼 수는 있지만 Integer조차 넣을 수 없습니다.', v: { decl: 'ext', op: 'addInt' } },
     { t: '? extends에서 꺼내기', q: '변수 list를 List<? extends Number>로 선언하고 Number n = list.get(0) 줄로 꺼내면', d: 'Number로 꺼내는 것은 됩니다.', v: { decl: 'ext', op: 'get' } },
@@ -25312,7 +25312,7 @@ Lab.register({
     { t: 'HashSet에 작은 정수', q: 'HashSet인데 넣는 값을 작은 정수 3, 1, 2, 1, 5로 바꾸면', d: '정렬해 준 것처럼 보입니다. 넣는 값을 40, 5, 17, 5, 100으로 바꿔 비교해 보세요.', v: { kind: 'hash', data: 'small', shape: 'set' } },
     { t: 'TreeSet에 null', q: 'TreeSet인데 넣는 값을 null이 섞인 문자열 grape, apple, null, apple, fig로 바꾸면', d: '비교할 수 없어 NullPointerException이 납니다.', v: { kind: 'tree', data: 'null', shape: 'set' } },
     { t: 'TreeSet에 직접 만든 객체', q: 'TreeSet인데 넣는 값을 직접 만든 Task 객체(id가 40, 5, 17, 5, 100)로 바꾸면', d: 'Comparable을 구현하지 않은 객체는 ClassCastException이 납니다.', v: { kind: 'tree', data: 'obj', shape: 'set' } },
-    { t: 'LinkedHashMap에 같은 키를 다시', q: 'LinkedHashMap으로 바꾸고 Map(값은 넣은 차례 번호)에 apple을 두 번 넣으면', d: '값만 바뀌고 자리는 처음 넣은 그대로입니다.', v: { kind: 'linked', data: 'words', shape: 'map' } },
+    { t: 'LinkedHashMap에 같은 키를 다시', q: '넣은 차례 번호를 값으로 담는 LinkedHashMap에 apple을 두 번 넣으면', d: '값만 바뀌고 자리는 처음 넣은 그대로입니다.', v: { kind: 'linked', data: 'words', shape: 'map' } },
   ],
   DATA: {
     words: [['s', 'grape'], ['s', 'apple'], ['s', 'date'], ['s', 'apple'], ['s', 'fig']],
@@ -25433,10 +25433,10 @@ Lab.register({
     { t: '처음 설정으로', q: '큰 수(-20억 ~ 20억) 잔액을 a - b로 빼서 비교하는 Comparator로 정렬하면 순서가 어떻게 나오나', d: '빼서 비교하는 Comparator에 큰 수를 넣습니다. 예외 없이 틀린 순서가 나옵니다.', v: { by: 'sub', data: 'big', rev: false } },
     { t: '같은 코드에 작은 수', q: '같은 a - b 비교인데 잔액을 작은 수(100 ~ 300)로 바꾸면', d: '맞게 정렬됩니다. 그래서 테스트에서는 드러나지 않습니다.', v: { by: 'sub', data: 'normal', rev: false } },
     { t: 'comparingInt로 고치면', q: '정렬 기준을 잔액순 comparingInt로 바꾸면', d: '큰 수에서도 맞게 정렬됩니다.', v: { by: 'cmp', data: 'big', rev: false } },
-    { t: 'Comparable이 정한 순서', q: '정렬 기준을 Comparable인 클래스가 정해 둔 순서(이름순)로 바꾸고 잔액을 작은 수(100 ~ 300)로 바꾸면', d: '클래스의 compareTo대로 이름순이 됩니다. 잔액은 보지 않습니다.', v: { by: 'natural', data: 'normal', rev: false } },
+    { t: 'Comparable이 정한 순서', q: '정렬 기준을 클래스가 Comparable로 정해 둔 순서(이름순)로 바꾸고 잔액을 작은 수(100 ~ 300)로 바꾸면', d: '클래스의 compareTo대로 이름순이 됩니다. 잔액은 보지 않습니다.', v: { by: 'natural', data: 'normal', rev: false } },
     { t: '잔액이 같은 사람끼리', q: '잔액이 작은 수(100 ~ 300)인데 comparingInt 잔액순으로 정렬하면 잔액이 같은 사람끼리는 어떤 순서가 되나', d: '잔액순으로 정렬해도 같은 잔액끼리는 원래 순서를 지킵니다.', v: { by: 'cmp', data: 'normal', rev: false } },
-    { t: '같으면 이름순으로', q: '정렬 기준을 잔액순, 같으면 이름순 thenComparing으로 바꾸고 잔액을 작은 수(100 ~ 300)로 바꾸면', d: 'thenComparing으로 두 번째 기준을 줍니다.', v: { by: 'then', data: 'normal', rev: false } },
-    { t: '거꾸로 정렬', q: '잔액순 comparingInt에 잔액을 작은 수(100 ~ 300)로 두고 reversed를 켜면', d: '잔액이 큰 것부터. 잔액이 같은 사람끼리는 여전히 원래 순서입니다.', v: { by: 'cmp', data: 'normal', rev: true } },
+    { t: '같으면 이름순으로', q: '잔액순으로 정렬하되 같으면 이름순이 되도록 thenComparing을 쓰고 잔액을 작은 수(100 ~ 300)로 바꾸면', d: 'thenComparing으로 두 번째 기준을 줍니다.', v: { by: 'then', data: 'normal', rev: false } },
+    { t: '거꾸로 정렬', q: '잔액순 comparingInt에 잔액을 작은 수(100 ~ 300)로 두고 reversed로 거꾸로 정렬하면', d: '잔액이 큰 것부터. 잔액이 같은 사람끼리는 여전히 원래 순서입니다.', v: { by: 'cmp', data: 'normal', rev: true } },
   ],
   DATA: {
     normal: [['park', 300], ['choi', 100], ['kim', 300], ['lee', 100], ['han', 200]],
@@ -25550,11 +25550,11 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: 'Function<String, Integer> 람다를 run에 넘겼고 run이 동작을 2번 부르면 본문은 언제 실행되나', d: '람다를 만든 줄에서는 아무 일도 없고, run이 부를 때마다 본문이 실행됩니다.', v: { fi: 'function', form: 'lambda', calls: '2' } },
     { t: '받기만 하고 부르지 않으면', q: '넘겨받은 쪽(run)이 동작을 0번 부르면', d: '람다를 만들고 넘겼는데도 본문은 한 번도 실행되지 않습니다.', v: { fi: 'function', form: 'lambda', calls: '0' } },
-    { t: '익명 클래스로 쓰면', q: '동작을 쓰는 방식을 람다에서 익명 클래스로 바꾸면', d: '코드는 길어지지만 결과는 람다와 같습니다.', v: { fi: 'function', form: 'anon', calls: '2' } },
-    { t: '메서드 참조로 쓰면', q: '동작을 쓰는 방식을 람다에서 메서드 참조로 바꾸면', d: '이미 있는 메서드를 이름으로 가리킵니다. 결과는 같습니다.', v: { fi: 'function', form: 'ref', calls: '2' } },
-    { t: 'Supplier를 넘겨 두고 나중에 get', q: '함수형 인터페이스를 Supplier<String> 쪽으로 바꾸고 run이 동작을 1번 부르면', d: '값을 만드는 일을 미뤄 두었다가 필요할 때 실행합니다.', v: { fi: 'supplier', form: 'lambda', calls: '1' } },
-    { t: 'Predicate', q: '함수형 인터페이스를 Predicate<String> 쪽으로 바꾸면', d: '조건 검사를 넘깁니다. true 또는 false가 돌아옵니다.', v: { fi: 'predicate', form: 'lambda', calls: '2' } },
-    { t: 'Consumer', q: '함수형 인터페이스를 Consumer<String> 쪽으로 바꾸면', d: '값을 받아 쓰기만 하고 돌려주는 것이 없습니다.', v: { fi: 'consumer', form: 'lambda', calls: '2' } },
+    { t: '익명 클래스로 쓰면', q: '람다 대신 익명 클래스로 쓰면', d: '코드는 길어지지만 결과는 람다와 같습니다.', v: { fi: 'function', form: 'anon', calls: '2' } },
+    { t: '메서드 참조로 쓰면', q: '람다 대신 메서드 참조로 쓰면', d: '이미 있는 메서드를 이름으로 가리킵니다. 결과는 같습니다.', v: { fi: 'function', form: 'ref', calls: '2' } },
+    { t: 'Supplier를 넘겨 두고 나중에 get', q: 'Supplier<String> 람다를 run에 넘기고 run이 동작을 1번 부르면', d: '값을 만드는 일을 미뤄 두었다가 필요할 때 실행합니다.', v: { fi: 'supplier', form: 'lambda', calls: '1' } },
+    { t: 'Predicate', q: 'Predicate<String> 람다를 run에 넘기면', d: '조건 검사를 넘깁니다. true 또는 false가 돌아옵니다.', v: { fi: 'predicate', form: 'lambda', calls: '2' } },
+    { t: 'Consumer', q: 'Consumer<String> 람다를 run에 넘기면', d: '값을 받아 쓰기만 하고 돌려주는 것이 없습니다.', v: { fi: 'consumer', form: 'lambda', calls: '2' } },
   ],
   // 인터페이스마다: 타입, 변수 이름, 부르는 메서드, 본문이 되는 메서드, 받는 것, 돌려주는 것, 부를 때 넘기는 값, 돌려받는 값
   FI: {
@@ -25649,11 +25649,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'kim 2건, han 2건, choi 1건인 주문을 toMap(고객, 가격) 방식으로 모으면 어떻게 되나', d: 'toMap에 같은 고객이 두 번 나옵니다. IllegalStateException이 납니다.', v: { how: 'toMap', data: 'dup' } },
-    { t: '병합 함수를 주면', q: '모으는 방법을 toMap(고객, 가격, 병합 함수) 방식으로 바꾸면', d: '같은 키의 값을 더해서 하나로 만듭니다.', v: { how: 'toMapMerge', data: 'dup' } },
-    { t: 'toList로 모으기', q: '모으는 방법을 toList() 방식으로 바꾸면', d: '흘러나온 순서 그대로 List에 담습니다.', v: { how: 'toList', data: 'dup' } },
-    { t: 'groupingBy로 묶기', q: '모으는 방법을 groupingBy(고객) 방식으로 바꾸면', d: '고객별로 주문 목록이 만들어집니다.', v: { how: 'group', data: 'dup' } },
-    { t: '묶어서 개수 세기', q: '모으는 방법을 groupingBy(고객, counting()) 방식으로 바꾸면', d: '목록 대신 개수만 남깁니다. 값의 타입이 Long입니다.', v: { how: 'count', data: 'dup' } },
-    { t: 'partitioningBy로 둘로 나누기', q: '모으는 방법을 partitioningBy(가격 >= 300) 방식으로 바꾸면', d: '조건이 true인 것과 false인 것으로 나눕니다.', v: { how: 'part', data: 'dup' } },
+    { t: '병합 함수를 주면', q: 'toMap(고객, 가격, 병합 함수) 방식으로 모으면', d: '같은 키의 값을 더해서 하나로 만듭니다.', v: { how: 'toMapMerge', data: 'dup' } },
+    { t: 'toList로 모으기', q: 'toList() 방식으로 모으면', d: '흘러나온 순서 그대로 List에 담습니다.', v: { how: 'toList', data: 'dup' } },
+    { t: 'groupingBy로 묶기', q: 'groupingBy(고객) 방식으로 모으면', d: '고객별로 주문 목록이 만들어집니다.', v: { how: 'group', data: 'dup' } },
+    { t: '묶어서 개수 세기', q: 'groupingBy(고객, counting()) 방식으로 모으면', d: '목록 대신 개수만 남깁니다. 값의 타입이 Long입니다.', v: { how: 'count', data: 'dup' } },
+    { t: 'partitioningBy로 둘로 나누기', q: 'partitioningBy(가격 >= 300) 방식으로 모으면', d: '조건이 true인 것과 false인 것으로 나눕니다.', v: { how: 'part', data: 'dup' } },
     { t: '주문이 없을 때 둘로 나누기', q: 'partitioningBy(가격 >= 300) 방식인데 주문 목록이 하나도 없으면', d: '원소가 없어도 false와 true 두 칸은 항상 있습니다.', v: { how: 'part', data: 'empty' } },
   ],
   DATA: {
@@ -25780,12 +25780,12 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'Thread.sleep(1000) 작업을 t.run() 직접 호출로 실행하면 어느 스레드가 실행하고 t는 어떤 상태가 되나', d: 'run()을 직접 호출. 작업은 실행되지만 실행한 스레드는 main이고, t는 끝까지 NEW입니다.', v: { call: 'run', work: 'sleep', intr: false } },
-    { t: 'start()로 시작', q: '스레드를 실행시키는 방법을 t.start() 호출로 바꾸면', d: '새 스레드 worker가 작업을 실행하고, 쉬는 동안 TIMED_WAITING입니다.', v: { call: 'start', work: 'sleep', intr: false } },
-    { t: 'join으로 기다리는 스레드', q: 't.start() 호출인데 작업이 helper.join() 호출로 다른 스레드가 끝나기를 기다리는 것이면', d: '다른 스레드가 끝나기를 기한 없이 기다리면 WAITING입니다.', v: { call: 'start', work: 'join', intr: false } },
-    { t: 'lock을 기다리는 스레드', q: 't.start() 호출인데 작업이 main이 쥐고 있는 lock을 얻는 것이면', d: '다른 스레드가 쥔 lock 앞에서 막히면 BLOCKED입니다.', v: { call: 'start', work: 'lock', intr: false } },
-    { t: '쉬는 스레드에 interrupt', q: 't.start() 호출인데 쉬는 동안 main이 t.interrupt() 호출을 넣으면', d: 'sleep이 InterruptedException을 던지며 바로 깨어납니다.', v: { call: 'start', work: 'sleep', intr: true } },
-    { t: 'lock을 기다리는 스레드에 interrupt', q: 'main이 쥐고 있는 lock을 얻는 작업인데 main이 t.interrupt() 호출을 넣으면', d: '깨어나지 않습니다. 표시만 남습니다.', v: { call: 'start', work: 'lock', intr: true } },
-    { t: '끝난 스레드를 다시 start()', q: '이름만 출력하고 바로 끝나는 작업에 t.start() 뒤, 끝나고 나서 한 번 더 t.start() 호출을 넣으면', d: 'IllegalThreadStateException이 발생합니다.', v: { call: 'twice', work: 'quick', intr: false } },
+    { t: 'start()로 시작', q: 't.run() 직접 호출 대신 t.start()를 호출하면', d: '새 스레드 worker가 작업을 실행하고, 쉬는 동안 TIMED_WAITING입니다.', v: { call: 'start', work: 'sleep', intr: false } },
+    { t: 'join으로 기다리는 스레드', q: 't.start()로 시작했는데 작업이 helper.join()으로 다른 스레드가 끝나기를 기다리면', d: '다른 스레드가 끝나기를 기한 없이 기다리면 WAITING입니다.', v: { call: 'start', work: 'join', intr: false } },
+    { t: 'lock을 기다리는 스레드', q: 't.start()로 시작했는데 작업이 main이 쥐고 있는 lock을 얻으려 하면', d: '다른 스레드가 쥔 lock 앞에서 막히면 BLOCKED입니다.', v: { call: 'start', work: 'lock', intr: false } },
+    { t: '쉬는 스레드에 interrupt', q: 't.start()로 시작했는데 쉬는 동안 main이 t.interrupt()를 호출하면', d: 'sleep이 InterruptedException을 던지며 바로 깨어납니다.', v: { call: 'start', work: 'sleep', intr: true } },
+    { t: 'lock을 기다리는 스레드에 interrupt', q: 'main이 쥐고 있는 lock을 얻으려는 작업인데 main이 t.interrupt()를 호출하면', d: '깨어나지 않습니다. 표시만 남습니다.', v: { call: 'start', work: 'lock', intr: true } },
+    { t: '끝난 스레드를 다시 start()', q: '이름만 출력하고 바로 끝나는 작업을 t.start()로 실행한 뒤, 끝나고 나서 한 번 더 t.start()를 호출하면', d: 'IllegalThreadStateException이 발생합니다.', v: { call: 'twice', work: 'quick', intr: false } },
   ],
   code: function (c) {
     var W = c.work, s = '';

@@ -15,7 +15,7 @@ Lab.register({
     { t: '다대다', q: '회원과 상품의 관계를 @ManyToMany로 바꾸면', d: '가운데에 연결 테이블 member_product가 자동으로 생깁니다.', v: { rel: 'm2m', fk: 'main', n: 2 } },
     { t: '일대일: 외래 키를 회원 테이블에', q: '회원과 사물함을 @OneToOne으로 바꾸고 외래 키를 회원 테이블 member.locker_id에 두면', d: 'member.locker_id에 외래 키와 유니크 제약이 생깁니다.', v: { rel: 'o2o', fk: 'main', n: 2 } },
     { t: '일대일: 외래 키를 사물함 테이블에', q: '@OneToOne 회원과 사물함인데 외래 키를 사물함 테이블 locker.member_id에 두면', d: '외래 키가 locker.member_id로 옮겨 갑니다.', v: { rel: 'o2o', fk: 'target', n: 2 } },
-    { t: '일대다에서 회원이 3명이면', q: '일대다 단방향에서 함께 저장할 상대의 수를 3개로 늘리면', d: 'UPDATE도 3번으로 늘어납니다.', v: { rel: 'o2m', fk: 'main', n: 3 } },
+    { t: '일대다에서 회원이 3명이면', q: '일대다 단방향에서 회원 3명을 함께 저장하면', d: 'UPDATE도 3번으로 늘어납니다.', v: { rel: 'o2m', fk: 'main', n: 3 } },
   ],
   // 관계의 종류마다 테이블, 외래 키, 엔티티 코드, 저장 코드를 정해 둔 것
   spec: function (c) {

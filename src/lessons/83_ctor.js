@@ -12,8 +12,8 @@ Lab.register({
     { t: '처음 설정으로', q: 'Order() 생성자가 this(1) 호출로 Order(int extra) 생성자를 부를 때 new Order() 호출은 어떤 순서로 일어나나', d: 'Order()가 this(1)로 다른 생성자를 먼저 부릅니다. 출력은 21, 기본입니다.', v: { ctors: 'chain', call: 'noarg', first: 'field' } },
     { t: '생성자를 하나도 적지 않으면', q: 'Order 클래스에 생성자를 하나도 적지 않으면', d: '컴파일러가 기본 생성자를 넣어 줍니다. memo는 null로 남습니다.', v: { ctors: 'none', call: 'noarg', first: 'field' } },
     { t: '인자 있는 생성자만 적고 new Order()', q: '생성자를 Order(int extra) 하나만 적고 new Order() 호출을 하면', d: '기본 생성자가 생기지 않아 컴파일 오류입니다.', v: { ctors: 'arg', call: 'noarg', first: 'field' } },
-    { t: '초기화 블록을 위에 적으면', q: '생성자를 Order() 하나, Order(int extra) 하나로 두고 더 위에 적은 것을 초기화 블록 { qty = 20; } 쪽으로 바꾸면', d: '초기화식이 나중에 실행되어 qty가 10이 됩니다.', v: { ctors: 'both', call: 'noarg', first: 'block' } },
-    { t: 'new Order(3)', q: '생성자를 Order() 하나, Order(int extra) 하나로 두고 객체를 new Order(3) 호출로 만들면', d: '인자에 맞는 생성자 Order(int extra)가 선택됩니다.', v: { ctors: 'both', call: 'arg', first: 'field' } },
+    { t: '초기화 블록을 위에 적으면', q: '생성자를 Order()와 Order(int extra) 둘 다 적고 int qty = 10 대신 초기화 블록 { qty = 20; }을 위에 적으면', d: '초기화식이 나중에 실행되어 qty가 10이 됩니다.', v: { ctors: 'both', call: 'noarg', first: 'block' } },
+    { t: 'new Order(3)', q: '생성자를 Order()와 Order(int extra) 둘 다 적고 new Order(3) 호출로 객체를 만들면', d: '인자에 맞는 생성자 Order(int extra)가 선택됩니다.', v: { ctors: 'both', call: 'arg', first: 'field' } },
     { t: '생성자가 없는데 new Order(3)', q: '생성자를 하나도 적지 않고 new Order(3) 호출로 만들면', d: '기본 생성자는 인자를 받지 않으므로 컴파일 오류입니다.', v: { ctors: 'none', call: 'arg', first: 'field' } },
   ],
   code: function (c) {

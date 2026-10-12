@@ -24,7 +24,7 @@ Lab.register({
   num: function (x) { return String(Math.round(x)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); },
   columns: ['선택된 방법', '읽은 행', '결과 행', '버린 행', '상대 비용'],
   simulate: function (c) {
-    var N = +c.rows, matched = Math.max(1, Math.round(N * (+c.sel) / 100)), W = 4, h = Math.max(1, Math.ceil(Math.log(N) / Math.log(500))), num = this.num, ev = [];
+    var N = +c.rows, matched = Math.max(1, Math.round(N * (+c.sel) / 100)), W = 4, h = Math.max(1, Math.ceil(Math.log(N) / Math.log(500))), num = this.num, ev = []; var J = function (v, a, b) { var s = String(v), ch = s.charCodeAt(s.length - 1), k = ch >= 0xAC00 && ch <= 0xD7A3 ? (ch - 0xAC00) % 28 : [1, 8, 0, 1, 0, 0, 1, 8, 8, 0]['0123456789'.indexOf(s.slice(-1))] || 0; return s + (a === '으로' ? (k && k !== 8 ? a : b) : k ? a : b); };   // 값 뒤에 붙일 조사를 고른다
     var costFull = N, costIdx = matched * W + h, useIdx = c.idx && (c.force || costIdx < costFull), plan = useIdx ? 'index' : 'full';
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
     push('쿼리가 도착했습니다. 옵티마이저가 실행 방법을 정하려고 통계 정보를 봅니다. 테이블은 약 ' + num(N) + '행이고, status = \'CANCELED\' 조건에는 약 ' + num(matched) + '행(' + c.sel + '%)이 걸릴 것으로 예상합니다.', '', 1);
@@ -40,7 +40,7 @@ Lab.register({
       push('테이블의 첫 행부터 마지막 행까지 ' + num(N) + '행을 모두 읽습니다. 행마다 status를 확인해 ' + num(matched) + '행만 남기고 ' + num(N - matched) + '행은 읽고 나서 버립니다.', c.idx ? '' : 'bad', 6);
     }
     var read = useIdx ? matched : N, cost = useIdx ? costIdx : costFull, sum = [];
-    if (!c.idx) sum.push('인덱스가 없으면 결과가 몇 건이든 테이블 전체를 읽어야 합니다. 행이 10배가 되면 읽는 양도 10배가 됩니다. 인덱스가 있었다면 예상 비용은 ' + num(costIdx) + '로 ' + (costIdx < costFull ? '풀 스캔의 약 ' + (Math.round(costFull / costIdx) >= 2 ? Math.round(costFull / costIdx) + '분의 1' : '절반 수준') + '이었을 것입니다.' : '오히려 풀 스캔보다 비쌌을 것입니다. 이 조건에는 인덱스가 도움이 되지 않습니다.'));
+    if (!c.idx) sum.push('인덱스가 없으면 결과가 몇 건이든 테이블 전체를 읽어야 합니다. 행이 10배가 되면 읽는 양도 10배가 됩니다. 인덱스가 있었다면 예상 비용은 ' + J(num(costIdx), '으로', '로') + ' ' + (costIdx < costFull ? '풀 스캔의 약 ' + (Math.round(costFull / costIdx) >= 2 ? Math.round(costFull / costIdx) + '분의 1' : '절반 수준') + '이었을 것입니다.' : '오히려 풀 스캔보다 비쌌을 것입니다. 이 조건에는 인덱스가 도움이 되지 않습니다.'));
     else if (useIdx && !(c.force && costIdx >= costFull)) sum.push('조건에 걸리는 비율이 낮을수록(선택도가 좋을수록) 인덱스의 효과가 큽니다. 풀 스캔이었다면 비용은 ' + num(costFull) + '로 약 ' + Math.max(1, Math.round(costFull / costIdx)) + '배였습니다.');
     else if (useIdx) sum.push('인덱스를 강제했더니 비용이 ' + num(costIdx) + '로, 풀 스캔(' + num(costFull) + ')보다 비쌉니다. 옵티마이저의 판단이 맞았습니다. 힌트는 통계가 틀렸다는 근거가 있을 때만 씁니다.');
     else sum.push('조건에 걸리는 행이 너무 많으면, 한 건씩 찾아가는 비용의 합이 전체를 순서대로 읽는 비용을 넘습니다. 그래서 인덱스가 있어도 풀 스캔이 선택됩니다. 성별이나 상태값처럼 값의 종류가 적은 컬럼 하나만으로는 인덱스 효과가 작은 이유입니다.');

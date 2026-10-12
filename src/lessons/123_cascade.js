@@ -14,8 +14,8 @@ Lab.register({
     { t: 'cascade 없이 게시글 삭제', q: 'cascade를 적지 않은 채 이미 댓글 둘이 있는 게시글을 remove하면', d: '댓글이 게시글을 가리키고 있어서 DB가 삭제를 거절합니다.', v: { act: 'remove', cas: 'none', orphan: false } },
     { t: 'CascadeType.REMOVE로 삭제', q: 'cascade를 CascadeType.REMOVE로 두고 게시글을 remove하면', d: '댓글을 먼저 지우고 게시글을 지웁니다.', v: { act: 'remove', cas: 'REMOVE', orphan: false } },
     { t: 'ALL인데 목록에서 빼기만 하면', q: 'CascadeType.ALL인데 댓글 목록에서 댓글 하나를 빼기만 하면', d: 'CascadeType.ALL이어도 DELETE가 나가지 않습니다.', v: { act: 'orphan', cas: 'ALL', orphan: false } },
-    { t: 'orphanRemoval = true', q: 'CascadeType.ALL에 orphanRemoval = true를 켜고 댓글 목록에서 댓글 하나를 빼면', d: '목록에서 뺀 댓글에 DELETE가 나갑니다.', v: { act: 'orphan', cas: 'ALL', orphan: true } },
-    { t: 'orphanRemoval만 켜고 게시글 삭제', q: 'cascade는 적지 않고 orphanRemoval = true만 켠 채 게시글을 remove하면', d: 'cascade를 적지 않았는데도 댓글이 함께 지워집니다.', v: { act: 'remove', cas: 'none', orphan: true } },
+    { t: 'orphanRemoval = true', q: 'CascadeType.ALL에 orphanRemoval = true를 주고 댓글 목록에서 댓글 하나를 빼면', d: '목록에서 뺀 댓글에 DELETE가 나갑니다.', v: { act: 'orphan', cas: 'ALL', orphan: true } },
+    { t: 'orphanRemoval만 켜고 게시글 삭제', q: 'cascade는 적지 않고 orphanRemoval = true만 준 채 게시글을 remove하면', d: 'cascade를 적지 않았는데도 댓글이 함께 지워집니다.', v: { act: 'remove', cas: 'none', orphan: true } },
   ],
   code: function (c) {
     var opt = 'mappedBy = "post"' + (c.cas !== 'none' ? ', cascade = CascadeType.' + c.cas : '') + (c.orphan ? ', orphanRemoval = true' : '');

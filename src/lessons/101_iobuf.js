@@ -12,11 +12,11 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: 'BufferedOutputStream으로 감싼 스트림에 write를 9번 하고 닫지 않으면 파일은 어떻게 되나', d: '버퍼로 감싸고 닫지 않음. write를 9번 했는데 파일은 0바이트입니다.', v: { buf: 'buf', end: 'none', fail: false, read: 'char' } },
     { t: 'close로 닫으면', q: '다 쓴 뒤에 out.close 호출을 추가하면', d: '버퍼에 모인 9바이트가 한 번에 내려가 파일에 쓰입니다.', v: { buf: 'buf', end: 'close', fail: false, read: 'char' } },
-    { t: '버퍼 없이 쓰면', q: '쓰는 스트림을 버퍼 없이 바로 쓰기로 바꾸면', d: 'write 9번이 그대로 아래로 9번 내려갑니다.', v: { buf: 'raw', end: 'none', fail: false, read: 'char' } },
-    { t: '버퍼가 4바이트라면', q: '쓰는 스트림을 버퍼 4바이트인 BufferedOutputStream으로 바꾸면', d: '가득 찰 때마다 내려가고, 닫지 않으면 마지막 1바이트가 남습니다.', v: { buf: 'buf4', end: 'none', fail: false, read: 'char' } },
+    { t: '버퍼 없이 쓰면', q: '버퍼 없이 바로 쓰면', d: 'write 9번이 그대로 아래로 9번 내려갑니다.', v: { buf: 'raw', end: 'none', fail: false, read: 'char' } },
+    { t: '버퍼가 4바이트라면', q: '버퍼가 4바이트인 BufferedOutputStream으로 감싸 쓰면', d: '가득 찰 때마다 내려가고, 닫지 않으면 마지막 1바이트가 남습니다.', v: { buf: 'buf4', end: 'none', fail: false, read: 'char' } },
     { t: 'close 전에 예외가 나면', q: '다 쓴 뒤 out.close 호출을 하는데 쓰기를 마친 직후 닫기 전에 예외가 발생하면', d: 'close가 실행되지 못해 파일이 비어 있습니다.', v: { buf: 'buf', end: 'close', fail: true, read: 'char' } },
-    { t: 'try-with-resources라면', q: '다 쓴 뒤에 하는 일을 try-with-resources로 바꾸고 닫기 전에 예외가 발생하면', d: '예외가 나도 자동으로 닫혀 데이터가 파일에 쓰입니다.', v: { buf: 'buf', end: 'twr', fail: true, read: 'char' } },
-    { t: '바이트 하나를 글자 하나로 읽으면', q: '다 쓴 뒤 out.close 호출을 하고 파일을 바이트 스트림으로 한 바이트씩 읽어 글자로 바꾸면', d: '한글 세 글자가 깨진 글자 아홉 개가 됩니다.', v: { buf: 'buf', end: 'close', fail: false, read: 'byte' } },
+    { t: 'try-with-resources라면', q: 'try-with-resources로 쓰는데, 쓰기를 마친 직후 닫기 전에 예외가 발생하면', d: '예외가 나도 자동으로 닫혀 데이터가 파일에 쓰입니다.', v: { buf: 'buf', end: 'twr', fail: true, read: 'char' } },
+    { t: '바이트 하나를 글자 하나로 읽으면', q: 'out.close로 닫은 뒤, 파일을 바이트 스트림으로 한 바이트씩 읽어 글자로 바꾸면', d: '한글 세 글자가 깨진 글자 아홉 개가 됩니다.', v: { buf: 'buf', end: 'close', fail: false, read: 'byte' } },
   ],
   code: function (c) {
     var wrap = { raw: 'OutputStream out = counting;                                // 버퍼 없이 바로', buf: 'OutputStream out = new BufferedOutputStream(counting);     // 버퍼로 감싼다', buf4: 'OutputStream out = new BufferedOutputStream(counting, 4);  // 4바이트짜리 버퍼' }[c.buf];

@@ -10,12 +10,12 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: '90점 둘, 70점 둘로 동점이 있는 점수에 RANK() 순위를 붙이면 행이 어떻게 되나', d: 'RANK. 90점이 두 명이면 둘 다 1위이고 2위는 없습니다.', v: { fn: 'rank', part: false, tie: 'yes' } },
-    { t: 'DENSE_RANK로 바꾸면', q: '계산 방법을 DENSE_RANK() 순위로 바꾸면', d: '동점 다음 순위를 건너뛰지 않습니다.', v: { fn: 'dense', part: false, tie: 'yes' } },
-    { t: 'ROW_NUMBER로 바꾸면', q: '계산 방법을 ROW_NUMBER() 줄 번호로 바꾸면', d: '동점이어도 번호가 겹치지 않습니다.', v: { fn: 'rownum', part: false, tie: 'yes' } },
+    { t: 'DENSE_RANK로 바꾸면', q: 'RANK() 대신 DENSE_RANK()로 순위를 붙이면', d: '동점 다음 순위를 건너뛰지 않습니다.', v: { fn: 'dense', part: false, tie: 'yes' } },
+    { t: 'ROW_NUMBER로 바꾸면', q: 'RANK() 대신 ROW_NUMBER()로 줄 번호를 붙이면', d: '동점이어도 번호가 겹치지 않습니다.', v: { fn: 'rownum', part: false, tie: 'yes' } },
     { t: 'GROUP BY와 비교', q: 'RANK() 순위 대신 GROUP BY로 합계를 내고 팀별로 따로 계산하면', d: '6행이 팀별 2행으로 줄고 이름이 사라집니다.', v: { fn: 'group', part: true, tie: 'yes' } },
     { t: '팀별 순위', q: 'RANK() 순위를 팀별로 따로 계산하면', d: 'PARTITION BY team. 팀마다 1위부터 다시 매깁니다.', v: { fn: 'rank', part: true, tie: 'yes' } },
-    { t: '누계인데 동점이 있으면', q: '계산 방법을 SUM(pts) OVER 누계로 바꾸면', d: '동점인 두 행의 누계가 같게 나옵니다.', v: { fn: 'sum', part: false, tie: 'yes' } },
-    { t: '앞 행의 값 가져오기', q: 'LAG(pts) 앞 행의 값을 동점이 없는 점수 데이터에서 팀별로 따로 계산하면', d: 'LAG. 팀의 첫 행은 앞 행이 없어 NULL입니다.', v: { fn: 'lag', part: true, tie: 'no' } },
+    { t: '누계인데 동점이 있으면', q: 'RANK() 대신 SUM(pts) OVER로 누계를 구하면', d: '동점인 두 행의 누계가 같게 나옵니다.', v: { fn: 'sum', part: false, tie: 'yes' } },
+    { t: '앞 행의 값 가져오기', q: '동점이 없는 점수 데이터에서 LAG(pts)로 앞 행의 값을 팀별로 따로 가져오면', d: 'LAG. 팀의 첫 행은 앞 행이 없어 NULL입니다.', v: { fn: 'lag', part: true, tie: 'no' } },
   ],
   FN: { rownum: ['ROW_NUMBER()', 'num'], rank: ['RANK()', 'rnk'], dense: ['DENSE_RANK()', 'rnk'], sum: ['SUM(pts)', 'running'], lag: ['LAG(pts)', 'prev'] },
   rowsOf: function (c) {

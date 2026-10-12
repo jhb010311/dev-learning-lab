@@ -14,7 +14,7 @@ Lab.register({
     { t: 'SQL에 오타가 있으면', q: 'JdbcTemplate으로 바꾸고 SQL의 컬럼 이름에 오타가 있는 조회를 하면', d: 'BadSqlGrammarException으로 바뀝니다.', v: { how: 'tmpl', op: 'bad' } },
     { t: 'queryForObject의 결과가 0건', q: 'JdbcTemplate의 queryForObject로 결과가 0건인 조회를 하면', d: 'null이 아니라 예외가 나옵니다.', v: { how: 'tmpl', op: 'zero' } },
     { t: '결과가 2건인데 JDBC 직접', q: 'JDBC를 직접 쓰는 채로 결과가 2건인 조회를 하면', d: '첫 행만 돌려주고 2건이었다는 사실은 사라집니다.', v: { how: 'plain', op: 'two' } },
-    { t: '결과가 2건인 queryForObject', q: '결과가 2건인 조회인데 JdbcTemplate의 queryForObject로 바꾸면', d: '바로 위와 비교해 보세요. 예외로 알려 줍니다.', v: { how: 'tmpl', op: 'two' } },
+    { t: '결과가 2건인 queryForObject', q: '결과가 2건인 조회를 JdbcTemplate의 queryForObject로 하면', d: '바로 위와 비교해 보세요. 예외로 알려 줍니다.', v: { how: 'tmpl', op: 'two' } },
   ],
   code: function (c) {
     var q = c.op === 'one' || c.op === 'zero' || c.op === 'two' || c.op === 'bad', city = { one: '부산', zero: '제주', two: '서울', bad: '부산' }[c.op];

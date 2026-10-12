@@ -10,11 +10,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'Animal a 변수에 new Dog() 객체를 넣고 a.sound() 호출을 하면 어느 메서드가 실행되나', d: 'Animal 변수에 Dog 객체. 오버라이딩된 메서드는 Dog 것이 실행됩니다.', v: { v: 'Animal', o: 'Dog', w: 'override' } },
-    { t: '같은 변수를 오버로딩 메서드에 넘기면', q: '같은 변수를 오버로딩된 메서드에 printer.print(a) 인자로 넘기면', d: '실제 객체가 Dog인데도 print(Animal)이 선택됩니다.', v: { v: 'Animal', o: 'Dog', w: 'overload' } },
-    { t: 'static 메서드는', q: 'static 메서드를 a.info() 호출로 바꾸면', d: '오버라이딩되지 않습니다. 선언 타입의 것이 불립니다.', v: { v: 'Animal', o: 'Dog', w: 'static' } },
+    { t: '같은 변수를 오버로딩 메서드에 넘기면', q: '같은 변수를 오버로딩된 메서드 printer.print(a)의 인자로 넘기면', d: '실제 객체가 Dog인데도 print(Animal)이 선택됩니다.', v: { v: 'Animal', o: 'Dog', w: 'overload' } },
+    { t: 'static 메서드는', q: '그 변수로 static 메서드 a.info()를 호출하면', d: '오버라이딩되지 않습니다. 선언 타입의 것이 불립니다.', v: { v: 'Animal', o: 'Dog', w: 'static' } },
     { t: '필드는', q: '필드 a.name을 읽으면', d: '필드도 다형성이 적용되지 않습니다.', v: { v: 'Animal', o: 'Dog', w: 'field' } },
-    { t: '선언 타입을 Dog로 바꾸면', q: '변수의 선언 타입을 Dog a로 바꾸고 printer.print(a) 인자로 넘기면', d: '오버로딩에서 print(Dog)가 선택됩니다.', v: { v: 'Dog', o: 'Dog', w: 'overload' } },
-    { t: 'Dog 변수에 Animal 객체', q: '선언 타입을 Dog a로 바꾸고 실제로 넣는 객체를 new Animal() 객체로 바꾸면', d: '컴파일되지 않습니다.', v: { v: 'Dog', o: 'Animal', w: 'override' } },
+    { t: '선언 타입을 Dog로 바꾸면', q: '변수의 선언 타입을 Dog a로 바꾸고 오버로딩된 메서드 printer.print(a)의 인자로 넘기면', d: '오버로딩에서 print(Dog)가 선택됩니다.', v: { v: 'Dog', o: 'Dog', w: 'overload' } },
+    { t: 'Dog 변수에 Animal 객체', q: 'Dog a 변수에 new Animal() 객체를 넣으면', d: '컴파일되지 않습니다.', v: { v: 'Dog', o: 'Animal', w: 'override' } },
   ],
   code: function (c) {
     var use = { override: 'a.sound();', overload: 'new Printer().print(a);', static: 'a.info();          // 권장하지 않는 호출 방식', field: 'System.out.println(a.name);' }[c.w];

@@ -14,7 +14,7 @@ Lab.register({
     { t: 'defaultValue가 있어도 글자는 400', q: '@RequestParam(defaultValue = "1") int qty로 받는데 GET /orders?qty=abc 요청을 보내면', d: '기본값은 값이 없을 때만 쓰입니다. 잘못된 값을 대신해 주지는 않습니다.', v: { how: 'def', req: 'qabc' } },
     { t: '경로에서 꺼내기', q: '받는 방법을 @PathVariable int qty로, 요청을 GET /orders/3으로 바꾸면', d: '/orders/3의 3이 @PathVariable 파라미터가 됩니다.', v: { how: 'path', req: 'p3' } },
     { t: '객체로 받으면 값이 없어도 통과', q: '받는 방법을 @ModelAttribute OrderForm form으로 바꾸고 GET /orders로 값을 보내지 않으면', d: '@ModelAttribute는 없는 값을 오류로 보지 않습니다. qty가 0으로 남습니다.', v: { how: 'model', req: 'none' } },
-    { t: '폼 본문은 @RequestParam으로도', q: '@RequestParam int qty인데 요청을 POST /orders, 폼 본문 qty=3으로 바꾸면', d: '폼 형식의 본문은 쿼리 스트링과 같은 "요청 파라미터"입니다.', v: { how: 'param', req: 'f3' } },
+    { t: '폼 본문은 @RequestParam으로도', q: '@RequestParam int qty로 받는데 POST /orders로 폼 본문 qty=3을 보내면', d: '폼 형식의 본문은 쿼리 스트링과 같은 "요청 파라미터"입니다.', v: { how: 'param', req: 'f3' } },
   ],
   REQS: {
     q3: { m: 'GET', path: '/orders', query: 'qty=3', ct: '', body: '', where: 'query', val: '3' },
