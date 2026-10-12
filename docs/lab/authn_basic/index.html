@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>인증과 인가: 인증과 인가는 어떻게 다른가 · 개발 학습 실습실</title>
+<meta name="description" content="인증과 인가는 서버가 요청을 받았을 때 하는 두 가지 확인입니다. 인증은 요청을 보낸 사람이 누구인지 확인하는 것(아이디와 비밀번호가 맞는지)이고, 인가는 그 사람이 이 일을 해도 되는지 확인하는 것(권한이 있는지)입니다. 순서는 인증이 먼저입니다. 이 확인은 컨트롤러의 코드…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/authn_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/authn_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/authn_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="인증과 인가: 인증과 인가는 어떻게 다른가 · 개발 학습 실습실">
+<meta property="og:description" content="인증과 인가는 서버가 요청을 받았을 때 하는 두 가지 확인입니다. 인증은 요청을 보낸 사람이 누구인지 확인하는 것(아이디와 비밀번호가 맞는지)이고, 인가는 그 사람이 이 일을 해도 되는지 확인하는 것(권한이 있는지)입니다. 순서는 인증이 먼저입니다. 이 확인은 컨트롤러의 코드…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/authn_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=20b80bfbb3">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › 보안</p>
+<h1>인증과 인가</h1>
+<p><b>인증과 인가는 어떻게 다른가</b></p>
+<p>인증과 인가는 서버가 요청을 받았을 때 하는 두 가지 확인입니다. 인증은 요청을 보낸 사람이 누구인지 확인하는 것(아이디와 비밀번호가 맞는지)이고, 인가는 그 사람이 이 일을 해도 되는지 확인하는 것(권한이 있는지)입니다. 순서는 인증이 먼저입니다. 이 확인은 컨트롤러의 코드에 없습니다. 요청이 컨트롤러에 닿기 전에 스프링 시큐리티가 하고, 그 규칙이 화면의 위쪽 설정 부분입니다. .requestMatchers(&quot;/admin&quot;).hasRole(&quot;ADMIN&quot;) 줄은 /admin을 ADMIN 권한이 있는 사람에게만 열어 주는 인가 규칙이고, .anyRequest().authenticated() 줄은 그 밖의 주소를 누구인지 확인된 사람에게만 열어 주는 규칙이며, .httpBasic(...) 줄은 요청에 실린 아이디와 비밀번호로 누구인지 확인하는 방법입니다. 이 실습은 인가 규칙을 지우거나 열어 두면서, 관리자 admin, 일반 회원 kim, 틀린 비밀번호, 아이디 없음의 요청을 /admin에 보내 어느 확인에서 막히고 어떤 응답이 나가는지 봅니다.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1에서 열두 가지 조합을 실제 서버에 HTTP Basic 요청을 보내 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>인증과 인가</dt>
+<dd>인증(Authentication)은 사용자가 누구인지 확인하는 것이고, 인가(Authorization)는 확인된 사용자가 특정 자원이나 기능을 사용할 권한이 있는지 판단하는 것이다. 인증이 먼저 이뤄지고 그 결과를 바탕으로 인가를 판단한다. HTTP 상태 코드로는 인증 실패가 401, 인가 실패가 403에 해당한다.</dd>
+<dt>401과 403</dt>
+<dd>401과 403은 서버가 요청을 거절할 때 쓰는 HTTP 상태 코드이고, 거절하는 까닭이 다르다. 401(Unauthorized)은 요청에 대상 자원에 필요한 유효한 인증 정보가 없다는 뜻이며, 서버는 응답에 인증 방법을 알리는 WWW-Authenticate 헤더를 보내야 한다. 403(Forbidden)은 서버가 요청을 이해했지만 처리하기를 거부한다는 뜻이고, 인증 정보를 실어 보냈다면 같은 인증 정보로 자동으로 다시 보내서는 안 된다. 스프링 시큐리티는 누구인지 확인되지 않은 요청이 막힐 때 401을, 누구인지 확인된 사용자가 권한이 모자라 막힐 때 403을 보낸다.</dd>
+<dt>권한(역할)</dt>
+<dd>권한(authority)은 인증된 사용자에게 허락된 일을 나타내는 이름표이고, 역할(role)은 ADMIN, USER처럼 사용자가 맡은 자리를 나타내는 권한의 한 가지 쓰임이다. 스프링 시큐리티에서는 사용자가 가진 권한이 GrantedAuthority 객체로 Authentication에 담긴다. hasRole(&quot;ADMIN&quot;)은 hasAuthority의 줄임 형태로, 이름 앞에 ROLE_ 접두어를 붙여 ROLE_ADMIN이라는 권한이 있는지 본다. 권한은 누구인지 확인된 뒤에야 의미가 있으므로, 인증을 거치지 않은 요청에는 권한을 따질 수 없다.</dd>
+<dt>HTTP Basic 인증</dt>
+<dd>HTTP Basic은 요청의 Authorization 헤더에 아이디와 비밀번호를 실어 보내서 누구인지 확인하는 HTTP 인증 방식이다. 서버가 아이디와 비밀번호가 필요한 자원에 인증 정보 없이 온 요청을 401로 거절하면서 WWW-Authenticate 헤더로 Basic 방식을 알리면, 클라이언트가 Authorization 헤더를 달아 다시 보낸다. 스프링 시큐리티는 httpBasic 설정으로 이 방식을 켜고, 헤더의 아이디와 비밀번호가 등록된 사용자와 맞으면 그 사용자를 인증된 사용자로 기억해 두며 틀리면 401로 거절한다. 아이디와 비밀번호를 요청마다 실어 보내는 방식이므로 암호화된 연결(HTTPS) 위에서 써야 안전하다. 로그인 화면이나 세션, 토큰을 쓰는 방식은 별개이다.</dd>
+<dt>Spring Security와 SecurityFilterChain</dt>
+<dd>Spring Security는 인증과 인가를 처리하는 스프링의 보안 프레임워크로, 서블릿 필터들의 묶음으로 동작한다. SecurityFilterChain은 어떤 요청에 어떤 보안 필터들을 어떤 순서로 적용할지 정의한 것이다. 요청이 컨트롤러에 도달하기 전에 필터들이 차례로 인증 정보 확인, 권한 검사 등을 수행한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 관리자가 인증과 인가를 차례로 통과해 admin() 메서드가 실행됩니다.</li>
+<li><b>아이디와 비밀번호 없이 요청하면</b> — 누구인지 확인되지 않아 401 응답이 나가고 admin() 메서드는 실행되지 않습니다.</li>
+<li><b>일반 회원 kim이 요청하면</b> — 누구인지는 확인되지만 권한이 없어 403 응답이 나갑니다.</li>
+<li><b>kim이 틀린 비밀번호로 요청하면</b> — 인증에서 막혀 401 응답이 나갑니다. 인가 규칙은 보지도 않습니다.</li>
+<li><b>hasRole(&quot;ADMIN&quot;) 규칙을 지우면</b> — 확인된 사람이면 통과하므로 일반 회원 kim도 관리자 화면을 봅니다.</li>
+<li><b>누구에게나 열어 두면</b> — 누구인지 확인되지 않은 요청도 통과해 admin() 메서드가 실행됩니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>GET /admin 요청(서버에 /admin 주소의 화면을 달라는 요청)이 서버로 옵니다. 요청의 Authorization 헤더에 admin의 아이디와 맞는 비밀번호가 실려 있습니다. 아이디와 비밀번호는 이 헤더에 실려서 오고, 확인은 서버가 합니다.</li>
+<li>요청이 컨트롤러에 닿기 전에 스프링 시큐리티가 먼저 받습니다. 스프링 시큐리티는 컨트롤러 앞에 놓인 필터들의 줄이고, 이 요청을 컨트롤러에 보내도 되는지 두 가지를 차례로 확인합니다. 우리가 쓴 admin() 메서드에는 아직 아무것도 오지 않았습니다.</li>
+<li>인증(누구인가): 요청에 실린 아이디 admin과 비밀번호를 등록된 사용자와 견줍니다. 맞습니다. 서버는 이 요청을 보낸 사람이 admin (관리자)임을 확인했고, 요청이 처리되는 동안 이 사실을 기억해 둡니다. 이 일은 .httpBasic(...) 줄이 켜 둔 방법으로 합니다.</li>
+<li>인가(해도 되는가): /admin의 규칙은 hasRole(&quot;ADMIN&quot;)이라서 ADMIN 권한이 있는 사람만 통과합니다. admin의 권한은 ADMIN입니다. 통과합니다.</li>
+<li>시큐리티를 통과해 요청이 컨트롤러에 닿고, admin() 메서드가 실행됩니다. 우리가 쓴 admin() 안에는 누구인지 확인하는 코드가 한 줄도 없습니다. 확인은 요청이 여기 닿기 전에 스프링 시큐리티가 끝냈습니다.</li>
+<li>브라우저가 200 응답을 받습니다. 본문은 &quot;관리자 화면&quot;입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>인증은 요청을 보낸 사람이 누구인지 확인하는 것이고, 인가는 그 사람이 이 일을 해도 되는지 확인하는 것입니다. 인증이 먼저입니다. 관리자 admin은 둘 다 통과해서 admin() 메서드가 실행되고 200 응답을 받았습니다.</li>
+<li>두 확인은 컨트롤러에 없습니다. 요청이 컨트롤러에 닿기 전에 스프링 시큐리티가 했고, 우리가 쓴 admin() 안에는 확인하는 줄이 없습니다. 둘 다 통과해야 컨트롤러의 코드가 실행됩니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@Configuration
+public class SecurityConfig {
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(auth -&gt; auth
+                // 인가: /admin은 ADMIN 권한이 있는 사람만
+                .requestMatchers(&quot;/admin&quot;).hasRole(&quot;ADMIN&quot;)
+                // 인증: 그 밖의 주소는 누구인지 확인된 사람이면
+                .anyRequest().authenticated())
+            // 요청에 실린 아이디와 비밀번호로 누구인지 확인한다
+            .httpBasic(Customizer.withDefaults());
+        return http.build();
+    }
+}
+
+@RestController
+public class AdminController {
+    @GetMapping(&quot;/admin&quot;)
+    public String admin() {
+        return &quot;관리자 화면&quot;;
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>스프링 부트 4.1.1(스프링 프레임워크 7.0.9, 내장 톰캣 11)과 스프링 시큐리티 7.1.1을 JDK 21에서 실행한 결과입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스(보안 설정 SecurityConfig와 컨트롤러 AdminController, 컨트롤러에는 실행 횟수를 세는 줄만 더함)를 패키지 app으로 컴파일하고 자식 자바 프로세스로 실제 서버를 띄운 뒤, 실제 HTTP 요청(GET /admin)을 보내 확인했습니다. 아이디와 비밀번호는 Authorization 헤더에 실어 보냈고, 요청마다 서버를 새로 띄웠습니다. 화면에서 줄인 것은 package와 import 줄, 시작 클래스, 그리고 사용자 등록입니다. 사용자는 메모리 안의 사용자 저장소(InMemoryUserDetailsManager)에 일반 회원 kim(역할 USER)과 관리자 admin(역할 ADMIN)을 둔 것이고, 비밀번호는 {noop} 접두어를 붙여 암호화하지 않은 시험용 값입니다(실제 서비스에서는 비밀번호를 암호화해 저장합니다). 보안 설정은 화면의 줄 말고는 아무것도 더하지 않았습니다. CSRF와 세션 설정은 기본값이고, GET 요청이라 결과에 영향을 주지 않았습니다. &quot;서버가 확인한 사람&quot;은 요청이 처리되는 동안 SecurityContextHolder에 어떤 Authentication이 기록되었는지로 얻었습니다. SecurityContextHolder의 저장 방식을 기본 것을 감싼 기록용으로 바꿔 읽고 쓰는 때마다 이름과 권한을 적었으므로, 컨트롤러에 가지 못한 요청의 인증 정보도 볼 수 있고 보안 필터 체인에는 아무것도 더하지 않았습니다. 한계는 필터 안에서 일어난 일을 읽고 쓰는 시점으로만 본다는 것입니다(필터의 내부 판단 자체를 본 것은 아닙니다). 대조한 것은 이 기록에서 얻은 확인된 사람(없으면 익명이거나 아무것도 설정되지 않음), 상태 코드와 본문, WWW-Authenticate 헤더 유무, admin() 메서드의 실행 횟수, 인증이 인가보다 먼저 일어나는 순서, 오류 응답이 /error로 한 번 더 넘어가는지입니다. 문서가 정한 것은 RFC 9110의 11절 HTTP Authentication(11.1, 11.6.1)과 15.5.2절(401은 유효한 인증 정보가 없다는 뜻이고 WWW-Authenticate를 보내야 한다), 15.5.4절(403은 서버가 요청을 이해했지만 처리를 거부한다는 뜻), 스프링 시큐리티 문서 Authorize HttpServletRequests(AuthorizationFilter가 규칙을 위에서부터 차례로 보고 첫 번째로 맞는 것만 적용한다는 것, hasRole이 ROLE_ 접두어를 붙인다는 것, 거부되면 AccessDeniedException이 던져진다는 것)와 Authentication의 Architecture, Basic 절(인증되지 않은 요청이 거부되면 AuthenticationEntryPoint가 WWW-Authenticate 헤더를 보낸다는 것, 인증이 실패하면 SecurityContextHolder를 비우고 같은 처리기를 부른다는 것)입니다. 문서 내용은 WebFetch로 열어 요약된 결과로 확인했고 RFC 전문을 직접 읽지는 못했습니다. 아래는 문서가 정한 것이 아니라 이 버전에서 관찰한 동작입니다. 첫째, 이 화면의 코드를 그대로 실행하면 일반 회원 kim의 요청에 403이 그대로 나갑니다. 오류 응답이 /error로 한 번 더 넘어가는데, 그 두 번째 요청에서도 kim이 확인된 사람으로 기록되어 막히지 않았기 때문입니다. 세션을 쓰지 않고 직접 만든 필터로 인증한 &quot;시큐리티 필터 체인&quot; 실습에서는 같은 단계에서 403이 401로 바뀌었으니, 구성에 따라 다를 수 있습니다. 둘째, 틀린 비밀번호는 /admin이 permitAll()이어도 401입니다. 아이디와 비밀번호가 실린 요청은 인가 규칙을 보기 전에 인증에서 거절되었고, 인가 단계의 흔적은 기록에 없었습니다. 셋째, 아이디가 없는 요청은 인증에서 막히지 않고 익명 사용자로 인가 단계까지 가며, 거기서 규칙이 막으면 401, 열려 있으면 컨트롤러까지 갑니다. 넷째, 401 응답에는 WWW-Authenticate 헤더(값은 Basic realm=&quot;Realm&quot;)가 붙고 403과 200 응답에는 없었습니다. 다섯째, 응답 본문은 401이 비어 있고 403은 스프링 부트의 오류 페이지였는데, 요청의 Accept 헤더에 따라 달라질 수 있어 화면에서는 상태 코드만 다뤘습니다. 여섯째, 스프링 시큐리티 7.1에서는 로그인한 사용자의 권한에 ROLE_ 권한 말고 인증 방식을 나타내는 권한(FACTOR_PASSWORD)이 함께 기록되는데, 이 실습에서는 다루지 않았습니다. 로그인 방식(로그인 화면, 세션, 토큰)은 다루지 않았습니다. 이 실습의 요청은 요청마다 아이디와 비밀번호를 실어 보내는 HTTP Basic 방식이고, 로그인 상태를 이어 가는 세션과 토큰은 기초개념의 &quot;세션&quot;, &quot;토큰&quot; 실습과 공부 쪽 &quot;시큐리티 필터 체인&quot; 실습에서 다룹니다. 실제 필터 체인에는 여기 적지 않은 필터가 더 있습니다.</p>
+<p>앞 실습: <a href="../../lab/https_basic/">HTTPS</a> · 다음 실습: <a href="../../lab/session_basic/">세션</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=20b80bfbb3"></script>
+</body>
+</html>
