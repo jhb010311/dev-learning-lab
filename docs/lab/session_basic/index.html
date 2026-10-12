@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>세션: 세션은 무엇이고, 로그인한 상태는 어디에 기억되는가 · 개발 학습 실습실</title>
+<meta name="description" content="세션은 서버 안의 저장소에 적어 두는 기억입니다. 코드 칸의 session은 HttpSession이라는 타입의 인자이고, 서버의 세션 저장소에서 이 요청에 딸린 칸 하나를 가리킵니다. login 메서드의 session.setAttribute(&quot;user&quot;, &quot;kim&quot;) 줄은 그…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/session_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/session_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/session_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="세션: 세션은 무엇이고, 로그인한 상태는 어디에 기억되는가 · 개발 학습 실습실">
+<meta property="og:description" content="세션은 서버 안의 저장소에 적어 두는 기억입니다. 코드 칸의 session은 HttpSession이라는 타입의 인자이고, 서버의 세션 저장소에서 이 요청에 딸린 칸 하나를 가리킵니다. login 메서드의 session.setAttribute(&quot;user&quot;, &quot;kim&quot;) 줄은 그…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/session_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=456403d1ad">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › 보안</p>
+<h1>세션</h1>
+<p><b>세션은 무엇이고, 로그인한 상태는 어디에 기억되는가</b></p>
+<p>세션은 서버 안의 저장소에 적어 두는 기억입니다. 코드 칸의 session은 HttpSession이라는 타입의 인자이고, 서버의 세션 저장소에서 이 요청에 딸린 칸 하나를 가리킵니다. login 메서드의 session.setAttribute(&quot;user&quot;, &quot;kim&quot;) 줄은 그 칸에 &quot;이 세션의 사용자는 kim&quot;이라고 적는 줄이고, me 메서드의 session.getAttribute(&quot;user&quot;) 줄은 칸에서 그 값을 읽는 줄입니다. 칸마다 서버가 붙인 번호(세션 id)가 있고, 서버는 이 번호만 JSESSIONID라는 이름의 쿠키로 브라우저에 줍니다. 브라우저는 다음 요청마다 그 쿠키를 보내고, 서버는 번호로 저장소의 칸을 찾아 누구인지 압니다. 이 실습은 로그인한 뒤에 /me를 요청하는 방법을 바꿔 가며(쿠키 없이, 다른 사람이, 서버가 칸을 지운 뒤에), 서버가 누구인지 알아보는지를 봅니다. 코드 칸에는 로그인에 성공했을 때 실행되는 부분만 있고, 아이디와 비밀번호를 확인하는 과정은 이 실습에서 다루지 않아 줄였습니다. 쿠키가 무엇인지는 앞의 &quot;쿠키&quot; 실습을 따릅니다.</p>
+<p>실행으로 대조 · 스프링 부트 4.1.1(내장 톰캣 11.0.24)에서 여덟 가지 조합을 실제 컴포넌트 스캔으로 띄우고 요청을 보내 대조(HttpClient가 Cookie 헤더를 직접 적음, 실제 브라우저에서는 실행하지 않음)</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>세션</dt>
+<dd>사용자의 상태를 서버 쪽에 저장하고, 클라이언트에는 그 저장소를 가리키는 식별자(세션 ID)만 쿠키로 전달하는 방식이다. 실제 정보가 서버에 있으므로 클라이언트가 조작할 수 없다. 서버가 여러 대일 때는 어느 서버로 요청이 가도 같은 세션을 찾을 수 있도록 Redis 같은 공용 저장소에 세션을 두는 구성이 일반적이다.</dd>
+<dt>세션 id(JSESSIONID)</dt>
+<dd>세션 id는 서블릿 컨테이너가 세션을 만들 때 그 세션에 붙이는 고유한 문자열로, 서버의 세션 저장소에서 칸 하나를 가리키는 번호다. HttpSession의 getId()로 읽을 수 있고, 어떤 모양의 번호를 쓸지는 컨테이너가 정한다(이 실습의 톰캣 11에서는 영문 대문자와 숫자 32글자였다). 쿠키로 세션을 이어 갈 때 쿠키의 이름은 명세가 JSESSIONID로 정해 두었고, 서버가 Set-Cookie 헤더로 번호를 주면 브라우저가 다음 요청마다 Cookie 헤더에 실어 보낸다. 서버는 이 번호만으로 칸을 찾으므로, 다른 사람이 같은 번호를 보내면 같은 세션으로 다루어진다. 번호가 노출되면 안 되는 이유다.</dd>
+<dt>HttpSession</dt>
+<dd>HttpSession은 한 사용자를 여러 요청에 걸쳐 식별하고, 그 사용자의 정보를 서버에 저장하는 방법을 제공하는 서블릿 인터페이스다. 스프링 컨트롤러 메서드는 HttpSession 타입의 인자를 선언해 받을 수 있고, 요청에 딸린 세션이 없으면 서버가 새로 만든다. setAttribute(&quot;user&quot;, &quot;kim&quot;)으로 이름을 붙여 값을 칸에 적고 getAttribute(&quot;user&quot;)로 읽으며, 적혀 있지 않은 이름을 읽으면 null이 돌아온다. invalidate()를 부르면 그 세션이 무효가 되고 묶여 있던 값도 풀리며, 이후의 요청은 그 세션을 볼 수 없다. 세션의 값은 서버에 저장되고 브라우저에는 세션 id만 간다.</dd>
+<dt>쿠키</dt>
+<dd>서버가 응답에 실어 보내면 브라우저가 저장해 두었다가 같은 사이트에 요청할 때마다 자동으로 함께 보내는 작은 데이터다. HTTP는 요청 사이의 상태를 기억하지 않으므로, 로그인 상태처럼 이어져야 하는 정보를 유지하는 데 쓰인다. 사용자의 브라우저에 저장되므로 내용을 보거나 바꿀 수 있다는 점을 전제로 사용해야 한다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 서버의 세션 저장소에 user=kim을 적고 번호만 쿠키로 줍니다. 다음 요청에 실린 번호로 칸을 찾아 kim임을 알아봅니다.</li>
+<li><b>쿠키 없이 요청하면</b> — 번호가 없어 서버는 어느 칸인지 모르고, 누구인지도 모릅니다.</li>
+<li><b>다른 사람이 같은 값으로</b> — 서버는 번호만 보고 칸을 찾으므로 그 사람을 kim으로 봅니다.</li>
+<li><b>서버가 세션을 지운 뒤에</b> — 번호는 그대로이지만 가리킬 칸이 없어 서버는 누구인지 모릅니다.</li>
+<li><b>setAttribute를 지우면</b> — 세션 칸과 쿠키는 만들어지지만 칸이 비어 있어 서버는 누구인지 모릅니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>로그인 화면에서 로그인 버튼을 누르면, 브라우저가 서버에 POST /login 요청을 보냅니다. 이 요청에는 Cookie 헤더가 없습니다. 서버의 세션 저장소는 비어 있습니다. 아이디와 비밀번호를 확인하는 과정은 이 실습에서 다루지 않아 줄였습니다.</li>
+<li>스프링이 login 메서드를 부르려면 session 인자를 채워야 하는데, 이 요청에는 세션 번호가 실려 오지 않았으므로 요청에 딸린 세션이 아직 없습니다. 그래서 서버(톰캣)가 세션을 새로 만들고 무작위 번호를 붙입니다(톰캣이 붙인 번호는 영문 대문자와 숫자 32글자였고, 여기서는 앞부분만 적어 3A9F…로 줄여 씁니다). 저장소에 칸 하나가 생기는데 칸은 비어 있습니다. 우리가 쓴 코드에는 세션을 만드는 줄도, 번호를 붙이는 줄도 없습니다.</li>
+<li>login 메서드가 session.setAttribute(&quot;user&quot;, &quot;kim&quot;) 줄을 실행합니다. 방금 만든 칸에 user=kim이 적힙니다. 로그인했다는 정보가 적힌 곳은 브라우저가 아니라 서버 안의 세션 저장소입니다.</li>
+<li>login 메서드가 &quot;로그인됨&quot;을 돌려주고, 응답에 Set-Cookie: JSESSIONID=3A9F… 줄이 붙습니다. 이 줄을 붙이는 코드를 우리가 쓰지 않았습니다. 톰캣이 붙입니다. 쿠키 값은 번호뿐이고 kim이라는 글자는 들어 있지 않습니다.</li>
+<li>브라우저가 응답을 받고, 쿠키 JSESSIONID=3A9F…를 저장합니다. 브라우저가 들고 있는 것은 번호뿐이고, user=kim은 서버의 저장소에만 있습니다.</li>
+<li>브라우저가 서버에 GET /me 요청을 보냅니다. 저장해 둔 쿠키가 있어서 브라우저가 Cookie: JSESSIONID=3A9F… 헤더를 요청에 붙입니다. 이 헤더를 붙이는 코드를 우리가 쓰지 않았습니다. 브라우저가 합니다.</li>
+<li>서버가 요청의 Cookie 헤더에서 번호 3A9F…를 읽고, 세션 저장소에서 같은 번호의 칸을 찾습니다. 칸이 있으므로 새로 만들지 않고, 그 칸을 me 메서드의 session 인자로 넣어 줍니다.</li>
+<li>me 메서드가 session.getAttribute(&quot;user&quot;) 줄로 칸을 읽습니다. 칸에 user=kim이 적혀 있으므로 &quot;안녕하세요, kim&quot;을 돌려줍니다. 서버가 kim을 아는 것은 쿠키에 kim이 들어 있어서가 아니라, 번호로 찾은 칸에 kim이 적혀 있기 때문입니다.</li>
+<li>브라우저가 200 응답을 받습니다. 본문은 &quot;안녕하세요, kim&quot;입니다. 이 응답에는 Set-Cookie 줄이 붙지 않습니다. 이미 있는 칸을 찾았기 때문입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>세션은 서버의 저장소에 적어 두는 로그인 정보이고, 브라우저가 들고 다니는 것은 그 칸을 가리키는 번호(JSESSIONID 쿠키)뿐입니다. 로그인한 뒤 다시 요청하면 번호가 쿠키로 실려 오고, 서버가 번호로 칸을 찾아 kim임을 알아봅니다.</li>
+<li>user=kim은 서버에 있고 쿠키에는 번호만 있습니다. 쿠키를 붙여 주고 보내는 일은 톰캣과 브라우저가 했고, 우리가 쓴 코드는 칸에 적고 읽는 두 줄뿐입니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>@PostMapping(&quot;/login&quot;)
+public String login(HttpSession session) {
+    // 서버의 세션 저장소에 &quot;이 세션의 사용자는 kim&quot;이라고 적어 둔다
+    session.setAttribute(&quot;user&quot;, &quot;kim&quot;);
+    return &quot;로그인됨&quot;;
+}
+
+@GetMapping(&quot;/me&quot;)
+public String me(HttpSession session) {
+    // 요청에 실려 온 세션 번호로 저장소의 칸을 찾아 읽는다
+    Object user = session.getAttribute(&quot;user&quot;);
+    return user == null ? &quot;누구인지 모름&quot; : &quot;안녕하세요, &quot; + user;
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>스프링 부트 4.1.1(스프링 프레임워크 7.0.9, 내장 톰캣 11.0.24)을 JDK 21에서 실행한 결과입니다. 여덟 가지 조합을 모두, 화면의 코드와 같은 소스(화면에 없는 logout 메서드 하나만 더함)를 패키지 app으로 컴파일하고 시작 클래스(@SpringBootConfiguration, @EnableAutoConfiguration, @ComponentScan)와 함께 자바 프로세스를 새로 띄워 확인했습니다. 컨트롤러를 손으로 등록하지 않고 스프링이 클래스를 훑어 찾게 했으며, 요청은 서버가 뜬 뒤 실제 HTTP로 보냈습니다. 클래스패스에는 스프링 시큐리티, JPA, H2를 넣지 않았습니다(시큐리티가 있으면 요청이 막히고 세션 처리가 달라질 수 있기 때문입니다). 화면의 코드는 package와 import 줄, 클래스 선언, 로그아웃 메서드를 줄였습니다. 로그아웃 메서드는 session.invalidate()를 실행하고 &quot;로그아웃됨&quot;을 돌려주는 메서드이고, 아이디와 비밀번호를 확인하는 과정도 이 실습에서 다루지 않아 줄였습니다. 대조한 것은 login 직후 서버의 세션 저장소(톰캣 세션 관리자의 세션 수와 칸마다 적힌 내용), login 응답의 Set-Cookie, /me 응답입니다. 같은 브라우저는 받은 Set-Cookie의 값을 다음 요청의 Cookie 헤더에 직접 적는 클라이언트 하나이고(쿠키 보관 기능을 쓰지 않았고 실제 브라우저에서는 실행하지 않았습니다), 다른 사람은 별개의 연결(별개의 클라이언트)이 같은 값을 Cookie 헤더에 적어 보내는 것이며, 서버가 세션을 지우는 일은 같은 쿠키로 POST /logout을 먼저 보내는 것으로 재현했습니다. 화면의 번호(3A9F…, B71E…)는 설명을 위해 지어 낸 예시이고, 실제로는 실행할 때마다 다른 영문 대문자와 숫자 32글자였습니다. 문서가 정한 것은 Jakarta Servlet 6.1 명세 7장(7.1.1절: 세션 추적 쿠키의 표준 이름은 JSESSIONID, 7.2절: 세션은 클라이언트가 추적 정보를 서버에 돌려보내 합류하기 전까지 새 세션이고 id는 getId()로 읽는다, 7.5절: 무효화가 시작되면 새 요청은 그 세션을 볼 수 없다)와 HttpSession의 API 문서(세션은 한 사용자를 여러 요청에 걸쳐 식별하고 정보를 저장하는 방법이고, getId의 식별자는 서블릿 컨테이너가 정하며 구현에 따라 다르다)입니다. 다음은 문서가 정한 것이 아니라 이 버전에서 관찰한 동작입니다. 번호가 영문 대문자와 숫자 32글자이고 쿠키 값에 kim이 들어 있지 않다는 것, 쿠키에 Path=/와 HttpOnly 속성이 붙는다는 것, session 인자를 받는 메서드는 setAttribute를 부르지 않아도 세션을 만들고(스프링이 그 인자를 채우려고 요청의 getSession()을 부릅니다. 이 호출은 스프링의 해당 클래스 바이트코드로 확인했습니다) 쿠키가 나간다는 것, 쿠키 없이 /me를 요청하면 서버가 빈 세션을 새로 만들고 새 번호를 준다는 것, 같은 번호를 별개의 연결에서 보내도 서버가 같은 세션으로 다루고 새로 만들지 않는다는 것(두 요청의 연결 포트는 달랐습니다), 서버가 지운 세션의 번호로 요청하면 서버가 새 세션을 만들어 새 번호를 준다는 것, 로그아웃 응답에는 쿠키를 지우라는 Set-Cookie 줄이 없다는 것입니다. 세션 번호를 훔쳐 가는 공격과 방어(세션 고정, HttpOnly 설정 등)는 이 실습에서 다루지 않았고, 공부 쪽 실습(&quot;세션과 JWT&quot;, &quot;세션 하이재킹과 세션 고정&quot;)으로 넘깁니다. 세션의 유효 시간, 여러 서버에서 세션을 나누는 방법, 쿠키를 쓰지 않는 방법(URL에 번호를 싣는 방식 등)도 다루지 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/https_basic/">HTTPS</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=456403d1ad"></script>
+</body>
+</html>
