@@ -17,9 +17,9 @@ Lab.basics({
       { id: 'inherit_basic' },
       { id: 'interface_basic' },
       { id: 'exception_basic' },
-      { t: '제네릭', d: 'List<String>의 <String>이 하는 일' },
-      { t: '람다', d: '메서드 하나를 값처럼 넘기는 짧은 표기' },
-      { t: '애너테이션', d: '@로 시작하는 표시와, 그것을 읽는 쪽' },
+      { id: 'generic_basic' },
+      { id: 'lambda_basic' },
+      { id: 'annot_basic' },
       { t: '스레드', d: '코드를 동시에 실행하는 흐름' },
     ] },
     { name: 'Spring', desc: '스프링으로 웹 요청을 처리할 때 밑에 깔려 있는 것들입니다.', items: [

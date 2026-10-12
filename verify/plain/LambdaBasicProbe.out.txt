@@ -1,0 +1,22 @@
+# java 21.0.12.1
+lambda|once|false => OK|-|0|true|true|준비 / 일한다|-|-
+lambda|once|true => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Task is not a functional interface ~     multiple non-overriding abstract methods found in interface Task|Task t = () -> System.out.println("일한다");
+lambda|none|false => OK|-|0|true|true|준비|-|-
+lambda|none|true => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Task is not a functional interface ~     multiple non-overriding abstract methods found in interface Task|Task t = () -> System.out.println("일한다");
+lambda|twice|false => OK|-|0|true|true|준비 / 일한다 / 일한다|-|-
+lambda|twice|true => ERR|compiler.err.prob.found.req|1|false|false|-|incompatible types: Task is not a functional interface ~     multiple non-overriding abstract methods found in interface Task|Task t = () -> System.out.println("일한다");
+anon|once|false => OK|-|0|true|true|준비 / 일한다|-|-
+anon|once|true => ERR|compiler.err.does.not.override.abstract|1|false|false|-|<anonymous Main$1> is not abstract and does not override abstract method stop() in Task|Task t = new Task() {
+anon|none|false => OK|-|0|true|true|준비|-|-
+anon|none|true => ERR|compiler.err.does.not.override.abstract|1|false|false|-|<anonymous Main$1> is not abstract and does not override abstract method stop() in Task|Task t = new Task() {
+anon|twice|false => OK|-|0|true|true|준비 / 일한다 / 일한다|-|-
+anon|twice|true => ERR|compiler.err.does.not.override.abstract|1|false|false|-|<anonymous Main$1> is not abstract and does not override abstract method stop() in Task|Task t = new Task() {
+named|once|false => OK|-|0|true|true|준비 / 일한다|-|-
+named|once|true => ERR|compiler.err.does.not.override.abstract|1|false|false|-|Work is not abstract and does not override abstract method stop() in Task|class Work implements Task {
+named|none|false => OK|-|0|true|true|준비|-|-
+named|none|true => ERR|compiler.err.does.not.override.abstract|1|false|false|-|Work is not abstract and does not override abstract method stop() in Task|class Work implements Task {
+named|twice|false => OK|-|0|true|true|준비 / 일한다 / 일한다|-|-
+named|twice|true => ERR|compiler.err.does.not.override.abstract|1|false|false|-|Work is not abstract and does not override abstract method stop() in Task|class Work implements Task {
+# fact lambda => 직후 / Task 구현 객체: true, 익명 클래스: false, 숨은 클래스: true, 클래스 이름 이름있음: false
+# fact anon => 직후 / Task 구현 객체: true, 익명 클래스: true, 숨은 클래스: false, 클래스 이름 이름있음: false
+# fact named => 직후 / Task 구현 객체: true, 익명 클래스: false, 숨은 클래스: false, 클래스 이름 이름있음: true

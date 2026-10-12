@@ -1,0 +1,13 @@
+# java 21.0.12.1
+work|false|false => OK|0|true||없음|invisible|-
+work|false|true => OK|0|true||work|visible|-
+work|true|false => OK|0|true||없음|invisible|-
+work|true|true => OK|0|true|work 실행|work|visible|-
+none|false|false => OK|0|true||없음|none|-
+none|false|true => OK|0|true||없음|none|-
+none|true|false => OK|0|true||없음|none|-
+none|true|true => OK|0|true||없음|none|-
+both|false|false => OK|0|true||없음|invisible|-
+both|false|true => OK|0|true||work, rest|visible|-
+both|true|false => OK|0|true||없음|invisible|-
+both|true|true => OK|0|true|work 실행 / rest 실행|work, rest|visible|-
