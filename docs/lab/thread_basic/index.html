@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스레드: 스레드는 무엇이고, start()는 무엇을 하는가 · 개발 학습 실습실</title>
+<meta name="description" content="스레드는 코드를 위에서 아래로 실행해 나가는 흐름 하나입니다. 자바 프로그램은 main이라는 이름의 스레드 하나로 시작하고, 이 스레드가 main 메서드를 위에서부터 실행합니다. 코드에서 새 스레드를 만드는 부분은 new Thread(() -&gt; work())입니다. 괄호 안의…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/thread_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/thread_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/thread_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="스레드: 스레드는 무엇이고, start()는 무엇을 하는가 · 개발 학습 실습실">
+<meta property="og:description" content="스레드는 코드를 위에서 아래로 실행해 나가는 흐름 하나입니다. 자바 프로그램은 main이라는 이름의 스레드 하나로 시작하고, 이 스레드가 main 메서드를 위에서부터 실행합니다. 코드에서 새 스레드를 만드는 부분은 new Thread(() -&gt; work())입니다. 괄호 안의…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/thread_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=7d5cf4ebc9">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › Java</p>
+<h1>스레드</h1>
+<p><b>스레드는 무엇이고, start()는 무엇을 하는가</b></p>
+<p>스레드는 코드를 위에서 아래로 실행해 나가는 흐름 하나입니다. 자바 프로그램은 main이라는 이름의 스레드 하나로 시작하고, 이 스레드가 main 메서드를 위에서부터 실행합니다. 코드에서 새 스레드를 만드는 부분은 new Thread(() -&gt; work())입니다. 괄호 안의 () -&gt; work()는 &quot;work()를 부르라&quot;는 코드를 적어 새 흐름에게 맡기는 것이고, 이 줄은 Thread 객체를 만들 뿐 새 흐름은 만들지 않습니다. t.start()를 부르면 그때 새 흐름이 하나 생겨, 맡긴 코드를 새 스레드가 실행합니다. t.join()은 그 스레드가 끝날 때까지 main이 기다리게 하고, Thread.currentThread().getName()은 지금 이 줄을 실행하고 있는 스레드의 이름을 알려 줍니다. 이 실습은 start() 줄을 run() 호출로 바꾸거나 지우고 스레드를 하나 더 만들어 가며 같은 코드를 컴파일하고 실행해, work와 마지막 줄을 실행한 스레드의 이름과 새로 시작된 스레드의 수를 봅니다. (두 흐름이 동시에 움직일 때 생기는 일은 다루지 않습니다. join으로 기다리게 해서 출력 순서가 정해지는 모양만 봅니다.)</p>
+<p>실행으로 대조 · JDK 21에서 여섯 가지 조합을 javax.tools로 컴파일하고 자식 java 프로세스로 20번씩 실행해, 출력과 새로 시작된 스레드의 수를 대조</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>프로세스와 스레드</dt>
+<dd>프로세스는 실행 중인 프로그램으로, 운영체제로부터 독립된 메모리 공간을 할당받는다. 스레드는 프로세스 안에서 실제로 작업을 수행하는 실행 흐름으로, 같은 프로세스의 스레드들은 메모리(힙, 코드, 데이터)를 공유하고 스택만 따로 가진다. 그래서 스레드 간에는 데이터를 주고받기 쉽지만 동시에 같은 데이터를 건드리는 문제가 생긴다.</dd>
+<dt>main 스레드와 스레드의 이름</dt>
+<dd>자바 프로그램을 java Main으로 실행하면 가상 머신이 그 클래스의 main 메서드를 불러 실행을 시작하고, 이 main 메서드를 위에서부터 실행하는 스레드를 보통 main 스레드라고 부른다. 스레드의 이름은 getName()으로 읽고, Thread.currentThread()는 지금 이 코드를 실행하고 있는 스레드의 Thread 객체를 돌려주므로 Thread.currentThread().getName()은 &quot;누가 이 줄을 실행하고 있는가&quot;를 알려 준다. 이름을 주지 않고 new Thread(...)로 만든 스레드에는 Thread-0, Thread-1처럼 &quot;Thread-&quot; 뒤에 정수를 붙인 이름이 자동으로 붙는다. main 스레드의 이름이 main이라는 것은 명세가 정한 것이 아니라 JDK 21에서 실행해 확인되는 값이다.</dd>
+<dt>start()와 run()</dt>
+<dd>start()는 새 스레드를 만들어 그 스레드가 run()을 실행하게 하는 메서드이고, run()은 스레드가 할 일을 담은 보통의 메서드다. 그래서 run()을 직접 부르면 새 스레드가 생기지 않고, 부른 스레드가 그 코드를 순서대로 실행한다. start()는 Thread 객체 하나에 한 번만 부를 수 있으며, 두 번째로 부르면 IllegalThreadStateException이 발생한다. 같은 작업을 다시 실행하려면 Thread 객체를 새로 만든다.</dd>
+<dt>join()</dt>
+<dd>다른 스레드가 끝날 때까지 지금 스레드를 기다리게 하는 메서드다. t.join()을 부른 스레드는 t가 끝날 때까지 다음 줄로 가지 않으므로, 다른 스레드가 만든 결과를 받아서 써야 할 때 쓴다. 기다리는 동안 부른 쪽 스레드의 상태는 WAITING이고, join(1000)처럼 시간을 주면 TIMED_WAITING이다. 이미 끝났거나 아직 시작하지 않은 스레드에 부르면 기다리지 않고 바로 돌아온다.</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — start()를 부르면 새 스레드 Thread-0이 생겨 work를 실행하고, 마지막 줄은 main이 실행합니다.</li>
+<li><b>start() 대신 run()을 부르면</b> — 새 스레드는 생기지 않고, main이 work를 직접 실행합니다.</li>
+<li><b>start()를 지우면</b> — 스레드 객체만 만들고 시작하지 않으면 work는 실행되지 않습니다.</li>
+<li><b>스레드를 하나 더 만들어 start()하면</b> — 새 스레드가 하나 더 생겨 Thread-0과 Thread-1이 차례로 work를 실행합니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>java Main으로 실행합니다. 스레드는 코드를 위에서 아래로 실행해 나가는 흐름 하나이고, 자바 프로그램은 main이라는 이름의 스레드 하나로 시작합니다. 이 main 스레드가 main 메서드를 위에서부터 실행합니다. 지금 흐름은 main 스레드 하나뿐입니다.</li>
+<li>Thread t = new Thread(() -&gt; work()); 줄: new Thread(…)가 Thread 객체를 만듭니다. 괄호 안의 () -&gt; work()는 새 흐름에게 맡길 코드로, &quot;work()를 부르라&quot;는 뜻입니다. 이름을 따로 주지 않았으므로 자바가 Thread-0이라는 이름을 자동으로 붙입니다. 객체가 생겼을 뿐 새 흐름은 아직 없습니다. 흐름은 main 스레드 하나이고, 맡긴 코드는 아직 실행되지 않았습니다.</li>
+<li>t.start(); 줄: start()를 부르면 새 흐름이 하나 생기고, 새 스레드가 맡긴 코드를 실행합니다. 새 스레드의 이름은 아까 붙은 Thread-0입니다. 이 순간 흐름이 둘이 되어 새로 시작된 스레드는 1개입니다. main 스레드는 start()가 돌아오면 다음 줄로 이어 갑니다.</li>
+<li>t.join(); 줄: main 스레드가 join()을 부르면, 새 스레드(Thread-0)가 끝날 때까지 다음 줄로 가지 않고 기다립니다.</li>
+<li>기다리는 동안 새 스레드(Thread-0)가 맡긴 코드 () -&gt; work()를 실행해 work()를 부릅니다. work 안의 Thread.currentThread().getName()은 지금 이 줄을 실행하는 스레드의 이름이므로 Thread-0입니다. 출력: work를 실행한 스레드: Thread-0</li>
+<li>맡긴 코드가 끝나서 새 스레드(Thread-0)도 끝납니다. 기다리던 main 스레드의 t.join()이 돌아오고, main은 다음 줄로 갑니다.</li>
+<li>String me = Thread.currentThread().getName(); 줄과 그 아래 println 줄: main 스레드가 이어서 실행합니다. 맡긴 코드를 실행한 새 스레드와는 이름이 다릅니다. 이 줄을 실행하는 스레드의 이름은 main입니다. 출력: 이 줄을 실행한 스레드: main. main 메서드가 끝나고 프로그램이 끝납니다. 새로 시작된 스레드는 모두 1개였습니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>스레드는 코드를 위에서 아래로 실행해 나가는 흐름 하나입니다. 자바 프로그램은 main이라는 이름의 스레드 하나로 시작하고, t.start()를 부르자 새 흐름이 하나 생겨 Thread-0이라는 새 스레드가 맡긴 코드를 실행했습니다. work를 실행한 스레드는 Thread-0이고, 마지막 줄을 실행한 스레드는 main이었습니다.</li>
+<li>new Thread(…)만으로는 흐름이 생기지 않습니다. 새 흐름이 생기는 것은 start()를 부르는 순간이고, 어느 스레드가 실행했는지는 Thread.currentThread().getName()으로 확인할 수 있습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>public class Main {
+    static void work() {
+        String who = Thread.currentThread().getName();
+        System.out.println(&quot;work를 실행한 스레드: &quot; + who);
+    }
+
+    public static void main(String[] args) throws Exception {
+        // 스레드 객체를 만든다. 아직 새 흐름은 생기지 않았다
+        Thread t = new Thread(() -&gt; work());
+        // start: 새 흐름이 생겨 work를 실행한다
+        t.start();
+        // join: 그 스레드가 끝날 때까지 main이 기다린다
+        t.join();
+        String me = Thread.currentThread().getName();
+        System.out.println(&quot;이 줄을 실행한 스레드: &quot; + me);
+    }
+}</pre>
+<h2>이 모형의 전제</h2>
+<p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 여섯 가지 조합을 모두, 화면의 코드와 같은 소스(줄 단위로 같은 글)를 javax.tools로 컴파일하고, 이 JDK의 java를 자식 프로세스로 띄워 조합마다 20번씩 실제로 실행해 대조했습니다. 120번의 실행 모두 종료 코드는 0이고 표준 오류는 비어 있었으며, 조합마다 표준 출력이 20번 모두 같았습니다. 대조한 것은 표준 출력의 줄들(결과 표의 출력 열), 그 줄에 나온 스레드의 이름(work를 실행한 스레드 열), 새로 시작된 스레드의 수입니다. 새로 시작된 스레드의 수는 화면의 소스를 바꾸지 않고, 자식 프로세스의 시작 클래스가 Main.main을 부르기 전과 뒤에 ThreadMXBean.getTotalStartedThreadCount()를 읽어 그 차이로 쟀습니다(start를 부른 조합은 1개와 2개, 나머지는 0개였고 20번 모두 같았습니다). 단계 문장이 기대는 사실은 따로 만든 소스를 같은 방식으로 20번 실행해 확인했습니다. Thread 객체를 만든 직후에는 상태가 NEW이고 isAlive()가 false이며, start() 뒤에는 새 스레드와 main이 함께 살아 있고(새 스레드는 WAITING으로 붙들어 둔 상태), join()이 돌아온 뒤에는 TERMINATED입니다. run()을 부르면 맡긴 코드를 main이 실행하고 부른 뒤에도 그 Thread 객체의 상태는 NEW이며, 시작한 적 없는 스레드의 join()은 기다리지 않고 바로 돌아옵니다. 문서는 Java SE 21 API 문서의 java.lang.Thread를 WebFetch로 열어 확인했습니다(발췌가 돌려준 문장을 따랐고 페이지 전체를 직접 읽지는 않았습니다). 스레드는 실행 흐름이고 시작하면 run 메서드를 실행하도록 예약된다는 것은 클래스 설명을, 이름을 주지 않는 Thread()와 Thread(Runnable)로 만든 스레드에는 &quot;Thread-&quot;에 정수를 붙인 이름이 자동으로 붙는다는 것은 생성자 설명을, start()가 새 스레드의 실행을 예약하고 현재 스레드와 따로 실행된다는 것은 start() 설명을, run()은 직접 부르도록 만든 메서드가 아니며 Runnable로 만든 스레드에서는 그 과제의 run을 부른다는 것은 run() 설명을, join()은 그 스레드가 끝나기를 기다리고 시작하지 않은 스레드에는 기다리지 않고 바로 돌아온다는 것은 join()과 join(long) 설명을 따랐습니다. 스레드는 Thread 객체로 만들고 그 객체의 start()를 부를 때 시작한다는 것은 Java Language Specification(Java SE 21) 17장 서두를, 프로그램이 클래스의 main 메서드를 불러 실행을 시작한다는 것은 12.1절을 따랐습니다. 다만 12.1절은 main을 실행하는 스레드나 그 이름을 정하지 않으므로, 그 스레드의 이름이 main이라는 것과 이름 없이 만든 첫 스레드가 Thread-0, 둘째가 Thread-1이라는 번호 순서는 명세가 정한 것이 아니라 이 JDK에서 실행해 관찰한 것입니다. 새로 시작된 스레드의 수는 JVM이 센 값이며 JVM 안에서 따로 시작되는 스레드가 있으면 달라질 수 있는데, 이 PC에서는 그런 일이 없었습니다. 화면의 코드는 java.lang 안의 클래스만 쓰므로 import 줄이 없고, java Main으로 실행하는 모양 그대로입니다. 모든 조합이 t를 시작하고 join으로 끝나기를 기다린 뒤에 t2를 시작하므로 출력 순서가 정해져 있고, join이 없을 때나 두 스레드가 동시에 움직일 때의 순서는 이 실습이 다루지 않았고 실행으로 확인하지도 않았습니다. 이 밖에 Runnable을 구현하거나 Thread를 상속하는 방법, 스레드에 이름을 주는 것, start()를 두 번 부르는 것, 스레드의 상태 변화, 가상 스레드와 스레드 풀은 다루지 않았습니다. 상태 변화는 &quot;세부 동작 실습: 스레드의 생성과 상태&quot;에서 다룹니다.</p>
+<p>앞 실습: <a href="../../lab/annot_basic/">애너테이션</a> · 다음 실습: <a href="../../lab/servlet_basic/">서블릿</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=7d5cf4ebc9"></script>
+</body>
+</html>

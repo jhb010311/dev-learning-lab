@@ -20,7 +20,7 @@ Lab.basics({
       { id: 'generic_basic' },
       { id: 'lambda_basic' },
       { id: 'annot_basic' },
-      { t: '스레드', d: '코드를 동시에 실행하는 흐름' },
+      { id: 'thread_basic' },
     ] },
     { name: 'Spring', desc: '스프링으로 웹 요청을 처리할 때 밑에 깔려 있는 것들입니다.', items: [
       { t: '빈', d: '스프링이 만들어 관리하는 객체' },

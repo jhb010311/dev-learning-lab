@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=bd3026c2d3">
+<link rel="stylesheet" href="../../app.css?v=7d5cf4ebc9">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -103,7 +103,7 @@ public class Main {
 }</pre>
 <h2>이 모형의 전제</h2>
 <p>컴파일러와 실행 환경은 JDK 21.0.12.1(javac 21)입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스를 javax.tools로 컴파일하고, 컴파일에 성공한 것은 클래스 파일을 새 클래스 로더로 읽어 Main.main을 실행해 표준 출력을 잡은 결과와 대조했습니다. 열두 조합 모두 컴파일에 성공했습니다. 대조한 것은 컴파일 성공 여부, 실행했을 때의 출력, 출력에서 읽은 불린 메서드, 그리고 &quot;실행 중에 읽힌 표시&quot;입니다. 마지막 것은 Main과 따로, 대조 프로그램이 같은 클래스 로더에서 Job 클래스의 work와 rest 메서드에 isAnnotationPresent(Run.class)를 직접 물어 잰 값이며, 읽는 코드가 없는 조합에서도 잽니다. 또 Job의 class 파일에 표시가 어떤 형태로 적혔는지(RuntimeVisibleAnnotations인지 RuntimeInvisibleAnnotations인지)도 확인했고, 화면의 단계 문장이 이 결과에 기댑니다. 문서는 직접 열어 확인했습니다. Java Language Specification(Java SE 21)의 9.6절(@interface로 애너테이션을 선언하고, 요소가 없으면 마커 애너테이션 인터페이스라는 것), 9.6.4.2절(@Retention이 없으면 CLASS로 보고, SOURCE는 class 파일에 남기지 않고, CLASS와 RUNTIME은 class 파일에 기록하며, RUNTIME은 리플렉션이 실행 중에 읽을 수 있게 해야 한다는 것), 9.7절(애너테이션은 프로그램 요소에 정보를 붙이는 표시이고 실행 중의 동작에는 영향을 주지 않는다는 것)과 9.7.2절(마커 애너테이션)을 따랐습니다. java.lang.annotation.Retention과 RetentionPolicy의 API 문서(기본값이 CLASS이고 RUNTIME만 리플렉션으로 읽을 수 있다는 것), java.lang.reflect.AnnotatedElement의 API 문서(isAnnotationPresent)도 확인했습니다. 컴파일러가 표시를 어떤 형태로 class 파일에 적는지는 명세가 정한 것이 아니라 이 javac에서 관찰한 것입니다. 화면의 코드는 이 실습의 설명을 위해 for 문으로 두 메서드를 차례로 보도록 했고, 실제 프레임워크가 표시를 읽는 방식과는 다릅니다. 스프링의 @RestController와 @GetMapping이 스프링이 읽어 주기 때문에 효과가 있다는 문장은 이 실습에서 실행하지 않았고, &quot;컨트롤러&quot; 기초 실습에서 확인한 내용을 가리킵니다. 애너테이션의 값을 담는 요소, @Target, @Override처럼 컴파일러가 읽는 표시, 실행 중에 읽는 프레임워크의 실제 구현은 다루지 않았습니다. 이 밖의 동작은 &quot;세부 동작 실습: 애너테이션&quot;에서 다룹니다.</p>
-<p>앞 실습: <a href="../../lab/lambda_basic/">람다</a> · 다음 실습: <a href="../../lab/servlet_basic/">서블릿</a></p>
+<p>앞 실습: <a href="../../lab/lambda_basic/">람다</a> · 다음 실습: <a href="../../lab/thread_basic/">스레드</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -189,6 +189,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=bd3026c2d3"></script>
+<script src="../../app.js?v=7d5cf4ebc9"></script>
 </body>
 </html>

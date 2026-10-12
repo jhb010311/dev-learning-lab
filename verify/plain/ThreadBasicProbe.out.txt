@@ -1,0 +1,9 @@
+# java 21.0.12.1
+start|false => OK|0|20|0|1|1|-|work를 실행한 스레드: Thread-0 / 이 줄을 실행한 스레드: main
+start|true => OK|0|20|0|1|2|-|work를 실행한 스레드: Thread-0 / work를 실행한 스레드: Thread-1 / 이 줄을 실행한 스레드: main
+run|false => OK|0|20|0|1|0|-|work를 실행한 스레드: main / 이 줄을 실행한 스레드: main
+run|true => OK|0|20|0|1|0|-|work를 실행한 스레드: main / work를 실행한 스레드: main / 이 줄을 실행한 스레드: main
+none|false => OK|0|20|0|1|0|-|이 줄을 실행한 스레드: main
+none|true => OK|0|20|0|1|0|-|이 줄을 실행한 스레드: main
+FACT state => 20|1|1|0/-/만든 직후: Thread-0 NEW false / start 뒤: WAITING true main true / join 뒤: TERMINATED false
+FACT run => 20|1|0|0/-/맡긴 코드를 실행한 스레드: main / run 뒤: NEW false / join이 돌아옴
