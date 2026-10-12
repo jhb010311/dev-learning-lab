@@ -14,7 +14,7 @@ Lab.register({
     { t: '인자 있는 생성자만 적고 new Order()', q: '생성자를 Order(int extra) 하나만 적고 new Order() 호출을 하면', d: '기본 생성자가 생기지 않아 컴파일 오류입니다.', v: { ctors: 'arg', call: 'noarg', first: 'field' } },
     { t: '초기화 블록을 위에 적으면', q: '생성자를 Order()와 Order(int extra) 둘 다 적고 int qty = 10 대신 초기화 블록 { qty = 20; }을 위에 적으면', d: '초기화식이 나중에 실행되어 qty가 10이 됩니다.', v: { ctors: 'both', call: 'noarg', first: 'block' } },
     { t: 'new Order(3)', q: '생성자를 Order()와 Order(int extra) 둘 다 적고 new Order(3) 호출로 객체를 만들면', d: '인자에 맞는 생성자 Order(int extra)가 선택됩니다.', v: { ctors: 'both', call: 'arg', first: 'field' } },
-    { t: '생성자가 없는데 new Order(3)', q: '생성자를 하나도 적지 않고 new Order(3) 호출로 만들면', d: '기본 생성자는 인자를 받지 않으므로 컴파일 오류입니다.', v: { ctors: 'none', call: 'arg', first: 'field' } },
+    { t: '생성자가 없는데 new Order(3)', q: '생성자를 하나도 적지 않고 new Order(3) 호출로 객체를 만들면', d: '기본 생성자는 인자를 받지 않으므로 컴파일 오류입니다.', v: { ctors: 'none', call: 'arg', first: 'field' } },
   ],
   code: function (c) {
     var field = '    int qty = 10;                  // 필드 초기화식\n', memo = '    String memo;                   // 초기화식이 없는 필드\n', block = '    {                              // 초기화 블록\n        qty = 20;\n    }\n';

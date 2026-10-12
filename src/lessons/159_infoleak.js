@@ -18,7 +18,7 @@ Lab.register({
     { t: 'on_param에 ?trace=true', q: 'include-message는 never로 두고 include-stacktrace를 on_param으로 바꾼 뒤 요청 주소 끝에 ?trace=true를 붙이면', d: '파라미터는 누구나 붙일 수 있으므로 숨긴 것이 아닙니다.', v: { topic: 'boot', msg: 'never', trace: 'on_param', q: true, body: 'raw', lg: 'split', acct: 'none' } },
     { t: '예외 메시지를 그대로 응답', q: '설정은 둘 다 never인데 @ExceptionHandler가 예외의 메시지를 그대로 응답에 담으면', d: '설정이 기본값이어도 코드가 직접 내보내면 새어 나갑니다.', v: { topic: 'handler', msg: 'never', trace: 'never', q: false, body: 'raw', lg: 'split', acct: 'none' } },
     { t: '정해 둔 글귀와 오류 번호만', q: '설정은 둘 다 never인데 @ExceptionHandler가 정해 둔 글귀와 오류 번호만 응답에 담으면', d: '자세한 내용은 서버의 로그에만 남깁니다.', v: { topic: 'handler', msg: 'never', trace: 'never', q: false, body: 'safe', lg: 'split', acct: 'none' } },
-    { t: '로그인 실패 글귀가 다르면', q: '직접 짠 로그인 코드가 두 경우에 다른 글귀를 내는데 가입하지 않은 아이디 ghost로 시도하면', d: '아이디가 가입돼 있는지를 알려 주게 됩니다.', v: { topic: 'login', msg: 'always', trace: 'always', q: false, body: 'raw', lg: 'split', acct: 'none' } },
+    { t: '로그인 실패 글귀가 다르면', q: '직접 짠 로그인 코드가 없는 아이디일 때와 비밀번호가 틀릴 때 다른 글귀를 내는데 가입하지 않은 아이디 ghost로 시도하면', d: '아이디가 가입돼 있는지를 알려 주게 됩니다.', v: { topic: 'login', msg: 'always', trace: 'always', q: false, body: 'raw', lg: 'split', acct: 'none' } },
     { t: '스프링 시큐리티 기본값의 로그인', q: '로그인 실패를 스프링 시큐리티 기본값으로 알리는데 ghost로 시도하면', d: '없는 아이디와 틀린 비밀번호의 응답이 같습니다.', v: { topic: 'login', msg: 'always', trace: 'always', q: false, body: 'raw', lg: 'sec', acct: 'none' } },
   ],
   SQL: 'select id, item, pirce from orders where id = ?',

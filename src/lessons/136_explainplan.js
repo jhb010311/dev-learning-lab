@@ -11,7 +11,7 @@ Lab.register({
   // 조인 예시는 쿼리가 정해져 있고, GROUP BY를 고르면 조회 컬럼이 age, COUNT(*)로 정해진다
   fix: function (c) { return c.w === 'join' ? { sel: 'star', tail: 'none' } : c.tail === 'gage' ? { sel: 'star' } : null; },
   presets: [
-    { t: '처음 설정으로', q: 'LEFT(name, 7) = \'user001\' 조건으로 SELECT * 조회하면 EXPLAIN 한 줄에서 무엇을 읽어야 하나', d: '인덱스가 있는 컬럼인데 함수를 씌웠더니 type이 ALL입니다.', v: { w: 'func', sel: 'star', tail: 'none' } },
+    { t: '처음 설정으로', q: 'LEFT(name, 7) = \'user001\' 조건으로 SELECT *로 조회하면 EXPLAIN 한 줄에서 무엇을 읽어야 하나', d: '인덱스가 있는 컬럼인데 함수를 씌웠더니 type이 ALL입니다.', v: { w: 'func', sel: 'star', tail: 'none' } },
     { t: '같은 뜻을 LIKE로 쓰면', q: 'WHERE 조건을 name LIKE \'user001%\' 모양으로 바꾸면', d: "LIKE 'user001%'. type이 range로 바뀝니다.", v: { w: 'prefix', sel: 'star', tail: 'none' } },
     { t: '기본 키로 한 행', q: 'WHERE 조건을 id = 500 기본 키 모양으로 바꾸면', d: 'type const. 가장 적게 읽는 경우입니다.', v: { w: 'pk', sel: 'star', tail: 'none' } },
     { t: '앞에 %가 붙은 LIKE, 인덱스 컬럼만 조회', q: 'name LIKE \'%00123\' 조건에 id, name만 SELECT하면', d: 'type index. 이름과 달리 인덱스 전체를 읽습니다.', v: { w: 'suffix', sel: 'cov', tail: 'none' } },

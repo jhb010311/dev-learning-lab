@@ -10,11 +10,11 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'Cache-Control: max-age=60으로 받은 파일을 120초 뒤에 다시 열면 서버와 무엇이 오가나', d: '유효 시간이 지난 뒤 다시 요청. 안 바뀌었으면 본문 없이 304만 옵니다.', v: { cc: 'max', when: '120', chg: false } },
-    { t: '유효 시간 안에 다시 열면', q: '두 번째로 여는 시점을 30초 뒤로 바꾸면', d: '서버에 요청조차 보내지 않습니다.', v: { cc: 'max', when: '30', chg: false } },
+    { t: '유효 시간 안에 다시 열면', q: '30초 뒤에 다시 열면', d: '서버에 요청조차 보내지 않습니다.', v: { cc: 'max', when: '30', chg: false } },
     { t: '내용이 바뀌었다면', q: '그 사이 서버의 내용이 바뀐 채로 120초 뒤에 다시 열면', d: 'ETag가 달라 새 내용을 200으로 받습니다.', v: { cc: 'max', when: '120', chg: true } },
     { t: '유효 시간 안인데 내용이 바뀌면', q: '30초 뒤에 다시 여는데 그 사이 서버의 내용이 바뀌면', d: '브라우저는 모르고 옛 내용을 씁니다.', v: { cc: 'max', when: '30', chg: true } },
-    { t: 'no-store', q: '서버가 준 캐시 지시를 Cache-Control: no-store로 바꾸면', d: '저장하지 않으므로 매번 전부 다시 받습니다.', v: { cc: 'nostore', when: '120', chg: false } },
-    { t: 'no-cache', q: '서버가 준 캐시 지시를 Cache-Control: no-cache로 바꾸면', d: '저장은 하되 쓸 때마다 서버에 확인합니다.', v: { cc: 'nocache', when: '120', chg: false } },
+    { t: 'no-store', q: 'Cache-Control: no-store로 받은 파일을 120초 뒤에 다시 열면', d: '저장하지 않으므로 매번 전부 다시 받습니다.', v: { cc: 'nostore', when: '120', chg: false } },
+    { t: 'no-cache', q: 'Cache-Control: no-cache로 받은 파일을 120초 뒤에 다시 열면', d: '저장은 하되 쓸 때마다 서버에 확인합니다.', v: { cc: 'nocache', when: '120', chg: false } },
   ],
   code: function (c) {
     var h = { nostore: 'CacheControl.noStore()', max: 'CacheControl.maxAge(60, TimeUnit.SECONDS)', nocache: 'CacheControl.noCache()' }[c.cc];

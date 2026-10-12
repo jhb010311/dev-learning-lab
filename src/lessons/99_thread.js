@@ -14,7 +14,7 @@ Lab.register({
     { t: 'join으로 기다리는 스레드', q: 't.start()로 시작했는데 작업이 helper.join()으로 다른 스레드가 끝나기를 기다리면', d: '다른 스레드가 끝나기를 기한 없이 기다리면 WAITING입니다.', v: { call: 'start', work: 'join', intr: false } },
     { t: 'lock을 기다리는 스레드', q: 't.start()로 시작했는데 작업이 main이 쥐고 있는 lock을 얻으려 하면', d: '다른 스레드가 쥔 lock 앞에서 막히면 BLOCKED입니다.', v: { call: 'start', work: 'lock', intr: false } },
     { t: '쉬는 스레드에 interrupt', q: 't.start()로 시작했는데 쉬는 동안 main이 t.interrupt()를 호출하면', d: 'sleep이 InterruptedException을 던지며 바로 깨어납니다.', v: { call: 'start', work: 'sleep', intr: true } },
-    { t: 'lock을 기다리는 스레드에 interrupt', q: 'main이 쥐고 있는 lock을 얻으려는 작업인데 main이 t.interrupt()를 호출하면', d: '깨어나지 않습니다. 표시만 남습니다.', v: { call: 'start', work: 'lock', intr: true } },
+    { t: 'lock을 기다리는 스레드에 interrupt', q: 't.start()로 시작한 작업이 main이 쥐고 있는 lock을 얻으려는데 main이 t.interrupt()를 호출하면', d: '깨어나지 않습니다. 표시만 남습니다.', v: { call: 'start', work: 'lock', intr: true } },
     { t: '끝난 스레드를 다시 start()', q: '이름만 출력하고 바로 끝나는 작업을 t.start()로 실행한 뒤, 끝나고 나서 한 번 더 t.start()를 호출하면', d: 'IllegalThreadStateException이 발생합니다.', v: { call: 'twice', work: 'quick', intr: false } },
   ],
   code: function (c) {

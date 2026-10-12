@@ -11,9 +11,9 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: 'CPU 코어 4개에 계산 위주 작업을 스레드 16개로 돌리면 어떻게 되나', d: '코어 4개에 계산 작업 스레드 16개. 처리량은 4개일 때와 같고, 작업 하나가 끝나는 시간만 4배가 됩니다.', v: { core: 4, th: 16, kind: 'cpu' } },
     { t: '스레드를 코어 수에 맞추면', q: '계산 위주 작업은 그대로 두고 스레드 수를 4개로 바꾸면', d: '처리량은 같고 작업마다 기다림 없이 끝납니다.', v: { core: 4, th: 4, kind: 'cpu' } },
-    { t: '기다림 위주 작업, 스레드 4개', q: '작업의 성격을 기다림 위주로 바꾸고 스레드 수는 4개로 하면', d: '스레드가 대부분 기다리고 있어 CPU가 놉니다.', v: { core: 4, th: 4, kind: 'io' } },
-    { t: '기다림 위주 작업, 스레드 40개', q: '작업의 성격을 기다림 위주로 바꾸고 스레드 수를 40개로 하면', d: '기다리는 동안 다른 스레드가 CPU를 써서 처리량이 10배가 됩니다.', v: { core: 4, th: 40, kind: 'io' } },
-    { t: '그보다 더 늘리면', q: '작업의 성격을 기다림 위주로 바꾸고 스레드 수를 80개로 하면', d: '80개. CPU가 이미 꽉 차서 처리량은 그대로입니다.', v: { core: 4, th: 80, kind: 'io' } },
+    { t: '기다림 위주 작업, 스레드 4개', q: '기다림 위주 작업을 스레드 4개로 돌리면', d: '스레드가 대부분 기다리고 있어 CPU가 놉니다.', v: { core: 4, th: 4, kind: 'io' } },
+    { t: '기다림 위주 작업, 스레드 40개', q: '기다림 위주 작업을 스레드 40개로 돌리면', d: '기다리는 동안 다른 스레드가 CPU를 써서 처리량이 10배가 됩니다.', v: { core: 4, th: 40, kind: 'io' } },
+    { t: '그보다 더 늘리면', q: '기다림 위주 작업을 스레드 80개로 돌리면', d: '80개. CPU가 이미 꽉 차서 처리량은 그대로입니다.', v: { core: 4, th: 80, kind: 'io' } },
   ],
   code: function (c) {
     return 'int cores = Runtime.getRuntime().availableProcessors();   // ' + c.core + '\n\n// ' + (c.kind === 'cpu' ? '계산 위주: 코어 수만큼이면 충분' : '기다림 위주: 코어 수 x (1 + 대기 시간 / 계산 시간)') + '\nExecutorService pool = Executors.newFixedThreadPool(' + c.th + ');\n\nfor (Task task : tasks) {\n    pool.submit(() -> ' + (c.kind === 'cpu' ? 'resize(image)' : 'callExternalApi()') + ');\n}';

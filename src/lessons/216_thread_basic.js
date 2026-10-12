@@ -12,7 +12,7 @@ Lab.register({
     { t: '처음 설정으로', q: '스레드는 어떻게 만들고, start()를 부르면 누가 work를 실행하나', d: 'start()를 부르면 새 스레드 Thread-0이 생겨 work를 실행하고, 마지막 줄은 main이 실행합니다.', v: { how: 'start', two: false } },
     { t: 'start() 대신 run()을 부르면', q: 'start() 대신 run()을 부르면', d: '새 스레드는 생기지 않고, main이 work를 직접 실행합니다.', v: { how: 'run', two: false } },
     { t: 'start()를 지우면', q: 'start()를 지우면', d: '스레드 객체만 만들고 시작하지 않으면 work는 실행되지 않습니다.', v: { how: 'none', two: false } },
-    { t: '스레드를 하나 더 만들어 start()하면', q: '스레드를 하나 더 만들어 start()하면', d: '새 스레드가 하나 더 생겨 Thread-0과 Thread-1이 차례로 work를 실행합니다.', v: { how: 'start', two: true } },
+    { t: '스레드를 하나 더 만들어 start()하면', q: '스레드 t2를 하나 더 만들어 start()를 부르면', d: '새 스레드가 하나 더 생겨 Thread-0과 Thread-1이 차례로 work를 실행합니다.', v: { how: 'start', two: true } },
   ],
   // 그림에서 상자마다의 처음 모양. mt, m2, ml은 main 스레드 쪽, x0, x1은 새 스레드 쪽
   bx0: function (c) {

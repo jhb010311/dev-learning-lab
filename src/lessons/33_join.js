@@ -11,7 +11,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: 'LEFT JOIN인데 status = \'PAID\' 조건을 WHERE 절에 쓰면 주문 없는 회원 박민수는 어떻게 되나', d: 'LEFT JOIN인데 WHERE에 조건을 썼습니다. 주문 없는 회원이 사라집니다.', v: { join: 'LEFT', cond: 'where', agg: 'none' } },
     { t: '같은 조건을 ON으로 옮기면', q: 'status = \'PAID\' 조건을 ON 절로 옮기면', d: '주문 없는 회원도 NULL과 함께 남습니다.', v: { join: 'LEFT', cond: 'on', agg: 'none' } },
-    { t: 'INNER JOIN', q: '조인 종류를 INNER JOIN으로 바꾸고 status 조건을 없애면', d: '양쪽에 짝이 있는 행만 나옵니다.', v: { join: 'INNER', cond: 'none', agg: 'none' } },
+    { t: 'INNER JOIN', q: 'INNER JOIN을 쓰고 status 조건을 없애면', d: '양쪽에 짝이 있는 행만 나옵니다.', v: { join: 'INNER', cond: 'none', agg: 'none' } },
     { t: 'LEFT JOIN, 조건 없음', q: 'LEFT JOIN에서 status 조건을 없애면', d: '주문 없는 회원이 NULL로 채워져 한 줄 나옵니다.', v: { join: 'LEFT', cond: 'none', agg: 'none' } },
     { t: '회원별 결제 주문 수', q: 'status = \'PAID\' 조건을 ON 절에 쓰고 GROUP BY로 회원별 주문 수를 세면', d: 'LEFT JOIN + ON 조건이면 0건인 회원도 셉니다.', v: { join: 'LEFT', cond: 'on', agg: 'count' } },
     { t: '2건 이상인 회원만', q: 'status = \'PAID\' 조건을 ON 절에 쓰고 HAVING으로 주문이 2건 이상인 회원만 거르면', d: 'HAVING은 그룹으로 묶은 뒤에 걸러냅니다.', v: { join: 'LEFT', cond: 'on', agg: 'having' } },

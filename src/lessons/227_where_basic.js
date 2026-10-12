@@ -12,8 +12,8 @@ Lab.register({
     { t: '처음 설정으로', q: 'WHERE는 어떻게 생겼고, UPDATE에 붙이면 어느 행이 바뀌나', d: 'WHERE id = 2가 붙은 UPDATE. 조건에 맞는 id 2의 행만 바뀝니다.', v: { stmt: 'update', cond: 'one' } },
     { t: 'WHERE를 지우면', q: 'WHERE를 지우면', d: '조건이 없으면 모든 행이 대상이 되어, UPDATE가 세 행을 다 고칩니다.', v: { stmt: 'update', cond: 'none' } },
     { t: '조건을 age = 30으로 바꾸면', q: '조건을 age = 30으로 바꾸면', d: '맞는 행이 둘이면 둘 모두에 적용됩니다.', v: { stmt: 'update', cond: 'many' } },
-    { t: '맞는 행이 없는 조건이면', q: '맞는 행이 없는 조건(id = 9)이면', d: '맞는 행이 없으면 아무 행도 바뀌지 않고, 오류도 아닙니다.', v: { stmt: 'update', cond: 'zero' } },
-    { t: 'DELETE에서 WHERE를 지우면', q: 'DELETE에서 WHERE를 지우면', d: 'WHERE 없는 DELETE는 테이블의 모든 행을 지웁니다.', v: { stmt: 'delete', cond: 'none' } },
+    { t: '맞는 행이 없는 조건이면', q: '조건을 id = 9로 바꿔 맞는 행이 없으면', d: '맞는 행이 없으면 아무 행도 바뀌지 않고, 오류도 아닙니다.', v: { stmt: 'update', cond: 'zero' } },
+    { t: 'DELETE에서 WHERE를 지우면', q: '문장을 DELETE로 바꾸고 WHERE를 지우면', d: 'WHERE 없는 DELETE는 테이블의 모든 행을 지웁니다.', v: { stmt: 'delete', cond: 'none' } },
   ],
   // 화면의 코드와 대조 프로그램(verify/spring/src/WhereBasicProbe.java)이 같은 글을 실행한다. 대조 스크립트가 글자까지 비교한다.
   head: { update: "UPDATE member SET name = '탈퇴'", 'delete': 'DELETE FROM member', select: 'SELECT * FROM member' },

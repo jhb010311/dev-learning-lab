@@ -10,8 +10,8 @@ Lab.register({
   ],
   presets: [
     { t: '처음 설정으로', q: 'HashSet에 문자열 grape, apple, date, apple, fig를 차례로 넣으면 어떤 순서로 나오나', d: 'HashSet에 문자열을 넣습니다. 넣은 순서도 정렬된 순서도 아닌 순서로 나옵니다.', v: { kind: 'hash', data: 'words', shape: 'set' } },
-    { t: 'LinkedHashSet', q: '컬렉션의 종류를 LinkedHashSet으로 바꾸면', d: '넣은 순서 그대로 나옵니다.', v: { kind: 'linked', data: 'words', shape: 'set' } },
-    { t: 'TreeSet', q: '컬렉션의 종류를 TreeSet으로 바꾸면', d: '정렬된 순서로 나옵니다.', v: { kind: 'tree', data: 'words', shape: 'set' } },
+    { t: 'LinkedHashSet', q: 'HashSet 대신 LinkedHashSet을 쓰면', d: '넣은 순서 그대로 나옵니다.', v: { kind: 'linked', data: 'words', shape: 'set' } },
+    { t: 'TreeSet', q: 'HashSet 대신 TreeSet을 쓰면', d: '정렬된 순서로 나옵니다.', v: { kind: 'tree', data: 'words', shape: 'set' } },
     { t: 'HashSet에 작은 정수', q: 'HashSet인데 넣는 값을 작은 정수 3, 1, 2, 1, 5로 바꾸면', d: '정렬해 준 것처럼 보입니다. 넣는 값을 40, 5, 17, 5, 100으로 바꿔 비교해 보세요.', v: { kind: 'hash', data: 'small', shape: 'set' } },
     { t: 'TreeSet에 null', q: 'TreeSet인데 넣는 값을 null이 섞인 문자열 grape, apple, null, apple, fig로 바꾸면', d: '비교할 수 없어 NullPointerException이 납니다.', v: { kind: 'tree', data: 'null', shape: 'set' } },
     { t: 'TreeSet에 직접 만든 객체', q: 'TreeSet인데 넣는 값을 직접 만든 Task 객체(id가 40, 5, 17, 5, 100)로 바꾸면', d: 'Comparable을 구현하지 않은 객체는 ClassCastException이 납니다.', v: { kind: 'tree', data: 'obj', shape: 'set' } },

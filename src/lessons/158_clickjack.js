@@ -14,7 +14,7 @@ Lab.register({
     { t: '처음 설정으로', q: 'frameOptions를 꺼 둔 서버의 결제 화면을 attacker.example 페이지가 프레임에 넣으면 어떻게 되나', d: '프레임 헤더를 꺼 둔 서버. 공격자가 내 결제 화면을 숨은 프레임에 넣을 수 있습니다.', v: { topic: 'frame', hdr: 'off', who: 'attacker', check: 'none', next: 'abs' } },
     { t: '스프링 시큐리티 기본값', q: '헤더 설정을 스프링 시큐리티 기본값 그대로 두면', d: '설정하지 않아도 X-Frame-Options: DENY가 붙어 프레임에 그려지지 않습니다.', v: { topic: 'frame', hdr: 'default', who: 'attacker', check: 'none', next: 'abs' } },
     { t: '기본값에서 내 페이지의 프레임', q: '스프링 시큐리티 기본값인데 같은 사이트의 shop.example 페이지가 결제 화면을 프레임에 넣으면', d: 'DENY는 같은 사이트의 프레임까지 막습니다.', v: { topic: 'frame', hdr: 'default', who: 'self', check: 'none', next: 'abs' } },
-    { t: '협력 사이트만 허용', q: 'CSP frame-ancestors로 내 사이트와 협력 사이트만 허용하고 partner.example 페이지가 프레임에 넣으면', d: 'frame-ancestors에 적은 출처의 프레임에만 그려집니다.', v: { topic: 'frame', hdr: 'csp', who: 'partner', check: 'none', next: 'abs' } },
+    { t: '협력 사이트만 허용', q: 'CSP frame-ancestors로 내 사이트와 협력 사이트만 허용하고 partner.example 페이지가 결제 화면을 프레임에 넣으면', d: 'frame-ancestors에 적은 출처의 프레임에만 그려집니다.', v: { topic: 'frame', hdr: 'csp', who: 'partner', check: 'none', next: 'abs' } },
     { t: '돌아갈 주소를 검사하지 않으면', q: '오픈 리다이렉트에서 next를 검사하지 않고 next에 https://attacker.example/login이 들어 있으면', d: '내 사이트의 주소로 시작하는 링크가 공격자 사이트로 넘어갑니다.', v: { topic: 'redir', hdr: 'off', who: 'attacker', check: 'none', next: 'abs' } },
     { t: '"/"로 시작하는지만 보면', q: '서버가 next 값이 /로 시작하는지만 확인하는데 next에 //attacker.example/login이 들어 있으면', d: '//로 시작하는 주소가 검사를 통과합니다.', v: { topic: 'redir', hdr: 'off', who: 'attacker', check: 'slash', next: 'dslash' } },
     { t: '같은 사이트의 경로만 허용', q: 'next를 같은 사이트의 경로만 허용하는 검사로 바꾸고 next가 //attacker.example/login이면', d: '다른 사이트로 가는 값은 첫 화면으로 바뀝니다.', v: { topic: 'redir', hdr: 'off', who: 'attacker', check: 'path', next: 'dslash' } },

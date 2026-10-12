@@ -12,7 +12,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '@WebMvcTest로 웹 계층만 띄우고 가짜 객체 없이 설정이 같은 테스트 클래스 둘을 실행하면 어떻게 되나', d: '@WebMvcTest만 붙였습니다. 컨텍스트가 뜨지 않아 테스트가 시작도 못 합니다.', v: { kind: 'webmvc', mock: 'none', next: 'same' } },
     { t: '서비스를 가짜로 채우면', q: 'OrderService를 가짜로 바꾸고 돌려줄 값을 정하면', d: '@MockitoBean OrderService를 넣으면 컨텍스트가 뜨고 테스트가 통과합니다.', v: { kind: 'webmvc', mock: 'svc', next: 'same' } },
-    { t: '리포지토리만 가짜로 채우면', q: 'OrderService 대신 OrderRepository를 가짜로 바꾸고 돌려줄 값을 정하면', d: '컨트롤러가 요구하는 것은 서비스라서 여전히 뜨지 않습니다.', v: { kind: 'webmvc', mock: 'repo', next: 'same' } },
+    { t: '리포지토리만 가짜로 채우면', q: 'OrderRepository만 가짜로 바꾸고 돌려줄 값을 정하면', d: '컨트롤러가 요구하는 것은 서비스라서 여전히 뜨지 않습니다.', v: { kind: 'webmvc', mock: 'repo', next: 'same' } },
     { t: '가짜에 돌려줄 값을 정하지 않으면', q: 'OrderService를 가짜로 바꾸되 돌려줄 값을 정하지 않으면', d: '컨텍스트는 뜨지만 가짜가 null을 돌려주어, 값을 확인하는 줄에서 실패합니다.', v: { kind: 'webmvc', mock: 'bare', next: 'same' } },
     { t: '@SpringBootTest로 전부 띄우면', q: '테스트 방식을 @SpringBootTest로 바꿔 빈을 전부 띄우면', d: '세 빈이 모두 진짜로 등록되어 가짜 없이도 통과합니다.', v: { kind: 'boot', mock: 'none', next: 'same' } },
     { t: '@MockitoBean이 서로 다르면', q: '@SpringBootTest에 OrderService 가짜를 두고 두 번째 클래스에 @MockitoBean이 하나 더 있으면', d: '두 번째 클래스는 캐시의 컨텍스트를 못 쓰고 새로 만듭니다.', v: { kind: 'boot', mock: 'svc', next: 'mock' } },

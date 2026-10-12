@@ -14,7 +14,7 @@ Lab.register({
     { t: '블루-그린', q: '새 환경을 통째로 준비한 뒤 전환하는 블루-그린으로 배포하면', d: '서버가 두 배 필요하지만 전환과 되돌리기가 한순간입니다.', v: { st: 'bluegreen', bug: false, grace: true } },
     { t: '버그가 있는 버전을 롤링으로', q: '롤링 배포 그대로 새 버전 v2에 버그가 있으면', d: '문제를 알아챌 때까지 영향 범위가 점점 커집니다.', v: { st: 'rolling', bug: true, grace: true } },
     { t: '버그가 있는 버전을 카나리로', q: '카나리로 일부에만 먼저 배포하는데 새 버전 v2에 버그가 있으면', d: '일부 사용자만 영향을 받고 되돌립니다.', v: { st: 'canary', bug: true, grace: true } },
-    { t: 'Graceful Shutdown이 없으면', q: 'Graceful Shutdown 설정을 끄면', d: '서버를 내릴 때 처리 중이던 요청이 끊깁니다.', v: { st: 'rolling', bug: false, grace: false } },
+    { t: 'Graceful Shutdown이 없으면', q: 'Graceful Shutdown을 설정하지 않으면', d: '서버를 내릴 때 처리 중이던 요청이 끊깁니다.', v: { st: 'rolling', bug: false, grace: false } },
   ],
   code: function (c) {
     var k = { recreate: 'strategy:\n  type: Recreate                # 기존 것을 모두 내린 뒤 새로 올림', rolling: 'strategy:\n  type: RollingUpdate\n  rollingUpdate:\n    maxUnavailable: 1           # 한 번에 1대까지만 내림\n    maxSurge: 0', bluegreen: '# 새 버전 Deployment(green)를 따로 띄운 뒤\n# Service의 selector를 version: v2 로 바꿔 한 번에 전환', canary: '# v2를 1대만 띄워 전체 요청의 25%만 받게 한 뒤\n# 오류율과 응답 시간을 지켜보고 나머지를 교체' }[c.st];

@@ -14,8 +14,8 @@ Lab.register({
     { t: 'double 변수에 받아도', q: 'double r = 7 / 2처럼 결과를 double 변수에 받으면', d: '계산은 이미 int로 끝나서 3.0이 됩니다.', v: { topic: 'conv', e1: 'div', e2: 'late', e3: 'ns' } },
     { t: '한쪽을 double로 쓰면', q: 'double r = 7 / 2 대신 double r = 7 / 2.0으로 쓰면', d: '계산 전에 타입이 맞춰져 3.5가 나옵니다.', v: { topic: 'conv', e1: 'div', e2: 'mix', e3: 'ns' } },
     { t: 'int의 범위를 넘으면', q: '정수끼리의 계산에서 2147483647 + 1을 계산하면', d: '가장 큰 값에 1을 더하면 가장 작은 값이 됩니다.', v: { topic: 'ints', e1: 'over', e2: 'late', e3: 'ns' } },
-    { t: 'long 변수에 받기만 하면', q: 'big이 2147483647일 때 계산식 2147483647 + 1을 long r = big + 1로 받으면', d: '넘친 뒤의 값이 그대로 들어갑니다.', v: { topic: 'conv', e1: 'over', e2: 'longlate', e3: 'ns' } },
-    { t: 'byte로 강제 형변환', q: 'byte r = (byte) 200으로 200을 byte로 강제 형변환하면', d: '200이 -56이 됩니다.', v: { topic: 'conv', e1: 'div', e2: 'byte', e3: 'ns' } },
+    { t: 'long 변수에 받기만 하면', q: 'big이 2147483647일 때 long r = big + 1처럼 long 변수에 받기만 하면', d: '넘친 뒤의 값이 그대로 들어갑니다.', v: { topic: 'conv', e1: 'over', e2: 'longlate', e3: 'ns' } },
+    { t: 'byte로 강제 형변환', q: 'byte r = (byte) 200처럼 200을 byte로 강제 형변환하면', d: '200이 -56이 됩니다.', v: { topic: 'conv', e1: 'div', e2: 'byte', e3: 'ns' } },
     { t: '숫자와 문자열을 더하면', q: '1 + 2 + "3"처럼 숫자와 문자열을 +로 더하면', d: '1 + 2 + "3"은 "6"도 "123"도 아닙니다.', v: { topic: 'str', e1: 'div', e2: 'late', e3: 'ns' } },
   ],
   // 설정이 고른 한 줄: 변수 r의 타입 T, 오른쪽 식 e(계산 나무), 코드 옆에 적을 말

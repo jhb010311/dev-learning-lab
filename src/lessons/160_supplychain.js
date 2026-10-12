@@ -18,7 +18,7 @@ Lab.register({
     { t: '전이 의존성의 취약점', q: '전이 의존성인 json-lite의 취약점이 알려졌는데 아무것도 하지 않고 다시 빌드하면', d: '내가 적지 않은 json-lite에서 취약점이 알려졌습니다. 그대로 두면 남습니다.', v: { topic: 'fix', ver: 'range', news: 'evil', avail: 'yes', act: 'none', name: 'typo' } },
     { t: '버전 올리기', q: '전이 의존성의 취약점이 알려졌는데 web-kit의 버전을 올리면', d: 'web-kit을 올리면 json-lite도 함께 바뀝니다.', v: { topic: 'fix', ver: 'range', news: 'evil', avail: 'yes', act: 'bump', name: 'typo' } },
     { t: '올릴 버전이 아직 없을 때', q: 'web-kit은 새 버전을 내지 않고 json-lite 1.2.1만 나왔을 때 json-lite 버전만 constraints로 덮어쓰면', d: '전이 의존성의 버전만 덮어씁니다.', v: { topic: 'fix', ver: 'range', news: 'evil', avail: 'no', act: 'override', name: 'typo' } },
-    { t: '이름을 한 글자 잘못 적으면', q: 'build.gradle에 web-kit 대신 글자 순서가 바뀐 web-kti라고 적으면', d: '오류 없이 가짜 패키지가 들어옵니다.', v: { topic: 'typo', ver: 'range', news: 'evil', avail: 'yes', act: 'none', name: 'typo' } },
+    { t: '이름을 한 글자 잘못 적으면', q: 'build.gradle에 글자 순서가 바뀐 web-kti라고 잘못 적으면', d: '오류 없이 가짜 패키지가 들어옵니다.', v: { topic: 'typo', ver: 'range', news: 'evil', avail: 'yes', act: 'none', name: 'typo' } },
   ],
   // 가상의 저장소: 라이브러리 → 버전 → 그 버전의 설명 파일(POM)에 적힌 의존성
   REG: {

@@ -24,7 +24,7 @@ Lab.register({
   columns: ['첫 응답 뒤 클라이언트에 저장된 쿠키', '둘째 요청에 실린 Cookie 헤더', '둘째 응답'],
   simulate: function (c) {
     var ev = [], sum = [], nojar = c.client === 'nojar', clear = c.client === 'clear';
-    var who = nojar ? '쿠키를 저장하지 않는 프로그램' : '브라우저';
+    var who = nojar ? '쿠키를 저장하지 않는 프로그램' : '브라우저', whoGa = who + (nojar ? '이' : '가');
     var saved = c.set && !nojar, cookie2 = c.set && c.client === 'keep';
     var resp2 = cookie2 ? '또 오셨군요, kim' : '처음 오셨군요';
     var st = { m: 0, jar: '없음', att: '', read: '', r1: '', r2: '', r3: '', rows: [], done: false };
@@ -42,13 +42,13 @@ Lab.register({
     // 4단계: 클라이언트가 응답을 받는다
     if (saved) {
       st.jar = 'visitor=kim'; st.r1 = 'visitor=kim';
-      push(who + '가 응답을 받고, Set-Cookie 줄의 visitor=kim을 자기 쪽에 저장합니다. 값이 저장되는 곳은 브라우저이고, 서버가 아닙니다. 이 서버에는 방문자를 적어 두는 곳이 없습니다.', 'good');
+      push(whoGa + ' 응답을 받고, Set-Cookie 줄의 visitor=kim을 자기 쪽에 저장합니다. 값이 저장되는 곳은 브라우저이고, 서버가 아닙니다. 이 서버에는 방문자를 적어 두는 곳이 없습니다.', 'good');
     } else if (c.set) {
       st.r1 = '없음';
-      push(who + '가 응답을 받습니다. 본문을 읽을 뿐 Set-Cookie 줄의 값을 저장해 두지 않아서, 저장된 쿠키는 없는 채로 남습니다.', 'bad');
+      push(whoGa + ' 응답을 받습니다. 본문을 읽을 뿐 Set-Cookie 줄의 값을 저장해 두지 않아서, 저장된 쿠키는 없는 채로 남습니다.', 'bad');
     } else {
       st.r1 = '없음';
-      push(who + '가 응답을 받습니다. 응답에 Set-Cookie 줄이 없어서 저장할 값이 없고, 저장된 쿠키는 없는 채로 남습니다.', '');
+      push(whoGa + ' 응답을 받습니다. 응답에 Set-Cookie 줄이 없어서 저장할 값이 없고, 저장된 쿠키는 없는 채로 남습니다.', '');
     }
     // 5단계: 사용자가 쿠키를 지운다
     if (clear) {
@@ -59,7 +59,7 @@ Lab.register({
     st.m = 3; st.att = cookie2 ? 'Cookie: visitor=kim' : '붙이지 않음'; st.r2 = cookie2 ? 'Cookie: visitor=kim' : '없음';
     st.rows.push(['둘째 요청', cookie2 ? 'Cookie: visitor=kim' : 'Cookie 헤더 없음', '']);
     if (cookie2) push('브라우저가 같은 서버에 둘째 요청을 보냅니다. 이 서버가 맡긴 쿠키가 저장되어 있어서, 브라우저가 저장해 둔 값을 Cookie: visitor=kim 헤더로 요청에 붙입니다. 이 헤더를 붙이는 코드를 우리가 쓰지 않았습니다. 브라우저가 합니다.', 'good');
-    else push(who + '가 같은 서버에 둘째 요청을 보냅니다. 저장해 둔 쿠키가 없어서 Cookie 헤더를 붙이지 않습니다.', 'bad');
+    else push(whoGa + ' 같은 서버에 둘째 요청을 보냅니다. 저장해 둔 쿠키가 없어서 Cookie 헤더를 붙이지 않습니다.', 'bad');
     // 7단계: 서버가 둘째 요청을 읽는다
     st.read = cookie2 ? 'visitor=kim' : '없음';
     if (cookie2) push('서버가 요청을 읽습니다. Cookie 헤더에 visitor=kim이 있어서 "또 오셨군요, kim"을 본문으로 만듭니다. 서버는 이 사람을 기억하고 있던 것이 아니라, 요청에 실려 온 값을 읽었을 뿐입니다. Cookie 헤더가 와 있으므로 이번 응답에는 Set-Cookie 줄을 붙이지 않습니다.', 'good');
@@ -67,14 +67,14 @@ Lab.register({
     // 8단계: 둘째 응답
     st.m = 4; st.r3 = resp2; st.done = true; st.rows.push(['둘째 응답', cookie2 ? 'Set-Cookie 줄 없음' : c.set ? 'Set-Cookie: visitor=kim' : 'Set-Cookie 줄 없음', resp2]);
     if (clear && c.set) st.jar = 'visitor=kim';
-    push(who + '가 둘째 응답을 받습니다. 본문은 "' + resp2 + '"입니다.' + (clear && c.set ? ' 새로 받은 Set-Cookie 줄을 따라 브라우저가 visitor=kim을 다시 저장합니다.' : ''), cookie2 ? 'good' : 'bad');
+    push(whoGa + ' 둘째 응답을 받습니다. 본문은 "' + resp2 + '"입니다.' + (clear && c.set ? ' 새로 받은 Set-Cookie 줄을 따라 브라우저가 visitor=kim을 다시 저장합니다.' : ''), cookie2 ? 'good' : 'bad');
     // 요약
     if (cookie2) {
       sum.push('쿠키는 서버가 응답의 Set-Cookie 헤더로 맡기는 작은 값(여기서는 visitor=kim)이고, 브라우저가 그것을 저장해 두었다가 같은 서버로 가는 다음 요청마다 Cookie 헤더로 붙여 보냅니다.');
       sum.push('HTTP는 요청 하나하나가 따로여서 서버가 스스로는 둘째 요청을 알아볼 수 없는데, 쿠키가 요청에 실려 오기 때문에 "또 오셨군요, kim"으로 알아봤습니다. 헤더를 붙인 것은 우리가 쓴 코드가 아니라 브라우저입니다.');
     } else if (!c.set) {
-      sum.push('Set-Cookie 줄이 없으면 ' + who + '가 저장할 것이 없고, 둘째 요청에 Cookie 헤더를 붙이지 못합니다. 서버는 둘째 요청도 처음 보는 사람으로 대해 "처음 오셨군요"라고 답했습니다.');
-      sum.push('쿠키는 서버가 Set-Cookie로 먼저 맡겨야 시작됩니다. 맡기지 않은 서버에는 ' + who + '가 보낼 쿠키가 없습니다.');
+      sum.push('Set-Cookie 줄이 없으면 ' + whoGa + ' 저장할 것이 없고, 둘째 요청에 Cookie 헤더를 붙이지 못합니다. 서버는 둘째 요청도 처음 보는 사람으로 대해 "처음 오셨군요"라고 답했습니다.');
+      sum.push('쿠키는 서버가 Set-Cookie로 먼저 맡겨야 시작됩니다. 맡기지 않은 서버에는 ' + whoGa + ' 보낼 쿠키가 없습니다.');
     } else if (clear) {
       sum.push('둘째 요청 전에 사용자가 쿠키를 지우면 브라우저에는 보여 줄 값이 없어서 Cookie 헤더가 붙지 않고, 서버는 다시 처음 보는 사람으로 대해 "처음 오셨군요"라고 답합니다.');
       sum.push('쿠키를 가진 쪽은 브라우저이고, 지우는 것도 사용자가 브라우저에서 합니다. 서버가 아는 것은 요청에 Cookie 헤더가 왔는지뿐이어서, 지운 일을 알지 못합니다. 서버가 Set-Cookie를 다시 붙이면 브라우저는 다시 저장합니다.');

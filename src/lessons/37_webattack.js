@@ -15,7 +15,7 @@ Lab.register({
     { t: 'XSS, 방어 없음', q: '공격 종류를 저장형 XSS로 바꾸고 입력을 그대로 화면에 출력하면', d: '댓글에 넣은 스크립트가 다른 사용자 브라우저에서 실행됩니다.', v: { atk: 'xss', d1: 'none', d2: 'none', d3: 'none' } },
     { t: 'XSS, 출력 이스케이프', q: '저장형 XSS인데 출력할 때 이스케이프하면', d: '스크립트가 글자로만 보입니다.', v: { atk: 'xss', d1: 'none', d2: 'escape', d3: 'none' } },
     { t: 'XSS, HttpOnly만', q: '저장형 XSS인데 세션 쿠키에 HttpOnly만 설정하면', d: '쿠키는 못 훔치지만 스크립트는 여전히 실행됩니다.', v: { atk: 'xss', d1: 'none', d2: 'httponly', d3: 'none' } },
-    { t: 'CSRF, 방어 없음', q: '공격 종류를 CSRF로 바꾸고 세션 쿠키가 SameSite=None인 채로 두면', d: '다른 사이트를 열었을 뿐인데 내 계정으로 요청이 나갑니다.', v: { atk: 'csrf', d1: 'none', d2: 'none', d3: 'none' } },
+    { t: 'CSRF, 방어 없음', q: '세션 쿠키가 SameSite=None인 사이트에 CSRF 공격이 들어오면', d: '다른 사이트를 열었을 뿐인데 내 계정으로 요청이 나갑니다.', v: { atk: 'csrf', d1: 'none', d2: 'none', d3: 'none' } },
     { t: 'CSRF, SameSite=Lax', q: 'CSRF인데 세션 쿠키에 SameSite=Lax를 설정하면', d: '다른 사이트에서 보낸 POST에는 쿠키가 붙지 않습니다.', v: { atk: 'csrf', d1: 'none', d2: 'none', d3: 'samesite' } },
   ],
   code: function (c) {

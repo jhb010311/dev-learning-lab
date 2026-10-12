@@ -15,7 +15,7 @@ Lab.register({
     { t: '보통 필드', q: 'point 필드에서 transient를 빼 보통 필드로 두면', d: '저장할 때의 값 50이 그대로 돌아옵니다.', v: { cls: 'ok', fld: 'plain', chg: 'same' } },
     { t: 'static 필드', q: 'point 필드를 static int point로 바꾸고 저장한 뒤에 값을 70으로 바꾸면', d: '저장된 값이 아니라 지금 클래스가 가진 값 70이 보입니다.', v: { cls: 'ok', fld: 'static', chg: 'same' } },
     { t: 'Serializable을 구현하지 않으면', q: 'User 클래스가 Serializable을 구현하지 않고 point를 보통 필드로 두면', d: '저장할 때 NotSerializableException이 발생합니다.', v: { cls: 'no', fld: 'plain', chg: 'same' } },
-    { t: '필드로 가진 객체가 문제라면', q: 'User는 Serializable을 구현했지만 필드로 가진 Address는 구현하지 않으면', d: 'User가 아니라 Address 때문에 저장에 실패합니다.', v: { cls: 'field', fld: 'plain', chg: 'same' } },
+    { t: '필드로 가진 객체가 문제라면', q: 'point를 보통 필드로 두고 User는 Serializable을 구현했지만 필드로 가진 Address는 구현하지 않으면', d: 'User가 아니라 Address 때문에 저장에 실패합니다.', v: { cls: 'field', fld: 'plain', chg: 'same' } },
     { t: '저장한 뒤 serialVersionUID를 바꾸면', q: 'point를 보통 필드로 두고 저장한 뒤 serialVersionUID를 1L에서 2L로 바꾸면', d: '되살릴 때 InvalidClassException이 발생합니다.', v: { cls: 'ok', fld: 'plain', chg: 'uid' } },
     { t: 'serialVersionUID 없이 필드를 추가하면', q: 'point를 보통 필드로 두고 serialVersionUID를 적지 않은 클래스에 저장한 뒤 필드를 하나 추가하면', d: '자동으로 계산되는 값이 달라져 역시 되살리지 못합니다.', v: { cls: 'ok', fld: 'plain', chg: 'auto' } },
   ],

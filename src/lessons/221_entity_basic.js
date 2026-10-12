@@ -13,7 +13,7 @@ Lab.register({
     { t: '처음 설정으로', q: '엔티티는 어떻게 생겼고, em.persist로 넘기면 무슨 일이 일어나나', d: '@Entity와 @Id가 다 있는 엔티티. JPA가 테이블을 만들고, commit 때 INSERT 문을 보냅니다.', v: { ent: true, idf: true, extra: false } },
     { t: '@Entity를 지우면', q: '@Entity를 지우면', d: 'JPA가 이 클래스를 엔티티로 받아들이지 않아, em.persist에서 오류가 납니다.', v: { ent: false, idf: true, extra: false } },
     { t: '@Id를 지우면', q: '@Id를 지우면', d: '기본 키로 쓸 필드를 찾지 못해, JPA가 시작하다가 멈춥니다.', v: { ent: true, idf: false, extra: false } },
-    { t: 'email 필드를 하나 더 적으면', q: '필드를 하나 더 적으면 (email)', d: '필드가 열 하나로 짝지어져, 테이블에 email 열이 생기고 INSERT 문에도 들어갑니다.', v: { ent: true, idf: true, extra: true } },
+    { t: 'email 필드를 하나 더 적으면', q: 'email 필드를 하나 더 적으면', d: '필드가 열 하나로 짝지어져, 테이블에 email 열이 생기고 INSERT 문에도 들어갑니다.', v: { ent: true, idf: true, extra: true } },
   ],
   // 화면의 코드와 대조 프로그램(verify/spring/src/EntityBasicProbe.java)이 실행하는 소스가 같은 글이다. 대조 스크립트가 글자까지 비교한다.
   code: function (c) {
