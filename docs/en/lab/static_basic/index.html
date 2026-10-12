@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>static: What is static, and what changes when you add it? · Dev Learning Lab</title>
+<meta name="description" content="static is a keyword that you put in front of a field (a variable declared inside a class). A field without static is created separately inside each object…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/static_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/static_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/static_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="static: What is static, and what changes when you add it? · Dev Learning Lab">
+<meta property="og:description" content="static is a keyword that you put in front of a field (a variable declared inside a class). A field without static is created separately inside each object…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/static_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>static</h1>
+<p><b>What is static, and what changes when you add it?</b></p>
+<p>static is a keyword that you put in front of a field (a variable declared inside a class). A field without static is created separately inside each object, every time you create an object. If you add static, there is only one in the class instead of one per object, and all the objects of that class share that one. So you can use a static field without any object, by the class name, as in Counter.count. A field without static must belong to some object, so you cannot use it by the class name alone. In this lab you add and remove static in front of count and change how it is read, and the same code is compiled and run each time. You see what the compiler reports, what is printed, and where count lives.</p>
+<p>Checked against real execution · Four combinations were compiled with javax.tools and run on JDK 21 and checked against the model. Where count lives was measured by running a source in which only the reading line was changed to a.count and b.count</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>static</dt>
+<dd>This keyword marks a member as belonging to the class, not to an instance. A static field exists only once per class and is shared by all instances, and a static method is called without creating an object. A static field whose value changes is effectively a global variable, so it easily causes problems when several threads access it at the same time.</dd>
+<dt>Field</dt>
+<dd>A field is a variable that is declared inside a class. In class Card { String owner; }, owner is a field of type String. A field without static is also called an instance variable, and one is created separately for each object whenever a new object of that class is created. So even objects created from the same class can have different values in their fields. If you do not give a value, the field gets a default value, and for a field of a reference type it is null.</dd>
+<dt>Instance variables and static fields</dt>
+<dd>These are the two kinds of field in a class. A field that is not declared static is an instance variable, and a separate variable for it is created inside the object every time you create an object of the class. A field declared static has exactly one variable however many objects you create (even if you create none), and all the objects of the class share that one. You can use a static field by the class name, as in Counter.count. Using an instance variable by the class name is a compile-time error, because you must say which object it belongs to. If you read a static field through an object, as in a.count, it still compiles, and what is read is the one variable in the class, not a variable inside the object.</dd>
+<dt>Classes and objects</dt>
+<dd>A class is a blueprint that states which fields (data) and methods (behavior) something has, and an object is the actual thing that is created in memory (on the heap) by using new with that blueprint. An object is also called an instance. You can create many objects from one class, and each object has its own field values. A variable holds not the object itself but a reference to where the object is.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — static is in front of count, and it is read by the class name. Compilation succeeds and 2 is printed.</li>
+<li><b>Remove static and read a.count</b> — Each object has its own count, so only the count of a is 1. Compilation succeeds and 1 is printed.</li>
+<li><b>Remove static and read Counter.count</b> — The class name alone cannot say which object the count belongs to, so there is a compile-time error.</li>
+<li><b>Keep static and read a.count</b> — Even if you read it through the object a, what is read is the one count in the class. Compilation succeeds and 2 is printed.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The compiler reads the source from the top. First it reads the declaration of count in the Counter class. static is in front of count, so count is decided to be a variable that exists once in the Counter class, not one that is created for each object.</li>
+<li>The compiler checks the line System.out.println(Counter.count); in main. Counter.count refers to count by the class name. count is static, so there is one in the Counter class, and you can refer to it without any object. This is not an error.</li>
+<li>Compilation succeeds and the Main class file that will run is created.</li>
+<li>You run it with java Main. main starts, and the first new Counter() creates a Counter object and puts it in the variable a. count is static, so no count variable is created inside this object. The Counter class has one count variable, and its value is 0.</li>
+<li>The second new Counter() creates one more Counter object and puts it in the variable b. There are two objects now, but no new count variable was created. There is still only one in the Counter class.</li>
+<li>The call a.up() runs. count = count + 1; in the up method reads count, adds 1, and stores it again. This count is the one variable in the Counter class, so its value goes from 0 to 1. If you read it through the object b, its value is 1 right now too.</li>
+<li>The call b.up() runs. It is the same count = count + 1; . The up of b also adds to the same one variable, so the value goes from 1 to 2. What b adds is on top of what a added.</li>
+<li>The line System.out.println(Counter.count); runs. Counter.count is the one count in the Counter class, and its value 2 is printed.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A static field is a field with static in front of it. It differs from an ordinary field in that there is only one in the class instead of one per object, and all the objects of that class share that one. a and b each called up() once and count became 2, because both of them added to the same count.</li>
+<li>Because it is static, you could read it by the class name without any object, as in Counter.count. A field without static is separate for each object, so the class name alone cannot say which object it belongs to.</li>
+</ul>
+<h2>Code</h2>
+<pre>class Counter {
+    // static: there is only one in the Counter class, not one per object
+    static int count = 0;
+    void up() {
+        count = count + 1;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Counter a = new Counter();
+        Counter b = new Counter();
+        a.up();
+        b.up();
+        System.out.println(Counter.count);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). For all four combinations, the same source as the code on the screen (identical line by line) was compiled with javax.tools. The ones that compiled had their class files loaded by a new class loader and Main.main was run, and the results were checked against the standard output that was captured. What was checked is whether compilation succeeded, the diagnostic code of the first error (compiler.err.non-static.cant.be.ref, shown on the screen as the error description), the number of errors and the lines where they occurred, whether the Main class file was created, and the output when run. The &quot;Where count lives&quot; column was checked with values from a separately compiled and run source in which, with the same declaration, only the reading line was changed to print a.count and b.count (2 and 2 with static, 1 and 1 without). Even in the combination that gets a compile-time error, the source with only the reading line changed compiles and runs. The values right after a.up(), which the step sentences rely on (a.count and b.count are 1 and 1 with static, and 1 and 0 without), were also checked by a separate run. The documentation checked was the Java Language Specification (Java SE 21), opened directly. The rule that a static field has exactly one variable however many objects are created, and that a field that is not static gets a variable in each object every time one is created, follows section 8.3.1.1. The rule that when a static field is read through an object the expression is evaluated, the result is discarded, and the value of the field is used follows section 15.11.1. The rule that using a field that is not static by the class name is a compile-time error follows section 6.5.6.2. The kind of error, the number of errors, and the line where each occurs are not set by the specification. They were observed with this javac. When a static field is read through an object as in a.count, this javac gave no warning with the default settings, and with the -Xlint:all option it gave one warning on that line, &quot;static variable should be qualified by type name, Counter, instead of by an expression&quot;. The warning is not set by the specification. It is the behavior of this javac. static can also be put on methods and initializer blocks. Inside a static method there is no target object, so you cannot use a field that is not static by its name alone, but this lab covered only static fields. It also did not cover when the value of a static field is set, or the problems when several threads change it together. The relation between static methods and members that are not static is covered in &quot;In-depth lab: static and instance&quot;.</p>
+<p>Previous lab: <a href="../../lab/ctor_basic/">Constructors</a> · Next lab: <a href="../../lab/inherit_basic/">Inheritance</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

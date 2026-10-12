@@ -88,7 +88,7 @@ button, input, select { font: inherit; color: inherit; }
 .grid.qgrid { grid-template-areas: "ctl code" "bar bar" "stage stage"; }
 /* 그림이 있으면 세 칸으로 나눈다: 윗줄은 물음과 코드(75칸짜리 줄이 넘치지 않는 너비), 아랫줄은 그림과 결과. 윗줄과 아랫줄이 나뉘는 자리가 다르다. */
 .grid.qgrid.haspic { grid-template-columns: minmax(0, .96fr) minmax(0, .2fr) minmax(0, 1fr); grid-template-areas: "ctl code code" "bar bar bar" "pic pic stage"; }
-/* 기초개념이 아닌 실습(qwide)은 코드 줄이 길다. 물음을 두 단으로 위에 두고, 코드는 그 아래에 전체 너비로 둔다. */
+/* 기초개념이 아닌 실습과 영어판의 기초개념 실습(qwide)은 코드 줄이 길다(영어는 주석이 길어진다). 물음을 두 단으로 위에 두고, 코드는 그 아래에 전체 너비로 둔다. */
 .grid.qgrid.qwide { grid-template-areas: "ctl ctl" "code code" "bar bar" "stage stage"; }
 .grid.qgrid.qwide.haspic { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-areas: "ctl ctl" "code code" "bar bar" "pic stage"; }
 .grid.qgrid.qwide .asks { display: block; column-count: 2; column-gap: 22px; }
@@ -905,7 +905,7 @@ var Lab = (function () {
     stop(); askCancel(); sim = null; paused = false; assumeOpen = false; cur = byId(id) || lessons[0];
     $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
     drawPath();
-    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : '') + (qmode() ? ' qgrid' + (cur.basic ? '' : ' qwide') : ''); placeCode(); picReset();
+    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : '') + (qmode() ? ' qgrid' + (cur.basic && LANG !== 'en' ? '' : ' qwide') : ''); placeCode(); picReset();
     buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
     try { localStorage.setItem('lab-last', cur.id); } catch (e) {}
   }

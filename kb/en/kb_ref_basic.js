@@ -1,0 +1,4 @@
+// Terms for the Fundamentals lab "References". Basis: Java Language Specification (Java SE 21), sections 4.2, 4.3.1, 4.12.1, 4.12.2, 15.21.3.
+module.exports = [
+  ['Java language', 'Reference', 'A reference is a value that refers to an object. When you create an object with new, a reference to that object is produced, and a variable of a class or interface type holds not the object itself but this reference (or null, which means that it refers to no object). There can be several references to the same object, so when you assign as in Card b = a;, the object is not copied. Only the reference is copied, and a and b refer to the same object. If you then change the state of the object through one variable, it is changed when you read it through the other variable too. When you compare two references with ==, it asks not about the contents of the object but whether both are null or both refer to the same object.'],
+];

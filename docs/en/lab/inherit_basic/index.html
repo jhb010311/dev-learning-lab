@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inheritance: What does a class inherit through extends? · Dev Learning Lab</title>
+<meta name="description" content="Inheritance is syntax in which you write extends and another class after the class name, as in class Dog extends Animal. The Animal after extends is the s…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inherit_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/inherit_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/inherit_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Inheritance: What does a class inherit through extends? · Dev Learning Lab">
+<meta property="og:description" content="Inheritance is syntax in which you write extends and another class after the class name, as in class Dog extends Animal. The Animal after extends is the s…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/inherit_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>Inheritance</h1>
+<p><b>What does a class inherit through extends?</b></p>
+<p>Inheritance is syntax in which you write extends and another class after the class name, as in class Dog extends Animal. The Animal after extends is the superclass, Dog is the subclass, and Dog inherits the methods and fields written in Animal. So you can call eat(), which is not written in Dog, on a Dog object. If you write an inherited method again in Dog with the same name, the one in Dog runs on a Dog object, and this is overriding. And because you used extends, you can put a Dog object in a variable of type Animal. In this lab you remove extends, write eat() again, and change the type of the variable, and the same code is compiled and run each time. You see what the compiler reports and which eat runs.</p>
+<p>Checked against real execution · Eight combinations were compiled with javax.tools and run on JDK 21, and the results were checked against the model</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Inheritance</dt>
+<dd>This means defining a new class (the subclass) that receives the fields and methods of an existing class (the superclass). It reuses common code, and the subclass adds or overrides only the parts it needs. A Java class supports single inheritance only, and a change to the superclass affects every subclass, so it is best used only when there is a clear &quot;is-a&quot; relationship.</dd>
+<dt>extends</dt>
+<dd>extends is the keyword in a class declaration that says which class the class inherits from. You write it after the class name, as in class Dog extends Animal. The class written after it (Animal) is the superclass, and the class being declared (Dog) is the subclass. A class can write only one class after extends. A class marked final cannot be inherited from with extends. When you use extends, the superclass becomes a supertype of the subclass, so you can put an object of the subclass in a variable of the superclass type. A class that does not use extends has Object as its superclass.</dd>
+<dt>Superclass and subclass</dt>
+<dd>A superclass is a class that other classes inherit from with extends, and a subclass is a class that names its superclass with extends. In class Dog extends Animal, Animal is the superclass of Dog. A subclass inherits those methods of its superclass that it can access, so you can call them on an object of the subclass even if the subclass does not write them. If the subclass writes a method again with the same name and the same parameters, it uses that one instead of inheriting, and this is overriding. Every class further up the chain, such as the superclass of a superclass, is also called a superclass of the subclass.</dd>
+<dt>Overriding</dt>
+<dd>This means that a subclass redefines a method of its superclass (or of an interface) with the same signature. At run time, the method that matches the type of the actual object is called, and this is how polymorphism is implemented. The access level cannot be made narrower, and static, private, and final methods cannot be overridden.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Dog inherits from Animal. Compilation succeeds and the eat written in Animal runs.</li>
+<li><b>Remove extends Animal</b> — Dog has only what it writes itself, so you cannot call eat(), and there is a compile-time error.</li>
+<li><b>Write eat() again in Dog</b> — On a Dog object, the eat written in Dog runs.</li>
+<li><b>Put it in an Animal-type variable</b> — You can, because extends is there, and you call the eat written in Animal through this variable.</li>
+<li><b>Remove extends and use an Animal variable</b> — Dog is not of type Animal, so you cannot put it in, and there is a compile-time error.</li>
+<li><b>Write it again and use an Animal variable</b> — Even if the type of the variable is Animal, the object is a Dog, so the eat written in Dog runs.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The compiler reads the source from the top. First it reads class Animal and learns that Animal has an eat method. Next it reads the line class Dog extends Animal and remembers that Dog is a subclass of Animal and inherits what is written in Animal. The Animal written after extends is the superclass. Inside Dog, the bark method was written directly.</li>
+<li>The compiler checks the line Dog d = new Dog();. It puts a Dog object in a variable of type Dog, so there is no problem. The type of the variable d is Dog, so a method called through d is looked up in the Dog type.</li>
+<li>The compiler checks the line d.eat();. The type of d is Dog, so it looks for the eat method in Dog, and there is no eat in Dog. Dog inherits from Animal, so it keeps looking in Animal, finds the eat written in Animal, and passes. This is why you can call, on a Dog object, an eat that is not written in Dog.</li>
+<li>Compilation succeeds and the Main class file that will run is created. So far the compiler has only checked, line by line, whether things can be used, and eat has not run even once.</li>
+<li>You run it with java Main. main starts, and new Dog() creates a Dog object and puts it in the variable d.</li>
+<li>The line d.eat(); runs. The object d refers to is a Dog object, so the eat to run is looked up first in the class of that object, Dog. Dog has no eat, so it looks in Animal, and the eat written in Animal runs and prints &quot;eats&quot;.</li>
+<li>The line d.bark(); runs. The bark of a Dog object is a method written directly in Dog, so it runs as it is and prints &quot;woof&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>If you write extends Animal, Dog inherits the methods written in Animal. You called eat(), which is not written in Dog, on a Dog object, and compilation succeeded. Dog has none, so the eat written in Animal ran and &quot;eats&quot; was printed.</li>
+<li>You called d.bark() and d.eat() on the same Dog object. bark is a method written directly in Dog and eat is a method inherited from Animal, but the caller cannot tell the difference.</li>
+</ul>
+<h2>Code</h2>
+<pre>class Animal {
+    void eat() {
+        System.out.println(&quot;eats&quot;);
+    }
+}
+
+// Inheritance: Dog inherits what is written in Animal
+class Dog extends Animal {
+    void bark() {
+        System.out.println(&quot;woof&quot;);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Dog d = new Dog();
+        d.eat();
+        d.bark();
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). For all eight combinations, the same source as the code on the screen (identical line by line) was compiled with javax.tools. The ones that compiled had their class files loaded by a new class loader and Main.main was run, and the results were checked against the standard output that was captured. What was checked is whether compilation succeeded, the diagnostic code of the first error (compiler.err.cant.resolve.location.args and compiler.err.prob.found.req, shown on the screen as the two error descriptions), the number of errors and the lines where they occurred, whether the Main class file was created, and the output when run. The &quot;eat that ran&quot; was decided not by guessing but by the output. The eat of Animal was written to print &quot;eats&quot; and the eat of Dog to print &quot;the dog eats&quot;, and the actual output was read to see which one it was. The facts that the step sentences rely on were also checked by separate runs. Calling bark(), which is written only in Dog, through an Animal-type variable is a compile-time error (so the code for the Animal variable has no d.bark() line). Even if eat is written again in Dog, the eat called on an Animal object still prints &quot;eats&quot;. Even without extends, the bark written directly in Dog can be used without a problem. The documentation checked was the Java Language Specification (Java SE 21), opened directly. The rule that the extends clause names the direct superclass and that the class is called a subclass follows section 8.1.4. The rule that a class inherits the accessible methods of its superclass that it does not write again with the same signature follows section 8.4.8. The rule that a subclass writing a method of its superclass again with the same signature is overriding follows section 8.4.8.1. The rule that a superclass is a supertype of its subclass (so a subclass object can be put in a superclass-type variable) follows section 4.10.2. The rule that at run time the overriding method is looked up by starting from the actual class of the target object and going upward, not from the type of the variable, follows section 15.12.4.4. Sections 5.1.5 and 5.2 of the specification (the conversion that puts a value of a subclass type in a superclass-type variable in an assignment context) were not opened and checked in this lab. The kind of error, the number of errors, and the line where each occurs are not set by the specification. They were observed with this javac. When a Dog was put in an Animal variable without extends, the same one error occurred on the same line whether or not eat was written again in Dog. The code on the screen has the classes together in one file and shortens the access modifiers, and it does not use @Override. Every class inherits from Object even if it does not use extends, but this lab did not cover that, and the statement that without extends Dog has only what it writes itself is about what is written in Animal. The rule that a class also inherits the accessible fields of its superclass was checked in section 8.3, but this lab showed only methods by running them. Writing a field of the superclass, constructors, the super keyword, the fact that private members are not inherited, and the order in which a subclass calls a superclass constructor were also not covered in this lab. The order in which superclass constructors run and super are covered in &quot;In-depth lab: Inheritance and overriding&quot;.</p>
+<p>Previous lab: <a href="../../lab/static_basic/">static</a> · Next lab: <a href="../../lab/interface_basic/">Interfaces</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

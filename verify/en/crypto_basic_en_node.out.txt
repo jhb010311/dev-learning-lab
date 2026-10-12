@@ -1,0 +1,4 @@
+NODE enc => ct=9b5aad2d7f38de17f2620124d1f04f8c|tag=0a9f3e7764d32f1b0e545c2ea0c4ba86|b64=ih/DXie50GTxOpwOm1qtLX843hfyYgEk0fBPjAqfPndk0y8bDlRcLqDEuoY=
+NODE decA => Card number 1234
+NODE decB => EX Unsupported state or unable to authenticate data
+NODE nist => ct=fa4362189661d163fcd6a56d8bf0405a|tag=d636ac1bbedd5cc3ee727dc2ab4a9489

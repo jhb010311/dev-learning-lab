@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Authentication and authorization: How are authentication and authorization different? · Dev Learning Lab</title>
+<meta name="description" content="Authentication and authorization are two checks a server makes when it receives a request. Authentication checks who sent the request (whether the usernam…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/authn_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/authn_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/authn_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Authentication and authorization: How are authentication and authorization different? · Dev Learning Lab">
+<meta property="og:description" content="Authentication and authorization are two checks a server makes when it receives a request. Authentication checks who sent the request (whether the usernam…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/authn_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Security</p>
+<h1>Authentication and authorization</h1>
+<p><b>How are authentication and authorization different?</b></p>
+<p>Authentication and authorization are two checks a server makes when it receives a request. Authentication checks who sent the request (whether the username and password are right), and authorization checks whether that person is allowed to do this (whether they have permission). Authentication comes first. These checks are not in the controller's code. Spring Security makes them before the request reaches the controller, and the rules for them are the settings part at the top of the screen. The line .requestMatchers(&quot;/admin&quot;).hasRole(&quot;ADMIN&quot;) is an authorization rule that opens /admin only to someone with the ADMIN role, the line .anyRequest().authenticated() is a rule that opens any other address only to someone whose identity is confirmed, and the line .httpBasic(...) is the method that confirms who it is from the username and password carried in the request. In this lab you remove or open the authorization rule and send /admin requests from the administrator admin, the regular member kim, a wrong password, and no username, and you see at which check the request is blocked and what response goes out.</p>
+<p>Checked against real execution · Sent HTTP Basic requests for 12 combinations to a real server running Spring Boot 4.1.1 and Spring Security 7.1.1 and checked them</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Authentication and authorization</dt>
+<dd>Authentication checks who a user is. Authorization decides whether that verified user has permission to use a specific resource or feature. Authentication happens first, and authorization is decided based on its result. In HTTP status codes, a failed authentication corresponds to 401 and a failed authorization corresponds to 403.</dd>
+<dt>401 Unauthorized and 403 Forbidden</dt>
+<dd>401 and 403 are HTTP status codes that a server uses when it rejects a request, and the reasons for rejecting are different. 401 (Unauthorized) means the request lacks valid authentication credentials for the target resource, and the server must send a WWW-Authenticate header in the response to tell how to authenticate. 403 (Forbidden) means the server understood the request but refuses to handle it, and if the request carried credentials, the client must not automatically repeat the request with the same credentials. Spring Security sends a 401 when a request whose identity is not confirmed is blocked, and a 403 when a user whose identity is confirmed is blocked for lack of permission.</dd>
+<dt>Authority (role)</dt>
+<dd>An authority is a label for what an authenticated user is allowed to do, and a role is one use of an authority, such as ADMIN or USER, that stands for the position the user holds. In Spring Security, the authorities a user has are held in the Authentication as GrantedAuthority objects. hasRole(&quot;ADMIN&quot;) is a shorter form of hasAuthority: it puts the prefix ROLE_ in front of the name and checks whether the user has the authority ROLE_ADMIN. An authority has meaning only after it is confirmed who the user is, so you cannot weigh authorities for a request that has not gone through authentication.</dd>
+<dt>HTTP Basic authentication</dt>
+<dd>HTTP Basic is an HTTP authentication method that confirms who the user is by sending a username and password in the Authorization header of the request. When the server rejects a request that came without credentials for a resource that needs a username and password with a 401 and tells the client about the Basic method in the WWW-Authenticate header, the client sends the request again with an Authorization header. Spring Security turns this method on with the httpBasic setting, and if the username and password in the header match a registered user, it remembers that user as the authenticated user, and if they do not match, it rejects the request with a 401. Because it sends the username and password with every request, it should be used over an encrypted connection (HTTPS) to be safe. A login page, sessions, and tokens are separate methods.</dd>
+<dt>Spring Security and SecurityFilterChain</dt>
+<dd>Spring Security is Spring's security framework for handling authentication and authorization, and it works as a set of Servlet filters. A SecurityFilterChain defines which security filters apply to which requests and in what order. Before a request reaches the controller, the filters run one after another and do work such as checking the authentication information and checking permissions.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The administrator passes authentication and authorization in turn, and the admin() method runs.</li>
+<li><b>Requesting with no username and password</b> — Who it is is not confirmed, so a 401 response goes out and the admin() method does not run.</li>
+<li><b>The regular member kim requests</b> — Who it is is confirmed, but kim lacks the role, so a 403 response goes out.</li>
+<li><b>kim requests with the wrong password</b> — The request is blocked at authentication, so a 401 response goes out. The authorization rule is not even looked at.</li>
+<li><b>Removing the hasRole(&quot;ADMIN&quot;) rule</b> — Anyone whose identity is confirmed gets through, so even the regular member kim sees the admin page.</li>
+<li><b>Opening it to everyone</b> — Even a request whose identity is not confirmed gets through, and the admin() method runs.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>A GET /admin request (a request asking the server for the page at the /admin address) arrives at the server. The Authorization header of the request carries the username admin and the right password. The username and password arrive in this header, and the server does the checking.</li>
+<li>Before the request reaches the controller, Spring Security receives it first. Spring Security is a line of filters placed in front of the controller, and it checks two things in order to decide whether to pass this request on to the controller. Nothing has reached the admin() method that we wrote yet.</li>
+<li>Authentication (who is it?): the username admin and the password in the request are compared with the registered users. They match. The server has confirmed that the sender of this request is admin (administrator), and it remembers this while the request is being handled. This is done by the method that the .httpBasic(...) line turns on.</li>
+<li>Authorization (is it allowed?): The rule for /admin is hasRole(&quot;ADMIN&quot;), so only someone with the ADMIN role gets through. The role of admin is ADMIN. It passes.</li>
+<li>It passed Spring Security, so the request reaches the controller and the admin() method runs. There is not a single line in the admin() we wrote that checks who it is. Spring Security finished the check before the request got here.</li>
+<li>The browser receives a 200 response. The body is &quot;Admin page&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Authentication confirms who sent the request, and authorization confirms whether that person is allowed to do this. Authentication comes first. The administrator admin passed both, so the admin() method ran and a 200 response came back.</li>
+<li>Neither check is in the controller. Spring Security did them before the request reached the controller, and there is no checking line in the admin() we wrote. Only when both pass does the controller code run.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Configuration
+public class SecurityConfig {
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(auth -&gt; auth
+                // Authorization: /admin only for someone with the ADMIN role
+                .requestMatchers(&quot;/admin&quot;).hasRole(&quot;ADMIN&quot;)
+                // Authentication: any other address, if the identity is confirmed
+                .anyRequest().authenticated())
+            // Confirm who it is from the username and password in the request
+            .httpBasic(Customizer.withDefaults());
+        return http.build();
+    }
+}
+
+@RestController
+public class AdminController {
+    @GetMapping(&quot;/admin&quot;)
+    public String admin() {
+        return &quot;Admin page&quot;;
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>These are the results of running Spring Boot 4.1.1 (Spring Framework 7.0.9, embedded Tomcat 11) and Spring Security 7.1.1 on JDK 21. For all twelve combinations, we compiled the same source as the code on the screen (the security configuration SecurityConfig and the controller AdminController, to which we added only a line that counts how many times it runs) in the package app, started a real server as a child Java process, and sent a real HTTP request (GET /admin) to check. The username and password were sent in the Authorization header, and we started a new server for every request. What we left out of the screen are the package and import lines, the start class, and the user registration. The users are a regular member kim (role USER) and an administrator admin (role ADMIN) in an in-memory user store (InMemoryUserDetailsManager), and the passwords carry the {noop} prefix and are unencrypted values for testing (in a real service, passwords are stored encrypted). We added nothing to the security configuration beyond the lines on the screen. CSRF and session settings are the defaults, and because the request is a GET they did not affect the result. &quot;Who the server confirmed&quot; was obtained from which Authentication was recorded in SecurityContextHolder while the request was being handled. We changed the storage strategy of SecurityContextHolder to a recording wrapper around the default one, which wrote the name and the authorities each time it was read or written, so the authentication information of requests that did not reach the controller could also be seen, and we added nothing to the security filter chain. The limit is that we see what happened inside the filters only at the points of reading and writing (we did not see the internal decisions of the filters themselves). What we checked against was the confirmed person obtained from this record (anonymous, or nothing set, when there is none), the status code and body, whether the WWW-Authenticate header was present, the number of times the admin() method ran, the order in which authentication happens before authorization, and whether the error response is forwarded once more to /error. What the documents decide is section 11 HTTP Authentication of RFC 9110 (11.1, 11.6.1), section 15.5.2 (401 means there are no valid authentication credentials, and WWW-Authenticate must be sent), section 15.5.4 (403 means the server understood the request but refuses to handle it), the Spring Security documentation Authorize HttpServletRequests (AuthorizationFilter looks at the rules in order from the top and applies only the first one that matches, hasRole adds the ROLE_ prefix, and AccessDeniedException is thrown when the request is denied), and the Architecture and Basic sections of Authentication (when an unauthenticated request is denied, AuthenticationEntryPoint sends the WWW-Authenticate header, and when authentication fails, SecurityContextHolder is cleared and the same handler is called). We opened the documents with WebFetch and checked them against the summarized results, and we could not read the RFC in full. What follows is not decided by the documents but is behavior we observed in this version. First, when the code on this screen is run as it is, a 403 goes out as it is for the request from the regular member kim. The error response is forwarded once more to /error, and in that second request too kim was recorded as a confirmed person and was not blocked. In the &quot;Security filter chain&quot; lab, which authenticates with a filter we made ourselves without using a session, the 403 at the same step turned into a 401, so it may differ depending on the configuration. Second, a wrong password gets a 401 even if /admin is permitAll(). A request that carries a username and password was rejected at authentication before the authorization rules were looked at, and there was no trace of the authorization step in the record. Third, a request with no username is not blocked at authentication but goes on as an anonymous user to the authorization step, where it gets a 401 if the rule blocks it and reaches the controller if the rule is open. Fourth, the 401 response carries the WWW-Authenticate header (the value is Basic realm=&quot;Realm&quot;), and the 403 and 200 responses did not. Fifth, the response body of the 401 was empty and that of the 403 was Spring Boot's error page, and this can differ depending on the Accept header of the request, so the screen deals only with status codes. Sixth, in Spring Security 7.1, along with the ROLE_ authorities, an authority that indicates how the user authenticated (FACTOR_PASSWORD) is also recorded among the authorities of the logged-in user, but this lab does not cover it. We did not cover login methods (a login page, sessions, tokens). The requests in this lab use HTTP Basic, which sends the username and password with every request, and sessions and tokens that keep the logged-in state are covered in the Fundamentals labs &quot;Sessions&quot; and &quot;Tokens&quot; and in the study lab &quot;Security filter chain&quot;. The real filter chain has more filters than are written here.</p>
+<p>Previous lab: <a href="../../lab/https_basic/">HTTPS</a> · Next lab: <a href="../../lab/session_basic/">Sessions</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

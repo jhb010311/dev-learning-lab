@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Primary keys: What is a primary key, and what changes without one? · Dev Learning Lab</title>
+<meta name="description" content="A primary key is what you get when you write PRIMARY KEY on one column while creating a table. It is a promise to the database that the value in that colu…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pk_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pk_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/pk_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Primary keys: What is a primary key, and what changes without one? · Dev Learning Lab">
+<meta property="og:description" content="A primary key is what you get when you write PRIMARY KEY on one column while creating a table. It is a promise to the database that the value in that colu…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/pk_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Database</p>
+<h1>Primary keys</h1>
+<p><b>What is a primary key, and what changes without one?</b></p>
+<p>A primary key is what you get when you write PRIMARY KEY on one column while creating a table. It is a promise to the database that the value in that column must be different in every row and cannot be empty (NULL), so the database rejects any INSERT that breaks the promise. That is why &quot;the row with id 1&quot; always points to exactly one row. In this lab you remove PRIMARY KEY, or change the id of the second row you insert, and run the same SQL each time. You see whether the database accepts the INSERT and how many rows the UPDATE changes.</p>
+<p>Checked against real execution · Ran all 6 combinations on H2 2.4.240 and checked against the results, and checked the rules against the MySQL documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Primary key, unique key, foreign key</dt>
+<dd>A primary key (PK) is the column that uniquely identifies each row of a table. Its values cannot be duplicated or empty, and a table has only one. A unique key is a unique constraint, which prevents duplicate values, and a table can have several. A foreign key (FK) is a column that references the primary key (or a unique key) of another table. It guarantees that the referenced row really exists.</dd>
+<dt>Constraint</dt>
+<dd>This is a rule about the values that can go into a table, written in the definition of the table. A primary key, a unique constraint, NOT NULL, CHECK, and a foreign key are typical examples. When an INSERT, UPDATE, or DELETE breaks a rule, the database rejects that statement with an error, and the table does not change. If you check only in the application code, wrong values can get in through code that skips the check or through SQL that someone runs directly, but a constraint blocks a value in the same way whatever route it comes through. Without constraints, wrong values are saved without an error, and the problem only becomes visible when you query the data later.</dd>
+<dt>NULL and three-valued logic</dt>
+<dd>NULL stands for &quot;no value&quot; or &quot;unknown&quot;, not for 0 or an empty string. A comparison with NULL (=, &lt;&gt;, &lt;, and so on) is neither true nor false but &quot;unknown&quot; (UNKNOWN), so a condition in SQL has three values: true, false, and unknown. WHERE and HAVING keep only the rows for which the condition is true, so a row for which it is unknown is removed, just like a row for which it is false. NOT applied to unknown is still unknown. To check for NULL, use IS NULL and IS NOT NULL, not = NULL.</dd>
+<dt>Rows and columns</dt>
+<dd>A table in a relational database is made of columns and rows, like a spreadsheet. A column is a kind of cell whose name and type are fixed when the table is created. For example, id and name are the columns of the member table. A row is one line filled with values for those columns, and the information about one member is one row. INSERT adds one row, UPDATE changes every row that matches the WHERE condition, and SELECT reads rows. A column with no value is shown as NULL.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A table with PRIMARY KEY. The database rejects the INSERT that uses the same id again.</li>
+<li><b>Removing PRIMARY KEY</b> — Two rows with the same id get in, and the UPDATE changes both of them.</li>
+<li><b>Changing the id of the second row to 2</b> — When the ids are different, both rows get in even with PRIMARY KEY.</li>
+<li><b>Leaving the id empty</b> — The database also rejects an INSERT with an empty id. The reason is different from the same-id case.</li>
+<li><b>Removing PRIMARY KEY and leaving the id empty</b> — A row with an empty id gets in, and you cannot point to that row by id.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>CREATE TABLE: The database creates a table named member. A table is made of columns (id and name) and rows (one line of information about one person), and right now it has no rows. PRIMARY KEY is written on the id column, so the database remembers a promise: &quot;the value in this column must be different in every row and cannot be empty.&quot;</li>
+<li>INSERT INTO member VALUES (1, 'Alice'): Before it adds the row, the database checks the promise. The table is empty, so no row has the same id, and the id is not empty. The row passes, and the Alice row is inserted.</li>
+<li>INSERT INTO member VALUES (1, 'Bob'): This tries to insert the second row. Before it adds the row, the database checks the promise of the primary key. It looks at whether a row with id 1 already exists in the table and whether the id is non-empty. We did not write the code that does this check. The database does it by itself every time an INSERT arrives.</li>
+<li>Result of the check: The table already has a row with id 1 (Alice). That breaks the promise, so the database rejects this INSERT and returns an error of the kind &quot;this value already exists.&quot; The Bob row was not added to the table, and the table is exactly as it was before the INSERT.</li>
+<li>UPDATE member SET name = 'Carol' WHERE id = 1: What we want to do is change the name of the one person whose id is 1. The database finds every row that matches the WHERE condition and changes it. There is only one row with id 1, so the name of that row changes to Carol. Rows changed: 1.</li>
+<li>SELECT * FROM member ORDER BY id: This reads the rows left in the table in order of id. The result is (1, Carol). What is left is one row with id 1. The Bob row was rejected and not added, and the name in the Alice row was changed to Carol. &quot;The row with id 1&quot; is always this one row.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A primary key is what you get when you write PRIMARY KEY on one column while creating a table. It is a promise to the database that the value in that column must be different in every row and cannot be empty, and the database rejected the INSERT that used the same id again.</li>
+<li>We did not write the code that checks this. The database checked it by itself at every INSERT. So &quot;the row with id 1&quot; is always exactly one row, and an UPDATE by that id changes only one person.</li>
+</ul>
+<h2>Code</h2>
+<pre>CREATE TABLE member (
+    -- Primary key: the value in this column must differ in every row and cannot be empty
+    id   INT PRIMARY KEY,
+    name VARCHAR(20)
+);
+
+INSERT INTO member VALUES (1, 'Alice');
+INSERT INTO member VALUES (1, 'Bob');
+
+UPDATE member SET name = 'Carol' WHERE id = 1;
+SELECT * FROM member ORDER BY id;</pre>
+<h2>Assumptions of this model</h2>
+<p>The model was checked against real execution on H2 2.4.240 (an in-memory database, through JDBC). For all 6 combinations, the whole SQL on the screen (including the comment line) was run character by character, one statement at a time, and the following were checked against the model: whether the second INSERT went in or was rejected and the kind of error (H2 SQLSTATE 23505 for a duplicate and 23502 for NULL not allowed), the number of rows after the two INSERTs, the number of changed rows that the UPDATE returned, and the result of the last SELECT. The values in the last step that looks for the row with the empty id (id = NULL gives 0 rows, and id IS NULL gives every row with an empty id) were checked by running a statement that is not in the code on the screen, separately on H2. The rule that a primary key accepts neither a repeated value nor NULL is the same in MySQL, and I opened the MySQL 8.4 documentation directly to check the CREATE TABLE statement (a PRIMARY KEY is a unique index whose key columns are all NOT NULL), section 1.7.3.1 PRIMARY KEY and UNIQUE Index Constraints (an INSERT or UPDATE that violates a primary key or unique key is an error), and section 5.3.4.6 Working with NULL Values (NULL cannot be compared with =, you use IS NULL, and in ascending ORDER BY, NULL comes first). The error numbers and the wording of the messages differ from database to database, so the screen shows only the kind of error. The check by execution on MySQL has not been done yet. So the rule above rests on the documentation and the H2 execution agreeing, and it was not verified by execution whether MySQL gives the same result for the same SQL. That a table without PRIMARY KEY accepts the same id or NULL is behavior observed on H2. This lab covers PRIMARY KEY only, and it does not cover unique keys, foreign keys, or automatic increment (AUTO_INCREMENT).</p>
+<p>Previous lab: <a href="../../lab/table_basic/">Tables, rows, and columns</a> · Next lab: <a href="../../lab/fk_basic/">Foreign keys</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

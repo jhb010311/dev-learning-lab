@@ -1,0 +1,1 @@
+Lab.verify({ session_basic: ['run', 'Started Spring Boot 4.1.1 (embedded Tomcat 11.0.24) with real component scanning for 8 combinations, sent requests, and checked them (the HttpClient writes the Cookie header itself, and it was not run in a real browser)'] });

@@ -1,0 +1,1 @@
+Lab.verify({ repo_basic: ['run', 'Compiled all 6 combinations on Spring Boot 4.1.1, Spring Data JPA 4.1.1, Hibernate 7.4.5, and H2, started Spring for real, and checked the implementation objects and the SQL that was sent against the results'] });

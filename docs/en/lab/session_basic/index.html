@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sessions: What is a session, and where is the logged-in state remembered? · Dev Learning Lab</title>
+<meta name="description" content="A session is a memory that is written in a store inside the server. In the code box, session is an argument of the type HttpSession, and it points to one…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/session_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/session_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/session_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Sessions: What is a session, and where is the logged-in state remembered? · Dev Learning Lab">
+<meta property="og:description" content="A session is a memory that is written in a store inside the server. In the code box, session is an argument of the type HttpSession, and it points to one…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/session_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Security</p>
+<h1>Sessions</h1>
+<p><b>What is a session, and where is the logged-in state remembered?</b></p>
+<p>A session is a memory that is written in a store inside the server. In the code box, session is an argument of the type HttpSession, and it points to one slot in the server's session store that belongs to this request. The line session.setAttribute(&quot;user&quot;, &quot;kim&quot;) in the login method writes &quot;the user of this session is kim&quot; in that slot, and the line session.getAttribute(&quot;user&quot;) in the me method reads that value from the slot. Each slot has a number the server gave it (the session ID), and the server gives only this number to the browser, as a cookie named JSESSIONID. The browser sends that cookie with every following request, and the server finds the slot in the store by the number and knows who it is. In this lab you change how /me is requested after logging in (without the cookie, by another person, after the server deleted the slot) and see whether the server recognizes who it is. The code box shows only the part that runs when login succeeds. The process of checking the username and password is not covered in this lab, so it was left out. What a cookie is follows the earlier &quot;Cookies&quot; lab.</p>
+<p>Checked against real execution · Started Spring Boot 4.1.1 (embedded Tomcat 11.0.24) with real component scanning for 8 combinations, sent requests, and checked them (the HttpClient writes the Cookie header itself, and it was not run in a real browser)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Session</dt>
+<dd>A way to store a user's state on the server side and give the client only an identifier (the session ID) that points to that stored state, delivered in a cookie. The actual information is on the server, so the client cannot tamper with it. When there are several servers, a common setup keeps this state in a shared store such as Redis so that any server that receives a request can find the same state.</dd>
+<dt>Session ID (JSESSIONID)</dt>
+<dd>A session ID is a unique string that a servlet container gives to a session when it creates it, and it is a number that points to one slot in the server's session store. It can be read with getId() of HttpSession, and what kind of number to use is decided by the container (in the Tomcat 11 of this lab it was 32 uppercase letters and digits). When a session is carried over by a cookie, the specification fixes the name of the cookie as JSESSIONID, and when the server gives the number in a Set-Cookie header, the browser sends it in the Cookie header with every following request. The server finds the slot by this number alone, so if another person sends the same number, it is treated as the same session. That is why the number must not be exposed.</dd>
+<dt>HttpSession</dt>
+<dd>HttpSession is a servlet interface that provides a way to identify one user across more than one request and to store information about that user on the server. A Spring controller method can receive it by declaring an argument of the type HttpSession, and if the request has no session, the server creates a new one. setAttribute(&quot;user&quot;, &quot;kim&quot;) writes a value into the slot under a name, and getAttribute(&quot;user&quot;) reads it, and reading a name that has not been written returns null. When invalidate() is called, the session becomes invalid, the values bound to it are released, and later requests cannot see that session. The values of a session are stored on the server, and only the session ID goes to the browser.</dd>
+<dt>Cookie</dt>
+<dd>A small piece of data that a server sends in a response. The browser stores it and automatically sends it back with every request to the same site. HTTP does not remember state between requests, so this data is used to keep information that must carry over, such as a login state. Because it is stored in the user's browser, you must use it on the assumption that the user can read or change its contents.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — user=kim is written in the server's session store and only the ID is given as a cookie. On the next request, the server finds the slot by the ID in the request and recognizes kim.</li>
+<li><b>Requesting without the cookie</b> — There is no ID, so the server does not know which slot it is, and does not know who it is.</li>
+<li><b>Another person with the same value</b> — The server finds the slot by the ID alone, so it treats that person as kim.</li>
+<li><b>After the server deleted the session</b> — The ID is the same, but there is no slot to point to, so the server does not know who it is.</li>
+<li><b>Removing setAttribute</b> — The session slot and the cookie are created, but the slot is empty, so the server does not know who it is.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>When you click the login button on the login page, the browser sends a POST /login request to the server. This request has no Cookie header. The server's session store is empty. The process of checking the username and password is not covered in this lab, so it was left out.</li>
+<li>To call the login method, Spring has to fill in the session argument, but this request carries no session ID, so there is no session belonging to the request yet. So the server (Tomcat) creates a new session and gives it a random ID (the ID Tomcat gave was 32 uppercase letters and digits, and here only the first part is written, shortened to 3A9F…). One slot is created in the store, and it is empty. Our code has no line that creates a session and no line that gives it an ID.</li>
+<li>The login method runs the line session.setAttribute(&quot;user&quot;, &quot;kim&quot;). user=kim is written in the slot that was just created. The place where the fact of having logged in is written is not the browser but the session store inside the server.</li>
+<li>The login method returns &quot;Logged in,&quot; and a Set-Cookie: JSESSIONID=3A9F… line is added to the response. We did not write code that adds this line. Tomcat adds it. The cookie value is only the ID, and the characters kim are not in it.</li>
+<li>The browser receives the response and saves the cookie JSESSIONID=3A9F…. What the browser holds is only the ID, and user=kim is only in the server's store.</li>
+<li>The browser sends a GET /me request to the server. A cookie is saved, so the browser adds the header Cookie: JSESSIONID=3A9F… to the request. We did not write code that adds this header. The browser does it.</li>
+<li>The server reads the ID 3A9F… from the Cookie header of the request and looks in the session store for the slot with the same ID. The slot exists, so it does not create a new one, and passes that slot in as the session argument of the me method.</li>
+<li>The me method reads the slot with the line session.getAttribute(&quot;user&quot;). user=kim is written in the slot, so it returns &quot;Hello, kim.&quot; The server knows kim not because kim is in the cookie, but because kim is written in the slot it found by the ID.</li>
+<li>The browser receives a 200 response. The body is &quot;Hello, kim&quot;. This response carries no Set-Cookie line. This is because an existing slot was found.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A session is login information written in a store on the server, and what the browser carries around is only the ID that points to that slot (the JSESSIONID cookie). When you make another request after logging in, the ID arrives as a cookie, and the server finds the slot by the ID and recognizes kim.</li>
+<li>user=kim is on the server and the cookie has only the ID. Tomcat and the browser attach and send the cookie, and the code we wrote is only two lines that write to and read from the slot.</li>
+</ul>
+<h2>Code</h2>
+<pre>@PostMapping(&quot;/login&quot;)
+public String login(HttpSession session) {
+    // Write &quot;the user of this session is kim&quot; in the server's session store
+    session.setAttribute(&quot;user&quot;, &quot;kim&quot;);
+    return &quot;Logged in&quot;;
+}
+
+@GetMapping(&quot;/me&quot;)
+public String me(HttpSession session) {
+    // Use the session ID in the request to find the slot in the store and read it
+    Object user = session.getAttribute(&quot;user&quot;);
+    return user == null ? &quot;Unknown user&quot; : &quot;Hello, &quot; + user;
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>These are the results of running Spring Boot 4.1.1 (Spring Framework 7.0.9, embedded Tomcat 11.0.24) on JDK 21. For all eight combinations, we compiled the same source as the code on the screen (with only the logout method, which is not on the screen, added) in the package app, started a new Java process together with a start class (@SpringBootConfiguration, @EnableAutoConfiguration, @ComponentScan), and checked. We did not register the controller by hand but let Spring scan for the classes, and we sent the requests over real HTTP after the server was up. We did not put Spring Security, JPA, or H2 on the classpath (because with Security present, requests could be blocked and session handling could differ). The code on the screen leaves out the package and import lines, the class declaration, and the logout method. The logout method runs session.invalidate() and returns &quot;Logged out&quot;, and the process of checking the username and password is also left out because this lab does not cover it. What we checked against was the server's session store right after login (the number of sessions in the Tomcat session manager and what is written in each slot), the Set-Cookie of the login response, and the response to /me. &quot;The same browser&quot; is one client that writes the value of the Set-Cookie it received directly into the Cookie header of the next request (we did not use a cookie jar, and we did not run it in a real browser), &quot;another person&quot; is a separate connection (a separate client) that writes the same value into the Cookie header and sends it, and the server deleting the session was reproduced by first sending POST /logout with the same cookie. The IDs on the screen (3A9F…, B71E…) are made-up examples for explanation, and in reality they were 32 uppercase letters and digits that differed every run. What the documents decide is Chapter 7 of the Jakarta Servlet 6.1 specification (7.1.1: the standard name of the session tracking cookie is JSESSIONID, 7.2: a session is new until the client returns the tracking information to the server and joins it, and the id can be read with getId(), 7.5: once invalidation starts, new requests cannot see that session) and the API documentation of HttpSession (a session is a way to identify a user across more than one request and to store information about that user, and the identifier returned by getId is assigned by the servlet container and is implementation dependent). What follows is not decided by the documents but is behavior we observed in this version. The ID is 32 uppercase letters and digits and the cookie value does not contain kim; the cookie carries the attributes Path=/ and HttpOnly; a method that takes a session argument creates a session even if it does not call setAttribute, and a cookie goes out (Spring calls getSession() of the request to fill that argument; we confirmed this call in the bytecode of the Spring class); if /me is requested without a cookie, the server creates a new empty session and gives a new ID; even if the same ID is sent over a separate connection, the server treats it as the same session and does not create a new one (the connection ports of the two requests were different); if a request comes with the ID of a session the server deleted, the server creates a new session and gives a new ID; and the logout response has no Set-Cookie line that tells the browser to delete the cookie. The attack that steals a session ID and the defenses against it (session fixation, the HttpOnly setting, and so on) are not covered in this lab, and are left to the study labs (&quot;Sessions and JWT&quot; and &quot;Session hijacking and session fixation&quot;). We also did not cover the session timeout, how to share sessions among several servers, or methods that do not use cookies (such as putting the ID in the URL).</p>
+<p>Previous lab: <a href="../../lab/authn_basic/">Authentication and authorization</a> · Next lab: <a href="../../lab/token_basic/">Tokens</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

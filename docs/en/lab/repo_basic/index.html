@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repositories: What is a repository, and who creates the implementation? · Dev Learning Lab</title>
+<meta name="description" content="A repository in Spring Data JPA is an interface that gathers the methods that save and find entities. If you only declare interface MemberRepository exten…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/repo_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/repo_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/repo_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Repositories: What is a repository, and who creates the implementation? · Dev Learning Lab">
+<meta property="og:description" content="A repository in Spring Data JPA is an interface that gathers the methods that save and find entities. If you only declare interface MemberRepository exten…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/repo_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › JPA</p>
+<h1>Repositories</h1>
+<p><b>What is a repository, and who creates the implementation?</b></p>
+<p>A repository in Spring Data JPA is an interface that gathers the methods that save and find entities. If you only declare interface MemberRepository extends JpaRepository&lt;Member, Long&gt;, Spring creates an object that implements this interface when it starts, and registers it as a bean. That is why you can call the save method even though you did not implement it. save is declared in JpaRepository, so it is inherited. If you declare a method that follows a fixed naming rule (findBy followed by a field name), such as findByName, Spring reads that name and creates the query for you too. This lab changes extends JpaRepository and the declaration of the finder method, compiles the same code and starts Spring, and shows whether the implementation object is created and which SQL is sent.</p>
+<p>Checked against real execution · Compiled all 6 combinations on Spring Boot 4.1.1, Spring Data JPA 4.1.1, Hibernate 7.4.5, and H2, started Spring for real, and checked the implementation objects and the SQL that was sent against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Repository</dt>
+<dd>A repository in Spring Data is an interface that gathers the methods that save and find entities. The central interface that Spring Data defines is Repository, and it takes the entity class to handle and the type of its id as type arguments. A developer only declares an interface that extends it and does not write an implementation class. When Spring starts, it finds all such interfaces under the configured packages, and for each one it creates a proxy object that handles the calls and registers it as a bean. So you can inject that bean and call a method such as save right away. An ordinary interface that does not extend Repository is not found, so no implementation object is created for it.</dd>
+<dt>JpaRepository</dt>
+<dd>JpaRepository is the repository interface that Spring Data JPA provides, and it takes the entity class and the id type as type arguments (for example, JpaRepository&lt;Member, Long&gt;). This interface is made for the storage technology and extends the CrudRepository family of interfaces, so if you extend it, you can use basic methods such as save, findById, findAll, count, and delete without declaring them. An interface that you declare by extending it becomes a target of Spring Data JPA, and when Spring starts, it creates an implementation object of that interface. If you do not extend it, these methods do not exist, so code that calls save does not compile. If you declare a method name that follows the rule, such as findByName, it becomes a query method, and Spring creates the query too.</dd>
+<dt>Query method</dt>
+<dd>A feature of Spring Data repositories that reads the name of a method declared in the repository interface and derives a query from it (a derived query). As in findByName, you write the property name of the entity after find…By, attach a keyword such as GreaterThan or Containing after the property name to set the kind of condition, and join several conditions with And or Or. The name is turned into a query when the application starts, so if you use a property name that the entity does not have, a PropertyReferenceException is thrown and the application does not start. When there are many conditions, the name becomes too long, so write the JPQL directly in @Query then.</dd>
+<dt>JPA, Hibernate, Spring Data JPA</dt>
+<dd>JPA (Jakarta Persistence) is the standard ORM specification for Java: a set of rules (interfaces) that defines which features exist and how to use them. Hibernate is a library that actually implements that specification. Spring Data JPA is a Spring module that provides repository interfaces to make JPA easier to use, and it uses JPA (Hibernate) internally.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — An interface that is only declared. Spring creates the implementation object, so save and findByName run and SQL is sent.</li>
+<li><b>Removing extends JpaRepository</b> — It becomes an ordinary interface with no save, and compiling fails. Spring does not create an implementation object either.</li>
+<li><b>Removing the findByName declaration</b> — Even with no declared method, the inherited save and count run.</li>
+<li><b>Declaring it with a field Member does not have</b> — Spring cannot create the query, so it fails while starting.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The compiler checks MemberRepository.java and the calling side. The interface declares extends JpaRepository&lt;Member, Long&gt; and inherits the methods of JpaRepository, so the line that calls the save method, which we did not declare, is not an error either. The findByName method is one we declared. Compiling succeeds.</li>
+<li>main starts Spring with SpringApplication.run. Spring Data looks in the app package, where the start class is, for interfaces that extend JpaRepository. It finds MemberRepository, which has extends JpaRepository. The code we wrote has no class that implements MemberRepository and no line that creates an implementation.</li>
+<li>Spring Data makes an object that implements MemberRepository and registers it as a bean. This object is not a class we wrote. Spring made it while running, and you can use it as the MemberRepository type. This object runs inherited methods such as save.</li>
+<li>At this time Spring Data reads the name of the findByName method. Following the rule that findBy means &quot;find&quot; and the Name after it is the name field of Member, it prepares &quot;a query that finds by name&quot;. Member has a name field, so it passes. If a name does not follow the rule, it fails here.</li>
+<li>main gets a bean of the MemberRepository type from Spring and puts it in memberRepository (the part shortened on the screen). What it holds is the implementation object that Spring has just made. It is not an object made with new. SQL is counted from here on.</li>
+<li>memberRepository.save(new Member(1L, &quot;Alice&quot;)) runs. We have no code that wrote the save method. The implementation object that Spring made runs the one inherited from JpaRepository. The id of the Member is already set to 1, so Spring Data first looks with a SELECT for whether a row with id 1 already exists (SELECT 1). There is no such row.</li>
+<li>No row was found, so the implementation object sends an INSERT and saves the row with id 1, Alice, in the member table (INSERT 1). We wrote not one line of SQL.</li>
+<li>memberRepository.findByName(&quot;Alice&quot;) runs. The implementation object sends a SELECT following the naming rule that it read at startup: select m1_0.id,m1_0.name from member m1_0 where m1_0.name=? (the &quot;Alice&quot; we passed goes in the place of name=?). We wrote no query. The 1 row it found becomes a Member object and goes into the List.</li>
+<li>println prints found.size(). It found 1 Member, so it is 1. All we wrote were the two declaration lines of the interface (the interface declaration and the findByName line).</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A repository is an interface that gathers the methods that save and find entities. If you declare extends JpaRepository&lt;Member, Long&gt;, Spring creates an implementation object of this interface when it starts and registers it as a bean, and that is why you could call save, which we did not implement.</li>
+<li>save is a method inherited from JpaRepository, and findByName is a SELECT that Spring made by reading the naming rule (findBy + field name). All we wrote was the interface declaration, with no implementation class and no SQL.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Requirement: Spring creates the implementation for you (you do not write an implementation class)
+public interface MemberRepository extends JpaRepository&lt;Member, Long&gt; {
+    // Spring reads the naming rule (findBy + field name) and creates the query
+    List&lt;Member&gt; findByName(String name);
+}
+
+// Calling side
+memberRepository.save(new Member(1L, &quot;Alice&quot;));
+List&lt;Member&gt; found = memberRepository.findByName(&quot;Alice&quot;);
+System.out.println(found.size());</pre>
+<h2>Assumptions of this model</h2>
+<p>This was checked against real execution on Spring Boot 4.1.1 (Spring Data JPA 4.1.1, Hibernate 7.4.5, Spring Framework 7.0.9) on JDK 21 and an H2 2.4.240 in-memory database, and a check against execution on MySQL was not done. All 6 combinations were checked. The same source as the code on the screen (MemberRepository in the package app, and a Main that has the calling side, with only measuring lines marked PROBE at the end added) was compiled with javax.tools, and the ones that compiled successfully were run in a new Java process. The start class has @SpringBootConfiguration and @EnableAutoConfiguration, and no web server was started. The entity Member (id is Long, name is String) and MemberRepository are in the same package as the start class, and the repository was not registered by hand: Spring Data scanned the package, found the interface, and created the implementation object. What was checked against the run is the text printed, the javac diagnostic code and line of the compile error (cant.resolve.location.args, with save as the first error and, if there is count, as the second error), the chain of exceptions when Spring failed while starting (BeanCreationException, QueryCreationException, PropertyReferenceException), the number of MemberRepository beans in the Spring context, whether that object is a class we wrote (it is a JDK dynamic proxy, and there is no class of ours that implements MemberRepository), and the number of each kind of SQL and the statements sent to the database after startup ended (caught with Hibernate's StatementInspector). The three combinations without extends JpaRepository fail to compile, so Spring was started separately with the same interface and without the calling side, and it was confirmed that there were 0 implementation objects. In the combinations where compiling failed, the Main class file was not created. The documentation was opened directly and checked. The section Creating Repository Instances of the Spring Data Commons documentation says that Spring Data finds all interfaces that extend a repository sub-interface under the configured packages, creates a bean object for each of them, and creates a proxy that handles calls to the query methods. The section Core concepts of the Spring Data JPA documentation says that Repository is the central interface and that store-specific interfaces such as JpaRepository extend CrudRepository, and the section Defining Repository Interfaces says that an interface must extend Repository and that an interface that extends JpaRepository is a target of the Spring Data JPA module. Query Creation and Property Expressions in the section Query Methods explain that the part of a method name up to the first By is the subject and what comes after it is the condition, and that when the query is created, it checks whether the parsed name is a property of the managed entity. That this check happens when Spring starts and makes the startup fail, and the names of the exceptions, are not defined by the documentation but are behavior observed on this version. That the real class of the implementation object is a JDK proxy, that save sends one SELECT before the INSERT for an entity that has an id, and the shape and number of the SQL sent are also observed on this version and these settings, and they may differ by version. The code on the screen shortens the package and import lines, and it does not show the Member entity, the lines of main that start Spring and get the implementation object, or the database settings. This lab covers only findBy and one field name among the naming rules of query methods, and it does not cover @Query, condition keywords (And, GreaterThan, and so on), return types, page requests, or transactions. These are covered in the in-depth lab &quot;Spring Data JPA&quot;.</p>
+<p>Previous lab: <a href="../../lab/pc_basic/">Persistence context</a> · Next lab: <a href="../../lab/relation_basic/">Associations</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Threads: What is a thread, and what does start() do? · Dev Learning Lab</title>
+<meta name="description" content="A thread is one flow of execution that runs code from top to bottom. A Java program starts with one thread named main, and this thread runs the main metho…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/thread_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/thread_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/thread_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Threads: What is a thread, and what does start() do? · Dev Learning Lab">
+<meta property="og:description" content="A thread is one flow of execution that runs code from top to bottom. A Java program starts with one thread named main, and this thread runs the main metho…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/thread_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>Threads</h1>
+<p><b>What is a thread, and what does start() do?</b></p>
+<p>A thread is one flow of execution that runs code from top to bottom. A Java program starts with one thread named main, and this thread runs the main method from the top. The part of the code that creates a new thread is new Thread(() -&gt; work()). The () -&gt; work() in the parentheses is code that says &quot;call work()&quot; and is handed to the new flow. This line only creates a Thread object and does not create a new flow. When you call t.start(), a new flow is created at that moment, and the new thread runs the code that was handed to it. t.join() makes main wait until that thread finishes, and Thread.currentThread().getName() tells you the name of the thread that is running this line right now. In this lab you replace the start() line with a call to run() or remove it, and create one more thread, and the same code is compiled and run to show the name of the thread that ran work and the last line, and the number of newly started threads. (What happens when two flows move at the same time is not covered. You only see the shape in which join makes main wait, so the order of the output is fixed.)</p>
+<p>Checked against real execution · Compiled 6 combinations with javax.tools on JDK 21, ran each 20 times as a child java process, and checked the output and the number of newly started threads</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Processes and threads</dt>
+<dd>A process is a running program, and the operating system gives it its own independent memory space. A thread is a flow of execution that does the actual work inside a process. The threads of one process share memory (heap, code, and data), and each has only its own stack. This makes it easy for threads to exchange data, but it also causes problems when they touch the same data at the same time.</dd>
+<dt>Main thread and thread names</dt>
+<dd>When you run a Java program with java Main, the virtual machine calls the main method of that class to start the execution, and the thread that runs this main method from the top is usually called the main thread. You read the name of a thread with getName(), and Thread.currentThread() returns the Thread object of the thread that is running this code right now, so Thread.currentThread().getName() tells you &quot;who is running this line&quot;. A thread that you create with new Thread(...) without giving it a name is automatically given a name such as Thread-0 or Thread-1, which is &quot;Thread-&quot; followed by an integer. That the name of the main thread is main is not defined by the specification but is a value you can confirm by running on JDK 21.</dd>
+<dt>start() and run()</dt>
+<dd>These are two methods of Thread: start() creates a new thread and has that thread execute run(), and run() is an ordinary method that holds the work the thread is to do. So if you call run() directly, no new thread is created, and the calling thread runs that code in order. start() can be called only once on a Thread object, and a second call throws an IllegalThreadStateException. To run the same task again, create a new Thread object.</dd>
+<dt>join()</dt>
+<dd>This method makes the current thread wait until another thread terminates. A thread that calls t.join() does not go on to the next line until t terminates, so it is used when the caller needs to receive and use a result that another thread produces. While it waits, the state of the calling thread is WAITING, and when a time is given, as in join(1000), it is TIMED_WAITING. When it is called on a thread that has already terminated or has not started yet, it returns right away without waiting.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — When start() is called, a new thread Thread-0 is created and runs work, and main runs the last line.</li>
+<li><b>Calling run() instead of start()</b> — No new thread is created, and main runs work directly.</li>
+<li><b>Removing start()</b> — If you only create the thread object and do not start it, work does not run.</li>
+<li><b>Creating one more thread and calling start()</b> — One more new thread is created, and Thread-0 and Thread-1 run work in turn.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>You run it with java Main. A thread is one flow of execution that runs code from top to bottom, and a Java program starts with one thread named main. This main thread runs the main method from the top. The only flow right now is the main thread.</li>
+<li>The line Thread t = new Thread(() -&gt; work()); new Thread(…) creates a Thread object. The () -&gt; work() in the parentheses is the code to hand to the new flow, and it means &quot;call work()&quot;. No name was given, so Java automatically gives the name Thread-0. Only the object exists, and there is no new flow yet. The only flow is the main thread, and the handed code has not run yet.</li>
+<li>The line t.start(); When start() is called, one new flow is created, and the new thread runs the code that was handed to it. The name of the new thread is the Thread-0 given earlier. At this moment there are two flows, and the number of newly started threads is 1. When start() returns, the main thread continues to the next line.</li>
+<li>The line t.join(); When the main thread calls join(), it does not go to the next line and waits until the new thread (Thread-0) finishes.</li>
+<li>While main waits, the new thread (Thread-0) runs the code that was handed to it, () -&gt; work(), and calls work(). Thread.currentThread().getName() inside work is the name of the thread that runs this line, so it is Thread-0. Output: Thread that ran work: Thread-0</li>
+<li>The handed code finishes, so the new thread (Thread-0) also finishes. t.join() of the waiting main thread returns, and main goes to the next line.</li>
+<li>The line String me = Thread.currentThread().getName(); and the println line below it: the main thread continues and runs them. The name is different from that of the new thread that ran the handed code. The name of the thread that runs this line is main. Output: Thread that ran this line: main. The main method ends and the program ends. The number of newly started threads was 1 in all.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A thread is one flow of execution that runs code from top to bottom. A Java program starts with one thread named main, and when t.start() was called, one new flow was created and a new thread named Thread-0 ran the handed code. The thread that ran work was Thread-0, and the thread that ran the last line was main.</li>
+<li>new Thread(…) alone does not create a flow. A new flow is created at the moment start() is called, and you can check which thread ran a line with Thread.currentThread().getName().</li>
+</ul>
+<h2>Code</h2>
+<pre>public class Main {
+    static void work() {
+        String who = Thread.currentThread().getName();
+        System.out.println(&quot;Thread that ran work: &quot; + who);
+    }
+
+    public static void main(String[] args) throws Exception {
+        // Create a thread object. No new flow exists yet
+        Thread t = new Thread(() -&gt; work());
+        // start: a new flow is created and runs work
+        t.start();
+        // join: main waits until that thread finishes
+        t.join();
+        String me = Thread.currentThread().getName();
+        System.out.println(&quot;Thread that ran this line: &quot; + me);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). All 6 combinations were checked against real runs: the same source as the code on the screen (identical line by line) was compiled with javax.tools, and the java of this JDK was started as a child process and actually run 20 times for each combination. In all 120 runs the exit code was 0 and the standard error was empty, and for each combination the standard output was the same in all 20 runs. What was checked is the lines of the standard output (the Output column of the result table), the names of the threads that appear in those lines (the Thread that ran work column), and the number of newly started threads. The number of newly started threads was measured without changing the source on the screen: the start class of the child process read ThreadMXBean.getTotalStartedThreadCount() before and after it called Main.main, and the difference was used (the combinations that call start gave 1 and 2, and the others gave 0, the same in all 20 runs). The facts that the step sentences rely on were checked by running a separately written source 20 times in the same way. Right after a Thread object is created its state is NEW and isAlive() is false, after start() the new thread and main are both alive (the new thread was held in the WAITING state), and after join() returns the state is TERMINATED. When run() is called, main runs the handed code, and even after the call the state of that Thread object is still NEW, and join() of a thread that was never started returns right away without waiting. For the documentation, I opened java.lang.Thread in the Java SE 21 API documentation with WebFetch (I followed the sentences that the excerpts returned and did not read the whole page myself). That a thread is a flow of execution and, once started, is scheduled to run the run method follows the class description; that threads created with Thread() and Thread(Runnable), which are not given a name, are automatically given a name made of &quot;Thread-&quot; and an integer follows the constructor description; that start() schedules the execution of a new thread and it runs separately from the current thread follows the description of start(); that run() is not a method meant to be called directly and, for a thread created with a Runnable, calls the run of that task follows the description of run(); and that join() waits for that thread to finish and returns right away, without waiting, for a thread that has not started follows the descriptions of join() and join(long). That a thread is created as a Thread object and starts when start() of that object is called follows the beginning of chapter 17 of the Java Language Specification (Java SE 21), and that the program starts execution by calling the main method of a class follows section 12.1. However, section 12.1 does not specify the thread that runs main or its name, so the name main for that thread and the numbering order in which the first thread created without a name is Thread-0 and the second is Thread-1 are not defined by the specification but were observed by running on this JDK. The number of newly started threads is the value counted by the JVM and could differ if a thread were started separately inside the JVM, but that did not happen on the PC used to write this lab. The code on the screen uses only classes in java.lang, so it has no import line and has the same form as running with java Main. Every combination starts t and waits for it to finish with join before it starts t2, so the order of the output is fixed, and the order when there is no join or when two threads move at the same time is not covered by this lab and was not checked by execution. Beyond that, implementing Runnable or extending Thread, giving a thread a name, calling start() twice, the state changes of a thread, virtual threads, and thread pools are not covered. The state changes are covered in the in-depth lab &quot;Creating threads and thread states&quot;.</p>
+<p>Previous lab: <a href="../../lab/annot_basic/">Annotations</a> · Next lab: <a href="../../lab/bean_basic/">Beans</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

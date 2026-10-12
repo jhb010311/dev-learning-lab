@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foreign keys: What is a foreign key, and what changes without one? · Dev Learning Lab</title>
+<meta name="description" content="The member_id column of the orders table holds &quot;the number of the member who placed this order.&quot; When you write the line FOREIGN KEY (member_id) REFERENCE…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/fk_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/fk_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/fk_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Foreign keys: What is a foreign key, and what changes without one? · Dev Learning Lab">
+<meta property="og:description" content="The member_id column of the orders table holds &quot;the number of the member who placed this order.&quot; When you write the line FOREIGN KEY (member_id) REFERENCE…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/fk_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Database</p>
+<h1>Foreign keys</h1>
+<p><b>What is a foreign key, and what changes without one?</b></p>
+<p>The member_id column of the orders table holds &quot;the number of the member who placed this order.&quot; When you write the line FOREIGN KEY (member_id) REFERENCES member(id) for this column, it becomes a foreign key. It is a promise to the database that the value in member_id must be an id that really exists in the member table, so the database rejects any INSERT or DELETE that breaks the promise. In this lab you remove that line, or change the member_id of the second order, and run the same SQL each time. You see whether the database accepts each statement and whether an order that points to a missing member is left at the end.</p>
+<p>Checked against real execution · Ran all 6 combinations on H2 2.4.240 and checked against the results, and checked the rules against the MySQL documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Primary key, unique key, foreign key</dt>
+<dd>A primary key (PK) is the column that uniquely identifies each row of a table. Its values cannot be duplicated or empty, and a table has only one. A unique key is a unique constraint, which prevents duplicate values, and a table can have several. A foreign key (FK) is a column that references the primary key (or a unique key) of another table. It guarantees that the referenced row really exists.</dd>
+<dt>Constraint</dt>
+<dd>This is a rule about the values that can go into a table, written in the definition of the table. A primary key, a unique constraint, NOT NULL, CHECK, and a foreign key are typical examples. When an INSERT, UPDATE, or DELETE breaks a rule, the database rejects that statement with an error, and the table does not change. If you check only in the application code, wrong values can get in through code that skips the check or through SQL that someone runs directly, but a constraint blocks a value in the same way whatever route it comes through. Without constraints, wrong values are saved without an error, and the problem only becomes visible when you query the data later.</dd>
+<dt>Referential integrity</dt>
+<dd>This is the rule that a value pointing to a row in another table must point to a row that really exists. For example, if the member_id of an order is 3, the member table must have a member with id 3, and that member must not be deleted while the order remains. When you declare a foreign key, the database checks this rule at every statement. It rejects an INSERT that puts in a missing value, and it rejects a DELETE of a parent row that still has rows pointing to it. Without a foreign key, the database does not notice an order that points to a missing row, so the application has to check every time, or has to find the mismatched data later. A row whose foreign key column is empty (NULL) says that it points to nothing, so most databases, including MySQL InnoDB, do not treat it as breaking this rule.</dd>
+<dt>Parent table and child table</dt>
+<dd>Of two tables joined by a foreign key, the table that holds the pointing value is the child table, and the table that is pointed to is the parent table. If member_id in orders points to id in member, orders is the child and member is the parent. A foreign key is defined on the child table, and the foreign key value of a child row must be a value that exists in the parent table. One member can place many orders, so one parent row can be pointed to by many child rows, but one child row points to only one parent row. What to do when a parent row is deleted or changed is set by the referential action of the foreign key, and if you write nothing, the default is NO ACTION.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — An orders table with a foreign key. The database rejects the INSERT of an order for the missing member number 99, and it also rejects the DELETE of the member that an order points to.</li>
+<li><b>Removing the FOREIGN KEY line</b> — member_id is just a number column. An order for a missing member gets in, and the member can be deleted, so orders that point to a missing member are left.</li>
+<li><b>Changing member_id of the second order to 1</b> — A member number that exists goes in even with a foreign key. The DELETE of that member is rejected.</li>
+<li><b>Leaving member_id empty</b> — NULL goes in even with a foreign key, because it says that the order points to no member.</li>
+<li><b>Removing the FOREIGN KEY line and changing member_id to 1</b> — The DELETE of member 1 is not rejected, so both orders point to a deleted member.</li>
+<li><b>Removing the FOREIGN KEY line and leaving member_id empty</b> — Only the first order points to a deleted member. An order with NULL says that it points to no member.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>CREATE TABLE: The database creates two tables, member and orders. Right now they have no rows. The member_id column of orders holds &quot;the number of the member who placed this order.&quot; orders has the line FOREIGN KEY (member_id) REFERENCES member(id), so the database remembers a promise: &quot;the value in member_id must be an id that really exists in the member table.&quot; This is a foreign key.</li>
+<li>INSERT INTO member VALUES (1, 'Alice'): The database adds the row with id 1 and the name Alice to the member table. There is now one member.</li>
+<li>INSERT INTO orders VALUES (10, 1): This adds order 10. The 1 in member_id is &quot;the number of the member who placed this order,&quot; and it points to the row with id 1 in the member table (Alice). Before it adds the row, the database checks the promise of the foreign key. It looks for the row with id 1 in the member table, finds it, and so the check passes and order 10 goes in. We did not write the code that does this check. The database does it by itself every time an INSERT arrives.</li>
+<li>INSERT INTO orders VALUES (11, 99): This tries to insert the second order. Before it adds the row, the database looks for the row with id 99 in the member table. The database does this check by itself, too.</li>
+<li>Result of the check: The member table has no row with id 99. That breaks the promise, so the database rejects this INSERT and returns an error of the kind &quot;the referenced row does not exist.&quot; Order 11 was not added to orders, and the table is exactly as it was before the INSERT.</li>
+<li>DELETE FROM member WHERE id = 1: This tries to delete member 1 (Alice). Before it deletes the row, the database looks in the orders table for orders whose member_id is 1. It finds order 10.</li>
+<li>Result of the check: Orders that point to this member are still there, so the database rejects this DELETE and returns an error of the kind &quot;another table references this row.&quot; Member 1 was not deleted, and the member table is exactly as it was before the DELETE. So a member that an order points to never disappears.</li>
+<li>SELECT * FROM orders ORDER BY id: This reads the orders left in orders, in order of id. The result is (10, 1). Order 11 was rejected and not added, and the remaining order 10 points to member 1, who is in member.</li>
+<li>As a side note, we run a separate statement for checking that is not in this code. SELECT COUNT(*) FROM orders o LEFT JOIN member m ON o.member_id = m.id WHERE o.member_id IS NOT NULL AND m.id IS NULL looks in member for a match for every order in orders, and counts the orders that have no match. The result is 0. Because of the foreign key, not a single order without a match could appear.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A foreign key is what you get when you write FOREIGN KEY (member_id) REFERENCES member(id) in orders while creating the table. It is a promise to the database that the value in member_id must be an id that really exists in the member table, and the database rejected the INSERT of an order for the missing member number 99.</li>
+<li>The database also rejected the DELETE of the member that an order points to. We did not write the code that checks this. The database checked it by itself at every statement, so the number of orders that point to a missing member is 0.</li>
+</ul>
+<h2>Code</h2>
+<pre>CREATE TABLE member (
+    id   INT PRIMARY KEY,
+    name VARCHAR(20)
+);
+CREATE TABLE orders (
+    id        INT PRIMARY KEY,
+    member_id INT,
+    -- Foreign key: the value in member_id must be an id that exists in the member table
+    FOREIGN KEY (member_id) REFERENCES member(id)
+);
+
+INSERT INTO member VALUES (1, 'Alice');
+INSERT INTO orders VALUES (10, 1);
+INSERT INTO orders VALUES (11, 99);
+
+DELETE FROM member WHERE id = 1;
+SELECT * FROM orders ORDER BY id;</pre>
+<h2>Assumptions of this model</h2>
+<p>The model was checked against real execution on H2 2.4.240 (an in-memory database, through JDBC). For all 6 combinations, the whole SQL on the screen (including the comment line) was run character by character, one statement at a time, and when one statement was rejected, the next statement was still run. The following were checked against the model: whether the INSERT of the second order and the DELETE of member 1 were accepted or rejected and the kind of error (H2 SQLSTATE 23506 means the INSERT breaks the foreign key, and 23503 means the DELETE tries to delete a referenced row), and the result of the last SELECT. &quot;Orders pointing to a missing member&quot; is the value that the Probe counted at the end by separately running the checking statement SELECT COUNT(*) FROM orders o LEFT JOIN member m ON o.member_id = m.id WHERE o.member_id IS NOT NULL AND m.id IS NULL, which is not in the code on the screen. The code on the screen does not put only REFERENCES next to the column definition. It writes a separate FOREIGN KEY (member_id) REFERENCES member(id) line. This is because the MySQL 8.4 documentation (section 1.7.2.3 FOREIGN KEY Constraint Differences and the Indexes, Foreign Keys, and CHECK Constraints part of section 15.1.20 CREATE TABLE) says that MySQL only parses and then ignores a REFERENCES written next to a column definition, and accepts only one written in a separate FOREIGN KEY line. I separately checked that H2 accepts both forms as a foreign key. I opened section 15.1.20.5 FOREIGN KEY Constraints of the MySQL 8.4 documentation directly and checked the following: a foreign key constraint is defined on the child table; an INSERT or UPDATE that creates a value in the child table with no matching value in the parent table is rejected; and when ON DELETE is not written, the default action is NO ACTION, which in InnoDB is the same as RESTRICT and immediately rejects the deletion of the parent row. That an INSERT is possible when the foreign key column is NULL, even if the parent has no match, follows section 15.1.20 and the MATCH description in section 1.7.2.3 (MATCH SIMPLE allows a NULL foreign key). The error numbers and the wording of the messages differ from database to database, so the screen shows only the kind of error. The check by execution on MySQL was not done. So the rule above rests on the documentation and the H2 execution agreeing, and it was not verified by execution whether MySQL gives the same result for the same SQL. That a table without a FOREIGN KEY line accepts a member number that does not exist and does not stop the deletion of a member is behavior observed on H2. This lab covers only the default behavior of a foreign key (rejection), and it does not cover referential actions such as ON DELETE CASCADE, UPDATE, NOT NULL, or composite foreign keys.</p>
+<p>Previous lab: <a href="../../lab/pk_basic/">Primary keys</a> · Next lab: <a href="../../lab/where_basic/">WHERE</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

@@ -16,7 +16,8 @@ const HAN = /[가-힣]/, errs = [], warns = [], MAPS = require('./maps.js');
 const OKH = (() => { try { return require(path.join(root, 'src', 'en', 'hangul_ok.js'))[id] || []; } catch (e) { return []; } })();
 // 영어판에서 달라져도 되는 값(src/en/data_ok.js): 메시지 글자가 달라져서 다시 계산한 해시 같은 것. [한국어판의 값, 영어판의 값]
 const OKD = (() => { try { return require(path.join(root, 'src', 'en', 'data_ok.js'))[id] || []; } catch (e) { return []; } })();
-const DATA = s => OKD.reduce((a, p) => a.split(p[0]).join(p[1]), s);
+const DATA = s => OKD.filter(p => typeof p[0] === 'string').reduce((a, p) => a.split(p[0]).join(p[1]), s);
+const NUMOK = (a, b) => OKD.some(p => typeof p[0] === 'number' && p[0] === a && p[1] === b); // 숫자 값의 예외는 [한국어판 숫자, 영어판 숫자]
 const HANEN = s => HAN.test(OKH.reduce((a, w) => a.split(w).join(''), String(s)));
 const err = m => { if (errs.length < 60) errs.push(m); else if (errs.length === 60) errs.push('… (오류가 더 있음)'); };
 const koDir = path.join(root, 'src', 'lessons'), enDir = path.join(root, 'src', 'en', 'lessons');
@@ -37,7 +38,7 @@ else {
   const bone = l => l.replace(/\/\/.*$/, '').replace(/'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`/g, 'S').replace(/\s+/g, '');
   let boneDiff = 0;
   kl.forEach((l, i) => {
-    if (!HAN.test(l)) { if (l !== el[i]) err('한글이 없는 줄이 원본과 다름 (' + (i + 1) + '줄): ' + el[i].trim().slice(0, 80)); }
+    if (!HAN.test(l)) { if (l !== el[i] && DATA(l) !== el[i]) err('한글이 없는 줄이 원본과 다름 (' + (i + 1) + '줄): ' + el[i].trim().slice(0, 80)); }
     else if (bone(l) !== bone(el[i])) { boneDiff++; if (boneDiff <= 8) warns.push('코드의 뼈대가 달라 보임 (' + (i + 1) + '줄). 글자만 바꿨는지 확인: ' + el[i].trim().slice(0, 70)); }
   });
   if (boneDiff > 8) warns.push('코드의 뼈대가 달라 보이는 줄이 모두 ' + boneDiff + '개');
@@ -50,7 +51,7 @@ function same(a, b, at) {
   if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
     if (typeof a !== typeof b) return err(at + ': 종류가 다름 ' + JSON.stringify(a) + ' / ' + JSON.stringify(b));
     if (typeof a === 'string') { if (HAN.test(a)) { if (!b || HANEN(b)) err(at + ': 옮기지 않은 글자 ' + JSON.stringify(b)); } else if (DATA(a) !== b) err(at + ': 한글이 없던 글자가 바뀜 ' + JSON.stringify(a) + ' → ' + JSON.stringify(b)); return; }
-    if (a !== b && !(a !== a && b !== b)) err(at + ': 값이 다름 ' + a + ' / ' + b); return;
+    if (a !== b && !(a !== a && b !== b) && !NUMOK(a, b)) err(at + ': 값이 다름 ' + a + ' / ' + b); return;
   }
   if (Array.isArray(a) !== Array.isArray(b)) return err(at + ': 배열 여부가 다름');
   if (Array.isArray(a)) { if (a.length !== b.length) return err(at + ': 길이가 다름 ' + a.length + ' / ' + b.length); a.forEach((x, i) => same(x, b[i], at + '[' + i + ']')); return; }
@@ -111,7 +112,7 @@ if (!errs.length) for (const c of combos(ko)) {
   // 한국어판에서는 잘리지 않던 글자가 영어판에서 "…"로 잘리면 글자를 줄여야 한다
   if (b.cuts.length > a.cuts.length) b.cuts.forEach(x => cutSeen.add(x));
   const ac = a.code.split('\n'), bc = b.code.split('\n');
-  if (ac.length !== bc.length) err('code의 줄 수가 다름'); else ac.forEach((l, i) => { if (!HAN.test(l) && l !== bc[i]) err('code에서 한글이 없던 줄이 바뀜: ' + bc[i].trim().slice(0, 60)); });
+  if (ac.length !== bc.length) err('code의 줄 수가 다름'); else ac.forEach((l, i) => { if (!HAN.test(l) && l !== bc[i] && DATA(l) !== bc[i]) err('code에서 한글이 없던 줄이 바뀜: ' + bc[i].trim().slice(0, 60)); });
   [b.code, b.label].concat(b.sim.summary, b.sim.row.map(String), b.sim.events.map(e => e.s)).forEach(x => { if (HANEN(x)) err('결과에 한글이 남음: ' + String(x).slice(0, 60)); });
   if (errs.length > before) { errs.splice(before, 0, '── 설정 ' + at + ' 에서:'); break; }
   ran++;

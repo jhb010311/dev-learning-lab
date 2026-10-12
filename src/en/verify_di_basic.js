@@ -1,0 +1,1 @@
+Lab.verify({ di_basic: ['run', 'Compiled 6 combinations with real component scanning on Spring Framework 7.0.9 and ran them, measured even the objects in the fields by reflection, and checked against the results'] });

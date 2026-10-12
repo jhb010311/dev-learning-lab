@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Variables and types: What is a variable, and what does a type decide? · Dev Learning Lab</title>
+<meta name="description" content="A variable is a name under which a value is stored. The single line int age = 20; has three parts. int is the type, which means that this variable holds o…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/var_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/var_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/var_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Variables and types: What is a variable, and what does a type decide? · Dev Learning Lab">
+<meta property="og:description" content="A variable is a name under which a value is stored. The single line int age = 20; has three parts. int is the type, which means that this variable holds o…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/var_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>Variables and types</h1>
+<p><b>What is a variable, and what does a type decide?</b></p>
+<p>A variable is a name under which a value is stored. The single line int age = 20; has three parts. int is the type, which means that this variable holds only integers. age is the name. 20 is the value to store first. This line is called a declaration. When the compiler reads a declaration, it remembers that &quot;age is an int variable,&quot; and before the program runs it checks that the lines after it fit what it remembered. In this lab you remove the type int, change the value that is stored, and store no value at all. Each time, the same code is compiled and run, so you can see what the compiler reports and what is printed.</p>
+<p>Checked against real execution · Six combinations were compiled with javax.tools on JDK 21, run, and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Variable</dt>
+<dd>A variable is a name for a storage location that holds a value. Every variable has a type that is already fixed at compile time, and the type decides what kind of value the variable can hold. For example, a variable declared as int age; can hold only integers, and int is a 32-bit integer from -2147483648 to 2147483647. A value is stored in a variable with =, and age = age + 1; means &quot;store the value calculated on the right in the variable on the left.&quot; The stored value can change, but the name and the type of the variable do not change. Trying to store a value that does not fit the type is a compile-time error.</dd>
+<dt>Declaration and initialization</dt>
+<dd>A declaration is the line that creates a variable inside a method. It is called a local variable declaration, and it gives a type, a name, and optionally a first value after = (the initialization). int age; only declares, and int age = 20; declares and initializes at the same time. If you use a name that was not declared, the compiler cannot find the name and reports an error. A local variable, unlike a field, does not automatically get a default value such as 0, so a value must be stored in it before it is read, or else it is a compile-time error. A name written on the left of =, where a value is stored, does not count as reading.</dd>
+<dt>Type</dt>
+<dd>A type is a name that decides what kind of value a variable can hold. The types of Java are divided into primitive types and reference types, and the reference types are class types, interface types, type variables, and array types. When you write a class Card or interface Payable declaration, you can use Card and Payable as types. On every line that puts a value in a variable, the compiler checks that the type of the value is the same as the type of the variable or a subtype of it. An interface that a class names with implements is a supertype of that class. If you use a name that is not declared as a type, the compiler cannot find that type and reports an error.</dd>
+<dt>Primitive types and reference types</dt>
+<dd>These are the two kinds into which the types of Java are divided. There are eight primitive types, byte, short, int, long, float, double, char, and boolean, and a variable of one of them holds the value itself. Reference types are all the other types, such as classes, interfaces, and arrays, and a variable of one of them holds a reference to an object, not the object itself. So assigning a variable of a primitive type copies the value, and the two variables do not affect each other, but assigning a variable of a reference type copies the reference, and the two variables come to refer to the same object. A variable of a reference type can hold null, which means that it refers to no object, and a variable of a primitive type cannot hold null.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The variable is declared with the name age and the type int, and 20 is stored in it. Compiling succeeds and 21 is printed.</li>
+<li><b>Remove the type int</b> — The compiler does not know what age is, so it reports an error that the name is not declared.</li>
+<li><b>Store &quot;twenty&quot;</b> — You get a compile error saying that text cannot be stored in an int variable.</li>
+<li><b>Store no value</b> — The variable is created, but the code reads it before a value is stored, which is a compile error.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The compiler reads main from the top. First it reads the line int age = 20;. This line has three parts. int is the type, which means that only integers are stored. age is the name. 20 is the value to store. The compiler remembers that &quot;the name age is a variable of type int.&quot;</li>
+<li>The compiler checks the value to store. 20 is an integer, so it can be stored in the int variable age, which holds only integers.</li>
+<li>The compiler checks the line age = age + 1;. The age + 1 on the right reads the value stored in age. age is declared as an int and a value was stored in it on the previous line, so it can be read. The result of adding 1 to an int is also an integer, so it may be stored in age again.</li>
+<li>The compiler checks the line System.out.println(age);. age is an int variable and has a value stored in it, so it can be read and printed.</li>
+<li>Compiling succeeds, and the Main class file to run is created. Whether age is an int, whether the stored value fits, and whether age can be read were all checked now, while compiling, and not when the program runs.</li>
+<li>You run it with java Main. main starts, and the line int age = 20; runs. An int slot with the name tag age is created, and 20 is stored in that slot.</li>
+<li>The line age = age + 1; runs. First it calculates the age + 1 on the right. Adding 1 to the 20 in the age slot gives 21. This value is stored in the same age slot. The slot stays the same, and only the value inside changes from 20 to 21. Here = does not mean &quot;equals.&quot; It means &quot;store the result on the right in the slot on the left.&quot;</li>
+<li>System.out.println(age); runs. It reads the value in the age slot and prints 21 on the screen.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A variable is a name under which a value is stored. int age = 20; has three parts: the type int (which means only integers are stored), the name age, and the value to store, 20. At this line the compiler remembered that &quot;age is an int variable,&quot; and it checked that the lines after it fit what it remembered before the program ran.</li>
+<li>When run, 20 was stored in the age slot, age = age + 1; changed the value in the same slot to 21, and 21 was printed. The name and the slot of a variable stay the same, and only the value inside can change.</li>
+</ul>
+<h2>Code</h2>
+<pre>public class Main {
+    public static void main(String[] args) {
+        // Declaration: create a variable age of type int and store 20 in it
+        int age = 20;
+        age = age + 1;
+        System.out.println(age);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and the runtime environment are JDK 21.0.12.1 (javac 21). All six combinations were compiled with javax.tools from the same source as the code on the screen (identical line by line). The ones that compiled successfully were loaded with a new class loader and Main.main was run, and the results were checked against the captured standard output. What was checked is whether compiling succeeded, the diagnostic code of the first error (compiler.err.cant.resolve.location, prob.found.req, and var.might.not.have.been.initialized, which are shown on the screen as the three error descriptions), the number of errors and the lines they occurred on, whether the Main class file was created, and the output when run. The documentation was checked by opening the Java Language Specification (Java SE 21) directly. That every variable and expression has a type known at compile time follows the beginning of chapter 4; that a variable is a storage location with a compile-time type follows section 4.12; that a variable of a primitive type holds only values of that type follows section 4.12.1; that int is a 32-bit signed integer follows sections 4.2 and 4.2.1; that a local variable declaration consists of a type (or var), a name, and an optional initializer follows section 14.4; that a variable declared without an initializer must be assigned before it is read, or else it is a compile-time error, follows sections 14.4.2 and 4.12.5 and the beginning of chapter 16. That a local variable, unlike a field, does not automatically get a default value is also in section 4.12.5. That only reading a value counts as access, and the name on the left of = does not, is in the beginning of chapter 16. The kinds of errors, the number of errors, and the lines they occur on are not set by the specification but were observed with this javac. When there are several errors javac reports all of them, but the table shows only the first. In every combination that failed to compile, the Main class file was not created, which is why the screen says it cannot run. In the combination with neither the type int nor a value, the declaration line was left out entirely. A line with only age; and no type is not a statement allowed by the grammar (section 14.8: the only expressions that can be used as statements are assignments, increments and decrements, method invocations, and object creations), and when this form was compiled once separately, javac gave a syntax error saying not a statement (it was not included in the check of the combinations). This lab covers only a local variable and a single int. It does not cover other primitive types, variables of reference types, var, naming and scope of variables, or constants (final). How values are copied for variables of primitive and reference types is covered in &quot;In-depth lab: Variables and types&quot;.</p>
+<p>Next lab: <a href="../../lab/method_basic/">Methods</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

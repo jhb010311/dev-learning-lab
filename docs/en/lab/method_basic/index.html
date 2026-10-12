@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Methods: What is a method, and how is declaring it different from calling it? · Dev Learning Lab</title>
+<meta name="description" content="A method is a block of code that has a name. In the code, the part written with a name, parentheses, and braces, such as static int add(int a, int b) { ..…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/method_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/method_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/method_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Methods: What is a method, and how is declaring it different from calling it? · Dev Learning Lab">
+<meta property="og:description" content="A method is a block of code that has a name. In the code, the part written with a name, parentheses, and braces, such as static int add(int a, int b) { ..…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/method_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>Methods</h1>
+<p><b>What is a method, and how is declaring it different from calling it?</b></p>
+<p>A method is a block of code that has a name. In the code, the part written with a name, parentheses, and braces, such as static int add(int a, int b) { ... }, is the declaration of the method. A declaration only states that &quot;there is a block of code named add,&quot; so the code inside does not run just because it is declared. The code runs when you call the method by putting parentheses after its name, as in add(2, 3). The values 2 and 3 that you pass in the parentheses are stored in the variables a and b (the parameters) in the parentheses of the declaration, and return gives the calculated value back to the place that called the method. In this lab you delete the declaration and the calling line one at a time, and change how many times you call and how many values you pass. Each time, the same code is compiled and run, so you can see what the compiler reports and how many times add runs. (static is added so that main can call add without creating an object. This lab does not cover it.)</p>
+<p>Checked against real execution · Twelve combinations were compiled with javax.tools on JDK 21, run, and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Method</dt>
+<dd>A method is a named block of executable code that can receive a fixed number of values when it is called. A declaration consists of a return type, a name, a list of parameters in parentheses, and a body in braces, as in static int add(int a, int b) { ... }. A declaration only states that &quot;there is a block of code like this,&quot; so the body does not run just because it is declared. It runs when the method is called. A method whose body is a block is an implemented method even if the block is empty. A method with a declared return type is a compile-time error if the body can run to its end without returning, so it must end with return or the like.</dd>
+<dt>Method invocation</dt>
+<dd>A method invocation, or calling a method, is an expression that runs the body of a method. You write the method name, then parentheses, and inside the parentheses the values to pass, as in add(2, 3). For each call the compiler looks for a method with that name and, for a method with a fixed number of arguments, checks that the number of values passed is the same as the number of parameters. If there is no method with that name, or the numbers do not match so that no method can be called at all, it is a compile-time error. At run time the values passed are evaluated in order from the left, they are stored in newly created parameter variables, and then the body runs. If you call the same method twice, the body also runs twice.</dd>
+<dt>Parameters and arguments</dt>
+<dd>A parameter is a variable written in the parentheses of a method declaration, and an argument is a value passed in the parentheses when the method is called. In add(int a, int b), a and b are parameters, and in add(2, 3), 2 and 3 are arguments. When the method is called, the values of the arguments are stored in order in parameter variables that are newly created for each call, and then the body runs. Inside the body, you use the name of a parameter like a variable. Declaring two parameters with the same name in one method is a compile-time error.</dd>
+<dt>Return value (return)</dt>
+<dd>A return value is the value that a method gives back to the place that called it, and the return statement is what gives it back. return ends the running of the method and sends control back to the place that called it. If you add an expression, as in return a + b, the expression is calculated first, and that value becomes the value of the call and takes the place of add(2, 3) in int sum = add(2, 3);. Using a return with a value in a method declared void, or in a constructor, is a compile-time error, and the type of the expression must fit the declared return type. When a return is used inside a try, the finally block runs first, and then control is passed back.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The declaration is present and add(2, 3) is called once. add runs once and 5 comes back.</li>
+<li><b>Delete the calling line</b> — Even if the declaration stays, the code in add does not run unless it is called.</li>
+<li><b>Call add(2, 3) twice</b> — Each call runs the code in add again.</li>
+<li><b>Delete the declaration of add and only call it</b> — There is nothing to call, so you get a compile error.</li>
+<li><b>Pass only one value</b> — The number of values passed does not match the number of parameters, so you get a compile error.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>You compile with javac. The compiler reads the source from the top and comes to the declaration of the add method. The declaration states that &quot;there is a block of code named add that takes two int values and gives back one int value.&quot; The int a and int b in the parentheses are variables that hold the values passed in when add is called, and they are called parameters. The compiler only remembers this name. Compiling is not running, so the code inside add does not run.</li>
+<li>The compiler reads the call add(2, 3) in main. It found the name add in the declaration, and the two values passed (2, 3) match the two parameters (a, b) in number. It passes.</li>
+<li>Compiling succeeds, and the Main class file to run is created.</li>
+<li>You run it with java Main. Running starts at the first line of main. In the source, the declaration of add is written above main, but the code does not run in the order in which it is written. A declaration is not part of the running order, and up to this point the code in add has not run even once.</li>
+<li>In the line int sum = add(2, 3);, you meet the call add(2, 3). This form, with parentheses after the name, is what calls add, and the 2 and the 3 in the parentheses are the values passed. The values passed are stored in the parameters of add in order. 2 is stored in a and 3 is stored in b, and running moves from main into the code in add.</li>
+<li>The first line in add, System.out.println(&quot;add is running&quot;), runs and prints add is running. The number of times add has run is 1.</li>
+<li>return a + b calculates a + b (2 + 3 is 5) and gives that value, 5, back to the place that called add. The running of add ends here, and running returns to main.</li>
+<li>The place where the call add(2, 3) was becomes the value that came back, 5, and 5 is stored in sum.</li>
+<li>System.out.println(sum) prints the 5 stored in sum.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A method is a block of code that has a name. The declaration of add only states that &quot;there is a block of code named add,&quot; and the real running happened when add was called by putting parentheses after its name, as in add(2, 3). The 2 and the 3 passed in the call were stored in the parameters a and b, and return gave the sum, 5, back to the caller and it was stored in sum.</li>
+<li>The declaration was above main, but it did not run first. Running starts at the first line of main, and the code in add ran once, at the moment add(2, 3) was reached.</li>
+</ul>
+<h2>Code</h2>
+<pre>public class Main {
+    // Declaration: a block of code named add. It does not run until it is called
+    static int add(int a, int b) {
+        System.out.println(&quot;add is running&quot;);
+        return a + b;
+    }
+
+    public static void main(String[] args) {
+        // Call: pass 2 and 3 to run add, and store the returned value in sum
+        int sum = add(2, 3);
+        System.out.println(sum);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and the runtime environment are JDK 21.0.12.1 (javac 21). All twelve combinations were compiled with javax.tools from the same source as the code on the screen (identical line by line). The ones that compiled successfully were loaded with a new class loader and Main.main was run, and the results were checked against the captured standard output. What was checked is whether compiling succeeded, the diagnostic code of the first error (compiler.err.cant.resolve.location.args and compiler.err.cant.apply.symbol, which are shown on the screen as the two error descriptions), the number of errors and the lines they occurred on, whether the Main class file was created, the output when run, and the number of times &quot;add is running&quot; appeared in that output. The fact that the step sentences rely on, that &quot;running starts at the first line of main, and even if the declaration of add is above main it does not run first,&quot; was confirmed by running, in the same way, a separate source with one more output line added as the first line of main, and the output came in the order main started, add is running, 5. The documentation was checked by opening the Java Language Specification (Java SE 21) directly. That a method declaration declares executable code that can be invoked follows section 8.4; that the values passed in a call initialize newly created parameter variables before the body runs follows section 8.4.1; that a method body that is a block is an implementation follows section 8.4.7; that the argument expressions are evaluated in order from the left when a call is made follows section 15.12.4.2; that control passes to the method body after the argument values are stored in newly created parameter variables follows section 15.12.4.5; that a return with a value evaluates the expression, makes that value the value of the call, and passes control back to the caller follows section 14.17; and that only methods with the same number of arguments become candidates for the call (in the case of fixed-arity methods), and that it is a compile-time error if there is no candidate at all, follows section 15.12.2.1. Only part of section 15.12.2.1 could be read, and section 8.4.5 (the return type) could not be opened. The kinds of errors, the number of errors, and the lines they occur on are not set by the specification but were observed with this javac. This lab does not cover methods whose return type is void, creating several methods with the same name (overloading), methods that belong to an object, or variable arguments. How information is stacked up and removed each time a method is called is covered in &quot;In-depth lab: Stack and heap&quot;.</p>
+<p>Previous lab: <a href="../../lab/var_basic/">Variables and types</a> · Next lab: <a href="../../lab/class_basic/">Classes and objects</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHERE: What does WHERE decide, and what happens without it? · Dev Learning Lab</title>
+<meta name="description" content="WHERE is the &quot;WHERE condition&quot; that you add after an SQL statement. It decides which of the rows in a table an UPDATE, DELETE, or SELECT applies to. The d…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/where_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/where_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/where_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="WHERE: What does WHERE decide, and what happens without it? · Dev Learning Lab">
+<meta property="og:description" content="WHERE is the &quot;WHERE condition&quot; that you add after an SQL statement. It decides which of the rows in a table an UPDATE, DELETE, or SELECT applies to. The d…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/where_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Database</p>
+<h1>WHERE</h1>
+<p><b>What does WHERE decide, and what happens without it?</b></p>
+<p>WHERE is the &quot;WHERE condition&quot; that you add after an SQL statement. It decides which of the rows in a table an UPDATE, DELETE, or SELECT applies to. The database looks at the rows one by one, checks whether the condition is met, and applies the statement to, or reads, only the rows that match. In this lab you change the kind of statement and the WHERE condition and run the same SQL on the same table each time. You see how many rows the statement applies to and which rows are left at the end. You also see what happens when you remove WHERE.</p>
+<p>Checked against real execution · Ran all 12 combinations on H2 2.4.240 and checked against the results, and checked the rules against the MySQL documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>WHERE clause</dt>
+<dd>The WHERE clause is a condition that you add after a SELECT, UPDATE, or DELETE statement to decide which rows of a table the statement applies to. The database checks whether the condition is true for each row, and it applies the UPDATE or DELETE to, or reads with SELECT, only the rows for which it is true. If several rows match, the statement is applied to all of them. If no row matches, it is applied to no row, and that is not an error. If you do not write WHERE, every row is a target, so SELECT reads everything, UPDATE changes every row, and DELETE deletes every row.</dd>
+<dt>UPDATE and DELETE</dt>
+<dd>UPDATE is a statement that changes the values in the columns of rows that are already in a table, and DELETE is a statement that deletes rows. Both decide which rows they apply to with a WHERE condition, and when they run, they return the number of rows they applied to (in JDBC, executeUpdate returns that number). If you do not write WHERE, UPDATE changes every row and DELETE deletes every row. Even then the statement finishes without an error, so if you leave out WHERE in a statement that was meant to change or delete one person, the database does not warn you. Even if DELETE deletes all the rows, the table itself remains.</dd>
+<dt>Rows and columns</dt>
+<dd>A table in a relational database is made of columns and rows, like a spreadsheet. A column is a kind of cell whose name and type are fixed when the table is created. For example, id and name are the columns of the member table. A row is one line filled with values for those columns, and the information about one member is one row. INSERT adds one row, UPDATE changes every row that matches the WHERE condition, and SELECT reads rows. A column with no value is shown as NULL.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — An UPDATE with WHERE id = 2. Only the row with id 2, which matches the condition, changes.</li>
+<li><b>Removing WHERE</b> — With no condition, every row is a target, so the UPDATE changes all three rows.</li>
+<li><b>Changing the condition to age = 30</b> — When two rows match, the statement is applied to both.</li>
+<li><b>A condition that matches no row</b> — When no row matches, no row changes, and it is not an error.</li>
+<li><b>Removing WHERE from a DELETE</b> — A DELETE without WHERE deletes every row of the table.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>CREATE TABLE and INSERT: The database creates the member table and adds three rows (Alice, Bob, and Carol). A table is made of columns (id, name, age) and rows (one line of information about one person). These three rows are all the rows that the statement below can apply to.</li>
+<li>UPDATE member SET name = 'Withdrawn' WHERE id = 2: This statement has a WHERE condition (WHERE id = 2). The condition after WHERE decides &quot;which rows to apply this statement to.&quot; The database looks at the rows of the member table one by one and checks whether id = 2 is true. We did not write the code that does this check. The database does it by itself for every statement.</li>
+<li>The database looks at the first row (1, Alice, 20): Is id = 2? The id of this row is 1, not 2, so the answer is &quot;No.&quot; This row does not match the condition, so the statement is not applied to it.</li>
+<li>The second row (2, Bob, 30): Is id = 2? The id of this row is 2, so the answer is &quot;Yes.&quot; This row matches the condition.</li>
+<li>The third row (3, Carol, 30): Is id = 2? The id of this row is 3, not 2, so the answer is &quot;No.&quot; This row does not match the condition, so the statement is not applied to it.</li>
+<li>UPDATE member SET name = 'Withdrawn' WHERE id = 2: The statement is applied only to the rows that matched (id 2). The database changes the name of that row to Withdrawn. The value it returns (the number of rows changed) is 1. The rows that did not match (id 1, 3) stay as they are.</li>
+<li>SELECT * FROM member ORDER BY id: This SELECT has no WHERE, so it reads all the rows left in the table. The result is (1, Alice, 20), (2, Withdrawn, 30), (3, Carol, 30). The names in the rows that matched (id 2) were changed to Withdrawn, and the rest are as they were.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>WHERE is a condition that you add after a statement to decide &quot;which rows this statement applies to.&quot; The UPDATE with &quot;WHERE id = 2&quot; changed only the row with id 2, which matches the condition.</li>
+<li>The database checks the condition for each row and applies the statement only to the rows that match. The other two rows do not match the condition, so they are as they were.</li>
+</ul>
+<h2>Code</h2>
+<pre>CREATE TABLE member (
+    id   INT PRIMARY KEY,
+    name VARCHAR(20),
+    age  INT
+);
+INSERT INTO member VALUES (1, 'Alice', 20);
+INSERT INTO member VALUES (2, 'Bob', 30);
+INSERT INTO member VALUES (3, 'Carol', 30);
+
+-- WHERE: apply this statement only to the rows that match the condition
+UPDATE member SET name = 'Withdrawn' WHERE id = 2;
+SELECT * FROM member ORDER BY id;</pre>
+<h2>Assumptions of this model</h2>
+<p>The model was checked against real execution on H2 2.4.240 (an in-memory database, through JDBC). For all 12 combinations, the whole SQL on the screen (including the comment line) was run character by character, one statement at a time, and the following were checked against the model: the number of rows the statement applied to and which rows they were (the rows whose name changed for UPDATE, the rows that disappeared for DELETE, and the rows that were read for SELECT), whether an error occurred, and the result of the last SELECT. That a condition that matches no row (WHERE id = 9) and an UPDATE or DELETE without WHERE finish without an error on H2, and that the table remains after a DELETE without WHERE so that the last SELECT returns an empty result, were checked in this execution. I opened the MySQL 8.4 documentation directly and checked the rules in the UPDATE statement (section 15.2.17: with WHERE, only the rows that match the condition are updated, and without it all rows are updated), the DELETE statement (section 15.2.2: without WHERE, all rows are deleted), and the SELECT statement (section 15.2.13: without WHERE, all rows are selected). I also checked in the MySQL documentation (Using Safe-Updates Mode in the tips for the mysql client) that MySQL has a safe-updates mode that prevents an UPDATE or DELETE where WHERE was forgotten. When this mode is on, an UPDATE or DELETE whose WHERE has no key condition gives an error, and this lab does not cover that mode. The check by execution on MySQL was not done. So the rule above rests on the documentation and the H2 execution agreeing, and it was not verified by execution whether MySQL gives the same result for the same SQL. The screen is drawn as the database looking at the rows one by one and checking the condition. A real database may find the matching rows in another way, depending on the implementation, for example by using an index. What was checked by execution is which rows the statement was applied to, not the order of checking. The &quot;number of rows applied to&quot; that a statement returns was the same as the number of changed rows in this lab, because the names of all the matched rows were different from before in the UPDATE. How a database counts a row whose new value is already the same can differ with the database and the driver settings, so this lab does not cover it. The condition is only one equality (=) comparison. AND and OR, ranges, LIKE, and comparisons with NULL are not covered.</p>
+<p>Previous lab: <a href="../../lab/fk_basic/">Foreign keys</a> · Next lab: <a href="../../lab/join_basic/">Joins</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

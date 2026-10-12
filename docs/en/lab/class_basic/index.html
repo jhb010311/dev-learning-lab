@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Classes and objects: How is a class different from an object? · Dev Learning Lab</title>
+<meta name="description" content="A class is a blueprint that you write with class. It only states which values (fields) and methods something has, and declaring a class does not create an…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/class_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/class_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/class_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Classes and objects: How is a class different from an object? · Dev Learning Lab">
+<meta property="og:description" content="A class is a blueprint that you write with class. It only states which values (fields) and methods something has, and declaring a class does not create an…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/class_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>Classes and objects</h1>
+<p><b>How is a class different from an object?</b></p>
+<p>A class is a blueprint that you write with class. It only states which values (fields) and methods something has, and declaring a class does not create anything. An object is the real thing that new creates from that blueprint. Each time new runs, one object is created, and each object has its own values for the fields. A variable is not the object itself but something that refers to an object, so if it refers to no object, you cannot call a method of that object. In this lab you remove the class declaration and new, or replace new with null. Each time, the same code is compiled and run, so you can see what the compiler reports and how many Card objects are created.</p>
+<p>Checked against real execution · Twelve combinations were compiled with javax.tools on JDK 21, run, and checked against the results; the number of objects created was measured by adding a counting line</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Classes and objects</dt>
+<dd>A class is a blueprint that states which fields (data) and methods (behavior) something has, and an object is the actual thing that is created in memory (on the heap) by using new with that blueprint. An object is also called an instance. You can create many objects from one class, and each object has its own field values. A variable holds not the object itself but a reference to where the object is.</dd>
+<dt>Field</dt>
+<dd>A field is a variable that is declared inside a class. In class Card { String owner; }, owner is a field of type String. A field without static is also called an instance variable, and one is created separately for each object whenever a new object of that class is created. So even objects created from the same class can have different values in their fields. If you do not give a value, the field gets a default value, and for a field of a reference type it is null.</dd>
+<dt>new</dt>
+<dd>new is the operator that creates an object from a class. When new Card() runs, a new object is created according to the class Card, and a reference to that object becomes the value of the expression. Usually you store this reference in a variable, as in Card a = new Card();. This expression creates a new object each time it runs, so if new runs twice, two objects are created. Declaring a class does not create an object. An object is created only when new runs.</dd>
+<dt>Default values of fields</dt>
+<dd>These are the values that are automatically placed in the fields that are not given a value when an object is created. Numeric types such as int get 0, boolean gets false, and reference types such as String get null. These values are what you see until a field initializer or a constructor assigns a value. Local variables inside a method have no default value, so reading one without assigning a value to it is a compile-time error.</dd>
+<dt>NullPointerException</dt>
+<dd>This exception is thrown when code tries to call a method or read a field through a reference that is null. null means that there is no object that the reference refers to, and an object that does not exist cannot be asked to do anything, so the exception is thrown. It is an unchecked exception, which the compiler does not catch for you in advance, so it shows up only when the code runs. This exception is also thrown when null is passed to a method that is written not to accept null (such as Optional.of or Objects.requireNonNull). In places where a value may be absent, you make this exception less likely by checking for null first or by using Optional to show in the type that the value may be absent.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The class is declared and one object is created with new. Compiling succeeds and Alice's card is printed.</li>
+<li><b>Remove new Card()</b> — If you only declare the variable and use it without storing a value, you get a compile error.</li>
+<li><b>Store null</b> — Compiling succeeds, but the program stops at run time with a NullPointerException.</li>
+<li><b>Create one more object</b> — new runs twice, so 2 objects are created, and each object has its own owner.</li>
+<li><b>Remove the class Card declaration</b> — There is no class named Card, so you get a compile error.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The compiler reads the source from the top. First it reads the class Card declaration, and learns about the class Card, which has a value (field) named owner and a method named show. A class is a blueprint. It only states the blueprint, so this declaration alone does not create even one Card object.</li>
+<li>The compiler checks the line Card a = new Card(); The class Card exists, so new Card() can be used. The compiler does not run this line. It only checks it. The object is created at this line when the program runs.</li>
+<li>The compiler checks the lines a.owner = &quot;Alice&quot;; and a.show();. Card has an owner field and a show method, and variable a has a value stored in it, so there is no error.</li>
+<li>Compiling succeeds, and the Main class file to run is created. So far, 0 Card objects have been created. Compiling only checks the source and does not run new.</li>
+<li>You run it with java Main. Running starts at the main method. The class Card, the blueprint, is in the code, but 0 Card objects have been created so far.</li>
+<li>The line Card a = new Card(); runs. new Card() creates one object from the Card blueprint. Nothing has been stored in the owner of this object yet, so it is null, that is, empty.</li>
+<li>In the same line, = stores the created object in variable a. What is stored in variable a is not the object itself but a reference, which points to where the object is, so a now refers to that object.</li>
+<li>The line a.owner = &quot;Alice&quot;; runs. It stores &quot;Alice&quot; in the owner of the object that a refers to.</li>
+<li>The line a.show(); runs. The show method of the object that a refers to runs, reads the owner of that object, and prints &quot;Alice's card&quot;. show is a method written in the blueprint, and the owner it reads is a value stored in the object.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A class is a blueprint that you write with class, and an object is the real thing that new creates from that blueprint. The class Card only stated that it has owner and show and did not create an object, and when new Card() ran, one Card object was created.</li>
+<li>Variable a only refers to that object, and the value of owner was stored in the object. a.show() asked the object that a refers to to run a method written in the blueprint, so it read the owner of that object and printed it.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Blueprint: Card has a value (field) named owner and a method named show
+class Card {
+    String owner;
+    void show() {
+        System.out.println(owner + &quot;'s card&quot;);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // Object: create a real card from the blueprint and store it in variable a
+        Card a = new Card();
+        a.owner = &quot;Alice&quot;;
+        a.show();
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and the runtime environment are JDK 21.0.12.1 (javac 21). All twelve combinations were compiled with javax.tools from the same source as the code on the screen. The ones that compiled successfully were loaded with a new class loader and Main.main was run, and the results were checked against the captured standard output and exceptions. What was checked is whether compiling succeeded, the diagnostic code of the first error (compiler.err.cant.resolve.location and var.might.not.have.been.initialized, which are shown on the screen as the two error descriptions), the number of errors and the lines they occurred on, whether the Main class file was created, the output when run, and the kind of exception thrown during the run. The number of Card objects created was measured, not guessed. Only in the source used for checking, a line that increases a number each time an object is created (an instance initializer block) was added inside Card and the number was read after the run, and the checking script removes that one line when it compares with the code on the screen. The combinations that failed to compile were not run, so their count is 0. In the combination that stores null, the exception is a NullPointerException, and its message said that the variable was null when the code tried to store a value in a.owner. This exception occurs at the a.owner line, so the b lines below it did not run, and the number of objects was 0. The explanation in a step sentence that the owner of a newly created object is null before a value is stored was also confirmed by a separate run (new Card().show() printed the card of null). The documentation was checked by opening the Java Language Specification (Java SE 21) directly. That a class declaration defines a class follows section 8.1; that a field, and a field that is not static, is created anew for each instance whenever an instance is created, follows sections 8.3 and 8.3.1.1; that an object is a class instance or an array, that a reference is a pointer to an object, and that there is a null reference that points to nothing follows section 4.3.1; that a new object is created each time new is evaluated and its fields are filled with default values follows section 15.9.4; that the default value of a reference type is null follows section 4.12.5; that accessing an instance field, or calling an instance method, without an object (with null) throws a NullPointerException follows sections 15.11.1 and 15.12.4.4; and that reading a local variable in which no value was stored is a compile-time error follows the beginning of chapter 16. Section 15.26.1 (the order of evaluation of an expression that assigns to a field) could not be opened, and this lab does not rely on that order. The kinds of errors, the number of errors, and the lines they occur on are not set by the specification but were observed with this javac. When the class Card declaration was missing, one error occurred at each place where Card was used (two for a line with new, one for the type of the variable and one after new), and no separate error occurred on the lines that use the fields or methods of Card. For a variable in which no value was stored, an error occurred only on the line where it was first used. The code on the screen has the classes together in one file, with the package and the access modifiers left out. A class can have more than fields and methods, such as constructors, and there is also the matter of where in memory an object is placed, but this lab does not cover them. Where variables and objects are placed is covered in &quot;In-depth lab: Stack and heap&quot;.</p>
+<p>Previous lab: <a href="../../lab/method_basic/">Methods</a> · Next lab: <a href="../../lab/ref_basic/">References</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

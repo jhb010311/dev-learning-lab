@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beans: What is a bean, and how does it differ from an object you just created? · Dev Learning Lab</title>
+<meta name="description" content="A bean is an object that Spring creates and keeps. In code it is an ordinary class. If you write @Component above the class, then when Spring starts it sc…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/bean_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/bean_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/bean_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Beans: What is a bean, and how does it differ from an object you just created? · Dev Learning Lab">
+<meta property="og:description" content="A bean is an object that Spring creates and keeps. In code it is an ordinary class. If you write @Component above the class, then when Spring starts it sc…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/bean_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Spring</p>
+<h1>Beans</h1>
+<p><b>What is a bean, and how does it differ from an object you just created?</b></p>
+<p>A bean is an object that Spring creates and keeps. In code it is an ordinary class. If you write @Component above the class, then when Spring starts it scans the app package, finds that class, creates one object, and puts it in a place for keeping objects called the container. We do not use new. Where we need the object, we ask Spring for it with context.getBean(Greeter.class), and however many times we ask, Spring gives us the same one object it was keeping. In this lab you run the same code while removing @Component or creating the object with new Greeter() instead of getBean, and see how many objects Spring created, how many objects our code created with new, and whether a == b is true or false.</p>
+<p>Checked against real execution · Ran 4 combinations with real component scanning on Spring Framework 7.0.9, measured the number of objects, and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Spring bean</dt>
+<dd>This is an object that the Spring IoC container creates and manages. Unlike an object that a developer creates directly with new, the container injects its dependencies and manages its initialization and destruction, and additional features such as transactions and AOP can be applied to it through a proxy.</dd>
+<dt>IoC container (ApplicationContext)</dt>
+<dd>This is the core Spring component that is responsible for creating beans, wiring their dependencies, and managing their lifecycle. BeanFactory is the most basic container interface, and ApplicationContext extends it and adds features such as event publication, message internationalization, and environment configuration. When people say &quot;the container&quot;, they usually mean ApplicationContext.</dd>
+<dt>@Component</dt>
+<dd>@Component is an annotation that you put above a class so that Spring knows the class and treats it as something it creates objects of and manages (a bean). With component scanning, Spring scans the classes under a specified package, finds the classes with @Component, and creates objects of those classes and keeps them in the container. If you do not give the bean a name, the class name with its first letter in lowercase is used (greeter for Greeter). @Repository, @Service, and @Controller are specializations of @Component, so they are found in the same way. A class without this annotation is not found even if it is in the same package, so if you ask Spring for an object of that class, an exception saying that there is no such bean is thrown.</dd>
+<dt>Component scanning</dt>
+<dd>This feature finds the classes under a given package that carry @Component or one of its related annotations (such as @Service, @Repository, and @Controller) and registers them as beans automatically. In Spring Boot, the default target is the package of the class annotated with @SpringBootApplication and its subpackages.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A Greeter with @Component. Spring creates one object when it starts and keeps it, and gives you that object however many times you ask.</li>
+<li><b>Removing @Component</b> — Spring does not know the Greeter class, so it has no object to keep, and when you ask for one it stops with an exception.</li>
+<li><b>Creating it with new Greeter()</b> — An object we created with new is not kept by Spring, so it is not a bean, and it is a different object every time you create it.</li>
+<li><b>Changing both</b> — Spring creates no Greeter object at all, and the 2 objects we created are different from each other.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The main method runs, and the line new AnnotationConfigApplicationContext(&quot;app&quot;) starts Spring. When it starts, the container is created. The container is the place where Spring keeps the objects it creates, and for now it is empty.</li>
+<li>Spring scans the classes in the app package and looks for classes with @Component. It is on the Greeter class.</li>
+<li>Spring creates one object of the Greeter class and keeps it in the container. An object that Spring creates and keeps like this is a bean. This object is already created when Spring starts, before our code asks for it. The code we wrote has no line new Greeter().</li>
+<li>The line Greeter a = context.getBean(Greeter.class); runs. It asks Spring for a Greeter object. Spring does not create a new one and gives us the object it was keeping in the container. The variable a points to that object. The number of objects created by Spring is still 1.</li>
+<li>The line Greeter b = context.getBean(Greeter.class); runs. Even when we ask once more, Spring does not create a new one and gives us the same object. This is because Spring creates only one bean and gives us that one every time we ask. The variable b points to the same object as a.</li>
+<li>The line System.out.println(a.hello()); runs. The hello() method of the object that a points to returns &quot;Hello&quot;, and this text is printed.</li>
+<li>The line System.out.println(a == b); runs. a == b is an expression that compares whether the two variables point to the same object. a and b point to the same object kept in the container, so true is printed.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A bean is an object that Spring creates and keeps. What differs from an ordinary class is the single @Component above the class, and with it, Spring creates one Greeter object when it starts and keeps it in the container.</li>
+<li>getBean does not create a new object. It takes out the object that was being kept, so however many times we ask, the same object comes back and a == b is true. Our code has no line new Greeter().</li>
+</ul>
+<h2>Code</h2>
+<pre>// Mark: Spring creates an object of this class and keeps it
+@Component
+public class Greeter {
+    public String hello() {
+        return &quot;Hello&quot;;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // Start Spring. It scans the app package for @Component
+        ApplicationContext context =
+                new AnnotationConfigApplicationContext(&quot;app&quot;);
+        // Ask for the Greeter object that Spring is keeping
+        Greeter a = context.getBean(Greeter.class);
+        Greeter b = context.getBean(Greeter.class);
+        System.out.println(a.hello());
+        System.out.println(a == b);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>These are the results of running Spring Framework 7.0.9 on JDK 21.0.12.1. Spring Boot was not used, and only AnnotationConfigApplicationContext(&quot;app&quot;) was used, as in the code on the screen. All 4 combinations were run as they are, by compiling a source with the same structure as the code on the screen (Greeter and Main in the package app) and starting a new Java process. Greeter was not registered by hand, and Spring was made to scan the app package and find @Component. What was checked is the text that the program printed (Hello and the value of a == b), the kind of exception when it stopped with an exception, the number of Greeter objects created by Spring, and the number of objects created by our code with new. The numbers of objects were measured, not guessed. Only in the source used for checking, a line that increases a number each time an object is created was added to the constructor of Greeter, and the count right after Spring started was recorded as the number created by Spring, and the count at the end minus that count was recorded as the number our code created with new. The count right after starting was already 1 (when @Component is present) before getBean was called, so Spring creates the object when Spring starts, not when getBean is called. Calling getBean twice did not increase the count and a == b was true, and in the combinations that use new, the number of Greeter beans in the container was the same at the end as right after starting, so objects created with new did not go into the container. When @Component was absent, the count right after starting was 0 and there were no registered names in the container (Spring's internal ones were excluded), and at the getBean line org.springframework.beans.factory.NoSuchBeanDefinitionException (the message says there is no bean of type app.Greeter) occurred, the process ended with an error code, and nothing was printed. When @Component was present, there was one registered name in the container, greeter, and that bean was a singleton. What the documentation specifies is the following sections of the Core part of the Spring Framework documentation. Introduction to the Spring IoC Container and Beans (a bean is an object that is created, assembled, and managed by the Spring IoC container, and an object that is not is just one of the many objects in the application), Classpath Scanning and Managed Components (@Component is a generic annotation for a component managed by Spring, and @Service, @Controller, and others are specializations of it; Spring finds annotated classes and registers bean definitions; and if no name is given, the class name with its first letter in lowercase is used), Bean Scopes (singleton is the default scope, and the container creates exactly one object for that bean definition and returns that object every time a request comes), and the API documentation of AnnotationConfigApplicationContext(String... basePackages) (it finds components in the given packages, registers bean definitions, and refreshes the context automatically). Unlike what the documentation specifies, that the object is created at startup, that a class without @Component is not created even if getBean is called, and the name of the exception are behaviors observed on this version. The code on the screen leaves out the package and import lines, and assumes that Greeter and Main are both in the app package. The line that closes the container was not used. Besides @Component, there are other ways to register a bean, such as a @Bean method, and @Service and @Controller, which belong to the @Component family, beans whose scope is not singleton, and dependency injection, which connects beans to each other, are not covered. They are covered in the in-depth lab &quot;The Spring container and beans&quot;.</p>
+<p>Previous lab: <a href="../../lab/thread_basic/">Threads</a> · Next lab: <a href="../../lab/di_basic/">Dependency injection</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

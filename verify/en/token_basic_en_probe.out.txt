@@ -1,0 +1,45 @@
+# node v24.18.0 · openssl 3.5.7 · 127.0.0.1 · HMAC-SHA256, base64url · JWT(HS256)
+# rfc7515-A.1 (문서의 열쇠 k, 머리, 내용으로 이 파일의 sign()을 돌림; 값은 rfc-editor.org/rfc/rfc7515.html 부록 A.1에서 옮김) => headerOctets=true|headerB64=true|payloadB64=true|sig=true|sigOctets=true|full=true|keyBytes=64
+# rfc7515-A.1 계산한 서명 dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk / 문서의 서명 dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+# login 응답 상태 200 · 로그인 응답 토큰 = makeToken(서버 열쇠, 머리, kim) : true · 서버가 만든 admin 토큰(참고) = 고친 토큰의 내용과 같은 내용 : true
+# token.good eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.jzV9172X5ouTjI0iT6vIB97B7M9nYxcJxmInkhxTkSg
+# token.edited eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ.jzV9172X5ouTjI0iT6vIB97B7M9nYxcJxmInkhxTkSg
+# token.nosig eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.
+# token.otherkey eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ.0WL9HiP_a-1P71E5dbCJJ7Mrzsv92FFU-eKfuehCCCE
+# token.none (Authorization 헤더를 보내지 않음)
+# decoded.good 머리={"alg":"HS256"} 내용={"user":"kim"} 서명길이=43
+# decoded.edited 머리={"alg":"HS256"} 내용={"user":"admin"} 서명길이=43
+# decoded.nosig 머리={"alg":"HS256"} 내용={"user":"kim"} 서명길이=0
+# decoded.otherkey 머리={"alg":"HS256"} 내용={"user":"admin"} 서명길이=43
+# recomputed 서버 열쇠로 kim 내용을 계산 jzV9172X5ouTjI0iT6vIB97B7M9nYxcJxmInkhxTkSg · 고친(admin) 내용을 계산 fv3hkCU04f2PAIslv9QYiJIT9QS8ioSwBnQCk0nuFwg · 고친 토큰에 붙어 온 서명 jzV9172X5ouTjI0iT6vIB97B7M9nYxcJxmInkhxTkSg · 고친 내용으로 계산한 값이 붙어 온 서명과 다름 : true · 다른 열쇠로 만든 서명 0WL9HiP_a-1P71E5dbCJJ7Mrzsv92FFU-eKfuehCCCE (서버가 계산한 admin 값과 다름 : true)
+good|true => verify=match|user=kim|status=200|body=Hello, kim|authz=Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.jzV9172X5ouTjI0iT6vIB97B7M9nYxcJxmInkhxTkSg|www=(없음)|http=1.1|reqline=GET /me|requests=1
+good|false => verify=skipped|user=kim|status=200|body=Hello, kim|authz=Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.jzV9172X5ouTjI0iT6vIB97B7M9nYxcJxmInkhxTkSg|www=(없음)|http=1.1|reqline=GET /me|requests=1
+edited|true => verify=mismatch|user=-|status=401|body=|authz=Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ.jzV9172X5ouTjI0iT6vIB97B7M9nYxcJxmInkhxTkSg|www=Bearer|http=1.1|reqline=GET /me|requests=1
+edited|false => verify=skipped|user=admin|status=200|body=Hello, admin|authz=Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ.jzV9172X5ouTjI0iT6vIB97B7M9nYxcJxmInkhxTkSg|www=(없음)|http=1.1|reqline=GET /me|requests=1
+nosig|true => verify=missing|user=-|status=401|body=|authz=Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.|www=Bearer|http=1.1|reqline=GET /me|requests=1
+nosig|false => verify=skipped|user=kim|status=200|body=Hello, kim|authz=Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.|www=(없음)|http=1.1|reqline=GET /me|requests=1
+otherkey|true => verify=mismatch|user=-|status=401|body=|authz=Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ.0WL9HiP_a-1P71E5dbCJJ7Mrzsv92FFU-eKfuehCCCE|www=Bearer|http=1.1|reqline=GET /me|requests=1
+otherkey|false => verify=skipped|user=admin|status=200|body=Hello, admin|authz=Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ.0WL9HiP_a-1P71E5dbCJJ7Mrzsv92FFU-eKfuehCCCE|www=(없음)|http=1.1|reqline=GET /me|requests=1
+none|true => verify=no-token|user=-|status=401|body=|authz=(없음)|www=Bearer|http=1.1|reqline=GET /me|requests=1
+none|false => verify=no-token|user=-|status=401|body=|authz=(없음)|www=Bearer|http=1.1|reqline=GET /me|requests=1
+# readable 열쇠 없이 base64url만 풀면 좋은 토큰의 내용: {"user":"kim"} · 머리: {"alg":"HS256"}
+# freshServer 로그인을 한 번도 받지 않은 새 서버(같은 열쇠) => status=200|body=Hello, kim|requests=1
+# wrongKeyServer 다른 열쇠를 가진 서버 => status=401|verify=mismatch
+# response 200의 Content-Type: text/plain; charset=utf-8
+# variant nosig-dot|true => verify=missing|user=-|status=401 · 토큰=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.
+# variant nosig-dot|false => verify=skipped|user=kim|status=200 · 토큰=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.
+# variant nosig-nodot|true => verify=malformed|user=-|status=401 · 토큰=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0
+# variant nosig-nodot|false => verify=malformed|user=-|status=401 · 토큰=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0
+# variant algnone|true => verify=missing|user=-|status=401 · 토큰=eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiYWRtaW4ifQ.
+# variant algnone|false => verify=skipped|user=admin|status=200 · 토큰=eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiYWRtaW4ifQ.
+# 서버 코드 사실: handle()은 req, key, check만 읽는다(저장소 없음). 로그인 때 서버가 만든 토큰은 응답으로만 나가고 서버 쪽에 남는 것이 없다.
+# 서버가 받은 헤더 good|true = ["Authorization","Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.jzV9172X5ouTjI0iT6vIB97B7M9nYxcJxmInkhxTkSg","Host","127.0.0.1:61451","Connection","close"]
+# 서버가 받은 헤더 good|false = ["Authorization","Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.jzV9172X5ouTjI0iT6vIB97B7M9nYxcJxmInkhxTkSg","Host","127.0.0.1:61453","Connection","close"]
+# 서버가 받은 헤더 edited|true = ["Authorization","Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ.jzV9172X5ouTjI0iT6vIB97B7M9nYxcJxmInkhxTkSg","Host","127.0.0.1:61455","Connection","close"]
+# 서버가 받은 헤더 edited|false = ["Authorization","Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ.jzV9172X5ouTjI0iT6vIB97B7M9nYxcJxmInkhxTkSg","Host","127.0.0.1:61457","Connection","close"]
+# 서버가 받은 헤더 nosig|true = ["Authorization","Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.","Host","127.0.0.1:61459","Connection","close"]
+# 서버가 받은 헤더 nosig|false = ["Authorization","Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.","Host","127.0.0.1:61461","Connection","close"]
+# 서버가 받은 헤더 otherkey|true = ["Authorization","Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ.0WL9HiP_a-1P71E5dbCJJ7Mrzsv92FFU-eKfuehCCCE","Host","127.0.0.1:61463","Connection","close"]
+# 서버가 받은 헤더 otherkey|false = ["Authorization","Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ.0WL9HiP_a-1P71E5dbCJJ7Mrzsv92FFU-eKfuehCCCE","Host","127.0.0.1:61465","Connection","close"]
+# 서버가 받은 헤더 none|true = ["Host","127.0.0.1:61467","Connection","close"]
+# 서버가 받은 헤더 none|false = ["Host","127.0.0.1:61469","Connection","close"]

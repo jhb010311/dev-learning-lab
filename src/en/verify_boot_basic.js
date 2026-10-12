@@ -1,0 +1,1 @@
+Lab.verify({ boot_basic: ['run', 'Compiled the source for each of the 8 combinations on Spring Boot 4.1.1 and ran it as a child java process, observed the listening port and HTTP requests from outside, and checked against them (the classpath without the web library was decided from the dependencies in the poms)'] });

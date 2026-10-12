@@ -1,0 +1,5 @@
+# jose4j 0.9.5 (jar 이름 기준) | JDK 21.0.12.1 | HS256만 허용
+good => verify=true|payload={"user":"kim"}
+edited => verify=false|payload={"user":"admin"}
+nosig => verify=false|payload={"user":"kim"}
+otherkey => verify=false|payload={"user":"admin"}

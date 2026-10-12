@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Annotations: What is an annotation, and what happens when you add one? · Dev Learning Lab</title>
+<meta name="description" content="An annotation is a marker that you put on code and that starts with @, such as @Run or @Override. In this lab you create a marker yourself with @interface…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/annot_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/annot_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/annot_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Annotations: What is an annotation, and what happens when you add one? · Dev Learning Lab">
+<meta property="og:description" content="An annotation is a marker that you put on code and that starts with @, such as @Run or @Override. In this lab you create a marker yourself with @interface…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/annot_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>Annotations</h1>
+<p><b>What is an annotation, and what happens when you add one?</b></p>
+<p>An annotation is a marker that you put on code and that starts with @, such as @Run or @Override. In this lab you create a marker yourself with @interface Run and put @Run above the work method. But a marker does not run anything by itself. For it to have an effect, something has to read the marker and act on it, and that is done by the compiler, by a framework such as Spring, or by code we write. Here we write a for loop ourselves that &quot;finds the methods that have Run and calls them&quot; to show that relationship. You remove @Run, remove the reader, and remove @Retention, compile and run the same code each time, and you see which methods are called.</p>
+<p>Checked against real execution · Twelve combinations were compiled with javax.tools on JDK 21 and run, and the methods called and the markers read at run time were checked</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Annotation</dt>
+<dd>This is metadata that you attach to code. It does nothing by itself; the compiler or a framework reads it and acts on it. Some, like @Override, are used by the compiler for checks, and others, like @Transactional and @Autowired, are read by a framework at run time through reflection to apply a feature.</dd>
+<dt>@interface</dt>
+<dd>@interface is a declaration that creates a new annotation (a marker that starts with @). If you put @ before the interface of an ordinary interface declaration and write @interface Run { }, an annotation called Run is created, and after that you can put it above a class or a method as @Run. If the inside of the braces is empty, it is a marker that holds no values (a marker annotation), and if you put in declarations shaped like methods, they become elements that hold values, as in @Name(value). The declaration alone does not create any code that runs, and something else has to read the marker and act on it. If you do not write @Retention on an annotation you created yourself, it is not kept while the program runs.</dd>
+<dt>Reflection</dt>
+<dd>This feature lets a running program inspect information about a class (its fields, methods, constructors, and annotations) and create objects or call methods by name. Spring's dependency injection, JPA's entity handling, and JSON serialization libraries all work on top of it. It is slower than a normal call and does not get compile-time type checking.</dd>
+<dt>@Retention and @Target</dt>
+<dd>These are two annotations that you apply to a new annotation, when you create it, to set its properties. @Retention decides how far the annotation is retained. SOURCE retains it only in the source code, CLASS retains it up to the class file, and RUNTIME retains it until run time so that it can be read with reflection. When @Retention is not written, the policy is CLASS, so you must write RUNTIME on an annotation that will be read at run time. @Target decides where the annotation can be applied (TYPE is a type declaration such as a class, METHOD is a method, FIELD is a field, and so on), and applying it in a place that does not match is a compile-time error.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Only work, which has @Run, is called. What called it is not the marker but our code that read the marker.</li>
+<li><b>Remove @Run from work</b> — The reader code is unchanged, but work is not called.</li>
+<li><b>Put @Run on rest too</b> — The reader code is unchanged, but rest is called too.</li>
+<li><b>Remove the reader code</b> — Even with @Run on the methods, nothing happens.</li>
+<li><b>Remove @Retention</b> — Even with @Run on the method, it cannot be seen while the program runs, so no method is called.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The compiler reads the source from the top. First it reads the @interface Run declaration and creates a new marker called Run. A marker that starts with @ is called an annotation, and what you declare with @interface becomes its name. The inside of the { } of Run is empty, so it is a marker that holds no values. The @Retention(RetentionPolicy.RUNTIME) above it tells the compiler how long to keep this marker. RUNTIME means to record it in the class file and keep it so it can be read while the program runs, through reflection (a feature that examines classes and methods while the program is running).</li>
+<li>The compiler reads the Job class. @Run is put above the work method. The compiler only writes this marker into the class file as markers that can be read while the program runs, and it does not run or call the methods.</li>
+<li>Compilation succeeds. All the compiler did was check the source and create the class file. Neither work nor rest has run even once.</li>
+<li>You run it with java Main. main starts, and new Job() creates a Job object. work and rest did not run on this line. A method runs only when there is code that calls it. The @Run above a method is not code that calls it, only a marker.</li>
+<li>The for loop runs for the first time, and name is &quot;work&quot;. Job.class.getMethod(&quot;work&quot;) gets the work method, and m.isAnnotationPresent(Run.class) asks, while the program runs, whether this method has Run. What asks this is not @Run but this code that we wrote. The answer is true. This is because the @Run put in the source is still kept in a state that can be read while the program runs.</li>
+<li>The answer is true, so execution goes inside the if and m.invoke(job) runs. invoke calls the work method of the job object, and the work method prints &quot;work ran&quot;. What made it print is not @Run itself but our code that saw @Run and ran m.invoke(job).</li>
+<li>The for loop runs again, and name is &quot;rest&quot;. Job.class.getMethod(&quot;rest&quot;) gets the rest method, and m.isAnnotationPresent(Run.class) asks, while the program runs, whether this method has Run. The answer is false. This method does not have @Run.</li>
+<li>The answer is false, so execution does not go inside the if and m.invoke(job) does not run. The rest method was not called, and nothing was printed.</li>
+<li>The for loop ends and main ends. The number of methods called is 1, and the output is &quot;work ran&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>An annotation is a marker that starts with @ and that you put on code. We created the marker with @interface Run and put @Run above the work method. But a marker does not run anything by itself. work was called because we wrote code that finds the methods that have Run and calls them with m.invoke(job).</li>
+<li>The same is true of Spring's @RestController and @GetMapping: they have an effect because Spring reads those markers. You see how Spring reads them in the Fundamentals lab &quot;Controllers&quot;.</li>
+</ul>
+<h2>Code</h2>
+<pre>import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Method;
+
+// Create the marker. Write that it should be kept so it can be read at run time
+@Retention(RetentionPolicy.RUNTIME)
+@interface Run { }
+
+class Job {
+    // Marker: put Run on the work method
+    @Run
+    public void work() {
+        System.out.println(&quot;work ran&quot;);
+    }
+    public void rest() {
+        System.out.println(&quot;rest ran&quot;);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Job job = new Job();
+        // Reader: find only the methods that have Run and call them
+        for (String name : new String[] { &quot;work&quot;, &quot;rest&quot; }) {
+            Method m = Job.class.getMethod(name);
+            if (m.isAnnotationPresent(Run.class)) {
+                m.invoke(job);
+            }
+        }
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). For all twelve combinations, the source that is the same as the code on the screen was compiled with javax.tools, and for those that compiled, the class file was loaded with a new class loader and Main.main was run, and the results were checked against the standard output that was captured. All twelve combinations compiled. What was checked is whether compilation succeeded, the output when run, the methods called as read from the output, and the &quot;marker read at run time.&quot; The last one is a value measured separately from Main, by a checking program that asks isAnnotationPresent(Run.class) directly about the work and rest methods of the Job class from the same class loader, and it is measured even for combinations that have no reader code. I also checked in what form the marker was written in the class file of Job (RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations), and the step sentences on the screen rely on this result. The documentation was opened and checked directly. I followed the Java Language Specification (Java SE 21), Section 9.6 (an annotation interface is declared with @interface, and one with no elements is a marker annotation interface), Section 9.6.4.2 (if @Retention is absent, it is treated as CLASS; SOURCE is not kept in the class file; CLASS and RUNTIME are recorded in the class file; and RUNTIME must be made readable by reflection at run time), Section 9.7 (an annotation is a marker that associates information with a program element and has no effect at run time) and Section 9.7.2 (marker annotations). I also checked the API documentation of java.lang.annotation.Retention and RetentionPolicy (the default is CLASS, and only RUNTIME can be read by reflection) and of java.lang.reflect.AnnotatedElement (isAnnotationPresent). In what form the compiler writes the marker into the class file is not defined by the specification; it was observed on this javac. The code on the screen uses a for loop to look at the two methods in turn, to explain this lab, and it is different from the way a real framework reads markers. The sentence that Spring's @RestController and @GetMapping have an effect because Spring reads them was not run in this lab, and it points to what was checked in the Fundamentals lab &quot;Controllers&quot;. Elements that hold annotation values, @Target, markers that the compiler reads such as @Override, and the actual implementation of frameworks that read markers at run time are not covered. Other behavior is covered in the in-depth lab &quot;Annotations&quot;.</p>
+<p>Previous lab: <a href="../../lab/lambda_basic/">Lambdas</a> · Next lab: <a href="../../lab/thread_basic/">Threads</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

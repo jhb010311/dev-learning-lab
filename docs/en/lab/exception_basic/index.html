@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exceptions: What is an exception, and what does try-catch do? · Dev Learning Lab</title>
+<meta name="description" content="An exception is an object that Java throws when something happens while the program is running and it cannot continue. For example, when you divide an int…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/exception_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/exception_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/exception_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Exceptions: What is an exception, and what does try-catch do? · Dev Learning Lab">
+<meta property="og:description" content="An exception is an object that Java throws when something happens while the program is running and it cannot continue. For example, when you divide an int…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/exception_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>Exceptions</h1>
+<p><b>What is an exception, and what does try-catch do?</b></p>
+<p>An exception is an object that Java throws when something happens while the program is running and it cannot continue. For example, when you divide an integer by 0, Java throws an exception called ArithmeticException, and at the moment it is thrown, the program stops what it was doing right there. If nobody catches it, the program ends there and the lines after it do not run. try { } wraps code that might fail. The catch (kind of exception e) { } after it is the place where execution jumps when that kind of exception occurs, and handles it. When the handling is done, the program keeps running the lines below the try-catch. In this lab you compile and run the same code while you remove the try-catch, change the value of b, and change the kind that catch catches, and you see what is printed and how the program ends.</p>
+<p>Checked against real execution · Eight combinations were compiled with javax.tools on JDK 21 and run as child java processes, and the standard output, standard error, and exit code were checked</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Exception and Error</dt>
+<dd>Both are subtypes of Throwable that represent abnormal situations while a program runs. An Exception is a situation that the application can catch and handle (such as invalid input or a missing file). An Error is a serious problem at the JVM level, such as running out of memory or a stack overflow, and applications usually do not try to recover from it.</dd>
+<dt>try-catch</dt>
+<dd>try-catch is a statement that decides where execution goes to handle an exception when one occurs. You wrap code that might fail in try { } and add catch (kind of exception e) { } after it. When an exception is thrown inside try, execution stops there. If the kind of the thrown exception is the kind written in catch or a subkind of it, execution jumps into catch, runs it, and then continues with the lines below the try-catch. If there are several catch clauses, the first one that matches, from the top, is used. If no catch matches, the exception keeps passing outward past the try-catch, and if nobody catches it, that thread ends. If no exception occurs, the code inside catch does not run.</dd>
+<dt>Throwing an exception (throw)</dt>
+<dd>Throwing an exception means creating an exception object, stopping what is being done now, and moving execution to the place that catches it. When something breaks the rules of Java, such as dividing an integer by 0, Java throws an exception by itself, and your code can also throw one directly with a throw statement, as in throw new IllegalStateException(). After an exception is thrown, execution does not go back to the place where it was thrown and continue. Java goes up through the callers one by one looking for a try-catch that can catch this exception, and if there is none all the way up, that thread ends.</dd>
+<dt>NullPointerException</dt>
+<dd>This exception is thrown when code tries to call a method or read a field through a reference that is null. null means that there is no object that the reference refers to, and an object that does not exist cannot be asked to do anything, so the exception is thrown. It is an unchecked exception, which the compiler does not catch for you in advance, so it shows up only when the code runs. This exception is also thrown when null is passed to a method that is written not to accept null (such as Optional.of or Objects.requireNonNull). In places where a value may be absent, you make this exception less likely by checking for null first or by using Optional to show in the type that the value may be absent.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The moment you divide by 0, an exception is thrown, catch receives and handles it, and the program runs on to &quot;Done&quot;.</li>
+<li><b>Remove try-catch</b> — Nothing catches the exception, so the program stops at that line and &quot;Done&quot; is not printed.</li>
+<li><b>Store 2 in b</b> — No exception occurs, so 5 and &quot;Done&quot; are printed, and the code inside catch does not run.</li>
+<li><b>Catch a different kind</b> — catch cannot catch ArithmeticException, so the program stops.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>You run it with java Main. The main method starts and the lines int a = 10; and int b = 0; run in order, so the value stored in variable a is 10 and the value stored in variable b is 0.</li>
+<li>Execution reaches the try { line. The lines inside try run from the top as usual. try tells Java in advance, &quot;if an exception occurs in here, pass it to the catch below.&quot; If no exception occurs, the code runs the same as if try were not there.</li>
+<li>The line System.out.println(a / b); runs. To print, println must first calculate a / b inside the parentheses. At the moment it tries to calculate 10 / 0, Java (the JVM) sees that an integer cannot be divided by 0, creates an exception object called ArithmeticException, and throws it. When an exception is thrown, Java stops what it was doing right there, so println, which has no value to print, does not run.</li>
+<li>Java looks for a place that catches this exception. The exception occurred inside try, so it looks at the catch attached to this try. catch (ArithmeticException e) says it catches the ArithmeticException kind, and the exception that was thrown is an ArithmeticException, so the kind matches.</li>
+<li>Execution jumps into catch. The thrown exception object is stored in variable e, and the line System.out.println(&quot;Cannot divide by zero&quot;); inside catch runs and prints that text.</li>
+<li>When the lines inside catch finish, the exception counts as handled. The program does not stop. It continues with the lines below the try-catch, and the line System.out.println(&quot;Done&quot;); prints &quot;Done&quot;. The last line of main has run, so the program ends.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>An exception is an object that Java throws when something happens at run time and it cannot continue. ArithmeticException was thrown at 10 / 0, so println(a / b) did not run, but the code was wrapped in try-catch, so execution jumped into catch and handled it, and then ran on to &quot;Done&quot; below the try-catch.</li>
+<li>An exception does not end the program right away. If there is a catch with a matching kind, it receives the exception, handles it, and execution continues. The code does not go back to the place where the exception was thrown, so the rest of the line where the exception occurred does not run.</li>
+</ul>
+<h2>Code</h2>
+<pre>public class Main {
+    public static void main(String[] args) {
+        int a = 10;
+        int b = 0;
+        // try: wrap code that might fail
+        try {
+            System.out.println(a / b);
+        // catch: if an exception occurs, execution jumps here
+        } catch (ArithmeticException e) {
+            System.out.println(&quot;Cannot divide by zero&quot;);
+        }
+        System.out.println(&quot;Done&quot;);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). For all eight combinations, the source that is the same as the code on the screen (identical text, line by line) was compiled with javax.tools, and all of them compiled. The compiled Main was then run by starting this JDK's java as a child process, and the results were checked against the standard output, standard error, and exit code that were captured. What was checked is whether compilation succeeded, the lines of standard output (the Output column of the result table), the exit code and the first line of standard error (the How the program ended column: when it ended normally, the exit code was 0 and standard error was empty; when it stopped, the exit code was 1, the first line was Exception in thread &quot;main&quot; java.lang.ArithmeticException: / by zero, and a stack trace containing Main.main followed in standard error), and whether the code inside catch ran (whether the text printed by the println inside catch is in standard output). Every combination that stopped had empty standard output, so &quot;Done&quot; was not printed. In the combinations without try-catch, the setting for the kind that catch catches is not used, so the two combinations give the same result. The documentation was checked by opening the Java Language Specification (Java SE 21) directly. That the Java virtual machine signals a violation of the rules as an exception and control is transferred to a point specified by the program is from the introduction of Chapter 11; that when an exception is thrown, control is transferred to a catch that can handle it in the nearest enclosing try, the code that caused the exception is not executed again, and the thread ends if there is no catch to handle it is from Section 11.3; that throw transfers control immediately and the thread ends if there is no matching try is from Section 14.18; that a catch has exactly one parameter and its type must be Throwable or a subclass of it is from Section 14.20; that if the kind of the thrown value can be assigned to the kind written in a catch, the leftmost matching catch is selected and its block runs, that the try statement also completes normally if that block completes normally, and that the try statement ends with the same exception if there is no matching catch is from Section 14.20.1; and that an ArithmeticException is thrown when the divisor of an integer division is 0 is from Section 15.17.2. The matching kinds in Section 14.20.1 also include subkinds of the written kind, but the catch clauses in this lab are only ArithmeticException and NullPointerException, and the two are not in a superclass-subclass relationship, so the case of catching a subkind is not covered. The text in standard error and the exit code 1 are not defined by the specification; they were observed on this java. The code on the screen has the same form as running with java Main, and there is no package. The 10 / 0 and 10 / 2 in the diagram spell out the values stored in a and b. Exceptions also involve using several catch clauses, finally, throwing directly with throw, looking for a place to catch by going back up through the methods that were called, and checked exceptions, but this lab does not cover them. They are covered in the in-depth lab &quot;Exceptions and finally&quot;.</p>
+<p>Previous lab: <a href="../../lab/interface_basic/">Interfaces</a> · Next lab: <a href="../../lab/generic_basic/">Generics</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

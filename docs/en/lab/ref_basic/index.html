@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>References: What does it mean to store an object in a variable? · Dev Learning Lab</title>
+<meta name="description" content="In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers to that object. This value is called a reference.…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ref_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/ref_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/ref_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="References: What does it mean to store an object in a variable? · Dev Learning Lab">
+<meta property="og:description" content="In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers to that object. This value is called a reference.…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/ref_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>References</h1>
+<p><b>What does it mean to store an object in a variable?</b></p>
+<p>In Card a = new Card();, what is inside variable a is not the Card object itself but a value that refers to that object. This value is called a reference. So when you store a variable in another variable, as in Card b = a;, the object is not copied. Only the reference is copied, and a and b come to refer to the same object. If you change the contents of the object through one of them, it is changed when you look through the other too. A variable of a primitive type such as int is different. The value itself is inside it, so int b = a; copies the value. In this lab you run the same lines while changing what is stored in b: a reference copied from a, an object newly created with new, an object newly created and then given only the owner copied over, and an int value. You can see what happens to a after b is changed, and how many Card objects were created.</p>
+<p>Checked against real execution · Four combinations were compiled with javax.tools on JDK 21, run, and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Reference</dt>
+<dd>A reference is a value that refers to an object. When you create an object with new, a reference to that object is produced, and a variable of a class or interface type holds not the object itself but this reference (or null, which means that it refers to no object). There can be several references to the same object, so when you assign as in Card b = a;, the object is not copied. Only the reference is copied, and a and b refer to the same object. If you then change the state of the object through one variable, it is changed when you read it through the other variable too. When you compare two references with ==, it asks not about the contents of the object but whether both are null or both refer to the same object.</dd>
+<dt>Classes and objects</dt>
+<dd>A class is a blueprint that states which fields (data) and methods (behavior) something has, and an object is the actual thing that is created in memory (on the heap) by using new with that blueprint. An object is also called an instance. You can create many objects from one class, and each object has its own field values. A variable holds not the object itself but a reference to where the object is.</dd>
+<dt>Primitive types and reference types</dt>
+<dd>These are the two kinds into which the types of Java are divided. There are eight primitive types, byte, short, int, long, float, double, char, and boolean, and a variable of one of them holds the value itself. Reference types are all the other types, such as classes, interfaces, and arrays, and a variable of one of them holds a reference to an object, not the object itself. So assigning a variable of a primitive type copies the value, and the two variables do not affect each other, but assigning a variable of a reference type copies the reference, and the two variables come to refer to the same object. A variable of a reference type can hold null, which means that it refers to no object, and a variable of a primitive type cannot hold null.</dd>
+<dt>Identity and equality</dt>
+<dd>Identity means that two references point to the same object in memory, and you compare it with the == operator. Equality means that two objects logically have the same value, and you compare it with the equals() method. If you use == to compare strings or value objects, the result can be false even when the contents are the same.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — b holds the same object that a refers to. If you change it through b, it is changed when you look through a too, and there is only 1 object.</li>
+<li><b>Store new Card() in b</b> — One more new object is created, and a and b refer to different objects. Changing b leaves a unchanged.</li>
+<li><b>Create, then only copy the value</b> — Even if you copy the text of owner over, there are 2 objects. The contents were the same at first, but they are different objects.</li>
+<li><b>Use int</b> — A variable of a primitive type holds the value itself, so assigning copies the value. Changing b leaves a unchanged.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The line Card a = new Card(); runs. new Card() creates one Card object (object A in the diagram), and a value that refers to that object is stored in variable a. This value is called a reference. The object is not inside a. a refers to object A.</li>
+<li>The line a.owner = &quot;Alice&quot;; runs. It goes to the object A that a refers to and stores Alice in the owner of that object.</li>
+<li>The line Card b = a; runs. What is inside a is &quot;a reference to object A,&quot; and this reference is copied to b. Object A is not copied. No new object was created, and there is still 1 object. a and b refer to the same object A.</li>
+<li>The line b.owner = &quot;Bob&quot;; runs. It goes to the object that b refers to and stores Bob in its owner. The object that b refers to is object A, and the object that a refers to is also object A. So the owner of object A changes from Alice to Bob.</li>
+<li>The line System.out.println(a.owner); runs. It reads the owner of the object A that a refers to and prints Bob. Nothing was changed through a, yet it has changed, because the object changed through b is the very object that a refers to.</li>
+<li>The line System.out.println(a == b); runs. When you use == on two variables, it compares whether the values inside them refer to the same object. a and b both refer to object A, so it prints true. It does not compare the text in owner.</li>
+<li>main ends. In this run, new Card() ran 1 time and 1 Card object was created. A line that stores a value in a variable did not increase the number of objects. In this code, objects were created only by new Card().</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A Card variable has inside it not the Card object itself but a value (a reference) that refers to that object. So Card b = a; does not copy the object. It makes one more variable that refers to the same object.</li>
+<li>The owner was changed through b yet a read Bob too, a == b was true, and there was only 1 Card object. All of these have the same reason. If you want a separate object, you have to create it anew with new Card().</li>
+</ul>
+<h2>Code</h2>
+<pre>class Card {
+    String owner;
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Card a = new Card();
+        a.owner = &quot;Alice&quot;;
+        // b holds the very object that a refers to. No new object is created
+        Card b = a;
+        b.owner = &quot;Bob&quot;;
+        System.out.println(a.owner);
+        System.out.println(a == b);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The runtime environment is JDK 21.0.12.1 (javac 21). All four combinations were compiled with javax.tools from the same source as the code on the screen, loaded with a new class loader, and Main.main was run, and the results were checked against the captured standard output. In the source of the Probe (the checking program), only lines that count Card objects (an increment of a static variable and in the constructor, and a few output lines) were added, and for every combination it was confirmed that, with those lines removed, the text is identical to the code on the screen line by line. What was checked is the two output lines, the number of Card objects created, and the facts that the step sentences rely on. The facts are the number of objects right after the line Card b = ...; ran (for the combination that stores new Card(), right after the owner was copied over), the value of a == b, the values of the owner of the objects that the two variables refer to, and whether those two values are the same. The documentation was checked by opening the Java Language Specification (Java SE 21) directly. That there are reference values that refer to objects, that when two variables refer to the same object a state changed through one variable can be read through the other, and that an int value is copied on assignment so that the two are separate follow sections 4.2 and 4.3.1 (example 4.3.1-2); that a variable of a primitive type holds a value of that primitive type, and a variable of a class type holds null or a reference to an object of that class, follows sections 4.12.1 and 4.12.2; and that == on references is true when both are null or refer to the same object follows section 15.21.3. That == on int variables compares values (section 15.21.1) was not confirmed by opening the documentation, and was confirmed only by the result of this run. The screen draws the texts of owner, Alice and Bob, as if they were values inside the object, but owner is also a reference that refers to a String object. This lab does not cover that difference, and it does not cover how string constants come to refer to the same object. equals, which asks whether the contents of objects are the same, is covered in &quot;In-depth lab: == and equals&quot;. Where variables and objects are placed in memory is not something this lab covers or checked. What this lab showed is the behavior that the value stored in a variable refers to an object, and that assigning copies that value.</p>
+<p>Previous lab: <a href="../../lab/class_basic/">Classes and objects</a> · Next lab: <a href="../../lab/ctor_basic/">Constructors</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

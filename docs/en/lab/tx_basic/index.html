@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>@Transactional: What does @Transactional group together? · Dev Learning Lab</title>
+<meta name="description" content="@Transactional is a marker (an annotation) that you put above a method. The order() method in this lab saves to the database twice with jdbc.update (an or…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tx_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tx_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/tx_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="@Transactional: What does @Transactional group together? · Dev Learning Lab">
+<meta property="og:description" content="@Transactional is a marker (an annotation) that you put above a method. The order() method in this lab saves to the database twice with jdbc.update (an or…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/tx_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Spring</p>
+<h1>@Transactional</h1>
+<p><b>What does @Transactional group together?</b></p>
+<p>@Transactional is a marker (an annotation) that you put above a method. The order() method in this lab saves to the database twice with jdbc.update (an order in the orders table and a payment in the payment table). Between the two saves there is a stock check, and if stock is 0, it throws an exception. With no marker, the database applies each save as it receives it, so even if an exception occurs, the earlier save stays. If you put @Transactional above order(), Spring treats the saves inside that method as one unit (a transaction). If the method ends normally, it applies all of them (commit), and if it ends with an exception, it cancels all of them (rollback). We do not write the code that starts the unit and applies or cancels it. Spring does it before and after it calls order(). In this lab, you remove @Transactional or change the value put in stock, call the same order(), and look at the rows left in the two tables after the call ends.</p>
+<p>Checked against real execution · Ran all 4 combinations with a real @Transactional proxy on Spring 7.0.9 and H2 2.4.240, and checked the row counts and the facts behind the step sentences</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>@Transactional</dt>
+<dd>This annotation is placed on a method or a class so that its scope runs as one transaction. The proxy starts a transaction before the method runs, commits if the method ends normally, and rolls back according to the rules if an exception occurs. You do not have to write the code that starts and ends the transaction yourself, so this is called a declarative transaction.</dd>
+<dt>Transaction</dt>
+<dd>A way to group several data changes into a single unit so that either all of them are applied (commit) or all of them are canceled (rollback). In a bank transfer, it prevents an intermediate state where only one of the withdrawal and the deposit is applied. It is the most basic means a database has for keeping data consistent.</dd>
+<dt>Commit and rollback</dt>
+<dd>A commit makes all the data changes in a transaction final in the database, and a rollback cancels all of those changes and returns to the state before the transaction started. A transaction ends in one of the two, and a change that has already been committed cannot be undone by a rollback. In Spring, when a method with @Transactional ends normally, Spring commits, and when it ends with an exception, Spring looks at the rollback rules and rolls back. Under the default rule, it rolls back when a RuntimeException or an Error is thrown out of the method, and it does not roll back for a checked exception. Without a transaction, each save statement is committed immediately by auto-commit, which is the default setting of a JDBC connection, so even if an exception occurs later, the earlier save cannot be rolled back.</dd>
+<dt>Proxy</dt>
+<dd>This is a stand-in object that receives calls in place of the real object. When it receives a call, it does some additional work and then passes the call on to the real object. Spring wraps a bean that needs a feature such as AOP or @Transactional in such an object and registers it in the container, so what other beans receive by injection is this stand-in, not the real object.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — order() with @Transactional. An exception occurs between the two saves, so Spring cancels the whole transaction and both tables have 0 rows.</li>
+<li><b>Removing @Transactional</b> — The earlier save has already been applied, so a half-finished state is left: there is an order but no payment.</li>
+<li><b>Putting 5 in stock</b> — If no exception occurs, Spring applies the whole transaction, and each table is left with 1 row.</li>
+<li><b>Removing it and putting 5 in stock</b> — If there is no exception, the tables end up the same even without @Transactional. Each save is applied immediately.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The main of the program calls the order() method of the OrderService object that Spring created. This object is not the class we wrote as it is but an object of another class that Spring made (a proxy), so the call goes through the code of Spring before it reaches the first line of order(). The two tables, orders and payment, have no rows yet.</li>
+<li>Before it enters the order() method, Spring starts a transaction. That is because order() has @Transactional above it. From now on, the saves made inside order() belong to one transaction, and they are not final in the database until the transaction ends. The line that starts the transaction is not in the code we wrote.</li>
+<li>jdbc.update saves one row of an order (1, keyboard) to the orders table. This save is inside the transaction, so it is not final yet. If you open a separate connection to the same database and count orders, it has 0 rows.</li>
+<li>With int stock = 0, the condition of the next line, if (stock == 0), is true, so IllegalStateException(&quot;Out of stock&quot;) is thrown. The order() method ends with the exception without running the line that saves the payment.</li>
+<li>Spring sees that order() ended with an exception and cancels (rolls back) the whole transaction. The order row saved earlier is also undone and disappears from orders. IllegalStateException is a RuntimeException, so Spring canceled it by its default rule. The line that cancels is not in the code we wrote either, and the exception is passed on as it is to main, which called order().</li>
+<li>After order() ends, main queries the two tables. Rows in orders: 0. Rows in payment: 0. Neither the order nor the payment is left.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>@Transactional is a marker that you put above a method, and with it Spring treats the saves inside that method as one unit (a transaction). An exception occurred between the two saves, so even the earlier order save was canceled (rolled back), and orders and payment both have 0 rows.</li>
+<li>We wrote neither the code that starts the transaction nor the code that cancels it. Spring did it before and after calling order(). So a state with &quot;an order but no payment&quot; is not left.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Service
+public class OrderService {
+    private final JdbcTemplate jdbc;
+
+    public OrderService(JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
+    }
+
+    // Unit: the saves inside this method are all applied or all canceled
+    @Transactional
+    public void order() {
+        jdbc.update(&quot;INSERT INTO orders VALUES (1, 'keyboard')&quot;);
+        int stock = 0;
+        if (stock == 0) {
+            throw new IllegalStateException(&quot;Out of stock&quot;);
+        }
+        jdbc.update(&quot;INSERT INTO payment VALUES (1, 30000)&quot;);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>This was checked against real execution of Spring Framework 7.0.9 on JDK 21, connected by JDBC to H2 2.4.240 (an in-memory database), and it was not checked against execution on MySQL. For all 4 combinations, the same source as the OrderService on the screen (with only the package and import lines and two measurement lines marked PROBE at the end added) was compiled, and a new Java process was started for each combination. The configuration class had @EnableTransactionManagement, which AnnotationConfigApplicationContext reads, an H2 DataSource (HikariCP), JdbcTemplate, and DataSourceTransactionManager (a subclass with only lines added to count starts, commits, and rollbacks), and OrderService was marked @Service so that Spring finds it by component scanning. Auto-commit was left at the JDBC default (on), and the database and the two tables (orders, payment) were created anew for each combination. What was checked is how order() ended (IllegalStateException and its message, or normal) and the number of rows in orders and payment counted by a separate query after the call ended. The facts that the step sentences rely on were also checked by execution: whether a transaction is active inside order() (active only when there is @Transactional), the class of the OrderService bean that main received (a CGLIB proxy class made by Spring when there is @Transactional, and the class we wrote as it is when there is not), the number of rows in orders counted over a separately connected database connection right after the first save (0 rows with @Transactional, 1 row without it), and the number of times the transaction manager started, committed, and rolled back (1 start and 1 rollback if it ended with an exception, 1 start and 1 commit if it ended normally, and all 0 without @Transactional). That the second save is not final inside the transaction, and that it is applied immediately without one, were derived from the value measured after the first save and from the final row counts, and the moment right after the second save was not measured separately. What the documentation defines is the Declarative Transaction Management section of Data Access in the Spring Framework 7.0 documentation (that declarative transactions are done through AOP), the section Understanding the Spring Framework's Declarative Transaction Implementation (that TransactionInterceptor and the transaction manager drive the transaction around the method call), the section Using @Transactional (that it must be turned on with @EnableTransactionManagement and that the default is the proxy mode, and that by default RuntimeException and Error are rolled back while checked exceptions are not), and the section Rolling Back a Declarative Transaction (that in the default settings only runtime exceptions are marked for rollback). However, the documentation does not describe in one paragraph the order of starting before the method, committing if normal, and rolling back if an exception, so that order is an observation based on the counts and the row numbers that the Probe measured. The code on the screen leaves out the package and import lines, and it does not show the main that calls order(), the CREATE TABLE that creates the tables, the database connection, and the Spring configuration. This lab covers only one exception, a RuntimeException being thrown, and does not cover checked exceptions, calls from inside the same class, or readOnly. Checked exceptions, rollbackFor, and propagation are covered in the &quot;Transaction propagation&quot; lab, and transactions themselves (including isolation levels) are covered in the &quot;Transaction basics&quot; lab.</p>
+<p>Previous lab: <a href="../../lab/controller_basic/">Controllers</a> · Next lab: <a href="../../lab/boot_basic/">Spring Boot</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+# node v24.18.0 · 127.0.0.1 · net 서버가 글자를 그대로 보내고 연결을 닫음 · http 클라이언트가 GET /hello · 기다리는 시간 1500ms
+# 사실 안녕하세요=12바이트|안녕=5바이트|한 글자=1바이트|하세요=7바이트
+ok|true|right => state=200 OK|type=text/plain; charset=utf-8|body=Hello, world|bytes=12|ended=true|errCode=(없음)|errMsg=(없음)|order=응답>끝|server=GET /hello HTTP/1.1
+ok|true|short => state=200 OK|type=text/plain; charset=utf-8|body=Hello|bytes=5|ended=true|errCode=HPE_INVALID_CONSTANT|errMsg=Parse Error: Expected HTTP/, RTSP/ or ICE/|order=응답>오류>끝|server=GET /hello HTTP/1.1
+ok|true|none => state=200 OK|type=text/plain; charset=utf-8|body=Hello, world|bytes=12|ended=true|errCode=(없음)|errMsg=(없음)|order=응답>끝|server=GET /hello HTTP/1.1
+ok|false|right => state=200 OK|type=(헤더 없음)|body=Hello, world|bytes=12|ended=true|errCode=(없음)|errMsg=(없음)|order=응답>끝|server=GET /hello HTTP/1.1
+ok|false|short => state=200 OK|type=(헤더 없음)|body=Hello|bytes=5|ended=true|errCode=HPE_INVALID_CONSTANT|errMsg=Parse Error: Expected HTTP/, RTSP/ or ICE/|order=응답>오류>끝|server=GET /hello HTTP/1.1
+ok|false|none => state=200 OK|type=(헤더 없음)|body=Hello, world|bytes=12|ended=true|errCode=(없음)|errMsg=(없음)|order=응답>끝|server=GET /hello HTTP/1.1
+notfound|true|right => state=404 Not Found|type=text/plain; charset=utf-8|body=Hello, world|bytes=12|ended=true|errCode=(없음)|errMsg=(없음)|order=응답>끝|server=GET /hello HTTP/1.1
+notfound|true|short => state=404 Not Found|type=text/plain; charset=utf-8|body=Hello|bytes=5|ended=true|errCode=HPE_INVALID_CONSTANT|errMsg=Parse Error: Expected HTTP/, RTSP/ or ICE/|order=응답>오류>끝|server=GET /hello HTTP/1.1
+notfound|true|none => state=404 Not Found|type=text/plain; charset=utf-8|body=Hello, world|bytes=12|ended=true|errCode=(없음)|errMsg=(없음)|order=응답>끝|server=GET /hello HTTP/1.1
+notfound|false|right => state=404 Not Found|type=(헤더 없음)|body=Hello, world|bytes=12|ended=true|errCode=(없음)|errMsg=(없음)|order=응답>끝|server=GET /hello HTTP/1.1
+notfound|false|short => state=404 Not Found|type=(헤더 없음)|body=Hello|bytes=5|ended=true|errCode=HPE_INVALID_CONSTANT|errMsg=Parse Error: Expected HTTP/, RTSP/ or ICE/|order=응답>오류>끝|server=GET /hello HTTP/1.1
+notfound|false|none => state=404 Not Found|type=(헤더 없음)|body=Hello, world|bytes=12|ended=true|errCode=(없음)|errMsg=(없음)|order=응답>끝|server=GET /hello HTTP/1.1
+none|true|right => state=(응답으로 읽지 못함)|type=(없음)|body=(없음)|bytes=0|ended=false|errCode=HPE_INVALID_CONSTANT|errMsg=Parse Error: Expected HTTP/, RTSP/ or ICE/|order=오류|server=GET /hello HTTP/1.1
+none|true|short => state=(응답으로 읽지 못함)|type=(없음)|body=(없음)|bytes=0|ended=false|errCode=HPE_INVALID_CONSTANT|errMsg=Parse Error: Expected HTTP/, RTSP/ or ICE/|order=오류|server=GET /hello HTTP/1.1
+none|true|none => state=(응답으로 읽지 못함)|type=(없음)|body=(없음)|bytes=0|ended=false|errCode=HPE_INVALID_CONSTANT|errMsg=Parse Error: Expected HTTP/, RTSP/ or ICE/|order=오류|server=GET /hello HTTP/1.1
+none|false|right => state=(응답으로 읽지 못함)|type=(없음)|body=(없음)|bytes=0|ended=false|errCode=HPE_INVALID_CONSTANT|errMsg=Parse Error: Expected HTTP/, RTSP/ or ICE/|order=오류|server=GET /hello HTTP/1.1
+none|false|short => state=(응답으로 읽지 못함)|type=(없음)|body=(없음)|bytes=0|ended=false|errCode=HPE_INVALID_CONSTANT|errMsg=Parse Error: Expected HTTP/, RTSP/ or ICE/|order=오류|server=GET /hello HTTP/1.1
+none|false|none => state=(응답으로 읽지 못함)|type=(없음)|body=(없음)|bytes=0|ended=false|errCode=HPE_INVALID_CONSTANT|errMsg=Parse Error: Expected HTTP/, RTSP/ or ICE/|order=오류|server=GET /hello HTTP/1.1
+# 근거 연결을 닫는 서버, Content-Length right => 헤더를 받음=true|받은 본문="Hello, world"|바이트=12|1500ms 안에 응답이 끝남=true|순서=응답>끝|오류=(없음)
+# 근거 연결을 닫지 않는 서버, Content-Length right => 헤더를 받음=true|받은 본문="Hello, world"|바이트=12|1500ms 안에 응답이 끝남=true|순서=응답>끝|오류=(없음)
+# 근거 연결을 닫는 서버, Content-Length short => 헤더를 받음=true|받은 본문="Hello"|바이트=5|1500ms 안에 응답이 끝남=true|순서=응답>오류>끝|오류=HPE_INVALID_CONSTANT
+# 근거 연결을 닫지 않는 서버, Content-Length short => 헤더를 받음=true|받은 본문="Hello"|바이트=5|1500ms 안에 응답이 끝남=true|순서=응답>오류>끝|오류=HPE_INVALID_CONSTANT
+# 근거 연결을 닫는 서버, Content-Length none => 헤더를 받음=true|받은 본문="Hello, world"|바이트=12|1500ms 안에 응답이 끝남=true|순서=응답>끝|오류=(없음)
+# 근거 연결을 닫지 않는 서버, Content-Length none => 헤더를 받음=true|받은 본문="Hello, world"|바이트=12|1500ms 안에 응답이 끝남=false|순서=응답|오류=(없음)
+# 보낸 글 ok|true|right = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 12\r\n\r\nHello, world"
+# 받은 헤더 ok|true|right = {"content-type":"text/plain; charset=utf-8","content-length":"12"}
+# 보낸 글 ok|true|short = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 5\r\n\r\nHello, world"
+# 받은 헤더 ok|true|short = {"content-type":"text/plain; charset=utf-8","content-length":"5"}
+# 보낸 글 ok|true|none = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nHello, world"
+# 받은 헤더 ok|true|none = {"content-type":"text/plain; charset=utf-8"}
+# 보낸 글 ok|false|right = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello, world"
+# 받은 헤더 ok|false|right = {"content-length":"12"}
+# 보낸 글 ok|false|short = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHello, world"
+# 받은 헤더 ok|false|short = {"content-length":"5"}
+# 보낸 글 ok|false|none = "HTTP/1.1 200 OK\r\n\r\nHello, world"
+# 받은 헤더 ok|false|none = {}
+# 보낸 글 notfound|true|right = "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 12\r\n\r\nHello, world"
+# 받은 헤더 notfound|true|right = {"content-type":"text/plain; charset=utf-8","content-length":"12"}
+# 보낸 글 notfound|true|short = "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 5\r\n\r\nHello, world"
+# 받은 헤더 notfound|true|short = {"content-type":"text/plain; charset=utf-8","content-length":"5"}
+# 보낸 글 notfound|true|none = "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nHello, world"
+# 받은 헤더 notfound|true|none = {"content-type":"text/plain; charset=utf-8"}
+# 보낸 글 notfound|false|right = "HTTP/1.1 404 Not Found\r\nContent-Length: 12\r\n\r\nHello, world"
+# 받은 헤더 notfound|false|right = {"content-length":"12"}
+# 보낸 글 notfound|false|short = "HTTP/1.1 404 Not Found\r\nContent-Length: 5\r\n\r\nHello, world"
+# 받은 헤더 notfound|false|short = {"content-length":"5"}
+# 보낸 글 notfound|false|none = "HTTP/1.1 404 Not Found\r\n\r\nHello, world"
+# 받은 헤더 notfound|false|none = {}
+# 보낸 글 none|true|right = "Content-Type: text/plain; charset=utf-8\r\nContent-Length: 12\r\n\r\nHello, world"
+# 보낸 글 none|true|short = "Content-Type: text/plain; charset=utf-8\r\nContent-Length: 5\r\n\r\nHello, world"
+# 보낸 글 none|true|none = "Content-Type: text/plain; charset=utf-8\r\n\r\nHello, world"
+# 보낸 글 none|false|right = "Content-Length: 12\r\n\r\nHello, world"
+# 보낸 글 none|false|short = "Content-Length: 5\r\n\r\nHello, world"
+# 보낸 글 none|false|none = "\r\nHello, world"

@@ -1,0 +1,6 @@
+// Terms for the Fundamentals lab "Indexes". Sources: the MySQL 8.4 Reference Manual, section 15.1.15 CREATE INDEX Statement (the statement that adds an index to an existing table), section 10.3.1 How MySQL Uses Indexes (without an index, the whole table is read from the first row), and section 10.3.2 Primary Key Optimization (a primary key has an index attached). The H2 documentation, performance page, Statement Execution Plans (EXPLAIN).
+// Index, Full table scan, and Query execution plan (EXPLAIN) already exist (kb5.js), so they are not written again.
+module.exports = [
+  ['Database', 'CREATE INDEX',
+   'CREATE INDEX is the SQL statement that adds an index to a column of a table that already exists, in the form CREATE INDEX index_name ON table(column). For example, CREATE INDEX idx_name ON member(name) builds an index on the values of the name column of the member table. The index is stored separately from the table and does not change the rows of the table. An index is used mainly when you search by the column it was built on, so to search by another column, that column needs an index of its own. The database builds an index automatically on a column with PRIMARY KEY, so you do not need CREATE INDEX for it (in MySQL, the primary key itself is created not with CREATE INDEX but with CREATE TABLE or ALTER TABLE).'],
+];

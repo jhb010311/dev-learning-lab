@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tables, rows, and columns: What does a table look like, and what are rows and columns? · Dev Learning Lab</title>
+<meta name="description" content="A relational database keeps data in tables. CREATE TABLE is the statement that makes a table and decides its columns (the vertical slots). Each column has…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/table_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/table_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/table_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Tables, rows, and columns: What does a table look like, and what are rows and columns? · Dev Learning Lab">
+<meta property="og:description" content="A relational database keeps data in tables. CREATE TABLE is the statement that makes a table and decides its columns (the vertical slots). Each column has…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/table_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Database</p>
+<h1>Tables, rows, and columns</h1>
+<p><b>What does a table look like, and what are rows and columns?</b></p>
+<p>A relational database keeps data in tables. CREATE TABLE is the statement that makes a table and decides its columns (the vertical slots). Each column has a name and a type, which decide what it holds, as in &quot;the id column holds an integer and the name column holds text&quot;. INSERT is the statement that puts in one row (a horizontal line, the information of one person), and a row must match the number and the types of the columns. SELECT is the statement that reads the values of chosen columns from the rows. This lab runs the same SQL while you remove CREATE TABLE or change the shape of the second row and the column that is read, and shows which statements the database accepts and which it rejects.</p>
+<p>Checked against real execution · Ran all 16 combinations on H2 2.4.240 and checked against them (the rules were checked against the MySQL documentation)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Table</dt>
+<dd>A table is the grid in which a relational database holds data. A table has a name, such as member, and the columns it has (the kinds of slots) are decided with CREATE TABLE. Data is stored as rows (lines) that match those columns, and you put in rows with INSERT and read them with SELECT. Before you make a table, you cannot INSERT into it or SELECT from it by that name. One database can have many tables.</dd>
+<dt>Rows and columns</dt>
+<dd>A table in a relational database is made of columns and rows, like a spreadsheet. A column is a kind of cell whose name and type are fixed when the table is created. For example, id and name are the columns of the member table. A row is one line filled with values for those columns, and the information about one member is one row. INSERT adds one row, UPDATE changes every row that matches the WHERE condition, and SELECT reads rows. A column with no value is shown as NULL.</dd>
+<dt>Column data type</dt>
+<dd>The data type of a column is the kind of value that the column can hold. You write it with the name of each column in CREATE TABLE. For example, id INT is an integer column, and name VARCHAR(20) is a column that holds text of variable length up to 20 characters. The MySQL 8.4 documentation divides types into five kinds: numeric, date and time, string, spatial, and JSON. If you try to put in a value that does not match the type, the database usually rejects that INSERT, but how strict it is depends on the database and its settings.</dd>
+<dt>CREATE TABLE, INSERT, SELECT</dt>
+<dd>These three are SQL statements. SQL is the language that tells a relational database what to do, and each sentence of it is called an SQL statement. CREATE TABLE is the statement that makes a table and decides the names and types of its columns (for example, CREATE TABLE member (id INT, name VARCHAR(20))). INSERT is the statement that puts in one row, and the values after VALUES go into the columns in the order in which the columns were written in CREATE TABLE. SELECT is the statement that reads rows, and if you write a column name, as in SELECT name FROM member, it reads only the values of that column, and if you write *, it reads the values of all columns. A statement usually ends with a semicolon (;).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — It puts two rows into a member table with two columns and reads the name column. Both INSERT statements fit the columns and go in.</li>
+<li><b>Removing CREATE TABLE</b> — There is no member table, so both INSERT and SELECT give an error.</li>
+<li><b>Putting the text 'two' in the id column</b> — The type of the id column is integer, so the database rejects the second INSERT.</li>
+<li><b>Putting in three values</b> — The number of values differs from the number of columns, so the database rejects the second INSERT.</li>
+<li><b>Reading the column age that does not exist</b> — Both rows go in, but SELECT gives an error because it tries to read a column that the member table does not have.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>CREATE TABLE: the database makes an empty table named member and remembers the names and types of the columns. There are two columns, id (INT, a column that holds integers) and name (VARCHAR(20), a column that holds text), and there are no rows yet.</li>
+<li>INSERT INTO member VALUES (1, 'Alice'): the two values go into the two columns in order. The first value, 1, goes into the id column, and the second value, 'Alice', goes into the name column, and the line filled in this way is one row. The table has 1 row now.</li>
+<li>INSERT INTO member VALUES (2, 'Bob'): it tries to put in the second row. Before it puts in a row, the database checks whether the number of values is the same as the number of columns, and whether each value matches the type of its column (an integer for the id column, text for the name column). We did not write the code that does this check. The database does it by itself each time an INSERT arrives. There are two values, and 2 is an integer and 'Bob' is text, so the count and the types both match the two columns.</li>
+<li>Result of the DB check: it passes. The Bob row went in, and the table now has 2 rows.</li>
+<li>SELECT name FROM member: the database reads only the values of the name column from all the rows of the table and returns them. It does not read the id column. It read 2 rows, and the result is Alice, Bob.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A table is a grid made of columns (vertical slots) and rows (horizontal lines). CREATE TABLE decides the names and types of the columns (id is an integer, name is text), INSERT puts in rows one by one, and SELECT reads the values of chosen columns from the rows.</li>
+<li>We did not write code that checks, for each INSERT, whether the number and the types of the values match the columns. The database did it by itself. Both INSERT statements matched, so there were 2 rows, and SELECT name read only the name values of the two rows.</li>
+</ul>
+<h2>Code</h2>
+<pre>-- Table: make a table named member and decide two columns (id, name)
+CREATE TABLE member (
+    id   INT,
+    name VARCHAR(20)
+);
+
+-- Row: put in one line with the information of one person
+INSERT INTO member VALUES (1, 'Alice');
+INSERT INTO member VALUES (2, 'Bob');
+
+SELECT name FROM member;</pre>
+<h2>Assumptions of this model</h2>
+<p>This was checked against real execution on H2 2.4.240 (in-memory database, JDBC). All 16 combinations were checked: the whole SQL on the screen (including the comment lines) was run exactly as it is, one statement at a time, and even if one statement failed, the next statement kept running. What was checked against the run is whether the second INSERT went in or was rejected and the kind of error (H2 SQLSTATE 22018 the value cannot be converted to the type, 21S02 the number of values differs from the number of columns, 42S04 no table, 42S22 no column), the number of rows after the two INSERT statements, and the values the last SELECT read. That the number of rows right after CREATE TABLE is 0 and that the database remembers the names and types of the columns (id integer, name text of 20 characters) was checked by reading the metadata. H2 rejected an INSERT that has two columns but only one value, and this is behavior observed on H2, not something defined by the documentation. In the tutorial of the MySQL 8.4 documentation, Creating a Table (CREATE TABLE decides the names and types of the columns, and VARCHAR is text of variable length), Loading Data into a Table (the values of INSERT go in in the order in which the columns were written in CREATE TABLE, and NULL can be put in directly), Selecting All Data and Selecting Particular Columns (SELECT * gives all rows and columns, and writing column names gives only those columns), and the opening of Chapter 13 Data Types (the types are of five kinds: numeric, date and time, string, spatial, and JSON) were opened directly and checked. But the rule that an INSERT whose types or count do not match is rejected is not something these documents define, and it was checked by running H2. A check against execution on MySQL was not done. The text of the error messages, and how strictly a value that does not match is rejected, may differ by database and settings. The screen shows only the kind of error, and the error numbers and the original text of the messages exist only in the output of the checking program. This lab covers only the two types INT and VARCHAR, and it does not cover constraints such as a primary key, multiple tables, or WHERE conditions.</p>
+<p>Previous lab: <a href="../../lab/relation_basic/">Associations</a> · Next lab: <a href="../../lab/pk_basic/">Primary keys</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

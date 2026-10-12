@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encryption: What is encryption, and what happens without the key? · Dev Learning Lab</title>
+<meta name="description" content="Encryption means calculating text together with a key to turn it into a value that cannot be read. In code, you pass the text and a key to encrypt(&quot;Card n…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/crypto_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/crypto_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/crypto_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Encryption: What is encryption, and what happens without the key? · Dev Learning Lab">
+<meta property="og:description" content="Encryption means calculating text together with a key to turn it into a value that cannot be read. In code, you pass the text and a key to encrypt(&quot;Card n…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/crypto_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Security</p>
+<h1>Encryption</h1>
+<p><b>What is encryption, and what happens without the key?</b></p>
+<p>Encryption means calculating text together with a key to turn it into a value that cannot be read. In code, you pass the text and a key to encrypt(&quot;Card number 1234&quot;, key), and you get back a value that cannot be read. A party that has the same key passes that value and the key to decrypt(sent, key) and gets the original text back. This is called decryption. A party that has no key, or a different key, cannot get the text back, so what you must protect is the key, not the value. In this lab, you change the key that the receiver has to the same key, a different key, or no key, and sometimes you remove the encryption itself. You see the value that is visible in the middle and what the receiver read, both checked by actually running the code. (The bodies of newKey, which makes a key, and of encrypt and decrypt, which do the calculation, are shortened on the screen.)</p>
+<p>Checked against real execution · Compiled and ran all 6 combinations on JDK 21 with javax.tools and checked against the results, and checked the calculation with Node.js and the NIST test vectors</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Encryption</dt>
+<dd>Encryption is calculating text (plaintext) together with a key to turn it into a value that cannot be read (ciphertext). A party that has the same key decrypts that value and gets the original text back, but a party that has no key cannot. Text that is sent or stored without encryption can be read as it is by anyone in the middle. The difference from hashing is that hashing makes it so that no one can turn the value back into the original text, while encryption makes it so that only a party that has the key can turn it back. AES is a symmetric block cipher defined by FIPS 197 that does both encryption and decryption, and in Java you use it through the javax.crypto.Cipher class.</dd>
+<dt>Decryption</dt>
+<dd>Decryption is calculating an encrypted value together with a key to turn it back into the original text. In the symmetric-key method, you must put in the same key that was used to encrypt. A method such as AES-GCM, which attaches a check value (tag) to the value, reports a failure instead of giving out text when the key is different or the value was changed and the tag does not match (FAIL in SP 800-38D), and Java's Cipher throws AEADBadTagException in that case. In a method with no check value, a different key can give wrong bytes with no exception, so you must not trust that the key was right just because the decryption finished.</dd>
+<dt>Key</dt>
+<dd>A key is a value that you put into the encryption and decryption calculation together with the text or the value. AES uses keys that are 128, 192, or 256 bits long. The algorithm is a public standard such as FIPS 197, and whether you can decrypt a value depends on whether you have the key, so what you must protect is the key. In the symmetric-key method, the sender and the receiver have the same key, and sharing that key safely is a separate task. In GCM, you must use a different IV (nonce) each time you encrypt with the same key, and if it is repeated, it becomes open to forgery attacks (SP 800-38D section 8, the Cipher documentation).</dd>
+<dt>Symmetric-key cryptography and public-key cryptography</dt>
+<dd>Symmetric-key cryptography uses the same key to encrypt and to decrypt. It is fast, but it has the problem that the key must be shared safely with the other party (AES). Public-key cryptography uses a pair of keys, a public key and a private key. Data encrypted with the public key can be decrypted only with the private key, so there is no key-sharing problem, but it is slow (RSA). In practice, public-key cryptography is used to exchange a symmetric key safely, and then the symmetric key encrypts the data.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A value encrypted with a key cannot be read, and decrypting it with the same key gives back the original text.</li>
+<li><b>Reading without the key</b> — You read only a value that cannot be read, and you do not get the text.</li>
+<li><b>Decrypting with a different key</b> — decrypt throws an exception and you do not get the text.</li>
+<li><b>Sending without encryption</b> — The value that is visible in the middle is the text itself, so anyone can read it.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The SecretKey key = newKey(); line runs. The helper method newKey() makes one key and puts it in key. A key is a value that you put into the calculation together with the text, both when you encrypt and when you decrypt.</li>
+<li>On the String sent = encrypt(&quot;Card number 1234&quot;, key); line, the sender puts the text &quot;Card number 1234&quot; and the key into encrypt. encrypt calculates the text together with the key and turns it into a different value.</li>
+<li>The calculation ends, and a value that cannot be read comes out and is put in sent. In this lab, a value that starts with ih/DXie50GTx… and is 60 characters long came out. You cannot read &quot;Card number 1234&quot; from this value. If you encrypt the same text again with the same key, a different value comes out, so this value is one example.</li>
+<li>The value of sent goes through the middle (a network or storage) to the receiver. This value is all that is visible in the middle. The text and the key were not sent to the middle, so they are not visible.</li>
+<li>On the String read = decrypt(sent, key); line, the receiver puts the received value sent and the same key into decrypt. decrypt does decryption, the calculation that reverses encryption.</li>
+<li>The result of the decryption is the original text &quot;Card number 1234&quot;, and it is put in read. This is because you put in the same key that was used to encrypt.</li>
+<li>System.out.println(sent) prints the whole 60-character value that cannot be read, and System.out.println(read) prints Card number 1234.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Encryption is calculating text together with a key to turn it into a value that cannot be read. All that was visible in the middle was a value that cannot be read, starting with ih/DXie50GTx…, and the receiver decrypted it with the same key and recovered the original text &quot;Card number 1234&quot;.</li>
+<li>Hashing makes it so that no one can turn the value back into the original text. Encryption makes it so that only a party that has the key can turn it back. So what you must protect is the key, not the value.</li>
+</ul>
+<h2>Code</h2>
+<pre>SecretKey key = newKey();                       // Create one key
+
+// Sender: encrypt the text with the key
+String sent = encrypt(&quot;Card number 1234&quot;, key);
+
+// Receiver: decrypt with the same key
+String read = decrypt(sent, key);
+
+System.out.println(sent);
+System.out.println(read);</pre>
+<h2>Assumptions of this model</h2>
+<p>We did the actual calculation with javax.crypto.Cipher(&quot;AES/GCM/NoPadding&quot;) of Java JDK 21.0.12.1. The key is 256 bits, the tag is 128 bits, and a new 12-byte nonce is made for each encryption and put in front of the result, which is written in Base64. What is shortened on the screen is the import lines, the declaration of main, and the bodies of the helper methods newKey, encrypt, and decrypt. We checked all 6 combinations against the result of this: we put the same lines as the code on the screen into main, compiled that source with javax.tools, loaded the class with a new class loader, ran Main.main, and caught the standard output and the thrown exception. What we checked against is the value visible in the middle (the first 12 characters and the total number of characters of the value that encrypt returned), what the receiver read, whether the original text was recovered, the name of the exception thrown when decrypting with a different key (javax.crypto.AEADBadTagException, with the message Tag mismatch), and that nothing is printed at that time. The encrypted value is different every run. To compare, we fixed the key and the nonce to set values so that the same value comes out (in real use both are made at random), and ih/DXie50GTx…(60 characters) on the screen is one example obtained that way. When we encrypted the same text with the same key twice, making a new nonce each time, the two values were different from each other and both could be decrypted, and when we ran the 6 combinations again with a randomly made key and nonce, the kind of result (the text that was read, the name of the exception, the length of the value) was the same. The first 12 characters shown on the screen are the nonce part put in front of the value (the first 9 bytes), and the encrypted text part follows after it. The length of the value changes with the length of the text. We checked in two ways that the calculation follows the standard. We encrypted the same key, nonce, and text with aes-256-gcm of Node.js too, and the ciphertext and the tag were the same as Java down to the byte, and Node.js decrypted the Java value with the same key but could not with a different key. Also, in the GCM test vectors that the NIST Cryptographic Algorithm Validation Program (CAVP) publishes (gcmEncryptExtIV256.rsp and gcmDecrypt256.rsp in gcmtestvectors.zip; key 256 bits, IV 96 bits, text 128 bits, no additional data, tag 128 bits), the ciphertext and tag of one encryption case and the results of two decryption cases (one that passes and one that is FAIL) were the same as the Java calculation. We opened the documents ourselves and checked them. NIST FIPS 197 (the 2023 update), item 3 of the preface, introduces AES as a symmetric block cipher that can encrypt and decrypt, and says the key length is 128, 192, or 256 bits and the data is in 128-bit blocks. NIST SP 800-38D (the 2007 edition) says in section 3 that GCM guarantees the confidentiality and the authentication of data together, defines in sections 5.2.2 and 7.2 that authenticated decryption outputs the text if the check value (tag) matches and FAIL instead of the text if it does not, requires in section 8 that the probability of encrypting different data with the same key and the same IV be 2 to the power of -32 or less, and recommends in section 5.2.1.1 that the IV length be 96 bits. The Java 21 Cipher documentation explains that in AEAD modes (GCM and others) the tag is put after the ciphertext and is checked when decrypting, and tells you to change the IV every time you encrypt with the same key, and the AEADBadTagException documentation explains that it is thrown when a Cipher in an AEAD mode cannot verify the tag. This lab covers only the method in which the sender and the receiver use the same key (symmetric-key encryption). The method with two keys (public key) and signatures are covered in the in-depth lab &quot;Hashing, encryption, and signatures&quot;, and how the receiver gets the same key safely (key delivery) is not covered. An exception is thrown when decrypting with a different key because the method this lab chose (AES-GCM) checks with the tag whether the value was changed or the key is different. A method without such a check can behave differently, and when we decrypted with a different key using AES/CTR/NoPadding, bytes other than the original text came out with no exception. How to store the key safely is not covered.</p>
+<p>Previous lab: <a href="../../lab/hash_basic/">Hashing</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

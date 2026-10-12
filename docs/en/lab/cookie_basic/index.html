@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cookies: What is a cookie, and who stores it and who sends it? · Dev Learning Lab</title>
+<meta name="description" content="In HTTP, each request stands on its own, so the server cannot tell by itself whether a second request came from the same person as before. A cookie is a s…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cookie_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cookie_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cookie_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Cookies: What is a cookie, and who stores it and who sends it? · Dev Learning Lab">
+<meta property="og:description" content="In HTTP, each request stands on its own, so the server cannot tell by itself whether a second request came from the same person as before. A cookie is a s…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/cookie_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Networking</p>
+<h1>Cookies</h1>
+<p><b>What is a cookie, and who stores it and who sends it?</b></p>
+<p>In HTTP, each request stands on its own, so the server cannot tell by itself whether a second request came from the same person as before. A cookie is a small value made to solve this. The code box shows the response text that the server sends back to the first request, and the Set-Cookie: visitor=alice line in it is the line that hands over a cookie. With this line, the server asks, &quot;Keep this value, and show it to me when you come next time.&quot; It is the browser that stores the value and the browser that sends it back. The browser adds the stored value to the next request to the same server as a Cookie: visitor=alice header. The server in this lab is made to send back &quot;Welcome back, value&quot; when the value of visitor comes in the Cookie header of a request, and &quot;Hello, new visitor&quot; when it does not, and this server code is not shown on the screen. You remove the Set-Cookie line, delete the cookie before the second request, or send the requests with a program that does not store cookies, and see whether the server recognizes the second request when the same server is requested twice. The (empty line) in the code box is a way to show a line with no text at all, so that you can see it.</p>
+<p>Checked against real execution · Ran 6 combinations with a net server on Node.js 24.18.0 and the cookie engine of curl 8.21.0, and checked against the results (not run in a browser)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Cookie</dt>
+<dd>A small piece of data that a server sends in a response. The browser stores it and automatically sends it back with every request to the same site. HTTP does not remember state between requests, so this data is used to keep information that must carry over, such as a login state. Because it is stored in the user's browser, you must use it on the assumption that the user can read or change its contents.</dd>
+<dt>Set-Cookie header</dt>
+<dd>Set-Cookie is a response header that a server adds to a response to send a cookie to the client (a user agent such as a browser) (RFC 6265 section 4.1). It starts with one &quot;name=value&quot;, as in Set-Cookie: visitor=alice, and attributes such as expiry and path can be added after it. It means &quot;Keep this value, and show it to me when you come next time.&quot; It is the receiving side that decides whether to store the value and return it on requests to the same server, so a program that does not store cookies does not use this line even when it receives it.</dd>
+<dt>Cookie header</dt>
+<dd>Cookie is a header that a client adds to a request when it returns a cookie it has stored to the server (RFC 6265 section 4.2). It writes only the stored &quot;name=value&quot;, as in Cookie: visitor=alice, and does not carry attributes such as expiry or path (section 4.2.1). A browser adds this header to requests that meet the conditions for sending the cookie, so a developer does not write it in the code that sends requests. The server can read this header to tell which cookie the client of a request has, and it can also ignore the header (section 3).</dd>
+<dt>HTTP as a stateless protocol</dt>
+<dd>HTTP is a communication protocol in which a client sends a request and a server responds. Stateless means that the server does not remember the content of earlier requests, so each request must carry all the information needed to process it. Because the server keeps no state, any server can take a request, which makes it easy to add servers. Information that must carry over, such as a login state, is kept with cookies, sessions, or tokens.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The server adds Set-Cookie and the browser stores it. The browser adds a Cookie header to the second request, and the server recognizes the visitor.</li>
+<li><b>Removing the Set-Cookie line</b> — The browser has nothing to store, so the second request has no Cookie header, and the server treats the visitor as someone it sees for the first time.</li>
+<li><b>Deleting the cookie before the second request</b> — The stored cookie is gone, so the browser cannot add a Cookie header, and the server treats the visitor as someone it sees for the first time.</li>
+<li><b>With a program that does not store cookies</b> — Even if the server adds Set-Cookie, the program does not store it, so the second request has no Cookie header.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>When you type localhost:8080 in the address bar of the browser, the browser sends a GET / request to the server. This request has no Cookie header.</li>
+<li>The server reads the request. There is no Cookie header, so it cannot tell who this is. In HTTP, each request stands on its own, so the server cannot tell by itself whether this request came from someone who came before. This server is made to send back &quot;Welcome back, value&quot; when a visitor value comes in the Cookie header, and &quot;Hello, new visitor&quot; when it does not. This server code is not shown on the screen.</li>
+<li>The server sends the response. The body is &quot;Hello, new visitor&quot;, and the Set-Cookie: visitor=alice line from the code box is attached. This line means &quot;Keep this value, and show it to me when you come next time.&quot;</li>
+<li>The browser receives the response and stores visitor=alice from the Set-Cookie line on its own side. The place where the value is stored is the browser, not the server. This server has no place to write down visitors.</li>
+<li>The browser sends a second request to the same server. A cookie that this server handed over is stored, so the browser adds the stored value to the request as a Cookie: visitor=alice header. We did not write the code that adds this header. The browser does it.</li>
+<li>The server reads the request. The Cookie header has visitor=alice, so it makes &quot;Welcome back, alice&quot; the body. The server did not remember this person. It only read the value that came with the request. A Cookie header has come, so this response gets no Set-Cookie line.</li>
+<li>The browser receives the second response. The body is &quot;Welcome back, alice&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A cookie is a small value that the server hands over with the Set-Cookie header of a response (here, visitor=alice). The browser stores it and adds it to every later request to the same server as a Cookie header.</li>
+<li>HTTP treats each request on its own, so the server cannot recognize the second request by itself, but because the cookie comes with the request, it recognized the visitor with &quot;Welcome back, alice&quot;. It was the browser, not code we wrote, that added the header.</li>
+</ul>
+<h2>Code</h2>
+<pre>HTTP/1.1 200 OK
+Set-Cookie: visitor=alice
+Content-Type: text/plain; charset=utf-8
+(empty line)
+Hello, new visitor</pre>
+<h2>Assumptions of this model</h2>
+<p>The server is a single one started with the net module of Node.js 24.18.0 on a free port of 127.0.0.1. It reads the headers of a request up to the empty line, and sends back &quot;Welcome back, value&quot; if the Cookie header has a value for visitor, and &quot;Hello, new visitor&quot; if it does not. The Set-Cookie: visitor=alice line is attached only to the response to a request that has no Cookie header while the setting is on, and the connection is closed after sending. The first response the server sent is the same as the text in the code box, line by line (if it were made with the http module, headers such as Date would be added and the text would differ, so the text was sent exactly as it is with net, and Content-Length was not used, so the end of the response is shown by closing the connection). This server has no place to write down visitors, so when a new client without a cookie made a request after that, it did not recognize the earlier visitor. The client is curl 8.21.0 on the PC used to write this lab, which implements the cookie rules (RFC 6265). For the side that stores cookies, the same jar file was given to curl -b and -c (the cookie engine is turned on and cookies are saved to the file), and the stored cookie was obtained by reading the jar file after the first response. The user deleting the cookie was reproduced by giving a new empty jar file to the second request. The side that does not store cookies is curl without cookie options, and this curl did not add a Cookie header to the second request even though it received the Set-Cookie line of the first response. All 6 combinations were run, and the stored cookie, the Cookie header the server actually received in the second request, and the second response were checked against the model. The full headers of the two requests, the raw text of the two responses, and the arguments given to curl (there is no argument that writes a Cookie header by hand) were also checked. The check was made with the cookie engine of curl instead of a browser. Browsers also follow the same standard (RFC 6265), but the results of this lab were not run and checked in a real browser. What was checked against the documentation is RFC 6265 section 1 (the server sends a cookie with Set-Cookie, and the client decides whether to return it with Cookie in later requests), sections 3 and 3.1 (the example in which Cookie: SID=31d4d96e407aad42 is carried on the next request after receiving Set-Cookie: SID=31d4d96e407aad42), section 4.1 (Set-Cookie is the response header with which a server sends a cookie to a client), and section 4.2 (Cookie is the request header with which a client returns the cookies it has stored to the server), and that HTTP is a stateless protocol in which each request can be understood on its own follows section 3.3 of RFC 9110. The localhost:8080 on the screen is an example address, and the actual check was made on another port of the PC used to write this lab. Cookie attributes such as expiry, path, domain, Secure, HttpOnly, and SameSite were not covered, and the details are covered in the in-depth lab &quot;Cookies&quot;. This server code is not shown on the screen.</p>
+<p>Previous lab: <a href="../../lab/httpres_basic/">HTTP responses</a> · Next lab: <a href="../../lab/json_basic/">JSON</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

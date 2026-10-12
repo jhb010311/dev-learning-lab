@@ -34,4 +34,6 @@ module.exports = [
   'cache', 'mq', 'kafka', 'circuit', 'saga',
   'gateway', 'cicd', 'deploy', 'container',
   'clickjack', 'infoleak', 'ratelimit', 'supplychain', 'crypto',
+  'var_basic', 'method_basic', 'class_basic', 'ref_basic', 'ctor_basic', 'static_basic', 'inherit_basic', 'interface_basic', 'exception_basic', 'generic_basic', 'lambda_basic', 'annot_basic', 'thread_basic', 'bean_basic', 'di_basic', 'servlet_basic', 'controller_basic', 'tx_basic', 'boot_basic', 'entity_basic', 'pc_basic', 'repo_basic', 'relation_basic', 'table_basic', 'pk_basic', 'fk_basic', 'where_basic', 'join_basic', 'index_basic', 'dbtx_basic', 'port_basic', 'url_basic', 'dns_basic', 'http_basic', 'httpres_basic', 'cookie_basic',
+  'json_basic', 'https_basic', 'authn_basic', 'session_basic', 'token_basic', 'hash_basic', 'crypto_basic',
 ];

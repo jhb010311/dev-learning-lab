@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entities: What is an entity, and how does it differ from an ordinary class? · Dev Learning Lab</title>
+<meta name="description" content="An entity is a Java class that is paired with one row of a database table. In code, it is an ordinary Java class declared with class, and it differs from…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/entity_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/entity_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/entity_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Entities: What is an entity, and how does it differ from an ordinary class? · Dev Learning Lab">
+<meta property="og:description" content="An entity is a Java class that is paired with one row of a database table. In code, it is an ordinary Java class declared with class, and it differs from…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/entity_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › JPA</p>
+<h1>Entities</h1>
+<p><b>What is an entity, and how does it differ from an ordinary class?</b></p>
+<p>An entity is a Java class that is paired with one row of a database table. In code, it is an ordinary Java class declared with class, and it differs from an ordinary class in two places. @Entity above the class is a marker that objects of this class are stored in a table, and @Id above a field is a marker that this field is the primary key (the column that tells rows apart). With these two, JPA (Jakarta Persistence, here Hibernate) looks at the fields of the class and pairs them with the columns of the table, and when you pass an object to em.persist, it builds and runs the INSERT statement for you. We do not write SQL. Here, em is the EntityManager object that makes JPA do the saving. In this lab, you remove the two markers one at a time and run the same saving code, to see whether the table is created and whether an INSERT statement is sent.</p>
+<p>Checked against real execution · Compiled the source as it is for all 8 combinations on Hibernate 7.4.5 and H2 2.4.240, really started JPA, saved, and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Entity</dt>
+<dd>A Java object that corresponds to a row of a database table. It is defined as a class annotated with @Entity and has an identifier (@Id). JPA tracks the state changes of these objects and runs the matching SQL.</dd>
+<dt>@Entity</dt>
+<dd>@Entity is an annotation that you put above a class to mark that &quot;objects of this class are stored as one row of a database table&quot;. The JPA specification says that an entity class must have this annotation or be declared as an entity in an XML configuration file, and that the class must have a constructor with no arguments (public or protected) and must not be final. If you do not write a name, the class name becomes the entity name, and the table name also follows this name by default. A class without @Entity is not accepted as an entity even if you register it with JPA, so if you pass an object of that class to em.persist, an error occurs.</dd>
+<dt>@Id</dt>
+<dd>@Id is an annotation that you put above a field (or getter) of an entity to mark that &quot;this value is the primary key&quot;. The JPA specification says that every entity must have a primary key, and that a simple primary key made of one field is declared by putting @Id on that field. The primary key is the value that tells one object of the entity apart from the others, so it should not be changed after the object is saved. If you put @Id on a field, JPA reads and writes the value through the field (field access), and if you put it on a getter, it reads and writes through the getter (property access). If a class with @Entity has no @Id, JPA throws an error when it starts and stops.</dd>
+<dt>JPA, Hibernate, Spring Data JPA</dt>
+<dd>JPA (Jakarta Persistence) is the standard ORM specification for Java: a set of rules (interfaces) that defines which features exist and how to use them. Hibernate is a library that actually implements that specification. Spring Data JPA is a Spring module that provides repository interfaces to make JPA easier to use, and it uses JPA (Hibernate) internally.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — An entity that has both @Entity and @Id. JPA creates the table and sends an INSERT statement at commit.</li>
+<li><b>Removing @Entity</b> — JPA does not accept this class as an entity, so em.persist fails with an error.</li>
+<li><b>Removing @Id</b> — JPA cannot find a field to use as the primary key, so it stops while starting.</li>
+<li><b>Adding an email field</b> — The field is paired with one column, so the table gets an email column and it goes into the INSERT statement too.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>When the program starts, it tells JPA (here, Hibernate) about the Member class, and JPA reads this class. The line that registers it and the settings that connect to the database are left out of the screen. None of the code we wrote has a line that pairs fields with columns. JPA does the pairing by looking at the markers on the class.</li>
+<li>JPA looks for @Entity above the Member class. It is there, so JPA accepts it as a class to store. Next it reads the fields, takes id, which has @Id, as the primary key, and takes the other fields (name) as columns that are not the primary key.</li>
+<li>JPA creates a table in the H2 database following this pairing. The table name follows the class name, Member, and the columns are one per field: id, name. This lab sets JPA to create the table when it starts (hibernate.hbm2ddl.auto=create-drop), and we did not write CREATE TABLE either. There are no rows yet.</li>
+<li>em.getTransaction().begin(): starts the saving work. A transaction is a unit that handles work as one group, and it is covered separately. No INSERT statement has been sent yet.</li>
+<li>new Member(1L, &quot;Alice&quot;): makes an object from the Member class. This object is still an ordinary Java object, and JPA does not know it.</li>
+<li>em.persist(...): JPA receives this object. At the moment this line ends, the number of INSERT statements sent is still 0. Passing the object does not write it to the database right away. When the INSERT is sent is covered in the &quot;Persistence context&quot; lab.</li>
+<li>em.getTransaction().commit(): JPA builds an INSERT statement and sends it to the database. The statement that Hibernate 7.4.5 built in this run is &quot;insert into Member (name,id) values (?,?)&quot;. Into each ?, the values of the fields of the object go in the order of the column names before it. The code we wrote has no word INSERT. The text of the statement may differ by Hibernate version.</li>
+<li>A row was created in the Member table. id is 1 and name is Alice. One object became one row of the table.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>An entity is a Java class that is paired with one row of a table. It differs from an ordinary class in @Entity above the class (the marker that it is a class to store) and @Id above a field (the marker that it is the primary key), and with these two, JPA pairs the fields with columns and creates the table.</li>
+<li>We did not write a single line of SQL. JPA built both the table and the INSERT statement by looking at the shape of the class, and the INSERT was sent not on the persist line but on the commit line.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Marker: objects of this class are stored as one row of a table
+@Entity
+public class Member {
+    // Marker: this field is the primary key
+    @Id
+    private Long id;
+    private String name;
+
+    protected Member() { }
+
+    public Member(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+}
+
+// The side that saves
+em.getTransaction().begin();
+em.persist(new Member(1L, &quot;Alice&quot;));
+em.getTransaction().commit();</pre>
+<h2>Assumptions of this model</h2>
+<p>This was checked against real execution on Hibernate 7.4.5 and H2 2.4.240 (an in-memory database). Spring was not used, and Hibernate was started directly in code (the class was registered in Configuration, without persistence.xml). For all 8 combinations, the same text as the Member source on the screen (with only the package and import lines added) was compiled, and a new Java process was started each time. In the combinations without @Entity, Member was registered in the same way. The three &quot;side that saves&quot; lines on the screen are actually code inside main, and the line that gets the EntityManager (em), the line that catches and records the exception, and the lines that measure were left out of the screen. What was checked is whether JPA fails while starting and the kind of exception, the tables and columns in H2 right after starting and after the run (INFORMATION_SCHEMA.COLUMNS), the number and text of the INSERT statements captured with a StatementInspector (when the persist line ended and when the commit line ended), and the number of rows and the content of the table after the run. H2 stores the table name as MEMBER and the column names as ID, NAME, and EMAIL, and the screen shows the table name with only the first letter capitalized and the column names in lowercase to make them easier to read. The columns were not created in the order in which the fields are written (in this run the order was id, email, name). The rule that decides the order was not checked. What the documentation defines is section 2.1 of the Jakarta Persistence 3.2 specification (an entity class must have @Entity, must have a public or protected constructor with no arguments, and must not be final) and section 2.4 (every entity must have a primary key, and a simple primary key is declared by putting @Id on a field), and items 3.4.1, 3.4.3, 3.4.5, and 3.4.6 of section 3.4 (Entity types) of the Hibernate ORM 7.0 User Guide (the table name follows the entity name by default, and putting @Id on a field makes it field access). These documents were opened with WebFetch, and what came back was a summary, not the original text, so I could not check each sentence against the original. For the specification, only the first part was read (the first 100,000 characters, which contain sections 2.1 and 2.4). The following are not what the documentation defines but behaviors observed on this version. When a class without @Entity is registered, JPA finishes starting without an error (there is no entity that JPA knows), and em.persist throws an IllegalArgumentException, and the result is the same even if @Id is there. With @Entity but without @Id, an AnnotationException is thrown when starting and no table is made (item 3.4.5 of the Hibernate 7.0 User Guide says that omitting the identifier used to be allowed but is deprecated, but on 7.4.5 it was an error). The table is created not at persist or commit but when JPA starts (with the setting hibernate.hbm2ddl.auto=create-drop), and the INSERT statement was sent not on the persist line but on the commit line. The statement has the shape insert into Member (name,id) values (?,?), its text may differ by Hibernate version, and details such as whether that INSERT is sent at persist or at commit are covered in the &quot;Persistence context&quot; lab. What the code on the screen leaves out is the package and import lines, and only the fields id, name, and email were covered. @Table and @Column, which change the pairing of names and columns, @GeneratedValue, which makes primary key values automatically, accessor methods, and the rest of the conditions on an entity class (it must not be final, and so on) were not covered. It was not checked against execution on MySQL.</p>
+<p>Previous lab: <a href="../../lab/boot_basic/">Spring Boot</a> · Next lab: <a href="../../lab/pc_basic/">Persistence context</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

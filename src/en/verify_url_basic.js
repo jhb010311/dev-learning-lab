@@ -1,0 +1,1 @@
+Lab.verify({ url_basic: ['run', 'Ran all 24 combinations on Node.js 24.18.0 and checked them (for the combinations without a port, it did not connect to port 80 and only intercepted where the client tried to connect)'] });

@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Joins: What does a join attach, and what does ON decide? · Dev Learning Lab</title>
+<meta name="description" content="A join is a SELECT that attaches the rows of two tables side by side. The orders table in this lab holds only the number of the member who placed the orde…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/join_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/join_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/join_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Joins: What does a join attach, and what does ON decide? · Dev Learning Lab">
+<meta property="og:description" content="A join is a SELECT that attaches the rows of two tables side by side. The orders table in this lab holds only the number of the member who placed the orde…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/join_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Database</p>
+<h1>Joins</h1>
+<p><b>What does a join attach, and what does ON decide?</b></p>
+<p>A join is a SELECT that attaches the rows of two tables side by side. The orders table in this lab holds only the number of the member who placed the order (member_id), and the name is in the member table. So to see the item that was ordered together with the name of the person who ordered it, you have to connect the two tables. JOIN member m decides which table to attach, and ON o.member_id = m.id decides &quot;which rows are a pair.&quot; For each order row, the database finds the member row that matches the ON condition and attaches it on the same line. In this lab you remove JOIN, remove the ON condition, or add an order that has no matching member, and run the same SQL each time. You see how many lines the result has and what shape it takes.</p>
+<p>Checked against real execution · Ran all 6 combinations on H2 2.4.240 and checked against the results, and checked the rules against the MySQL documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>JOIN (INNER, OUTER)</dt>
+<dd>The operation that combines rows of two tables according to a condition. INNER JOIN includes only the rows where the condition matches on both sides. LEFT OUTER JOIN includes every row of the left table and fills in NULL when there is no match on the right. Choose between them based on whether data without a match must stay in the result.</dd>
+<dt>ON clause</dt>
+<dd>This is the condition that decides which rows are a pair when you connect two tables with JOIN. When you write ON and a conditional expression after JOIN, as in JOIN member m ON o.member_id = m.id, the database treats two rows for which this condition is true as a pair and attaches them on one line. The conditional expression has the same form as one you can write in WHERE. Usually ON is used to decide how to connect the tables, and WHERE is used to pick the rows to put in the result. In ON you can use only the columns of the two tables that the JOIN connects. In standard SQL, a JOIN without ON is called a CROSS JOIN, and it attaches every row to every row without sorting out pairs.</dd>
+<dt>Table alias</dt>
+<dd>This is a short second name that you give to a table in the FROM clause. You write it after the table name, as in FROM orders o, or with AS, as in FROM orders AS o, and the two ways mean the same. With an alias, you can say which table a column belongs to in a short way in SELECT or ON, as in o.item and m.name. When two tables have a column with the same name (for example, id), you often have to say which one you mean with the alias. A column alias (AS) is a name for a column, and a table alias is a name for a table.</dd>
+<dt>Cartesian product</dt>
+<dd>The result of producing every combination of two sets. In SQL, if you join two collections that belong to one entity at the same time, the number of result rows grows to the product of the sizes of the two collections. Unnecessarily large amounts of data are transferred and take up memory, so avoid loading several collections in a single join.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — For each order row, the member row that matches the ON condition is attached, and the item and the name of the member come out on one line.</li>
+<li><b>Removing JOIN and reading only orders</b> — Only the member_id numbers are read, not the names.</li>
+<li><b>Joining without an ON condition</b> — Pairs are not sorted out, and every member is attached to every order.</li>
+<li><b>An order has no matching member</b> — An order with no member does not appear in the result of the JOIN.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>CREATE TABLE and INSERT: The database creates the two tables member and orders and adds rows. member has 2 members (id 1 Alice, id 2 Bob), and orders has 3 orders (#10 Keyboard, #11 Mouse, #12 Monitor). orders says who placed each order only by the number in the member_id column (the member_id of order 10 is 1). The name for that number is only in the member table.</li>
+<li>SELECT o.item, m.name FROM orders o JOIN member m ON o.member_id = m.id: This SELECT reads the item that was ordered together with the name of the member. FROM orders o means read the orders table (o is a short name for orders), JOIN member m means attach the member table (m is a short name for member), and ON o.member_id = m.id means that an order row and a member row are a pair when the member_id of the order equals the id of the member. If we write out in order how the result is made, the database finds, for each row of orders, the member row that matches the ON condition and attaches it next to it. Which table the database actually starts from and how it finds the rows is up to the database.</li>
+<li>The database first looks at the order 10 row (member_id 1, Keyboard) in orders. It looks for the member row that matches the ON condition o.member_id = m.id. The member_id of this order is 1, so the row with id 1, the Alice row, is its pair.</li>
+<li>The database attaches the order 10 row and the Alice row side by side. From the attached row it takes out o.item (Keyboard) and m.name (Alice) that the SELECT names, and puts the one line &quot;Keyboard, Alice&quot; into the result. A name that orders did not have has appeared on the same line. This is a join.</li>
+<li>The database finds the row with id 1, Alice, as the pair of the order 11 row (member_id 1, Mouse), attaches it, and puts the one line &quot;Mouse, Alice&quot; into the result. The same Alice row was attached to an earlier order too. One member row can be attached to many orders.</li>
+<li>The database finds the row with id 2, Bob, as the pair of the order 12 row (member_id 2, Monitor), attaches it, and puts the one line &quot;Monitor, Bob&quot; into the result.</li>
+<li>Result of the SELECT: The database looked at every row of orders. Rows in the result: 3. One line was made for each of the 3 orders.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A join attaches the rows of two tables side by side. JOIN decides which table to attach and ON decides which rows are a pair, and for each order row the database found the member row that matches the ON condition and attached it on one line. So the item that was ordered and the name of the member came out on one line.</li>
+<li>3 orders became 3 rows in the result. The Alice row was attached to two orders, because a row that matches the ON condition can be attached to many orders.</li>
+</ul>
+<h2>Code</h2>
+<pre>CREATE TABLE member (id INT PRIMARY KEY, name VARCHAR(20));
+CREATE TABLE orders (id INT PRIMARY KEY, member_id INT, item VARCHAR(20));
+INSERT INTO member VALUES (1, 'Alice'), (2, 'Bob');
+INSERT INTO orders VALUES (10, 1, 'Keyboard'), (11, 1, 'Mouse'),
+    (12, 2, 'Monitor');
+
+-- Join: attach the rows of member next to the rows of orders
+SELECT o.item, m.name
+FROM orders o
+-- ON: rows are a pair when member_id equals the id of the member
+JOIN member m ON o.member_id = m.id
+ORDER BY o.id;</pre>
+<h2>Assumptions of this model</h2>
+<p>The model was checked against real execution on H2 2.4.240 (an in-memory database, through JDBC). For all 6 combinations, the whole SQL on the screen (including the comment lines) was run character by character, one statement at a time, and the number of rows that the SELECT returned and the values of all the rows (item and name, or member_id) were checked against the model. If the result had more than four rows, it was shortened to the first four rows and the total number of rows, and the same rule was used when checking. Besides this, the values that the step sentences rely on were also checked separately on H2: the number of rows in orders, that no member with id 9 exists in member, the id of the member that is the pair, and that the number of rows of a CROSS JOIN without ON is the product of the numbers of rows of the two tables. The definitions and rules were checked by opening the MySQL 8.4 documentation. In section 15.2.13.2 JOIN Clause, MySQL treats JOIN, CROSS JOIN, and INNER JOIN as the same thing that can be used in place of each other (standard SQL calls it INNER JOIN if there is ON and CROSS JOIN if there is not), a Cartesian product of the two tables is made when there is no condition, and the ON condition is a conditional expression that can be used in WHERE and is usually used to decide how to connect the tables. Table aliases follow the same section and the FROM description in section 15.2.13 SELECT Statement (tbl_name AS alias_name or tbl_name alias_name). However, the two documents do not separately say that a row without a pair does not appear in the result of an INNER JOIN, so that behavior was checked by execution on H2. I opened the documentation with a tool that summarizes a web page, and I did not check the original text character by character. The check by execution on MySQL was not done. The step sentences write out in order how the result is made. Which table the database actually reads first and how it finds the pairs is decided by the database, and the order of the lines in the result is decided by the ORDER BY on the screen. LEFT JOIN, which also keeps rows without a pair, is not covered, and it is covered in the lab &quot;JOIN and GROUP BY&quot; in the study section.</p>
+<p>Previous lab: <a href="../../lab/where_basic/">WHERE</a> · Next lab: <a href="../../lab/index_basic/">Indexes</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

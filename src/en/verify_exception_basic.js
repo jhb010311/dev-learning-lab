@@ -1,0 +1,1 @@
+Lab.verify({ exception_basic: ['run', 'Eight combinations were compiled with javax.tools on JDK 21 and run as child java processes, and the standard output, standard error, and exit code were checked'] });

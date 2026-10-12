@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTP responses: What does an HTTP response look like as text? · Dev Learning Lab</title>
+<meta name="description" content="The HTTP response that a server sends back in answer to a request is also a few lines of text in a fixed shape. The first line (the status line) holds the…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/httpres_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/httpres_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/httpres_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="HTTP responses: What does an HTTP response look like as text? · Dev Learning Lab">
+<meta property="og:description" content="The HTTP response that a server sends back in answer to a request is also a few lines of text in a fixed shape. The first line (the status line) holds the…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/httpres_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Networking</p>
+<h1>HTTP responses</h1>
+<p><b>What does an HTTP response look like as text?</b></p>
+<p>The HTTP response that a server sends back in answer to a request is also a few lines of text in a fixed shape. The first line (the status line) holds the version, the status code (a three-digit number like 200 or 404), and a short description. Below it come lines called headers, in the form &quot;name: value&quot;, and after an empty line, a line with no text at all, comes the body (the actual content). The client (the browser) learns from the status code what happened to the request, from the Content-Type header what kind of content the body is, and from the Content-Length header how many bytes the body is. In this lab you change or remove the status line, the Content-Type line, and the Content-Length line one at a time, send that text exactly as it is to the client, and see what the client reads out of it. The (empty line) in the code box is a way to show a line with no text at all, so that you can see it.</p>
+<p>Checked against real execution · Ran 18 combinations in which a net server on Node.js 24.18.0 sends the text exactly as it is and an http client reads it, and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Status line</dt>
+<dd>The status line is the very first line of an HTTP response, and it holds the HTTP version, the status code, and a short description in order, separated by spaces. For example, HTTP/1.1 200 OK means that the text is written by the rules of HTTP/1.1, the result of the request is 200, and the description that people read is OK. The status code is a three-digit number that tells what happened to the request, and the description is only text for people (RFC 9112 section 4). The client reads from this line, so if a response does not start with a status line, the client cannot read that text as an HTTP response.</dd>
+<dt>HTTP status codes</dt>
+<dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
+<dt>Content-Type header</dt>
+<dd>Content-Type is a header that tells what kind of content the body of a response is, and it is written like text/plain; charset=utf-8. The text/plain at the front is the kind (the media type), plain text, and charset=utf-8 is the character encoding the text is written in. The client looks at this value to decide whether to show the body as text or to handle it as a picture or another format. RFC 9110 section 8.3 says that when this header is missing, the receiver may assume the kind is application/octet-stream or may examine the data to decide it.</dd>
+<dt>Content-Length header</dt>
+<dd>Content-Length is a header that tells the size of the body of a response as a number of bytes. The client uses this number to decide how far the body extends among the text that follows the headers (RFC 9112 section 6.2). It is a number of bytes, not a number of characters, so a Korean letter, which takes 3 bytes in UTF-8, counts as three times as many as the number of letters. A response that has neither Content-Length nor any other length indication takes the bytes received before the server closes the connection as the body (RFC 9112 section 6.3). So in this case a server that does not close the connection cannot tell where the body ends.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A response with the right shape. The client reads the status, the kind of body, and the body.</li>
+<li><b>Changing the status code to 404</b> — Only the status is read as 404, and the body is read as it is.</li>
+<li><b>Removing the Content-Type line</b> — The body is read, but there is no header that says the kind of the body.</li>
+<li><b>Writing Content-Length shorter than the body</b> — Only the 5 bytes written are read as the body, so the text is cut off.</li>
+<li><b>Removing the Content-Length line</b> — There is no length information, so all the text received until the connection closes becomes the body.</li>
+<li><b>Removing the first line (the status line)</b> — It is not read as a response. It does not help even if the headers and body are right.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The browser sends a GET /hello request to the server, and the server answers by sending back the text below. This text is the HTTP response. The server in this lab sends the text in the code box exactly as it is, and closes the connection when it is done. The client that reads the response is the http module of Node.js.</li>
+<li>The client reads the first line. The text it read is &quot;HTTP/1.1 200 OK&quot;. The first line (the status line) has three things written in order. HTTP/1.1 is the rules the text was written by (the version), the 200 part is a three-digit number that tells what happened to the request (the status code), and OK is a short description that puts that code into words for people to read. 200 means the request was handled well. The status the client read is &quot;200 OK&quot;.</li>
+<li>The client reads the next line. The text it read is &quot;Content-Type: text/plain; charset=utf-8&quot;. A line in the form &quot;name: value&quot; is called a header. The Content-Type header tells what kind of content the body is. text/plain means plain text, and charset=utf-8 means that the text is written in UTF-8.</li>
+<li>The client reads the next line. The text it read is &quot;Content-Length: 12&quot;. The Content-Length header tells how many bytes the body is, and the client uses this number to decide where the body ends. A byte is the unit a computer uses to count text. In UTF-8, each of the 12 characters of &quot;Hello, world&quot; is 1 byte, so the body is 12 bytes.</li>
+<li>The client reads the next line and finds an empty line with no text at all (the (empty line) on the screen). An empty line marks the end of the headers, and the text from the next character on is the body.</li>
+<li>The client reads as the body as many bytes as Content-Length says, 12 bytes. The text it read is &quot;Hello, world&quot;, and the body ends exactly here. This number is how the client knows where the body ends.</li>
+<li>The client has finished reading the response. What it read is the status &quot;200 OK&quot;, the kind of body &quot;text/plain; charset=utf-8&quot;, and the body &quot;Hello, world&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>An HTTP response is a few lines of text that the server sends back. The first line (the status line) holds the version, the status code, and a short description, below it are headers in the form &quot;name: value&quot;, and the body follows an empty line.</li>
+<li>From the status code 200 the client learned that the request was handled well, from Content-Type that the body is text/plain, and from Content-Length that the body is 12 bytes, and it read the body. The body it read is &quot;Hello, world&quot;.</li>
+</ul>
+<h2>Code</h2>
+<pre>HTTP/1.1 200 OK
+Content-Type: text/plain; charset=utf-8
+Content-Length: 12
+(empty line)
+Hello, world</pre>
+<h2>Assumptions of this model</h2>
+<p>The server is one started with the net module of Node.js 24.18.0. When a connection comes, it reads the request up to the empty line, then writes the text of the code box exactly as it is, with CRLF line endings, and closes the connection (a response made with the http module cannot send a wrongly shaped one, so it was not used). Nothing is attached after the body &quot;Hello, world&quot;, and this text is 12 bytes in UTF-8 and the first part, &quot;Hello&quot;, is 5 bytes, which was measured to confirm. The client sent a GET /hello request with the http module of Node.js (a real HTTP parser) and read the response. All 18 combinations were run, and the status the client read (the status code and description), the value of the content-type header it received, and the body it actually received with its number of bytes were checked against the model. For each combination it was also checked that the code on the screen is the same text as the text the server sent. When Content-Length was 5, this client received only the first 5 bytes (&quot;Hello&quot;) as the body, and then raised one parse error (HPE_INVALID_CONSTANT) while reading the remaining 7 bytes. All 6 combinations without a status line failed to read the response with the same parse error (HPE_INVALID_CONSTANT, with the message Expected HTTP/, RTSP/ or ICE/), whatever the headers and body were. These are behaviors observed on this Node.js version. When there is no Content-Length, this server closes the connection after sending, so the client read everything until the connection closed as the body. A server that does not close the connection is not covered on the screen, but as a separate check, the same text was sent to a server that does not close the connection, and the client received the 12 bytes of the body, but the response had not ended even after 1.5 seconds (when Content-Length was present, it ended right away even without closing the connection). What happens when it waits longer, or with another client, was not examined. How a browser guesses and shows a body without Content-Type was not checked in this lab. What was checked against the documentation is RFC 9112 section 2.1 (message format: start line, headers, empty line, body), section 4 (the status line: version, three-digit status code, description), sections 6.2 and 6.3 (Content-Length sets the number of bytes of the body, and for a response with no length information, the length of the body is the number of bytes received before the server closes the connection), and RFC 9110 section 8.3 (Content-Type tells the media type of the body, and without it the receiver may assume application/octet-stream or examine the data to decide the kind), section 8.6 (Content-Length), section 15 (a status code is a three-digit number), section 15.3.1 (200), and section 15.5.5 (404). The response on the screen has the minimum shape, with only two headers left, and only GET responses whose body is text were covered. Writing the line endings of the text the server sent as CRLF, and using Node.js as the client, are choices of this lab, and a browser was not used. The in-depth details on the same subject (the shape of requests and responses, all the status codes) are covered in the in-depth lab &quot;HTTP messages and status codes&quot;.</p>
+<p>Previous lab: <a href="../../lab/http_basic/">HTTP requests</a> · Next lab: <a href="../../lab/cookie_basic/">Cookies</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

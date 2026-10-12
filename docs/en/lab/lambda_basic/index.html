@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lambdas: What is a lambda a shorter way to write? · Dev Learning Lab</title>
+<meta name="description" content="A lambda is short code written with an arrow (-&gt;). () -&gt; System.out.println(&quot;Working&quot;) is a short way to write &quot;an object that implements an interface wit…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lambda_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Lambdas: What is a lambda a shorter way to write? · Dev Learning Lab">
+<meta property="og:description" content="A lambda is short code written with an arrow (-&gt;). () -&gt; System.out.println(&quot;Working&quot;) is a short way to write &quot;an object that implements an interface wit…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/lambda_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>Lambdas</h1>
+<p><b>What is a lambda a shorter way to write?</b></p>
+<p>A lambda is short code written with an arrow (-&gt;). () -&gt; System.out.println(&quot;Working&quot;) is a short way to write &quot;an object that implements an interface with only one method.&quot; Here we use a Task interface that has just one method, run, and the code after the arrow is what run does. Written out in full, the same thing is code that creates a class that implements Task and creates an object with new. In this lab you write the lambda out as an anonymous class and as a class with a name and see that the result is the same, and you compile and run the same code to see whether the code after the arrow runs on the line where the lambda is written, what happens if you remove t.run() or call it twice, and what happens if Task has one more method.</p>
+<p>Checked against real execution · Eighteen combinations were compiled with javax.tools on JDK 21, run, and checked</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Lambda expression</dt>
+<dd>This is a syntax, introduced in Java 8, for writing a function with no name in a compact way. It has the form (parameters) -&gt; body, and it is used as the implementation of a functional interface, which has only one abstract method. It lets you pass behavior (code) to another method as if it were a value.</dd>
+<dt>Functional interface</dt>
+<dd>This is an interface with only one abstract method (a redeclared method of Object such as equals is not counted, and any number of default and static methods is allowed), and it is a type to which a lambda expression or a method reference can be assigned. The java.util.function package predefines types such as Function (takes an input and returns a result), Supplier (supplies a value), Consumer (consumes a value), and Predicate (tests a condition).</dd>
+<dt>Anonymous class</dt>
+<dd>This is a class that is given no name and from which one object is created right where the class is declared. You write its body in braces after the name of an interface or a class, as in new Runnable() { ... }, and the result is an object that implements that interface or extends that class. Its advantage is that you do not have to create a separate file for a small implementation that is used only once. Inside an anonymous class, this refers to that newly created object, which is different from a lambda expression, where this refers to the outer object. When the code is compiled, a separate class file is produced whose name is the name of the outer class followed by a number, such as Outer$1.</dd>
+<dt>Interface</dt>
+<dd>This is a type that defines the list of methods (the contract) that a class must implement. It cannot have instance variables, and one class can implement several of them. If the calling code depends only on this type, it is easy to change the implementing class or to replace it with a fake implementation for testing.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — It does not run on the line where the lambda is written. It runs when you call t.run(). The output is Ready, then Working.</li>
+<li><b>Remove t.run()</b> — A lambda only stores what to do in a variable, so &quot;Working&quot; is not printed.</li>
+<li><b>Write it as an anonymous class</b> — It is the same code written in full. The output is the same as the lambda.</li>
+<li><b>Write it as a class with a name</b> — You create a Work class and create an object with new. The output is the same as the lambda.</li>
+<li><b>Task has one more method</b> — A lambda cannot tell which method it is the work of, so there is a compile-time error.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>You compile with javac. The compiler reads the source from the top and comes to the interface Task declaration. Task has just one method that is written with only a name and no body: run. Whoever implements Task has to write only run.</li>
+<li>The compiler reads the line Task t = () -&gt; System.out.println(&quot;Working&quot;); It reads the code after the arrow as what the method that Task must implement does, and Task has just one method to implement, run, so that code is settled to be what run does. You do not need to write the name separately. Compiling is not running, so the code after the arrow does not run.</li>
+<li>Compilation succeeds and the Main class file to run is created.</li>
+<li>You run it with java Main. main starts and the line Task t = () -&gt; System.out.println(&quot;Working&quot;); runs. This line creates &quot;an object that runs the code after the arrow when run is called&quot; and stores it in the variable t. The code after the arrow does not run on this line, so &quot;Working&quot; was not printed. All the line that writes the lambda does is store what to do in t.</li>
+<li>System.out.println(&quot;Ready&quot;) runs and prints Ready. This is the only thing printed so far. The object is already stored in t, but run has not been called even once.</li>
+<li>t.run() runs. The run of the object stored in t is called, and at that moment the code after the arrow, System.out.println(&quot;Working&quot;), runs. &quot;Working&quot; is printed, and the number of times run has run becomes 1. &quot;Working&quot; came after &quot;Ready.&quot; The code ran at the moment it was called, not where it was written.</li>
+<li>main ends. The output, in order, is Ready, Working.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The lambda () -&gt; System.out.println(&quot;Working&quot;) is a short way to write an object that implements an interface with only one method (Task). On the line where the lambda is written, the code after the arrow does not run, and that line stores what to do in the variable t. The code after the arrow ran at the moment t.run() was called.</li>
+<li>That is why the output was Ready, then Working. Written out in full, it is the same as code that creates a class that implements Task and creates an object with new. You can check this with the anonymous class and class with a name settings in this lab.</li>
+</ul>
+<h2>Code</h2>
+<pre>interface Task {
+    void run();
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // Lambda: stores what run does. It does not run on this line
+        Task t = () -&gt; System.out.println(&quot;Working&quot;);
+        System.out.println(&quot;Ready&quot;);
+        t.run();
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). For all eighteen combinations, the source that is the same as the code on the screen (identical text, line by line) was compiled with javax.tools, and for those that compiled, the class file was loaded with a new class loader and Main.main was run, and the results were checked against the standard output that was captured. What was checked is whether compilation succeeded, the diagnostic code of the first error (the &quot;Task is not a functional interface, multiple non-overriding abstract methods found in interface Task&quot; of compiler.err.prob.found.req was restated as &quot;Task has more than one method, so it cannot be used as a lambda,&quot; and the &quot;does not override abstract method stop() in Task&quot; of compiler.err.does.not.override.abstract was restated as &quot;The stop method of Task was not implemented&quot;), the number of errors and the line where each error occurred, whether the Main class file was created, and the output when run. The facts that the step sentences rely on were checked by running separate source in the same way. Right after the line that stores the object, t is an object of a class that implements Task in all three forms, and &quot;Working&quot; was not printed on that line (the lambda is an object of a hidden class that is created on this JDK, and the anonymous class and the class with a name, Work, were each an object of the class with exactly that name). The documentation was checked by opening the Java Language Specification (Java SE 21) directly. That a lambda expression has a functional interface as its target type in assignment, invocation, and casting contexts is from Section 15.27.3; that evaluating a lambda expression at run time creates a reference to an object of a class that implements the target functional interface, which is different from executing the body of the lambda, and that the body of the lambda is executed when a method of that interface is invoked, is from the introduction of Section 15.27 and Section 15.27.4; that a functional interface is an interface that has just one abstract method (not counting the methods of Object), and that an object of it can also be created with a lambda expression, is from Section 9.8; and that an anonymous class is declared implicitly by a class instance creation expression and can have an interface as its direct superinterface is from Section 15.9.5. Only part of each of those sections came back as a summary, so I could not read the whole original text. The kind of error, the number of errors, and the line where it occurs are not defined by the specification; they were observed on this javac. This lab covers only &quot;a lambda is a short way to write an object that implements an interface with only one method&quot; and when it runs. The object that a lambda creates is not exactly the same as the object of an anonymous class. On this JDK it is created as a hidden class, and it is said to differ in other ways too, such as what this refers to, but this lab did not check that. Lambdas with parameters, lambdas that return a value, method references, built-in functional interfaces such as Runnable and Comparator, and interfaces with default methods or static methods are not covered, and they are covered in the in-depth lab &quot;Lambda expressions and functional interfaces&quot;.</p>
+<p>Previous lab: <a href="../../lab/generic_basic/">Generics</a> · Next lab: <a href="../../lab/annot_basic/">Annotations</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

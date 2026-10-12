@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Indexes: What is an index, and what changes when there is none? · Dev Learning Lab</title>
+<meta name="description" content="An index is a list that keeps the values of a column in order and points to the rows that hold each value. The database builds it separately from the tabl…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/index_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/index_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/index_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Indexes: What is an index, and what changes when there is none? · Dev Learning Lab">
+<meta property="og:description" content="An index is a list that keeps the values of a column in order and points to the rows that hold each value. The database builds it separately from the tabl…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/index_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Database</p>
+<h1>Indexes</h1>
+<p><b>What is an index, and what changes when there is none?</b></p>
+<p>An index is a list that keeps the values of a column in order and points to the rows that hold each value. The database builds it separately from the table, and it works like the index at the back of a book. CREATE INDEX idx_name ON member(name) is the statement that builds an index on the name column. Without an index, the database has to read the rows of the table from the first to the last to find the rows that match a condition. With an index, it looks up the value in the index and reads only the rows it needs. In this lab, you remove CREATE INDEX or change the column you search by, run the same SELECT, and see how the number of rows the database reads changes even though the rows it finds stay the same. This lab does not cover how an index organizes its values or what it costs to build one.</p>
+<p>Checked against real execution · Ran all 6 combinations on H2 2.4.240 and checked them (rows read is scanCount minus 1 from EXPLAIN ANALYZE), and checked the rules against the MySQL documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Index</dt>
+<dd>A data structure that keeps the values of specific columns separately, in sorted form, so that the wanted rows of a table can be found quickly. Without one, the whole table must be read to find the rows that match a condition. Reads get faster, but it must also be updated every time data is inserted, updated, or deleted, so it costs write performance and storage space.</dd>
+<dt>CREATE INDEX</dt>
+<dd>CREATE INDEX is the SQL statement that adds an index to a column of a table that already exists, in the form CREATE INDEX index_name ON table(column). For example, CREATE INDEX idx_name ON member(name) builds an index on the values of the name column of the member table. The index is stored separately from the table and does not change the rows of the table. An index is used mainly when you search by the column it was built on, so to search by another column, that column needs an index of its own. The database builds an index automatically on a column with PRIMARY KEY, so you do not need CREATE INDEX for it (in MySQL, the primary key itself is created not with CREATE INDEX but with CREATE TABLE or ALTER TABLE).</dd>
+<dt>Full table scan</dt>
+<dd>A way of finding the rows that match a condition by reading every row of the table from beginning to end. It is chosen when no index can be used for the condition, or when an index exists but the optimizer judges that reading everything is better because too many rows match the condition. When it is used to find a few rows in a large table, it causes performance problems.</dd>
+<dt>Query execution plan (EXPLAIN)</dt>
+<dd>The plan that the database decides on for how to run a query. It shows which indexes are used, in what order the tables are joined, and how many rows the database expects to read. You view it by putting EXPLAIN in front of the query, and it is the starting point for finding the cause when a query is slow.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A table with an index on name. The database looks up user777 in the index and reads only that 1 row.</li>
+<li><b>Removing CREATE INDEX</b> — It finds the same 1 row, but the database reads all 1000 rows of the table.</li>
+<li><b>Searching by a column with no index</b> — idx_name is an index on the name values, so it is not used when you search by city, and the database reads all 1000 rows.</li>
+<li><b>Searching by the primary key</b> — You did not use CREATE INDEX, but the primary key already has an index, so the database reads only 1 row.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>CREATE TABLE: The database creates a table named member. It has three columns, id, name, and city, and for now it has no rows. PRIMARY KEY is written on the id column, so the database also builds an index for finding rows by id. An index is a list that keeps the values of a column in order and points to the rows that hold each value, and it works like the index at the back of a book. This index exists even if you do not use CREATE INDEX.</li>
+<li>Inserting 1000 members (1000 INSERT statements that the screen omits): The database inserts ids 1 to 1000, names user1 to user1000, and cities in turn from Seoul, Busan, Daegu, and Gwangju. The table now has 1000 rows, and each city has 250 rows.</li>
+<li>CREATE INDEX idx_name ON member(name): The database builds an index of the values of the name column in order, separately from the table. The index holds the name values (…, user776, user777, user778, …) and information that points to the row that has each value. The table still has 1000 rows. Building an index does not change the rows.</li>
+<li>SELECT * FROM member WHERE name = 'user777': The database first checks whether there is an index for the name column used in the condition. The name column has the index idx_name that CREATE INDEX built, so the database decides to search with this index.</li>
+<li>The database finds user777 in the name index and follows the information attached to that value straight to the row with id 777 in the table. It did not read the other 999 rows of the table. The database read 1 row.</li>
+<li>Result of the SELECT: It returns 1 row, the user777 row with id 777. If you run the same SELECT on a table without CREATE INDEX, it finds exactly the same row. The difference is that the database then reads 1000 rows.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>An index is a list, built separately from the table, that keeps the values of a column in order and points to the rows that hold each value. Because the name index exists, the database went straight to the user777 row and read only 1 of the 1000 rows.</li>
+<li>The rows found are exactly the same as without the index. What an index changes is not the result but the amount the database reads.</li>
+</ul>
+<h2>Code</h2>
+<pre>CREATE TABLE member (
+    id   INT PRIMARY KEY,
+    name VARCHAR(20),
+    city VARCHAR(20)
+);
+-- Insert 1000 members (user1 to user1000. The INSERT statements are omitted on the screen)
+
+-- Index: build an index so that rows can be found quickly by the name value
+CREATE INDEX idx_name ON member(name);
+
+SELECT * FROM member WHERE name = 'user777';</pre>
+<h2>Assumptions of this model</h2>
+<p>It was run and checked against H2 2.4.240 (in-memory database, JDBC). It ran all 6 combinations, and it ran the whole SQL on the screen, including the comment lines, exactly as written. At the &quot;Insert 1000 members&quot; comment line on the screen, the verification program inserted 1000 members (ids 1 to 1000, names user1 to user1000, and 250 members each for the cities Seoul, Busan, Daegu, and Gwangju, in turn), and the INSERT statements are omitted on the screen. What it checked is the number of rows the SELECT returned, how H2 EXPLAIN said it would search (the name index IDX_NAME, the primary key index PRIMARY_KEY, and tableScan with no index), the scanCount that EXPLAIN ANALYZE reported, and the facts that the step sentences rely on. The facts they rely on are that the index on the id column exists automatically right after CREATE TABLE, that CREATE INDEX built an index with the name column in order, that the table still has 1000 rows before and after CREATE INDEX, and that the SELECT returns the same rows with and without an index. The &quot;Rows the database read&quot; on the screen is scanCount minus 1. The H2 documentation does not define what scanCount means, and in this version the scanCount we observed is 1 more than the number of rows read (it looks like one more is added to confirm that there are no more rows to read). The evidence is this. When we read a table with 0, 10, and 1000 rows from start to finish, scanCount was 1, 11, and 1001. When we forced a full read by using a function that counts how many times it is called per row in the condition, the function was called 1000 times and scanCount was 1001. When we looked up a value that does not exist by an index, scanCount was 1, and for a value that exists, it was 2. Following this observation, the &quot;1 row&quot; for a search by index is also the value with 1 subtracted in the same way, and it equals the number of rows found. The database decides how to search by looking at the amount and distribution of the data, so on another database or with other data it may not use an index even if there is one. This is the result observed with this data in H2 on the PC used to write this lab. We opened the H2 documentation, on the performance page, &quot;How Data is Stored and How Indexes Work&quot; (an index is like a table with the indexed columns and the row number) and &quot;Statement Execution Plans (EXPLAIN)&quot; (EXPLAIN ANALYZE shows the rows read, tableScan means that no index was used, and an index is created automatically for a primary key and a unique constraint), and checked against it. We opened the MySQL 8.4 documentation, section 10.3.1 How MySQL Uses Indexes (without an index, it has to read the whole table from the first row), section 15.1.15 CREATE INDEX Statement (it adds an index to an existing table), section 10.3.2 Primary Key Optimization (a primary key has an index attached), and the PRIMARY KEY item of the CREATE TABLE statement, and checked against them. However, we did not check against execution on MySQL. Also, this screen draws the index of the primary key as a box like the name index, but H2 and MySQL (InnoDB) use an integer primary key as the sort order of the table data itself, so the index of the primary key is not a list separate from the table like the name index. We did not cover the structure of an index (B-tree and so on), or the cost that comes from INSERT, UPDATE, and DELETE having to update the index as well when an index exists. The in-depth lab &quot;Indexes and full table scans&quot; covers them.</p>
+<p>Previous lab: <a href="../../lab/join_basic/">Joins</a> · Next lab: <a href="../../lab/dbtx_basic/">Transactions</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

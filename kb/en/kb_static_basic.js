@@ -1,0 +1,4 @@
+// Terms for the Fundamentals lab "static". Sources: Java Language Specification (Java SE 21) sections 8.3, 8.3.1.1, 15.11, 15.11.1, and 6.5.6.2.
+module.exports = [
+  ['Java language', 'Instance variables and static fields', 'These are the two kinds of field in a class. A field that is not declared static is an instance variable, and a separate variable for it is created inside the object every time you create an object of the class. A field declared static has exactly one variable however many objects you create (even if you create none), and all the objects of the class share that one. You can use a static field by the class name, as in Counter.count. Using an instance variable by the class name is a compile-time error, because you must say which object it belongs to. If you read a static field through an object, as in a.count, it still compiles, and what is read is the one variable in the class, not a variable inside the object.'],
+];

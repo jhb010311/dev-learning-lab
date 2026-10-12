@@ -1,0 +1,1 @@
+Lab.verify({ hash_basic: ['run', 'Compiled and ran 6 combinations on JDK 21 with javax.tools and checked against the results. The SHA-256 values were also checked against the standard examples, Node.js, and openssl'] });

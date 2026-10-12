@@ -1,0 +1,1 @@
+Lab.verify({ dns_basic: ['run', 'Ran all 6 combinations on Node.js 24.18.0 with a small DNS server (RFC 1035 messages) started inside 127.0.0.x, a dns.Resolver client, and two HTTP servers, and checked against the results'] });

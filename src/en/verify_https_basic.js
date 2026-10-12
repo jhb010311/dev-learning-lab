@@ -1,0 +1,1 @@
+Lab.verify({ https_basic: ['run', 'Ran 8 combinations between an http/https server and client of Node.js 24.18.0 with a TCP relay placed between them, using a test certificate made with openssl, and checked them'] });

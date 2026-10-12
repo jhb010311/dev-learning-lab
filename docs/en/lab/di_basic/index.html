@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dependency injection: What does dependency injection do for you? · Dev Learning Lab</title>
+<meta name="description" content="Dependency injection means that a class does not create the objects it needs to do its work, but receives them from outside. Here OrderService needs a Pay…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/di_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/di_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/di_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Dependency injection: What does dependency injection do for you? · Dev Learning Lab">
+<meta property="og:description" content="Dependency injection means that a class does not create the objects it needs to do its work, but receives them from outside. Here OrderService needs a Pay…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/di_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Spring</p>
+<h1>Dependency injection</h1>
+<p><b>What does dependency injection do for you?</b></p>
+<p>Dependency injection means that a class does not create the objects it needs to do its work, but receives them from outside. Here OrderService needs a PayService object to make a payment, and this is called &quot;OrderService depends on PayService&quot;. In Spring, all you do is write PayService as a parameter of the OrderService constructor, and the @Component above a class is a mark that tells Spring to create an object (a bean) of that class and keep it. When Spring creates the OrderService object, it puts the PayService bean it was keeping into that constructor. In this lab you change the constructor to new PayService() or remove it, remove @Component above PayService, and run the same main, to see where the PayService that OrderService uses came from and how many PayService objects are created.</p>
+<p>Checked against real execution · Compiled 6 combinations with real component scanning on Spring Framework 7.0.9 and ran them, measured even the objects in the fields by reflection, and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Dependency injection (DI)</dt>
+<dd>This is an approach in which an object does not create the other objects it uses (its dependencies) but receives them from outside. In Spring, the container supplies the dependencies through a constructor, a setter, or a field as it creates a bean. It becomes easier to change the implementing class or to put in a fake object in a test, and the coupling between classes becomes lower.</dd>
+<dt>Constructor injection, setter injection, and field injection</dt>
+<dd>These are three ways to supply a dependency. Constructor injection receives the dependencies when the object is created, so the fields can be final and an object is never created with a dependency missing; Spring recommends it. Setter injection is used for optional dependencies. Field injection puts @Autowired on a field; the code is short, but it is hard to create the object without Spring in order to test it.</dd>
+<dt>Dependency</dt>
+<dd>A dependency is an object of another class that a class needs to do its work. For example, if OrderService calls a method of a PayService object to make a payment, we say that OrderService depends on PayService, and the PayService object is a dependency of OrderService. The Spring documentation describes a dependency as the other objects that an object works with. You can create the object you need yourself with new, or receive it as a constructor parameter, and when Spring creates it and puts it in for you, this is called dependency injection.</dd>
+<dt>@Component</dt>
+<dd>@Component is an annotation that you put above a class so that Spring knows the class and treats it as something it creates objects of and manages (a bean). With component scanning, Spring scans the classes under a specified package, finds the classes with @Component, and creates objects of those classes and keeps them in the container. If you do not give the bean a name, the class name with its first letter in lowercase is used (greeter for Greeter). @Repository, @Service, and @Controller are specializations of @Component, so they are found in the same way. A class without this annotation is not found even if it is in the same package, so if you ask Spring for an object of that class, an exception saying that there is no such bean is thrown.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — PayService is received as a constructor parameter. Spring puts the PayService bean it was keeping into the constructor.</li>
+<li><b>Creating it directly with new PayService()</b> — The result is the same, but what OrderService uses is an object it created itself, not the bean Spring injected, and 2 PayService objects are created.</li>
+<li><b>Neither receiving nor creating it</b> — The payService field is empty, so the program stops with a NullPointerException the moment it uses it.</li>
+<li><b>PayService without @Component</b> — There is no PayService bean to inject, so Spring fails while starting.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The first line of the main method runs. new AnnotationConfigApplicationContext(&quot;app&quot;) starts Spring. The &quot;app&quot; in the parentheses is the name of the package where Spring looks for classes, and Spring prepares a place to keep the objects it creates. An object that Spring creates and keeps is called a bean.</li>
+<li>Spring scans the classes in the app package and looks for classes with @Component. It is on PayService and OrderService, so Spring notes down that it will create and keep objects of these two classes.</li>
+<li>Spring is about to create the OrderService object. It looks at the constructor OrderService(PayService payService) and sees that it receives PayService as a parameter. So Spring finds out that OrderService needs a PayService object to do its work. This is called &quot;OrderService depends on PayService&quot;.</li>
+<li>To create OrderService, a PayService object has to exist first, so Spring creates a PayService object first and keeps it. This object is the PayService bean. The number of PayService objects created is 1.</li>
+<li>Spring creates the OrderService object. It puts the PayService bean it was keeping into the payService parameter of the OrderService constructor, and the line this.payService = payService; in the constructor stores it in the field. The code we wrote has neither new OrderService(...) nor new PayService(). Spring putting in the object that is needed like this is dependency injection.</li>
+<li>The line that creates the context ends without an error, and the next line of main, context.getBean(OrderService.class), runs. Spring gives main the OrderService bean it was keeping. The object was already created in the earlier line, and no new object was created in this line.</li>
+<li>The orderService.order() method runs. order() calls payService.pay(), and this payService is the PayService bean that Spring injected. The pay() method returns &quot;Payment complete&quot;.</li>
+<li>System.out.println prints the text it received, &quot;Payment complete&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Dependency injection means that a class does not create the objects it needs, but receives them from outside. In Spring, all you do is write PayService as a constructor parameter, and what differs from an ordinary class is that when Spring creates OrderService, it puts the PayService bean it was keeping into that constructor.</li>
+<li>Spring read from the constructor parameter that OrderService depends on PayService, created PayService first, and then put it in to create OrderService. Our code has no new that creates the two objects, and the number of PayService objects created is 1.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Component
+public class PayService {
+    public String pay() {
+        return &quot;Payment complete&quot;;
+    }
+}
+
+@Component
+public class OrderService {
+    private final PayService payService;
+
+    // Injection: if you write the object you need as a constructor parameter, Spring puts it in
+    public OrderService(PayService payService) {
+        this.payService = payService;
+    }
+
+    public String order() {
+        return payService.pay();
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        ApplicationContext context =
+                new AnnotationConfigApplicationContext(&quot;app&quot;);
+        OrderService orderService = context.getBean(OrderService.class);
+        System.out.println(orderService.order());
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>These are the results of running Spring Framework 7.0.9 on JDK 21.0.12.1. Spring Boot was not used, and only the component scanning of AnnotationConfigApplicationContext(&quot;app&quot;), which the main on the screen uses as it is, was used. All 6 combinations were checked by compiling a source with the same code as on the screen (PayService, OrderService, and Main in the package app) with javac (-parameters) and running it as a child Java process. Components were not registered by hand, and Spring was made to scan the classes and find them. Only in the source used for checking, a Probe class and four lines were added. One line each was added to the two classes, an instance initializer block that reads from the stack which side called its constructor (Spring, or which constructor of OrderService) when an object is created and records it, and to main, one line each that measures after the context is created and after getBean; the checking script removes these lines when it compares with the code on the screen. What was checked is the result of the run (the output, the kind and cause of the exception when startup failed, and the exception that stopped it and where), the PayService that OrderService uses, and the number of PayService objects created. &quot;The PayService that OrderService uses&quot; was measured, not guessed. During the run, the payService field of the OrderService object was read by reflection, and it was compared with the PayService bean in the context to see whether it is the same object (==) and whether it is empty. The numbers of objects were also counted by the number of times the constructors were called. The facts that the step sentences rely on were also measured separately: the classes that component scanning found; the order in which the objects were created (with constructor injection PayService first, and with direct creation PayService is created while OrderService is being created); that all objects are created at the line that creates the context and no new object is created at the getBean line; the dependencies of OrderService that Spring recorded (payService only when it is received in the constructor); that when there is no PayService bean, OrderService is not created and main stops at its first line; that the place where the program stops using an empty field is the order() method of OrderService; and that our code has no line new OrderService(...). The actual exception in the combination where startup failed is UnsatisfiedDependencyException with the cause NoSuchBeanDefinitionException (no bean of type PayService), and the original text was kept in the Probe output. What the documentation specifies is the following. The Dependency Injection section of the Core part of the Spring Framework documentation (dependency injection is a process in which objects define the other objects they depend on only through constructor arguments and so on, and the container injects them when it creates the bean; and constructor-based injection is the container calling a constructor with arguments that each represent a dependency), the Using @Autowired section (if the target bean has only one constructor, @Autowired does not have to be put on that constructor), the Classpath Scanning and Managed Components section, and the API documentation of @Component and AnnotationConfigApplicationContext (a class with @Component is a candidate for auto-detection, and the specified package is scanned and bean definitions are registered). The following behaviors seen in the same run are not defined by the documentation but were observed on this version. In the order in which the class files are scanned, OrderService came before PayService, and because of that, with constructor injection, PayService was created first while OrderService was being created; with direct creation by new, Spring creates OrderService first and the PayService bean after it (this depends on the scan order, so it could change if the class names change); and Spring does not report an empty field as an error. The code on the screen leaves out the package and import lines. This lab covers only constructor injection. Setter injection, field injection (@Autowired), the case where there are several beans of the same type, circular dependencies, the scope and lifecycle of beans, and designs that receive an interface are not covered, and they are covered in the in-depth lab &quot;Bean creation and injection&quot;.</p>
+<p>Previous lab: <a href="../../lab/bean_basic/">Beans</a> · Next lab: <a href="../../lab/servlet_basic/">Servlets</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

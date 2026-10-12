@@ -10,4 +10,17 @@ module.exports = {
     ['b5efce470986677f38c0dfabf8b0a3b662000538d1335eca9146c3ddb736029d', '81f0583e32233d7bac91d36b2f7365bdaa3a990cc2fe8b66eabc7d63deb89a90'],
     ['a8f856a3dba36a039c50d4dc0cdada50', 'ef2985c80f2dbf73f615931fed54e2ae'],
   ],
+  // 본문 "안녕하세요"(15바이트) → "Hello, world"(12바이트). 영어판의 값은 verify/en/httpres_basic_en_probe.js로 다시 실행해 얻었다(결과: verify/en/httpres_basic_en_probe.out.txt).
+  httpres_basic: [
+    ["Content-Length: 15","Content-Length: 12"],
+    ["Content-Length: 6","Content-Length: 5"],
+    ["'short' ? 6 : 15","'short' ? 5 : 12"],
+    ["Content-Length 6","Content-Length 5"],
+    [15,12],
+    [6,5],
+  ],
+  // 쿠키 값 kim → alice. 영어판은 verify/en/cookie_basic_en_probe.js로 다시 실행해 같은 결과를 확인했다(결과: verify/en/cookie_basic_en_probe.out.txt).
+  cookie_basic: [
+    ["visitor=kim","visitor=alice"],
+  ],
 };

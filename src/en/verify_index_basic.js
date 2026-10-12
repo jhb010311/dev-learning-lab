@@ -1,0 +1,1 @@
+Lab.verify({ index_basic: ['run', 'Ran all 6 combinations on H2 2.4.240 and checked them (rows read is scanCount minus 1 from EXPLAIN ANALYZE), and checked the rules against the MySQL documentation'] });

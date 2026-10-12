@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Associations: What is an association, and what does @ManyToOne do for you? · Dev Learning Lab</title>
+<meta name="description" content="An order needs to know who placed it. In tables, the order row writes the number of the member in one column (a foreign key) and points to the member. In…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/relation_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/relation_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/relation_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Associations: What is an association, and what does @ManyToOne do for you? · Dev Learning Lab">
+<meta property="og:description" content="An order needs to know who placed it. In tables, the order row writes the number of the member in one column (a foreign key) and points to the member. In…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/relation_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › JPA</p>
+<h1>Associations</h1>
+<p><b>What is an association, and what does @ManyToOne do for you?</b></p>
+<p>An order needs to know who placed it. In tables, the order row writes the number of the member in one column (a foreign key) and points to the member. In Java objects, Order points directly to a Member object through a field. When an entity points to another entity like this, it is an association. If you write @ManyToOne above that field, JPA connects the two. When it saves, it takes the id out of the Member object and puts it in the foreign key column, and when it reads, it uses that number to find the Member and puts it in the field. So you can just follow the objects, as in order.getMember().getName(). This lab runs the same code, which saves an order and reads it again, on a database where (1, Kim) is already in the member table, and changes only the field declaration. You see what happens if you remove @ManyToOne, and what changes if you keep only a number (Long memberId) in the field instead of an object.</p>
+<p>Checked against real execution · Compiled the source of all 4 combinations on Hibernate 7.4.5 and H2 2.4.240, started JPA for real, saved and read again, and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Association</dt>
+<dd>An association is a relationship in which one entity points to another entity. In tables, a row writes the primary key value of a row of another table in one column (a foreign key) and points to that row, and in Java objects, a field of one entity points directly to an object of another entity. JPA connects these two expressions. When it saves, it takes the primary key out of the object it points to and puts it in the foreign key column, and when it reads, it uses the foreign key value to find the other entity and puts it in the field. The JPA specification (which calls this a relationship) says to put one of @OneToOne, @OneToMany, @ManyToOne, and @ManyToMany on a field or property that shows an association. If you keep only a number in the field instead of the other side's object, it is not an association but an ordinary number field, and you have to find the other entity directly with that number.</dd>
+<dt>@ManyToOne</dt>
+<dd>@ManyToOne is an annotation that you put on a field to show that &quot;this field points to one other entity, and many of this entity can point to the same one&quot;. A typical case is many orders pointing to one member. The type of the target is found from the type of the field. In tables, the table of the entity that has this field gets a foreign key column that holds the primary key value of the other side, and if you do not set the column name separately, it becomes the name that joins the field name, an underscore, and the name of the other side's primary key column (member_id for a member field of the type Member). If a field of another entity type has no such association mark, Hibernate 7.4.5 cannot find a way to put that field in a column and throws an error while starting.</dd>
+<dt>@JoinColumn</dt>
+<dd>@JoinColumn is an annotation that specifies the foreign key column of an association, and you use it together with an association mark such as @ManyToOne. You write the column name in name, and if you do not write it, the name becomes the name that joins the field name, an underscore, and the name of the other side's primary key column. For example, if you put @JoinColumn(name = &quot;buyer_id&quot;), the foreign key column becomes buyer_id, not member_id. What changes is the column name in the table, and the way of following objects in the entity code does not change.</dd>
+<dt>Primary key, unique key, foreign key</dt>
+<dd>A primary key (PK) is the column that uniquely identifies each row of a table. Its values cannot be duplicated or empty, and a table has only one. A unique key is a unique constraint, which prevents duplicate values, and a table can have several. A foreign key (FK) is a column that references the primary key (or a unique key) of another table. It guarantees that the referenced row really exists.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The member field with @ManyToOne. JPA takes the number out of the object and puts it in the foreign key column, and when it reads, it uses the number to find the Member and puts it in the field.</li>
+<li><b>Removing @ManyToOne</b> — JPA does not know how to put a field of the Member type into a column, so it cannot start.</li>
+<li><b>Keeping only a number instead of an object</b> — It is saved, but no foreign key constraint is created, and to get the member you have to find it again yourself with the number.</li>
+<li><b>Adding @JoinColumn</b> — Only the name of the foreign key column changes from member_id to buyer_id, and the result of saving and reading is the same.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>When the program starts, it tells JPA (here, Hibernate) about the Order and Member classes, and JPA reads the classes. The line that registers them and the settings that connect to the database are shortened on the screen. JPA looks at the member field of Order, and its type is Member, which is another entity, and @ManyToOne is above it. So JPA accepts this field as &quot;a field that points to another entity&quot;.</li>
+<li>JPA makes the orders table in the H2 database following this mapping. The columns are id, member_id, and column member_id holds the id of Member. A foreign key constraint is also made, so the value of this column must be a number that exists in the id of the member table. The column name member_id joins the field name member, an underscore, and the name of the column it points to, id (the default rule of the JPA specification when @JoinColumn is not written). This lab is set so that JPA creates the table when it starts (hibernate.hbm2ddl.auto=create-drop), and we did not write CREATE TABLE. The member table already has the row (1, Kim) that the lab put in ahead of time. This is a preparation that does not appear on the screen.</li>
+<li>Member kim = em.find(Member.class, 1L): JPA reads the row with id 1 from the member table and makes the Member object kim. In this run, 1 SELECT was sent. kim is an ordinary object that has id 1 and the name Kim.</li>
+<li>em.persist(new Order(10L, kim)): it creates an order object and puts the kim object in the member field, not the number 1. While this order is passed to JPA and the saving finishes, 1 INSERT is sent. In this run, the statement that Hibernate 7.4.5 made is &quot;insert into orders (member_id,id) values (?,?)&quot;. JPA took the id 1 out of the kim object and put it in the place of member_id. We did not take out the number and write it. A row (id 10, member_id 1) now exists in the orders table.</li>
+<li>Order o = em2.find(Order.class, 10L): it reads the order with em2, which is a different em from the one used for saving. The separately made em2 does not know the earlier objects, so it reads from the database. 1 SELECT was sent on this line, and that statement read not only the orders table but the member table too. JPA uses the value 1 of member_id in the row to find the Member and puts it in the member field of o. We did not call a separate find to look for the Member.</li>
+<li>System.out.println(o.getMember().getName()): o.getMember() is the Member object that JPA put in, and getName() returns the name of that object. Kim is printed on the screen. We did not handle a number. We only followed the objects.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>An association is one entity pointing to another entity. In tables, the orders row points to the member by writing the member number in the member_id column (a foreign key), and in Java objects, Order points to a Member object through a field. @ManyToOne above the field connects the two.</li>
+<li>When it saved, JPA took the id out of the kim object and put it in member_id, and when it read, it used that number to find the Member and put it in the member field. So you get the name of the member by following the objects, as in o.getMember().getName().</li>
+</ul>
+<h2>Code</h2>
+<pre>@Entity
+@Table(name = &quot;orders&quot;)
+public class Order {
+    @Id
+    private Long id;
+    // Association: point to the member who placed this order as an object
+    @ManyToOne
+    private Member member;
+}
+
+// Calling side: save an order, read it again, and look at the name of the member who placed it
+Member kim = em.find(Member.class, 1L);
+em.persist(new Order(10L, kim));
+// After saving (commit) is done, read it again from the database with a new EntityManager (em2)
+Order o = em2.find(Order.class, 10L);
+System.out.println(o.getMember().getName());</pre>
+<h2>Assumptions of this model</h2>
+<p>This was checked against real execution on Hibernate 7.4.5 and H2 2.4.240 (in-memory database). Spring was not used, and Hibernate was started directly in code (the Member and Order classes were registered in a Configuration, without persistence.xml). All 4 combinations were checked: the same text as the Order source on the screen (with only the package and import lines, a constructor, and getters added) was compiled together with the Member source, and a new Java process was started. What the screen shortens is the package and import lines, the constructor and getters of Order, the Member entity (an ordinary entity with the fields id and name), and the lines that get the EntityManagers em and em2. The &quot;calling side&quot; on the screen is really code inside main, and the part that saves with em is between the lines that start and end (commit) a transaction. Those lines are shortened on the screen. The reading line was run after saving finished, with the newly made em2. If you read with the same EntityManager, it gives back the object you just saved from memory, not from the database, and the reading step could not be shown. (1, Kim) in the member table was put in directly with JDBC right after JPA started and made the tables. The column names are set with a rule that puts an _ before each capital letter of a field name (hibernate.physical_naming_strategy=PhysicalNamingStrategySnakeCaseImpl). This is the same class that the spring-boot-hibernate jar of Spring Boot 4.1.1 points to as its default naming rule (this was checked by the class name inside the jar, and Spring Boot was not actually started), and what the column name becomes without this setting was not checked. What was checked against the run is whether JPA fails while starting and the kind and first line of the message of the exception, the tables and columns in H2 right after the start and after the run (INFORMATION_SCHEMA.COLUMNS), the foreign key constraint (INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS and KEY_COLUMN_USAGE), the SQL caught with StatementInspector (the number and text of SELECT and INSERT, split into the saving step and the reading step), the text printed on the screen, and the rows of the orders table after the run. H2 stores table names in capital letters, but the screen writes them in lowercase, and the member table that the foreign key points to is written as Member, following the entity name. The order of the columns is as seen in H2 and is not the same as the order in which the fields are written (when buyer_id was set with @JoinColumn, buyer_id came before id). What the documentation defines is Section 2.11 of the Jakarta Persistence 3.2 specification (a field that shows an association gets one of @OneToOne, @OneToMany, @ManyToOne, and @ManyToMany), Section 2.12 (the default mapping of associations) and Section 2.12.3.2 (for a unidirectional ManyToOne, a foreign key column that points to the primary key of the other table is placed in the table of this entity, and the name of that column joins the field name, an underscore, and the name of the other side's primary key column), and the API documentation of ManyToOne and JoinColumn (the default naming rule when the name of JoinColumn is not written). The body of the specification has no separate description of the annotations, so these two were read from the API documentation. These documents were opened with WebFetch, and what came back was a summary, not the original text, so each sentence could not be checked against the original. The following is not defined by the documentation but is behavior observed on this version. If you remove @ManyToOne, JPA throws a MappingException when it starts (the first line of the message is Incorrect use of entity type 'app.Member' (possibly due to missing association mapping annotation), and the inner cause is that it could not decide the JdbcType that fits the Java type 'app.Member'), and not one table is created. The member table is not created either, so the row (1, Kim) that is put in ahead of time does not exist. When there is an association, the SELECT that reads the order again was 1, and it was a statement that read the member table together (left join). When only a number was kept, it was 2 in all: 1 SELECT that read the order and 1 SELECT of the Member find that we called. The details of when and how these SELECT statements are sent are covered in the labs on the study side. The text of a statement may differ by Hibernate version, so the screen says &quot;In this run, the statement that Hibernate 7.4.5 made&quot;. The @Table that sets the table name to orders was added because order is a reserved word in SQL, and it is not the topic of this lab. Only the fields id and member (or memberId) were covered, and the opposite direction (a bidirectional association where Member has a list of orders), the owning side of an association, lazy loading, the case where the other side does not exist (optional), and cascade were not covered. The association in this lab is unidirectional: it points only from Order to Member. A check against execution on MySQL was not done.</p>
+<p>Previous lab: <a href="../../lab/repo_basic/">Repositories</a> · Next lab: <a href="../../lab/table_basic/">Tables, rows, and columns</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+// Terms for the Fundamentals lab "Dependency injection". Sources: the Spring Framework 7.0 documentation, Core, Dependency Injection (section Constructor-based Dependency Injection) and Using @Autowired (the sentence that @Autowired is not needed when there is only one constructor). (@Component uses the one in kb_bean_basic.js)
+module.exports = [
+  ['Spring', 'Dependency', 'A dependency is an object of another class that a class needs to do its work. For example, if OrderService calls a method of a PayService object to make a payment, we say that OrderService depends on PayService, and the PayService object is a dependency of OrderService. The Spring documentation describes a dependency as the other objects that an object works with. You can create the object you need yourself with new, or receive it as a constructor parameter, and when Spring creates it and puts it in for you, this is called dependency injection.'],
+];

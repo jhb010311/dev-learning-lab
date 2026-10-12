@@ -1,0 +1,1 @@
+Lab.verify({ static_basic: ['run', 'Four combinations were compiled with javax.tools and run on JDK 21 and checked against the model. Where count lives was measured by running a source in which only the reading line was changed to a.count and b.count'] });

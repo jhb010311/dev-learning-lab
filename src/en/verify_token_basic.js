@@ -1,0 +1,1 @@
+Lab.verify({ token_basic: ['run', 'Sent 10 combinations of tokens as real HTTP requests to an http server on Node.js 24.18.0 and checked against the results. The implementation that makes the tokens was checked against the example in RFC 7515 Appendix A.1 and the verification of the JWT library jose4j 0.9.5'] });

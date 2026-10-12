@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JSON: What does JSON look like, and what mistakes make it unreadable? · Dev Learning Lab</title>
+<meta name="description" content="When programs exchange data (for example, when a server sends member information to a browser), they cannot send an object in memory as it is. So they wri…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/json_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/json_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/json_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="JSON: What does JSON look like, and what mistakes make it unreadable? · Dev Learning Lab">
+<meta property="og:description" content="When programs exchange data (for example, when a server sends member information to a browser), they cannot send an object in memory as it is. So they wri…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/json_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Networking</p>
+<h1>JSON</h1>
+<p><b>What does JSON look like, and what mistakes make it unreadable?</b></p>
+<p>When programs exchange data (for example, when a server sends member information to a browser), they cannot send an object in memory as it is. So they write it out as text by an agreed set of rules, and the receiving side reads that text and builds an object in its own language again. JSON is the most widely used set of rules. What you see in the code box is the JSON text itself. Inside { }, write &quot;name&quot;: value pairs joined by commas. Wrap names and string values in double quotes, and write numbers without quotes. [ ] is an array of several values. Whether there are quotes decides the kind of the value, so 30 is a number and &quot;30&quot; is a string. In this lab you change the quotes around the name, the value of age, and the commas one at a time, and feed the same text to two parsers (programs that read text and build an object): JSON.parse in Node.js and Jackson in Java. You see whether the text can be read and what kind of value the age that was read is. JSON has no syntax for comments, so the code box shows the text only, with no explanations.</p>
+<p>Checked against real execution · Fed the characters of all 18 combinations as they are to JSON.parse in Node.js 24.18.0 and to Jackson 3.1.5 (default settings) and checked them</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>JSON</dt>
+<dd>JSON (JavaScript Object Notation) is a text format for writing structured data as characters so that it can be exchanged (RFC 8259 section 1). An object is written inside { } as &quot;name&quot;: value pairs joined by commas, and an array is written inside [ ] as values joined by commas. A name must always be a string wrapped in double quotes (section 4), and a comma goes only between values (the grammar in sections 4 and 5). It is widely used where programs exchange data, such as when a server sends data to a browser, and when the receiving side gets text that breaks these rules, it usually cannot read the whole text.</dd>
+<dt>JSON values</dt>
+<dd>A JSON value is one of an object, an array, a number, a string, or one of the three words false, null, and true (RFC 8259 section 3). A string is wrapped in double quotes (section 7), a number is written as decimal digits without quotes (section 6), and false, null, and true are written in lowercase without quotes (section 3). Whether there are quotes decides the kind of the value, so 30 is a number and &quot;30&quot; is a string. Calculations after reading follow the kind too: in JavaScript, 30 plus 1 is 31, but the string &quot;30&quot; plus 1 becomes the string &quot;301&quot;.</dd>
+<dt>Parsing</dt>
+<dd>Parsing is reading data written as characters from the start according to a grammar and turning it into a structure (such as an object) that a program can work with, and the program that does it is called a parser. RFC 8259 section 9 says that a JSON parser transforms a JSON text into another representation, and that it must accept all texts that conform to the JSON grammar. When a parser meets text that breaks the grammar, it raises an error. The same section also says that a parser may accept forms or extensions other than JSON, so some parsers can be set to accept things such as single quotes or a trailing comma.</dd>
+<dt>Serialization and deserialization</dt>
+<dd>Serialization converts an object into a form that can be stored or sent (such as a sequence of bytes or JSON), and deserialization restores an object from that form. In web APIs, the typical case is conversion between objects and JSON (for example with Jackson). Java's built-in serialization (Serializable) has compatibility problems when the class structure changes and carries security risks, so formats such as JSON are mostly used today.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — JSON text that follows the rules. The parser reads it and creates an object whose age is a number.</li>
+<li><b>Putting double quotes around 30</b> — It is read, but age becomes a string, so adding 1 gives 301.</li>
+<li><b>Removing the double quotes around the name</b> — The name has no quotes, so the whole text cannot be read.</li>
+<li><b>Using single quotes</b> — A single quote is not a JSON quote, so the whole text cannot be read.</li>
+<li><b>Adding a comma after the last value</b> — A name must follow the comma, but the end (}) comes, so the whole text cannot be read.</li>
+<li><b>Leaving out a comma</b> — There is no comma between the values, so the whole text cannot be read.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The server wants to send member information to the browser. The object in the server's memory (the one with a name, an age, and tags) cannot be sent as it is. So it is written out as text by an agreed set of rules, and those rules are JSON. The sender wrote the object as the text below. The parser on the receiving side reads this text and turns it back into an object. This lab fed the same text to two parsers, JSON.parse in Node.js and Jackson in Java, and in every combination both parsers made the same decision.</li>
+<li>The parser on the receiving side reads the text from the start, one character after another. The first character is {. A { means &quot;an object of names and values starts here,&quot; so the parser now expects &quot;name&quot;: value pairs joined by commas and ending with }.</li>
+<li>Next comes &quot;name&quot;. Inside the object, a string wrapped in double quotes is a name. The : after it marks &quot;what follows is the value of this name.&quot;</li>
+<li>The &quot;Alice&quot; after the : is wrapped in double quotes, so it is a string value. A comma follows, so another &quot;name&quot;: value pair comes next.</li>
+<li>This is the line after the comma. &quot;age&quot; is a name wrapped in double quotes, and the value after the : is 30. It has no double quotes and looks like a number, so it is a number value. A comma follows, so the next pair comes next.</li>
+<li>This is the line after the comma. &quot;tags&quot; is a name wrapped in double quotes, and its value starts with [. [ ] is an array of several values. The &quot;vip&quot; and &quot;new&quot; inside are both wrapped in double quotes, so they are two strings, separated by the comma between them. The array ends at ].</li>
+<li>Finally the parser meets }. It comes with no comma before it, so the object that started with { ends here. The parser read all the way to the end without a single rule violation.</li>
+<li>The read succeeded, and the receiving side created an object in its own language. name is the string &quot;Alice&quot;, age is the number 30, and tags is an array of two strings. The text that was sent as characters became an object again.</li>
+<li>The receiving program takes age from the object it read and adds 1 (this is the result of running age + 1 in JavaScript on the object that was read). age is the number 30, so this adds numbers, and the result is 31.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>JSON is an agreed way to write an object as text so it can be sent. Inside { }, write &quot;name&quot;: value pairs joined by commas, wrap names and string values in double quotes, and write numbers without quotes. The parser on the receiving side read this text from the start and made an object.</li>
+<li>The 30 in age has no quotes, so it is a number, and adding 1 gives 31. The text was read because it did not break the rules anywhere.</li>
+</ul>
+<h2>Code</h2>
+<pre>{
+  &quot;name&quot;: &quot;Alice&quot;,
+  &quot;age&quot;: 30,
+  &quot;tags&quot;: [&quot;vip&quot;, &quot;new&quot;]
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>We used two parsers. One is JSON.parse in Node.js 24.18.0 (the standard JavaScript parser). The other is Jackson 3.1.5 (jackson-databind and jackson-core) run on Java 21.0.12.1 with the default settings, that is, readTree of the parser made with JsonMapper.builder().build(). For all eighteen combinations, we fed the same characters as the code box (lines end with \n, with no line break at the end) to both parsers as they are, and checked against the model: success or failure, the line, column, and character at the position of the error, the kind of age that was read (typeof for JSON.parse, the node kind for Jackson), and the names and values that were read. The two parsers made the same success or failure decision in all eighteen combinations, and when it failed, the error position was the same too. When it failed, both parsers only raised an error and did not return the part they had read, and when the text had more than one error, they reported only the first one they met. The original error messages differ between the two (for example, JSON.parse says &quot;Expected property name or '}' in JSON at position 4&quot; and Jackson says &quot;was expecting double-quote to start property name&quot;), and the screen shows only the kind of error, written in English. The original messages are in the Probe output. The &quot;age + 1 on the object that was read (JavaScript)&quot; on the screen is JavaScript behavior. It is the value of adding 1 to age of the object read with JSON.parse (we also checked typeof: the number 30 gives the number 31, and the string &quot;30&quot; gives the string &quot;301&quot;), and it is not Java behavior. When the same text is read with Jackson, age is a string node, and the intValue() of that node raised an error (JsonNodeException), while asInt() and reading into a record with an integer field both gave 30. That is Jackson's conversion behavior, so it is not used on the screen. Some parsers have options to accept text that breaks the rules, depending on the settings. What we checked is only this: turning on three Jackson JsonReadFeature options (ALLOW_SINGLE_QUOTES, ALLOW_UNQUOTED_PROPERTY_NAMES, ALLOW_TRAILING_COMMA) makes a name wrapped in single quotes, a name without quotes, and a comma after the last value readable (text with a missing comma was still not readable). All the checks on the screen were made with the default settings. We did not look at other parsers or at the settings of JSON.parse. Text with a comment in it was also not readable by either parser with the default settings. What we checked against the documentation is RFC 8259 section 1 (JSON is a text format for the serialization of structured data), section 2 (grammar; whitespace around the structural characters has no meaning), section 3 (a value is an object, array, number, or string, or false, null, or true, and these words are lowercase), section 4 (grammar of objects: members joined by commas, and a name is a string), section 5 (grammar of arrays), section 6 (numbers are written as decimal digits), section 7 (a string begins and ends with quotation marks, and the only quotation mark is the double quote, %x22), and section 9 (a parser must accept all texts that conform to the grammar, and may accept forms other than JSON). The documents were opened only as summaries, so we could not check them against the full original text. The statement that a trailing comma and single quotes are not allowed is not written directly in the document. We based it on the fact that the grammar in sections 4 and 5 has no shape with nothing after a comma and no single-quote shape, together with the run results above. The JSON on the screen covers only the object, array, string, and number among the kinds of values, and does not cover true, false, null, nested objects, or escapes inside strings (such as \n). The in-depth lab on the same subject (how a server converts between objects and JSON) is &quot;REST APIs and message converters&quot;.</p>
+<p>Previous lab: <a href="../../lab/cookie_basic/">Cookies</a> · Next lab: <a href="../../lab/https_basic/">HTTPS</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

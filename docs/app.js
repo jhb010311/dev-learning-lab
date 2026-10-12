@@ -428,7 +428,7 @@ var Lab = (function () {
     stop(); askCancel(); sim = null; paused = false; assumeOpen = false; cur = byId(id) || lessons[0];
     $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
     drawPath();
-    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : '') + (qmode() ? ' qgrid' + (cur.basic ? '' : ' qwide') : ''); placeCode(); picReset();
+    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : '') + (qmode() ? ' qgrid' + (cur.basic && LANG !== 'en' ? '' : ' qwide') : ''); placeCode(); picReset();
     buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
     try { localStorage.setItem('lab-last', cur.id); } catch (e) {}
   }

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTP requests: What does an HTTP request look like as text? · Dev Learning Lab</title>
+<meta name="description" content="An HTTP request that a browser sends to a server is a few lines of text in a fixed shape. The first line (the request line) holds the method, the path, an…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/http_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/http_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/http_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="HTTP requests: What does an HTTP request look like as text? · Dev Learning Lab">
+<meta property="og:description" content="An HTTP request that a browser sends to a server is a few lines of text in a fixed shape. The first line (the request line) holds the method, the path, an…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/http_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Networking</p>
+<h1>HTTP requests</h1>
+<p><b>What does an HTTP request look like as text?</b></p>
+<p>An HTTP request that a browser sends to a server is a few lines of text in a fixed shape. The first line (the request line) holds the method, the path, and the version. Below it come lines called headers, in the form &quot;name: value&quot;, and an empty line, a line with no text at all, tells the server that the request is over. The server reads this text to find out what the request asks for. In this lab you change or remove the first line, the Host line, and the last empty line one at a time, and send the text exactly as it is to the same server (a server that has only the /hello address), to see whether the server reads the text as a request, what response it sends back, and whether the request reaches the server code we wrote. The (empty line) in the code box is a way to show a line with no text at all, so that you can see it.</p>
+<p>Checked against real execution · Sent the text of all 12 combinations exactly as it is to an http server on Node.js 24.18.0 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Request line</dt>
+<dd>The request line is the very first line of an HTTP request, and it holds the method, the request target (usually a path), and the HTTP version in order, separated by spaces. For example, GET /hello HTTP/1.1 means &quot;send GET (a request to get something) for /hello, by the rules of HTTP/1.1&quot;. The server uses this line to find out what the request asks for. If the three parts do not have the right shape, the server cannot read the text as a request, and RFC 9112 recommends answering a wrong request line with a 400 response (section 3.2).</dd>
+<dt>Host header</dt>
+<dd>Host is a header that says which site (host name and port) a request came to, and its value is written like localhost:8080. One server can serve several sites, so the server uses it to tell which site a request is for. RFC 9112 says that a client must send a Host header in every HTTP/1.1 request, and that a server must respond with 400 (Bad Request) to an HTTP/1.1 request that has no Host (section 3.2). The http module of Node.js also answers with 400, without passing the request to the application code, when Host is missing.</dd>
+<dt>End of an HTTP request (the empty line)</dt>
+<dd>An HTTP request is written in the order of the request line, the header lines, and an empty line with no text at all, and the empty line is the mark that the headers have ended (RFC 9112 section 2.1). Line breaks are written as CRLF (the two characters carriage return and line feed). The server starts to handle the request only after this empty line arrives and it knows the request has come in full, so if the empty line does not come, the server waits, thinking more text will follow. In a request with a body, the body starts after the empty line.</dd>
+<dt>HTTP status codes</dt>
+<dd>A three-digit number that shows the result of the server's handling of a request. 2xx means success, 3xx means a move to another location (redirection), 4xx means a problem with the client's request, and 5xx means an error on the server side. Common ones are 200 (success), 201 (created), 400 (bad request), 401 (authentication required), 403 (no permission), 404 (not found), and 500 (server error).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A request with the right shape and a path /hello that exists. The server code returns 200 and a body.</li>
+<li><b>Changing the path to /nothing</b> — The shape is right, but the path does not exist on the server. The server code answers 404.</li>
+<li><b>Removing the Host line</b> — It can still be read as a request, but there is no Host, so Node.js does not pass it to the server code and rejects it with 400.</li>
+<li><b>Removing GET and HTTP/1.1 from the first line</b> — It is not read as a request, so the answer is 400. It never reaches the server code.</li>
+<li><b>Removing the empty line at the end</b> — There is no line to say the request is over, so the server waits, and no response comes.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>When you type localhost:8080/hello in the address bar of the browser, the browser connects to the server and sends the text below. The server is one that has only the /hello address.</li>
+<li>Node.js, which makes up the server, reads the first line. The text it read is &quot;GET /hello HTTP/1.1&quot;. The first line (the request line) has three things written in order. GET is the method, which says what the request wants to do (it asks to get something), /hello is the path, which says what it is about, and HTTP/1.1 is the version, which says what rules the text was written by. All three parts are there, so it is read as a request line.</li>
+<li>Node.js reads the next line. The text it read is &quot;Host: localhost:8080&quot;. A line in the form &quot;name: value&quot; is called a header. The Host header tells which site (address) this request came to.</li>
+<li>Node.js reads the next line and finds an empty line with no text at all (the (empty line) on the screen). An empty line marks the end of the headers, so Node.js decides that the request has arrived in full.</li>
+<li>In the request Node.js read, the method is GET and the path is /hello. The shape is right and Host is there, so Node.js hands this request to the server code we wrote.</li>
+<li>The server code we wrote looks at the path. /hello is an address we made, so it builds a 200 response with the body &quot;Hello&quot;. This code is not shown on the screen, but it is made to answer this way only to a GET request whose path is /hello.</li>
+<li>The browser receives the 200 response. The body is &quot;Hello&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>An HTTP request is a few lines of text that the browser sends to the server. The first line (the request line) holds the method, the path, and the version, below it are headers in the form &quot;name: value&quot;, and an empty line marks the end.</li>
+<li>The server (Node.js) read this text from the first line, learned that it is a GET /hello request, decided at the empty line that the request was over, and handed it to the server code we wrote. The server code looked at the path and answered 200.</li>
+</ul>
+<h2>Code</h2>
+<pre>GET /hello HTTP/1.1
+Host: localhost:8080
+(empty line)</pre>
+<h2>Assumptions of this model</h2>
+<p>The server is a single one made with the http module of Node.js 24.18.0. It returns 200 with the body &quot;Hello&quot; for GET /hello and 404 for any other path. All 12 combinations were sent character for character, with the net module, to this server on 127.0.0.1 (lines end with CRLF), and checked against the model: the status line and body of the response received, whether our request handler function was called, and the method and url that function received. The (empty line) on the screen is a way to show a line with no text at all, so that you can see it, and for the combinations with no empty line, the text was sent only as far as the line break of the last line. &quot;No response (waiting)&quot; means that no byte of a response came for 1.5 seconds after the text was sent. How long Node.js waits before giving up was not examined. For the first line with a wrong shape (/hello), Node.js cannot read it as a request, raises a clientError (HPE_INVALID_METHOD), and sends back 400 by itself, and 400 also came when only the first line was sent, whatever the later lines were. For a request with no Host, Node.js sends back 400 by itself after the empty line arrives and the headers end, before it calls our code (the request handler function was not called and no clientError was raised). When the same text was sent to a server with the Host check turned off (requireHostHeader: false), the handler function received a GET request, so the text had been read correctly up to the request line. These are behaviors observed on this Node.js version. What was checked against the documentation is RFC 9112 section 2.1 (message format: the empty line after the request line and headers), section 3 (the request line: three parts, method, request target, and version), section 3.2 (a server must respond with 400 to an HTTP/1.1 request that has no Host), and RFC 9110 section 7.2 (Host), section 15.5.1 (400), and section 15.5.5 (404). The request on the screen has the minimum shape, with only Host left as a header, and only GET requests without a body were covered. How a 400 is returned can differ from server to server, and this screen shows the behavior of a Node.js server. The server code is not shown on the screen. The in-depth details on the same subject (the shape of responses, all the status codes) are covered in the in-depth lab &quot;HTTP messages and status codes&quot;.</p>
+<p>Previous lab: <a href="../../lab/dns_basic/">DNS</a> · Next lab: <a href="../../lab/httpres_basic/">HTTP responses</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

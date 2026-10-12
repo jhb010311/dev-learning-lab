@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spring Boot: What does Spring Boot do for you? · Dev Learning Lab</title>
+<meta name="description" content="A Spring Boot application is an ordinary Java class (App) that has a main method. It starts when the main method calls one line, SpringApplication.run(App…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/boot_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/boot_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/boot_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Spring Boot: What does Spring Boot do for you? · Dev Learning Lab">
+<meta property="og:description" content="A Spring Boot application is an ordinary Java class (App) that has a main method. It starts when the main method calls one line, SpringApplication.run(App…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/boot_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Spring</p>
+<h1>Spring Boot</h1>
+<p><b>What does Spring Boot do for you?</b></p>
+<p>A Spring Boot application is an ordinary Java class (App) that has a main method. It starts when the main method calls one line, SpringApplication.run(App.class, args). This one line starts Spring (it scans the classes and makes beans), starts a web server (Tomcat) inside the program, and gets ready to receive requests. We do not install Tomcat separately, and we do not write code that starts a server. @SpringBootApplication above App is a marker that tells Spring Boot to scan from the package of this class and configure what is needed automatically, and it decides what to configure by looking at the libraries in the project. If a web library is there, it starts Tomcat, and if not, it does not. In this lab, you remove the run line, @SpringBootApplication, and the web library one at a time and run the program with the java command, to see whether the program keeps running, whether Tomcat starts, and whether it answers a request from the browser.</p>
+<p>Checked against real execution · Compiled the source for each of the 8 combinations on Spring Boot 4.1.1 and ran it as a child java process, observed the listening port and HTTP requests from outside, and checked against them (the classpath without the web library was decided from the dependencies in the poms)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Spring Boot</dt>
+<dd>Spring Boot is a Spring library that reduces the configuration needed to build and run a Spring application. An application starts when the main method calls SpringApplication.run(App.class, args), and this call starts Spring and makes the beans, and, if it is a web application, starts a web server (Tomcat by default) inside the program and gets ready to receive requests. Spring Boot decides what to configure by looking at the libraries in the project, so with the same code, a web server starts if there is a web library and does not if there is not. The feature of this approach is that you do not have to install a web server separately or write code that starts a server.</dd>
+<dt>@SpringBootApplication</dt>
+<dd>@SpringBootApplication is an annotation that you put above the start class of a Spring Boot application. It combines @EnableAutoConfiguration (turns on the auto-configuration of Spring Boot), @ComponentScan (scans for classes of the @Component family, starting from the package that holds this class), and @SpringBootConfiguration (makes it possible to register extra beans or import other configuration classes) into one. Without this annotation, neither class scanning nor auto-configuration happens, so even in a project with a web library, there is no configuration that creates a web server and it fails to start.</dd>
+<dt>Starter</dt>
+<dd>This is a Spring Boot set of dependencies that groups the libraries needed for a particular feature in versions that are compatible with each other. Adding just the web one (spring-boot-starter-web up to Spring Boot 3, spring-boot-starter-webmvc since Spring Boot 4) brings in Spring MVC, JSON processing, embedded Tomcat, and more. It saves you the work of resolving version conflicts between libraries yourself.</dd>
+<dt>Embedded server</dt>
+<dd>This is a web server (Tomcat by default) that is included inside a Spring Boot application and runs together with it. You can run the application with a single java -jar command, without the steps of installing a server separately and deploying the application to it.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A Spring Boot application that has all three. One line in main starts Spring and starts Tomcat, and the program waits for requests.</li>
+<li><b>Removing the SpringApplication.run line</b> — main is empty, so the program ends right away. Neither Spring nor Tomcat starts.</li>
+<li><b>Removing @SpringBootApplication</b> — It decides that a web server is needed, but there is no configuration to make one, so it fails while starting.</li>
+<li><b>Removing the web library</b> — It decides that this is not a web application and does not start Tomcat, and the program ends when its work is done.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>When you run the App class with the java command on the computer, Java calls the main method of the App class. The main method is where a Java program starts.</li>
+<li>The line SpringApplication.run(App.class, args) in the main method runs. This one line starts Spring Boot. App.class passes the class that is the starting point of the program, and args passes the arguments that main received as they are.</li>
+<li>Spring Boot looks at the libraries in the project. Spring MVC, which handles web requests, is there, so it decides that this is a web application and prepares a Spring that uses a web server.</li>
+<li>Spring starts. @SpringBootApplication is above App, so Spring scans classes from the package that holds the App class, finds HelloController, which has @RestController, and creates its object and keeps it. It also configures what is needed automatically to match the libraries. Because there is a web library, DispatcherServlet, which receives requests and distributes them to controllers, is also created at this time. The code we wrote has neither new HelloController() nor new DispatcherServlet().</li>
+<li>Spring Boot starts Tomcat (the web server) inside this java process and registers the DispatcherServlet it made with Tomcat. We did not install Tomcat, and the code we wrote has no line that starts a server. If you do not set it, the port on which Tomcat receives requests is 8080.</li>
+<li>The SpringApplication.run line ends, and the main method reaches its end too. But the java process does not end. Tomcat made threads (separate flows of execution) and they are alive, so Java does not end the program while they are alive, and Tomcat waits for requests on those threads.</li>
+<li>You type localhost:8080/hello in the address bar of the browser, and the browser sends a GET /hello request to the server.</li>
+<li>Tomcat receives the request and passes it to DispatcherServlet, and DispatcherServlet calls the hello() method of HelloController. The text this method returned is &quot;Hello&quot;.</li>
+<li>The browser receives a 200 response. The body is &quot;Hello&quot;. The java process does not end and keeps waiting for the next request.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A Spring Boot application starts when the main method calls one line, SpringApplication.run(App.class, args). This one line starts Spring (it scans the classes and makes beans), starts Tomcat inside the program, and gets ready to receive requests. What differs from an ordinary Java program is this line, @SpringBootApplication above App, and the web library in the project.</li>
+<li>We did not install Tomcat or write code that starts a server. @SpringBootApplication is a marker that tells Spring Boot to scan from this package and configure what is needed automatically, and it decides what to configure by looking at the libraries in the project. A web library was there, so Tomcat started.</li>
+</ul>
+<h2>Code</h2>
+<pre>// build.gradle: the library to put in this project
+implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+
+// Marker: scan from this package and configure what is needed automatically
+@SpringBootApplication
+public class App {
+    public static void main(String[] args) {
+        // This one line starts Spring and starts the server
+        SpringApplication.run(App.class, args);
+    }
+}
+
+@RestController
+public class HelloController {
+    @GetMapping(&quot;/hello&quot;)
+    public String hello() {
+        return &quot;Hello&quot;;
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>This is the result of running Spring Boot 4.1.1 (Spring Framework 7.0.9, embedded Tomcat 11.0.24) on JDK 21.0.12.1. For all 8 combinations, a source with the same structure as the code on the screen (App and HelloController in the package app, with no lines that start a server or count anything) was compiled, a new process was run with the java command starting from the main method of app.App, and the result was checked by observing from outside the process. The criteria are as follows. For the program, it waits until the process ends or a listening port opens, and if it is still alive 3 seconds later, it is &quot;keeps running and waits for requests&quot;; if it already ended with exit code 0, it is &quot;ends right away, nothing to do&quot;; and if the exit code is not 0, it is &quot;failed while starting&quot;. The web server was decided by whether that process had a listening TCP port (netstat) and whether the log printed &quot;Tomcat started on port&quot; for the same port, and the response was decided by the real HTTP result of sending GET /hello to that port from outside the process. Even for combinations with no server, a request was sent to an arbitrary port that was confirmed beforehand to be empty and was given as server.port, and every one was refused (giving the port as 0 leaves nowhere to connect when there is no server, so this was done instead). The localhost:8080 in the address is an example of starting Spring Boot on its default port on my own computer, and that the default port is 8080 follows the Embedded Servlet Container Support section of the Spring Boot documentation. The classpath was not the whole library folder but only the jars that the one dependency line on the screen brings in. With a web library, the 39 jars that spring-boot-starter-webmvc brings in were used, and without one, the 21 jars that spring-boot-starter brings in were used, and the 18 that are removed are spring-boot-starter-webmvc, spring-boot-starter-jackson, spring-boot-starter-tomcat, spring-boot-starter-tomcat-runtime, spring-boot-tomcat, spring-boot-web-server, spring-boot-http-converter, spring-boot-webmvc, spring-boot-servlet, spring-boot-jackson, spring-web, spring-webmvc, tomcat-embed-core, tomcat-embed-el, tomcat-embed-websocket, jackson-databind, jackson-core, and jackson-annotations. This list was not obtained by running Gradle but decided by opening the pom files on Maven Central and following the dependencies (the poms of the starters and the Spring Boot modules, spring-web, spring-webmvc, Tomcat, and jackson-databind were checked, and jackson-core and jackson-annotations were not opened), and other libraries such as Spring Security and JPA are on the classpath in neither case. In Spring Boot 4 the name of the web starter is spring-boot-starter-webmvc (in the Starters table of the Build Systems section of the documentation, spring-boot-starter-web is marked as replaced by it), and it was not checked from a Gradle resolution result that the jars the web starter brings in are exactly this list. In the combination without a web library, HelloController does not compile (the error that the package org.springframework.web.bind.annotation does not exist was actually seen), so that class was removed too. What was checked is the three items of the result table and the facts that the step sentences rely on. These were also checked by execution: that SpringApplication decides it is a web application (servlet) if there is a web library and not if there is not, that the only servlet registered with Tomcat is DispatcherServlet and it handles &quot;/&quot;, that HelloController and DispatcherServlet are beans of Spring, that our source has no text that starts Tomcat or a server, that after the server is up the main thread has ended but the threads of Tomcat (such as container-0) remain so the process stays alive, and the two ways of failing (without the run line, Spring does not start and the program ends right away, and without @SpringBootApplication but with a web library, it fails with exit code 1 with the exception that there is no ServletWebServerFactory bean that makes a web server). What the documentation defines is the section Using the @SpringBootApplication Annotation of the Spring Boot documentation (that it combines @EnableAutoConfiguration, @ComponentScan, and @SpringBootConfiguration), the Auto-configuration section (that it configures by looking at the jars on the classpath), the Web Environment section of SpringApplication (the rule that if Spring MVC is present it decides to use a servlet web context), and the Embedded Servlet Container Support section (that it supports Tomcat and Jetty and the default port is 8080). Splitting &quot;scan the classes and make beans&quot; and &quot;start Tomcat and register DispatcherServlet&quot; into two steps on the screen is a simplification. In the actual log, Tomcat is made while Spring is starting (Tomcat initialized), Tomcat starts accepting connections before the &quot;Started App&quot; log (Tomcat started), and DispatcherServlet was actually initialized when the first request arrived. That classes are not scanned when there is no @SpringBootApplication is defined by the documentation, and that the number of bean definitions is larger with @SpringBootApplication (7 and 50 in the combination without a web library) is a value observed on this version. Unlike what the documentation defines, &quot;if a web server is needed but there is no configuration, it fails instead of ending quietly&quot; and &quot;if there is no web library, it ends without an error&quot; are behaviors observed on this version. The code on the screen leaves out the package and import lines, assumes that App and HelloController are in the same package, and the line in build.gradle was not run with Gradle but the jars that the line means were put on the classpath. Maven and war deployment, using Jetty instead of Tomcat, and changing the port or the kind of web application by settings were not covered. The details of what is configured automatically are covered in the in-depth lab &quot;Spring Boot auto-configuration&quot;.</p>
+<p>Previous lab: <a href="../../lab/tx_basic/">@Transactional</a> · Next lab: <a href="../../lab/entity_basic/">Entities</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

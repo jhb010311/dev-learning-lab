@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Servlets: Which class is called a servlet? · Dev Learning Lab</title>
+<meta name="description" content="A servlet is a Java class declared with class. It differs from an ordinary class in two places. extends HttpServlet is what qualifies the class to receive…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/servlet_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/servlet_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/servlet_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Servlets: Which class is called a servlet? · Dev Learning Lab">
+<meta property="og:description" content="A servlet is a Java class declared with class. It differs from an ordinary class in two places. extends HttpServlet is what qualifies the class to receive…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/servlet_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=641afb84d0">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Spring</p>
+<h1>Servlets</h1>
+<p><b>Which class is called a servlet?</b></p>
+<p>A servlet is a Java class declared with class. It differs from an ordinary class in two places. extends HttpServlet is what qualifies the class to receive web requests, and @WebServlet(&quot;/hello&quot;) registers that a request the browser sends to the path /hello is handed to this class. You remove these two one at a time and send the same request, to see whether Tomcat calls the doGet of this class.</p>
+<p>Checked against real execution · Deployed all 12 combinations on Tomcat 11.0.24, sent requests, and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Servlet class</dt>
+<dd>A servlet class is a Java class that implements the Servlet interface. Instead of implementing the interface directly, you usually extend HttpServlet, which already implements it. The developer does not create an object of a servlet class with new. The servlet container creates it, and when a request arrives, the container calls a method of that object. The container creates only one object for each servlet declaration and keeps using it. Both the class and the object that the container created are called a servlet.</dd>
+<dt>HttpServlet</dt>
+<dd>HttpServlet is an abstract class in the servlet API that you extend to make a servlet that receives HTTP requests. It already implements the Servlet interface that every servlet must implement, so the developer only writes extends HttpServlet and overrides methods such as doGet or doPost. When a request arrives, the service method of HttpServlet looks at the HTTP method of the request and calls the matching doXxx method. If a request comes in for a doXxx method that was not overridden, an error response saying that the HTTP method is not supported is sent.</dd>
+<dt>@WebServlet</dt>
+<dd>@WebServlet is an annotation that declares a class as a servlet and writes the paths (URL patterns) that the servlet handles. When the servlet container deploys the application, it reads this annotation and pairs the paths with the servlet. At least one path must be written, and a class with this annotation must extend HttpServlet. Adding the annotation does not turn an ordinary class into a servlet. The same registration can also be written in a configuration file called web.xml.</dd>
+<dt>Servlet and servlet container</dt>
+<dd>A servlet is the Java standard interface that receives an HTTP request, processes it, and produces a response. A servlet container (such as Tomcat) accepts network connections, parses requests, calls the right servlet, and manages the servlet lifecycle and the request-handling threads. Spring MVC runs on top of a single servlet called DispatcherServlet.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A servlet that has both. When a request arrives, Tomcat calls doGet.</li>
+<li><b>Removing @WebServlet</b> — It is a servlet class, but it has no path to handle, so it is never called.</li>
+<li><b>Removing extends HttpServlet</b> — The path is registered, but the class is not a servlet, so it fails on the first request.</li>
+<li><b>Removing both</b> — An ordinary class with the same method. Tomcat does not use this class.</li>
+<li><b>With 3 paths</b> — You write one servlet class per path.</li>
+<li><b>Three paths on one class</b> — There is only one doGet, so all three paths give the same response.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The server starts. Tomcat scans the class files of the web application and looks for classes with @WebServlet. It finds it on the Hello class, so Tomcat writes the path and the class written there into the path table. No object is created yet.</li>
+<li>You type localhost:8080/hello in the address bar of the browser, and the browser sends a GET /hello request to the server.</li>
+<li>Tomcat looks for the path /hello in the path table. The Hello class is written there.</li>
+<li>Tomcat creates an object of the Hello class. The code we wrote has no line new Hello(). Tomcat creates the servlet object.</li>
+<li>Tomcat passes the request to this object. The code in HttpServlet sees that it is a GET request and calls the doGet that we wrote. We did not write the line that calls doGet either. The text that doGet writes to the response is &quot;Hello&quot;.</li>
+<li>The browser receives a 200 response. The body is &quot;Hello&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A servlet is a Java class declared with class. It differs from an ordinary class in extends HttpServlet (the qualification) and @WebServlet (the registration of a path). With both, Tomcat creates the object and calls doGet when a request arrives.</li>
+<li>The code we wrote has no new and no line that calls doGet. A method of an ordinary class runs only when our code calls it, but a method of a servlet is called by Tomcat when a request arrives.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Registration: hand requests for this path to this class
+@WebServlet(&quot;/hello&quot;)
+// Qualification: a servlet class that can receive web requests
+public class Hello extends HttpServlet {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        resp.setContentType(&quot;text/plain; charset=UTF-8&quot;);
+        resp.getWriter().write(&quot;Hello&quot;);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The servlet container is Tomcat 11.0.24 (Jakarta Servlet 6.1), and the model assumes that the browser sends one GET request per path, one after another. The localhost:8080 in the paths is an example of running Tomcat on its default port on my own computer. All 12 combinations were checked against the result of compiling the same source as the code on the screen, putting it in the web application folder (WEB-INF/classes), starting a real Tomcat, and sending the requests. What was checked is whether the class is of the Servlet type, the path table of Tomcat, the status code and body of the response, the number of objects created, and the number of doGet runs. That every servlet implements the Servlet interface and that HttpServlet is an implementation of it follow chapter 2 of the Jakarta Servlet specification, and that a class annotated with @WebServlet must extend HttpServlet and must have at least one path written on it follows section 8.1.1 of the specification. The screen shows the qualification with extends HttpServlet alone, but the exact condition is to implement the Servlet interface, and extending HttpServlet is the most common way. A path can also be registered with the web.xml configuration file or in code instead of @WebServlet, but only @WebServlet is covered here. The code on the screen leaves out the import lines and the @Override that is commonly put on an overridden method. That a plain class with only @WebServlet gets a 500 for the first request and a 404 from the next request to the same registration on is not defined by the specification but is a behavior observed on this Tomcat version. The calls to init and service that Tomcat goes through from creating the object to reaching doGet are left out, and they are covered in the in-depth lab &quot;Servlets&quot;.</p>
+<p>Previous lab: <a href="../../lab/di_basic/">Dependency injection</a> · Next lab: <a href="../../lab/controller_basic/">Controllers</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=641afb84d0"></script>
+</body>
+</html>

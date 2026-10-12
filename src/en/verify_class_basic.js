@@ -1,0 +1,1 @@
+Lab.verify({ class_basic: ['run', 'Twelve combinations were compiled with javax.tools on JDK 21, run, and checked against the results; the number of objects created was measured by adding a counting line'] });
