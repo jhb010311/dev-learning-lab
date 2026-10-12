@@ -107,16 +107,16 @@ var Lab = (function () {
     $('clock').textContent = cur.mode === 'step' ? '단계 ' + shown.length + ' / ' + sim.events.length : '모형 속 시간 ' + fmt(Math.min(t, sim.total)) + '초 / ' + fmt(sim.total) + '초';
     var state = running ? '실행 중 · ' : paused && t < sim.total - 1e-9 ? '멈춤 · ' : '';
     if (state) { var cl = $('clock'), tx = cl.textContent; cl.textContent = ''; cl.appendChild(el('b', null, state)); cl.appendChild(document.createTextNode(tx)); }
-    $('say').parentNode.className = 'now' + (running ? ' running' : '');
-    var sayText = last ? last.s : running ? '시작합니다…' : '실행을 누르면 시작합니다.', sayEl = $('say'); if (sayEl.dataset.txt !== cur.id + '|' + sayText) { sayEl.dataset.txt = cur.id + '|' + sayText; glossInto(sayEl, sayText, cur.id); }
     var v = $('view'); v.textContent = ''; cur.render(v, sim, t, H, shown); if (cur.draw) picDraw(t, shown);
+    // 전체 단계 기록: 지나온 단계가 차례로 쌓이고 맨 아래 줄이 지금 단계다. 새 줄만 덧붙여서 화면 낭독기가 새 단계만 읽게 한다.
     var lg = $('log');
-    if (lg.children.length !== shown.length) {
-      lg.textContent = ''; var seenLog = {};
-      shown.forEach(function (e, i) { var li = el('li', e.k === 'bad' ? 'bad' : e.k === 'good' ? 'good' : ''); li.appendChild(el('span', 'tm', cur.mode === 'step' ? (i + 1) + '단계' : fmt(e.t) + '초')); li.appendChild(glossEl('span', 'tx', e.s, cur.id, seenLog)); lg.appendChild(li); });
+    if (lg._sim !== sim) { lg.textContent = ''; lg._sim = sim; lg._seen = {}; }
+    while (lg.children.length > shown.length) lg.removeChild(lg.lastChild);
+    if (lg.children.length < shown.length) {
+      shown.forEach(function (e, i) { if (i < lg.children.length) return; var li = el('li', e.k === 'bad' ? 'bad' : e.k === 'good' ? 'good' : ''); li.appendChild(el('span', 'tm', cur.mode === 'step' ? (i + 1) + '단계' : fmt(e.t) + '초')); li.appendChild(glossEl('span', 'tx', e.s, cur.id, lg._seen)); lg.appendChild(li); });
       lg.scrollTop = lg.scrollHeight;
     }
-    $('logpanel').hidden = !shown.length; $('log-head').textContent = '전체 단계 기록 (' + shown.length + ')';
+    lg.hidden = !shown.length;
   }
   function verdict() {
     var v = $('verdict'); v.textContent = ''; v.appendChild(el('b', null, '이번 실행 결과'));
@@ -316,7 +316,7 @@ var Lab = (function () {
     askCancel(); stop(); paused = false; sim = cur.simulate(c); sim.c = c; sim.label = cur.label(c); sim._want = !quiet;
     sim._pred = pred ? { baseRow: pred.base.row.slice(), baseLabel: pred.base.label, picks: pred.picks } : null;
     if (cur.mode === 'step') { sim.events.forEach(function (e, i) { e.t = i + 1; }); sim.total = sim.events.length; }
-    $('verdict').textContent = ''; $('log').textContent = '';
+    $('verdict').textContent = '';
     if (!animated) { finish(); return; }
     // 단계 실습은 문장을 읽을 수 있게 보통 속도에서 한 단계에 1.5초를 쓴다(첫 단계만 빨리 나온다). 화면을 옮겼으면 다 옮긴 뒤에 시작한다.
     clock = cur.mode === 'step' ? 0.6 : 0; hold = showStage() ? Date.now() + 650 : 0; play();
@@ -327,18 +327,24 @@ var Lab = (function () {
     var ts = sim.events.map(function (e) { return e.t; }), target;
     if (dir > 0) { target = ts.filter(function (x) { return x > clock + 1e-9; })[0]; if (target === undefined) target = sim.total; }
     else { var before = ts.filter(function (x) { return x < clock - 1e-9; }); target = before.length ? before[before.length - 1] : 0; }
-    clock = target; paused = clock < sim.total - 1e-9; $('log').textContent = ''; render(clock);
+    clock = target; paused = clock < sim.total - 1e-9; render(clock);
     if (!paused) { record(); verdict(); } else $('verdict').textContent = '';
     syncBar();
   }
+  // 개념이 많으면 앞의 몇 개만 보이고 "모두 보기"로 펼친다. 보이는 개수는 화면 폭(단의 수)에 맞춘다.
+  function fitTerms() {
+    var box = $('terms'), btn = $('terms-more'); if (!cur) return;
+    var mm = function (q) { return !!window.matchMedia && window.matchMedia(q).matches; }, lim = mm('(min-width: 1400px)') ? 6 : mm('(max-width: 900px)') ? 2 : 4, n = box.children.length;
+    for (var i = 0; i < n; i++) box.children[i].hidden = !box._open && i >= lim;
+    btn.hidden = n <= lim; btn.textContent = box._open ? '개념 설명 접기' : '개념 ' + (cur.explain || []).length + '개 모두 보기'; btn.setAttribute('aria-expanded', String(!!box._open));
+  }
   function drawExplain() {
-    var box = $('terms'); box.textContent = '';
+    var box = $('terms'); box.textContent = ''; box._open = false; setTimeout(fitTerms, 0);
     (cur.explain || []).forEach(function (t) { var d = el('div', 'term'); var b = el('b', null, t.name + ' '); d.appendChild(b); d.appendChild(glossEl('p', null, t.book, cur.id, {}, t.name)); box.appendChild(d); });
   }
   function open(id) {
     stop(); askCancel(); sim = null; paused = false; assumeOpen = false; cur = byId(id) || lessons[0];
     $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
-    $('explain').hidden = true; $('explain-btn').setAttribute('aria-expanded', 'false'); $('explain-btn').textContent = '개념 설명 보기';
     drawPath();
     var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); placeCode(); picReset();
     buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
@@ -355,10 +361,11 @@ var Lab = (function () {
     // 실행 띠의 높이만큼 그림(또는 코드)이 그 아래에 붙도록 알려 준다
     var bar = $('runbar'), barH = function () { document.documentElement.style.setProperty('--barh', bar.offsetHeight + 'px'); };
     if (window.ResizeObserver) new ResizeObserver(barH).observe(bar); else window.addEventListener('resize', barH);
+    $('terms-more').addEventListener('click', function () { var b = $('terms'); b._open = !b._open; fitTerms(); });
+    window.addEventListener('resize', fitTerms); window.addEventListener('load', fitTerms);
     $('next').addEventListener('click', function () { stepTo(1); });
     $('prev').addEventListener('click', function () { stepTo(-1); });
     $('clear').addEventListener('click', function () { hist[cur.id] = []; drawHist(); });
-    $('explain-btn').addEventListener('click', function () { var x = $('explain'); x.hidden = !x.hidden; this.setAttribute('aria-expanded', String(!x.hidden)); this.textContent = x.hidden ? '개념 설명 보기' : '개념 설명 닫기'; });
     $('brand').addEventListener('click', function (e) { e.preventDefault(); nav('home'); });
     $('t-home').addEventListener('click', function () { nav('home'); });
     $('t-lab').addEventListener('click', function () { nav('study'); });

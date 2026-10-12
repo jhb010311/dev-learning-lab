@@ -102,16 +102,15 @@ var Lab = (function () {
     $('clock').textContent = cur.mode === 'step' ? 'Step ' + shown.length + ' / ' + sim.events.length : 'Model time ' + fmt(Math.min(t, sim.total)) + 's / ' + fmt(sim.total) + 's';
     var state = running ? 'Running · ' : paused && t < sim.total - 1e-9 ? 'Paused · ' : '';
     if (state) { var cl = $('clock'), tx = cl.textContent; cl.textContent = ''; cl.appendChild(el('b', null, state)); cl.appendChild(document.createTextNode(tx)); }
-    $('say').parentNode.className = 'now' + (running ? ' running' : '');
-    var sayText = last ? last.s : running ? 'Starting…' : 'Click Run to start.', sayEl = $('say'); if (sayEl.dataset.txt !== cur.id + '|' + sayText) { sayEl.dataset.txt = cur.id + '|' + sayText; glossInto(sayEl, sayText, cur.id); }
     var v = $('view'); v.textContent = ''; cur.render(v, sim, t, H, shown); if (cur.draw) picDraw(t, shown);
     var lg = $('log');
-    if (lg.children.length !== shown.length) {
-      lg.textContent = ''; var seenLog = {};
-      shown.forEach(function (e, i) { var li = el('li', e.k === 'bad' ? 'bad' : e.k === 'good' ? 'good' : ''); li.appendChild(el('span', 'tm', cur.mode === 'step' ? 'Step ' + (i + 1) : fmt(e.t) + 's')); li.appendChild(glossEl('span', 'tx', e.s, cur.id, seenLog)); lg.appendChild(li); });
+    if (lg._sim !== sim) { lg.textContent = ''; lg._sim = sim; lg._seen = {}; }
+    while (lg.children.length > shown.length) lg.removeChild(lg.lastChild);
+    if (lg.children.length < shown.length) {
+      shown.forEach(function (e, i) { if (i < lg.children.length) return; var li = el('li', e.k === 'bad' ? 'bad' : e.k === 'good' ? 'good' : ''); li.appendChild(el('span', 'tm', cur.mode === 'step' ? 'Step ' + (i + 1) : fmt(e.t) + 's')); li.appendChild(glossEl('span', 'tx', e.s, cur.id, lg._seen)); lg.appendChild(li); });
       lg.scrollTop = lg.scrollHeight;
     }
-    $('logpanel').hidden = !shown.length; $('log-head').textContent = 'Step log (' + shown.length + ')';
+    lg.hidden = !shown.length;
   }
   function verdict() {
     var v = $('verdict'); v.textContent = ''; v.appendChild(el('b', null, 'Result of this run'));
@@ -294,7 +293,7 @@ var Lab = (function () {
     askCancel(); stop(); paused = false; sim = cur.simulate(c); sim.c = c; sim.label = cur.label(c); sim._want = !quiet;
     sim._pred = pred ? { baseRow: pred.base.row.slice(), baseLabel: pred.base.label, picks: pred.picks } : null;
     if (cur.mode === 'step') { sim.events.forEach(function (e, i) { e.t = i + 1; }); sim.total = sim.events.length; }
-    $('verdict').textContent = ''; $('log').textContent = '';
+    $('verdict').textContent = '';
     if (!animated) { finish(); return; }
     clock = cur.mode === 'step' ? 0.6 : 0; hold = showStage() ? Date.now() + 650 : 0; play();
   }
@@ -303,18 +302,23 @@ var Lab = (function () {
     var ts = sim.events.map(function (e) { return e.t; }), target;
     if (dir > 0) { target = ts.filter(function (x) { return x > clock + 1e-9; })[0]; if (target === undefined) target = sim.total; }
     else { var before = ts.filter(function (x) { return x < clock - 1e-9; }); target = before.length ? before[before.length - 1] : 0; }
-    clock = target; paused = clock < sim.total - 1e-9; $('log').textContent = ''; render(clock);
+    clock = target; paused = clock < sim.total - 1e-9; render(clock);
     if (!paused) { record(); verdict(); } else $('verdict').textContent = '';
     syncBar();
   }
+  function fitTerms() {
+    var box = $('terms'), btn = $('terms-more'); if (!cur) return;
+    var mm = function (q) { return !!window.matchMedia && window.matchMedia(q).matches; }, lim = mm('(min-width: 1400px)') ? 6 : mm('(max-width: 900px)') ? 2 : 4, n = box.children.length;
+    for (var i = 0; i < n; i++) box.children[i].hidden = !box._open && i >= lim;
+    btn.hidden = n <= lim; btn.textContent = box._open ? 'Show fewer concepts' : 'Show all ' + (cur.explain || []).length + ' concepts'; btn.setAttribute('aria-expanded', String(!!box._open));
+  }
   function drawExplain() {
-    var box = $('terms'); box.textContent = '';
+    var box = $('terms'); box.textContent = ''; box._open = false; setTimeout(fitTerms, 0);
     (cur.explain || []).forEach(function (t) { var d = el('div', 'term'); var b = el('b', null, t.name + ' '); d.appendChild(b); d.appendChild(glossEl('p', null, t.book, cur.id, {}, t.name)); box.appendChild(d); });
   }
   function open(id) {
     stop(); askCancel(); sim = null; paused = false; assumeOpen = false; cur = byId(id) || lessons[0];
     $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
-    $('explain').hidden = true; $('explain-btn').setAttribute('aria-expanded', 'false'); $('explain-btn').textContent = 'Show concept notes';
     drawPath();
     var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); placeCode(); picReset();
     buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
@@ -330,10 +334,11 @@ var Lab = (function () {
     $('pred-on').checked = predOn; $('pred-on').addEventListener('change', function () { predOn = this.checked; try { localStorage.setItem('lab-pred', predOn ? '1' : '0'); } catch (e) {} if (!predOn && ask) { askCancel(); syncBar(); } });
     var bar = $('runbar'), barH = function () { document.documentElement.style.setProperty('--barh', bar.offsetHeight + 'px'); };
     if (window.ResizeObserver) new ResizeObserver(barH).observe(bar); else window.addEventListener('resize', barH);
+    $('terms-more').addEventListener('click', function () { var b = $('terms'); b._open = !b._open; fitTerms(); });
+    window.addEventListener('resize', fitTerms); window.addEventListener('load', fitTerms);
     $('next').addEventListener('click', function () { stepTo(1); });
     $('prev').addEventListener('click', function () { stepTo(-1); });
     $('clear').addEventListener('click', function () { hist[cur.id] = []; drawHist(); });
-    $('explain-btn').addEventListener('click', function () { var x = $('explain'); x.hidden = !x.hidden; this.setAttribute('aria-expanded', String(!x.hidden)); this.textContent = x.hidden ? 'Show concept notes' : 'Hide concept notes'; });
     $('brand').addEventListener('click', function (e) { e.preventDefault(); nav('home'); });
     $('t-home').addEventListener('click', function () { nav('home'); });
     $('t-lab').addEventListener('click', function () { nav('study'); });

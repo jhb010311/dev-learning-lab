@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=11b50606e7">
+<link rel="stylesheet" href="../../app.css?v=f4654bf3cf">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -94,16 +94,21 @@ a.sound();</pre>
 
   <section class="lesson-head labonly">
     <div class="eyebrow" id="eyebrow"></div>
-    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">Show concept notes</button></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
-    <div class="vbadge" id="vbadge"></div>
-    <p id="intro"></p>
-    <div class="pathbar" id="pathbar"></div>
-  </section>
-
-  <section class="explain labonly" id="explain" hidden>
-    <div class="bar2"><h3>Concepts in this lab</h3></div>
-    <div class="terms" id="terms"></div>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
   </section>
 
   <div class="grid labonly">
@@ -114,6 +119,7 @@ a.sound();</pre>
     </div>
 
     <div class="panel p-bar" id="runbar">
+      <h3 id="log-head">Step log</h3>
       <div class="runrow">
         <button class="btn" id="run" type="button">Run</button>
         <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
@@ -124,7 +130,7 @@ a.sound();</pre>
         <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
       </div>
       <div class="ask" id="ask" hidden></div>
-      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+      <ol class="log" id="log" aria-live="polite" aria-relevant="additions" hidden></ol>
     </div>
 
     <div class="panel p-code" id="codepanel">
@@ -147,10 +153,6 @@ a.sound();</pre>
   </div>
 
   <div class="below labonly" id="below">
-    <div class="panel p-log" id="logpanel" hidden>
-      <h3 id="log-head">Step log</h3>
-      <ol class="log" id="log"></ol>
-    </div>
     <div class="panel p-hist" id="histpanel">
       <h3>Run comparison</h3>
       <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
@@ -169,6 +171,6 @@ a.sound();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=11b50606e7"></script>
+<script src="../../app.js?v=f4654bf3cf"></script>
 </body>
 </html>

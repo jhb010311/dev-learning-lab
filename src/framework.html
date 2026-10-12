@@ -65,12 +65,15 @@ button, input, select { font: inherit; color: inherit; }
 .lesson-head .question { font-size: 1.12rem; font-weight: 600; line-height: 1.45; margin: 0; text-wrap: balance; }
 .titlerow { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
 
-.explain { background: var(--surface); border: 1px solid var(--line); border-top: 2px solid var(--ink); border-radius: 0 0 3px 3px; padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; }
-.explain .bar2 { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+/* 머리의 두 칸: 왼쪽은 이 실습에 나오는 개념의 정의, 오른쪽은 이 실습에서 보는 것 */
+.headcols { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 14px 44px; align-items: start; margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+.concept, .about { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.about { padding-left: 44px; margin-left: -22px; border-left: 1px solid var(--line); }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
 .seg button { border: 0; background: transparent; padding: 4px 12px; cursor: pointer; font-size: .86rem; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 600; }
-.terms { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px 26px; }
+.terms { columns: 2; column-gap: 30px; }
+.term { break-inside: avoid; margin-bottom: 14px; }
 .term b { display: block; }
 .term .no { font-family: var(--font-code); font-size: .74rem; color: var(--muted); font-weight: 400; }
 .term p { font-size: .92rem; max-width: 70ch; }
@@ -85,18 +88,19 @@ button, input, select { font: inherit; color: inherit; }
 .ctls { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px 20px; align-items: start; }
 .presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px; }
 .grid.haspic .p-pic, .grid:not(.haspic) .p-code { position: sticky; top: calc(var(--barh, 104px) + 10px); max-height: calc(100vh - var(--barh, 104px) - 20px); overflow-y: auto; }
-/* 실행 띠: 조작 줄과 그 아래의 현재 단계 문장 */
+/* 실행 띠: 전체 단계 기록. 조작 줄 아래에 지나온 단계가 쌓이고, 맨 아래 줄이 지금 단계다 */
 .panel.p-bar { position: sticky; top: 0; z-index: 20; padding: 10px 18px 12px; gap: 8px; border-color: var(--ink); box-shadow: 0 3px 0 color-mix(in srgb, var(--ink) 14%, transparent); }
 .p-bar .runrow { gap: 8px 10px; }
 .p-bar .clock { font-family: var(--font-code); font-size: .84rem; color: var(--muted); margin-left: 4px; }
 .p-bar .clock b { color: var(--accent); }
 .p-bar .stale { font-size: .86rem; font-weight: 600; color: var(--busy-edge); margin-left: auto; }
 .p-bar.isstale #run { box-shadow: 0 0 0 3px color-mix(in srgb, var(--busy-edge) 45%, transparent); }
-.p-bar .now { min-height: 3.1em; padding: 8px 2px 0; display: flex; align-items: center; }
+.p-bar .log { max-height: 132px; font-size: .92rem; }
+.p-bar .log li:last-child .tx { font-weight: 600; }
 .ask { border: 1px dashed var(--queue-edge); background: var(--bg); padding: 10px 12px; border-radius: 3px; display: flex; flex-direction: column; gap: 8px; }
 .askopts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 6px 18px; }
 .askopts .check { font-weight: 400; align-items: baseline; }
-.p-bar.asking .now { display: none; }
+.p-bar.asking .log { display: none; }
 .p-bar .predtoggle { margin-left: auto; font-weight: 400; font-size: .88rem; }
 .p-bar .stale:not([hidden]) ~ .predtoggle { margin-left: 0; }
 .vsprev ul { margin: 2px 0 0; padding-left: 1.2em; } .vsprev li.pok { color: var(--done-edge); } .vsprev li.pno { color: var(--rej-edge); font-weight: 600; }
@@ -330,8 +334,10 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
   .p-bar .btn { padding: 6px 11px; font-size: .9rem; }
   .p-bar .lng { display: none; }
   .p-bar .clock { font-size: .78rem; margin-left: 0; }
-  .p-bar .now { min-height: 0; }
-  .p-bar .say { font-size: .93rem; line-height: 1.5; }
+  .p-bar .log { max-height: 108px; font-size: .9rem; }
+  .headcols { grid-template-columns: minmax(0, 1fr); }
+  .terms { columns: 1; }
+  .about { order: -1; padding-left: 0; margin-left: 0; border-left: 0; }
   .p-bar .stale { margin-left: 0; flex-basis: 100%; }
   .p-bar.asking { position: static; }
   .p-bar .predtoggle { margin-left: 0; }
@@ -339,6 +345,8 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 @media (min-width: 901px) { #ctl-toggle { display: none; } }
 /* 넓은 화면: 좌우의 빈 자리를 쓴다. 처음 화면의 분야는 세 칸, 분야의 목차는 두 칸. 실습은 1600px 이상이면 코드 | 그림 | 실행표 세 칸(wide3는 스크립트가 붙인다). */
 @media (min-width: 1400px) {
+  .headcols { grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr); }
+  .terms { columns: 3; }
   .wrap { max-width: 1680px; padding-inline: 32px; }
   .hgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .hgrid.small { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
@@ -360,16 +368,21 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
 
   <section class="lesson-head labonly">
     <div class="eyebrow" id="eyebrow"></div>
-    <div class="titlerow"><h2 id="title"></h2><button class="btn ghost small" id="explain-btn" type="button" aria-expanded="false" aria-controls="explain">개념 설명 보기</button></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
     <p class="question" id="question"></p>
-    <div class="vbadge" id="vbadge"></div>
-    <p id="intro"></p>
-    <div class="pathbar" id="pathbar"></div>
-  </section>
-
-  <section class="explain labonly" id="explain" hidden>
-    <div class="bar2"><h3>이 실습에 나오는 개념</h3></div>
-    <div class="terms" id="terms"></div>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
   </section>
 
   <div class="grid labonly">
@@ -380,6 +393,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
     </div>
 
     <div class="panel p-bar" id="runbar">
+      <h3 id="log-head">전체 단계 기록</h3>
       <div class="runrow">
         <button class="btn" id="run" type="button">실행</button>
         <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
@@ -390,7 +404,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
         <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
       </div>
       <div class="ask" id="ask" hidden></div>
-      <div class="now" aria-live="polite"><div class="say" id="say"></div></div>
+      <ol class="log" id="log" aria-live="polite" aria-relevant="additions" hidden></ol>
     </div>
 
     <div class="panel p-code" id="codepanel">
@@ -413,10 +427,6 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
   </div>
 
   <div class="below labonly" id="below">
-    <div class="panel p-log" id="logpanel" hidden>
-      <h3 id="log-head">전체 단계 기록</h3>
-      <ol class="log" id="log"></ol>
-    </div>
     <div class="panel p-hist" id="histpanel">
       <h3>실행 비교</h3>
       <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
@@ -546,16 +556,16 @@ var Lab = (function () {
     $('clock').textContent = cur.mode === 'step' ? '단계 ' + shown.length + ' / ' + sim.events.length : '모형 속 시간 ' + fmt(Math.min(t, sim.total)) + '초 / ' + fmt(sim.total) + '초';
     var state = running ? '실행 중 · ' : paused && t < sim.total - 1e-9 ? '멈춤 · ' : '';
     if (state) { var cl = $('clock'), tx = cl.textContent; cl.textContent = ''; cl.appendChild(el('b', null, state)); cl.appendChild(document.createTextNode(tx)); }
-    $('say').parentNode.className = 'now' + (running ? ' running' : '');
-    var sayText = last ? last.s : running ? '시작합니다…' : '실행을 누르면 시작합니다.', sayEl = $('say'); if (sayEl.dataset.txt !== cur.id + '|' + sayText) { sayEl.dataset.txt = cur.id + '|' + sayText; glossInto(sayEl, sayText, cur.id); }
     var v = $('view'); v.textContent = ''; cur.render(v, sim, t, H, shown); if (cur.draw) picDraw(t, shown);
+    // 전체 단계 기록: 지나온 단계가 차례로 쌓이고 맨 아래 줄이 지금 단계다. 새 줄만 덧붙여서 화면 낭독기가 새 단계만 읽게 한다.
     var lg = $('log');
-    if (lg.children.length !== shown.length) {
-      lg.textContent = ''; var seenLog = {};
-      shown.forEach(function (e, i) { var li = el('li', e.k === 'bad' ? 'bad' : e.k === 'good' ? 'good' : ''); li.appendChild(el('span', 'tm', cur.mode === 'step' ? (i + 1) + '단계' : fmt(e.t) + '초')); li.appendChild(glossEl('span', 'tx', e.s, cur.id, seenLog)); lg.appendChild(li); });
+    if (lg._sim !== sim) { lg.textContent = ''; lg._sim = sim; lg._seen = {}; }
+    while (lg.children.length > shown.length) lg.removeChild(lg.lastChild);
+    if (lg.children.length < shown.length) {
+      shown.forEach(function (e, i) { if (i < lg.children.length) return; var li = el('li', e.k === 'bad' ? 'bad' : e.k === 'good' ? 'good' : ''); li.appendChild(el('span', 'tm', cur.mode === 'step' ? (i + 1) + '단계' : fmt(e.t) + '초')); li.appendChild(glossEl('span', 'tx', e.s, cur.id, lg._seen)); lg.appendChild(li); });
       lg.scrollTop = lg.scrollHeight;
     }
-    $('logpanel').hidden = !shown.length; $('log-head').textContent = '전체 단계 기록 (' + shown.length + ')';
+    lg.hidden = !shown.length;
   }
   function verdict() {
     var v = $('verdict'); v.textContent = ''; v.appendChild(el('b', null, '이번 실행 결과'));
@@ -755,7 +765,7 @@ var Lab = (function () {
     askCancel(); stop(); paused = false; sim = cur.simulate(c); sim.c = c; sim.label = cur.label(c); sim._want = !quiet;
     sim._pred = pred ? { baseRow: pred.base.row.slice(), baseLabel: pred.base.label, picks: pred.picks } : null;
     if (cur.mode === 'step') { sim.events.forEach(function (e, i) { e.t = i + 1; }); sim.total = sim.events.length; }
-    $('verdict').textContent = ''; $('log').textContent = '';
+    $('verdict').textContent = '';
     if (!animated) { finish(); return; }
     // 단계 실습은 문장을 읽을 수 있게 보통 속도에서 한 단계에 1.5초를 쓴다(첫 단계만 빨리 나온다). 화면을 옮겼으면 다 옮긴 뒤에 시작한다.
     clock = cur.mode === 'step' ? 0.6 : 0; hold = showStage() ? Date.now() + 650 : 0; play();
@@ -766,18 +776,24 @@ var Lab = (function () {
     var ts = sim.events.map(function (e) { return e.t; }), target;
     if (dir > 0) { target = ts.filter(function (x) { return x > clock + 1e-9; })[0]; if (target === undefined) target = sim.total; }
     else { var before = ts.filter(function (x) { return x < clock - 1e-9; }); target = before.length ? before[before.length - 1] : 0; }
-    clock = target; paused = clock < sim.total - 1e-9; $('log').textContent = ''; render(clock);
+    clock = target; paused = clock < sim.total - 1e-9; render(clock);
     if (!paused) { record(); verdict(); } else $('verdict').textContent = '';
     syncBar();
   }
+  // 개념이 많으면 앞의 몇 개만 보이고 "모두 보기"로 펼친다. 보이는 개수는 화면 폭(단의 수)에 맞춘다.
+  function fitTerms() {
+    var box = $('terms'), btn = $('terms-more'); if (!cur) return;
+    var mm = function (q) { return !!window.matchMedia && window.matchMedia(q).matches; }, lim = mm('(min-width: 1400px)') ? 6 : mm('(max-width: 900px)') ? 2 : 4, n = box.children.length;
+    for (var i = 0; i < n; i++) box.children[i].hidden = !box._open && i >= lim;
+    btn.hidden = n <= lim; btn.textContent = box._open ? '개념 설명 접기' : '개념 ' + (cur.explain || []).length + '개 모두 보기'; btn.setAttribute('aria-expanded', String(!!box._open));
+  }
   function drawExplain() {
-    var box = $('terms'); box.textContent = '';
+    var box = $('terms'); box.textContent = ''; box._open = false; setTimeout(fitTerms, 0);
     (cur.explain || []).forEach(function (t) { var d = el('div', 'term'); var b = el('b', null, t.name + ' '); d.appendChild(b); d.appendChild(glossEl('p', null, t.book, cur.id, {}, t.name)); box.appendChild(d); });
   }
   function open(id) {
     stop(); askCancel(); sim = null; paused = false; assumeOpen = false; cur = byId(id) || lessons[0];
     $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
-    $('explain').hidden = true; $('explain-btn').setAttribute('aria-expanded', 'false'); $('explain-btn').textContent = '개념 설명 보기';
     drawPath();
     var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : ''); placeCode(); picReset();
     buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
@@ -794,10 +810,11 @@ var Lab = (function () {
     // 실행 띠의 높이만큼 그림(또는 코드)이 그 아래에 붙도록 알려 준다
     var bar = $('runbar'), barH = function () { document.documentElement.style.setProperty('--barh', bar.offsetHeight + 'px'); };
     if (window.ResizeObserver) new ResizeObserver(barH).observe(bar); else window.addEventListener('resize', barH);
+    $('terms-more').addEventListener('click', function () { var b = $('terms'); b._open = !b._open; fitTerms(); });
+    window.addEventListener('resize', fitTerms); window.addEventListener('load', fitTerms);
     $('next').addEventListener('click', function () { stepTo(1); });
     $('prev').addEventListener('click', function () { stepTo(-1); });
     $('clear').addEventListener('click', function () { hist[cur.id] = []; drawHist(); });
-    $('explain-btn').addEventListener('click', function () { var x = $('explain'); x.hidden = !x.hidden; this.setAttribute('aria-expanded', String(!x.hidden)); this.textContent = x.hidden ? '개념 설명 보기' : '개념 설명 닫기'; });
     $('brand').addEventListener('click', function (e) { e.preventDefault(); nav('home'); });
     $('t-home').addEventListener('click', function () { nav('home'); });
     $('t-lab').addEventListener('click', function () { nav('study'); });
