@@ -9,12 +9,12 @@ Lab.register({
     { id: 'pub', label: '메시지를 발행하는 방식', type: 'select', value: 'after', options: [['after', 'DB 커밋 후에 메시지 발행'], ['before', '메시지 발행 후에 DB 커밋'], ['outbox', 'Outbox 테이블에 함께 저장 (나중에 발행)']], show: function (c) { return c.part === 'outbox'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '재고 차감에서 실패. 결제와 주문을 거꾸로 되돌립니다.', v: { part: 'saga', fail: 'stock', pub: 'after' } },
-    { t: '마지막 단계에서 실패', d: '배송 요청 실패. 되돌릴 것이 세 개입니다.', v: { part: 'saga', fail: 'ship', pub: 'after' } },
-    { t: '실패 없음', d: '네 단계가 차례로 성공합니다.', v: { part: 'saga', fail: 'none', pub: 'after' } },
-    { t: '커밋 후 발행하다 서버가 죽으면', d: '주문은 저장됐는데 이벤트가 나가지 않습니다.', v: { part: 'outbox', fail: 'stock', pub: 'after' } },
-    { t: '발행 후 커밋하다 서버가 죽으면', d: '이벤트는 나갔는데 주문이 없습니다.', v: { part: 'outbox', fail: 'stock', pub: 'before' } },
-    { t: 'Outbox 테이블 사용', d: '주문과 "보낼 메시지"를 한 트랜잭션에 저장합니다.', v: { part: 'outbox', fail: 'stock', pub: 'outbox' } },
+    { t: '처음 설정으로', q: '주문 흐름에서 재고 차감 단계가 실패하면 어떻게 처리되나', d: '재고 차감에서 실패. 결제와 주문을 거꾸로 되돌립니다.', v: { part: 'saga', fail: 'stock', pub: 'after' } },
+    { t: '마지막 단계에서 실패', q: '실패하는 단계를 배송 요청으로 바꾸면', d: '배송 요청 실패. 되돌릴 것이 세 개입니다.', v: { part: 'saga', fail: 'ship', pub: 'after' } },
+    { t: '실패 없음', q: '실패하는 단계를 실패 없음으로 바꾸면', d: '네 단계가 차례로 성공합니다.', v: { part: 'saga', fail: 'none', pub: 'after' } },
+    { t: '커밋 후 발행하다 서버가 죽으면', q: 'DB 커밋 후에 메시지를 발행하는데 그 사이에 서버가 죽으면', d: '주문은 저장됐는데 이벤트가 나가지 않습니다.', v: { part: 'outbox', fail: 'stock', pub: 'after' } },
+    { t: '발행 후 커밋하다 서버가 죽으면', q: '메시지 발행 후에 DB 커밋하는데 그 사이에 서버가 죽으면', d: '이벤트는 나갔는데 주문이 없습니다.', v: { part: 'outbox', fail: 'stock', pub: 'before' } },
+    { t: 'Outbox 테이블 사용', q: '주문과 보낼 메시지를 Outbox 테이블에 함께 저장하고 나중에 발행하는데 서버가 죽으면', d: '주문과 "보낼 메시지"를 한 트랜잭션에 저장합니다.', v: { part: 'outbox', fail: 'stock', pub: 'outbox' } },
   ],
   code: function (c) {
     if (c.part === 'saga') return '// 각 단계는 자기 서비스의 로컬 트랜잭션으로 커밋된다\n1. 주문 서비스   주문 생성 (PENDING)      보상: 주문 취소\n2. 결제 서비스   결제 승인                보상: 결제 취소(환불)\n3. 재고 서비스   재고 차감                보상: 재고 복구\n4. 배송 서비스   배송 요청                (마지막 단계)\n\n// 단계가 실패하면 "실패" 이벤트를 발행하고,\n// 앞선 단계들이 그 이벤트를 받아 자기 보상 작업을 실행한다';

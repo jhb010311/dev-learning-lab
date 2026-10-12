@@ -11,11 +11,11 @@ Lab.register({
     { id: 'osiv', label: 'OSIV가 켜져 있다 (스프링 부트 기본값)', type: 'check', value: true },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'OSIV 켜짐. DB 작업은 0.5초인데 커넥션을 2.5초씩 쥐고 있습니다.', v: { pool: 3, n: 8, q: '0.5', ext: '2', osiv: true } },
-    { t: 'OSIV를 끄면', d: 'DB 작업이 끝나는 즉시 커넥션을 돌려줍니다.', v: { pool: 3, n: 8, q: '0.5', ext: '2', osiv: false } },
-    { t: '요청이 더 몰리면', d: 'OSIV 켜짐, 20건. 5초를 기다리다 실패하는 요청이 나옵니다.', v: { pool: 3, n: 20, q: '0.5', ext: '2', osiv: true } },
-    { t: '풀을 늘리면', d: '같은 20건에 풀 10개. 버티지만 DB가 받을 수 있는 연결 수에는 한계가 있습니다.', v: { pool: 10, n: 20, q: '0.5', ext: '2', osiv: true } },
-    { t: '쿼리 자체가 느리면', d: 'OSIV를 꺼도 DB 작업 2초 동안은 커넥션을 씁니다.', v: { pool: 3, n: 8, q: '2', ext: '0', osiv: false } },
+    { t: '처음 설정으로', q: 'OSIV가 켜진 상태에서 풀 3개에 요청 8건, DB 작업 0.5초와 외부 API 호출 2초이면 커넥션은 어떻게 쓰이나', d: 'OSIV 켜짐. DB 작업은 0.5초인데 커넥션을 2.5초씩 쥐고 있습니다.', v: { pool: 3, n: 8, q: '0.5', ext: '2', osiv: true } },
+    { t: 'OSIV를 끄면', q: 'OSIV를 끄면', d: 'DB 작업이 끝나는 즉시 커넥션을 돌려줍니다.', v: { pool: 3, n: 8, q: '0.5', ext: '2', osiv: false } },
+    { t: '요청이 더 몰리면', q: '거의 동시에 들어오는 요청을 20건으로 늘리면', d: 'OSIV 켜짐, 20건. 5초를 기다리다 실패하는 요청이 나옵니다.', v: { pool: 3, n: 20, q: '0.5', ext: '2', osiv: true } },
+    { t: '풀을 늘리면', q: '커넥션 풀 크기를 10개로 늘리고 요청 20건이 오면', d: '같은 20건에 풀 10개. 버티지만 DB가 받을 수 있는 연결 수에는 한계가 있습니다.', v: { pool: 10, n: 20, q: '0.5', ext: '2', osiv: true } },
+    { t: '쿼리 자체가 느리면', q: 'DB 작업 시간을 2초로, 외부 API 호출 시간을 없음으로 바꾸고 OSIV를 끄면', d: 'OSIV를 꺼도 DB 작업 2초 동안은 커넥션을 씁니다.', v: { pool: 3, n: 8, q: '2', ext: '0', osiv: false } },
   ],
   code: function (c) {
     return '# application.yml\nspring.datasource.hikari.maximum-pool-size: ' + c.pool + '\nspring.datasource.hikari.connection-timeout: 5000   # 5초 기다리다 실패\nspring.jpa.open-in-view: ' + c.osiv + '\n\n// 컨트롤러\nOrderDto get(long id) {\n    Order order = orderService.find(id);       // @Transactional, DB 작업 ' + c.q + '초\n' + (c.ext !== '0' ? '    Delivery d = deliveryApi.track(order);     // 외부 API ' + c.ext + '초 (DB 안 씀)\n' : '') + '    return OrderDto.of(order' + (c.ext !== '0' ? ', d' : '') + ');\n}';

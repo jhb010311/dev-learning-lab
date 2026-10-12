@@ -9,12 +9,12 @@ Lab.register({
     { id: 'changed', label: '관리자가 조금 전에 레코드의 값을 바꿨다', type: 'check', value: false, hint: '권한 있는 네임 서버의 값만 바뀝니다. 캐시에 이미 들어 있는 답은 그대로입니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', d: '처음 묻는 이름. 리졸버가 루트 서버부터 차례로 물어 답을 찾습니다.', v: { q: 'a', cache: 'none', changed: false } },
-    { t: '방금 물었던 이름', d: '이 PC의 캐시에 답이 있어 아무에게도 묻지 않습니다.', v: { q: 'a', cache: 'os', changed: false } },
-    { t: '레코드를 바꿨는데 예전 주소로 간다', d: '리졸버의 캐시에 TTL이 남아 있어 예전 값을 받습니다.', v: { q: 'a', cache: 'resolver', changed: true } },
-    { t: 'TTL이 지난 뒤', d: '다시 묻고 새 값을 받습니다. 루트 서버부터 묻지는 않습니다.', v: { q: 'a', cache: 'expired', changed: true } },
-    { t: 'CNAME을 거치는 이름', d: '별명의 진짜 이름을 알아낸 뒤 그 이름으로 한 번 더 찾습니다.', v: { q: 'cname', cache: 'none', changed: false } },
-    { t: '메일 서버 찾기', d: 'MX 레코드는 주소가 아니라 메일 서버의 이름을 알려 줍니다.', v: { q: 'mx', cache: 'none', changed: false } },
+    { t: '처음 설정으로', q: '캐시가 어디에도 없는 처음 묻는 이름 shop.example의 IPv4 주소를 물으면 PC는 어떤 경로로 답을 얻나', d: '처음 묻는 이름. 리졸버가 루트 서버부터 차례로 물어 답을 찾습니다.', v: { q: 'a', cache: 'none', changed: false } },
+    { t: '방금 물었던 이름', q: '이 PC의 캐시에 120초 전에 물은 답이 있으면', d: '이 PC의 캐시에 답이 있어 아무에게도 묻지 않습니다.', v: { q: 'a', cache: 'os', changed: false } },
+    { t: '레코드를 바꿨는데 예전 주소로 간다', q: '리졸버의 캐시에 다른 사용자가 120초 전에 물은 답이 있는데 관리자가 레코드의 값을 조금 전에 바꾸면', d: '리졸버의 캐시에 TTL이 남아 있어 예전 값을 받습니다.', v: { q: 'a', cache: 'resolver', changed: true } },
+    { t: 'TTL이 지난 뒤', q: '이 PC가 400초 전에 물어 TTL 300초가 지났는데 관리자가 레코드의 값을 조금 전에 바꾸면', d: '다시 묻고 새 값을 받습니다. 루트 서버부터 묻지는 않습니다.', v: { q: 'a', cache: 'expired', changed: true } },
+    { t: 'CNAME을 거치는 이름', q: 'CNAME을 거치는 www.shop.example의 주소를 물으면', d: '별명의 진짜 이름을 알아낸 뒤 그 이름으로 한 번 더 찾습니다.', v: { q: 'cname', cache: 'none', changed: false } },
+    { t: '메일 서버 찾기', q: 'MX 레코드로 shop.example의 메일 서버를 물으면', d: 'MX 레코드는 주소가 아니라 메일 서버의 이름을 알려 줍니다.', v: { q: 'mx', cache: 'none', changed: false } },
   ],
   CASES: {
     a: { name: 'shop.example', type: 'A', old: '203.0.113.10', neu: '203.0.113.99' },

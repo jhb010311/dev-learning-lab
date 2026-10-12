@@ -12,12 +12,12 @@ Lab.register({
     { id: 'crash', label: '컨슈머 하나가 처리 도중 죽는다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: '파티션 3개에 컨슈머 2개. 처리 능력이 모자라 메시지가 밀립니다.', v: { p: 3, c: 2, r: 120, k: 50, commit: 'after', crash: false } },
-    { t: '컨슈머를 3개로', d: '파티션마다 컨슈머가 하나씩 붙어 밀림이 사라집니다.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'after', crash: false } },
-    { t: '컨슈머를 6개로 늘려도', d: '파티션이 3개뿐이라 3개는 할 일이 없습니다.', v: { p: 3, c: 6, r: 240, k: 50, commit: 'after', crash: false } },
-    { t: '파티션도 6개로', d: '이제 6개가 모두 일합니다.', v: { p: 6, c: 6, r: 240, k: 50, commit: 'after', crash: false } },
-    { t: '처리 도중 컨슈머가 죽으면 (처리 후 커밋)', d: '다른 컨슈머가 이어받으면서 일부를 다시 처리합니다.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'after', crash: true } },
-    { t: '처리 도중 컨슈머가 죽으면 (처리 전 커밋)', d: '이미 커밋된 메시지는 처리되지 않은 채 건너뜁니다.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'before', crash: true } },
+    { t: '처음 설정으로', q: '파티션 3개에 컨슈머 2개를 두고 초당 120건이 들어오는데 컨슈머 하나가 초당 50건을 처리하면 어떻게 되나', d: '파티션 3개에 컨슈머 2개. 처리 능력이 모자라 메시지가 밀립니다.', v: { p: 3, c: 2, r: 120, k: 50, commit: 'after', crash: false } },
+    { t: '컨슈머를 3개로', q: '컨슈머 수를 3개로 늘리면', d: '파티션마다 컨슈머가 하나씩 붙어 밀림이 사라집니다.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'after', crash: false } },
+    { t: '컨슈머를 6개로 늘려도', q: '파티션은 3개 그대로 두고 컨슈머 6개, 초당 들어오는 메시지 240건으로 늘리면', d: '파티션이 3개뿐이라 3개는 할 일이 없습니다.', v: { p: 3, c: 6, r: 240, k: 50, commit: 'after', crash: false } },
+    { t: '파티션도 6개로', q: '컨슈머 6개, 초당 메시지 240건인데 파티션 수도 6개로 늘리면', d: '이제 6개가 모두 일합니다.', v: { p: 6, c: 6, r: 240, k: 50, commit: 'after', crash: false } },
+    { t: '처리 도중 컨슈머가 죽으면 (처리 후 커밋)', q: '오프셋을 처리한 뒤에 커밋하는 채로 컨슈머 3개 중 하나가 처리 도중 죽으면', d: '다른 컨슈머가 이어받으면서 일부를 다시 처리합니다.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'after', crash: true } },
+    { t: '처리 도중 컨슈머가 죽으면 (처리 전 커밋)', q: '컨슈머 3개 중 하나가 처리 도중 죽는데 오프셋을 메시지를 처리하기 전에 커밋하면', d: '이미 커밋된 메시지는 처리되지 않은 채 건너뜁니다.', v: { p: 3, c: 3, r: 120, k: 50, commit: 'before', crash: true } },
   ],
   code: function (c) {
     return '// 토픽 orders: 파티션 ' + c.p + '개\n// 컨슈머 그룹 order-service: 컨슈머 ' + c.c + '개\n\nwhile (true) {\n    ConsumerRecords<String, Order> records = consumer.poll(Duration.ofMillis(500));\n' + (c.commit === 'before' ? '    consumer.commitSync();               // 먼저 "여기까지 읽었다"고 기록\n    for (var r : records) {\n        handle(r.value());               // 그다음 처리\n    }\n' : '    for (var r : records) {\n        handle(r.value());               // 먼저 처리\n    }\n    consumer.commitSync();               // 그다음 "여기까지 읽었다"고 기록\n') + '}';

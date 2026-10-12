@@ -9,12 +9,12 @@ Lab.register({
     { id: 'allow', label: 'spring.main.allow-circular-references=true로 설정한다', type: 'check', value: false, show: function (c) { return c.cycle; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '생성자 주입. 의존 대상이 먼저 완성돼야 다음 객체를 만들 수 있습니다.', v: { inj: 'ctor', cycle: false, allow: false } },
-    { t: '필드 주입으로 바꾸면', d: '객체를 먼저 만들고 나중에 채웁니다. 잠깐 동안 필드가 비어 있습니다.', v: { inj: 'field', cycle: false, allow: false } },
-    { t: '생성자 주입 + 순환 참조', d: '어느 쪽도 먼저 만들 수 없어 기동이 실패합니다.', v: { inj: 'ctor', cycle: true, allow: false } },
-    { t: '필드 주입 + 순환 참조', d: '스프링 부트 기본 설정에서는 이것도 기동 실패입니다.', v: { inj: 'field', cycle: true, allow: false } },
-    { t: '순환 참조를 허용하면', d: '필드 주입은 덜 만들어진 객체를 미리 넘겨서 통과합니다.', v: { inj: 'field', cycle: true, allow: true } },
-    { t: '허용해도 생성자 주입은 실패', d: '생성자를 호출하려면 인자가 먼저 있어야 하기 때문입니다.', v: { inj: 'ctor', cycle: true, allow: true } },
+    { t: '처음 설정으로', q: '생성자 주입으로 OrderController, OrderService, OrderRepository를 기동하면 객체는 어떤 순서로 만들어지나', d: '생성자 주입. 의존 대상이 먼저 완성돼야 다음 객체를 만들 수 있습니다.', v: { inj: 'ctor', cycle: false, allow: false } },
+    { t: '필드 주입으로 바꾸면', q: '주입 방식을 @Autowired 필드 주입으로 바꾸면', d: '객체를 먼저 만들고 나중에 채웁니다. 잠깐 동안 필드가 비어 있습니다.', v: { inj: 'field', cycle: false, allow: false } },
+    { t: '생성자 주입 + 순환 참조', q: '생성자 주입인데 OrderService와 PaymentService가 서로를 주입받으면', d: '어느 쪽도 먼저 만들 수 없어 기동이 실패합니다.', v: { inj: 'ctor', cycle: true, allow: false } },
+    { t: '필드 주입 + 순환 참조', q: '필드 주입인데 OrderService와 PaymentService가 서로를 주입받으면', d: '스프링 부트 기본 설정에서는 이것도 기동 실패입니다.', v: { inj: 'field', cycle: true, allow: false } },
+    { t: '순환 참조를 허용하면', q: '필드 주입이고 서로를 주입받는데 spring.main.allow-circular-references=true로 설정하면', d: '필드 주입은 덜 만들어진 객체를 미리 넘겨서 통과합니다.', v: { inj: 'field', cycle: true, allow: true } },
+    { t: '허용해도 생성자 주입은 실패', q: '생성자 주입이고 서로를 주입받는데 spring.main.allow-circular-references=true로 설정하면', d: '생성자를 호출하려면 인자가 먼저 있어야 하기 때문입니다.', v: { inj: 'ctor', cycle: true, allow: true } },
   ],
   code: function (c) {
     function cls(name, ann, deps) {

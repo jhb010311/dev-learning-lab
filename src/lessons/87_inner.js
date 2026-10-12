@@ -9,13 +9,13 @@ Lab.register({
     { id: 'loc', label: '안에서 쓰는 지역 변수 count', type: 'select', value: 'keep', options: [['keep', '값을 바꾸지 않음'], ['change', '만든 뒤에 count = 2로 바꿈'], ['arr', '배열에 담아 두고 칸의 값만 바꿈']], show: function (c) { return c.kind === 'anon' || c.kind === 'lambda'; }, hint: '익명 클래스와 람다는 자기를 만든 메서드의 지역 변수를 안에서 쓸 수 있습니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', d: '내부 클래스를 바깥 객체 없이 만들기. 컴파일 오류가 납니다.', v: { kind: 'inner', use: 'alone', loc: 'keep' } },
-    { t: '바깥 객체로 만들면', d: '안쪽 객체가 바깥 객체를 따라가 필드를 읽습니다.', v: { kind: 'inner', use: 'field', loc: 'keep' } },
-    { t: 'static 중첩 클래스', d: '바깥 객체 없이 만들 수 있습니다.', v: { kind: 'nested', use: 'alone', loc: 'keep' } },
-    { t: 'static 중첩 클래스에서 바깥 필드 읽기', d: '가리키는 바깥 객체가 없어 컴파일 오류가 납니다.', v: { kind: 'nested', use: 'field', loc: 'keep' } },
-    { t: '익명 클래스의 this', d: 'this는 익명 클래스로 만든 객체 자신입니다.', v: { kind: 'anon', use: 'alone', loc: 'keep' } },
-    { t: '람다의 this', d: 'this는 람다를 적은 바깥 객체입니다.', v: { kind: 'lambda', use: 'alone', loc: 'keep' } },
-    { t: '지역 변수의 값을 바꾸면', d: '람다 안에서 쓰는 지역 변수를 바꾸면 컴파일 오류가 납니다.', v: { kind: 'lambda', use: 'alone', loc: 'change' } },
+    { t: '처음 설정으로', q: 'static 없는 인스턴스 내부 클래스를 바깥 객체 없이 안쪽 객체만 만들면 어떻게 되나', d: '내부 클래스를 바깥 객체 없이 만들기. 컴파일 오류가 납니다.', v: { kind: 'inner', use: 'alone', loc: 'keep' } },
+    { t: '바깥 객체로 만들면', q: '해 보려는 것을 바깥 객체를 만들고, 안쪽에서 바깥 필드 name을 읽기로 바꾸면', d: '안쪽 객체가 바깥 객체를 따라가 필드를 읽습니다.', v: { kind: 'inner', use: 'field', loc: 'keep' } },
+    { t: 'static 중첩 클래스', q: '안쪽에 만드는 것을 static 중첩 클래스로 바꾸면', d: '바깥 객체 없이 만들 수 있습니다.', v: { kind: 'nested', use: 'alone', loc: 'keep' } },
+    { t: 'static 중첩 클래스에서 바깥 필드 읽기', q: '안쪽에 만드는 것이 static 중첩 클래스인데 바깥 필드 name을 읽으면', d: '가리키는 바깥 객체가 없어 컴파일 오류가 납니다.', v: { kind: 'nested', use: 'field', loc: 'keep' } },
+    { t: '익명 클래스의 this', q: '안쪽에 만드는 것을 익명 클래스로 바꾸면', d: 'this는 익명 클래스로 만든 객체 자신입니다.', v: { kind: 'anon', use: 'alone', loc: 'keep' } },
+    { t: '람다의 this', q: '안쪽에 만드는 것을 람다로 바꾸면', d: 'this는 람다를 적은 바깥 객체입니다.', v: { kind: 'lambda', use: 'alone', loc: 'keep' } },
+    { t: '지역 변수의 값을 바꾸면', q: '안쪽에 만드는 것이 람다인데 지역 변수 count를 만든 뒤에 count = 2로 바꾸면', d: '람다 안에서 쓰는 지역 변수를 바꾸면 컴파일 오류가 납니다.', v: { kind: 'lambda', use: 'alone', loc: 'change' } },
   ],
   code: function (c) {
     var main = function (body) { return '\n\npublic class Main {\n    public static void main(String[] args) {\n' + body + '    }\n}'; };

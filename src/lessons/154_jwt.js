@@ -9,12 +9,12 @@ Lab.register({
     { id: 'policy', label: '서버가 검증 알고리즘을 정하는 방법', type: 'select', value: 'fixed', options: [['fixed', '서버가 HS256으로 정해 둔다'], ['trust', '토큰 머리말의 alg에 적힌 대로 따른다']], hint: '두 방식의 차이는 alg를 none으로 바꾼 토큰에서 드러납니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', d: '내용의 role을 ADMIN으로 고친 토큰입니다. 읽고 고칠 수는 있어도 서명에서 걸립니다.', v: { tok: 'payload', time: 'before', policy: 'fixed' } },
-    { t: '발급한 그대로', d: '서명이 일치하고 만료 전이라 통과합니다.', v: { tok: 'ok', time: 'before', policy: 'fixed' } },
-    { t: '다른 키로 서명을 새로 만들면', d: '서버의 키로 계산한 값과 달라 거절됩니다.', v: { tok: 'otherkey', time: 'before', policy: 'fixed' } },
-    { t: '만료 시각이 지나면', d: '서명이 맞아도 거절됩니다.', v: { tok: 'ok', time: 'after', policy: 'fixed' } },
-    { t: 'alg를 none으로 바꾼 토큰', d: '알고리즘을 정해 둔 서버는 서명을 보기도 전에 거절합니다.', v: { tok: 'none', time: 'before', policy: 'fixed' } },
-    { t: '토큰이 말하는 alg를 믿는 서버', d: '서명이 없는 토큰이 ADMIN으로 통과합니다.', v: { tok: 'none', time: 'before', policy: 'trust' } },
+    { t: '처음 설정으로', q: '내용의 role을 ADMIN으로 고치고 서명은 그대로 둔 토큰이 만료 10분 전에 서버에 도착하면 서버는 어떻게 판단하나', d: '내용의 role을 ADMIN으로 고친 토큰입니다. 읽고 고칠 수는 있어도 서명에서 걸립니다.', v: { tok: 'payload', time: 'before', policy: 'fixed' } },
+    { t: '발급한 그대로', q: '서버가 발급한 그대로의 토큰이 도착하면', d: '서명이 일치하고 만료 전이라 통과합니다.', v: { tok: 'ok', time: 'before', policy: 'fixed' } },
+    { t: '다른 키로 서명을 새로 만들면', q: '내용을 고치고 다른 키로 서명을 새로 만든 토큰이 도착하면', d: '서버의 키로 계산한 값과 달라 거절됩니다.', v: { tok: 'otherkey', time: 'before', policy: 'fixed' } },
+    { t: '만료 시각이 지나면', q: '발급한 그대로의 토큰을 만료(exp) 1분 뒤에 검증하면', d: '서명이 맞아도 거절됩니다.', v: { tok: 'ok', time: 'after', policy: 'fixed' } },
+    { t: 'alg를 none으로 바꾼 토큰', q: '머리말의 alg를 none으로 바꾸고 서명을 비운 토큰이 도착하면', d: '알고리즘을 정해 둔 서버는 서명을 보기도 전에 거절합니다.', v: { tok: 'none', time: 'before', policy: 'fixed' } },
+    { t: '토큰이 말하는 alg를 믿는 서버', q: 'alg를 none으로 바꾸고 서명을 비운 토큰이 도착했는데 서버가 머리말의 alg에 적힌 대로 따르면', d: '서명이 없는 토큰이 ADMIN으로 통과합니다.', v: { tok: 'none', time: 'before', policy: 'trust' } },
   ],
   // 실제로 계산한 값 (verify/net/jwt_probe.js와 verify/plain/JwtProbe.java가 같은 값을 낸다)
   V: {

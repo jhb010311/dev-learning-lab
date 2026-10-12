@@ -9,13 +9,13 @@ Lab.register({
     { id: 'rt', label: '읽기 타임아웃을 정한다 (3초)', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: '연결 타임아웃만 정했습니다. 느린 응답에는 걸리지 않아 10초를 기다립니다.', v: { server: 'slow', ct: true, rt: false } },
-    { t: '읽기 타임아웃도 정하면', d: '응답이 3초 안에 오지 않으면 기다림을 끊습니다.', v: { server: 'slow', ct: true, rt: true } },
-    { t: '답이 없는 서버, 타임아웃 없음', d: '운영체제가 포기할 때까지 스레드가 묶입니다.', v: { server: 'noanswer', ct: false, rt: false } },
-    { t: '답이 없는 서버, 읽기 타임아웃만', d: '읽기 타임아웃은 연결 단계에서는 소용이 없습니다.', v: { server: 'noanswer', ct: false, rt: true } },
-    { t: '답이 없는 서버, 연결 타임아웃', d: '2초 만에 포기하고 스레드를 풀어 줍니다.', v: { server: 'noanswer', ct: true, rt: true } },
-    { t: '서버 프로그램이 꺼져 있으면', d: '거절은 곧바로 돌아오므로 타임아웃을 기다리지 않습니다.', v: { server: 'refused', ct: true, rt: true } },
-    { t: '404나 500이 오면', d: '응답은 왔지만 호출한 코드에서는 예외로 나타납니다.', v: { server: 'e404', ct: true, rt: true } },
+    { t: '처음 설정으로', q: '연결 타임아웃 2초만 정하고 연결은 받지만 10초 뒤에 응답하는 서버를 호출하면 어떻게 되나', d: '연결 타임아웃만 정했습니다. 느린 응답에는 걸리지 않아 10초를 기다립니다.', v: { server: 'slow', ct: true, rt: false } },
+    { t: '읽기 타임아웃도 정하면', q: '읽기 타임아웃도 3초로 정하면', d: '응답이 3초 안에 오지 않으면 기다림을 끊습니다.', v: { server: 'slow', ct: true, rt: true } },
+    { t: '답이 없는 서버, 타임아웃 없음', q: '연결 요청에 답이 없는 서버인데 연결 타임아웃을 정하지 않으면', d: '운영체제가 포기할 때까지 스레드가 묶입니다.', v: { server: 'noanswer', ct: false, rt: false } },
+    { t: '답이 없는 서버, 읽기 타임아웃만', q: '연결 요청에 답이 없는 서버인데 연결 타임아웃은 없이 읽기 타임아웃 3초만 정하면', d: '읽기 타임아웃은 연결 단계에서는 소용이 없습니다.', v: { server: 'noanswer', ct: false, rt: true } },
+    { t: '답이 없는 서버, 연결 타임아웃', q: '연결 요청에 답이 없는 서버인데 연결 타임아웃 2초에 읽기 타임아웃 3초도 정하면', d: '2초 만에 포기하고 스레드를 풀어 줍니다.', v: { server: 'noanswer', ct: true, rt: true } },
+    { t: '서버 프로그램이 꺼져 있으면', q: '서버 프로그램이 꺼져 연결을 거절하는데 읽기 타임아웃 3초도 정하면', d: '거절은 곧바로 돌아오므로 타임아웃을 기다리지 않습니다.', v: { server: 'refused', ct: true, rt: true } },
+    { t: '404나 500이 오면', q: '읽기 타임아웃 3초를 정한 채 서버가 곧바로 404로 응답하면', d: '응답은 왔지만 호출한 코드에서는 예외로 나타납니다.', v: { server: 'e404', ct: true, rt: true } },
   ],
   code: function (c) {
     return 'SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();\n'

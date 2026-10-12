@@ -8,12 +8,12 @@ Lab.register({
     { id: 'path', label: '그 메서드를 호출하는 방식', type: 'select', value: 'self', options: [['ext', '다른 빈(컨트롤러)에서 호출'], ['self', '같은 클래스의 다른 메서드에서 호출 (this)'], ['priv', '같은 클래스에서 호출 + 메서드가 private'], ['inject', '자기 자신을 주입받아 그 참조로 호출'], ['split', '메서드를 다른 빈으로 옮겨서 호출']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '같은 클래스 안에서 @Transactional 메서드를 부릅니다. 트랜잭션이 걸리지 않습니다.', v: { feat: 'tx', path: 'self' } },
-    { t: '다른 빈에서 호출하면', d: '프록시를 거치므로 트랜잭션이 적용됩니다.', v: { feat: 'tx', path: 'ext' } },
-    { t: '메서드를 다른 빈으로 분리', d: '내부 호출 문제를 푸는 가장 흔한 방법입니다.', v: { feat: 'tx', path: 'split' } },
-    { t: 'private 메서드에 붙이면', d: '프록시가 가로챌 수 없습니다.', v: { feat: 'tx', path: 'priv' } },
-    { t: '@Async를 내부에서 호출', d: '비동기로 실행되지 않고 호출한 스레드가 끝까지 기다립니다.', v: { feat: 'async', path: 'self' } },
-    { t: '@Async를 다른 빈에서 호출', d: '별도 스레드에서 실행되고 호출한 쪽은 바로 돌아갑니다.', v: { feat: 'async', path: 'ext' } },
+    { t: '처음 설정으로', q: '같은 클래스의 다른 메서드에서 @Transactional 메서드를 this로 호출하면 어떻게 되나', d: '같은 클래스 안에서 @Transactional 메서드를 부릅니다. 트랜잭션이 걸리지 않습니다.', v: { feat: 'tx', path: 'self' } },
+    { t: '다른 빈에서 호출하면', q: '@Transactional 메서드를 컨트롤러라는 다른 빈에서 호출하면', d: '프록시를 거치므로 트랜잭션이 적용됩니다.', v: { feat: 'tx', path: 'ext' } },
+    { t: '메서드를 다른 빈으로 분리', q: '@Transactional 메서드를 다른 빈으로 옮겨서 호출하면', d: '내부 호출 문제를 푸는 가장 흔한 방법입니다.', v: { feat: 'tx', path: 'split' } },
+    { t: 'private 메서드에 붙이면', q: '같은 클래스에서 호출하는데 @Transactional 메서드가 private이면', d: '프록시가 가로챌 수 없습니다.', v: { feat: 'tx', path: 'priv' } },
+    { t: '@Async를 내부에서 호출', q: '@Async 메서드를 같은 클래스의 다른 메서드에서 호출하면', d: '비동기로 실행되지 않고 호출한 스레드가 끝까지 기다립니다.', v: { feat: 'async', path: 'self' } },
+    { t: '@Async를 다른 빈에서 호출', q: '@Async 메서드를 컨트롤러라는 다른 빈에서 호출하면', d: '별도 스레드에서 실행되고 호출한 쪽은 바로 돌아갑니다.', v: { feat: 'async', path: 'ext' } },
   ],
   code: function (c) {
     var tx = c.feat === 'tx', ann = tx ? '@Transactional' : '@Async', m = tx ? 'saveAll' : 'sendMail', body = tx ? '        orderDao.insert(a);\n        orderDao.insert(b);\n        throw new IllegalStateException();   // 도중에 실패' : '        mailClient.send(mail);               // 3초 걸림';

@@ -8,12 +8,12 @@ Lab.register({
     { id: 'fail', label: '작업 2에서 생기는 일', type: 'select', value: 'none', options: [['none', '문제 없음'], ['ex', '잡지 않은 예외가 발생'], ['kill', '프로세스 자체가 종료됨 (System.exit, 운영체제의 강제 종료 등)']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '스레드 3개. 0.3초 만에 끝나고 같은 변수를 함께 올립니다.', v: { how: 'multi', fail: 'none' } },
-    { t: '스레드 하나로 차례로', d: '세 작업의 시간이 그대로 더해집니다.', v: { how: 'single', fail: 'none' } },
-    { t: '프로세스 3개로', d: '동시에 끝나지만 변수는 각자 따로입니다.', v: { how: 'proc', fail: 'none' } },
-    { t: '스레드 하나가 예외로 죽으면', d: '그 스레드만 끝나고 나머지는 계속합니다.', v: { how: 'multi', fail: 'ex' } },
-    { t: '프로세스를 죽이는 오류', d: '스레드 3개가 한 프로세스에 있으면 함께 죽습니다.', v: { how: 'multi', fail: 'kill' } },
-    { t: '같은 오류, 프로세스가 따로라면', d: '그 프로세스만 죽고 나머지는 무사합니다.', v: { how: 'proc', fail: 'kill' } },
+    { t: '처음 설정으로', q: '작업 2에 문제가 없는 상태에서 프로세스 1개, 스레드 3개로 일꾼을 늘리면 어떻게 되나', d: '스레드 3개. 0.3초 만에 끝나고 같은 변수를 함께 올립니다.', v: { how: 'multi', fail: 'none' } },
+    { t: '스레드 하나로 차례로', q: '실행 방식을 프로세스 1개, 스레드 1개 (차례로 실행) 쪽으로 바꾸면', d: '세 작업의 시간이 그대로 더해집니다.', v: { how: 'single', fail: 'none' } },
+    { t: '프로세스 3개로', q: '실행 방식을 프로세스 3개 (각각 스레드 1개) 쪽으로 바꾸면', d: '동시에 끝나지만 변수는 각자 따로입니다.', v: { how: 'proc', fail: 'none' } },
+    { t: '스레드 하나가 예외로 죽으면', q: '작업 2에서 잡지 않은 예외가 발생하면', d: '그 스레드만 끝나고 나머지는 계속합니다.', v: { how: 'multi', fail: 'ex' } },
+    { t: '프로세스를 죽이는 오류', q: '작업 2에서 생기는 일을 프로세스 자체가 종료됨 (System.exit, 운영체제의 강제 종료 등) 쪽으로 바꾸면', d: '스레드 3개가 한 프로세스에 있으면 함께 죽습니다.', v: { how: 'multi', fail: 'kill' } },
+    { t: '같은 오류, 프로세스가 따로라면', q: '프로세스 3개 (각각 스레드 1개) 쪽으로 바꾸고 작업 2에서 System.exit를 호출하면', d: '그 프로세스만 죽고 나머지는 무사합니다.', v: { how: 'proc', fail: 'kill' } },
   ],
   code: function (c) {
     var body = 'static int counter = 0;                 // 프로세스의 메모리에 있는 변수\n\nstatic void work(int id) throws Exception {\n    Thread.sleep(300);                  // 0.3초 걸리는 작업\n' + (c.fail === 'ex' ? '    if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '    if (id == 2) System.exit(3);        // 프로세스 전체를 끝낸다\n' : '') + '    counter++;\n}\n\n';

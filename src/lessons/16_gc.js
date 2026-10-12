@@ -10,12 +10,12 @@ Lab.register({
     { id: 'leak', label: '메모리 누수가 있다 (static 목록에 담고 지우지 않음)', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: '대부분의 객체가 금방 버려집니다. Minor GC만으로 유지됩니다.', v: { rate: 5, live: 10, heap: 'mid', leak: false } },
-    { t: '오래 사는 객체가 많으면', d: 'Old로 올라가는 객체가 늘어 Full GC가 돌기 시작합니다.', v: { rate: 5, live: 40, heap: 'mid', leak: false } },
-    { t: '객체를 더 빨리 만들면', d: 'Eden이 빨리 차서 Minor GC가 잦아집니다.', v: { rate: 10, live: 10, heap: 'mid', leak: false } },
-    { t: '힙을 키우면', d: 'GC 횟수가 줄어듭니다.', v: { rate: 10, live: 10, heap: 'large', leak: false } },
-    { t: '메모리 누수', d: 'GC가 돌아도 Old가 비지 않다가 OutOfMemoryError로 끝납니다.', v: { rate: 5, live: 10, heap: 'mid', leak: true } },
-    { t: '누수 상태에서 힙만 키우면', d: '죽는 시점이 늦춰질 뿐입니다.', v: { rate: 5, live: 10, heap: 'large', leak: true } },
+    { t: '처음 설정으로', q: '한 틱에 객체 5개를 만들고 10%만 계속 쓰이는 보통 크기 힙은 어떻게 돌아가나', d: '대부분의 객체가 금방 버려집니다. Minor GC만으로 유지됩니다.', v: { rate: 5, live: 10, heap: 'mid', leak: false } },
+    { t: '오래 사는 객체가 많으면', q: '한동안 계속 쓰이는 객체의 비율을 40%로 바꾸면', d: 'Old로 올라가는 객체가 늘어 Full GC가 돌기 시작합니다.', v: { rate: 5, live: 40, heap: 'mid', leak: false } },
+    { t: '객체를 더 빨리 만들면', q: '한 틱에 만드는 객체 수를 10개로 바꾸면', d: 'Eden이 빨리 차서 Minor GC가 잦아집니다.', v: { rate: 10, live: 10, heap: 'mid', leak: false } },
+    { t: '힙을 키우면', q: '한 틱에 객체를 10개 만드는데 힙 크기를 크게 (Eden 32, Old 64) 쪽으로 바꾸면', d: 'GC 횟수가 줄어듭니다.', v: { rate: 10, live: 10, heap: 'large', leak: false } },
+    { t: '메모리 누수', q: '객체를 static 목록에 담고 지우지 않는 메모리 누수가 있으면', d: 'GC가 돌아도 Old가 비지 않다가 OutOfMemoryError로 끝납니다.', v: { rate: 5, live: 10, heap: 'mid', leak: true } },
+    { t: '누수 상태에서 힙만 키우면', q: '메모리 누수가 있는 상태에서 힙 크기를 크게 (Eden 32, Old 64) 쪽으로만 바꾸면', d: '죽는 시점이 늦춰질 뿐입니다.', v: { rate: 5, live: 10, heap: 'large', leak: true } },
   ],
   SIZES: { small: [12, 3, 24], mid: [20, 5, 40], large: [32, 8, 64] },
   code: function (c) {

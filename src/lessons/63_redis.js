@@ -8,11 +8,11 @@ Lab.register({
     { id: 'incr', label: '두 클라이언트가 같은 키에 동시에 INCR을 보낸다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'KEYS 한 번에 다른 클라이언트들이 0.5초씩 멈춥니다.', v: { slow: 'keys', incr: false } },
-    { t: '빠른 명령만 있을 때', d: '모든 명령이 1ms 안에 끝납니다.', v: { slow: 'none', incr: false } },
-    { t: 'SCAN으로 바꾸면', d: '조금씩 나눠 실행해서 사이사이에 다른 명령이 끼어들 수 있습니다.', v: { slow: 'scan', incr: false } },
-    { t: '큰 컬렉션을 통째로 읽으면', d: 'KEYS가 아니어도 값이 크면 같은 일이 생깁니다.', v: { slow: 'big', incr: false } },
-    { t: '동시에 INCR', d: '한 줄로 실행되므로 증가가 사라지지 않습니다.', v: { slow: 'none', incr: true } },
+    { t: '처음 설정으로', q: '중간에 KEYS user:* 명령이 끼어들면 다른 클라이언트는 어떻게 되나', d: 'KEYS 한 번에 다른 클라이언트들이 0.5초씩 멈춥니다.', v: { slow: 'keys', incr: false } },
+    { t: '빠른 명령만 있을 때', q: '끼어드는 명령 없이 빠른 명령만 있으면', d: '모든 명령이 1ms 안에 끝납니다.', v: { slow: 'none', incr: false } },
+    { t: 'SCAN으로 바꾸면', q: 'KEYS 대신 SCAN으로 한 번에 1,000개씩 나눠서 훑으면', d: '조금씩 나눠 실행해서 사이사이에 다른 명령이 끼어들 수 있습니다.', v: { slow: 'scan', incr: false } },
+    { t: '큰 컬렉션을 통째로 읽으면', q: 'KEYS 대신 원소 50만 개짜리 리스트를 LRANGE 0 -1로 통째로 조회하면', d: 'KEYS가 아니어도 값이 크면 같은 일이 생깁니다.', v: { slow: 'big', incr: false } },
+    { t: '동시에 INCR', q: '끼어드는 명령 없이 두 클라이언트가 같은 키에 동시에 INCR을 보내면', d: '한 줄로 실행되므로 증가가 사라지지 않습니다.', v: { slow: 'none', incr: true } },
   ],
   code: function (c) {
     var s = { none: '', keys: '\n// 관리자 스크립트\nSet<String> keys = redis.keys("user:*");          // 전체 키를 한 번에 훑는다', scan: '\n// 관리자 스크립트\nScanOptions opt = ScanOptions.scanOptions().match("user:*").count(1000).build();\ntry (Cursor<String> cur = redis.scan(opt)) {       // 1,000개씩 끊어서\n    cur.forEachRemaining(this::handle);\n}', big: '\n// 배치 작업\nList<String> all = redis.opsForList().range("events", 0, -1);   // 50만 개 전부' }[c.slow];

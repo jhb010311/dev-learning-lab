@@ -8,12 +8,12 @@ Lab.register({
     { id: 'lv', label: '트랜잭션 A의 격리 수준', type: 'select', value: 'RC', options: [['RU', 'READ UNCOMMITTED'], ['RC', 'READ COMMITTED'], ['RR', 'REPEATABLE READ (MySQL 기본값)'], ['SER', 'SERIALIZABLE']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'READ COMMITTED. 같은 조회를 두 번 했는데 값이 달라집니다.', v: { sc: 'nonrep', lv: 'RC' } },
-    { t: 'REPEATABLE READ로 올리면', d: '두 번째 조회도 처음과 같은 값을 봅니다.', v: { sc: 'nonrep', lv: 'RR' } },
-    { t: '커밋 안 된 값을 읽는 경우', d: 'READ UNCOMMITTED. 롤백되어 사라질 값을 읽습니다.', v: { sc: 'dirty', lv: 'RU' } },
-    { t: '같은 상황, READ COMMITTED', d: '커밋 전의 값은 보이지 않습니다.', v: { sc: 'dirty', lv: 'RC' } },
-    { t: '없던 행이 나타나는 경우', d: 'READ COMMITTED. 두 번째 조회에서 건수가 늘어납니다.', v: { sc: 'phantom', lv: 'RC' } },
-    { t: 'SERIALIZABLE', d: '이상 현상은 없지만 B가 A를 기다립니다.', v: { sc: 'nonrep', lv: 'SER' } },
+    { t: '처음 설정으로', q: 'READ COMMITTED인 A가 두 번 조회하는 사이에 B가 수정하고 커밋하면 두 조회는 어떻게 보이나', d: 'READ COMMITTED. 같은 조회를 두 번 했는데 값이 달라집니다.', v: { sc: 'nonrep', lv: 'RC' } },
+    { t: 'REPEATABLE READ로 올리면', q: '트랜잭션 A의 격리 수준을 REPEATABLE READ로 바꾸면', d: '두 번째 조회도 처음과 같은 값을 봅니다.', v: { sc: 'nonrep', lv: 'RR' } },
+    { t: '커밋 안 된 값을 읽는 경우', q: 'B가 수정하고 아직 커밋하지 않은 값을 A가 READ UNCOMMITTED로 조회하면', d: 'READ UNCOMMITTED. 롤백되어 사라질 값을 읽습니다.', v: { sc: 'dirty', lv: 'RU' } },
+    { t: '같은 상황, READ COMMITTED', q: 'B가 수정하고 아직 커밋하지 않은 값을 A가 READ COMMITTED로 조회하면', d: '커밋 전의 값은 보이지 않습니다.', v: { sc: 'dirty', lv: 'RC' } },
+    { t: '없던 행이 나타나는 경우', q: 'READ COMMITTED인 A가 두 번 조회하는 사이에 B가 새 행을 추가하고 커밋하면', d: 'READ COMMITTED. 두 번째 조회에서 건수가 늘어납니다.', v: { sc: 'phantom', lv: 'RC' } },
+    { t: 'SERIALIZABLE', q: '트랜잭션 A의 격리 수준을 SERIALIZABLE로 바꾸면', d: '이상 현상은 없지만 B가 A를 기다립니다.', v: { sc: 'nonrep', lv: 'SER' } },
   ],
   NAMES: { RU: 'READ UNCOMMITTED', RC: 'READ COMMITTED', RR: 'REPEATABLE READ', SER: 'SERIALIZABLE' },
   code: function (c) {

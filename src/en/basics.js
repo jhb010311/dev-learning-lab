@@ -1,0 +1,62 @@
+// Table of contents for the Fundamentals tab in the English edition. Same groups and order as src/basics.js.
+// A lab that is not released yet (not listed in src/en/ready.js) is left out by build.js, and so is a group with no released labs.
+Lab.basics({
+  desc: 'Before looking at how a concept behaves in detail, these labs show what the concept looks like in code and what happens without it.',
+  groups: [
+    { name: 'Java', desc: 'What you need to know first to read Java code.', items: [
+      { id: 'var_basic' },
+      { id: 'method_basic' },
+      { id: 'class_basic' },
+      { id: 'ref_basic' },
+      { id: 'ctor_basic' },
+      { id: 'static_basic' },
+      { id: 'inherit_basic' },
+      { id: 'interface_basic' },
+      { id: 'exception_basic' },
+      { id: 'generic_basic' },
+      { id: 'lambda_basic' },
+      { id: 'annot_basic' },
+      { id: 'thread_basic' },
+    ] },
+    { name: 'Spring', desc: 'What lies underneath when Spring handles a web request.', items: [
+      { id: 'bean_basic' },
+      { id: 'di_basic' },
+      { id: 'servlet_basic' },
+      { id: 'controller_basic' },
+      { id: 'tx_basic' },
+      { id: 'boot_basic' },
+    ] },
+    { name: 'JPA', desc: 'What comes up when Java objects are stored in tables.', items: [
+      { id: 'entity_basic' },
+      { id: 'pc_basic' },
+      { id: 'repo_basic' },
+      { id: 'relation_basic' },
+    ] },
+    { name: 'Database', desc: 'The basic rules for putting data into tables and finding it again.', items: [
+      { id: 'table_basic' },
+      { id: 'pk_basic' },
+      { id: 'fk_basic' },
+      { id: 'where_basic' },
+      { id: 'join_basic' },
+      { id: 'index_basic' },
+      { id: 'dbtx_basic' },
+    ] },
+    { name: 'Networking', desc: 'What the messages between a browser and a server look like.', items: [
+      { id: 'port_basic' },
+      { id: 'url_basic' },
+      { id: 'dns_basic' },
+      { id: 'http_basic' },
+      { id: 'httpres_basic' },
+      { id: 'cookie_basic' },
+      { id: 'json_basic' },
+      { id: 'https_basic' },
+    ] },
+    { name: 'Security', desc: 'The basics of checking who someone is and keeping data safe.', items: [
+      { id: 'authn_basic' },
+      { id: 'session_basic' },
+      { id: 'token_basic' },
+      { id: 'hash_basic' },
+      { id: 'crypto_basic' },
+    ] },
+  ],
+});

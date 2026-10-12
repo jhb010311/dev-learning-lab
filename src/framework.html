@@ -88,6 +88,11 @@ button, input, select { font: inherit; color: inherit; }
 .grid.qgrid { grid-template-areas: "ctl code" "bar bar" "stage stage"; }
 /* 그림이 있으면 세 칸으로 나눈다: 윗줄은 물음과 코드(75칸짜리 줄이 넘치지 않는 너비), 아랫줄은 그림과 결과. 윗줄과 아랫줄이 나뉘는 자리가 다르다. */
 .grid.qgrid.haspic { grid-template-columns: minmax(0, .96fr) minmax(0, .2fr) minmax(0, 1fr); grid-template-areas: "ctl code code" "bar bar bar" "pic pic stage"; }
+/* 기초개념이 아닌 실습(qwide)은 코드 줄이 길다. 물음을 두 단으로 위에 두고, 코드는 그 아래에 전체 너비로 둔다. */
+.grid.qgrid.qwide { grid-template-areas: "ctl ctl" "code code" "bar bar" "stage stage"; }
+.grid.qgrid.qwide.haspic { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-areas: "ctl ctl" "code code" "bar bar" "pic stage"; }
+.grid.qgrid.qwide .asks { display: block; column-count: 2; column-gap: 22px; }
+.grid.qgrid.qwide .asks li { break-inside: avoid; margin-bottom: 2px; }
 .asks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .askq { display: grid; grid-template-columns: 1.5em minmax(0, 1fr); gap: 8px; align-items: baseline; width: 100%; text-align: left; border: 1px solid transparent; background: transparent; border-radius: 3px; padding: 7px 9px; cursor: pointer; font-size: .96rem; }
 .askq:hover, .askq:focus-visible { background: color-mix(in srgb, var(--ink) 5%, transparent); outline: none; }
@@ -98,7 +103,7 @@ button, input, select { font: inherit; color: inherit; }
 .p-ctl.qmode.shut .ctls { display: none; }
 .code .ln { display: block; }
 .code .ln.add, .code mark { background: color-mix(in srgb, var(--busy) 50%, transparent); color: inherit; }
-.grid.qgrid .p-code .code { max-height: 300px; overflow-y: auto; }
+.grid.qgrid .p-code .code { max-height: 380px; overflow-y: auto; }
 .code .ln.del, .code s { text-decoration: line-through; opacity: .5; }
 .below { display: flex; flex-direction: column; gap: 16px; }
 .ctls { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px 20px; align-items: start; }
@@ -343,7 +348,9 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
   .grid, .grid.haspic { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ctl" "bar" "stage" "code"; }
   .grid.haspic { grid-template-areas: "ctl" "bar" "pic" "stage"; }
   .grid.qgrid { grid-template-areas: "ctl" "code" "bar" "stage"; }
-  .grid.qgrid.haspic { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ctl" "code" "bar" "pic" "stage"; }
+  .grid.qgrid.haspic, .grid.qgrid.qwide.haspic { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ctl" "code" "bar" "pic" "stage"; }
+  .grid.qgrid.qwide { grid-template-areas: "ctl" "code" "bar" "stage"; }
+  .grid.qgrid.qwide .asks { column-count: 1; }
   .grid.haspic .p-pic, .grid:not(.haspic) .p-code { position: static; max-height: none; }
   .presets { display: flex; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
   .preset { flex: 0 0 min(230px, 72vw); scroll-snap-align: start; }
@@ -408,6 +415,7 @@ table.data tr.gone td { text-decoration: line-through; color: var(--muted); }
     <div class="panel p-ctl shut" id="ctlpanel">
       <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
       <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
       <p class="ctlsum" id="ctlsum"></p>
       <div id="controls" class="ctls"></div>
     </div>
@@ -488,7 +496,9 @@ var Lab = (function () {
     }).join('\n');
   }
   // 기초개념 실습은 설정 칸 대신 물음을 앞에 둔다(물음 방식)
-  function qmode() { return !!cur && !!cur.basic; }
+  // 물음 방식: 기초개념 실습은 늘, 그 밖의 실습은 예시마다 물음(q)이 적혀 있으면 쓴다
+  function qmode() { return !!cur && (!!cur.basic || (cur.presets.length > 0 && cur.presets.every(function (p) { return !!p.q; }))); }
+  function valText(d, c) { if (d.type === 'select') { var o = d.options.filter(function (x) { return String(x[0]) === String(c[d.id]); })[0]; return o ? o[1] : String(c[d.id]); } return d.type === 'check' ? (c[d.id] ? '켬' : '끔') : d.fmt ? d.fmt(c[d.id], c) : String(c[d.id]); }
   // 두 코드를 줄 단위로 견주어, 지운 줄은 줄을 긋고 새로 쓴 줄은 칠한다. 한 줄이 한 줄로 바뀐 곳은 그 줄 안에서 달라진 낱말만 표시한다. 같으면 null.
   function diffHtml(a, b) {
     if (a === b) return null;
@@ -549,13 +559,18 @@ var Lab = (function () {
       var box = $('box-' + d.id); box.hidden = d.show ? !d.show(c) : false;
       if (d.type === 'range') $('out-' + d.id).textContent = d.fmt ? d.fmt(c[d.id], c) : String(c[d.id]);
     });
-    var code = cur.code(c), dh = null;
+    var code = cur.code(c), dh = null, ad = $('ask-diff'); ad.hidden = true;
     // 물음 방식: 처음 설정의 코드와 견주어 달라진 곳을 표시하고, 지금 설정과 같은 물음에 표시를 둔다
     if (qmode()) {
+      // 설정 칸이 접혀 있으므로, 처음 설정에서 무엇이 바뀌었는지를 물음 아래에 한 줄로 적는다 (기초개념 실습은 코드의 표시가 그 일을 한다)
+      var chg = cur.basic ? [] : cur.controls.filter(function (d) { return String(c[d.id]) !== String(d.value) && !(d.show && !d.show(c)); }).map(function (d) { return d.label + ' → ' + valText(d, c); });
+      if (chg.length) { ad.hidden = false; ad.textContent = '처음 설정에서 바꾼 것: ' + chg.join(' · '); }
       var c0 = {}; cur.controls.forEach(function (d) { c0[d.id] = d.value; }); dh = diffHtml(cur.code(c0), code);
       Array.prototype.forEach.call($('asks').querySelectorAll('.askq'), function (b, i) { var v = cur.presets[i].v, same = cur.controls.every(function (d) { return String(v[d.id] === undefined ? d.value : v[d.id]) === String(c[d.id]); }); if (same) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
     }
     $('code').innerHTML = dh || highlight(code); $('code-note').hidden = !dh;
+    // 코드가 길어 상자 안에서 넘길 때는 달라진 첫 곳이 보이게 상자 안에서만 넘긴다 (화면 전체는 움직이지 않는다)
+    if (qmode()) { var cd = $('code'), mk = dh ? cd.querySelector('.ln.add, .ln.del, mark, s') : null; if (!mk) cd.scrollTop = 0; else { var tp = mk.getBoundingClientRect().top - cd.getBoundingClientRect().top + cd.scrollTop; if (tp < cd.scrollTop || tp > cd.scrollTop + cd.clientHeight - 48) cd.scrollTop = Math.max(0, tp - 48); } }
     $('ctlsum').textContent = '지금 설정: ' + cur.label(c);
     if (ask) { if (JSON.stringify(c) === JSON.stringify(sim.c)) askCancel(); else askShow(c); }
     syncBar(c);
@@ -769,7 +784,7 @@ var Lab = (function () {
     var main = curri.filter(function (c) { return !c.extra; }), extra = curri.filter(function (c) { return c.extra; });
     if (mode === 'home') {
       var hero = el('div', 'hero'); hero.appendChild(el('h1', null, SITE.name));
-      hero.appendChild(el('p', 'lead', '설정을 바꾸고 실행을 눌러, 개념이 어떻게 움직이는지 직접 봅니다.'));
+      hero.appendChild(el('p', 'lead', '물음을 고르고 실행을 눌러, 개념이 어떻게 움직이는지 직접 봅니다.'));
       hero.appendChild(el('p', 'muted', '무료 · 가입 없음 · 실습 ' + lessons.length + '개'));
       if (SITE.notice) hero.appendChild(el('p', 'notice', SITE.notice));
       var last = ''; try { last = localStorage.getItem('lab-last') || ''; } catch (e) {}
@@ -890,7 +905,7 @@ var Lab = (function () {
     stop(); askCancel(); sim = null; paused = false; assumeOpen = false; cur = byId(id) || lessons[0];
     $('title').textContent = cur.nav; $('question').textContent = cur.title; glHide(); glossInto($('intro'), cur.intro, cur.id); drawAssume(); drawCode(); drawVerify();
     drawPath();
-    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : '') + (qmode() ? ' qgrid' : ''); placeCode(); picReset();
+    var grid = document.querySelector('.grid'); grid.className = 'grid labonly' + (cur.draw ? ' haspic' : '') + (qmode() ? ' qgrid' + (cur.basic ? '' : ' qwide') : ''); placeCode(); picReset();
     buildControls(); labels(); drawExplain(); drawHist(); run(false, true);
     try { localStorage.setItem('lab-last', cur.id); } catch (e) {}
   }

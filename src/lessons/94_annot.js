@@ -12,13 +12,13 @@ Lab.register({
     { id: 'ov', label: '그 메서드에 @Override를 붙였다', type: 'check', value: false, show: function (c) { return c.topic === 'override'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '@Timed를 붙였고 읽는 코드도 있는데, 아무 일도 일어나지 않습니다.', v: { topic: 'custom', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: false } },
-    { t: 'RUNTIME으로 남기면', d: '읽는 코드가 표시를 찾아 work 앞뒤에 일을 덧붙입니다.', v: { topic: 'custom', ret: 'RUNTIME', target: 'METHOD', reader: true, typo: true, ov: false } },
-    { t: '읽는 코드가 없으면', d: '표시가 실행 중까지 남아 있어도 아무 일도 일어나지 않습니다.', v: { topic: 'custom', ret: 'RUNTIME', target: 'METHOD', reader: false, typo: true, ov: false } },
-    { t: 'SOURCE로 하면', d: '표시가 class 파일에도 남지 않습니다.', v: { topic: 'custom', ret: 'SOURCE', target: 'METHOD', reader: true, typo: true, ov: false } },
-    { t: '붙일 수 없는 곳에 붙이면', d: '@Target이 TYPE인데 메서드에 붙였습니다. 컴파일 오류입니다.', v: { topic: 'custom', ret: 'RUNTIME', target: 'TYPE', reader: true, typo: true, ov: false } },
-    { t: '@Override 없이 이름을 틀리면', d: '오류 없이 컴파일되고, 부모의 메서드가 대신 실행됩니다.', v: { topic: 'override', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: false } },
-    { t: '@Override가 잡아 준다', d: '같은 실수를 컴파일러가 오류로 알려 줍니다.', v: { topic: 'override', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: true } },
+    { t: '처음 설정으로', q: '@Retention 없이 @Timed를 메서드에 붙이고 리플렉션으로 읽는 코드를 두면 실행 중에 무슨 일이 일어나나', d: '@Timed를 붙였고 읽는 코드도 있는데, 아무 일도 일어나지 않습니다.', v: { topic: 'custom', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: false } },
+    { t: 'RUNTIME으로 남기면', q: '@Timed의 @Retention을 RUNTIME으로 바꾸면', d: '읽는 코드가 표시를 찾아 work 앞뒤에 일을 덧붙입니다.', v: { topic: 'custom', ret: 'RUNTIME', target: 'METHOD', reader: true, typo: true, ov: false } },
+    { t: '읽는 코드가 없으면', q: '@Retention을 RUNTIME으로 바꾸고 @Timed를 읽어서 처리하는 코드를 없애면', d: '표시가 실행 중까지 남아 있어도 아무 일도 일어나지 않습니다.', v: { topic: 'custom', ret: 'RUNTIME', target: 'METHOD', reader: false, typo: true, ov: false } },
+    { t: 'SOURCE로 하면', q: '@Timed의 @Retention을 SOURCE로 바꾸면', d: '표시가 class 파일에도 남지 않습니다.', v: { topic: 'custom', ret: 'SOURCE', target: 'METHOD', reader: true, typo: true, ov: false } },
+    { t: '붙일 수 없는 곳에 붙이면', q: '@Retention은 RUNTIME으로 두고 @Timed의 @Target을 TYPE으로 바꾸면', d: '@Target이 TYPE인데 메서드에 붙였습니다. 컴파일 오류입니다.', v: { topic: 'custom', ret: 'RUNTIME', target: 'TYPE', reader: true, typo: true, ov: false } },
+    { t: '@Override 없이 이름을 틀리면', q: '@Override를 붙이지 않고 재정의하려는 메서드의 이름을 sound 대신 sount로 적으면', d: '오류 없이 컴파일되고, 부모의 메서드가 대신 실행됩니다.', v: { topic: 'override', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: false } },
+    { t: '@Override가 잡아 준다', q: '같은 실수(sound → sount)인데 그 메서드에 @Override를 붙이면', d: '같은 실수를 컴파일러가 오류로 알려 줍니다.', v: { topic: 'override', ret: 'none', target: 'METHOD', reader: true, typo: true, ov: true } },
   ],
   // 화면의 코드: [선언 부분, main 안의 부분]
   parts: function (c) {

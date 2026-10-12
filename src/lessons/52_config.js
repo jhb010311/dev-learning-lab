@@ -11,11 +11,11 @@ Lab.register({
     { id: 'cli', label: '실행 인자 --app.timeout=9000', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: '기본 파일과 prod 파일에 둘 다 있습니다. prod 쪽이 이깁니다.', v: { yml: true, prof: true, env: false, sys: false, cli: false } },
-    { t: '환경 변수를 추가하면', d: '파일보다 환경 변수가 우선합니다. 컨테이너 배포에서 흔히 쓰는 방식입니다.', v: { yml: true, prof: true, env: true, sys: false, cli: false } },
-    { t: '실행 인자까지 주면', d: '실행 인자가 가장 우선합니다.', v: { yml: true, prof: true, env: true, sys: true, cli: true } },
-    { t: '기본 파일만', d: '다른 곳에 없으면 기본 파일의 값을 씁니다.', v: { yml: true, prof: false, env: false, sys: false, cli: false } },
-    { t: '어디에도 없으면', d: '코드에 적어 둔 기본값을 씁니다.', v: { yml: false, prof: false, env: false, sys: false, cli: false } },
+    { t: '처음 설정으로', q: 'application.yml은 3000, application-prod.yml은 5000으로 둘 다 있으면 어느 값이 쓰이나', d: '기본 파일과 prod 파일에 둘 다 있습니다. prod 쪽이 이깁니다.', v: { yml: true, prof: true, env: false, sys: false, cli: false } },
+    { t: '환경 변수를 추가하면', q: '환경 변수 APP_TIMEOUT=7000을 켜면', d: '파일보다 환경 변수가 우선합니다. 컨테이너 배포에서 흔히 쓰는 방식입니다.', v: { yml: true, prof: true, env: true, sys: false, cli: false } },
+    { t: '실행 인자까지 주면', q: 'APP_TIMEOUT=7000, -Dapp.timeout=8000, --app.timeout=9000을 모두 켜면', d: '실행 인자가 가장 우선합니다.', v: { yml: true, prof: true, env: true, sys: true, cli: true } },
+    { t: '기본 파일만', q: 'prod 프로파일의 app.timeout: 5000을 끄고 기본 파일만 남기면', d: '다른 곳에 없으면 기본 파일의 값을 씁니다.', v: { yml: true, prof: false, env: false, sys: false, cli: false } },
+    { t: '어디에도 없으면', q: 'application.yml의 3000과 application-prod.yml의 5000을 모두 끄면', d: '코드에 적어 둔 기본값을 씁니다.', v: { yml: false, prof: false, env: false, sys: false, cli: false } },
   ],
   SRC: [['cli', '실행 인자 (--app.timeout=9000)', '9000'], ['sys', 'JVM 시스템 프로퍼티 (-Dapp.timeout=8000)', '8000'], ['env', '운영체제 환경 변수 (APP_TIMEOUT=7000)', '7000'], ['prof', 'application-prod.yml (프로파일 전용 파일)', '5000'], ['yml', 'application.yml (기본 파일)', '3000']],
   code: function (c) {

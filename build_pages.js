@@ -19,7 +19,7 @@ module.exports = function (o) {
     prev: 'Previous lab', next: 'Next lab', nojs: 'The labs on this site need JavaScript to run. The same content is written out below.',
     ver: { run: 'Checked against real execution', part: 'Partly checked against real execution', doc: 'Checked against documentation and standards', model: 'Conceptual model' },
   } : {
-    study: '공부', basics: '기초개념', quiz: '테스트', quizAll: '전체 테스트', lead: '설정을 바꾸고 실행을 눌러, 개념이 어떻게 움직이는지 직접 봅니다.',
+    study: '공부', basics: '기초개념', quiz: '테스트', quizAll: '전체 테스트', lead: '물음을 고르고 실행을 눌러, 개념이 어떻게 움직이는지 직접 봅니다.',
     quizDesc: '기초, 초급, 중급, 응용 단계의 문제를 풉니다. 틀린 문제는 간격을 두고 다시 나옵니다.',
     concepts: '이 실습에 나오는 개념', presets: '이렇게 바꿔 보세요', run: '처음 설정으로 실행하면', result: '실행 결과', code: '코드', assume: '이 모형의 전제',
     prev: '앞 실습', next: '다음 실습', nojs: '이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.',

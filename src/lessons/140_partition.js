@@ -10,13 +10,13 @@ Lab.register({
     { id: 'q', label: '조회 조건', type: 'select', value: 'func', options: [['key', '파티션 키 컬럼 = 값'], ['range', '파티션 키 컬럼의 범위'], ['func', '파티션 키 컬럼에 함수나 계산을 씌움'], ['other', '파티션 키가 없는 조건 (id = 100)']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '연도로 나눴는데 YEAR(ordered_at) = 2024로 찾으면 세 파티션을 모두 읽습니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'func' } },
-    { t: '컬럼을 그대로 비교하면', d: '그 날짜가 들어 있을 파티션 하나만 읽습니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'key' } },
-    { t: '두 해에 걸친 범위', d: '걸쳐 있는 두 파티션만 읽고 나머지는 건너뜁니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'range' } },
-    { t: '파티션 키가 없는 조건', d: '기본 키의 첫 컬럼으로 찾는데도 모든 파티션을 읽습니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'other' } },
-    { t: '범위 밖의 날짜를 넣으면', d: '받아 줄 파티션이 없어 INSERT가 오류 1526으로 실패합니다.', v: { how: 'range', pk: 'with', ins: 'out', q: 'key' } },
-    { t: '기본 키에 파티션 키가 없으면', d: '테이블을 만들 때 오류 1503이 납니다.', v: { how: 'range', pk: 'only', ins: 'in', q: 'key' } },
-    { t: '해시로 나누면', d: '어떤 값이든 들어갈 곳이 있지만, 범위 조회는 모든 파티션을 읽습니다.', v: { how: 'hash', pk: 'with', ins: 'out', q: 'range' } },
+    { t: '처음 설정으로', q: '연도별 RANGE 파티션에서 YEAR(ordered_at) = 2024로 조회하면 어느 파티션을 읽나', d: '연도로 나눴는데 YEAR(ordered_at) = 2024로 찾으면 세 파티션을 모두 읽습니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'func' } },
+    { t: '컬럼을 그대로 비교하면', q: '조회 조건을 파티션 키 컬럼 = 값으로 바꾸면', d: '그 날짜가 들어 있을 파티션 하나만 읽습니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'key' } },
+    { t: '두 해에 걸친 범위', q: '조회 조건을 파티션 키 컬럼의 범위로 바꾸면', d: '걸쳐 있는 두 파티션만 읽고 나머지는 건너뜁니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'range' } },
+    { t: '파티션 키가 없는 조건', q: '조회 조건을 파티션 키가 없는 id = 100으로 바꾸면', d: '기본 키의 첫 컬럼으로 찾는데도 모든 파티션을 읽습니다.', v: { how: 'range', pk: 'with', ins: 'in', q: 'other' } },
+    { t: '범위 밖의 날짜를 넣으면', q: '새로 넣는 행을 2026년 1월 주문, 회원 9번으로 바꾸고 파티션 키 컬럼 = 값으로 조회하면', d: '받아 줄 파티션이 없어 INSERT가 오류 1526으로 실패합니다.', v: { how: 'range', pk: 'with', ins: 'out', q: 'key' } },
+    { t: '기본 키에 파티션 키가 없으면', q: '기본 키를 (id) 하나뿐으로 바꾸고 파티션 키 컬럼 = 값으로 조회하면', d: '테이블을 만들 때 오류 1503이 납니다.', v: { how: 'range', pk: 'only', ins: 'in', q: 'key' } },
+    { t: '해시로 나누면', q: 'HASH로 회원 번호를 4로 나눈 나머지로 나누고 2026년 1월 주문, 회원 9번을 넣어 범위로 조회하면', d: '어떤 값이든 들어갈 곳이 있지만, 범위 조회는 모든 파티션을 읽습니다.', v: { how: 'hash', pk: 'with', ins: 'out', q: 'range' } },
   ],
   where: function (c) {
     if (c.q === 'other') return 'id = 100';

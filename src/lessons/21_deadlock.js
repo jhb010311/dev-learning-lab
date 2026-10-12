@@ -9,10 +9,10 @@ Lab.register({
     { id: 'tryl', label: '락을 기다리는 시간에 제한을 둔다 (tryLock)', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: '서로 반대 순서로 락을 잡고 동시에 시작합니다. 교착 상태가 됩니다.', v: { ord: 'BA', time: 'overlap', tryl: false } },
-    { t: '락 순서를 통일하면', d: '둘 다 A부터 잡습니다. 한쪽이 기다렸다가 차례로 끝납니다.', v: { ord: 'AB', time: 'overlap', tryl: false } },
-    { t: '타이밍이 어긋나면', d: '반대 순서인데도 문제없이 끝납니다. 그래서 테스트에서 안 잡힙니다.', v: { ord: 'BA', time: 'seq', tryl: false } },
-    { t: '기다리는 시간에 제한을 두면', d: '못 잡으면 가진 락을 내려놓고 다시 시도합니다.', v: { ord: 'BA', time: 'overlap', tryl: true } },
+    { t: '처음 설정으로', q: '스레드 2가 B 먼저 그다음 A 순서로 락을 잡고 두 스레드가 동시에 시작하면 어떻게 되나', d: '서로 반대 순서로 락을 잡고 동시에 시작합니다. 교착 상태가 됩니다.', v: { ord: 'BA', time: 'overlap', tryl: false } },
+    { t: '락 순서를 통일하면', q: '스레드 2가 A 먼저, 그다음 B 순서로 락을 잡게 바꾸면', d: '둘 다 A부터 잡습니다. 한쪽이 기다렸다가 차례로 끝납니다.', v: { ord: 'AB', time: 'overlap', tryl: false } },
+    { t: '타이밍이 어긋나면', q: '두 스레드를 동시에 시작하지 않고 스레드 1이 끝난 뒤 스레드 2를 시작하면', d: '반대 순서인데도 문제없이 끝납니다. 그래서 테스트에서 안 잡힙니다.', v: { ord: 'BA', time: 'seq', tryl: false } },
+    { t: '기다리는 시간에 제한을 두면', q: '락을 기다리는 시간에 제한을 두는 tryLock을 켜면', d: '못 잡으면 가진 락을 내려놓고 다시 시도합니다.', v: { ord: 'BA', time: 'overlap', tryl: true } },
   ],
   code: function (c) {
     if (c.tryl) { var x = c.ord === 'AB' ? 'first' : 'from', y = c.ord === 'AB' ? 'second' : 'to';

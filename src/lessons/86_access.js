@@ -8,13 +8,13 @@ Lab.register({
     { id: 'from', label: 'balance를 읽는 코드가 있는 곳', type: 'select', value: 'subParent', options: [['same', '같은 클래스 Account 안'], ['pkg', '같은 패키지의 다른 클래스 Teller'], ['subThis', '다른 패키지의 자식 SavingAccount: this.balance'], ['subChild', '다른 패키지의 자식: SavingAccount 타입 변수로'], ['subParent', '다른 패키지의 자식: Account 타입 변수로'], ['other', '다른 패키지의 무관한 클래스 Report']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'protected 멤버를 자식 클래스 안에서 읽는데, 부모 타입 변수로 읽으면 컴파일 오류입니다.', v: { mod: 'protected', from: 'subParent' } },
-    { t: 'protected를 자기 자신의 것으로 읽으면', d: '물려받은 자기 멤버 this.balance는 읽을 수 있습니다.', v: { mod: 'protected', from: 'subThis' } },
-    { t: 'protected는 같은 패키지에도 열려 있다', d: '자식이 아니어도 같은 패키지의 클래스는 읽을 수 있습니다.', v: { mod: 'protected', from: 'pkg' } },
-    { t: 'private을 같은 패키지에서 읽으면', d: 'private은 같은 클래스 안에서만 쓸 수 있습니다.', v: { mod: 'private', from: 'pkg' } },
-    { t: '아무것도 쓰지 않은 멤버를 다른 패키지의 자식에서', d: '자식 클래스여도 패키지가 다르면 읽을 수 없습니다.', v: { mod: 'package', from: 'subThis' } },
-    { t: 'protected를 무관한 클래스에서', d: '다른 패키지이고 자식도 아니면 읽을 수 없습니다.', v: { mod: 'protected', from: 'other' } },
-    { t: 'public이면', d: '다른 패키지의 무관한 클래스에서도 읽을 수 있습니다.', v: { mod: 'public', from: 'other' } },
+    { t: '처음 설정으로', q: 'balance 앞에 protected를 적고 다른 패키지의 자식에서 Account 타입 변수로 읽으면 컴파일되나', d: 'protected 멤버를 자식 클래스 안에서 읽는데, 부모 타입 변수로 읽으면 컴파일 오류입니다.', v: { mod: 'protected', from: 'subParent' } },
+    { t: 'protected를 자기 자신의 것으로 읽으면', q: '다른 패키지의 자식 SavingAccount에서 this.balance로 읽으면', d: '물려받은 자기 멤버 this.balance는 읽을 수 있습니다.', v: { mod: 'protected', from: 'subThis' } },
+    { t: 'protected는 같은 패키지에도 열려 있다', q: '같은 패키지의 다른 클래스 Teller에서 읽으면', d: '자식이 아니어도 같은 패키지의 클래스는 읽을 수 있습니다.', v: { mod: 'protected', from: 'pkg' } },
+    { t: 'private을 같은 패키지에서 읽으면', q: '접근 제어자를 private으로 바꾸고 같은 패키지의 다른 클래스 Teller에서 읽으면', d: 'private은 같은 클래스 안에서만 쓸 수 있습니다.', v: { mod: 'private', from: 'pkg' } },
+    { t: '아무것도 쓰지 않은 멤버를 다른 패키지의 자식에서', q: '접근 제어자를 아무것도 쓰지 않음 (패키지 전용) 상태로 바꾸고 다른 패키지의 자식 SavingAccount에서 this.balance로 읽으면', d: '자식 클래스여도 패키지가 다르면 읽을 수 없습니다.', v: { mod: 'package', from: 'subThis' } },
+    { t: 'protected를 무관한 클래스에서', q: '다른 패키지의 무관한 클래스 Report에서 읽으면', d: '다른 패키지이고 자식도 아니면 읽을 수 없습니다.', v: { mod: 'protected', from: 'other' } },
+    { t: 'public이면', q: '접근 제어자를 public으로 바꾸고 다른 패키지의 무관한 클래스 Report에서 읽으면', d: '다른 패키지의 무관한 클래스에서도 읽을 수 있습니다.', v: { mod: 'public', from: 'other' } },
   ],
   code: function (c) {
     var ok = this.allowed(c.mod, c.from), tail = ok ? '' : '       // 컴파일 오류', kw = c.mod === 'package' ? '' : c.mod + ' ';

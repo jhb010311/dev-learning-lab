@@ -10,13 +10,13 @@ Lab.register({
     { id: 'ib', label: '두 번째 변수의 타입', type: 'select', value: 'box', options: [['box', 'Integer (객체)'], ['prim', 'int (기본형)']], show: function (c) { return c.kind === 'int'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '리터럴과 new String. 내용은 같지만 ==는 false입니다.', v: { kind: 'str', sb: 'new', iv: '127', ib: 'box' } },
-    { t: '리터럴끼리', d: '같은 리터럴은 String Pool의 같은 객체를 씁니다.', v: { kind: 'str', sb: 'lit', iv: '127', ib: 'box' } },
-    { t: '변수와 결합한 문자열', d: '실행 중에 만들어진 문자열은 풀에 있는 것과 다른 객체입니다.', v: { kind: 'str', sb: 'concat', iv: '127', ib: 'box' } },
-    { t: 'intern()을 부르면', d: '풀에 있는 객체를 돌려받아 ==가 true가 됩니다.', v: { kind: 'str', sb: 'intern', iv: '127', ib: 'box' } },
-    { t: 'Integer 127', d: '==가 true입니다.', v: { kind: 'int', sb: 'new', iv: '127', ib: 'box' } },
-    { t: 'Integer 128', d: '값만 1 늘렸는데 ==가 false가 됩니다.', v: { kind: 'int', sb: 'new', iv: '128', ib: 'box' } },
-    { t: 'Integer와 int 비교', d: '한쪽이 기본형이면 값으로 비교합니다.', v: { kind: 'int', sb: 'new', iv: '128', ib: 'prim' } },
+    { t: '처음 설정으로', q: '두 번째 String을 new String("hello") 방식으로 만들어 ==와 equals로 비교하면 어떻게 나오나', d: '리터럴과 new String. 내용은 같지만 ==는 false입니다.', v: { kind: 'str', sb: 'new', iv: '127', ib: 'box' } },
+    { t: '리터럴끼리', q: '두 번째 문자열을 new String 대신 리터럴 hello로 바꾸면', d: '같은 리터럴은 String Pool의 같은 객체를 씁니다.', v: { kind: 'str', sb: 'lit', iv: '127', ib: 'box' } },
+    { t: '변수와 결합한 문자열', q: '두 번째 문자열을 변수와 결합한 part + lo 방식으로 바꾸면', d: '실행 중에 만들어진 문자열은 풀에 있는 것과 다른 객체입니다.', v: { kind: 'str', sb: 'concat', iv: '127', ib: 'box' } },
+    { t: 'intern()을 부르면', q: '두 번째 문자열을 만들 때 new String("hello") 방식에 intern 메서드 호출을 덧붙이면', d: '풀에 있는 객체를 돌려받아 ==가 true가 됩니다.', v: { kind: 'str', sb: 'intern', iv: '127', ib: 'box' } },
+    { t: 'Integer 127', q: '비교할 타입을 Integer로 바꿔 127을 비교하면', d: '==가 true입니다.', v: { kind: 'int', sb: 'new', iv: '127', ib: 'box' } },
+    { t: 'Integer 128', q: '비교할 타입을 Integer로, 값을 128로 바꾸면', d: '값만 1 늘렸는데 ==가 false가 됩니다.', v: { kind: 'int', sb: 'new', iv: '128', ib: 'box' } },
+    { t: 'Integer와 int 비교', q: 'Integer 128인데 두 번째 변수의 타입을 int로 바꾸면', d: '한쪽이 기본형이면 값으로 비교합니다.', v: { kind: 'int', sb: 'new', iv: '128', ib: 'prim' } },
   ],
   code: function (c) {
     if (c.kind === 'str') {

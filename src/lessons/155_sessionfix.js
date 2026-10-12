@@ -9,12 +9,12 @@ Lab.register({
     { id: 'logout', label: '그 사람이 요청하기 전에 피해자가 로그아웃한다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: '로그인해도 세션 ID가 그대로입니다. 그 ID를 미리 알던 사람의 요청이 kim으로 처리됩니다.', v: { fix: 'none', when: 'before', logout: false } },
-    { t: '스프링 시큐리티의 기본값이면', d: '로그인하는 순간 ID가 바뀌어, 미리 알아 둔 ID는 쓸모가 없어집니다.', v: { fix: 'default', when: 'before', logout: false } },
-    { t: '새 세션을 만드는 방식', d: 'ID가 바뀌는 것은 같지만 로그인 전에 담은 장바구니가 사라집니다.', v: { fix: 'newSession', when: 'before', logout: false } },
-    { t: '로그인 뒤의 ID가 새어 나가면', d: '로그인할 때 ID를 바꾸는 것으로는 막지 못합니다.', v: { fix: 'default', when: 'after', logout: false } },
-    { t: '피해자가 로그아웃하면', d: '서버가 세션을 지워, 새어 나간 ID가 더는 통하지 않습니다.', v: { fix: 'default', when: 'after', logout: true } },
-    { t: '보호를 껐지만 로그아웃한 경우', d: '로그아웃한 뒤에는 막히지만, 로그인해 있는 동안은 열려 있었습니다.', v: { fix: 'none', when: 'before', logout: true } },
+    { t: '처음 설정으로', q: '로그인 성공 때 아무것도 하지 않는(none) 서버에서 미리 받아 둔 세션 ID로 피해자가 로그인하면 어떻게 되나', d: '로그인해도 세션 ID가 그대로입니다. 그 ID를 미리 알던 사람의 요청이 kim으로 처리됩니다.', v: { fix: 'none', when: 'before', logout: false } },
+    { t: '스프링 시큐리티의 기본값이면', q: '로그인에 성공했을 때 세션 ID를 새 값으로 바꾸는 스프링 시큐리티 기본값으로 바꾸면', d: '로그인하는 순간 ID가 바뀌어, 미리 알아 둔 ID는 쓸모가 없어집니다.', v: { fix: 'default', when: 'before', logout: false } },
+    { t: '새 세션을 만드는 방식', q: '로그인에 성공했을 때 새 세션을 만들고 예전 내용은 버리는 newSession으로 바꾸면', d: 'ID가 바뀌는 것은 같지만 로그인 전에 담은 장바구니가 사라집니다.', v: { fix: 'newSession', when: 'before', logout: false } },
+    { t: '로그인 뒤의 ID가 새어 나가면', q: '세션 ID를 새 값으로 바꾸는 기본값인데 로그인된 세션의 ID를 알아냈으면', d: '로그인할 때 ID를 바꾸는 것으로는 막지 못합니다.', v: { fix: 'default', when: 'after', logout: false } },
+    { t: '피해자가 로그아웃하면', q: '기본값에서 로그인된 세션의 ID를 알아냈는데 그 사람이 요청하기 전에 피해자가 로그아웃하면', d: '서버가 세션을 지워, 새어 나간 ID가 더는 통하지 않습니다.', v: { fix: 'default', when: 'after', logout: true } },
+    { t: '보호를 껐지만 로그아웃한 경우', q: '보호를 끈 채로 그 사람이 요청하기 전에 피해자가 로그아웃하면', d: '로그아웃한 뒤에는 막히지만, 로그인해 있는 동안은 열려 있었습니다.', v: { fix: 'none', when: 'before', logout: true } },
   ],
   code: function (c) {
     var sm = c.fix === 'none' ? '        .sessionManagement(s -> s\n            .sessionFixation(f -> f.none()))          // 로그인해도 세션을 그대로 둔다 (보호를 끔)\n'

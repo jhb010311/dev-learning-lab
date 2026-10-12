@@ -10,13 +10,13 @@ Lab.register({
     { id: 'rel', label: '이 페이지 안의 링크 (상대 주소)', type: 'select', value: 'detail', options: [['detail', 'detail'], ['../cart', '../cart'], ['/help', '/help'], ['?page=2', '?page=2'], ['#top', '#top'], ['//cdn.example/app.js', '//cdn.example/app.js']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '검색어 A&B를 그대로 이어 붙입니다. 서버는 q의 값으로 A만 받습니다.', v: { origin: 'https://shop.example', q: 'A&B', enc: false, rel: 'detail' } },
-    { t: '인코딩해서 넣으면', d: '&가 %26으로 바뀌어 값이 온전히 도착합니다.', v: { origin: 'https://shop.example', q: 'A&B', enc: true, rel: 'detail' } },
-    { t: '검색어에 #이 있으면', d: '# 뒤가 모두 프래그먼트가 되어 서버로 가지 않습니다.', v: { origin: 'https://shop.example', q: 'C#', enc: false, rel: '#top' } },
-    { t: '검색어에 +가 있으면', d: '서버는 +를 공백으로 읽습니다.', v: { origin: 'https://shop.example', q: 'C++', enc: false, rel: 'detail' } },
-    { t: '한글과 공백', d: '브라우저가 대신 바꿔 주는 글자와 그 모양을 봅니다.', v: { origin: 'https://shop.example', q: '겨울 옷', enc: true, rel: '?page=2' } },
-    { t: '포트를 적은 주소', d: '기본 포트가 아닌 8443번으로 접속하고, Host 헤더에도 포트가 붙습니다.', v: { origin: 'https://shop.example:8443', q: 'keyboard', enc: true, rel: '/help' } },
-    { t: '기본 포트를 굳이 적으면', d: ':443은 적지 않은 것과 같아서 정리된 주소에서 사라집니다.', v: { origin: 'https://shop.example:443', q: 'keyboard', enc: true, rel: '../cart' } },
+    { t: '처음 설정으로', q: '검색어 A&B를 인코딩 없이 주소에 이어 붙여 보내면 서버는 q를 어떻게 받나', d: '검색어 A&B를 그대로 이어 붙입니다. 서버는 q의 값으로 A만 받습니다.', v: { origin: 'https://shop.example', q: 'A&B', enc: false, rel: 'detail' } },
+    { t: '인코딩해서 넣으면', q: '검색어 A&B를 인코딩해서 넣으면', d: '&가 %26으로 바뀌어 값이 온전히 도착합니다.', v: { origin: 'https://shop.example', q: 'A&B', enc: true, rel: 'detail' } },
+    { t: '검색어에 #이 있으면', q: '검색어를 C#, 페이지 안의 링크를 #top으로 바꾸면', d: '# 뒤가 모두 프래그먼트가 되어 서버로 가지 않습니다.', v: { origin: 'https://shop.example', q: 'C#', enc: false, rel: '#top' } },
+    { t: '검색어에 +가 있으면', q: '검색어를 C++로 바꾸면', d: '서버는 +를 공백으로 읽습니다.', v: { origin: 'https://shop.example', q: 'C++', enc: false, rel: 'detail' } },
+    { t: '한글과 공백', q: '검색어를 겨울 옷으로 바꾸고 인코딩해서 넣으면', d: '브라우저가 대신 바꿔 주는 글자와 그 모양을 봅니다.', v: { origin: 'https://shop.example', q: '겨울 옷', enc: true, rel: '?page=2' } },
+    { t: '포트를 적은 주소', q: '주소의 앞부분을 https://shop.example:8443으로, 검색어를 keyboard로 바꾸고 인코딩해서 넣으면', d: '기본 포트가 아닌 8443번으로 접속하고, Host 헤더에도 포트가 붙습니다.', v: { origin: 'https://shop.example:8443', q: 'keyboard', enc: true, rel: '/help' } },
+    { t: '기본 포트를 굳이 적으면', q: '주소의 앞부분에 :443을 적어 https://shop.example:443으로 바꾸고 keyboard를 인코딩해서 넣으면', d: ':443은 적지 않은 것과 같아서 정리된 주소에서 사라집니다.', v: { origin: 'https://shop.example:443', q: 'keyboard', enc: true, rel: '../cart' } },
   ],
   code: function (c) {
     var head = '// 자바스크립트입니다. 브라우저 개발자 도구의 콘솔에 붙여 넣으면 실행됩니다.\nconst keyword = \'' + c.q + '\';\n\n';

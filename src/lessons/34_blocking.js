@@ -11,11 +11,11 @@ Lab.register({
     { id: 'block', label: '이벤트 루프 안에서 블로킹 호출을 한다 (JDBC 등)', type: 'check', value: false, show: function (c) { return c.model === 'loop'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '스레드 4개에 요청 12건. 스레드가 기다리느라 묶여 뒤 요청이 줄을 섭니다.', v: { model: 'pool', th: 4, n: 12, w: '2', block: false } },
-    { t: '이벤트 루프로', d: '스레드 2개로 12건을 동시에 진행합니다.', v: { model: 'loop', th: 4, n: 12, w: '2', block: false } },
-    { t: '이벤트 루프에서 블로킹 호출', d: '스레드 2개가 묶여 한 번에 2건씩만 진행됩니다. 가장 나쁜 조합입니다.', v: { model: 'loop', th: 4, n: 12, w: '2', block: true } },
-    { t: '가상 스레드', d: '코드는 블로킹 방식 그대로인데 동시에 진행됩니다.', v: { model: 'virtual', th: 4, n: 12, w: '2', block: false } },
-    { t: '스레드 풀을 키우면', d: '스레드 10개에 요청 30건. 스레드를 늘려도 요청이 그만큼 늘면 똑같이 줄을 섭니다.', v: { model: 'pool', th: 10, n: 30, w: '2', block: false } },
+    { t: '처음 설정으로', q: '스레드 풀 4개인 스프링 MVC에 요청 12건이 오고 각각 외부 응답을 2초 기다리면 어떻게 되나', d: '스레드 4개에 요청 12건. 스레드가 기다리느라 묶여 뒤 요청이 줄을 섭니다.', v: { model: 'pool', th: 4, n: 12, w: '2', block: false } },
+    { t: '이벤트 루프로', q: '처리 방식을 스프링 WebFlux 이벤트 루프로 바꾸면', d: '스레드 2개로 12건을 동시에 진행합니다.', v: { model: 'loop', th: 4, n: 12, w: '2', block: false } },
+    { t: '이벤트 루프에서 블로킹 호출', q: '스프링 WebFlux 이벤트 루프 안에서 JDBC 같은 블로킹 호출을 하면', d: '스레드 2개가 묶여 한 번에 2건씩만 진행됩니다. 가장 나쁜 조합입니다.', v: { model: 'loop', th: 4, n: 12, w: '2', block: true } },
+    { t: '가상 스레드', q: '처리 방식을 JDK 21 가상 스레드로 바꾸면', d: '코드는 블로킹 방식 그대로인데 동시에 진행됩니다.', v: { model: 'virtual', th: 4, n: 12, w: '2', block: false } },
+    { t: '스레드 풀을 키우면', q: '스레드 풀 크기를 10개로, 동시에 들어오는 요청을 30건으로 늘리면', d: '스레드 10개에 요청 30건. 스레드를 늘려도 요청이 그만큼 늘면 똑같이 줄을 섭니다.', v: { model: 'pool', th: 10, n: 30, w: '2', block: false } },
   ],
   code: function (c) {
     if (c.model === 'pool') return '// 스프링 MVC: 요청마다 스레드 하나가 끝까지 맡는다\n// server.tomcat.threads.max=' + c.th + '\n@GetMapping("/orders/{id}")\nOrderDto get(@PathVariable long id) {\n    Order order = orderRepository.findById(id);   // 응답이 올 때까지 스레드가 멈춰 기다림\n    Delivery d = deliveryClient.track(order);     // (' + c.w + '초)\n    return OrderDto.of(order, d);\n}';

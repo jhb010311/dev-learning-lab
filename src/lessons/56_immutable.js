@@ -8,11 +8,11 @@ Lab.register({
     { id: 'out', label: 'getter가 돌려주는 것', type: 'select', value: 'none', options: [['none', '내부 리스트 그대로'], ['copy', '내부 리스트의 복사본'], ['unmod', '수정할 수 없는 뷰']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '아무 방어도 없음. 밖에서 두 가지 경로로 내부가 바뀝니다.', v: { in: 'ref', out: 'none' } },
-    { t: '생성자에서만 복사', d: '원본을 바꿔도 영향이 없지만 getter로는 여전히 바뀝니다.', v: { in: 'copy', out: 'none' } },
-    { t: '양쪽 모두 복사', d: '밖에서 내부를 바꿀 방법이 없습니다.', v: { in: 'copy', out: 'copy' } },
-    { t: 'getter는 수정 불가 뷰', d: '바꾸려 하면 예외가 납니다.', v: { in: 'copy', out: 'unmod' } },
-    { t: '뷰만 주고 생성자에서 복사 안 하면', d: '원본 리스트를 통해서는 여전히 바뀝니다.', v: { in: 'ref', out: 'unmod' } },
+    { t: '처음 설정으로', q: '생성자에서 받은 리스트를 그대로 저장하고 getter가 내부 리스트를 그대로 돌려줄 때 밖에서 내부를 바꿀 수 있나', d: '아무 방어도 없음. 밖에서 두 가지 경로로 내부가 바뀝니다.', v: { in: 'ref', out: 'none' } },
+    { t: '생성자에서만 복사', q: '생성자에서 받은 리스트를 복사해서 저장하면', d: '원본을 바꿔도 영향이 없지만 getter로는 여전히 바뀝니다.', v: { in: 'copy', out: 'none' } },
+    { t: '양쪽 모두 복사', q: '생성자에서 복사해서 저장하고 getter도 내부 리스트의 복사본을 돌려주면', d: '밖에서 내부를 바꿀 방법이 없습니다.', v: { in: 'copy', out: 'copy' } },
+    { t: 'getter는 수정 불가 뷰', q: '생성자에서 복사해서 저장하고 getter는 수정할 수 없는 뷰를 돌려주면', d: '바꾸려 하면 예외가 납니다.', v: { in: 'copy', out: 'unmod' } },
+    { t: '뷰만 주고 생성자에서 복사 안 하면', q: '생성자에서는 그대로 저장하고 getter만 수정할 수 없는 뷰를 돌려주면', d: '원본 리스트를 통해서는 여전히 바뀝니다.', v: { in: 'ref', out: 'unmod' } },
   ],
   code: function (c) {
     return 'class Order {\n    private final List<String> items;          // final: 다른 리스트로 교체 불가\n\n    Order(List<String> items) {\n        this.items = ' + (c.in === 'copy' ? 'new ArrayList<>(items);   // 복사본을 저장' : 'items;                    // 받은 리스트를 그대로 저장') + '\n    }\n\n    List<String> getItems() {\n        return ' + { none: 'items;                            // 내부 리스트를 그대로 노출', copy: 'new ArrayList<>(items);           // 복사본을 돌려줌', unmod: 'Collections.unmodifiableList(items);  // 수정 불가 뷰' }[c.out] + '\n    }\n}\n\nList<String> src = new ArrayList<>(List.of("키보드", "마우스"));\nOrder order = new Order(src);\nsrc.add("모니터");                 // (1) 원본 리스트를 수정\norder.getItems().add("의자");      // (2) getter로 받은 리스트를 수정';

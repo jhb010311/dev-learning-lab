@@ -8,12 +8,12 @@ Lab.register({
     { id: 'what', label: '해 보는 일', type: 'select', value: 'multi', options: [['new', '직접 new로 객체 만들기'], ['impl', '구현(상속)한 클래스를 만들어 쓰기'], ['missing', '추상 메서드를 구현하지 않고 두기'], ['multi', '두 개를 동시에 물려받기'], ['state', '필드(상태)와 생성자 두기'], ['default', '본문이 있는 메서드 물려받기']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '인터페이스는 여러 개를 동시에 구현할 수 있습니다.', v: { kind: 'iface', what: 'multi' } },
-    { t: '추상 클래스 두 개를 상속하면', d: '클래스는 하나만 상속할 수 있어 컴파일되지 않습니다.', v: { kind: 'abs', what: 'multi' } },
-    { t: '인터페이스에 필드와 생성자', d: '인터페이스는 객체의 상태를 가질 수 없습니다.', v: { kind: 'iface', what: 'state' } },
-    { t: '추상 클래스에 필드와 생성자', d: '공통 상태와 초기화 코드를 물려줄 수 있습니다.', v: { kind: 'abs', what: 'state' } },
-    { t: '직접 new 하기', d: '둘 다 그 자체로는 객체를 만들 수 없습니다.', v: { kind: 'iface', what: 'new' } },
-    { t: '추상 메서드를 구현하지 않으면', d: '약속한 메서드가 빠지면 컴파일러가 막습니다.', v: { kind: 'iface', what: 'missing' } },
+    { t: '처음 설정으로', q: '인터페이스 (interface Payable) 종류에서 두 개를 동시에 물려받기를 해 보면 추상 클래스와 무엇이 다르나', d: '인터페이스는 여러 개를 동시에 구현할 수 있습니다.', v: { kind: 'iface', what: 'multi' } },
+    { t: '추상 클래스 두 개를 상속하면', q: '종류를 추상 클래스 (abstract class Payment) 쪽으로 바꾸고 두 개를 동시에 물려받기를 해 보면', d: '클래스는 하나만 상속할 수 있어 컴파일되지 않습니다.', v: { kind: 'abs', what: 'multi' } },
+    { t: '인터페이스에 필드와 생성자', q: '인터페이스에서 해 보는 일을 필드(상태)와 생성자 두기로 바꾸면', d: '인터페이스는 객체의 상태를 가질 수 없습니다.', v: { kind: 'iface', what: 'state' } },
+    { t: '추상 클래스에 필드와 생성자', q: '종류를 추상 클래스 (abstract class Payment) 쪽으로 바꾸고 필드(상태)와 생성자 두기를 해 보면', d: '공통 상태와 초기화 코드를 물려줄 수 있습니다.', v: { kind: 'abs', what: 'state' } },
+    { t: '직접 new 하기', q: '해 보는 일을 직접 new로 객체 만들기로 바꾸면', d: '둘 다 그 자체로는 객체를 만들 수 없습니다.', v: { kind: 'iface', what: 'new' } },
+    { t: '추상 메서드를 구현하지 않으면', q: '해 보는 일을 추상 메서드를 구현하지 않고 두기로 바꾸면', d: '약속한 메서드가 빠지면 컴파일러가 막습니다.', v: { kind: 'iface', what: 'missing' } },
   ],
   SRC: {
     iface: 'interface Payable {\n    void pay();                              // 추상 메서드: 본문 없음\n    default String name() { return "기본 이름"; }\n}',

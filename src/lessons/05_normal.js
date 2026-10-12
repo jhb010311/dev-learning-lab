@@ -10,12 +10,12 @@ Lab.register({
     { id: 'miss', label: '수정할 때 조건을 잘못 줘서 한 행만 고친다', type: 'check', value: false, show: function (c) { return c.op === 'update' && c.form === 'flat'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '정규화 전 테이블에서 주소 변경. 주문 건수만큼 행을 고쳐야 합니다.', v: { form: 'flat', op: 'update', k: 3, miss: false } },
-    { t: '한 행만 고치는 실수', d: '같은 회원의 주소가 두 가지가 됩니다(갱신 이상).', v: { form: 'flat', op: 'update', k: 3, miss: true } },
-    { t: '같은 변경을 정규화 후에', d: '주소가 한 곳에만 있어서 한 행만 고치면 끝납니다.', v: { form: 'norm', op: 'update', k: 3, miss: false } },
-    { t: '주문 없는 회원 등록', d: '정규화 전에는 넣을 자리가 없습니다(삽입 이상).', v: { form: 'flat', op: 'insert', k: 3, miss: false } },
-    { t: '마지막 주문 삭제', d: '정규화 전에는 회원 정보까지 사라집니다(삭제 이상).', v: { form: 'flat', op: 'delete', k: 3, miss: false } },
-    { t: '정규화의 비용', d: '정규화 후에는 조회할 때 조인이 필요합니다.', v: { form: 'norm', op: 'read', k: 3, miss: false } },
+    { t: '처음 설정으로', q: '주문 테이블 하나에 전부 담은 정규화 전 설계에서 김철수의 주문 3건이 있을 때 주소를 서울에서 부산으로 변경하면 어떻게 되나', d: '정규화 전 테이블에서 주소 변경. 주문 건수만큼 행을 고쳐야 합니다.', v: { form: 'flat', op: 'update', k: 3, miss: false } },
+    { t: '한 행만 고치는 실수', q: '같은 주소 변경에서 수정할 때 조건을 잘못 줘서 한 행만 고치면', d: '같은 회원의 주소가 두 가지가 됩니다(갱신 이상).', v: { form: 'flat', op: 'update', k: 3, miss: true } },
+    { t: '같은 변경을 정규화 후에', q: '같은 주소 변경을 정규화 후 (회원 / 주문으로 분리) 설계에서 하면', d: '주소가 한 곳에만 있어서 한 행만 고치면 끝납니다.', v: { form: 'norm', op: 'update', k: 3, miss: false } },
+    { t: '주문 없는 회원 등록', q: '해 볼 작업을 아직 주문이 없는 신규 회원 등록으로 바꾸면', d: '정규화 전에는 넣을 자리가 없습니다(삽입 이상).', v: { form: 'flat', op: 'insert', k: 3, miss: false } },
+    { t: '마지막 주문 삭제', q: '해 볼 작업을 회원 이영희의 하나뿐인 주문 삭제로 바꾸면', d: '정규화 전에는 회원 정보까지 사라집니다(삭제 이상).', v: { form: 'flat', op: 'delete', k: 3, miss: false } },
+    { t: '정규화의 비용', q: '정규화 후 설계에서 주문 목록을 회원 이름과 함께 조회하면', d: '정규화 후에는 조회할 때 조인이 필요합니다.', v: { form: 'norm', op: 'read', k: 3, miss: false } },
   ],
   code: function (c) {
     var ddl = c.form === 'flat'

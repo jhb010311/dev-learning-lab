@@ -10,11 +10,11 @@ Lab.register({
     { id: 'obj', label: '호출마다 객체를 하나씩 만든다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'factorial(4). 프레임이 5개까지 쌓였다가 거꾸로 빠집니다.', v: { n: 4, base: true, limit: 8, obj: false } },
-    { t: '종료 조건을 빼면', d: '끝없이 자기를 부르다 스택이 넘칩니다.', v: { n: 4, base: false, limit: 8, obj: false } },
-    { t: '종료 조건이 있어도 너무 깊으면', d: 'factorial(10)은 프레임 11개가 필요합니다. 스택은 8개까지입니다.', v: { n: 10, base: true, limit: 8, obj: false } },
-    { t: '스택을 키우면', d: '같은 factorial(10)이 정상적으로 끝납니다.', v: { n: 10, base: true, limit: 12, obj: false } },
-    { t: '호출마다 객체 생성', d: '객체는 힙에 생기고, 프레임이 사라지면 가리키는 곳이 없어집니다.', v: { n: 4, base: true, limit: 8, obj: true } },
+    { t: '처음 설정으로', q: '프레임 8개까지 쌓이는 스택에서 종료 조건이 있는 factorial(4) 호출은 메모리에서 어떻게 처리되나', d: 'factorial(4). 프레임이 5개까지 쌓였다가 거꾸로 빠집니다.', v: { n: 4, base: true, limit: 8, obj: false } },
+    { t: '종료 조건을 빼면', q: '재귀 종료 조건을 끄면', d: '끝없이 자기를 부르다 스택이 넘칩니다.', v: { n: 4, base: false, limit: 8, obj: false } },
+    { t: '종료 조건이 있어도 너무 깊으면', q: '종료 조건은 그대로 두고 factorial에 넘기는 값을 factorial(10) 호출로 바꾸면', d: 'factorial(10)은 프레임 11개가 필요합니다. 스택은 8개까지입니다.', v: { n: 10, base: true, limit: 8, obj: false } },
+    { t: '스택을 키우면', q: 'factorial(10) 호출인데 스택에 들어갈 수 있는 프레임 수를 12개로 늘리면', d: '같은 factorial(10)이 정상적으로 끝납니다.', v: { n: 10, base: true, limit: 12, obj: false } },
+    { t: '호출마다 객체 생성', q: '호출마다 객체를 하나씩 만드는 설정을 켜면', d: '객체는 힙에 생기고, 프레임이 사라지면 가리키는 곳이 없어집니다.', v: { n: 4, base: true, limit: 8, obj: true } },
   ],
   code: function (c) {
     return 'static long factorial(int n) {\n' + (c.obj ? '    byte[] buf = new byte[1024];      // 객체는 힙에, 변수 buf는 스택에\n' : '') + (c.base ? '    if (n <= 1) return 1;             // 종료 조건\n' : '    // 종료 조건 없음\n') + '    return n * factorial(n - 1);\n}\n\npublic static void main(String[] args) {\n    System.out.println(factorial(' + c.n + '));\n}';

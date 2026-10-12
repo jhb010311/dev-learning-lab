@@ -10,13 +10,13 @@ Lab.register({
   ],
   fix: function (c) { return !c.recv && c.net !== 'ok' ? { net: 'ok' } : null; },
   presets: [
-    { t: '처음 설정으로', d: 'TCP. 세 번에 나눠 보냈는데 받는 쪽은 한 덩어리로 읽습니다.', v: { proto: 'tcp', recv: true, net: 'ok' } },
-    { t: '같은 것을 UDP로', d: '보낸 덩어리 그대로 세 개가 도착합니다.', v: { proto: 'udp', recv: true, net: 'ok' } },
-    { t: '받는 프로그램 없이 UDP로', d: '보내기는 세 번 다 성공합니다. 데이터는 사라집니다.', v: { proto: 'udp', recv: false, net: 'ok' } },
-    { t: '받는 프로그램 없이 TCP로', d: '연결부터 실패해서 아무것도 보내지 못합니다.', v: { proto: 'tcp', recv: false, net: 'ok' } },
-    { t: 'UDP에서 하나가 사라지면', d: '빠진 채로 받고, 보낸 쪽은 모릅니다.', v: { proto: 'udp', recv: true, net: 'loss' } },
-    { t: 'UDP에서 순서가 바뀌면', d: '도착한 순서대로 받습니다.', v: { proto: 'udp', recv: true, net: 'reorder' } },
-    { t: 'TCP에서 하나가 사라지면', d: '운영체제가 다시 보내서 채웁니다. 프로그램은 모릅니다.', v: { proto: 'tcp', recv: true, net: 'loss' } },
+    { t: '처음 설정으로', q: '받는 프로그램이 9000번 포트에서 기다릴 때 TCP로 세 번에 나눠 보내면 받는 쪽도 세 번에 나뉘어 읽나', d: 'TCP. 세 번에 나눠 보냈는데 받는 쪽은 한 덩어리로 읽습니다.', v: { proto: 'tcp', recv: true, net: 'ok' } },
+    { t: '같은 것을 UDP로', q: '보내는 방식을 UDP로 바꾸면', d: '보낸 덩어리 그대로 세 개가 도착합니다.', v: { proto: 'udp', recv: true, net: 'ok' } },
+    { t: '받는 프로그램 없이 UDP로', q: '보내는 방식을 UDP로 바꾸고 9000번 포트에서 기다리던 받는 프로그램을 없애면', d: '보내기는 세 번 다 성공합니다. 데이터는 사라집니다.', v: { proto: 'udp', recv: false, net: 'ok' } },
+    { t: '받는 프로그램 없이 TCP로', q: 'TCP인데 9000번 포트에서 기다리던 받는 프로그램을 없애면', d: '연결부터 실패해서 아무것도 보내지 못합니다.', v: { proto: 'tcp', recv: false, net: 'ok' } },
+    { t: 'UDP에서 하나가 사라지면', q: 'UDP로 보내는데 가는 길에서 두 번째로 보낸 것이 사라지면', d: '빠진 채로 받고, 보낸 쪽은 모릅니다.', v: { proto: 'udp', recv: true, net: 'loss' } },
+    { t: 'UDP에서 순서가 바뀌면', q: 'UDP로 보내는데 두 번째 것이 세 번째 것보다 늦게 도착하면', d: '도착한 순서대로 받습니다.', v: { proto: 'udp', recv: true, net: 'reorder' } },
+    { t: 'TCP에서 하나가 사라지면', q: 'TCP인데 가는 길에서 두 번째로 보낸 것이 사라지면', d: '운영체제가 다시 보내서 채웁니다. 프로그램은 모릅니다.', v: { proto: 'tcp', recv: true, net: 'loss' } },
   ],
   code: function (c) {
     if (c.proto === 'tcp') return '// Node.js (net 모듈): TCP\nconst socket = net.connect(9000, \'127.0.0.1\');   // 먼저 연결을 맺는다\nsocket.on(\'connect\', async () => {               // 연결된 뒤에야 보낼 수 있다\n  socket.write(\'AB\');  await sleep(50);           // 0.05초 간격으로 세 번\n  socket.write(\'CD\');  await sleep(50);\n  socket.write(\'EF\');\n});\nsocket.on(\'error\', e => console.log(e.code));    // 연결 실패는 여기로 온다\n\n' + (c.recv ? '// 받는 프로그램: 세 번이 다 도착한 뒤에 읽기 시작한다\nnet.createServer({ pauseOnConnect: true }, conn => {\n  conn.on(\'data\', d => console.log(d.toString()));\n  setTimeout(() => conn.resume(), 500);\n}).listen(9000, \'127.0.0.1\');' : '// 받는 프로그램은 띄우지 않았다 (9000번 포트를 듣는 프로그램이 없다)');

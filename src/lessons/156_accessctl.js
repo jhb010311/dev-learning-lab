@@ -9,13 +9,13 @@ Lab.register({
     { id: 'target', label: '요청하는 주소', type: 'select', value: '2', options: [['1', 'GET /orders/1 · kim의 주문'], ['2', 'GET /orders/2 · lee의 주문'], ['99', 'GET /orders/99 · 없는 주문']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '로그인만 확인하는 서버입니다. 번호만 바꿨는데 lee의 주문이 그대로 보입니다.', v: { check: 'login', who: 'kim', target: '2' } },
-    { t: '역할로 막아 보면', d: 'kim도 USER라서 통과합니다. 역할은 누구의 주문인지 모릅니다.', v: { check: 'role', who: 'kim', target: '2' } },
-    { t: '주인인지 확인하면', d: '주문의 주인과 로그인한 사용자가 달라 403으로 거절됩니다.', v: { check: 'owner403', who: 'kim', target: '2' } },
-    { t: '없는 번호를 넣으면', d: '404입니다. 2번은 403이었으니, 2번 주문이 있다는 것은 드러납니다.', v: { check: 'owner403', who: 'kim', target: '99' } },
-    { t: '남의 것도 404로 답하면', d: '없는 주문과 구별되지 않아, 있는지조차 알 수 없습니다.', v: { check: 'owner404', who: 'kim', target: '2' } },
-    { t: '고객센터 직원이 조회하면', d: '주인이 아니어도 ADMIN 역할로 허용됩니다.', v: { check: 'ownerAdmin', who: 'admin', target: '2' } },
-    { t: '역할 규칙이 직원을 막는 경우', d: '컨트롤러가 실행되기도 전에 403입니다.', v: { check: 'role', who: 'admin', target: '99' } },
+    { t: '처음 설정으로', q: '로그인만 확인하는 서버에서 kim이 lee의 주문인 GET /orders/2를 요청하면 무슨 일이 일어나나', d: '로그인만 확인하는 서버입니다. 번호만 바꿨는데 lee의 주문이 그대로 보입니다.', v: { check: 'login', who: 'kim', target: '2' } },
+    { t: '역할로 막아 보면', q: '서버가 URL 규칙으로 USER 역할만 확인하게 바꾸면', d: 'kim도 USER라서 통과합니다. 역할은 누구의 주문인지 모릅니다.', v: { check: 'role', who: 'kim', target: '2' } },
+    { t: '주인인지 확인하면', q: '서버가 주문의 주인인지 확인하고 아니면 403을 보내게 바꾸면', d: '주문의 주인과 로그인한 사용자가 달라 403으로 거절됩니다.', v: { check: 'owner403', who: 'kim', target: '2' } },
+    { t: '없는 번호를 넣으면', q: '주문의 주인인지 확인하는 서버에서 없는 주문 GET /orders/99를 요청하면', d: '404입니다. 2번은 403이었으니, 2번 주문이 있다는 것은 드러납니다.', v: { check: 'owner403', who: 'kim', target: '99' } },
+    { t: '남의 것도 404로 답하면', q: '서버가 내 주문 가운데에서만 찾고 없으면 404를 보내게 바꾸면', d: '없는 주문과 구별되지 않아, 있는지조차 알 수 없습니다.', v: { check: 'owner404', who: 'kim', target: '2' } },
+    { t: '고객센터 직원이 조회하면', q: '주인이거나 ADMIN 역할이면 허용하는 서버에서 ADMIN 역할인 park이 GET /orders/2를 요청하면', d: '주인이 아니어도 ADMIN 역할로 허용됩니다.', v: { check: 'ownerAdmin', who: 'admin', target: '2' } },
+    { t: '역할 규칙이 직원을 막는 경우', q: 'URL 규칙으로 USER 역할만 확인하는데 ADMIN 역할인 park이 없는 주문 GET /orders/99를 요청하면', d: '컨트롤러가 실행되기도 전에 403입니다.', v: { check: 'role', who: 'admin', target: '99' } },
   ],
   code: function (c) {
     var rule = (c.check === 'role' ? '            .requestMatchers("/orders/**").hasRole("USER")   // 역할만 본다\n' : '') + '            .anyRequest().authenticated())                 // 로그인했는지만 본다\n';

@@ -9,11 +9,11 @@ Lab.register({
     { id: 'limit', label: '끝에 limit(2)를 붙인다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: '원소 하나가 filter와 map을 끝까지 지난 뒤 다음 원소로 넘어갑니다.', v: { term: 'toList', sorted: false, limit: false } },
-    { t: '최종 연산을 빼면', d: 'filter도 map도 한 번도 실행되지 않습니다.', v: { term: 'none', sorted: false, limit: false } },
-    { t: 'findFirst()', d: '첫 원소를 찾는 순간 멈춥니다. 나머지는 보지도 않습니다.', v: { term: 'findFirst', sorted: false, limit: false } },
-    { t: 'limit(2)', d: '두 개가 채워지면 남은 원소는 처리하지 않습니다.', v: { term: 'toList', sorted: false, limit: true } },
-    { t: 'sorted()를 넣으면', d: '정렬하려면 전부 모아야 하므로 filter가 끝까지 먼저 돕니다.', v: { term: 'findFirst', sorted: true, limit: false } },
+    { t: '처음 설정으로', q: '최종 연산 toList() 호출로 전부 모으는 스트림에서 filter와 map은 어떤 순서로 실행되나', d: '원소 하나가 filter와 map을 끝까지 지난 뒤 다음 원소로 넘어갑니다.', v: { term: 'toList', sorted: false, limit: false } },
+    { t: '최종 연산을 빼면', q: '최종 연산을 빼고 중간 연산까지만 두면', d: 'filter도 map도 한 번도 실행되지 않습니다.', v: { term: 'none', sorted: false, limit: false } },
+    { t: 'findFirst()', q: '최종 연산을 findFirst() 호출로 바꾸면', d: '첫 원소를 찾는 순간 멈춥니다. 나머지는 보지도 않습니다.', v: { term: 'findFirst', sorted: false, limit: false } },
+    { t: 'limit(2)', q: '끝에 limit(2) 줄을 붙이면', d: '두 개가 채워지면 남은 원소는 처리하지 않습니다.', v: { term: 'toList', sorted: false, limit: true } },
+    { t: 'sorted()를 넣으면', q: '최종 연산이 findFirst() 호출인데 filter와 map 사이에 sorted() 줄을 넣으면', d: '정렬하려면 전부 모아야 하므로 filter가 끝까지 먼저 돕니다.', v: { term: 'findFirst', sorted: true, limit: false } },
   ],
   DATA: [5, 2, 8, 1, 9, 4],
   code: function (c) {

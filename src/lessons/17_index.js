@@ -10,12 +10,12 @@ Lab.register({
     { id: 'force', label: '인덱스를 강제로 쓰게 한다 (FORCE INDEX)', type: 'check', value: false, show: function (c) { return c.idx; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '10만 행 중 0.1%만 조건에 맞습니다. 인덱스로 100행만 읽습니다.', v: { rows: '100000', sel: '0.1', idx: true, force: false } },
-    { t: '같은 쿼리, 인덱스 없음', d: '100행을 찾으려고 10만 행을 다 읽습니다.', v: { rows: '100000', sel: '0.1', idx: false, force: false } },
-    { t: '절반이 조건에 맞을 때', d: '인덱스가 있어도 옵티마이저는 풀 스캔을 고릅니다.', v: { rows: '100000', sel: '50', idx: true, force: false } },
-    { t: '그래도 인덱스를 강제하면', d: '오히려 더 비쌉니다.', v: { rows: '100000', sel: '50', idx: true, force: true } },
-    { t: '경계 근처: 20%와 30%', d: '20%에서 실행해 보고 30%로 바꿔 비교해 보세요.', v: { rows: '100000', sel: '20', idx: true, force: false } },
-    { t: '1천만 행에서 인덱스 없이', d: '행이 늘어난 만큼 그대로 느려집니다.', v: { rows: '10000000', sel: '0.1', idx: false, force: false } },
+    { t: '처음 설정으로', q: '10만 행 테이블에서 조건에 걸리는 행이 0.1%이고 조건 컬럼에 인덱스가 있으면 어떤 방법으로 읽나', d: '10만 행 중 0.1%만 조건에 맞습니다. 인덱스로 100행만 읽습니다.', v: { rows: '100000', sel: '0.1', idx: true, force: false } },
+    { t: '같은 쿼리, 인덱스 없음', q: '같은 쿼리에서 조건 컬럼의 인덱스를 없애면', d: '100행을 찾으려고 10만 행을 다 읽습니다.', v: { rows: '100000', sel: '0.1', idx: false, force: false } },
+    { t: '절반이 조건에 맞을 때', q: '조건에 걸리는 행의 비율을 50%로 바꾸면', d: '인덱스가 있어도 옵티마이저는 풀 스캔을 고릅니다.', v: { rows: '100000', sel: '50', idx: true, force: false } },
+    { t: '그래도 인덱스를 강제하면', q: '조건에 걸리는 행이 50%인데 FORCE INDEX로 인덱스를 강제로 쓰게 하면', d: '오히려 더 비쌉니다.', v: { rows: '100000', sel: '50', idx: true, force: true } },
+    { t: '경계 근처: 20%와 30%', q: '조건에 걸리는 행의 비율을 20%로 바꾸면', d: '20%에서 실행해 보고 30%로 바꿔 비교해 보세요.', v: { rows: '100000', sel: '20', idx: true, force: false } },
+    { t: '1천만 행에서 인덱스 없이', q: '테이블 행 수를 1천만 행으로 늘리고 조건 컬럼의 인덱스를 없애면', d: '행이 늘어난 만큼 그대로 느려집니다.', v: { rows: '10000000', sel: '0.1', idx: false, force: false } },
   ],
   code: function (c) {
     return (c.idx ? 'CREATE INDEX idx_orders_status ON orders (status);\n\n' : '-- status 컬럼에 인덱스 없음\n\n') + 'SELECT *\n  FROM orders' + (c.idx && c.force ? ' FORCE INDEX (idx_orders_status)' : '') + "\n WHERE status = 'CANCELED';   -- 전체의 " + c.sel + '%';

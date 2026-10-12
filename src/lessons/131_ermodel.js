@@ -8,13 +8,13 @@ Lab.register({
     { id: 'task', label: '시켜 볼 일', type: 'select', value: 'find', options: [['find', '연결된 것 찾기'], ['add', '하나 더 연결하기']], hint: '일대일에서 "하나 더"는 들어가면 안 되는 두 번째 프로필을 넣어 보는 것입니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', d: '쉼표 문자열에서 java 태그를 찾습니다. javascript 글까지 나옵니다.', v: { design: 'm2m_csv', task: 'find' } },
-    { t: '연결 테이블에서 찾기', d: 'java 태그가 붙은 글 2건만 정확히 나옵니다.', v: { design: 'm2m_link', task: 'find' } },
-    { t: 'tag1~tag3에 네 번째 태그', d: '넣을 컬럼이 없어 오류가 납니다.', v: { design: 'm2m_cols', task: 'add' } },
-    { t: '연결 테이블에 태그 하나 더', d: '연결 테이블에 행 하나를 넣으면 끝납니다.', v: { design: 'm2m_link', task: 'add' } },
-    { t: '외래 키를 "일" 쪽에 두면', d: '회원이 쓴 글 2건 가운데 1건만 조회됩니다.', v: { design: 'o2m_one', task: 'find' } },
-    { t: '일대일에 유니크가 없으면', d: '한 회원에 프로필이 2개 들어갑니다.', v: { design: 'o2o_fk', task: 'add' } },
-    { t: '일대일에 유니크를 걸면', d: '두 번째 프로필이 오류 1062로 막힙니다.', v: { design: 'o2o_uq', task: 'add' } },
+    { t: '처음 설정으로', q: '글-태그 다대다 관계를 쉼표로 이어 붙인 문자열 컬럼에 담고 연결된 것을 찾으면 무엇이 조회되나', d: '쉼표 문자열에서 java 태그를 찾습니다. javascript 글까지 나옵니다.', v: { design: 'm2m_csv', task: 'find' } },
+    { t: '연결 테이블에서 찾기', q: '글-태그 다대다를 쉼표 문자열 컬럼 대신 연결 테이블 post_tag로 바꾸면', d: 'java 태그가 붙은 글 2건만 정확히 나옵니다.', v: { design: 'm2m_link', task: 'find' } },
+    { t: 'tag1~tag3에 네 번째 태그', q: '글-태그 다대다를 tag1, tag2, tag3 컬럼으로 바꾸고 하나 더 연결하면', d: '넣을 컬럼이 없어 오류가 납니다.', v: { design: 'm2m_cols', task: 'add' } },
+    { t: '연결 테이블에 태그 하나 더', q: '글-태그 다대다를 연결 테이블 post_tag로 바꾸고 하나 더 연결하면', d: '연결 테이블에 행 하나를 넣으면 끝납니다.', v: { design: 'm2m_link', task: 'add' } },
+    { t: '외래 키를 "일" 쪽에 두면', q: '회원-글 일대다에서 "일" 쪽인 회원에 외래 키를 두면', d: '회원이 쓴 글 2건 가운데 1건만 조회됩니다.', v: { design: 'o2m_one', task: 'find' } },
+    { t: '일대일에 유니크가 없으면', q: '회원-프로필 일대일을 외래 키만 두고 유니크 없이 설계한 뒤 하나 더 연결하면', d: '한 회원에 프로필이 2개 들어갑니다.', v: { design: 'o2o_fk', task: 'add' } },
+    { t: '일대일에 유니크를 걸면', q: '회원-프로필 일대일을 외래 키 + 유니크로 설계하고 하나 더 연결하면', d: '두 번째 프로필이 오류 1062로 막힙니다.', v: { design: 'o2o_uq', task: 'add' } },
   ],
   // 설계별 테이블 정의(CREATE TABLE)와 처음 데이터. 모형과 화면의 INSERT 문이 같은 데이터에서 만들어진다.
   base: function (design) {

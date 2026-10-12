@@ -9,13 +9,13 @@ Lab.register({
     { id: 'val', label: '요청에 실어 보내는 name', type: 'select', value: 'empty', options: [['none', '보내지 않음 (받는 쪽에서는 null)'], ['empty', '빈 문자열 ""'], ['blank', '빈칸 한 글자 " "'], ['pen', '"pen"']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '@NotBlank가 붙어 있는데도 빈 이름이 그대로 등록됩니다. 파라미터에 @Valid가 없기 때문입니다.', v: { how: 'plain', con: 'notblank', val: 'empty' } },
-    { t: '@Valid를 붙이면', d: '같은 요청이 컨트롤러에 닿기 전에 400으로 거절됩니다.', v: { how: 'valid', con: 'notblank', val: 'empty' } },
-    { t: '@NotNull은 빈 문자열을 통과시킨다', d: '빈 문자열은 null이 아닙니다. 검증을 했는데도 빈 이름이 등록됩니다.', v: { how: 'valid', con: 'notnull', val: 'empty' } },
-    { t: '빈칸 한 글자는 @NotEmpty도 통과', d: '빈칸도 한 글자로 셉니다. 빈칸뿐인 값까지 막는 것은 @NotBlank입니다.', v: { how: 'valid', con: 'notempty', val: 'blank' } },
-    { t: 'BindingResult를 받으면', d: '검증에 실패해도 예외가 나지 않고 컨트롤러가 실행됩니다.', v: { how: 'br', con: 'notblank', val: 'empty' } },
-    { t: '파라미터에 직접 붙인 제약', d: '@Valid 없이도 검사됩니다. 실패하면 예외의 이름이 다릅니다.', v: { how: 'param', con: 'notblank', val: 'empty' } },
-    { t: '@RequestParam 값을 아예 안 보내면', d: '제약을 검사하기 전에 "필수 값이 없음"으로 먼저 거절됩니다.', v: { how: 'param', con: 'notblank', val: 'none' } },
+    { t: '처음 설정으로', q: '@Valid 없이 @RequestBody ItemForm form으로 받는데 @NotBlank name을 빈 문자열로 보내면 어떻게 되나', d: '@NotBlank가 붙어 있는데도 빈 이름이 그대로 등록됩니다. 파라미터에 @Valid가 없기 때문입니다.', v: { how: 'plain', con: 'notblank', val: 'empty' } },
+    { t: '@Valid를 붙이면', q: '컨트롤러 파라미터에 @Valid를 붙이면', d: '같은 요청이 컨트롤러에 닿기 전에 400으로 거절됩니다.', v: { how: 'valid', con: 'notblank', val: 'empty' } },
+    { t: '@NotNull은 빈 문자열을 통과시킨다', q: '@Valid를 붙이고 name의 제약을 @NotNull로 바꾸면', d: '빈 문자열은 null이 아닙니다. 검증을 했는데도 빈 이름이 등록됩니다.', v: { how: 'valid', con: 'notnull', val: 'empty' } },
+    { t: '빈칸 한 글자는 @NotEmpty도 통과', q: '@Valid를 붙이고 name의 제약을 @NotEmpty로 바꿔 빈칸 한 글자를 보내면', d: '빈칸도 한 글자로 셉니다. 빈칸뿐인 값까지 막는 것은 @NotBlank입니다.', v: { how: 'valid', con: 'notempty', val: 'blank' } },
+    { t: 'BindingResult를 받으면', q: '@Valid @RequestBody ItemForm form에 더해 BindingResult errors도 받으면', d: '검증에 실패해도 예외가 나지 않고 컨트롤러가 실행됩니다.', v: { how: 'br', con: 'notblank', val: 'empty' } },
+    { t: '파라미터에 직접 붙인 제약', q: '@RequestParam String name 파라미터에 @NotBlank를 직접 붙여 받고 빈 문자열을 보내면', d: '@Valid 없이도 검사됩니다. 실패하면 예외의 이름이 다릅니다.', v: { how: 'param', con: 'notblank', val: 'empty' } },
+    { t: '@RequestParam 값을 아예 안 보내면', q: '@RequestParam String name 파라미터에 @NotBlank를 직접 붙여 받고 name을 아예 보내지 않으면', d: '제약을 검사하기 전에 "필수 값이 없음"으로 먼저 거절됩니다.', v: { how: 'param', con: 'notblank', val: 'none' } },
   ],
   // 보내는 값: lit는 자바 코드에서의 모양, inner는 컨트롤러가 돌려주는 글의 [ ] 안에 들어갈 글자
   VALS: {

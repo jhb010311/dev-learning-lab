@@ -11,12 +11,12 @@ Lab.register({
     { id: 'choice', label: '단절됐을 때 복제본의 동작', type: 'select', value: 'ap', options: [['ap', '가진 데이터로 계속 응답한다 (가용성 선택)'], ['cp', '최신인지 확인할 수 없으므로 응답을 거부한다 (일관성 선택)']], show: function (c) { return c.part === 'cut'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '복제 1초, 저장 0.3초 뒤 복제본 조회. 옛 값이 나옵니다.', v: { part: 'lag', lag: '1', when: '0.3', from: 'replica', choice: 'ap' } },
-    { t: '저장 직후 조회만 원본으로', d: '방금 쓴 사용자는 원본에서 읽게 합니다.', v: { part: 'lag', lag: '1', when: '0.3', from: 'primary', choice: 'ap' } },
-    { t: '시간이 지난 뒤 조회', d: '복제가 끝난 뒤에는 복제본도 새 값을 줍니다.', v: { part: 'lag', lag: '1', when: '2', from: 'replica', choice: 'ap' } },
-    { t: '복제가 5초씩 밀릴 때', d: '2초 뒤에 읽어도 옛 값입니다.', v: { part: 'lag', lag: '5', when: '2', from: 'replica', choice: 'ap' } },
-    { t: '네트워크 단절: 계속 응답', d: '서비스는 되지만 옛 값을 돌려줍니다.', v: { part: 'cut', lag: '1', when: '0.3', from: 'replica', choice: 'ap' } },
-    { t: '네트워크 단절: 응답 거부', d: '틀린 값은 주지 않지만 조회가 실패합니다.', v: { part: 'cut', lag: '1', when: '0.3', from: 'replica', choice: 'cp' } },
+    { t: '처음 설정으로', q: '복제에 1초 걸리는 구조에서 저장 0.3초 뒤에 복제본으로 조회하면 어떤 값이 나오나', d: '복제 1초, 저장 0.3초 뒤 복제본 조회. 옛 값이 나옵니다.', v: { part: 'lag', lag: '1', when: '0.3', from: 'replica', choice: 'ap' } },
+    { t: '저장 직후 조회만 원본으로', q: '저장 직후 조회를 원본으로 보내면', d: '방금 쓴 사용자는 원본에서 읽게 합니다.', v: { part: 'lag', lag: '1', when: '0.3', from: 'primary', choice: 'ap' } },
+    { t: '시간이 지난 뒤 조회', q: '저장한 뒤 조회하기까지의 시간을 2초로 바꾸면', d: '복제가 끝난 뒤에는 복제본도 새 값을 줍니다.', v: { part: 'lag', lag: '1', when: '2', from: 'replica', choice: 'ap' } },
+    { t: '복제가 5초씩 밀릴 때', q: '복제에 걸리는 시간이 5초인데 저장 2초 뒤에 조회하면', d: '2초 뒤에 읽어도 옛 값입니다.', v: { part: 'lag', lag: '5', when: '2', from: 'replica', choice: 'ap' } },
+    { t: '네트워크 단절: 계속 응답', q: '원본과 복제본 사이의 네트워크가 끊겼는데 복제본이 가진 데이터로 계속 응답하면', d: '서비스는 되지만 옛 값을 돌려줍니다.', v: { part: 'cut', lag: '1', when: '0.3', from: 'replica', choice: 'ap' } },
+    { t: '네트워크 단절: 응답 거부', q: '네트워크가 끊겼는데 복제본이 최신인지 확인할 수 없으므로 응답을 거부하게 바꾸면', d: '틀린 값은 주지 않지만 조회가 실패합니다.', v: { part: 'cut', lag: '1', when: '0.3', from: 'replica', choice: 'cp' } },
   ],
   code: function (c) {
     if (c.part === 'cut') return '// 원본과 복제본이 서로 통신하지 못하는 상황\n// 복제본이 고를 수 있는 것은 둘 중 하나\n//\n// 1) 가진 값으로 응답한다  -> 응답은 하지만 최신이 아닐 수 있다 (AP)\n// 2) 응답을 거부한다       -> 틀린 값은 주지 않지만 서비스가 안 된다 (CP)';

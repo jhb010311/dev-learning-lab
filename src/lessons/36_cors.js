@@ -10,11 +10,11 @@ Lab.register({
     { id: 'srv', label: '서버의 CORS 설정', type: 'select', value: 'none', options: [['none', '설정 없음'], ['star', '모든 출처 허용 (*)'], ['exact', 'https://shop.example만 허용 + 쿠키 허용']], show: function (c) { return c.api === 'cross'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '다른 출처에 JSON을 POST. 서버 설정이 없어 사전 요청에서 막힙니다.', v: { api: 'cross', req: 'json', cred: false, srv: 'none' } },
-    { t: '서버가 출처를 허용하면', d: '사전 요청이 통과하고 본 요청이 나갑니다.', v: { api: 'cross', req: 'json', cred: false, srv: 'exact' } },
-    { t: '단순한 GET, 서버 설정 없음', d: '요청은 서버에 도착해 처리됩니다. 응답만 스크립트에 전달되지 않습니다.', v: { api: 'cross', req: 'simple', cred: false, srv: 'none' } },
-    { t: '모든 출처 허용 + 쿠키', d: '*와 쿠키는 함께 쓸 수 없습니다.', v: { api: 'cross', req: 'simple', cred: true, srv: 'star' } },
-    { t: '같은 출처라면', d: 'CORS 검사 자체가 없습니다.', v: { api: 'same', req: 'json', cred: false, srv: 'none' } },
+    { t: '처음 설정으로', q: '다른 출처 https://api.shop.example에 JSON을 POST하는데 CORS 설정이 없으면 어떻게 되나', d: '다른 출처에 JSON을 POST. 서버 설정이 없어 사전 요청에서 막힙니다.', v: { api: 'cross', req: 'json', cred: false, srv: 'none' } },
+    { t: '서버가 출처를 허용하면', q: '서버의 CORS 설정을 https://shop.example만 허용 + 쿠키 허용으로 바꾸면', d: '사전 요청이 통과하고 본 요청이 나갑니다.', v: { api: 'cross', req: 'json', cred: false, srv: 'exact' } },
+    { t: '단순한 GET, 서버 설정 없음', q: '스크립트가 보내는 요청을 추가 헤더 없는 GET으로 바꾸면', d: '요청은 서버에 도착해 처리됩니다. 응답만 스크립트에 전달되지 않습니다.', v: { api: 'cross', req: 'simple', cred: false, srv: 'none' } },
+    { t: '모든 출처 허용 + 쿠키', q: '추가 헤더 없는 GET 요청에 쿠키를 함께 보내고 서버를 모든 출처 허용으로 두면', d: '*와 쿠키는 함께 쓸 수 없습니다.', v: { api: 'cross', req: 'simple', cred: true, srv: 'star' } },
+    { t: '같은 출처라면', q: 'API 서버의 주소를 https://shop.example/api로 바꿔 같은 출처로 요청하면', d: 'CORS 검사 자체가 없습니다.', v: { api: 'same', req: 'json', cred: false, srv: 'none' } },
   ],
   code: function (c) {
     var url = c.api === 'same' ? '/api/orders' : 'https://api.shop.example/orders', opt = [];

@@ -10,13 +10,13 @@ Lab.register({
     { id: 'pk', label: '기본 키 id', type: 'select', value: 'assigned', options: [['assigned', '@Id만: 코드에서 100을 직접 넣는다'], ['auto', '@GeneratedValue(IDENTITY): DB가 정한다'], ['forgot', '@Id만 붙이고 값을 넣지 않았다']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '애노테이션을 거의 붙이지 않은 상태입니다. VIP가 숫자 1로 저장됩니다.', v: { col: 'none', en: 'ORDINAL', tr: false, pk: 'assigned' } },
-    { t: 'enum 맨 앞에 값을 추가하면', d: '저장해 둔 VIP 회원이 BASIC으로 읽힙니다.', v: { col: 'none', en: 'ORDINAL_ADD', tr: false, pk: 'assigned' } },
-    { t: 'STRING으로 저장하면', d: 'enum의 순서가 바뀌어도 VIP로 읽힙니다.', v: { col: 'none', en: 'STRING_ADD', tr: false, pk: 'assigned' } },
-    { t: 'name에 nullable = false', d: '만들어지는 테이블에 not null이 붙습니다.', v: { col: 'nn', en: 'STRING', tr: false, pk: 'assigned' } },
-    { t: 'memo에 @Transient', d: 'memo 컬럼이 만들어지지 않고 값도 저장되지 않습니다.', v: { col: 'none', en: 'STRING', tr: true, pk: 'assigned' } },
-    { t: '기본 키를 DB가 정하게', d: 'id를 넣지 않아도 DB가 1을 정해 줍니다.', v: { col: 'none', en: 'STRING', tr: true, pk: 'auto' } },
-    { t: 'id를 넣지 않으면', d: '@Id만 붙인 필드를 비워 두면 저장할 때 예외가 납니다.', v: { col: 'none', en: 'STRING', tr: true, pk: 'forgot' } },
+    { t: '처음 설정으로', q: 'name은 @Column 없이, grade는 ORDINAL로, id는 @Id만 붙여 100을 직접 넣어 저장하면 컬럼과 값은 어떻게 되나', d: '애노테이션을 거의 붙이지 않은 상태입니다. VIP가 숫자 1로 저장됩니다.', v: { col: 'none', en: 'ORDINAL', tr: false, pk: 'assigned' } },
+    { t: 'enum 맨 앞에 값을 추가하면', q: 'grade를 ORDINAL로 저장한 뒤 enum 맨 앞에 GUEST를 추가해 다시 배포하고 읽으면', d: '저장해 둔 VIP 회원이 BASIC으로 읽힙니다.', v: { col: 'none', en: 'ORDINAL_ADD', tr: false, pk: 'assigned' } },
+    { t: 'STRING으로 저장하면', q: 'grade를 EnumType.STRING으로 저장한 뒤 enum 맨 앞에 GUEST를 추가해 다시 배포하고 읽으면', d: 'enum의 순서가 바뀌어도 VIP로 읽힙니다.', v: { col: 'none', en: 'STRING_ADD', tr: false, pk: 'assigned' } },
+    { t: 'name에 nullable = false', q: 'name 필드에 nullable = false를 주고 grade를 EnumType.STRING으로 바꾸면', d: '만들어지는 테이블에 not null이 붙습니다.', v: { col: 'nn', en: 'STRING', tr: false, pk: 'assigned' } },
+    { t: 'memo에 @Transient', q: 'grade를 EnumType.STRING으로 두고 memo 필드에 @Transient를 붙이면', d: 'memo 컬럼이 만들어지지 않고 값도 저장되지 않습니다.', v: { col: 'none', en: 'STRING', tr: true, pk: 'assigned' } },
+    { t: '기본 키를 DB가 정하게', q: 'grade는 STRING, memo에는 @Transient를 둔 채 id를 IDENTITY 전략으로 DB가 정하게 하면', d: 'id를 넣지 않아도 DB가 1을 정해 줍니다.', v: { col: 'none', en: 'STRING', tr: true, pk: 'auto' } },
+    { t: 'id를 넣지 않으면', q: 'grade는 STRING, memo에는 @Transient인데 id에 @Id만 붙이고 값을 넣지 않은 채 persist하면', d: '@Id만 붙인 필드를 비워 두면 저장할 때 예외가 납니다.', v: { col: 'none', en: 'STRING', tr: true, pk: 'forgot' } },
   ],
   code: function (c) {
     var ord = c.en.indexOf('ORDINAL') === 0, add = /_ADD$/.test(c.en), id = c.pk === 'auto' ? '1L' : '100L';

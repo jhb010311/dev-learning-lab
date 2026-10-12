@@ -9,11 +9,11 @@ Lab.register({
     { id: 'ins', label: '트랜잭션 B가 넣으려는 행', type: 'select', value: '25', options: [['25', 'id = 25 (20과 30 사이)'], ['45', 'id = 45 (40보다 뒤)']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '범위 조회. 20과 30 사이에 끼워 넣으려는 INSERT가 기다립니다.', v: { q: 'range', lv: 'RR', ins: '25' } },
-    { t: '없는 행을 조회했을 때', d: '잠글 행이 없는데도 그 자리의 빈 구간이 잠깁니다.', v: { q: 'miss', lv: 'RR', ins: '25' } },
-    { t: '있는 행 하나를 정확히 조회', d: '그 행만 잠깁니다. 옆 구간은 자유롭습니다.', v: { q: 'hit', lv: 'RR', ins: '25' } },
-    { t: 'READ COMMITTED로 낮추면', d: '빈 구간을 잠그지 않습니다. INSERT가 바로 됩니다.', v: { q: 'range', lv: 'RC', ins: '25' } },
-    { t: '범위 밖에 넣으면', d: '잠긴 구간이 아니므로 기다리지 않습니다.', v: { q: 'range', lv: 'RR', ins: '45' } },
+    { t: '처음 설정으로', q: 'REPEATABLE READ에서 A가 id BETWEEN 20 AND 30 범위를 조회할 때 B가 id = 25를 넣으면 어떻게 되나', d: '범위 조회. 20과 30 사이에 끼워 넣으려는 INSERT가 기다립니다.', v: { q: 'range', lv: 'RR', ins: '25' } },
+    { t: '없는 행을 조회했을 때', q: 'A의 조회 조건을 id = 25 (없는 행) 쪽으로 바꾸면', d: '잠글 행이 없는데도 그 자리의 빈 구간이 잠깁니다.', v: { q: 'miss', lv: 'RR', ins: '25' } },
+    { t: '있는 행 하나를 정확히 조회', q: 'A의 조회 조건을 id = 20 (있는 행 하나) 쪽으로 바꾸면', d: '그 행만 잠깁니다. 옆 구간은 자유롭습니다.', v: { q: 'hit', lv: 'RR', ins: '25' } },
+    { t: 'READ COMMITTED로 낮추면', q: '격리 수준을 READ COMMITTED로 바꾸면', d: '빈 구간을 잠그지 않습니다. INSERT가 바로 됩니다.', v: { q: 'range', lv: 'RC', ins: '25' } },
+    { t: '범위 밖에 넣으면', q: 'B가 넣으려는 행을 id = 45 (40보다 뒤) 쪽으로 바꾸면', d: '잠긴 구간이 아니므로 기다리지 않습니다.', v: { q: 'range', lv: 'RR', ins: '45' } },
   ],
   code: function (c) {
     var w = { hit: 'id = 20', miss: 'id = 25', range: 'id BETWEEN 20 AND 30' }[c.q];

@@ -11,13 +11,13 @@ Lab.register({
   // 선언 위치는 Child의 static 멤버를 쓸 때만 뜻이 있다
   fix: function (c) { return c.decl === 'parent' && !(c.cls === 'child' && ['smethod', 'sfield', 'const', 'finalrt'].indexOf(c.use) >= 0) ? { decl: 'own' } : null; },
   presets: [
-    { t: '처음 설정으로', d: '상수 읽기. static 블록이 실행되지 않고, 클래스를 읽어 들이지도 않습니다.', v: { cls: 'parent', use: 'const', decl: 'own' } },
-    { t: 'new로 객체 만들기', d: '처음 만들 때 한 번만 static 블록이 실행됩니다.', v: { cls: 'parent', use: 'new', decl: 'own' } },
-    { t: 'static final인데 상수가 아닌 필드', d: '실행해야 값이 정해지므로 초기화가 일어납니다.', v: { cls: 'parent', use: 'finalrt', decl: 'own' } },
-    { t: '배열만 만들면', d: '클래스를 읽어 들이기만 하고 초기화하지 않습니다.', v: { cls: 'parent', use: 'array', decl: 'own' } },
-    { t: '자식 클래스의 객체 만들기', d: '부모가 먼저, 그다음 자식이 초기화됩니다.', v: { cls: 'child', use: 'new', decl: 'own' } },
-    { t: '부모의 static 필드를 자식 이름으로', d: 'Child.count라고 썼지만 Child는 초기화되지 않습니다.', v: { cls: 'child', use: 'sfield', decl: 'parent' } },
-    { t: '클래스이름.class 쓰기', d: '클래스 정보만 가리킬 뿐 초기화하지 않습니다.', v: { cls: 'child', use: 'classlit', decl: 'own' } },
+    { t: '처음 설정으로', q: 'Parent 클래스의 상수 MAX를 읽으면 static 블록과 클래스 로딩은 어떻게 되나', d: '상수 읽기. static 블록이 실행되지 않고, 클래스를 읽어 들이지도 않습니다.', v: { cls: 'parent', use: 'const', decl: 'own' } },
+    { t: 'new로 객체 만들기', q: '그 클래스로 하는 일을 상수 읽기에서 new로 객체 만들기로 바꾸면', d: '처음 만들 때 한 번만 static 블록이 실행됩니다.', v: { cls: 'parent', use: 'new', decl: 'own' } },
+    { t: 'static final인데 상수가 아닌 필드', q: '그 클래스로 하는 일을 static final이지만 실행해야 값이 정해지는 필드 읽기로 바꾸면', d: '실행해야 값이 정해지므로 초기화가 일어납니다.', v: { cls: 'parent', use: 'finalrt', decl: 'own' } },
+    { t: '배열만 만들면', q: '그 클래스로 하는 일을 배열 만들기로 바꿔 Parent 배열을 new로 만들면', d: '클래스를 읽어 들이기만 하고 초기화하지 않습니다.', v: { cls: 'parent', use: 'array', decl: 'own' } },
+    { t: '자식 클래스의 객체 만들기', q: '사용하는 클래스를 Child로 바꾸고 new로 객체를 만들면', d: '부모가 먼저, 그다음 자식이 초기화됩니다.', v: { cls: 'child', use: 'new', decl: 'own' } },
+    { t: '부모의 static 필드를 자식 이름으로', q: '사용하는 클래스를 Child로 바꾸고 Parent 안에 선언된 static 필드 count를 Child 이름으로 읽으면', d: 'Child.count라고 썼지만 Child는 초기화되지 않습니다.', v: { cls: 'child', use: 'sfield', decl: 'parent' } },
+    { t: '클래스이름.class 쓰기', q: '사용하는 클래스를 Child로 바꾸고 Child.class를 쓰면', d: '클래스 정보만 가리킬 뿐 초기화하지 않습니다.', v: { cls: 'child', use: 'classlit', decl: 'own' } },
   ],
   // 이 설정에서 쓰는 이름과, 무엇이 읽히고 무엇이 초기화되는지
   facts: function (c) {

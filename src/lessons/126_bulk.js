@@ -10,13 +10,13 @@ Lab.register({
     { id: 'n', label: '상품 수', type: 'range', min: 2, max: 8, value: 3, step: 1, fmt: function (v) { return v + '개'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '벌크 UPDATE 뒤에 엔티티를 읽으면 옛 값 1000원이 나옵니다.', v: { op: 'update', after: 'none', dirty: false, n: 3 } },
-    { t: '다시 조회해도 옛 값', d: 'JPQL로 다시 읽어도 보관 중인 엔티티가 그대로 돌아옵니다.', v: { op: 'update', after: 'jpql', dirty: false, n: 3 } },
-    { t: 'em.clear() 뒤에 조회', d: '영속성 컨텍스트를 비우면 DB의 새 값을 읽습니다.', v: { op: 'update', after: 'clear', dirty: false, n: 3 } },
-    { t: 'em.refresh', d: '그 엔티티 하나만 DB의 값으로 덮어씁니다.', v: { op: 'update', after: 'refresh', dirty: false, n: 3 } },
-    { t: '미뤄 둔 변경이 있으면', d: '벌크 연산 직전에 그 변경이 먼저 DB로 나갑니다.', v: { op: 'update', after: 'none', dirty: true, n: 3 } },
-    { t: '하나씩 고치면', d: '상품 8개에 UPDATE가 8번 나갑니다. 벌크 연산은 1번입니다.', v: { op: 'each', after: 'none', dirty: false, n: 8 } },
-    { t: '벌크 DELETE 뒤 em.find', d: 'DB에서 지워진 상품이 em.find로 그대로 나옵니다.', v: { op: 'delete', after: 'find', dirty: false, n: 3 } },
+    { t: '처음 설정으로', q: '상품 3개의 가격을 벌크 UPDATE로 500씩 올린 뒤 갖고 있던 엔티티로 상품 1의 가격을 읽으면', d: '벌크 UPDATE 뒤에 엔티티를 읽으면 옛 값 1000원이 나옵니다.', v: { op: 'update', after: 'none', dirty: false, n: 3 } },
+    { t: '다시 조회해도 옛 값', q: '벌크 UPDATE 뒤 JPQL로 목록을 다시 조회해 상품 1의 가격을 읽으면', d: 'JPQL로 다시 읽어도 보관 중인 엔티티가 그대로 돌아옵니다.', v: { op: 'update', after: 'jpql', dirty: false, n: 3 } },
+    { t: 'em.clear() 뒤에 조회', q: '벌크 UPDATE 뒤 em.clear 하고 em.find로 상품 1을 읽으면', d: '영속성 컨텍스트를 비우면 DB의 새 값을 읽습니다.', v: { op: 'update', after: 'clear', dirty: false, n: 3 } },
+    { t: 'em.refresh', q: '벌크 UPDATE 뒤 em.refresh로 상품 1을 다시 읽어 오면', d: '그 엔티티 하나만 DB의 값으로 덮어씁니다.', v: { op: 'update', after: 'refresh', dirty: false, n: 3 } },
+    { t: '미뤄 둔 변경이 있으면', q: '벌크 UPDATE 전에 상품 1의 가격을 5000으로 고쳐 두면', d: '벌크 연산 직전에 그 변경이 먼저 DB로 나갑니다.', v: { op: 'update', after: 'none', dirty: true, n: 3 } },
+    { t: '하나씩 고치면', q: '벌크 UPDATE 대신 상품 8개를 하나씩 setPrice로 고치면', d: '상품 8개에 UPDATE가 8번 나갑니다. 벌크 연산은 1번입니다.', v: { op: 'each', after: 'none', dirty: false, n: 8 } },
+    { t: '벌크 DELETE 뒤 em.find', q: '벌크 DELETE로 모든 상품을 지운 뒤 em.find로 상품 1을 읽으면', d: 'DB에서 지워진 상품이 em.find로 그대로 나옵니다.', v: { op: 'delete', after: 'find', dirty: false, n: 3 } },
   ],
   code: function (c) {
     var sel = 'em.createQuery("select i from Item i order by i.id", Item.class).getResultList()';

@@ -8,13 +8,13 @@ Lab.register({
     { id: 'op', label: '실행할 작업', type: 'select', value: 'dup', options: [['one', '조회: 결과가 1건'], ['zero', '조회: 결과가 0건'], ['two', '조회: 결과가 2건'], ['dup', '추가: 이미 있는 id (기본 키 중복)'], ['nul', '추가: NOT NULL 컬럼에 null'], ['bad', '조회: SQL의 컬럼 이름에 오타']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'JDBC를 직접 쓰고 close()를 마지막 줄에 뒀습니다. 예외가 나면 커넥션이 반납되지 않습니다.', v: { how: 'plain', op: 'dup' } },
-    { t: 'try-with-resources로 닫으면', d: '커넥션은 반납됩니다. 하지만 받는 것은 여전히 SQLException과 코드입니다.', v: { how: 'twr', op: 'dup' } },
-    { t: 'JdbcTemplate으로 바꾸면', d: '코드가 한 줄이 되고, 예외는 DuplicateKeyException으로 바뀝니다.', v: { how: 'tmpl', op: 'dup' } },
-    { t: 'SQL에 오타가 있으면', d: 'BadSqlGrammarException으로 바뀝니다.', v: { how: 'tmpl', op: 'bad' } },
-    { t: 'queryForObject의 결과가 0건', d: 'null이 아니라 예외가 나옵니다.', v: { how: 'tmpl', op: 'zero' } },
-    { t: '결과가 2건인데 JDBC 직접', d: '첫 행만 돌려주고 2건이었다는 사실은 사라집니다.', v: { how: 'plain', op: 'two' } },
-    { t: '결과가 2건인 queryForObject', d: '바로 위와 비교해 보세요. 예외로 알려 줍니다.', v: { how: 'tmpl', op: 'two' } },
+    { t: '처음 설정으로', q: 'JDBC를 직접 쓰고 close는 마지막 줄에서 호출하는데 기본 키가 중복되는 id를 추가하면 무슨 일이 일어나나', d: 'JDBC를 직접 쓰고 close()를 마지막 줄에 뒀습니다. 예외가 나면 커넥션이 반납되지 않습니다.', v: { how: 'plain', op: 'dup' } },
+    { t: 'try-with-resources로 닫으면', q: 'close를 마지막 줄에서 호출하는 대신 try-with-resources로 닫으면', d: '커넥션은 반납됩니다. 하지만 받는 것은 여전히 SQLException과 코드입니다.', v: { how: 'twr', op: 'dup' } },
+    { t: 'JdbcTemplate으로 바꾸면', q: 'DB에 접근하는 방식을 JdbcTemplate으로 바꾸면', d: '코드가 한 줄이 되고, 예외는 DuplicateKeyException으로 바뀝니다.', v: { how: 'tmpl', op: 'dup' } },
+    { t: 'SQL에 오타가 있으면', q: 'JdbcTemplate으로 바꾸고 SQL의 컬럼 이름에 오타가 있는 조회를 하면', d: 'BadSqlGrammarException으로 바뀝니다.', v: { how: 'tmpl', op: 'bad' } },
+    { t: 'queryForObject의 결과가 0건', q: 'JdbcTemplate의 queryForObject로 결과가 0건인 조회를 하면', d: 'null이 아니라 예외가 나옵니다.', v: { how: 'tmpl', op: 'zero' } },
+    { t: '결과가 2건인데 JDBC 직접', q: 'JDBC를 직접 쓰는 채로 결과가 2건인 조회를 하면', d: '첫 행만 돌려주고 2건이었다는 사실은 사라집니다.', v: { how: 'plain', op: 'two' } },
+    { t: '결과가 2건인 queryForObject', q: '결과가 2건인 조회인데 JdbcTemplate의 queryForObject로 바꾸면', d: '바로 위와 비교해 보세요. 예외로 알려 줍니다.', v: { how: 'tmpl', op: 'two' } },
   ],
   code: function (c) {
     var q = c.op === 'one' || c.op === 'zero' || c.op === 'two' || c.op === 'bad', city = { one: '부산', zero: '제주', two: '서울', bad: '부산' }[c.op];

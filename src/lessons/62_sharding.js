@@ -9,11 +9,11 @@ Lab.register({
     { id: 'grow', label: '샤드를 하나 더 늘린다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: '회원 번호를 4로 나눈 나머지로 분배. 고르게 퍼집니다.', v: { n: 4, how: 'hash', grow: false } },
-    { t: '주문 번호 구간으로 나누면', d: '새 주문은 전부 마지막 샤드로 갑니다.', v: { n: 4, how: 'range', grow: false } },
-    { t: '특정 회원의 주문이 많으면', d: '그 회원이 속한 샤드만 커집니다.', v: { n: 4, how: 'hot', grow: false } },
-    { t: '해시 방식에서 샤드 추가', d: '4개에서 5개로. 대부분의 데이터가 이사해야 합니다.', v: { n: 4, how: 'hash', grow: true } },
-    { t: '범위 방식에서 샤드 추가', d: '기존 데이터는 그대로 두고 새 구간만 받습니다.', v: { n: 4, how: 'range', grow: true } },
+    { t: '처음 설정으로', q: '샤드 4개에 회원 번호 % 샤드 수로 나누면 데이터가 어떻게 퍼지나', d: '회원 번호를 4로 나눈 나머지로 분배. 고르게 퍼집니다.', v: { n: 4, how: 'hash', grow: false } },
+    { t: '주문 번호 구간으로 나누면', q: '나누는 규칙을 범위: 주문 번호 구간별로 바꾸면', d: '새 주문은 전부 마지막 샤드로 갑니다.', v: { n: 4, how: 'range', grow: false } },
+    { t: '특정 회원의 주문이 많으면', q: '해시인데 한 회원의 주문이 유독 많으면', d: '그 회원이 속한 샤드만 커집니다.', v: { n: 4, how: 'hot', grow: false } },
+    { t: '해시 방식에서 샤드 추가', q: '해시 규칙인데 샤드를 하나 더 늘리면', d: '4개에서 5개로. 대부분의 데이터가 이사해야 합니다.', v: { n: 4, how: 'hash', grow: true } },
+    { t: '범위 방식에서 샤드 추가', q: '나누는 규칙을 범위: 주문 번호 구간별로 바꾸고 샤드를 하나 더 늘리면', d: '기존 데이터는 그대로 두고 새 구간만 받습니다.', v: { n: 4, how: 'range', grow: true } },
   ],
   code: function (c) {
     if (c.how === 'range') return '// 주문 번호 구간으로 샤드를 정한다\nint shardOf(long orderId) {\n    return (int) ((orderId - 1) / ' + Math.ceil(120 / c.n) + ');     // 1~' + Math.ceil(120 / c.n) + '번은 샤드 0, 그다음은 샤드 1 …\n}';

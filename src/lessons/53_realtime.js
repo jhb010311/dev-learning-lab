@@ -10,12 +10,12 @@ Lab.register({
     { id: 'up', label: '클라이언트도 서버로 자주 보낸다 (채팅 입력 등)', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: '5초 간격 폴링. 대부분의 요청이 "새 소식 없음"으로 끝납니다.', v: { how: 'poll', iv: '5', n: '3', up: false } },
-    { t: '폴링 간격을 1초로', d: '지연은 줄지만 요청이 30번으로 늘어납니다.', v: { how: 'poll', iv: '1', n: '3', up: false } },
-    { t: '롱 폴링', d: '소식이 생기는 순간 응답합니다. 요청 수는 알림 수와 비슷합니다.', v: { how: 'long', iv: '5', n: '3', up: false } },
-    { t: 'SSE', d: '연결 하나로 서버가 생기는 대로 보냅니다.', v: { how: 'sse', iv: '5', n: '3', up: false } },
-    { t: '양방향이 필요하면', d: '채팅처럼 클라이언트도 자주 보낸다면 WebSocket이 맞습니다.', v: { how: 'ws', iv: '5', n: '12', up: true } },
-    { t: 'SSE인데 클라이언트도 자주 보내면', d: '보내는 쪽은 매번 별도의 HTTP 요청이 됩니다.', v: { how: 'sse', iv: '5', n: '12', up: true } },
+    { t: '처음 설정으로', q: '폴링 간격 5초로 30초 동안 알림이 3건 생기면 브라우저는 어떻게 알게 되나', d: '5초 간격 폴링. 대부분의 요청이 "새 소식 없음"으로 끝납니다.', v: { how: 'poll', iv: '5', n: '3', up: false } },
+    { t: '폴링 간격을 1초로', q: '폴링 간격을 1초로 바꾸면', d: '지연은 줄지만 요청이 30번으로 늘어납니다.', v: { how: 'poll', iv: '1', n: '3', up: false } },
+    { t: '롱 폴링', q: '방식을 롱 폴링으로 바꾸면', d: '소식이 생기는 순간 응답합니다. 요청 수는 알림 수와 비슷합니다.', v: { how: 'long', iv: '5', n: '3', up: false } },
+    { t: 'SSE', q: '방식을 SSE로 바꾸면', d: '연결 하나로 서버가 생기는 대로 보냅니다.', v: { how: 'sse', iv: '5', n: '3', up: false } },
+    { t: '양방향이 필요하면', q: '방식을 WebSocket으로 바꾸고 알림을 12건으로, 클라이언트도 서버로 자주 보내게 하면', d: '채팅처럼 클라이언트도 자주 보낸다면 WebSocket이 맞습니다.', v: { how: 'ws', iv: '5', n: '12', up: true } },
+    { t: 'SSE인데 클라이언트도 자주 보내면', q: '방식은 SSE인데 알림이 12건이고 클라이언트도 서버로 자주 보내면', d: '보내는 쪽은 매번 별도의 HTTP 요청이 됩니다.', v: { how: 'sse', iv: '5', n: '12', up: true } },
   ],
   code: function (c) {
     if (c.how === 'poll') return '// 브라우저\nsetInterval(async () => {\n    const res = await fetch("/notifications?after=" + lastId);\n    show(await res.json());              // 없으면 빈 배열\n}, ' + (+c.iv * 1000) + ');';

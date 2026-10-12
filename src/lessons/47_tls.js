@@ -7,10 +7,10 @@ Lab.register({
     { id: 'cert', label: '서버 인증서의 상태', type: 'select', value: 'ok', options: [['ok', '정상'], ['expired', '유효 기간이 지남'], ['name', '다른 도메인의 인증서'], ['self', '신뢰할 수 없는 곳에서 발급 (자체 서명)']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '정상적인 TLS 1.3 핸드셰이크입니다.', v: { cert: 'ok' } },
-    { t: '인증서가 만료됐다면', d: '브라우저가 경고를 띄우고 연결을 멈춥니다.', v: { cert: 'expired' } },
-    { t: '도메인이 다르다면', d: '인증서는 진짜지만 이 서버의 것이 아닙니다.', v: { cert: 'name' } },
-    { t: '자체 서명 인증서', d: '누구도 보증해 주지 않는 인증서입니다.', v: { cert: 'self' } },
+    { t: '처음 설정으로', q: '서버 인증서가 정상일 때 https 연결이 맺어지기까지 어떤 순서로 진행되나', d: '정상적인 TLS 1.3 핸드셰이크입니다.', v: { cert: 'ok' } },
+    { t: '인증서가 만료됐다면', q: '서버 인증서의 유효 기간이 지났는데 접속하면', d: '브라우저가 경고를 띄우고 연결을 멈춥니다.', v: { cert: 'expired' } },
+    { t: '도메인이 다르다면', q: '서버가 다른 도메인의 인증서를 내밀면', d: '인증서는 진짜지만 이 서버의 것이 아닙니다.', v: { cert: 'name' } },
+    { t: '자체 서명 인증서', q: '신뢰할 수 없는 곳에서 발급한 자체 서명 인증서를 쓰면', d: '누구도 보증해 주지 않는 인증서입니다.', v: { cert: 'self' } },
   ],
   code: function () {
     return '# application.yml (서버 쪽 설정)\nserver:\n  port: 443\n  ssl:\n    enabled: true\n    key-store: classpath:shop.p12       # 인증서 + 개인키\n    key-store-password: ********\n    protocol: TLS\n    enabled-protocols: TLSv1.3\n\n# 실무에서는 보통 앞단의 로드밸런서나 nginx가 TLS를 처리하고\n# 애플리케이션 서버는 그 뒤에서 HTTP로 받는다';

@@ -8,11 +8,11 @@ Lab.register({
     { id: 'slow', label: '느린 요청 하나의 응답 시간', type: 'select', value: '3', options: [['1', '1초'], ['3', '3초'], ['10', '10초']], show: function (c) { return c.ratio !== '0'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '2%가 3초. 평균은 0.16초로 괜찮아 보이지만 p99는 3초입니다.', v: { ratio: '2', slow: '3' } },
-    { t: '느린 요청이 없을 때', d: '평균, 중앙값, p99가 거의 같습니다.', v: { ratio: '0', slow: '3' } },
-    { t: '0.5%만 느릴 때', d: 'p99에도 잡히지 않습니다. 최댓값이나 p99.9를 봐야 보입니다.', v: { ratio: '0.5', slow: '10' } },
-    { t: '6%가 느릴 때', d: 'p95부터 튀어 오릅니다.', v: { ratio: '6', slow: '3' } },
-    { t: '20%가 10초', d: '평균이 2초가 됐지만, 그런 응답을 받은 사용자는 한 명도 없습니다.', v: { ratio: '20', slow: '10' } },
+    { t: '처음 설정으로', q: '느린 요청이 20건이고 하나가 3초 걸리면 평균과 p99는 각각 어떻게 나오나', d: '2%가 3초. 평균은 0.16초로 괜찮아 보이지만 p99는 3초입니다.', v: { ratio: '2', slow: '3' } },
+    { t: '느린 요청이 없을 때', q: '느린 요청이 없으면', d: '평균, 중앙값, p99가 거의 같습니다.', v: { ratio: '0', slow: '3' } },
+    { t: '0.5%만 느릴 때', q: '느린 요청이 1,000건 중 5건이고 하나가 10초 걸리면', d: 'p99에도 잡히지 않습니다. 최댓값이나 p99.9를 봐야 보입니다.', v: { ratio: '0.5', slow: '10' } },
+    { t: '6%가 느릴 때', q: '느린 요청의 비율을 6%로 바꾸면', d: 'p95부터 튀어 오릅니다.', v: { ratio: '6', slow: '3' } },
+    { t: '20%가 10초', q: '느린 요청이 20%이고 하나가 10초 걸리면', d: '평균이 2초가 됐지만, 그런 응답을 받은 사용자는 한 명도 없습니다.', v: { ratio: '20', slow: '10' } },
   ],
   code: function () {
     return '// Micrometer: 응답 시간의 백분위를 함께 기록\nTimer.builder("http.server.requests")\n    .publishPercentiles(0.5, 0.95, 0.99)\n    .register(registry);\n\n# application.yml\nmanagement.metrics.distribution.percentiles:\n  http.server.requests: 0.5, 0.95, 0.99';

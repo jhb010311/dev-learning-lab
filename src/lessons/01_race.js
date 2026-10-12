@@ -11,12 +11,12 @@ Lab.register({
     { id: 'seed', label: '섞는 패턴', type: 'range', min: 1, max: 20, value: 7, fmt: function (v) { return v + '번 패턴'; }, show: function (c) { return c.order === 'rand'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '동기화 없이 번갈아 실행. 증가가 사라집니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'alt', seed: 7 } },
-    { t: 'volatile만 붙여 보기', d: '값은 최신으로 보이지만 단계가 섞이는 것은 막지 못합니다.', v: { threads: 2, loops: 3, sync: 'volatile', order: 'alt', seed: 7 } },
-    { t: 'synchronized로 묶기', d: '한 스레드가 끝낼 때까지 다른 스레드가 기다립니다.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
-    { t: 'AtomicInteger 쓰기', d: '락 없이, 읽은 값이 그대로일 때만 씁니다(CAS). 아니면 다시 합니다.', v: { threads: 2, loops: 3, sync: 'atomic', order: 'alt', seed: 7 } },
-    { t: '운 좋게 안 겹친 경우', d: '동기화가 없는데도 결과가 맞습니다. 테스트에서 버그가 안 잡히는 이유입니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'seq', seed: 7 } },
-    { t: '스레드 4개가 무작위로', d: '패턴 번호를 바꿔 가며 여러 번 실행해 보세요. 결과가 매번 다릅니다.', v: { threads: 4, loops: 3, sync: 'none', order: 'rand', seed: 7 } },
+    { t: '처음 설정으로', q: '스레드 2개가 각각 count++를 3번씩 하는데 동기화 없이 한 단계씩 번갈아 실행되면 어떻게 되나', d: '동기화 없이 번갈아 실행. 증가가 사라집니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'alt', seed: 7 } },
+    { t: 'volatile만 붙여 보기', q: '동기화 방식을 volatile만 붙임으로 바꾸면', d: '값은 최신으로 보이지만 단계가 섞이는 것은 막지 못합니다.', v: { threads: 2, loops: 3, sync: 'volatile', order: 'alt', seed: 7 } },
+    { t: 'synchronized로 묶기', q: '동기화 방식을 synchronized 블록으로 바꾸면', d: '한 스레드가 끝낼 때까지 다른 스레드가 기다립니다.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
+    { t: 'AtomicInteger 쓰기', q: '동기화 방식을 AtomicInteger로 바꾸면', d: '락 없이, 읽은 값이 그대로일 때만 씁니다(CAS). 아니면 다시 합니다.', v: { threads: 2, loops: 3, sync: 'atomic', order: 'alt', seed: 7 } },
+    { t: '운 좋게 안 겹친 경우', q: '동기화 방식은 없음 그대로인데 실행 순서를 한 스레드가 다 끝낸 뒤 다음으로 바꾸면', d: '동기화가 없는데도 결과가 맞습니다. 테스트에서 버그가 안 잡히는 이유입니다.', v: { threads: 2, loops: 3, sync: 'none', order: 'seq', seed: 7 } },
+    { t: '스레드 4개가 무작위로', q: '스레드 수를 4개로 늘리고 실행 순서를 무작위로 섞임으로 바꾸면', d: '패턴 번호를 바꿔 가며 여러 번 실행해 보세요. 결과가 매번 다릅니다.', v: { threads: 4, loops: 3, sync: 'none', order: 'rand', seed: 7 } },
   ],
   code: function (c) {
     var decl = { none: 'static int count = 0;', volatile: 'static volatile int count = 0;', sync: 'static int count = 0;\nstatic final Object lock = new Object();', atomic: 'static final AtomicInteger count = new AtomicInteger();' }[c.sync];

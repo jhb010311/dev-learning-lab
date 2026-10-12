@@ -11,13 +11,13 @@ Lab.register({
   // 조인 예시는 쿼리가 정해져 있고, GROUP BY를 고르면 조회 컬럼이 age, COUNT(*)로 정해진다
   fix: function (c) { return c.w === 'join' ? { sel: 'star', tail: 'none' } : c.tail === 'gage' ? { sel: 'star' } : null; },
   presets: [
-    { t: '처음 설정으로', d: '인덱스가 있는 컬럼인데 함수를 씌웠더니 type이 ALL입니다.', v: { w: 'func', sel: 'star', tail: 'none' } },
-    { t: '같은 뜻을 LIKE로 쓰면', d: "LIKE 'user001%'. type이 range로 바뀝니다.", v: { w: 'prefix', sel: 'star', tail: 'none' } },
-    { t: '기본 키로 한 행', d: 'type const. 가장 적게 읽는 경우입니다.', v: { w: 'pk', sel: 'star', tail: 'none' } },
-    { t: '앞에 %가 붙은 LIKE, 인덱스 컬럼만 조회', d: 'type index. 이름과 달리 인덱스 전체를 읽습니다.', v: { w: 'suffix', sel: 'cov', tail: 'none' } },
-    { t: '찾기는 인덱스로, 정렬은 따로', d: 'type ref인데 Extra에 Using filesort가 붙습니다.', v: { w: 'eq', sel: 'star', tail: 'oage' } },
-    { t: 'GROUP BY', d: 'Extra에 Using temporary가 나옵니다.', v: { w: 'none', sel: 'star', tail: 'gage' } },
-    { t: '조인', d: '두 줄이 나오고, 둘째 줄의 type이 eq_ref입니다.', v: { w: 'join', sel: 'star', tail: 'none' } },
+    { t: '처음 설정으로', q: 'LEFT(name, 7) = \'user001\' 조건으로 SELECT * 조회하면 EXPLAIN 한 줄에서 무엇을 읽어야 하나', d: '인덱스가 있는 컬럼인데 함수를 씌웠더니 type이 ALL입니다.', v: { w: 'func', sel: 'star', tail: 'none' } },
+    { t: '같은 뜻을 LIKE로 쓰면', q: 'WHERE 조건을 name LIKE \'user001%\' 모양으로 바꾸면', d: "LIKE 'user001%'. type이 range로 바뀝니다.", v: { w: 'prefix', sel: 'star', tail: 'none' } },
+    { t: '기본 키로 한 행', q: 'WHERE 조건을 id = 500 기본 키 모양으로 바꾸면', d: 'type const. 가장 적게 읽는 경우입니다.', v: { w: 'pk', sel: 'star', tail: 'none' } },
+    { t: '앞에 %가 붙은 LIKE, 인덱스 컬럼만 조회', q: 'name LIKE \'%00123\' 조건에 id, name만 SELECT하면', d: 'type index. 이름과 달리 인덱스 전체를 읽습니다.', v: { w: 'suffix', sel: 'cov', tail: 'none' } },
+    { t: '찾기는 인덱스로, 정렬은 따로', q: 'name = \'user00123\' 조건에 인덱스 없는 컬럼 age로 ORDER BY 하면', d: 'type ref인데 Extra에 Using filesort가 붙습니다.', v: { w: 'eq', sel: 'star', tail: 'oage' } },
+    { t: 'GROUP BY', q: 'WHERE 조건 없이 GROUP BY age로 나이별 인원수를 세면', d: 'Extra에 Using temporary가 나옵니다.', v: { w: 'none', sel: 'star', tail: 'gage' } },
+    { t: '조인', q: 'orders와 member를 기본 키로 연결하는 조인으로 바꾸면', d: '두 줄이 나오고, 둘째 줄의 type이 eq_ref입니다.', v: { w: 'join', sel: 'star', tail: 'none' } },
   ],
   WHERE: { none: '', pk: 'id = 500', eq: "name = 'user00123'", prefix: "name LIKE 'user001%'", suffix: "name LIKE '%00123'", func: "LEFT(name, 7) = 'user001'", noidx: 'age = 30' },
   // 조건에 실제로 맞는 행의 수 (Probe가 같은 데이터에서 세어 본 값)

@@ -10,10 +10,10 @@ Lab.register({
   ],
   fix: function (c) { return !c.add && c.pay === 'NAVER' ? { pay: 'KAKAO' } : null; },
   presets: [
-    { t: '처음 설정으로', d: 'if-else 방식에 네이버페이 추가. 기존 메서드를 고쳐야 합니다.', v: { how: 'ifelse', add: true, pay: 'NAVER' } },
-    { t: '전략 패턴에 네이버페이 추가', d: '클래스 하나를 새로 만들면 끝입니다. 기존 코드는 그대로입니다.', v: { how: 'strategy', add: true, pay: 'NAVER' } },
-    { t: '전략 패턴의 실행 과정', d: '분기문 없이 맞는 구현이 선택됩니다.', v: { how: 'strategy', add: false, pay: 'KAKAO' } },
-    { t: 'if-else의 실행 과정', d: '조건을 위에서부터 차례로 비교합니다.', v: { how: 'ifelse', add: false, pay: 'KAKAO' } },
+    { t: '처음 설정으로', q: 'if-else로 분기한 구현에 네이버페이 결제 수단이 하나 늘면 어디를 고쳐야 하나', d: 'if-else 방식에 네이버페이 추가. 기존 메서드를 고쳐야 합니다.', v: { how: 'ifelse', add: true, pay: 'NAVER' } },
+    { t: '전략 패턴에 네이버페이 추가', q: '구현 방식을 전략 패턴 (인터페이스 + 구현 클래스) 쪽으로 바꾸고 네이버페이를 실행하면', d: '클래스 하나를 새로 만들면 끝입니다. 기존 코드는 그대로입니다.', v: { how: 'strategy', add: true, pay: 'NAVER' } },
+    { t: '전략 패턴의 실행 과정', q: '구현 방식을 전략 패턴 (인터페이스 + 구현 클래스) 쪽으로 바꾸고 "네이버페이" 추가를 끄면', d: '분기문 없이 맞는 구현이 선택됩니다.', v: { how: 'strategy', add: false, pay: 'KAKAO' } },
+    { t: 'if-else의 실행 과정', q: 'if-else로 분기한 채 결제 수단 "네이버페이" 추가를 끄면', d: '조건을 위에서부터 차례로 비교합니다.', v: { how: 'ifelse', add: false, pay: 'KAKAO' } },
   ],
   code: function (c) {
     if (c.how === 'ifelse') return '@Service\nclass PaymentService {\n    void pay(String type, Order order) {\n        if (type.equals("CARD")) {\n            // 카드사 승인 요청 ... (30줄)\n        } else if (type.equals("BANK")) {\n            // 계좌이체 ... (25줄)\n        } else if (type.equals("KAKAO")) {\n            // 카카오페이 ... (40줄)\n' + (c.add ? '        } else if (type.equals("NAVER")) {      // 추가: 기존 메서드를 수정\n            // 네이버페이 ... (35줄)\n' : '') + '        } else {\n            throw new IllegalArgumentException(type);\n        }\n    }\n    // refund(), cancel() 에도 같은 분기가 반복된다\n}';

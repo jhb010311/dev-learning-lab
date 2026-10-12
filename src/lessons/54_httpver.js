@@ -9,11 +9,11 @@ Lab.register({
     { id: 'loss', label: '전송 중 패킷 하나가 유실된다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'HTTP/1.1. 연결 6개로 6개씩 다섯 묶음으로 나눠 받느라 네 번 줄을 섭니다.', v: { ver: '1.1', n: 30, loss: false } },
-    { t: 'HTTP/2로', d: '연결 하나로 30개를 동시에 받습니다.', v: { ver: '2', n: 30, loss: false } },
-    { t: 'HTTP/2에서 패킷 유실', d: '패킷 하나가 사라지면 모든 파일이 함께 멈춥니다.', v: { ver: '2', n: 30, loss: true } },
-    { t: 'HTTP/3에서 패킷 유실', d: '그 패킷이 속한 파일 하나만 기다립니다.', v: { ver: '3', n: 30, loss: true } },
-    { t: 'HTTP/1.1, 파일 60개', d: '파일이 늘수록 줄 서는 횟수가 늘어납니다.', v: { ver: '1.1', n: 60, loss: false } },
+    { t: '처음 설정으로', q: 'HTTP/1.1로 파일 30개를 받으면 어떻게 진행되나', d: 'HTTP/1.1. 연결 6개로 6개씩 다섯 묶음으로 나눠 받느라 네 번 줄을 섭니다.', v: { ver: '1.1', n: 30, loss: false } },
+    { t: 'HTTP/2로', q: 'HTTP 버전을 HTTP/2로 바꾸면', d: '연결 하나로 30개를 동시에 받습니다.', v: { ver: '2', n: 30, loss: false } },
+    { t: 'HTTP/2에서 패킷 유실', q: 'HTTP/2로 바꾸고 전송 중 패킷 하나가 유실되면', d: '패킷 하나가 사라지면 모든 파일이 함께 멈춥니다.', v: { ver: '2', n: 30, loss: true } },
+    { t: 'HTTP/3에서 패킷 유실', q: 'HTTP/3으로 바꾸고 전송 중 패킷 하나가 유실되면', d: '그 패킷이 속한 파일 하나만 기다립니다.', v: { ver: '3', n: 30, loss: true } },
+    { t: 'HTTP/1.1, 파일 60개', q: 'HTTP/1.1인데 받을 파일 수를 60개로 늘리면', d: '파일이 늘수록 줄 서는 횟수가 늘어납니다.', v: { ver: '1.1', n: 60, loss: false } },
   ],
   code: function (c) {
     return '# application.yml\nserver.http2.enabled: ' + (c.ver === '1.1' ? 'false' : 'true') + '        # HTTP/2 (TLS 필요)\n\n# nginx\nserver {\n    listen 443 ssl' + (c.ver === '2' ? ';\n    http2 on' : c.ver === '3' ? ';\n    listen 443 quic;                 # HTTP/3는 UDP 위의 QUIC\n    http2 on' : '') + ';\n    ...\n}\n\n<!-- 페이지 하나가 요청하는 파일: ' + c.n + '개 -->';

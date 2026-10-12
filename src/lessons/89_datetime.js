@@ -10,13 +10,13 @@ Lab.register({
     { id: 'gap', label: '1월 31일부터 3월 1일까지를 재는 방법', type: 'select', value: 'period', options: [['period', 'Period.between (날짜 간격)'], ['duration', 'Duration.between (시간 간격, 날짜에 0시를 붙여서)'], ['durdate', 'Duration.between에 날짜만 넘기기']], show: function (c) { return c.topic === 'gap'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '1월 31일에 한 달을 더하면 2월의 마지막 날이 됩니다.', v: { topic: 'plus', add: 'month', zone: 'ny', gap: 'period' } },
-    { t: '더하고 받지 않으면', d: 'plusMonths를 불렀는데 날짜가 그대로입니다.', v: { topic: 'plus', add: 'drop', zone: 'ny', gap: 'period' } },
-    { t: '한 달씩 두 번 더하기', d: '3월 31일이 아니라 3월 29일이 됩니다.', v: { topic: 'plus', add: 'twice', zone: 'ny', gap: 'period' } },
-    { t: '두 달을 한 번에 더하기', d: '3월 31일이 됩니다. 한 달씩 두 번 더한 것과 다릅니다.', v: { topic: 'plus', add: 'two', zone: 'ny', gap: 'period' } },
-    { t: '서울의 새해를 뉴욕 시각으로', d: '같은 순간인데 뉴욕은 아직 전날입니다.', v: { topic: 'zone', add: 'month', zone: 'ny', gap: 'period' } },
-    { t: 'Period로 잰 간격', d: '30일이 지났는데 getDays()는 1입니다.', v: { topic: 'gap', add: 'month', zone: 'ny', gap: 'period' } },
-    { t: '날짜만으로 Duration을 재면', d: '컴파일은 되지만 실행 중에 예외가 납니다.', v: { topic: 'gap', add: 'month', zone: 'ny', gap: 'durdate' } },
+    { t: '처음 설정으로', q: '2024년 1월 31일에 한 달 더하기 plusMonths(1) 호출을 하면 며칠이 되나', d: '1월 31일에 한 달을 더하면 2월의 마지막 날이 됩니다.', v: { topic: 'plus', add: 'month', zone: 'ny', gap: 'period' } },
+    { t: '더하고 받지 않으면', q: 'plusMonths(1) 호출을 하고 돌려준 값을 받지 않으면', d: 'plusMonths를 불렀는데 날짜가 그대로입니다.', v: { topic: 'plus', add: 'drop', zone: 'ny', gap: 'period' } },
+    { t: '한 달씩 두 번 더하기', q: 'plusMonths(1).plusMonths(1) 호출로 한 달씩 두 번 더하면', d: '3월 31일이 아니라 3월 29일이 됩니다.', v: { topic: 'plus', add: 'twice', zone: 'ny', gap: 'period' } },
+    { t: '두 달을 한 번에 더하기', q: 'plusMonths(2) 호출로 두 달을 한 번에 더하면', d: '3월 31일이 됩니다. 한 달씩 두 번 더한 것과 다릅니다.', v: { topic: 'plus', add: 'two', zone: 'ny', gap: 'period' } },
+    { t: '서울의 새해를 뉴욕 시각으로', q: '서울의 2024년 1월 1일 0시 30분을 America/New_York (뉴욕) 시간대로 적으면', d: '같은 순간인데 뉴욕은 아직 전날입니다.', v: { topic: 'zone', add: 'month', zone: 'ny', gap: 'period' } },
+    { t: 'Period로 잰 간격', q: '1월 31일부터 3월 1일까지를 Period.between (날짜 간격) 방식으로 재면', d: '30일이 지났는데 getDays()는 1입니다.', v: { topic: 'gap', add: 'month', zone: 'ny', gap: 'period' } },
+    { t: '날짜만으로 Duration을 재면', q: '1월 31일부터 3월 1일까지를 Duration.between에 날짜만 넘기기로 재면', d: '컴파일은 되지만 실행 중에 예외가 납니다.', v: { topic: 'gap', add: 'month', zone: 'ny', gap: 'durdate' } },
   ],
   // 실제 실행으로 확인한 값: 서울의 2024-01-01 00:30과 같은 순간을 각 시간대로 적은 것
   Z: {

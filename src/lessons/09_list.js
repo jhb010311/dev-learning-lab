@@ -10,12 +10,12 @@ Lab.register({
     { id: 'n', label: '원소 개수', type: 'range', min: 5, max: 40, value: 10, fmt: function (v) { return v + '개'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'ArrayList 맨 앞에 삽입. 원소 전부를 한 칸씩 뒤로 밉니다.', v: { ds: 'array', op: 'add', pos: 'front', n: 10 } },
-    { t: '같은 삽입을 LinkedList에', d: '연결만 바꾸면 됩니다. 옮기는 원소가 없습니다.', v: { ds: 'linked', op: 'add', pos: 'front', n: 10 } },
-    { t: 'LinkedList 가운데 삽입', d: '삽입 자체는 빠르지만 그 자리까지 노드를 따라가야 합니다.', v: { ds: 'linked', op: 'add', pos: 'mid', n: 10 } },
-    { t: 'LinkedList 가운데 조회', d: '인덱스로 바로 갈 수 없어 하나씩 따라갑니다.', v: { ds: 'linked', op: 'get', pos: 'mid', n: 20 } },
-    { t: 'ArrayList 가운데 조회', d: '원소가 몇 개든 한 번에 접근합니다.', v: { ds: 'array', op: 'get', pos: 'mid', n: 20 } },
-    { t: 'ArrayList에 40개 연속 추가', d: '배열이 꽉 찰 때만 큰 배열로 옮깁니다. 평균 비용을 보세요.', v: { ds: 'array', op: 'append', pos: 'back', n: 40 } },
+    { t: '처음 설정으로', q: '원소 10개인 ArrayList의 맨 앞에 값을 삽입하면 일이 얼마나 드나', d: 'ArrayList 맨 앞에 삽입. 원소 전부를 한 칸씩 뒤로 밉니다.', v: { ds: 'array', op: 'add', pos: 'front', n: 10 } },
+    { t: '같은 삽입을 LinkedList에', q: '자료구조를 LinkedList로 바꿔 같은 맨 앞 삽입을 하면', d: '연결만 바꾸면 됩니다. 옮기는 원소가 없습니다.', v: { ds: 'linked', op: 'add', pos: 'front', n: 10 } },
+    { t: 'LinkedList 가운데 삽입', q: 'LinkedList인데 삽입 위치를 맨 앞에서 가운데로 바꾸면', d: '삽입 자체는 빠르지만 그 자리까지 노드를 따라가야 합니다.', v: { ds: 'linked', op: 'add', pos: 'mid', n: 10 } },
+    { t: 'LinkedList 가운데 조회', q: 'LinkedList에 원소 20개를 두고 가운데를 인덱스로 조회하면', d: '인덱스로 바로 갈 수 없어 하나씩 따라갑니다.', v: { ds: 'linked', op: 'get', pos: 'mid', n: 20 } },
+    { t: 'ArrayList 가운데 조회', q: 'ArrayList에 원소 20개를 두고 가운데를 인덱스로 조회하면', d: '원소가 몇 개든 한 번에 접근합니다.', v: { ds: 'array', op: 'get', pos: 'mid', n: 20 } },
+    { t: 'ArrayList에 40개 연속 추가', q: '빈 ArrayList에 맨 뒤로 원소 40개를 계속 추가하면', d: '배열이 꽉 찰 때만 큰 배열로 옮깁니다. 평균 비용을 보세요.', v: { ds: 'array', op: 'append', pos: 'back', n: 40 } },
   ],
   idx: function (c) { return c.pos === 'front' ? 0 : c.pos === 'mid' ? c.n >> 1 : c.op === 'add' ? c.n : c.n - 1; },
   code: function (c) {

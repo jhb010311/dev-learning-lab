@@ -9,12 +9,12 @@ Lab.register({
     { id: 'dest', label: 'Location이 가리키는 주소', type: 'select', value: 'ok', options: [['ok', '/orders가 정상으로 응답한다'], ['loop', '/orders도 다시 /order를 가리킨다 (서로를 가리킴)']], hint: '설정 실수로 두 주소가 서로를 가리키면 리다이렉트가 끝나지 않습니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'POST 요청에 302로 응답. 다음 요청은 GET으로 바뀌고 본문이 사라집니다.', v: { code: '302', m: 'POST', dest: 'ok' } },
-    { t: '307이면 POST 그대로', d: '메서드와 본문을 바꾸지 않고 새 주소로 다시 보냅니다.', v: { code: '307', m: 'POST', dest: 'ok' } },
-    { t: '303: 결과는 GET으로 조회', d: '폼을 보낸 뒤 결과 화면으로 넘길 때 쓰는 방식입니다.', v: { code: '303', m: 'POST', dest: 'ok' } },
-    { t: '301에 PUT을 보내면', d: 'GET으로 바뀌는 것은 POST뿐입니다. PUT은 그대로 갑니다.', v: { code: '301', m: 'PUT', dest: 'ok' } },
-    { t: '영구 이동 308', d: '301과 같은 영구 이동인데 메서드를 유지합니다.', v: { code: '308', m: 'POST', dest: 'ok' } },
-    { t: '서로를 가리키는 리다이렉트', d: '끝이 없으므로 클라이언트가 정해 둔 횟수에서 스스로 멈춥니다.', v: { code: '302', m: 'GET', dest: 'loop' } },
+    { t: '처음 설정으로', q: 'POST /order로 item=keyboard 본문을 보냈는데 서버가 302 Found로 /orders를 가리키면 다음 요청은 어떻게 나가나', d: 'POST 요청에 302로 응답. 다음 요청은 GET으로 바뀌고 본문이 사라집니다.', v: { code: '302', m: 'POST', dest: 'ok' } },
+    { t: '307이면 POST 그대로', q: '서버가 응답하는 상태 코드를 307 Temporary Redirect로 바꾸면', d: '메서드와 본문을 바꾸지 않고 새 주소로 다시 보냅니다.', v: { code: '307', m: 'POST', dest: 'ok' } },
+    { t: '303: 결과는 GET으로 조회', q: '서버가 응답하는 상태 코드를 303 See Other로 바꾸면', d: '폼을 보낸 뒤 결과 화면으로 넘길 때 쓰는 방식입니다.', v: { code: '303', m: 'POST', dest: 'ok' } },
+    { t: '301에 PUT을 보내면', q: '상태 코드를 301 Moved Permanently로, 처음 요청을 PUT /order로 바꾸면', d: 'GET으로 바뀌는 것은 POST뿐입니다. PUT은 그대로 갑니다.', v: { code: '301', m: 'PUT', dest: 'ok' } },
+    { t: '영구 이동 308', q: '서버가 응답하는 상태 코드를 308 Permanent Redirect로 바꾸면', d: '301과 같은 영구 이동인데 메서드를 유지합니다.', v: { code: '308', m: 'POST', dest: 'ok' } },
+    { t: '서로를 가리키는 리다이렉트', q: '처음 요청을 GET /order로 바꾸고 /orders도 다시 /order를 가리켜 서로를 가리키면', d: '끝이 없으므로 클라이언트가 정해 둔 횟수에서 스스로 멈춥니다.', v: { code: '302', m: 'GET', dest: 'loop' } },
   ],
   CODES: {
     '301': { name: 'Moved Permanently', kind: '영구 이동', rule: 'POST를 GET으로 바꿔도 됨 (허용)' },

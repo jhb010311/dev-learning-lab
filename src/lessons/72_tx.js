@@ -9,12 +9,12 @@ Lab.register({
     { id: 'peek', label: '다른 사용자가 중간에 두 계좌의 합계를 조회한다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: '트랜잭션 없이 중간에 오류. 1,000원이 사라집니다.', v: { mode: 'auto', fail: 'ex', peek: false } },
-    { t: '트랜잭션으로 묶으면', d: '같은 오류에서 출금까지 취소됩니다.', v: { mode: 'tx', fail: 'ex', peek: false } },
-    { t: '묶은 상태에서 서버가 꺼지면', d: '커밋하지 않은 변경은 남지 않습니다.', v: { mode: 'tx', fail: 'crash', peek: false } },
-    { t: '문제가 없을 때', d: '어느 방식이든 결과는 같습니다.', v: { mode: 'tx', fail: 'none', peek: false } },
-    { t: '중간에 다른 사람이 조회하면', d: '트랜잭션 없이: 합계가 1,000원 모자란 순간이 보입니다.', v: { mode: 'auto', fail: 'none', peek: true } },
-    { t: '묶은 상태에서 중간 조회', d: '커밋 전의 변경은 다른 사람에게 보이지 않습니다.', v: { mode: 'tx', fail: 'none', peek: true } },
+    { t: '처음 설정으로', q: '트랜잭션 없이 (문장마다 바로 확정) 돌리다 출금과 입금 사이에 애플리케이션에서 오류(예외)가 발생하면 어떻게 되나', d: '트랜잭션 없이 중간에 오류. 1,000원이 사라집니다.', v: { mode: 'auto', fail: 'ex', peek: false } },
+    { t: '트랜잭션으로 묶으면', q: '실행 방식을 두 문장을 트랜잭션으로 묶음 쪽으로 바꾸면', d: '같은 오류에서 출금까지 취소됩니다.', v: { mode: 'tx', fail: 'ex', peek: false } },
+    { t: '묶은 상태에서 서버가 꺼지면', q: '실행 방식을 두 문장을 트랜잭션으로 묶음으로 바꾸고 출금과 입금 사이에 서버가 꺼지면', d: '커밋하지 않은 변경은 남지 않습니다.', v: { mode: 'tx', fail: 'crash', peek: false } },
+    { t: '문제가 없을 때', q: '실행 방식을 두 문장을 트랜잭션으로 묶음으로 바꾸고 출금과 입금 사이에 아무 일 없으면', d: '어느 방식이든 결과는 같습니다.', v: { mode: 'tx', fail: 'none', peek: false } },
+    { t: '중간에 다른 사람이 조회하면', q: '출금과 입금 사이에 아무 일이 없는데 다른 사용자가 중간에 두 계좌의 합계를 조회하면', d: '트랜잭션 없이: 합계가 1,000원 모자란 순간이 보입니다.', v: { mode: 'auto', fail: 'none', peek: true } },
+    { t: '묶은 상태에서 중간 조회', q: '두 문장을 트랜잭션으로 묶고 아무 일 없는데 다른 사용자가 중간에 두 계좌의 합계를 조회하면', d: '커밋 전의 변경은 다른 사람에게 보이지 않습니다.', v: { mode: 'tx', fail: 'none', peek: true } },
   ],
   code: function (c) {
     var w = "UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- 출금\n", d = "UPDATE account SET balance = balance + 1000 WHERE id = 'B';   -- 입금\n", gap = c.fail === 'ex' ? '-- (여기서 애플리케이션 오류 발생)\n' : c.fail === 'crash' ? '-- (여기서 서버가 꺼짐)\n' : '';

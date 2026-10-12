@@ -8,13 +8,13 @@ Lab.register({
     { id: 'page', label: '페이징: setFirstResult(0).setMaxResults(1)', type: 'check', value: false, hint: '결과를 처음부터 1개만 달라고 요청합니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', d: '그냥 join. 조인을 했는데도 댓글 조회가 게시글마다 따로 나갑니다.', v: { q: 'join', page: false } },
-    { t: 'join fetch', d: '댓글 컬럼까지 한 번에 읽어 와서 뒤따르는 조회가 없습니다.', v: { q: 'fetch', page: false } },
-    { t: '조인 없이 조회', d: '게시글만 읽고, 댓글은 쓸 때마다 조회합니다.', v: { q: 'plain', page: false } },
-    { t: '테이블 이름으로 쓰면', d: 'JPQL의 from 뒤에는 엔티티 이름이 와야 합니다.', v: { q: 'table', page: false } },
-    { t: '페치 조인에 페이징', d: 'Hibernate 7.4.5는 서브쿼리에서 게시글을 먼저 자릅니다.', v: { q: 'fetch', page: true } },
-    { t: '메모리에서 자르는 경우', d: '댓글 기준으로 정렬하면 전부 읽어 온 뒤 메모리에서 자르고 경고를 냅니다.', v: { q: 'fetchsort', page: true } },
-    { t: '컬렉션 두 개를 페치 조인', d: '실행하기 전에 예외로 거절됩니다.', v: { q: 'two', page: false } },
+    { t: '처음 설정으로', q: 'select p from Post p join p.comments c로 조회하면 결과와 뒤따르는 댓글 조회는 어떻게 되나', d: '그냥 join. 조인을 했는데도 댓글 조회가 게시글마다 따로 나갑니다.', v: { q: 'join', page: false } },
+    { t: 'join fetch', q: 'join을 join fetch p.comments로 바꾸면', d: '댓글 컬럼까지 한 번에 읽어 와서 뒤따르는 조회가 없습니다.', v: { q: 'fetch', page: false } },
+    { t: '조인 없이 조회', q: '조인 없이 select p from Post p로 조회하면', d: '게시글만 읽고, 댓글은 쓸 때마다 조회합니다.', v: { q: 'plain', page: false } },
+    { t: '테이블 이름으로 쓰면', q: 'select p from posts p처럼 from 뒤에 테이블 이름을 쓰면', d: 'JPQL의 from 뒤에는 엔티티 이름이 와야 합니다.', v: { q: 'table', page: false } },
+    { t: '페치 조인에 페이징', q: 'join fetch p.comments에 setFirstResult(0).setMaxResults(1) 페이징을 켜면', d: 'Hibernate 7.4.5는 서브쿼리에서 게시글을 먼저 자릅니다.', v: { q: 'fetch', page: true } },
+    { t: '메모리에서 자르는 경우', q: 'join fetch p.comments c order by c.id desc로 댓글 기준 정렬하고 페이징을 켜면', d: '댓글 기준으로 정렬하면 전부 읽어 온 뒤 메모리에서 자르고 경고를 냅니다.', v: { q: 'fetchsort', page: true } },
+    { t: '컬렉션 두 개를 페치 조인', q: 'join fetch p.comments join fetch p.files로 컬렉션 두 개를 페치 조인하면', d: '실행하기 전에 예외로 거절됩니다.', v: { q: 'two', page: false } },
   ],
   jpql: function (c) {
     return { plain: 'select p from Post p order by p.id', table: 'select p from posts p order by p.id', join: 'select p from Post p join p.comments c order by p.id', fetch: 'select p from Post p join fetch p.comments order by p.id', fetchsort: 'select p from Post p join fetch p.comments c order by c.id desc', two: 'select p from Post p join fetch p.comments join fetch p.files order by p.id' }[c.q];

@@ -10,12 +10,12 @@ Lab.register({
     { id: 'pushed', label: 'feature 브랜치를 이미 원격에 올렸다', type: 'check', value: false, show: function (c) { return c.how === 'rebase'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'merge. 두 갈래를 잇는 병합 커밋이 생깁니다.', v: { how: 'merge', main: true, conf: false, pushed: false } },
-    { t: 'rebase 후 합치기', d: 'feature의 커밋을 main 끝으로 옮겨 붙입니다. 한 줄로 이어집니다.', v: { how: 'rebase', main: true, conf: false, pushed: false } },
-    { t: 'main에 새 커밋이 없으면', d: '병합 커밋 없이 main이 앞으로 이동만 합니다(fast-forward).', v: { how: 'merge', main: false, conf: false, pushed: false } },
-    { t: '같은 줄을 고쳤다면', d: '충돌이 납니다. 사람이 골라 줘야 합니다.', v: { how: 'merge', main: true, conf: true, pushed: false } },
-    { t: '이미 올린 브랜치를 rebase하면', d: '원격의 커밋과 달라져 강제로 올려야 합니다.', v: { how: 'rebase', main: true, conf: false, pushed: true } },
-    { t: 'squash', d: 'feature의 커밋 여러 개를 하나로 뭉쳐 main에 올립니다.', v: { how: 'squash', main: true, conf: false, pushed: false } },
+    { t: '처음 설정으로', q: 'main에 새 커밋이 있는 상태에서 main에서 git merge feature를 하면 그래프는 어떻게 되나', d: 'merge. 두 갈래를 잇는 병합 커밋이 생깁니다.', v: { how: 'merge', main: true, conf: false, pushed: false } },
+    { t: 'rebase 후 합치기', q: '합치는 방법을 feature에서 git rebase main 후 merge로 바꾸면', d: 'feature의 커밋을 main 끝으로 옮겨 붙입니다. 한 줄로 이어집니다.', v: { how: 'rebase', main: true, conf: false, pushed: false } },
+    { t: 'main에 새 커밋이 없으면', q: '그 사이 main에 새 커밋이 없으면', d: '병합 커밋 없이 main이 앞으로 이동만 합니다(fast-forward).', v: { how: 'merge', main: false, conf: false, pushed: false } },
+    { t: '같은 줄을 고쳤다면', q: '두 브랜치가 같은 파일의 같은 줄을 고쳤으면', d: '충돌이 납니다. 사람이 골라 줘야 합니다.', v: { how: 'merge', main: true, conf: true, pushed: false } },
+    { t: '이미 올린 브랜치를 rebase하면', q: 'feature 브랜치를 이미 원격에 올렸는데 feature에서 git rebase main 후 merge를 하면', d: '원격의 커밋과 달라져 강제로 올려야 합니다.', v: { how: 'rebase', main: true, conf: false, pushed: true } },
+    { t: 'squash', q: '합치는 방법을 git merge --squash feature로 바꾸면', d: 'feature의 커밋 여러 개를 하나로 뭉쳐 main에 올립니다.', v: { how: 'squash', main: true, conf: false, pushed: false } },
   ],
   code: function (c) {
     if (c.how === 'merge') return 'git switch main\ngit merge feature' + (c.main && c.conf ? '\n# CONFLICT (content): Merge conflict in OrderService.java\n# 파일을 열어 직접 고친 뒤\ngit add OrderService.java\ngit commit' : '');

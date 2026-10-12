@@ -10,12 +10,12 @@ Lab.register({
     { id: 'call', label: '부르는 방식', type: 'select', value: 'ext', options: [['ext', '컨트롤러(다른 빈)에서 직접 부른다'], ['self', '같은 클래스의 다른 메서드를 거쳐서 부른다']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '@PreAuthorize를 붙였는데, USER인 kim이 deleteAll을 실행합니다.', v: { enable: false, m: 'role', who: 'kim', call: 'ext' } },
-    { t: '@EnableMethodSecurity를 붙이면', d: '메서드 본문이 실행되기 전에 거부됩니다.', v: { enable: true, m: 'role', who: 'kim', call: 'ext' } },
-    { t: 'ADMIN이 부르면', d: '식이 참이라 본문이 실행됩니다.', v: { enable: true, m: 'role', who: 'admin', call: 'ext' } },
-    { t: '인자와 로그인한 사용자를 비교', d: 'lee가 kim의 주문 목록을 요청합니다. 본문 실행 전에 거부됩니다.', v: { enable: true, m: 'arg', who: 'lee', call: 'ext' } },
-    { t: '돌려줄 값을 보고 판단', d: '본문은 실행되고, 값이 나가기 직전에 거부됩니다.', v: { enable: true, m: 'post', who: 'lee', call: 'ext' } },
-    { t: '같은 클래스 안에서 부르면', d: '프록시를 거치지 않아 검사가 빠집니다.', v: { enable: true, m: 'role', who: 'kim', call: 'self' } },
+    { t: '처음 설정으로', q: '@EnableMethodSecurity 없이 deleteAll에 @PreAuthorize를 붙였는데 USER인 kim이 부르면 어떻게 되나', d: '@PreAuthorize를 붙였는데, USER인 kim이 deleteAll을 실행합니다.', v: { enable: false, m: 'role', who: 'kim', call: 'ext' } },
+    { t: '@EnableMethodSecurity를 붙이면', q: '설정 클래스에 @EnableMethodSecurity를 붙이면', d: '메서드 본문이 실행되기 전에 거부됩니다.', v: { enable: true, m: 'role', who: 'kim', call: 'ext' } },
+    { t: 'ADMIN이 부르면', q: '@EnableMethodSecurity를 붙이고 ADMIN 역할인 park이 deleteAll 메서드를 부르면', d: '식이 참이라 본문이 실행됩니다.', v: { enable: true, m: 'role', who: 'admin', call: 'ext' } },
+    { t: '인자와 로그인한 사용자를 비교', q: '@EnableMethodSecurity를 붙이고 ordersOf를 lee가 kim의 주문 목록으로 부르면', d: 'lee가 kim의 주문 목록을 요청합니다. 본문 실행 전에 거부됩니다.', v: { enable: true, m: 'arg', who: 'lee', call: 'ext' } },
+    { t: '돌려줄 값을 보고 판단', q: '@EnableMethodSecurity를 붙이고 @PostAuthorize가 달린 findOrder를 lee가 1번 주문으로 부르면', d: '본문은 실행되고, 값이 나가기 직전에 거부됩니다.', v: { enable: true, m: 'post', who: 'lee', call: 'ext' } },
+    { t: '같은 클래스 안에서 부르면', q: '@EnableMethodSecurity를 붙였는데 같은 클래스의 nightlyCleanUp 메서드를 거쳐 deleteAll을 부르면', d: '프록시를 거치지 않아 검사가 빠집니다.', v: { enable: true, m: 'role', who: 'kim', call: 'self' } },
   ],
   M: {
     role: { name: 'deleteAll', call: 'deleteAll()', wrap: 'nightlyCleanUp', wcall: 'nightlyCleanUp()', ann: '@PreAuthorize("hasRole(\'ADMIN\')")', expr: 'hasRole(\'ADMIN\')', ret: '"모두 삭제함"' },

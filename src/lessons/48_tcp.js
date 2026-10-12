@@ -9,10 +9,10 @@ Lab.register({
   ],
   fix: function (c) { return c.proto === 'udp' && c.loss === 'syn' ? { loss: 'none' } : null; },
   presets: [
-    { t: '처음 설정으로', d: 'TCP, 유실 없음. 연결을 맺고 데이터를 보내고 확인받습니다.', v: { proto: 'tcp', loss: 'none' } },
-    { t: '데이터 조각이 사라지면', d: '확인이 오지 않아 다시 보냅니다.', v: { proto: 'tcp', loss: 'data' } },
-    { t: '연결 요청이 사라지면', d: '응답이 없으면 기다렸다가 다시 시도합니다.', v: { proto: 'tcp', loss: 'syn' } },
-    { t: '같은 유실을 UDP로', d: '사라진 조각은 그대로 사라집니다.', v: { proto: 'udp', loss: 'data' } },
+    { t: '처음 설정으로', q: 'TCP로 패킷 유실 없이 데이터를 보내면 연결 맺기와 확인은 어떻게 오가나', d: 'TCP, 유실 없음. 연결을 맺고 데이터를 보내고 확인받습니다.', v: { proto: 'tcp', loss: 'none' } },
+    { t: '데이터 조각이 사라지면', q: 'TCP에서 두 번째 데이터 조각이 도중에 사라지면', d: '확인이 오지 않아 다시 보냅니다.', v: { proto: 'tcp', loss: 'data' } },
+    { t: '연결 요청이 사라지면', q: 'TCP에서 연결 요청 SYN이 도중에 사라지면', d: '응답이 없으면 기다렸다가 다시 시도합니다.', v: { proto: 'tcp', loss: 'syn' } },
+    { t: '같은 유실을 UDP로', q: '프로토콜을 UDP로 바꾸고 두 번째 데이터 조각이 사라지면', d: '사라진 조각은 그대로 사라집니다.', v: { proto: 'udp', loss: 'data' } },
   ],
   code: function (c) {
     if (c.proto === 'udp') return '// UDP: 연결 없이 바로 보낸다\nDatagramSocket socket = new DatagramSocket();\nfor (byte[] part : parts) {\n    socket.send(new DatagramPacket(part, part.length, address, 9000));\n}   // 도착했는지 알 수 없다';

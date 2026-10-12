@@ -10,12 +10,12 @@ Lab.register({
     { id: 'res', label: 'try-with-resources로 자원을 연다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'try에서 난 예외를 catch가 잡습니다.', v: { ex: 'match', ret: false, fret: false, res: false } },
-    { t: 'catch가 잡지 못하는 예외', d: 'catch는 건너뛰지만 finally는 실행됩니다.', v: { ex: 'nomatch', ret: false, fret: false, res: false } },
-    { t: 'try에서 return하면', d: 'return 값을 정해 놓고도 finally가 먼저 실행됩니다.', v: { ex: 'none', ret: true, fret: false, res: false } },
-    { t: 'finally에 return이 있으면', d: '밖으로 나가던 예외가 사라집니다.', v: { ex: 'nomatch', ret: false, fret: true, res: false } },
-    { t: 'try-with-resources', d: '자원은 catch와 finally보다 먼저 닫힙니다.', v: { ex: 'match', ret: false, fret: false, res: true } },
-    { t: 'catch 안에서 또 예외', d: '새 예외가 밖으로 나가고, finally는 그 전에 실행됩니다.', v: { ex: 'incatch', ret: false, fret: false, res: false } },
+    { t: '처음 설정으로', q: 'try에서 예외가 나고 catch가 그 타입을 잡으면 어느 블록이 어떤 순서로 실행되나', d: 'try에서 난 예외를 catch가 잡습니다.', v: { ex: 'match', ret: false, fret: false, res: false } },
+    { t: 'catch가 잡지 못하는 예외', q: '예외를 catch가 잡지 못하는 타입으로 바꾸면', d: 'catch는 건너뛰지만 finally는 실행됩니다.', v: { ex: 'nomatch', ret: false, fret: false, res: false } },
+    { t: 'try에서 return하면', q: '예외를 없애고 try 블록 끝에 return이 있으면', d: 'return 값을 정해 놓고도 finally가 먼저 실행됩니다.', v: { ex: 'none', ret: true, fret: false, res: false } },
+    { t: 'finally에 return이 있으면', q: 'catch가 잡지 못하는 예외가 나는데 finally 블록에 return이 있으면', d: '밖으로 나가던 예외가 사라집니다.', v: { ex: 'nomatch', ret: false, fret: true, res: false } },
+    { t: 'try-with-resources', q: 'try-with-resources로 자원을 열면', d: '자원은 catch와 finally보다 먼저 닫힙니다.', v: { ex: 'match', ret: false, fret: false, res: true } },
+    { t: 'catch 안에서 또 예외', q: 'try에서 난 예외를 잡았는데 catch 안에서 또 예외가 나면', d: '새 예외가 밖으로 나가고, finally는 그 전에 실행됩니다.', v: { ex: 'incatch', ret: false, fret: false, res: false } },
   ],
   code: function (c) {
     var t = c.ex === 'none' ? '' : c.ex === 'nomatch' ? '        throw new IllegalStateException();      // catch가 잡지 못함\n' : '        throw new IllegalArgumentException();\n';

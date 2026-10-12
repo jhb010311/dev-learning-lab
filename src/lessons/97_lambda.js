@@ -9,13 +9,13 @@ Lab.register({
     { id: 'calls', label: '넘겨받은 쪽(run)이 동작을 부르는 횟수', type: 'select', value: '2', options: [['0', '0번 (받기만 하고 부르지 않는다)'], ['1', '1번'], ['2', '2번']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '람다를 만든 줄에서는 아무 일도 없고, run이 부를 때마다 본문이 실행됩니다.', v: { fi: 'function', form: 'lambda', calls: '2' } },
-    { t: '받기만 하고 부르지 않으면', d: '람다를 만들고 넘겼는데도 본문은 한 번도 실행되지 않습니다.', v: { fi: 'function', form: 'lambda', calls: '0' } },
-    { t: '익명 클래스로 쓰면', d: '코드는 길어지지만 결과는 람다와 같습니다.', v: { fi: 'function', form: 'anon', calls: '2' } },
-    { t: '메서드 참조로 쓰면', d: '이미 있는 메서드를 이름으로 가리킵니다. 결과는 같습니다.', v: { fi: 'function', form: 'ref', calls: '2' } },
-    { t: 'Supplier를 넘겨 두고 나중에 get', d: '값을 만드는 일을 미뤄 두었다가 필요할 때 실행합니다.', v: { fi: 'supplier', form: 'lambda', calls: '1' } },
-    { t: 'Predicate', d: '조건 검사를 넘깁니다. true 또는 false가 돌아옵니다.', v: { fi: 'predicate', form: 'lambda', calls: '2' } },
-    { t: 'Consumer', d: '값을 받아 쓰기만 하고 돌려주는 것이 없습니다.', v: { fi: 'consumer', form: 'lambda', calls: '2' } },
+    { t: '처음 설정으로', q: 'Function<String, Integer> 람다를 run에 넘겼고 run이 동작을 2번 부르면 본문은 언제 실행되나', d: '람다를 만든 줄에서는 아무 일도 없고, run이 부를 때마다 본문이 실행됩니다.', v: { fi: 'function', form: 'lambda', calls: '2' } },
+    { t: '받기만 하고 부르지 않으면', q: '넘겨받은 쪽(run)이 동작을 0번 부르면', d: '람다를 만들고 넘겼는데도 본문은 한 번도 실행되지 않습니다.', v: { fi: 'function', form: 'lambda', calls: '0' } },
+    { t: '익명 클래스로 쓰면', q: '동작을 쓰는 방식을 람다에서 익명 클래스로 바꾸면', d: '코드는 길어지지만 결과는 람다와 같습니다.', v: { fi: 'function', form: 'anon', calls: '2' } },
+    { t: '메서드 참조로 쓰면', q: '동작을 쓰는 방식을 람다에서 메서드 참조로 바꾸면', d: '이미 있는 메서드를 이름으로 가리킵니다. 결과는 같습니다.', v: { fi: 'function', form: 'ref', calls: '2' } },
+    { t: 'Supplier를 넘겨 두고 나중에 get', q: '함수형 인터페이스를 Supplier<String> 쪽으로 바꾸고 run이 동작을 1번 부르면', d: '값을 만드는 일을 미뤄 두었다가 필요할 때 실행합니다.', v: { fi: 'supplier', form: 'lambda', calls: '1' } },
+    { t: 'Predicate', q: '함수형 인터페이스를 Predicate<String> 쪽으로 바꾸면', d: '조건 검사를 넘깁니다. true 또는 false가 돌아옵니다.', v: { fi: 'predicate', form: 'lambda', calls: '2' } },
+    { t: 'Consumer', q: '함수형 인터페이스를 Consumer<String> 쪽으로 바꾸면', d: '값을 받아 쓰기만 하고 돌려주는 것이 없습니다.', v: { fi: 'consumer', form: 'lambda', calls: '2' } },
   ],
   // 인터페이스마다: 타입, 변수 이름, 부르는 메서드, 본문이 되는 메서드, 받는 것, 돌려주는 것, 부를 때 넘기는 값, 돌려받는 값
   FI: {

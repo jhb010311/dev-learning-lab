@@ -10,12 +10,12 @@ Lab.register({
     { id: 'kick', label: '25분에 관리자가 이 사용자를 강제 로그아웃시킨다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: '서버 메모리 세션, 서버 2대. 다른 서버로 간 요청은 로그인이 풀립니다.', v: { mode: 'local', servers: 2, exp: '25', kick: false } },
-    { t: '세션을 Redis로 옮기면', d: '어느 서버로 가도 로그인이 유지됩니다. 대신 요청마다 저장소를 조회합니다.', v: { mode: 'redis', servers: 2, exp: '25', kick: false } },
-    { t: 'JWT로 바꾸면', d: '서버는 아무것도 기억하지 않습니다. 25분 뒤 토큰이 만료됩니다.', v: { mode: 'jwt', servers: 2, exp: '25', kick: false } },
-    { t: 'JWT인데 강제 로그아웃', d: '이미 발급한 토큰은 만료 전까지 막을 방법이 없습니다.', v: { mode: 'jwt', servers: 2, exp: '45', kick: true } },
-    { t: '세션인데 강제 로그아웃', d: '저장소에서 세션을 지우면 바로 다음 요청부터 막힙니다.', v: { mode: 'redis', servers: 2, exp: '25', kick: true } },
-    { t: '짧은 액세스 토큰 + 리프레시 토큰', d: '15분마다 재발급합니다. 강제 로그아웃이 늦어도 15분 안에 먹힙니다.', v: { mode: 'refresh', servers: 2, exp: '15', kick: true } },
+    { t: '처음 설정으로', q: '각 서버 메모리에 세션을 저장하는 서버 2대를 쓰면 로그인 상태는 어떻게 되나', d: '서버 메모리 세션, 서버 2대. 다른 서버로 간 요청은 로그인이 풀립니다.', v: { mode: 'local', servers: 2, exp: '25', kick: false } },
+    { t: '세션을 Redis로 옮기면', q: '인증 방식을 Redis 공용 저장소에 세션을 저장하는 방식으로 바꾸면', d: '어느 서버로 가도 로그인이 유지됩니다. 대신 요청마다 저장소를 조회합니다.', v: { mode: 'redis', servers: 2, exp: '25', kick: false } },
+    { t: 'JWT로 바꾸면', q: '인증 방식을 액세스 토큰만 쓰는 JWT로 바꾸면', d: '서버는 아무것도 기억하지 않습니다. 25분 뒤 토큰이 만료됩니다.', v: { mode: 'jwt', servers: 2, exp: '25', kick: false } },
+    { t: 'JWT인데 강제 로그아웃', q: '액세스 토큰만 쓰는 JWT에서 만료 시간을 45분으로 하고 25분에 관리자가 강제 로그아웃시키면', d: '이미 발급한 토큰은 만료 전까지 막을 방법이 없습니다.', v: { mode: 'jwt', servers: 2, exp: '45', kick: true } },
+    { t: '세션인데 강제 로그아웃', q: 'Redis 공용 저장소 세션에서 25분에 관리자가 강제 로그아웃시키면', d: '저장소에서 세션을 지우면 바로 다음 요청부터 막힙니다.', v: { mode: 'redis', servers: 2, exp: '25', kick: true } },
+    { t: '짧은 액세스 토큰 + 리프레시 토큰', q: '리프레시 토큰을 함께 쓰는 JWT로 바꾸고 액세스 토큰 만료 시간을 15분으로 줄인 채 25분에 관리자가 강제 로그아웃시키면', d: '15분마다 재발급합니다. 강제 로그아웃이 늦어도 15분 안에 먹힙니다.', v: { mode: 'refresh', servers: 2, exp: '15', kick: true } },
   ],
   code: function (c) {
     if (c.mode === 'local' || c.mode === 'redis') return (c.mode === 'redis' ? '// spring-session-data-redis 의존성을 추가하면\n// 세션이 서버 메모리 대신 Redis에 저장된다\n\n' : '') + '// 로그인 성공 시\nHttpSession session = request.getSession();\nsession.setAttribute("memberId", member.getId());\n// 응답 헤더: Set-Cookie: JSESSIONID=abc123; HttpOnly\n\n// 이후 요청마다: 쿠키의 세션 ID로 세션을 찾는다\nHttpSession session = request.getSession(false);\nif (session == null) {\n    throw new UnauthorizedException();   // 401\n}';

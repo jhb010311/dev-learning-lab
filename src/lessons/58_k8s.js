@@ -7,11 +7,11 @@ Lab.register({
     { id: 'what', label: '일어나는 일', type: 'select', value: 'kill', options: [['kill', 'Pod 하나가 갑자기 죽는다'], ['node', '노드(서버) 한 대가 통째로 죽는다'], ['scale', '복제본 수를 3에서 5로 바꾼다'], ['hang', '애플리케이션이 멈췄다 (프로세스는 살아 있음)'], ['notready', '애플리케이션이 잠시 요청을 받을 수 없다 (DB 연결 끊김)']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'Pod 하나가 죽습니다. 새 Pod가 자동으로 만들어집니다.', v: { what: 'kill' } },
-    { t: '노드가 죽으면', d: '그 노드에 있던 Pod가 다른 노드에 다시 만들어집니다.', v: { what: 'node' } },
-    { t: '복제본 수를 늘리면', d: '숫자만 바꾸면 쿠버네티스가 모자란 만큼 만듭니다.', v: { what: 'scale' } },
-    { t: '프로세스는 살아 있는데 멈췄다면', d: 'liveness 검사가 실패해 컨테이너를 재시작합니다.', v: { what: 'hang' } },
-    { t: '잠시 요청을 못 받는 상태라면', d: 'readiness 검사가 실패해 요청만 끊습니다. 재시작하지 않습니다.', v: { what: 'notready' } },
+    { t: '처음 설정으로', q: '복제본이 3개일 때 Pod 하나가 갑자기 죽으면 누가 다시 띄우나', d: 'Pod 하나가 죽습니다. 새 Pod가 자동으로 만들어집니다.', v: { what: 'kill' } },
+    { t: '노드가 죽으면', q: '일어나는 일이 노드(서버) 한 대가 통째로 죽는 것이면', d: '그 노드에 있던 Pod가 다른 노드에 다시 만들어집니다.', v: { what: 'node' } },
+    { t: '복제본 수를 늘리면', q: '복제본 수를 3에서 5로 바꾸면', d: '숫자만 바꾸면 쿠버네티스가 모자란 만큼 만듭니다.', v: { what: 'scale' } },
+    { t: '프로세스는 살아 있는데 멈췄다면', q: '애플리케이션이 멈췄는데 프로세스는 살아 있으면', d: 'liveness 검사가 실패해 컨테이너를 재시작합니다.', v: { what: 'hang' } },
+    { t: '잠시 요청을 못 받는 상태라면', q: '애플리케이션이 DB 연결이 끊겨 잠시 요청을 받을 수 없으면', d: 'readiness 검사가 실패해 요청만 끊습니다. 재시작하지 않습니다.', v: { what: 'notready' } },
   ],
   code: function (c) {
     return 'apiVersion: apps/v1\nkind: Deployment\nmetadata: { name: shop }\nspec:\n  replicas: ' + (c.what === 'scale' ? '5                 # 3에서 5로 수정' : '3                 # 원하는 상태: 항상 3개') + '\n  template:\n    spec:\n      containers:\n        - name: app\n          image: shop:1.0\n          livenessProbe:        # 실패하면 컨테이너 재시작\n            httpGet: { path: /actuator/health/liveness, port: 8080 }\n          readinessProbe:       # 실패하면 요청 대상에서만 제외\n            httpGet: { path: /actuator/health/readiness, port: 8080 }';

@@ -7,10 +7,10 @@ Lab.register({
     { id: 'where', label: '현재 사용자 정보를 두는 곳', type: 'select', value: 'field', options: [['field', '서비스 빈의 필드'], ['local', '메서드의 지역 변수 (파라미터로 전달)'], ['tl', 'ThreadLocal (요청 끝에 지우지 않음)'], ['tlc', 'ThreadLocal (요청 끝에 remove)']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '빈의 필드에 저장. 두 요청이 겹치면 값이 섞입니다.', v: { where: 'field' } },
-    { t: '지역 변수로', d: '요청마다 자기 스택에 따로 있어서 섞이지 않습니다.', v: { where: 'local' } },
-    { t: 'ThreadLocal, 정리 안 함', d: '동시 요청은 안전하지만, 스레드가 재사용될 때 이전 값이 남습니다.', v: { where: 'tl' } },
-    { t: 'ThreadLocal, 정리함', d: '요청이 끝날 때 지우면 안전합니다.', v: { where: 'tlc' } },
+    { t: '처음 설정으로', q: '현재 사용자 정보를 서비스 빈의 필드에 두고 철수와 영희가 동시에 주문하면 각 주문에 누구 이름이 찍히나', d: '빈의 필드에 저장. 두 요청이 겹치면 값이 섞입니다.', v: { where: 'field' } },
+    { t: '지역 변수로', q: '사용자 정보를 필드에 두지 않고 지역 변수에 담아 파라미터로 전달하면', d: '요청마다 자기 스택에 따로 있어서 섞이지 않습니다.', v: { where: 'local' } },
+    { t: 'ThreadLocal, 정리 안 함', q: '사용자 정보를 ThreadLocal에 두고 요청이 끝나도 지우지 않으면', d: '동시 요청은 안전하지만, 스레드가 재사용될 때 이전 값이 남습니다.', v: { where: 'tl' } },
+    { t: 'ThreadLocal, 정리함', q: '사용자 정보를 ThreadLocal에 두고 요청이 끝날 때 remove를 호출하면', d: '요청이 끝날 때 지우면 안전합니다.', v: { where: 'tlc' } },
   ],
   code: function (c) {
     if (c.where === 'field') return '@Service\nclass OrderService {                 // 인스턴스는 하나뿐\n    private String currentUser;      // 모든 요청이 함께 쓰는 필드\n\n    public Order order(String user, Item item) {\n        this.currentUser = user;     // (1) 저장\n        checkStock(item);            // 잠깐 다른 일\n        return new Order(currentUser, item);   // (2) 다시 읽음\n    }\n}';

@@ -143,9 +143,11 @@ if (require.main === module) {
   curri.forEach(c => { if (!c.id || !c.name || !c.desc || !c.groups.length) throw new Error('curriculum: 분야 형식 오류 ' + c.id); if (ids.has(c.id) || ['home', 'study', 'quiz', 'all', 'basics'].includes(c.id)) throw new Error('curriculum: 분야 id가 실습 id나 주소 이름과 겹침 ' + c.id);
     c.groups.forEach(g => { if (!g.name || !g.items.length) throw new Error('curriculum: 빈 묶음 ' + c.id + ' / ' + g.name); g.items.forEach(it => { if (it.id) { if (!ids.has(it.id)) throw new Error('curriculum: 없는 실습 ' + it.id); placed.add(it.id); } else { if (!it.t) throw new Error('curriculum: 이름 없는 항목 ' + c.id + ' / ' + g.name); todo++; } }); }); });
   // 기초개념: 공부의 분야와 따로 두는 목차(src/basics.js). 묶음이 분야이고, 항목은 basic: true인 실습(id)이거나 아직 없는 주제(t)다.
-  // 영어판에는 아직 두지 않는다(옮긴 실습이 없다).
-  const basSrc = !EN && fs.existsSync(path.join(dir, 'basics.js')) ? fs.readFileSync(path.join(dir, 'basics.js'), 'utf8') : '';
-  let basics = null; new Function('Lab', basSrc)({ basics: b => { basics = b; } });
+  // 영어판의 목차는 src/en/basics.js에 따로 적는다. 아직 공개하지 않은 실습(ready.js에 없는 것)은 영어판 목차에서 빼고, 빈 묶음도 뺀다.
+  const basFile = path.join(dir, 'basics.js');
+  let basics = null; new Function('Lab', fs.existsSync(basFile) ? fs.readFileSync(basFile, 'utf8') : '')({ basics: b => { basics = b; } });
+  if (EN && basics) { basics.groups.forEach(g => { g.items = g.items.filter(it => it.id && list.some(x => x.id === it.id)); }); basics.groups = basics.groups.filter(g => g.items.length); if (!basics.groups.length) basics = null; }
+  const basSrc = basics ? 'Lab.basics(' + JSON.stringify(basics) + ');' : '';
   if (basics) { if (!basics.desc || !basics.groups || !basics.groups.length) throw new Error('basics: desc와 groups가 필요');
     basics.groups.forEach(g => { if (!g.name || !g.items.length) throw new Error('basics: 빈 묶음 ' + g.name); g.items.forEach(it => { if (it.id) { const l = list.find(x => x.id === it.id); if (!l) throw new Error('basics: 없는 실습 ' + it.id); if (!l.basic) throw new Error('basics: basic: true가 아닌 실습 ' + it.id); if (placed.has(it.id)) throw new Error('basics: 공부의 목차에도 있는 실습 ' + it.id); placed.add(it.id); } else if (!it.t) throw new Error('basics: 이름 없는 항목 ' + g.name); }); });
     console.log('기초개념', basics.groups.map(g => g.name + ' ' + g.items.filter(it => it.id).length + (g.items.some(it => !it.id) ? '(+준비 중 ' + g.items.filter(it => !it.id).length + ')' : '')).join(', ')); }

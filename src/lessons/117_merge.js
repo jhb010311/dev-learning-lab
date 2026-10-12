@@ -9,12 +9,12 @@ Lab.register({
     { id: 'after', label: 'merge 다음에 city를 "부산"으로 바꾼다면', type: 'select', value: 'none', options: [['none', '바꾸지 않는다'], ['arg', 'merge에 넘긴 객체 m에서 바꾼다'], ['ret', 'merge가 돌려준 객체 r에서 바꾼다']], show: function (c) { return c.how === 'merge'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '이름만 채운 객체를 merge합니다. city가 NULL이 됩니다.', v: { src: 'form', how: 'merge', after: 'none' } },
-    { t: '다시 조회해서 이름만 옮기면', d: 'city는 그대로 남습니다(변경 감지).', v: { src: 'form', how: 'dirty', after: 'none' } },
-    { t: '아무것도 하지 않으면', d: '준영속 객체의 값만 바꿔서는 반영되지 않습니다.', v: { src: 'form', how: 'none', after: 'none' } },
-    { t: '조회해 둔 객체를 merge', d: '모든 필드가 채워져 있어 city가 유지됩니다.', v: { src: 'loaded', how: 'merge', after: 'none' } },
-    { t: 'merge 뒤에 넘긴 객체를 고치면', d: '넘긴 객체는 여전히 준영속이라 반영되지 않습니다.', v: { src: 'loaded', how: 'merge', after: 'arg' } },
-    { t: 'merge 뒤에 돌려받은 객체를 고치면', d: '돌려받은 객체는 영속이라 반영됩니다.', v: { src: 'loaded', how: 'merge', after: 'ret' } },
+    { t: '처음 설정으로', q: 'id와 name만 채워 new로 만든 객체 m을 em.merge(m)으로 병합하면 city는 어떻게 되나', d: '이름만 채운 객체를 merge합니다. city가 NULL이 됩니다.', v: { src: 'form', how: 'merge', after: 'none' } },
+    { t: '다시 조회해서 이름만 옮기면', q: 'em.merge(m) 대신 em.find로 다시 조회해서 이름만 옮기면', d: 'city는 그대로 남습니다(변경 감지).', v: { src: 'form', how: 'dirty', after: 'none' } },
+    { t: '아무것도 하지 않으면', q: 'em.merge(m) 대신 아무것도 하지 않고 커밋하면', d: '준영속 객체의 값만 바꿔서는 반영되지 않습니다.', v: { src: 'form', how: 'none', after: 'none' } },
+    { t: '조회해 둔 객체를 merge', q: 'm을 앞선 요청에서 조회해 둔, 모든 필드가 채워진 객체로 바꿔 merge하면', d: '모든 필드가 채워져 있어 city가 유지됩니다.', v: { src: 'loaded', how: 'merge', after: 'none' } },
+    { t: 'merge 뒤에 넘긴 객체를 고치면', q: '조회해 둔 객체를 merge한 뒤 city를 merge에 넘긴 객체 m에서 "부산"으로 바꾸면', d: '넘긴 객체는 여전히 준영속이라 반영되지 않습니다.', v: { src: 'loaded', how: 'merge', after: 'arg' } },
+    { t: 'merge 뒤에 돌려받은 객체를 고치면', q: '조회해 둔 객체를 merge한 뒤 city를 merge가 돌려준 객체 r에서 "부산"으로 바꾸면', d: '돌려받은 객체는 영속이라 반영됩니다.', v: { src: 'loaded', how: 'merge', after: 'ret' } },
   ],
   // 설정에 해당하는 코드의 줄들. k는 그 줄이 하는 일의 종류, pre는 앞줄에 붙여 보일 코드(단계는 아님)
   lines: function (c) {

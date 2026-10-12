@@ -9,13 +9,13 @@ Lab.register({
     { id: 'intr', label: '중간에 main이 t.interrupt()를 호출', type: 'check', value: false, hint: 'interrupt는 기다리고 있는 스레드에게 그만 기다리라고 보내는 신호입니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'run()을 직접 호출. 작업은 실행되지만 실행한 스레드는 main이고, t는 끝까지 NEW입니다.', v: { call: 'run', work: 'sleep', intr: false } },
-    { t: 'start()로 시작', d: '새 스레드 worker가 작업을 실행하고, 쉬는 동안 TIMED_WAITING입니다.', v: { call: 'start', work: 'sleep', intr: false } },
-    { t: 'join으로 기다리는 스레드', d: '다른 스레드가 끝나기를 기한 없이 기다리면 WAITING입니다.', v: { call: 'start', work: 'join', intr: false } },
-    { t: 'lock을 기다리는 스레드', d: '다른 스레드가 쥔 lock 앞에서 막히면 BLOCKED입니다.', v: { call: 'start', work: 'lock', intr: false } },
-    { t: '쉬는 스레드에 interrupt', d: 'sleep이 InterruptedException을 던지며 바로 깨어납니다.', v: { call: 'start', work: 'sleep', intr: true } },
-    { t: 'lock을 기다리는 스레드에 interrupt', d: '깨어나지 않습니다. 표시만 남습니다.', v: { call: 'start', work: 'lock', intr: true } },
-    { t: '끝난 스레드를 다시 start()', d: 'IllegalThreadStateException이 발생합니다.', v: { call: 'twice', work: 'quick', intr: false } },
+    { t: '처음 설정으로', q: 'Thread.sleep(1000) 작업을 t.run() 직접 호출로 실행하면 어느 스레드가 실행하고 t는 어떤 상태가 되나', d: 'run()을 직접 호출. 작업은 실행되지만 실행한 스레드는 main이고, t는 끝까지 NEW입니다.', v: { call: 'run', work: 'sleep', intr: false } },
+    { t: 'start()로 시작', q: '스레드를 실행시키는 방법을 t.start() 호출로 바꾸면', d: '새 스레드 worker가 작업을 실행하고, 쉬는 동안 TIMED_WAITING입니다.', v: { call: 'start', work: 'sleep', intr: false } },
+    { t: 'join으로 기다리는 스레드', q: 't.start() 호출인데 작업이 helper.join() 호출로 다른 스레드가 끝나기를 기다리는 것이면', d: '다른 스레드가 끝나기를 기한 없이 기다리면 WAITING입니다.', v: { call: 'start', work: 'join', intr: false } },
+    { t: 'lock을 기다리는 스레드', q: 't.start() 호출인데 작업이 main이 쥐고 있는 lock을 얻는 것이면', d: '다른 스레드가 쥔 lock 앞에서 막히면 BLOCKED입니다.', v: { call: 'start', work: 'lock', intr: false } },
+    { t: '쉬는 스레드에 interrupt', q: 't.start() 호출인데 쉬는 동안 main이 t.interrupt() 호출을 넣으면', d: 'sleep이 InterruptedException을 던지며 바로 깨어납니다.', v: { call: 'start', work: 'sleep', intr: true } },
+    { t: 'lock을 기다리는 스레드에 interrupt', q: 'main이 쥐고 있는 lock을 얻는 작업인데 main이 t.interrupt() 호출을 넣으면', d: '깨어나지 않습니다. 표시만 남습니다.', v: { call: 'start', work: 'lock', intr: true } },
+    { t: '끝난 스레드를 다시 start()', q: '이름만 출력하고 바로 끝나는 작업에 t.start() 뒤, 끝나고 나서 한 번 더 t.start() 호출을 넣으면', d: 'IllegalThreadStateException이 발생합니다.', v: { call: 'twice', work: 'quick', intr: false } },
   ],
   code: function (c) {
     var W = c.work, s = '';

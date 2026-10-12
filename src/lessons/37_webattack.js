@@ -10,13 +10,13 @@ Lab.register({
     { id: 'd3', label: '방어', type: 'select', value: 'none', options: [['none', '없음 (세션 쿠키가 SameSite=None)'], ['samesite', '세션 쿠키에 SameSite=Lax'], ['token', 'CSRF 토큰 검증']], show: function (c) { return c.atk === 'csrf'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'SQL Injection, 방어 없음. 비밀번호 없이 로그인됩니다.', v: { atk: 'sqli', d1: 'none', d2: 'none', d3: 'none' } },
-    { t: '파라미터 바인딩', d: '입력이 SQL 문법이 아닌 값으로만 다뤄집니다.', v: { atk: 'sqli', d1: 'bind', d2: 'none', d3: 'none' } },
-    { t: 'XSS, 방어 없음', d: '댓글에 넣은 스크립트가 다른 사용자 브라우저에서 실행됩니다.', v: { atk: 'xss', d1: 'none', d2: 'none', d3: 'none' } },
-    { t: 'XSS, 출력 이스케이프', d: '스크립트가 글자로만 보입니다.', v: { atk: 'xss', d1: 'none', d2: 'escape', d3: 'none' } },
-    { t: 'XSS, HttpOnly만', d: '쿠키는 못 훔치지만 스크립트는 여전히 실행됩니다.', v: { atk: 'xss', d1: 'none', d2: 'httponly', d3: 'none' } },
-    { t: 'CSRF, 방어 없음', d: '다른 사이트를 열었을 뿐인데 내 계정으로 요청이 나갑니다.', v: { atk: 'csrf', d1: 'none', d2: 'none', d3: 'none' } },
-    { t: 'CSRF, SameSite=Lax', d: '다른 사이트에서 보낸 POST에는 쿠키가 붙지 않습니다.', v: { atk: 'csrf', d1: 'none', d2: 'none', d3: 'samesite' } },
+    { t: '처음 설정으로', q: '방어 없이 문자열을 이어 붙여 SQL을 만든 곳에 SQL Injection 공격이 들어오면 어떻게 되나', d: 'SQL Injection, 방어 없음. 비밀번호 없이 로그인됩니다.', v: { atk: 'sqli', d1: 'none', d2: 'none', d3: 'none' } },
+    { t: '파라미터 바인딩', q: 'SQL Injection인데 PreparedStatement 파라미터 바인딩으로 SQL을 만들면', d: '입력이 SQL 문법이 아닌 값으로만 다뤄집니다.', v: { atk: 'sqli', d1: 'bind', d2: 'none', d3: 'none' } },
+    { t: 'XSS, 방어 없음', q: '공격 종류를 저장형 XSS로 바꾸고 입력을 그대로 화면에 출력하면', d: '댓글에 넣은 스크립트가 다른 사용자 브라우저에서 실행됩니다.', v: { atk: 'xss', d1: 'none', d2: 'none', d3: 'none' } },
+    { t: 'XSS, 출력 이스케이프', q: '저장형 XSS인데 출력할 때 이스케이프하면', d: '스크립트가 글자로만 보입니다.', v: { atk: 'xss', d1: 'none', d2: 'escape', d3: 'none' } },
+    { t: 'XSS, HttpOnly만', q: '저장형 XSS인데 세션 쿠키에 HttpOnly만 설정하면', d: '쿠키는 못 훔치지만 스크립트는 여전히 실행됩니다.', v: { atk: 'xss', d1: 'none', d2: 'httponly', d3: 'none' } },
+    { t: 'CSRF, 방어 없음', q: '공격 종류를 CSRF로 바꾸고 세션 쿠키가 SameSite=None인 채로 두면', d: '다른 사이트를 열었을 뿐인데 내 계정으로 요청이 나갑니다.', v: { atk: 'csrf', d1: 'none', d2: 'none', d3: 'none' } },
+    { t: 'CSRF, SameSite=Lax', q: 'CSRF인데 세션 쿠키에 SameSite=Lax를 설정하면', d: '다른 사이트에서 보낸 POST에는 쿠키가 붙지 않습니다.', v: { atk: 'csrf', d1: 'none', d2: 'none', d3: 'samesite' } },
   ],
   code: function (c) {
     if (c.atk === 'sqli') return c.d1 === 'none' ? '// 입력을 문자열로 이어 붙인다\nString sql = "SELECT * FROM member WHERE email = \'" + email\n           + "\' AND password = \'" + password + "\'";\nResultSet rs = statement.executeQuery(sql);' : '// 자리 표시자(?)를 쓰고 값은 따로 넘긴다\nString sql = "SELECT * FROM member WHERE email = ? AND password = ?";\nPreparedStatement ps = connection.prepareStatement(sql);\nps.setString(1, email);\nps.setString(2, password);\nResultSet rs = ps.executeQuery();\n\n// JPA, MyBatis의 #{} 도 내부적으로 이 방식이다';

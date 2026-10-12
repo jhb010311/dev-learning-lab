@@ -64,6 +64,7 @@ if (ko.id !== en.id || ko.mode !== en.mode) err('id, mode는 원본과 같아야
 if (en.cat !== MAPS.CAT[ko.cat]) err('cat은 ' + JSON.stringify(MAPS.CAT[ko.cat]) + ' 이어야 함 (tools/i18n/maps.js)');
 if (en.presets[0] && en.presets[0].t !== MAPS.FIRST_PRESET) err('첫 예시의 이름은 ' + JSON.stringify(MAPS.FIRST_PRESET) + ' 이어야 함');
 en.presets.forEach(p => { if (!p.t || !p.d || HANEN(p.t + p.d)) err('예시의 이름이나 설명에 한글이 남음: ' + p.t); });
+en.presets.forEach((p, i) => { const k = ko.presets[i]; if (!k) return; if (k.q && !p.q) err('예시 ' + (i + 1) + '의 물음(q)이 없음'); if (!k.q && p.q) err('예시 ' + (i + 1) + ': 한국어에 없는 물음(q)이 있음'); if (p.q && HANEN(p.q)) err('예시 ' + (i + 1) + '의 물음에 한글이 남음'); });
 ['title', 'nav', 'intro', 'assume'].forEach(k => { if (!en[k] || HANEN(en[k])) err(k + '가 없거나 한글이 남음'); });
 same(ko.controls.map(c => ({ id: c.id, type: c.type, value: c.value, min: c.min, max: c.max, step: c.step, opts: (c.options || []).map(o => o[0]) })), en.controls.map(c => ({ id: c.id, type: c.type, value: c.value, min: c.min, max: c.max, step: c.step, opts: (c.options || []).map(o => o[0]) })), 'controls');
 same(ko.presets.map(p => p.v), en.presets.map(p => p.v), 'presets.v');
@@ -134,7 +135,8 @@ if (fs.existsSync(myKb)) {
 // 5. 문제
 const koQ = []; fs.readdirSync(path.join(root, 'src')).filter(f => /^quiz.*\.js$/.test(f)).sort().forEach(f => new Function('Lab', read(path.join(root, 'src', f)))({ quiz: q => koQ.push(...q.filter(x => x.id === id)) }));
 const qf = path.join(root, 'src', 'en', 'quiz_' + id + '.js');
-if (!fs.existsSync(qf)) err('영어 문제 파일이 없음: src/en/quiz_' + id + '.js');
+if (!koQ.length && !fs.existsSync(qf)) { /* 기초개념 실습처럼 문제가 없는 실습 */ }
+else if (!fs.existsSync(qf)) err('영어 문제 파일이 없음: src/en/quiz_' + id + '.js');
 else { const enQ = []; try { new Function('Lab', read(qf))({ quiz: q => enQ.push(...q) }); } catch (e) { err('영어 문제 파일 오류: ' + e.message); }
   if (HANEN(read(qf))) err('영어 문제 파일에 한글이 남음');
   if (enQ.length !== koQ.length) err('문제 수가 다름: 한국어 ' + koQ.length + '개, 영어 ' + enQ.length + '개');

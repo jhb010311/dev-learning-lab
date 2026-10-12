@@ -10,12 +10,12 @@ Lab.register({
     { id: 'idx', label: 'b로 값을 넣을 칸의 번호(인덱스)', type: 'select', value: '2', options: [['0', '0 (첫 번째 칸)'], ['2', '2 (마지막 칸)'], ['3', '3 (길이와 같은 수)'], ['-1', '-1']], hint: '2차원에서는 0번 행(b[0])의 칸 번호입니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'b = a로 대입한 뒤 b의 칸에 값을 넣습니다. a를 출력해도 그 값이 보입니다.', v: { shape: '1', type: 'int', copy: 'ref', idx: '2' } },
-    { t: 'clone으로 복사하면', d: '배열이 두 개가 되어 a는 그대로입니다.', v: { shape: '1', type: 'int', copy: 'clone', idx: '2' } },
-    { t: '길이와 같은 번호에 넣으면', d: '칸 3개의 번호는 0, 1, 2뿐입니다. 3번에 넣으면 예외가 납니다.', v: { shape: '1', type: 'int', copy: 'clone', idx: '3' } },
-    { t: 'String 배열의 처음 상태', d: '값을 넣지 않은 칸에는 null이 들어 있습니다.', v: { shape: '1', type: 'String', copy: 'clone', idx: '0' } },
-    { t: '2차원 배열은 배열의 배열', d: '바깥 배열 하나와 행 배열 둘, 모두 세 개가 만들어집니다.', v: { shape: '2', type: 'int', copy: 'ref', idx: '2' } },
-    { t: '2차원 배열을 clone하면', d: '복사했는데도 a의 값이 바뀝니다. 행 배열을 함께 쓰기 때문입니다.', v: { shape: '2', type: 'int', copy: 'clone', idx: '2' } },
+    { t: '처음 설정으로', q: '칸 3개인 int 배열 a를 b = a로 대입하고 b의 2번 칸에 값을 넣으면 배열이 복사되나', d: 'b = a로 대입한 뒤 b의 칸에 값을 넣습니다. a를 출력해도 그 값이 보입니다.', v: { shape: '1', type: 'int', copy: 'ref', idx: '2' } },
+    { t: 'clone으로 복사하면', q: '두 번째 변수를 b = a.clone() 호출로 만들면', d: '배열이 두 개가 되어 a는 그대로입니다.', v: { shape: '1', type: 'int', copy: 'clone', idx: '2' } },
+    { t: '길이와 같은 번호에 넣으면', q: 'b = a.clone() 호출로 만들고 b의 3번 칸 (길이와 같은 수)에 값을 넣으면', d: '칸 3개의 번호는 0, 1, 2뿐입니다. 3번에 넣으면 예외가 납니다.', v: { shape: '1', type: 'int', copy: 'clone', idx: '3' } },
+    { t: 'String 배열의 처음 상태', q: '칸의 타입을 String으로 바꾸고 b = a.clone() 호출로 만든 뒤 b의 0번 칸에 값을 넣으면', d: '값을 넣지 않은 칸에는 null이 들어 있습니다.', v: { shape: '1', type: 'String', copy: 'clone', idx: '0' } },
+    { t: '2차원 배열은 배열의 배열', q: '배열의 모양을 2차원: 2행 3열로 바꾸면', d: '바깥 배열 하나와 행 배열 둘, 모두 세 개가 만들어집니다.', v: { shape: '2', type: 'int', copy: 'ref', idx: '2' } },
+    { t: '2차원 배열을 clone하면', q: '배열의 모양이 2차원: 2행 3열인데 b = a.clone() 호출로 만들면', d: '복사했는데도 a의 값이 바뀝니다. 행 배열을 함께 쓰기 때문입니다.', v: { shape: '2', type: 'int', copy: 'clone', idx: '2' } },
   ],
   lit: function (c) { return { int: '7', boolean: 'true', String: '"A"' }[c.type]; },
   code: function (c) {

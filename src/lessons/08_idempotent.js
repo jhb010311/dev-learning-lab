@@ -10,12 +10,12 @@ Lab.register({
     { id: 'key', label: '멱등키(Idempotency-Key) 헤더를 함께 보낸다', type: 'check', value: false, show: function (c) { return c.m === 'POST' || c.m === 'PATCH'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'POST의 응답이 한 번 사라집니다. 주문이 두 건 만들어집니다.', v: { m: 'POST', lost: 'res', n: 1, key: false } },
-    { t: '같은 상황에서 PUT', d: '두 번 실행돼도 결과는 한 번 실행한 것과 같습니다.', v: { m: 'PUT', lost: 'res', n: 1, key: false } },
-    { t: 'DELETE를 다시 보내면', d: '두 번째 응답 코드는 다르지만 서버 상태는 같습니다.', v: { m: 'DELETE', lost: 'res', n: 1, key: false } },
-    { t: '증가시키는 PATCH', d: '재시도한 만큼 수량이 더 올라갑니다.', v: { m: 'PATCH', lost: 'res', n: 2, key: false } },
-    { t: 'POST에 멱등키를 붙이면', d: '서버가 같은 요청임을 알아보고 한 번만 처리합니다.', v: { m: 'POST', lost: 'res', n: 2, key: true } },
-    { t: '요청이 사라진 경우', d: '서버가 처리한 적이 없으므로 재시도해도 문제없습니다.', v: { m: 'POST', lost: 'req', n: 1, key: false } },
+    { t: '처음 설정으로', q: 'POST /orders로 새 주문을 만드는 요청의 응답이 1번 사라져 다시 보내면 어떻게 되나', d: 'POST의 응답이 한 번 사라집니다. 주문이 두 건 만들어집니다.', v: { m: 'POST', lost: 'res', n: 1, key: false } },
+    { t: '같은 상황에서 PUT', q: '응답이 1번 사라지는 같은 상황에서 PUT /orders/1로 수량을 3으로 교체하면', d: '두 번 실행돼도 결과는 한 번 실행한 것과 같습니다.', v: { m: 'PUT', lost: 'res', n: 1, key: false } },
+    { t: 'DELETE를 다시 보내면', q: '응답이 1번 사라지는 같은 상황에서 DELETE /orders/1로 삭제하면', d: '두 번째 응답 코드는 다르지만 서버 상태는 같습니다.', v: { m: 'DELETE', lost: 'res', n: 1, key: false } },
+    { t: '증가시키는 PATCH', q: 'PATCH /orders/1로 수량을 1 증가시키는데 응답이 2번 사라지면', d: '재시도한 만큼 수량이 더 올라갑니다.', v: { m: 'PATCH', lost: 'res', n: 2, key: false } },
+    { t: 'POST에 멱등키를 붙이면', q: 'POST /orders에 멱등키(Idempotency-Key) 헤더를 함께 보내고 응답이 2번 사라지면', d: '서버가 같은 요청임을 알아보고 한 번만 처리합니다.', v: { m: 'POST', lost: 'res', n: 2, key: true } },
+    { t: '요청이 사라진 경우', q: 'POST /orders에서 사라지는 것을 응답이 아니라 요청으로 바꾸면', d: '서버가 처리한 적이 없으므로 재시도해도 문제없습니다.', v: { m: 'POST', lost: 'req', n: 1, key: false } },
   ],
   code: function (c) {
     var k = c.key && (c.m === 'POST' || c.m === 'PATCH') ? 'Idempotency-Key: 7f3a9c12\n' : '';

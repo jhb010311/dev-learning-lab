@@ -12,12 +12,12 @@ Lab.register({
     { id: 'myDs', label: 'DataSource 빈을 직접 등록했다', type: 'check', value: false, show: function (c) { return c.jpa; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '웹과 JPA 스타터. 직접 등록한 빈 없이 필요한 빈이 모두 생깁니다.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: true, myDs: false } },
-    { t: 'DB 주소를 빼먹으면', d: 'MySQL 드라이버인데 접속 주소가 없습니다. 기동에 실패합니다.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: false, myDs: false } },
-    { t: 'H2라면 주소가 없어도', d: '내장형 DB를 발견하면 메모리 DB를 알아서 만들어 줍니다.', v: { web: true, myOm: false, jpa: true, db: 'h2', url: false, myDs: false } },
-    { t: 'DataSource를 직접 등록하면', d: '자동 설정이 물러나고 내가 만든 것을 씁니다.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: true, myDs: true } },
-    { t: 'ObjectMapper를 직접 등록하면', d: '부트가 만들어 주던 ObjectMapper는 등록되지 않습니다.', v: { web: true, myOm: true, jpa: true, db: 'mysql', url: true, myDs: false } },
-    { t: '웹 스타터를 빼면', d: '톰캣도 DispatcherServlet도 생기지 않습니다.', v: { web: false, myOm: false, jpa: true, db: 'mysql', url: true, myDs: false } },
+    { t: '처음 설정으로', q: '웹과 JPA 스타터에 MySQL 드라이버와 spring.datasource.url만 두고 기동하면 어떤 빈이 생기나', d: '웹과 JPA 스타터. 직접 등록한 빈 없이 필요한 빈이 모두 생깁니다.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: true, myDs: false } },
+    { t: 'DB 주소를 빼먹으면', q: 'spring.datasource.url 설정을 빼면', d: 'MySQL 드라이버인데 접속 주소가 없습니다. 기동에 실패합니다.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: false, myDs: false } },
+    { t: 'H2라면 주소가 없어도', q: 'DB 드라이버를 H2 (내장형 DB) 쪽으로 바꾸고 spring.datasource.url 설정을 빼면', d: '내장형 DB를 발견하면 메모리 DB를 알아서 만들어 줍니다.', v: { web: true, myOm: false, jpa: true, db: 'h2', url: false, myDs: false } },
+    { t: 'DataSource를 직접 등록하면', q: 'DataSource 빈을 직접 등록하면', d: '자동 설정이 물러나고 내가 만든 것을 씁니다.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: true, myDs: true } },
+    { t: 'ObjectMapper를 직접 등록하면', q: 'ObjectMapper 빈을 직접 등록하면', d: '부트가 만들어 주던 ObjectMapper는 등록되지 않습니다.', v: { web: true, myOm: true, jpa: true, db: 'mysql', url: true, myDs: false } },
+    { t: '웹 스타터를 빼면', q: 'spring-boot-starter-webmvc 의존성을 빼면', d: '톰캣도 DispatcherServlet도 생기지 않습니다.', v: { web: false, myOm: false, jpa: true, db: 'mysql', url: true, myDs: false } },
   ],
   code: function (c) {
     var dep = [];

@@ -9,12 +9,12 @@ Lab.register({
     { id: 'mp', label: 'Team.members에 mappedBy = "team"을 적었다', type: 'check', value: true, hint: '끄면 양방향인데 mappedBy를 빠뜨린 경우가 됩니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', d: '팀의 목록에만 회원을 넣습니다. 예외는 없는데 DB의 team_id는 null입니다.', v: { set: 'inverse', clear: false, mp: true } },
-    { t: '회원 쪽에만 넣으면', d: 'team_id는 저장되지만, 같은 트랜잭션에서 읽은 팀의 목록은 비어 있습니다.', v: { set: 'owner', clear: false, mp: true } },
-    { t: '양쪽에 다 넣으면', d: 'DB의 외래 키와 메모리의 목록이 모두 맞습니다.', v: { set: 'both', clear: false, mp: true } },
-    { t: '팀 쪽에만 넣고 DB에서 다시 읽으면', d: '메모리에서는 1명이던 목록이 DB에서 다시 읽으면 0명입니다.', v: { set: 'inverse', clear: true, mp: true } },
-    { t: '회원 쪽에만 넣고 DB에서 다시 읽으면', d: '외래 키가 저장돼 있으므로 다시 읽은 목록은 1명입니다.', v: { set: 'owner', clear: true, mp: true } },
-    { t: 'mappedBy를 빠뜨리면', d: '연결 테이블 team_member가 따로 생기고 INSERT가 한 번 더 나갑니다.', v: { set: 'both', clear: false, mp: false } },
+    { t: '처음 설정으로', q: 'mappedBy를 적은 상태에서 팀의 목록에만 회원을 넣고 저장하면 member.team_id는 어떻게 되나', d: '팀의 목록에만 회원을 넣습니다. 예외는 없는데 DB의 team_id는 null입니다.', v: { set: 'inverse', clear: false, mp: true } },
+    { t: '회원 쪽에만 넣으면', q: '팀의 목록은 두고 회원 쪽에서만 setTeam으로 팀을 넣으면', d: 'team_id는 저장되지만, 같은 트랜잭션에서 읽은 팀의 목록은 비어 있습니다.', v: { set: 'owner', clear: false, mp: true } },
+    { t: '양쪽에 다 넣으면', q: '팀의 목록과 회원의 setTeam 양쪽 모두에 넣으면', d: 'DB의 외래 키와 메모리의 목록이 모두 맞습니다.', v: { set: 'both', clear: false, mp: true } },
+    { t: '팀 쪽에만 넣고 DB에서 다시 읽으면', q: '팀 쪽에만 넣은 채 목록을 읽기 전에 em.flush, em.clear를 하면', d: '메모리에서는 1명이던 목록이 DB에서 다시 읽으면 0명입니다.', v: { set: 'inverse', clear: true, mp: true } },
+    { t: '회원 쪽에만 넣고 DB에서 다시 읽으면', q: '회원 쪽에만 넣고 목록을 읽기 전에 em.flush, em.clear를 하면', d: '외래 키가 저장돼 있으므로 다시 읽은 목록은 1명입니다.', v: { set: 'owner', clear: true, mp: true } },
+    { t: 'mappedBy를 빠뜨리면', q: '양쪽 모두에 넣는데 Team.members에서 mappedBy를 빼면', d: '연결 테이블 team_member가 따로 생기고 INSERT가 한 번 더 나갑니다.', v: { set: 'both', clear: false, mp: false } },
   ],
   // 설정에 따라 실행되는 코드 줄. k는 그 줄을 가리키는 이름이다.
   lines: function (c) {

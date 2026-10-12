@@ -8,10 +8,10 @@ Lab.register({
     { id: 'prop', label: '추적 번호(Trace ID)를 서비스 사이에 전달한다', type: 'check', value: true },
   ],
   presets: [
-    { t: '처음 설정으로', d: '외부 결제사가 느립니다. 추적 화면에서 한눈에 보입니다.', v: { slow: 'pg', prop: true } },
-    { t: '추적 번호가 없다면', d: '서비스마다 로그는 있지만 같은 요청끼리 이을 수 없습니다.', v: { slow: 'pg', prop: false } },
-    { t: 'DB 조회가 느릴 때', d: '느린 구간이 주문 서비스 안쪽으로 옮겨집니다.', v: { slow: 'db', prop: true } },
-    { t: '결제 서비스 내부가 느릴 때', d: '결제 서비스의 시간에서 외부 호출 시간을 뺀 부분이 깁니다.', v: { slow: 'pay', prop: true } },
+    { t: '처음 설정으로', q: '느린 구간이 외부 결제사 API이고 추적 번호(Trace ID)를 서비스 사이에 전달하면 원인을 어떻게 찾나', d: '외부 결제사가 느립니다. 추적 화면에서 한눈에 보입니다.', v: { slow: 'pg', prop: true } },
+    { t: '추적 번호가 없다면', q: '추적 번호(Trace ID)를 서비스 사이에 전달하지 않으면', d: '서비스마다 로그는 있지만 같은 요청끼리 이을 수 없습니다.', v: { slow: 'pg', prop: false } },
+    { t: 'DB 조회가 느릴 때', q: '느린 구간을 주문 서비스의 DB 조회로 바꾸면', d: '느린 구간이 주문 서비스 안쪽으로 옮겨집니다.', v: { slow: 'db', prop: true } },
+    { t: '결제 서비스 내부가 느릴 때', q: '느린 구간을 결제 서비스 내부 처리로 바꾸면', d: '결제 서비스의 시간에서 외부 호출 시간을 뺀 부분이 깁니다.', v: { slow: 'pay', prop: true } },
   ],
   code: function (c) {
     return c.prop ? '// build.gradle: Micrometer Tracing\nimplementation \'io.micrometer:micrometer-tracing-bridge-otel\'\n\n# 서비스끼리 호출할 때 자동으로 붙는 헤더 (W3C Trace Context)\ntraceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01\n#               └─ trace id (요청 전체에서 동일)      └─ span id (구간마다 다름)\n\n# 로그 패턴에 추적 번호를 넣는다 (MDC에서 꺼냄)\nlogging.pattern.level: "%5p [%X{traceId:-},%X{spanId:-}]"' : '// 추적 설정 없음\n// 각 서비스는 자기 로그만 남긴다\n\nlog.info("주문 처리 시작 orderId={}", orderId);';

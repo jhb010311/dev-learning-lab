@@ -9,12 +9,12 @@ Lab.register({
     { id: 'qty', label: '주문 수량 (재고는 10개)', type: 'select', value: '3', options: [['3', '3개'], ['6', '6개'], ['12', '12개 (재고보다 많음)']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'INSERT 한 문장인데 재고가 줄고 로그가 생깁니다.', v: { how: 'insert', trig: true, qty: '3' } },
-    { t: '트리거가 없으면', d: '같은 INSERT인데 재고는 그대로입니다.', v: { how: 'insert', trig: false, qty: '3' } },
-    { t: '프로시저로 주문', d: 'CALL 한 번으로 DB 안의 세 문장이 실행됩니다.', v: { how: 'proc', trig: false, qty: '3' } },
-    { t: '프로시저와 트리거가 둘 다', d: '서로를 모르면 재고가 두 번 줄어듭니다.', v: { how: 'proc', trig: true, qty: '3' } },
-    { t: '재고보다 많이 주문', d: 'orders에 넣었는데 product의 제약 오류가 납니다.', v: { how: 'insert', trig: true, qty: '12' } },
-    { t: '둘 다 있고 6개 주문', d: '주문은 실패했는데 재고만 줄어듭니다.', v: { how: 'proc', trig: true, qty: '6' } },
+    { t: '처음 설정으로', q: '트리거가 걸린 orders에 재고 10개 중 3개를 INSERT INTO orders 한 문장으로 주문하면 재고는 어떻게 되나', d: 'INSERT 한 문장인데 재고가 줄고 로그가 생깁니다.', v: { how: 'insert', trig: true, qty: '3' } },
+    { t: '트리거가 없으면', q: 'orders 테이블의 트리거를 끄면', d: '같은 INSERT인데 재고는 그대로입니다.', v: { how: 'insert', trig: false, qty: '3' } },
+    { t: '프로시저로 주문', q: '주문을 CALL place_order 프로시저 호출로 바꾸고 트리거를 끄면', d: 'CALL 한 번으로 DB 안의 세 문장이 실행됩니다.', v: { how: 'proc', trig: false, qty: '3' } },
+    { t: '프로시저와 트리거가 둘 다', q: '트리거를 켠 채 주문을 CALL place_order 프로시저 호출로 바꾸면', d: '서로를 모르면 재고가 두 번 줄어듭니다.', v: { how: 'proc', trig: true, qty: '3' } },
+    { t: '재고보다 많이 주문', q: '주문 수량을 재고보다 많은 12개로 바꾸면', d: 'orders에 넣었는데 product의 제약 오류가 납니다.', v: { how: 'insert', trig: true, qty: '12' } },
+    { t: '둘 다 있고 6개 주문', q: '트리거를 켠 채 CALL place_order 프로시저 호출로 6개를 주문하면', d: '주문은 실패했는데 재고만 줄어듭니다.', v: { how: 'proc', trig: true, qty: '6' } },
   ],
   code: function (c) {
     var s = "-- product 테이블: (1, '키보드', stock 10)\n-- stock 컬럼에는 CHECK (stock >= 0) 제약이 있다\n\nCREATE VIEW v_stock AS            -- 뷰: SELECT 문만 저장\n  SELECT name, stock FROM product;\nCREATE TABLE stock_copy AS        -- 복사본: 지금의 결과를 행으로 저장\n  SELECT name, stock FROM product;\n";

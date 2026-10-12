@@ -9,13 +9,13 @@ Lab.register({
     { id: 'nb', label: 'b.hit()을 부르는 횟수', type: 'select', value: '1', options: [['0', '0번'], ['1', '1번'], ['2', '2번']], hint: 'a.hit()은 항상 2번 부릅니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'count가 static입니다. a.hit() 2번, b.hit() 1번인데 둘 다 3이 나옵니다.', v: { decl: 'static', extra: 'none', nb: '1' } },
-    { t: 'static을 떼면', d: '객체마다 자기 count를 가집니다. 2와 1이 나옵니다.', v: { decl: 'inst', extra: 'none', nb: '1' } },
-    { t: 'static 메서드에서 인스턴스 필드를 쓰면', d: '어느 객체의 count인지 알 수 없어 컴파일 오류입니다.', v: { decl: 'inst', extra: 'sm', nb: '1' } },
-    { t: 'static 메서드에서 static 필드를 쓰면', d: '객체 없이 Counter.report()로 값을 읽습니다.', v: { decl: 'static', extra: 'sm', nb: '1' } },
-    { t: 'static 메서드에서 this를 쓰면', d: 'count가 static이어도 this는 쓸 수 없습니다.', v: { decl: 'static', extra: 'smThis', nb: '1' } },
-    { t: '객체를 만들기 전에 Counter.count', d: '객체가 하나도 없어도 static 필드는 있습니다.', v: { decl: 'static', extra: 'cls0', nb: '1' } },
-    { t: '객체 없이 Counter.hit()', d: '인스턴스 메서드는 클래스 이름으로 부를 수 없습니다.', v: { decl: 'static', extra: 'clsHit', nb: '1' } },
+    { t: '처음 설정으로', q: 'static 필드 count를 a.hit() 2번, b.hit() 1번 부르면 a.count와 b.count는 각각 무엇이 되나', d: 'count가 static입니다. a.hit() 2번, b.hit() 1번인데 둘 다 3이 나옵니다.', v: { decl: 'static', extra: 'none', nb: '1' } },
+    { t: 'static을 떼면', q: 'count 필드를 static 없는 int count 선언으로 바꾸면', d: '객체마다 자기 count를 가집니다. 2와 1이 나옵니다.', v: { decl: 'inst', extra: 'none', nb: '1' } },
+    { t: 'static 메서드에서 인스턴스 필드를 쓰면', q: 'static 없는 int count 선언인데 static 메서드 report() 안에서 return count를 하면', d: '어느 객체의 count인지 알 수 없어 컴파일 오류입니다.', v: { decl: 'inst', extra: 'sm', nb: '1' } },
+    { t: 'static 메서드에서 static 필드를 쓰면', q: 'count가 static int count인 채로 static 메서드 report() 안에서 return count를 하면', d: '객체 없이 Counter.report()로 값을 읽습니다.', v: { decl: 'static', extra: 'sm', nb: '1' } },
+    { t: 'static 메서드에서 this를 쓰면', q: 'static 메서드 report() 안에서 return this.count를 하면', d: 'count가 static이어도 this는 쓸 수 없습니다.', v: { decl: 'static', extra: 'smThis', nb: '1' } },
+    { t: '객체를 만들기 전에 Counter.count', q: '객체를 만들기 전에 Counter.count를 출력하면', d: '객체가 하나도 없어도 static 필드는 있습니다.', v: { decl: 'static', extra: 'cls0', nb: '1' } },
+    { t: '객체 없이 Counter.hit()', q: '객체 없이 Counter.hit() 호출을 하면', d: '인스턴스 메서드는 클래스 이름으로 부를 수 없습니다.', v: { decl: 'static', extra: 'clsHit', nb: '1' } },
   ],
   code: function (c) {
     var e = this.error(c), isS = c.decl === 'static', nb = +c.nb, i;

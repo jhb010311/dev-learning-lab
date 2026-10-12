@@ -9,12 +9,12 @@ Lab.register({
     { id: 'advice', label: '@ControllerAdvice에 이 예외를 처리하는 @ExceptionHandler가 있다', type: 'check', value: true, show: function (c) { return c.what === 'ex'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '화면을 돌려주는 요청이 정상 처리되는 전체 경로입니다. 컨트롤러, 모델, 뷰가 모두 나옵니다.', v: { kind: 'view', what: 'none', advice: true } },
-    { t: 'JSON을 돌려주는 컨트롤러', d: '모델과 뷰를 거치지 않고 반환 객체가 바로 응답 본문이 됩니다.', v: { kind: 'rest', what: 'none', advice: true } },
-    { t: '컨트롤러에서 예외', d: '@ExceptionHandler가 응답을 만듭니다. postHandle은 건너뜁니다.', v: { kind: 'rest', what: 'ex', advice: true } },
-    { t: '예외를 처리할 곳이 없으면', d: '예외가 서블릿 컨테이너까지 올라가 500 응답이 됩니다.', v: { kind: 'rest', what: 'ex', advice: false } },
-    { t: '필터에서 거절', d: 'DispatcherServlet에 닿지도 못합니다. @ControllerAdvice도 관여하지 못합니다.', v: { kind: 'rest', what: 'filter', advice: true } },
-    { t: '인터셉터에서 중단', d: '컨트롤러를 부르지 않고 돌아갑니다.', v: { kind: 'rest', what: 'pre', advice: true } },
+    { t: '처음 설정으로', q: '@Controller가 화면 이름을 반환하는 요청이 아무 일 없이 정상 처리되면 어떤 경로를 지나나', d: '화면을 돌려주는 요청이 정상 처리되는 전체 경로입니다. 컨트롤러, 모델, 뷰가 모두 나옵니다.', v: { kind: 'view', what: 'none', advice: true } },
+    { t: 'JSON을 돌려주는 컨트롤러', q: '컨트롤러 종류를 @RestController로 바꾸면', d: '모델과 뷰를 거치지 않고 반환 객체가 바로 응답 본문이 됩니다.', v: { kind: 'rest', what: 'none', advice: true } },
+    { t: '컨트롤러에서 예외', q: '@RestController 컨트롤러가 예외를 던지는데 @ExceptionHandler가 @ControllerAdvice에 있으면', d: '@ExceptionHandler가 응답을 만듭니다. postHandle은 건너뜁니다.', v: { kind: 'rest', what: 'ex', advice: true } },
+    { t: '예외를 처리할 곳이 없으면', q: '@RestController 컨트롤러가 예외를 던지는데 @ExceptionHandler가 @ControllerAdvice에 없으면', d: '예외가 서블릿 컨테이너까지 올라가 500 응답이 됩니다.', v: { kind: 'rest', what: 'ex', advice: false } },
+    { t: '필터에서 거절', q: '@RestController 요청을 필터가 인증 실패로 거절하면', d: 'DispatcherServlet에 닿지도 못합니다. @ControllerAdvice도 관여하지 못합니다.', v: { kind: 'rest', what: 'filter', advice: true } },
+    { t: '인터셉터에서 중단', q: '@RestController 요청에서 인터셉터 preHandle이 false를 반환하면', d: '컨트롤러를 부르지 않고 돌아갑니다.', v: { kind: 'rest', what: 'pre', advice: true } },
   ],
   code: function (c) {
     var ctl = c.kind === 'rest'

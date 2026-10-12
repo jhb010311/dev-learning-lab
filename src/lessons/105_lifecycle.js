@@ -9,13 +9,13 @@ Lab.register({
     { id: 'scope', label: 'PriceCache 빈의 스코프', type: 'select', value: 'singleton', options: [['singleton', '싱글톤'], ['prototype', '프로토타입']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '필드 주입인데 생성자 안에서 repository를 씁니다. 기동이 실패합니다.', v: { inj: 'field', cb: 'ctor', scope: 'singleton' } },
-    { t: '@PostConstruct로 옮기면', d: '주입이 끝난 뒤에 불리므로 repository를 쓸 수 있습니다.', v: { inj: 'field', cb: 'anno', scope: 'singleton' } },
-    { t: '생성자 주입이면', d: '생성자 안에서 이미 repository가 들어 있습니다.', v: { inj: 'ctor', cb: 'ctor', scope: 'singleton' } },
-    { t: '세 가지 콜백을 모두 쓰면', d: '어느 것이 먼저 불리는지 순서를 봅니다.', v: { inj: 'field', cb: 'all', scope: 'singleton' } },
-    { t: '@Bean의 initMethod', d: '클래스에 애너테이션을 붙이지 않고 설정 쪽에서 메서드 이름을 지정합니다.', v: { inj: 'field', cb: 'method', scope: 'singleton' } },
-    { t: '프로토타입 빈이면', d: '초기화 콜백은 불리지만 소멸 콜백은 불리지 않습니다.', v: { inj: 'field', cb: 'anno', scope: 'prototype' } },
-    { t: 'InitializingBean과 DisposableBean', d: '스프링의 인터페이스를 구현하는 방법입니다.', v: { inj: 'field', cb: 'iface', scope: 'singleton' } },
+    { t: '처음 설정으로', q: 'PriceRepository를 필드 주입(@Autowired)으로 받고 생성자 안에서 가격표를 읽으면 어떻게 되나', d: '필드 주입인데 생성자 안에서 repository를 씁니다. 기동이 실패합니다.', v: { inj: 'field', cb: 'ctor', scope: 'singleton' } },
+    { t: '@PostConstruct로 옮기면', q: '가격표를 읽고 비우는 곳을 @PostConstruct와 @PreDestroy로 바꾸면', d: '주입이 끝난 뒤에 불리므로 repository를 쓸 수 있습니다.', v: { inj: 'field', cb: 'anno', scope: 'singleton' } },
+    { t: '생성자 주입이면', q: 'PriceRepository를 생성자 주입으로 받으면', d: '생성자 안에서 이미 repository가 들어 있습니다.', v: { inj: 'ctor', cb: 'ctor', scope: 'singleton' } },
+    { t: '세 가지 콜백을 모두 쓰면', q: '가격표를 읽고 비우는 곳에 세 가지 콜백을 모두 쓰면', d: '어느 것이 먼저 불리는지 순서를 봅니다.', v: { inj: 'field', cb: 'all', scope: 'singleton' } },
+    { t: '@Bean의 initMethod', q: '가격표를 읽고 비우는 곳을 @Bean의 initMethod와 destroyMethod로 바꾸면', d: '클래스에 애너테이션을 붙이지 않고 설정 쪽에서 메서드 이름을 지정합니다.', v: { inj: 'field', cb: 'method', scope: 'singleton' } },
+    { t: '프로토타입 빈이면', q: '@PostConstruct와 @PreDestroy를 쓰는데 PriceCache 빈의 스코프를 프로토타입으로 바꾸면', d: '초기화 콜백은 불리지만 소멸 콜백은 불리지 않습니다.', v: { inj: 'field', cb: 'anno', scope: 'prototype' } },
+    { t: 'InitializingBean과 DisposableBean', q: '가격표를 읽고 비우는 곳을 InitializingBean과 DisposableBean으로 바꾸면', d: '스프링의 인터페이스를 구현하는 방법입니다.', v: { inj: 'field', cb: 'iface', scope: 'singleton' } },
   ],
   // 설정에서 정해지는 콜백 목록: [기록용 이름, 표에 적는 이름, 문장에 쓰는 이름]
   callbacks: function (c) {

@@ -42,6 +42,8 @@ module.exports = [
   [`type="button">닫기</button>`, `type="button">Close</button>`],
   // ── lab page (script)
   [`'지금 설정: '`, `'Current settings: '`],
+  [`'처음 설정에서 바꾼 것: '`, `'Changed from the initial settings: '`],
+  [`(c[d.id] ? '켬' : '끔')`, `(c[d.id] ? 'on' : 'off')`],
   [`stale ? '실행' : running ? '일시정지' : paused && mid ? '이어서' : '실행'`, `stale ? 'Run' : running ? 'Pause' : paused && mid ? 'Resume' : 'Run'`],
   [`'실행하기 전에 예측해 보세요'`, `'Predict before you run'`],
   [`'지금 화면의 결과는 「' + sim.label + '」 설정의 것입니다. 이번에 실행할 설정은 「' + cur.label(c) + '」입니다. 아래 결과 가운데 달라질 것을 모두 고르세요. 달라질 것이 없다고 생각하면 고르지 않고 실행합니다.'`,
@@ -90,7 +92,7 @@ module.exports = [
   // ── home, Learn, category list
   [`'테스트 · '`, `'Quiz · '`],
   [`'공부 · '`, `'Learn · '`],
-  [`'설정을 바꾸고 실행을 눌러, 개념이 어떻게 움직이는지 직접 봅니다.'`, `'Change the settings, click Run, and watch how each concept behaves.'`],
+  [`'물음을 고르고 실행을 눌러, 개념이 어떻게 움직이는지 직접 봅니다.'`, `'Change the settings, click Run, and watch how each concept behaves.'`],
   [`'무료 · 가입 없음 · 실습 ' + lessons.length + '개'`, `'Free · No sign-up · ' + lessons.length + ' labs'`],
   [`'지난번에 보던 실습 이어서 하기: '`, `'Continue the lab you were on: '`],
   [`'처음이라면 여기부터'`, `'New here? Start with these'`],

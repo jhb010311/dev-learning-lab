@@ -11,12 +11,12 @@ Lab.register({
   // 해시 조인 설정은 해시 조인이 선택되는 경우(인덱스 없음, member 먼저)에만 뜻이 있다
   fix: function (c) { return !(!c.idx && c.drive === 'm') && !c.hash ? { hash: true } : null; },
   presets: [
-    { t: '처음 설정으로', d: '조인 컬럼에 인덱스가 없습니다. 중첩 루프가 아니라 해시 조인이 선택됩니다.', v: { idx: false, drive: 'm', hash: true } },
-    { t: '조인 컬럼에 인덱스를 만들면', d: '중첩 루프 조인으로, 행마다 인덱스로 찾아갑니다.', v: { idx: true, drive: 'm', hash: true } },
-    { t: '인덱스도 해시 조인도 없으면', d: 'member의 행마다 orders 전체를 읽습니다. 1,000만 행입니다.', v: { idx: false, drive: 'm', hash: false } },
-    { t: 'orders를 먼저 읽으면', d: 'member는 기본 키로 한 행씩 찾습니다.', v: { idx: false, drive: 'o', hash: true } },
-    { t: '옵티마이저에게 맡기면 (인덱스 없음)', d: '인덱스로 찾아갈 수 있는 쪽을 나중에 읽도록 순서를 정합니다.', v: { idx: false, drive: 'auto', hash: true } },
-    { t: '옵티마이저에게 맡기면 (인덱스 있음)', d: '행이 적은 member를 먼저 읽습니다.', v: { idx: true, drive: 'auto', hash: true } },
+    { t: '처음 설정으로', q: 'orders.member_id에 인덱스가 없고 member 먼저, 해시 조인을 쓸 수 있으면 DB는 어떻게 짝을 찾나', d: '조인 컬럼에 인덱스가 없습니다. 중첩 루프가 아니라 해시 조인이 선택됩니다.', v: { idx: false, drive: 'm', hash: true } },
+    { t: '조인 컬럼에 인덱스를 만들면', q: 'orders.member_id에 인덱스를 만들면', d: '중첩 루프 조인으로, 행마다 인덱스로 찾아갑니다.', v: { idx: true, drive: 'm', hash: true } },
+    { t: '인덱스도 해시 조인도 없으면', q: '인덱스 없이 해시 조인을 쓸 수 없게 끄면', d: 'member의 행마다 orders 전체를 읽습니다. 1,000만 행입니다.', v: { idx: false, drive: 'm', hash: false } },
+    { t: 'orders를 먼저 읽으면', q: 'STRAIGHT_JOIN으로 orders를 먼저 읽도록 고정하면', d: 'member는 기본 키로 한 행씩 찾습니다.', v: { idx: false, drive: 'o', hash: true } },
+    { t: '옵티마이저에게 맡기면 (인덱스 없음)', q: '인덱스 없이 먼저 읽을 테이블을 옵티마이저에게 맡기면', d: '인덱스로 찾아갈 수 있는 쪽을 나중에 읽도록 순서를 정합니다.', v: { idx: false, drive: 'auto', hash: true } },
+    { t: '옵티마이저에게 맡기면 (인덱스 있음)', q: 'orders.member_id에 인덱스를 만들고 먼저 읽을 테이블을 옵티마이저에게 맡기면', d: '행이 적은 member를 먼저 읽습니다.', v: { idx: true, drive: 'auto', hash: true } },
   ],
   num: function (x) { return String(Math.round(x)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); },
   code: function (c) {

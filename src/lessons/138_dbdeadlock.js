@@ -16,12 +16,12 @@ Lab.register({
     return f.heavy || f.after ? f : null;
   },
   presets: [
-    { t: '처음 설정으로', d: '서로 반대 순서. DB가 교착을 감지해 한쪽을 롤백시키고, 그 이체는 사라집니다.', v: { sit: 'rev', heavy: 'eq', after: 'giveup' } },
-    { t: '롤백된 쪽이 다시 시도하면', d: '처음부터 다시 실행해 두 이체가 모두 반영됩니다.', v: { sit: 'rev', heavy: 'eq', after: 'retry' } },
-    { t: '같은 순서로 잠그면', d: '한쪽이 잠깐 기다릴 뿐 오류 없이 둘 다 끝납니다.', v: { sit: 'same', heavy: 'eq', after: 'giveup' } },
-    { t: 'B가 더 많은 일을 했다면', d: '이번에는 A가 롤백됩니다. 되돌릴 일이 적은 쪽을 고릅니다.', v: { sit: 'rev', heavy: 'b', after: 'giveup' } },
-    { t: '교착이 아닌 긴 대기', d: '고리가 없으면 감지되지 않고, 시간 제한까지 기다린 뒤 오류 1205를 받습니다.', v: { sit: 'hold', heavy: 'eq', after: 'giveup' } },
-    { t: '시간 초과를 무시하고 커밋하면', d: '앞 문장만 반영되어 50이 사라집니다.', v: { sit: 'hold', heavy: 'eq', after: 'commit' } },
+    { t: '처음 설정으로', q: 'A는 1 → 2, B는 2 → 1로 서로 반대 순서로 잠그면 DB는 두 트랜잭션을 어떻게 끝내나', d: '서로 반대 순서. DB가 교착을 감지해 한쪽을 롤백시키고, 그 이체는 사라집니다.', v: { sit: 'rev', heavy: 'eq', after: 'giveup' } },
+    { t: '롤백된 쪽이 다시 시도하면', q: '오류를 받은 쪽이 롤백하고 처음부터 다시 시도하면', d: '처음부터 다시 실행해 두 이체가 모두 반영됩니다.', v: { sit: 'rev', heavy: 'eq', after: 'retry' } },
+    { t: '같은 순서로 잠그면', q: '두 트랜잭션이 둘 다 1 → 2 같은 순서로 잠그면', d: '한쪽이 잠깐 기다릴 뿐 오류 없이 둘 다 끝납니다.', v: { sit: 'same', heavy: 'eq', after: 'giveup' } },
+    { t: 'B가 더 많은 일을 했다면', q: '서로 반대 순서인데 B가 다른 행 50개를 먼저 고쳤으면', d: '이번에는 A가 롤백됩니다. 되돌릴 일이 적은 쪽을 고릅니다.', v: { sit: 'rev', heavy: 'b', after: 'giveup' } },
+    { t: '교착이 아닌 긴 대기', q: '서로 반대 순서인데 A가 첫 행만 잠근 채 오래 멈추면', d: '고리가 없으면 감지되지 않고, 시간 제한까지 기다린 뒤 오류 1205를 받습니다.', v: { sit: 'hold', heavy: 'eq', after: 'giveup' } },
+    { t: '시간 초과를 무시하고 커밋하면', q: 'A가 첫 행만 잠근 채 오래 멈추는데 오류를 받은 쪽이 오류를 무시하고 COMMIT하면', d: '앞 문장만 반영되어 50이 사라집니다.', v: { sit: 'hold', heavy: 'eq', after: 'commit' } },
   ],
   code: function (c) {
     var U = 'UPDATE account SET balance = balance ';

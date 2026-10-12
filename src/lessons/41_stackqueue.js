@@ -8,10 +8,10 @@ Lab.register({
     { id: 'inp', label: '넣는 순서', type: 'select', value: 'mixed', options: [['mixed', '5, 2, 8, 1, 9 (섞인 순서)'], ['asc', '1, 2, 5, 8, 9 (오름차순)'], ['desc', '9, 8, 5, 2, 1 (내림차순)']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '우선순위 큐. 넣은 순서와 상관없이 작은 것부터 나옵니다.', v: { ds: 'pq', inp: 'mixed' } },
-    { t: '스택', d: '마지막에 넣은 9가 가장 먼저 나옵니다.', v: { ds: 'stack', inp: 'mixed' } },
-    { t: '큐', d: '넣은 순서 그대로 나옵니다.', v: { ds: 'queue', inp: 'mixed' } },
-    { t: '우선순위 큐에 내림차순으로', d: '넣을 때마다 새 값이 맨 위까지 올라갑니다.', v: { ds: 'pq', inp: 'desc' } },
+    { t: '처음 설정으로', q: 'PriorityQueue에 5, 2, 8, 1, 9 순서로 넣고 꺼내면 어떤 순서로 나오나', d: '우선순위 큐. 넣은 순서와 상관없이 작은 것부터 나옵니다.', v: { ds: 'pq', inp: 'mixed' } },
+    { t: '스택', q: '같은 값을 ArrayDeque의 push / pop을 쓰는 스택에 넣고 꺼내면', d: '마지막에 넣은 9가 가장 먼저 나옵니다.', v: { ds: 'stack', inp: 'mixed' } },
+    { t: '큐', q: '같은 값을 ArrayDeque의 offer / poll을 쓰는 큐에 넣고 꺼내면', d: '넣은 순서 그대로 나옵니다.', v: { ds: 'queue', inp: 'mixed' } },
+    { t: '우선순위 큐에 내림차순으로', q: 'PriorityQueue에 9, 8, 5, 2, 1 내림차순으로 넣으면', d: '넣을 때마다 새 값이 맨 위까지 올라갑니다.', v: { ds: 'pq', inp: 'desc' } },
   ],
   INPUTS: { mixed: [5, 2, 8, 1, 9], asc: [1, 2, 5, 8, 9], desc: [9, 8, 5, 2, 1] },
   code: function (c) {

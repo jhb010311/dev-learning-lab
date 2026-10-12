@@ -8,13 +8,13 @@ Lab.register({
     { id: 'get', label: '싱글톤인 OrderService가 Cart를 얻는 방법', type: 'select', value: 'inject', options: [['inject', '생성자로 주입받아 필드에 둔다'], ['provider', 'ObjectProvider를 주입받아 쓸 때마다 꺼낸다'], ['proxy', 'Cart의 프록시를 주입받는다 (proxyMode)']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '프로토타입 빈을 싱글톤 빈에 주입했습니다. 요청을 몇 번 보내도 같은 객체입니다.', v: { scope: 'prototype', get: 'inject' } },
-    { t: 'ObjectProvider로 꺼내면', d: '꺼낼 때마다 새 객체가 만들어집니다.', v: { scope: 'prototype', get: 'provider' } },
-    { t: '싱글톤이면', d: '어떻게 얻든 컨테이너에 하나뿐인 객체입니다.', v: { scope: 'singleton', get: 'inject' } },
-    { t: 'request 스코프를 그대로 주입', d: '기동할 때는 요청이 없어서 만들 수 없습니다. 기동이 실패합니다.', v: { scope: 'request', get: 'inject' } },
-    { t: 'request 스코프 + ObjectProvider', d: '같은 요청 안에서는 같은 객체, 다른 요청에는 다른 객체입니다.', v: { scope: 'request', get: 'provider' } },
-    { t: 'request 스코프 + 프록시', d: 'OrderService의 코드는 그대로 두고 요청마다 하나를 씁니다.', v: { scope: 'request', get: 'proxy' } },
-    { t: '프로토타입 + 프록시', d: '메서드를 부를 때마다 새 객체가 만들어집니다.', v: { scope: 'prototype', get: 'proxy' } },
+    { t: '처음 설정으로', q: '프로토타입 Cart를 싱글톤 OrderService가 생성자로 주입받아 필드에 두면 요청마다 Cart가 어떻게 쓰이나', d: '프로토타입 빈을 싱글톤 빈에 주입했습니다. 요청을 몇 번 보내도 같은 객체입니다.', v: { scope: 'prototype', get: 'inject' } },
+    { t: 'ObjectProvider로 꺼내면', q: '싱글톤 OrderService가 ObjectProvider를 주입받아 쓸 때마다 꺼내면', d: '꺼낼 때마다 새 객체가 만들어집니다.', v: { scope: 'prototype', get: 'provider' } },
+    { t: '싱글톤이면', q: 'Cart 빈의 스코프를 싱글톤으로 바꾸면', d: '어떻게 얻든 컨테이너에 하나뿐인 객체입니다.', v: { scope: 'singleton', get: 'inject' } },
+    { t: 'request 스코프를 그대로 주입', q: 'Cart 빈의 스코프를 request로 바꾸고 생성자로 그대로 주입하면', d: '기동할 때는 요청이 없어서 만들 수 없습니다. 기동이 실패합니다.', v: { scope: 'request', get: 'inject' } },
+    { t: 'request 스코프 + ObjectProvider', q: 'Cart 빈의 스코프를 request로 바꾸고 OrderService가 ObjectProvider를 주입받아 쓸 때마다 꺼내면', d: '같은 요청 안에서는 같은 객체, 다른 요청에는 다른 객체입니다.', v: { scope: 'request', get: 'provider' } },
+    { t: 'request 스코프 + 프록시', q: 'Cart 빈의 스코프를 request로 바꾸고 OrderService가 Cart의 프록시(proxyMode)를 주입받으면', d: 'OrderService의 코드는 그대로 두고 요청마다 하나를 씁니다.', v: { scope: 'request', get: 'proxy' } },
+    { t: '프로토타입 + 프록시', q: '프로토타입 Cart인데 OrderService가 Cart의 프록시(proxyMode)를 주입받으면', d: '메서드를 부를 때마다 새 객체가 만들어집니다.', v: { scope: 'prototype', get: 'proxy' } },
   ],
   code: function (c) {
     var line = c.get === 'proxy' ? '@Scope(value = "' + c.scope + '", proxyMode = ScopedProxyMode.TARGET_CLASS)\n' : c.scope === 'singleton' ? '' : '@Scope("' + c.scope + '")\n';

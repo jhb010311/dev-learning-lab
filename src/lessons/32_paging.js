@@ -10,12 +10,12 @@ Lab.register({
     { id: 'ins', label: '다음 페이지로 넘어가는 사이에 새 글 1개가 등록된다', type: 'check', value: false },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'OFFSET으로 1,000페이지. 2만 행을 읽어 20행만 씁니다.', v: { how: 'offset', page: '1000', size: '20', ins: false } },
-    { t: '같은 위치를 키셋으로', d: '필요한 20행만 읽습니다.', v: { how: 'keyset', page: '1000', size: '20', ins: false } },
-    { t: 'OFFSET 1페이지', d: '앞쪽 페이지는 OFFSET도 빠릅니다.', v: { how: 'offset', page: '1', size: '20', ins: false } },
-    { t: 'OFFSET 10,000페이지', d: '버리는 행이 20만 개가 됩니다.', v: { how: 'offset', page: '10000', size: '20', ins: false } },
-    { t: '넘기는 사이 새 글 등록 (OFFSET)', d: '방금 본 글이 다음 페이지에 또 나옵니다.', v: { how: 'offset', page: '10', size: '20', ins: true } },
-    { t: '넘기는 사이 새 글 등록 (키셋)', d: '기준이 글의 id라서 밀리지 않습니다.', v: { how: 'keyset', page: '10', size: '20', ins: true } },
+    { t: '처음 설정으로', q: 'OFFSET 방식으로 한 페이지 20개씩 1,000페이지를 보려면 DB는 행을 어떻게 읽나', d: 'OFFSET으로 1,000페이지. 2만 행을 읽어 20행만 씁니다.', v: { how: 'offset', page: '1000', size: '20', ins: false } },
+    { t: '같은 위치를 키셋으로', q: '페이징 방식을 마지막으로 본 글의 id 기준 키셋으로 바꾸면', d: '필요한 20행만 읽습니다.', v: { how: 'keyset', page: '1000', size: '20', ins: false } },
+    { t: 'OFFSET 1페이지', q: '보려는 페이지를 1페이지로 바꾸면', d: '앞쪽 페이지는 OFFSET도 빠릅니다.', v: { how: 'offset', page: '1', size: '20', ins: false } },
+    { t: 'OFFSET 10,000페이지', q: '보려는 페이지를 10,000페이지로 바꾸면', d: '버리는 행이 20만 개가 됩니다.', v: { how: 'offset', page: '10000', size: '20', ins: false } },
+    { t: '넘기는 사이 새 글 등록 (OFFSET)', q: '보려는 페이지를 10페이지로 바꾸고 다음 페이지로 넘어가는 사이에 새 글 1개가 등록되면', d: '방금 본 글이 다음 페이지에 또 나옵니다.', v: { how: 'offset', page: '10', size: '20', ins: true } },
+    { t: '넘기는 사이 새 글 등록 (키셋)', q: '10페이지로 넘어가는 사이 새 글 1개가 등록되는데 페이징 방식을 키셋으로 바꾸면', d: '기준이 글의 id라서 밀리지 않습니다.', v: { how: 'keyset', page: '10', size: '20', ins: true } },
   ],
   num: function (x) { return String(Math.round(x)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); },
   code: function (c) {

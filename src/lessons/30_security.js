@@ -8,12 +8,12 @@ Lab.register({
     { id: 'path', label: '요청 경로', type: 'select', value: 'orders', options: [['public', 'GET /public/notice (누구나 허용)'], ['orders', 'GET /orders (로그인 필요)'], ['admin', 'GET /admin/users (ADMIN 권한 필요)']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '토큰 없이 로그인이 필요한 경로를 요청합니다. 401.', v: { who: 'none', path: 'orders' } },
-    { t: '유효한 토큰으로', d: '컨트롤러까지 도달합니다.', v: { who: 'user', path: 'orders' } },
-    { t: 'USER가 관리자 경로를 요청', d: '누구인지는 알지만 권한이 없습니다. 403.', v: { who: 'user', path: 'admin' } },
-    { t: 'ADMIN이 관리자 경로를 요청', d: '통과합니다.', v: { who: 'admin', path: 'admin' } },
-    { t: '토큰 없이 관리자 경로', d: '403이 아니라 401입니다. 왜 그런지 보세요.', v: { who: 'none', path: 'admin' } },
-    { t: '누구나 허용된 경로', d: '토큰이 없어도 통과합니다.', v: { who: 'none', path: 'public' } },
+    { t: '처음 설정으로', q: '토큰 없이 로그인이 필요한 경로 GET /orders를 요청하면 어디에서 끝나나', d: '토큰 없이 로그인이 필요한 경로를 요청합니다. 401.', v: { who: 'none', path: 'orders' } },
+    { t: '유효한 토큰으로', q: '권한이 USER인 유효한 토큰을 실어 GET /orders를 요청하면', d: '컨트롤러까지 도달합니다.', v: { who: 'user', path: 'orders' } },
+    { t: 'USER가 관리자 경로를 요청', q: '권한이 USER인 유효한 토큰으로 GET /admin/users를 요청하면', d: '누구인지는 알지만 권한이 없습니다. 403.', v: { who: 'user', path: 'admin' } },
+    { t: 'ADMIN이 관리자 경로를 요청', q: '권한이 ADMIN인 유효한 토큰으로 GET /admin/users를 요청하면', d: '통과합니다.', v: { who: 'admin', path: 'admin' } },
+    { t: '토큰 없이 관리자 경로', q: '토큰 없이 GET /admin/users를 요청하면', d: '403이 아니라 401입니다. 왜 그런지 보세요.', v: { who: 'none', path: 'admin' } },
+    { t: '누구나 허용된 경로', q: '토큰 없이 누구나 허용된 경로 GET /public/notice를 요청하면', d: '토큰이 없어도 통과합니다.', v: { who: 'none', path: 'public' } },
   ],
   code: function () {
     return '@Bean\nSecurityFilterChain filterChain(HttpSecurity http) throws Exception {\n    return http\n        .csrf(csrf -> csrf.disable())\n        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n        .authorizeHttpRequests(auth -> auth\n            .requestMatchers("/public/**").permitAll()\n            .requestMatchers("/admin/**").hasRole("ADMIN")\n            .anyRequest().authenticated())\n        .addFilterBefore(jwtAuthenticationFilter,\n                         UsernamePasswordAuthenticationFilter.class)\n        .exceptionHandling(e -> e\n            .authenticationEntryPoint((req, res, ex) -> res.setStatus(401))   // 인증 안 됨\n            .accessDeniedHandler((req, res, ex) -> res.setStatus(403)))       // 권한 없음\n        .build();\n}\n\n// JwtAuthenticationFilter: Authorization 헤더의 토큰을 검증하고\n// 유효하면 SecurityContext에 인증 정보를 넣는다';

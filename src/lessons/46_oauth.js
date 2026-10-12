@@ -7,10 +7,10 @@ Lab.register({
     { id: 'sc', label: '상황', type: 'select', value: 'ok', options: [['ok', '정상 로그인'], ['deny', '사용자가 동의 화면에서 취소'], ['state', '돌아온 요청의 state 값이 다름 (위조된 요청)'], ['reuse', '가로챈 인가 코드를 다시 사용하려는 시도']] },
   ],
   presets: [
-    { t: '처음 설정으로', d: '인가 코드 방식의 전체 흐름입니다.', v: { sc: 'ok' } },
-    { t: '사용자가 동의를 취소하면', d: '코드 대신 오류가 돌아옵니다.', v: { sc: 'deny' } },
-    { t: 'state 값이 다르면', d: '우리 서비스가 시작하지 않은 요청이므로 거부합니다.', v: { sc: 'state' } },
-    { t: '인가 코드를 가로채 다시 쓰면', d: '코드는 한 번만, 그리고 클라이언트 비밀값과 함께만 쓸 수 있습니다.', v: { sc: 'reuse' } },
+    { t: '처음 설정으로', q: '카카오로 로그인을 누르면 인가 코드 방식에서 어떤 것들이 오가나', d: '인가 코드 방식의 전체 흐름입니다.', v: { sc: 'ok' } },
+    { t: '사용자가 동의를 취소하면', q: '사용자가 동의 화면에서 취소하면', d: '코드 대신 오류가 돌아옵니다.', v: { sc: 'deny' } },
+    { t: 'state 값이 다르면', q: '돌아온 요청의 state 값이 다르면', d: '우리 서비스가 시작하지 않은 요청이므로 거부합니다.', v: { sc: 'state' } },
+    { t: '인가 코드를 가로채 다시 쓰면', q: '가로챈 인가 코드를 다시 사용하려고 시도하면', d: '코드는 한 번만, 그리고 클라이언트 비밀값과 함께만 쓸 수 있습니다.', v: { sc: 'reuse' } },
   ],
   code: function () {
     return '# application.yml (스프링 시큐리티 OAuth2 클라이언트)\nspring.security.oauth2.client.registration.kakao:\n  client-id: abc123                     # 공개돼도 되는 값\n  client-secret: ********               # 서버만 아는 값\n  authorization-grant-type: authorization_code\n  redirect-uri: https://shop.example/login/oauth2/code/kakao\n  scope: profile_nickname, account_email\n\n// 아래 과정은 스프링 시큐리티가 대신 처리한다';

@@ -10,13 +10,13 @@ Lab.register({
     { id: 'e3', label: '계산식', type: 'select', value: 'ns', options: [['ns', '1 + 2 + "3"'], ['sn', '"1" + 2 + 3'], ['paren', '"1" + (2 + 3)'], ['mixed', '1 + 2 + "3" + 4 + 5']], show: function (c) { return c.topic === 'str'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'int끼리 나누면 3.5가 아니라 3이 나옵니다.', v: { topic: 'ints', e1: 'div', e2: 'late', e3: 'ns' } },
-    { t: 'double 변수에 받아도', d: '계산은 이미 int로 끝나서 3.0이 됩니다.', v: { topic: 'conv', e1: 'div', e2: 'late', e3: 'ns' } },
-    { t: '한쪽을 double로 쓰면', d: '계산 전에 타입이 맞춰져 3.5가 나옵니다.', v: { topic: 'conv', e1: 'div', e2: 'mix', e3: 'ns' } },
-    { t: 'int의 범위를 넘으면', d: '가장 큰 값에 1을 더하면 가장 작은 값이 됩니다.', v: { topic: 'ints', e1: 'over', e2: 'late', e3: 'ns' } },
-    { t: 'long 변수에 받기만 하면', d: '넘친 뒤의 값이 그대로 들어갑니다.', v: { topic: 'conv', e1: 'over', e2: 'longlate', e3: 'ns' } },
-    { t: 'byte로 강제 형변환', d: '200이 -56이 됩니다.', v: { topic: 'conv', e1: 'div', e2: 'byte', e3: 'ns' } },
-    { t: '숫자와 문자열을 더하면', d: '1 + 2 + "3"은 "6"도 "123"도 아닙니다.', v: { topic: 'str', e1: 'div', e2: 'late', e3: 'ns' } },
+    { t: '처음 설정으로', q: '정수끼리의 계산에서 계산식 7 / 2는 어떤 값이 나오나', d: 'int끼리 나누면 3.5가 아니라 3이 나옵니다.', v: { topic: 'ints', e1: 'div', e2: 'late', e3: 'ns' } },
+    { t: 'double 변수에 받아도', q: '살펴볼 것을 타입이 섞이거나 바뀔 때 (형변환) 쪽으로 바꾸고 double r = 7 / 2로 받으면', d: '계산은 이미 int로 끝나서 3.0이 됩니다.', v: { topic: 'conv', e1: 'div', e2: 'late', e3: 'ns' } },
+    { t: '한쪽을 double로 쓰면', q: '형변환 쪽에서 double r = 7 / 2 대신 double r = 7 / 2.0으로 바꾸면', d: '계산 전에 타입이 맞춰져 3.5가 나옵니다.', v: { topic: 'conv', e1: 'div', e2: 'mix', e3: 'ns' } },
+    { t: 'int의 범위를 넘으면', q: '정수끼리의 계산에서 계산식을 2147483647 + 1로 바꾸면', d: '가장 큰 값에 1을 더하면 가장 작은 값이 됩니다.', v: { topic: 'ints', e1: 'over', e2: 'late', e3: 'ns' } },
+    { t: 'long 변수에 받기만 하면', q: 'big이 2147483647일 때 계산식 2147483647 + 1을 long r = big + 1로 받으면', d: '넘친 뒤의 값이 그대로 들어갑니다.', v: { topic: 'conv', e1: 'over', e2: 'longlate', e3: 'ns' } },
+    { t: 'byte로 강제 형변환', q: '형변환 쪽에서 코드를 byte r = (byte) 200으로 바꾸면', d: '200이 -56이 됩니다.', v: { topic: 'conv', e1: 'div', e2: 'byte', e3: 'ns' } },
+    { t: '숫자와 문자열을 더하면', q: '살펴볼 것을 문자열과 + 쪽으로 바꾸고 1 + 2 + "3" 식을 계산하면', d: '1 + 2 + "3"은 "6"도 "123"도 아닙니다.', v: { topic: 'str', e1: 'div', e2: 'late', e3: 'ns' } },
   ],
   // 설정이 고른 한 줄: 변수 r의 타입 T, 오른쪽 식 e(계산 나무), 코드 옆에 적을 말
   pick: function (c) {

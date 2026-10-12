@@ -11,13 +11,13 @@ Lab.register({
     { id: 'rf', label: 'rollbackFor = Exception.class를 지정한다', type: 'check', value: false, show: function (c) { return c.ex !== 'none' && c.type === 'chk'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'REQUIRED, 안쪽에서 언체크 예외. 주문과 로그가 함께 롤백됩니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'rt', catch: false, rf: false } },
-    { t: '예외를 잡았는데도 롤백된다', d: 'REQUIRED에서 안쪽 예외를 catch로 잡아 봅니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'rt', catch: true, rf: false } },
-    { t: '로그 실패가 주문을 망치지 않게', d: 'REQUIRES_NEW로 분리하고 예외를 잡습니다.', v: { prop: 'REQUIRES_NEW', ex: 'inner', type: 'rt', catch: true, rf: false } },
-    { t: '주문이 실패해도 로그는 남기기', d: 'REQUIRES_NEW에서 바깥 메서드가 실패합니다.', v: { prop: 'REQUIRES_NEW', ex: 'outer', type: 'rt', catch: false, rf: false } },
-    { t: 'NESTED는 무엇이 다른가', d: '바깥이 실패하면 안쪽도 함께 롤백됩니다. 바로 위와 비교해 보세요.', v: { prop: 'NESTED', ex: 'outer', type: 'rt', catch: false, rf: false } },
-    { t: '체크 예외는 롤백되지 않는다', d: '예외가 밖으로 나갔는데도 주문과 로그가 커밋됩니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: false } },
-    { t: 'rollbackFor를 지정하면', d: '체크 예외에도 롤백됩니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: true } },
+    { t: '처음 설정으로', q: 'REQUIRED로 묶인 두 메서드에서 안쪽 메서드(saveLog)가 언체크 예외를 던지면 무슨 일이 일어나나', d: 'REQUIRED, 안쪽에서 언체크 예외. 주문과 로그가 함께 롤백됩니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'rt', catch: false, rf: false } },
+    { t: '예외를 잡았는데도 롤백된다', q: 'REQUIRED는 그대로 두고 안쪽 예외를 바깥 메서드가 try-catch로 잡으면', d: 'REQUIRED에서 안쪽 예외를 catch로 잡아 봅니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'rt', catch: true, rf: false } },
+    { t: '로그 실패가 주문을 망치지 않게', q: '전파 속성을 REQUIRES_NEW로 바꾸고 안쪽 예외를 try-catch로 잡으면', d: 'REQUIRES_NEW로 분리하고 예외를 잡습니다.', v: { prop: 'REQUIRES_NEW', ex: 'inner', type: 'rt', catch: true, rf: false } },
+    { t: '주문이 실패해도 로그는 남기기', q: '전파 속성을 REQUIRES_NEW로 바꾸고 예외가 안쪽 호출이 끝난 뒤 바깥 메서드에서 나면', d: 'REQUIRES_NEW에서 바깥 메서드가 실패합니다.', v: { prop: 'REQUIRES_NEW', ex: 'outer', type: 'rt', catch: false, rf: false } },
+    { t: 'NESTED는 무엇이 다른가', q: '전파 속성을 NESTED로 바꾸고 예외가 안쪽 호출이 끝난 뒤 바깥 메서드에서 나면', d: '바깥이 실패하면 안쪽도 함께 롤백됩니다. 바로 위와 비교해 보세요.', v: { prop: 'NESTED', ex: 'outer', type: 'rt', catch: false, rf: false } },
+    { t: '체크 예외는 롤백되지 않는다', q: '예외 종류를 체크 예외인 IOException으로 바꾸면', d: '예외가 밖으로 나갔는데도 주문과 로그가 커밋됩니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: false } },
+    { t: 'rollbackFor를 지정하면', q: '예외 종류를 체크 예외인 IOException으로 바꾸고 rollbackFor = Exception.class를 지정하면', d: '체크 예외에도 롤백됩니다.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: true } },
   ],
   code: function (c) {
     var chk = c.ex !== 'none' && c.type === 'chk', rf = chk && c.rf, E = chk ? 'IOException' : 'IllegalStateException', ct = c.ex === 'inner' && c.catch;

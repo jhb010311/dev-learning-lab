@@ -8,11 +8,11 @@ Lab.register({
     { id: 'cost', label: 'bcrypt 연산 비용 (cost)', type: 'select', value: '10', options: [['10', '10 (스프링 시큐리티 기본값)'], ['12', '12'], ['14', '14']], show: function (c) { return c.how === 'bcrypt'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: 'SHA-256. 같은 비밀번호는 같은 해시가 됩니다.', v: { how: 'sha', cost: '10' } },
-    { t: '평문 저장', d: '유출 즉시 전부 노출됩니다.', v: { how: 'plain', cost: '10' } },
-    { t: '솔트를 추가하면', d: '같은 비밀번호도 해시가 달라집니다. 하지만 해시 자체가 빠릅니다.', v: { how: 'salt', cost: '10' } },
-    { t: 'bcrypt', d: '일부러 느리게 만든 해시입니다. 대입에 걸리는 시간이 달라집니다.', v: { how: 'bcrypt', cost: '10' } },
-    { t: 'bcrypt cost 14', d: '공격은 더 느려지지만 로그인 검증도 느려집니다.', v: { how: 'bcrypt', cost: '14' } },
+    { t: '처음 설정으로', q: '비밀번호를 SHA-256 해시로 저장한 DB가 털리면 얼마나 버티나', d: 'SHA-256. 같은 비밀번호는 같은 해시가 됩니다.', v: { how: 'sha', cost: '10' } },
+    { t: '평문 저장', q: '비밀번호를 해시 없이 평문 그대로 저장하면', d: '유출 즉시 전부 노출됩니다.', v: { how: 'plain', cost: '10' } },
+    { t: '솔트를 추가하면', q: 'SHA-256 해시에 회원별 솔트를 붙여 저장하면', d: '같은 비밀번호도 해시가 달라집니다. 하지만 해시 자체가 빠릅니다.', v: { how: 'salt', cost: '10' } },
+    { t: 'bcrypt', q: 'bcrypt로 저장하고 cost는 기본값 10 그대로 두면', d: '일부러 느리게 만든 해시입니다. 대입에 걸리는 시간이 달라집니다.', v: { how: 'bcrypt', cost: '10' } },
+    { t: 'bcrypt cost 14', q: 'bcrypt로 저장하고 cost를 14로 바꾸면', d: '공격은 더 느려지지만 로그인 검증도 느려집니다.', v: { how: 'bcrypt', cost: '14' } },
   ],
   code: function (c) {
     if (c.how === 'plain') return '// 입력을 그대로 저장\nmember.setPassword(rawPassword);';

@@ -9,12 +9,12 @@ Lab.register({
     { id: 'gen', label: '기본 키 생성 전략', type: 'select', value: 'IDENTITY', options: [['IDENTITY', 'IDENTITY (DB의 auto increment)'], ['SEQUENCE', 'SEQUENCE (DB 시퀀스)']], show: function (c) { return c.sc === 'persist'; } },
   ],
   presets: [
-    { t: '처음 설정으로', d: '이름만 바꿨는데 커밋할 때 UPDATE가 나갑니다(변경 감지).', v: { sc: 'update', tx: true, gen: 'IDENTITY' } },
-    { t: '@Transactional이 없으면', d: '같은 코드인데 UPDATE가 나가지 않습니다.', v: { sc: 'update', tx: false, gen: 'IDENTITY' } },
-    { t: '같은 회원을 두 번 조회', d: '두 번째는 DB에 가지 않습니다(1차 캐시).', v: { sc: 'find2', tx: true, gen: 'IDENTITY' } },
-    { t: '저장: IDENTITY 전략', d: 'persist를 부를 때마다 INSERT가 바로 나갑니다.', v: { sc: 'persist', tx: true, gen: 'IDENTITY' } },
-    { t: '저장: SEQUENCE 전략', d: 'INSERT를 모아 두었다가 커밋할 때 한꺼번에 보냅니다(쓰기 지연).', v: { sc: 'persist', tx: true, gen: 'SEQUENCE' } },
-    { t: '변경 뒤 JPQL 조회', d: '커밋 전인데도 JPQL 실행 직전에 UPDATE가 먼저 나갑니다.', v: { sc: 'jpql', tx: true, gen: 'IDENTITY' } },
+    { t: '처음 설정으로', q: '@Transactional이 있는 메서드에서 회원을 조회해 이름만 바꾸고 save를 부르지 않으면 UPDATE는 언제 나가나', d: '이름만 바꿨는데 커밋할 때 UPDATE가 나갑니다(변경 감지).', v: { sc: 'update', tx: true, gen: 'IDENTITY' } },
+    { t: '@Transactional이 없으면', q: '메서드의 @Transactional을 끄고 같은 코드를 실행하면', d: '같은 코드인데 UPDATE가 나가지 않습니다.', v: { sc: 'update', tx: false, gen: 'IDENTITY' } },
+    { t: '같은 회원을 두 번 조회', q: '해 볼 코드를 같은 회원 두 번 조회로 바꾸면', d: '두 번째는 DB에 가지 않습니다(1차 캐시).', v: { sc: 'find2', tx: true, gen: 'IDENTITY' } },
+    { t: '저장: IDENTITY 전략', q: '기본 키 생성 전략이 IDENTITY인데 새 회원 3명을 저장하면', d: 'persist를 부를 때마다 INSERT가 바로 나갑니다.', v: { sc: 'persist', tx: true, gen: 'IDENTITY' } },
+    { t: '저장: SEQUENCE 전략', q: '새 회원 3명을 저장하는데 기본 키 생성 전략을 SEQUENCE로 바꾸면', d: 'INSERT를 모아 두었다가 커밋할 때 한꺼번에 보냅니다(쓰기 지연).', v: { sc: 'persist', tx: true, gen: 'SEQUENCE' } },
+    { t: '변경 뒤 JPQL 조회', q: '조회한 회원의 이름을 바꾼 뒤 JPQL로 조회하면', d: '커밋 전인데도 JPQL 실행 직전에 UPDATE가 먼저 나갑니다.', v: { sc: 'jpql', tx: true, gen: 'IDENTITY' } },
   ],
   lines: function (c) {
     if (c.sc === 'find2') return ['Member a = em.find(Member.class, 1L);', 'Member b = em.find(Member.class, 1L);', 'System.out.println(a == b);'];

@@ -10,13 +10,13 @@ Lab.register({
     { id: 'unless', label: '@Cacheable에 unless = "#result == null"을 붙인다', type: 'check', value: false, show: function (c) { return c.data === 'no'; }, hint: '결과가 null이면 캐시에 넣지 않는다는 조건입니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', d: '같은 인자로 두 번 부릅니다. 본문은 한 번만 실행됩니다.', v: { mid: 'none', via: 'ext', data: 'yes', unless: false } },
-    { t: '인자가 다르면', d: '키가 달라서 본문이 다시 실행됩니다.', v: { mid: 'other', via: 'ext', data: 'yes', unless: false } },
-    { t: '@CacheEvict로 비우면', d: '캐시에서 지워졌으므로 본문이 다시 실행됩니다.', v: { mid: 'evict', via: 'ext', data: 'yes', unless: false } },
-    { t: '@CachePut으로 값을 바꾸면', d: 'rename의 본문은 항상 실행되고, 캐시가 새 값으로 바뀝니다.', v: { mid: 'put', via: 'ext', data: 'yes', unless: false } },
-    { t: '캐시는 그대로 두고 DB만 바꾸면', d: '두 번째 find가 바뀌기 전의 값을 돌려줍니다.', v: { mid: 'plain', via: 'ext', data: 'yes', unless: false } },
-    { t: '같은 클래스 안에서 부르면', d: '캐시가 적용되지 않아 본문이 매번 실행됩니다.', v: { mid: 'none', via: 'self', data: 'yes', unless: false } },
-    { t: '결과가 null이어도 캐시된다', d: '없는 상품을 두 번 찾습니다. unless를 켜서 비교해 보세요.', v: { mid: 'none', via: 'ext', data: 'no', unless: false } },
+    { t: '처음 설정으로', q: '@Cacheable이 붙은 find를 같은 인자 1로 두 번 연달아 부르면 본문은 몇 번 실행되나', d: '같은 인자로 두 번 부릅니다. 본문은 한 번만 실행됩니다.', v: { mid: 'none', via: 'ext', data: 'yes', unless: false } },
+    { t: '인자가 다르면', q: 'find를 1로 부른 다음 인자를 2로 바꿔 다시 부르면', d: '키가 달라서 본문이 다시 실행됩니다.', v: { mid: 'other', via: 'ext', data: 'yes', unless: false } },
+    { t: '@CacheEvict로 비우면', q: 'find를 1로 부른 다음 @CacheEvict가 붙은 evict로 1을 지우고 다시 find를 부르면', d: '캐시에서 지워졌으므로 본문이 다시 실행됩니다.', v: { mid: 'evict', via: 'ext', data: 'yes', unless: false } },
+    { t: '@CachePut으로 값을 바꾸면', q: 'find를 1로 부른 다음 @CachePut이 붙은 rename으로 1번 상품을 새 키보드로 바꾸고 다시 find를 부르면', d: 'rename의 본문은 항상 실행되고, 캐시가 새 값으로 바뀝니다.', v: { mid: 'put', via: 'ext', data: 'yes', unless: false } },
+    { t: '캐시는 그대로 두고 DB만 바꾸면', q: 'find를 1로 부른 다음 애노테이션 없는 renamePlain으로 1번 상품을 새 키보드로 바꾸고 다시 find를 부르면', d: '두 번째 find가 바뀌기 전의 값을 돌려줍니다.', v: { mid: 'plain', via: 'ext', data: 'yes', unless: false } },
+    { t: '같은 클래스 안에서 부르면', q: '같은 클래스의 detail이 안에서 find를 부르게 하고 detail을 두 번 부르면', d: '캐시가 적용되지 않아 본문이 매번 실행됩니다.', v: { mid: 'none', via: 'self', data: 'yes', unless: false } },
+    { t: '결과가 null이어도 캐시된다', q: 'id 1인 상품이 DB에 없어 find가 null을 돌려주면', d: '없는 상품을 두 번 찾습니다. unless를 켜서 비교해 보세요.', v: { mid: 'none', via: 'ext', data: 'no', unless: false } },
   ],
   code: function (c) {
     var self = c.via === 'self', f = function (id) { return 'productService.' + (self ? 'detail' : 'find') + '(' + id + 'L);'; };
