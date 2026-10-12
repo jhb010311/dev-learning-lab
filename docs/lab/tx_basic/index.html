@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=917a1b9b78">
+<link rel="stylesheet" href="../../app.css?v=edb045ba3e">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -87,7 +87,7 @@ public class OrderService {
 }</pre>
 <h2>이 모형의 전제</h2>
 <p>Spring Framework 7.0.9를 JDK 21에서, H2 2.4.240(메모리 DB)에 JDBC로 연결해 실행해 대조했고 MySQL에서의 실행 대조는 하지 않았습니다. 네 가지 조합을 모두, 화면의 OrderService와 같은 소스(package와 import 줄, 그리고 끝에 PROBE 표시를 붙인 측정 줄 두 개만 더함)를 컴파일하고 자바 프로세스를 조합마다 새로 띄워 확인했습니다. 설정 클래스에는 AnnotationConfigApplicationContext가 읽는 @EnableTransactionManagement, H2의 DataSource(HikariCP), JdbcTemplate, DataSourceTransactionManager(시작, 반영, 취소 횟수를 세는 줄만 더한 하위 클래스)를 두었고, OrderService는 @Service로 스프링이 컴포넌트 스캔으로 찾게 했습니다. 자동 커밋은 JDBC 기본값(켜짐) 그대로이고 조합마다 DB와 두 테이블(orders, payment)을 새로 만들었습니다. 대조한 것은 order()가 끝난 방식(IllegalStateException과 그 메시지, 또는 정상)과, 호출이 끝난 뒤 별도의 조회로 센 orders와 payment의 행 수입니다. 단계 문장이 기대는 사실로 order() 안에서 트랜잭션이 활성인지(@Transactional이 있을 때만 활성), main이 받은 OrderService 빈의 클래스(@Transactional이 있으면 스프링이 만든 CGLIB 프록시 클래스, 없으면 우리가 쓴 클래스 그대로), 첫 저장 직후 따로 연결한 DB 연결에서 센 orders의 행 수(@Transactional이 있으면 0행, 없으면 1행), 트랜잭션 매니저가 묶음을 시작하고 반영하고 취소한 횟수(예외로 끝나면 시작 1번과 취소 1번, 정상으로 끝나면 시작 1번과 반영 1번, @Transactional이 없으면 모두 0번)도 실행으로 확인했습니다. 둘째 저장이 묶음 안에서 확정되지 않는다는 것과 없을 때 곧바로 반영된다는 것은 첫 저장으로 잰 값과 최종 행 수에서 이끌어 낸 것이고, 둘째 저장 직후를 따로 재지는 않았습니다. 문서가 정한 것은 스프링 프레임워크 7.0 문서 Data Access의 Declarative Transaction Management 절(선언적 트랜잭션이 AOP로 이루어진다는 것), Understanding the Spring Framework's Declarative Transaction Implementation 절(TransactionInterceptor와 트랜잭션 매니저가 메서드 호출 둘레에서 트랜잭션을 이끈다는 것), Using @Transactional 절(@EnableTransactionManagement로 켜야 하고 기본은 프록시 방식이라는 것, 기본으로 RuntimeException과 Error는 롤백하고 체크 예외는 롤백하지 않는다는 것), Rolling Back a Declarative Transaction 절(기본 설정에서 런타임 예외에만 롤백 표시를 한다는 것)입니다. 다만 메서드 앞에서 시작하고 정상이면 반영하며 예외면 취소하는 순서를 문서가 한 문단으로 풀어 쓰고 있지는 않아서, 그 순서는 Probe가 센 횟수와 행 수로 확인한 관찰입니다. 화면의 코드는 package와 import 줄을 줄였고, order()를 부르는 main, 테이블을 만드는 CREATE TABLE, DB 연결과 스프링 설정은 보이지 않습니다. 이 실습은 RuntimeException이 던져지는 한 가지 예외만 다루며, 체크 예외, 같은 클래스 안에서 부르는 경우, readOnly는 다루지 않습니다. 체크 예외와 rollbackFor, 전파 방식은 &quot;트랜잭션 전파&quot; 실습에서, 트랜잭션 자체(격리 수준 포함)는 &quot;트랜잭션 기본&quot; 실습에서 다룹니다.</p>
-<p>앞 실습: <a href="../../lab/controller_basic/">컨트롤러</a> · 다음 실습: <a href="../../lab/boot_basic/">스프링 부트</a></p>
+<p>앞 실습: <a href="../../lab/config_basic/">설정 파일</a> · 다음 실습: <a href="../../lab/boot_basic/">스프링 부트</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -174,6 +174,6 @@ public class OrderService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=917a1b9b78"></script>
+<script src="../../app.js?v=edb045ba3e"></script>
 </body>
 </html>

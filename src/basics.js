@@ -37,6 +37,7 @@ Lab.basics({
       { id: 'aop_basic' },
       { id: 'servlet_basic' },
       { id: 'controller_basic' },
+      { id: 'config_basic' },
       { id: 'tx_basic' },
       { id: 'boot_basic' },
     ] },
@@ -71,6 +72,9 @@ Lab.basics({
       { id: 'token_basic' },
       { id: 'hash_basic' },
       { id: 'crypto_basic' },
+    ] },
+    { name: '구조와 운영', desc: '서버 프로그램을 여러 개 두고 돌릴 때 나오는 것들입니다.', items: [
+      { id: 'process_basic' },
     ] },
   ],
 });

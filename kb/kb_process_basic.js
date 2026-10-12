@@ -1,0 +1,6 @@
+// 기초개념 "프로세스" 실습의 용어. 근거: The Java Tutorials "Processes and Threads"(https://docs.oracle.com/javase/tutorial/essential/concurrency/procthread.html, Processes 절과 Threads 절), Java SE 21 API 문서의 java.lang.ProcessHandle(https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ProcessHandle.html, pid(), current(), isAlive()). 같은 파일을 여러 번 실행했을 때의 동작은 JDK 21에서 실행해 확인한 것이다.
+module.exports = [
+  ['동시성', '프로그램과 프로세스', '프로그램은 디스크에 저장된 파일이고, 프로세스는 그 파일을 실행한 것이다. 자바에서 javac로 만든 Counter.class는 프로그램 파일이고, java Counter 명령을 쓰면 운영체제가 프로세스를 하나 만들어 그 파일을 실행한다. 파일은 1개여도 실행할 때마다 프로세스가 하나씩 생기므로, 같은 파일을 두 번 실행하면 프로세스가 둘이 된다. 프로세스는 실행하는 동안만 있고, 끝나면 사라진다. 이 프로세스는 자기만의 실행 환경을 가진다.'],
+  ['동시성', 'PID(프로세스 번호)', 'PID는 운영체제가 프로세스에 붙이는 식별 번호이다. 자바에서는 ProcessHandle.current().pid()로 지금 실행 중인 프로세스의 PID를 읽는다. 같은 때에 살아 있는 프로세스는 서로 PID가 다르다. 한 프로세스 안의 스레드는 같은 프로세스이므로 PID가 하나이다. 운영체제는 프로세스가 끝난 뒤 그 번호를 다시 쓸 수 있고, 다시 쓰일 때까지의 시간은 정해져 있지 않다.'],
+  ['동시성', '프로세스의 메모리', 'Java 튜토리얼(The Java Tutorials)은 각 프로세스가 자기만의 메모리 공간을 가진다고 설명한다. 프로세스 안의 변수, 예를 들어 static int count는 그 프로세스의 메모리에 있으므로, 같은 프로그램을 두 번 실행해도 프로세스마다 count가 따로 있고 한쪽이 바꾼 값은 다른 쪽에서 보이지 않는다. 프로세스가 끝나면 그 메모리의 값은 더는 쓸 수 없으며, 같은 프로그램을 다시 실행해도 새 프로세스의 count는 처음 값에서 시작한다. 반대로 한 프로세스 안의 스레드들은 그 프로세스의 메모리를 같이 쓴다.'],
+];
