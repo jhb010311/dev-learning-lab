@@ -58,7 +58,7 @@ Lab.basics({
     { name: '보안', desc: '누구인지 확인하고 지키는 일의 기본입니다.', items: [
       { id: 'authn_basic' },
       { id: 'session_basic' },
-      { t: '토큰', d: '로그인한 상태를 들고 다니는 방법' },
+      { id: 'token_basic' },
       { id: 'hash_basic' },
       { t: '암호화', d: '열쇠가 있어야 읽을 수 있게 바꾸기' },
     ] },

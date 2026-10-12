@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>토큰: 토큰은 무엇이고, 서버는 무엇을 보고 믿는가 · 개발 학습 실습실</title>
+<meta name="description" content="로그인에 성공하면 서버가 &quot;이 사람은 kim이다&quot;라는 내용을 글자로 적고, 서버만 아는 비밀 열쇠로 계산한 서명을 뒤에 붙여 클라이언트에 줍니다. 이 글을 토큰이라고 하고, 가장 흔한 형식이 JWT입니다. 토큰은 점(.)으로 이은 세 덩어리, 곧 머리, 내용, 서명입니다. 클…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/token_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/token_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/token_basic/">
+<meta property="og:site_name" content="개발 학습 실습실">
+<meta property="og:title" content="토큰: 토큰은 무엇이고, 서버는 무엇을 보고 믿는가 · 개발 학습 실습실">
+<meta property="og:description" content="로그인에 성공하면 서버가 &quot;이 사람은 kim이다&quot;라는 내용을 글자로 적고, 서버만 아는 비밀 열쇠로 계산한 서명을 뒤에 붙여 클라이언트에 줍니다. 이 글을 토큰이라고 하고, 가장 흔한 형식이 JWT입니다. 토큰은 점(.)으로 이은 세 덩어리, 곧 머리, 내용, 서명입니다. 클…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/token_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=bf0f2ef08d">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">개발 학습 실습실</a>
+      <div class="seg tabs" role="group" aria-label="화면 고르기"><button type="button" id="t-home" aria-pressed="true">처음</button><button type="button" id="t-basic" aria-pressed="false" hidden>기초개념</button><button type="button" id="t-lab" aria-pressed="false">공부</button><button type="button" id="t-quiz" aria-pressed="false">테스트</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>이 사이트의 실습은 자바스크립트를 켜야 움직입니다. 아래는 같은 내용을 글로 적은 것입니다.</p>
+<p><a href="../../basics/">기초개념</a> › 보안</p>
+<h1>토큰</h1>
+<p><b>토큰은 무엇이고, 서버는 무엇을 보고 믿는가</b></p>
+<p>로그인에 성공하면 서버가 &quot;이 사람은 kim이다&quot;라는 내용을 글자로 적고, 서버만 아는 비밀 열쇠로 계산한 서명을 뒤에 붙여 클라이언트에 줍니다. 이 글을 토큰이라고 하고, 가장 흔한 형식이 JWT입니다. 토큰은 점(.)으로 이은 세 덩어리, 곧 머리, 내용, 서명입니다. 클라이언트는 이 토큰을 들고 있다가 요청마다 Authorization: Bearer 토큰 헤더에 실어 보냅니다. 서버는 로그인한 사람의 목록을 따로 저장해 두지 않습니다. 대신 받은 토큰의 머리와 내용으로 서명을 다시 계산해, 토큰에 붙어 온 서명과 같은지 봅니다. 같으면 서버가 만든, 고쳐지지 않은 토큰이라고 믿고 내용을 읽습니다. 이 실습은 토큰의 내용을 고치거나, 서명을 떼어 내거나, 다른 열쇠로 서명하거나, 토큰을 빼 가며, 또 서버가 서명을 확인하지 않게 해 가며, 서버가 누구를 믿고 어떤 응답을 주는지를 봅니다. 코드 칸은 클라이언트가 보내는 요청과 그 토큰을 풀어 본 모습이고, 자바 코드가 아닙니다. 서명은 길어서 (서명)으로 줄여 적었습니다. 이 실습의 서버는 GET /me 요청에 &quot;안녕하세요, 사용자 이름&quot;을 돌려주도록 만들어 둔 서버이고, 그 서버 코드는 화면에 보이지 않습니다.</p>
+<p>실행으로 대조 · Node.js 24.18.0의 http 서버에 열 가지 조합의 토큰을 실제 HTTP 요청으로 보내 대조하고, 토큰을 만드는 구현은 RFC 7515 부록 A.1의 예시 및 JWT 라이브러리 jose4j 0.9.5의 검증과 견줌</p>
+<h2>이 실습에 나오는 개념</h2>
+<dl>
+<dt>토큰 인증</dt>
+<dd>토큰 인증은 로그인에 성공한 사용자에게 서버가 토큰을 만들어 주고, 클라이언트가 그 토큰을 요청마다 보내 서버가 확인하는 방식이다. 토큰에는 &quot;이 사람은 kim이다&quot;라는 내용이 글자로 적혀 있고, 서버만 아는 비밀 열쇠로 계산한 서명이 붙어 있다. 서버는 받은 토큰의 서명을 다시 계산해 보고 맞으면 내용을 믿으므로, 로그인한 사람의 목록을 따로 저장해 둘 필요가 없다. 서버가 목록을 저장해 두고 클라이언트에는 번호만 주는 세션 방식과 다른 점이다. 토큰을 가진 쪽은 누구나 그 토큰으로 요청할 수 있고(RFC 6750 1.2절의 Bearer 토큰), 내용은 암호화한 것이 아니라 누구나 읽을 수 있다.</dd>
+<dt>JWT(JSON Web Token)</dt>
+<dd>사용자 정보 등의 내용(클레임)을 담고 서명을 붙인 토큰이다. 헤더, 페이로드, 서명의 세 부분으로 이뤄진다. 서버는 서명을 검증해 토큰이 위조되지 않았음을 확인하며, 별도의 저장소를 조회하지 않아도 된다. 페이로드는 암호화된 것이 아니라 인코딩된 것이어서 누구나 내용을 볼 수 있으므로 민감한 정보를 넣지 않는다.</dd>
+<dt>서명(토큰의)</dt>
+<dd>토큰의 서명은 토큰의 머리와 내용을 서버만 아는 비밀 열쇠로 계산한 값으로, 토큰의 맨 뒤에 붙는다. JWT의 HS256 방식에서는 base64url로 적은 머리와 내용을 점(.)으로 이은 글자를 HMAC-SHA256으로 계산한다(RFC 7515 2절, 부록 A.1). 서버는 받은 토큰의 머리와 내용으로 같은 계산을 다시 해 붙어 온 서명과 견주며, 내용이 한 글자만 바뀌어도 계산한 값이 달라져 맞지 않는다. 열쇠를 모르는 쪽은 맞는 서명을 만들 수 없다는 것이 전제이므로 열쇠는 서버만 알아야 한다. 서명은 내용이 바뀌지 않았음을 보증할 뿐 내용을 숨기지는 않는다.</dd>
+<dt>Authorization: Bearer</dt>
+<dd>Authorization은 요청에 자격 증명을 실어 보내는 HTTP 요청 헤더이고, Bearer는 그 자격 증명이 토큰이라는 것을 알리는 방식의 이름이다. 클라이언트는 Authorization: Bearer 토큰 꼴로 한 줄을 적어 토큰을 서버에 보낸다(RFC 6750 2.1절). Bearer 토큰은 그것을 가진 쪽이면 누구든 쓸 수 있는 토큰이라는 뜻이다(1.2절). 요청에 이 헤더가 없거나 토큰을 받아 줄 수 없으면 서버는 보통 401 응답을 돌려주며, 그때 WWW-Authenticate 헤더에 방식의 이름 Bearer를 적도록 정해져 있다(3절).</dd>
+</dl>
+<h2>이렇게 바꿔 보세요</h2>
+<ul>
+<li><b>처음 설정으로</b> — 서버가 준 토큰 그대로. 서버가 서명을 다시 계산해 맞는 것을 확인하고 내용(kim)을 믿습니다.</li>
+<li><b>내용을 admin으로 고치면</b> — 내용을 읽고 고칠 수는 있지만, 다시 계산한 서명이 붙어 온 서명과 달라 401입니다.</li>
+<li><b>서명을 떼어 내면</b> — 견줄 서명이 없어 401입니다.</li>
+<li><b>다른 열쇠로 서명하면</b> — 서버의 열쇠로 계산한 값과 달라 401입니다.</li>
+<li><b>서버가 서명을 확인하지 않으면</b> — 서명을 보지 않아 고친 내용(admin)이 그대로 통합니다.</li>
+<li><b>토큰 없이 요청하면</b> — 읽을 토큰이 없어 누구인지 알 수 없고 401입니다.</li>
+</ul>
+<h2>처음 설정으로 실행하면</h2>
+<ol>
+<li>클라이언트가 서버에 GET /me 요청을 보냅니다. Authorization 헤더에는 Bearer 다음에 토큰이 실려 있습니다. 이 토큰은 로그인에 성공했을 때 서버가 만들어 준 것이고, 클라이언트는 그것을 그대로 들고 있다가 요청에 붙입니다.</li>
+<li>서버가 Authorization 헤더에서 토큰을 꺼내 점(.)으로 나눕니다. 앞에서부터 머리, 내용, 서명입니다. 머리와 내용은 암호가 아니라 글자를 base64url이라는 표기로 바꿔 적은 것이라, 열쇠 없이 풀어도 머리는 {&quot;alg&quot;:&quot;HS256&quot;}, 내용은 {&quot;user&quot;:&quot;kim&quot;}으로 읽힙니다. 읽을 수 있다고 해서 믿는 것은 아닙니다.</li>
+<li>서버가 자기 비밀 열쇠로, 받은 토큰의 머리와 내용을 가지고 서명을 다시 계산합니다. 열쇠는 서버만 알고, 클라이언트에 준 적이 없습니다. 계산한 값은 jzV9172X…입니다.</li>
+<li>서버가 계산한 값(jzV9172X…)과 토큰에 붙어 온 서명(jzV9172X…)을 견줍니다. 같습니다. 이 토큰은 서버의 열쇠로 계산한 서명이 붙은 토큰이고, 서명을 만든 뒤 머리와 내용이 한 글자도 바뀌지 않았다는 뜻입니다.</li>
+<li>서명이 맞으므로 서버는 이 토큰을 자기가 만든, 고쳐지지 않은 토큰이라고 믿고 내용을 읽습니다. user는 kim입니다. 서버는 kim이 로그인했다는 것을 어디에도 적어 두지 않았습니다. 그 사실은 토큰에 적혀 있고, 서명이 그것을 보증합니다. 이 서버 코드에는 로그인한 사람의 목록이 없습니다. 서버가 이 요청을 kim의 요청으로 처리해 200 응답을 만듭니다.</li>
+<li>클라이언트가 200 응답을 받습니다. 본문은 &quot;안녕하세요, kim&quot;입니다.</li>
+</ol>
+<h3>실행 결과</h3>
+<ul>
+<li>토큰은 &quot;kim이 로그인했다&quot;는 내용을 글자로 적고 서버의 비밀 열쇠로 계산한 서명을 붙인 글입니다. 서버는 받은 토큰의 머리와 내용으로 서명을 다시 계산해 붙어 온 서명과 같은지 보고, 같으면 내용을 믿습니다.</li>
+<li>서버는 로그인한 사람의 목록을 따로 저장하지 않았습니다. 서버의 저장소에 적어 두고 번호만 주는 세션과 다른 점입니다. kim이라는 사실은 토큰에 적혀 있고 서명이 보증합니다. 내용은 열쇠 없이도 누구나 읽을 수 있으므로 비밀을 적지 않습니다.</li>
+</ul>
+<h2>코드</h2>
+<pre>GET /me HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.(서명)
+
+# 토큰을 점(.)으로 나눠 풀어 보면
+머리: {&quot;alg&quot;:&quot;HS256&quot;}
+내용: {&quot;user&quot;:&quot;kim&quot;}
+서명: (서버의 비밀 열쇠로 머리와 내용을 계산한 값)
+
+# 서버
+서명 확인: 한다</pre>
+<h2>이 모형의 전제</h2>
+<p>서버는 Node.js 24.18.0의 http 모듈로 127.0.0.1의 빈 포트에 띄운 것 하나입니다. POST /login은 받은 이름으로 토큰을 만들어 돌려주고(비밀번호 확인은 생략했고 서버는 아무것도 저장하지 않습니다), GET /me는 Authorization 헤더에서 Bearer 다음의 토큰을 꺼내 점으로 나눈 뒤, 서명 확인이 켜져 있으면 머리와 내용으로 HMAC-SHA256을 다시 계산해 붙어 온 서명과 견주고(맞지 않거나 비어 있으면 401), 꺼져 있으면 견주지 않고 내용의 user를 읽어 &quot;안녕하세요, 사용자 이름&quot;으로 200 응답을 합니다. 이 판단은 요청과 열쇠와 서명 확인 여부만 읽는 한 함수가 하며 로그인한 사람의 목록 같은 저장소를 찾아보지 않습니다. 클라이언트는 Node.js http.request로 실제 HTTP 요청을 보냈고, 열 가지 조합 모두에서 서버가 받은 요청의 첫 줄(GET /me, HTTP/1.1)과 Authorization 헤더, 서명 확인 결과, 응답 상태와 본문을 확인해 모형과 대조했습니다. 코드 칸의 토큰 줄은 서버가 받은 헤더에서 서명 부분만 (서명)으로 줄인 것과 같은 글이고, 풀어 본 머리와 내용은 서버가 받은 토큰을 base64url로 푼 글과 같습니다. 서버가 받은 요청에는 Host, Connection 같은 다른 헤더도 있었고 화면에서는 줄였습니다. 화면의 localhost는 쓰지 않았고 요청은 이 PC의 다른 포트로 갔습니다. 토큰을 만드는 구현이 표준대로인지는 RFC 7515 부록 A.1의 예시(문서에 적힌 열쇠, 머리, 내용)로 같은 계산을 돌려 문서의 서명과 같은 값이 나오는 것으로 먼저 확인했습니다. 이 PC의 Gradle 캐시에 있는 JWT 라이브러리 jose4j 0.9.5로도 같은 토큰을 HS256 열쇠로 검증했고, 서버가 준 토큰만 맞고 내용을 고친 것, 서명을 뗀 것, 다른 열쇠로 서명한 것은 맞지 않는다고 나와 이 서버의 판단과 같았습니다. 또 로그인을 한 번도 받지 않은 새 서버(같은 열쇠)에 서버가 준 토큰을 보내도 200으로 받아들였고, 다른 열쇠를 가진 서버는 같은 토큰을 거절했습니다. 내용을 admin으로 고치면 서버가 그 내용으로 다시 계산한 값이 붙어 온 서명과 달랐고, 다른 열쇠로 만든 서명도 서버가 계산한 값과 달랐습니다. 서명을 떼어 낸 토큰은 &quot;머리.내용.&quot;처럼 점을 남기고 서명 자리만 비운 모양으로 보냈습니다. 점까지 뗀 &quot;머리.내용&quot;은 이 서버에서 서명 확인 여부와 상관없이 형식 오류로 401이 되는 것을 따로 보았는데, 이것은 이 서버를 만든 방식에서 나온 동작이어서 화면에는 쓰지 않았습니다. 401 응답에는 WWW-Authenticate: Bearer 헤더가 붙었고 화면에서는 줄였습니다. 이 실습은 서명 부분을 비운 토큰만 다루고, 머리의 alg를 none으로 바꾸는 공격은 다루지 않았습니다. 이 서버는 머리의 alg를 읽지 않고 언제나 HMAC-SHA256으로 확인하며, 알고리즘을 둘러싼 문제는 &quot;세부 동작 실습: JWT의 구조와 검증&quot;에서 다룹니다. 토큰의 만료 시간(exp), 토큰을 훔쳐 갔을 때의 문제, 이미 준 토큰을 무효로 만들기 어려운 점, 토큰을 어디에 보관하는지, 공개키 방식(RS256)도 다루지 않았습니다. 문서로 확인한 것은 다음과 같습니다. RFC 7519 1절과 3절(JWT는 클레임을 JSON 객체로 담아 JWS 또는 JWE 구조로 표현한 것이고, 서명한 JWT에서는 클레임 집합이 JWS의 페이로드), 7.2절의 첫 단계(JWT에 점이 하나 이상 있어야 하고, 첫 점 앞이 머리), RFC 7515 2절(서명 입력은 base64url한 머리, 점, base64url한 내용), 3절(JWS 개요), 5.2절(서명 검증은 서명 입력에 대해 하고, 검증이 하나도 성공하지 못하면 무효), 7.1절(압축 형식은 머리, 내용, 서명을 점으로 이은 것), 부록 A.1(HMAC SHA-256 예시), RFC 6750 1.2절(Bearer 토큰은 가진 쪽이면 누구나 쓸 수 있는 토큰), 2.1절(Bearer 방식으로 Authorization 헤더에 토큰을 실어 보냄), 3절(WWW-Authenticate 응답 헤더, 방식 이름은 Bearer)입니다. RFC 6750은 OAuth 2.0의 액세스 토큰을 위한 문서이지만 이 실습의 토큰도 같은 모양의 헤더에 실었습니다. 화면의 열쇠와 토큰은 이 실습을 위해 만든 값이고, 열쇠의 값은 화면에 보이지 않습니다. 브라우저에서 실행해 확인하지는 않았습니다.</p>
+<p>앞 실습: <a href="../../lab/session_basic/">세션</a> · 다음 실습: <a href="../../lab/hash_basic/">해시</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>이 실습에 나오는 개념</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>이 실습에서 보는 것</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">설정</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">설정 바꾸기</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">실행</button>
+        <button class="btn ghost" id="restart" type="button" hidden>처음부터</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="이전 단계">◀<span class="lng"> 이전 단계</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="다음 단계"><span class="lng">다음 단계 </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>설정을 바꿨습니다 · 실행을 누르면 반영됩니다</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> 실행 전에 결과 예측하기</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="전체 단계 기록" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>코드</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">코드 접기</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>줄을 그은 곳은 처음 코드에서 지운 것이고, 색을 칠한 곳은 새로 쓴 것입니다.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>그림</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="현재 단계의 상태를 나타낸 그림. 같은 내용이 오른쪽의 설명과 표에 글로 나옵니다."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">이 모형의 전제 보기</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>실행 비교</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">비교 기록 지우기</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>이렇게 바꿔 보세요</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="용어 풀이" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">닫기</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=bf0f2ef08d"></script>
+</body>
+</html>
