@@ -139,7 +139,7 @@ Lab.register({
     });
     P.box('rn', 330, 16, 336, 64, { cls: hot === 'rn' ? 'hot now' : 'plain', title: 'Run (marker)', sub: c.keep ? '@Retention(RUNTIME): kept at run time' : 'No @Retention: not kept at run time' });
     if (c.reader) {
-      P.box('rd', 330, 96, 336, 116, { cls: hot === 'rd' ? 'hot now' : 'plain', title: 'Reader (the for loop we wrote)', sub: [cur ? 'Asking whether ' + cur + ' has Run' : 'Finds and calls only methods with Run', ph === 'call' ? 'Calling with m.invoke(job)' : ph === 'skip' ? 'Not marked, so not called' : ' '] });
+      P.box('rd', 330, 96, 336, 116, { cls: hot === 'rd' ? 'hot now' : 'plain', title: 'Reader (the for loop we wrote)', sub: [cur ? 'Asking whether ' + cur + ' has Run' : 'Finds and calls only methods with Run', ph === 'call' ? 'Calling with m.invoke(job)' : ph === 'skip' ? (sim.c.keep ? 'Not marked, so not called' : 'Not visible at run time, so not called') : ' '] });
     } else {
       P.box('rd', 330, 96, 336, 116, { cls: 'ghost', title: 'Reader (none)', sub: 'No code that finds and calls Run' });
     }

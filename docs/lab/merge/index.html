@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e12009116c">
+<link rel="stylesheet" href="../../app.css?v=095d0c957e">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -62,7 +62,7 @@
 <li>em.merge(m)의 첫 단계: m의 id(1)로 영속 엔티티를 찾습니다. 새로 연 영속성 컨텍스트에는 아무것도 없으므로 SELECT로 DB에서 읽어 옵니다(김철수, 서울). 이것이 merge 때 나가는 SELECT입니다.</li>
 <li>em.merge(m)의 둘째 단계: m의 모든 필드 값을 그 영속 엔티티에 덮어씁니다. name은 김영수가 되고, city는 m에서 비어 있던 null로 덮어써집니다. merge는 이 영속 엔티티를 r로 돌려줍니다. 넘긴 객체 m은 준영속인 채로 남습니다.</li>
 <li>em.contains(m)의 결과는 false, em.contains(r)의 결과는 true입니다. 둘은 서로 다른 객체이고, 영속성 컨텍스트가 관리하는 것은 r 쪽입니다.</li>
-<li>commit: 커밋 직전의 flush에서 영속 엔티티 r의 값을 처음 읽은 값(김철수, 서울)과 비교해 UPDATE를 보냅니다. DB의 1번 행은 name이 김영수, city가 NULL이 됐습니다. 고치려던 것은 이름뿐인데 city가 지워졌습니다.</li>
+<li>commit: 커밋 직전의 flush에서 영속 엔티티 r의 값을 처음 읽은 값(김철수, 서울)과 비교해 UPDATE를 보냅니다. DB의 1번 행은 name이 김영수이고, city가 NULL이 됐습니다. 고치려던 것은 이름뿐인데 city가 지워졌습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -169,6 +169,6 @@ em.getTransaction().commit();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e12009116c"></script>
+<script src="../../app.js?v=095d0c957e"></script>
 </body>
 </html>

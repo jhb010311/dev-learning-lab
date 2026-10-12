@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e12009116c">
+<link rel="stylesheet" href="../../app.css?v=095d0c957e">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -66,7 +66,7 @@
 <h3>실행 결과</h3>
 <ul>
 <li>벌크 연산은 영속성 컨텍스트를 거치지 않으므로, 이미 조회해 둔 엔티티는 옛 값을 그대로 갖고 있습니다. 이 값으로 계산을 이어 가면 틀린 결과가 됩니다.</li>
-<li>벌크 연산 뒤에는 em.clear()로 영속성 컨텍스트를 비우거나, 벌크 연산을 엔티티를 조회하기 전에 먼저 실행합니다. 스프링 데이터 JPA에서는 @Modifying(clearAutomatically = true)가 이 일을 해 줍니다.</li>
+<li>벌크 연산 뒤에는 em.clear()로 영속성 컨텍스트를 비우거나, 엔티티를 조회하기 전에 벌크 연산을 먼저 실행합니다. 스프링 데이터 JPA에서는 @Modifying(clearAutomatically = true)가 이 일을 해 줍니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>@Entity
@@ -176,6 +176,6 @@ System.out.println(first.getPrice());
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e12009116c"></script>
+<script src="../../app.js?v=095d0c957e"></script>
 </body>
 </html>

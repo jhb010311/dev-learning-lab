@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=e12009116c">
+<link rel="stylesheet" href="../../app.css?v=095d0c957e">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -46,7 +46,7 @@
 </dl>
 <h2>이렇게 바꿔 보세요</h2>
 <ul>
-<li><b>처음 설정으로</b> — 서버가 준 토큰 그대로. 서버가 서명을 다시 계산해 맞는 것을 확인하고 내용(kim)을 믿습니다.</li>
+<li><b>처음 설정으로</b> — 서버가 준 토큰을 그대로 보냅니다. 서버가 서명을 다시 계산해 맞는 것을 확인하고 내용(kim)을 믿습니다.</li>
 <li><b>내용을 admin으로 고치면</b> — 내용을 읽고 고칠 수는 있지만, 다시 계산한 서명이 붙어 온 서명과 달라 401입니다.</li>
 <li><b>서명을 떼어 내면</b> — 견줄 서명이 없어 401입니다.</li>
 <li><b>다른 열쇠로 서명하면</b> — 서버의 열쇠로 계산한 값과 달라 401입니다.</li>
@@ -58,7 +58,7 @@
 <li>클라이언트가 서버에 GET /me 요청을 보냅니다. Authorization 헤더에는 Bearer 다음에 토큰이 실려 있습니다. 이 토큰은 로그인에 성공했을 때 서버가 만들어 준 것이고, 클라이언트는 그것을 그대로 들고 있다가 요청에 붙입니다.</li>
 <li>서버가 Authorization 헤더에서 토큰을 꺼내 점(.)으로 나눕니다. 앞에서부터 머리, 내용, 서명입니다. 머리와 내용은 암호가 아니라 글자를 base64url이라는 표기로 바꿔 적은 것이라, 열쇠 없이 풀어도 머리는 {&quot;alg&quot;:&quot;HS256&quot;}, 내용은 {&quot;user&quot;:&quot;kim&quot;}으로 읽힙니다. 읽을 수 있다고 해서 믿는 것은 아닙니다.</li>
 <li>서버가 자기 비밀 열쇠로, 받은 토큰의 머리와 내용을 가지고 서명을 다시 계산합니다. 열쇠는 서버만 알고, 클라이언트에 준 적이 없습니다. 계산한 값은 jzV9172X…입니다.</li>
-<li>서버가 계산한 값(jzV9172X…)과 토큰에 붙어 온 서명(jzV9172X…)을 견줍니다. 같습니다. 이 토큰은 서버의 열쇠로 계산한 서명이 붙은 토큰이고, 서명을 만든 뒤 머리와 내용이 한 글자도 바뀌지 않았다는 뜻입니다.</li>
+<li>서버가 계산한 값(jzV9172X…)과 토큰에 붙어 온 서명(jzV9172X…)을 견줍니다. 같습니다. 이는 이 토큰에 서버의 열쇠로 계산한 서명이 붙어 있고, 서명을 만든 뒤 머리와 내용이 한 글자도 바뀌지 않았다는 뜻입니다.</li>
 <li>서명이 맞으므로 서버는 이 토큰을 자기가 만든, 고쳐지지 않은 토큰이라고 믿고 내용을 읽습니다. user는 kim입니다. 서버는 kim이 로그인했다는 것을 어디에도 적어 두지 않았습니다. 그 사실은 토큰에 적혀 있고, 서명이 그것을 보증합니다. 이 서버 코드에는 로그인한 사람의 목록이 없습니다. 서버가 이 요청을 kim의 요청으로 처리해 200 응답을 만듭니다.</li>
 <li>클라이언트가 200 응답을 받습니다. 본문은 &quot;안녕하세요, kim&quot;입니다.</li>
 </ol>
@@ -167,6 +167,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoia2ltIn0.(서명)
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=e12009116c"></script>
+<script src="../../app.js?v=095d0c957e"></script>
 </body>
 </html>

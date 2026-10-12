@@ -59,7 +59,7 @@ Lab.register({
       innerText = got.length ? got.length + '행: ' + got.map(function (o) { return nul(o[1]); }).join(', ') : '0행';
       st.sub = innerText; st.hit = got.map(function (o) { return o[0]; });
       push('(' + innerSql + '): 괄호 안의 서브쿼리는 바깥 쿼리의 값을 쓰지 않으므로 혼자서 실행할 수 있습니다. item이 ' + item + '인 주문은 ' + (got.length ? got.length + '건이고 member_id는 ' + got.map(function (o) { return o[1]; }).join('과 ') + '입니다.' : '없습니다. 서브쿼리의 결과는 0행입니다.'), '');
-      if (got.length > 1) { err = { no: 1242, msg: 'Subquery returns more than 1 row' }; st.res = '오류 1242'; push('WHERE id = (...): = 의 오른쪽에는 값이 하나만 올 수 있습니다. 서브쿼리가 ' + got.length + '행을 돌려줬으므로 MySQL은 오류 1242(Subquery returns more than 1 row)로 문장을 거부합니다.', 'bad'); }
+      if (got.length > 1) { err = { no: 1242, msg: 'Subquery returns more than 1 row' }; st.res = '오류 1242'; push('WHERE id = (...): =의 오른쪽에는 값이 하나만 올 수 있습니다. 서브쿼리가 ' + got.length + '행을 돌려줬으므로 MySQL은 오류 1242(Subquery returns more than 1 row)로 문장을 거부합니다.', 'bad'); }
       else if (!got.length) { M.forEach(function (m) { st.verdict[m[0]] = ['알 수 없음', 'unk']; }); st.res = '0행'; push('WHERE id = (...): 서브쿼리가 0행이면 그 자리의 값은 NULL이 됩니다. id = NULL은 어느 행에서도 참이 되지 않으므로("알 수 없음") 결과는 0행입니다. 오류는 나지 않습니다.', 'bad'); }
       else { M.forEach(function (m) { var ok = m[0] === got[0][1]; st.verdict[m[0]] = [ok ? '참' : '거짓', ok ? 'in' : 'out']; if (ok) out.push(m[1]); }); st.res = out.length + '행'; push('WHERE id = (...): 서브쿼리가 값 하나 ' + got[0][1] + '을 돌려줬으므로 조건은 WHERE id = ' + got[0][1] + '과 같습니다. ' + out.join(', ') + ' ' + out.length + '행이 나옵니다.', 'good'); }
       type = err ? '-' : 'SUBQUERY'; st.exp = type;
@@ -106,7 +106,7 @@ Lab.register({
       push('EXPLAIN: member를 읽는 줄의 select_type이 SIMPLE이고, SUBQUERY나 DEPENDENT SUBQUERY 줄이 없습니다. 문장의 모양은 상관 서브쿼리지만, MySQL 8.4는 이것을 member와 orders의 조인(' + (notE ? '안티조인' : '세미조인') + ')으로 바꿔 실행하므로 DEPENDENT SUBQUERY로 나오지 않습니다. 결과는 위에서 따져 본 것과 같습니다.', '');
     }
     var resText = err ? '-' : out.length ? out.length + '행: ' + out.join(', ') : '0행';
-    if (kind === 'scalar') sum.push({ one: '값 하나를 돌려주는 서브쿼리(스칼라 서브쿼리)는 =, <, > 같은 비교의 한쪽에 값처럼 쓸 수 있습니다. 반드시 한 컬럼, 많아야 한 행만 돌려줘야 합니다.', two: '지금 데이터에서 한 행이 나온다고 안심할 수 없습니다. 데이터가 늘어 두 행이 되는 순간 오류가 납니다. 여러 행이 나올 수 있는 자리라면 = 대신 IN을 쓰고(이 예에서는 김철수와 이영희가 나옵니다), 값 하나가 필요하다면 서브쿼리가 반드시 한 행만 돌려주게 조건을 적습니다.', zero: '서브쿼리가 0행이면 오류가 아니라 NULL이 됩니다. NULL과의 비교는 참이 되지 않으므로 결과가 조용히 0행이 됩니다. 두 행일 때는 오류로 알려 주지만 0행일 때는 알려 주지 않습니다.' }[c.pick]);
+    if (kind === 'scalar') sum.push({ one: '값 하나를 돌려주는 서브쿼리(스칼라 서브쿼리)는 =, <, > 같은 비교의 한쪽에 값처럼 쓸 수 있습니다. 반드시 한 컬럼, 많아야 한 행만 돌려줘야 합니다.', two: '서브쿼리가 두 행을 돌려줘서 오류가 났습니다. 처음에는 한 행만 나오던 쿼리도 데이터가 늘어 두 행이 되는 순간 이렇게 됩니다. 여러 행이 나올 수 있는 자리라면 = 대신 IN을 쓰고(이 예에서는 김철수와 이영희가 나옵니다), 값 하나가 필요하다면 서브쿼리가 반드시 한 행만 돌려주게 조건을 적습니다.', zero: '서브쿼리가 0행이면 오류가 아니라 NULL이 됩니다. NULL과의 비교는 참이 되지 않으므로 결과가 조용히 0행이 됩니다. 두 행일 때는 오류로 알려 주지만 0행일 때는 알려 주지 않습니다.' }[c.pick]);
     if (kind === 'corr') sum.push('상관 서브쿼리는 바깥 행의 수만큼 다시 실행될 수 있습니다. 바깥 행이 4개면 4번이지만 10만 개면 10만 번입니다. 이 예와 같은 결과는 LEFT JOIN과 GROUP BY로도 구할 수 있습니다.');
     if (kind === 'in') sum.push('IN은 "목록에 같은 값이 하나라도 있는가"입니다. 목록에 NULL이 섞여 있어도 같은 값을 찾으면 참이고, 못 찾은 행은 거짓이든 알 수 없음이든 어차피 빠지므로 결과가 달라지지 않습니다. 문제는 NOT IN에서 생깁니다.');
     if (kind === 'exists') sum.push('EXISTS는 값을 비교하지 않고 "조건에 맞는 행이 있는가"만 봅니다. 이 예에서 IN과 EXISTS는 같은 결과를 냈고 MySQL 8.4는 둘 다 조인으로 바꿔 실행했습니다. 어느 쪽이 빠른지는 문장의 모양이 아니라 실행 계획을 보고 판단합니다.');

@@ -140,7 +140,7 @@ Lab.register({
       sum.push('What you can call through an Animal-type variable is only the methods written in Animal, so this code has no d.bark(); line. If you call bark through an Animal variable, the compiler reports that it cannot find bark.');
     } else if (ok && c.ext) {
       sum.push('The type of the variable d is Animal, but the object it holds is a Dog object, so what ran was the eat written in Dog, and "the dog eats" was printed. Animal also has an eat, but it did not run.');
-      sum.push('The compiler looks at the type of the variable (Animal) and checks only whether eat can be called. Which eat actually runs is decided at run time by the class of the object (Dog), and this is overriding.');
+      sum.push('The compiler looks at the type of the variable (Animal) and checks only whether eat can be called. Which eat actually runs is decided at run time by the class of the object (Dog). Dog overrides eat, so the eat of Dog runs.');
     } else if (ok) {
       sum.push('Even without extends Animal, you wrote eat directly in Dog, so compilation succeeded, and the eat written in Dog ran and "the dog eats" was printed. This eat was not inherited. Dog wrote it directly.');
       sum.push('Without extends, Dog has only what it writes itself. Even if the name is the same as the eat of Animal, the two are not connected, so this is not overriding. It is extends that connects them.');

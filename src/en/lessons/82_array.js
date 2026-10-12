@@ -133,7 +133,7 @@ Lab.register({
       if (s.a) P.arrow('ar_a', 'v_a:r', 'A1:l:0.2');
       if (s.b) P.arrow('ar_b', right ? 'v_b:l' : 'v_b:r', right ? 'A' + s.b + ':r:0.2' : 'A1:l:0.75', { cls: sameAB ? 'hot' : '' });
     }
-    P.box('eq', 16, 206, 648, 28, { cls: s.eq === null ? 'ghost' : 'plain', title: two ? 'a == b ,  a[0] == b[0]' : 'a == b', right: s.eq === null ? '?' : two ? s.eq + ' ,  ' + (s.eq0 === null ? '?' : s.eq0) : s.eq });
+    P.box('eq', 16, 206, 648, 28, { cls: s.eq === null ? 'ghost' : 'plain', title: two ? 'a == b,  a[0] == b[0]' : 'a == b', right: s.eq === null ? '?' : two ? s.eq + ',  ' + (s.eq0 === null ? '?' : s.eq0) : s.eq });
     P.box('ra', 16, 240, 648, 28, s.err ? { cls: 'bad', title: 'Exception', right: s.err } : { cls: s.outA === null ? 'ghost' : 'plain', title: 'Output of a', right: s.outA === null ? '?' : s.outA });
     P.box('rb', 16, 274, 648, 28, s.err ? { cls: 'ghost', title: 'Output', right: 'not executed' } : { cls: s.outB === null ? 'ghost' : 'plain', title: 'Output of b', right: s.outB === null ? '?' : s.outB });
     P.note(two ? 'In a two-dimensional array, the elements of the outer array (on either side) refer to the row arrays (in the middle). clone and Arrays.copyOf create only a new outer array, so the arrows of the two outer arrays reach the same row arrays. All the arrays are placed on the heap.' : 'One border is one array, and its elements are placed side by side in index order. An arrow shows the array that the reference in a variable refers to. When two arrows reach one array, the same element changes whichever variable you use to change it. All the arrays are placed on the heap.');

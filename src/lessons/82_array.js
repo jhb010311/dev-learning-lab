@@ -133,7 +133,7 @@ Lab.register({
       if (s.a) P.arrow('ar_a', 'v_a:r', 'A1:l:0.2');
       if (s.b) P.arrow('ar_b', right ? 'v_b:l' : 'v_b:r', right ? 'A' + s.b + ':r:0.2' : 'A1:l:0.75', { cls: sameAB ? 'hot' : '' });
     }
-    P.box('eq', 16, 206, 648, 28, { cls: s.eq === null ? 'ghost' : 'plain', title: two ? 'a == b ,  a[0] == b[0]' : 'a == b', right: s.eq === null ? '?' : two ? s.eq + ' ,  ' + (s.eq0 === null ? '?' : s.eq0) : s.eq });
+    P.box('eq', 16, 206, 648, 28, { cls: s.eq === null ? 'ghost' : 'plain', title: two ? 'a == b,  a[0] == b[0]' : 'a == b', right: s.eq === null ? '?' : two ? s.eq + ',  ' + (s.eq0 === null ? '?' : s.eq0) : s.eq });
     P.box('ra', 16, 240, 648, 28, s.err ? { cls: 'bad', title: '예외', right: s.err } : { cls: s.outA === null ? 'ghost' : 'plain', title: 'a 출력', right: s.outA === null ? '?' : s.outA });
     P.box('rb', 16, 274, 648, 28, s.err ? { cls: 'ghost', title: '출력', right: '실행되지 않음' } : { cls: s.outB === null ? 'ghost' : 'plain', title: 'b 출력', right: s.outB === null ? '?' : s.outB });
     P.note(two ? '2차원 배열은 바깥 배열(양옆)의 칸이 행 배열(가운데)을 가리키는 구조입니다. clone이나 Arrays.copyOf는 바깥 배열만 새로 만들기 때문에, 두 바깥 배열의 화살표가 같은 행 배열에 닿습니다. 배열은 모두 힙에 놓입니다.' : '테두리 하나가 배열 하나이고, 칸은 번호 순서대로 붙어 있습니다. 화살표는 변수에 든 참조가 가리키는 배열입니다. 두 화살표가 한 배열에 닿아 있으면 어느 변수로 바꾸든 같은 칸이 바뀝니다. 배열은 모두 힙에 놓입니다.');

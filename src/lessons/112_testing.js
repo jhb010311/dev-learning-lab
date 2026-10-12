@@ -154,7 +154,7 @@ Lab.register({
         register(1, f, w);
       } else {
         var same = key(A) === k;
-        push(CN[1] + ' 실행 시작: 같은 JVM에서 두 번째 테스트 클래스가 이어서 실행됩니다. ' + (next === 'mock' ? '첫 번째 클래스의 설정에 @MockitoBean ' + (A.repo ? 'OrderService' : 'OrderRepository') + ' 필드가 하나 더 있습니다.' : next === 'profile' ? '첫 번째 클래스와 같은데 @ActiveProfiles("test")가 붙어 있습니다.' : '애노테이션과 필드가 첫 번째 클래스와 같습니다.') + ' 이 클래스에도 컨텍스트가 필요합니다.');
+        push(CN[1] + ' 실행 시작: 같은 JVM에서 두 번째 테스트 클래스가 이어서 실행됩니다. ' + (next === 'mock' ? '첫 번째 클래스보다 @MockitoBean ' + (A.repo ? 'OrderService' : 'OrderRepository') + ' 필드가 하나 더 있습니다.' : next === 'profile' ? '첫 번째 클래스와 같은데 @ActiveProfiles("test")가 붙어 있습니다.' : '애노테이션과 필드가 첫 번째 클래스와 같습니다.') + ' 이 클래스에도 컨텍스트가 필요합니다.');
         if (same && k in cache) {
           st.use2 = cache[k]; st.how2 = '다시 씀'; used[1] = cache[k]; set(2, '테스트 메서드 실행 중', 'hot');
           push('컨텍스트 캐시 조회: 설정이 첫 번째 클래스와 같으므로 캐시에서 같은 컨텍스트를 찾습니다. 새로 만들지 않고 첫 번째 클래스가 쓰던 컨텍스트를 그대로 받습니다.', 'good');

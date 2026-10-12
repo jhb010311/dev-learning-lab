@@ -79,7 +79,7 @@ Lab.register({
       } else if (ln.k === 'commit') {
         if (r && (r.name !== st.snap.name || r.city !== st.snap.city)) {
           send('update', "update member set city = " + (r.city === null ? 'null' : "'" + r.city + "'") + ", name = '" + r.name + "' where id = 1"); st.db = { name: r.name, city: r.city }; st.dbCls = r.city === null ? 'bad' : 'good';
-          push('commit: 커밋 직전의 flush에서 영속 엔티티 ' + st.rName + '의 값을 처음 읽은 값(김철수, 서울)과 비교해 UPDATE를 보냅니다. DB의 1번 행은 name이 ' + r.name + ', city가 ' + (r.city === null ? 'NULL이 됐습니다. 고치려던 것은 이름뿐인데 city가 지워졌습니다.' : r.city + (r.city === '서울' ? '로 남았습니다.' : '이 됐습니다.')), r.city === null ? 'bad' : 'good');
+          push('commit: 커밋 직전의 flush에서 영속 엔티티 ' + st.rName + '의 값을 처음 읽은 값(김철수, 서울)과 비교해 UPDATE를 보냅니다. DB의 1번 행은 name이 ' + r.name + '이고, city가 ' + (r.city === null ? 'NULL이 됐습니다. 고치려던 것은 이름뿐인데 city가 지워졌습니다.' : r.city + (r.city === '서울' ? '로 남았습니다.' : '이 됐습니다.')), r.city === null ? 'bad' : 'good');
         } else push('commit: 이 영속성 컨텍스트에는 관리 중인 엔티티가 없습니다. 비교할 대상이 없으므로 UPDATE가 나가지 않습니다. DB의 이름은 "김철수" 그대로이고, 예외도 나지 않습니다.', 'bad');
       }
     });

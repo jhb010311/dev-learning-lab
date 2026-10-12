@@ -140,7 +140,7 @@ Lab.register({
       sum.push('Animal 타입 변수로 부를 수 있는 것은 Animal에 적힌 메서드뿐이어서, 이 코드에는 d.bark(); 줄이 없습니다. Animal 변수로 bark를 부르면 컴파일러가 bark를 찾을 수 없다고 알립니다.');
     } else if (ok && c.ext) {
       sum.push('변수 d의 타입은 Animal이지만 담긴 객체가 Dog 객체이므로, 실행된 것은 Dog에 적힌 eat이고 "개가 먹는다"가 출력됐습니다. Animal에도 eat이 있지만 실행되지 않았습니다.');
-      sum.push('컴파일러는 변수의 타입(Animal)을 보고 eat을 부를 수 있는지만 확인합니다. 실제로 어느 eat이 실행될지는 실행할 때 객체의 클래스(Dog)를 보고 정해지고, 이것이 재정의입니다.');
+      sum.push('컴파일러는 변수의 타입(Animal)을 보고 eat을 부를 수 있는지만 확인합니다. 실제로 어느 eat이 실행될지는 실행할 때 객체의 클래스(Dog)를 보고 정해집니다. Dog가 eat을 재정의했으므로 Dog의 eat이 실행됩니다.');
     } else if (ok) {
       sum.push('extends Animal을 지웠어도 Dog에 eat을 직접 적었으므로 컴파일에 성공했고, Dog에 적힌 eat이 실행되어 "개가 먹는다"가 출력됐습니다. 이 eat은 물려받은 것이 아니라 Dog가 직접 적은 것입니다.');
       sum.push('extends가 없으면 Dog에는 자기가 적은 것만 있습니다. Animal의 eat과 이름이 같아도 둘은 이어지지 않으므로 이것은 재정의가 아닙니다. 이어 주는 것은 extends입니다.');

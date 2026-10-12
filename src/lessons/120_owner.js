@@ -132,7 +132,7 @@ Lab.register({
     var sizeBad = s.size !== '?' && mp && s.size !== (s.fk === '1' ? '1' : '0');
     P.box('r1', 16, 258, 320, 38, { cls: s.fk === '?' ? 'ghost' : s.fk === 'null' ? 'bad' : 'good', title: 'DB의 member.team_id', right: s.fk });
     P.box('r2', 344, 258, 320, 38, { cls: s.size === '?' ? 'ghost' : sizeBad ? 'bad' : 'plain', title: 'team.getMembers().size()', right: s.size === '?' ? '?' : s.size + '명' });
-    P.note('초록 화살표(member의 team 필드)가 주인입니다. JPA는 이 참조만 보고 외래 키 team_id를 씁니다. ' + (mp ? '점선 화살표(team의 members 목록)는 mappedBy가 붙은 쪽으로, 메모리에서 읽을 때만 쓰이고 SQL에는 반영되지 않습니다.' : 'mappedBy가 없으면 team의 members 목록도 따로 저장되는데, 저장되는 곳은 외래 키가 아니라 연결 테이블 team_member입니다.'));
+    P.note('초록 화살표(member의 team 필드)가 주인입니다. JPA는 이 참조만 보고 외래 키 team_id를 씁니다. ' + (mp ? '점선 화살표(team의 members 목록)는 mappedBy가 붙은 쪽이며, 메모리에서 읽을 때만 쓰이고 SQL에는 반영되지 않습니다.' : 'mappedBy가 없으면 team의 members 목록도 따로 저장되는데, 저장되는 곳은 외래 키가 아니라 연결 테이블 team_member입니다.'));
   },
   assume: '팀 하나와 회원 하나를 새로 저장하는 경우만 다룹니다. 이미 저장된 회원의 팀을 바꾸는 경우(UPDATE가 나가는 경우)는 다루지 않았습니다. 기본 키는 IDENTITY 전략이어서 persist를 부를 때 INSERT가 바로 나갑니다. 열두 가지 조합 모두를 Hibernate 7.4.5와 H2 데이터베이스에서 같은 구조의 코드로 실행해, 만들어진 테이블과 컬럼, 나간 SQL의 종류와 테이블별 횟수, 그 SQL이 persist 때 나갔는지 커밋 직전에 나갔는지, DB의 member.team_id 값, 연결 테이블의 행 수, team.getMembers().size()가 화면과 일치하는 것을 확인했습니다. 연결 테이블과 그 컬럼의 이름(team_member, team_id, members_id)은 Hibernate 7.4.5가 기본 규칙으로 지은 것이고 @JoinTable로 바꿀 수 있습니다. 화면의 SQL 문장은 읽기 쉽게 줄여 쓴 것이어서 실제 문장과 글자가 같지는 않습니다. SQL 로그에서는 테이블 이름 뒤에 별칭이 붙고 값 자리에 물음표가 들어갑니다.',
 });

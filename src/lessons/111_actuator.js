@@ -90,7 +90,7 @@ Lab.register({
       sum.push('readiness 그룹도 기본으로는 readinessState 하나만 묻습니다. ' + (c.pay === 'UP' ? 'pay가 다른 상태를 답해도 이 응답은 달라지지 않습니다.' : 'pay가 ' + c.pay + ' 상태인데도 readiness는 UP으로 답합니다.') + ' pay의 상태를 반영하려면 그룹에 직접 넣어야 합니다.');
     } else if (c.path === 'readiness') {
       sum.push('readiness 그룹에 pay를 넣었으므로 pay의 상태가 readiness의 응답에 반영됩니다.' + (bad ? ' readiness가 503이면 이 서버는 "요청을 받을 준비가 안 됐다"고 답한 것이 됩니다.' : ''));
-      sum.push('바깥 서버를 readiness에 넣을지는 신중히 정합니다. 모든 서버가 같은 결제사를 보고 있다면, 결제사에 문제가 생겼을 때 모든 서버가 한꺼번에 준비 안 됨이 됩니다.');
+      sum.push('바깥 서버를 readiness에 넣을지는 신중히 정합니다. 모든 서버가 같은 결제사를 보고 있다면, 결제사에 문제가 생겼을 때 모든 서버가 한꺼번에 준비가 안 된 상태가 됩니다.');
     } else {
       sum.push({ UP: '물어본 구성 요소가 모두 UP이므로 전체도 UP이고 200으로 응답합니다.', DOWN: '구성 요소 하나만 DOWN이어도 전체가 DOWN이 되고 503으로 응답합니다. 이 주소로 상태를 확인하는 쪽은 이 서버를 비정상으로 봅니다.', OUT_OF_SERVICE: 'OUT_OF_SERVICE는 DOWN 다음으로 심각한 상태입니다. UP보다 앞이므로 전체 상태가 되고, DOWN과 마찬가지로 503으로 응답합니다.', UNKNOWN: 'UNKNOWN은 순서의 맨 뒤입니다. 다른 구성 요소가 UP이면 전체는 UP이고 200으로 응답합니다. "알 수 없음"은 고장으로 치지 않습니다.' }[c.pay]);
     }

@@ -90,7 +90,7 @@ Lab.register({
           sum.push('When it saved, JPA took the id out of the kim object and put it in member_id, and when it read, it used that number to find the Member and put it in the member field. So you get the name of the member by following the objects, as in o.getMember().getName().');
         } else {
           sum.push('@JoinColumn decides only the name of the foreign key column. The column name changed from member_id to buyer_id and nothing else, and the result of saving and reading is the same as with @ManyToOne alone. The foreign key constraint was made as before.');
-          sum.push('The code never writes the column name. o.getMember().getName() is the same whatever the column name is, and the column name appears only when JPA builds the SQL and when you look at the table in the database.');
+          sum.push('The code that gets the member from the order never writes the column name. o.getMember().getName() is the same whatever the column name is, and the column name appears only when JPA builds the SQL and when you look at the table in the database.');
         }
       } else {
         st.phase = 'readorder'; st.oo = 'read'; st.sel = 1; st.sql = [insO, readO]; st.jl = 'Read only the order';

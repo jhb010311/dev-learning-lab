@@ -54,7 +54,7 @@ Lab.register({
         made.push(n); got[n] = deps[n].slice();
       } else {
         made.push(n); st[n] = '객체만 생성됨 (주입 전)';
-        push(n + '의 객체를 기본 생성자로 먼저 만듭니다.' + (deps[n].length ? ' ' + how + ' ' + deps[n].length + '개는 아직 null입니다.' : ' 주입받을 것이 없습니다.'), '');
+        push(n + '의 객체를 기본 생성자로 먼저 만듭니다.' + (deps[n].length ? ' ' + how + '로 주입받을 의존성 ' + deps[n].length + '개는 아직 null입니다.' : ' 주입받을 것이 없습니다.'), '');
         for (var j = 0; j < deps[n].length; j++) { if (!create(deps[n][j], n)) { st[n] = '실패'; return false; } got[n].push(deps[n][j]); push(n + '의 ' + how + '에 ' + deps[n][j] + '를 주입했습니다.', ''); }
       }
       st[n] = '완성'; done.push(n); stack.pop();

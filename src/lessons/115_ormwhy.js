@@ -11,7 +11,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '주문에서 회원으로 넘어가려는데 JDBC로 주문을 읽는 SQL만 직접 쓰면 어떻게 되나', d: 'JDBC로 주문을 읽었는데 order.getMember()가 null입니다.', v: { sc: 'nav', how: 'jdbc', fix: false } },
     { t: '회원을 읽는 SQL을 직접 더 쓰면', q: 'JDBC에서 회원을 읽는 SQL을 직접 더 써서 빠진 부분을 채우면', d: '되기는 합니다. SQL과 옮겨 담는 코드가 두 배가 됩니다.', v: { sc: 'nav', how: 'jdbc', fix: true } },
-    { t: 'JPA로 회원에 넘어가기', q: 'DB를 다루는 방식을 JPA로 바꿔 매핑만 적으면', d: 'SQL을 쓰지 않았는데 회원 이름이 나옵니다.', v: { sc: 'nav', how: 'jpa', fix: false } },
+    { t: 'JPA로 회원 쪽으로 넘어가기', q: 'DB를 다루는 방식을 JPA로 바꿔 매핑만 적으면', d: 'SQL을 쓰지 않았는데 회원 이름이 나옵니다.', v: { sc: 'nav', how: 'jpa', fix: false } },
     { t: '두 번 조회: JDBC', q: 'JDBC로 같은 주문을 두 번 조회하면', d: '같은 행인데 서로 다른 객체가 둘 생깁니다.', v: { sc: 'same', how: 'jdbc', fix: false } },
     { t: '두 번 조회: JPA', q: 'JPA로 같은 주문을 두 번 조회하면', d: 'SELECT는 한 번, 객체도 하나입니다.', v: { sc: 'same', how: 'jpa', fix: false } },
     { t: '필드 추가: SQL은 그대로', q: 'JDBC에서 회원에 필드 grade를 하나 추가하고 SQL은 그대로 두면', d: 'VIP로 저장했는데 오류 없이 사라집니다.', v: { sc: 'field', how: 'jdbc', fix: false } },

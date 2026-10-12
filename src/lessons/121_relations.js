@@ -9,7 +9,7 @@ Lab.register({
     { id: 'n', label: '함께 저장할 상대의 수', type: 'range', min: 1, max: 3, value: 2, step: 1, fmt: function (v) { return v + '개'; }, show: function (c) { return c.rel !== 'o2o'; }, hint: '다대일과 일대다에서는 한 팀에 속한 회원 수, 다대다에서는 한 회원이 고른 상품 수입니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', q: '팀이 @OneToMany + @JoinColumn으로 회원 목록을 가질 때 회원 2개를 함께 저장하면 SQL은 어떻게 나가나', d: '일대다 단방향. INSERT가 끝난 뒤에 외래 키를 채우는 UPDATE가 회원 수만큼 더 나갑니다.', v: { rel: 'o2m', fk: 'main', n: 2 } },
+    { t: '처음 설정으로', q: '팀이 @OneToMany + @JoinColumn으로 회원 목록을 가질 때 회원 2명을 함께 저장하면 SQL은 어떻게 나가나', d: '일대다 단방향. INSERT가 끝난 뒤에 외래 키를 채우는 UPDATE가 회원 수만큼 더 나갑니다.', v: { rel: 'o2m', fk: 'main', n: 2 } },
     { t: '다대일', q: '관계의 종류를 회원이 팀을 가리키는 @ManyToOne으로 바꾸면', d: '테이블은 같은데 INSERT만으로 끝납니다.', v: { rel: 'm2o', fk: 'main', n: 2 } },
     { t: '일대다에서 @JoinColumn을 빼면', q: '일대다 단방향에서 @JoinColumn을 적지 않으면', d: '외래 키 대신 연결 테이블이 생깁니다.', v: { rel: 'o2mjt', fk: 'main', n: 2 } },
     { t: '다대다', q: '회원과 상품의 관계를 @ManyToMany로 바꾸면', d: '가운데에 연결 테이블 member_product가 자동으로 생깁니다.', v: { rel: 'm2m', fk: 'main', n: 2 } },

@@ -1195,7 +1195,7 @@ Lab.register({
   terms: ['N+1 문제', '지연 로딩과 즉시 로딩', 'fetch join', '@EntityGraph', '배치 페치(Batch Size)', '1차 캐시'], ranks: ['nplus1', 'jpaorm'],
   controls: [
     { id: 'n', label: '조회되는 주문 건수', type: 'range', min: 1, max: 30, value: 10, fmt: function (v) { return v + '건'; } },
-    { id: 'm', label: '그 주문들을 한 회원 수', type: 'range', min: 1, max: 30, value: 10, fmt: function (v) { return v + '명'; }, hint: '같은 회원의 주문이 여러 건이면 회원 수가 주문 건수보다 적습니다.' },
+    { id: 'm', label: '주문한 회원 수', type: 'range', min: 1, max: 30, value: 10, fmt: function (v) { return v + '명'; }, hint: '같은 회원의 주문이 여러 건이면 회원 수가 주문 건수보다 적습니다.' },
     { id: 'st', label: '회원(연관 엔티티)을 가져오는 방법', type: 'select', value: 'lazy', options: [['lazy', '지연 로딩 (LAZY)'], ['eager', '즉시 로딩 (EAGER)'], ['fetch', '지연 로딩 + fetch join'], ['graph', '지연 로딩 + @EntityGraph'], ['batch', '지연 로딩 + 배치 크기 설정']] },
     { id: 'bs', label: '배치 크기', type: 'range', min: 2, max: 20, value: 5, fmt: function (v) { return v + '개씩'; }, show: function (c) { return c.st === 'batch'; }, hint: '보기 쉽게 작은 값으로 두었습니다. 실제 설정에서는 훨씬 큰 값(예: 100)을 씁니다.' },
     { id: 'use', label: '조회한 뒤 회원 이름을 사용한다', type: 'check', value: true },
@@ -1260,7 +1260,7 @@ Lab.register({
     var total = qs.length, mq = total - 1, sum = [];
     if (c.st === 'lazy' && c.use) sum.push('목록 1번에 더해 회원 수만큼 쿼리가 따라 나갔습니다. 이것이 N+1 문제입니다. 추가 쿼리 수는 주문 건수가 아니라 아직 읽지 않은 서로 다른 회원 수(' + c.m + '명)로 정해집니다.');
     if (c.st === 'lazy' && !c.use) sum.push('지연 로딩은 실제로 쓸 때만 조회하므로, 회원을 쓰지 않는 화면에서는 쿼리 1번으로 끝납니다. 지연 로딩을 기본으로 두는 이유입니다.');
-    if (c.st === 'eager') sum.push('즉시 로딩으로 바꿔도 JPQL 조회에서는 N+1이 그대로 발생합니다. 시점만 조회 직후로 당겨지고' + (c.use ? '' : ', 회원을 쓰지 않는데도 ' + mq + '번을 더 조회했습니다') + '. 즉시 로딩은 N+1의 해법이 아닙니다.');
+    if (c.st === 'eager') sum.push('즉시 로딩으로 바꿔도 JPQL 조회에서는 N+1이 그대로 발생합니다. 시점만 조회 직후로 ' + (c.use ? '당겨집니다' : '당겨지고, 회원을 쓰지 않는데도 ' + mq + '번을 더 조회했습니다') + '. 즉시 로딩은 N+1의 해법이 아닙니다.');
     if (c.st === 'fetch') sum.push('fetch join은 연관된 회원까지 한 쿼리로 가져옵니다. 이 예의 join fetch는 내부 조인이라 회원이 없는 주문은 결과에서 빠집니다. 그런 주문도 필요하면 left join fetch를 씁니다.');
     if (c.st === 'graph') sum.push('@EntityGraph는 JPQL을 고치지 않고 "회원도 같이 가져오라"고 지정합니다. 이 예처럼 회원이 없을 수도 있는 기본 매핑에서는 left outer join으로 가져옵니다(optional = false로 매핑하면 inner join이 됩니다).');
     if (c.st === 'batch' && c.use) sum.push('배치 크기를 주면 회원을 한 명씩이 아니라 ' + c.bs + '명씩 묶어 가져옵니다. 회원 ' + c.m + '명을 ' + mq + '번(' + c.m + ' ÷ ' + c.bs + ' 올림)에 가져와서 쿼리 수가 1 + ' + c.m + '에서 1 + ' + mq + '로 줄었습니다.');
@@ -1560,7 +1560,7 @@ Lab.register({
     if (M === 'local' && S > 1 && !c.kick) sum.push('세션이 로그인한 서버 한 대의 메모리에만 있어서, 다른 서버로 간 요청은 로그인이 풀렸습니다. 서버를 여러 대로 늘리려면 같은 사용자를 항상 같은 서버로 보내거나(스티키 세션), 세션을 공용 저장소로 옮겨야 합니다.');
     if (M === 'local' && S === 1) sum.push('서버가 한 대일 때는 문제가 없습니다.');
     if (M === 'redis') sum.push('세션을 공용 저장소에 두면 서버가 몇 대든 로그인이 유지되고, 세션을 지우는 것만으로 즉시 로그아웃시킬 수 있습니다. 대신 요청마다 저장소를 조회하고, 저장소가 죽으면 전원이 로그아웃됩니다.');
-    if (M === 'jwt') sum.push('JWT는 서버가 아무것도 저장하지 않아 서버를 늘리기 쉽고 조회 비용도 없습니다.' + (c.kick ? ' 대신 한 번 발급한 토큰은 만료 전까지 무효화할 수 없습니다. 강제 로그아웃 뒤에도 요청 ' + leaked + '번이 통과했습니다. 차단 목록을 서버에 두면 막을 수 있지만, 그러면 다시 요청마다 저장소를 조회하게 됩니다.' : ' 만료 시간이 지나면 다시 로그인해야 합니다.'));
+    if (M === 'jwt') sum.push('JWT는 서버가 아무것도 저장하지 않아 서버를 늘리기 쉽고 조회 비용도 없습니다.' + (c.kick ? ' 대신 한 번 발급한 토큰은 만료 전까지 무효화할 수 없습니다. ' + (leaked ? '강제 로그아웃 뒤에도 요청 ' + leaked + '번이 통과했습니다.' : '이번에는 강제 로그아웃 시점에 토큰이 이미 만료된 뒤라서, 그 뒤에 통과한 요청이 없었습니다.') + ' 차단 목록을 서버에 두면 막을 수 있지만, 그러면 다시 요청마다 저장소를 조회하게 됩니다.' : ' 만료 시간이 지나면 다시 로그인해야 합니다.'));
     if (M === 'refresh') sum.push('액세스 토큰을 짧게 두고 리프레시 토큰으로 재발급하면, 평소 요청은 조회 없이 처리하면서도 탈취나 강제 로그아웃의 피해를 액세스 토큰 만료 시간 안으로 줄일 수 있습니다.');
     if (!sum.length) sum.push('요청 5번 중 ' + ok + '번이 로그인 상태로 처리됐고, 401 응답은 ' + fail + '번이었습니다. 공용 저장소에는 ' + look + '번 접근했습니다.');
     return { events: ev, summary: sum, row: [ok + '번', fail + '번', look + '번', c.kick ? leaked + '번' : '해당 없음'] };
@@ -1766,7 +1766,7 @@ Lab.register({
     var st = orders.length ? orders.map(function (o) { return '주문 ' + o.id + ' 수량 ' + o.qty; }).join(', ') : '주문 없음';
     var sum = [];
     if (same && exec > 1) sum.push(M + ' 요청은 멱등해서 ' + exec + '번 실행돼도 서버 상태가 한 번 실행한 것과 같습니다.' + (M === 'DELETE' ? ' 두 번째부터 응답 코드는 404로 달라지지만, 멱등성은 응답이 아니라 서버 상태를 기준으로 합니다.' : '') + (M === 'GET' ? ' GET은 서버 상태를 바꾸지 않는 안전한 메서드이기도 합니다.' : ''));
-    if (!same) sum.push(M === 'POST' ? 'POST는 멱등하지 않습니다. 실행될 때마다 새 주문이 생겨서 같은 주문이 ' + (orders.length - 1) + '건 만들어졌습니다. 결제나 주문에서 중복 처리가 생기는 전형적인 경로입니다.' : '수량을 "1 증가"시키는 PATCH는 멱등하지 않습니다. 실행된 횟수만큼 더 올라갔습니다. 같은 변경을 "수량을 3으로" 같은 절대값으로 표현하면 멱등해집니다.');
+    if (!same) sum.push(M === 'POST' ? 'POST는 멱등하지 않습니다. 실행될 때마다 새 주문이 생겨서 같은 주문이 ' + (orders.length - 1) + '건 만들어졌습니다. 결제나 주문에서 중복 처리가 생기는 전형적인 경로입니다.' : '수량을 "1 증가"시키는 PATCH는 멱등하지 않습니다. 실행된 횟수만큼 더 올라갔습니다. 같은 변경을 "수량을 3으로" 같은 절댓값으로 표현하면 멱등해집니다.');
     if (useKey && sent > exec) sum.push('멱등키 덕분에 서버가 재시도를 같은 요청으로 알아보고 한 번만 실행했습니다. 멱등하지 않은 요청을 안전하게 재시도하려면 이런 장치가 필요합니다.');
     if (c.lost === 'req') sum.push('요청이 사라진 경우는 서버가 실행한 적이 없으므로 어떤 메서드든 재시도해도 됩니다. 문제는 클라이언트 입장에서 요청이 사라진 것인지 응답이 사라진 것인지 구별할 수 없다는 점입니다.');
     if (c.lost === 'none') sum.push('유실이 없으면 어떤 메서드든 한 번만 실행됩니다.');
@@ -3602,7 +3602,7 @@ Lab.register({
       sum.push('readiness 그룹도 기본으로는 readinessState 하나만 묻습니다. ' + (c.pay === 'UP' ? 'pay가 다른 상태를 답해도 이 응답은 달라지지 않습니다.' : 'pay가 ' + c.pay + ' 상태인데도 readiness는 UP으로 답합니다.') + ' pay의 상태를 반영하려면 그룹에 직접 넣어야 합니다.');
     } else if (c.path === 'readiness') {
       sum.push('readiness 그룹에 pay를 넣었으므로 pay의 상태가 readiness의 응답에 반영됩니다.' + (bad ? ' readiness가 503이면 이 서버는 "요청을 받을 준비가 안 됐다"고 답한 것이 됩니다.' : ''));
-      sum.push('바깥 서버를 readiness에 넣을지는 신중히 정합니다. 모든 서버가 같은 결제사를 보고 있다면, 결제사에 문제가 생겼을 때 모든 서버가 한꺼번에 준비 안 됨이 됩니다.');
+      sum.push('바깥 서버를 readiness에 넣을지는 신중히 정합니다. 모든 서버가 같은 결제사를 보고 있다면, 결제사에 문제가 생겼을 때 모든 서버가 한꺼번에 준비가 안 된 상태가 됩니다.');
     } else {
       sum.push({ UP: '물어본 구성 요소가 모두 UP이므로 전체도 UP이고 200으로 응답합니다.', DOWN: '구성 요소 하나만 DOWN이어도 전체가 DOWN이 되고 503으로 응답합니다. 이 주소로 상태를 확인하는 쪽은 이 서버를 비정상으로 봅니다.', OUT_OF_SERVICE: 'OUT_OF_SERVICE는 DOWN 다음으로 심각한 상태입니다. UP보다 앞이므로 전체 상태가 되고, DOWN과 마찬가지로 503으로 응답합니다.', UNKNOWN: 'UNKNOWN은 순서의 맨 뒤입니다. 다른 구성 요소가 UP이면 전체는 UP이고 200으로 응답합니다. "알 수 없음"은 고장으로 치지 않습니다.' }[c.pay]);
     }
@@ -3792,7 +3792,7 @@ Lab.register({
         register(1, f, w);
       } else {
         var same = key(A) === k;
-        push(CN[1] + ' 실행 시작: 같은 JVM에서 두 번째 테스트 클래스가 이어서 실행됩니다. ' + (next === 'mock' ? '첫 번째 클래스의 설정에 @MockitoBean ' + (A.repo ? 'OrderService' : 'OrderRepository') + ' 필드가 하나 더 있습니다.' : next === 'profile' ? '첫 번째 클래스와 같은데 @ActiveProfiles("test")가 붙어 있습니다.' : '애노테이션과 필드가 첫 번째 클래스와 같습니다.') + ' 이 클래스에도 컨텍스트가 필요합니다.');
+        push(CN[1] + ' 실행 시작: 같은 JVM에서 두 번째 테스트 클래스가 이어서 실행됩니다. ' + (next === 'mock' ? '첫 번째 클래스보다 @MockitoBean ' + (A.repo ? 'OrderService' : 'OrderRepository') + ' 필드가 하나 더 있습니다.' : next === 'profile' ? '첫 번째 클래스와 같은데 @ActiveProfiles("test")가 붙어 있습니다.' : '애노테이션과 필드가 첫 번째 클래스와 같습니다.') + ' 이 클래스에도 컨텍스트가 필요합니다.');
         if (same && k in cache) {
           st.use2 = cache[k]; st.how2 = '다시 씀'; used[1] = cache[k]; set(2, '테스트 메서드 실행 중', 'hot');
           push('컨텍스트 캐시 조회: 설정이 첫 번째 클래스와 같으므로 캐시에서 같은 컨텍스트를 찾습니다. 새로 만들지 않고 첫 번째 클래스가 쓰던 컨텍스트를 그대로 받습니다.', 'good');
@@ -4186,7 +4186,7 @@ Lab.register({
   presets: [
     { t: '처음 설정으로', q: '주문에서 회원으로 넘어가려는데 JDBC로 주문을 읽는 SQL만 직접 쓰면 어떻게 되나', d: 'JDBC로 주문을 읽었는데 order.getMember()가 null입니다.', v: { sc: 'nav', how: 'jdbc', fix: false } },
     { t: '회원을 읽는 SQL을 직접 더 쓰면', q: 'JDBC에서 회원을 읽는 SQL을 직접 더 써서 빠진 부분을 채우면', d: '되기는 합니다. SQL과 옮겨 담는 코드가 두 배가 됩니다.', v: { sc: 'nav', how: 'jdbc', fix: true } },
-    { t: 'JPA로 회원에 넘어가기', q: 'DB를 다루는 방식을 JPA로 바꿔 매핑만 적으면', d: 'SQL을 쓰지 않았는데 회원 이름이 나옵니다.', v: { sc: 'nav', how: 'jpa', fix: false } },
+    { t: 'JPA로 회원 쪽으로 넘어가기', q: 'DB를 다루는 방식을 JPA로 바꿔 매핑만 적으면', d: 'SQL을 쓰지 않았는데 회원 이름이 나옵니다.', v: { sc: 'nav', how: 'jpa', fix: false } },
     { t: '두 번 조회: JDBC', q: 'JDBC로 같은 주문을 두 번 조회하면', d: '같은 행인데 서로 다른 객체가 둘 생깁니다.', v: { sc: 'same', how: 'jdbc', fix: false } },
     { t: '두 번 조회: JPA', q: 'JPA로 같은 주문을 두 번 조회하면', d: 'SELECT는 한 번, 객체도 하나입니다.', v: { sc: 'same', how: 'jpa', fix: false } },
     { t: '필드 추가: SQL은 그대로', q: 'JDBC에서 회원에 필드 grade를 하나 추가하고 SQL은 그대로 두면', d: 'VIP로 저장했는데 오류 없이 사라집니다.', v: { sc: 'field', how: 'jdbc', fix: false } },
@@ -4536,7 +4536,7 @@ Lab.register({
       } else if (ln.k === 'commit') {
         if (r && (r.name !== st.snap.name || r.city !== st.snap.city)) {
           send('update', "update member set city = " + (r.city === null ? 'null' : "'" + r.city + "'") + ", name = '" + r.name + "' where id = 1"); st.db = { name: r.name, city: r.city }; st.dbCls = r.city === null ? 'bad' : 'good';
-          push('commit: 커밋 직전의 flush에서 영속 엔티티 ' + st.rName + '의 값을 처음 읽은 값(김철수, 서울)과 비교해 UPDATE를 보냅니다. DB의 1번 행은 name이 ' + r.name + ', city가 ' + (r.city === null ? 'NULL이 됐습니다. 고치려던 것은 이름뿐인데 city가 지워졌습니다.' : r.city + (r.city === '서울' ? '로 남았습니다.' : '이 됐습니다.')), r.city === null ? 'bad' : 'good');
+          push('commit: 커밋 직전의 flush에서 영속 엔티티 ' + st.rName + '의 값을 처음 읽은 값(김철수, 서울)과 비교해 UPDATE를 보냅니다. DB의 1번 행은 name이 ' + r.name + '이고, city가 ' + (r.city === null ? 'NULL이 됐습니다. 고치려던 것은 이름뿐인데 city가 지워졌습니다.' : r.city + (r.city === '서울' ? '로 남았습니다.' : '이 됐습니다.')), r.city === null ? 'bad' : 'good');
         } else push('commit: 이 영속성 컨텍스트에는 관리 중인 엔티티가 없습니다. 비교할 대상이 없으므로 UPDATE가 나가지 않습니다. DB의 이름은 "김철수" 그대로이고, 예외도 나지 않습니다.', 'bad');
       }
     });
@@ -5080,7 +5080,7 @@ Lab.register({
         made.push(n); got[n] = deps[n].slice();
       } else {
         made.push(n); st[n] = '객체만 생성됨 (주입 전)';
-        push(n + '의 객체를 기본 생성자로 먼저 만듭니다.' + (deps[n].length ? ' ' + how + ' ' + deps[n].length + '개는 아직 null입니다.' : ' 주입받을 것이 없습니다.'), '');
+        push(n + '의 객체를 기본 생성자로 먼저 만듭니다.' + (deps[n].length ? ' ' + how + '로 주입받을 의존성 ' + deps[n].length + '개는 아직 null입니다.' : ' 주입받을 것이 없습니다.'), '');
         for (var j = 0; j < deps[n].length; j++) { if (!create(deps[n][j], n)) { st[n] = '실패'; return false; } got[n].push(deps[n][j]); push(n + '의 ' + how + '에 ' + deps[n][j] + '를 주입했습니다.', ''); }
       }
       st[n] = '완성'; done.push(n); stack.pop();
@@ -5261,7 +5261,7 @@ Lab.register({
     var sizeBad = s.size !== '?' && mp && s.size !== (s.fk === '1' ? '1' : '0');
     P.box('r1', 16, 258, 320, 38, { cls: s.fk === '?' ? 'ghost' : s.fk === 'null' ? 'bad' : 'good', title: 'DB의 member.team_id', right: s.fk });
     P.box('r2', 344, 258, 320, 38, { cls: s.size === '?' ? 'ghost' : sizeBad ? 'bad' : 'plain', title: 'team.getMembers().size()', right: s.size === '?' ? '?' : s.size + '명' });
-    P.note('초록 화살표(member의 team 필드)가 주인입니다. JPA는 이 참조만 보고 외래 키 team_id를 씁니다. ' + (mp ? '점선 화살표(team의 members 목록)는 mappedBy가 붙은 쪽으로, 메모리에서 읽을 때만 쓰이고 SQL에는 반영되지 않습니다.' : 'mappedBy가 없으면 team의 members 목록도 따로 저장되는데, 저장되는 곳은 외래 키가 아니라 연결 테이블 team_member입니다.'));
+    P.note('초록 화살표(member의 team 필드)가 주인입니다. JPA는 이 참조만 보고 외래 키 team_id를 씁니다. ' + (mp ? '점선 화살표(team의 members 목록)는 mappedBy가 붙은 쪽이며, 메모리에서 읽을 때만 쓰이고 SQL에는 반영되지 않습니다.' : 'mappedBy가 없으면 team의 members 목록도 따로 저장되는데, 저장되는 곳은 외래 키가 아니라 연결 테이블 team_member입니다.'));
   },
   assume: '팀 하나와 회원 하나를 새로 저장하는 경우만 다룹니다. 이미 저장된 회원의 팀을 바꾸는 경우(UPDATE가 나가는 경우)는 다루지 않았습니다. 기본 키는 IDENTITY 전략이어서 persist를 부를 때 INSERT가 바로 나갑니다. 열두 가지 조합 모두를 Hibernate 7.4.5와 H2 데이터베이스에서 같은 구조의 코드로 실행해, 만들어진 테이블과 컬럼, 나간 SQL의 종류와 테이블별 횟수, 그 SQL이 persist 때 나갔는지 커밋 직전에 나갔는지, DB의 member.team_id 값, 연결 테이블의 행 수, team.getMembers().size()가 화면과 일치하는 것을 확인했습니다. 연결 테이블과 그 컬럼의 이름(team_member, team_id, members_id)은 Hibernate 7.4.5가 기본 규칙으로 지은 것이고 @JoinTable로 바꿀 수 있습니다. 화면의 SQL 문장은 읽기 쉽게 줄여 쓴 것이어서 실제 문장과 글자가 같지는 않습니다. SQL 로그에서는 테이블 이름 뒤에 별칭이 붙고 값 자리에 물음표가 들어갑니다.',
 });
@@ -5277,7 +5277,7 @@ Lab.register({
     { id: 'n', label: '함께 저장할 상대의 수', type: 'range', min: 1, max: 3, value: 2, step: 1, fmt: function (v) { return v + '개'; }, show: function (c) { return c.rel !== 'o2o'; }, hint: '다대일과 일대다에서는 한 팀에 속한 회원 수, 다대다에서는 한 회원이 고른 상품 수입니다.' },
   ],
   presets: [
-    { t: '처음 설정으로', q: '팀이 @OneToMany + @JoinColumn으로 회원 목록을 가질 때 회원 2개를 함께 저장하면 SQL은 어떻게 나가나', d: '일대다 단방향. INSERT가 끝난 뒤에 외래 키를 채우는 UPDATE가 회원 수만큼 더 나갑니다.', v: { rel: 'o2m', fk: 'main', n: 2 } },
+    { t: '처음 설정으로', q: '팀이 @OneToMany + @JoinColumn으로 회원 목록을 가질 때 회원 2명을 함께 저장하면 SQL은 어떻게 나가나', d: '일대다 단방향. INSERT가 끝난 뒤에 외래 키를 채우는 UPDATE가 회원 수만큼 더 나갑니다.', v: { rel: 'o2m', fk: 'main', n: 2 } },
     { t: '다대일', q: '관계의 종류를 회원이 팀을 가리키는 @ManyToOne으로 바꾸면', d: '테이블은 같은데 INSERT만으로 끝납니다.', v: { rel: 'm2o', fk: 'main', n: 2 } },
     { t: '일대다에서 @JoinColumn을 빼면', q: '일대다 단방향에서 @JoinColumn을 적지 않으면', d: '외래 키 대신 연결 테이블이 생깁니다.', v: { rel: 'o2mjt', fk: 'main', n: 2 } },
     { t: '다대다', q: '회원과 상품의 관계를 @ManyToMany로 바꾸면', d: '가운데에 연결 테이블 member_product가 자동으로 생깁니다.', v: { rel: 'm2m', fk: 'main', n: 2 } },
@@ -5686,10 +5686,10 @@ Lab.register({
     if (c.act === 'persist' && !cp) sum.push('cascade에 PERSIST(또는 ALL)가 없으면 부모에게 한 persist가 자식에게 전달되지 않습니다. 이 예처럼 mappedBy가 붙은 목록에서는 예외도 나지 않아서, 댓글이 저장되지 않은 것을 놓치기 쉽습니다.' + (c.cas === 'REMOVE' ? ' CascadeType.REMOVE는 삭제만 전달하므로 저장에는 영향이 없습니다.' : '') + (orph ? ' orphanRemoval도 저장과는 관계가 없습니다.' : ''));
     if (c.act === 'persist' && cp) sum.push('CascadeType.PERSIST' + (c.cas === 'ALL' ? '를 포함하는 ALL' : '') + ' 덕분에 em.persist를 게시글에 한 번만 불러도 댓글까지 저장됩니다. 영속성 전이는 "부모에게 한 일을 자식에게도 똑같이 해 준다"는 편의 기능일 뿐, 연관관계를 맺어 주는 기능은 아닙니다. 외래 키 값은 댓글의 post 필드가 정합니다.');
     if (c.act === 'remove' && ex) sum.push('자식이 남아 있는 부모는 DB가 지우지 못하게 막습니다(외래 키 제약). 부모와 자식을 함께 지우려면 cascade에 REMOVE(또는 ALL)를 넣거나 orphanRemoval = true를 켭니다.' + (c.cas === 'PERSIST' ? ' CascadeType.PERSIST는 저장만 전달하므로 삭제에는 영향이 없습니다.' : ''));
-    if (c.act === 'remove' && !ex) sum.push(cr ? 'CascadeType.REMOVE' + (c.cas === 'ALL' ? '를 포함하는 ALL' : '') + '은 부모에게 한 remove를 자식에게 전달합니다. 자식이 많으면 DELETE도 그만큼 나간다는 점에 주의합니다.' : 'cascade를 적지 않았는데도 댓글이 함께 지워졌습니다. orphanRemoval = true는 "부모가 없는 자식은 지운다"는 뜻이므로, 부모가 지워질 때도 자식을 지웁니다.');
+    if (c.act === 'remove' && !ex) sum.push(cr ? (c.cas === 'ALL' ? 'CascadeType.REMOVE를 포함하는 ALL은' : 'CascadeType.REMOVE는') + ' 부모에게 한 remove를 자식에게 전달합니다. 자식이 많으면 DELETE도 그만큼 나간다는 점에 주의합니다.' : 'cascade를 적지 않았는데도 댓글이 함께 지워졌습니다. orphanRemoval = true는 "부모가 없는 자식은 지운다"는 뜻이므로, 부모가 지워질 때도 자식을 지웁니다.');
     if (c.act === 'remove' && !ex) sum.push('이렇게 함께 지우는 설정은 자식을 이 부모 하나만 소유할 때 씁니다. 다른 엔티티도 그 자식을 참조하고 있다면 의도하지 않은 삭제가 됩니다.');
     if (c.act === 'orphan' && orph) sum.push('orphanRemoval = true이면 컬렉션에서 빼는 것이 곧 삭제입니다. em.remove(comment)를 부르지 않았는데 DELETE가 나갔습니다.' + (c.cas === 'none' || c.cas === 'PERSIST' ? ' 이 동작은 cascade 설정과 따로 움직입니다.' : ''));
-    if (c.act === 'orphan' && !orph) sum.push('목록에서 뺐을 뿐이므로 DB의 댓글은 그대로입니다. ' + (cr ? 'CascadeType.' + c.cas + '의 REMOVE는 "부모를 remove할 때 자식도 remove"일 뿐, 목록에서 빠진 자식을 지우는 기능이 아닙니다. ' : '') + '메모리의 목록(1개)과 DB(2개)가 어긋났고, 다음에 다시 조회하면 댓글은 다시 둘입니다. 목록에서 뺀 것만으로 지우고 싶다면 orphanRemoval = true를 켭니다.');
+    if (c.act === 'orphan' && !orph) sum.push('목록에서 뺐을 뿐이므로 DB의 댓글은 그대로입니다. ' + (cr ? (c.cas === 'ALL' ? 'CascadeType.ALL에 든 REMOVE는' : 'CascadeType.REMOVE는') + ' "부모를 remove할 때 자식도 remove"일 뿐, 목록에서 빠진 자식을 지우는 기능이 아닙니다. ' : '') + '메모리의 목록(1개)과 DB(2개)가 어긋났고, 다음에 다시 조회하면 댓글은 다시 둘입니다. 목록에서 뺀 것만으로 지우고 싶다면 orphanRemoval = true를 켭니다.');
     return { events: ev, summary: sum, sql: { call: call.join(',') || '-', commit: commit.join(',') || '-' }, row: [sel + '번', write, ex || '없음', '게시글 ' + np + '개 · 댓글 ' + nc + '개'] };
   },
   stName: function (k) { return { none: '아직 없음', 'new': '비영속 (JPA가 모름)', lazy: '아직 읽지 않음', managed: '관리 중', removed: '삭제 예정', out: '목록에서 빠짐', deleted: '삭제됨' }[k]; },
@@ -5718,7 +5718,7 @@ Lab.register({
     P.box('res', 16, 254, 648, 34, { cls: s.ex ? 'bad' : 'plain', title: s.ex ? '예외: ' + s.ex : 'DB로 나간 SQL ' + s.sent.length + '건', right: s.ex ? '롤백됨' : '' });
     P.note('왼쪽의 화살표는 게시글의 comments 목록에 그 댓글이 들어 있다는 뜻입니다. 초록은 영속성 컨텍스트가 관리하는 객체, 빨강은 삭제 예정, 노랑은 목록에서 빠진 댓글입니다. 가운데 화살표는 이번 단계에서 DB로 SQL이 나갔다는 표시입니다.');
   },
-  assume: '양방향 연관관계(@OneToMany(mappedBy)와 @ManyToOne), 기본 키는 IDENTITY 전략, 하나의 트랜잭션 안에서 실행한다고 보았습니다. 스물네 가지 조합(cascade 넷, orphanRemoval 둘, 동작 셋)을 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 나간 SQL의 수와 순서, 예외, 끝난 뒤 DB에 남은 행 수가 화면과 일치하는 것을 확인했습니다. 화면의 SQL 문장은 읽기 쉽게 줄인 것이며 실제 문장의 글자와는 다릅니다. "cascade 없이 부모만 persist하면 예외 없이 자식이 빠진다"는 결과는 댓글 목록에 mappedBy가 붙은 이 매핑에서의 결과입니다. 목록 쪽이 외래 키를 직접 관리하는 단방향 @OneToMany(@JoinColumn)로 바꿔 같은 코드를 실행하면 커밋할 때 TransientPropertyValueException이 나고 게시글도 저장되지 않는 것을 같은 환경에서 확인했습니다. 반대로 저장되지 않은 게시글을 가리키는 댓글만 persist하는 경우는 이 실습에서 다루지 않았습니다. 기본 키가 SEQUENCE 전략이면 INSERT가 persist를 부를 때가 아니라 커밋할 때 나갑니다(이 부분은 "영속성 컨텍스트" 실습에서 다룹니다). DB의 외래 키에 ON DELETE CASCADE를 걸어 두는 방법은 JPA의 cascade와 다른 기능이며 여기서는 다루지 않았습니다.',
+  assume: '양방향 연관관계(@OneToMany(mappedBy)와 @ManyToOne), 기본 키는 IDENTITY 전략, 하나의 트랜잭션 안에서 실행한다고 보았습니다. 스물네 가지 조합(cascade 넷, orphanRemoval 둘, 동작 셋)을 모두 실제 Hibernate 7.4.5와 H2 데이터베이스에서 실행해, 나간 SQL의 수와 순서, 예외, 끝난 뒤 DB에 남은 행 수가 화면과 일치하는 것을 확인했습니다. 화면의 SQL 문장은 읽기 쉽게 줄인 것이며 실제 문장의 글자와는 다릅니다. "cascade 없이 부모만 persist하면 예외 없이 자식이 빠진다"는 결과는 댓글 목록에 mappedBy가 붙은 이 매핑에서의 결과입니다. 목록 쪽이 외래 키를 직접 관리하는 단방향 @OneToMany(@JoinColumn)으로 바꿔 같은 코드를 실행하면 커밋할 때 TransientPropertyValueException이 나고 게시글도 저장되지 않는 것을 같은 환경에서 확인했습니다. 반대로 저장되지 않은 게시글을 가리키는 댓글만 persist하는 경우는 이 실습에서 다루지 않았습니다. 기본 키가 SEQUENCE 전략이면 INSERT가 persist를 부를 때가 아니라 커밋할 때 나갑니다(이 부분은 "영속성 컨텍스트" 실습에서 다룹니다). DB의 외래 키에 ON DELETE CASCADE를 걸어 두는 방법은 JPA의 cascade와 다른 기능이며 여기서는 다루지 않았습니다.',
 });
 
 Lab.register({
@@ -5903,7 +5903,7 @@ Lab.register({
       sum.push('JPQL은 엔티티 이름(Post)과 필드 이름(p.title, p.comments)으로 씁니다. 테이블 이름(posts)과 컬럼 이름은 Hibernate가 SQL로 바꿀 때 채워 넣습니다. 그래서 테이블 이름을 그대로 쓰면 이 쿼리처럼 거절됩니다.' + (page ? ' 페이징 설정은 쿼리가 만들어진 뒤의 일이라 결과에 영향이 없습니다.' : ''));
       return fail('UnknownEntityException', 'createQuery');
     }
-    push('em.createQuery(…): JPQL은 테이블이 아니라 엔티티를 대상으로 씁니다. from Post p의 Post는 클래스 이름이고' + (q === 'plain' ? '' : ', p.comments는 Post의 필드 이름') + '입니다. Hibernate가 이것을 posts' + (q === 'plain' ? ' 테이블을' : q === 'two' ? ', comments, files 테이블을' : '와 comments 테이블을') + ' 조회하는 SQL로 바꿉니다.', '');
+    push('em.createQuery(…): JPQL은 테이블이 아니라 엔티티를 대상으로 씁니다. from Post p의 Post는 클래스 이름' + (q === 'plain' ? '' : '이고, p.comments는 Post의 필드 이름') + '입니다. Hibernate가 이것을 posts' + (q === 'plain' ? ' 테이블을' : q === 'two' ? ', comments, files 테이블을' : '와 comments 테이블을') + ' 조회하는 SQL로 바꿉니다.', '');
     if (page) push('setFirstResult(0).setMaxResults(1): 결과 목록을 처음부터 1개만 달라고 요청합니다. 아직 SQL은 나가지 않았습니다.', '');
     if (q === 'two') {
       st.err = 'MultipleBagFetchException';
@@ -6080,7 +6080,7 @@ Lab.register({
     if (/^\d+원$/.test(st.read)) readText += first.db === null ? ' (DB에는 없는 행)' : st.read === dbText ? ' (DB와 같음)' : ' (DB는 ' + dbText + ')';
     if (op === 'each') sum.push('엔티티를 하나씩 고치면 메모리와 DB가 어긋날 일이 없지만, UPDATE가 상품 수만큼 나갑니다. 상품이 ' + n + '개면 ' + n + '번, 만 개면 만 번입니다. 같은 일을 벌크 UPDATE는 SQL 1번으로 끝냅니다.' + (dirty ? ' 먼저 5000원으로 고쳐 둔 상품 1은 거기에 500원이 더해져 5500원이 되고, UPDATE는 한 번만 나갑니다.' : ''));
     if (op !== 'each' && dirty) sum.push('벌크 연산을 실행하기 전에 미뤄 둔 변경이 먼저 flush됐습니다. 그래서 DB에서는 5000원으로 고친 뒤에 ' + (op === 'update' ? '500원이 더해져 5500원이 됐습니다. 순서가 반대였다면 5000원이 남았을 것입니다.' : '행이 지워졌습니다.'));
-    if (op === 'update' && (after === 'none' || after === 'find' || after === 'jpql')) sum.push('벌크 연산은 영속성 컨텍스트를 거치지 않으므로, 이미 조회해 둔 엔티티는 옛 값을 그대로 갖고 있습니다. ' + (after === 'find' ? 'em.find는 1차 캐시를 먼저 보기 때문에 다시 불러도 소용이 없습니다.' : after === 'jpql' ? 'JPQL로 다시 조회해 DB에서 새 값을 읽어 와도, 같은 식별자의 엔티티가 이미 있으면 그 엔티티가 우선합니다.' : '이 값으로 계산을 이어 가면 틀린 결과가 됩니다.'), '벌크 연산 뒤에는 em.clear()로 영속성 컨텍스트를 비우거나, 벌크 연산을 엔티티를 조회하기 전에 먼저 실행합니다. 스프링 데이터 JPA에서는 @Modifying(clearAutomatically = true)가 이 일을 해 줍니다.');
+    if (op === 'update' && (after === 'none' || after === 'find' || after === 'jpql')) sum.push('벌크 연산은 영속성 컨텍스트를 거치지 않으므로, 이미 조회해 둔 엔티티는 옛 값을 그대로 갖고 있습니다. ' + (after === 'find' ? 'em.find는 1차 캐시를 먼저 보기 때문에 다시 불러도 소용이 없습니다.' : after === 'jpql' ? 'JPQL로 다시 조회해 DB에서 새 값을 읽어 와도, 같은 식별자의 엔티티가 이미 있으면 그 엔티티가 우선합니다.' : '이 값으로 계산을 이어 가면 틀린 결과가 됩니다.'), '벌크 연산 뒤에는 em.clear()로 영속성 컨텍스트를 비우거나, 엔티티를 조회하기 전에 벌크 연산을 먼저 실행합니다. 스프링 데이터 JPA에서는 @Modifying(clearAutomatically = true)가 이 일을 해 줍니다.');
     if (op === 'update' && after === 'clear') sum.push('em.clear()로 영속성 컨텍스트를 비우면 그 뒤의 조회는 DB에서 새로 읽습니다. 벌크 연산 뒤에 가장 흔히 쓰는 방법입니다. 다만 비우기 전에 갖고 있던 객체(first)는 관리 대상에서 빠지므로 더는 쓰지 않습니다.');
     if (op === 'update' && after === 'refresh') sum.push('em.refresh는 지정한 엔티티 하나만 DB의 값으로 덮어씁니다. 벌크 연산이 고친 엔티티가 여러 개라면 하나씩 refresh하는 것보다 em.clear()가 간단합니다.');
     if (op === 'delete') sum.push(after === 'clear' ? '영속성 컨텍스트를 비우고 나서야 "상품이 없다"는 DB의 실제 상태가 보입니다.' : after === 'refresh' ? '지워진 행의 엔티티를 refresh하면 예외가 납니다. 벌크 DELETE 뒤에는 그 엔티티들을 더 쓰지 않도록 em.clear()로 비웁니다.' : after === 'jpql' ? 'JPQL 조회는 DB에 가므로 지워진 것이 보이지만, 영속성 컨텍스트에는 지워진 상품의 엔티티가 그대로 남아 있습니다. em.find로는 여전히 그 객체가 나옵니다.' : '벌크 DELETE로 지운 행의 엔티티가 영속성 컨텍스트에 남아 있어서, 지워진 상품을 있는 것처럼 다루게 됩니다. 벌크 연산 뒤에는 em.clear()로 비웁니다.');
@@ -7403,7 +7403,7 @@ Lab.register({
       innerText = got.length ? got.length + '행: ' + got.map(function (o) { return nul(o[1]); }).join(', ') : '0행';
       st.sub = innerText; st.hit = got.map(function (o) { return o[0]; });
       push('(' + innerSql + '): 괄호 안의 서브쿼리는 바깥 쿼리의 값을 쓰지 않으므로 혼자서 실행할 수 있습니다. item이 ' + item + '인 주문은 ' + (got.length ? got.length + '건이고 member_id는 ' + got.map(function (o) { return o[1]; }).join('과 ') + '입니다.' : '없습니다. 서브쿼리의 결과는 0행입니다.'), '');
-      if (got.length > 1) { err = { no: 1242, msg: 'Subquery returns more than 1 row' }; st.res = '오류 1242'; push('WHERE id = (...): = 의 오른쪽에는 값이 하나만 올 수 있습니다. 서브쿼리가 ' + got.length + '행을 돌려줬으므로 MySQL은 오류 1242(Subquery returns more than 1 row)로 문장을 거부합니다.', 'bad'); }
+      if (got.length > 1) { err = { no: 1242, msg: 'Subquery returns more than 1 row' }; st.res = '오류 1242'; push('WHERE id = (...): =의 오른쪽에는 값이 하나만 올 수 있습니다. 서브쿼리가 ' + got.length + '행을 돌려줬으므로 MySQL은 오류 1242(Subquery returns more than 1 row)로 문장을 거부합니다.', 'bad'); }
       else if (!got.length) { M.forEach(function (m) { st.verdict[m[0]] = ['알 수 없음', 'unk']; }); st.res = '0행'; push('WHERE id = (...): 서브쿼리가 0행이면 그 자리의 값은 NULL이 됩니다. id = NULL은 어느 행에서도 참이 되지 않으므로("알 수 없음") 결과는 0행입니다. 오류는 나지 않습니다.', 'bad'); }
       else { M.forEach(function (m) { var ok = m[0] === got[0][1]; st.verdict[m[0]] = [ok ? '참' : '거짓', ok ? 'in' : 'out']; if (ok) out.push(m[1]); }); st.res = out.length + '행'; push('WHERE id = (...): 서브쿼리가 값 하나 ' + got[0][1] + '을 돌려줬으므로 조건은 WHERE id = ' + got[0][1] + '과 같습니다. ' + out.join(', ') + ' ' + out.length + '행이 나옵니다.', 'good'); }
       type = err ? '-' : 'SUBQUERY'; st.exp = type;
@@ -7450,7 +7450,7 @@ Lab.register({
       push('EXPLAIN: member를 읽는 줄의 select_type이 SIMPLE이고, SUBQUERY나 DEPENDENT SUBQUERY 줄이 없습니다. 문장의 모양은 상관 서브쿼리지만, MySQL 8.4는 이것을 member와 orders의 조인(' + (notE ? '안티조인' : '세미조인') + ')으로 바꿔 실행하므로 DEPENDENT SUBQUERY로 나오지 않습니다. 결과는 위에서 따져 본 것과 같습니다.', '');
     }
     var resText = err ? '-' : out.length ? out.length + '행: ' + out.join(', ') : '0행';
-    if (kind === 'scalar') sum.push({ one: '값 하나를 돌려주는 서브쿼리(스칼라 서브쿼리)는 =, <, > 같은 비교의 한쪽에 값처럼 쓸 수 있습니다. 반드시 한 컬럼, 많아야 한 행만 돌려줘야 합니다.', two: '지금 데이터에서 한 행이 나온다고 안심할 수 없습니다. 데이터가 늘어 두 행이 되는 순간 오류가 납니다. 여러 행이 나올 수 있는 자리라면 = 대신 IN을 쓰고(이 예에서는 김철수와 이영희가 나옵니다), 값 하나가 필요하다면 서브쿼리가 반드시 한 행만 돌려주게 조건을 적습니다.', zero: '서브쿼리가 0행이면 오류가 아니라 NULL이 됩니다. NULL과의 비교는 참이 되지 않으므로 결과가 조용히 0행이 됩니다. 두 행일 때는 오류로 알려 주지만 0행일 때는 알려 주지 않습니다.' }[c.pick]);
+    if (kind === 'scalar') sum.push({ one: '값 하나를 돌려주는 서브쿼리(스칼라 서브쿼리)는 =, <, > 같은 비교의 한쪽에 값처럼 쓸 수 있습니다. 반드시 한 컬럼, 많아야 한 행만 돌려줘야 합니다.', two: '서브쿼리가 두 행을 돌려줘서 오류가 났습니다. 처음에는 한 행만 나오던 쿼리도 데이터가 늘어 두 행이 되는 순간 이렇게 됩니다. 여러 행이 나올 수 있는 자리라면 = 대신 IN을 쓰고(이 예에서는 김철수와 이영희가 나옵니다), 값 하나가 필요하다면 서브쿼리가 반드시 한 행만 돌려주게 조건을 적습니다.', zero: '서브쿼리가 0행이면 오류가 아니라 NULL이 됩니다. NULL과의 비교는 참이 되지 않으므로 결과가 조용히 0행이 됩니다. 두 행일 때는 오류로 알려 주지만 0행일 때는 알려 주지 않습니다.' }[c.pick]);
     if (kind === 'corr') sum.push('상관 서브쿼리는 바깥 행의 수만큼 다시 실행될 수 있습니다. 바깥 행이 4개면 4번이지만 10만 개면 10만 번입니다. 이 예와 같은 결과는 LEFT JOIN과 GROUP BY로도 구할 수 있습니다.');
     if (kind === 'in') sum.push('IN은 "목록에 같은 값이 하나라도 있는가"입니다. 목록에 NULL이 섞여 있어도 같은 값을 찾으면 참이고, 못 찾은 행은 거짓이든 알 수 없음이든 어차피 빠지므로 결과가 달라지지 않습니다. 문제는 NOT IN에서 생깁니다.');
     if (kind === 'exists') sum.push('EXISTS는 값을 비교하지 않고 "조건에 맞는 행이 있는가"만 봅니다. 이 예에서 IN과 EXISTS는 같은 결과를 냈고 MySQL 8.4는 둘 다 조인으로 바꿔 실행했습니다. 어느 쪽이 빠른지는 문장의 모양이 아니라 실행 계획을 보고 판단합니다.');
@@ -7616,7 +7616,7 @@ Lab.register({
       if (done) P.arrow('a' + r.id, 's' + r.id + ':r', 'd' + r.id + ':l', { cls: cur ? 'hot' : 'mut' });
     });
     P.text('fn', 340, 36, this.FN[c.fn][0], { anchor: 'middle', bold: true });
-    P.note('왼쪽의 한 행이 오른쪽의 한 행으로 그대로 이어집니다. 파란 상자는 A팀, 노란 상자는 B팀이며' + (part ? ', 팀 사이의 빈 줄이 PARTITION BY로 나눈 경계입니다.' : ' 팀을 나누지 않고 한 줄로 세웠습니다.'));
+    P.note('왼쪽의 한 행이 오른쪽의 한 행으로 그대로 이어집니다. 파란 상자는 A팀, 노란 상자는 B팀이며' + (part ? ', 팀 사이의 빈 줄이 PARTITION BY로 나눈 경계입니다.' : ' 팀을 나누지 않아 모든 행이 한 줄로 이어집니다.'));
   },
   assume: '스물네 가지 조합 모두, 화면의 SQL과 같은 문장을 이 PC의 MySQL 8.4에서 실행해 결과 행 수와 행마다 붙은 값을 대조했습니다. 누계에 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW를 적었을 때의 값도 같은 방법으로 확인했습니다. 동점인 행 가운데 어느 행이 먼저 놓이는지는 SQL이 정하지 않으므로(MySQL 문서의 ROW_NUMBER 설명), 화면에서 동점인 두 사람의 순서는 한 가지 예이며 대조는 이름이 아니라 팀, 점수, 붙은 값으로 했습니다. 윈도우 함수는 MySQL 8.0부터 쓸 수 있습니다. 단계 문장의 계산 방법(자기보다 높은 행의 수에 1을 더함 등)은 함수의 정의를 풀어 쓴 것이고, 실제 DB는 정렬한 뒤 한 번 훑으며 값을 구합니다.',
 });
@@ -7734,7 +7734,7 @@ Lab.register({
     if (d.trgUpd || d.trgFail) P.arrow('tUpd', 'trg:r:0.65', 'product:l:0.7', d.trgFail ? { cls: 'bad', label: '실패' } : { cls: 'bad' });
     if (d.trgLog) P.arrow('tLog', 'trg:b:0.85', 'slog:l:0.6', { cls: 'bad' });
     if (d.view) P.arrow('vRead', 'view:r', 'product:b:0.12', { cls: 'good' });
-    P.note('노란 화살표는 애플리케이션이나 프로시저가 실행한 문장이고, 빨간 화살표는 트리거가 한 일입니다. 점선은 orders에 INSERT가 일어나 트리거가 자동으로 실행됐다는 표시입니다. 초록 화살표처럼 뷰는 조회할 때마다 product를 읽고, 왼쪽 아래의 복사본 테이블은 만들 때 복사해 둔 값을 그대로 갖고 있습니다.');
+    P.note('노란 화살표는 애플리케이션이나 프로시저가 실행한 문장이고, 빨간 화살표는 트리거가 한 일입니다. 점선은 orders에 INSERT가 일어나 트리거가 자동으로 실행됐다는 표시입니다. 초록 화살표는 뷰가 조회할 때마다 product를 읽는다는 표시입니다. 왼쪽 아래의 복사본 테이블은 만들 때 복사해 둔 값을 그대로 갖고 있습니다.');
   },
   assume: '열두 가지 조합 모두, 화면의 SQL과 같은 테이블, 뷰, 프로시저, 트리거를 이 PC의 MySQL 8.4(InnoDB, 자동 커밋 켜짐)에 만들고 주문 문장을 실행해 오류 여부, 각 테이블의 행 수, 재고, 뷰와 복사본의 값을 대조했습니다. 뷰가 데이터를 저장하지 않는다는 것은 information_schema에서 v_stock이 저장 엔진이 없는 VIEW로, stock_copy가 InnoDB 테이블로 나오는 것으로 확인했습니다. "트랜잭션으로 묶고 ROLLBACK하면 재고가 돌아온다"는 것도 같은 DB에서 한 번 실행해 확인했습니다. 트리거가 실패했을 때 원래 문장이 함께 취소되는 것은 InnoDB처럼 트랜잭션을 지원하는 엔진에서의 동작입니다. 프로시저 안에서 오류가 났을 때 어디까지 남는지는 자동 커밋 설정, 프로시저 안의 START TRANSACTION과 오류 처리기(HANDLER)에 따라 달라지며, 여기서는 그런 장치가 없는 가장 단순한 프로시저를 썼습니다. 재고가 모자랄 때의 오류는 CHECK 제약(MySQL 8.0.16부터 실제로 검사)에서 나오게 했습니다.',
 });
@@ -7799,7 +7799,7 @@ Lab.register({
   rowsText: function (c, r) { return r.rows === 'one' ? '1' : r.rows === 'few' ? (c.w === 'eq' ? '약 2' : '약 200') : '약 20,000'; },
   rowsCol: function (c, r) { return r.rows === 'one' ? '1행' : r.rows === 'few' ? '일부 (' + (c.w === 'eq' ? '약 2행' : '약 200행') + ')' : '테이블 전체 (약 2만 행)'; },
   TYPE: {
-    const: '기본 키나 유니크 인덱스에 값 하나를 "="로 주어, 맞는 행이 많아야 하나임이 보장되는 경우입니다. 한 번 찾으면 끝나는 가장 빠른 접근입니다.',
+    const: '기본 키나 유니크 인덱스에 값 하나를 "="로 주어, 맞는 행이 많아야 한 행임이 보장되는 경우입니다. 한 번 찾으면 끝나는 가장 빠른 접근입니다.',
     ref: '유니크가 아닌 인덱스에 "=" 조건을 준 경우입니다. 값이 같은 행이 여러 개일 수 있으므로, 인덱스에서 그 값이 시작되는 곳을 찾아 같은 값이 이어지는 동안 읽습니다.',
     range: '인덱스의 한 구간만 읽습니다. 인덱스는 정렬돼 있으므로 구간의 시작과 끝을 찾을 수 있습니다. BETWEEN, 부등호, IN, 앞부분이 정해진 LIKE가 여기에 해당합니다.',
     index: '인덱스 하나를 처음부터 끝까지 읽습니다(인덱스 풀 스캔). 이름과 달리 인덱스로 범위를 좁혔다는 뜻이 아닙니다. 전부 읽는다는 점은 ALL과 같고, 테이블 대신 그보다 작은 인덱스를 읽는다는 점만 다릅니다.',
@@ -7837,7 +7837,7 @@ Lab.register({
     var why = w === 'none' ? (r.type === 'index' ? '조건이 없어 전부 읽어야 하는데, 필요한 컬럼(id, name)이 모두 idx_name 인덱스에 들어 있어 테이블 대신 인덱스를 읽습니다. InnoDB의 인덱스에는 기본 키 값이 함께 들어 있습니다.' : 'WHERE 조건이 없어 모든 행이 필요하므로 여기서는 당연한 결과입니다.')
       : w === 'pk' ? 'id는 기본 키이고 값 하나를 주었습니다.'
       : w === 'eq' ? 'idx_name은 유니크가 아닌 인덱스이고, name에 값 하나를 "="로 주었습니다.'
-      : w === 'prefix' ? "'user001%'은 user001로 시작하는 이름이라는 뜻이므로, 이름순으로 정렬된 인덱스에서 한 구간이 됩니다."
+      : w === 'prefix' ? "'user001%'는 user001로 시작하는 이름이라는 뜻이므로, 이름순으로 정렬된 인덱스에서 한 구간이 됩니다."
       : w === 'suffix' ? "name에 인덱스가 있지만 범위를 좁히는 데 쓰지 못했습니다. 인덱스는 이름의 첫 글자부터 차례로 정렬돼 있는데, '%00123'은 앞부분이 무엇이든 될 수 있어 읽기 시작할 곳을 정할 수 없습니다." + (r.type === 'index' ? ' 다만 필요한 컬럼이 모두 인덱스에 있어, 테이블 대신 인덱스 전체를 읽습니다.' : '')
       : w === 'func' ? "name에 인덱스가 있지만 범위를 좁히는 데 쓰지 못했습니다. 인덱스에는 name의 원래 값이 정렬돼 있을 뿐, LEFT(name, 7)을 계산한 결과는 들어 있지 않습니다. 행마다 함수를 계산해 봐야 하므로 읽을 구간을 정할 수 없습니다." + (r.type === 'index' ? ' 다만 필요한 컬럼이 모두 인덱스에 있어, 테이블 대신 인덱스 전체를 읽습니다.' : '')
       : 'age 컬럼에는 인덱스가 없으므로 모든 행을 읽으며 age를 확인하는 수밖에 없습니다.';
@@ -7954,7 +7954,7 @@ Lab.register({
   ],
   num: function (x) { return String(Math.round(x)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); },
   code: function (c) {
-    var from = c.drive === 'm' ? '  FROM member m\n  STRAIGHT_JOIN orders o ON o.member_id = m.id;   -- 적은 순서대로 읽게 한다' : c.drive === 'o' ? '  FROM orders o\n  STRAIGHT_JOIN member m ON m.id = o.member_id;   -- 적은 순서대로 읽게 한다' : '  FROM member m\n  JOIN orders o ON o.member_id = m.id;            -- 읽는 순서는 옵티마이저가 정한다';
+    var from = c.drive === 'm' ? '  FROM member m\n  STRAIGHT_JOIN orders o ON o.member_id = m.id;   -- FROM에 쓴 순서대로 읽게 한다' : c.drive === 'o' ? '  FROM orders o\n  STRAIGHT_JOIN member m ON m.id = o.member_id;   -- FROM에 쓴 순서대로 읽게 한다' : '  FROM member m\n  JOIN orders o ON o.member_id = m.id;            -- 읽는 순서는 옵티마이저가 정한다';
     return '-- member: 1,000행 (기본 키 id)\n-- orders: 10,000행 (회원 한 명에 주문 10건)\n' + (c.idx ? 'CREATE INDEX idx_member ON orders (member_id);' : '-- orders.member_id에 인덱스 없음') + '\n\nEXPLAIN FORMAT=TREE\nSELECT ' + (c.hash ? '' : '/*+ NO_BNL() */ ') + 'm.name, o.amount\n' + from;
   },
   label: function (c) { return 'member_id 인덱스 ' + (c.idx ? '있음' : '없음') + ' · ' + { m: 'member 먼저', o: 'orders 먼저', auto: '옵티마이저에게 맡김' }[c.drive] + (c.hash ? '' : ' · 해시 조인 끔'); },
@@ -7980,7 +7980,7 @@ Lab.register({
     push('쿼리: member와 orders를 회원 번호로 짝지어 회원 이름과 주문 금액을 조회합니다. member는 1,000행, orders는 10,000행이고 회원 한 명에 주문이 10건씩 있습니다. 결과는 10,000행입니다.');
     st.stage = 2;
     if (c.drive === 'auto') push('먼저 읽을 테이블 정하기: 옵티마이저에게 맡겼습니다. ' + (c.idx ? '어느 순서로 읽어도 나중 테이블을 인덱스로 찾아갈 수 있습니다(member.id는 기본 키, orders.member_id에는 idx_member). 옵티마이저는 행이 적은 member를 먼저 읽는 쪽의 비용이 낮다고 계산했습니다.' : 'orders.member_id에는 인덱스가 없지만 member.id는 기본 키입니다. 옵티마이저는 인덱스로 찾아갈 수 있는 member를 나중에 읽도록, orders를 먼저 읽기로 했습니다. FROM에 적은 순서와 반대입니다.'));
-    else push('먼저 읽을 테이블 정하기: STRAIGHT_JOIN으로 적은 순서대로 읽게 했으므로 ' + F + '를 먼저 읽습니다. 먼저 읽는 테이블을 구동 테이블이라고 부릅니다.');
+    else push('먼저 읽을 테이블 정하기: STRAIGHT_JOIN으로 FROM에 쓴 순서대로 읽게 했으므로 ' + F + '를 먼저 읽습니다. 먼저 읽는 테이블을 구동 테이블이라고 부릅니다.');
     st.stage = 3;
     if (p.algo === 'nl') push('짝을 찾는 방법 정하기: 나중에 읽는 ' + S + '의 조인 컬럼 ' + (p.second === 'm' ? 'id는 기본 키입니다.' : 'member_id에 인덱스 idx_member가 있습니다.') + ' 그래서 중첩 루프 조인을 씁니다. ' + F + '의 행을 하나 읽을 때마다 ' + S + '에서 짝이 되는 행을 인덱스로 찾아가는 방식입니다. EXPLAIN의 type은 ' + p.type + '입니다.', 'good');
     else if (p.algo === 'hash') push('짝을 찾는 방법 정하기: 나중에 읽는 orders의 조인 컬럼 member_id에 인덱스가 없습니다. 중첩 루프로 하면 member의 행마다 orders 10,000행을 모두 읽어야 합니다. MySQL 8은 이런 경우에 해시 조인을 고릅니다. EXPLAIN FORMAT=TREE의 첫 줄이 Inner hash join으로 나옵니다.', '');
@@ -8001,8 +8001,8 @@ Lab.register({
     }
     st.stage = 7; st.cur = -1; st.all = true; st.loops = p.loops;
     push('결과 10,000행이 나옵니다. 두 테이블에서 읽은 행은 ' + F + ' ' + num(p.firstRows) + '행과 ' + S + ' ' + num(p.loops * p.each) + '행, 합쳐서 ' + num(p.total) + '행입니다.', p.algo === 'scan' ? 'bad' : 'good');
-    if (p.algo === 'nl' && p.second === 'o') sum.push('중첩 루프 조인이 읽는 양은 "먼저 읽는 테이블의 행 수 × 한 번 찾을 때 읽는 행 수"입니다. 나중 테이블의 조인 컬럼에 인덱스가 있으면 한 번에 필요한 행만 읽습니다. 다른 테이블의 기본 키를 가리키는 컬럼(여기서는 orders.member_id)에 인덱스를 만들어 두라는 이유입니다.');
-    if (p.algo === 'nl' && p.second === 'm') sum.push('orders를 먼저 읽으면 member는 기본 키로 한 행씩 찾습니다(type eq_ref). 조인 컬럼의 인덱스는 "나중에 읽는 테이블" 쪽에 있어야 쓰입니다.' + (c.drive === 'auto' ? ' 옵티마이저는 이렇게 인덱스로 찾아갈 수 있는 순서를 스스로 고릅니다. 다만 읽은 행은 20,000행으로, orders.member_id에 인덱스가 있어 member를 먼저 읽을 때의 11,000행보다 많습니다.' : ' 이 순서에서는 orders.member_id에 인덱스가 있든 없든 계획이 같습니다.'));
+    if (p.algo === 'nl' && p.second === 'o') sum.push('중첩 루프 조인이 읽는 양은 "먼저 읽는 테이블의 행 수 × 한 번 찾을 때 읽는 행 수"입니다. 나중 테이블의 조인 컬럼에 인덱스가 있으면 한 번에 필요한 행만 읽습니다. 다른 테이블의 기본 키를 가리키는 컬럼(여기서는 orders.member_id)에 인덱스를 만들어 두라고 하는 이유입니다.');
+    if (p.algo === 'nl' && p.second === 'm') sum.push('orders를 먼저 읽으면 member는 기본 키로 한 행씩 찾습니다(type eq_ref). 조인 컬럼의 인덱스는 "나중에 읽는 테이블" 쪽에 있어야 쓰입니다.' + (c.drive === 'auto' ? ' 옵티마이저는 이렇게 인덱스로 찾아갈 수 있는 순서를 스스로 고릅니다. 다만 읽은 행은 20,000행으로, orders.member_id에 인덱스가 있을 때 member를 먼저 읽는 경우의 11,000행보다 많습니다.' : ' 이 순서에서는 orders.member_id에 인덱스가 있든 없든 계획이 같습니다.'));
     if (c.drive === 'auto' && c.idx) sum.push('옵티마이저에게 맡기면 통계를 보고 비용이 낮은 순서를 고릅니다. 여기서는 행이 적은 member를 먼저 읽었습니다. 데이터의 양과 분포가 달라지면 선택도 달라질 수 있습니다.');
     if (p.algo === 'hash') sum.push('해시 조인은 한 테이블로 해시 테이블을 만들고 다른 테이블을 한 번만 읽습니다. 인덱스 없는 중첩 루프라면 1,000 × 10,000 = 1,000만 행을 읽었을 것을 11,000행으로 끝냅니다. EXPLAIN의 Extra에는 Using join buffer (hash join)이라고 나옵니다.');
     if (p.algo === 'hash') sum.push('그래도 인덱스가 필요 없어지는 것은 아닙니다. 해시 조인은 orders를 통째로 읽으므로, 회원 10명의 주문만 찾을 때에도 orders 10,000행을 다 읽습니다. 인덱스가 있으면 10번 찾아가 100행만 읽습니다.');
@@ -11389,7 +11389,7 @@ Lab.register({
 Lab.register({
   id: 'index', nav: '인덱스와 풀 스캔', cat: '데이터베이스', mode: 'step',
   title: '인덱스가 있는데 왜 안 탈까',
-  intro: '조건에 맞는 행을 찾는 방법은 두 가지입니다. 테이블을 처음부터 끝까지 읽거나(풀 스캔), 인덱스에서 위치를 찾아 그 행만 읽거나. 어느 쪽이 싼지는 조건에 걸리는 행의 비율에 달려 있고, 옵티마이저가 통계를 보고 고릅니다.',
+  intro: '조건에 맞는 행을 찾는 방법은 두 가지입니다. 테이블을 처음부터 끝까지 읽는 방법(풀 스캔)과, 인덱스에서 위치를 찾아 그 행만 읽는 방법입니다. 어느 쪽이 싼지는 조건에 걸리는 행의 비율에 달려 있고, 옵티마이저가 통계를 보고 고릅니다.',
   terms: ['인덱스', 'B-트리 인덱스', '풀 테이블 스캔', '실행 계획(EXPLAIN)', '옵티마이저', '카디널리티와 선택도'], ranks: ['index', 'tuning', 'dbengine'],
   controls: [
     { id: 'rows', label: '테이블 행 수', type: 'select', value: '100000', options: [['1000', '1천 행'], ['100000', '10만 행'], ['10000000', '1천만 행']] },
@@ -13614,7 +13614,7 @@ Lab.register({
       sum.push('Animal 타입 변수로 부를 수 있는 것은 Animal에 적힌 메서드뿐이어서, 이 코드에는 d.bark(); 줄이 없습니다. Animal 변수로 bark를 부르면 컴파일러가 bark를 찾을 수 없다고 알립니다.');
     } else if (ok && c.ext) {
       sum.push('변수 d의 타입은 Animal이지만 담긴 객체가 Dog 객체이므로, 실행된 것은 Dog에 적힌 eat이고 "개가 먹는다"가 출력됐습니다. Animal에도 eat이 있지만 실행되지 않았습니다.');
-      sum.push('컴파일러는 변수의 타입(Animal)을 보고 eat을 부를 수 있는지만 확인합니다. 실제로 어느 eat이 실행될지는 실행할 때 객체의 클래스(Dog)를 보고 정해지고, 이것이 재정의입니다.');
+      sum.push('컴파일러는 변수의 타입(Animal)을 보고 eat을 부를 수 있는지만 확인합니다. 실제로 어느 eat이 실행될지는 실행할 때 객체의 클래스(Dog)를 보고 정해집니다. Dog가 eat을 재정의했으므로 Dog의 eat이 실행됩니다.');
     } else if (ok) {
       sum.push('extends Animal을 지웠어도 Dog에 eat을 직접 적었으므로 컴파일에 성공했고, Dog에 적힌 eat이 실행되어 "개가 먹는다"가 출력됐습니다. 이 eat은 물려받은 것이 아니라 Dog가 직접 적은 것입니다.');
       sum.push('extends가 없으면 Dog에는 자기가 적은 것만 있습니다. Animal의 eat과 이름이 같아도 둘은 이어지지 않으므로 이것은 재정의가 아닙니다. 이어 주는 것은 extends입니다.');
@@ -14306,7 +14306,7 @@ Lab.register({
     });
     P.box('rn', 330, 16, 336, 64, { cls: hot === 'rn' ? 'hot now' : 'plain', title: 'Run (표시)', sub: c.keep ? '@Retention(RUNTIME): 실행 중에도 남음' : '@Retention 없음: 실행 중에는 남지 않음' });
     if (c.reader) {
-      P.box('rd', 330, 96, 336, 116, { cls: hot === 'rd' ? 'hot now' : 'plain', title: '읽는 쪽 (우리가 쓴 for 문)', sub: [cur ? cur + ' 메서드에 Run이 붙었는지 묻는 중' : 'Run이 붙은 메서드만 찾아 부른다', ph === 'call' ? 'm.invoke(job)으로 부르는 중' : ph === 'skip' ? '붙어 있지 않으므로 부르지 않음' : ' '] });
+      P.box('rd', 330, 96, 336, 116, { cls: hot === 'rd' ? 'hot now' : 'plain', title: '읽는 쪽 (우리가 쓴 for 문)', sub: [cur ? cur + ' 메서드에 Run이 붙었는지 묻는 중' : 'Run이 붙은 메서드만 찾아 부른다', ph === 'call' ? 'm.invoke(job)으로 부르는 중' : ph === 'skip' ? (sim.c.keep ? '붙어 있지 않으므로 부르지 않음' : '실행 중에는 표시가 보이지 않으므로 부르지 않음') : ' '] });
     } else {
       P.box('rd', 330, 96, 336, 116, { cls: 'ghost', title: '읽는 쪽 (없음)', sub: 'Run을 찾아 부르는 코드가 없음' });
     }
@@ -14324,7 +14324,7 @@ Lab.register({
 Lab.register({
   id: 'thread_basic', nav: '스레드', cat: '기초개념', mode: 'step', basic: true, deep: ['thread'],
   title: '스레드는 무엇이고, start()는 무엇을 하는가',
-  intro: '스레드는 코드를 위에서 아래로 실행해 나가는 흐름 하나입니다. 자바 프로그램은 main이라는 이름의 스레드 하나로 시작하고, 이 스레드가 main 메서드를 위에서부터 실행합니다. 코드에서 새 스레드를 만드는 부분은 new Thread(() -> work())입니다. 괄호 안의 () -> work()는 "work()를 부르라"는 코드를 적어 새 흐름에게 맡기는 것이고, 이 줄은 Thread 객체를 만들 뿐 새 흐름은 만들지 않습니다. t.start()를 부르면 그때 새 흐름이 하나 생겨, 맡긴 코드를 새 스레드가 실행합니다. t.join()은 그 스레드가 끝날 때까지 main이 기다리게 하고, Thread.currentThread().getName()은 지금 이 줄을 실행하고 있는 스레드의 이름을 알려 줍니다. 이 실습은 start() 줄을 run() 호출로 바꾸거나 지우고 스레드를 하나 더 만들어 가며 같은 코드를 컴파일하고 실행해, work와 마지막 줄을 실행한 스레드의 이름과 새로 시작된 스레드의 수를 봅니다. (두 흐름이 동시에 움직일 때 생기는 일은 다루지 않습니다. join으로 기다리게 해서 출력 순서가 정해지는 모양만 봅니다.)',
+  intro: '스레드는 코드를 위에서 아래로 실행해 나가는 흐름 하나입니다. 자바 프로그램은 main이라는 이름의 스레드 하나로 시작하고, 이 스레드가 main 메서드를 위에서부터 실행합니다. 코드에서 스레드 객체를 만드는 부분은 new Thread(() -> work())입니다. 괄호 안의 () -> work()는 "work()를 부르라"는 코드를 적어 새 흐름에게 맡기는 것이고, 이 줄은 Thread 객체를 만들 뿐 새 흐름은 만들지 않습니다. t.start()를 부르면 그때 새 흐름이 하나 생겨, 맡긴 코드를 새 스레드가 실행합니다. t.join()은 그 스레드가 끝날 때까지 main이 기다리게 하고, Thread.currentThread().getName()은 지금 이 줄을 실행하고 있는 스레드의 이름을 알려 줍니다. 이 실습은 start() 줄을 run() 호출로 바꾸거나 지우고 스레드를 하나 더 만들어 가며 같은 코드를 컴파일하고 실행해, work와 마지막 줄을 실행한 스레드의 이름과 새로 시작된 스레드의 수를 봅니다. (두 흐름이 동시에 움직일 때 생기는 일은 다루지 않습니다. join으로 기다리게 해서 출력 순서가 정해지는 모양만 봅니다.)',
   terms: ['프로세스와 스레드', 'main 스레드와 스레드의 이름', 'start()와 run()', 'join()'],
   controls: [
     { id: 'how', label: 'start를 부르는 줄', type: 'select', value: 'start', options: [['start', 't.start()를 부른다'], ['run', 't.run()을 부른다'], ['none', '부르지 않는다']] },
@@ -15403,7 +15403,7 @@ Lab.register({
     P.box('n2', 344, 242, 322, 36, { cls: s && s.ns ? 'wait' : 'ghost', title: '나간 SELECT 문', right: (s ? s.ns : 0) + '번' });
     if (s && s.o1 && !s.o1.inn && s.o1.name === '이영희') P.note('영속성 컨텍스트 밖의 객체는 name을 바꿔도 JPA가 알지 못합니다.');
   },
-  assume: 'Hibernate 7.4.5와 H2 2.4.240(메모리 DB)에서 실행해 대조했습니다. 스프링 없이 SessionFactory를 직접 만들었고, JDK 21입니다. 여섯 가지 조합을 모두, 화면의 코드 줄을 글자 그대로(주석 줄 포함) 컴파일해 실행했습니다. 조합마다 DB와 SessionFactory를 새로 만들고, DB에는 실행 전에 JDBC로 (1, 김철수) 한 행을 미리 넣었습니다. 이 준비의 SQL은 세지 않았습니다. 화면에 보이지 않는 것은 Member 엔티티(@Entity, @Id가 붙은 id와 name, 생성자, setName과 getName)와 EntityManager를 얻고 닫는 코드이고, 트랜잭션은 em에서 직접 시작하고 커밋했습니다. 대조한 것은 커밋 뒤 다른 연결(순수 JDBC)로 조회한 name, Hibernate의 StatementInspector로 센 UPDATE와 SELECT 문의 수(SQL 원문과 나간 줄은 대조 출력에 남겼습니다), 코드가 화면에 찍은 m == m2입니다. 단계 문장이 기대는 사실도 코드 줄마다 바로 아래에 측정 줄을 끼운 두 번째 실행에서 쟀습니다. em.contains(m)(find로 가져온 뒤에는 true, new로 만든 객체와 detach로 뗀 뒤에는 false), UPDATE는 m.setName 줄이 아니라 commit 줄에서 나간다는 것, 같은 id를 다시 find할 때 find 조합에서는 SELECT가 늘지 않고 아직 커밋 전인데도 name이 이영희인 같은 객체를 받는다는 것(new와 detach 조합에서는 SELECT가 늘고 name이 김철수인 새 객체를 받는다는 것), Hibernate가 읽어 올 때의 값을 따로 기억한다는 것(내부 API로 보면 읽은 뒤 [김철수], detach 뒤에는 기억 없음)입니다. 이름을 이영희로 바꿨다가 김철수로 되돌린 뒤 커밋하면 UPDATE가 나가지 않는다는 것도 따로 실행해, "바꾸는 호출을 했는지"가 아니라 처음 값과 비교한다는 근거로 삼았습니다. 또 new로 만든 객체를 em.persist로 넘기면 em.contains가 true가 되고 커밋할 때 INSERT가 나가는 것도 실행해 확인했습니다. 문서가 정한 것은 Jakarta Persistence 3.2 명세의 3.1절(EntityManager마다 영속성 컨텍스트가 있고, 그 안에는 같은 식별자의 엔티티 인스턴스가 하나뿐이라는 것), 3.3절(엔티티 인스턴스의 생명주기: managed는 영속성 컨텍스트에 속한 상태, detached는 속하지 않거나 더는 속하지 않는 상태), 3.3.2절(persist로 managed가 되는 것), 3.3.4절(영속 엔티티의 상태가 트랜잭션 커밋 때 DB와 맞춰지는 것), 3.3.6절과 3.3.7절(영속성 컨텍스트에서 떼어 낸 인스턴스는 그 밖에서 살아간다는 것)입니다. 명세 페이지는 요약으로만 돌아와 이 절들의 원문 전체를 읽지는 못했습니다. 처음 값을 기억해 비교하는 방식과 나가는 SQL의 모양은 명세가 정한 것이 아니라 Hibernate 7.4.5에서 관찰한 동작이므로, 화면에는 SQL 문장 대신 횟수만 적었습니다. 이 실습은 em을 직접 만들어 쓰는 모양이라 스프링의 @Transactional과 함께 쓸 때(영속성 컨텍스트가 트랜잭션과 같이 만들어지고 끝납니다)나, 쓰기 지연, 쿼리를 실행하기 직전의 flush, em.persist로 새로 저장하는 일은 다루지 않으며, 세부는 "JPA는 SQL을 언제 보내나" 실습에서 다룹니다. MySQL에서의 실행 대조는 하지 않았습니다.',
+  assume: 'Hibernate 7.4.5와 H2 2.4.240(메모리 DB)에서 실행해 대조했습니다. 스프링 없이 SessionFactory를 직접 만들었고, JDK 21입니다. 여섯 가지 조합을 모두, 화면의 코드 줄을 글자 그대로(주석 줄 포함) 컴파일해 실행했습니다. 조합마다 DB와 SessionFactory를 새로 만들고, DB에는 실행 전에 JDBC로 (1, 김철수) 한 행을 미리 넣었습니다. 이 준비의 SQL은 세지 않았습니다. 화면에 보이지 않는 것은 Member 엔티티(@Entity, @Id가 붙은 id와 name, 생성자, setName과 getName)와 EntityManager를 얻고 닫는 코드이고, 트랜잭션은 em에서 직접 시작하고 커밋했습니다. 대조한 것은 커밋 뒤 다른 연결(순수 JDBC)로 조회한 name, Hibernate의 StatementInspector로 센 UPDATE와 SELECT 문의 수(SQL 원문과 나간 줄은 대조 출력에 남겼습니다), 코드가 화면에 찍은 m == m2입니다. 단계 문장이 기대는 사실도 코드 줄마다 바로 아래에 측정 줄을 끼운 두 번째 실행에서 쟀습니다. em.contains(m)(find로 가져온 뒤에는 true, new로 만든 객체와 detach로 뗀 뒤에는 false), UPDATE는 m.setName 줄이 아니라 commit 줄에서 나간다는 것, 같은 id를 다시 find할 때 find 조합에서는 SELECT가 늘지 않고 아직 커밋 전인데도 name이 이영희인 같은 객체를 받는다는 것(new와 detach 조합에서는 SELECT가 늘고 name이 김철수인 새 객체를 받는다는 것), Hibernate가 읽어 올 때의 값을 따로 기억한다는 것(내부 API로 보면 읽은 뒤 [김철수], detach 뒤에는 기억 없음)입니다. 이름을 이영희로 바꿨다가 김철수로 되돌린 뒤 커밋하면 UPDATE가 나가지 않는다는 것도 따로 실행해, "바꾸는 호출을 했는지"가 아니라 처음 값과 비교한다는 근거로 삼았습니다. 또 new로 만든 객체를 em.persist로 넘기면 em.contains가 true가 되고 커밋할 때 INSERT가 나가는 것도 실행해 확인했습니다. 문서가 정한 것은 Jakarta Persistence 3.2 명세의 3.1절(EntityManager마다 영속성 컨텍스트가 있고, 그 안에는 같은 식별자의 엔티티 인스턴스가 하나뿐이라는 것), 3.3절(엔티티 인스턴스의 생명주기: managed는 영속성 컨텍스트에 속한 상태, detached는 속하지 않거나 더는 속하지 않는 상태), 3.3.2절(persist로 managed가 되는 것), 3.3.4절(영속 엔티티의 상태가 트랜잭션 커밋 때 DB와 맞춰지는 것), 3.3.6절과 3.3.7절(영속성 컨텍스트에서 떼어 낸 인스턴스는 그 밖에서 살아간다는 것)입니다. 명세 페이지는 요약으로만 돌아와 이 절들의 원문 전체를 읽지는 못했습니다. 처음 값을 기억해 비교하는 방식과 나가는 SQL의 모양은 명세가 정한 것이 아니라 Hibernate 7.4.5에서 관찰한 동작이므로, 화면에는 SQL 문장 대신 횟수만 적었습니다. 이 실습은 em을 직접 만들어 쓰는 모양이라 스프링의 @Transactional과 함께 쓸 때(영속성 컨텍스트가 트랜잭션과 같이 만들어지고 끝납니다)나, 쓰기 지연, 쿼리를 실행하기 직전의 flush, em.persist로 새로 저장하는 일은 다루지 않으며, 세부는 공부 탭의 "영속성 컨텍스트" 실습에서 다룹니다. MySQL에서의 실행 대조는 하지 않았습니다.',
 });
 
 Lab.register({
@@ -15652,7 +15652,7 @@ Lab.register({
           sum.push('저장할 때 JPA가 kim 객체에서 id를 꺼내 member_id에 넣었고, 읽을 때는 그 번호로 Member를 찾아 member 필드에 넣어 주었습니다. 그래서 o.getMember().getName()처럼 객체를 따라가면 회원의 이름을 얻습니다.');
         } else {
           sum.push('@JoinColumn은 외래 키 열의 이름만 정합니다. 열 이름이 member_id에서 buyer_id로 바뀌었을 뿐, 저장하고 읽는 결과는 @ManyToOne만 쓸 때와 같습니다. 외래 키 제약도 그대로 만들어졌습니다.');
-          sum.push('코드는 열 이름을 한 번도 쓰지 않습니다. o.getMember().getName()은 열 이름이 무엇이든 같고, 열 이름은 JPA가 SQL을 만들 때와 DB에서 테이블을 볼 때만 나타납니다.');
+          sum.push('주문에서 회원을 꺼내는 코드는 열 이름을 한 번도 쓰지 않습니다. o.getMember().getName()은 열 이름이 무엇이든 같고, 열 이름은 JPA가 SQL을 만들 때와 DB에서 테이블을 볼 때만 나타납니다.');
         }
       } else {
         st.phase = 'readorder'; st.oo = 'read'; st.sel = 1; st.sql = [insO, readO]; st.jl = '주문만 읽음';
@@ -17942,13 +17942,13 @@ Lab.register({
     P.box('n1', 14, 192, 322, 36, { cls: s && s.resp ? (s.resp.status === '200' ? 'good' : 'bad') : 'ghost', title: '응답', right: s && s.resp ? s.resp.status : '-' });
     P.box('n2', 344, 192, 322, 36, { cls: s && s.calls ? 'good' : 'ghost', title: 'admin() 메서드 실행', right: (s ? s.calls : 0) + '번' });
   },
-  assume: '스프링 부트 4.1.1(스프링 프레임워크 7.0.9, 내장 톰캣 11)과 스프링 시큐리티 7.1.1을 JDK 21에서 실행한 결과입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스(보안 설정 SecurityConfig와 컨트롤러 AdminController, 컨트롤러에는 실행 횟수를 세는 줄만 더함)를 패키지 app으로 컴파일하고 자식 자바 프로세스로 실제 서버를 띄운 뒤, 실제 HTTP 요청(GET /admin)을 보내 확인했습니다. 아이디와 비밀번호는 Authorization 헤더에 실어 보냈고, 요청마다 서버를 새로 띄웠습니다. 화면에서 줄인 것은 package와 import 줄, 시작 클래스, 그리고 사용자 등록입니다. 사용자는 메모리 안의 사용자 저장소(InMemoryUserDetailsManager)에 일반 회원 kim(역할 USER)과 관리자 admin(역할 ADMIN)을 둔 것이고, 비밀번호는 {noop} 접두어를 붙여 암호화하지 않은 시험용 값입니다(실제 서비스에서는 비밀번호를 암호화해 저장합니다). 보안 설정은 화면의 줄 말고는 아무것도 더하지 않았습니다. CSRF와 세션 설정은 기본값이고, GET 요청이라 결과에 영향을 주지 않았습니다. "서버가 확인한 사람"은 요청이 처리되는 동안 SecurityContextHolder에 어떤 Authentication이 기록되었는지로 얻었습니다. SecurityContextHolder의 저장 방식을 기본 것을 감싼 기록용으로 바꿔 읽고 쓰는 때마다 이름과 권한을 적었으므로, 컨트롤러에 가지 못한 요청의 인증 정보도 볼 수 있고 보안 필터 체인에는 아무것도 더하지 않았습니다. 한계는 필터 안에서 일어난 일을 읽고 쓰는 시점으로만 본다는 것입니다(필터의 내부 판단 자체를 본 것은 아닙니다). 대조한 것은 이 기록에서 얻은 확인된 사람(없으면 익명이거나 아무것도 설정되지 않음), 상태 코드와 본문, WWW-Authenticate 헤더 유무, admin() 메서드의 실행 횟수, 인증이 인가보다 먼저 일어나는 순서, 오류 응답이 /error로 한 번 더 넘어가는지입니다. 문서가 정한 것은 RFC 9110의 11절 HTTP Authentication(11.1, 11.6.1)과 15.5.2절(401은 유효한 인증 정보가 없다는 뜻이고 WWW-Authenticate를 보내야 한다), 15.5.4절(403은 서버가 요청을 이해했지만 처리를 거부한다는 뜻), 스프링 시큐리티 문서 Authorize HttpServletRequests(AuthorizationFilter가 규칙을 위에서부터 차례로 보고 첫 번째로 맞는 것만 적용한다는 것, hasRole이 ROLE_ 접두어를 붙인다는 것, 거부되면 AccessDeniedException이 던져진다는 것)와 Authentication의 Architecture, Basic 절(인증되지 않은 요청이 거부되면 AuthenticationEntryPoint가 WWW-Authenticate 헤더를 보낸다는 것, 인증이 실패하면 SecurityContextHolder를 비우고 같은 처리기를 부른다는 것)입니다. 문서 내용은 WebFetch로 열어 요약된 결과로 확인했고 RFC 전문을 직접 읽지는 못했습니다. 아래는 문서가 정한 것이 아니라 이 버전에서 관찰한 동작입니다. 첫째, 이 화면의 코드를 그대로 실행하면 일반 회원 kim의 요청에 403이 그대로 나갑니다. 오류 응답이 /error로 한 번 더 넘어가는데, 그 두 번째 요청에서도 kim이 확인된 사람으로 기록되어 막히지 않았기 때문입니다. 세션을 쓰지 않고 직접 만든 필터로 인증한 "시큐리티 필터 체인" 실습에서는 같은 단계에서 403이 401로 바뀌었으니, 구성에 따라 다를 수 있습니다. 둘째, 틀린 비밀번호는 /admin이 permitAll()이어도 401입니다. 아이디와 비밀번호가 실린 요청은 인가 규칙을 보기 전에 인증에서 거절되었고, 인가 단계의 흔적은 기록에 없었습니다. 셋째, 아이디가 없는 요청은 인증에서 막히지 않고 익명 사용자로 인가 단계까지 가며, 거기서 규칙이 막으면 401, 열려 있으면 컨트롤러까지 갑니다. 넷째, 401 응답에는 WWW-Authenticate 헤더(값은 Basic realm="Realm")가 붙고 403과 200 응답에는 없었습니다. 다섯째, 응답 본문은 401이 비어 있고 403은 스프링 부트의 오류 페이지였는데, 요청의 Accept 헤더에 따라 달라질 수 있어 화면에서는 상태 코드만 다뤘습니다. 여섯째, 스프링 시큐리티 7.1에서는 로그인한 사용자의 권한에 ROLE_ 권한 말고 인증 방식을 나타내는 권한(FACTOR_PASSWORD)이 함께 기록되는데, 이 실습에서는 다루지 않았습니다. 로그인 방식(로그인 화면, 세션, 토큰)은 다루지 않았습니다. 이 실습의 요청은 요청마다 아이디와 비밀번호를 실어 보내는 HTTP Basic 방식이고, 로그인 상태를 이어 가는 세션과 토큰은 기초개념의 "세션", "토큰" 실습과 공부 쪽 "시큐리티 필터 체인" 실습에서 다룹니다. 실제 필터 체인에는 여기 적지 않은 필터가 더 있습니다.',
+  assume: '스프링 부트 4.1.1(스프링 프레임워크 7.0.9, 내장 톰캣 11)과 스프링 시큐리티 7.1.1을 JDK 21에서 실행한 결과입니다. 열두 가지 조합을 모두, 화면의 코드와 같은 소스(보안 설정 SecurityConfig와 컨트롤러 AdminController, 컨트롤러에는 실행 횟수를 세는 줄만 더함)를 패키지 app으로 컴파일하고 자식 자바 프로세스로 실제 서버를 띄운 뒤, 실제 HTTP 요청(GET /admin)을 보내 확인했습니다. 아이디와 비밀번호는 Authorization 헤더에 실어 보냈고, 요청마다 서버를 새로 띄웠습니다. 화면에서 줄인 것은 package와 import 줄, 시작 클래스, 그리고 사용자 등록입니다. 사용자는 메모리 안의 사용자 저장소(InMemoryUserDetailsManager)에 일반 회원 kim(역할 USER)과 관리자 admin(역할 ADMIN)을 둔 것이고, 비밀번호는 {noop} 접두어를 붙여 암호화하지 않은 시험용 값입니다(실제 서비스에서는 비밀번호를 암호화해 저장합니다). 보안 설정은 화면의 줄 말고는 아무것도 더하지 않았습니다. CSRF와 세션 설정은 기본값이고, GET 요청이라 결과에 영향을 주지 않았습니다. "서버가 확인한 사람"은 요청이 처리되는 동안 SecurityContextHolder에 어떤 Authentication이 기록되었는지로 얻었습니다. SecurityContextHolder의 저장 방식을 기본 방식을 감싼 기록용 방식으로 바꿔 읽고 쓰는 때마다 이름과 권한을 적었으므로, 컨트롤러에 가지 못한 요청의 인증 정보도 볼 수 있고 보안 필터 체인에는 아무것도 더하지 않았습니다. 한계는 필터 안에서 일어난 일을 읽고 쓰는 시점으로만 본다는 것입니다(필터의 내부 판단 자체를 본 것은 아닙니다). 대조한 것은 이 기록에서 얻은 확인된 사람(없으면 익명이거나 아무것도 설정되지 않음), 상태 코드와 본문, WWW-Authenticate 헤더 유무, admin() 메서드의 실행 횟수, 인증이 인가보다 먼저 일어나는 순서, 오류 응답이 /error로 한 번 더 넘어가는지입니다. 문서가 정한 것은 RFC 9110의 11절 HTTP Authentication(11.1, 11.6.1)과 15.5.2절(401은 유효한 인증 정보가 없다는 뜻이고 WWW-Authenticate를 보내야 한다), 15.5.4절(403은 서버가 요청을 이해했지만 처리를 거부한다는 뜻), 스프링 시큐리티 문서 Authorize HttpServletRequests(AuthorizationFilter가 규칙을 위에서부터 차례로 보고 첫 번째로 맞는 것만 적용한다는 것, hasRole이 ROLE_ 접두어를 붙인다는 것, 거부되면 AccessDeniedException이 던져진다는 것)와 Authentication의 Architecture, Basic 절(인증되지 않은 요청이 거부되면 AuthenticationEntryPoint가 WWW-Authenticate 헤더를 보낸다는 것, 인증이 실패하면 SecurityContextHolder를 비우고 같은 처리기를 부른다는 것)입니다. 문서 내용은 WebFetch로 열어 요약된 결과로 확인했고 RFC 전문을 직접 읽지는 못했습니다. 아래는 문서가 정한 것이 아니라 이 버전에서 관찰한 동작입니다. 첫째, 이 화면의 코드를 그대로 실행하면 일반 회원 kim의 요청에 403이 그대로 나갑니다. 오류 응답이 /error로 한 번 더 넘어가는데, 그 두 번째 요청에서도 kim이 확인된 사람으로 기록되어 막히지 않았기 때문입니다. 세션을 쓰지 않고 직접 만든 필터로 인증한 "시큐리티 필터 체인" 실습에서는 같은 단계에서 403이 401로 바뀌었으니, 구성에 따라 다를 수 있습니다. 둘째, 틀린 비밀번호는 /admin이 permitAll()이어도 401입니다. 아이디와 비밀번호가 실린 요청은 인가 규칙을 보기 전에 인증에서 거절되었고, 인가 단계의 흔적은 기록에 없었습니다. 셋째, 아이디가 없는 요청은 인증에서 막히지 않고 익명 사용자로 인가 단계까지 가며, 거기서 규칙이 막으면 401, 열려 있으면 컨트롤러까지 갑니다. 넷째, 401 응답에는 WWW-Authenticate 헤더(값은 Basic realm="Realm")가 붙고 403과 200 응답에는 없었습니다. 다섯째, 응답 본문은 401이 비어 있고 403은 스프링 부트의 오류 페이지였는데, 요청의 Accept 헤더에 따라 달라질 수 있어 화면에서는 상태 코드만 다뤘습니다. 여섯째, 스프링 시큐리티 7.1에서는 로그인한 사용자의 권한에 ROLE_ 권한 말고 인증 방식을 나타내는 권한(FACTOR_PASSWORD)이 함께 기록되는데, 이 실습에서는 다루지 않았습니다. 로그인 방식(로그인 화면, 세션, 토큰)은 다루지 않았습니다. 이 실습의 요청은 요청마다 아이디와 비밀번호를 실어 보내는 HTTP Basic 방식이고, 로그인 상태를 이어 가는 세션과 토큰은 기초개념의 "세션", "토큰" 실습과 공부 쪽 "시큐리티 필터 체인" 실습에서 다룹니다. 실제 필터 체인에는 여기 적지 않은 필터가 더 있습니다.',
 });
 
 Lab.register({
   id: 'session_basic', nav: '세션', cat: '기초개념', mode: 'step', basic: true, deep: ['auth'],
   title: '세션은 무엇이고, 로그인한 상태는 어디에 기억되는가',
-  intro: '세션은 서버 안의 저장소에 적어 두는 기억입니다. 코드 칸의 session은 HttpSession이라는 타입의 인자이고, 서버의 세션 저장소에서 이 요청에 딸린 칸 하나를 가리킵니다. login 메서드의 session.setAttribute("user", "kim") 줄은 그 칸에 "이 세션의 사용자는 kim"이라고 적는 줄이고, me 메서드의 session.getAttribute("user") 줄은 칸에서 그 값을 읽는 줄입니다. 칸마다 서버가 붙인 번호(세션 id)가 있고, 서버는 이 번호만 JSESSIONID라는 이름의 쿠키로 브라우저에 줍니다. 브라우저는 다음 요청마다 그 쿠키를 보내고, 서버는 번호로 저장소의 칸을 찾아 누구인지 압니다. 이 실습은 로그인한 뒤에 /me를 요청하는 방법을 바꿔 가며(쿠키 없이, 다른 사람이, 서버가 칸을 지운 뒤에), 서버가 누구인지 알아보는지를 봅니다. 코드 칸에는 로그인에 성공했을 때 실행되는 부분만 있고, 아이디와 비밀번호를 확인하는 과정은 이 실습에서 다루지 않아 줄였습니다. 쿠키가 무엇인지는 앞의 "쿠키" 실습을 따릅니다.',
+  intro: '세션은 서버 안의 저장소에 적어 두는 기억입니다. 코드 칸의 session은 HttpSession이라는 타입의 인자이고, 서버의 세션 저장소에서 이 요청에 딸린 칸 하나를 가리킵니다. login 메서드의 session.setAttribute("user", "kim") 줄은 그 칸에 "이 세션의 사용자는 kim"이라고 적는 줄이고, me 메서드의 session.getAttribute("user") 줄은 칸에서 그 값을 읽는 줄입니다. 칸마다 서버가 붙인 번호(세션 id)가 있고, 서버는 이 번호만 JSESSIONID라는 이름의 쿠키로 브라우저에 줍니다. 브라우저는 다음 요청마다 그 쿠키를 보내고, 서버는 번호로 저장소의 칸을 찾아 누구인지 압니다. 이 실습은 로그인한 뒤에 /me를 요청하는 방법을 바꿔 가며(쿠키 없이, 다른 사람이, 서버가 칸을 지운 뒤에), 서버가 누구인지 알아보는지를 봅니다. 코드 칸에는 로그인에 성공했을 때 실행되는 부분만 있고, 아이디와 비밀번호를 확인하는 과정은 이 실습에서 다루지 않아 줄였습니다. 쿠키가 무엇인지는 앞의 "쿠키" 실습에서 다룹니다.',
   terms: ['세션', '세션 id(JSESSIONID)', 'HttpSession', '쿠키'],
   controls: [
     { id: 'save', label: 'login에서 session.setAttribute("user", "kim") 줄을 실행한다', type: 'check', value: true },
@@ -18190,7 +18190,7 @@ Lab.register({
   ],
   // q는 물음 방식의 화면에 보이는 물음, t와 d는 글로만 읽는 본문에 쓰이는 이름과 설명
   presets: [
-    { t: '처음 설정으로', q: '토큰은 어떻게 생겼고, 서버는 받은 토큰에서 무엇을 확인하나', d: '서버가 준 토큰 그대로. 서버가 서명을 다시 계산해 맞는 것을 확인하고 내용(kim)을 믿습니다.', v: { token: 'good', check: true } },
+    { t: '처음 설정으로', q: '토큰은 어떻게 생겼고, 서버는 받은 토큰에서 무엇을 확인하나', d: '서버가 준 토큰을 그대로 보냅니다. 서버가 서명을 다시 계산해 맞는 것을 확인하고 내용(kim)을 믿습니다.', v: { token: 'good', check: true } },
     { t: '내용을 admin으로 고치면', q: '토큰의 내용을 kim에서 admin으로 고치면', d: '내용을 읽고 고칠 수는 있지만, 다시 계산한 서명이 붙어 온 서명과 달라 401입니다.', v: { token: 'edited', check: true } },
     { t: '서명을 떼어 내면', q: '서명을 떼어 내면', d: '견줄 서명이 없어 401입니다.', v: { token: 'nosig', check: true } },
     { t: '다른 열쇠로 서명하면', q: '다른 열쇠로 서명하면', d: '서버의 열쇠로 계산한 값과 달라 401입니다.', v: { token: 'otherkey', check: true } },
@@ -18300,7 +18300,7 @@ Lab.register({
     // 4단계: 견준다
     var same = T.sig === T.expect;
     st.cmp = same ? 'same' : 'diff';
-    if (same) push('서버가 계산한 값(' + short(T.expect) + ')과 토큰에 붙어 온 서명(' + short(T.sig) + ')을 견줍니다. 같습니다. 이 토큰은 서버의 열쇠로 계산한 서명이 붙은 토큰이고, 서명을 만든 뒤 머리와 내용이 한 글자도 바뀌지 않았다는 뜻입니다.', 'good');
+    if (same) push('서버가 계산한 값(' + short(T.expect) + ')과 토큰에 붙어 온 서명(' + short(T.sig) + ')을 견줍니다. 같습니다. 이는 이 토큰에 서버의 열쇠로 계산한 서명이 붙어 있고, 서명을 만든 뒤 머리와 내용이 한 글자도 바뀌지 않았다는 뜻입니다.', 'good');
     else if (c.token === 'edited') push('서버가 계산한 값(' + short(T.expect) + ')과 토큰에 붙어 온 서명(' + short(T.sig) + ')을 견줍니다. 다릅니다. 붙어 온 서명은 고치기 전 내용(kim)으로 계산된 것이고, 서버가 고친 내용(admin)으로 계산하면 다른 값이 나옵니다. 서명은 그 내용 그대로일 때만 맞습니다.', 'good');
     else push('서버가 계산한 값(' + short(T.expect) + ')과 토큰에 붙어 온 서명(' + short(T.sig) + ')을 견줍니다. 다릅니다. 붙어 온 서명은 다른 열쇠로 계산한 것이라 서버의 열쇠로 계산한 값과 다릅니다. 열쇠를 모르는 쪽이 맞는 서명을 만들 수 없다는 것이 서명 방식의 전제입니다.', 'good');
     // 5단계: 믿거나 거절한다
@@ -23492,7 +23492,7 @@ Lab.register({
       if (s.a) P.arrow('ar_a', 'v_a:r', 'A1:l:0.2');
       if (s.b) P.arrow('ar_b', right ? 'v_b:l' : 'v_b:r', right ? 'A' + s.b + ':r:0.2' : 'A1:l:0.75', { cls: sameAB ? 'hot' : '' });
     }
-    P.box('eq', 16, 206, 648, 28, { cls: s.eq === null ? 'ghost' : 'plain', title: two ? 'a == b ,  a[0] == b[0]' : 'a == b', right: s.eq === null ? '?' : two ? s.eq + ' ,  ' + (s.eq0 === null ? '?' : s.eq0) : s.eq });
+    P.box('eq', 16, 206, 648, 28, { cls: s.eq === null ? 'ghost' : 'plain', title: two ? 'a == b,  a[0] == b[0]' : 'a == b', right: s.eq === null ? '?' : two ? s.eq + ',  ' + (s.eq0 === null ? '?' : s.eq0) : s.eq });
     P.box('ra', 16, 240, 648, 28, s.err ? { cls: 'bad', title: '예외', right: s.err } : { cls: s.outA === null ? 'ghost' : 'plain', title: 'a 출력', right: s.outA === null ? '?' : s.outA });
     P.box('rb', 16, 274, 648, 28, s.err ? { cls: 'ghost', title: '출력', right: '실행되지 않음' } : { cls: s.outB === null ? 'ghost' : 'plain', title: 'b 출력', right: s.outB === null ? '?' : s.outB });
     P.note(two ? '2차원 배열은 바깥 배열(양옆)의 칸이 행 배열(가운데)을 가리키는 구조입니다. clone이나 Arrays.copyOf는 바깥 배열만 새로 만들기 때문에, 두 바깥 배열의 화살표가 같은 행 배열에 닿습니다. 배열은 모두 힙에 놓입니다.' : '테두리 하나가 배열 하나이고, 칸은 번호 순서대로 붙어 있습니다. 화살표는 변수에 든 참조가 가리키는 배열입니다. 두 화살표가 한 배열에 닿아 있으면 어느 변수로 바꾸든 같은 칸이 바뀝니다. 배열은 모두 힙에 놓입니다.');

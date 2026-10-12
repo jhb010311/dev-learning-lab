@@ -90,7 +90,7 @@ Lab.register({
           sum.push('저장할 때 JPA가 kim 객체에서 id를 꺼내 member_id에 넣었고, 읽을 때는 그 번호로 Member를 찾아 member 필드에 넣어 주었습니다. 그래서 o.getMember().getName()처럼 객체를 따라가면 회원의 이름을 얻습니다.');
         } else {
           sum.push('@JoinColumn은 외래 키 열의 이름만 정합니다. 열 이름이 member_id에서 buyer_id로 바뀌었을 뿐, 저장하고 읽는 결과는 @ManyToOne만 쓸 때와 같습니다. 외래 키 제약도 그대로 만들어졌습니다.');
-          sum.push('코드는 열 이름을 한 번도 쓰지 않습니다. o.getMember().getName()은 열 이름이 무엇이든 같고, 열 이름은 JPA가 SQL을 만들 때와 DB에서 테이블을 볼 때만 나타납니다.');
+          sum.push('주문에서 회원을 꺼내는 코드는 열 이름을 한 번도 쓰지 않습니다. o.getMember().getName()은 열 이름이 무엇이든 같고, 열 이름은 JPA가 SQL을 만들 때와 DB에서 테이블을 볼 때만 나타납니다.');
         }
       } else {
         st.phase = 'readorder'; st.oo = 'read'; st.sel = 1; st.sql = [insO, readO]; st.jl = '주문만 읽음';

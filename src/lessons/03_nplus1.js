@@ -5,7 +5,7 @@ Lab.register({
   terms: ['N+1 문제', '지연 로딩과 즉시 로딩', 'fetch join', '@EntityGraph', '배치 페치(Batch Size)', '1차 캐시'], ranks: ['nplus1', 'jpaorm'],
   controls: [
     { id: 'n', label: '조회되는 주문 건수', type: 'range', min: 1, max: 30, value: 10, fmt: function (v) { return v + '건'; } },
-    { id: 'm', label: '그 주문들을 한 회원 수', type: 'range', min: 1, max: 30, value: 10, fmt: function (v) { return v + '명'; }, hint: '같은 회원의 주문이 여러 건이면 회원 수가 주문 건수보다 적습니다.' },
+    { id: 'm', label: '주문한 회원 수', type: 'range', min: 1, max: 30, value: 10, fmt: function (v) { return v + '명'; }, hint: '같은 회원의 주문이 여러 건이면 회원 수가 주문 건수보다 적습니다.' },
     { id: 'st', label: '회원(연관 엔티티)을 가져오는 방법', type: 'select', value: 'lazy', options: [['lazy', '지연 로딩 (LAZY)'], ['eager', '즉시 로딩 (EAGER)'], ['fetch', '지연 로딩 + fetch join'], ['graph', '지연 로딩 + @EntityGraph'], ['batch', '지연 로딩 + 배치 크기 설정']] },
     { id: 'bs', label: '배치 크기', type: 'range', min: 2, max: 20, value: 5, fmt: function (v) { return v + '개씩'; }, show: function (c) { return c.st === 'batch'; }, hint: '보기 쉽게 작은 값으로 두었습니다. 실제 설정에서는 훨씬 큰 값(예: 100)을 씁니다.' },
     { id: 'use', label: '조회한 뒤 회원 이름을 사용한다', type: 'check', value: true },
@@ -70,7 +70,7 @@ Lab.register({
     var total = qs.length, mq = total - 1, sum = [];
     if (c.st === 'lazy' && c.use) sum.push('목록 1번에 더해 회원 수만큼 쿼리가 따라 나갔습니다. 이것이 N+1 문제입니다. 추가 쿼리 수는 주문 건수가 아니라 아직 읽지 않은 서로 다른 회원 수(' + c.m + '명)로 정해집니다.');
     if (c.st === 'lazy' && !c.use) sum.push('지연 로딩은 실제로 쓸 때만 조회하므로, 회원을 쓰지 않는 화면에서는 쿼리 1번으로 끝납니다. 지연 로딩을 기본으로 두는 이유입니다.');
-    if (c.st === 'eager') sum.push('즉시 로딩으로 바꿔도 JPQL 조회에서는 N+1이 그대로 발생합니다. 시점만 조회 직후로 당겨지고' + (c.use ? '' : ', 회원을 쓰지 않는데도 ' + mq + '번을 더 조회했습니다') + '. 즉시 로딩은 N+1의 해법이 아닙니다.');
+    if (c.st === 'eager') sum.push('즉시 로딩으로 바꿔도 JPQL 조회에서는 N+1이 그대로 발생합니다. 시점만 조회 직후로 ' + (c.use ? '당겨집니다' : '당겨지고, 회원을 쓰지 않는데도 ' + mq + '번을 더 조회했습니다') + '. 즉시 로딩은 N+1의 해법이 아닙니다.');
     if (c.st === 'fetch') sum.push('fetch join은 연관된 회원까지 한 쿼리로 가져옵니다. 이 예의 join fetch는 내부 조인이라 회원이 없는 주문은 결과에서 빠집니다. 그런 주문도 필요하면 left join fetch를 씁니다.');
     if (c.st === 'graph') sum.push('@EntityGraph는 JPQL을 고치지 않고 "회원도 같이 가져오라"고 지정합니다. 이 예처럼 회원이 없을 수도 있는 기본 매핑에서는 left outer join으로 가져옵니다(optional = false로 매핑하면 inner join이 됩니다).');
     if (c.st === 'batch' && c.use) sum.push('배치 크기를 주면 회원을 한 명씩이 아니라 ' + c.bs + '명씩 묶어 가져옵니다. 회원 ' + c.m + '명을 ' + mq + '번(' + c.m + ' ÷ ' + c.bs + ' 올림)에 가져와서 쿼리 수가 1 + ' + c.m + '에서 1 + ' + mq + '로 줄었습니다.');

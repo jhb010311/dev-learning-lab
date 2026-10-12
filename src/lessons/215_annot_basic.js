@@ -139,7 +139,7 @@ Lab.register({
     });
     P.box('rn', 330, 16, 336, 64, { cls: hot === 'rn' ? 'hot now' : 'plain', title: 'Run (표시)', sub: c.keep ? '@Retention(RUNTIME): 실행 중에도 남음' : '@Retention 없음: 실행 중에는 남지 않음' });
     if (c.reader) {
-      P.box('rd', 330, 96, 336, 116, { cls: hot === 'rd' ? 'hot now' : 'plain', title: '읽는 쪽 (우리가 쓴 for 문)', sub: [cur ? cur + ' 메서드에 Run이 붙었는지 묻는 중' : 'Run이 붙은 메서드만 찾아 부른다', ph === 'call' ? 'm.invoke(job)으로 부르는 중' : ph === 'skip' ? '붙어 있지 않으므로 부르지 않음' : ' '] });
+      P.box('rd', 330, 96, 336, 116, { cls: hot === 'rd' ? 'hot now' : 'plain', title: '읽는 쪽 (우리가 쓴 for 문)', sub: [cur ? cur + ' 메서드에 Run이 붙었는지 묻는 중' : 'Run이 붙은 메서드만 찾아 부른다', ph === 'call' ? 'm.invoke(job)으로 부르는 중' : ph === 'skip' ? (sim.c.keep ? '붙어 있지 않으므로 부르지 않음' : '실행 중에는 표시가 보이지 않으므로 부르지 않음') : ' '] });
     } else {
       P.box('rd', 330, 96, 336, 116, { cls: 'ghost', title: '읽는 쪽 (없음)', sub: 'Run을 찾아 부르는 코드가 없음' });
     }

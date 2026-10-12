@@ -41,7 +41,7 @@ Lab.register({
       sum.push('JPQL은 엔티티 이름(Post)과 필드 이름(p.title, p.comments)으로 씁니다. 테이블 이름(posts)과 컬럼 이름은 Hibernate가 SQL로 바꿀 때 채워 넣습니다. 그래서 테이블 이름을 그대로 쓰면 이 쿼리처럼 거절됩니다.' + (page ? ' 페이징 설정은 쿼리가 만들어진 뒤의 일이라 결과에 영향이 없습니다.' : ''));
       return fail('UnknownEntityException', 'createQuery');
     }
-    push('em.createQuery(…): JPQL은 테이블이 아니라 엔티티를 대상으로 씁니다. from Post p의 Post는 클래스 이름이고' + (q === 'plain' ? '' : ', p.comments는 Post의 필드 이름') + '입니다. Hibernate가 이것을 posts' + (q === 'plain' ? ' 테이블을' : q === 'two' ? ', comments, files 테이블을' : '와 comments 테이블을') + ' 조회하는 SQL로 바꿉니다.', '');
+    push('em.createQuery(…): JPQL은 테이블이 아니라 엔티티를 대상으로 씁니다. from Post p의 Post는 클래스 이름' + (q === 'plain' ? '' : '이고, p.comments는 Post의 필드 이름') + '입니다. Hibernate가 이것을 posts' + (q === 'plain' ? ' 테이블을' : q === 'two' ? ', comments, files 테이블을' : '와 comments 테이블을') + ' 조회하는 SQL로 바꿉니다.', '');
     if (page) push('setFirstResult(0).setMaxResults(1): 결과 목록을 처음부터 1개만 달라고 요청합니다. 아직 SQL은 나가지 않았습니다.', '');
     if (q === 'two') {
       st.err = 'MultipleBagFetchException';
