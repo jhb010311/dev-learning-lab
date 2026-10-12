@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -90,7 +90,7 @@ em.persist(new Member(1L, &quot;Alice&quot;));
 em.getTransaction().commit();</pre>
 <h2>Assumptions of this model</h2>
 <p>This was checked against real execution on Hibernate 7.4.5 and H2 2.4.240 (an in-memory database). Spring was not used, and Hibernate was started directly in code (the class was registered in Configuration, without persistence.xml). For all 8 combinations, the same text as the Member source on the screen (with only the package and import lines added) was compiled, and a new Java process was started each time. In the combinations without @Entity, Member was registered in the same way. The three &quot;side that saves&quot; lines on the screen are actually code inside main, and the line that gets the EntityManager (em), the line that catches and records the exception, and the lines that measure were left out of the screen. What was checked is whether JPA fails while starting and the kind of exception, the tables and columns in H2 right after starting and after the run (INFORMATION_SCHEMA.COLUMNS), the number and text of the INSERT statements captured with a StatementInspector (when the persist line ended and when the commit line ended), and the number of rows and the content of the table after the run. H2 stores the table name as MEMBER and the column names as ID, NAME, and EMAIL, and the screen shows the table name with only the first letter capitalized and the column names in lowercase to make them easier to read. The columns were not created in the order in which the fields are written (in this run the order was id, email, name). The rule that decides the order was not checked. What the documentation defines is section 2.1 of the Jakarta Persistence 3.2 specification (an entity class must have @Entity, must have a public or protected constructor with no arguments, and must not be final) and section 2.4 (every entity must have a primary key, and a simple primary key is declared by putting @Id on a field), and items 3.4.1, 3.4.3, 3.4.5, and 3.4.6 of section 3.4 (Entity types) of the Hibernate ORM 7.0 User Guide (the table name follows the entity name by default, and putting @Id on a field makes it field access). These documents were opened with WebFetch, and what came back was a summary, not the original text, so I could not check each sentence against the original. For the specification, only the first part was read (the first 100,000 characters, which contain sections 2.1 and 2.4). The following are not what the documentation defines but behaviors observed on this version. When a class without @Entity is registered, JPA finishes starting without an error (there is no entity that JPA knows), and em.persist throws an IllegalArgumentException, and the result is the same even if @Id is there. With @Entity but without @Id, an AnnotationException is thrown when starting and no table is made (item 3.4.5 of the Hibernate 7.0 User Guide says that omitting the identifier used to be allowed but is deprecated, but on 7.4.5 it was an error). The table is created not at persist or commit but when JPA starts (with the setting hibernate.hbm2ddl.auto=create-drop), and the INSERT statement was sent not on the persist line but on the commit line. The statement has the shape insert into Member (name,id) values (?,?), its text may differ by Hibernate version, and details such as whether that INSERT is sent at persist or at commit are covered in the &quot;Persistence context&quot; lab. What the code on the screen leaves out is the package and import lines, and only the fields id, name, and email were covered. @Table and @Column, which change the pairing of names and columns, @GeneratedValue, which makes primary key values automatically, accessor methods, and the rest of the conditions on an entity class (it must not be final, and so on) were not covered. It was not checked against execution on MySQL.</p>
-<p>Previous lab: <a href="../../lab/boot_basic/">Spring Boot</a> · Next lab: <a href="../../lab/pc_basic/">Persistence context</a></p>
+<p>Previous lab: <a href="../../lab/test_basic/">Test code</a> · Next lab: <a href="../../lab/pc_basic/">Persistence context</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -177,6 +177,6 @@ em.getTransaction().commit();</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5cbab9ae01"></script>
+<script src="../../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

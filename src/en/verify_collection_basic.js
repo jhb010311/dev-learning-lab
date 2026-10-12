@@ -1,0 +1,1 @@
+Lab.verify({ collection_basic: ['run', 'Compiled 6 combinations with javax.tools on JDK 21, ran them as child java processes, and checked the standard output, the standard error, and the exit code'] });

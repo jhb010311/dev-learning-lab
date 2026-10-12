@@ -1,0 +1,1 @@
+Lab.verify({ deploy_basic: ['run', 'Ran six combinations with a Node.js 24.18.0 server (a child process) that was really started, with the server.js file edited, and with the server stopped and started, sending requests from an http client, and checked against the model'] });

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Libraries and dependencies: What is a library, and what happens when it is missing? · Dev Learning Lab</title>
+<meta name="description" content="A library is a set of classes that someone else has made. In this lab, one class, lib.Greeter, is packed into a jar file (a file that bundles class files)…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dep_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dep_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/dep_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Libraries and dependencies: What is a library, and what happens when it is missing? · Dev Learning Lab">
+<meta property="og:description" content="A library is a set of classes that someone else has made. In this lab, one class, lib.Greeter, is packed into a jar file (a file that bundles class files)…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/dep_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>Libraries and dependencies</h1>
+<p><b>What is a library, and what happens when it is missing?</b></p>
+<p>A library is a set of classes that someone else has made. In this lab, one class, lib.Greeter, is packed into a jar file (a file that bundles class files) named greet.jar. My code, App.java, uses that class with import lib.Greeter;, but Greeter is not inside App.java. So both when compiling and when running, the compiler (javac) and the JVM (java) have to find Greeter on the class path (a list of places to look for class files), and in the command you write that list after -cp. The libraries that my project uses are called dependencies, and in the build tool Gradle, a dependency declared with implementation goes into the class path for both compiling and running. In this lab you take greet.jar out of the javac command and the java command one at a time, and the real compile and run happen, to show which error occurs at which step. (Gradle is not run in this lab.)</p>
+<p>Checked against real execution · Built greet.jar on JDK 21 and ran the javac and java commands exactly as shown in 4 combinations, then checked the results against them</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Libraries and JAR files</dt>
+<dd>A library is a set of classes that someone else has made, which my code uses with import. In Java it is common to bundle compiled class files into one jar file and hand it out. For example, if you compile Greeter.java and bundle it with the jar tool, jar tf greet.jar shows the list of files inside, including lib/Greeter.class. When you compile or run my code and need a class inside the jar, you have to write that jar on the class path. Being in the same folder as my source does not put the jar among the places to look.</dd>
+<dt>Class path (-cp)</dt>
+<dd>The class path is the list of places where the compiler (javac) and the JVM (java) look for user class files. In the command you write it after -cp (or --class-path, -classpath), and each place in the list is a directory or a JAR file, separated by a semicolon (;) on Windows and a colon (:) on other systems. If you do not write -cp and there is no CLASSPATH environment variable, both javac and java use the current folder. javac and java each receive the class path of their own command separately, so the -cp you gave when compiling does not carry over by itself to the run. If you write only a jar, as in -cp greet.jar, the current folder is not among the places to look, so to use the class files in the current folder too, you have to write the dot (.) with it, as in greet.jar;.</dd>
+<dt>NoClassDefFoundError</dt>
+<dd>NoClassDefFoundError is an error thrown when the JVM or a class loader tries to load the definition of a class and cannot find that definition. The API documentation describes it as the case where the definition of the class being looked for existed when the currently running class was compiled but can no longer be found. It occurs if you put a library jar on the class path when compiling and leave it out when running. It differs in timing from a compile error such as &quot;package lib does not exist&quot;, which occurs when the jar is missing at compile time. The compiler reports a compile error before the program runs, and this error occurs while the program is running, at the place where that class becomes needed.</dd>
+<dt>Dependencies and implementation</dt>
+<dd>A dependency is a library that my project uses. In Gradle you write it inside the dependencies block as group:name:version coordinates. Among the places to write them, implementation is where you write a dependency that is needed both when compiling and when running the main source. According to the Gradle documentation, a dependency declared with implementation is included in both compileClasspath, used for compiling, and runtimeClasspath, used for running. That is, the job of writing -cp by hand in the javac and java commands is done by the build tool with one line of configuration.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Both the compile command and the run command have greet.jar. The compile succeeds and hello, kim is printed.</li>
+<li><b>Removing -cp greet.jar when compiling</b> — The compiler cannot find Greeter, so the compile fails.</li>
+<li><b>Removing greet.jar when running</b> — The compile succeeds, but while running, Greeter cannot be found and an error occurs.</li>
+<li><b>Removing it from both</b> — It already fails at the compile step, so it cannot run.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>When you type the command javac -cp greet.jar App.java in the terminal, the compiler (javac) reads App.java. The import lib.Greeter; line at the top of the source means that it uses the class Greeter, which is not inside App.java. Greeter is a class that someone else made, and it is inside greet.jar as a file named lib/Greeter.class.</li>
+<li>The compiler has to know what kind of class Greeter is before it can compile, so it looks for lib/Greeter.class on the class path. The class path is a list of places to look for class files, and you write it after -cp in the command. This command says -cp greet.jar, so the place to look is greet.jar.</li>
+<li>It found lib/Greeter.class inside greet.jar. The compiler now knows the class Greeter, so the Greeter.hello(&quot;kim&quot;) line passes too.</li>
+<li>The compile succeeds and App.class is created. The only new class file in the folder is App.class, and Greeter.class was not copied. The contents of greet.jar did not come inside App.class.</li>
+<li>When you type the command java -cp greet.jar;. App, the JVM (java) looks for the class App on the class path and starts main. The class path is &quot;greet.jar;.&quot; The semicolon (;) is the character that separates several places on Windows (it is a colon, :, on macOS and Linux), and the dot (.) at the end is the current folder, that is, the place where App.class is. If you leave out the dot and write only -cp greet.jar, it does not look in the current folder and cannot find App.</li>
+<li>To call Greeter.hello on the line System.out.println(Greeter.hello(&quot;kim&quot;)) inside main, the class Greeter is needed. The JVM looks for lib/Greeter.class on the class path.</li>
+<li>It finds lib/Greeter.class inside greet.jar and loads it. hello(&quot;kim&quot;) returns hello, kim, and println prints that text.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A library is a jar file that bundles classes that someone else has made. For my code to use a library class such as Greeter, the jar has to be on the class path both when compiling (javac -cp greet.jar) and when running (java -cp greet.jar;.). Both had it, so the compile succeeded and hello, kim was printed.</li>
+<li>The libraries that my project uses are called dependencies. In Gradle you write one line such as implementation(&quot;lib:greet:1.0&quot;) inside dependencies (this name is made up for explanation), and according to the Gradle documentation, a dependency declared with implementation goes into the class path for both compiling and running. This lab does not run Gradle, and shows by writing -cp by hand what Gradle does.</li>
+</ul>
+<h2>Code</h2>
+<pre># App.java
+// Import a class made by someone else, which is inside greet.jar
+import lib.Greeter;
+
+public class App {
+    public static void main(String[] args) {
+        System.out.println(Greeter.hello(&quot;kim&quot;));
+    }
+}
+
+# greet.jar (Greeter.java compiled and packed into a jar)
+package lib;
+
+public class Greeter {
+    public static String hello(String name) {
+        return &quot;hello, &quot; + name;
+    }
+}
+
+# Terminal
+javac -cp greet.jar App.java
+java -cp greet.jar;. App</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21, java 21). All 4 combinations were checked. First, the class lib.Greeter (with one method, hello) was packed into greet.jar with javac and the jar tool (no external jar was downloaded), and for each combination, greet.jar and App.java were placed in a new folder and the terminal commands javac and java written on the screen were run exactly as written. The code on the screen is the same text that the probe made and kept from the actual file contents and the commands actually run. What was checked is whether the compile succeeded, the number of errors and the diagnostic codes (compiler.err.doesnt.exist and compiler.err.cant.resolve.location were rendered as the two error descriptions on the screen) and the lines where the errors occurred, whether App.class was created, the exit code and output of the java command, and the kind of the run error (NoClassDefFoundError) and its location (App.java:6). In the combinations where the compile failed, the java command was also actually run, and I confirmed that the error that the class App cannot be found occurs. The facts that the step sentences rely on were also checked by separate runs. These are that greet.jar contains lib/Greeter.class (jar tf), that the only class file created in the folder where the compile succeeded is App.class, that if you write only -cp greet.jar in the java command and leave out the dot (.), it cannot find App.class in the current folder, and that before the compile the folder had only App.java and greet.jar. The commands were run on Windows 11, and the semicolon (;) as the class path separator is for Windows (a colon on macOS and Linux). The screen shows only that one form. The CLASSPATH environment variable was cleared in the process that ran them, and in an environment where this variable is set, the result of a command without -cp can differ. The error sentence of the java launcher is shown in English; it was obtained by running the java command again with -Duser.language=en. On the PC used to write this lab (Korean Windows), without that option the sentence came out in Korean, and with other language settings the sentence is different. I opened the documentation and checked it. These are, in the javac tool documentation from Oracle (https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html), that --class-path (-cp) sets where to look for user class files, that the current folder is used if neither -cp nor the CLASSPATH environment variable is set, and that the separator is a semicolon on Windows; in the java tool documentation (https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html; I read only the first 100,000 characters, and the explanation of -cp was within them), that -cp is a list of directories, JAR files, and ZIP files in which to look for class files, and that if it is not specified, it is the current folder (.); in the NoClassDefFoundError API documentation (https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/NoClassDefFoundError.html), that it is thrown when a class definition is to be loaded and cannot be found, and that it is the case where a definition that existed at compile time can no longer be found; in the Gradle documentation Declaring dependencies (https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html), that a module dependency is written as group:name:version coordinates, with an example of writing it with implementation inside dependencies; and in the Java Plugin documentation (https://docs.gradle.org/current/userguide/java_plugin.html), in the table of configurations, that implementation is a dependency needed both at compile time and at run time and is included in compileClasspath and runtimeClasspath. Gradle was not run, and the process of downloading jars from a repository could not be checked in the documentation either, so it is not described. The number and kinds of errors and the error sentences are not set by a specification but were observed on this JDK. Beyond that, a library pulling in other libraries (transitive dependencies), versions, the order when the same class is in several places on the class path, and the module system are not covered. Dependencies and the supply chain are covered in the in-depth lab &quot;Dependencies and the supply chain&quot;, and Spring Boot, which looks at the dependencies and creates the configuration automatically, is covered in the in-depth lab &quot;Spring Boot auto-configuration&quot;.</p>
+<p>Previous lab: <a href="../../lab/io_basic/">File I/O</a> · Next lab: <a href="../../lab/bean_basic/">Beans</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

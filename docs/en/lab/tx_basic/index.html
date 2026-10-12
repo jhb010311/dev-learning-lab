@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -87,7 +87,7 @@ public class OrderService {
 }</pre>
 <h2>Assumptions of this model</h2>
 <p>This was checked against real execution of Spring Framework 7.0.9 on JDK 21, connected by JDBC to H2 2.4.240 (an in-memory database), and it was not checked against execution on MySQL. For all 4 combinations, the same source as the OrderService on the screen (with only the package and import lines and two measurement lines marked PROBE at the end added) was compiled, and a new Java process was started for each combination. The configuration class had @EnableTransactionManagement, which AnnotationConfigApplicationContext reads, an H2 DataSource (HikariCP), JdbcTemplate, and DataSourceTransactionManager (a subclass with only lines added to count starts, commits, and rollbacks), and OrderService was marked @Service so that Spring finds it by component scanning. Auto-commit was left at the JDBC default (on), and the database and the two tables (orders, payment) were created anew for each combination. What was checked is how order() ended (IllegalStateException and its message, or normal) and the number of rows in orders and payment counted by a separate query after the call ended. The facts that the step sentences rely on were also checked by execution: whether a transaction is active inside order() (active only when there is @Transactional), the class of the OrderService bean that main received (a CGLIB proxy class made by Spring when there is @Transactional, and the class we wrote as it is when there is not), the number of rows in orders counted over a separately connected database connection right after the first save (0 rows with @Transactional, 1 row without it), and the number of times the transaction manager started, committed, and rolled back (1 start and 1 rollback if it ended with an exception, 1 start and 1 commit if it ended normally, and all 0 without @Transactional). That the second save is not final inside the transaction, and that it is applied immediately without one, were derived from the value measured after the first save and from the final row counts, and the moment right after the second save was not measured separately. What the documentation defines is the Declarative Transaction Management section of Data Access in the Spring Framework 7.0 documentation (that declarative transactions are done through AOP), the section Understanding the Spring Framework's Declarative Transaction Implementation (that TransactionInterceptor and the transaction manager drive the transaction around the method call), the section Using @Transactional (that it must be turned on with @EnableTransactionManagement and that the default is the proxy mode, and that by default RuntimeException and Error are rolled back while checked exceptions are not), and the section Rolling Back a Declarative Transaction (that in the default settings only runtime exceptions are marked for rollback). However, the documentation does not describe in one paragraph the order of starting before the method, committing if normal, and rolling back if an exception, so that order is an observation based on the counts and the row numbers that the Probe measured. The code on the screen leaves out the package and import lines, and it does not show the main that calls order(), the CREATE TABLE that creates the tables, the database connection, and the Spring configuration. This lab covers only one exception, a RuntimeException being thrown, and does not cover checked exceptions, calls from inside the same class, or readOnly. Checked exceptions, rollbackFor, and propagation are covered in the &quot;Transaction propagation&quot; lab, and transactions themselves (including isolation levels) are covered in the &quot;Transaction basics&quot; lab.</p>
-<p>Previous lab: <a href="../../lab/controller_basic/">Controllers</a> · Next lab: <a href="../../lab/boot_basic/">Spring Boot</a></p>
+<p>Previous lab: <a href="../../lab/jdbc_basic/">JDBC</a> · Next lab: <a href="../../lab/boot_basic/">Spring Boot</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -174,6 +174,6 @@ public class OrderService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5cbab9ae01"></script>
+<script src="../../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

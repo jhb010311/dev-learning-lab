@@ -1,0 +1,1 @@
+Lab.verify({ lock_basic: ['run', 'Compiled 4 combinations with javax.tools on JDK 21, ran each 30 times as a child java process, and checked the final count (with 2 threads and no lock, all 30 runs were below 200000)'] });

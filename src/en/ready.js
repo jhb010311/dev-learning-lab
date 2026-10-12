@@ -36,4 +36,5 @@ module.exports = [
   'clickjack', 'infoleak', 'ratelimit', 'supplychain', 'crypto',
   'var_basic', 'method_basic', 'class_basic', 'ref_basic', 'ctor_basic', 'static_basic', 'inherit_basic', 'interface_basic', 'exception_basic', 'generic_basic', 'lambda_basic', 'annot_basic', 'thread_basic', 'bean_basic', 'di_basic', 'servlet_basic', 'controller_basic', 'tx_basic', 'boot_basic', 'entity_basic', 'pc_basic', 'repo_basic', 'relation_basic', 'table_basic', 'pk_basic', 'fk_basic', 'where_basic', 'join_basic', 'index_basic', 'dbtx_basic', 'port_basic', 'url_basic', 'dns_basic', 'http_basic', 'httpres_basic', 'cookie_basic',
   'json_basic', 'https_basic', 'authn_basic', 'session_basic', 'token_basic', 'hash_basic', 'crypto_basic',
+  'null_basic', 'collection_basic', 'stream_basic', 'lock_basic', 'pool_basic', 'jvm_basic', 'io_basic', 'dep_basic', 'process_basic', 'aop_basic', 'config_basic', 'jdbc_basic', 'test_basic', 'lazy_basic', 'jpql_basic', 'groupby_basic', 'dblock_basic', 'durable_basic', 'tcp_basic', 'httpmethod_basic', 'proxy_basic', 'origin_basic', 'injection_basic', 'remote_basic', 'lb_basic', 'cache_basic', 'queue_basic', 'deploy_basic', 'git_basic',
 ];

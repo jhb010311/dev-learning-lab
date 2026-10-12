@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -86,7 +86,7 @@ public class Main {
 }</pre>
 <h2>Assumptions of this model</h2>
 <p>The compiler and runtime are JDK 21.0.12.1 (javac 21). For all eight combinations, the same source as the code on the screen (identical line by line) was compiled with javax.tools. The ones that compiled had their class files loaded by a new class loader and Main.main was run, and the results were checked against the standard output that was captured. What was checked is whether compilation succeeded, the diagnostic code of the first error (compiler.err.cant.apply.symbol), the required arguments and the passed arguments named in its message (shown on the screen as the two error descriptions), the number of errors and the lines where they occurred, whether the Main class file was created, the output when run, and the number of &quot;constructor ran&quot; lines counted in that output. For the combinations without a constructor, there is no constructor we wrote, so the number of runs is recorded as 0. The facts that the step sentences rely on were also checked by separate runs. The class file of a Card with no constructor contains one constructor with no parameters. A Card with a constructor that takes a value contains only that constructor. When the constructor body starts, the owner of the new object is already null and the parameter holds the value that was passed. The next line of main runs only after new has finished. A line that calls the constructor by name, such as a.Card(&quot;Bob&quot;) or Card(&quot;Bob&quot;), was a compile-time error (cannot find symbol). The documentation checked was the Java Language Specification (Java SE 21), opened with WebFetch. The rule that the name of a constructor must be the same as the simple name of the class, that it has no return type unlike a method, and that it cannot be called by a method invocation expression follows section 8.8. The rule that a default constructor with no parameters is implicitly declared only for a class that declares no constructor follows section 8.8.9. The rule that the constructor matching the passed arguments is chosen at compile time, and that it is a compile-time error if none matches, follows section 15.9.3. The rule that at run time the object is created, its fields are set to their default values, the arguments are evaluated, and then the constructor is run follows section 15.9.4. The rule that this inside a constructor means the object being created follows section 15.8.3. The kind of error, the number of errors, and the line where each occurs are not set by the specification. They were observed with this javac. When there are several errors, javac reports all of them, but the table shows only the first. When compilation fails, the Main class file was never created, so the table says it cannot run. The code on the screen has the Card class as package-private and has the shape that needs no import line. Having several constructors (overloading), calling another constructor with this(...), the superclass constructor super(...), and the order in which field initializers and the constructor run are not covered in this lab. They are covered in &quot;In-depth lab: Classes, objects, and constructors&quot;.</p>
-<p>Previous lab: <a href="../../lab/ref_basic/">References</a> · Next lab: <a href="../../lab/static_basic/">static</a></p>
+<p>Previous lab: <a href="../../lab/null_basic/">null</a> · Next lab: <a href="../../lab/static_basic/">static</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -173,6 +173,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5cbab9ae01"></script>
+<script src="../../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

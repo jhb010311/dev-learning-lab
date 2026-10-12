@@ -1,0 +1,8 @@
+# java 21.0.12.1
+true|true => OK|-|0|true|-|0|hello, kim|-|-||App.java / greet.jar|-
+true|false => OK|-|0|true|-|1|-|Exception in thread "main" java.lang.NoClassDefFoundError: lib/Greeter|-||App.java / greet.jar|at App.main(App.java:6)
+false|true => ERR|compiler.err.doesnt.exist|2|false|import lib.Greeter; ## System.out.println(Greeter.hello("kim"));|1|-|Error: Could not find or load main class App|package lib does not exist|compiler.err.doesnt.exist,compiler.err.cant.resolve.location|App.java / greet.jar|Caused by: java.lang.ClassNotFoundException: App
+false|false => ERR|compiler.err.doesnt.exist|2|false|import lib.Greeter; ## System.out.println(Greeter.hello("kim"));|1|-|Error: Could not find or load main class App|package lib does not exist|compiler.err.doesnt.exist,compiler.err.cant.resolve.location|App.java / greet.jar|Caused by: java.lang.ClassNotFoundException: App
+FACT jar => META-INF/ / META-INF/MANIFEST.MF / lib/ / lib/Greeter.class
+FACT classes => App.class
+FACT nodot => 1|Error: Could not find or load main class App

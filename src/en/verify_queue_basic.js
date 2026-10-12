@@ -1,0 +1,1 @@
+Lab.verify({ queue_basic: ['run', 'Ran four combinations with two Node.js 24.18.0 http servers (a small queue server written for this lab and a notification server that receives direct requests) and a program that plays the order server, and checked against the model. Real products such as Kafka and RabbitMQ were not run'] });

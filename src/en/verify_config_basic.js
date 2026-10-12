@@ -1,0 +1,1 @@
+Lab.verify({ config_basic: ['run', 'Compiled the source for each of the six combinations on Spring Boot 4.1.1, ran it as a child java process, and checked against the standard output, exit code, and exception observed from outside the process'] });

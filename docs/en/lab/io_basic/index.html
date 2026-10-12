@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>File I/O: What do you exchange when you write to and read from a file? · Dev Learning Lab</title>
+<meta name="description" content="Code that writes text to a file and reads it back is made of three methods of the Files class. The Files.writeString method writes text to a file, the Fil…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/io_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/io_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/io_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="File I/O: What do you exchange when you write to and read from a file? · Dev Learning Lab">
+<meta property="og:description" content="Code that writes text to a file and reads it back is made of three methods of the Files class. The Files.writeString method writes text to a file, the Fil…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/io_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>File I/O</h1>
+<p><b>What do you exchange when you write to and read from a file?</b></p>
+<p>Code that writes text to a file and reads it back is made of three methods of the Files class. The Files.writeString method writes text to a file, the Files.readAllBytes method reads the bytes stored in the file as they are, and the Files.readString method turns the bytes of the file back into text. A file stores not text but bytes (values you can see as numbers from 0 to 255). So when you write text, it is turned into bytes by a set rule (character encoding), and when you read, the bytes are turned back into text by a rule. The StandardCharsets.UTF_8 part of the code is where that rule is written, and you write it on the writing line and on the reading line. In this lab you change the text to write and the way to read, and the same code is compiled and run, to show the bytes actually stored in the file and the text that was read. (Path.of(&quot;memo.txt&quot;) is taken to mean the file memo.txt in the folder where the program was run, and other path rules are not covered.)</p>
+<p>Checked against real execution · Compiled 9 combinations with javax.tools on JDK 21 and ran each in a new Java process, then checked the stored file bytes against the characters and exceptions that were read</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Byte</dt>
+<dd>A byte is the basic unit that makes up what is stored in a file, and it is one 8-bit value. The Java byte type shows values from -128 to 127, but the same 8 bits can also be read as a value from 0 to 255 (Byte.toUnsignedInt). A file stores not the text or the picture itself but such bytes one after another, and which character they become depends on the rule by which you read those bytes. In Java, a byte[] array is a container that holds the contents of a file as they are, with no rule, and Files.readAllBytes reads the bytes of a file into this array. The size of a file is also counted in bytes, not in characters.</dd>
+<dt>Character encoding and UTF-8</dt>
+<dd>A character encoding is a rule that defines which bytes each character is converted to when it is stored. UTF-8 is the most widely used encoding, and the length of a character varies from 1 byte to 4 bytes depending on the character. English letters and digits take 1 byte, and one Korean character takes 3 bytes. Text is garbled when the encoding used for writing differs from the one used for reading, or when the bytes are cut off in the middle of a character, so it is safer to state the encoding explicitly in code that reads and writes text.</dd>
+<dt>ISO_8859_1</dt>
+<dd>ISO_8859_1 is one of the character encodings that the Java StandardCharsets class provides as a constant, and the documentation describes it as ISO Latin Alphabet No. 1 (ISO-LATIN-1). When all 256 byte values from 0 to 255 were read on this JDK, one byte became one character, and the number of that character was the same as the byte value. So any sequence of bytes turns into characters without an error, but text in which one character is several bytes, such as Korean stored as UTF-8, breaks because each byte becomes a wrong character. The bytes from 0x00 to 0x7F become the same English letters and digits as in UTF-8.</dd>
+<dt>NoSuchFileException</dt>
+<dd>NoSuchFileException is a checked exception thrown when an attempt is made to access a file that does not exist. It is a subclass of java.nio.file.FileSystemException, and so it is a kind of IOException. On this JDK, when Files.readAllBytes tried to read a file whose name was not in the folder, this exception was thrown, and the exception message contained the path that was not found. If the exception is not handled and leaves main, the program ends there with an error.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A Korean character is stored as 3 bytes and an English letter as 1 byte, and reading with the same UTF-8 rule brings back &quot;가A&quot;.</li>
+<li><b>Writing only English letters</b> — Two English letters are stored as 2 bytes, so the number of characters and the number of bytes are the same.</li>
+<li><b>Writing only Korean characters</b> — Two Korean characters are stored as 6 bytes.</li>
+<li><b>Reading with a different rule</b> — The bytes in the file are the same, but the Korean characters are read as wrong characters.</li>
+<li><b>Reading a missing file</b> — There is no such file, so the reading line throws a NoSuchFileException.</li>
+<li><b>Reading English letters with a different rule</b> — English letters become the same characters under both rules, so nothing breaks.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The line that calls the Files.writeString method runs. At this point the file memo.txt does not exist yet. A file stores not text but bytes (values you can see as numbers from 0 to 255), so the 2 characters to write must first be turned into bytes. The rule for turning them (character encoding) is the StandardCharsets.UTF_8 rule passed as the third argument, that is, UTF-8.</li>
+<li>The text is turned into bytes by the UTF-8 rule. &quot;가&quot;: 3 bytes (EA B0 80), &quot;A&quot;: 1 byte (41). In this rule, a Korean character is 3 bytes and an English letter is 1 byte. There are 2 characters, but the bytes come to 4. These bytes are stored in the file memo.txt. These numbers are all that is stored in the file.</li>
+<li>The line that calls the Files.readAllBytes method reads the file memo.txt. This method has no rule for reading; it puts the bytes stored in the file into the variable bytes as they are. The bytes put in are 4 (EA B0 80 41), the same as the bytes just stored.</li>
+<li>The line that calls the Files.readString method turns the bytes of the file memo.txt back into text. The rule for reading is the StandardCharsets.UTF_8 rule, the same as when writing. Because the bytes are grouped and read by the same rule, the original characters come back as they were and are put in the variable text: EA B0 80 → &quot;가&quot;, 41 → &quot;A&quot;.</li>
+<li>The two System.out.println lines print the number of bytes in the variable bytes and the text in the variable text. The first line is 4, and the second line is 가A. There are 2 characters, but the number on the first line is 4, so the value of bytes.length is the number of bytes, not the number of characters.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A file stores bytes, not characters. The 2 characters you wrote were stored as 4 bytes (EA B0 80 41) by the UTF-8 rule, and reading with the same UTF-8 rule brings back the original characters as they were.</li>
+<li>There are 2 characters but 4 bytes. This is because a Korean character is 3 bytes and an English letter is 1 byte, which is why the value of bytes.length is not the number of characters.</li>
+</ul>
+<h2>Code</h2>
+<pre>public class Main {
+    public static void main(String[] args) throws IOException {
+        // Write: turn the text into bytes by a set rule and store them in the file
+        Files.writeString(Path.of(&quot;memo.txt&quot;), &quot;가A&quot;,
+                StandardCharsets.UTF_8);
+        // Read 1: read the bytes stored in the file as they are
+        byte[] bytes = Files.readAllBytes(Path.of(&quot;memo.txt&quot;));
+        // Read 2: turn the bytes of the file back into text by a set rule
+        String text = Files.readString(Path.of(&quot;memo.txt&quot;),
+                StandardCharsets.UTF_8);
+        System.out.println(bytes.length);
+        System.out.println(text);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). All 9 combinations were checked against real runs: the code on the screen (with only the four import lines at the top added) was compiled with javax.tools and run in a new Java process (java -cp . Main) in an empty folder for each combination. After the process ended, the memo.txt in the folder was opened directly to read the bytes actually stored (in hexadecimal) and the size, and I confirmed the number of bytes the program printed, the code points of the characters it read, the exit code, the name of the exception and the line where it occurred (which line of the source), the list of files in the folder after the run (none.txt does not exist and memo.txt does), and that memo.txt did not exist before the run. The four import lines were left out of the screen. That 가 is stored as EA B0 80, 나 as EB 82 98, and the English letters A and B as 41 and 42, and that the ISO_8859_1 rule turns each of the 256 byte values from 0 to 255 into exactly one character, were also checked by a separate run on the same JDK. &quot;Broken characters&quot; is the number of characters read with ISO_8859_1 whose number is 128 or more, and English letters that are the same as the original characters are not counted. Characters that cannot be seen on the screen, such as numbers 128 to 159 (for example U+0080), were actually read, but in the diagram and the step sentences they are written by their number (U+0080 and so on). I opened the documentation and checked it. These are the Java SE 21 API documentation for Files (readAllBytes reads bytes without a rule, readString decodes bytes into characters with the specified character set, and writeString encodes characters into bytes with the specified character set and, with no options, creates the file or empties the existing content and writes), StandardCharsets (the constants UTF_8 and ISO_8859_1), NoSuchFileException (a checked exception thrown when an attempt is made to access a file that does not exist), and Byte (a byte is 8 bits, and how to read it as an unsigned value), and sections 1 and 3 of RFC 3629 (in UTF-8, U+0000 to U+007F take 1 byte, and U+0800 to U+FFFF take 3 bytes). However, the Files documentation does not list NoSuchFileException separately as an exception of these methods and lists only IOException, so that this exception occurs when you read a missing file was observed by running on this JDK, not from the documentation. In the same way, that Path.of(&quot;memo.txt&quot;) points to a file in the folder where the program was run was only observed by running, and I did not open the documentation to check it. Beyond that, the case where there are invalid bytes when reading as UTF-8 (MalformedInputException), other encodings such as UTF-16, line break characters, file path rules, streams and buffers that write to a file one byte at a time (in-depth lab: I/O streams and buffers), and serialization, which turns an object into bytes to store it (in-depth lab: Serialization), are not covered.</p>
+<p>Previous lab: <a href="../../lab/jvm_basic/">Compilation and the JVM</a> · Next lab: <a href="../../lab/dep_basic/">Libraries and dependencies</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

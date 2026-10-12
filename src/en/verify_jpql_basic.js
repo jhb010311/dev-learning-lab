@@ -1,0 +1,1 @@
+Lab.verify({ jpql_basic: ['run', 'Compiled and ran 4 combinations with the code on the screen as it is, on Hibernate 7.4.5 and H2 2.4.240, and checked the SQL that was sent, the objects that came back, and the line on which the error occurred against the results'] });

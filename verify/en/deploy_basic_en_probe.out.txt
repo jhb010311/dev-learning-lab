@@ -1,0 +1,14 @@
+# node v24.18.0 · 127.0.0.1 · for each combination server.js is written, node server.js is started as a child process and stopped and started · the http client sends GET /hello
+true|true|after => response=Version 2|running=Version 2|disk=Version 2|sameProc=false|afterEditRunning=Version 1|later=Version 2|starts=2|finalDisk=Version 2
+true|true|during => response=(connection refused:ECONNREFUSED)|running=(no process)|disk=Version 2|sameProc=(not applicable)|afterEditRunning=Version 1|later=Version 2|starts=2|finalDisk=Version 2
+true|false|after => response=Version 1|running=Version 1|disk=Version 2|sameProc=true|afterEditRunning=Version 1|later=Version 1|starts=1|finalDisk=Version 2
+false|true|after => response=Version 1|running=Version 1|disk=Version 1|sameProc=false|afterEditRunning=(not edited)|later=Version 1|starts=2|finalDisk=Version 1
+false|true|during => response=(connection refused:ECONNREFUSED)|running=(no process)|disk=Version 1|sameProc=(not applicable)|afterEditRunning=(not edited)|later=Version 1|starts=2|finalDisk=Version 1
+false|false|after => response=Version 1|running=Version 1|disk=Version 1|sameProc=true|afterEditRunning=(not edited)|later=Version 1|starts=1|finalDisk=Version 1
+# remaining child processes 0
+# code run true|true|after = "# 1. Start the server (its code answers \"Version 1\")\n# 2. Change \"Version 1\" to \"Version 2\" in the source file\n# 3. Stop and start the server\n# 4. Send a request"
+# code run true|true|during = "# 1. Start the server (its code answers \"Version 1\")\n# 2. Change \"Version 1\" to \"Version 2\" in the source file\n# 3. Stop the server\n# 4. Send a request\n# 5. Start the server again"
+# code run true|false|after = "# 1. Start the server (its code answers \"Version 1\")\n# 2. Change \"Version 1\" to \"Version 2\" in the source file\n# 4. Send a request"
+# code run false|true|after = "# 1. Start the server (its code answers \"Version 1\")\n# 3. Stop and start the server\n# 4. Send a request"
+# code run false|true|during = "# 1. Start the server (its code answers \"Version 1\")\n# 3. Stop the server\n# 4. Send a request\n# 5. Start the server again"
+# code run false|false|after = "# 1. Start the server (its code answers \"Version 1\")\n# 4. Send a request"

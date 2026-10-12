@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lazy fetching: When is an associated object read from the database? · Dev Learning Lab</title>
+<meta name="description" content="An order (Order) points to the member (Member) who placed it. In code, the member field of Order points to that member. In the database, the order row in…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lazy_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lazy_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lazy_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Lazy fetching: When is an associated object read from the database? · Dev Learning Lab">
+<meta property="og:description" content="An order (Order) points to the member (Member) who placed it. In code, the member field of Order points to that member. In the database, the order row in…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/lazy_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › JPA</p>
+<h1>Lazy fetching</h1>
+<p><b>When is an associated object read from the database?</b></p>
+<p>An order (Order) points to the member (Member) who placed it. In code, the member field of Order points to that member. In the database, the order row in the orders table holds only the number of the member (member_id). So when you read one order with em.find, JPA has to decide: should it read the member that the order points to at the same time, or should it read the member at the moment the code actually uses its values? You write this in @ManyToOne(fetch = ...) above the member field. FetchType.EAGER is the way that reads the member together with the order when the order is read (eager fetching), and FetchType.LAZY is the way that puts it off until the member is used (lazy fetching). While it is put off, the member field holds a proxy, an empty stand-in object that knows only the number of member 1. At the moment the code takes a value of the member, such as the name, JPA sends a SELECT statement that reads the member table and fills the proxy. The code on the screen has no SQL at all, yet SQL is sent, and when it is sent depends on the setting. In this lab you change the fetch setting and delete the order.getMember().getName() line, and read the same order each time, and you see which table each line sent a SELECT for.</p>
+<p>Checked against real execution · Ran 4 combinations on Hibernate 7.4.5 and H2 2.4.240 and checked the SQL sent on each line against the results, and checked the FetchType rules against the Jakarta Persistence 3.2 API documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Lazy fetching and eager fetching</dt>
+<dd>Settings for when to load an associated entity. Eager fetching (EAGER) loads the associated entities together when the entity is loaded. Lazy fetching (LAZY) puts a proxy object in the place of the associated entity and loads it when its values are actually used. Eager fetching always loads data even when it is not needed and produces queries that are hard to predict, so using lazy fetching as the default is recommended.</dd>
+<dt>@ManyToOne</dt>
+<dd>@ManyToOne is an annotation that you put on a field to show that &quot;this field points to one other entity, and many of this entity can point to the same one&quot;. A typical case is many orders pointing to one member. The type of the target is found from the type of the field. In tables, the table of the entity that has this field gets a foreign key column that holds the primary key value of the other side, and if you do not set the column name separately, it becomes the name that joins the field name, an underscore, and the name of the other side's primary key column (member_id for a member field of the type Member). If a field of another entity type has no such association mark, Hibernate 7.4.5 cannot find a way to put that field in a column and throws an error while starting.</dd>
+<dt>Entity proxy</dt>
+<dd>A stand-in object that is put in the place of a real entity. Hibernate creates a subclass of the entity class at run time and returns an object of it, and at first it knows only the identifier and the rest of its contents is empty. The moment you first read a value other than the identifier, it queries the DB and reads the real entity; this is called proxy initialization. The result of em.getReference and an association configured for lazy fetching come in as proxies. The class of a proxy is different from the entity class, so use instanceof instead of getClass() when you compare types.</dd>
+<dt>FetchType</dt>
+<dd>FetchType is an enum that says when to read associated data, and it has two values, EAGER and LAZY. You write FetchType.LAZY or FetchType.EAGER in the fetch element of an association annotation such as @ManyToOne. EAGER is a requirement that the data must be read at once, and LAZY is a hint that the data may be read when it is first accessed. Because LAZY is a hint, the implementation is also permitted to read data marked LAZY in advance. If you do not write fetch on @ManyToOne, the default is EAGER.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — With LAZY, the find line reads only the orders table, and the SELECT that reads the member table is sent on the getName line, which takes the name of the member.</li>
+<li><b>If you do not use the name</b> — With LAZY, if the values of the member are not used, the SELECT that reads the member table is never sent.</li>
+<li><b>If you change to EAGER</b> — With EAGER, the find line reads the order and the member together with one SELECT that joins them, and no SQL is sent on the getName line.</li>
+<li><b>If you do not use the name with EAGER</b> — With EAGER, the find line reads the member too, even if the name is not used.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The database setup: before the code runs, the orders table in the database holds one order row (id 10, member_id 1), and the member table holds one member row (id 1, Alice). member_id is the column that holds the number of the member who placed this order. These rows were put in beforehand, outside the code on the screen. Order and Member are Java classes (entities) that each correspond to one row of a table, and em in the code is the EntityManager that reads entities from the database. Nothing has been read yet.</li>
+<li>Order order = em.find(Order.class, 10L): em looks for the order whose id is 10. JPA (Hibernate) builds and sends 1 SELECT statement (SQL that reads rows from the database) that reads the orders table, and builds an Order object from the row it read. This row holds only the member number, member_id = 1. LAZY is written above the member field, so the member table is not read, and the member field gets a proxy that knows only the number of member 1. The name of the proxy is still empty. This SELECT is not in the code we wrote. JPA built and sent it.</li>
+<li>order.getMember(): returns as it is the proxy that was in the member field of the Order object. Up to this line, no SQL has been sent for the member table, and the name of the proxy that was returned is still empty.</li>
+<li>.getName(): the proxy holds only the number of the member, so it does not know the name. At this moment, JPA (Hibernate) sends a SELECT statement that reads the member table, reads the row of member 1, fills in the proxy, and returns the name Alice. The SELECT was sent on this line, where a value of the member was taken for the first time, and this SELECT is not in the code we wrote either.</li>
+<li>The code has finished. SELECT statements sent in total: 2. 1 was sent on the find line that reads the order, and 1 on the getName line that takes the name of the member. The member was read on the getName line, where the name was actually used.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A member marked FetchType.LAZY means &quot;the member is read when it is used.&quot; The find line that reads the order read only the orders table, and the SELECT that reads the member was sent on the getName line that took the name (SELECT statements in total: 2).</li>
+<li>The code has no SQL at all, yet SQL was sent twice. No SQL is sent up to order.getMember(); it is sent at the moment a value of the member is used.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Entity
+public class Member {
+    @Id
+    private Long id;
+    private String name;
+
+    public String getName() { return name; }
+}
+
+@Entity
+@Table(name = &quot;orders&quot;)
+public class Order {
+    @Id
+    private Long id;
+
+    // Link: decides when to read the member that this order points to
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Member member;
+
+    public Member getMember() { return member; }
+}
+
+// The database holds order 10 and member 1 (Alice), who placed that order
+Order order = em.find(Order.class, 10L);
+// Use: actually use a value (the name) of the member
+String name = order.getMember().getName();</pre>
+<h2>Assumptions of this model</h2>
+<p>This was checked against real execution on Hibernate 7.4.5 and H2 2.4.240 (in-memory database). A SessionFactory was built directly without Spring, on JDK 21. All 4 combinations were compiled and run with the two entity classes on the screen (Member and Order) and the lines of code that read, exactly as they are (including the comment lines). What was left out of the screen is only the package and import lines, and what does not appear on the screen is the code that gets and closes the EntityManager. For each combination, the database and the SessionFactory were created anew, the tables were created by Hibernate, and before the run, member (1, Alice) and order (10, member_id 1) were put into the database with JDBC. The SQL of this setup was not counted, and the code that reads was run in an EntityManager different from the one used for the setup, with an empty persistence context. The code that reads has no line that starts a transaction, and it was run with em left open. What was checked against the run is the SQL that was captured with Hibernate's StatementInspector, split by line of code (the line that sent it was found from the call stack, and the original SQL and the lines were kept in the output of the checking run). In this environment, LAZY sent 1 SELECT that reads only the orders table on the find line and 1 SELECT that reads only the member table on the getName line, and EAGER sent 1 SELECT that does a left join of orders and member on the find line and sent none on the getName line. When there was no line that uses the name, LAZY sent no SELECT that reads the member table at all. The facts that the step sentences rely on were also measured in a second run that inserts a measuring line right below each line of code and splits getMember() and getName() into two lines. With LAZY, right after find, the object in the member field is an object of a proxy class that Hibernate made (Member$HibernateProxy), it is not initialized, and it knows the identifier 1. Right after order.getMember() was called, the SQL did not increase and it was still not initialized. Right after getName(), one SELECT was added and it was initialized. With EAGER, right after find, the object in the member field is a real Member object and not a proxy, it is initialized, and the SQL did not increase after getMember() and getName(). Also, when the same code was run without writing fetch in @ManyToOne, the member was read by 1 joined SELECT on the find line, the same as EAGER (this was not put into the settings on the screen, and was used only as the evidence for the glossary). What the documentation defines is in the Jakarta Persistence 3.2 API documentation: FetchType (EAGER is a requirement that data must be eagerly fetched, and LAZY is a hint that data may be fetched when it is first accessed, and the implementation may eagerly fetch data marked LAZY) and the fetch element of ManyToOne (the default is EAGER if it is not written). The Fetching chapter of the Hibernate User Guide could not be opened at the relevant part of the page, so it was not read, and how a proxy is put in and how EAGER is read with a join are not defined by the documentation but are behavior observed on Hibernate 7.4.5. By the specification, LAZY is a hint, and whether to read EAGER with a join or with a separate SELECT is decided by the implementation, so the screen shows only the SQL that was sent in this environment. This lab deals only with the time while em is open. It does not cover the LazyInitializationException that occurs when you try to fill a proxy after em is closed, the N+1 problem in which the number of SELECTs grows with the number of orders when there are many orders, JPQL queries, or the loading of collections (@OneToMany). The details of proxies are covered in the lab &quot;Proxies and lazy fetching&quot;, and N+1 in the lab &quot;N+1&quot;. The run was not checked against MySQL.</p>
+<p>Previous lab: <a href="../../lab/relation_basic/">Associations</a> · Next lab: <a href="../../lab/jpql_basic/">JPQL</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

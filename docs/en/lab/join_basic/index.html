@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -81,7 +81,7 @@ JOIN member m ON o.member_id = m.id
 ORDER BY o.id;</pre>
 <h2>Assumptions of this model</h2>
 <p>The model was checked against real execution on H2 2.4.240 (an in-memory database, through JDBC). For all 6 combinations, the whole SQL on the screen (including the comment lines) was run character by character, one statement at a time, and the number of rows that the SELECT returned and the values of all the rows (item and name, or member_id) were checked against the model. If the result had more than four rows, it was shortened to the first four rows and the total number of rows, and the same rule was used when checking. Besides this, the values that the step sentences rely on were also checked separately on H2: the number of rows in orders, that no member with id 9 exists in member, the id of the member that is the pair, and that the number of rows of a CROSS JOIN without ON is the product of the numbers of rows of the two tables. The definitions and rules were checked by opening the MySQL 8.4 documentation. In section 15.2.13.2 JOIN Clause, MySQL treats JOIN, CROSS JOIN, and INNER JOIN as the same thing that can be used in place of each other (standard SQL calls it INNER JOIN if there is ON and CROSS JOIN if there is not), a Cartesian product of the two tables is made when there is no condition, and the ON condition is a conditional expression that can be used in WHERE and is usually used to decide how to connect the tables. Table aliases follow the same section and the FROM description in section 15.2.13 SELECT Statement (tbl_name AS alias_name or tbl_name alias_name). However, the two documents do not separately say that a row without a pair does not appear in the result of an INNER JOIN, so that behavior was checked by execution on H2. I opened the documentation with a tool that summarizes a web page, and I did not check the original text character by character. The check by execution on MySQL was not done. The step sentences write out in order how the result is made. Which table the database actually reads first and how it finds the pairs is decided by the database, and the order of the lines in the result is decided by the ORDER BY on the screen. LEFT JOIN, which also keeps rows without a pair, is not covered, and it is covered in the lab &quot;JOIN and GROUP BY&quot; in the study section.</p>
-<p>Previous lab: <a href="../../lab/where_basic/">WHERE</a> · Next lab: <a href="../../lab/index_basic/">Indexes</a></p>
+<p>Previous lab: <a href="../../lab/where_basic/">WHERE</a> · Next lab: <a href="../../lab/groupby_basic/">GROUP BY and aggregation</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -168,6 +168,6 @@ ORDER BY o.id;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5cbab9ae01"></script>
+<script src="../../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

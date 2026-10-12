@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>List and Map: What do List and Map hold, and how do you get things out? · Dev Learning Lab</title>
+<meta name="description" content="A container that holds several values is called a collection. A List holds values in a line, in the order you put them in, and you get them out by an inde…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/collection_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/collection_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/collection_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="List and Map: What do List and Map hold, and how do you get things out? · Dev Learning Lab">
+<meta property="og:description" content="A container that holds several values is called a collection. A List holds values in a line, in the order you put them in, and you get them out by an inde…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/collection_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>List and Map</h1>
+<p><b>What do List and Map hold, and how do you get things out?</b></p>
+<p>A container that holds several values is called a collection. A List holds values in a line, in the order you put them in, and you get them out by an index that starts at 0. A Map holds keys paired with values, and you get a value out by its key. In code, as in List&lt;String&gt; names = new ArrayList&lt;&gt;();, you write the kind of container on the left (the part in angle brackets is the kind of value it holds), and the new on the right creates an empty container. You do not write a size in the parentheses. The number of stored items grows as you put things in with add or put. In this lab you switch between List and Map, and the same shape of code is compiled and run, and you see what is printed when you get something that is stored, when you get something that is not stored, and when you put the same thing in once more. (The number of stored items is printed first so that you can see it even when the program stops while getting.)</p>
+<p>Checked against real execution · Compiled 6 combinations with javax.tools on JDK 21, ran them as child java processes, and checked the standard output, the standard error, and the exit code</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>List, Set, Map</dt>
+<dd>These are the three basic kinds of Java collections. A List is ordered, allows duplicates, and is accessed by index. A Set does not allow duplicates. A Map stores key-value pairs, and its keys cannot be duplicated. You choose among them by the nature of the data (whether order is needed, whether duplicates are allowed, and whether you look things up by key).</dd>
+<dt>List add() and get()</dt>
+<dd>A List is a container that holds values in a line, in the order you put them in, and each stored value is identified by an integer index that starts at 0. add(value) attaches the value to the end of the List, and get(index) returns the value at that index. A List can hold the same value several times, so adding the same value again stores one more at a different index. size() returns the number of stored values, and the indexes you can use are 0 up to size() - 1. ArrayList is a class built by the rules of List. It grows the array it uses inside by itself as you add values, so you do not have to decide a size when you create it.</dd>
+<dt>Map put() and get()</dt>
+<dd>A Map is a container that holds keys paired with values, and you get a value out by its key, not by an index. One Map cannot have two of the same key, and one key is paired with one value. put(key, value) pairs a key with a value, and if that key is already stored, it does not create a new pair but replaces the old value with the new one and returns the old value. get(key) returns the value paired with that key, and returns null without an exception if there is no paired value. In a Map that can also store null as a value, get returning null may not mean that the key is absent, and you check whether the key exists separately with containsKey. HashMap is a class built by the rules of Map, and it does not guarantee the order in which things come out.</dd>
+<dt>IndexOutOfBoundsException</dt>
+<dd>IndexOutOfBoundsException is the exception that is thrown when you refer to something by an index, such as an array, a string, or a List, and the index is out of range. The get(index) of a List throws this exception if the index is less than 0 or greater than or equal to the number of stored values. It is a subclass of RuntimeException. Code with a wrong index still compiles, and the exception is thrown when that line runs.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — &quot;kim&quot; is stored at index 0 and &quot;lee&quot; at index 1, and get(0) gets &quot;kim&quot;.</li>
+<li><b>Getting an index that is not in the List</b> — The only stored indexes are 0 and 1, so an exception is thrown and the program stops.</li>
+<li><b>Putting the same value in the List again</b> — It does not stop you. It stores one more, and the number of stored values becomes 3.</li>
+<li><b>Switching to Map and getting by key</b> — It gets the value 20 that was paired with the key &quot;kim&quot;.</li>
+<li><b>Getting a key that is not in the Map</b> — No exception is thrown, and null comes out.</li>
+<li><b>Putting the same key in the Map again</b> — No new pair is created. Only the value changes to 25.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>You run it with java Main. The first line of main, List&lt;String&gt; names = new ArrayList&lt;&gt;();, runs. The List&lt;String&gt; on the left means &quot;a List that holds strings (String),&quot; and it decides what kind of container the variable names refers to. The new ArrayList&lt;&gt;() on the right creates an empty List with nothing in it, and names refers to that List. List is the name of the rules for holding values, and ArrayList is a real class built by those rules. No size is written in the parentheses. The number of stored values is 0.</li>
+<li>The line names.add(&quot;kim&quot;); runs. add attaches a value to the end of the List. It was empty, so &quot;kim&quot; goes in at index 0. Indexes start at 0 and are numbered in the order you put values in. The number of stored values is 1.</li>
+<li>The line names.add(&quot;lee&quot;); runs. add attaches a value to the end of the List. &quot;lee&quot; goes in at index 1, right after &quot;kim&quot;. The number of stored values is 2.</li>
+<li>The line System.out.println(names.size()); prints the number of stored values. The number printed is 2.</li>
+<li>At the line System.out.println(names.get(0));, the call get(0) returns the value at index 0, and println prints &quot;kim&quot;. The index to get is the 0 written in the parentheses. Getting a value does not remove it from the List, so the number of stored values stays 2.</li>
+<li>The last line of main runs and the program ends.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A List holds values in a line, in the order you put them in, and you get them out by an index that starts at 0. add stored &quot;kim&quot; and &quot;lee&quot; at indexes 0 and 1, and the call get(0) got &quot;kim&quot;.</li>
+<li>No size was written in the parentheses of new ArrayList&lt;&gt;(), yet the number of stored values grew as much as you put in. An array has its length decided when it is created and never changes after that (section 10.2 of the Java Language Specification), but a List grows as you put values in. The values stay in the List after you get them.</li>
+</ul>
+<h2>Code</h2>
+<pre>// Import java.util, which contains the collection classes
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        // List: a container that holds values in a line, in the order you put them in. It starts out empty
+        List&lt;String&gt; names = new ArrayList&lt;&gt;();
+        // Put in: add attaches the value to the end. Indexes are numbered from 0
+        names.add(&quot;kim&quot;);
+        names.add(&quot;lee&quot;);
+        // Count: size returns the number of stored values
+        System.out.println(names.size());
+        // Get: get returns the value at that index
+        System.out.println(names.get(0));
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). All 6 combinations were checked against real runs: the same source as the code on the screen (identical line by line) was compiled with javax.tools and all of them compiled, and the compiled Main was run by starting the java of this JDK as a child process, and the standard output, the standard error, and the exit code were captured. What was checked is whether compilation succeeded, the lines of the standard output (the number stored and the value retrieved), and the exit code and the first line of the standard error (the combination that throws an exception had exit code 1 and the first line Exception in thread &quot;main&quot; java.lang.IndexOutOfBoundsException: Index 5 out of bounds for length 2, followed by a stack trace with Main.main in the standard error, and the others had exit code 0 and an empty standard error). The facts that the step sentences rely on were checked by running separate source in the same way. In the List, &quot;kim&quot; and &quot;lee&quot; are stored at indexes 0 and 1 (the indexOf results were 0 and 1), the number stored stays 2 after a get, and putting the same &quot;kim&quot; in again stores it separately at index 2 (get(2) was kim, and the count was 3). In the Map, calling put with the same key returns the old value 20 and the value becomes 25 with the pairs staying at 2, and for the key park, which was not stored, get is null and containsKey is false. For the documentation, I opened the Java SE 21 API documentation myself. That indexes in a List start at 0 and that a List can hold the same value several times, that add attaches to the end, and that get throws an IndexOutOfBoundsException for an index out of range follow java.util.List and java.util.ArrayList; that an ArrayList grows its capacity by itself as you add follows java.util.ArrayList; that a Map cannot have two of the same key, that get returns null when there is no pair, and that put replaces the old value and returns it follow java.util.Map and java.util.HashMap; that IndexOutOfBoundsException is a subclass of RuntimeException follows java.lang.IndexOutOfBoundsException; and that the length of an array does not change after it is created follows section 10.2 of the Java Language Specification (Java SE 21). I opened these documents in a way that returned summaries of their content, so I did not read every word of the original text myself. That the code compiles even with a wrong index and that the exception is thrown at run time, and the exit code 1 and the text in the standard error, were not taken from the documentation but observed with this java. The code on the screen has exactly the shape that is run with java Main, and there is no package. The number stored is printed first and the line that gets comes after it so that, even in the combination that stops while getting, the number stored can be checked in the output. The dashed slots in the diagram (index 5, key park) are drawn to point to a position where nothing is stored, and they do not mean that a real List or Map has such a slot. Other methods of List and Map (remove, contains, and so on), ways to go through all the items, Set, how the order of retrieval is decided, and storing null as a value are not covered. The difference between ArrayList and LinkedList is covered in the in-depth lab &quot;ArrayList and LinkedList&quot;, how HashMap finds a key in &quot;Inside HashMap&quot;, and the order of the kinds of Set and Map in &quot;Kinds of Set and Map&quot;.</p>
+<p>Previous lab: <a href="../../lab/generic_basic/">Generics</a> · Next lab: <a href="../../lab/lambda_basic/">Lambdas</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

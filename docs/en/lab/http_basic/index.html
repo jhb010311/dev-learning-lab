@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -73,7 +73,7 @@ Host: localhost:8080
 (empty line)</pre>
 <h2>Assumptions of this model</h2>
 <p>The server is a single one made with the http module of Node.js 24.18.0. It returns 200 with the body &quot;Hello&quot; for GET /hello and 404 for any other path. All 12 combinations were sent character for character, with the net module, to this server on 127.0.0.1 (lines end with CRLF), and checked against the model: the status line and body of the response received, whether our request handler function was called, and the method and url that function received. The (empty line) on the screen is a way to show a line with no text at all, so that you can see it, and for the combinations with no empty line, the text was sent only as far as the line break of the last line. &quot;No response (waiting)&quot; means that no byte of a response came for 1.5 seconds after the text was sent. How long Node.js waits before giving up was not examined. For the first line with a wrong shape (/hello), Node.js cannot read it as a request, raises a clientError (HPE_INVALID_METHOD), and sends back 400 by itself, and 400 also came when only the first line was sent, whatever the later lines were. For a request with no Host, Node.js sends back 400 by itself after the empty line arrives and the headers end, before it calls our code (the request handler function was not called and no clientError was raised). When the same text was sent to a server with the Host check turned off (requireHostHeader: false), the handler function received a GET request, so the text had been read correctly up to the request line. These are behaviors observed on this Node.js version. What was checked against the documentation is RFC 9112 section 2.1 (message format: the empty line after the request line and headers), section 3 (the request line: three parts, method, request target, and version), section 3.2 (a server must respond with 400 to an HTTP/1.1 request that has no Host), and RFC 9110 section 7.2 (Host), section 15.5.1 (400), and section 15.5.5 (404). The request on the screen has the minimum shape, with only Host left as a header, and only GET requests without a body were covered. How a 400 is returned can differ from server to server, and this screen shows the behavior of a Node.js server. The server code is not shown on the screen. The in-depth details on the same subject (the shape of responses, all the status codes) are covered in the in-depth lab &quot;HTTP messages and status codes&quot;.</p>
-<p>Previous lab: <a href="../../lab/dns_basic/">DNS</a> · Next lab: <a href="../../lab/httpres_basic/">HTTP responses</a></p>
+<p>Previous lab: <a href="../../lab/dns_basic/">DNS</a> · Next lab: <a href="../../lab/httpmethod_basic/">HTTP methods</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -160,6 +160,6 @@ Host: localhost:8080
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5cbab9ae01"></script>
+<script src="../../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

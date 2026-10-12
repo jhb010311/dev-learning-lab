@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Load balancers: If you run several servers, which server does a request go to? · Dev Learning Lab</title>
+<meta name="description" content="When there are more requests than one server can handle, you start the same server program on several machines. But it is inconvenient if the client (the…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lb_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lb_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lb_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Load balancers: If you run several servers, which server does a request go to? · Dev Learning Lab">
+<meta property="og:description" content="When there are more requests than one server can handle, you start the same server program on several machines. But it is inconvenient if the client (the…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/lb_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
+<h1>Load balancers</h1>
+<p><b>If you run several servers, which server does a request go to?</b></p>
+<p>When there are more requests than one server can handle, you start the same server program on several machines. But it is inconvenient if the client (the side that sends requests) has to know several server addresses. So the client connects to one address only, and the load balancer that receives requests at that address spreads them across the servers. The load balancer in this lab sends requests to server A and server B in turn, and skips a server whose connection is refused. The code box is not Java code. It is a configuration that says which program runs at which address and what it does (lines that start with # are comments). Each server counts the requests it has received in its own memory and replies like &quot;I am A, request #1&quot;. In this lab you remove the load balancer, and you stop the server A program after 3 requests, and you see how the replies the client receives change.</p>
+<p>Checked against real execution · Ran all four combinations with an http server of Node.js 24.18.0 as server A (and B), a load balancer built by hand, and an http client, and checked against the model</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Load balancer</dt>
+<dd>A device that distributes incoming requests across several servers. It checks the state of the servers periodically (health check) and does not send requests to a server that has a problem. It keeps load from piling up on one server and keeps the service running even when some servers fail.</dd>
+<dt>Round robin</dt>
+<dd>Round robin is a method that hands out requests to the servers in turn, one server at a time. With two servers, A and B, requests go to A, B, A, B, in that order. The NGINX documentation says this method, which distributes requests evenly across the servers, is the default and that no directive is needed to turn it on, and that you can also give each server a weight. Which server gets which request follows a fixed order, so when the servers are always in the same state, requests are spread evenly across them.</dd>
+<dt>Skipping a failed server</dt>
+<dd>Skipping a failed server is what a load balancer does when an error occurs while it tries to connect to a server: it does not use that server and sends the same request to the next server. In the NGINX documentation the default of proxy_next_upstream is error and timeout, and error covers an error that occurs while establishing a connection with the server, so when a connection is refused, the request is passed to the next server. Also, after max_fails failures (default 1), the server is considered unavailable for fail_timeout (default 10 seconds). Because of this, even if one server stops, the client gets replies without any failure as long as other servers remain.</dd>
+<dt>Connection refused error</dt>
+<dd>A connection refused error is the error that the sender gets when it asks for a TCP connection but no program has that port open and is waiting. In Node.js, the error event comes instead of the connect event, and the error code appears as ECONNREFUSED (the Node.js errors documentation describes ECONNREFUSED as &quot;Connection refused: No connection could be made because the target machine actively refused it&quot;, and the net documentation says that if there is a problem with the connection, error comes instead of connect). Because the connection was not opened, not a single letter of text is sent. The TCP standard says to send a reset signal (RST) to a request that comes with no connection (RFC 9293 section 3.5.2).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A load balancer in front of two servers. Requests go to A and B in turn.</li>
+<li><b>Stopping the server A program</b> — The load balancer skips server A, and the client gets replies without any failure.</li>
+<li><b>One server without a load balancer</b> — There is only one server, so that server receives every request.</li>
+<li><b>Stopping the only server</b> — No server is left to receive requests, so every later request fails.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The servers start. Two copies of the same server program start separately as server A and server B. Each one counts the requests it has received in its own memory, and when a request arrives it replies &quot;I am A&quot; or &quot;I am B&quot; together with that count. A load balancer starts in front of them. The client does not know how many servers there are. It knows only one address, localhost:8080. The program that receives requests at this address is the load balancer.</li>
+<li>The client sends request #1, GET /. What receives the request at address 8080 is not a server but the load balancer. The load balancer passes this request to server A, the first server in its list.</li>
+<li>Server A adds one to the number of received requests it keeps in its own memory and replies &quot;I am A, request #1&quot;. The load balancer returns this reply to the client unchanged. The text the client receives says which server replied.</li>
+<li>The client sends request #2, GET /. The load balancer sends requests in turn, so this time it is the turn of server B. Server B adds one to the count it keeps in its own memory and replies &quot;I am B, request #1&quot;, and the load balancer returns this reply. Server A has already replied once, but server B's count starts at &quot;request #1&quot;. Each server counts the requests it has received separately, in its own memory.</li>
+<li>The client sends request #3, GET /. The load balancer sends requests in turn, so this time it is the turn of server A. Server A adds one to the count it keeps in its own memory and replies &quot;I am A, request #2&quot;, and the load balancer returns this reply.</li>
+<li>The client sends request #4, GET /. The load balancer sends requests in turn, so this time it is the turn of server B. Server B adds one to the count it keeps in its own memory and replies &quot;I am B, request #2&quot;, and the load balancer returns this reply.</li>
+<li>The client sends request #5, GET /. The load balancer sends requests in turn, so this time it is the turn of server A. Server A adds one to the count it keeps in its own memory and replies &quot;I am A, request #3&quot;, and the load balancer returns this reply.</li>
+<li>The client sends request #6, GET /. The load balancer sends requests in turn, so this time it is the turn of server B. Server B adds one to the count it keeps in its own memory and replies &quot;I am B, request #3&quot;, and the load balancer returns this reply.</li>
+<li>The 6 requests are finished. Server A replied 3 times and server B replied 3 times, and 0 requests failed. The count of received requests kept by server A is 3, and the count kept by server B is 3.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The load balancer receives requests at the one address the client connects to and sends them to server A and server B in turn. Of the 6 requests, server A replied to 3 and server B replied to 3.</li>
+<li>Each server counts received requests separately in its own memory. The first request server B received was &quot;request #1&quot;, even though server A had already replied, and each of the two servers counted 3. A value kept in a server's memory exists only inside that server.</li>
+</ul>
+<h2>Code</h2>
+<pre># Client: 6 requests to http://localhost:8080/
+# 8080: load balancer (sends to server A and server B in turn)
+# Server A (9001), server B (9002): reply &quot;I am A&quot; and &quot;I am B&quot;
+#   The reply also includes the number of requests the server has received</pre>
+<h2>Assumptions of this model</h2>
+<p>Server A (and server B) is an http server of Node.js 24.18.0, and each server counts the requests it has received in its own variable and replies like &quot;I am A, request #1&quot;. The load balancer is not a product such as NGINX but one built by hand as an http server of the same Node.js. For each request it moves the starting position in the server list by one (A, B, A, B...), forwards the request to that server on a new connection, skips a server whose connection is refused and sends the same request to the next server, and does not try a server again after it has refused once. The client sent a GET / request 6 times in a row with the http module, on a new connection for each request. Stopping server A was done by closing that server's listening socket and its open connections instead of ending the process, and after it was closed, a connection from the client or the load balancer gave ECONNREFUSED (a connection refused error). I ran all four combinations and checked against the model the number of replies from server A and server B, the number of failed requests, which server replied to each of the 6 requests and as which request number, the counts the servers kept in memory, the requests and servers for which the load balancer had its connection refused, and the request text the server received. I also checked for each combination that the code on the screen has the same content as that setup. The code on the screen is a description of that setup, not the program that was run, and 8080, 9001, and 9002 on the screen are example addresses; the real runs used free ports. These are behaviors observed in this implementation. What I checked against documentation is RFC 9110 section 3.7 (the definition that a gateway, that is a reverse proxy, is an intermediary that forwards received requests to another server or to several servers inside) and the NGINX documentation (ngx_http_upstream_module at nginx.org: requests are distributed among the servers by weighted round robin by default, and max_fails with a default of 1 and fail_timeout with a default of 10 seconds make a failed server be considered unavailable for that time; ngx_http_proxy_module: the default of proxy_next_upstream is error timeout, and error includes an error that occurred while establishing a connection with the server). NGINX is not installed on the PC used to write this lab, so I did not run NGINX. The load balancer in this lab was only built to act in the same spirit as NGINX, and it was not checked against the real behavior of NGINX. Not covered: the case where the load balancer itself stops, the case where a stopped server starts again and comes back, health checks that check the state of servers periodically, servers with different processing power or weights, sending requests from the same user to the same server, and the limit a server can bear when there are very many requests. How far throughput grows when you add servers is covered in the in-depth lab &quot;Load balancers and scale out&quot;, how to replace servers one at a time in a deployment is covered in &quot;Deployment strategies&quot;, and automatically starting a dead server again is covered in &quot;Kubernetes self-healing&quot;.</p>
+<p>Previous lab: <a href="../../lab/remote_basic/">Calling another server</a> · Next lab: <a href="../../lab/cache_basic/">Caches</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

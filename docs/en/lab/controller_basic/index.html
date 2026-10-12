@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -80,7 +80,7 @@ public class HelloController {
 }</pre>
 <h2>Assumptions of this model</h2>
 <p>The result was obtained by running Spring Boot 4.1.1 (Spring Framework 7.0.9, embedded Tomcat 11) on JDK 21. The model assumes that the browser sends one GET request per path, one after another. The localhost:8080 in the paths is an example of starting Spring Boot on its default port on my own computer. For all 8 combinations, the same source as the code on the screen (with only the lines that count objects and runs added) was compiled in the package app, and a new Java process was started with a start class annotated with @SpringBootConfiguration, @EnableAutoConfiguration, and @ComponentScan. The controller was not registered by hand but found by Spring scanning the classes, and the requests were sent over real HTTP after the server had started. What was checked is the number of controller objects that Spring created (right after the server started and after the requests), the path table (the entries of this class among getHandlerMethods of RequestMappingHandlerMapping), the status code and body for each path, and the number of method runs. That DispatcherServlet is the only servlet registered with Tomcat and handles the path &quot;/&quot;, that the controller class is not of the Servlet type, and that the method did not run for a 404 response were also checked by execution. What the documentation defines is the DispatcherServlet section of Web MVC in the Spring Framework documentation (that DispatcherServlet is the one servlet that receives all requests and the actual work is done by delegate components, and that in Spring Boot the servlet declaration is found in the Spring configuration and registered with the container), the Declaration section of Annotated Controllers (that controller objects are found by classpath scanning, and that @RestController combines @Controller and @ResponseBody), the Mapping Requests section (shortcut annotations such as @GetMapping), and the API documentation of @RestController, @Controller, and @GetMapping. That the object is created when the server starts and the path table is built then, and that a 404 response is returned when there is no path, are not defined by the documentation but are behaviors observed in the default settings of this version. The code on the screen leaves out the package and import lines, and it assumes that the controller is in the same package as the start class (or below it). For registering paths, only @GetMapping was covered, and @RequestMapping, @PostMapping, and @Controller were not. That DispatcherServlet of Spring Boot is initialized when the first request arrives and not when the server starts was observed, but it is not included in the steps of this lab, and it is covered in the in-depth lab &quot;Spring MVC request flow&quot;.</p>
-<p>Previous lab: <a href="../../lab/servlet_basic/">Servlets</a> · Next lab: <a href="../../lab/tx_basic/">@Transactional</a></p>
+<p>Previous lab: <a href="../../lab/servlet_basic/">Servlets</a> · Next lab: <a href="../../lab/config_basic/">Configuration files</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -167,6 +167,6 @@ public class HelloController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5cbab9ae01"></script>
+<script src="../../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

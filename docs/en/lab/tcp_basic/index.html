@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TCP connections: What does it mean to open a connection, and what happens if you send without one? · Dev Learning Lab</title>
+<meta name="description" content="TCP and UDP are two sets of rules for two programs to send text (bytes) to each other over a network. To send with TCP, the sending program must first run…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tcp_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/tcp_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/tcp_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="TCP connections: What does it mean to open a connection, and what happens if you send without one? · Dev Learning Lab">
+<meta property="og:description" content="TCP and UDP are two sets of rules for two programs to send text (bytes) to each other over a network. To send with TCP, the sending program must first run…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/tcp_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Networking</p>
+<h1>TCP connections</h1>
+<p><b>What does it mean to open a connection, and what happens if you send without one?</b></p>
+<p>TCP and UDP are two sets of rules for two programs to send text (bytes) to each other over a network. To send with TCP, the sending program must first run a line that says &quot;connect to port 9000 of 127.0.0.1&quot; and open a connection to the receiving program. The connection is opened only when the receiving program has that port open and is waiting, and the text sent after that arrives in the order it was sent. UDP has no line for connecting. Each line that sends text names where to send it and just throws it out. In this lab you switch the way of sending between TCP and UDP, add or remove the receiving program, and see what the sender gets and what the receiver gets. The code box is not a real program; it describes in words what the two programs do, and the number 9000 is an example. A port is a number that tells programs apart inside one computer, and the address 127.0.0.1 points to this computer itself.</p>
+<p>Checked against real execution · Ran all 4 combinations on 127.0.0.1 with net and dgram of Node.js 24.18.0 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>TCP and UDP</dt>
+<dd>The two main ways of transporting data on the internet. TCP establishes a connection before communication, guarantees that data arrives complete and in order, and sends data again if there is a problem. UDP sends data without a connection and does not guarantee arrival or order, but in return it is lightweight and fast. The web and database connections use TCP, and real-time video and voice and DNS mainly use UDP.</dd>
+<dt>TCP connection</dt>
+<dd>A TCP connection is the path that the sender and the receiver open between them before they exchange text with TCP. The sender asks for a connection to the IP address and the port of the other side, and if a program has that port open and is waiting, the connection is opened. The procedure for opening a connection is the 3-way handshake (RFC 9293 section 3.5). After the connection is opened, TCP takes care of delivering the bytes in the order they were sent, with nothing missing (RFC 9293 section 2.2 says that TCP provides a reliable, in-order, byte-stream service). Without a connection, text cannot be sent. HTTP/1.1 also goes over such a reliable connection, and the default for an http address is TCP (RFC 9112 section 9).</dd>
+<dt>Connection refused error</dt>
+<dd>A connection refused error is the error that the sender gets when it asks for a TCP connection but no program has that port open and is waiting. In Node.js, the error event comes instead of the connect event, and the error code appears as ECONNREFUSED (the Node.js errors documentation describes ECONNREFUSED as &quot;Connection refused: No connection could be made because the target machine actively refused it&quot;, and the net documentation says that if there is a problem with the connection, error comes instead of connect). Because the connection was not opened, not a single letter of text is sent. The TCP standard says to send a reset signal (RST) to a request that comes with no connection (RFC 9293 section 3.5.2).</dd>
+<dt>Sending with UDP and delivery confirmation</dt>
+<dd>With UDP, you do not open a connection; each time you send text, you name where to send it (an IP address and a port) and just send it out. The UDP standard says that with this way, delivery and duplicate protection are not guaranteed (RFC 768 introduction). So the &quot;no error&quot; that the sender gets only means that the text left this computer; it does not mean that the other side got it. The Node.js dgram documentation says only that the callback of send reports a DNS error or tells when the buffer that holds the text can be written again, and does not say that it is a confirmation that the receiver got it. Even when there is no receiving program, the sender may get no error, and to confirm delivery, you have to make your own rule in the program in which the receiver sends back an answer.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The receiver is waiting, so the connection is opened, and the text arrives in the order it was sent.</li>
+<li><b>The receiver is not waiting</b> — The connection is not opened, and the sender gets a connection refused error right away.</li>
+<li><b>Sending with UDP</b> — The line for connecting is gone. The text arrives at the receiver, but the sender sees only &quot;no error&quot;.</li>
+<li><b>Sending with UDP and no receiver</b> — The sender finishes without an error, and the text reaches nowhere.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The receiving program runs the line &quot;Open port 9000 with TCP and wait&quot;. This line asks the operating system, &quot;When a TCP connection comes to port 9000 of this computer, give it to me.&quot; The sending program has not done anything yet.</li>
+<li>The sending program runs the line &quot;Connect to port 9000 of 127.0.0.1 with TCP&quot;. The address 127.0.0.1 points to this computer itself, and port 9000 is the number that a receiving program opened on that computer. TCP first opens a connection like this before it sends text. The three letters A, B, C have not been sent yet.</li>
+<li>A program has opened port 9000, so the connection is opened. The receiving program got one connection, and the sending program is told that the connection succeeded. Now there is one path between the two programs, and the text sent next goes through this path. The exchange of confirmations between the two operating systems when they open a connection is covered in the in-depth lab &quot;TCP connections and retransmission&quot;.</li>
+<li>The sending program runs the three lines &quot;Send text&quot; one after another and sends the three letters A, B, C through the connection. All three were sent without an error.</li>
+<li>The receiving program gets the text that came through this connection. The text it got is ABC, exactly in the order it was sent. TCP takes care that the bytes sent through a connection arrive in the order they were sent.</li>
+<li>What the sender saw is &quot;connected&quot; and &quot;no error&quot;. With TCP, if no one is there, it fails at the connecting step, so an opened connection means that the receiving program is there.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A TCP connection is the path that the line &quot;Connect to port 9000 with TCP&quot; in the sending code opens with the receiver. The receiver had port 9000 open and was waiting, so the connection was opened, and the three letters A, B, C sent through it arrived in the order they were sent, so the text the receiver got was ABC.</li>
+<li>HTTP, which a web browser and a server use to talk, also goes over a TCP connection like this by default (RFC 9112 section 9). In the checking run, when we connected with TCP and wrote an HTTP request, the server answered 200 OK.</li>
+</ul>
+<h2>Code</h2>
+<pre># Receiving program
+Open port 9000 with TCP and wait
+
+# Sending program
+Connect to port 9000 of 127.0.0.1 with TCP
+Send text: &quot;A&quot;
+Send text: &quot;B&quot;
+Send text: &quot;C&quot;</pre>
+<h2>Assumptions of this model</h2>
+<p>The sending program and the receiving program were made with the net module (TCP) and the dgram module (UDP) of Node.js 24.18.0 (Windows 11), and they were actually run on 127.0.0.1. The code box is not the source of these programs; it describes in words what each program does, and what was checked is whether those lines are the same as the actions that were actually run (whether the receiver opened the port and which protocol, whether there was a call that connects, and the order of the text sent). All 4 combinations were run 5 times each, and the results of the 5 runs were the same. What was checked is what the sender got (whether the connection succeeded, the error code, and the number of sends that finished without an error), the text the receiver got and the number of connections it got, and the time from the connection request until the result came out. The 9000 on the screen is an example, and in the actual runs a different free number was chosen for each combination (for the combinations with no receiver, the text was sent to a number that had just been closed, and with TCP, that nobody actually had it open is confirmed by the connection refused). The sender sent A, B, C at intervals of 0.05 seconds. When the connection failed in TCP, the program was written to stop there and not run the sending lines. The error code ECONNREFUSED, and that there was no error in UDP, are what was observed on the PC used to write this lab (Windows 11), and they can differ by operating system. The result of the connection request (whether the connection succeeded or was refused) came out within 2 milliseconds at most on this PC, and this value is small because it is inside the same computer. Whether the sender knows that someone is there was decided in the same way, by whether what the sender saw is the same or different when the receiver was there and when it was not. TCP was different, a successful connection against a refused connection, and UDP was the same, because it sent three times without an error in both cases. However, whether an opened TCP connection also means a confirmation that the receiving program read the text that was sent was not covered in this lab, and the box on the screen says only whether someone is there. The text ABC that the receiver got was in the order it was sent for both protocols on this PC, but the standard fixes the order only for TCP (for UDP this was observed in a run inside the same computer on this PC, and the case of crossing the Internet was not looked at). How many reads the receiver uses to read the text sent with TCP was not covered (in this run it was read in three pieces, but we did not use that in any sentence). As a separate check, when we connected with TCP to the http server of Node.js and wrote an HTTP request by hand, the server received one request and answered 200 OK, and when we sent the same text with UDP, send finished without an error but the server did not receive the request. Whether the operating system actually sent a refusal signal (RST) when it refused the connection, and what signal the operating system sent back when there was no receiver in UDP, were not confirmed because we did not capture packets. From the documents, we opened and checked the following. Section 2.2 of RFC 9293 (TCP) says that TCP is connection-oriented and provides a reliable, in-order, byte-stream service, section 3.5 says that the procedure for opening a connection is the 3-way handshake, and section 3.5.2 says that a reset signal (RST) is sent to a request that comes with no connection (we could not open section 3.10 and after). The introduction of RFC 768 (UDP) says that delivery and duplicate protection are not guaranteed in UDP. Section 9 of RFC 9112 says that HTTP assumes reliable, in-order delivery and that the default connection for an http address is TCP. The Node.js documentation for net says that if there is a problem with the connection, an error event comes instead of the connect event, but we could not confirm the name ECONNREFUSED in the parts we opened, and the documentation for dgram says only that the callback of send reports a DNS error and tells when the buffer that holds the text can be written again, and does not say that it is a confirmation that the receiver got it. This lab covers only one TCP connection and sending with UDP. It does not cover the procedure for opening and closing a connection (3-way handshake, FIN), retransmission when text is lost, putting text back in order, or flow control and congestion control, which are covered in the in-depth labs &quot;TCP connections and retransmission&quot; and &quot;TCP and UDP&quot;. There is also a way to call connect on a UDP socket, but it does not open a connection as TCP does, and it was not used here.</p>
+<p>Previous lab: <a href="../../lab/port_basic/">IP addresses and ports</a> · Next lab: <a href="../../lab/url_basic/">URLs</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

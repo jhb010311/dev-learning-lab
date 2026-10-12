@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -36,24 +36,36 @@
 <li><a href="../lab/method_basic/">Methods</a> — What is a method, and how is declaring it different from calling it?</li>
 <li><a href="../lab/class_basic/">Classes and objects</a> — How is a class different from an object?</li>
 <li><a href="../lab/ref_basic/">References</a> — What does it mean to store an object in a variable?</li>
+<li><a href="../lab/null_basic/">null</a> — What is null, and why does NullPointerException happen?</li>
 <li><a href="../lab/ctor_basic/">Constructors</a> — What is a constructor, and when does it run?</li>
 <li><a href="../lab/static_basic/">static</a> — What is static, and what changes when you add it?</li>
 <li><a href="../lab/inherit_basic/">Inheritance</a> — What does a class inherit through extends?</li>
 <li><a href="../lab/interface_basic/">Interfaces</a> — What does an interface look like in code, and what does it decide?</li>
 <li><a href="../lab/exception_basic/">Exceptions</a> — What is an exception, and what does try-catch do?</li>
 <li><a href="../lab/generic_basic/">Generics</a> — What does the &lt;String&gt; in List&lt;String&gt; do?</li>
+<li><a href="../lab/collection_basic/">List and Map</a> — What do List and Map hold, and how do you get things out?</li>
 <li><a href="../lab/lambda_basic/">Lambdas</a> — What is a lambda a shorter way to write?</li>
+<li><a href="../lab/stream_basic/">Streams</a> — What is a stream, and how is it different from a for loop?</li>
 <li><a href="../lab/annot_basic/">Annotations</a> — What is an annotation, and what happens when you add one?</li>
 <li><a href="../lab/thread_basic/">Threads</a> — What is a thread, and what does start() do?</li>
+<li><a href="../lab/lock_basic/">Locks (synchronized)</a> — What is a lock, and what happens without one?</li>
+<li><a href="../lab/pool_basic/">Thread pools</a> — What is a thread pool, and how is it different from creating a thread every time?</li>
+<li><a href="../lab/jvm_basic/">Compilation and the JVM</a> — How does Java code run?</li>
+<li><a href="../lab/io_basic/">File I/O</a> — What do you exchange when you write to and read from a file?</li>
+<li><a href="../lab/dep_basic/">Libraries and dependencies</a> — What is a library, and what happens when it is missing?</li>
 </ul>
 <h2>Spring</h2>
 <ul>
 <li><a href="../lab/bean_basic/">Beans</a> — What is a bean, and how does it differ from an object you just created?</li>
 <li><a href="../lab/di_basic/">Dependency injection</a> — What does dependency injection do for you?</li>
+<li><a href="../lab/aop_basic/">AOP and proxies</a> — What is a proxy, and how does Spring step in before and after my method?</li>
 <li><a href="../lab/servlet_basic/">Servlets</a> — Which class is called a servlet?</li>
 <li><a href="../lab/controller_basic/">Controllers</a> — Which class is called a controller?</li>
+<li><a href="../lab/config_basic/">Configuration files</a> — What is a configuration file, and how is it different from writing values in the code?</li>
+<li><a href="../lab/jdbc_basic/">JDBC</a> — How does Java code send SQL to the database?</li>
 <li><a href="../lab/tx_basic/">@Transactional</a> — What does @Transactional group together?</li>
 <li><a href="../lab/boot_basic/">Spring Boot</a> — What does Spring Boot do for you?</li>
+<li><a href="../lab/test_basic/">Test code</a> — What is test code, and who decides whether a test passes or fails?</li>
 </ul>
 <h2>JPA</h2>
 <ul>
@@ -61,6 +73,8 @@
 <li><a href="../lab/pc_basic/">Persistence context</a> — What is a persistence context, and what does it do for you?</li>
 <li><a href="../lab/repo_basic/">Repositories</a> — What is a repository, and who creates the implementation?</li>
 <li><a href="../lab/relation_basic/">Associations</a> — What is an association, and what does @ManyToOne do for you?</li>
+<li><a href="../lab/lazy_basic/">Lazy fetching</a> — When is an associated object read from the database?</li>
+<li><a href="../lab/jpql_basic/">JPQL</a> — What is JPQL, and how is it different from SQL?</li>
 </ul>
 <h2>Database</h2>
 <ul>
@@ -69,19 +83,25 @@
 <li><a href="../lab/fk_basic/">Foreign keys</a> — What is a foreign key, and what changes without one?</li>
 <li><a href="../lab/where_basic/">WHERE</a> — What does WHERE decide, and what happens without it?</li>
 <li><a href="../lab/join_basic/">Joins</a> — What does a join attach, and what does ON decide?</li>
+<li><a href="../lab/groupby_basic/">GROUP BY and aggregation</a> — What does GROUP BY group, and what do COUNT and SUM count?</li>
 <li><a href="../lab/index_basic/">Indexes</a> — What is an index, and what changes when there is none?</li>
 <li><a href="../lab/dbtx_basic/">Transactions</a> — What does a transaction group together, and what do COMMIT and ROLLBACK do?</li>
+<li><a href="../lab/dblock_basic/">Row locks</a> — What happens when two transactions try to change the same row?</li>
+<li><a href="../lab/durable_basic/">Storage and durability</a> — Does committed data stay after the server is turned off?</li>
 </ul>
 <h2>Networking</h2>
 <ul>
 <li><a href="../lab/port_basic/">IP addresses and ports</a> — What do an IP address and a port each point to?</li>
+<li><a href="../lab/tcp_basic/">TCP connections</a> — What does it mean to open a connection, and what happens if you send without one?</li>
 <li><a href="../lab/url_basic/">URLs</a> — What parts is a URL made of?</li>
 <li><a href="../lab/dns_basic/">DNS</a> — What does DNS turn a name into?</li>
 <li><a href="../lab/http_basic/">HTTP requests</a> — What does an HTTP request look like as text?</li>
+<li><a href="../lab/httpmethod_basic/">HTTP methods</a> — How is GET different from POST?</li>
 <li><a href="../lab/httpres_basic/">HTTP responses</a> — What does an HTTP response look like as text?</li>
 <li><a href="../lab/cookie_basic/">Cookies</a> — What is a cookie, and who stores it and who sends it?</li>
 <li><a href="../lab/json_basic/">JSON</a> — What does JSON look like, and what mistakes make it unreadable?</li>
 <li><a href="../lab/https_basic/">HTTPS</a> — How is HTTPS different from HTTP?</li>
+<li><a href="../lab/proxy_basic/">Proxy servers</a> — What is a proxy server, and what changes when it sits in between?</li>
 </ul>
 <h2>Security</h2>
 <ul>
@@ -90,6 +110,18 @@
 <li><a href="../lab/token_basic/">Tokens</a> — What is a token, and what does the server look at to trust it?</li>
 <li><a href="../lab/hash_basic/">Hashing</a> — What is a hash, and why do we store passwords as hashes?</li>
 <li><a href="../lab/crypto_basic/">Encryption</a> — What is encryption, and what happens without the key?</li>
+<li><a href="../lab/origin_basic/">Origins</a> — What is an origin, and why does the browser tell different origins apart?</li>
+<li><a href="../lab/injection_basic/">Input and injection</a> — What happens when text typed by a user is read as code?</li>
+</ul>
+<h2>Architecture and operations</h2>
+<ul>
+<li><a href="../lab/process_basic/">Processes</a> — What is a process, and what is separate when you run a program twice?</li>
+<li><a href="../lab/remote_basic/">Calling another server</a> — How is a server calling another server different from calling a method?</li>
+<li><a href="../lab/lb_basic/">Load balancers</a> — If you run several servers, which server does a request go to?</li>
+<li><a href="../lab/cache_basic/">Caches</a> — What is a cache, and what do you gain and lose by using one?</li>
+<li><a href="../lab/queue_basic/">Message queues</a> — What is a message queue, and how is it different from calling a server directly?</li>
+<li><a href="../lab/deploy_basic/">Deployment</a> — When does a running server change after you edit the code?</li>
+<li><a href="../lab/git_basic/">Git commits and branches</a> — What is a commit, and what does a branch point to?</li>
 </ul>
   </div>
 
@@ -177,6 +209,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../app.js?v=5cbab9ae01"></script>
+<script src="../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

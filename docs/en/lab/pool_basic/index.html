@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thread pools: What is a thread pool, and how is it different from creating a thread every time? · Dev Learning Lab</title>
+<meta name="description" content="There are two ways to have threads do tasks. One is to create a new thread each time a task comes up, with the line new Thread(() -&gt; work()).start(). The…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pool_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/pool_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/pool_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Thread pools: What is a thread pool, and how is it different from creating a thread every time? · Dev Learning Lab">
+<meta property="og:description" content="There are two ways to have threads do tasks. One is to create a new thread each time a task comes up, with the line new Thread(() -&gt; work()).start(). The…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/pool_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>Thread pools</h1>
+<p><b>What is a thread pool, and how is it different from creating a thread every time?</b></p>
+<p>There are two ways to have threads do tasks. One is to create a new thread each time a task comes up, with the line new Thread(() -&gt; work()).start(). The other is to hand the tasks to a thread pool. A thread pool is an ExecutorService object that you create with the line Executors.newFixedThreadPool(2), which sets the number of threads. When you hand a task to it with the line pool.submit(() -&gt; work()), one of the threads in the pool takes the task and runs it. If all the threads in the pool are busy, the remaining tasks wait in line, and a thread that finishes a task does not end but goes on to the next task in line. The last line, pool.shutdown(), accepts no new tasks, finishes the tasks already handed over, and then closes the pool. In this lab you change how the tasks are handed over and how many threads the pool has, and the same code is compiled and run 20 times each, to show how many different thread names ran the work() method and whether the same name repeats. (Which thread does which task can differ from run to run, so the runs are compared only by the number and the list of names.)</p>
+<p>Checked against real execution · Compiled 6 combinations with javax.tools on JDK 21 and ran each 20 times to check against real execution</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Thread pool</dt>
+<dd>This structure keeps a fixed number of threads and reuses them, so that threads are not created and destroyed every time they are needed. It reduces the cost of creating threads, and by limiting the number of threads that run at the same time, it prevents excessive memory use and context switching. Tasks to be processed pile up in a queue, and an idle thread takes one and runs it. Tomcat's request handling and a DB connection pool follow the same idea.</dd>
+<dt>ExecutorService and newFixedThreadPool</dt>
+<dd>ExecutorService is an interface in java.util.concurrent that runs the tasks you hand to it (a Runnable or a Callable) on threads. If you use it as in Executors.newFixedThreadPool(2), you get a thread pool that reuses a set number of threads and takes tasks to run from a shared unbounded queue. According to the documentation, at any time the number of threads processing tasks is at most the set number, and if more tasks are handed over while all the threads are working, those tasks wait in the queue until a thread is free. The threads of this pool remain until you shut it down, and the names of the threads the pool creates have the form pool-N-thread-M (N is the pool number, and M is the number of the thread within that pool). When run on JDK 21, threads are created not when the pool is created but one at a time as tasks are handed over, up to the set number.</dd>
+<dt>submit()</dt>
+<dd>submit() is the method that hands one task to an ExecutorService. If you pass a Runnable, as in pool.submit(() -&gt; work()), the task is handed to the pool, and the method returns a Future that represents the task. What runs the task is a thread of the pool, not the thread that called submit. If all the threads of the pool are busy, the handed-over task waits in the queue, and when a thread becomes free, tasks are taken from the front of the queue and run.</dd>
+<dt>shutdown()</dt>
+<dd>shutdown() is the method that tells an ExecutorService to run the tasks already handed over to the end but to accept no new tasks. It returns right away without waiting for the handed-over tasks to finish, and the documentation says to use awaitTermination if you want to wait. The documentation also says to shut down an ExecutorService you no longer use so that its resources can be reclaimed. The threads a pool creates are not daemon threads, and on JDK 21, when the shutdown line was removed and the program was run, the program did not end even after it had finished all the handed-over tasks.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — You hand 6 tasks to a pool of 2 threads. Only 2 different thread names appear, and the same thread does several tasks.</li>
+<li><b>Creating a new thread for each task without a pool</b> — 6 tasks cause 6 new threads to be created, and no thread does two tasks.</li>
+<li><b>Reducing the pool to 1 thread</b> — One thread does the 6 tasks one after another. The remaining tasks wait in the queue.</li>
+<li><b>Increasing the pool to 6 threads</b> — 6 threads take the 6 tasks one each. No task waits in the queue.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>You run it with java Main. The main thread runs the main method from the top. What this program has to do is call work() 6 times, and the work() method prints the name of the thread that ran it and rests for 0.05 seconds. This lab hands the 6 tasks to a thread pool and lets the pool threads do the work. Right now there is only the main thread, and no task has started.</li>
+<li>The line ExecutorService pool = Executors.newFixedThreadPool(2); creates a thread pool. A thread pool is a device that accepts tasks and creates threads only up to a set number and reuses them. The number set for this pool is 2. At the moment the pool is created, not one thread has been created yet. The threads of the pool are created one by one as you hand over tasks.</li>
+<li>First pass of the for loop (i is 1). The line pool.submit(() -&gt; work()); The submit method hands a task to the pool, and the () -&gt; work() part in the parentheses is the task. The pool has no threads yet, so it creates one new thread and gives it task #1. A thread created by the pool gets a name like pool-1-thread-1, which contains the pool number and the thread number. That thread runs the work() method and prints Thread that did the work: pool-1-thread-1. The main thread does not wait for the task to finish and goes to the next line.</li>
+<li>Second pass of the for loop (i is 2). The same line pool.submit(() -&gt; work()); runs again. There is only 1 thread, which is fewer than the number set for the pool (2), so the pool creates a second thread, pool-1-thread-2, and gives it task #2. Now 2 threads are working.</li>
+<li>Pass #3 of the for loop (i is 3). The same line runs, but this time it does not create a thread. The pool already has as many threads as the number set for it (2), and all of them are busy. The pool puts task #3 in the queue. The queue is where handed-over tasks wait for a thread to become free, and the task that got in first comes out first.</li>
+<li>The remaining passes of the for loop (i is 4 to 6) run the same line too. All the threads are busy, so tasks #4 to #6 also line up in the queue one after another. The number of tasks waiting in the queue is now 4.</li>
+<li>The for loop is done. All 6 tasks have been handed over. Tasks being done by threads: 2. Tasks waiting in the queue: 4. The number of threads created is 2, and even if more tasks come, the pool does not create more threads than this.</li>
+<li>The line pool.shutdown(); The main thread tells the pool &quot;do not accept any new tasks, and finish the tasks you have already been given.&quot; The shutdown method does not wait for the tasks to finish and returns right away, so the main method ends here. The program goes on until the pool threads finish the remaining tasks. (When this line was removed and the program was run, the pool threads stayed alive after all the tasks were done, and the program did not end.)</li>
+<li>As soon as a thread finishes a task, it takes the task at the front of the queue and runs it. The diagram shows tasks #1 and #2 finished and tasks #3 and #4 started. No new thread is created, and each task is taken by one of the existing threads, pool-1-thread-1 and pool-1-thread-2. Which thread takes which task can differ from run to run, so the diagram does not fix it. A thread does a second task, so the same name appears in the output again.</li>
+<li>The remaining tasks #5 to #6 go the same way: as soon as a thread finishes a task, it takes one from the queue and runs it. No new thread is created here either.</li>
+<li>All 6 calls to work() have finished. The queue is empty and the shutdown method has been called, so the pool threads end too. The number of threads that did work was 2 (pool-1-thread-1, pool-1-thread-2), and 4 of the 6 tasks were done again by a thread that had already worked. The number of threads newly created in all is 2.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A thread pool is a device that creates threads only up to a set number and reuses them. In code you create it with the line Executors.newFixedThreadPool(2) and hand tasks to it with the line pool.submit(…). You handed it 6 tasks, but only the 2 threads pool-1-thread-1, pool-1-thread-2 did the work, and the remaining tasks waited in the queue until the threads that already existed took them.</li>
+<li>The number of threads is decided not by the number of tasks but by the number set for the pool, and you can tell that the same thread did several tasks because the same name repeats in the output. Which thread does which task can differ from run to run.</li>
+</ul>
+<h2>Code</h2>
+<pre>import java.util.concurrent.*;
+
+public class Main {
+    // The task: print the name of the thread that ran this line, then rest for 0.05 seconds
+    static void work() {
+        String who = Thread.currentThread().getName();
+        System.out.println(&quot;Thread that did the work: &quot; + who);
+        try { Thread.sleep(50); } catch (InterruptedException e) { }
+    }
+
+    public static void main(String[] args) {
+        // Thread pool: create a set number of threads and reuse them
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        for (int i = 1; i &lt;= 6; i++) {
+            // Submit: hand a task to the pool, and a pool thread takes it and runs it
+            pool.submit(() -&gt; work());
+        }
+        // Clean up: finish the submitted tasks, then end the pool threads
+        pool.shutdown();
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). All 6 combinations were checked against real runs: the same source as the code on the screen (identical line by line) was compiled with javax.tools, and the java of this JDK was started as a child process and actually run 20 times for each combination. In all 120 runs the exit code was 0 and the standard error was empty. What was checked is the number of printed &quot;Thread that did the work&quot; lines (Tasks finished), the number of different thread names in those lines and their sorted list (the same in all 20 runs), and the number of newly started threads, which was measured by reading ThreadMXBean.getTotalStartedThreadCount() in the start class of the child process before and after it called Main.main (2, 1, and 6 for thread pools of 2, 1, and 6 threads, and 6 for new Thread). Which thread does tasks #3 to #6 differs from run to run, so it was not compared, and the diagram shows just one possible picture, in which tasks #3 and #4 start after tasks #1 and #2 finish. The facts that the step sentences rely on were checked by running separately written sources 20 times each. Right after the pool is created, 0 threads have started, and as tasks are handed over, threads are created one at a time up to the number of threads set for the pool. Right after 6 tasks are handed over, the number of tasks waiting in the queue is 4 for 2 threads, 5 for 1 thread, and 0 for 6 threads. Tasks #1 and #2 are taken by pool-1-thread-1 and pool-1-thread-2, with 6 pool threads task number k is taken by pool-1-thread-k, and with new Thread task number k is taken by Thread-(k-1). Tasks start in groups of (number of threads) in numbered order. The maximum number of tasks running at the same time is 2 for 2 threads, 1 for 1 thread, 6 for 6 threads, and 6 for new Thread. The &quot;main end&quot; line after shutdown is printed before the output of the tasks, so shutdown returns without waiting for the tasks to finish. When the shutdown line is removed, the program did not end within 5 seconds even after all 6 tasks were done, and had to be stopped by force. It was also confirmed that the number of pool threads becomes 0 after the tasks finish. For the documentation, I opened Executors (newFixedThreadPool, defaultThreadFactory) and ExecutorService (shutdown, submit, the class description) in the Java SE 21 API documentation, and &quot;Thread Pools&quot; in the Java Tutorials. The following are in the documentation: at any time the number of threads working is at most the number set for the pool and the extra tasks wait in the queue, the threads of a pool remain until you shut it down, the names of the threads a pool creates have the form pool-N-thread-M, and shutdown does not wait for the tasks to finish. That threads are created one at a time as tasks are handed over, and not when the pool is created, is not from the documentation but was observed on this JDK (the Tutorials say a fixed thread pool always has the set number of threads running, so the wording differs), and that the task that got in line first comes out first is also an observation, not from the documentation. For the same reason, that the pool does not create more than 6 threads even if there are more than 6 tasks is the documentation's explanation, and I did not run it with 7 or more tasks. The cost of creating and starting a thread was not measured. The diagram in which a thread ends after finishing its task comes from the structure of the code. Beyond that, ThreadPoolExecutor, which sets the number of pool threads and the size of the queue separately, awaitTermination, which waits for the tasks to finish, Future and Callable, which return a result, and the case where a task ends with an exception are not covered. In the code on the screen, the import line is shown only when a thread pool is used. How a thread pool handles the tasks waiting in line and how the pool size changes things are covered in the in-depth lab &quot;Thread pool&quot;, and reusing database connections in the same way is covered in &quot;Connection pool and OSIV&quot; (this lab did not run a connection pool).</p>
+<p>Previous lab: <a href="../../lab/lock_basic/">Locks (synchronized)</a> · Next lab: <a href="../../lab/jvm_basic/">Compilation and the JVM</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

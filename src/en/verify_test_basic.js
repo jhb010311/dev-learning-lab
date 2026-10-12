@@ -1,0 +1,1 @@
+Lab.verify({ test_basic: ['run', 'Compiled 8 combinations on JDK 21 and JUnit 6.0.3 and ran them with the JUnit Launcher, and checked the number of tests found, passed and failed, and the failure message against the results'] });

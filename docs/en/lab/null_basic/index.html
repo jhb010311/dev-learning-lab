@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>null: What is null, and why does NullPointerException happen? · Dev Learning Lab</title>
+<meta name="description" content="The variable name does not hold an object such as a string itself. It holds a value that refers to that object (a reference). null is a special value that…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/null_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/null_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/null_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="null: What is null, and why does NullPointerException happen? · Dev Learning Lab">
+<meta property="og:description" content="The variable name does not hold an object such as a string itself. It holds a value that refers to that object (a reference). null is a special value that…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/null_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>null</h1>
+<p><b>What is null, and why does NullPointerException happen?</b></p>
+<p>The variable name does not hold an object such as a string itself. It holds a value that refers to that object (a reference). null is a special value that you store in this place to say &quot;refers to no object,&quot; and in code you write it like String name = null;. In name.length(), the dot (.) means &quot;ask the object that name refers to,&quot; but if name is null there is no object to ask, so an exception called NullPointerException is thrown. if (name != null) is a check that first asks whether name refers to an object. The empty string &quot;&quot;, which has no characters at all, is not null. It is a string object with 0 characters. In this lab you change the value stored in name to &quot;kim&quot;, null, or &quot;&quot;, and you add or remove the if check. The same code is compiled and run, and you see what is printed and whether an exception is thrown.</p>
+<p>Checked against real execution · Compiled 6 combinations with javax.tools on JDK 21, ran them as java processes, and checked the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>null</dt>
+<dd>null is a value that shows that a variable refers to no object. In the Java language specification, the type of the null literal (the null you write in code) is the null type, which has no name, and the only value of that type is the null reference. You can store null in a variable of any reference type, so you can write String name = null;, and then the name variable has been created but refers to no object. So if you put a dot (.) after a null variable to call a method of an object, there is nothing to ask, and a NullPointerException is thrown. null is different from the empty string &quot;&quot;, which has 0 characters. &quot;&quot; is an object that exists but has no characters, and null is no object at all.</dd>
+<dt>NullPointerException</dt>
+<dd>This exception is thrown when code tries to call a method or read a field through a reference that is null. null means that there is no object that the reference refers to, and an object that does not exist cannot be asked to do anything, so the exception is thrown. It is an unchecked exception, which the compiler does not catch for you in advance, so it shows up only when the code runs. This exception is also thrown when null is passed to a method that is written not to accept null (such as Optional.of or Objects.requireNonNull). In places where a value may be absent, you make this exception less likely by checking for null first or by using Optional to show in the type that the value may be absent.</dd>
+<dt>Checking for null</dt>
+<dd>Checking for null is code that checks, before you use a variable, whether the variable is not null, as in if (name != null). When you compare references with !=, the result is false if both are null or both refer to the same object, and true otherwise, so name != null is true when name refers to some object. An if statement runs the first block when the condition is true and the else block when it is false, so if you put a call such as name.length() only in the true block, that call does not run when name is null. name != null asks only whether an object exists, not whether it has characters, so the empty string &quot;&quot; passes this check.</dd>
+<dt>Empty string</dt>
+<dd>The empty string is a string with no characters at all, and in code you write it as two double quotation marks together, &quot;&quot;. A string literal is, at run time, a value that refers to a String object, so &quot;&quot; is also not null but a String object whose length is 0. Calling length() on this object returns 0 and throws no exception, and isEmpty() returns true when length() is 0. You need to tell it apart from null because you can call methods on an empty string since the object exists, but calling a method on null throws a NullPointerException.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The &quot;kim&quot; object that name refers to returns its number of characters, 3.</li>
+<li><b>Storing null</b> — name refers to no object, so name.length() throws a NullPointerException.</li>
+<li><b>Checking when it is null</b> — The check filters it out, so length() is not called and no exception is thrown.</li>
+<li><b>Checking when it is &quot;kim&quot;</b> — It passes the check, length() runs, and the result is the same.</li>
+<li><b>Storing an empty string</b> — The empty string is also an object, so length() returns 0 and no exception is thrown.</li>
+<li><b>Checking an empty string</b> — The empty string is not null, so it passes the check.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The line String name = &quot;kim&quot;; runs. name is a variable, and a variable holds not the object itself but a value that refers to the object (a reference). Here name comes to refer to a String object that holds the characters &quot;kim&quot;. That object is the box on the right.</li>
+<li>At the line System.out.println(name.length());, name.length() is evaluated first. The dot (.) means &quot;ask the object that name refers to,&quot; and length() is a request to count the characters. The &quot;kim&quot; object counts its characters and returns 3.</li>
+<li>The returned 3 is passed to println.</li>
+<li>System.out.println prints 3.</li>
+<li>The last line of main runs and the program ends. No exception was thrown.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The name variable refers to the &quot;kim&quot; String object, so name.length() asks that object for its number of characters and gets 3. The variable holds not the object itself but a value that refers to the object, and the dot (.) is the mark that asks that object to do the work.</li>
+<li>This code works because there is an object that name refers to. The next questions look at when there is no such object, and when the object exists but has no characters.</li>
+</ul>
+<h2>Code</h2>
+<pre>public class Main {
+    public static void main(String[] args) {
+        // Variable: refers to a string object, or to nothing if it is null
+        String name = &quot;kim&quot;;
+        System.out.println(name.length());
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21, java 21). All 6 combinations were checked against real runs: the same source as the code on the screen (identical line by line) was compiled with javax.tools, and the compiled Main was run in a new java process, and the standard output, the first line of the standard error, and the exit code were captured. What was checked is whether compilation succeeded, the output, whether an exception was thrown (whether the first line of the standard error is NullPointerException) and the line where it was thrown (the line the stack trace pointed to is the name.length() line), and the exit code. The &quot;length() runs&quot; column of the table was worked out from the real output by whether a character count appeared in it, and the &quot;if check&quot; column by which block's output appeared. The facts that the step sentences rely on were checked with a separate program. For each of the three values: name == null is false for &quot;kim&quot;, true for null, and false for &quot;&quot;; length() is 3, (cannot be called because it is null), and 0; and the line String name = null; runs without an exception, the exception is thrown at the next line, name.length(), and the program ends with exit code 1. I opened the documentation myself. That the null type has only one value, the null reference, and that it can be stored in any reference type follows sections 3.10.8 and 4.1 of the Java Language Specification (Java SE 21); that a reference value either refers to an object or is the null reference that refers to no object follows section 4.3.1; the rules for comparing references with == and != follow section 15.21.3; that an if statement runs the first statement when the condition is true and the else statement when it is false follows sections 14.9.1 and 14.9.2; and that a string literal is, at run time, a value that refers to a String object, and that &quot;&quot; is the empty string, follows section 3.10.5. The NullPointerException API documentation says that it is thrown when an instance method of a null object is called (Java SE 21 API), and I also opened the descriptions of String.length() and isEmpty() in the same API documentation. The sentence that a NullPointerException is thrown when the target of an instance method call is null I confirmed in chapter 15 (section 15.6) of the JLS, but I could not open the text of sections 15.12.4.1 and 15.12.4.4, which specify the call handling in detail. The javac on the PC used to write this lab does not put variable names in the class file, so the detail message of the NullPointerException showed &lt;local1&gt; instead of name. This message is not specified by the specification but was observed on this JDK, so it is not used on the screen. The code on the screen is exactly the shape that really compiles, and nothing was shortened. Beyond that, primitive variables such as int and null, arrays or fields that are null at first, comparing two strings with == and equals, and how to handle a value that may be null with Optional are not covered. Optional is covered in the in-depth lab &quot;Optional&quot;.</p>
+<p>Previous lab: <a href="../../lab/ref_basic/">References</a> · Next lab: <a href="../../lab/ctor_basic/">Constructors</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

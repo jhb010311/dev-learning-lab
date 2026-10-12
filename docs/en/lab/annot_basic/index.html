@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -103,7 +103,7 @@ public class Main {
 }</pre>
 <h2>Assumptions of this model</h2>
 <p>The compiler and runtime are JDK 21.0.12.1 (javac 21). For all twelve combinations, the source that is the same as the code on the screen was compiled with javax.tools, and for those that compiled, the class file was loaded with a new class loader and Main.main was run, and the results were checked against the standard output that was captured. All twelve combinations compiled. What was checked is whether compilation succeeded, the output when run, the methods called as read from the output, and the &quot;marker read at run time.&quot; The last one is a value measured separately from Main, by a checking program that asks isAnnotationPresent(Run.class) directly about the work and rest methods of the Job class from the same class loader, and it is measured even for combinations that have no reader code. I also checked in what form the marker was written in the class file of Job (RuntimeVisibleAnnotations or RuntimeInvisibleAnnotations), and the step sentences on the screen rely on this result. The documentation was opened and checked directly. I followed the Java Language Specification (Java SE 21), Section 9.6 (an annotation interface is declared with @interface, and one with no elements is a marker annotation interface), Section 9.6.4.2 (if @Retention is absent, it is treated as CLASS; SOURCE is not kept in the class file; CLASS and RUNTIME are recorded in the class file; and RUNTIME must be made readable by reflection at run time), Section 9.7 (an annotation is a marker that associates information with a program element and has no effect at run time) and Section 9.7.2 (marker annotations). I also checked the API documentation of java.lang.annotation.Retention and RetentionPolicy (the default is CLASS, and only RUNTIME can be read by reflection) and of java.lang.reflect.AnnotatedElement (isAnnotationPresent). In what form the compiler writes the marker into the class file is not defined by the specification; it was observed on this javac. The code on the screen uses a for loop to look at the two methods in turn, to explain this lab, and it is different from the way a real framework reads markers. The sentence that Spring's @RestController and @GetMapping have an effect because Spring reads them was not run in this lab, and it points to what was checked in the Fundamentals lab &quot;Controllers&quot;. Elements that hold annotation values, @Target, markers that the compiler reads such as @Override, and the actual implementation of frameworks that read markers at run time are not covered. Other behavior is covered in the in-depth lab &quot;Annotations&quot;.</p>
-<p>Previous lab: <a href="../../lab/lambda_basic/">Lambdas</a> · Next lab: <a href="../../lab/thread_basic/">Threads</a></p>
+<p>Previous lab: <a href="../../lab/stream_basic/">Streams</a> · Next lab: <a href="../../lab/thread_basic/">Threads</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -190,6 +190,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5cbab9ae01"></script>
+<script src="../../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

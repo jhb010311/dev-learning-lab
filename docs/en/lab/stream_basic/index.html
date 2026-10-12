@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Streams: What is a stream, and how is it different from a for loop? · Dev Learning Lab</title>
+<meta name="description" content="A stream is a way to pass the values in a collection (something like a list that holds several values) along one at a time, filtering and transforming the…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/stream_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/stream_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/stream_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Streams: What is a stream, and how is it different from a for loop? · Dev Learning Lab">
+<meta property="og:description" content="A stream is a way to pass the values in a collection (something like a list that holds several values) along one at a time, filtering and transforming the…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/stream_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>Streams</h1>
+<p><b>What is a stream, and how is it different from a for loop?</b></p>
+<p>A stream is a way to pass the values in a collection (something like a list that holds several values) along one at a time, filtering and transforming them. In code, you start with nums.stream() and chain steps one after another with a dot (.). .filter(n -&gt; n % 2 == 0) is the filtering step. The n -&gt; ... is a short function (a lambda expression) that takes a value n and returns a computed answer. Here it checks whether the remainder of n divided by 2 is 0 (whether n is even), and lets only the values for which it is true pass. .map(n -&gt; n * 10) is the transforming step, and it turns each value that passed into 10 times its size. .toList() is the last step, and it collects the values that came out into a list. To do the same task with a for loop, you have to write all of this yourself: create a new list to hold the result, take values out one at a time, check the condition with if, and store with add. In this lab you put the stream and the for loop side by side and remove the filter line and the map line one at a time. The same code is compiled and run, and you see what is stored in result and whether the original list nums changes. (The import line and the main method are shortened on the screen.)</p>
+<p>Checked against real execution · Compiled 8 combinations with javax.tools on JDK 21, ran them, and checked the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Stream API</dt>
+<dd>This API expresses filtering, transformation, and aggregation over data such as collections in a declarative way. You chain intermediate operations such as filter and map, and finish with a terminal operation such as collect or forEach. Intermediate operations do not run until the terminal operation is called (lazy evaluation), and a stream does not modify its source data and can be used only once.</dd>
+<dt>Lambda expression</dt>
+<dd>This is a syntax, introduced in Java 8, for writing a function with no name in a compact way. It has the form (parameters) -&gt; body, and it is used as the implementation of a functional interface, which has only one abstract method. It lets you pass behavior (code) to another method as if it were a value.</dd>
+<dt>filter() and map()</dt>
+<dd>filter and map are two intermediate operations that you chain onto a stream. filter(condition) returns a stream that keeps only the values for which the condition is true, and a lambda expression that holds the condition, such as n -&gt; n % 2 == 0, takes one value and returns true or false. map(function) returns a stream of the results of applying the function to each value of the stream, so it changes the values but keeps the number of values the same. Neither one removes or changes values in the source collection. Each returns a new stream, and to get a result you need a terminal operation such as toList at the end.</dd>
+<dt>toList() and the result of a stream</dt>
+<dd>toList() is a terminal operation that collects the values that a stream passed along into a List, in the order in which the stream met them. The intermediate operations filter and map only return a new stream, so you get a list that holds the values only after a terminal operation such as toList(). The List that toList() returns cannot be modified, so calling a method such as add throws an UnsupportedOperationException. A stream is not a data structure that stores values but a pipeline that conveys values from a source, and its operations do not change the source.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — A stream with filter and map. Only the even numbers remain and become 10 times larger, and nums is unchanged.</li>
+<li><b>Writing the same task as a for loop</b> — The result is the same, and you write everything yourself, from creating a new list to storing in it.</li>
+<li><b>Removing the .filter line</b> — There is no filtering step, so every value becomes 10 times larger and is stored.</li>
+<li><b>Removing the .map line</b> — There is no transforming step, so the values that pass are stored as they are.</li>
+<li><b>Removing both</b> — Nothing is filtered or transformed, so the same values as nums are stored.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The line List&lt;Integer&gt; nums = List.of(1, 2, 3, 4, 5, 6); creates a list nums that holds 6 values in this order. This list is the source of the values to be filtered and transformed from here on.</li>
+<li>The line nums.stream() creates a flow that passes the values in nums along one at a time, that is, a stream. A stream is not a place that stores values. It is a pipeline that takes values from nums one at a time and passes them to the next step. What is chained below (.filter, .map, .toList) adds steps to that pipeline. When the .toList() line at the end runs, the values start to flow.</li>
+<li>Value 1: filter evaluates the expression n % 2 == 0. 1 % 2 leaves a remainder of 1, so the result is false, and this value is dropped. A dropped value does not reach map and is not stored in result.</li>
+<li>Value 2: filter evaluates the expression n % 2 == 0. 2 % 2 leaves a remainder of 0, so the result is true, and this value passes to the next step.</li>
+<li>Value 2: map evaluates the expression n * 10 and transforms the value. n * 10 is 20, and the transformed value flows toward toList and is collected.</li>
+<li>Value 3: filter evaluates the expression n % 2 == 0. 3 % 2 leaves a remainder of 1, so the result is false, and this value is dropped. A dropped value does not reach map and is not stored in result.</li>
+<li>Value 4: filter evaluates the expression n % 2 == 0. 4 % 2 leaves a remainder of 0, so the result is true, and this value passes to the next step.</li>
+<li>Value 4: map evaluates the expression n * 10 and transforms the value. n * 10 is 40, and the transformed value flows toward toList and is collected.</li>
+<li>Value 5: filter evaluates the expression n % 2 == 0. 5 % 2 leaves a remainder of 1, so the result is false, and this value is dropped. A dropped value does not reach map and is not stored in result.</li>
+<li>Value 6: filter evaluates the expression n % 2 == 0. 6 % 2 leaves a remainder of 0, so the result is true, and this value passes to the next step.</li>
+<li>Value 6: map evaluates the expression n * 10 and transforms the value. n * 10 is 60, and the transformed value flows toward toList and is collected.</li>
+<li>All 6 values in nums have flowed through. The .toList() line makes a list from the collected values and stores it in result. result is [20, 40, 60].</li>
+<li>The output of the System.out.println(result) line is [20, 40, 60].</li>
+<li>The output of the System.out.println(nums) line is [1, 2, 3, 4, 5, 6]. The stream only passed values along from nums and did not change nums.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A stream is a way to pass the values of a collection along one at a time, filtering (filter) and transforming (map) them. The values of nums flowed one at a time, only the even ones remained and became 10 times larger, and the values stored in result are [20, 40, 60]. What differs from a for loop is that you wrote only &quot;what to filter and what to transform into.&quot;</li>
+<li>You did not write in the code the work of creating a new list, taking values out one at a time, and storing them. nums is still [1, 2, 3, 4, 5, 6]. What happens when you leave out the line that collects is covered in the in-depth lab &quot;Lazy evaluation in streams&quot;.</li>
+</ul>
+<h2>Code</h2>
+<pre>List&lt;Integer&gt; nums = List.of(1, 2, 3, 4, 5, 6);
+// Stream: create a flow that passes the values of nums along one at a time
+List&lt;Integer&gt; result = nums.stream()
+    // Filter: let only the even values pass
+    .filter(n -&gt; n % 2 == 0)
+    // Transform: turn each value that passed into 10 times its size
+    .map(n -&gt; n * 10)
+    // Collect: put the values that came out into a new list
+    .toList();
+System.out.println(result);
+System.out.println(nums);</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1. All 8 combinations (2 styles x 2 filter settings x 2 map settings) were checked against real runs: the code on the screen, wrapped in import java.util.*; and class Main and a main method, was compiled with javax.tools, loaded with a new class loader, and run, and the standard output was compared. The screen shows these wrapping lines (import, class, main) in shortened form. What was checked is the output of result, the output of nums, the steps written in the code (read from the lines of the source), and whether the code on the screen is the same text as the source that the probe compiled. The facts that the step sentences rely on were measured separately. For each combination, I ran the same source with only lines added that leave a record when filter, map, if, and add are called. I confirmed that one value passes through both filter and map before the next value is handled (the stream has the same order as the for loop), and that map is not called for a dropped value. I also ran on this JDK and confirmed that the result of a stream with neither filtering nor transforming has the same values as nums but is not the same object (result == nums is false, and equals is true). For the documentation, I opened the Java SE 21 API myself. From the package description of java.util.stream, I followed that a stream is not a data structure that stores elements but conveys elements from a source through a pipeline of operations, that operations do not change the source and filter does not remove elements from the source but creates a new stream, and that intermediate operations are lazy and traversal of the source starts only when a terminal operation runs. From the Stream documentation, I followed that filter is an intermediate operation that returns a stream of the elements that match the condition, that map is an intermediate operation that returns a stream of the results of applying a function, and that toList() accumulates the elements into a List and that List cannot be modified. From the List.of documentation, I followed that List.of creates a list that cannot be modified. I could not read the last 2,000 or so characters of the Stream documentation. The sentence that the list returned by toList() is newly created is not stated in the documentation, and I followed the implementation requirements of the documentation (the elements are copied into a new ArrayList) and the observation on this JDK. One point to note is that nums is a list that cannot be modified because it was made with List.of, so nums being unchanged in this lab is not only thanks to the stream. That a stream does not change its source follows the sentence of the package description above, and it is not something that the runs of this lab proved separately. Beyond that, sorting (sorted), limiting the count (limit), sums, parallel streams, and the fact that a stream can be used only once are not covered. What happens when there is no collecting line (toList), and the order of processing, are covered in the in-depth lab &quot;Lazy evaluation in streams&quot;, and how to collect into something other than toList, such as a Map, is covered in &quot;Collecting a stream&quot;.</p>
+<p>Previous lab: <a href="../../lab/lambda_basic/">Lambdas</a> · Next lab: <a href="../../lab/annot_basic/">Annotations</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

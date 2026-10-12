@@ -1,0 +1,1 @@
+Lab.verify({ injection_basic: ['run', 'Compiled six combinations on JDK 21 and H2 2.4.240 and ran them in new Java processes and checked them; the rules were checked against OWASP and the Java SE 21 API documentation'] });

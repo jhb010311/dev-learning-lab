@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -76,7 +76,7 @@ Content-Length: 12
 Hello, world</pre>
 <h2>Assumptions of this model</h2>
 <p>The server is one started with the net module of Node.js 24.18.0. When a connection comes, it reads the request up to the empty line, then writes the text of the code box exactly as it is, with CRLF line endings, and closes the connection (a response made with the http module cannot send a wrongly shaped one, so it was not used). Nothing is attached after the body &quot;Hello, world&quot;, and this text is 12 bytes in UTF-8 and the first part, &quot;Hello&quot;, is 5 bytes, which was measured to confirm. The client sent a GET /hello request with the http module of Node.js (a real HTTP parser) and read the response. All 18 combinations were run, and the status the client read (the status code and description), the value of the content-type header it received, and the body it actually received with its number of bytes were checked against the model. For each combination it was also checked that the code on the screen is the same text as the text the server sent. When Content-Length was 5, this client received only the first 5 bytes (&quot;Hello&quot;) as the body, and then raised one parse error (HPE_INVALID_CONSTANT) while reading the remaining 7 bytes. All 6 combinations without a status line failed to read the response with the same parse error (HPE_INVALID_CONSTANT, with the message Expected HTTP/, RTSP/ or ICE/), whatever the headers and body were. These are behaviors observed on this Node.js version. When there is no Content-Length, this server closes the connection after sending, so the client read everything until the connection closed as the body. A server that does not close the connection is not covered on the screen, but as a separate check, the same text was sent to a server that does not close the connection, and the client received the 12 bytes of the body, but the response had not ended even after 1.5 seconds (when Content-Length was present, it ended right away even without closing the connection). What happens when it waits longer, or with another client, was not examined. How a browser guesses and shows a body without Content-Type was not checked in this lab. What was checked against the documentation is RFC 9112 section 2.1 (message format: start line, headers, empty line, body), section 4 (the status line: version, three-digit status code, description), sections 6.2 and 6.3 (Content-Length sets the number of bytes of the body, and for a response with no length information, the length of the body is the number of bytes received before the server closes the connection), and RFC 9110 section 8.3 (Content-Type tells the media type of the body, and without it the receiver may assume application/octet-stream or examine the data to decide the kind), section 8.6 (Content-Length), section 15 (a status code is a three-digit number), section 15.3.1 (200), and section 15.5.5 (404). The response on the screen has the minimum shape, with only two headers left, and only GET responses whose body is text were covered. Writing the line endings of the text the server sent as CRLF, and using Node.js as the client, are choices of this lab, and a browser was not used. The in-depth details on the same subject (the shape of requests and responses, all the status codes) are covered in the in-depth lab &quot;HTTP messages and status codes&quot;.</p>
-<p>Previous lab: <a href="../../lab/http_basic/">HTTP requests</a> · Next lab: <a href="../../lab/cookie_basic/">Cookies</a></p>
+<p>Previous lab: <a href="../../lab/httpmethod_basic/">HTTP methods</a> · Next lab: <a href="../../lab/cookie_basic/">Cookies</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -163,6 +163,6 @@ Hello, world</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5cbab9ae01"></script>
+<script src="../../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

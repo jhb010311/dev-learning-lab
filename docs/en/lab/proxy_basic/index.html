@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proxy servers: What is a proxy server, and what changes when it sits in between? · Dev Learning Lab</title>
+<meta name="description" content="A proxy server is a server that stands between a client (the program that sends requests) and the origin server (the server that really produces the respo…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/proxy_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/proxy_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/proxy_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Proxy servers: What is a proxy server, and what changes when it sits in between? · Dev Learning Lab">
+<meta property="og:description" content="A proxy server is a server that stands between a client (the program that sends requests) and the origin server (the server that really produces the respo…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/proxy_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Networking</p>
+<h1>Proxy servers</h1>
+<p><b>What is a proxy server, and what changes when it sits in between?</b></p>
+<p>A proxy server is a server that stands between a client (the program that sends requests) and the origin server (the server that really produces the response) and passes requests on for it. The code box lists three things. First, the address the client connects to (http://localhost:8080/hello). The 8080 in the middle of the address is a port number, a door number given to each program on one computer. Second, the proxy server waiting on port 8080, which passes the request it receives to the server on 9000. Third, the origin server waiting on port 9000, which returns &quot;Hello&quot;. So the client connects to the proxy server, and the proxy server connects again to the origin server, passes the request on, and returns the response. The proxy server in this lab stands in front of the server, and the client connects to it believing it is the server (a reverse proxy). In this lab, you change the address the client connects to, or remove the line of the proxy server or the origin server (that server is not running), send the same request each time, and see what the client receives and who the origin server sees. The code box is not the source of a program that was run. It lists what is waiting on which port, and 8080 and 9000 are example numbers. Load balancers, CDNs, and API gateways are also servers that stand between a client and a server.</p>
+<p>Checked against real execution · Ran six combinations with two Node.js 24.18.0 http servers (a proxy server and an origin server) and an http client, and checked them</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Proxy server</dt>
+<dd>A proxy server is an intermediate server that stands between a client and the origin server, passes the request it receives on to another server, and returns that server's response to the client. The client connects to the proxy server, and the proxy server makes a separate connection to the origin server. So the peer the origin server sees is the proxy server, not the client. Section 3.7 of RFC 9110 divides such intermediaries into a proxy, which the client chooses by its configuration to go through, and a gateway (reverse proxy), which looks like a server and passes requests on to the servers behind it. If the proxy server goes down, a client that connects to its address does not get a response, even though the servers behind it are alive.</dd>
+<dt>Origin server</dt>
+<dd>An origin server is a program that can originate authoritative responses for the requested resource, and section 3.6 of RFC 9110 calls it by this name. A proxy server only passes requests on, so the origin server is the one that produces the content of the response. When a proxy server is present, a client may not connect to this server directly, and this server sees the proxy server as the peer that connected to it.</dd>
+<dt>502 Bad Gateway</dt>
+<dd>502 is a status code used when a server acting as a gateway or proxy receives an invalid response from the inbound server it accessed to fulfill the request (RFC 9110 section 15.6.3). The one that makes and sends this response is the proxy server the client connected to, not the origin server behind it. So when a client receives 502, it means the client reached the proxy server it connected to, and the problem is between the proxy server and the server behind it.</dd>
+<dt>Reverse proxy</dt>
+<dd>A server that receives client requests on behalf of internal servers, forwards them to those servers, and returns their responses to the client. The client does not know the actual servers directly. Its roles include distributing requests across several servers, handling TLS, caching, and protecting the internal servers.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The client connects to the proxy server, and the proxy server connects again to the origin server. The origin server sees the proxy server.</li>
+<li><b>Connecting directly to the origin server</b> — The request does not pass through the proxy server, and the origin server sees the client.</li>
+<li><b>Turning off the proxy server</b> — Even though the origin server is running, the client does not receive a response.</li>
+<li><b>Turning off the origin server</b> — The client receives an error response sent by the proxy server.</li>
+<li><b>Connecting directly with the proxy server off</b> — A request that does not pass through the proxy server is not affected when the proxy server is off.</li>
+<li><b>Connecting directly with the origin server off</b> — The request does not pass through a proxy server that could answer for it, so the client receives a connection refused error.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The client (the program that sends requests) connects to the address in the code box and sends a GET /hello request. The 8080 in the middle of the address is a port number, a door number given to each program on one computer. The client tries to connect to the program waiting on port 8080. The code box lists the proxy server as the one waiting on this port. The address the client uses does not contain the origin server's port, 9000.</li>
+<li>The proxy server received the request. The proxy server is set to pass the request it receives to the origin server waiting on port 9000 (the proxy server line in the code box). So the proxy server makes a new connection to the origin server and sends the same GET /hello request. This connection is separate from the one the client made. The client did not make this connection, and it did not use the number 9000.</li>
+<li>The origin server receives the request and returns &quot;Hello&quot; as the response, as written in the code box. The peer the server sees at this moment is the proxy server. The port of the peer that the server saw was different from the port the client used, and it was the same as the port the proxy server used when it connected to the server (in this run the three programs were on one computer, so all the addresses were 127.0.0.1, and we told them apart by port). The only peer that connected to the origin server was the proxy server.</li>
+<li>The proxy server receives the response of the origin server and returns it to the client as it is. What the client received is 200 OK and the body &quot;Hello&quot;. The client talked only with the proxy server it connected to.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A proxy server is a server that stands between the client and the origin server and passes requests on for it. The client connects to the proxy server, and the proxy server connects again to the origin server, passes the same request on, and returns the response.</li>
+<li>So the origin server sees the proxy server, not the client. The client could connect without knowing the origin server's port (9000). Load balancers, CDNs, and API gateways are also servers that stand between a client and a server in this way.</li>
+</ul>
+<h2>Code</h2>
+<pre># The address the client connects to
+http://localhost:8080/hello
+# On 8080: the proxy server (passes the request it receives to the server on 9000)
+# On 9000: the origin server (returns &quot;Hello&quot;)</pre>
+<h2>Assumptions of this model</h2>
+<p>We ran all six combinations for real, only inside 127.0.0.1 on the PC used to write this lab, and checked them against the model. We did not connect to any external network. The origin server and the proxy server are Node.js 24.18.0 http servers, and the client is http.request of the same Node.js (it does not reuse connections). The origin server answers GET /hello with 200 and the text written in the code box, &quot;Hello&quot;, and it recorded the port of the peer that connected to it. The proxy server opened a new connection to the server whose port is written in the code box, passed the request it received on as it was, returned the response to the client, and recorded its own port used on that connection. The test program built the same text as the code on the screen, read it (which port has what written on it), and showed it as it was. A server whose line was removed was not started, and connecting to its port meant trying to connect to a free port that nothing was waiting on (a port that had just been closed). 8080 and 9000 on the screen are example numbers and free ports were used in the real run, and the code box is not the source of the programs that were run but a list of what is waiting on which port. What we checked against is what the client received (the status code and body, or the kind of error), who the origin server saw, and the path the request took; who the origin server saw was decided by comparing whether the peer port the server recorded was the same as the client's port or the same as the port the proxy server used when connecting to the server. The three programs were on one computer, so the peer address the server saw was 127.0.0.1 in every combination, and that is why we told them apart by port. In the combinations that went through the proxy server, the only peer that connected to the origin server was one (the proxy server), and in the combinations that connected directly, the proxy server received 0 requests. When nothing was waiting on 8080 (or 9000), the client received a connection refused error (ECONNREFUSED), and when the origin server was down and the request went through the proxy server, the proxy server got the same connection refused error and then returned 502. This 502 is a behavior that comes from how the proxy server of this lab was written, and we did not check what real proxy products return when they cannot connect. What we checked against the documentation is section 3.6 of RFC 9110 (an origin server is a program that can originate authoritative responses for a given target resource), section 3.7 (among intermediaries, a proxy is one that the client chooses by its configuration, and a gateway, also called a reverse proxy, acts as an origin server for the outbound connection and passes the requests it receives on to the inbound server), and section 15.6.3 (502 is the code used when a server acting as a gateway or proxy receives an invalid response from an inbound server). For section 15.6.3, we confirmed the first sentence word for word and the rest from a summary. The proxy server in this lab is the kind the client connects to believing it is the server, so in RFC terms it is closer to a gateway (reverse proxy), and we did not cover the difference from a forward proxy that the client chooses on purpose. We did not examine whether using 502 when the connection itself is refused fits the RFC sentence exactly. The sentence that load balancers, CDNs, and API gateways are also servers that stand between a client and a server is a general explanation, and it was not checked by this run or by the documentation. This lab leaves out many things. We did not look at headers such as X-Forwarded-For that pass the original client's address to the server, a setup that decrypts HTTPS at the proxy server, timeouts and 504 for slow responses, splitting requests among several servers, and keeping copies of responses. The first two are covered in the in-depth lab &quot;Proxies and reverse proxies&quot;, splitting among servers in the in-depth lab &quot;Load balancers and scale out&quot;, and keeping copies of responses in the in-depth lab &quot;CDN&quot;. We did not use a browser, and we sent only one request, GET /hello.</p>
+<p>Previous lab: <a href="../../lab/https_basic/">HTTPS</a> · Next lab: <a href="../../lab/authn_basic/">Authentication and authorization</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

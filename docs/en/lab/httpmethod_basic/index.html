@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTP methods: How is GET different from POST? · Dev Learning Lab</title>
+<meta name="description" content="The first word of the first line of an HTTP request is called the method. The method is the word that tells the server what the request wants done at that…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/httpmethod_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/httpmethod_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/httpmethod_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="HTTP methods: How is GET different from POST? · Dev Learning Lab">
+<meta property="og:description" content="The first word of the first line of an HTTP request is called the method. The method is the word that tells the server what the request wants done at that…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/httpmethod_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Networking</p>
+<h1>HTTP methods</h1>
+<p><b>How is GET different from POST?</b></p>
+<p>The first word of the first line of an HTTP request is called the method. The method is the word that tells the server what the request wants done at that address, so even for the same /memos address, what the server does depends on whether you send GET or POST. GET is the method that gets something that is on the server; it is not a request to change anything on the server. POST is the method that asks the server to process the content (the body) that is sent with the request. A server writes code for the methods it handles, and if a request comes with a method it has not written code for, it answers with the status code 405. In this lab you send requests to a server that has a list of memos, change the method on the first line, send the same request once or twice, and see what happens to the memos on the server. The upper part of the code box is the text that was actually sent to the server, and a line that starts with # is a note that is not sent to the server (what the server has set up, and how many times the request is sent). The code box is not the code of the server program; it shows what was exchanged. (empty line) is a way to show a line with no text at all, so that you can see it.</p>
+<p>Checked against real execution · Ran all 6 combinations by sending the text of the request exactly as it is to an http server on Node.js 24.18.0 and checked against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>HTTP methods</dt>
+<dd>The part of an HTTP request that indicates the action the request wants to perform on a resource. GET means read, POST means create or a processing request, PUT means replace the whole resource, PATCH means modify part of it, and DELETE means delete. Use each one according to its meaning so that HTTP behavior such as caching and retries works as expected.</dd>
+<dt>GET method</dt>
+<dd>GET is the HTTP method that requests the current content of the target resource (RFC 9110 section 9.3.1). GET is a &quot;safe&quot; method that is defined with a read-only meaning, so a client that sends GET neither requests nor expects a change of state on the server (section 9.2.1). So sending the same GET many times does not usually change what is left on the server. Even if you send a body with a GET request, that body generally has no defined meaning (section 9.3.1).</dd>
+<dt>POST method</dt>
+<dd>POST is the HTTP method that asks the target resource to process the body (the content) sent with the request according to its own rules (RFC 9110 section 9.3.3). Typical uses are handing the values written in an HTML form to a processing program, posting a message to a place like a bulletin board, creating a new resource that has not been identified yet, and appending data to the content of an existing resource. POST is neither a safe method nor an idempotent method (section 9.2), so if you send the same POST twice, the server may process it twice. If a new resource was created as a result, the server is recommended to answer with the 201 Created status code and a Location header (section 9.3.3).</dd>
+<dt>405 Method Not Allowed and the Allow header</dt>
+<dd>405 Method Not Allowed is a status code that means the server knows the method on the request line, but the target of the request does not support that method (RFC 9110 section 15.5.6). The server must add an Allow header to a 405 response to tell the methods that the target currently supports (sections 15.5.6 and 10.2.1). For example, Allow: GET, POST means that the target accepts GET and POST. When the server does not know the method at all or has not implemented it, it is recommended to answer with 501 Not Implemented, not 405 (section 9.1).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The server only returns the list. The memos on the server stay as they are.</li>
+<li><b>Sending the same GET twice</b> — The response is the same both times, and the memos on the server stay as they are.</li>
+<li><b>Changing to POST</b> — The server adds the text of the body to the list, so the memos grow by one.</li>
+<li><b>Sending the same POST twice</b> — The memos grow by one each time you send.</li>
+<li><b>Changing to DELETE</b> — The server has not set up that method, so it refuses with 405.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The client (the side that sends the request) sends the text below to the server. This text is the HTTP request. The server starts with a list that holds one memo, first. The first word of the first line is the method, and it shows what the request wants the server to do. The method of this request is GET. /memos after it is the path, which address the request is for, and HTTP/1.1 is the version, which rules the text was written by.</li>
+<li>The server starts to read the text. From the first line it reads that the method is GET and the path is /memos. The server looks through what it has set up (the # Server lines under the code box) for the same method and path. It has a line that handles the GET /memos request.</li>
+<li>The server does the job written on the GET /memos line. It only reads the list and puts it in the response, and does not touch the list, so the server still has 1 memo. The text it puts in the response is &quot;first&quot;.</li>
+<li>The client gets the response. The status is 200 OK and the body is &quot;first&quot;.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The HTTP method is the first word of the first line of a request, and even for the same /memos address, what the server does depends on the method. GET is the method that gets what is on the server, so the server only returned the list, and the server still has 1 memo.</li>
+<li>The server reads the method and the path on the first line, finds the line it has set up that handles them, and does that job. The GET /memos line is the job of returning the list.</li>
+</ul>
+<h2>Code</h2>
+<pre>GET /memos HTTP/1.1
+Host: localhost:8080
+(empty line)
+
+# Server: the list at first has one memo, first
+# Server: GET /memos → returns the list
+# Server: POST /memos → adds the text of the body to the list</pre>
+<h2>Assumptions of this model</h2>
+<p>The server was started on an empty port of 127.0.0.1 with the http module of Node.js 24.18.0. At first its list holds one memo, first. For GET /memos it returns 200 OK with the list joined by &quot;, &quot; as the body. For POST /memos it adds the text of the request body to the list and returns 200 OK with the list after the addition as the body. For any other method that comes to /memos, it returns 405 with an Allow: GET, POST line that the server code adds, and for any other address it returns 404. The code box is not the code of the server program; it shows what was exchanged, and a line that starts with # is a note that is not sent to the server. All 6 combinations, 3 methods and 2 numbers of requests, were actually run. The client used the net module and sent the text of the request in the upper part of the code box exactly as it is, with CRLF at the end of each line (when it sent twice, it opened a new connection and sent the same text once more), and it parsed the status line, the Allow line, and the body of the response it received until the server closed the connection. We checked against the model the method, the path, and the body that the server received, the number of memos on the server after the request and whether the list changed, whether the list read by one more GET /memos at the end is the same as the real list of the server, and whether a GET to an address that does not exist, /nothing, gets 404, and we also checked for each combination that the text of the request is the same text that the code on the screen ran. Everything matched the model. Host: localhost:8080 on the screen is an example; the request was actually sent to an empty port, and this server does not look at the value of Host. That GET did not change anything on the server is because we made this server that way. The standard only gives GET the meaning of read-only, so what happens with a server that changes something on a GET was not run. Answering POST with 200 OK is also the choice of this server. The standard recommends answering with 201 Created and a Location line if a new resource was created (section 9.3.3), and we did not use it because a memo of this server has no address of its own. What was checked against the documentation is the following sections of RFC 9110: section 9.1 (method names are case-sensitive, and it recommends 501 for a method that the server does not know or has not implemented, and 405 for a method that it knows but the resource does not accept), section 9.2.1 (safe methods: defined with read-only meaning, so the client neither requests nor expects a change of state on the server), section 9.2.2 (idempotent), section 9.3.1 (GET: a request to transfer the current representation of the target resource), section 9.3.3 (POST: a request that the target resource process the representation enclosed in the request, and its uses), section 10.2.1 (Allow), and section 15.5.6 (405 Method Not Allowed: a method that is known but not supported by the target resource, and the Allow line must be added to a 405 response). We opened these documents with WebFetch, but we opened the long documents in parts and what came back was a summary and short excerpts, so we could not check whole sentences against the original. What this lab does not cover: cases where PUT, PATCH, and DELETE succeed, the property that sending the same request many times gives the same result (idempotency), and whether it is safe to send again when you did not get a response are covered in the in-depth lab &quot;Retries and idempotency&quot;; the shape of the text of requests and responses and all the status codes are covered in the in-depth lab &quot;HTTP messages and status codes&quot;; and how Spring separates requests by method and address is covered in the in-depth lab &quot;Request mapping and parameter binding&quot;. We did not use a browser, and we did not check that typing an address in the address bar of a browser sends GET and that an HTML form can use POST.</p>
+<p>Previous lab: <a href="../../lab/http_basic/">HTTP requests</a> · Next lab: <a href="../../lab/httpres_basic/">HTTP responses</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

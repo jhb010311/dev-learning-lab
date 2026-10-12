@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Row locks: What happens when two transactions try to change the same row? · Dev Learning Lab</title>
+<meta name="description" content="Many connections can work with a database at the same time. When one connection changes a row with UPDATE, the database puts a lock on that row. A lock is…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dblock_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/dblock_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/dblock_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Row locks: What happens when two transactions try to change the same row? · Dev Learning Lab">
+<meta property="og:description" content="Many connections can work with a database at the same time. When one connection changes a row with UPDATE, the database puts a lock on that row. A lock is…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/dblock_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Database</p>
+<h1>Row locks</h1>
+<p><b>What happens when two transactions try to change the same row?</b></p>
+<p>Many connections can work with a database at the same time. When one connection changes a row with UPDATE, the database puts a lock on that row. A lock is a mark that says &quot;I am changing this row, so other connections must not change it.&quot; The SQL we write has no statement for this; the database takes the lock by itself when it receives the UPDATE. The lock is not released until the transaction of that connection ends with COMMIT or ROLLBACK. If another connection tries to change the same row, the database makes that UPDATE wait until the lock is released, and if it waits too long, the database ends it with an error. In this lab you change the row that connection B updates and remove the COMMIT of connection A, run the same SQL, and see when the UPDATE of B runs and what the final balances are.</p>
+<p>Checked against real execution · Ran all 4 combinations on H2 2.4.240 with two connections and checked against the results; the rules were checked against the MySQL documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Row locks</dt>
+<dd>A row lock is a lock that the database puts on a row when a transaction changes that row. In MySQL InnoDB, UPDATE ... WHERE puts an exclusive lock on the index records it meets in the search, and if it finds one row with a unique index such as a primary key, that one record lock is enough. When one transaction holds an exclusive lock on a row, a request by another transaction for a lock on the same row cannot be granted at once, and it must wait until the earlier transaction releases the lock. InnoDB locks are released when the transaction commits or aborts, so if you leave a transaction open without ending it, that row stays locked. A lock is put only on the row that was changed, and it is not written in the code; the database that received the UPDATE takes it by itself.</dd>
+<dt>Transaction</dt>
+<dd>A way to group several data changes into a single unit so that either all of them are applied (commit) or all of them are canceled (rollback). In a bank transfer, it prevents an intermediate state where only one of the withdrawal and the deposit is applied. It is the most basic means a database has for keeping data consistent.</dd>
+<dt>Shared locks and exclusive locks</dt>
+<dd>A shared lock (S) is a lock for reading, and several transactions can hold it at the same time. An exclusive lock (X) is a lock for writing, and only one transaction can hold it. While data has an exclusive lock, no other transaction can take a shared lock or an exclusive lock on it.</dd>
+<dt>Lock wait timeout</dt>
+<dd>A failure of a statement that waited for a lock held by another transaction to be released, up to a set time, and still could not get it. In MySQL InnoDB, when innodb_lock_wait_timeout (default 50 seconds) passes, error 1205 (Lock wait timeout exceeded) is returned. Unlike a deadlock, it can occur even when there is no cycle of mutual waiting, and a common cause is another transaction being kept open for a long time. Under the default settings, only the statement that was waiting is canceled and the transaction stays alive, so the earlier changes and locks remain. That is why, when you get this error, you must roll back yourself and then decide whether to try again.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The same row. The UPDATE of B waits until A runs COMMIT, and runs after that.</li>
+<li><b>B changes a different row</b> — The other row has no lock, so the UPDATE of B runs right away, before the COMMIT of A.</li>
+<li><b>Removing the COMMIT of A</b> — A does not release the lock, so the UPDATE of B waits and then ends with a timeout error.</li>
+<li><b>Removing the COMMIT of A and B changes a different row</b> — Even though A holds the id 1 row, B changes a different row, so it does not wait.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>CREATE TABLE and INSERT: The database creates the account table and puts a balance of 1000 in each of account 1 and account 2. The path a program uses to reach the database is called a connection, and many connections can be attached to a database at the same time. In the code on the screen, the &quot;Connection A&quot; and &quot;Connection B&quot; parts are the SQL that one connection each sends, and the two connections write to the same table at the same time. We follow it one statement at a time in time order, not in the order of the parts, starting from the next step.</li>
+<li>BEGIN (connection A): Connection A starts a transaction. This transaction continues until it meets COMMIT or ROLLBACK.</li>
+<li>UPDATE account SET balance = balance - 100 WHERE id = 1 (connection A): The database changes the balance of the id 1 row from 1000 to 900. At this moment the database puts a lock on this row. There is no statement in the SQL we wrote that takes the lock; the database does it by itself when it receives the UPDATE. The lock is not released until this transaction ends with COMMIT or ROLLBACK. 900 is not final yet, so if another connection reads this row, it sees 1000.</li>
+<li>BEGIN (connection B): Connection B also starts its own transaction. A and B are different connections, so their transactions are separate too.</li>
+<li>UPDATE account SET balance = balance + 50 WHERE id = 1 (connection B): B tries to change the same id 1 row as A. The database first checks whether another connection holds a lock on this row. The lock of A is on it, so the UPDATE of B cannot run and waits. B stops at this statement and cannot go on to the next one. (Only a statement that changes the row waits. When another connection read this row with SELECT at the same time, it did not wait and read 1000 right away. Checked on H2.)</li>
+<li>COMMIT (connection A): A makes its transaction final. The 900 in the id 1 row is now final and can be read from other connections, and the lock that A held is released. B was waiting, so the database right away continues the UPDATE of B.</li>
+<li>The UPDATE of B continues. The database reads the current balance of the id 1 row and adds 50. It adds to the 900 that A made final, so the balance becomes 950, and the change of A is not erased. Now the lock of B is on this row.</li>
+<li>COMMIT (connection B): B makes its transaction final. The 950 in the id 1 row is now final and can be read from other connections. Now the id 1 row has both the -100 of A and the +50 of B applied and is 950, and the lock of B is released too.</li>
+<li>After all the statements have ended, we read the accounts on a new connection. The result is (1, 950), (2, 1000). The -100 of A and the +50 of B were applied in order.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A row lock is a mark that the database puts on a row when an UPDATE changes it. It is not released until the transaction ends, so the UPDATE of B on the same row waited until A ran COMMIT, and ran after that.</li>
+<li>The lock is taken not by the SQL we wrote but by the database that received the UPDATE. B added 50 to the 900 that A made final and got 950, so the two changes did not overwrite each other.</li>
+</ul>
+<h2>Code</h2>
+<pre>CREATE TABLE account (id INT PRIMARY KEY, balance INT);
+INSERT INTO account VALUES (1, 1000), (2, 1000);
+
+-- Connection A (runs first)
+BEGIN;
+-- The row being changed gets a lock, and it is kept until this transaction ends
+UPDATE account SET balance = balance - 100 WHERE id = 1;
+-- End: make the transaction final and release the lock
+COMMIT;
+
+-- Connection B (runs after the UPDATE of A)
+BEGIN;
+-- The database first checks whether another connection holds a lock on the row to be changed
+UPDATE account SET balance = balance + 50 WHERE id = 1;
+COMMIT;</pre>
+<h2>Assumptions of this model</h2>
+<p>It was run and checked against H2 2.4.240 (in-memory database, JDBC), and it was not checked against execution on MySQL. For all 4 combinations, it built the whole SQL on the screen (including the comment lines), split it into the &quot;Connection A&quot; and &quot;Connection B&quot; parts, and ran each part exactly as written, with connection A (the main thread) and connection B (a thread). The order of execution is the BEGIN and UPDATE of A, the BEGIN of B, the UPDATE attempt of B, the COMMIT of A (if there is one), and the COMMIT of B. It created a new in-memory database with a name (DB_CLOSE_DELAY=-1) for each combination so that the two connections look at the same database, and it left the isolation level at the H2 default, READ COMMITTED. What it checked is the three items of the result table. They are whether the UPDATE of B was still not finished after 0.4 seconds and whether it finished later than the time of the COMMIT of A (the times were recorded and compared), the kind of error if there was one (the SQLSTATE of H2 is HYT00, the error code is 50200, and the first line of the message is Timeout trying to lock table &quot;ACCOUNT&quot;; H2 writes the table name in the message even for a row lock), and the balances read on a new connection after all the statements ended. For the combinations that did not end, the read was also made while A held the lock, and the value read after closing the connection of A was the same. The time to wait for a lock was shortened to 1 second on connection B with SET LOCK_TIMEOUT 1000 (the H2 default is 2 seconds, and this setting is not in the code on the screen). The screen shows no time numbers, and the default of MySQL InnoDB is innodb_lock_wait_timeout of 50 seconds. As the facts the step sentences rely on, it also checked by execution the value that another connection read right after A's UPDATE (1000, because it is not final yet), that while B was waiting, a SELECT from another connection did not wait and read 1000 right away (that reads do not wait in H2 was measured separately, and the screen mentions it in only one sentence), that after B waited and ended with an error, auto-commit of B is still off so the transaction is still open, and that the UPDATE of B that ran afterward added 50 to the 900 that A made final and got 950. From the MySQL 8.4 documentation, we opened and checked section 17.7.1 InnoDB Locking (an exclusive lock lets a transaction change or delete the row, and when one transaction holds an exclusive lock on a row, a request by another transaction for a lock on the same row cannot be granted at once and must wait), section 17.7.3 Locks Set by Different SQL Statements in InnoDB (UPDATE ... WHERE sets an exclusive lock on the records it meets in the search, and if it finds one row with a unique index, an index record lock is enough; InnoDB locks are released when the transaction commits or aborts), and innodb_lock_wait_timeout on the page for InnoDB startup options and system variables (innodb-parameters) (default 50 seconds, error 1205 after waiting, and only the statement is rolled back, not the whole transaction). From the H2 documentation, we checked the Advanced page, Multi-Version Concurrency Control (a connection sees only the final data and its own changes, and if connections try to lock or change the same row at the same time, it waits until the lock timeout) and Lock Timeout (an error if the lock cannot be got, and it can be set for each connection). Section 17.7.3 does not directly state in a sentence when the lock of an UPDATE is released; we read it from the general sentence in the same section (InnoDB locks are released when the transaction commits or aborts). We did not check by execution whether MySQL gives the same result for the same SQL. This lab covers only the exclusive lock and the waiting on one row, and does not cover read locks (SELECT ... FOR UPDATE), the differences by isolation level (iso), its use in stock decrement (stock), deadlocks where connections wait for each other (dbdeadlock), or locks on the empty gaps between rows (gaplock).</p>
+<p>Previous lab: <a href="../../lab/dbtx_basic/">Transactions</a> · Next lab: <a href="../../lab/durable_basic/">Storage and durability</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Message queues: What is a message queue, and how is it different from calling a server directly? · Dev Learning Lab</title>
+<meta name="description" content="A message queue is a line, placed between the server that asks for work and the server that does the work, in which the work is written down. The code box…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/queue_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/queue_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/queue_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Message queues: What is a message queue, and how is it different from calling a server directly? · Dev Learning Lab">
+<meta property="og:description" content="A message queue is a line, placed between the server that asks for work and the server that does the work, in which the work is written down. The code box…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/queue_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
+<h1>Message queues</h1>
+<p><b>What is a message queue, and how is it different from calling a server directly?</b></p>
+<p>A message queue is a line, placed between the server that asks for work and the server that does the work, in which the work is written down. The code box has three lines. In the first line, the order server writes the work for the notification server as a short text (a message) called &quot;Notify order N&quot; and puts it in the queue, and when it gets the result it moves straight on to the next job (the side that sends messages). In the second line, the queue keeps the messages in the order they were put in. In the third line, the notification server takes messages out of the queue one at a time and handles them (the side that receives messages). In this lab you remove the queue line so that the order server sends requests straight to the notification server, or you keep the notification server stopped while the 3 orders are sent and start it later, and you see the result the order server gets and how the notifications are handled. The code box is not the source of a program that was run. It is text that says what does what, and the queue used in the runs is a very small queue server written for this lab (it is not a real product such as Kafka or RabbitMQ).</p>
+<p>Checked against real execution · Ran four combinations with two Node.js 24.18.0 http servers (a small queue server written for this lab and a notification server that receives direct requests) and a program that plays the order server, and checked against the model. Real products such as Kafka and RabbitMQ were not run</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Message queue</dt>
+<dd>An intermediate store that sits between the sending side (the producer) and the receiving side (the consumer), holds messages, and then delivers them. The producer puts a message in and moves straight on to its next work, and the consumer takes messages out and processes them at its own pace. The two systems do not call each other directly, so coupling is lower, and a sudden burst of requests can be piled up and processed later.</dd>
+<dt>Producers and consumers</dt>
+<dd>A producer is a program that creates and sends messages, and a consumer is a program that receives those messages and handles them. The RabbitMQ tutorial calls a program that sends messages a producer and a program that mostly waits to receive messages a consumer, and the Kafka documentation calls a client application that writes events a producer and the side that reads and processes events a consumer. When a queue sits between them, the producer only puts messages in the queue, and the consumer takes them out of the queue when it is ready. The Kafka documentation explains that the two are fully decoupled and agnostic of each other.</dd>
+<dt>Message broker</dt>
+<dd>A message broker is an intermediate program that receives the messages a producer sends and passes them on to a consumer. The RabbitMQ tutorial introduces RabbitMQ as a message broker that accepts and forwards messages. Inside a broker there are queues that keep messages, and the same tutorial describes a queue as a large message buffer that is bound only by the memory and disk limits of the host. Producers and consumers do not connect to each other directly. They exchange messages through the broker.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The order server puts messages in the queue and gets the result at once. After that, the notification server takes them out and handles them in the order they were put in.</li>
+<li><b>Calling directly without a queue</b> — The order server waits until the notification server has finished handling the request, and only then gets the result.</li>
+<li><b>Calling directly while the notification server is stopped</b> — All 3 requests fail, and even after the notification server starts there is no notification to handle.</li>
+<li><b>Using the queue while the notification server is stopped</b> — The 3 orders succeed, and the messages stay in the queue and are handled after the notification server starts.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The order server receives the 3 orders one after another. As the first line of the code box says, each time the order server receives an order, it writes the work for the notification server as a short text, &quot;Notify order N&quot;, and puts it in the queue. This short text is called a message. The queue is a line that keeps messages in the order they were put in, and the notification server takes messages out of the queue and handles them. The notification server is running now, and the queue was empty when it started. The notification server looks into the queue every 0.1s and takes out a message if there is one. In this run, handling one notification was made to take 0.3s.</li>
+<li>The order server sends a request to put the message &quot;Notify order 1&quot; in the queue. The queue keeps the message at the tail and replies &quot;put.&quot; The moment the order server gets this reply, it gets the result of this order (success) and moves on to the next order. This reply does not say whether the notification server has handled the message. The number of messages piled up in the queue is 1.</li>
+<li>The order server puts the message &quot;Notify order 2&quot; in the queue, and as soon as the queue replies &quot;put,&quot; it gets the result (success). The number of messages piled up in the queue is 2.</li>
+<li>The order server puts the message &quot;Notify order 3&quot; in the queue, and as soon as the queue replies &quot;put,&quot; it gets the result (success). The number of messages piled up in the queue is 3.</li>
+<li>The order server has got the results of all 3 orders. The notification server is running, but it looks into the queue every 0.1s, and handling one notification takes 0.3s. So when the order server has got all the results, not one notification has been handled yet, and 3 messages are waiting for their turn in the queue. The order server cannot know when these notifications will finish.</li>
+<li>The notification server takes the message at the head of the queue, &quot;Notify order 1,&quot; and handles it (0.3s). 2 are left in the queue. Messages are taken out in the order they were put in.</li>
+<li>The notification server takes the next message from the queue, &quot;Notify order 2,&quot; and handles it. 1 are left in the queue.</li>
+<li>The notification server takes the next message from the queue, &quot;Notify order 3,&quot; and handles it. 0 are left in the queue. All 3 notifications have been handled. The order in which they were handled is orders 1, 2, and 3, the same as the order they were put in.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A message queue is a line, placed between the order server and the notification server, in which work is written down. The order server only put messages in the queue and got the result at once, and the notification server took them out of the queue in the order they were put in, at its own speed, and handled them.</li>
+<li>In exchange, when the order server got the results, not one notification had been handled yet. Success only means that the message was put in the queue, so the order server cannot know right away when the notification will finish.</li>
+</ul>
+<h2>Code</h2>
+<pre># Order server: for each of the 3 orders, puts a &quot;Notify order N&quot; message in the queue
+# Queue: keeps the messages in the order they were put in
+# Notification server: takes them out of the queue one at a time and handles them</pre>
+<h2>Assumptions of this model</h2>
+<p>I ran all four combinations for real, only inside 127.0.0.1 of the PC used to write this lab, and checked them against the model. I did not connect to any outside network, and nothing new was downloaded. The queue used in the runs is a very small queue server written for this lab as an http server of Node.js 24.18.0. It puts messages in one array in memory and accepts only two kinds of requests, one that puts a message in and one that takes the message at the head out, and it is not a real message queue product such as Kafka or RabbitMQ (no such product is on this PC and I did not install one). So what this lab shows is the simplest shape of &quot;what a queue does,&quot; and it is not a check of how a real product behaves. The program that plays the order server sends the 3 orders one after another, sending the next order after it gets the result of the previous one. In the combinations that use the queue, it sends a put request to the queue server and takes the reply as the result, and in the combinations that call directly, it sends a request to the notification server and takes the reply after handling is finished as the result. The notification server is either an http server that receives direct requests (the direct combinations) or a loop that takes one message at a time from the queue server every 0.1s and handles it (the queue combinations), and either way handling one notification was made to take 0.3s and it handles one at a time. The 0.1s and the 0.3s are values chosen for this lab. In the combinations where the notification server is stopped and starts later, I started the notification server after the results of all 3 orders had been received, and while it was stopped there was no program waiting at that port number. The program that ran made the same text as the code on the screen and read it (how many, whether there is a queue line, how the notification server receives, whether it is stopped and starts later) and started things according to that content. What I compared is the result the order server got (success or failure, and whether it got the result after the notification handling finished or before it finished, judged from the record of the order in which events happened), the handled notifications and their order, and the number of messages in the queue when the notification server starts. I also confirmed that the order of taking out from the queue was the same as the order of putting in, that a request sent directly to the stopped notification server failed every time with a connection refused error (ECONNREFUSED), and that even when I watched for 1s after the notification server started, no notification was handled. In the combination that puts messages in the queue, the queue held 3 messages when the order server got all the results, and this is because of the structure of this run, in which the notification server looks into the queue every 0.1s even when it is running. That the queue was empty when the notification server started is because in this run the notification server was started before the orders. What I checked against documentation is the Introduction of RabbitMQ tutorial 1 (Hello World) (a program that sends messages is a producer, a program that mostly waits to receive messages is a consumer, a queue is like a post box and is in effect a large message buffer, and RabbitMQ is a message broker that accepts and forwards messages) and the Introduction page of the Apache Kafka documentation (https://kafka.apache.org/intro, Main Concepts and Terminology: a producer is a client application that writes events, a consumer is the side that reads and processes events, and the two are fully decoupled and agnostic of each other). I checked the documents through the quotations that WebFetch returned (I did not read the whole pages myself), and there are no section numbers. Much was shortened on the screen. Putting a message in the queue and the queue keeping it were shortened to one request and one reply, and that the reply tells only &quot;it was kept&quot; and not whether the notification was handled is behavior that comes from how this small queue server was made. A real product deals with acknowledgements, with which the side that handled a message tells that it has handled it, keeping the queue on disk, the case where the queue itself stops, the case where a message is lost or delivered twice, the order and distribution when there are several consumers, and redoing a failed handling, and this lab did not look at any of them. Such details are covered in the in-depth labs &quot;Message queue basics&quot;, &quot;Kafka partitions and consumers&quot;, and &quot;Saga and outbox&quot;. This lab also did not judge the standard that separates the jobs a queue suits from the jobs that suit a direct call (whether the result is needed right away). I did not use a browser, and I had only one notification server and one order server.</p>
+<p>Previous lab: <a href="../../lab/cache_basic/">Caches</a> · Next lab: <a href="../../lab/deploy_basic/">Deployment</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

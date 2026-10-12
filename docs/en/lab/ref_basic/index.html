@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -84,7 +84,7 @@ public class Main {
 }</pre>
 <h2>Assumptions of this model</h2>
 <p>The runtime environment is JDK 21.0.12.1 (javac 21). All four combinations were compiled with javax.tools from the same source as the code on the screen, loaded with a new class loader, and Main.main was run, and the results were checked against the captured standard output. In the source of the Probe (the checking program), only lines that count Card objects (an increment of a static variable and in the constructor, and a few output lines) were added, and for every combination it was confirmed that, with those lines removed, the text is identical to the code on the screen line by line. What was checked is the two output lines, the number of Card objects created, and the facts that the step sentences rely on. The facts are the number of objects right after the line Card b = ...; ran (for the combination that stores new Card(), right after the owner was copied over), the value of a == b, the values of the owner of the objects that the two variables refer to, and whether those two values are the same. The documentation was checked by opening the Java Language Specification (Java SE 21) directly. That there are reference values that refer to objects, that when two variables refer to the same object a state changed through one variable can be read through the other, and that an int value is copied on assignment so that the two are separate follow sections 4.2 and 4.3.1 (example 4.3.1-2); that a variable of a primitive type holds a value of that primitive type, and a variable of a class type holds null or a reference to an object of that class, follows sections 4.12.1 and 4.12.2; and that == on references is true when both are null or refer to the same object follows section 15.21.3. That == on int variables compares values (section 15.21.1) was not confirmed by opening the documentation, and was confirmed only by the result of this run. The screen draws the texts of owner, Alice and Bob, as if they were values inside the object, but owner is also a reference that refers to a String object. This lab does not cover that difference, and it does not cover how string constants come to refer to the same object. equals, which asks whether the contents of objects are the same, is covered in &quot;In-depth lab: == and equals&quot;. Where variables and objects are placed in memory is not something this lab covers or checked. What this lab showed is the behavior that the value stored in a variable refers to an object, and that assigning copies that value.</p>
-<p>Previous lab: <a href="../../lab/class_basic/">Classes and objects</a> · Next lab: <a href="../../lab/ctor_basic/">Constructors</a></p>
+<p>Previous lab: <a href="../../lab/class_basic/">Classes and objects</a> · Next lab: <a href="../../lab/null_basic/">null</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -171,6 +171,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5cbab9ae01"></script>
+<script src="../../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

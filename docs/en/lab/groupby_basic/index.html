@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GROUP BY and aggregation: What does GROUP BY group, and what do COUNT and SUM count? · Dev Learning Lab</title>
+<meta name="description" content="COUNT(*) and SUM(price) are aggregate functions that reduce many rows to one value. COUNT(*) returns how many rows there are, and SUM(price) returns the t…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/groupby_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/groupby_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/groupby_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="GROUP BY and aggregation: What does GROUP BY group, and what do COUNT and SUM count? · Dev Learning Lab">
+<meta property="og:description" content="COUNT(*) and SUM(price) are aggregate functions that reduce many rows to one value. COUNT(*) returns how many rows there are, and SUM(price) returns the t…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/groupby_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Database</p>
+<h1>GROUP BY and aggregation</h1>
+<p><b>What does GROUP BY group, and what do COUNT and SUM count?</b></p>
+<p>COUNT(*) and SUM(price) are aggregate functions that reduce many rows to one value. COUNT(*) returns how many rows there are, and SUM(price) returns the total when you add up all the prices. GROUP BY member is added after a SELECT statement, and it puts the rows that have the same member value into one group and makes the aggregation run once for each group. One group becomes one line of the result. In this lab you run the same aggregation on an orders table that holds 5 orders, and you remove GROUP BY member, add the ungrouped column id to SELECT, and add a WHERE condition, and you see how many lines the result has and what shape it takes.</p>
+<p>Checked against real execution · Ran 6 combinations on H2 2.4.240 and checked against the results, and checked the rules against the MySQL documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>GROUP BY clause</dt>
+<dd>The GROUP BY clause is a clause that you write after a SELECT statement as GROUP BY and a column name, and it makes the rows that have the same value in that column into one group. An aggregate function is calculated once for each group, and one group becomes one line of the result. So the number of rows in the result is the number of groups, not the number of original rows. If you use an aggregate function without writing GROUP BY, all the rows that meet the condition become one group, and the result is one row. Filtering rows with WHERE happens before grouping, so WHERE decides which rows to group.</dd>
+<dt>Aggregate function</dt>
+<dd>A function that takes the values of several rows and returns a single value. COUNT (number of rows), SUM (total), AVG (average), MAX (largest value), and MIN (smallest value) are typical. With GROUP BY, it is computed once for each group. Without GROUP BY, all the rows that satisfy the condition are treated as one group. An aggregate function can be computed only after the groups are made, so it cannot be used in WHERE. You use it in HAVING, SELECT, and ORDER BY. Aggregate functions other than COUNT(*) skip NULL values when they compute.</dd>
+<dt>COUNT and SUM</dt>
+<dd>COUNT(*) and SUM(column) are typical aggregate functions. COUNT(*) returns how many rows there are in a group, and it counts a row even if a column has the value NULL. COUNT(column) counts only the rows in which that column is not NULL. SUM(column) returns the total of the values of that column in the group. With GROUP BY, they are calculated once for each group, and without it, once for all the rows.</dd>
+<dt>Nonaggregated columns and ONLY_FULL_GROUP_BY</dt>
+<dd>In a SELECT that does aggregation, a column that is not written in GROUP BY and is not inside an aggregate function is called a nonaggregated column. One group becomes one line of the result, but a group can hold several values of that column, so it cannot be decided what to write on that line. When the SQL mode ONLY_FULL_GROUP_BY is on (it is on by default in 8.4), MySQL rejects a statement that uses a nonaggregated column in SELECT, HAVING, or ORDER BY. The same is true of a statement that uses an aggregate function without GROUP BY. However, it allows the case where the column written in GROUP BY decides the value of that column as one (for example, a primary key), and to reduce the value to one, you put it inside an aggregate function such as MAX, or use ANY_VALUE. Databases differ in how they check this rule.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The rows with the same member form three groups, and one line comes out for each group, so there are 3 rows.</li>
+<li><b>If you remove GROUP BY</b> — The whole table is the only group, so the result is one row.</li>
+<li><b>If you also write id in SELECT</b> — id is neither a grouped column nor an aggregate, so it cannot be written, and an error occurs.</li>
+<li><b>If you add a WHERE condition</b> — Rows are filtered out before grouping, so the count and the total of the lee group change.</li>
+<li><b>If you write id without GROUP BY</b> — If you write id together with an aggregate, an error occurs even though there is only one group.</li>
+<li><b>If you add only WHERE without GROUP BY</b> — The 4 rows that were filtered become one group, so the result is one row.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>CREATE TABLE and INSERT: the database creates the orders table and puts in 5 rows. The columns are id (order number), member (who placed the order), and price (amount). kim placed 2 orders, lee placed 2, and park placed 1. The statement below reads these 5 rows.</li>
+<li>SELECT member, COUNT(*), SUM(price) FROM orders GROUP BY member: This statement groups the rows of orders by equal member values, and for each group it calculates the two aggregates COUNT(*) and SUM(price) once, and shows them one line at a time. COUNT(*) is the number of rows in the group, and SUM(price) is the total of the prices in the group. We did not write code that groups and counts. The database receives this statement and does it.</li>
+<li>GROUP BY member: the database groups the 5 rows by equal member values. The rows whose member is kim (id 1, 2), The rows whose member is lee (id 3, 4), The rows whose member is park (id 5) each become one group, so there are 3 groups. The order of the rows inside a group and the way of grouping are decided by the database.</li>
+<li>kim group (id 1, 2): COUNT(*) is the number of rows in the group, 2, and SUM(price) is the total of the prices, 1000 + 2000 = 3000. One line comes out for each group, so it puts the one line (kim, 2, 3000) in the result.</li>
+<li>lee group (id 3, 4): COUNT(*) is 2 and SUM(price) is 500 + 1500 = 2000. It puts the one line (lee, 2, 2000) in the result.</li>
+<li>park group (id 5): COUNT(*) is 1 and SUM(price) is 3000. It puts the one line (park, 1, 3000) in the result.</li>
+<li>Result of SELECT: The result is 3 rows. There were 5 orders, but the number of rows in the result is the number of groups, not the number of rows. Because of ORDER BY member, they come out in member order.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>GROUP BY member puts the rows with the same member value into one group, calculates COUNT(*) and SUM(price) once for each group, and gives one line per group. The 5 order rows become three groups, kim, lee, and park, so the result is 3 rows.</li>
+<li>The number of rows in the result is the number of groups, not the number of original rows. One line comes out for each group, so in SELECT you write the grouped column (member) and the aggregates that give one value per group (COUNT, SUM).</li>
+</ul>
+<h2>Code</h2>
+<pre>CREATE TABLE orders (id INT PRIMARY KEY, member VARCHAR(20), price INT);
+INSERT INTO orders VALUES (1, 'kim', 1000), (2, 'kim', 2000),
+    (3, 'lee', 500), (4, 'lee', 1500), (5, 'park', 3000);
+
+SELECT member, COUNT(*), SUM(price)
+FROM orders
+-- GROUP BY: rows with the same member value form one group
+GROUP BY member
+ORDER BY member;</pre>
+<h2>Assumptions of this model</h2>
+<p>This was checked against real execution on H2 2.4.240 (in-memory database, JDBC). All 6 combinations were run, one statement at a time, with the whole SQL on the screen exactly as it is (CREATE TABLE, INSERT, SELECT, and the comment lines), and the number of rows that SELECT returned, the values of all the rows, whether an error occurred, and the kind of that error were checked against the model. The two combinations that caused an error gave H2 error code 90016 (a message saying that the id column must be in the GROUP BY list), and the screen shows only that kind, in English words. The values that the step sentences rely on were also checked separately on H2: the number of rows, 5, and the total, 8000, the ids of the rows whose price is 1000 or more (1, 2, 4, 5), the list of ids for each name (1 and 2 for kim, 3 and 4 for lee, 5 for park) and the list when WHERE is added (only 4 for lee), the number of different ids for each name, that there are 3 groups, and that the statement with MAX(id) runs without an error. What was different from what I expected: H2 did not give an error at the stage where it parses the statement with id written in it (prepareStatement), and gave the error while running, when there were different ids inside one group. So if only the park row was left, or if rows were left so that each group had only one id (ids 1, 3, 5), a statement of the same shape ran without an error. The sentences of the error step on the screen were written following this observation. The definitions and rules were checked by opening the documentation. In section 14.19.1 Aggregate Function Descriptions of the MySQL 8.4 documentation, it says that aggregate functions operate on sets of values, that using one without GROUP BY is equivalent to grouping all the rows, and that COUNT(*) counts the number of rows even if there are NULL values. In section 14.19.3 MySQL Handling of GROUP BY, it says that the SQL mode ONLY_FULL_GROUP_BY is enabled by default, that it rejects a statement that uses in SELECT a column that is not written in GROUP BY and is not functionally dependent on it, and that this is the same for a statement that uses an aggregate function without GROUP BY. In section 15.2.13 SELECT Statement, it says that the rows that meet the WHERE condition are selected, and that an aggregate function cannot be used in WHERE. The H2 grammar page (grammar.html) has no description of SELECT, so I opened SELECT on the Commands page. It says that GROUP BY groups the result by expressions, that if an aggregate function is used without GROUP BY all the rows are grouped together, and that in the logical order of execution WHERE comes before GROUP BY. All four documents were opened with a tool that summarizes web pages, and the original text was not checked letter by letter. The run was not checked against MySQL. So whether MySQL gives the same result and error for the same statements was not confirmed by running them, and according to the documentation, MySQL does not look at how many values id has but rejects the statement by looking only at the kind of the column written in it, so the conditions under which it gives an error differ from H2. The INSERT on the screen shows all 5 rows as they are. ORDER BY member at the end of SELECT was added so that the groups appear in member order, and if you remove GROUP BY member, the result has no member, so ORDER BY member was removed together with it. The step sentences explain, in order, the principle by which the result is made. How the database actually groups the rows is decided by the database, and what was confirmed by running is the result. This lab does not cover HAVING, grouping by two or more columns, columns that contain NULL, COUNT(column) and AVG, aggregation together with a join, or ANY_VALUE. HAVING, which sets a condition after aggregation, and the order in which SELECT is processed are covered in &quot;SELECT processing order&quot;, how to rank rows without merging them in &quot;Window functions&quot;, and aggregating the result of a join in &quot;JOIN and GROUP BY&quot;.</p>
+<p>Previous lab: <a href="../../lab/join_basic/">Joins</a> · Next lab: <a href="../../lab/index_basic/">Indexes</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

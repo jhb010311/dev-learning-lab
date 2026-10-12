@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deployment: When does a running server change after you edit the code? · Dev Learning Lab</title>
+<meta name="description" content="A server is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you start the server, the co…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/deploy_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/deploy_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/deploy_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Deployment: When does a running server change after you edit the code? · Dev Learning Lab">
+<meta property="og:description" content="A server is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you start the server, the co…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/deploy_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
+<h1>Deployment</h1>
+<p><b>When does a running server change after you edit the code?</b></p>
+<p>A server is a program that reads in a source file (a file in which code is written) and answers requests with that code. When you start the server, the computer runs the server program and creates one process (a running program), and this process reads in the source file server.js when it starts. After that it runs only on the code it has read in, and this server does not read the file on the disk again. So even if you edit and save the file, a server that is already running keeps answering with the old code. To make it use the new code, you have to stop the server and start it again with the new code, and making a new version really run like this is called deployment. The code box is not Java code. It is a list of the things a person does, in order (lines that start with # are numbered to-do items). In this lab you remove or reorder line 2, which edits the source file, and line 3, which stops and starts the server, one at a time, and you see which version answers the request in line 4.</p>
+<p>Checked against real execution · Ran six combinations with a Node.js 24.18.0 server (a child process) that was really started, with the server.js file edited, and with the server stopped and started, sending requests from an http client, and checked against the model</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Deployment</dt>
+<dd>Deployment is the work of putting a new version of the code into a server that is really running, so that users' requests reach the new version. Editing and saving a source file is not enough to make a deployment. A server that is already running runs on the code it read in when it started, so the server has to change to the new code. The simplest way is to stop the server and start it again with the new code, and with this way, when there is only one server, requests fail while it is stopped. The Kubernetes documentation explains this work as replacing old Pods with new Pods, and it distinguishes Recreate, which ends all the existing Pods and then creates new ones, from RollingUpdate, which replaces them gradually.</dd>
+<dt>Server restart</dt>
+<dd>A server restart is ending a running server process and running the same server program again to create a new process. The code the ended process held disappears with it, and the new process reads in the source file from the beginning when it starts. So a restart is a way of bringing the code that is on the disk at that moment into the server. Until it is stopped and started again, no process accepts connections, so a request that arrives in between fails with a connection refused error. If you restart without editing the source file, the server only reads the same code again.</dd>
+<dt>Code loaded at startup</dt>
+<dd>A process reads in the source file when it starts, and after that it runs on the code it holds inside itself. The Node.js documentation explains that a module loaded with require is cached after it is first loaded, and that calling the same module several times does not run the module code several times. However, the server.js of this lab is not a module loaded with require but a start file run directly with the node command, so this documentation does not decide the behavior of server.js. On Node.js 24.18.0 on the PC used to write this lab, even when I waited 0.5s after starting the server and editing the file, the code held by the live process stayed the same, and a server that was not started again answered requests with the old code. The file on the disk and the code inside the process are in different places.</dd>
+<dt>Connection refused error</dt>
+<dd>A connection refused error is the error that the sender gets when it asks for a TCP connection but no program has that port open and is waiting. In Node.js, the error event comes instead of the connect event, and the error code appears as ECONNREFUSED (the Node.js errors documentation describes ECONNREFUSED as &quot;Connection refused: No connection could be made because the target machine actively refused it&quot;, and the net documentation says that if there is a problem with the connection, error comes instead of connect). Because the connection was not opened, not a single letter of text is sent. The TCP standard says to send a reset signal (RST) to a request that comes with no connection (RFC 9293 section 3.5.2).</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — Edit the file, stop and start the server, and then send the request. The new version answers.</li>
+<li><b>Removing line 3</b> — Only the file is edited and the server stays as it is. The old version keeps answering.</li>
+<li><b>Requesting while the server is stopped</b> — A request that arrives while the server is stopped gets no reply.</li>
+<li><b>Removing line 2</b> — If nothing was edited, the same version answers even after the restart.</li>
+<li><b>Removing both line 2 and line 3</b> — Nothing changes, so the first version answers.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Line 1: start the server. The computer runs the server program and creates one process (a running program). When it starts, this process reads in the source file server.js on the disk. The code written in the file says to answer &quot;Version 1&quot; when a request arrives, and the process waits for requests holding this code that it has read in.</li>
+<li>Line 2: a person opens the source file server.js, changes &quot;Version 1&quot; to &quot;Version 2&quot;, and saves it. Now the file on the disk says &quot;Version 2&quot;. But the running server already read in the file when it started, and it does not pick up that the file changed afterward. Even when 0.5s had passed after the edit and the running server was asked directly, the code the server held was still &quot;Version 1&quot;. The file and the code inside the server are in different places.</li>
+<li>Line 3: stop the server. The server process ends, and the code it had read in and was holding disappears with it.</li>
+<li>Line 3, continued: start the server again. The server program is run again and creates a new process, and the new process reads in the source file from the beginning when it starts. The file now says &quot;Version 2&quot;, so the new process holds code that answers &quot;Version 2&quot;. The edited code has now come inside the server.</li>
+<li>Line 4: the client sends a GET /hello request to the server. It is the same as the request a browser sends when you type the address localhost:8080/hello in the address bar.</li>
+<li>The server answers &quot;Version 2&quot; with the code its process holds, and the client receives &quot;Version 2&quot;. The text in the file on the disk is also still &quot;Version 2&quot;, so the file and the code inside the server are the same. The edited new version answered the request.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A running server runs on the code it read in when it started. After you edit the source file, if you stop the server and start it again, the new process reads the edited file and answers &quot;Version 2&quot;. Making a new version really run like this is deployment. What is different from only editing the code is line 3 (stop and start the server).</li>
+<li>Editing (line 2) and starting again (line 3) are different jobs. You need both for the new code to answer requests.</li>
+</ul>
+<h2>Code</h2>
+<pre># 1. Start the server (its code answers &quot;Version 1&quot;)
+# 2. Change &quot;Version 1&quot; to &quot;Version 2&quot; in the source file
+# 3. Stop and start the server
+# 4. Send a request</pre>
+<h2>Assumptions of this model</h2>
+<p>The server is an http server of Node.js 24.18.0. For each combination I really wrote the server.js file (a short program that reads in the line const answer = 'Version 1' when it starts and answers that value when a request arrives) and really started node server.js as a child process. The code on the screen is not the program that was run but a list of what a person does, and the Probe ran this list line by line as it is. Starting means starting the child process, editing means really rewriting the server.js file, stopping means ending that process, and the request is GET /hello with the http module. I ran all six combinations (the different ones among the eight settings, since without the line that starts the server again you cannot choose when to send the request) and checked against the model the response to the request (or the connection refused error), the value the live process held at that time (asked with a separate request), the value written in the file on the disk at that time, whether the process after stopping and starting is a different process from the first, the number of times the server was started, whether the value held by the first process was still the same even after waiting 0.5s after editing the file, and, for the combination that sent the request while the server was stopped, the answer to one more request sent after it was started again. I also checked for each combination that the code on the screen is the same text as the list the Probe ran. Within one combination, the same port was used after stopping and starting, and localhost:8080 on the screen is an example address; in the real runs a free port was taken once. The server in this lab is a short program that reads the file only once, when it starts, so tools that read it in again by themselves when the file changes (such as automatic restart tools for development) and programs that read the file at every request were not covered. What I checked against documentation is the Caching section of Modules in the Node.js documentation (a module is cached after it is first loaded, and unless the require cache is changed, calling the same module several times does not run the module code several times) and Deployments in the Kubernetes documentation (the introduction that a Deployment manages declarative updates of Pods, and in the Strategy section that Recreate ends all the existing Pods before creating new Pods and RollingUpdate replaces them gradually). I only read the two documents, and that a server runs on the code it read in when it started was checked not by the documents but by the runs above. The Caching section of the Node.js documentation is about modules loaded with require, and the server.js of this lab is a start file run directly with the node command, so I do not write that the documentation decides the behavior of server.js. Not covered: how to remove the gap while a server is stopped and started (rolling several machines one after another, blue-green, which builds a whole new environment, and so on) is covered in the in-depth lab &quot;Deployment strategies&quot;, the automation that builds, tests, and puts the edited code on a server is covered in &quot;CI/CD pipelines&quot;, and the way that Kubernetes replaces servers packed in containers is covered in &quot;Kubernetes self-healing&quot;. In a compiled language such as Java there is one more step, compiling again after you edit the source file, and this lab showed only a Node.js source file, which has no compile step.</p>
+<p>Previous lab: <a href="../../lab/queue_basic/">Message queues</a> · Next lab: <a href="../../lab/git_basic/">Git commits and branches</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

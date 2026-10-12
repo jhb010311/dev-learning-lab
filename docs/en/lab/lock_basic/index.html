@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Locks (synchronized): What is a lock, and what happens without one? · Dev Learning Lab</title>
+<meta name="description" content="A lock is a mark that says &quot;only one thread runs this section at a time.&quot; In this code, the part that sets the lock is the synchronized before the declara…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lock_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/lock_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/lock_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Locks (synchronized): What is a lock, and what happens without one? · Dev Learning Lab">
+<meta property="og:description" content="A lock is a mark that says &quot;only one thread runs this section at a time.&quot; In this code, the part that sets the lock is the synchronized before the declara…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/lock_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Java</p>
+<h1>Locks (synchronized)</h1>
+<p><b>What is a lock, and what happens without one?</b></p>
+<p>A lock is a mark that says &quot;only one thread runs this section at a time.&quot; In this code, the part that sets the lock is the synchronized before the declaration of the add method. What add does is the single line count++, and this one line is three steps: read the value of count, add 1, and write the added value to count. If two threads change the same count at the same time, another thread can change count after one thread has read the value and before it writes, and one thread's increment can be lost. When synchronized is attached, a thread must acquire the lock before entering add, and only one thread can hold the lock at a time, so the other thread waits until the previous thread leaves add. In this lab you add and remove synchronized and switch between 2 threads and 1 thread. The same code is compiled and really run, and you see the count printed at the end. (Creating threads and handling them with start and join is covered in the lab &quot;Threads&quot;. static is read as meaning that count and add exist only once in the program, and it is not covered in detail here.)</p>
+<p>Checked against real execution · Compiled 4 combinations with javax.tools on JDK 21, ran each 30 times as a child java process, and checked the final count (with 2 threads and no lock, all 30 runs were below 200000)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Locks and monitors</dt>
+<dd>Every object in Java is associated with a monitor, and a thread can lock or unlock that monitor. This locking is commonly called a lock. Only one thread at a time can lock a monitor, and any other thread that tries to lock the same monitor is blocked and waits until it can lock it. A synchronized method acquires a monitor before it executes: an instance method uses the monitor associated with this, and a static method uses the monitor associated with the Class object of its class. When the method ends, the lock is released automatically.</dd>
+<dt>synchronized</dt>
+<dd>This Java keyword marks a critical section. Only one thread at a time can run a method or block marked with it, and a thread that wants to run it must first acquire the monitor lock of the object involved. It is simple, but a thread that waits for the lock is stopped, so keep the scope only as large as needed.</dd>
+<dt>The three steps of count++</dt>
+<dd>An expression such as count++, which changes the value of a variable and writes it back, is not one operation even though it is one line. It is split into three steps: read the current value, add 1 to the value you read, and write the added value to the variable. When you look at count++ on a static int field with javap on JDK 21, the order is getstatic, iconst_1 and iadd, and putstatic. If the three steps of two threads mix, and one thread adds 1 to a stale value it had read and writes it, the increment that another thread made in the meantime can be overwritten and lost. If you wrap the three steps in a lock so that no other thread can enter until one thread finishes, nothing is lost.</dd>
+<dt>Race condition</dt>
+<dd>This is a situation in which two or more threads read and write the same data at the same time, and the result depends on the order of execution. count++ consists of three steps: read the value, add 1, and write it back. If the steps of two threads are interleaved, one of the increments is lost. It typically stays hidden in tests and appears under load.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — add has synchronized and there are 2 threads. Only one thread runs add at a time, so count becomes 200000.</li>
+<li><b>Removing synchronized</b> — The two threads step in on each other between reading and writing count, so you get a value smaller than 200000. The value is different on each run.</li>
+<li><b>Using only 1 thread</b> — There is no other thread to step in, so count is 100000 even without a lock.</li>
+<li><b>Adding synchronized with 1 thread</b> — Even if the thread acquires the lock, no thread is waiting, so the result is the same as without the lock.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>You run it with java Main. The line static int count = 0; at the top creates one variable named count, with the value 0. This variable is the only one, so every thread in the program reads and writes the same count. The main thread runs the main method from the top.</li>
+<li>main creates a Runnable job. job is the work &quot;call add() 100000 times.&quot; main hands the same job to Thread t1 and t2 and calls t1.start() and t2.start(). Now two threads each start calling add() 100000 times. main waits at t1.join() and t2.join() for both to finish.</li>
+<li>The single line count++ inside add() is not one piece but three steps. 1) Read the current value of count. 2) Add 1 to the value you read. 3) Write the added value to count. Because this add has synchronized, a thread that calls it must acquire the lock before going in. The lock of a static method is the single lock that belongs to the Main class, and only one thread can hold a lock at a time. When the thread holding the lock leaves add, the lock is released.</li>
+<li>Follow one case with the lock (the numbers are an example). Say count is 5 in the middle of the 100000 calls each. t1 calls add() first. The lock is free, so t1 acquires the lock and goes in, and reads count, getting 5.</li>
+<li>At this moment t2 also calls add(). The lock is held by t1. t2 cannot go into add and waits until the lock is released. It does not even read count.</li>
+<li>t1 adds 1 to the 5 it read, writes the 6 to count, and leaves add(). It finished the three steps of read, add, and write with nothing stepping in between, and the lock is released as it leaves.</li>
+<li>When the lock is released, t2 acquires the lock and goes into add. This time the count it reads is the 6 that t1 wrote, and it writes 7 after adding 1. It releases the lock as it leaves. Both increments were reflected in count, so it went from 5 to 7.</li>
+<li>Each time add() was called, only one thread was inside, so no increment was lost. After both threads finish (t1.join() and t2.join()), println(count) prints 200000. It is the same value however many times you run it. In exchange, the other thread has to wait until the thread holding the lock leaves.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A call to add() with the lock is run by only one thread at a time, so even when 2 threads each call it 100000 times, count becomes 200000. A lock is a mark that says &quot;only one thread runs this section at a time,&quot; and in Java you set it by putting synchronized before the method declaration.</li>
+<li>The read, add, and write of count++ finished inside one thread without being broken up, so no increment was lost. The cost is that the other thread waits until the thread holding the lock leaves.</li>
+</ul>
+<h2>Code</h2>
+<pre>public class Main {
+    // A variable that two threads change together. There is only one in the program
+    static int count = 0;
+
+    // Lock: with synchronized, only one thread runs at a time
+    static synchronized void add() {
+        // count++ is three steps: read, add, write
+        count++;
+    }
+
+    public static void main(String[] args) throws Exception {
+        // The work of a thread: call add() 100000 times
+        Runnable job = () -&gt; {
+            for (int i = 0; i &lt; 100000; i++) {
+                add();
+            }
+        };
+        Thread t1 = new Thread(job);
+        // The second thread: does the same work
+        Thread t2 = new Thread(job);
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        System.out.println(count);
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). All 4 combinations were checked against real runs: the same source as the code on the screen (identical line by line) was compiled with javax.tools, and the java of this JDK was started as a child process and actually run 30 times for each combination, and the final count that was printed was collected and compared. In all 120 runs the exit code was 0 and the standard error was empty. For the two combinations with synchronized, the output was 200000 in all 30 runs with 2 threads and 100000 in all 30 runs with 1 thread. The combination without synchronized and with 1 thread was also 100000 in all 30 runs. The combination without synchronized and with 2 threads was smaller than 200000 in all 30 runs, and there were 30 different values (between 119684 and 155244). So the result cell for this combination is not a fixed number but &quot;A value smaller than 200000 (different on each run)&quot;. This is what was seen on the PC used to write this lab (12 logical processors), and how many increments are lost can differ between computers and between runs, so the screen does not state the amount lost as a fixed fact. The numbers 5, 6, and 7 in the scenes and the order in which t1 and t2 step in are one example chosen to show the principle, and that order was not observed in a real run. In the real runs, many more increments were lost than in this example's single one (44756 to 80316 short of the expected value), and I did not break down separately why that many are lost. What this lab checked is the fact that increments are lost and the fact that the operation is split into three steps, and it did not check how those two facts produce the amount that is lost. The facts that the step sentences rely on were checked with separately written source. First, when I looked at count++ inside add() of the same source with javap, the order was getstatic (read), iconst_1 and iadd (add 1), and putstatic (write). Second, while t1 held the lock inside a static synchronized method and t2 called the same method, the state of t2 was BLOCKED, Thread.holdsLock(Main.class) showed true, which shows that the lock belongs to the Class object of Main, and after both finished, count was 2 (the same in all 30 runs). For the documentation, I opened the Java Language Specification (Java SE 21) myself. That only one thread at a time can hold the lock of a monitor and other threads stop until they can hold it, and that a static method uses the monitor of the Class object, follow section 17.1; that a synchronized method acquires the monitor before it executes, and that a static method uses the monitor of the Class object and an instance method uses the monitor of this, follow section 8.4.3.6; and that the lock is released automatically when the method ends follows the explanation at the beginning of chapter 8. Section 8.4.3.6 itself did not state when the lock is released. That a lock release by one thread is ordered before a later acquisition of the same lock by another thread is the content of section 17.4.5, and this lab did not cover the problem of whether values become visible. That count++ is divided into three steps of getting the value, adding 1, and storing it back, and that when the steps of two threads mix, an update can be lost, I confirmed by opening Thread Interference and Synchronized Methods in the Synchronization part of the Java Tutorials. However, no document specifies how many times it is lost in this code, and that is the value from running it on this JDK. I read the documents through web page summaries and did not read the whole original text myself. The code on the screen uses only classes inside java.lang, so it has no import line. Beyond that, synchronized blocks, the lock that each object has separately (instance methods), volatile and AtomicInteger, the order in which locks are released and fairness, and deadlock, in which threads wait for each other and stop, are not covered. Why increments are lost and a comparison of locks are covered in the in-depth lab &quot;Race condition&quot;, and deadlock in &quot;Deadlock&quot;.</p>
+<p>Previous lab: <a href="../../lab/thread_basic/">Threads</a> · Next lab: <a href="../../lab/pool_basic/">Thread pools</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

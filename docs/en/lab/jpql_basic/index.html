@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JPQL: What is JPQL, and how is it different from SQL? · Dev Learning Lab</title>
+<meta name="description" content="em.find finds only one entity, by one primary key. To find several by a condition, such as all members who are 20 or older, you have to write a query (tex…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jpql_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jpql_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/jpql_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="JPQL: What is JPQL, and how is it different from SQL? · Dev Learning Lab">
+<meta property="og:description" content="em.find finds only one entity, by one primary key. To find several by a condition, such as all members who are 20 or older, you have to write a query (tex…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/jpql_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › JPA</p>
+<h1>JPQL</h1>
+<p><b>What is JPQL, and how is it different from SQL?</b></p>
+<p>em.find finds only one entity, by one primary key. To find several by a condition, such as all members who are 20 or older, you have to write a query (text that asks the database), and in JPA you write that query in a language called JPQL. JPQL looks like SQL, but you write it with the names of entity classes and fields, not tables and columns. The Member class on the screen is paired with the member_tbl table by @Table, and its name field is paired with the user_name column by @Column, so the two names are different. When em.createQuery passes the text in the jpql variable to JPA, JPA reads that text. When you call query.getResultList(), JPA turns the JPQL into SQL, sends it to the database, builds Member objects from the rows that come back, and puts them in list. In this lab you change the name that you write in JPQL from an entity name to a table name and to a column name, run the same code each time, and see the SQL that was sent to the database, what came back in list, and the error.</p>
+<p>Checked against real execution · Compiled and ran 4 combinations with the code on the screen as it is, on Hibernate 7.4.5 and H2 2.4.240, and checked the SQL that was sent, the objects that came back, and the line on which the error occurred against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>JPQL</dt>
+<dd>The JPA query language that you write against entities and their fields, not tables. Its syntax is similar to SQL, and when a query runs, the JPA provider translates it into SQL for the database in use. Its advantage is that it does not depend on the syntax of a specific database.</dd>
+<dt>em.createQuery and getResultList</dt>
+<dd>em.createQuery(text, result class) is a method that passes text written in JPQL to JPA, makes a query object (TypedQuery), and returns it, and getResultList() of that query object is a method that runs a SELECT query and returns the result as a list (List). The API documentation says that createQuery throws IllegalArgumentException if the text is wrong or the result class does not fit. Observed on Hibernate 7.4.5, an error caused by a wrong entity name or field name in the text occurred on the createQuery line, not on getResultList, and it was the getResultList line that sent SQL to the database. On the other hand, em.find(class, primary key) is a method that finds one entity by one primary key value, so when you find several by a condition, you use a query.</dd>
+<dt>Entity names and field names</dt>
+<dd>JPQL is a query that you write about entities and their fields, not tables and columns, so you write an entity name after from, and the field names of that entity in the conditions. Section 4.3.1 of the Jakarta Persistence specification says that a query string refers to an entity by its entity name, and that the name is the name of @Entity, and if it is not set, it is the unqualified name of the entity class (the class name without the package). The Hibernate guide says that you cannot refer to the tables and columns of the database directly in HQL and JPQL. So even if a class is paired with the member_tbl table by @Table and a field is paired with the user_name column by @Column, you write the class name Member and the field name name in JPQL, and writing the table name or the column name causes an error.</dd>
+<dt>@Table</dt>
+<dd>@Table is an annotation that you put above an entity class to set the table (the primary table) that the entity is paired with. You write the table name in name, and the API documentation says that if you do not write it, the entity name is used, and this default also applies when you do not put @Table at all. This name is only the name of the table in the SQL that is sent, so you cannot use it after from in JPQL, and you have to write the entity name of the class. What sets the name of the column that corresponds to a field is the name of @Column.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — JPQL that uses Member and age. JPA turns it into SQL and sends it to the database, and builds 2 Member objects from the rows that come back.</li>
+<li><b>If you write the table name</b> — JPA cannot find an entity called member_tbl, so an error occurs on the createQuery line. Nothing is sent to the database.</li>
+<li><b>If you write the column name</b> — Member has no field called user_name, so an error occurs on the createQuery line.</li>
+<li><b>If you write the field name</b> — JPA turns the name field into the user_name column and builds the SQL. The one member, kim, who meets the condition comes back as a Member object.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>The database setup: before the code runs, the database has a member_tbl table, and it holds three rows: (id 1, user_name kim, age 25), (id 2, user_name lee, age 17), and (id 3, user_name park, age 30). The Member class on the screen is paired with this table. @Table sets the table name member_tbl, and @Column sets the column name user_name for the name field. em in the code is an EntityManager, the object that gives work to JPA. The em.find method finds only one row by one primary key (id), so to find several by a condition, such as all members who are 20 or older, you have to use a query.</li>
+<li>String jpql = &quot;select m from Member m where m.age &gt;= 20&quot;: the query written in JPQL is put in the jpql variable as text. It is still only text, so neither JPA nor the database has read this text, and no SQL has been sent. In this text, Member is the name of the class we wrote, and m.age is the age field of that class.</li>
+<li>TypedQuery&lt;Member&gt; query = em.createQuery(jpql, Member.class): em passes the jpql text to JPA, and while reading the text, JPA checks the names that are written. Member is the name of an entity that JPA knows (the name of an entity is by default the class name), and m.age is a field of that entity. All the names are right, so JPA makes a query object and puts it in query. SQL statements sent up to this line: 0. A query object was made, and the database has not been asked yet.</li>
+<li>List&lt;Member&gt; list = query.getResultList(): now JPA turns the JPQL into SQL and sends it to the database. The SQL that Hibernate 7.4.5 built and sent in this run is &quot;select m1_0.id,m1_0.age,m1_0.user_name from member_tbl m1_0 where m1_0.age&gt;=20&quot;. Member in the JPQL has become the table name member_tbl, and m.age in the condition has become the column name age. This SQL is not in the code we wrote, and JPA did the work of turning JPQL into SQL. The text of the SQL can differ by Hibernate version.</li>
+<li>The database returns the rows that meet the condition, 2 in all (kim, park), and for each row JPA builds a Member object and fills the values of the columns into the fields. The value of the user_name column goes into the name field. These objects come back in list. What came back is not rows but objects of the Member class (2 in all), and in this run the class of every object in list was Member. lee, who is 17, does not meet the condition and did not come back.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>JPQL is a query that looks like SQL but is written with the names of an entity class (Member) and its field (age), not tables and columns. JPA turned this text into SQL and sent it to the database, and the 2 rows that came back became 2 Member objects and were put in list.</li>
+<li>Unlike em.find, it found several by a condition. Member, written in the query, became member_tbl in the SQL. The name that you write in a query can differ from the name in the database, and what links the two is @Table and @Column.</li>
+</ul>
+<h2>Code</h2>
+<pre>@Entity
+// Table: one Member class is paired with one member_tbl table
+@Table(name = &quot;member_tbl&quot;)
+public class Member {
+    @Id
+    private Long id;
+
+    // Column: the name field is paired with the user_name column
+    @Column(name = &quot;user_name&quot;)
+    private String name;
+
+    private int age;
+}
+
+// The side that queries
+// JPQL: the query text that JPA reads
+String jpql = &quot;select m from Member m where m.age &gt;= 20&quot;;
+TypedQuery&lt;Member&gt; query = em.createQuery(jpql, Member.class);
+List&lt;Member&gt; list = query.getResultList();</pre>
+<h2>Assumptions of this model</h2>
+<p>This was checked against real execution with JDK 21 on Hibernate 7.4.5 and H2 2.4.240 (in-memory database). Spring was not used, and Hibernate was started directly in code (the classes were registered in Configuration, and the tables were created with hbm2ddl.auto=create-drop). All 4 combinations were compiled and run with the code on the screen exactly as it is. The Member class on the screen was made into Member.java with only the import lines added, and the four lines of &quot;The side that queries&quot; were put in as the body of a method that receives an EntityManager. What does not appear on the screen is the import lines, the database connection settings, and the code that gets and closes the EntityManager, and since this lab only reads, no transaction was started. For each combination, the database was created anew, and before the run, three rows ((1, kim, 25), (2, lee, 17), (3, park, 30)) were put into member_tbl with JDBC. The SQL of this setup was not counted. What was checked is whether an error occurred and on which line (the line of code was found from the stack trace), the kind and the message of the exception, the text and the number of the SQL captured with Hibernate's StatementInspector and the line that sent that SQL, and the size of the list that came back and the class and the values of its elements. The facts that the step sentences rely on were also measured in a second run that inserts a measuring line right below each line of code. They are that the SQL sent was 0 after passing the jpql variable and the createQuery line and 1 after passing the getResultList line, that in the two combinations that cause an error, the error occurs on the createQuery line, the next line is not run, and no SQL is ever sent, and that the class of the objects that came back is Member as it is. What the documentation defines is section 4.1 of the Jakarta Persistence 3.2 specification (JPQL is the language of dynamic queries written as strings), section 4.3 (the targets of a query are the abstract schema types of entities and embeddables), section 4.3.1 (in a query string an entity is referred to by its entity name, and the name is the name of @Entity, and the default is the unqualified name of the entity class), the API documentation of EntityManager.createQuery, TypedQuery.getResultList, Table, and EntityManager.find (createQuery throws IllegalArgumentException if the query string is wrong, getResultList runs a SELECT query and returns a list, the name of @Table defaults to the entity name, and find finds one by the primary key), and section 1.1 of the Hibernate Query Language guide (in HQL and JPQL you cannot refer to tables and columns directly, and you refer to entity classes and their fields). The specification page came back only as a summary, so only the sentences of the relevant sections were checked, and the sections were not read in full. What the documentation does not define and was observed in this version is that reading the JPQL and checking the names happens on the createQuery line (the error occurred on that line), that the SQL is sent on the getResultList line, the kind and the message of the exception of the error, and the text of the SQL that was sent (the alias m1_0 and so on). These texts can differ by Hibernate version. The run was not checked against MySQL. This lab does not cover joins and fetch joins, bulk queries that do UPDATE and DELETE, dynamic queries whose conditions change, parameter binding, or the several ways to receive results, and these are covered in the Learn-tab labs &quot;JPQL and fetch joins&quot;, &quot;Bulk update and delete operations&quot;, and &quot;Dynamic queries and Querydsl&quot;.</p>
+<p>Previous lab: <a href="../../lab/lazy_basic/">Lazy fetching</a> · Next lab: <a href="../../lab/table_basic/">Tables, rows, and columns</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

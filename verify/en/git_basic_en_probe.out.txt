@@ -1,0 +1,92 @@
+# git git version 2.55.0.windows.3 · for each combination a new empty folder verify/out/git_basic_en/1791833889342/<combination>/ · git init -b main
+true|main => branch=main|main=Commit 1|feature=Commit 2|memo=v1|mainFile=v1|featFile=v2|status=(clean)|count=2
+true|stay => branch=feature|main=Commit 1|feature=Commit 2|memo=v2|mainFile=v1|featFile=v2|status=(clean)|count=2
+false|main => branch=main|main=Commit 1|feature=Commit 1|memo=v2|mainFile=v1|featFile=v1|status=M memo.txt|count=1
+false|stay => branch=feature|main=Commit 1|feature=Commit 1|memo=v2|mainFile=v1|featFile=v1|status=M memo.txt|count=1
+# code sent true|main = "# Make this folder a Git repository (the first branch is named main)\ngit init -b main\n# Create the file memo.txt and write v1 in it\necho v1 > memo.txt\n# Stage memo.txt to go into the next commit\ngit add memo.txt\n# Commit (save) what you staged\ngit commit -m \"First commit\"\n# Create a new branch feature and switch to it\ngit switch -c feature\n# Change the contents of memo.txt to v2\necho v2 > memo.txt\n# Stage the changed file (-a) and commit it right away\ngit commit -am \"Second commit\"\n# Switch to the main branch\ngit switch main\n# Show the contents of memo.txt on the screen\ncat memo.txt"
+# fact right after init true|main = HEADfile="ref: refs/heads/main"|refs/heads/main file=(none)|inside refs/heads folder=[]
+# state true|main 0 "git init -b main" => cur=main|main=none|feature=none|count=0|file=none|status=(clean)|mainFile=none|featFile=none
+# state true|main 1 "echo v1 > memo.txt" => cur=main|main=none|feature=none|count=0|file=v1|status=?? memo.txt|mainFile=none|featFile=none
+# state true|main 2 "git add memo.txt" => cur=main|main=none|feature=none|count=0|file=v1|status=A  memo.txt|mainFile=none|featFile=none
+# state true|main 3 "git commit -m \"First commit\"" => cur=main|main=Commit 1|feature=none|count=1|file=v1|status=(clean)|mainFile=v1|featFile=none
+# state true|main 4 "git switch -c feature" => cur=feature|main=Commit 1|feature=Commit 1|count=1|file=v1|status=(clean)|mainFile=v1|featFile=v1
+# state true|main 5 "echo v2 > memo.txt" => cur=feature|main=Commit 1|feature=Commit 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# state true|main 6 "git commit -am \"Second commit\"" => cur=feature|main=Commit 1|feature=Commit 2|count=2|file=v2|status=(clean)|mainFile=v1|featFile=v2
+# state true|main 7 "git switch main" => cur=main|main=Commit 1|feature=Commit 2|count=2|file=v1|status=(clean)|mainFile=v1|featFile=v2
+# state true|main 8 "cat memo.txt" => cur=main|main=Commit 1|feature=Commit 2|count=2|file=v1|status=(clean)|mainFile=v1|featFile=v2
+# output true|main "git init -b main" => exit 0 stdout="Initialized empty Git repository in E:/dev/dev-learning-lab/verify/out/git_basic_en/1791833889342/true_main/.git/\n" stderr=""
+# output true|main "echo v1 > memo.txt" => exit 0 stdout="" stderr=""
+# output true|main "git add memo.txt" => exit 0 stdout="" stderr=""
+# output true|main "git commit -m \"First commit\"" => exit 0 stdout="[main (root-commit) 32a9244] First commit\n 1 file changed, 1 insertion(+)\n create mode 100644 memo.txt\n" stderr=""
+# output true|main "git switch -c feature" => exit 0 stdout="" stderr="Switched to a new branch 'feature'\n"
+# output true|main "echo v2 > memo.txt" => exit 0 stdout="" stderr=""
+# output true|main "git commit -am \"Second commit\"" => exit 0 stdout="[feature 8273a78] Second commit\n 1 file changed, 1 insertion(+), 1 deletion(-)\n" stderr=""
+# output true|main "git switch main" => exit 0 stdout="" stderr="Switched to branch 'main'\n"
+# output true|main "cat memo.txt" => exit 0 stdout="v1\n" stderr=""
+# fact true|main = HEADfile="ref: refs/heads/main"|main file is one hash=true(41 bytes)|feature file is one hash=true(41 bytes)|main and feature are the same commit=false|parents of the first commit=0|parent of the feature tip commit=Commit 1|memo.txt in commit 1="v1\n"|file list of commit 1="memo.txt"|commit messages=["First commit","Second commit"]|branch list=["feature","main"]|git diff --stat=""
+# code sent true|stay = "# Make this folder a Git repository (the first branch is named main)\ngit init -b main\n# Create the file memo.txt and write v1 in it\necho v1 > memo.txt\n# Stage memo.txt to go into the next commit\ngit add memo.txt\n# Commit (save) what you staged\ngit commit -m \"First commit\"\n# Create a new branch feature and switch to it\ngit switch -c feature\n# Change the contents of memo.txt to v2\necho v2 > memo.txt\n# Stage the changed file (-a) and commit it right away\ngit commit -am \"Second commit\"\n# Show the contents of memo.txt on the screen\ncat memo.txt"
+# fact right after init true|stay = HEADfile="ref: refs/heads/main"|refs/heads/main file=(none)|inside refs/heads folder=[]
+# state true|stay 0 "git init -b main" => cur=main|main=none|feature=none|count=0|file=none|status=(clean)|mainFile=none|featFile=none
+# state true|stay 1 "echo v1 > memo.txt" => cur=main|main=none|feature=none|count=0|file=v1|status=?? memo.txt|mainFile=none|featFile=none
+# state true|stay 2 "git add memo.txt" => cur=main|main=none|feature=none|count=0|file=v1|status=A  memo.txt|mainFile=none|featFile=none
+# state true|stay 3 "git commit -m \"First commit\"" => cur=main|main=Commit 1|feature=none|count=1|file=v1|status=(clean)|mainFile=v1|featFile=none
+# state true|stay 4 "git switch -c feature" => cur=feature|main=Commit 1|feature=Commit 1|count=1|file=v1|status=(clean)|mainFile=v1|featFile=v1
+# state true|stay 5 "echo v2 > memo.txt" => cur=feature|main=Commit 1|feature=Commit 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# state true|stay 6 "git commit -am \"Second commit\"" => cur=feature|main=Commit 1|feature=Commit 2|count=2|file=v2|status=(clean)|mainFile=v1|featFile=v2
+# state true|stay 7 "cat memo.txt" => cur=feature|main=Commit 1|feature=Commit 2|count=2|file=v2|status=(clean)|mainFile=v1|featFile=v2
+# output true|stay "git init -b main" => exit 0 stdout="Initialized empty Git repository in E:/dev/dev-learning-lab/verify/out/git_basic_en/1791833889342/true_stay/.git/\n" stderr=""
+# output true|stay "echo v1 > memo.txt" => exit 0 stdout="" stderr=""
+# output true|stay "git add memo.txt" => exit 0 stdout="" stderr=""
+# output true|stay "git commit -m \"First commit\"" => exit 0 stdout="[main (root-commit) e2a489b] First commit\n 1 file changed, 1 insertion(+)\n create mode 100644 memo.txt\n" stderr=""
+# output true|stay "git switch -c feature" => exit 0 stdout="" stderr="Switched to a new branch 'feature'\n"
+# output true|stay "echo v2 > memo.txt" => exit 0 stdout="" stderr=""
+# output true|stay "git commit -am \"Second commit\"" => exit 0 stdout="[feature 85709c9] Second commit\n 1 file changed, 1 insertion(+), 1 deletion(-)\n" stderr=""
+# output true|stay "cat memo.txt" => exit 0 stdout="v2\n" stderr=""
+# fact true|stay = HEADfile="ref: refs/heads/feature"|main file is one hash=true(41 bytes)|feature file is one hash=true(41 bytes)|main and feature are the same commit=false|parents of the first commit=0|parent of the feature tip commit=Commit 1|memo.txt in commit 1="v1\n"|file list of commit 1="memo.txt"|commit messages=["First commit","Second commit"]|branch list=["feature","main"]|git diff --stat=""
+# code sent false|main = "# Make this folder a Git repository (the first branch is named main)\ngit init -b main\n# Create the file memo.txt and write v1 in it\necho v1 > memo.txt\n# Stage memo.txt to go into the next commit\ngit add memo.txt\n# Commit (save) what you staged\ngit commit -m \"First commit\"\n# Create a new branch feature and switch to it\ngit switch -c feature\n# Change the contents of memo.txt to v2\necho v2 > memo.txt\n# Switch to the main branch\ngit switch main\n# Show the contents of memo.txt on the screen\ncat memo.txt"
+# fact right after init false|main = HEADfile="ref: refs/heads/main"|refs/heads/main file=(none)|inside refs/heads folder=[]
+# state false|main 0 "git init -b main" => cur=main|main=none|feature=none|count=0|file=none|status=(clean)|mainFile=none|featFile=none
+# state false|main 1 "echo v1 > memo.txt" => cur=main|main=none|feature=none|count=0|file=v1|status=?? memo.txt|mainFile=none|featFile=none
+# state false|main 2 "git add memo.txt" => cur=main|main=none|feature=none|count=0|file=v1|status=A  memo.txt|mainFile=none|featFile=none
+# state false|main 3 "git commit -m \"First commit\"" => cur=main|main=Commit 1|feature=none|count=1|file=v1|status=(clean)|mainFile=v1|featFile=none
+# state false|main 4 "git switch -c feature" => cur=feature|main=Commit 1|feature=Commit 1|count=1|file=v1|status=(clean)|mainFile=v1|featFile=v1
+# state false|main 5 "echo v2 > memo.txt" => cur=feature|main=Commit 1|feature=Commit 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# state false|main 6 "git switch main" => cur=main|main=Commit 1|feature=Commit 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# state false|main 7 "cat memo.txt" => cur=main|main=Commit 1|feature=Commit 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# output false|main "git init -b main" => exit 0 stdout="Initialized empty Git repository in E:/dev/dev-learning-lab/verify/out/git_basic_en/1791833889342/false_main/.git/\n" stderr=""
+# output false|main "echo v1 > memo.txt" => exit 0 stdout="" stderr=""
+# output false|main "git add memo.txt" => exit 0 stdout="" stderr=""
+# output false|main "git commit -m \"First commit\"" => exit 0 stdout="[main (root-commit) 141a407] First commit\n 1 file changed, 1 insertion(+)\n create mode 100644 memo.txt\n" stderr=""
+# output false|main "git switch -c feature" => exit 0 stdout="" stderr="Switched to a new branch 'feature'\n"
+# output false|main "echo v2 > memo.txt" => exit 0 stdout="" stderr=""
+# output false|main "git switch main" => exit 0 stdout="M\tmemo.txt\n" stderr="Switched to branch 'main'\n"
+# output false|main "cat memo.txt" => exit 0 stdout="v2\n" stderr=""
+# fact false|main = HEADfile="ref: refs/heads/main"|main file is one hash=true(41 bytes)|feature file is one hash=true(41 bytes)|main and feature are the same commit=true|parents of the first commit=0|parent of the feature tip commit=|memo.txt in commit 1="v1\n"|file list of commit 1="memo.txt"|commit messages=["First commit"]|branch list=["feature","main"]|git diff --stat="memo.txt | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)"
+# code sent false|stay = "# Make this folder a Git repository (the first branch is named main)\ngit init -b main\n# Create the file memo.txt and write v1 in it\necho v1 > memo.txt\n# Stage memo.txt to go into the next commit\ngit add memo.txt\n# Commit (save) what you staged\ngit commit -m \"First commit\"\n# Create a new branch feature and switch to it\ngit switch -c feature\n# Change the contents of memo.txt to v2\necho v2 > memo.txt\n# Show the contents of memo.txt on the screen\ncat memo.txt"
+# fact right after init false|stay = HEADfile="ref: refs/heads/main"|refs/heads/main file=(none)|inside refs/heads folder=[]
+# state false|stay 0 "git init -b main" => cur=main|main=none|feature=none|count=0|file=none|status=(clean)|mainFile=none|featFile=none
+# state false|stay 1 "echo v1 > memo.txt" => cur=main|main=none|feature=none|count=0|file=v1|status=?? memo.txt|mainFile=none|featFile=none
+# state false|stay 2 "git add memo.txt" => cur=main|main=none|feature=none|count=0|file=v1|status=A  memo.txt|mainFile=none|featFile=none
+# state false|stay 3 "git commit -m \"First commit\"" => cur=main|main=Commit 1|feature=none|count=1|file=v1|status=(clean)|mainFile=v1|featFile=none
+# state false|stay 4 "git switch -c feature" => cur=feature|main=Commit 1|feature=Commit 1|count=1|file=v1|status=(clean)|mainFile=v1|featFile=v1
+# state false|stay 5 "echo v2 > memo.txt" => cur=feature|main=Commit 1|feature=Commit 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# state false|stay 6 "cat memo.txt" => cur=feature|main=Commit 1|feature=Commit 1|count=1|file=v2|status= M memo.txt|mainFile=v1|featFile=v1
+# output false|stay "git init -b main" => exit 0 stdout="Initialized empty Git repository in E:/dev/dev-learning-lab/verify/out/git_basic_en/1791833889342/false_stay/.git/\n" stderr=""
+# output false|stay "echo v1 > memo.txt" => exit 0 stdout="" stderr=""
+# output false|stay "git add memo.txt" => exit 0 stdout="" stderr=""
+# output false|stay "git commit -m \"First commit\"" => exit 0 stdout="[main (root-commit) ae31672] First commit\n 1 file changed, 1 insertion(+)\n create mode 100644 memo.txt\n" stderr=""
+# output false|stay "git switch -c feature" => exit 0 stdout="" stderr="Switched to a new branch 'feature'\n"
+# output false|stay "echo v2 > memo.txt" => exit 0 stdout="" stderr=""
+# output false|stay "cat memo.txt" => exit 0 stdout="v2\n" stderr=""
+# fact false|stay = HEADfile="ref: refs/heads/feature"|main file is one hash=true(41 bytes)|feature file is one hash=true(41 bytes)|main and feature are the same commit=true|parents of the first commit=0|parent of the feature tip commit=|memo.txt in commit 1="v1\n"|file list of commit 1="memo.txt"|commit messages=["First commit"]|branch list=["feature","main"]|git diff --stat="memo.txt | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)"
+# reference: moving with a change to a branch with a different file "git init -b main" => exit 0 stdout="Initialized empty Git repository in E:/dev/dev-learning-lab/verify/out/git_basic_en/1791833889342/ref_conflict/.git/\n" stderr=""
+# reference: moving with a change to a branch with a different file "echo v1 > memo.txt" => exit 0 stdout="" stderr=""
+# reference: moving with a change to a branch with a different file "git add memo.txt" => exit 0 stdout="" stderr=""
+# reference: moving with a change to a branch with a different file "git commit -m \"First commit\"" => exit 0 stdout="[main (root-commit) c26f9cc] First commit\n 1 file changed, 1 insertion(+)\n create mode 100644 memo.txt\n" stderr=""
+# reference: moving with a change to a branch with a different file "git switch -c feature" => exit 0 stdout="" stderr="Switched to a new branch 'feature'\n"
+# reference: moving with a change to a branch with a different file "echo v2 > memo.txt" => exit 0 stdout="" stderr=""
+# reference: moving with a change to a branch with a different file "git commit -am \"Second commit\"" => exit 0 stdout="[feature 12e9092] Second commit\n 1 file changed, 1 insertion(+), 1 deletion(-)\n" stderr=""
+# reference: moving with a change to a branch with a different file "git switch main" => exit 0 stdout="" stderr="Switched to branch 'main'\n"
+# reference: moving with a change to a branch with a different file "echo v3 > memo.txt" => exit 0 stdout="" stderr=""
+# reference: moving with a change to a branch with a different file "git switch feature" => exit 1 stdout="" stderr="error: Your local changes to the following files would be overwritten by checkout:\n\tmemo.txt\nPlease commit your changes or stash them before you switch branches.\nAborting\n"
+# reference: moving with a change to a branch with a different file "cat memo.txt" => exit 0 stdout="v3\n" stderr=""

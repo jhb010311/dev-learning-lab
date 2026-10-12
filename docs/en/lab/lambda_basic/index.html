@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -82,7 +82,7 @@ public class Main {
 }</pre>
 <h2>Assumptions of this model</h2>
 <p>The compiler and runtime are JDK 21.0.12.1 (javac 21). For all eighteen combinations, the source that is the same as the code on the screen (identical text, line by line) was compiled with javax.tools, and for those that compiled, the class file was loaded with a new class loader and Main.main was run, and the results were checked against the standard output that was captured. What was checked is whether compilation succeeded, the diagnostic code of the first error (the &quot;Task is not a functional interface, multiple non-overriding abstract methods found in interface Task&quot; of compiler.err.prob.found.req was restated as &quot;Task has more than one method, so it cannot be used as a lambda,&quot; and the &quot;does not override abstract method stop() in Task&quot; of compiler.err.does.not.override.abstract was restated as &quot;The stop method of Task was not implemented&quot;), the number of errors and the line where each error occurred, whether the Main class file was created, and the output when run. The facts that the step sentences rely on were checked by running separate source in the same way. Right after the line that stores the object, t is an object of a class that implements Task in all three forms, and &quot;Working&quot; was not printed on that line (the lambda is an object of a hidden class that is created on this JDK, and the anonymous class and the class with a name, Work, were each an object of the class with exactly that name). The documentation was checked by opening the Java Language Specification (Java SE 21) directly. That a lambda expression has a functional interface as its target type in assignment, invocation, and casting contexts is from Section 15.27.3; that evaluating a lambda expression at run time creates a reference to an object of a class that implements the target functional interface, which is different from executing the body of the lambda, and that the body of the lambda is executed when a method of that interface is invoked, is from the introduction of Section 15.27 and Section 15.27.4; that a functional interface is an interface that has just one abstract method (not counting the methods of Object), and that an object of it can also be created with a lambda expression, is from Section 9.8; and that an anonymous class is declared implicitly by a class instance creation expression and can have an interface as its direct superinterface is from Section 15.9.5. Only part of each of those sections came back as a summary, so I could not read the whole original text. The kind of error, the number of errors, and the line where it occurs are not defined by the specification; they were observed on this javac. This lab covers only &quot;a lambda is a short way to write an object that implements an interface with only one method&quot; and when it runs. The object that a lambda creates is not exactly the same as the object of an anonymous class. On this JDK it is created as a hidden class, and it is said to differ in other ways too, such as what this refers to, but this lab did not check that. Lambdas with parameters, lambdas that return a value, method references, built-in functional interfaces such as Runnable and Comparator, and interfaces with default methods or static methods are not covered, and they are covered in the in-depth lab &quot;Lambda expressions and functional interfaces&quot;.</p>
-<p>Previous lab: <a href="../../lab/generic_basic/">Generics</a> · Next lab: <a href="../../lab/annot_basic/">Annotations</a></p>
+<p>Previous lab: <a href="../../lab/collection_basic/">List and Map</a> · Next lab: <a href="../../lab/stream_basic/">Streams</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -169,6 +169,6 @@ public class Main {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5cbab9ae01"></script>
+<script src="../../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

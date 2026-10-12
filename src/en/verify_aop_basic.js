@@ -1,0 +1,1 @@
+Lab.verify({ aop_basic: ['run', 'Ran all four combinations with real @Aspect proxies on Spring 7.0.9 and AspectJ weaver 1.9.25.1, and checked the printed lines and the class of the called object'] });

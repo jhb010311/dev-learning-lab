@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -86,7 +86,7 @@
 }</pre>
 <h2>Assumptions of this model</h2>
 <p>The compiler and runtime are JDK 21.0.12.1 (javac 21). All 6 combinations were checked against real runs: the same source as the code on the screen (identical line by line) was compiled with javax.tools, and the java of this JDK was started as a child process and actually run 20 times for each combination. In all 120 runs the exit code was 0 and the standard error was empty, and for each combination the standard output was the same in all 20 runs. What was checked is the lines of the standard output (the Output column of the result table), the names of the threads that appear in those lines (the Thread that ran work column), and the number of newly started threads. The number of newly started threads was measured without changing the source on the screen: the start class of the child process read ThreadMXBean.getTotalStartedThreadCount() before and after it called Main.main, and the difference was used (the combinations that call start gave 1 and 2, and the others gave 0, the same in all 20 runs). The facts that the step sentences rely on were checked by running a separately written source 20 times in the same way. Right after a Thread object is created its state is NEW and isAlive() is false, after start() the new thread and main are both alive (the new thread was held in the WAITING state), and after join() returns the state is TERMINATED. When run() is called, main runs the handed code, and even after the call the state of that Thread object is still NEW, and join() of a thread that was never started returns right away without waiting. For the documentation, I opened java.lang.Thread in the Java SE 21 API documentation with WebFetch (I followed the sentences that the excerpts returned and did not read the whole page myself). That a thread is a flow of execution and, once started, is scheduled to run the run method follows the class description; that threads created with Thread() and Thread(Runnable), which are not given a name, are automatically given a name made of &quot;Thread-&quot; and an integer follows the constructor description; that start() schedules the execution of a new thread and it runs separately from the current thread follows the description of start(); that run() is not a method meant to be called directly and, for a thread created with a Runnable, calls the run of that task follows the description of run(); and that join() waits for that thread to finish and returns right away, without waiting, for a thread that has not started follows the descriptions of join() and join(long). That a thread is created as a Thread object and starts when start() of that object is called follows the beginning of chapter 17 of the Java Language Specification (Java SE 21), and that the program starts execution by calling the main method of a class follows section 12.1. However, section 12.1 does not specify the thread that runs main or its name, so the name main for that thread and the numbering order in which the first thread created without a name is Thread-0 and the second is Thread-1 are not defined by the specification but were observed by running on this JDK. The number of newly started threads is the value counted by the JVM and could differ if a thread were started separately inside the JVM, but that did not happen on the PC used to write this lab. The code on the screen uses only classes in java.lang, so it has no import line and has the same form as running with java Main. Every combination starts t and waits for it to finish with join before it starts t2, so the order of the output is fixed, and the order when there is no join or when two threads move at the same time is not covered by this lab and was not checked by execution. Beyond that, implementing Runnable or extending Thread, giving a thread a name, calling start() twice, the state changes of a thread, virtual threads, and thread pools are not covered. The state changes are covered in the in-depth lab &quot;Creating threads and thread states&quot;.</p>
-<p>Previous lab: <a href="../../lab/annot_basic/">Annotations</a> · Next lab: <a href="../../lab/bean_basic/">Beans</a></p>
+<p>Previous lab: <a href="../../lab/annot_basic/">Annotations</a> · Next lab: <a href="../../lab/lock_basic/">Locks (synchronized)</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -173,6 +173,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5cbab9ae01"></script>
+<script src="../../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

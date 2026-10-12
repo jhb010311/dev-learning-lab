@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=5cbab9ae01">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -79,7 +79,7 @@ INSERT INTO member VALUES (2, 'Bob');
 SELECT name FROM member;</pre>
 <h2>Assumptions of this model</h2>
 <p>This was checked against real execution on H2 2.4.240 (in-memory database, JDBC). All 16 combinations were checked: the whole SQL on the screen (including the comment lines) was run exactly as it is, one statement at a time, and even if one statement failed, the next statement kept running. What was checked against the run is whether the second INSERT went in or was rejected and the kind of error (H2 SQLSTATE 22018 the value cannot be converted to the type, 21S02 the number of values differs from the number of columns, 42S04 no table, 42S22 no column), the number of rows after the two INSERT statements, and the values the last SELECT read. That the number of rows right after CREATE TABLE is 0 and that the database remembers the names and types of the columns (id integer, name text of 20 characters) was checked by reading the metadata. H2 rejected an INSERT that has two columns but only one value, and this is behavior observed on H2, not something defined by the documentation. In the tutorial of the MySQL 8.4 documentation, Creating a Table (CREATE TABLE decides the names and types of the columns, and VARCHAR is text of variable length), Loading Data into a Table (the values of INSERT go in in the order in which the columns were written in CREATE TABLE, and NULL can be put in directly), Selecting All Data and Selecting Particular Columns (SELECT * gives all rows and columns, and writing column names gives only those columns), and the opening of Chapter 13 Data Types (the types are of five kinds: numeric, date and time, string, spatial, and JSON) were opened directly and checked. But the rule that an INSERT whose types or count do not match is rejected is not something these documents define, and it was checked by running H2. A check against execution on MySQL was not done. The text of the error messages, and how strictly a value that does not match is rejected, may differ by database and settings. The screen shows only the kind of error, and the error numbers and the original text of the messages exist only in the output of the checking program. This lab covers only the two types INT and VARCHAR, and it does not cover constraints such as a primary key, multiple tables, or WHERE conditions.</p>
-<p>Previous lab: <a href="../../lab/relation_basic/">Associations</a> · Next lab: <a href="../../lab/pk_basic/">Primary keys</a></p>
+<p>Previous lab: <a href="../../lab/jpql_basic/">JPQL</a> · Next lab: <a href="../../lab/pk_basic/">Primary keys</a></p>
   </div>
 
   <main class="home" id="homeview"></main>
@@ -166,6 +166,6 @@ SELECT name FROM member;</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=5cbab9ae01"></script>
+<script src="../../app.js?v=ac3ff9cb33"></script>
 </body>
 </html>

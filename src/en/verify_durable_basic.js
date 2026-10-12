@@ -1,0 +1,1 @@
+Lab.verify({ durable_basic: ['run', 'Ran all 4 combinations on H2 2.4.240 by ending the process without cleanup and opening the database again, and checked against the results; the rules of durability were checked against the MySQL and H2 documentation (cutting the power was not run)'] });

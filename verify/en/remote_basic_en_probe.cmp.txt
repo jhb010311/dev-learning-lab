@@ -1,0 +1,1 @@
+match 6 / 6 (the facts also match)

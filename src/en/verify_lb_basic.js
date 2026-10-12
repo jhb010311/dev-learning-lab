@@ -1,0 +1,1 @@
+Lab.verify({ lb_basic: ['run', 'Ran all four combinations with an http server of Node.js 24.18.0 as server A (and B), a load balancer built by hand, and an http client, and checked against the model'] });

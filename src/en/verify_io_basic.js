@@ -1,0 +1,1 @@
+Lab.verify({ io_basic: ['run', 'Compiled 9 combinations with javax.tools on JDK 21 and ran each in a new Java process, then checked the stored file bytes against the characters and exceptions that were read'] });

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caches: What is a cache, and what do you gain and lose by using one? · Dev Learning Lab</title>
+<meta name="description" content="A cache is a device that writes down a result that took a long time to get, in a place close by, and hands out what it wrote down when the same thing is a…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cache_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cache_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cache_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Caches: What is a cache, and what do you gain and lose by using one? · Dev Learning Lab">
+<meta property="og:description" content="A cache is a device that writes down a result that took a long time to get, in a place close by, and hands out what it wrote down when the same thing is a…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/cache_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Architecture and operations</p>
+<h1>Caches</h1>
+<p><b>What is a cache, and what do you gain and lose by using one?</b></p>
+<p>A cache is a device that writes down a result that took a long time to get, in a place close by, and hands out what it wrote down when the same thing is asked for again. In the code of this lab, the Map named cache is the place where results are written down, and the cache lines inside the find method do this: &quot;if there is a written-down value, give it, and only if there is none, do the slow lookup (slowLoad) and write the result down.&quot; slowLoad is the slow job of reading a value from the source, and slowCount counts how many times it was called. The lab does not measure real time. It shows &quot;how much slow work was done&quot; by the number of calls to slowLoad. In this lab you remove the cache lines, change the value in the source between the two lookups, or erase the cached value with the cache.remove(1) line. The same code is compiled and run, and you see how many slow lookups happen and whether the second value you receive is the same as the value in the source. (static is read as a keyword that lets main call these without creating an object, and it is not covered here.)</p>
+<p>Checked against real execution · Compiled five combinations on JDK 21 with javax.tools, ran them, and checked against the model</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Cache</dt>
+<dd>Storing frequently used data or computed results ahead of time in a place that can be accessed quickly, and reusing them. Responses get faster and the load on the source drops, because the source (usually a database) is not queried every time. In return, you must manage the problem of stale values that remain when the source changes.</dd>
+<dt>Cache hits and misses</dt>
+<dd>When you look for a value in a cache, one of two things happens. If what you look for is already written in the cache, it is called a hit (cache hit), and the written-down value is returned as it is without going to the source. If it is not written, it is called a miss (cache miss), and the value is read from the source, written in the cache, and returned. The cache abstraction of Spring works in the same order: if the method was already called with the same arguments, it returns the cached result without executing the method, and otherwise it executes the method and puts the result in the cache and returns it. The first lookup is always a miss, and the more hits there are, the less slow work goes all the way to the source.</dd>
+<dt>Cache-aside pattern</dt>
+<dd>The most common approach, in which the application manages the cache directly. To read data, the application checks the cache first. If the data is not there, it reads from the database, stores the value in the cache, and returns it. To change data, it updates the database and deletes the matching cache entry.</dd>
+<dt>Stale data in a cache</dt>
+<dd>Stale data in a cache is a value that stays in the cache after the value in the source has changed, so that it differs from the source. The side that uses the cache does not look at the source when there is a hit, so it receives the old value without knowing that it changed. If you also erase the value written in the cache when you change the source, the next lookup is a miss and reads the changed value again (only that one lookup is slow). Another way is to give a written-down value a validity time. The HTTP caching specification (RFC 9111, section 4.2) calls a stored response stale when it is past its determined freshness lifetime, and this word is the term of the specification for a response whose time has passed.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — The cache lines are there. You looked up twice, but the slow lookup happens only once.</li>
+<li><b>Looking up twice without a cache</b> — Each lookup goes all the way to the source, so the slow lookup happens twice.</li>
+<li><b>The source changes while the cache is there</b> — The slow lookup happens once, but the second value you receive is different from the source.</li>
+<li><b>Changing the source and also erasing the cached value</b> — The second find cannot find the value in the cache and reads the changed value again.</li>
+<li><b>The source changes without a cache</b> — Every lookup reads the source, so you receive the changed value, but the slow lookup happens twice.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>main starts and the first line, source.put(1, &quot;keyboard&quot;);, runs. The source gets the value &quot;keyboard&quot; for key 1. The source is where the values originally are, and it is where slowLoad reads from. cache is an empty Map created by calling new HashMap&lt;&gt;(), so nothing is written in it yet.</li>
+<li>The line find(1); runs. First, find calls cache.containsKey(1) to see whether a value for key 1 is written in the cache. The cache is empty, so there is none. This case, where the value is not written in the cache, is called a miss.</li>
+<li>So find calls the slowLoad method. slowLoad is the slow job of reading the value &quot;keyboard&quot; for key 1 from the source, and it increases slowCount to count how many times it was called. So far slowLoad has been called 1 time.</li>
+<li>find writes the value it read, &quot;keyboard&quot;, into the cache with the call cache.put(1, v), and returns that value. Now the cache holds the value &quot;keyboard&quot; for key 1.</li>
+<li>The line String second = find(1); runs. find calls cache.containsKey(1) to look at the cache, and a value for key 1 is written there. This case, where the value is written in the cache, is called a hit. find does not call slowLoad and returns the written-down value &quot;keyboard&quot; as it is. slowLoad has still been called 1 time.</li>
+<li>The last line, System.out.println, prints slowCount, second, and source.get(1) in that order. The output is &quot;1 / keyboard / keyboard&quot;. The value you received is the same as the value in the source.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>A cache writes down a value it read in a Map, and when the same thing is looked up again it gives the written-down value. The cache lines in find (checking with containsKey, writing with put, taking out with get) did this, and although key 1 was looked up twice, the slow lookup slowLoad was called only once.</li>
+<li>The second find gave the written-down value right away and did not go to the source. The source did not change between the two lookups, so the value you received was the same as the source.</li>
+</ul>
+<h2>Code</h2>
+<pre>import java.util.*;
+
+public class Main {
+    // The source: where the values originally are
+    static Map&lt;Integer, String&gt; source = new HashMap&lt;&gt;();
+    static int slowCount = 0;
+
+    // Slow lookup: reads from the source. Counts how many times it is called
+    static String slowLoad(int id) {
+        slowCount++;
+        return source.get(id);
+    }
+
+    // Cache: the place where values that were read are written down
+    static Map&lt;Integer, String&gt; cache = new HashMap&lt;&gt;();
+
+    static String find(int id) {
+        // If a value is written down, give it; if not, read it and write it down
+        if (cache.containsKey(id)) return cache.get(id);
+        String v = slowLoad(id);
+        cache.put(id, v);
+        return v;
+    }
+
+    public static void main(String[] args) {
+        source.put(1, &quot;keyboard&quot;);
+        // Look up key 1 for the first time
+        find(1);
+        // Look up key 1 again
+        String second = find(1);
+        // Slow lookups / second value received / value in the source
+        System.out.println(
+            slowCount + &quot; / &quot; + second + &quot; / &quot; + source.get(1));
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>The compiler and runtime are JDK 21.0.12.1 (javac 21). All five combinations (the two choices of having a cache or not, times the three choices of what happens between the two lookups, minus the one that is left out because you cannot use the cache.remove(1) line without a cache) were checked against real runs: the same source as the code on the screen (identical line by line, including the import line) was compiled with javax.tools, the class file was read by a new class loader, Main.main was run, and the standard output that was captured was compared with the model. What was compared is whether the compile succeeded, the three printed values (the number of calls to slowLoad, the value the second find returned, and the value in the source), and the output text that the last step shows. The fact that the step sentences rely on, that &quot;after one call to find(1) at first, slowLoad has been called 1 time and the value received is keyboard&quot;, was checked by running separate source (one with a cache and one without) changed to print the result of the first find, in the same way. The code on the screen is a program that is really compiled and run, and nothing was shortened. slowLoad does not really take long and no time was measured. &quot;Slow&quot; is shown only by the number of calls to slowLoad, and the time of a real database or network was not measured. This cache is one Map, and it has no rule for when to throw away a written-down value (expiry time, size limit), so a value stays until it is erased with the cache.remove(1) line. I opened the documentation myself. The introduction of the Cache Abstraction chapter of the Spring Framework Reference (https://docs.spring.io/spring-framework/reference/integration/cache.html) opened only as far as the explanation that caching is support that is added transparently to an existing application, and in the lower page of the same documentation (https://docs.spring.io/spring-framework/reference/integration/cache/strategies.html) I confirmed that if the method has already been invoked with the same arguments, the cached result is returned without executing the method, and otherwise the method is executed and its result is put in the cache, and that there are features to update the contents of the cache or evict entries. For RFC 9111 (HTTP Caching), I confirmed section 1 (a cache stores responses to reduce response time and network use), section 4 (conditions for reusing a stored response), and sections 4.2 and 4.2.4 (a stored response that is past its freshness lifetime is called stale), and I did not read the last 7 thousand or so characters of the document. I did not confirm whether those documents use the words hit and miss, and the glossary uses these words only as general terms. The Map cache in this lab is just one example of the approach the documents describe, and it was not checked against real execution of Spring or of an HTTP cache. Not covered: a cache that several threads write at the same time, what to throw away when the cache is full, the validity time (TTL), many requests rushing to the source when a popular value disappears all at once, @Cacheable of Spring, the HTTP cache between a browser and a server (ETag), and Redis. These are covered in the in-depth labs &quot;Caching and TTL&quot;, &quot;Cache abstraction&quot;, &quot;HTTP caching and ETag&quot;, and &quot;Redis single-threaded execution&quot;.</p>
+<p>Previous lab: <a href="../../lab/lb_basic/">Load balancers</a> · Next lab: <a href="../../lab/queue_basic/">Message queues</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

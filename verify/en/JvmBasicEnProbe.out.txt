@@ -1,0 +1,11 @@
+# java 21.0.12.1
+false|ok => -|-|-|-|-|-|-|-|1||Error: Could not find or load main class Hello|Caused by: java.lang.ClassNotFoundException: Hello|Hello.java|java
+false|nosemi => -|-|-|-|-|-|-|-|1||Error: Could not find or load main class Hello|Caused by: java.lang.ClassNotFoundException: Hello|Hello.java|java
+false|edited => -|-|-|-|-|-|-|-|1||Error: Could not find or load main class Hello|Caused by: java.lang.ClassNotFoundException: Hello|Hello.java|edit,java
+true|ok => 0|-|-|(empty)|true|CAFEBABE|65|-|0|Hi|-|-|Hello.class,Hello.java|javac,java
+true|nosemi => 1|Hello.java:4: error: ';' expected|1 error|(empty)|false|-|-|-|1||Error: Could not find or load main class Hello|Caused by: java.lang.ClassNotFoundException: Hello|Hello.java|javac,java
+true|edited => 0|-|-|(empty)|true|CAFEBABE|65|true|0|Hi|-|-|Hello.class,Hello.java|javac,edit,java
+FACT recompile => output before recompiling after the edit=Hi|javac exit code=0|class changed=true|output after recompiling=Bye
+FACT sourcemode => java exit code=0|output=Hi|Hello.class created=false
+FACT sourcemode-err => java exit code=1|first error line=Hello.java:4: error: ';' expected
+FACT oldclass => javac exit code=1|old class remains=true|unchanged=true|java Hello output=Hi

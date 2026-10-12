@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JDBC: How does Java code send SQL to the database? · Dev Learning Lab</title>
+<meta name="description" content="A database is a program that works separately from the Java program. (A database such as MySQL is a completely different program. H2, used in this lab, ru…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jdbc_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jdbc_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/jdbc_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="JDBC: How does Java code send SQL to the database? · Dev Learning Lab">
+<meta property="og:description" content="A database is a program that works separately from the Java program. (A database such as MySQL is a completely different program. H2, used in this lab, ru…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/jdbc_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Spring</p>
+<h1>JDBC</h1>
+<p><b>How does Java code send SQL to the database?</b></p>
+<p>A database is a program that works separately from the Java program. (A database such as MySQL is a completely different program. H2, used in this lab, runs inside the Java program, but what the code does is the same.) For Java code to have the database do work, it does three things, following the convention called JDBC. First, it makes a connection (Connection) to the database. Second, it sends SQL as text over that connection. Third, it reads the returned result (ResultSet) one row at a time. Without a connection, SQL cannot be sent, and if the SQL text is wrong, the database answers with an error, which becomes a SQLException in Java (an exception, a signal that an error occurred). In this lab you add a conn.close() line to code that reads the name of the member whose id is 1 from the member table, or change the SQL text, and see the SQL the database received, the value Java printed, and the exception. (The code on the screen is treated as being inside the main method, so the import lines and the main declaration are left out. JdbcTemplate and JPA, which write this repeated code for you, are covered in the in-depth labs.)</p>
+<p>Checked against real execution · Compiled and ran all six combinations in new Java processes on JDK 21 and H2 2.4.240, and checked the rules against the Java SE 21 API documentation</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>JDBC</dt>
+<dd>The most basic standard API that a Java program uses to send SQL to a database and receive the results. You get a connection, pass the SQL statement to it as a string, fill in the values at the question marks and run it, and then take the column values one by one from the returned result (a ResultSet). Both writing the SQL and moving the values you took into the fields of an object are the developer's job. JPA and MyBatis also send SQL through JDBC internally. So even if you do not use JDBC directly, it helps to know what happens underneath.</dd>
+<dt>Connection and DriverManager</dt>
+<dd>A Connection is an object that stands for a connection (a session) made with a particular database. SQL statements run inside this connection, and the results come back over it too. Java code gets a connection with DriverManager.getConnection(url). The url has the form jdbc:subprotocol:name (for example jdbc:h2:mem:shop), and DriverManager picks a fitting one from the registered JDBC drivers and makes the connection. close() releases the database and JDBC resources that the connection holds right away, and calling createStatement on a closed connection gives a SQLException. Without a connection, SQL cannot be sent.</dd>
+<dt>Statement and executeQuery</dt>
+<dd>A Statement is an object used to send an SQL statement that has no values put into it to the database and run it, and it is made with conn.createStatement(). executeQuery(sql) sends a statement such as a SELECT and returns the result as one ResultSet, and the value it returns is never null. It gives a SQLException if a database access error occurs, if it is called on a closed Statement, or if the SQL it sends does not produce a single ResultSet. To Java, SQL is just a string, so a wrong text still compiles and is found out as an error at run time, when the database reads it. That making a Statement alone does not send SQL to the database and that SQL is sent when executeQuery is called was checked by running it on H2.</dd>
+<dt>ResultSet and SQLException</dt>
+<dd>A ResultSet is the table of rows that a query returned, and it has a cursor that points to the current row. The cursor is at first in front of the first row, and next() moves it one step forward and returns true if there is a row at that place and false if there are no more. A method that takes the value of a column of the current row, such as getString(&quot;name&quot;), needs a current row, so calling it after next() has returned false gives a SQLException. Having no row that matches the condition, so that the result is empty, is not an error, and it is signaled by next() returning false. A SQLException is an exception that reports a database access error or another error (a subclass of Exception, so it is a checked exception), and it carries a description string, an SQLState, and an error code that differs for each database product.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — It makes a connection, sends SQL, and reads the result one row at a time. The database receives one SQL statement, runs it, and returns the value kim.</li>
+<li><b>Sending after closing the connection</b> — SQL cannot reach the database over a closed connection, and a SQLException occurs.</li>
+<li><b>A table name that does not exist</b> — While reading the SQL, the database answers with an error saying the table does not exist, and in Java it becomes a SQLException.</li>
+<li><b>No matching row</b> — It is not an error, and an empty result comes back. The call rs.next() gives the value false, and if you try to read a value anyway, an exception occurs.</li>
+<li><b>Closed connection and a wrong table name</b> — The closed-connection error comes first. The database never got to read the wrong SQL.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>DriverManager.getConnection(&quot;jdbc:h2:mem:shop&quot;): the Java program makes a connection to the database. The jdbc in the URL means the convention for Java to connect to a database (JDBC), h2 is the kind of database, and mem:shop is a database named shop that lives in memory. When the connection is made, one place that handles this connection (a session) appears on the database side, and an object conn that points to the connection appears in Java. The member table holds one row, (1, kim). Not a single line of SQL has been sent yet.</li>
+<li>conn.createStatement(): makes a tool (Statement) that sends SQL over the connection conn, and puts it in st. Only the tool was made, so no SQL has gone to the database yet.</li>
+<li>st.executeQuery(&quot;SELECT name FROM member WHERE id = 1&quot;): st sends the SQL text to the database. The database reads the text it received and looks in the member table for the row whose id is 1, and makes the result. The result is a table with 1 row. Java receives this result as a ResultSet object rs. A ResultSet starts standing in front of the first row, so it has not read any row yet.</li>
+<li>rs.next(): moves one step to the next row in the result, and returns true if there is a row at the place it moved to, and false if not. It moves to the first row, and the value true goes into the variable found. If you try to read a value before calling the next() method, a SQLException occurs saying there is no row to read.</li>
+<li>System.out.println(found): prints the value true held in the variable found to the screen.</li>
+<li>rs.getString(&quot;name&quot;): takes the value of the name column from the current row as text and prints the value kim. The program ran to the last line of main and ended. The database received one SQL statement, and there was no exception.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Java code reads a value from the database in this order: making a connection, making a tool to send with, sending SQL, and reading the result one row at a time. The database received and ran one SQL statement, and Java read the value kim.</li>
+<li>The Java side has no code that runs SQL. SQL is made as text and sent to the database, the database runs it, and Java only receives the returned result as a ResultSet and reads it.</li>
+</ul>
+<h2>Code</h2>
+<pre>// The member table holds one row: (id 1, name kim)
+// Connect: make a connection to the database that the URL points to
+Connection conn = DriverManager.getConnection(&quot;jdbc:h2:mem:shop&quot;);
+// Tool: the object that sends SQL over this connection
+Statement st = conn.createStatement();
+// Send: send the SQL text to the database and receive the result
+ResultSet rs = st.executeQuery(&quot;SELECT name FROM member WHERE id = 1&quot;);
+// Read: move to the next row. true if there is a row
+boolean found = rs.next();
+System.out.println(found);
+System.out.println(rs.getString(&quot;name&quot;));</pre>
+<h2>Assumptions of this model</h2>
+<p>Checked against real execution on JDK 21.0.12.1 and H2 2.4.240 (an in-memory database). It was not checked against execution on MySQL. All six combinations were checked by putting the code on the screen into a Main.java that has a main method (only import java.sql.* and the main declaration were added), compiling it with javax.tools, and running it in a new Java process for each combination. Before the run, the same process made the member table (id INT as the primary key, name VARCHAR(20)) and one row, (1, kim), and this preparation code is left out on the screen. The database is H2 running inside the Java process, so in reality it is in the same process, and it is not a separate program like MySQL. The order of connecting, sending SQL, and reading the result is the same, but that what travels between them is network communication was not checked in this lab. What was checked is the three items of the result table, that is, the SQL the database received, the value printed, and the exception. The SQL the database received was judged by whether that SELECT remained in INFORMATION_SCHEMA.QUERY_STATISTICS of H2 (the execution log), or the exception came from the parser of the database engine (org.h2.command.Parser) and the error message quoted that SQL. With the closed connection, neither was the case, and the exception came from JdbcConnection.checkClosed. The kind of exception is the SQLState and the error code of H2 (42102 table not found, 2000 no data to read, 90007 already closed object) put into the wording on the screen, and these codes are those of H2, so they may be different on MySQL. All three exceptions are subclasses of SQLException. The facts that the step sentences rely on were also checked by execution: that making a connection adds one session on the database side and closing it removes one, that createStatement alone leaves no SELECT in the execution log of the database and a SELECT is left after executeQuery, that calling getString before calling the next() method gives a SQLException, and that calling the next() method one more time gives false. The session count includes the one connection that the preparation code opened before the run. The execution log (QUERY_STATISTICS) did not show new records after it was read once (the cause was not checked), so a separate database was made for each point in time and read only once. To keep the code short, the code on the screen does not write the lines that close the connection and the ResultSet or the code that handles exceptions. Because the exception is not handled, the program stops at the line where the exception occurred and the lines below it do not run, and this was checked by the fact that the values of the later lines are not in the output. The Java SE 21 API documentation was opened and checked directly. The lab follows the java.sql package description (that DriverManager makes a connection, Statement sends SQL, and ResultSet receives the result), the description of Connection (that SQL is run inside a connection and the result comes back, and that createStatement throws a SQLException on a closed connection), Statement.executeQuery (that it returns a ResultSet and throws a SQLException on a closed Statement), the description of ResultSet (that the cursor is at first in front of the first row, that next moves one step and returns false if there is no row, and that a method that needs a current row throws a SQLException then), the description of SQLException (that it is an exception that carries the SQLState and an error code), and DriverManager.getConnection (that the URL has the form jdbc:subprotocol:name). From the H2 documentation (the features page), it was checked that jdbc:h2:mem:name points to one in-memory database with that name inside the same JVM, and that the in-memory database disappears when the last connection is closed. That H2 gives an error when a Statement made from a closed connection is used is not defined by the documentation but is a behavior observed on this H2 (the Statement documentation says only that it throws an exception on a closed Statement). This lab does not cover PreparedStatement and how to put values into SQL, SQL that changes data (executeUpdate), transactions, or the right way to close a connection (try-with-resources). JdbcTemplate, which reduces the repeated code, is covered in the in-depth lab &quot;JdbcTemplate and exception translation&quot;, borrowing a connection instead of making a new one every time is covered in &quot;Connection pool and OSIV&quot;, and JPA, which connects objects and tables, is covered in &quot;What JPA solves&quot;.</p>
+<p>Previous lab: <a href="../../lab/config_basic/">Configuration files</a> · Next lab: <a href="../../lab/tx_basic/">@Transactional</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test code: What is test code, and who decides whether a test passes or fails? · Dev Learning Lab</title>
+<meta name="description" content="Test code is code that writes down &quot;if you give this method this input, it must give this output.&quot; The CalcTest class in this lab is an example. Its adds(…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/test_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/test_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/test_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Test code: What is test code, and who decides whether a test passes or fails? · Dev Learning Lab">
+<meta property="og:description" content="Test code is code that writes down &quot;if you give this method this input, it must give this output.&quot; The CalcTest class in this lab is an example. Its adds(…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/test_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Spring</p>
+<h1>Test code</h1>
+<p><b>What is test code, and who decides whether a test passes or fails?</b></p>
+<p>Test code is code that writes down &quot;if you give this method this input, it must give this output.&quot; The CalcTest class in this lab is an example. Its adds() method calls add(2, 3) of the Calc class, and assertEquals(5, ...) compares the value that add returned with the expected value, 5. If the two values differ, an error occurs on that line. The @Test above adds() is a marker that says &quot;this method is a test.&quot; It is not we who run this code, but JUnit, a testing tool. JUnit finds the methods that have @Test and calls them. If a method ends without an error, JUnit counts it as passed. If it ends with the error that assertEquals threw, JUnit counts it as failed. In this lab you break add, write the expected value wrongly, or remove @Test, and run the same code with real JUnit each time, and you see how the number of tests found, the verdict of pass or fail, and the failure message change. (The code on the screen leaves out the import lines.)</p>
+<p>Checked against real execution · Compiled 8 combinations on JDK 21 and JUnit 6.0.3 and ran them with the JUnit Launcher, and checked the number of tests found, passed and failed, and the failure message against the results</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Test code</dt>
+<dd>Test code is code that is written to check whether other code works correctly. It writes down &quot;if you give this method this input, it must give this output&quot; as code, and it has a line (an assertion) that compares the value that actually came out with the expected value. In JUnit, a class that has test methods is called a test class, and an instance method that has @Test is called a test method. It is not the main we wrote but a testing tool such as JUnit that runs test code, and after the tool calls a test method, it counts the test as passed or failed. If no test is run at all, nothing has been checked even when there are 0 failures, so you should also look at the number of tests that were run.</dd>
+<dt>JUnit</dt>
+<dd>JUnit is a testing tool that is widely used to write and run Java test code. JUnit Jupiter, part of it, combines the way to write tests (the programming model) and the way to extend them (the extension model), and @Test and the Assertions class belong to it. When a development tool or a build tool runs JUnit, JUnit finds the test methods in the test classes, calls them, and counts a result such as passed or failed for each test. The verdict is made by JUnit, not by a person reading the output. In the JUnit 6.0.3 that was run, a test that ended without an error was counted as a success, and a test that ended with an error thrown by an assertion was counted as a failure.</dd>
+<dt>@Test</dt>
+<dd>@Test is an annotation that you put above a method to tell JUnit that the method is a test method. According to the documentation, a method with @Test must not be private or static, and must not return a value. JUnit counts a method that has @Test (or an annotation such as @RepeatedTest or @ParameterizedTest) as a test, so a method without the marker is not counted as a test even if its content looks like a test. In the JUnit 6.0.3 that was run, when a class that has a method without @Test was run, the number of tests found was 0, and the method was never run, with no error and no failure.</dd>
+<dt>assertEquals</dt>
+<dd>assertEquals(expected, actual) is a static method of the Assertions class of JUnit Jupiter, and it asserts that the first argument (the expected value) and the second argument (the actual value) are equal. If they are equal, it finishes without anything happening, and if they differ, it throws an error, and the test method ends on that line. The documentation says that a failed assertion throws AssertionFailedError or a subtype of it unless something else is specified, and in the JUnit 6.0.3 that was run, the message came out in the form expected: &lt;5&gt; but was: &lt;-1&gt;. It only tells you that the two values differ and not which of them is wrong, so a person reads the failure message and decides whether the code or the expected value is at fault.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — adds(), which has @Test, compares the result of add(2, 3) with the expected value 5. They are equal, so the test passes.</li>
+<li><b>If you break add into a - b</b> — The result of add(2, 3) becomes -1, which differs from the expected value 5, and JUnit counts the test as failed.</li>
+<li><b>If you write 6 as the expected value</b> — Even though the code is correct, it differs from the expectation that was written down, so the test fails.</li>
+<li><b>If you remove @Test</b> — JUnit does not count adds() as a test, so it never runs it.</li>
+<li><b>If you change it to a - b and also remove @Test</b> — Even though the code is wrong, the test is not run, so you get no notice at all.</li>
+<li><b>If it is a - b and the expected value is also 6</b> — Even though both are wrong, JUnit only tells you that the two values differ.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>JUnit, a testing tool, runs the CalcTest class. JUnit is a program that finds tests, calls them, and judges whether each one passed or failed. The code we wrote has no main method and no line that calls the adds() method. It is JUnit that moves the code.</li>
+<li>JUnit looks at the methods of the CalcTest class and finds the ones that have @Test. adds() has @Test, so JUnit counts this method as a test. The number of tests found is 1.</li>
+<li>JUnit calls the adds() method. We did not write this line either. It is not our code but JUnit that calls the test method.</li>
+<li>new Calc().add(2, 3) inside adds() runs. It creates a Calc object and passes 2 and 3 to add, and the line return a + b; calculates the result (2 + 3).</li>
+<li>The result that add calculated is 5. add returns this value to adds(), and it is the actual value.</li>
+<li>assertEquals(5, ...) compares the two values. The expected value is 5 and the actual value is 5. The two values are equal, so assertEquals finishes without anything happening, and adds() also goes through to the end without an error.</li>
+<li>JUnit sees that adds() ended without an error and counts it as passed. It was JUnit that judged the pass, not a person reading the output with their eyes.</li>
+<li>JUnit finishes. Tests found: 1, passed: 1, failed: 0.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>Test code is code made of the method adds(), which calls Calc, and a line that compares the result with assertEquals(expected value, actual value). What differs from ordinary code is the @Test above the method (the marker that JUnit looks for) and assertEquals (the line on which JUnit judges). The two values were equal, so adds() ended without an error, and JUnit counted it as passed.</li>
+<li>We did not write the line that calls adds(). Finding the test, calling it, and judging whether it passed is done by JUnit. Passed means &quot;ended without an error.&quot;</li>
+</ul>
+<h2>Code</h2>
+<pre>// Code under test
+class Calc {
+    int add(int a, int b) {
+        return a + b;
+    }
+}
+
+// Test code: code that checks whether Calc works correctly
+class CalcTest {
+    // Marker: JUnit finds the methods that have @Test and runs them as tests
+    @Test
+    void adds() {
+        // Verdict: if the first value (expected) and the second value (actual) differ, the test fails
+        assertEquals(5, new Calc().add(2, 3));
+    }
+}</pre>
+<h2>Assumptions of this model</h2>
+<p>What was run is JDK 21.0.12.1 (javac 21), JUnit Jupiter 6.0.3, and JUnit Platform Launcher 6.0.3. All 8 combinations were checked against the following: the same source as the code on the screen, with only two import lines added at the top (org.junit.jupiter.api.Test and Assertions.assertEquals), was compiled with javax.tools, and the CalcTest class was run by calling the JUnit Platform Launcher from code to get a summary. The ConsoleLauncher was not used from a terminal; the Launcher API of the same tool was used directly. What was checked is the number of tests found, the number started, the numbers of successes and failures, the kind of exception that failed (org.opentest4j.AssertionFailedError), and the first line of its message. The message text expected: &lt;5&gt; but was: &lt;-1&gt; is exactly what this JUnit actually produced. For the facts that the step sentences rely on, a separate source with fields that count calls was run in the same way, and it was confirmed that with @Test, adds() and add each run once without any line of our code calling them, and that with @Test removed, both run 0 times. For the documentation, I opened the following. In the Definitions section of the JUnit User Guide (docs.junit.org, version 6.1.3), I checked that a test method is an instance method annotated with @Test and so on, and that a test class is a class that has test methods. In the Test Classes and Methods section, I checked that test classes and methods do not have to be public but must not be private, and must not return a value. In the Assertions section, I checked that the assertions of JUnit Jupiter are static methods of org.junit.jupiter.api.Assertions, and that the example writes the expected value first, as in assertEquals(2, calculator.add(1, 1)). In the API documentation, I checked that @Test is the marker that signals that a method is a test method and that it must not be private or static, the description of Assertions (a failed assertion throws AssertionFailedError or a subtype of it unless something else is specified), and the summary of assertEquals(int expected, int actual) (it asserts that expected and actual are equal). The documentation is version 6.1.3, and the JUnit that was run is version 6.0.3. What the documentation defines and what was observed in this run are different things. That a test is counted as passed if it ends without an error and as failed if it ends with an error, and that a method without @Test is not found, so that the number of tests found is 0 and the number of failures is also counted as 0, are behaviors observed in this JUnit (I did not run the exit code of the ConsoleLauncher or how a build tool treats 0 tests). That the first of the two values of assertEquals is the expected value was checked from the method name and the argument names (expected, actual), and the documentation does not state the order separately as a rule. The screen deals with only one test, and it does not cover naming tests, multiple assertions, setup and cleanup methods, tests that start a Spring context, fake objects such as @MockitoBean, or the build process that runs tests automatically. Tests that start a Spring context are covered in the in-depth lab &quot;Testing&quot;, and running tests automatically every time you push is covered in the in-depth lab &quot;CI/CD pipelines&quot;.</p>
+<p>Previous lab: <a href="../../lab/boot_basic/">Spring Boot</a> · Next lab: <a href="../../lab/entity_basic/">Entities</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>

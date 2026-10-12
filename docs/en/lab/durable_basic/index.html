@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storage and durability: Does committed data stay after the server is turned off? · Dev Learning Lab</title>
+<meta name="description" content="A database is a program that stores data in files on disk. The variables of a Java program are gone when the program ends, but data that went through COMM…">
+<link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/durable_basic/">
+<link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/durable_basic/">
+<link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/durable_basic/">
+<meta property="og:site_name" content="Dev Learning Lab">
+<meta property="og:title" content="Storage and durability: Does committed data stay after the server is turned off? · Dev Learning Lab">
+<meta property="og:description" content="A database is a program that stores data in files on disk. The variables of a Java program are gone when the program ends, but data that went through COMM…">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/durable_basic/">
+<meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../app.css?v=ac3ff9cb33">
+<noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="top">
+    <div class="toprow"><a class="brand" href="../../" id="brand">Dev Learning Lab</a>
+      <div class="seg tabs" role="group" aria-label="Choose a view"><button type="button" id="t-home" aria-pressed="true">Home</button><button type="button" id="t-basic" aria-pressed="false" hidden>Fundamentals</button><button type="button" id="t-lab" aria-pressed="false">Learn</button><button type="button" id="t-quiz" aria-pressed="false">Quiz</button></div><span class="toplinks"><a class="langsw" id="repolink" target="_blank" rel="noopener" hidden>GitHub</a><a class="langsw" id="langsw" hidden></a></span></div>
+  </header>
+
+  <div id="pre">
+<p>The labs on this site need JavaScript to run. The same content is written out below.</p>
+<p><a href="../../basics/">Fundamentals</a> › Database</p>
+<h1>Storage and durability</h1>
+<p><b>Does committed data stay after the server is turned off?</b></p>
+<p>A database is a program that stores data in files on disk. The variables of a Java program are gone when the program ends, but data that went through COMMIT must still be there even if the database program stops suddenly and starts again. This property is called durability. In code, two things make it happen. One is COMMIT, the statement that makes the changes in a transaction final so that they are kept. The other is where the data is kept: if the connection address starts with the text jdbc:h2:file:, the data is kept in a file on disk, and if it starts with the text jdbc:h2:mem:, it is kept only in memory. In this lab you remove the COMMIT line or change where the data is kept, run the same INSERT, end the database program without any cleanup, start it again, and read the memo table. (The H2 in this lab is a database that runs inside the Java program, so &quot;the database program stops&quot; means that the Java program ends. A database such as MySQL is a separate program, and that is the only difference. How a database keeps this promise (the log and the buffer) is covered in the in-depth labs.)</p>
+<p>Checked against real execution · Ran all 4 combinations on H2 2.4.240 by ending the process without cleanup and opening the database again, and checked against the results; the rules of durability were checked against the MySQL and H2 documentation (cutting the power was not run)</p>
+<h2>Concepts in this lab</h2>
+<dl>
+<dt>Durability</dt>
+<dd>Durability is the property that the changes of a transaction whose COMMIT succeeded are not lost even after a power failure or a system crash, and it is the D in ACID. The MySQL documentation explains that durability is usually achieved by writing to disk storage, with redundancy in case of a failure during the write. In MySQL it is a property decided together by software settings (such as innodb_flush_log_at_trx_commit) and hardware (such as the write buffer of the storage device and fsync() support in the operating system), so how far it is guaranteed depends on the settings. Changes made before COMMIT are not covered by this promise.</dd>
+<dt>Persistent and in-memory databases</dt>
+<dd>A persistent database stores its data in files on disk, and an in-memory database keeps its data only in the memory of the computer. In H2, you choose by the connection address. An address that starts with jdbc:h2:file:path (file: can be left out) stores the data in a file, and an address that starts with jdbc:h2:mem:name keeps it in memory. A persistent database stays even after the connection is closed, but according to the H2 documentation, the content of an in-memory database is lost when the last connection is closed, and even with DB_CLOSE_DELAY=-1 it stays only while the program (the virtual machine) is alive. The MySQL glossary calls the opposite of an in-memory database a disk-based database.</dd>
+<dt>Commit and rollback</dt>
+<dd>A commit makes all the data changes in a transaction final in the database, and a rollback cancels all of those changes and returns to the state before the transaction started. A transaction ends in one of the two, and a change that has already been committed cannot be undone by a rollback. In Spring, when a method with @Transactional ends normally, Spring commits, and when it ends with an exception, Spring looks at the rollback rules and rolls back. Under the default rule, it rolls back when a RuntimeException or an Error is thrown out of the method, and it does not roll back for a checked exception. Without a transaction, each save statement is committed immediately by auto-commit, which is the default setting of a JDBC connection, so even if an exception occurs later, the earlier save cannot be rolled back.</dd>
+<dt>H2 write delay (WRITE_DELAY)</dt>
+<dd>WRITE_DELAY is the maximum delay that H2 can put between a COMMIT and writing its content to the file, and it is set in milliseconds. According to the H2 documentation, the default is 500, and you can change it with the command SET WRITE_DELAY number or by adding ;WRITE_DELAY=0 to the end of the connection address, and the setting stays in the database. By default H2 puts off writing committed content to the file, so the H2 documentation says that when the power goes off, a bit more than 1 second of committed content can be lost. Many hard disks also do not obey the write command (fsync), so complete durability, with any setting, depends on the device.</dd>
+</dl>
+<h2>Try these</h2>
+<ul>
+<li><b>Default settings</b> — In a database that stores data in a file, a row that went through COMMIT is still there after the database program stops suddenly and starts again.</li>
+<li><b>Removing COMMIT</b> — A row that was not committed is not there after the restart. The table is still there.</li>
+<li><b>A database that keeps data only in memory</b> — Even though COMMIT was done, after the restart even the table is gone.</li>
+<li><b>No COMMIT and memory only</b> — The result is the same as with COMMIT. This database disappears as a whole, whether or not there is a COMMIT.</li>
+</ul>
+<h2>Running with the default settings</h2>
+<ol>
+<li>Connect to the database. In the address, jdbc:h2:file:./shop means to store the content of the database in a file named ./shop (H2 makes it as a file called shop.mv.db). The WRITE_DELAY=0 setting at the end means to write what was committed to the file right away without putting it off. With the default settings, H2 puts off writing to the file after a COMMIT for up to 0.5 seconds (H2 documentation), so to test a sudden stop we made it write right away.</li>
+<li>CREATE TABLE memo: The database creates the memo table, which has two columns, id and text. There is no BEGIN yet, so this statement becomes final as soon as it runs (autocommit). The content that became final is written to the database file on disk.</li>
+<li>BEGIN: The database starts treating the statements from now until COMMIT as one transaction. Autocommit is turned off, so changes inside this transaction are not final until they meet COMMIT.</li>
+<li>INSERT INTO memo: The database puts the row (1, 'hello') into the memo table. It is a change inside the transaction, so it is not final yet. If you read the memo table on this connection, you see 1 row.</li>
+<li>COMMIT: The database makes the transaction final. Because of the WRITE_DELAY=0 setting, it writes the final change to the database file right away. Now the 1 row is in the memory of the program and also in the file on disk. Autocommit is turned on again.</li>
+<li>This is not in the code. The database program stops suddenly. The program ends right away without closing the connection or going through a shutdown procedure (in the experiment we ended it with the Java method Runtime.halt). The memo table and rows that were in the memory of the program are all gone. The database file on disk stays. (We tested the case where only the program ends, not a power loss.)</li>
+<li>The database program starts again and connects with the same address. The ./shop file stays on disk, so the database opens that file and can read its content. Even though the connection was not closed when it stopped, the file opened without an error.</li>
+<li>SELECT * FROM memo: The result is 1 row (1, hello). The row made final by COMMIT was in the file on disk, so it is still there after the database program stopped suddenly and started again.</li>
+</ol>
+<h3>Result of this run</h3>
+<ul>
+<li>The row that was made final with COMMIT was still there after the database program stopped suddenly and started again. This is because the row was in a file on disk. Unlike memory, which is lost when a program ends, a file on disk stays when the program stops, and COMMIT is the statement that makes a change final so that it is kept in that file.</li>
+<li>This property, that a change made final by COMMIT stays after a shutdown, is called durability. In this lab we added the WRITE_DELAY=0 setting to the address so that the data is written to the file together with COMMIT. Without it, with the H2 default settings, when we stopped right after COMMIT, none of the five runs had the committed row, and when we waited 1.5 seconds before stopping, it stayed in both runs. How a database keeps this promise (the log and the buffer) is covered in the in-depth labs.</li>
+</ul>
+<h2>Code</h2>
+<pre>-- Connect to a database that stores data in a file (jdbc:h2:file:./shop;WRITE_DELAY=0), and
+CREATE TABLE memo (id INT PRIMARY KEY, text VARCHAR(20));
+
+-- Start: treat everything from here as one transaction
+BEGIN;
+INSERT INTO memo VALUES (1, 'hello');
+-- Final: tell the database to keep the changes made so far
+COMMIT;
+
+-- After the database program stops suddenly and starts again, connect with the same address, and
+SELECT * FROM memo;</pre>
+<h2>Assumptions of this model</h2>
+<p>It was run and checked against H2 2.4.240 (JDK 21.0.12.1), and it was checked against H2, not MySQL. For all 4 combinations, it ran the whole SQL on the screen, including the comment lines, exactly as written. It connected with the address written in the comment on the first line, and it sent each comment line to the database together with the statement that follows it. First, a new Java process ran the statements up to the line &quot;After the database program stops suddenly&quot; one statement at a time, and then it ended the process right away with the Runtime.halt method, without closing the connection or running any shutdown procedure (exit code 7). After that, another new Java process connected with the same address and ran the SELECT after that line. The address ./shop of the file database is a file in a folder made separately for each combination. What it checked is the three items of the result table, that is, the rows read after the restart (the number of rows and the values, or the kind of the error), whether the COMMIT line is there, and the files made in the folder. The file database was opened again after the stop without any cleanup, and of the 4 combinations, only the one with a COMMIT on the file database kept its row. The memory database made no file in the folder, and on the restarted connection there was an error that the memo table does not exist (H2 error code 42104, with &quot;this database is empty&quot; in the message). The original text of the error is in the Probe output, and the screen shows only the kind of the error. As the facts the step sentences rely on, it also checked by execution that autocommit is off after BEGIN and on again after COMMIT, that reading on the same connection right before the stop shows 1 row, and that CREATE TABLE is final before BEGIN, so the table stays even after a stop without COMMIT. The code on the screen has no query for this checking, and the column name text of the memo table could be used in H2. An important point: we added ;WRITE_DELAY=0 to the address of the file database in this lab. The H2 documentation (the SET WRITE_DELAY entry on the Commands page) says that it sets the maximum delay between a COMMIT and writing the log to the file in milliseconds, that the default is 500, and that it can be added to the database address as ;WRITE_DELAY=0. With the H2 default settings, without this setting, when the process was ended right after COMMIT on a file database, none of the five runs had the memo table or the row after the restart (the database file was there but empty), and when the process was ended after waiting 1.5 seconds after COMMIT, the row stayed in both runs. So the &quot;it stays if you COMMIT&quot; in this lab is a result observed with the WRITE_DELAY=0 setting. The H2 documentation (Durability Problems on the Advanced page) also explains that by default H2 puts off writing committed content to the file, that if the power goes off, a bit more than one second of committed content can be lost, and that complete durability is hard because hard disks often do not obey fsync. And this lab ended only the process and did not cut the power; because file writes that the operating system has accepted stay even when a process ends, durability when the power goes off was not checked by execution. That a memory database disappears when its last connection is closed (or when the program ends) follows the H2 documentation (In-Memory Databases on the Features page), and in this lab the case where the process ended was checked by execution. The MySQL 8.4 documentation page &quot;InnoDB and the ACID Model&quot; says that durability is a property decided together by the MySQL software and hardware settings, and lists innodb_flush_log_at_trx_commit, sync_binlog, fsync() support, and the write buffer of the storage device as related factors, and the ACID entry of the glossary says that when a commit succeeds, the changes are safe from power failures and system crashes, and that durability usually means writing to disk. We opened these documents directly and checked them, but we did not run to see whether MySQL gives the same result. This lab covers only the outward look of durability, that is, whether data stays after a stop and restart depending on COMMIT and where the data is stored. How the log and the buffer pool keep this is covered in the in-depth labs &quot;Undo and redo logs&quot; and &quot;Buffer pool and pages&quot;, and the transaction itself in &quot;Transactions&quot;.</p>
+<p>Previous lab: <a href="../../lab/dblock_basic/">Row locks</a> · Next lab: <a href="../../lab/port_basic/">IP addresses and ports</a></p>
+  </div>
+
+  <main class="home" id="homeview"></main>
+  <section class="catview" id="catview"></section>
+
+  <section class="lesson-head labonly">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="titlerow"><h2 id="title"></h2></div>
+    <p class="question" id="question"></p>
+    <div class="headcols">
+      <div class="concept" id="explain">
+        <h3>Concepts in this lab</h3>
+        <div class="terms" id="terms"></div>
+        <div><button class="linkbtn" id="terms-more" type="button" aria-expanded="false" aria-controls="terms" hidden></button></div>
+      </div>
+      <div class="about">
+        <h3>What this lab shows</h3>
+        <p id="intro"></p>
+        <div class="vbadge" id="vbadge"></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid labonly">
+    <div class="panel p-ctl shut" id="ctlpanel">
+      <div class="titlerow"><h3 id="ctl-title">Settings</h3><button class="btn ghost small" id="ctl-toggle" type="button" aria-expanded="false" aria-controls="controls">Change settings</button></div>
+      <ol class="asks" id="asks" hidden></ol>
+      <p class="cap" id="ask-diff" hidden></p>
+      <p class="ctlsum" id="ctlsum"></p>
+      <div id="controls" class="ctls"></div>
+    </div>
+
+    <div class="panel p-bar" id="runbar">
+      <div class="runrow">
+        <button class="btn" id="run" type="button">Run</button>
+        <button class="btn ghost" id="restart" type="button" hidden>Restart</button>
+        <button class="btn ghost" id="prev" type="button" aria-label="Previous step">◀<span class="lng"> Previous step</span></button>
+        <button class="btn ghost" id="next" type="button" aria-label="Next step"><span class="lng">Next step </span>▶</button>
+        <span class="clock" id="clock"></span>
+        <span class="stale" id="stale" hidden>Settings changed · Click Run to apply them</span>
+        <label class="check predtoggle" for="pred-on"><input type="checkbox" id="pred-on"> Predict the result before running</label>
+      </div>
+      <div class="ask" id="ask" hidden></div>
+      <ol class="log" id="log" aria-label="Step log" aria-live="polite" aria-relevant="additions" hidden></ol>
+    </div>
+
+    <div class="panel p-code" id="codepanel">
+      <div class="titlerow"><h3>Code</h3><button class="btn ghost small" id="code-toggle" type="button" aria-expanded="true" aria-controls="code">Hide code</button></div>
+      <pre class="code" id="code"></pre>
+      <p class="cap" id="code-note" hidden>Struck-through text was removed from the first version of the code; highlighted text was added.</p>
+    </div>
+
+    <div class="panel p-pic" id="picpanel">
+      <h3>Diagram</h3>
+      <div class="picwrap"><svg id="pic" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of the state at the current step. The same information appears as text in the description and the table on the right."></svg></div>
+      <p class="cap" id="pic-note"></p>
+    </div>
+
+    <div class="panel stage p-stage" id="stage">
+      <div class="view" id="view"></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="assume"><span id="assume"></span><button class="linkbtn" id="assume-more" type="button" aria-expanded="false">Show the assumptions of this model</button></div>
+    </div>
+
+  </div>
+
+  <div class="below labonly" id="below">
+    <div class="panel p-hist" id="histpanel">
+      <h3>Run comparison</h3>
+      <div class="tablewrap"><table class="hist"><thead id="hist-head"></thead><tbody id="hist"></tbody></table></div>
+      <div><button class="btn ghost small" id="clear" type="button">Clear comparison history</button></div>
+    </div>
+    <div class="panel p-pre" id="prepanel">
+      <h3>Try these</h3>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <section class="quiz" id="quizview" aria-live="polite"></section>
+</div>
+<div class="glpop" id="glpop" role="dialog" aria-label="Glossary" hidden>
+  <div class="glhead"><b id="glpop-t"></b><button class="linkbtn" id="glpop-x" type="button">Close</button></div>
+  <p id="glpop-d"></p>
+  <div class="glfoot" id="glpop-f"></div>
+</div>
+<script src="../../app.js?v=ac3ff9cb33"></script>
+</body>
+</html>
