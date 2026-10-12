@@ -47,7 +47,7 @@ Lab.basics({
     ] },
     { name: '네트워크', desc: '브라우저와 서버가 주고받는 것의 생김새입니다.', items: [
       { id: 'port_basic' },
-      { t: 'URL', d: '주소 한 줄을 이루는 부분들' },
+      { id: 'url_basic' },
       { t: 'DNS', d: '이름을 IP 주소로 바꿔 주는 것' },
       { id: 'http_basic' },
       { t: 'HTTP 응답', d: '서버가 돌려주는 글의 생김새' },
