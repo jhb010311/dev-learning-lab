@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
+<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,7 +58,7 @@
 <li>처음 여는 주소입니다. 브라우저에 저장된 것이 없으므로 서버에 요청합니다.</li>
 <li>서버가 본문 200KB와 함께 캐시 지시를 내려 줍니다. 브라우저는 본문과 ETag(내용의 버전을 나타내는 표시)를 함께 보관합니다.</li>
 <li>120초 뒤 같은 주소를 다시 엽니다. 유효 시간 60초가 지났습니다. 브라우저는 저장해 둔 것을 버리지 않고, &quot;내가 가진 것은 v1인데 아직 그대로인가?&quot;라고 묻습니다.</li>
-<li>서버의 현재 ETag도 &quot;v1&quot;입니다. 바뀐 것이 없으므로 본문 없이 304만 응답합니다. 브라우저는 저장해 둔 본문을 그대로 쓰고 유효 시간을 다시 시작합니다. 200KB를 다시 보내지 않았습니다.</li>
+<li>서버의 현재 ETag도 &quot;v1&quot;입니다. 바뀐 것이 없으므로 본문 없이 304만 응답합니다. 브라우저는 저장해 둔 본문을 그대로 씁니다. 유효 시간도 다시 시작합니다. 200KB를 다시 보내지 않았습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
@@ -165,6 +165,6 @@ ResponseEntity&lt;Product&gt; get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=facdcb7ce9"></script>
+<script src="../../app.js?v=137acd1ae5"></script>
 </body>
 </html>

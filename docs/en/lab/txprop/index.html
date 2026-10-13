@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -53,7 +53,7 @@
 <li><b>Keeping a log failure from ruining the order</b> — Separate the log with REQUIRES_NEW and catch the exception.</li>
 <li><b>Keeping the log even when the order fails</b> — With REQUIRES_NEW, the outer method fails.</li>
 <li><b>How NESTED differs</b> — When the outer method fails, the inner work is rolled back with it. Compare this with the example just above.</li>
-<li><b>A checked exception does not cause a rollback</b> — The exception leaves the method, yet the order and the log are committed.</li>
+<li><b>A checked exception does not cause a rollback by default</b> — The exception leaves the method, yet the order and the log are committed.</li>
 <li><b>Specifying rollbackFor</b> — The transaction is rolled back on a checked exception too.</li>
 </ul>
 <h2>Running with the default settings</h2>
@@ -176,6 +176,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

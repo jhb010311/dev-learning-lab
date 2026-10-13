@@ -73,7 +73,7 @@ Lab.register({
     }
     if (c.op === 'read') {
       result = { name: 'Query result', head: ['Order ID', 'Member name', 'Item'], rows: orders.map(function (o) { return { cells: [String(o.id), o.name, o.item] }; }) };
-      if (flat) { push('Reading just the orders table gives you the member name too. No join is needed.', 'good'); sum.push('For reading alone, the table before normalization is simpler and faster. Allowing duplicates on purpose for read performance is called denormalization, and the price is that the application itself has to prevent the anomalies shown above.'); }
+      if (flat) { push('Reading just the orders table gives you the member name too. No join is needed.', 'good'); sum.push('For reading alone, the table before normalization is simpler because it needs no join. Allowing duplicates on purpose for read performance is called denormalization, and the price is that the application itself has to prevent the anomalies shown above.'); }
       else { push('An order holds only the member ID, so to get the name you have to join with the member table. Two tables are read.', ''); sum.push('The cost of normalization is a join when you read. Even so, a typical service starts from a normalized design and considers denormalization only when read performance becomes a real problem.'); }
     }
     if (flat && anomaly === 'None' && c.op !== 'read') sum.push('No problem showed up this time, but that is not because the structure prevents it. The person doing the work avoided it by being careful.');

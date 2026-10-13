@@ -1,7 +1,7 @@
 Lab.register({
   id: 'cookie', nav: 'Cookies', cat: 'Authentication', mode: 'step',
   title: 'Showing a name tag, every time, to a server that cannot remember you',
-  intro: 'An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site.',
+  intro: 'HTTP does not link one request to the next. The server cannot tell whether an earlier request came from the same browser. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site.',
   terms: ['Cookie', 'HTTP as a stateless protocol', 'HttpOnly, Secure, and SameSite', 'Session'], ranks: ['auth', 'http'],
   controls: [
     { id: 'give', label: 'The login response sets a cookie', type: 'check', value: true },
@@ -56,7 +56,7 @@ Lab.register({
     S.rows.push(['GET /shop/cart', R.shop ? 'Cookie: sid=abc123' : '(none)', say(R.shop)]);
     push('This is the request for shop.example/shop/cart. ' + (R.shop ? 'This path falls under Path=' + c.path + ', so the cookie is attached.' : 'No cookie is stored.'), R.shop ? 'good' : 'bad');
     S.rows.push(['GET other.example/ (another site)', '(none)', 'The cookie of shop.example is not sent']);
-    push('This is a request going to another site, other.example. The cookie that shop.example gave is not attached. A cookie is attached only to requests going to the site that sent it.', '');
+    push('This is a request going to another site, other.example. The cookie that shop.example gave is not attached. A cookie is attached only to requests going to the host that sent it, shop.example (the Domain attribute can widen this).', '');
     S.rows.push(['JavaScript on the page: document.cookie', R.js ? '"sid=abc123" is read' : '(not readable)', R.js ? 'The script can take the value' : R.alive ? 'Not visible to scripts because of HttpOnly' : 'No cookie']);
     push('JavaScript on the shop.example/shop/cart page reads document.cookie. ' + (R.js ? 'There is no HttpOnly, so the value is read as it is. If a malicious script gets into the page (XSS), it can steal this value and take over the login state.' : R.alive ? 'A cookie with HttpOnly is not visible to scripts. It is still attached to requests automatically.' : 'No cookie is stored.'), R.js ? 'bad' : R.alive ? 'good' : '');
     if (R.alive && c.path !== '/') sum.push('Narrowing the Path means the cookie is not attached to requests outside that path. A login cookie is usually left at Path=/.');
@@ -82,7 +82,7 @@ Lab.register({
     var end = P.seq([['b', 'Browser', 'wait'], ['s', 'shop.example server', 'wait'], ['o', 'other.example']], msgs, { keep: 7 });
     P.box('jar', 16, end + 14, 648, 46, { cls: s.jar.length ? 'good' : 'ghost', title: 'Cookies of shop.example that the browser is storing', sub: s.jar[0] || 'None' });
     P.size(680, end + 76);
-    P.note('Green arrows are requests that went with the cookie attached, and red arrows are requests that went without a cookie, so the server does not know who sent them.');
+    P.note('Green arrows are requests that went with the cookie attached, and red arrows are requests that went without a cookie, so the server does not know who sent them. On the document.cookie line at the bottom, green means it was not readable (safe) and red means it was readable (dangerous).');
   },
   assume: 'The paths that a cookie is attached to according to Path, the fact that an HttpOnly cookie is not visible in document.cookie, the disappearance of a cookie after its Max-Age has passed, and the fact that a cookie is not sent to an address on a different host are the same as the results checked with a real browser and a test server. That a session cookie is deleted when the browser is closed follows the standard behavior, and it was not checked by running it. A browser with the "restore previous tabs" feature turned on may bring session cookies back. The Secure, SameSite, and Domain attributes are not covered in this lab.',
 });

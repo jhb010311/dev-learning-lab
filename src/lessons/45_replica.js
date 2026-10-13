@@ -20,7 +20,7 @@ Lab.register({
   ],
   code: function (c) {
     if (c.part === 'cut') return '// 원본과 복제본이 서로 통신하지 못하는 상황\n// 복제본이 고를 수 있는 것은 둘 중 하나\n//\n// 1) 가진 값으로 응답한다  -> 응답은 하지만 최신이 아닐 수 있다 (AP)\n// 2) 응답을 거부한다       -> 틀린 값은 주지 않지만 서비스가 안 된다 (CP)';
-    return (c.from === 'replica' ? '// readOnly 트랜잭션은 복제본으로, 그 외는 원본으로 보내는 설정' : '// 쓰기 직후의 조회는 readOnly여도 원본으로 보내는 설정') + '\n@Transactional\npublic void changeNickname(long id, String name) {     // -> 원본\n    memberRepository.findById(id).orElseThrow().setNickname(name);\n}\n\n@Transactional(readOnly = true)\npublic Member getMember(long id) {                      // -> ' + (c.from === 'replica' ? '복제본' : '원본 (직후 조회는 원본으로 보냄)') + '\n    return memberRepository.findById(id).orElseThrow();\n}';
+    return (c.from === 'replica' ? '// readOnly 트랜잭션은 복제본으로, 그 외는 원본으로 보내도록 데이터소스를 따로 구성해 둔 경우' : '// 쓰기 직후의 조회는 readOnly여도 원본으로 보내는 설정') + '\n@Transactional\npublic void changeNickname(long id, String name) {     // -> 원본\n    memberRepository.findById(id).orElseThrow().setNickname(name);\n}\n\n@Transactional(readOnly = true)\npublic Member getMember(long id) {                      // -> ' + (c.from === 'replica' ? '복제본' : '원본 (직후 조회는 원본으로 보냄)') + '\n    return memberRepository.findById(id).orElseThrow();\n}';
   },
   label: function (c) { return c.part === 'lag' ? '복제 ' + c.lag + '초 · ' + c.when + '초 뒤 ' + (c.from === 'replica' ? '복제본' : '원본') + ' 조회' : '단절 · ' + (c.choice === 'ap' ? '계속 응답' : '응답 거부'); },
   columns: ['조회 결과', '최신 값인가', '응답했나'],

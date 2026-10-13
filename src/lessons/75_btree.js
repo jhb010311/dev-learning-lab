@@ -62,7 +62,7 @@ Lab.register({
         push((i + 1) + '번째 확인: 남은 ' + left + '칸의 가운데 값 ' + st.cmp + (hit ? ' → 찾았습니다.' : st.cmp < tg ? ' → 찾는 값(' + tg + ')보다 작습니다. 이 칸과 왼쪽을 모두 버립니다.' : ' → 찾는 값(' + tg + ')보다 큽니다. 이 칸과 오른쪽을 모두 버립니다.') + (!hit && lastOne ? ' 남은 칸이 없으므로 없는 값입니다.' : ''), hit ? 'good' : lastOne ? 'bad' : '', { seen: seenB.slice(), cur: st.at[0], lo: hit ? st.lo : st.cmp < tg ? st.at[0] + 1 : st.lo, hi: hit ? st.hi : st.cmp < tg ? st.hi : st.at[0] - 1, done: hit || lastOne, found: hit });
       });
     } else {
-      push('같은 27개를 B-트리로 저장했습니다. 맨 아래 잎 노드 9개에 값이 세 개씩 정렬돼 들어 있고, 위쪽 노드에는 "어느 쪽으로 내려갈지"를 알려 주는 구분값만 있습니다. 노드 하나를 읽는 것이 디스크를 한 번 읽는 것입니다.', '', {});
+      push('같은 27개를 B-트리로 저장했습니다. 맨 아래 잎 노드 9개에 값이 세 개씩 정렬돼 들어 있고, 위쪽 노드에는 "어느 쪽으로 내려갈지"를 알려 주는 구분값만 있습니다. 노드 하나를 읽을 때, 메모리에 없으면 디스크를 한 번 읽습니다.', '', {});
       var path = [];
       T.steps.forEach(function (st, i) {
         path.push(st);
@@ -86,7 +86,7 @@ Lab.register({
       H.counters(v, [[s.how === 'binary' ? (s.found ? '-' : Math.max(0, s.hi - s.lo + 1) + '칸') : (27 - s.seen.length) + '칸', s.how === 'binary' ? '아직 후보로 남은 칸' : '아직 안 본 칸']]);
     } else {
       var p = s.path;
-      H.counters(v, [[p.length + '개', '읽은 노드 (디스크 읽기 횟수)'], [(13 - p.length) + '개', '읽지 않은 노드']]);
+      H.counters(v, [[p.length + '개', '읽은 노드 (캐시에 없으면 디스크 읽기)'], [(13 - p.length) + '개', '읽지 않은 노드']]);
     }
     if (s.done) { var w = sim.worst; H.table(v, ['방식', sim.big + ' 건에서 가장 오래 걸릴 때', '늘어나는 모양'], [['처음부터 하나씩', sim.big + '번 확인', 'O(n): 데이터에 비례'], ['이진 탐색', w.binary + '번 확인', 'O(log n): 절반씩 줄임'], ['B-트리 (노드당 3갈래)', w.b3 + '단계', 'O(log n): 3분의 1씩 줄임'], ['B-트리 (노드당 500갈래)', w.b500 + '단계', 'O(log n): 500분의 1씩 줄임']].map(function (r, i) { var on = (s.how === 'scan' && i === 0) || (s.how === 'binary' && i === 1) || (s.how === 'btree' && i >= 2); return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2]] }; }), '데이터가 많아지면'); }
   },
@@ -106,7 +106,7 @@ Lab.register({
     }
     var p = s.path, br = p.length > 1 ? p[1].branch : -1, lf = p.length > 2 ? p[2].leaf : -1;
     P.size(680, 278);
-    P.region('tree', 16, 16, 648, 246, 'B-트리: 노드 하나를 읽는 것이 디스크를 한 번 읽는 것');
+    P.region('tree', 16, 16, 648, 246, 'B-트리: 노드를 읽을 때 메모리에 없으면 디스크 읽기');
     P.box('root', 290, 46, 100, 28, { cls: p.length ? 'hot' + (p.length === 1 ? ' now' : '') : 'plain', sub: '100 | 190', center: true });
     for (var i = 0; i < 3; i++) {
       P.box('br' + i, 70 + i * 220, 112, 100, 28, { cls: i === br ? 'hot' + (p.length === 2 ? ' now' : '') : 'plain', sub: a[i * 9 + 3] + ' | ' + a[i * 9 + 6], center: true });
@@ -116,7 +116,7 @@ Lab.register({
       P.box('lf' + j, 20 + j * 71.5, 184, 67, 58, { cls: j === lf ? (s.found ? 'good now' : 'bad now') : 'plain', sub: a.slice(j * 3, j * 3 + 3).map(String), center: true });
       P.arrow('bl' + j, 'br' + Math.floor(j / 3) + ':b:' + (0.25 + (j % 3) * 0.25), 'lf' + j + ':t', { cls: j === lf ? 'hot' : 'mut' });
     }
-    P.note('노란 노드는 읽은 노드이고, 나머지 노드는 읽지 않고 건너뛰었습니다. 위쪽 노드의 숫자는 어느 쪽으로 내려갈지 알려 주는 구분값이고, 실제 값은 맨 아래 잎 노드에 있습니다.');
+    P.note('노란 노드는 읽은 노드이고, 나머지 노드는 읽지 않고 건너뛰었습니다. 위쪽 노드의 숫자는 어느 쪽으로 내려갈지 알려 주는 구분값이고, 실제 값은 맨 아래 잎 노드에 있습니다(이렇게 값이 잎에만 있는 모양을 B+트리라고 합니다).');
   },
   assume: '27건에서의 탐색 과정과 횟수는 이 페이지가 알고리즘을 실제로 실행한 결과입니다. 큰 건수의 횟수는 "한 번에 몇 갈래로 나누는가"로 계산한 최대 단계 수입니다. 화면의 B-트리는 값이 잎 노드에만 있는 B+트리 모양으로, MySQL InnoDB의 인덱스가 이 구조입니다. 실제 인덱스에서 노드 하나에 몇 개의 값이 들어가는지는 키의 크기에 따라 달라지며 500은 예시로 든 값입니다. 뿌리와 가지 노드는 보통 메모리에 올라와 있어 실제 디스크 읽기는 더 적습니다.',
 });

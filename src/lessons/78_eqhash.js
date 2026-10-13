@@ -1,7 +1,7 @@
 Lab.register({
   id: 'eqhash', nav: 'equals와 hashCode', cat: '자바 언어', mode: 'step',
   title: 'equals만 고치면 왜 HashMap에서 못 찾나',
-  intro: '내용이 같은 두 객체를 같다고 취급하려면 equals를 재정의합니다. 그런데 HashMap과 HashSet은 equals를 부르기 전에 먼저 hashCode로 찾을 자리를 정합니다. 그래서 equals와 hashCode 가운데 하나만 재정의하면, 같다고 만든 객체를 컬렉션에서 찾지 못합니다.',
+  intro: '내용이 같은 두 객체를 같다고 취급하려면 equals를 재정의합니다. 그런데 HashMap과 HashSet은 equals를 부르기 전에 먼저 hashCode로 찾을 자리를 정합니다. 그래서 equals와 hashCode 가운데 하나만 재정의하면, 같다고 만든 객체를 HashMap과 HashSet에서 찾지 못합니다.',
   terms: ['equals와 hashCode 규약', '동일성과 동등성', '해시 테이블과 HashMap', '해시 충돌', 'record'],
   controls: [
     { id: 'how', label: 'Order 클래스가 재정의한 메서드', type: 'select', value: 'eq', options: [['none', '아무것도 재정의하지 않음'], ['eq', 'equals만 재정의'], ['hash', 'hashCode만 재정의'], ['both', 'equals와 hashCode 둘 다'], ['const', 'equals 재정의 + hashCode가 항상 42'], ['record', 'record로 선언 (둘 다 자동 생성)']] },
@@ -53,7 +53,7 @@ Lab.register({
       push('그 자리에 있는 키 a와 b를 equals로 비교합니다. ' + (f.eq ? 'true이므로 같은 키로 보고 값을 돌려줍니다.' : (f.eqOver ? 'id가 달라 false입니다.' : 'equals를 재정의하지 않아 false입니다.') + ' 같은 자리에 있어도 다른 키로 보고 null을 돌려줍니다.'), found ? 'good' : same ? 'bad' : '');
     } else {
       st.got = 'null';
-      push('map.get(b): 먼저 b.hashCode()로 찾을 자리를 정합니다. a와 hashCode가 다르므로 a가 들어 있는 자리를 보지 않습니다. equals는 불러 보지도 못하고 null을 돌려줍니다.' + (f.eq ? ' equals로는 같은 객체인데도 꺼내지 못합니다.' : ''), f.eq ? 'bad' : '');
+      push('map.get(b): 먼저 b.hashCode()로 찾을 자리를 정합니다. hashCode가 a와 달라서 대개 다른 자리를 보고, 같은 자리여도 해시 값이 다른 키는 equals까지 가지 않습니다. equals는 불러 보지도 못하고 null을 돌려줍니다.' + (f.eq ? ' equals로는 같은 객체인데도 꺼내지 못합니다.' : ''), f.eq ? 'bad' : '');
     }
     st.set = found ? '1' : '2';
     push('set.add(a), set.add(b): HashSet도 안에서 HashMap을 쓰므로 같은 순서로 판단합니다. ' + (found ? 'b는 이미 들어 있는 a와 같은 원소로 보아 넣지 않습니다. 크기는 1입니다.' : 'b를 a와 다른 원소로 보아 둘 다 넣습니다. 크기는 2입니다.' + (same ? ' 내용이 같은 객체가 중복으로 들어갔습니다.' : '')), found ? 'good' : same ? 'bad' : '');

@@ -22,7 +22,7 @@ Lab.register({
   Z: {
     seoul: { id: 'Asia/Seoul', name: '서울', zdt: '2024-01-01T00:30+09:00[Asia/Seoul]', date: '2024-01-01', time: '00:30', off: 'UTC보다 9시간 빠름' },
     utc: { id: 'UTC', name: 'UTC', zdt: '2023-12-31T15:30Z[UTC]', date: '2023-12-31', time: '15:30', off: '기준 시간대' },
-    ny: { id: 'America/New_York', name: '뉴욕', zdt: '2023-12-31T10:30-05:00[America/New_York]', date: '2023-12-31', time: '10:30', off: 'UTC보다 5시간 느림' },
+    ny: { id: 'America/New_York', name: '뉴욕', zdt: '2023-12-31T10:30-05:00[America/New_York]', date: '2023-12-31', time: '10:30', off: '겨울엔 UTC보다 5시간 느림' },
   },
   ADD: { drop: 'd.plusMonths(1);', month: 'd = d.plusMonths(1);', twice: 'd = d.plusMonths(1).plusMonths(1);', two: 'd = d.plusMonths(2);', days: 'd = d.plusDays(30);' },
   code: function (c) {

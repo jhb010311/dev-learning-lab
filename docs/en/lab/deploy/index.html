@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -52,22 +52,22 @@
 <li><b>Take everything down first</b> — The simplest way, but the service stops in the meantime.</li>
 <li><b>Blue-green</b> — You need twice the servers, but switching and rolling back are instant.</li>
 <li><b>A version with a bug, deployed by rolling</b> — Until you notice the problem, the range of impact keeps growing.</li>
-<li><b>A version with a bug, deployed as a canary</b> — Only some users are affected, and then you roll back.</li>
+<li><b>A version with a bug, deployed as a canary</b> — Only some requests are affected, and then you roll back.</li>
 <li><b>Without graceful shutdown</b> — Requests in progress are cut off when a server is taken down.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
 <li>Current state: all 4 servers are v1, and the load balancer spreads the requests evenly.</li>
-<li>Server 1: The load balancer stops sending new requests to this server, then sends a termination signal. The server finishes the requests in progress and then exits.</li>
+<li>Server 1: The load balancer stops sending new requests to this server, and a termination signal is sent to the server. The server finishes the requests in progress and then exits.</li>
 <li>Server 1: Bringing it up as v2. It receives no requests until it passes the readiness check. In the meantime the other 3 servers carry the load.</li>
 <li>Server 1: Ready. It receives requests again. Now v1 and v2 are serving together, and 25% of requests go to v2.</li>
-<li>Server 2: The load balancer stops sending new requests to this server, then sends a termination signal. The server finishes the requests in progress and then exits.</li>
+<li>Server 2: The load balancer stops sending new requests to this server, and a termination signal is sent to the server. The server finishes the requests in progress and then exits.</li>
 <li>Server 2: Bringing it up as v2. It receives no requests until it passes the readiness check. In the meantime the other 3 servers carry the load.</li>
 <li>Server 2: Ready. It receives requests again. Now v1 and v2 are serving together, and 50% of requests go to v2.</li>
-<li>Server 3: The load balancer stops sending new requests to this server, then sends a termination signal. The server finishes the requests in progress and then exits.</li>
+<li>Server 3: The load balancer stops sending new requests to this server, and a termination signal is sent to the server. The server finishes the requests in progress and then exits.</li>
 <li>Server 3: Bringing it up as v2. It receives no requests until it passes the readiness check. In the meantime the other 3 servers carry the load.</li>
 <li>Server 3: Ready. It receives requests again. Now v1 and v2 are serving together, and 75% of requests go to v2.</li>
-<li>Server 4: The load balancer stops sending new requests to this server, then sends a termination signal. The server finishes the requests in progress and then exits.</li>
+<li>Server 4: The load balancer stops sending new requests to this server, and a termination signal is sent to the server. The server finishes the requests in progress and then exits.</li>
 <li>Server 4: Bringing it up as v2. It receives no requests until it passes the readiness check. In the meantime the other 3 servers carry the load.</li>
 <li>Server 4: Ready. It receives requests again. Now v1 and v2 are serving together, and 100% of requests go to v2.</li>
 <li>All 4 servers are now v2. The service was not interrupted during the deployment.</li>
@@ -179,6 +179,6 @@ spring.lifecycle.timeout-per-shutdown-phase: 30s</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

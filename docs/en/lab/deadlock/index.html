@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -61,7 +61,7 @@
 <h3>Result of this run</h3>
 <ul>
 <li>A deadlock occurred. Neither transfer finishes, and the two threads are stopped without even an exception. If you take a thread dump, you can see them as threads in the BLOCKED state, each waiting for the lock that the other holds.</li>
-<li>A deadlock occurs when four conditions all hold: a resource that only one thread can use at a time, holding one resource while waiting for another, no way to take a resource away from its holder, and waits that form a cycle. It is enough to break just one of them. Using the same lock order breaks the cycle, and tryLock breaks &quot;holding while waiting&quot;.</li>
+<li>A deadlock occurs when four conditions all hold: a resource that only one thread can use at a time, holding one resource while waiting for another, no way to take a resource away from its holder, and waits that form a cycle. It is enough to break just one of them. Using the same lock order breaks the cycle. tryLock stops threads from waiting forever, so after the time limit a thread gives up and releases the lock it holds.</li>
 </ul>
 <h2>Code</h2>
 <pre>void transfer(Account from, Account to, long amount) {
@@ -164,6 +164,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

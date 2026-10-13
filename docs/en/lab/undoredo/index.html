@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 <li>What was changed, and how, is recorded in the redo log. A log only needs to be appended to the end of a file, so this is much faster than changing the data file.</li>
 <li>COMMIT: The redo log is written to disk for certain (fsync). Only after this is done does the server reply &quot;commit succeeded&quot; to the user. Even at this point the data file is still 1000. What is written to disk at commit time is only the log.</li>
 <li>The server went down right after the commit reply, before the changes were written to the data file. The 500 in memory is lost, and the data file still holds 1000. The user has already received &quot;success&quot;.</li>
-<li>The server starts again. Recovery reads the redo log on disk from the beginning.</li>
+<li>The server starts again. Recovery reads the redo log on disk from the last checkpoint.</li>
 <li>The redo log has &quot;account 1 set to 500&quot; and the record that it committed. This change is applied again. The balance is recovered as 500. No committed data was lost.</li>
 </ol>
 <h3>Result of this run</h3>
@@ -161,6 +161,6 @@ COMMIT;
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 Lab.register({
   id: 'jit', nav: 'JIT 워밍업', cat: 'JVM', mode: 'step',
   title: '배포 직후의 첫 요청들은 왜 느린가',
-  intro: '자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.',
+  intro: '자바 코드는 바이트코드로 컴파일되어 JVM이 한 명령씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.',
   terms: ['JIT 컴파일러', '바이트코드', 'JVM(자바 가상 머신)', '클래스 로더'], ranks: ['jvm', 'tuning', 'deploy'],
   controls: [
     { id: 'mode', label: '실행 방식', type: 'select', value: 'jit', options: [['jit', '기본 설정 (해석하다가 JIT 컴파일)'], ['int', 'JIT를 끔 (-Xint, 계속 해석만)'], ['warm', '요청을 받기 전에 미리 호출해 둠 (워밍업)']] },
@@ -13,7 +13,7 @@ Lab.register({
   ],
   DATA: { jit: [5765, 1694, 1369, 1651, 1484, 1368, 1535, 1403, 1373, 1436, 1609, 1725], int: [28000, 31416, 28925, 25281, 36973, 28376, 28920, 29169, 26738, 31654, 28077, 32120] },
   code: function (c) {
-    return 'static long work(int n) {                  // 측정한 메서드\n    long s = 0;\n    for (int i = 0; i < n; i++) s += (i * 31L) ^ (s >>> 3);\n    return s;\n}\n\n' + (c.mode === 'warm' ? '// 기동 직후, 요청을 받기 전에\nfor (int k = 0; k < 2000; k++) work(1000);   // 미리 호출해 JIT 컴파일을 끝내 둔다\nreadiness.set(true);                        // 그 뒤에 "준비 완료"를 알린다\n\n' : '') + 'for (int batch = 1; batch <= 12; batch++) {\n    long t = System.nanoTime();\n    for (int k = 0; k < 2000; k++) work(1000);          // 묶음 하나 = 2,000번 호출\n    print((System.nanoTime() - t) / 1000 + "마이크로초");\n}\n\n// 실행: java ' + (c.mode === 'int' ? '-Xint ' : '') + 'JitWarmup.java';
+    return 'static long work(int n) {                  // 측정한 메서드\n    long s = 0;\n    for (int i = 0; i < n; i++) s += (i * 31L) ^ (s >>> 3);\n    return s;\n}\n\n' + (c.mode === 'warm' ? '// 기동 직후, 요청을 받기 전에\nfor (int k = 0; k < 2000; k++) work(1000);   // 미리 호출해 JIT 컴파일이 진행되도록 해 둔다\nreadiness.set(true);                        // 그 뒤에 "준비 완료"를 알린다\n\n' : '') + 'for (int batch = 1; batch <= 12; batch++) {\n    long t = System.nanoTime();\n    for (int k = 0; k < 2000; k++) work(1000);          // 묶음 하나 = 2,000번 호출\n    print((System.nanoTime() - t) / 1000 + "마이크로초");\n}\n\n// 실행: java ' + (c.mode === 'int' ? '-Xint ' : '') + 'JitWarmup.java';
   },
   label: function (c) { return { jit: '기본 설정', int: 'JIT 끔 (-Xint)', warm: '미리 워밍업' }[c.mode]; },
   columns: ['첫 묶음', '마지막 묶음', '가장 느린 묶음 ÷ 가장 빠른 묶음'],
@@ -24,11 +24,11 @@ Lab.register({
     if (c.mode === 'warm') push('요청을 받기 전에 work()를 2,000번 미리 호출했습니다. 이때 JVM이 이 메서드를 "자주 실행되는 코드"로 판단해 기계어로 컴파일해 둡니다. 이 느린 구간은 사용자가 겪지 않습니다.', 'good', 0);
     D.forEach(function (us, i) {
       var s = (i + 1) + '번째 묶음: ' + f(us) + '.';
-      if (c.mode === 'jit' && i === 0) s += ' 처음에는 인터프리터로 실행됩니다. JVM은 메서드가 몇 번 불렸는지, 반복문이 몇 번 돌았는지를 세고 있다가, 기준을 넘자 이 메서드를 기계어로 컴파일합니다. 이 묶음에는 해석 실행과 컴파일 시간이 모두 들어 있습니다.';
+      if (c.mode === 'jit' && i === 0) s += ' 처음에는 인터프리터로 실행됩니다. JVM은 메서드가 몇 번 불렸는지, 반복문이 몇 번 돌았는지를 세고 있다가, 기준을 넘자 이 메서드를 기계어로 컴파일합니다. 이 묶음은 컴파일된 코드가 준비되기 전까지 해석 실행으로 돌았습니다(컴파일은 다른 스레드에서 진행).';
       if (c.mode === 'jit' && i === 1) s += ' 컴파일된 기계어로 실행되기 시작했습니다. 첫 묶음보다 3~4배 빠릅니다. JVM은 실행하면서 모은 정보(어느 분기가 자주 타는지 등)로 한 번 더 강하게 최적화합니다.';
       if (c.mode === 'int' && i === 0) s += ' -Xint 옵션으로 JIT 컴파일러를 껐습니다. 모든 호출을 인터프리터가 해석합니다.';
       if (c.mode === 'int' && i === 3) s += ' 아무리 반복해도 빨라지지 않습니다.';
-      if (c.mode === 'warm' && i === 0) s += ' 사용자가 보는 첫 묶음부터 이미 컴파일된 코드로 실행됩니다.';
+      if (c.mode === 'warm' && i === 0) s += ' 사용자가 보는 첫 묶음부터 컴파일이 이미 진행된 상태로 실행됩니다.';
       push(s, c.mode === 'int' ? 'bad' : c.mode === 'jit' && i === 0 ? 'bad' : 'good', i + 1);
     });
     var mx = Math.max.apply(null, D), mn = Math.min.apply(null, D);
@@ -43,5 +43,5 @@ Lab.register({
     H.title(v, '묶음별 소요 시간 (묶음 하나 = 2,000번 호출, 막대는 37ms 기준)'); var ln = H.lanes(v);
     D.forEach(function (us, i) { if (i < n) H.lane(ln, (i + 1) + '번째', (Math.round(us / 100) / 10) + 'ms', us > 20000 ? 'bad' : us > 3000 ? 'hot' : 'good', Math.max(0.01, us / mx)); else H.lane(ln, (i + 1) + '번째', '', 'none'); });
   },
-  assume: '모든 숫자는 이 PC의 JDK 21에서 위 코드를 실제로 실행해 잰 값입니다(기본 설정 두 번 실행 중 첫 번째, -Xint 한 번). "미리 워밍업"은 기본 설정 측정값에서 첫 묶음을 워밍업으로 보고 그 뒤의 값을 보여 준 것입니다. 수치는 CPU와 실행 시점에 따라 달라지지만, 첫 구간이 느리고 그 뒤로 빨라지는 모양은 같습니다. 기본 설정의 JVM은 가벼운 컴파일(C1)과 강한 최적화 컴파일(C2)을 단계적으로 적용합니다.',
+  assume: '숫자는 이 PC의 JDK 21에서 위 코드를 실제로 실행해 잰 값입니다(기본 설정 두 번 실행 중 첫 번째, -Xint 한 번). "미리 워밍업"의 값은 기본 설정 측정값에서 첫 묶음을 빼고 이어 붙인 것이고, 마지막 값 하나(1.4ms)는 측정값이 아니라 비슷한 값을 덧붙인 것입니다. 수치는 CPU와 실행 시점에 따라 달라지지만, 첫 구간이 느리고 그 뒤로 빨라지는 모양은 같습니다. 기본 설정의 JVM은 가벼운 컴파일(C1)과 강한 최적화 컴파일(C2)을 단계적으로 적용합니다.',
 });

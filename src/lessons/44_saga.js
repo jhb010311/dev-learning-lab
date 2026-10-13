@@ -49,7 +49,7 @@ Lab.register({
       S.other = '주문이 생긴 줄 모름'; pushO('서버가 다시 떠도 "보내야 했던 메시지"가 있었다는 기록이 어디에도 없습니다. 주문은 DB에 있는데 결제와 재고 서비스는 영영 알지 못합니다. 주문이 멈춘 채 남습니다.', 'bad');
       okAll = false; sum.push('DB에는 주문이 있지만 메시지는 유실됐습니다. 커밋과 발행은 별개의 동작이라 그 사이에 실패하면 둘이 어긋납니다.');
     } else if (c.pub === 'before') {
-      S.db = '주문 INSERT (커밋 전)'; pushO('주문을 INSERT했습니다. 아직 커밋 전입니다.', '');
+      S.db = '주문 INSERT (커밋 전)'; pushO('주문을 저장했습니다. 아직 커밋 전입니다.', '');
       S.mq = '"주문 생성됨" 발행됨'; S.other = '메시지를 받아 결제 진행 중'; pushO('커밋하기 전에 메시지를 먼저 발행했습니다. 다른 서비스들이 메시지를 받아 처리를 시작합니다.', '');
       S.db = '롤백됨 (주문 없음)'; pushO('커밋하려는 순간 서버가 죽어 트랜잭션이 롤백됐습니다. 주문은 DB에 없습니다. 그런데 메시지는 이미 나갔고 되돌릴 수 없습니다. 존재하지 않는 주문에 대해 결제가 진행됩니다.', 'bad');
       okAll = false; sum.push('메시지는 나갔는데 주문은 없습니다. 순서를 바꿔도 문제의 방향만 달라질 뿐 해결되지 않습니다.');
@@ -69,7 +69,7 @@ Lab.register({
     if (sim.part === 'saga') H.table(v, ['단계', '서비스 (각자 DB를 가짐)', '작업', '상태'], sim.steps.map(function (x, i) { var z = s.st[i]; return { cells: [String(i + 1), x[1], x[2], { v: z, cls: z === '실패' ? 'bad' : z.indexOf('보상') === 0 ? 'hot' : z === '대기' ? '' : 'good' }] }; }), '주문 처리의 네 단계');
     else { var ln = H.lanes(v); H.lane(ln, '주문 DB', 'orders 테이블: ' + s.db, s.db.indexOf('롤백') >= 0 ? 'bad' : s.db === '없음' ? 'none' : 'good'); if (sim.c.pub === 'outbox') H.lane(ln, '주문 DB', 'outbox 테이블: ' + s.ob, s.ob === '없음' ? 'none' : 'wait'); H.lane(ln, 'Kafka', s.mq, s.mq === '없음' ? 'none' : 'good'); H.lane(ln, '다른 서비스', s.other, s.other.indexOf('모름') >= 0 ? 'bad' : s.other === '대기' ? 'none' : ''); }
   },
-  // 그림: 서비스마다 DB가 따로 있는 네 단계. 앞으로 가는 화살표는 다음 단계 호출, 뒤로 가는 화살표는 보상(되돌리기).
+  // 그림: 서비스마다 DB가 따로 있는 네 단계. 앞으로 가는 화살표는 다음 단계로 가는 이벤트, 뒤로 가는 화살표는 보상(되돌리기).
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     P.size(680, 300);

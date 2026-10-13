@@ -131,7 +131,7 @@ Lab.register({
       P.box('fm', 384, 106, 266, 44, { cls: 'ghost', title: 'memo', sub: s.err ? '실행되지 않음' : '아직 객체가 없음' });
     }
     P.box('vo', 384, 196, 266, 38, { cls: s.o ? 'wait' : 'ghost', title: '변수 o', right: s.o ? '객체를 가리킴' : s.err ? '없음' : '아직 비어 있음' });
-    if (s.o) P.arrow('ao', 'vo:t', 'fm:b', {});
+    if (s.o) P.arrow('ao', 'vo:t', 'hp:b', {});
     if (s.cur && s.tgt) P.arrow('wr', s.cur + ':r', s.tgt + ':l', { cls: 'hot' });
     P.box('out', 16, 266, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? '컴파일 오류' : '콘솔 출력', right: s.err ? '맞는 생성자가 없음' : s.out || (s.made ? (noarg ? 'new Order()' : 'new Order(3)') + ' 진행 중' : '아직 실행 전') });
     P.note('왼쪽 상자의 "1번째, 2번째"는 실제로 실행된 순서입니다.');

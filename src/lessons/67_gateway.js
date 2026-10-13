@@ -17,7 +17,7 @@ Lab.register({
   ],
   code: function (c) {
     var r = [];
-    if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order, ' + c.ratio + '        # ' + c.ratio + '%만 새 서비스로' : ''));
+    if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order, ' + c.ratio + '        # ' + c.ratio + '%만 새 서비스로\n        - id: order-legacy\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/orders/**\n            - Weight=order, ' + (100 - c.ratio) + '        # 나머지는 기존 서버로' : ''));
     if (+c.stage >= 2) r.push('        - id: payment\n          uri: http://payment-service\n          predicates:\n            - Path=/payments/**');
     if (+c.stage >= 3) r.push('        - id: member\n          uri: http://member-service\n          predicates:\n            - Path=/members/**');
     if (+c.stage < 3) r.push('        - id: legacy                   # 나머지는 전부 기존 서버로\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
@@ -33,7 +33,7 @@ Lab.register({
     var orderSeen = 0;
     reqs.forEach(function (r, i) {
       var noAuth = c.auth && (i === 2 || i === 6), to, why;
-      if (noAuth) { rej++; rows.push({ cells: [r[0], '(토큰 없음)', { v: '게이트웨이가 401로 거절', cls: 'bad' }] }); push(r[0] + ': 토큰이 없습니다. 게이트웨이가 뒤로 넘기지 않고 바로 401로 응답합니다. 뒤쪽 서비스들은 각자 토큰 검증 코드를 가질 필요가 없습니다.', 'bad'); return; }
+      if (noAuth) { rej++; rows.push({ cells: [r[0], '(토큰 없음)', { v: '게이트웨이가 401로 거절', cls: 'bad' }] }); push(r[0] + ': 토큰이 없습니다. 게이트웨이가 뒤로 넘기지 않고 바로 401로 응답합니다. 뒤쪽 서비스들은 토큰 없는 요청을 직접 걸러 내는 코드를 중복해서 가질 필요가 줄어듭니다.', 'bad'); return; }
       var moved = (r[1] === 'orders' && st >= 1) || (r[1] === 'payments' && st >= 2) || (r[1] === 'members' && st >= 3);
       if (moved && r[1] === 'orders' && st === 1 && ratio < 100) { orderSeen++; moved = ratio === 50 ? orderSeen % 2 === 0 : orderSeen === 5; why = moved ? ' 비율 설정에 따라 이 요청은 새 서비스로 갑니다.' : ' 비율 설정에 따라 이 요청은 아직 기존 서버로 갑니다.'; }
       to = moved ? { orders: '주문 서비스 (새)', payments: '결제 서비스 (새)', members: '회원 서비스 (새)' }[r[1]] : '기존 서버 (모놀리스)';
@@ -42,7 +42,7 @@ Lab.register({
       push(r[0] + ': 경로가 /' + r[1] + '로 시작합니다. ' + (why || (moved ? '이 경로는 새 서비스로 넘기도록 설정돼 있습니다.' : '따로 지정된 경로가 아니므로 기존 서버로 갑니다.')) + ' → ' + to, moved ? 'good' : '');
     });
     if (st === 0) sum.push('아직 아무것도 옮기지 않았습니다. 게이트웨이를 먼저 세워 두는 것이 전환의 첫 단계입니다. 이후에는 설정만 바꿔 경로를 하나씩 넘길 수 있습니다.');
-    if (st === 1 || st === 2) sum.push('기능을 한 번에 다 옮기지 않고 경로 단위로 떼어 냅니다. 새 서비스에 문제가 생기면 설정을 되돌려 다시 기존 서버로 보내면 됩니다. 기존 시스템을 조금씩 감싸며 대체해 간다고 해서 Strangler Fig(교살자 무화과) 패턴이라고 부릅니다.');
+    if (st === 1 || st === 2) sum.push('기능을 한 번에 다 옮기지 않고 경로 단위로 떼어 냅니다. 새 서비스에 문제가 생기면 설정을 되돌려 요청을 다시 기존 서버로 보낼 수 있습니다(새 서비스가 쓴 데이터는 따로 챙겨야 합니다). 기존 시스템을 조금씩 감싸며 대체해 간다고 해서 Strangler Fig(교살자 무화과) 패턴이라고 부릅니다.');
     if (st === 1 && ratio < 100) sum.push('경로를 넘길 때도 일부 비율만 먼저 보내 실제 요청으로 검증합니다. 이때 같은 데이터를 두 서버가 함께 다루므로 DB를 어떻게 나눌지가 가장 어려운 문제입니다.');
     if (st === 3) sum.push('기존 서버로 가는 요청이 0건이 됐습니다. 이제 기존 서버를 내릴 수 있습니다.');
     if (c.auth) sum.push('게이트웨이가 인증, 로그, 요청 수 제한 같은 공통 관심사를 입구에서 처리합니다. 대신 게이트웨이가 죽으면 전체가 멈추므로 여러 대로 띄우고, 업무 로직은 넣지 않습니다.');
@@ -61,7 +61,7 @@ Lab.register({
     P.box('cn', 236, end + 14, 208, 34, { cls: 'good', title: '새 서비스로', right: s.neu + '건' });
     P.box('cr', 456, end + 14, 208, 34, { cls: s.rej ? 'bad' : 'ghost', title: '입구에서 거절', right: s.rej + '건' });
     P.size(680, end + 64);
-    P.note('모든 화살표는 게이트웨이의 선을 지나갑니다.');
+    P.note('화살표는 게이트웨이의 선을 가로질러 그렸지만, 실제로는 게이트웨이가 요청을 받아서 뒤쪽 서버로 다시 보냅니다.');
   },
   assume: '요청 10건의 고정된 예입니다. 비율 설정은 10건 안에서 차이가 보이도록 단순하게 배정했습니다(50%는 주문 요청을 번갈아, 10%는 다섯 번째 주문 요청 하나). 설정 예시는 Spring Cloud Gateway의 경로·가중치 조건을 따랐습니다. 기능을 옮길 때 가장 어려운 데이터 분리와 두 시스템 사이의 동기화는 다루지 않았습니다.',
 });

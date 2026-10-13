@@ -108,7 +108,7 @@ Lab.register({
     P.size(680, 314);
     P.region('rd', 16, 16, 190, 190, '자식 클래스 Dog');
     P.region('ra', 250, 16, 190, 190, '부모 클래스 Animal');
-    P.region('hp', 462, 16, 202, 190, '힙: Dog 객체 하나');
+    P.region('hp', 462, 16, 202, 136, '힙: Dog 객체 하나');
     function cls(id) { return s.cur === id ? 'hot now' : (id === 'cc' && s.stack[0] === 'Dog()') || (id === 'pc' && s.stack.length > 1 && /^Animal\(/.test(s.stack[1])) ? 'wait' : s.done.indexOf(id) >= 0 ? 'good' : 'plain'; }
     P.box('cc', 24, 50, 174, 40, { cls: cls('cc'), title: '생성자 Dog()', sub: c.sup === 'omit' ? 'super()가 자동으로' : c.sup === 'noarg' ? 'super();' : 'super("바둑이");' });
     P.box('cf', 24, 100, 174, 40, { cls: cls('cf'), title: '필드 초기화식', sub: 'sound = "멍멍"' });
@@ -125,7 +125,7 @@ Lab.register({
       P.box('fn', 470, 50, 186, 40, { cls: 'ghost', title: 'name', sub: s.err ? '실행되지 않음' : '아직 객체가 없음' });
       P.box('fs', 470, 100, 186, 40, { cls: 'ghost', title: 'sound', sub: s.err ? '실행되지 않음' : '아직 객체가 없음' });
     }
-    P.box('vd', 470, 150, 186, 40, { cls: s.d ? 'wait' : 'ghost', title: '변수 d', right: s.d ? '객체를 가리킴' : s.err ? '없음' : '아직 비어 있음' });
+    P.box('vd', 470, 174, 186, 32, { cls: s.d ? 'wait' : 'ghost', title: '변수 d', right: s.d ? '객체를 가리킴' : s.err ? '없음' : '아직 비어 있음' }); if (s.d) P.arrow('ad', 'vd:t', 'hp:b', {});
     if (s.stack.length > 1 && /^Animal\(/.test(s.stack[1])) P.arrow('a1', 'cc:r:0.35', 'pc:l:0.35', { cls: 'hot', label: 'super' });
     if (s.phase === 'new' && s.stack.indexOf('Dog.describe()') >= 0) P.arrow('a2', 'pc:l:0.8', 'cd:r:0.3', { cls: 'bad' });
     if (top === 'Animal.describe()') P.arrow('a3', 'cd:r:0.7', 'pd:l:0.7', { cls: 'hot', label: 'super.' });

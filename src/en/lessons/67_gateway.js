@@ -17,7 +17,7 @@ Lab.register({
   ],
   code: function (c) {
     var r = [];
-    if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order, ' + c.ratio + '        # ' + c.ratio + '% to the new service' : ''));
+    if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order, ' + c.ratio + '        # ' + c.ratio + '% to the new service\n        - id: order-legacy\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/orders/**\n            - Weight=order, ' + (100 - c.ratio) + '        # the rest goes to the existing server' : ''));
     if (+c.stage >= 2) r.push('        - id: payment\n          uri: http://payment-service\n          predicates:\n            - Path=/payments/**');
     if (+c.stage >= 3) r.push('        - id: member\n          uri: http://member-service\n          predicates:\n            - Path=/members/**');
     if (+c.stage < 3) r.push('        - id: legacy                   # everything else goes to the existing server\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
@@ -33,7 +33,7 @@ Lab.register({
     var orderSeen = 0;
     reqs.forEach(function (r, i) {
       var noAuth = c.auth && (i === 2 || i === 6), to, why;
-      if (noAuth) { rej++; rows.push({ cells: [r[0], '(no token)', { v: 'Rejected by the gateway with 401', cls: 'bad' }] }); push(r[0] + ': There is no token. The gateway does not pass the request on, and responds with 401 Unauthorized right away. The services behind it do not each need their own token validation code.', 'bad'); return; }
+      if (noAuth) { rej++; rows.push({ cells: [r[0], '(no token)', { v: 'Rejected by the gateway with 401', cls: 'bad' }] }); push(r[0] + ': There is no token. The gateway does not pass the request on, and responds with 401 Unauthorized right away. The services behind it need less duplicated code of their own for rejecting requests that have no token.', 'bad'); return; }
       var moved = (r[1] === 'orders' && st >= 1) || (r[1] === 'payments' && st >= 2) || (r[1] === 'members' && st >= 3);
       if (moved && r[1] === 'orders' && st === 1 && ratio < 100) { orderSeen++; moved = ratio === 50 ? orderSeen % 2 === 0 : orderSeen === 5; why = moved ? 'Based on the ratio setting, this request goes to the new service.' : 'Based on the ratio setting, this request still goes to the existing server.'; }
       to = moved ? { orders: 'Order service (new)', payments: 'Payment service (new)', members: 'Member service (new)' }[r[1]] : 'Existing server (monolith)';
@@ -42,7 +42,7 @@ Lab.register({
       push(r[0] + ': The path starts with /' + r[1] + '. ' + (why || (moved ? 'This path is configured to be passed to the new service.' : 'It is not a path with its own rule, so it goes to the existing server.')) + ' → ' + to, moved ? 'good' : '');
     });
     if (st === 0) sum.push('Nothing has been moved yet. Putting the gateway in place first is the first step of the migration. After that, you can hand routes over one at a time just by changing the configuration.');
-    if (st === 1 || st === 2) sum.push('You do not move every feature at once; you split them off one route at a time. If something goes wrong with a new service, you can change the configuration back and send the requests to the existing server again. Because the new system gradually wraps around the existing one and replaces it, this approach is called the strangler fig pattern.');
+    if (st === 1 || st === 2) sum.push('You do not move every feature at once; you split them off one route at a time. If something goes wrong with a new service, you can change the configuration back and send the requests to the existing server again (the data the new service has written has to be handled separately). Because the new system gradually wraps around the existing one and replaces it, this approach is called the strangler fig pattern.');
     if (st === 1 && ratio < 100) sum.push('Even when you hand a route over, you first send only a share of the requests and verify the new service with real requests. During this time two servers work with the same data, so how to split the database is the hardest problem.');
     if (st === 3) sum.push('The number of requests going to the existing server is now 0. You can shut the existing server down.');
     if (c.auth) sum.push('The gateway handles cross-cutting concerns such as authentication, logging, and rate limiting at the entrance. In return, everything stops if the gateway goes down, so run several instances of it, and do not put business logic in it.');
@@ -61,7 +61,7 @@ Lab.register({
     P.box('cn', 236, end + 14, 208, 34, { cls: 'good', title: 'To new service', right: s.neu + '' });
     P.box('cr', 456, end + 14, 208, 34, { cls: s.rej ? 'bad' : 'ghost', title: 'Rejected at entrance', right: s.rej + '' });
     P.size(680, end + 64);
-    P.note('Every arrow passes through the line of the gateway.');
+    P.note('The arrows are drawn across the line of the gateway, but in reality the gateway receives the request and sends it on again to the server behind it.');
   },
   assume: 'This is a fixed example of 10 requests. The ratio setting is assigned in a simple way so that the difference shows within the 10 requests (for 50%, order requests alternate; for 10%, only the fifth order request goes to the new service). The configuration example follows the path and weight predicates of Spring Cloud Gateway. Separating the data and synchronizing the two systems, which are the hardest parts of moving a feature, are not covered.',
 });

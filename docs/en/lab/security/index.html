@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -66,7 +66,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>401 means &quot;it has not been confirmed who this is&quot; (authentication failed). A request for an admin path without a token gets 401, not 403, because permissions cannot be checked while it is not known who the user is.</li>
+<li>401 means &quot;it has not been confirmed who this is&quot; (authentication failed). A request for an admin path without a token gets 401, not 403, because it is set up to answer 401 when a request from an unknown user is denied (without this setup, 403 is sent).</li>
 <li>This response is produced in a filter before the request reaches DispatcherServlet, so it cannot be changed with @ControllerAdvice. To change the format of the response, register your own AuthenticationEntryPoint and AccessDeniedHandler.</li>
 </ul>
 <h2>Code</h2>
@@ -178,6 +178,6 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

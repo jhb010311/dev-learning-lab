@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Commonly used classes</p>
 <h1>equals and hashCode</h1>
 <p><b>Why can HashMap not find the key when you override only equals?</b></p>
-<p>To treat two objects with the same contents as equal, you override equals. But before HashMap and HashSet call equals, they first use hashCode to decide which bucket to look in. So if you override only one of equals and hashCode, a collection cannot find an object that you meant to be equal.</p>
+<p>To treat two objects with the same contents as equal, you override equals. But before HashMap and HashSet call equals, they first use hashCode to decide which bucket to look in. So if you override only one of equals and hashCode, HashMap and HashSet cannot find an object that you meant to be equal.</p>
 <p>Checked against real execution · The 12 combinations were run on JDK 21 and checked against the results</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -61,7 +61,7 @@
 <li>a.equals(b): The overridden equals compares the id values. They are 1 and 1, so the result is true.</li>
 <li>Comparing hashCode: hashCode is not overridden, so the hashCode of Object is used. This value is determined separately for each object, so the values of a and b, which are different objects, are (almost always) different. Two objects for which equals is true now have different hashCode values. This breaks the contract that &quot;equal objects must have equal hash codes&quot;.</li>
 <li>map.put(a, &quot;order details&quot;): HashMap first uses a.hashCode() to decide which bucket (storage location) the entry goes into, and then puts the key a together with the value in that bucket.</li>
-<li>map.get(b): First, b.hashCode() decides which bucket to look in. The hashCode is different from that of a, so the bucket that holds a is not examined. equals is never even called, and null is returned. The value cannot be retrieved even though the two objects are equal according to equals.</li>
+<li>map.get(b): First, b.hashCode() decides which bucket to look in. The hashCode is different from that of a, so the lookup usually goes to a different bucket, and even in the same bucket, a key whose hash value is different never reaches equals. equals is never even called, and null is returned. The value cannot be retrieved even though the two objects are equal according to equals.</li>
 <li>set.add(a), set.add(b): HashSet uses a HashMap internally, so it decides in the same order. b is treated as a different element from a, so both are added. The size is 2. Objects with the same contents are now in the set as duplicates.</li>
 </ol>
 <h3>Result of this run</h3>
@@ -182,6 +182,6 @@ System.out.println(set.size());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

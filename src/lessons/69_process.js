@@ -16,7 +16,7 @@ Lab.register({
     { t: '같은 오류, 프로세스가 따로라면', q: '프로세스 3개를 각각 스레드 1개로 실행하고 작업 2에서 System.exit을 호출하면', d: '그 프로세스만 죽고 나머지는 무사합니다.', v: { how: 'proc', fail: 'kill' } },
   ],
   code: function (c) {
-    var body = 'static int counter = 0;                 // 프로세스의 메모리에 있는 변수\n\nstatic void work(int id) throws Exception {\n    Thread.sleep(300);                  // 0.3초 걸리는 작업\n' + (c.fail === 'ex' ? '    if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '    if (id == 2) System.exit(3);        // 프로세스 전체를 끝낸다\n' : '') + '    counter++;\n}\n\n';
+    var body = 'static int counter = 0;                 // 프로세스의 메모리에 있는 변수\n\nstatic void work(int id) {\n    try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // 0.3초 걸리는 작업\n' + (c.fail === 'ex' ? '    if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '    if (id == 2) System.exit(3);        // 프로세스 전체를 끝낸다\n' : '') + '    counter++;\n}\n\n';
     if (c.how === 'single') return body + '// 스레드 하나(main)가 차례로\nfor (int i = 1; i <= 3; i++) work(i);';
     if (c.how === 'multi') return body + '// 같은 프로세스 안에 스레드 3개\nfor (int i = 1; i <= 3; i++) {\n    int id = i;\n    new Thread(() -> work(id)).start();\n}';
     return body + '// 프로세스 3개: 같은 프로그램을 따로따로 실행\nfor (int i = 1; i <= 3; i++) {\n    new ProcessBuilder("java", "Worker", String.valueOf(i)).start();\n}';
@@ -78,7 +78,7 @@ Lab.register({
     procs.forEach(function (p, i) {
       var x = n === 1 ? 16 : 16 + i * 222, w = n === 1 ? 648 : 204, tw = n === 1 ? 196 : w - 24, k = p.th.length;
       P.region('p' + i, x, 16, w, 268, p.p + (p.alive ? '' : ' (종료됨)'));
-      P.box('m' + i, x + 12, 52, w - 24, 44, { cls: p.alive ? 'good' : 'ghost', title: n === 1 ? '이 프로세스의 메모리 (힙)' : '메모리', right: p.alive ? 'counter = ' + p.mem : '사라짐' });
+      P.box('m' + i, x + 12, 52, w - 24, 44, { cls: p.alive ? 'good' : 'ghost', title: n === 1 ? '이 프로세스의 메모리' : '메모리', right: p.alive ? 'counter = ' + p.mem : '사라짐' });
       p.th.forEach(function (th, j) {
         var tx = n === 1 ? (k === 1 ? 242 : 28 + j * 214) : x + 12, id = 't' + i + '_' + j, st = th.st;
         P.box(id, tx, 160, tw, 60, { cls: st.indexOf('완료') >= 0 || st === '모두 끝냄' ? 'good' : st.indexOf('종료') >= 0 ? 'bad' : st === '대기' ? 'plain' : 'hot', title: th.name || '스레드 ' + th.id, sub: [st, '자기 스택을 따로 가짐'] });

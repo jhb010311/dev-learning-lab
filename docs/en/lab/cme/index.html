@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -51,7 +51,7 @@
 <li><b>Removing from the back</b> — The elements that shift are on the side that was already visited, so there is no problem.</li>
 <li><b>Iterator.remove()</b> — Removing through the iterator is safe.</li>
 <li><b>removeIf()</b> — This is the simplest and safest way.</li>
-<li><b>Removal in a for statement on a CopyOnWriteArrayList</b> — No exception is thrown. The loop iterates over a copy.</li>
+<li><b>Removal in a for statement on a CopyOnWriteArrayList</b> — No exception is thrown. The loop iterates over the old array from when it was created.</li>
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
@@ -161,6 +161,6 @@ for (Integer x : list) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

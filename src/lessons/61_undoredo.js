@@ -43,7 +43,7 @@ Lab.register({
         sum.push('커밋의 속도는 로그를 디스크에 쓰는 속도로 정해집니다. 데이터 파일 반영은 나중에 모아서 합니다.');
       } else {
         S.mem = '(사라짐)'; push('커밋 응답 직후, 데이터 파일에 옮겨 쓰기 전에 서버가 꺼졌습니다. 메모리의 500은 사라졌고 데이터 파일에는 1000이 남아 있습니다. 사용자는 이미 "성공"을 받았습니다.', 'bad');
-        S.mem = '(재시작 중)'; push('서버가 다시 시작됩니다. 복구 과정이 디스크의 Redo 로그를 처음부터 읽습니다.', '');
+        S.mem = '(재시작 중)'; push('서버가 다시 시작됩니다. 복구 과정이 디스크의 Redo 로그를 마지막 체크포인트부터 읽습니다.', '');
         S.mem = '500'; S.file = '500'; usedR = 'Redo 로그'; fin = '500'; prop = '지속성';
         push('Redo 로그에 "계좌 1을 500으로"와 커밋 표시가 있습니다. 이 변경을 다시 적용합니다. 잔액은 500으로 복구됩니다. 커밋된 데이터는 잃지 않았습니다.', 'good');
         sum.push('커밋된 변경은 데이터 파일에 아직 쓰이지 않았더라도 Redo 로그에서 복구됩니다. "커밋된 것은 장애가 나도 남는다"(지속성)를 Redo 로그가 받쳐 줍니다.');
@@ -58,7 +58,7 @@ Lab.register({
     H.table(v, ['위치', '내용'], [
       { cells: ['메모리 (버퍼 풀)', { v: s.mem, cls: s.mem.indexOf('500') === 0 ? 'hot' : s.mem.indexOf('사라') >= 0 ? 'bad' : '' }] },
       { cells: ['디스크: 데이터 파일', { v: s.file, cls: s.file === '500' ? 'good' : '' }] },
-      { cells: ['디스크: Redo 로그', { v: s.redo, cls: s.redo.indexOf('커밋 표시 (') >= 0 ? 'good' : '' }] },
+      { cells: ['Redo 로그', { v: s.redo, cls: s.redo.indexOf('커밋 표시 (') >= 0 ? 'good' : '' }] },
       { cells: ['Undo 로그', s.undo] },
     ], '계좌 1의 잔액이 저장된 곳');
   },
@@ -69,7 +69,7 @@ Lab.register({
     P.box('tx', 16, 16, 648, 36, { cls: s.tx.indexOf('커밋') >= 0 ? 'good' : s.tx.indexOf('롤백') >= 0 ? 'bad' : 'plain', title: '트랜잭션 상태', right: s.tx });
     P.region('ram', 16, 66, 648, 84, '메모리: 서버가 꺼지면 사라짐');
     P.box('mem', 28, 100, 624, 38, { cls: gone ? 'bad' : s.mem.indexOf('500') === 0 ? 'hot' : 'plain', title: '버퍼 풀에 올라온 잔액', right: s.mem });
-    P.region('disk', 16, 164, 648, 142, '디스크: 서버가 꺼져도 남음');
+    P.region('disk', 16, 164, 648, 142, '로그와 데이터 파일 (디스크에 써진 것은 서버가 꺼져도 남음)');
     P.box('redo', 28, 198, 624, 30, { cls: redoOk ? 'good' : 'plain', title: 'Redo 로그', right: s.redo });
     P.box('undo', 28, 232, 624, 30, { cls: 'plain', title: 'Undo 로그', right: s.undo });
     P.box('file', 28, 266, 624, 30, { cls: s.file === '500' ? 'good' : 'plain', title: '데이터 파일', right: s.file });

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
+<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -56,13 +56,13 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>A 계좌 5,000원, B 계좌 1,000원. 합계는 6,000원입니다. A에서 B로 1,000원을 이체합니다.</li>
-<li>출금: A를 4,000원으로 바꿉니다. 트랜잭션이 없으므로 이 문장은 실행되자마자 확정(커밋)됩니다. 되돌릴 수 없습니다.</li>
+<li>출금: A를 4,000원으로 바꿉니다. 여러 문장을 묶는 트랜잭션이 없으므로, 이 문장 하나가 끝나자마자 확정(커밋)됩니다. 되돌릴 수 없습니다.</li>
 <li>애플리케이션에서 오류가 발생해 입금 문장을 실행하지 못했습니다. 출금은 이미 확정돼 있습니다. A에서는 1,000원이 빠졌는데 B에는 들어가지 않았습니다. 1,000원이 사라졌습니다.</li>
 </ol>
 <h3>실행 결과</h3>
 <ul>
 <li>여러 문장이 &quot;전부 되거나 전부 안 되거나&quot;여야 하는데 일부만 반영됐습니다. 트랜잭션은 이것을 보장하는 장치입니다(원자성).</li>
-<li>트랜잭션의 네 가지 성질(ACID): 전부 아니면 전무(원자성), 규칙에 맞는 상태 유지(일관성), 진행 중인 변경은 서로 안 보임(격리성), 커밋된 것은 남음(지속성). 스프링의 @Transactional은 메서드 시작에 START TRANSACTION, 정상 종료에 COMMIT, 예외에 ROLLBACK을 대신 보내 주는 것입니다.</li>
+<li>트랜잭션의 네 가지 성질(ACID): 전부 아니면 전무(원자성), 규칙에 맞는 상태 유지(일관성), 진행 중인 변경은 서로 안 보임(격리성), 커밋된 것은 남음(지속성). 스프링의 @Transactional은 메서드 시작에 START TRANSACTION, 정상 종료에 COMMIT, 런타임 예외에 ROLLBACK(체크 예외는 기본 설정에서 COMMIT)을 대신 보내 주는 것입니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>-- 자동 커밋: 문장 하나가 끝날 때마다 바로 확정된다
@@ -158,6 +158,6 @@ UPDATE account SET balance = balance - 1000 WHERE id = 'A';   -- 출금
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=facdcb7ce9"></script>
+<script src="../../app.js?v=137acd1ae5"></script>
 </body>
 </html>

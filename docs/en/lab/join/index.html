@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>If you put a WHERE condition on a column of the right table after a LEFT JOIN, the rows filled with NULL are filtered out, and the result becomes the same as with an INNER JOIN. If you want to keep the rows with no match and attach only the orders that satisfy the condition, write the condition in ON.</li>
+<li>If you put a WHERE condition on a column of the right table after a LEFT JOIN, and the condition is not true for NULL (for example, only status PAID), the rows filled with NULL are filtered out, and the result becomes the same as with an INNER JOIN. If you want to keep the rows with no match and attach only the orders that satisfy the condition, write the condition in ON.</li>
 </ul>
 <h2>Code</h2>
 <pre>SELECT m.name, o.id, o.status
@@ -156,6 +156,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

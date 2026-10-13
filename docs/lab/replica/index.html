@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
+<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -65,7 +65,7 @@
 <li>복제는 보통 비동기라서 원본과 복제본 사이에 시차가 있습니다. 시간이 지나면 같아지지만 그 전에는 다를 수 있습니다(최종 일관성). 대응 방법은 자기가 방금 쓴 데이터는 원본에서 읽게 하는 것, 또는 쓰기 직후의 화면은 응답으로 받은 값을 그대로 쓰는 것입니다.</li>
 </ul>
 <h2>코드</h2>
-<pre>// readOnly 트랜잭션은 복제본으로, 그 외는 원본으로 보내는 설정
+<pre>// readOnly 트랜잭션은 복제본으로, 그 외는 원본으로 보내도록 데이터소스를 따로 구성해 둔 경우
 @Transactional
 public void changeNickname(long id, String name) {     // -&gt; 원본
     memberRepository.findById(id).orElseThrow().setNickname(name);
@@ -164,6 +164,6 @@ public Member getMember(long id) {                      // -&gt; 복제본
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=facdcb7ce9"></script>
+<script src="../../app.js?v=137acd1ae5"></script>
 </body>
 </html>

@@ -78,7 +78,7 @@ Lab.register({
       st.out.push('B'); rel = 'The inner object refers to the outer object o';
       push('in.who(): Inside Inner, name means "the name of the outer object that I refer to". The value was not copied in advance. It is read now by following the reference, so B is printed.', 'good');
       sum.push('An object of an inner class without static holds a reference to the outer object, so it can use the fields and methods of the outer object as if they were its own.');
-      sum.push('In return, as long as the inner object remains, the outer object is not removed by garbage collection either. This is why static is added to a class inside that does not use the outer object.');
+      sum.push('In return, as long as an inner class object that uses members of the outer object is alive, the outer object is not removed by garbage collection either. This is why static is added to a class inside that does not use the outer object.');
     } else if (member) {
       st.cmp = 'ok'; push(passed);
       st.inn = true;
@@ -140,7 +140,7 @@ Lab.register({
       P.box('in', 378, 62, 272, 56, s.inn ? { cls: s.ref ? 'hot' : 'good', title: 'in : ' + (nested ? 'Nested' : 'Inner') + ' object', sub: s.ref ? 'hidden field refers to o' : 'no reference to an outer object' } : { cls: bad ? 'bad' : 'ghost', title: (nested ? 'Nested' : 'Inner') + ' object', sub: bad ? 'not created (compile-time error)' : 'not created yet' });
       if (s.ref) P.arrow('ref', 'in:l', 'o:r', { cls: 'hot', label: 'reference' });
     } else {
-      P.region('L', 16, 16, 300, 180, 'Outer object and local variable');
+      P.region('L', 16, 16, 300, 180, 'Outer, local variable, array');
       P.region('R', 364, 16, 300, 180, 'What r refers to');
       P.box('o', 30, 50, 272, 34, s.o ? { cls: s.th === 'outer' ? 'good' : 'wait', title: 'Outer object', right: s.o === 'run' ? 'make() running' : 'make() ended' } : { cls: 'ghost', title: 'Outer object', right: bad ? 'not run' : 'not created yet' });
       P.box('cnt', 30, 100, 272, 34, s.cnt && s.live ? { cls: 'wait', title: 'count (local variable)', right: arr ? '→ array' : s.cnt } : { cls: 'ghost', title: 'count (local variable)', right: s.cnt ? 'gone' : bad ? 'set twice' : 'not yet' });

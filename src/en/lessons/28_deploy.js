@@ -13,7 +13,7 @@ Lab.register({
     { t: 'Take everything down first', q: 'What if you change the deployment strategy to take everything down, then bring up the new version?', d: 'The simplest way, but the service stops in the meantime.', v: { st: 'recreate', bug: false, grace: true } },
     { t: 'Blue-green', q: 'What if you change the deployment strategy to blue-green?', d: 'You need twice the servers, but switching and rolling back are instant.', v: { st: 'bluegreen', bug: false, grace: true } },
     { t: 'A version with a bug, deployed by rolling', q: 'What if v2 has a bug and you deploy by rolling as before?', d: 'Until you notice the problem, the range of impact keeps growing.', v: { st: 'rolling', bug: true, grace: true } },
-    { t: 'A version with a bug, deployed as a canary', q: 'What if you deploy as a canary and v2 has a bug?', d: 'Only some users are affected, and then you roll back.', v: { st: 'canary', bug: true, grace: true } },
+    { t: 'A version with a bug, deployed as a canary', q: 'What if you deploy as a canary and v2 has a bug?', d: 'Only some requests are affected, and then you roll back.', v: { st: 'canary', bug: true, grace: true } },
     { t: 'Without graceful shutdown', q: 'What if you turn off graceful shutdown?', d: 'Requests in progress are cut off when a server is taken down.', v: { st: 'rolling', bug: false, grace: false } },
   ],
   code: function (c) {
@@ -25,7 +25,7 @@ Lab.register({
   simulate: function (c) {
     var ev = [], S = ['v1', 'v1', 'v1', 'v1'], G = [], lb = 'v1 servers: 4', down = 'None', maxUp = 4, exposed = 'Not applicable', back = 'Not applicable', cut = 0, sum = [];
     function push(s, k) { var up = S.filter(function (x) { return x === 'v1' || x === 'v2'; }).length + G.filter(function (x) { return x === 'v2'; }).length; if (up > maxUp) maxUp = up; ev.push({ s: s, k: k, snap: { S: S.slice(), G: G.slice(), lb: lb, cut: cut } }); }
-    function stop(i) { S[i] = 'Stopping'; if (!c.grace) cut += 2; push('Server ' + (i + 1) + ': The load balancer stops sending new requests to this server, then sends a termination signal. ' + (c.grace ? 'The server finishes the requests in progress and then exits.' : 'It exits immediately. 2 requests in progress got no response and were cut off.'), c.grace ? '' : 'bad'); }
+    function stop(i) { S[i] = 'Stopping'; if (!c.grace) cut += 2; push('Server ' + (i + 1) + ': The load balancer stops sending new requests to this server, and a termination signal is sent to the server. ' + (c.grace ? 'The server finishes the requests in progress and then exits.' : 'It exits immediately. 2 requests in progress got no response and were cut off.'), c.grace ? '' : 'bad'); }
     push('Current state: all 4 servers are v1, and the load balancer spreads the requests evenly.', '');
     if (c.st === 'recreate') {
       for (var i = 0; i < 4; i++) S[i] = 'None'; lb = 'No server to send to'; if (!c.grace) cut += 8; down = 'Yes';
@@ -48,7 +48,7 @@ Lab.register({
     if (c.st === 'bluegreen') {
       G = ['Starting', 'Starting', 'Starting', 'Starting']; push('The existing v1 environment (blue) is left as it is, and a new v2 environment (green) of the same size is brought up. It does not receive user requests yet.', '');
       G = ['v2', 'v2', 'v2', 'v2']; push('The 4 green servers are ready. There are 8 servers running now. You can test the green environment before exposing it to users.', '');
-      lb = 'v2 servers: 4 (green)'; if (!c.grace) cut += 8; push('The target of the load balancer is switched from blue to green all at once. All requests go to v2.' + (c.grace ? ' The requests in progress on blue are processed to the end.' : ' Blue was taken down right away, so the 8 requests in progress were cut off.'), c.grace ? 'good' : 'bad');
+      lb = 'v2 servers: 4 (green)'; if (!c.grace) cut += 8; push('The target of the load balancer is switched from blue to green all at once. All requests go to v2.' + (c.grace ? ' The requests in progress on blue are processed to the end.' : ' The connections to blue were cut without waiting for the requests in progress to finish, so 8 requests were cut off.'), c.grace ? 'good' : 'bad');
       if (c.bug) { exposed = '100% (from right after the switch until the rollback)'; back = 'Switch the load balancer back to blue (instant)'; push('The bug in v2 shows up for all users. But the blue environment is still alive.', 'bad'); lb = 'v1 servers: 4 (blue)'; push('The load balancer is turned back to blue. No new servers need to be brought up, so the rollback finishes instantly.', 'good'); G = ['None', 'None', 'None', 'None']; }
       else { S = ['None', 'None', 'None', 'None']; push('After confirming that there is no problem, the blue environment is taken down.', ''); }
       sum.push('Switching and rolling back happen in an instant, and there is no time when the two versions are served mixed together. In return, you need twice the servers during the deployment, and all users move to the new version at the moment of the switch.');

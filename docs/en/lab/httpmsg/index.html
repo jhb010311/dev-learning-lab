@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -65,7 +65,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>The first digit of the status code alone tells you how to respond. With 4xx, sending the same request again does not help, and the request has to be fixed. 5xx is a problem on the server side, so you can try again after a short while. Monitoring also counts 4xx and 5xx separately.</li>
+<li>The first digit of the status code alone tells you how to respond. With 4xx, the request usually has to be fixed (a few, such as 408 and 429, can succeed if you send the same request again after a short while). 5xx is a problem on the server side, so you can try again after a short while. Monitoring also counts 4xx and 5xx separately.</li>
 <li>An HTTP message has four parts: the start line, the headers, an empty line, and the body. The start line of a request holds the method and the path, and the start line of a response holds the status code.</li>
 </ul>
 <h2>Code</h2>
@@ -162,6 +162,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

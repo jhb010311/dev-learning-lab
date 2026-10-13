@@ -41,7 +41,7 @@ Lab.register({
     if (c.api === 'same') {
       row('Browser', M + ' /api/orders', 'Sent', ''); push('The page (https://shop.example) and the API have the same origin. An origin is the combination of scheme, host, and port. There is no restriction between two parts of the same origin, so the browser simply sends the request.', '');
       row('Server', 'Handles the request', '200 OK', 'good'); row('Browser', 'Passes the response to the script', 'Passed', 'good'); push('The server responds, and the script receives the result. No CORS headers are needed.', 'good');
-      sum.push('CORS does not come into play within the same origin. This is why CORS problems do not occur when you put the front end and the API under the same domain (with a reverse proxy) or use the proxy feature of a development server.');
+      sum.push('CORS does not come into play within the same origin. This is why CORS problems do not occur when you put the front end and the API on the same origin (same host and port, with a reverse proxy) or use the proxy feature of a development server.');
       return { events: ev, summary: sum, row: ['None', 'Yes', 'Yes', '-'] };
     }
     push('The origin of the page is https://shop.example, and the origin of the API is https://api.shop.example. The hosts differ, so the origins differ. The browser first decides whether this is a kind of request that it may simply send.', '');

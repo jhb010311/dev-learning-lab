@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>2 consumers subscribe to the topic as one group. The group coordinator assigns the 3 partitions to the consumers. Within a group, a partition is handled by only one consumer.</li>
+<li>2 consumers subscribe to the topic as one group. The 3 partitions are divided among the consumers (the group coordinator coordinates the assignment). Within a group, a partition is handled by only one consumer.</li>
 <li>Messages arrive at 120 per second, and 40 per second go into each partition (assuming the keys are spread evenly). Each consumer processes 50 messages per second, and a consumer that handles several partitions shares that capacity among them. The throughput of the whole group is 90 messages per second.</li>
 <li>10 seconds have passed. Processing cannot keep up with the inflow, so 300 messages are waiting unread (consumer lag). If this continues, the lag grows without limit.</li>
 </ol>
@@ -168,6 +168,6 @@ while (true) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

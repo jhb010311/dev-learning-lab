@@ -17,7 +17,7 @@ Lab.register({
   ],
   code: function (c) {
     if (c.pipe === 'manual') return '# The developer types this directly on their own PC\n./gradlew build -x test      # skips the tests because of a rush\nscp build/libs/app.jar prod-server:/app/\nssh prod-server "systemctl restart app"\n\n# No record is left of who uploaded what code, or when';
-    return '# .github/workflows/ci.yml (GitHub Actions example)\non: [pull_request, push]\njobs:\n  build:\n    runs-on: ubuntu-latest             # starts in a clean environment every time\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-java@v4\n        with: { distribution: temurin, java-version: 21 }\n      - run: ./gradlew build           # compile + test. If it fails, the change cannot be merged\n' + (c.pipe === 'cicd' ? '      - run: docker build -t shop/app:${{ github.sha }} .\n      - run: docker push shop/app:${{ github.sha }}\n  deploy:\n    needs: build                       # runs only if build succeeds\n    if: github.ref == \'refs/heads/main\'\n    steps:\n      - run: kubectl set image deployment/app app=shop/app:${{ github.sha }}\n      - run: kubectl rollout status deployment/app || kubectl rollout undo deployment/app' : '\n# A person picks an artifact that passed and deploys it by hand');
+    return '# .github/workflows/ci.yml (GitHub Actions example)\non: [pull_request, push]\njobs:\n  build:\n    runs-on: ubuntu-latest             # starts in a clean environment every time\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-java@v4\n        with: { distribution: temurin, java-version: 21 }\n      - run: ./gradlew build           # compile + test. If it fails, it is marked failed (a required check also blocks merging)\n' + (c.pipe === 'cicd' ? '      - run: docker build -t shop/app:${{ github.sha }} .\n      - run: docker push shop/app:${{ github.sha }}\n  deploy:\n    needs: build                       # runs only if build succeeds\n    if: github.ref == \'refs/heads/main\'\n    steps:\n      - run: kubectl set image deployment/app app=shop/app:${{ github.sha }}\n      - run: kubectl rollout status deployment/app || kubectl rollout undo deployment/app' : '\n# A person picks an artifact that passed and deploys it by hand');
   },
   label: function (c) { return { manual: 'By hand', ci: 'CI', cicd: 'CI/CD' }[c.pipe] + ' · ' + { none: 'No problem', compile: 'Compile error', test: 'Bug that tests catch', env: 'Works only on my PC', runtime: 'Fails only in production' }[c.bug]; },
   columns: ['Where the problem was found', 'Impact on production users', 'What people did'],
@@ -49,7 +49,7 @@ Lab.register({
       hands.push('Push code');
       push('Push code', 'Done', 'Person', 'The developer pushes the change to the repository and opens a pull request. This is the signal that starts the pipeline automatically.', '');
       push('Setup', 'Done', 'Automatic', 'The code is downloaded into a clean environment with nothing installed. Files that exist only on the developer\'s PC are not here.', '');
-      if (R.stop === 'build') push('Build', 'Failed', 'Automatic', 'The build fails with a compile error. The pull request is marked as failed and cannot be merged.', 'bad');
+      if (R.stop === 'build') push('Build', 'Failed', 'Automatic', 'The build fails with a compile error. The pull request is marked as failed (and merging is blocked if this check is set as required).', 'bad');
       else {
         push('Build', 'Succeeded', 'Automatic', 'Compilation succeeds.', '');
         if (R.stop === 'test') push('Test', 'Failed', 'Automatic', 'All the tests run every time, with none left out. ' + (b === 'env' ? 'While the test starts the application, it fails because it cannot find a file that existed only on the developer\'s PC. "It works on my PC" gets exposed here.' : 'The test for the broken feature fails.') + ' The merge is blocked, and this code never gets anywhere near production.', 'bad');
@@ -95,7 +95,7 @@ Lab.register({
       if (i) P.arrow('ar' + i, 'sg' + (i - 1) + (i % 5 ? ':r' : ':b'), 'sg' + i + (i % 5 ? ':l' : ':t'), { cls: bad ? 'bad' : '' });
     });
     if (!n) P.text('hint', 340, 90, 'Click Run to go through the steps one at a time', { cls: 'mut', anchor: 'middle' });
-    P.note('Green is a step done automatically by a machine, blue is a step done by a person, red is a step that failed or caused an outage, and the dotted box is a skipped step. The further left a red step is, the earlier the problem was found.');
+    P.note('Green is a step done automatically by a machine, blue is a step done by a person (or a resulting state), red is a step that failed or caused an outage, and the dotted box is a skipped step. The further left a red step is, the earlier the problem was found.');
   },
   assume: 'This is a model made to explain the concept, and it is not a result checked by running real CI/CD tools. In "By hand", skipping the tests assumes a common accident; if you run the tests when working by hand, you can catch the same problem. The automatic rollback when the health check fails is the behavior you get when the pipeline and the deployment tool are configured that way. The workflow in the code is an example to show the structure; steps that real use needs, such as authentication and caching, are left out.',
 });

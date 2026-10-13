@@ -44,7 +44,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0, total = sim.spans[0][2];
     P.size(680, 260);
-    P.region('tr', 16, 16, 648, 228, c.prop ? '추적 화면: 같은 Trace ID로 묶인 구간들' : '추적 번호가 전달되지 않아 로그에 번호가 없음');
+    P.region('tr', 16, 16, 648, 228, c.prop ? '추적 화면: 같은 Trace ID로 묶인 구간들' : '서비스마다 추적 번호가 달라(또는 없어) 이을 수 없음');
     sim.spans.forEach(function (sp, i) {
       var y = 50 + i * 36, on = i < n, slow = n >= 6 && i === sim.mi && c.slow !== 'none';
       P.text('nm' + i, 28, y + 17, sp[0], { cls: on ? '' : 'mut' });

@@ -78,7 +78,7 @@ Lab.register({
       st.out.push('B'); rel = '안쪽 객체가 바깥 객체 o를 가리킴';
       push('in.who(): Inner 안의 name은 "내가 가리키는 바깥 객체의 name"입니다. 값을 복사해 둔 것이 아니라 참조를 따라가 지금 값을 읽으므로 B가 출력됩니다.', 'good');
       sum.push('static이 없는 내부 클래스의 객체는 바깥 객체를 가리키는 참조를 갖고 있어서, 바깥 객체의 필드와 메서드를 자기 것처럼 쓸 수 있습니다.');
-      sum.push('그 대신 안쪽 객체가 남아 있는 동안에는 바깥 객체도 가비지 컬렉션으로 치워지지 않습니다. 바깥 객체를 쓰지 않는 안쪽 클래스에는 static을 붙이는 이유입니다.');
+      sum.push('그 대신 바깥 객체의 멤버를 쓰는 내부 클래스 객체가 살아 있으면 바깥 객체도 가비지 컬렉션으로 치워지지 않습니다. 바깥 객체를 쓰지 않는 안쪽 클래스에는 static을 붙이는 이유입니다.');
     } else if (member) {
       st.cmp = 'ok'; push(passed);
       st.inn = true;
@@ -140,7 +140,7 @@ Lab.register({
       P.box('in', 378, 62, 272, 56, s.inn ? { cls: s.ref ? 'hot' : 'good', title: 'in : ' + (nested ? 'Nested' : 'Inner') + ' 객체', sub: s.ref ? '숨은 필드로 바깥 객체 o를 가리킴' : '바깥 객체를 가리키는 참조 없음' } : { cls: bad ? 'bad' : 'ghost', title: (nested ? 'Nested' : 'Inner') + ' 객체', sub: bad ? '만들 수 없음 (컴파일 오류)' : '아직 없음' });
       if (s.ref) P.arrow('ref', 'in:l', 'o:r', { cls: 'hot', label: '참조' });
     } else {
-      P.region('L', 16, 16, 300, 180, 'Outer 객체와 make()의 지역 변수');
+      P.region('L', 16, 16, 300, 180, 'Outer 객체, 지역 변수, 배열 객체');
       P.region('R', 364, 16, 300, 180, 'r이 가리키는 것');
       P.box('o', 30, 50, 272, 34, s.o ? { cls: s.th === 'outer' ? 'good' : 'wait', title: 'Outer 객체', right: s.o === 'run' ? 'make() 실행 중' : 'make() 끝남' } : { cls: 'ghost', title: 'Outer 객체', right: bad ? '실행되지 않음' : '아직 없음' });
       P.box('cnt', 30, 100, 272, 34, s.cnt && s.live ? { cls: 'wait', title: 'count (지역 변수)', right: arr ? '배열을 가리킴' : s.cnt } : { cls: 'ghost', title: 'count (지역 변수)', right: s.cnt ? '사라짐' : bad ? '값이 두 번 들어감' : '아직 없음' });

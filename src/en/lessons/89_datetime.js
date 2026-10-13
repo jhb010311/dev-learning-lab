@@ -22,7 +22,7 @@ Lab.register({
   Z: {
     seoul: { id: 'Asia/Seoul', name: 'Seoul', zdt: '2024-01-01T00:30+09:00[Asia/Seoul]', date: '2024-01-01', time: '00:30', off: '9 hours ahead of UTC' },
     utc: { id: 'UTC', name: 'UTC', zdt: '2023-12-31T15:30Z[UTC]', date: '2023-12-31', time: '15:30', off: 'the reference time zone' },
-    ny: { id: 'America/New_York', name: 'New York', zdt: '2023-12-31T10:30-05:00[America/New_York]', date: '2023-12-31', time: '10:30', off: '5 hours behind UTC' },
+    ny: { id: 'America/New_York', name: 'New York', zdt: '2023-12-31T10:30-05:00[America/New_York]', date: '2023-12-31', time: '10:30', off: 'Winter: 5 hrs behind UTC' },
   },
   ADD: { drop: 'd.plusMonths(1);', month: 'd = d.plusMonths(1);', twice: 'd = d.plusMonths(1).plusMonths(1);', two: 'd = d.plusMonths(2);', days: 'd = d.plusDays(30);' },
   code: function (c) {

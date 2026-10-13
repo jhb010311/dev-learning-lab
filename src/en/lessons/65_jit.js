@@ -13,7 +13,7 @@ Lab.register({
   ],
   DATA: { jit: [5765, 1694, 1369, 1651, 1484, 1368, 1535, 1403, 1373, 1436, 1609, 1725], int: [28000, 31416, 28925, 25281, 36973, 28376, 28920, 29169, 26738, 31654, 28077, 32120] },
   code: function (c) {
-    return 'static long work(int n) {                  // the method that was measured\n    long s = 0;\n    for (int i = 0; i < n; i++) s += (i * 31L) ^ (s >>> 3);\n    return s;\n}\n\n' + (c.mode === 'warm' ? '// right after startup, before requests arrive\nfor (int k = 0; k < 2000; k++) work(1000);   // call it in advance so that JIT compilation is already done\nreadiness.set(true);                        // only then report "ready"\n\n' : '') + 'for (int batch = 1; batch <= 12; batch++) {\n    long t = System.nanoTime();\n    for (int k = 0; k < 2000; k++) work(1000);          // one batch = 2,000 calls\n    print((System.nanoTime() - t) / 1000 + " microseconds");\n}\n\n// Run: java ' + (c.mode === 'int' ? '-Xint ' : '') + 'JitWarmup.java';
+    return 'static long work(int n) {                  // the method that was measured\n    long s = 0;\n    for (int i = 0; i < n; i++) s += (i * 31L) ^ (s >>> 3);\n    return s;\n}\n\n' + (c.mode === 'warm' ? '// right after startup, before requests arrive\nfor (int k = 0; k < 2000; k++) work(1000);   // call it in advance so that JIT compilation gets under way\nreadiness.set(true);                        // only then report "ready"\n\n' : '') + 'for (int batch = 1; batch <= 12; batch++) {\n    long t = System.nanoTime();\n    for (int k = 0; k < 2000; k++) work(1000);          // one batch = 2,000 calls\n    print((System.nanoTime() - t) / 1000 + " microseconds");\n}\n\n// Run: java ' + (c.mode === 'int' ? '-Xint ' : '') + 'JitWarmup.java';
   },
   label: function (c) { return { jit: 'Default settings', int: 'JIT off (-Xint)', warm: 'Warmed up in advance' }[c.mode]; },
   columns: ['First batch', 'Last batch', 'Slowest batch ÷ fastest batch'],
@@ -24,11 +24,11 @@ Lab.register({
     if (c.mode === 'warm') push('Before requests arrive, work() was called 2,000 times in advance. During these calls the JVM judges this method to be "code that runs often" and compiles it to machine code. Users do not experience this slow period.', 'good', 0);
     D.forEach(function (us, i) {
       var s = 'Batch #' + (i + 1) + ': ' + f(us) + '.';
-      if (c.mode === 'jit' && i === 0) s += ' At first the code is run by the interpreter. The JVM counts how many times the method has been called and how many times the loop has run, and when the counts pass a threshold, it compiles this method to machine code. This batch includes both the interpreted execution and the compilation time.';
+      if (c.mode === 'jit' && i === 0) s += ' At first the code is run by the interpreter. The JVM counts how many times the method has been called and how many times the loop has run, and when the counts pass a threshold, it compiles this method to machine code. This batch ran as interpreted execution until the compiled code was ready (the compilation itself runs on another thread).';
       if (c.mode === 'jit' && i === 1) s += ' The code has started to run as compiled machine code. It is 3 to 4 times faster than the first batch. Using the information it gathered while running (such as which branches are taken often), the JVM optimizes the code once more, this time more heavily.';
       if (c.mode === 'int' && i === 0) s += ' The -Xint option turned off the JIT compiler. The interpreter interprets every call.';
       if (c.mode === 'int' && i === 3) s += ' No matter how many times the code repeats, it does not get faster.';
-      if (c.mode === 'warm' && i === 0) s += ' From the first batch that the user sees, the code already runs as compiled code.';
+      if (c.mode === 'warm' && i === 0) s += ' From the first batch that the user sees, the code runs with compilation already under way.';
       push(s, c.mode === 'int' ? 'bad' : c.mode === 'jit' && i === 0 ? 'bad' : 'good', i + 1);
     });
     var mx = Math.max.apply(null, D), mn = Math.min.apply(null, D);
@@ -43,5 +43,5 @@ Lab.register({
     H.title(v, 'Time taken per batch (one batch = 2,000 calls, bars are scaled to 37ms)'); var ln = H.lanes(v);
     D.forEach(function (us, i) { if (i < n) H.lane(ln, '#' + (i + 1), (Math.round(us / 100) / 10) + 'ms', us > 20000 ? 'bad' : us > 3000 ? 'hot' : 'good', Math.max(0.01, us / mx)); else H.lane(ln, '#' + (i + 1), '', 'none'); });
   },
-  assume: 'All the numbers are values measured by actually running the code above on JDK 21 on this PC (the first of two runs with the default settings, and one run with -Xint). The "Warmed up in advance" setting treats the first batch of the default-settings measurement as the warmup and shows the values after it. The numbers vary with the CPU and with when the code is run, but the shape is the same: the first period is slow, and the code gets faster after that. A JVM with the default settings applies a light compilation (C1) and a strongly optimizing compilation (C2) in stages.',
+  assume: 'The numbers are values measured by actually running the code above on JDK 21 on this PC (the first of two runs with the default settings, and one run with -Xint). The values of "Warmed up in advance" are the default-settings measurement with the first batch removed and the rest moved up, and the last value (1.4ms) is not a measurement but a similar value added at the end. The numbers vary with the CPU and with when the code is run, but the shape is the same: the first period is slow, and the code gets faster after that. A JVM with the default settings applies a light compilation (C1) and a strongly optimizing compilation (C2) in stages.',
 });

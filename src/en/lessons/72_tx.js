@@ -30,7 +30,7 @@ Lab.register({
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(S)) }); }
     push('Account A has 5,000 won, and account B has 1,000 won. The total is 6,000 won. 1,000 won is transferred from A to B.', '');
     if (!auto) { S.tx = 'In progress'; push('START TRANSACTION: This tells the DB to treat the changes from now on as one group. The changes are not made permanent until the group ends.', ''); }
-    if (auto) { S.A = 4000; push('Withdrawal: A is changed to 4,000 won. There is no transaction, so this statement is made permanent (committed) as soon as it runs. It cannot be undone.', ''); }
+    if (auto) { S.A = 4000; push('Withdrawal: A is changed to 4,000 won. There is no transaction grouping several statements, so this single statement is made permanent (committed) as soon as it finishes. It cannot be undone.', ''); }
     else { S.pA = 4000; push('Withdrawal: A is changed to 4,000 won. The change is not permanent yet. A shows 4,000 won only inside this transaction, and the value that is permanent in the DB is still 5,000 won.', ''); }
     var midSum = auto ? 5000 : 6000;
     if (c.peek) { S.seen = 'Seen by another user: A=' + (auto ? 4000 : 5000) + ', B=1000, total ' + midSum; push('At this moment, another user queries the two accounts. ' + (auto ? 'The withdrawal is already permanent and the deposit has not happened yet, so the total appears as 5,000 won. A moment in which 1,000 won is nowhere has been exposed to the outside.' : 'Uncommitted changes are not visible to other users. The values from before the transfer are seen as they were, with a total of 6,000 won.'), auto ? 'bad' : 'good'); }
@@ -46,7 +46,7 @@ Lab.register({
     if (auto && c.fail !== 'none') sum.push('Several statements must be "all or nothing", but only some of them were applied. A transaction is the mechanism that guarantees this (atomicity).');
     if (!auto && c.fail !== 'none') sum.push('With the statements grouped in a transaction, changes that are not committed do not remain, whatever happens partway through. On an error, the transaction is rolled back, and if the server crashed, the DB undoes the changes as it recovers.');
     if (c.peek) sum.push(auto ? 'Without a transaction, the intermediate state is visible to other users as it is.' : 'Uncommitted changes are not visible to other transactions (isolation). How strictly they are hidden is set by the isolation level, which is covered in the "Isolation levels" lab.');
-    sum.push('The four properties of a transaction (ACID): all or nothing (atomicity), the data stays in a state that follows the rules (consistency), changes in progress are not visible to each other (isolation), and what is committed remains (durability). The @Transactional of Spring sends START TRANSACTION at the start of the method, COMMIT when it ends normally, and ROLLBACK on an exception, on your behalf.');
+    sum.push('The four properties of a transaction (ACID): all or nothing (atomicity), the data stays in a state that follows the rules (consistency), changes in progress are not visible to each other (isolation), and what is committed remains (durability). The @Transactional of Spring sends START TRANSACTION at the start of the method, COMMIT when it ends normally, and ROLLBACK on a runtime exception (on a checked exception, COMMIT by default), on your behalf.');
     return { events: ev, summary: sum, row: [S.A + ' won', S.B + ' won', total + ' won' + (total !== 6000 ? ' (1,000 won missing)' : ''), c.peek ? midSum + ' won' : 'Not queried'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -67,7 +67,7 @@ Lab.register({
     P.text('txs', 444, 170, 'State: ' + (s.tx || '-'), { cls: s.tx.indexOf('Rolled back') >= 0 ? 'bad' : s.tx.indexOf('Committed') >= 0 ? 'good' : 'mut' });
     if (s.tx === 'Committed') P.arrow('cm', 'tx:l', 'db:r', { cls: 'good', label: 'commit' });
     P.box('seen', 16, 232, 648, 40, { cls: !s.seen ? 'ghost' : s.seen.indexOf('5000') >= 0 && s.seen.indexOf('total 5000') >= 0 ? 'bad' : 'good', title: 'Values that another user saw partway through', right: s.seen ? s.seen.replace('Seen by another user: ', '') : 'Not queried' });
-    P.note('With a transaction, changes first accumulate only on the right, and at the moment of the commit they move to the left all at once. Without one, each statement is applied to the left immediately, so stopping partway through leaves a half-changed state.');
+    P.note('With a transaction, the right side shows changes that only this transaction can see, and at the moment of the commit they become visible to everyone. Without one, each statement is applied for everyone immediately, so stopping partway through leaves a half-changed state.');
   },
   assume: 'The final balances and the results of the query partway through were confirmed for all 12 combinations by running them on a real SQL engine (SQLite) with two connections. "The server crashes" was reproduced by closing the connection without committing. That uncommitted values are not visible to the query partway through is the behavior under the default settings of most DBs, and at the lowest isolation level they can be visible.',
 });

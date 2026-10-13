@@ -63,7 +63,7 @@ Lab.register({
     var msgs = rows.map(function (r) { var m = P.dir(P.v(r.cells[0]), ids); m.s = P.v(r.cells[2]); m.cls = P.c(r.cells[2]); return m; });
     var end = P.seq([['u', 'User (browser)', 'wait'], ['w', 'Our service', 'wait'], ['k', 'Kakao auth server', 'plain'], ['a', 'Kakao API server', 'plain']], msgs, { keep: 8 });
     P.size(680, end + 16);
-    P.note('Long text may look cut off, so check the full content in the table on the right.');
+    P.note('All the arrows look alike, but the authorization code and state travel through the address bar of the browser (the redirect), and only the token exchange goes directly between servers. Long text may look cut off, so check the full content and the path in the table on the right.');
   },
   assume: 'The authorization code grant of OAuth 2.0 is transcribed following the flow in the standard document (RFC 6749). Kakao is only an example, and other providers such as Google and Naver have the same flow. The code and token values are fake values for explanation.',
 });

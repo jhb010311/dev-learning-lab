@@ -46,7 +46,7 @@ Lab.register({
         go('F2', 'The afterCompletion method of the interceptor that returned false is not called either (if other interceptors had returned true before it, only theirs are called). The response goes out back through the filter chain.', '');
       } else {
         go('IP', 'The preHandle method of the interceptor runs and returns true. Unlike a filter, an interceptor works knowing which controller method is going to run.', '');
-        go('AR', rest ? 'HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter annotated with @RequestBody, HttpMessageConverter (Jackson) converts the JSON in the request body into an OrderRequest object and fills it in.' : 'HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter of type Model, it passes in an empty model object that will hold the data for the view. This is where the model (M) of MVC is created.', '');
+        go('AR', rest ? 'HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter annotated with @RequestBody, HttpMessageConverter (Jackson) converts the JSON in the request body into an OrderRequest object and fills it in.' : 'HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter of type Model, it passes in an empty Model object that will hold the data for the view. The data put into it is the model (M) of MVC.', '');
         if (c.what === 'ex') {
           go('CT', 'The controller method throws an OutOfStockException while it runs. Return value handling and postHandle are skipped.', 'bad');
           if (c.advice) {
@@ -107,7 +107,7 @@ Lab.register({
     P.region('path', 16, 16, 396, 42 + stages.length * 29, 'The path of the request (top to bottom)');
     stages.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0; P.box('st_' + id, 28, 50 + i * 29, 372, 25, { cls: id === s.cur ? 'hot now' : id === s.end ? 'bad' : seen ? 'good' : 'ghost', title: (i + 1) + '. ' + st[1], right: id === s.cur ? 'now here' : id === s.end ? 'problem here' : seen ? 'passed' : done ? 'skipped' : (group[id] || '') }); });
     P.region('roles', 440, 114, 224, 246, 'The three roles of MVC');
-    var mSub = rest ? ['Not used', 'Return value becomes JSON'] : !at('AR') ? [done ? 'Not created' : 'Not created yet'] : [num('AR') + 'created empty'].concat(!at('CT') ? [] : ex ? [num('CT') + 'exception first'] : [num('CT') + 'orders added']).concat(at('VR') ? [num('VR') + 'read by view'] : []);
+    var mSub = rest ? ['Model object is not used', 'Return value becomes JSON'] : !at('AR') ? [done ? 'Not created' : 'Not created yet'] : [num('AR') + 'created empty'].concat(!at('CT') ? [] : ex ? [num('CT') + 'exception first'] : [num('CT') + 'orders added']).concat(at('VR') ? [num('VR') + 'read by view'] : []);
     var cSub = [rest ? 'OrderController.create()' : 'OrderController.list()', !at('CT') ? (done ? 'Not called' : 'Not called yet') : num('CT') + (ex ? 'exception thrown' : s.cur === 'CT' ? 'running' : 'finished')];
     var vSub = rest ? ['None', at('RV') ? num('RV') + 'JSON, no view' : 'Not used for JSON'] : ['orders/list template', at('VR') ? num('VR') + 'renders the HTML' : done ? 'Not rendered' : at('RV') ? 'View name decided' : 'Not used yet'];
     var on = function (ids) { return ids.indexOf(s.cur) >= 0 ? 'hot' : ids.filter(at).length ? 'good' : 'ghost'; };

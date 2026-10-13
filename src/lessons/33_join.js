@@ -48,7 +48,7 @@ Lab.register({
     } else fbody = tab(rows);
     var park = hasPark(final);
     push('최종 결과: ' + final.length + '행.', park || c.join === 'INNER' ? 'good' : '', '최종 결과', fhead, fbody);
-    if (c.join === 'LEFT' && c.cond === 'where') sum.push('LEFT JOIN 뒤에 오른쪽 테이블의 컬럼으로 WHERE 조건을 걸면, NULL로 채워진 행이 걸러져 INNER JOIN과 같아집니다. "짝이 없는 쪽도 남기되 조건에 맞는 것만 붙이고 싶다"면 조건을 ON에 써야 합니다.');
+    if (c.join === 'LEFT' && c.cond === 'where') sum.push('LEFT JOIN 뒤에 오른쪽 테이블의 컬럼으로 NULL이면 참이 되지 않는 WHERE 조건(예: 상태가 PAID인 것만)을 걸면, NULL로 채워진 행이 걸러져 INNER JOIN과 같아집니다. "짝이 없는 쪽도 남기되 조건에 맞는 것만 붙이고 싶다"면 조건을 ON에 써야 합니다.');
     if (c.join === 'LEFT' && c.cond === 'on') sum.push('ON의 조건은 "어떤 주문을 붙일지"를 정할 뿐, 왼쪽 테이블(회원)의 행을 없애지 않습니다. 결제된 주문이 없는 회원도 NULL과 함께 남습니다.');
     if (c.join === 'INNER') sum.push('INNER JOIN에서는 조건을 ON에 쓰든 WHERE에 쓰든 결과가 같습니다. 차이는 OUTER JOIN에서만 생깁니다.');
     if (c.agg !== 'none') sum.push('처리 순서는 FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT입니다. 그래서 SELECT에서 붙인 별칭(cnt)은 WHERE에서 쓸 수 없습니다.');

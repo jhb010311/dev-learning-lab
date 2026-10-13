@@ -86,7 +86,7 @@ Lab.register({
     P.size(680, H + 32);
     P.region('qu', 16, 16, 290, 112, 'Queue ' + (c.unb ? '(unbounded)' : '(capacity ' + c.cap + ')') + ' · request numbers');
     P.region('rej', 16, 140, 290, 238, 'Rejected requests');
-    P.region('thr', 346, 16, 318, H, 'Thread pool (core ' + c.core + ', maximum ' + c.max + ')');
+    P.region('thr', 346, 16, 318, H, 'Threads in the pool (core ' + c.core + ', maximum ' + c.max + ')');
     for (var j = 0; j < capN; j++) if (!q[j]) P.box('qe' + j, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'ghost' });
     q.slice(0, 10).forEach(function (r, j) { P.box('rq' + r.id, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'wait', sub: String(r.id), center: true }); });
     if (!capN) P.text('noq', 161, 80, 'The queue has no capacity', { cls: 'mut', anchor: 'middle' });

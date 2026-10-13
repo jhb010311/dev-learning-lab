@@ -43,7 +43,7 @@ Lab.register({
       else {
         push('git rebase main: feature의 커밋 D, E를 잠시 떼어 놓고, feature의 시작점을 main의 끝인 C로 옮깁니다.', '', 'A───B───C            ← main\n\n (떼어 둔 커밋: D, E)');
         if (conf) { fix = '커밋마다 (최대 2번)'; push('D를 C 위에 다시 적용하려는데 같은 줄을 고친 부분이 충돌합니다. rebase가 멈춥니다. 파일을 고치고 git rebase --continue로 이어 갑니다. 다음 커밋 E에서도 같은 곳이 걸리면 한 번 더 해결해야 합니다.', 'bad', 'A───B───C            ← main\n         \\\n          (D 적용 중 충돌)'); }
-        push('D와 E의 변경 내용을 C 위에 차례로 다시 적용합니다. 내용은 같지만 부모가 달라졌으므로 완전히 새로운 커밋 D\', E\'입니다(해시가 다릅니다). 원래의 D, E는 버려집니다.', '', 'A───B───C            ← main\n         \\\n          D\'──E\'     ← feature');
+        push('D와 E의 변경 내용을 C 위에 차례로 다시 적용합니다. 내용은 같지만 부모가 달라졌으므로 완전히 새로운 커밋 D\', E\'입니다(해시가 다릅니다). 원래의 D, E는 feature가 더는 가리키지 않게 됩니다(지워지지는 않고 reflog에 남습니다).', '', 'A───B───C            ← main\n         \\\n          D\'──E\'     ← feature');
         if (c.pushed) { warn = '강제 push 필요, 같이 쓰는 사람의 이력과 어긋남'; push('feature를 이미 원격에 올렸다면, 원격에는 옛 커밋 D, E가 있고 내 것은 D\', E\'입니다. 서로 다른 이력이라 일반 push가 거부되고 강제로 덮어써야 합니다. 그 브랜치를 받아 간 동료가 있다면 그 사람의 작업과 어긋납니다.', 'bad', '원격 feature:  A───B───D───E\n내 feature:    A───B───C───D\'──E\'\n\n→ git push --force-with-lease 필요'); }
         shape = '한 줄'; made = 'D\', E\' (D, E를 대체)';
         push('main에서 merge하면 feature가 main 바로 뒤에 이어져 있으므로 fast-forward로 끝납니다. 병합 커밋 없이 이력이 한 줄이 됩니다.', 'good', 'A───B───C───D\'──E\'   ← main, feature');
@@ -56,7 +56,7 @@ Lab.register({
       shape = '한 줄 (feature와 연결 없음)'; made = '뭉친 커밋 S 하나';
       push('feature의 D와 E가 만든 변경 전체를 하나로 뭉쳐 main에 새 커밋 S로 올립니다. S의 부모는 main의 끝 하나뿐이라 그래프에는 feature와의 연결선이 남지 않습니다.', 'good', (c.main ? 'A───B───C───S        ← main' : 'A───B───S            ← main') + '\n     \\\n      D───E          ← feature (합쳐진 뒤 삭제)');
       warn = 'feature의 개별 커밋 이력이 main에 남지 않음';
-      sum.push('squash는 "기능 하나 = 커밋 하나"로 main을 정리합니다. 작업 중의 자잘한 커밋(오타 수정, 리뷰 반영)이 main에 남지 않습니다. 대신 세부 이력이 사라지고, Git은 feature가 합쳐졌다는 사실을 모르므로 브랜치를 지워야 합니다.');
+      sum.push('squash는 "기능 하나 = 커밋 하나"로 main을 정리합니다. 작업 중의 자잘한 커밋(오타 수정, 리뷰 반영)이 main에 남지 않습니다. 대신 세부 이력이 사라지고, Git은 feature가 합쳐졌다는 사실을 모르므로(branch -d가 거부함) 보통 브랜치를 따로 지웁니다.');
     }
     if (conf) sum.push('충돌은 Git의 오류가 아니라 "두 사람이 같은 곳을 다르게 고쳤으니 사람이 정해 달라"는 요청입니다. 브랜치를 오래 끌수록, 한 번에 많이 고칠수록 충돌이 커집니다. 자주 main을 받아 오고 작게 나눠 합치는 것이 예방책입니다.');
     return { events: ev, summary: sum, row: [shape, made, fix, warn] };
@@ -90,7 +90,7 @@ Lab.register({
     else if (g.indexOf('직접 고른 결과') >= 0) P.box('cf', 60, 228, 560, 44, { cls: 'good', title: '사람이 직접 골라 해결', sub: 'limit = 20으로 정하고 커밋' });
     else if (g.indexOf('충돌 해결 필요') >= 0) P.box('cf', 60, 228, 560, 44, { cls: 'bad', title: '충돌: 같은 줄을 서로 다르게 고침', sub: '파일을 고친 뒤 진행' });
     else if (remote) P.box('cf', 60, 228, 560, 44, { cls: 'bad', title: '원격과 내 이력이 서로 다름', sub: '일반 push는 거부됨. 강제로 덮어써야 함' });
-    P.note('상자 하나가 커밋 하나이고 왼쪽이 오래된 커밋입니다. 파랑은 main의 커밋, 초록은 feature의 커밋, 노랑은 이번에 새로 만들어진 커밋입니다. D\'처럼 작은따옴표가 붙은 것은 내용은 같지만 새로 만들어진 다른 커밋입니다.');
+    P.note('상자 하나가 커밋 하나이고 왼쪽이 오래된 커밋이며, 화살표는 시간이 흐르는 방향입니다(실제 Git은 자식이 부모를 가리킴). 파랑은 main의 커밋, 초록은 feature의 커밋, 노랑은 이번에 새로 만들어진 커밋입니다. D\'처럼 작은따옴표가 붙은 것은 내용은 같지만 새로 만들어진 다른 커밋입니다.');
   },
   assume: '커밋 다섯 개짜리 작은 저장소 예시입니다. 충돌은 한 파일의 한 곳에서만 난다고 가정했습니다. 각 명령의 동작은 Git 공식 문서(git-merge, git-rebase)의 설명을 따랐습니다. 팀에 따라 병합 방식(merge commit, squash, rebase)을 정해 두고 쓰며, 어느 쪽이 옳다기보다 이력을 어떤 모양으로 남길지의 선택입니다. 이 PC의 git 2.55로 임시 저장소를 만들어 확인했습니다. merge는 부모가 둘인 병합 커밋을 만들고 기존 커밋의 해시를 유지했으며, main에 새 커밋이 없을 때는 fast-forward였습니다. rebase 뒤에는 D와 E의 해시가 바뀌고 병합 커밋 없이 한 줄이 됐으며, 이미 올린 브랜치는 일반 push가 거부되고 강제 push가 필요했습니다. squash 커밋은 부모가 하나였고 git은 feature가 합쳐졌다고 인식하지 않았습니다. 충돌 표시도 화면의 모양 그대로였습니다.',
 });

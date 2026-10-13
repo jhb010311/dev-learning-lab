@@ -13,7 +13,7 @@ Lab.register({
     { t: '뒤에서부터 지우면', q: '인덱스 for문을 뒤에서 앞으로 돌며 2를 지우면', d: '당겨지는 원소가 이미 지나온 쪽이라 문제없습니다.', v: { how: 'indexback', coll: 'array' } },
     { t: 'Iterator.remove()', q: 'Iterator의 remove 호출로 2를 지우면', d: '반복자를 통해 지우면 안전합니다.', v: { how: 'iterator', coll: 'array' } },
     { t: 'removeIf()', q: 'list.removeIf에 x == 2 조건을 넘겨 지우면', d: '가장 간단하고 안전한 방법입니다.', v: { how: 'removeIf', coll: 'array' } },
-    { t: 'CopyOnWriteArrayList에서 for문 삭제', q: '컬렉션을 CopyOnWriteArrayList로 바꾸고 향상된 for문 안에서 list.remove() 호출로 2를 지우면', d: '예외가 나지 않습니다. 반복은 복사본을 돕니다.', v: { how: 'foreach', coll: 'cow' } },
+    { t: 'CopyOnWriteArrayList에서 for문 삭제', q: '컬렉션을 CopyOnWriteArrayList로 바꾸고 향상된 for문 안에서 list.remove() 호출로 2를 지우면', d: '예외가 나지 않습니다. 반복은 만들어질 때의 예전 배열을 돕니다.', v: { how: 'foreach', coll: 'cow' } },
   ],
   code: function (c) {
     var decl = 'List<Integer> list = new ' + (c.coll === 'array' ? 'ArrayList' : 'CopyOnWriteArrayList') + '<>(List.of(1, 2, 2, 3, 4));\n\n';

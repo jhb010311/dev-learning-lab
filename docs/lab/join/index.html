@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
+<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>LEFT JOIN 뒤에 오른쪽 테이블의 컬럼으로 WHERE 조건을 걸면, NULL로 채워진 행이 걸러져 INNER JOIN과 같아집니다. &quot;짝이 없는 쪽도 남기되 조건에 맞는 것만 붙이고 싶다&quot;면 조건을 ON에 써야 합니다.</li>
+<li>LEFT JOIN 뒤에 오른쪽 테이블의 컬럼으로 NULL이면 참이 되지 않는 WHERE 조건(예: 상태가 PAID인 것만)을 걸면, NULL로 채워진 행이 걸러져 INNER JOIN과 같아집니다. &quot;짝이 없는 쪽도 남기되 조건에 맞는 것만 붙이고 싶다&quot;면 조건을 ON에 써야 합니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>SELECT m.name, o.id, o.status
@@ -156,6 +156,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=facdcb7ce9"></script>
+<script src="../../app.js?v=137acd1ae5"></script>
 </body>
 </html>

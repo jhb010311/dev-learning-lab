@@ -43,7 +43,7 @@ Lab.register({
         sum.push('The speed of a commit is set by the speed of writing the log to disk. Reflecting the changes in the data file is done later, in batches.');
       } else {
         S.mem = '(lost)'; push('The server went down right after the commit reply, before the changes were written to the data file. The 500 in memory is lost, and the data file still holds 1000. The user has already received "success".', 'bad');
-        S.mem = '(restarting)'; push('The server starts again. Recovery reads the redo log on disk from the beginning.', '');
+        S.mem = '(restarting)'; push('The server starts again. Recovery reads the redo log on disk from the last checkpoint.', '');
         S.mem = '500'; S.file = '500'; usedR = 'Redo log'; fin = '500'; prop = 'Durability';
         push('The redo log has "account 1 set to 500" and the record that it committed. This change is applied again. The balance is recovered as 500. No committed data was lost.', 'good');
         sum.push('A committed change is recovered from the redo log even if it was not yet written to the data file. The redo log supports "what is committed remains even after a failure" (durability).');
@@ -58,7 +58,7 @@ Lab.register({
     H.table(v, ['Location', 'Content'], [
       { cells: ['Memory (buffer pool)', { v: s.mem, cls: s.mem.indexOf('500') === 0 ? 'hot' : s.mem.indexOf('lost') >= 0 ? 'bad' : '' }] },
       { cells: ['Disk: data file', { v: s.file, cls: s.file === '500' ? 'good' : '' }] },
-      { cells: ['Disk: redo log', { v: s.redo, cls: s.redo.indexOf('committed note (') >= 0 ? 'good' : '' }] },
+      { cells: ['Redo log', { v: s.redo, cls: s.redo.indexOf('committed note (') >= 0 ? 'good' : '' }] },
       { cells: ['Undo log', s.undo] },
     ], 'Where the balance of account 1 is stored');
   },
@@ -69,7 +69,7 @@ Lab.register({
     P.box('tx', 16, 16, 648, 36, { cls: s.tx.indexOf('Commit') >= 0 ? 'good' : s.tx.indexOf('Rolled back') >= 0 ? 'bad' : 'plain', title: 'Transaction state', right: s.tx });
     P.region('ram', 16, 66, 648, 84, 'Memory: lost when the server goes down');
     P.box('mem', 28, 100, 624, 38, { cls: gone ? 'bad' : s.mem.indexOf('500') === 0 ? 'hot' : 'plain', title: 'Balance loaded in the buffer pool', right: s.mem });
-    P.region('disk', 16, 164, 648, 142, 'Disk: kept even when the server goes down');
+    P.region('disk', 16, 164, 648, 142, 'Log and data files (what is written to disk is kept even when the server goes down)');
     P.box('redo', 28, 198, 624, 30, { cls: redoOk ? 'good' : 'plain', title: 'Redo log', right: s.redo });
     P.box('undo', 28, 232, 624, 30, { cls: 'plain', title: 'Undo log', right: s.undo });
     P.box('file', 28, 266, 624, 30, { cls: s.file === '500' ? 'good' : 'plain', title: 'Data file', right: s.file });

@@ -16,7 +16,7 @@ Lab.register({
     { t: 'The same error, in separate processes', q: 'What if you run 3 processes (1 thread each) and task 2 calls System.exit?', d: 'Only that process dies, and the others are unharmed.', v: { how: 'proc', fail: 'kill' } },
   ],
   code: function (c) {
-    var body = 'static int counter = 0;                 // a variable in the memory of the process\n\nstatic void work(int id) throws Exception {\n    Thread.sleep(300);                  // a task that takes 0.3 seconds\n' + (c.fail === 'ex' ? '    if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '    if (id == 2) System.exit(3);        // ends the whole process\n' : '') + '    counter++;\n}\n\n';
+    var body = 'static int counter = 0;                 // a variable in the memory of the process\n\nstatic void work(int id) {\n    try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // a task that takes 0.3 seconds\n' + (c.fail === 'ex' ? '    if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '    if (id == 2) System.exit(3);        // ends the whole process\n' : '') + '    counter++;\n}\n\n';
     if (c.how === 'single') return body + '// one thread (main), one task after another\nfor (int i = 1; i <= 3; i++) work(i);';
     if (c.how === 'multi') return body + '// 3 threads in the same process\nfor (int i = 1; i <= 3; i++) {\n    int id = i;\n    new Thread(() -> work(id)).start();\n}';
     return body + '// 3 processes: the same program is run separately each time\nfor (int i = 1; i <= 3; i++) {\n    new ProcessBuilder("java", "Worker", String.valueOf(i)).start();\n}';
@@ -78,7 +78,7 @@ Lab.register({
     procs.forEach(function (p, i) {
       var x = n === 1 ? 16 : 16 + i * 222, w = n === 1 ? 648 : 204, tw = n === 1 ? 196 : w - 24, k = p.th.length;
       P.region('p' + i, x, 16, w, 268, p.p + (p.alive ? '' : ' (terminated)'));
-      P.box('m' + i, x + 12, 52, w - 24, 44, { cls: p.alive ? 'good' : 'ghost', title: n === 1 ? 'Memory of this process (heap)' : 'Memory', right: p.alive ? 'counter = ' + p.mem : 'gone' });
+      P.box('m' + i, x + 12, 52, w - 24, 44, { cls: p.alive ? 'good' : 'ghost', title: n === 1 ? 'Memory of this process' : 'Memory', right: p.alive ? 'counter = ' + p.mem : 'gone' });
       p.th.forEach(function (th, j) {
         var tx = n === 1 ? (k === 1 ? 242 : 28 + j * 214) : x + 12, id = 't' + i + '_' + j, st = th.st;
         P.box(id, tx, 160, tw, 60, { cls: st.indexOf('finished') >= 0 || st === 'All tasks finished' ? 'good' : st.indexOf('Terminated') >= 0 ? 'bad' : st === 'Waiting to start' ? 'plain' : 'hot', title: th.name || 'Thread ' + th.id, sub: [st, 'Has its own stack'] });

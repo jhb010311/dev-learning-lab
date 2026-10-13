@@ -64,7 +64,7 @@ Lab.register({
     });
     P.box('now', 170 + 480 * tt / total - 1, 44, 2, n * 36 + 4, { cls: 'plain' });
     P.text('tm', 664, 40 + n * 36 + 46, 'Now: ' + (Math.round(tt * 10) / 10) + 's', { anchor: 'end', bold: true });
-    P.note('The bars fill from left to right. When the calls are made one after another, the bars follow each other like steps and the times add up. When they are made at the same time, the bars overlap in the same span and the total is only as long as the longest bar. A red bar is a call that was cut off partway because it hit the timeout.');
+    P.note('The bars fill from left to right. When the calls are made one after another, the bars follow each other like steps and the times add up. When they are made at the same time, the bars overlap in the same span and the total is only as long as the longest bar. A red bar is a call whose result was replaced by the default value after the timeout (the real call keeps running in the background).');
   },
   assume: 'The time each call takes (product details 0.3s, stock 0.5s, reviews 0.8s, recommendations 1.6s, coupons 0.4s) is a fixed example, and the model assumes that the calls do not need each other\'s results. If the result of one call is the input of the next, those two must be made sequentially. For parallel calls, the model assumes blocking calls, in which one thread makes one call and waits for it. completeOnTimeout is a method that has existed since JDK 9. This was checked by actually running code on JDK 21 on this PC. With 4 calls of the same durations, the measured times were 3,243ms sequential, 1,603ms parallel (5 threads), 2,127ms parallel (2 threads), and 1,011ms with the timeout of 1s applied, which matched the values of the model (3.2s, 1.6s, 2.1s, 1.0s).',
 });

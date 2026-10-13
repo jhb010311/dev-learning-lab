@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
+<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>컨슈머 2개가 같은 그룹으로 토픽을 구독합니다. 그룹 코디네이터가 파티션 3개를 컨슈머들에게 나눠 줍니다. 파티션 하나는 그룹 안에서 한 컨슈머만 맡습니다.</li>
+<li>컨슈머 2개가 같은 그룹으로 토픽을 구독합니다. 파티션 3개를 컨슈머들이 나눠 맡습니다(배정은 그룹 코디네이터가 조율합니다). 파티션 하나는 그룹 안에서 한 컨슈머만 맡습니다.</li>
 <li>메시지가 초당 120건 들어와 파티션마다 40건씩 쌓입니다(키가 고르게 퍼진다고 가정). 컨슈머는 하나당 초당 50건을 처리하고, 여러 파티션을 맡은 컨슈머는 그 능력을 나눠 씁니다. 그룹 전체의 처리량은 초당 90건입니다.</li>
 <li>10초가 지났습니다. 처리가 유입을 따라가지 못해 메시지 300건이 읽히지 않은 채 밀려 있습니다(컨슈머 랙). 이 상태가 계속되면 랙은 끝없이 늘어납니다.</li>
 </ol>
@@ -168,6 +168,6 @@ while (true) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=facdcb7ce9"></script>
+<script src="../../app.js?v=137acd1ae5"></script>
 </body>
 </html>

@@ -97,7 +97,7 @@ Lab.register({
     P.region('db', 470, 16, 194, 298, 'member table in the DB');
     P.text('c1', 28, 58, 'First-level cache: managed entities', { cls: 'mut' });
     if (!s.cache.length) P.box('none', 28, 66, 376, 46, { cls: 'ghost', sub: 'Empty', center: true });
-    s.cache.forEach(function (e, i) { var gone = e.st.indexOf('Detached') === 0; P.box('e' + e.id, 28, 66 + i * 52, 376, 46, { cls: gone ? 'ghost' : e.name !== e.snap ? 'hot' : 'good', title: 'Member ' + e.id + (gone ? ' (no longer managed)' : ''), sub: 'Current: ' + e.name + '  ·  Snapshot: ' + e.snap }); });
+    s.cache.forEach(function (e, i) { var gone = e.st.indexOf('Detached') === 0; P.box('e' + e.id, 28, 66 + i * 52, 376, 46, { cls: gone ? 'ghost' : e.name !== e.snap ? 'hot' : 'good', title: 'Member ' + e.id + (gone ? ' (detached: removed from the context)' : ''), sub: 'Current: ' + e.name + '  ·  Snapshot: ' + e.snap }); });
     P.box('pend', 28, 250, 376, 48, { cls: s.pending.length ? 'wait' : 'ghost', title: 'Write-behind queue', sub: s.pending.length ? 'INSERTs queued, not sent: ' + s.pending.length : 'No queued SQL' });
     s.db.forEach(function (r, i) { P.box('r' + r.id, 482, 52 + i * 40, 170, 32, { cls: r.cls === 'hot' ? 'hot' : 'plain', title: 'id ' + r.id, right: r.name }); });
     if (fresh.length) { var kinds = {}; fresh.forEach(function (q) { var k = q.sql.split(' ')[0].toUpperCase(); kinds[k] = (kinds[k] || 0) + 1; }); P.arrow('sql', 'pc:r', 'db:l', { cls: 'hot', label: Object.keys(kinds).map(function (k) { return k + (kinds[k] > 1 ? ' ×' + kinds[k] : ''); }).join(', ') }); }

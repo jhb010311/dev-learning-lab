@@ -44,7 +44,7 @@ Lab.register({
     if (!c.dns || !c.conn) sum.push((!c.dns && !c.conn ? '첫 요청에서는 DNS 조회, TCP 연결, TLS 핸드셰이크가' : !c.dns ? '이번 요청에서는 DNS 조회가' : '이번 요청에서는 TCP 연결과 TLS 핸드셰이크가') + ' 실제 요청보다 먼저 일어납니다. 서버가 아무리 빨라도 이 왕복들은 줄지 않으므로, 연결을 유지해 재사용하는 것(keep-alive, HTTP/2)이 체감 속도에 큰 영향을 줍니다.');
     if (c.what === 'static' && !cdn) sum.push('정적 파일은 웹 서버가 직접 내어 줍니다. 애플리케이션 서버(WAS)는 실행해야 결과가 나오는 요청만 맡습니다. 리버스 프록시를 앞에 두면 TLS 처리, 정적 파일, 부하 분산, 내부 서버 숨기기를 한곳에서 할 수 있습니다.');
     if (cdn) sum.push('CDN은 정적 파일의 사본을 세계 여러 곳에 두고 가까운 곳에서 응답합니다. 왕복 시간이 짧아지고, 원래 서버로 오는 요청이 줄어듭니다.');
-    if (c.what === 'api') sum.push('동적 요청에서 서버가 쓰는 시간은 대부분 DB 조회입니다(여기서는 31ms 가운데 20ms). 성능 문제를 볼 때 어느 구간에서 시간이 드는지부터 나눠 보는 이유입니다.');
+    if (c.what === 'api') sum.push('이 예에서는 서버가 쓰는 31ms 가운데 20ms가 DB 조회입니다. 실제 비중은 요청마다 다릅니다. 성능 문제를 볼 때 어느 구간에서 시간이 드는지부터 나눠 보는 이유입니다.');
     return { events: ev, summary: sum, row: [total + 'ms', (rows.length - skipped) + '개', skipped + '개', maker] };
   },
   render: function (v, sim, t, H, shown) {

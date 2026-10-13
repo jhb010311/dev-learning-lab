@@ -62,7 +62,7 @@ Lab.register({
         push('Check #' + (i + 1) + ' (slots left: ' + left + '): the middle value is ' + st.cmp + (hit ? ' → Found.' : st.cmp < tg ? ' → It is smaller than the value you look for (' + tg + '). Discard this slot and everything to its left.' : ' → It is larger than the value you look for (' + tg + '). Discard this slot and everything to its right.') + (!hit && lastOne ? ' No slots are left, so the value is not in the data.' : ''), hit ? 'good' : lastOne ? 'bad' : '', { seen: seenB.slice(), cur: st.at[0], lo: hit ? st.lo : st.cmp < tg ? st.at[0] + 1 : st.lo, hi: hit ? st.hi : st.cmp < tg ? st.hi : st.at[0] - 1, done: hit || lastOne, found: hit });
       });
     } else {
-      push('The same 27 values are stored in a B-tree. The 9 leaf nodes at the bottom hold three sorted values each, and the nodes above hold only keys that tell you which way to go down. Reading one node is one disk read.', '', {});
+      push('The same 27 values are stored in a B-tree. The 9 leaf nodes at the bottom hold three sorted values each, and the nodes above hold only keys that tell you which way to go down. When one node is read, it takes one disk read if the node is not already in memory.', '', {});
       var path = [];
       T.steps.forEach(function (st, i) {
         path.push(st);
@@ -86,7 +86,7 @@ Lab.register({
       H.counters(v, [[s.how === 'binary' ? (s.found ? '-' : String(Math.max(0, s.hi - s.lo + 1))) : String(27 - s.seen.length), s.how === 'binary' ? 'Slots still candidates' : 'Slots not yet checked']]);
     } else {
       var p = s.path;
-      H.counters(v, [[String(p.length), 'Nodes read (disk reads)'], [String(13 - p.length), 'Nodes not read']]);
+      H.counters(v, [[String(p.length), 'Nodes read (disk read if not cached)'], [String(13 - p.length), 'Nodes not read']]);
     }
     if (s.done) { var w = sim.worst; H.table(v, ['Method', 'Worst case with ' + sim.big + ' rows', 'How it grows'], [['One by one from the start', sim.big + ' checks', 'O(n): in proportion to the data'], ['Binary search', w.binary + ' checks', 'O(log n): halved each time'], ['B-tree (3 children per node)', w.b3 + ' levels', 'O(log n): cut to 1/3 at each level'], ['B-tree (500 children per node)', w.b500 + ' levels', 'O(log n): cut to 1/500 at each level']].map(function (r, i) { var on = (s.how === 'scan' && i === 0) || (s.how === 'binary' && i === 1) || (s.how === 'btree' && i >= 2); return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2]] }; }), 'As the data grows'); }
   },
@@ -106,7 +106,7 @@ Lab.register({
     }
     var p = s.path, br = p.length > 1 ? p[1].branch : -1, lf = p.length > 2 ? p[2].leaf : -1;
     P.size(680, 278);
-    P.region('tree', 16, 16, 648, 246, 'B-tree: reading one node is one disk read');
+    P.region('tree', 16, 16, 648, 246, 'B-tree: reading a node means a disk read if not in memory');
     P.box('root', 290, 46, 100, 28, { cls: p.length ? 'hot' + (p.length === 1 ? ' now' : '') : 'plain', sub: '100 | 190', center: true });
     for (var i = 0; i < 3; i++) {
       P.box('br' + i, 70 + i * 220, 112, 100, 28, { cls: i === br ? 'hot' + (p.length === 2 ? ' now' : '') : 'plain', sub: a[i * 9 + 3] + ' | ' + a[i * 9 + 6], center: true });
@@ -116,7 +116,7 @@ Lab.register({
       P.box('lf' + j, 20 + j * 71.5, 184, 67, 58, { cls: j === lf ? (s.found ? 'good now' : 'bad now') : 'plain', sub: a.slice(j * 3, j * 3 + 3).map(String), center: true });
       P.arrow('bl' + j, 'br' + Math.floor(j / 3) + ':b:' + (0.25 + (j % 3) * 0.25), 'lf' + j + ':t', { cls: j === lf ? 'hot' : 'mut' });
     }
-    P.note('Yellow nodes are the nodes that were read, and the other nodes were skipped without being read. The numbers in the upper nodes are keys that tell you which way to go down, and the actual values are in the leaf nodes at the bottom.');
+    P.note('Yellow nodes are the nodes that were read, and the other nodes were skipped without being read. The numbers in the upper nodes are keys that tell you which way to go down, and the actual values are in the leaf nodes at the bottom (this shape, with values only in the leaves, is called a B+ tree).');
   },
   assume: 'The search steps and counts for 27 rows are the result of this page actually running the algorithms. The counts for large numbers of rows are the maximum number of steps, calculated from "how many branches the search splits into at a time". The B-tree on the screen has the shape in which the values are only in the leaf nodes (a B+tree), and the index of MySQL InnoDB has this structure. How many values fit in one node of a real index depends on the size of the key, and 500 is just an example value. The root and internal nodes are usually already in memory, so the number of real disk reads is smaller.',
 });

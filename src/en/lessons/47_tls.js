@@ -22,7 +22,7 @@ Lab.register({
     function step(dir, what, s, k) { rows.push({ cells: [dir, { v: what, cls: k === 'bad' ? 'bad' : k === 'good' ? 'good' : '' }] }); ev.push({ s: s, k: k, snap: { rows: rows.slice(), key: S.key, lock: S.lock } }); }
     step('Browser → Server', 'ClientHello: TLS versions, cipher suites, key share', 'The browser connects to https://shop.example. After the TCP connection is established, it sends the list of cipher suites it can use and a public value (key share) to be used for the key exchange. This message is not encrypted.', '');
     step('Server → Browser', 'ServerHello: chosen cipher suite, server key share', 'The server picks one cipher suite and sends its own public value for the key exchange. Each side combines the other side\'s public value with its own secret value and computes the same result. Someone who only watched the public values in the middle cannot compute this result.', '');
-    S.key = 'Same symmetric key on both sides'; step('(inside both sides)', 'Key exchange complete: each side computes the same symmetric key', 'Each side derives a symmetric key from this result. The key itself was never sent over the network. The handshake messages from here on are encrypted.', 'good');
+    S.key = 'Same symmetric key on both sides'; S.lock = 'Handshake messages encrypted'; step('(inside both sides)', 'Key exchange complete: each side computes the same symmetric key', 'Each side derives a symmetric key from this result. The key itself was never sent over the network. The handshake messages from here on are encrypted.', 'good');
     step('Server → Browser', 'Certificate (shop.example public key + CA signature)', 'The server sends its certificate. The certificate contains the domain name, the server\'s public key, the validity period, and a signature that a certificate authority (CA) made over this content with its own private key.', '');
     var fail = c.cert !== 'ok';
     if (c.cert === 'self') step('(inside Browser)', 'Validation failed: the signing authority is not trusted', 'The browser follows the signatures in the certificate upward and checks whether they reach an authority on its list of trusted certificate authorities (built into the operating system and the browser). This certificate was signed by the server itself, so no authority vouches for it. Anyone can create a certificate that says "I am shop.example" for themselves, so it cannot be trusted.', 'bad');
@@ -45,7 +45,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], key: 'None', lock: 'Not yet encrypted' }, ids = { 'Browser': 'b', 'Server': 's' };
     var msgs = s.rows.map(function (r) { var m = P.dir(P.v(r.cells[0]), ids); m.s = P.v(r.cells[1]); m.cls = P.c(r.cells[1]); return m; });
-    var end = P.seq([['b', 'Browser', 'wait'], ['s', 'Server (shop.example)', 'wait']], msgs), enc = s.lock.indexOf('Encrypted with') >= 0;
+    var end = P.seq([['b', 'Browser', 'wait'], ['s', 'Server (shop.example)', 'wait']], msgs), enc = s.lock.indexOf('Encrypted with') >= 0 || s.lock.indexOf('Handshake') === 0;
     P.box('key', 16, end + 14, 318, 48, { cls: s.key === 'None' ? 'ghost' : 'good', title: 'Encryption key', sub: s.key });
     P.box('lock', 346, end + 14, 318, 48, { cls: enc ? 'good' : s.lock.indexOf('Not yet') === 0 ? 'ghost' : 'bad', title: 'Connection state', sub: s.lock });
     P.size(680, end + 78);

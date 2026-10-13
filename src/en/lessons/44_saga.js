@@ -49,7 +49,7 @@ Lab.register({
       S.other = 'Does not know about the order'; pushO('Even when the server comes back up, there is no record anywhere that there was a message that had to be sent. The order is in the database, but the payment and inventory services never find out. The order stays stuck.', 'bad');
       okAll = false; sum.push('The order is in the database, but the message was lost. Commit and publish are separate operations, so if one fails between them, the two get out of sync.');
     } else if (c.pub === 'before') {
-      S.db = 'Order inserted (not committed yet)'; pushO('The order was inserted. It is not committed yet.', '');
+      S.db = 'Order inserted (not committed yet)'; pushO('The order was saved. It is not committed yet.', '');
       S.mq = '"Order created" published'; S.other = 'Got the message, processing payment'; pushO('The message was published before the commit. The other services receive the message and start processing.', '');
       S.db = 'Rolled back (no order)'; pushO('Just as it tried to commit, the server died and the transaction was rolled back. The order is not in the database. But the message has already gone out and cannot be taken back. Payment proceeds for an order that does not exist.', 'bad');
       okAll = false; sum.push('The message went out, but there is no order. Swapping the order of the two only changes the direction of the problem and does not solve it.');
@@ -69,7 +69,7 @@ Lab.register({
     if (sim.part === 'saga') H.table(v, ['Step', 'Service (has its own database)', 'Action', 'State'], sim.steps.map(function (x, i) { var z = s.st[i]; return { cells: [String(i + 1), x[1], x[2], { v: z, cls: z === 'Failed' ? 'bad' : z.indexOf('Compensated') === 0 ? 'hot' : z === 'Waiting' ? '' : 'good' }] }; }), 'The four steps of order processing');
     else { var ln = H.lanes(v); H.lane(ln, 'Order database', 'orders table: ' + s.db, s.db.indexOf('Rolled back') >= 0 ? 'bad' : s.db === 'None' ? 'none' : 'good'); if (sim.c.pub === 'outbox') H.lane(ln, 'Order database', 'outbox table: ' + s.ob, s.ob === 'None' ? 'none' : 'wait'); H.lane(ln, 'Kafka', s.mq, s.mq === 'None' ? 'none' : 'good'); H.lane(ln, 'Other services', s.other, s.other.indexOf('Does not know') >= 0 ? 'bad' : s.other === 'Waiting' ? 'none' : ''); }
   },
-  // Diagram: Four steps, where each service has its own database. An arrow going forward is the call to the next step, and an arrow going backward is a compensation (an undo).
+  // Diagram: Four steps, where each service has its own database. An arrow going forward is the event that goes to the next step, and an arrow going backward is a compensation (an undo).
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     P.size(680, 300);

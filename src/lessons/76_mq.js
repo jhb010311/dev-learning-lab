@@ -31,7 +31,7 @@ Lab.register({
     var i;
     if (direct) {
       for (i = 1; i <= n; i++) {
-        if (down) { resp = save + timeout; S.orders.push(['주문 ' + i, f(resp), '실패 (500)', '메일 서버가 응답하지 않음']); push('주문 ' + i + ': 저장한 뒤 메일 서버를 호출했지만 응답이 없습니다. 3초를 기다리다 타임아웃이 나고, 예외가 올라가 주문 요청 자체가 실패로 끝납니다. 메일이라는 부가 기능 때문에 주문을 받지 못했습니다.', 'bad'); }
+        if (down) { resp = save + timeout; S.orders.push(['주문 ' + i, f(resp), '실패 (500)', '메일 서버가 응답하지 않음']); push('주문 ' + i + ': 저장한 뒤 메일 서버를 호출했지만 응답이 없습니다. 3초를 기다리다 타임아웃이 나고, 예외가 올라가 주문 요청 자체가 실패로 끝납니다. 메일이라는 부가 기능 때문에 주문 요청이 실패 응답으로 끝났습니다(이미 저장된 주문이 남을 수 있습니다).', 'bad'); }
         else { resp = save + work; S.sent++; okCount++; S.mail = '주문 ' + i + '의 메일 발송 완료'; S.orders.push(['주문 ' + i, f(resp), '성공', '응답 전에 메일까지 보냄']); push('주문 ' + i + ': 저장(0.05초)한 뒤 메일 서버를 호출하고 끝날 때까지 기다립니다(' + f(work) + '). 사용자는 ' + f(resp) + ' 뒤에야 응답을 받습니다.', work >= 1 ? 'bad' : ''); }
       }
     } else {
@@ -40,7 +40,7 @@ Lab.register({
       if (down) { push('메일 서버가 죽어 있어 아무도 큐에서 꺼내 가지 않습니다. 메시지 ' + n + '건은 큐에 그대로 남아 있습니다. 주문은 이미 모두 성공으로 응답했습니다.', ''); S.mail = '복구됨'; push('메일 서버가 복구됐습니다. 큐에 쌓여 있던 메시지를 앞에서부터 꺼내 가기 시작합니다.', ''); }
       for (i = 1; i <= n; i++) { S.q.shift(); S.sent++; S.mail = '주문 ' + i + '의 메일 발송 완료'; S.orders[i - 1] = ['주문 ' + i, f(resp), '성공', '메일 발송됨 (응답 뒤에)']; push('메일 서버가 큐에서 "주문 ' + i + '" 메시지를 꺼내 메일을 보냅니다(' + f(work) + '). 자기 속도대로 하나씩 처리합니다.', ''); }
     }
-    if (direct && down) sum.push('직접 호출하면 호출받는 쪽의 장애가 호출하는 쪽으로 번집니다. 메일 서버가 죽자 주문까지 받지 못했습니다.');
+    if (direct && down) sum.push('직접 호출하면 호출받는 쪽의 장애가 호출하는 쪽으로 번집니다. 메일 서버가 죽자 주문 요청까지 실패했습니다.');
     if (direct && !down) sum.push('직접 호출하면 응답 시간에 상대의 처리 시간이 그대로 더해집니다. 메일이 느려지면 주문도 느려집니다. 대신 응답을 받은 시점에 메일까지 끝났다는 것이 확실합니다.');
     if (!direct) sum.push('큐를 사이에 두면 주문 서버는 메시지를 넣는 것까지만 책임집니다. 메일 서버가 느리거나 죽어 있어도 주문의 응답 시간과 성공 여부는 그대로입니다. 큐가 그 사이의 완충 역할을 합니다.');
     if (!direct) sum.push('대가도 있습니다. 주문 응답을 받은 시점에 메일은 아직 안 나갔을 수 있습니다(시간이 지나면 맞춰지는 최종 일관성). 또 메시지가 두 번 전달되거나 처리 도중 실패할 수 있어, 받는 쪽은 같은 메시지를 두 번 받아도 문제없게 만들어야 합니다. 이 내용은 "멱등성"과 "Kafka" 실습에서 이어집니다.');
@@ -60,7 +60,7 @@ Lab.register({
     if (direct) P.arrow('call', 'os:r', 'ms:l', { cls: dead ? 'bad' : s.orders.length ? 'hot' : 'mut', label: dead ? '응답 없음 → 주문도 실패' : '직접 호출하고 끝날 때까지 기다림' });
     else {
       P.region('qu', 240, 16, 200, 190, '메시지 큐');
-      s.q.forEach(function (x, j) { P.box('m_' + x, 252, 50 + j * 30, 176, 26, { cls: 'wait', sub: x + ' 확인 메일', center: true }); });
+      s.q.forEach(function (x, j) { P.box('m_' + x, 252, 50 + j * 30, 176, 26, { cls: 'wait', sub: x + ' 메일 요청', center: true }); });
       if (!s.q.length) P.text('qe', 340, 116, '비어 있음', { cls: 'mut', anchor: 'middle' });
       P.arrow('in', 'os:r', 'qu:l', { cls: 'good', label: '넣기' }); P.arrow('out', 'qu:r', 'ms:l', { cls: dead ? 'bad dash' : 'mut', label: dead ? '꺼내 가는 쪽 없음' : '꺼내 감' });
     }

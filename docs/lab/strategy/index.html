@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
+<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -67,7 +67,7 @@
 <h3>실행 결과</h3>
 <ul>
 <li>if-else 방식은 수단이 두세 개이고 늘어날 일이 없다면 가장 단순하고 읽기 쉽습니다. 문제는 수단이 늘 때마다 같은 분기가 여러 메서드에 복사되고, 메서드 하나가 계속 길어지며, 한 수단을 고치다 다른 수단을 건드릴 위험이 커진다는 점입니다.</li>
-<li>스프링의 의존성 주입 자체가 전략 패턴의 활용입니다. 인터페이스 타입으로 주입받고 실제 구현은 설정에 따라 바뀝니다(운영에서는 실제 결제사, 테스트에서는 가짜 구현).</li>
+<li>스프링의 의존성 주입은 전략을 갈아 끼우는 데 자주 쓰입니다. 인터페이스 타입으로 주입받고 실제 구현은 설정에 따라 바뀝니다(운영에서는 실제 결제사, 테스트에서는 가짜 구현).</li>
 </ul>
 <h2>코드</h2>
 <pre>@Service
@@ -176,6 +176,6 @@ class PaymentService {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=facdcb7ce9"></script>
+<script src="../../app.js?v=137acd1ae5"></script>
 </body>
 </html>

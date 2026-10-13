@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
+<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -59,7 +59,7 @@
 <li>무엇을 어떻게 바꿨는지를 Redo 로그에 기록합니다. 로그는 파일 끝에 이어 붙이기만 하면 되어서 데이터 파일을 고치는 것보다 훨씬 빠릅니다.</li>
 <li>COMMIT: Redo 로그를 디스크에 확실히 써 넣습니다(fsync). 이것이 끝나야 사용자에게 &quot;커밋 성공&quot;을 응답합니다. 이 시점에도 데이터 파일은 1000 그대로입니다. 커밋할 때 디스크에 쓰는 것은 로그뿐입니다.</li>
 <li>커밋 응답 직후, 데이터 파일에 옮겨 쓰기 전에 서버가 꺼졌습니다. 메모리의 500은 사라졌고 데이터 파일에는 1000이 남아 있습니다. 사용자는 이미 &quot;성공&quot;을 받았습니다.</li>
-<li>서버가 다시 시작됩니다. 복구 과정이 디스크의 Redo 로그를 처음부터 읽습니다.</li>
+<li>서버가 다시 시작됩니다. 복구 과정이 디스크의 Redo 로그를 마지막 체크포인트부터 읽습니다.</li>
 <li>Redo 로그에 &quot;계좌 1을 500으로&quot;와 커밋 표시가 있습니다. 이 변경을 다시 적용합니다. 잔액은 500으로 복구됩니다. 커밋된 데이터는 잃지 않았습니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -161,6 +161,6 @@ COMMIT;
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=facdcb7ce9"></script>
+<script src="../../app.js?v=137acd1ae5"></script>
 </body>
 </html>

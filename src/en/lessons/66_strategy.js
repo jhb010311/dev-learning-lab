@@ -36,7 +36,7 @@ Lab.register({
     var changed = c.add ? (st ? 'none' : '3 methods') : '-', made = c.add ? (st ? '1 class' : 'none') : '-';
     if (st) sum.push('The Strategy pattern hides "the part that changes" (the handling of each payment method) behind an interface so that the implementation can be swapped. A new payment method is added as a new class, and the existing code is closed to modification (the Open-Closed Principle). Because each payment method has its own class, you can test each one separately, and it is also easy to swap in a fake implementation.');
     else sum.push('The if-else version is the simplest and the easiest to read if there are two or three payment methods and no more will be added. The problem is that every time a payment method is added, the same branches are copied into several methods, a single method keeps getting longer, and the risk of touching one payment method while modifying another grows.');
-    sum.push('Dependency injection in Spring is itself an application of the Strategy pattern. A dependency is injected as an interface type, and the actual implementation changes with the configuration (the real payment provider in production, a fake implementation in tests).');
+    sum.push('Dependency injection in Spring is often used to swap strategies. A dependency is injected as an interface type, and the actual implementation changes with the configuration (the real payment provider in production, a fake implementation in tests).');
     return { events: ev, summary: sum, st: st, row: [changed, made, cmp + '', st ? 'Separately for each payment method' : 'All in one method'] };
   },
   render: function (v, sim, t, H, shown) {

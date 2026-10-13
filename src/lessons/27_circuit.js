@@ -18,7 +18,7 @@ Lab.register({
   ],
   code: function (c) {
     if (!c.use) return 'PaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // 응답이 없으면 3초 뒤 타임아웃\n}';
-    return '# application.yml (Resilience4j)\nresilience4j.circuitbreaker.instances.payment:\n  slidingWindowSize: 10                 # 최근 10번의 결과로 판단\n  minimumNumberOfCalls: 10\n  failureRateThreshold: ' + c.th + '              # 실패율이 이 값 이상이면 차단\n  waitDurationInOpenState: ' + c.wait + 's          # 차단 유지 시간\n  permittedNumberOfCallsInHalfOpenState: 3\n\n@CircuitBreaker(name = "payment", fallbackMethod = "payLater")\nPaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // 응답이 없으면 3초 뒤 타임아웃\n}\n\nPaymentResult payLater(Order order, Throwable t) {\n    return PaymentResult.pending();      // 차단됐을 때 대신 실행\n}';
+    return '# application.yml (Resilience4j)\nresilience4j.circuitbreaker.instances.payment:\n  slidingWindowSize: 10                 # 최근 10번의 결과로 판단\n  minimumNumberOfCalls: 10\n  failureRateThreshold: ' + c.th + '              # 실패율이 이 값 이상이면 차단\n  waitDurationInOpenState: ' + c.wait + 's          # 차단 유지 시간\n  permittedNumberOfCallsInHalfOpenState: 3\n\n@CircuitBreaker(name = "payment", fallbackMethod = "payLater")\nPaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // 응답이 없으면 3초 뒤 타임아웃\n}\n\nPaymentResult payLater(Order order, Throwable t) {\n    return PaymentResult.pending();      // 호출이 실패하거나 차단됐을 때 대신 실행\n}';
   },
   label: function (c) { return (c.use ? '사용 · 임계치 ' + c.th + '% · 차단 ' + c.wait + '초' : '서킷 브레이커 없음') + ' · 장애 ' + c.dur + '초'; },
   columns: ['성공', '실패 (3초씩 기다림)', '차단 (즉시 대체 응답)', '기다리는 데 쓴 시간', '상태 전환'],
@@ -74,7 +74,7 @@ Lab.register({
     for (var i = 0; i < 40; i++) { var x = s.calls[i]; P.box('call' + i, 28 + (i % 20) * 31.2, 152 + Math.floor(i / 20) * 30, 27, 24, { cls: (x === 'd' ? 'good' : x === 'r' ? 'bad' : x === 'q' ? 'wait' : 'ghost') + (i === n - 1 ? ' now' : ''), sub: String(i + 1), center: true }); }
     var wait = s.calls.filter(function (x) { return x === 'r'; }).length * 3;
     P.box('w', 16, 238, 648, 34, { cls: wait > 15 ? 'bad' : 'plain', title: '실패를 기다리느라 쓴 시간', right: wait + '초' });
-    P.note('초록은 성공, 빨강은 3초를 기다리다 실패, 파랑은 서킷이 막아 즉시 대체 응답을 준 호출입니다. 서킷이 열리면 화살표가 결제 서비스까지 가지 않고 서킷에서 바로 되돌아옵니다.');
+    P.note('초록은 성공, 빨강은 3초를 기다리다 실패, 파랑은 서킷이 막아 즉시 대체 응답을 준 호출입니다. 서킷이 열리면 호출 화살표가 결제 서비스까지 가지 않고 서킷에서 끝납니다. 주문 서비스는 그 자리에서 대체 응답을 받습니다.');
   },
   assume: '호출 횟수 기준 슬라이딩 윈도(최근 10번)를 쓰는 Resilience4j의 동작을 따랐습니다. 서킷 브레이커를 쓰는 27가지 조합 모두를 실제 Resilience4j 2.4.0 서킷 브레이커에 같은 호출 순서로 넣어(시계를 1초씩 돌리는 방식), 성공·실패·차단 횟수와 상태 전환 순서가 화면과 일치하는 것을 확인했습니다. 한 가지 차이가 있습니다. Resilience4j는 차단 시간이 완전히 지난 뒤의 호출부터 시험 호출로 통과시키므로, 호출이 차단 시간과 정확히 같은 시각에 맞물리면 그 호출까지는 차단됩니다. 화면은 호출이 그 시각보다 아주 조금 뒤에 온다고 본 결과입니다. 실패율이 임계치 이상이면 열리고, 정해진 시간 뒤 시험 호출 3번의 결과로 닫을지 다시 열지 정합니다. 호출은 1초에 한 번, 장애 중인 서비스는 항상 3초 타임아웃으로 실패한다고 단순화했습니다. 실제로는 느린 응답 비율도 기준으로 삼을 수 있고, 시간 기준 윈도도 있습니다.',
 });

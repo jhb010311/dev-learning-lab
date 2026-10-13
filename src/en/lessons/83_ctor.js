@@ -131,7 +131,7 @@ Lab.register({
       P.box('fm', 384, 106, 266, 44, { cls: 'ghost', title: 'memo', sub: s.err ? 'not run' : 'no object yet' });
     }
     P.box('vo', 384, 196, 266, 38, { cls: s.o ? 'wait' : 'ghost', title: 'Variable o', right: s.o ? 'refers to the object' : s.err ? 'none' : 'not assigned yet' });
-    if (s.o) P.arrow('ao', 'vo:t', 'fm:b', {});
+    if (s.o) P.arrow('ao', 'vo:t', 'hp:b', {});
     if (s.cur && s.tgt) P.arrow('wr', s.cur + ':r', s.tgt + ':l', { cls: 'hot' });
     P.box('out', 16, 266, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? 'Compile-time error' : 'Console output', right: s.err ? 'no matching constructor' : s.out || (s.made ? (noarg ? 'new Order()' : 'new Order(3)') + ' in progress' : 'not run yet') });
     P.note('The "#1, #2" marks in the boxes on the left show the order in which the pieces actually ran.');

@@ -17,7 +17,7 @@ Lab.register({
   ],
   code: function (c) {
     if (c.pipe === 'manual') return '# 개발자가 자기 PC에서 직접 입력\n./gradlew build -x test      # 급해서 테스트는 건너뜀\nscp build/libs/app.jar prod-server:/app/\nssh prod-server "systemctl restart app"\n\n# 누가, 언제, 어떤 코드를 올렸는지 기록이 남지 않는다';
-    return '# .github/workflows/ci.yml (GitHub Actions 예시)\non: [pull_request, push]\njobs:\n  build:\n    runs-on: ubuntu-latest             # 매번 깨끗한 환경에서 시작\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-java@v4\n        with: { distribution: temurin, java-version: 21 }\n      - run: ./gradlew build           # 컴파일 + 테스트. 실패하면 병합할 수 없다\n' + (c.pipe === 'cicd' ? '      - run: docker build -t shop/app:${{ github.sha }} .\n      - run: docker push shop/app:${{ github.sha }}\n  deploy:\n    needs: build                       # build가 성공해야 실행\n    if: github.ref == \'refs/heads/main\'\n    steps:\n      - run: kubectl set image deployment/app app=shop/app:${{ github.sha }}\n      - run: kubectl rollout status deployment/app || kubectl rollout undo deployment/app' : '\n# 배포는 통과한 결과물을 사람이 골라 수동으로 진행');
+    return '# .github/workflows/ci.yml (GitHub Actions 예시)\non: [pull_request, push]\njobs:\n  build:\n    runs-on: ubuntu-latest             # 매번 깨끗한 환경에서 시작\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-java@v4\n        with: { distribution: temurin, java-version: 21 }\n      - run: ./gradlew build           # 컴파일 + 테스트. 실패하면 실패 표시(필수 검사면 병합도 막힘)\n' + (c.pipe === 'cicd' ? '      - run: docker build -t shop/app:${{ github.sha }} .\n      - run: docker push shop/app:${{ github.sha }}\n  deploy:\n    needs: build                       # build가 성공해야 실행\n    if: github.ref == \'refs/heads/main\'\n    steps:\n      - run: kubectl set image deployment/app app=shop/app:${{ github.sha }}\n      - run: kubectl rollout status deployment/app || kubectl rollout undo deployment/app' : '\n# 배포는 통과한 결과물을 사람이 골라 수동으로 진행');
   },
   label: function (c) { return { manual: '손으로', ci: 'CI', cicd: 'CI/CD' }[c.pipe] + ' · ' + { none: '문제 없음', compile: '컴파일 오류', test: '테스트로 잡히는 버그', env: '내 PC에서만 됨', runtime: '운영에서만 실패' }[c.bug]; },
   columns: ['문제가 발견된 곳', '운영 사용자에게 영향', '사람이 한 일'],
@@ -49,7 +49,7 @@ Lab.register({
       hands.push('코드 올리기 (push)');
       push('코드 올리기', '완료', '사람', '개발자가 변경을 저장소에 올리고 병합 요청(Pull Request)을 엽니다. 이것이 신호가 되어 파이프라인이 자동으로 시작됩니다.', '');
       push('환경 준비', '완료', '자동', '아무것도 설치돼 있지 않은 깨끗한 환경에 코드를 내려받습니다. 개발자 PC에만 있는 파일은 여기에 없습니다.', '');
-      if (R.stop === 'build') push('빌드', '실패', '자동', '컴파일 오류로 빌드가 실패합니다. 병합 요청에 실패 표시가 붙고 병합할 수 없게 됩니다.', 'bad');
+      if (R.stop === 'build') push('빌드', '실패', '자동', '컴파일 오류로 빌드가 실패합니다. 병합 요청에 실패 표시가 붙습니다(필수 검사로 지정했다면 병합도 막힙니다).', 'bad');
       else {
         push('빌드', '성공', '자동', '컴파일에 성공합니다.', '');
         if (R.stop === 'test') push('테스트', '실패', '자동', '전체 테스트를 매번 빠짐없이 실행합니다. ' + (b === 'env' ? '테스트가 애플리케이션을 띄우다가 개발자 PC에만 있던 파일을 찾지 못해 실패합니다. "내 PC에서는 되는데"가 여기서 드러납니다.' : '망가진 기능의 테스트가 실패합니다.') + ' 병합이 막히고, 이 코드는 운영 근처에도 가지 못합니다.', 'bad');
@@ -95,7 +95,7 @@ Lab.register({
       if (i) P.arrow('ar' + i, 'sg' + (i - 1) + (i % 5 ? ':r' : ':b'), 'sg' + i + (i % 5 ? ':l' : ':t'), { cls: bad ? 'bad' : '' });
     });
     if (!n) P.text('hint', 340, 90, '실행을 누르면 단계를 하나씩 진행합니다', { cls: 'mut', anchor: 'middle' });
-    P.note('초록은 기계가 자동으로 한 단계, 파랑은 사람이 한 단계, 빨강은 실패하거나 장애가 난 단계, 점선은 건너뛴 단계입니다. 빨간 단계가 왼쪽에 있을수록 문제를 일찍 찾은 것입니다.');
+    P.note('초록은 기계가 자동으로 한 단계, 파랑은 사람이 한 단계(또는 결과 상태), 빨강은 실패하거나 장애가 난 단계, 점선은 건너뛴 단계입니다. 빨간 단계가 왼쪽에 있을수록 문제를 일찍 찾은 것입니다.');
   },
   assume: '개념을 설명하기 위한 모델이며 실제 CI/CD 도구를 실행해 확인한 결과는 아닙니다. "손으로"에서 테스트를 건너뛴 것은 흔한 사고를 가정한 것이고, 손으로 해도 테스트를 돌리면 같은 문제를 잡을 수 있습니다. 헬스 체크 실패 시의 자동 되돌리기는 파이프라인과 배포 도구에 그렇게 구성했을 때의 동작입니다. 코드의 워크플로는 구조를 보여 주기 위한 예시로, 인증과 캐시 같은 실제에 필요한 단계는 뺐습니다.',
 });

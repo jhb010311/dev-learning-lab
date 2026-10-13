@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -54,7 +54,7 @@
 <ul>
 <li><b>Default settings</b> — Alternating execution with no synchronization. Increments are lost.</li>
 <li><b>Adding only volatile</b> — The latest value is visible, but volatile cannot keep the steps from being interleaved.</li>
-<li><b>Guarding with synchronized</b> — The other threads wait until one thread is finished.</li>
+<li><b>Guarding with synchronized</b> — The other threads wait until one thread finishes count++.</li>
 <li><b>Using AtomicInteger</b> — Without a lock, a thread writes only if the value it read is unchanged (CAS). Otherwise it tries again.</li>
 <li><b>A lucky run with no overlap</b> — The result is correct even though there is no synchronization. This is why tests do not catch the bug.</li>
 <li><b>4 threads at random</b> — Run it several times with different pattern numbers. The result is different each time.</li>
@@ -186,6 +186,6 @@ for (int t = 0; t &lt; 2; t++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

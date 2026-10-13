@@ -28,7 +28,7 @@ Lab.register({
     if (RR && (c.q === 'miss' || c.q === 'range')) gaps = [[20, 30]];
     var blocked = gaps.some(function (g) { return ins > g[0] && ins < g[1]; });
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
-    push('coupon 테이블에는 id가 10, 20, 30, 40인 행이 있습니다. 인덱스에서 보면 행과 행 사이에 (10~20), (20~30), (30~40), (40 이후) 같은 빈 구간이 있습니다.', '', 0);
+    push('coupon 테이블에는 id가 10, 20, 30, 40인 행과 그보다 한참 큰 id의 행들이 있습니다. 인덱스에서 보면 행과 행 사이에 (10~20), (20~30), (30~40), (40 이후) 같은 빈 구간이 있습니다.', '', 0);
     if (c.q === 'hit') push('트랜잭션 A가 id = 20인 행을 FOR UPDATE로 조회합니다. 기본 키로 정확히 한 행을 찾았으므로 그 행에만 락을 겁니다(레코드 락). 조건에 맞는 행은 앞으로도 이것 하나뿐이라는 것이 보장되므로 빈 구간을 잠글 필요가 없습니다.', '', 1);
     else if (c.q === 'miss') push('트랜잭션 A가 id = 25를 FOR UPDATE로 조회합니다. 그런 행은 없습니다. ' + (RR ? '잠글 행이 없으므로, 대신 25가 들어갈 자리인 20과 30 사이의 빈 구간을 잠급니다(갭 락). "지금 없는 것이 내 트랜잭션이 끝날 때까지 계속 없도록" 지키기 위해서입니다.' : 'READ COMMITTED에서는 빈 구간을 잠그지 않습니다. 잠글 행도 없으므로 아무 락도 걸리지 않습니다.'), '', 1);
     else push('트랜잭션 A가 id 20부터 30까지를 FOR UPDATE로 조회합니다. 조건에 맞는 행 20과 30에 락을 겁니다. ' + (RR ? '그리고 그 사이의 빈 구간 (20~30)도 함께 잠급니다. 행에 건 락과 그 앞 구간에 건 락을 합쳐 넥스트 키 락이라고 부릅니다.' : 'READ COMMITTED에서는 빈 구간은 잠그지 않고 찾은 행만 잠급니다.'), '', 1);
@@ -37,7 +37,7 @@ Lab.register({
     else push('id ' + ins + '가 들어갈 자리는 잠겨 있지 않습니다. B의 INSERT는 바로 실행됩니다.' + (!RR && ins > 20 && ins < 30 && c.q !== 'hit' ? ' A가 같은 조건으로 다시 조회하면, 처음에는 없던 id 25인 행이 나타납니다(Phantom Read).' : ''), !RR && ins === 25 && c.q !== 'hit' ? 'bad' : 'good', 3);
     if (blocked) push('A가 커밋하면 락이 풀리고, 기다리던 B의 INSERT가 그제야 실행됩니다.', '', 4);
     var phantom = !RR && c.q !== 'hit' && ins === 25;
-    if (RR && gaps.length) sum.push('REPEATABLE READ에서 InnoDB는 범위 안에 새 행이 끼어드는 것(Phantom)을 막으려고 빈 구간을 잠급니다. 그 대가로 서로 다른 행을 넣으려는 INSERT끼리도 막힐 수 있습니다.');
+    if (RR && gaps.length) sum.push('REPEATABLE READ에서 InnoDB는 범위 안에 새 행이 끼어드는 것(Phantom)을 막으려고 빈 구간을 잠급니다. 그 대가로 조회에 걸리지 않는 값을 넣으려는 INSERT도 잠긴 빈 구간 안이면 막힐 수 있습니다.');
     if (c.q === 'miss' && RR) sum.push('"없으면 INSERT" 패턴에서 자주 문제가 됩니다. 두 트랜잭션이 각각 없는 행을 FOR UPDATE로 조회하면 둘 다 같은 구간에 갭 락을 얻습니다(갭 락끼리는 서로 막지 않습니다). 그런 뒤 둘 다 INSERT하려 하면 서로의 갭 락에 막혀 교착 상태가 됩니다.');
     if (c.q === 'hit') sum.push('유니크 인덱스로 존재하는 한 행을 정확히 찾으면 레코드 락만 걸립니다. 락의 범위를 좁히려면 조건이 인덱스를 정확히 타는지가 중요합니다. 인덱스를 타지 못하면 훨씬 넓은 범위가 잠깁니다.');
     if (!RR) sum.push('READ COMMITTED에서는 조회에 갭 락을 쓰지 않아 INSERT가 덜 막히고 교착 상태도 줄어듭니다. 대신 Phantom Read를 허용합니다.' + (phantom ? ' 이번 실행에서 실제로 새 행이 끼어들었습니다.' : ''));

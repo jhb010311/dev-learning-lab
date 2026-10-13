@@ -1,7 +1,7 @@
 Lab.register({
   id: 'eqhash', nav: 'equals and hashCode', cat: 'Java language', mode: 'step',
   title: 'Why can HashMap not find the key when you override only equals?',
-  intro: 'To treat two objects with the same contents as equal, you override equals. But before HashMap and HashSet call equals, they first use hashCode to decide which bucket to look in. So if you override only one of equals and hashCode, a collection cannot find an object that you meant to be equal.',
+  intro: 'To treat two objects with the same contents as equal, you override equals. But before HashMap and HashSet call equals, they first use hashCode to decide which bucket to look in. So if you override only one of equals and hashCode, HashMap and HashSet cannot find an object that you meant to be equal.',
   terms: ['equals and hashCode contract', 'Identity and equality', 'Hash table and HashMap', 'Hash collision', 'record'],
   controls: [
     { id: 'how', label: 'Methods that the Order class overrides', type: 'select', value: 'eq', options: [['none', 'Overrides nothing'], ['eq', 'Overrides only equals'], ['hash', 'Overrides only hashCode'], ['both', 'Overrides both equals and hashCode'], ['const', 'Overrides equals + hashCode always returns 42'], ['record', 'Declared as a record (both generated automatically)']] },
@@ -53,7 +53,7 @@ Lab.register({
       push('The key a in that bucket is compared with b using equals. ' + (f.eq ? 'The result is true, so the two are treated as the same key and the value is returned.' : (f.eqOver ? 'The id values differ, so the result is false.' : 'equals is not overridden, so the result is false.') + ' Even in the same bucket, the two are treated as different keys, and null is returned.'), found ? 'good' : same ? 'bad' : '');
     } else {
       st.got = 'null';
-      push('map.get(b): First, b.hashCode() decides which bucket to look in. The hashCode is different from that of a, so the bucket that holds a is not examined. equals is never even called, and null is returned.' + (f.eq ? ' The value cannot be retrieved even though the two objects are equal according to equals.' : ''), f.eq ? 'bad' : '');
+      push('map.get(b): First, b.hashCode() decides which bucket to look in. The hashCode is different from that of a, so the lookup usually goes to a different bucket, and even in the same bucket, a key whose hash value is different never reaches equals. equals is never even called, and null is returned.' + (f.eq ? ' The value cannot be retrieved even though the two objects are equal according to equals.' : ''), f.eq ? 'bad' : '');
     }
     st.set = found ? '1' : '2';
     push('set.add(a), set.add(b): HashSet uses a HashMap internally, so it decides in the same order. ' + (found ? 'b is treated as the same element as a, which is already in the set, so b is not added. The size is 1.' : 'b is treated as a different element from a, so both are added. The size is 2.' + (same ? ' Objects with the same contents are now in the set as duplicates.' : '')), found ? 'good' : same ? 'bad' : '');

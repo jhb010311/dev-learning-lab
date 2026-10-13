@@ -63,7 +63,7 @@ Lab.register({
     var msgs = rows.map(function (r) { var m = P.dir(P.v(r.cells[0]), ids); m.s = P.v(r.cells[2]); m.cls = P.c(r.cells[2]); return m; });
     var end = P.seq([['u', '사용자 (브라우저)', 'wait'], ['w', '우리 서비스', 'wait'], ['k', '카카오 인가 서버', 'plain'], ['a', '카카오 API 서버', 'plain']], msgs, { keep: 8 });
     P.size(680, end + 16);
-    P.note('글자가 길면 잘려 보이므로 전체 내용은 오른쪽 표에서 확인하세요.');
+    P.note('화살표는 모두 같은 모양이지만, 인가 코드와 state는 사용자의 브라우저 주소(리다이렉트)를 거쳐 전달되고 토큰 교환만 서버끼리 직접 주고받습니다. 글자가 길면 잘려 보이므로 전체 내용과 경로는 오른쪽 표에서 확인하세요.');
   },
   assume: 'OAuth 2.0의 인가 코드 방식(Authorization Code Grant)을 표준 문서(RFC 6749)의 흐름대로 옮겼습니다. 카카오는 예시일 뿐이며 구글, 네이버 등 다른 제공자도 흐름이 같습니다. 코드와 토큰 값은 설명을 위한 가짜 값입니다.',
 });

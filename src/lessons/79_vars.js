@@ -47,7 +47,7 @@ Lab.register({
     st.hot = 'cp';
     if (W === 'copy') {
       st.cp = { ref: obj(read(st.a)) };
-      push(call ? 'change(new Point(a.x)) 호출: 먼저 새 Point 객체를 하나 더 만들고, a가 가리키는 객체의 x 값 1을 옮겨 담습니다. 매개변수 p의 칸에는 이 새 객체의 참조가 들어갑니다. a가 가리키는 객체와 내용은 같지만 서로 다른 객체입니다.' : 'Point b = new Point(a.x): 새 Point 객체를 하나 더 만들고, a가 가리키는 객체의 x 값 1을 옮겨 담습니다. b의 칸에는 이 새 객체의 참조가 들어갑니다. 내용은 같지만 서로 다른 객체입니다.');
+      push(call ? 'change(new Point(a.x)) 호출: 먼저 새 Point 객체를 하나 더 만들고, a가 가리키는 객체의 x 값 1을 복사해 담습니다. 매개변수 p의 칸에는 이 새 객체의 참조가 들어갑니다. a가 가리키는 객체와 내용은 같지만 서로 다른 객체입니다.' : 'Point b = new Point(a.x): 새 Point 객체를 하나 더 만들고, a가 가리키는 객체의 x 값 1을 복사해 담습니다. b의 칸에는 이 새 객체의 참조가 들어갑니다. 내용은 같지만 서로 다른 객체입니다.');
     } else {
       st.cp = JSON.parse(JSON.stringify(st.a));
       var same = prim ? ' 두 칸은 서로 이어져 있지 않습니다.' : ' 객체는 복사되지 않습니다. 객체는 여전히 하나이고, a와 ' + cv + '가 같은 객체를 가리킵니다.';

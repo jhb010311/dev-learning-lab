@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,7 +58,7 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>The coupon table has rows with ids 10, 20, 30, and 40. In the index, there are gaps between the rows, such as (10~20), (20~30), (30~40), and (after 40).</li>
+<li>The coupon table has rows with ids 10, 20, 30, and 40, and also rows with much larger ids. In the index, there are gaps between the rows, such as (10~20), (20~30), (30~40), and (after 40).</li>
 <li>Transaction A queries ids 20 through 30 using FOR UPDATE. It locks rows 20 and 30, which match the condition. It also locks the gap (20~30) between them. A lock on a row together with the lock on the gap before it is called a next-key lock.</li>
 <li>Transaction B tries to insert the row with id = 25. An INSERT checks whether the gap where the new row would go is locked.</li>
 <li>The place where id 25 goes is the gap (20~30), and A has locked that gap. The INSERT of B waits until A commits or rolls back. If it waits too long, it fails with a lock wait timeout error.</li>
@@ -66,7 +66,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>At REPEATABLE READ, InnoDB locks the gap to stop new rows from slipping into the range (phantoms). As a cost, INSERTs of different rows can end up blocking each other.</li>
+<li>At REPEATABLE READ, InnoDB locks the gap to stop new rows from slipping into the range (phantoms). As a cost, an INSERT of a value that the query did not match can also be blocked if it falls inside a locked gap.</li>
 </ul>
 <h2>Code</h2>
 <pre>-- The ids (primary key) in the table: 10, 20, 30, 40, and rows far away from them
@@ -168,6 +168,6 @@ INSERT INTO coupon (id) VALUES (25);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

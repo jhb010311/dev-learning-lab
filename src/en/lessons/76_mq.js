@@ -31,7 +31,7 @@ Lab.register({
     var i;
     if (direct) {
       for (i = 1; i <= n; i++) {
-        if (down) { resp = save + timeout; S.orders.push(['Order ' + i, f(resp), 'Failed (500)', 'The email server did not respond']); push('Order ' + i + ': After saving, the order server calls the email server but gets no response. It waits 3s until a timeout occurs, the exception propagates up, and the order request itself fails. Because of the email, a side feature, the order could not be accepted.', 'bad'); }
+        if (down) { resp = save + timeout; S.orders.push(['Order ' + i, f(resp), 'Failed (500)', 'The email server did not respond']); push('Order ' + i + ': After saving, the order server calls the email server but gets no response. It waits 3s until a timeout occurs, the exception propagates up, and the order request itself fails. Because of the email, a side feature, the order request ended in a failure response (an order that was already saved may remain).', 'bad'); }
         else { resp = save + work; S.sent++; okCount++; S.mail = 'Email for order ' + i + ' sent'; S.orders.push(['Order ' + i, f(resp), 'Success', 'Sent the email before responding']); push('Order ' + i + ': After saving (0.05s), the order server calls the email server and waits until it finishes (' + f(work) + '). The user gets a response only after ' + f(resp) + '.', work >= 1 ? 'bad' : ''); }
       }
     } else {
@@ -40,7 +40,7 @@ Lab.register({
       if (down) { push('The email server is down, so nothing takes messages out of the queue. They stay in the queue as they are (' + n + (n === 1 ? ' message' : ' messages') + '). All the orders were already answered as successful.', ''); S.mail = 'Recovered'; push('The email server has recovered. It starts taking the messages that piled up in the queue, from the front.', ''); }
       for (i = 1; i <= n; i++) { S.q.shift(); S.sent++; S.mail = 'Email for order ' + i + ' sent'; S.orders[i - 1] = ['Order ' + i, f(resp), 'Success', 'Email sent (after the response)']; push('The email server takes the "Order ' + i + '" message from the queue and sends the email (' + f(work) + '). It handles them one at a time, at its own pace.', ''); }
     }
-    if (direct && down) sum.push('With a direct call, a failure in the service being called spreads to the caller. When the email server went down, orders could not be accepted either.');
+    if (direct && down) sum.push('With a direct call, a failure in the service being called spreads to the caller. When the email server went down, order requests failed too.');
     if (direct && !down) sum.push('With a direct call, the other side\'s processing time is added to your response time as it is. If email gets slow, orders get slow too. In return, when the response arrives, you can be sure the email is already sent.');
     if (!direct) sum.push('With a queue in between, the order server is responsible only for putting the message in. Even if the email server is slow or down, the response time and the success of the order stay the same. The queue works as a buffer between the two.');
     if (!direct) sum.push('There is a cost too. When you get the order response, the email may not have gone out yet (eventual consistency, where the states match after some time). Also, a message can be delivered twice or fail partway through processing, so the receiving side must be built so that receiving the same message twice causes no problem. This continues in the "Retries and idempotency" and "Kafka partitions and consumers" labs.');
@@ -60,7 +60,7 @@ Lab.register({
     if (direct) P.arrow('call', 'os:r', 'ms:l', { cls: dead ? 'bad' : s.orders.length ? 'hot' : 'mut', label: dead ? 'No response → the order fails too' : 'Direct call, waits until done' });
     else {
       P.region('qu', 240, 16, 200, 190, 'Message queue');
-      s.q.forEach(function (x, j) { P.box('m_' + x, 252, 50 + j * 30, 176, 26, { cls: 'wait', sub: x + ' email', center: true }); });
+      s.q.forEach(function (x, j) { P.box('m_' + x, 252, 50 + j * 30, 176, 26, { cls: 'wait', sub: x + ' email request', center: true }); });
       if (!s.q.length) P.text('qe', 340, 116, 'Empty', { cls: 'mut', anchor: 'middle' });
       P.arrow('in', 'os:r', 'qu:l', { cls: 'good', label: 'Put in' }); P.arrow('out', 'qu:r', 'ms:l', { cls: dead ? 'bad dash' : 'mut', label: dead ? 'Nothing takes them out' : 'Taken out' });
     }

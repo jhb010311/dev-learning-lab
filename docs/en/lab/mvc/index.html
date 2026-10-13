@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -70,7 +70,7 @@
 <li>HandlerMapping looks for the handler for GET /orders. It returns the list method annotated with @GetMapping(&quot;/orders&quot;) together with the list of interceptors that apply to this path.</li>
 <li>A HandlerAdapter is chosen. RequestMappingHandlerAdapter, which knows how to run annotated controller methods, is selected.</li>
 <li>The preHandle method of the interceptor runs and returns true. Unlike a filter, an interceptor works knowing which controller method is going to run.</li>
-<li>HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter of type Model, it passes in an empty model object that will hold the data for the view. This is where the model (M) of MVC is created.</li>
+<li>HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter of type Model, it passes in an empty Model object that will hold the data for the view. The data put into it is the model (M) of MVC.</li>
 <li>The controller method runs. This is the step where the controller (C) of MVC does its work. It calls the service layer to get the list of orders, puts the list into the model under the name orders, and returns the view name &quot;orders/list&quot;.</li>
 <li>The return value is handled. The string &quot;orders/list&quot; returned by the @Controller is interpreted as a view name and is bundled with the model into a ModelAndView.</li>
 <li>The postHandle method of the interceptor is called. The view has not been rendered yet, so common data can still be added to the model.</li>
@@ -180,6 +180,6 @@ class OrderController {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

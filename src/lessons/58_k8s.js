@@ -23,11 +23,11 @@ Lab.register({
     function push(s, k) { ev.push({ s: s, k: k, snap: { want: want, pods: pods.map(function (p) { return { n: p.n, node: p.node, st: p.st, svc: p.svc }; }) } }); }
     push('평소 상태입니다. Deployment에 "복제본 3개"라고 적혀 있고, 실제로 Pod 3개가 노드 세 대 가운데 두 대(노드 1, 노드 2)에 나뉘어 실행 중입니다. Service가 요청을 세 Pod에 나눠 보냅니다.', '');
     if (c.what === 'kill') {
-      pods[1].st = '죽음'; pods[1].svc = false; push('shop-b의 컨테이너가 메모리 부족으로 죽었습니다. Service는 이 Pod로 요청을 보내지 않게 됩니다. 실제 Pod 수는 2개가 됐습니다.', 'bad');
+      pods[1].st = '죽음'; pods[1].svc = false; push('shop-b Pod가 사라졌습니다(예: 노드의 자원이 모자라 쫓겨남). Service는 이 Pod로 요청을 보내지 않게 됩니다. 실제 Pod 수는 2개가 됐습니다.', 'bad');
       push('컨트롤러가 상태를 비교합니다. 원하는 수 3, 실제 2. 하나가 모자랍니다. 누가 알려 주지 않아도 이 비교는 계속 반복되고 있습니다.', '');
-      pods[1] = { n: 'shop-d', node: '노드 1', st: '시작 중', svc: false }; push('새 Pod shop-d를 만듭니다. 스케줄러가 여유 있는 노드를 골라 배치하고, 그 노드의 kubelet이 컨테이너를 띄웁니다. 죽은 Pod를 살리는 것이 아니라 새것으로 교체합니다.', '');
+      pods[1] = { n: 'shop-d', node: '노드 1', st: '시작 중', svc: false }; push('새 Pod shop-d를 만듭니다. 스케줄러가 여유 있는 노드를 골라 배치하고, 그 노드의 kubelet이 컨테이너를 띄웁니다. 사라진 Pod를 살리는 것이 아니라 새것으로 교체합니다.', '');
       pods[1].st = '실행 중'; pods[1].svc = true; push('shop-d가 준비 상태 검사(readiness)를 통과했습니다. Service가 요청을 보내기 시작합니다. 다시 3개입니다.', 'good');
-      did = '새 Pod 1개 생성'; sum.push('사람이 손대지 않았는데 Pod가 다시 3개가 됐습니다. 이것이 자가 치유입니다. Pod는 언제든 죽고 교체될 수 있는 일회용으로 다룹니다. 그래서 Pod 안에 상태(파일, 세션)를 두면 안 되고, Pod의 IP 대신 Service의 고정된 이름으로 접근합니다.');
+      did = '새 Pod 1개 생성'; sum.push('사람이 손대지 않았는데 Pod가 다시 3개가 됐습니다. 이것이 자가 치유입니다. Pod는 언제든 죽고 교체될 수 있는 일회용으로 다룹니다. 그래서 Pod가 교체되면 컨테이너 안의 파일과 세션은 사라지므로 상태는 외부 저장소(볼륨, DB, Redis)에 두고, Pod의 IP 대신 Service의 고정된 이름으로 접근합니다.');
     }
     if (c.what === 'node') {
       pods[1].st = '죽음'; pods[1].svc = false; pods[2].st = '죽음'; pods[2].svc = false; push('노드 2가 통째로 꺼졌습니다. 그 위에 있던 shop-b, shop-c와 연락이 끊깁니다. 남은 것은 노드 1의 shop-a 하나입니다.', 'bad');

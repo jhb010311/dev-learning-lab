@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
+<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -65,7 +65,7 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>상태 코드의 첫 자리만 봐도 대응이 갈립니다. 4xx는 같은 요청을 다시 보내도 소용없고 요청을 고쳐야 합니다. 5xx는 서버 쪽 문제라서 잠시 뒤 다시 시도해 볼 수 있습니다. 모니터링에서도 4xx와 5xx를 따로 셉니다.</li>
+<li>상태 코드의 첫 자리만 봐도 대응이 갈립니다. 4xx는 대부분 요청 쪽을 고쳐야 풀립니다(408, 429처럼 잠시 뒤 다시 보내면 되는 경우도 있습니다). 5xx는 서버 쪽 문제라서 잠시 뒤 다시 시도해 볼 수 있습니다. 모니터링에서도 4xx와 5xx를 따로 셉니다.</li>
 <li>HTTP 메시지는 시작 줄, 헤더, 빈 줄, 본문의 네 부분입니다. 요청의 시작 줄에는 메서드와 경로가, 응답의 시작 줄에는 상태 코드가 들어갑니다.</li>
 </ul>
 <h2>코드</h2>
@@ -162,6 +162,6 @@ OrderDto get(@PathVariable long id) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=facdcb7ce9"></script>
+<script src="../../app.js?v=137acd1ae5"></script>
 </body>
 </html>

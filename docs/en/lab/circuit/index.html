@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -113,7 +113,7 @@ PaymentResult pay(Order order) {
 }
 
 PaymentResult payLater(Order order, Throwable t) {
-    return PaymentResult.pending();      // runs instead when calls are blocked
+    return PaymentResult.pending();      // runs instead when calls fail or are blocked
 }</pre>
 <h2>Assumptions of this model</h2>
 <p>This follows the behavior of Resilience4j with a count-based sliding window (the last 10 calls). All 27 combinations that use the circuit breaker were fed, in the same call order, to a real Resilience4j 2.4.0 circuit breaker (advancing the clock by 1 second at a time), and the numbers of successes, failures, and blocked calls and the order of state transitions were confirmed to match the screen. There is one difference. Resilience4j lets calls through as trial calls only after the wait duration has fully passed, so a call that arrives at exactly the same moment as the end of the wait duration is still blocked. The screen shows the result of treating the call as arriving a tiny bit after that moment. The circuit opens when the failure rate is at or above the threshold, and after the set time, the results of 3 trial calls decide whether to close it or open it again. It is simplified so that calls are made once per second and a service in an outage always fails with a 3s timeout. In real use, you can also use the slow call rate as a criterion, and there is a time-based sliding window too.</p>
@@ -204,6 +204,6 @@ PaymentResult payLater(Order order, Throwable t) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
+<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -58,7 +58,7 @@
 </ul>
 <h2>처음 설정으로 실행하면</h2>
 <ol>
-<li>coupon 테이블에는 id가 10, 20, 30, 40인 행이 있습니다. 인덱스에서 보면 행과 행 사이에 (10~20), (20~30), (30~40), (40 이후) 같은 빈 구간이 있습니다.</li>
+<li>coupon 테이블에는 id가 10, 20, 30, 40인 행과 그보다 한참 큰 id의 행들이 있습니다. 인덱스에서 보면 행과 행 사이에 (10~20), (20~30), (30~40), (40 이후) 같은 빈 구간이 있습니다.</li>
 <li>트랜잭션 A가 id 20부터 30까지를 FOR UPDATE로 조회합니다. 조건에 맞는 행 20과 30에 락을 겁니다. 그리고 그 사이의 빈 구간 (20~30)도 함께 잠급니다. 행에 건 락과 그 앞 구간에 건 락을 합쳐 넥스트 키 락이라고 부릅니다.</li>
 <li>트랜잭션 B가 id = 25인 행을 넣으려 합니다. INSERT는 새 행이 들어갈 자리의 빈 구간이 잠겨 있는지 확인합니다.</li>
 <li>id 25가 들어갈 자리는 (20~30) 구간이고, A가 이 구간을 잠그고 있습니다. B의 INSERT는 A가 커밋하거나 롤백할 때까지 기다립니다. 너무 오래 기다리면 락 대기 시간 초과 오류가 납니다.</li>
@@ -66,7 +66,7 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>REPEATABLE READ에서 InnoDB는 범위 안에 새 행이 끼어드는 것(Phantom)을 막으려고 빈 구간을 잠급니다. 그 대가로 서로 다른 행을 넣으려는 INSERT끼리도 막힐 수 있습니다.</li>
+<li>REPEATABLE READ에서 InnoDB는 범위 안에 새 행이 끼어드는 것(Phantom)을 막으려고 빈 구간을 잠급니다. 그 대가로 조회에 걸리지 않는 값을 넣으려는 INSERT도 잠긴 빈 구간 안이면 막힐 수 있습니다.</li>
 </ul>
 <h2>코드</h2>
 <pre>-- 테이블의 id(기본 키): 10, 20, 30, 40, 그리고 멀리 떨어진 행들
@@ -168,6 +168,6 @@ INSERT INTO coupon (id) VALUES (25);</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=facdcb7ce9"></script>
+<script src="../../app.js?v=137acd1ae5"></script>
 </body>
 </html>

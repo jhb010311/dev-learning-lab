@@ -44,7 +44,7 @@ Lab.register({
     if (!c.dns || !c.conn) sum.push((!c.dns && !c.conn ? 'On a first request, the DNS lookup, the TCP connection, and the TLS handshake all happen' : !c.dns ? 'On this request, the DNS lookup happens' : 'On this request, the TCP connection and the TLS handshake happen') + ' before the actual request. However fast the server is, these round trips do not go away, so keeping a connection open and reusing it (keep-alive, HTTP/2) has a large effect on how fast the site feels.');
     if (c.what === 'static' && !cdn) sum.push('The web server serves static files directly. The application server handles only the requests whose result has to be produced by running code. Putting a reverse proxy in front lets you handle TLS, static files, load balancing, and hiding the internal servers in one place.');
     if (cdn) sum.push('A CDN keeps copies of static files in many places around the world and responds from a place close to the user. The round trips get shorter, and fewer requests reach the origin server.');
-    if (c.what === 'api') sum.push('In a dynamic request, most of the time the server spends goes to the database query (here, 20ms out of 31ms). This is why, when you look into a performance problem, you start by breaking the request down to see which part takes the time.');
+    if (c.what === 'api') sum.push('In this example, 20ms of the 31ms the server spends goes to the database query. The real share differs from request to request. This is why, when you look into a performance problem, you start by breaking the request down to see which part takes the time.');
     return { events: ev, summary: sum, row: [total + 'ms', (rows.length - skipped) + '', skipped + '', maker] };
   },
   render: function (v, sim, t, H, shown) {

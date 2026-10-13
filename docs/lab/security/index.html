@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
+<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -66,7 +66,7 @@
 </ol>
 <h3>실행 결과</h3>
 <ul>
-<li>401은 &quot;누구인지 확인되지 않았다&quot;(인증 실패)입니다. 토큰 없이 관리자 경로를 요청해도 403이 아니라 401인 이유는, 누구인지 모르는 상태에서는 권한을 따질 수 없기 때문입니다.</li>
+<li>401은 &quot;누구인지 확인되지 않았다&quot;(인증 실패)입니다. 토큰 없이 관리자 경로를 요청해도 403이 아니라 401인 이유는, 누구인지 모르는 요청이 거부되면 401로 응답하도록 설정해 두었기 때문입니다(이 설정이 없으면 403이 나갑니다).</li>
 <li>이 응답은 DispatcherServlet에 닿기 전에 필터에서 만들어지므로 @ControllerAdvice로는 바꿀 수 없습니다. 응답 형식을 바꾸려면 AuthenticationEntryPoint와 AccessDeniedHandler를 직접 등록합니다.</li>
 </ul>
 <h2>코드</h2>
@@ -178,6 +178,6 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=facdcb7ce9"></script>
+<script src="../../app.js?v=137acd1ae5"></script>
 </body>
 </html>

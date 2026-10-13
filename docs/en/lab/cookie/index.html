@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cookies: Showing a name tag, every time, to a server that cannot remember you · Dev Learning Lab</title>
-<meta name="description" content="An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and t…">
+<meta name="description" content="HTTP does not link one request to the next. The server cannot tell whether an earlier request came from the same browser. So when a login succeeds, the se…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cookie/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/cookie/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/cookie/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Cookies: Showing a name tag, every time, to a server that cannot remember you · Dev Learning Lab">
-<meta property="og:description" content="An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and t…">
+<meta property="og:description" content="HTTP does not link one request to the next. The server cannot tell whether an earlier request came from the same browser. So when a login succeeds, the se…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/cookie/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/network/">Networking</a> › HTTP</p>
 <h1>Cookies</h1>
 <p><b>Showing a name tag, every time, to a server that cannot remember you</b></p>
-<p>An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site.</p>
+<p>HTTP does not link one request to the next. The server cannot tell whether an earlier request came from the same browser. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site.</p>
 <p>Partly checked against real execution · Checked with a browser and a test server (deletion when the browser is closed was not verified)</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -59,7 +59,7 @@
 <li>The server sends Set-Cookie: sid=abc123; Path=/; HttpOnly in the response header. The browser stores this value as a cookie of shop.example. The server writes down on its own side that &quot;abc123 is member 7&quot;.</li>
 <li>This is the request for shop.example/orders. The browser attached sid to the Cookie header automatically. It is attached even though the code does not add it anywhere. The server looks up abc123 and knows that the request is from member 7.</li>
 <li>This is the request for shop.example/shop/cart. This path falls under Path=/, so the cookie is attached.</li>
-<li>This is a request going to another site, other.example. The cookie that shop.example gave is not attached. A cookie is attached only to requests going to the site that sent it.</li>
+<li>This is a request going to another site, other.example. The cookie that shop.example gave is not attached. A cookie is attached only to requests going to the host that sent it, shop.example (the Domain attribute can widen this).</li>
 <li>JavaScript on the shop.example/shop/cart page reads document.cookie. A cookie with HttpOnly is not visible to scripts. It is still attached to requests automatically.</li>
 </ol>
 <h3>Result of this run</h3>
@@ -171,6 +171,6 @@ ResponseEntity&lt;Void&gt; login(@RequestBody LoginRequest req) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

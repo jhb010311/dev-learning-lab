@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>JIT 워밍업: 배포 직후의 첫 요청들은 왜 느린가 · 개발 학습 실습실</title>
-<meta name="description" content="자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.">
+<meta name="description" content="자바 코드는 바이트코드로 컴파일되어 JVM이 한 명령씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/jit/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/jit/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/jit/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="JIT 워밍업: 배포 직후의 첫 요청들은 왜 느린가 · 개발 학습 실습실">
-<meta property="og:description" content="자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.">
+<meta property="og:description" content="자바 코드는 바이트코드로 컴파일되어 JVM이 한 명령씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/jit/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
+<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › JVM</p>
 <h1>JIT 워밍업</h1>
 <p><b>배포 직후의 첫 요청들은 왜 느린가</b></p>
-<p>자바 코드는 바이트코드로 컴파일되어 JVM이 한 줄씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.</p>
+<p>자바 코드는 바이트코드로 컴파일되어 JVM이 한 명령씩 해석하며 실행합니다. JVM은 자주 실행되는 메서드를 찾아내 기계어로 다시 컴파일하고(JIT), 그 뒤로는 훨씬 빨라집니다.</p>
 <p>실행으로 대조 · JDK 21에서 실제로 잰 값</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -53,7 +53,7 @@
 <h2>처음 설정으로 실행하면</h2>
 <ol>
 <li>자바 컴파일러(javac)는 소스를 기계어가 아니라 바이트코드로 바꿉니다. 프로그램이 시작되면 JVM의 인터프리터가 이 바이트코드를 한 명령씩 해석해 실행합니다. 어떤 CPU에서든 돌아가지만, 기계어를 직접 실행하는 것보다 훨씬 느립니다.</li>
-<li>1번째 묶음: 5.8ms. 처음에는 인터프리터로 실행됩니다. JVM은 메서드가 몇 번 불렸는지, 반복문이 몇 번 돌았는지를 세고 있다가, 기준을 넘자 이 메서드를 기계어로 컴파일합니다. 이 묶음에는 해석 실행과 컴파일 시간이 모두 들어 있습니다.</li>
+<li>1번째 묶음: 5.8ms. 처음에는 인터프리터로 실행됩니다. JVM은 메서드가 몇 번 불렸는지, 반복문이 몇 번 돌았는지를 세고 있다가, 기준을 넘자 이 메서드를 기계어로 컴파일합니다. 이 묶음은 컴파일된 코드가 준비되기 전까지 해석 실행으로 돌았습니다(컴파일은 다른 스레드에서 진행).</li>
 <li>2번째 묶음: 1.7ms. 컴파일된 기계어로 실행되기 시작했습니다. 첫 묶음보다 3~4배 빠릅니다. JVM은 실행하면서 모은 정보(어느 분기가 자주 타는지 등)로 한 번 더 강하게 최적화합니다.</li>
 <li>3번째 묶음: 1.4ms.</li>
 <li>4번째 묶음: 1.7ms.</li>
@@ -86,7 +86,7 @@ for (int batch = 1; batch &lt;= 12; batch++) {
 
 // 실행: java JitWarmup.java</pre>
 <h2>이 모형의 전제</h2>
-<p>모든 숫자는 이 PC의 JDK 21에서 위 코드를 실제로 실행해 잰 값입니다(기본 설정 두 번 실행 중 첫 번째, -Xint 한 번). &quot;미리 워밍업&quot;은 기본 설정 측정값에서 첫 묶음을 워밍업으로 보고 그 뒤의 값을 보여 준 것입니다. 수치는 CPU와 실행 시점에 따라 달라지지만, 첫 구간이 느리고 그 뒤로 빨라지는 모양은 같습니다. 기본 설정의 JVM은 가벼운 컴파일(C1)과 강한 최적화 컴파일(C2)을 단계적으로 적용합니다.</p>
+<p>숫자는 이 PC의 JDK 21에서 위 코드를 실제로 실행해 잰 값입니다(기본 설정 두 번 실행 중 첫 번째, -Xint 한 번). &quot;미리 워밍업&quot;의 값은 기본 설정 측정값에서 첫 묶음을 빼고 이어 붙인 것이고, 마지막 값 하나(1.4ms)는 측정값이 아니라 비슷한 값을 덧붙인 것입니다. 수치는 CPU와 실행 시점에 따라 달라지지만, 첫 구간이 느리고 그 뒤로 빨라지는 모양은 같습니다. 기본 설정의 JVM은 가벼운 컴파일(C1)과 강한 최적화 컴파일(C2)을 단계적으로 적용합니다.</p>
 <p>앞 실습: <a href="../../lab/gc/">GC와 메모리 누수</a> · 다음 실습: <a href="../../lab/classload/">클래스 로딩과 초기화</a></p>
   </div>
 
@@ -174,6 +174,6 @@ for (int batch = 1; batch &lt;= 12; batch++) {
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=facdcb7ce9"></script>
+<script src="../../app.js?v=137acd1ae5"></script>
 </body>
 </html>

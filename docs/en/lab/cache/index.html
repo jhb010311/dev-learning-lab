@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -70,7 +70,7 @@
 </ol>
 <h3>Result of this run</h3>
 <ul>
-<li>At the moment of expiration, all the requests that arrived before the cache was filled again (during 1s) went to the database. The more requests there are and the slower the database query is, the bigger the pile-up. This is a cache stampede. You reduce it with a lock that lets only one request query the database, by refreshing the value before it expires, or by giving each key a slightly different TTL.</li>
+<li>At the moment of expiration, all the requests that arrived before the cache was filled again (during 1s) went to the database. The more requests there are and the slower the database query is, the bigger the pile-up. This is a cache stampede. You reduce it with a lock that lets only one request query the database, or by refreshing the value before it expires. When many keys expire at the same time, give each key a slightly different TTL.</li>
 <li>The longer the TTL, the fewer the database queries, but even when the source data changes, the cache keeps returning the old value for up to the TTL. How old a value you can accept is the criterion for choosing the TTL.</li>
 </ul>
 <h2>Code</h2>
@@ -172,6 +172,6 @@
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

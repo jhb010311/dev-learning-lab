@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>equals와 hashCode: equals만 고치면 왜 HashMap에서 못 찾나 · 개발 학습 실습실</title>
-<meta name="description" content="내용이 같은 두 객체를 같다고 취급하려면 equals를 재정의합니다. 그런데 HashMap과 HashSet은 equals를 부르기 전에 먼저 hashCode로 찾을 자리를 정합니다. 그래서 equals와 hashCode 가운데 하나만 재정의하면, 같다고 만든 객체를 컬렉션에서…">
+<meta name="description" content="내용이 같은 두 객체를 같다고 취급하려면 equals를 재정의합니다. 그런데 HashMap과 HashSet은 equals를 부르기 전에 먼저 hashCode로 찾을 자리를 정합니다. 그래서 equals와 hashCode 가운데 하나만 재정의하면, 같다고 만든 객체를 HashM…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/lab/eqhash/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/eqhash/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/eqhash/">
 <meta property="og:site_name" content="개발 학습 실습실">
 <meta property="og:title" content="equals와 hashCode: equals만 고치면 왜 HashMap에서 못 찾나 · 개발 학습 실습실">
-<meta property="og:description" content="내용이 같은 두 객체를 같다고 취급하려면 equals를 재정의합니다. 그런데 HashMap과 HashSet은 equals를 부르기 전에 먼저 hashCode로 찾을 자리를 정합니다. 그래서 equals와 hashCode 가운데 하나만 재정의하면, 같다고 만든 객체를 컬렉션에서…">
+<meta property="og:description" content="내용이 같은 두 객체를 같다고 취급하려면 equals를 재정의합니다. 그런데 HashMap과 HashSet은 equals를 부르기 전에 먼저 hashCode로 찾을 자리를 정합니다. 그래서 equals와 hashCode 가운데 하나만 재정의하면, 같다고 만든 객체를 HashM…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/lab/eqhash/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-ko.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=facdcb7ce9">
+<link rel="stylesheet" href="../../app.css?v=137acd1ae5">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">공부</a> › <a href="../../study/java/">Java</a> › 자주 쓰는 클래스</p>
 <h1>equals와 hashCode</h1>
 <p><b>equals만 고치면 왜 HashMap에서 못 찾나</b></p>
-<p>내용이 같은 두 객체를 같다고 취급하려면 equals를 재정의합니다. 그런데 HashMap과 HashSet은 equals를 부르기 전에 먼저 hashCode로 찾을 자리를 정합니다. 그래서 equals와 hashCode 가운데 하나만 재정의하면, 같다고 만든 객체를 컬렉션에서 찾지 못합니다.</p>
+<p>내용이 같은 두 객체를 같다고 취급하려면 equals를 재정의합니다. 그런데 HashMap과 HashSet은 equals를 부르기 전에 먼저 hashCode로 찾을 자리를 정합니다. 그래서 equals와 hashCode 가운데 하나만 재정의하면, 같다고 만든 객체를 HashMap과 HashSet에서 찾지 못합니다.</p>
 <p>실행으로 대조 · JDK 21에서 열두 가지 조합을 실행해 대조</p>
 <h2>이 실습에 나오는 개념</h2>
 <dl>
@@ -61,7 +61,7 @@
 <li>a.equals(b): 재정의한 equals가 id를 비교합니다. 1과 1이므로 true입니다.</li>
 <li>hashCode 비교: hashCode를 재정의하지 않았으므로 Object의 hashCode가 쓰입니다. 이 값은 객체마다 따로 정해지므로, 서로 다른 객체인 a와 b의 값은 (거의 항상) 다릅니다. equals가 true인 두 객체의 hashCode가 다른 상태입니다. &quot;equals가 같으면 hashCode도 같아야 한다&quot;는 규약을 어겼습니다.</li>
 <li>map.put(a, &quot;주문 내역&quot;): HashMap은 먼저 a.hashCode()로 넣을 자리(버킷)를 정하고, 그 자리에 키 a와 값을 함께 넣어 둡니다.</li>
-<li>map.get(b): 먼저 b.hashCode()로 찾을 자리를 정합니다. a와 hashCode가 다르므로 a가 들어 있는 자리를 보지 않습니다. equals는 불러 보지도 못하고 null을 돌려줍니다. equals로는 같은 객체인데도 꺼내지 못합니다.</li>
+<li>map.get(b): 먼저 b.hashCode()로 찾을 자리를 정합니다. hashCode가 a와 달라서 대개 다른 자리를 보고, 같은 자리여도 해시 값이 다른 키는 equals까지 가지 않습니다. equals는 불러 보지도 못하고 null을 돌려줍니다. equals로는 같은 객체인데도 꺼내지 못합니다.</li>
 <li>set.add(a), set.add(b): HashSet도 안에서 HashMap을 쓰므로 같은 순서로 판단합니다. b를 a와 다른 원소로 보아 둘 다 넣습니다. 크기는 2입니다. 내용이 같은 객체가 중복으로 들어갔습니다.</li>
 </ol>
 <h3>실행 결과</h3>
@@ -182,6 +182,6 @@ System.out.println(set.size());</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=facdcb7ce9"></script>
+<script src="../../app.js?v=137acd1ae5"></script>
 </body>
 </html>

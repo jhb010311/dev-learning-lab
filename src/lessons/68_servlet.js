@@ -71,7 +71,7 @@ Lab.register({
     sum.push('서블릿은 HTTP 요청 하나를 받아 응답을 만드는 자바 클래스이고, 서블릿 컨테이너(톰캣)는 그 서블릿을 만들고 부르고 없애는 프로그램입니다. 연결을 받고, HTTP 글자를 객체로 바꾸고, 스레드를 배정하는 일은 컨테이너가 하므로 개발자는 "요청에서 꺼내 응답에 쓰는" 코드만 작성합니다.');
     if (st.made && c.n > 1 && st.svc > 1) sum.push('요청이 ' + c.n + '번 왔지만 서블릿 객체는 하나뿐이었습니다. 요청마다 새로 만드는 것은 request와 response 객체입니다. 서블릿 객체 하나를 여러 스레드가 동시에 쓰므로, 서블릿의 필드에 요청별 값을 저장하면 안 됩니다(스프링의 싱글톤 빈과 같은 이유).');
     if (!c.startup && st.made) sum.push(plain ? '미리 만들어 두지 않으면 객체 생성과 init()이 첫 요청 처리 중에 일어나 첫 요청만 느려집니다. 준비 작업이 무겁다면 서버 시작 때 미리 만들어 둡니다.' : '스프링 부트에서는 DispatcherServlet 객체 자체는 서버가 뜰 때 만들어지지만, init()은 첫 요청 처리 중에 일어나 첫 요청만 느려집니다. spring.mvc.servlet.load-on-startup을 설정하면 서버 시작 때 미리 초기화합니다.');
-    if (!plain && st.svc > c.n) sum.push('스프링 부트의 404와 405 응답은 /error 주소로 한 번 더 넘어가 만들어집니다. 그래서 요청 ' + c.n + '번에 DispatcherServlet의 service()가 ' + st.svc + '번 불렸습니다. 필터나 인터셉터가 오류 응답에서 두 번 도는 것처럼 보이는 이유이기도 합니다.');
+    if (!plain && st.svc > c.n) sum.push('스프링 부트의 404와 405 응답은 /error 주소로 한 번 더 넘어가 만들어집니다. 그래서 요청 ' + c.n + '번에 DispatcherServlet의 service()가 ' + st.svc + '번 불렸습니다. 인터셉터가 오류 응답에서 두 번 도는 것처럼 보이는 이유이기도 합니다(필터는 기본적으로 /error 재요청에는 걸리지 않습니다).');
     if (!plain) sum.push('스프링 MVC에서는 컨트롤러가 서블릿이 아닙니다. 서블릿은 DispatcherServlet 하나이고, 모든 요청이 이 서블릿으로 들어온 뒤 컨트롤러로 나뉩니다. 컨트롤러에서 HttpServletRequest를 파라미터로 받을 수 있는 것도 밑에 서블릿이 있기 때문입니다. 그 뒤의 자세한 흐름은 "MVC 요청 흐름" 실습에 있습니다.');
     if (c.req === 'none' && plain) sum.push('404는 "그 주소를 맡은 것이 없다"이고, 405는 "주소는 맞지만 그 HTTP 메서드는 받지 않는다"입니다.');
     return { events: ev, summary: sum, row: [status, whenMade, st.made + '번', st.init + '번', st.svc + '번', maker] };

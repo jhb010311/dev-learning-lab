@@ -54,8 +54,8 @@ Lab.register({
     else push('인덱스에서 좁혀진 범위의 항목 ' + num(p.idxRead) + '개를 읽습니다.' + (p.filt.length ? ' 읽으면서 나머지 조건을 확인해 ' + num(p.idxRead * p.filt.reduce(function (a, k) { return a * C[k][2]; }, 1)) + '개만 남깁니다.' : ''), '', 5);
     if (p.type !== 'ALL') push(p.cov ? '조회하는 컬럼이 전부 인덱스에 들어 있으므로 테이블에 가지 않고 끝냅니다(커버링 인덱스). 테이블에서 읽은 행은 0입니다.' : 'SELECT *는 인덱스에 없는 컬럼도 필요합니다. 남은 ' + num(p.tblRead) + '건마다 테이블(클러스터드 인덱스)로 가서 행 전체를 읽어 옵니다.', p.cov ? 'good' : '', 6);
     var usedNames = p.used.map(function (k) { return C[k][0]; }).join(', ') || '없음';
-    if (!p.used.length) sum.push('복합 인덱스는 첫 컬럼의 조건이 없으면 탐색에 쓸 수 없습니다. 자주 쓰는 조건의 컬럼, 그중에서도 "=" 조건으로 쓰이는 컬럼을 앞에 둡니다.');
-    else if (p.filt.length) sum.push('순서가 끊긴 뒤의 조건(' + p.filt.map(function (k) { return C[k][0]; }).join(', ') + ')은 범위를 좁히지 못해, 필요한 것보다 많은 인덱스 항목을 읽었습니다. "=" 조건 컬럼을 앞에, 범위 조건 컬럼을 맨 뒤에 두면 세 컬럼 모두 범위를 좁힙니다.');
+    if (!p.used.length) sum.push('복합 인덱스는 보통 첫 컬럼의 조건이 없으면 탐색에 쓸 수 없습니다(MySQL의 스킵 스캔 같은 예외가 있습니다). 자주 쓰는 조건의 컬럼, 그중에서도 "=" 조건으로 쓰이는 컬럼을 앞에 둡니다.');
+    else if (p.filt.length) sum.push('순서가 끊긴 뒤의 조건(' + p.filt.map(function (k) { return C[k][0]; }).join(', ') + ')은 범위를 좁히지 못해, 필요한 것보다 많은 인덱스 항목을 읽었습니다. "=" 조건 컬럼을 앞에, 범위 조건 컬럼을 그 뒤에 두면 조건이 있는 컬럼은 모두 범위를 좁힙니다.');
     else if (p.used.length === 3) sum.push('조건이 인덱스 순서대로 빠짐없이 이어져 세 컬럼 모두 범위를 좁혔습니다. WHERE에 적는 순서는 상관없고, 인덱스의 컬럼 순서가 기준입니다.');
     if (p.cov && p.type !== 'ALL') sum.push('세컨더리 인덱스에는 인덱스 컬럼과 기본 키만 들어 있어, 다른 컬럼이 필요하면 테이블을 한 번 더 찾아가야 합니다. 필요한 컬럼이 인덱스에 다 있으면 그 왕복이 사라집니다. 이때의 인덱스를 커버링 인덱스라고 하고, EXPLAIN의 Extra에 Using index로 나타납니다. SELECT *를 피하라는 이유 중 하나입니다.');
     if (!sum.length) sum.push('범위를 좁히는 데 쓰인 컬럼: ' + usedNames + '. 인덱스 항목 ' + num(p.idxRead) + '개, 테이블 행 ' + num(p.tblRead) + '개를 읽어 결과 약 ' + num(Math.max(1, p.out)) + '건을 얻었습니다.');

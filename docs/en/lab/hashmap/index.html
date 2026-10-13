@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Inside HashMap: Where does a HashMap put a key, and how does it find it? · Dev Learning Lab</title>
-<meta name="description" content="A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When hash codes collide, the keys are chained one after another i…">
+<meta name="description" content="A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When the bucket numbers decided from the hash codes collide, the…">
 <link rel="canonical" href="https://jhb010311.github.io/dev-learning-lab/en/lab/hashmap/">
 <link rel="alternate" hreflang="en" href="https://jhb010311.github.io/dev-learning-lab/en/lab/hashmap/">
 <link rel="alternate" hreflang="ko" href="https://jhb010311.github.io/dev-learning-lab/lab/hashmap/">
 <meta property="og:site_name" content="Dev Learning Lab">
 <meta property="og:title" content="Inside HashMap: Where does a HashMap put a key, and how does it find it? · Dev Learning Lab">
-<meta property="og:description" content="A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When hash codes collide, the keys are chained one after another i…">
+<meta property="og:description" content="A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When the bucket numbers decided from the hash codes collide, the…">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jhb010311.github.io/dev-learning-lab/en/lab/hashmap/">
 <meta property="og:image" content="https://jhb010311.github.io/dev-learning-lab/img/lab-en.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="../../app.css?v=47e53bb696">
+<link rel="stylesheet" href="../../app.css?v=6548445028">
 <noscript><style>#pre { display: block; max-width: 76ch; }</style></noscript>
 </head>
 <body>
@@ -31,7 +31,7 @@
 <p><a href="../../study/">Learn</a> › <a href="../../study/java/">Java</a> › Collections</p>
 <h1>Inside HashMap</h1>
 <p><b>Where does a HashMap put a key, and how does it find it?</b></p>
-<p>A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled.</p>
+<p>A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When the bucket numbers decided from the hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled.</p>
 <p>Checked against real execution · Checked against the internals of a real HashMap on JDK 21 over 360 steps</p>
 <h2>Concepts in this lab</h2>
 <dl>
@@ -57,22 +57,22 @@
 </ul>
 <h2>Running with the default settings</h2>
 <ol>
-<li>put(id 3817). The hashCode is 3817, and the bucket number is 9 (the remainder of dividing the hash by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
-<li>put(id 9204). The hashCode is 9204, and the bucket number is 4 (the remainder of dividing the hash by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
-<li>put(id 1466). The hashCode is 1466, and the bucket number is 10 (the remainder of dividing the hash by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
-<li>put(id 7531). The hashCode is 7531, and the bucket number is 11 (the remainder of dividing the hash by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
-<li>put(id 2890). The hashCode is 2890, and the bucket number is 10 (the remainder of dividing the hash by the number of buckets, 16). Entries already in this bucket: 1 (a collision). The key was compared with each of them from the front, and then the entry was attached at the end.</li>
-<li>put(id 6043). The hashCode is 6043, and the bucket number is 11 (the remainder of dividing the hash by the number of buckets, 16). Entries already in this bucket: 1 (a collision). The key was compared with each of them from the front, and then the entry was attached at the end.</li>
-<li>put(id 5178). The hashCode is 5178, and the bucket number is 10 (the remainder of dividing the hash by the number of buckets, 16). Entries already in this bucket: 2 (a collision). The key was compared with each of them from the front, and then the entry was attached at the end.</li>
-<li>put(id 8312). The hashCode is 8312, and the bucket number is 8 (the remainder of dividing the hash by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
-<li>put(id 4725). The hashCode is 4725, and the bucket number is 5 (the remainder of dividing the hash by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
-<li>put(id 1039). The hashCode is 1039, and the bucket number is 15 (the remainder of dividing the hash by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
-<li>put(id 6654). The hashCode is 6654, and the bucket number is 14 (the remainder of dividing the hash by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
-<li>put(id 3391). The hashCode is 3391, and the bucket number is 15 (the remainder of dividing the hash by the number of buckets, 16). Entries already in this bucket: 1 (a collision). The key was compared with each of them from the front, and then the entry was attached at the end.</li>
-<li>put(id 7968). The hashCode is 7968, and the bucket number is 0 (the remainder of dividing the hash by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
+<li>put(id 3817). The hashCode is 3817, and the bucket number is 9 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
+<li>put(id 9204). The hashCode is 9204, and the bucket number is 4 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
+<li>put(id 1466). The hashCode is 1466, and the bucket number is 10 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
+<li>put(id 7531). The hashCode is 7531, and the bucket number is 11 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
+<li>put(id 2890). The hashCode is 2890, and the bucket number is 10 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). Entries already in this bucket: 1 (a collision). The key was compared with each of them from the front, and then the entry was attached at the end.</li>
+<li>put(id 6043). The hashCode is 6043, and the bucket number is 11 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). Entries already in this bucket: 1 (a collision). The key was compared with each of them from the front, and then the entry was attached at the end.</li>
+<li>put(id 5178). The hashCode is 5178, and the bucket number is 10 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). Entries already in this bucket: 2 (a collision). The key was compared with each of them from the front, and then the entry was attached at the end.</li>
+<li>put(id 8312). The hashCode is 8312, and the bucket number is 8 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
+<li>put(id 4725). The hashCode is 4725, and the bucket number is 5 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
+<li>put(id 1039). The hashCode is 1039, and the bucket number is 15 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
+<li>put(id 6654). The hashCode is 6654, and the bucket number is 14 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
+<li>put(id 3391). The hashCode is 3391, and the bucket number is 15 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). Entries already in this bucket: 1 (a collision). The key was compared with each of them from the front, and then the entry was attached at the end.</li>
+<li>put(id 7968). The hashCode is 7968, and the bucket number is 0 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 16). The bucket was empty, so the entry was put right away.</li>
 <li>The number of entries, 13, exceeded the threshold of 12 (16 buckets × load factor 0.75). The number of buckets was increased from 16 to 32, and the bucket of every entry was decided again. Of the 13 entries, 8 moved to a new bucket. The next resize happens when the number of entries exceeds 24.</li>
-<li>A new key object is created with the same id, 3817, and put again. The hashCode is 3817, and the bucket number is 9 (the remainder of dividing the hash by the number of buckets, 32). A key with the same hash for which equals is also true was found in the bucket. No new entry is created, and only the value is replaced. The number of entries stays at 13.</li>
-<li>get: A new key object is created with id 3817 and looked up. The hashCode is 3817, and the bucket number is 9 (the remainder of dividing the hash by the number of buckets, 32). The key was found after comparing up to node #1 in the bucket. The value is returned.</li>
+<li>A new key object is created with the same id, 3817, and put again. The hashCode is 3817, and the bucket number is 9 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 32). A key with the same hash for which equals is also true was found in the bucket. No new entry is created, and only the value is replaced. The number of entries stays at 13.</li>
+<li>get: A new key object is created with id 3817 and looked up. The hashCode is 3817, and the bucket number is 9 (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, 32). The key was found after comparing up to node #1 in the bucket. The value is returned.</li>
 </ol>
 <h3>Result of this run</h3>
 <ul>
@@ -189,6 +189,6 @@ map.get(new MemberKey(ids[0]));</pre>
   <p id="glpop-d"></p>
   <div class="glfoot" id="glpop-f"></div>
 </div>
-<script src="../../app.js?v=47e53bb696"></script>
+<script src="../../app.js?v=6548445028"></script>
 </body>
 </html>

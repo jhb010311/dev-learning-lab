@@ -44,7 +44,7 @@ Lab.register({
       ev.push({ t: 0.05, k: 'good', s: '0.1s: Every request (' + c.n + ' in total) is waiting for an external response. ' + (c.model === 'loop' ? 'The waiting is left to the operating system, so the event loop threads are free.' : 'When a virtual thread stops in a blocking call, the JVM unmounts that virtual thread from its OS thread. The OS thread can then run another virtual thread.') });
       ev.push({ t: w, k: 'good', s: fmt(w) + 's: The responses arrive. ' + (c.model === 'loop' ? 'The event loop runs the next steps that were registered, one after another, and the requests (' : 'The virtual threads are mounted on OS threads again and continue running, and the requests (') + c.n + ' in total) finish at almost the same time.' });
     }
-    if (c.model === 'pool') sum.push('In the blocking style, the number of requests that can be handled at the same time cannot exceed the number of threads. The longer the wait, the longer the threads are tied up. The code is simple and easy to debug, which is why most services use this style.');
+    if (c.model === 'pool') sum.push('In the blocking style, the number of requests that can be handled at the same time cannot exceed the number of threads. The longer the wait, the longer the threads are tied up. The code is simple and easy to debug, which is why this style is widely used.');
     if (c.model === 'loop' && !c.block) sum.push('The non-blocking style does not hold a thread while waiting, so a small number of threads keeps many requests in progress. In return, the whole call path (the database driver, the HTTP client) must be non-blocking, and the code becomes a chain of callbacks, which is hard to learn and to debug.');
     if (c.model === 'loop' && c.block) sum.push('There are very few event loop threads, so making a blocking call on one of them is far worse than even the thread pool approach. Calling JDBC or a blocking HTTP client as it is while using WebFlux is a typical mistake.');
     if (c.model === 'virtual') sum.push('Virtual threads keep the simple code structure that gives each request its own thread, and they give up the OS thread while waiting. They are effective for work that waits a lot, and they do not make computation that keeps using the CPU any faster. Because the number of threads can grow into the thousands, another resource such as the database connection pool reaches its limit first.');
@@ -66,7 +66,7 @@ Lab.register({
     P.size(680, H + 66);
     P.region('wait', 16, 16, 184, H, 'Requests with no thread yet');
     P.region('thr', 216, 16, 262, H, 'The ' + T + ' OS threads');
-    P.region('io', 494, 16, 170, H, 'Waiting without a thread');
+    P.region('io', 494, 16, 170, H, 'Waiting, no OS thread');
     if (sim.serial) wait.slice(0, 30).forEach(function (r, j) { P.box('rq' + r.id, 26 + (j % 3) * 56, 50 + Math.floor(j / 3) * 26, 52, 22, { cls: 'wait', sub: '#' + r.id, center: true }); });
     for (var i = 0; i < T; i++) {
       var y = 50 + i * 30, r = sim.serial ? run.filter(function (x) { return x.th === i; })[0] : null;

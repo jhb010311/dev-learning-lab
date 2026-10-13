@@ -47,7 +47,7 @@ Lab.register({
     }
     ctx = '비워짐'; push('OUT', '응답이 나가고, 이 요청에 쓰인 SecurityContext는 비워집니다. 스레드에 묶어 두는 정보라서, 스레드가 다음 요청에 재사용되기 전에 지워야 합니다.', '');
     if (res === 200 && c.path !== 'public') sum.push('응답은 ' + resp + '입니다. ' + (res === 200 ? '필터 체인을 통과해 컨트롤러가 실행됐습니다.' : '컨트롤러는 실행되지 않았고 ' + end + '가 응답을 만들었습니다.'));
-    if (res === 401) sum.push('401은 "누구인지 확인되지 않았다"(인증 실패)입니다. 토큰 없이 관리자 경로를 요청해도 403이 아니라 401인 이유는, 누구인지 모르는 상태에서는 권한을 따질 수 없기 때문입니다.');
+    if (res === 401) sum.push('401은 "누구인지 확인되지 않았다"(인증 실패)입니다. 토큰 없이 관리자 경로를 요청해도 403이 아니라 401인 이유는, 누구인지 모르는 요청이 거부되면 401로 응답하도록 설정해 두었기 때문입니다(이 설정이 없으면 403이 나갑니다).');
     if (res === 403) sum.push('403은 "누구인지는 알지만 이 일을 할 권한이 없다"(인가 실패)입니다. 다시 로그인해도 결과가 같습니다.');
     if (res !== 200) sum.push('이 응답은 DispatcherServlet에 닿기 전에 필터에서 만들어지므로 @ControllerAdvice로는 바꿀 수 없습니다. 응답 형식을 바꾸려면 AuthenticationEntryPoint와 AccessDeniedHandler를 직접 등록합니다.');
     if (res === 200 && c.path === 'public') sum.push('permitAll은 필터 체인을 건너뛰는 것이 아니라, 필터를 다 거치되 인가 단계에서 누구든 통과시키는 것입니다.');
@@ -57,7 +57,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { seen: [], cur: null, ctx: '비어 있음', resp: '' }, done = shown.length === sim.events.length;
     var bads = shown.filter(function (e) { return e.snap.bad; }).map(function (e) { return e.snap.bad; });
-    H.table(v, ['필터 체인 (위에서 아래 순서로 배치됨)', '상태'], this.STAGES.map(function (st) { var id = st[0], seen = s.seen.indexOf(id) >= 0; return { cls: !seen && done ? 'gone' : '', cells: [st[1], { v: id === s.cur ? '지금 여기' : seen ? (bads.indexOf(id) >= 0 ? '여기서 막힘' : '지나감') : done ? '거치지 않음' : '', cls: id === s.cur ? 'hot' : bads.indexOf(id) >= 0 ? 'bad' : seen ? 'good' : '' }] }; }));
+    H.table(v, ['필터 체인 (위에서 아래 순서로 배치됨)', '상태'], this.STAGES.map(function (st) { var id = st[0], seen = s.seen.indexOf(id) >= 0; return { cls: !seen && done ? 'gone' : '', cells: [st[1], { v: id === s.cur ? '지금 여기' : seen ? (bads.indexOf(id) >= 0 ? '여기서 막힘' : '지나감') : done ? '할 일 없이 지나갔거나 도달 안 함' : '', cls: id === s.cur ? 'hot' : bads.indexOf(id) >= 0 ? 'bad' : seen ? 'good' : '' }] }; }));
     H.text(v, 'ExceptionTranslationFilter는 AuthorizationFilter보다 앞에 있어서, 뒤에서 던진 예외를 받아 처리합니다.');
   },
   // 그림: 필터들이 위에서 아래로 늘어선 통로. 요청이 어디까지 들어갔다가 어디서 막혔는지를 색으로 보인다.
@@ -68,7 +68,7 @@ Lab.register({
     this.STAGES.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0, blocked = bads.indexOf(id) >= 0; P.box('st_' + id, 26, 50 + i * 37, 420, 30, { cls: id === s.cur ? 'hot now' : blocked ? 'bad' : seen ? 'good' : 'ghost', title: st[1], right: blocked ? '막힘' : '' }); });
     P.box('ctx', 472, 50, 192, 64, { cls: s.ctx === '비어 있음' || s.ctx === '비워짐' ? 'ghost' : 'good', title: 'SecurityContext', sub: ['들어 있는 것:', s.ctx] });
     P.box('resp', 472, 130, 192, 64, { cls: !s.resp ? 'ghost' : /^2/.test(s.resp) ? 'good' : 'bad', title: '응답', sub: [s.resp || '처리 중', ' '] });
-    P.note('초록은 지나간 필터, 노랑은 지금 있는 곳, 빨강은 요청이 막힌 곳, 점선은 거치지 않은 곳입니다.');
+    P.note('초록은 지나간 필터, 노랑은 지금 있는 곳, 빨강은 요청이 막힌 곳, 점선은 할 일 없이 지나갔거나 도달하지 않은 곳입니다.');
   },
   assume: '세션을 쓰지 않는 JWT 방식의 일반적인 구성을 가정했습니다. 직접 만든 JwtAuthenticationFilter는 토큰이 없거나 잘못된 경우 거절하지 않고 넘긴다고 보았습니다(잘못된 토큰이면 이 필터에서 바로 401을 내도록 구현하기도 합니다). 열두 가지 조합 모두를 실제 스프링 부트 4.1.1과 스프링 시큐리티 7.1.1 서버에 HTTP 요청을 보내, 응답 코드와 응답을 만든 곳(AuthenticationEntryPoint, AccessDeniedHandler), 컨트롤러 실행 여부가 화면과 일치하는 것을 확인했습니다. 이때 두 가지를 알게 됐습니다. 첫째, 인증 실패 때의 응답을 정하지 않으면(exceptionHandling 설정이 없으면) 토큰 없는 요청에 401이 아니라 403이 돌아옵니다. 그래서 화면의 코드에 exceptionHandling 설정을 넣었습니다. 둘째, 권한 부족을 스프링 시큐리티의 기본 처리기에 맡기면 USER가 관리자 경로를 요청했을 때 403이 아니라 401이 돌아왔습니다. 기본 처리기가 오류 페이지(/error)로 요청을 다시 넘기는데, 그 요청에는 인증 정보가 없어 다시 인증 실패로 처리되기 때문입니다. 화면처럼 403이 나오게 하려면 처리기에서 상태 코드를 직접 응답하거나 /error 경로를 허용해야 합니다. 실제 체인에는 여기 적지 않은 필터가 더 있습니다.',
 });

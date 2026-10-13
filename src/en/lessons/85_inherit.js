@@ -108,7 +108,7 @@ Lab.register({
     P.size(680, 314);
     P.region('rd', 16, 16, 190, 190, 'Subclass Dog');
     P.region('ra', 250, 16, 190, 190, 'Superclass Animal');
-    P.region('hp', 462, 16, 202, 190, 'Heap: one Dog object');
+    P.region('hp', 462, 16, 202, 136, 'Heap: one Dog object');
     function cls(id) { return s.cur === id ? 'hot now' : (id === 'cc' && s.stack[0] === 'Dog()') || (id === 'pc' && s.stack.length > 1 && /^Animal\(/.test(s.stack[1])) ? 'wait' : s.done.indexOf(id) >= 0 ? 'good' : 'plain'; }
     P.box('cc', 24, 50, 174, 40, { cls: cls('cc'), title: 'Constructor Dog()', sub: c.sup === 'omit' ? 'super() is inserted' : c.sup === 'noarg' ? 'super();' : 'super("Buddy");' });
     P.box('cf', 24, 100, 174, 40, { cls: cls('cf'), title: 'Field initializer', sub: 'sound = "Woof"' });
@@ -125,7 +125,7 @@ Lab.register({
       P.box('fn', 470, 50, 186, 40, { cls: 'ghost', title: 'name', sub: s.err ? 'not run' : 'no object yet' });
       P.box('fs', 470, 100, 186, 40, { cls: 'ghost', title: 'sound', sub: s.err ? 'not run' : 'no object yet' });
     }
-    P.box('vd', 470, 150, 186, 40, { cls: s.d ? 'wait' : 'ghost', title: 'Variable d', right: s.d ? '→ object' : s.err ? 'none' : 'not set yet' });
+    P.box('vd', 470, 174, 186, 32, { cls: s.d ? 'wait' : 'ghost', title: 'Variable d', right: s.d ? '→ object' : s.err ? 'none' : 'not set yet' }); if (s.d) P.arrow('ad', 'vd:t', 'hp:b', {});
     if (s.stack.length > 1 && /^Animal\(/.test(s.stack[1])) P.arrow('a1', 'cc:r:0.35', 'pc:l:0.35', { cls: 'hot', label: 'super' });
     if (s.phase === 'new' && s.stack.indexOf('Dog.describe()') >= 0) P.arrow('a2', 'pc:l:0.8', 'cd:r:0.3', { cls: 'bad' });
     if (top === 'Animal.describe()') P.arrow('a3', 'cd:r:0.7', 'pd:l:0.7', { cls: 'hot', label: 'super.' });

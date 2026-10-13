@@ -873,7 +873,7 @@ Lab.register({
     P.size(680, H + 32);
     P.region('qu', 16, 16, 290, 112, 'Queue ' + (c.unb ? '(unbounded)' : '(capacity ' + c.cap + ')') + ' · request numbers');
     P.region('rej', 16, 140, 290, 238, 'Rejected requests');
-    P.region('thr', 346, 16, 318, H, 'Thread pool (core ' + c.core + ', maximum ' + c.max + ')');
+    P.region('thr', 346, 16, 318, H, 'Threads in the pool (core ' + c.core + ', maximum ' + c.max + ')');
     for (var j = 0; j < capN; j++) if (!q[j]) P.box('qe' + j, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'ghost' });
     q.slice(0, 10).forEach(function (r, j) { P.box('rq' + r.id, 28 + (j % 5) * 54, 50 + Math.floor(j / 5) * 34, 50, 28, { cls: 'wait', sub: String(r.id), center: true }); });
     if (!capN) P.text('noq', 161, 80, 'The queue has no capacity', { cls: 'mut', anchor: 'middle' });
@@ -905,7 +905,7 @@ Lab.register({
   presets: [
     { t: 'Default settings', q: 'What happens when 2 threads each run count++ 3 times with no synchronization, alternating one step at a time?', d: 'Alternating execution with no synchronization. Increments are lost.', v: { threads: 2, loops: 3, sync: 'none', order: 'alt', seed: 7 } },
     { t: 'Adding only volatile', q: 'What if you change the synchronization method to volatile only?', d: 'The latest value is visible, but volatile cannot keep the steps from being interleaved.', v: { threads: 2, loops: 3, sync: 'volatile', order: 'alt', seed: 7 } },
-    { t: 'Guarding with synchronized', q: 'What if you change the synchronization method to a synchronized block?', d: 'The other threads wait until one thread is finished.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
+    { t: 'Guarding with synchronized', q: 'What if you change the synchronization method to a synchronized block?', d: 'The other threads wait until one thread finishes count++.', v: { threads: 2, loops: 3, sync: 'sync', order: 'alt', seed: 7 } },
     { t: 'Using AtomicInteger', q: 'What if you change the synchronization method to AtomicInteger?', d: 'Without a lock, a thread writes only if the value it read is unchanged (CAS). Otherwise it tries again.', v: { threads: 2, loops: 3, sync: 'atomic', order: 'alt', seed: 7 } },
     { t: 'A lucky run with no overlap', q: 'What if you keep no synchronization but run each thread to completion before the next one starts?', d: 'The result is correct even though there is no synchronization. This is why tests do not catch the bug.', v: { threads: 2, loops: 3, sync: 'none', order: 'seq', seed: 7 } },
     { t: '4 threads at random', q: 'What if you increase the number of threads to 4 and run them interleaved at random?', d: 'Run it several times with different pattern numbers. The result is different each time.', v: { threads: 4, loops: 3, sync: 'none', order: 'rand', seed: 7 } },
@@ -1010,7 +1010,7 @@ Lab.register({
 Lab.register({
   id: 'hashmap', nav: 'Inside HashMap', cat: 'Data structures', mode: 'step',
   title: 'Where does a HashMap put a key, and how does it find it?',
-  intro: 'A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled.',
+  intro: 'A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When the bucket numbers decided from the hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled.',
   terms: ['Hash table and HashMap', 'Hash collision', 'Load factor and resizing', 'Red-black tree', 'equals and hashCode contract'], ranks: ['collection', 'equals', 'ds'],
   controls: [
     { id: 'n', label: 'Number of keys to put', type: 'range', min: 1, max: 40, value: 13, fmt: function (v) { return v + ''; } },
@@ -1057,7 +1057,7 @@ Lab.register({
       var moved = 0; old.forEach(function (b, j) { moved += B[j + oc].nodes.length; });
       push(why + ' The number of buckets was increased from ' + oc + ' to ' + cap + ', and the bucket of every entry was decided again. Of the ' + size + ' entries, ' + moved + ' moved to a new bucket. The next resize happens when the number of entries exceeds ' + thr + '.', '', -1);
     }
-    function where(k) { return 'The hashCode is ' + k.raw + (hcOn ? '' : ' (not overridden, so a different value for each object)') + ', and the bucket number is ' + (k.hash & (cap - 1)) + ' (the remainder of dividing the hash by the number of buckets, ' + cap + ').'; }
+    function where(k) { return 'The hashCode is ' + k.raw + (hcOn ? '' : ' (not overridden, so a different value for each object)') + ', and the bucket number is ' + (k.hash & (cap - 1)) + ' (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, ' + cap + ').'; }
     function put(id, again) {
       var k = mk(id), idx = k.hash & (cap - 1), b = B[idx], hit = b.nodes.filter(function (x) { return same(x, k); })[0];
       var head = (again ? 'A new key object is created with the same id, ' + id + ', and put again. ' : 'put(id ' + id + '). ') + where(k) + ' ';
@@ -1087,7 +1087,7 @@ Lab.register({
     if (hcOn && c.hash !== 'good' && afterFill.longest > 2) sum.push('When there are only a few distinct hashCode values, the keys pile up in the same buckets no matter how much the number of buckets grows. The longer a bucket gets, the slower put and get become, because they compare the entries in it one by one.');
     if (afterFill.trees) sum.push('Buckets converted to red-black trees: ' + afterFill.trees + '. A tree makes the search faster when the hash values differ from each other or the keys are Comparable. When, as in this example, every hashCode in a bucket is the same and the keys are not Comparable either, converting to a tree does not make the search faster. In the end, the solution is to make hashCode spread evenly.');
     if (c.eq === 'both') sum.push('Both equals and hashCode are overridden, so a new object created with the same id could also be used to replace the value and to find it.');
-    if (c.eq === 'eqonly') sum.push('Overriding only equals breaks the contract that "two objects for which equals is true must have the same hashCode". The id is the same but the hash is different, so the key goes to a different bucket, and as a result a duplicate was stored and the lookup failed too.');
+    if (c.eq === 'eqonly') sum.push('Overriding only equals breaks the contract that "two objects for which equals is true must have the same hashCode". The id is the same but the hash is different, so the key usually goes to a different bucket, and even in the same bucket it is not treated as the same key. As a result a duplicate was stored and the lookup failed too.');
     if (c.eq === 'hconly') sum.push('Overriding only hashCode gets the key as far as the same bucket, but equals compares references, so the key is not recognized as the same key. A duplicate was stored and the lookup failed too.');
     if (c.eq === 'none') sum.push('When neither is overridden, keys with the same contents are completely different keys. You can find a value only if you are holding the very object that was used for the put.');
     return { events: ev, summary: sum, row: [afterFill.cap + '', afterFill.resizes + '', afterFill.longest + '', afterFill.trees + '', replaced ? 'Only the value replaced' : 'Duplicate stored', found ? 'Found' : 'null'], trace: ev.map(function (e) { return e.snap; }) };
@@ -1194,7 +1194,7 @@ Lab.register({
     if (c.use && (joined || c.st === 'eager')) push('The loop took the member name of every order (' + c.n + ' in total). All the members were already loaded, so there are no extra queries.', '');
     var total = qs.length, mq = total - 1, sum = [];
     if (c.st === 'lazy' && c.use) sum.push('On top of the 1 list query, as many queries as members followed. This is the N+1 selects problem. The number of extra queries is decided not by the number of orders but by the number of distinct members that have not been read yet (' + c.m + ').');
-    if (c.st === 'lazy' && !c.use) sum.push('Lazy fetching queries only when the data is actually used, so a screen that does not use the members finishes with 1 query. This is why lazy fetching is used as the default.');
+    if (c.st === 'lazy' && !c.use) sum.push('Lazy fetching queries only when the data is actually used, so a screen that does not use the members finishes with 1 query. This is why an association is set to lazy fetching (LAZY).');
     if (c.st === 'eager') sum.push('Even if you switch to eager fetching, the N+1 selects problem still occurs in a JPQL query. Only the timing moves earlier, to right after the query' + (c.use ? '' : ', and ' + mq + ' extra member queries were sent although the members are not used') + '. Eager fetching is not a solution to the N+1 selects problem.');
     if (c.st === 'fetch') sum.push('A fetch join fetches the associated members in the same query. The join fetch in this example is an inner join, so an order without a member drops out of the result. If you need those orders too, use left join fetch.');
     if (c.st === 'graph') sum.push('@EntityGraph tells JPA to "fetch the member too" without changing the JPQL. With the default mapping in this example, where the member may be missing, it is fetched with a left outer join (if you map it with optional = false, it becomes an inner join).');
@@ -1232,7 +1232,7 @@ Lab.register({
     { t: 'Keeping a log failure from ruining the order', q: 'What if you change the propagation setting to REQUIRES_NEW and the outer method catches the inner exception with try-catch?', d: 'Separate the log with REQUIRES_NEW and catch the exception.', v: { prop: 'REQUIRES_NEW', ex: 'inner', type: 'rt', catch: true, rf: false } },
     { t: 'Keeping the log even when the order fails', q: 'What if you use REQUIRES_NEW and the exception is thrown in the outer method after the inner call returns?', d: 'With REQUIRES_NEW, the outer method fails.', v: { prop: 'REQUIRES_NEW', ex: 'outer', type: 'rt', catch: false, rf: false } },
     { t: 'How NESTED differs', q: 'What if you use NESTED and the exception is thrown in the outer method after the inner call returns?', d: 'When the outer method fails, the inner work is rolled back with it. Compare this with the example just above.', v: { prop: 'NESTED', ex: 'outer', type: 'rt', catch: false, rf: false } },
-    { t: 'A checked exception does not cause a rollback', q: 'What if the exception is a checked exception, IOException?', d: 'The exception leaves the method, yet the order and the log are committed.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: false } },
+    { t: 'A checked exception does not cause a rollback by default', q: 'What if the exception is a checked exception, IOException?', d: 'The exception leaves the method, yet the order and the log are committed.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: false } },
     { t: 'Specifying rollbackFor', q: 'What if the exception is a checked exception, IOException, and you specify rollbackFor = Exception.class?', d: 'The transaction is rolled back on a checked exception too.', v: { prop: 'REQUIRED', ex: 'inner', type: 'chk', catch: false, rf: true } },
   ],
   code: function (c) {
@@ -1303,7 +1303,7 @@ Lab.register({
     if (ne) P.box('SP', 340, 82, 310, 112, { cls: s.SP === 'rolled back to here' ? 'bad' : s.SP ? 'wait' : 'ghost', title: 'After the savepoint (a section of A)', sub: s.SP || 'none yet' });
     P.box('log', rn ? 368 : ne ? 354 : 342, ne ? 128 : 100, rn ? 280 : ne ? 282 : 306, ne ? 54 : 60, { cls: dc(s.log), title: 'Log (1 row)', sub: st(s.log) });
     P.box('caller', 16, 232, 648, 40, { cls: s.caller === 'not called yet' ? 'ghost' : s.caller.indexOf('Exception') >= 0 ? 'bad' : 'good', title: 'What the caller of placeOrder() gets', right: s.caller });
-    P.note('A large box is a transaction, and the small boxes inside it are the data that belongs to that transaction. When a transaction is rolled back, the data inside it disappears with it.');
+    P.note('A large box is a transaction, and each small box inside it is an INSERT made in that transaction. When a transaction is rolled back, those INSERTs are cancelled with it.');
   },
   assume: 'saveLog() is a method of another bean, so it is called through the proxy (when it is called from inside the same class, the inner @Transactional does not apply; the "Proxies and self-invocation" lab covers that case). The rules follow the default behavior of the Spring Framework. A transaction is rolled back only on unchecked exceptions and Error, and when an exception that results in a rollback leaves a participating transaction, the whole transaction is marked rollback-only. NESTED is implemented with JDBC savepoints and works with DataSourceTransactionManager, which JdbcTemplate and MyBatis use. With JPA (JpaTransactionManager + Hibernate), using NESTED throws a NestedTransactionNotSupportedException. This is because a savepoint applies only to the JDBC connection and not to the persistence context. All 72 combinations were run on a real Spring setup (Spring Framework 7.0.9, DataSourceTransactionManager, the H2 database), and it was confirmed that whether the order and the log stay in the database, what the caller gets, and the number of connections in use at once match the screen.',
 });
@@ -1383,7 +1383,7 @@ Lab.register({
     }
     if (c.op === 'read') {
       result = { name: 'Query result', head: ['Order ID', 'Member name', 'Item'], rows: orders.map(function (o) { return { cells: [String(o.id), o.name, o.item] }; }) };
-      if (flat) { push('Reading just the orders table gives you the member name too. No join is needed.', 'good'); sum.push('For reading alone, the table before normalization is simpler and faster. Allowing duplicates on purpose for read performance is called denormalization, and the price is that the application itself has to prevent the anomalies shown above.'); }
+      if (flat) { push('Reading just the orders table gives you the member name too. No join is needed.', 'good'); sum.push('For reading alone, the table before normalization is simpler because it needs no join. Allowing duplicates on purpose for read performance is called denormalization, and the price is that the application itself has to prevent the anomalies shown above.'); }
       else { push('An order holds only the member ID, so to get the name you have to join with the member table. Two tables are read.', ''); sum.push('The cost of normalization is a join when you read. Even so, a typical service starts from a normalized design and considers denormalization only when read performance becomes a real problem.'); }
     }
     if (flat && anomaly === 'None' && c.op !== 'read') sum.push('No problem showed up this time, but that is not because the structure prevents it. The person doing the work avoided it by being careful.');
@@ -1494,9 +1494,9 @@ Lab.register({
     var sum = [];
     if (M === 'local' && S > 1 && !c.kick) sum.push('The session exists only in the memory of the one server where the user logged in, so requests that went to other servers lost the login. To add more servers, you must either always send the same user to the same server (sticky sessions) or move the session to a shared store.');
     if (M === 'local' && S === 1) sum.push('With one server there is no problem.');
-    if (M === 'redis') sum.push('If the session is kept in a shared store, the login stays valid no matter how many servers there are, and you can log a user out immediately just by deleting the session. In exchange, every request queries the store, and if the store goes down, everyone is logged out.');
+    if (M === 'redis') sum.push('If the session is kept in a shared store, the login stays valid no matter how many servers there are, and you can log a user out immediately just by deleting the session. In exchange, every request queries the store, and if the store cannot be reached, sessions cannot be checked, so everyone is treated as not logged in.');
     if (M === 'jwt') sum.push('With a JWT the server stores nothing, so it is easy to add servers and there is no lookup cost.' + (c.kick ? ' In exchange, a token that has been issued cannot be invalidated before it expires. Requests that passed even after the forced logout: ' + leaked + '. You can block tokens by keeping a list of blocked tokens on the server, but then every request queries a store again.' : ' After the expiration time passes, the user has to log in again.'));
-    if (M === 'refresh') sum.push('If you keep the access token short and reissue it with the refresh token, ordinary requests are handled without a lookup, while the damage from a stolen token or a forced logout is limited to the expiration time of the access token.');
+    if (M === 'refresh') sum.push('If you keep the access token short and reissue it with the refresh token, ordinary requests are handled without a lookup, while the damage from a leaked access token or a forced logout is limited to the expiration time of the access token.');
     if (!sum.length) sum.push('Out of 5 requests, handled as logged in: ' + ok + ', 401 responses: ' + fail + ', shared store accesses: ' + look + '.');
     return { events: ev, summary: sum, row: [ok + '', fail + '', look + '', c.kick ? leaked + '' : 'N/A'] };
   },
@@ -1569,7 +1569,7 @@ Lab.register({
         go('F2', 'The afterCompletion method of the interceptor that returned false is not called either (if other interceptors had returned true before it, only theirs are called). The response goes out back through the filter chain.', '');
       } else {
         go('IP', 'The preHandle method of the interceptor runs and returns true. Unlike a filter, an interceptor works knowing which controller method is going to run.', '');
-        go('AR', rest ? 'HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter annotated with @RequestBody, HttpMessageConverter (Jackson) converts the JSON in the request body into an OrderRequest object and fills it in.' : 'HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter of type Model, it passes in an empty model object that will hold the data for the view. This is where the model (M) of MVC is created.', '');
+        go('AR', rest ? 'HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter annotated with @RequestBody, HttpMessageConverter (Jackson) converts the JSON in the request body into an OrderRequest object and fills it in.' : 'HandlerMethodArgumentResolver prepares the arguments for the parameters of the controller method. For the parameter of type Model, it passes in an empty Model object that will hold the data for the view. The data put into it is the model (M) of MVC.', '');
         if (c.what === 'ex') {
           go('CT', 'The controller method throws an OutOfStockException while it runs. Return value handling and postHandle are skipped.', 'bad');
           if (c.advice) {
@@ -1630,7 +1630,7 @@ Lab.register({
     P.region('path', 16, 16, 396, 42 + stages.length * 29, 'The path of the request (top to bottom)');
     stages.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0; P.box('st_' + id, 28, 50 + i * 29, 372, 25, { cls: id === s.cur ? 'hot now' : id === s.end ? 'bad' : seen ? 'good' : 'ghost', title: (i + 1) + '. ' + st[1], right: id === s.cur ? 'now here' : id === s.end ? 'problem here' : seen ? 'passed' : done ? 'skipped' : (group[id] || '') }); });
     P.region('roles', 440, 114, 224, 246, 'The three roles of MVC');
-    var mSub = rest ? ['Not used', 'Return value becomes JSON'] : !at('AR') ? [done ? 'Not created' : 'Not created yet'] : [num('AR') + 'created empty'].concat(!at('CT') ? [] : ex ? [num('CT') + 'exception first'] : [num('CT') + 'orders added']).concat(at('VR') ? [num('VR') + 'read by view'] : []);
+    var mSub = rest ? ['Model object is not used', 'Return value becomes JSON'] : !at('AR') ? [done ? 'Not created' : 'Not created yet'] : [num('AR') + 'created empty'].concat(!at('CT') ? [] : ex ? [num('CT') + 'exception first'] : [num('CT') + 'orders added']).concat(at('VR') ? [num('VR') + 'read by view'] : []);
     var cSub = [rest ? 'OrderController.create()' : 'OrderController.list()', !at('CT') ? (done ? 'Not called' : 'Not called yet') : num('CT') + (ex ? 'exception thrown' : s.cur === 'CT' ? 'running' : 'finished')];
     var vSub = rest ? ['None', at('RV') ? num('RV') + 'JSON, no view' : 'Not used for JSON'] : ['orders/list template', at('VR') ? num('VR') + 'renders the HTML' : done ? 'Not rendered' : at('RV') ? 'View name decided' : 'Not used yet'];
     var on = function (ids) { return ids.indexOf(s.cur) >= 0 ? 'hot' : ids.filter(at).length ? 'good' : 'ghost'; };
@@ -1653,14 +1653,14 @@ Lab.register({
   intro: 'On a network, a request or a response can be lost, and when no response arrives, the client sends the same request again. Depending on the HTTP method, running a request several times either gives the same result (the method is idempotent) or it does not.',
   terms: ['Safe methods and idempotent methods', 'HTTP methods', 'Idempotency and idempotency keys', 'HTTP status codes'], ranks: ['rest', 'http'],
   controls: [
-    { id: 'm', label: 'Request to send', type: 'select', value: 'POST', options: [['GET', 'GET /orders/1 (read)'], ['PUT', 'PUT /orders/1 (replace the quantity with 3)'], ['DELETE', 'DELETE /orders/1 (delete)'], ['POST', 'POST /orders (create a new order)'], ['PATCH', 'PATCH /orders/1 (increase the quantity by 1)']] },
+    { id: 'm', label: 'Request to send', type: 'select', value: 'POST', options: [['GET', 'GET /orders/1 (read)'], ['PUT', 'PUT /orders/1 (replace the order with one whose quantity is 3)'], ['DELETE', 'DELETE /orders/1 (delete)'], ['POST', 'POST /orders (create a new order)'], ['PATCH', 'PATCH /orders/1 (increase the quantity by 1)']] },
     { id: 'lost', label: 'What the network loses', type: 'select', value: 'res', options: [['none', 'Nothing (normal)'], ['req', 'The request (it does not reach the server)'], ['res', 'The response (the server handled the request, but the response is lost)']] },
     { id: 'n', label: 'How many times it is lost', type: 'range', min: 1, max: 3, value: 1, fmt: function (v) { return v + (v === 1 ? ' time' : ' times'); }, show: function (c) { return c.lost !== 'none'; } },
     { id: 'key', label: 'Send an idempotency key (Idempotency-Key) header with it', type: 'check', value: false, show: function (c) { return c.m === 'POST' || c.m === 'PATCH'; } },
   ],
   presets: [
     { t: 'Default settings', q: 'What happens when the response to POST /orders (create a new order) is lost once and the request is sent again?', d: 'The response to the POST is lost once. Two orders are created.', v: { m: 'POST', lost: 'res', n: 1, key: false } },
-    { t: 'PUT in the same situation', q: 'What if you send PUT /orders/1 (replace the quantity with 3) and the response is lost once?', d: 'Even when it runs twice, the result is the same as running it once.', v: { m: 'PUT', lost: 'res', n: 1, key: false } },
+    { t: 'PUT in the same situation', q: 'What if you send PUT /orders/1 (replace the order with one whose quantity is 3) and the response is lost once?', d: 'Even when it runs twice, the result is the same as running it once.', v: { m: 'PUT', lost: 'res', n: 1, key: false } },
     { t: 'Sending DELETE again', q: 'What if you send DELETE /orders/1 (delete) and the response is lost once?', d: 'The response code of the second request is different, but the state of the server is the same.', v: { m: 'DELETE', lost: 'res', n: 1, key: false } },
     { t: 'A PATCH that increases a value', q: 'What if you send PATCH /orders/1 (increase the quantity by 1) and the response is lost 2 times?', d: 'The quantity goes up once for every retry.', v: { m: 'PATCH', lost: 'res', n: 2, key: false } },
     { t: 'Adding an idempotency key to the POST', q: 'What if you send an Idempotency-Key header with POST /orders and the response is lost 2 times?', d: 'The server recognizes the repeated request and handles it only once.', v: { m: 'POST', lost: 'res', n: 2, key: true } },
@@ -3308,7 +3308,7 @@ Lab.register({
     P.region('db', 470, 16, 194, 298, 'member table in the DB');
     P.text('c1', 28, 58, 'First-level cache: managed entities', { cls: 'mut' });
     if (!s.cache.length) P.box('none', 28, 66, 376, 46, { cls: 'ghost', sub: 'Empty', center: true });
-    s.cache.forEach(function (e, i) { var gone = e.st.indexOf('Detached') === 0; P.box('e' + e.id, 28, 66 + i * 52, 376, 46, { cls: gone ? 'ghost' : e.name !== e.snap ? 'hot' : 'good', title: 'Member ' + e.id + (gone ? ' (no longer managed)' : ''), sub: 'Current: ' + e.name + '  ·  Snapshot: ' + e.snap }); });
+    s.cache.forEach(function (e, i) { var gone = e.st.indexOf('Detached') === 0; P.box('e' + e.id, 28, 66 + i * 52, 376, 46, { cls: gone ? 'ghost' : e.name !== e.snap ? 'hot' : 'good', title: 'Member ' + e.id + (gone ? ' (detached: removed from the context)' : ''), sub: 'Current: ' + e.name + '  ·  Snapshot: ' + e.snap }); });
     P.box('pend', 28, 250, 376, 48, { cls: s.pending.length ? 'wait' : 'ghost', title: 'Write-behind queue', sub: s.pending.length ? 'INSERTs queued, not sent: ' + s.pending.length : 'No queued SQL' });
     s.db.forEach(function (r, i) { P.box('r' + r.id, 482, 52 + i * 40, 170, 32, { cls: r.cls === 'hot' ? 'hot' : 'plain', title: 'id ' + r.id, right: r.name }); });
     if (fresh.length) { var kinds = {}; fresh.forEach(function (q) { var k = q.sql.split(' ')[0].toUpperCase(); kinds[k] = (kinds[k] || 0) + 1; }); P.arrow('sql', 'pc:r', 'db:l', { cls: 'hot', label: Object.keys(kinds).map(function (k) { return k + (kinds[k] > 1 ? ' ×' + kinds[k] : ''); }).join(', ') }); }
@@ -9638,7 +9638,7 @@ Lab.register({
       o.by.forEach(function (name, j) { P.arrow('ar_' + name, 'v_' + name + ':r', 'o' + o.id + ':l:' + (o.by.length > 1 ? (j + 1) / (o.by.length + 1) : 0.5), { cls: o.by.length > 1 ? 'good' : '' }); });
     });
     var res = function (x) { return x === 'true' ? 'good' : x === 'false' ? 'bad' : 'ghost'; };
-    P.box('c1', 16, 236, 320, 34, { cls: res(s.cmp.eq), title: 'a == b  (same object?)', right: s.cmp.eq || '?' });
+    P.box('c1', 16, 236, 320, 34, { cls: res(s.cmp.eq), title: c.kind === 'int' && c.ib === 'prim' ? 'a == b  (same value?)' : 'a == b  (same object?)', right: s.cmp.eq || '?' });
     P.box('c2', 344, 236, 320, 34, { cls: res(s.cmp.equals), title: 'a.equals(b)  (same contents?)', right: s.cmp.equals || '?' });
     P.note(str ? 'An arrow shows the object that a variable refers to. When two arrows reach the same object, == is true. The string pool is actually inside the heap, but it is drawn separately to set it apart.' : 'An arrow shows the object that a variable refers to. When two arrows reach the same object, == is true. A variable of the primitive type int does not refer to an object. It holds the value directly.');
   },
@@ -10980,8 +10980,8 @@ Lab.register({
     var neck = alive === 0 ? 'No server' : appOut < c.rps && appOut <= dbCap ? 'Application server' : out < appOut ? 'DB' : appOut < c.rps ? 'Application server' : 'None';
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
     push('Requests arrive at the load balancer at ' + c.rps + ' per second. Users do not know how many servers there are; they know only the one address of the load balancer.', '', 1);
-    if (c.down) push(alive ? 'The load balancer periodically checks the state of the servers (a health check), finds that server #' + c.n + ' is not responding, and removes it from its targets. It sends requests only to the remaining ' + alive + (alive === 1 ? ' server.' : ' servers.') : 'The health check shows that the only server is not responding. There is nowhere to send requests.', 'bad', 2);
-    if (!alive) { push('Every request fails. When there is only one server, the failure of that one server is a failure of the whole service (a single point of failure).', 'bad', 4); sum.push('Requests handled: 0. You need at least 2 servers for the service to keep running when one dies.'); return { events: ev, summary: sum, calc: { alive: 0, per: 0, cap: cap, appOut: 0, out: 0, lost: c.rps, load: 0, dbLoad: 0, dbCap: dbCap, neck: neck }, row: ['0', c.rps + '', '-', neck] }; }
+    if (c.down) push(alive ? 'The load balancer checks the state of the servers (a health check), finds that server #' + c.n + ' is not responding, and removes it from its targets. It sends requests only to the remaining ' + alive + (alive === 1 ? ' server.' : ' servers.') : 'The health check shows that the only server is not responding. There is nowhere to send requests.', 'bad', 2);
+    if (!alive) { push('Every request fails. When there is only one server, the failure of that one server is a failure of the whole service (a single point of failure).', 'bad', 4); sum.push('Requests handled: 0. With 2 or more servers, the service can keep running when one dies. However, the remaining servers must handle the piled-up requests.'); return { events: ev, summary: sum, calc: { alive: 0, per: 0, cap: cap, appOut: 0, out: 0, lost: c.rps, load: 0, dbLoad: 0, dbCap: dbCap, neck: neck }, row: ['0', c.rps + '', '-', neck] }; }
     push('The load balancer divides the requests evenly among the ' + alive + ' live ' + (alive === 1 ? 'server' : 'servers') + '. Each server receives ' + Math.round(per) + ' requests per second. One server can handle ' + cap + ' requests per second, so its load is ' + load + '%.' + (per > cap ? ' This is over its capacity. The overflowing requests wait and then time out or are rejected.' : ''), per > cap ? 'bad' : '', 3);
     push('The ' + appOut + ' requests per second that the servers handled go on to the database. The database can handle ' + dbCap + ' requests per second, so its load is ' + dbLoad + '%.' + (appOut > dbCap ? ' The database cannot keep up. Even if the servers have room to spare, requests back up while they wait for the database to respond.' : ''), appOut > dbCap ? 'bad' : '', 4);
     push('Result: ' + out + ' requests per second are handled and ' + lost + ' are not. ' + (neck === 'None' ? 'Every stage has room to spare.' : 'Bottleneck: ' + neck + '.'), lost ? 'bad' : 'good', 5);
@@ -11366,7 +11366,7 @@ Lab.register({
     if (!c.idx) sum.push('Without an index, the whole table must be read however many rows match. If the number of rows grows 10 times, the amount read grows 10 times. If there had been an index, the estimated cost would have been ' + num(costIdx) + ', ' + (costIdx < costFull ? 'about ' + (Math.round(costFull / costIdx) >= 2 ? '1/' + Math.round(costFull / costIdx) : 'half') + ' of the full table scan.' : 'which is higher than the full table scan. An index does not help with this condition.'));
     else if (useIdx && !(c.force && costIdx >= costFull)) sum.push('The lower the share of matching rows (the better the selectivity), the greater the benefit of the index. A full table scan would have cost ' + num(costFull) + ', about ' + Math.max(1, Math.round(costFull / costIdx)) + ' times as much.');
     else if (useIdx) sum.push('Forcing the index made the cost ' + num(costIdx) + ', which is higher than the full table scan (' + num(costFull) + '). The optimizer\'s judgment was right. Use a hint only when you have evidence that the statistics are wrong.');
-    else sum.push('When too many rows match the condition, the total cost of looking rows up one at a time exceeds the cost of reading the whole table in order. That is why a full table scan is chosen even though an index exists. It is also why an index on a single column with few distinct values, such as gender or a status value, helps little.');
+    else sum.push('When too many rows match the condition, the total cost of looking rows up one at a time exceeds the cost of reading the whole table in order. That is why a full table scan is chosen even though an index exists. It is also why an index helps little on a column with few distinct values that are spread evenly, such as gender, because any value you look up matches many rows.');
     return { events: ev, summary: sum, k: { N: N, matched: matched, costFull: costFull, costIdx: costIdx, useIdx: useIdx, h: h, read: read, cost: cost }, row: [useIdx ? 'Index' : 'Full table scan', num(read), num(matched), num(read - matched), num(cost)] };
   },
   render: function (v, sim, t, H, shown) {
@@ -11558,7 +11558,7 @@ Lab.register({
     ev.sort(function (a, b) { return a.t - b.t; });
     var sum = [];
     if (ttl === 0) sum.push('The same product was requested ' + reqs.length + ' times, and the database was read ' + dbq + ' times. The more often data is read and the less often it changes, the more a cache helps.');
-    else if (peak > 1 && !lock) sum.push('At the moment of expiration, all the requests that arrived before the cache was filled again (during ' + dbt + 's) went to the database. The more requests there are and the slower the database query is, the bigger the pile-up. This is a cache stampede. You reduce it with a lock that lets only one request query the database, by refreshing the value before it expires, or by giving each key a slightly different TTL.');
+    else if (peak > 1 && !lock) sum.push('At the moment of expiration, all the requests that arrived before the cache was filled again (during ' + dbt + 's) went to the database. The more requests there are and the slower the database query is, the bigger the pile-up. This is a cache stampede. You reduce it with a lock that lets only one request query the database, or by refreshing the value before it expires. When many keys expire at the same time, give each key a slightly different TTL.');
     else if (lock) sum.push('With the lock, only one request queried the database each time the cache became empty. This protected the database from the load, but ' + waits + (waits === 1 ? ' request' : ' requests') + ' had to wait until that query finished. With several servers, you need a distributed lock that all the servers share.');
     if (ttl > 0) sum.push('The longer the TTL, the fewer the database queries, but even when the source data changes, the cache keeps returning the old value for up to the TTL. How old a value you can accept is the criterion for choosing the TTL.');
     return { total: DUR, events: ev, summary: sum, reqs: reqs, queries: queries, sets: null, ttl: ttl, row: [String(reqs.length), rate + '%', String(dbq), String(peak), (Math.round(avg * 100) / 100) + 's'] };
@@ -11578,7 +11578,7 @@ Lab.register({
     P.region('sec', 16, 158, 648, 96, 'Queries that reached the database each second (1 box = 1 second)');
     for (var k = 0; k < 30; k++) { var n = sim.queries.filter(function (q) { return q[0] >= k - e && q[0] < k + 1 - e && q[0] <= t + e; }).length, past = k < t; P.box('s' + k, 26 + k * 21, 194, 20, 40, { cls: !past ? 'ghost' : n === 0 ? 'good' : n === 1 ? 'wait' : 'bad', sub: past ? String(n) : undefined, center: true }); }
     P.box('rate', 16, 270, 648, 34, { cls: 'plain', title: 'Cache hit rate', right: done.length ? Math.round(hits / done.length * 100) + '% (' + hits + ' / ' + done.length + ')' : '-' });
-    P.note('A request looks at the cache first, and if the value is there, it ends there (green arrow). An arrow to the database appears only when the value is missing. In the row below, green is a second with no database query, and red is a second when several queries piled up.');
+    P.note('A request looks at the cache first, and if the value is there, it ends there (green arrow). An arrow appears only when the value is missing from the cache, showing the application querying the database. In the row below, green is a second with no database query, and red is a second when several queries piled up.');
   },
   assume: 'Only one key (one popular product) is handled, and requests are assumed to arrive at regular intervals. The cache response time is set to 0.01s. The eviction policy, which removes old keys when the cache is full, is not covered here. With the lock, a waiting request is simplified to receive the value from the cache at the moment the query finishes. The numbers are a model that shows how the behavior works, and they are not values measured on a real Redis.',
 });
@@ -14871,7 +14871,7 @@ Lab.register({
       st[1] = 'Holds the A lock · Waiting for B'; waits++; push('Thread 1: It tries to acquire the lock of the receiving account, B. Thread 2 holds it, so thread 1 waits. It keeps holding the lock of A.', '');
       st[2] = 'Holds the B lock · Waiting for A'; waits++;
       if (!c.tryl) { dead = true; push('Thread 2: It tries to acquire the lock of the receiving account, A. Thread 1 holds it, so thread 2 waits. Thread 1 waits for thread 2, and thread 2 waits for thread 1. Neither releases its lock first, so the wait never ends. This is a deadlock.', 'bad');
-        sum.push('A deadlock occurred. Neither transfer finishes, and the two threads are stopped without even an exception. If you take a thread dump, you can see them as threads in the BLOCKED state, each waiting for the lock that the other holds.'); sum.push('A deadlock occurs when four conditions all hold: a resource that only one thread can use at a time, holding one resource while waiting for another, no way to take a resource away from its holder, and waits that form a cycle. It is enough to break just one of them. Using the same lock order breaks the cycle, and tryLock breaks "holding while waiting".');
+        sum.push('A deadlock occurred. Neither transfer finishes, and the two threads are stopped without even an exception. If you take a thread dump, you can see them as threads in the BLOCKED state, each waiting for the lock that the other holds.'); sum.push('A deadlock occurs when four conditions all hold: a resource that only one thread can use at a time, holding one resource while waiting for another, no way to take a resource away from its holder, and waits that form a cycle. It is enough to break just one of them. Using the same lock order breaks the cycle. tryLock stops threads from waiting forever, so after the time limit a thread gives up and releases the lock it holds.');
       } else {
         push('Thread 2: It tries to acquire the lock of the receiving account, A. Thread 1 holds it, so thread 2 waits. At this point each thread is waiting for the other.', 'bad');
         own.A = null; st[1] = 'Gave up, retries shortly'; retries++; push('Thread 1: It waited 1 second and still could not acquire the lock of B. tryLock returns false, and thread 1 releases the lock of A that it was holding.', '');
@@ -19727,11 +19727,11 @@ Lab.register({
         push('Request ' + (win + 1) + ': Sends an UPDATE that changes the row "only if the version is ' + readVer + '". The version is unchanged, so it succeeds. The stock is ' + stock + ', and the new version is ' + ver + '.', 'good', win);
         if (left.length) { retries += left.length; left.forEach(function (r) { st[r] = 'Save failed → retry'; }); push('The other requests (' + left.length + '): They sent the same UPDATE, but the version had already changed (it is now ' + ver + '), so no row matches the condition (0 rows changed). The request is treated as a conflict, an exception is thrown, and it tries again from the start.', 'bad', -1); }
       }
-      sum.push('Optimistic locking does not wait for locks, so it works well when conflicts are rare (for example, one person editing their own information). When requests pile up on the same row, as in this example, most of them fail and retry, so the system actually does more work. You have to write the retry code yourself.');
+      sum.push('Optimistic locking does not hold a lock and wait when it reads, so it works well when conflicts are rare (for example, one person editing their own information). When requests pile up on the same row, as in this example, most of them fail and retry, so the system actually does more work. You have to write the retry code yourself.');
     }
     if (c.how === 'atomic') {
       for (var u = 0; u < N; u++) {
-        if (stock > 0) { stock--; orders++; sold++; st[u] = 'Order placed'; push('Request ' + (u + 1) + ': Sends the UPDATE "decrease by 1 if the stock is greater than 0". The DB locks the row only while it runs this one statement. 1 row was changed, so the request creates the order. Stock: ' + stock + '.', 'good', u); }
+        if (stock > 0) { stock--; orders++; sold++; st[u] = 'Order placed'; push('Request ' + (u + 1) + ': Sends the UPDATE "decrease by 1 if the stock is greater than 0". Checking the stock and decreasing it happen together in this one statement, so no other request can slip in between (the lock on this row is released when the transaction ends). 1 row was changed, so the request creates the order. Stock: ' + stock + '.', 'good', u); }
         else { st[u] = 'Rejected (sold out)'; push('Request ' + (u + 1) + ': Sends the same UPDATE, but the stock is 0, so the condition does not match. 0 rows were changed, so the request is handled as sold out.', '', u); }
       }
       sum.push('If you put "read, check, and write" into one SQL statement instead of splitting it up in the application, there is no gap for another request to cut into. For a simple increase or decrease, this is the lightest and most reliable method. It is hard to use when the condition to check is complex and spans several tables.');
@@ -22699,7 +22699,7 @@ Lab.register({
     for (var i = 1; i <= c.c; i++) cons.push(i);
     var A = this.calc(c, cons), cur = A, note = '';
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { st: cur, stage: stage, note: note } }); }
-    push(c.c + (c.c === 1 ? ' consumer subscribes' : ' consumers subscribe') + ' to the topic as one group. The group coordinator assigns the ' + c.p + (c.p === 1 ? ' partition' : ' partitions') + ' to the consumers. Within a group, a partition is handled by only one consumer.' + (A.idle.length ? ' There are more consumers than partitions, so ' + (A.idle.length === 1 ? 'consumer ' : 'consumers ') + A.idle.join(', ') + (A.idle.length === 1 ? ' has' : ' have') + ' no partition to handle.' : ''), A.idle.length ? 'bad' : '', 1);
+    push(c.c + (c.c === 1 ? ' consumer subscribes' : ' consumers subscribe') + ' to the topic as one group. The ' + c.p + (c.p === 1 ? ' partition is' : ' partitions are') + ' divided among the consumers (the group coordinator coordinates the assignment). Within a group, a partition is handled by only one consumer.' + (A.idle.length ? ' There are more consumers than partitions, so ' + (A.idle.length === 1 ? 'consumer ' : 'consumers ') + A.idle.join(', ') + (A.idle.length === 1 ? ' has' : ' have') + ' no partition to handle.' : ''), A.idle.length ? 'bad' : '', 1);
     push('Messages arrive at ' + c.r + ' per second, and ' + Math.round(c.r / c.p) + ' per second go into each partition (assuming the keys are spread evenly). Each consumer processes ' + c.k + ' messages per second, and a consumer that handles several partitions shares that capacity among them. The throughput of the whole group is ' + A.total + ' messages per second.', A.total < c.r ? 'bad' : 'good', 2);
     push('10 seconds have passed. ' + (A.lag ? 'Processing cannot keep up with the inflow, so ' + A.lag + ' messages are waiting unread (consumer lag). If this continues, the lag grows without limit.' : 'Every partition is processed as fast as messages arrive, so no messages are waiting.'), A.lag ? 'bad' : 'good', 3);
     if (c.crash) {
@@ -22708,7 +22708,7 @@ Lab.register({
       push('Consumer ' + dead + ' fetched five messages (offsets 100-104) and died right after processing three of them. ' + (after ? 'It was going to commit after finishing all the processing, so the position recorded on the broker is still 100.' : 'It committed before processing, so the broker has already recorded that it read up to 105.'), 'bad', 4);
       var rest = cons.slice(1);
       if (!rest.length) { cur = { parts: A.parts.map(function (p) { return { id: p.id, own: null, inflow: p.inflow, done: 0, lag: Math.round(p.inflow * 10) }; }), total: 0, lag: c.r * 10, idle: [], cons: [] }; push('No consumers are left. Nobody reads, so messages just keep piling up on the broker. Messages do not disappear. They are kept for the retention period, so when a consumer starts again, it continues reading.', 'bad', 5); }
-      else { cur = this.calc(c, rest); push('The broker detects that consumer ' + dead + ' has stopped responding and divides the partitions again (rebalancing). During a rebalance, consumption of the affected partitions stops for a short time. The remaining consumers (' + rest.length + ') share the partitions, so the throughput becomes ' + cur.total + ' messages per second.', cur.total < c.r ? 'bad' : '', 5); }
+      else { cur = this.calc(c, rest); push('The broker detects that consumer ' + dead + ' has stopped responding and divides the partitions again (rebalancing). During a rebalance, consumption stops for a short time (how much stops depends on the assignment strategy). The remaining consumers (' + rest.length + ') share the partitions, so the throughput becomes ' + cur.total + ' messages per second.', cur.total < c.r ? 'bad' : '', 5); }
       if (after) { dup = 3; push('The consumer that takes over the partition reads again from the last committed position, 100. Messages 100, 101, and 102 were already processed, but they are processed one more time. Nothing is lost, but 3 duplicates occurred (at-least-once delivery).', 'bad', 6); }
       else { lost = 2; push('The consumer that takes over the partition reads from the committed position, 105. Messages 103 and 104 were committed but never processed, and nobody reads them again. There are no duplicates, but 2 messages were lost (at-most-once delivery).', 'bad', 6); }
     }
@@ -23039,7 +23039,7 @@ Lab.register({
   ],
   code: function (c) {
     if (!c.use) return 'PaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // times out after 3s if there is no response\n}';
-    return '# application.yml (Resilience4j)\nresilience4j.circuitbreaker.instances.payment:\n  slidingWindowSize: 10                 # decide from the results of the last 10 calls\n  minimumNumberOfCalls: 10\n  failureRateThreshold: ' + c.th + '              # open the circuit when the failure rate is at or above this value\n  waitDurationInOpenState: ' + c.wait + 's          # how long the circuit stays open\n  permittedNumberOfCallsInHalfOpenState: 3\n\n@CircuitBreaker(name = "payment", fallbackMethod = "payLater")\nPaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // times out after 3s if there is no response\n}\n\nPaymentResult payLater(Order order, Throwable t) {\n    return PaymentResult.pending();      // runs instead when calls are blocked\n}';
+    return '# application.yml (Resilience4j)\nresilience4j.circuitbreaker.instances.payment:\n  slidingWindowSize: 10                 # decide from the results of the last 10 calls\n  minimumNumberOfCalls: 10\n  failureRateThreshold: ' + c.th + '              # open the circuit when the failure rate is at or above this value\n  waitDurationInOpenState: ' + c.wait + 's          # how long the circuit stays open\n  permittedNumberOfCallsInHalfOpenState: 3\n\n@CircuitBreaker(name = "payment", fallbackMethod = "payLater")\nPaymentResult pay(Order order) {\n    return paymentClient.pay(order);     // times out after 3s if there is no response\n}\n\nPaymentResult payLater(Order order, Throwable t) {\n    return PaymentResult.pending();      // runs instead when calls fail or are blocked\n}';
   },
   label: function (c) { return (c.use ? 'enabled · threshold ' + c.th + '% · open ' + c.wait + 's' : 'no circuit breaker') + ' · outage ' + c.dur + 's'; },
   columns: ['Successes', 'Failures (waited 3s each)', 'Blocked (immediate fallback)', 'Time spent waiting', 'State transitions'],
@@ -23095,7 +23095,7 @@ Lab.register({
     for (var i = 0; i < 40; i++) { var x = s.calls[i]; P.box('call' + i, 28 + (i % 20) * 31.2, 152 + Math.floor(i / 20) * 30, 27, 24, { cls: (x === 'd' ? 'good' : x === 'r' ? 'bad' : x === 'q' ? 'wait' : 'ghost') + (i === n - 1 ? ' now' : ''), sub: String(i + 1), center: true }); }
     var wait = s.calls.filter(function (x) { return x === 'r'; }).length * 3;
     P.box('w', 16, 238, 648, 34, { cls: wait > 15 ? 'bad' : 'plain', title: 'Time spent waiting for failures', right: wait + 's' });
-    P.note('Green is a success, red is a call that waited 3s and failed, and blue is a call that the circuit blocked and answered with an immediate fallback response. When the circuit is open, the arrow does not go all the way to the payment service. It turns back at the circuit.');
+    P.note('Green is a success, red is a call that waited 3s and failed, and blue is a call that the circuit blocked and answered with an immediate fallback response. When the circuit is open, the call arrow does not reach the payment service and ends at the circuit. The order service gets a fallback response right there.');
   },
   assume: 'This follows the behavior of Resilience4j with a count-based sliding window (the last 10 calls). All 27 combinations that use the circuit breaker were fed, in the same call order, to a real Resilience4j 2.4.0 circuit breaker (advancing the clock by 1 second at a time), and the numbers of successes, failures, and blocked calls and the order of state transitions were confirmed to match the screen. There is one difference. Resilience4j lets calls through as trial calls only after the wait duration has fully passed, so a call that arrives at exactly the same moment as the end of the wait duration is still blocked. The screen shows the result of treating the call as arriving a tiny bit after that moment. The circuit opens when the failure rate is at or above the threshold, and after the set time, the results of 3 trial calls decide whether to close it or open it again. It is simplified so that calls are made once per second and a service in an outage always fails with a 3s timeout. In real use, you can also use the slow call rate as a criterion, and there is a time-based sliding window too.',
 });
@@ -23115,7 +23115,7 @@ Lab.register({
     { t: 'Take everything down first', q: 'What if you change the deployment strategy to take everything down, then bring up the new version?', d: 'The simplest way, but the service stops in the meantime.', v: { st: 'recreate', bug: false, grace: true } },
     { t: 'Blue-green', q: 'What if you change the deployment strategy to blue-green?', d: 'You need twice the servers, but switching and rolling back are instant.', v: { st: 'bluegreen', bug: false, grace: true } },
     { t: 'A version with a bug, deployed by rolling', q: 'What if v2 has a bug and you deploy by rolling as before?', d: 'Until you notice the problem, the range of impact keeps growing.', v: { st: 'rolling', bug: true, grace: true } },
-    { t: 'A version with a bug, deployed as a canary', q: 'What if you deploy as a canary and v2 has a bug?', d: 'Only some users are affected, and then you roll back.', v: { st: 'canary', bug: true, grace: true } },
+    { t: 'A version with a bug, deployed as a canary', q: 'What if you deploy as a canary and v2 has a bug?', d: 'Only some requests are affected, and then you roll back.', v: { st: 'canary', bug: true, grace: true } },
     { t: 'Without graceful shutdown', q: 'What if you turn off graceful shutdown?', d: 'Requests in progress are cut off when a server is taken down.', v: { st: 'rolling', bug: false, grace: false } },
   ],
   code: function (c) {
@@ -23127,7 +23127,7 @@ Lab.register({
   simulate: function (c) {
     var ev = [], S = ['v1', 'v1', 'v1', 'v1'], G = [], lb = 'v1 servers: 4', down = 'None', maxUp = 4, exposed = 'Not applicable', back = 'Not applicable', cut = 0, sum = [];
     function push(s, k) { var up = S.filter(function (x) { return x === 'v1' || x === 'v2'; }).length + G.filter(function (x) { return x === 'v2'; }).length; if (up > maxUp) maxUp = up; ev.push({ s: s, k: k, snap: { S: S.slice(), G: G.slice(), lb: lb, cut: cut } }); }
-    function stop(i) { S[i] = 'Stopping'; if (!c.grace) cut += 2; push('Server ' + (i + 1) + ': The load balancer stops sending new requests to this server, then sends a termination signal. ' + (c.grace ? 'The server finishes the requests in progress and then exits.' : 'It exits immediately. 2 requests in progress got no response and were cut off.'), c.grace ? '' : 'bad'); }
+    function stop(i) { S[i] = 'Stopping'; if (!c.grace) cut += 2; push('Server ' + (i + 1) + ': The load balancer stops sending new requests to this server, and a termination signal is sent to the server. ' + (c.grace ? 'The server finishes the requests in progress and then exits.' : 'It exits immediately. 2 requests in progress got no response and were cut off.'), c.grace ? '' : 'bad'); }
     push('Current state: all 4 servers are v1, and the load balancer spreads the requests evenly.', '');
     if (c.st === 'recreate') {
       for (var i = 0; i < 4; i++) S[i] = 'None'; lb = 'No server to send to'; if (!c.grace) cut += 8; down = 'Yes';
@@ -23150,7 +23150,7 @@ Lab.register({
     if (c.st === 'bluegreen') {
       G = ['Starting', 'Starting', 'Starting', 'Starting']; push('The existing v1 environment (blue) is left as it is, and a new v2 environment (green) of the same size is brought up. It does not receive user requests yet.', '');
       G = ['v2', 'v2', 'v2', 'v2']; push('The 4 green servers are ready. There are 8 servers running now. You can test the green environment before exposing it to users.', '');
-      lb = 'v2 servers: 4 (green)'; if (!c.grace) cut += 8; push('The target of the load balancer is switched from blue to green all at once. All requests go to v2.' + (c.grace ? ' The requests in progress on blue are processed to the end.' : ' Blue was taken down right away, so the 8 requests in progress were cut off.'), c.grace ? 'good' : 'bad');
+      lb = 'v2 servers: 4 (green)'; if (!c.grace) cut += 8; push('The target of the load balancer is switched from blue to green all at once. All requests go to v2.' + (c.grace ? ' The requests in progress on blue are processed to the end.' : ' The connections to blue were cut without waiting for the requests in progress to finish, so 8 requests were cut off.'), c.grace ? 'good' : 'bad');
       if (c.bug) { exposed = '100% (from right after the switch until the rollback)'; back = 'Switch the load balancer back to blue (instant)'; push('The bug in v2 shows up for all users. But the blue environment is still alive.', 'bad'); lb = 'v1 servers: 4 (blue)'; push('The load balancer is turned back to blue. No new servers need to be brought up, so the rollback finishes instantly.', 'good'); G = ['None', 'None', 'None', 'None']; }
       else { S = ['None', 'None', 'None', 'None']; push('After confirming that there is no problem, the blue environment is taken down.', ''); }
       sum.push('Switching and rolling back happen in an instant, and there is no time when the two versions are served mixed together. In return, you need twice the servers during the deployment, and all users move to the new version at the moment of the switch.');
@@ -23216,14 +23216,14 @@ Lab.register({
     push('The host operating system is running on one physical server. You want to start ' + c.n + (c.n === 1 ? ' application instance' : ' application instances') + ' on it, isolated from each other.', '');
     if (vm) {
       layers.push(['Hypervisor (creates the virtual hardware)', 'hot']); push('The hypervisor divides the physical resources and creates virtual computers (virtual hardware).', '');
-      for (var i = 1; i <= c.n; i++) { inst.push(['VM ' + i, 'Booting guest OS', 'b']); mem += OS; push('VM ' + i + ': The guest operating system is booted from scratch on the virtual hardware. Loading the kernel and starting the system services takes tens of seconds, and the operating system alone uses about 1GB of memory.', ''); inst[i - 1] = ['VM ' + i, 'Guest OS (kernel) + JDK + app', 'd']; mem += APP; push('VM ' + i + ': After the boot finishes, the application runs inside it. This VM has its own kernel, so it is completely separated from the other VMs.', ''); }
+      for (var i = 1; i <= c.n; i++) { inst.push(['VM ' + i, 'Booting guest OS', 'b']); mem += OS; push('VM ' + i + ': The guest operating system is booted from scratch on the virtual hardware. Loading the kernel and starting the system services takes tens of seconds, and the operating system alone uses about 1GB of memory.', ''); inst[i - 1] = ['VM ' + i, 'Guest OS (kernel) + JDK + app', 'd']; mem += APP; push('VM ' + i + ': After the boot finishes, the application runs inside it. This VM has its own kernel, so it is separated from the other VMs, down to the kernel.', ''); }
       sum.push('A virtual machine holds a whole operating system for each instance, so it is heavy and slow to start, but even the kernel is separated, so the isolation is strong. It can also run a different kind of operating system.');
     } else {
       layers.push(['Container runtime (such as Docker)', 'hot']); push('The container runtime does not create virtual hardware. It only runs processes in isolation, using features of the host kernel.', '');
       for (var j = 1; j <= c.n; j++) {
         inst.push(['Container ' + j, 'Preparing image', 'b']); push('Container ' + j + ': The image (a bundle of the application and the files it needs to run) is set up read-only, and a process is started on top of it. No operating system is booted, so it takes only as long as starting one process. Containers share the same image.', '');
-        if (+c.limit < APP) { inst[j - 1] = ['Container ' + j, 'OOMKilled (memory limit exceeded)', 'r']; killed = true; push('Container ' + j + ': The application tried to use 400MB, but the limit is ' + c.limit + 'MB. The kernel (cgroups) kills a process that goes over its limit. It is not a Java OutOfMemoryError; the whole process disappears.', 'bad'); }
-        else { inst[j - 1] = ['Container ' + j, 'Process (JDK + app) · limit ' + c.limit + 'MB', 'd']; mem += APP; push('Container ' + j + ': Running. Thanks to namespaces, this process appears to have its own file system, network, and process list, but in reality it is an ordinary process on the host kernel.', 'good'); }
+        if (+c.limit < APP) { inst[j - 1] = ['Container ' + j, 'OOMKilled (memory limit exceeded)', 'r']; killed = true; push('Container ' + j + ': The application tried to use 400MB, but the limit is ' + c.limit + 'MB. The kernel (cgroups) kills a process that goes over its limit. The whole process can disappear without even a Java OutOfMemoryError.', 'bad'); }
+        else { inst[j - 1] = ['Container ' + j, 'Process (JRE + app) · limit ' + c.limit + 'MB', 'd']; mem += APP; push('Container ' + j + ': Running. Thanks to namespaces, this process appears to have its own file system, network, and process list, but in reality it is an ordinary process on the host kernel.', 'good'); }
       }
       sum.push('Containers share the kernel, so they are lightweight and start quickly. In return, the isolation is weaker than that of a virtual machine, and they work only with the same kind of kernel as the host. Namespaces divide "what you can see," and cgroups divide "how many resources you can use."');
       if (killed) sum.push('If a container uses more than its memory limit, it is killed (OOMKilled). The heap size of the JVM has to be set to fit within the container limit. Recent JVMs recognize the container limit and set the default heap size from it, but some memory is also used outside the heap, so you need to leave some room.');
@@ -23247,7 +23247,7 @@ Lab.register({
       if (vm) {
         P.box('os' + j, ix + 7, 154, w - 14, 34, { cls: state.indexOf('Booting') >= 0 ? 'hot' : 'wait', title: 'Guest OS', center: true });
         if (state.indexOf('app') >= 0) P.box('app' + j, ix + 7, 114, w - 14, 34, { cls: 'good', title: 'JDK + app', center: true });
-      } else P.box('app' + j, ix + 7, 138, w - 14, 50, state.indexOf('OOM') >= 0 ? { cls: 'bad', title: 'OOMKilled', sub: 'Over limit', center: true } : state.indexOf('image') >= 0 ? { cls: 'hot', title: 'Preparing', sub: ' ', center: true } : { cls: 'good', title: 'JDK + app', sub: 'Max ' + c.limit + 'MB', center: true });
+      } else P.box('app' + j, ix + 7, 138, w - 14, 50, state.indexOf('OOM') >= 0 ? { cls: 'bad', title: 'OOMKilled', sub: 'Over limit', center: true } : state.indexOf('image') >= 0 ? { cls: 'hot', title: 'Preparing', sub: ' ', center: true } : { cls: 'good', title: 'JRE + app', sub: 'Max ' + c.limit + 'MB', center: true });
     });
     if (!s.layers.length) P.text('hint', 340, 180, 'Click Run to stack the layers from the bottom', { cls: 'mut', anchor: 'middle' });
     P.note(vm ? 'These are layers stacked from the bottom to the top. A virtual machine has its own blue "Guest OS" layer for each instance.' : 'These are layers stacked from the bottom to the top. A container has no Guest OS layer, and all the containers share the one host kernel at the very bottom. The dotted boxes are the scopes isolated from each other.');
@@ -23304,7 +23304,7 @@ Lab.register({
     }
     ctx = 'Cleared'; push('OUT', 'The response goes out, and the SecurityContext that was used for this request is cleared. The information is bound to the thread, so it must be removed before the thread is reused for the next request.', '');
     if (res === 200 && c.path !== 'public') sum.push('The response is ' + resp + '. ' + (res === 200 ? 'The request passed the filter chain and the controller ran.' : 'The controller did not run, and ' + end + ' produced the response.'));
-    if (res === 401) sum.push('401 means "it has not been confirmed who this is" (authentication failed). A request for an admin path without a token gets 401, not 403, because permissions cannot be checked while it is not known who the user is.');
+    if (res === 401) sum.push('401 means "it has not been confirmed who this is" (authentication failed). A request for an admin path without a token gets 401, not 403, because it is set up to answer 401 when a request from an unknown user is denied (without this setup, 403 is sent).');
     if (res === 403) sum.push('403 means "it is known who this is, but this user has no permission to do this" (authorization failed). Logging in again gives the same result.');
     if (res !== 200) sum.push('This response is produced in a filter before the request reaches DispatcherServlet, so it cannot be changed with @ControllerAdvice. To change the format of the response, register your own AuthenticationEntryPoint and AccessDeniedHandler.');
     if (res === 200 && c.path === 'public') sum.push('permitAll does not skip the filter chain. The request goes through all the filters, and the authorization step lets anyone pass.');
@@ -23314,7 +23314,7 @@ Lab.register({
   render: function (v, sim, t, H, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { seen: [], cur: null, ctx: 'Empty', resp: '' }, done = shown.length === sim.events.length;
     var bads = shown.filter(function (e) { return e.snap.bad; }).map(function (e) { return e.snap.bad; });
-    H.table(v, ['Filter chain (in order from top to bottom)', 'Status'], this.STAGES.map(function (st) { var id = st[0], seen = s.seen.indexOf(id) >= 0; return { cls: !seen && done ? 'gone' : '', cells: [st[1], { v: id === s.cur ? 'Now here' : seen ? (bads.indexOf(id) >= 0 ? 'Blocked here' : 'Passed') : done ? 'Not reached' : '', cls: id === s.cur ? 'hot' : bads.indexOf(id) >= 0 ? 'bad' : seen ? 'good' : '' }] }; }));
+    H.table(v, ['Filter chain (in order from top to bottom)', 'Status'], this.STAGES.map(function (st) { var id = st[0], seen = s.seen.indexOf(id) >= 0; return { cls: !seen && done ? 'gone' : '', cells: [st[1], { v: id === s.cur ? 'Now here' : seen ? (bads.indexOf(id) >= 0 ? 'Blocked here' : 'Passed') : done ? 'Nothing to do, or not reached' : '', cls: id === s.cur ? 'hot' : bads.indexOf(id) >= 0 ? 'bad' : seen ? 'good' : '' }] }; }));
     H.text(v, 'ExceptionTranslationFilter comes before AuthorizationFilter, so it catches and handles the exception that is thrown behind it.');
   },
   // Diagram: a passage in which the filters are lined up from top to bottom. Colors show how far the request went in and where it was blocked.
@@ -23325,7 +23325,7 @@ Lab.register({
     this.STAGES.forEach(function (st, i) { var id = st[0], seen = s.seen.indexOf(id) >= 0, blocked = bads.indexOf(id) >= 0; P.box('st_' + id, 26, 50 + i * 37, 420, 30, { cls: id === s.cur ? 'hot now' : blocked ? 'bad' : seen ? 'good' : 'ghost', title: st[1], right: blocked ? 'Blocked' : '' }); });
     P.box('ctx', 472, 50, 192, 64, { cls: s.ctx === 'Empty' || s.ctx === 'Cleared' ? 'ghost' : 'good', title: 'SecurityContext', sub: ['Contains:', s.ctx] });
     P.box('resp', 472, 130, 192, 64, { cls: !s.resp ? 'ghost' : /^2/.test(s.resp) ? 'good' : 'bad', title: 'Response', sub: [s.resp || 'In progress', ' '] });
-    P.note('Green is a filter that the request has passed, yellow is where the request is now, red is where the request was blocked, and a dashed outline is a place that the request did not reach.');
+    P.note('Green is a filter that the request has passed, yellow is where the request is now, red is where the request was blocked, and a dashed outline is a place where the request passed with nothing to do, or that it did not reach.');
   },
   assume: 'The model assumes a common JWT-based setup that does not use sessions. The custom JwtAuthenticationFilter is assumed to pass the request on without rejecting it when the token is missing or invalid (some implementations make this filter return 401 right away for an invalid token). For all 12 combinations, HTTP requests were sent to a real server running Spring Boot 4.1.1 and Spring Security 7.1.1, and it was confirmed that the response code, the place that produced the response (AuthenticationEntryPoint, AccessDeniedHandler), and whether the controller ran match the screen. Two things were learned while doing this. First, if the response for an authentication failure is not specified (that is, if there is no exceptionHandling configuration), a request without a token gets 403, not 401. That is why the exceptionHandling configuration was put in the code on the screen. Second, when insufficient authority was left to the default handler of Spring Security, 401, not 403, came back when USER requested the admin path. This is because the default handler passes the request on again to the error page (/error), and that request has no authentication information, so it is handled as an authentication failure once more. To get 403 as on the screen, the handler must respond with the status code directly, or the /error path must be permitted. A real chain has more filters that are not listed here.',
 });
@@ -23386,8 +23386,8 @@ Lab.register({
     else push(num(p.idxRead) + ' index entries in the narrowed range are read.' + (p.filt.length ? ' While reading, the remaining conditions are checked, and only ' + num(p.idxRead * p.filt.reduce(function (a, k) { return a * C[k][2]; }, 1)) + ' entries are kept.' : ''), '', 5);
     if (p.type !== 'ALL') push(p.cov ? 'Every column being selected is in the index, so the query finishes without going to the table (covering index). Table rows read: 0.' : 'SELECT * needs columns that are not in the index too. For each of the remaining ' + num(p.tblRead) + ' entries, the query goes to the table (the clustered index) and reads the whole row.', p.cov ? 'good' : '', 6);
     var usedNames = p.used.map(function (k) { return C[k][0]; }).join(', ') || 'none';
-    if (!p.used.length) sum.push('A composite index cannot be used for searching when there is no condition on its first column. Put the columns of the conditions you use often first, and among them the columns used with "=".');
-    else if (p.filt.length) sum.push('The conditions after the order was broken (' + p.filt.map(function (k) { return C[k][0]; }).join(', ') + ') could not narrow the range, so more index entries were read than necessary. If you put the "=" condition columns first and the range condition column last, all three columns narrow the range.');
+    if (!p.used.length) sum.push('A composite index usually cannot be used for searching when there is no condition on its first column (there are exceptions, such as the skip scan in MySQL). Put the columns of the conditions you use often first, and among them the columns used with "=".');
+    else if (p.filt.length) sum.push('The conditions after the order was broken (' + p.filt.map(function (k) { return C[k][0]; }).join(', ') + ') could not narrow the range, so more index entries were read than necessary. If you put the "=" condition columns first and the range condition column after them, every column that has a condition narrows the range.');
     else if (p.used.length === 3) sum.push('The conditions continue in index order without a gap, so all three columns narrowed the range. The order in which you write the conditions in WHERE does not matter; the column order of the index decides.');
     if (p.cov && p.type !== 'ALL') sum.push('A secondary index holds only the index columns and the primary key, so if another column is needed, the query must go to the table one more time. If every needed column is in the index, that extra trip disappears. Such an index is called a covering index, and it appears as Using index in the Extra column of EXPLAIN. This is one reason to avoid SELECT *.');
     if (!sum.length) sum.push('Columns used to narrow the range: ' + usedNames + '. The query read ' + num(p.idxRead) + ' index entries and ' + num(p.tblRead) + ' table rows, and got about ' + num(Math.max(1, p.out)) + ' results.');
@@ -23534,7 +23534,7 @@ Lab.register({
     } else fbody = tab(rows);
     var park = hasPark(final);
     push('Final result. Rows: ' + final.length + '.', park || c.join === 'INNER' ? 'good' : '', 'Final result', fhead, fbody);
-    if (c.join === 'LEFT' && c.cond === 'where') sum.push('If you put a WHERE condition on a column of the right table after a LEFT JOIN, the rows filled with NULL are filtered out, and the result becomes the same as with an INNER JOIN. If you want to keep the rows with no match and attach only the orders that satisfy the condition, write the condition in ON.');
+    if (c.join === 'LEFT' && c.cond === 'where') sum.push('If you put a WHERE condition on a column of the right table after a LEFT JOIN, and the condition is not true for NULL (for example, only status PAID), the rows filled with NULL are filtered out, and the result becomes the same as with an INNER JOIN. If you want to keep the rows with no match and attach only the orders that satisfy the condition, write the condition in ON.');
     if (c.join === 'LEFT' && c.cond === 'on') sum.push('The condition in ON only decides which orders get attached. It does not remove rows of the left table (member). A member with no paid orders still stays, together with NULL.');
     if (c.join === 'INNER') sum.push('With an INNER JOIN, the result is the same whether you write the condition in ON or in WHERE. The difference appears only with an outer join.');
     if (c.agg !== 'none') sum.push('The processing order is FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT. That is why an alias given in SELECT (cnt) cannot be used in WHERE.');
@@ -23596,7 +23596,7 @@ Lab.register({
       ev.push({ t: 0.05, k: 'good', s: '0.1s: Every request (' + c.n + ' in total) is waiting for an external response. ' + (c.model === 'loop' ? 'The waiting is left to the operating system, so the event loop threads are free.' : 'When a virtual thread stops in a blocking call, the JVM unmounts that virtual thread from its OS thread. The OS thread can then run another virtual thread.') });
       ev.push({ t: w, k: 'good', s: fmt(w) + 's: The responses arrive. ' + (c.model === 'loop' ? 'The event loop runs the next steps that were registered, one after another, and the requests (' : 'The virtual threads are mounted on OS threads again and continue running, and the requests (') + c.n + ' in total) finish at almost the same time.' });
     }
-    if (c.model === 'pool') sum.push('In the blocking style, the number of requests that can be handled at the same time cannot exceed the number of threads. The longer the wait, the longer the threads are tied up. The code is simple and easy to debug, which is why most services use this style.');
+    if (c.model === 'pool') sum.push('In the blocking style, the number of requests that can be handled at the same time cannot exceed the number of threads. The longer the wait, the longer the threads are tied up. The code is simple and easy to debug, which is why this style is widely used.');
     if (c.model === 'loop' && !c.block) sum.push('The non-blocking style does not hold a thread while waiting, so a small number of threads keeps many requests in progress. In return, the whole call path (the database driver, the HTTP client) must be non-blocking, and the code becomes a chain of callbacks, which is hard to learn and to debug.');
     if (c.model === 'loop' && c.block) sum.push('There are very few event loop threads, so making a blocking call on one of them is far worse than even the thread pool approach. Calling JDBC or a blocking HTTP client as it is while using WebFlux is a typical mistake.');
     if (c.model === 'virtual') sum.push('Virtual threads keep the simple code structure that gives each request its own thread, and they give up the OS thread while waiting. They are effective for work that waits a lot, and they do not make computation that keeps using the CPU any faster. Because the number of threads can grow into the thousands, another resource such as the database connection pool reaches its limit first.');
@@ -23618,7 +23618,7 @@ Lab.register({
     P.size(680, H + 66);
     P.region('wait', 16, 16, 184, H, 'Requests with no thread yet');
     P.region('thr', 216, 16, 262, H, 'The ' + T + ' OS threads');
-    P.region('io', 494, 16, 170, H, 'Waiting without a thread');
+    P.region('io', 494, 16, 170, H, 'Waiting, no OS thread');
     if (sim.serial) wait.slice(0, 30).forEach(function (r, j) { P.box('rq' + r.id, 26 + (j % 3) * 56, 50 + Math.floor(j / 3) * 26, 52, 22, { cls: 'wait', sub: '#' + r.id, center: true }); });
     for (var i = 0; i < T; i++) {
       var y = 50 + i * 30, r = sim.serial ? run.filter(function (x) { return x.th === i; })[0] : null;
@@ -23698,7 +23698,7 @@ Lab.register({
     });
     P.box('now', 170 + 480 * tt / total - 1, 44, 2, n * 36 + 4, { cls: 'plain' });
     P.text('tm', 664, 40 + n * 36 + 46, 'Now: ' + (Math.round(tt * 10) / 10) + 's', { anchor: 'end', bold: true });
-    P.note('The bars fill from left to right. When the calls are made one after another, the bars follow each other like steps and the times add up. When they are made at the same time, the bars overlap in the same span and the total is only as long as the longest bar. A red bar is a call that was cut off partway because it hit the timeout.');
+    P.note('The bars fill from left to right. When the calls are made one after another, the bars follow each other like steps and the times add up. When they are made at the same time, the bars overlap in the same span and the total is only as long as the longest bar. A red bar is a call whose result was replaced by the default value after the timeout (the real call keeps running in the background).');
   },
   assume: 'The time each call takes (product details 0.3s, stock 0.5s, reviews 0.8s, recommendations 1.6s, coupons 0.4s) is a fixed example, and the model assumes that the calls do not need each other\'s results. If the result of one call is the input of the next, those two must be made sequentially. For parallel calls, the model assumes blocking calls, in which one thread makes one call and waits for it. completeOnTimeout is a method that has existed since JDK 9. This was checked by actually running code on JDK 21 on this PC. With 4 calls of the same durations, the measured times were 3,243ms sequential, 1,603ms parallel (5 threads), 2,127ms parallel (2 threads), and 1,011ms with the timeout of 1s applied, which matched the values of the model (3.2s, 1.6s, 2.1s, 1.0s).',
 });
@@ -23746,7 +23746,7 @@ Lab.register({
     if (c.api === 'same') {
       row('Browser', M + ' /api/orders', 'Sent', ''); push('The page (https://shop.example) and the API have the same origin. An origin is the combination of scheme, host, and port. There is no restriction between two parts of the same origin, so the browser simply sends the request.', '');
       row('Server', 'Handles the request', '200 OK', 'good'); row('Browser', 'Passes the response to the script', 'Passed', 'good'); push('The server responds, and the script receives the result. No CORS headers are needed.', 'good');
-      sum.push('CORS does not come into play within the same origin. This is why CORS problems do not occur when you put the front end and the API under the same domain (with a reverse proxy) or use the proxy feature of a development server.');
+      sum.push('CORS does not come into play within the same origin. This is why CORS problems do not occur when you put the front end and the API on the same origin (same host and port, with a reverse proxy) or use the proxy feature of a development server.');
       return { events: ev, summary: sum, row: ['None', 'Yes', 'Yes', '-'] };
     }
     push('The origin of the page is https://shop.example, and the origin of the API is https://api.shop.example. The hosts differ, so the origins differ. The browser first decides whether this is a kind of request that it may simply send.', '');
@@ -23811,9 +23811,9 @@ Lab.register({
     { t: 'CSRF, SameSite=Lax', q: 'What if, with CSRF, you set SameSite=Lax on the session cookie?', d: 'The cookie is not attached to a POST sent from another site.', v: { atk: 'csrf', d1: 'none', d2: 'none', d3: 'samesite' } },
   ],
   code: function (c) {
-    if (c.atk === 'sqli') return c.d1 === 'none' ? '// The input is concatenated into a string\nString sql = "SELECT * FROM member WHERE email = \'" + email\n           + "\' AND password = \'" + password + "\'";\nResultSet rs = statement.executeQuery(sql);' : '// Use placeholders (?) and pass the values separately\nString sql = "SELECT * FROM member WHERE email = ? AND password = ?";\nPreparedStatement ps = connection.prepareStatement(sql);\nps.setString(1, email);\nps.setString(2, password);\nResultSet rs = ps.executeQuery();\n\n// JPA, and #{} in MyBatis, work this way internally too';
+    if (c.atk === 'sqli') return c.d1 === 'none' ? '// The input is concatenated into a string\nString sql = "SELECT * FROM member WHERE email = \'" + email\n           + "\' AND password = \'" + password + "\'";\nResultSet rs = statement.executeQuery(sql);' : '// Use placeholders (?) and pass the values separately\nString sql = "SELECT * FROM member WHERE email = ? AND password = ?";\nPreparedStatement ps = connection.prepareStatement(sql);\nps.setString(1, email);\nps.setString(2, password);\nResultSet rs = ps.executeQuery();\n\n// JPA parameter binding, and #{} in MyBatis, work this way internally too';
     if (c.atk === 'xss') return c.d2 === 'escape' ? '\x3c!-- Thymeleaf: th:text escapes automatically -->\n<p th:text="${comment.content}"></p>\n\n\x3c!-- < is output as &lt; and > as &gt; -->' : '\x3c!-- The input is output as HTML as is -->\n<p th:utext="${comment.content}"></p>' + (c.d2 === 'httponly' ? '\n\n# Session cookie setting\nserver.servlet.session.cookie.http-only=true' : '');
-    return c.d3 === 'token' ? '\x3c!-- The server puts an unpredictable token in every form -->\n<form method="post" action="/transfer">\n    <input type="hidden" name="_csrf" value="9f2c...">\n    ...\n</form>\n\n// Spring Security verifies the CSRF token by default\n// If the token is missing or wrong: 403' : '@PostMapping("/transfer")\nvoid transfer(@RequestParam String to, @RequestParam long amount) {\n    // identify the logged-in user by the session cookie and make the transfer\n}' + (c.d3 === 'samesite' ? '\n\n# Session cookie setting\nserver.servlet.session.cookie.same-site=lax' : '\n\n// No CSRF verification: http.csrf(csrf -> csrf.disable())\n\n# Session cookie setting\nserver.servlet.session.cookie.same-site=none');
+    return c.d3 === 'token' ? '\x3c!-- The server puts an unpredictable token in every form -->\n<form method="post" action="/transfer">\n    <input type="hidden" name="_csrf" value="9f2c...">\n    ...\n</form>\n\n// Spring Security verifies the CSRF token by default\n// If the token is missing or wrong: 403' : '@PostMapping("/transfer")\nvoid transfer(@RequestParam String to, @RequestParam long amount) {\n    // identify the logged-in user by the session cookie and make the transfer\n}' + (c.d3 === 'samesite' ? '\n\n# Session cookie setting\nserver.servlet.session.cookie.same-site=lax' : '\n\n// No CSRF verification: http.csrf(csrf -> csrf.disable())\n\n# Session cookie setting\n# SameSite=None must be used together with Secure\nserver.servlet.session.cookie.same-site=none\nserver.servlet.session.cookie.secure=true');
   },
   label: function (c) { return { sqli: 'SQL injection · ' + (c.d1 === 'none' ? 'No defense' : 'Parameterized query'), xss: 'XSS · ' + { none: 'No defense', escape: 'Escaping', httponly: 'HttpOnly only' }[c.d2], csrf: 'CSRF · ' + { none: 'No defense', samesite: 'SameSite=Lax', token: 'CSRF token' }[c.d3] }[c.atk]; },
   columns: ['Attack result', 'Harm', 'Where it was stopped'],
@@ -23860,7 +23860,7 @@ Lab.register({
       push('The victim, still logged in to the bank site, opens a site made by the attacker in another tab.', '');
       box.push(['Form hidden on the attacker\'s site', '<form action="https://bank.example/transfer" method="post">\n  <input name="to" value="attacker account">\n  <input name="amount" value="1000000">\n</form>\n\x3cscript>document.forms[0].submit()\x3c/script>']);
       push('That page hides a form that posts to the transfer URL of the bank, and it is submitted automatically as soon as the page opens. The one that sends the request is not the attacker but the victim\'s browser.', '');
-      if (c.d3 === 'samesite') { box.push(['Request bank.example received', 'POST /transfer\n(no session cookie)\n→ handled as a request that is not logged in → rejected']); push('The session cookie has SameSite=Lax. The browser does not attach this cookie to a POST request that starts from another site. The bank server sees a request that is not logged in and rejects it.', 'good'); res = 'Failed'; harm = 'None'; where = 'SameSite cookie'; sum.push('SameSite=Lax keeps the cookie off a POST sent from another site. Today\'s browsers treat a cookie without SameSite like Lax too (as an exception, the cookie is attached for about 2 minutes right after it is issued), but it is safer to state it explicitly. When SameSite=None is truly needed, such as for a service embedded in a page of another domain, a CSRF token is essential.'); }
+      if (c.d3 === 'samesite') { box.push(['Request bank.example received', 'POST /transfer\n(no session cookie)\n→ handled as a request that is not logged in → rejected']); push('The session cookie has SameSite=Lax. The browser does not attach this cookie to a POST request that starts from another site. The bank server sees a request that is not logged in and rejects it.', 'good'); res = 'Failed'; harm = 'None'; where = 'SameSite cookie'; sum.push('SameSite=Lax keeps the cookie off a POST sent from another site. Chromium-based browsers treat a cookie without SameSite like Lax too (as an exception, the cookie is attached for about 2 minutes right after it is issued), but it is safer to state it explicitly. When SameSite=None is truly needed, such as for a service embedded in a page of another domain, a CSRF token is essential.'); }
       else if (c.d3 === 'token') { box.push(['Request bank.example received', 'POST /transfer\nCookie: session ID (attached automatically)\n_csrf token: none\n→ 403 rejected']); push('The browser attached the session cookie, but the bank server also requires the CSRF token it put in the form. The attacker cannot know the value of that token, so could not put it in the request. The server rejects the request with 403.', 'good'); res = 'Failed'; harm = 'None'; where = 'CSRF token verification'; sum.push('A CSRF token checks whether this request started from a page of our own site. It relies on the fact that the browser attaches cookies automatically but does not attach the token.'); }
       else { box.push(['Request bank.example received', 'POST /transfer\nCookie: session ID (attached automatically by the browser)\nto=attacker account, amount=1000000\n→ judged a normal request → transfer executed']); push('This session cookie is set to be attached even to requests sent from other sites (SameSite=None). The browser automatically attaches the session cookie to a request going to bank.example. To the bank server, it cannot be told apart from a normal transfer request sent by the logged-in user. The transfer is executed.', 'bad'); res = 'Succeeded'; harm = 'Transfer executed from the victim\'s account'; sum.push('CSRF abuses the fact that cookies are attached to requests automatically. Without stealing the cookie value, the attacker makes the victim\'s browser send the request on their behalf.'); }
       if (c.d3 !== 'none') sum.push('An API that sends authentication information in the Authorization header (such as a JWT) instead of in a cookie is hard to target with CSRF, because the browser does not attach the header automatically. That is why CSRF protection is sometimes turned off on such API servers.');
@@ -24194,7 +24194,7 @@ Lab.register({
     { t: 'Removing from the back', q: 'What if you remove the 2s with a for statement with an index, from back to front?', d: 'The elements that shift are on the side that was already visited, so there is no problem.', v: { how: 'indexback', coll: 'array' } },
     { t: 'Iterator.remove()', q: 'What if you remove the 2s with remove() of the Iterator?', d: 'Removing through the iterator is safe.', v: { how: 'iterator', coll: 'array' } },
     { t: 'removeIf()', q: 'What if you remove the 2s with removeIf(), passing the condition x == 2?', d: 'This is the simplest and safest way.', v: { how: 'removeIf', coll: 'array' } },
-    { t: 'Removal in a for statement on a CopyOnWriteArrayList', q: 'What if you change the collection to CopyOnWriteArrayList and remove the 2s with list.remove() inside an enhanced for statement?', d: 'No exception is thrown. The loop iterates over a copy.', v: { how: 'foreach', coll: 'cow' } },
+    { t: 'Removal in a for statement on a CopyOnWriteArrayList', q: 'What if you change the collection to CopyOnWriteArrayList and remove the 2s with list.remove() inside an enhanced for statement?', d: 'No exception is thrown. The loop iterates over the old array from when it was created.', v: { how: 'foreach', coll: 'cow' } },
   ],
   code: function (c) {
     var decl = 'List<Integer> list = new ' + (c.coll === 'array' ? 'ArrayList' : 'CopyOnWriteArrayList') + '<>(List.of(1, 2, 2, 3, 4));\n\n';
@@ -24352,7 +24352,7 @@ Lab.register({
       S.other = 'Does not know about the order'; pushO('Even when the server comes back up, there is no record anywhere that there was a message that had to be sent. The order is in the database, but the payment and inventory services never find out. The order stays stuck.', 'bad');
       okAll = false; sum.push('The order is in the database, but the message was lost. Commit and publish are separate operations, so if one fails between them, the two get out of sync.');
     } else if (c.pub === 'before') {
-      S.db = 'Order inserted (not committed yet)'; pushO('The order was inserted. It is not committed yet.', '');
+      S.db = 'Order inserted (not committed yet)'; pushO('The order was saved. It is not committed yet.', '');
       S.mq = '"Order created" published'; S.other = 'Got the message, processing payment'; pushO('The message was published before the commit. The other services receive the message and start processing.', '');
       S.db = 'Rolled back (no order)'; pushO('Just as it tried to commit, the server died and the transaction was rolled back. The order is not in the database. But the message has already gone out and cannot be taken back. Payment proceeds for an order that does not exist.', 'bad');
       okAll = false; sum.push('The message went out, but there is no order. Swapping the order of the two only changes the direction of the problem and does not solve it.');
@@ -24372,7 +24372,7 @@ Lab.register({
     if (sim.part === 'saga') H.table(v, ['Step', 'Service (has its own database)', 'Action', 'State'], sim.steps.map(function (x, i) { var z = s.st[i]; return { cells: [String(i + 1), x[1], x[2], { v: z, cls: z === 'Failed' ? 'bad' : z.indexOf('Compensated') === 0 ? 'hot' : z === 'Waiting' ? '' : 'good' }] }; }), 'The four steps of order processing');
     else { var ln = H.lanes(v); H.lane(ln, 'Order database', 'orders table: ' + s.db, s.db.indexOf('Rolled back') >= 0 ? 'bad' : s.db === 'None' ? 'none' : 'good'); if (sim.c.pub === 'outbox') H.lane(ln, 'Order database', 'outbox table: ' + s.ob, s.ob === 'None' ? 'none' : 'wait'); H.lane(ln, 'Kafka', s.mq, s.mq === 'None' ? 'none' : 'good'); H.lane(ln, 'Other services', s.other, s.other.indexOf('Does not know') >= 0 ? 'bad' : s.other === 'Waiting' ? 'none' : ''); }
   },
-  // Diagram: Four steps, where each service has its own database. An arrow going forward is the call to the next step, and an arrow going backward is a compensation (an undo).
+  // Diagram: Four steps, where each service has its own database. An arrow going forward is the event that goes to the next step, and an arrow going backward is a compensation (an undo).
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : null;
     P.size(680, 300);
@@ -24424,7 +24424,7 @@ Lab.register({
   ],
   code: function (c) {
     if (c.part === 'cut') return '// The source and the replica cannot communicate with each other\n// The replica can choose one of two things\n//\n// 1) Respond with the value it has  -> it responds, but the value may not be the latest (AP)\n// 2) Refuse to respond              -> it gives no wrong value, but the service is down (CP)';
-    return (c.from === 'replica' ? '// A setting that sends readOnly transactions to the replica and everything else to the source' : '// A setting that sends a read right after a write to the source, even if it is readOnly') + '\n@Transactional\npublic void changeNickname(long id, String name) {     // -> source\n    memberRepository.findById(id).orElseThrow().setNickname(name);\n}\n\n@Transactional(readOnly = true)\npublic Member getMember(long id) {                      // -> ' + (c.from === 'replica' ? 'replica' : 'source (a query right after the write is sent to the source)') + '\n    return memberRepository.findById(id).orElseThrow();\n}';
+    return (c.from === 'replica' ? '// A case where the data sources are set up separately so that readOnly transactions go to the replica and everything else goes to the source' : '// A setting that sends a read right after a write to the source, even if it is readOnly') + '\n@Transactional\npublic void changeNickname(long id, String name) {     // -> source\n    memberRepository.findById(id).orElseThrow().setNickname(name);\n}\n\n@Transactional(readOnly = true)\npublic Member getMember(long id) {                      // -> ' + (c.from === 'replica' ? 'replica' : 'source (a query right after the write is sent to the source)') + '\n    return memberRepository.findById(id).orElseThrow();\n}';
   },
   label: function (c) { return c.part === 'lag' ? 'Replication ' + c.lag + 's · query to ' + (c.from === 'replica' ? 'replica' : 'source') + ' ' + c.when + 's later' : 'Partition · ' + (c.choice === 'ap' ? 'keeps responding' : 'refuses to respond'); },
   columns: ['Query result', 'Is it the latest value', 'Did it respond'],
@@ -24545,7 +24545,7 @@ Lab.register({
     var msgs = rows.map(function (r) { var m = P.dir(P.v(r.cells[0]), ids); m.s = P.v(r.cells[2]); m.cls = P.c(r.cells[2]); return m; });
     var end = P.seq([['u', 'User (browser)', 'wait'], ['w', 'Our service', 'wait'], ['k', 'Kakao auth server', 'plain'], ['a', 'Kakao API server', 'plain']], msgs, { keep: 8 });
     P.size(680, end + 16);
-    P.note('Long text may look cut off, so check the full content in the table on the right.');
+    P.note('All the arrows look alike, but the authorization code and state travel through the address bar of the browser (the redirect), and only the token exchange goes directly between servers. Long text may look cut off, so check the full content and the path in the table on the right.');
   },
   assume: 'The authorization code grant of OAuth 2.0 is transcribed following the flow in the standard document (RFC 6749). Kakao is only an example, and other providers such as Google and Naver have the same flow. The code and token values are fake values for explanation.',
 });
@@ -24574,7 +24574,7 @@ Lab.register({
     function step(dir, what, s, k) { rows.push({ cells: [dir, { v: what, cls: k === 'bad' ? 'bad' : k === 'good' ? 'good' : '' }] }); ev.push({ s: s, k: k, snap: { rows: rows.slice(), key: S.key, lock: S.lock } }); }
     step('Browser → Server', 'ClientHello: TLS versions, cipher suites, key share', 'The browser connects to https://shop.example. After the TCP connection is established, it sends the list of cipher suites it can use and a public value (key share) to be used for the key exchange. This message is not encrypted.', '');
     step('Server → Browser', 'ServerHello: chosen cipher suite, server key share', 'The server picks one cipher suite and sends its own public value for the key exchange. Each side combines the other side\'s public value with its own secret value and computes the same result. Someone who only watched the public values in the middle cannot compute this result.', '');
-    S.key = 'Same symmetric key on both sides'; step('(inside both sides)', 'Key exchange complete: each side computes the same symmetric key', 'Each side derives a symmetric key from this result. The key itself was never sent over the network. The handshake messages from here on are encrypted.', 'good');
+    S.key = 'Same symmetric key on both sides'; S.lock = 'Handshake messages encrypted'; step('(inside both sides)', 'Key exchange complete: each side computes the same symmetric key', 'Each side derives a symmetric key from this result. The key itself was never sent over the network. The handshake messages from here on are encrypted.', 'good');
     step('Server → Browser', 'Certificate (shop.example public key + CA signature)', 'The server sends its certificate. The certificate contains the domain name, the server\'s public key, the validity period, and a signature that a certificate authority (CA) made over this content with its own private key.', '');
     var fail = c.cert !== 'ok';
     if (c.cert === 'self') step('(inside Browser)', 'Validation failed: the signing authority is not trusted', 'The browser follows the signatures in the certificate upward and checks whether they reach an authority on its list of trusted certificate authorities (built into the operating system and the browser). This certificate was signed by the server itself, so no authority vouches for it. Anyone can create a certificate that says "I am shop.example" for themselves, so it cannot be trusted.', 'bad');
@@ -24597,7 +24597,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var last = shown[shown.length - 1], s = last ? last.snap : { rows: [], key: 'None', lock: 'Not yet encrypted' }, ids = { 'Browser': 'b', 'Server': 's' };
     var msgs = s.rows.map(function (r) { var m = P.dir(P.v(r.cells[0]), ids); m.s = P.v(r.cells[1]); m.cls = P.c(r.cells[1]); return m; });
-    var end = P.seq([['b', 'Browser', 'wait'], ['s', 'Server (shop.example)', 'wait']], msgs), enc = s.lock.indexOf('Encrypted with') >= 0;
+    var end = P.seq([['b', 'Browser', 'wait'], ['s', 'Server (shop.example)', 'wait']], msgs), enc = s.lock.indexOf('Encrypted with') >= 0 || s.lock.indexOf('Handshake') === 0;
     P.box('key', 16, end + 14, 318, 48, { cls: s.key === 'None' ? 'ghost' : 'good', title: 'Encryption key', sub: s.key });
     P.box('lock', 346, end + 14, 318, 48, { cls: enc ? 'good' : s.lock.indexOf('Not yet') === 0 ? 'ghost' : 'bad', title: 'Connection state', sub: s.lock });
     P.size(680, end + 78);
@@ -24638,7 +24638,7 @@ Lab.register({
       else { step('Sender → Receiver', 'Datagram 2 " world"', 'It sends the second datagram.', ''); got.push(' world'); ev[ev.length - 1].snap.got = got.slice(); }
       step('Sender → Receiver', 'Datagram 3 "!!!"', 'It sends the third datagram.', ''); got.push('!!!'); ev[ev.length - 1].snap.got = got.slice();
       sum.push('Data that reached the receiver: "' + got.join('') + '".' + (c.loss === 'data' ? ' The middle is missing, but UDP neither reports it nor sends it again.' : ''));
-      sum.push('UDP has no connection, acknowledgment, retransmission, or guaranteed order, and in return it is lightweight and has little delay. It is used where losing a little is acceptable and late arrival is worse (real-time voice and video, games, DNS lookups). If reliability is needed, the application implements it itself (QUIC, the basis of HTTP/3, is an example).');
+      sum.push('UDP has no connection, acknowledgment, retransmission, or guaranteed order, and in return it is lightweight and has little delay. It is used where losing a little is acceptable and late arrival is worse (real-time voice and video, games). A DNS lookup, which ends with one small query, also uses UDP, but it asks again if no answer comes. If reliability is needed, the application implements it itself (QUIC, the basis of HTTP/3, is an example).');
       return { events: ev, summary: sum, row: ['"' + got.join('') + '"', '0', 'None'] };
     }
     if (c.loss === 'syn') { step('Client → (lost)', 'SYN', 'The client sent a connection request (SYN), but it was lost on the way.', 'bad'); re++; step('Client', 'No reply → retransmit after about 1 second', 'There is no reply from the server. The client waits for a set time and then sends the SYN again. If that fails too, it doubles the waiting time each time and tries a few more times. This is why a connection can be established "slowly."', 'hot'); }
@@ -24725,7 +24725,7 @@ Lab.register({
     if (!c.dns || !c.conn) sum.push((!c.dns && !c.conn ? 'On a first request, the DNS lookup, the TCP connection, and the TLS handshake all happen' : !c.dns ? 'On this request, the DNS lookup happens' : 'On this request, the TCP connection and the TLS handshake happen') + ' before the actual request. However fast the server is, these round trips do not go away, so keeping a connection open and reusing it (keep-alive, HTTP/2) has a large effect on how fast the site feels.');
     if (c.what === 'static' && !cdn) sum.push('The web server serves static files directly. The application server handles only the requests whose result has to be produced by running code. Putting a reverse proxy in front lets you handle TLS, static files, load balancing, and hiding the internal servers in one place.');
     if (cdn) sum.push('A CDN keeps copies of static files in many places around the world and responds from a place close to the user. The round trips get shorter, and fewer requests reach the origin server.');
-    if (c.what === 'api') sum.push('In a dynamic request, most of the time the server spends goes to the database query (here, 20ms out of 31ms). This is why, when you look into a performance problem, you start by breaking the request down to see which part takes the time.');
+    if (c.what === 'api') sum.push('In this example, 20ms of the 31ms the server spends goes to the database query. The real share differs from request to request. This is why, when you look into a performance problem, you start by breaking the request down to see which part takes the time.');
     return { events: ev, summary: sum, row: [total + 'ms', (rows.length - skipped) + '', skipped + '', maker] };
   },
   render: function (v, sim, t, H, shown) {
@@ -24785,7 +24785,7 @@ Lab.register({
       step('Browser → Server', 'GET /products/1 + If-None-Match: "v1"', '(conditional request)', when + 's later, the same address is opened again. ' + (c.cc === 'max' ? 'The freshness lifetime of 60s has passed.' : 'no-cache means the browser must check with the server before it uses the response.') + ' The browser does not throw away what it stored. It asks, "What I have is v1. Is it still the same?"', '');
       req2 = 'GET + If-None-Match';
       if (c.chg) { res2 = '200 OK'; body2 = '200KB'; sent += SIZE; shown = 'New content'; cache = 'Body 200KB, ETag "v2"'; step('Server → Browser', '200 OK + 200KB body', 'ETag: "v2"', 'The current ETag on the server is "v2". It differs from the "v1" that the browser sent, so the server sends the whole new body and the new ETag. The browser replaces what it stored.', ''); }
-      else { res2 = '304 Not Modified'; body2 = '0KB'; shown = 'Same content'; step('Server → Browser', '304 Not Modified (no body)', 'ETag: "v1"', 'The current ETag on the server is "v1" too. Nothing has changed, so the server answers with just 304 and no body. The browser uses the body it stored as it is and starts the freshness lifetime again. The 200KB was not sent again.', 'good'); }
+      else { res2 = '304 Not Modified'; body2 = '0KB'; shown = 'Same content'; step('Server → Browser', '304 Not Modified (no body)', 'ETag: "v1"', 'The current ETag on the server is "v1" too. Nothing has changed, so the server answers with just 304 and no body. The browser uses the body it stored as it is.' + (c.cc === 'max' ? ' It also starts the freshness lifetime again.' : '') + ' The 200KB was not sent again.', 'good'); }
       sum.push(c.chg ? 'The content changed, so the new body was received. Thanks to the ETag, the whole body is received only when it has changed.' : 'A 304 response has no body, so almost nothing is transferred. One round trip still takes place, though, and the server has to do some work to find out the current ETag.');
       if (c.cc === 'nocache') sum.push('Despite its name, no-cache does not mean "do not store". It means "store it, but check with the server every time before using it". The directive that prevents storing is no-store.');
     }
@@ -24955,7 +24955,7 @@ Lab.register({
       conn = 'One request waiting for a response is always pending';
       reqs = 1; row('0.0', 'Request (waiting for a response)', 'The server holds the response', 'hot'); push('The browser sends a request. If there is no new notification, the server does not respond and keeps the connection held.', '');
       evT.forEach(function (x) { setLast('Responds with 1 notification at ' + fmt(x) + 's', 'good'); reqs++; row(fmt(x), 'Request again right away (waiting for a response)', 'The server holds the response', 'hot'); push(fmt(x) + 's: When a notification is created, the server immediately responds to the request it was holding. As soon as it receives that, the browser sends another request to wait for the next notification.', 'good'); });
-      setLast('No news until 30s → empty response', ''); empty = 1; delay = 0.05; push('The last request ends with an empty response because there was no news until the time limit. The browser requests again.', '');
+      setLast('Still waiting when the 30s window ends', ''); empty = 0; delay = 0.05; push('The last request is still waiting for news when the 30-second window ends (the 30-second time limit counts from when the request was sent).', '');
       sum.push('Long polling delivers a notification as soon as it is created, yet it uses only ordinary HTTP requests. In exchange, one request per user stays pending on the server, and if notifications are frequent, a new request has to be made every time.');
     }
     if (c.how === 'sse' || c.how === 'ws') {
@@ -24968,7 +24968,7 @@ Lab.register({
         if (c.how === 'sse') { reqs += ups; row('Often', 'Browser → server (POST)', ups + ' separate HTTP requests', 'hot'); push('The ' + ups + ' messages the client sends cannot go over the SSE connection. SSE goes only from the server to the browser. Each time the client sends, it makes an ordinary HTTP request separately.', 'bad'); }
         else { row('Often', 'Browser → server', ups + ' messages (on the same connection)', 'good'); push('The ' + ups + ' messages the client sends also go over the same connection. There is no split into request and response. Either side sends when it needs to.', 'good'); }
       }
-      sum.push(c.how === 'sse' ? 'SSE suits uses where the server announces things on its own (notifications, progress, price quotes). It is ordinary HTTP, so it works well with existing authentication, proxies, and load balancers, and if the connection drops, the browser reconnects by itself.' : 'WebSocket suits uses where both sides send back and forth often (chat, collaborative editing, games). It is a separate protocol, not HTTP, so you have to check the proxy and load balancer settings separately, and you have to handle reconnection and authentication yourself.');
+      sum.push(c.how === 'sse' ? 'SSE suits uses where the server announces things on its own (notifications, progress, price quotes). It is ordinary HTTP, so it works well with cookie authentication, proxies, and load balancers, and if the connection drops, the browser reconnects by itself.' : 'WebSocket suits uses where both sides send back and forth often (chat, collaborative editing, games). It is a separate protocol, not HTTP, so you have to check the proxy and load balancer settings separately, and you have to handle reconnection and authentication yourself.');
       sum.push('A method that keeps connections open maintains as many connections as there are users. With several servers, you have to solve "which server holds this user\'s connection," and you usually add an intermediate channel such as Redis publish/subscribe.');
     }
     return { events: ev, summary: sum, row: [reqs + '', empty + '', delay < 0.1 ? 'Almost 0s' : fmt(delay) + 's', conn] };
@@ -25113,7 +25113,7 @@ Lab.register({
       else {
         push('git rebase main: set aside commits D and E of feature for a moment, and move the starting point of feature to C, the tip of main.', '', 'A───B───C            ← main\n\n (commits set aside: D, E)');
         if (conf) { fix = 'Per commit (up to 2 times)'; push('When it tries to apply D on top of C again, the part where the same line was changed conflicts. The rebase stops. Fix the file and continue with git rebase --continue. If the same place conflicts again at the next commit, E, you have to resolve it one more time.', 'bad', 'A───B───C            ← main\n         \\\n          (conflict while applying D)'); }
-        push('The changes of D and E are applied again on top of C, one after the other. The contents are the same, but the parent is different, so they are completely new commits, D\', E\' (the hashes are different). The original D and E are discarded.', '', 'A───B───C            ← main\n         \\\n          D\'──E\'     ← feature');
+        push('The changes of D and E are applied again on top of C, one after the other. The contents are the same, but the parent is different, so they are completely new commits, D\', E\' (the hashes are different). The original D and E are no longer pointed to by feature (they are not deleted, and remain in the reflog).', '', 'A───B───C            ← main\n         \\\n          D\'──E\'     ← feature');
         if (c.pushed) { warn = 'Force push needed; the history no longer matches that of the people sharing the branch'; push('If you had already pushed feature to the remote, the remote has the old commits D and E, and your branch has D\', E\'. The histories differ, so a normal push is rejected and you have to overwrite by force. If a teammate has pulled that branch, their work no longer matches yours.', 'bad', 'remote feature:  A───B───D───E\nmy feature:      A───B───C───D\'──E\'\n\n→ git push --force-with-lease needed'); }
         shape = 'A single line'; made = 'D\', E\' (replace D, E)';
         push('If you merge on main, feature continues right after main, so it finishes with a fast-forward. The history becomes a single line without a merge commit.', 'good', 'A───B───C───D\'──E\'   ← main, feature');
@@ -25126,7 +25126,7 @@ Lab.register({
       shape = 'A single line (not linked to feature)'; made = 'One squashed commit S';
       push('All the changes made by D and E of feature are squashed into one and put on main as a new commit S. S has only one parent, the tip of main, so the graph has no line linking it to feature.', 'good', (c.main ? 'A───B───C───S        ← main' : 'A───B───S            ← main') + '\n     \\\n      D───E          ← feature (deleted after merging)');
       warn = 'The individual commits of feature are not kept on main';
-      sum.push('squash tidies main into "one feature = one commit". Small commits made along the way (typo fixes, changes after review) do not remain on main. In return, the detailed history is lost, and Git does not know that feature has been merged, so you have to delete the branch.');
+      sum.push('squash tidies main into "one feature = one commit". Small commits made along the way (typo fixes, changes after review) do not remain on main. In return, the detailed history is lost, and Git does not know that feature has been merged (branch -d refuses), so you usually delete the branch separately.');
     }
     if (conf) sum.push('A conflict is not an error of Git. It is a request that says "two people changed the same place in different ways, so a person has to decide". The longer a branch lives and the more you change at once, the bigger the conflict. To prevent it, bring in changes from main often and merge in small pieces.');
     return { events: ev, summary: sum, row: [shape, made, fix, warn] };
@@ -25160,7 +25160,7 @@ Lab.register({
     else if (g.indexOf('chosen by hand') >= 0) P.box('cf', 60, 228, 560, 44, { cls: 'good', title: 'Resolved by choosing by hand', sub: 'Decide on limit = 20 and commit' });
     else if (g.indexOf('must be resolved') >= 0) P.box('cf', 60, 228, 560, 44, { cls: 'bad', title: 'Conflict: the same line was changed in different ways', sub: 'Fix the file, then continue' });
     else if (remote) P.box('cf', 60, 228, 560, 44, { cls: 'bad', title: 'The remote and local histories differ', sub: 'A normal push is rejected. You must overwrite by force' });
-    P.note('One box is one commit, and older commits are on the left. Blue is a commit of main, green is a commit of feature, and yellow is a commit that was newly created this time. A commit with an apostrophe, such as D\', has the same contents but is a different, newly created commit.');
+    P.note('One box is one commit, older commits are on the left, and the arrows show the direction of time (in real Git, a commit points from child to parent). Blue is a commit of main, green is a commit of feature, and yellow is a commit that was newly created this time. A commit with an apostrophe, such as D\', has the same contents but is a different, newly created commit.');
   },
   assume: 'This is an example of a small repository with five commits. It assumes that a conflict occurs in only one place in one file. The behavior of each command follows the explanations in the official Git documentation (git-merge, git-rebase). Teams usually decide on a merge method (merge commit, squash, or rebase) and stick to it. Rather than one being correct, it is a choice of what shape to leave the history in. It was checked by creating a temporary repository with git 2.55 on the PC used to write this lab. merge created a merge commit with two parents and kept the hashes of the existing commits, and when main had no new commits, it was a fast-forward. After rebase, the hashes of D and E changed and the history became a single line without a merge commit; for a branch that was already pushed, a normal push was rejected and a force push was needed. The squash commit had one parent, and git did not recognize that feature had been merged. The conflict markers were also exactly as shown on the screen.',
 });
@@ -25240,7 +25240,7 @@ Lab.register({
   terms: ['Spring Boot auto-configuration', 'Starter', 'Embedded server', '@Configuration and @Bean', 'Component scanning'], ranks: ['boot', 'bean', 'di'],
   controls: [
     { id: 'web', label: 'spring-boot-starter-webmvc dependency', type: 'check', value: true },
-    { id: 'myOm', label: 'You registered your own ObjectMapper bean', type: 'check', value: false, show: function (c) { return c.web; } },
+    { id: 'myOm', label: 'You registered your own JsonMapper bean', type: 'check', value: false, show: function (c) { return c.web; } },
     { id: 'jpa', label: 'spring-boot-starter-data-jpa dependency', type: 'check', value: true },
     { id: 'db', label: 'Database driver', type: 'select', value: 'mysql', options: [['h2', 'H2 (embedded database)'], ['mysql', 'MySQL driver']], show: function (c) { return c.jpa; } },
     { id: 'url', label: 'spring.datasource.url is set', type: 'check', value: true, show: function (c) { return c.jpa; } },
@@ -25251,7 +25251,7 @@ Lab.register({
     { t: 'Leaving out the database URL', q: 'What if you leave out spring.datasource.url?', d: 'The driver is MySQL, but there is no connection URL. Startup fails.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: false, myDs: false } },
     { t: 'With H2, even without a URL', q: 'What if you switch the database driver to H2 (embedded database) and leave out spring.datasource.url?', d: 'When Spring Boot finds an embedded database, it creates an in-memory database for you.', v: { web: true, myOm: false, jpa: true, db: 'h2', url: false, myDs: false } },
     { t: 'Registering your own DataSource', q: 'What if you register your own DataSource bean?', d: 'The auto-configuration backs away, and the one you created is used.', v: { web: true, myOm: false, jpa: true, db: 'mysql', url: true, myDs: true } },
-    { t: 'Registering your own ObjectMapper', q: 'What if you register your own ObjectMapper bean?', d: 'The ObjectMapper that Spring Boot would have created is not registered.', v: { web: true, myOm: true, jpa: true, db: 'mysql', url: true, myDs: false } },
+    { t: 'Registering your own JsonMapper', q: 'What if you register your own JsonMapper bean?', d: 'The JsonMapper that Spring Boot would have created is not registered.', v: { web: true, myOm: true, jpa: true, db: 'mysql', url: true, myDs: false } },
     { t: 'Removing the web starter', q: 'What if you remove the spring-boot-starter-webmvc dependency?', d: 'Neither Tomcat nor DispatcherServlet is created.', v: { web: false, myOm: false, jpa: true, db: 'mysql', url: true, myDs: false } },
   ],
   code: function (c) {
@@ -25260,10 +25260,10 @@ Lab.register({
     if (c.jpa) { dep.push("    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'"); dep.push(c.db === 'h2' ? "    runtimeOnly 'com.h2database:h2'" : "    runtimeOnly 'com.mysql:mysql-connector-j'"); }
     var s = '// build.gradle\ndependencies {\n' + (dep.length ? dep.join('\n') : "    implementation 'org.springframework.boot:spring-boot-starter'") + '\n}\n';
     if (c.jpa && c.url) s += '\n# application.yml\nspring.datasource.url: jdbc:' + (c.db === 'h2' ? 'h2:mem:shop' : 'mysql://localhost:3306/shop') + '\n';
-    if ((c.jpa && c.myDs) || (c.web && c.myOm)) s += '\n@Configuration\nclass MyConfig {\n' + (c.jpa && c.myDs ? '    @Bean DataSource dataSource() { return new HikariDataSource(myConfig()); }\n' : '') + (c.web && c.myOm ? '    @Bean ObjectMapper objectMapper() { return new ObjectMapper().registerModule(new JavaTimeModule()); }\n' : '') + '}\n';
+    if ((c.jpa && c.myDs) || (c.web && c.myOm)) s += '\n@Configuration\nclass MyConfig {\n' + (c.jpa && c.myDs ? '    @Bean DataSource dataSource() { return new HikariDataSource(myConfig()); }\n' : '') + (c.web && c.myOm ? '    @Bean JsonMapper jsonMapper() { return JsonMapper.builder().build(); }\n' : '') + '}\n';
     return s + '\n// An auto-configuration class looks like this inside\n// @ConditionalOnClass(DataSource.class)       only when the class is on the classpath\n// @ConditionalOnMissingBean(DataSource.class) only when you have not registered the bean yourself';
   },
-  label: function (c) { return (c.web ? 'web' + (c.myOm ? '(own ObjectMapper)' : '') : '') + (c.web && c.jpa ? ' + ' : '') + (c.jpa ? 'jpa·' + c.db + (c.url ? '' : '·no URL') + (c.myDs ? '(own DataSource)' : '') : '') || 'No starters'; },
+  label: function (c) { return (c.web ? 'web' + (c.myOm ? '(own JsonMapper)' : '') : '') + (c.web && c.jpa ? ' + ' : '') + (c.jpa ? 'jpa·' + c.db + (c.url ? '' : '·no URL') + (c.myDs ? '(own DataSource)' : '') : '') || 'No starters'; },
   columns: ['Startup result', 'Bean groups registered by auto-configuration', 'Your own beans used instead', 'Configurations skipped (conditions not met)'],
   simulate: function (c) {
     var ev = [], rows = [], sum = [], auto = 0, mine = 0, skip = 0, failed = false;
@@ -25272,8 +25272,8 @@ Lab.register({
     push('The application starts. The @EnableAutoConfiguration inside @SpringBootApplication loads the list of auto-configuration classes that ship with Spring Boot (a little over 100). Your own @Configuration and @Component classes are registered first, and then the conditions of the auto-configurations are evaluated one by one.', '');
     if (c.web) { row('Embedded server', 'Tomcat is on the classpath', 'Embedded Tomcat registered (port 8080)', 'good'); push('Embedded server auto-configuration: The web starter brought in the Tomcat library with it. Tomcat is on the classpath, so Spring Boot registers the bean that starts an embedded Tomcat. That is why the application runs from a single jar, with no separate application server to install.', 'good');
       row('DispatcherServlet', 'Spring MVC is on the classpath', 'DispatcherServlet registered', 'good'); push('Spring MVC auto-configuration: The DispatcherServlet class is present, so Spring Boot registers DispatcherServlet and the default MVC components (message converters, handler mappings, and so on).', 'good');
-      if (c.myOm) { row('Jackson', 'You registered your own ObjectMapper', 'Backs away → your ObjectMapper is used', 'hot'); push('Jackson auto-configuration: It was going to register an ObjectMapper, but it carries the condition "only when there is no ObjectMapper bean". The one you registered yourself already exists, so the auto-configuration backs away. The settings that Spring Boot applied by default (the date format and so on) must now be added to your ObjectMapper by you.', ''); }
-      else { row('Jackson', 'You registered no ObjectMapper', 'ObjectMapper registered', 'good'); push('Jackson auto-configuration: You have not registered an ObjectMapper yourself, so an ObjectMapper with the default settings is registered.', 'good'); }
+      if (c.myOm) { row('Jackson', 'You registered your own JsonMapper', 'Backs away → your JsonMapper is used', 'hot'); push('Jackson auto-configuration: It was going to register a JsonMapper, but it carries the condition "only when there is no JsonMapper bean". The one you registered yourself already exists, so the auto-configuration backs away. The settings that Spring Boot applied by default (the date format and so on) must now be added to your JsonMapper by you.', ''); }
+      else { row('Jackson', 'You registered no JsonMapper', 'JsonMapper registered', 'good'); push('Jackson auto-configuration: You have not registered a JsonMapper yourself, so a JsonMapper with the default settings is registered.', 'good'); }
     } else { row('Embedded server / MVC', 'Tomcat and Spring MVC are not on the classpath', 'Skipped', ''); push('Web auto-configuration: The Tomcat and Spring MVC classes are not on the classpath. The conditions are not met, so all of it is skipped. The application starts without a web server.', ''); }
     if (c.jpa) {
       if (c.myDs) { row('DataSource', 'You registered your own DataSource', 'Backs away → your DataSource is used', 'hot'); push('DataSource auto-configuration: It backs away because of the condition "only when there is no DataSource bean". The DataSource that you registered is used. The spring.datasource.* settings are not applied to this bean automatically.', ''); }
@@ -25285,7 +25285,7 @@ Lab.register({
     } else { row('DataSource / JPA', 'JDBC and Hibernate are not on the classpath', 'Skipped', ''); push('Database auto-configuration: The related classes are not on the classpath, so it is skipped.', ''); }
     if (!failed) { row('The rest (Redis, Kafka, Security, and so on)', 'The library is not on the classpath', 'Skipped', ''); push('The remaining auto-configurations: Their libraries are not on the classpath, so most of them fail their conditions. Many configurations are prepared, but the only ones actually applied are those that match the dependencies you added.', ''); }
     sum.push('Auto-configuration decides on two criteria: whether the library is on the classpath (@ConditionalOnClass), and whether the developer has already registered a bean of the same type (@ConditionalOnMissingBean). The role of a starter is to bring in the set of libraries that are needed all at once, which satisfies the first condition.');
-    sum.push('A bean that you register yourself always wins. Start with the defaults, and register yourself only the parts that you want to change. To see which auto-configurations were applied or left out, and why, run the application with the --debug option, which prints a conditions report.');
+    sum.push('An auto-configuration with such a condition (@ConditionalOnMissingBean) backs away when you register a bean of the same type yourself. Start with the defaults, and register yourself only the parts that you want to change. To see which auto-configurations were applied or left out, and why, run the application with the --debug option, which prints a conditions report.');
     return { events: ev, summary: sum, row: [failed ? 'Failed' : 'Succeeded', auto + '', mine + '', skip + ''] };
   },
   render: function (v, sim, t, H, shown) {
@@ -25293,7 +25293,7 @@ Lab.register({
     if (rows.length) H.table(v, ['Auto-configuration', 'Condition evaluation', 'Result'], rows, 'Evaluation of auto-configuration conditions'); else H.text(v, 'When the application starts, the results of the condition evaluation build up here.');
     H.text(v, 'Green means registered automatically, yellow means the auto-configuration backed away because you registered your own bean, and red means failure.');
   },
-  assume: 'This lab picks only a few representative auto-configurations and simplifies them. The real class names and conditions are more fine-grained (for example, DataSourceAutoConfiguration, JacksonAutoConfiguration, HibernateJpaAutoConfiguration). The meaning of the conditions and the principle that "auto-configuration backs away when you have registered the bean yourself" follow the explanation in the official Spring Boot documentation. The dependency names are those of Spring Boot 4 (up to Spring Boot 3, the web starter was named spring-boot-starter-web). These results were not checked against a running Spring Boot application.',
+  assume: 'This lab picks only a few representative auto-configurations and simplifies them. The real class names and conditions are more fine-grained (for example, DataSourceAutoConfiguration, JacksonAutoConfiguration, HibernateJpaAutoConfiguration). The meaning of the conditions and the principle that "auto-configuration backs away when you have registered the bean yourself" follow the explanation in the official Spring Boot documentation. The dependency names are those of Spring Boot 4 (up to Spring Boot 3, the web starter was named spring-boot-starter-web). These results were not checked against a running Spring Boot application. That the Jackson auto-configuration registers a JsonMapper-type bean with @ConditionalOnMissingBean was verified by opening the class files of spring-boot-jackson 4.1.1 on this PC.',
 });
 
 Lab.register({
@@ -25321,11 +25321,11 @@ Lab.register({
     function push(s, k) { ev.push({ s: s, k: k, snap: { want: want, pods: pods.map(function (p) { return { n: p.n, node: p.node, st: p.st, svc: p.svc }; }) } }); }
     push('This is the normal state. The Deployment says "3 replicas", and 3 Pods are actually running, spread across two of the three nodes (Node 1 and Node 2). The Service divides requests among the three Pods.', '');
     if (c.what === 'kill') {
-      pods[1].st = 'Dead'; pods[1].svc = false; push('The container in shop-b died because it ran out of memory. The Service stops sending requests to this Pod. The actual number of Pods is now 2.', 'bad');
+      pods[1].st = 'Dead'; pods[1].svc = false; push('The shop-b Pod is gone (for example, it was evicted because the node ran short of resources). The Service stops sending requests to this Pod. The actual number of Pods is now 2.', 'bad');
       push('The controller compares the states. Desired: 3, actual: 2. One Pod is missing. No one has to tell it, because this comparison keeps repeating.', '');
-      pods[1] = { n: 'shop-d', node: 'Node 1', st: 'Starting', svc: false }; push('A new Pod, shop-d, is created. The scheduler picks a node with room and places the Pod there, and the kubelet on that node starts the container. The dead Pod is not revived. It is replaced with a new one.', '');
+      pods[1] = { n: 'shop-d', node: 'Node 1', st: 'Starting', svc: false }; push('A new Pod, shop-d, is created. The scheduler picks a node with room and places the Pod there, and the kubelet on that node starts the container. The Pod that disappeared is not revived. It is replaced with a new one.', '');
       pods[1].st = 'Running'; pods[1].svc = true; push('shop-d passed its readiness probe. The Service starts sending requests to it. There are 3 Pods again.', 'good');
-      did = 'Created 1 new Pod'; sum.push('The number of Pods is back to 3 although nobody stepped in. This is self-healing. Treat a Pod as disposable: it can die and be replaced at any time. So do not keep state (files, sessions) inside a Pod, and reach Pods through the fixed name of a Service, not through a Pod\'s IP.');
+      did = 'Created 1 new Pod'; sum.push('The number of Pods is back to 3 although nobody stepped in. This is self-healing. Treat a Pod as disposable: it can die and be replaced at any time. So keep state in external storage (a volume, a DB, Redis), because files and sessions inside a container are lost when a Pod is replaced, and reach Pods through the fixed name of a Service, not through a Pod\'s IP.');
     }
     if (c.what === 'node') {
       pods[1].st = 'Dead'; pods[1].svc = false; pods[2].st = 'Dead'; pods[2].svc = false; push('Node 2 shut down completely. Contact with shop-b and shop-c, which ran on it, is lost. Only shop-a on Node 1 is left.', 'bad');
@@ -25430,7 +25430,7 @@ Lab.register({
   draw: function (P, sim, shown) {
     var c = sim.c, last = shown[shown.length - 1], n = last ? last.snap.n : 0, total = sim.spans[0][2];
     P.size(680, 260);
-    P.region('tr', 16, 16, 648, 228, c.prop ? 'Tracing screen: spans tied together by the same trace ID' : 'The trace ID is not passed along, so the logs have no ID');
+    P.region('tr', 16, 16, 648, 228, c.prop ? 'Tracing screen: spans tied together by the same trace ID' : 'Trace IDs differ per service (or are missing), so logs cannot be linked');
     sim.spans.forEach(function (sp, i) {
       var y = 50 + i * 36, on = i < n, slow = n >= 6 && i === sim.mi && c.slow !== 'none';
       P.text('nm' + i, 28, y + 17, sp[0], { cls: on ? '' : 'mut' });
@@ -25472,7 +25472,7 @@ Lab.register({
     if (RR && (c.q === 'miss' || c.q === 'range')) gaps = [[20, 30]];
     var blocked = gaps.some(function (g) { return ins > g[0] && ins < g[1]; });
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage } }); }
-    push('The coupon table has rows with ids 10, 20, 30, and 40. In the index, there are gaps between the rows, such as (10~20), (20~30), (30~40), and (after 40).', '', 0);
+    push('The coupon table has rows with ids 10, 20, 30, and 40, and also rows with much larger ids. In the index, there are gaps between the rows, such as (10~20), (20~30), (30~40), and (after 40).', '', 0);
     if (c.q === 'hit') push('Transaction A queries the row with id = 20 using FOR UPDATE. The primary key finds exactly one row, so the lock is placed on that row only (a record lock). It is guaranteed that this is the only row that will ever match the condition, so there is no need to lock a gap.', '', 1);
     else if (c.q === 'miss') push('Transaction A queries id = 25 using FOR UPDATE. There is no such row. ' + (RR ? 'Because there is no row to lock, InnoDB locks the gap between 20 and 30, where 25 would go (a gap lock). This is to make sure that what does not exist now still does not exist until my transaction ends.' : 'At READ COMMITTED, the gap is not locked. There is no row to lock either, so no lock is taken at all.'), '', 1);
     else push('Transaction A queries ids 20 through 30 using FOR UPDATE. It locks rows 20 and 30, which match the condition. ' + (RR ? 'It also locks the gap (20~30) between them. A lock on a row together with the lock on the gap before it is called a next-key lock.' : 'At READ COMMITTED, the gap is not locked, only the rows that were found.'), '', 1);
@@ -25481,7 +25481,7 @@ Lab.register({
     else push('The place where id ' + ins + ' goes is not locked. The INSERT of B runs right away.' + (!RR && ins > 20 && ins < 30 && c.q !== 'hit' ? ' If A runs the query with the same condition again, the row with id 25, which did not exist at first, appears (a phantom read).' : ''), !RR && ins === 25 && c.q !== 'hit' ? 'bad' : 'good', 3);
     if (blocked) push('When A commits, its locks are released, and only then does the INSERT of B that was waiting run.', '', 4);
     var phantom = !RR && c.q !== 'hit' && ins === 25;
-    if (RR && gaps.length) sum.push('At REPEATABLE READ, InnoDB locks the gap to stop new rows from slipping into the range (phantoms). As a cost, INSERTs of different rows can end up blocking each other.');
+    if (RR && gaps.length) sum.push('At REPEATABLE READ, InnoDB locks the gap to stop new rows from slipping into the range (phantoms). As a cost, an INSERT of a value that the query did not match can also be blocked if it falls inside a locked gap.');
     if (c.q === 'miss' && RR) sum.push('This often causes trouble in an "insert if it does not exist" pattern. If two transactions each query a row that does not exist with FOR UPDATE, both get a gap lock on the same gap (gap locks do not block each other). If both then try to INSERT, each is blocked by the gap lock of the other, and a deadlock occurs.');
     if (c.q === 'hit') sum.push('When a unique index finds exactly one existing row, only a record lock is placed. To keep the range of locks narrow, it is important that the condition uses an index precisely. If it cannot use an index, a much wider range is locked.');
     if (!RR) sum.push('At READ COMMITTED, queries do not use gap locks, so INSERTs are blocked less often and deadlocks also decrease. In return, phantom reads are allowed.' + (phantom ? ' In this run, a new row actually slipped in.' : ''));
@@ -25561,7 +25561,7 @@ Lab.register({
         sum.push('The speed of a commit is set by the speed of writing the log to disk. Reflecting the changes in the data file is done later, in batches.');
       } else {
         S.mem = '(lost)'; push('The server went down right after the commit reply, before the changes were written to the data file. The 500 in memory is lost, and the data file still holds 1000. The user has already received "success".', 'bad');
-        S.mem = '(restarting)'; push('The server starts again. Recovery reads the redo log on disk from the beginning.', '');
+        S.mem = '(restarting)'; push('The server starts again. Recovery reads the redo log on disk from the last checkpoint.', '');
         S.mem = '500'; S.file = '500'; usedR = 'Redo log'; fin = '500'; prop = 'Durability';
         push('The redo log has "account 1 set to 500" and the record that it committed. This change is applied again. The balance is recovered as 500. No committed data was lost.', 'good');
         sum.push('A committed change is recovered from the redo log even if it was not yet written to the data file. The redo log supports "what is committed remains even after a failure" (durability).');
@@ -25576,7 +25576,7 @@ Lab.register({
     H.table(v, ['Location', 'Content'], [
       { cells: ['Memory (buffer pool)', { v: s.mem, cls: s.mem.indexOf('500') === 0 ? 'hot' : s.mem.indexOf('lost') >= 0 ? 'bad' : '' }] },
       { cells: ['Disk: data file', { v: s.file, cls: s.file === '500' ? 'good' : '' }] },
-      { cells: ['Disk: redo log', { v: s.redo, cls: s.redo.indexOf('committed note (') >= 0 ? 'good' : '' }] },
+      { cells: ['Redo log', { v: s.redo, cls: s.redo.indexOf('committed note (') >= 0 ? 'good' : '' }] },
       { cells: ['Undo log', s.undo] },
     ], 'Where the balance of account 1 is stored');
   },
@@ -25587,7 +25587,7 @@ Lab.register({
     P.box('tx', 16, 16, 648, 36, { cls: s.tx.indexOf('Commit') >= 0 ? 'good' : s.tx.indexOf('Rolled back') >= 0 ? 'bad' : 'plain', title: 'Transaction state', right: s.tx });
     P.region('ram', 16, 66, 648, 84, 'Memory: lost when the server goes down');
     P.box('mem', 28, 100, 624, 38, { cls: gone ? 'bad' : s.mem.indexOf('500') === 0 ? 'hot' : 'plain', title: 'Balance loaded in the buffer pool', right: s.mem });
-    P.region('disk', 16, 164, 648, 142, 'Disk: kept even when the server goes down');
+    P.region('disk', 16, 164, 648, 142, 'Log and data files (what is written to disk is kept even when the server goes down)');
     P.box('redo', 28, 198, 624, 30, { cls: redoOk ? 'good' : 'plain', title: 'Redo log', right: s.redo });
     P.box('undo', 28, 232, 624, 30, { cls: 'plain', title: 'Undo log', right: s.undo });
     P.box('file', 28, 266, 624, 30, { cls: s.file === '500' ? 'good' : 'plain', title: 'Data file', right: s.file });
@@ -25799,7 +25799,7 @@ Lab.register({
   ],
   DATA: { jit: [5765, 1694, 1369, 1651, 1484, 1368, 1535, 1403, 1373, 1436, 1609, 1725], int: [28000, 31416, 28925, 25281, 36973, 28376, 28920, 29169, 26738, 31654, 28077, 32120] },
   code: function (c) {
-    return 'static long work(int n) {                  // the method that was measured\n    long s = 0;\n    for (int i = 0; i < n; i++) s += (i * 31L) ^ (s >>> 3);\n    return s;\n}\n\n' + (c.mode === 'warm' ? '// right after startup, before requests arrive\nfor (int k = 0; k < 2000; k++) work(1000);   // call it in advance so that JIT compilation is already done\nreadiness.set(true);                        // only then report "ready"\n\n' : '') + 'for (int batch = 1; batch <= 12; batch++) {\n    long t = System.nanoTime();\n    for (int k = 0; k < 2000; k++) work(1000);          // one batch = 2,000 calls\n    print((System.nanoTime() - t) / 1000 + " microseconds");\n}\n\n// Run: java ' + (c.mode === 'int' ? '-Xint ' : '') + 'JitWarmup.java';
+    return 'static long work(int n) {                  // the method that was measured\n    long s = 0;\n    for (int i = 0; i < n; i++) s += (i * 31L) ^ (s >>> 3);\n    return s;\n}\n\n' + (c.mode === 'warm' ? '// right after startup, before requests arrive\nfor (int k = 0; k < 2000; k++) work(1000);   // call it in advance so that JIT compilation gets under way\nreadiness.set(true);                        // only then report "ready"\n\n' : '') + 'for (int batch = 1; batch <= 12; batch++) {\n    long t = System.nanoTime();\n    for (int k = 0; k < 2000; k++) work(1000);          // one batch = 2,000 calls\n    print((System.nanoTime() - t) / 1000 + " microseconds");\n}\n\n// Run: java ' + (c.mode === 'int' ? '-Xint ' : '') + 'JitWarmup.java';
   },
   label: function (c) { return { jit: 'Default settings', int: 'JIT off (-Xint)', warm: 'Warmed up in advance' }[c.mode]; },
   columns: ['First batch', 'Last batch', 'Slowest batch ÷ fastest batch'],
@@ -25810,11 +25810,11 @@ Lab.register({
     if (c.mode === 'warm') push('Before requests arrive, work() was called 2,000 times in advance. During these calls the JVM judges this method to be "code that runs often" and compiles it to machine code. Users do not experience this slow period.', 'good', 0);
     D.forEach(function (us, i) {
       var s = 'Batch #' + (i + 1) + ': ' + f(us) + '.';
-      if (c.mode === 'jit' && i === 0) s += ' At first the code is run by the interpreter. The JVM counts how many times the method has been called and how many times the loop has run, and when the counts pass a threshold, it compiles this method to machine code. This batch includes both the interpreted execution and the compilation time.';
+      if (c.mode === 'jit' && i === 0) s += ' At first the code is run by the interpreter. The JVM counts how many times the method has been called and how many times the loop has run, and when the counts pass a threshold, it compiles this method to machine code. This batch ran as interpreted execution until the compiled code was ready (the compilation itself runs on another thread).';
       if (c.mode === 'jit' && i === 1) s += ' The code has started to run as compiled machine code. It is 3 to 4 times faster than the first batch. Using the information it gathered while running (such as which branches are taken often), the JVM optimizes the code once more, this time more heavily.';
       if (c.mode === 'int' && i === 0) s += ' The -Xint option turned off the JIT compiler. The interpreter interprets every call.';
       if (c.mode === 'int' && i === 3) s += ' No matter how many times the code repeats, it does not get faster.';
-      if (c.mode === 'warm' && i === 0) s += ' From the first batch that the user sees, the code already runs as compiled code.';
+      if (c.mode === 'warm' && i === 0) s += ' From the first batch that the user sees, the code runs with compilation already under way.';
       push(s, c.mode === 'int' ? 'bad' : c.mode === 'jit' && i === 0 ? 'bad' : 'good', i + 1);
     });
     var mx = Math.max.apply(null, D), mn = Math.min.apply(null, D);
@@ -25829,7 +25829,7 @@ Lab.register({
     H.title(v, 'Time taken per batch (one batch = 2,000 calls, bars are scaled to 37ms)'); var ln = H.lanes(v);
     D.forEach(function (us, i) { if (i < n) H.lane(ln, '#' + (i + 1), (Math.round(us / 100) / 10) + 'ms', us > 20000 ? 'bad' : us > 3000 ? 'hot' : 'good', Math.max(0.01, us / mx)); else H.lane(ln, '#' + (i + 1), '', 'none'); });
   },
-  assume: 'All the numbers are values measured by actually running the code above on JDK 21 on this PC (the first of two runs with the default settings, and one run with -Xint). The "Warmed up in advance" setting treats the first batch of the default-settings measurement as the warmup and shows the values after it. The numbers vary with the CPU and with when the code is run, but the shape is the same: the first period is slow, and the code gets faster after that. A JVM with the default settings applies a light compilation (C1) and a strongly optimizing compilation (C2) in stages.',
+  assume: 'The numbers are values measured by actually running the code above on JDK 21 on this PC (the first of two runs with the default settings, and one run with -Xint). The values of "Warmed up in advance" are the default-settings measurement with the first batch removed and the rest moved up, and the last value (1.4ms) is not a measurement but a similar value added at the end. The numbers vary with the CPU and with when the code is run, but the shape is the same: the first period is slow, and the code gets faster after that. A JVM with the default settings applies a light compilation (C1) and a strongly optimizing compilation (C2) in stages.',
 });
 
 Lab.register({
@@ -25870,7 +25870,7 @@ Lab.register({
     var changed = c.add ? (st ? 'none' : '3 methods') : '-', made = c.add ? (st ? '1 class' : 'none') : '-';
     if (st) sum.push('The Strategy pattern hides "the part that changes" (the handling of each payment method) behind an interface so that the implementation can be swapped. A new payment method is added as a new class, and the existing code is closed to modification (the Open-Closed Principle). Because each payment method has its own class, you can test each one separately, and it is also easy to swap in a fake implementation.');
     else sum.push('The if-else version is the simplest and the easiest to read if there are two or three payment methods and no more will be added. The problem is that every time a payment method is added, the same branches are copied into several methods, a single method keeps getting longer, and the risk of touching one payment method while modifying another grows.');
-    sum.push('Dependency injection in Spring is itself an application of the Strategy pattern. A dependency is injected as an interface type, and the actual implementation changes with the configuration (the real payment provider in production, a fake implementation in tests).');
+    sum.push('Dependency injection in Spring is often used to swap strategies. A dependency is injected as an interface type, and the actual implementation changes with the configuration (the real payment provider in production, a fake implementation in tests).');
     return { events: ev, summary: sum, st: st, row: [changed, made, cmp + '', st ? 'Separately for each payment method' : 'All in one method'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -25900,7 +25900,7 @@ Lab.register({
   ],
   code: function (c) {
     var r = [];
-    if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order, ' + c.ratio + '        # ' + c.ratio + '% to the new service' : ''));
+    if (+c.stage >= 1) r.push('        - id: order\n          uri: http://order-service\n          predicates:\n            - Path=/orders/**' + (c.stage === '1' && c.ratio !== '100' ? '\n            - Weight=order, ' + c.ratio + '        # ' + c.ratio + '% to the new service\n        - id: order-legacy\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/orders/**\n            - Weight=order, ' + (100 - c.ratio) + '        # the rest goes to the existing server' : ''));
     if (+c.stage >= 2) r.push('        - id: payment\n          uri: http://payment-service\n          predicates:\n            - Path=/payments/**');
     if (+c.stage >= 3) r.push('        - id: member\n          uri: http://member-service\n          predicates:\n            - Path=/members/**');
     if (+c.stage < 3) r.push('        - id: legacy                   # everything else goes to the existing server\n          uri: http://legacy-monolith\n          predicates:\n            - Path=/**');
@@ -25916,7 +25916,7 @@ Lab.register({
     var orderSeen = 0;
     reqs.forEach(function (r, i) {
       var noAuth = c.auth && (i === 2 || i === 6), to, why;
-      if (noAuth) { rej++; rows.push({ cells: [r[0], '(no token)', { v: 'Rejected by the gateway with 401', cls: 'bad' }] }); push(r[0] + ': There is no token. The gateway does not pass the request on, and responds with 401 Unauthorized right away. The services behind it do not each need their own token validation code.', 'bad'); return; }
+      if (noAuth) { rej++; rows.push({ cells: [r[0], '(no token)', { v: 'Rejected by the gateway with 401', cls: 'bad' }] }); push(r[0] + ': There is no token. The gateway does not pass the request on, and responds with 401 Unauthorized right away. The services behind it need less duplicated code of their own for rejecting requests that have no token.', 'bad'); return; }
       var moved = (r[1] === 'orders' && st >= 1) || (r[1] === 'payments' && st >= 2) || (r[1] === 'members' && st >= 3);
       if (moved && r[1] === 'orders' && st === 1 && ratio < 100) { orderSeen++; moved = ratio === 50 ? orderSeen % 2 === 0 : orderSeen === 5; why = moved ? 'Based on the ratio setting, this request goes to the new service.' : 'Based on the ratio setting, this request still goes to the existing server.'; }
       to = moved ? { orders: 'Order service (new)', payments: 'Payment service (new)', members: 'Member service (new)' }[r[1]] : 'Existing server (monolith)';
@@ -25925,7 +25925,7 @@ Lab.register({
       push(r[0] + ': The path starts with /' + r[1] + '. ' + (why || (moved ? 'This path is configured to be passed to the new service.' : 'It is not a path with its own rule, so it goes to the existing server.')) + ' → ' + to, moved ? 'good' : '');
     });
     if (st === 0) sum.push('Nothing has been moved yet. Putting the gateway in place first is the first step of the migration. After that, you can hand routes over one at a time just by changing the configuration.');
-    if (st === 1 || st === 2) sum.push('You do not move every feature at once; you split them off one route at a time. If something goes wrong with a new service, you can change the configuration back and send the requests to the existing server again. Because the new system gradually wraps around the existing one and replaces it, this approach is called the strangler fig pattern.');
+    if (st === 1 || st === 2) sum.push('You do not move every feature at once; you split them off one route at a time. If something goes wrong with a new service, you can change the configuration back and send the requests to the existing server again (the data the new service has written has to be handled separately). Because the new system gradually wraps around the existing one and replaces it, this approach is called the strangler fig pattern.');
     if (st === 1 && ratio < 100) sum.push('Even when you hand a route over, you first send only a share of the requests and verify the new service with real requests. During this time two servers work with the same data, so how to split the database is the hardest problem.');
     if (st === 3) sum.push('The number of requests going to the existing server is now 0. You can shut the existing server down.');
     if (c.auth) sum.push('The gateway handles cross-cutting concerns such as authentication, logging, and rate limiting at the entrance. In return, everything stops if the gateway goes down, so run several instances of it, and do not put business logic in it.');
@@ -25944,7 +25944,7 @@ Lab.register({
     P.box('cn', 236, end + 14, 208, 34, { cls: 'good', title: 'To new service', right: s.neu + '' });
     P.box('cr', 456, end + 14, 208, 34, { cls: s.rej ? 'bad' : 'ghost', title: 'Rejected at entrance', right: s.rej + '' });
     P.size(680, end + 64);
-    P.note('Every arrow passes through the line of the gateway.');
+    P.note('The arrows are drawn across the line of the gateway, but in reality the gateway receives the request and sends it on again to the server behind it.');
   },
   assume: 'This is a fixed example of 10 requests. The ratio setting is assigned in a simple way so that the difference shows within the 10 requests (for 50%, order requests alternate; for 10%, only the fifth order request goes to the new service). The configuration example follows the path and weight predicates of Spring Cloud Gateway. Separating the data and synchronizing the two systems, which are the hardest parts of moving a feature, are not covered.',
 });
@@ -26022,7 +26022,7 @@ Lab.register({
     sum.push('A servlet is a Java class that receives one HTTP request and produces a response, and a servlet container (Tomcat) is the program that creates, calls, and destroys that servlet. The container accepts connections, turns the HTTP text into objects, and assigns threads, so the developer writes only the code that "reads from the request and writes to the response".');
     if (st.made && c.n > 1 && st.svc > 1) sum.push('The number of requests was ' + c.n + ', but there was only one servlet object. What is created anew for each request is the request and response objects. Several threads use the one servlet object at the same time, so you must not store per-request values in the fields of the servlet (the same reason as for singleton beans in Spring).');
     if (!c.startup && st.made) sum.push(plain ? 'When the servlet is not created in advance, object creation and init() happen while the first request is being handled, so only the first request is slow. If the setup work is heavy, create the servlet in advance at server startup.' : 'In Spring Boot, the DispatcherServlet object itself is created when the server starts, but init() happens while the first request is being handled, so only the first request is slow. When you set spring.mvc.servlet.load-on-startup, the servlet is initialized in advance at server startup.');
-    if (!plain && st.svc > c.n) sum.push('In Spring Boot, the 404 and 405 responses are produced by dispatching the request once more, to the /error path. That is why the number of requests was ' + c.n + ' but service() of DispatcherServlet was called ' + st.svc + ' times. This is also why filters and interceptors appear to run twice for an error response.');
+    if (!plain && st.svc > c.n) sum.push('In Spring Boot, the 404 and 405 responses are produced by dispatching the request once more, to the /error path. That is why the number of requests was ' + c.n + ' but service() of DispatcherServlet was called ' + st.svc + ' times. This is also why interceptors appear to run twice for an error response (by default, filters are not applied to the /error re-dispatch).');
     if (!plain) sum.push('In Spring MVC, a controller is not a servlet. There is one servlet, DispatcherServlet, and every request comes into this servlet and is then routed to a controller. A controller can take HttpServletRequest as a parameter for the same reason: there is a servlet underneath. The detailed flow after that is in the "Spring MVC request flow" lab.');
     if (c.req === 'none' && plain) sum.push('404 means "nothing is mapped to that path", and 405 means "the path is right, but that HTTP method is not accepted".');
     return { events: ev, summary: sum, row: [status, whenMade, st.made + '', st.init + '', st.svc + '', maker] };
@@ -26074,7 +26074,7 @@ Lab.register({
     { t: 'The same error, in separate processes', q: 'What if you run 3 processes (1 thread each) and task 2 calls System.exit?', d: 'Only that process dies, and the others are unharmed.', v: { how: 'proc', fail: 'kill' } },
   ],
   code: function (c) {
-    var body = 'static int counter = 0;                 // a variable in the memory of the process\n\nstatic void work(int id) throws Exception {\n    Thread.sleep(300);                  // a task that takes 0.3 seconds\n' + (c.fail === 'ex' ? '    if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '    if (id == 2) System.exit(3);        // ends the whole process\n' : '') + '    counter++;\n}\n\n';
+    var body = 'static int counter = 0;                 // a variable in the memory of the process\n\nstatic void work(int id) {\n    try { Thread.sleep(300); } catch (InterruptedException e) { return; }   // a task that takes 0.3 seconds\n' + (c.fail === 'ex' ? '    if (id == 2) throw new IllegalStateException();\n' : c.fail === 'kill' ? '    if (id == 2) System.exit(3);        // ends the whole process\n' : '') + '    counter++;\n}\n\n';
     if (c.how === 'single') return body + '// one thread (main), one task after another\nfor (int i = 1; i <= 3; i++) work(i);';
     if (c.how === 'multi') return body + '// 3 threads in the same process\nfor (int i = 1; i <= 3; i++) {\n    int id = i;\n    new Thread(() -> work(id)).start();\n}';
     return body + '// 3 processes: the same program is run separately each time\nfor (int i = 1; i <= 3; i++) {\n    new ProcessBuilder("java", "Worker", String.valueOf(i)).start();\n}';
@@ -26136,7 +26136,7 @@ Lab.register({
     procs.forEach(function (p, i) {
       var x = n === 1 ? 16 : 16 + i * 222, w = n === 1 ? 648 : 204, tw = n === 1 ? 196 : w - 24, k = p.th.length;
       P.region('p' + i, x, 16, w, 268, p.p + (p.alive ? '' : ' (terminated)'));
-      P.box('m' + i, x + 12, 52, w - 24, 44, { cls: p.alive ? 'good' : 'ghost', title: n === 1 ? 'Memory of this process (heap)' : 'Memory', right: p.alive ? 'counter = ' + p.mem : 'gone' });
+      P.box('m' + i, x + 12, 52, w - 24, 44, { cls: p.alive ? 'good' : 'ghost', title: n === 1 ? 'Memory of this process' : 'Memory', right: p.alive ? 'counter = ' + p.mem : 'gone' });
       p.th.forEach(function (th, j) {
         var tx = n === 1 ? (k === 1 ? 242 : 28 + j * 214) : x + 12, id = 't' + i + '_' + j, st = th.st;
         P.box(id, tx, 160, tw, 60, { cls: st.indexOf('finished') >= 0 || st === 'All tasks finished' ? 'good' : st.indexOf('Terminated') >= 0 ? 'bad' : st === 'Waiting to start' ? 'plain' : 'hot', title: th.name || 'Thread ' + th.id, sub: [st, 'Has its own stack'] });
@@ -26190,11 +26190,11 @@ Lab.register({
     function push(s, k, stage) { ev.push({ s: s, k: k, snap: { stage: stage, out: out || '' } }); }
     push(I ? 'Payable is an interface. It defines only the contract "there must be a method named pay()", and the class that implements it decides how to pay.' : 'Payment is an abstract class. Its abstract method pay() has no body, and it has fields, a constructor, and regular methods just like an ordinary class.', '', 1);
     var W = c.what;
-    if (W === 'new') { out = 'Compile-time error: ' + T + ' is abstract; cannot be instantiated'; push('The code tries to create an object directly with new ' + T + '(). ' + T + ' has a method with no body, so if an object were created as it is, there would be no code to run when pay() is called. The compiler rejects this.', 'bad', 2); sum.push('An interface or an abstract class cannot be used by itself to create an object. It becomes an object only through a class that fills in the missing parts.'); }
-    if (W === 'impl') { push('The Card class ' + (I ? 'implements ' : 'extends ') + T + '. It fills in the body of pay(), which was empty.', '', 2); out = 'Card.pay' + (I ? '' : ' (the inherited amount = 100 is available)'); push('A Card object is assigned to a variable of type ' + T + ', and pay() is called. The type of the variable is ' + T + ', but the method that runs is pay() of Card. The calling code does not need to know the concrete class.', 'good', 3); sum.push('When you separate the contract (the type) from the implementation (the class), you can swap in a different implementation without changing the code that uses it. Dependency injection in Spring and the Strategy pattern both rely on this structure.'); }
+    if (W === 'new') { out = 'Compile-time error: ' + T + ' is abstract; cannot be instantiated'; push('The code tries to create an object directly with new ' + T + '(). ' + T + ' is ' + (I ? 'an interface' : 'an abstract class') + ', so it cannot be created directly with new. It has pay() with no body, so if an object were created, there would be no code to run when it is called. The compiler rejects this.', 'bad', 2); sum.push('An interface or an abstract class cannot be used by itself to create an object. It becomes an object only through an implementation that fills in the missing parts (a class, an anonymous class, or a lambda).'); }
+    if (W === 'impl') { push('The Card class ' + (I ? 'implements ' : 'extends ') + T + '. It fills in the body of pay(), which was empty.', '', 2); out = 'Card.pay' + (I ? '' : ' (the inherited amount = 100 is available)'); push('A variable of type ' + T + ' is made to refer to a Card object, and pay() is called. The type of the variable is ' + T + ', but the method that runs is pay() of Card. The calling code does not need to know the concrete class.', 'good', 3); sum.push('When you separate the contract (the type) from the implementation (the class), you can swap in a different implementation without changing the code that uses it. Dependency injection in Spring and the Strategy pattern both rely on this structure.'); }
     if (W === 'missing') { out = 'Compile-time error: Card is not abstract and does not override abstract method pay() in ' + T; push('Card says that it ' + (I ? 'implements ' : 'extends ') + T + ' but does not fill in pay(). A method required by the contract is missing, so the compiler rejects the class.', 'bad', 2); sum.push('An abstract method is "a blank that the implementing class must fill in". If a class does not fill it in, that class must also be abstract, and then you cannot create an object of that class either.'); }
     if (W === 'multi') {
-      if (I) { push('Card implements two interfaces, Payable and Refundable, at once. An interface has only a contract and no state, so nothing conflicts when several of them are combined.', '', 2); out = 'Compiled successfully. A Card is both a Payable and a Refundable'; push('The code compiles. A Card object can be assigned to a variable of type Payable and also to a variable of type Refundable.', 'good', 3); }
+      if (I) { push('Card implements two interfaces, Payable and Refundable, at once. An interface has no state, so combining several of them causes no field conflict (if the same default method appears in more than one, you must decide it yourself).', '', 2); out = 'Compiled successfully. A Card is both a Payable and a Refundable'; push('The code compiles. A Card object can be assigned to a variable of type Payable and also to a variable of type Refundable.', 'good', 3); }
       else { out = "Compile-time error: '{' expected (only one class can follow extends)"; push('Card tries to extend two abstract classes, Payment and Logger, at once. In Java, a class can extend only one class. If both superclasses had a field or a method implementation with the same name, there would be no way to decide which one to inherit.', 'bad', 2); }
       sum.push('A class can extend only one class (extends), but it can implement several interfaces (implements). To give a class several abilities of the form "can do something", use interfaces.');
     }
@@ -26255,10 +26255,10 @@ Lab.register({
     row('Original message', 'Order 100 won'); push('The message to send is "Order 100 won".', '');
     if (T === 'hash') {
       row('SHA-256 hash', SHA1); push('Put into a hash function, the message gives a value of a fixed length. No key is used. If you put in the same message again, anyone, at any time, gets exactly the same value.', '');
-      if (A === 'ok') { row('Recovering the original message from the hash', 'Impossible (there is no calculation that reverses it)', 'hot'); res = 'Same input → same hash'; push('There is no way to calculate "Order 100 won" backwards from this value. A hash goes in one direction only. That is why it is used to store things such as passwords, which do not need to be known in their original form.', 'good'); }
+      if (A === 'ok') { row('Recovering the original message from the hash', 'Impossible (there is no calculation that reverses it)', 'hot'); res = 'Same input → same hash'; push('There is no calculation that reverses "Order 100 won" from this value by a formula (however, if you hash candidates and compare, a short input can be found). A hash goes in one direction only. That is why it is used to store things such as passwords, which do not need to be known in their original form, but for passwords you use a dedicated salted hash.', 'good'); }
       if (A === 'tamper') { row('Hash of "Order 900 won"', SHA2, 'bad'); res = 'The hash becomes completely different'; push('Changing just one character of the message (1 → 9) gives a completely different hash. If you know the hash of the original, you can tell at once that the content was changed. But a hash alone cannot stop anyone from making the change. An attacker can also calculate a new hash for the changed content.', 'bad'); }
       if (A === 'wrong') { row('Key', 'None', 'hot'); res = 'No key, so anyone can calculate it'; push('A hash has no key. Anyone can calculate the same value from the same input. That is why the hash of a common password can be found with a table calculated in advance, and why a hash cannot guarantee that the content is genuine. Mixing in a key gives you an HMAC.', ''); }
-      sum.push('Hash: it cannot be reversed, it has no key, and the same input always gives the same value. Use it to compare whether contents are the same, or to store a value while hiding the original.');
+      sum.push('Hash: it cannot be reversed, it has no key, and the same input always gives the same value. Use it to compare whether contents are the same, or to store a value without keeping the original as it is.');
     }
     if (T === 'sym') {
       row('Key', 'The sender and the receiver hold the same single key'); row('Encrypted value (AES)', AES); push('The message is locked with one key. Looking only at the encrypted value, you cannot tell the content.', '');
@@ -26283,16 +26283,16 @@ Lab.register({
     }
     if (T === 'sign') {
       row('Key', 'The signer\'s private key + the public key that anyone has'); row('Signature made with the private key (RSA-SHA256)', SIG); push('The hash of the message is signed with the private key. The message and the signature are sent together. The content is not hidden.', '');
-      if (A === 'ok') { row('Verify with the public key', 'Pass → signed by the owner of the private key', 'good'); res = 'Verification succeeded'; push('The receiver verifies the signature with the public key. If it passes, it means "the very owner who holds the private key signed it, and the content has not changed". The side that verifies does not need to know any secret.', 'good'); }
+      if (A === 'ok') { row('Verify with the public key', 'Pass → signed with the matching private key', 'good'); res = 'Verification succeeded'; push('The receiver verifies the signature with the public key. If it passes, it means "it was signed with the private key that pairs with this public key, and the content has not changed" (a certificate vouches for whose public key it is). The side that verifies does not need to know any secret.', 'good'); }
       if (A === 'tamper') { row('The content is changed to "Order 900 won"', 'Verification failed', 'bad'); res = 'Verification failed (tampering detected)'; push('If the content changes, the same signature does not pass verification.', 'bad'); }
       if (A === 'wrong') { row('Signed with someone else\'s private key', 'Verification failed', 'bad'); res = 'Verification failed (cannot be forged)'; push('The attacker signed with their own private key and sent it. Verifying with the true owner\'s public key fails. Even though the public key is known to the whole world, the signature cannot be imitated.', 'bad'); }
       sum.push('Digital signature: sign with the private key and verify with the public key. Unlike HMAC, the side that verifies does not need to hold a secret key, so it is used when the issuer and the verifier are different (certificates, and RS256 of JWTs that several services verify).');
     }
-    var back = { hash: 'Impossible', sym: 'Possible with the same key', asym: 'Possible with the private key', hmac: 'Not applicable (does not hide the content)', sign: 'Not applicable (does not hide the content)' }[T], key = { hash: 'None', sym: 'One shared key', asym: 'Lock with the public key, open with the private key', hmac: 'One shared key', sign: 'Sign with the private key, verify with the public key' }[T], use = { hash: 'Storing passwords, comparing content', sym: 'HTTPS body, data encryption', asym: 'Agreeing on a key securely', hmac: 'JWT (HS256), signing API requests', sign: 'Certificates, JWT (RS256)' }[T];
+    var back = { hash: 'Impossible', sym: 'Possible with the same key', asym: 'Possible with the private key', hmac: 'Not applicable (does not hide the content)', sign: 'Not applicable (does not hide the content)' }[T], key = { hash: 'None', sym: 'One shared key', asym: 'Lock with the public key, open with the private key', hmac: 'One shared key', sign: 'Sign with the private key, verify with the public key' }[T], use = { hash: 'Storing passwords (dedicated hash), comparing content', sym: 'HTTPS body, data encryption', asym: 'Agreeing on a key securely', hmac: 'JWT (HS256), signing API requests', sign: 'Certificates, JWT (RS256)' }[T];
     return { events: ev, summary: sum, row: [res, back, key, use] };
   },
   render: function (v, sim, t, H, shown) {
-    H.table(v, ['Tool', 'Hides the content?', 'Can it be reversed?', 'Key'], [['Hash', 'Hides', 'Impossible', 'None'], ['Symmetric-key cryptography', 'Hides', 'Possible', 'One shared key'], ['Public-key cryptography', 'Hides', 'Possible', 'Public key / private key'], ['HMAC', 'Does not hide', '-', 'One shared key'], ['Digital signature', 'Does not hide', '-', 'Private key / public key']].map(function (r, i) { var on = ['hash', 'sym', 'asym', 'hmac', 'sign'][i] === sim.c.tool; return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2], r[3]] }; }), 'Comparison of the five tools');
+    H.table(v, ['Tool', 'Hides the content?', 'Can it be reversed?', 'Key'], [['Hash', 'Does not hide (but cannot be reversed)', 'Impossible', 'None'], ['Symmetric-key cryptography', 'Hides', 'Possible', 'One shared key'], ['Public-key cryptography', 'Hides', 'Possible', 'Public key / private key'], ['HMAC', 'Does not hide', '-', 'One shared key'], ['Digital signature', 'Does not hide', '-', 'Private key / public key']].map(function (r, i) { var on = ['hash', 'sym', 'asym', 'hmac', 'sign'][i] === sim.c.tool; return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2], r[3]] }; }), 'Comparison of the five tools');
   },
   // Diagram: connects, from top to bottom, what the original text becomes after passing through the tool and the key.
   draw: function (P, sim, shown) {
@@ -26339,7 +26339,7 @@ Lab.register({
     function push(s, k) { ev.push({ s: s, k: k, snap: JSON.parse(JSON.stringify(S)) }); }
     push('Account A has 5,000 won, and account B has 1,000 won. The total is 6,000 won. 1,000 won is transferred from A to B.', '');
     if (!auto) { S.tx = 'In progress'; push('START TRANSACTION: This tells the DB to treat the changes from now on as one group. The changes are not made permanent until the group ends.', ''); }
-    if (auto) { S.A = 4000; push('Withdrawal: A is changed to 4,000 won. There is no transaction, so this statement is made permanent (committed) as soon as it runs. It cannot be undone.', ''); }
+    if (auto) { S.A = 4000; push('Withdrawal: A is changed to 4,000 won. There is no transaction grouping several statements, so this single statement is made permanent (committed) as soon as it finishes. It cannot be undone.', ''); }
     else { S.pA = 4000; push('Withdrawal: A is changed to 4,000 won. The change is not permanent yet. A shows 4,000 won only inside this transaction, and the value that is permanent in the DB is still 5,000 won.', ''); }
     var midSum = auto ? 5000 : 6000;
     if (c.peek) { S.seen = 'Seen by another user: A=' + (auto ? 4000 : 5000) + ', B=1000, total ' + midSum; push('At this moment, another user queries the two accounts. ' + (auto ? 'The withdrawal is already permanent and the deposit has not happened yet, so the total appears as 5,000 won. A moment in which 1,000 won is nowhere has been exposed to the outside.' : 'Uncommitted changes are not visible to other users. The values from before the transfer are seen as they were, with a total of 6,000 won.'), auto ? 'bad' : 'good'); }
@@ -26355,7 +26355,7 @@ Lab.register({
     if (auto && c.fail !== 'none') sum.push('Several statements must be "all or nothing", but only some of them were applied. A transaction is the mechanism that guarantees this (atomicity).');
     if (!auto && c.fail !== 'none') sum.push('With the statements grouped in a transaction, changes that are not committed do not remain, whatever happens partway through. On an error, the transaction is rolled back, and if the server crashed, the DB undoes the changes as it recovers.');
     if (c.peek) sum.push(auto ? 'Without a transaction, the intermediate state is visible to other users as it is.' : 'Uncommitted changes are not visible to other transactions (isolation). How strictly they are hidden is set by the isolation level, which is covered in the "Isolation levels" lab.');
-    sum.push('The four properties of a transaction (ACID): all or nothing (atomicity), the data stays in a state that follows the rules (consistency), changes in progress are not visible to each other (isolation), and what is committed remains (durability). The @Transactional of Spring sends START TRANSACTION at the start of the method, COMMIT when it ends normally, and ROLLBACK on an exception, on your behalf.');
+    sum.push('The four properties of a transaction (ACID): all or nothing (atomicity), the data stays in a state that follows the rules (consistency), changes in progress are not visible to each other (isolation), and what is committed remains (durability). The @Transactional of Spring sends START TRANSACTION at the start of the method, COMMIT when it ends normally, and ROLLBACK on a runtime exception (on a checked exception, COMMIT by default), on your behalf.');
     return { events: ev, summary: sum, row: [S.A + ' won', S.B + ' won', total + ' won' + (total !== 6000 ? ' (1,000 won missing)' : ''), c.peek ? midSum + ' won' : 'Not queried'] };
   },
   render: function (v, sim, t, H, shown) {
@@ -26376,7 +26376,7 @@ Lab.register({
     P.text('txs', 444, 170, 'State: ' + (s.tx || '-'), { cls: s.tx.indexOf('Rolled back') >= 0 ? 'bad' : s.tx.indexOf('Committed') >= 0 ? 'good' : 'mut' });
     if (s.tx === 'Committed') P.arrow('cm', 'tx:l', 'db:r', { cls: 'good', label: 'commit' });
     P.box('seen', 16, 232, 648, 40, { cls: !s.seen ? 'ghost' : s.seen.indexOf('5000') >= 0 && s.seen.indexOf('total 5000') >= 0 ? 'bad' : 'good', title: 'Values that another user saw partway through', right: s.seen ? s.seen.replace('Seen by another user: ', '') : 'Not queried' });
-    P.note('With a transaction, changes first accumulate only on the right, and at the moment of the commit they move to the left all at once. Without one, each statement is applied to the left immediately, so stopping partway through leaves a half-changed state.');
+    P.note('With a transaction, the right side shows changes that only this transaction can see, and at the moment of the commit they become visible to everyone. Without one, each statement is applied for everyone immediately, so stopping partway through leaves a half-changed state.');
   },
   assume: 'The final balances and the results of the query partway through were confirmed for all 12 combinations by running them on a real SQL engine (SQLite) with two connections. "The server crashes" was reproduced by closing the connection without committing. That uncommitted values are not visible to the query partway through is the behavior under the default settings of most DBs, and at the lowest isolation level they can be visible.',
 });
@@ -26428,7 +26428,7 @@ Lab.register({
     K.hdr.forEach(function (h) { S.res.push(['Header', h]); }); S.res.push(['Empty line', '']); if (K.rbody) S.res.push(['Body', K.rbody]);
     var why = { get: 'The server finds the requested order and returns it in the body.', create: 'A new order has been created. The Location header tells you the address of the new order. The server uses 201 instead of 200 to tell you that something new was created.', delete: 'The delete succeeded and there is nothing to return. That is why the response is 204, which has no body.', bad: 'The required value quantity is missing. The request itself does not follow the rules, so the response is 400. The server did not even start the work.', noauth: 'The server cannot tell who sent the request. The response is 401, which means "authenticate first".', forbid: 'The server has confirmed who you are, but you do not have permission to view this order. The response is 403.', missing: 'The form of the address is correct, but there is no order with that number. The response is 404.', moved: 'This address has been moved permanently to /orders. The browser automatically requests again at the address in the Location header.', error: 'There was nothing wrong with the request, but the server code threw an exception that it did not handle. The response is 500. The details of the internal error are not sent out as they are in the body.' }[c.sc];
     push(why, cls === '2' || cls === '3' ? 'good' : 'bad', 'res');
-    sum.push('The first digit of the status code alone tells you how to respond. With 4xx, sending the same request again does not help, and the request has to be fixed. 5xx is a problem on the server side, so you can try again after a short while. Monitoring also counts 4xx and 5xx separately.');
+    sum.push('The first digit of the status code alone tells you how to respond. With 4xx, the request usually has to be fixed (a few, such as 408 and 429, can succeed if you send the same request again after a short while). 5xx is a problem on the server side, so you can try again after a short while. Monitoring also counts 4xx and 5xx separately.');
     if (c.sc === 'noauth' || c.sc === 'forbid') sum.push('401 means "I do not know who you are" (authentication), and 403 means "I know who you are, but it is not allowed" (authorization). Despite its name, 401 Unauthorized means that authentication failed.');
     if (c.sc === 'error' || c.sc === 'bad') sum.push('Avoid answering every failure with 200 and writing the error in the body. Browsers, proxies, and monitoring tools that act on the status code will mistake it for a success.');
     sum.push('An HTTP message has four parts: the start line, the headers, an empty line, and the body. The start line of a request holds the method and the path, and the start line of a response holds the status code.');
@@ -26462,7 +26462,7 @@ Lab.register({
 Lab.register({
   id: 'cookie', nav: 'Cookies', cat: 'Authentication', mode: 'step',
   title: 'Showing a name tag, every time, to a server that cannot remember you',
-  intro: 'An HTTP server does not remember the requests that came before. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site.',
+  intro: 'HTTP does not link one request to the next. The server cannot tell whether an earlier request came from the same browser. So when a login succeeds, the server sends a small value (a cookie) in the response, and the browser stores it and attaches it automatically to every request that goes to the same site.',
   terms: ['Cookie', 'HTTP as a stateless protocol', 'HttpOnly, Secure, and SameSite', 'Session'], ranks: ['auth', 'http'],
   controls: [
     { id: 'give', label: 'The login response sets a cookie', type: 'check', value: true },
@@ -26517,7 +26517,7 @@ Lab.register({
     S.rows.push(['GET /shop/cart', R.shop ? 'Cookie: sid=abc123' : '(none)', say(R.shop)]);
     push('This is the request for shop.example/shop/cart. ' + (R.shop ? 'This path falls under Path=' + c.path + ', so the cookie is attached.' : 'No cookie is stored.'), R.shop ? 'good' : 'bad');
     S.rows.push(['GET other.example/ (another site)', '(none)', 'The cookie of shop.example is not sent']);
-    push('This is a request going to another site, other.example. The cookie that shop.example gave is not attached. A cookie is attached only to requests going to the site that sent it.', '');
+    push('This is a request going to another site, other.example. The cookie that shop.example gave is not attached. A cookie is attached only to requests going to the host that sent it, shop.example (the Domain attribute can widen this).', '');
     S.rows.push(['JavaScript on the page: document.cookie', R.js ? '"sid=abc123" is read' : '(not readable)', R.js ? 'The script can take the value' : R.alive ? 'Not visible to scripts because of HttpOnly' : 'No cookie']);
     push('JavaScript on the shop.example/shop/cart page reads document.cookie. ' + (R.js ? 'There is no HttpOnly, so the value is read as it is. If a malicious script gets into the page (XSS), it can steal this value and take over the login state.' : R.alive ? 'A cookie with HttpOnly is not visible to scripts. It is still attached to requests automatically.' : 'No cookie is stored.'), R.js ? 'bad' : R.alive ? 'good' : '');
     if (R.alive && c.path !== '/') sum.push('Narrowing the Path means the cookie is not attached to requests outside that path. A login cookie is usually left at Path=/.');
@@ -26543,7 +26543,7 @@ Lab.register({
     var end = P.seq([['b', 'Browser', 'wait'], ['s', 'shop.example server', 'wait'], ['o', 'other.example']], msgs, { keep: 7 });
     P.box('jar', 16, end + 14, 648, 46, { cls: s.jar.length ? 'good' : 'ghost', title: 'Cookies of shop.example that the browser is storing', sub: s.jar[0] || 'None' });
     P.size(680, end + 76);
-    P.note('Green arrows are requests that went with the cookie attached, and red arrows are requests that went without a cookie, so the server does not know who sent them.');
+    P.note('Green arrows are requests that went with the cookie attached, and red arrows are requests that went without a cookie, so the server does not know who sent them. On the document.cookie line at the bottom, green means it was not readable (safe) and red means it was readable (dangerous).');
   },
   assume: 'The paths that a cookie is attached to according to Path, the fact that an HttpOnly cookie is not visible in document.cookie, the disappearance of a cookie after its Max-Age has passed, and the fact that a cookie is not sent to an address on a different host are the same as the results checked with a real browser and a test server. That a session cookie is deleted when the browser is closed follows the standard behavior, and it was not checked by running it. A browser with the "restore previous tabs" feature turned on may bring session cookies back. The Secure, SameSite, and Domain attributes are not covered in this lab.',
 });
@@ -26612,7 +26612,7 @@ Lab.register({
         push('Check #' + (i + 1) + ' (slots left: ' + left + '): the middle value is ' + st.cmp + (hit ? ' → Found.' : st.cmp < tg ? ' → It is smaller than the value you look for (' + tg + '). Discard this slot and everything to its left.' : ' → It is larger than the value you look for (' + tg + '). Discard this slot and everything to its right.') + (!hit && lastOne ? ' No slots are left, so the value is not in the data.' : ''), hit ? 'good' : lastOne ? 'bad' : '', { seen: seenB.slice(), cur: st.at[0], lo: hit ? st.lo : st.cmp < tg ? st.at[0] + 1 : st.lo, hi: hit ? st.hi : st.cmp < tg ? st.hi : st.at[0] - 1, done: hit || lastOne, found: hit });
       });
     } else {
-      push('The same 27 values are stored in a B-tree. The 9 leaf nodes at the bottom hold three sorted values each, and the nodes above hold only keys that tell you which way to go down. Reading one node is one disk read.', '', {});
+      push('The same 27 values are stored in a B-tree. The 9 leaf nodes at the bottom hold three sorted values each, and the nodes above hold only keys that tell you which way to go down. When one node is read, it takes one disk read if the node is not already in memory.', '', {});
       var path = [];
       T.steps.forEach(function (st, i) {
         path.push(st);
@@ -26636,7 +26636,7 @@ Lab.register({
       H.counters(v, [[s.how === 'binary' ? (s.found ? '-' : String(Math.max(0, s.hi - s.lo + 1))) : String(27 - s.seen.length), s.how === 'binary' ? 'Slots still candidates' : 'Slots not yet checked']]);
     } else {
       var p = s.path;
-      H.counters(v, [[String(p.length), 'Nodes read (disk reads)'], [String(13 - p.length), 'Nodes not read']]);
+      H.counters(v, [[String(p.length), 'Nodes read (disk read if not cached)'], [String(13 - p.length), 'Nodes not read']]);
     }
     if (s.done) { var w = sim.worst; H.table(v, ['Method', 'Worst case with ' + sim.big + ' rows', 'How it grows'], [['One by one from the start', sim.big + ' checks', 'O(n): in proportion to the data'], ['Binary search', w.binary + ' checks', 'O(log n): halved each time'], ['B-tree (3 children per node)', w.b3 + ' levels', 'O(log n): cut to 1/3 at each level'], ['B-tree (500 children per node)', w.b500 + ' levels', 'O(log n): cut to 1/500 at each level']].map(function (r, i) { var on = (s.how === 'scan' && i === 0) || (s.how === 'binary' && i === 1) || (s.how === 'btree' && i >= 2); return { cells: [{ v: r[0], cls: on ? 'hot' : '' }, r[1], r[2]] }; }), 'As the data grows'); }
   },
@@ -26656,7 +26656,7 @@ Lab.register({
     }
     var p = s.path, br = p.length > 1 ? p[1].branch : -1, lf = p.length > 2 ? p[2].leaf : -1;
     P.size(680, 278);
-    P.region('tree', 16, 16, 648, 246, 'B-tree: reading one node is one disk read');
+    P.region('tree', 16, 16, 648, 246, 'B-tree: reading a node means a disk read if not in memory');
     P.box('root', 290, 46, 100, 28, { cls: p.length ? 'hot' + (p.length === 1 ? ' now' : '') : 'plain', sub: '100 | 190', center: true });
     for (var i = 0; i < 3; i++) {
       P.box('br' + i, 70 + i * 220, 112, 100, 28, { cls: i === br ? 'hot' + (p.length === 2 ? ' now' : '') : 'plain', sub: a[i * 9 + 3] + ' | ' + a[i * 9 + 6], center: true });
@@ -26666,7 +26666,7 @@ Lab.register({
       P.box('lf' + j, 20 + j * 71.5, 184, 67, 58, { cls: j === lf ? (s.found ? 'good now' : 'bad now') : 'plain', sub: a.slice(j * 3, j * 3 + 3).map(String), center: true });
       P.arrow('bl' + j, 'br' + Math.floor(j / 3) + ':b:' + (0.25 + (j % 3) * 0.25), 'lf' + j + ':t', { cls: j === lf ? 'hot' : 'mut' });
     }
-    P.note('Yellow nodes are the nodes that were read, and the other nodes were skipped without being read. The numbers in the upper nodes are keys that tell you which way to go down, and the actual values are in the leaf nodes at the bottom.');
+    P.note('Yellow nodes are the nodes that were read, and the other nodes were skipped without being read. The numbers in the upper nodes are keys that tell you which way to go down, and the actual values are in the leaf nodes at the bottom (this shape, with values only in the leaves, is called a B+ tree).');
   },
   assume: 'The search steps and counts for 27 rows are the result of this page actually running the algorithms. The counts for large numbers of rows are the maximum number of steps, calculated from "how many branches the search splits into at a time". The B-tree on the screen has the shape in which the values are only in the leaf nodes (a B+tree), and the index of MySQL InnoDB has this structure. How many values fit in one node of a real index depends on the size of the key, and 500 is just an example value. The root and internal nodes are usually already in memory, so the number of real disk reads is smaller.',
 });
@@ -26704,7 +26704,7 @@ Lab.register({
     var i;
     if (direct) {
       for (i = 1; i <= n; i++) {
-        if (down) { resp = save + timeout; S.orders.push(['Order ' + i, f(resp), 'Failed (500)', 'The email server did not respond']); push('Order ' + i + ': After saving, the order server calls the email server but gets no response. It waits 3s until a timeout occurs, the exception propagates up, and the order request itself fails. Because of the email, a side feature, the order could not be accepted.', 'bad'); }
+        if (down) { resp = save + timeout; S.orders.push(['Order ' + i, f(resp), 'Failed (500)', 'The email server did not respond']); push('Order ' + i + ': After saving, the order server calls the email server but gets no response. It waits 3s until a timeout occurs, the exception propagates up, and the order request itself fails. Because of the email, a side feature, the order request ended in a failure response (an order that was already saved may remain).', 'bad'); }
         else { resp = save + work; S.sent++; okCount++; S.mail = 'Email for order ' + i + ' sent'; S.orders.push(['Order ' + i, f(resp), 'Success', 'Sent the email before responding']); push('Order ' + i + ': After saving (0.05s), the order server calls the email server and waits until it finishes (' + f(work) + '). The user gets a response only after ' + f(resp) + '.', work >= 1 ? 'bad' : ''); }
       }
     } else {
@@ -26713,7 +26713,7 @@ Lab.register({
       if (down) { push('The email server is down, so nothing takes messages out of the queue. They stay in the queue as they are (' + n + (n === 1 ? ' message' : ' messages') + '). All the orders were already answered as successful.', ''); S.mail = 'Recovered'; push('The email server has recovered. It starts taking the messages that piled up in the queue, from the front.', ''); }
       for (i = 1; i <= n; i++) { S.q.shift(); S.sent++; S.mail = 'Email for order ' + i + ' sent'; S.orders[i - 1] = ['Order ' + i, f(resp), 'Success', 'Email sent (after the response)']; push('The email server takes the "Order ' + i + '" message from the queue and sends the email (' + f(work) + '). It handles them one at a time, at its own pace.', ''); }
     }
-    if (direct && down) sum.push('With a direct call, a failure in the service being called spreads to the caller. When the email server went down, orders could not be accepted either.');
+    if (direct && down) sum.push('With a direct call, a failure in the service being called spreads to the caller. When the email server went down, order requests failed too.');
     if (direct && !down) sum.push('With a direct call, the other side\'s processing time is added to your response time as it is. If email gets slow, orders get slow too. In return, when the response arrives, you can be sure the email is already sent.');
     if (!direct) sum.push('With a queue in between, the order server is responsible only for putting the message in. Even if the email server is slow or down, the response time and the success of the order stay the same. The queue works as a buffer between the two.');
     if (!direct) sum.push('There is a cost too. When you get the order response, the email may not have gone out yet (eventual consistency, where the states match after some time). Also, a message can be delivered twice or fail partway through processing, so the receiving side must be built so that receiving the same message twice causes no problem. This continues in the "Retries and idempotency" and "Kafka partitions and consumers" labs.');
@@ -26733,7 +26733,7 @@ Lab.register({
     if (direct) P.arrow('call', 'os:r', 'ms:l', { cls: dead ? 'bad' : s.orders.length ? 'hot' : 'mut', label: dead ? 'No response → the order fails too' : 'Direct call, waits until done' });
     else {
       P.region('qu', 240, 16, 200, 190, 'Message queue');
-      s.q.forEach(function (x, j) { P.box('m_' + x, 252, 50 + j * 30, 176, 26, { cls: 'wait', sub: x + ' email', center: true }); });
+      s.q.forEach(function (x, j) { P.box('m_' + x, 252, 50 + j * 30, 176, 26, { cls: 'wait', sub: x + ' email request', center: true }); });
       if (!s.q.length) P.text('qe', 340, 116, 'Empty', { cls: 'mut', anchor: 'middle' });
       P.arrow('in', 'os:r', 'qu:l', { cls: 'good', label: 'Put in' }); P.arrow('out', 'qu:r', 'ms:l', { cls: dead ? 'bad dash' : 'mut', label: dead ? 'Nothing takes them out' : 'Taken out' });
     }
@@ -26763,7 +26763,7 @@ Lab.register({
   ],
   code: function (c) {
     if (c.pipe === 'manual') return '# The developer types this directly on their own PC\n./gradlew build -x test      # skips the tests because of a rush\nscp build/libs/app.jar prod-server:/app/\nssh prod-server "systemctl restart app"\n\n# No record is left of who uploaded what code, or when';
-    return '# .github/workflows/ci.yml (GitHub Actions example)\non: [pull_request, push]\njobs:\n  build:\n    runs-on: ubuntu-latest             # starts in a clean environment every time\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-java@v4\n        with: { distribution: temurin, java-version: 21 }\n      - run: ./gradlew build           # compile + test. If it fails, the change cannot be merged\n' + (c.pipe === 'cicd' ? '      - run: docker build -t shop/app:${{ github.sha }} .\n      - run: docker push shop/app:${{ github.sha }}\n  deploy:\n    needs: build                       # runs only if build succeeds\n    if: github.ref == \'refs/heads/main\'\n    steps:\n      - run: kubectl set image deployment/app app=shop/app:${{ github.sha }}\n      - run: kubectl rollout status deployment/app || kubectl rollout undo deployment/app' : '\n# A person picks an artifact that passed and deploys it by hand');
+    return '# .github/workflows/ci.yml (GitHub Actions example)\non: [pull_request, push]\njobs:\n  build:\n    runs-on: ubuntu-latest             # starts in a clean environment every time\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-java@v4\n        with: { distribution: temurin, java-version: 21 }\n      - run: ./gradlew build           # compile + test. If it fails, it is marked failed (a required check also blocks merging)\n' + (c.pipe === 'cicd' ? '      - run: docker build -t shop/app:${{ github.sha }} .\n      - run: docker push shop/app:${{ github.sha }}\n  deploy:\n    needs: build                       # runs only if build succeeds\n    if: github.ref == \'refs/heads/main\'\n    steps:\n      - run: kubectl set image deployment/app app=shop/app:${{ github.sha }}\n      - run: kubectl rollout status deployment/app || kubectl rollout undo deployment/app' : '\n# A person picks an artifact that passed and deploys it by hand');
   },
   label: function (c) { return { manual: 'By hand', ci: 'CI', cicd: 'CI/CD' }[c.pipe] + ' · ' + { none: 'No problem', compile: 'Compile error', test: 'Bug that tests catch', env: 'Works only on my PC', runtime: 'Fails only in production' }[c.bug]; },
   columns: ['Where the problem was found', 'Impact on production users', 'What people did'],
@@ -26795,7 +26795,7 @@ Lab.register({
       hands.push('Push code');
       push('Push code', 'Done', 'Person', 'The developer pushes the change to the repository and opens a pull request. This is the signal that starts the pipeline automatically.', '');
       push('Setup', 'Done', 'Automatic', 'The code is downloaded into a clean environment with nothing installed. Files that exist only on the developer\'s PC are not here.', '');
-      if (R.stop === 'build') push('Build', 'Failed', 'Automatic', 'The build fails with a compile error. The pull request is marked as failed and cannot be merged.', 'bad');
+      if (R.stop === 'build') push('Build', 'Failed', 'Automatic', 'The build fails with a compile error. The pull request is marked as failed (and merging is blocked if this check is set as required).', 'bad');
       else {
         push('Build', 'Succeeded', 'Automatic', 'Compilation succeeds.', '');
         if (R.stop === 'test') push('Test', 'Failed', 'Automatic', 'All the tests run every time, with none left out. ' + (b === 'env' ? 'While the test starts the application, it fails because it cannot find a file that existed only on the developer\'s PC. "It works on my PC" gets exposed here.' : 'The test for the broken feature fails.') + ' The merge is blocked, and this code never gets anywhere near production.', 'bad');
@@ -26841,7 +26841,7 @@ Lab.register({
       if (i) P.arrow('ar' + i, 'sg' + (i - 1) + (i % 5 ? ':r' : ':b'), 'sg' + i + (i % 5 ? ':l' : ':t'), { cls: bad ? 'bad' : '' });
     });
     if (!n) P.text('hint', 340, 90, 'Click Run to go through the steps one at a time', { cls: 'mut', anchor: 'middle' });
-    P.note('Green is a step done automatically by a machine, blue is a step done by a person, red is a step that failed or caused an outage, and the dotted box is a skipped step. The further left a red step is, the earlier the problem was found.');
+    P.note('Green is a step done automatically by a machine, blue is a step done by a person (or a resulting state), red is a step that failed or caused an outage, and the dotted box is a skipped step. The further left a red step is, the earlier the problem was found.');
   },
   assume: 'This is a model made to explain the concept, and it is not a result checked by running real CI/CD tools. In "By hand", skipping the tests assumes a common accident; if you run the tests when working by hand, you can catch the same problem. The automatic rollback when the health check fails is the behavior you get when the pipeline and the deployment tool are configured that way. The workflow in the code is an example to show the structure; steps that real use needs, such as authentication and caching, are left out.',
 });
@@ -26849,7 +26849,7 @@ Lab.register({
 Lab.register({
   id: 'eqhash', nav: 'equals and hashCode', cat: 'Java language', mode: 'step',
   title: 'Why can HashMap not find the key when you override only equals?',
-  intro: 'To treat two objects with the same contents as equal, you override equals. But before HashMap and HashSet call equals, they first use hashCode to decide which bucket to look in. So if you override only one of equals and hashCode, a collection cannot find an object that you meant to be equal.',
+  intro: 'To treat two objects with the same contents as equal, you override equals. But before HashMap and HashSet call equals, they first use hashCode to decide which bucket to look in. So if you override only one of equals and hashCode, HashMap and HashSet cannot find an object that you meant to be equal.',
   terms: ['equals and hashCode contract', 'Identity and equality', 'Hash table and HashMap', 'Hash collision', 'record'],
   controls: [
     { id: 'how', label: 'Methods that the Order class overrides', type: 'select', value: 'eq', options: [['none', 'Overrides nothing'], ['eq', 'Overrides only equals'], ['hash', 'Overrides only hashCode'], ['both', 'Overrides both equals and hashCode'], ['const', 'Overrides equals + hashCode always returns 42'], ['record', 'Declared as a record (both generated automatically)']] },
@@ -26901,7 +26901,7 @@ Lab.register({
       push('The key a in that bucket is compared with b using equals. ' + (f.eq ? 'The result is true, so the two are treated as the same key and the value is returned.' : (f.eqOver ? 'The id values differ, so the result is false.' : 'equals is not overridden, so the result is false.') + ' Even in the same bucket, the two are treated as different keys, and null is returned.'), found ? 'good' : same ? 'bad' : '');
     } else {
       st.got = 'null';
-      push('map.get(b): First, b.hashCode() decides which bucket to look in. The hashCode is different from that of a, so the bucket that holds a is not examined. equals is never even called, and null is returned.' + (f.eq ? ' The value cannot be retrieved even though the two objects are equal according to equals.' : ''), f.eq ? 'bad' : '');
+      push('map.get(b): First, b.hashCode() decides which bucket to look in. The hashCode is different from that of a, so the lookup usually goes to a different bucket, and even in the same bucket, a key whose hash value is different never reaches equals. equals is never even called, and null is returned.' + (f.eq ? ' The value cannot be retrieved even though the two objects are equal according to equals.' : ''), f.eq ? 'bad' : '');
     }
     st.set = found ? '1' : '2';
     push('set.add(a), set.add(b): HashSet uses a HashMap internally, so it decides in the same order. ' + (found ? 'b is treated as the same element as a, which is already in the set, so b is not added. The size is 1.' : 'b is treated as a different element from a, so both are added. The size is 2.' + (same ? ' Objects with the same contents are now in the set as duplicates.' : '')), found ? 'good' : same ? 'bad' : '');
@@ -27220,7 +27220,7 @@ Lab.register({
       nmod: ['The sign of the remainder follows the number on the left (the dividend). So if you write the test for an odd number as n % 2 == 1, it is false for negative odd numbers. Write n % 2 != 0.'],
       zero: ['Dividing an integer by 0 throws an ArithmeticException. If the divisor can be 0, check it before dividing.', 'The floating-point calculation 7 / 0.0 gives Infinity without an exception. Integers and floating-point numbers follow different rules.'],
       over: ['An int holds only values from about -2.1 billion to 2.1 billion. When the range is exceeded, the value wraps around to the opposite end without an exception or a warning, so it is hard to notice.', 'Use long for calculations that can produce large numbers (amounts of money, times in milliseconds, products of counts). If you want to learn of the overflow through an exception at the moment it happens, use Math.addExact.'],
-      late: ['The type is determined when the calculation is done, not when the value is stored in a variable. 7 / 2 is a calculation between two int values, so it has already become 3, and storing it in a double variable only makes it 3.0.', 'The same thing happens when you compute an average and write double avg = sum / count;. Convert one side to double before dividing, as in (double) sum / count.'],
+      late: ['The type of an expression is determined by the types of the values in it, not by the variable you store the result in. 7 / 2 is a calculation between two int values, so it has already become 3, and storing it in a double variable only makes it 3.0.', 'The same thing happens when you compute an average and write double avg = sum / count;. Convert one side to double before dividing, as in (double) sum / count.'],
       mix: ['In a calculation with mixed types, the narrower type is automatically converted to the wider type before the calculation (long is wider than int, and double is wider than long). The conversion goes in the direction of a wider range of values, so you do not have to write anything for it.'],
       longlate: ['Storing the result in a long variable is not enough to prevent overflow. big + 1 is a calculation between two int values, so it has already overflowed, and that result is merely widened to long.', 'The calculation itself must be done in long.'],
       longmix: ['If even one long is involved in a calculation, the calculation is done in long. Add L after the number, as in 1L, or convert one side first, as in (long) big.'],
@@ -27345,7 +27345,7 @@ Lab.register({
       if (spin) sum.push('In a while statement, continue goes straight back to the condition check. If i++ is below the continue, it is skipped as well, and i never changes. If the same code is written as a for statement, the increment is outside the body, so the loop ends normally. When you use continue in a while statement, change the value before the continue.');
       else {
         if (!broke) sum.push(le ? 'i <= 3 is true when i is 3 as well, so it runs one more time than i < 3. Starting from 0, i < n runs n times and i <= n runs n + 1 times. Mistakes like this, in which the count is off by one, are very common. To loop over an array with n elements, use i < n.' : 'i < 3 is true when i is 0, 1, and 2. Starting from 0 and writing i < n makes the loop run n times.' + (skipped ? ' In one of those iterations, continue skipped the output.' : ''));
-        if (broke) sum.push('break immediately ends the one innermost loop that encloses it. The loop does not run any more even if the condition is still true. Use it when you have found what you were looking for and there is no need to look further.');
+        if (broke) sum.push('break immediately ends the one innermost loop (or switch) that encloses it. The loop does not run any more even if the condition is still true. Use it when you have found what you were looking for and there is no need to look further.');
         if (skipped) sum.push('continue does not end the loop. It skips only the remaining lines of the current iteration. In a for statement, the increment (i++) is executed after the skip, and the loop moves on to the next iteration. If you change the statement to while, the result is different.');
         if (jump === 'none') sum.push(isFor ? 'A for statement is a loop that gathers the initialization, the condition, and the increment on one line. The order of execution is initialization (once) → condition → body → increment → condition → ... .' : 'A while statement repeats the body while the condition is true. Its order of execution is the same as that of a for statement that does the same thing, and the only difference is that you write the line that declares the variable and the line that changes the value yourself.');
       }
@@ -27713,7 +27713,7 @@ Lab.register({
       P.box('fm', 384, 106, 266, 44, { cls: 'ghost', title: 'memo', sub: s.err ? 'not run' : 'no object yet' });
     }
     P.box('vo', 384, 196, 266, 38, { cls: s.o ? 'wait' : 'ghost', title: 'Variable o', right: s.o ? 'refers to the object' : s.err ? 'none' : 'not assigned yet' });
-    if (s.o) P.arrow('ao', 'vo:t', 'fm:b', {});
+    if (s.o) P.arrow('ao', 'vo:t', 'hp:b', {});
     if (s.cur && s.tgt) P.arrow('wr', s.cur + ':r', s.tgt + ':l', { cls: 'hot' });
     P.box('out', 16, 266, 648, 36, { cls: s.err ? 'bad' : s.out ? 'good' : 'ghost', title: s.err ? 'Compile-time error' : 'Console output', right: s.err ? 'no matching constructor' : s.out || (s.made ? (noarg ? 'new Order()' : 'new Order(3)') + ' in progress' : 'not run yet') });
     P.note('The "#1, #2" marks in the boxes on the left show the order in which the pieces actually ran.');
@@ -27957,7 +27957,7 @@ Lab.register({
     P.size(680, 314);
     P.region('rd', 16, 16, 190, 190, 'Subclass Dog');
     P.region('ra', 250, 16, 190, 190, 'Superclass Animal');
-    P.region('hp', 462, 16, 202, 190, 'Heap: one Dog object');
+    P.region('hp', 462, 16, 202, 136, 'Heap: one Dog object');
     function cls(id) { return s.cur === id ? 'hot now' : (id === 'cc' && s.stack[0] === 'Dog()') || (id === 'pc' && s.stack.length > 1 && /^Animal\(/.test(s.stack[1])) ? 'wait' : s.done.indexOf(id) >= 0 ? 'good' : 'plain'; }
     P.box('cc', 24, 50, 174, 40, { cls: cls('cc'), title: 'Constructor Dog()', sub: c.sup === 'omit' ? 'super() is inserted' : c.sup === 'noarg' ? 'super();' : 'super("Buddy");' });
     P.box('cf', 24, 100, 174, 40, { cls: cls('cf'), title: 'Field initializer', sub: 'sound = "Woof"' });
@@ -27974,7 +27974,7 @@ Lab.register({
       P.box('fn', 470, 50, 186, 40, { cls: 'ghost', title: 'name', sub: s.err ? 'not run' : 'no object yet' });
       P.box('fs', 470, 100, 186, 40, { cls: 'ghost', title: 'sound', sub: s.err ? 'not run' : 'no object yet' });
     }
-    P.box('vd', 470, 150, 186, 40, { cls: s.d ? 'wait' : 'ghost', title: 'Variable d', right: s.d ? '→ object' : s.err ? 'none' : 'not set yet' });
+    P.box('vd', 470, 174, 186, 32, { cls: s.d ? 'wait' : 'ghost', title: 'Variable d', right: s.d ? '→ object' : s.err ? 'none' : 'not set yet' }); if (s.d) P.arrow('ad', 'vd:t', 'hp:b', {});
     if (s.stack.length > 1 && /^Animal\(/.test(s.stack[1])) P.arrow('a1', 'cc:r:0.35', 'pc:l:0.35', { cls: 'hot', label: 'super' });
     if (s.phase === 'new' && s.stack.indexOf('Dog.describe()') >= 0) P.arrow('a2', 'pc:l:0.8', 'cd:r:0.3', { cls: 'bad' });
     if (top === 'Animal.describe()') P.arrow('a3', 'cd:r:0.7', 'pd:l:0.7', { cls: 'hot', label: 'super.' });
@@ -28211,7 +28211,7 @@ Lab.register({
       st.out.push('B'); rel = 'The inner object refers to the outer object o';
       push('in.who(): Inside Inner, name means "the name of the outer object that I refer to". The value was not copied in advance. It is read now by following the reference, so B is printed.', 'good');
       sum.push('An object of an inner class without static holds a reference to the outer object, so it can use the fields and methods of the outer object as if they were its own.');
-      sum.push('In return, as long as the inner object remains, the outer object is not removed by garbage collection either. This is why static is added to a class inside that does not use the outer object.');
+      sum.push('In return, as long as an inner class object that uses members of the outer object is alive, the outer object is not removed by garbage collection either. This is why static is added to a class inside that does not use the outer object.');
     } else if (member) {
       st.cmp = 'ok'; push(passed);
       st.inn = true;
@@ -28273,7 +28273,7 @@ Lab.register({
       P.box('in', 378, 62, 272, 56, s.inn ? { cls: s.ref ? 'hot' : 'good', title: 'in : ' + (nested ? 'Nested' : 'Inner') + ' object', sub: s.ref ? 'hidden field refers to o' : 'no reference to an outer object' } : { cls: bad ? 'bad' : 'ghost', title: (nested ? 'Nested' : 'Inner') + ' object', sub: bad ? 'not created (compile-time error)' : 'not created yet' });
       if (s.ref) P.arrow('ref', 'in:l', 'o:r', { cls: 'hot', label: 'reference' });
     } else {
-      P.region('L', 16, 16, 300, 180, 'Outer object and local variable');
+      P.region('L', 16, 16, 300, 180, 'Outer, local variable, array');
       P.region('R', 364, 16, 300, 180, 'What r refers to');
       P.box('o', 30, 50, 272, 34, s.o ? { cls: s.th === 'outer' ? 'good' : 'wait', title: 'Outer object', right: s.o === 'run' ? 'make() running' : 'make() ended' } : { cls: 'ghost', title: 'Outer object', right: bad ? 'not run' : 'not created yet' });
       P.box('cnt', 30, 100, 272, 34, s.cnt && s.live ? { cls: 'wait', title: 'count (local variable)', right: arr ? '→ array' : s.cnt } : { cls: 'ghost', title: 'count (local variable)', right: s.cnt ? 'gone' : bad ? 'set twice' : 'not yet' });
@@ -28439,7 +28439,7 @@ Lab.register({
   Z: {
     seoul: { id: 'Asia/Seoul', name: 'Seoul', zdt: '2024-01-01T00:30+09:00[Asia/Seoul]', date: '2024-01-01', time: '00:30', off: '9 hours ahead of UTC' },
     utc: { id: 'UTC', name: 'UTC', zdt: '2023-12-31T15:30Z[UTC]', date: '2023-12-31', time: '15:30', off: 'the reference time zone' },
-    ny: { id: 'America/New_York', name: 'New York', zdt: '2023-12-31T10:30-05:00[America/New_York]', date: '2023-12-31', time: '10:30', off: '5 hours behind UTC' },
+    ny: { id: 'America/New_York', name: 'New York', zdt: '2023-12-31T10:30-05:00[America/New_York]', date: '2023-12-31', time: '10:30', off: 'Winter: 5 hrs behind UTC' },
   },
   ADD: { drop: 'd.plusMonths(1);', month: 'd = d.plusMonths(1);', twice: 'd = d.plusMonths(1).plusMonths(1);', two: 'd = d.plusMonths(2);', days: 'd = d.plusDays(30);' },
   code: function (c) {

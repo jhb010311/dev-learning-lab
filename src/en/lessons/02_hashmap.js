@@ -1,7 +1,7 @@
 Lab.register({
   id: 'hashmap', nav: 'Inside HashMap', cat: 'Data structures', mode: 'step',
   title: 'Where does a HashMap put a key, and how does it find it?',
-  intro: 'A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled.',
+  intro: 'A HashMap uses the hashCode of a key to decide the bucket number and puts the key there. When the bucket numbers decided from the hash codes collide, the keys are chained one after another in a single bucket, and when the entries become many, the number of buckets is doubled.',
   terms: ['Hash table and HashMap', 'Hash collision', 'Load factor and resizing', 'Red-black tree', 'equals and hashCode contract'], ranks: ['collection', 'equals', 'ds'],
   controls: [
     { id: 'n', label: 'Number of keys to put', type: 'range', min: 1, max: 40, value: 13, fmt: function (v) { return v + ''; } },
@@ -48,7 +48,7 @@ Lab.register({
       var moved = 0; old.forEach(function (b, j) { moved += B[j + oc].nodes.length; });
       push(why + ' The number of buckets was increased from ' + oc + ' to ' + cap + ', and the bucket of every entry was decided again. Of the ' + size + ' entries, ' + moved + ' moved to a new bucket. The next resize happens when the number of entries exceeds ' + thr + '.', '', -1);
     }
-    function where(k) { return 'The hashCode is ' + k.raw + (hcOn ? '' : ' (not overridden, so a different value for each object)') + ', and the bucket number is ' + (k.hash & (cap - 1)) + ' (the remainder of dividing the hash by the number of buckets, ' + cap + ').'; }
+    function where(k) { return 'The hashCode is ' + k.raw + (hcOn ? '' : ' (not overridden, so a different value for each object)') + ', and the bucket number is ' + (k.hash & (cap - 1)) + ' (the remainder of dividing a value that mixes the upper and lower bits of the hashCode by the number of buckets, ' + cap + ').'; }
     function put(id, again) {
       var k = mk(id), idx = k.hash & (cap - 1), b = B[idx], hit = b.nodes.filter(function (x) { return same(x, k); })[0];
       var head = (again ? 'A new key object is created with the same id, ' + id + ', and put again. ' : 'put(id ' + id + '). ') + where(k) + ' ';
@@ -78,7 +78,7 @@ Lab.register({
     if (hcOn && c.hash !== 'good' && afterFill.longest > 2) sum.push('When there are only a few distinct hashCode values, the keys pile up in the same buckets no matter how much the number of buckets grows. The longer a bucket gets, the slower put and get become, because they compare the entries in it one by one.');
     if (afterFill.trees) sum.push('Buckets converted to red-black trees: ' + afterFill.trees + '. A tree makes the search faster when the hash values differ from each other or the keys are Comparable. When, as in this example, every hashCode in a bucket is the same and the keys are not Comparable either, converting to a tree does not make the search faster. In the end, the solution is to make hashCode spread evenly.');
     if (c.eq === 'both') sum.push('Both equals and hashCode are overridden, so a new object created with the same id could also be used to replace the value and to find it.');
-    if (c.eq === 'eqonly') sum.push('Overriding only equals breaks the contract that "two objects for which equals is true must have the same hashCode". The id is the same but the hash is different, so the key goes to a different bucket, and as a result a duplicate was stored and the lookup failed too.');
+    if (c.eq === 'eqonly') sum.push('Overriding only equals breaks the contract that "two objects for which equals is true must have the same hashCode". The id is the same but the hash is different, so the key usually goes to a different bucket, and even in the same bucket it is not treated as the same key. As a result a duplicate was stored and the lookup failed too.');
     if (c.eq === 'hconly') sum.push('Overriding only hashCode gets the key as far as the same bucket, but equals compares references, so the key is not recognized as the same key. A duplicate was stored and the lookup failed too.');
     if (c.eq === 'none') sum.push('When neither is overridden, keys with the same contents are completely different keys. You can find a value only if you are holding the very object that was used for the put.');
     return { events: ev, summary: sum, row: [afterFill.cap + '', afterFill.resizes + '', afterFill.longest + '', afterFill.trees + '', replaced ? 'Only the value replaced' : 'Duplicate stored', found ? 'Found' : 'null'], trace: ev.map(function (e) { return e.snap; }) };

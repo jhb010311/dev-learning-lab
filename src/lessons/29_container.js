@@ -28,14 +28,14 @@ Lab.register({
     push('물리 서버 한 대에 호스트 운영체제가 떠 있습니다. 여기에 애플리케이션 인스턴스 ' + c.n + '개를 서로 격리해서 띄우려 합니다.', '');
     if (vm) {
       layers.push(['하이퍼바이저 (가상 하드웨어를 만들어 줌)', 'hot']); push('하이퍼바이저가 물리 자원을 나눠 가짜 컴퓨터(가상 하드웨어)를 만듭니다.', '');
-      for (var i = 1; i <= c.n; i++) { inst.push(['VM ' + i, '게스트 OS 부팅 중', 'b']); mem += OS; push('VM ' + i + ': 가상 하드웨어 위에서 게스트 운영체제를 처음부터 부팅합니다. 커널을 올리고 시스템 서비스를 시작하는 데 수십 초가 걸리고, 운영체제만으로 메모리를 약 1GB 씁니다.', ''); inst[i - 1] = ['VM ' + i, '게스트 OS(커널) + JDK + app', 'd']; mem += APP; push('VM ' + i + ': 부팅이 끝난 뒤 그 안에서 애플리케이션을 실행합니다. 이 VM은 자기만의 커널을 가지고 있어 다른 VM과 완전히 분리됩니다.', ''); }
+      for (var i = 1; i <= c.n; i++) { inst.push(['VM ' + i, '게스트 OS 부팅 중', 'b']); mem += OS; push('VM ' + i + ': 가상 하드웨어 위에서 게스트 운영체제를 처음부터 부팅합니다. 커널을 올리고 시스템 서비스를 시작하는 데 수십 초가 걸리고, 운영체제만으로 메모리를 약 1GB 씁니다.', ''); inst[i - 1] = ['VM ' + i, '게스트 OS(커널) + JDK + app', 'd']; mem += APP; push('VM ' + i + ': 부팅이 끝난 뒤 그 안에서 애플리케이션을 실행합니다. 이 VM은 자기만의 커널을 가지고 있어 다른 VM과 커널까지 분리됩니다.', ''); }
       sum.push('가상 머신은 인스턴스마다 운영체제를 통째로 가지므로 무겁고 느리게 뜨지만, 커널까지 분리되어 격리가 강합니다. 다른 종류의 운영체제도 올릴 수 있습니다.');
     } else {
       layers.push(['컨테이너 런타임 (Docker 등)', 'hot']); push('컨테이너 런타임은 가상 하드웨어를 만들지 않습니다. 호스트 커널의 기능으로 프로세스를 격리해서 실행할 뿐입니다.', '');
       for (var j = 1; j <= c.n; j++) {
         inst.push(['컨테이너 ' + j, '이미지 준비', 'b']); push('컨테이너 ' + j + ': 이미지(애플리케이션과 실행에 필요한 파일 묶음)를 읽기 전용으로 깔고, 그 위에서 프로세스를 시작합니다. 운영체제를 부팅하지 않으므로 프로세스 하나를 띄우는 시간이면 됩니다. 같은 이미지는 컨테이너끼리 공유합니다.', '');
-        if (+c.limit < APP) { inst[j - 1] = ['컨테이너 ' + j, 'OOMKilled (메모리 제한 초과)', 'r']; killed = true; push('컨테이너 ' + j + ': 애플리케이션이 400MB를 쓰려 했지만 제한이 ' + c.limit + 'MB입니다. 커널(cgroups)이 제한을 넘은 프로세스를 강제로 종료합니다. 자바의 OutOfMemoryError가 아니라 프로세스가 통째로 사라집니다.', 'bad'); }
-        else { inst[j - 1] = ['컨테이너 ' + j, '프로세스(JDK + app) · 제한 ' + c.limit + 'MB', 'd']; mem += APP; push('컨테이너 ' + j + ': 실행 중입니다. 네임스페이스 덕분에 이 프로세스는 자기만의 파일 시스템, 네트워크, 프로세스 목록을 가진 것처럼 보이지만, 실제로는 호스트 커널 위의 평범한 프로세스입니다.', 'good'); }
+        if (+c.limit < APP) { inst[j - 1] = ['컨테이너 ' + j, 'OOMKilled (메모리 제한 초과)', 'r']; killed = true; push('컨테이너 ' + j + ': 애플리케이션이 400MB를 쓰려 했지만 제한이 ' + c.limit + 'MB입니다. 커널(cgroups)이 제한을 넘은 프로세스를 강제로 종료합니다. 자바의 OutOfMemoryError도 없이 프로세스가 통째로 사라질 수 있습니다.', 'bad'); }
+        else { inst[j - 1] = ['컨테이너 ' + j, '프로세스(JRE + app) · 제한 ' + c.limit + 'MB', 'd']; mem += APP; push('컨테이너 ' + j + ': 실행 중입니다. 네임스페이스 덕분에 이 프로세스는 자기만의 파일 시스템, 네트워크, 프로세스 목록을 가진 것처럼 보이지만, 실제로는 호스트 커널 위의 평범한 프로세스입니다.', 'good'); }
       }
       sum.push('컨테이너는 커널을 공유하므로 가볍고 빨리 뜹니다. 대신 격리는 가상 머신보다 약하고, 호스트와 같은 종류의 커널에서만 동작합니다. "보이는 범위"는 네임스페이스가, "쓸 수 있는 자원량"은 cgroups가 나눕니다.');
       if (killed) sum.push('메모리 제한보다 많이 쓰면 컨테이너가 강제 종료됩니다(OOMKilled). JVM의 힙 크기는 컨테이너 제한 안에 들어오도록 맞춰야 합니다. 요즘 JVM은 컨테이너 제한을 인식해 기본 힙 크기를 정하지만, 힙 외에 쓰는 메모리도 있어서 여유를 둬야 합니다.');
@@ -59,7 +59,7 @@ Lab.register({
       if (vm) {
         P.box('os' + j, ix + 7, 154, w - 14, 34, { cls: state.indexOf('부팅') >= 0 ? 'hot' : 'wait', title: '게스트 OS', center: true });
         if (state.indexOf('app') >= 0) P.box('app' + j, ix + 7, 114, w - 14, 34, { cls: 'good', title: 'JDK + app', center: true });
-      } else P.box('app' + j, ix + 7, 138, w - 14, 50, state.indexOf('OOM') >= 0 ? { cls: 'bad', title: 'OOMKilled', sub: '제한 초과', center: true } : state.indexOf('이미지') >= 0 ? { cls: 'hot', title: '이미지 준비', sub: ' ', center: true } : { cls: 'good', title: 'JDK + app', sub: '제한 ' + c.limit + 'MB', center: true });
+      } else P.box('app' + j, ix + 7, 138, w - 14, 50, state.indexOf('OOM') >= 0 ? { cls: 'bad', title: 'OOMKilled', sub: '제한 초과', center: true } : state.indexOf('이미지') >= 0 ? { cls: 'hot', title: '이미지 준비', sub: ' ', center: true } : { cls: 'good', title: 'JRE + app', sub: '제한 ' + c.limit + 'MB', center: true });
     });
     if (!s.layers.length) P.text('hint', 340, 180, '실행을 누르면 아래층부터 쌓습니다', { cls: 'mut', anchor: 'middle' });
     P.note(vm ? '아래에서 위로 쌓인 층입니다. 가상 머신은 인스턴스마다 파란 "게스트 OS" 층을 하나씩 따로 가집니다.' : '아래에서 위로 쌓인 층입니다. 컨테이너에는 게스트 OS 층이 없고, 모든 컨테이너가 맨 아래의 호스트 커널 하나를 함께 씁니다. 점선 상자는 서로 격리된 범위입니다.');

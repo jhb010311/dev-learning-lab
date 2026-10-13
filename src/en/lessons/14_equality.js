@@ -75,7 +75,7 @@ Lab.register({
       o.by.forEach(function (name, j) { P.arrow('ar_' + name, 'v_' + name + ':r', 'o' + o.id + ':l:' + (o.by.length > 1 ? (j + 1) / (o.by.length + 1) : 0.5), { cls: o.by.length > 1 ? 'good' : '' }); });
     });
     var res = function (x) { return x === 'true' ? 'good' : x === 'false' ? 'bad' : 'ghost'; };
-    P.box('c1', 16, 236, 320, 34, { cls: res(s.cmp.eq), title: 'a == b  (same object?)', right: s.cmp.eq || '?' });
+    P.box('c1', 16, 236, 320, 34, { cls: res(s.cmp.eq), title: c.kind === 'int' && c.ib === 'prim' ? 'a == b  (same value?)' : 'a == b  (same object?)', right: s.cmp.eq || '?' });
     P.box('c2', 344, 236, 320, 34, { cls: res(s.cmp.equals), title: 'a.equals(b)  (same contents?)', right: s.cmp.equals || '?' });
     P.note(str ? 'An arrow shows the object that a variable refers to. When two arrows reach the same object, == is true. The string pool is actually inside the heap, but it is drawn separately to set it apart.' : 'An arrow shows the object that a variable refers to. When two arrows reach the same object, == is true. A variable of the primitive type int does not refer to an object. It holds the value directly.');
   },
